@@ -1,0 +1,12 @@
+Falla si cancelas un detalle pero han cambiado un fichero.Porque se mantiene el fichero cambiado.
+evento borrar documentos porque no se borran físicamente
+en la petición que exista el _model: Porque puede que no esté y no debería funcionar por seguridad
+Diseño de clases de los documentos:
+  - ArchivadorDocumental
+  - ArchivoDocumental
+  - ArchivoDocumentalEntrada
+  - ArchivoDocumentalSalida
+
+  - Registro entrada
+  - Registro salida
+Añadir el Cuerpo del profesor (PT o PS)
