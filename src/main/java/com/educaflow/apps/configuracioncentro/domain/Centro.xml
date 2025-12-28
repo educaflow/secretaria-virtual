@@ -1,0 +1,16 @@
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_7.4.xsd">
+
+    <module name="configuracioncentro" package="com.educaflow.apps.configuracioncentro.db"/>
+    <entity name="Centro">
+        <string name="code"  />
+        <string name="name" namecolumn="true" />
+        <string name="address" title="Dirección"/>
+        <string name="city" title="Ciudad"/>
+        <string name="postalCode" title="Código Postal"/>
+        <string name="country" title="Provincia"/>
+
+    </entity>
+
+</domain-models>

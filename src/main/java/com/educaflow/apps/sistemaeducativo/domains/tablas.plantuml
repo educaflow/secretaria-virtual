@@ -1,0 +1,9 @@
+FamiliaProfesional "1" -- "*" Ciclo
+Ciclo "*" -- "*" LeyEducativa
+(Ciclo, LeyEducativa) . CicloLeyEducativa
+CicloLeyEducativa "1" -- "*" Curso
+Curso "*" -- "*" Modulo
+(Curso, Modulo) . CursoModulo
+
+
+

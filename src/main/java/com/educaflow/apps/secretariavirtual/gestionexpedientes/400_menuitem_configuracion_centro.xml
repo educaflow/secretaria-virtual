@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_7.4.xsd">
+
+    <menuitem name="configuracioncentro-menu"  title="Configuración Centro"  groups="admins"  order="300"/>
+<!--
+    <menuitem name="configuracioncentro-Centro-menu"  parent="configuracioncentro-menu" title="Ciclos" action="mant-Centro-action" groups="admins" order="2"  />
+    <menuitem name="configuracioncentro-Modulo-menu"  parent="configuracioncentro-menu" title="Módulos" action="mant-Modulo-action" groups="admins" order="4"  />
+    <menuitem name="configuracioncentro-LeyEducativa-menu"  parent="configuracioncentro-menu" title="Leyes Educativas" action="mant-LeyEducativa-action" groups="admins" order="6"  />
+-->
+
+
+    <menuitem name="configuracioncentro-raw-menu"  title="Configuración Centro-RAW"  groups="admins"  order="400"/>
+
+<!--
+
+    <menuitem name="configuracioncentro-raw-FamiliaProfesional-menu"  parent="configuracioncentro-raw-menu" title="Familia profesional" action="mant-FamiliaProfesional-action" groups="admins" order="1"  />
+
+
+-->
+
+
+
+
+</object-views>

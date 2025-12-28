@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_7.4.xsd">
+
+    <module name="expedientes" package="com.educaflow.apps.expedientes.db"/>
+    <sequence name="numerador.seq" initial="1" increment="1"  />
+
+    <entity name="Numerador"  jsonAttrs="false"  repository="none" sequential="true" extends="com.axelor.db.Model">
+        <long name="id" title="ID" primary-key="true" required="true" sequence="numerador.seq" />
+        <enum name="tipoNumerador" title="Tipo de número" ref="TipoNumerador" required="true" />
+        <string name="centro" required="true" />
+        <string name="anyo" title="Año"  required="true" />
+        <long name="ultimo_numero" title="Último número" required="true"  />
+
+        <unique-constraint columns="tipoNumerador,centro,anyo" />
+    </entity>
+
+    <enum name="TipoNumerador">
+        <item name="Expediente" title="Expediente"/>
+    </enum>
+
+</domain-models>

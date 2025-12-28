@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<crls>
+  <crl>accvca110_der.crl</crl>
+  <crl>accvca120_der.crl</crl>
+  <crl>accvca130_der.crl</crl>
+  <crl>accv_ecc1_cliente.crl</crl>
+  <crl>accv_ecc1_componentes.crl</crl>
+  <crl>accv_ecc1_profesionales.crl</crl>
+  <crl>accv_root_ecc_eidas_2023.crl</crl>
+  <crl>accv_root_rsa_eidas_2023.crl</crl>
+  <crl>accv_rsa1_cliente.crl</crl>
+  <crl>accv_rsa1_componentes.crl</crl>
+  <crl>accv_rsa1_profesionales.crl</crl>
+  <crl>cagva_der.crl</crl>
+  <crl>cagva-entidad_der.crl</crl>
+  <crl>ciudadanos.crl</crl>
+  <crl>raizaccv1_der.crl</crl>
+  <crl>rootgva_der.crl</crl>
+</crls>

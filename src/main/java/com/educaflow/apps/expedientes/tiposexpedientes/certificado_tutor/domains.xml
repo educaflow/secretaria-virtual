@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_7.4.xsd">
+
+
+    <module name="expedientes" package="com.educaflow.apps.expedientes.db"/>
+    <entity name="CertificadoTutor" extends="Expediente" >
+        <many-to-one name="centro"       ref="com.educaflow.apps.configuracioncentro.db.Centro" title="Centro" />
+        <many-to-one name="cargo"       ref="com.educaflow.apps.configuracioncentro.db.Cargo" title="Cargo" />
+    </entity>
+
+</domain-models>

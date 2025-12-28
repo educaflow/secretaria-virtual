@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://axelor.com/xml/ns/object-views"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_7.4.xsd">
+
+    <form name="exp-ComisionServicio-Templates" title="Comisión de servicio"  width="large"  model="com.educaflow.apps.expedientes.db.ComisionServicio" groups="admins,users">
+
+
+    </form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- *********************************************************************************************  -->
+    <!-- *************************************** ENTRADA_DATOS ***************************************  -->
+    <!-- *********************************************************************************************  -->
+    
+    <form state="ENTRADA_DATOS" profile="CREADOR">
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+
+    </form>
+
+    <form state="ENTRADA_DATOS" >
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+    <!-- *************************************************************************************************  -->
+    <!-- *************************************** FIRMA_POR_USUARIO ***************************************  -->
+    <!-- *************************************************************************************************  -->
+    
+    <form state="FIRMA_POR_USUARIO" profile="CREADOR">
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+
+    </form>
+
+    <form state="FIRMA_POR_USUARIO" >
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+    <!-- **********************************************************************************************************  -->
+    <!-- *************************************** RESOLVER_PERMITIR_COMISION ***************************************  -->
+    <!-- **********************************************************************************************************  -->
+    
+    <form state="RESOLVER_PERMITIR_COMISION" profile="RESPONSABLE">
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+
+    </form>
+
+    <form state="RESOLVER_PERMITIR_COMISION" >
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+    <!-- ***********************************************************************************************  -->
+    <!-- *************************************** ENTREGA_TICKETS ***************************************  -->
+    <!-- ***********************************************************************************************  -->
+
+    <form state="ENTREGA_TICKETS" >
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+    <!-- ****************************************************************************************  -->
+    <!-- *************************************** ACEPTADO ***************************************  -->
+    <!-- ****************************************************************************************  -->
+
+    <form state="ACEPTADO" >
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+
+</object-views>

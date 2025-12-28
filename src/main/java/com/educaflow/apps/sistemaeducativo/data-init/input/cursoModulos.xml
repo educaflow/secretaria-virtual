@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<datos>
+    <cursoModulos>
+        <cursoModulo curso="DAW1" modulo="IPE1"/>
+        <cursoModulo curso="DAW2" modulo="DWS"/>
+        <cursoModulo curso="DAW2" modulo="DWC"/>
+        <cursoModulo curso="DAW2" modulo="DAW"/>
+        <cursoModulo curso="DAW2" modulo="DIW"/>
+        <cursoModulo curso="DAW2" modulo="OPTATIVA2DAW"/>
+        <cursoModulo curso="DAM1" modulo="IPE1"/>
+    </cursoModulos>
+</datos>

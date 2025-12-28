@@ -1,0 +1,1 @@
+Aqui se establece para cada trámite los tipos de expedientes activos que se pueden crear.

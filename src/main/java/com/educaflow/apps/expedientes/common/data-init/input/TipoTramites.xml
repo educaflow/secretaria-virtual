@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<datos>
+    <tipostramites>
+        <tipotramite code="PROFESOR" name="Trámites si eres un profesores" />
+        <tipotramite code="ALUMNO" name="Trámites si eres un alumno" />
+        <tipotramite code="TUTOR" name="Trámites si eres una madre/padre/tutor" />
+        <tipotramite code="DIRECCION" name="Trámites si eres de dirección" />
+        <tipotramite code="ADMINISTRATIVO" name="Trámites si eres administrativo" />
+        <tipotramite code="CONSERJE" name="Trámites si eres conserje" />
+    </tipostramites>
+</datos>

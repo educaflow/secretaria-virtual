@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_7.4.xsd">
+
+
+
+    <form name="user-preferences-form" id="secretariavirtual-user-preferences-form" title="Preferencias" model="com.axelor.auth.db.User" extension="true">
+
+        <extend target="//field[@name='image']">
+            <attribute name="showIf" value="1=0"/>
+        </extend>
+        <extend target="//field[@name='email']">
+            <attribute name="readonly" value="true"/>
+        </extend>
+        <extend target="//field[@name='theme']">
+            <attribute name="showIf" value="1=0"/>
+        </extend>
+        <extend target="//field[@name='singleTab']">
+            <attribute name="showIf" value="1=0"/>
+        </extend>
+        <extend target="//field[@name='noHelp']">
+            <attribute name="showIf" value="1=0"/>
+        </extend>
+        <extend target="//field[@name='noHelp']">
+            <attribute name="showIf" value="1=0"/>
+        </extend>
+
+        <extend target="//field[@name='language']">
+            <insert position="after">
+                <field name="centroActual" />
+            </insert>
+        </extend>
+    </form>
+
+
+
+</object-views>

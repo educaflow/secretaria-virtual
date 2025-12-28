@@ -1,0 +1,234 @@
+plugins {
+    id 'com.axelor.app' version '8.0.3-SNAPSHOT'
+    id 'idea'
+    id "org.jetbrains.kotlin.jvm" version "2.2.21"
+}
+configurations { educaFlowBuildToolsDependency }
+dependencies   { educaFlowBuildToolsDependency 'com.educaflow:EducaFlowBuildTools:1.0-SNAPSHOT' }
+
+
+
+group = 'com.educaflow'
+version = '0.0.1'
+
+axelor {
+    title = 'Secretaria Virtual'
+}
+
+def isProduccion = project.hasProperty('environment') && project.environment == 'produccion'
+
+
+//Java
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+kotlin {
+    jvmToolchain(21)
+    compilerOptions {
+        jvmTarget =  org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
+    }
+}
+
+tasks.named("compileKotlin") {
+    dependsOn(tasks.named("generateCode"))
+    destinationDirectory.set(file("build/classes/java/main"))
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-Xlint:deprecation"
+}
+
+
+
+dependencies {
+    implementation 'com.itextpdf:kernel:9.2.0'
+    implementation 'com.itextpdf:layout:9.2.0'
+    implementation 'com.itextpdf:forms:9.2.0'
+    implementation 'com.itextpdf:pdfa:9.2.0'
+    implementation 'com.itextpdf:sign:9.2.0'
+    implementation 'com.itextpdf:bouncy-castle-adapter:9.2.0'
+    implementation 'com.itextpdf:commons:9.2.0'
+    implementation 'de.vandermeer:asciitable:0.3.2'
+    implementation 'org.verapdf:core:1.28.1'
+    implementation 'org.verapdf:validation-model:1.28.1'
+    implementation 'org.verapdf:validation-model-jakarta:1.28.1'
+    implementation 'net.java.dev.jna:jna:5.14.0'
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:2.2.0"
+}
+
+//Test
+afterEvaluate {
+    configurations {
+        // Exclusión de JUnit 4 para asegurar el uso exclusivo de JUnit 5
+        testImplementation.exclude group: 'junit', module: 'junit'
+        testImplementation.exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+
+    test {
+        // Forzar el uso de la plataforma JUnit 5
+        useJUnitPlatform()
+        beforeTest { descriptor ->
+            logger.lifecycle('Running: ' + descriptor)
+        }
+    }
+}
+
+
+war {
+    archiveFileName = 'secretariavirtual.war'
+}
+jar {
+    enabled = false
+}
+
+tasks.register('viewProcessorTask', JavaExec) {
+    description = 'Ejecuta una clase Java desde un JAR externo después de procesar los fichero de las vistas (form) de los expedientes.'
+    group = 'build'
+
+    mainClass = 'com.educaflow.common.buildtools.viewprocessor.Main'
+
+    classpath = configurations.educaFlowBuildToolsDependency
+
+
+    args './src/main/java', './build/resources/main/views'
+
+    workingDir = layout.projectDirectory.dir('.')
+}
+tasks.named('processResources') {
+    finalizedBy 'viewProcessorTask'
+}
+tasks.register('managei18nfiles', JavaExec) {
+    description = 'Ejecuta una clase Java desde un JAR externo después de generar y procesar los fichero i18n.'
+    group = 'build'
+
+    mainClass = 'com.educaflow.common.buildtools.i18nprocessor.Main'
+
+    classpath = configurations.educaFlowBuildToolsDependency
+
+
+    args './src/main/java', './build/resources/main/i18n'
+
+    workingDir = layout.projectDirectory.dir('.')
+}
+tasks.named('processResources') {
+    finalizedBy 'managei18nfiles'
+}
+tasks.register('copyDataInit', JavaExec) {
+    description = 'Ejecuta una clase Java desde un JAR externo para copiar las carpetas "data-init" de cada expediente.'
+    group = 'build'
+
+    mainClass = 'com.educaflow.common.buildtools.copyinitdata.Main'
+
+    classpath = configurations.educaFlowBuildToolsDependency
+
+
+    args './src/main/java', './build/resources/main/java-data-init'
+
+    workingDir = layout.projectDirectory.dir('.')
+}
+tasks.named('build') {
+    finalizedBy 'copyDataInit'
+}
+tasks.register('copyDomain', JavaExec) {
+    description = 'Ejecuta una clase Java desde un JAR externo para copiar las los ficheros de dominio'
+    group = 'build'
+
+    mainClass = 'com.educaflow.common.buildtools.copydomain.Main'
+
+    classpath = configurations.educaFlowBuildToolsDependency
+
+
+    args './src/main/java', './build/resources/main/java-domain'
+
+    workingDir = layout.projectDirectory.dir('.')
+}
+tasks.named('build') {
+    finalizedBy 'copyDomain'
+}
+tasks.register('generateDataInitTiposExpedientes', JavaExec) {
+    description = 'Ejecuta una clase Java desde un JAR externo para generar los ficheros de "data-init" de los tipos de expediente.'
+    group = 'build'
+
+    mainClass = 'com.educaflow.common.buildtools.createdatainittipoexpediente.Main'
+
+    classpath = configurations.educaFlowBuildToolsDependency
+
+
+    args './src/main/java', './build/resources/main'
+
+    workingDir = layout.projectDirectory.dir('.')
+}
+tasks.named('build') {
+    finalizedBy 'generateDataInitTiposExpedientes'
+}
+tasks.register('copiarPdf', JavaExec) {
+    description = 'Ejecuta una clase Java desde un JAR externo para copia los PDF en resource.'
+    group = 'build'
+
+    mainClass = 'com.educaflow.common.buildtools.documentopdf.Main'
+
+    classpath = configurations.educaFlowBuildToolsDependency
+
+
+    args './src/main/java', './build/resources/main/documentospdf'
+
+    workingDir = layout.projectDirectory.dir('.')
+}
+tasks.named('build') {
+    finalizedBy 'copiarPdf'
+}
+tasks.register('RichDomainClassTask', JavaExec) {
+    description = 'Ejecuta una clase Java desde un JAR externo para añadir código al modelo con los enumerados de estados, eventos y profiles.'
+    group = 'build'
+
+    mainClass = 'com.educaflow.common.buildtools.richdomainclass.Main'
+
+    classpath = configurations.educaFlowBuildToolsDependency
+
+
+    args './src/main/java', './build/src-gen/main/java'
+
+    workingDir = layout.projectDirectory.dir('.')
+
+    inputs.dir(layout.projectDirectory.dir('./src/main/java'))
+    outputs.dir(layout.buildDirectory.dir('./build/src-gen/main/java'))
+}
+tasks.named('generateCode') {
+    finalizedBy tasks.RichDomainClassTask
+}
+tasks.register('CreateFilesTask', JavaExec) {
+    description = 'Ejecuta una clase Java desde un JAR externo para generar o validar los ficheros de un tipo de expediente.'
+    group = 'build'
+
+    mainClass = 'com.educaflow.common.buildtools.createfiles.Main'
+
+    classpath = configurations.educaFlowBuildToolsDependency
+
+
+    args './src/main/java'
+
+    workingDir = layout.projectDirectory.dir('.')
+}
+tasks.named('generateCode') {
+    dependsOn tasks.CreateFilesTask
+}
+tasks.register('GenerateDocs', JavaExec) {
+    description = 'Ejecuta una clase Java desde un JAR externo para Generar documentación.'
+    group = 'build'
+
+    mainClass = 'com.educaflow.common.buildtools.generatedocs.Main'
+
+    classpath = configurations.educaFlowBuildToolsDependency
+
+
+    args './src'
+
+    workingDir = layout.projectDirectory.dir('.')
+}
+tasks.named('build') {
+    finalizedBy 'GenerateDocs'
+}

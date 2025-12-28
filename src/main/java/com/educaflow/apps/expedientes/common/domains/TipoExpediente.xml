@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_7.4.xsd">
+
+    <module name="expedientes" package="com.educaflow.apps.expedientes.db"/>
+    <entity name="TipoExpediente">
+        <string name="code"  />
+        <string name="name" namecolumn="true" translatable="true" />
+        <enum name="ambitoCreador" ref="AmbitoTipoExpediente" title="Ámbito creador" />
+        <enum name="ambitoResponsable" ref="AmbitoTipoExpediente" title="Ámbito responsable"  />
+        <enum name="ambitoAuditor" ref="AmbitoTipoExpediente" title="Ámbito auditor"  />
+        <string name="fqcnEventManager"  title="Clase que maneja los eventos" />
+        <many-to-one name="tramite" ref="Tramite" />
+        <one-to-many name="estados" ref="EstadoTipoExpediente" mappedBy="tipoExpediente" />
+
+
+
+
+        <extra-imports-model>
+            <![CDATA[
+                import com.educaflow.apps.expedientes.common.EventManager;
+                import com.educaflow.apps.expedientes.common.StateEventValidator;
+                import com.axelor.inject.Beans;
+            ]]>
+        </extra-imports-model>
+
+
+
+        <extra-code-model>
+            <![CDATA[
+            public EventManager getEventManager() {
+                try {
+                    String fqcnEventManager = this.getFqcnEventManager();
+                    if (fqcnEventManager == null || fqcnEventManager.isEmpty()) {
+                        throw new RuntimeException("No existe el fqcnEventManager para el tipo de expediente: " + this.getName());
+                    }
+                    Class<EventManager> eventManagerClass = (Class<EventManager>) Class.forName(this.getFqcnEventManager());
+
+                    EventManager eventManager = (EventManager) Beans.get(eventManagerClass);
+
+                    return eventManager;
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+
+            public StateEventValidator getStateEventValidator() {
+                try {
+                    String fqcnEventManager = this.getFqcnEventManager();
+                    if (fqcnEventManager == null || fqcnEventManager.isEmpty()) {
+                        throw new RuntimeException("No existe el fqcnEventManager para el tipo de expediente: " + this.getName());
+                    }
+
+                    int ultimoPunto = fqcnEventManager.lastIndexOf('.');
+                    if (ultimoPunto == -1) {
+                        throw new RuntimeException("El fqcnEventManager no tiene un punto: " + this.getFqcnEventManager());
+                    }
+
+                    String fqcnStateEventValidation = fqcnEventManager.replace("EventManager","StateEventValidator");
+
+                    Class<StateEventValidator> stateEventValidationClass = (Class<StateEventValidator>) Class.forName(fqcnStateEventValidation);
+
+                    StateEventValidator stateEventValidator = Beans.get(stateEventValidationClass);
+
+                    return stateEventValidator;
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+
+        ]]>
+        </extra-code-model>
+
+
+
+    </entity>
+    <entity name="EstadoTipoExpediente">
+        <string name="codeState" title="Código del estado" />
+        <enum name="profile" ref="Profile" title="Perfil" />
+        <one-to-one name="tipoExpediente" ref="TipoExpediente" />
+    </entity>
+
+    <enum name="Profile">
+        <item name="CREADOR" title="Creador"/>
+        <item name="RESPONSABLE" title="Responsable"/>
+        <item name="SECRETARIO" title="Secretario"/>
+        <item name="DIRECTOR" title="Director"/>
+        <item name="AUDITOR" title="Auditor" />
+    </enum>
+    <enum name="AmbitoTipoExpediente">
+        <item name="CENTRO" title="Centro"/>
+        <item name="DEPARTAMENTO" title="Departamento"/>
+        <item name="CICLO" title="Ciclo"/>
+        <item name="CURSO" title="Curso"/>
+        <item name="GRUPO" title="Grupo" />
+        <item name="MODULO" title="Módulo" />
+        <item name="INDIVIDUAL" title="Individual" />
+    </enum>
+
+</domain-models>

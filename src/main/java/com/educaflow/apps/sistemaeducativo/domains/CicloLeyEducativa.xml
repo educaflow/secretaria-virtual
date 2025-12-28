@@ -1,0 +1,16 @@
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_7.4.xsd">
+
+    <module name="sistemaeducativo" package="com.educaflow.apps.sistemaeducativo.db"/>
+    <entity name="CicloLeyEducativa">
+        <many-to-one name="ciclo"  ref="com.educaflow.apps.sistemaeducativo.db.Ciclo"   required="true"  />
+        <many-to-one name="leyEducativa" ref="com.educaflow.apps.sistemaeducativo.db.LeyEducativa"  required="true"  />
+
+        <one-to-many name="cursos" ref="com.educaflow.apps.sistemaeducativo.db.Curso" mappedBy="cicloLeyEducativa" />
+
+        <unique-constraint columns="ciclo,leyEducativa" />
+
+    </entity>
+
+</domain-models>

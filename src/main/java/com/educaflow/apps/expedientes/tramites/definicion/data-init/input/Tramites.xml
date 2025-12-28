@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<datos>
+    <tramites>
+        <tramite code="JustificacionFaltaProfesorado" name="Justificación de falta del profesorado" publico="true" privado="true" tipoTramite="PROFESOR" ><![CDATA[
+            Este trámite permite a justificar la falta del profesorado.<br>
+            Es solo para profesores<br>
+            Y puedo poner algo en <strong>negrita</strong>.
+        ]]></tramite>
+        <tramite code="Prueba" name="Trámite de prueba" publico="true" privado="true" tipoTramite="PROFESOR"   ><![CDATA[
+            Este trámite es de prueba<br>
+            Es solo para cualquiera<br>
+
+        ]]></tramite>
+        <tramite code="RenunciaConvocatoriaAlumno" name="Renuncia a la convocatoria"  publico="true" privado="true" tipoTramite="ALUMNO"  ><![CDATA[
+            Este trámite es de prueba<br>
+            Es solo para cualquiera<br>
+            Y puedo poner algo en <span style="color:red">rojo</span>.<br>
+            Y esta es una tercera línea de texto.
+        ]]></tramite>
+        <tramite code="FirmarActas" name="Firmar actas"  publico="false" privado="true" tipoTramite="ADMINISTRATIVO"   ><![CDATA[
+            Este trámite es de prueba<br>
+        ]]></tramite>
+        <tramite code="RenunciaConvocatoriaTutor" name="Renuncia a la convocatoria"  publico="true" privado="false" tipoTramite="TUTOR"  ><![CDATA[
+            Este trámite es de prueba<br>
+            Es solo para cualquiera<br>
+            Y puedo poner algo en <span style="color:red">rojo</span>.<br>
+            Y esta es una tercera línea de texto.
+        ]]></tramite>
+        <tramite code="AmonestacionLeve" name="Amonestación leve"  publico="false" privado="true" tipoTramite="DIRECCION"  ><![CDATA[
+            Este trámite es de prueba<br>
+            Es solo para cualquiera<br>
+            Y puedo poner algo en <span style="color:red">rojo</span>.<br>
+            Y esta es una tercera línea de texto.<br>
+            hola<br>
+        ]]></tramite>
+        <tramite code="AutorizacionRecogidaTituloTerceraPersona" name="Autorización para la recogida del título por tercera persona"  publico="false" privado="true" tipoTramite="CONSERJE"  ><![CDATA[
+            Este trámite es de prueba<br>
+            Es solo para cualquiera<br>
+            Y puedo poner algo en <span style="color:red">rojo</span>.<br>
+            Y esta es una tercera línea de texto.<br>
+            hola<br>
+        ]]></tramite>
+        <tramite code="CertificadoTutor" name="Certificado Tutor" tipoTramite="PROFESOR"   ><![CDATA[
+            Este trámite es de prueba<br>
+            Es solo para cualquiera<br>
+
+        ]]></tramite>
+    </tramites>
+</datos>

@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<datos>
+    <niveles>
+        <nivel code="1" name="Ciclos formativos de grado Básico"/>
+        <nivel code="2" name="Ciclos Formativos de Grado Medio"/>
+        <nivel code="3" name="Ciclos Formativos de Grado Superior"/>
+    </niveles>
+</datos>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_7.4.xsd">
+
+
+
+    <module name="secretariavirtual" package="com.educaflow.apps.secretariavirtual.db"/>
+
+    <entity name="PdfManager" persistable="false"  >
+        <one-to-one name="pdf" title="PDF a gestionar" ref="com.educaflow.common.domains.db.MetaFilePdf"  transient="true" />
+        <string name="descripcion"  large="true" title="Descripción" multiline="true" transient="true" />
+    </entity>
+
+
+
+</domain-models>

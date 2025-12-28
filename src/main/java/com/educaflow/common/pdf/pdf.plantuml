@@ -1,0 +1,45 @@
+@startuml
+
+DocumentoPdfFactory --> "*" DocumentoPdf
+
+DocumentoPdf .> AlmacenClave
+DocumentoPdf .left> CampoFirma
+DocumentoPdf *-- ResultadoFirma
+AlmacenClave <|-- AlmacenClaveFichero
+AlmacenClave <|-- AlmacenClaveDispositivo
+
+ResultadoFirma o-- DatosCertificado
+
+class DocumentoPdf {
+    List<String> getNombreCamposFormulario();
+    Map<String,ResultadoFirma> getFirmasPdf();
+    int getNumeroPaginas();
+    String getFileName();
+
+
+    DocumentoPdf setValorCamposFormularioAndFlatten(Map<String,String> valores);
+    DocumentoPdf firmar(AlmacenClave almacenClave,CampoFirma campoFirma);
+    DocumentoPdf anyadirDocumentoPdf(DocumentoPdf documentoPdf);
+    DocumentoPdf anyadirDocumentoPdf(DocumentoPdf documentoPdf,String fileName);
+
+    byte[] getDatos();
+}
+
+class ResultadoFirma {
+    isCorrecta
+}
+
+class DatosCertificado {
+    isValidoEnListaCertificadosConfiables
+}
+
+class CampoFirma {
+mensaje
+rectanguloMensaje
+fontSize
+numeroPagina
+imagen
+fechaFirma
+}
+
+@enduml

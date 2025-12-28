@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<datos>
+    <leyes_educativas>
+        <ley_educativa code="LOGSE" name="Ley Orgánica 1/1990, de 3 de octubre, de Ordenación General del Sistema Educativo"/>
+        <ley_educativa code="LOE" name="Ley Orgánica 2/2006, de 3 de mayo, de Educación"/>
+        <ley_educativa code="LOMCE" name="Ley Orgánica 8/2013, de 9 de diciembre, para la Mejora de la Calidad Educativa"/>
+        <ley_educativa code="LOMLOE" name="Ley Orgánica 3/2020, de 29 de diciembre, de Modificación de la LOE"/>
+        <ley_educativa code="LOFP" name="Ley Orgánica 3/2022, de 31 de marzo, de Ordenación e Integración de la Formación Profesional"/>
+    </leyes_educativas>
+</datos>

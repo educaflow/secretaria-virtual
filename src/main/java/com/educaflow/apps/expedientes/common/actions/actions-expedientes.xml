@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_7.2.xsd">
+
+
+    <action-method name="action-event-expediente">
+        <call class="com.educaflow.apps.expedientes.common.ExpedienteController" method="triggerEvent"/>
+    </action-method>
+    <action-method name="action-event-new-expediente">
+        <call class="com.educaflow.apps.expedientes.common.ExpedienteController" method="triggerInitialEvent"/>
+    </action-method>
+    <action-method name="action-event-view-expediente">
+        <call class="com.educaflow.apps.expedientes.common.ExpedienteController" method="viewExpediente"/>
+    </action-method>
+    <action-method name="action-validate-on-save-child">
+        <call class="com.educaflow.apps.expedientes.common.ExpedienteController" method="validateChild"/>
+    </action-method>
+</object-views>

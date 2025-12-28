@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_7.4.xsd">
+
+    <action-view name="mant-Departamento-action" title="Departamentos" model="com.educaflow.apps.configuracioncentro.db.Departamento">
+        <view type="grid" name="mant-Departamento-grid"/>
+        <view type="form" name="mant-Departamento-form"/>
+        <view-param name="forceEdit" value="true"/>
+    </action-view>
+
+    <grid name="mant-Departamento-grid" title="Departamento" model="com.educaflow.apps.configuracioncentro.db.Departamento"
+          groups="admins"
+          editable="false" edit-icon="false" x-selector="none" canNew="true" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <hilite color="danger" if="archived"/>
+        <field name="code" width="200px" />
+        <field name="name" />
+        <field name="archived" width="100px" />
+    </grid>
+
+    <form name="mant-Departamento-form" title="Departamento" model="com.educaflow.apps.configuracioncentro.db.Departamento"
+          groups="admins"
+          width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false">
+        <panel name="Departamento" title="">
+            <field name="code" colSpan="3" />
+            <field name="name" colOffset="9" />
+        </panel>
+    </form>
+
+    <grid name="search-Departamento-grid" title="Departamento" model="com.educaflow.apps.configuracioncentro.db.Departamento"
+          groups="admins,users"
+          orderBy="name"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="name" />
+    </grid>
+</object-views>

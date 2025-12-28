@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_7.4.xsd">
+
+
+
+    <action-view name="mant-FamiliaProfesional-action" title="Familias profesionales"  model="com.educaflow.apps.sistemaeducativo.db.FamiliaProfesional">
+        <view type="grid" name="mant-FamiliaProfesional-grid"/>
+        <view type="form" name="mant-FamiliaProfesional-form"/>
+        <view-param name="forceEdit" value="true"/>
+    </action-view>
+
+    <grid name="mant-FamiliaProfesional-grid" title="Familia profesional" model="com.educaflow.apps.sistemaeducativo.db.FamiliaProfesional"
+          groups="admins"
+          editable="false" edit-icon="false" x-selector="none" canNew="true" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true"
+    >
+        <hilite color="danger" if="archived"/>
+        <field name="code" width="200px" />
+        <field name="name" />
+        <field name="archived"  width="100px" />
+
+
+    </grid>
+
+    <form name="mant-FamiliaProfesional-form" title="Familia Profesional"  model="com.educaflow.apps.sistemaeducativo.db.FamiliaProfesional"
+          groups="admins"
+          width="large"  canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false" >
+        <panel name="FamiliaProfesional" title="">
+            <field name="code" colSpan="3" />
+            <field name="name" colOffset="9" />
+        </panel>
+
+        <panel-related name="ciclos" field="ciclos" grid-view="search-Ciclo-grid" form-view="view-Ciclo-form" colSpan="12" canEdit="false" canNew="false" canRemove="false" />
+
+    </form>
+    <grid name="search-FamiliaProfesional-grid" title="Familia Profesional" model="com.educaflow.apps.sistemaeducativo.db.FamiliaProfesional"
+          groups="admins,users"
+          orderBy="name"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="name" />
+    </grid>
+
+</object-views>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_7.4.xsd">
+    <module name="domains" package="com.educaflow.common.domains.db"/>
+
+    <entity name="MetaFilePdf" extends="com.axelor.meta.db.MetaFile"  >
+        <one-to-many name="datosFirmas"  ref="DatosFirma" transient="true" />
+
+        <extra-imports-model>
+            <![CDATA[
+                import com.axelor.inject.Beans;
+                import com.educaflow.common.pdf.DocumentoPdf;
+                import com.educaflow.common.pdf.DocumentoPdfFactory;
+                import com.educaflow.common.pdf.ResultadoFirma;
+
+                import java.io.ByteArrayInputStream;
+                import java.io.InputStream;
+                import java.nio.file.Files;
+                import java.nio.file.Path;
+                import java.util.List;
+
+            ]]>
+        </extra-imports-model>
+
+        <extra-code-model>
+            <![CDATA[
+            public MetaFilePdf(DocumentoPdf documentoPdf) {
+                super();
+                try {
+                    byte[] pdfBytes = documentoPdf.getDatos();
+                    InputStream inputStream = new ByteArrayInputStream(pdfBytes);
+
+                    this.setFileName(documentoPdf.getFileName());
+                    this.setFileType("application/pdf");
+
+                    Beans.get(com.axelor.meta.MetaFiles.class).upload(inputStream, this);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            public DocumentoPdf getDocumentoPdf() {
+                try {
+                    Path filePath=Beans.get(com.axelor.meta.MetaFiles.class).getPath(this);
+
+
+                    byte[] bytes = Files.readAllBytes(filePath);
+
+                    DocumentoPdf documentoPdf= DocumentoPdfFactory.getDocumentoPdf(bytes, this.getFileName());
+
+                    return documentoPdf;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+                        ]]>
+        </extra-code-model>
+        <entity-listener class="com.educaflow.common.domains.MetaFilePdfListener"  />
+    </entity>
+
+
+
+</domain-models>

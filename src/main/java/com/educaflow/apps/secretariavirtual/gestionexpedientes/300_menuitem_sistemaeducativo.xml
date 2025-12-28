@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_7.4.xsd">
+
+    <menuitem name="sistemaeducativo-menu"  title="Sistema educativo"  groups="admins"  order="300"/>
+    <menuitem name="sistemaeducativo-Ciclo-menu"  parent="sistemaeducativo-menu" title="Ciclos" action="mant-Ciclo-action" groups="admins" order="2"  />
+    <menuitem name="sistemaeducativo-Modulo-menu"  parent="sistemaeducativo-menu" title="Módulos" action="mant-Modulo-action" groups="admins" order="4"  />
+    <menuitem name="sistemaeducativo-LeyEducativa-menu"  parent="sistemaeducativo-menu" title="Leyes Educativas" action="mant-LeyEducativa-action" groups="admins" order="6"  />
+
+    <menuitem name="sistemaeducativo-raw-menu"  title="Sistema educativo-RAW"  groups="admins"  order="400"/>
+    <menuitem name="sistemaeducativo-raw-FamiliaProfesional-menu"  parent="sistemaeducativo-raw-menu" title="Familia profesional" action="mant-FamiliaProfesional-action" groups="admins" order="1"  />
+    <menuitem name="sistemaeducativo-raw-Curso-menu"  parent="sistemaeducativo-raw-menu" title="Cursos" action="mant-Curso-action" groups="admins" order="3"  />
+    <menuitem name="sistemaeducativo-raw-CursoModulo-menu"  parent="sistemaeducativo-raw-menu" title="Cursos-Módulos" action="mant-CursoModulo-action" groups="admins" order="4"  />
+    <menuitem name="sistemaeducativo-raw-CicloLeyEducativa-menu"  parent="sistemaeducativo-raw-menu" title="Ciclo-Ley Educativa" action="mant-CicloLeyEducativa-action" groups="admins" order="5"  />
+    <menuitem name="sistemaeducativo-raw-Grado-menu"  parent="sistemaeducativo-raw-menu" title="Grados" action="mant-Grado-action" groups="admins" order="6"  />
+    <menuitem name="sistemaeducativo-raw-Nivel-menu"  parent="sistemaeducativo-raw-menu" title="Niveles" action="mant-Nivel-action" groups="admins" order="7"  />
+
+
+
+
+
+
+
+</object-views>

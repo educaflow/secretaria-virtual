@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_7.4.xsd">
+
+    <action-view name="mant-CicloLeyEducativa-action" title="Cursos-Módulos" model="com.educaflow.apps.sistemaeducativo.db.CicloLeyEducativa">
+        <view type="grid" name="mant-CicloLeyEducativa-grid"/>
+        <view type="form" name="mant-CicloLeyEducativa-form"/>
+        <view-param name="forceEdit" value="true"/>
+    </action-view>
+
+    <grid name="mant-CicloLeyEducativa-grid" title="Curso-Módulos" model="com.educaflow.apps.sistemaeducativo.db.CicloLeyEducativa"
+          groups="admins"
+          editable="false" edit-icon="false" x-selector="none" canNew="true" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <hilite color="danger" if="archived"/>
+        <field name="ciclo"  />
+        <field name="leyEducativa" />
+        <field name="archived" width="100px" />
+
+    </grid>
+
+    <form name="mant-CicloLeyEducativa-form" title="Curso-Módulo" model="com.educaflow.apps.sistemaeducativo.db.CicloLeyEducativa"
+          groups="admins"
+          width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false">
+        <panel name="CicloLeyEducativa" title="">
+            <field name="ciclo"  colSpan="6"  grid-view="search-Ciclo-grid" />
+            <field name="leyEducativa" colSpan="6" colOffset="6" grid-view="search-LeyEducativa-grid" />
+        </panel>
+
+        <panel-related name="cursos" field="cursos" title=""
+                       grid-view="mant-CicloLeyEducativa-Curso-grid"
+                       form-view="mant-CicloLeyEducativa-Curso-form"
+                       colSpan="12"
+        />
+
+    </form>
+
+
+    <grid name="search-CicloLeyEducativa-grid" title="Curso-Módulo" model="com.educaflow.apps.sistemaeducativo.db.CicloLeyEducativa"
+          groups="admins,users"
+          orderBy="name"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="ciclo"  />
+        <field name="leyEducativa" />
+    </grid>
+
+    <form name="view-CicloLeyEducativa-form" title="Curso-Módulo" model="com.educaflow.apps.sistemaeducativo.db.CicloLeyEducativa"
+          groups="admins"
+          width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false" >
+        <panel name="Curso" title="">
+            <field name="ciclo"  colSpan="6"  grid-view="search-Ciclo-grid" />
+            <field name="leyEducativa" colSpan="6" colOffset="6"  grid-view="search-LeyEducativa-grid" />
+        </panel>
+    </form>
+
+
+    <!-- ******************************************************************************************************* -->
+    <!-- ***************************** Vistas de Cursos hijos de CicloLeyEducativa ***************************** -->
+    <!-- ******************************************************************************************************* -->
+
+
+    <grid name="mant-CicloLeyEducativa-Curso-grid" title="Curso" model="com.educaflow.apps.sistemaeducativo.db.Curso"
+          groups="admins"
+
+    >
+        <field name="code" width="150px" />
+        <field name="name" />
+    </grid>
+
+    <form name="mant-CicloLeyEducativa-Curso-form" title="Curso" model="com.educaflow.apps.sistemaeducativo.db.Curso"
+          groups="admins"
+          width="large"
+          onNew="mant-CicloLeyEducativa-Curso-onNew-action"
+          canAttach="false"
+    >
+        <panel name="Curso" title="">
+            <field name="code" colSpan="3" />
+            <field name="name" colOffset="9"  colSpan="6"/>
+            <field name="cicloLeyEducativa" colOffset="6" colSpan="6" showIf="false" />
+        </panel>
+
+
+
+    </form>
+
+    <action-record name="mant-CicloLeyEducativa-Curso-onNew-action" model="com.educaflow.apps.sistemaeducativo.db.Curso">
+        <field name="cicloLeyEducativa" expr="eval: __parent__"/>
+    </action-record>
+
+</object-views>
