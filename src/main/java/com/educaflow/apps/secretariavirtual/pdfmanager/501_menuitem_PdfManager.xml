@@ -25,7 +25,7 @@
             <field name="new" showTitle="false" readonly="true" colSpan="9">
                 <viewer depends="pdf" ><![CDATA[
                     <>
-                    <Box as="iframe" height="300px" border="0" src={`ws/rest/com.educaflow.common.domains.db.MetaFilePdf/${pdf.id}/content/download?inline=true&name=${pdf.fileName}`} ></Box>
+                    <Box as="iframe" height="300px" border="0" src={`ws/rest/com.educaflow.base.domain.db.MetaFilePdf/${pdf.id}/content/download?inline=true&name=${pdf.fileName}`} ></Box>
                     </>
                     ]]></viewer>
             </field>

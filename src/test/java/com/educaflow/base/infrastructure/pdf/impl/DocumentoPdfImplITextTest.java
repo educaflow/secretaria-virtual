@@ -1,4 +1,4 @@
-package com.educaflow.common.pdf.impl;
+package com.educaflow.base.infrastructure.pdf.impl;
 
 import com.educaflow.base.infrastructure.criptografia.EntornoCriptografico;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClaveFichero;

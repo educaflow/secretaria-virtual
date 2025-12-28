@@ -1,4 +1,4 @@
-package com.educaflow.common.util;
+package com.educaflow.base.infrastructure.util;
 
 import com.axelor.db.ValueEnum;
 import com.axelor.db.annotations.EnumWidget;

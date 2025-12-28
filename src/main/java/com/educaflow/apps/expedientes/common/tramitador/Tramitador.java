@@ -14,7 +14,7 @@ import com.educaflow.base.infrastructure.mapper.BeanMapperModel;
 import com.educaflow.base.infrastructure.validation.engine.*;
 import com.educaflow.base.util.ReflectionUtil;
 import com.educaflow.base.util.TextUtil;
-import com.educaflow.common.validation.engine.*;
+import com.educaflow.base.infrastructure.validation.engine.*;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
 import com.google.common.base.CaseFormat;

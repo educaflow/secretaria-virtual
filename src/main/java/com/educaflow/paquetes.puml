@@ -4,6 +4,7 @@ package subsystems <<Cada una de las funcionalidades de la aplicación que ve el
 package shared <<Lo comparten entre varios subsistemas>>
 
 package base {
+    package domain <<Dominios de Axelor>>
     package infrastructure <<Microarquitecturas independiente de la aplicación  >>
     package util <<Funciona básicas y pequeñas, restrigidas a una sola clase por funcionalidad>>
 }
@@ -14,4 +15,8 @@ subsystems --> base
 shared -> base
 
 subsystems --> shared
+
+domain --> util
+infrastructure --> util
+infrastructure -> domain
 @enduml

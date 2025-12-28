@@ -2,7 +2,7 @@
 <domain-models xmlns="http://axelor.com/xml/ns/domain-models"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_7.4.xsd">
-    <module name="domains" package="com.educaflow.common.domains.db"/>
+    <module name="domains" package="com.educaflow.base.domain.db"/>
 
     <entity name="MetaFilePdf" extends="com.axelor.meta.db.MetaFile"  >
         <one-to-many name="datosFirmas"  ref="DatosFirma" transient="true" />
@@ -10,9 +10,9 @@
         <extra-imports-model>
             <![CDATA[
                 import com.axelor.inject.Beans;
-                import com.educaflow.common.pdf.DocumentoPdf;
-                import com.educaflow.common.pdf.DocumentoPdfFactory;
-                import com.educaflow.common.pdf.ResultadoFirma;
+                import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
+                import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
+                import com.educaflow.base.infrastructure.pdf.ResultadoFirma;
 
                 import java.io.ByteArrayInputStream;
                 import java.io.InputStream;
@@ -57,7 +57,7 @@
 
                         ]]>
         </extra-code-model>
-        <entity-listener class="com.educaflow.shared.metafilepdf.MetaFilePdfListener"  />
+        <entity-listener class="com.educaflow.base.domain.MetaFilePdfListener"  />
     </entity>
 
 

@@ -4,7 +4,7 @@ import com.educaflow.base.infrastructure.criptografia.AlmacenClaveDispositivo;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
-import com.educaflow.common.domains.db.MetaFilePdf;
+import com.educaflow.base.domain.db.MetaFilePdf;
 import com.educaflow.apps.configuracioncentro.db.Centro;
 import com.educaflow.apps.expedientes.common.EventContext;
 import com.educaflow.apps.expedientes.common.annotations.OnEnterState;
@@ -12,7 +12,7 @@ import com.educaflow.apps.expedientes.common.annotations.WhenEvent;
 import com.educaflow.apps.expedientes.db.JustificacionFaltaProfesorado;
 import com.educaflow.apps.expedientes.db.TipoResolucionJustificacionFaltaProfesorado;
 import com.educaflow.apps.expedientes.db.repo.JustificacionFaltaProfesoradoRepository;
-import com.educaflow.common.pdf.*;
+import com.educaflow.base.infrastructure.pdf.*;
 
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.google.inject.Inject;

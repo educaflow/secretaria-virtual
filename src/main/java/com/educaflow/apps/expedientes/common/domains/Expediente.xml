@@ -27,13 +27,13 @@
                 import java.util.ArrayList;
                 import com.axelor.inject.Beans;
                 import com.educaflow.apps.expedientes.common.StateEnum;
-                import com.educaflow.common.pdf.DocumentoPdf;
+                import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
                 import java.io.ByteArrayInputStream;
                 import java.io.IOException;
                 import java.io.InputStream;
                 import java.util.Map;
-                import com.educaflow.common.pdf.DocumentoPdfUtil;
-                import com.educaflow.common.pdf.DocumentoPdfFactory;
+                import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil;
+                import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
                 import java.nio.file.Path;
             ]]>
         </extra-imports-model>

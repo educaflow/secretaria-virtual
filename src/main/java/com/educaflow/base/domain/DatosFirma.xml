@@ -2,7 +2,7 @@
 <domain-models xmlns="http://axelor.com/xml/ns/domain-models"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_7.4.xsd">
-    <module name="domains" package="com.educaflow.common.domains.db"/>
+    <module name="domains" package="com.educaflow.base.domain.db"/>
     <entity name="DatosFirma"  persistable="false" >
         <boolean name="valida" title="Válida"  />
         <datetime name="fechaFirma"  />

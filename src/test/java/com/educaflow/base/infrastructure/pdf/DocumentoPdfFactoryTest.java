@@ -1,4 +1,4 @@
-package com.educaflow.common.pdf;
+package com.educaflow.base.infrastructure.pdf;
 
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;

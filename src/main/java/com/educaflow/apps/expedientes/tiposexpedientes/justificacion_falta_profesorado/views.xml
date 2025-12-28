@@ -43,7 +43,7 @@
             <field name="new" showTitle="false" readonly="true" colSpan="9">
                 <viewer depends="documentacionParaPresentarSinFirmar" ><![CDATA[
                     <>
-                    <Box as="iframe" height="900" border="0" src={`ws/rest/com.educaflow.common.domains.db.MetaFilePdf/${documentacionParaPresentarSinFirmar.id}/content/download?inline=true&name=${documentacionParaPresentarSinFirmar.fileName}`} ></Box>
+                    <Box as="iframe" height="900" border="0" src={`ws/rest/com.educaflow.base.domain.db.MetaFilePdf/${documentacionParaPresentarSinFirmar.id}/content/download?inline=true&name=${documentacionParaPresentarSinFirmar.fileName}`} ></Box>
                     </>
                     ]]></viewer>
             </field>
@@ -52,7 +52,7 @@
             <field name="new" showTitle="false" readonly="true" colSpan="9">
                 <viewer depends="documentacionParaPresentarSinFirmar" ><![CDATA[
                     <>
-                    <Box as="iframe" height="400" border="0" src={`ws/rest/com.educaflow.common.domains.db.MetaFilePdf/${documentacionParaPresentarSinFirmar.id}/content/download?inline=true&name=${documentacionParaPresentarSinFirmar.fileName}`} ></Box>
+                    <Box as="iframe" height="400" border="0" src={`ws/rest/com.educaflow.base.domain.db.MetaFilePdf/${documentacionParaPresentarSinFirmar.id}/content/download?inline=true&name=${documentacionParaPresentarSinFirmar.fileName}`} ></Box>
                     </>
                     ]]></viewer>
             </field>
@@ -61,7 +61,7 @@
             <field name="new2" showTitle="false" readonly="true" colSpan="12">
                 <viewer depends="justificanteDocumentacionPresentadaFirmadaCentro" ><![CDATA[
                     <>
-                    <Box as="iframe" height="400" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${justificanteDocumentacionPresentadaFirmadaCentro.id}/content/download?inline=true&name=${justificanteDocumentacionPresentadaFirmadaCentro.fileName}`} ></Box>
+                    <Box as="iframe" height="400" border="0" src={`ws/rest/com.educaflow.base.domain.db.MetaFilePdf/${justificanteDocumentacionPresentadaFirmadaCentro.id}/content/download?inline=true&name=${justificanteDocumentacionPresentadaFirmadaCentro.fileName}`} ></Box>
                     </>
                     ]]></viewer>
             </field>
@@ -91,7 +91,7 @@
         </panel>
     </form>
 
-    <grid name="exp-JustificacionFaltaProfesorado-datosFirmas" title="" model="com.educaflow.common.domains.db.DatosFirma" groups="admins,users" canEdit="false" edit-icon="false"   >
+    <grid name="exp-JustificacionFaltaProfesorado-datosFirmas" title="" model="com.educaflow.base.domain.db.DatosFirma" groups="admins,users" canEdit="false" edit-icon="false"   >
         <hilite color="danger" if="valida==false"/>
         <field name="valida" />
         <field name="fechaFirma" />

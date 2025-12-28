@@ -1,4 +1,4 @@
-package com.educaflow.common.junit;
+package com.educaflow.base.infrastructure.junit;
 
 import org.junit.jupiter.api.function.Executable;
 

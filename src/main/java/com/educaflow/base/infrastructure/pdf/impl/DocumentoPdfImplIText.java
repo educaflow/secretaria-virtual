@@ -6,7 +6,7 @@ import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
 import com.educaflow.base.infrastructure.pdf.ResultadoFirma;
-import com.educaflow.common.pdf.*;
+import com.educaflow.base.infrastructure.pdf.*;
 import com.educaflow.base.infrastructure.pdf.impl.helper.DocumentoPdfHelper;
 import com.educaflow.base.infrastructure.pdf.impl.helper.PKCS11ExternalSignature;
 import com.educaflow.base.infrastructure.pdf.impl.helper.PdfDocumentHelper;
