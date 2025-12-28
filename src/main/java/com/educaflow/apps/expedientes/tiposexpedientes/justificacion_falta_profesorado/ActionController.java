@@ -5,7 +5,7 @@ import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
 import com.educaflow.apps.expedientes.db.JustificacionFaltaProfesorado;
 import com.educaflow.apps.expedientes.tiposexpedientes.shared.AutoFirma;
-import com.educaflow.common.pdf.Rectangulo;
+import com.educaflow.base.infrastructure.pdf.Rectangulo;
 
 public class ActionController {
 

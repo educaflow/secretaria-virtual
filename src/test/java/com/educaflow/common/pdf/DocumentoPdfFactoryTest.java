@@ -1,5 +1,7 @@
 package com.educaflow.common.pdf;
 
+import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
+import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;

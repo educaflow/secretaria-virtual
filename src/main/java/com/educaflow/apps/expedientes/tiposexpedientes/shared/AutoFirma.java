@@ -3,10 +3,10 @@ package com.educaflow.apps.expedientes.tiposexpedientes.shared;
 import com.axelor.db.Model;
 import com.axelor.rpc.ActionResponse;
 import com.educaflow.apps.expedientes.db.Expediente;
-import com.educaflow.common.pdf.CampoFirma;
-import com.educaflow.common.pdf.Rectangulo;
-import com.educaflow.common.util.ReflectionUtil;
-import com.educaflow.common.util.TextUtil;
+import com.educaflow.base.infrastructure.pdf.CampoFirma;
+import com.educaflow.base.infrastructure.pdf.Rectangulo;
+import com.educaflow.base.util.ReflectionUtil;
+import com.educaflow.base.util.TextUtil;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;

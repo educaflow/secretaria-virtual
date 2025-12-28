@@ -3,11 +3,11 @@ package com.educaflow.apps.secretariavirtual.module;
 import com.axelor.app.AppSettings;
 import com.axelor.app.AvailableAppSettings;
 import com.axelor.app.AxelorModule;
-import com.educaflow.common.criptografia.EntornoCriptografico;
-import com.educaflow.common.criptografia.config.AlmacenCertificadosConfiablesConfig;
-import com.educaflow.common.criptografia.config.EntornoCriptograficoConfig;
-import com.educaflow.common.criptografia.config.DispositivoCriptograficoConfig;
-import com.educaflow.common.db.BulkTables;
+import com.educaflow.base.infrastructure.criptografia.EntornoCriptografico;
+import com.educaflow.base.infrastructure.criptografia.config.AlmacenCertificadosConfiablesConfig;
+import com.educaflow.base.infrastructure.criptografia.config.EntornoCriptograficoConfig;
+import com.educaflow.base.infrastructure.criptografia.config.DispositivoCriptograficoConfig;
+import com.educaflow.base.infrastructure.db.BulkTables;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 

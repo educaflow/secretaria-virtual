@@ -5,9 +5,7 @@ import com.educaflow.apps.expedientes.common.annotations.OnEnterState;
 import com.educaflow.apps.expedientes.common.annotations.WhenEvent;
 import com.educaflow.apps.expedientes.db.Prueba;
 import com.educaflow.apps.expedientes.db.repo.PruebaRepository;
-import com.educaflow.common.validation.messages.BusinessException;
-import com.educaflow.common.validation.messages.BusinessMessage;
-import com.educaflow.common.validation.messages.BusinessMessages;
+import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.google.inject.Inject;
 
 

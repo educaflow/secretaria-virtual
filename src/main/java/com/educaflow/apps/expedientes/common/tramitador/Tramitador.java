@@ -10,12 +10,13 @@ import com.educaflow.apps.expedientes.db.Expediente;
 import com.educaflow.apps.expedientes.db.ExpedienteHistorialEstados;
 import com.educaflow.apps.expedientes.db.TipoExpediente;
 import com.educaflow.apps.expedientes.db.repo.NumeradorRepository;
-import com.educaflow.common.mapper.BeanMapperModel;
-import com.educaflow.common.util.ReflectionUtil;
-import com.educaflow.common.util.TextUtil;
+import com.educaflow.base.infrastructure.mapper.BeanMapperModel;
+import com.educaflow.base.infrastructure.validation.engine.*;
+import com.educaflow.base.util.ReflectionUtil;
+import com.educaflow.base.util.TextUtil;
 import com.educaflow.common.validation.engine.*;
-import com.educaflow.common.validation.messages.BusinessException;
-import com.educaflow.common.validation.messages.BusinessMessages;
+import com.educaflow.base.infrastructure.validation.messages.BusinessException;
+import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
 import com.google.common.base.CaseFormat;
 import com.google.inject.Inject;
 

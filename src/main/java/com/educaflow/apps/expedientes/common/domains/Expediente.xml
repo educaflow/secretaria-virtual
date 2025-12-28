@@ -52,7 +52,7 @@
       }
 
       this.setCodeState(stateEnum.getCodeState());
-      this.setNameState(com.educaflow.common.util.TextUtil.humanize(stateEnum.getCodeState()));
+      this.setNameState(com.educaflow.base.util.TextUtil.humanize(stateEnum.getCodeState()));
       this.setFechaUltimoEstado(java.time.LocalDateTime.now());
       this.setAbierto(!stateEnum.isClosed());
   }

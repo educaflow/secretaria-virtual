@@ -1,6 +1,6 @@
 package com.educaflow.apps.expedientes.common;
 
-import com.educaflow.common.util.ReflectionUtil;
+import com.educaflow.base.util.ReflectionUtil;
 
 import java.util.ArrayList;
 import java.util.List;

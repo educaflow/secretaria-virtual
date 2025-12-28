@@ -1,14 +1,11 @@
 package com.educaflow.apps.expedientes.tiposexpedientes.certificado_tutor;
 
-import com.axelor.auth.AuthUtils;
-import com.axelor.auth.db.User;
-import com.axelor.db.JpaRepository;
 import com.educaflow.apps.expedientes.common.EventContext;
 import com.educaflow.apps.expedientes.common.annotations.OnEnterState;
 import com.educaflow.apps.expedientes.common.annotations.WhenEvent;
 import com.educaflow.apps.expedientes.db.CertificadoTutor;
 import com.educaflow.apps.expedientes.db.repo.CertificadoTutorRepository;
-import com.educaflow.common.validation.messages.BusinessException;
+import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 
 import com.google.inject.Inject;
 import org.slf4j.Logger;

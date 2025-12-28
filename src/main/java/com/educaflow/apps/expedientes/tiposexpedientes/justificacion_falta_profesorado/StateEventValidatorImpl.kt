@@ -5,21 +5,21 @@ import com.educaflow.apps.expedientes.common.annotations.BeanValidationRulesForS
 import com.educaflow.apps.expedientes.db.MotivoFaltaJustificacionFaltaProfesorado
 import com.educaflow.apps.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesorado
 import com.educaflow.apps.expedientes.db.TipoResolucionJustificacionFaltaProfesorado
-import com.educaflow.common.validation.dsl.ifValueIn
-import com.educaflow.common.validation.dsl.rules
-import com.educaflow.common.validation.engine.BeanValidationRules
-import com.educaflow.common.validation.rules.DocumentoPdfFirmaValida
-import com.educaflow.common.validation.rules.FileMaxSize
-import com.educaflow.common.validation.rules.FileType
-import com.educaflow.common.validation.rules.GreaterThan
-import com.educaflow.common.validation.rules.MaxLength
-import com.educaflow.common.validation.rules.MaxValue
-import com.educaflow.common.validation.rules.MinLength
-import com.educaflow.common.validation.rules.MinValue
-import com.educaflow.common.validation.rules.NoAllUpperCase
-import com.educaflow.common.validation.rules.Required
-import com.educaflow.common.validation.rules.Pattern
-import com.educaflow.common.validation.rules.SizeUnit
+import com.educaflow.base.infrastructure.validation.dsl.ifValueIn
+import com.educaflow.base.infrastructure.validation.dsl.rules
+import com.educaflow.base.infrastructure.validation.engine.BeanValidationRules
+import com.educaflow.base.infrastructure.validation.rules.DocumentoPdfFirmaValida
+import com.educaflow.base.infrastructure.validation.rules.FileMaxSize
+import com.educaflow.base.infrastructure.validation.rules.FileType
+import com.educaflow.base.infrastructure.validation.rules.GreaterThan
+import com.educaflow.base.infrastructure.validation.rules.MaxLength
+import com.educaflow.base.infrastructure.validation.rules.MaxValue
+import com.educaflow.base.infrastructure.validation.rules.MinLength
+import com.educaflow.base.infrastructure.validation.rules.MinValue
+import com.educaflow.base.infrastructure.validation.rules.NoAllUpperCase
+import com.educaflow.base.infrastructure.validation.rules.Required
+import com.educaflow.base.infrastructure.validation.rules.Pattern
+import com.educaflow.base.infrastructure.validation.rules.SizeUnit
 import java.time.LocalDate
 import com.educaflow.apps.expedientes.db.JustificacionFaltaProfesorado as model
 

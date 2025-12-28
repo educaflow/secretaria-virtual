@@ -1,0 +1,17 @@
+@startuml
+package secretariavirtual <<La aplicación>>
+package subsystems <<Cada una de las funcionalidades de la aplicación que ve el usuario final, no los adm>>
+package shared <<Lo comparten entre varios subsistemas>>
+
+package base {
+    package infrastructure <<Microarquitecturas independiente de la aplicación  >>
+    package util <<Funciona básicas y pequeñas, restrigidas a una sola clase por funcionalidad>>
+}
+
+secretariavirtual -> subsystems
+
+subsystems --> base
+shared -> base
+
+subsystems --> shared
+@enduml

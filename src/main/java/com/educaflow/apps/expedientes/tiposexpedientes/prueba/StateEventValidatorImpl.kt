@@ -3,10 +3,17 @@ package com.educaflow.apps.expedientes.tiposexpedientes.prueba
 import com.educaflow.apps.expedientes.common.StateEventValidator
 import com.educaflow.apps.expedientes.common.annotations.BeanValidationRulesForStateAndEvent
 import com.educaflow.apps.expedientes.db.FormacionCentroTrabajo
-import com.educaflow.apps.sistemaeducativo.db.Ciclo
-import com.educaflow.common.validation.dsl.rules
-import com.educaflow.common.validation.engine.BeanValidationRules
-import com.educaflow.common.validation.rules.*
+import com.educaflow.base.infrastructure.validation.dsl.rules
+import com.educaflow.base.infrastructure.validation.engine.BeanValidationRules
+import com.educaflow.base.infrastructure.validation.rules.FileMaxSize
+import com.educaflow.base.infrastructure.validation.rules.FileType
+import com.educaflow.base.infrastructure.validation.rules.MaxLength
+import com.educaflow.base.infrastructure.validation.rules.MaxListSize
+import com.educaflow.base.infrastructure.validation.rules.MinLength
+import com.educaflow.base.infrastructure.validation.rules.MinListSize
+import com.educaflow.base.infrastructure.validation.rules.NoAllUpperCase
+import com.educaflow.base.infrastructure.validation.rules.Required
+import com.educaflow.base.infrastructure.validation.rules.SizeUnit
 import com.educaflow.apps.expedientes.db.Prueba as model
 
 class StateEventValidatorImpl : StateEventValidator {

@@ -1,12 +1,11 @@
 package com.educaflow.apps.expedientes.tiposexpedientes.comision_servicio;
 
-import com.axelor.inject.Beans;
 import com.educaflow.apps.expedientes.common.EventContext;
 import com.educaflow.apps.expedientes.common.annotations.OnEnterState;
 import com.educaflow.apps.expedientes.common.annotations.WhenEvent;
 import com.educaflow.apps.expedientes.db.ComisionServicio;
 import com.educaflow.apps.expedientes.db.repo.ComisionServicioRepository;
-import com.educaflow.common.validation.messages.BusinessException;
+import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 
 import com.google.inject.Inject;
 

@@ -1,12 +1,12 @@
 package com.educaflow.common.pdf.impl;
 
-import com.educaflow.common.criptografia.EntornoCriptografico;
-import com.educaflow.common.criptografia.AlmacenClaveFichero;
-import com.educaflow.common.pdf.CampoFirma;
-import com.educaflow.common.pdf.DocumentoPdf;
-import com.educaflow.common.pdf.DocumentoPdfFactory;
-import com.educaflow.common.pdf.Rectangulo;
-import com.educaflow.common.pdf.impl.helper.PdfDocumentHelper;
+import com.educaflow.base.infrastructure.criptografia.EntornoCriptografico;
+import com.educaflow.base.infrastructure.criptografia.AlmacenClaveFichero;
+import com.educaflow.base.infrastructure.pdf.CampoFirma;
+import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
+import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
+import com.educaflow.base.infrastructure.pdf.Rectangulo;
+import com.educaflow.base.infrastructure.pdf.impl.helper.PdfDocumentHelper;
 import com.itextpdf.pdfa.exceptions.PdfAConformanceException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
