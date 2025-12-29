@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<datos>
+    <familias_profesionales>
+        <familia_profesional code="FISICAS_DEPORTIVAS" name="Actividades Físicas y Deportivas"/>
+        <familia_profesional code="ADMINISTRACION" name="Administración y Gestión"/>
+        <familia_profesional code="AGRARIA" name="Agraria"/>
+        <familia_profesional code="GRAFICAS" name="Artes Gráficas"/>
+        <familia_profesional code="COMERCIO" name="Comercio y Marketing"/>
+        <familia_profesional code="EDIFICACION" name="Edificación y Obra Civil"/>
+        <familia_profesional code="ELECTRICIDAD" name="Electricidad y Electrónica"/>
+        <familia_profesional code="FABRIC_MECANICA" name="Fabricación Mecánica"/>
+        <familia_profesional code="HOSTELERIA_TURISMO" name="Hostelería y Turismo"/>
+        <familia_profesional code="IMAGENPERSONAL" name="Imagen Personal"/>
+        <familia_profesional code="IMAGENSONIDO" name="Imagen y Sonido"/>
+        <familia_profesional code="INDUSTRIA_ALIMENTARIA" name="Industrias Alimentarias"/>
+        <familia_profesional code="INDUSTRIA_EXTRACTIVA" name="Industrias Extractivas"/>
+        <familia_profesional code="INFORMATICA" name="Informática y Comunicaciones"/>
+        <familia_profesional code="INSTALACION" name="Instalación y Mantenimiento"/>
+        <familia_profesional code="MADERA" name="Madera, Mueble y Corcho"/>
+        <familia_profesional code="MARITIMO" name="Marítimo - Pesquera"/>
+        <familia_profesional code="QUIMICA" name="Química"/>
+        <familia_profesional code="SANIDAD" name="Sanidad"/>
+        <familia_profesional code="MEDIO_AMBIENTE" name="Seguridad y Medio Ambiente"/>
+        <familia_profesional code="SOCIO_CULTURALES" name="Servicios Socioculturales y a la Comunidad"/>
+        <familia_profesional code="TEXTIL" name="Textil, Confección y Piel"/>
+        <familia_profesional code="TRANSPORTE" name="Transporte y Mantenimiento de Vehículos"/>
+        <familia_profesional code="VIDRIO" name="Vidrio y Cerámica"/>
+        <familia_profesional code="ARTES_GRAFICAS" name="Artes y Artesanías"/>
+        <familia_profesional code="ENERGIA" name="Energía y Agua"/>
+
+    </familias_profesionales>
+</datos>

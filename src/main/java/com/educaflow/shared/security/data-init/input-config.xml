@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<xml-inputs priority="-1" xmlns="http://axelor.com/xml/ns/data-import"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://axelor.com/xml/ns/data-import
+  https://axelor.com/xml/ns/data-import/data-import_7.4.xsd">
+
+
+
+    <input file="auth.xml" root="auth">
+        <bind node="permission" type="com.axelor.auth.db.Permission" search="self.name = :name" create="true"  update="true">
+            <bind node="@name" to="name" />
+            <bind node="@object" to="object" />
+            <bind node="can/@create" to="canCreate" />
+            <bind node="can/@read" to="canRead" />
+            <bind node="can/@write" to="canWrite" />
+            <bind node="can/@remove" to="canRemove" />
+            <bind node="can/@export" to="canExport" />
+            <bind node="domain/text()" to="condition"/>
+            <bind node="domain-params/text()" to="conditionParams"/>
+        </bind>
+
+
+        <bind node="role" type="com.axelor.auth.db.Role" search="self.name = :name" create="true"  update="true">
+            <bind node="@name" to="name"/>
+            <bind node="@description" to="description"/>
+            <bind node="permission" to="permissions" search="self.name = :name">
+                <bind node="@name" to="name"/>
+            </bind>
+        </bind>
+
+
+        <bind node="group" type="com.axelor.auth.db.Group" search="self.code = :code"  create="true"  update="true">
+            <bind node="@code" to="code"/>
+            <bind node="role" to="roles" search="self.name = :name">
+                <bind node="@name" to="name"/>
+            </bind>
+        </bind>
+
+        <bind node="users/user" type="com.axelor.auth.db.User" search="self.code = :code"    update="true">
+            <bind node="@code" to="code"/>
+            <bind node="@language" to="language"/>
+        </bind>
+
+
+    </input>
+
+
+
+</xml-inputs>

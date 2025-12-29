@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<datos>
+    <modulos>
+        <modulo code="DWS" name="Desarrollo Web Servidor"/>
+        <modulo code="DWC" name="Desarrollo Web Cliente"/>
+        <modulo code="DAW" name="Despliegue de Aplicaciones Web"/>
+        <modulo code="DIW" name="Diseño de Interfaces Web"/>
+        <modulo code="OPTATIVA2DAW" name="Testing"/>
+        <modulo code="IPE1" name="Itinerario Personal para la Empleabilidad I"/>
+    </modulos>
+</datos>

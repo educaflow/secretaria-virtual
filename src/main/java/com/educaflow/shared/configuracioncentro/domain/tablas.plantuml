@@ -1,0 +1,73 @@
+Centro "1" -- "*" Departamento
+Centro "1" -- "*" Cargo
+Centro "1" -- "*" Grupo
+Centro "*" -- "*" Usuario
+(Centro, Usuario) . CentroUsuario
+
+ 
+Departamento "*" -- "*" CursoAcademico
+(Departamento, CursoAcademico) . CursoAcademicoDepartamento
+
+
+Cargo "*" -- "*" CursoAcademico
+(Cargo, CursoAcademico) . CursoAcademicoCargo
+
+
+Grupo "*" -- "*" CursoAcademico
+(Grupo, CursoAcademico) . CursoAcademicoGrupo
+
+CentroUsuario "*" -- "*" CursoAcademico
+(CentroUsuario, CursoAcademico) . CursoAcademicoCentroUsuario
+
+class CentroUsuario {
+    tipoUsuario {Profesor,Alumno,Administrativo,Conserje,Externo}
+}
+
+class Cargo {
+    tipoUsuario
+    adminCentro
+}
+
+class Departamento {
+    familiaProfesional
+    tipoDepartamento {Docente,DocenteSinFamilia,NoDocente}
+}
+
+class CursoAcademico {
+  Centro
+}
+
+class CursoAcademicoGrupo {
+  Curso
+  Tutor
+  Delegado
+  Subdelegado
+}
+
+class Grupo {
+
+}
+
+
+class CursoAcademicoDepartamento {
+    jefeDepartamento
+}
+
+class CursoAcademicoCentroUsuario {
+    List cargos
+    List departamento
+    List grupo
+}
+
+CursoAcademicoCentroUsuario "1" -- "*" CursoAcademicoCentroUsuarioCursoAcademicoCargo
+
+CursoAcademicoCentroUsuario "1" -- "*" CursoAcademicoCentroUsuarioCursoAcademicoDepartamento
+
+CursoAcademicoCentroUsuario "1" -- "*" CursoAcademicoCentroUsuarioCursoAcademicoGrupo
+
+CursoAcademicoCentroUsuarioCursoAcademicoGrupo "1" -- "*" CursoAcademicoCentroUsuarioCursoAcademicoGrupoCursoModulo
+
+
+
+
+

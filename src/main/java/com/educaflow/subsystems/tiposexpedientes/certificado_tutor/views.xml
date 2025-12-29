@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://axelor.com/xml/ns/object-views"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_7.4.xsd">
+
+    <action-record name="clear-cargo-action" model="com.educaflow.shared.expedientes.db.CertificadoTutor">
+        <field name="cargo" expr="eval: null"/>
+    </action-record>
+
+    <form name="exp-CertificadoTutor-Templates" title="Certificado Tutor"  width="large"  model="com.educaflow.shared.expedientes.db.CertificadoTutor" groups="admins,users">
+        <panel name="ambito-creador" title="Ámbito del Creador">
+            <field name="numeroExpediente"/>
+            <field name="valoresAmbitoCreador.departamento"
+            />
+            <field name="centro"
+                   onChange="clear-cargo-action"
+                   grid-view="buscar-centros"
+                   form-view="Centro2"
+            />
+            <field name="cargo"
+                   domain="self.centro=:centro"
+            />
+            <field name="valoresAmbitoCreador.centro"
+                   form-view="Centro2"
+            />
+            <field name="valoresAmbitoCreador.creador"/>
+        </panel>
+
+
+        <panel  name="ambito-responsable" >
+            <field name="valoresAmbitoCreador.centro"  widget="ref-text"
+                   target-name="name" />
+            <field name="valoresAmbitoCreador.departamento"  widget="ref-text"
+                   target-name="name" />
+            <field name="valoresAmbitoCreador.departamento.name"  />
+        </panel>
+    </form>
+    <grid name="buscar-centros" title="Expedientes" model="com.educaflow.shared.configuracioncentro.db.Centro"
+          groups="admins,users"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
+    >
+        <field name="code" width="200px" />
+        <field name="name"/>
+    </grid>
+
+    <form name="Centro" title="Certificado Tutor"  width="large"  model="com.educaflow.shared.configuracioncentro.db.Centro" groups="admins,users">
+        <panel name="Centro" title="Centro">
+
+            <field name="name"/>
+        </panel>
+    </form>
+
+
+    <form name="Departamento" title="Certificado Tutor"  width="large"  model="com.educaflow.shared.configuracioncentro.db.Departamento" groups="admins,users">
+        <panel name="Centro" title="Departamento">
+            <field name="code"/>
+            <field name="name"/>
+        </panel>
+    </form>
+
+    <form name="Centro2" title="Certificado Tutor"  width="large"  model="com.educaflow.shared.configuracioncentro.db.Centro" groups="admins,users">
+        <panel name="Centro" title="Centro">
+            <field name="code"/>
+            <field name="name"/>
+        </panel>
+    </form>
+
+
+    <form name="Departamento2" title="Certificado Tutor"  width="large"  model="com.educaflow.shared.configuracioncentro.db.Departamento" groups="admins,users">
+        <panel name="Centro" title="Departamento">
+            <field name="name"/>
+        </panel>
+    </form>
+
+
+
+
+
+
+    <!-- *********************************************************************************************  -->
+    <!-- *************************************** ENTRADA_DATOS ***************************************  -->
+    <!-- *********************************************************************************************  -->
+
+    <form state="ENTRADA_DATOS" profile="CREADOR">
+        <include-panels includeHeader="true">
+            ambito-creador
+            ambito-responsable
+        </include-panels>
+        <footer>
+            <buttons-left>
+                <button name="DELETE" colSpan="2" title="Borrar Expediente" onClick="action-event-expediente" prompt="¿Está seguro que desea borrar el expediente?" />
+            </buttons-left>
+            <buttons-right>
+                <button name="PRESENTAR" colSpan="2" title="Presentar" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+
+    </form>
+
+    <form state="ENTRADA_DATOS" >
+        <include-panels includeHeader="true">
+            ambito-creador
+            ambito-responsable
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+    <!-- ****************************************************************************************  -->
+    <!-- *************************************** REVISION ***************************************  -->
+    <!-- ****************************************************************************************  -->
+
+    <form state="REVISION" profile="RESPONSABLE">
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+
+    </form>
+
+    <form state="REVISION" >
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+    <!-- ****************************************************************************************  -->
+    <!-- *************************************** ACEPTADO ***************************************  -->
+    <!-- ****************************************************************************************  -->
+
+    <form state="ACEPTADO" profile="RESPONSABLE">
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+
+    </form>
+
+    <form state="ACEPTADO" >
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+    <!-- *****************************************************************************************  -->
+    <!-- *************************************** RECHAZADO ***************************************  -->
+    <!-- *****************************************************************************************  -->
+
+    <form state="RECHAZADO" profile="RESPONSABLE">
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+
+    </form>
+
+    <form state="RECHAZADO" >
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+
+</object-views>

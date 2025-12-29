@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_7.4.xsd">
+
+
+    <module name="expedientes" package="com.educaflow.shared.expedientes.db"/>
+    <entity name="JustificacionFaltaProfesorado" extends="Expediente" >
+        <string name="apellidos" />
+        <string name="nombre" />
+        <string name="dni" title="DNI" />
+        <string name="dias"  />
+        <enum name="mes" ref="com.educaflow.shared.expedientes.db.MesJustificacionFaltaProfesorado" />
+        <integer name="anyo" title="Año" />
+
+
+        <enum name="tipoJornadaFalta" ref="TipoJornadaFaltaJustificacionFaltaProfesorado" />
+        <time name="horaInicio"  />
+        <time name="horaFin"  />
+        <enum name="motivoFalta" ref="MotivoFaltaJustificacionFaltaProfesorado" />
+        <string name="otroMotivo"  />
+        <string name="disconformidad" title="Explicar los datos a subsanar"  />
+        <string name="resolucion"  title="Motivo del rechazo" />
+
+        <enum name="tipoResolucion" title="Tipo resolución" ref="TipoResolucionJustificacionFaltaProfesorado" />
+
+        <one-to-one name="justificante" title="Foto o PDF del justificante" ref="com.educaflow.base.domain.db.MetaFilePdf" />
+        <one-to-one name="documentacionParaPresentarSinFirmar" title="Solicitud a firmar por el usuario" ref="com.educaflow.base.domain.db.MetaFilePdf" />
+        <one-to-one name="documentacionPresentadaFirmadaUsuario" title="Solicitud firmada por el usuario" ref="com.educaflow.base.domain.db.MetaFilePdf" />
+        <one-to-one name="justificanteDocumentacionPresentadaFirmadaCentro" title="Justificante de recepción por el centro" ref="com.educaflow.base.domain.db.MetaFilePdf" />
+
+
+    </entity>
+
+    <enum name="TipoJornadaFaltaJustificacionFaltaProfesorado">
+        <item name="TODA_LA_JORNADA" title="Toda la jornada"/>
+        <item name="JORNADA_PARCIAL" title="Jornada parcial"/>
+    </enum>
+
+    <enum name="MotivoFaltaJustificacionFaltaProfesorado">
+        <item name="ENFERMEDAD_COMUN" title="Enfermedad común"/>
+        <item name="PERMISO_MEDICO_EDUCATIVO_ASISTENCIAL" title="Permiso médico, educativo o asistencial"/>
+        <item name="TRASLADO_DOMICILIO" title="Traslado de domicilio"/>
+        <item name="ASISTENCIA_PRUEBAS_EXAMENES" title="Asistencia a pruebas selectivas y exámenes"/>
+        <item name="NACIMIENTO_ADOPCION_ACOGIMIENTO" title="Nacimiento, adopción o acogimiento"/>
+        <item name="FALLECIMIENTO_ENFERMEDAD_GRAVE_FAMILIAR" title="Fallecimiento o enfermedad grave de un familiar"/>
+        <item name="DEBER_INEXCUSABLE" title="Deber inexcusable" data-description="Obligación pública o personal que genere alguna responsabilidad civil, social o administrativa"/>
+        <item name="FUNCIONES_REPRESENTATIVAS" title="Funciones representativas"/>
+        <item name="OTROS" title="Otros"/>
+    </enum>
+    <enum name="MesJustificacionFaltaProfesorado"  numeric="true">
+        <item name="SEPTIEMBRE" title="Septiembre" value="9"/>
+        <item name="OCTUBRE" title="Octubre" value="10"/>
+        <item name="NOVIEMBRE" title="Noviembre" value="11"/>
+        <item name="DICIEMBRE" title="Diciembre" value="12"/>
+        <item name="ENERO" title="Enero" value="1"/>
+        <item name="FEBRERO" title="Febrero" value="2"/>
+        <item name="MARZO" title="Marzo" value="3"/>
+        <item name="ABRIL" title="Abril" value="4"/>
+        <item name="MAYO" title="Mayo" value="5"/>
+        <item name="JUNIO" title="Junio" value="6"/>
+    </enum>
+
+    <enum name="TipoResolucionJustificacionFaltaProfesorado">
+        <item name="ACEPTAR" title="Resolver positivamente"/>
+        <item name="RECHAZAR" title="Resolver negativamente(Rechazar)"/>
+        <item name="SUBSANAR_DATOS" title="Solicitar subsanación de datos"/>
+    </enum>
+</domain-models>
