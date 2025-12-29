@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_7.4.xsd">
+
+
+
+    <menuitem name="expedientes-esperando-menu" parent="expedientes-menu" title="Expedientes Esperando" action="expedientes-esperando-action" groups="admins,users" order="202"/>
+
+    <action-view name="expedientes-esperando-action" title="Expedientes esperando a que otra persona realice una tarea"  model="com.educaflow.shared.expedientes.db.Expediente" >
+        <view type="tree" name="expedientes-esperando-tree"  />
+        <context name="_profile" expr="RESPONSABLE"/>
+    </action-view>
+
+    <grid name="expedientes-esperando-grid" title="Expedientes" model="com.educaflow.shared.expedientes.db.Expediente"
+          groups="admins,users"
+          groupBy="tipoExpediente.tramite.name"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false"
+          canSave="false"
+          action="action-event-view-expediente"
+    >
+        <field name="numeroExpediente"/>
+        <field name="tipoExpediente.name"/>
+        <field name="createdBy"/>
+        <field name="nameState"/>
+        <field name="fechaUltimoEstado"/>
+    </grid>
+
+
+    <tree name="expedientes-esperando-tree" title="Expedientes">
+
+        <column name="name" />
+        <column name="numeroExpediente" width="100px" title="Num. Exp." />
+        <column name="createdBy" width="200px" title="Creado por"/>
+        <column name="nameState" width="30%" title="Estado"/>
+        <column name="fechaUltimoEstado" type="date" width="100px" title="Fecha"/>
+
+
+        <node model="com.educaflow.shared.expedientes.db.Tramite" domain="EXISTS (SELECT 1 FROM Expediente e WHERE e.abierto=true AND e.tipoExpediente.tramite=self)" >
+            <field name="name" as="name" />
+        </node>
+
+        <node model="com.educaflow.shared.expedientes.db.Expediente" domain="abierto=true" parent="tipoExpediente.tramite" draggable="false" onClick="action-event-view-expediente">
+            <field name="name" />
+            <field name="numeroExpediente"/>
+            <field name="createdBy"/>
+            <field name="nameState"/>
+            <field name="fechaUltimoEstado"/>
+        </node>
+
+    </tree>
+
+
+</object-views>

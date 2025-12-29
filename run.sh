@@ -2,6 +2,8 @@
 #if [ -n "$HOME" ]; then
 #  rm -rf ${HOME}/.axelor/attachments/
 #fi
+#./gradlew --stop
+
 set -e
 clear
 #docker stop educaflow-db

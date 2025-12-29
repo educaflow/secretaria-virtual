@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<datos>
-    <tramites>
-        <tramite code="JustificacionFaltaProfesorado"   defaultTipoExpediente="JustificacionFaltaProfesorado"  />
-        <tramite code="Prueba"   defaultTipoExpediente="Prueba"  />
-        <tramite code="CertificadoTutor"   defaultTipoExpediente="CertificadoTutor"  />
-    </tramites>
-</datos>
