@@ -1,13 +1,9 @@
-package com.educaflow.secretariavirtual.module;
+package com.educaflow.secretariavirtual.startup;
 
 import com.axelor.app.AppSettings;
-import com.axelor.app.AvailableAppSettings;
-import com.axelor.app.AxelorModule;
-import com.educaflow.base.infrastructure.criptografia.EntornoCriptografico;
 import com.educaflow.base.infrastructure.criptografia.config.AlmacenCertificadosConfiablesConfig;
-import com.educaflow.base.infrastructure.criptografia.config.EntornoCriptograficoConfig;
 import com.educaflow.base.infrastructure.criptografia.config.DispositivoCriptograficoConfig;
-import com.educaflow.base.infrastructure.db.BulkTables;
+import com.educaflow.base.infrastructure.criptografia.config.EntornoCriptograficoConfig;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -20,35 +16,15 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-public class SecretariaVirtualModule extends AxelorModule {
+public class EntornoCriptograficoConfigProvider {
 
-    protected void configure() {
-
-
-        EntornoCriptograficoConfig entornoCriptograficoConfig = getEntornoCriptograficoConfigFromAppSettings();
-        EntornoCriptografico.configure(entornoCriptograficoConfig);
-
-
-        String dataBaseDriver = AppSettings.get().get(AvailableAppSettings.DB_DEFAULT_DRIVER);
-        String dataBaseURL = AppSettings.get().get(AvailableAppSettings.DB_DEFAULT_URL);
-        String dataBaseUser = AppSettings.get().get(AvailableAppSettings.DB_DEFAULT_USER);
-        String dataBasePassword = AppSettings.get().get(AvailableAppSettings.DB_DEFAULT_PASSWORD);
-        String schemaName = "public";
-
-        Set<String> tablasExcluidas = Set.of("meta_file", "meta_sequence", "auth_user", "auth_group", "meta_filter");
-        Set<String> tablasIncluidas = Set.of("expedientes_estado_tipo_expediente");
-
-        BulkTables bulkTables = new BulkTables();
-        bulkTables.truncateTables(dataBaseDriver,dataBaseURL,dataBaseUser,dataBasePassword,schemaName,tablasExcluidas,tablasIncluidas);
-    }
 
     public EntornoCriptograficoConfig getEntornoCriptograficoConfigFromAppSettings()  {
 
         String pathAlmacen = AppSettings.get().get("entornoCriptografico.almacenCertificadosConfiables.path");
         String passwordAlmacen = AppSettings.get().get("entornoCriptografico.almacenCertificadosConfiables.password");
-        InputStream inputStreamAlamacen=SecretariaVirtualModule.class.getClassLoader().getResourceAsStream(pathAlmacen) ;
+        InputStream inputStreamAlamacen= Main.class.getClassLoader().getResourceAsStream(pathAlmacen) ;
 
 
         String pathListaCrls = AppSettings.get().get("entornoCriptografico.almacenCertificadosConfiables.pathListaCRLs");
@@ -70,9 +46,9 @@ public class SecretariaVirtualModule extends AxelorModule {
         return new EntornoCriptograficoConfig(almacenConfig, dispositivos);
     }
 
-    private static List<InputStream> getCrlsInputStream(Path pathListaCrls) {
+    private List<InputStream> getCrlsInputStream(Path pathListaCrls) {
         try {
-            InputStream inputStreamListaCrls=SecretariaVirtualModule.class.getClassLoader().getResourceAsStream(pathListaCrls.toString());
+            InputStream inputStreamListaCrls= EntornoCriptograficoConfigProvider.class.getClassLoader().getResourceAsStream(pathListaCrls.toString());
             if (inputStreamListaCrls==null) {
                 throw new RuntimeException("No se encuentra el fichero con la lista de CRLs: "+pathListaCrls.toString());
             }
@@ -92,7 +68,7 @@ public class SecretariaVirtualModule extends AxelorModule {
             for (int i = 0; i < nodes.getLength(); i++) {
                 String crlFileName=nodes.item(i).getTextContent().trim();
                 String completeCrlFileName=parent.resolve(crlFileName).toString();
-                InputStream crlInputStream=SecretariaVirtualModule.class.getClassLoader().getResourceAsStream(completeCrlFileName);
+                InputStream crlInputStream= EntornoCriptograficoConfigProvider.class.getClassLoader().getResourceAsStream(completeCrlFileName);
                 if (crlInputStream==null) {
                     throw new RuntimeException("No se encuentra el fichero CRL: "+completeCrlFileName);
                 }
@@ -105,6 +81,7 @@ public class SecretariaVirtualModule extends AxelorModule {
         }
 
     }
+
 
 
 }
