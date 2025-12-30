@@ -12,7 +12,6 @@
     <menuitem name="sistemaeducativo-raw-FamiliaProfesional-menu"  parent="sistemaeducativo-raw-menu" title="Familia profesional" action="mant-FamiliaProfesional-action" groups="admins" order="1"  />
     <menuitem name="sistemaeducativo-raw-Curso-menu"  parent="sistemaeducativo-raw-menu" title="Cursos" action="mant-Curso-action" groups="admins" order="3"  />
     <menuitem name="sistemaeducativo-raw-CursoModulo-menu"  parent="sistemaeducativo-raw-menu" title="Cursos-Módulos" action="mant-CursoModulo-action" groups="admins" order="4"  />
-    <menuitem name="sistemaeducativo-raw-CicloLeyEducativa-menu"  parent="sistemaeducativo-raw-menu" title="Ciclo-Ley Educativa" action="mant-CicloLeyEducativa-action" groups="admins" order="5"  />
     <menuitem name="sistemaeducativo-raw-Grado-menu"  parent="sistemaeducativo-raw-menu" title="Grados" action="mant-Grado-action" groups="admins" order="6"  />
     <menuitem name="sistemaeducativo-raw-Nivel-menu"  parent="sistemaeducativo-raw-menu" title="Niveles" action="mant-Nivel-action" groups="admins" order="7"  />
 

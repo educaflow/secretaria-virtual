@@ -31,9 +31,9 @@
             <field name="nivel" colSpan="4"  grid-view="search-Nivel-grid"  showIf="grado.code=='D'" requiredIf="grado.code=='D'" />
         </panel>
 
-        <panel-related name="ciclosLeyesEducativas" field="ciclosLeyesEducativas"  title=""
-                       grid-view="mant-Ciclo-CicloLeyEducativa-grid"
-                       form-view="mant-Ciclo-CicloLeyEducativa-form"
+        <panel-related name="cursos" field="cursos"  title="Cursos"
+                       grid-view="mant-Ciclo-Curso-grid"
+                       form-view="mant-Ciclo-Curso-form"
                        colSpan="12"
         />
 
@@ -59,98 +59,66 @@
         </panel>
     </form>
 
-    <!-- ******************************************************************************************************** -->
-    <!-- ********************************* Vistas de Ciclo -> CicloLeyEducativa ********************************* -->
-    <!-- ******************************************************************************************************** -->
-
-    <grid name="mant-Ciclo-CicloLeyEducativa-grid" title="Ley Educativa" model="com.educaflow.shared.sistemaeducativo.db.CicloLeyEducativa"
-          groups="admins"
-
-    >
-        <field name="leyEducativa" />
-    </grid>
-
-    <form name="mant-Ciclo-CicloLeyEducativa-form" title="Ley Educativa" model="com.educaflow.shared.sistemaeducativo.db.CicloLeyEducativa"
-          groups="admins"
-          width="large"
-          onNew="mant-Ciclo-CicloLeyEducativa-onNew-action"
-          canAttach="false"
-    >
-        <panel name="LeyEducativa" title="">
-            <field name="ciclo" showIf="false"/>
-            <field name="leyEducativa" colOffset="12" colSpan="12"  />
-        </panel>
-
-        <panel-related name="cursos" field="cursos" title="Cursos"
-                       grid-view="mant-Ciclo-CicloLeyEducativa-Curso-grid"
-                       form-view="mant-Ciclo-CicloLeyEducativa-Curso-form"
-                       colSpan="12"
-        />
-
-    </form>
-
-    <action-record name="mant-Ciclo-CicloLeyEducativa-onNew-action" model="com.educaflow.shared.sistemaeducativo.db.CicloLeyEducativa">
-        <field name="ciclo" expr="eval: __parent__"/>
-    </action-record>
-
-    <!-- ******************************************************************************************************** -->
-    <!-- **************************** Vistas de Ciclo -> CicloLeyEducativa -> Curso ***************************** -->
-    <!-- ******************************************************************************************************** -->
+    <!-- ********************************************************************************************************* -->
+    <!-- *************************************** Vistas de Ciclo -> Curso **************************************** -->
+    <!-- ********************************************************************************************************* -->
 
 
-    <grid name="mant-Ciclo-CicloLeyEducativa-Curso-grid" title="Curso" model="com.educaflow.shared.sistemaeducativo.db.Curso"
+    <grid name="mant-Ciclo-Curso-grid" title="Curso" model="com.educaflow.shared.sistemaeducativo.db.Curso"
           groups="admins"
 
     >
         <field name="code" width="150px" />
-        <field name="name" />
+        <field name="name" width="200px" />
+        <field name="leyEducativa"   />
     </grid>
 
-    <form name="mant-Ciclo-CicloLeyEducativa-Curso-form" title="Curso" model="com.educaflow.shared.sistemaeducativo.db.Curso"
+    <form name="mant-Ciclo-Curso-form" title="Curso" model="com.educaflow.shared.sistemaeducativo.db.Curso"
           groups="admins"
           width="large"
-          onNew="mant-Ciclo-CicloLeyEducativa-Curso-onNew-action"
+          onNew="mant-Ciclo-Curso-onNew-action"
             canAttach="false"
     >
         <panel name="Curso" title="">
             <field name="code" colSpan="3" />
             <field name="name" colOffset="9"  colSpan="6"/>
-            <field name="cicloLeyEducativa" colOffset="6" colSpan="6" showIf="false" />
+            <field name="ciclo" showIf="false"/>
+            <field name="leyEducativa" colOffset="12" colSpan="12"  />
         </panel>
 
         <panel-related name="modulos" field="modulos"  title="Módulos"
-                       grid-view="mant-Ciclo-CicloLeyEducativa-Curso-CursoModulo-grid"
-                       form-view="mant-Ciclo-CicloLeyEducativa-Curso-CursoModulo-form"
+                       grid-view="mant-Ciclo-Curso-CursoModulo-grid"
+                       form-view="mant-Ciclo-Curso-CursoModulo-form"
                        colSpan="12"
         />
 
     </form>
 
-    <action-record name="mant-Ciclo-CicloLeyEducativa-Curso-onNew-action" model="com.educaflow.shared.sistemaeducativo.db.Curso">
-        <field name="cicloLeyEducativa" expr="eval: __parent__"/>
+    <action-record name="mant-Ciclo-Curso-onNew-action" model="com.educaflow.shared.sistemaeducativo.db.Curso">
+        <field name="ciclo" expr="eval: __parent__"/>
     </action-record>
 
 
     <!-- *************************************************************************************************** -->
-    <!-- ********************* Vistas de Ciclo -> CicloLeyEducativa -> Curso -> Modulo ********************* -->
+    <!-- ********************* Vistas de Ciclo -> Curso -> Modulo ********************* -->
     <!-- *************************************************************************************************** -->
 
-    <grid name="mant-Ciclo-CicloLeyEducativa-Curso-CursoModulo-grid" title="Módulos" model="com.educaflow.shared.sistemaeducativo.db.CursoModulo"
+    <grid name="mant-Ciclo-Curso-CursoModulo-grid" title="Módulos" model="com.educaflow.shared.sistemaeducativo.db.CursoModulo"
           groups="admins"
     >
         <field name="modulo" />
     </grid>
 
-    <form name="mant-Ciclo-CicloLeyEducativa-Curso-CursoModulo-form" title="Módulo" model="com.educaflow.shared.sistemaeducativo.db.CursoModulo"
+    <form name="mant-Ciclo-Curso-CursoModulo-form" title="Módulo" model="com.educaflow.shared.sistemaeducativo.db.CursoModulo"
           groups="admins"
-          onNew="mant-Ciclo-CicloLeyEducativa-Curso-CursoModulo-onNew-action"
+          onNew="mant-Ciclo-Curso-CursoModulo-onNew-action"
           width="large" canAttach="false" >
         <panel name="CursoModulo" title="">
             <field name="curso"  colSpan="6" showIf="false" />
             <field name="modulo" colSpan="6" colOffset="6" grid-view="search-Modulo-grid" />
         </panel>
     </form>
-    <action-record name="mant-Ciclo-CicloLeyEducativa-Curso-CursoModulo-onNew-action" model="com.educaflow.shared.sistemaeducativo.db.CursoModulo">
+    <action-record name="mant-Ciclo-Curso-CursoModulo-onNew-action" model="com.educaflow.shared.sistemaeducativo.db.CursoModulo">
         <field name="curso" expr="eval: __parent__"/>
     </action-record>
 

@@ -26,6 +26,7 @@
             <field name="code" colSpan="3" />
             <field name="name" colOffset="9"  colSpan="6"/>
             <field name="ciclo" colOffset="6" colSpan="6" />
+            <field name="leyEducativa" colSpan="12" />
         </panel>
 
         <panel-related name="cursos" field="modulos"
@@ -52,6 +53,7 @@
             <field name="code" colSpan="3" readonly="true" />
             <field name="name" colOffset="9"  colSpan="6" readonly="true"/>
             <field name="ciclo" colOffset="6" colSpan="6" readonly="true" />
+            <field name="leyEducativa" colSpan="12" />
         </panel>
     </form>
 

@@ -6,7 +6,8 @@
     <entity name="Curso">
         <string name="code"  required="true"  />
         <string name="name" namecolumn="true"  required="true"  />
-        <many-to-one name="cicloLeyEducativa" ref="com.educaflow.shared.sistemaeducativo.db.CicloLeyEducativa"  required="true"  />
+        <many-to-one name="ciclo"  ref="com.educaflow.shared.sistemaeducativo.db.Ciclo"   required="true"  />
+        <many-to-one name="leyEducativa" ref="com.educaflow.shared.sistemaeducativo.db.LeyEducativa"  required="true"  />
         <one-to-many name="modulos" ref="com.educaflow.shared.sistemaeducativo.db.CursoModulo"  title="Módulos" mappedBy="curso"/>
     </entity>
 
