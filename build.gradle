@@ -12,7 +12,7 @@ group = 'com.educaflow'
 version = '0.0.1'
 
 axelor {
-    title = 'Secretaria Virtual'
+    title = 'secretaria-virtual'
 }
 
 def isProduccion = project.hasProperty('environment') && project.environment == 'produccion'
@@ -150,6 +150,25 @@ tasks.register('copyDomain', JavaExec) {
 tasks.named('build') {
     finalizedBy 'copyDomain'
 }
+
+tasks.register('copySQL', JavaExec) {
+    description = 'Ejecuta una clase Java desde un JAR externo para copiar las los ficheros SQL'
+    group = 'build'
+
+    mainClass = 'com.educaflow.common.buildtools.copysql.Main'
+
+    classpath = configurations.educaFlowBuildToolsDependency
+
+
+    args './src/main/java', './build/resources/main'
+
+    workingDir = layout.projectDirectory.dir('.')
+}
+tasks.named('build') {
+    finalizedBy 'copySQL'
+}
+
+
 tasks.register('generateDataInitTiposExpedientes', JavaExec) {
     description = 'Ejecuta una clase Java desde un JAR externo para generar los ficheros de "data-init" de los tipos de expediente.'
     group = 'build'
