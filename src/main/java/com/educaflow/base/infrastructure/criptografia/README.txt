@@ -5,8 +5,7 @@ sudo apt-get install pcscd libccid libpcsclite-dev libssl-dev libreadline-dev au
 sudo apt-get install zlib1g-dev
 sudo apt-get install openpace libaec-dev
 
-sudo apt install opensc
-sudo apt install pcscd pcsc-tools
+sudo apt install opensc pcscd pcsc-tools
 sudo systemctl enable --now pcscd
 
 pkcs15-init -E
