@@ -1,26 +1,39 @@
-package com.educaflow.shared.expedientes.db.repo;
+package com.educaflow.base.infrastructure.numeradores.db.repo;
 
 import com.axelor.db.JPA;
-import com.educaflow.shared.expedientes.db.TipoNumerador;
+import com.educaflow.base.infrastructure.numeradores.db.TipoNumerador;
 
 import jakarta.persistence.Query;
 
 public class NumeradorRepository {
+
+    private static final String NOMBRE_TABLA = "numeradores_numerador";
+
     public long getSiguienteNumeroExpediente(String centro, String anyo) {
         TipoNumerador tipoNumerador = TipoNumerador.Expediente;
 
         return getSiguienteNumero(tipoNumerador, centro, anyo);
     }
 
+    public long getSiguienteNumeroRegistroEntrada(String centro, String anyo) {
+        TipoNumerador tipoNumerador = TipoNumerador.RegistroEntrada;
 
+        return getSiguienteNumero(tipoNumerador, centro, anyo);
+    }
+
+    public long getSiguienteNumeroRegistroSalida(String centro, String anyo) {
+        TipoNumerador tipoNumerador = TipoNumerador.RegistroSalida;
+
+        return getSiguienteNumero(tipoNumerador, centro, anyo);
+    }
 
 
 
     private long getSiguienteNumero(TipoNumerador tipoNumerador, String centro, String anyo) {
-        String sql = "INSERT INTO expedientes_numerador(id,tipo_numerador,centro, anyo, ultimo_numero)\n" +
-                "        VALUES (nextval('expedientes_numerador_seq'),:tipoNumerador,:centro, :anyo, 1)\n" +
+        String sql = "INSERT INTO "  +  NOMBRE_TABLA + "(id,tipo_numerador,centro, anyo, ultimo_numero)\n" +
+                "        VALUES (nextval('" + NOMBRE_TABLA + "_seq'),:tipoNumerador,:centro, :anyo, 1)\n" +
                 "        ON CONFLICT (tipo_numerador,centro, anyo)\n" +
-                "        DO UPDATE SET ultimo_numero = expedientes_numerador.ultimo_numero + 1\n" +
+                "        DO UPDATE SET ultimo_numero = "  +  NOMBRE_TABLA + ".ultimo_numero + 1\n" +
                 "        RETURNING ultimo_numero";
 
         Query query = JPA.em().createNativeQuery(sql);

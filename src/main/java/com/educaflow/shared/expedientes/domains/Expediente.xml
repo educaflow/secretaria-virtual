@@ -8,7 +8,7 @@
     <entity name="Expediente" strategy="JOINED" jsonAttrs="false">
         <many-to-one name="tipoExpediente" title="Tipo de Expediente" ref="com.educaflow.shared.expedientes.db.TipoExpediente" required="true"/>
         <string name="name" namecolumn="true" />
-        <string name="numeroExpediente"  title="Num. Exped."  />
+        <string name="numeroExpediente"  title="Num.__!! Exped.__!!"  />
         <string name="codeState" title="Código del estado" />
         <string name="nameState" title="Estado" translatable="true" />
         <datetime name="fechaUltimoEstado" title="Fecha último estado" />

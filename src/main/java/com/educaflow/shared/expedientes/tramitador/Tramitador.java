@@ -9,12 +9,11 @@ import com.educaflow.shared.expedientes.annotations.BeanValidationRulesForStateA
 import com.educaflow.shared.expedientes.db.Expediente;
 import com.educaflow.shared.expedientes.db.ExpedienteHistorialEstados;
 import com.educaflow.shared.expedientes.db.TipoExpediente;
-import com.educaflow.shared.expedientes.db.repo.NumeradorRepository;
+import com.educaflow.base.infrastructure.numeradores.db.repo.NumeradorRepository;
 import com.educaflow.base.infrastructure.mapper.BeanMapperModel;
 import com.educaflow.base.infrastructure.validation.engine.*;
 import com.educaflow.base.util.ReflectionUtil;
 import com.educaflow.base.util.TextUtil;
-import com.educaflow.base.infrastructure.validation.engine.*;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
 import com.google.common.base.CaseFormat;

@@ -3,7 +3,7 @@
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.0.xsd">
 
-    <module name="expedientes" package="com.educaflow.shared.expedientes.db"/>
+    <module name="expedientes" package="com.educaflow.base.infrastructure.numeradores.db"/>
     <sequence name="numerador.seq" initial="1" increment="1"  />
 
     <entity name="Numerador"  jsonAttrs="false"  repository="none" sequential="true" extends="com.axelor.db.Model">
@@ -18,6 +18,8 @@
 
     <enum name="TipoNumerador">
         <item name="Expediente" title="Expediente"/>
+        <item name="RegistroEntrada" title="Registro de entrada"/>
+        <item name="RegistroSalida" title="Registro de salida"/>
     </enum>
 
 </domain-models>
