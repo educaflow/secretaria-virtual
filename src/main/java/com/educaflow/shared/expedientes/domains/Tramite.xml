@@ -8,8 +8,8 @@
         <string name="code"   />
         <string name="name" namecolumn="true" translatable="true"  />
         <string name="help" large="true"  title="Ayuda" />
-        <one-to-one name="defaultTipoExpediente" ref="TipoExpediente" title="Tipo de expediente por defecto" />
-        <one-to-one name="tipoTramite" ref="TipoTramite" title="Tipo de trámite" />
+        <many-to-one name="defaultTipoExpediente" ref="TipoExpediente" title="Tipo de expediente por defecto" />
+        <many-to-one name="tipoTramite" ref="TipoTramite" title="Tipo de trámite" />
         <boolean name="publico"  />
         <boolean name="privado"  />
     </entity>

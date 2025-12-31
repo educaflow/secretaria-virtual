@@ -8,7 +8,7 @@
         <string name="solicita" title="Solicita" />
         <string name="motivo" title="Motivo" />
         <many-to-one name="ciclo" ref="com.educaflow.shared.sistemaeducativo.db.Ciclo" title="Ciclo" />
-        <one-to-one name="justificante"  ref="com.axelor.meta.db.MetaFile" title="Justificante" />
+        <many-to-one name="justificante"  ref="com.axelor.meta.db.MetaFile" title="Justificante" />
         <one-to-many name="formacionesCentrosTrabajo" title="Formaciones en Centros de Trabajo" ref="FormacionCentroTrabajo" mappedBy="prueba" cascade="all" orphanRemoval="true" />
 
 
@@ -18,8 +18,8 @@
     <entity name="FormacionCentroTrabajo"  >
         <string name="alumno" namecolumn="true" title="Alumno"  />
         <many-to-one name="prueba" ref="Prueba" />
-        <one-to-one name="a2" title="Anexo A2" ref="com.axelor.meta.db.MetaFile"  />
-        <one-to-one name="a3" title="Anexo A3" ref="com.axelor.meta.db.MetaFile"  />
+        <many-to-one name="a2" title="Anexo A2" ref="com.axelor.meta.db.MetaFile"  />
+        <many-to-one name="a3" title="Anexo A3" ref="com.axelor.meta.db.MetaFile"  />
     </entity>
 
 

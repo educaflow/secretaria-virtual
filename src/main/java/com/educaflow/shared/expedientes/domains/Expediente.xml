@@ -15,9 +15,9 @@
         <boolean name="abierto" title="Abierto" />
         <one-to-many name="historialEstados" ref="ExpedienteHistorialEstados" mappedBy="expediente" />
         <many-to-one name="centroReceptor" ref="com.educaflow.shared.configuracioncentro.db.Centro"  />
-        <one-to-one name="valoresAmbitoCreador" ref="com.educaflow.shared.expedientes.db.ValoresAmbito"  title="Valores Ámbito del Creador" />
-        <one-to-one name="valoresAmbitoResponsable" ref="com.educaflow.shared.expedientes.db.ValoresAmbito" title="Valores Ámbito del Responsable" />
-        <one-to-one name="valoresAmbitoAuditor" ref="com.educaflow.shared.expedientes.db.ValoresAmbito" title="Valores Ámbito del Auditor" />
+        <many-to-one name="valoresAmbitoCreador" ref="com.educaflow.shared.expedientes.db.ValoresAmbito"  title="Valores Ámbito del Creador" />
+        <many-to-one name="valoresAmbitoResponsable" ref="com.educaflow.shared.expedientes.db.ValoresAmbito" title="Valores Ámbito del Responsable" />
+        <many-to-one name="valoresAmbitoAuditor" ref="com.educaflow.shared.expedientes.db.ValoresAmbito" title="Valores Ámbito del Auditor" />
 
         <unique-constraint columns="numeroExpediente" />
 

@@ -9,7 +9,7 @@
         <string name="nameState" title="Estado" translatable="true"/>
         <string name="codeEvent" title="Código Evento" />
         <string name="nameEvent" title="Evento"/>
-        <one-to-one name="expediente" ref="Expediente" />
+        <many-to-one name="expediente" ref="Expediente" />
         <datetime name="fecha" />
     </entity>
 

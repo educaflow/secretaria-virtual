@@ -78,7 +78,7 @@
     <entity name="EstadoTipoExpediente">
         <string name="codeState" title="Código del estado" />
         <enum name="profile" ref="Profile" title="Perfil" />
-        <one-to-one name="tipoExpediente" ref="TipoExpediente" />
+        <many-to-one name="tipoExpediente" ref="TipoExpediente" />
     </entity>
 
     <enum name="Profile">
