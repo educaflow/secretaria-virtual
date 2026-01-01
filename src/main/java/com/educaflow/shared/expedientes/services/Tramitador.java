@@ -1,11 +1,10 @@
-package com.educaflow.shared.expedientes.tramitador;
+package com.educaflow.shared.expedientes.services;
 
 
 import com.axelor.db.JPA;
 import com.axelor.db.JpaRepository;
 import com.axelor.db.Model;
-import com.educaflow.shared.expedientes.*;
-import com.educaflow.shared.expedientes.annotations.BeanValidationRulesForStateAndEvent;
+import com.educaflow.shared.expedientes.services.annotations.BeanValidationRulesForStateAndEvent;
 import com.educaflow.shared.expedientes.db.Expediente;
 import com.educaflow.shared.expedientes.db.ExpedienteHistorialEstados;
 import com.educaflow.shared.expedientes.db.TipoExpediente;

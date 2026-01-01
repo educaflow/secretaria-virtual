@@ -5,15 +5,15 @@
 
 
     <action-method name="action-event-expediente">
-        <call class="com.educaflow.shared.expedientes.actions.ExpedienteController" method="triggerEvent"/>
+        <call class="com.educaflow.shared.expedientes.controllers.ExpedienteController" method="triggerEvent"/>
     </action-method>
     <action-method name="action-event-new-expediente">
-        <call class="com.educaflow.shared.expedientes.actions.ExpedienteController" method="triggerInitialEvent"/>
+        <call class="com.educaflow.shared.expedientes.controllers.ExpedienteController" method="triggerInitialEvent"/>
     </action-method>
     <action-method name="action-event-view-expediente">
-        <call class="com.educaflow.shared.expedientes.actions.ExpedienteController" method="viewExpediente"/>
+        <call class="com.educaflow.shared.expedientes.controllers.ExpedienteController" method="viewExpediente"/>
     </action-method>
     <action-method name="action-validate-on-save-child">
-        <call class="com.educaflow.shared.expedientes.actions.ExpedienteController" method="validateChild"/>
+        <call class="com.educaflow.shared.expedientes.controllers.ExpedienteController" method="validateChild"/>
     </action-method>
 </object-views>

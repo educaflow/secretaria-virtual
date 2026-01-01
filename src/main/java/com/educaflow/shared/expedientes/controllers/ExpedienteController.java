@@ -1,4 +1,4 @@
-package com.educaflow.shared.expedientes.actions;
+package com.educaflow.shared.expedientes.controllers;
 
 import com.axelor.auth.AuthUtils;
 import com.axelor.auth.db.User;
@@ -9,10 +9,10 @@ import com.axelor.i18n.I18n;
 import com.axelor.meta.CallMethod;
 import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
-import com.educaflow.shared.expedientes.CommonEvent;
-import com.educaflow.shared.expedientes.EventContext;
-import com.educaflow.shared.expedientes.EventManager;
-import com.educaflow.shared.expedientes.tramitador.Tramitador;
+import com.educaflow.shared.expedientes.services.CommonEvent;
+import com.educaflow.shared.expedientes.services.EventContext;
+import com.educaflow.shared.expedientes.services.EventManager;
+import com.educaflow.shared.expedientes.services.Tramitador;
 import com.educaflow.shared.expedientes.db.Expediente;
 import com.educaflow.shared.expedientes.db.TipoExpediente;
 import com.educaflow.shared.expedientes.db.Tramite;

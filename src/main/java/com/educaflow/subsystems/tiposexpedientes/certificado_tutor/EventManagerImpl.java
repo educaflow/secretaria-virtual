@@ -1,8 +1,9 @@
 package com.educaflow.subsystems.tiposexpedientes.certificado_tutor;
 
-import com.educaflow.shared.expedientes.EventContext;
-import com.educaflow.shared.expedientes.annotations.OnEnterState;
-import com.educaflow.shared.expedientes.annotations.WhenEvent;
+import com.educaflow.shared.expedientes.services.EventContext;
+import com.educaflow.shared.expedientes.services.EventManager;
+import com.educaflow.shared.expedientes.services.annotations.OnEnterState;
+import com.educaflow.shared.expedientes.services.annotations.WhenEvent;
 import com.educaflow.shared.expedientes.db.CertificadoTutor;
 import com.educaflow.shared.expedientes.db.repo.CertificadoTutorRepository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
@@ -12,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class EventManagerImpl extends com.educaflow.shared.expedientes.EventManager<CertificadoTutor, CertificadoTutor.State, CertificadoTutor.Event,CertificadoTutor.Profile> {
+public class EventManagerImpl extends EventManager<CertificadoTutor, CertificadoTutor.State, CertificadoTutor.Event,CertificadoTutor.Profile> {
 
     private final CertificadoTutorRepository repository;
     protected final Logger log = LoggerFactory.getLogger(getClass());

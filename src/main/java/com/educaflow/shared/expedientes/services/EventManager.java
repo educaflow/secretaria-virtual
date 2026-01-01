@@ -1,7 +1,7 @@
-package com.educaflow.shared.expedientes;
+package com.educaflow.shared.expedientes.services;
 
-import com.educaflow.shared.expedientes.annotations.OnEnterState;
-import com.educaflow.shared.expedientes.annotations.WhenEvent;
+import com.educaflow.shared.expedientes.services.annotations.OnEnterState;
+import com.educaflow.shared.expedientes.services.annotations.WhenEvent;
 import com.educaflow.shared.expedientes.db.Expediente;
 import com.educaflow.base.util.AxelorViewUtil;
 import com.educaflow.base.util.ReflectionUtil;

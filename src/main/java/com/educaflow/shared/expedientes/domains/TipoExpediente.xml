@@ -19,8 +19,8 @@
 
         <extra-imports-model>
             <![CDATA[
-                import com.educaflow.shared.expedientes.EventManager;
-                import com.educaflow.shared.expedientes.StateEventValidator;
+                import com.educaflow.shared.expedientes.services.EventManager;
+                import com.educaflow.shared.expedientes.services.StateEventValidator;
                 import com.axelor.inject.Beans;
             ]]>
         </extra-imports-model>

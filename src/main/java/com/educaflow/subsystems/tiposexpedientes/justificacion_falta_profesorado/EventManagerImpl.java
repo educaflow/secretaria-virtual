@@ -6,13 +6,13 @@ import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.domain.db.MetaFilePdf;
 import com.educaflow.shared.configuracioncentro.db.Centro;
-import com.educaflow.shared.expedientes.EventContext;
-import com.educaflow.shared.expedientes.annotations.OnEnterState;
-import com.educaflow.shared.expedientes.annotations.WhenEvent;
+import com.educaflow.shared.expedientes.services.EventContext;
+import com.educaflow.shared.expedientes.services.EventManager;
+import com.educaflow.shared.expedientes.services.annotations.OnEnterState;
+import com.educaflow.shared.expedientes.services.annotations.WhenEvent;
 import com.educaflow.shared.expedientes.db.JustificacionFaltaProfesorado;
 import com.educaflow.shared.expedientes.db.TipoResolucionJustificacionFaltaProfesorado;
 import com.educaflow.shared.expedientes.db.repo.JustificacionFaltaProfesoradoRepository;
-import com.educaflow.base.infrastructure.pdf.*;
 
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.google.inject.Inject;
@@ -21,7 +21,7 @@ import java.io.InputStream;
 import java.time.LocalDate;
 
 
-public class EventManagerImpl extends com.educaflow.shared.expedientes.EventManager<JustificacionFaltaProfesorado, JustificacionFaltaProfesorado.State, JustificacionFaltaProfesorado.Event,JustificacionFaltaProfesorado.Profile> {
+public class EventManagerImpl extends EventManager<JustificacionFaltaProfesorado, JustificacionFaltaProfesorado.State, JustificacionFaltaProfesorado.Event,JustificacionFaltaProfesorado.Profile> {
 
     private final JustificacionFaltaProfesoradoRepository repository;
 

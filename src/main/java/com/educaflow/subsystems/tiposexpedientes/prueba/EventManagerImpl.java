@@ -1,15 +1,16 @@
 package com.educaflow.subsystems.tiposexpedientes.prueba;
 
-import com.educaflow.shared.expedientes.EventContext;
-import com.educaflow.shared.expedientes.annotations.OnEnterState;
-import com.educaflow.shared.expedientes.annotations.WhenEvent;
+import com.educaflow.shared.expedientes.services.EventContext;
+import com.educaflow.shared.expedientes.services.EventManager;
+import com.educaflow.shared.expedientes.services.annotations.OnEnterState;
+import com.educaflow.shared.expedientes.services.annotations.WhenEvent;
 import com.educaflow.shared.expedientes.db.Prueba;
 import com.educaflow.shared.expedientes.db.repo.PruebaRepository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.google.inject.Inject;
 
 
-public class EventManagerImpl extends com.educaflow.shared.expedientes.EventManager<Prueba,Prueba.State,Prueba.Event,Prueba.Profile> {
+public class EventManagerImpl extends EventManager<Prueba,Prueba.State,Prueba.Event,Prueba.Profile> {
 
     private final PruebaRepository pruebaRepository;
 

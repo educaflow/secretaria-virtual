@@ -1,8 +1,9 @@
 package com.educaflow.subsystems.tiposexpedientes.comision_servicio;
 
-import com.educaflow.shared.expedientes.EventContext;
-import com.educaflow.shared.expedientes.annotations.OnEnterState;
-import com.educaflow.shared.expedientes.annotations.WhenEvent;
+import com.educaflow.shared.expedientes.services.EventContext;
+import com.educaflow.shared.expedientes.services.EventManager;
+import com.educaflow.shared.expedientes.services.annotations.OnEnterState;
+import com.educaflow.shared.expedientes.services.annotations.WhenEvent;
 import com.educaflow.shared.expedientes.db.ComisionServicio;
 import com.educaflow.shared.expedientes.db.repo.ComisionServicioRepository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
@@ -11,7 +12,7 @@ import com.google.inject.Inject;
 
 
 
-public class EventManagerImpl extends com.educaflow.shared.expedientes.EventManager<ComisionServicio, ComisionServicio.State, ComisionServicio.Event,ComisionServicio.Profile> {
+public class EventManagerImpl extends EventManager<ComisionServicio, ComisionServicio.State, ComisionServicio.Event,ComisionServicio.Profile> {
 
     private final ComisionServicioRepository repository;
 

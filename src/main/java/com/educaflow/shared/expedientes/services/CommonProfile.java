@@ -1,4 +1,4 @@
-package com.educaflow.shared.expedientes;
+package com.educaflow.shared.expedientes.services;
 
 public enum CommonProfile {
     CREADOR,
