@@ -1,6 +1,6 @@
 package com.educaflow.base.infrastructure.validation.rules
 
-import com.educaflow.base.domain.db.MetaFilePdf
+import com.educaflow.base.infrastructure.metafilepdf.db.MetaFilePdf
 import com.educaflow.base.infrastructure.validation.engine.ValidationRule
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessage
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessages

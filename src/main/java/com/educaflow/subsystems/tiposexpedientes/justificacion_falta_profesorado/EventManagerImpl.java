@@ -4,7 +4,7 @@ import com.educaflow.base.infrastructure.criptografia.AlmacenClaveDispositivo;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
-import com.educaflow.base.domain.db.MetaFilePdf;
+import com.educaflow.base.infrastructure.metafilepdf.db.MetaFilePdf;
 import com.educaflow.shared.configuracioncentro.db.Centro;
 import com.educaflow.shared.expedientes.services.EventContext;
 import com.educaflow.shared.expedientes.services.EventManager;

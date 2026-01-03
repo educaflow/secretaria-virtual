@@ -24,10 +24,10 @@
 
         <enum name="tipoResolucion" title="Tipo resolución" ref="TipoResolucionJustificacionFaltaProfesorado" />
 
-        <many-to-one name="justificante" title="Foto o PDF del justificante" ref="com.educaflow.base.domain.db.MetaFilePdf" />
-        <many-to-one name="documentacionParaPresentarSinFirmar" title="Solicitud a firmar por el usuario" ref="com.educaflow.base.domain.db.MetaFilePdf" />
-        <many-to-one name="documentacionPresentadaFirmadaUsuario" title="Solicitud firmada por el usuario" ref="com.educaflow.base.domain.db.MetaFilePdf" />
-        <many-to-one name="justificanteDocumentacionPresentadaFirmadaCentro" title="Justificante de recepción por el centro" ref="com.educaflow.base.domain.db.MetaFilePdf" />
+        <many-to-one name="justificante" title="Foto o PDF del justificante" ref="com.educaflow.base.infrastructure.metafilepdf.db.MetaFilePdf" />
+        <many-to-one name="documentacionParaPresentarSinFirmar" title="Solicitud a firmar por el usuario" ref="com.educaflow.base.infrastructure.metafilepdf.db.MetaFilePdf" />
+        <many-to-one name="documentacionPresentadaFirmadaUsuario" title="Solicitud firmada por el usuario" ref="com.educaflow.base.infrastructure.metafilepdf.db.MetaFilePdf" />
+        <many-to-one name="justificanteDocumentacionPresentadaFirmadaCentro" title="Justificante de recepción por el centro" ref="com.educaflow.base.infrastructure.metafilepdf.db.MetaFilePdf" />
 
 
     </entity>

@@ -1,4 +1,4 @@
-package com.educaflow.base.domain;
+package com.educaflow.base.infrastructure.metafilepdf.listeners;
 
 import jakarta.persistence.PostLoad;
 
@@ -8,8 +8,8 @@ import com.educaflow.base.infrastructure.pdf.ResultadoFirma;
 import java.util.List;
 import java.util.ArrayList;
 
-import com.educaflow.base.domain.db.MetaFilePdf;
-import com.educaflow.base.domain.db.DatosFirma;
+import com.educaflow.base.infrastructure.metafilepdf.db.MetaFilePdf;
+import com.educaflow.base.infrastructure.metafilepdf.db.DatosFirma;
 
 public class MetaFilePdfListener {
     @PostLoad

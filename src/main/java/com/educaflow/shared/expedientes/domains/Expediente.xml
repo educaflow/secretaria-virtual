@@ -14,6 +14,7 @@
         <datetime name="fechaUltimoEstado" title="Fecha último estado" />
         <boolean name="abierto" title="Abierto" />
         <one-to-many name="historialEstados" ref="ExpedienteHistorialEstados" mappedBy="expediente" />
+        <many-to-one name="archivadordocumental" title="Archivador documental" ref="com.educaflow.shared.archivadordocumental.db.ArchivadorDocumental" />
         <many-to-one name="centroReceptor" ref="com.educaflow.shared.configuracioncentro.db.Centro"  />
         <many-to-one name="valoresAmbitoCreador" ref="com.educaflow.shared.expedientes.db.ValoresAmbito"  title="Valores Ámbito del Creador" />
         <many-to-one name="valoresAmbitoResponsable" ref="com.educaflow.shared.expedientes.db.ValoresAmbito" title="Valores Ámbito del Responsable" />
