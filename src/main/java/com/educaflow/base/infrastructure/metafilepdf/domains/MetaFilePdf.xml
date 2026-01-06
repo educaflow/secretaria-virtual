@@ -18,6 +18,7 @@
                 import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
                 import com.educaflow.base.infrastructure.pdf.ResultadoFirma;
 
+                import com.educaflow.base.util.MetaFileUtil
 
                 import java.io.ByteArrayInputStream;
                 import java.io.InputStream;
@@ -33,13 +34,12 @@
             public MetaFilePdf(DocumentoPdf documentoPdf) {
                 super();
                 try {
-                    byte[] pdfBytes = documentoPdf.getDatos();
-                    InputStream inputStream = new ByteArrayInputStream(pdfBytes);
-
                     this.setFileName(documentoPdf.getFileName());
                     this.setFileType("application/pdf");
 
-                    Beans.get(com.axelor.meta.MetaFiles.class).upload(inputStream, this);
+
+                    byte[] pdfBytes = documentoPdf.getDatos();
+                    MetaFileUtil.uploadContent(this, pdfBytes);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -47,10 +47,7 @@
 
             public DocumentoPdf getDocumentoPdf() {
                 try {
-                    Path filePath=Beans.get(com.axelor.meta.MetaFiles.class).getPath(this);
-
-
-                    byte[] bytes = Files.readAllBytes(filePath);
+                    byte[] bytes = MetaFileUtil.downloadContent(this);
 
                     DocumentoPdf documentoPdf= DocumentoPdfFactory.getDocumentoPdf(bytes, this.getFileName());
 
