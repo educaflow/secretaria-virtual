@@ -146,21 +146,48 @@ public class AutoFirma {
 
 
     private void checkFieldExists(String fieldName) {
-        String getMethodName = "get" + TextUtil.toFirstsLetterToUpperCase(fieldName);
-        String setMethodName = "set" + TextUtil.toFirstsLetterToUpperCase(fieldName);
-        if (ReflectionUtil.hasMethod(expedienteClass, getMethodName,null,null,null)==false) {
-            throw new RuntimeException("El método sourceField: " + getMethodName + " no existe en la clase: " + expedienteClass.getName());
-        }
-        if (ReflectionUtil.hasMethod(expedienteClass, setMethodName,null,null,null)==false) {
-            throw new RuntimeException("El método sourceField: " + setMethodName + " no existe en la clase: " + expedienteClass.getName());
+        String[] parts = fieldName.split("\\.");
+        Class<? extends Model> currentClass = expedienteClass;
+
+        for (int i = 0; i < parts.length; i++) {
+            String part = parts[i];
+            String getMethodName = "get" + TextUtil.toFirstsLetterToUpperCase(part);
+            String setMethodName = "set" + TextUtil.toFirstsLetterToUpperCase(part);
+
+            Method getMethod = ReflectionUtil.getMethod(currentClass, getMethodName, null,null,null);
+            if (getMethod == null) {
+                throw new RuntimeException("El getter " + getMethodName + " no existe en " + currentClass.getName());
+            }
+
+            if (i == parts.length - 1) {
+                if (!ReflectionUtil.hasMethod(currentClass, setMethodName, null, null, null)) {
+                    throw new RuntimeException("El setter " + setMethodName + " no existe en " + currentClass.getName());
+                }
+            }
+
+            currentClass = (Class<? extends Model>)getMethod.getReturnType();
         }
     }
 
-    private static Class getModelClassFromField(Class expedienteClass,String fieldName) {
-        String getMethodName = "get" + TextUtil.toFirstsLetterToUpperCase(fieldName);
-        Method method=ReflectionUtil.getMethod(expedienteClass, getMethodName,null,null,null);
+    private static Class<?> getModelClassFromField(Class<?> expedienteClass, String fieldName) {
+        String[] parts = fieldName.split("\\.");
+        Class<?> currentClass = expedienteClass;
 
-        return method.getReturnType();
+        for (int i = 0; i < parts.length; i++) {
+            String part = parts[i];
+            String getMethodName = "get" + TextUtil.toFirstsLetterToUpperCase(part);
+
+            Method method = ReflectionUtil.getMethod(currentClass, getMethodName, null, null, null);
+
+            if (method == null) {
+                throw new RuntimeException("No se pudo encontrar el método " + getMethodName + " en la clase " + currentClass.getName());
+            }
+
+            // Actualizamos la clase actual con el tipo de retorno del getter
+            currentClass = method.getReturnType();
+        }
+
+        return currentClass;
     }
 
 

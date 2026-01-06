@@ -4,7 +4,7 @@ const baseUrl = `${protocol}//${hostname}${port ? `:${port}` : ''}${pathname.rep
 
 globalThis.signDocument = async function(context, payload) {
     try {
-        const source = context[payload.sourceField];
+        const source = getValueByPath(context, payload.sourceField);
         const idSource = source.id;
         const versionSource = source.$version;
         const originalFileName = source.fileName;
@@ -52,7 +52,7 @@ globalThis.signDocument = async function(context, payload) {
         target = await subirAFCTComoMetaFile(firmaB64, expedienteContext);
 
         console.log("Documento firmado procesado correctamente");
-        context[payload.targetField] = target;
+        setValueByPath(context, payload.targetField, target);
         //guardarYPresentar(context);
 
     } catch (error) {
@@ -238,4 +238,39 @@ function getCookie(name) {
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
     return null;
+}
+
+
+function getValueByPath(obj, path) {
+    const parts = path.split('.');
+    let current = obj;
+
+    for (const part of parts) {
+        if (current === null || current === undefined) {
+            return undefined; // O lanzar un error si prefieres
+        }
+        current = current[part];
+    }
+
+    return current;
+}
+function setValueByPath(obj, path, value) {
+    const parts = path.split('.');
+    let current = obj;
+
+    // Navegamos hasta el penúltimo nivel
+    for (let i = 0; i < parts.length - 1; i++) {
+        const part = parts[i];
+
+        // Si el camino no existe, lo creamos como un objeto vacío
+        if (!(part in current)) {
+            current[part] = {};
+        }
+
+        current = current[part];
+    }
+
+    // En el último nivel, asignamos el valor
+    const lastPart = parts[parts.length - 1];
+    current[lastPart] = value;
 }
