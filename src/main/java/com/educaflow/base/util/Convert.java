@@ -23,6 +23,33 @@ public class Convert {
         }
     }
 
+    public static long coerceToLong(Object  obj) {
+        if (obj == null) {
+            return 0;
+        } if (obj instanceof String) {
+            if (((String) obj).isEmpty()) {
+                return 0;
+            } else {
+                return Long.parseLong((String) obj);
+            }
+        } else {
+            return ((Number) obj).longValue();
+        }
+    }
+
+    public static int coerceToInt(Object  obj) {
+        if (obj == null) {
+            return 0;
+        } if (obj instanceof String) {
+            if (((String) obj).isEmpty()) {
+                return 0;
+            } else {
+                return Integer.parseInt((String) obj);
+            }
+        } else {
+            return ((Number) obj).intValue();
+        }
+    }
 
     public static String objectToUserString(Object obj) {
         try {
