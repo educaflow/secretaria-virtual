@@ -1,8 +1,7 @@
-package com.educaflow.subsystems.tiposexpedientes.shared;
+package com.educaflow.shared.autofirma;
 
 import com.axelor.db.Model;
 import com.axelor.rpc.ActionResponse;
-import com.educaflow.shared.expedientes.db.Expediente;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.util.ReflectionUtil;
@@ -16,7 +15,7 @@ public class AutoFirma {
 
     private static final int AUTOFIRMA_Y_OFFSET=-6;
 
-    private final Class<? extends Expediente> expedienteClass;
+    private final Class clazz;
     private Rectangulo rectangulo;
     private String nif=null;
     private String motivo =null;
@@ -26,8 +25,8 @@ public class AutoFirma {
     private int pageNumber= CampoFirma.DEFAULT_NUMERO_PAGINA;
     private int fontSize=CampoFirma.DEFAULT_FONT_SIZE;
 
-    public AutoFirma(Class<? extends Expediente> expedienteClass) {
-        this.expedienteClass = expedienteClass;
+    public AutoFirma(Class clazz) {
+        this.clazz = clazz;
     }
 
     public static void sendToActionResponse(AutoFirma autofirma, ActionResponse actionResponse) {
@@ -46,9 +45,9 @@ public class AutoFirma {
         payload.put("nif", autofirma.getNif());
         payload.put("motivo", autofirma.getMotivo());
         payload.put("sourceField", autofirma.getSourceField());
-        payload.put("sourceFieldClass", getModelClassFromField(autofirma.getExpedienteClass(), autofirma.getSourceField()).getName());
+        payload.put("sourceFieldClass", getModelClassFromField(autofirma.getClazz(), autofirma.getSourceField()).getName());
         payload.put("targetField", autofirma.getTargetField());
-        payload.put("targetFieldClass", getModelClassFromField(autofirma.getExpedienteClass(),autofirma.getTargetField()).getName());
+        payload.put("targetFieldClass", getModelClassFromField(autofirma.getClazz(),autofirma.getTargetField()).getName());
         payload.put("sufijo", autofirma.getSufijo());
         payload.put("pageNumber", autofirma.getPageNumber());
         payload.put("fontSize", autofirma.getFontSize());
@@ -140,14 +139,14 @@ public class AutoFirma {
         return fontSize;
     }
 
-    public Class<? extends Model> getExpedienteClass() {
-        return expedienteClass;
+    public Class<? extends Model> getClazz() {
+        return clazz;
     }
 
 
     private void checkFieldExists(String fieldName) {
         String[] parts = fieldName.split("\\.");
-        Class<? extends Model> currentClass = expedienteClass;
+        Class<? extends Model> currentClass = clazz;
 
         for (int i = 0; i < parts.length; i++) {
             String part = parts[i];
