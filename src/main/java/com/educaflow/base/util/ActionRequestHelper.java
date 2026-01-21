@@ -7,10 +7,31 @@ import java.util.Map;
 
 public class ActionRequestHelper {
     private final ActionRequest request;
-
+    private final Class expectedModelClass;
 
     public ActionRequestHelper(ActionRequest request) {
+        this(request, null);
+    }
+
+    public ActionRequestHelper(ActionRequest request,Class expectedModelClass) {
+
+
         this.request = request;
+        this.expectedModelClass=expectedModelClass;
+
+
+        if (expectedModelClass!=null) {
+            Class actualModelClass=this.getModelClass();
+
+            if (actualModelClass==null) {
+                throw new RuntimeException("El _model del ActionRequest es null");
+            }
+
+            if (expectedModelClass.getClass()!=actualModelClass.getClass()) {
+                throw new RuntimeException("El classModel no coincide con el _model del requestData:"+ expectedModelClass.getCanonicalName() + "!=" + actualModelClass.getCanonicalName());
+            }
+        }
+
     }
 
     public Map<String, Object> getRequestData() {
