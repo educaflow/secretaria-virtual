@@ -34,6 +34,21 @@ public class MetaFileUtil {
 
     }
 
+    public static <T extends MetaFile> T cloneMetaFile(T metaFile) {
+        if (metaFile == null) {
+            return null;
+        }
+        byte[] bytes = MetaFileUtil.downloadContent(metaFile);
+
+        T nuevoMetaFile = createMetaFileInstance((Class<T>)metaFile.getClass());
+        nuevoMetaFile.setFileName(metaFile.getFileName());
+        nuevoMetaFile.setFileType(metaFile.getFileType());
+
+        MetaFileUtil.uploadContent(nuevoMetaFile, bytes);
+
+        return nuevoMetaFile;
+    }
+
     public static String sha256(MetaFile metaFile) {
         try {
             byte[] content=downloadContent(metaFile);
@@ -44,4 +59,15 @@ public class MetaFileUtil {
         }
 
     }
+
+    public static <T extends MetaFile> T createMetaFileInstance(Class<T> clazz) {
+        try {
+            T metaFile = clazz.getDeclaredConstructor().newInstance();
+
+            return metaFile;
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
 }

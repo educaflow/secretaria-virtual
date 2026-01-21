@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_8.0.xsd">
+
+
+
+
+    <form name="PdfUtilities-info-main-form" title="Utilidades para PDF" model="com.educaflow.shared.pdfutilities.db.PdfUtilities" width="large">
+
+        <panel name="main" title="PDF">
+            <field name="pdf"  colSpan="12" onChange="PdfUtilities-info-main-form-onChange-pdf-action" widget="binary-link" />
+        </panel>
+        <panel name="info-panel" title="Información del PDF">
+            <field name="info"  colSpan="12"  height="1000px"  widget="code-editor" readonly="true" />
+        </panel>
+    </form>
+    <action-record name="PdfUtilities-info-main-form-onChange-pdf-action" model="com.educaflow.shared.pdfutilities.db.PdfUtilities">
+        <field name="info" expr="action:PdfUtilities-info-action-getInfoPdf" />
+    </action-record>
+    <action-method name="PdfUtilities-info-action-getInfoPdf">
+        <call class="com.educaflow.shared.pdfutilities.actions.PdfUtilitiesActions" method="getInfo(pdf)"/>
+    </action-method>
+
+
+
+
+
+
+</object-views>
