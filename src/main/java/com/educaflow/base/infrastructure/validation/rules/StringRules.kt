@@ -29,7 +29,7 @@ class NoAllUpperCase : ValidationRule {
 
     override fun validate(value: Any?, bean: Any): BusinessMessages? {
         if (value is String) {
-            if (value.uppercase(Locale("es")).equals(value, ignoreCase = false)) {
+            if (value.uppercase(Locale.of("es", "ES")).equals(value, ignoreCase = false)) {
                 return BusinessMessages.single("No puede estar todo en mayúsculas")
             }
         }
