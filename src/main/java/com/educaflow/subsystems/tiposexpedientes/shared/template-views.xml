@@ -79,9 +79,9 @@
             </panel>
             <panel name="registroSalida" title="Registro de salida" colSpan="12">
                 <field name="new3" showTitle="false" readonly="true" colSpan="12">
-                    <viewer depends="registroSalida" ><![CDATA[
+                    <viewer depends="registroSalida.documento" ><![CDATA[
                     <>
-                    <Box as="iframe" height="800" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${documento.id}/content/download?inline=true&name=${documento.fileName}`} ></Box>
+                    <Box as="iframe" height="800" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${registroSalida.documento.id}/content/download?inline=true&name=${registroSalida.documento.fileName}`} ></Box>
                     </>
                     ]]></viewer>
                 </field>
