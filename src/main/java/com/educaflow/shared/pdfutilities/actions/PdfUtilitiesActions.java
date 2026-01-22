@@ -12,7 +12,7 @@ import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.util.ActionRequestHelper;
 import com.educaflow.base.util.Convert;
 import com.educaflow.shared.pdfutilities.db.PdfUtilities;
-import com.educaflow.shared.autofirma.AutoFirma;
+import com.educaflow.base.infrastructure.autofirma.AutoFirma;
 
 public class PdfUtilitiesActions {
 

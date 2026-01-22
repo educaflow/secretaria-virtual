@@ -1,4 +1,4 @@
-package com.educaflow.shared.autofirma;
+package com.educaflow.base.infrastructure.autofirma;
 
 import com.axelor.db.Model;
 import com.axelor.rpc.ActionResponse;
