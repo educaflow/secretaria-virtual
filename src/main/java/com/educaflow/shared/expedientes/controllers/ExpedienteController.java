@@ -229,6 +229,7 @@ public class ExpedienteController {
             System.out.println("ERROR:El usuario no tiene un centro activo, se asigna el centro por defecto '" + codigoCentroDefecto + "' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             centro = new Centro();
             centro.setCode(codigoCentroDefecto);
+            centro.setName("Centro por defecto");
         }
 
         return centro;

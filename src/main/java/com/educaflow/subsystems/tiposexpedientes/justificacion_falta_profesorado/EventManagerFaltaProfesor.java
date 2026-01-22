@@ -1,11 +1,11 @@
 package com.educaflow.subsystems.tiposexpedientes.justificacion_falta_profesorado;
 
+import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClaveDispositivo;
+import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
-import com.educaflow.base.infrastructure.metafilepdf.db.MetaFilePdf;
-import com.educaflow.shared.configuracioncentro.db.Centro;
 import com.educaflow.shared.expedientes.services.EventContext;
 import com.educaflow.shared.expedientes.services.EventManager;
 import com.educaflow.shared.expedientes.services.annotations.OnEnterState;
@@ -15,18 +15,24 @@ import com.educaflow.shared.expedientes.db.TipoResolucionJustificacionFaltaProfe
 import com.educaflow.shared.expedientes.db.repo.JustificacionFaltaProfesoradoRepository;
 
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
+import com.educaflow.shared.registroentradasalida.db.DatosRegistroEntrada;
+import com.educaflow.shared.registroentradasalida.db.PersonaRegistro;
+import com.educaflow.shared.registroentradasalida.db.RegistroEntrada;
+import com.educaflow.shared.registroentradasalida.db.repo.RegistroEntradaRepository;
 import com.google.inject.Inject;
 
-import java.io.InputStream;
 import java.time.LocalDate;
 
 
-public class EventManagerImpl extends EventManager<JustificacionFaltaProfesorado, JustificacionFaltaProfesorado.State, JustificacionFaltaProfesorado.Event,JustificacionFaltaProfesorado.Profile> {
+public class EventManagerFaltaProfesor extends EventManager<JustificacionFaltaProfesorado, JustificacionFaltaProfesorado.State, JustificacionFaltaProfesorado.Event,JustificacionFaltaProfesorado.Profile> {
 
     private final JustificacionFaltaProfesoradoRepository repository;
 
     @Inject
-    public EventManagerImpl(JustificacionFaltaProfesoradoRepository repository) {
+    RegistroEntradaRepository registroEntradaRepository;
+
+    @Inject
+    public EventManagerFaltaProfesor(JustificacionFaltaProfesoradoRepository repository) {
         super(JustificacionFaltaProfesorado.class, JustificacionFaltaProfesorado.State.class, JustificacionFaltaProfesorado.Event.class,JustificacionFaltaProfesorado.Profile.class);
         this.repository = repository;
     }
@@ -45,39 +51,22 @@ public class EventManagerImpl extends EventManager<JustificacionFaltaProfesorado
     @WhenEvent
     public void triggerGuardarDatos(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext) throws BusinessException {
         DocumentoPdf solicitudPdf = justificacionFaltaProfesorado.getDocumentoPdf(JustificacionFaltaProfesorado.TipoDocumentoPdf.SOLICITUD);
-        DocumentoPdf justificantePdf= justificacionFaltaProfesorado.getJustificante().getDocumentoPdf();
-        solicitudPdf=solicitudPdf.anyadirDocumentoPdf(justificantePdf);
-
-
-
-
-        MetaFilePdf metaFilePdf= new MetaFilePdf(solicitudPdf);
-        justificacionFaltaProfesorado.setDocumentacionParaPresentarSinFirmar(metaFilePdf);
-
+        MetaFile pdfSolicitud = MetaFileHelper.createMetaFile(solicitudPdf);
+        justificacionFaltaProfesorado.setPdfSolicitud(pdfSolicitud);
 
         justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.State.PENDIENTE_PRESENTACION);
+
+
     }
     @WhenEvent
     public void triggerPresentar(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext) throws BusinessException {
-        DocumentoPdf documentacionPresentadaFirmadaUsuario= justificacionFaltaProfesorado.getDocumentacionPresentadaFirmadaUsuario().getDocumentoPdf();
-
-        byte[] sello=getSelloCentro(justificacionFaltaProfesorado.getCentroReceptor());
-
-        //AlmacenClaveFichero almacenClave=new AlmacenClaveFichero(EventManagerImpl.class.getResourceAsStream("/firma/mi_certificado.p12"),"nadanada");
-        AlmacenClaveDispositivo almacenClave=new AlmacenClaveDispositivo( 0,"CertFirmaDigitalDirector");
-        CampoFirma campoFirma=new CampoFirma(new Rectangulo(80,10,120,100))
-                .setMensaje("Recibido en el centro CIPFP Mislata el día "+ LocalDate.now())
-                .setMotivo("Registro por parte del director que ha recibido la  documentación presentada por el usuario")
-                .setImage(sello)
-                .setNumeroPagina(1);
-
-        DocumentoPdf justificanteDocumentacionPresentadaFirmadaCentro=documentacionPresentadaFirmadaUsuario.firmar(almacenClave,campoFirma);
-        MetaFilePdf metaFilePdf= new MetaFilePdf(justificanteDocumentacionPresentadaFirmadaCentro);
-        justificacionFaltaProfesorado.setJustificanteDocumentacionPresentadaFirmadaCentro(metaFilePdf);
+        RegistroEntrada registroEntrada=justificacionFaltaProfesorado.addRegistroEntrada(justificacionFaltaProfesorado.getPdfSolicitudFirmado());
+        justificacionFaltaProfesorado.setPdfJustificanteRegistroEntrada(registroEntrada.getDocumento());
 
         justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.State.PENDIENTE_RESOLUCION);
         justificacionFaltaProfesorado.setDisconformidad(null);
         justificacionFaltaProfesorado.setResolucion(null);
+
     }
 
     @WhenEvent
@@ -155,18 +144,7 @@ public class EventManagerImpl extends EventManager<JustificacionFaltaProfesorado
     }
 
 
-    private byte[] getSelloCentro(Centro centro) {
-        System.out.print("Error:Cada centro debe tener su propio sello de entrada");
 
-        try (InputStream inputStream = EventManagerImpl.class.getClassLoader().getResourceAsStream("firma/sello_centro_educativo.png")) {
-            if (inputStream == null) {
-                throw new RuntimeException("No se ha encontrado el recurso: sello_centro_educativo.png");
-            }
-            return inputStream.readAllBytes();
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-    }
 
 
 }

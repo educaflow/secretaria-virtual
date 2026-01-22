@@ -4,12 +4,14 @@
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.0.xsd">
 
     <module name="expedientes" package="com.educaflow.shared.expedientes.db"/>
-    <entity name="ExpedienteHistorialEstados">
+    <entity name="HistorialEstado">
         <string name="codeState" title="Código estado"/>
         <string name="nameState" title="Estado" translatable="true"/>
         <string name="codeEvent" title="Código Evento" />
         <string name="nameEvent" title="Evento"/>
         <many-to-one name="expediente" ref="Expediente" />
+        <many-to-one name="registroEntrada"  ref="com.educaflow.shared.registroentradasalida.db.RegistroEntrada" required="false"/>
+        <many-to-one name="registroSalida"   ref="com.educaflow.shared.registroentradasalida.db.RegistroSalida" required="false"/>
         <datetime name="fecha" />
     </entity>
 

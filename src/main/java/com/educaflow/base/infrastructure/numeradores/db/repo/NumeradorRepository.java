@@ -9,27 +9,27 @@ public class NumeradorRepository {
 
     private static final String NOMBRE_TABLA = "numeradores_numerador";
 
-    public long getSiguienteNumeroExpediente(String centro, String anyo) {
+    public long getSiguienteNumeroExpediente(String codigoCentro, String anyo) {
         TipoNumerador tipoNumerador = TipoNumerador.Expediente;
 
-        return getSiguienteNumero(tipoNumerador, centro, anyo);
+        return getSiguienteNumero(tipoNumerador, codigoCentro, anyo);
     }
 
-    public long getSiguienteNumeroRegistroEntrada(String centro, String anyo) {
+    public long getSiguienteNumeroRegistroEntrada(String codigoCentro, String anyo) {
         TipoNumerador tipoNumerador = TipoNumerador.RegistroEntrada;
 
-        return getSiguienteNumero(tipoNumerador, centro, anyo);
+        return getSiguienteNumero(tipoNumerador, codigoCentro, anyo);
     }
 
-    public long getSiguienteNumeroRegistroSalida(String centro, String anyo) {
+    public long getSiguienteNumeroRegistroSalida(String codigoCentro, String anyo) {
         TipoNumerador tipoNumerador = TipoNumerador.RegistroSalida;
 
-        return getSiguienteNumero(tipoNumerador, centro, anyo);
+        return getSiguienteNumero(tipoNumerador, codigoCentro, anyo);
     }
 
 
 
-    private long getSiguienteNumero(TipoNumerador tipoNumerador, String centro, String anyo) {
+    private long getSiguienteNumero(TipoNumerador tipoNumerador, String codigoCentro, String anyo) {
         String sql = "INSERT INTO "  +  NOMBRE_TABLA + "(id,tipo_numerador,centro, anyo, ultimo_numero)\n" +
                 "        VALUES (nextval('" + NOMBRE_TABLA + "_seq'),:tipoNumerador,:centro, :anyo, 1)\n" +
                 "        ON CONFLICT (tipo_numerador,centro, anyo)\n" +
@@ -38,12 +38,12 @@ public class NumeradorRepository {
 
         Query query = JPA.em().createNativeQuery(sql);
         query.setParameter("tipoNumerador", tipoNumerador.getValue());
-        query.setParameter("centro", centro);
+        query.setParameter("centro", codigoCentro);
         query.setParameter("anyo", anyo);
 
         Object result = query.getSingleResult();
         if (result == null) {
-            throw new IllegalStateException("No se puedo obtener el valor del numerador. TipoNumerador=" + tipoNumerador + " centro=" + centro + " Año=" + anyo);
+            throw new IllegalStateException("No se puedo obtener el valor del numerador. TipoNumerador=" + tipoNumerador + " codigoCentro=" + codigoCentro + " Año=" + anyo);
         }
         long nextNumber = ((Number) result).longValue();
 

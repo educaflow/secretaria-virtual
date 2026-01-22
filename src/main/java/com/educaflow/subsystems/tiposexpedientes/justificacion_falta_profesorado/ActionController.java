@@ -4,7 +4,7 @@ import com.axelor.meta.CallMethod;
 import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
 import com.educaflow.shared.expedientes.db.JustificacionFaltaProfesorado;
-import com.educaflow.subsystems.tiposexpedientes.shared.AutoFirma;
+import com.educaflow.base.infrastructure.autofirma.AutoFirma;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 
 public class ActionController {
@@ -13,11 +13,10 @@ public class ActionController {
     public void firmarDocumentacionParaPresentar(ActionRequest actionRequest, ActionResponse actionResponse) {
 
         AutoFirma autofirma = (new AutoFirma(JustificacionFaltaProfesorado.class))
-            .setRectangulo(new Rectangulo(300,10,120,100))
+            .setRectangulo(new Rectangulo(100,70,400,100))
             .setPageNumber(1)
-            .setMotivo("Registrar documentación presentada por el usuario")
-            .setSourceField("documentacionParaPresentarSinFirmar")
-            .setTargetField("documentacionPresentadaFirmadaUsuario");
+            .setSourceField("pdfSolicitud")
+            .setTargetField("pdfSolicitudFirmado");
 
         AutoFirma.sendToActionResponse(autofirma,actionResponse);
     }

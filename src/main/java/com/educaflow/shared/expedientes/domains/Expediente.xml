@@ -13,13 +13,14 @@
         <string name="nameState" title="Estado" translatable="true" />
         <datetime name="fechaUltimoEstado" title="Fecha último estado" />
         <boolean name="abierto" title="Abierto" />
-        <one-to-many name="historialEstados" ref="ExpedienteHistorialEstados" mappedBy="expediente" />
+        <one-to-many name="historialEstados" ref="HistorialEstado" mappedBy="expediente" />
         <many-to-one name="centroReceptor" ref="com.educaflow.shared.configuracioncentro.db.Centro"  />
+        <many-to-one name="creador" ref="com.axelor.auth.db.User"  />
         <many-to-one name="valoresAmbitoCreador" ref="com.educaflow.shared.expedientes.db.ValoresAmbito"  title="Valores Ámbito del Creador" />
         <many-to-one name="valoresAmbitoResponsable" ref="com.educaflow.shared.expedientes.db.ValoresAmbito" title="Valores Ámbito del Responsable" />
         <many-to-one name="valoresAmbitoAuditor" ref="com.educaflow.shared.expedientes.db.ValoresAmbito" title="Valores Ámbito del Auditor" />
-
-        <unique-constraint columns="numeroExpediente" />
+        <many-to-one name="registroEntrada"  ref="com.educaflow.shared.registroentradasalida.db.RegistroEntrada" required="false"/>
+        <many-to-one name="registroSalida"   ref="com.educaflow.shared.registroentradasalida.db.RegistroSalida" required="false"/>
 
         <extra-imports-model>
             <![CDATA[
@@ -35,6 +36,11 @@
                 import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil;
                 import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
                 import java.nio.file.Path;
+                import com.educaflow.shared.registroentradasalida.db.DatosRegistroEntrada;
+                import com.educaflow.shared.registroentradasalida.db.PersonaRegistro;
+                import com.educaflow.shared.registroentradasalida.db.RegistroEntrada;
+                import com.educaflow.shared.registroentradasalida.db.repo.RegistroEntradaRepository;
+                import com.axelor.meta.db.MetaFile;
             ]]>
         </extra-imports-model>
 
@@ -82,7 +88,35 @@
         }
     }
 
+    public RegistroEntrada addRegistroEntrada(MetaFile documentoPdf) {
+        DatosRegistroEntrada datosRegistroEntrada=new DatosRegistroEntrada(
+            this.getCentroReceptor(),
+            new PersonaRegistro(
+                this.getCreador().getName(),
+                this.getCreador().getDni()
+            ),
+            new PersonaRegistro(
+                this.getCreador().getName(),
+                this.getCreador().getDni()
+            ),
+            this.getNumeroExpediente(),
+            this.getName()
+        );
+
+        RegistroEntrada registroEntrada=Beans.get(RegistroEntradaRepository.class).createRegistroEntrada(datosRegistroEntrada,documentoPdf);
+
+        this.setRegistroEntrada(registroEntrada);
+
+        return registroEntrada;
+
+    }
+
+
 ]]>
+
+
+
+
         </extra-code-model>
     </entity>
 

@@ -8,7 +8,6 @@ import com.educaflow.shared.expedientes.db.TipoResolucionJustificacionFaltaProfe
 import com.educaflow.base.infrastructure.validation.dsl.ifValueIn
 import com.educaflow.base.infrastructure.validation.dsl.rules
 import com.educaflow.base.infrastructure.validation.engine.BeanValidationRules
-import com.educaflow.base.infrastructure.validation.rules.DocumentoPdfFirmaValida
 import com.educaflow.base.infrastructure.validation.rules.FileMaxSize
 import com.educaflow.base.infrastructure.validation.rules.FileType
 import com.educaflow.base.infrastructure.validation.rules.GreaterThan
@@ -23,7 +22,7 @@ import com.educaflow.base.infrastructure.validation.rules.SizeUnit
 import java.time.LocalDate
 import com.educaflow.shared.expedientes.db.JustificacionFaltaProfesorado as model
 
-class StateEventValidatorImpl: StateEventValidator {
+class StateEventValidatorImplFaltaProfesor: StateEventValidator {
 
     @BeanValidationRulesForStateAndEvent
     public fun getForStateEntradaDatosInEventGuardarDatos(): BeanValidationRules {
@@ -82,9 +81,8 @@ class StateEventValidatorImpl: StateEventValidator {
     @BeanValidationRulesForStateAndEvent
     fun getForStatePendientePresentacionInEventPresentar():BeanValidationRules {
         return rules {
-            field(model::getDocumentacionPresentadaFirmadaUsuario) {
+            field(model::getPdfSolicitudFirmado) {
                 +Required()
-                +DocumentoPdfFirmaValida()
             }
         }
     }

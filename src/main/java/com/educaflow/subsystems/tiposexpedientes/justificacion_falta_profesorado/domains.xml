@@ -9,6 +9,9 @@
         <string name="apellidos" />
         <string name="nombre" />
         <string name="dni" title="DNI" />
+
+
+
         <string name="dias"  />
         <enum name="mes" ref="com.educaflow.shared.expedientes.db.MesJustificacionFaltaProfesorado" />
         <integer name="anyo" title="Año" />
@@ -21,13 +24,14 @@
         <string name="otroMotivo"  />
         <string name="disconformidad" title="Explicar los datos a subsanar"  />
         <string name="resolucion"  title="Motivo del rechazo" />
-
         <enum name="tipoResolucion" title="Tipo resolución" ref="TipoResolucionJustificacionFaltaProfesorado" />
 
-        <many-to-one name="justificante" title="Foto o PDF del justificante" ref="com.educaflow.base.infrastructure.metafilepdf.db.MetaFilePdf" />
-        <many-to-one name="documentacionParaPresentarSinFirmar" title="Solicitud a firmar por el usuario" ref="com.educaflow.base.infrastructure.metafilepdf.db.MetaFilePdf" />
-        <many-to-one name="documentacionPresentadaFirmadaUsuario" title="Solicitud firmada por el usuario" ref="com.educaflow.base.infrastructure.metafilepdf.db.MetaFilePdf" />
-        <many-to-one name="justificanteDocumentacionPresentadaFirmadaCentro" title="Justificante de recepción por el centro" ref="com.educaflow.base.infrastructure.metafilepdf.db.MetaFilePdf" />
+        <many-to-one name="justificante" title="Foto o PDF del justificante" ref="com.axelor.meta.db.MetaFile" />
+
+        <many-to-one name="pdfSolicitud" title="PDF de la solicitud" ref="com.axelor.meta.db.MetaFile" />
+        <many-to-one name="pdfSolicitudFirmado" title="PDF de la solicitud" ref="com.axelor.meta.db.MetaFile" />
+        <many-to-one name="pdfJustificanteRegistroEntrada" title="Justificante del registro de entrada" ref="com.axelor.meta.db.MetaFile" />
+        <many-to-one name="pdfResolucion" title="Resolución" ref="com.axelor.meta.db.MetaFile" />
 
 
     </entity>

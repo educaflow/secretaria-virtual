@@ -39,42 +39,43 @@
         <panel name="justificante-view" title="Adjuntar justificante">
             <field name="justificante" title="Foto o PDF del justificante" widget="binary-link" colSpan="4" readonly="true"/>
         </panel>
-        <panel name="documentacionParaPresentarSinFirmar" title="Solicitud" >
+        <panel name="pdfSolicitud" title="Solicitud" >
             <field name="new" showTitle="false" readonly="true" colSpan="9">
-                <viewer depends="documentacionParaPresentarSinFirmar" ><![CDATA[
+                <viewer depends="pdfSolicitud" ><![CDATA[
                     <>
-                    <Box as="iframe" height="900" border="0" src={`ws/rest/com.educaflow.base.infrastructure.metafilepdf.db.MetaFilePdf/${documentacionParaPresentarSinFirmar.id}/content/download?inline=true&name=${documentacionParaPresentarSinFirmar.fileName}`} ></Box>
+                    <Box as="iframe" height="900" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfSolicitud.id}/content/download?inline=true&name=${pdfSolicitud.fileName}`} ></Box>
                     </>
                     ]]></viewer>
             </field>
         </panel>
-        <panel name="documentacionParaPresentarSinFirmar-view" title="Solicitud" >
+        <panel name="pdfSolicitudFirmado" title="Solicitud" >
             <field name="new" showTitle="false" readonly="true" colSpan="9">
-                <viewer depends="documentacionParaPresentarSinFirmar" ><![CDATA[
+                <viewer depends="pdfSolicitudFirmado" ><![CDATA[
                     <>
-                    <Box as="iframe" height="400" border="0" src={`ws/rest/com.educaflow.base.infrastructure.metafilepdf.db.MetaFilePdf/${documentacionParaPresentarSinFirmar.id}/content/download?inline=true&name=${documentacionParaPresentarSinFirmar.fileName}`} ></Box>
+                    <Box as="iframe" height="400" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfSolicitudFirmado.id}/content/download?inline=true&name=${pdfSolicitudFirmado.fileName}`} ></Box>
                     </>
                     ]]></viewer>
             </field>
         </panel>
-        <panel name="justificanteDocumentacionPresentadaFirmadaCentro-view" title="Solicitud" >
+        <panel name="pdfJustificanteRegistroEntrada" title="Solicitud" >
             <field name="new2" showTitle="false" readonly="true" colSpan="12">
-                <viewer depends="justificanteDocumentacionPresentadaFirmadaCentro" ><![CDATA[
+                <viewer depends="pdfJustificanteRegistroEntrada" ><![CDATA[
                     <>
-                    <Box as="iframe" height="400" border="0" src={`ws/rest/com.educaflow.base.infrastructure.metafilepdf.db.MetaFilePdf/${justificanteDocumentacionPresentadaFirmadaCentro.id}/content/download?inline=true&name=${justificanteDocumentacionPresentadaFirmadaCentro.fileName}`} ></Box>
+                    <Box as="iframe" height="400" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfJustificanteRegistroEntrada.id}/content/download?inline=true&name=${pdfJustificanteRegistroEntrada.fileName}`} ></Box>
                     </>
                     ]]></viewer>
             </field>
-
-            <field name="justificanteDocumentacionPresentadaFirmadaCentro.prueba"  />
-
-            <panel-related name="resultadosFirmas" field="documentacionPresentadaFirmadaUsuario.datosFirmas" title="Resultados Firmas" canEdit="false"
-                           grid-view="exp-JustificacionFaltaProfesorado-datosFirmas"
-                           colSpan="12" />
-            <panel-related name="resultadosFirmas" field="justificanteDocumentacionPresentadaFirmadaCentro.datosFirmas" title="Resultados Firmas" canEdit="false"
-                           grid-view="exp-JustificacionFaltaProfesorado-datosFirmas"
-                           colSpan="12" />
         </panel>
+        <panel name="pdfResolucion" title="Solicitud" >
+            <field name="new2" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="pdfResolucion" ><![CDATA[
+                    <>
+                    <Box as="iframe" height="400" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfResolucion.id}/content/download?inline=true&name=${pdfResolucion.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+
         <panel name="resolucion" title="Resolver expediente">
             <field name="tipoResolucion" widget="SwitchSelect" colSpan="8" />
             <field name="disconformidad" colSpan="12"  showIf="tipoResolucion == 'SUBSANAR_DATOS'" />
@@ -91,13 +92,7 @@
         </panel>
     </form>
 
-    <grid name="exp-JustificacionFaltaProfesorado-datosFirmas" title="" model="com.educaflow.base.infrastructure.metafilepdf.db.DatosFirma" groups="admins,users" canEdit="false" edit-icon="false"   >
-        <hilite color="danger" if="valida==false"/>
-        <field name="valida" />
-        <field name="fechaFirma" />
-        <field name="cnSubject"  />
-        <field name="cnIssuer"  />
-    </grid>
+
     <!-- *********************************************************************************************  -->
     <!-- *************************************** ENTRADA_DATOS ***************************************  -->
     <!-- *********************************************************************************************  -->
@@ -137,7 +132,7 @@
     <!-- **********************************************************************************************  -->
     <form state="PENDIENTE_PRESENTACION" profile="CREADOR">
         <include-panels>
-            -documentacionParaPresentarSinFirmar
+            -pdfSolicitud
         </include-panels>
         <footer>
             <buttons-left>
@@ -153,7 +148,7 @@
     </form>
     <form state="PENDIENTE_PRESENTACION">
         <include-panels>
-            -documentacionParaPresentarSinFirmar-view
+            -pdfSolicitud
         </include-panels>
         <footer>
             <buttons-left/>
@@ -176,7 +171,7 @@
         <include-panels>
             -datos-profesor
             -datos-falta-view
-            -justificanteDocumentacionPresentadaFirmadaCentro-view
+            -pdfSolicitudFirmado
             resolucion
         </include-panels>
         <footer>
@@ -191,7 +186,7 @@
         <include-panels>
             -datos-profesor
             -datos-falta-view
-            -justificanteDocumentacionPresentadaFirmadaCentro-view
+            -pdfJustificanteRegistroEntrada
         </include-panels>
         <footer>
             <buttons-left/>
@@ -211,7 +206,7 @@
         <include-panels>
             -datos-profesor
             -datos-falta-view
-            -justificanteDocumentacionPresentadaFirmadaCentro-view
+            -pdfResolucion
             -resolucion-view
         </include-panels>
         <footer>
@@ -230,7 +225,7 @@
         <include-panels>
             -datos-profesor
             -datos-falta-view
-            -justificanteDocumentacionPresentadaFirmadaCentro-view
+            -pdfResolucion
             -resolucion-view
         </include-panels>
         <footer>

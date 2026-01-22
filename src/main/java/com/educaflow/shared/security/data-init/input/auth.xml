@@ -12,7 +12,7 @@
   <permission name="Expediente.all" object="com.educaflow.shared.expedientes.db.Expediente">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
-  <permission name="ExpedienteHistorialEstados.all" object="com.educaflow.shared.expedientes.db.ExpedienteHistorialEstados">
+  <permission name="HistorialEstado.all" object="com.educaflow.shared.expedientes.db.HistorialEstado">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
   <permission name="MetaFile.all" object="com.axelor.meta.db.MetaFile">
@@ -65,7 +65,7 @@
     <permission name="Expediente.all"/>
     <permission name="Prueba.all"/>
     <permission name="FormacionCentroTrabajo.all"/>
-    <permission name="ExpedienteHistorialEstados.all"/>
+    <permission name="HistorialEstado.all"/>
     <permission name="JustificacionFaltaProfesorado.all"/>
     <permission name="MetaFile.all"/>
     <permission name="TipoTramite.all"/>

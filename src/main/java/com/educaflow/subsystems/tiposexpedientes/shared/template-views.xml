@@ -40,8 +40,10 @@
     </form>
 
 
-    <action-view name="expediente-historial-estados-action" title="Mostrar historial estados" model="com.educaflow.shared.expedientes.db.ExpedienteHistorialEstados">
+    <action-view name="expediente-historial-estados-action" title="Mostrar historial estados" model="com.educaflow.shared.expedientes.db.HistorialEstado">
         <view type="grid" name="expediente-historial-estados-grid"/>
+        <view type="form" name="expediente-historial-estados-form"/>
+
         <view-param name="popup" value="true"/>
         <view-param name="show-toolbar" value="false"/>
         <view-param name="popup-save" value="false"/>
@@ -50,7 +52,7 @@
     </action-view>
 
 
-    <grid name="expediente-historial-estados-grid" title="Historial Estados" model="com.educaflow.shared.expedientes.db.ExpedienteHistorialEstados"
+    <grid name="expediente-historial-estados-grid" title="Historial Estados" model="com.educaflow.shared.expedientes.db.HistorialEstado"
           groups="admins,users"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false"
           canSave="false" orderBy="fecha"
@@ -59,6 +61,34 @@
         <field name="nameEvent"/>
         <field name="nameState"/>
         <field name="fecha"/>
+        <field name="registroEntrada"/>
+        <field name="registroSalida"/>
     </grid>
+
+    <form name="expediente-historial-estados-form" title="Historial Estado" model="com.educaflow.shared.expedientes.db.HistorialEstado">
+
+        <panel-tabs>
+            <panel name="registroEntrada" title="Registro de entrada" colSpan="12">
+                <field name="new2" showTitle="false" readonly="true" colSpan="12">
+                    <viewer depends="registroEntrada.documento" ><![CDATA[
+                    <>
+                    <Box as="iframe" height="800" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${registroEntrada.documento.id}/content/download?inline=true&name=${registroEntrada.documento.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+                </field>
+            </panel>
+            <panel name="registroSalida" title="Registro de salida" colSpan="12">
+                <field name="new3" showTitle="false" readonly="true" colSpan="12">
+                    <viewer depends="registroSalida" ><![CDATA[
+                    <>
+                    <Box as="iframe" height="800" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${documento.id}/content/download?inline=true&name=${documento.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+                </field>
+            </panel>
+        </panel-tabs>
+
+
+    </form>
 
 </object-views>

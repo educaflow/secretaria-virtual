@@ -194,7 +194,7 @@ tasks.register('copiarPdf', JavaExec) {
     classpath = configurations.educaFlowBuildToolsDependency
 
 
-    args './src/main/java', './build/resources/main/documentospdf'
+    args './src/main/java', './build/resources/main'
 
     workingDir = layout.projectDirectory.dir('.')
 }

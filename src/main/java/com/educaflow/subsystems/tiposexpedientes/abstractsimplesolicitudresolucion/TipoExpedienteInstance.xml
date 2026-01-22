@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <TipoExpediente >
 
-    <name>Justificación de falta del profesorado</name>
-    <code>JustificacionFaltaProfesorado</code>
-    <tramite>JustificacionFaltaProfesorado</tramite>
+    <name>Solicitud de resolución simple abstracta</name>
+    <code>AbstractSimpleSolicitudResolucion</code>
+    <tramite>CertificadoTutor</tramite>
     <ambitoCreador>INDIVIDUAL</ambitoCreador>
     <ambitoResponsable>CENTRO</ambitoResponsable>
     <ambitoAuditor>DEPARTAMENTO</ambitoAuditor>
-    <fqcnEventManager>com.educaflow.subsystems.tiposexpedientes.justificacion_falta_profesorado.EventManagerFaltaProfesor</fqcnEventManager>
-    <fqcnStateEventValidator>com.educaflow.subsystems.tiposexpedientes.justificacion_falta_profesorado.StateEventValidatorImplFaltaProfesor</fqcnStateEventValidator>
     <states>
         <state name="ENTRADA_DATOS"          events="DELETE,GUARDAR_DATOS" profile="CREADOR"      title="Entrada de datos"           initial="true"  />
         <state name="PENDIENTE_PRESENTACION" events="BACK,PRESENTAR"       profile="CREADOR"      title="Pendiente de presentación"                  />

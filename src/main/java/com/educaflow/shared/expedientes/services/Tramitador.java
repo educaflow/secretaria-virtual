@@ -1,12 +1,13 @@
 package com.educaflow.shared.expedientes.services;
 
 
+import com.axelor.auth.AuthUtils;
 import com.axelor.db.JPA;
 import com.axelor.db.JpaRepository;
 import com.axelor.db.Model;
 import com.educaflow.shared.expedientes.services.annotations.BeanValidationRulesForStateAndEvent;
 import com.educaflow.shared.expedientes.db.Expediente;
-import com.educaflow.shared.expedientes.db.ExpedienteHistorialEstados;
+import com.educaflow.shared.expedientes.db.HistorialEstado;
 import com.educaflow.shared.expedientes.db.TipoExpediente;
 import com.educaflow.base.infrastructure.numeradores.db.repo.NumeradorRepository;
 import com.educaflow.base.infrastructure.mapper.BeanMapperModel;
@@ -15,6 +16,8 @@ import com.educaflow.base.util.ReflectionUtil;
 import com.educaflow.base.util.TextUtil;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.educaflow.shared.registroentradasalida.db.RegistroEntrada;
+import com.educaflow.shared.registroentradasalida.db.RegistroSalida;
 import com.google.common.base.CaseFormat;
 import com.google.inject.Inject;
 
@@ -43,6 +46,7 @@ public class Tramitador {
             Expediente expediente = (Expediente) eventManager.getModelClass().getDeclaredConstructor().newInstance();
             expediente.setTipoExpediente(tipoExpediente);
             expediente.setCentroReceptor(eventContext.getCentro());
+            expediente.setCreador(AuthUtils.getUser());
             updateName(expediente);
             updateNumeroExpediente(expediente);
 
@@ -133,13 +137,58 @@ public class Tramitador {
     /*******************************************************************/
 
     private static void addHistorialEstado(Expediente expediente, String eventName) {
-        ExpedienteHistorialEstados historialEstado = new ExpedienteHistorialEstados();
+        HistorialEstado historialEstado = new HistorialEstado();
         historialEstado.setCodeState(expediente.getCodeState());
         historialEstado.setNameState(TextUtil.humanize(expediente.getCodeState()));
         historialEstado.setCodeEvent((eventName != null) ? eventName : "");
         historialEstado.setNameEvent((eventName != null) ? TextUtil.humanize(eventName) : "");
         historialEstado.setFecha(LocalDateTime.now());
+
+
+        if (expediente.getRegistroEntrada()!=null) {
+            String numeroRegistroEntrada=expediente.getRegistroEntrada().getNumeroRegistro();
+            if (existsRegistroEntrada(expediente,numeroRegistroEntrada)==false) {
+                historialEstado.setRegistroEntrada(expediente.getRegistroEntrada());
+            }
+        }
+
+        if (expediente.getRegistroSalida()!=null) {
+            String numeroRegistroSalida=expediente.getRegistroSalida().getNumeroRegistro();
+            if (existsRegistroSalida(expediente,numeroRegistroSalida)==false) {
+                historialEstado.setRegistroSalida(expediente.getRegistroSalida());
+            }
+        }
+
+
+
         expediente.addHistorialEstado(historialEstado);
+    }
+
+    private static boolean existsRegistroEntrada(Expediente expediente,String numeroRegistroEntrada) {
+        if (expediente.getHistorialEstados() != null) {
+            for (HistorialEstado historialEstado : expediente.getHistorialEstados()) {
+                if (historialEstado.getRegistroEntrada() != null) {
+                    if (historialEstado.getRegistroEntrada().getNumeroRegistro().equals(numeroRegistroEntrada)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+
+    private static boolean existsRegistroSalida(Expediente expediente,String numeroRegistroSalida) {
+        if (expediente.getHistorialEstados() != null) {
+            for (HistorialEstado historialEstado : expediente.getHistorialEstados()) {
+                if (historialEstado.getRegistroSalida() != null) {
+                    if (historialEstado.getRegistroSalida().getNumeroRegistro().equals(numeroRegistroSalida)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private void updateName(Expediente expediente) {

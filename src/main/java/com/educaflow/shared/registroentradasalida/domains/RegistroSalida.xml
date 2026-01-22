@@ -1,0 +1,15 @@
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.0.xsd">
+
+    <module name="registroentradasalida" package="com.educaflow.shared.registroentradasalida.db"/>
+    <entity name="RegistroSalida"  repository="abstract">
+        <many-to-one name="centro" ref="com.educaflow.shared.configuracioncentro.db.Centro"  />
+        <string name="numeroRegistro"  title="Num.__!! registro" namecolumn="true"  />
+        <datetime name="fecha" />
+        <many-to-one name="documento" ref="com.axelor.meta.db.MetaFile" required="true" title="documento"/>
+
+
+    </entity>
+
+</domain-models>

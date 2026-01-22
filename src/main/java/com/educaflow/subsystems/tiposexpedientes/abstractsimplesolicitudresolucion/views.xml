@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://axelor.com/xml/ns/object-views"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_5.1.xsd">
+
+    <form name="exp-AbstractSimpleSolicitudResolucion-Templates" title="Solicitud de resolución simple abstracta"  width="large"  model="com.educaflow.shared.expedientes.db.AbstractSimpleSolicitudResolucion" groups="admins,users">
+
+
+    </form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- *********************************************************************************************  -->
+    <!-- *************************************** ENTRADA_DATOS ***************************************  -->
+    <!-- *********************************************************************************************  -->
+    
+    <form state="ENTRADA_DATOS" profile="CREADOR">
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+
+    </form>
+
+    <form state="ENTRADA_DATOS" >
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+    <!-- ******************************************************************************************************  -->
+    <!-- *************************************** PENDIENTE_PRESENTACION ***************************************  -->
+    <!-- ******************************************************************************************************  -->
+    
+    <form state="PENDIENTE_PRESENTACION" profile="CREADOR">
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+
+    </form>
+
+    <form state="PENDIENTE_PRESENTACION" >
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+    <!-- ****************************************************************************************************  -->
+    <!-- *************************************** PENDIENTE_RESOLUCION ***************************************  -->
+    <!-- ****************************************************************************************************  -->
+    
+    <form state="PENDIENTE_RESOLUCION" profile="RESPONSABLE">
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+
+    </form>
+
+    <form state="PENDIENTE_RESOLUCION" >
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+    <!-- ****************************************************************************************  -->
+    <!-- *************************************** ACEPTADO ***************************************  -->
+    <!-- ****************************************************************************************  -->
+    
+    <form state="ACEPTADO" profile="RESPONSABLE">
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+
+    </form>
+
+    <form state="ACEPTADO" >
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+    <!-- *****************************************************************************************  -->
+    <!-- *************************************** RECHAZADO ***************************************  -->
+    <!-- *****************************************************************************************  -->
+    
+    <form state="RECHAZADO" profile="RESPONSABLE">
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+
+    </form>
+
+    <form state="RECHAZADO" >
+        <include-panels includeHeader="true">
+
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="" colSpan="2" title="" onClick="action-event-expediente" />
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+
+</object-views>

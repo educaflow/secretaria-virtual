@@ -29,7 +29,7 @@
                 <field name="alumno" showTitle="false" readonly="true">
                     <viewer depends="a2" ><![CDATA[
                         <>
-                        <Box as="iframe" height="400" border="0" src={`ws/rest/com.educaflow.base.infrastructure.metafilepdf.db.MetaFilePdf/${a2.id}/content/download?inline=true&name=${a2.fileName}`} ></Box>
+                        <Box as="iframe" height="400" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${a2.id}/content/download?inline=true&name=${a2.fileName}`} ></Box>
                         </>
                         ]]></viewer>
                 </field>
@@ -39,7 +39,7 @@
                 <field name="alumno" showTitle="false" readonly="true"  colSpan="12">
                     <viewer depends="a3"><![CDATA[
                         <>
-                        <Box as="iframe" height="400" border="0" src={`ws/rest/com.educaflow.base.infrastructure.metafilepdf.db.MetaFilePdf/${a3.id}/content/download?inline=true&name=${a3.fileName}`} ></Box>
+                        <Box as="iframe" height="400" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${a3.id}/content/download?inline=true&name=${a3.fileName}`} ></Box>
                         </>
                         ]]></viewer>
                 </field>
