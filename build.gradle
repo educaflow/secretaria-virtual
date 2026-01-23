@@ -111,7 +111,7 @@ tasks.register('managei18nfiles', JavaExec) {
     classpath = configurations.educaFlowBuildToolsDependency
 
 
-    args './src/main/java', './build/resources/main/i18n'
+    args './src/main/java', './build/resources/main/i18n', 'apertium'
 
     workingDir = layout.projectDirectory.dir('.')
 }
