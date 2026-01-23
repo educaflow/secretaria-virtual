@@ -2,7 +2,7 @@
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.0.xsd">
 
-    <module name="configuracioncentro" package="com.educaflow.shared.configuracioncentro.db"/>
+    <module name="common" package="com.educaflow.shared.common.db"/>
     <entity name="Centro">
         <string name="code"  />
         <string name="name" namecolumn="true" />

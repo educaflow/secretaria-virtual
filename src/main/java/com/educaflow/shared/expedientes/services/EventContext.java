@@ -1,7 +1,7 @@
 package com.educaflow.shared.expedientes.services;
 
 
-import com.educaflow.shared.configuracioncentro.db.Centro;
+import com.educaflow.shared.common.db.Centro;
 
 public class EventContext<Profile extends Enum<Profile>> {
 

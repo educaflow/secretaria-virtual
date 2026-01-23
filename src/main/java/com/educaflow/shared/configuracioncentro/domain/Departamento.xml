@@ -6,7 +6,7 @@
     <entity name="Departamento">
         <string name="code"  />
         <string name="name" namecolumn="true" />
-        <many-to-one name="centro" ref="com.educaflow.shared.configuracioncentro.db.Centro" required="true" title="Centro"/>
+        <many-to-one name="centro" ref="com.educaflow.shared.common.db.Centro" required="true" title="Centro"/>
 
     </entity>
 

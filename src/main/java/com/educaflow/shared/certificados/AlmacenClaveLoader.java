@@ -4,7 +4,7 @@ import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClaveDispositivo;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClaveFichero;
 import com.educaflow.secretariavirtual.startup.EntornoCriptograficoConfigProvider;
-import com.educaflow.shared.configuracioncentro.db.Centro;
+import com.educaflow.shared.common.db.Centro;
 
 import java.io.InputStream;
 

@@ -35,7 +35,7 @@
             <field name="valoresAmbitoCreador.departamento.name"  />
         </panel>
     </form>
-    <grid name="buscar-centros" title="Expedientes" model="com.educaflow.shared.configuracioncentro.db.Centro"
+    <grid name="buscar-centros" title="Expedientes" model="com.educaflow.shared.common.db.Centro"
           groups="admins,users"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
     >
@@ -43,7 +43,7 @@
         <field name="name"/>
     </grid>
 
-    <form name="Centro" title="Certificado Tutor"  width="large"  model="com.educaflow.shared.configuracioncentro.db.Centro" groups="admins,users">
+    <form name="Centro" title="Certificado Tutor"  width="large"  model="com.educaflow.shared.common.db.Centro" groups="admins,users">
         <panel name="Centro" title="Centro">
 
             <field name="name"/>
@@ -58,7 +58,7 @@
         </panel>
     </form>
 
-    <form name="Centro2" title="Certificado Tutor"  width="large"  model="com.educaflow.shared.configuracioncentro.db.Centro" groups="admins,users">
+    <form name="Centro2" title="Certificado Tutor"  width="large"  model="com.educaflow.shared.common.db.Centro" groups="admins,users">
         <panel name="Centro" title="Centro">
             <field name="code"/>
             <field name="name"/>

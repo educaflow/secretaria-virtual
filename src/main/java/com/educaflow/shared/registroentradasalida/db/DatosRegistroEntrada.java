@@ -1,6 +1,6 @@
 package com.educaflow.shared.registroentradasalida.db;
 
-import com.educaflow.shared.configuracioncentro.db.Centro;
+import com.educaflow.shared.common.db.Centro;
 
 import java.util.Objects;
 

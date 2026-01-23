@@ -7,7 +7,7 @@ import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.numeradores.db.repo.NumeradorRepository;
 import com.educaflow.base.infrastructure.pdf.*;
 import com.educaflow.shared.certificados.AlmacenClaveLoader;
-import com.educaflow.shared.configuracioncentro.db.Centro;
+import com.educaflow.shared.common.db.Centro;
 import com.educaflow.shared.registroentradasalida.db.DatosRegistroEntrada;
 import com.educaflow.shared.registroentradasalida.db.PersonaRegistro;
 import com.educaflow.shared.registroentradasalida.db.RegistroEntrada;

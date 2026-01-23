@@ -13,9 +13,6 @@ class StateEventValidatorImpl: StateEventValidator {
     @BeanValidationRulesForStateAndEvent
     public fun getForStateEntradaDatosInEventDelete(): BeanValidationRules {
         return rules {
-            field(model::getValoresAmbitoCreador) {
-
-            }
 
         }
     }

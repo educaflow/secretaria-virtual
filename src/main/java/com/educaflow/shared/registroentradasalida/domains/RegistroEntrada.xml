@@ -4,7 +4,7 @@
 
     <module name="registroentradasalida" package="com.educaflow.shared.registroentradasalida.db"/>
     <entity name="RegistroEntrada" repository="abstract">
-        <many-to-one name="centro" ref="com.educaflow.shared.configuracioncentro.db.Centro"  />
+        <many-to-one name="centro" ref="com.educaflow.shared.common.db.Centro"  />
         <string name="numeroRegistro"  title="Num.__!! registro" namecolumn="true"  />
         <datetime name="fecha" />
         <many-to-one name="documento" ref="com.axelor.meta.db.MetaFile" required="true" title="documento"/>
