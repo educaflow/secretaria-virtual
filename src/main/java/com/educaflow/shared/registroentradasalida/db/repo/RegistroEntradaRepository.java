@@ -31,6 +31,11 @@ public class RegistroEntradaRepository extends AbstractRegistroEntradaRepository
     }
 
     public RegistroEntrada createRegistroEntrada(DatosRegistroEntrada datosRegistroEntrada, MetaFile metaFilePdf) {
+
+        if (MetaFileHelper.isPdf(metaFilePdf)==false) {
+            throw new IllegalArgumentException("El fichero proporcionado no es un PDF válido.");
+        }
+
         LocalDateTime ahora=LocalDateTime.now();
         RegistroEntrada registroEntrada=new RegistroEntrada();
 
@@ -52,8 +57,9 @@ public class RegistroEntradaRepository extends AbstractRegistroEntradaRepository
         DocumentoPdf documentoPdfFinalFirmado=firmarPorSecretario(documentoPdfFinal,datosRegistroEntrada.centro());
         MetaFile metaFilePdfFinal= MetaFileHelper.createMetaFile(documentoPdfFinalFirmado);
 
+        registroEntrada.setDocumentoOriginalFirmado(metaFilePdf);
         registroEntrada.setFecha(ahora);
-        registroEntrada.setDocumento(metaFilePdfFinal);
+        registroEntrada.setDocumentoResguardoPresentacion(metaFilePdfFinal);
         return registroEntrada;
     }
 

@@ -7,7 +7,8 @@
         <many-to-one name="centro" ref="com.educaflow.shared.common.db.Centro"  />
         <string name="numeroRegistro"  title="Num.__!! registro" namecolumn="true"  />
         <datetime name="fecha" />
-        <many-to-one name="documento" ref="com.axelor.meta.db.MetaFile" required="true" title="documento"/>
+        <many-to-one name="documentoOriginalFirmado" ref="com.axelor.meta.db.MetaFile" required="true" title="documento"/>
+        <many-to-one name="documentoResguardoPresentacion" ref="com.axelor.meta.db.MetaFile" required="true" title="documento"/>
 
     </entity>
 
