@@ -3,7 +3,7 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_8.0.xsd">
 
-    <menuitem name="PdfUtilities-menuitem"  title="Utilidades de PDF" action="PdfUtilities-menuitem-action" groups="admins,users" icon="picture_as_pdf" order="900"/>
+    <menuitem name="PdfUtilities-menuitem"  title="Utilidades de PDF"  groups="admins,users" icon="picture_as_pdf" order="900"/>
 
     <menuitem name="PdfUtilities-info-menuitem"  parent="PdfUtilities-menuitem" title="Información" action="PdfUtilities-info-main-action" groups="admins" order="2"  />
     <menuitem name="PdfUtilities-firma-menuitem"  parent="PdfUtilities-menuitem" title="Posiciones Firma" action="PdfUtilities-firma-main-action" groups="admins" order="4"  />
