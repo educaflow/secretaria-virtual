@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_8.0.xsd">
+
+    <menuitem name="registroentradasalida-menu"  title="Registro"  groups="admins"  order="500"/>
+
+    <menuitem name="registroentradasalida-entrada-menu"  parent="registroentradasalida-menu" title="Entrada" action="registroentradasalida-Entrada-main-action" groups="admins" order="2"  />
+    <menuitem name="registroentradasalida-salida-menu"  parent="registroentradasalida-menu" title="Salida" action="registroentradasalida-Salida-main-action" groups="admins" order="2"  />
+
+    <action-view name="registroentradasalida-Entrada-main-action"  title="Registro de entrada" model="com.educaflow.shared.registroentradasalida.db.RegistroEntrada"  >
+        <view type="grid" name="registroentradasalida-Entrada-main-grid"/>
+        <view type="form" name="registroentradasalida-Entrada-main-form"/>
+
+    </action-view>
+
+    <action-view name="registroentradasalida-Salida-main-action"  title="Registro de salida" model="com.educaflow.shared.registroentradasalida.db.RegistroSalida"  >
+        <view type="grid" name="registroentradasalida-Salida-main-grid"/>
+        <view type="form" name="registroentradasalida-Salida-main-form"/>
+    </action-view>
+
+
+
+
+</object-views>

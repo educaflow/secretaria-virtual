@@ -6,6 +6,7 @@ import com.educaflow.base.infrastructure.criptografia.AlmacenClaveDispositivo;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.numeradores.db.repo.NumeradorRepository;
 import com.educaflow.base.infrastructure.pdf.*;
+import com.educaflow.base.util.TextUtil;
 import com.educaflow.shared.certificados.AlmacenClaveLoader;
 import com.educaflow.shared.common.db.Centro;
 import com.educaflow.shared.registroentradasalida.db.DatosRegistroEntrada;
@@ -16,6 +17,7 @@ import jakarta.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 public class RegistroEntradaRepository extends AbstractRegistroEntradaRepository  {
@@ -30,9 +32,9 @@ public class RegistroEntradaRepository extends AbstractRegistroEntradaRepository
         super();
     }
 
-    public RegistroEntrada createRegistroEntrada(DatosRegistroEntrada datosRegistroEntrada, MetaFile metaFilePdf) {
+    public RegistroEntrada createRegistroEntrada(DatosRegistroEntrada datosRegistroEntrada, MetaFile documentoOriginalFirmado, List<MetaFile> anexos) {
 
-        if (MetaFileHelper.isPdf(metaFilePdf)==false) {
+        if (MetaFileHelper.isPdf(documentoOriginalFirmado)==false) {
             throw new IllegalArgumentException("El fichero proporcionado no es un PDF válido.");
         }
 
@@ -42,7 +44,7 @@ public class RegistroEntradaRepository extends AbstractRegistroEntradaRepository
         String numeroRegistro=getNumeroRegistro(datosRegistroEntrada.centro(),ahora);
         registroEntrada.setNumeroRegistro(numeroRegistro);
 
-        DocumentoPdf documentoPdfEntrada=MetaFileHelper.getDocumentoPdf(metaFilePdf);
+        DocumentoPdf documentoPdfEntrada=MetaFileHelper.getDocumentoPdf(documentoOriginalFirmado);
         DatosRegistroEntradaPdf datosRegistroEntradaPdf=new DatosRegistroEntradaPdf(
                 datosRegistroEntrada.centro(),
                 datosRegistroEntrada.presentador(),
@@ -57,9 +59,12 @@ public class RegistroEntradaRepository extends AbstractRegistroEntradaRepository
         DocumentoPdf documentoPdfFinalFirmado=firmarPorSecretario(documentoPdfFinal,datosRegistroEntrada.centro());
         MetaFile metaFilePdfFinal= MetaFileHelper.createMetaFile(documentoPdfFinalFirmado);
 
-        registroEntrada.setDocumentoOriginalFirmado(metaFilePdf);
+        documentoOriginalFirmado.setFileName(getNombreDocumentoOriginalFirmado(datosRegistroEntradaPdf));
+        registroEntrada.setDocumentoOriginalFirmado(documentoOriginalFirmado);
         registroEntrada.setFecha(ahora);
         registroEntrada.setDocumentoResguardoPresentacion(metaFilePdfFinal);
+        registroEntrada.setAnexos(anexos);
+        registroEntrada.setCentro(datosRegistroEntrada.centro());
         return registroEntrada;
     }
 
@@ -91,7 +96,7 @@ public class RegistroEntradaRepository extends AbstractRegistroEntradaRepository
             if (in == null) {
                 throw new RuntimeException("No se encontró el recurso: " + pdfFileName);
             }
-            DocumentoPdf documentoPdfVacio = DocumentoPdfFactory.getDocumentoPdf(in.readAllBytes(), pdfFileName);
+            DocumentoPdf documentoPdfVacio = DocumentoPdfFactory.getDocumentoPdf(in.readAllBytes(), getNombreDocumentoResguardoPresentacion(datosRegistroEntradaPdf));
 
             Map<String, Object> contexto = Map.of("self", datosRegistroEntradaPdf);
 
@@ -101,6 +106,28 @@ public class RegistroEntradaRepository extends AbstractRegistroEntradaRepository
         } catch (IOException e) {
             throw new RuntimeException("Error al cargar el documento PDF: " + pdfFileName, e);
         }
+    }
+
+    private String getNombreDocumentoOriginalFirmado(DatosRegistroEntradaPdf datosRegistroEntradaPdf) {
+        String nombreDocumento;
+        if ((datosRegistroEntradaPdf.numeroExpediente!=null) && (!datosRegistroEntradaPdf.numeroExpediente.isBlank())) {
+            nombreDocumento="solicitud_expediente_" + datosRegistroEntradaPdf.numeroExpediente + ".pdf";
+        } else {
+            nombreDocumento="registro_entrada_" + datosRegistroEntradaPdf.numeroRegistro + ".pdf";
+        }
+
+        return TextUtil.sanitizeFileName(nombreDocumento);
+    }
+
+    private String getNombreDocumentoResguardoPresentacion(DatosRegistroEntradaPdf datosRegistroEntradaPdf) {
+        String nombreDocumento;
+        if ((datosRegistroEntradaPdf.numeroExpediente!=null) && (!datosRegistroEntradaPdf.numeroExpediente.isBlank())) {
+            nombreDocumento="resguardo_solicitud_expediente_" + datosRegistroEntradaPdf.numeroExpediente + ".pdf";
+        } else {
+            nombreDocumento="resguardo_registro_entrada_" + datosRegistroEntradaPdf.numeroRegistro + ".pdf";
+        }
+
+        return TextUtil.sanitizeFileName(nombreDocumento);
     }
 
     private InputStream getInputStreamFromDocumentosPdf(String nombreFicheroPdf) {

@@ -65,37 +65,28 @@
         <field name="registroSalida"/>
     </grid>
 
-    <form name="expediente-historial-estados-form" title="Historial Estado" model="com.educaflow.shared.expedientes.db.HistorialEstado">
+    <form name="expediente-historial-estados-form" title="Registro" model="com.educaflow.shared.expedientes.db.HistorialEstado">
         <panel-tabs>
+            <panel name="registroEntrada" title="Registro de Entrada" colSpan="12" hideIf="registroEntrada==null">
+                <field name="registroEntrada.documentoOriginalFirmado" widget="binary-link"  colSpan="12"/>
+                <field name="registroEntrada.documentoResguardoPresentacion" widget="binary-link"  colSpan="12"/>
+                <panel-related name="registroEntradaAnexos" title="Anexos" field="registroEntrada.anexos" colSpan="12" form-view="registroAnexos-form"  grid-view="registroAnexos-grid"  />
+            </panel>
+            <panel name="registroSalida" title="Registro de salida" colSpan="12"  hideIf="registroSalida==null">
 
-            <panel name="registroEntradaDocumentoOriginalFirmado" title="Registro de Entrada-Original firmado" colSpan="12">
-                <field name="new2" showTitle="false" readonly="true" colSpan="12">
-                    <viewer depends="registroEntrada.documentoOriginalFirmado" ><![CDATA[
-                        <>
-                        <Box as="iframe" height="800" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${registroEntrada.documentoOriginalFirmado.id}/content/download?inline=true&name=${registroEntrada.documentoOriginalFirmado.fileName}`} ></Box>
-                        </>
-                    ]]></viewer>
-                </field>
-            </panel>
-            <panel name="registroEntradaDocumentoResguardoPresentacion" title="Registro de Entrada-Resguardo presentación" colSpan="12">
-                <field name="new3" showTitle="false" readonly="true" colSpan="12">
-                    <viewer depends="registroEntrada.documentoResguardoPresentacion" ><![CDATA[
-                        <>
-                        <Box as="iframe" height="800" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${registroEntrada.documentoResguardoPresentacion.id}/content/download?inline=true&name=${registroEntrada.documentoResguardoPresentacion.fileName}`} ></Box>
-                        </>
-                    ]]></viewer>
-                </field>
-            </panel>
-            <panel name="registroSalida" title="Registro de salida" colSpan="12">
-                <field name="new4" showTitle="false" readonly="true" colSpan="12">
-                    <viewer depends="registroSalida.documento" ><![CDATA[
-                        <>
-                        <Box as="iframe" height="800" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${registroSalida.documento.id}/content/download?inline=true&name=${registroSalida.documento.fileName}`} ></Box>
-                        </>
-                    ]]></viewer>
-                </field>
             </panel>
         </panel-tabs>
     </form>
+
+    <form name="registroAnexos-form" title="Anexo" canAttach="false"  model="com.axelor.meta.db.MetaFile">
+        <panel title="">
+            <field name="fileName" colSpan="10"/>
+            <field name="content" widget="binary" title="Descargar" colSpan="2"/>
+        </panel>
+    </form>
+
+    <grid name="registroAnexos-grid" title="Anexos" model="com.axelor.meta.db.MetaFile">
+        <field name="fileName"/>
+    </grid>
 
 </object-views>

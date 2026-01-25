@@ -22,6 +22,7 @@ import com.educaflow.shared.registroentradasalida.db.repo.RegistroEntradaReposit
 import com.google.inject.Inject;
 
 import java.time.LocalDate;
+import java.util.List;
 
 
 public class EventManagerFaltaProfesor extends EventManager<JustificacionFaltaProfesorado, JustificacionFaltaProfesorado.State, JustificacionFaltaProfesorado.Event,JustificacionFaltaProfesorado.Profile> {
@@ -61,7 +62,7 @@ public class EventManagerFaltaProfesor extends EventManager<JustificacionFaltaPr
     }
     @WhenEvent
     public void triggerPresentar(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext) throws BusinessException {
-        RegistroEntrada registroEntrada=justificacionFaltaProfesorado.addRegistroEntrada(justificacionFaltaProfesorado.getPdfSolicitudFirmado());
+        RegistroEntrada registroEntrada=justificacionFaltaProfesorado.addRegistroEntrada(justificacionFaltaProfesorado.getPdfSolicitudFirmado(), List.of(justificacionFaltaProfesorado.getJustificante()));
         justificacionFaltaProfesorado.setPdfJustificanteRegistroEntrada(registroEntrada.getDocumentoResguardoPresentacion());
 
         justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.State.PENDIENTE_RESOLUCION);
