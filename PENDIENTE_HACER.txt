@@ -8,3 +8,6 @@ Añadir el Cuerpo del profesor (PT o PS)
 Si se firma un documento y el campo destino ya tiene algo, No se sobreescribe se queda lo que hay.
     Esto pasa en la falta de profesor cuando hay que subsanar datos y se firma la entreda de datos por segunda vez que no se guarda lo nuevo firmado sino que se queda lo que había.
     Se soluciona si se borra el campo destino antes de firmar. Pero eso es una chapuza.
+
+
+Que todos los documentos de entrada y salida se indique el centro en el que se hace la gestión
