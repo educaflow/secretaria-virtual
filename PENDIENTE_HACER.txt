@@ -11,3 +11,9 @@ Si se firma un documento y el campo destino ya tiene algo, No se sobreescribe se
 
 
 Que todos los documentos de entrada y salida se indique el centro en el que se hace la gestión
+
+
+Dades de la persona sol·licitant / Datos de la persona solicitante
+Datos de la persona o entidad interesada (Lo correcto)
+
+Dades de la persona representant / Datos de la persona representante
