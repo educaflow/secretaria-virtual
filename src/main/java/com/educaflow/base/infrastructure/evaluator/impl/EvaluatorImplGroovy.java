@@ -22,7 +22,7 @@ public class EvaluatorImplGroovy implements Evaluator {
         GroovyShell shell = new GroovyShell(binding);
 
         for (String expression : expressions) {
-            System.out.println("Evaluating expression: " + expression);
+
 
 
             try {
@@ -32,6 +32,7 @@ public class EvaluatorImplGroovy implements Evaluator {
 
                 Object result = shell.evaluate(expression);
                 results.put(expression, result);
+                System.out.println("Evaluating expression: " + expression+" => " + result);
             } catch (Exception e) {
                 errores.append(expression).append(":").append(e.getMessage()).append("\n");
             }
