@@ -1,10 +1,10 @@
 package com.educaflow.shared.expedientes.services;
 
 
-import com.axelor.auth.AuthUtils;
 import com.axelor.db.JPA;
 import com.axelor.db.JpaRepository;
 import com.axelor.db.Model;
+import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.shared.expedientes.services.annotations.BeanValidationRulesForStateAndEvent;
 import com.educaflow.shared.expedientes.db.Expediente;
 import com.educaflow.shared.expedientes.db.HistorialEstado;
@@ -45,8 +45,8 @@ public class Tramitador {
 
             Expediente expediente = (Expediente) eventManager.getModelClass().getDeclaredConstructor().newInstance();
             expediente.setTipoExpediente(tipoExpediente);
-            expediente.setCentroReceptor(eventContext.getCentro());
-            expediente.setCreador(AuthUtils.getUser());
+            expediente.setCentro(eventContext.getCentro());
+            expediente.setCreador(SecurityUtil.getUser());
             updateName(expediente);
             updateNumeroExpediente(expediente);
 
@@ -197,7 +197,7 @@ public class Tramitador {
 
     private void updateNumeroExpediente(Expediente expediente) {
         int anyoActual = LocalDate.now().getYear();
-        String codigoCentro = expediente.getCentroReceptor().getCode();
+        String codigoCentro = expediente.getCentro().getCode();
         long numeroExpedienteSinAnyo = numeradorRepository.getSiguienteNumeroExpediente(codigoCentro, String.valueOf(anyoActual));
         String numeroExpediente = String.format("%05d", numeroExpedienteSinAnyo) + "/" + anyoActual;
         expediente.setNumeroExpediente(numeroExpediente);

@@ -4,12 +4,12 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_8.0.xsd">
 
     <form name="exp-JustificacionFaltaProfesorado-Templates"   width="large" title="Justificación de falta del profesorado"  model="com.educaflow.shared.expedientes.db.JustificacionFaltaProfesorado" groups="admins,users">
-        <panel name="datos-profesor" title="Datos del Profesor">
-            <field name="apellidos" colSpan="4" readonly="true"/>
-            <field name="nombre" colSpan="4" readonly="true"/>
-            <field name="dni" title="DNI" colSpan="4" readonly="true"/>
+        <panel name="datos-profesor" title="Datos del profesor interesado">
+            <field name="personaInteresada.apellidos" colSpan="4" readonly="true"/>
+            <field name="personaInteresada.nombre" colSpan="4" readonly="true"/>
+            <field name="personaInteresada.dni" title="DNI" colSpan="4" readonly="true"/>
         </panel>
-        <panel name="datos-falta" title="Datos de la Falta">
+        <panel name="datos-falta" title="Datos de la falta">
             <field name="dias" colSpan="1"/>
             <field name="mes" colSpan="10"  widget="SwitchSelect"/>
             <field name="anyo" colSpan="1"/>

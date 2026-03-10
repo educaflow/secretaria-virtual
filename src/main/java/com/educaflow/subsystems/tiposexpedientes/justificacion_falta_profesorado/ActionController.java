@@ -13,7 +13,7 @@ public class ActionController {
     public void firmarDocumentacionParaPresentar(ActionRequest actionRequest, ActionResponse actionResponse) {
 
         AutoFirma autofirma = (new AutoFirma(JustificacionFaltaProfesorado.class))
-            .setRectangulo(new Rectangulo(100,70,400,100))
+            .setRectangulo(new Rectangulo(100,20,600,100))
             .setPageNumber(1)
             .setSourceField("pdfSolicitud")
             .setTargetField("pdfSolicitudFirmado");

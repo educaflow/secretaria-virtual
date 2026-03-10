@@ -1,6 +1,5 @@
 package com.educaflow.shared.expedientes.controllers;
 
-import com.axelor.auth.AuthUtils;
 import com.axelor.auth.db.User;
 import com.axelor.db.JPA;
 import com.axelor.db.JpaRepository;
@@ -9,6 +8,7 @@ import com.axelor.i18n.I18n;
 import com.axelor.meta.CallMethod;
 import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
+import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.shared.expedientes.services.CommonEvent;
 import com.educaflow.shared.expedientes.services.EventContext;
 import com.educaflow.shared.expedientes.services.EventManager;
@@ -216,7 +216,7 @@ public class ExpedienteController {
 
 
     private static Centro getCentroFromCurrentUser() {
-        final User user = AuthUtils.getUser();
+        final User user = SecurityUtil.getUser();
 
         if (user == null) {
             throw new RuntimeException("User es null");
@@ -225,11 +225,7 @@ public class ExpedienteController {
         Centro centro = user.getCentroActivo();
 
         if (centro == null) {
-            String codigoCentroDefecto = "460001";
-            System.out.println("ERROR:El usuario no tiene un centro activo, se asigna el centro por defecto '" + codigoCentroDefecto + "' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            centro = new Centro();
-            centro.setCode(codigoCentroDefecto);
-            centro.setName("Centro por defecto");
+            throw new RuntimeException("El centro activo es null para el usuario: " + user.getName());
         }
 
         return centro;

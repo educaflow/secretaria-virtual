@@ -1,11 +1,12 @@
 package com.educaflow.subsystems.tiposexpedientes.justificacion_falta_profesorado;
 
 import com.axelor.meta.db.MetaFile;
-import com.educaflow.base.infrastructure.criptografia.AlmacenClaveDispositivo;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
+import com.educaflow.shared.certificados.AlmacenClaveLoader;
+import com.educaflow.shared.common.db.Persona;
 import com.educaflow.shared.expedientes.services.EventContext;
 import com.educaflow.shared.expedientes.services.EventManager;
 import com.educaflow.shared.expedientes.services.annotations.OnEnterState;
@@ -15,9 +16,8 @@ import com.educaflow.shared.expedientes.db.TipoResolucionJustificacionFaltaProfe
 import com.educaflow.shared.expedientes.db.repo.JustificacionFaltaProfesoradoRepository;
 
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
-import com.educaflow.shared.registroentradasalida.db.DatosRegistroEntrada;
-import com.educaflow.shared.registroentradasalida.db.PersonaRegistro;
 import com.educaflow.shared.registroentradasalida.db.RegistroEntrada;
+import com.educaflow.shared.registroentradasalida.db.RegistroSalida;
 import com.educaflow.shared.registroentradasalida.db.repo.RegistroEntradaRepository;
 import com.google.inject.Inject;
 
@@ -31,6 +31,8 @@ public class EventManagerFaltaProfesor extends EventManager<JustificacionFaltaPr
 
     @Inject
     RegistroEntradaRepository registroEntradaRepository;
+    @Inject
+    AlmacenClaveLoader almacenClaveLoader;
 
     @Inject
     public EventManagerFaltaProfesor(JustificacionFaltaProfesoradoRepository repository) {
@@ -43,9 +45,12 @@ public class EventManagerFaltaProfesor extends EventManager<JustificacionFaltaPr
 
 
         justificacionFaltaProfesorado.setAnyo(LocalDate.now().getYear());
-        justificacionFaltaProfesorado.setNombre("Lorenzo");
-        justificacionFaltaProfesorado.setApellidos("Acción García");
-        justificacionFaltaProfesorado.setDni("12345678Z");
+        Persona persona=new Persona();
+        persona.setNombre(justificacionFaltaProfesorado.getCreador().getNombre());
+        persona.setApellidos(justificacionFaltaProfesorado.getCreador().getApellidos());
+        persona.setDni(justificacionFaltaProfesorado.getCreador().getDni());
+        justificacionFaltaProfesorado.setPersonaInteresada(persona);
+        justificacionFaltaProfesorado.setPersonaSolicitante(persona);
 
     }
 
@@ -64,7 +69,6 @@ public class EventManagerFaltaProfesor extends EventManager<JustificacionFaltaPr
     public void triggerPresentar(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext) throws BusinessException {
         RegistroEntrada registroEntrada=justificacionFaltaProfesorado.addRegistroEntrada(justificacionFaltaProfesorado.getPdfSolicitudFirmado(), List.of(justificacionFaltaProfesorado.getJustificante()));
         justificacionFaltaProfesorado.setPdfJustificanteRegistroEntrada(registroEntrada.getDocumentoResguardoPresentacion());
-
         justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.State.PENDIENTE_RESOLUCION);
         justificacionFaltaProfesorado.setDisconformidad(null);
         justificacionFaltaProfesorado.setResolucion(null);
@@ -74,7 +78,14 @@ public class EventManagerFaltaProfesor extends EventManager<JustificacionFaltaPr
     @WhenEvent
     public void triggerResolver(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext)  throws BusinessException {
         TipoResolucionJustificacionFaltaProfesorado tipoResolucion = justificacionFaltaProfesorado.getTipoResolucion();
+        DocumentoPdf resolucion = justificacionFaltaProfesorado.getDocumentoPdf(JustificacionFaltaProfesorado.TipoDocumentoPdf.RESOLUCION);
 
+        DocumentoPdf resolucionFirmada =resolucion.firmar(almacenClaveLoader.getDirector(justificacionFaltaProfesorado.getCentro()),new CampoFirma(new Rectangulo(75,280,400,20)));
+
+        MetaFile pdfResolucion = MetaFileHelper.createMetaFile(resolucionFirmada);
+
+        RegistroSalida registroSalida=justificacionFaltaProfesorado.addRegistroSalida(pdfResolucion, List.of(justificacionFaltaProfesorado.getJustificante()));
+        justificacionFaltaProfesorado.setPdfResolucion(registroSalida.getDocumento());
         switch (tipoResolucion) {
             case ACEPTAR:
                 justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.State.ACEPTADO);

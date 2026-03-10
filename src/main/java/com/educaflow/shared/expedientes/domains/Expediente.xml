@@ -14,10 +14,12 @@
         <datetime name="fechaUltimoEstado" title="Fecha último estado" />
         <boolean name="abierto" title="Abierto" />
         <one-to-many name="historialEstados" ref="HistorialEstado" mappedBy="expediente" />
-        <many-to-one name="centroReceptor" ref="com.educaflow.shared.common.db.Centro"  />
+        <many-to-one name="centro" ref="com.educaflow.shared.common.db.Centro"  />
         <many-to-one name="creador" ref="com.axelor.auth.db.User"  />
         <many-to-one name="registroEntrada"  ref="com.educaflow.shared.registroentradasalida.db.RegistroEntrada" required="false"/>
         <many-to-one name="registroSalida"   ref="com.educaflow.shared.registroentradasalida.db.RegistroSalida" required="false"/>
+        <one-to-one name="personaInteresada" ref="com.educaflow.shared.common.db.Persona"  />
+        <one-to-one name="personaSolicitante" ref="com.educaflow.shared.common.db.Persona"  />
 
         <extra-imports-model>
             <![CDATA[
@@ -34,10 +36,15 @@
                 import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil;
                 import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
                 import java.nio.file.Path;
-                import com.educaflow.shared.registroentradasalida.db.DatosRegistroEntrada;
-                import com.educaflow.shared.registroentradasalida.db.PersonaRegistro;
+
                 import com.educaflow.shared.registroentradasalida.db.RegistroEntrada;
-                import com.educaflow.shared.registroentradasalida.db.repo.RegistroEntradaRepository;
+                import com.educaflow.shared.registroentradasalida.db.RegistroSalida;
+
+                import com.educaflow.shared.registroentradasalida.service.DatosRegistroEntrada;
+                import com.educaflow.shared.registroentradasalida.service.DatosRegistroSalida;
+                import com.educaflow.shared.registroentradasalida.service.PersonaRegistro;
+                import com.educaflow.shared.registroentradasalida.service.RegistroEntradaService;
+                import com.educaflow.shared.registroentradasalida.service.RegistroSalidaService;
                 import com.axelor.meta.db.MetaFile;
             ]]>
         </extra-imports-model>
@@ -62,7 +69,7 @@
   }
 
 
-    protected DocumentoPdf getDocumentoPdf(String documentoPdfFileName, Expediente expediente) {
+    public DocumentoPdf getDocumentoPdf(String documentoPdfFileName, Expediente expediente) {
         try {
             Class<?> callerClass = expediente.getClass();
 
@@ -88,26 +95,41 @@
 
     public RegistroEntrada addRegistroEntrada(MetaFile documentoPdf,List<MetaFile> anexos) {
         DatosRegistroEntrada datosRegistroEntrada=new DatosRegistroEntrada(
-            this.getCentroReceptor(),
+            this.getCentro(),
             new PersonaRegistro(
-                this.getCreador().getName(),
-                this.getCreador().getDni()
+                this.getPersonaSolicitante().getNombre()+ " "+this.getPersonaSolicitante().getApellidos(),
+                this.getPersonaSolicitante().getDni()
             ),
             new PersonaRegistro(
-                this.getCreador().getName(),
-                this.getCreador().getDni()
+                 this.getPersonaInteresada().getNombre()+ " "+this.getPersonaInteresada().getApellidos(),
+                this.getPersonaInteresada().getDni()
             ),
             this.getNumeroExpediente(),
             this.getName()
         );
 
-        RegistroEntrada registroEntrada=Beans.get(RegistroEntradaRepository.class).createRegistroEntrada(datosRegistroEntrada,documentoPdf,anexos);
+        RegistroEntrada registroEntrada=Beans.get(RegistroEntradaService.class).createRegistroEntrada(datosRegistroEntrada,documentoPdf,anexos);
 
         this.setRegistroEntrada(registroEntrada);
 
         return registroEntrada;
 
     }
+
+
+    public RegistroSalida addRegistroSalida(MetaFile documentoPdf,List<MetaFile> anexos) {
+        DatosRegistroSalida datosRegistroSalida=new DatosRegistroSalida(
+            this.getCentro()
+        );
+
+        RegistroSalida registroSalida=Beans.get(RegistroSalidaService.class).createRegistroSalida(datosRegistroSalida,documentoPdf,anexos);
+
+        this.setRegistroSalida(registroSalida);
+
+        return registroSalida;
+
+    }
+
 
 
 ]]>

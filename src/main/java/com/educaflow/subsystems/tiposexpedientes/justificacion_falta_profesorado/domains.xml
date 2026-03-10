@@ -6,12 +6,6 @@
 
     <module name="expedientes" package="com.educaflow.shared.expedientes.db"/>
     <entity name="JustificacionFaltaProfesorado" extends="Expediente" >
-        <string name="apellidos" />
-        <string name="nombre" />
-        <string name="dni" title="DNI" />
-
-
-
         <string name="dias"  />
         <enum name="mes" ref="com.educaflow.shared.expedientes.db.MesJustificacionFaltaProfesorado" />
         <integer name="anyo" title="Año" />
