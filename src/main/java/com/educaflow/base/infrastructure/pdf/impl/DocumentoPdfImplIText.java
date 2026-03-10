@@ -12,20 +12,23 @@ import com.educaflow.base.infrastructure.pdf.impl.helper.PKCS11ExternalSignature
 import com.educaflow.base.infrastructure.pdf.impl.helper.PdfDocumentHelper;
 import com.itextpdf.forms.PdfAcroForm;
 import com.itextpdf.forms.fields.PdfFormField;
+import com.itextpdf.forms.fields.PdfTextFormField;
+import com.itextpdf.forms.fields.TextFormFieldBuilder;
 import com.itextpdf.forms.form.element.SignatureFieldAppearance;
 import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
+import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.crypto.DigestAlgorithms;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.geom.Rectangle;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfReader;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.kernel.pdf.StampingProperties;
-import com.itextpdf.kernel.pdf.WriterProperties;
+import com.itextpdf.kernel.pdf.*;
+import com.itextpdf.kernel.pdf.annot.PdfWidgetAnnotation;
 import com.itextpdf.kernel.utils.PdfMerger;
+import com.itextpdf.layout.properties.HorizontalAlignment;
+import com.itextpdf.layout.properties.Property;
+import com.itextpdf.layout.properties.VerticalAlignment;
 import com.itextpdf.signatures.BouncyCastleDigest;
 import com.itextpdf.signatures.IExternalDigest;
 import com.itextpdf.signatures.IExternalSignature;
@@ -88,9 +91,9 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
         PdfAcroForm form = PdfAcroForm.getAcroForm(pdfDocument, false);
 
         if (form != null) {
-            Map<String, PdfFormField> PdfFormFields = form.getAllFormFields();
+            Map<String, PdfFormField> pdfFormFields = form.getAllFormFields();
 
-            for (Entry<String, PdfFormField> entry : PdfFormFields.entrySet()) {
+            for (Entry<String, PdfFormField> entry : pdfFormFields.entrySet()) {
                 String name = entry.getKey();
                 PdfFormField pdfFormField = entry.getValue();
                 if (allowFormField(pdfFormField) == true) {
@@ -145,17 +148,20 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
                 throw new RuntimeException("No existe ningun formulario en el pdf");
             }
 
-            for(Entry<String, String> entry:valores.entrySet()) {
-                String nombre=entry.getKey();
-                String valor=entry.getValue();
+            Map<String, PdfFormField> pdfFormFields = form.getAllFormFields();
 
-                PdfFormField pdfFormField = form.getField(nombre);
-                if (pdfFormField == null) {
-                    throw new RuntimeException("No existe en el formulario el campo:" + pdfFormField);
+            for (Entry<String, PdfFormField> entry : pdfFormFields.entrySet()) {
+                String nombre = entry.getKey();
+                PdfFormField pdfFormField = entry.getValue();
+                if (allowFormField(pdfFormField) == true) {
+                    String valor = valores.get(nombre);
+                    if (valor == null) {
+                        valor="";
+                        System.out.println("No se ha proporcionado valor para el campo '" + nombre + "'. Se establecerá un valor vacío.");
+                    }
+
+                    pdfFormField.setValue(valor);
                 }
-
-                pdfFormField.setValue(valor);            
-
             }
             
             form.flattenFields();
@@ -237,6 +243,47 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
 
     }
 
+    @Override
+    public DocumentoPdf estamparTextoConAppend(String texto, int numeroPagina, Rectangulo rectangulo) {
+
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            PdfFont font = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+
+            PdfReader reader = new PdfReader(new ByteArrayInputStream(this.bytesPdf));
+            PdfWriter writer = new PdfWriter(baos);
+            StampingProperties properties = new StampingProperties().useAppendMode();
+            PdfDocument pdfDoc = new PdfDocument(reader, writer, properties);
+
+            PdfAcroForm form = PdfAcroForm.getAcroForm(pdfDoc, true);
+            String fieldName = "TXT_INCREMENTAL_" + System.currentTimeMillis();
+            TextFormFieldBuilder builder = new TextFormFieldBuilder(pdfDoc, fieldName);
+
+            PdfTextFormField field = builder.setWidgetRectangle(new Rectangle(rectangulo.x(), rectangulo.y(), rectangulo.width(), rectangulo.height())).setPage(pdfDoc.getPage(numeroPagina)).createText();
+
+            field.setValue(texto);
+            field.setReadOnly(true);
+            field.setFont(font);
+            field.setFontSize(7);
+            field.setColor(ColorConstants.BLACK);
+
+
+            PdfWidgetAnnotation widget = field.getWidgets().get(0);
+            widget.setBorder(new PdfArray(new float[]{0, 0, 0}));
+            widget.getPdfObject().remove(PdfName.MK);
+
+
+            form.addField(field, pdfDoc.getPage(getPageNumber(numeroPagina)));
+
+            pdfDoc.close();
+
+            return DocumentoPdfFactory.getDocumentoPdf(baos.toByteArray(), this.fileName);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error al añadir texto incremental: " + e.getMessage(), e);
+        }
+    }
+
 
     @Override
     public DocumentoPdf anyadirDocumentoPdf(DocumentoPdf documentoPdf2) {
@@ -309,7 +356,7 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
         SignerProperties signerProperties = new SignerProperties();
         signerProperties.setFieldName(getSignatureFieldName());
         signerProperties.setPageRect(getRectangle(campoFirma));
-        signerProperties.setPageNumber(campoFirma.getNumeroPagina());
+        int pageNumber= getPageNumber(campoFirma.getNumeroPagina());
         signerProperties.setSignatureAppearance(signatureFieldAppearance);
         signerProperties.setClaimedSignDate(toCalendar(campoFirma.getFechaFirma()));
         if (campoFirma.getMotivo()!=null) {
@@ -336,6 +383,8 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
                 signatureFieldAppearance.setContent(message, imageData);
             }
             signatureFieldAppearance.setFontSize(campoFirma.getFontSize());
+            signatureFieldAppearance.setHorizontalAlignment(HorizontalAlignment.LEFT);
+            signatureFieldAppearance.setProperty(Property.VERTICAL_ALIGNMENT, VerticalAlignment.BOTTOM);
             PdfFont courier = PdfFontFactory.createFont(StandardFonts.COURIER);
             signatureFieldAppearance.setFont(courier);
 
@@ -355,10 +404,10 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
         float width;
         float height;
 
-        float mensajeX = campoFirma.getRectanguloMensaje().getX();
-        float mensajeY = campoFirma.getRectanguloMensaje().getY();
-        float mensajeWidth = campoFirma.getRectanguloMensaje().getWidth();
-        float mensajeHeight = campoFirma.getRectanguloMensaje().getHeight();
+        float mensajeX = campoFirma.getRectanguloMensaje().x();
+        float mensajeY = campoFirma.getRectanguloMensaje().y();
+        float mensajeWidth = campoFirma.getRectanguloMensaje().width();
+        float mensajeHeight = campoFirma.getRectanguloMensaje().height();
 
         if (campoFirma.getImage() != null) {
             ImageData imageData = ImageDataFactory.create(campoFirma.getImage());
@@ -373,6 +422,33 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
         }
 
         return new Rectangle(mensajeX, mensajeY, width, height);
+    }
+
+    /**
+     * Esta función existe porque permite números de página negativos y entonces empieza por el final
+     * @param numeroPagina No se permite el cero
+     * @return
+     */
+    private int getPageNumber(int numeroPagina) {
+        int numeroPaginas=this.getNumeroPaginas();
+        int realNumeroPagina;
+
+        if (numeroPagina == 0) {
+            throw new IllegalArgumentException("El numero de pagina no puede ser 0");
+        }
+
+        if (numeroPagina < 0) {
+            realNumeroPagina=this.getNumeroPaginas() + numeroPagina + 1;
+        } else {
+            realNumeroPagina=numeroPagina;
+        }
+
+        if ((realNumeroPagina < 1) || (realNumeroPagina > numeroPaginas)) {
+            throw new IllegalArgumentException("El numero de pagina es incorrecto. El documento tiene " + numeroPaginas + " paginas y se ha indicado el numero de pagina " + realNumeroPagina);
+        }
+
+
+        return realNumeroPagina;
     }
 
 

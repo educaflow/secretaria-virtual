@@ -52,10 +52,10 @@ public class AutoFirma {
         payload.put("pageNumber", autofirma.getPageNumber());
         payload.put("fontSize", autofirma.getFontSize());
         Rectangulo rectangulo = autofirma.getRectangulo();
-        payload.put("signaturePositionOnPageLowerLeftX", rectangulo.getX());
-        payload.put("signaturePositionOnPageLowerLeftY", rectangulo.getY()+AUTOFIRMA_Y_OFFSET);
-        payload.put("signaturePositionOnPageUpperRightX", rectangulo.getX() + rectangulo.getWidth());
-        payload.put("signaturePositionOnPageUpperRightY", rectangulo.getY()+AUTOFIRMA_Y_OFFSET + rectangulo.getHeight());
+        payload.put("signaturePositionOnPageLowerLeftX", rectangulo.x());
+        payload.put("signaturePositionOnPageLowerLeftY", rectangulo.y()+AUTOFIRMA_Y_OFFSET);
+        payload.put("signaturePositionOnPageUpperRightX", rectangulo.x() + rectangulo.width());
+        payload.put("signaturePositionOnPageUpperRightY", rectangulo.y()+AUTOFIRMA_Y_OFFSET + rectangulo.height());
 
 
 
