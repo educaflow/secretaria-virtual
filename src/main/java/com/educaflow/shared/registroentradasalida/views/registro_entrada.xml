@@ -13,7 +13,7 @@
     <grid name="registroentradasalida-Entrada-main-grid" title="Registro de entrada" model="com.educaflow.shared.registroentradasalida.db.RegistroEntrada"
           groups="admins,users"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
-          orderBy="fecha"
+          orderBy="numeroRegistro" canViewOnClick="true"
     >
         <field name="centro"/>
         <field name="numeroRegistro"/>
@@ -23,6 +23,9 @@
     <form name="registroentradasalida-Entrada-main-form" title="Registro de entrada" model="com.educaflow.shared.expedientes.db.HistorialEstado"
           canEdit="false" canAttach="false" canBack="false" canBackOnSave="true" canDelete="false" canNew="false" >
         <panel name="registroEntrada" title="" colSpan="12" >
+            <field name="numeroRegistro"   colSpan="4"/>
+            <field name="fecha"   colSpan="4"/>
+
             <field name="documentoOriginalFirmado" widget="binary-link"  colSpan="12"/>
             <field name="documentoResguardoPresentacion" widget="binary-link"  colSpan="12"/>
             <panel-related name="registroEntradaAnexos" title="Anexos" field="anexos" colSpan="12" form-view="registroAnexos-form"  grid-view="registroAnexos-grid"  />

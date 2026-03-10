@@ -10,6 +10,8 @@
         <many-to-one name="documentoOriginalFirmado" ref="com.axelor.meta.db.MetaFile" required="true" title="Solicitud firmada"/>
         <many-to-one name="documentoResguardoPresentacion" ref="com.axelor.meta.db.MetaFile" required="true" title="Resguardo de presentación"/>
         <one-to-many name="anexos" ref="com.axelor.meta.db.MetaFile" title="Anexos" />
+
+        <entity-listener class="com.educaflow.shared.registroentradasalida.db.repo.RegistroEntradaListener"/>
     </entity>
 
 </domain-models>

@@ -13,7 +13,7 @@
     <grid name="registroentradasalida-Salida-main-grid" title="Registro de entrada" model="com.educaflow.shared.registroentradasalida.db.RegistroSalida"
           groups="admins,users"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false"
-          canSave="false" orderBy="fecha"
+          canSave="false" orderBy="numeroRegistro" canViewOnClick="true"
     >
         <field name="centro"/>
         <field name="numeroRegistro"/>
@@ -24,8 +24,10 @@
     <form name="registroentradasalida-Salida-main-form" title="Registro" model="com.educaflow.shared.registroentradasalida.db.RegistroSalida"
           canEdit="false" canAttach="false" canBack="false" canBackOnSave="true" canDelete="false" canNew="false" >
             <panel name="registroSalida" title="Registro de Salida" colSpan="12" >
-                <field name="documentoOriginalFirmado" widget="binary-link"  colSpan="12"/>
-                <field name="documentoResguardoPresentacion" widget="binary-link"  colSpan="12"/>
+                <field name="numeroRegistro"   colSpan="4"/>
+                <field name="fecha"   colSpan="4"/>
+
+                <field name="documento" widget="binary-link"  colSpan="12"/>
                 <panel-related name="anexos" title="Anexos" field="anexos" colSpan="12" form-view="registroAnexos-form"  grid-view="registroAnexos-grid"  />
             </panel>
     </form>
@@ -38,7 +40,8 @@
         </panel>
     </form>
 
-    <grid name="registroAnexos-grid" title="Anexos" model="com.axelor.meta.db.MetaFile">
+    <grid name="registroAnexos-grid" title="Anexos" model="com.axelor.meta.db.MetaFile"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
         <field name="fileName"/>
     </grid>
 
