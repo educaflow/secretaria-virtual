@@ -8,5 +8,7 @@
     <entity name="User" id="Usuario">
         <many-to-one name="centroActivo"       ref="com.educaflow.shared.common.db.Centro" title="Centro Activo" />
         <string name="dni" title="DNI"  />
+        <string name="nombre" title="Nombre"  />
+        <string name="apellidos" title="Apellidos"  />
     </entity>
 </domain-models>

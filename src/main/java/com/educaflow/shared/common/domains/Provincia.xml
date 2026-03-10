@@ -3,13 +3,13 @@
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.0.xsd">
 
     <module name="common" package="com.educaflow.shared.common.db"/>
-    <entity name="Centro">
+    <entity name="Provincia">
         <string name="code" title="Código" required="true" unique="true" />
-        <string name="name" title="Nombre" namecolumn="true" required="true"/>
-        <string name="direccion" title="Dirección"/>
-        <string name="codigoPostal" title="Código Postal"/>
-        <many-to-one name="municipio"   title="Municipio"   ref="Municipio" required="true"/>
-        <many-to-one name="conselleria" title="Conselleria" ref="Municipio" required="true"/>
+        <string name="name" title="Nombre" namecolumn="true" required="false"/>
+
+        <many-to-one name="comunidadAutonoma" title="Comunidad Autónoma"
+                     ref="com.educaflow.shared.common.db.ComunidadAutonoma"
+                     required="true"/>
     </entity>
 
 </domain-models>

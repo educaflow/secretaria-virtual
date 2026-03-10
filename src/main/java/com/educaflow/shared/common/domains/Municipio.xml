@@ -1,15 +1,15 @@
 <domain-models xmlns="http://axelor.com/xml/ns/domain-models"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.0.xsd">
-
+                                   com.educaflow.shared.common.db
     <module name="common" package="com.educaflow.shared.common.db"/>
-    <entity name="Centro">
+    <entity name="Municipio">
         <string name="code" title="Código" required="true" unique="true" />
-        <string name="name" title="Nombre" namecolumn="true" required="true"/>
-        <string name="direccion" title="Dirección"/>
-        <string name="codigoPostal" title="Código Postal"/>
-        <many-to-one name="municipio"   title="Municipio"   ref="Municipio" required="true"/>
-        <many-to-one name="conselleria" title="Conselleria" ref="Municipio" required="true"/>
+        <string name="name" title="Nombre" namecolumn="true" required="false"/>
+
+        <many-to-one name="provincia" title="Provincia"
+                     ref="com.educaflow.shared.common.db.Provincia"
+                     required="true"/>
     </entity>
 
 </domain-models>

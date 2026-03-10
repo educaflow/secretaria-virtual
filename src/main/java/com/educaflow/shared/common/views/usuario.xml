@@ -26,11 +26,27 @@
             <attribute name="showIf" value="1=0"/>
         </extend>
 
-        <extend target="//field[@name='language']">
+        <extend target="//panel[@if='__repo__(UserToken).isPermitted()']">
+            <attribute name="showIf" value="1=0"/>
+        </extend>
+        <extend target="//panel[@if='__repo__(MFA).isPermitted()']">
+            <attribute name="showIf" value="1=0"/>
+        </extend>
+
+        <extend target="//field[@name='image']">
             <insert position="after">
-                <field name="centroActual" />
+                <field name="dni"    colSpan="4" />
+                <field name="nombre"  colSpan="4" />
+                <field name="apellidos"   colSpan="4"  />
             </insert>
         </extend>
+
+        <extend target="//field[@name='email']">
+            <insert position="after">
+                <field name="centroActivo"  />
+            </insert>
+        </extend>
+
     </form>
 
 

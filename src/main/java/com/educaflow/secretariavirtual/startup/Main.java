@@ -5,6 +5,11 @@ import com.axelor.app.AvailableAppSettings;
 import com.axelor.app.AxelorModule;
 import com.educaflow.base.infrastructure.criptografia.EntornoCriptografico;
 import com.educaflow.base.infrastructure.criptografia.config.EntornoCriptograficoConfig;
+import com.educaflow.base.infrastructure.mail.MailSender;
+import com.educaflow.base.infrastructure.mail.impl.MailSenderImpl;
+import com.educaflow.base.infrastructure.mail.impl.SmtpCredentialSimplePassword;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 
 public class Main extends AxelorModule {
 
@@ -14,7 +19,6 @@ public class Main extends AxelorModule {
 
         configureEntornoCriptografico();
         configureDatabase();
-
     }
 
 
@@ -32,5 +36,16 @@ public class Main extends AxelorModule {
         bind(DataBaseMigrate.class);
     }
 
+    @Provides
+    @Singleton
+    public MailSender provideMailSender() {
+        String host = AppSettings.get().get("mail.smtp.host");
+        String user = AppSettings.get().get("mail.smtp.user");
+        String pass = AppSettings.get().get("mail.smtp.password");
+
+        SmtpCredentialSimplePassword smtpCredentialSimplePassword = new SmtpCredentialSimplePassword(host, user, pass);
+
+        return new MailSenderImpl(smtpCredentialSimplePassword);
+    }
 
 }
