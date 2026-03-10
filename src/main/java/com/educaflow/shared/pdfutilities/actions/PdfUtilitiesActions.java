@@ -46,8 +46,8 @@ public class PdfUtilitiesActions {
 
 
             for(int x=0;x<=500;x+=100) {
-                for(int y=0;y<=700;y+=100) {
-                    CampoFirma campoFirma=new CampoFirma(new Rectangulo(x,y,100,100)).setNumeroPagina(1).setMensaje(x+"," + y);
+                for(int y=0;y<=700;y+=50) {
+                    CampoFirma campoFirma=new CampoFirma(new Rectangulo(x,y,100,20)).setNumeroPagina(1).setMensaje(x+"," + y);
                     AlmacenClave almacenClave=almacenClaveLoader.getDummy();
                     documentoPdf=documentoPdf.firmar(almacenClave,campoFirma);
                 }
