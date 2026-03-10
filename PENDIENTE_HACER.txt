@@ -17,3 +17,5 @@ Datos de la persona o entidad interesada (Lo correcto)
 Dades de la persona representant / Datos de la persona representante
 
 incluir el nombre de la conselleria en los documentos. que se añada al centro
+
+El tiempo que espera AutoFirma en cargarse que lo pueda definir desde el servidor en Axelor.
