@@ -222,7 +222,8 @@ public class ExpedienteController {
             throw new RuntimeException("User es null");
         }
 
-        Centro centro = user.getCentroActivo();
+        //Centro centro = user.getCentroActivo();
+        Centro centro = null;
 
         if (centro == null) {
             throw new RuntimeException("El centro activo es null para el usuario: " + user.getName());

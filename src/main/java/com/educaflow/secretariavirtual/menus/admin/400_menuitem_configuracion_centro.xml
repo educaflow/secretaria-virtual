@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_8.0.xsd">
+
+    <menuitem name="configuracioncentro-menu"  title="Configuración Centro"  groups="admins"  order="400"/>
+
+    <menuitem
+            name="configuracioncentro-CursoAcademico-menu"
+            parent="configuracioncentro-menu"
+            title="Centros"
+            action="mant-Centro-action"
+            groups="admins"
+            order="2"
+    />
+
+    <menuitem name="configuracioncentro-raw-menu"  title="Configuración Centro-RAW"  groups="admins"  order="400"/>
+
+
+</object-views>

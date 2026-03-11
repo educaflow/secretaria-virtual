@@ -1,0 +1,14 @@
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.0.xsd">
+
+    <module name="configuracioncentro" package="com.educaflow.shared.configuracioncentro.db"/>
+    <entity name="RolAcademico">
+        <string name="code"  />
+        <string name="name" namecolumn="true" />
+        <enum name="tipoUsuario" ref="com.educaflow.shared.configuracioncentro.db.TipoUsuarioCentro" title="Tipo de usuario"/>
+        <one-to-many name="cursoAcademicoUsuarioRolesAcademicos" ref="com.educaflow.shared.configuracioncentro.db.CursoAcademicoUsuarioRolAcademico" mappedBy="rolAcademico" title="Asignaciones de rol académico"/>
+        <many-to-one name="centro" ref="com.educaflow.shared.common.db.Centro" required="true" title="Centro"/>
+    </entity>
+
+</domain-models>

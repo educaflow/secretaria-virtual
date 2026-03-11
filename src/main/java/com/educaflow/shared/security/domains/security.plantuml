@@ -1,0 +1,45 @@
+@startuml
+Centro "*" -- "*" User
+(Centro, User) . CentroUsuario
+
+SecurityActor <|-- SecurityGroup
+SecurityActor <|-- SecurityUser
+
+SecurityUser "1" -- "1" CentroUsuario
+SecurityUser "*" -- "*" SecurityGroup
+(SecurityUser, SecurityGroup) . SecurityUserSecurityGroup
+
+SecurityActor "1" -- "*" AccessAssignment
+AccessAssignment "*" -- "1" AccessProfile
+
+class Centro {
+}
+
+class User {
+}
+
+class CentroUsuario {
+}
+
+class SecurityActor {
+}
+
+class SecurityUser {
+}
+
+class SecurityGroup {
+}
+
+class SecurityUserSecurityGroup {
+}
+
+class AccessAssignment {
+    tramite
+    tipoExpediente
+    Expediente
+}
+
+class AccessProfile {
+    type: {Profesor, EquipoDirectivo, JefeEstudios, Alumno}
+}
+@enduml

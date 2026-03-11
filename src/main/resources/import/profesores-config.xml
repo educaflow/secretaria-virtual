@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<xml-inputs priority="10" xmlns="http://axelor.com/xml/ns/data-import"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://axelor.com/xml/ns/data-import
+  https://axelor.com/xml/ns/data-import/data-import_8.0.xsd">
+
+    <input root="centro"  file="profesores">
+        <bind node="docentes/docente" type="com.axelor.auth.db.User" search="self.code = :documento" call="com.educaflow.shared.common.importar.Validator:validateEmail" >
+            <bind node="@documento" to="dni"/>
+            <bind node="@documento" to="code"/>
+
+            <bind node="@nombre" alias="nombre"/>
+            <bind node="@apellido1" alias="apellido1"/>
+            <bind node="@apellido2" alias="apellido2"/>
+            <bind to="name" eval="nombre + ' ' + apellido1 + ' ' + apellido2" if="apellido2 != null"/>
+            <bind to="name" eval="nombre + ' ' + apellido1" if="apellido2 == null || apellido2.empty"/>
+
+
+            <!--<bind node="@email1" to="email" check="@email1.trim().empty" check-message="El email no puede estar vacío"/>-->
+            <!--<bind node="@email1" alias="email1"/>-->
+            <!--<bind node="@email2" alias="email2"/>-->
+
+            <!--<bind to="email"  eval='"${name}@gmail.com".toLowerCase()'/>-->
+            <bind to="email" node="@email1"/>
+            <!--<bind to="email" eval='"nombre.apellido1@gmail.com".toLowerCase()' if="email1 == null || email1.trim().empty"/>-->
+
+            <bind to="password" node="@documento" call="com.axelor.auth.AuthService:encrypt"/>
+            <bind to="group" search="self.code = 'users'"/>
+        </bind>
+
+        <!--<bind node="docentes/docente" type="com.educaflow.shared.common.db.CentroUsuario"
+              search="self.usuario.code = :documento AND self.centro.code = :/centro/@codigo">
+
+            <bind node="@documento" to="usuario" search="self.code = :obj"/>
+
+            <bind node="/centro/@codigo" to="centro" search="self.code = :obj"/>
+        </bind>
+
+        <bind node="docentes/docente" type="com.educaflow.shared.common.db.CentroUsuarioTipoUsuario"
+              search="self.centroUsuario.usuario.code = :documento AND self.tipoUsuario.code = 'PROFESOR'">
+
+            <bind node="@documento" to="centroUsuario"
+                  search="self.usuario.code = :obj AND self.centro.code = :/centro/@codigo"/>
+
+            <bind to="tipoUsuario" search="self.code = 'PROFESOR'"/>
+        </bind>-->
+    </input>
+
+
+</xml-inputs>

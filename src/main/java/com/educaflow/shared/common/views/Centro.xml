@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_8.0.xsd">
+
+    <action-view name="mant-Centro-action" title="Centros" model="com.educaflow.shared.common.db.Centro">
+        <view type="grid" name="mant-Centro-grid"/>
+        <view type="form" name="mant-Centro-form"/>
+        <view-param name="forceEdit" value="true"/>
+    </action-view>
+
+    <grid name="mant-Centro-grid" title="Centro" model="com.educaflow.shared.common.db.Centro"
+          groups="admins"
+          editable="false" edit-icon="false" x-selector="none" canNew="true" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="code" width="200px" />
+        <field name="name" />
+        <field name="address"/>
+        <field name="city"/>
+        <field name="postalCode"/>
+        <field name="country"/>
+        <field name="administrador"/>
+    </grid>
+
+    <form name="mant-Centro-form" title="Centro" model="com.educaflow.shared.common.db.Centro"
+          groups="admins"
+          width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false">
+        <panel name="Centro" title="">
+            <field name="code" colSpan="6" required="true"/>
+            <field name="name" colSpan="6" required="true"/>
+            <field name="direccion" colSpan="6" />
+            <field name="postalCode" colSpan="2" />
+            <field name="municipio" colSpan="4" />
+            <field name="municipio.provincia" colSpan="6" />
+            <field name="municipio.provincia.comunidadAutonoma" colSpan="6"/>
+            <field name="conselleria"/>
+
+            <field name="imagenSello" widget="binary-link" file-type="image/*" colSpan="2" />
+            <field name="administrador"
+                   colSpan="6"
+                   domain="self IN (SELECT cu.usuario FROM CentroUsuario cu WHERE cu.centro.id = :id)"
+                   hideIf="!id"
+            />
+
+
+            <panel name="importar" title="Importación" colSpan="12">
+                <field name="importarProfesores" widget="binary-link" title="Fichero profesores" colSpan="4"/>
+                <field name="importarAlumnos" widget="binary-link" title="Fichero alumnos" colSpan="4"/>
+                <button name="btnProfesores" title="Importar"
+                        onClick="mant-Centro-form-importarUsuarios-action"
+                        readonlyIf="!importarProfesores AND !importarAlumnos" colSpan="2" />
+                <!--<button name="btnAlumnos" title="Importar Alumnos"
+                        onClick="mant-Centro-form-importarAlumnos-action"
+                        readonlyIf="!importarAlumnos" colSpan="2" />-->
+            </panel>
+        </panel>
+
+        <panel-related name="usuarios" field="usuarios" title="Usuarios"
+                       grid-view="mant-Centro-CentroUsuario-grid"
+                       form-view="mant-Centro-CentroUsuario-form"
+                       colSpan="12"
+                       hideIf="!id"
+        />
+    </form>
+
+    <grid name="search-Centro-grid" title="Centro" model="com.educaflow.shared.common.db.Centro"
+          groups="admins"
+          orderBy="name"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="name" />
+    </grid>
+
+    <action-method name="mant-Centro-form-importarUsuarios-action">
+        <call class="com.educaflow.shared.common.importar.DataImporter" method="importarUsuarios"/>
+    </action-method>
+
+    <action-method name="mant-Centro-form-importarProfesores-action">
+        <call class="com.educaflow.shared.common.importar.DataImporter" method="importarUsuarios"/>
+    </action-method>
+
+    <!-- *************************************************************************************************** -->
+    <!-- ********************* Vistas de Centro -> CentroUsuario ********************* -->
+    <!-- *************************************************************************************************** -->
+
+    <grid title="" name="mant-Centro-CentroUsuario-grid" model="com.educaflow.shared.common.db.CentroUsuario" groups="admins">
+        <field name="usuario" />
+    </grid>
+
+    <form name="mant-Centro-CentroUsuario-form" title="Usuario" model="com.educaflow.shared.common.db.CentroUsuario"
+          groups="admins"
+          onNew="mant-Centro-CentroUsuario-onNew-action"
+          width="large" canAttach="false"
+    >
+        <panel name="CentroUsuario" title="">
+            <field name="centro" colSpan="6" readonly="true"/>
+            <!--field name="centro" colSpan="6" showIf="false" />-->
+            <field name="usuario" colSpan="6" colOffset="6" />
+        </panel>
+        <panel-related name="perfiles" field="centroUsuarioTipoUsuario"
+                       grid-view="mant-Centro-CentroUsuario-CentroUsuarioTipoUsuario-grid"
+                       form-view="mant-Centro-CentroUsuario-CentroUsuarioTipoUsuario-form"
+                       colSpan="12"
+        />
+    </form>
+
+    <action-record name="mant-Centro-CentroUsuario-onNew-action" model="com.educaflow.shared.common.db.CentroUsuario">
+        <field name="centro" expr="eval: __parent__"/>
+    </action-record>
+
+    <!-- *************************************************************************************************** -->
+    <!-- ********************* Vistas de Centro -> CentroUsuario -> CentroUsuarioTipoUsuario ********************* -->
+    <!-- *************************************************************************************************** -->
+
+
+    <grid title="" name="mant-Centro-CentroUsuario-CentroUsuarioTipoUsuario-grid" model="com.educaflow.shared.common.db.CentroUsuarioTipoUsuario" groups="admins">
+        <field name="tipoUsuario" />
+    </grid>
+
+    <form name="mant-Centro-CentroUsuario-CentroUsuarioTipoUsuario-form" title="Usuario" model="com.educaflow.shared.common.db.CentroUsuarioTipoUsuario"
+          groups="admins"
+          onNew="mant-Centro-CentroUsuario-CentroUsuarioTipoUsuario-onNew-action"
+          width="large" canAttach="false"
+    >
+        <panel name="Perfil" title="">
+            <field name="tipoUsuario" colSpan="12"/>
+        </panel>
+    </form>
+
+    <action-record name="mant-Centro-CentroUsuario-CentroUsuarioTipoUsuario-onNew-action" model="com.educaflow.shared.common.db.CentroUsuarioTipoUsuario">
+        <field name="centroUsuario" expr="eval: __parent__"/>
+    </action-record>
+
+</object-views>

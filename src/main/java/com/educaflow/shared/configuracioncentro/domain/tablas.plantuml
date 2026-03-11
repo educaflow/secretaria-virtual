@@ -1,25 +1,17 @@
-Centro "1" -- "*" Departamento
+@startuml
 Centro "1" -- "*" Cargo
-Centro "1" -- "*" Grupo
-Centro "*" -- "*" Usuario
-(Centro, Usuario) . CentroUsuario
+Centro "1" -- "*" CursoAcademico
 
- 
-Departamento "*" -- "*" CursoAcademico
-(Departamento, CursoAcademico) . CursoAcademicoDepartamento
-
+Usuario "*" -- "*" CursoAcademico
+(Usuario, CursoAcademico) . CursoAcademicoUsuario
 
 Cargo "*" -- "*" CursoAcademico
 (Cargo, CursoAcademico) . CursoAcademicoCargo
 
+CursoAcademicoUsuario "*" -- "*" Cargo
+(CursoAcademicoUsuario, Cargo) . CursoAcademicoUsuarioCargo
 
-Grupo "*" -- "*" CursoAcademico
-(Grupo, CursoAcademico) . CursoAcademicoGrupo
-
-CentroUsuario "*" -- "*" CursoAcademico
-(CentroUsuario, CursoAcademico) . CursoAcademicoCentroUsuario
-
-class CentroUsuario {
+class CursoAcademicoUsuario {
     tipoUsuario {Profesor,Alumno,Administrativo,Conserje,Externo}
 }
 
@@ -28,46 +20,10 @@ class Cargo {
     adminCentro
 }
 
-class Departamento {
-    familiaProfesional
-    tipoDepartamento {Docente,DocenteSinFamilia,NoDocente}
-}
-
 class CursoAcademico {
-  Centro
 }
 
-class CursoAcademicoGrupo {
-  Curso
-  Tutor
-  Delegado
-  Subdelegado
+class CursoAcademicoUsuarioCargo {
 }
-
-class Grupo {
-
-}
-
-
-class CursoAcademicoDepartamento {
-    jefeDepartamento
-}
-
-class CursoAcademicoCentroUsuario {
-    List cargos
-    List departamento
-    List grupo
-}
-
-CursoAcademicoCentroUsuario "1" -- "*" CursoAcademicoCentroUsuarioCursoAcademicoCargo
-
-CursoAcademicoCentroUsuario "1" -- "*" CursoAcademicoCentroUsuarioCursoAcademicoDepartamento
-
-CursoAcademicoCentroUsuario "1" -- "*" CursoAcademicoCentroUsuarioCursoAcademicoGrupo
-
-CursoAcademicoCentroUsuarioCursoAcademicoGrupo "1" -- "*" CursoAcademicoCentroUsuarioCursoAcademicoGrupoCursoModulo
-
-
-
-
+@enduml
 

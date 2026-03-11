@@ -84,8 +84,10 @@
   </group>
 
   <users>
-    <user code="admin" language="ca" />
-    <user code="demo" language="ca" />
+    <!--<user code="admin" language="ca" />
+    <user code="demo" language="ca" />-->
+    <user code="cesar" language="es" name="César Guijarro Rosaleny" email="c.guijarrorosaleny@edu.gva.es" password="cesar" group="admins" />
+    <user code="lorenzo" language="es" name="Lorenzo González Gascón" email="l.gonzalezgascon@edu.gva.es" password="lorenzo" group="admins" />
   </users>
 
 

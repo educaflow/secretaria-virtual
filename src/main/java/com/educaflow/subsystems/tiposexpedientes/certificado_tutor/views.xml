@@ -7,7 +7,7 @@
         <field name="cargo" expr="eval: null"/>
     </action-record>
 
-    <form name="exp-CertificadoTutor-Templates" title="Certificado Tutor"  width="large"  model="com.educaflow.shared.expedientes.db.CertificadoTutor" groups="admins,users">
+    <!--<form name="exp-CertificadoTutor-Templates" title="Certificado Tutor"  width="large"  model="com.educaflow.shared.expedientes.db.CertificadoTutor" groups="admins,users">
         <panel name="ambito-creador" title="Ámbito del Creador">
             <field name="numeroExpediente"/>
             <field name="valoresAmbitoCreador.departamento"
@@ -70,7 +70,7 @@
         <panel name="Centro" title="Departamento">
             <field name="name"/>
         </panel>
-    </form>
+    </form>-->
 
 
 
@@ -81,7 +81,7 @@
     <!-- *************************************** ENTRADA_DATOS ***************************************  -->
     <!-- *********************************************************************************************  -->
 
-    <form state="ENTRADA_DATOS" profile="CREADOR">
+    <!--<form state="ENTRADA_DATOS" profile="CREADOR">
         <include-panels includeHeader="true">
             ambito-creador
             ambito-responsable
@@ -109,7 +109,7 @@
                 <button name="" colSpan="2" title="" onClick="action-event-expediente" />
             </buttons-right>
         </footer>
-    </form>
+    </form>-->
 
 
 
@@ -117,7 +117,7 @@
     <!-- *************************************** REVISION ***************************************  -->
     <!-- ****************************************************************************************  -->
 
-    <form state="REVISION" profile="RESPONSABLE">
+    <!--<form state="REVISION" profile="RESPONSABLE">
         <include-panels includeHeader="true">
 
         </include-panels>
@@ -142,7 +142,7 @@
                 <button name="" colSpan="2" title="" onClick="action-event-expediente" />
             </buttons-right>
         </footer>
-    </form>
+    </form>-->
 
 
 
@@ -150,7 +150,7 @@
     <!-- *************************************** ACEPTADO ***************************************  -->
     <!-- ****************************************************************************************  -->
 
-    <form state="ACEPTADO" profile="RESPONSABLE">
+    <!--<form state="ACEPTADO" profile="RESPONSABLE">
         <include-panels includeHeader="true">
 
         </include-panels>
@@ -175,7 +175,7 @@
                 <button name="" colSpan="2" title="" onClick="action-event-expediente" />
             </buttons-right>
         </footer>
-    </form>
+    </form>-->
 
 
 
@@ -183,7 +183,7 @@
     <!-- *************************************** RECHAZADO ***************************************  -->
     <!-- *****************************************************************************************  -->
 
-    <form state="RECHAZADO" profile="RESPONSABLE">
+    <!--<form state="RECHAZADO" profile="RESPONSABLE">
         <include-panels includeHeader="true">
 
         </include-panels>
@@ -208,7 +208,7 @@
                 <button name="" colSpan="2" title="" onClick="action-event-expediente" />
             </buttons-right>
         </footer>
-    </form>
+    </form>-->
 
 
 

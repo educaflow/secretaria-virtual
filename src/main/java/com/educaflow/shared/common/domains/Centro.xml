@@ -4,6 +4,15 @@
 
     <module name="common" package="com.educaflow.shared.common.db"/>
     <entity name="Centro">
+
+        <many-to-one name="imagenSello" ref="com.axelor.meta.db.MetaFile" title="Sello"/>
+
+        <many-to-one name="administrador" ref="com.axelor.auth.db.User" title="Administrador del centro"/>
+        <one-to-many name="usuarios" ref="com.educaflow.shared.common.db.CentroUsuario" mappedBy="centro" title=""/>
+
+        <many-to-one name="importarProfesores" ref="com.axelor.meta.db.MetaFile" title="Importar profesores" transient="true"/>
+        <many-to-one name="importarAlumnos" ref="com.axelor.meta.db.MetaFile" title="Importar alumnos" transient="true"/>
+
         <string name="code" title="Código" required="true" unique="true" />
         <string name="name" title="Nombre" namecolumn="true" required="true"/>
         <string name="direccion" title="Dirección"/>

@@ -29,16 +29,20 @@
         </bind>
 
 
-        <bind node="group" type="com.axelor.auth.db.Group" search="self.code = :code"  create="true"  update="true">
+        <bind node="group" type="com.axelor.auth.db.Group" search="self.code = :code"  create="true"  update="true" >
             <bind node="@code" to="code"/>
             <bind node="role" to="roles" search="self.name = :name">
                 <bind node="@name" to="name"/>
             </bind>
         </bind>
 
-        <bind node="users/user" type="com.axelor.auth.db.User" search="self.code = :code"    update="true">
+        <bind node="users/user" type="com.axelor.auth.db.User" search="self.code = :code" create="true" update="true" call="com.axelor.auth.AuthService:encrypt">
             <bind node="@code" to="code"/>
             <bind node="@language" to="language"/>
+            <bind node="@name" to="name" />
+            <bind node="@email" to="email" />
+            <bind node="@password" to="password" />
+            <bind node="@group" to="group" search="self.code = :group" update="false" create="false"/>
         </bind>
 
 

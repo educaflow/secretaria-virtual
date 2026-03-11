@@ -7,9 +7,9 @@
     <entity name="TipoExpediente">
         <string name="code"  />
         <string name="name" namecolumn="true" translatable="true" />
-        <enum name="ambitoCreador" ref="AmbitoTipoExpediente" title="Ámbito creador" />
+        <!--<enum name="ambitoCreador" ref="AmbitoTipoExpediente" title="Ámbito creador" />
         <enum name="ambitoResponsable" ref="AmbitoTipoExpediente" title="Ámbito responsable"  />
-        <enum name="ambitoAuditor" ref="AmbitoTipoExpediente" title="Ámbito auditor"  />
+        <enum name="ambitoAuditor" ref="AmbitoTipoExpediente" title="Ámbito auditor"  />-->
         <string name="fqcnEventManager"  title="Clase que maneja los eventos" />
         <string name="fqcnStateEventValidator"  title="Clase que maneja las validaciones" />
         <many-to-one name="tramite" ref="Tramite" />
@@ -81,7 +81,7 @@
         <item name="DIRECTOR" title="Director"/>
         <item name="AUDITOR" title="Auditor" />
     </enum>
-    <enum name="AmbitoTipoExpediente">
+    <!--<enum name="AmbitoTipoExpediente">
         <item name="CENTRO" title="Centro"/>
         <item name="DEPARTAMENTO" title="Departamento"/>
         <item name="CICLO" title="Ciclo"/>
@@ -89,6 +89,6 @@
         <item name="GRUPO" title="Grupo" />
         <item name="MODULO" title="Módulo" />
         <item name="INDIVIDUAL" title="Individual" />
-    </enum>
+    </enum>-->
 
 </domain-models>

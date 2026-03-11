@@ -11,16 +11,16 @@ import java.io.InputStream;
 public class AlmacenClaveLoader {
 
     public AlmacenClave getDirector(Centro centro) {
-        AlmacenClaveDispositivo almacenClave=new AlmacenClaveDispositivo( 0,"CertFirmaDigitalDirector");
-        //AlmacenClave almacenClave=new AlmacenClaveFichero(AlmacenClaveLoader.class.getClassLoader().getResourceAsStream("/firma/instalar_certificado_criptografico/director.p12"),"nada");
+        //AlmacenClaveDispositivo almacenClave=new AlmacenClaveDispositivo( 0,"CertFirmaDigitalDirector");
+        AlmacenClave almacenClave=new AlmacenClaveFichero(AlmacenClaveLoader.class.getClassLoader().getResourceAsStream("/firma/instalar_certificado_criptografico/director.p12"),"nada");
 
 
         return almacenClave;
     }
 
     public AlmacenClave getSecretario(Centro centro) {
-        AlmacenClaveDispositivo almacenClave=new AlmacenClaveDispositivo( 0,"CertFirmaDigitalSecretario");
-        //AlmacenClave almacenClave=new AlmacenClaveFichero(AlmacenClaveLoader.class.getClassLoader().getResourceAsStream("/firma/instalar_certificado_criptografico/secretario.p12"),"nada");
+        //AlmacenClaveDispositivo almacenClave=new AlmacenClaveDispositivo( 0,"CertFirmaDigitalSecretario");
+        AlmacenClave almacenClave=new AlmacenClaveFichero(AlmacenClaveLoader.class.getClassLoader().getResourceAsStream("/firma/instalar_certificado_criptografico/secretario.p12"),"nada");
 
         return almacenClave;
     }

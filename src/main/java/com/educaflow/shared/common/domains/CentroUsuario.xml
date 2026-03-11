@@ -1,0 +1,13 @@
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.0.xsd">
+
+    <module name="common" package="com.educaflow.shared.common.db"/>
+    <entity name="CentroUsuario" extends="com.educaflow.shared.security.db.SecurityActor">
+        <many-to-one name="centro" ref="com.educaflow.shared.common.db.Centro" title="Centro"/>
+        <many-to-one name="usuario" ref="com.axelor.auth.db.User" title="Usuario"/>
+        <one-to-many name="centroUsuarioTipoUsuario" ref="com.educaflow.shared.common.db.CentroUsuarioTipoUsuario"  mappedBy="centroUsuario" title=""/>
+
+    </entity>
+
+</domain-models>

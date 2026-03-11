@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<datos>
+    <tiposUsuario>
+        <tipoUsuario code="PROFESOR" name="Profesor" />
+        <tipoUsuario code="ALUMNO" name="Alumno" />
+        <tipoUsuario code="ADMINISTRATIVO" name="Administrativo" />
+        <tipoUsuario code="CONSERJE" name="Conserje" />
+        <tipoUsuario code="EXPROFESOR" name="Exprofesor" />
+        <tipoUsuario code="EXALUMNO" name="Exalumno" />
+        <tipoUsuario code="EXTERNO" name="Externo" />
+
+        <tipoUsuario code="DIRECTOR" name="Director" />
+        <tipoUsuario code="JEFEESTUDIOS" name="Jefe de estudios" />
+        <tipoUsuario code="SECRETARIO" name="Secretario" />
+        <tipoUsuario code="TUTOR" name="Tutor" />
+        <tipoUsuario code="VICEDIRECTOR" name="Vicedirector" />
+        <tipoUsuario code="VICESECRETARIO" name="Vicesecretario" />
+    </tiposUsuario>
+</datos>

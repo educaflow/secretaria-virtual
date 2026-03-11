@@ -34,7 +34,7 @@
     <tree name="expedientes-buscar-tree" title="Expedientes">
 
         <column name="name"  title="Nombre"/>
-        <column name="numeroExpediente" width="100px" title="Num. Exp."/>
+        <column name="numeroExpediente" width="100px" title="Número Expediente"/>
         <column name="createdBy" width="200px" title="Creado por"/>
         <column name="nameState" width="30%" title="Estado"/>
         <column name="fechaUltimoEstado" type="date" width="100px" title="Fecha"/>

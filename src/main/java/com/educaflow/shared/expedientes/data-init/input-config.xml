@@ -15,6 +15,12 @@
         </bind>
 
 
+        <bind node="perfilesexpedientes/perfilexpediente" type="com.educaflow.shared.expedientes.db.PerfilExpediente" search="self.code = :code"  create="true" update="true">
+            <bind node="@code" to="code" />
+            <bind node="@name" to="name" />
+        </bind>
+
+
     </input>
 
 

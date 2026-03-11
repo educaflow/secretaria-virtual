@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_8.0.xsd">
+
+    <menuitem name="configuracionadmin-menu"  title="Configuración Secretaria Virtual"  groups="admins"  order="500"/>
+
+    <menuitem name="configuracionadmin-Centro-menu"  parent="configuracionadmin-menu" title="Centros" action="mant-Centro-action" groups="admins" order="1"  />
+    <menuitem name="configuracionadmin-Usuario-menu"  parent="configuracionadmin-menu" title="Usuarios" action="mant-Usuario-action" groups="admins" order="2"  />
+
+
+</object-views>

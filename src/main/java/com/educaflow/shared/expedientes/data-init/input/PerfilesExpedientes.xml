@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<datos>
+    <perfilesexpedientes>
+        <perfilexpediente code="CREADOR" name="Creador" />
+        <perfilexpediente code="TRAMITADOR" name="tramitador" />
+        <perfilexpediente code="AUDITOR" name="Auditor" />
+        <perfilexpediente code="COLABORADOR" name="Colaborador" />
+        <perfilexpediente code="AFECTADO" name="Afectado" />
+        <perfilexpediente code="SECRETARIO" name="Secretario" />
+        <perfilexpediente code="DIRECTOR" name="Director" />
+    </perfilesexpedientes>
+</datos>
