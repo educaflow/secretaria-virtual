@@ -1,8 +1,6 @@
 package com.educaflow.base.infrastructure.mail.impl;
 
 
-import jakarta.annotation.Nonnull;
-
 public record SmtpCredentialSimplePassword(String host,String userName,String password) {
 
     public SmtpCredentialSimplePassword {
