@@ -1,10 +1,12 @@
 package com.educaflow.subsystems.tiposexpedientes.justificacion_falta_profesorado;
 
+import com.axelor.auth.db.User;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
+import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.shared.certificados.AlmacenClaveLoader;
 import com.educaflow.shared.common.db.Persona;
 import com.educaflow.shared.expedientes.services.EventContext;
@@ -16,6 +18,10 @@ import com.educaflow.shared.expedientes.db.TipoResolucionJustificacionFaltaProfe
 import com.educaflow.shared.expedientes.db.repo.JustificacionFaltaProfesoradoRepository;
 
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
+import com.educaflow.shared.firma.db.Firma;
+import com.educaflow.shared.firmas.service.DatosFirma;
+import com.educaflow.shared.firmas.service.FirmaNotifier;
+import com.educaflow.shared.firmas.service.FirmaService;
 import com.educaflow.shared.registroentradasalida.db.RegistroEntrada;
 import com.educaflow.shared.registroentradasalida.db.RegistroSalida;
 import com.educaflow.shared.registroentradasalida.db.repo.RegistroEntradaRepository;
@@ -25,7 +31,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 
-public class EventManagerFaltaProfesor extends EventManager<JustificacionFaltaProfesorado, JustificacionFaltaProfesorado.State, JustificacionFaltaProfesorado.Event,JustificacionFaltaProfesorado.Profile> {
+public class EventManagerFaltaProfesor extends EventManager<JustificacionFaltaProfesorado, JustificacionFaltaProfesorado.State, JustificacionFaltaProfesorado.Event,JustificacionFaltaProfesorado.Profile> implements FirmaNotifier{
 
     private final JustificacionFaltaProfesoradoRepository repository;
 
@@ -33,6 +39,9 @@ public class EventManagerFaltaProfesor extends EventManager<JustificacionFaltaPr
     RegistroEntradaRepository registroEntradaRepository;
     @Inject
     AlmacenClaveLoader almacenClaveLoader;
+
+    @Inject
+    FirmaService firmaService;
 
     @Inject
     public EventManagerFaltaProfesor(JustificacionFaltaProfesoradoRepository repository) {
@@ -64,6 +73,10 @@ public class EventManagerFaltaProfesor extends EventManager<JustificacionFaltaPr
         justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.State.PENDIENTE_PRESENTACION);
 
 
+        ///Quitar esto es solo una prueba
+        /*******************/
+        DatosFirma datosFirma=new DatosFirma(SecurityUtil.getUser(),pdfSolicitud,"Firma Expediente:"+justificacionFaltaProfesorado.getNumeroExpediente(),new Rectangulo(100,100,400,50),this.getClass(),"Datos de callback");
+        firmaService.insert(datosFirma);
     }
     @WhenEvent
     public void triggerPresentar(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext) throws BusinessException {
@@ -157,7 +170,8 @@ public class EventManagerFaltaProfesor extends EventManager<JustificacionFaltaPr
     }
 
 
-
-
-
+    @Override
+    public void notify(Firma firma, Object callBackData) {
+        System.out.println("Notificado!!!!!!:"+callBackData+ " en firma.id="+firma.getId());
+    }
 }
