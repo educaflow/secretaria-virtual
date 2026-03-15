@@ -1,4 +1,4 @@
-package com.educaflow.subsystems.tiposexpedientes.certificado_tutor;
+package com.educaflow.system.tiposexpedientes.certificado_tutor;
 
 import com.educaflow.shared.expedientes.services.EventContext;
 import com.educaflow.shared.expedientes.services.EventManager;

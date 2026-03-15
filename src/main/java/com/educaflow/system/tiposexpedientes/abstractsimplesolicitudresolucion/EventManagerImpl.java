@@ -1,6 +1,5 @@
-package com.educaflow.subsystems.tiposexpedientes.abstractsimplesolicitudresolucion;
+package com.educaflow.system.tiposexpedientes.abstractsimplesolicitudresolucion;
 
-import com.axelor.inject.Beans;
 import com.educaflow.shared.expedientes.services.EventContext;
 import com.educaflow.shared.expedientes.services.annotations.OnEnterState;
 import com.educaflow.shared.expedientes.services.annotations.WhenEvent;

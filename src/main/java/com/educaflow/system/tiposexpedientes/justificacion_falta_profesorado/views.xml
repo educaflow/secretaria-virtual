@@ -160,7 +160,7 @@
 
     <action-method name="exp-JustificacionFaltaProfesorado-firmarDocumentacionParaPresentar-action" model="com.educaflow.shared.expedientes.db.JustificacionFaltaProfesorado">
         <call
-                class="com.educaflow.subsystems.tiposexpedientes.justificacion_falta_profesorado.ActionController"
+                class="com.educaflow.system.tiposexpedientes.justificacion_falta_profesorado.ActionController"
                 method="firmarDocumentacionParaPresentar"
         />
     </action-method>

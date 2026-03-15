@@ -1,4 +1,4 @@
-package com.educaflow.subsystems.tiposexpedientes.comision_servicio;
+package com.educaflow.system.tiposexpedientes.comision_servicio;
 
 import com.educaflow.shared.expedientes.services.StateEventValidator
 import com.educaflow.shared.expedientes.services.annotations.BeanValidationRulesForStateAndEvent

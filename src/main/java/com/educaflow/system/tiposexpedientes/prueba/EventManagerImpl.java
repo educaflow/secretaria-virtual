@@ -1,4 +1,4 @@
-package com.educaflow.subsystems.tiposexpedientes.prueba;
+package com.educaflow.system.tiposexpedientes.prueba;
 
 import com.educaflow.shared.expedientes.services.EventContext;
 import com.educaflow.shared.expedientes.services.EventManager;

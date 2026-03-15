@@ -1,6 +1,5 @@
-package com.educaflow.subsystems.tiposexpedientes.justificacion_falta_profesorado;
+package com.educaflow.system.tiposexpedientes.justificacion_falta_profesorado;
 
-import com.axelor.auth.db.User;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
