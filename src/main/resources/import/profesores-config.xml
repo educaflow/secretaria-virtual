@@ -5,7 +5,7 @@
   https://axelor.com/xml/ns/data-import/data-import_8.0.xsd">
 
     <input root="centro"  file="profesores">
-        <bind node="docentes/docente" type="com.axelor.auth.db.User" search="self.code = :documento" call="com.educaflow.shared.common.importar.Validator:validateEmail" >
+        <bind node="docentes/docente" type="com.axelor.auth.db.User" search="self.code = :documento" call="com.educaflow.subsystem.common.importar.Validator:validateEmail" >
             <bind node="@documento" to="dni"/>
             <bind node="@documento" to="code"/>
 

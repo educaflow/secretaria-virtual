@@ -9,7 +9,7 @@
 
     <input file="Tramites.xml" root="datos">
 
-        <bind node="tramites/tramite" type="com.educaflow.shared.expedientes.db.Tramite" search="self.code = :code"  create="true" update="true">
+        <bind node="tramites/tramite" type="com.educaflow.subsystem.expedientes.db.Tramite" search="self.code = :code" create="true" update="true">
             <bind node="@code" to="code" />
             <bind node="@name" to="name" />
             <bind node="@publico" to="publico" />

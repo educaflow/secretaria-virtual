@@ -4,10 +4,10 @@
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.0.xsd">
 
 
-    <module name="expedientes" package="com.educaflow.shared.expedientes.db"/>
+    <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
     <entity name="JustificacionFaltaProfesorado" extends="Expediente" >
         <string name="dias"  />
-        <enum name="mes" ref="com.educaflow.shared.expedientes.db.MesJustificacionFaltaProfesorado" />
+        <enum name="mes" ref="com.educaflow.subsystem.expedientes.db.MesJustificacionFaltaProfesorado" />
         <integer name="anyo" title="Año" />
 
 

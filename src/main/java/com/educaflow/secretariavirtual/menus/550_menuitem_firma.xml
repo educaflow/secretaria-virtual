@@ -10,13 +10,13 @@
     <menuitem name="firma-firmados-menu"  parent="firma-menu" title="Firmados" action="firma-firmados-main-action" groups="admins" order="2"  />
     <menuitem name="firma-rechazados-menu"  parent="firma-menu" title="Rechazados" action="firma-rechazados-main-action" groups="admins" order="2"  />
 
-    <action-view name="firma-todos-main-action"  title="Todos los documentos firmados" model="com.educaflow.shared.firma.db.Firma"  >
+    <action-view name="firma-todos-main-action"  title="Todos los documentos firmados" model="com.educaflow.subsystem.firma.db.Firma"  >
         <view type="grid" name="firma-Firma-main-grid"/>
         <view type="form" name="firma-Firma-main-form"/>
         <view-param name="show-toolbar" value="false"/>
     </action-view>
 
-    <action-view name="firma-pendientes-main-action"  title="Documentos Pendientes de firmas" model="com.educaflow.shared.firma.db.Firma"  >
+    <action-view name="firma-pendientes-main-action"  title="Documentos Pendientes de firmas" model="com.educaflow.subsystem.firma.db.Firma"  >
         <view type="grid" name="firma-Firma-main-grid"/>
         <view type="form" name="firma-Firma-main-form"/>
         <view-param name="show-toolbar" value="false"/>
@@ -25,7 +25,7 @@
         <context name="firmanteId" expr="eval:__user__.id"/>
     </action-view>
 
-    <action-view name="firma-firmados-main-action"  title="Documentos ya firmados" model="com.educaflow.shared.firma.db.Firma"  >
+    <action-view name="firma-firmados-main-action"  title="Documentos ya firmados" model="com.educaflow.subsystem.firma.db.Firma"  >
         <view type="grid" name="firma-Firma-main-grid"/>
         <view type="form" name="firma-Firma-main-form"/>
         <view-param name="show-toolbar" value="false"/>
@@ -34,7 +34,7 @@
         <context name="firmanteId" expr="eval:__user__.id"/>
     </action-view>
 
-    <action-view name="firma-rechazados-main-action"  title="Documentos que se han rechazado firmar" model="com.educaflow.shared.firma.db.Firma"  >
+    <action-view name="firma-rechazados-main-action"  title="Documentos que se han rechazado firmar" model="com.educaflow.subsystem.firma.db.Firma"  >
         <view type="grid" name="firma-Firma-main-grid"/>
         <view type="form" name="firma-Firma-main-form"/>
         <view-param name="show-toolbar" value="false"/>

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_8.0.xsd">
+
+    <action-view name="mant-Ciclo-action" title="Ciclos" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo">
+        <view type="grid" name="mant-Ciclo-grid"/>
+        <view type="form" name="mant-Ciclo-form"/>
+        <view-param name="forceEdit" value="true"/>
+    </action-view>
+
+    <grid name="mant-Ciclo-grid" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
+          groups="admins"
+          editable="false" edit-icon="false" x-selector="none" canNew="true" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <hilite color="danger" if="archived"/>
+        <field name="code" width="200px" />
+        <field name="name" />
+        <field name="familiaProfesional" />
+        <field name="archived" width="100px" />
+    </grid>
+
+    <form name="mant-Ciclo-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
+          groups="admins"
+          width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false">
+        <panel name="Ciclo" title="">
+            <field name="code" colSpan="3" />
+
+            <field name="name" colOffset="9" colSpan="6" />
+            <field name="familiaProfesional" colOffset="6" colSpan="6" grid-view="search-FamiliaProfesional-grid" />
+            <field name="grado" colOffset="6" colSpan="4"  grid-view="search-Grado-grid"  domain="(self.code='D' OR self.code='E')" />
+            <field name="nivel" colSpan="4"  grid-view="search-Nivel-grid"  showIf="grado.code=='D'" requiredIf="grado.code=='D'" />
+        </panel>
+
+        <panel-related name="cursos" field="cursos"  title="Cursos"
+                       grid-view="mant-Ciclo-Curso-grid"
+                       form-view="mant-Ciclo-Curso-form"
+                       colSpan="12"
+        />
+
+
+    </form>
+
+    <grid name="search-Ciclo-grid" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
+          groups="admins,users"
+          orderBy="name"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="familiaProfesional" />
+        <field name="name" />
+    </grid>
+
+    <form name="view-Ciclo-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
+          groups="admins"
+          width="large" canAttach="false" canBack="false" canBackOnSave="false" canDelete="false" canNew="false">
+        <panel name="Ciclo" title="">
+            <field name="name"               colSpan="6"  readonly="true" />
+            <field name="familiaProfesional" colSpan="6"  readonly="true"  />
+            <field name="grado"              colSpan="4"  readonly="true"      />
+            <field name="nivel"              colSpan="4"  readonly="true"      />
+        </panel>
+    </form>
+
+    <!-- ********************************************************************************************************* -->
+    <!-- *************************************** Vistas de Ciclo -> Curso **************************************** -->
+    <!-- ********************************************************************************************************* -->
+
+
+    <grid name="mant-Ciclo-Curso-grid" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
+          groups="admins"
+
+    >
+        <field name="code" width="150px" />
+        <field name="name" width="200px" />
+        <field name="leyEducativa"   />
+    </grid>
+
+    <form name="mant-Ciclo-Curso-form" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
+          groups="admins"
+          width="large"
+          onNew="mant-Ciclo-Curso-onNew-action"
+            canAttach="false"
+    >
+        <panel name="Curso" title="">
+            <field name="code" colSpan="3" />
+            <field name="name" colOffset="9"  colSpan="6"/>
+            <field name="ciclo" showIf="false"/>
+            <field name="leyEducativa" colOffset="12" colSpan="12"  />
+        </panel>
+
+        <panel-related name="modulos" field="modulos"  title="Módulos"
+                       grid-view="mant-Ciclo-Curso-CursoModulo-grid"
+                       form-view="mant-Ciclo-Curso-CursoModulo-form"
+                       colSpan="12"
+        />
+
+    </form>
+
+    <action-record name="mant-Ciclo-Curso-onNew-action" model="com.educaflow.subsystem.sistemaeducativo.db.Curso">
+        <field name="ciclo" expr="eval: __parent__"/>
+    </action-record>
+
+
+    <!-- *************************************************************************************************** -->
+    <!-- ********************* Vistas de Ciclo -> Curso -> Modulo ********************* -->
+    <!-- *************************************************************************************************** -->
+
+    <grid name="mant-Ciclo-Curso-CursoModulo-grid" title="Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+          groups="admins"
+    >
+        <field name="modulo" />
+    </grid>
+
+    <form name="mant-Ciclo-Curso-CursoModulo-form" title="Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+          groups="admins"
+          onNew="mant-Ciclo-Curso-CursoModulo-onNew-action"
+          width="large" canAttach="false" >
+        <panel name="CursoModulo" title="">
+            <field name="curso"  colSpan="6" showIf="false" />
+            <field name="modulo" colSpan="6" colOffset="6" grid-view="search-Modulo-grid" />
+        </panel>
+    </form>
+    <action-record name="mant-Ciclo-Curso-CursoModulo-onNew-action" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo">
+        <field name="curso" expr="eval: __parent__"/>
+    </action-record>
+
+</object-views>

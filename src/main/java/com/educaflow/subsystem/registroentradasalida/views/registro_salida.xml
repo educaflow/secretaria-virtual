@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_8.0.xsd">
+
+
+    <action-view name="registroentradasalida-Salida-main-action"  title="Información para PDF" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"  >
+        <view type="form" name="registroentradasalida-Salida-main-form"/>
+        <view type="grid" name="registroentradasalida-Salida-main-grid"/>
+    </action-view>
+
+
+    <grid name="registroentradasalida-Salida-main-grid" title="Registro de entrada" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"
+          groups="admins,users"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false"
+          canSave="false" orderBy="numeroRegistro" canViewOnClick="true"
+    >
+        <field name="centro"/>
+        <field name="numeroRegistro"/>
+        <field name="fecha"/>
+    </grid>
+
+
+    <form name="registroentradasalida-Salida-main-form" title="Registro" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"
+          canEdit="false" canAttach="false" canBack="false" canBackOnSave="true" canDelete="false" canNew="false" >
+            <panel name="registroSalida" title="Registro de Salida" colSpan="12" >
+                <field name="numeroRegistro"   colSpan="4"/>
+                <field name="fecha"   colSpan="4"/>
+
+                <field name="documento" widget="binary-link"  colSpan="12"/>
+                <panel-related name="anexos" title="Anexos" field="anexos" colSpan="12" form-view="registroAnexos-form"  grid-view="registroAnexos-grid"  />
+            </panel>
+    </form>
+
+    <form name="registroAnexos-form" title="Anexo"   model="com.axelor.meta.db.MetaFile"
+          canEdit="false" canAttach="false" canBack="false" canBackOnSave="true" canDelete="false" canNew="false" >
+        <panel title="">
+            <field name="fileName" colSpan="10"/>
+            <field name="content" widget="binary" title="Descargar" colSpan="2"/>
+        </panel>
+    </form>
+
+    <grid name="registroAnexos-grid" title="Anexos" model="com.axelor.meta.db.MetaFile"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="fileName"/>
+    </grid>
+
+</object-views>

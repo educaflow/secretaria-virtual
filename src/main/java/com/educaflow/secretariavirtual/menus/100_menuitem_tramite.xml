@@ -16,11 +16,11 @@
         <column name="nuevo" type="button" title="Nuevo expediente"  />
         <column name="ayuda" type="button" title="Ayuda"  />
 
-        <node model="com.educaflow.shared.expedientes.db.TipoTramite" domain="EXISTS (SELECT 1 FROM Tramite t WHERE  t.tipoTramite=self)" >
+        <node model="com.educaflow.subsystem.expedientes.db.TipoTramite" domain="EXISTS (SELECT 1 FROM Tramite t WHERE  t.tipoTramite=self)" >
             <field name="name" as="name"  />
         </node>
 
-        <node model="com.educaflow.shared.expedientes.db.Tramite"  parent="tipoTramite" draggable="false" onClick="action-event-new-expediente">
+        <node model="com.educaflow.subsystem.expedientes.db.Tramite" parent="tipoTramite" draggable="false" onClick="action-event-new-expediente">
             <field name="name" as="name" />
             <button name="ayuda"  help="Descripción del trámite" onClick="tramite-mostrar-ayuda-action" icon="help"/>
         </node>
@@ -29,7 +29,7 @@
     </tree>
 
 
-    <action-view name="tramite-mostrar-ayuda-action" title="Ayuda" model="com.educaflow.shared.expedientes.db.Tramite">
+    <action-view name="tramite-mostrar-ayuda-action" title="Ayuda" model="com.educaflow.subsystem.expedientes.db.Tramite">
         <view type="form" name="tramite-mostrar-ayuda-form"/>
         <view-param name="popup" value="true"/>
         <view-param name="show-toolbar" value="false"/>
@@ -37,7 +37,7 @@
         <context name="_showRecord" expr="eval: id"/>
     </action-view>
 
-    <form name="tramite-mostrar-ayuda-form" title="Ayuda" model="com.educaflow.shared.expedientes.db.Tramite">
+    <form name="tramite-mostrar-ayuda-form" title="Ayuda" model="com.educaflow.subsystem.expedientes.db.Tramite">
         <panel name="ayuda" colSpan="12" itemSpan="2" showFrame="false" >
             <field name="ayuda" showTitle="false" readonly="true" colSpan="12" >
                 <viewer depends="name,help" ><![CDATA[
@@ -64,7 +64,7 @@
 
 
 
-    <cards name="expediente-nuevo-cards" title="Trámite" model="com.educaflow.shared.expedientes.db.Tramite" width="500px" customSearch="false" freeSearch="name,help" canEdit="false" canDelete="false"  canNew="false">
+    <cards name="expediente-nuevo-cards" title="Trámite" model="com.educaflow.subsystem.expedientes.db.Tramite" width="500px" customSearch="false" freeSearch="name,help" canEdit="false" canDelete="false" canNew="false">
         <field name="code"/>
         <field name="name"/>
         <field name="help"/>

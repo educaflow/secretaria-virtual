@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_8.0.xsd">
+
+
+    <grid name="firma-Firma-main-grid" title="Firmas" model="com.educaflow.subsystem.firma.db.Firma"
+          groups="admins,users"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="true" canDelete="false" canSave="false"
+          orderBy="fechaSolicitud" canEditOnClick="true"
+    >
+        <field name="fechaSolicitud"/>
+        <field name="firmante"/>
+        <field name="motivoFirma"/>
+        <field name="estadoFirma"/>
+    </grid>
+
+    <form name="firma-Firma-main-form" title="Registro de entrada" model="com.educaflow.subsystem.firma.db.Firma" canEdit="true" canAttach="false" canBack="false" canBackOnSave="true" canDelete="false" canNew="false" canSave="false" canCancel="false" canMore="false"
+          onLoad="firma-Firma-main-form-pasoActual-paso1Inicio-action"
+
+    >
+        <panel name="firma" title="" colSpan="12" >
+            <field name="motivoFirma"   colSpan="8"/>
+            <field name="fechaSolicitud"   colSpan="4"/>
+            <field name="estadoFirma"   colSpan="4"/>
+            <field name="fechaResolucion"   colSpan="4" colOffset="4" showIf="fechaResolucion!=null"/>
+            <field name="pasoActual" showIf="false" />
+        </panel>
+
+
+        <panel name="documentoFirmar" title="Documento a firmar" colSpan="12"  >
+            <field name="new" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="documento" ><![CDATA[
+                    <>
+                    <Box as="iframe" height="900" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${documento.id}/content/download?inline=true&name=${documento.fileName}`} ></Box>
+                    </>
+                ]]></viewer>
+            </field>
+        </panel>
+
+
+
+        <panel name="paso1Inicio" title="Resolver" colSpan="12" showIf="pasoActual=='paso1Inicio'" >
+            <button name="Rechazar" title="Rechazar firmar"          onClick="firma-Firma-main-form-go-paso2Rechazado-action"   colSpan="3" outline="true" />
+            <button name="Firmar"   title="Firmar con AutoFirma__!!" onClick="firma-Firma-main-form-go-paso2Firmar-action"     colSpan="3" colOffset="6"  />
+        </panel>
+
+        <panel name="paso2Rechazado" title="Rechazar firmar el documento" colSpan="12"  showIf="pasoActual=='paso2Rechazado'">
+            <field name="motivoRechazo"   colSpan="12" widget="Text"/>
+            <button name="Atras"     title="Atrás"                    onClick="firma-Firma-main-form-go-paso1Inicio-action"   colSpan="3" outline="true" />
+            <button name="Finalizar" title="Finalizar"                onClick="save"     colSpan="3" colOffset="6"  />
+        </panel>
+
+        <panel name="paso2Firmar" title="Firmar el documento" colSpan="12" showTitle="false" showIf="pasoActual=='paso2Firmar'">
+            <help variant="info" colSpan="12" colOffset="0" >Para presentar la solicitud debe tener la aplicación de AutoFirma instalada y un certificado digital válido</help>
+            <button name="inforAutofirma" title="Más información sobre AutoFirma__!!" onClick="" link="https://sede.serviciosmin.gob.es/es-es/firmaelectronica/paginas/autofirma.aspx" colSpan="12"/>
+            <button name="Atras"    title="Atrás"                                          onClick="firma-Firma-main-form-go-paso1Inicio-action"   colSpan="3" outline="true" />
+            <button name="FirmarYFinalizar"   title="Firmar con AutoFirma__!! y finalizar" onClick="save"     colSpan="4" colOffset="5"  />
+        </panel>
+
+
+    </form>
+
+
+    <action-group name="firma-Firma-main-form-go-paso1Inicio-action">
+        <action name="firma-Firma-main-form-pasoActual-paso1Inicio-action"/>
+        <action name="firma-Firma-main-form-motivoRechazo-Null-action"/>
+    </action-group>
+
+    <action-group name="firma-Firma-main-form-go-paso2Rechazado-action">
+        <action name="firma-Firma-main-form-pasoActual-paso2Rechazado-action"/>
+    </action-group>
+
+    <action-group name="firma-Firma-main-form-go-paso2Firmar-action">
+        <action name="firma-Firma-main-form-pasoActual-paso2Firmar-action"/>
+    </action-group>
+
+    <!-- Acciones básicas que cambian campos simples -->
+    <action-record name="firma-Firma-main-form-pasoActual-paso1Inicio-action" model="com.educaflow.subsystem.firma.db.Firma">
+        <field name="pasoActual" expr="paso1Inicio" />
+    </action-record>
+    <action-record name="firma-Firma-main-form-pasoActual-paso2Rechazado-action" model="com.educaflow.subsystem.firma.db.Firma">
+        <field name="pasoActual" expr="paso2Rechazado" />
+    </action-record>
+    <action-record name="firma-Firma-main-form-pasoActual-paso2Firmar-action" model="com.educaflow.subsystem.firma.db.Firma">
+        <field name="pasoActual" expr="paso2Firmar" />
+    </action-record>
+
+    <action-record name="firma-Firma-main-form-estadoFirma-PENDIENTE-action" model="com.educaflow.subsystem.firma.db.Firma">
+        <field name="estadoFirma" expr="PENDIENTE" />
+    </action-record>
+    <action-record name="firma-Firma-main-form-estadoFirma-RECHAZADO-action" model="com.educaflow.subsystem.firma.db.Firma">
+        <field name="estadoFirma" expr="RECHAZADO" />
+    </action-record>
+    <action-record name="firma-Firma-main-form-estadoFirma-FIRMADO-action" model="com.educaflow.subsystem.firma.db.Firma">
+        <field name="estadoFirma" expr="FIRMADO" />
+    </action-record>
+    <action-record name="firma-Firma-main-form-motivoRechazo-Null-action" model="com.educaflow.subsystem.firma.db.Firma">
+        <field name="motivoRechazo" expr="" />
+    </action-record>
+
+
+
+</object-views>

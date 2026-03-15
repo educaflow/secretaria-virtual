@@ -4,7 +4,7 @@
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.0.xsd">
 
 
-    <module name="expedientes" package="com.educaflow.shared.expedientes.db"/>
+    <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
     <entity name="AbstractSimpleSolicitudResolucion" extends="Expediente" >
         <string name="disconformidad" title="Explicar los datos a subsanar"  />
         <string name="resolucion"  title="Motivo del rechazo" />

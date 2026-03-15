@@ -8,13 +8,13 @@
     <menuitem name="registroentradasalida-entrada-menu"  parent="registroentradasalida-menu" title="Entrada" action="registroentradasalida-Entrada-main-action" groups="admins" order="2"  />
     <menuitem name="registroentradasalida-salida-menu"  parent="registroentradasalida-menu" title="Salida" action="registroentradasalida-Salida-main-action" groups="admins" order="2"  />
 
-    <action-view name="registroentradasalida-Entrada-main-action"  title="Registro de entrada" model="com.educaflow.shared.registroentradasalida.db.RegistroEntrada"  >
+    <action-view name="registroentradasalida-Entrada-main-action"  title="Registro de entrada" model="com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada"  >
         <view type="grid" name="registroentradasalida-Entrada-main-grid"/>
         <view type="form" name="registroentradasalida-Entrada-main-form"/>
 
     </action-view>
 
-    <action-view name="registroentradasalida-Salida-main-action"  title="Registro de salida" model="com.educaflow.shared.registroentradasalida.db.RegistroSalida"  >
+    <action-view name="registroentradasalida-Salida-main-action"  title="Registro de salida" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"  >
         <view type="grid" name="registroentradasalida-Salida-main-grid"/>
         <view type="form" name="registroentradasalida-Salida-main-form"/>
     </action-view>

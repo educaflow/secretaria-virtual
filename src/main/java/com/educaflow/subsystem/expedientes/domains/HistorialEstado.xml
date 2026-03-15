@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.0.xsd">
+
+    <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
+    <entity name="HistorialEstado">
+        <string name="codeState" title="Código estado"/>
+        <string name="nameState" title="Estado" translatable="true"/>
+        <string name="codeEvent" title="Código Evento" />
+        <string name="nameEvent" title="Evento"/>
+        <many-to-one name="expediente" ref="Expediente" />
+        <many-to-one name="registroEntrada" ref="com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada" required="false"/>
+        <many-to-one name="registroSalida" ref="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida" required="false"/>
+        <datetime name="fecha" />
+    </entity>
+
+</domain-models>

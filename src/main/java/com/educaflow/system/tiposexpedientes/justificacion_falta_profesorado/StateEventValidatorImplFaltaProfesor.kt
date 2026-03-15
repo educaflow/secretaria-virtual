@@ -1,10 +1,10 @@
 package com.educaflow.system.tiposexpedientes.justificacion_falta_profesorado
 
-import com.educaflow.shared.expedientes.services.StateEventValidator
-import com.educaflow.shared.expedientes.services.annotations.BeanValidationRulesForStateAndEvent
-import com.educaflow.shared.expedientes.db.MotivoFaltaJustificacionFaltaProfesorado
-import com.educaflow.shared.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesorado
-import com.educaflow.shared.expedientes.db.TipoResolucionJustificacionFaltaProfesorado
+import com.educaflow.subsystem.expedientes.services.StateEventValidator
+import com.educaflow.subsystem.expedientes.services.annotations.BeanValidationRulesForStateAndEvent
+import com.educaflow.subsystem.expedientes.db.MotivoFaltaJustificacionFaltaProfesorado
+import com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesorado
+import com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesorado
 import com.educaflow.base.infrastructure.validation.dsl.ifValueIn
 import com.educaflow.base.infrastructure.validation.dsl.rules
 import com.educaflow.base.infrastructure.validation.engine.BeanValidationRules
@@ -20,7 +20,7 @@ import com.educaflow.base.infrastructure.validation.rules.Required
 import com.educaflow.base.infrastructure.validation.rules.Pattern
 import com.educaflow.base.infrastructure.validation.rules.SizeUnit
 import java.time.LocalDate
-import com.educaflow.shared.expedientes.db.JustificacionFaltaProfesorado as model
+import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesorado as model
 
 class StateEventValidatorImplFaltaProfesor: StateEventValidator {
 

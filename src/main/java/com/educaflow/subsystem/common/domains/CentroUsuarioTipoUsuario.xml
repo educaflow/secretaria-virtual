@@ -1,0 +1,11 @@
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.0.xsd">
+
+    <module name="common" package="com.educaflow.subsystem.common.db"/>
+    <entity name="CentroUsuarioTipoUsuario">
+        <many-to-one name="centroUsuario" ref="com.educaflow.subsystem.common.db.CentroUsuario" title="Usuario centro"/>
+        <many-to-one name="tipoUsuario" ref="com.educaflow.subsystem.common.db.TipoUsuario" title="Tipo usuario"/>
+    </entity>
+
+</domain-models>

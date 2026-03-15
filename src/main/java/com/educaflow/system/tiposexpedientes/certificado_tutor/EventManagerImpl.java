@@ -1,11 +1,11 @@
 package com.educaflow.system.tiposexpedientes.certificado_tutor;
 
-import com.educaflow.shared.expedientes.services.EventContext;
-import com.educaflow.shared.expedientes.services.EventManager;
-import com.educaflow.shared.expedientes.services.annotations.OnEnterState;
-import com.educaflow.shared.expedientes.services.annotations.WhenEvent;
-import com.educaflow.shared.expedientes.db.CertificadoTutor;
-import com.educaflow.shared.expedientes.db.repo.CertificadoTutorRepository;
+import com.educaflow.subsystem.expedientes.services.EventContext;
+import com.educaflow.subsystem.expedientes.services.EventManager;
+import com.educaflow.subsystem.expedientes.services.annotations.OnEnterState;
+import com.educaflow.subsystem.expedientes.services.annotations.WhenEvent;
+import com.educaflow.subsystem.expedientes.db.CertificadoTutor;
+import com.educaflow.subsystem.expedientes.db.repo.CertificadoTutorRepository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 
 import com.google.inject.Inject;

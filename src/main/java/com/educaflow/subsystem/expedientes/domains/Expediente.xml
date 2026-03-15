@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.0.xsd">
+
+    <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
+
+    <entity name="Expediente" strategy="JOINED" jsonAttrs="false">
+        <many-to-one name="tipoExpediente" title="Tipo de Expediente" ref="com.educaflow.subsystem.expedientes.db.TipoExpediente" required="true"/>
+        <string name="name" namecolumn="true" />
+        <string name="numeroExpediente"  title="Num.__!! Exped.__!!"  />
+        <string name="codeState" title="Código del estado" />
+        <string name="nameState" title="Estado" translatable="true" />
+        <datetime name="fechaUltimoEstado" title="Fecha último estado" />
+        <boolean name="abierto" title="Abierto" />
+        <one-to-many name="historialEstados" ref="HistorialEstado" mappedBy="expediente" />
+        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro"  />
+        <many-to-one name="creador" ref="com.axelor.auth.db.User"  />
+        <many-to-one name="registroEntrada" ref="com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada" required="false"/>
+        <many-to-one name="registroSalida" ref="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida" required="false"/>
+        <one-to-one name="personaInteresada" ref="com.educaflow.subsystem.common.db.Persona"  />
+        <one-to-one name="personaSolicitante" ref="com.educaflow.subsystem.common.db.Persona"  />
+
+        <extra-imports-model>
+            <![CDATA[
+                import com.axelor.inject.Beans;
+                import java.util.ArrayList;
+                import com.axelor.inject.Beans;
+                import com.educaflow.subsystem.expedientes.services.StateEnum;
+                import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
+                import java.io.ByteArrayInputStream;
+                import java.io.IOException;
+                import java.io.InputStream;
+                import java.util.Map;
+                import java.util.List;
+                import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil;
+                import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
+                import java.nio.file.Path;
+
+                import com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada;
+                import com.educaflow.subsystem.registroentradasalida.db.RegistroSalida;
+
+                import com.educaflow.subsystem.registroentradasalida.service.DatosRegistroEntrada;
+                import com.educaflow.subsystem.registroentradasalida.service.DatosRegistroSalida;
+                import com.educaflow.subsystem.registroentradasalida.service.PersonaRegistro;
+                import com.educaflow.subsystem.registroentradasalida.service.RegistroEntradaService;
+                import com.educaflow.subsystem.registroentradasalida.service.RegistroSalidaService;
+                import com.axelor.meta.db.MetaFile;
+            ]]>
+        </extra-imports-model>
+
+        <extra-code-model>
+            <![CDATA[
+  public void updateState(Enum state) {
+      if (state==null) {
+          throw new IllegalArgumentException("El state no puede ser nulo.");
+      }
+      String currentCodeState = this.getCodeState();
+
+      StateEnum stateEnum = new StateEnum(state);
+      if ((currentCodeState!=null) && (currentCodeState.equals(stateEnum.getCodeState()))) {
+          return;
+      }
+
+      this.setCodeState(stateEnum.getCodeState());
+      this.setNameState(com.educaflow.base.util.TextUtil.humanize(stateEnum.getCodeState()));
+      this.setFechaUltimoEstado(java.time.LocalDateTime.now());
+      this.setAbierto(!stateEnum.isClosed());
+  }
+
+
+    public DocumentoPdf getDocumentoPdf(String documentoPdfFileName, Expediente expediente) {
+        try {
+            Class<?> callerClass = expediente.getClass();
+
+            Path pathFileName= Path.of(documentoPdfFileName);
+
+            try (InputStream in = callerClass.getResourceAsStream(documentoPdfFileName)) {
+                if (in == null) {
+                    throw new IOException("No se encontró el recurso: " + documentoPdfFileName);
+                }
+                DocumentoPdf documentoPdfVacio= DocumentoPdfFactory.getDocumentoPdf(in.readAllBytes(), pathFileName.getFileName().toString());
+
+                Map<String, Object> contexto = Map.of("self", expediente,"now", java.time.LocalDateTime.now());
+
+                DocumentoPdf documentoPdfRelleno = DocumentoPdfUtil.generate(documentoPdfVacio, contexto);
+
+                return documentoPdfRelleno;
+
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error al cargar el documento PDF: " + documentoPdfFileName, e);
+        }
+    }
+
+    public RegistroEntrada addRegistroEntrada(MetaFile documentoPdf,List<MetaFile> anexos) {
+        DatosRegistroEntrada datosRegistroEntrada=new DatosRegistroEntrada(
+            this.getCentro(),
+            new PersonaRegistro(
+                this.getPersonaSolicitante().getNombre()+ " "+this.getPersonaSolicitante().getApellidos(),
+                this.getPersonaSolicitante().getDni()
+            ),
+            new PersonaRegistro(
+                 this.getPersonaInteresada().getNombre()+ " "+this.getPersonaInteresada().getApellidos(),
+                this.getPersonaInteresada().getDni()
+            ),
+            this.getNumeroExpediente(),
+            this.getName()
+        );
+
+        RegistroEntrada registroEntrada=Beans.get(RegistroEntradaService.class).createRegistroEntrada(datosRegistroEntrada,documentoPdf,anexos);
+
+        this.setRegistroEntrada(registroEntrada);
+
+        return registroEntrada;
+
+    }
+
+
+    public RegistroSalida addRegistroSalida(MetaFile documentoPdf,List<MetaFile> anexos) {
+        DatosRegistroSalida datosRegistroSalida=new DatosRegistroSalida(
+            this.getCentro()
+        );
+
+        RegistroSalida registroSalida=Beans.get(RegistroSalidaService.class).createRegistroSalida(datosRegistroSalida,documentoPdf,anexos);
+
+        this.setRegistroSalida(registroSalida);
+
+        return registroSalida;
+
+    }
+
+
+
+]]>
+
+
+
+
+        </extra-code-model>
+    </entity>
+
+
+</domain-models>

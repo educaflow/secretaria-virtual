@@ -4,10 +4,10 @@
             xsi:schemaLocation="http://axelor.com/xml/ns/data-import
   https://axelor.com/xml/ns/data-import/data-import_8.0.xsd">
 
-    <adapter name="DocumentAdapter" type="com.educaflow.shared.common.importar.DocumentAdapter"/>
+    <adapter name="DocumentAdapter" type="com.educaflow.subsystem.common.importar.DocumentAdapter"/>
 
     <input root="centro"  file="usuarios">
-        <bind node="docentes/docente | alumnos/alumno" type="com.axelor.auth.db.User" search="self.code = :code" call="com.educaflow.shared.common.importar.UserValidator:validate" update="true" create="true">
+        <bind node="docentes/docente | alumnos/alumno" type="com.axelor.auth.db.User" search="self.code = :code" call="com.educaflow.subsystem.common.importar.UserValidator:validate" update="true" create="true">
             <bind node="@documento" to="dni" adapter="DocumentAdapter"/>
             <bind node="@documento" to="code" adapter="DocumentAdapter"/>
 

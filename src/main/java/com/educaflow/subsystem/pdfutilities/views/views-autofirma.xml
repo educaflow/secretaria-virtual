@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_8.0.xsd">
+
+
+    <form name="PdfUtilities-AutoFirma-main-form" title="Utilidades para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities" width="large">
+
+        <panel name="main" title="PDF">
+            <field name="pdf"  colSpan="12" onChange="mant-PdfUtilities-form-action-onChange-pdf" widget="binary-link" />
+            <field name="x" colSpan="3" />
+            <field name="y" colSpan="3" />
+            <field name="width" colSpan="3" />
+            <field name="height" colSpan="3" />
+
+            <button name="calcular" title="Firmar en posición indicada" icon="fa-plus" onClick="PdfUtilities-AutoFirma-main-form-firmar-con-AutoFirma"/>
+        </panel>
+
+
+        <panel name="tabPdfFirmado" title="PDF Firmado">
+            <field name="pdfFirmado-view" showTitle="false" readonly="true" colSpan="9">
+                <viewer depends="pdfFirmado" ><![CDATA[
+                    <>
+                    <Box as="iframe" height="1000px" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfFirmado.id}/content/download?inline=true&name=${pdfFirmado.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+
+    </form>
+    <action-method name="PdfUtilities-AutoFirma-main-form-firmar-con-AutoFirma">
+        <call class="com.educaflow.subsystem.pdfutilities.actions.PdfUtilitiesActions" method="pdfAutoFirma"/>
+    </action-method>
+
+
+
+</object-views>

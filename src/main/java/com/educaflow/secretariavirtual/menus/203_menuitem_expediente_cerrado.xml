@@ -4,12 +4,12 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_8.0.xsd">
 
     <menuitem name="expedientes-cerrados-menu" parent="expedientes-menu" title="Expedientes Cerrados" action="expedientes-cerrados-action" groups="admins,users" order="203"/>
-    <action-view name="expedientes-cerrados-action"  title="Expedientes cerrados" model="com.educaflow.shared.expedientes.db.Expediente">
+    <action-view name="expedientes-cerrados-action"  title="Expedientes cerrados" model="com.educaflow.subsystem.expedientes.db.Expediente">
         <view type="grid" name="expedientes-cerrados-grid"/>
         <domain>self.abierto=false </domain>
         <context name="_profile" expr="RESPONSABLE"/>
     </action-view>
-    <grid name="expedientes-cerrados-grid" title="Expedientes" model="com.educaflow.shared.expedientes.db.Expediente"
+    <grid name="expedientes-cerrados-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
           groups="admins,users"
           groupBy="tipoExpediente.tramite.name"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"

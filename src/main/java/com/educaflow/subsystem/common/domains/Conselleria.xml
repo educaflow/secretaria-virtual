@@ -1,0 +1,11 @@
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.0.xsd">
+
+    <module name="common" package="com.educaflow.subsystem.common.db"/>
+    <entity name="Conselleria">
+        <string name="code" title="Código" required="true" unique="true" />
+        <string name="name" title="Nombre" namecolumn="true" required="true"/>
+    </entity>
+
+</domain-models>

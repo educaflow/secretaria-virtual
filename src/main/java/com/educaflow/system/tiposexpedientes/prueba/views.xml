@@ -4,7 +4,7 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_8.0.xsd">
 
 
-    <form name="exp-Prueba-Templates" width="large" title="Prueba" model="com.educaflow.shared.expedientes.db.Prueba" groups="admins,users" >
+    <form name="exp-Prueba-Templates" width="large" title="Prueba" model="com.educaflow.subsystem.expedientes.db.Prueba" groups="admins,users" >
         <panel name="datos-solicitante" title="Datos Solicitante">
             <field name="solicita" colSpan="9"/>
             <field name="justificante"  widget="binary-link" colSpan="3" x-accept=".pdf"/>
@@ -159,16 +159,16 @@
 
 
 
-    <grid name="fct-grid" title="FCT's" model="com.educaflow.shared.expedientes.db.FormacionCentroTrabajo" groups="admins,users" canEdit="false" edit-icon="false" >
+    <grid name="fct-grid" title="FCT's" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" canEdit="false" edit-icon="false" >
         <field name="alumno" />
     </grid>
-    <form name="fct-details" title="Detalle FCT" model="com.educaflow.shared.expedientes.db.FormacionCentroTrabajo" groups="admins,users" onValidate="action-validate-on-save-child" validateSignal="misenyal">
+    <form name="fct-details" title="Detalle FCT" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" onValidate="action-validate-on-save-child" validateSignal="misenyal">
         <include-panels header="false">
             datos-fct
         </include-panels>
         <footer />
     </form>
-    <form name="fct-details-firma" title="Detalle FCT" model="com.educaflow.shared.expedientes.db.FormacionCentroTrabajo" groups="admins,users" >
+    <form name="fct-details-firma" title="Detalle FCT" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" >
         <include-panels header="false">
             nombre-alumno
             firma-fct

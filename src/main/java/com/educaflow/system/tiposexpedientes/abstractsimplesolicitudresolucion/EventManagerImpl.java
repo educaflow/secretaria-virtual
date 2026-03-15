@@ -1,10 +1,10 @@
 package com.educaflow.system.tiposexpedientes.abstractsimplesolicitudresolucion;
 
-import com.educaflow.shared.expedientes.services.EventContext;
-import com.educaflow.shared.expedientes.services.annotations.OnEnterState;
-import com.educaflow.shared.expedientes.services.annotations.WhenEvent;
-import com.educaflow.shared.expedientes.db.AbstractSimpleSolicitudResolucion;
-import com.educaflow.shared.expedientes.db.repo.AbstractSimpleSolicitudResolucionRepository;
+import com.educaflow.subsystem.expedientes.services.EventContext;
+import com.educaflow.subsystem.expedientes.services.annotations.OnEnterState;
+import com.educaflow.subsystem.expedientes.services.annotations.WhenEvent;
+import com.educaflow.subsystem.expedientes.db.AbstractSimpleSolicitudResolucion;
+import com.educaflow.subsystem.expedientes.db.repo.AbstractSimpleSolicitudResolucionRepository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 
 import com.google.inject.Inject;
@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class EventManagerImpl extends com.educaflow.shared.expedientes.services.EventManager<AbstractSimpleSolicitudResolucion, AbstractSimpleSolicitudResolucion.State, AbstractSimpleSolicitudResolucion.Event,AbstractSimpleSolicitudResolucion.Profile> {
+public class EventManagerImpl extends com.educaflow.subsystem.expedientes.services.EventManager<AbstractSimpleSolicitudResolucion, AbstractSimpleSolicitudResolucion.State, AbstractSimpleSolicitudResolucion.Event,AbstractSimpleSolicitudResolucion.Profile> {
 
     private final AbstractSimpleSolicitudResolucionRepository repository;
     protected final Logger log = LoggerFactory.getLogger(getClass());

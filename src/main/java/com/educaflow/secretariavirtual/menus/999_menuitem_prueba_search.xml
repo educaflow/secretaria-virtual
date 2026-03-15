@@ -10,7 +10,7 @@
         <view type="dashboard" name="ver-expedientes-dashboard"/>
     </action-view>
 
-    <dashboard name="ver-expedientes-dashboard" title="Expedientes" onInit="ver-expedientes-oninit-action"  searchModel="com.educaflow.shared.expedientes.db.SearchExpedientes">
+    <dashboard name="ver-expedientes-dashboard" title="Expedientes" onInit="ver-expedientes-oninit-action"  searchModel="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
         <search-fields>
             <field name="estado" widget="boolean-radio" x-true-text="Abierto" x-false-text="Cerrado" />
             <field name="anyo" type="integer" title="Año" />
@@ -20,13 +20,13 @@
     </dashboard>
 
 
-    <action-view name="expedientes-buscar-action" title="Buscando expedientes" model="com.educaflow.shared.expedientes.db.Expediente">
+    <action-view name="expedientes-buscar-action" title="Buscando expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente">
         <view type="tree" name="expedientes-buscar-tree"/>
         <context name="_profile" expr="RESPONSABLE"/>
     </action-view>
 
 
-    <action-record name="ver-expedientes-oninit-action" model="com.educaflow.shared.expedientes.db.SearchExpedientes" >
+    <action-record name="ver-expedientes-oninit-action" model="com.educaflow.subsystem.expedientes.db.SearchExpedientes" >
         <field name="estado" expr="eval: true" />
         <field name="anyo" expr="eval: java.time.Year.now().value" />
     </action-record>
@@ -40,11 +40,11 @@
         <column name="fechaUltimoEstado" type="date" width="100px" title="Fecha"/>
 
 
-        <node model="com.educaflow.shared.expedientes.db.Tramite" domain="EXISTS (SELECT 1 FROM Expediente e WHERE e.abierto=:estado and ((:anyo is null) OR (:anyo=0) OR (YEAR(e.fechaUltimoEstado)=:anyo)) AND e.tipoExpediente.tramite=self)" >
+        <node model="com.educaflow.subsystem.expedientes.db.Tramite" domain="EXISTS (SELECT 1 FROM Expediente e WHERE e.abierto=:estado and ((:anyo is null) OR (:anyo=0) OR (YEAR(e.fechaUltimoEstado)=:anyo)) AND e.tipoExpediente.tramite=self)" >
             <field name="name" as="name"/>
         </node>
 
-        <node model="com.educaflow.shared.expedientes.db.Expediente" domain="(self.abierto=:estado) and ((:anyo is null) OR (:anyo=0) OR (YEAR(self.fechaUltimoEstado)=:anyo))" parent="tipoExpediente.tramite" draggable="false" onClick="action-event-view-expediente">
+        <node model="com.educaflow.subsystem.expedientes.db.Expediente" domain="(self.abierto=:estado) and ((:anyo is null) OR (:anyo=0) OR (YEAR(self.fechaUltimoEstado)=:anyo))" parent="tipoExpediente.tramite" draggable="false" onClick="action-event-view-expediente">
             <field name="name"/>
             <field name="numeroExpediente"/>
             <field name="createdBy"/>

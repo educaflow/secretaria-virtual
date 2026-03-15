@@ -3,7 +3,7 @@
               xmlns="http://axelor.com/xml/ns/object-views"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_5.1.xsd">
 
-    <form name="exp-AbstractSimpleSolicitudResolucion-Templates" title="Solicitud de resolución simple abstracta"  width="large"  model="com.educaflow.shared.expedientes.db.AbstractSimpleSolicitudResolucion" groups="admins,users">
+    <form name="exp-AbstractSimpleSolicitudResolucion-Templates" title="Solicitud de resolución simple abstracta" width="large" model="com.educaflow.subsystem.expedientes.db.AbstractSimpleSolicitudResolucion" groups="admins,users">
 
 
     </form>

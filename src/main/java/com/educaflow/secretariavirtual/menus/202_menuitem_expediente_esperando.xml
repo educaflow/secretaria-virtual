@@ -7,12 +7,12 @@
 
     <menuitem name="expedientes-esperando-menu" parent="expedientes-menu" title="Expedientes Esperando" action="expedientes-esperando-action" groups="admins,users" order="202"/>
 
-    <action-view name="expedientes-esperando-action" title="Expedientes esperando a que otra persona realice una tarea"  model="com.educaflow.shared.expedientes.db.Expediente" >
+    <action-view name="expedientes-esperando-action" title="Expedientes esperando a que otra persona realice una tarea"  model="com.educaflow.subsystem.expedientes.db.Expediente" >
         <view type="tree" name="expedientes-esperando-tree"  />
         <context name="_profile" expr="RESPONSABLE"/>
     </action-view>
 
-    <grid name="expedientes-esperando-grid" title="Expedientes" model="com.educaflow.shared.expedientes.db.Expediente"
+    <grid name="expedientes-esperando-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
           groups="admins,users"
           groupBy="tipoExpediente.tramite.name"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false"
@@ -36,11 +36,11 @@
         <column name="fechaUltimoEstado" type="date" width="100px" title="Fecha"/>
 
 
-        <node model="com.educaflow.shared.expedientes.db.Tramite" domain="EXISTS (SELECT 1 FROM Expediente e WHERE e.abierto=true AND e.tipoExpediente.tramite=self)" >
+        <node model="com.educaflow.subsystem.expedientes.db.Tramite" domain="EXISTS (SELECT 1 FROM Expediente e WHERE e.abierto=true AND e.tipoExpediente.tramite=self)" >
             <field name="name" as="name" />
         </node>
 
-        <node model="com.educaflow.shared.expedientes.db.Expediente" domain="abierto=true" parent="tipoExpediente.tramite" draggable="false" onClick="action-event-view-expediente">
+        <node model="com.educaflow.subsystem.expedientes.db.Expediente" domain="abierto=true" parent="tipoExpediente.tramite" draggable="false" onClick="action-event-view-expediente">
             <field name="name" />
             <field name="numeroExpediente"/>
             <field name="createdBy"/>

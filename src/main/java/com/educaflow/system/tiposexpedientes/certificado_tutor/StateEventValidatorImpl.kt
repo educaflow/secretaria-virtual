@@ -1,7 +1,7 @@
 package com.educaflow.system.tiposexpedientes.certificado_tutor;
 
-import com.educaflow.shared.expedientes.services.StateEventValidator
-import com.educaflow.shared.expedientes.services.annotations.BeanValidationRulesForStateAndEvent
+import com.educaflow.subsystem.expedientes.services.StateEventValidator
+import com.educaflow.subsystem.expedientes.services.annotations.BeanValidationRulesForStateAndEvent
 
 
 import com.educaflow.base.infrastructure.validation.dsl.rules

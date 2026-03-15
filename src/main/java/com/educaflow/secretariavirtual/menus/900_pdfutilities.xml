@@ -9,15 +9,15 @@
     <menuitem name="PdfUtilities-firma-menuitem"  parent="PdfUtilities-menuitem" title="Posiciones Firma" action="PdfUtilities-firma-main-action" groups="admins" order="4"  />
     <menuitem name="PdfUtilities-AutoFirma-menuitem"  parent="PdfUtilities-menuitem" title="Posición Autofirma__!!" action="PdfUtilities-AutoFirma-main-action" groups="admins" order="6"  />
 
-    <action-view name="PdfUtilities-info-main-action"  title="Información para PDF" model="com.educaflow.shared.pdfutilities.db.PdfUtilities"  >
+    <action-view name="PdfUtilities-info-main-action"  title="Información para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities"  >
         <view type="form" name="PdfUtilities-info-main-form"/>
     </action-view>
 
-    <action-view name="PdfUtilities-firma-main-action"  title="Información para PDF" model="com.educaflow.shared.pdfutilities.db.PdfUtilities"  >
+    <action-view name="PdfUtilities-firma-main-action"  title="Información para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities"  >
         <view type="form" name="PdfUtilities-firma-main-form"/>
     </action-view>
 
-    <action-view name="PdfUtilities-AutoFirma-main-action"  title="Posición Autofirma__!!" model="com.educaflow.shared.pdfutilities.db.PdfUtilities"  >
+    <action-view name="PdfUtilities-AutoFirma-main-action"  title="Posición Autofirma__!!" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities"  >
         <view type="form" name="PdfUtilities-AutoFirma-main-form"/>
     </action-view>
 </object-views>

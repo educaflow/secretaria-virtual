@@ -3,7 +3,7 @@
               xmlns="http://axelor.com/xml/ns/object-views"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_8.0.xsd">
 
-    <form name="exp-JustificacionFaltaProfesorado-Templates"   width="large" title="Justificación de falta del profesorado"  model="com.educaflow.shared.expedientes.db.JustificacionFaltaProfesorado" groups="admins,users">
+    <form name="exp-JustificacionFaltaProfesorado-Templates" width="large" title="Justificación de falta del profesorado" model="com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesorado" groups="admins,users">
         <panel name="datos-profesor" title="Datos del profesor interesado">
             <field name="personaInteresada.apellidos" colSpan="4" readonly="true"/>
             <field name="personaInteresada.nombre" colSpan="4" readonly="true"/>
@@ -158,7 +158,7 @@
         </footer>
     </form>
 
-    <action-method name="exp-JustificacionFaltaProfesorado-firmarDocumentacionParaPresentar-action" model="com.educaflow.shared.expedientes.db.JustificacionFaltaProfesorado">
+    <action-method name="exp-JustificacionFaltaProfesorado-firmarDocumentacionParaPresentar-action" model="com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesorado">
         <call
                 class="com.educaflow.system.tiposexpedientes.justificacion_falta_profesorado.ActionController"
                 method="firmarDocumentacionParaPresentar"

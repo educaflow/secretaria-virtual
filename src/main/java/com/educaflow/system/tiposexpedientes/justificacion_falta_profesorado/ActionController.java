@@ -3,7 +3,7 @@ package com.educaflow.system.tiposexpedientes.justificacion_falta_profesorado;
 import com.axelor.meta.CallMethod;
 import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
-import com.educaflow.shared.expedientes.db.JustificacionFaltaProfesorado;
+import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesorado;
 import com.educaflow.base.infrastructure.autofirma.AutoFirma;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 
