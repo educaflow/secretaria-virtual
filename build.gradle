@@ -1,5 +1,5 @@
 plugins {
-    id 'com.axelor.app' version '8.0.3-SNAPSHOT'
+    id 'com.axelor.app' version '8.1.1-SNAPSHOT'
     id 'idea'
     id "org.jetbrains.kotlin.jvm" version "2.2.21"
 }
