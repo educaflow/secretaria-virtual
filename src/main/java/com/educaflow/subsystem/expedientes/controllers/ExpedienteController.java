@@ -53,7 +53,7 @@ public class ExpedienteController {
             TipoExpediente tipoExpediente = getTipoExpedienteFromIdTramite(actionRequestHelper.getId());
             EventManager eventManager = tipoExpediente.getEventManager();
             String profileName = actionRequestHelper.getProfileName();
-            EventContext eventContext = getEventContext(eventManager,profileName);
+            EventContext eventContext = getEventContext(null,eventManager,profileName);
 
             Expediente expediente = tramitador.triggerInitialEvent(tipoExpediente, eventContext);
 
@@ -80,7 +80,7 @@ public class ExpedienteController {
             Map<String, Object> requestData = actionRequestHelper.getRequestData();
             EventManager eventManager = expediente.getTipoExpediente().getEventManager();
             String profileName = actionRequestHelper.getProfileName();
-            EventContext eventContext = getEventContext(eventManager,profileName);
+            EventContext eventContext = getEventContext(expediente,eventManager,profileName);
 
 
 
@@ -114,7 +114,7 @@ public class ExpedienteController {
             Expediente expediente = getExpedienteFromIdExpediente(actionRequestHelper.getId());
             EventManager eventManager = expediente.getTipoExpediente().getEventManager();
             String profileName = actionRequestHelper.getProfileName();
-            EventContext eventContext = getEventContext(eventManager,profileName);
+            EventContext eventContext = getEventContext(expediente,eventManager,profileName);
 
             String viewName = eventManager.getViewName(expediente, eventContext);
             AxelorViewUtil.doResponseViewForm(response, viewName, eventManager.getModelClass(), expediente, getTabName(expediente), eventContext.getProfile().name());
@@ -204,11 +204,11 @@ public class ExpedienteController {
     /********************** Funciones de Utilidad **********************/
     /*******************************************************************/
 
-    public <T extends Enum<T>> EventContext<T> getEventContext(EventManager eventManager, String profileName) {
+    public <T extends Enum<T>> EventContext<T> getEventContext(Expediente expediente,EventManager eventManager, String profileName) {
         try {
             Enum profile = Enum.valueOf(eventManager.getProfileClass(), profileName);
             Centro centro = getCentroFromCurrentUser();
-            return new EventContext<>(profile, centro);
+            return new EventContext<>(expediente, profile, centro);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

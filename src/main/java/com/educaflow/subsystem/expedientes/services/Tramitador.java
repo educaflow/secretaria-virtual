@@ -16,6 +16,7 @@ import com.educaflow.base.util.ReflectionUtil;
 import com.educaflow.base.util.TextUtil;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.educaflow.subsystem.registroentradasalida.service.*;
 import com.google.common.base.CaseFormat;
 import com.google.inject.Inject;
 
@@ -33,6 +34,11 @@ public class Tramitador {
     @Inject
     NumeradorRepository numeradorRepository;
 
+    @Inject
+    RegistroEntradaService registroEntradaService;
+
+    @Inject
+    RegistroSalidaService registroSalidaService;
 
 
     public Expediente triggerInitialEvent(TipoExpediente tipoExpediente,  EventContext eventContext) throws BusinessException {
@@ -51,7 +57,7 @@ public class Tramitador {
             eventManager.triggerInitialEvent(expediente, eventContext);
 
             expediente.updateState(initialEvent);
-            addHistorialEstado(expediente, null);
+            addHistorialEstado(expediente, null, eventContext);
 
             eventManager.onEnterState(expediente, eventContext);
 
@@ -99,7 +105,7 @@ public class Tramitador {
         if (eventName.equals(CommonEvent.DELETE.name())) {
             expedienteRepository.remove(expediente);
         } else {
-            addHistorialEstado(expediente, eventName);
+            addHistorialEstado(expediente, eventName, eventContext);
             eventManager.onEnterState(expediente, eventContext);
 
             expedienteRepository.save(expediente);
@@ -134,7 +140,7 @@ public class Tramitador {
     /********************** Funciones de Negocio  **********************/
     /*******************************************************************/
 
-    private static void addHistorialEstado(Expediente expediente, String eventName) {
+    private static void addHistorialEstado(Expediente expediente, String eventName, EventContext eventContext) {
         HistorialEstado historialEstado = new HistorialEstado();
         historialEstado.setCodeState(expediente.getCodeState());
         historialEstado.setNameState(TextUtil.humanize(expediente.getCodeState()));
@@ -143,18 +149,12 @@ public class Tramitador {
         historialEstado.setFecha(LocalDateTime.now());
 
 
-        if (expediente.getRegistroEntrada()!=null) {
-            String numeroRegistroEntrada=expediente.getRegistroEntrada().getNumeroRegistro();
-            if (existsRegistroEntrada(expediente,numeroRegistroEntrada)==false) {
-                historialEstado.setRegistroEntrada(expediente.getRegistroEntrada());
-            }
+        if (eventContext.getRegistroEntrada()!=null) {
+            historialEstado.setRegistroEntrada(eventContext.getRegistroEntrada());
         }
 
-        if (expediente.getRegistroSalida()!=null) {
-            String numeroRegistroSalida=expediente.getRegistroSalida().getNumeroRegistro();
-            if (existsRegistroSalida(expediente,numeroRegistroSalida)==false) {
-                historialEstado.setRegistroSalida(expediente.getRegistroSalida());
-            }
+        if (eventContext.getRegistroSalida()!=null) {
+            historialEstado.setRegistroSalida(eventContext.getRegistroSalida());
         }
 
 
@@ -162,32 +162,6 @@ public class Tramitador {
         expediente.addHistorialEstado(historialEstado);
     }
 
-    private static boolean existsRegistroEntrada(Expediente expediente,String numeroRegistroEntrada) {
-        if (expediente.getHistorialEstados() != null) {
-            for (HistorialEstado historialEstado : expediente.getHistorialEstados()) {
-                if (historialEstado.getRegistroEntrada() != null) {
-                    if (historialEstado.getRegistroEntrada().getNumeroRegistro().equals(numeroRegistroEntrada)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-
-    private static boolean existsRegistroSalida(Expediente expediente,String numeroRegistroSalida) {
-        if (expediente.getHistorialEstados() != null) {
-            for (HistorialEstado historialEstado : expediente.getHistorialEstados()) {
-                if (historialEstado.getRegistroSalida() != null) {
-                    if (historialEstado.getRegistroSalida().getNumeroRegistro().equals(numeroRegistroSalida)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
 
     private void updateName(Expediente expediente) {
         expediente.setName(expediente.getTipoExpediente().getName());

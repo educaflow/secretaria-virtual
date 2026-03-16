@@ -16,8 +16,6 @@
         <one-to-many name="historialEstados" ref="HistorialEstado" mappedBy="expediente" />
         <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro"  />
         <many-to-one name="creador" ref="com.axelor.auth.db.User"  />
-        <many-to-one name="registroEntrada" ref="com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada" required="false"/>
-        <many-to-one name="registroSalida" ref="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida" required="false"/>
         <one-to-one name="personaInteresada" ref="com.educaflow.subsystem.common.db.Persona"  />
         <one-to-one name="personaSolicitante" ref="com.educaflow.subsystem.common.db.Persona"  />
 
@@ -93,42 +91,7 @@
         }
     }
 
-    public RegistroEntrada addRegistroEntrada(MetaFile documentoPdf,List<MetaFile> anexos) {
-        DatosRegistroEntrada datosRegistroEntrada=new DatosRegistroEntrada(
-            this.getCentro(),
-            new PersonaRegistro(
-                this.getPersonaSolicitante().getNombre()+ " "+this.getPersonaSolicitante().getApellidos(),
-                this.getPersonaSolicitante().getDni()
-            ),
-            new PersonaRegistro(
-                 this.getPersonaInteresada().getNombre()+ " "+this.getPersonaInteresada().getApellidos(),
-                this.getPersonaInteresada().getDni()
-            ),
-            this.getNumeroExpediente(),
-            this.getName()
-        );
 
-        RegistroEntrada registroEntrada=Beans.get(RegistroEntradaService.class).createRegistroEntrada(datosRegistroEntrada,documentoPdf,anexos);
-
-        this.setRegistroEntrada(registroEntrada);
-
-        return registroEntrada;
-
-    }
-
-
-    public RegistroSalida addRegistroSalida(MetaFile documentoPdf,List<MetaFile> anexos) {
-        DatosRegistroSalida datosRegistroSalida=new DatosRegistroSalida(
-            this.getCentro()
-        );
-
-        RegistroSalida registroSalida=Beans.get(RegistroSalidaService.class).createRegistroSalida(datosRegistroSalida,documentoPdf,anexos);
-
-        this.setRegistroSalida(registroSalida);
-
-        return registroSalida;
-
-    }
 
 
 

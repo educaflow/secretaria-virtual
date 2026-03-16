@@ -9,8 +9,9 @@ public class MetaFileHelper {
 
     public static final String PDF_MIME_TYPE = "application/pdf";
 
-    public static <T extends MetaFile> T createMetaFile(DocumentoPdf documentoPdf, Class<T> clazz) {
-        T metaFile = MetaFileUtil.createMetaFileInstance(clazz);
+
+    public static MetaFile createMetaFile(DocumentoPdf documentoPdf) {
+        MetaFile metaFile = MetaFileUtil.createMetaFileInstance();
         metaFile.setFileName(documentoPdf.getFileName());
         metaFile.setFileType(PDF_MIME_TYPE);
 
@@ -18,11 +19,6 @@ public class MetaFileHelper {
         MetaFileUtil.uploadContent(metaFile, bytes);
 
         return metaFile;
-    }
-
-
-    public static MetaFile createMetaFile(DocumentoPdf documentoPdf) {
-        return createMetaFile(documentoPdf, MetaFile.class);
     }
 
 

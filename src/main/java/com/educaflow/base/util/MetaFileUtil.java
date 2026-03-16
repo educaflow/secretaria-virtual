@@ -12,7 +12,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
 import java.util.Map;
 
 public class MetaFileUtil {
@@ -43,13 +42,13 @@ public class MetaFileUtil {
 
     }
 
-    public static <T extends MetaFile> T cloneMetaFile(T metaFile) {
+    public static MetaFile cloneMetaFile(MetaFile metaFile) {
         if (metaFile == null) {
             return null;
         }
         byte[] bytes = MetaFileUtil.downloadContent(metaFile);
 
-        T nuevoMetaFile = createMetaFileInstance((Class<T>)metaFile.getClass());
+        MetaFile nuevoMetaFile = createMetaFileInstance();
         nuevoMetaFile.setFileName(metaFile.getFileName());
         nuevoMetaFile.setFileType(metaFile.getFileType());
 
@@ -69,9 +68,9 @@ public class MetaFileUtil {
 
     }
 
-    public static <T extends MetaFile> T createMetaFileInstance(Class<T> clazz) {
+    public static MetaFile createMetaFileInstance() {
         try {
-            T metaFile = clazz.getDeclaredConstructor().newInstance();
+            MetaFile metaFile = MetaFile.class.getDeclaredConstructor().newInstance();
 
             return metaFile;
         } catch (Exception ex) {

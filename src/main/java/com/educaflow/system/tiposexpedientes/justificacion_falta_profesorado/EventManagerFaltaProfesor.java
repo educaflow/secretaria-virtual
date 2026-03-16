@@ -79,7 +79,7 @@ public class EventManagerFaltaProfesor extends EventManager<JustificacionFaltaPr
     }
     @WhenEvent
     public void triggerPresentar(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext eventContext) throws BusinessException {
-        RegistroEntrada registroEntrada=justificacionFaltaProfesorado.addRegistroEntrada(justificacionFaltaProfesorado.getPdfSolicitudFirmado(), List.of(justificacionFaltaProfesorado.getJustificante()));
+        RegistroEntrada registroEntrada=eventContext.createRegistroEntrada(justificacionFaltaProfesorado.getPdfSolicitudFirmado(), List.of(justificacionFaltaProfesorado.getJustificante()));
         justificacionFaltaProfesorado.setPdfJustificanteRegistroEntrada(registroEntrada.getDocumentoResguardoPresentacion());
         justificacionFaltaProfesorado.updateState(JustificacionFaltaProfesorado.State.PENDIENTE_RESOLUCION);
         justificacionFaltaProfesorado.setDisconformidad(null);
@@ -96,7 +96,7 @@ public class EventManagerFaltaProfesor extends EventManager<JustificacionFaltaPr
 
         MetaFile pdfResolucion = MetaFileHelper.createMetaFile(resolucionFirmada);
 
-        RegistroSalida registroSalida=justificacionFaltaProfesorado.addRegistroSalida(pdfResolucion, List.of(justificacionFaltaProfesorado.getJustificante()));
+        RegistroSalida registroSalida=eventContext.createRegistroSalida(pdfResolucion, List.of(justificacionFaltaProfesorado.getJustificante()));
         justificacionFaltaProfesorado.setPdfResolucion(registroSalida.getDocumento());
         switch (tipoResolucion) {
             case ACEPTAR:
