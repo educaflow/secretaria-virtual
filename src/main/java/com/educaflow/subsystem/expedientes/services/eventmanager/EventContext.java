@@ -1,4 +1,4 @@
-package com.educaflow.subsystem.expedientes.services;
+package com.educaflow.subsystem.expedientes.services.eventmanager;
 
 
 import com.axelor.inject.Beans;

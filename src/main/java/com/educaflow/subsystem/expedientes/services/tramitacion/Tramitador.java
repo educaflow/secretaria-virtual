@@ -1,11 +1,13 @@
-package com.educaflow.subsystem.expedientes.services;
+package com.educaflow.subsystem.expedientes.services.tramitacion;
 
 
 import com.axelor.db.JPA;
 import com.axelor.db.JpaRepository;
 import com.axelor.db.Model;
 import com.educaflow.base.util.SecurityUtil;
-import com.educaflow.subsystem.expedientes.services.annotations.BeanValidationRulesForStateAndEvent;
+import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
+import com.educaflow.subsystem.expedientes.services.tramitacion.internal.StateEnum;
+import com.educaflow.subsystem.expedientes.services.validation.BeanValidationRulesForStateAndEvent;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.HistorialEstado;
 import com.educaflow.subsystem.expedientes.db.TipoExpediente;
@@ -16,6 +18,8 @@ import com.educaflow.base.util.ReflectionUtil;
 import com.educaflow.base.util.TextUtil;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.educaflow.subsystem.expedientes.services.eventmanager.EventManager;
+import com.educaflow.subsystem.expedientes.services.validation.StateEventValidator;
 import com.educaflow.subsystem.registroentradasalida.service.*;
 import com.google.common.base.CaseFormat;
 import com.google.inject.Inject;

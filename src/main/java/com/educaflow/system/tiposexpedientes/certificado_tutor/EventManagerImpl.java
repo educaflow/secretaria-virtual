@@ -1,9 +1,9 @@
 package com.educaflow.system.tiposexpedientes.certificado_tutor;
 
-import com.educaflow.subsystem.expedientes.services.EventContext;
-import com.educaflow.subsystem.expedientes.services.EventManager;
-import com.educaflow.subsystem.expedientes.services.annotations.OnEnterState;
-import com.educaflow.subsystem.expedientes.services.annotations.WhenEvent;
+import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
+import com.educaflow.subsystem.expedientes.services.eventmanager.EventManager;
+import com.educaflow.subsystem.expedientes.services.eventmanager.OnEnterState;
+import com.educaflow.subsystem.expedientes.services.eventmanager.WhenEvent;
 import com.educaflow.subsystem.expedientes.db.CertificadoTutor;
 import com.educaflow.subsystem.expedientes.db.repo.CertificadoTutorRepository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;

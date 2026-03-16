@@ -1,7 +1,7 @@
 package com.educaflow.system.tiposexpedientes.comision_servicio;
 
-import com.educaflow.subsystem.expedientes.services.StateEventValidator
-import com.educaflow.subsystem.expedientes.services.annotations.BeanValidationRulesForStateAndEvent
+import com.educaflow.subsystem.expedientes.services.validation.StateEventValidator
+import com.educaflow.subsystem.expedientes.services.validation.BeanValidationRulesForStateAndEvent
 
 
 import com.educaflow.base.infrastructure.validation.dsl.rules

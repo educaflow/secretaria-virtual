@@ -1,7 +1,6 @@
-package com.educaflow.subsystem.expedientes.services;
+package com.educaflow.subsystem.expedientes.services.eventmanager;
 
-import com.educaflow.subsystem.expedientes.services.annotations.OnEnterState;
-import com.educaflow.subsystem.expedientes.services.annotations.WhenEvent;
+import com.educaflow.subsystem.expedientes.services.tramitacion.CommonEvent;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.base.util.AxelorViewUtil;
 import com.educaflow.base.util.ReflectionUtil;

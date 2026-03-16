@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>
  **/
-package com.educaflow.subsystem.expedientes.services.annotations;
+package com.educaflow.subsystem.expedientes.services.eventmanager;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

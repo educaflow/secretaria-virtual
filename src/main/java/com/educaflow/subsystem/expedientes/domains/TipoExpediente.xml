@@ -20,8 +20,8 @@
 
         <extra-imports-model>
             <![CDATA[
-                import com.educaflow.subsystem.expedientes.services.EventManager;
-                import com.educaflow.subsystem.expedientes.services.StateEventValidator;
+                import com.educaflow.subsystem.expedientes.services.eventmanager.EventManager;
+                import com.educaflow.subsystem.expedientes.services.validation.StateEventValidator;
                 import com.axelor.inject.Beans;
             ]]>
         </extra-imports-model>
