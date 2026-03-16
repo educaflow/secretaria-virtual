@@ -45,7 +45,7 @@ public class Tramitador {
         try {
             EventManager eventManager = tipoExpediente.getEventManager();
             JpaRepository<Expediente> expedienteRepository = JpaRepository.of(eventManager.getModelClass());
-            Enum initialEvent = getInitialState(eventManager.getStateClass());
+            Enum initialEvent = StateEnum.getInitialState(eventManager.getStateClass());
 
             Expediente expediente = (Expediente) eventManager.getModelClass().getDeclaredConstructor().newInstance();
             expediente.setTipoExpediente(tipoExpediente);
@@ -185,27 +185,7 @@ public class Tramitador {
     }
 
 
-    private Enum<?> getInitialState(Class<? extends Enum> stateEnumClass) {
-        Enum<?> initialState = null;
-        Enum<?>[] states = stateEnumClass.getEnumConstants();
 
-        for (Enum<?> state : states) {
-            StateEnum stateEnum = new StateEnum(state);
-
-            if (stateEnum.isInitial()) {
-                if (initialState != null) {
-                    throw new RuntimeException("Hay más de un estado inicial en la clase: " + stateEnumClass.getName());
-                }
-                initialState = state;
-            }
-        }
-
-        if (initialState == null) {
-            throw new RuntimeException("No se ha encontrado el estado inicial en la clase: " + stateEnumClass.getName());
-        }
-
-        return initialState;
-    }
 
 
 

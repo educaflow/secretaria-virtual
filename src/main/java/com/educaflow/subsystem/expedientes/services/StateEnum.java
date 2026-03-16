@@ -39,4 +39,27 @@ public class StateEnum {
     public boolean isClosed() {
         return (Boolean)ReflectionUtil.getFieldValue(state, "closed");
     }
+
+    public static Enum<?> getInitialState(Class<? extends Enum> stateEnumClass) {
+        Enum<?> initialState = null;
+        Enum<?>[] states = stateEnumClass.getEnumConstants();
+
+        for (Enum<?> state : states) {
+            StateEnum stateEnum = new StateEnum(state);
+
+            if (stateEnum.isInitial()) {
+                if (initialState != null) {
+                    throw new RuntimeException("Hay más de un estado inicial en la clase: " + stateEnumClass.getName());
+                }
+                initialState = state;
+            }
+        }
+
+        if (initialState == null) {
+            throw new RuntimeException("No se ha encontrado el estado inicial en la clase: " + stateEnumClass.getName());
+        }
+
+        return initialState;
+    }
+
 }
