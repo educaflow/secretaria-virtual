@@ -8,6 +8,7 @@ import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
 import com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil;
 import com.educaflow.subsystem.expedientes.services.internal.StateEnum;
+import com.educaflow.subsystem.expedientes.services.internal.TipoExpedienteUtil;
 import com.educaflow.subsystem.expedientes.services.validation.BeanValidationRulesForStateAndEvent;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.HistorialEstado;
@@ -48,7 +49,7 @@ public class Tramitador {
 
     public Expediente triggerInitialEvent(TipoExpediente tipoExpediente,  EventContext eventContext) throws BusinessException {
         try {
-            EventManager eventManager = tipoExpediente.getEventManager();
+            EventManager eventManager = TipoExpedienteUtil.getEventManager(tipoExpediente);
             JpaRepository<Expediente> expedienteRepository = JpaRepository.of(eventManager.getModelClass());
             Enum initialEvent = StateEnum.getInitialState(eventManager.getStateClass());
 
@@ -75,9 +76,9 @@ public class Tramitador {
     }
 
     public void triggerEvent(Expediente expediente, String eventName,  Map<String, Object> requestData, EventContext eventContext ) throws BusinessException {
-        EventManager eventManager= expediente.getTipoExpediente().getEventManager();
+        EventManager eventManager=TipoExpedienteUtil.getEventManager(expediente.getTipoExpediente());
         Expediente expedienteOriginal=(Expediente) BeanMapperModel.getEntityCloned(expediente.getClass(), expediente);
-        StateEventValidator stateEventValidator =expediente.getTipoExpediente().getStateEventValidator();
+        StateEventValidator stateEventValidator =TipoExpedienteUtil.getStateEventValidator(expediente.getTipoExpediente());
         JpaRepository<Expediente> expedienteRepository = JpaRepository.of(eventManager.getModelClass());
         StateEnum stateEnum = new StateEnum(ReflectionUtil.getEnumConstant(eventManager.getStateClass(), expediente.getCodeState()));
 
@@ -125,7 +126,7 @@ public class Tramitador {
 
         TipoExpediente tipoExpediente=expediente.getTipoExpediente();
 
-        StateEventValidator stateEventValidator = tipoExpediente.getStateEventValidator();
+        StateEventValidator stateEventValidator = TipoExpedienteUtil.getStateEventValidator(tipoExpediente);
         List<BeanValidationRules> beansValidationRules = getBeansValidationRules(stateEventValidator, expediente.getCodeState());
         List<FieldValidationRules> fieldsValidationRules=getFieldsValidationRules(beansValidationRules,methodName);
 

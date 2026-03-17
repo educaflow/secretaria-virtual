@@ -9,6 +9,7 @@ import com.axelor.meta.CallMethod;
 import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
 import com.educaflow.base.util.SecurityUtil;
+import com.educaflow.subsystem.expedientes.services.internal.TipoExpedienteUtil;
 import com.educaflow.subsystem.expedientes.services.tramitacion.CommonEvent;
 import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
 import com.educaflow.subsystem.expedientes.services.eventmanager.EventManager;
@@ -51,7 +52,7 @@ public class ExpedienteController {
             ActionRequestHelper actionRequestHelper = new ActionRequestHelper(actionRequest);
 
             TipoExpediente tipoExpediente = getTipoExpedienteFromIdTramite(actionRequestHelper.getId());
-            EventManager eventManager = tipoExpediente.getEventManager();
+            EventManager eventManager = TipoExpedienteUtil.getEventManager(tipoExpediente);
             String profileName = actionRequestHelper.getProfileName();
             EventContext eventContext = getEventContext(null,eventManager,profileName);
 
@@ -78,7 +79,7 @@ public class ExpedienteController {
             Expediente expediente = getExpedienteFromIdExpediente(actionRequestHelper.getId());
             String eventName = actionRequestHelper.getEventName();
             Map<String, Object> requestData = actionRequestHelper.getRequestData();
-            EventManager eventManager = expediente.getTipoExpediente().getEventManager();
+            EventManager eventManager = TipoExpedienteUtil.getEventManager(expediente.getTipoExpediente());
             String profileName = actionRequestHelper.getProfileName();
             EventContext eventContext = getEventContext(expediente,eventManager,profileName);
 
@@ -112,7 +113,7 @@ public class ExpedienteController {
             ActionRequestHelper actionRequestHelper = new ActionRequestHelper(request);
 
             Expediente expediente = getExpedienteFromIdExpediente(actionRequestHelper.getId());
-            EventManager eventManager = expediente.getTipoExpediente().getEventManager();
+            EventManager eventManager = TipoExpedienteUtil.getEventManager(expediente.getTipoExpediente());
             String profileName = actionRequestHelper.getProfileName();
             EventContext eventContext = getEventContext(expediente,eventManager,profileName);
 
@@ -242,7 +243,7 @@ public class ExpedienteController {
     private JpaRepository<Expediente> getJpaRepository(long idExpediente) {
         JpaRepository<Expediente> onlyExpedienteRepository = JpaRepository.of(Expediente.class);
         Expediente expediente = onlyExpedienteRepository.find(idExpediente);
-        EventManager eventManager = expediente.getTipoExpediente().getEventManager();
+        EventManager eventManager = TipoExpedienteUtil.getEventManager(expediente.getTipoExpediente());
         JpaRepository<Expediente> realExpedienteRepository = JpaRepository.of(eventManager.getModelClass());
         JPA.em().detach(expediente);
 

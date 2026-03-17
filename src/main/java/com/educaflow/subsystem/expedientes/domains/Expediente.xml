@@ -18,16 +18,6 @@
         <many-to-one name="creador" ref="com.axelor.auth.db.User"  />
         <one-to-one name="personaInteresada" ref="com.educaflow.subsystem.common.db.Persona"  />
         <one-to-one name="personaSolicitante" ref="com.educaflow.subsystem.common.db.Persona"  />
-
-        <extra-imports-model>
-            <![CDATA[
-            ]]>
-        </extra-imports-model>
-
-        <extra-code-model>
-            <![CDATA[
-            ]]>
-        </extra-code-model>
     </entity>
 
 
