@@ -89,7 +89,7 @@ public class EventContext<Profile extends Enum<Profile>> {
         return registroSalida;
     }
 
-    public List<MetaFile> cloneAnexos(List<MetaFile> anexos) {
+    private List<MetaFile> cloneAnexos(List<MetaFile> anexos) {
         if (anexos == null) {
             return List.of();
         }
