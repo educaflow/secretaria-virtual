@@ -1,4 +1,4 @@
-package com.educaflow.subsystem.expedientes.services.tramitacion.internal;
+package com.educaflow.subsystem.expedientes.services.internal;
 
 import com.educaflow.base.util.ReflectionUtil;
 

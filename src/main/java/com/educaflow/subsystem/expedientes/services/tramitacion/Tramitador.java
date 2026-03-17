@@ -6,7 +6,8 @@ import com.axelor.db.JpaRepository;
 import com.axelor.db.Model;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
-import com.educaflow.subsystem.expedientes.services.tramitacion.internal.StateEnum;
+import com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil;
+import com.educaflow.subsystem.expedientes.services.internal.StateEnum;
 import com.educaflow.subsystem.expedientes.services.validation.BeanValidationRulesForStateAndEvent;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.HistorialEstado;
@@ -60,7 +61,7 @@ public class Tramitador {
 
             eventManager.triggerInitialEvent(expediente, eventContext);
 
-            expediente.updateState(initialEvent);
+            ExpedienteUtil.updateState(expediente, initialEvent);
             addHistorialEstado(expediente, null, eventContext);
 
             eventManager.onEnterState(expediente, eventContext);
