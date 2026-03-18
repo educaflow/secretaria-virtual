@@ -14,6 +14,13 @@
 
 
 
+            <extra-code-model>
+        <![CDATA[
+
+
+
+        ]]>
+        </extra-code-model>
     </entity>
     <enum name="AbstractSimpleSolicitudResolucionTipoResolucion">
         <item name="ACEPTAR" title="Resolver positivamente"/>

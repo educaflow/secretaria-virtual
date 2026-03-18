@@ -28,10 +28,10 @@ public abstract class EventManager<T extends Expediente, State extends Enum<Stat
         this.profileClass = profileClass;
     }
 
-    public abstract void triggerInitialEvent(T expediente, EventContext<Profile> eventContext) throws BusinessException;
+    public abstract void triggerInitialEvent(T expediente, EventContext<Profile,State> eventContext) throws BusinessException;
 
 
-    public void triggerEvent(String strEvent, T expediente, T expedienteOriginal, EventContext<Profile> eventContext) throws BusinessException {
+    public void triggerEvent(String strEvent, T expediente, T expedienteOriginal, EventContext<Profile,State> eventContext) throws BusinessException {
         try {
             Enum event;
 
@@ -55,7 +55,7 @@ public abstract class EventManager<T extends Expediente, State extends Enum<Stat
         }
     }
 
-    public void onEnterState(T expediente, EventContext<Profile> eventContext) {
+    public void onEnterState(T expediente, EventContext<Profile,State> eventContext) {
         State state=null;
         try {
             state = (State) Enum.valueOf(stateClass, expediente.getCodeState());
@@ -68,7 +68,7 @@ public abstract class EventManager<T extends Expediente, State extends Enum<Stat
         }
     }
 
-    public String getViewName(T expediente, EventContext<Profile> eventContext) {
+    public String getViewName(T expediente, EventContext<Profile,State> eventContext) {
         String tipoExpedienteCode=expediente.getTipoExpediente().getCode();
         State state=(State)ReflectionUtil.getEnumConstant(stateClass,expediente.getCodeState());
         Profile profile=eventContext.getProfile();

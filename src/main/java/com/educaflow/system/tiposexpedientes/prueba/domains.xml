@@ -14,6 +14,13 @@
 
 
 
+            <extra-code-model>
+        <![CDATA[
+
+
+
+        ]]>
+        </extra-code-model>
     </entity>
     <entity name="FormacionCentroTrabajo"  >
         <string name="alumno" namecolumn="true" title="Alumno"  />

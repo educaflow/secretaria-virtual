@@ -221,6 +221,26 @@ tasks.register('RichDomainClassTask', JavaExec) {
 tasks.named('generateCode') {
     finalizedBy tasks.RichDomainClassTask
 }
+tasks.register('RichDomainXmlTask', JavaExec) {
+    description = 'Ejecuta una clase Java desde un JAR externo para añadir código al xml del modelo antes de que genere el código.'
+    group = 'build'
+
+    mainClass = 'com.educaflow.common.buildtools.richdomainclass.MainModelXml'
+
+    classpath = configurations.educaFlowBuildToolsDependency
+
+
+    args './src/main/java', './build/src-gen/main/java'
+
+    workingDir = layout.projectDirectory.dir('.')
+
+    inputs.dir(layout.projectDirectory.dir('./src/main/java'))
+    outputs.dir(layout.buildDirectory.dir('./build/src-gen/main/java'))
+}
+tasks.named('generateCode') {
+    dependsOn tasks.RichDomainXmlTask
+}
+
 tasks.register('CreateFilesTask', JavaExec) {
     description = 'Ejecuta una clase Java desde un JAR externo para generar o validar los ficheros de un tipo de expediente.'
     group = 'build'

@@ -6,6 +6,7 @@ import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.expedientes.db.Expediente;
+import com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroSalida;
 import com.educaflow.subsystem.registroentradasalida.service.*;
@@ -14,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class EventContext<Profile extends Enum<Profile>> {
+public class EventContext<Profile extends Enum<Profile>, State extends Enum<State>> {
 
     final private Expediente expediente;
     final private Profile profile;
@@ -37,7 +38,9 @@ public class EventContext<Profile extends Enum<Profile>> {
         return "EventContext [profile=" + profile + ", centro=" + centro + "]";
     }
 
-
+    public void updateState(State state) {
+        ExpedienteUtil.updateState(expediente,state);
+    }
 
 
     public RegistroEntrada createRegistroEntrada(MetaFile documentoPdf, List<MetaFile> anexos) {

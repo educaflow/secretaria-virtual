@@ -205,7 +205,7 @@ public class ExpedienteController {
     /********************** Funciones de Utilidad **********************/
     /*******************************************************************/
 
-    public <T extends Enum<T>> EventContext<T> getEventContext(Expediente expediente,EventManager eventManager, String profileName) {
+    public <Profile extends Enum<Profile>, State extends Enum<State>> EventContext<Profile,State> getEventContext(Expediente expediente,EventManager eventManager, String profileName) {
         try {
             Enum profile = Enum.valueOf(eventManager.getProfileClass(), profileName);
             Centro centro = getCentroFromCurrentUser();
