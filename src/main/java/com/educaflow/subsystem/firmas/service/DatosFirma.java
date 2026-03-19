@@ -5,27 +5,31 @@ import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 
-public record DatosFirma(User firmante, MetaFile documento,String motivoFirma, Rectangulo areaFirma,Class<? extends FirmaNotifier> firmaNotifierClass,Object callBackData) {
+import java.util.List;
+import java.util.Objects;
+
+public record DatosFirma(User firmante, List<MetaFile> documentos, String motivoFirma, Rectangulo areaFirma, Class<? extends FirmaNotifier> firmaNotifierClass, Object callBackData) {
 
     public DatosFirma {
-        if (firmante == null) {
-            throw new IllegalArgumentException("firmante no puede ser null");
+        Objects.requireNonNull(firmante, "firmante no puede ser null");
+        Objects.requireNonNull(documentos, "documentos no pueden ser null");
+        Objects.requireNonNull(motivoFirma, "motivoFirma no puede ser null");
+        Objects.requireNonNull(areaFirma, "areaFirma no puede ser null");
+        Objects.requireNonNull(firmaNotifierClass, "firmaNotifierClass no puede ser null");
+
+        if (documentos.isEmpty()) {
+            throw new IllegalArgumentException("documentos no puede estar vacío");
         }
-        if (documento == null) {
-            throw new IllegalArgumentException("documento no puede ser null");
-        }
-        if ((motivoFirma==null) || motivoFirma.isBlank()) {
-            throw new IllegalArgumentException("motivoFirma no puede ser null ni blank");
-        }
-        if (areaFirma == null) {
-            throw new IllegalArgumentException("areaFirma no puede ser null");
-        }
-        if (firmaNotifierClass == null) {
-            throw new IllegalArgumentException("firmaNotifierClass no puede ser null");
+        if (motivoFirma.isBlank()) {
+            throw new IllegalArgumentException("motivoFirma no puede ser blank");
         }
 
-        if (MetaFileHelper.isPdf(documento)==false) {
-            throw new IllegalArgumentException("documento debe ser un pdf");
+        for(int i=0;i<documentos.size();i++) {
+            MetaFile documento=documentos.get(i);
+            Objects.requireNonNull(documento, "El documento " +  i  + " no pueden ser null");
+            if (MetaFileHelper.isPdf(documento) == false) {
+                throw new IllegalArgumentException("El documento " +  i  + " debe ser un pdf");
+            }
         }
 
     }

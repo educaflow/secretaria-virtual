@@ -1,7 +1,7 @@
 package com.educaflow.subsystem.firmas.service;
 
-import com.educaflow.subsystem.firma.db.Firma;
+import com.educaflow.subsystem.firma.db.TareaFirma;
 
 public interface FirmaNotifier {
-    void notify(Firma firma, Object callBackData);
+    void notify(TareaFirma tareaFirma, Object callBackData);
 }

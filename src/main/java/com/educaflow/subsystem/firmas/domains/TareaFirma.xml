@@ -3,16 +3,15 @@
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
 
     <module name="firma" package="com.educaflow.subsystem.firma.db"/>
-    <entity name="Firma" >
+    <entity name="TareaFirma" >
         <many-to-one name="firmante" ref="com.axelor.auth.db.User" required="true" />
-        <many-to-one name="documento" ref="com.axelor.meta.db.MetaFile" required="true" title="Documento a firmar"/>
-        <many-to-one name="documentoFirmado" ref="com.axelor.meta.db.MetaFile"  title="Documento firmado"/>
+        <one-to-many name="documentosFirma" ref="DocumentoFirma" mappedBy="tareaFirma"  />
         <datetime name="fechaSolicitud" title="Fecha de la solicitud" required="true" />
         <datetime name="fechaResolucion" title="Fecha de la resolución" />
         <boolean name="firmaRapida" title="Firma rápida" help="La firma se permite que se haga inmediatamente sin intervención del usuario si existe su certificado" />
-        <enum name="estadoFirma" ref="EstadoFirma" title="Estado" required="true" />
+        <enum name="estadoTareaFirma" ref="EstadoTareaFirma" title="Estado" required="true" />
         <string name="motivoFirma" required="true" />
-        <string name="motivoRechazo" large="true" multiline="true" title="Motivo del rechazo de la firma del documento" />
+        <string name="motivoRechazo" large="true" multiline="true" title="Motivo del rechazo de la firma de los documentos" />
         <string name="fqcnFirmaNotifier" title="FQCN donde notificar" />
         <string name="fqcnCallBackData" title="FQCN del datos de vuelta"  />
         <string name="callBackData" large="true" multiline="true" title="Datos de vuelta" />
@@ -20,13 +19,14 @@
         <decimal name="y" precision="8" scale="2" required="true"/>
         <decimal name="width" precision="8" scale="2" title="Ancho" required="true"/>
         <decimal name="height" precision="8" scale="2" title="Alto" required="true"/>
+        <integer name="page" title="Página" required="true"/>
     </entity>
 
 
-    <enum name="EstadoFirma">
-        <item name="PENDIENTE" title="Pendiente de firmar" description="Está pendiente la firma del documento"/>
-        <item name="FIRMADO" title="Firmado" description="Está firmado el documento"/>
-        <item name="RECHAZADO" title="Rechazada la firma" description="Se ha rechazado la firma del documento"/>
+    <enum name="EstadoTareaFirma">
+        <item name="PENDIENTE" title="Pendiente de firmar" description="Está pendiente la firma de los documentos"/>
+        <item name="FIRMADO" title="Firmado" description="Están firmados los documentos"/>
+        <item name="RECHAZADO" title="Rechazada la firma" description="Se ha rechazado la firma de los documentos"/>
     </enum>
 
 

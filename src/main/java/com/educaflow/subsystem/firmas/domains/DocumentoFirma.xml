@@ -1,0 +1,12 @@
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="firma" package="com.educaflow.subsystem.firma.db"/>
+    <entity name="DocumentoFirma" >
+        <many-to-one name="tareaFirma" ref="com.educaflow.subsystem.firma.db.TareaFirma" required="true" title="Tarea de firma"/>
+        <many-to-one name="documentoOriginal" ref="com.axelor.meta.db.MetaFile" required="true" title="Documento original a firmar"/>
+        <many-to-one name="documentoFirmado" ref="com.axelor.meta.db.MetaFile"  title="Documento firmado"/>
+    </entity>
+
+</domain-models>

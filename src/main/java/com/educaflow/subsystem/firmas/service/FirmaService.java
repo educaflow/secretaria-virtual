@@ -1,11 +1,11 @@
 package com.educaflow.subsystem.firmas.service;
 
 import com.axelor.meta.db.MetaFile;
-import com.educaflow.subsystem.firma.db.Firma;
+import com.educaflow.subsystem.firma.db.TareaFirma;
 
 public interface FirmaService {
 
-    Firma insert(DatosFirma datosFirma);
-    Firma firmar(Firma firma, MetaFile documentoFirmado);
-    Firma rechazarFirma(Firma firma, String motivoRechazo);
+    TareaFirma insert(DatosFirma datosFirma);
+    TareaFirma firmar(TareaFirma tareaFirma, MetaFile documentoFirmado);
+    TareaFirma rechazarFirma(TareaFirma tareaFirma, String motivoRechazo);
 }

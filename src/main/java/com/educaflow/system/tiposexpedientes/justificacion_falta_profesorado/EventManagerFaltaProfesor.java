@@ -17,7 +17,7 @@ import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesorado;
 import com.educaflow.subsystem.expedientes.db.repo.JustificacionFaltaProfesoradoRepository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 
-import com.educaflow.subsystem.firma.db.Firma;
+import com.educaflow.subsystem.firma.db.TareaFirma;
 import com.educaflow.subsystem.firmas.service.DatosFirma;
 import com.educaflow.subsystem.firmas.service.FirmaNotifier;
 import com.educaflow.subsystem.firmas.service.FirmaService;
@@ -77,7 +77,7 @@ public class EventManagerFaltaProfesor extends com.educaflow.subsystem.expedient
 
 
         ///Quitar esto es solo una prueba
-        DatosFirma datosFirma=new DatosFirma(SecurityUtil.getUser(),pdfSolicitud,"Firma Expediente:"+justificacionFaltaProfesorado.getNumeroExpediente(),new Rectangulo(100,100,400,50),this.getClass(),"Datos de callback");
+        DatosFirma datosFirma=new DatosFirma(SecurityUtil.getUser(),List.of(pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud),"Firma Expediente:"+justificacionFaltaProfesorado.getNumeroExpediente(),new Rectangulo(100,100,400,50),this.getClass(),"Datos de callback");
         firmaService.insert(datosFirma);
     }
     @WhenEvent
@@ -141,8 +141,8 @@ public class EventManagerFaltaProfesor extends com.educaflow.subsystem.expedient
 
 
     @Override
-    public void notify(Firma firma, Object callBackData) {
-        System.out.println("Notificado!!!!!!:"+callBackData+ " en firma.id="+firma.getId());
+    public void notify(TareaFirma tareaFirma, Object callBackData) {
+        System.out.println("Notificado!!!!!!:"+callBackData+ " en firma.id="+tareaFirma.getId());
     }
 
 /***************************************************************************************/
