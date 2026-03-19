@@ -159,16 +159,16 @@
 
 
 
-    <grid name="fct-grid" title="FCT's" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" canEdit="false" edit-icon="false" >
+    <grid name="fct-grid" title="FCT's" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" canEdit="false" edit-icon="false" canSave="true">
         <field name="alumno" />
     </grid>
-    <form name="fct-details" title="Detalle FCT" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" onValidate="action-validate-on-save-child" validateSignal="misenyal">
+    <form name="fct-details" title="Detalle FCT" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" onValidate="action-validate-on-save-child" validateSignal="misenyal" canSave="true" >
         <include-panels header="false">
             datos-fct
         </include-panels>
         <footer />
     </form>
-    <form name="fct-details-firma" title="Detalle FCT" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" >
+    <form name="fct-details-firma" title="Detalle FCT" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" canSave="true">
         <include-panels header="false">
             nombre-alumno
             firma-fct
