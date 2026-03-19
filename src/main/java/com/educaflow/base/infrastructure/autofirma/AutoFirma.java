@@ -45,9 +45,7 @@ public class AutoFirma {
         payload.put("nif", autofirma.getNif());
         payload.put("motivo", autofirma.getMotivo());
         payload.put("sourceField", autofirma.getSourceField());
-        payload.put("sourceFieldClass", getModelClassFromField(autofirma.getClazz(), autofirma.getSourceField()).getName());
         payload.put("targetField", autofirma.getTargetField());
-        payload.put("targetFieldClass", getModelClassFromField(autofirma.getClazz(),autofirma.getTargetField()).getName());
         payload.put("sufijo", autofirma.getSufijo());
         payload.put("pageNumber", autofirma.getPageNumber());
         payload.put("fontSize", autofirma.getFontSize());
@@ -61,7 +59,7 @@ public class AutoFirma {
 
 
         actionResponse.setValue("executeJs",true);
-        actionResponse.setValue("methodJs","signDocument");
+        actionResponse.setValue("methodJs","firmaController");
         actionResponse.setValue("payload",payload);
 
     }
@@ -166,27 +164,6 @@ public class AutoFirma {
 
             currentClass = (Class<? extends Model>)getMethod.getReturnType();
         }
-    }
-
-    private static Class<?> getModelClassFromField(Class<?> expedienteClass, String fieldName) {
-        String[] parts = fieldName.split("\\.");
-        Class<?> currentClass = expedienteClass;
-
-        for (int i = 0; i < parts.length; i++) {
-            String part = parts[i];
-            String getMethodName = "get" + TextUtil.toFirstsLetterToUpperCase(part);
-
-            Method method = ReflectionUtil.getMethod(currentClass, getMethodName, null, null, null);
-
-            if (method == null) {
-                throw new RuntimeException("No se pudo encontrar el método " + getMethodName + " en la clase " + currentClass.getName());
-            }
-
-            // Actualizamos la clase actual con el tipo de retorno del getter
-            currentClass = method.getReturnType();
-        }
-
-        return currentClass;
     }
 
 

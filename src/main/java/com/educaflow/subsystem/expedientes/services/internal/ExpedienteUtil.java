@@ -1,9 +1,12 @@
 package com.educaflow.subsystem.expedientes.services.internal;
 
+import com.axelor.db.JPA;
+import com.axelor.db.JpaRepository;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil;
 import com.educaflow.subsystem.expedientes.db.Expediente;
+import com.educaflow.subsystem.expedientes.services.eventmanager.EventManager;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,6 +54,33 @@ public class ExpedienteUtil {
         expediente.setNameState(com.educaflow.base.util.TextUtil.humanize(stateEnum.getCodeState()));
         expediente.setFechaUltimoEstado(java.time.LocalDateTime.now());
         expediente.setAbierto(!stateEnum.isClosed());
+    }
+
+    public static Expediente getExpedienteFromIdExpediente(long idExpediente) {
+        JpaRepository<Expediente> expedienteRepository = getJpaRepository(idExpediente);
+        Expediente expediente =expedienteRepository.find(idExpediente);
+        if (expediente == null) {
+            throw new RuntimeException("No existe el expediente con idExpediente: " + idExpediente);
+        }
+
+        return expediente;
+    }
+
+    /**
+     * Obtiene el Repository de un expediente en función del id del expediente.
+     * Se usa este método porque de otra forma se retornaría el Repositorio de Expediente y no del expediente en concreto.
+     *
+     * @param idExpediente
+     * @return
+     */
+    private static JpaRepository<Expediente> getJpaRepository(long idExpediente) {
+        JpaRepository<Expediente> onlyExpedienteRepository = JpaRepository.of(Expediente.class);
+        Expediente expediente = onlyExpedienteRepository.find(idExpediente);
+        EventManager eventManager = TipoExpedienteUtil.getEventManager(expediente.getTipoExpediente());
+        JpaRepository<Expediente> realExpedienteRepository = JpaRepository.of(eventManager.getModelClass());
+        JPA.em().detach(expediente);
+
+        return realExpedienteRepository;
     }
 
 }
