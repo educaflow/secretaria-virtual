@@ -26,35 +26,30 @@
         <many-to-one name="pdfSolicitudFirmado" title="PDF de la solicitud" ref="com.axelor.meta.db.MetaFile" />
         <many-to-one name="pdfJustificanteRegistroEntrada" title="Justificante del registro de entrada" ref="com.axelor.meta.db.MetaFile" />
         <many-to-one name="pdfResolucion" title="Resolución" ref="com.axelor.meta.db.MetaFile" />
-
-
-            <extra-code-model>
+        <extra-code-model>
         <![CDATA[
 
+            public enum TipoDocumentoPdf {
+                SOLICITUD("/com/educaflow/system/tiposexpedientes/justificacion_falta_profesorado/documentospdf/solicitud.pdf"),
+                RESOLUCION("/com/educaflow/system/tiposexpedientes/justificacion_falta_profesorado/documentospdf/resolucion.pdf");
 
-    public enum TipoDocumentoPdf {
-            SOLICITUD("/com/educaflow/system/tiposexpedientes/justificacion_falta_profesorado/documentospdf/solicitud.pdf"),
-        RESOLUCION("/com/educaflow/system/tiposexpedientes/justificacion_falta_profesorado/documentospdf/resolucion.pdf");
+                private final String fileName;
 
-    private final String fileName;
+                // Constructor privado del enum
+                TipoDocumentoPdf(String fileName) {
+                    this.fileName = fileName;
+                }
 
-        // Constructor privado del enum
-        TipoDocumentoPdf(String fileName) {
-            this.fileName = fileName;
-        }
-
-        // Getter
-        public String getFileName() {
-            return fileName;
-        }
-    }
-
-    
-    public com.educaflow.base.infrastructure.pdf.DocumentoPdf getDocumentoPdf(TipoDocumentoPdf tipoDocumentoPdf) {
-        return com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil.getDocumentoPdf(this, tipoDocumentoPdf.getFileName());
-    }
+                // Getter
+                public String getFileName() {
+                    return fileName;
+                }
+            }
 
 
+            public com.educaflow.base.infrastructure.pdf.DocumentoPdf getDocumentoPdf(TipoDocumentoPdf tipoDocumentoPdf) {
+                return com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil.getDocumentoPdf(this, tipoDocumentoPdf.getFileName());
+            }
 
         ]]>
         </extra-code-model>

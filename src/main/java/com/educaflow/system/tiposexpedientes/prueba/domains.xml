@@ -10,14 +10,8 @@
         <many-to-one name="ciclo" ref="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" title="Ciclo" />
         <many-to-one name="justificante"  ref="com.axelor.meta.db.MetaFile" title="Justificante" />
         <one-to-many name="formacionesCentrosTrabajo" title="Formaciones en Centros de Trabajo" ref="FormacionCentroTrabajo" mappedBy="prueba" cascade="all" orphanRemoval="true" />
-
-
-
-
-            <extra-code-model>
+        <extra-code-model>
         <![CDATA[
-
-
 
         ]]>
         </extra-code-model>

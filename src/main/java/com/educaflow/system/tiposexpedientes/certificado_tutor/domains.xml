@@ -7,10 +7,8 @@
     <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
     <entity name="CertificadoTutor" extends="Expediente" >
         <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro" />
-            <extra-code-model>
+        <extra-code-model>
         <![CDATA[
-
-
 
         ]]>
         </extra-code-model>

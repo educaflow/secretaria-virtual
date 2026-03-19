@@ -11,13 +11,8 @@
 
 
         <enum name="tipoResolucion" title="Tipo resolución" ref="AbstractSimpleSolicitudResolucionTipoResolucion" />
-
-
-
-            <extra-code-model>
+        <extra-code-model>
         <![CDATA[
-
-
 
         ]]>
         </extra-code-model>
