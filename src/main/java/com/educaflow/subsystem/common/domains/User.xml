@@ -26,10 +26,10 @@
             ]]>
         </many-to-one>
 
-        <many-to-one name="importarUsuarios" ref="com.axelor.meta.db.MetaFile" title="Importar usuarios" transient="true"/>
-
 
         <string name="nombre" title="Nombre"  />
         <string name="apellidos" title="Apellidos"  />
+
+        <entity-listener class="com.educaflow.subsystem.common.db.repo.UsuarioListener"/>
     </entity>
 </domain-models>

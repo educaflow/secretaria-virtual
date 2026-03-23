@@ -2,6 +2,10 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../EducaFlowBuildTools" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../axelor-open-platform" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../axelor-open-suite" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../axelor-ui" vcs="Git" />
   </component>
   <component name="VcsProjectSettings">
     <option name="detectVcsMappingsAutomatically" value="false" />

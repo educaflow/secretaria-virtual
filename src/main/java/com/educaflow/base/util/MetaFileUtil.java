@@ -5,15 +5,18 @@ import com.axelor.inject.Beans;
 import com.axelor.meta.MetaFiles;
 import com.axelor.meta.db.MetaFile;
 import com.axelor.meta.db.repo.MetaFileRepository;
+import com.axelor.script.ScriptAllowed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
+@ScriptAllowed
 public class MetaFileUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(ImportTask.class);
@@ -103,7 +106,7 @@ public class MetaFileUtil {
         return null;
     }
 
-    public static void deleteSafe(MetaFile file) {
+    public static void delete(MetaFile file) {
         if (file == null || file.getId() == null) return;
 
         try {
@@ -122,7 +125,6 @@ public class MetaFileUtil {
         } catch (Exception ex) {
             logger.error("No se pudo eliminar el archivo MetaFile: {}", ex.getMessage());
         }
-
     }
 
 }

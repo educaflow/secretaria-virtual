@@ -1,30 +1,24 @@
 package com.educaflow.secretariavirtual.startup;
 
 import com.axelor.app.AppSettings;
-import com.axelor.app.AvailableAppSettings;
 import com.axelor.app.AxelorModule;
-import com.axelor.data.ImportTask;
-import com.axelor.data.Listener;
 import com.educaflow.base.infrastructure.criptografia.EntornoCriptografico;
 import com.educaflow.base.infrastructure.criptografia.config.EntornoCriptograficoConfig;
-import com.educaflow.base.infrastructure.importer.util.CustomImportTask;
-import com.educaflow.base.infrastructure.importer.util.CustomListener;
-import com.educaflow.base.infrastructure.importer.validators.DniValidator;
-import com.educaflow.base.infrastructure.importer.validators.impl.DniValidatorImpl;
 import com.educaflow.base.infrastructure.mail.MailSender;
 import com.educaflow.base.infrastructure.mail.impl.MailSenderImpl;
 import com.educaflow.base.infrastructure.mail.impl.SmtpCredentialSimplePassword;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Main extends AxelorModule {
 
+    private final Logger logger = LoggerFactory.getLogger(Main.class);
+
     @Override
     protected void configure() {
-        System.out.println("Iniciando Aplicación Secretaria Virtual...");
-        bind(DniValidator.class).to(DniValidatorImpl.class);
-        bind(ImportTask.class).to(CustomImportTask.class);
-        bind(Listener.class).to(CustomListener.class);
+        logger.info("Iniciando Aplicación Secretaria Virtual...");
 
         configureEntornoCriptografico();
         configureDatabase();

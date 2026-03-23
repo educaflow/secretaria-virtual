@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="centro">
+        <xs:complexType>
+            <xs:choice maxOccurs="unbounded">
+                <xs:element name="docentes" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="docente" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:attribute name="documento" type="xs:string" use="required"/>
+                                    <xs:attribute name="nombre" type="xs:string" use="required"/>
+                                    <xs:anyAttribute processContents="skip"/>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                        <xs:anyAttribute processContents="skip"/>
+                    </xs:complexType>
+                </xs:element>
+
+                <xs:element name="alumnos" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="alumno" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:attribute name="documento" type="xs:string" use="required"/>
+                                    <xs:attribute name="nombre" type="xs:string" use="required"/>
+                                    <xs:anyAttribute processContents="skip"/>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                        <xs:anyAttribute processContents="skip"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:choice>
+            <xs:anyAttribute processContents="skip"/>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

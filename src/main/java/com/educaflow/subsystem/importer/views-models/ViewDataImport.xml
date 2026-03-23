@@ -1,0 +1,11 @@
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.0.xsd">
+
+    <module name="importar" package="com.educaflow.subsystem.importer.db"/>
+    <entity name="ViewDataImport" persistable="false">
+        <many-to-one name="dataFile" ref="com.axelor.meta.db.MetaFile" title="Archivo de datos" transient="true"/>
+        <string name="configFilePath" transient="true" title="Archivo de configuración"/>
+        <string name="validationSchemaPath" transient="true" title="Esquema de validación" />
+    </entity>
+</domain-models>

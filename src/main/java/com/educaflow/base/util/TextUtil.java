@@ -49,4 +49,12 @@ public class TextUtil {
         return result.length() > 255 ? result.substring(0, 255) : result;
     }
 
+    public static boolean isNullOrBlank(String s) {
+        if (s==null) {
+            return true;
+        }else {
+            return s.isBlank();
+        }
+    }
+
 }

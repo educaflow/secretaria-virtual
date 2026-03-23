@@ -46,3 +46,7 @@ bin/
 java_pid*.hprof
 .kotlin/**
 .idea/**
+
+### Archivos idiomas ###
+i18n_ca.csv
+i18n_es.csv

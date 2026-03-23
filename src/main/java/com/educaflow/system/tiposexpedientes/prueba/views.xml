@@ -10,7 +10,7 @@
             <field name="justificante"  widget="binary-link" colSpan="3" x-accept=".pdf"/>
             <field name="ciclo" colSpan="6" grid-view="search-Ciclo-grid" form-view="view-Ciclo-form" />
         </panel>
-        <panel-related name="fcts-panel" title="FCT's" field="formacionesCentrosTrabajo" colSpan="12" form-view="fct-details" grid-view="fct-grid"/>
+        <panel-related name="fcts-panel" title="FCT's__!!" field="formacionesCentrosTrabajo" colSpan="12" form-view="fct-details" grid-view="fct-grid"/>
         <panel name="datos-resolucion" title="Datos Resolución">
             <field name="motivo" colSpan="12"/>
         </panel>
@@ -159,7 +159,7 @@
 
 
 
-    <grid name="fct-grid" title="FCT's" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" canEdit="false" edit-icon="false" canSave="true">
+    <grid name="fct-grid" title="FCT's__!!" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" canEdit="false" edit-icon="false" canSave="true">
         <field name="alumno" />
     </grid>
     <form name="fct-details" title="Detalle FCT" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" onValidate="action-validate-on-save-child" validateSignal="misenyal" canSave="true" >

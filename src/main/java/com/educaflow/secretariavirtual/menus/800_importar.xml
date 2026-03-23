@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_8.0.xsd">
+
+    <menuitem name="importar-menuitem"  title="Importación datos"  groups="admins" order="800"/>
+
+    <menuitem name="usuarios-importar-menuitem"  parent="importar-menuitem" title="Importar usuarios" action="usuarios-importar-main-action" groups="admins" order="2"  />
+    <!--<menuitem name="centroUsuarios-importar-menuitem"  parent="importar-menuitem" title="Añadir usuarios" action="centroUsuarios-importar-main-action" groups="admins" order="2"  />-->
+
+    <action-view name="usuarios-importar-main-action"  title="Importar usuarios" model="com.educaflow.subsystem.importer.db.ViewDataImport"  >
+        <view type="form" name="mant-Importar-Usuarios-form"/>
+    </action-view>
+
+    <!--<action-view name="centroUsuarios-importar-main-action"  title="Añadir usuarios" model="com.educaflow.subsystem.importer.db.ViewDataImport"  >
+        <view type="form" name="mant-CentroUsuario-Importar-form"/>
+    </action-view>-->
+
+
+</object-views>
