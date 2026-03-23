@@ -63,10 +63,12 @@
     </form>
 
     <grid name="search-Centro-grid" title="Centro" model="com.educaflow.subsystem.common.db.Centro"
-          groups="admins"
+          groups="admins,users"
           orderBy="name"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
         <field name="name" />
+        <field name="municipio.provincia" />
+        <field name="municipio" />
     </grid>
 
     <action-method name="mant-Centro-form-importarUsuarios-action">
