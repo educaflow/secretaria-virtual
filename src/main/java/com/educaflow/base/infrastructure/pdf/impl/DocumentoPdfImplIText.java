@@ -25,6 +25,8 @@ import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.*;
 import com.itextpdf.kernel.pdf.annot.PdfWidgetAnnotation;
+import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
+import com.itextpdf.kernel.pdf.canvas.parser.listener.SimpleTextExtractionStrategy;
 import com.itextpdf.kernel.utils.PdfMerger;
 import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.Property;
@@ -306,6 +308,25 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    @Override
+    public String getPlainText() {
+        StringBuilder plainText = new StringBuilder();
+
+        int numberOfPages = this.pdfDocument.getNumberOfPages();
+
+        for (int i = 1; i <= numberOfPages; i++) {
+            String pageText = PdfTextExtractor.getTextFromPage(
+                    this.pdfDocument.getPage(i),
+                    new SimpleTextExtractionStrategy()
+            );
+            plainText.append(pageText);
+            plainText.append("\n");
+        }
+
+
+        return plainText.toString();
     }
 
 

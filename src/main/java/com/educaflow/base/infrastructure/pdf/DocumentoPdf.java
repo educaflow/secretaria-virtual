@@ -21,5 +21,7 @@ public interface DocumentoPdf {
     DocumentoPdf anyadirDocumentoPdf(DocumentoPdf documentoPdf,String fileName);
     DocumentoPdf estamparTextoConAppend(String texto, int numeroPagina,Rectangulo rectangulo);
 
+    String getPlainText();
+
     byte[] getDatos();
 }
