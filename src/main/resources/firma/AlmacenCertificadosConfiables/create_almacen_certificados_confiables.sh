@@ -40,6 +40,11 @@ download_crl() {
     wget -O ${CRL_DIR}/"$file" "$url"
 }
 
+download_cer() {
+    local url="$1"
+    local file="$(basename "$url")"  # Extrae el nombre del archivo de la URL
+    wget -O ${CERTS_DIR}/"$file" "$url"
+}
 
 import_certs() {
 
@@ -143,6 +148,32 @@ urls_crl_download=(
 
 for url in "${urls_crl_download[@]}"; do
     download_crl "$url"
+done
+
+urls_fnmt_download=(
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_Raiz_FNMT-RCM_SHA256.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_FNMT_Usuarios.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_Representacion.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_Componentes_Informaticos_SHA256.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_Sector_Publico.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_Unidades_Sellado_Tiempo.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_RAIZ_FNMTRCM_Servidores_Serguros_CRUZADO_G2R.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_Administracion_Publica_SHA256.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_Raiz_FNMT-RCM_G2.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_Consulares_G2.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_Representacion_G2.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_Sector_Publico_G2.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_Usuarios_G2.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_Entidades_G2.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_RAIZ_FNMTRCM_Servidores_Seguros_G2R.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_Servidores_Seguros_Tipo2_G2R.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_RAIZ_FNMT_RCM_TSA.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_TSA_FNMT.cer"
+"https://www.sede.fnmt.gob.es/documents/10445900/10526749/AC_TSA_CLIENTES.cer"
+)
+
+for url in "${urls_fnmt_download[@]}"; do
+    download_cer "$url"
 done
 
 #Generar el fichero XML con la lista de CRL
