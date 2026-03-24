@@ -134,8 +134,43 @@ public class DatosCertificadoImpl implements DatosCertificado {
         return this.certificate;
     }
 
-    
-    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        DatosCertificado that = (DatosCertificado) obj;
+        return validoEnListaCertificadosConfiables == that.isValidoEnListaCertificadosConfiables()
+                && selloTiempo == that.isSelloTiempo()
+                && Objects.equals(dni, that.getDNI())
+                && Objects.equals(nombre, that.getNombre())
+                && Objects.equals(apellidos, that.getApellidos())
+                && Objects.equals(cif, that.getCif())
+                && Objects.equals(cnSubject, that.getCnSubject())
+                && Objects.equals(cnIssuer, that.getCnIssuer())
+                && Objects.equals(tipoEmisorCertificado, that.getTipoEmisorCertificado())
+                && Objects.equals(tipoCertificado, that.getTipoCertificado())
+                && Objects.equals(validoNoAntesDe, that.getValidoNoAntesDe())
+                && Objects.equals(validoNoDespuesDe, that.getValidoNoDespuesDe())
+                && Objects.equals(certificate, that.getCertificate());
+    }
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                validoEnListaCertificadosConfiables,
+                selloTiempo,
+                dni,
+                nombre,
+                apellidos,
+                cif,
+                cnSubject,
+                cnIssuer,
+                tipoEmisorCertificado,
+                tipoCertificado,
+                validoNoAntesDe,
+                validoNoDespuesDe,
+                certificate
+        );
+    }
     
     private boolean isValidoEnListaCertificadosConfiables(X509Certificate certificate, KeyStore trustStore) {
         try {

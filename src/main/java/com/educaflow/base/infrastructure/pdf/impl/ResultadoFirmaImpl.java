@@ -9,6 +9,7 @@ import com.itextpdf.signatures.PdfSignature;
 import java.security.cert.X509Certificate;
 import java.time.LocalDateTime;
 import java.util.Calendar;
+import java.util.Objects;
 
 public class ResultadoFirmaImpl implements ResultadoFirma {
 
@@ -32,6 +33,26 @@ public class ResultadoFirmaImpl implements ResultadoFirma {
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+
+        ResultadoFirmaImpl that = (ResultadoFirmaImpl) obj;
+
+        return correcta == that.correcta
+                && Objects.equals(fechaFirma, that.fechaFirma)
+                && Objects.equals(datosCertificado, that.datosCertificado)
+                && Objects.equals(nombreCampo, that.nombreCampo)
+                && Objects.equals(motivo, that.motivo);
+    }
+
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(correcta, fechaFirma, datosCertificado, nombreCampo, motivo);
     }
 
     @Override
