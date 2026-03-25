@@ -23,3 +23,7 @@ key,message,comment,context
 "Firmar todos los documentos","Signar tots els documents","",""
 "Guardar","Guardar","",""
 "Estado de la tarea a firmar","Estat de la tasca a signar","",""
+"Documentos originales","Documents originals","",""
+"Documentos firmados","Documents signats","",""
+"Firma de documento","Signatura de document","",""
+"Volver","Tornar","",""

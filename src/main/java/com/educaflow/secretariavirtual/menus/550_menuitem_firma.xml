@@ -5,22 +5,21 @@
 
     <menuitem name="firma-menu"  title="Firmar documentos"  groups="admins"  order="550"/>
 
-    <menuitem name="firma-todos-menu"  parent="firma-menu" title="Todos" action="firma-todos-main-action" groups="admins" order="2"  />
-    <menuitem name="firma-pendientes-menu"  parent="firma-menu" title="Pendientes" action="firma-pendientes-main-action" groups="admins" order="2"  />
-    <menuitem name="firma-firmados-menu"  parent="firma-menu" title="Firmados" action="firma-firmados-main-action" groups="admins" order="2"  />
-    <menuitem name="firma-rechazados-menu"  parent="firma-menu" title="Rechazados" action="firma-rechazados-main-action" groups="admins" order="2"  />
+    <menuitem name="firma-todos-menu"      parent="firma-menu" title="Todos"      action="firma-TareaFirma-todos-action"      groups="admins" order="1"/>
+    <menuitem name="firma-pendiente-menu"  parent="firma-menu" title="Pendientes" action="firma-TareaFirma-pendiente-action"  groups="admins" order="2"/>
+    <menuitem name="firma-firmado-menu"    parent="firma-menu" title="Firmados"   action="firma-TareaFirma-firmado-action"    groups="admins" order="3"/>
+    <menuitem name="firma-rechazado-menu"  parent="firma-menu" title="Rechazados" action="firma-TareaFirma-rechazado-action"  groups="admins" order="4"/>
 
-    <action-view name="firma-todos-main-action"  title="Todos los documentos firmados" model="com.educaflow.subsystem.firma.db.TareaFirma"  >
-        <view type="grid" name="firma-TareaFirma-main-grid"/>
-        <view type="form" name="firma-TareaFirma-main-form"/>
+    <action-view name="firma-TareaFirma-todos-action" title="Todos los documentos firmados" model="com.educaflow.subsystem.firma.db.TareaFirma">
+        <view type="grid" name="firma-TareaFirma-todos-grid"/>
+        <view type="form" name="firma-TareaFirma-todos-form"/>
         <view-param name="show-toolbar" value="false"/>
-        <view-param name="forceEdit" value="true"/>
         <view-param name="reload-grid" value="true"/>
     </action-view>
 
-    <action-view name="firma-pendientes-main-action"  title="Documentos Pendientes de firmas" model="com.educaflow.subsystem.firma.db.TareaFirma"  >
-        <view type="grid" name="firma-TareaFirma-main-grid"/>
-        <view type="form" name="firma-TareaFirma-main-form"/>
+    <action-view name="firma-TareaFirma-pendiente-action" title="Documentos pendientes de firma" model="com.educaflow.subsystem.firma.db.TareaFirma">
+        <view type="grid" name="firma-TareaFirma-pendiente-grid"/>
+        <view type="form" name="firma-TareaFirma-pendiente-form"/>
         <view-param name="show-toolbar" value="false"/>
         <view-param name="forceEdit" value="true"/>
         <view-param name="reload-grid" value="true"/>
@@ -29,27 +28,25 @@
         <context name="firmanteId" expr="eval:__user__.id"/>
     </action-view>
 
-    <action-view name="firma-firmados-main-action"  title="Documentos ya firmados" model="com.educaflow.subsystem.firma.db.TareaFirma"  >
-        <view type="grid" name="firma-TareaFirma-main-grid"/>
-        <view type="form" name="firma-TareaFirma-main-form"/>
+    <action-view name="firma-TareaFirma-firmado-action" title="Documentos ya firmados" model="com.educaflow.subsystem.firma.db.TareaFirma">
+        <view type="grid" name="firma-TareaFirma-firmado-grid"/>
+        <view type="form" name="firma-TareaFirma-firmado-form"/>
         <view-param name="show-toolbar" value="false"/>
-        <view-param name="forceEdit" value="true"/>
         <view-param name="reload-grid" value="true"/>
         <domain>self.estadoTareaFirma= :estadoTareaFirma and firmante.id= :firmanteId</domain>
         <context name="estadoTareaFirma" expr="FIRMADO"/>
         <context name="firmanteId" expr="eval:__user__.id"/>
     </action-view>
 
-    <action-view name="firma-rechazados-main-action"  title="Documentos que se han rechazado firmar" model="com.educaflow.subsystem.firma.db.TareaFirma"  >
-        <view type="grid" name="firma-TareaFirma-main-grid"/>
-        <view type="form" name="firma-TareaFirma-main-form"/>
+    <action-view name="firma-TareaFirma-rechazado-action" title="Documentos que se han rechazado firmar" model="com.educaflow.subsystem.firma.db.TareaFirma">
+        <view type="grid" name="firma-TareaFirma-rechazado-grid"/>
+        <view type="form" name="firma-TareaFirma-rechazado-form"/>
         <view-param name="show-toolbar" value="false"/>
-        <view-param name="forceEdit" value="true"/>
         <view-param name="reload-grid" value="true"/>
         <domain>self.estadoTareaFirma= :estadoTareaFirma and firmante.id= :firmanteId</domain>
         <context name="estadoTareaFirma" expr="RECHAZADO"/>
         <context name="firmanteId" expr="eval:__user__.id"/>
     </action-view>
 
-
 </object-views>
+
