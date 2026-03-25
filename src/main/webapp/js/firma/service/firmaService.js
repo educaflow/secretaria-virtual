@@ -1,5 +1,14 @@
 const FirmaService = {
 
+
+    cargarAppFirma() {
+        AutoFirmaService.cargarAppAutoFirma();
+    },
+
+    descargarAppFirma() {
+        AutoFirmaService.descargarAppAutoFirma();
+    },
+
     async firmar(signatureRequest) {
         const signedFileName = FileNameUtils.addSuffixBeforeExtension(signatureRequest.metaFileDocumentoOriginal.fileName, signatureRequest.sufijo);
 

@@ -21,8 +21,7 @@ public class ActionController {
         AutoFirma autofirma = (new AutoFirma(JustificacionFaltaProfesorado.class))
             .setRectangulo(new Rectangulo(100,20,600,100))
             .setPageNumber(1)
-            .setSourceField("pdfSolicitud")
-            .setTargetField("pdfSolicitudFirmado")
+            .addSourceTargetField("pdfSolicitud","pdfSolicitudFirmado")
             .setNif(justificacionFaltaProfesorado.getPersonaSolicitante().getDni());
 
         AutoFirma.sendToActionResponse(autofirma,actionResponse);

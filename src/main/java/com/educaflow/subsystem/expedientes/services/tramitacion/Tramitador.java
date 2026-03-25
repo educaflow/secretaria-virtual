@@ -4,6 +4,7 @@ package com.educaflow.subsystem.expedientes.services.tramitacion;
 import com.axelor.db.JPA;
 import com.axelor.db.JpaRepository;
 import com.axelor.db.Model;
+import com.educaflow.base.util.AllowProperties;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
 import com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil;
@@ -22,7 +23,6 @@ import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
 import com.educaflow.subsystem.expedientes.services.eventmanager.EventManager;
 import com.educaflow.subsystem.expedientes.services.validation.StateEventValidator;
-import com.educaflow.subsystem.registroentradasalida.service.*;
 import com.google.common.base.CaseFormat;
 import com.google.inject.Inject;
 
@@ -39,12 +39,6 @@ public class Tramitador {
 
     @Inject
     NumeradorRepository numeradorRepository;
-
-    @Inject
-    RegistroEntradaService registroEntradaService;
-
-    @Inject
-    RegistroSalidaService registroSalidaService;
 
 
     public Expediente triggerInitialEvent(TipoExpediente tipoExpediente,  EventContext eventContext) throws BusinessException {
@@ -76,8 +70,9 @@ public class Tramitador {
     }
 
     public void triggerEvent(Expediente expediente, String eventName,  Map<String, Object> requestData, EventContext eventContext ) throws BusinessException {
+        BeanMapperModel beanMapperModel=new BeanMapperModel();
         EventManager eventManager=TipoExpedienteUtil.getEventManager(expediente.getTipoExpediente());
-        Expediente expedienteOriginal=(Expediente) BeanMapperModel.getEntityCloned(expediente.getClass(), expediente);
+        Expediente expedienteOriginal=(Expediente) beanMapperModel.getEntityCloned(expediente.getClass(), expediente);
         StateEventValidator stateEventValidator =TipoExpedienteUtil.getStateEventValidator(expediente.getTipoExpediente());
         JpaRepository<Expediente> expedienteRepository = JpaRepository.of(eventManager.getModelClass());
         StateEnum stateEnum = new StateEnum(ReflectionUtil.getEnumConstant(eventManager.getStateClass(), expediente.getCodeState()));
@@ -89,8 +84,8 @@ public class Tramitador {
 
         if (((eventName.equals(CommonEvent.DELETE.name())) == false)) {
             BeanValidationRules beanValidationRules = getBeansValidationRules(stateEventValidator, expediente.getCodeState(), eventName);
-            Map<String, Object> allowProperties = AllowPropertiesFactory.getAllowProperties(beanValidationRules.getFieldValidationRules());
-            BeanMapperModel.copyMapToEntity(expediente.getClass(), requestData, expediente, allowProperties);
+            AllowProperties allowProperties = AllowProperties.createAllowProperties(AllowPropertiesFactory.getAllowProperties(beanValidationRules.getFieldValidationRules()));
+            beanMapperModel.copyMapToEntity(expediente.getClass(), requestData, expediente, allowProperties);
 
 
             ValidatorEngine validatorEngine = new ValidatorEngine();
@@ -121,7 +116,7 @@ public class Tramitador {
     }
 
     public BusinessMessages validateChild(Expediente expediente, Model bean, Class<? extends Model> beanClass, String validateProperty, Map<String,Object> requestData) {
-
+        BeanMapperModel beanMapperModel=new BeanMapperModel();
         String methodName="get"+TextUtil.toFirstsLetterToUpperCase(validateProperty);
 
         TipoExpediente tipoExpediente=expediente.getTipoExpediente();
@@ -130,8 +125,8 @@ public class Tramitador {
         List<BeanValidationRules> beansValidationRules = getBeansValidationRules(stateEventValidator, expediente.getCodeState());
         List<FieldValidationRules> fieldsValidationRules=getFieldsValidationRules(beansValidationRules,methodName);
 
-        Map<String,Object> allowProperties = AllowPropertiesFactory.getAllowProperties(fieldsValidationRules);
-        BeanMapperModel.copyMapToEntity(beanClass, requestData, bean, allowProperties);
+        AllowProperties allowProperties = AllowProperties.createAllowProperties(AllowPropertiesFactory.getAllowProperties(fieldsValidationRules));
+        beanMapperModel.copyMapToEntity(beanClass, requestData, bean, allowProperties);
 
         ValidatorEngine validatorEngine = new ValidatorEngine();
         BusinessMessages businessMessages = validatorEngine.validate(bean, fieldsValidationRules);

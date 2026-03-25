@@ -1,8 +1,7 @@
-package com.educaflow.base.infrastructure.util;
+package com.educaflow.base.util;
 
 import com.axelor.db.ValueEnum;
 import com.axelor.db.annotations.EnumWidget;
-import com.educaflow.base.util.Convert;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;

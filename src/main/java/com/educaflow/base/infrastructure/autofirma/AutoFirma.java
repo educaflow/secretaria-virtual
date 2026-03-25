@@ -8,7 +8,11 @@ import com.educaflow.base.util.ReflectionUtil;
 import com.educaflow.base.util.TextUtil;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AutoFirma {
@@ -19,8 +23,7 @@ public class AutoFirma {
     private Rectangulo rectangulo;
     private String nif=null;
     private String motivo =null;
-    private String sourceField;
-    private String targetField;
+    private List<SourceTargetField> sourceTargetFields=new ArrayList<>();
     private String sufijo="_signed";
     private int pageNumber= CampoFirma.DEFAULT_NUMERO_PAGINA;
     private int fontSize=CampoFirma.DEFAULT_FONT_SIZE;
@@ -31,36 +34,17 @@ public class AutoFirma {
 
     public static void sendToActionResponse(AutoFirma autofirma, ActionResponse actionResponse) {
 
-        if (autofirma.getSourceField() == null || autofirma.getSourceField().isEmpty()) {
-            throw new RuntimeException("El campo sourceField no puede estar vacio");
-        }
-        if (autofirma.getTargetField() == null || autofirma.getTargetField().isEmpty()) {
-            throw new RuntimeException("El campo targetField no puede estar vacio");
+        if (autofirma.getSourceTargetFields() == null || autofirma.getSourceTargetFields().isEmpty()) {
+            throw new RuntimeException("El campo sourceTargetFields no puede estar vacio");
         }
         if (autofirma.getRectangulo() == null) {
             throw new RuntimeException("El campo rectangulo no puede estar vacio");
         }
 
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("nif", autofirma.getNif());
-        payload.put("motivo", autofirma.getMotivo());
-        payload.put("sourceField", autofirma.getSourceField());
-        payload.put("targetField", autofirma.getTargetField());
-        payload.put("sufijo", autofirma.getSufijo());
-        payload.put("pageNumber", autofirma.getPageNumber());
-        payload.put("fontSize", autofirma.getFontSize());
-        Rectangulo rectangulo = autofirma.getRectangulo();
-        payload.put("signaturePositionOnPageLowerLeftX", rectangulo.x());
-        payload.put("signaturePositionOnPageLowerLeftY", rectangulo.y()+AUTOFIRMA_Y_OFFSET);
-        payload.put("signaturePositionOnPageUpperRightX", rectangulo.x() + rectangulo.width());
-        payload.put("signaturePositionOnPageUpperRightY", rectangulo.y()+AUTOFIRMA_Y_OFFSET + rectangulo.height());
-
-
-
 
         actionResponse.setValue("executeJs",true);
         actionResponse.setValue("methodJs","firmaController");
-        actionResponse.setValue("payload",payload);
+        actionResponse.setValue("payload",autofirma.getPayload());
 
     }
 
@@ -88,27 +72,20 @@ public class AutoFirma {
     public String getMotivo() {
         return motivo;
     }
-    public AutoFirma setSourceField(String sourceField) {
+    public AutoFirma addSourceTargetField(String sourceField,String targetField) {
         checkFieldExists(sourceField);
-
-        this.sourceField = sourceField;
-        return this;
-    }
-
-    public String getSourceField() {
-        return sourceField;
-    }
-
-    public AutoFirma setTargetField(String targetField) {
         checkFieldExists(targetField);
 
-        this.targetField = targetField;
+        SourceTargetField sourceTargetField=new SourceTargetField(sourceField, targetField);
+        sourceTargetFields.add(sourceTargetField);
+
         return this;
     }
 
-    public String getTargetField() {
-        return targetField;
+    public List<SourceTargetField> getSourceTargetFields() {
+        return sourceTargetFields;
     }
+
 
     public AutoFirma setSufijo(String sufijo) {
         this.sufijo = sufijo;
@@ -142,29 +119,91 @@ public class AutoFirma {
     }
 
 
+    private Map<String,Object> getPayload() {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("nif", this.getNif());
+        payload.put("motivo", this.getMotivo());
+        payload.put("sourceTargetFields", this.getSourceTargetFields());
+        payload.put("sufijo", this.getSufijo());
+        payload.put("pageNumber", this.getPageNumber());
+        payload.put("fontSize", this.getFontSize());
+        Rectangulo rectangulo = this.getRectangulo();
+        payload.put("signaturePositionOnPageLowerLeftX", rectangulo.x());
+        payload.put("signaturePositionOnPageLowerLeftY", rectangulo.y()+AUTOFIRMA_Y_OFFSET);
+        payload.put("signaturePositionOnPageUpperRightX", rectangulo.x() + rectangulo.width());
+        payload.put("signaturePositionOnPageUpperRightY", rectangulo.y()+AUTOFIRMA_Y_OFFSET + rectangulo.height());
+
+        return payload;
+    }
+
+
     private void checkFieldExists(String fieldName) {
         String[] parts = fieldName.split("\\.");
         Class<? extends Model> currentClass = clazz;
 
         for (int i = 0; i < parts.length; i++) {
             String part = parts[i];
-            String getMethodName = "get" + TextUtil.toFirstsLetterToUpperCase(part);
-            String setMethodName = "set" + TextUtil.toFirstsLetterToUpperCase(part);
 
-            Method getMethod = ReflectionUtil.getMethod(currentClass, getMethodName, null,null,null);
+            boolean isList = part.contains("[");
+            String cleanPart = isList ? part.substring(0, part.indexOf('[')) : part;
+
+            String getMethodName = "get" + TextUtil.toFirstsLetterToUpperCase(cleanPart);
+            String setMethodName = "set" + TextUtil.toFirstsLetterToUpperCase(cleanPart);
+
+            Method getMethod = ReflectionUtil.getMethod(currentClass, getMethodName, null, null, null);
             if (getMethod == null) {
-                throw new RuntimeException("El getter " + getMethodName + " no existe en " + currentClass.getName());
+                throw new RuntimeException("El getter " + getMethodName + " no existe en " + currentClass.getName()+ " en " + fieldName);
             }
 
             if (i == parts.length - 1) {
                 if (!ReflectionUtil.hasMethod(currentClass, setMethodName, null, null, null)) {
-                    throw new RuntimeException("El setter " + setMethodName + " no existe en " + currentClass.getName());
+                    throw new RuntimeException("El setter " + setMethodName + " no existe en " + currentClass.getName()+ " en " + fieldName);
                 }
             }
 
-            currentClass = (Class<? extends Model>)getMethod.getReturnType();
+            Class<?> returnType = getMethod.getReturnType();
+
+            if (isList) {
+                int openBracket = part.indexOf('[');
+                int closeBracket = part.indexOf(']');
+
+                if (closeBracket == -1 || closeBracket < openBracket) {
+                    throw new RuntimeException("Formato de índice inválido en '" + part + "', se esperaba '[n]'"+ " en " + fieldName);
+                }
+
+                String indexStr = part.substring(openBracket + 1, closeBracket).trim();
+
+                try {
+                    int index = Integer.parseInt(indexStr);
+                    if (index < 0) {
+                        throw new RuntimeException("El índice en '" + part + "' debe ser mayor o igual a 0, se obtuvo: " + index+ " en " + fieldName);
+                    }
+                } catch (NumberFormatException e) {
+                    throw new RuntimeException("El índice en '" + part + "' no es un número válido: '" + indexStr + "'"+ " en " + fieldName);
+                }
+
+                if (!List.class.isAssignableFrom(returnType)) {
+                    throw new RuntimeException("El campo '" + cleanPart + "' en " + currentClass.getName() + " no es una List, no se puede usar índice []"+ " en " + fieldName);
+                }
+
+                Type genericReturnType = getMethod.getGenericReturnType();
+                if (!(genericReturnType instanceof ParameterizedType)) {
+                    throw new RuntimeException("La List del campo '" + cleanPart + "' en " + currentClass.getName() + " no tiene tipo genérico definido"+ " en " + fieldName);
+                }
+
+                Type typeArgument = ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];
+                if (!(typeArgument instanceof Class)) {
+                    throw new RuntimeException("El tipo genérico de la List del campo '" + cleanPart + "' en " + currentClass.getName() + " no es una clase concreta"+ " en " + fieldName);
+                }
+
+                currentClass = (Class<? extends Model>) typeArgument;
+            } else {
+                currentClass = (Class<? extends Model>) returnType;
+            }
         }
     }
 
+
+    private record SourceTargetField(String sourceField, String targetField){};
 
 }

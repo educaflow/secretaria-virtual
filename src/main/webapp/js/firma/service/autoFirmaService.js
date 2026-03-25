@@ -1,12 +1,21 @@
 const AutoFirmaService = {
 
+    cargarAppAutoFirma() {
+        console.log('Cargando Autofirma');
+        AutoScript.cargarAppAfirma();
+        console.log('Cargado Autofirma');
+        AutoScript.setStickySignatory(true);
+    },
+
+    descargarAppAutoFirma() {
+        console.log('Descargando Autofirma');
+        AutoScript.setStickySignatory(false);
+    },
+
     firmarDocumento(base64Pdf, signatureOptions) {
         return new Promise((resolve, reject) => {
             const params = this._buildSignatureParams(signatureOptions);
 
-            console.log('Cargando Autofirma');
-            AutoScript.cargarAppAfirma();
-            console.log('Cargado Autofirma');
             AutoScript.sign(
                 base64Pdf,
                 'SHA256withRSA',

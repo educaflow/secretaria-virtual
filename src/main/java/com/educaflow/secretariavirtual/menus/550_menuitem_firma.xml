@@ -15,6 +15,7 @@
         <view type="form" name="firma-TareaFirma-main-form"/>
         <view-param name="show-toolbar" value="false"/>
         <view-param name="forceEdit" value="true"/>
+        <view-param name="reload-grid" value="true"/>
     </action-view>
 
     <action-view name="firma-pendientes-main-action"  title="Documentos Pendientes de firmas" model="com.educaflow.subsystem.firma.db.TareaFirma"  >
@@ -22,6 +23,7 @@
         <view type="form" name="firma-TareaFirma-main-form"/>
         <view-param name="show-toolbar" value="false"/>
         <view-param name="forceEdit" value="true"/>
+        <view-param name="reload-grid" value="true"/>
         <domain>self.estadoTareaFirma= :estadoTareaFirma and firmante.id= :firmanteId</domain>
         <context name="estadoTareaFirma" expr="PENDIENTE"/>
         <context name="firmanteId" expr="eval:__user__.id"/>
@@ -32,6 +34,7 @@
         <view type="form" name="firma-TareaFirma-main-form"/>
         <view-param name="show-toolbar" value="false"/>
         <view-param name="forceEdit" value="true"/>
+        <view-param name="reload-grid" value="true"/>
         <domain>self.estadoTareaFirma= :estadoTareaFirma and firmante.id= :firmanteId</domain>
         <context name="estadoTareaFirma" expr="FIRMADO"/>
         <context name="firmanteId" expr="eval:__user__.id"/>
@@ -42,6 +45,7 @@
         <view type="form" name="firma-TareaFirma-main-form"/>
         <view-param name="show-toolbar" value="false"/>
         <view-param name="forceEdit" value="true"/>
+        <view-param name="reload-grid" value="true"/>
         <domain>self.estadoTareaFirma= :estadoTareaFirma and firmante.id= :firmanteId</domain>
         <context name="estadoTareaFirma" expr="RECHAZADO"/>
         <context name="firmanteId" expr="eval:__user__.id"/>

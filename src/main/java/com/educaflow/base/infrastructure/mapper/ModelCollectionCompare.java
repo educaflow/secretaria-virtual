@@ -21,47 +21,31 @@ public class ModelCollectionCompare {
         return targets.stream()
                 .filter(target ->
                     (target.getId() == null) ||
-                    sources.stream().noneMatch(source -> getId(source) != null && getId(source).longValue() == target.getId().longValue())
+                    sources.stream().noneMatch(source -> BeanMapperUtil.getId(source) != null && BeanMapperUtil.getId(source).longValue() == target.getId().longValue())
                 ).collect(Collectors.toSet());
     }
 
     public Collection<Object> getSourceWhereOnlySource() {
         return sources.stream()
                 .filter(source ->
-                    (getId(source) == null) ||
-                    targets.stream().noneMatch(target -> target.getId() != null && getId(source).longValue() == target.getId().longValue() )
+                    (BeanMapperUtil.getId(source) == null) ||
+                    targets.stream().noneMatch(target -> target.getId() != null && BeanMapperUtil.getId(source).longValue() == target.getId().longValue() )
                 ).collect(Collectors.toSet());
     }
 
     public List<SourceTargetEntities> getInSourceAndInTarget() {
         return sources.stream()
-                .filter(source -> getId(source) != null)
+                .filter(source -> BeanMapperUtil.getId(source) != null)
                 .flatMap(source -> targets.stream()
                         .filter(target -> target.getId() != null)
-                        .filter(target -> getId(source).longValue() == target.getId().longValue())
+                        .filter(target -> BeanMapperUtil.getId(source).longValue() == target.getId().longValue())
                         .map(target -> new SourceTargetEntities(source, target))
                 )
                 .collect(Collectors.toList());
     }
 
     
-    private Long getId(Object object) {
-        Long id;
 
-        if (object==null) {
-            throw  new IllegalArgumentException("Object is null");
-        }
-        
-        if (object instanceof Model) {
-            id = ((Model) object).getId();
-        } else if (object instanceof Map) {
-            id=ScalarMapper.getScalarFromObject(((Map)object).get("id"),Long.class);
-        } else {
-            throw  new IllegalArgumentException("Object no es Model ni es Map");
-        }
-        
-        return id;
-    }
 
     public record SourceTargetEntities(Object source, Model target) {}
 

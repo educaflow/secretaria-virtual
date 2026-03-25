@@ -80,8 +80,7 @@ public class PdfUtilitiesActions {
         AutoFirma autofirma = (new AutoFirma(PdfUtilities.class))
                 .setRectangulo(new Rectangulo(x,y,width,height))
                 .setPageNumber(1)
-                .setSourceField("pdf")
-                .setTargetField("pdfFirmado")
+                .addSourceTargetField("pdf","pdfFirmado")
                 .setMotivo(x+","+y);
 
         AutoFirma.sendToActionResponse(autofirma,actionResponse);

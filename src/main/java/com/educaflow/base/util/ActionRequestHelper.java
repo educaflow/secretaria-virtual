@@ -1,37 +1,36 @@
 package com.educaflow.base.util;
 
 import com.axelor.db.Model;
+import com.axelor.db.JpaRepository;
 import com.axelor.rpc.ActionRequest;
+import com.educaflow.base.infrastructure.mapper.BeanMapperModel;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.util.Map;
 
-public class ActionRequestHelper {
+public class ActionRequestHelper<T extends Model> {
     private final ActionRequest request;
-    private final Class expectedModelClass;
+    private final Class<T> expectedModelClass;
 
     public ActionRequestHelper(ActionRequest request) {
         this(request, null);
     }
 
-    public ActionRequestHelper(ActionRequest request,Class expectedModelClass) {
-
-
+    public ActionRequestHelper(ActionRequest request, Class<T> expectedModelClass) {
         this.request = request;
-        this.expectedModelClass=expectedModelClass;
+        this.expectedModelClass = expectedModelClass;
 
+        if (expectedModelClass != null) {
+            Class<? extends Model> actualModelClass = this.getModelClass();
 
-        if (expectedModelClass!=null) {
-            Class actualModelClass=this.getModelClass();
-
-            if (actualModelClass==null) {
+            if (actualModelClass == null) {
                 throw new RuntimeException("El _model del ActionRequest es null");
             }
 
-            if (expectedModelClass.getClass()!=actualModelClass.getClass()) {
-                throw new RuntimeException("El classModel no coincide con el _model del requestData:"+ expectedModelClass.getCanonicalName() + "!=" + actualModelClass.getCanonicalName());
+            if (expectedModelClass.equals(actualModelClass)==false) {
+                throw new RuntimeException("El classModel no coincide con el _model del requestData: " + expectedModelClass.getCanonicalName() + " != " + actualModelClass.getCanonicalName());
             }
         }
-
     }
 
     public Map<String, Object> getRequestData() {
@@ -52,7 +51,6 @@ public class ActionRequestHelper {
         } else {
             return Convert.objectToLong(idObject);
         }
-
     }
 
     public long getParentId() {
@@ -66,9 +64,7 @@ public class ActionRequestHelper {
         return Convert.objectToLong(idObject);
     }
 
-
     public String getEventName() {
-
         String eventName = (String) getRequestData().get("_signal");
 
         if (eventName == null) {
@@ -79,7 +75,6 @@ public class ActionRequestHelper {
     }
 
     public String getProfileName() {
-
         String profileName = (String) getRequestData().get("_profile");
         if (profileName == null) {
             throw new RuntimeException("_profile is null");
@@ -89,7 +84,6 @@ public class ActionRequestHelper {
         }
 
         return profileName;
-
     }
 
     public String getParentSource() {
@@ -99,7 +93,6 @@ public class ActionRequestHelper {
         return parentSource;
 
     }
-
 
     public Class<? extends Model> getModelClass() {
         Map<String, Object> requestData = getRequestData();
@@ -116,4 +109,35 @@ public class ActionRequestHelper {
         }
     }
 
+    public T getOriginalModel() {
+        BeanMapperModel beanMapperModel=new BeanMapperModel();
+        Class<T> clazz = getConcreteClass();
+        Long id = this.getId();
+
+        JpaRepository<T> jpaRepository = JpaRepository.of(clazz);
+        T model = jpaRepository.find(id);
+        T clonedModel=(T)beanMapperModel.getEntityCloned(clazz, model);
+
+        return clonedModel;
+    }
+
+    public T getModel(AllowProperties allowProperties) {
+        BeanMapperModel beanMapperModel=new BeanMapperModel();
+        Class<T> clazz = getConcreteClass();
+        Map<String, Object> requestData = this.getRequestData();
+        Long id = this.getId();
+
+        JpaRepository<T> jpaRepository = JpaRepository.of(clazz);
+        T model = jpaRepository.find(id);
+        beanMapperModel.copyMapToEntity(clazz, requestData, model, allowProperties);
+
+        return model;
+    }
+
+    private Class<T> getConcreteClass() {
+        if (expectedModelClass == null) {
+            throw new RuntimeException("No se puede obtener el modelo tipado sin especificar expectedModelClass en el constructor");
+        }
+        return expectedModelClass;
+    }
 }
