@@ -1,8 +1,10 @@
 package com.educaflow.subsystem.firmas.service.impl;
 
+import com.axelor.inject.Beans;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
+import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil;
 import com.educaflow.base.infrastructure.pdf.ResultadoFirma;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessage;
@@ -14,6 +16,7 @@ import com.educaflow.subsystem.firma.db.EstadoTareaFirma;
 import com.educaflow.subsystem.firma.db.TareaFirma;
 import com.educaflow.subsystem.firma.db.repo.TareaFirmaRepository;
 import com.educaflow.subsystem.firmas.service.DatosFirma;
+import com.educaflow.subsystem.firmas.service.FirmaNotifier;
 import com.educaflow.subsystem.firmas.service.FirmaService;
 import jakarta.inject.Inject;
 
@@ -73,6 +76,62 @@ public class FirmaServiceImpl implements FirmaService {
 
     @Override
     public TareaFirma marcarComoFirmada(TareaFirma tareaFirma, TareaFirma kk) throws BusinessException {
+        fireConstraintRule_DocumentosValidos(tareaFirma);
+
+        tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
+        tareaFirma.setMotivoRechazo(null);
+        tareaFirma.setFechaResolucion(LocalDateTime.now());
+
+        tareaFirma=tareaFirmaRepository.save(tareaFirma);
+
+        fireActionRule_NotificarFirmaResuelta(tareaFirma);
+
+        return tareaFirma;
+    }
+
+    @Override
+    public TareaFirma marcarComoRechazada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) throws BusinessException {
+        fireConstraintRule_MotivoRechazoRequerido(tareaFirma);
+
+        tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.RECHAZADO);
+        tareaFirma.setFechaResolucion(LocalDateTime.now());
+
+        tareaFirma=tareaFirmaRepository.save(tareaFirma);
+
+        fireActionRule_NotificarFirmaResuelta(tareaFirma);
+
+        return tareaFirma;
+    }
+
+
+
+    /************************************************************************************/
+    /********************************    Action Rules    ********************************/
+    /************************************************************************************/
+
+    @SuppressWarnings("unchecked")
+    private void fireActionRule_NotificarFirmaResuelta(TareaFirma tareaFirma) {
+        try {
+            Class<? extends FirmaNotifier> firmaNotifierClass = (Class<? extends FirmaNotifier>) Class.forName(tareaFirma.getFqcnFirmaNotifier());
+            FirmaNotifier firmaNotifier = Beans.get(firmaNotifierClass);
+
+            Object callBackData = null;
+            if (tareaFirma.getFqcnCallBackData() != null) {
+                Class<?> callBackDataClass = Class.forName(tareaFirma.getFqcnCallBackData());
+                callBackData = JsonUtil.fromJson(tareaFirma.getCallBackData(), callBackDataClass);
+            }
+
+            firmaNotifier.notify(tareaFirma, callBackData);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /****************************************************************************************/
+    /********************************    Constraint Rules    ********************************/
+    /****************************************************************************************/
+
+    private void fireConstraintRule_DocumentosValidos(TareaFirma tareaFirma) throws BusinessException {
         BusinessMessages businessMessages=new BusinessMessages();
 
         int i=0;
@@ -80,7 +139,7 @@ public class FirmaServiceImpl implements FirmaService {
             DocumentoPdf documentoOriginal=MetaFileHelper.getDocumentoPdf(documentoFirma.getDocumentoOriginal());
             DocumentoPdf documentoFirmado=MetaFileHelper.getDocumentoPdf(documentoFirma.getDocumentoFirmado());
 
-            Optional<String> errorFirma=validateFirmaPdf(documentoOriginal,documentoFirmado,tareaFirma.getFirmante().getDni());
+            Optional<String> errorFirma=DocumentoPdfUtil.validateFirmaPdf(documentoOriginal,documentoFirmado,tareaFirma.getFirmante().getDni());
             if (errorFirma.isPresent()) {
                 businessMessages.add(new BusinessMessage(null, errorFirma.get(),documentoFirmado.getFileName()+" "+i));
             }
@@ -90,89 +149,16 @@ public class FirmaServiceImpl implements FirmaService {
         if (businessMessages.size()>0) {
             throw new BusinessException(businessMessages);
         }
-
-        tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
-        tareaFirma.setMotivoRechazo(null);
-        tareaFirma.setFechaResolucion(LocalDateTime.now());
-
-        tareaFirma=tareaFirmaRepository.save(tareaFirma);
-
-        return tareaFirma;
     }
 
-    @Override
-    public TareaFirma marcarComoRechazada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) throws BusinessException {
+    private void fireConstraintRule_MotivoRechazoRequerido(TareaFirma tareaFirma) throws BusinessException {
         if (tareaFirma.getMotivoRechazo()==null || tareaFirma.getMotivoRechazo().isBlank()) {
             throw new BusinessException("motivoRechazo","Es requerido","Motivo del rechazo de la firma de los documentos" );
         }
-
-        tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.RECHAZADO);
-        tareaFirma.setFechaResolucion(LocalDateTime.now());
-
-        tareaFirma=tareaFirmaRepository.save(tareaFirma);
-
-        return tareaFirma;
     }
 
 
-    private Optional<String> validateFirmaPdf(DocumentoPdf documentoOriginal, DocumentoPdf documentoFirmado, String nif)   {
-        if (documentoOriginal == null) {
-            throw new IllegalArgumentException("El documento original no puede ser nulo");
-        }
-        if (documentoFirmado == null) {
-            throw new IllegalArgumentException("El documento firmado no puede ser nulo");
-        }
-        if (nif == null) {
-            throw new IllegalArgumentException("El NIF no puede ser nulo");
-        }
 
-        List<ResultadoFirma> resultadosFirmaOriginales=new ArrayList<>(documentoOriginal.getFirmasPdf());
-        List<ResultadoFirma> resultadosFirma=new ArrayList<>(documentoFirmado.getFirmasPdf());
-
-        for (ResultadoFirma resultadoFirmaOriginal:resultadosFirmaOriginales) {
-            removeResultadoFirma(resultadosFirma,resultadoFirmaOriginal);
-        }
-
-        if (resultadosFirma.size()>1) {
-            return Optional.of("El documento se ha firmado más de una vez");
-        }
-        if (resultadosFirma.size()==0) {
-            return Optional.of("El documento no se ha firmado");
-        }
-
-        ResultadoFirma resultadoFirmaNueva=resultadosFirma.get(0);
-
-        if (resultadoFirmaNueva.isCorrecta()==false) {
-            return Optional.of("La firma no es correcta. Hay un error en ella");
-        }
-
-        if (resultadoFirmaNueva.getDatosCertificado().isValidoEnListaCertificadosConfiables()==false) {
-            return Optional.of("La firma no es valida según la lista de certificados aceptados por la aplicación");
-        }
-        if (resultadoFirmaNueva.getDatosCertificado().isSelloTiempo()==true) {
-            return Optional.of("La firma no puede ser un sello de tiempo");
-        }
-
-        if (Objects.equals(resultadoFirmaNueva.getDatosCertificado().getDNI(), nif)==false) {
-            return Optional.of("El documento no ha sido firmado con el DNI/NIF/NIE "+nif+ " sino con el "+resultadoFirmaNueva.getDatosCertificado().getDNI());
-        }
-
-        if (documentoOriginal.getPlainText().equals(documentoFirmado.getPlainText())==false) {
-            return Optional.of("El documento firmado no es igual al documento original");
-        }
-
-        return Optional.empty();
-    }
-
-    private void removeResultadoFirma(List<ResultadoFirma> resultadosFirma,ResultadoFirma resultadoFirma) {
-        Iterator<ResultadoFirma> it = resultadosFirma.iterator();
-        while (it.hasNext()) {
-            if (it.next().equals(resultadoFirma)) {
-                it.remove();
-                return;
-            }
-        }
-    }
 
 
 }
