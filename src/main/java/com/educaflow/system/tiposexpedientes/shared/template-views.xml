@@ -9,7 +9,7 @@
                 <field name="createdBy" title="Creado por" readonly="true" colSpan="3"/>
                 <field name="nameState" readonly="true" colSpan="6" title="Estado"/>
                 <field name="fechaUltimoEstado" readonly="true" colSpan="2"/>
-                <button name="mostrar-historial-estados" icon="assignment" title="" css="btn-link" onClick="expediente-historial-estados-action" colSpan="1"/>
+                <button name="mostrar-historial-estados" icon="assignment" title="" css="btn-link" onClick="expedientes-HistorialEstado-action" colSpan="1"/>
             </panel>
         </panel>
 
@@ -40,9 +40,9 @@
     </form>
 
 
-    <action-view name="expediente-historial-estados-action" title="Mostrar historial estados" model="com.educaflow.subsystem.expedientes.db.HistorialEstado">
-        <view type="grid" name="expediente-historial-estados-grid"/>
-        <view type="form" name="expediente-historial-estados-form"/>
+    <action-view name="expedientes-HistorialEstado-action" title="Mostrar historial estados" model="com.educaflow.subsystem.expedientes.db.HistorialEstado">
+        <view type="grid" name="expedientes-HistorialEstado-grid"/>
+        <view type="form" name="expedientes-HistorialEstado-form"/>
 
         <view-param name="popup" value="true"/>
         <view-param name="show-toolbar" value="false"/>
@@ -52,7 +52,7 @@
     </action-view>
 
 
-    <grid name="expediente-historial-estados-grid" title="Historial Estados" model="com.educaflow.subsystem.expedientes.db.HistorialEstado"
+    <grid name="expedientes-HistorialEstado-grid" title="Historial Estados" model="com.educaflow.subsystem.expedientes.db.HistorialEstado"
           groups="admins,users"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false"
           canSave="false" orderBy="fecha" canViewOnClick="true"
@@ -65,41 +65,41 @@
         <field name="registroSalida"/>
     </grid>
 
-    <form name="expediente-historial-estados-form" title="Registro" model="com.educaflow.subsystem.expedientes.db.HistorialEstado">
+    <form name="expedientes-HistorialEstado-form" title="Registro" model="com.educaflow.subsystem.expedientes.db.HistorialEstado">
         <panel-tabs>
             <panel name="registroEntrada" title="Registro de Entrada" colSpan="12" hideIf="registroEntrada==null">
                 <field name="registroEntrada.numeroRegistro" />
                 <field name="registroEntrada.documentoOriginalFirmado" widget="binary-link"  colSpan="12"/>
                 <field name="registroEntrada.documentoResguardoPresentacion" widget="binary-link"  colSpan="12"/>
-                <panel-related name="registroEntradaAnexos" title="Anexos" field="registroEntrada.anexos" colSpan="12" form-view="registroEntradaAnexos-form"  grid-view="registroEntradaAnexos-grid"  />
+                <panel-related name="registroEntradaAnexos" title="Anexos" field="registroEntrada.anexos" colSpan="12" form-view="expedientes-RegistroEntradaAnexos-form"  grid-view="expedientes-RegistroEntradaAnexos-grid"  />
             </panel>
             <panel name="registroSalida" title="Registro de salida" colSpan="12"  hideIf="registroSalida==null">
                 <field name="registroSalida.numeroRegistro" />
                 <field name="registroSalida.documento" widget="binary-link"  colSpan="12"/>
-                <panel-related name="registroSalidaAnexos" title="Anexos" field="registroSalida.anexos" colSpan="12" form-view="registroSalidaAnexos-form"  grid-view="registroSalidaAnexos-grid"  />
+                <panel-related name="registroSalidaAnexos" title="Anexos" field="registroSalida.anexos" colSpan="12" form-view="expedientes-RegistroSalidaAnexos-form"  grid-view="expedientes-RegistroSalidaAnexos-grid"  />
             </panel>
         </panel-tabs>
     </form>
 
-    <form name="registroEntradaAnexos-form" title="Anexo" canAttach="false"  model="com.axelor.meta.db.MetaFile">
+    <form name="expedientes-RegistroEntradaAnexos-form" title="Anexo" canAttach="false"  model="com.axelor.meta.db.MetaFile">
         <panel title="">
             <field name="fileName" colSpan="10"/>
             <field name="content" widget="binary" title="Descargar" colSpan="2"/>
         </panel>
     </form>
 
-    <grid name="registroEntradaAnexos-grid" title="Anexos" model="com.axelor.meta.db.MetaFile">
+    <grid name="expedientes-RegistroEntradaAnexos-grid" title="Anexos" model="com.axelor.meta.db.MetaFile">
         <field name="fileName"/>
     </grid>
 
-    <form name="registroSalidaAnexos-form" title="Anexo" canAttach="false"  model="com.axelor.meta.db.MetaFile">
+    <form name="expedientes-RegistroSalidaAnexos-form" title="Anexo" canAttach="false"  model="com.axelor.meta.db.MetaFile">
         <panel title="">
             <field name="fileName" colSpan="10"/>
             <field name="content" widget="binary" title="Descargar" colSpan="2"/>
         </panel>
     </form>
 
-    <grid name="registroSalidaAnexos-grid" title="Anexos" model="com.axelor.meta.db.MetaFile">
+    <grid name="expedientes-RegistroSalidaAnexos-grid" title="Anexos" model="com.axelor.meta.db.MetaFile">
         <field name="fileName"/>
     </grid>
 

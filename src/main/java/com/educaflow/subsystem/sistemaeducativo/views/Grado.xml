@@ -3,13 +3,13 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="mant-Grado-action" title="Grados" model="com.educaflow.subsystem.sistemaeducativo.db.Grado">
-        <view type="grid" name="mant-Grado-grid"/>
-        <view type="form" name="mant-Grado-form"/>
+    <action-view name="sistemaeducativo-Grado-action" title="Grados" model="com.educaflow.subsystem.sistemaeducativo.db.Grado">
+        <view type="grid" name="sistemaeducativo-Grado-grid"/>
+        <view type="form" name="sistemaeducativo-Grado-form"/>
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
-    <grid name="mant-Grado-grid" title="Grado" model="com.educaflow.subsystem.sistemaeducativo.db.Grado"
+    <grid name="sistemaeducativo-Grado-grid" title="Grado" model="com.educaflow.subsystem.sistemaeducativo.db.Grado"
           groups="admins"
           editable="false" edit-icon="false" x-selector="none" canNew="true" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
         <hilite color="danger" if="archived"/>
@@ -18,7 +18,7 @@
         <field name="archived" width="100px" />
     </grid>
 
-    <form name="mant-Grado-form" title="Grado" model="com.educaflow.subsystem.sistemaeducativo.db.Grado"
+    <form name="sistemaeducativo-Grado-form" title="Grado" model="com.educaflow.subsystem.sistemaeducativo.db.Grado"
           groups="admins"
           width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false">
         <panel name="Grado" title="">
@@ -27,7 +27,7 @@
         </panel>
     </form>
 
-    <grid name="search-Grado-grid" title="Grado" model="com.educaflow.subsystem.sistemaeducativo.db.Grado"
+    <grid name="sistemaeducativo-Grado-search-grid" title="Grado" model="com.educaflow.subsystem.sistemaeducativo.db.Grado"
           groups="admins,users"
           orderBy="name"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">

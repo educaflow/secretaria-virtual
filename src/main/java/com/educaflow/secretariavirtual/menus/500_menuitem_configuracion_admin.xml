@@ -3,10 +3,10 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <menuitem name="configuracionadmin-menu"  title="Configuración Secretaria Virtual"  groups="admins"  order="500"/>
+    <menuitem name="configuracionadmin-menuitem"  title="Configuración Secretaria Virtual"  groups="admins"  order="500"/>
 
-    <menuitem name="configuracionadmin-Centro-menu"  parent="configuracionadmin-menu" title="Centros" action="mant-Centro-action" groups="admins" order="1"  />
-    <menuitem name="configuracionadmin-Usuario-menu"  parent="configuracionadmin-menu" title="Usuarios" action="mant-Usuario-action" groups="admins" order="2"  />
+    <menuitem name="configuracionadmin-Centro-menuitem"  parent="configuracionadmin-menuitem" title="Centros" action="common-Centro-action" groups="admins" order="1"  />
+    <menuitem name="configuracionadmin-Usuario-menuitem"  parent="configuracionadmin-menuitem" title="Usuarios" action="common-Usuario-action" groups="admins" order="2"  />
 
 
 </object-views>

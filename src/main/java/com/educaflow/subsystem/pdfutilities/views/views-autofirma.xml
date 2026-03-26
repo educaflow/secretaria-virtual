@@ -4,7 +4,7 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
 
-    <form name="PdfUtilities-AutoFirma-main-form" title="Utilidades para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities" width="large">
+    <form name="pdfutilities-AutoFirma-form" title="Utilidades para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities" width="large">
 
         <panel name="main" title="PDF">
             <field name="pdf"  colSpan="12" onChange="mant-PdfUtilities-form-action-onChange-pdf" widget="binary-link" />
@@ -13,7 +13,7 @@
             <field name="width" colSpan="3" />
             <field name="height" colSpan="3" />
 
-            <button name="calcular" title="Firmar en posición indicada" icon="fa-plus" onClick="PdfUtilities-AutoFirma-main-form-firmar-con-AutoFirma"/>
+            <button name="calcular" title="Firmar en posición indicada" icon="fa-plus" onClick="pdfutilities-AutoFirma-form-firmarConAutoFirma-action"/>
         </panel>
 
 
@@ -28,7 +28,7 @@
         </panel>
 
     </form>
-    <action-method name="PdfUtilities-AutoFirma-main-form-firmar-con-AutoFirma">
+    <action-method name="pdfutilities-AutoFirma-form-firmarConAutoFirma-action">
         <call class="com.educaflow.subsystem.pdfutilities.actions.PdfUtilitiesActions" method="pdfAutoFirma"/>
     </action-method>
 

@@ -5,7 +5,7 @@
 
 
 
-    <menuitem name="expedientes-esperando-menu" parent="expedientes-menu" title="Expedientes Esperando" action="expedientes-esperando-action" groups="admins,users" order="202"/>
+    <menuitem name="expedientes-esperando-menuitem" parent="expedientes-menuitem" title="Expedientes Esperando" action="expedientes-esperando-action" groups="admins,users" order="202"/>
 
     <action-view name="expedientes-esperando-action" title="Expedientes esperando a que otra persona realice una tarea"  model="com.educaflow.subsystem.expedientes.db.Expediente" >
         <view type="tree" name="expedientes-esperando-tree"  />

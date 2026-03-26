@@ -8,7 +8,7 @@
         <panel name="datos-solicitante" title="Datos Solicitante">
             <field name="solicita" colSpan="9"/>
             <field name="justificante"  widget="binary-link" colSpan="3" x-accept=".pdf"/>
-            <field name="ciclo" colSpan="6" grid-view="search-Ciclo-grid" form-view="view-Ciclo-form" />
+            <field name="ciclo" colSpan="6" grid-view="sistemaeducativo-Ciclo-search-grid" form-view="sistemaeducativo-Ciclo-view-form" />
         </panel>
         <panel-related name="fcts-panel" title="FCT's__!!" field="formacionesCentrosTrabajo" colSpan="12" form-view="fct-details" grid-view="fct-grid"/>
         <panel name="datos-resolucion" title="Datos Resolución">

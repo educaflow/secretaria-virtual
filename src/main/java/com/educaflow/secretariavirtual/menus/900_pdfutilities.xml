@@ -3,21 +3,21 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <menuitem name="PdfUtilities-menuitem"  title="Utilidades de PDF"  groups="admins,users" icon="picture_as_pdf" order="900"/>
+    <menuitem name="pdfutilities-menuitem"  title="Utilidades de PDF"  groups="admins,users" icon="picture_as_pdf" order="900"/>
 
-    <menuitem name="PdfUtilities-info-menuitem"  parent="PdfUtilities-menuitem" title="Información" action="PdfUtilities-info-main-action" groups="admins" order="2"  />
-    <menuitem name="PdfUtilities-firma-menuitem"  parent="PdfUtilities-menuitem" title="Posiciones Firma" action="PdfUtilities-firma-main-action" groups="admins" order="4"  />
-    <menuitem name="PdfUtilities-AutoFirma-menuitem"  parent="PdfUtilities-menuitem" title="Posición Autofirma__!!" action="PdfUtilities-AutoFirma-main-action" groups="admins" order="6"  />
+    <menuitem name="pdfutilities-info-menuitem"  parent="pdfutilities-menuitem" title="Información" action="pdfutilities-Info-action" groups="admins" order="2"  />
+    <menuitem name="pdfutilities-firma-menuitem"  parent="pdfutilities-menuitem" title="Posiciones Firma" action="pdfutilities-Firma-action" groups="admins" order="4"  />
+    <menuitem name="pdfutilities-AutoFirma-menuitem"  parent="pdfutilities-menuitem" title="Posición Autofirma__!!" action="pdfutilities-AutoFirma-action" groups="admins" order="6"  />
 
-    <action-view name="PdfUtilities-info-main-action"  title="Información para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities"  >
-        <view type="form" name="PdfUtilities-info-main-form"/>
+    <action-view name="pdfutilities-Info-action"  title="Información para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities"  >
+        <view type="form" name="pdfutilities-Info-form"/>
     </action-view>
 
-    <action-view name="PdfUtilities-firma-main-action"  title="Información para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities"  >
-        <view type="form" name="PdfUtilities-firma-main-form"/>
+    <action-view name="pdfutilities-Firma-action"  title="Información para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities"  >
+        <view type="form" name="pdfutilities-Firma-form"/>
     </action-view>
 
-    <action-view name="PdfUtilities-AutoFirma-main-action"  title="Posición Autofirma__!!" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities"  >
-        <view type="form" name="PdfUtilities-AutoFirma-main-form"/>
+    <action-view name="pdfutilities-AutoFirma-action"  title="Posición Autofirma__!!" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities"  >
+        <view type="form" name="pdfutilities-AutoFirma-form"/>
     </action-view>
 </object-views>

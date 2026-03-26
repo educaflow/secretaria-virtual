@@ -4,7 +4,7 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
 
-    <menuitem name="expedientes-pendiente-menu"  parent="expedientes-menu" title="Expedientes Pendientes" action="expedientes-pendiente-action" groups="admins,users" order="201"  />
+    <menuitem name="expedientes-pendiente-menuitem"  parent="expedientes-menuitem" title="Expedientes Pendientes" action="expedientes-pendiente-action" groups="admins,users" order="201"  />
 
     <action-view name="expedientes-pendiente-action" title="Listado de expedientes pendientes de que realices la tarea"  model="com.educaflow.subsystem.expedientes.db.Expediente">
         <view type="grid" name="expedientes-pendiente-grid"/>

@@ -3,7 +3,7 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <menuitem name="expedientes-cerrados-menu" parent="expedientes-menu" title="Expedientes Cerrados" action="expedientes-cerrados-action" groups="admins,users" order="203"/>
+    <menuitem name="expedientes-cerrados-menuitem" parent="expedientes-menuitem" title="Expedientes Cerrados" action="expedientes-cerrados-action" groups="admins,users" order="203"/>
     <action-view name="expedientes-cerrados-action"  title="Expedientes cerrados" model="com.educaflow.subsystem.expedientes.db.Expediente">
         <view type="grid" name="expedientes-cerrados-grid"/>
         <domain>self.abierto=false </domain>

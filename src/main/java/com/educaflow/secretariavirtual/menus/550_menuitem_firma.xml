@@ -3,12 +3,12 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <menuitem name="firma-menu"  title="Firmar documentos"  groups="admins"  order="550"/>
+    <menuitem name="firma-menuitem"  title="Firmar documentos"  groups="admins"  order="550"/>
 
-    <menuitem name="firma-todos-menu"      parent="firma-menu" title="Todos"      action="firma-TareaFirma-todos-action"      groups="admins" order="1"/>
-    <menuitem name="firma-pendiente-menu"  parent="firma-menu" title="Pendientes" action="firma-TareaFirma-pendiente-action"  groups="admins" order="2"/>
-    <menuitem name="firma-firmado-menu"    parent="firma-menu" title="Firmados"   action="firma-TareaFirma-firmado-action"    groups="admins" order="3"/>
-    <menuitem name="firma-rechazado-menu"  parent="firma-menu" title="Rechazados" action="firma-TareaFirma-rechazado-action"  groups="admins" order="4"/>
+    <menuitem name="firma-todos-menuitem"      parent="firma-menuitem" title="Todos"      action="firma-TareaFirma-todos-action"      groups="admins" order="1"/>
+    <menuitem name="firma-pendiente-menuitem"  parent="firma-menuitem" title="Pendientes" action="firma-TareaFirma-pendiente-action"  groups="admins" order="2"/>
+    <menuitem name="firma-firmado-menuitem"    parent="firma-menuitem" title="Firmados"   action="firma-TareaFirma-firmado-action"    groups="admins" order="3"/>
+    <menuitem name="firma-rechazado-menuitem"  parent="firma-menuitem" title="Rechazados" action="firma-TareaFirma-rechazado-action"  groups="admins" order="4"/>
 
     <action-view name="firma-TareaFirma-todos-action" title="Todos los documentos firmados" model="com.educaflow.subsystem.firma.db.TareaFirma">
         <view type="grid" name="firma-TareaFirma-todos-grid"/>

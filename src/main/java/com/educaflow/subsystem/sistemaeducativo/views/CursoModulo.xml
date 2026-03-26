@@ -3,13 +3,13 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="mant-CursoModulo-action" title="Cursos-Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo">
-        <view type="grid" name="mant-CursoModulo-grid"/>
-        <view type="form" name="mant-CursoModulo-form"/>
+    <action-view name="sistemaeducativo-CursoModulo-action" title="Cursos-Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo">
+        <view type="grid" name="sistemaeducativo-CursoModulo-grid"/>
+        <view type="form" name="sistemaeducativo-CursoModulo-form"/>
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
-    <grid name="mant-CursoModulo-grid" title="Curso-Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+    <grid name="sistemaeducativo-CursoModulo-grid" title="Curso-Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
           groups="admins"
           editable="false" edit-icon="false" x-selector="none" canNew="true" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
         <hilite color="danger" if="archived"/>
@@ -18,17 +18,17 @@
         <field name="archived" width="100px" />
     </grid>
 
-    <form name="mant-CursoModulo-form" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+    <form name="sistemaeducativo-CursoModulo-form" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
           groups="admins"
           width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false">
         <panel name="CursoModulo" title="">
-            <field name="curso"  colSpan="6"  grid-view="search-Curso-grid" />
-            <field name="modulo" colSpan="6" colOffset="6" grid-view="search-Modulo-grid" />
+            <field name="curso"  colSpan="6"  grid-view="sistemaeducativo-Curso-search-grid" />
+            <field name="modulo" colSpan="6" colOffset="6" grid-view="sistemaeducativo-Modulo-search-grid" />
         </panel>
     </form>
 
 
-    <grid name="search-CursoModulo-grid" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+    <grid name="sistemaeducativo-CursoModulo-search-grid" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
           groups="admins,users"
           orderBy="name"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
@@ -36,12 +36,12 @@
         <field name="modulo" />
     </grid>
 
-    <form name="view-CursoModulo-form" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+    <form name="sistemaeducativo-CursoModulo-view-form" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
           groups="admins"
           width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false" >
         <panel name="Curso" title="">
-            <field name="curso"  colSpan="6"  grid-view="search-Curso-grid" />
-            <field name="modulo" colSpan="6" colOffset="6"  grid-view="search-Modulo-grid" />
+            <field name="curso"  colSpan="6"  grid-view="sistemaeducativo-Curso-search-grid" />
+            <field name="modulo" colSpan="6" colOffset="6"  grid-view="sistemaeducativo-Modulo-search-grid" />
         </panel>
     </form>
 

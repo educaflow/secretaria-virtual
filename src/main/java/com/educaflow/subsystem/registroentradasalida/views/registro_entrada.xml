@@ -3,14 +3,14 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="registroentradasalida-Entrada-main-action"  title="Información para PDF" model="com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada"  >
-        <view type="form" name="registroentradasalida-Entrada-main-form"/>
-        <view type="grid" name="registroentradasalida-Entrada-main-grid"/>
+    <action-view name="registroentradasalida-Entrada-action"  title="Información para PDF" model="com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada"  >
+        <view type="form" name="registroentradasalida-Entrada-form"/>
+        <view type="grid" name="registroentradasalida-Entrada-grid"/>
     </action-view>
 
 
 
-    <grid name="registroentradasalida-Entrada-main-grid" title="Registro de entrada" model="com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada"
+    <grid name="registroentradasalida-Entrada-grid" title="Registro de entrada" model="com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada"
           groups="admins,users"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
           orderBy="numeroRegistro" canViewOnClick="true"
@@ -20,7 +20,7 @@
         <field name="fecha"/>
     </grid>
 
-    <form name="registroentradasalida-Entrada-main-form" title="Registro de entrada" model="com.educaflow.subsystem.expedientes.db.HistorialEstado"
+    <form name="registroentradasalida-Entrada-form" title="Registro de entrada" model="com.educaflow.subsystem.expedientes.db.HistorialEstado"
           canEdit="false" canAttach="false" canBack="false" canBackOnSave="true" canDelete="false" canNew="false" >
         <panel name="registroEntrada" title="" colSpan="12" >
             <field name="numeroRegistro"   colSpan="4"/>
@@ -28,11 +28,11 @@
 
             <field name="documentoOriginalFirmado" widget="binary-link"  colSpan="12"/>
             <field name="documentoResguardoPresentacion" widget="binary-link"  colSpan="12"/>
-            <panel-related name="registroEntradaAnexos" title="Anexos" field="anexos" colSpan="12" form-view="registroAnexos-form"  grid-view="registroAnexos-grid"  />
+            <panel-related name="registroEntradaAnexos" title="Anexos" field="anexos" colSpan="12" form-view="registroentradasalida-Anexos-form"  grid-view="registroentradasalida-Anexos-grid"  />
         </panel>
     </form>
 
-    <form name="registroAnexos-form" title="Anexo"   model="com.axelor.meta.db.MetaFile"
+    <form name="registroentradasalida-Anexos-form" title="Anexo"   model="com.axelor.meta.db.MetaFile"
           canEdit="false" canAttach="false" canBack="false" canBackOnSave="true" canDelete="false" canNew="false" >
         <panel title="">
             <field name="fileName" colSpan="10"/>
@@ -40,7 +40,7 @@
         </panel>
     </form>
 
-    <grid name="registroAnexos-grid" title="Anexos" model="com.axelor.meta.db.MetaFile">
+    <grid name="registroentradasalida-Anexos-grid" title="Anexos" model="com.axelor.meta.db.MetaFile">
         <field name="fileName"/>
     </grid>
 
