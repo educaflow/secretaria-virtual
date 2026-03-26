@@ -5,7 +5,7 @@
 
 
 
-    <action-view name="sistemaeducativo-FamiliaProfesional-action" title="Familias profesionales"  model="com.educaflow.subsystem.sistemaeducativo.db.FamiliaProfesional">
+    <action-view name="sistemaeducativo-FamiliaProfesional-mantenimiento-action" title="Familias profesionales"  model="com.educaflow.subsystem.sistemaeducativo.db.FamiliaProfesional">
         <view type="grid" name="sistemaeducativo-FamiliaProfesional-grid"/>
         <view type="form" name="sistemaeducativo-FamiliaProfesional-form"/>
         <view-param name="forceEdit" value="true"/>

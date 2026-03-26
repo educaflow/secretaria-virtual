@@ -3,7 +3,7 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="common-Centro-action" title="Centros" model="com.educaflow.subsystem.common.db.Centro">
+    <action-view name="common-Centro-mantenimiento-action" title="Centros" model="com.educaflow.subsystem.common.db.Centro">
         <view type="grid" name="common-Centro-grid"/>
         <view type="form" name="common-Centro-form"/>
         <view-param name="forceEdit" value="true"/>

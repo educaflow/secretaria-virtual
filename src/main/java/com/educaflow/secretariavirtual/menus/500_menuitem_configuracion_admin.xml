@@ -5,8 +5,8 @@
 
     <menuitem name="configuracionadmin-menuitem"  title="Configuración Secretaria Virtual"  groups="admins"  order="500"/>
 
-    <menuitem name="configuracionadmin-Centro-menuitem"  parent="configuracionadmin-menuitem" title="Centros" action="common-Centro-action" groups="admins" order="1"  />
-    <menuitem name="configuracionadmin-Usuario-menuitem"  parent="configuracionadmin-menuitem" title="Usuarios" action="common-Usuario-action" groups="admins" order="2"  />
+    <menuitem name="configuracionadmin-Centro-menuitem"  parent="configuracionadmin-menuitem" title="Centros" action="common-Centro-mantenimiento-action" groups="admins" order="1"  />
+    <menuitem name="configuracionadmin-Usuario-menuitem"  parent="configuracionadmin-menuitem" title="Usuarios" action="common-Usuario-mantenimiento-action" groups="admins" order="2"  />
 
 
 </object-views>

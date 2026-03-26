@@ -5,16 +5,16 @@
 
     <menuitem name="registroentradasalida-menuitem"  title="Registro"  groups="admins"  order="500"/>
 
-    <menuitem name="registroentradasalida-entrada-menuitem"  parent="registroentradasalida-menuitem" title="Entrada" action="registroentradasalida-Entrada-action" groups="admins" order="2"  />
-    <menuitem name="registroentradasalida-salida-menuitem"  parent="registroentradasalida-menuitem" title="Salida" action="registroentradasalida-Salida-action" groups="admins" order="2"  />
+    <menuitem name="registroentradasalida-entrada-menuitem"  parent="registroentradasalida-menuitem" title="Entrada" action="registroentradasalida-Entrada-mantenimiento-action" groups="admins" order="2"  />
+    <menuitem name="registroentradasalida-salida-menuitem"  parent="registroentradasalida-menuitem" title="Salida" action="registroentradasalida-Salida-mantenimiento-action" groups="admins" order="2"  />
 
-    <action-view name="registroentradasalida-Entrada-action"  title="Registro de entrada" model="com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada"  >
+    <action-view name="registroentradasalida-Entrada-mantenimiento-action"  title="Registro de entrada" model="com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada"  >
         <view type="grid" name="registroentradasalida-Entrada-grid"/>
         <view type="form" name="registroentradasalida-Entrada-form"/>
 
     </action-view>
 
-    <action-view name="registroentradasalida-Salida-action"  title="Registro de salida" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"  >
+    <action-view name="registroentradasalida-Salida-mantenimiento-action"  title="Registro de salida" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"  >
         <view type="grid" name="registroentradasalida-Salida-grid"/>
         <view type="form" name="registroentradasalida-Salida-form"/>
     </action-view>

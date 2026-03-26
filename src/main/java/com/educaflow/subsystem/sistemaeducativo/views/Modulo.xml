@@ -3,7 +3,7 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="sistemaeducativo-Modulo-action" title="Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.Modulo">
+    <action-view name="sistemaeducativo-Modulo-mantenimiento-action" title="Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.Modulo">
         <view type="grid" name="sistemaeducativo-Modulo-grid"/>
         <view type="form" name="sistemaeducativo-Modulo-form"/>
         <view-param name="forceEdit" value="true"/>

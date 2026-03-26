@@ -4,16 +4,16 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <menuitem name="sistemaeducativo-menuitem"  title="Sistema educativo"  groups="admins"  order="300"/>
-    <menuitem name="sistemaeducativo-Ciclo-menuitem"  parent="sistemaeducativo-menuitem" title="Ciclos" action="sistemaeducativo-Ciclo-action" groups="admins" order="2"  />
-    <menuitem name="sistemaeducativo-Modulo-menuitem"  parent="sistemaeducativo-menuitem" title="Módulos" action="sistemaeducativo-Modulo-action" groups="admins" order="4"  />
-    <menuitem name="sistemaeducativo-LeyEducativa-menuitem"  parent="sistemaeducativo-menuitem" title="Leyes Educativas" action="sistemaeducativo-LeyEducativa-action" groups="admins" order="6"  />
+    <menuitem name="sistemaeducativo-Ciclo-menuitem"  parent="sistemaeducativo-menuitem" title="Ciclos" action="sistemaeducativo-Ciclo-mantenimiento-action" groups="admins" order="2"  />
+    <menuitem name="sistemaeducativo-Modulo-menuitem"  parent="sistemaeducativo-menuitem" title="Módulos" action="sistemaeducativo-Modulo-mantenimiento-action" groups="admins" order="4"  />
+    <menuitem name="sistemaeducativo-LeyEducativa-menuitem"  parent="sistemaeducativo-menuitem" title="Leyes Educativas" action="sistemaeducativo-LeyEducativa-mantenimiento-action" groups="admins" order="6"  />
 
     <menuitem name="sistemaeducativo-raw-menuitem"  title="Sistema educativo-RAW"  groups="admins"  order="400"/>
-    <menuitem name="sistemaeducativo-raw-FamiliaProfesional-menuitem"  parent="sistemaeducativo-raw-menuitem" title="Familia profesional" action="sistemaeducativo-FamiliaProfesional-action" groups="admins" order="1"  />
-    <menuitem name="sistemaeducativo-raw-Curso-menuitem"  parent="sistemaeducativo-raw-menuitem" title="Cursos" action="sistemaeducativo-Curso-action" groups="admins" order="3"  />
-    <menuitem name="sistemaeducativo-raw-CursoModulo-menuitem"  parent="sistemaeducativo-raw-menuitem" title="Cursos-Módulos" action="sistemaeducativo-CursoModulo-action" groups="admins" order="4"  />
-    <menuitem name="sistemaeducativo-raw-Grado-menuitem"  parent="sistemaeducativo-raw-menuitem" title="Grados" action="sistemaeducativo-Grado-action" groups="admins" order="6"  />
-    <menuitem name="sistemaeducativo-raw-Nivel-menuitem"  parent="sistemaeducativo-raw-menuitem" title="Niveles" action="sistemaeducativo-Nivel-action" groups="admins" order="7"  />
+    <menuitem name="sistemaeducativo-raw-FamiliaProfesional-menuitem"  parent="sistemaeducativo-raw-menuitem" title="Familia profesional" action="sistemaeducativo-FamiliaProfesional-mantenimiento-action" groups="admins" order="1"  />
+    <menuitem name="sistemaeducativo-raw-Curso-menuitem"  parent="sistemaeducativo-raw-menuitem" title="Cursos" action="sistemaeducativo-Curso-mantenimiento-action" groups="admins" order="3"  />
+    <menuitem name="sistemaeducativo-raw-CursoModulo-menuitem"  parent="sistemaeducativo-raw-menuitem" title="Cursos-Módulos" action="sistemaeducativo-CursoModulo-mantenimiento-action" groups="admins" order="4"  />
+    <menuitem name="sistemaeducativo-raw-Grado-menuitem"  parent="sistemaeducativo-raw-menuitem" title="Grados" action="sistemaeducativo-Grado-mantenimiento-action" groups="admins" order="6"  />
+    <menuitem name="sistemaeducativo-raw-Nivel-menuitem"  parent="sistemaeducativo-raw-menuitem" title="Niveles" action="sistemaeducativo-Nivel-mantenimiento-action" groups="admins" order="7"  />
 
 
 

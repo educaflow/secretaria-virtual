@@ -9,7 +9,7 @@
             name="configuracioncentro-CursoAcademico-menuitem"
             parent="configuracioncentro-menuitem"
             title="Centros"
-            action="common-Centro-action"
+            action="common-Centro-mantenimiento-action"
             groups="admins"
             order="2"
     />

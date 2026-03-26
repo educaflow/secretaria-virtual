@@ -63,8 +63,8 @@ Todos los tipos de action terminan en `-action`. El tipo XML (`action-view`, `ac
 
 | Caso | Patrón | Ejemplo |
 |------|--------|---------|
-| Vista principal | `{subsistema}-{Entidad}-action` | `sistemaeducativo-Ciclo-action` |
-| Con calificador | `{subsistema}-{Entidad}-{calificador}-action` | `firma-TareaFirma-pendiente-action` |
+| CRUD completo (grid+form) | `{subsistema}-{Entidad}-mantenimiento-action` | `sistemaeducativo-Ciclo-mantenimiento-action` |
+| Con estado/filtro | `{subsistema}-{Entidad}-{estado}-action` | `firma-TareaFirma-pendiente-action` |
 
 **Categoría 2 — Acciones de botón** (disparadas directamente por `onClick` de un `<button>`):
 
