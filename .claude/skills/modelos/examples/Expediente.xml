@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
+
+    <entity name="Expediente" strategy="JOINED" jsonAttrs="false">
+        <many-to-one name="tipoExpediente" title="Tipo de Expediente" ref="com.educaflow.subsystem.expedientes.db.TipoExpediente" required="true"/>
+        <string name="name" namecolumn="true" />
+        <string name="numeroExpediente"  title="Num.__!! Exped.__!!"  />
+        <string name="codeState" title="Código del estado" />
+        <string name="nameState" title="Estado" translatable="true" />
+        <datetime name="fechaUltimoEstado" title="Fecha último estado" />
+        <boolean name="abierto" title="Abierto" />
+        <one-to-many name="historialEstados" ref="HistorialEstado" mappedBy="expediente" />
+        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro"  />
+        <many-to-one name="creador" ref="com.axelor.auth.db.User"  />
+        <one-to-one name="personaInteresada" ref="com.educaflow.subsystem.common.db.Persona"  />
+        <one-to-one name="personaSolicitante" ref="com.educaflow.subsystem.common.db.Persona"  />
+    </entity>
+
+
+</domain-models>
