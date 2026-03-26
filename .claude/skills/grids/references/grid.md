@@ -1,0 +1,367 @@
+# Grid View
+
+## Table of Contents
+
+- [Field](#field)
+- [Button](#button)
+- [Toolbar](#toolbar)
+- [Menubar](#menubar)
+- [Hilite](#hilite)
+- [Summary bar](#summary-bar)
+  - [Field](#field-1)
+  - [Call](#call)
+    - [Field](#field-2)
+- [Advanced search](#advanced-search)
+- [Example](#example)
+
+---
+
+The grid view shows data in a list with several columns.
+
+As the grid views fetch many records to display in as list, it's important to
+show only important information.
+
+A grid view can be defined like this:
+
+```xml
+<grid name="contact-grid" title="Contacts"
+  model="com.axelor.contact.db.Contact"> <!-- 1 -->
+  <field name="fullName" /> <!-- 2 -->
+  <field name="email" />
+  <field name="phone" />
+  <field name="dateOfBirth" />
+</grid>
+```
+
+1. define a grid view for the given domain model
+2. define a column bound to a field of the domain model
+
+The `<field>` tags can be used to define columns that bind to model fields.
+
+The grid view has the following attributes:
+
+| Attribute | Description |
+|---|---|
+| **`name`** | name of the view, duplicate name is considered as overriding |
+| **`model`** | the fully qualified name of the domain model this view belongs to |
+| **`title`** | the grid title |
+| `id` | if overriding some existing one, provide a unique id to identify this one |
+| `editable` | whether the grid is inline editable |
+| `orderBy` | comma-separated list of field names to sort the records |
+| `groupBy` | comma-separated list of field names to group the records |
+| `edit-icon` | whether to show edit icon in first column (default true) |
+| `customSearch` | whether advanced custom search is enabled |
+| `freeSearch` | specify the free-search mode: 'all' (default), 'none', or comma-separated list of field names |
+| `canNew` | whether to allow creating new records |
+| `canEdit` | whether to allow editing records |
+| `canDelete` | whether to allow deleting records |
+| `canSave` | whether to allow saving records |
+| `canMove` | whether to allow re-ordering of rows with drag & drop |
+| `canArchive` | whether to allow archiving/unarchiving records |
+| `widget` | name of the widget to be used in the grid: `expandable`/`tree-grid` |
+| `x-no-fetch` | whether to fetch initial records |
+| `x-selector` | specify the row selection control: `checkbox` (default) to show checkbox selection, `none` to disable it. |
+| `onSave` | action to call on saving form in editable grid |
+| `onDelete` | action to call when deleting selected records |
+
+> **⚠️ Important:** With `canMove`, sequencing is done on field specified by `orderBy`, and it must be only one integer field. If not specified, not sequencing is done.
+> On top-level grid, `orderBy` is required with `canMove`.
+
+> **Note:** With `editable="true"` (inline edit), pressing `Enter` commits the current row, but when it is the last row of the grid, it will also add a new row.
+
+See [Expandable](../web-client/widgets.md#expandable) and [TreeGrid](../web-client/widgets.md#treegrid) for usage and available widget attributes.
+On top-level grid, `x-expand-all` is not supported.
+
+With TreeGrid widget, there are some additional limitations:
+
+- On first-level rows, you can add a row to the bottom only, not between existing rows.
+- On first-level rows, `Ctrl+Enter` to add subitem is not supported.
+- On subitems, grid `onSave` is not supported.
+
+The grid view has the following child items:
+
+- `field` - define a column bound to the model fields
+- `button` - define a button to execute an action
+- `toolbar` - define custom toolbar buttons
+- `menubar` - define custom menubar
+- `hilite` - define rules to highlight rows/cells
+
+Let's see them in details:
+
+---
+
+## Field
+
+The `<field>` is the most important and required item in a grid view definition.
+It defines a column that binds to some field of the given domain object.
+
+It has the following attributes:
+
+| Attribute | Description |
+|---|---|
+| **`name`** | name of the field |
+| `title` | title to be shown as column header, calculated if not provided |
+
+Besides these attributes, fields can also have other attributes supported by
+form view fields. These attributes are used by the inline editors.
+
+---
+
+## Button
+
+The `<button>` item can be used to put buttons at any row.
+
+| Attribute | Description |
+|---|---|
+| **`name`** | name of the button |
+| `title` | title text for the button |
+| `icon` | name of the icon to show |
+| `prompt` | text to show if confirmation is required when button is clicked |
+| **`onClick`** | the name of the action to execute when button is clicked |
+| `css` | custom CSS class to apply |
+
+---
+
+## Toolbar
+
+The `<toolbar>` item can be used to define custom toolbar buttons. These buttons
+are shown along with the top toolbar.
+
+```xml
+<toolbar>
+  <button name="btnPrint" icon="printer" title="Print" onClick="act1"/>
+  <button name="btnExport" icon="rocket-takeoff-fill" title="Export" onClick="act2"/>
+</toolbar>
+```
+
+In the case of grid view displayed as child of a form view or as a dashlet, first three buttons will be displayed.
+
+---
+
+## Menubar
+
+The `<menubar>` item can be used to define custom menus. These menus are also
+shown in the top toolbar.
+
+```xml
+<menubar>
+  <menu title="Actions" icon="img/address-book.png" showTitle="false">
+    <item title="Send Greetings" action="act1"/>
+    <item title="Home Page" action="act2"/>
+    <divider/>
+    <item title="Test" action="act3"/>
+  </menu>
+  ...
+</menubar>
+```
+
+In the case of grid view displayed as child of a form view or as a dashlet, first menu will be displayed.
+
+---
+
+## Hilite
+
+The `<hilite>` item should be applied on the grid view to highlight whole rows
+and on fields to highlight those specific cells.
+
+example:
+
+```xml
+<grid ...>
+  <hilite background="warning" if="$contains(email, 'gmeil.com')"/>
+  ...
+</grid>
+```
+
+The attributes are:
+
+| Attribute | Description |
+|---|---|
+| **`if`** | boolean expression |
+| `color` | name of the text color style |
+| `background` | name of the background color style |
+| `strong` | whether to show text in bold fonts |
+
+The following color & background styles are defined:
+
+| Style | Description |
+|---|---|
+| `default` | do not highlight |
+| `primary` | highlight style to show some importance |
+| `warning` | highlight style to show warning |
+| `success` | highlight style to indicate success |
+| `danger` | highlight style to show criticality |
+| `info` | highlight style to indicate information |
+
+Besides those styles, these colors are also available:
+
+- `red`
+- `pink`
+- `purple`
+- `deeppurple`
+- `indigo`
+- `blue`
+- `lightblue`
+- `cyan`
+- `teal`
+- `green`
+- `lightgreen`
+- `lime`
+- `yellow`
+- `amber`
+- `orange`
+- `deeporange`
+- `brown`
+- `grey`
+- `bluegrey`
+- `black`
+- `white`
+
+The `<hilite>` item if applied on grid view it highlights the rows.
+The `<hilite>` item if applied on fields it highlights the cells.
+
+---
+
+## Summary bar
+
+The `<summary-bar>` item can be used to show a summary row at the bottom of the grid view
+and should be specified after all grid `<field>` and `<button>` items.
+
+Example:
+
+```xml
+<summary-bar>
+  <field name="totalAmount" aggregate="sum" title="All sum" on="page" />
+  <field name="totalAmount" aggregate="sum" title="Selected sum" on="selection" align="end" />
+
+  <field name="totalAmount" aggregate="avg" title="All avg" on="page" />
+  <field name="totalAmount" aggregate="avg" title="Selected avg" on="selection" align="end" />
+
+  <call action="com.axelor.sale.web.SaleOrderController:fetchSummary">
+    <field name="allTotal" type="decimal" title="All total" align="end" />
+  </call>
+</summary-bar>
+```
+
+The attributes are:
+
+| Attribute | Description |
+|---|---|
+| `hint` | Optional placeholder text displayed when no summary values are available (for example, when no rows are selected) |
+
+### Field
+
+The `<field>` item on which to perform an aggregation in the summary bar.
+
+| Attribute | Description |
+|---|---|
+| **`name`** | Name of the field to aggregate. Used for value formatting based on grid field metadata |
+| **`aggregate`** | Aggregation function to apply: `sum` \| `min` \| `max` \| `avg` \| `count` \| `median` |
+| **`on`** | Defines the aggregation scope: `selection` \| `page` (selection – summary based on selected records, page - summary of currently displayed records) |
+| **`title`** | Label shown in the summary bar |
+| `align` | Horizontal alignment of the summary block: `start` \| `end`. (Default: start) |
+
+### Call
+
+The `<call>` item can be used to specify a summary block whose values are computed on the server.
+This can be typically used for computation based on the entire dataset.
+It is only supported with main grid view, so when a grid view configured with summary-bar
+is used for a collection field, it will skip action call.
+
+| Attribute | Description |
+|---|---|
+| **`action`** | Action method used to retrieve summary values |
+
+Example action method:
+
+```java
+public void fetchSummary(ActionRequest request, ActionResponse response) {
+    var allTotal =
+        JPA.em()
+            .createQuery("SELECT SUM(self.totalAmount) FROM Order AS self", BigDecimal.class)
+            .getSingleResult();
+    response.setValue("allTotal", allTotal); // Response can set several values
+}
+```
+
+#### Field
+
+The `<field>` defines a summary value returned by a `<call>` action.
+
+| Attribute | Description |
+|---|---|
+| **`name`** | key used to retrieve the value from the action result |
+| **`title`** | label shown in the summary bar |
+| `type` | type hint for formatting when the field does not exist in the grid. (Default: string) |
+| `align` | Horizontal alignment of the summary block: `start` \| `end`. (Default: start) |
+
+---
+
+## Advanced search
+
+The advanced search on grid view can be customized to search on nested fields
+or on o2m/m2m fields.
+
+```xml
+<search-filters name="filter-sales" title="Filter Sale Orders" model="com.axelor.sale.db.Order">
+  <!-- change title -->
+  <field name="name" title="Order Ref." />
+
+  <!-- include nested field -->
+  <field name="customer.addresses.city" title="Customer city" />
+
+  <!-- include nested field, but only if the condition is true -->
+  <field name="items.product.name" title="Product Name" if="some condition" />
+
+  <!-- hide the field from advanced search -->
+  <field name="items" hidden="true" />
+
+  <!-- optionally -->
+  <filter title="Confirmed" name="confirmed">
+    <domain>self.confirmed = true</domain>
+  </filter>
+
+</search-filters>
+```
+
+The `<field>` and `<filter>` elements are optional but at least one element
+should be present in `<search-filters>`.
+
+The `<filter>` element can have a `name` attribute to be used in the list of names for the `default-search-filters` `view-param`.
+
+> **⚠️ Important:** Searching on o2m/m2m fields may result in duplicate records in view.
+> There is no generic optimal way to prevent this.
+
+---
+
+## Example
+
+Here is a more complete example:
+
+```xml
+<grid name="contact-grid" title="Contacts" model="com.axelor.contact.db.Contact" editable="true">
+  <toolbar>
+    <button name="btnGreetAll" title="Greet" onClick="action.contact.greet.all"/>
+  </toolbar>
+  <menubar>
+    <menu title="Actions">
+      <item title="Action 1" action="action.some" />
+      <item title="Action 2" action="action.thing" />
+    </menu>
+  </menubar>
+  <hilite background="warning" if="$contains(email, 'gmeil.com')"/>
+  <field name="fullName"/>
+  <field name="firstName"/>
+  <field name="lastName" onChange="com.axelor.contact.web.HelloController:guessEmail"/>
+  <field name="email">
+    <hilite strong="true" if="$contains(email, 'gmeil.com')"/>
+  </field>
+  <field name="phone"/>
+  <field name="company"/>
+  <field name="dateOfBirth">
+    <hilite color="danger" strong="true" if="$moment().diff(dateOfBirth, 'years') &lt; 18"/>
+  </field>
+  <button name="btnGreet" title="Greet" onClick="action.contact.greet" />
+</grid>
+```
+

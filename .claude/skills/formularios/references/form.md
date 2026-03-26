@@ -1,0 +1,455 @@
+# Form View
+
+## Table of Contents
+
+- [Panels](#panels)
+  - [Panel](#panel)
+  - [Panel Tabs](#panel-tabs)
+  - [Panel Stack](#panel-stack)
+  - [Panel Related](#panel-related)
+  - [Panel Include](#panel-include)
+  - [Panel Dashlet](#panel-dashlet)
+- [Panel Widgets](#panel-widgets)
+- [Dummy fields](#dummy-fields)
+- [Field editor](#field-editor)
+- [Field viewer](#field-viewer)
+- [Field tooltip](#field-tooltip)
+
+---
+
+The form view shows a single record in form layout. It's the main view to see
+a record with details.
+
+Form view has two modes:
+
+- `readonly` - mode shows fields values as html text
+- `editable` - mode shows field editors with values
+
+A form view is defined like this:
+
+```xml
+<form name="contact-form"
+      title="Contact"
+      model="com.axelor.contact.db.Contact"> <!-- 1 -->
+  <panel name="overviewPanel" title="Overview"> <!-- 2 -->
+    <field name="fullName" readonly="false"> <!-- 3 -->
+      <editor> <!-- 4 -->
+        <field name="title" colSpan="3"/>
+        <field name="firstName" colSpan="4"/>
+        <field name="lastName" colSpan="5"/>
+      </editor>
+    </field>
+    <field name="dateOfBirth" />
+    <field name="email">
+      <viewer><![CDATA[ <!-- 5 -->
+      <>
+        <a href={`mailto:${email}`}>{email}</a>
+      </>
+      ]]></viewer>
+    </field>
+    <field name="phone">
+      <viewer><![CDATA[
+        <>
+          <a href={`tel:${phone}`}>{phone}</a>
+        </>
+      ]]></viewer>
+    </field>
+  </panel>
+  <panel name="aboutMePanel" title="About me">
+      <field name="notes" showTitle="false" colSpan="12"/>
+  </panel>
+  <panel-related name="addressesPanel" field="addresses"> <!-- 6 -->
+      <field name="street"/>
+      <field name="area"/>
+      <field name="city"/>
+      <field name="state"/>
+      <field name="zip"/>
+      <field name="country"/>
+  </panel-related>
+  <panel name="sidebarPanel" sidebar="true"> <!-- 7 -->
+    <field name="createdOn"/>
+    <field name="createdBy"/>
+    <field name="updatedOn"/>
+    <field name="updatedBy"/>
+  </panel-side>
+</form>
+```
+
+1. form view for the given domain model
+2. panel to group relevant fields
+3. an input field bound to the given model
+4. an editor can be used to define custom editor for the field
+5. a viewer can be used to define custom template to display field value
+6. a panel-related can be used to show o2m/m2m fields
+7. a panel to show in the right sidebar
+
+Form view can have the following attributes:
+
+| Attribute | Description |
+|---|---|
+| **`name`** | name of the view, duplicates are considered overriding |
+| **`model`** | fully qualified name of the domain model |
+| **`title`** | the form view title |
+| `id` | If overriding some existing one, provide a unique id to identify this one. |
+| `editable` | whether the form is editable |
+| `readonlyIf` | boolean expression to make form readonly |
+| `onNew` | action to call on creating new record |
+| `onLoad` | action call when record is loaded |
+| `onCopy` | action call when record is copied |
+| `onDelete` | action to call when deleting record |
+| `onSave` | action to call on saving this form |
+| `canNew` | whether to allow creating new record (JavaScript expression) |
+| `canEdit` | whether to allow editing record (JavaScript expression) |
+| `canDelete` | whether to allow deleting record (JavaScript expression) |
+| `canCopy` | whether to allow copying record (JavaScript expression) |
+| `canArchive` | whether to allow archiving/unarchiving record (JavaScript expression) |
+| `canSave` | whether to allow saving record (JavaScript expression) |
+| `canAttach` | whether to allow attaching files to record (JavaScript expression) |
+| `width` | The preferred width style of the view: `mini`, `mid`, `large` or `*` (occupy all the available width). |
+
+The form uses responsive layout that adjusts according to the available screen
+size. The form is divided into 12 columns. The first 8 columns are used to place
+main panels and the rest 4 columns are used to place the sidebar panels.
+If sidebar panels are not provided the normal panels will occupy all the 12
+columns.
+
+---
+
+## Panels
+
+Let's see each type of panel.
+
+- `panel` - panel with 12 columns, generally used to put simple fields
+- `panel-tabs` - contains other panels which are shown as notebook tabs
+- `panel-stack` - contains other panels which are attached
+- `panel-related` - a panel to put o2m/m2m fields
+- `panel-include` - include another panel form
+- `panel-dashlet` - dashlet panel can be used to embed other views
+
+### Panel
+
+A `panel` can have the following attributes:
+
+| Attribute | Description |
+|---|---|
+| **`title`** | title of the panel |
+| `name` | name of the panel |
+| `colSpan` | number of columns taken by the widget |
+| `itemSpan` | default span for child items |
+| `hidden` | whether to hide the widget |
+| `hideIf` | boolean expression to hide the panel |
+| `readonly` | whether the widget should be considered readonly |
+| `readonlyIf` | boolean expression to mark the panel readonly |
+| `showIf` | boolean expression to show the panel |
+| `onTabSelect` | an action to execute when the panel tab is selected (if it's top-level in panel-tabs) |
+| `showFrame` | whether to show frame around the panel |
+| `showTitle` | whether to show the panel title |
+| `sidebar` | whether to show this panel in sidebar |
+| `attached` | whether to attach the panel with previous one |
+| `stacked` | whether the stack panel items |
+| `if-module` | use the widget if the given module is installed |
+| `canCollapse` | specify whether the panel is collapsible |
+| `collapseIf` | specify a boolean expression to collapse/expend this panel |
+| `help` | help text displayed on mouse hover |
+
+```xml
+<panel title="Overview">
+  <!-- widgets -->
+</panel-tabs>
+```
+
+### Panel Tabs
+
+A `panel-tabs` contains other panels which are shown as notebook tabs. It includes
+all `panel` attributes except for `itemSpan`, `title` and `showTitle`.
+
+```xml
+<panel-tabs>
+  <panel-related field="relatedField"/>
+  <panel title="Notes">
+    <!-- widgets -->
+  </panel>
+</panel-tabs>
+```
+
+### Panel Stack
+
+A `panel-stack` contains other panels. It is a stack of panels and child panels
+are placed one by one.
+
+It include all `panel` attributes except for `itemSpan`, `title` and `showTitle`.
+
+```xml
+<panel-stack showIf="color">
+  <panel title="Page 1" showIf="color == 'black'"/>
+  <panel title="Page 2" showIf="color == 'white'"/>
+  <panel title="Page 3" showIf="color == 'gray'"/>
+</panel-stack>
+```
+
+### Panel Related
+
+A `panel-related` is used to put o2m/m2m fields. It shows a separate panel bellow
+the normal panels with a grid widget having fields defined inside.
+
+It includes all `panel` and `relational` attributes except for `itemSpan`.
+A `panel-related` includes the following attributes:
+
+| Attribute | Description |
+|---|---|
+| **`field`** | title of the panel |
+| `editable` | whether the grid is inline editable |
+| `orderBy` | comma-separated list of field names to sort the records |
+| `onNew` | action to call on creating new record |
+| `onChange` | action to call when field value is changed |
+| `canMove` | whether to allow re-ordering of rows with drag & drop |
+| `height` | number of rows (not pixel height) |
+| `x-selector` | specify the row selection control: `checkbox` (default) to show checkbox selection, `none` to disable it. |
+| `edit-window` | display mode of edit window for relational fields. Can be `self`, `blank` or `popup` (default value). |
+| `widget` | name of the widget to be used on the collection field: `tags`, `master-detail`, `expandable`, `tree-grid` |
+
+> **⚠️ Important:** With `canMove`, sequencing is done on field specified by `orderBy`, and it must be only one integer field. If not specified, not sequencing is done.
+> On one-to-many/many-to-many grids, `orderBy` is required with `canMove`, except for dummy fields.
+
+```xml
+<panel-related field="addresses">
+  <!-- grid widgets -->
+</panel-related>
+```
+
+> **Note:** See widgets [Tags](../web-client/widgets.md#tags), [MasterDetail](../web-client/widgets.md#masterdetail), [Expandable](../web-client/widgets.md#expandable) and [TreeGrid](../web-client/widgets.md#treegrid) for usage and available widget attributes.
+
+### Panel Include
+
+A `panel-include` includes another panel form.
+
+A `panel-include` can have following attributes:
+
+| Attribute | Description |
+|---|---|
+| **`view`** | Name of an existing view |
+| `from` | Name of the module from which the view should be included |
+| `if-module` | use the widget if the given module is installed |
+
+```xml
+<panel-include view="product-from" from="axelor-sale"/>
+```
+
+### Panel Dashlet
+
+A `panel-dashlet` can be used to embed other views like chart, portlet, iframe…
+
+A `panel-dashlet` can have following attributes:
+
+| Attribute | Description |
+|---|---|
+| **`action`** | |
+| `name` | name of the panel |
+| `title` | title of the panel |
+| `canSearch` | enable search header (for grid views) or search box (for card views) |
+| `height` | height taken by the widget |
+| `colSpan` | number of columns taken by the widget |
+| `hidden` | whether to hide the widget |
+| `hideIf` | boolean expression to hide the panel |
+| `readonly` | whether the widget should be considered readonly |
+| `readonlyIf` | boolean expression to mark the panel readonly |
+| `showIf` | boolean expression to show the panel |
+| `showTitle` | whether to show the panel title |
+| `if-module` | use the widget if the given module is installed |
+
+```xml
+<panel-dashlet action="chart:chart.sales.per.month"/>
+```
+
+---
+
+## Panel Widgets
+
+The `panel` can use the following widgets:
+
+- `menu` - define a custom menu for the panel
+- `field` - binds a model field, automatically selects appropriate widget
+- `spacer` - can be used to skip a cell
+- `separator` - can be used to define a boundary
+- `label` - can be used to set a static label (prefer `static`)
+- `static` - can be used to show static text (preferred over `label`)
+- `help` - can be used to show static help information
+- `button` - a button widget that executes some action
+- `button-group` - group of buttons
+- `panel` - an embedded panel
+- `panel-dashlet` - an embedded panel-dashlet
+- `panel-include` - an embedded panel-include
+- `panel-related` - an embedded panel-related
+
+The field has few properties, but most common of them are:
+
+- `name` - name of the widget
+- `hidden` - whether the widget is hidden
+- `readonly` - whether the widget is readonly
+- `required` - whether the field is required
+
+---
+
+## Dummy fields
+
+Form view can have dummy fields. These fields are not bound to any of the model
+fields but used to provide additional context.
+
+Dummy fields can be specified like:
+
+```xml
+<!-- string field if type is not specified -->
+<field name="some" />
+<!-- integer field, prefixed with $ to avoid dirty flag -->
+<field name="$another" type="integer" min="1" max="100" />
+
+<!-- relational fields -->
+<field name="some" type="many-to-one"
+  x-target="com.axelor.contact.db.Contact"
+  x-target-name="fullName" />
+```
+
+Dummy field can also have `x-dirty="false"` attribute to avoid dirty flag on the form when
+that field is updated.
+
+The legacy way is to prefix field name with `$`. The rules are:
+
+- in server side, setting the dummy field value, use `$` prefix but when accessing the dummy field value,
+  don't use `$` prefix.
+- in client side, always accessing the dummy field value with the `$` prefix.
+
+```xml
+<!-- avoid dirty flag, using `x-dirty="false"` attribute
+or prefix the field name with `$` -->
+<field name="some" x-dirty="false"/>
+<field name="$another" type="integer"/>
+```
+
+> **Note:** The legacy dirty checking behavior of the `$` prefixed fields is now deprecated and is scheduled to be removed.
+
+---
+
+## Field editor
+
+We can define custom editor for fields using `<editor>` child element on a field.
+
+```xml
+<!-- editor for a computed field -->
+<field name="fullName">
+  <editor>
+    <field name="title" />
+    <field name="firstName" />
+    <field name="lastName" />
+  </editor>
+</field>
+
+<!-- editor for a many-to-one field -->
+<field name="customer">
+  <editor x-viewer="true">
+    <field name="firstName" />
+    <field name="lastName" />
+    <field name="email" />
+  </editor>
+</field>
+
+<!-- editor for a one-to-many field -->
+<field name="emails">
+  <editor layout="table" onNew="compute-default-email">
+    <field name="email" />
+    <field name="primary" widget="toggle" x-icon="star" x-icon-active="star-fill" x-exclusive="true" />
+    <field name="optOut" widget="toggle" x-icon="ban" />
+    <field name="invalid" widget="toggle" x-icon="exclamation-circle-fill" />
+  </editor>
+</field>
+```
+
+The `editor` can have the following properties:
+
+- `layout` - alternative layout (`panel` (default) or `table`)
+- `onNew` - an action to call when creating new record (only for one-to-many editors)
+- `x-viewer` - can be used to consider editor as viewer
+- `x-show-titles` - whether to show titles on editor fields
+- `x-show-on-new` - whether to show the editor when creating new record
+
+The `toggle` widget is specifically created for one-to-many editors to set boolean flags on the record.
+The `toggle` widget has following attributes:
+
+- `x-icon` - the icon to show when field value is not set or `false`
+- `x-icon-active` - the icon to show when field value is `true`
+- `x-exclusive` - if `true` than the field of only this line of o2m list can be `true`
+
+The `editor` can use the following widgets:
+
+- `field` - binds a model field, automatically selects appropriate widget
+- `button` - a button widget that executes some action
+- `spacer` - can be used to skip a cell
+- `separator` - can be used to define a boundary
+- `label` - can be used to set a static label
+- `panel` - an embedded panel
+
+---
+
+## Field viewer
+
+We can define custom viewer for fields using `<viewer>` child element on a field.
+
+```xml
+<!-- custom viewer on a normal field -->
+<field name="customer">
+  <viewer><![CDATA[
+    <>
+      <strong>{fullName}</strong>
+    </>
+  ]]></viewer>
+</field>
+
+<!-- custom viewer on a many-to-one field -->
+<field name="customer">
+  <viewer depends="fullName,email"><![CDATA[
+    <>
+      <a href=`mailto:${email}`>{email}</a>
+    </>
+  ]]></viewer>
+</field>
+
+<!-- customer viewer on a one-to-many field -->
+<field name="emails">
+  <viewer><![CDATA[
+    <>
+      <a href={`mailto:${email}`}>{email}</a>
+    </>
+  ]]></viewer>
+</field>
+```
+
+The viewer uses template to render the values.
+
+If viewer uses fields not in current form view, they should be listed as a comma
+seperated list of fields with `depends=""` attribute.
+
+The viewer template can have following helper functions to render values:
+
+- `$get(name)` - get the nested value
+- `$moment(date)` - covert date value to `moment.js` instance
+- `$number(value)` - convert text value to number
+- `$image(fieldName)` - get image url for the given image field
+- `$fmt(fieldName)` - get formated value of the given field
+
+---
+
+## Field tooltip
+
+We can define a details template on a field to show extra information about the cell with mouse over.
+
+```xml
+<field name="customer">
+  <tooltip depends="fullName">
+  <![CDATA[
+    <>
+      <strong>Name: </strong><span>{fullName}</span>
+    </>
+  ]]>
+  </tooltip>
+</field>
+```
+

@@ -6,7 +6,7 @@ description: Crear un fichero XML de modelo de datos para Axelor a partir de una
 Este skill permite generar un fichero XML de modelo de datos para Axelor a partir de una descripción en lenguaje natural o según un PDF con un formulario de datos. 
 El modelo de datos define las entidades, atributos, relaciones y validaciones necesarias para representar la información en el sistema Axelor.
 
-La descripción exacta del XML está descrita en [references/axelor-modelos.md](references/axelor-modelos.md).
+La descripción exacta del XML está descrita en [references/models.md](references/axelor-models.md) y en [references/repositories.md](references/repositories.md).
 
 Un ejemplo de modelo de la entidad TareaFirma es el siguiente fichero TareaFirma.xml:
 
@@ -66,3 +66,71 @@ Si para indicar los campos pasamos un PDF habrá que analizar el PDF para extrae
 Normalmente el nombre de estos campos del PDF tiene un nombre que se podrá usar como nombre de atributo en el XML, es que no que no lo tenga, por lo que habrá que generar un nombre de atributo válido a partir de las etiquetas "cercanas" a cada campo del PDF o de las sugerencias del campo. En las sugarencias suele estar el nombre en valenciano y castellano separado por una barra. Por ejemplo, si el PDF tiene un campo con etiqueta "Nombre completo del solicitante", el nombre del atributo en el XML podría ser "nombreCompletoSolicitante". 
 
 Los nombres de los campos van a seguir la norma de camelCase, es decir, la primera letra de cada palabra va en mayúscula excepto la primera palabra que va en minúscula. Además, se eliminarán los espacios y caracteres especiales. Todo esto es así porque van a seguir las normas de propiedades de Java ya que con este XML de dominio que crea un Bean de Java para usar en JPA.
+
+
+# Repositorios
+Tambien es posible crear una clase Java que actua como repositorio de JPA para cada entidad. Esta clase se suele llamar <NombreEntidad>Repository y suele extender de Abstract<NombreEntidad>Repository que es una clase generada automáticamente por Axelor a partir del XML de dominio. Por ejemplo, para la entidad TareaFirma, el repositorio se llamaría TareaFirmaRepository y extendería de AbstractTareaFirmaRepository. En este repositorio se pueden añadir métodos personalizados para realizar consultas o operaciones específicas sobre la entidad. Por ejemplo, se podría añadir un método para obtener todas las tareas de firma pendientes: 
+
+Los repositorios los crea el desarrollador, no se generan automáticamente, aunque si se genera la clase Abstract<NombreEntidad>Repository a partir del XML de dominio. El repositorio se suele ubicar en el mismo paquete que la entidad, por ejemplo en "com.educaflow.subsystem.firma.db".
+
+## Funciones de búsqueda personalizadas en repositorios
+
+Tambien es posible definir nuevos métodos en el repositorio de una entidad para realizar consultas personalizadas. Para ello se puede usar el tag <finder> dentro del tag <entity> en el XML de dominio.
+
+Por ejemplo, si queremos crear un método de búsqueda que permita buscar por correo y pais una lista de factura, podríamos añadir el siguiente finder al xml del modelo de la entidad Factura:
+
+```xml
+<finder name="findByEmailAndPais" using="email,String:pais"
+  filter="self.email = :email and self.pais.code = :pais"
+  all="true" />
+```
+
+Que creara el método findByEmailAndPais en el repositorio de la entidad Factura, con los parámetros email y pais, y que realizará la consulta definida en el filtro.
+
+## Extra code en repositorios
+También es posible añadir código extra a la clase repositorio de una entidad usando el tag <extra-code> dentro del tag <entity> en el XML de dominio. Esto permite añadir métodos o funcionalidades adicionales al repositorio sin tener que crear una clase repositorio personalizada desde cero. El código añadido en <extra-code> se incluirá en la clase Abstract<NombreEntidad>Repository generada automáticamente por Axelor a partir del XML de dominio.
+
+Ejemplo de extra code en repositorio:
+
+```xml
+<entity name="DNI">
+  <extra-code>
+  <![CDATA[
+public char getLetra(String dni) {
+    if (dni == null || dni.length() != 9) {
+        throw new IllegalArgumentException("DNI debe tener 9 caracteres");
+    }
+    return dni.charAt(8);
+}
+  ]]>
+  </extra-code>
+</entity>
+```
+
+# Extra code en dominio
+
+También se puede añadir código directamente a la clase de dominio generada. Para ello se usan los tags
+<extra-imports-model> y <extra-code-model> dentro de <entity>. Esto es útil para helpers simples de la entidad,
+evitando meter lógica de negocio compleja en el modelo.
+
+Ejemplo de extra code en dominio:
+
+```xml
+<entity name="Factura">
+  <extra-imports-model>
+  <![CDATA[
+  import java.util.Locale;
+  ]]>
+  </extra-imports-model>
+
+  <extra-code-model>
+  <![CDATA[
+  public String getCodigoNormalizado() {
+    return this.codigo == null ? null : this.codigo.trim().toUpperCase(Locale.ROOT);
+  }
+  ]]>
+  </extra-code-model>
+</entity>
+```
+
+
