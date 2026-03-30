@@ -28,32 +28,34 @@ Los ficheros de vistas se ubican junto a los modelos:
 
 ### Reglas generales
 
-- Separador: siempre `-` (kebab-case), todo en minúsculas
-- Los nombres de entidad dentro del nombre van en **PascalCase**: `TareaFirma`, `Ciclo`, no `tarea-firma`
-- Siempre terminar con el sufijo del tipo de elemento: `-form`, `-grid`, `-action`, `-menu`
-- **El primer segmento siempre es el nombre del subsistema o sistema** donde está definida la vista (en minúsculas). Ejemplos de subsistemas: `firma`, `sistemaeducativo`, `common`, `registroentradasalida`, `pdfutilities`, `expedientes`, `security`. Ejemplos de sistemas: `tramites`, `importar`. En las tablas siguientes `{subsistema}` significa indistintamente subsistema o sistema.
-- Excepción: el prefijo `exp-` se reserva exclusivamente para las vistas del framework de tipos de expediente
+- El nombre empieza siempre con el prefijo `subsys` (para subsistemas) o `sys` (para sistemas), seguido directamente del nombre del subsistema/sistema en **PascalCase** y sin separador.
+- A continuación, cada entidad (tabla) se separa con `.` (punto): `subsys{Subsistema}.{Entidad}` o `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}`.
+- Después de la última entidad, el resto del nombre (estados, calificadores, tipo) usa `-` (guión): `subsys{Subsistema}.{Entidad}-{estado}-{tipo}`.
+- Subsistemas conocidos (PascalCase): `Firma`, `SistemaEducativo`, `Common`, `RegistroEntradaSalida`, `PdfUtilities`, `Expedientes`, `Security`, `Importer`. Sistemas conocidos: `Tramites`, `Importar`.
+- Siempre terminar con el sufijo del tipo de elemento: `-form`, `-grid`, `-action`, `-menuitem`
+- Excepción: el prefijo `exp-` se reserva exclusivamente para las vistas del framework de tipos de expediente (templates)
 
 ### Forms (`-form`)
 
 | Caso | Patrón | Ejemplo |
 |------|--------|---------|
-| Pantalla principal editable | `{subsistema}-{Entidad}-form` | `sistemaeducativo-Ciclo-form` |
-| Solo lectura | `{subsistema}-{Entidad}-view-form` | `sistemaeducativo-Ciclo-view-form` |
-| Con estado | `{subsistema}-{Entidad}-{estado}-form` | `firma-TareaFirma-pendiente-form` |
-| Entidad anidada | `{subsistema}-{EntidadPadre}-{EntidadHija}-form` | `sistemaeducativo-Ciclo-Curso-form` |
-| Entidad anidada con estado | `{subsistema}-{EntidadPadre}-{EntidadHija}-{estado}-form` | `firma-TareaFirma-DocumentoFirma-pendiente-form` |
+| Pantalla principal editable | `subsys{Subsistema}.{Entidad}-form` | `subsysSistemaEducativo.Ciclo-form` |
+| Solo lectura | `subsys{Subsistema}.{Entidad}-view-form` | `subsysSistemaEducativo.Ciclo-view-form` |
+| Con estado | `subsys{Subsistema}.{Entidad}-{estado}-form` | `subsysFirma.TareaFirma-pendiente-form` |
+| Entidad anidada | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}-form` | `subsysSistemaEducativo.Ciclo.Curso-form` |
+| Entidad anidada con estado | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}-{estado}-form` | `subsysFirma.TareaFirma.DocumentoFirma-pendiente-form` |
+| Sistema | `sys{Sistema}.{Entidad}-form` | `sysImportar.Importar-form` |
 | Template expediente (framework) | `exp-{TipoExpediente}-Templates` | `exp-ComisionServicio-Templates` |
 
 ### Grids (`-grid`)
 
 | Caso | Patrón | Ejemplo |
 |------|--------|---------|
-| Grid principal | `{subsistema}-{Entidad}-grid` | `sistemaeducativo-Ciclo-grid` |
-| Selector/búsqueda embebida | `{subsistema}-{Entidad}-search-grid` | `sistemaeducativo-Ciclo-search-grid` |
-| Con estado | `{subsistema}-{Entidad}-{estado}-grid` | `firma-TareaFirma-pendiente-grid` |
-| Entidad anidada | `{subsistema}-{EntidadPadre}-{EntidadHija}-grid` | `sistemaeducativo-Ciclo-Curso-grid` |
-| Entidad anidada con estado | `{subsistema}-{EntidadPadre}-{EntidadHija}-{estado}-grid` | `firma-TareaFirma-DocumentoFirma-pendiente-grid` |
+| Grid principal | `subsys{Subsistema}.{Entidad}-grid` | `subsysSistemaEducativo.Ciclo-grid` |
+| Selector/búsqueda embebida | `subsys{Subsistema}.{Entidad}-search-grid` | `subsysSistemaEducativo.Ciclo-search-grid` |
+| Con estado | `subsys{Subsistema}.{Entidad}-{estado}-grid` | `subsysFirma.TareaFirma-pendiente-grid` |
+| Entidad anidada | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}-grid` | `subsysSistemaEducativo.Ciclo.Curso-grid` |
+| Entidad anidada con estado | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}-{estado}-grid` | `subsysFirma.TareaFirma.DocumentoFirma-pendiente-grid` |
 
 ### Actions (`-action`)
 
@@ -63,8 +65,8 @@ Todos los tipos de action terminan en `-action`. El tipo XML (`action-view`, `ac
 
 | Caso | Patrón | Ejemplo |
 |------|--------|---------|
-| CRUD completo (grid+form) | `{subsistema}-{Entidad}-mantenimiento-action` | `sistemaeducativo-Ciclo-mantenimiento-action` |
-| Con estado/filtro | `{subsistema}-{Entidad}-{estado}-action` | `firma-TareaFirma-pendiente-action` |
+| CRUD completo (grid+form) | `subsys{Subsistema}.{Entidad}-mantenimiento-action` | `subsysSistemaEducativo.Ciclo-mantenimiento-action` |
+| Con estado/filtro | `subsys{Subsistema}.{Entidad}-{estado}-action` | `subsysFirma.TareaFirma-pendiente-action` |
 
 **Categoría 2 — Acciones de botón** (disparadas directamente por `onClick` de un `<button>`):
 
@@ -72,30 +74,31 @@ Llevan siempre el segmento `button` para identificar que son el handler directo 
 
 | Patrón | Ejemplo |
 |--------|---------|
-| `{nombre-form}-button-{nombreBoton}-action` | `firma-TareaFirma-pendiente-form-button-paso1InicioFirmar-action` |
+| `subsys{Subsistema}.{Entidad}-{estado}-form-button-{nombreBoton}-action` | `subsysFirma.TareaFirma-pendiente-form-button-paso1InicioFirmar-action` |
 
 **Categoría 3 — Operaciones internas** (llamadas desde `onLoad`, `onSave`, `serial:`, u otras actions; no directamente por un botón):
 
 Sin segmento `button`. Pueden ser `action-method`, `action-record` o `action-attrs`.
 
-| Tipo                                  | Patrón | Ejemplo                                                             |
-|---------------------------------------|--------|---------------------------------------------------------------------|
-| Operación de negocio                  | `{nombre-form}-{operacion}-action` | `firma-TareaFirma-pendiente-form-firmar-action`                     |
-| Evento de campo (`onNew`, `onChange`) | `{nombre-form}-{evento}-action` | `sistemaeducativo-Ciclo-Curso-onNew-action`                         |
-| Asignar a campo un valor              | `{nombre-form}-{campo}-{valor}-action` | `firma-TareaFirma-pendiente-form-set-pasoActual-paso1Inicio-action` |
+| Tipo | Patrón | Ejemplo |
+|------|--------|---------|
+| Operación de negocio | `subsys{Subsistema}.{Entidad}-{estado}-form-{operacion}-action` | `subsysFirma.TareaFirma-pendiente-form-firmar-action` |
+| Evento de campo (`onNew`, `onChange`) | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}-{evento}-action` | `subsysSistemaEducativo.Ciclo.Curso-onNew-action` |
+| Asignar a campo un valor | `subsys{Subsistema}.{Entidad}-{estado}-form-set-{campo}-{valor}-action` | `subsysFirma.TareaFirma-pendiente-form-set-pasoActual-paso1Inicio-action` |
 
 ### Menuitems (`-menuitem`)
 
-El prefijo del menuitem es la **sección de navegación** (no el subsistema de la vista que abre). Sufijo siempre  `-menuitem`.
+El prefijo del menuitem es la **sección de navegación** (no el subsistema de la vista que abre). Si la sección corresponde a un subsistema o sistema, usa el mismo prefijo `subsys`/`sys` con PascalCase. Sufijo siempre `-menuitem`.
 
-| Nivel | Patrón                                   | Ejemplo                           |
-|-------|------------------------------------------|-----------------------------------|
-| Sección raíz | `{subsistema}-menuitem`                  | `firma-menuitem`                  |
-| Entrada directa | `{seccion}-{concepto}-menuitem`          | `firma-pendiente-menuitem`            |
-| Subsección | `{seccion}-{calificador}-menuitem`       | `sistemaeducativo-raw-menuitem`       |
-| Entrada en subsección | `{seccion}-{calificador}-{concepto}-menuitem` | `sistemaeducativo-raw-Ciclo-menuitem` |
+Regla para entidades en menuitems: si el nombre de entidad (PascalCase) aparece **directamente** tras el prefijo `subsys{Seccion}`, se fusiona sin separador. Si aparece **después de un calificador en minúsculas**, mantiene el `-`.
 
-El `{concepto}` puede ser el nombre de entidad (PascalCase) o un término descriptivo en minúsculas cuando la entidad es obvia por contexto (`pendiente`, `entrada`, `salida`).
+| Nivel | Patrón | Ejemplo |
+|-------|--------|---------|
+| Sección raíz | `subsys{Seccion}-menuitem` | `subsysFirma-menuitem` |
+| Entrada directa (concepto en minúsculas) | `subsys{Seccion}-{concepto}-menuitem` | `subsysFirma-pendiente-menuitem` |
+| Entrada directa (entidad PascalCase) | `subsys{Seccion}.{Entidad}-menuitem` | `subsysSistemaEducativo.Ciclo-menuitem` |
+| Subsección | `subsys{Seccion}-{calificador}-menuitem` | `subsysSistemaEducativo-raw-menuitem` |
+| Entrada en subsección (entidad tras calificador) | `subsys{Seccion}-{calificador}-{Entidad}-menuitem` | `subsysSistemaEducativo-raw-Ciclo-menuitem` |
 
 ### Calificadores habituales
 

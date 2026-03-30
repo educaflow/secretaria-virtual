@@ -4,18 +4,18 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
 
-    <menuitem name="expedientes-pendiente-menuitem"  parent="expedientes-menuitem" title="Expedientes Pendientes" action="expedientes-pendiente-action" groups="admins,users" order="201"  />
+    <menuitem name="subsysExpedientes-pendiente-menuitem"  parent="subsysExpedientes-menuitem" title="Expedientes Pendientes" action="subsysExpedientes.Expediente-pendiente-action" groups="admins,users" order="201"  />
 
-    <action-view name="expedientes-pendiente-action" title="Listado de expedientes pendientes de que realices la tarea"  model="com.educaflow.subsystem.expedientes.db.Expediente">
-        <view type="grid" name="expedientes-pendiente-grid"/>
+    <action-view name="subsysExpedientes.Expediente-pendiente-action" title="Listado de expedientes pendientes de que realices la tarea"  model="com.educaflow.subsystem.expedientes.db.Expediente">
+        <view type="grid" name="subsysExpedientes.Expediente-pendiente-grid"/>
         <domain>self.abierto=true </domain>
         <context name="_profile" expr="CREADOR"/>
     </action-view>
 
-    <grid name="expedientes-pendiente-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
+    <grid name="subsysExpedientes.Expediente-pendiente-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
           groups="admins,users"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
-          action="action-event-view-expediente"
+          action="subsysExpedientes-event-view-action"
     >
         <field name="tipoExpediente.tramite.name" />
         <field name="numeroExpediente" width="110px"/>

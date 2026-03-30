@@ -4,14 +4,14 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_8.0.xsd">
 
 
-    <form name="mant-Importar-Usuarios-form" title="Importar usuarios" model="com.educaflow.subsystem.importer.db.ViewDataImport"
+    <form name="sysImportar.Importar.Usuarios-form" title="Importar usuarios" model="com.educaflow.subsystem.importer.db.ViewDataImport"
           groups="admins" canAttach="false" canBack="true" canBackOnSave="false" canDelete="false" canNew="false" canSave="false"
-          onNew="mant-Importar-Usuarios-record"
+          onNew="sysImportar.Importar.Usuarios-action"
     >
-        <panel-include view="mant-Importar-form" />
+        <panel-include view="sysImportar.Importar-form" />
     </form>
     
-    <action-record name="mant-Importar-Usuarios-record" model="com.educaflow.subsystem.importer.db.ViewDataImport">
+    <action-record name="sysImportar.Importar.Usuarios-action" model="com.educaflow.subsystem.importer.db.ViewDataImport">
         <field name="configFilePath" expr="/data-import/usuarios-config.xml"/>
         <field name="validationSchemaPath" expr="/data-import/schemas/usuarios.xsd"/>
     </action-record>

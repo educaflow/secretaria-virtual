@@ -4,28 +4,28 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_7.2.xsd">
 
 
-    <menuitem name="menu-tipos-expedientes" title="Tipos de Expedientes" groups="admins"/>
-    <menuitem name="menu-item-tipos-expedientes" parent="menu-tipos-expedientes" title="Tipos Expedientes" action="action-crud-expedientes" groups="admins"/>
-    <menuitem name="menu-item-tipos-expedientes-mant-3" parent="menu-tipos-expedientes" title="Editar Prueba" action="accion-mantenimiento-tipoExpediente-3" groups="admins"/>
+    <menuitem name="subsysExpedientes-tiposExpedientes-menuitem" title="Tipos de Expedientes" groups="admins"/>
+    <menuitem name="subsysExpedientes.TipoExpediente-menuitem" parent="subsysExpedientes-tiposExpedientes-menuitem" title="Tipos Expedientes" action="subsysExpedientes.TipoExpediente-mantenimiento-action" groups="admins"/>
+    <menuitem name="subsysExpedientes.TipoExpediente-prueba-menuitem" parent="subsysExpedientes-tiposExpedientes-menuitem" title="Editar Prueba" action="subsysExpedientes.TipoExpediente-prueba-action" groups="admins"/>
 
 
-    <action-view name="action-crud-expedientes" title="tipos de expedientes" model="com.educaflow.subsystem.expedientes.db.TipoExpediente">
-        <view type="grid" name="tipo-expediente-grid"/>
-        <view type="form" name="tipo-expediente-form"/>
+    <action-view name="subsysExpedientes.TipoExpediente-mantenimiento-action" title="tipos de expedientes" model="com.educaflow.subsystem.expedientes.db.TipoExpediente">
+        <view type="grid" name="subsysExpedientes.TipoExpediente-grid"/>
+        <view type="form" name="subsysExpedientes.TipoExpediente-form"/>
     </action-view>
-    <action-view name="accion-mantenimiento-tipoExpediente-3" title="Tipo Expediente" model="com.educaflow.subsystem.expedientes.db.TipoExpediente"  >
-        <view type="form" name="tipo-expediente-form" />
+    <action-view name="subsysExpedientes.TipoExpediente-prueba-action" title="Tipo Expediente" model="com.educaflow.subsystem.expedientes.db.TipoExpediente"  >
+        <view type="form" name="subsysExpedientes.TipoExpediente-form" />
         <context name="_showRecord" expr="3" />
     </action-view>
 
 
-    <grid name="tipo-expediente-grid" title="Listado tipos expediente" model="com.educaflow.subsystem.expedientes.db.TipoExpediente">
+    <grid name="subsysExpedientes.TipoExpediente-grid" title="Listado tipos expediente" model="com.educaflow.subsystem.expedientes.db.TipoExpediente">
         <field name="code"  />
         <field name="name"  />
         <field name="fqcnEventManager" />
     </grid>
 
-    <form name="tipo-expediente-form" title="Mantenimiento de Tipos Expedientes" model="com.educaflow.subsystem.expedientes.db.TipoExpediente" width="large">
+    <form name="subsysExpedientes.TipoExpediente-form" title="Mantenimiento de Tipos Expedientes" model="com.educaflow.subsystem.expedientes.db.TipoExpediente" width="large">
         <panel title="Datos" >
             <field name="code"  />
             <field name="name"  />

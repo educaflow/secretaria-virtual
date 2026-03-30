@@ -3,18 +3,18 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="common-Usuario-mantenimiento-action" title="Usuarios" model="com.axelor.auth.db.User">
-        <view type="grid" name="common-Usuario-grid"/>
-        <view type="form" name="common-Usuario-form"/>
+    <action-view name="subsysCommon.Usuario-mantenimiento-action" title="Usuarios" model="com.axelor.auth.db.User">
+        <view type="grid" name="subsysCommon.Usuario-grid"/>
+        <view type="form" name="subsysCommon.Usuario-form"/>
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
 
-    <grid name="common-Usuario-grid" title="Usuarios" model="com.axelor.auth.db.User"
+    <grid name="subsysCommon.Usuario-grid" title="Usuarios" model="com.axelor.auth.db.User"
           groups="admins"
           editable="false" edit-icon="false" x-selector="none" canNew="true" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
         <toolbar>
-            <button name="importar" onClick="common-Usuario-Importar-action" title="Importar usuarios" icon="upload"/>
+            <button name="importar" onClick="subsysCommon.Usuario-importar-action" title="Importar usuarios" icon="upload"/>
         </toolbar>
         <field name="code" width="200px" />
         <field name="dni" />
@@ -24,7 +24,7 @@
         <field name="active"/>
     </grid>
 
-    <form name="common-Usuario-form" title="Usuario" model="com.axelor.auth.db.User"
+    <form name="subsysCommon.Usuario-form" title="Usuario" model="com.axelor.auth.db.User"
           groups="admins" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false">
         <panel name="Usuario" title="">
             <field name="code" colSpan="3" required="true"/>
@@ -37,28 +37,28 @@
             <!--<panel name="importar" title="Importación usuarios" colSpan="12">
                 <field name="importarUsuarios" widget="binary-link" title="Fichero usuarios" colSpan="6"/>
                 <button name="btnImportar" title="Importar"
-                        onClick="common-Usuario-form-importarUsuarios-action"
+                        onClick="subsysCommon.Usuario-form-importarUsuarios-action"
                         readonlyIf="!importarUsuarios" colSpan="6" />
             </panel>-->
         </panel>
     </form>
 
-    <action-method name="common-Usuario-form-importarUsuarios-action">
+    <action-method name="subsysCommon.Usuario-form-importarUsuarios-action">
         <call class="com.educaflow.subsystem.common.importar.UserImporter" method="importarUsuarios"/>
     </action-method>
 
-    <action-view name="common-Usuario-Importar-action" title="Importar usuarios" model="com.axelor.auth.db.User">
-        <view type="form" name="common-Usuario-Importar-form"/>
+    <action-view name="subsysCommon.Usuario-importar-action" title="Importar usuarios" model="com.axelor.auth.db.User">
+        <view type="form" name="subsysCommon.Usuario-importar-form"/>
         <view-param name="forceEdit" value="true"/>
         <view-param name="_id" value="null"/>
     </action-view>
 
-    <form name="common-Usuario-Importar-form" title="Importar usuarios" model="com.axelor.auth.db.User"
+    <form name="subsysCommon.Usuario-importar-form" title="Importar usuarios" model="com.axelor.auth.db.User"
           groups="admins" canAttach="false" canBack="true" canBackOnSave="false" canDelete="false" canNew="false" canSave="false">
         <panel name="importar" title="Importar usuarios">
             <field name="importarUsuarios" widget="binary-link" title="Fichero usuarios" colSpan="6"/>
             <button name="btnImportar" title="Importar"
-                    onClick="common-Usuario-form-importarUsuarios-action"
+                    onClick="subsysCommon.Usuario-form-importarUsuarios-action"
                     readonlyIf="!importarUsuarios" colSpan="6" />
         </panel>
     </form>

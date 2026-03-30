@@ -5,19 +5,19 @@
 
 
 
-    <menuitem name="expedientes-esperando-menuitem" parent="expedientes-menuitem" title="Expedientes Esperando" action="expedientes-esperando-action" groups="admins,users" order="202"/>
+    <menuitem name="subsysExpedientes-esperando-menuitem" parent="subsysExpedientes-menuitem" title="Expedientes Esperando" action="subsysExpedientes.Expediente-esperando-action" groups="admins,users" order="202"/>
 
-    <action-view name="expedientes-esperando-action" title="Expedientes esperando a que otra persona realice una tarea"  model="com.educaflow.subsystem.expedientes.db.Expediente" >
-        <view type="tree" name="expedientes-esperando-tree"  />
+    <action-view name="subsysExpedientes.Expediente-esperando-action" title="Expedientes esperando a que otra persona realice una tarea"  model="com.educaflow.subsystem.expedientes.db.Expediente" >
+        <view type="tree" name="subsysExpedientes.Expediente-esperando-tree"  />
         <context name="_profile" expr="RESPONSABLE"/>
     </action-view>
 
-    <grid name="expedientes-esperando-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
+    <grid name="subsysExpedientes.Expediente-esperando-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
           groups="admins,users"
           groupBy="tipoExpediente.tramite.name"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false"
           canSave="false"
-          action="action-event-view-expediente"
+          action="subsysExpedientes-event-view-action"
     >
         <field name="numeroExpediente"/>
         <field name="tipoExpediente.name"/>
@@ -27,7 +27,7 @@
     </grid>
 
 
-    <tree name="expedientes-esperando-tree" title="Expedientes">
+    <tree name="subsysExpedientes.Expediente-esperando-tree" title="Expedientes">
 
         <column name="name" />
         <column name="numeroExpediente" width="100px" title="Número Expediente" />
@@ -40,7 +40,7 @@
             <field name="name" as="name" />
         </node>
 
-        <node model="com.educaflow.subsystem.expedientes.db.Expediente" domain="abierto=true" parent="tipoExpediente.tramite" draggable="false" onClick="action-event-view-expediente">
+        <node model="com.educaflow.subsystem.expedientes.db.Expediente" domain="abierto=true" parent="tipoExpediente.tramite" draggable="false" onClick="subsysExpedientes-event-view-action">
             <field name="name" />
             <field name="numeroExpediente"/>
             <field name="createdBy"/>

@@ -3,20 +3,20 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <menuitem name="registroentradasalida-menuitem"  title="Registro"  groups="admins"  order="500"/>
+    <menuitem name="subsysRegistroEntradaSalida-menuitem"  title="Registro"  groups="admins"  order="500"/>
 
-    <menuitem name="registroentradasalida-entrada-menuitem"  parent="registroentradasalida-menuitem" title="Entrada" action="registroentradasalida-Entrada-mantenimiento-action" groups="admins" order="2"  />
-    <menuitem name="registroentradasalida-salida-menuitem"  parent="registroentradasalida-menuitem" title="Salida" action="registroentradasalida-Salida-mantenimiento-action" groups="admins" order="2"  />
+    <menuitem name="subsysRegistroEntradaSalida-entrada-menuitem"  parent="subsysRegistroEntradaSalida-menuitem" title="Entrada" action="subsysRegistroEntradaSalida.Entrada-mantenimiento-action" groups="admins" order="2"  />
+    <menuitem name="subsysRegistroEntradaSalida-salida-menuitem"  parent="subsysRegistroEntradaSalida-menuitem" title="Salida" action="subsysRegistroEntradaSalida.Salida-mantenimiento-action" groups="admins" order="2"  />
 
-    <action-view name="registroentradasalida-Entrada-mantenimiento-action"  title="Registro de entrada" model="com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada"  >
-        <view type="grid" name="registroentradasalida-Entrada-grid"/>
-        <view type="form" name="registroentradasalida-Entrada-form"/>
+    <action-view name="subsysRegistroEntradaSalida.Entrada-mantenimiento-action"  title="Registro de entrada" model="com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada"  >
+        <view type="grid" name="subsysRegistroEntradaSalida.Entrada-grid"/>
+        <view type="form" name="subsysRegistroEntradaSalida.Entrada-form"/>
 
     </action-view>
 
-    <action-view name="registroentradasalida-Salida-mantenimiento-action"  title="Registro de salida" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"  >
-        <view type="grid" name="registroentradasalida-Salida-grid"/>
-        <view type="form" name="registroentradasalida-Salida-form"/>
+    <action-view name="subsysRegistroEntradaSalida.Salida-mantenimiento-action"  title="Registro de salida" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"  >
+        <view type="grid" name="subsysRegistroEntradaSalida.Salida-grid"/>
+        <view type="form" name="subsysRegistroEntradaSalida.Salida-form"/>
     </action-view>
 
 

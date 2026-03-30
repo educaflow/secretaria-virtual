@@ -3,13 +3,13 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="sistemaeducativo-LeyEducativa-mantenimiento-action" title="Leyes educativas" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa">
-        <view type="grid" name="sistemaeducativo-LeyEducativa-grid"/>
-        <view type="form" name="sistemaeducativo-LeyEducativa-form"/>
+    <action-view name="subsysSistemaEducativo.LeyEducativa-mantenimiento-action" title="Leyes educativas" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa">
+        <view type="grid" name="subsysSistemaEducativo.LeyEducativa-grid"/>
+        <view type="form" name="subsysSistemaEducativo.LeyEducativa-form"/>
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
-    <grid name="sistemaeducativo-LeyEducativa-grid" title="Ley educativa" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
+    <grid name="subsysSistemaEducativo.LeyEducativa-grid" title="Ley educativa" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
           groups="admins"
           editable="false" edit-icon="false" x-selector="none" canNew="true" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
         <hilite color="danger" if="archived"/>
@@ -18,7 +18,7 @@
         <field name="archived" width="100px" />
     </grid>
 
-    <form name="sistemaeducativo-LeyEducativa-form" title="Ley educativa" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
+    <form name="subsysSistemaEducativo.LeyEducativa-form" title="Ley educativa" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
           groups="admins"
           width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false">
         <panel name="LeyEducativa" title="">
@@ -27,7 +27,7 @@
         </panel>
     </form>
 
-    <grid name="sistemaeducativo-LeyEducativa-search-grid" title="Ley educativa" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
+    <grid name="subsysSistemaEducativo.LeyEducativa-search-grid" title="Ley educativa" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
           groups="admins,users"
           orderBy="name"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">

@@ -3,7 +3,7 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <grid name="firma-TareaFirma-todos-grid" title="Firmas" model="com.educaflow.subsystem.firma.db.TareaFirma"
+    <grid name="subsysFirma.TareaFirma-todos-grid" title="Firmas" model="com.educaflow.subsystem.firma.db.TareaFirma"
           groups="admins,users"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
           orderBy="fechaSolicitud" canEditOnClick="true">
@@ -14,7 +14,7 @@
         <field name="estadoTareaFirma"/>
     </grid>
 
-    <form name="firma-TareaFirma-todos-form" title="Firma de documento" model="com.educaflow.subsystem.firma.db.TareaFirma"
+    <form name="subsysFirma.TareaFirma-todos-form" title="Firma de documento" model="com.educaflow.subsystem.firma.db.TareaFirma"
           canEdit="false" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canCancel="false" canMore="false"
           related='{"documentosFirma":["documentoOriginal","documentoFirmado"]}'>
 
@@ -27,7 +27,7 @@
         </panel>
 
         <panel-related name="documentosFirma" title="Documentos" field="documentosFirma" colSpan="12"
-                       grid-view="firma-DocumentoFirma-todos-grid" form-view="firma-DocumentoFirma-todos-form" readonly="true"/>
+                       grid-view="subsysFirma.DocumentoFirma-todos-grid" form-view="subsysFirma.DocumentoFirma-todos-form" readonly="true"/>
 
         <panel name="acciones" colSpan="12" showFrame="false">
             <button name="btnVolver" title="Volver" onClick="back" css="btn-secondary" colSpan="3" colOffset="9" outline="true"/>
@@ -35,13 +35,13 @@
 
     </form>
 
-    <grid name="firma-DocumentoFirma-todos-grid" title="Documentos" model="com.educaflow.subsystem.firma.db.DocumentoFirma"
+    <grid name="subsysFirma.DocumentoFirma-todos-grid" title="Documentos" model="com.educaflow.subsystem.firma.db.DocumentoFirma"
           edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
         <field name="documentoOriginal.fileName"/>
         <field name="documentoFirmado.fileName"/>
     </grid>
 
-    <form name="firma-DocumentoFirma-todos-form" title="Documento" model="com.educaflow.subsystem.firma.db.DocumentoFirma"
+    <form name="subsysFirma.DocumentoFirma-todos-form" title="Documento" model="com.educaflow.subsystem.firma.db.DocumentoFirma"
           canAttach="false" canEdit="false" canBack="true" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel-tabs>
             <panel name="tabDocumentoOriginal" title="Documento original" colSpan="12">

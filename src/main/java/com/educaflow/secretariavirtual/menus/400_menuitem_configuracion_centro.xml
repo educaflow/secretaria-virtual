@@ -3,18 +3,8 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <menuitem name="configuracioncentro-menuitem"  title="Configuración Centro"  groups="admins"  order="400"/>
-
-    <menuitem
-            name="configuracioncentro-CursoAcademico-menuitem"
-            parent="configuracioncentro-menuitem"
-            title="Centros"
-            action="common-Centro-mantenimiento-action"
-            groups="admins"
-            order="2"
-    />
-
-    <menuitem name="configuracioncentro-raw-menuitem"  title="Configuración Centro-RAW"  groups="admins"  order="400"/>
-
+    <menuitem name="subsysConfiguracionCentro-menuitem"  title="Configuración Centro"  groups="admins"  order="401"/>
+    <menuitem name="subsysConfiguracionCentro.CursoAcademico-menuitem" title="Centros" parent="subsysConfiguracionCentro-menuitem" action="subsysCommon.Centro-mantenimiento-action" groups="admins" order="2" />
+    <menuitem name="subsysConfiguracionCentro-raw-menuitem"  title="Configuración Centro-RAW"  groups="admins"  order="402"/>
 
 </object-views>

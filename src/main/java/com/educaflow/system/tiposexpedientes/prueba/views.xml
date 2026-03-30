@@ -8,9 +8,9 @@
         <panel name="datos-solicitante" title="Datos Solicitante">
             <field name="solicita" colSpan="9"/>
             <field name="justificante"  widget="binary-link" colSpan="3" x-accept=".pdf"/>
-            <field name="ciclo" colSpan="6" grid-view="sistemaeducativo-Ciclo-search-grid" form-view="sistemaeducativo-Ciclo-view-form" />
+            <field name="ciclo" colSpan="6" grid-view="subsysSistemaEducativo.Ciclo-search-grid" form-view="subsysSistemaEducativo.Ciclo-view-form" />
         </panel>
-        <panel-related name="fcts-panel" title="FCT's__!!" field="formacionesCentrosTrabajo" colSpan="12" form-view="fct-details" grid-view="fct-grid"/>
+        <panel-related name="fcts-panel" title="FCT's__!!" field="formacionesCentrosTrabajo" colSpan="12" form-view="exp-Prueba-FormacionCentroTrabajo-form" grid-view="exp-Prueba-FormacionCentroTrabajo-grid"/>
         <panel name="datos-resolucion" title="Datos Resolución">
             <field name="motivo" colSpan="12"/>
         </panel>
@@ -57,10 +57,10 @@
         </include-panels>
         <footer>
             <buttons-left>
-                <button name="DELETE" css="btn-danger" outline="true" title="Borrar" onClick="action-event-expediente" prompt="¿Está seguro que desea borrar el expediente?"/>
+                <button name="DELETE" css="btn-danger" outline="true" title="Borrar" onClick="subsysExpedientes-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
             </buttons-left>
             <buttons-right>
-                <button name="PRESENTAR" title="Guardar" onClick="action-event-expediente"/>
+                <button name="PRESENTAR" title="Guardar" onClick="subsysExpedientes-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -73,7 +73,7 @@
             <buttons-left>
             </buttons-left>
             <buttons-right>
-                <button name="EXIT" colSpan="2"  title="Salir" onClick="action-event-expediente"/>
+                <button name="EXIT" colSpan="2"  title="Salir" onClick="subsysExpedientes-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -93,11 +93,11 @@
         </include-panels>
         <footer>
             <buttons-left>
-                <button name="RECHAZAR" title="Rechazar" css="btn-danger" outline="true" onClick="action-event-expediente" prompt="¿Esta seguro que desea recharlo?"/>
+                <button name="RECHAZAR" title="Rechazar" css="btn-danger" outline="true" onClick="subsysExpedientes-event-action" prompt="¿Esta seguro que desea recharlo?"/>
             </buttons-left>
             <buttons-right>
-                <button name="SUBSANAR" title="Subsanar información" outline="true" onClick="action-event-expediente"/>
-                <button name="ACEPTAR" title="Aceptar" onClick="action-event-expediente"/>
+                <button name="SUBSANAR" title="Subsanar información" outline="true" onClick="subsysExpedientes-event-action"/>
+                <button name="ACEPTAR" title="Aceptar" onClick="subsysExpedientes-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -110,7 +110,7 @@
             <buttons-left>
             </buttons-left>
             <buttons-right>
-                <button name="EXIT" colSpan="2"  title="Salir" onClick="action-event-expediente"/>
+                <button name="EXIT" colSpan="2"  title="Salir" onClick="subsysExpedientes-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -130,7 +130,7 @@
 
             </buttons-left>
             <buttons-right>
-                <button name="EXIT" colSpan="2"  title="Salir" onClick="action-event-expediente"/>
+                <button name="EXIT" colSpan="2"  title="Salir" onClick="subsysExpedientes-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -150,7 +150,7 @@
 
             </buttons-left>
             <buttons-right>
-                <button name="EXIT" colSpan="2"  title="Salir" onClick="action-event-expediente"/>
+                <button name="EXIT" colSpan="2"  title="Salir" onClick="subsysExpedientes-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -159,16 +159,16 @@
 
 
 
-    <grid name="fct-grid" title="FCT's__!!" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" canEdit="false" edit-icon="false" canSave="true">
+    <grid name="exp-Prueba-FormacionCentroTrabajo-grid" title="FCT's__!!" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" canEdit="false" edit-icon="false" canSave="true">
         <field name="alumno" />
     </grid>
-    <form name="fct-details" title="Detalle FCT" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" onValidate="action-validate-on-save-child" validateSignal="misenyal" canSave="true" >
+    <form name="exp-Prueba-FormacionCentroTrabajo-form" title="Detalle FCT" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" onValidate="subsysExpedientes-validate-on-save-child-action" validateSignal="misenyal" canSave="true" >
         <include-panels header="false">
             datos-fct
         </include-panels>
         <footer />
     </form>
-    <form name="fct-details-firma" title="Detalle FCT" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" canSave="true">
+    <form name="exp-Prueba-FormacionCentroTrabajo-firma-form" title="Detalle FCT" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" canSave="true">
         <include-panels header="false">
             nombre-alumno
             firma-fct

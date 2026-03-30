@@ -4,16 +4,16 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views http://axelor.com/xml/ns/object-views/object-views_7.2.xsd">
 
 
-    <action-method name="action-event-expediente">
+    <action-method name="subsysExpedientes-event-action">
         <call class="com.educaflow.subsystem.expedientes.controllers.ExpedienteController" method="triggerEvent"/>
     </action-method>
-    <action-method name="action-event-new-expediente">
+    <action-method name="subsysExpedientes-event-new-action">
         <call class="com.educaflow.subsystem.expedientes.controllers.ExpedienteController" method="triggerInitialEvent"/>
     </action-method>
-    <action-method name="action-event-view-expediente">
+    <action-method name="subsysExpedientes-event-view-action">
         <call class="com.educaflow.subsystem.expedientes.controllers.ExpedienteController" method="viewExpediente"/>
     </action-method>
-    <action-method name="action-validate-on-save-child">
+    <action-method name="subsysExpedientes-validate-on-save-child-action">
         <call class="com.educaflow.subsystem.expedientes.controllers.ExpedienteController" method="validateChild"/>
     </action-method>
 </object-views>

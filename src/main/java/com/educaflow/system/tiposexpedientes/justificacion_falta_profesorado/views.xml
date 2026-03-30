@@ -105,10 +105,10 @@
         </include-panels>
         <footer>
             <buttons-left>
-                <button name="DELETE" colSpan="2" css="btn-danger" outline="true" title="Borrar" onClick="action-event-expediente" prompt="¿Está seguro que desea borrar el expediente?"/>
+                <button name="DELETE" colSpan="2" css="btn-danger" outline="true" title="Borrar" onClick="subsysExpedientes-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
             </buttons-left>
             <buttons-right>
-                <button name="GUARDAR_DATOS" colSpan="2" title="Siguiente" onClick="action-event-expediente"/>
+                <button name="GUARDAR_DATOS" colSpan="2" title="Siguiente" onClick="subsysExpedientes-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -122,7 +122,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="action-event-expediente"/>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -136,10 +136,10 @@
         </include-panels>
         <footer>
             <buttons-left>
-                <button name="BACK" colSpan="2" outline="true" title="Atrás" onClick="action-event-expediente"/>
+                <button name="BACK" colSpan="2" outline="true" title="Atrás" onClick="subsysExpedientes-event-action"/>
             </buttons-left>
             <buttons-right>
-                <button name="PRESENTAR" colSpan="4" title="Firmar con AutoFirma__!! y Presentar la solicitud" onClick="serial:exp-JustificacionFaltaProfesorado-firmarDocumentacionParaPresentar-action,action-event-expediente" prompt="¿Esta seguro que desea presentar la documentación?&lt;br&gt;No podrá deshacer esta acción"/>
+                <button name="PRESENTAR" colSpan="4" title="Firmar con AutoFirma__!! y Presentar la solicitud" onClick="serial:exp-JustificacionFaltaProfesorado-firmarDocumentacionParaPresentar-action,subsysExpedientes-event-action" prompt="¿Esta seguro que desea presentar la documentación?&lt;br&gt;No podrá deshacer esta acción"/>
             </buttons-right>
         </footer>
         <panel title="ayuda" showFrame="false" >
@@ -153,7 +153,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="action-event-expediente"/>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -177,7 +177,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="RESOLVER" colSpan="3" colOffset="9" title="Resolver el expediente" onClick="action-event-expediente" prompt="¿Esta seguro que desea resolver el expediente?&lt;br&gt;No podrá deshacer esta acción"/>
+                <button name="RESOLVER" colSpan="3" colOffset="9" title="Resolver el expediente" onClick="subsysExpedientes-event-action" prompt="¿Esta seguro que desea resolver el expediente?&lt;br&gt;No podrá deshacer esta acción"/>
             </buttons-right>
         </footer>
     </form>
@@ -191,7 +191,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="action-event-expediente"/>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -212,7 +212,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="action-event-expediente"/>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -231,7 +231,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="action-event-expediente"/>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
             </buttons-right>
         </footer>
     </form>
