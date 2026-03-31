@@ -19,13 +19,18 @@ import com.educaflow.subsystem.SUBSYSTEM.db.MiEntidad;
 public interface MiEntidadService {
 
     MiEntidad insert(DatosMiEntidad datos) throws BusinessException;
-    MiEntidad marcarComoXxx(MiEntidad entidad, MiEntidad entidadOriginal) throws BusinessException;
+    MiEntidad update(MiEntidad entidad, MiEntidad entidadOriginal) throws BusinessException;
 }
 ```
 
 - Los métodos lanzan `BusinessException` si hay errores de negocio.
 - Los parámetros de entrada de tipo "datos de creación" se modelan como un `record` DTO en el mismo paquete (p.ej. `DatosMiEntidad`).
 - El segundo parámetro `entidadOriginal` (cuando existe) recibe el estado anterior antes de modificaciones, para comparaciones o auditoría.
+- La estructura de los métodos publicos del servicio son:
+  - Llamar a la regla de negocio de validación (constraint rule) 1, 2, N... que validan el estado de la entidad y lanzan `BusinessException` si algo no es correcto. Estas reglas puedee o no necesitas el estado original para comparar.
+  - Llamar a la regla de negocio de acción (action rule) 1, 2, N... que realizan efectos secundarios (notificaciones, callbacks, etc.) antes de persistir la entidad. Estas reglas pueden necesitar el estado original para comparar.
+  - Guardar/actualizar/insertar la entidad con el repositorio.
+  - Llamar a la regla de negocio de acción (action rule) 1, 2, N... que realizan efectos secundarios (notificaciones, callbacks, etc.) después de persistir la entidad. Estas reglas pueden necesitar el estado original para comparar.
 
 ## Estructura de la implementación
 
@@ -57,14 +62,23 @@ public class MiEntidadServiceImpl implements MiEntidadService {
     }
 
     @Override
-    public MiEntidad marcarComoXxx(MiEntidad entidad, MiEntidad entidadOriginal) throws BusinessException {
-        fireConstraintRule_AlgoRequerido(entidad);
+    public MiEntidad update(MiEntidad entidad, MiEntidad entidadOriginal) throws BusinessException {
+        fireConstraintRule_{regla de negocio de validación1}(entidad);
+        fireConstraintRule_{regla de negocio de validación2}(entidad,entidadOriginal);
+        fireConstraintRule_{regla de negocion de validaciónN}(entidad);
+        fireConstraintRule_{regla de negocion de validaciónM}(entidad,entidadOriginal);
 
-        // ... lógica de negocio
+        //Si todas las reglas de validación pasan sin lanzar excepción, se ejecutan las reglas de acción (efectos secundarios) antes de guardar
+        fireActionRule_{Pre Regla de negocio de acción 1}(entidad);
+        fireActionRule_{Pre Regla de negocio de acción 2}(entidad);
+        fireActionRule_{Pre Regla de negocio de acción N}(entidad,entidadOriginal);
+        fireActionRule_{Pre Regla de negocio de acción M}(entidad,entidadOriginal);
 
         entidad = miEntidadRepository.save(entidad);
 
-        fireActionRule_NotificarAlgo(entidad);
+        fireActionRule_{Post Regla de negocio de acción A}(entidad);
+        fireActionRule_{Post Regla de acción B}(entidad);
+        etc...
 
         return entidad;
     }
@@ -74,8 +88,8 @@ public class MiEntidadServiceImpl implements MiEntidadService {
     /********************************    Action Rules    ********************************/
     /************************************************************************************/
 
-    private void fireActionRule_NotificarAlgo(MiEntidad entidad) {
-        // efectos secundarios tras guardar: notificaciones, callbacks, etc.
+    private void fireActionRule_{regla de negocio de acción1}(MiEntidad entidad) {
+        // efectos secundarios : notificaciones, callbacks, etc.
     }
 
 
@@ -83,13 +97,13 @@ public class MiEntidadServiceImpl implements MiEntidadService {
     /********************************    Constraint Rules    ********************************/
     /****************************************************************************************/
 
-    private void fireConstraintRule_AlgoRequerido(MiEntidad entidad) throws BusinessException {
-        if (entidad.getCampo() == null || entidad.getCampo().isBlank()) {
+    private void fireConstraintRule_{Regla de negocio de acción A}(MiEntidad entidad) throws BusinessException {
+        if ({Regla de validación}) {
             throw new BusinessException("campo", "Es requerido", "Título del campo");
         }
     }
 
-    private void fireConstraintRule_VariosErrores(MiEntidad entidad) throws BusinessException {
+    private void fireConstraintRule_VariosErrores(MiEntidad entidad,MiEntidad entidadOriginal) throws BusinessException {
         BusinessMessages messages = new BusinessMessages();
 
         if (entidad.getCampoA() == null) {
@@ -137,16 +151,19 @@ public class MiEntidadController {
 
     @CallMethod
     @Transactional
-    public void marcarComoXxx(ActionRequest actionRequest, ActionResponse actionResponse) {
+    public void update(ActionRequest actionRequest, ActionResponse actionResponse) {
         try {
             ActionRequestHelper<MiEntidad> actionRequestHelper = new ActionRequestHelper(actionRequest, MiEntidad.class);
             MiEntidad entidadOriginal = actionRequestHelper.getOriginalModel();
             AllowProperties allowProperties = AllowProperties.createAllowProperties(
-                Map.of("campoPermitido", Map.of())
+                Map.of(
+                    "campoSimple", Map.of(),                                    // campo escalar
+                    "coleccion", Map.of("subcampo", Map.of())                   // colección con sub-campo
+                )
             );
             MiEntidad entidad = actionRequestHelper.getModel(allowProperties);
 
-            miEntidadService.marcarComoXxx(entidad, entidadOriginal);
+            miEntidadService.update(entidad, entidadOriginal);
 
             actionResponse.setSignal("back", null);
         } catch (BusinessException ex) {
@@ -164,7 +181,7 @@ public class MiEntidadController {
 - `@Transactional` — obligatorio en métodos que escriben en base de datos.
 - `ActionRequestHelper.getOriginalModel()` — obtiene el estado original de la entidad antes de las modificaciones del usuario.
 - `ActionRequestHelper.getModel(allowProperties)` — obtiene la entidad con solo los campos permitidos copiados desde la request. **Nunca** usar `getModel()` sin `AllowProperties` en métodos que guardan datos.
-- `AllowProperties.createAllowProperties(Map.of(...))` — define qué campos (y sub-campos) se pueden copiar. La clave es el nombre del campo; el valor es un `Map` con sus sub-campos (vacío `Map.of()` si es un campo simple).
+- `AllowProperties.createAllowProperties(Map.of(...))` — define qué campos (y sub-campos) se pueden copiar. La clave es el nombre del campo; el valor es un `Map` con sus sub-campos (vacío `Map.of()` si es un campo simple o una relación entera). Para colecciones con sub-campos: `Map.of("coleccion", Map.of("subcampo", Map.of()))`.
 - `actionResponse.setSignal("back", null)` — cierra el formulario y vuelve al grid tras guardar con éxito.
 - `AxelorViewUtil.doResponseBusinessMessages(...)` — convierte `BusinessException` en errores visibles en la vista.
 - Errores no esperados se relanzán como `RuntimeException` — Axelor los mostrará como error genérico.
@@ -222,18 +239,7 @@ bind(MiEntidadService.class).to(MiEntidadServiceImpl.class);
 ```java
 public interface FirmaService {
     TareaFirma insert(DatosFirma datosFirma) throws BusinessException;
-    TareaFirma marcarComoFirmada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) throws BusinessException;
-    TareaFirma marcarComoRechazada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) throws BusinessException;
+    TareaFirma update(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) throws BusinessException;
+    TareaFirma otroMetodo(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) throws BusinessException;
 }
 ```
-
-**Implementación** (`subsystem/firmas/service/impl/FirmaServiceImpl.java`):
-- `insert` mapea `DatosFirma` (record) a `TareaFirma` y guarda.
-- `marcarComoFirmada` valida documentos (constraint), guarda, y luego notifica via callback (action).
-- `marcarComoRechazada` valida motivo (constraint), guarda, y notifica (action).
-- El callback usa `Class.forName(fqcn)` + `Beans.get()` + `JsonUtil.fromJson()` para invocar el `FirmaNotifier` registrado.
-
-**Controlador** (`subsystem/firmas/controllers/FirmarController.java`):
-- `firmarDocumentosConAutoFirma` — sin `@Transactional`; construye el objeto `AutoFirma` con la posición y NIF del firmante, añade los pares origen→destino de cada documento, y delega en `AutoFirma.sendToActionResponse`.
-- `marcarComoFirmada` — `@Transactional`; permite solo el campo `documentosFirma.documentoFirmado` via `AllowProperties` (no permite que la vista modifique otros campos); llama al servicio y hace `setSignal("back")`.
-- `marcarComoRechazada` — `@Transactional`; permite solo `motivoRechazo`; llama al servicio y hace `setSignal("back")`.
