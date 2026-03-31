@@ -85,3 +85,6 @@ Each expediente type lives in its own package (e.g., `comision_servicio/`) and c
 ### PDF operations
 
 Use `DocumentoPdfFactory.getDocumentoPdf(byte[], fileName)` or `MetaFileHelper.getDocumentoPdf(MetaFile)` to get a `DocumentoPdf` instance. Signing uses `CampoFirma` builder + `AlmacenClave`. AutoFirma (desktop client) integration uses the `AutoFirma` builder and `AutoFirma.sendToActionResponse(...)`.
+
+### i18n
+Nunca jamás, crear los ficheros `i18n_ca.csv` ni `i18n_es.csv` ya que hay un script que los genera automáticamente, así que es totalmente innecesario.
