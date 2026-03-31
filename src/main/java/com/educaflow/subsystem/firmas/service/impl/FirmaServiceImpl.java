@@ -75,7 +75,7 @@ public class FirmaServiceImpl implements FirmaService {
     }
 
     @Override
-    public TareaFirma marcarComoFirmada(TareaFirma tareaFirma, TareaFirma kk) throws BusinessException {
+    public TareaFirma marcarComoFirmada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) throws BusinessException {
         fireConstraintRule_DocumentosValidos(tareaFirma);
 
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
