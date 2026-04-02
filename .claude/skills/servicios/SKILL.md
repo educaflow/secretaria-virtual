@@ -1,41 +1,71 @@
 ---
 name: servicios
-description: Skill para crear servicios de negocio y sus controladores en EducaFlow Secretaría Virtual. Un servicio es un par interfaz + implementación que encapsula lógica de negocio, validaciones y persistencia. El controlador expone los métodos del servicio a las vistas Axelor.
+description: Skill para crear servicios de negocio en EducaFlow Secretaría Virtual. Un servicio es un par interfaz + implementación que encapsula lógica de negocio, validaciones y persistencia. 
 ---
 
-Un servicio de negocio en EducaFlow se compone de tres ficheros Java:
+# Guía para desarrollar servicios de negocio  en EducaFlow Secretaría Virtual
+
+**NOTA: Aunque vamos a usar ejemplos de Systemas, todo lo explicado aquí es aplicable a cualquier subsistema.**
+
+Un servicio de negocio en EducaFlow se compone de 3 ficheros Java:
 - **Interfaz** (`NombreService.java`) — define el contrato público con los métodos que lanza `BusinessException`.
 - **Implementación** (`impl/NombreServiceImpl.java`) — implementa la interfaz; usa `@Inject` para inyectar repositorios y otros colaboradores.
-- **Controlador** (`controllers/NombreController.java`) — puente entre las vistas Axelor y el servicio; gestiona `ActionRequest`/`ActionResponse`.
+- **Módulo** (`module/NombreSystemaModule.java`) — Donde se registra la implementación del servicio en el módulo Guice del sistema.
+
+## Lista de tareas al desarrollar un servicio
+Deberás hacer lo siguiente
+1. Pensar, analizar y crear la interfaz del servicio con métodos que lanzan `BusinessException`. 
+2. Implementar la interfaz en una clase `Impl` con la lógica de negocio, validaciones y persistencia.
+3. Registrar el servicio en el módulo Guice del subsistema.
+6. Si es necesario llamar al servicio desde otro servicio o controlador, usar `@Inject` para inyectar el servicio y llamar a sus métodos.
+7. Pensar y/o analizar si en el "insert" se necesita un DTO específico para la creación (p.ej. `DatosMiEntidad`) que no incluya campos calculados o campos de otras entidades relacionados, o si se puede usar directamente la entidad completa como parámetro de entrada.
+8. Crear casos de prueba para el servicio, incluyendo casos de éxito y casos de error para validar que las reglas de negocio funcionan correctamente y que los errores se detectan
+
 
 ## Estructura de la interfaz
 
+
 ```java
-package com.educaflow.subsystem.SUBSYSTEM.service;
+package com.educaflow.system.NombreSystema.service;
 
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
-import com.educaflow.subsystem.SUBSYSTEM.db.MiEntidad;
+import com.educaflow.system.NombreSystema.db.MiEntidad;
 
 public interface MiEntidadService {
 
-    MiEntidad insert(DatosMiEntidad datos) throws BusinessException;
+    MiEntidad insert(MiEntidad miEntidad) throws BusinessException;
+    MiEntidad update(MiEntidad entidad, MiEntidad entidadOriginal) throws BusinessException;
+}
+```
+
+Si los datos a insertar son muy distintos a la entidad (p.ej. no incluyen campos calculados, o incluyen campos de otras entidades relacionados), se puede usar un DTO específico para la creación (`DatosMiEntidad`) en lugar de la entidad completa.
+
+```java
+package com.educaflow.subsystem.NombreSystema.service;
+
+import com.educaflow.base.infrastructure.validation.messages.BusinessException;
+import com.educaflow.system.NombreSystema.db.MiEntidad;
+
+public interface MiEntidadService {
+
+    MiEntidad insert(DatosMiEntidad datosMiEntidad) throws BusinessException;
     MiEntidad update(MiEntidad entidad, MiEntidad entidadOriginal) throws BusinessException;
 }
 ```
 
 - Los métodos lanzan `BusinessException` si hay errores de negocio.
-- Los parámetros de entrada de tipo "datos de creación" se modelan como un `record` DTO en el mismo paquete (p.ej. `DatosMiEntidad`).
+- Los parámetros de entrada de tipo "datos de creación" se modelan como un `record` DTO en el mismo paquete que el interfaz del servicio(p.ej. `DatosMiEntidad`).
 - El segundo parámetro `entidadOriginal` (cuando existe) recibe el estado anterior antes de modificaciones, para comparaciones o auditoría.
 - La estructura de los métodos publicos del servicio son:
-  - Llamar a la regla de negocio de validación (constraint rule) 1, 2, N... que validan el estado de la entidad y lanzan `BusinessException` si algo no es correcto. Estas reglas puedee o no necesitas el estado original para comparar.
-  - Llamar a la regla de negocio de acción (action rule) 1, 2, N... que realizan efectos secundarios (notificaciones, callbacks, etc.) antes de persistir la entidad. Estas reglas pueden necesitar el estado original para comparar.
+  - Llamar a la regla de negocio de validación (constraint rule) 1, 2, N... que validan el estado de la entidad y lanzan `BusinessException` si algo no es correcto. Estas reglas puede o no necesitar el estado original para comparar.
+  - Llamar a la regla de negocio de acción (action rule) 1, 2, N... que realizan efectos secundarios (notificaciones, callbacks, etc.) antes de persistir la entidad. Estas reglas pueden o no necesitar el estado original para comparar.
   - Guardar/actualizar/insertar la entidad con el repositorio.
-  - Llamar a la regla de negocio de acción (action rule) 1, 2, N... que realizan efectos secundarios (notificaciones, callbacks, etc.) después de persistir la entidad. Estas reglas pueden necesitar el estado original para comparar.
+  - Llamar a la regla de negocio de acción (action rule) 1, 2, N... que realizan efectos secundarios (notificaciones, callbacks, etc.) después de persistir la entidad. Estas reglas pueden o no necesitar el estado original para comparar.
 
 ## Estructura de la implementación
 
 ```java
-package com.educaflow.subsystem.SUBSYSTEM.service.impl;
+package com.educaflow.system.NombreSystema.service.impl;
 
 import com.axelor.inject.Beans;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
@@ -97,7 +127,7 @@ public class MiEntidadServiceImpl implements MiEntidadService {
     /********************************    Constraint Rules    ********************************/
     /****************************************************************************************/
 
-    private void fireConstraintRule_{Regla de negocio de acción A}(MiEntidad entidad) throws BusinessException {
+    private void fireConstraintRule_{Regla de negocio de acción 1}(MiEntidad entidad) throws BusinessException {
         if ({Regla de validación}) {
             throw new BusinessException("campo", "Es requerido", "Título del campo");
         }
@@ -120,92 +150,12 @@ public class MiEntidadServiceImpl implements MiEntidadService {
 }
 ```
 
-## Estructura del controlador
-
-El controlador es el punto de entrada desde las vistas Axelor (`action-method` en XML). Cada método público lleva `@CallMethod` y recibe `(ActionRequest, ActionResponse)`.
-
-```java
-package com.educaflow.subsystem.SUBSYSTEM.controllers;
-
-import com.axelor.meta.CallMethod;
-import com.axelor.rpc.ActionRequest;
-import com.axelor.rpc.ActionResponse;
-import com.educaflow.base.infrastructure.validation.messages.BusinessException;
-import com.educaflow.base.util.ActionRequestHelper;
-import com.educaflow.base.util.AllowProperties;
-import com.educaflow.base.util.AxelorViewUtil;
-import com.educaflow.subsystem.SUBSYSTEM.db.MiEntidad;
-import com.educaflow.subsystem.SUBSYSTEM.db.repo.MiEntidadRepository;
-import com.educaflow.subsystem.SUBSYSTEM.service.MiEntidadService;
-import com.google.inject.Inject;
-import com.google.inject.persist.Transactional;
-
-import java.util.Map;
-
-public class MiEntidadController {
-
-    @Inject
-    MiEntidadRepository miEntidadRepository;
-    @Inject
-    MiEntidadService miEntidadService;
-
-    @CallMethod
-    @Transactional
-    public void update(ActionRequest actionRequest, ActionResponse actionResponse) {
-        try {
-            ActionRequestHelper<MiEntidad> actionRequestHelper = new ActionRequestHelper(actionRequest, MiEntidad.class);
-            MiEntidad entidadOriginal = actionRequestHelper.getOriginalModel();
-            AllowProperties allowProperties = AllowProperties.createAllowProperties(
-                Map.of(
-                    "campoSimple", Map.of(),                                    // campo escalar
-                    "coleccion", Map.of("subcampo", Map.of())                   // colección con sub-campo
-                )
-            );
-            MiEntidad entidad = actionRequestHelper.getModel(allowProperties);
-
-            miEntidadService.update(entidad, entidadOriginal);
-
-            actionResponse.setSignal("back", null);
-        } catch (BusinessException ex) {
-            AxelorViewUtil.doResponseBusinessMessages(actionResponse, ex.getBusinessMessages());
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-}
-```
-
-### Reglas del controlador
-
-- `@CallMethod` — obligatorio en cada método público que llame una vista.
-- `@Transactional` — obligatorio en métodos que escriben en base de datos.
-- `ActionRequestHelper.getOriginalModel()` — obtiene el estado original de la entidad antes de las modificaciones del usuario.
-- `ActionRequestHelper.getModel(allowProperties)` — obtiene la entidad con solo los campos permitidos copiados desde la request. **Nunca** usar `getModel()` sin `AllowProperties` en métodos que guardan datos.
-- `AllowProperties.createAllowProperties(Map.of(...))` — define qué campos (y sub-campos) se pueden copiar. La clave es el nombre del campo; el valor es un `Map` con sus sub-campos (vacío `Map.of()` si es un campo simple o una relación entera). Para colecciones con sub-campos: `Map.of("coleccion", Map.of("subcampo", Map.of()))`.
-- `actionResponse.setSignal("back", null)` — cierra el formulario y vuelve al grid tras guardar con éxito.
-- `AxelorViewUtil.doResponseBusinessMessages(...)` — convierte `BusinessException` en errores visibles en la vista.
-- Errores no esperados se relanzán como `RuntimeException` — Axelor los mostrará como error genérico.
-
-### Métodos sin transacción (solo lectura o delegación a AutoFirma)
-
-Si el método no escribe en BD (p.ej. prepara datos para AutoFirma), no lleva `@Transactional`:
-
-```java
-@CallMethod
-public void prepararAlgo(ActionRequest actionRequest, ActionResponse actionResponse) {
-    ActionRequestHelper actionRequestHelper = new ActionRequestHelper(actionRequest, MiEntidad.class);
-    MiEntidad entidad = miEntidadRepository.find(actionRequestHelper.getId());
-
-    // ... construir respuesta sin guardar
-    actionResponse.setValue("campo", valor);
-}
-```
 
 ## Convenciones clave
 
 ### Nombres de métodos privados en la implementación
-- `fireConstraintRule_NombreRegla` — valida y lanza `BusinessException` si algo está mal. Se llama **antes** de guardar.
-- `fireActionRule_NombreAccion` — efecto secundario (notificaciones, callbacks, etc.). Se llama **después** de guardar.
+- `fireConstraintRule_NombreRegla` — valida y lanza `BusinessException` si algo está mal. Se llama **antes** de persistir.
+- `fireActionRule_NombreAccion` — efecto secundario (notificaciones, callbacks, etc.). Se llama **antes** y **después** de persistir.
 
 ### Organización del fichero de implementación
 Los métodos privados se separan en dos bloques con comentarios decorativos:
@@ -233,7 +183,22 @@ Al crear un servicio nuevo hay que registrar el binding en la clase de módulo d
 bind(MiEntidadService.class).to(MiEntidadServiceImpl.class);
 ```
 
-## Ejemplo real: FirmaService + FirmarController
+El módulo se hace en un paquete llamado "module" y en una clase llama {Nombre systema o subsistema}Module.java, p.ej. `FirmasModule.java` para el subsistema de firmas.
+
+```java
+import com.axelor.app.AxelorModule;
+
+public class {System}Module extends AxelorModule {
+
+    @Override
+    protected void configure() {
+        bind({InterfazServicio}.class).to({ImplementacionServicio}.class);
+    }
+}
+``` 
+
+
+## Ejemplo real: FirmaService
 
 **Interfaz** (`subsystem/firmas/service/FirmaService.java`):
 ```java
@@ -243,3 +208,26 @@ public interface FirmaService {
     TareaFirma otroMetodo(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) throws BusinessException;
 }
 ```
+
+
+
+## Checklist de tareas de desarrollo de servicios y controladores
+Deberás comprobasr antes de terminar 
+- [ ] Que has creado el interfaz del servicio y la implementación
+- [ ] Que has registrado el servicio en el módulo Guice del subsistema.
+- [ ] Que todas las reglas de negocio de validación (constraint rules) lanzan `BusinessException` con mensajes claros. Y que no tienen efectos laterales (solo validan, no modifican estado ni hacen efectos secundarios).
+- [ ] Que todas las reglas de negocio de acción (action rules) realizan los efectos secundarios necesarios antes y después de persistir.
+- [ ] Que todas las reglas de validación están agrupadas en métodos privados `fireConstraintRule_NombreRegla` y antes está el bloque de comentarios decorativo `Constraint Rules` para mantener el código organizado.
+- [ ] Que todas las reglas de acción en están agrupadas en métodos privados `fireActionRule_NombreAccion` y antes está el bloque de comentarios decorativo `Action Rules` para mantener el código organizado.
+- [ ] Que has probado el servicio  con casos de éxito y casos de error para validar que las reglas de negocio funcionan correctamente y que los errores se capturan como `BusinessException` con los mensajes esperados.
+- [ ] Que has revisado el código para asegurarte de que sigue las convenciones de nombres, organización y manejo de errores explicadas en esta guía.
+- [ ] Que has documentado cualquier decisión importante o complejidad en el código con comentarios claros para facilitar el mantenimiento futuro.
+- [ ] Que has actualizado cualquier documentación relevante (p.ej. diagramas de arquitectura, documentación de servicios, etc.) para reflejar el nuevo servicio.
+- [ ] Que has verificado que el nuevo servicio no introduce errores o regresiones en otras partes del sistema mediante pruebas automatizadas.
+- [ ] Que has verificado que el nuevo servicio  cumple con los requisitos funcionales y no funcionales definidos para la funcionalidad que implementan.
+- [ ] Que has asegurado que el nuevo servicio  sigue las mejores prácticas de desarrollo de software, incluyendo principios SOLID, patrones de diseño adecuados, y un código limpio y legible.
+- [ ] Que has considerado la seguridad y el rendimiento en el diseño e implementación del nuevo servicio, aplicando las medidas necesarias para proteger los datos y optimizar las operaciones.
+- [ ] Que has validado que el nuevo servicio  se integra correctamente con otras partes del sistema, incluyendo otros servicios, controladores, vistas, etc., y que no causan conflictos o problemas de compatibilidad.
+- [ ] Que has realizado pruebas de integración para asegurar que el nuevo servicio  funciona correctamente en conjunto con otros componentes del sistema y que cumplen con los flujos de trabajo esperados.
+- [ ] Que has actualizado cualquier prueba automatizada (unitarias, de integración, etc.) para cubrir el nuevo servicio , asegurando una buena cobertura de código y la detección temprana de posibles errores en el futuro.
+- [ ] Que has documentado cualquier cambio en la base de datos (p.ej. nuevas tablas, cambios en tablas existentes, etc.) que el nuevo servicio pueda requerir
