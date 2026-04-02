@@ -4,7 +4,7 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
 
-    <grid name="subsysFirma.TareaFirma-pendiente-grid" title="Firmas" model="com.educaflow.subsystem.firma.db.TareaFirma"
+    <grid name="subsysFirma.TareaFirma-pendiente-grid" title="Firmas" model="com.educaflow.subsystem.firmas.db.TareaFirma"
           groups="admins,users"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="true" canDelete="false" canSave="false"
           orderBy="fechaSolicitud" canEditOnClick="true"
@@ -15,7 +15,7 @@
         <field name="estadoTareaFirma"/>
     </grid>
 
-    <form name="subsysFirma.TareaFirma-pendiente-form" title="Firma de documento" model="com.educaflow.subsystem.firma.db.TareaFirma" canEdit="true" canAttach="false" canBack="false" canBackOnSave="true" canDelete="false" canNew="false" canSave="false" canCancel="false" canMore="false"
+    <form name="subsysFirma.TareaFirma-pendiente-form" title="Firma de documento" model="com.educaflow.subsystem.firmas.db.TareaFirma" canEdit="true" canAttach="false" canBack="false" canBackOnSave="true" canDelete="false" canNew="false" canSave="false" canCancel="false" canMore="false"
           onLoad="subsysFirma.TareaFirma-pendiente-form-pasoActual-paso1Inicio-action" related='{"documentosFirma":["documentoOriginal","documentoFirmado"]}'
     >
         <panel name="datosFirma" title="Estado de la tarea a firmar" colSpan="12" readonly="true">
@@ -75,10 +75,10 @@
 
     </form>
 
-    <grid name="subsysFirma.DocumentoFirma-pendiente-grid" title="Documentos" model="com.educaflow.subsystem.firma.db.DocumentoFirma"  edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+    <grid name="subsysFirma.DocumentoFirma-pendiente-grid" title="Documentos" model="com.educaflow.subsystem.firmas.db.DocumentoFirma"  edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
         <field name="documentoOriginal.fileName"/>
     </grid>
-    <form name="subsysFirma.DocumentoFirma-pendiente-form" title="Documento" model="com.educaflow.subsystem.firma.db.DocumentoFirma"
+    <form name="subsysFirma.DocumentoFirma-pendiente-form" title="Documento" model="com.educaflow.subsystem.firmas.db.DocumentoFirma"
           canAttach="false" canEdit="false" canBack="true" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel-tabs>
             <panel name="tabDocumentoOriginal" title="Documento original" colSpan="12">
@@ -114,20 +114,20 @@
     <action-group name="subsysFirma.TareaFirma-pendiente-form-button-paso2RechazadoAtras-action">
         <action name="subsysFirma.TareaFirma-pendiente-form-pasoActual-paso1Inicio-action"/>
     </action-group>
-    <action-method name="subsysFirma.TareaFirma-pendiente-form-button-paso2RechazadoGuardar-action" model="com.educaflow.subsystem.firma.db.TareaFirma">
+    <action-method name="subsysFirma.TareaFirma-pendiente-form-button-paso2RechazadoGuardar-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
         <call class="com.educaflow.subsystem.firmas.controllers.FirmarController" method="marcarComoRechazada" />
     </action-method>
     <action-group name="subsysFirma.TareaFirma-pendiente-form-button-paso2FirmarAtras-action">
         <action name="subsysFirma.TareaFirma-pendiente-form-pasoActual-paso1Inicio-action"/>
     </action-group>
-    <action-method name="subsysFirma.TareaFirma-pendiente-form-button-paso2FirmarGuardar-action" model="com.educaflow.subsystem.firma.db.TareaFirma">
+    <action-method name="subsysFirma.TareaFirma-pendiente-form-button-paso2FirmarGuardar-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
         <call class="com.educaflow.subsystem.firmas.controllers.FirmarController" method="marcarComoFirmada" />
     </action-method>
 
 
 
 
-    <action-method name="subsysFirma.TareaFirma-pendiente-form-firmar-action" model="com.educaflow.subsystem.firma.db.TareaFirma">
+    <action-method name="subsysFirma.TareaFirma-pendiente-form-firmar-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
         <call class="com.educaflow.subsystem.firmas.controllers.FirmarController" method="firmarDocumentosConAutoFirma" />
     </action-method>
 
@@ -137,13 +137,13 @@
     <!-- *********************************************************************************************  -->
     <!-- ************************ Acciones básicas que cambian campos simples ************************  -->
     <!-- *********************************************************************************************  -->
-    <action-record name="subsysFirma.TareaFirma-pendiente-form-pasoActual-paso1Inicio-action" model="com.educaflow.subsystem.firma.db.TareaFirma">
+    <action-record name="subsysFirma.TareaFirma-pendiente-form-pasoActual-paso1Inicio-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
         <field name="pasoActual" expr="paso1Inicio" />
     </action-record>
-    <action-record name="subsysFirma.TareaFirma-pendiente-form-pasoActual-paso2Rechazado-action" model="com.educaflow.subsystem.firma.db.TareaFirma">
+    <action-record name="subsysFirma.TareaFirma-pendiente-form-pasoActual-paso2Rechazado-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
         <field name="pasoActual" expr="paso2Rechazado" />
     </action-record>
-    <action-record name="subsysFirma.TareaFirma-pendiente-form-pasoActual-paso2Firmar-action" model="com.educaflow.subsystem.firma.db.TareaFirma">
+    <action-record name="subsysFirma.TareaFirma-pendiente-form-pasoActual-paso2Firmar-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
         <field name="pasoActual" expr="paso2Firmar" />
     </action-record>
 

@@ -2,7 +2,7 @@
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
 
-    <module name="firma" package="com.educaflow.subsystem.firma.db"/>
+    <module name="firmas" package="com.educaflow.subsystem.firmas.db"/>
     <entity name="TareaFirma" >
         <many-to-one name="firmante" ref="com.axelor.auth.db.User" required="true" />
         <one-to-many name="documentosFirma" ref="DocumentoFirma" mappedBy="tareaFirma"  />

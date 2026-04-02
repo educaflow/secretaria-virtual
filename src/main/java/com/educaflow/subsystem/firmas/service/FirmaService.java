@@ -1,7 +1,7 @@
 package com.educaflow.subsystem.firmas.service;
 
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
-import com.educaflow.subsystem.firma.db.TareaFirma;
+import com.educaflow.subsystem.firmas.db.TareaFirma;
 
 public interface FirmaService {
 

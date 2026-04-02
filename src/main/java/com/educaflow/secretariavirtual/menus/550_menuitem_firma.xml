@@ -10,14 +10,14 @@
     <menuitem name="subsysFirma-firmado-menuitem"    parent="subsysFirma-menuitem" title="Firmados"   action="subsysFirma.TareaFirma-firmado-action"    groups="admins" order="3"/>
     <menuitem name="subsysFirma-rechazado-menuitem"  parent="subsysFirma-menuitem" title="Rechazados" action="subsysFirma.TareaFirma-rechazado-action"  groups="admins" order="4"/>
 
-    <action-view name="subsysFirma.TareaFirma-todos-action" title="Todos los documentos firmados" model="com.educaflow.subsystem.firma.db.TareaFirma">
+    <action-view name="subsysFirma.TareaFirma-todos-action" title="Todos los documentos firmados" model="com.educaflow.subsystem.firmas.db.TareaFirma">
         <view type="grid" name="subsysFirma.TareaFirma-todos-grid"/>
         <view type="form" name="subsysFirma.TareaFirma-todos-form"/>
         <view-param name="show-toolbar" value="false"/>
         <view-param name="reload-grid" value="true"/>
     </action-view>
 
-    <action-view name="subsysFirma.TareaFirma-pendiente-action" title="Documentos pendientes de firma" model="com.educaflow.subsystem.firma.db.TareaFirma">
+    <action-view name="subsysFirma.TareaFirma-pendiente-action" title="Documentos pendientes de firma" model="com.educaflow.subsystem.firmas.db.TareaFirma">
         <view type="grid" name="subsysFirma.TareaFirma-pendiente-grid"/>
         <view type="form" name="subsysFirma.TareaFirma-pendiente-form"/>
         <view-param name="show-toolbar" value="false"/>
@@ -28,7 +28,7 @@
         <context name="firmanteId" expr="eval:__user__.id"/>
     </action-view>
 
-    <action-view name="subsysFirma.TareaFirma-firmado-action" title="Documentos ya firmados" model="com.educaflow.subsystem.firma.db.TareaFirma">
+    <action-view name="subsysFirma.TareaFirma-firmado-action" title="Documentos ya firmados" model="com.educaflow.subsystem.firmas.db.TareaFirma">
         <view type="grid" name="subsysFirma.TareaFirma-firmado-grid"/>
         <view type="form" name="subsysFirma.TareaFirma-firmado-form"/>
         <view-param name="show-toolbar" value="false"/>
@@ -38,7 +38,7 @@
         <context name="firmanteId" expr="eval:__user__.id"/>
     </action-view>
 
-    <action-view name="subsysFirma.TareaFirma-rechazado-action" title="Documentos que se han rechazado firmar" model="com.educaflow.subsystem.firma.db.TareaFirma">
+    <action-view name="subsysFirma.TareaFirma-rechazado-action" title="Documentos que se han rechazado firmar" model="com.educaflow.subsystem.firmas.db.TareaFirma">
         <view type="grid" name="subsysFirma.TareaFirma-rechazado-grid"/>
         <view type="form" name="subsysFirma.TareaFirma-rechazado-form"/>
         <view-param name="show-toolbar" value="false"/>
