@@ -1,8 +1,8 @@
 package com.educaflow.subsystem.expedientes.services.eventmanager;
 
+import com.educaflow.base.util.AxelorUtil;
 import com.educaflow.subsystem.expedientes.services.tramitacion.CommonEvent;
 import com.educaflow.subsystem.expedientes.db.Expediente;
-import com.educaflow.base.util.AxelorViewUtil;
 import com.educaflow.base.util.ReflectionUtil;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.google.common.base.CaseFormat;
@@ -90,7 +90,7 @@ public abstract class EventManager<T extends Expediente, State extends Enum<Stat
     }
 
     private boolean existsView(String viewName) {
-        return AxelorViewUtil.existsView(viewName,"form",this.getModelClass().getName());
+        return AxelorUtil.existsView(viewName,"form",this.getModelClass().getName());
     }
 
 

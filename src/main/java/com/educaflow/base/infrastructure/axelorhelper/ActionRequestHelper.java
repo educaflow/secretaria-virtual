@@ -1,10 +1,11 @@
-package com.educaflow.base.util;
+package com.educaflow.base.infrastructure.axelorhelper;
 
 import com.axelor.db.Model;
 import com.axelor.db.JpaRepository;
 import com.axelor.rpc.ActionRequest;
 import com.educaflow.base.infrastructure.mapper.BeanMapperModel;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import com.educaflow.base.util.AllowProperties;
+import com.educaflow.base.util.Convert;
 
 import java.util.Map;
 
@@ -15,7 +16,6 @@ public class ActionRequestHelper<T extends Model> {
     public ActionRequestHelper(ActionRequest request) {
         this(request, null);
     }
-
     public ActionRequestHelper(ActionRequest request, Class<T> expectedModelClass) {
         this.request = request;
         this.expectedModelClass = expectedModelClass;

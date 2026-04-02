@@ -7,16 +7,14 @@ import com.educaflow.base.infrastructure.autofirma.AutoFirma;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.util.*;
-import com.educaflow.base.infrastructure.axelorutil.ActionRequestHelper;
-import com.educaflow.base.infrastructure.axelorutil.AxelorViewUtil;
+import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
+import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
 import com.educaflow.subsystem.firmas.db.DocumentoFirma;
 import com.educaflow.subsystem.firmas.db.TareaFirma;
 import com.educaflow.subsystem.firmas.db.repo.TareaFirmaRepository;
 import com.educaflow.subsystem.firmas.service.FirmaService;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.List;
 import java.util.Map;
@@ -50,8 +48,9 @@ public class FirmarController {
     @CallMethod
     @Transactional
     public void marcarComoFirmada(ActionRequest actionRequest, ActionResponse actionResponse) {
+        ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
         try {
-            ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
             TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
             AllowProperties allowProperties = AllowProperties.createAllowProperties(Map.of("documentosFirma",Map.of("documentoFirmado",Map.of())));
             TareaFirma tareaFirma=actionRequestHelper.getModel(allowProperties);
@@ -60,7 +59,7 @@ public class FirmarController {
 
             actionResponse.setSignal("back",null);
         } catch (BusinessException ex) {
-            AxelorViewUtil.doResponseBusinessMessages(actionResponse, ex.getBusinessMessages());
+            actionResponseHelper.doResponseBusinessMessages(ex.getBusinessMessages());
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -69,8 +68,9 @@ public class FirmarController {
     @CallMethod
     @Transactional
     public void marcarComoRechazada(ActionRequest actionRequest, ActionResponse actionResponse) {
+        ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
         try {
-            ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
             TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
             AllowProperties allowProperties = AllowProperties.createAllowProperties(Map.of("motivoRechazo",Map.of()));
             TareaFirma tareaFirma=actionRequestHelper.getModel(allowProperties);
@@ -79,7 +79,7 @@ public class FirmarController {
 
             actionResponse.setSignal("back",null);
         } catch (BusinessException ex) {
-            AxelorViewUtil.doResponseBusinessMessages(actionResponse, ex.getBusinessMessages());
+            actionResponseHelper.doResponseBusinessMessages(ex.getBusinessMessages());
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

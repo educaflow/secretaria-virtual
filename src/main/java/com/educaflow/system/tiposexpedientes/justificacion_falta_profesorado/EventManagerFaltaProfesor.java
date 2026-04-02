@@ -17,7 +17,7 @@ import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesorado;
 import com.educaflow.subsystem.expedientes.db.repo.JustificacionFaltaProfesoradoRepository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 
-import com.educaflow.subsystem.firma.db.TareaFirma;
+import com.educaflow.subsystem.firmas.db.TareaFirma;
 import com.educaflow.subsystem.firmas.service.DatosFirma;
 import com.educaflow.subsystem.firmas.service.FirmaNotifier;
 import com.educaflow.subsystem.firmas.service.FirmaService;

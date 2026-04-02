@@ -3,13 +3,11 @@ package com.educaflow.system.tiposexpedientes.justificacion_falta_profesorado;
 import com.axelor.meta.CallMethod;
 import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
-import com.educaflow.base.util.ActionRequestHelper;
-import com.educaflow.subsystem.expedientes.db.Expediente;
+import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesorado;
 import com.educaflow.base.infrastructure.autofirma.AutoFirma;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil;
-import com.google.inject.Inject;
 
 public class ActionController {
 

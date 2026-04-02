@@ -1,9 +1,7 @@
-package com.educaflow.base.util;
+package com.educaflow.base.infrastructure.axelorhelper;
 
 import com.axelor.db.Model;
-import com.axelor.meta.loader.XMLViews;
 import com.axelor.meta.schema.actions.ActionView;
-import com.axelor.meta.schema.views.AbstractView;
 import com.axelor.rpc.ActionResponse;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessage;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
@@ -13,8 +11,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class AxelorViewUtil {
-    public static void doResponseViewForm(ActionResponse response, String viewName, Class<? extends Model> modelClass, Model entity, String title, String profile) {
+public class ActionResponseHelper {
+
+    private final ActionResponse response;
+
+    public ActionResponseHelper(ActionResponse response) {
+        this.response = response;
+    }
+
+    public void doResponseViewForm(String viewName, Class<? extends Model> modelClass, Model entity, String title, String profile) {
         ActionView.ActionViewBuilder actionViewBuilder=ActionView.define(title)
                 .model(modelClass.getName())
                 .add("form", viewName)
@@ -30,11 +35,10 @@ public class AxelorViewUtil {
             actionViewBuilder.context("newEntity", entity);
         }
 
-
         response.setView(actionViewBuilder.map());
     }
 
-    public static void doResponseViewGrid(ActionResponse response, String viewName, Class<? extends Model> modelClass) {
+    public void doResponseViewGrid(String viewName, Class<? extends Model> modelClass) {
         ActionView.ActionViewBuilder actionViewBuilder=ActionView.define("Hola")
                 .model(modelClass.getName())
                 .add("grid", viewName)
@@ -43,16 +47,7 @@ public class AxelorViewUtil {
         response.setView(actionViewBuilder.map());
     }
 
-    public static boolean existsView(String name, String type, String model) {
-        AbstractView data = XMLViews.findView(name, type, model);
-        if (data==null) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    public static void doResponseBusinessMessagesAsError(ActionResponse response,String title, BusinessMessages businessMessages) {
+    public void doResponseBusinessMessagesAsError(String title, BusinessMessages businessMessages) {
         StringBuilder sb= new StringBuilder();
         for(BusinessMessage businessMessage : businessMessages) {
             if (sb.length()>0) {
@@ -68,27 +63,11 @@ public class AxelorViewUtil {
         response.setError(sb.toString(),title);
     }
 
-    public static void doResponseBusinessMessages(ActionResponse response, BusinessMessages businessMessages) {
-
-/***
-        Map<String, String> mapErrors = new HashMap<>();
-        for(BusinessMessage businessMessage : businessMessages) {
-            String fieldName = businessMessage.getFieldName();
-            String message = businessMessage.getMessage();
-            String type = businessMessage.getType();
-
-            if (type.startsWith("Required")) {
-                mapErrors.put(fieldName, message);
-            }
-        }
-        response.setErrors(mapErrors);
-***/
-
-        storeBusinessMessagesInActionResponse(response, businessMessages);
-
+    public void doResponseBusinessMessages(BusinessMessages businessMessages) {
+        storeBusinessMessagesInActionResponse(businessMessages);
     }
 
-    private static void storeBusinessMessagesInActionResponse(ActionResponse response, BusinessMessages businessMessages) {
+    private void storeBusinessMessagesInActionResponse(BusinessMessages businessMessages) {
         List<Map<String,String>> errorMensajes=new ArrayList<>();
 
         if (businessMessages!=null)  {
@@ -105,9 +84,5 @@ public class AxelorViewUtil {
             }
         }
         response.setValue("errorMensajes",errorMensajes);
-
     }
-
-
-
 }

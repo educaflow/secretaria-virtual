@@ -9,7 +9,7 @@ import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
-import com.educaflow.base.util.ActionRequestHelper;
+import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.base.util.Convert;
 import com.educaflow.subsystem.certificados.AlmacenClaveLoader;
 import com.educaflow.subsystem.pdfutilities.db.PdfUtilities;

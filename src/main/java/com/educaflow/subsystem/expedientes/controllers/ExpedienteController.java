@@ -1,7 +1,6 @@
 package com.educaflow.subsystem.expedientes.controllers;
 
 import com.axelor.auth.db.User;
-import com.axelor.db.JPA;
 import com.axelor.db.JpaRepository;
 import com.axelor.db.Model;
 import com.axelor.i18n.I18n;
@@ -20,8 +19,8 @@ import com.educaflow.subsystem.expedientes.db.TipoExpediente;
 import com.educaflow.subsystem.expedientes.db.Tramite;
 import com.educaflow.subsystem.expedientes.db.repo.TramiteRepository;
 import com.educaflow.subsystem.common.db.Centro;
-import com.educaflow.base.util.ActionRequestHelper;
-import com.educaflow.base.util.AxelorViewUtil;
+import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
+import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
 import com.educaflow.base.util.Convert;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
@@ -49,9 +48,9 @@ public class ExpedienteController {
     @CallMethod
     @Transactional
     public void triggerInitialEvent(ActionRequest actionRequest, ActionResponse response) {
+        ActionRequestHelper actionRequestHelper = new ActionRequestHelper(actionRequest);
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(response);
         try {
-            ActionRequestHelper actionRequestHelper = new ActionRequestHelper(actionRequest);
-
             TipoExpediente tipoExpediente = getTipoExpedienteFromIdTramite(actionRequestHelper.getId());
             EventManager eventManager = TipoExpedienteUtil.getEventManager(tipoExpediente);
             String profileName = actionRequestHelper.getProfileName();
@@ -60,10 +59,10 @@ public class ExpedienteController {
             Expediente expediente = tramitador.triggerInitialEvent(tipoExpediente, eventContext);
 
             String viewName = eventManager.getViewName(expediente, eventContext);
-            AxelorViewUtil.doResponseViewForm(response, viewName, eventManager.getModelClass(), expediente, getTabName(expediente), eventContext.getProfile().name());
+            actionResponseHelper.doResponseViewForm(viewName, eventManager.getModelClass(), expediente, getTabName(expediente), eventContext.getProfile().name());
 
         } catch (BusinessException ex) {
-            AxelorViewUtil.doResponseBusinessMessagesAsError(response, "No es posible crear el expediente", ex.getBusinessMessages());
+            actionResponseHelper.doResponseBusinessMessagesAsError("No es posible crear el expediente", ex.getBusinessMessages());
             return;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
@@ -74,17 +73,15 @@ public class ExpedienteController {
     @CallMethod
     @Transactional
     public void triggerEvent(ActionRequest request, ActionResponse response) {
+        ActionRequestHelper actionRequestHelper = new ActionRequestHelper(request);
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(response);
         try {
-            ActionRequestHelper actionRequestHelper = new ActionRequestHelper(request);
-
             Expediente expediente = ExpedienteUtil.getExpedienteFromIdExpediente(actionRequestHelper.getId());
             String eventName = actionRequestHelper.getEventName();
             Map<String, Object> requestData = actionRequestHelper.getRequestData();
             EventManager eventManager = TipoExpedienteUtil.getEventManager(expediente.getTipoExpediente());
             String profileName = actionRequestHelper.getProfileName();
             EventContext eventContext = getEventContext(expediente,eventManager,profileName);
-
-
 
             if (eventName.equals(CommonEvent.EXIT.name())) {
                 response.setSignal("refresh-app", null);
@@ -93,16 +90,15 @@ public class ExpedienteController {
 
             tramitador.triggerEvent(expediente, eventName, requestData, eventContext);
 
-
             if (eventName.equals(CommonEvent.DELETE.name())) {
                 response.setSignal("refresh-app", null);
             } else {
                 String viewName = eventManager.getViewName(expediente, eventContext);
-                AxelorViewUtil.doResponseViewForm(response, viewName, eventManager.getModelClass(), expediente, getTabName(expediente), eventContext.getProfile().name());
+                actionResponseHelper.doResponseViewForm(viewName, eventManager.getModelClass(), expediente, getTabName(expediente), eventContext.getProfile().name());
             }
 
         } catch (BusinessException ex) {
-            AxelorViewUtil.doResponseBusinessMessages(response, ex.getBusinessMessages());
+            actionResponseHelper.doResponseBusinessMessages(ex.getBusinessMessages());
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -110,16 +106,16 @@ public class ExpedienteController {
 
     @CallMethod
     public void viewExpediente(ActionRequest request, ActionResponse response) {
+        ActionRequestHelper actionRequestHelper = new ActionRequestHelper(request);
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(response);
         try {
-            ActionRequestHelper actionRequestHelper = new ActionRequestHelper(request);
-
             Expediente expediente = ExpedienteUtil.getExpedienteFromIdExpediente(actionRequestHelper.getId());
             EventManager eventManager = TipoExpedienteUtil.getEventManager(expediente.getTipoExpediente());
             String profileName = actionRequestHelper.getProfileName();
             EventContext eventContext = getEventContext(expediente,eventManager,profileName);
 
             String viewName = eventManager.getViewName(expediente, eventContext);
-            AxelorViewUtil.doResponseViewForm(response, viewName, eventManager.getModelClass(), expediente, getTabName(expediente), eventContext.getProfile().name());
+            actionResponseHelper.doResponseViewForm(viewName, eventManager.getModelClass(), expediente, getTabName(expediente), eventContext.getProfile().name());
 
         } catch (Exception ex) {
             throw new RuntimeException(ex);
@@ -128,9 +124,9 @@ public class ExpedienteController {
 
     @CallMethod
     public void validateChild(ActionRequest request, ActionResponse response) {
+        ActionRequestHelper actionRequestHelper = new ActionRequestHelper(request);
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(response);
         try {
-            ActionRequestHelper actionRequestHelper = new ActionRequestHelper(request);
-
             Expediente expediente = ExpedienteUtil.getExpedienteFromIdExpediente(actionRequestHelper.getParentId());
             Class<? extends Model> beanClass = actionRequestHelper.getModelClass();
             Map<String, Object> requestData = actionRequestHelper.getRequestData();
@@ -140,7 +136,7 @@ public class ExpedienteController {
 
             BusinessMessages businessMessages = tramitador.validateChild(expediente, bean,beanClass, validateProperty,requestData);
 
-            AxelorViewUtil.doResponseBusinessMessages(response, businessMessages);
+            actionResponseHelper.doResponseBusinessMessages(businessMessages);
 
         } catch (Exception ex) {
             throw new RuntimeException(ex);
