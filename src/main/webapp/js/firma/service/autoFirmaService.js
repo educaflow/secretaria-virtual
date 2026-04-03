@@ -42,7 +42,7 @@ const AutoFirmaService = {
             `signaturePositionOnPageLowerLeftY=${lowerLeftY}\n` +
             `signaturePositionOnPageUpperRightX=${upperRightX}\n` +
             `signaturePositionOnPageUpperRightY=${upperRightY}\n` +
-            `signaturePage=${signatureOptions.page}\n` +
+            `signaturePage=${signatureOptions.pageNumber}\n` +
             `layer2FontSize=${signatureOptions.fontSize}`;
 
         if (signatureOptions.signReason?.trim()) {
