@@ -20,6 +20,8 @@ public interface DocumentoPdf {
     DocumentoPdf anyadirDocumentoPdf(DocumentoPdf documentoPdf);
     DocumentoPdf anyadirDocumentoPdf(DocumentoPdf documentoPdf,String fileName);
     DocumentoPdf estamparTextoConAppend(String texto, int numeroPagina,Rectangulo rectangulo);
+    DocumentoPdf addNewPage();
+    DocumentoPdf removePdfAConformance();
 
     String getPlainText();
 

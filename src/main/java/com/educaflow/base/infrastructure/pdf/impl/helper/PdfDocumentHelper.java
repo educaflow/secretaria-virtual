@@ -126,8 +126,10 @@ public class PdfDocumentHelper {
 
     public static byte[] removePdfAConformance(byte[] datos) {
         byte[] datosNoPdfAConformance=PdfDocumentHelper.transformPdfDocument(datos, pdfDocument -> {
-            pdfDocument.getXmpMetadata().deleteProperty(XMPConst.NS_PDFA_ID, XMPConst.PART);
-            pdfDocument.getXmpMetadata().deleteProperty(XMPConst.NS_PDFA_ID, XMPConst.CONFORMANCE);
+            if (pdfDocument.getXmpMetadata()!=null) {
+                pdfDocument.getXmpMetadata().deleteProperty(XMPConst.NS_PDFA_ID, XMPConst.PART);
+                pdfDocument.getXmpMetadata().deleteProperty(XMPConst.NS_PDFA_ID, XMPConst.CONFORMANCE);
+            }
             PdfDocumentHelper.setPdfConformance(pdfDocument, null);
         });
 

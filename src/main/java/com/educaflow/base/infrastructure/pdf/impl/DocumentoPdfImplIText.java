@@ -288,6 +288,25 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
 
 
     @Override
+    public DocumentoPdf addNewPage() {
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            PdfDocument pdfDestino = new PdfDocument(new PdfReader(new ByteArrayInputStream(this.bytesPdf)), new PdfWriter(byteArrayOutputStream));
+            pdfDestino.addNewPage();
+            pdfDestino.close();
+            byteArrayOutputStream.close();
+            return DocumentoPdfFactory.getDocumentoPdf(byteArrayOutputStream.toByteArray(), this.fileName);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    @Override
+    public DocumentoPdf removePdfAConformance() {
+        return DocumentoPdfFactory.getDocumentoPdf(PdfDocumentHelper.removePdfAConformance(this.bytesPdf), this.fileName);
+    }
+
+    @Override
     public DocumentoPdf anyadirDocumentoPdf(DocumentoPdf documentoPdf2) {
         return anyadirDocumentoPdf(documentoPdf2, this.fileName);
     }
@@ -378,6 +397,7 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
         signerProperties.setFieldName(getSignatureFieldName());
         signerProperties.setPageRect(getRectangle(campoFirma));
         int pageNumber= getPageNumber(campoFirma.getNumeroPagina());
+        signerProperties.setPageNumber(pageNumber);
         signerProperties.setSignatureAppearance(signatureFieldAppearance);
         signerProperties.setClaimedSignDate(toCalendar(campoFirma.getFechaFirma()));
         if (campoFirma.getMotivo()!=null) {

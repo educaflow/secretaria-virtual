@@ -1,10 +1,10 @@
 package com.educaflow.base.infrastructure.pdf;
 
-import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
-import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,6 +19,18 @@ class DocumentoPdfFactoryTest {
     void getDocumentoPdf2b() throws Exception  {
         String nombreFichero="prueba_pdf_2b.pdf";
         testDocumentoPdfFactory(nombreFichero);
+
+    }
+
+    @Test
+    void addNewPage() throws Exception {
+        byte[] bytes = getBytes("hola_mundo.pdf");
+        DocumentoPdf documentoPdf = DocumentoPdfFactory.getDocumentoPdf(bytes, "hola_mundo.pdf");
+
+        int paginasOriginales = documentoPdf.getNumeroPaginas();
+        DocumentoPdf resultado = documentoPdf.addNewPage();
+
+        assertEquals(paginasOriginales + 1, resultado.getNumeroPaginas());
 
     }
 

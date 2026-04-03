@@ -42,11 +42,12 @@ public class PdfUtilitiesActions {
 
         if (metaFilePdf != null) {
             DocumentoPdf documentoPdf = MetaFileHelper.getDocumentoPdf(metaFilePdf);
-
+            documentoPdf= documentoPdf.removePdfAConformance();
+            int paginadeFirma=documentoPdf.getNumeroPaginas();
 
             for(int x=0;x<=500;x+=100) {
                 for(int y=0;y<=700;y+=50) {
-                    CampoFirma campoFirma=new CampoFirma(new Rectangulo(x,y,100,20)).setNumeroPagina(1).setMensaje(x+"," + y);
+                    CampoFirma campoFirma=new CampoFirma(new Rectangulo(x,y,100,20)).setNumeroPagina(paginadeFirma).setMensaje(x+"," + y);
                     AlmacenClave almacenClave=almacenClaveLoader.getDummy();
                     documentoPdf=documentoPdf.firmar(almacenClave,campoFirma);
                 }
