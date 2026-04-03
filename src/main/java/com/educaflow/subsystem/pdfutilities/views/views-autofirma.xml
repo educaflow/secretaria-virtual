@@ -8,12 +8,13 @@
 
         <panel name="main" title="PDF">
             <field name="pdf"  colSpan="12" onChange="mant-PdfUtilities-form-action-onChange-pdf" widget="binary-link" />
-            <field name="x" colSpan="3" />
-            <field name="y" colSpan="3" />
-            <field name="width" colSpan="3" />
-            <field name="height" colSpan="3" />
+            <field name="numeroPagina" colSpan="2" />
+            <field name="x" colSpan="2" />
+            <field name="y" colSpan="2" />
+            <field name="width" colSpan="2" />
+            <field name="height" colSpan="2" />
 
-            <button name="calcular" title="Firmar en posición indicada" icon="fa-plus" onClick="subsysPdfUtilities.AutoFirma-form-firmarConAutoFirma-action"/>
+            <button name="calcular" colOffset="2" title="Firmar en posición indicada" icon="fa-plus" onClick="subsysPdfUtilities.AutoFirma-form-firmarConAutoFirma-action"/>
         </panel>
 
 
@@ -29,7 +30,7 @@
 
     </form>
     <action-method name="subsysPdfUtilities.AutoFirma-form-firmarConAutoFirma-action">
-        <call class="com.educaflow.subsystem.pdfutilities.actions.PdfUtilitiesActions" method="pdfAutoFirma"/>
+        <call class="com.educaflow.subsystem.pdfutilities.controller.PdfUtilitiesController" method="pdfAutoFirma"/>
     </action-method>
 
 

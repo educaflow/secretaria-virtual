@@ -11,6 +11,7 @@
         <many-to-one name="pdf" title="PDF a gestionar" ref="com.axelor.meta.db.MetaFile"  transient="true" />
         <many-to-one name="pdfFirmado" title="PDF a gestionar" ref="com.axelor.meta.db.MetaFile"  transient="true" />
         <string name="info"  large="true" title="información PDF" multiline="true" transient="true" default="Sin datos"  />
+        <int name="numeroPagina" title="Número de página"  transient="true" default="1"  />
         <int name="x" title="Posición X"  transient="true"  />
         <int name="y" title="Posición Y"  transient="true" />
         <int name="width" title="Ancho"  transient="true"  />

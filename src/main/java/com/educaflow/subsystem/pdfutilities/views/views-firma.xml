@@ -7,10 +7,13 @@
 
 
 
-    <form name="subsysPdfUtilities.Firma-form" title="Utilidades para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities" width="large">
+    <form name="subsysPdfUtilities.Firma-form" title="Utilidades para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities" width="large" onNew="subsysPdfUtilities.Firma-form-onNew-action">
 
         <panel name="main" title="PDF">
-            <field name="pdf"  colSpan="12" onChange="subsysPdfUtilities.Firma-form-onChange-pdf-action" widget="binary-link" />
+            <field name="pdf"  colSpan="10" widget="binary-link" />
+            <field name="numeroPagina" colSpan="2" />
+
+            <button name="verPosicionesFirma" title="Ver posiciones de firma" icon="fa-plus" onClick="subsysPdfUtilities.Firma-form-button-verPosicionesFirma-action"/>
         </panel>
         <panel name="info-panel" title="Información del PDF">
             <field name="pdf-view" showTitle="false" readonly="true" colSpan="9">
@@ -22,11 +25,11 @@
             </field>
         </panel>
     </form>
-    <action-record name="subsysPdfUtilities.Firma-form-onChange-pdf-action" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities">
-        <field name="pdfFirmado" expr="action:subsysPdfUtilities.Firma-form-getPdfTodasPosicionesFirma-action" />
+    <action-record name="subsysPdfUtilities.Firma-form-onNew-action" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities">
+        <field name="numeroPagina" expr="eval: 1" />
     </action-record>
-    <action-method name="subsysPdfUtilities.Firma-form-getPdfTodasPosicionesFirma-action">
-        <call class="com.educaflow.subsystem.pdfutilities.actions.PdfUtilitiesActions" method="getPdfTodasPosicionesFirma(pdf)"/>
+    <action-method name="subsysPdfUtilities.Firma-form-button-verPosicionesFirma-action">
+        <call class="com.educaflow.subsystem.pdfutilities.controller.PdfUtilitiesController" method="getPdfTodasPosicionesFirma"/>
     </action-method>
 
 

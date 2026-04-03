@@ -19,7 +19,7 @@
         <field name="info" expr="action:subsysPdfUtilities.Info-form-getInfoPdf-action" />
     </action-record>
     <action-method name="subsysPdfUtilities.Info-form-getInfoPdf-action">
-        <call class="com.educaflow.subsystem.pdfutilities.actions.PdfUtilitiesActions" method="getInfo(pdf)"/>
+        <call class="com.educaflow.subsystem.pdfutilities.controller.PdfUtilitiesController" method="getInfo(pdf)"/>
     </action-method>
 
 
