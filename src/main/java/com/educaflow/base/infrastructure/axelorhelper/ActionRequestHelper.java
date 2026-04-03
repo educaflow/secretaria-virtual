@@ -110,25 +110,37 @@ public class ActionRequestHelper<T extends Model> {
     }
 
     public T getOriginalModel() {
+        T clonedModel;
+
         BeanMapperModel beanMapperModel=new BeanMapperModel();
         Class<T> clazz = getConcreteClass();
+        JpaRepository<T> jpaRepository = JpaRepository.of(clazz);
         Long id = this.getId();
 
-        JpaRepository<T> jpaRepository = JpaRepository.of(clazz);
-        T model = jpaRepository.find(id);
-        T clonedModel=(T)beanMapperModel.getEntityCloned(clazz, model);
+        if (id!=null) {
+            T model = jpaRepository.find(id);
+            clonedModel=(T) beanMapperModel.getEntityCloned(clazz, model);
+        } else {
+            clonedModel=null;
+        }
 
         return clonedModel;
     }
 
     public T getModel(AllowProperties allowProperties) {
+        T model;
+
         BeanMapperModel beanMapperModel=new BeanMapperModel();
         Class<T> clazz = getConcreteClass();
+        JpaRepository<T> jpaRepository = JpaRepository.of(clazz);
         Map<String, Object> requestData = this.getRequestData();
         Long id = this.getId();
 
-        JpaRepository<T> jpaRepository = JpaRepository.of(clazz);
-        T model = jpaRepository.find(id);
+        if (id!=null) {
+            model = jpaRepository.find(id);
+        } else  {
+            model = jpaRepository.create(null);
+        }
         beanMapperModel.copyMapToEntity(clazz, requestData, model, allowProperties);
 
         return model;
