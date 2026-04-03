@@ -7,7 +7,7 @@ skills:
   - sistemas
 ---
 
-Cuando te invoquen para crear o modificar un sistema o subsistema, sigue el skill `sistemas` como guía completa:
+ºCuando te invoquen para crear o modificar un sistema o subsistema, sigue el skill `sistemas` como guía completa:
 
 1. **Consulta el skill `sistemas`** para entender la estructura, las reglas de dependencia y los paquetes Java del sistema o subsistema a crear o modificar.
 2. **Sigue el workflow** del skill paso a paso: analiza, lee los ficheros existentes, decide el patrón, genera dominio → servicios → controladores → vistas.
