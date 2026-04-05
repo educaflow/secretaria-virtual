@@ -4,10 +4,7 @@ import com.axelor.db.ValueEnum;
 import com.axelor.db.annotations.EnumWidget;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,11 +12,50 @@ class ConvertTest {
 
     @Test
     void objectToLong() {
+        // null devuelve null (Long nullable)
         assertNull(Convert.objectToLong(null));
         assertEquals(123L, Convert.objectToLong(123L));
         assertEquals(123L, Convert.objectToLong(123));
 
-        assertThrows(Exception.class, () -> Convert.objectToLong("abc"));
+        // No acepta String
+        assertThrows(IllegalArgumentException.class, () -> Convert.objectToLong("123"));
+        assertThrows(IllegalArgumentException.class, () -> Convert.objectToLong("abc"));
+    }
+
+    @Test
+    void coerceToLong() {
+        // null y String vacía devuelven 0 (primitivo, nunca null)
+        assertEquals(0L, Convert.coerceToLong(null));
+        assertEquals(0L, Convert.coerceToLong(""));
+
+        // Acepta String numérica
+        assertEquals(123L, Convert.coerceToLong("123"));
+        assertEquals(-123L, Convert.coerceToLong("-123"));
+
+        // Acepta Number
+        assertEquals(123L, Convert.coerceToLong(123L));
+        assertEquals(123L, Convert.coerceToLong(123));
+
+        // String no numérica lanza excepción
+        assertThrows(NumberFormatException.class, () -> Convert.coerceToLong("abc"));
+    }
+
+    @Test
+    void coerceToInt() {
+        // null y String vacía devuelven 0
+        assertEquals(0, Convert.coerceToInt(null));
+        assertEquals(0, Convert.coerceToInt(""));
+
+        // Acepta String numérica
+        assertEquals(123, Convert.coerceToInt("123"));
+        assertEquals(-123, Convert.coerceToInt("-123"));
+
+        // Acepta Number
+        assertEquals(123, Convert.coerceToInt(123L));
+        assertEquals(123, Convert.coerceToInt(123));
+
+        // String no numérica lanza excepción
+        assertThrows(NumberFormatException.class, () -> Convert.coerceToInt("abc"));
     }
 
     @Test
@@ -58,6 +94,12 @@ class ConvertTest {
         assertEquals("28/08/2025 14:30", Convert.objectToUserString(dateTime));
         assertEquals("28/08/2025 14:30", Convert.objectToUserString(instant));
         assertEquals("28/08/2025 14:30", Convert.objectToUserString(utilDate));
+
+        ZonedDateTime zonedDateTime = dateTime.atZone(Convert.defaultZoneId);
+        assertEquals("28/08/2025 14:30", Convert.objectToUserString(zonedDateTime));
+
+        OffsetDateTime offsetDateTime = dateTime.atOffset(Convert.defaultZoneId.getRules().getOffset(dateTime));
+        assertEquals("28/08/2025 14:30", Convert.objectToUserString(offsetDateTime));
 
         //Enumerados
         assertEquals("Enfermedad comun", Convert.objectToUserString(MotivoFaltaJustificacionFaltaProfesorado.ENFERMEDAD_COMUN));

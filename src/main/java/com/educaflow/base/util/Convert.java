@@ -18,37 +18,31 @@ public class Convert {
     public static Long objectToLong(Object obj) {
         if (obj == null) {
             return null;
+        } else if (obj instanceof Number n) {
+            return n.longValue();
         } else {
-            return ((Number) obj).longValue();
+            throw new IllegalArgumentException("No se puede convertir a Long: " + obj.getClass());
         }
     }
 
     public static long coerceToLong(Object  obj) {
         if (obj == null) {
             return 0;
-        } if (obj instanceof String) {
-            if (((String) obj).isEmpty()) {
+        } if (obj instanceof String s) {
+            if (s.isEmpty()) {
                 return 0;
             } else {
-                return Long.parseLong((String) obj);
+                return Long.parseLong(s);
             }
+        } else if (obj instanceof Number n) {
+            return n.longValue();
         } else {
-            return ((Number) obj).longValue();
+            throw new IllegalArgumentException("No se puede convertir a Long: " + obj.getClass());
         }
     }
 
-    public static int coerceToInt(Object  obj) {
-        if (obj == null) {
-            return 0;
-        } if (obj instanceof String) {
-            if (((String) obj).isEmpty()) {
-                return 0;
-            } else {
-                return Integer.parseInt((String) obj);
-            }
-        } else {
-            return ((Number) obj).intValue();
-        }
+    public static int coerceToInt(Object obj) {
+        return (int) coerceToLong(obj);
     }
 
     public static String objectToUserString(Object obj) {
@@ -78,6 +72,10 @@ public class Convert {
                 userString = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(((Instant) obj).atZone(defaultZoneId));
             } else if (obj instanceof Date) {
                 userString = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(((Date) obj).toInstant().atZone(defaultZoneId));
+            } else if (obj instanceof ZonedDateTime) {
+                userString = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(((ZonedDateTime) obj).withZoneSameInstant(defaultZoneId));
+            } else if (obj instanceof OffsetDateTime) {
+                userString = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(((OffsetDateTime) obj).atZoneSameInstant(defaultZoneId));
             } else if (obj instanceof ValueEnum) {
                 Class<?> clazz = obj.getClass();
 
