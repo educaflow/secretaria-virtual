@@ -33,12 +33,12 @@ public class MetaFileUtil {
 
     }
 
-    public static void uploadContent(MetaFile metaFile, byte[] content) {
+    public static MetaFile uploadContent(MetaFile metaFile, byte[] content) {
         try {
             InputStream inputStream = new ByteArrayInputStream(content);
 
 
-            Beans.get(com.axelor.meta.MetaFiles.class).upload(inputStream, metaFile);
+            return Beans.get(com.axelor.meta.MetaFiles.class).upload(inputStream, metaFile);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -49,15 +49,15 @@ public class MetaFileUtil {
         if (metaFile == null) {
             return null;
         }
-        byte[] bytes = MetaFileUtil.downloadContent(metaFile);
-
-        MetaFile nuevoMetaFile = createMetaFileInstance();
-        nuevoMetaFile.setFileName(metaFile.getFileName());
-        nuevoMetaFile.setFileType(metaFile.getFileType());
-
-        MetaFileUtil.uploadContent(nuevoMetaFile, bytes);
-
-        return nuevoMetaFile;
+        try {
+            byte[] bytes = MetaFileUtil.downloadContent(metaFile);
+            InputStream inputStream = new ByteArrayInputStream(bytes);
+            // upload(InputStream, String) crea un MetaFile nuevo con filePath correcto.
+            // No usar upload(InputStream, MetaFile) con un MetaFile sin filePath: falla con NPE.
+            return Beans.get(MetaFiles.class).upload(inputStream, metaFile.getFileName());
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     public static String sha256(MetaFile metaFile) {

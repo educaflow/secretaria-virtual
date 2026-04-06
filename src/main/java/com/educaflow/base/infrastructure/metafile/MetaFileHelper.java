@@ -16,7 +16,7 @@ public class MetaFileHelper {
         metaFile.setFileType(PDF_MIME_TYPE);
 
         byte[] bytes = documentoPdf.getDatos();
-        MetaFileUtil.uploadContent(metaFile, bytes);
+        metaFile=MetaFileUtil.uploadContent(metaFile, bytes);
 
         return metaFile;
     }
