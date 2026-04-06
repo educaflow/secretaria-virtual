@@ -71,7 +71,6 @@ public class EventManagerFaltaProfesor extends com.educaflow.subsystem.expedient
         DocumentoPdf solicitudPdf = justificacionFaltaProfesorado.getDocumentoPdf(JustificacionFaltaProfesorado.TipoDocumentoPdf.SOLICITUD);
         MetaFile pdfSolicitud = MetaFileHelper.createMetaFile(solicitudPdf);
         justificacionFaltaProfesorado.setPdfSolicitud(pdfSolicitud);
-        justificacionFaltaProfesorado.setPdfSolicitudFirmado(null);
 
         eventContext.updateState(State.PENDIENTE_PRESENTACION);
 

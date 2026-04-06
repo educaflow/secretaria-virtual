@@ -1,6 +1,7 @@
 package com.educaflow.base.infrastructure.mapper;
 
 import com.axelor.db.Model;
+import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.util.AllowProperties;
 import org.apache.commons.beanutils.PropertyUtils;
 
@@ -251,7 +252,14 @@ public class BeanMapperModel {
                             copyValueToEntityAndNoChangeId((Class<? extends Model>) propertyDescriptor.getPropertyType(), rawValue, valueDest, innerAllowProperties, null, null,instanceModelList);
                             PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), valueDest);
                         } else if ((rawValue != null) && (valueDest != null)) {
-                            copyValueToEntityAndNoChangeId((Class<? extends Model>) propertyDescriptor.getPropertyType(), rawValue, valueDest, innerAllowProperties, null, null, instanceModelList);
+                            Long rawValueId = rawValue.get("id") != null ? ((Number) rawValue.get("id")).longValue() : null;
+                            if (MetaFile.class.isAssignableFrom(propertyDescriptor.getPropertyType()) && rawValueId != null && !rawValueId.equals(valueDest.getId())) {
+                                // El usuario reemplazó el fichero: cargar el nuevo MetaFile y reemplazar la referencia
+                                valueDest = getInitialModelFromMap(rawValue, (Class<? extends Model>) propertyDescriptor.getPropertyType());
+                                PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), valueDest);
+                            } else {
+                                copyValueToEntityAndNoChangeId((Class<? extends Model>) propertyDescriptor.getPropertyType(), rawValue, valueDest, innerAllowProperties, null, null, instanceModelList);
+                            }
                         } else {
                             throw new RuntimeException("Error de lógica");
                         }
@@ -365,11 +373,11 @@ public class BeanMapperModel {
         if (rawValue instanceof Model) {
             Model rawValueModel = (Model) rawValue;
             copyEntityToEntity(clazz, rawValueModel, valueDest, allowProperties, mappedBy, mappedByModel, instanceModelList);
-        } else if (rawValue instanceof Map) {
-            Map<String, Object> rawValueMap = (Map<String, Object>) rawValue;
+            } else if (rawValue instanceof Map) {
+                Map<String, Object> rawValueMap = (Map<String, Object>) rawValue;
             copyMapToEntity(clazz, rawValueMap, valueDest, allowProperties, mappedBy, mappedByModel, instanceModelList);
         } else {
-            throw new RuntimeException("Unsupported property type: " + rawValue.getClass());
+                throw new RuntimeException("Unsupported property type: " + rawValue.getClass());
         }
 
         valueDest.setId(originalId);
