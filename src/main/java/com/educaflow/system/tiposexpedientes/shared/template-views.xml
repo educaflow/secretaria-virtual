@@ -4,7 +4,7 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <form name="exp-Expediente-Templates" title="Expediente" model="com.educaflow.subsystem.expedientes.db.Expediente">
-        <panel name="exp-Expediente-header" colSpan="12">
+        <panel name="exp-Expediente-header" colSpan="12" title="Información general" >
             <panel colSpan="12">
                 <field name="createdBy" title="Creado por" readonly="true" colSpan="3"/>
                 <field name="nameState" readonly="true" colSpan="6" title="Estado"/>
@@ -40,7 +40,7 @@
     </form>
 
 
-    <action-view name="subsysExpedientes.HistorialEstado-action" title="Mostrar historial estados" model="com.educaflow.subsystem.expedientes.db.HistorialEstado">
+    <action-view name="subsysExpedientes.HistorialEstado-action" title="Historial estados" model="com.educaflow.subsystem.expedientes.db.HistorialEstado">
         <view type="grid" name="subsysExpedientes.HistorialEstado-grid"/>
         <view type="form" name="subsysExpedientes.HistorialEstado-form"/>
 
@@ -88,7 +88,9 @@
         </panel>
     </form>
 
-    <grid name="subsysExpedientes.RegistroEntradaAnexos-grid" title="Anexos" model="com.axelor.meta.db.MetaFile">
+    <grid name="subsysExpedientes.RegistroEntradaAnexos-grid" title="Anexos" model="com.axelor.meta.db.MetaFile"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
+          canViewOnClick="true" >
         <field name="fileName"/>
     </grid>
 
@@ -99,7 +101,10 @@
         </panel>
     </form>
 
-    <grid name="subsysExpedientes.RegistroSalidaAnexos-grid" title="Anexos" model="com.axelor.meta.db.MetaFile">
+    <grid name="subsysExpedientes.RegistroSalidaAnexos-grid" title="Anexos" model="com.axelor.meta.db.MetaFile"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
+          canViewOnClick="true"
+    >
         <field name="fileName"/>
     </grid>
 
