@@ -34,6 +34,8 @@ import java.util.List;
 
 public class EventManagerFaltaProfesor extends com.educaflow.subsystem.expedientes.services.eventmanager.EventManager<JustificacionFaltaProfesorado, EventManagerFaltaProfesor.State, EventManagerFaltaProfesor.Event,EventManagerFaltaProfesor.Profile> implements FirmaNotifier {
 
+    private static final Rectangulo rectanguloPosicionFirmaPDFResolucion =new Rectangulo(75,280,400,20);
+
     private final JustificacionFaltaProfesoradoRepository repository;
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -117,7 +119,7 @@ public class EventManagerFaltaProfesor extends com.educaflow.subsystem.expedient
         TipoResolucionJustificacionFaltaProfesorado tipoResolucion = justificacionFaltaProfesorado.getTipoResolucion();
         DocumentoPdf resolucion = justificacionFaltaProfesorado.getDocumentoPdf(JustificacionFaltaProfesorado.TipoDocumentoPdf.RESOLUCION);
 
-        DocumentoPdf resolucionFirmada =resolucion.firmar(almacenClaveLoader.getDirector(justificacionFaltaProfesorado.getCentro()),new CampoFirma(new Rectangulo(75,280,400,20)));
+        DocumentoPdf resolucionFirmada =resolucion.firmar(almacenClaveLoader.getDirector(justificacionFaltaProfesorado.getCentro()),new CampoFirma(rectanguloPosicionFirmaPDFResolucion));
 
         MetaFile pdfResolucion = MetaFileHelper.createMetaFile(resolucionFirmada);
 

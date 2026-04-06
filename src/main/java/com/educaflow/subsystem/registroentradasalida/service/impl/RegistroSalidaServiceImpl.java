@@ -19,7 +19,7 @@ import java.util.List;
 
 public class RegistroSalidaServiceImpl implements RegistroSalidaService {
 
-
+    private static final Rectangulo rectanguloPosicionFirmaPDFRegistroSalida =new Rectangulo(10,10,300,20);
     NumeradorRepository numeradorRepository;
     AlmacenClaveLoader almacenClaveLoader;
 
@@ -70,7 +70,7 @@ public class RegistroSalidaServiceImpl implements RegistroSalidaService {
 
     private MetaFile firmarRegistroSalidaPorSecretario(DocumentoPdf documentoPdf, AlmacenClave almacenClave , String numeroRegistro) {
 
-        CampoFirma campoFirma=new CampoFirma(new Rectangulo(10,10,300,20)).setNumeroPagina(1).setMensaje("Nº Registro Salida:"+numeroRegistro).setMotivo("Firma del Registro de Salida Nº "+numeroRegistro);
+        CampoFirma campoFirma=new CampoFirma(rectanguloPosicionFirmaPDFRegistroSalida).setNumeroPagina(1).setMensaje("Nº Registro Salida:"+numeroRegistro).setMotivo("Firma del Registro de Salida Nº "+numeroRegistro);
 
         DocumentoPdf documentoPdfFirmado=documentoPdf.firmar(almacenClave,campoFirma);
 

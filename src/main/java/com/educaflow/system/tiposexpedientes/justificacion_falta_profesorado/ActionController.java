@@ -11,13 +11,15 @@ import com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil;
 
 public class ActionController {
 
+    private static final Rectangulo rectanguloPosicionFirmaPDFJustificacionFaltaProfesorado=new Rectangulo(100,20,600,100);
+
     @CallMethod
     public void firmarDocumentacionParaPresentar(ActionRequest actionRequest, ActionResponse actionResponse) {
         ActionRequestHelper actionRequestHelper = new ActionRequestHelper(actionRequest,JustificacionFaltaProfesorado.class);
         JustificacionFaltaProfesorado justificacionFaltaProfesorado = (JustificacionFaltaProfesorado)ExpedienteUtil.getExpedienteFromIdExpediente(actionRequestHelper.getId());
 
         AutoFirma autofirma = (new AutoFirma(JustificacionFaltaProfesorado.class))
-            .setRectangulo(new Rectangulo(100,20,600,100))
+            .setRectangulo(rectanguloPosicionFirmaPDFJustificacionFaltaProfesorado)
             .setPageNumber(1)
             .addSourceTargetField("pdfSolicitud","pdfSolicitudFirmado")
             .setNif(justificacionFaltaProfesorado.getPersonaSolicitante().getDni());

@@ -23,6 +23,8 @@ import java.util.Map;
 
 public class RegistroEntradaServiceImpl implements RegistroEntradaService {
 
+    private static final Rectangulo rectanguloPosicionFirmaPDFRegistroEntrada =new Rectangulo(80,200,400,100);
+
     NumeradorRepository numeradorRepository;
 
     AlmacenClaveLoader almacenClaveLoader;
@@ -83,7 +85,7 @@ public class RegistroEntradaServiceImpl implements RegistroEntradaService {
 
     private DocumentoPdf firmarPorSecretario(DocumentoPdf documentoPdf,Centro centro) {
         AlmacenClave almacenClave=almacenClaveLoader.getSecretario(centro);
-        CampoFirma campoFirma=new CampoFirma(new Rectangulo(80,140,400,100)).setNumeroPagina(1);
+        CampoFirma campoFirma=new CampoFirma(rectanguloPosicionFirmaPDFRegistroEntrada).setNumeroPagina(1);
 
         DocumentoPdf documentoPdfFirmado=documentoPdf.firmar(almacenClave,campoFirma);
 
