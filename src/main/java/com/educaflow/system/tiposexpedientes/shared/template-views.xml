@@ -3,17 +3,18 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <form name="exp-Expediente-Templates" title="Expediente" model="com.educaflow.subsystem.expedientes.db.Expediente">
-        <panel name="exp-Expediente-header" colSpan="12" title="Información general" >
+    <form name="subsysExpedientes-templates-form" title="Expediente" model="com.educaflow.subsystem.expedientes.db.Expediente">
+
+        <panel name="subsysExpedientes-template-header-panel" colSpan="12" title="Información general" >
             <panel colSpan="12">
                 <field name="createdBy" title="Creado por" readonly="true" colSpan="3"/>
-                <field name="nameState" readonly="true" colSpan="6" title="Estado"/>
+                <field name="nameState" readonly="true" colSpan="4" title="Estado"/>
                 <field name="fechaUltimoEstado" readonly="true" colSpan="2"/>
-                <button name="mostrar-historial-estados" icon="assignment" title="" css="btn-link" onClick="subsysExpedientes.HistorialEstado-action" colSpan="1"/>
+                <button name="mostrar-historial-estados"  title="Ver el historial de estados" outline="true" onClick="subsysExpedientes.Expediente-verHistorialEstados-action" colSpan="3"/>
             </panel>
         </panel>
 
-        <panel name="exp-Expediente-footer" colSpan="12" itemSpan="2" showFrame="false">
+        <panel name="subsysExpedientes-template-footer-panel" colSpan="12" itemSpan="2" showFrame="false">
             <field name="errorMessajesField" showTitle="false" readonly="true" colSpan="12">
                 <viewer depends="errorMensajes" ><![CDATA[
                     <>
@@ -40,19 +41,25 @@
     </form>
 
 
-    <action-view name="subsysExpedientes.HistorialEstado-action" title="Historial estados" model="com.educaflow.subsystem.expedientes.db.HistorialEstado">
-        <view type="grid" name="subsysExpedientes.HistorialEstado-grid"/>
-        <view type="form" name="subsysExpedientes.HistorialEstado-form"/>
+    <action-view name="subsysExpedientes.Expediente-verHistorialEstados-action" title="Historial estados" model="com.educaflow.subsystem.expedientes.db.Expediente">
+        <view type="form" name="subsysExpedientes.Expediente-verHistorialEstados-form"/>
 
         <view-param name="popup" value="true"/>
         <view-param name="show-toolbar" value="false"/>
         <view-param name="popup-save" value="false"/>
-        <domain>self.expediente.id=:idExpediente</domain>
-        <context name="idExpediente" expr="eval: id"/>
+        <context name="_showRecord" expr="eval: __id__"/>
     </action-view>
 
+    <form name="subsysExpedientes.Expediente-verHistorialEstados-form" title="Historial de estados del expediente" model="com.educaflow.subsystem.expedientes.db.Expediente">
+        <panel name="expediente" title="Expediente" colSpan="12" >
+            <field name="numeroExpediente" colSpan="2" />
+            <field name="name" colSpan="10"/>
+        </panel>
+        <panel-related name="estados" title="Historial de estados" field="historialEstados" colSpan="12" form-view="subsysExpedientes.Expediente.HistorialEstado-form"  grid-view="subsysExpedientes.Expediente.HistorialEstado-grid"  />
+    </form>
 
-    <grid name="subsysExpedientes.HistorialEstado-grid" title="Historial Estados" model="com.educaflow.subsystem.expedientes.db.HistorialEstado"
+
+    <grid name="subsysExpedientes.Expediente.HistorialEstado-grid" title="Historial de estados" model="com.educaflow.subsystem.expedientes.db.HistorialEstado"
           groups="admins,users"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false"
           canSave="false" orderBy="fecha" canViewOnClick="true"
@@ -65,48 +72,62 @@
         <field name="registroSalida"/>
     </grid>
 
-    <form name="subsysExpedientes.HistorialEstado-form" title="Registro" model="com.educaflow.subsystem.expedientes.db.HistorialEstado">
-        <panel-tabs>
+    <form name="subsysExpedientes.Expediente.HistorialEstado-form" title="Registro" model="com.educaflow.subsystem.expedientes.db.HistorialEstado"
+          canAttach="false"
+        >
+        <panel-tabs hideIf="(registroEntrada==null) &amp;&amp; (registroSalida==null)">
             <panel name="registroEntrada" title="Registro de Entrada" colSpan="12" hideIf="registroEntrada==null">
                 <field name="registroEntrada.numeroRegistro" />
                 <field name="registroEntrada.documentoOriginalFirmado" widget="binary-link"  colSpan="12"/>
                 <field name="registroEntrada.documentoResguardoPresentacion" widget="binary-link"  colSpan="12"/>
-                <panel-related name="registroEntradaAnexos" title="Anexos" field="registroEntrada.anexos" colSpan="12" form-view="subsysExpedientes.RegistroEntradaAnexos-form"  grid-view="subsysExpedientes.RegistroEntradaAnexos-grid"  />
+                <panel-related name="RegistroEntrada.Anexos" title="Anexos" field="registroEntrada.anexos" colSpan="12" grid-view="subsysExpedientes.Expediente.HistorialEstado.RegistroEntrada.Anexos.MetaFile-grid" form-view="subsysExpedientes.Expediente.HistorialEstado.RegistroEntrada.Anexos.MetaFile-form"    />
             </panel>
             <panel name="registroSalida" title="Registro de salida" colSpan="12"  hideIf="registroSalida==null">
                 <field name="registroSalida.numeroRegistro" />
                 <field name="registroSalida.documento" widget="binary-link"  colSpan="12"/>
-                <panel-related name="registroSalidaAnexos" title="Anexos" field="registroSalida.anexos" colSpan="12" form-view="subsysExpedientes.RegistroSalidaAnexos-form"  grid-view="subsysExpedientes.RegistroSalidaAnexos-grid"  />
+                <panel-related name="registroSalidaAnexos" title="Anexos" field="registroSalida.anexos" colSpan="12"  grid-view="subsysExpedientes.Expediente.HistorialEstado.RegistroSalida.Anexos.MetaFile-grid" form-view="subsysExpedientes.Expediente.HistorialEstado.RegistroSalida.Anexos.MetaFile-form"   />
             </panel>
         </panel-tabs>
-    </form>
 
-    <form name="subsysExpedientes.RegistroEntradaAnexos-form" title="Anexo" canAttach="false"  model="com.axelor.meta.db.MetaFile">
-        <panel title="">
-            <field name="fileName" colSpan="10"/>
-            <field name="content" widget="binary" title="Descargar" colSpan="2"/>
+        <panel showFrame="false" colSpan="12" hideIf="(registroEntrada!=null) || (registroSalida!=null)">
+            <help variant="warning" colSpan="12">
+                <![CDATA[
+                    <>
+                    En este estado no se generó ningún registro de entrada ni de salida, por lo que no hay información adicional que mostrar.
+                    </>
+                ]]>
+            </help>
         </panel>
     </form>
 
-    <grid name="subsysExpedientes.RegistroEntradaAnexos-grid" title="Anexos" model="com.axelor.meta.db.MetaFile"
+
+    <grid name="subsysExpedientes.Expediente.HistorialEstado.RegistroEntrada.Anexos.MetaFile-grid" title="Anexos" model="com.axelor.meta.db.MetaFile"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
           canViewOnClick="true" >
         <field name="fileName"/>
     </grid>
-
-    <form name="subsysExpedientes.RegistroSalidaAnexos-form" title="Anexo" canAttach="false"  model="com.axelor.meta.db.MetaFile">
+    <form name="subsysExpedientes.Expediente.HistorialEstado.RegistroEntrada.Anexos.MetaFile-form" title="Anexo" canAttach="false"  model="com.axelor.meta.db.MetaFile">
         <panel title="">
             <field name="fileName" colSpan="10"/>
             <field name="content" widget="binary" title="Descargar" colSpan="2"/>
         </panel>
     </form>
 
-    <grid name="subsysExpedientes.RegistroSalidaAnexos-grid" title="Anexos" model="com.axelor.meta.db.MetaFile"
+
+    <grid name="subsysExpedientes.Expediente.HistorialEstado.RegistroSalida.Anexos.MetaFile-grid" title="Anexos" model="com.axelor.meta.db.MetaFile"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
           canViewOnClick="true"
     >
         <field name="fileName"/>
     </grid>
+    <form name="subsysExpedientes.Expediente.HistorialEstado.RegistroSalida.Anexos.MetaFile-form" title="Anexo" canAttach="false"  model="com.axelor.meta.db.MetaFile">
+        <panel title="">
+            <field name="fileName" colSpan="10"/>
+            <field name="content" widget="binary" title="Descargar" colSpan="2"/>
+        </panel>
+    </form>
+
+
 
 
 </object-views>
