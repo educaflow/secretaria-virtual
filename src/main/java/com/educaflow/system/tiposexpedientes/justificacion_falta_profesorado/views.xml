@@ -105,7 +105,7 @@
         </include-panels>
         <footer>
             <buttons-left>
-                <button name="DELETE" colSpan="2" css="btn-danger" outline="true" title="Borrar" onClick="subsysExpedientes-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
+                <button name="DELETE" colSpan="2" css="btn-danger" outline="true" title="Borrar el expediente"  icon="trash"  onClick="subsysExpedientes-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
             </buttons-left>
             <buttons-right>
                 <button name="GUARDAR_DATOS" colSpan="2" title="Siguiente" onClick="subsysExpedientes-event-action"/>
@@ -158,10 +158,10 @@
         </footer>
     </form>
 
-    <action-method name="exp-JustificacionFaltaProfesorado-firmarDocumentacionParaPresentar-action" model="com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesorado">
+    <action-method name="exp-JustificacionFaltaProfesorado-firmarDocumentacionParaPresentar-action"  >
         <call
-                class="com.educaflow.system.tiposexpedientes.justificacion_falta_profesorado.ActionController"
-                method="firmarDocumentacionParaPresentar"
+                class="com.educaflow.subsystem.expedientes.controllers.FirmaController"
+                method='firmarDocumento(id,"com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesorado","pdfSolicitud","pdfSolicitudFirmado",100,20,600,100,1)'
         />
     </action-method>
     <!-- **********************************************************************************************  -->
