@@ -23,6 +23,30 @@ class ConvertTest {
     }
 
     @Test
+    void objectToBoolean() {
+        // null devuelve null (Boolean nullable)
+        assertNull(Convert.objectToBoolean(null));
+        assertEquals(true, Convert.objectToBoolean(true));
+        assertEquals(false, Convert.objectToBoolean(false));
+
+        // No acepta otros tipos
+        assertThrows(IllegalArgumentException.class, () -> Convert.objectToBoolean("true"));
+        assertThrows(IllegalArgumentException.class, () -> Convert.objectToBoolean(1));
+    }
+
+    @Test
+    void objectToInt() {
+        // null devuelve null (Integer nullable)
+        assertNull(Convert.objectToInt(null));
+        assertEquals(123, Convert.objectToInt(123));
+        assertEquals(123, Convert.objectToInt(123L));
+
+        // No acepta String
+        assertThrows(IllegalArgumentException.class, () -> Convert.objectToInt("123"));
+        assertThrows(IllegalArgumentException.class, () -> Convert.objectToInt("abc"));
+    }
+
+    @Test
     void coerceToLong() {
         // null y String vacía devuelven 0 (primitivo, nunca null)
         assertEquals(0L, Convert.coerceToLong(null));

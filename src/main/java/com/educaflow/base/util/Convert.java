@@ -25,6 +25,26 @@ public class Convert {
         }
     }
 
+    public static Integer objectToInt(Object obj) {
+        if (obj == null) {
+            return null;
+        } else if (obj instanceof Number n) {
+            return n.intValue();
+        } else {
+            throw new IllegalArgumentException("No se puede convertir a Int: " + obj.getClass());
+        }
+    }
+
+    public static Boolean objectToBoolean(Object obj) {
+        if (obj == null) {
+            return null;
+        } else if (obj instanceof Boolean b) {
+            return b;
+        } else {
+            throw new IllegalArgumentException("No se puede convertir a Boolean: " + obj.getClass());
+        }
+    }
+
     public static long coerceToLong(Object  obj) {
         if (obj == null) {
             return 0;
