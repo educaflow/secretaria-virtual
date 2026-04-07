@@ -34,7 +34,7 @@ public class FirmarController {
         AutoFirma autofirma = (new AutoFirma(TareaFirma.class))
                 .setRectangulo(new Rectangulo(tareaFirma.getX().floatValue(),tareaFirma.getY().floatValue(),tareaFirma.getWidth().floatValue(),tareaFirma.getHeight().floatValue()))
                 .setPageNumber(tareaFirma.getPage())
-                .setNif(tareaFirma.getFirmante().getDni());
+                .setDni(tareaFirma.getFirmante().getDni());
 
         List<DocumentoFirma> documentosFirma = tareaFirma.getDocumentosFirma();
         for(int i=0;i<documentosFirma.size();i++) {

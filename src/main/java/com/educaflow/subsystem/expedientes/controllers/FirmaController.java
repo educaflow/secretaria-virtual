@@ -27,7 +27,7 @@ public class FirmaController {
                     .setRectangulo(rectanguloPosicionFirmaPDF)
                     .setPageNumber(pageNumber)
                     .addSourceTargetField(sourceField, targetField)
-                    .setNif(dni);
+                    .setDni(dni);
 
 
             ActionResponse actionResponse = new ActionResponse();

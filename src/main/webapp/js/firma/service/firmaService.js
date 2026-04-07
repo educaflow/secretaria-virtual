@@ -19,7 +19,7 @@ const FirmaService = {
             pageNumber:              signatureRequest.pageNumber,
             fontSize:                signatureRequest.fontSize,
             signReason:              signatureRequest.signReason,
-            nif:                     signatureRequest.nif
+            dni:                     signatureRequest.dni
         });
 
 

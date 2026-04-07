@@ -30,7 +30,7 @@ globalThis.firmaController = async function(context, payload) {
                 pageNumber: payload.pageNumber,
                 fontSize: payload.fontSize,
                 signReason: payload.motivo,
-                nif: payload.nif
+                dni: payload.dni
             };
 
 

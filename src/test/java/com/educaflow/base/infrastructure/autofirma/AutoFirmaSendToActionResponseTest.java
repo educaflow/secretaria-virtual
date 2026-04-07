@@ -54,7 +54,7 @@ class AutoFirmaSendToActionResponseTest {
 
         Map<String, Object> payload = capturarPayload(actionResponse);
 
-        assertEquals(null, payload.get("nif"));
+        assertEquals(null, payload.get("dni"));
         assertEquals(null, payload.get("motivo"));
         assertEquals("_signed", payload.get("sufijo"));
         assertEquals(CampoFirma.DEFAULT_NUMERO_PAGINA, payload.get("pageNumber"));
@@ -73,7 +73,7 @@ class AutoFirmaSendToActionResponseTest {
     void sendToActionResponse_conValoresCustom_publicaPayloadEsperado() {
         AutoFirma autoFirma = new AutoFirma(JustificacionDummy.class)
                 .setRectangulo(new Rectangulo(3, 8, 20, 10))
-                .setNif("12345678A")
+                .setDni("12345678A")
                 .setMotivo("Prueba de firma")
                 .setSufijo("_firmado")
                 .setPageNumber(2)
@@ -85,7 +85,7 @@ class AutoFirmaSendToActionResponseTest {
 
         Map<String, Object> payload = capturarPayload(actionResponse);
 
-        assertEquals("12345678A", payload.get("nif"));
+        assertEquals("12345678A", payload.get("dni"));
         assertEquals("Prueba de firma", payload.get("motivo"));
         assertEquals("_firmado", payload.get("sufijo"));
         assertEquals(2, payload.get("pageNumber"));

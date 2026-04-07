@@ -20,11 +20,11 @@ import javax.security.auth.x500.X500Principal;
  */
 public class DatosCertificadoImpl implements DatosCertificado {
 
-    private static final String OID_NIF_FNMT = "1.3.6.1.4.1.5734.1.4";
+    private static final String OID_DNI_FNMT = "1.3.6.1.4.1.5734.1.4";
     private static final String OID_NOMBRE_FNMT = "1.3.6.1.4.1.5734.1.1";
     private static final String OID_APE1_FNMT = "1.3.6.1.4.1.5734.1.2";
     private static final String OID_APE2_FNMT = "1.3.6.1.4.1.5734.1.3";
-    private static final String OID_NIF_ACCV = "0.9.2342.19200300.100.1.1";
+    private static final String OID_DNI_ACCV = "0.9.2342.19200300.100.1.1";
     private static final String OID_NOMBRE_APELLIDOS_ACCV = "2.5.4.3";
     private static final String OID_NOMBRE_APELLIDOS_ACCV_LOCATION = "2.5.29.17";
     private static final String OID_TIME_STAMPING = "1.3.6.1.5.5.7.3.8";
@@ -320,7 +320,7 @@ public class DatosCertificadoImpl implements DatosCertificado {
 
     private void populateDatosComunesCertificadoUsuarioFNMT() {
         try {
-            dni = getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, OID_NIF_FNMT));
+            dni = getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, OID_DNI_FNMT));
         } catch (Exception ex) {
             //Si falla algo se quedan los datos sin cargar
         }
@@ -364,7 +364,7 @@ public class DatosCertificadoImpl implements DatosCertificado {
     
     private void populateDatosComunesCertificadoACCV() {
         try {
-            dni = getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, OID_NIF_ACCV));
+            dni = getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, OID_DNI_ACCV));
         } catch (Exception ex) {
             //Si falla algo se quedan los datos sin cargar
         }

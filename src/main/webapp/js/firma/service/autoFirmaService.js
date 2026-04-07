@@ -50,11 +50,11 @@ const AutoFirmaService = {
             params += `\nsignReason=${safeReason}`;
         }
 
-        if (signatureOptions.nif?.trim()) {
-            const safeNif = signatureOptions.nif.replace(/[\n\r=*()]/g, '').trim();
+        if (signatureOptions.dni?.trim()) {
+            const safeDni = signatureOptions.dni.replace(/[\n\r=*()]/g, '').trim();
             params +=
                 `\nheadless=true` +
-                `\nfilters.1=subject.rfc2254:(|(SERIALNUMBER=*${safeNif}*)(CN=*${safeNif}*));nonexpired:`;
+                `\nfilters.1=subject.rfc2254:(|(SERIALNUMBER=*${safeDni}*)(CN=*${safeDni}*));nonexpired:`;
         }
 
         return params;

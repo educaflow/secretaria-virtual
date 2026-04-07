@@ -21,7 +21,7 @@ public class AutoFirma {
 
     private final Class clazz;
     private Rectangulo rectangulo;
-    private String nif=null;
+    private String dni=null;
     private String motivo =null;
     private List<SourceTargetField> sourceTargetFields=new ArrayList<>();
     private String sufijo="_signed";
@@ -57,8 +57,8 @@ public class AutoFirma {
         return rectangulo;
     }
 
-    public AutoFirma setNif(String nif) {
-        this.nif = nif;
+    public AutoFirma setDni(String dni) {
+        this.dni = dni;
         return this;
     }
     public AutoFirma setMotivo(String motivo) {
@@ -66,8 +66,8 @@ public class AutoFirma {
         return this;
     }
 
-    public String getNif() {
-        return nif;
+    public String getDni() {
+        return dni;
     }
     public String getMotivo() {
         return motivo;
@@ -121,7 +121,7 @@ public class AutoFirma {
 
     private Map<String,Object> getPayload() {
         Map<String, Object> payload = new HashMap<>();
-        payload.put("nif", this.getNif());
+        payload.put("dni", this.getDni());
         payload.put("motivo", this.getMotivo());
         payload.put("sourceTargetFields", this.getSourceTargetFields());
         payload.put("sufijo", this.getSufijo());
