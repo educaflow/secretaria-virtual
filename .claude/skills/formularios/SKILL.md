@@ -59,6 +59,66 @@ Un campo siempre debe estar dentro de un panel o panel-related.
 - `widget="binary"`: usado en formularios de anexos para botón directo de descarga (`content`).
 - `x-accept` o `file-type`: para restringir tipos de fichero (por ejemplo PDF o imagen).
 
+### colSpan/colOffset en field
+ - Para definir el tamaño de un campo se usa "colSpan" (número de columnas que ocupa) y "colOffset" (espacio "hueco" dejado a la izquierda).
+ - El proyecto sigue una maquetación de 12 columnas, por lo que un campo con `colSpan="6"` ocuparía la mitad del ancho del panel.
+ - Esto se usa para organizar campos en la misma línea
+ - Para centrar un campo en una linea se usaría  `colOffset="3"` y `colSpan="6"`.
+
+Te pongo el siguiente ejemplo para que lo veas más claro:
+
+```xml
+<panel title="Datos personales">
+    <field name="campo1" colSpan="6"/>
+    <field name="campo2" colSpan="6"/>
+    <field name="campo3" colSpan="6" colOffset="6" />    
+</panel>
+```
+
+En el ejemplo 'campo1' y 'campo2' se mostrarían en la misma línea ocupando cada uno la mitad del ancho del panel, mientras que 'campo3' se mostraría en una nueva línea y estaría en la segunda mitad del ancho del panel, dejando un espacio vacío a su izquierda gracias al `colOffset="6"`.
+
+Es importante usar `colSpan` y `colOffset` de manera coherente para lograr una maquetación clara y organizada en el formulario. Se debe pensar en el colSpan para que quepa todo el texto. 
+Si el texto es largo, se puede usar `colSpan="12"` para que ocupe toda la línea y evitar que se corte. Por ejemplo para campos de fechas sobra con colSpan="2". 
+Tambien hay que ver que pones en la misma linea, normalmente son campos relacionados, por ejemplo fecha de inicio y fecha de fin, o nombre y apellidos.
+Lo normal es que siempre esté todo alineado a la izquierda, pero en casos puntuales puede ser útil para centrar un campo o dejar espacio a la izquierda para mejorar la legibilidad.
+
+Ejemplo puntual (No es normal) de no dejar algo a la izquierda para que quede más claro:
+```xml
+<panel title="Datos personales">
+    <field name="nombre" colSpan="10"/>
+    <field name="fechaInicio" colSpan="2"/>
+    <field name="fechaFin" colSpan="2" colOffset="10" />    
+</panel>
+```
+En el ejemplo anterior, el campo 'nombre' ocuparía la mayor parte de la línea, mientras que 'fechaInicio' y 'fechaFin' se mostrarían uno debajo del otro, con 'fechaFin' alineado respecto a 'fechaInicio' al `colOffset="10"`.
+
+También es importante tener en cuenta que el uso de `colSpan` y `colOffset` para intentar alinear los campos con los de la fila anterior o siguiente.
+
+En el ejemplo siguiente se hace mal la alineación de campos ya que ninguno de los campos está alineado con el de arriba.:
+```xml
+<panel title="Datos personales">
+    <field name="campo1" colSpan="4"  />
+    <field name="campo2" colSpan="2"  />
+    <field name="campo3" colSpan="6"  />    
+    <field name="campo4" colSpan="2"  />    
+    <field name="campo5" colSpan="6"  />    
+    <field name="campo6" colSpan="4"  />    
+</panel>
+```
+
+Una mejor forma de hacerlo sería:
+```xml
+<panel title="Datos personales">
+    <field name="campo1" colSpan="4"  />
+    <field name="campo2" colSpan="3"  />
+    <field name="campo3" colSpan="5"  />    
+    <field name="campo4" colSpan="4"  />    
+    <field name="campo5" colSpan="3"  />    
+    <field name="campo6" colSpan="5"  />    
+</panel>
+```
+
+Aunque no es una obligación estricta, es recomendable intentar alinear los campos con los de la fila anterior o siguiente para mejorar la legibilidad del formulario. Y ver como ponerlo para que quede claro y no se corte el texto.
 
 ### SELECT para enumerados
 
