@@ -18,6 +18,7 @@
         <many-to-one name="creador" ref="com.axelor.auth.db.User"  />
         <one-to-one name="personaInteresada" ref="com.educaflow.subsystem.common.db.Persona"  />
         <one-to-one name="personaSolicitante" ref="com.educaflow.subsystem.common.db.Persona"  />
+        <string name="dniFirmaDocumentoEntrada" title="DNI de la persona que debe firmar los documentos de entrada" />
     </entity>
 
 

@@ -161,7 +161,7 @@
     <action-method name="exp-JustificacionFaltaProfesorado-firmarDocumentacionParaPresentar-action"  >
         <call
                 class="com.educaflow.subsystem.expedientes.controllers.FirmaController"
-                method='firmarDocumento(id,"com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesorado","pdfSolicitud","pdfSolicitudFirmado",100,20,600,100,1)'
+                method='firmarDocumentoEntrada(id,"pdfSolicitud","pdfSolicitudFirmado",100,20,600,100,1)'
         />
     </action-method>
     <!-- **********************************************************************************************  -->

@@ -10,6 +10,7 @@ import com.educaflow.base.infrastructure.validation.dsl.rules
 import com.educaflow.base.infrastructure.validation.engine.BeanValidationRules
 import com.educaflow.base.infrastructure.validation.rules.FileMaxSize
 import com.educaflow.base.infrastructure.validation.rules.FileType
+import com.educaflow.base.infrastructure.validation.rules.FirmaPdf
 import com.educaflow.base.infrastructure.validation.rules.GreaterThan
 import com.educaflow.base.infrastructure.validation.rules.MaxLength
 import com.educaflow.base.infrastructure.validation.rules.MaxValue
@@ -83,6 +84,7 @@ class StateEventValidatorImplFaltaProfesor: StateEventValidator {
         return rules {
             field(model::getPdfSolicitudFirmado) {
                 +Required()
+                +FirmaPdf(model::getPdfSolicitud, model::getDniFirmaDocumentoEntrada)
             }
         }
     }

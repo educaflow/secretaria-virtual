@@ -11,17 +11,23 @@ import com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil;
 public class FirmaController {
 
     @CallMethod
-    public Response firmarDocumento(long id, String fqcnExpediente, String sourceField, String targetField, float x, float y, float width, float height, int pageNumber) {
+    public Response firmarDocumentoEntrada(long id, String sourceField, String targetField, float x, float y, float width, float height, int pageNumber) {
         try {
             Expediente expediente = ExpedienteUtil.getExpedienteFromIdExpediente(id);
             Rectangulo rectanguloPosicionFirmaPDF = new Rectangulo(x, y, width, height);
-            Class clazz = Class.forName(fqcnExpediente);
+            Class clazz = expediente.getClass();
+
+            String dni=expediente.getDniFirmaDocumentoEntrada();
+            if ((dni==null) || (dni.isBlank())) {
+                throw new RuntimeException("El DNI no puede estar vacio");
+            }
+
 
             AutoFirma autofirma = (new AutoFirma(clazz))
                     .setRectangulo(rectanguloPosicionFirmaPDF)
                     .setPageNumber(pageNumber)
                     .addSourceTargetField(sourceField, targetField)
-                    .setNif(expediente.getPersonaSolicitante().getDni());
+                    .setNif(dni);
 
 
             ActionResponse actionResponse = new ActionResponse();

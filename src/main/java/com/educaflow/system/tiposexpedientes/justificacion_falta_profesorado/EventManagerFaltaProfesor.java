@@ -61,6 +61,7 @@ public class EventManagerFaltaProfesor extends com.educaflow.subsystem.expedient
         persona.setDni(justificacionFaltaProfesorado.getCreador().getDni());
         justificacionFaltaProfesorado.setPersonaInteresada(persona);
         justificacionFaltaProfesorado.setPersonaSolicitante(persona);
+        justificacionFaltaProfesorado.setDniFirmaDocumentoEntrada(persona.getDni());
     }
 
 

@@ -34,3 +34,4 @@ key,message,comment,context
 "Secretario","Secretario","",""
 "Director","Director","",""
 "Auditor","Auditor","",""
+"DNI de la persona que debe firmar los documentos de entrada","DNI de la persona que debe firmar los documentos de entrada","",""
