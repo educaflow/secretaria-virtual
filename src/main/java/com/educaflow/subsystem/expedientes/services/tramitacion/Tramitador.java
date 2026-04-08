@@ -21,6 +21,7 @@ import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
 import com.educaflow.subsystem.expedientes.services.eventmanager.EventManager;
 import com.educaflow.subsystem.expedientes.services.validation.StateEventValidator;
 import com.google.common.base.CaseFormat;
+import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
@@ -52,6 +53,10 @@ public class Tramitador {
             updateNumeroExpediente(expediente);
 
             eventManager.triggerInitialEvent(expediente, eventContext);
+
+            Preconditions.checkNotNull(expediente.getDniFirmaDocumentoEntrada(), "dniFirmaDocumentoEntrada no puede ser null");
+            Preconditions.checkArgument(!expediente.getDniFirmaDocumentoEntrada().isBlank(), "dniFirmaDocumentoEntrada no puede estar vacio");
+            Preconditions.checkArgument(DniUtil.isValid(expediente.getDniFirmaDocumentoEntrada()), "dniFirmaDocumentoEntrada no tiene un formato válido");
 
             ExpedienteUtil.updateState(expediente, initialEvent);
             addHistorialEstado(expediente, null, eventContext);
