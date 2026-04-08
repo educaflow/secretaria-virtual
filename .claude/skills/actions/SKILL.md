@@ -51,6 +51,17 @@ Estas acciones se suelen disparar desde eventos de vista:
 - `onNew`, `onLoad`, `onSave`
 - `onChange`, `onSelect`, `onClick`
 
+## Reglas importantes del action-view
+
+- **El orden de los `<view>` dentro de `action-view` determina la vista inicial.** Axelor abre la primera vista listada al entrar al menú. Siempre poner `grid` antes que `form`:
+
+```xml
+<action-view name="..." title="..." model="...">
+    <view type="grid" name="..."/>   <!-- primero el grid -->
+    <view type="form" name="..."/>   <!-- después el form -->
+</action-view>
+```
+
 ## Referencia
 
 Para detalle completo de atributos, sintaxis y ejemplos avanzados, consultar:
