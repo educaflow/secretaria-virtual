@@ -75,7 +75,8 @@
 
     </form>
 
-    <grid name="subsysFirma.DocumentoFirma-pendiente-grid" title="Documentos" model="com.educaflow.subsystem.firmas.db.DocumentoFirma"  edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+    <grid name="subsysFirma.DocumentoFirma-pendiente-grid" title="Documentos" model="com.educaflow.subsystem.firmas.db.DocumentoFirma"
+          edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
         <field name="documentoOriginal.fileName"/>
     </grid>
     <form name="subsysFirma.DocumentoFirma-pendiente-form" title="Documento" model="com.educaflow.subsystem.firmas.db.DocumentoFirma"

@@ -29,7 +29,7 @@
                        grid-view="subsysFirma.DocumentoFirma-firmado-grid" form-view="subsysFirma.DocumentoFirma-firmado-form" readonly="true"/>
 
         <panel name="acciones" colSpan="12" showFrame="false">
-            <button name="btnVolver" title="Volver" onClick="back" css="btn-secondary" colSpan="3" colOffset="9" outline="true"/>
+            <button name="btnVolver" title="Salir" onClick="back" css="btn-secondary" colSpan="3" colOffset="9" outline="true"/>
         </panel>
 
     </form>

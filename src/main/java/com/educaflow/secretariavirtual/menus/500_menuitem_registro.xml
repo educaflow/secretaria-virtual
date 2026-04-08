@@ -5,19 +5,8 @@
 
     <menuitem name="subsysRegistroEntradaSalida-menuitem"  title="Registro"  groups="admins"  order="500"/>
 
-    <menuitem name="subsysRegistroEntradaSalida-entrada-menuitem"  parent="subsysRegistroEntradaSalida-menuitem" title="Entrada" action="subsysRegistroEntradaSalida.Entrada-mantenimiento-action" groups="admins" order="2"  />
-    <menuitem name="subsysRegistroEntradaSalida-salida-menuitem"  parent="subsysRegistroEntradaSalida-menuitem" title="Salida" action="subsysRegistroEntradaSalida.Salida-mantenimiento-action" groups="admins" order="2"  />
-
-    <action-view name="subsysRegistroEntradaSalida.Entrada-mantenimiento-action"  title="Registro de entrada" model="com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada"  >
-        <view type="grid" name="subsysRegistroEntradaSalida.Entrada-grid"/>
-        <view type="form" name="subsysRegistroEntradaSalida.Entrada-form"/>
-
-    </action-view>
-
-    <action-view name="subsysRegistroEntradaSalida.Salida-mantenimiento-action"  title="Registro de salida" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"  >
-        <view type="grid" name="subsysRegistroEntradaSalida.Salida-grid"/>
-        <view type="form" name="subsysRegistroEntradaSalida.Salida-form"/>
-    </action-view>
+    <menuitem name="subsysRegistroEntradaSalida-entrada-menuitem"  parent="subsysRegistroEntradaSalida-menuitem" title="Entrada" action="subsysRegistroEntradaSalida.RegistroEntrada-mantenimiento-action" groups="admins" order="2"  />
+    <menuitem name="subsysRegistroEntradaSalida-salida-menuitem"  parent="subsysRegistroEntradaSalida-menuitem" title="Salida" action="subsysRegistroEntradaSalida.RegistroSalida-mantenimiento-action" groups="admins" order="2"  />
 
 
 
