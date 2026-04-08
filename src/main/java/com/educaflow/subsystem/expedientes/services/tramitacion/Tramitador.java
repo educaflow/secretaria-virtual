@@ -4,8 +4,7 @@ package com.educaflow.subsystem.expedientes.services.tramitacion;
 import com.axelor.db.JPA;
 import com.axelor.db.JpaRepository;
 import com.axelor.db.Model;
-import com.educaflow.base.util.AllowProperties;
-import com.educaflow.base.util.SecurityUtil;
+import com.educaflow.base.util.*;
 import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
 import com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil;
 import com.educaflow.subsystem.expedientes.services.internal.StateEnum;
@@ -17,8 +16,6 @@ import com.educaflow.subsystem.expedientes.db.TipoExpediente;
 import com.educaflow.base.infrastructure.numeradores.db.repo.NumeradorRepository;
 import com.educaflow.base.infrastructure.mapper.BeanMapperModel;
 import com.educaflow.base.infrastructure.validation.engine.*;
-import com.educaflow.base.util.ReflectionUtil;
-import com.educaflow.base.util.TextUtil;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
 import com.educaflow.subsystem.expedientes.services.eventmanager.EventManager;
@@ -50,7 +47,7 @@ public class Tramitador {
             Expediente expediente = (Expediente) eventManager.getModelClass().getDeclaredConstructor().newInstance();
             expediente.setTipoExpediente(tipoExpediente);
             expediente.setCentro(eventContext.getCentro());
-            expediente.setCreador(SecurityUtil.getUser());
+            expediente.setUsuarioRegistrador(SecurityUtil.getUser());
             updateName(expediente);
             updateNumeroExpediente(expediente);
 

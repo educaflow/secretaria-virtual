@@ -56,9 +56,9 @@ public class EventManagerFaltaProfesor extends com.educaflow.subsystem.expedient
     public void triggerInitialEvent(JustificacionFaltaProfesorado justificacionFaltaProfesorado, EventContext<Profile,State> eventContext) throws BusinessException {
         justificacionFaltaProfesorado.setAnyo(LocalDate.now().getYear());
         Persona persona=new Persona();
-        persona.setNombre(justificacionFaltaProfesorado.getCreador().getNombre());
-        persona.setApellidos(justificacionFaltaProfesorado.getCreador().getApellidos());
-        persona.setDni(justificacionFaltaProfesorado.getCreador().getDni());
+        persona.setNombre(justificacionFaltaProfesorado.getUsuarioRegistrador().getNombre());
+        persona.setApellidos(justificacionFaltaProfesorado.getUsuarioRegistrador().getApellidos());
+        persona.setDni(justificacionFaltaProfesorado.getUsuarioRegistrador().getDni());
         justificacionFaltaProfesorado.setPersonaInteresada(persona);
         justificacionFaltaProfesorado.setPersonaSolicitante(persona);
         justificacionFaltaProfesorado.setDniFirmaDocumentoEntrada(persona.getDni());
