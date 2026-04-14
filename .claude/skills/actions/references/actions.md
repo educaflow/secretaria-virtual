@@ -631,7 +631,9 @@ The `<view-param>` parameter name accepts the following options:
 - `popup.maximized` - `true` to open as maximized popup
 - `popup.show-header` - `false` to hide popup header
 - `popup.show-footer` - `false` to hide popup footer
-- `show-toolbar` - `false` to hide form toolbar
+- `show-toolbar` - `false` to hide form toolbar in grid view and from view
+- `show-toolbar-grid` - `false` to hide form toolbar only in grid view
+- `show-toolbar-form` - `false` to hide form toolbar only in form view
 - `show-confirm` - `false` to disable dirty check
 - `reload-dotted` - `true` to refresh the grid when switching back from form view
 - `download` - `true` to mark view as pointing to a downloadable link
