@@ -24,7 +24,7 @@
                             <ul >
                                 {errorMensajes.map((errorMensaje, index) => (
                                 <li key={index}>
-                                    {errorMensaje.label ? (<strong>{errorMensaje.label}:&nbsp;&nbsp;</strong>) : null}
+                                    {errorMensaje.label || errorMensaje.fieldName ? (<strong>{errorMensaje.label || errorMensaje.fieldName}:&nbsp;&nbsp;</strong>) : null}
                                     {errorMensaje.message}
                                 </li>
                                 ))}
