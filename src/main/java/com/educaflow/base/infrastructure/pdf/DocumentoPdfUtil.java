@@ -76,7 +76,7 @@ public class DocumentoPdfUtil {
             return Optional.of("La firma no puede ser un sello de tiempo");
         }
         if (Objects.equals(resultadoFirmaNueva.getDatosCertificado().getDNI(), dni) == false) {
-            return Optional.of("El documento debe ser firmado con el DNI/NIE '" + dni + "' sin embargo se ha usado '" + resultadoFirmaNueva.getDatosCertificado().getDNI()+"'");
+            return Optional.of("Se debe firmar con el DNI/NIE '" + dni + "' sin embargo se ha firmado con '" + resultadoFirmaNueva.getDatosCertificado().getDNI()+"'");
         }
 
         return Optional.empty();
