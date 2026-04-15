@@ -175,6 +175,9 @@ The following special actions can be used to perform some special operations:
 - `new` - start a new record, can be used at the end only
 - `close` - close current view, can be used at the end only
 - `validate` - validate current form, can be used anywhere
+- `back` - back to the previous view, can be used at the end only. Ask if there are unsaved changes.
+- `force-back` - back to the previous view, can be used at the end only. Don't ask even if there are unsaved changes.
+- `delete` - to delete record, can be used at the end only
 
 For example:
 
