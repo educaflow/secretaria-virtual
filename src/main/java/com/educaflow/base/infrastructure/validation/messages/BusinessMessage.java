@@ -14,6 +14,17 @@ public class BusinessMessage {
         this.message = message;
         this.label = label;
     }
+    public BusinessMessage(String fieldName, String message) {
+        this.fieldName = fieldName;
+        this.message = message;
+        this.label = null;
+    }
+    public BusinessMessage(String message) {
+        this.fieldName = null;
+        this.message = message;
+        this.label = null;
+    }
+
     public String getMessage() {
         return message;
     }

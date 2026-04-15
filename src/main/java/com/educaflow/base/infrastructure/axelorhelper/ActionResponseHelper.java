@@ -5,6 +5,7 @@ import com.axelor.meta.schema.actions.ActionView;
 import com.axelor.rpc.ActionResponse;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessage;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.educaflow.base.infrastructure.validation.messages.internal.BusinessMessageHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,20 +48,33 @@ public class ActionResponseHelper {
         response.setView(actionViewBuilder.map());
     }
 
+    public void doResponseBusinessMessagesAsError(BusinessMessages businessMessages) {
+            doResponseBusinessMessagesAsError(null,  businessMessages);
+    }
+
     public void doResponseBusinessMessagesAsError(String title, BusinessMessages businessMessages) {
         StringBuilder sb= new StringBuilder();
+        sb.append("<ul>");
         for(BusinessMessage businessMessage : businessMessages) {
-            if (sb.length()>0) {
-                sb.append("<br>");
-            }
+            sb.append("<li>");
 
-            if ((businessMessage.getLabel()!=null) && (!businessMessage.getLabel().isEmpty())) {
+            if ((businessMessage.getLabel()!=null) && (businessMessage.getLabel().isBlank()==false)) {
                 sb.append("<strong>").append(businessMessage.getLabel()).append(": ").append("</strong>").append(businessMessage.getMessage());
+            } else if ((businessMessage.getFieldName()!=null) && (businessMessage.getFieldName().isBlank()==false)) {
+                sb.append("<strong>").append(businessMessage.getFieldName()).append(": ").append("</strong>").append(businessMessage.getMessage());
             } else {
                 sb.append(businessMessage.getMessage());
             }
+
+            sb.append("</li>");
         }
-        response.setError(sb.toString(),title);
+        sb.append("</ul>");
+
+        if ((title!=null) && (title.isBlank()==false)) {
+            response.setError(sb.toString(), title);
+        } else {
+            response.setError(sb.toString());
+        }
     }
 
     public void doResponseBusinessMessages(BusinessMessages businessMessages) {
@@ -68,21 +82,9 @@ public class ActionResponseHelper {
     }
 
     private void storeBusinessMessagesInActionResponse(BusinessMessages businessMessages) {
-        List<Map<String,String>> errorMensajes=new ArrayList<>();
+        List<Map<String,String>> errorMensajes= BusinessMessageHelper.getAsList(businessMessages);
 
-        if (businessMessages!=null)  {
-            for (BusinessMessage businessMessage : businessMessages.removeDuplicates()) {
-                String fieldName = businessMessage.getFieldName();
-                String message = businessMessage.getMessage();
-                String label = businessMessage.getLabel();
 
-                Map<String, String> errorMensaje = new HashMap<>();
-                errorMensaje.put("fieldName", fieldName);
-                errorMensaje.put("message", message);
-                errorMensaje.put("label", label);
-                errorMensajes.add(errorMensaje);
-            }
-        }
-        response.setValue("errorMensajes",errorMensajes);
+        response.setValue(BusinessMessageHelper.KEY_MAP_ERROR_MENSAJES,errorMensajes);
     }
 }
