@@ -1,5 +1,5 @@
 ---
-name: modelos de Axelor
+name: modelos
 description: Crear un fichero XML de modelo de datos para Axelor a partir de una descripción en lenguaje natural o según un PDF con un formulario de datos
 ---
 

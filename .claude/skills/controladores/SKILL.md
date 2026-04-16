@@ -1,5 +1,5 @@
 ---
-name: Controladores
+name: controladores
 description: Skill para crear controladores de Axelor. El controlador expone métodos a las vistas Axelor.
 ---
 

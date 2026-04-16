@@ -1,6 +1,6 @@
 ---
-name: Formularios de Axelor
-description: Dentro de un fichero XML de vistas para Axelor crea los fomurlarios a partir de una descripción en lenguaje natural o un modelo de axelor
+name: formularios
+description: Este skill sirve para diseñar y generar dentro de ficheros XML de vistas de Axelor la etiqueta  `<form>` de Axelor a partir de un modelo de dominio (entidad). 
 ---
 
 Este skill sirve para diseñar dentro de ficheros de vistas un formulario o etiqueta `<form>` de Axelor a partir de una necesidad funcional o de un modelo de dominio.
@@ -13,13 +13,60 @@ En esta vista se organiza la información en paneles, se definen acciones (`onLo
 Estructura mínima:
 
 ```xml
-<form name="mi-form" title="Mi entidad" model="com.miapp.db.MiEntidad">
-  <panel title="Datos">
-	<field name="code"/>
-	<field name="name"/>
-  </panel>
+<form name="subsysSistemaEducativo.Ciclo@Main-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
+      width="large"
+      canEdit="true"
+      canAttach="false" canBack="false"  canDelete="false" canNew="false" canSave="false" canMore="false" 
+>
+    <panel title="Datos">
+        <field name="code"/>
+        <field name="name"/>
+    </panel>
+
+    <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
+        <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.LeyEducativa@Main-validateDelete-action,delete" css="btn-danger" colSpan="2"  outline="true" showIf="(id != null)"/>
+        <button name="btnCancel" title="Cancelar" onClick="back"  colSpan="2" colOffset="6" outline="true"   />
+        <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.LeyEducativa@Main-validateSave-action,save,force-back"  colSpan="2"  />
+    </panel>
+    
 </form>
 ```
+
+ - Incluir el atributo `width="large"` para que el formulario ocupe más espacio horizontal y evitar que se vean campos cortados. Si se dice que no sea largo simplemente no se pone el atributo `width` 
+ - Incluir los atributos `canAttach="false" canBack="false"  canDelete="false" canNew="false" canSave="false" canMore="false"` para evitar que salgan los botones
+ - El panel llamado "buttons-panel" es un patrón común para colocar los botones de acción al final del formulario
+   - El panel está con `colSpan="12"` para ocupar todo el ancho y `showFrame="false"` para que no se vea el marco del panel ya que no queremos que parezca un panel normal, sino simplemente un contenedor para los botones.
+   - Los botones principales (guardar, cancelar, etc) están a la derecha del todo
+   - Las acciones secundarias (borrar, imprimir, etc.) están a la izquierda del todo
+   - Como las acciones de "save" y "delete" no pueden hacer validaciones, **si** es necesario se pueden añadir acciones antes de ellas para validar los datos, por ejemplo `subsysSistemaEducativo.LeyEducativa@Main-validateSave-action` o `subsysSistemaEducativo.LeyEducativa@Main-validateDelete-action` que se encargarían de lanzar un error si los datos no son correctos y evitarían que se ejecute la acción de guardar o borrar.
+   - Estos bontones son necesarios si se oculta el toolbar con `<view-param name="show-toolbar-form" value="false"/>` o `<view-param name="show-toolbar" value="false"/>` en el `<action-view>`. Pero si el toolbar estuviera visible no serían necesarios.
+   - Realmente no es necesario que estén exactamente estos botones sino que podría haber otros botones con otras acciones.
+
+## Nombre de los formularios
+
+
+El nombre de las vistas de formularios es: `{Prefijo}{Entidad}[.{EntidadHija}]*@[Main|View|otro nombre]-form`
+
+Una excepción a esta convención es el caso de las vistas del framework de tipos de expediente, expedientes o trámites. En ese caso aun no se ha definido una convención de nombres específica, pero se ha decidido reservar el prefijo `exp-` para todas las vistas relacionadas con ese framework, de esa forma se pueden identificar fácilmente y no se solapan con las vistas de los subsistemas o sistemas funcionales. Por ejemplo, una vista de formulario para un tipo de expediente podría llamarse `exp-TipoExpediente@Main-form`.
+Otra excepción es el caso de formularios del propio Axelor que se modifican para adecuarlos a las necesidades del proyecto, en ese caso se pueden mantener los nombres originales de Axelor. Un ejemplo es el formulario 'user-preferences-form' 
+
+
+### Prefijos
+- Subsistemas: `subsys{Subsistema}` (PascalCase sin separador), p.ej. `subsysFirma`, `subsysRegistroEntradaSalida`
+- Sistemas: `sys{Sistema}` (PascalCase sin separador), p.ej. `sysImportar`
+- Excepción: el prefijo `exp-` se reserva exclusivamente para las vistas del framework de tipos de expediente
+- Las entidades se separan con `.` (punto) y los nombres de ese formulario o grid con `@`
+
+
+| Caso                             | Patrón                                                          | Ejemplo                                             |
+|----------------------------------|-----------------------------------------------------------------|-----------------------------------------------------|
+| Pantalla principal               | `subsys{Subsistema}.{Entidad}@Main-form`                        | `subsysSistemaEducativo.Ciclo@Main-form`            |
+| Pantalla de Solo lectura         | `subsys{Subsistema}.{Entidad}@View-form`                        | `subsysSistemaEducativo.Ciclo@View-form`            |
+| Otra pantalla distinta           | `subsys{Subsistema}.{Entidad}@{Nombre}-form`                    | `subsysSistemaEducativo.Ciclo@Pendiente-form`       |
+| Entidad anidada                  | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}@Main-form`     | `subsysSistemaEducativo.Ciclo.Curso@Main-form`      |
+| Entidad anidada de otra pantalla | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}#{Nombre}-form` | `subsysSistemaEducativo.Ciclo.Curso@Pendiente-form` |
+
+
 
 ## Paneles: lo más importante
 
@@ -50,7 +97,7 @@ Patrones importantes en el proyecto:
 
 ## Campos (`field`) y widgets clave en este proyecto
 
-`<field>` vincula un atributo del modelo al formulario. Además de `name`, aquí se define gran parte de la UX mediante atributos y widgets.
+`<field>` es la etiqueta **más importante** de un form y vincula un atributo del modelo al formulario. Además de `name`, aquí se define gran parte de la UX mediante atributos y widgets.
 Un campo siempre debe estar dentro de un panel o panel-related.
 
 ### Descarga/subida de ficheros (muy usado)
@@ -120,10 +167,10 @@ Una mejor forma de hacerlo sería:
 
 Aunque no es una obligación estricta, es recomendable intentar alinear los campos con los de la fila anterior o siguiente para mejorar la legibilidad del formulario. Y ver como ponerlo para que quede claro y no se corte el texto.
 
-### SELECT para enumerados
+### Enumerados
 
-En el proyecto, para campos enum se usa especialmente `widget="SwitchSelect"` (horizontal o vertical con `x-direction`).
-Cuando no se indica widget, Axelor usa el editor por defecto del tipo de campo.
+Para campos del modelo de tipo enum se usa especialmente `widget="SwitchSelect"` (horizontal o vertical con `x-direction`).
+
 
 
 ### Otros widgets/patrones frecuentes
@@ -151,14 +198,6 @@ Patrón real del proyecto:
 
 
 
-## Checklist al generar un formulario
-
-- Definir `name`, `model`, `title` y permisos (`groups`) coherentes.
-- Separar bien datos principales (`panel`) y colecciones (`panel-related`).
-- Priorizar `showIf/requiredIf/readonlyIf` frente a lógica duplicada.
-- Para ficheros, elegir `binary-link` o `binary` según caso de uso.
-- Para enums, valorar `SwitchSelect` cuando se quiera selección más guiada.
-- Si hay que modificar una vista estándar, preferir extensión (`extension="true"`) en lugar de copia completa.
 
 ## Referencias
 

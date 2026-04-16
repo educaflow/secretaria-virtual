@@ -1,16 +1,11 @@
 ---
-name: sistemas y subsistemas
-description: Explica la diferencia entre sistemas (system/) y subsistemas (subsystem/), sus reglas de dependencia y la estructura interna de cada uno, con ejemplos reales del proyecto.
+name: sistemas
+description: Este Skill permite diseñar y generar la estructura de carpetas, ficheros y código Java y XML de un sistema o subsistema en el proyecto Axelor
 ---
 
 # Sistemas y Subsistemas
 
-## Concepto
-
-El código de negocio se organiza en dos capas:
-
-- **`subsystem/`** — capacidades reutilizables que pueden ser usadas por cualquier sistema o por otros subsistemas. Ejemplos: `firmas`, `registroentradasalida`, `expedientes`, `certificados`.
-- **`system/`** — implementaciones concretas que usan subsistemas. Ejemplos: `tiposexpedientes/comision_servicio`, `importar`, `actas`.
+Este Skill permite diseñar y generar la estructura de carpetas, ficheros y código Java y XML de un sistema o subsistema en el proyecto Axelor, siguiendo las reglas de dependencia, estructura interna y patrones de vistas definidos en este documento.
 
 ## Reglas de dependencia
 
@@ -33,11 +28,11 @@ Tanto sistemas como subsistemas comparten la misma estructura de carpetas:
 ├── db/               ← repositorios JPA y listeners
 │   └── repo/
 ├── module/           ← módulo Guice (bindings interfaz → impl)
-├── controllers/      ← controladores Axelor (@CallMethod), si los hay
+├── controller /      ← controladores Axelor (@CallMethod), si los hay
 └── views/            ← vistas XML de Axelor (grids, formularios, menús)
 ```
 
-También puede haber carpetas adicionales según la naturaleza del subsistema, como `documentospdf/` en `registroentradasalida`.
+También puede haber carpetas adicionales según la naturaleza del subsistema, como `documentospdf/` para plantillas PDF propias del subsistema.
 
 ## Ejemplo: `subsystem/firmas`
 
@@ -76,7 +71,7 @@ registroentradasalida/
 │   ├── RegistroSalidaService.java
 │   ├── DatosRegistroEntrada.java  ← record DTO
 │   ├── DatosRegistroSalida.java   ← record DTO
-│   ├── PersonaRegistro.java       ← record auxiliar
+│   ├── PersonaRegistro.java       ← record DTO
 │   └── impl/
 │       ├── RegistroEntradaServiceImpl.java
 │       └── RegistroSalidaServiceImpl.java
@@ -95,59 +90,30 @@ registroentradasalida/
     └── registro_salida.xml
 ```
 
-## Módulo Guice
 
-Cada sistema o subsistema tiene exactamente un módulo Guice en `module/` que registra los bindings interfaz → implementación:
 
-```java
-// subsystem/firmas/module/FirmaModule.java
-public class FirmaModule extends AxelorModule {
-    @Override
-    protected void configure() {
-        bind(FirmaService.class).to(FirmaServiceImpl.class);
-    }
-}
-
-// subsystem/registroentradasalida/module/RegistroEntradaSalidaModule.java
-public class RegistroEntradaSalidaModule extends AxelorModule {
-    @Override
-    protected void configure() {
-        bind(RegistroEntradaService.class).to(RegistroEntradaServiceImpl.class);
-        bind(RegistroSalidaService.class).to(RegistroSalidaServiceImpl.class);
-    }
-}
-```
-
-## Paquetes Java
-
-| Capa | Paquete base Java | Paquete de modelos (`db`) |
-|---|---|---|
-| Subsistema | `com.educaflow.subsystem.<nombre>` | `com.educaflow.subsystem.<nombre>.db` |
-| Sistema | `com.educaflow.system.<nombre>` | `com.educaflow.system.<nombre>.db` |
-
-El paquete de modelos se declara en la cabecera de cada fichero `domains/` mediante el tag `<module>`:
-
-```xml
-<!-- subsystem/firmas/domains/TareaFirma.xml -->
-<module name="firmas" package="com.educaflow.subsystem.firmas.db"/>
-
-<!-- subsystem/registroentradasalida/domains/RegistroEntrada.xml -->
-<module name="registroentradasalida" package="com.educaflow.subsystem.registroentradasalida.db"/>
-```
-
-El atributo `name` del `<module>` coincide con el nombre del sistema o subsistema. El `package` siempre termina en `.db` y es donde Axelor genera las clases Java de las entidades.
-
-## Convención de nombres de vistas
+## Ficheros de vistas XML
 
 > Para crear o modificar el contenido de los ficheros XML de vistas usa los skills `/vistas`, `/formularios`, `/grids` y `/actions`.
 
-Los ficheros de vistas se ubican en la carpeta `views/` del sistema o subsistema.
+Los ficheros de vistas se ubican en la carpeta `views/` del sistema o subsistema. Los ficheros de vistas se nombran siguiendo la convención:
+- `subsystem/<nombre>/views/<NombreEntidad>.xml`
+- `system/<nombre>/views/<NombreEntidad>.xml`
 
-Normalmente los ficheros de vistas se nombran siguiendo la convención:
-- `subsystem/<nombre>/views/<nombre>.xml`
-- `system/<nombre>/views/<nombre>.xml`
+Aunque si hay muchas vistas también se pueden organizar en varios ficheros según su funcionalidad dentro de la carpeta views.
 
-Aunque si hay muchas vistas también se pueden organizar en varios ficheros según su funcionalidad o entidad dentro de la carpeta views.
+## Nombre de las vistas y acciones
+
+
+El nombre de las vistas de acción es:      `{Prefijo}{Entidad}@[Main|otro nombre][-{mas cosas}]*-action`
+
+
+El grid `{Prefijo}{Entidad}@Search-grid` se usa como selector en campos many-to-one para abrir un grid de búsqueda específico en lugar del grid por defecto que se abre al pulsar la lupa.
+El form `{Prefijo}{Entidad}@View-form` se usa para abrir un form de solo lectura al hacer clic sobre el registro ya seleccionado en lugar del form por defecto que se abre al pulsar la lupa.
+
+El grid `{Prefijo}{Entidad}[.{EntidadHija}]*@Main-grid` se usa para la pantalla principal de listado de esa entidad
+El form `{Prefijo}{Entidad}[.{EntidadHija}]*@Main-form` se usa para la pantalla principal de edición de esa entidad. 
+La acción `{Prefijo}{Entidad}[.{EntidadHija}]*@Main-action` se usa para abrir la pantalla principal de esa entidad desde el menú o desde otras vistas.
 
 ### Prefijos
 
@@ -155,52 +121,25 @@ Aunque si hay muchas vistas también se pueden organizar en varios ficheros seg�
 - Sistemas: `sys{Sistema}` (PascalCase sin separador), p.ej. `sysImportar`
 - Excepción: el prefijo `exp-` se reserva exclusivamente para las vistas del framework de tipos de expediente
 
-Las entidades se separan con `.` (punto) y los calificadores/estado/tipo con `-` (guión).
+Las entidades se separan con `.` (punto) y los nombres de ese formulario o grid con `@` 
 
-### Forms (`-form`)
 
-| Caso | Patrón | Ejemplo |
-|------|--------|---------|
-| Pantalla principal editable | `subsys{Subsistema}.{Entidad}-form` | `subsysSistemaEducativo.Ciclo-form` |
-| Solo lectura | `subsys{Subsistema}.{Entidad}-view-form` | `subsysSistemaEducativo.Ciclo-view-form` |
-| Con estado | `subsys{Subsistema}.{Entidad}-{estado}-form` | `subsysFirma.TareaFirma-pendiente-form` |
-| Entidad anidada | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}-form` | `subsysSistemaEducativo.Ciclo.Curso-form` |
-| Entidad anidada con estado | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}-{estado}-form` | `subsysFirma.TareaFirma.DocumentoFirma-pendiente-form` |
+### Ejemplos de nombres 
 
-### Grids (`-grid`)
 
-| Caso | Patrón | Ejemplo |
-|------|--------|---------|
-| Grid principal | `subsys{Subsistema}.{Entidad}-grid` | `subsysSistemaEducativo.Ciclo-grid` |
-| Selector embebido | `subsys{Subsistema}.{Entidad}-search-grid` | `subsysSistemaEducativo.Ciclo-search-grid` |
-| Con estado | `subsys{Subsistema}.{Entidad}-{estado}-grid` | `subsysFirma.TareaFirma-pendiente-grid` |
-| Entidad anidada | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}-grid` | `subsysSistemaEducativo.Ciclo.Curso-grid` |
-| Entidad anidada con estado | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}-{estado}-grid` | `subsysFirma.TareaFirma.DocumentoFirma-pendiente-grid` |
 
 ### Actions (`-action`)
 
-Todos los tipos de action terminan en `-action`. El tipo XML (`action-view`, `action-record`, `action-method`, `action-group`) se diferencia por el contenido, no por el nombre.
+Todos los tipos de action terminan en `-action`. Los action son alguno de los siguientes tags `action-view`, `action-record`, `action-method`, `action-group`, `action-validate`, `action-script`) 
 
-**Abrir vista** (`action-view`):
+#### action-view
 
-| Caso | Patrón | Ejemplo |
-|------|--------|---------|
-| CRUD completo (grid+form) | `subsys{Subsistema}.{Entidad}-mantenimiento-action` | `subsysSistemaEducativo.Ciclo-mantenimiento-action` |
-| Con estado/filtro | `subsys{Subsistema}.{Entidad}-{estado}-action` | `subsysFirma.TareaFirma-pendiente-action` |
 
-**Botones** (handler directo de `onClick`, llevan el segmento `button`):
+| Caso                               | Patrón                                         | Ejemplo                                             |
+|------------------------------------|------------------------------------------------|-----------------------------------------------------|
+| Mantenimiento o pantalla principal | `subsys{Subsistema}.{Entidad}@Main-action`     | `subsysSistemaEducativo.Ciclo@Mantenimiento-action` |
+| Otro mantenimiento o pantalla      | `subsys{Subsistema}.{Entidad}@{Nombre}-action` | `subsysFirma.TareaFirma@Pendiente-action`           |
 
-| Patrón | Ejemplo |
-|--------|---------|
-| `subsys{Subsistema}.{Entidad}-{estado}-form-button-{nombreBoton}-action` | `subsysFirma.TareaFirma-pendiente-form-button-paso1InicioFirmar-action` |
-
-**Operaciones internas** (llamadas desde `onLoad`, `onSave`, `serial:`, etc.; sin segmento `button`):
-
-| Tipo | Patrón | Ejemplo |
-|------|--------|---------|
-| Operación de negocio | `subsys{Subsistema}.{Entidad}-{estado}-form-{operacion}-action` | `subsysFirma.TareaFirma-pendiente-form-firmar-action` |
-| Asignar valor a campo | `subsys{Subsistema}.{Entidad}-{estado}-form-set-{campo}-{valor}-action` | `subsysFirma.TareaFirma-pendiente-form-set-pasoActual-paso1Inicio-action` |
-| Evento de campo (`onNew`, `onChange`) | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}-{evento}-action` | `subsysSistemaEducativo.Ciclo.Curso-onNew-action` |
 
 ### Menuitems (`-menuitem`)
 
@@ -216,11 +155,7 @@ El prefijo es la **sección de navegación** (no el subsistema de la vista que a
 
 Los ficheros de menú globales van en `secretariavirtual/menus/` con prefijo numérico: `{NNN}_{descripcion}.xml`.
 
-### Calificadores habituales
 
-`pendiente`, `firmado`, `rechazado`, `todos`, `view` (solo lectura), `search` (selector).
-
-No usar `main` — si solo hay una pantalla principal no necesita calificador.
 
 ## Workflow para crear un sistema o subsistema
 
@@ -242,7 +177,7 @@ Cuando se crea o modifica un sistema/subsistema, seguir este orden:
 Cuando una entidad tiene una relación `one-to-many` que se edita inline, usa `<panel-related>`:
 
 - El form padre incluye `<panel-related field="coleccion" form-view="..." grid-view="..."/>` — **siempre con los dos atributos**.
-- El form hijo lleva `onNew="subsys{X}.{Padre}.{Hijo}-onNew-action"` para inicializar la referencia al padre.
+- El form hijo lleva `onNew="subsys{X}.{Padre}.{Hijo}@{Nombre}-onNew-action"` para inicializar la referencia al padre.
 - La `action-record` del `onNew` asigna `__parent__` al campo de relación inversa:
   ```xml
   <action-record name="subsysActas.Acta.CalificacionAlumno-onNew-action"
@@ -261,18 +196,7 @@ El grid y el form del `panel-related` se preceden de este bloque de comentarios 
 ```
 Si hay anidamiento, el texto del comentario refleja todos los niveles: `Vistas de ModeloMaestro -> ModeloDetalle1 -> ModeloDetalle2`.
 
-### Patrón 2 — Botones
-
-- Si el botón solo llama a un **método Java** del controller → `action-method` directamente en `onClick`.
-- Si necesita varias acciones en secuencia → `action-group` como intermediario.
-- Para firma con AutoFirma: `serial:accionAutoFirma,accionGuardar` en `onClick`.
-
-| Tipo | Cuándo usarlo | Ejemplo |
-|------|--------------|---------|
-| `action-group` | Handler directo de botón; orquesta otras acciones | `subsysFirma.TareaFirma-pendiente-form-button-paso1InicioFirmar-action` |
-| `action-method` | Llama a un método Java/Kotlin del controller | `subsysFirma.TareaFirma-pendiente-form-button-paso2RechazadoGuardar-action` |
-| `action-record` | Asigna valores a campos (sin código Java) | `subsysFirma.TareaFirma-pendiente-form-set-pasoActual-paso1Inicio-action` |
-
+### Comentarios 
 Organización del fichero de vistas con comentarios (relleno con `*`, `-->` alineados):
 ```xml
 <!-- **********************************************************  -->
@@ -298,7 +222,7 @@ Organización del fichero de vistas con comentarios (relleno con `*`, `-->` alin
 ```xml
 <!-- Abre un grid de búsqueda específico al seleccionar -->
 <field name="familiaProfesional"
-       grid-view="subsysSistemaEducativo.FamiliaProfesional-search-grid" />
+       grid-view="subsysSistemaEducativo.FamiliaProfesional@earch-grid" />
 
 <!-- Con filtro adicional sobre los valores elegibles -->
 <field name="grado"
@@ -307,13 +231,13 @@ Organización del fichero de vistas con comentarios (relleno con `*`, `-->` alin
 
 <!-- Con vista readonly al abrir el registro seleccionado -->
 <field name="ciclo"
-       grid-view="subsysSistemaEducativo.Ciclo-search-grid"
-       form-view="subsysSistemaEducativo.Ciclo-view-form" />
+       grid-view="subsysSistemaEducativo.Ciclo@Search-grid"
+       form-view="subsysSistemaEducativo.Ciclo@View-form" />
 ```
 
-- `grid-view` → abre el grid `-search-grid` en lugar del por defecto al pulsar la lupa.
+- `grid-view` → abre el grid `@Search-grid` en lugar del por defecto al pulsar la lupa.
 - `domain` → filtra los registros elegibles (SQL WHERE sobre `self`).
-- `form-view` → al hacer clic sobre el registro ya seleccionado, abre esa vista. Usa `-view-form` cuando el campo debe ser solo lectura al navegar.
+- `form-view` → al hacer clic sobre el registro ya seleccionado, abre esa vista. Usa `@View-form` cuando el campo debe ser solo lectura al navegar.
 
 ### Patrón 5 — Máquina de estados en un form
 
@@ -322,22 +246,12 @@ Organización del fichero de vistas con comentarios (relleno con `*`, `-->` alin
 - Se crean `action-record` que asignan `pasoActual` al nuevo estado (van en la sección de acciones básicas).
 - El form tiene `onLoad="subsys{X}.{Entidad}-{estado}-form-set-pasoActual-{pasoInicial}-action"` para inicializar al primer paso al abrir el formulario.
 
-## Quality checks de artefactos Axelor
-
-Antes de dar por terminado cualquier entrega:
-- [ ] Todos los `<button onClick="...">` referencian una `action-group` o `action-method` definida
-- [ ] Todos los `<menuitem action="...">` referencian una `action-view` definida en el fichero de vistas (no en el de menú)
-- [ ] Todas las `<action-view>` referencian vistas (`grid`, `form`) que existen
-- [ ] Los `<panel-related>` tienen tanto `form-view` como `grid-view`
-- [ ] El grid y el form del `panel-related` están precedidos del bloque de comentarios `Vistas de ModeloPadre -> ModeloHijo` con asteriscos
-- [ ] Los forms hijo con `onNew` tienen su `action-record` que asigna `__parent__`
-- [ ] Las rutas de paquete siguen la arquitectura: `com.educaflow.subsystem.<nombre>.db.*` o `com.educaflow.system.<nombre>.db.*`
 
 ## Cuándo crear un subsistema vs un sistema
 
 Crear un **subsistema** cuando la capacidad es reutilizable (no necesariamente) por múltiples sistemas o por otros subsistemas (ej: firmas, registro de entrada/salida, certificados digitales).
 
-Crear un **sistema** es similar a un subsistema solo no necesita ser reutilizada por nadie (Se podría eliminar sin problemas si se deja de usar). Ejemplos: `tiposexpedientes/comision_servicio`, `importar`, `actas`. 
+Crear un **sistema** es similar a un subsistema solo no necesita ser reutilizada por nadie (Se podría eliminar sin problemas si se deja de usar) un sistema no depende de otros sistemas pero si de otros subsistemas. Ejemplos: `tiposexpedientes/comision_servicio`, `importar`, `actas`. 
 
 
 Pero la diferencia principal entre un sistema y un subsistema es que el sistema suele representar una funcionalidad que se ofrece a los usuarios y que ellos han solicitado. Es decir es una diferencia desde el punto de vista del negocio. Por ejemplo, el registro de entrada/salida no es algo que solicitan sino que es una necesidad que usan los expedientes.

@@ -13,7 +13,6 @@
 - [Condition Action](#condition-action)
 - [Export Action](#export-action)
 - [Group Action](#group-action)
-- [Import Action](#import-action)
 - [Method Action](#method-action)
 - [Record Action](#record-action)
 - [Script Action](#script-action)
@@ -21,7 +20,7 @@
 - [Actions & Menus](#actions--menus)
   - [View Action](#view-action)
   - [Application Menu](#application-menu)
-- [WebService Action](#webservice-action)
+
 
 ---
 
@@ -274,38 +273,7 @@ If `error` is not specified, a default message is displayed.
 
 ---
 
-## Export Action
 
-The `<action-export>` can be used to export records.
-
-```xml
-<action-export name="export.sale.order">
-  <export name="${name}.xml"
-    template="data/ws-test/export-sale-order.tmpl"
-    engine="groovy"/>
-  <export name="${name}-customer-copy.xml"
-    template="data/ws-test/export-sale-order.tmpl"
-    engine="groovy"/>
-</action-export>
-```
-
-| Name | Description |
-|---|---|
-| **name** | name of the action |
-| attachment | whether to attach the exported file to current record |
-
-> **Note:** Export file will be directly downloaded by default.
-> If `attachment` is set to `true`, the export file will first be attached to the current record,
-> then the user will be prompted if they wish to download the attachement.
-
-The export action requires one or more `<export>` tasks:
-
-- `<export>` - specify an export task
-  - `name` - output file name
-  - `template` - the template to be used to generate output file
-  - `engine` - the template engine to use (groovy, ST)
-
----
 
 ## Group Action
 
@@ -319,8 +287,8 @@ The `<action-group>` can be used to gather actions.
 </action-group>
 ```
 
-| Name | Description |
-|---|---|
+| Name     | Description        |
+|----------|--------------------|
 | **name** | name of the action |
 
 The group action requires following items:
@@ -331,29 +299,6 @@ The group action requires following items:
 
 ---
 
-## Import Action
-
-The `<action-import>` can be used to perform data import from xml data stream.
-
-```xml
-<action-import name="data.import.1" config="ws-data/xml-config.xml">
-  <import file="ws-data.xml" provider="ws.1" name="titles" />
-</action-import>
-```
-
-| Name | Description |
-|---|---|
-| **name** | name of the action |
-| **config** | path to data import config |
-
-The import action requires one or more `<import>` tasks:
-
-- `<import>` - specify an import task
-  - `file` - input file name as given in the config file.
-  - `provider` - the stream provider (reference to an `action-ws`)
-  - `name` - put the data as the given name in the result map
-
----
 
 ## Method Action
 
@@ -365,8 +310,8 @@ The `<action-method>` can be used to call a controller method.
 </action-method>
 ```
 
-| Name | Description |
-|---|---|
+| Name     | Description        |
+|----------|--------------------|
 | **name** | name of the action |
 
 The method action requires following items:
@@ -416,14 +361,14 @@ The `<action-record>` can be used to construct an object with some values.
 </action-record>
 ```
 
-| Name | Description |
-|---|---|
-| **name** | name of the action |
-| **model** | the domain model to construct the object of |
-| search | search for existing record before creating new |
-| ref | reference to the existing record from context, gets preference over `search` |
-| copy | if record is found, whether to create a copy of it |
-| saveIf | save if the given expression is true and `id` is `null` or `version` value is provided. |
+| Name      | Description                                                                             |
+|-----------|-----------------------------------------------------------------------------------------|
+| **name**  | name of the action                                                                      |
+| **model** | the domain model to construct the object of                                             |
+| search    | search for existing record before creating new                                          |
+| ref       | reference to the existing record from context, gets preference over `search`            |
+| copy      | if record is found, whether to create a copy of it                                      |
+| saveIf    | save if the given expression is true and `id` is `null` or `version` value is provided. |
 
 The action required `<field>` items to set object properties.
 
@@ -446,7 +391,7 @@ The `expr` has following format:
 
 ## Script Action
 
-The `<action-script>`, introduced in v5, can be used to create complex actions using scripting languages.
+The `<action-script>`, can be used to create complex actions using scripting languages.
 
 ```xml
 <action-script
@@ -491,12 +436,12 @@ but the `ActionRequest` and `ActionResponse` parameters of controller method.
 
 Following variables are available in script execution context:
 
-| Name | Description |
-|---|---|
-| `$request` | the `ActionRequest` |
-| `$response` | the `ActionResponse` |
-| `$em` | the `EntityManager` if script is `transactional` |
-| `$json` | instance of `MetaJsonRecordRepository` to work with custom models |
+| Name        | Description                                                       |
+|-------------|-------------------------------------------------------------------|
+| `$request`  | the `ActionRequest`                                               |
+| `$response` | the `ActionResponse`                                              |
+| `$em`       | the `EntityManager` if script is `transactional`                  |
+| `$json`     | instance of `MetaJsonRecordRepository` to work with custom models |
 
 The `action-script` can be used for custom models too. Here is an example:
 
@@ -545,8 +490,8 @@ The `<action-validate>` is used to validate a record. It will display a dialog o
 </action-validate>
 ```
 
-| Name | Description |
-|---|---|
+| Name     | Description        |
+|----------|--------------------|
 | **name** | name of the action |
 
 The validate action requires following items:
@@ -600,12 +545,12 @@ define application menu.
 
 The `<action-view>` is used to define the action views.
 
-| Name | Description |
-|---|---|
-| **name** | name of the action |
-| title | override the view title |
-| model | fully qualified name of the model object |
-| icon | icon displayed on top-level navigation tab |
+| Name     | Description                                |
+|----------|--------------------------------------------|
+| **name** | name of the action                         |
+| title    | override the view title                    |
+| model    | fully qualified name of the model object   |
+| icon     | icon displayed on top-level navigation tab |
 
 The action view requires the following elements:
 
@@ -694,23 +639,23 @@ defined using xml syntax along with views & view actions.
 The `<menuitem>` is used to define a menu item. The application menu is
 hierarchical so menu items can be organized as parent child.
 
-| Name | Description |
-|---|---|
-| **name** | name of the menu item |
-| parent | name of the parent menu item |
-| **title** | display title |
-| icon | display icon name |
-| icon-background | icon background color (predefined or html hex color) |
-| action | the action to be executed on menu item click |
-| order | menu item display order sequence |
-| groups | comma-separated list of user groups who can see this menu item |
-| top | whether to show this menu on top |
-| left | whether to show this menu on left |
-| hidden | whether to hide this menu |
-| tag | specify a tag to show on menu item |
-| tag-count | specify whether to use count of menu action records as tag |
-| tag-get | specify a method call to get tag value |
-| tag-style | specify the tag display style |
+| Name            | Description                                                    |
+|-----------------|----------------------------------------------------------------|
+| **name**        | name of the menu item                                          |
+| parent          | name of the parent menu item                                   |
+| **title**       | display title                                                  |
+| icon            | display icon name                                              |
+| icon-background | icon background color (predefined or html hex color)           |
+| action          | the action to be executed on menu item click                   |
+| order           | menu item display order sequence                               |
+| groups          | comma-separated list of user groups who can see this menu item |
+| top             | whether to show this menu on top                               |
+| left            | whether to show this menu on left                              |
+| hidden          | whether to hide this menu                                      |
+| tag             | specify a tag to show on menu item                             |
+| tag-count       | specify whether to use count of menu action records as tag     |
+| tag-get         | specify a method call to get tag value                         |
+| tag-style       | specify the tag display style                                  |
 
 example:
 
@@ -760,32 +705,4 @@ The menus are displayed to users with the following rules:
 - Allow access to all non-root menus by default: if submenus have no roles nor groups assigned, they are available to all. Or else, submenus are displayed to users belonging to the given groups/roles.
 
 ---
-
-## WebService Action
-
-The `<action-ws>` can be used to call a SOAP web services. This action is
-generally used as a `provider` action to the `<action-import>`.
-
-```xml
-<action-ws name="ws.1" service="http://localhost/ws/soap/SomeService.asmx">
-  <action name="SoapServiceName" template="data/ws/ws-login.tmpl" engine="groovy"/>
-</action-ws>
-```
-
-| Name | Description |
-|---|---|
-| **name** | name of the action |
-| service | service url or reference to another `action-ws` with service is set to some url. In that case, the referenced action is called prior to this one. This allows to perform some initial actions like `login`. |
-| connect-timeout | connection timeout in seconds (default 60 seconds) |
-| read-timeout | read timeout in seconds (default 300 seconds). |
-
-More than one SOAP action can be called in sequence. The result is returned as
-a collection string values returned by each action respectively.
-
-The SOAP actions can be specified using:
-
-- `<action>` - specify a soap action to call
-  - `name` - name of the SOAP action
-  - `template` - a template to transform the result to another format
-  - `engine` - template engine (groovy, ST)
 
