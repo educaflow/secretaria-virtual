@@ -3,31 +3,39 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="subsysSistemaEducativo.Grado-mantenimiento-action" title="Grados" model="com.educaflow.subsystem.sistemaeducativo.db.Grado">
-        <view type="grid" name="subsysSistemaEducativo.Grado-grid"/>
-        <view type="form" name="subsysSistemaEducativo.Grado-form"/>
+    <action-view name="subsysSistemaEducativo.Grado@Main-action" title="Grados" model="com.educaflow.subsystem.sistemaeducativo.db.Grado">
+        <view type="grid" name="subsysSistemaEducativo.Grado@Main-grid"/>
+        <view type="form" name="subsysSistemaEducativo.Grado@Main-form"/>
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
-    <grid name="subsysSistemaEducativo.Grado-grid" title="Grado" model="com.educaflow.subsystem.sistemaeducativo.db.Grado"
-          groups="admins"
-          editable="false" edit-icon="false" x-selector="none" canNew="true" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
-        <hilite color="danger" if="archived"/>
+    <grid name="subsysSistemaEducativo.Grado@Main-grid" title="Grado" model="com.educaflow.subsystem.sistemaeducativo.db.Grado"
+          canNew="true" newButtonTitle="Nueva Grado"
+          canRefresh="false" canAdvanceSearch="false" allowSearchFields="false"
+          editable="false" edit-icon="false" x-selector="none"  canEdit="false" canDelete="false" canSave="false"
+          canEditOnClick="true"
+    >
         <field name="code" width="200px" />
         <field name="name" />
-        <field name="archived" width="100px" />
     </grid>
 
-    <form name="subsysSistemaEducativo.Grado-form" title="Grado" model="com.educaflow.subsystem.sistemaeducativo.db.Grado"
-          groups="admins"
-          width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false">
+    <form name="subsysSistemaEducativo.Grado@Main-form" title="Grado" model="com.educaflow.subsystem.sistemaeducativo.db.Grado"
+          width="large"
+          canAttach="false" canBack="false"  canDelete="false" canNew="false" canSave="false" canMore="false" canEdit="true"
+    >
         <panel name="Grado" title="">
             <field name="code" colSpan="3" />
             <field name="name" colOffset="9" />
         </panel>
+
+        <panel name="actionsEdit" title="" colSpan="12" showFrame="false" >
+            <button name="btnDelete" title="Borrar" onClick="delete" css="btn-danger" colSpan="2"  outline="true" showIf="(id != null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="back"  colSpan="2" colOffset="6" outline="true"   />
+            <button name="btnSave" title="Guardar" onClick="save,force-back"  colSpan="2"  />
+        </panel>
     </form>
 
-    <grid name="subsysSistemaEducativo.Grado-search-grid" title="Grado" model="com.educaflow.subsystem.sistemaeducativo.db.Grado"
+    <grid name="subsysSistemaEducativo.Grado@Search-grid" title="Grado" model="com.educaflow.subsystem.sistemaeducativo.db.Grado"
           groups="admins,users"
           orderBy="name"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">

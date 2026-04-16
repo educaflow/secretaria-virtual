@@ -3,37 +3,92 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="subsysSistemaEducativo.LeyEducativa-mantenimiento-action" title="Leyes educativas" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa">
-        <view type="grid" name="subsysSistemaEducativo.LeyEducativa-grid"/>
-        <view type="form" name="subsysSistemaEducativo.LeyEducativa-form"/>
-        <view-param name="forceEdit" value="true"/>
+    <action-view name="subsysSistemaEducativo.LeyEducativa@Main-action" title="Leyes educativas" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa">
+        <view type="grid" name="subsysSistemaEducativo.LeyEducativa@Main-grid"/>
+        <view type="form" name="subsysSistemaEducativo.LeyEducativa@Main-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
     </action-view>
 
-    <grid name="subsysSistemaEducativo.LeyEducativa-grid" title="Ley educativa" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
-          groups="admins"
-          editable="false" edit-icon="false" x-selector="none" canNew="true" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
-        <hilite color="danger" if="archived"/>
+    <grid name="subsysSistemaEducativo.LeyEducativa@Main-grid" title="Ley educativa" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
+          canNew="true" newButtonTitle="Nueva ley educativa"
+          canRefresh="false" canAdvanceSearch="false" allowSearchFields="false"
+          editable="false" edit-icon="false" x-selector="none"  canEdit="false" canDelete="false" canSave="false"
+          canEditOnClick="true"
+    >
         <field name="code" width="200px" />
         <field name="name" />
-        <field name="archived" width="100px" />
     </grid>
 
-    <form name="subsysSistemaEducativo.LeyEducativa-form" title="Ley educativa" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
-          groups="admins"
-          width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false">
+    <form name="subsysSistemaEducativo.LeyEducativa@Main-form" title="Ley educativa" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
+          width="large"
+    >
         <panel name="LeyEducativa" title="">
             <field name="code" colSpan="3" />
             <field name="name" colOffset="9" />
         </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
+            <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.LeyEducativa@Main-validateDelete-action,delete" css="btn-danger" colSpan="2"  outline="true" showIf="(id != null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="back"  colSpan="2" colOffset="6" outline="true"   />
+            <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.LeyEducativa@Main-validateSave-action,save,force-back"  colSpan="2"  />
+        </panel>
+
+
     </form>
 
-    <grid name="subsysSistemaEducativo.LeyEducativa-search-grid" title="Ley educativa" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
+    <grid name="subsysSistemaEducativo.LeyEducativa@Search-grid" title="Ley educativa" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
           groups="admins,users"
           orderBy="name"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
         <field name="name" />
     </grid>
 
+    <!-- *********************************************************************************************  -->
+    <!-- ***************************** Acciones de las tareas principales ****************************  -->
+    <!-- *********************************************************************************************  -->
+    <action-group name="subsysSistemaEducativo.LeyEducativa@Main-validateSave-action">
+        <action name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action"/>
+        <action name="subsysSistemaEducativo.LeyEducativa@Main-Remote-validateSave-action"/>
+    </action-group>
+    <action-group name="subsysSistemaEducativo.LeyEducativa@Main-validateDelete-action">
+        <action name="subsysSistemaEducativo.LeyEducativa@Main-Remote-validateDelete-action"/>
+    </action-group>
+
+
+
+
+    <!-- *********************************************************************************************  -->
+    <!-- ***************************** Acciones de Validaciones en local  ****************************  -->
+    <!-- *********************************************************************************************  -->
+    <action-validate name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action">
+        <error message="El nombre no puede ser dd" if="name=='dd'"/>
+        <error message="El código no puede ser dd" if="code=='dd'"/>
+    </action-validate>
+
+
+
+
+    <!-- *********************************************************************************************  -->
+    <!-- ************************ Acciones básicas que cambian campos simples ************************  -->
+    <!-- *********************************************************************************************  -->
+    <!--
+     <action-record name="subsysSistemaEducativo.LeyEducativa@Main-set-nombre-Juan-action" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa">
+        <field name="nombre" expr="Juan" />
+    </action-record>
+    -->
+
+
+
+
+    <!-- *********************************************************************************************  -->
+    <!-- ************************** Acciones de llamadas Remotas al servidor *************************  -->
+    <!-- *********************************************************************************************  -->
+    <action-method name="subsysSistemaEducativo.LeyEducativa@Main-Remote-validateSave-action" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa">
+        <call class="com.educaflow.subsystem.sistemaeducativo.controller.LeyEducativaController" method="validateSave" />
+    </action-method>
+    <action-method name="subsysSistemaEducativo.LeyEducativa@Main-Remote-validateDelete-action" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa">
+        <call class="com.educaflow.subsystem.sistemaeducativo.controller.LeyEducativaController" method="validateDelete" />
+    </action-method>
 
 
 </object-views>

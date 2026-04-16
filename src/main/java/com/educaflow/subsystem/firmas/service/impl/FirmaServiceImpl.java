@@ -1,12 +1,12 @@
 package com.educaflow.subsystem.firmas.service.impl;
 
+import com.axelor.db.Repository;
+import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.inject.Beans;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil;
-import com.educaflow.base.infrastructure.pdf.ResultadoFirma;
-import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessage;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
 import com.educaflow.base.util.JsonUtil;
@@ -14,23 +14,22 @@ import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.subsystem.firmas.db.DocumentoFirma;
 import com.educaflow.subsystem.firmas.db.EstadoTareaFirma;
 import com.educaflow.subsystem.firmas.db.TareaFirma;
-import com.educaflow.subsystem.firmas.db.repo.TareaFirmaRepository;
 import com.educaflow.subsystem.firmas.service.DatosFirma;
 import com.educaflow.subsystem.firmas.service.FirmaNotifier;
 import com.educaflow.subsystem.firmas.service.FirmaService;
-import jakarta.inject.Inject;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
-public class FirmaServiceImpl implements FirmaService {
+public class FirmaServiceImpl extends DefaultModelService<TareaFirma> implements FirmaService {
 
-    @Inject
-    TareaFirmaRepository tareaFirmaRepository;
+    public FirmaServiceImpl(Class<TareaFirma> model, Repository repository) {
+        super(TareaFirma.class, repository);
+    }
 
     @Override
-    public TareaFirma insert(DatosFirma datosFirma) throws BusinessException {
+    public TareaFirma insert(DatosFirma datosFirma)  {
         TareaFirma tareaFirma=new TareaFirma();
         tareaFirma.setFirmante(datosFirma.firmante());
         tareaFirma.setFechaSolicitud(LocalDateTime.now());
@@ -69,20 +68,18 @@ public class FirmaServiceImpl implements FirmaService {
 
 
 
-        tareaFirma=tareaFirmaRepository.save(tareaFirma);
+        tareaFirma = super.insert(tareaFirma);
 
         return tareaFirma;
     }
 
     @Override
-    public TareaFirma marcarComoFirmada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) throws BusinessException {
-        fireConstraintRule_DocumentosValidos(tareaFirma);
-
+    public TareaFirma marcarComoFirmada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal)  {
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
         tareaFirma.setMotivoRechazo(null);
         tareaFirma.setFechaResolucion(LocalDateTime.now());
 
-        tareaFirma=tareaFirmaRepository.save(tareaFirma);
+        tareaFirma = super.update(tareaFirma, tareaFirmaOriginal);
 
         fireActionRule_NotificarFirmaResuelta(tareaFirma);
 
@@ -90,24 +87,45 @@ public class FirmaServiceImpl implements FirmaService {
     }
 
     @Override
-    public TareaFirma marcarComoRechazada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) throws BusinessException {
-        fireConstraintRule_MotivoRechazoRequerido(tareaFirma);
-
+    public TareaFirma marcarComoRechazada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal)  {
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.RECHAZADO);
         tareaFirma.setFechaResolucion(LocalDateTime.now());
 
-        tareaFirma=tareaFirmaRepository.save(tareaFirma);
+        tareaFirma = super.update(tareaFirma, tareaFirmaOriginal);
 
         fireActionRule_NotificarFirmaResuelta(tareaFirma);
 
         return tareaFirma;
     }
 
+    /****************************************************************************************/
+    /******************************** Métodos de Validación *********************************/
+    /****************************************************************************************/
 
+    @Override
+    public Optional<BusinessMessages> validarDocumentosFirmados(TareaFirma tareaFirma) {
+        BusinessMessages businessMessages=new BusinessMessages();
 
-    /************************************************************************************/
-    /********************************    Action Rules    ********************************/
-    /************************************************************************************/
+        for (DocumentoFirma documentoFirma : tareaFirma.getDocumentosFirma()) {
+            DocumentoPdf documentoOriginal = MetaFileHelper.getDocumentoPdf(documentoFirma.getDocumentoOriginal());
+            DocumentoPdf documentoFirmado = MetaFileHelper.getDocumentoPdf(documentoFirma.getDocumentoFirmado());
+            Optional<String> errorFirma = DocumentoPdfUtil.validateFirmaPdf(documentoOriginal, documentoFirmado, tareaFirma.getFirmante().getDni());
+            if (errorFirma.isPresent()) {
+                businessMessages.add(new BusinessMessage(documentoFirmado.getFileName(),errorFirma.get()));
+            }
+        }
+
+        if (businessMessages.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(businessMessages);
+        }
+
+    }
+
+    /*************************************************************************************/
+    /********************************    Action Rules    *********************************/
+    /*************************************************************************************/
 
     @SuppressWarnings("unchecked")
     private void fireActionRule_NotificarFirmaResuelta(TareaFirma tareaFirma) {
@@ -126,38 +144,6 @@ public class FirmaServiceImpl implements FirmaService {
             throw new RuntimeException(e);
         }
     }
-
-    /****************************************************************************************/
-    /********************************    Constraint Rules    ********************************/
-    /****************************************************************************************/
-
-    private void fireConstraintRule_DocumentosValidos(TareaFirma tareaFirma) throws BusinessException {
-        BusinessMessages businessMessages=new BusinessMessages();
-
-        int i=0;
-        for(DocumentoFirma documentoFirma:tareaFirma.getDocumentosFirma()) {
-            DocumentoPdf documentoOriginal=MetaFileHelper.getDocumentoPdf(documentoFirma.getDocumentoOriginal());
-            DocumentoPdf documentoFirmado=MetaFileHelper.getDocumentoPdf(documentoFirma.getDocumentoFirmado());
-
-            Optional<String> errorFirma=DocumentoPdfUtil.validateFirmaPdf(documentoOriginal,documentoFirmado,tareaFirma.getFirmante().getDni());
-            if (errorFirma.isPresent()) {
-                businessMessages.add(new BusinessMessage(null, errorFirma.get(),documentoFirmado.getFileName()+" "+i));
-            }
-            i++;
-        }
-
-        if (businessMessages.size()>0) {
-            throw new BusinessException(businessMessages);
-        }
-    }
-
-    private void fireConstraintRule_MotivoRechazoRequerido(TareaFirma tareaFirma) throws BusinessException {
-        if (tareaFirma.getMotivoRechazo()==null || tareaFirma.getMotivoRechazo().isBlank()) {
-            throw new BusinessException("motivoRechazo","Es requerido","Motivo del rechazo de la firma de los documentos" );
-        }
-    }
-
-
 
 
 

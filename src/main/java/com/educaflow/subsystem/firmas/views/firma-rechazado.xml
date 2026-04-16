@@ -3,7 +3,7 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <grid name="subsysFirma.TareaFirma-rechazado-grid" title="Firmas" model="com.educaflow.subsystem.firmas.db.TareaFirma"
+    <grid name="subsysFirma.TareaFirma@Rechazado-grid" title="Firmas" model="com.educaflow.subsystem.firmas.db.TareaFirma"
           groups="admins,users"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
           orderBy="fechaSolicitud" canEditOnClick="true">
@@ -14,7 +14,7 @@
         <field name="estadoTareaFirma"/>
     </grid>
 
-    <form name="subsysFirma.TareaFirma-rechazado-form" title="Firma de documento" model="com.educaflow.subsystem.firmas.db.TareaFirma"
+    <form name="subsysFirma.TareaFirma@Rechazado-form" title="Firma de documento" model="com.educaflow.subsystem.firmas.db.TareaFirma"
           canEdit="false" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canCancel="false" canMore="false"
           related='{"documentosFirma":["documentoOriginal"]}'>
 
@@ -27,7 +27,7 @@
         </panel>
 
         <panel-related name="documentosFirma" title="Documentos" field="documentosFirma" colSpan="12"
-                       grid-view="subsysFirma.DocumentoFirma-rechazado-grid" form-view="subsysFirma.DocumentoFirma-rechazado-form" readonly="true"/>
+                       grid-view="subsysFirma.DocumentoFirma@Rechazado-grid" form-view="subsysFirma.DocumentoFirma@Rechazado-form" readonly="true"/>
 
         <panel name="acciones" colSpan="12" showFrame="false">
             <button name="btnVolver" title="Salir" onClick="back" css="btn-secondary" colSpan="3" colOffset="9" outline="true"/>
@@ -35,12 +35,12 @@
 
     </form>
 
-    <grid name="subsysFirma.DocumentoFirma-rechazado-grid" title="Documentos" model="com.educaflow.subsystem.firmas.db.DocumentoFirma"
+    <grid name="subsysFirma.DocumentoFirma@Rechazado-grid" title="Documentos" model="com.educaflow.subsystem.firmas.db.DocumentoFirma"
           edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
         <field name="documentoOriginal.fileName"/>
     </grid>
 
-    <form name="subsysFirma.DocumentoFirma-rechazado-form" title="Documento" model="com.educaflow.subsystem.firmas.db.DocumentoFirma"
+    <form name="subsysFirma.DocumentoFirma@Rechazado-form" title="Documento" model="com.educaflow.subsystem.firmas.db.DocumentoFirma"
           canAttach="false" canEdit="false" canBack="true" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel-tabs>
             <panel name="tabDocumentoOriginal" title="Documento original" colSpan="12">

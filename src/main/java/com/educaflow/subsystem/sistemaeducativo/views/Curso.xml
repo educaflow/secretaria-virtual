@@ -3,13 +3,13 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="subsysSistemaEducativo.Curso-mantenimiento-action" title="Cursos" model="com.educaflow.subsystem.sistemaeducativo.db.Curso">
-        <view type="grid" name="subsysSistemaEducativo.Curso-grid"/>
-        <view type="form" name="subsysSistemaEducativo.Curso-form"/>
+    <action-view name="subsysSistemaEducativo.Curso@Main-action" title="Cursos" model="com.educaflow.subsystem.sistemaeducativo.db.Curso">
+        <view type="grid" name="subsysSistemaEducativo.Curso@Main-grid"/>
+        <view type="form" name="subsysSistemaEducativo.Curso@Main-form"/>
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
-    <grid name="subsysSistemaEducativo.Curso-grid" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
+    <grid name="subsysSistemaEducativo.Curso@Main-grid" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
           groups="admins"
           editable="false" edit-icon="false" x-selector="none" canNew="true" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true"
     >
@@ -19,7 +19,7 @@
         <field name="archived" width="100px" />
     </grid>
 
-    <form name="subsysSistemaEducativo.Curso-form" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
+    <form name="subsysSistemaEducativo.Curso@Main-form" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
           groups="admins"
           width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false" >
         <panel name="Curso" title="">
@@ -30,14 +30,14 @@
         </panel>
 
         <panel-related name="cursos" field="modulos"
-                       grid-view="subsysSistemaEducativo.Curso.CursoModulo-grid"
-                       form-view="subsysSistemaEducativo.Curso.CursoModulo-form"
+                       grid-view="subsysSistemaEducativo.Curso.CursoModulo@Main-grid"
+                       form-view="subsysSistemaEducativo.Curso.CursoModulo@Main-form"
                        colSpan="12"
         />
 
     </form>
 
-    <grid name="subsysSistemaEducativo.Curso-search-grid" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
+    <grid name="subsysSistemaEducativo.Curso@Search-grid" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
           groups="admins,users"
           orderBy="name"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
@@ -46,7 +46,7 @@
         <field name="name" />
     </grid>
 
-    <form name="subsysSistemaEducativo.Curso-view-form" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
+    <form name="subsysSistemaEducativo.Curso@View-form" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
           groups="admins"
           width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false" >
         <panel name="Curso" title="">
@@ -62,13 +62,13 @@
     <!-- ******************************************************************************************************** -->
 
 
-    <grid name="subsysSistemaEducativo.Curso.CursoModulo-grid" title="Curso-Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+    <grid name="subsysSistemaEducativo.Curso.CursoModulo@Main-grid" title="Curso-Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
           groups="admins"
           >
         <field name="modulo" />
     </grid>
 
-    <form name="subsysSistemaEducativo.Curso.CursoModulo-form" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+    <form name="subsysSistemaEducativo.Curso.CursoModulo@Main-form" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
           groups="admins"
           onNew="subsysSistemaEducativo.Curso.CursoModulo-onNew-action"
           width="large" canAttach="false" >

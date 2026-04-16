@@ -3,13 +3,13 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="subsysSistemaEducativo.CursoModulo-mantenimiento-action" title="Cursos-Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo">
-        <view type="grid" name="subsysSistemaEducativo.CursoModulo-grid"/>
-        <view type="form" name="subsysSistemaEducativo.CursoModulo-form"/>
+    <action-view name="subsysSistemaEducativo.CursoModulo@Main-action" title="Cursos-Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo">
+        <view type="grid" name="subsysSistemaEducativo.CursoModulo@Main-grid"/>
+        <view type="form" name="subsysSistemaEducativo.CursoModulo@Main-form"/>
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
-    <grid name="subsysSistemaEducativo.CursoModulo-grid" title="Curso-Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+    <grid name="subsysSistemaEducativo.CursoModulo@Main-grid" title="Curso-Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
           groups="admins"
           editable="false" edit-icon="false" x-selector="none" canNew="true" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
         <hilite color="danger" if="archived"/>
@@ -18,17 +18,17 @@
         <field name="archived" width="100px" />
     </grid>
 
-    <form name="subsysSistemaEducativo.CursoModulo-form" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+    <form name="subsysSistemaEducativo.CursoModulo@Main-form" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
           groups="admins"
           width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false">
         <panel name="CursoModulo" title="">
-            <field name="curso"  colSpan="6"  grid-view="subsysSistemaEducativo.Curso-search-grid" />
-            <field name="modulo" colSpan="6" colOffset="6" grid-view="subsysSistemaEducativo.Modulo-search-grid" />
+            <field name="curso"  colSpan="6"  grid-view="subsysSistemaEducativo.Curso@Search-grid" />
+            <field name="modulo" colSpan="6" colOffset="6" grid-view="subsysSistemaEducativo.Modulo@Search-grid" />
         </panel>
     </form>
 
 
-    <grid name="subsysSistemaEducativo.CursoModulo-search-grid" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+    <grid name="subsysSistemaEducativo.CursoModulo@Search-grid" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
           groups="admins,users"
           orderBy="name"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
@@ -36,12 +36,12 @@
         <field name="modulo" />
     </grid>
 
-    <form name="subsysSistemaEducativo.CursoModulo-view-form" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+    <form name="subsysSistemaEducativo.CursoModulo@View-form" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
           groups="admins"
           width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false" >
         <panel name="Curso" title="">
-            <field name="curso"  colSpan="6"  grid-view="subsysSistemaEducativo.Curso-search-grid" />
-            <field name="modulo" colSpan="6" colOffset="6"  grid-view="subsysSistemaEducativo.Modulo-search-grid" />
+            <field name="curso"  colSpan="6"  grid-view="subsysSistemaEducativo.Curso@Search-grid" />
+            <field name="modulo" colSpan="6" colOffset="6"  grid-view="subsysSistemaEducativo.Modulo@Search-grid" />
         </panel>
     </form>
 

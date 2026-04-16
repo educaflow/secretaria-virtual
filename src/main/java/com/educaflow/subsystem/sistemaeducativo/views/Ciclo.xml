@@ -3,13 +3,13 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="subsysSistemaEducativo.Ciclo-mantenimiento-action" title="Ciclos" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo">
-        <view type="grid" name="subsysSistemaEducativo.Ciclo-grid"/>
-        <view type="form" name="subsysSistemaEducativo.Ciclo-form"/>
+    <action-view name="subsysSistemaEducativo.Ciclo@Main-action" title="Ciclos" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo">
+        <view type="grid" name="subsysSistemaEducativo.Ciclo@Main-grid"/>
+        <view type="form" name="subsysSistemaEducativo.Ciclo@Main-form"/>
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
-    <grid name="subsysSistemaEducativo.Ciclo-grid" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
+    <grid name="subsysSistemaEducativo.Ciclo@Main-grid" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
           groups="admins"
           editable="false" edit-icon="false" x-selector="none" canNew="true" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
         <hilite color="danger" if="archived"/>
@@ -19,28 +19,28 @@
         <field name="archived" width="100px" />
     </grid>
 
-    <form name="subsysSistemaEducativo.Ciclo-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
+    <form name="subsysSistemaEducativo.Ciclo@Main-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
           groups="admins"
           width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false">
         <panel name="Ciclo" title="">
             <field name="code" colSpan="3" />
 
             <field name="name" colOffset="9" colSpan="6" />
-            <field name="familiaProfesional" colOffset="6" colSpan="6" grid-view="subsysSistemaEducativo.FamiliaProfesional-search-grid" />
-            <field name="grado" colOffset="6" colSpan="4"  grid-view="subsysSistemaEducativo.Grado-search-grid"  domain="(self.code='D' OR self.code='E')" />
-            <field name="nivel" colSpan="4"  grid-view="subsysSistemaEducativo.Nivel-search-grid"  showIf="grado.code=='D'" requiredIf="grado.code=='D'" />
+            <field name="familiaProfesional" colOffset="6" colSpan="6" grid-view="subsysSistemaEducativo.FamiliaProfesional@Search-grid" />
+            <field name="grado" colOffset="6" colSpan="4"  grid-view="subsysSistemaEducativo.Grado@Search-grid"  domain="(self.code='D' OR self.code='E')" />
+            <field name="nivel" colSpan="4"  grid-view="subsysSistemaEducativo.Nivel@Search-grid"  showIf="grado.code=='D'" requiredIf="grado.code=='D'" />
         </panel>
 
         <panel-related name="cursos" field="cursos"  title="Cursos"
-                       grid-view="subsysSistemaEducativo.Ciclo.Curso-grid"
-                       form-view="subsysSistemaEducativo.Ciclo.Curso-form"
+                       grid-view="subsysSistemaEducativo.Ciclo.Curso@Main-grid"
+                       form-view="subsysSistemaEducativo.Ciclo.Curso@Main-form"
                        colSpan="12"
         />
 
 
     </form>
 
-    <grid name="subsysSistemaEducativo.Ciclo-search-grid" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
+    <grid name="subsysSistemaEducativo.Ciclo@Search-grid" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
           groups="admins,users"
           orderBy="name"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
@@ -48,7 +48,7 @@
         <field name="name" />
     </grid>
 
-    <form name="subsysSistemaEducativo.Ciclo-view-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
+    <form name="subsysSistemaEducativo.Ciclo@View-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
           groups="admins"
           width="large" canAttach="false" canBack="false" canBackOnSave="false" canDelete="false" canNew="false">
         <panel name="Ciclo" title="">
@@ -64,7 +64,7 @@
     <!-- ********************************************************************************************************* -->
 
 
-    <grid name="subsysSistemaEducativo.Ciclo.Curso-grid" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
+    <grid name="subsysSistemaEducativo.Ciclo.Curso@Main-grid" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
           groups="admins"
 
     >
@@ -73,7 +73,7 @@
         <field name="leyEducativa"   />
     </grid>
 
-    <form name="subsysSistemaEducativo.Ciclo.Curso-form" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
+    <form name="subsysSistemaEducativo.Ciclo.Curso@Main-form" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
           groups="admins"
           width="large"
           onNew="subsysSistemaEducativo.Ciclo.Curso-onNew-action"
@@ -87,8 +87,8 @@
         </panel>
 
         <panel-related name="modulos" field="modulos"  title="Módulos"
-                       grid-view="subsysSistemaEducativo.Ciclo.Curso.CursoModulo-grid"
-                       form-view="subsysSistemaEducativo.Ciclo.Curso.CursoModulo-form"
+                       grid-view="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-grid"
+                       form-view="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-form"
                        colSpan="12"
         />
 
@@ -103,19 +103,19 @@
     <!-- ********************* Vistas de Ciclo -> Curso -> Modulo ********************* -->
     <!-- ****************************************************************************** -->
 
-    <grid name="subsysSistemaEducativo.Ciclo.Curso.CursoModulo-grid" title="Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+    <grid name="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-grid" title="Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
           groups="admins"
     >
         <field name="modulo" />
     </grid>
 
-    <form name="subsysSistemaEducativo.Ciclo.Curso.CursoModulo-form" title="Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+    <form name="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-form" title="Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
           groups="admins"
           onNew="subsysSistemaEducativo.Ciclo.Curso.CursoModulo-onNew-action"
           width="large" canAttach="false" >
         <panel name="CursoModulo" title="">
             <field name="curso"  colSpan="6" showIf="false" />
-            <field name="modulo" colSpan="6" colOffset="6" grid-view="subsysSistemaEducativo.Modulo-search-grid" />
+            <field name="modulo" colSpan="6" colOffset="6" grid-view="subsysSistemaEducativo.Modulo@Search-grid" />
         </panel>
     </form>
     <action-record name="subsysSistemaEducativo.Ciclo.Curso.CursoModulo-onNew-action" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo">
