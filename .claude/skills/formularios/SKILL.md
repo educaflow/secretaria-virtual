@@ -15,9 +15,10 @@ description: Este skill sirve para diseñar, generar o coregir dentro de fichero
   - Diseñar un formulario: A partir de un modelo de dominio, se diseña un formulario que contiene los campos de la entidad.
   - Decidir los campos a incluir y como será cada uno de ellos (tipo de widget, atributos, grid y form relacionados, etc.)
   - Decidir los paneles que habrá y qué campos contienen
-  - Decidir si hay grids dentro con `<panel-related>` . En ese caso crear los grids relacionados y referenciarlos correctamente.
+  - Decidir si hay grids dentro con `<panel-related>` . En ese caso crear los grids relacionados y referenciarlos correctamente. Decidir el valor de los atributos `title`y `newButtonTitle` de forma clara para que sean entendidos por el usuario.
   - Decidir que acciones (botones) va a haber.
   - Decidir el nombre del formulario siguiendo la convención `{Prefijo}.{Entidad}@{Vista}-form`
+  - Decidir el título del formulario con el atributo `title`, sabiendo que el título es lo que se muestra en la cabecera del formulario y es pensando en el usuario
 
 ## Layout del formulario
  - Decidir el layout de los paneles es decir su colOffet y colSpan. Normalmente se suele usar un colSpan de 12 columnas.

@@ -12,6 +12,8 @@
 
    <panel name="nombrePanel2" title="Titulo2">
       <field name="centro" form-view="Nombre de formulario para ver todos los datos del centro. Un nombre típico suele ser sysCentro.Centro@View" grid-view="Nombre de grid para buscar un centro. Un nombre típico suele ser sysCentro.Centro@Search"  />
+      <field name="grado" colOffset="6" colSpan="4"              grid-view="subsysSistemaEducativo.Grado@Search-grid"  domain="(self.code='D' OR self.code='E')" />
+      <field name="nivel" colSpan="4"                            grid-view="subsysSistemaEducativo.Nivel@Search-grid"  showIf="grado.code=='D'" requiredIf="grado.code=='D'" domain="(self.code='D' OR self.code='E')"/>       
    </panel>
 
     <panel-related name="modulos" field="modulos"  title="Módulos" newButtonTitle="Añadir un nuevo módulo" grid-view="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-grid"  form-view="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-form"
@@ -73,23 +75,41 @@ Otra excepción es el caso de formularios del propio Axelor que se modifican par
 Se usa para colecciones relacionales `<one-to-many>` del modelo y muestra una rejilla hija dentro del formulario padre, se acompaña con los atributos `grid-view` y `form-view` específicos.
 
 
-colSpan="12" showFooter="false"  canEdit="false" canRemove="false" forceEdit="true"
-
 ## Campos (`field`) y widgets clave en este proyecto
 
 `<field>` es la etiqueta **más importante** de un form y vincula un atributo del modelo al formulario. Además de `name`, aquí se define gran parte de la UX mediante atributos y widgets. Un campo siempre debe estar dentro de un panel
 
-### Descarga/subida de ficheros `MetaFile`
-
+### Atributos
+- `domain`:Permite restringir los valores disponibles en campos de selección (por ejemplo, campos relacionales o enums) usando expresiones booleanas que hacen referencia a los atributos del campo. Por ejemplo, para mostrar un campo solo si el código es 'D' o 'E', se usaría: `domain="(self.code='D' OR self.code='E')"`
+- `showIf`: Permite mostrar un campo solo si se cumple una condición.Por ejemplo, para mostrar un campo solo si el código es 'D', se usaría: `showIf="self.code=='D'"`
 - `widget="binary-link"`: para campos `MetaFile` permite cargar/descargar un fichero.
 - `widget="binary"`: Para descargar directamente el `content` del  ̀MetaFile`.
 - `x-accept`: para restringir tipos de fichero (por ejemplo PDF o imagen).
+- `widget="SwitchSelect"`: Para campos del modelo de tipo enum (horizontal o vertical con `x-direction`).
+- `widget="Text"` para textos largos (por ejemplo motivos de rechazo).
+- `widget="suggest"` / selección asistida en campos relacionales con `domain`.
+- `readonly="true"` para mostrar un campo como solo lectura.
+- `colSpan`: Para definir el tamaño del campo. Vease más abajo para entenderlo mejor.
+- `colOffset`: Para dejar un espacio a la izquierda del campo. Vease más abajo para entenderlo mejor.
+- 
+### HTML personalizado para mostrar el contenido de un campo
+- Para mostrar el contenido de un campo de forma personalizada (por ejemplo, mostrar un PDF incrustado en el formulario), se puede usar la etiqueta `<viewer>` dentro del `<field>`.
 
-### colSpan/colOffset en field
+```xml
+<field name="new" showTitle="false" readonly="true" colSpan="12">
+    <viewer depends="documentoOriginal"><![CDATA[
+        <>
+        <Box as="iframe" height="500" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${documentoOriginal.id}/content/download?inline=true&name=${documentoOriginal.fileName}`}></Box>
+        </>
+    ]]></viewer>
+</field>
+``` 
+
+### Layout de los campos: colSpan/colOffset
 - Para definir el tamaño de un campo se usa "colSpan" (número de columnas que ocupa) y "colOffset" (espacio "hueco" dejado a la izquierda).
 - El proyecto sigue una maquetación de 12 columnas, por lo que un campo con `colSpan="6"` ocuparía la mitad del ancho del panel.
 - Esto se usa para organizar campos en la misma línea
-- Para centrar un campo en una linea se usaría  `colOffset="3"` y `colSpan="6"`.
+- Para centrar un campo en una línea se usaría  `colOffset="3"` y `colSpan="6"`.
 
 Te pongo el siguiente ejemplo para que lo veas más claro:
 
@@ -106,17 +126,26 @@ En el ejemplo 'campo1' y 'campo2' se mostrarían en la misma línea ocupando cad
 Es importante usar `colSpan` y `colOffset` de manera coherente para lograr una maquetación clara y organizada en el formulario. Se debe pensar en el colSpan para que quepa todo el texto.
 Si el texto es largo, se puede usar `colSpan="12"` para que ocupe toda la línea y evitar que se corte. Por ejemplo para campos de fechas sobra con colSpan="2".
 Tambien hay que ver que pones en la misma linea, normalmente son campos relacionados, por ejemplo fecha de inicio y fecha de fin, o nombre y apellidos.
-Lo normal es que siempre esté todo alineado a la izquierda, pero en casos puntuales puede ser útil para centrar un campo o dejar espacio a la izquierda para mejorar la legibilidad.
 
-Ejemplo puntual (No es normal) de no dejar algo a la izquierda para que quede más claro:
+**Distribución proporcional al contenido real del campo**
+
+No hay que dividir el espacio equitativamente entre campos de la misma fila: hay que asignar más espacio al campo cuyo valor ocupa más texto visualmente.
+
+Ejemplo incorrecto (reparto igual sin considerar el contenido):
 ```xml
-<panel title="Datos personales">
-    <field name="nombre" colSpan="10"/>
-    <field name="fechaInicio" colSpan="2"/>
-    <field name="fechaFin" colSpan="2" colOffset="10" />    
-</panel>
+<field name="centro"         colSpan="4"/>
+<field name="numeroRegistro" colSpan="4"/>
+<field name="fecha"          colSpan="4"/>
 ```
-En el ejemplo anterior, el campo 'nombre' ocuparía la mayor parte de la línea, mientras que 'fechaInicio' y 'fechaFin' se mostrarían uno debajo del otro, con 'fechaFin' alineado respecto a 'fechaInicio' al `colOffset="10"`.
+
+"centro" muestra un nombre largo, mientras que "numeroRegistro" y "fecha" suelen ser valores cortos. Con `colSpan="4"` los tres, "centro" se quedará estrecho y los otros dos tendrán espacio de sobra.
+
+Ejemplo correcto (espacio proporcional al contenido esperado):
+```xml
+<field name="centro"         colSpan="6"/>
+<field name="numeroRegistro" colSpan="3"/>
+<field name="fecha"          colSpan="3"/>
+```
 
 También es importante tener en cuenta que el uso de `colSpan` y `colOffset` para intentar alinear los campos con los de la fila anterior o siguiente.
 
@@ -146,17 +175,7 @@ Una mejor forma de hacerlo sería:
 
 Aunque no es una obligación estricta, es recomendable intentar alinear los campos con los de la fila anterior o siguiente para mejorar la legibilidad del formulario. Y ver como ponerlo para que quede claro y no se corte el texto.
 
-### Enumerados
 
-Para campos del modelo de tipo enum se usa especialmente `widget="SwitchSelect"` (horizontal o vertical con `x-direction`).
-
-
-
-### Otros widgets/patrones frecuentes
-
-- `widget="Text"` para textos largos (por ejemplo motivos de rechazo).
-- `widget="suggest"` / selección asistida en campos relacionales con `domain`.
-- `<viewer><![CDATA[...]]></viewer>` para render personalizado (por ejemplo incrustar PDF en `iframe` con URL de descarga).
 
 
 
