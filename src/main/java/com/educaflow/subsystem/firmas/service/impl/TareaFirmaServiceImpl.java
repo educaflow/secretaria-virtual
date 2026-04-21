@@ -14,32 +14,32 @@ import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.subsystem.firmas.db.DocumentoFirma;
 import com.educaflow.subsystem.firmas.db.EstadoTareaFirma;
 import com.educaflow.subsystem.firmas.db.TareaFirma;
-import com.educaflow.subsystem.firmas.service.DatosFirma;
-import com.educaflow.subsystem.firmas.service.FirmaNotifier;
-import com.educaflow.subsystem.firmas.service.FirmaService;
+import com.educaflow.subsystem.firmas.service.TareaFirmaInsertDTO;
+import com.educaflow.subsystem.firmas.service.TareaFirmaNotifier;
+import com.educaflow.subsystem.firmas.service.TareaFirmaService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
-public class FirmaServiceImpl extends DefaultModelService<TareaFirma> implements FirmaService {
+public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> implements TareaFirmaService {
 
-    public FirmaServiceImpl(Class<TareaFirma> model, Repository repository) {
+    public TareaFirmaServiceImpl(Class<TareaFirma> model, Repository repository) {
         super(TareaFirma.class, repository);
     }
 
     @Override
-    public TareaFirma insert(DatosFirma datosFirma)  {
+    public TareaFirma insert(TareaFirmaInsertDTO tareaFirmaInsertDTO)  {
         TareaFirma tareaFirma=new TareaFirma();
-        tareaFirma.setFirmante(datosFirma.firmante());
+        tareaFirma.setFirmante(tareaFirmaInsertDTO.firmante());
         tareaFirma.setFechaSolicitud(LocalDateTime.now());
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.PENDIENTE);
-        tareaFirma.setMotivoFirma(datosFirma.motivoFirma());
+        tareaFirma.setMotivoFirma(tareaFirmaInsertDTO.motivoFirma());
         tareaFirma.setMotivoRechazo(null);
 
 
         List<DocumentoFirma> documentosFirma=new ArrayList<>();
-        for(MetaFile documento:datosFirma.documentos()) {
+        for(MetaFile documento: tareaFirmaInsertDTO.documentos()) {
             DocumentoFirma documentoFirma = new DocumentoFirma();
             documentoFirma.setDocumentoOriginal(MetaFileUtil.cloneMetaFile(documento));
             documentoFirma.setTareaFirma(tareaFirma);
@@ -49,8 +49,8 @@ public class FirmaServiceImpl extends DefaultModelService<TareaFirma> implements
 
 
 
-        tareaFirma.setFqcnFirmaNotifier(datosFirma.firmaNotifierClass().getName());
-        Object callBackData=datosFirma.callBackData();
+        tareaFirma.setFqcnFirmaNotifier(tareaFirmaInsertDTO.firmaNotifierClass().getName());
+        Object callBackData= tareaFirmaInsertDTO.callBackData();
         if(callBackData!=null){
             tareaFirma.setFqcnCallBackData(callBackData.getClass().getName());
             tareaFirma.setCallBackData(JsonUtil.toJson(callBackData));
@@ -61,10 +61,10 @@ public class FirmaServiceImpl extends DefaultModelService<TareaFirma> implements
 
 
 
-        tareaFirma.setX(BigDecimal.valueOf(datosFirma.areaFirma().x()));
-        tareaFirma.setY(BigDecimal.valueOf(datosFirma.areaFirma().y()));
-        tareaFirma.setWidth(BigDecimal.valueOf(datosFirma.areaFirma().width()));
-        tareaFirma.setHeight(BigDecimal.valueOf(datosFirma.areaFirma().height()));
+        tareaFirma.setX(BigDecimal.valueOf(tareaFirmaInsertDTO.areaFirma().x()));
+        tareaFirma.setY(BigDecimal.valueOf(tareaFirmaInsertDTO.areaFirma().y()));
+        tareaFirma.setWidth(BigDecimal.valueOf(tareaFirmaInsertDTO.areaFirma().width()));
+        tareaFirma.setHeight(BigDecimal.valueOf(tareaFirmaInsertDTO.areaFirma().height()));
 
 
 
@@ -130,8 +130,8 @@ public class FirmaServiceImpl extends DefaultModelService<TareaFirma> implements
     @SuppressWarnings("unchecked")
     private void fireActionRule_NotificarFirmaResuelta(TareaFirma tareaFirma) {
         try {
-            Class<? extends FirmaNotifier> firmaNotifierClass = (Class<? extends FirmaNotifier>) Class.forName(tareaFirma.getFqcnFirmaNotifier());
-            FirmaNotifier firmaNotifier = Beans.get(firmaNotifierClass);
+            Class<? extends TareaFirmaNotifier> firmaNotifierClass = (Class<? extends TareaFirmaNotifier>) Class.forName(tareaFirma.getFqcnFirmaNotifier());
+            TareaFirmaNotifier tareaFirmaNotifier = Beans.get(firmaNotifierClass);
 
             Object callBackData = null;
             if (tareaFirma.getFqcnCallBackData() != null) {
@@ -139,7 +139,7 @@ public class FirmaServiceImpl extends DefaultModelService<TareaFirma> implements
                 callBackData = JsonUtil.fromJson(tareaFirma.getCallBackData(), callBackDataClass);
             }
 
-            firmaNotifier.notify(tareaFirma, callBackData);
+            tareaFirmaNotifier.notify(tareaFirma, callBackData);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }

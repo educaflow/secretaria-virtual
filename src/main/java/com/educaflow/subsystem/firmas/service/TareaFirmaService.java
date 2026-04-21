@@ -7,9 +7,9 @@ import com.educaflow.subsystem.firmas.db.TareaFirma;
 
 import java.util.Optional;
 
-public interface FirmaService extends ModelService<TareaFirma> {
+public interface TareaFirmaService extends ModelService<TareaFirma> {
 
-    TareaFirma insert(DatosFirma datosFirma) throws BusinessException;
+    TareaFirma insert(TareaFirmaInsertDTO tareaFirmaInsertDTO) throws BusinessException;
     TareaFirma marcarComoFirmada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal);
     TareaFirma marcarComoRechazada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal);
     Optional<BusinessMessages> validarDocumentosFirmados(TareaFirma tareaFirma);

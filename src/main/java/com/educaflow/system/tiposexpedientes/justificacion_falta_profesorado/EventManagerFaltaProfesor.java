@@ -1,6 +1,8 @@
 package com.educaflow.system.tiposexpedientes.justificacion_falta_profesorado;
 
-import com.axelor.inject.Beans;
+import com.axelor.db.JpaRepository;
+import com.axelor.db.Repository;
+import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
@@ -18,9 +20,9 @@ import com.educaflow.subsystem.expedientes.db.repo.JustificacionFaltaProfesorado
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 
 import com.educaflow.subsystem.firmas.db.TareaFirma;
-import com.educaflow.subsystem.firmas.service.DatosFirma;
-import com.educaflow.subsystem.firmas.service.FirmaNotifier;
-import com.educaflow.subsystem.firmas.service.FirmaService;
+import com.educaflow.subsystem.firmas.service.TareaFirmaInsertDTO;
+import com.educaflow.subsystem.firmas.service.TareaFirmaNotifier;
+import com.educaflow.subsystem.firmas.service.TareaFirmaService;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroSalida;
 import com.educaflow.subsystem.registroentradasalida.db.repo.RegistroEntradaRepository;
@@ -32,7 +34,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 
-public class EventManagerFaltaProfesor extends com.educaflow.subsystem.expedientes.services.eventmanager.EventManager<JustificacionFaltaProfesorado, EventManagerFaltaProfesor.State, EventManagerFaltaProfesor.Event,EventManagerFaltaProfesor.Profile> implements FirmaNotifier {
+public class EventManagerFaltaProfesor extends com.educaflow.subsystem.expedientes.services.eventmanager.EventManager<JustificacionFaltaProfesorado, EventManagerFaltaProfesor.State, EventManagerFaltaProfesor.Event,EventManagerFaltaProfesor.Profile> implements TareaFirmaNotifier {
 
     private static final Rectangulo rectanguloPosicionFirmaPDFResolucion =new Rectangulo(75,280,400,20);
 
@@ -44,7 +46,7 @@ public class EventManagerFaltaProfesor extends com.educaflow.subsystem.expedient
     @Inject
     AlmacenClaveLoader almacenClaveLoader;
     @Inject
-    FirmaService firmaService;
+    private ModelServiceFactory modelServiceFactory;
 
     @Inject
     public EventManagerFaltaProfesor(JustificacionFaltaProfesoradoRepository repository) {
@@ -79,8 +81,9 @@ public class EventManagerFaltaProfesor extends com.educaflow.subsystem.expedient
 
 
         ///Quitar esto es solo una prueba
-        DatosFirma datosFirma=new DatosFirma(SecurityUtil.getUser(),List.of(pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud),"Firma Expediente:"+justificacionFaltaProfesorado.getNumeroExpediente(),new Rectangulo(100,100,400,50),this.getClass(),"Datos de callback");
-        firmaService.insert(datosFirma);
+        final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
+        TareaFirmaInsertDTO tareaFirmaInsertDTO =new TareaFirmaInsertDTO(SecurityUtil.getUser(),List.of(pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud),"Firma Expediente:"+justificacionFaltaProfesorado.getNumeroExpediente(),new Rectangulo(100,100,400,50),this.getClass(),"Datos de callback");
+        tareaFirmaService.insert(tareaFirmaInsertDTO);
     }
     @WhenEvent
     public void triggerBack(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext<Profile,State> eventContext) throws BusinessException {

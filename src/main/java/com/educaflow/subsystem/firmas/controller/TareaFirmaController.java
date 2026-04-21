@@ -14,14 +14,18 @@ import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
 import com.educaflow.subsystem.firmas.db.DocumentoFirma;
 import com.educaflow.subsystem.firmas.db.TareaFirma;
-import com.educaflow.subsystem.firmas.service.FirmaService;
+import com.educaflow.subsystem.firmas.service.TareaFirmaService;
+import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class FirmarController {
+public class TareaFirmaController {
+
+    @Inject
+    private ModelServiceFactory modelServiceFactory;
 
     @CallMethod
     public void firmarDocumentosConAutoFirma(ActionRequest actionRequest, ActionResponse actionResponse) {
@@ -45,8 +49,7 @@ public class FirmarController {
     @CallMethod
     @Transactional
     public void marcarComoFirmada(ActionRequest actionRequest, ActionResponse actionResponse) {
-        final Repository repository = JpaRepository.of(TareaFirma.class);
-        final FirmaService firmaService = (FirmaService) ModelServiceFactory.resolve(TareaFirma.class, repository);
+        final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
 
         ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
@@ -55,7 +58,7 @@ public class FirmarController {
             AllowProperties allowProperties = AllowProperties.createAllowProperties(Map.of("documentosFirma", Map.of("documentoFirmado", Map.of())));
             TareaFirma tareaFirma = actionRequestHelper.getModel(allowProperties);
 
-            firmaService.marcarComoFirmada(tareaFirma, tareaFirmaOriginal);
+            tareaFirmaService.marcarComoFirmada(tareaFirma, tareaFirmaOriginal);
 
             actionResponse.setSignal("force-back", null);
         } catch (Exception ex) {
@@ -66,8 +69,7 @@ public class FirmarController {
     @CallMethod
     @Transactional
     public void marcarComoRechazada(ActionRequest actionRequest, ActionResponse actionResponse) {
-        final Repository repository = JpaRepository.of(TareaFirma.class);
-        final FirmaService firmaService = (FirmaService) ModelServiceFactory.resolve(TareaFirma.class, repository);
+        final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
 
         ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
@@ -76,7 +78,7 @@ public class FirmarController {
         AllowProperties allowProperties = AllowProperties.createAllowProperties(Map.of("motivoRechazo", Map.of()));
         TareaFirma tareaFirma = actionRequestHelper.getModel(allowProperties);
 
-        firmaService.marcarComoRechazada(tareaFirma, tareaFirmaOriginal);
+        tareaFirmaService.marcarComoRechazada(tareaFirma, tareaFirmaOriginal);
 
         actionResponse.setSignal("force-back", null);
     }
@@ -84,15 +86,14 @@ public class FirmarController {
 
     @CallMethod
     public void validarDocumentosFirmados(ActionRequest actionRequest, ActionResponse actionResponse) {
-        final Repository repository = JpaRepository.of(TareaFirma.class);
-        final FirmaService firmaService = (FirmaService) ModelServiceFactory.resolve(TareaFirma.class, repository);
+        final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
 
         ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
 
         AllowProperties allowProperties = AllowProperties.createAllowProperties(Map.of("documentosFirma", Map.of("documentoFirmado", Map.of())));
         TareaFirma tareaFirma = actionRequestHelper.getModel(allowProperties);
-        Optional<BusinessMessages> validationResult = firmaService.validarDocumentosFirmados(tareaFirma);
+        Optional<BusinessMessages> validationResult = tareaFirmaService.validarDocumentosFirmados(tareaFirma);
 
         if (validationResult.isPresent()) {
             actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());

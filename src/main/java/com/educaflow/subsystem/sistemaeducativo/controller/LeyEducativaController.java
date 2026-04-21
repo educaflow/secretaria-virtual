@@ -12,16 +12,20 @@ import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
 import com.educaflow.base.util.AllowProperties;
 import com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa;
 import com.educaflow.subsystem.sistemaeducativo.service.LeyEducativaService;
+import com.google.inject.Inject;
 
 import java.util.Optional;
 
 public class LeyEducativaController {
 
 
+    @Inject
+    private ModelServiceFactory modelServiceFactory;
+
     @CallMethod
     public void validateSave(ActionRequest actionRequest, ActionResponse actionResponse) {
         final Repository repository = JpaRepository.of(LeyEducativa.class);
-        final LeyEducativaService leyEducativaService = (LeyEducativaService)ModelServiceFactory.resolve(LeyEducativa.class, repository);
+        final LeyEducativaService leyEducativaService = (LeyEducativaService)modelServiceFactory.resolve(LeyEducativa.class, repository);
 
         ActionRequestHelper<LeyEducativa> actionRequestHelper = new ActionRequestHelper(actionRequest, LeyEducativa.class);
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
@@ -45,7 +49,7 @@ public class LeyEducativaController {
     @CallMethod
     public void validateDelete(ActionRequest actionRequest, ActionResponse actionResponse) {
         final Repository repository = JpaRepository.of(LeyEducativa.class);
-        final LeyEducativaService leyEducativaService = (LeyEducativaService)ModelServiceFactory.resolve(LeyEducativa.class, repository);
+        final LeyEducativaService leyEducativaService = (LeyEducativaService)modelServiceFactory.resolve(LeyEducativa.class, repository);
 
         ActionRequestHelper<LeyEducativa> actionRequestHelper = new ActionRequestHelper(actionRequest, LeyEducativa.class);
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);

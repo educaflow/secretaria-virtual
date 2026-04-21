@@ -203,7 +203,7 @@ public class {System}Module extends AxelorModule {
 **Interfaz** (`subsystem/firmas/service/FirmaService.java`):
 ```java
 public interface FirmaService {
-    TareaFirma insert(DatosFirma datosFirma) throws BusinessException;
+    TareaFirma insert(TareaFirmaInsertDTO tareaFirmaInsertDTO) throws BusinessException;
     TareaFirma update(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) throws BusinessException;
     TareaFirma otroMetodo(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) throws BusinessException;
 }
