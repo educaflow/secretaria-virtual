@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <object-views xmlns="http://axelor.com/xml/ns/object-views"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <action-view name="subsysSistemaEducativo.LeyEducativa@Main-action" title="Leyes educativas" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa">
         <view type="grid" name="subsysSistemaEducativo.LeyEducativa@Main-grid"/>
@@ -12,7 +13,7 @@
     <grid name="subsysSistemaEducativo.LeyEducativa@Main-grid" title="Ley educativa" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
           canNew="true" newButtonTitle="Nueva ley educativa"
           canRefresh="false" canAdvanceSearch="false" allowSearchFields="false"
-          editable="false" edit-icon="false" x-selector="none"  canEdit="false" canDelete="false" canSave="false"
+          editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"
           canEditOnClick="true"
     >
         <field name="code" width="200px" />
@@ -21,6 +22,7 @@
 
     <form name="subsysSistemaEducativo.LeyEducativa@Main-form" title="Ley educativa" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
           width="large"
+          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false"
     >
         <panel name="LeyEducativa" title="">
             <field name="code" colSpan="3" />
@@ -32,7 +34,6 @@
             <button name="btnCancel" title="Cancelar" onClick="back"  colSpan="2" colOffset="6" outline="true"   />
             <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.LeyEducativa@Main-validateSave-action,save,force-back"  colSpan="2"  />
         </panel>
-
 
     </form>
 

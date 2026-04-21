@@ -1,56 +1,59 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <object-views xmlns="http://axelor.com/xml/ns/object-views"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="subsysSistemaEducativo.Ciclo@Main-action" title="Ciclos" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo">
+    <action-view name="subsysSistemaEducativo.Ciclo@Main-action" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo">
         <view type="grid" name="subsysSistemaEducativo.Ciclo@Main-grid"/>
         <view type="form" name="subsysSistemaEducativo.Ciclo@Main-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
-    <grid name="subsysSistemaEducativo.Ciclo@Main-grid" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
-          groups="admins"
-          editable="false" edit-icon="false" x-selector="none" canNew="true" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
-        <hilite color="danger" if="archived"/>
+    <grid name="subsysSistemaEducativo.Ciclo@Main-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" newButtonTitle="Añadir un nuevo ciclo" allowSearchFields="true" orderBy="name"
+          canAdvanceSearch="false" canRefresh="false" canNew="true" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true" title=""
+    >
         <field name="code" width="200px" />
         <field name="name" />
         <field name="familiaProfesional" />
-        <field name="archived" width="100px" />
     </grid>
 
     <form name="subsysSistemaEducativo.Ciclo@Main-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
-          groups="admins"
-          width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false">
-        <panel name="Ciclo" title="">
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="Ciclo" title="Ciclo">
             <field name="code" colSpan="3" />
-
             <field name="name" colOffset="9" colSpan="6" />
             <field name="familiaProfesional" colOffset="6" colSpan="6" grid-view="subsysSistemaEducativo.FamiliaProfesional@Search-grid" />
-            <field name="grado" colOffset="6" colSpan="4"  grid-view="subsysSistemaEducativo.Grado@Search-grid"  domain="(self.code='D' OR self.code='E')" />
-            <field name="nivel" colSpan="4"  grid-view="subsysSistemaEducativo.Nivel@Search-grid"  showIf="grado.code=='D'" requiredIf="grado.code=='D'" />
+            <field name="grado" colOffset="6" colSpan="4"              grid-view="subsysSistemaEducativo.Grado@Search-grid"  domain="(self.code='D' OR self.code='E')" />
+            <field name="nivel" colSpan="4"                            grid-view="subsysSistemaEducativo.Nivel@Search-grid"  showIf="grado.code=='D'" requiredIf="grado.code=='D'" domain="(self.code='D' OR self.code='E')"/>
         </panel>
 
         <panel-related name="cursos" field="cursos"  title="Cursos"
-                       grid-view="subsysSistemaEducativo.Ciclo.Curso@Main-grid"
-                       form-view="subsysSistemaEducativo.Ciclo.Curso@Main-form"
-                       colSpan="12"
+            grid-view="subsysSistemaEducativo.Ciclo.Curso@Main-grid"
+            form-view="subsysSistemaEducativo.Ciclo.Curso@Main-form"
+            colSpan="12" newButtonTitle="Añadir un nuevo curso"
+            showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
         />
 
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
+            <button name="btnDelete" title="Borrar" onClick="delete" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="back"  colSpan="2" colOffset="6" outline="true"   />
+            <button name="btnSave" title="Guardar" onClick="save,force-back"  colSpan="2"  />
+        </panel>
 
     </form>
 
-    <grid name="subsysSistemaEducativo.Ciclo@Search-grid" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
-          groups="admins,users"
-          orderBy="name"
-          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+    <grid name="subsysSistemaEducativo.Ciclo@Search-grid"  model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" orderBy="name"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true" title=""
+    >
         <field name="familiaProfesional" />
         <field name="name" />
     </grid>
 
     <form name="subsysSistemaEducativo.Ciclo@View-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
-          groups="admins"
-          width="large" canAttach="false" canBack="false" canBackOnSave="false" canDelete="false" canNew="false">
+          width="large"
+          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="Ciclo" title="">
             <field name="name"               colSpan="6"  readonly="true" />
             <field name="familiaProfesional" colSpan="6"  readonly="true"  />
@@ -64,9 +67,8 @@
     <!-- ********************************************************************************************************* -->
 
 
-    <grid name="subsysSistemaEducativo.Ciclo.Curso@Main-grid" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
-          groups="admins"
-
+    <grid name="subsysSistemaEducativo.Ciclo.Curso@Main-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"  allowSearchFields="true" orderBy="name"
+          canAdvanceSearch="false" canRefresh="false" canNew="true" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true" title=""
     >
         <field name="code" width="150px" />
         <field name="name" width="200px" />
@@ -74,10 +76,9 @@
     </grid>
 
     <form name="subsysSistemaEducativo.Ciclo.Curso@Main-form" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
-          groups="admins"
           width="large"
           onNew="subsysSistemaEducativo.Ciclo.Curso-onNew-action"
-            canAttach="false"
+          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false"
     >
         <panel name="Curso" title="">
             <field name="code" colSpan="3" />
@@ -90,8 +91,17 @@
                        grid-view="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-grid"
                        form-view="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-form"
                        colSpan="12"
+                       showFooter="false"
+                       newButtonTitle="Añadir un nuevo módulo"
+                       canEdit="false"
+                       canRemove="false"
+                       forceEdit="true"
         />
-
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
+            <button name="btnDelete" title="Borrar" onClick="delete-modal" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid != null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="close"  colSpan="2" colOffset="6" outline="true"   />
+            <button name="btnSave" title="Guardar" onClick="save-modal"  colSpan="2"  />
+        </panel>
     </form>
 
     <action-record name="subsysSistemaEducativo.Ciclo.Curso-onNew-action" model="com.educaflow.subsystem.sistemaeducativo.db.Curso">
@@ -103,19 +113,23 @@
     <!-- ********************* Vistas de Ciclo -> Curso -> Modulo ********************* -->
     <!-- ****************************************************************************** -->
 
-    <grid name="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-grid" title="Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
-          groups="admins"
+    <grid name="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-grid" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo" allowSearchFields="false" orderBy="name"
+          canAdvanceSearch="false" canRefresh="false" canNew="true" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true" title=""
     >
         <field name="modulo" />
     </grid>
 
     <form name="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-form" title="Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
-          groups="admins"
           onNew="subsysSistemaEducativo.Ciclo.Curso.CursoModulo-onNew-action"
-          width="large" canAttach="false" >
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="CursoModulo" title="">
             <field name="curso"  colSpan="6" showIf="false" />
             <field name="modulo" colSpan="6" colOffset="6" grid-view="subsysSistemaEducativo.Modulo@Search-grid" />
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
+            <button name="btnDelete" title="Borrar" onClick="delete-modal" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid != null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="close"  colSpan="2" colOffset="6" outline="true"   />
+            <button name="btnSave" title="Guardar" onClick="save-modal"  colSpan="2"  />
         </panel>
     </form>
     <action-record name="subsysSistemaEducativo.Ciclo.Curso.CursoModulo-onNew-action" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo">

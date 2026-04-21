@@ -5,8 +5,8 @@
 
     <menuitem name="subsysRegistroEntradaSalida-menuitem"  title="Registro"  groups="admins"  order="500"/>
 
-    <menuitem name="subsysRegistroEntradaSalida-entrada-menuitem"  parent="subsysRegistroEntradaSalida-menuitem" title="Entrada" action="subsysRegistroEntradaSalida.RegistroEntrada-mantenimiento-action" groups="admins" order="2"  />
-    <menuitem name="subsysRegistroEntradaSalida-salida-menuitem"  parent="subsysRegistroEntradaSalida-menuitem" title="Salida" action="subsysRegistroEntradaSalida.RegistroSalida-mantenimiento-action" groups="admins" order="2"  />
+    <menuitem name="subsysRegistroEntradaSalida.RegistroEntrada@Main-menuitem"  parent="subsysRegistroEntradaSalida-menuitem" title="Entrada" action="subsysRegistroEntradaSalida.RegistroEntrada@Main-action" groups="admins" order="2"  />
+    <menuitem name="subsysRegistroEntradaSalida.RegistroSalida@Main-menuitem"  parent="subsysRegistroEntradaSalida-menuitem" title="Salida" action="subsysRegistroEntradaSalida.RegistroSalida@Main-action" groups="admins" order="2"  />
 
 
 

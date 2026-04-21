@@ -53,17 +53,13 @@ public class TareaFirmaController {
 
         ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
-        try {
-            TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
-            AllowProperties allowProperties = AllowProperties.createAllowProperties(Map.of("documentosFirma", Map.of("documentoFirmado", Map.of())));
-            TareaFirma tareaFirma = actionRequestHelper.getModel(allowProperties);
 
-            tareaFirmaService.marcarComoFirmada(tareaFirma, tareaFirmaOriginal);
+        TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
+        AllowProperties allowProperties = AllowProperties.createAllowProperties(Map.of("documentosFirma", Map.of("documentoFirmado", Map.of())));
+        TareaFirma tareaFirma = actionRequestHelper.getModel(allowProperties);
 
-            actionResponse.setSignal("force-back", null);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
+        tareaFirmaService.marcarComoFirmada(tareaFirma, tareaFirmaOriginal);
+
     }
 
     @CallMethod
@@ -80,7 +76,6 @@ public class TareaFirmaController {
 
         tareaFirmaService.marcarComoRechazada(tareaFirma, tareaFirmaOriginal);
 
-        actionResponse.setSignal("force-back", null);
     }
 
 

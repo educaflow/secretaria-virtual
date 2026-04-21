@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <object-views xmlns="http://axelor.com/xml/ns/object-views"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <action-view name="subsysSistemaEducativo.Modulo@Main-action" title="Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.Modulo">
         <view type="grid" name="subsysSistemaEducativo.Modulo@Main-grid"/>
         <view type="form" name="subsysSistemaEducativo.Modulo@Main-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
     <grid name="subsysSistemaEducativo.Modulo@Main-grid" title="Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.Modulo"
           groups="admins"
-          editable="false" edit-icon="false" x-selector="none" canNew="true" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+          canNew="true"
+          canRefresh="false" canAdvanceSearch="false" allowSearchFields="false"
+          editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"
+          canEditOnClick="true">
         <hilite color="danger" if="archived"/>
         <field name="code" width="200px" />
         <field name="name" />
@@ -20,10 +25,16 @@
 
     <form name="subsysSistemaEducativo.Modulo@Main-form" title="Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.Modulo"
           groups="admins"
-          width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false">
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="Modulo" title="">
             <field name="code" colSpan="3" />
             <field name="name" colOffset="9" />
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
+            <button name="btnDelete" title="Borrar" onClick="delete" css="btn-danger" colSpan="2"  outline="true" showIf="(id != null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="back"  colSpan="2" colOffset="6" outline="true"   />
+            <button name="btnSave" title="Guardar" onClick="save,force-back"  colSpan="2"  />
         </panel>
     </form>
 

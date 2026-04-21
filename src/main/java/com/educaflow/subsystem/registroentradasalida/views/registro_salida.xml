@@ -4,33 +4,35 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
 
-    <action-view name="subsysRegistroEntradaSalida.RegistroSalida-mantenimiento-action"  title="Información para PDF" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"  >
-        <view type="grid" name="subsysRegistroEntradaSalida.RegistroSalida-grid"/>
-        <view type="form" name="subsysRegistroEntradaSalida.RegistroSalida-form"/>
+    <action-view name="subsysRegistroEntradaSalida.RegistroSalida@Main-action"  title="Información para PDF" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"  >
+        <view type="grid" name="subsysRegistroEntradaSalida.RegistroSalida@Main-grid"/>
+        <view type="form" name="subsysRegistroEntradaSalida.RegistroSalida@Main-form"/>
     </action-view>
 
 
-    <grid name="subsysRegistroEntradaSalida.RegistroSalida-grid" title="Registro de entrada" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"
+    <grid name="subsysRegistroEntradaSalida.RegistroSalida@Main-grid" title="" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"
           groups="admins,users"
-          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false"
-          canSave="false" orderBy="numeroRegistro" canViewOnClick="true"
+          allowSearchFields="true" orderBy="numeroRegistro" canViewOnClick="true"
+          canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
     >
-        <field name="centro"/>
-        <field name="numeroRegistro"/>
-        <field name="fecha"/>
+        <field name="centro"          width="200px"/>
+        <field name="numeroRegistro"  width="150px"/>
+        <field name="fecha"           width="150px"/>
     </grid>
 
 
-    <form name="subsysRegistroEntradaSalida.RegistroSalida-form" title="Registro" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"
-          canEdit="false" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canCancel="false" canMore="false" canBackOnSave="true"
+    <form name="subsysRegistroEntradaSalida.RegistroSalida@Main-form" title="Registro de salida" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"
+          width="large" canEdit="false" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canCancel="false" canMore="false"
     >
         <panel name="registroSalida" title="Registro de Salida" colSpan="12" >
-            <field name="numeroRegistro"   colSpan="4"/>
-            <field name="fecha"   colSpan="4"/>
+            <field name="centro"         colSpan="4"/>
+            <field name="numeroRegistro" colSpan="4"/>
+            <field name="fecha"          colSpan="4"/>
 
-            <field name="documento" widget="binary-link"  colSpan="12"/>
+            <field name="documentoOriginal" widget="binary-link" colSpan="6"/>
+            <field name="documento"         widget="binary-link" colSpan="6"/>
         </panel>
-        <panel-related name="anexos" title="Anexos" field="anexos" colSpan="12" form-view="subsysRegistroEntradaSalida.Anexos-form"  grid-view="subsysRegistroEntradaSalida.Anexos-grid"  />
+        <panel-related name="anexos" title="Anexos" field="anexos" colSpan="12" form-view="subsysRegistroEntradaSalida.Anexos@Main-form"  grid-view="subsysRegistroEntradaSalida.Anexos@Main-grid"  />
         <panel name="actions" title="" colSpan="12" showFrame="false">
             <button name="btnVolver" title="Salir" onClick="back" css="btn-secondary" colSpan="3" colOffset="9" outline="true"/>
         </panel>

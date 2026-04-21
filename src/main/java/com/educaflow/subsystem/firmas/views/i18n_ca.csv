@@ -28,3 +28,6 @@ key,message,comment,context
 "Firma de documento","Signatura de document","",""
 "Volver","Tornar","",""
 "Salir","Eixir","",""
+"Estado de la tarea de firma rechazara","Estat de la tasca de signatura rebutjara","",""
+"Estado de la tarea firmada firmada","Estat de la tasca signada signada","",""
+"Estado de la tarea de firma","Estat de la tasca de signatura","",""

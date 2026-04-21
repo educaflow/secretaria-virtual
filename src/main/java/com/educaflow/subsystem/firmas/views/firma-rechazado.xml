@@ -18,7 +18,7 @@
           canEdit="false" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canCancel="false" canMore="false"
           related='{"documentosFirma":["documentoOriginal"]}'>
 
-        <panel name="datosFirma" title="Estado de la tarea a firmar" colSpan="12" readonly="true">
+        <panel name="tareaFirma" title="Estado de la tarea de firma rechazara" colSpan="12" readonly="true">
             <field name="motivoFirma"   colSpan="8"/>
             <field name="fechaSolicitud"   colSpan="4"/>
             <field name="estadoTareaFirma"   colSpan="4"/>
@@ -27,20 +27,20 @@
         </panel>
 
         <panel-related name="documentosFirma" title="Documentos" field="documentosFirma" colSpan="12"
-                       grid-view="subsysFirma.DocumentoFirma@Rechazado-grid" form-view="subsysFirma.DocumentoFirma@Rechazado-form" readonly="true"/>
+                       grid-view="subsysFirma.TareaFirma.DocumentoFirma@Rechazado-grid" form-view="subsysFirma.TareaFirma.DocumentoFirma@Rechazado-form" readonly="true"/>
 
-        <panel name="acciones" colSpan="12" showFrame="false">
+        <panel name="buttons-panel" colSpan="12" showFrame="false">
             <button name="btnVolver" title="Salir" onClick="back" css="btn-secondary" colSpan="3" colOffset="9" outline="true"/>
         </panel>
 
     </form>
 
-    <grid name="subsysFirma.DocumentoFirma@Rechazado-grid" title="Documentos" model="com.educaflow.subsystem.firmas.db.DocumentoFirma"
+    <grid name="subsysFirma.TareaFirma.DocumentoFirma@Rechazado-grid" title="Documentos" model="com.educaflow.subsystem.firmas.db.DocumentoFirma"
           edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
         <field name="documentoOriginal.fileName"/>
     </grid>
 
-    <form name="subsysFirma.DocumentoFirma@Rechazado-form" title="Documento" model="com.educaflow.subsystem.firmas.db.DocumentoFirma"
+    <form name="subsysFirma.TareaFirma.DocumentoFirma@Rechazado-form" title="Documento" model="com.educaflow.subsystem.firmas.db.DocumentoFirma"
           canAttach="false" canEdit="false" canBack="true" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel-tabs>
             <panel name="tabDocumentoOriginal" title="Documento original" colSpan="12">
