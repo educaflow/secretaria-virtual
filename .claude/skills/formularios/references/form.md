@@ -195,18 +195,19 @@ the normal panels with a grid widget having fields defined inside.
 It includes all `panel` and `relational` attributes except for `itemSpan`.
 A `panel-related` includes the following attributes:
 
-| Attribute | Description |
-|---|---|
-| **`field`** | title of the panel |
-| `editable` | whether the grid is inline editable |
-| `orderBy` | comma-separated list of field names to sort the records |
-| `onNew` | action to call on creating new record |
-| `onChange` | action to call when field value is changed |
-| `canMove` | whether to allow re-ordering of rows with drag & drop |
-| `height` | number of rows (not pixel height) |
-| `x-selector` | specify the row selection control: `checkbox` (default) to show checkbox selection, `none` to disable it. |
-| `edit-window` | display mode of edit window for relational fields. Can be `self`, `blank` or `popup` (default value). |
-| `widget` | name of the widget to be used on the collection field: `tags`, `master-detail`, `expandable`, `tree-grid` |
+| Attribute     | Description                                                                                               |
+|---------------|-----------------------------------------------------------------------------------------------------------|
+| **`field`**   | title of the panel                                                                                        |
+| `editable`    | whether the grid is inline editable                                                                       |
+| `orderBy`     | comma-separated list of field names to sort the records                                                   |
+| `onNew`       | action to call on creating new record                                                                     |
+| `onChange`    | action to call when field value is changed                                                                |
+| `canMove`     | whether to allow re-ordering of rows with drag & drop                                                     |
+| `height`      | number of rows (not pixel height)                                                                         |
+| `x-selector`  | specify the row selection control: `checkbox` (default) to show checkbox selection, `none` to disable it. |
+| `edit-window` | display mode of edit window for relational fields. Can be `self`, `blank` or `popup` (default value).     |
+| `widget`      | name of the widget to be used on the collection field: `tags`, `master-detail`, `expandable`, `tree-grid` |
+| `showFooter`  | If showFooter="false" hide the footer                                                                     |
 
 > **⚠️ Important:** With `canMove`, sequencing is done on field specified by `orderBy`, and it must be only one integer field. If not specified, not sequencing is done.
 > On one-to-many/many-to-many grids, `orderBy` is required with `canMove`, except for dummy fields.
