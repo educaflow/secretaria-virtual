@@ -1,40 +1,73 @@
 ---
 name: grids
-description: Este skill sirve para diseñar, generar o coregir dentro de ficheros XML de vistas de Axelor la etiqueta  `<grid>` de Axelor a partir de un modelo de dominio (entidad). 
+description: Referencia básica de grids en Axelor - estructura, atributos, convención de nombres y ejemplos.
 ---
 
-# grids
+# Qué es un grid en Axelor
 
 Un grid es la vista tabular de Axelor para listar registros (filas) de un modelo. Se define con el tag `<grid>` y dentro contiene etiquetas `<field>` para mostrar los atributos del modelo.
 
-## Grids en Axelor `<grid>`: diseño, generación y corrección
-- Este skill sirve para diseñar, generar o corregir los grids `<grid>` que están en ficheros de vistas.
-- Estos grids se crean a partir de un modelo de dominio.
-- Se siguen las normas definidas en `references/basic.md`
+## Para qué se usa
 
-## Tareas a realizar.
-- Decidir si se pueden crear nuevas entidades desde el grid y en caso afirmativo decifir el título del botón de creación. `newButtonTitle`
-- Si se pueden editar las entidades desde el grid o si SOLO pueden ver las entidades desde el grid. 
-- Decidir el valor de los atributos `allowSearchFields`, `orderBy`
-- Decidir los campos a mostrar en el grid y el orden de esos campos. Es importante elegir bien el orden de los campos para que el grid sea fácil de entender y usar por el usuario. Normalmente el primer campo es un identificador o código, seguido del nombre y luego otros campos relevantes.
+- Mostrar listados de entidades con sus campos más relevantes.
+- Permitir ordenar, agrupar y buscar registros.
+- Añadir acciones rápidas con `<button>`
 
-## En caso de tener que crear el grid
-- Crear la etiqueta `<grid>` con el nombre correcto siguiendo la convención de nomenclatura y los atributos que se han indicado que siempre deben estar.
-- Establecer el resto de atributos del grid como `newButtonTitle`, `orderBy` etc. según lo que se haya decidido en la fase de diseño.
-- Crear los campos `<field>` dentro del grid con su atributo name y width.
+## Ejemplo de grid
 
-## Si el grid ya existe pero hay que corregirlo
-- Corregir la etiqueta `<grid>` con el nombre correcto siguiendo la convención de nomenclatura y los atributos que se han indicado que siempre deben estar.
-- Corregir el resto de atributos del grid como `newButtonTitle`, `orderBy` etc. según lo que se haya decidido en la fase de diseño.
-- Corregir los campos `<field>` dentro del grid con su atributo name y width.
+```xml
+<grid name="subsysSistemaEducativo.Ciclo.Curso@Main-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Curso" canNew="true" newButtonTitle="Añadir un nuevo ciclo" allowSearchFields="true" orderBy="name" canEditOnClick="true" canViewOnClick="true"
+      canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"  title=""
+>
+    <field name="code" width="150px" />
+    <field name="name" width="200px" title="Nombre" />
+    <field name="leyEducativa"   />
+</grid>
+```
+**IMPORTANTE:**
+- En <form> deben estar todos los atributos que se han indicado en la plantilla con los valores indicados.
+- Excepciones:
+  - Si se pueden crear nuevas entidades desde el grid, añadir `canNew="true" newButtonTitle="Nueva ley educativa"` 
+  - Si no se pueden crear nuevas entidades desde el grid, añadir `canNew="false"` y no incluir el atributo `newButtonTitle`
+  - Si se pueden editar las entidades desde el grid, añadir `canEditOnClick="true"` y no incluir el atributo `canViewOnClick`
+  - Si SOLO pueden ver las entidades desde el grid, añadir `canViewOnClick="true"` y no incluir el atributo `canEditOnClick`
+  - Normalmente el atributo `allowSearchFields` valdrá `true` pero se puede poner a `false`.
+  - Normalmente el atributo `orderBy` valdrá `name` pero se puede valer otro campo relevante para ordenar los registros como alguna fecha.
 
-## Revisión
-- [ ] Revisar que los campos `<field>` dentro del grid tienen el atributo name correcto, un width adecuado y que existen en el modelo de dominio.
-- [ ] Revisar que el grid creado sigue la convención de nomenclatura y las normas de diseño.
-- [ ] Revisar que el valor de los atributos `newButtonTitle`, `orderBy` etc. es correcto según lo que se haya decidido en la fase de diseño.
 
+## Nombre de los grids
+
+El nombre de las vistas de grids es:       `{Prefijo}{Entidad}[.{EntidadHija}]*@[Main|Search|otro nombre]-grid`
+
+### Prefijos
+
+- Subsistemas: `subsys{Subsistema}` (PascalCase sin separador), p.ej. `subsysFirma`, `subsysRegistroEntradaSalida`
+- Sistemas: `sys{Sistema}` (PascalCase sin separador), p.ej. `sysImportar`
+- Excepción: el prefijo `exp-` se reserva exclusivamente para las vistas del framework de tipos de expediente
+
+Las entidades se separan con `.` (punto) y los nombres de ese formulario o grid con `@`
+
+#### Ejemplos
+
+| Caso                       | Patrón                                                          | Ejemplo                                                |
+|----------------------------|-----------------------------------------------------------------|--------------------------------------------------------|
+| Grid principal             | `subsys{Subsistema}.{Entidad}@Main-grid`                        | `subsysSistemaEducativo.Ciclo@Main-grid`               |
+| Grid de busqueda           | `subsys{Subsistema}.{Entidad}@Search-grid`                      | `subsysSistemaEducativo.Ciclo@Search-grid`             |
+| Grid con nombre            | `subsys{Subsistema}.{Entidad}@{Nombre}-grid`                    | `subsysSistemaEducativo.Ciclo@Pendiente-grid`          |
+| Entidad anidada            | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}@Main-grid`     | `subsysSistemaEducativo.Ciclo.Curso@Main-grid`         |
+| Entidad anidada con estado | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}@{Nombre}-grid` | `subsysSistemaEducativo.Ciclo.Curso@Pendiente-grid`    |
+
+**IMPORTANTE: Es obligatorio seguir esta convención de nombres para facilitar la trazabilidad, la lectura y el mantenimiento del código.**
+
+## Field
+Dentro del grid, cada campo se define con la etiqueta `<field>` 
+
+### Atributos de `<field>`
+ - `name`: Indica el nombre del atributo del modelo que se va a mostrar en ese campo. Es obligatorio.
+ - `width`: Establece un ancho fijo para ese campo en la tabla. Es opcional, pero recomendable para mejorar la legibilidad del grid. Se puede usar cualquier unidad de medida CSS como `px`, `em`, `%`, etc. Si no se establece un ancho, el campo se ajustará automáticamente al contenido. Es normal dejar un campo sin width para que se ajuste al contenido, especialmente si es un campo de texto largo como el nombre de una entidad.
+ - `title`: Establece un título para ese campo que se muestra en la cabecera del grid. Es opcional, si no se establece se mostrará el título del atributo del modelo.
 
 ## Referencia
-Para detalles completos de atributos y elementos soportados, usar:
-- `references/grid.md`
+Para detalles completos de atributos y elementos soportados:
 
+- `references/grid.md`

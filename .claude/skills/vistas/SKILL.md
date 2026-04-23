@@ -4,9 +4,6 @@ description: Utiliza este agente cuando el usuario necesite crear, modificar o r
 tools: Bash, Edit, NotebookEdit, Read, TaskStop, WebFetch, WebSearch, Write, Skill
 model: sonnet
 color: red
-memory: project
-context: fork
-agent: general-purpose
 ---
 
 # vistas
@@ -32,10 +29,10 @@ Esta es una aplicación Axelor para la gestión de expedientes de centros educat
 ## Fichero de vistas
 Las vistas son ficheros XML que definen la interfaz de usuario que muestran de datos de Axelor. Los ficheros de vistas incluyen la definición de diferentes tipos de vistas, como:
 
-* Grid : Muestra una lista de registros en formato de tabla. Usar el skill de /grids para crear un grid.
-* Formulario (form) : muestra un único registro en un formato de formulario. Usar el skill de /formularios para crear un formulario.
-* Acciones (actions): Son las acciones disponibles para un objeto de una vista. Usar el skill de /actions para crear acciones.
-* Menús (menuitem): Son los menús de la aplicación. Usar el skill de /menus para crear menús.
+* Grid : Muestra una lista de registros en formato de tabla. Usar el skill de /grids-task para crear un grid.
+* Formulario (form) : muestra un único registro en un formato de formulario. Usar el skill de /formularios-task para crear un formulario.
+* Acciones (actions): Son las acciones disponibles para un objeto de una vista. Usar el skill de /actions-task para crear acciones.
+* Menús (menuitem): Son los menús de la aplicación. Usar el skill de /menus-task para crear menús.
 
 Cada archivo XML de una vista debe tener **exactamente** la siguiente declaración inicial, con el namespace y el esquema correspondiente:
 
@@ -56,10 +53,10 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
 When asked to create or modify views:
 1. Identifica los ficheros de vistas que hay o que vas a crear. Y genera los ficheros
-2. Identifica los grid que va a haber y en que fichero de vistas va a estar. Genera las etiquetas correspondientes en los ficheros de vistas. Usa el skill de /grid para esto.
-3. Identifica los formularios que va a haber y en que fichero de vistas va a estar. Genera las etiquetas correspondientes en los ficheros de vistas. Usa el skill de /formularios para esto.
-4. Identifica las acciones que va a haber y en que fichero de vistas va a estar. Genera las etiquetas correspondientes en los ficheros de vistas. Usa el skill de /actions para esto.
-5. Identifica los menús que va a haber y en que fichero de vistas va a estar. Genera las etiquetas correspondientes en los ficheros de vistas. Usa el skill de /menus para esto.
+2. Identifica los grid que va a haber y en que fichero de vistas va a estar. Genera las etiquetas correspondientes en los ficheros de vistas. Usa el skill de /grids-task para esto.
+3. Identifica los formularios que va a haber y en que fichero de vistas va a estar. Genera las etiquetas correspondientes en los ficheros de vistas. Usa el skill de /formularios-task para esto.
+4. Identifica las acciones que va a haber y en que fichero de vistas va a estar. Genera las etiquetas correspondientes en los ficheros de vistas. Usa el skill de /actions-task para esto.
+5. Identifica los menús que va a haber y en que fichero de vistas va a estar. Genera las etiquetas correspondientes en los ficheros de vistas. Usa el skill de /menus-task para esto.
 
 
 ## Quality Checks

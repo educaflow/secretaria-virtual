@@ -6,7 +6,7 @@ description: Crear un fichero XML de modelo de datos para Axelor a partir de una
 Este skill permite generar un fichero XML de modelo de datos para Axelor a partir de una descripción en lenguaje natural o según un PDF con un formulario de datos. 
 El modelo de datos define las entidades, atributos, relaciones y validaciones necesarias para representar la información en el sistema Axelor.
 
-La descripción exacta del XML está descrita en [references/models.md](references/axelor-models.md) y en [references/repositories.md](references/repositories.md).
+La descripción exacta del XML está descrita en [references/models.md](references/models.md) y en [references/repositories.md](references/repositories.md).
 
 Un ejemplo de modelo de la entidad TareaFirma es el siguiente fichero TareaFirma.xml:
 

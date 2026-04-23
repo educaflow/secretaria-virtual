@@ -1,53 +1,95 @@
 ---
-name: menu
-description: Usa este skill cuando el usuario quiera crear o modificar entradas de menú (menuitem) en Axelor. Los menús se definen en ficheros XML dentro de secretariavirtual/menus/.
+name: menus
+description: Referencia básica de menús Axelor - etiqueta menuitem, atributos, convención de nombres y ejemplos.
 ---
 
-# menu
+Menús de Axelor
 
-Un menu es una entrada en el menú de la aplicación que puede ser una sección raíz, una subsección o una entrada final que abre una vista. 
-Se definen con la etiqueta `<menuitem>` dentro de ficheros XML ubicados en `src/main/java/com/educaflow/secretariavirtual/menus/`.
+Los menús de Axelor se definen con la etiqueta `<menuitem>` dentro de ficheros XML ubicados en:
 
-## Menús en Axelor `<menuitem>`: diseño, generación y corrección
-- Este skill sirve para diseñar, generar o corregir los menús `<menuitem>` que están en ficheros de vistas.
-- Estos menús se crean a partir de un modelo de dominio y de las posibles vistas que puede haber de un mismo modelo de dominio.
-- Se siguen las normas definidas en `references/basic.md`
+```
+src/main/java/com/educaflow/secretariavirtual/menus/
+```
 
-## Tareas a realizar.
-- Saber las `<action-view>` que hay en ese subsistema para saber a qué vistas se pueden apuntar desde los menús.  
-- Decidir el nombre y título del menú principal, siguiendo la convención de nombres y teniendo en cuenta el orden visual en el menú. Y decidir el número de orden que se le asigna a ese menú, teniendo en cuenta el orden visual en el menú y respetando el rango numérico del prefijo.
-- Decidir el nombre y título de las entradas de submenú siguiendo la convención de nombres
-- Decidir a qué `<action-view>` apuntan las entradas de menú final (hoja) y hacer que el menú apunte a esa acción.
-- Decidir los grupos de usuarios que pueden ver cada entrada de menú.
+El formato del fichero XML (namespace, schema) es el estándar de las vistas de Axelor. Ver skill `/vistas` para más detalles.
 
-## En caso de tener que crear el menú
-- Crear el fichero XML con el nombre correcto siguiendo la convención de nomenclatura y respetando el rango numérico del prefijo para mantener el orden visual en el menú.
-- Crear la etiqueta `<menuitem>` del menú principal con el nombre correcto siguiendo la convención de nomenclatura y los atributos.
-- Crear la etiqueta `<menuitem>` de los submenus con el nombre correcto siguiendo la convención de nomenclatura y los atributos.
-- Establecer para cada `<menuitem>` la acción a la que apunta, si es una entrada de menú final (hoja), o el menú padre al que apunta, si es una entrada de submenú.
-- Establecer los grupos de usuarios que pueden ver cada entrada de menú.
+## Nombre del fichero
 
+Los ficheros de menú globales van en `secretariavirtual/menus/` con prefijo numérico que indica el orden de aparición en el menú:
 
-## Si el menú ya existe pero hay que corregirlo
-- Combrueba que la etiqueta `<menuitem>` del menú principal tiene el nombre correcto siguiendo la convención de nomenclatura y los atributos.
-- Combrueba que la etiqueta `<menuitem>` de los submenus con el nombre correcto siguiendo la convención de nomenclatura y los atributos.
-- Combrueba que para cada `<menuitem>` la acción a la que apunta, si es una entrada de menú final (hoja), o el menú padre al que apunta, si es una entrada de submenú.
-- Combrueba  los grupos de usuarios que pueden ver cada entrada de menú.
+```
+{NNN}_menuitem_{nombreSistema o nombre Subsistema}.xml
+```
 
+Ejemplos:
+- `100_menuitem_tramite.xml`
+- `300_menuitem_sistemaeducativo.xml`
+- `550_menuitem_firma.xml`
 
-## Revisión
-- [ ] Revisar que todos los nombre de las entradas de menú sigue las convenciones de nomenclatura
-- [ ] Revisar que todas <action-view> a las que apuntan las entradas de menú final (hoja) existen y son correctas.
-- [ ] Revisar que todas las referencias a acciones apuntan a acciones que existen.
-- [ ] Revisar que todas las entradas de submenú apuntan a un menú padre que existe.
-- [ ] Revisar que los grupos de usuarios que pueden ver cada entrada de menú son los correctos según lo que se ha decidido en la fase de diseño.
-- [ ] Revisar que el número de orden de cada entrada de menú es correcto según lo que se ha decidido en la fase de diseño y que respeta el rango numérico del prefijo para mantener el orden visual en el menú.
-- [ ] Revisar que el título de cada entrada de menú es correcto y claro para el usuario.
+## Etiqueta `<menuitem>`
+
+### Atributos
+
+| Atributo  | Descripción                                                                                                                             | Obligatorio              |
+|-----------|-----------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| `name`    | Identificador único del menuitem (ver convención de nombres)                                                                            | Sí                       |
+| `title`   | Texto visible en el menú                                                                                                                | Sí                       |
+| `order`   | Orden de aparición (número entero). Siempre debe coincidir con el número del nombre el fichero y no se debe repetir en el mismo submenu | Sí                       |
+| `parent`  | Nombre del menuitem padre (para subentradas)                                                                                            | No (solo menuitems hijo) |
+| `action`  | Nombre de la `action-view` que se abre al pulsar                                                                                        | No (solo menuitems hoja) |
+| `groups`  | Grupos de usuarios que pueden ver el menuitem                                                                                           | No                       |
+
+### Reglas
+
+- El menuitem **raíz** (sección) no lleva `action` ni `parent`, solo `title` y `order`.
+- Los menuitems **hijo** llevan `parent` apuntando al nombre del menuitem raíz.
+- Los menuitems **hoja** llevan `action` apuntando a una `action-view`. Para la convención de nombres de las acciones, ver skill `/actions`.
+
+## Convención de nombres de menuitems
+
+El nombre de los menuitems es: `{Prefijo}[-menuitem | .{Entidad}@{Vista}-menuitem | -{concepto}-menuitem]`
+
+### Prefijos
+
+- Subsistemas: `subsys{Subsistema}` (PascalCase sin separador), p.ej. `subsysFirma`, `subsysRegistroEntradaSalida`
+- Sistemas: `sys{Sistema}` (PascalCase sin separador), p.ej. `sysImportar`
+
+Las entidades se separan con `.` (punto) y el nombre de la vista con `@`, igual que en grids y formularios.
+
+#### Ejemplos
+
+| Caso                                | Patrón                                 | Ejemplo                                      |
+|-------------------------------------|----------------------------------------|----------------------------------------------|
+| Sección raíz (subsistema)           | `subsys{Seccion}-menuitem`             | `subsysFirma-menuitem`                       |
+| Sección raíz (sistema)              | `sys{Seccion}-menuitem`                | `sysImportar-menuitem`                       |
+| Entrada a entidad (vista principal) | `{Prefijo}.{Entidad}@Main-menuitem`    | `subsysSistemaEducativo.Ciclo@Main-menuitem` |
+| Entrada a entidad (otra vista)      | `{Prefijo}.{Entidad}@{Vista}-menuitem` | `subsysFirma.TareaFirma@Pendiente-menuitem`  |
+
+## Ejemplos completos
+
+### Menús con una accion por cada tabla
+
+```xml
+<menuitem name="subsysSistemaEducativo-menuitem"                  title="Sistema educativo" groups="admins" order="300"/>
+<menuitem name="subsysSistemaEducativo.Ciclo@Main-menuitem"       parent="subsysSistemaEducativo-menuitem" title="Ciclos"   action="subsysSistemaEducativo.Ciclo@Main-action"   groups="admins" order="2"/>
+<menuitem name="subsysSistemaEducativo.Modulo@Main-menuitem"      parent="subsysSistemaEducativo-menuitem" title="Módulos"  action="subsysSistemaEducativo.Modulo@Main-action"  groups="admins" order="4"/>
+```
+
+### Menús con varias acciones por cada tabla 
+
+```xml
+<menuitem name="subsysFirma-menuitem"                      title="Firmar documentos" groups="admins" order="550"/>
+<menuitem name="subsysFirma.TareaFirma@Todos-menuitem"     parent="subsysFirma-menuitem" title="Todos"      action="subsysFirma.TareaFirma@Todos-action"      groups="admins" order="1"/>
+<menuitem name="subsysFirma.TareaFirma@Pendiente-menuitem" parent="subsysFirma-menuitem" title="Pendientes" action="subsysFirma.TareaFirma@Pendiente-action"  groups="admins" order="2"/>
+<menuitem name="subsysFirma.TareaFirma@Firmado-menuitem"   parent="subsysFirma-menuitem" title="Firmados"   action="subsysFirma.TareaFirma@Firmado-action"    groups="admins" order="3"/>
+```
+
+## Relación con las `action-view`
+
+- Los menuitems referencian a  `<action-view>`
+- Las `<action-view>` se definen en el fichero de vistas del subsistema/sistema correspondiente
 
 ## Referencia
-
-Para detalle completo de atributos y elementos soportados, usar:
+Para detalle completo de atributos y elementos soportados:
 
 - `references/menu.md`
-
-
