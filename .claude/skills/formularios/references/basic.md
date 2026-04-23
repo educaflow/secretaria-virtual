@@ -37,6 +37,7 @@ IMPORTANTE:
 - Los botones principales (guardar, cancelar, etc) están a la derecha del todo
 - Las acciones secundarias (borrar, imprimir, etc.) están a la izquierda del todo
 - Realmente no es necesario que estén exactamente estos botones sino que podría haber otros botones con otras acciones. Pero hay que distingir claramente las acciones principales de las secundarias y para eso se siguen estas pautas de colocación.
+- El panel de botones siempre debe incluir Borrar, Cancelar y Guardar salvo que se indique lo contrario o haya algo en el negocio que te haga pensar que no es necesario.
 
 ## Nombre de los formularios
 El nombre de las vistas de formularios es: `{Prefijo}{Entidad}[.{EntidadHija}]*@[Main|View|otro nombre]-form`
@@ -60,6 +61,7 @@ Otra excepción es el caso de formularios del propio Axelor que se modifican par
 | Entidad anidada                  | `{Prefijo}.{EntidadPadre}.{EntidadHija}@Main-form`     | `sysSistemaEducativo.Ciclo.Curso@Main-form`         |
 | Entidad anidada de otra pantalla | `{Prefijo}.{EntidadPadre}.{EntidadHija}#{Nombre}-form` | `subsysSistemaEducativo.Ciclo.Curso@Pendiente-form` |
 
+**IMPORTANTE: Es obligatorio seguir esta convención de nombres para facilitar la trazabilidad, la lectura y el mantenimiento del código.**
 
 ## Layout y diseño de formularios
     - El layout de los formularios se organiza principalmente con paneles (`<panel>`) y paneles relacionados (`<panel-related>`).
