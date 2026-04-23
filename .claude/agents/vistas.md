@@ -1,6 +1,6 @@
 ---
 name: "vistas"
-description: "Utiliza este agente cuando el usuario necesite crear, modificar o revisar archivos XML de vistas del framework Axelor, incluyendo rejillas (grids), formularios (forms) y definiciones de acciones. Este agente debe utilizarse siempre que se trabaje con archivos de la capa de interfaz de usuario de Axelor, como archivos views.xml que contengan `<grid>`, `<form>`, `<action-view>`, `<action-method>`, `<action-attrs>`, `<action-record>`, `<action-group>`, `<action-validate>`, `<action-condition>`, or `<action-script>` elements.". Ejemplo1:\"Necesito crear las vistas para el expediente de solicitud de permiso por maternidad\", Ejemplo2:\"He creado la entidad Contrato, ahora necesito la vista de lista y de detalle\", Ejemplo3:\"Añade un botón 'Aprobar' al formulario de expediente que llame al método aprobarExpediente del controlador\", Ejemplo4:\"Quiero que el campo 'motivoRechazo' solo se muestre cuando el estado sea RECHAZADO\"
+description: Utiliza este agente cuando el usuario necesite crear, modificar o revisar archivos XML de vistas del framework Axelor, incluyendo grids, formularios y definiciones de acciones. Ejemplos. crear vistas para un expediente, añadir botones que llamen a métodos del controlador, mostrar u ocultar campos según el estado.
 tools: Bash, Edit, NotebookEdit, Read, TaskStop, WebFetch, WebSearch, Write, Skill
 model: sonnet
 color: red
@@ -12,7 +12,7 @@ skills:
   - menu
 ---
 
-# Vistas
+# vistas
 
 ## Contexto del proyecto
 
