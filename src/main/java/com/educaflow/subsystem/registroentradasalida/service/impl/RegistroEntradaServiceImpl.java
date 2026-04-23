@@ -1,5 +1,7 @@
 package com.educaflow.subsystem.registroentradasalida.service.impl;
 
+import com.axelor.db.Repository;
+import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
@@ -8,7 +10,7 @@ import com.educaflow.base.infrastructure.pdf.*;
 import com.educaflow.base.util.TextUtil;
 import com.educaflow.subsystem.certificados.AlmacenClaveLoader;
 import com.educaflow.subsystem.common.db.Centro;
-import com.educaflow.subsystem.registroentradasalida.service.DatosRegistroEntrada;
+import com.educaflow.subsystem.registroentradasalida.service.RegistroEntradaInsertDTO;
 import com.educaflow.subsystem.registroentradasalida.service.PersonaRegistro;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada;
 import com.educaflow.subsystem.registroentradasalida.service.RegistroEntradaService;
@@ -21,22 +23,23 @@ import java.util.List;
 import java.util.Map;
 
 
-public class RegistroEntradaServiceImpl implements RegistroEntradaService {
+public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntrada> implements RegistroEntradaService {
 
     private static final Rectangulo rectanguloPosicionFirmaPDFRegistroEntrada =new Rectangulo(80,200,400,100);
 
+    @Inject
     NumeradorRepository numeradorRepository;
 
+    @Inject
     AlmacenClaveLoader almacenClaveLoader;
 
     @Inject
-    public RegistroEntradaServiceImpl(NumeradorRepository numeradorRepository,AlmacenClaveLoader almacenClaveLoader) {
-        this.almacenClaveLoader=almacenClaveLoader;
-        this.numeradorRepository=numeradorRepository;
+    public RegistroEntradaServiceImpl(Class<RegistroEntrada> model, Repository repository) {
+        super(model, repository);
     }
 
     @Override
-    public RegistroEntrada createRegistroEntrada(DatosRegistroEntrada datosRegistroEntrada, MetaFile documentoOriginalFirmado, List<MetaFile> anexos) {
+    public RegistroEntrada createRegistroEntrada(RegistroEntradaInsertDTO registroEntradaInsertDTO, MetaFile documentoOriginalFirmado, List<MetaFile> anexos) {
 
         if (MetaFileHelper.isPdf(documentoOriginalFirmado)==false) {
             throw new IllegalArgumentException("El fichero proporcionado no es un PDF válido.");
@@ -45,22 +48,22 @@ public class RegistroEntradaServiceImpl implements RegistroEntradaService {
         LocalDateTime ahora=LocalDateTime.now();
         RegistroEntrada registroEntrada=new RegistroEntrada();
 
-        String numeroRegistro=getNumeroRegistro(datosRegistroEntrada.centro(),ahora);
+        String numeroRegistro=getNumeroRegistro(registroEntradaInsertDTO.centro(),ahora);
         registroEntrada.setNumeroRegistro(numeroRegistro);
 
         DocumentoPdf documentoPdfEntrada=MetaFileHelper.getDocumentoPdf(documentoOriginalFirmado);
         DatosRegistroEntradaPdf datosRegistroEntradaPdf=new DatosRegistroEntradaPdf(
-                datosRegistroEntrada.centro(),
-                datosRegistroEntrada.solicitante(),
-                datosRegistroEntrada.interesado(),
-                datosRegistroEntrada.numeroExpediente(),
-                datosRegistroEntrada.asunto(),
+                registroEntradaInsertDTO.centro(),
+                registroEntradaInsertDTO.solicitante(),
+                registroEntradaInsertDTO.interesado(),
+                registroEntradaInsertDTO.numeroExpediente(),
+                registroEntradaInsertDTO.asunto(),
                 ahora,
                 numeroRegistro
         );
         DocumentoPdf primeraPaginaRegistroEntrada=getPrimeraPaginaRegistroEntrada( datosRegistroEntradaPdf);
         DocumentoPdf documentoPdfFinal=primeraPaginaRegistroEntrada.anyadirDocumentoPdf(documentoPdfEntrada);
-        DocumentoPdf documentoPdfFinalFirmado=firmarPorSecretario(documentoPdfFinal,datosRegistroEntrada.centro());
+        DocumentoPdf documentoPdfFinalFirmado=firmarPorSecretario(documentoPdfFinal, registroEntradaInsertDTO.centro());
         MetaFile metaFilePdfFinal= MetaFileHelper.createMetaFile(documentoPdfFinalFirmado);
 
         documentoOriginalFirmado.setFileName(getNombreDocumentoOriginalFirmado(datosRegistroEntradaPdf));
@@ -68,7 +71,8 @@ public class RegistroEntradaServiceImpl implements RegistroEntradaService {
         registroEntrada.setFecha(ahora);
         registroEntrada.setDocumentoResguardoPresentacion(metaFilePdfFinal);
         registroEntrada.setAnexos(anexos);
-        registroEntrada.setCentro(datosRegistroEntrada.centro());
+        registroEntrada.setAsunto(registroEntradaInsertDTO.asunto());
+        registroEntrada.setCentro(registroEntradaInsertDTO.centro());
         return registroEntrada;
     }
 

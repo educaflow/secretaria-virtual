@@ -15,21 +15,23 @@
           allowSearchFields="true" orderBy="numeroRegistro" canViewOnClick="true"
           canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
     >
-        <field name="centro"          width="200px"/>
-        <field name="numeroRegistro"  width="150px"/>
-        <field name="fecha"           width="150px"/>
+        <field name="centro"          />
+        <field name="asunto"          />
+        <field name="numeroRegistro"  width="200px"/>
+        <field name="fecha"           width="200px"/>
     </grid>
 
     <form name="subsysRegistroEntradaSalida.RegistroEntrada@Main-form" title="Registro de entrada" model="com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada"
           width="large" canEdit="false" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canCancel="false" canMore="false"
     >
         <panel name="registroEntrada" title="Registro de entrada" colSpan="12" >
-            <field name="centro"          colSpan="4"/>
-            <field name="numeroRegistro"  colSpan="4"/>
-            <field name="fecha"           colSpan="4"/>
+            <field name="centro"          colSpan="9"/>
+            <field name="numeroRegistro"  colSpan="3"/>
+            <field name="asunto"          colSpan="9"/>
+            <field name="fecha"           colSpan="3"/>
 
-            <field name="documentoOriginalFirmado"         widget="binary-link" colSpan="12"/>
-            <field name="documentoResguardoPresentacion"   widget="binary-link" colSpan="12"/>
+            <field name="documentoOriginalFirmado"         widget="binary-link" colSpan="6"/>
+            <field name="documentoResguardoPresentacion"   widget="binary-link" colSpan="6"/>
         </panel>
 
         <panel-related name="registroEntradaAnexos" title="Anexos" field="anexos" colSpan="12" form-view="subsysRegistroEntradaSalida.Anexos@Main-form"  grid-view="subsysRegistroEntradaSalida.Anexos@Main-grid"  />

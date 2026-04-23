@@ -1,6 +1,7 @@
 package com.educaflow.subsystem.expedientes.services.eventmanager;
 
 
+import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.inject.Beans;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.util.MetaFileUtil;
@@ -22,11 +23,13 @@ public class EventContext<Profile extends Enum<Profile>, State extends Enum<Stat
     final private Centro centro;
     private RegistroEntrada registroEntrada=null;
     private RegistroSalida registroSalida=null;
+    ModelServiceFactory modelServiceFactory;
 
     public EventContext(Expediente expediente,Profile profile, Centro centro) {
         this.expediente = expediente;
         this.profile = profile;
         this.centro = centro;
+        this.modelServiceFactory=Beans.get(ModelServiceFactory.class);
     }
 
     public Profile getProfile() {
@@ -52,7 +55,7 @@ public class EventContext<Profile extends Enum<Profile>, State extends Enum<Stat
 
         anexos=cloneAnexos(anexos);
 
-        DatosRegistroEntrada datosRegistroEntrada=new DatosRegistroEntrada(
+        RegistroEntradaInsertDTO registroEntradaInsertDTO =new RegistroEntradaInsertDTO(
                 this.getCentro(),
                 new PersonaRegistro(
                         this.expediente.getPersonaSolicitante().getNombre()+ " "+this.expediente.getPersonaSolicitante().getApellidos(),
@@ -63,10 +66,11 @@ public class EventContext<Profile extends Enum<Profile>, State extends Enum<Stat
                         this.expediente.getPersonaInteresada().getDni()
                 ),
                 this.expediente.getNumeroExpediente(),
-                this.expediente.getName()
+                getAsunto()
         );
 
-        RegistroEntrada registroEntrada= Beans.get(RegistroEntradaService.class).createRegistroEntrada(datosRegistroEntrada,documentoPdf,anexos);
+        RegistroEntradaService registroEntradaService=(RegistroEntradaService)modelServiceFactory.resolve(RegistroEntrada.class);
+        RegistroEntrada registroEntrada= registroEntradaService.createRegistroEntrada(registroEntradaInsertDTO,documentoPdf,anexos);
 
         this.registroEntrada=registroEntrada;
 
@@ -81,11 +85,13 @@ public class EventContext<Profile extends Enum<Profile>, State extends Enum<Stat
 
         anexos=cloneAnexos(anexos);
 
-        DatosRegistroSalida datosRegistroSalida=new DatosRegistroSalida(
-                this.expediente.getCentro()
+        RegistroSalidaInsertDTO registroSalidaInsertDTO =new RegistroSalidaInsertDTO(
+                this.expediente.getCentro(),
+                getAsunto()
         );
 
-        RegistroSalida registroSalida=Beans.get(RegistroSalidaService.class).createRegistroSalida(datosRegistroSalida,documentoPdf,anexos);
+        RegistroSalidaService registroSalidaService=(RegistroSalidaService)modelServiceFactory.resolve(RegistroSalida.class);
+        RegistroSalida registroSalida=registroSalidaService.createRegistroSalida(registroSalidaInsertDTO,documentoPdf,anexos);
 
         this.registroSalida=registroSalida;
 
@@ -103,6 +109,10 @@ public class EventContext<Profile extends Enum<Profile>, State extends Enum<Stat
             clon.add(MetaFileUtil.cloneMetaFile(metaFile));
         }
         return clon;
+    }
+
+    private String getAsunto() {
+        return "Expediente: "+this.expediente.getNumeroExpediente()+" - "+this.expediente.getName();
     }
 
 
