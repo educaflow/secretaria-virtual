@@ -29,14 +29,12 @@ Un grid es la vista tabular de Axelor para listar registros (filas) de un modelo
 - Corregir los campos `<field>` dentro del grid con su atributo name y width.
 
 ## Revisión
-- Revisar que el grid creado sigue la convención de nomenclatura y las normas de diseño.
-- Revisar que el valor de los atributos `newButtonTitle`, `orderBy` etc. es correcto según lo que se haya decidido en la fase de diseño.
-- Revisar que los campos `<field>` dentro del grid tienen el atributo name correcto, un width adecuado y que existen en el modelo de dominio.
+- [ ] Revisar que los campos `<field>` dentro del grid tienen el atributo name correcto, un width adecuado y que existen en el modelo de dominio.
+- [ ] Revisar que el grid creado sigue la convención de nomenclatura y las normas de diseño.
+- [ ] Revisar que el valor de los atributos `newButtonTitle`, `orderBy` etc. es correcto según lo que se haya decidido en la fase de diseño.
 
 
 ## Referencia
-
 Para detalles completos de atributos y elementos soportados, usar:
-
 - `references/grid.md`
 

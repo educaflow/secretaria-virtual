@@ -1,6 +1,6 @@
 ---
 name: formularios
-description: Este skill sirve para diseñar, generar o coregir dentro de ficheros XML de vistas de Axelor la etiqueta  `<form>` de Axelor a partir de un modelo de dominio (entidad). 
+description: Este skill sirve para diseñar, generar o coregir formularios dentro de ficheros XML de vistas de Axelor con la etiqueta  `<form>`  a partir de un modelo de dominio (entidad). 
 ---
 
 # formularios
@@ -41,9 +41,10 @@ description: Este skill sirve para diseñar, generar o coregir dentro de fichero
 - Corregir los botones con sus acciones (onClick) y su title
 
 ## Revisión
-- Revisar que el formulario creado sigue la convención de nomenclatura y las normas de diseño.
-- Revisar que todas las referencias a acciones, grids y forms son correctas y apuntan a elementos que existen.
-- Revisar que el layout de los paneles y campos es correcto y no hay solapamientos ni espacios vacíos innecesarios. Sobre todo que no pasan de 12 columnas en total en cada fila.
+- [ ] Revisar que todos los campos existen en el modelo de dominio y que su tipo de widget es correcto para el tipo de campo.
+- [ ] Revisar que el formulario creado sigue la convención de nomenclatura y las normas de diseño.
+- [ ] Revisar que todas las referencias a acciones, grids y forms son correctas y apuntan a elementos que existen.
+- [ ] Revisar que el layout de los paneles y campos es correcto y no hay solapamientos ni espacios vacíos innecesarios. Sobre todo que no pasan de 12 columnas en total en cada fila.
 
 
 ## Referencias

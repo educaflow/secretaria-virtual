@@ -15,34 +15,34 @@ Cada elemento debe seguir su patrón. Los prefijos son:
 - Expedientes: prefijo `exp-` reservado exclusivamente para el framework de expedientes
 - Excepción: formularios propios de Axelor como `user-preferences-form` pueden mantener su nombre original
 
-**Grid** → `{Prefijo}.{Entidad}[@{EntidadHija}]*@{Vista}-grid`
+**Grid** → `{Prefijo}.{Entidad}[.{EntidadHija}]*@{Vista}-grid`
 - Ejemplos válidos: `subsysSistemaEducativo.Ciclo@Main-grid`, `subsysSistemaEducativo.Ciclo@Search-grid`, `subsysSistemaEducativo.Ciclo.Curso@Main-grid`
 
-**Form** → `{Prefijo}.{Entidad}[@{EntidadHija}]*@{Vista}-form`
+**Form** → `{Prefijo}.{Entidad}[.{EntidadHija}]*@{Vista}-form`
 - Ejemplos válidos: `subsysSistemaEducativo.Ciclo@Main-form`, `subsysSistemaEducativo.Ciclo@View-form`, `subsysSistemaEducativo.Ciclo.Curso@Main-form`
 
-**action-view** → `{Prefijo}.{Entidad}[@{EntidadHija}]*@{Vista}-action`
+**action-view** → `{Prefijo}.{Entidad}[.{EntidadHija}]*@{Vista}-action`
 - Ejemplo válido: `subsysSistemaEducativo.LeyEducativa@Main-action`, `subsysFirma.TareaFirma@Pendiente-action`
 
-**action-group** → `{Prefijo}.{Entidad}@{Vista}-{nombreBoton}-action`
+**action-group** → `{Prefijo}.{Entidad}[.{EntidadHija}]*@{Vista}-{nombreBoton}-action`
 - Ejemplo válido: `subsysSistemaEducativo.LeyEducativa@Main-btnGuardar-action`
 
-**action-validate / action-condition** → `{Prefijo}.{Entidad}@{Vista}-Local-{operación}-action`
+**action-validate / action-condition** → `{Prefijo}.{Entidad}[.{EntidadHija}]*@{Vista}-Local-{operación}-action`
 - Ejemplo válido: `subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action`
 
-**action-method / action-script** → `{Prefijo}.{Entidad}@{Vista}-Remote-{operación}-action`
+**action-method / action-script** → `{Prefijo}.{Entidad}[.{EntidadHija}]*@{Vista}-Remote-{operación}-action`
 - Ejemplo válido: `subsysSistemaEducativo.LeyEducativa@Main-Remote-validateSave-action`
 
-**action-record** → `{Prefijo}.{Entidad}@{Vista}-set-{campo}-{valor}-action` o `{Prefijo}.{Entidad}[.{EntidadHija}]-onNew-action`
+**action-record** → `{Prefijo}.{Entidad}[.{EntidadHija}]*@{Vista}-set-{campo}-{valor}-action` o `{Prefijo}.{Entidad}[.{EntidadHija}]-onNew-action`
 - Ejemplo válido: `subsysFirma.TareaFirma@Pendiente-set-pasoActual-paso1Inicio-action`
 
-**action-attrs** → `{Prefijo}.{Entidad}@{Vista}-set-{campo}.{atributo}-{valor}-action`
+**action-attrs** → `{Prefijo}.{Entidad}[.{EntidadHija}]*@{Vista}-set-{campo}.{atributo}-{valor}-action`
 - Ejemplo válido: `subsysSistemaEducativo.LeyEducativa@Main-set-orderDate.readOnly-confirmed-action`
 
 **menuitem raíz** → `{Prefijo}-menuitem`
 - Ejemplo válido: `subsysFirma-menuitem`, `subsysSistemaEducativo-menuitem`
 
-**menuitem hijo** → `{Prefijo}.{Entidad}@{Vista}-menuitem`
+**menuitem hijo** → `{Prefijo}.{Entidad}[.{EntidadHija}]*@{Vista}-menuitem`
 - Ejemplo válido: `subsysFirma.TareaFirma@Pendiente-menuitem`, `subsysSistemaEducativo.Ciclo@Main-menuitem`
 
 ### 2. Referencias a acciones que deben existir

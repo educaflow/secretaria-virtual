@@ -52,6 +52,8 @@ Las entidades se separan con `.` (punto) y los nombres de ese formulario o grid 
 | Entidad anidada            | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}@Main-grid`     | `subsysSistemaEducativo.Ciclo.Curso@Main-grid`         |
 | Entidad anidada con estado | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}@{Nombre}-grid` | `subsysSistemaEducativo.Ciclo.Curso@Pendiente-grid`    |
 
+**IMPORTANTE: Es obligatorio seguir esta convención de nombres para facilitar la trazabilidad, la lectura y el mantenimiento del código.**
+
 ## Field
 Dentro del grid, cada campo se define con la etiqueta `<field>` 
 
