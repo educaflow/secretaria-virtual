@@ -1,9 +1,4 @@
----
-name: menu
-description: Usa este skill cuando el usuario quiera crear o modificar entradas de menú (menuitem) en Axelor. Los menús se definen en ficheros XML dentro de secretariavirtual/menus/.
----
-
-# Menús de Axelor
+Menús de Axelor
 
 Los menús de Axelor se definen con la etiqueta `<menuitem>` dentro de ficheros XML ubicados en:
 
@@ -11,14 +6,14 @@ Los menús de Axelor se definen con la etiqueta `<menuitem>` dentro de ficheros 
 src/main/java/com/educaflow/secretariavirtual/menus/
 ```
 
-> El formato del fichero XML (namespace, schema) es el estándar de las vistas de Axelor. Ver skill `/vistas` para más detalles.
+El formato del fichero XML (namespace, schema) es el estándar de las vistas de Axelor. Ver skill `/vistas` para más detalles.
 
 ## Nombre del fichero
 
 Los ficheros de menú globales van en `secretariavirtual/menus/` con prefijo numérico que indica el orden de aparición en el menú:
 
 ```
-{NNN}_menuitem_{nombre}.xml
+{NNN}_menuitem_{nombreSistema o nombre Subsistema}.xml
 ```
 
 Ejemplos:
@@ -67,7 +62,7 @@ Las entidades se separan con `.` (punto) y el nombre de la vista con `@`, igual 
 
 ## Ejemplos completos
 
-### Menú simple con subsección
+### Menús con una accion por cada tabla
 
 ```xml
 <menuitem name="subsysSistemaEducativo-menuitem"                  title="Sistema educativo" groups="admins" order="300"/>
@@ -75,7 +70,7 @@ Las entidades se separan con `.` (punto) y el nombre de la vista con `@`, igual 
 <menuitem name="subsysSistemaEducativo.Modulo@Main-menuitem"      parent="subsysSistemaEducativo-menuitem" title="Módulos"  action="subsysSistemaEducativo.Modulo@Main-action"  groups="admins" order="4"/>
 ```
 
-### Menú con filtros por estado
+### Menús con varias acciones por cada tabla 
 
 ```xml
 <menuitem name="subsysFirma-menuitem"                      title="Firmar documentos" groups="admins" order="550"/>
@@ -86,19 +81,6 @@ Las entidades se separan con `.` (punto) y el nombre de la vista con `@`, igual 
 
 ## Relación con las `action-view`
 
-- Los menuitems **no definen** las `action-view`, solo las referencian.
-- Las `action-view` se definen en el fichero de vistas del subsistema/sistema correspondiente o excepcionalmente en el propio XML del menú.
-
-## Cuándo crear un fichero de menú nuevo vs modificar uno existente
-
-- **Modificar existente**: si el nuevo menuitem pertenece a una sección ya definida en un fichero existente.
-- **Crear nuevo**: si se trata de una nueva sección raíz o de un subsistema completamente nuevo.
-- Respetar el rango numérico del prefijo para mantener el orden visual en el menú.
-
-## Referencia
-
-Para detalle completo de atributos y elementos soportados, usar:
-
-- `references/menu.md`
-
+- Los menuitems referencian a  `<action-view>`
+- Las `<action-view>` se definen en el fichero de vistas del subsistema/sistema correspondiente
 

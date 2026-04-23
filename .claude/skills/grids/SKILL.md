@@ -18,7 +18,7 @@ Un grid es la vista tabular de Axelor para listar registros (filas) de un modelo
 - Decidir el valor de los atributos `allowSearchFields`, `orderBy`
 - Decidir los campos a mostrar en el grid y el orden de esos campos. Es importante elegir bien el orden de los campos para que el grid sea fácil de entender y usar por el usuario. Normalmente el primer campo es un identificador o código, seguido del nombre y luego otros campos relevantes.
 
-## En caso de tener que tener que crear el grid
+## En caso de tener que crear el grid
 - Crear la etiqueta `<grid>` con el nombre correcto siguiendo la convención de nomenclatura y los atributos que se han indicado que siempre deben estar.
 - Establecer el resto de atributos del grid como `newButtonTitle`, `orderBy` etc. según lo que se haya decidido en la fase de diseño.
 - Crear los campos `<field>` dentro del grid con su atributo name y width.
