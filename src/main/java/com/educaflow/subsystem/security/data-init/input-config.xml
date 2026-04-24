@@ -15,8 +15,8 @@
             <bind node="can/@write" to="canWrite" />
             <bind node="can/@remove" to="canRemove" />
             <bind node="can/@export" to="canExport" />
-            <bind node="domain/text()" to="condition"/>
-            <bind node="domain-params/text()" to="conditionParams"/>
+            <bind node="@condition" to="condition"/>
+            <bind node="@conditionParams" to="conditionParams"/>
         </bind>
 
 
@@ -45,6 +45,15 @@
             <bind node="@group" to="group" search="self.code = :group" update="false" create="false"/>
         </bind>
 
+
+    </input>
+
+    <input file="tiposUsuario.xml" root="datos">
+
+        <bind node="tiposUsuario/tipoUsuario" type="com.educaflow.subsystem.security.db.TipoUsuario" search="self.code = :code" create="true" update="true">
+            <bind node="@code" to="code" />
+            <bind node="@name" to="name" />
+        </bind>
 
     </input>
 

@@ -9,6 +9,7 @@ public class DniUtil {
 
     private static final Pattern PATTERN_CIF = Pattern.compile("[ABCDEFGHJUV][0-9]{8}");
     private static final Pattern PATTERN_CIF_OTRO = Pattern.compile("[ABCDEFGPQSNWR][0-9]{7}[ABCDEFGHIJ]");
+
     private static final Pattern PATTERN_DNI = Pattern.compile("[0-9]{8}[TRWAGMYFPDXBNJZSQVHLCKE]");
     private static final Pattern PATTERN_NIE = Pattern.compile("[XYZ][0-9]{7}[TRWAGMYFPDXBNJZSQVHLCKE]");
     private static final Pattern PATTERN_DNI_OTRO = Pattern.compile("[KLM][0-9]{7}[TRWAGMYFPDXBNJZSQVHLCKE]"); //Españoles no resientes sin DNI (NIF L),Españoles residentes menores 14 años sin DNI,Extranjeros sin NIE
@@ -46,6 +47,7 @@ public class DniUtil {
         return val;
     }
 
+
     public static boolean isValid(String dni) {
 
         if (dni == null) {
@@ -77,7 +79,6 @@ public class DniUtil {
             if (calculoDC == 10) {
                 calculoDC = 0;
             }
-
 
             if (calculoDC == dni.charAt(8) - '0') {
                 return true;

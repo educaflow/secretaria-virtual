@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <action-view name="sysGestionCentro.ViewGestionCentroCambioCurso@Main-action" title="Cambio de curso"
+                 model="com.educaflow.system.gestioncentro.db.ViewGestionCentroCambioCurso">
+        <view type="form" name="sysGestionCentro.ViewGestionCentroCambioCurso@Main-form"/>
+        <context name="centroId" expr="eval: id"/>
+    </action-view>
+
+    <form name="sysGestionCentro.ViewGestionCentroCambioCurso@Main-form" title="Cambio de curso"
+          model="com.educaflow.system.gestioncentro.db.ViewGestionCentroCambioCurso"
+          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false"
+          onNew="sysGestionCentro.ViewGestionCentroCambioCurso@Main-Remote-cargarCursosDisponibles-action">
+        <panel colSpan="12" hidden="true">
+            <field name="centroId" showIf="false"/>
+        </panel>
+        <panel title="Condición para el cambio de curso" colSpan="12">
+            <label name="infoLabel" colSpan="12"
+                   title="Para poder realizar el cambio de año académico, el curso destino debe tener importados los tres ficheros (profesores, alumnos y familiares) en la tabla de importaciones del centro." />
+        </panel>
+        <panel title="Cursos disponibles" colSpan="12">
+            <field name="cursosDisponibles" colSpan="12" readonly="true" widget="text" height="3" showTitle="false"/>
+        </panel>
+        <panel colSpan="12">
+            <field name="nuevoCurso" colSpan="4"/>
+            <button name="btnCambiarCurso" title="Iniciar cambio de curso"
+                    onClick="sysGestionCentro.ViewGestionCentroCambioCurso@Main-Remote-cambiarCurso-action"
+                    readonlyIf="nuevoCurso == null"
+                    prompt="Se recalcularán los tipos de usuario de todos los usuarios registrados en el centro (profesor, exprofesor, alumno y exalumno). ¿Desea continuar?"
+                    colSpan="4"/>
+        </panel>
+        <panel colSpan="12" showIf="resultado">
+            <field name="resultado" title="Resultado" readonly="true" widget="text" colSpan="12" height="8"/>
+        </panel>
+    </form>
+
+    <action-method name="sysGestionCentro.ViewGestionCentroCambioCurso@Main-Remote-cargarCursosDisponibles-action">
+        <call class="com.educaflow.system.gestioncentro.controller.GestionCentroController" method="cargarCursosDisponibles"/>
+    </action-method>
+
+    <action-method name="sysGestionCentro.ViewGestionCentroCambioCurso@Main-Remote-cambiarCurso-action">
+        <call class="com.educaflow.system.gestioncentro.controller.GestionCentroController" method="cambiarCurso"/>
+    </action-method>
+
+</object-views>

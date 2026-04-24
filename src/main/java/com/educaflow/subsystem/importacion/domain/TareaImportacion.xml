@@ -1,0 +1,26 @@
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="importacion" package="com.educaflow.subsystem.importacion.db"/>
+    <entity name="TareaImportacion">
+        <many-to-one name="usuario" ref="com.axelor.auth.db.User" required="true"/>
+        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro"/>
+        <integer name="curso" title="Curso académico"/>
+        <many-to-one name="fichero" ref="com.axelor.meta.db.MetaFile" required="true" title="Fichero"/>
+        <!--<string name="ficheroConfig" required="true" title="Fichero de configuración de la importación"/>
+        <string name="ficheroSchema" title="Fichero XSD"/>-->
+        <enum name="tipoFichero" ref="TipoFicheroImportacion" title="Tipo"/>
+        <string name="importLog" large="true" title="Log__!!"/>
+        <!--<string name="fqcnTipoFicheroDatos" title="FQCN del fichero de datos"/>
+        <string name="datosFichero" title="Datos fichero importación" transient="true"/>-->
+    </entity>
+
+    <enum name="TipoFicheroImportacion">
+        <item name="ALUMNOS" title="Alumnos" help="Fichero de importación de alumnos"/>
+        <item name="PROFESORES" title="Profesores" help="Fichero de importación de profesores"/>
+        <item name="FAMILIARES" title="Familiares" help="Fichero de importación de familiares"/>
+        <item name="PRUEBA" title="Prueba" help="Fichero de prueba"/>
+    </enum>
+
+</domain-models>

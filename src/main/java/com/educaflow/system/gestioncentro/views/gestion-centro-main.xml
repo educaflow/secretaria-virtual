@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <action-view name="sysGestionCentro.Centro@Main-action" title="Centros" model="com.educaflow.subsystem.common.db.Centro">
+        <view type="grid" name="sysGestionCentro.Centro@Main-grid"/>
+        <view type="form" name="sysGestionCentro.Centro@Main-form"/>
+        <view-param name="forceEdit" value="true"/>
+        <domain><![CDATA[EXISTS (SELECT cu FROM CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario cutu WHERE cu.centro = self AND cu.usuario = :__user__ AND cutu.tipoUsuario.code = 'ADMINISTRADOR') OR :__user__ IN (SELECT u FROM User u WHERE u.group.code = 'admins')]]></domain>
+    </action-view>
+
+    <grid name="sysGestionCentro.Centro@Main-grid" title="Centro" model="com.educaflow.subsystem.common.db.Centro"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <hilite color="danger" if="archived"/>
+        <field name="code" width="200px" />
+        <field name="name" />
+        <field name="direccion" colSpan="6" />
+        <field name="codigoPostal" colSpan="2" />
+        <field name="municipio" colSpan="4" />
+        <field name="municipio.provincia" colSpan="6" />
+        <field name="municipio.provincia.comunidadAutonoma" colSpan="6"/>
+        <field name="conselleria"/>
+    </grid>
+
+    <form name="sysGestionCentro.Centro@Main-form" title="Centro" model="com.educaflow.subsystem.common.db.Centro"
+          width="large" canAttach="false" canBack="false" canBackOnSave="true" canDelete="false" canNew="false">
+        <panel-tabs>
+            <panel-include view="sysGestionCentro.Centro@Datos-form"/>
+            <panel-include view="sysGestionCentro.Centro@Cargos-form"/>
+            <panel-related title="Profesores" field="usuarios" colSpan="12"
+                           grid-view="sysGestionCentro.CentroUsuario@Main-grid"
+                           form-view="sysGestionCentro.CentroUsuario@Edit-form"
+                           domain="self.id IN (SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t WHERE t.tipoUsuario.code = 'PROFESOR')"
+                           canSearch="true"/>
+            <panel-related title="Alumnos" field="usuarios" colSpan="12"
+                           grid-view="sysGestionCentro.CentroUsuario@Main-grid"
+                           form-view="sysGestionCentro.CentroUsuario@Edit-form"
+                           domain="self.id IN (SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t WHERE t.tipoUsuario.code = 'ALUMNO')"
+                           canSearch="true"/>
+            <panel-related title="Familiares" field="usuarios" colSpan="12"
+                           grid-view="sysGestionCentro.CentroUsuario@Main-grid"
+                           form-view="sysGestionCentro.CentroUsuario@Edit-form"
+                           domain="self.id IN (SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t WHERE t.tipoUsuario.code = 'FAMILIAR')"
+                           canSearch="true"/>
+            <panel-related title="Exprofesores__!!" field="usuarios" colSpan="12"
+                           grid-view="sysGestionCentro.CentroUsuario@Main-grid"
+                           form-view="sysGestionCentro.CentroUsuario@Edit-form"
+                           domain="self.id IN (SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t WHERE t.tipoUsuario.code = 'EXPROFESOR')"
+                           canSearch="true"/>
+            <panel-related title="Exalumnos" field="usuarios" colSpan="12"
+                           grid-view="sysGestionCentro.CentroUsuario@Main-grid"
+                           form-view="sysGestionCentro.CentroUsuario@Edit-form"
+                           domain="self.id IN (SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t WHERE t.tipoUsuario.code = 'EXALUMNO')"
+                           canSearch="true"/>
+            <panel-include view="sysGestionCentro.Centro@UsuariosAutorizados-form"/>
+            <panel-related title="Importaciones" field="tareasImportacion" colSpan="12"
+                           grid-view="sysGestionCentro.TareaImportacion@Main-grid"
+                           form-view="sysGestionCentro.TareaImportacion@Main-form"
+                           canNew="true" newButtonTitle="Importar nuevos datos"
+                           orderBy="-createdOn"
+                           canDelete="false" canSave="false" canEdit="false"
+                           canEditOnClick="true"/>
+            <panel title="Cambio de curso" showTitle="false" colSpan="12">
+                <panel-dashlet action="sysGestionCentro.ViewGestionCentroCambioCurso@Main-action" colSpan="12"/>
+            </panel>
+        </panel-tabs>
+    </form>
+
+
+    <grid name="sysGestionCentro.TareaImportacion@Main-grid" title="Tareas de importación"
+          model="com.educaflow.subsystem.importacion.db.TareaImportacion"
+          canNew="true" newButtonTitle="Importar nuevos datos"
+          orderBy="-createdOn"
+          canDelete="false" canSave="false" canEdit="false"
+          canEditOnClick="true">
+        <field name="tipoFichero" width="180px"/>
+        <field name="curso" width="130px"/>
+        <field name="usuario" width="180px"/>
+        <field name="ficheroXml" widget="binary-link"/>
+        <field name="createdOn" title="Fecha de importación" width="160px"/>
+    </grid>
+
+    <form name="sysGestionCentro.TareaImportacion@Main-form" title="Importar fichero"
+          model="com.educaflow.subsystem.importacion.db.TareaImportacion"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel title="" colSpan="12">
+            <field name="tipoFichero" colSpan="6" widget="SwitchSelect" required="true"
+                   selection-in="['PROFESORES', 'ALUMNOS', 'FAMILIARES']"/>
+            <field name="ficheroXml" colSpan="6" required="true" widget="binary-link"/>
+        </panel>
+        <panel title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Cancelar" onClick="back" colSpan="2" colOffset="8" outline="true"/>
+            <button name="btnSave"   title="Importar"  onClick="save,back" colSpan="2"/>
+        </panel>
+    </form>
+
+</object-views>

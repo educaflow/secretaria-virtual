@@ -2,10 +2,10 @@
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_7.4.xsd">
 
-    <module name="common" package="com.educaflow.subsystem.common.db"/>
+    <module name="security" package="com.educaflow.subsystem.security.db"/>
     <entity name="TipoUsuario" extends="com.educaflow.subsystem.security.db.SecurityActor">
         <string name="code"  />
         <string name="name" namecolumn="true" />
-        <one-to-many name="centroUsuarioTipoUsuario" ref="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario" mappedBy="tipoUsuario" title=""/>
+        <one-to-many name="centroUsuarioTipoUsuario" ref="com.educaflow.subsystem.security.db.CentroUsuarioTipoUsuario" mappedBy="tipoUsuario" title=""/>
     </entity>
 </domain-models>

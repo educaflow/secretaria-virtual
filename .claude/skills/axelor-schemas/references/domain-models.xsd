@@ -1,0 +1,1275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   SPDX-FileCopyrightText: Axelor <https://axelor.com>
+   SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<xsd:schema targetNamespace="http://axelor.com/xml/ns/domain-models"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:dm="http://axelor.com/xml/ns/domain-models"
+  elementFormDefault="qualified" attributeFormDefault="unqualified" version="8.1">
+
+  <xsd:annotation>
+    <xsd:documentation>
+      XML Schema for the domain models definition.
+    </xsd:documentation>
+  </xsd:annotation>
+
+  <xsd:element name="domain-models">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="module" type="dm:Namespace">
+          <xsd:annotation>
+            <xsd:documentation>
+              Specify module namespace information.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="sequence" type="dm:Sequence">
+            <xsd:annotation>
+              <xsd:documentation>
+                Define a custom sequence.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="enum" type="dm:EnumType">
+            <xsd:annotation>
+              <xsd:documentation>
+                Define an enum.
+              </xsd:documentation>
+            </xsd:annotation>
+            <xsd:unique name="unique-enum-items">
+              <xsd:selector xpath="dm:item" />
+              <xsd:field xpath="@name" />
+            </xsd:unique>
+          </xsd:element>
+          <xsd:element name="entity" type="dm:Entity">
+            <xsd:annotation>
+              <xsd:documentation>
+                Define an Entity (domain model).
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:sequence>
+    </xsd:complexType>
+    <xsd:unique name="unique-sequences">
+      <xsd:selector xpath="dm:sequence" />
+      <xsd:field xpath="@name" />
+    </xsd:unique>
+  </xsd:element>
+
+  <xsd:complexType name="Namespace">
+    <xsd:attribute name="name" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>
+          Specify module name.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="package" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>
+          Specify package name for entities, default is "${name}.db".
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="repo-package" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Specify package name for repositories, default is "${package}.repo"</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="table-prefix" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Specify table name prefix to use, default is "${name}_"</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+
+  <xsd:complexType name="Sequence">
+    <xsd:attribute name="name" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>The name of the sequence.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="prefix" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The sequence prefix.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="suffix" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The sequence suffix.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="padding" type="xsd:integer">
+      <xsd:annotation>
+        <xsd:documentation>The padding width of the numeric part of the sequence.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="initial" type="xsd:long">
+      <xsd:annotation>
+        <xsd:documentation>The initial value of the sequence number.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="increment" type="xsd:integer">
+      <xsd:annotation>
+        <xsd:documentation>Increment the sequence number by given value.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+
+  <xsd:complexType name="Column" mixed="true">
+    <xsd:annotation>
+      <xsd:documentation>
+        Base abstract type for all field types.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:attribute name="name" use="required">
+      <xsd:annotation>
+        <xsd:documentation>
+          Name of the field (should start with lower case letter).
+        </xsd:documentation>
+      </xsd:annotation>
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:pattern value="([a-z][a-zA-Z0-9_]+)|([A-Z][A-Z0-9_]+)" />
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="column" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>
+          Name of the column in the underlying database table (should be
+          defined when the field name is reserved word in database systems).&lt;br&gt;&lt;br&gt;
+          When used on many-to-many with 'table' attribute, it's used as the foreign key column
+          in the underlying database table referring the owning table.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="title" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>
+          Title text to be used by UI components.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="help" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>
+          Help text to be used by UI components.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="required" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation>
+          Whether the field is required or allow null value.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="readonly" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation>
+          Whether the field should be considered readonly by UI components.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="hidden" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation>
+          Whether the field should be hidden in UI components.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="transient" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation>
+        Specifies that the field is not persistent (not stored in database).
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="default" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Default value for the field.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="unique" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation>
+          Whether the field value should be unique (unique constraint
+          will be created on database table).
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="initParam" type="xsd:boolean">
+    <xsd:annotation>
+      <xsd:documentation>
+        Whether the field should be used as a constructor parameter.&lt;br&gt;&lt;br&gt;
+        If there are some fields with this attribute having `true` value then a constructor
+        is generated using all those fields as constructor parameters.
+      </xsd:documentation>
+    </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="index">
+      <xsd:annotation>
+        <xsd:documentation>
+          Whether to create index on database table (optimizes search query).
+          You can provide custom index name here (starting with 'idx_' prefix),
+          else default index name is generated using table name and column name.
+        </xsd:documentation>
+      </xsd:annotation>
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:pattern value="(true|false|idx_[\w|_]+)"></xsd:pattern>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="massUpdate" type="xsd:boolean" default="false">
+      <xsd:annotation>
+        <xsd:documentation>
+        Whether to allow mass update on this field (default false).
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="copy" type="xsd:boolean" default="true">
+      <xsd:annotation>
+        <xsd:documentation>
+        Whether to use this field when creating duplicate record?
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="insertable" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation>
+          Whether the column is included in SQL INSERT statements generated by the persistence provider.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="updatable" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation>
+          Whether the column is included in SQL UPDATE statements generated by the persistence provider.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+
+  <xsd:complexType name="SimpleColumn">
+    <xsd:annotation>
+      <xsd:documentation>Abstract type for simple field types.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent>
+      <xsd:extension base="dm:Column">
+        <xsd:attribute name="nullable" type="xsd:boolean">
+          <xsd:annotation>
+            <xsd:documentation>
+              Allow null value to be stored for fields that by default uses their
+              system default when value is not given. For example, integer and decimal
+              types store 0 and 0.0 respectively when the provided values are null or
+              empty.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="selection" type="xsd:string">
+          <xsd:annotation>
+            <xsd:documentation>
+              Selection key name (defined in views).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="equalsInclude" type="xsd:boolean">
+          <xsd:annotation>
+            <xsd:documentation>
+              If this is not a unique field, whether it is included in equality test.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="formula" type="xsd:boolean">
+          <xsd:annotation>
+            <xsd:documentation>
+              Whether this is a native SQL formula field.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="RangeColumn">
+    <xsd:complexContent>
+      <xsd:extension base="dm:SimpleColumn">
+        <xsd:attribute name="min" type="xsd:string" />
+        <xsd:attribute name="max" type="xsd:string" />
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="DateTimeColumn">
+    <xsd:annotation>
+      <xsd:documentation>DateTime Type.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent>
+      <xsd:extension base="dm:SimpleColumn">
+        <xsd:attribute name="tz" type="xsd:boolean">
+          <xsd:annotation>
+            <xsd:documentation>
+              Whether to use timezone info.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="RelationalColumn">
+    <xsd:annotation>
+      <xsd:documentation>Relational Type.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent>
+      <xsd:extension base="dm:Column">
+        <xsd:attribute name="ref" use="required">
+          <xsd:annotation>
+            <xsd:documentation>
+              Fully qualified name of the reference entity class.
+            </xsd:documentation>
+          </xsd:annotation>
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+              <xsd:pattern
+                value="(([a-z][a-zA-Z0-9_]+)(\.[a-z][a-zA-Z0-9_]+)*\.)?([A-Z][a-zA-Z0-9_]+)" />
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:attribute>
+        <xsd:attribute name="mappedBy" type="xsd:string">
+          <xsd:annotation>
+            <xsd:documentation>
+              If this is a bi-directional relationship,
+              indicates the related field in the referenced object.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="orphanRemoval" type="xsd:boolean">
+          <xsd:annotation>
+            <xsd:documentation>
+            Specify whether to remove orphaned records if they have been removed from the relationship.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="orderBy" type="xsd:string">
+          <xsd:annotation>
+            <xsd:documentation>
+              Specify the ordering of the collection value by the given field.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="table" type="xsd:string">
+          <xsd:annotation>
+            <xsd:documentation>
+            Specify the join table name.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="column2" type="xsd:string">
+          <xsd:annotation>
+            <xsd:documentation>
+            Name of the foreign key column in the underlying database table referring the non-owning table.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="OneToOneColumn">
+    <xsd:annotation>
+      <xsd:documentation>OneToOne Type.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent mixed="true">
+      <xsd:restriction base="dm:RelationalColumn">
+        <xsd:attribute name="orderBy" type="xsd:string" use="prohibited"/>
+      </xsd:restriction>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="ManyToOneColumn">
+    <xsd:annotation>
+      <xsd:documentation>ManyToOne Type.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent mixed="true">
+      <xsd:restriction base="dm:RelationalColumn">
+        <xsd:attribute name="mappedBy" type="xsd:string" use="prohibited"/>
+        <xsd:attribute name="orderBy" type="xsd:string" use="prohibited"/>
+        <xsd:attribute name="orphanRemoval" type="xsd:boolean" use="prohibited"/>
+      </xsd:restriction>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="OneToManyColumn">
+    <xsd:annotation>
+      <xsd:documentation>OneToMany Type.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent>
+      <xsd:restriction base="dm:RelationalColumn">
+        <xsd:attribute name="unique" type="xsd:boolean" use="prohibited"/>
+        <xsd:attribute name="index" type="xsd:boolean" use="prohibited"/>
+        <xsd:attribute name="massUpdate" type="xsd:boolean" use="prohibited"/>
+      </xsd:restriction>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="ManyToManyColumn">
+    <xsd:annotation>
+      <xsd:documentation>ManyToMany Type.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent>
+      <xsd:restriction base="dm:RelationalColumn">
+        <xsd:attribute name="orphanRemoval" type="xsd:boolean" use="prohibited"/>
+        <xsd:attribute name="unique" type="xsd:boolean" use="prohibited"/>
+        <xsd:attribute name="index" type="xsd:boolean" use="prohibited"/>
+        <xsd:attribute name="massUpdate" type="xsd:boolean" use="prohibited"/>
+      </xsd:restriction>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="String">
+    <xsd:annotation>
+      <xsd:documentation>String Type.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent>
+      <xsd:extension base="dm:RangeColumn">
+        <xsd:attribute name="multiline" type="xsd:boolean">
+          <xsd:annotation>
+            <xsd:documentation>
+              Whether the string is multiline text (used by UI components).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="large" type="xsd:boolean">
+          <xsd:annotation>
+            <xsd:documentation>
+              Whether the text value is large (use bytea database type).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="namecolumn" type="xsd:boolean">
+          <xsd:annotation>
+            <xsd:documentation>
+              Whether this is a name column (used by UI components to display the record).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="search">
+          <xsd:annotation>
+            <xsd:documentation>
+              Comma separated list of field names used by auto-completion UI component to search.
+            </xsd:documentation>
+          </xsd:annotation>
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+              <xsd:pattern value="[a-z][a-zA-Z0-9_]+(,[a-z][a-zA-Z0-9_]+)*|^$" />
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:attribute>
+        <xsd:attribute name="json" type="xsd:boolean">
+          <xsd:annotation>
+            <xsd:documentation>
+            Whether the field is used to store json data.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="password" type="xsd:boolean">
+          <xsd:annotation>
+            <xsd:documentation>
+            Whether the field is storing password text.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="sequence" type="xsd:string">
+          <xsd:annotation>
+            <xsd:documentation>
+            User the specified custom sequence generator.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="translatable" type="xsd:boolean">
+          <xsd:annotation>
+            <xsd:documentation>
+            Specify whether the field value is translatable.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="encrypted" type="xsd:boolean">
+          <xsd:annotation>
+            <xsd:documentation>
+            Specify whether the field is encrypted. Encrypted fields are not searchable nor sortable.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="Decimal">
+    <xsd:annotation>
+      <xsd:documentation>Decimal Type.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent>
+      <xsd:extension base="dm:RangeColumn">
+        <xsd:attribute name="precision" type="xsd:integer">
+          <xsd:annotation>
+            <xsd:documentation>
+              The precision of the decimal value (total number of digits).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="scale" type="xsd:integer">
+          <xsd:annotation>
+            <xsd:documentation>
+              The scale of the decimal value (total number of digits in decimal part).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="Binary">
+    <xsd:annotation>
+      <xsd:documentation>Binary Type.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent>
+      <xsd:extension base="dm:Column">
+        <xsd:attribute name="image" type="xsd:boolean">
+          <xsd:annotation>
+            <xsd:documentation>
+              Whether the field is intended to store image data.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="encrypted" type="xsd:boolean">
+          <xsd:annotation>
+            <xsd:documentation>
+            Specify whether the field is encrypted.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="large" type="xsd:boolean">
+          <xsd:annotation>
+            <xsd:documentation>
+              Whether the binary value is large (Reference to a Large Object stored in pg_largeobject system table).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="default" use="prohibited"/>
+        <xsd:attribute name="readonly" use="prohibited"/>
+        <xsd:attribute name="unique" use="prohibited"/>
+        <xsd:attribute name="hidden" use="prohibited"/>
+        <xsd:attribute name="massUpdate" use="prohibited"/>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="Enum">
+    <xsd:annotation>
+      <xsd:documentation>Enum field.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexContent>
+      <xsd:extension base="dm:Column">
+        <xsd:attribute name="ref" use="required">
+          <xsd:annotation>
+            <xsd:documentation>
+              Fully qualified name of the reference entity class.
+            </xsd:documentation>
+          </xsd:annotation>
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+              <xsd:pattern value="(([a-z][a-zA-Z0-9_]+)(\.[a-z][a-zA-Z0-9_]+)*\.)?([A-Z][a-zA-Z0-9_]+)" />
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:attribute>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="Index">
+    <xsd:attribute name="name" type="xsd:string" use="optional"/>
+    <xsd:attribute name="unique" type="xsd:string"/>
+    <xsd:attribute name="columns" use="required">
+      <xsd:annotation>
+        <xsd:documentation><![CDATA[
+          Comma separated list of field names.
+
+          The column names can be followed by either ASC or DESC. If ASC or DESC is not specified, ASC is assumed.
+
+          Some examples:
+          columns="code,name"
+          columns="code ASC,name DESC"
+          columns="code,name DESC"
+        ]]></xsd:documentation>
+      </xsd:annotation>
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:pattern value="([a-zA-Z][a-zA-Z0-9_]+(\s+(ASC|DESC))?)(,([a-zA-Z][a-zA-Z0-9_]+(\s+(ASC|DESC))?))*" />
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+  </xsd:complexType>
+
+  <xsd:complexType name="UniqueConstraint">
+    <xsd:attribute name="name" type="xsd:string" use="optional"/>
+    <xsd:attribute name="columns" use="required">
+      <xsd:annotation>
+        <xsd:documentation>
+          Comma separated list of field names.
+        </xsd:documentation>
+      </xsd:annotation>
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:pattern value="([a-zA-Z][a-zA-Z0-9_]+)(,([a-zA-Z][a-zA-Z0-9_]+))*" />
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+  </xsd:complexType>
+
+  <xsd:complexType name="Finder">
+    <xsd:attribute name="name" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>
+        Name of the finder method. As a convention, always use `findBy` prefix.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="using" use="required"  type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>
+        Provide the method parameters (comma seperated list). A parameter can be
+        a field name defined above or/and a definition in the format `type:name`
+        where `type` can be either of the following type.&lt;br&gt;
+
+        &lt;ul&gt;
+        &lt;li&gt;int, long, double, boolean&lt;/li&gt;
+        &lt;li&gt;Integer, Long, Double, Boolean&lt;/li&gt;
+        &lt;li&gt;String, BigDecimal&lt;/li&gt;
+        &lt;li&gt;LocalDate, LocalTime, LocalDateTime, DateTime&lt;/li&gt;
+        &lt;/ul&gt;
+
+        &lt;br&gt;
+        &lt;br&gt;
+
+        If all the all the parameters are field names and filter is not given then an
+        ANDed filter on the given names is generated.
+
+        &lt;br&gt;
+        &lt;br&gt;
+
+        Some examples:&lt;br&gt;&lt;br&gt;
+        ... using="code, name"&lt;br&gt;
+        ... using="long:customerId,String:email"&lt;br&gt;
+        ... using="long:customerId,String:email,totalAmount"
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="filter" type="xsd:string" use="optional">
+      <xsd:annotation>
+        <xsd:documentation>
+        Use the given filter. The filter expression should only use the given
+        field names as named parameters.
+        Some examples: &lt;br&gt; &lt;br&gt;
+
+        ... using="code, name" filter="self.name = :name OR self.code = :code" &lt;br&gt; &lt;br&gt;
+        ... using="long:id, String:email" filter="self.customer.id = :id OR self.customer.email = :email"
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="orderBy" type="xsd:string" use="optional">
+      <xsd:annotation>
+        <xsd:documentation>
+        Return the result with given orderning. For example: orderBy="-name,code"
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="all" type="xsd:boolean" default="false" use="optional">
+      <xsd:annotation>
+        <xsd:documentation>
+        If true, then the finder method returns a Query instance on which you can
+        call any of the fetch method. By default first matched object is returned.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="cacheable" type="xsd:boolean" default="false">
+      <xsd:annotation>
+        <xsd:documentation>
+        Whether to make the finder query cacheable (default false).
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="flush" type="xsd:boolean" default="true">
+      <xsd:annotation>
+        <xsd:documentation>
+        Whether to mark query flush mode to auto (default is true).
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+
+  <xsd:simpleType name="TrackEvent">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="ALWAYS">
+        <xsd:annotation>
+          <xsd:documentation>Always track the changes</xsd:documentation>
+        </xsd:annotation>
+      </xsd:enumeration>
+      <xsd:enumeration value="CREATE">
+        <xsd:annotation>
+          <xsd:documentation>Only track when creating new record</xsd:documentation>
+        </xsd:annotation>
+      </xsd:enumeration>
+      <xsd:enumeration value="UPDATE">
+        <xsd:annotation>
+          <xsd:documentation>Only track when updating the record</xsd:documentation>
+        </xsd:annotation>
+      </xsd:enumeration>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="TrackTag">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="success">
+        <xsd:annotation>
+          <xsd:documentation>Success style</xsd:documentation>
+        </xsd:annotation>
+      </xsd:enumeration>
+      <xsd:enumeration value="warning">
+        <xsd:annotation>
+          <xsd:documentation>Warning style</xsd:documentation>
+        </xsd:annotation>
+      </xsd:enumeration>
+      <xsd:enumeration value="important">
+        <xsd:annotation>
+          <xsd:documentation>Important style</xsd:documentation>
+        </xsd:annotation>
+      </xsd:enumeration>
+      <xsd:enumeration value="info">
+        <xsd:annotation>
+          <xsd:documentation>Information style</xsd:documentation>
+        </xsd:annotation>
+      </xsd:enumeration>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:complexType name="TrackField">
+    <xsd:attribute name="name" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>Name of the field</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="if" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Only track the change if given condition is true (JEL expression)</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="on" type="dm:TrackEvent" default="ALWAYS">
+      <xsd:annotation>
+        <xsd:documentation>Specify on which event to track the changes</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+
+  <xsd:complexType name="TrackMessage">
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:string">
+        <xsd:attribute name="if" type="xsd:string" use="required">
+          <xsd:annotation>
+            <xsd:documentation>Only use this message if given condition is true (JEL expression)</xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="on" type="dm:TrackEvent" default="ALWAYS">
+          <xsd:annotation>
+            <xsd:documentation>Specify on which event to track the changes</xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="tag" type="dm:TrackTag">
+          <xsd:annotation>
+            <xsd:documentation>Specify tag style, if this message is a tag.</xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="fields" type="xsd:string">
+          <xsd:annotation>
+            <xsd:documentation>Only use this message as tag if any of the given field changed.</xsd:documentation>
+          </xsd:annotation>
+        </xsd:attribute>
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="Track">
+    <xsd:sequence>
+      <xsd:element name="field" type="dm:TrackField" minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:documentation>Specify a field to track</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="message" minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:documentation>Specify a change message</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:simpleContent>
+            <xsd:restriction base="dm:TrackMessage">
+              <xsd:minLength value="1"/>
+            </xsd:restriction>
+          </xsd:simpleContent>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="content" minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:documentation>Specify a body message</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:simpleContent>
+            <xsd:restriction base="dm:TrackMessage">
+              <xsd:minLength value="1"/>
+            </xsd:restriction>
+          </xsd:simpleContent>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:sequence>
+    <xsd:attribute name="subscribe" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation>Specify whether to auto subscribe for change notifications.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="replace" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation>Specify whether to replace original change track config.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="files" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation>Specify whether to track attached files.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="on" type="dm:TrackEvent" default="ALWAYS">
+      <xsd:annotation>
+        <xsd:documentation>Specify on which event to track the changes</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+
+  <xsd:complexType name="Entity" mixed="true">
+    <xsd:annotation>
+      <xsd:documentation>Entity represent domain model.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:choice minOccurs="0" maxOccurs="unbounded">
+        <xsd:element name="string" type="dm:String">
+          <xsd:annotation>
+            <xsd:documentation>
+              String type field (simple text value).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="boolean" type="dm:SimpleColumn">
+          <xsd:annotation>
+            <xsd:documentation>
+              Boolean type field (yes/no kind of data).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="integer" type="dm:RangeColumn">
+          <xsd:annotation>
+            <xsd:documentation>
+              Integer type field (non-decimal numerical data).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="long" type="dm:RangeColumn">
+          <xsd:annotation>
+            <xsd:documentation>
+              Long type field (non-decimal numerical data, can hold very big value).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="decimal" type="dm:Decimal">
+          <xsd:annotation>
+            <xsd:documentation>
+              Decimal type field (decimal data, can be used for monetary values).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="date" type="dm:SimpleColumn">
+          <xsd:annotation>
+            <xsd:documentation>
+              Date type field (date value).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="time" type="dm:SimpleColumn">
+          <xsd:annotation>
+            <xsd:documentation>
+              Time type field (time value).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="datetime" type="dm:DateTimeColumn">
+          <xsd:annotation>
+            <xsd:documentation>
+              DateTime type field (datetime field).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="binary" type="dm:Binary">
+          <xsd:annotation>
+            <xsd:documentation>
+              Binary type field (binary data, e.g. image, pdf etc).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="enum" type="dm:Enum">
+          <xsd:annotation>
+            <xsd:documentation>
+              Enum field.
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="one-to-one" type="dm:OneToOneColumn">
+          <xsd:annotation>
+            <xsd:documentation>
+              OneToOne field (single reference value).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="many-to-one" type="dm:ManyToOneColumn">
+          <xsd:annotation>
+            <xsd:documentation>
+              ManyToOne field (single reference value).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="one-to-many" type="dm:OneToManyColumn">
+          <xsd:annotation>
+            <xsd:documentation>
+              OneToMany field (multiple references).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="many-to-many" type="dm:ManyToManyColumn">
+          <xsd:annotation>
+            <xsd:documentation>
+              ManyToMany field (multiple references).
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+      </xsd:choice>
+      <xsd:element name="unique-constraint" type="dm:UniqueConstraint" minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:documentation>
+            Define an unique constraint on the specified columns(s).
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="index" type="dm:Index" minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:documentation>
+            Define an index on the specified column(s).
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="finder-method" type="dm:Finder" minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:documentation>
+          Define a finder method.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="extra-imports" minOccurs="0" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation>
+          Provide extra import statements.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="extra-code" minOccurs="0" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation>
+            Provide extra code.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+
+
+      <xsd:element name="extra-imports-model" minOccurs="0" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation>
+            Provide extra import statements en el modelo.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="extra-code-model" minOccurs="0" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation>
+            Provide extra code en el modelo.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="track" type="dm:Track" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+          Provide change tracking details.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="entity-listener" type="dm:EntityListener" minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:documentation>
+          Specify the callback listener class containing annotated methods (@PrePersist, etc.)
+          that will be called during entity lifecycle.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+
+    <xsd:attribute use="required" name="name">
+      <xsd:annotation>
+        <xsd:documentation>
+          Name of the Entity (should begin with upper case letter).
+        </xsd:documentation>
+      </xsd:annotation>
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:pattern value="[A-Z][a-zA-Z0-9_]+" />
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="table">
+      <xsd:annotation>
+        <xsd:documentation>
+          Table name for the entity.
+        </xsd:documentation>
+      </xsd:annotation>
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:pattern value="([a-zA-Z]\w+)(_\w+)*" />
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="sequential" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation>
+          Whether the records of this entity should be in
+          unique sequence (else a global sequence will be used).
+          DEPRECATED: shouldn't be used, will use a sequence per entity
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="jsonAttrs" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation>
+        Specify whether the entity should have 'attrs' json field.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="logUpdates" type="xsd:boolean" default="true">
+      <xsd:annotation>
+        <xsd:documentation>
+        Whether to log `creation date, last modified date, user who created the record and
+        user who modified it last` information. The information is stored in these four
+        fields respectively `createdOn, updatedOn, createdBy, and updatedBy`
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="equalsIncludeAll" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation>
+        Whether to include all the simple non-function fields in equality test.
+        You can still ignore some fields with equalsInclude="false" attribute.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="cacheable" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation>
+        Specifies whether the entity should be cached if caching is enabled.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="persistable" type="xsd:boolean" default="true">
+      <xsd:annotation>
+        <xsd:documentation>
+        Specify whether this entity is persistable (in database).
+        Non-persistable entity classes as annotated with @MappedSuperclass and
+        can be used as base class of other entities.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="implements" type="xsd:string">
+  <xsd:annotation>
+    <xsd:documentation>
+    Specify the list of interfaces to implement.
+    </xsd:documentation>
+  </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="extends"  type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>
+        Specify the base entity class.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="strategy">
+      <xsd:annotation>
+        <xsd:documentation>
+        Specify the inheritance strategy (default is SINGLE).
+        </xsd:documentation>
+      </xsd:annotation>
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="SINGLE">
+            <xsd:annotation>
+              <xsd:documentation>Single table inheritance strategy</xsd:documentation>
+            </xsd:annotation>
+          </xsd:enumeration>
+          <xsd:enumeration value="JOINED">
+            <xsd:annotation>
+              <xsd:documentation>Joined table inheritance strategy</xsd:documentation>
+            </xsd:annotation>
+          </xsd:enumeration>
+          <xsd:enumeration value="CLASS">
+            <xsd:annotation>
+              <xsd:documentation>Table per class inheritance strategy</xsd:documentation>
+            </xsd:annotation>
+          </xsd:enumeration>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="repository">
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="none">
+            <xsd:annotation>
+              <xsd:documentation>Do not generate repository.</xsd:documentation>
+            </xsd:annotation>
+          </xsd:enumeration>
+          <xsd:enumeration value="default">
+            <xsd:annotation>
+              <xsd:documentation>Generate default repository</xsd:documentation>
+            </xsd:annotation>
+          </xsd:enumeration>
+          <xsd:enumeration value="abstract">
+            <xsd:annotation>
+              <xsd:documentation>Generate abstract repository</xsd:documentation>
+            </xsd:annotation>
+          </xsd:enumeration>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="allocationSize" type="xsd:integer">
+      <xsd:annotation>
+        <xsd:documentation>
+          The amount to increment by when allocating sequence numbers from the sequence.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+
+  <xsd:complexType name="EnumItem">
+    <xsd:annotation>
+      <xsd:documentation>Define enumeration item.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:attribute name="name" use="required">
+      <xsd:annotation>
+        <xsd:documentation>Enumeration item name.</xsd:documentation>
+      </xsd:annotation>
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:pattern value="[A-Z][A-Z0-9_]*[A-Z0-9]" />
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="title" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Display title for UI components.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="value" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Specify custom value for the enum item.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="help" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Help string.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="data-description" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Specify description of the step under the label for Stepper widget.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="icon" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Image icon to show for this item.</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="order" type="xsd:int">
+      <xsd:annotation>
+        <xsd:documentation>
+          Specify the sequence number to order the enum.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="hidden" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation>
+          Specify whether to hide this option from enum.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+
+  <xsd:complexType name="EnumType" mixed="true">
+    <xsd:annotation>
+      <xsd:documentation>Define enumeration type.</xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="item" type="dm:EnumItem" minOccurs="1" maxOccurs="unbounded" />
+    </xsd:sequence>
+    <xsd:attribute name="name" use="required">
+      <xsd:annotation>
+        <xsd:documentation>
+          Enumeration name.
+        </xsd:documentation>
+      </xsd:annotation>
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:pattern value="[A-Z][a-zA-Z0-9_]+" />
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="numeric" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation>
+          Specify whether to use numeric values, all enum items must provide a numeric value.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+
+  <xsd:complexType name="EntityListener">
+    <xsd:attribute name="class" use="required">
+      <xsd:simpleType>
+        <xsd:annotation>
+          <xsd:documentation>
+            FQDN of the listener class
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+          <xsd:pattern
+            value="(([a-z][a-zA-Z0-9_]+)(\.[a-z][a-zA-Z0-9_]+)*\.)?([A-Z][a-zA-Z0-9_]+)" />
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+  </xsd:complexType>
+</xsd:schema>

@@ -7,6 +7,7 @@
     <entity name="AccessAssignment">
         <many-to-one name="actor" ref="com.educaflow.subsystem.security.db.SecurityActor" required="true" title="Actor"/>
         <many-to-one name="accessProfile" ref="com.educaflow.subsystem.security.db.AccessProfile" required="true" title="Perfil"/>
+        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro"/>
         <many-to-one name="tramite" ref="com.educaflow.subsystem.expedientes.db.Tramite" />
         <many-to-one name="tipoExpediente" ref="com.educaflow.subsystem.expedientes.db.TipoExpediente" />
         <many-to-one name="expediente" ref="com.educaflow.subsystem.expedientes.db.Expediente" />

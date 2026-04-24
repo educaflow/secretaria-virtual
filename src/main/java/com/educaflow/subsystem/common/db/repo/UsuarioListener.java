@@ -17,8 +17,6 @@ public class UsuarioListener {
     @PrePersist
     private void onPrePersist(User usuario) {
 
-        AuthService authService = Beans.get(AuthService.class);
-
         if (TextUtil.isNullOrBlank(usuario.getCode())){
             usuario.setCode(usuario.getDni());
         }

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<datos>
+
+    <!-- AccessProfiles necesarios para JustificacionFaltaProfesorado -->
+    <perfiles>
+        <perfil name="CREADOR"/>
+        <perfil name="RESPONSABLE"/>
+    </perfiles>
+
+    <!-- AccessAssignment con actor = TipoUsuario (rol genérico) -->
+    <asignacionesTipoUsuario>
+        <!-- PROFESOR puede iniciar (CREADOR) el trámite JustificacionFaltaProfesorado -->
+        <asignacion tipoUsuarioCode="PROFESOR"      perfilName="CREADOR"     tramiteCode="JustificacionFaltaProfesorado"/>
+        <!-- JEFE_ESTUDIOS es el responsable de resolver (RESPONSABLE) el trámite JustificacionFaltaProfesorado -->
+        <!--<asignacion tipoUsuarioCode="JEFE_ESTUDIOS" perfilName="RESPONSABLE" tramiteCode="JustificacionFaltaProfesorado"/>-->
+    </asignacionesTipoUsuario>
+
+    <!-- AccessAssignment con actor = TipoUsuario sobre TipoExpediente concreto -->
+    <asignacionesTipoUsuarioTipoExpediente>
+        <asignacion tipoUsuarioCode="JEFE_ESTUDIOS" perfilName="RESPONSABLE" tipoExpedienteCode="JustificacionFaltaProfesorado"/>
+    </asignacionesTipoUsuarioTipoExpediente>
+
+    <!-- AccessAssignment con actor = CentroUsuario (usuario concreto en un centro) -->
+    <asignacionesCentroUsuario>
+        <!-- Ejemplo:
+        <asignacion usuarioCode="c.guijarrorosaleny@edu.gva.es" centroCode="46019660" perfilName="CREADOR" tramiteCode="JustificacionFaltaProfesorado"/>
+        -->
+    </asignacionesCentroUsuario>
+
+</datos>

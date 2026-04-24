@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <form name="sysGestionCentro.Centro@UsuariosAutorizados-form" title="Usuarios autorizados" model="com.educaflow.subsystem.common.db.Centro">
+        <panel title="Usuarios autorizados" colSpan="12" showTitle="false">
+            <panel-dashlet action="sysGestionCentro.UsuarioAutorizado@Main-action" colSpan="12" canSearch="true"/>
+        </panel>
+    </form>
+
+    <action-view name="sysGestionCentro.UsuarioAutorizado@Main-action" title="Usuarios autorizados"
+                 model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado">
+        <view type="grid" name="sysGestionCentro.UsuarioAutorizado@Main-grid"/>
+        <view type="form" name="sysGestionCentro.UsuarioAutorizado@Main-form"/>
+        <domain>self.centro.id = :centroId AND self.curso = :curso</domain>
+        <context name="centroId" expr="eval: id"/>
+        <context name="curso"    expr="eval: curso"/>
+    </action-view>
+
+    <grid name="sysGestionCentro.UsuarioAutorizado@Main-grid" title=""
+          model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado"
+          editable="false" edit-icon="true" x-selector="none" canNew="true" canEdit="true" canDelete="true" canViewOnClick="true">
+        <field name="dni"         title="DNI"/>
+        <field name="tipoUsuario" title="Tipo"/>
+    </grid>
+
+    <form name="sysGestionCentro.UsuarioAutorizado@Main-form" title="Usuario autorizado"
+          model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado"
+          onNew="sysGestionCentro.UsuarioAutorizado@OnNew-action"
+          canAttach="false" canDelete="true">
+        <panel title="">
+            <field name="centro"      showIf="false"/>
+            <field name="curso"       showIf="false"/>
+            <field name="dni"         colSpan="6" required="true"/>
+            <field name="tipoUsuario" colSpan="6" required="true"/>
+        </panel>
+    </form>
+
+    <action-record name="sysGestionCentro.UsuarioAutorizado@OnNew-action"
+                   model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado">
+        <field name="centro" expr="eval: __parent__"/>
+        <field name="curso"  expr="eval: __parent__?.curso"/>
+    </action-record>
+
+</object-views>

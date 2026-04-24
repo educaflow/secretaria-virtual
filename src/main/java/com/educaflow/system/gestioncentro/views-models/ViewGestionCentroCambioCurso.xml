@@ -1,0 +1,13 @@
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="gestion" package="com.educaflow.system.gestioncentro.db"/>
+    <entity name="ViewGestionCentroCambioCurso" persistable="false">
+        <long    name="centroId"          transient="true"/>
+        <string  name="cursosDisponibles" transient="true" large="true" title="Cursos disponibles"/>
+        <integer name="nuevoCurso"        transient="true" title="Nuevo curso académico"/>
+        <string  name="resultado"         transient="true" large="true" title="Resultado"/>
+    </entity>
+
+</domain-models>

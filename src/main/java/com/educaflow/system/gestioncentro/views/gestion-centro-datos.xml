@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <form name="sysGestionCentro.Centro@Datos-form" title="Datos" model="com.educaflow.subsystem.common.db.Centro"
+          onNew="sysGestionCentro.Centro@DatosOnNew-action">
+        <panel name="man-Centro-datos-panel" title="Datos">
+            <field name="code"    colSpan="3" required="true"/>
+            <field name="name"    colSpan="6" required="true"/>
+            <field name="curso"   colSpan="3" readonly="true"/>
+
+            <field name="direccion" colSpan="9"/>
+            <field name="codigoPostal" colSpan="3"/>
+
+            <field name="comunidadAutonoma" colSpan="4"
+                   onChange="sysGestionCentro.Centro@OnChangeComunidadAutonoma-action"/>
+            <field name="provincia" colSpan="4"
+                   domain="self.comunidadAutonoma = :comunidadAutonoma"
+                   onChange="sysGestionCentro.Centro@OnChangeProvincia-action"/>
+            <field name="municipio" colSpan="4"
+                   domain="self.provincia = :provincia"/>
+
+            <field name="conselleria" colSpan="6"/>
+        </panel>
+    </form>
+
+    <action-record name="sysGestionCentro.Centro@OnChangeComunidadAutonoma-action" model="com.educaflow.subsystem.common.db.Centro">
+        <field name="provincia" expr="null"/>
+        <field name="municipio" expr="null"/>
+    </action-record>
+
+    <action-record name="sysGestionCentro.Centro@OnChangeProvincia-action" model="com.educaflow.subsystem.common.db.Centro">
+        <field name="municipio" expr="null"/>
+    </action-record>
+
+    <action-record name="sysGestionCentro.Centro@DatosOnNew-action" model="com.educaflow.subsystem.common.db.Centro">
+        <field name="curso" expr="eval: java.time.LocalDate.now().getYear()"/>
+    </action-record>
+
+</object-views>

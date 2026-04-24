@@ -111,12 +111,12 @@ public class EventManagerFaltaProfesor extends com.educaflow.subsystem.expedient
 
     }
     @WhenEvent
-    public void triggerPresentar(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext<Profile,State> eventContext) throws BusinessException {
-        RegistroEntrada registroEntrada=eventContext.createRegistroEntrada(justificacionFaltaProfesorado.getPdfSolicitudFirmado(), List.of(justificacionFaltaProfesorado.getJustificante()));
-        justificacionFaltaProfesorado.setPdfJustificanteRegistroEntrada(registroEntrada.getDocumentoResguardoPresentacion());
+    public void triggerPresentar(JustificacionFaltaProfesorado exp, JustificacionFaltaProfesorado original, EventContext<Profile,State> eventContext) throws BusinessException {
+        RegistroEntrada registroEntrada = eventContext.createRegistroEntrada(exp.getPdfSolicitudFirmado(), List.of(exp.getJustificante()));
+        exp.setPdfJustificanteRegistroEntrada(registroEntrada.getDocumentoResguardoPresentacion());
         eventContext.updateState(State.PENDIENTE_RESOLUCION);
-        justificacionFaltaProfesorado.setDisconformidad(null);
-        justificacionFaltaProfesorado.setResolucion(null);
+        exp.setDisconformidad(null);
+        exp.setResolucion(null);
     }
     @WhenEvent
     public void triggerResolver(JustificacionFaltaProfesorado justificacionFaltaProfesorado, JustificacionFaltaProfesorado original, EventContext<Profile,State> eventContext) throws BusinessException {

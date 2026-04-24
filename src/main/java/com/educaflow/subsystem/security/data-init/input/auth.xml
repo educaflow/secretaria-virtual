@@ -3,15 +3,157 @@
 
 
 
-  <permission name="TipoExpediente.all" object="com.educaflow.subsystem.expedientes.db.TipoExpediente">
-    <can create="true" read="true" write="true" remove="true" export="true"/>
+  <permission name="TipoExpediente.all"
+              object="com.educaflow.subsystem.expedientes.db.TipoExpediente"
+              condition="self IN (
+        SELECT aa.tipoExpediente
+        FROM com.educaflow.subsystem.security.db.AccessAssignment aa
+        WHERE aa.tipoExpediente IS NOT NULL
+        AND (aa.centro IS NULL OR aa.centro = ?)
+        AND (
+            aa.actor IN (
+                SELECT cut.tipoUsuario
+                FROM com.educaflow.subsystem.security.db.CentroUsuarioTipoUsuario cut
+                WHERE cut.centroUsuario.usuario = ?
+                AND cut.centroUsuario.centro = ?
+            )
+            OR
+            aa.actor IN (
+                SELECT cu
+                FROM com.educaflow.subsystem.security.db.CentroUsuario cu
+                WHERE cu.usuario = ?
+                AND cu.centro = ?
+            )
+        )
+    )"
+              conditionParams="__user__.centroActivo, __user__, __user__.centroActivo, __user__, __user__.centroActivo"
+  >
+    <can create="false" read="true" write="false" remove="true" export="false"/>
   </permission>
-  <permission name="Tramite.all" object="com.educaflow.subsystem.expedientes.db.Tramite">
-    <can create="true" read="true" write="true" remove="true" export="true"/>
+
+  <permission name="Tramite.creador"
+              object="com.educaflow.subsystem.expedientes.db.Tramite"
+              condition="self IN (
+        SELECT aa.tramite
+        FROM com.educaflow.subsystem.security.db.AccessAssignment aa
+        WHERE aa.accessProfile.name = 'CREADOR'
+        AND aa.tramite IS NOT NULL
+        AND (aa.centro IS NULL OR aa.centro = ?)
+        AND (
+            aa.actor IN (
+                SELECT cut.tipoUsuario
+                FROM com.educaflow.subsystem.security.db.CentroUsuarioTipoUsuario cut
+                WHERE cut.centroUsuario.usuario = ?
+                AND cut.centroUsuario.centro = ?
+            )
+            OR
+            aa.actor IN (
+                SELECT cu
+                FROM com.educaflow.subsystem.security.db.CentroUsuario cu
+                WHERE cu.usuario = ?
+                AND cu.centro = ?
+            )
+        )
+    )"
+              conditionParams="__user__.centroActivo, __user__, __user__.centroActivo, __user__, __user__.centroActivo"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
-  <permission name="Expediente.all" object="com.educaflow.subsystem.expedientes.db.Expediente">
-    <can create="true" read="true" write="true" remove="true" export="true"/>
+
+
+  <permission name="Expediente.creador"
+              object="com.educaflow.subsystem.expedientes.db.Expediente"
+              condition="self.creador = ?"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="false" remove="false" export="true"/>
   </permission>
+
+  <permission name="Expediente.porExpediente"
+              object="com.educaflow.subsystem.expedientes.db.Expediente"
+              condition="self IN (
+        SELECT aa.expediente
+        FROM com.educaflow.subsystem.security.db.AccessAssignment aa
+        WHERE aa.expediente IS NOT NULL
+        AND (aa.centro IS NULL OR aa.centro = ?)
+        AND (
+            aa.actor IN (
+                SELECT cut.tipoUsuario
+                FROM com.educaflow.subsystem.security.db.CentroUsuarioTipoUsuario cut
+                WHERE cut.centroUsuario.usuario = ?
+                AND cut.centroUsuario.centro = ?
+            )
+            OR
+            aa.actor IN (
+                SELECT cu
+                FROM com.educaflow.subsystem.security.db.CentroUsuario cu
+                WHERE cu.usuario = ?
+                AND cu.centro = ?
+            )
+        )
+    )"
+              conditionParams="__user__.centroActivo, __user__, __user__.centroActivo, __user__, __user__.centroActivo"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Expediente.porTipoExpediente"
+              object="com.educaflow.subsystem.expedientes.db.Expediente"
+              condition="self.tipoExpediente IN (
+        SELECT aa.tipoExpediente
+        FROM com.educaflow.subsystem.security.db.AccessAssignment aa
+        WHERE aa.tipoExpediente IS NOT NULL
+        AND (aa.centro IS NULL OR aa.centro = ?)
+        AND (
+            aa.actor IN (
+                SELECT cut.tipoUsuario
+                FROM com.educaflow.subsystem.security.db.CentroUsuarioTipoUsuario cut
+                WHERE cut.centroUsuario.usuario = ?
+                AND cut.centroUsuario.centro = ?
+            )
+            OR
+            aa.actor IN (
+                SELECT cu
+                FROM com.educaflow.subsystem.security.db.CentroUsuario cu
+                WHERE cu.usuario = ?
+                AND cu.centro = ?
+            )
+        )
+    )"
+              conditionParams="__user__.centroActivo, __user__, __user__.centroActivo, __user__, __user__.centroActivo"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Expediente.porTramite"
+              object="com.educaflow.subsystem.expedientes.db.Expediente"
+              condition="self.tipoExpediente.tramite IN (
+        SELECT aa.tramite
+        FROM com.educaflow.subsystem.security.db.AccessAssignment aa
+        WHERE aa.tramite IS NOT NULL
+        AND aa.accessProfile.name != 'CREADOR'
+        AND (aa.centro IS NULL OR aa.centro = ?)
+        AND (
+            aa.actor IN (
+                SELECT cut.tipoUsuario
+                FROM com.educaflow.subsystem.security.db.CentroUsuarioTipoUsuario cut
+                WHERE cut.centroUsuario.usuario = ?
+                AND cut.centroUsuario.centro = ?
+            )
+            OR
+            aa.actor IN (
+                SELECT cu
+                FROM com.educaflow.subsystem.security.db.CentroUsuario cu
+                WHERE cu.usuario = ?
+                AND cu.centro = ?
+            )
+        )
+    )"
+              conditionParams="__user__.centroActivo, __user__, __user__.centroActivo, __user__, __user__.centroActivo"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
   <permission name="HistorialEstado.all" object="com.educaflow.subsystem.expedientes.db.HistorialEstado">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
@@ -28,6 +170,24 @@
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
   <permission name="Centro.all" object="com.educaflow.subsystem.common.db.Centro">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="ViewGestionCentroImport.all" object="com.educaflow.system.gestioncentro.db.ViewGestionCentroImport">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="ViewGestionCentroCambioCurso.all" object="com.educaflow.system.gestioncentro.db.ViewGestionCentroCambioCurso">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="CentroUsuario.all" object="com.educaflow.subsystem.security.db.CentroUsuario">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="CentroUsuarioTipoUsuario.all" object="com.educaflow.subsystem.security.db.CentroUsuarioTipoUsuario">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="TipoUsuario.all" object="com.educaflow.subsystem.security.db.TipoUsuario">
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+  <permission name="UsuarioAutorizado.all" object="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
   <permission name="Cargo.all" object="com.educaflow.subsystem.configuracioncentro.db.Cargo">
@@ -47,9 +207,6 @@
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
 
-  <permission name="JustificacionFaltaProfesorado.all" object="com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesorado">
-    <can create="true" read="true" write="true" remove="true" export="true"/>
-  </permission>
 
   <permission name="TipoTramite.all" object="com.educaflow.subsystem.expedientes.db.TipoTramite">
     <can create="true" read="true" write="true" remove="true" export="true"/>
@@ -61,12 +218,14 @@
 
   <role name="users.all" description="Permisos de usuarios">
     <permission name="TipoExpediente.all"/>
-    <permission name="Tramite.all"/>
-    <permission name="Expediente.all"/>
+    <permission name="Tramite.creador"/>
+    <permission name="Expediente.creador"/>
+    <permission name="Expediente.porExpediente"/>
+    <permission name="Expediente.porTipoExpediente"/>
+    <permission name="Expediente.porTramite"/>
     <permission name="Prueba.all"/>
     <permission name="FormacionCentroTrabajo.all"/>
     <permission name="HistorialEstado.all"/>
-    <permission name="JustificacionFaltaProfesorado.all"/>
     <permission name="MetaFile.all"/>
     <permission name="TipoTramite.all"/>
     <permission name="SearchExpedientes.all"/>
@@ -74,9 +233,15 @@
     <permission name="ValoresAmbito.all"/>
     <permission name="Departamento.all"/>
     <permission name="Centro.all"/>
+    <permission name="ViewGestionCentroImport.all"/>
+    <permission name="ViewGestionCentroCambioCurso.all"/>
+    <permission name="CentroUsuario.all"/>
+    <permission name="CentroUsuarioTipoUsuario.all"/>
+    <permission name="TipoUsuario.all"/>
     <permission name="User.all"/>
     <permission name="Cargo.all"/>
     <permission name="DMSFile.all"/>
+    <permission name="UsuarioAutorizado.all"/>
   </role>
 
   <group code="users">
@@ -86,8 +251,8 @@
   <users>
     <!--<user code="admin" language="ca" />
     <user code="demo" language="ca" />-->
-    <user code="cesar" language="es" name="César Guijarro Rosaleny" email="c.guijarrorosaleny@edu.gva.es" password="cesar" group="admins" />
-    <user code="lorenzo" language="es" name="Lorenzo González Gascón" email="l.gonzalezgascon@edu.gva.es" password="lorenzo" group="admins" />
+    <user code="cesar" language="es" name="César Guijarro Rosaleny" email="cesar@secretariavirtual.es" password="cesar" group="admins" />
+    <user code="lorenzo" language="es" name="Lorenzo González Gascón" email="lorenzo@secretariavirtual.es" password="lorenzo" group="admins" />
   </users>
 
 

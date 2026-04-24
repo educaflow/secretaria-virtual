@@ -4,9 +4,6 @@
     <name>Justificación de falta del profesorado</name>
     <code>JustificacionFaltaProfesorado</code>
     <tramite>JustificacionFaltaProfesorado</tramite>
-    <ambitoCreador>INDIVIDUAL</ambitoCreador>
-    <ambitoResponsable>CENTRO</ambitoResponsable>
-    <ambitoAuditor>DEPARTAMENTO</ambitoAuditor>
     <fqcnEventManager>com.educaflow.system.tiposexpedientes.justificacion_falta_profesorado.EventManagerFaltaProfesor</fqcnEventManager>
     <fqcnStateEventValidator>com.educaflow.system.tiposexpedientes.justificacion_falta_profesorado.StateEventValidatorImplFaltaProfesor</fqcnStateEventValidator>
     <states>

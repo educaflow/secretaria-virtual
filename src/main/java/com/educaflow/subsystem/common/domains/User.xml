@@ -9,9 +9,9 @@
         <many-to-one name="centroActivo" ref="com.educaflow.subsystem.common.db.Centro" title="Centro Activo" />
         <string name="dni" title="DNI"  />
         <string name="email" title="Correo electrónico" unique="false"/>
-        <one-to-many name="centroUsuarios" ref="com.educaflow.subsystem.common.db.CentroUsuario" title=""/>
+        <one-to-many name="centroUsuarios" ref="com.educaflow.subsystem.security.db.CentroUsuario" title=""/>
 
-        <many-to-one name="perfilActivo" ref="com.educaflow.subsystem.common.db.CentroUsuario"
+        <many-to-one name="perfilActivo" ref="com.educaflow.subsystem.security.db.CentroUsuario"
                      transient="true"
                      title="Perfil en centro activo"
         >

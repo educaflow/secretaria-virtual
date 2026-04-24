@@ -4,8 +4,9 @@
             xsi:schemaLocation="http://axelor.com/xml/ns/data-import
   https://axelor.com/xml/ns/data-import/data-import_8.0.xsd">
 
-    <adapter name="DniAdapter" type="com.educaflow.system.importar.services.adapters.DniAdapter"/>
+    <adapter name="DniAdapter" type="com.educaflow.subsystem.importacion.adapters.DniAdapter"/>
 
+    <!-- Los atributos del nodo raiz se guardan en el context con el nombre atributoRaiz -->
     <input root="centro"  file="dataFile">
         <bind node="docentes/docente | alumnos/alumno"
               type="com.axelor.auth.db.User"
@@ -27,6 +28,5 @@
             <bind to="forcePasswordChange" eval="true"/>
         </bind>
     </input>
-<!-- Comentario para probar el hash -->
 
 </xml-inputs>

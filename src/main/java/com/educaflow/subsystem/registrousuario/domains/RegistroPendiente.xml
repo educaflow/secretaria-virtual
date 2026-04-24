@@ -1,0 +1,16 @@
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="registro" package="com.educaflow.subsystem.registrousuario.db"/>
+    <entity name="RegistroPendiente" repository="abstract">
+        <string name="email" required="true"/>
+        <string name="dni" title="DNI__!!" required="true"/>
+        <!-- UUID enviado al email del usuario para validar -->
+        <string name="codigo" required="true" title="Código de verificación"/>
+<boolean name="verificado"/>
+        <!-- UUID enviado al usuario para asegurarnos que es el mismo -->
+        <string name="token" title="Token__!! de verificación"/>
+    </entity>
+
+</domain-models>

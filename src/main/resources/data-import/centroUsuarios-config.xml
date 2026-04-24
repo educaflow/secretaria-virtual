@@ -4,14 +4,14 @@
             xsi:schemaLocation="http://axelor.com/xml/ns/data-import
   https://axelor.com/xml/ns/data-import/data-import_8.0.xsd">
 
-    <adapter name="DniAdapter" type="com.educaflow.system.importar.services.adapters.DniAdapter"/>
+    <adapter name="DniAdapter" type="com.educaflow.subsystem.importacion.adapters.DniAdapter"/>
     <adapter name="TipoUsuarioAdapter" type="com.educaflow.system.importar.services.adapters.TipoUsuarioAdapter"/>
 
     <input root="centro" file="dataFile">
         <bind node="codigo" alias="centroActual" search="self.code = :@codigo" />
 
         <bind node="docentes/docente | alumnos/alumno"
-              type="com.educaflow.subsystem.common.db.CentroUsuario"
+              type="com.educaflow.subsystem.security.db.CentroUsuario"
               search="self.usuario.code = :documentoLimpio AND self.centro = :centroActual"
               update="true"
               create="true">
@@ -27,7 +27,7 @@
 
             <bind to="centro" eval="centroActual"/>
 
-            <bind to="centroUsuarioTipoUsuario" type="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario" update="true" create="true">
+            <bind to="centroUsuarioTipoUsuario" type="com.educaflow.subsystem.security.db.CentroUsuarioTipoUsuario" update="true" create="true">
                 <bind to="tipoUsuario" eval="_node.name" adapter="TipoUsuarioAdapter"/>
             </bind>
         </bind>

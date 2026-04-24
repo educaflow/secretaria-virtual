@@ -3,8 +3,9 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <menuitem name="subsysConfiguracionCentro-menuitem"  title="Configuración Centro"  groups="admins"  order="401"/>
-    <menuitem name="subsysConfiguracionCentro.CursoAcademico-menuitem" title="Centros" parent="subsysConfiguracionCentro-menuitem" action="subsysCommon.Centro-mantenimiento-action" groups="admins" order="2" />
-    <menuitem name="subsysConfiguracionCentro-raw-menuitem"  title="Configuración Centro-RAW"  groups="admins"  order="402"/>
+
+    <menuitem name="sysGestionCentro-menuitem"  title="Configuración Centro"  groups="admins,users"  order="401"/>
+    <menuitem name="sysGestionCentro.Centro@Main-menuitem" title="Centros" parent="sysGestionCentro-menuitem" action="sysGestionCentro.Centro@Main-action" groups="admins,users" order="2" />
+    <menuitem name="subsysImportacion@Main-menuitem" title="Ficheros importación" parent="sysGestionCentro-menuitem" action="subsysImportacion@Main-action" groups="admins,users" order="2" />
 
 </object-views>

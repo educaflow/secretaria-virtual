@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <action-view name="subsysImportacion@Main-action" title="Importación" model="com.educaflow.subsystem.importacion.db.TareaImportacion">
+        <view type="grid" name="subsysImportacion@Main-grid"/>
+        <view type="form" name="subsysImportacion@Main-form"/>
+        <view-param name="forceEdit" value="true"/>
+        <domain><![CDATA[:__user__ IN (SELECT u FROM User u WHERE u.group.code = 'admins') OR self.centro IN (SELECT cu.centro FROM CentroUsuario cu WHERE cu.usuario = :__user__ AND cu IN (SELECT cutu.centroUsuario FROM CentroUsuarioTipoUsuario cutu WHERE cutu.tipoUsuario IN (SELECT tu FROM TipoUsuario tu WHERE tu.code = 'ADMINISTRADOR')))]]></domain>
+    </action-view>
+
+    <grid name="subsysImportacion@Main-grid" title="Tareas de importación"
+          model="com.educaflow.subsystem.importacion.db.TareaImportacion"
+          canNew="true" newButtonTitle="Importar nuevos datos"
+          orderBy="-createdOn"
+          canDelete="false" canSave="false" canEdit="false"
+          canEditOnClick="true"
+    >
+        <field name="tipoFichero" width="180px"/>
+        <field name="centro" if="__user__?.group?.code == 'admins'"/>
+        <field name="curso" width="130px"/>
+        <field name="usuario" width="180px"/>
+        <field name="fichero" widget="binary-link"/>
+        <field name="createdOn" title="Fecha de importación" width="160px"/>
+    </grid>
+
+    <form name="subsysImportacion@Main-form" title="Importar fichero"
+          model="com.educaflow.subsystem.importacion.db.TareaImportacion"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false"
+          onNew="subsysImportacion@Main-set-usuario-action">
+
+        <panel title="" colSpan="12">
+            <field name="tipoFichero" colSpan="6" widget="SwitchSelect" required="true"/>
+            <field name="fichero" colSpan="6" required="true" widget="binary-link"/>
+            <field name="importLog" title=""
+                   colSpan="12" readonly="true" large="true" multiline="true"/>
+        </panel>
+
+        <panel title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Cancelar" onClick="back" colSpan="2" colOffset="8" outline="true"/>
+            <button name="btnSave"   title="Importar"  onClick="serial:subsysImportacion@Main-importar-action,save,back" colSpan="2"/>
+        </panel>
+    </form>
+
+    <!-- *********************************************************************************************  -->
+    <!-- ************************ Acciones básicas que cambian campos simples ************************  -->
+    <!-- *********************************************************************************************  -->
+    <action-record name="subsysImportacion@Main-set-usuario-action" model="com.educaflow.subsystem.importacion.db.TareaImportacion">
+        <field name="usuario" expr="eval:__user__" />
+    </action-record>
+
+
+    <!-- *********************************************************************************************  -->
+    <!-- ***************************** Acciones de las tareas principales ****************************  -->
+    <!-- *********************************************************************************************  -->
+    <action-group name="subsysImportacion@Main-importar-action">
+        <!--<action name="subsysImportacion@Main-Remote-validarCentro-action"/>-->
+        <action name="subsysImportacion@Main-Remote-importarDatos-action"/>
+    </action-group>
+
+    <!-- *********************************************************************************************  -->
+    <!-- ************************** Acciones de llamadas Remotas al servidor *************************  -->
+    <!-- *********************************************************************************************  -->
+    <action-method name="subsysImportacion@Main-Remote-validarCentro-action"
+                   model="com.educaflow.subsystem.importacion.db.TareaImportacion">
+        <call class="com.educaflow.subsystem.importacion.controller.ImportacionController" method="validarCentro" />
+    </action-method>
+    <action-method name="subsysImportacion@Main-Remote-importarDatos-action"
+                   model="com.educaflow.subsystem.importacion.db.TareaImportacion">
+        <call class="com.educaflow.subsystem.importacion.controller.ImportacionController" method="importarDatos" />
+    </action-method>
+
+
+</object-views>
