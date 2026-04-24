@@ -10,7 +10,7 @@ Un grid es la vista tabular de Axelor para listar registros (filas) de un modelo
 ## Grids en Axelor `<grid>`: diseño, generación y corrección
 - Este skill sirve para diseñar, generar o corregir los grids `<grid>` que están en ficheros de vistas.
 - Estos grids se crean a partir de un modelo de dominio.
-- Se siguen las normas definidas en el skill `/grids`
+- Se siguen las normas definidas en el skill `/grids-knowledge`
 
 ## Tareas a realizar.
 - Decidir si se pueden crear nuevas entidades desde el grid y en caso afirmativo decifir el título del botón de creación. `newButtonTitle`

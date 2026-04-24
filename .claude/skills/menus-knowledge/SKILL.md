@@ -1,5 +1,5 @@
 ---
-name: menus
+name: menus-knowledge
 description: Referencia básica de menús Axelor - etiqueta menuitem, atributos, convención de nombres y ejemplos.
 ---
 

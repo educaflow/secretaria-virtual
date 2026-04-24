@@ -11,7 +11,7 @@ Se definen con la etiqueta `<menuitem>` dentro de ficheros XML ubicados en `src/
 ## Menús en Axelor `<menuitem>`: diseño, generación y corrección
 - Este skill sirve para diseñar, generar o corregir los menús `<menuitem>` que están en ficheros de vistas.
 - Estos menús se crean a partir de un modelo de dominio y de las posibles vistas que puede haber de un mismo modelo de dominio.
-- Se siguen las normas definidas en el skill `/menus`
+- Se siguen las normas definidas en el skill `/menus-knowledge`
 
 ## Tareas a realizar.
 - Saber las `<action-view>` que hay en ese subsistema para saber a qué vistas se pueden apuntar desde los menús.  

@@ -1,5 +1,5 @@
 ---
-name: sistemas
+name: sistemas-knowledge
 description: Este Skill permite diseñar y generar la estructura de carpetas, ficheros y código Java y XML de un sistema o subsistema en el proyecto Axelor
 ---
 

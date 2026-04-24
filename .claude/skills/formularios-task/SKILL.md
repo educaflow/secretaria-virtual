@@ -8,7 +8,7 @@ description: Este skill sirve para diseñar, generar o coregir formularios dentr
 ## Formularios en Axelor `<form>`: diseño, generación y corrección
   - Este skill sirve para diseñar, generar o corregir los formularios `<form>` que están en ficheros de vistas. 
   - Estos formularios se crean a partir de un modelo de dominio. 
-  - Se siguen las normas definidas en el skill `/formularios`
+  - Se siguen las normas definidas en el skill `/formularios-knowledge`
 
 ## Tareas a realizar.
 

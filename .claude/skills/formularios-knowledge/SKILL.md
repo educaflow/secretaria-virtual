@@ -1,5 +1,5 @@
 ---
-name: formularios
+name: formularios-knowledge
 description: Estructura y patrones básicos de los formularios en el proyecto Axelor - plantilla, layout, campos, widgets y convención de nombres.
 ---
 
@@ -135,7 +135,6 @@ Si el texto es largo, se puede usar `colSpan="12"` para que ocupe toda la línea
 Tambien hay que ver que pones en la misma linea, normalmente son campos relacionados, por ejemplo fecha de inicio y fecha de fin, o nombre y apellidos.
 
 **Distribución proporcional al contenido real del campo**
-
 No hay que dividir el espacio equitativamente entre campos de la misma fila: hay que asignar más espacio al campo cuyo valor ocupa más texto visualmente.
 
 Ejemplo incorrecto (reparto igual sin considerar el contenido):
@@ -144,7 +143,6 @@ Ejemplo incorrecto (reparto igual sin considerar el contenido):
 <field name="numeroRegistro" colSpan="4"/>
 <field name="fecha"          colSpan="4"/>
 ```
-
 "centro" muestra un nombre largo, mientras que "numeroRegistro" y "fecha" suelen ser valores cortos. Con `colSpan="4"` los tres, "centro" se quedará estrecho y los otros dos tendrán espacio de sobra.
 
 Ejemplo correcto (espacio proporcional al contenido esperado):
@@ -154,7 +152,7 @@ Ejemplo correcto (espacio proporcional al contenido esperado):
 <field name="fecha"          colSpan="3"/>
 ```
 
-También es importante tener en cuenta que el uso de `colSpan` y `colOffset` para intentar alinear los campos con los de la fila anterior o siguiente.
+También es importante tener en cuenta que el uso de `colSpan` y `colOffset` para intentar alinear los campos con los de la fila superior e inferior.
 
 En el ejemplo siguiente se hace mal la alineación de campos ya que ninguno de los campos está alineado con el de arriba.:
 ```xml
@@ -167,6 +165,7 @@ En el ejemplo siguiente se hace mal la alineación de campos ya que ninguno de l
     <field name="campo6" colSpan="4"  />    
 </panel>
 ```
+Fíjate que en el ejemplo anterior, "campo1" no está alineado con ningún campo de la fila inferior, "campo2" no está alineado con ningún campo de la fila inferior, "campo3" no está alineado con ningún campo de la fila inferior, "campo4" no está alineado con ningún campo de la fila superior, "campo5" no está alineado con ningún campo de la fila superior y "campo6" no está alineado con ningún campo de la fila superior. Esto hace que el formulario se vea desorganizado y dificulta la lectura.
 
 Una mejor forma de hacerlo sería:
 ```xml
@@ -179,12 +178,10 @@ Una mejor forma de hacerlo sería:
     <field name="campo6" colSpan="5"  />    
 </panel>
 ```
-
-Aunque no es una obligación estricta, es recomendable intentar alinear los campos con los de la fila anterior o siguiente para mejorar la legibilidad del formulario. Y ver como ponerlo para que quede claro y no se corte el texto.
+En este ejemplo, "campo1" está alineado con "campo4", "campo2" está alineado con "campo5" y "campo3" está alineado con "campo6". Esto hace que el formulario se vea más organizado y facilita la lectura.
 
 ## Referencias
-Para una referencia completa de todo lo relacionado con formularios en Axelor, puedes consultar los siguientes documentos:
-
+Para una referencia completa de todo lo relacionado con formularios , puedes consultar los siguientes documentos:
 - `references/form.md`
 - `references/widgets.md`
 - `references/extensions.md`

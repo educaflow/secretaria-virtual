@@ -10,7 +10,7 @@ Este skill sirve para diseñar y generar acciones de Axelor en ficheros XML de v
 - Este skill sirve para diseñar, generar o corregir las acciones que están en ficheros de vistas.
 - Estas acciones se crean a partir de la lógica de los menús, grids y formularios (forms) además del significado del propio dominio.
 - Las etiquetas que se usan para definir acciones son: `<action-view>`, `<action-method>`, `<action-attrs>`, `<action-record>`, `<action-group>`, `<action-validate>`, `<action-condition>` y `<action-script>`.
-- Se siguen las normas definidas en el skill `/actions`
+- Se siguen las normas definidas en el skill `/actions-knowledge`
 
 ## Tareas a realizar.
 

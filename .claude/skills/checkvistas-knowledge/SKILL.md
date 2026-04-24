@@ -1,5 +1,5 @@
 ---
-name: checkVistas
+name: checkvistas-knowledge
 description: Para comprobar y corregir que el nombre de las vistas es correcto y que las referencias a acciones desde botones , menús y otras acciones existen realmente. Además de que referencias a grid y form son correctas.
 ---
 

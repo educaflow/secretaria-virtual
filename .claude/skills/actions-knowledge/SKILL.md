@@ -1,5 +1,5 @@
 ---
-name: actions
+name: actions-knowledge
 description: Action (Acciones) - referencia completa de tipos, estructura, atributos y ejemplos de acciones Axelor.
 ---
 

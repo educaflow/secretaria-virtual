@@ -1,5 +1,5 @@
 ---
-name: grids
+name: grids-knowledge
 description: Referencia básica de grids en Axelor - estructura, atributos, convención de nombres y ejemplos.
 ---
 
