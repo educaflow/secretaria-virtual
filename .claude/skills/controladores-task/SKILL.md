@@ -20,7 +20,7 @@ description: Skill para crear o corregir controladores de Axelor. El controlador
   - Qué campos se permiten copiar desde la request con `AllowProperties` (solo en métodos que guardan datos)
   - A qué servicio o servicios llama para ejecutar la lógica de negocio
   - Qué señal o respuesta envía al cliente (`setSignal("back")`, `setValue(...)`, `setFlash(...)`, etc.)
-- Decidir el paquete donde se ubicará el controlador: `com.educaflow.{layer}.{subsistema}.controllers`
+- Decidir el paquete donde se ubicará el controlador: `com.educaflow.{layer}.{subsistema}.controller`
 
 ## En caso de tener que crear el controlador
 

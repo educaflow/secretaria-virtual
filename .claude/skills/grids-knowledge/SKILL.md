@@ -16,7 +16,7 @@ Un grid es la vista tabular de Axelor para listar registros (filas) de un modelo
 ## Ejemplo de grid
 
 ```xml
-<grid name="subsysSistemaEducativo.Ciclo.Curso@Main-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Curso" canNew="true" newButtonTitle="Añadir un nuevo ciclo" allowSearchFields="true" orderBy="name" canEditOnClick="true" canViewOnClick="true"
+<grid name="subsysSistemaEducativo.Ciclo.Curso@Main-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Curso" canNew="true" newButtonTitle="Añadir un nuevo ciclo" allowSearchFields="true" orderBy="name" canEditOnClick="true"
       canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"  title=""
 >
     <field name="code" width="150px" />
@@ -25,7 +25,7 @@ Un grid es la vista tabular de Axelor para listar registros (filas) de un modelo
 </grid>
 ```
 **IMPORTANTE:**
-- En <form> deben estar todos los atributos que se han indicado en la plantilla con los valores indicados.
+- En <grid> deben estar todos los atributos que se han indicado en la plantilla con los valores indicados.
 - Excepciones:
   - Si se pueden crear nuevas entidades desde el grid, añadir `canNew="true" newButtonTitle="Nueva ley educativa"` 
   - Si no se pueden crear nuevas entidades desde el grid, añadir `canNew="false"` y no incluir el atributo `newButtonTitle`
@@ -37,7 +37,7 @@ Un grid es la vista tabular de Axelor para listar registros (filas) de un modelo
 
 ## Nombre de los grids
 
-El nombre de las vistas de grids es:       `{Prefijo}{Entidad}[.{EntidadHija}]*@[Main|Search|otro nombre]-grid`
+El nombre de las vistas de grids es:       `{Prefijo}.{Entidad}[.{EntidadHija}]*@[Main|Search|otro nombre]-grid`
 
 ### Prefijos
 

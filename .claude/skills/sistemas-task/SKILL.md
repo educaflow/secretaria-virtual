@@ -70,7 +70,8 @@ Solo si las vistas necesitan lógica disparada por botones o eventos de formular
 
 ## Paso 4 — Crear las vistas
 
-**Skills:** `/vistas-knowledge`, `/grids-task`, `/formularios-task`, `/actions-task`  
+**Skills de creación:** `/grids-task`, `/formularios-task`, `/actions-task`  
+**Referencia de vistas:** `/vistas-knowledge`  
 **Referencia de patrones:** `/sistemas-knowledge`
 
 Para cada entidad:
@@ -117,7 +118,7 @@ Si el sistema/subsistema necesita entradas de menú visibles al usuario:
 - [ ] Los ficheros de dominios están en `domains/` y siguen la convención XML de Axelor
 - [ ] Los servicios están en `service/` (interfaz) y `service/impl/` (implementación)
 - [ ] Los controladores están en `controller/` y solo exponen lógica hacia las vistas
-- [ ] Las vistas están en `views/` con nombres que siguen la convención `{Prefijo}{Entidad}@{Nombre}-{tipo}`
+- [ ] Las vistas están en `views/` con nombres que siguen la convención `{Prefijo}.{Entidad}@{Nombre}-{tipo}`
 - [ ] El menú (si existe) está en `secretariavirtual/menus/` y referencia actions que existen en `views/`
 - [ ] No se han creado ficheros `i18n_*.csv` a mano
 - [ ] No se han editado ficheros en `db/` salvo los de `db/repo/` (repositorios y listeners propios)

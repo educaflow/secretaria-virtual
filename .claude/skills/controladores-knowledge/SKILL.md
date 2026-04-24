@@ -1,6 +1,6 @@
 ---
 name: controladores-knowledge
-description: Skill para crear controladores de Axelor. El controlador expone métodos a las vistas Axelor.
+description: Referencia para desarrollar controladores de Axelor — estructura, tipos de método, ModelServiceFactory, ActionRequestHelper, ActionResponseHelper y reglas de diseño.
 ---
 
 # Guia para desarrollar Controladores en Axelor
@@ -13,7 +13,7 @@ Un controlador es un fichero Java que expone métodos públicos con `@CallMethod
 
 Referencias:
  * La referencia a los métodos ActionRequest están en [ActionRequest](references/ActionRequest.md)
- * La referencia a los métodos ActionResponse están en [ActionResponse](references.ActionResponse.md)
+ * La referencia a los métodos ActionResponse están en [ActionResponse](references/ActionResponse.md)
  * La referencia a como llamar al controlador desde las vistas Axelor con `<action-method>` está en [ActionMethod](references/action-method.md)
  * La referencia a la estructura de un controlador está en [Controller](references/controller.md)
 
@@ -94,7 +94,7 @@ import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
 ```
 
 ```java
-package com.educaflow.system.NombreSystema.controllers;
+package com.educaflow.{layer}.{nombre}.controller;
 
 import com.axelor.db.JpaRepository;
 import com.axelor.db.Repository;

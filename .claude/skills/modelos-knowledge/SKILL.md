@@ -1,10 +1,9 @@
 ---
 name: modelos-knowledge
-description: Crear un fichero XML de modelo de datos para Axelor a partir de una descripción en lenguaje natural o según un PDF con un formulario de datos
+description: Referencia completa del modelo de dominio XML de Axelor — entidades, atributos, tipos, relaciones, enumerados, finders, extra-code y convenciones de paquetes.
 ---
 
-Este skill permite generar un fichero XML de modelo de datos para Axelor a partir de una descripción en lenguaje natural o según un PDF con un formulario de datos. 
-El modelo de datos define las entidades, atributos, relaciones y validaciones necesarias para representar la información en el sistema Axelor.
+Referencia del modelo de dominio XML de Axelor. Define la estructura de entidades, atributos, relaciones y validaciones para representar la información en el sistema. Para crear o corregir modelos, usar `/modelos-task`.
 
 La descripción exacta del XML está descrita en [references/models.md](references/models.md) y en [references/repositories.md](references/repositories.md).
 

@@ -45,7 +45,7 @@ IMPORTANTE:
 - El panel de botones siempre debe incluir Borrar, Cancelar y Guardar salvo que se indique lo contrario o haya algo en el negocio que te haga pensar que no es necesario.
 
 ## Nombre de los formularios
-El nombre de las vistas de formularios es: `{Prefijo}{Entidad}[.{EntidadHija}]*@[Main|View|otro nombre]-form`
+El nombre de las vistas de formularios es: `{Prefijo}.{Entidad}[.{EntidadHija}]*@[Main|View|otro nombre]-form`
 
 Una excepción a esta convención es el caso de las vistas del framework de tipos de expediente, expedientes o trámites. En ese caso aun no se ha definido una convención de nombres específica, pero se ha decidido reservar el prefijo `exp-` para todas las vistas relacionadas con ese framework, de esa forma se pueden identificar fácilmente y no se solapan con las vistas de los subsistemas o sistemas funcionales. Por ejemplo, una vista de formulario para un tipo de expediente podría llamarse `exp-TipoExpediente@Main-form`.
 Otra excepción es el caso de formularios del propio Axelor que se modifican para adecuarlos a las necesidades del proyecto, en ese caso se pueden mantener los nombres originales de Axelor. Un ejemplo es el formulario 'user-preferences-form'
@@ -61,10 +61,10 @@ Otra excepción es el caso de formularios del propio Axelor que se modifican par
 | Caso                             | Patrón                                                 | Ejemplo                                             |
 |----------------------------------|--------------------------------------------------------|-----------------------------------------------------|
 | Pantalla principal               | `{Prefijo}.{Entidad}@Main-form`                        | `subsysSistemaEducativo.Ciclo@Main-form`            |
-| Pantalla de Solo lectura         | `{Prefijo}.{Entidad}@View-form`                        | `sysSistemaEducativo.Ciclo@View-form`               |
+| Pantalla de Solo lectura         | `{Prefijo}.{Entidad}@View-form`                        | `subsysSistemaEducativo.Ciclo@View-form`             |
 | Otra pantalla distinta           | `{Prefijo}.{Entidad}@{Nombre}-form`                    | `subsysSistemaEducativo.Ciclo@Pendiente-form`       |
-| Entidad anidada                  | `{Prefijo}.{EntidadPadre}.{EntidadHija}@Main-form`     | `sysSistemaEducativo.Ciclo.Curso@Main-form`         |
-| Entidad anidada de otra pantalla | `{Prefijo}.{EntidadPadre}.{EntidadHija}#{Nombre}-form` | `subsysSistemaEducativo.Ciclo.Curso@Pendiente-form` |
+| Entidad anidada                  | `{Prefijo}.{EntidadPadre}.{EntidadHija}@Main-form`     | `subsysSistemaEducativo.Ciclo.Curso@Main-form`      |
+| Entidad anidada de otra pantalla | `{Prefijo}.{EntidadPadre}.{EntidadHija}@{Nombre}-form` | `subsysSistemaEducativo.Ciclo.Curso@Pendiente-form` |
 
 **IMPORTANTE: Es obligatorio seguir esta convención de nombres para facilitar la trazabilidad, la lectura y el mantenimiento del código.**
 

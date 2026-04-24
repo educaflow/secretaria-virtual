@@ -37,7 +37,7 @@ Cada elemento debe seguir su patrón. Los prefijos son:
 - Ejemplo válido: `subsysFirma.TareaFirma@Pendiente-set-pasoActual-paso1Inicio-action`
 
 **action-attrs** → `{Prefijo}.{Entidad}[.{EntidadHija}]*@{Vista}-set-{campo}.{atributo}-{valor}-action`
-- Ejemplo válido: `subsysSistemaEducativo.LeyEducativa@Main-set-orderDate.readOnly-confirmed-action`
+- Ejemplo válido: `subsysSistemaEducativo.LeyEducativa@Main-set-orderDate.readonly-confirmed-action`
 
 **menuitem raíz** → `{Prefijo}-menuitem`
 - Ejemplo válido: `subsysFirma-menuitem`, `subsysSistemaEducativo-menuitem`

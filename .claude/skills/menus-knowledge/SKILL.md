@@ -11,7 +11,7 @@ Los menús de Axelor se definen con la etiqueta `<menuitem>` dentro de ficheros 
 src/main/java/com/educaflow/secretariavirtual/menus/
 ```
 
-El formato del fichero XML (namespace, schema) es el estándar de las vistas de Axelor. Ver skill `/vistas` para más detalles.
+El formato del fichero XML (namespace, schema) es el estándar de las vistas de Axelor. Ver skill `/vistas-knowledge` para más detalles.
 
 ## Nombre del fichero
 
@@ -43,7 +43,7 @@ Ejemplos:
 
 - El menuitem **raíz** (sección) no lleva `action` ni `parent`, solo `title` y `order`.
 - Los menuitems **hijo** llevan `parent` apuntando al nombre del menuitem raíz.
-- Los menuitems **hoja** llevan `action` apuntando a una `action-view`. Para la convención de nombres de las acciones, ver skill `/actions`.
+- Los menuitems **hoja** llevan `action` apuntando a una `action-view`. Para la convención de nombres de las acciones, ver skill `/actions-knowledge`.
 
 ## Convención de nombres de menuitems
 

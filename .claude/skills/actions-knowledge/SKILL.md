@@ -26,9 +26,9 @@ Acción para ser llamada desde los menús. Permite hacer un mantenimiento mostra
 Se pueden añadir parámetros para mostrar u ocultar toolbars, forzar edición, recargar el grid al guardar, etc.
 
 ```xml
-<action-view name="subsysFirma.TareaFirma@pendiente-action" title="Documentos pendientes de firma" model="com.educaflow.subsystem.firmas.db.TareaFirma">
-    <view type="grid" name="subsysFirma.TareaFirma@pendiente-grid"/>
-    <view type="form" name="subsysFirma.TareaFirma@pendiente-form"/>
+<action-view name="subsysFirma.TareaFirma@Pendiente-action" title="Documentos pendientes de firma" model="com.educaflow.subsystem.firmas.db.TareaFirma">
+    <view type="grid" name="subsysFirma.TareaFirma@Pendiente-grid"/>
+    <view type="form" name="subsysFirma.TareaFirma@Pendiente-form"/>
     <view-param name="show-toolbar-grid" value="false"/>
     <view-param name="show-toolbar-form" value="false"/>
     <view-param name="forceEdit" value="true"/>
@@ -110,7 +110,7 @@ Asignar un valor a un campo
 - El atributo `expr` del `field` es el valor que se le va a asignar al campo, en este caso el valor literal `paso1Inicio`.
 
 ```xml
-<action-record name="subsysSistemaEducativo.Ciclo.Curso@Main-ciclo-parent-action" model="com.educaflow.subsystem.sistemaeducativo.db.Curso">
+<action-record name="subsysSistemaEducativo.Ciclo.Curso@Main-set-ciclo-parent-action" model="com.educaflow.subsystem.sistemaeducativo.db.Curso">
     <field name="ciclo" expr="eval: __parent__"/>
 </action-record>
 
@@ -231,6 +231,8 @@ Permite ejecutar acciones complejas mediante un script en `js` o `groovy`. Se ut
   `subsysSistemaEducativo.LeyEducativa@Main-Remote-insertarFactura-action`
 - **`action-record`** — describe campo y valor con `set-{campo}-{valor}`:
   `subsysFirma.TareaFirma@Pendiente-set-nombre-Juan-action`
+- **`action-record` para `onNew`** en patrón Maestro-Detalle — sin `@{Vista}`, termina en `-onNew-action`:
+  `subsysActas.Acta.CalificacionAlumno-onNew-action`
 - **`action-attrs`** — describe campo y valor con `set-{campo}.{atributo}-{valor}`:
   `subsysFirma.TareaFirma@Pendiente-set-nombre.readonly-true-action`
 

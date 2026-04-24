@@ -42,7 +42,7 @@ Este skill sirve para diseñar y generar acciones de Axelor en ficheros XML de v
 - Establecer el nombre de la acción siguiendo la convención de nomenclatura que se ha creado para las acciones.(**Es especialmente importante seguir la nomenclatura**)
 - Establecer el resto de atributos de la acción según lo que se haya decidido en la fase de diseño.
 - Si es necesario establecer otras etiquetas que van dentro de cada acción, como por ejemplo las etiquetas de vista `<view type="grid|form" name="..."/>` para las acciones de tipo view `<action-view>`, o las etiquetas de acción `<action name="..."/>` para las acciones de tipo group `<action-group>`, etc. 
-- Al crear la etiqueta que sea en la posición en el fichero que se ha establecid
+- Al crear la etiqueta que sea en la posición en el fichero que se ha establecido
 - Actualizar los menús, grids o formularios (forms) para referenciar las acciones creadas en los eventos correspondientes (onSave, onChange, onNew, onLoad, onClick de botones, etc).
 
 ## Si la acción ya existe y hay que corregirla

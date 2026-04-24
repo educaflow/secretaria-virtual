@@ -64,7 +64,7 @@ El orden obligatorio dentro del fichero XML es:
 
 ## Checklist final
 
-- [ ] Todos los nombres de acciones siguen el patrón `{Prefijo}.{Entidad}@{Vista}-[prefijo]{explicacion}-action`
+- [ ] Todos los nombres de acciones siguen el patrón `{Prefijo}.{Entidad}[.{Entidad}]*@{Vista}-[prefijo]{explicacion}-action`
 - [ ] Los prefijos `Local-`, `Remote-` y `set-` se usan solo en los tipos de acción que corresponde
 - [ ] El tipo de acción elegido (etiqueta XML) es correcto para la funcionalidad implementada
 - [ ] El orden de acciones en el fichero respeta el orden obligatorio definido en `/actions-knowledge`

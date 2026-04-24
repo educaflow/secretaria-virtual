@@ -1,6 +1,6 @@
 ---
 name: servicios-knowledge
-description: Skill para crear servicios de negocio en EducaFlow Secretaría Virtual. Un servicio es un par interfaz + implementación que encapsula lógica de negocio, validaciones y persistencia. 
+description: Referencia para desarrollar servicios de negocio en EducaFlow — interfaz ModelService, implementación DefaultModelService, constructor obligatorio, validaciones, DTOs y descubrimiento automático.
 ---
 
 # Guía para desarrollar servicios de negocio en EducaFlow Secretaría Virtual
