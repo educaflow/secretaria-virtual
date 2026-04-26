@@ -3,18 +3,20 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="subsysImportacion@Main-action" title="Importación" model="com.educaflow.subsystem.importacion.db.TareaImportacion">
-        <view type="grid" name="subsysImportacion@Main-grid"/>
-        <view type="form" name="subsysImportacion@Main-form"/>
+    <action-view name="subsysImportacion.TareaImportacion@Main-action" title="Importación" model="com.educaflow.subsystem.importacion.db.TareaImportacion">
+        <view type="grid" name="subsysImportacion.TareaImportacion@Main-grid"/>
+        <view type="form" name="subsysImportacion.TareaImportacion@Main-form"/>
         <view-param name="forceEdit" value="true"/>
+        <view-param name="show-toolbar-form" value="false"/>
         <domain><![CDATA[:__user__ IN (SELECT u FROM User u WHERE u.group.code = 'admins') OR self.centro IN (SELECT cu.centro FROM CentroUsuario cu WHERE cu.usuario = :__user__ AND cu IN (SELECT cutu.centroUsuario FROM CentroUsuarioTipoUsuario cutu WHERE cutu.tipoUsuario IN (SELECT tu FROM TipoUsuario tu WHERE tu.code = 'ADMINISTRADOR')))]]></domain>
     </action-view>
 
-    <grid name="subsysImportacion@Main-grid" title="Tareas de importación"
+    <grid name="subsysImportacion.TareaImportacion@Main-grid" title="Tareas de importación"
           model="com.educaflow.subsystem.importacion.db.TareaImportacion"
           canNew="true" newButtonTitle="Importar nuevos datos"
-          orderBy="-createdOn"
-          canDelete="false" canSave="false" canEdit="false"
+          orderBy="-curso,-createdOn"
+          canRefresh="false" canAdvanceSearch="false" allowSearchFields="false"
+          editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"
           canEditOnClick="true"
     >
         <field name="tipoFichero" width="180px"/>
@@ -25,51 +27,62 @@
         <field name="createdOn" title="Fecha de importación" width="160px"/>
     </grid>
 
-    <form name="subsysImportacion@Main-form" title="Importar fichero"
+    <form name="subsysImportacion.TareaImportacion@Main-form" title="Importar fichero"
           model="com.educaflow.subsystem.importacion.db.TareaImportacion"
-          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false"
-          onNew="subsysImportacion@Main-set-usuario-action">
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="true" canMore="false"
+          onNew="subsysImportacion.TareaImportacion@Main-onNew-action">
 
         <panel title="" colSpan="12">
-            <field name="tipoFichero" colSpan="6" widget="SwitchSelect" required="true"/>
-            <field name="fichero" colSpan="6" required="true" widget="binary-link"/>
-            <field name="importLog" title=""
-                   colSpan="12" readonly="true" large="true" multiline="true"/>
+            <field name="tipoFichero" colSpan="6" widget="RadioSelect" x-direction="vertical" required="true"
+                   readonlyIf="id != null"/>
+            <field name="fichero" colSpan="6" required="true" widget="binary-link"
+                   readonlyIf="id != null"/>
+            <field name="centro"    colSpan="3" readonly="true" showIf="id != null"/>
+            <field name="curso"     colSpan="3" readonly="true" showIf="id != null"/>
+            <field name="usuario"   colSpan="3" readonly="true" showIf="id != null"/>
+            <field name="createdOn" colSpan="3" readonly="true" showIf="id != null" title="Fecha de importación"/>
+            <field name="importLog" colSpan="12" readonly="true" large="true" multiline="true" title=""
+                   showIf="id != null"/>
         </panel>
 
         <panel title="" colSpan="12" showFrame="false">
-            <button name="btnCancel" title="Cancelar" onClick="back" colSpan="2" colOffset="8" outline="true"/>
-            <button name="btnSave"   title="Importar"  onClick="serial:subsysImportacion@Main-importar-action,save,back" colSpan="2"/>
+            <button name="btnCancel" title="Cancelar" onClick="back" colSpan="2" colOffset="8" outline="true" hideIf="id != null"/>
+            <button name="btnSave"   title="Importar"  onClick="subsysImportacion.TareaImportacion@Main-btnSave-action" colSpan="2"
+                    readonlyIf="!tipoFichero || !fichero" hideIf="id != null"/>
+            <button name="btnAccept" title="Aceptar"  onClick="back" colSpan="2" colOffset="10" showIf="id != null"/>
         </panel>
     </form>
 
     <!-- *********************************************************************************************  -->
-    <!-- ************************ Acciones básicas que cambian campos simples ************************  -->
-    <!-- *********************************************************************************************  -->
-    <action-record name="subsysImportacion@Main-set-usuario-action" model="com.educaflow.subsystem.importacion.db.TareaImportacion">
-        <field name="usuario" expr="eval:__user__" />
-    </action-record>
-
-
-    <!-- *********************************************************************************************  -->
     <!-- ***************************** Acciones de las tareas principales ****************************  -->
     <!-- *********************************************************************************************  -->
-    <action-group name="subsysImportacion@Main-importar-action">
-        <!--<action name="subsysImportacion@Main-Remote-validarCentro-action"/>-->
-        <action name="subsysImportacion@Main-Remote-importarDatos-action"/>
+    <action-group name="subsysImportacion.TareaImportacion@Main-onNew-action">
+        <action name="subsysImportacion.TareaImportacion@Main-set-usuario-action"/>
+    </action-group>
+
+    <action-group name="subsysImportacion.TareaImportacion@Main-btnSave-action">
+        <action name="subsysImportacion.TareaImportacion@Main-Remote-importarDatos-action"/>
+        <action name="save"/>
+        <!--<action name="force-back"/>-->
     </action-group>
 
     <!-- *********************************************************************************************  -->
     <!-- ************************** Acciones de llamadas Remotas al servidor *************************  -->
     <!-- *********************************************************************************************  -->
-    <action-method name="subsysImportacion@Main-Remote-validarCentro-action"
+    <action-method name="subsysImportacion.TareaImportacion@Main-Remote-validarCentro-action"
                    model="com.educaflow.subsystem.importacion.db.TareaImportacion">
         <call class="com.educaflow.subsystem.importacion.controller.ImportacionController" method="validarCentro" />
     </action-method>
-    <action-method name="subsysImportacion@Main-Remote-importarDatos-action"
+    <action-method name="subsysImportacion.TareaImportacion@Main-Remote-importarDatos-action"
                    model="com.educaflow.subsystem.importacion.db.TareaImportacion">
         <call class="com.educaflow.subsystem.importacion.controller.ImportacionController" method="importarDatos" />
     </action-method>
 
+    <!-- *********************************************************************************************  -->
+    <!-- ************************ Acciones básicas que cambian campos simples ************************  -->
+    <!-- *********************************************************************************************  -->
+    <action-record name="subsysImportacion.TareaImportacion@Main-set-usuario-action" model="com.educaflow.subsystem.importacion.db.TareaImportacion">
+        <field name="usuario" expr="eval:__user__" />
+    </action-record>
 
 </object-views>

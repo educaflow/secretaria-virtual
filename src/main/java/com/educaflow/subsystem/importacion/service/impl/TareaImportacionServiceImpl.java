@@ -6,6 +6,7 @@ import com.axelor.inject.Beans;
 import com.educaflow.base.infrastructure.importer.DataImport;
 import com.educaflow.base.infrastructure.importer.FileImporter;
 import com.educaflow.base.infrastructure.importer.FileImporterFactory;
+import com.educaflow.base.infrastructure.importer.ImportValidationException;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessage;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
@@ -56,9 +57,8 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
             return businessMessages;
         } catch (BusinessException e) {
             throw e;
-        } catch (Exception e) {
-            logger.error("Error al importar el fichero", e);
-            throw new BusinessException(new BusinessMessage("Error al importar el fichero: " + e.getMessage()));
+        } catch (ImportValidationException e) {
+            throw new BusinessException(new BusinessMessage(e.getMessage()));
         }
     }
 

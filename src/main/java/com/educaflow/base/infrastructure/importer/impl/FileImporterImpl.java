@@ -6,6 +6,8 @@ import com.axelor.data.xml.XMLImporter;
 import com.educaflow.base.util.XmlUtil;
 import com.educaflow.base.infrastructure.importer.DataImport;
 import com.educaflow.base.infrastructure.importer.FileImporter;
+import com.educaflow.base.infrastructure.importer.ImportConfigException;
+import com.educaflow.base.infrastructure.importer.ImportValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -32,26 +34,17 @@ public class FileImporterImpl implements FileImporter {
     private final String DATA_FILE_NAME = "dataFile";
 
     @Override
-    public List<String> importFile(DataImport dataImport) {
-
+    public List<String> importFile(DataImport dataImport) throws ImportValidationException {
         List<String> importLog = new ArrayList<>();
         Path tempConfigFile = null;
 
         try {
-            byte[] dataFileContent = dataImport.data();
-
             if (dataImport.validationSchemaPath() != null) {
-                if (!ejecutarValidacion(dataFileContent, dataImport.validationSchemaPath(), importLog)) {
-                    return importLog;
-                }
+                validarEsquema(dataImport.data(), dataImport.validationSchemaPath());
             }
 
             tempConfigFile = crearFicheroTemporalFromResource(dataImport.configFilePath());
-
-            ejecutarImportacion(tempConfigFile, dataFileContent, importLog);
-        } catch (Exception e) {
-            logger.error("Error durante la importación del archivo", e);
-            throw new RuntimeException(e);
+            ejecutarImportacion(tempConfigFile, dataImport.data(), importLog);
         } finally {
             borrarArchivoTemporal(tempConfigFile);
         }
@@ -59,24 +52,18 @@ public class FileImporterImpl implements FileImporter {
         return importLog;
     }
 
-    private boolean ejecutarValidacion(byte[] content, String validationSchemaPath, List<String> log) {
-        Optional<String> result = validarConSchema(content, validationSchemaPath);
-        if (result.isPresent()) {
-            log.add("Error de validación XML: " + result.get());
-            return false;
-        }
-        return true;
-    }
-
-    private Optional<String> validarConSchema(byte[] dataFileContent, String validationSchemaPath) {
-        try (InputStream validationSchema = this.getClass().getResourceAsStream(validationSchemaPath);
-             InputStream archivoImportacion = new ByteArrayInputStream(dataFileContent)) {
-            if (validationSchema == null) {
-                return Optional.of("No se pudo cargar el esquema de validación desde la ruta: " + validationSchemaPath);
+    private void validarEsquema(byte[] content, String schemaPath) throws ImportValidationException {
+        try (InputStream schema = getClass().getResourceAsStream(schemaPath);
+             InputStream data = new ByteArrayInputStream(content)) {
+            if (schema == null) {
+                throw new ImportConfigException("Esquema de validación no encontrado: " + schemaPath);
             }
-            return XmlUtil.validarConSchema(archivoImportacion, validationSchema);
+            Optional<String> error = XmlUtil.validarConSchema(data, schema);
+            if (error.isPresent()) {
+                throw new ImportValidationException("El fichero XML no es válido: " + error.get());
+            }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ImportConfigException("Error leyendo el esquema de validación: " + schemaPath, e);
         }
     }
 
@@ -92,7 +79,8 @@ public class FileImporterImpl implements FileImporter {
         importer.setContext(context);
         importer.addListener(new ListenerImpl(log));
 
-        ImportTask task = new ImportTaskImpl();
+        ImportTask task = new ImportTaskImpl(log);
+
         task.input(DATA_FILE_NAME, new ByteArrayInputStream(data));
 
         importer.run(task);
@@ -107,9 +95,8 @@ public class FileImporterImpl implements FileImporter {
 
             return xPath.evaluate("//input[1]/@root", doc);
         } catch (Exception e) {
-            logger.error("Error leyendo el root de la configuración", e);
+            throw new ImportConfigException("Error leyendo la configuración de importación", e);
         }
-        return null;
     }
 
     private void extraerAtributosNodoAlContexto(byte[] xmlContent, String targetNode, Map<String, Object> context) {
@@ -133,20 +120,22 @@ public class FileImporterImpl implements FileImporter {
             });
         } catch (SAXException e) {
             if (!"STOP_PARSING".equals(e.getMessage())) {
-                logger.warn("Excepción SAX inesperada: {}", e.getMessage());
+                throw new ImportConfigException("Error SAX extrayendo atributos del nodo '" + targetNode + "'", e);
             }
         } catch (Exception e) {
-            logger.error("Error crítico extrayendo atributos de {}", targetNode, e);
+            throw new ImportConfigException("Error extrayendo atributos del nodo '" + targetNode + "'", e);
         }
     }
 
-    private Path crearFicheroTemporalFromResource(String resourcePath) throws IOException {
-        try (InputStream is = this.getClass().getResourceAsStream(resourcePath)) {
-            if (is == null) throw new FileNotFoundException("No se encontró: " + resourcePath);
+    private Path crearFicheroTemporalFromResource(String resourcePath) {
+        try (InputStream is = getClass().getResourceAsStream(resourcePath)) {
+            if (is == null) throw new ImportConfigException("Fichero de configuración no encontrado: " + resourcePath);
 
             Path temp = Files.createTempFile("import-config-", ".xml");
             Files.copy(is, temp, StandardCopyOption.REPLACE_EXISTING);
             return temp;
+        } catch (IOException e) {
+            throw new ImportConfigException("Error creando fichero temporal de configuración: " + resourcePath, e);
         }
     }
 

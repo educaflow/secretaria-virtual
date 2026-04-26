@@ -19,7 +19,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ImportacionController {
 
@@ -35,26 +37,34 @@ public class ImportacionController {
         TareaImportacionService tareaImportacionService = (TareaImportacionService) modelServiceFactory.resolve(TareaImportacion.class);
 
         List<String> logs = new ArrayList<>();
-
         TareaImportacion tareaImportacion = getModelo(request, TareaImportacion.class);
 
         try {
             BusinessMessages businessMessages = tareaImportacionService.importar(tareaImportacion);
-            for (BusinessMessage businessMessage: businessMessages) {
+            for (BusinessMessage businessMessage : businessMessages) {
                 logs.add(businessMessage.getMessage());
                 logger.info("Mensaje de importación: {}", businessMessage.getMessage());
             }
-            response.setValue(FIELD_IMPORT_LOG, String.join(System.lineSeparator(), logs));
-            response.setValue("centro", tareaImportacion.getCentro());
+            String logText = String.join(System.lineSeparator(), logs);
+            response.setValue(FIELD_IMPORT_LOG, logText);
+            if (tareaImportacion.getCentro() != null) {
+                response.setValue("centro", Collections.singletonMap("id", tareaImportacion.getCentro().getId()));
+            }
             response.setValue("curso", tareaImportacion.getCurso());
-            response.setNotify("Proceso de importación finalizado con éxito.");
+            response.setAlert(logText);
         } catch (BusinessException e) {
-            logger.error("Error durante la importación", e);
+            String errorText = e.getBusinessMessages().stream()
+                    .map(BusinessMessage::getMessage)
+                    .collect(Collectors.joining(System.lineSeparator()));
+            logger.error("Error durante la importación: {}", errorText);
             limpiarCampo(response, tareaImportacion.getFichero(), "fichero", false);
-            response.setError("Error durante la importación: " + e.getMessage());
-        } /*finally {
-            limpiarCampo(response, tareaImportacion.getFichero(), "fichero", true);
-        }*/
+            response.setValue(FIELD_IMPORT_LOG, errorText);
+            response.setError(errorText);
+        } catch (Exception e) {
+            logger.error("Error inesperado durante la importación", e);
+            limpiarCampo(response, tareaImportacion.getFichero(), "fichero", false);
+            response.setError("Error inesperado: " + e.getMessage());
+        }
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

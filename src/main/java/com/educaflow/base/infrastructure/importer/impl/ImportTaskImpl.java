@@ -2,35 +2,36 @@ package com.educaflow.base.infrastructure.importer.impl;
 
 import com.axelor.data.ImportException;
 import com.axelor.data.ImportTask;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.educaflow.base.infrastructure.importer.ImportConfigException;
 
 import java.io.IOException;
+import java.util.List;
 
 public class ImportTaskImpl extends ImportTask {
 
-    private static final Logger logger = LoggerFactory.getLogger(ImportTask.class);
+    private final List<String> log;
+
+    ImportTaskImpl(List<String> log) {
+        this.log = log;
+    }
 
     @Override
     public void configure() throws IOException {
-
     }
 
     @Override
     public boolean handle(ImportException exception) {
-        logger.error("Import error: " + exception);
+        log.add("Error en importación: " + exception.getMessage());
         return true;
     }
 
     @Override
     public boolean handle(IOException exception) {
-        logger.error("IOException error: " + exception);
-        return false;
+        throw new ImportConfigException("Error de E/S durante la importación", exception);
     }
 
     @Override
     public boolean handle(ClassNotFoundException exception) {
-        logger.error("ClassNotFoundException: " + exception);
-        return false;
+        throw new ImportConfigException("Clase no encontrada durante la importación", exception);
     }
 }
