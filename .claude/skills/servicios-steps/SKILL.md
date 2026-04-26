@@ -1,9 +1,9 @@
 ---
-name: servicios-task
+name: servicios-steps
 description: Skill para crear o corregir servicios de negocio en EducaFlow. Un servicio es una interfaz que extiende ModelService<T> y una implementación que extiende DefaultModelService<T>.
 ---
 
-# servicios-task
+# servicios-steps
 
 ## Servicios de Axelor: diseño, generación y corrección
 - Este skill sirve para diseñar, generar o corregir servicios Java de EducaFlow.

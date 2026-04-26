@@ -1,5 +1,5 @@
 ---
-name: formularios-task
+name: formularios-steps
 description: Este skill sirve para diseñar, generar o coregir formularios dentro de ficheros XML de vistas de Axelor con la etiqueta  `<form>`  a partir de un modelo de dominio (entidad). 
 ---
 

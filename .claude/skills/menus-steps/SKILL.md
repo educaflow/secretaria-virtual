@@ -1,5 +1,5 @@
 ---
-name: menus-task
+name: menus-steps
 description: Usa este skill cuando el usuario quiera crear o modificar entradas de menú (menuitem) en Axelor. Los menús se definen en ficheros XML dentro de secretariavirtual/menus/.
 ---
 

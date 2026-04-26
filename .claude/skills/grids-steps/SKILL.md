@@ -1,5 +1,5 @@
 ---
-name: grids-task
+name: grids-steps
 description: Este skill sirve para diseñar, generar o coregir dentro de ficheros XML de vistas de Axelor la etiqueta  `<grid>` de Axelor a partir de un modelo de dominio (entidad). 
 ---
 

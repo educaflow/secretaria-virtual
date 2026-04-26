@@ -94,7 +94,7 @@ registroentradasalida/
 
 ## Ficheros de vistas XML
 
-> Para crear o modificar el contenido de los ficheros XML de vistas usa los skills `/vistas-task`, `/formularios-task`, `/grids-task` y `/actions-task`.
+> Para crear o modificar el contenido de los ficheros XML de vistas usa los skills `/vistas-steps`, `/formularios-steps`, `/grids-steps` y `/actions-steps`.
 
 Los ficheros de vistas se ubican en la carpeta `views/` del sistema o subsistema. Los ficheros de vistas se nombran siguiendo la convención:
 - `subsystem/<nombre>/views/<NombreEntidad>.xml`
@@ -150,10 +150,10 @@ Cuando se crea o modifica un sistema/subsistema, seguir este orden:
 1. **Analiza** qué hay que crear: dominio, servicios, controladores, vistas, menús
 2. **Lee los ficheros existentes** antes de generar nada — modelo, vistas del sistema o subsistema, menús, etc.
 3. **Decide el patrón estructural** de vistas a aplicar (ver sección siguiente)
-4. **Genera o modifica el dominio** usando el skill `/modelos-task`
-5. **Genera o modifica los servicios** usando el skill `/servicios-task`
-6. **Genera o modifica los controladores** usando el skill `/controladores-task`
-7. **Genera o modifica las vistas** usando los skills `/vistas-task`, `/formularios-task`, `/grids-task` y `/actions-task`
+4. **Genera o modifica el dominio** usando el skill `/modelos-steps`
+5. **Genera o modifica los servicios** usando el skill `/servicios-steps`
+6. **Genera o modifica los controladores** usando el skill `/controladores-steps`
+7. **Genera o modifica las vistas** usando los skills `/vistas-steps`, `/formularios-steps`, `/grids-steps` y `/actions-steps`
 8. **Verifica la coherencia** entre todas las referencias (menuitems → actions → vistas → modelo)
 
 ## Patrones estructurales de vistas

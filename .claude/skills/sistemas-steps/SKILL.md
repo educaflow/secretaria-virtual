@@ -1,9 +1,9 @@
 ---
-name: sistemas-task
+name: sistemas-steps
 description: Pasos para construir un sistema o subsistema completo en EducaFlow — modelo, servicios, controladores y vistas.
 ---
 
-# sistemas-task
+# sistemas-steps
 
 ## Pasos para construir un sistema o subsistema
 
@@ -22,7 +22,7 @@ Consultar `/sistemas-knowledge` para la distinción completa.
 
 ## Paso 1 — Crear el modelo de datos
 
-**Skill:** `/modelos-task`
+**Skill:** `/modelos-steps`
 
 Para cada entidad del sistema/subsistema:
 
@@ -36,7 +36,7 @@ El build generará automáticamente las clases Java en `db/`. No crear esas clas
 
 ## Paso 2 — Crear los servicios
 
-**Skill:** `/servicios-task`
+**Skill:** `/servicios-steps`
 
 Para cada entidad que necesite lógica de negocio (validaciones, efectos secundarios, operaciones complejas):
 
@@ -53,7 +53,7 @@ Si la entidad no necesita lógica de negocio adicional, no hace falta servicio p
 
 ## Paso 3 — Crear los controladores
 
-**Skill:** `/controladores-task`
+**Skill:** `/controladores-steps`
 
 Solo si las vistas necesitan lógica disparada por botones o eventos de formulario:
 
@@ -70,7 +70,7 @@ Solo si las vistas necesitan lógica disparada por botones o eventos de formular
 
 ## Paso 4 — Crear las vistas
 
-**Skills de creación:** `/grids-task`, `/formularios-task`, `/actions-task`  
+**Skills de creación:** `/grids-steps`, `/formularios-steps`, `/actions-steps`  
 **Referencia de vistas:** `/vistas-knowledge`  
 **Referencia de patrones:** `/sistemas-knowledge`
 
@@ -92,7 +92,7 @@ Convención de nombres de vistas y actions: consultar `/sistemas-knowledge` (sec
 
 ## Paso 5 — Crear el menú (si es necesario)
 
-**Skill:** `/menus-task`
+**Skill:** `/menus-steps`
 
 Si el sistema/subsistema necesita entradas de menú visibles al usuario:
 

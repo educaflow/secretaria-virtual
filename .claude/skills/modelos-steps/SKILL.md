@@ -1,9 +1,9 @@
 ---
-name: modelos-task
+name: modelos-steps
 description: Skill para crear o corregir ficheros XML de modelo de datos para Axelor a partir de una descripción en lenguaje natural o de un PDF con un formulario de datos.
 ---
 
-# modelos-task
+# modelos-steps
 
 ## Modelos de dominio Axelor: diseño, generación y corrección
 - Este skill sirve para diseñar, generar o corregir ficheros XML de modelo de datos de Axelor.

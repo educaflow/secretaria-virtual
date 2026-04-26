@@ -3,7 +3,7 @@ name: modelos-knowledge
 description: Referencia completa del modelo de dominio XML de Axelor — entidades, atributos, tipos, relaciones, enumerados, finders, extra-code y convenciones de paquetes.
 ---
 
-Referencia del modelo de dominio XML de Axelor. Define la estructura de entidades, atributos, relaciones y validaciones para representar la información en el sistema. Para crear o corregir modelos, usar `/modelos-task`.
+Referencia del modelo de dominio XML de Axelor. Define la estructura de entidades, atributos, relaciones y validaciones para representar la información en el sistema. Para crear o corregir modelos, usar `/modelos-steps`.
 
 La descripción exacta del XML está descrita en [references/models.md](references/models.md) y en [references/repositories.md](references/repositories.md).
 

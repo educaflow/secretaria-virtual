@@ -1,9 +1,9 @@
 ---
-name: vistas-task
+name: vistas-steps
 description: Pasos para crear o modificar ficheros XML de vistas de Axelor — grids, formularios, acciones y menús.
 ---
 
-# vistas-task
+# vistas-steps
 
 ## Vistas de Axelor: creación y modificación
 
@@ -14,10 +14,10 @@ description: Pasos para crear o modificar ficheros XML de vistas de Axelor — g
 ## Tareas a realizar
 
 1. **Identificar los ficheros de vistas** que hay que crear o modificar y en qué carpeta `views/` van.
-2. **Identificar los grids** necesarios y en qué fichero van → usar `/grids-task`.
-3. **Identificar los formularios** necesarios y en qué fichero van → usar `/formularios-task`.
-4. **Identificar las acciones** necesarias (botones, onSave, onChange, onLoad, action-view...) → usar `/actions-task`.
-5. **Identificar los menús** si los hay → usar `/menus-task`.
+2. **Identificar los grids** necesarios y en qué fichero van → usar `/grids-steps`.
+3. **Identificar los formularios** necesarios y en qué fichero van → usar `/formularios-steps`.
+4. **Identificar las acciones** necesarias (botones, onSave, onChange, onLoad, action-view...) → usar `/actions-steps`.
+5. **Identificar los menús** si los hay → usar `/menus-steps`.
 
 ## Al crear un fichero de vistas nuevo
 

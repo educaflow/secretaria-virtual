@@ -198,27 +198,28 @@ Permite ejecutar acciones complejas mediante un script en `js` o `groovy`. Se ut
 ## Convenciones de nombres para las acciones
 
 ```
-{Prefijo}.{Entidad}[.{Entidad}]*@{Vista}-[Local-|Remote-|set-]{explicacion}-action
+{Prefijo}.{Entidad}[.{Entidad}]*@{Vista}-[{evento}|Local-{nombreValidacion}|Remote-{nombreFuncionJava}|set-{asignacion}]-action
 ```
 
 
-| Parte           | Descripción                                                                                | Ejemplo                                                                    |
-| --------------- |--------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| `{Prefijo}`     | `subsys{Subsistema}` para subsistemas, `sys{Sistema}` para sistemas                        | `subsysSistemaEducativo`, `subsysFirma`                                    |
-| `{Entidad}`     | Nombre exacto de la clase Java                                                             | `LeyEducativa`, `TareaFirma`                                               |
-| `@{Vista}`      | Identificador del contexto de vista                                                        | `@Main`, `@Pendiente`, `@Firmado`                                          |
-| `Local-`        | Prefijo para validaciones client-side (`action-validate` o `action-condition`)             | `Local-validateSave`                                                       |
-| `Remote-`       | Prefijo para llamadas al servidor (`action-method` o `action-script`)                      | `Remote-validateSave`                                                      |
-| `set-`          | Prefijo para asignar valores a campos o a atributos (`<action-record>` o `<action-attrs>`) | `set-btnClose.title-Cerrar`                                                |
-| `{explicacion}` | Descripción de la accion. Este valor depende de la acción concreta                         | `validateSave`, `marcarComoFirmada`, `nombre.readonly-true`, `centro-null` |
-| `-action`       | Sufijo fijo siempre al final                                                               |                                                                            |
+| Parte                            | Descripción                                                                     | Ejemplo                                         |
+|----------------------------------|---------------------------------------------------------------------------------|-------------------------------------------------|
+| `{Prefijo}`                      | `subsys{Subsistema}` para subsistemas, `sys{Sistema}` para sistemas             | `subsysSistemaEducativo`, `subsysFirma`         |
+| `{Entidad}`                      | Nombre exacto de la clase Java                                                  | `LeyEducativa`, `TareaFirma`                    |
+| `@{Vista}`                       | Identificador del contexto de vista                                             | `@Main`, `@Pendiente`, `@Firmado`               |
+| `{evento}`                       | Sin prefijo: evento o botón para `action-group` (`on{Evento}` o `btn{Nombre}`)  | `onLoad`, `btnSave`                             |
+| `Local-{nombreValidacion}`       | Validación client-side (`action-validate` o `action-condition`)                 | `Local-validateSave`                            |
+| `Remote-{nombreFuncionJava}`     | Llamada a función Java en el servidor (`action-method` o `action-script`)       | `Remote-marcarComoFirmada`                      |
+| `set-{campo}-{valor}`            | Asigna un valor a un campo (`<action-record>`)                                  | `set-centro-null`                               |
+| `set-{campo}.{atributo}-{valor}` | Modifica un atributo de un campo (`<action-attrs>`)                             | `set-apellidos.readonly-true`                   |
+| `-action`                        | Sufijo fijo siempre al final                                                    |                                                 |
 
 ### Ejemplos de nombres
 
 - **`action-view`**
   `subsysSistemaEducativo.LeyEducativa@Main-action`
   `subsysFirma.TareaFirma.DocumentoFirmado@Pendiente-action`
-- **`action-group`** — orquestador público, sin prefijo `Local`/`Remote`:
+- **`action-group`** — orquestador público, tiene el nombre del evento que ocurre (onSave, onNew, onLoad, etc.) o del botón que lo dispara (btnSave, btnCancel, etc.):
   `subsysSistemaEducativo.LeyEducativa@Main-btnSave-action`
   `subsysSistemaEducativo.LeyEducativa@Main-onNew-action`
   `subsysSistemaEducativo.LeyEducativa@Main-btnCancel-action`
@@ -227,12 +228,10 @@ Permite ejecutar acciones complejas mediante un script en `js` o `groovy`. Se ut
   `subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action`
 - **`action-method`** — siempre con prefijo `Remote-` ya que son llamadas a métodos Java en el servidor
   `subsysSistemaEducativo.LeyEducativa@Main-Remote-validateSave-action`
-- **`action-script`** — siempre con prefijo `Remote-` ya que son llamadas a métodos en el servidor
+- **`action-script`** — siempre con prefijo `Remote-` ya que son scripts Groovy ejecutados en el servidor
   `subsysSistemaEducativo.LeyEducativa@Main-Remote-insertarFactura-action`
 - **`action-record`** — describe campo y valor con `set-{campo}-{valor}`:
   `subsysFirma.TareaFirma@Pendiente-set-nombre-Juan-action`
-- **`action-record` para `onNew`** en patrón Maestro-Detalle — sin `@{Vista}`, termina en `-onNew-action`:
-  `subsysActas.Acta.CalificacionAlumno-onNew-action`
 - **`action-attrs`** — describe campo y valor con `set-{campo}.{atributo}-{valor}`:
   `subsysFirma.TareaFirma@Pendiente-set-nombre.readonly-true-action`
 

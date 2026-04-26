@@ -1,5 +1,5 @@
 ---
-name: actions-task
+name: actions-steps
 description: Dado un fichero de vistas de Axelor en XML, permite añadir acciones (actions) a las vistas. Los tag de las acciones son: '<action-view>','<action-method>','<action-attrs>','<action-record>','<action-group>','<action-validate>','<action-condition>' y '<action-script>'.
 ---
 

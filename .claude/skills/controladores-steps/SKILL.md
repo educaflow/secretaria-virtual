@@ -1,9 +1,9 @@
 ---
-name: controladores-task
+name: controladores-steps
 description: Skill para crear o corregir controladores de Axelor. El controlador expone métodos con @CallMethod a las vistas Axelor y delega toda la lógica de negocio en los servicios.
 ---
 
-# controladores-task
+# controladores-steps
 
 ## Controladores de Axelor: diseño, generación y corrección
 - Este skill sirve para diseñar, generar o corregir controladores Java de Axelor.
