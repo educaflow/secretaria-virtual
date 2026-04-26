@@ -24,7 +24,8 @@ Patrón obligatorio: `{Prefijo}.{Entidad}[.{Entidad}]*@{Vista}-[Local-|Remote-|s
 - [ ] Las `<action-validate>` y `<action-condition>` llevan prefijo `Local-` (son validaciones client-side).
 - [ ] Las `<action-method>` y `<action-script>` llevan prefijo `Remote-` (son llamadas al servidor).
 - [ ] Las `<action-record>` y `<action-attrs>` llevan prefijo `set-` con la forma `set-{campo}-{valor}` o `set-{campo}.{atributo}-{valor}`.
-- [ ] Las `<action-group>` y `<action-view>` no llevan ningún prefijo `Local-`/`Remote-`/`set-`.
+- [ ] Las `<action-group>` llevan el nombre de un evento o nombre de un botón (`onSave`, `onChange`, `onNew`, etc)
+- [ ] Las`<action-view>` no llevan ningún prefijo `Local-`/`Remote-`/`set-`.
 - [ ] Todas las acciones terminan con el sufijo `-action`.
 
 ## Tipos y estructura interna
@@ -34,8 +35,9 @@ Patrón obligatorio: `{Prefijo}.{Entidad}[.{Entidad}]*@{Vista}-[Local-|Remote-|s
 - [ ] `<action-view>`: si el grid no tiene botón nuevo, lleva `<view-param name="show-toolbar-grid" value="false"/>`.
 - [ ] `<action-method>`: el atributo `class` apunta a una clase Java real con el método indicado en `method`.
 - [ ] `<action-method>`: el método Java referenciado lleva `@CallMethod`.
-- [ ] Todas las acciones referenciadas desde botones, eventos (`onSave`, `onChange`, `onLoad`, `onNew`) u otras acciones existen en algún fichero XML del proyecto.
+- [ ] Todas las acciones referenciadas desde botones, eventos (`onSave`, `onChange`, `onLoad`, `onNew`) u otras acciones existen en algún fichero XML del proyecto. Y referencian a acciones de tipo `<action-group>`
 - [ ] Todas las acciones definidas son referenciadas por alguien (no hay acciones huérfanas).
+- [ ] En un "onClick" solo se ejecuta la accion del `<action-group>`, no se ejecutan otras acciones directamente desde el botón. La única excepción es que antes de ella haya que euecutar una ccion remota relacionada con la firma y obligatoriamente se pondrá "serial:accion-remota-firma,accion-de-grupo" 
 
 ## Orden de acciones en el fichero
 
@@ -64,7 +66,7 @@ El orden obligatorio dentro del fichero XML es:
 
 ## Checklist final
 
-- [ ] Todos los nombres de acciones siguen el patrón `{Prefijo}.{Entidad}[.{Entidad}]*@{Vista}-[prefijo]{explicacion}-action`
+- [ ] Todos los nombres de acciones siguen el patrón `{Prefijo}.{Entidad}[.{Entidad}]*@{Vista}-[{evento}|Local-{nombreValidacion}|Remote-{nombreFuncionJava}|set-{asignacion}]-action`
 - [ ] Los prefijos `Local-`, `Remote-` y `set-` se usan solo en los tipos de acción que corresponde
 - [ ] El tipo de acción elegido (etiqueta XML) es correcto para la funcionalidad implementada
 - [ ] El orden de acciones en el fichero respeta el orden obligatorio definido en `/actions-knowledge`
