@@ -62,3 +62,7 @@ La plantilla exige todos estos atributos. Los valores por defecto indicados pued
 - [ ] Exactamente uno de `canEditOnClick` o `canViewOnClick` está presente
 - [ ] Todos los campos `<field>` existen en el modelo de dominio
 - [ ] El orden de los campos es lógico para el usuario (código/nombre primero)
+
+## Resultado
+
+Si todos los checks del checklist final están bien, mostrar únicamente: **OK-No hay problemas**

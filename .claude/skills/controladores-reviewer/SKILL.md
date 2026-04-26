@@ -68,3 +68,7 @@ Verificar que los controladores Java creados o modificados siguen las reglas def
 - [ ] Los errores de negocio usan `ActionResponseHelper` (nunca `AxelorViewUtil`)
 - [ ] Los imports apuntan a `com.educaflow.base.infrastructure.axelorhelper.*`
 - [ ] Los `<action-method>` en las vistas XML referencian correctamente clase y método
+
+## Resultado
+
+Si todos los checks del checklist final están bien, mostrar únicamente: **OK-No hay problemas**

@@ -71,3 +71,7 @@ El orden obligatorio dentro del fichero XML es:
 - [ ] Existen los cuatro bloques de comentarios separadores donde corresponde
 - [ ] Todas las referencias a acciones apuntan a acciones que existen
 - [ ] Ninguna acción queda sin ser llamada desde ningún sitio
+
+## Resultado
+
+Si todos los checks del checklist final están bien, mostrar únicamente: **OK-No hay problemas**

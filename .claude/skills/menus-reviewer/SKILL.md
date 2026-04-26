@@ -68,3 +68,7 @@ Patrón: `{Prefijo}[-menuitem | .{Entidad}@{Vista}-menuitem | -{concepto}-menuit
 - [ ] Ninguna `action-view` está definida dentro del fichero de menú
 - [ ] Los valores de `order` son únicos dentro de cada nivel y son coherentes con el orden visual deseado
 - [ ] Los títulos son claros y comprensibles para el usuario final
+
+## Resultado
+
+Si todos los checks del checklist final están bien, mostrar únicamente: **OK-No hay problemas**

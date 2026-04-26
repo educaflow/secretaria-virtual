@@ -65,3 +65,7 @@ Los nombres deben seguir el patrón `{Prefijo}.{Entidad}[.{EntidadHija}]*@{Nombr
 - [ ] No se han creado ni modificado `i18n_*.csv` manualmente
 - [ ] Los `<menuitem>` globales están en `secretariavirtual/menus/`, no en `views/`
 - [ ] Todos los nombres de vistas siguen la convención `{Prefijo}.{Entidad}@{Nombre}-{tipo}`
+
+## Resultado
+
+Si todos los checks del checklist final están bien, mostrar únicamente: **OK-No hay problemas**

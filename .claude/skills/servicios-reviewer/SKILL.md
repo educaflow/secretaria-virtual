@@ -81,3 +81,7 @@ Verificar que los servicios Java (interfaz + implementación) creados o modifica
 - [ ] La implementación está en `service.impl.*ServiceImpl` para descubrimiento automático
 - [ ] Si hay DTO de inserción, es un `record` con validaciones de nulos en el constructor compacto
 - [ ] No existe módulo Guice ni binding explícito para registrar este servicio
+
+## Resultado
+
+Si todos los checks del checklist final están bien, mostrar únicamente: **OK-No hay problemas**

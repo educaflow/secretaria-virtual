@@ -65,3 +65,7 @@ Verificar que los ficheros XML de modelo de dominio creados o modificados siguen
 - [ ] Los enumerados referenciados están definidos en el mismo fichero
 - [ ] El paquete del `<module>` es `com.educaflow.{layer}.{subsistema}.db`
 - [ ] No se han editado manualmente ficheros en `db/` (solo en `db/repo/` si es un repositorio o listener)
+
+## Resultado
+
+Si todos los checks del checklist final están bien, mostrar únicamente: **OK-No hay problemas**

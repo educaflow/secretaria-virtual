@@ -87,3 +87,7 @@ La plantilla exige todos estos atributos con los valores indicados, salvo que el
 - [ ] El panel de botones existe, con la disposición correcta de botones primarios y secundarios
 - [ ] Los `<panel-related>` llevan todos los atributos obligatorios y sus referencias existen
 - [ ] Las referencias a grids, forms y actions desde los campos y botones apuntan a elementos que existen
+
+## Resultado
+
+Si todos los checks del checklist final están bien, mostrar únicamente: **OK-No hay problemas**
