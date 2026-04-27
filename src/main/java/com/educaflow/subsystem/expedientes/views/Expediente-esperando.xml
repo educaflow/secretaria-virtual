@@ -5,14 +5,12 @@
 
 
 
-    <menuitem name="subsysExpedientes-esperando-menuitem" parent="subsysExpedientes-menuitem" title="Expedientes Esperando" action="subsysExpedientes.Expediente-esperando-action" groups="admins,users" order="202"/>
-
-    <action-view name="subsysExpedientes.Expediente-esperando-action" title="Expedientes esperando a que otra persona realice una tarea"  model="com.educaflow.subsystem.expedientes.db.Expediente" >
-        <view type="tree" name="subsysExpedientes.Expediente-esperando-tree"  />
+    <action-view name="subsysExpedientes.Expediente@Esperando-action" title="Expedientes esperando a que otra persona realice una tarea"  model="com.educaflow.subsystem.expedientes.db.Expediente" >
+        <view type="tree" name="subsysExpedientes.Expediente@Esperando-tree"  />
         <context name="_profile" expr="RESPONSABLE"/>
     </action-view>
 
-    <grid name="subsysExpedientes.Expediente-esperando-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
+    <grid name="subsysExpedientes.Expediente@Esperando-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
           groups="admins,users"
           groupBy="tipoExpediente.tramite.name"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false"
@@ -27,7 +25,7 @@
     </grid>
 
 
-    <tree name="subsysExpedientes.Expediente-esperando-tree" title="Expedientes">
+    <tree name="subsysExpedientes.Expediente@Esperando-tree" title="Expedientes">
 
         <column name="name" />
         <column name="numeroExpediente" width="100px" title="Número Expediente" />

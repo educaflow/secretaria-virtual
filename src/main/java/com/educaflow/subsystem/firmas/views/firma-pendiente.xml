@@ -4,6 +4,18 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
 
+    <action-view name="subsysFirma.TareaFirma@Pendiente-action" title="Documentos pendientes de firma" model="com.educaflow.subsystem.firmas.db.TareaFirma">
+        <view type="grid" name="subsysFirma.TareaFirma@Pendiente-grid"/>
+        <view type="form" name="subsysFirma.TareaFirma@Pendiente-form"/>
+        <view-param name="show-toolbar-grid" value="false"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="forceEdit" value="true"/>
+        <view-param name="reload-grid" value="true"/>
+        <domain>self.estadoTareaFirma= :estadoTareaFirma and firmante.id= :firmanteId</domain>
+        <context name="estadoTareaFirma" expr="PENDIENTE"/>
+        <context name="firmanteId" expr="eval:__user__.id"/>
+    </action-view>
+
     <grid name="subsysFirma.TareaFirma@Pendiente-grid" title="Firmas" model="com.educaflow.subsystem.firmas.db.TareaFirma"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="true" canDelete="false" canSave="false"
           orderBy="fechaSolicitud" canEditOnClick="true"
@@ -47,7 +59,7 @@
 
         <panel name="paso2Firmar" title="Firmar el documento" colSpan="12"  showIf="pasoActual=='paso2Firmar'">
             <help variant="info" colSpan="12" colOffset="0" ><![CDATA[Para firmar los documentos debe tener la aplicación de <a href="https://sede.serviciosmin.gob.es/es-es/firmaelectronica/paginas/autofirma.aspx" target="_blank">AutoFirma</a> instalada y un certificado digital válido.]]></help>
-            <button name="btnPaso2FirmarAtras"      onClick="subsysFirma.TareaFirma@Pendiente-btnPaso2RechazadoAtras-action"  title="Atrás"   css="btn-secondary" colSpan="3" outline="true" />
+            <button name="btnPaso2FirmarAtras"      onClick="subsysFirma.TareaFirma@Pendiente-btnPaso2FirmarAtras-action"  title="Atrás"   css="btn-secondary" colSpan="3" outline="true" />
             <button name="btnPaso2FirmarGuardar"    onClick="serial:subsysFirma.TareaFirma@Pendiente-Remote-firmarDocumentosConAutoFirma-action,subsysFirma.TareaFirma@Pendiente-btnPaso2FirmarGuardar-action" title="Firmar todos los documentos con AutoFirma__!! y finalizar"      colSpan="5" colOffset="4"  />
         </panel>
     </form>
@@ -100,7 +112,7 @@
         <action name="force-back"/>
     </action-group>
 
-    <action-group name="subsysFirma.TareaFirma@Pendiente-btnPaso2RechazadoAtras-action">
+    <action-group name="subsysFirma.TareaFirma@Pendiente-btnPaso2FirmarAtras-action">
         <action name="subsysFirma.TareaFirma@Pendiente-set-pasoActual-paso1Inicio-action"/>
     </action-group>
     <action-group name="subsysFirma.TareaFirma@Pendiente-btnPaso2FirmarGuardar-action">

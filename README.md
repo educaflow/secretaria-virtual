@@ -66,3 +66,12 @@ https://kb.itextpdf.com/itext/examples
 
 # Creador de temas
 https://shivantra.com/axelor-theme-designer/#/designer
+
+
+# Para cargar directamente una fila en un `<action-view>` usar lo siguiente:
+```
+<action-view name="subsysExpedientes.TipoExpediente@Prueba-action" title="Tipo Expediente" model="com.educaflow.subsystem.expedientes.db.TipoExpediente"  >
+    <view type="form" name="subsysExpedientes.TipoExpediente-form" />
+    <context name="_showRecord" expr="3" />
+</action-view>  
+```     

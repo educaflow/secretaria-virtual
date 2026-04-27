@@ -3,7 +3,7 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="sysGestion.Centro@Main-action" title="Centros" model="com.educaflow.subsystem.common.db.Centro">
+    <action-view name="sysGestionCentro.Centro@Main-action" title="Centros" model="com.educaflow.subsystem.common.db.Centro">
         <view type="grid" name="sysGestionCentro.Centro@Main-grid"/>
         <view type="form" name="sysGestionCentro.Centro@Main-form"/>
         <view-param name="forceEdit" value="true"/>
@@ -77,7 +77,7 @@
         <field name="tipoFichero" width="180px"/>
         <field name="curso" width="130px"/>
         <field name="usuario" width="180px"/>
-        <field name="fichero" widget="binary-link"/>
+        <field name="ficheroXml" widget="binary-link"/>
         <field name="createdOn" title="Fecha de importación" width="160px"/>
     </grid>
 
@@ -87,7 +87,7 @@
         <panel title="" colSpan="12">
             <field name="tipoFichero" colSpan="6" widget="SwitchSelect" required="true"
                    selection-in="['PROFESORES', 'ALUMNOS', 'FAMILIARES']"/>
-            <field name="fichero" colSpan="6" required="true" widget="binary-link"/>
+            <field name="ficheroXml" colSpan="6" required="true" widget="binary-link"/>
         </panel>
         <panel title="" colSpan="12" showFrame="false">
             <button name="btnCancel" title="Cancelar" onClick="back" colSpan="2" colOffset="8" outline="true"/>

@@ -5,26 +5,19 @@ description: Referencia básica de menús Axelor - etiqueta menuitem, atributos,
 
 Menús de Axelor
 
-Los menús de Axelor se definen con la etiqueta `<menuitem>` dentro de ficheros XML ubicados en:
-
-```
-src/main/java/com/educaflow/secretariavirtual/menus/
-```
+Los menús de Axelor se definen con la etiqueta `<menuitem>` dentro de ficheros XML.
 
 El formato del fichero XML (namespace, schema) es el estándar de las vistas de Axelor. Ver skill `/vistas-knowledge` para más detalles.
 
-## Nombre del fichero
+## Tipos de menuitems
+Existen 2 tipos de menuitems: 
+- raiz: son secciones principales del menú, no llevan `action` ni `parent`, solo `title` y `order`.
+- hoja: son entradas finales que abren una vista, llevan `action` apuntando a una `action-view` y `parent` apuntando al menuitem raíz o subsección al que pertenecen.
 
-Los ficheros de menú globales van en `secretariavirtual/menus/` con prefijo numérico que indica el orden de aparición en el menú:
+## Ubicación de los menuitems
+Los `<menuitem>` se colocan siempre en el fichero `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`
+Como un `<menuitem>` puede depender de otro `<menuitem>` el `<menuitem>` se colocará justo debajo.
 
-```
-{NNN}_menuitem_{nombreSistema o nombre Subsistema}.xml
-```
-
-Ejemplos:
-- `100_menuitem_tramite.xml`
-- `300_menuitem_sistemaeducativo.xml`
-- `550_menuitem_firma.xml`
 
 ## Etiqueta `<menuitem>`
 
@@ -41,11 +34,10 @@ Ejemplos:
 
 ### Reglas
 
-- El menuitem **raíz** (sección) no lleva `action` ni `parent`, solo `title` y `order`.
-- Los menuitems **hijo** llevan `parent` apuntando al nombre del menuitem raíz.
-- Los menuitems **hoja** llevan `action` apuntando a una `action-view`. Para la convención de nombres de las acciones, ver skill `/actions-knowledge`.
+- El menuitem **raíz** (sección) no lleva `action` ni `parent`, solo `title` y `order`. 
+- Los menuitems **hoja** llevan `action` apuntando a una `action-view`. 
 
-## Convención de nombres de menuitems
+## Convención de nombres de menuitems raiz:
 
 El nombre de los menuitems es: `{Prefijo}[-menuitem | .{Entidad}@{Vista}-menuitem | -{concepto}-menuitem]`
 
@@ -60,34 +52,27 @@ Las entidades se separan con `.` (punto) y el nombre de la vista con `@`, igual 
 
 | Caso                                | Patrón                                 | Ejemplo                                      |
 |-------------------------------------|----------------------------------------|----------------------------------------------|
-| Sección raíz (subsistema)           | `subsys{Seccion}-menuitem`             | `subsysFirma-menuitem`                       |
-| Sección raíz (sistema)              | `sys{Seccion}-menuitem`                | `sysImportar-menuitem`                       |
+| Sección raíz (subsistema)           | `subsys{NombreSubsistema}-menuitem`    | `subsysFirma-menuitem`                       |
+| Sección raíz (sistema)              | `sys{NombreSistema}-menuitem`          | `sysImportar-menuitem`                       |
 | Entrada a entidad (vista principal) | `{Prefijo}.{Entidad}@Main-menuitem`    | `subsysSistemaEducativo.Ciclo@Main-menuitem` |
 | Entrada a entidad (otra vista)      | `{Prefijo}.{Entidad}@{Vista}-menuitem` | `subsysFirma.TareaFirma@Pendiente-menuitem`  |
 
 ## Ejemplos completos
 
-### Menús con una accion por cada tabla
+### Menú raíz — fichero en `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`
 
 ```xml
-<menuitem name="subsysSistemaEducativo-menuitem"                  title="Sistema educativo" groups="admins" order="300"/>
-<menuitem name="subsysSistemaEducativo.Ciclo@Main-menuitem"       parent="subsysSistemaEducativo-menuitem" title="Ciclos"   action="subsysSistemaEducativo.Ciclo@Main-action"   groups="admins" order="2"/>
-<menuitem name="subsysSistemaEducativo.Modulo@Main-menuitem"      parent="subsysSistemaEducativo-menuitem" title="Módulos"  action="subsysSistemaEducativo.Modulo@Main-action"  groups="admins" order="4"/>
+<menuitem name="subsysSistemaEducativo-menuitem" title="Sistema educativo" order="10"/>
+    <menuitem name="subsysSistemaEducativo.Ciclo@Main-menuitem" parent="subsysSistemaEducativo-menuitem" title="Ciclos" action="subsysSistemaEducativo.Ciclo@Main-action"  order="1"/>
+    <menuitem name="subsysSistemaEducativo.Centro@Main-menuitem" parent="subsysSistemaEducativo-menuitem" title="Centro" action="subsysSistemaEducativo.Ciclo@Main-action"  order="2"/>
+<menuitem name="subsysFirma-menuitem"                  title="Firmar documentos"    order="20"/>
+    <menuitem name="subsysFirma.TareaFirma@Todos-menuitem" parent="subsysFirma-menuitem" title="Todos" action="subsysFirma.TareaFirma@Todos-action"  order="1"/>
+    <menuitem name="subsysFirma.TareaFirma@Pendiente-menuitem" parent="subsysFirma-menuitem" title="Pendientes" action="subsysFirma.TareaFirma@Pendiente-action"  order="2"/>
+    <menuitem name="subsysFirma.TareaFirma@Firmado-menuitem" parent="subsysFirma-menuitem" title="Firmados" action="subsysFirma.TareaFirma@Firmado-action"  order="3"/>
+    <menuitem name="subsysFirma.TareaFirma@Rechazado-menuitem" parent="subsysFirma-menuitem" title="Rechazados" action="subsysFirma.TareaFirma@Rechazado-action"  order="4"/>
 ```
 
-### Menús con varias acciones por cada tabla 
-
-```xml
-<menuitem name="subsysFirma-menuitem"                      title="Firmar documentos" groups="admins" order="550"/>
-<menuitem name="subsysFirma.TareaFirma@Todos-menuitem"     parent="subsysFirma-menuitem" title="Todos"      action="subsysFirma.TareaFirma@Todos-action"      groups="admins" order="1"/>
-<menuitem name="subsysFirma.TareaFirma@Pendiente-menuitem" parent="subsysFirma-menuitem" title="Pendientes" action="subsysFirma.TareaFirma@Pendiente-action"  groups="admins" order="2"/>
-<menuitem name="subsysFirma.TareaFirma@Firmado-menuitem"   parent="subsysFirma-menuitem" title="Firmados"   action="subsysFirma.TareaFirma@Firmado-action"    groups="admins" order="3"/>
-```
-
-## Relación con las `action-view`
-
-- Los menuitems referencian a  `<action-view>`
-- Las `<action-view>` se definen en el fichero de vistas del subsistema/sistema correspondiente
+Un detalle, los menuitem hoja, llevan una identación debajo del menuitem raíz al que pertenecen de esa forma se visualiza mejor la jerarquía.
 
 ## Referencia
 Para detalle completo de atributos y elementos soportados:

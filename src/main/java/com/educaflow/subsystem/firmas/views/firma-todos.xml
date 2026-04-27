@@ -3,6 +3,14 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
+    <action-view name="subsysFirma.TareaFirma@Todos-action" title="Todos los documentos firmados" model="com.educaflow.subsystem.firmas.db.TareaFirma">
+        <view type="grid" name="subsysFirma.TareaFirma@Todos-grid"/>
+        <view type="form" name="subsysFirma.TareaFirma@Todos-form"/>
+        <view-param name="show-toolbar-grid" value="false"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="reload-grid" value="true"/>
+    </action-view>
+
     <grid name="subsysFirma.TareaFirma@Todos-grid" title="Firmas" model="com.educaflow.subsystem.firmas.db.TareaFirma"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
           orderBy="fechaSolicitud" canEditOnClick="true"

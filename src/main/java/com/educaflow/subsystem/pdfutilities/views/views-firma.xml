@@ -7,6 +7,11 @@
 
 
 
+
+    <action-view name="subsysPdfUtilities.Firma-action"  title="Información para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities"  >
+        <view type="form" name="subsysPdfUtilities.Firma-form"/>
+    </action-view>
+
     <form name="subsysPdfUtilities.Firma-form" title="Utilidades para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities" width="large" onNew="subsysPdfUtilities.Firma-form-onNew-action">
 
         <panel name="main" title="PDF">

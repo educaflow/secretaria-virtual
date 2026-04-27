@@ -4,15 +4,13 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
 
-    <menuitem name="subsysExpedientes-pendiente-menuitem"  parent="subsysExpedientes-menuitem" title="Expedientes Pendientes" action="subsysExpedientes.Expediente-pendiente-action" groups="admins,users" order="201"  />
-
-    <action-view name="subsysExpedientes.Expediente-pendiente-action" title="Listado de expedientes pendientes de que realices la tarea"  model="com.educaflow.subsystem.expedientes.db.Expediente">
-        <view type="grid" name="subsysExpedientes.Expediente-pendiente-grid"/>
+    <action-view name="subsysExpedientes.Expediente@Pendiente-action" title="Listado de expedientes pendientes de que realices la tarea"  model="com.educaflow.subsystem.expedientes.db.Expediente">
+        <view type="grid" name="subsysExpedientes.Expediente@Pendiente-grid"/>
         <domain>self.abierto=true </domain>
         <context name="_profile" expr="CREADOR"/>
     </action-view>
 
-    <grid name="subsysExpedientes.Expediente-pendiente-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
+    <grid name="subsysExpedientes.Expediente@Pendiente-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
           groups="admins,users"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
           action="subsysExpedientes-event-view-action"

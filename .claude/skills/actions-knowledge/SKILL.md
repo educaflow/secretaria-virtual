@@ -239,10 +239,13 @@ Permite ejecutar acciones complejas mediante un script en `js` o `groovy`. Se ut
 
 
 ## Eventos habituales donde se usan
-
 Estas acciones se suelen disparar desde eventos de vista:
 
 - `onNew`, `onLoad`, `onSave`, `onChange`, `onSelect`, `onClick`
+
+Estos eventos deben ogliatoriamente referenciar a acciones de tipo `<action-group>` que agrupen la secuencia de acciones a ejecutar. No se deben llamar acciones individuales directamente desde los eventos, sino siempre a través de un `<action-group>`.
+Si algunos de estos eventos llama a una accion individual directamente, crear una acción de tipo `<action-group>` que tenga como única acción esa acción individual y referenciar a ese `<action-group>` desde el evento.
+La única excepción es que antes de la acción de grupo haya que ejecutar una acción remota relacionada con AutoFirma y en ese caso se pondrá `serial:accion-remota-autofirma,accion-de-grupo` para que se ejecuten en secuencia. Esto se hace así porque firmar con AutoFirma es algo externo a las acciones de Axelor
 
 ## Acciones predefinidas del framework de Axelor
 Además de las acciones definidas por el desarrollador, el framework de Axelor tiene una serie de acciones predefinidas que se pueden usar directamente sin necesidad de definirlas. Estas acciones predefinidas son:
@@ -261,13 +264,14 @@ Además de las acciones definidas por el desarrollador, el framework de Axelor t
 
 El orden de las acciones en el código es importante para facilitar la lectura y el mantenimiento y es el siguiente:
 
-1. Las acciones de tipo `<action-view>` que abren vistas
-2. Los grids `<grid>`
-3. Los formularios `<form>`
-4. Las acciones de las tareas principales (`<action-group>`) que suelen ser las tareas principales que se disparan desde botones o eventos importantes como `onSave`
-5. Las acciones de validación en local (`<action-validate>` y `<action-condition>`)
-6. Las acciones básicas que cambian campos simples (`<action-record>` y `<action-attrs>`)
-7. Las acciones de llamadas remotas al servidor (`<action-method>` y `<action-script>`)
+1. El `<menu-item>` que llama al `<action-view>` que hay definido justo debajo
+2. La acción de tipo `<action-view>` que abren vistas
+3. El grid `<grid>`
+4. El formulario `<form>`
+5. Las acciones de las tareas principales (`<action-group>`) que suelen ser las tareas principales que se disparan desde botones o eventos importantes como `onSave`
+6. Las acciones de validación en local (`<action-validate>` y `<action-condition>`)
+7. Las acciones básicas que cambian campos simples (`<action-record>` y `<action-attrs>`)
+8. Las acciones de llamadas remotas al servidor (`<action-method>` y `<action-script>`)
 
 
 Es obligatorio respetar este orden para facilitar la lectura y el mantenimiento del código, ya que las acciones suelen estar relacionadas entre sí y es importante que estén agrupadas de forma lógica.

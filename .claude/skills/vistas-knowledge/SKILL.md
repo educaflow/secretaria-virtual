@@ -25,12 +25,12 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
 ## Tipos de vista
 
-| Tipo | Etiqueta XML | Descripción | Skill de referencia |
-|------|-------------|-------------|---------------------|
-| Grid | `<grid>` | Lista de registros en formato tabla | `/grids-knowledge` |
-| Formulario | `<form>` | Detalle de un registro editable | `/formularios-knowledge` |
-| Acciones | `<action-*>` | Lógica asociada a botones y eventos | `/actions-knowledge` |
-| Menú | `<menuitem>` | Entradas de navegación | `/menus-knowledge` |
+| Tipo       | Etiqueta XML | Descripción                         | Skill de referencia      |
+|------------|--------------|-------------------------------------|--------------------------|
+| Grid       | `<grid>`     | Lista de registros en formato tabla | `/grids-knowledge`       |
+| Formulario | `<form>`     | Detalle de un registro editable     | `/formularios-knowledge` |
+| Acciones   | `<action-*>` | Lógica asociada a botones y eventos | `/actions-knowledge`     |
+| Menú       | `<menuitem>` | Entradas de navegación              | `/menus-knowledge`       |
 
 ## Organización de ficheros
 
@@ -43,12 +43,12 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
 Ver el skill `/sistemas-knowledge` para la referencia completa de nombres. Resumen:
 
-| Elemento | Patrón | Ejemplo |
-|----------|--------|---------|
-| Grid principal | `{Prefijo}.{Entidad}@Main-grid` | `subsysSistemaEducativo.Ciclo@Main-grid` |
-| Form principal | `{Prefijo}.{Entidad}@Main-form` | `subsysSistemaEducativo.Ciclo@Main-form` |
-| Action principal | `{Prefijo}.{Entidad}@Main-action` | `subsysSistemaEducativo.Ciclo@Main-action` |
-| Grid selector | `{Prefijo}.{Entidad}@Search-grid` | `subsysSistemaEducativo.Ciclo@Search-grid` |
-| Form solo lectura | `{Prefijo}.{Entidad}@View-form` | `subsysSistemaEducativo.Ciclo@View-form` |
+| Elemento          | Patrón                            | Ejemplo                                    |
+|-------------------|-----------------------------------|--------------------------------------------|
+| Grid principal    | `{Prefijo}.{Entidad}@Main-grid`   | `subsysSistemaEducativo.Ciclo@Main-grid`   |
+| Form principal    | `{Prefijo}.{Entidad}@Main-form`   | `subsysSistemaEducativo.Ciclo@Main-form`   |
+| Action principal  | `{Prefijo}.{Entidad}@Main-action` | `subsysSistemaEducativo.Ciclo@Main-action` |
+| Grid selector     | `{Prefijo}.{Entidad}@Search-grid` | `subsysSistemaEducativo.Ciclo@Search-grid` |
+| Form solo lectura | `{Prefijo}.{Entidad}@View-form`   | `subsysSistemaEducativo.Ciclo@View-form`   |
 
 Prefijos: `subsys{Subsistema}` para subsistemas, `sys{Sistema}` para sistemas.

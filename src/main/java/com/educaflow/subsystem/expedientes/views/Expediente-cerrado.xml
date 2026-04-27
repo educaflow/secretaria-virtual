@@ -3,13 +3,12 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <menuitem name="subsysExpedientes-cerrados-menuitem" parent="subsysExpedientes-menuitem" title="Expedientes Cerrados" action="subsysExpedientes.Expediente-cerrados-action" groups="admins,users" order="203"/>
-    <action-view name="subsysExpedientes.Expediente-cerrados-action"  title="Expedientes cerrados" model="com.educaflow.subsystem.expedientes.db.Expediente">
-        <view type="grid" name="subsysExpedientes.Expediente-cerrados-grid"/>
+    <action-view name="subsysExpedientes.Expediente@Cerrados-action"  title="Expedientes cerrados" model="com.educaflow.subsystem.expedientes.db.Expediente">
+        <view type="grid" name="subsysExpedientes.Expediente@Cerrados-grid"/>
         <domain>self.abierto=false </domain>
         <context name="_profile" expr="RESPONSABLE"/>
     </action-view>
-    <grid name="subsysExpedientes.Expediente-cerrados-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
+    <grid name="subsysExpedientes.Expediente@Cerrados-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
           groups="admins,users"
           groupBy="tipoExpediente.tramite.name"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"

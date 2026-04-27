@@ -3,6 +3,17 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
+    <action-view name="subsysFirma.TareaFirma@Rechazado-action" title="Documentos que se han rechazado firmar" model="com.educaflow.subsystem.firmas.db.TareaFirma">
+        <view type="grid" name="subsysFirma.TareaFirma@Rechazado-grid"/>
+        <view type="form" name="subsysFirma.TareaFirma@Rechazado-form"/>
+        <view-param name="show-toolbar-grid" value="false"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="reload-grid" value="true"/>
+        <domain>self.estadoTareaFirma= :estadoTareaFirma and firmante.id= :firmanteId</domain>
+        <context name="estadoTareaFirma" expr="RECHAZADO"/>
+        <context name="firmanteId" expr="eval:__user__.id"/>
+    </action-view>
+
     <grid name="subsysFirma.TareaFirma@Rechazado-grid" title="Firmas" model="com.educaflow.subsystem.firmas.db.TareaFirma"
           groups="admins,users"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"

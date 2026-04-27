@@ -3,9 +3,6 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <menuitem name="sysTramites-nuevo-menuitem"  title="Trámites" action="sysTramites-nuevo-action" groups="admins,users" icon="list_alt_add" order="100"/>
-
-
     <action-view name="sysTramites-nuevo-action" home="true" title="Crear un nuevo expediente"   >
         <view type="tree" name="sysTramites-nuevo-tree"/>
         <context name="_profile" expr="CREADOR"/>

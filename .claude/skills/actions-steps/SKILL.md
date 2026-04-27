@@ -27,7 +27,7 @@ Este skill sirve para diseñar y generar acciones de Axelor en ficheros XML de v
   - Para las acciones de tipo condition `<action-condition>`, decidir que reglas se crean y sobre que campos.
   - Para las acciones de tipo record `<action-record>`, decidir que reglas se crean, sobre que campos y que valores tendrán esos campos.
   - Para las acciones de tipo attrs `<action-attrs>`, decidir que atributos se modifican, sobre que campos y que valores tendrán esos atributos.
-  - Analizat en que posición del XML se deben crear las acciones. Normalmente las acciones se suelen colocar al final del XML, justo antes de la etiqueta de cierre `</views>`, pero a veces puede ser necesario colocarlas en otro lugar dependiendo de la lógica de la vista.
+  - Analizar en que posición del XML se deben crear las acciones. Normalmente las acciones se suelen colocar al final del XML, justo antes de la etiqueta de cierre `</object-views>`, pero a veces puede ser necesario colocarlas en otro lugar dependiendo de la lógica de la vista.
 
 
 

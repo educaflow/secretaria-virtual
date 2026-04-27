@@ -8,6 +8,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <view type="grid" name="subsysSistemaEducativo.LeyEducativa@Main-grid"/>
         <view type="form" name="subsysSistemaEducativo.LeyEducativa@Main-form"/>
         <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="forceEdit" value="true"/>
     </action-view>
 
     <grid name="subsysSistemaEducativo.LeyEducativa@Main-grid" title="Ley educativa" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
@@ -30,9 +31,9 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         </panel>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
-            <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.LeyEducativa@Main-validateDelete-action,delete" css="btn-danger" colSpan="2"  outline="true" showIf="(id != null)"/>
+            <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.LeyEducativa@Main-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id != null)"/>
             <button name="btnCancel" title="Cancelar" onClick="back"  colSpan="2" colOffset="6" outline="true"   />
-            <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.LeyEducativa@Main-validateSave-action,save,force-back"  colSpan="2"  />
+            <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.LeyEducativa@Main-btnSave-action"  colSpan="2"  />
         </panel>
 
     </form>
@@ -47,12 +48,15 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     <!-- *********************************************************************************************  -->
     <!-- ***************************** Acciones de las tareas principales ****************************  -->
     <!-- *********************************************************************************************  -->
-    <action-group name="subsysSistemaEducativo.LeyEducativa@Main-validateSave-action">
+    <action-group name="subsysSistemaEducativo.LeyEducativa@Main-btnSave-action">
         <action name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action"/>
         <action name="subsysSistemaEducativo.LeyEducativa@Main-Remote-validateSave-action"/>
+        <action name="save"/>
+        <action name="force-back"/>
     </action-group>
-    <action-group name="subsysSistemaEducativo.LeyEducativa@Main-validateDelete-action">
+    <action-group name="subsysSistemaEducativo.LeyEducativa@Main-btnDelete-action">
         <action name="subsysSistemaEducativo.LeyEducativa@Main-Remote-validateDelete-action"/>
+        <action name="delete"/>
     </action-group>
 
 

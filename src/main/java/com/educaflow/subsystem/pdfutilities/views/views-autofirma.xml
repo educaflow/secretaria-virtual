@@ -4,10 +4,14 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
 
+    <action-view name="subsysPdfUtilities.AutoFirma-action"  title="Posición Autofirma__!!" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities"  >
+        <view type="form" name="subsysPdfUtilities.AutoFirma-form"/>
+    </action-view>
+
     <form name="subsysPdfUtilities.AutoFirma-form" title="Utilidades para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities" width="large">
 
         <panel name="main" title="PDF">
-            <field name="pdf"  colSpan="12" onChange="mant-PdfUtilities-form-action-onChange-pdf" widget="binary-link" />
+            <field name="pdf"  colSpan="12" widget="binary-link" />
             <field name="numeroPagina" colSpan="2" />
             <field name="x" colSpan="2" />
             <field name="y" colSpan="2" />

@@ -11,15 +11,14 @@ Verificar que los menús (`<menuitem>`) creados o modificados siguen las reglas 
 
 ## Qué leer
 
-1. El fichero XML de menú a revisar (en `secretariavirtual/menus/`).
+1. El fichero XML de menús en  `src/main/java/com/educaflow/secretariavirtual/menus/`.
 2. Los ficheros de vistas XML donde están definidas las `<action-view>` referenciadas.
 3. El skill `/menus-knowledge` para tener presentes todas las reglas.
 
-## Nombre y ubicación del fichero
+## Ubicación de los menuitems
 
-- [ ] El fichero está en `src/main/java/com/educaflow/secretariavirtual/menus/`.
-- [ ] El nombre sigue el patrón `{NNN}_menuitem_{nombreSistemaOSubsistema}.xml`.
-- [ ] El prefijo numérico `{NNN}` indica el orden de aparición y es coherente con los menús existentes.
+- [ ] Los menuitems **raíz** están en `src/main/java/com/educaflow/secretariavirtual/menus/`.
+- [ ] Los menuitems **hoja** (con `action`) está justo debajo de los menuitems raíz o subsección a los que pertenecen y con una identación
 
 ## Nomenclatura de los `<menuitem>`
 
@@ -39,35 +38,17 @@ Patrón: `{Prefijo}[-menuitem | .{Entidad}@{Vista}-menuitem | -{concepto}-menuit
 ## Jerarquía y relaciones
 
 - [ ] El menuitem **raíz** NO tiene atributo `action` ni `parent`.
-- [ ] Los menuitems **hijo** llevan `parent` apuntando al `name` del menuitem raíz o subsección.
-- [ ] Los menuitems **hoja** (que abren una vista) llevan `action` apuntando a una `action-view` existente.
-- [ ] Ningún menuitem hoja tiene hijos.
-- [ ] El atributo `parent` de cada menuitem hijo apunta a un menuitem que existe en el mismo u otro fichero.
+- [ ] Los menuitems **hoja** llevan `parent` apuntando al `name` del menuitem raíz o subsección.
+- [ ] Los menuitems **hoja** llevan `action` apuntando a una `action-view` existente en el mismo fichero.
 
 ## Referencias a `<action-view>`
 
-- [ ] Cada `action` referenciada en los menuitems hoja existe como `<action-view>` en algún fichero XML de vistas del proyecto.
-- [ ] Las `<action-view>` no están definidas dentro del fichero de menú — están en los ficheros `views/` del sistema/subsistema.
-
-## Grupos de usuarios
-
-- [ ] El atributo `groups` está definido cuando procede (para restringir visibilidad).
-- [ ] Los grupos asignados corresponden a los grupos de usuarios que deben ver esa entrada.
+- [ ] Cada `action` referenciada en los menuitems hoja existe como `<action-view>` en algún fichero XML del proyecto.
 
 ## Orden (`order`)
 
-- [ ] El valor de `order` del menuitem raíz coincide con el prefijo numérico `{NNN}` del nombre del fichero.
-- [ ] Los menuitems hijo dentro de la misma sección tienen valores de `order` únicos y en progresión lógica.
-
-## Checklist final
-
-- [ ] El fichero está en `secretariavirtual/menus/` con nombre `{NNN}_menuitem_{nombre}.xml`
-- [ ] Todos los menuitems siguen la convención de nomenclatura con sufijo `-menuitem`
-- [ ] El menuitem raíz no tiene `action` ni `parent`
-- [ ] Los menuitems hoja tienen `action` apuntando a una `action-view` que existe
-- [ ] Ninguna `action-view` está definida dentro del fichero de menú
-- [ ] Los valores de `order` son únicos dentro de cada nivel y son coherentes con el orden visual deseado
-- [ ] Los títulos son claros y comprensibles para el usuario final
+- [ ] El valor de `order` del menuitem raíz nunca se repite. Y los menus item raiz está ordenador por ese número
+- [ ] Los menuitems hijo dentro de la misma sección tienen valores de `order` nunca se repiten para ese menuitem raiz y están colocados en el mismo orden visual que el número indicado.
 
 ## Resultado
 

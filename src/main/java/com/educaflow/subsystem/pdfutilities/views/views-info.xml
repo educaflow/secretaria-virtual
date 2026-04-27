@@ -6,6 +6,11 @@
 
 
 
+
+    <action-view name="subsysPdfUtilities.Info-action"  title="Información para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities"  >
+        <view type="form" name="subsysPdfUtilities.Info-form"/>
+    </action-view>
+
     <form name="subsysPdfUtilities.Info-form" title="Utilidades para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities" width="large">
 
         <panel name="main" title="PDF">

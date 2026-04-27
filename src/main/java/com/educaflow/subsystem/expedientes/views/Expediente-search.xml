@@ -4,34 +4,30 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
 
-    <menuitem name="subsysExpedientes-prueba-dashboard-menuitem" title="Prueba Búsqueda" action="subsysExpedientes-prueba-dashboard-action" groups="admins,users" order="999"/>
-
-    <action-view name="subsysExpedientes-prueba-dashboard-action" title="Prueba de Búsqueda">
-        <view type="dashboard" name="subsysExpedientes-prueba-dashboard"/>
+    <action-view name="subsysExpedientes.Expediente@PruebaSearch-action" title="Prueba de Búsqueda">
+        <view type="dashboard" name="subsysExpedientes.Expediente@PruebaSearch-dashboard"/>
     </action-view>
 
-    <dashboard name="subsysExpedientes-prueba-dashboard" title="Expedientes" onInit="subsysExpedientes-prueba-dashboard-oninit-action"  searchModel="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
+    <dashboard name="subsysExpedientes.Expediente@PruebaSearch-dashboard" title="Expedientes" onInit="subsysExpedientes.Expediente@PruebaSearch-onInit-action"  searchModel="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
         <search-fields>
             <field name="estado" widget="boolean-radio" x-true-text="Abierto" x-false-text="Cerrado" />
             <field name="anyo" type="integer" title="Año" />
         </search-fields>
 
-        <dashlet   action="subsysExpedientes-buscar-action"/>
+        <dashlet   action="subsysExpedientes.Expediente@PruebaSearch-buscar-action"/>
     </dashboard>
 
 
-    <action-view name="subsysExpedientes-buscar-action" title="Buscando expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente">
-        <view type="tree" name="subsysExpedientes-buscar-tree"/>
+    <action-view name="subsysExpedientes.Expediente@PruebaSearch-buscar-action" title="Buscando expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente">
+        <view type="tree" name="subsysExpedientes.Expediente@PruebaSearch-buscar-tree"/>
         <context name="_profile" expr="RESPONSABLE"/>
     </action-view>
 
 
-    <action-record name="subsysExpedientes-prueba-dashboard-oninit-action" model="com.educaflow.subsystem.expedientes.db.SearchExpedientes" >
-        <field name="estado" expr="eval: true" />
-        <field name="anyo" expr="eval: java.time.Year.now().value" />
-    </action-record>
 
-    <tree name="subsysExpedientes-buscar-tree" title="Expedientes">
+
+
+    <tree name="subsysExpedientes.Expediente@PruebaSearch-buscar-tree" title="Expedientes">
 
         <column name="name"  title="Nombre"/>
         <column name="numeroExpediente" width="100px" title="Número Expediente"/>
@@ -54,9 +50,18 @@
 
     </tree>
 
+    <action-group name="subsysExpedientes.Expediente@PruebaSearch-onInit-action" model="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
+        <action name="subsysExpedientes.Expediente@PruebaSearch-estado-true-action"/>
+        <action name="subsysExpedientes.Expediente@PruebaSearch-anyo-ahora-action"/>
+    </action-group>
 
+    <action-record name="subsysExpedientes.Expediente@PruebaSearch-estado-true-action" model="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
+        <field name="estado" expr="eval: true" />
+    </action-record>
 
-
+    <action-record name="subsysExpedientes.Expediente@PruebaSearch-anyo-ahora-action" model="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
+        <field name="anyo" expr="eval: java.time.Year.now().value" />
+    </action-record>
 
 
 

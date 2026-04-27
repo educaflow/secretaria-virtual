@@ -85,14 +85,44 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <form name="subsysSistemaEducativo.Curso.CursoModulo@Main-form" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
           groups="admins"
-          onNew="subsysSistemaEducativo.Curso.CursoModulo-onNew-action"
+          onNew="subsysSistemaEducativo.Curso.CursoModulo@Main-onNew-action"
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="CursoModulo" title="">
             <field name="curso"  colSpan="6" showIf="false" />
             <field name="modulo" colSpan="6" colOffset="6" />
         </panel>
     </form>
-    <action-record name="subsysSistemaEducativo.Curso.CursoModulo-onNew-action" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo">
+
+    <!-- *********************************************************************************************  -->
+    <!-- ***************************** Acciones de las tareas principales ****************************  -->
+    <!-- *********************************************************************************************  -->
+    <action-group name="subsysSistemaEducativo.Curso.CursoModulo@Main-onNew-action">
+        <action name="subsysSistemaEducativo.Curso.CursoModulo@Main-set-curso-parent-action"/>
+    </action-group>
+
+
+
+
+    <!-- *********************************************************************************************  -->
+    <!-- ***************************** Acciones de Validaciones en local  ****************************  -->
+    <!-- *********************************************************************************************  -->
+
+
+
+
+    <!-- *********************************************************************************************  -->
+    <!-- ************************ Acciones básicas que cambian campos simples ************************  -->
+    <!-- *********************************************************************************************  -->
+    <action-record name="subsysSistemaEducativo.Curso.CursoModulo@Main-set-curso-parent-action" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo">
         <field name="curso" expr="eval: __parent__"/>
     </action-record>
+
+
+
+
+    <!-- *********************************************************************************************  -->
+    <!-- ************************** Acciones de llamadas Remotas al servidor *************************  -->
+    <!-- *********************************************************************************************  -->
+
+
 </object-views>
