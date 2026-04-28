@@ -1,15 +1,15 @@
-package com.educaflow.subsystem.security.service.impl;
+package com.educaflow.subsystem.common.service.impl;
 
 import com.axelor.db.JpaRepository;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
+import com.educaflow.subsystem.common.db.CentroUsuario;
+import com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario;
+import com.educaflow.subsystem.common.db.repo.CentroUsuarioRepository;
+import com.educaflow.subsystem.common.db.repo.CentroUsuarioTipoUsuarioRepository;
+import com.educaflow.subsystem.common.service.CentroUsuarioService;
 import com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado;
 import com.educaflow.subsystem.registrousuario.db.repo.UsuarioAutorizadoRepository;
-import com.educaflow.subsystem.security.db.CentroUsuario;
-import com.educaflow.subsystem.security.db.CentroUsuarioTipoUsuario;
-import com.educaflow.subsystem.security.db.repo.CentroUsuarioRepository;
-import com.educaflow.subsystem.security.db.repo.CentroUsuarioTipoUsuarioRepository;
-import com.educaflow.subsystem.security.service.CentroUsuarioService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,5 +49,4 @@ public class CentroUsuarioServiceImpl extends DefaultModelService<CentroUsuario>
         resultado.add("Convertidos a exalumno: " + (degradadosAlumnos - alumnosActivos));
         return resultado;
     }
-
 }

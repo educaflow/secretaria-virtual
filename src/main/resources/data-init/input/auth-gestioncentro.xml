@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<auth>
+
+  <!-- Permisos exclusivos del administrador del centro (rol center.admin).
+       Estos permisos no forman parte de users.all. -->
+
+  <permission name="UsuarioAutorizado.admin"
+              object="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado"
+              condition="self.centro = ?"
+              conditionParams="__user__.centroActivo"
+  >
+    <can create="true" read="true" write="true" remove="true" export="false"/>
+  </permission>
+
+  <!-- ViewGestionCentroImport es persistable="false" (transient): no hay filas en BD que filtrar.
+       El controlador GestionCentroImportController restringe la operación al centro del usuario. -->
+  <permission name="ViewGestionCentroImport.admin"
+              object="com.educaflow.system.gestioncentro.db.ViewGestionCentroImport"
+  >
+    <can create="true" read="true" write="true" remove="true" export="false"/>
+  </permission>
+
+  <!-- ViewGestionCentroCambioCurso es persistable="false" (transient): ídem. -->
+  <permission name="ViewGestionCentroCambioCurso.admin"
+              object="com.educaflow.system.gestioncentro.db.ViewGestionCentroCambioCurso"
+  >
+    <can create="true" read="true" write="true" remove="true" export="false"/>
+  </permission>
+
+</auth>

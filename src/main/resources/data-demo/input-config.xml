@@ -27,7 +27,7 @@
     <!-- Paso 2: Crear CentroUsuario y actualizar centroActivo del User -->
     <input file="usuarios-demo.xml" root="datos">
         <bind node="centroUsuarios/centroUsuario"
-              type="com.educaflow.subsystem.security.db.CentroUsuario"
+              type="com.educaflow.subsystem.common.db.CentroUsuario"
               search="self.usuario.code = :usuarioCode AND self.centro.code = :centroCode"
               create="true" update="true">
             <bind node="@usuarioCode" alias="usuarioCode"/>
@@ -52,47 +52,47 @@
     <!-- Paso 3: Crear CentroUsuarioTipoUsuario (sección plana, idempotente) -->
     <input file="usuarios-demo.xml" root="datos">
         <bind node="tipos/tipo"
-              type="com.educaflow.subsystem.security.db.CentroUsuarioTipoUsuario"
+              type="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario"
               search="self.centroUsuario.usuario.code = :usuarioCode AND self.centroUsuario.centro.code = :centroCode AND self.tipoUsuario.code = :tipoCode"
               create="true" update="false">
             <bind node="@usuarioCode" alias="usuarioCode"/>
             <bind node="@centroCode"  alias="centroCode"/>
             <bind node="@tipoCode"    alias="tipoCode"/>
             <bind to="centroUsuario"
-                  type="com.educaflow.subsystem.security.db.CentroUsuario"
+                  type="com.educaflow.subsystem.common.db.CentroUsuario"
                   search="self.usuario.code = :usuarioCode AND self.centro.code = :centroCode"
                   update="false" create="false"/>
             <bind to="tipoUsuario"
-                  type="com.educaflow.subsystem.security.db.TipoUsuario"
+                  type="com.educaflow.subsystem.common.db.TipoUsuario"
                   search="self.code = :tipoCode"
                   update="false" create="false"/>
         </bind>
     </input>
 
 
-    <!-- Paso 4: Crear AccessProfile (idempotente por name) -->
+    <!-- Paso 4: Crear Perfil (idempotente por name) -->
     <input file="permisos-demo.xml" root="datos">
-        <bind node="perfiles/perfil" type="com.educaflow.subsystem.security.db.AccessProfile"
+        <bind node="perfiles/perfil" type="com.educaflow.subsystem.security.db.Perfil"
               search="self.name = :name" create="true" update="false">
             <bind node="@name" to="name"/>
         </bind>
     </input>
 
 
-    <!-- Paso 5a: Crear AccessAssignment con actor = TipoUsuario (rol genérico) -->
-    <!-- actor usa eval+Query.of() porque el campo está tipado como SecurityActor (base JOINED)
-         y Axelor no acepta type-override en nested bind cuando la clase base no tiene el campo buscado -->
+    <!-- Paso 5a: Crear Ace con tipoUsuario (rol genérico) -->
     <input file="permisos-demo.xml" root="datos">
-        <bind node="asignacionesTipoUsuario/asignacion" type="com.educaflow.subsystem.security.db.AccessAssignment"
-              search="self.actor.id IN (SELECT tu.id FROM com.educaflow.subsystem.security.db.TipoUsuario tu WHERE tu.code = :tipoUsuarioCode) AND self.accessProfile.name = :perfilName AND self.tramite.code = :tramiteCode"
+        <bind node="asignacionesTipoUsuario/asignacion" type="com.educaflow.subsystem.security.db.Ace"
+              search="self.tipoUsuario.code = :tipoUsuarioCode AND self.perfil.name = :perfilName AND self.tramite.code = :tramiteCode"
               create="true" update="false">
             <bind node="@tipoUsuarioCode" alias="tipoUsuarioCode"/>
             <bind node="@perfilName"      alias="perfilName"/>
             <bind node="@tramiteCode"     alias="tramiteCode"/>
-            <bind to="actor"
-                  eval="com.axelor.db.Query.of(com.educaflow.subsystem.security.db.TipoUsuario.class).filter('self.code = ?1', tipoUsuarioCode).fetchOne()"/>
-            <bind to="accessProfile"
-                  type="com.educaflow.subsystem.security.db.AccessProfile"
+            <bind to="tipoUsuario"
+                  type="com.educaflow.subsystem.common.db.TipoUsuario"
+                  search="self.code = :tipoUsuarioCode"
+                  update="false" create="false"/>
+            <bind to="perfil"
+                  type="com.educaflow.subsystem.security.db.Perfil"
                   search="self.name = :perfilName"
                   update="false" create="false"/>
             <bind to="tramite"
@@ -103,18 +103,20 @@
     </input>
 
 
-    <!-- Paso 5b: Crear AccessAssignment con actor = TipoUsuario sobre TipoExpediente -->
+    <!-- Paso 5b: Crear Ace con tipoUsuario sobre TipoExpediente -->
     <input file="permisos-demo.xml" root="datos">
-        <bind node="asignacionesTipoUsuarioTipoExpediente/asignacion" type="com.educaflow.subsystem.security.db.AccessAssignment"
-              search="self.actor.id IN (SELECT tu.id FROM com.educaflow.subsystem.security.db.TipoUsuario tu WHERE tu.code = :tipoUsuarioCode) AND self.accessProfile.name = :perfilName AND self.tipoExpediente.code = :tipoExpedienteCode"
+        <bind node="asignacionesTipoUsuarioTipoExpediente/asignacion" type="com.educaflow.subsystem.security.db.Ace"
+              search="self.tipoUsuario.code = :tipoUsuarioCode AND self.perfil.name = :perfilName AND self.tipoExpediente.code = :tipoExpedienteCode"
               create="true" update="false">
             <bind node="@tipoUsuarioCode"    alias="tipoUsuarioCode"/>
             <bind node="@perfilName"         alias="perfilName"/>
             <bind node="@tipoExpedienteCode" alias="tipoExpedienteCode"/>
-            <bind to="actor"
-                  eval="com.axelor.db.Query.of(com.educaflow.subsystem.security.db.TipoUsuario.class).filter('self.code = ?1', tipoUsuarioCode).fetchOne()"/>
-            <bind to="accessProfile"
-                  type="com.educaflow.subsystem.security.db.AccessProfile"
+            <bind to="tipoUsuario"
+                  type="com.educaflow.subsystem.common.db.TipoUsuario"
+                  search="self.code = :tipoUsuarioCode"
+                  update="false" create="false"/>
+            <bind to="perfil"
+                  type="com.educaflow.subsystem.security.db.Perfil"
                   search="self.name = :perfilName"
                   update="false" create="false"/>
             <bind to="tipoExpediente"
@@ -125,19 +127,21 @@
     </input>
 
 
-    <!-- Paso 5c: Crear AccessAssignment con actor = CentroUsuario (usuario concreto en un centro) -->
+    <!-- Paso 5c: Crear Ace con centroUsuario (usuario concreto en un centro) -->
     <input file="permisos-demo.xml" root="datos">
-        <bind node="asignacionesCentroUsuario/asignacion" type="com.educaflow.subsystem.security.db.AccessAssignment"
-              search="self.actor.id IN (SELECT cu.id FROM com.educaflow.subsystem.security.db.CentroUsuario cu WHERE cu.usuario.code = :usuarioCode AND cu.centro.code = :centroCode) AND self.accessProfile.name = :perfilName AND self.tramite.code = :tramiteCode"
+        <bind node="asignacionesCentroUsuario/asignacion" type="com.educaflow.subsystem.security.db.Ace"
+              search="self.centroUsuario.usuario.code = :usuarioCode AND self.centroUsuario.centro.code = :centroCode AND self.perfil.name = :perfilName AND self.tramite.code = :tramiteCode"
               create="true" update="false">
             <bind node="@usuarioCode" alias="usuarioCode"/>
             <bind node="@centroCode"  alias="centroCode"/>
             <bind node="@perfilName"  alias="perfilName"/>
             <bind node="@tramiteCode" alias="tramiteCode"/>
-            <bind to="actor"
-                  eval="com.axelor.db.Query.of(com.educaflow.subsystem.security.db.CentroUsuario.class).filter('self.usuario.code = ?1 AND self.centro.code = ?2', usuarioCode, centroCode).fetchOne()"/>
-            <bind to="accessProfile"
-                  type="com.educaflow.subsystem.security.db.AccessProfile"
+            <bind to="centroUsuario"
+                  type="com.educaflow.subsystem.common.db.CentroUsuario"
+                  search="self.usuario.code = :usuarioCode AND self.centro.code = :centroCode"
+                  update="false" create="false"/>
+            <bind to="perfil"
+                  type="com.educaflow.subsystem.security.db.Perfil"
                   search="self.name = :perfilName"
                   update="false" create="false"/>
             <bind to="tramite"

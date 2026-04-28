@@ -1,6 +1,6 @@
 package com.educaflow.subsystem.common.service;
 
-import com.educaflow.subsystem.security.db.CentroUsuario;
+import com.educaflow.subsystem.common.db.CentroUsuario;
 
 import java.util.List;
 

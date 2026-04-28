@@ -3,9 +3,12 @@
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
 
-    <module name="security" package="com.educaflow.subsystem.security.db"/>
-    <entity name="AccessProfile">
-        <string name="name" required="true" namecolumn="true"/>
-        <one-to-many name="accessAssignments" ref="com.educaflow.subsystem.security.db.AccessAssignment" mappedBy="accessProfile" title="Acceso"/>
+    <module name="common" package="com.educaflow.subsystem.common.db"/>
+
+    <entity name="Cargo">
+        <string name="code"/>
+        <string name="name" namecolumn="true"/>
+        <many-to-one name="tipoUsuario" ref="com.educaflow.subsystem.common.db.TipoUsuario" title="Tipo de usuario"/>
     </entity>
+
 </domain-models>

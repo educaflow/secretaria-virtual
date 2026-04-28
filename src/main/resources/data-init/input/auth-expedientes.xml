@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+<auth>
+
+  <permission name="TipoExpediente.all"
+              object="com.educaflow.subsystem.expedientes.db.TipoExpediente"
+              condition="self IN (
+        SELECT aa.tipoExpediente
+        FROM com.educaflow.subsystem.security.db.Ace aa
+        WHERE aa.tipoExpediente IS NOT NULL
+        AND (aa.centro IS NULL OR aa.centro = ?)
+        AND (
+            aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = ?)
+            OR aa.centroUsuario = ?
+        )
+    )"
+              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Tramite.creador"
+              object="com.educaflow.subsystem.expedientes.db.Tramite"
+              condition="self IN (
+        SELECT aa.tramite
+        FROM com.educaflow.subsystem.security.db.Ace aa
+        WHERE aa.perfil.name = 'CREADOR'
+        AND aa.tramite IS NOT NULL
+        AND (aa.centro IS NULL OR aa.centro = ?)
+        AND (
+            aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = ?)
+            OR aa.centroUsuario = ?
+        )
+    )"
+              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Expediente.creador"
+              object="com.educaflow.subsystem.expedientes.db.Expediente"
+              condition="self.creador = ?"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="false" remove="false" export="true"/>
+  </permission>
+
+  <permission name="Expediente.porExpediente"
+              object="com.educaflow.subsystem.expedientes.db.Expediente"
+              condition="self IN (
+        SELECT aa.expediente
+        FROM com.educaflow.subsystem.security.db.Ace aa
+        WHERE aa.expediente IS NOT NULL
+        AND (aa.centro IS NULL OR aa.centro = ?)
+        AND (
+            aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = ?)
+            OR aa.centroUsuario = ?
+        )
+    )"
+              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Expediente.porTipoExpediente"
+              object="com.educaflow.subsystem.expedientes.db.Expediente"
+              condition="self.tipoExpediente IN (
+        SELECT aa.tipoExpediente
+        FROM com.educaflow.subsystem.security.db.Ace aa
+        WHERE aa.tipoExpediente IS NOT NULL
+        AND (aa.centro IS NULL OR aa.centro = ?)
+        AND (
+            aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = ?)
+            OR aa.centroUsuario = ?
+        )
+    )"
+              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Expediente.porTramite"
+              object="com.educaflow.subsystem.expedientes.db.Expediente"
+              condition="self.tipoExpediente.tramite IN (
+        SELECT aa.tramite
+        FROM com.educaflow.subsystem.security.db.Ace aa
+        WHERE aa.tramite IS NOT NULL
+        AND aa.perfil.name != 'CREADOR'
+        AND (aa.centro IS NULL OR aa.centro = ?)
+        AND (
+            aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = ?)
+            OR aa.centroUsuario = ?
+        )
+    )"
+              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="HistorialEstado.all" object="com.educaflow.subsystem.expedientes.db.HistorialEstado">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <permission name="MetaFile.all" object="com.axelor.meta.db.MetaFile">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <permission name="CertificadoTutor.all" object="com.educaflow.subsystem.expedientes.db.CertificadoTutor">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <permission name="ValoresAmbito.all" object="com.educaflow.subsystem.expedientes.db.ValoresAmbito">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <permission name="Prueba.all" object="com.educaflow.subsystem.expedientes.db.Prueba">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <permission name="FormacionCentroTrabajo.all" object="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <permission name="TipoTramite.leer" object="com.educaflow.subsystem.expedientes.db.TipoTramite">
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="SearchExpedientes.all" object="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <permission name="DMSFile.all" object="com.axelor.dms.db.DMSFile">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+</auth>

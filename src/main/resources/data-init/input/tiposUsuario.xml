@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<datos>
+    <tiposUsuario>
+        <tipoUsuario code="PROFESOR" name="Profesor" />
+        <tipoUsuario code="ALUMNO" name="Alumno" />
+        <tipoUsuario code="FAMILIAR" name="Familiar" />
+        <tipoUsuario code="ADMINISTRATIVO" name="Administrativo" />
+        <tipoUsuario code="EXPROFESOR" name="Exprofesor" />
+        <tipoUsuario code="EXALUMNO" name="Exalumno" />
+        <tipoUsuario code="EXFAMILIAR" name="Exfamiliar" />
+        <tipoUsuario code="PROFESOR_EXTERNO" name="Profesor Externo" />
+        <tipoUsuario code="ALUMNO_EXTERNO" name="Alumno Externo" />
+
+        <tipoUsuario code="SUPERVISOR" name="Supervisor del centro"/>
+    </tiposUsuario>
+</datos>

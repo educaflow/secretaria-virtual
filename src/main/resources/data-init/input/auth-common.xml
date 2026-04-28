@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<auth>
+
+  <!-- Lectura global sin condición: User aparece como referencia en formularios de Expediente,
+       TareaFirma, etc. Una condición aquí causaría Authorization Error al serializar esas relaciones. -->
+  <permission name="User.leer"
+              object="com.axelor.auth.db.User"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <!-- Escritura restringida al propio usuario -->
+  <permission name="User.editar-propio"
+              object="com.axelor.auth.db.User"
+              condition="self = ?"
+              conditionParams="__user__"
+  >
+    <can create="false" read="false" write="true" remove="false" export="false"/>
+  </permission>
+
+  <!-- Los usuarios normales solo ven su propio centro activo -->
+  <permission name="Centro.leer"
+              object="com.educaflow.subsystem.common.db.Centro"
+              condition="self = ?"
+              conditionParams="__user__.centroActivo"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <!-- Permiso adicional de escritura para el administrador del centro -->
+  <permission name="Centro.editar"
+              object="com.educaflow.subsystem.common.db.Centro"
+              condition="self = ?"
+              conditionParams="__user__.centroActivo"
+  >
+    <can create="false" read="false" write="true" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Departamento.leer" object="com.educaflow.subsystem.configuracioncentro.db.Departamento">
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Cargo.leer" object="com.educaflow.subsystem.common.db.Cargo">
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+</auth>

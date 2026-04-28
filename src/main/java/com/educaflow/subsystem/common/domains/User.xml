@@ -9,26 +9,42 @@
         <many-to-one name="centroActivo" ref="com.educaflow.subsystem.common.db.Centro" title="Centro Activo" />
         <string name="dni" title="DNI"  />
         <string name="email" title="Correo electrónico" unique="false"/>
-        <one-to-many name="centroUsuarios" ref="com.educaflow.subsystem.security.db.CentroUsuario" title=""/>
+        <one-to-many name="centroUsuarios" ref="com.educaflow.subsystem.common.db.CentroUsuario" mappedBy="usuario" title=""/>
 
-        <many-to-one name="perfilActivo" ref="com.educaflow.subsystem.security.db.CentroUsuario"
-                     transient="true"
-                     title="Perfil en centro activo"
-        >
-            <![CDATA[
+        <string name="nombre" title="Nombre" />
+        <string name="apellidos" title="Apellidos" />
+
+        <extra-imports-model>
+        <![CDATA[
+            import java.util.List;
+            import java.util.stream.Collectors;
+            import com.educaflow.subsystem.common.db.TipoUsuario;
+        ]]>
+        </extra-imports-model>
+
+        <extra-code-model>
+        <![CDATA[
+            public com.educaflow.subsystem.common.db.CentroUsuario getCentroUsuarioActivo() {
                 if (centroActivo == null || centroUsuarios == null) {
                     return null;
                 }
                 return centroUsuarios.stream()
-                    .filter(cu -> cu.getCentro().getId().equals(centroActivo.getId()))
+                    .filter(cu -> cu.getCentro() != null && cu.getCentro().getId().equals(centroActivo.getId()))
                     .findFirst()
                     .orElse(null);
-            ]]>
-        </many-to-one>
+            }
 
-
-        <string name="nombre" title="Nombre"  />
-        <string name="apellidos" title="Apellidos"  />
+            public List<TipoUsuario> getTiposUsuarioActivos() {
+                var cu = getCentroUsuarioActivo();
+                if (cu == null || cu.getCentroUsuarioTipoUsuario() == null) {
+                    return null;
+                }
+                return cu.getCentroUsuarioTipoUsuario().stream()
+                    .map(cut -> cut.getTipoUsuario())
+                    .collect(Collectors.toList());
+            }
+        ]]>
+        </extra-code-model>
 
         <entity-listener class="com.educaflow.subsystem.common.db.repo.UsuarioListener"/>
     </entity>

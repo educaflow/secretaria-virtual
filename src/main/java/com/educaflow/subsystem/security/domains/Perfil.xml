@@ -4,7 +4,10 @@
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
 
     <module name="security" package="com.educaflow.subsystem.security.db"/>
-    <entity name="SecurityActor" strategy="JOINED">
-        <one-to-many name="accessAssignments" ref="com.educaflow.subsystem.security.db.AccessAssignment" mappedBy="actor" title="Acceso"/>
+
+    <entity name="Perfil">
+        <string name="name" required="true" namecolumn="true"/>
+        <one-to-many name="aces" ref="com.educaflow.subsystem.security.db.Ace" mappedBy="perfil" title="Accesos"/>
     </entity>
+
 </domain-models>

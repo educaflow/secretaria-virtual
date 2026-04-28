@@ -15,39 +15,39 @@
         <many-to-one name="conselleria" title="Conselleria" ref="Conselleria"/>
         <integer name="curso" title="Curso académico" help="Ejemplo: 2024"/>
 
-        <one-to-many name="usuarios" ref="com.educaflow.subsystem.security.db.CentroUsuario" mappedBy="centro" title=""/>
+        <one-to-many name="usuarios" ref="com.educaflow.subsystem.common.db.CentroUsuario" mappedBy="centro" title=""/>
         <one-to-many name="tareasImportacion" ref="com.educaflow.subsystem.importacion.db.TareaImportacion" mappedBy="centro" title="Tareas de importación"/>
 
         <many-to-one name="director" ref="com.axelor.auth.db.User" formula="true" title="Director">
-            SELECT cu.usuario FROM security_centro_usuario cu
-            INNER JOIN security_centro_usuario_tipo_usuario cutu ON cutu.centro_usuario = cu.id
-            INNER JOIN security_tipo_usuario tu ON tu.id = cutu.tipo_usuario
+            SELECT cu.usuario FROM common_centro_usuario cu
+            INNER JOIN common_centro_usuario_tipo_usuario cutu ON cutu.centro_usuario = cu.id
+            INNER JOIN common_tipo_usuario tu ON tu.id = cutu.tipo_usuario
             WHERE cu.centro = id AND tu.code = 'DIRECTOR' LIMIT 1
         </many-to-one>
         <many-to-one name="vicedirector" ref="com.axelor.auth.db.User" formula="true" title="Vicedirector">
-            SELECT cu.usuario FROM security_centro_usuario cu
-            INNER JOIN security_centro_usuario_tipo_usuario cutu ON cutu.centro_usuario = cu.id
-            INNER JOIN security_tipo_usuario tu ON tu.id = cutu.tipo_usuario
+            SELECT cu.usuario FROM common_centro_usuario cu
+            INNER JOIN common_centro_usuario_tipo_usuario cutu ON cutu.centro_usuario = cu.id
+            INNER JOIN common_tipo_usuario tu ON tu.id = cutu.tipo_usuario
             WHERE cu.centro = id AND tu.code = 'VICEDIRECTOR' LIMIT 1
         </many-to-one>
         <many-to-one name="secretario" ref="com.axelor.auth.db.User" formula="true" title="Secretario">
-            SELECT cu.usuario FROM security_centro_usuario cu
-            INNER JOIN security_centro_usuario_tipo_usuario cutu ON cutu.centro_usuario = cu.id
-            INNER JOIN security_tipo_usuario tu ON tu.id = cutu.tipo_usuario
+            SELECT cu.usuario FROM common_centro_usuario cu
+            INNER JOIN common_centro_usuario_tipo_usuario cutu ON cutu.centro_usuario = cu.id
+            INNER JOIN common_tipo_usuario tu ON tu.id = cutu.tipo_usuario
             WHERE cu.centro = id AND tu.code = 'SECRETARIO' LIMIT 1
         </many-to-one>
         <many-to-one name="vicesecretario" ref="com.axelor.auth.db.User" formula="true" title="Vicesecretario">
-            SELECT cu.usuario FROM security_centro_usuario cu
-            INNER JOIN security_centro_usuario_tipo_usuario cutu ON cutu.centro_usuario = cu.id
-            INNER JOIN security_tipo_usuario tu ON tu.id = cutu.tipo_usuario
+            SELECT cu.usuario FROM common_centro_usuario cu
+            INNER JOIN common_centro_usuario_tipo_usuario cutu ON cutu.centro_usuario = cu.id
+            INNER JOIN common_tipo_usuario tu ON tu.id = cutu.tipo_usuario
             WHERE cu.centro = id AND tu.code = 'VICESECRETARIO' LIMIT 1
         </many-to-one>
-        <one-to-many name="administradores" ref="com.educaflow.subsystem.security.db.CentroUsuario" transient="true" title="Administradores">
+        <one-to-many name="administradores" ref="com.educaflow.subsystem.common.db.CentroUsuario" transient="true" title="Administradores">
             <![CDATA[
                 return com.axelor.inject.Beans.get(com.educaflow.subsystem.common.service.CentroService.class).getAdministradoresByCentro(id);
             ]]>
         </one-to-many>
-        <one-to-many name="jefesEstudio" ref="com.educaflow.subsystem.security.db.CentroUsuario" transient="true" title="Jefes de estudio">
+        <one-to-many name="jefesEstudio" ref="com.educaflow.subsystem.common.db.CentroUsuario" transient="true" title="Jefes de estudio">
             <![CDATA[
                 return com.axelor.inject.Beans.get(com.educaflow.subsystem.common.service.CentroService.class).getJefesEstudioByCentro(id);
             ]]>

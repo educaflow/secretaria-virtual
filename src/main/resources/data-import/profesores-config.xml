@@ -18,7 +18,7 @@
 
             <bind eval="'PROFESOR'" alias="tipoCodigo"/>
             <bind to="tipoUsuario"
-                    type="com.educaflow.subsystem.security.db.TipoUsuario"
+                    type="com.educaflow.subsystem.common.db.TipoUsuario"
                     search="self.code = :tipoCodigo"
                     create="false"
                     update="false"

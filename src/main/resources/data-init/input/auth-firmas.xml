@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<auth>
+
+  <permission name="TareaFirma.firmante"
+              object="com.educaflow.subsystem.firmas.db.TareaFirma"
+              condition="self.firmante = ?"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="true" remove="false" export="false"/>
+  </permission>
+
+  <permission name="DocumentoFirma.propio"
+              object="com.educaflow.subsystem.firmas.db.DocumentoFirma"
+              condition="self.tareaFirma IN (
+        SELECT tf FROM com.educaflow.subsystem.firmas.db.TareaFirma tf WHERE tf.firmante = ?
+    )"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="true" remove="false" export="false"/>
+  </permission>
+
+</auth>

@@ -2,7 +2,7 @@ package com.educaflow.subsystem.importacion.adapters;
 
 import com.axelor.data.adapter.Adapter;
 import com.axelor.inject.Beans;
-import com.educaflow.subsystem.security.db.repo.TipoUsuarioRepository;
+import com.educaflow.subsystem.common.db.repo.TipoUsuarioRepository;
 
 import java.util.Map;
 

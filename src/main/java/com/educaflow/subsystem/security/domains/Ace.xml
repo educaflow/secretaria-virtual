@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="security" package="com.educaflow.subsystem.security.db"/>
+
+    <entity name="Ace">
+        <many-to-one name="perfil"         ref="com.educaflow.subsystem.security.db.Perfil"               required="true" title="Perfil"/>
+        <many-to-one name="centroUsuario"  ref="com.educaflow.subsystem.common.db.CentroUsuario"           title="Usuario centro"/>
+        <many-to-one name="tipoUsuario"    ref="com.educaflow.subsystem.common.db.TipoUsuario"            title="Tipo usuario"/>
+        <many-to-one name="cargo"          ref="com.educaflow.subsystem.common.db.Cargo"                  title="Cargo"/>
+        <many-to-one name="centro"         ref="com.educaflow.subsystem.common.db.Centro"                 title="Centro"/>
+        <many-to-one name="tramite"        ref="com.educaflow.subsystem.expedientes.db.Tramite"/>
+        <many-to-one name="tipoExpediente" ref="com.educaflow.subsystem.expedientes.db.TipoExpediente"/>
+        <many-to-one name="expediente"     ref="com.educaflow.subsystem.expedientes.db.Expediente"/>
+    </entity>
+
+</domain-models>

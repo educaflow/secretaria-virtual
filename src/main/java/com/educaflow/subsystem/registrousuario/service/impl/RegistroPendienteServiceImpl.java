@@ -22,9 +22,9 @@ import com.educaflow.subsystem.registrousuario.db.repo.RegistroPendienteReposito
 import com.educaflow.subsystem.registrousuario.db.repo.UsuarioAutorizadoRepository;
 import com.educaflow.subsystem.registrousuario.service.DatosBasicosUsuario;
 import com.educaflow.subsystem.registrousuario.service.RegistroPendienteService;
-import com.educaflow.subsystem.security.db.CentroUsuario;
-import com.educaflow.subsystem.security.db.CentroUsuarioTipoUsuario;
-import com.educaflow.subsystem.security.db.TipoUsuario;
+import com.educaflow.subsystem.common.db.CentroUsuario;
+import com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario;
+import com.educaflow.subsystem.common.db.TipoUsuario;
 import com.google.inject.persist.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

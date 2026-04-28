@@ -43,4 +43,38 @@
         <field name="curso"  expr="eval: __parent__?.curso"/>
     </action-record>
 
+    <action-view name="sysGestion.UsuarioAutorizado@Main-action" title="Usuarios autorizados"
+                 model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado">
+        <view type="grid" name="sysGestion.UsuarioAutorizado@Main-grid"/>
+        <view type="form" name="sysGestion.UsuarioAutorizado@Main-form"/>
+        <domain>self.centro = :centroActivo AND self.curso = :curso</domain>
+        <context name="centroActivo" expr="eval: __user__?.centroActivo"/>
+        <context name="curso"        expr="eval: __user__?.centroActivo?.curso"/>
+    </action-view>
+
+    <grid name="sysGestion.UsuarioAutorizado@Main-grid" title=""
+          model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado"
+          editable="false" edit-icon="true" x-selector="none" canNew="true" canEdit="true" canDelete="true" canViewOnClick="true">
+        <field name="dni"         title="DNI"/>
+        <field name="tipoUsuario" title="Tipo"/>
+    </grid>
+
+    <form name="sysGestion.UsuarioAutorizado@Main-form" title="Usuario autorizado"
+          model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado"
+          onNew="sysGestion.UsuarioAutorizado@OnNew-action"
+          canAttach="false" canDelete="true">
+        <panel title="">
+            <field name="centro" showIf="false"/>
+            <field name="curso"  showIf="false"/>
+            <field name="dni"         colSpan="6" required="true"/>
+            <field name="tipoUsuario" colSpan="6" required="true"/>
+        </panel>
+    </form>
+
+    <action-record name="sysGestion.UsuarioAutorizado@OnNew-action"
+                   model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado">
+        <field name="centro" expr="eval: __user__?.centroActivo"/>
+        <field name="curso"  expr="eval: __user__?.centroActivo?.curso"/>
+    </action-record>
+
 </object-views>

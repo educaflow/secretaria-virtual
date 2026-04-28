@@ -1,16 +1,14 @@
-package com.educaflow.subsystem.security.db.repo;
+package com.educaflow.subsystem.common.db.repo;
 
-import com.axelor.db.JpaRepository;
-import com.axelor.db.Repository;
 import com.educaflow.subsystem.common.db.Centro;
-import com.educaflow.subsystem.security.db.CentroUsuario;
-import com.educaflow.subsystem.security.db.TipoUsuario;
+import com.educaflow.subsystem.common.db.CentroUsuario;
+import com.educaflow.subsystem.common.db.TipoUsuario;
 
 import java.util.List;
 
 public class CentroUsuarioRepository extends AbstractCentroUsuarioRepository {
 
-    public List<CentroUsuario> getCargosByCentro(Long centroId, String tipoCode){
+    public List<CentroUsuario> getCargosByCentro(Long centroId, String tipoCode) {
         return all()
                 .filter("self.centro.id = :centroId AND self.id IN " +
                         "(SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t " +
@@ -20,7 +18,6 @@ public class CentroUsuarioRepository extends AbstractCentroUsuarioRepository {
                 .fetch();
     }
 
-    /** Un único usuario del centro con ese tipo (para cargos únicos: director, secretario…) */
     public CentroUsuario findOneByCentroAndTipoUsuario(Long centroId, TipoUsuario tipoUsuario) {
         return all()
                 .filter("self.centro.id = :centroId AND EXISTS " +
@@ -41,7 +38,6 @@ public class CentroUsuarioRepository extends AbstractCentroUsuarioRepository {
                 .fetchOne();
     }
 
-    /** Todos los usuarios del centro con ese tipo (para cargos múltiples: jefes de estudio…) */
     public List<CentroUsuario> findByCentroAndTipoUsuario(Long centroId, TipoUsuario tipoUsuario) {
         return all()
                 .filter("self.centro.id = :centroId AND EXISTS " +
@@ -62,7 +58,6 @@ public class CentroUsuarioRepository extends AbstractCentroUsuarioRepository {
                 .fetch();
     }
 
-    /** Versión por código de tipo (equivalente al extra-code del dominio) */
     public List<CentroUsuario> findByCentroAndCodigoTipo(Centro centro, String codigoTipo) {
         return all()
                 .filter("self.centro = :centro AND EXISTS " +

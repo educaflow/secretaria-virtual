@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<datos>
+    <cargos>
+        <cargo code="DIRECTOR" name="Director" tipoUsuario="PROFESOR"/>
+        <cargo code="VICEDIRECTOR" name="Vicedirector" tipoUsuario="PROFESOR"/>
+        <cargo code="SECRETARIO" name="Secretario" tipoUsuario="PROFESOR"/>
+        <cargo code="VICESECRETARIO" name="Vicesecretario" tipoUsuario="PROFESOR"/>
+        <cargo code="JEFE_ESTUDIOS" name="Jefe de estudios" tipoUsuario="PROFESOR"/>
+    </cargos>
+</datos>

@@ -1,29 +1,25 @@
-package com.educaflow.subsystem.security.db.repo;
+package com.educaflow.subsystem.common.db.repo;
 
 import com.axelor.db.JPA;
 import com.axelor.db.JpaRepository;
-import com.educaflow.subsystem.security.db.TipoUsuario;
+import com.educaflow.subsystem.common.db.TipoUsuario;
 
 import java.util.List;
 
 public class CentroUsuarioTipoUsuarioRepository extends AbstractCentroUsuarioTipoUsuarioRepository {
 
-    /** PROFESOR → EXPROFESOR para todos los usuarios del centro. Devuelve el nº de filas actualizadas. */
     public int degradarProfesores(Long centroId) {
         return cambiarTipo(centroId, "PROFESOR", "EXPROFESOR");
     }
 
-    /** ALUMNO → EXALUMNO para todos los usuarios del centro. Devuelve el nº de filas actualizadas. */
     public int degradarAlumnos(Long centroId) {
         return cambiarTipo(centroId, "ALUMNO", "EXALUMNO");
     }
 
-    /** EXPROFESOR → PROFESOR para los usuarios con esos DNIs en el centro. Devuelve el nº de filas actualizadas. */
     public int promoverAProfesor(Long centroId, List<String> dnis) {
         return cambiarTipo(centroId, "EXPROFESOR", "PROFESOR", dnis);
     }
 
-    /** EXALUMNO → ALUMNO para los usuarios con esos DNIs en el centro. Devuelve el nº de filas actualizadas. */
     public int promoverAAlumno(Long centroId, List<String> dnis) {
         return cambiarTipo(centroId, "EXALUMNO", "ALUMNO", dnis);
     }

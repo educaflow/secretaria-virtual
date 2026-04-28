@@ -7,7 +7,7 @@
         <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" required="true"/>
         <integer name="curso" title="Curso académico" help="Ejemplo: 2024" required="true"/>
         <string name="dni" title="dni__!!" required="true"/>
-        <many-to-one name="tipoUsuario" ref="com.educaflow.subsystem.security.db.TipoUsuario" required="true" title="Tipo de usuario"/>
+        <many-to-one name="tipoUsuario" ref="com.educaflow.subsystem.common.db.TipoUsuario" required="true" title="Tipo de usuario"/>
     </entity>
 
 </domain-models>

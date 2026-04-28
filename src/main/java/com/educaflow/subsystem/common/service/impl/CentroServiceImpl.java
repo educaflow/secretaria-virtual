@@ -8,9 +8,9 @@ import com.educaflow.subsystem.common.db.repo.CentroRepository;
 import com.educaflow.subsystem.common.service.CentroService;
 import com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado;
 import com.educaflow.subsystem.registrousuario.db.repo.UsuarioAutorizadoRepository;
-import com.educaflow.subsystem.security.db.CentroUsuario;
-import com.educaflow.subsystem.security.db.repo.CentroUsuarioRepository;
-import com.educaflow.subsystem.security.db.repo.CentroUsuarioTipoUsuarioRepository;
+import com.educaflow.subsystem.common.db.CentroUsuario;
+import com.educaflow.subsystem.common.db.repo.CentroUsuarioRepository;
+import com.educaflow.subsystem.common.db.repo.CentroUsuarioTipoUsuarioRepository;
 import jakarta.inject.Inject;
 
 import java.util.ArrayList;

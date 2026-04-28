@@ -11,7 +11,7 @@
         <bind node="codigo" alias="centroActual" search="self.code = :@codigo" />
 
         <bind node="docentes/docente | alumnos/alumno"
-              type="com.educaflow.subsystem.security.db.CentroUsuario"
+              type="com.educaflow.subsystem.common.db.CentroUsuario"
               search="self.usuario.code = :documentoLimpio AND self.centro = :centroActual"
               update="true"
               create="true">
@@ -27,7 +27,7 @@
 
             <bind to="centro" eval="centroActual"/>
 
-            <bind to="centroUsuarioTipoUsuario" type="com.educaflow.subsystem.security.db.CentroUsuarioTipoUsuario" update="true" create="true">
+            <bind to="centroUsuarioTipoUsuario" type="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario" update="true" create="true">
                 <bind to="tipoUsuario" eval="_node.name" adapter="TipoUsuarioAdapter"/>
             </bind>
         </bind>

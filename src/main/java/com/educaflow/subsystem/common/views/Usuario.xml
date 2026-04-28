@@ -6,61 +6,87 @@
     <action-view name="subsysCommon.Usuario@Main-action" title="Usuarios" model="com.axelor.auth.db.User">
         <view type="grid" name="subsysCommon.Usuario@Main-grid"/>
         <view type="form" name="subsysCommon.Usuario@Main-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="show-toolbar-grid" value="false"/>
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
 
-    <grid name="subsysCommon.Usuario@Main-grid" title="Usuarios" model="com.axelor.auth.db.User"
+    <grid name="subsysCommon.Usuario@Main-grid" title="" model="com.axelor.auth.db.User"
           groups="admins"
-          editable="false" edit-icon="false" x-selector="none" canNew="true" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
-        <toolbar>
-            <button name="importar" onClick="subsysCommon.Usuario@Importar-action" title="Importar usuarios" icon="upload"/>
-        </toolbar>
-        <field name="code" width="200px" />
-        <field name="dni" />
-        <field name="name" />
+          allowSearchFields="true" orderBy="code"
+          editable="false" edit-icon="false" x-selector="none"
+          canNew="false"
+          canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
+          canAdvanceSearch="false" canRefresh="false">
+        <field name="code" width="200px"/>
+        <field name="dni"/>
+        <field name="nombre"/>
+        <field name="apellidos"/>
         <field name="email"/>
         <field name="language"/>
         <field name="active"/>
     </grid>
 
     <form name="subsysCommon.Usuario@Main-form" title="Usuario" model="com.axelor.auth.db.User"
-          groups="admins" canAttach="false" canBack="false" canBackOnSave="true" canDelete="true" canNew="false">
-        <panel name="Usuario" title="">
-            <field name="code" colSpan="3" required="true"/>
-            <field name="dni" colSpan="6" required="true"/>
-            <field name="language" colOffset="6" colSpan="6" />
-            <field name="name" colOffset="9" colSpan="6" required="true"/>
-            <field name="email" colSpan="6" />
-            <field name="active" colOffset="6" colSpan="6" />
-
-            <!--<panel name="importar" title="Importación usuarios" colSpan="12">
-                <field name="importarUsuarios" widget="binary-link" title="Fichero usuarios" colSpan="6"/>
-                <button name="btnImportar" title="Importar"
-                        onClick="subsysCommon.Usuario@Importar-Remote-importarUsuarios-action"
-                        readonlyIf="!importarUsuarios" colSpan="6" />
-            </panel>-->
+          width="large"
+          canAttach="false" canBack="false" canBackOnSave="true" canDelete="false" canNew="false" canMore="false">
+        <panel name="usuario" title="">
+            <field name="code"         colSpan="6" required="true"/>
+            <field name="dni"          colSpan="6" required="true"/>
+            <field name="language"     colSpan="6"/>
+            <field name="centroActivo" colSpan="6"
+                   grid-view="subsysCommon.Centro@Search-grid"
+                   form-view="subsysCommon.Centro@View-form"/>
+            <field name="nombre"       colSpan="6" required="true"/>
+            <field name="apellidos"    colSpan="6" required="true"/>
+            <field name="name"         colSpan="6" readonly="true"/>
+            <field name="email"        colSpan="6"/>
+        </panel>
+        <panel name="botones" showFrame="false">
+            <button name="btnBorrar"   title="Borrar"   onClick="subsysCommon.Usuario@Main-btnBorrar-action"   css="btn-danger" outline="true" showIf="(id != null)" colSpan="2"/>
+            <spacer colSpan="6"/>
+            <button name="btnCancelar" title="Cancelar" onClick="subsysCommon.Usuario@Main-btnCancelar-action" outline="true"   colSpan="2"/>
+            <button name="btnGuardar"  title="Guardar"  onClick="subsysCommon.Usuario@Main-btnGuardar-action"                   colSpan="2"/>
         </panel>
     </form>
 
-    <action-method name="subsysCommon.Usuario@Importar-Remote-importarUsuarios-action">
-        <call class="com.educaflow.subsystem.common.importar.UserImporter" method="importarUsuarios"/>
-    </action-method>
-
-    <action-view name="subsysCommon.Usuario@Importar-action" title="Importar usuarios" model="com.axelor.auth.db.User">
-        <view type="form" name="subsysCommon.Usuario@Importar-form"/>
-        <view-param name="forceEdit" value="true"/>
-        <view-param name="_id" value="null"/>
-    </action-view>
-
-    <form name="subsysCommon.Usuario@Importar-form" title="Importar usuarios" model="com.axelor.auth.db.User"
-          groups="admins" canAttach="false" canBack="true" canBackOnSave="false" canDelete="false" canNew="false" canSave="false">
-        <panel name="importar" title="Importar usuarios">
-            <field name="importarUsuarios" widget="binary-link" title="Fichero usuarios" colSpan="6"/>
-            <button name="btnImportar" title="Importar"
-                    onClick="subsysCommon.Usuario@Importar-Remote-importarUsuarios-action"
-                    readonlyIf="!importarUsuarios" colSpan="6" />
+    <form name="subsysCommon.Usuario@View-form" title="Usuario" model="com.axelor.auth.db.User"
+          width="large"
+          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="usuario" title="">
+            <field name="nombre"    colSpan="6" readonly="true"/>
+            <field name="apellidos" colSpan="6" readonly="true"/>
+            <field name="email"     colSpan="6" readonly="true"/>
+        </panel>
+        <panel name="botones" showFrame="false">
+            <spacer colSpan="11"/>
+            <button name="btnCerrar" title="Cerrar" onClick="subsysCommon.Usuario@View-btnCerrar-action" outline="true" colSpan="1"/>
         </panel>
     </form>
+
+    <!-- ***** Acciones de las tareas principales ***** -->
+
+    <action-group name="subsysCommon.Usuario@Main-btnBorrar-action">
+        <action name="delete"/>
+    </action-group>
+
+    <action-group name="subsysCommon.Usuario@Main-btnCancelar-action">
+        <action name="close"/>
+    </action-group>
+
+    <action-group name="subsysCommon.Usuario@Main-btnGuardar-action">
+        <action name="save"/>
+    </action-group>
+
+    <action-group name="subsysCommon.Usuario@View-btnCerrar-action">
+        <action name="close"/>
+    </action-group>
+
+    <!-- ***** Acciones de Validaciones en local ***** -->
+
+    <!-- ***** Acciones básicas que cambian campos simples ***** -->
+
+    <!-- ***** Acciones de llamadas Remotas al servidor ***** -->
 
 </object-views>

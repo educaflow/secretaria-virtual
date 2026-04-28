@@ -2,7 +2,7 @@ package com.educaflow.subsystem.registrousuario.db.repo;
 
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado;
-import com.educaflow.subsystem.security.db.TipoUsuario;
+import com.educaflow.subsystem.common.db.TipoUsuario;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

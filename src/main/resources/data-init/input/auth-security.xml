@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<auth>
+
+  <!-- El usuario solo puede ver sus propios CentroUsuario (en todos sus centros,
+       para que el cambio de centro activo funcione). -->
+  <permission name="CentroUsuario.propio"
+              object="com.educaflow.subsystem.common.db.CentroUsuario"
+              condition="self.usuario = ?"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <!-- Solo puede ver los tipos de usuario de sus propias CentroUsuario -->
+  <permission name="CentroUsuarioTipoUsuario.propio"
+              object="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario"
+              condition="self.centroUsuario.usuario = ?"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="TipoUsuario.leer" object="com.educaflow.subsystem.common.db.TipoUsuario">
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+</auth>

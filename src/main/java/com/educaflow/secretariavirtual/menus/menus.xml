@@ -19,11 +19,35 @@
         <menuitem name="subsysSistemaEducativo.LeyEducativa@Main-menuitem"       parent="subsysSistemaEducativo-menuitem" title="Leyes Educativas"    action="subsysSistemaEducativo.LeyEducativa@Main-action"        order="6"/>
         <menuitem name="subsysSistemaEducativo.Grado@Main-menuitem"              parent="subsysSistemaEducativo-menuitem" title="Grados"              action="subsysSistemaEducativo.Grado@Main-action"               order="7"/>
         <menuitem name="subsysSistemaEducativo.Nivel@Main-menuitem"              parent="subsysSistemaEducativo-menuitem" title="Niveles"             action="subsysSistemaEducativo.Nivel@Main-action"               order="8"/>
-    <menuitem name="sysGestionCentro-menuitem"             title="Gestión"              order="40"/>
-        <menuitem name="sysGestionCentro.Centro@Main-menuitem"                   parent="sysGestionCentro-menuitem" title="Centros"                  action="sysGestionCentro.Centro@Main-action"                    order="2"/>
-        <menuitem name="subsysImportacion.TareaImportacion@Main-menuitem"        parent="sysGestionCentro-menuitem" title="Ficheros importación"     action="subsysImportacion.TareaImportacion@Main-action"         order="3"/>
-    <menuitem name="subsysConfiguracionAdmin-menuitem"     title="Configuración"        order="50"/>
-        <menuitem name="subsysConfiguracionAdmin.Usuario@Main-menuitem"          parent="subsysConfiguracionAdmin-menuitem" title="Usuarios"         action="subsysCommon.Usuario@Main-action"                        order="2"/>
+
+    <!--<menuitem name="sysGestion-menuitem" title="Gestión" groups="admins,users" order="40"/>
+        <menuitem name="sysGestion.Centro@Main-menuitem" title="Centros"
+                  parent="sysGestion-menuitem" action="sysGestion.Centro@Main-action"
+                  groups="admins" order="1"/>
+        <menuitem name="sysGestion.CentroAdmin@Main-menuitem" title="Mi Centro"
+                  parent="sysGestion-menuitem" action="sysGestion.CentroAdmin@Main-action"
+                  groups="users" if="__user__?.tiposUsuarioActivos?.any { it.code == 'ADMINISTRADOR' }" order="1"/>
+        <menuitem name="sysGestion.Importacion@Main-menuitem" title="Ficheros de importación"
+                  parent="sysGestion-menuitem" action="sysGestion.Importacion@Main-action"
+                  groups="users" order="2"/>
+        <menuitem name="sysGestion.Usuarios-menuitem" title="Usuarios"
+                  parent="sysGestion-menuitem" groups="users" order="3"/>
+        <menuitem name="sysGestion.UsuarioAutorizado@Main-menuitem" title="Autorizados"
+                  parent="sysGestion.Usuarios-menuitem" action="sysGestion.UsuarioAutorizado@Main-action"
+                  groups="users" order="1"/>
+        <menuitem name="sysGestion.UsuarioRegistrado@Main-menuitem" title="Registrados"
+                  parent="sysGestion.Usuarios-menuitem" action="sysGestion.UsuarioRegistrado@Main-action"
+                  groups="users" order="2"/>-->
+
+    <menuitem name="subsysCommon-menuitem"   groups="admins"  title="Administración SV" order="50"/>
+        <menuitem name="subsysCommon.Centro@Main-menuitem" title="Centro"
+                  parent="subsysCommon-menuitem" action="subsysCommon.Centro@Main-action" groups="admins" order="1" />
+        <!--<menuitem name="subsysCommon.Importacion@Main-menuitem" title="Ficheros importación"
+                  parent="subsysCommon-menuitem" action="subsysImportacion.TareaImportacion@Main-action" groups="admins" order="2" />-->
+        <menuitem name="subsysCommon.Usuario@Main-menuitem" title="Usuarios"
+                  parent="subsysCommon-menuitem" action="subsysCommon.Usuario@Main-action" groups="admins" order="3"  />
+
+
     <menuitem name="subsysRegistroEntradaSalida-menuitem"  title="Registro"             order="60"/>
         <menuitem name="subsysRegistroEntradaSalida.RegistroEntrada@Main-menuitem" parent="subsysRegistroEntradaSalida-menuitem" title="Entrada"     action="subsysRegistroEntradaSalida.RegistroEntrada@Main-action"  order="1"/>
         <menuitem name="subsysRegistroEntradaSalida.RegistroSalida@Main-menuitem"  parent="subsysRegistroEntradaSalida-menuitem" title="Salida"      action="subsysRegistroEntradaSalida.RegistroSalida@Main-action"   order="2"/>

@@ -15,9 +15,9 @@ import com.educaflow.subsystem.registrousuario.db.RegistroPendiente;
 import com.educaflow.subsystem.registrousuario.db.repo.RegistroPendienteRepository;
 import com.educaflow.subsystem.registrousuario.service.DatosBasicosUsuario;
 import com.educaflow.subsystem.registrousuario.service.RegistroService;
-import com.educaflow.subsystem.security.db.CentroUsuario;
-import com.educaflow.subsystem.security.db.CentroUsuarioTipoUsuario;
-import com.educaflow.subsystem.security.db.TipoUsuario;
+import com.educaflow.subsystem.common.db.CentroUsuario;
+import com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario;
+import com.educaflow.subsystem.common.db.TipoUsuario;
 import com.google.inject.persist.Transactional;
 
 import java.util.List;

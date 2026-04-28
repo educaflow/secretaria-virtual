@@ -5,7 +5,7 @@ import com.axelor.inject.Beans;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.registrousuario.db.RegistroPendiente;
 import com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado;
-import com.educaflow.subsystem.security.db.TipoUsuario;
+import com.educaflow.subsystem.common.db.TipoUsuario;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
