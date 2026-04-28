@@ -28,6 +28,15 @@
         <field name="active"/>
     </grid>
 
+    <grid name="subsysCommon.Usuario@Search-grid" title="Usuario" model="com.axelor.auth.db.User"
+          groups="admins"
+          orderBy="apellidos"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="nombre"/>
+        <field name="apellidos"/>
+        <field name="email"/>
+    </grid>
+
     <form name="subsysCommon.Usuario@Main-form" title="Usuario" model="com.axelor.auth.db.User"
           width="large"
           canAttach="false" canBack="false" canBackOnSave="true" canDelete="false" canNew="false" canMore="false">
@@ -44,7 +53,7 @@
             <field name="email"        colSpan="6"/>
         </panel>
         <panel name="botones" showFrame="false">
-            <button name="btnBorrar"   title="Borrar"   onClick="subsysCommon.Usuario@Main-btnBorrar-action"   css="btn-danger" outline="true" showIf="(id != null)" colSpan="2"/>
+            <button name="btnBorrar"   title="Borrar"   onClick="subsysCommon.Usuario@Main-btnBorrar-action"   css="btn-danger" outline="true" showIf="(id != null) || (cid != null)" colSpan="2"/>
             <spacer colSpan="6"/>
             <button name="btnCancelar" title="Cancelar" onClick="subsysCommon.Usuario@Main-btnCancelar-action" outline="true"   colSpan="2"/>
             <button name="btnGuardar"  title="Guardar"  onClick="subsysCommon.Usuario@Main-btnGuardar-action"                   colSpan="2"/>

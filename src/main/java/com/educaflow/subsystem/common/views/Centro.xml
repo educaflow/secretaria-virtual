@@ -46,7 +46,11 @@
             />
         </panel-tabs>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
+<<<<<<< HEAD
             <button name="btnDelete" title="Borrar" onClick="subsysCommon.Centro@Main-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id != null)"/>
+=======
+            <button name="btnDelete" title="Borrar" onClick="subsysCommon.Centro@Main-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id != null) || (cid != null)"/>
+>>>>>>> security
             <button name="btnCancel" title="Cancelar" onClick="back"  colSpan="2" colOffset="6" outline="true"   />
             <button name="btnSave" title="Guardar" onClick="subsysCommon.Centro@Main-btnSave-action"  colSpan="2"  />
         </panel>
@@ -87,7 +91,10 @@
           canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="Usuario" title="">
             <field name="centro"  colSpan="6" showIf="false"/>
-            <field name="usuario" colSpan="12" readonly="true" form-view="subsysCommon.Usuario@View-form"/>
+            <field name="usuario" colSpan="12"
+                   readonlyIf="id != null"
+                   grid-view="subsysCommon.Usuario@Search-grid"
+                   form-view="subsysCommon.Usuario@View-form"/>
         </panel>
         <panel-related name="centroUsuarioTipoUsuario" title="Tipos de usuario" field="centroUsuarioTipoUsuario" colSpan="12"
                        grid-view="subsysCommon.Centro.CentroUsuario.CentroUsuarioTipoUsuario@Main-grid"
@@ -99,7 +106,7 @@
                        forceEdit="true"
         />
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
-            <button name="btnDelete" title="Borrar" onClick="delete-modal" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null)"/>
+            <button name="btnDelete" title="Borrar" onClick="delete-modal" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid!=null)"/>
             <button name="btnCancel" title="Cancelar" onClick="close"  colSpan="2" colOffset="6" outline="true"   />
             <button name="btnSave" title="Guardar" onClick="save-modal"  colSpan="2"  />
         </panel>
@@ -126,7 +133,7 @@
             <field name="tipoUsuario" colSpan="12"/>
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
-            <button name="btnDelete" title="Borrar" onClick="delete-modal" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null)"/>
+            <button name="btnDelete" title="Borrar" onClick="delete-modal" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid!=null)"/>
             <button name="btnCancel" title="Cancelar" onClick="close"  colSpan="2" colOffset="6" outline="true"   />
             <button name="btnSave" title="Guardar" onClick="save-modal"  colSpan="2"  />
         </panel>
