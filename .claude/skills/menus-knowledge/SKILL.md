@@ -35,6 +35,7 @@ Existen 2 tipos de menuitems:
 
 - El menuitem **raíz**:no lleva `action` ni `parent`, solo `title` y `order`. 
 - Los menuitems **hoja**: llevan `action` apuntando a una `action-view`. 
+- El XML de las etiquetas `<menuitem>` debe estar **SIEMPRE** es una única línea por lo que no debe tener saltos de línea.
 
 ## Convención de nombres de menuitems raiz:
 
