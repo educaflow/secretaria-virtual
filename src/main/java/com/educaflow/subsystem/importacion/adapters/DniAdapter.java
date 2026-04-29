@@ -8,7 +8,6 @@ import java.util.Map;
 
 public class DniAdapter extends Adapter {
 
-
     @Override
     public Object adapt(Object value, Map<String, Object> context) {
         if (value == null) {
@@ -24,7 +23,11 @@ public class DniAdapter extends Adapter {
             throw new IllegalArgumentException("Value must be a String or an XML Node (DNI)");
         }
 
-        return DniUtil.clean(strValue);
+        String cleaned = DniUtil.clean(strValue);
+        if (!DniUtil.isValid(cleaned)) {
+            throw new IllegalArgumentException("DNI inválido: " + cleaned);
+        }
+        return cleaned;
     }
 
 }

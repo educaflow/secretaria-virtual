@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<datos>
+    <centros>
+        <centro code="46019660" name="CIPFP Mislata" direccion="C/ Dolores Ibarruri, 32" codigoPostal="46920" curso="2024"/>
+        <centro code="03012165" name="CIPFP Batoi"   direccion="C/ Societat Unió Musical, 8" codigoPostal="03800" curso="2024"/>
+    </centros>
+</datos>

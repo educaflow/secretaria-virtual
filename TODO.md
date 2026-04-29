@@ -39,6 +39,43 @@ Análisis realizado el 2026-04-13. Revisar y corregir los siguientes problemas.
       Problema: el valor codigoXml (procedente del fichero subido) se concatena sin escapar en el mensaje de error.
       Fix: escapar caracteres especiales (<, >, &) o no incluir el valor en el mensaje.
 
+## Importación CSV
+
+[x] 14. Verificar filas realmente insertadas tras importación CSV
+       Fichero: subsystem/importacion/service/impl/TareaImportacionServiceImpl.java
+       Problema: Axelor CSVImporter reporta "Éxitos: N" aunque no persista ninguna fila (count++ ocurre
+       antes del commit; si el bean es null o el commit falla, el contador no lo refleja).
+       Fix: tras el import, parsear el CSV para extraer los DNIs, consultar UsuarioAutorizadoRepository
+       con countByDnisYCentroYCurso() y añadir advertencia a BusinessMessages si el count real difiere
+       del número de filas del CSV.
+
+[ ] 15. DNI importado como PROFESOR_EXTERNO puede duplicar entrada existente como PROFESOR
+       Fichero: data-import/profesores-externos-csv-config.xml + subsystem/registrousuario
+       Problema: si un DNI ya existe en UsuarioAutorizado como PROFESOR del mismo centro+curso,
+       importarlo como PROFESOR_EXTERNO crea una segunda fila. No hay constraint que lo impida.
+       findTiposUsuarioByDni agrupa por (dni, centro, tipoUsuario), así que ambas entradas
+       aparecen y el usuario quedaría registrado con PROFESOR + PROFESOR_EXTERNO simultáneamente.
+       PROFESOR_EXTERNO no tiene entrada en EX_MAPPING, así que si el curso ya pasó se ignora
+       (inofensivo), pero si es el curso actual genera doble rol.
+       Opciones:
+         A) Validación en servicio antes del import: extraer DNIs del CSV, consultar cuáles ya
+            existen en UsuarioAutorizado para ese centro+curso (cualquier tipo), avisar en el log.
+            No bloquea pero informa al admin.
+         B) Ampliar el search del CSV config a (dni, centro, curso) sin filtrar tipoUsuario.
+            Con update="false" ya no crea duplicado. Silencioso: no se sabe qué DNIs se saltó.
+         C) Combinar A+B: search ampliado (evita insert) + post-import comparando DNIs del CSV
+            con los realmente insertados → log muestra cuáles se saltaron. Resuelve también TODO-14.
+       Verificar también: RegistroServiceImpl crea un CentroUsuarioTipoUsuario por cada elemento
+       de la lista devuelta por findTiposUsuarioByDni — confirmar que doble rol es o no aceptable.
+
+## Pendiente de investigar
+       Fichero: subsystem/importacion/service/impl/TareaImportacionServiceImpl.java
+       Problema: Axelor CSVImporter reporta "Éxitos: N" aunque no persista ninguna fila (count++ ocurre
+       antes del commit; si el bean es null o el commit falla, el contador no lo refleja).
+       Fix: tras el import, parsear el CSV para extraer los DNIs, consultar UsuarioAutorizadoRepository
+       con countByDnisYCentroYCurso() y añadir advertencia a BusinessMessages si el count real difiere
+       del número de filas del CSV.
+
 ## Pendiente de investigar
 
 [ ] Comportamiento del atributo `prompt` en botones dentro de `panel-dashlet`

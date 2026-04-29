@@ -39,13 +39,14 @@
                   parent="sysGestion.Usuarios-menuitem" action="sysGestion.UsuarioRegistrado@Main-action"
                   groups="users" order="2"/>-->
 
-    <menuitem name="subsysCommon-menuitem"   groups="admins"  title="Administración SV" order="50"/>
-        <menuitem name="subsysCommon.Centro@Main-menuitem" title="Centro"
-                  parent="subsysCommon-menuitem" action="subsysCommon.Centro@Main-action" groups="admins" order="1" />
-        <!--<menuitem name="subsysCommon.Importacion@Main-menuitem" title="Ficheros importación"
-                  parent="subsysCommon-menuitem" action="subsysImportacion.TareaImportacion@Main-action" groups="admins" order="2" />-->
-        <menuitem name="subsysCommon.Usuario@Main-menuitem" title="Usuarios"
-                  parent="subsysCommon-menuitem" action="subsysCommon.Usuario@Main-action" groups="admins" order="3"  />
+
+    <menuitem name="administracioSV-menuitem"   groups="admins"  title="Administración SV" order="50"/>
+        <menuitem name="administracioSV-centro-menuitem" title="Centro"
+                  parent="administracioSV-menuitem" action="subsysCommon.Centro@Main-action" groups="admins" order="1" />
+        <menuitem name="administracioSV-importacion-menuitem" title="Ficheros importación"
+                  parent="administracioSV-menuitem" action="subsysImportacion.TareaImportacion@Main-action" groups="admins" order="2" />
+        <menuitem name="administracioSV-usuario-menuitem" title="Usuarios"
+                  parent="administracioSV-menuitem" action="subsysCommon.Usuario@Main-action" groups="admins" order="3"  />
 
 
     <menuitem name="subsysRegistroEntradaSalida-menuitem"  title="Registro"             order="60"/>

@@ -20,7 +20,7 @@
         <item name="ALUMNOS" title="Alumnos" help="Fichero de importación de alumnos"/>
         <item name="PROFESORES" title="Profesores" help="Fichero de importación de profesores"/>
         <item name="FAMILIARES" title="Familiares" help="Fichero de importación de familiares"/>
-        <item name="PRUEBA" title="Prueba" help="Fichero de prueba"/>
+        <item name="PROFESOR_EXTERNO" title="Profesor externo" help="Fichero CSV de profesores externos autorizados"/>
     </enum>
 
 </domain-models>

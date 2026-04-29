@@ -8,6 +8,8 @@ import java.util.List;
 public class ListenerImpl implements Listener {
 
     private final List<String> log;
+    private int procesados = 0;
+    private int saltados = 0;
 
     ListenerImpl(List<String> log) {
         this.log = log;
@@ -15,16 +17,22 @@ public class ListenerImpl implements Listener {
 
     @Override
     public void imported(Model bean) {
-        //importLog.add("Registro importado: " + bean);
+        if (bean == null) {
+            saltados++;
+        } else {
+            procesados++;
+        }
     }
 
     @Override
     public void imported(Integer total, Integer success) {
-        log.add(String.format("Finalizado. Total: %d, Éxitos: %d", total, success));
+        int fallidos = total - success;
+        log.add(String.format("Procesados: %d | Ya existían: %d | Errores: %d | Total filas: %d",
+            procesados, saltados, fallidos, total));
     }
 
     @Override
     public void handle(Model bean, Exception e) {
-        log.add("Error en registro [" + bean + "]: " + e.getMessage());
+        log.add("Error en fila [" + bean + "]: " + e.getMessage());
     }
 }

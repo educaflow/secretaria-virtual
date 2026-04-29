@@ -20,7 +20,7 @@
           canEditOnClick="true"
     >
         <field name="tipoFichero" width="180px"/>
-        <field name="centro" if="__user__?.group?.code == 'admins'"/>
+        <field name="centro" />
         <field name="curso" width="130px"/>
         <field name="usuario" width="180px"/>
         <field name="fichero" widget="binary-link"/>

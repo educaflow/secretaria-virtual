@@ -3,7 +3,8 @@ package com.educaflow.base.infrastructure.importer.impl;
 import com.axelor.data.ImportTask;
 import com.axelor.data.Importer;
 import com.axelor.data.xml.XMLImporter;
-import com.educaflow.base.util.XmlUtil;
+import com.educaflow.base.util.ImporterUtil;
+import com.educaflow.base.util.XMLUtil;
 import com.educaflow.base.infrastructure.importer.DataImport;
 import com.educaflow.base.infrastructure.importer.FileImporter;
 import com.educaflow.base.infrastructure.importer.ImportConfigException;
@@ -22,12 +23,10 @@ import javax.xml.parsers.SAXParserFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 import java.io.*;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.*;
 
-public class FileImporterImpl implements FileImporter {
+public class FileImporterXml implements FileImporter {
 
     private final Logger logger = LoggerFactory.getLogger(FileImporter.class);
     private final String IMPORT_LOGGER_NAME = "importLogger";
@@ -43,10 +42,10 @@ public class FileImporterImpl implements FileImporter {
                 validarEsquema(dataImport.data(), dataImport.validationSchemaPath());
             }
 
-            tempConfigFile = crearFicheroTemporalFromResource(dataImport.configFilePath());
+            tempConfigFile = ImporterUtil.crearFicheroTemporalFromResource(dataImport.configFilePath());
             ejecutarImportacion(tempConfigFile, dataImport.data(), importLog);
         } finally {
-            borrarArchivoTemporal(tempConfigFile);
+            ImporterUtil.borrarArchivoTemporal(tempConfigFile);
         }
 
         return importLog;
@@ -58,7 +57,7 @@ public class FileImporterImpl implements FileImporter {
             if (schema == null) {
                 throw new ImportConfigException("Esquema de validación no encontrado: " + schemaPath);
             }
-            Optional<String> error = XmlUtil.validarConSchema(data, schema);
+            Optional<String> error = XMLUtil.validarConSchema(data, schema);
             if (error.isPresent()) {
                 throw new ImportValidationException("El fichero XML no es válido: " + error.get());
             }
@@ -127,26 +126,4 @@ public class FileImporterImpl implements FileImporter {
         }
     }
 
-    private Path crearFicheroTemporalFromResource(String resourcePath) {
-        try (InputStream is = getClass().getResourceAsStream(resourcePath)) {
-            if (is == null) throw new ImportConfigException("Fichero de configuración no encontrado: " + resourcePath);
-
-            Path temp = Files.createTempFile("import-config-", ".xml");
-            Files.copy(is, temp, StandardCopyOption.REPLACE_EXISTING);
-            return temp;
-        } catch (IOException e) {
-            throw new ImportConfigException("Error creando fichero temporal de configuración: " + resourcePath, e);
-        }
-    }
-
-    private void borrarArchivoTemporal(Path path) {
-        if (path != null) {
-            try {
-                Files.deleteIfExists(path);
-                logger.info("Temporal eliminado: {}", path);
-            } catch (IOException e) {
-                logger.warn("No se pudo eliminar el temporal: {}", path);
-            }
-        }
-    }
 }

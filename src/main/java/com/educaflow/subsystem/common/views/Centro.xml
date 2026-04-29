@@ -46,11 +46,8 @@
             />
         </panel-tabs>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
-<<<<<<< HEAD
-            <button name="btnDelete" title="Borrar" onClick="subsysCommon.Centro@Main-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id != null)"/>
-=======
+
             <button name="btnDelete" title="Borrar" onClick="subsysCommon.Centro@Main-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id != null) || (cid != null)"/>
->>>>>>> security
             <button name="btnCancel" title="Cancelar" onClick="back"  colSpan="2" colOffset="6" outline="true"   />
             <button name="btnSave" title="Guardar" onClick="subsysCommon.Centro@Main-btnSave-action"  colSpan="2"  />
         </panel>
