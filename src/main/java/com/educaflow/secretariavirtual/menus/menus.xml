@@ -40,22 +40,22 @@
                   groups="users" order="2"/>-->
 
     <menuitem name="administracionSv-menuitem"   groups="admins"  title="Administración SV" order="50"/>
-        <menuitem name="administracionSv-centro-menuitem" title="Centro"
-                  parent="administracionSv-menuitem" action="subsysCommon.Centro@Main-action" groups="admins" order="1" />
+        <menuitem name="administracionSv-centro-menuitem" title="Centro" parent="administracionSv-menuitem" action="subsysCommon.Centro@Main-action" groups="admins" order="1" />
         <!--<menuitem name="subsysCommon.Importacion@Main-menuitem" title="Ficheros importación"
                   parent="subsysCommon-menuitem" action="subsysImportacion.TareaImportacion@Main-action" groups="admins" order="2" />-->
-        <menuitem name="administracionSv-usuarios-menuitem" title="Usuarios"
-                  parent="administracionSv-menuitem" action="subsysCommon.Usuario@Main-action" groups="admins" order="2"  />
+        <menuitem name="administracionSv-usuarios-menuitem" title="Usuarios" parent="administracionSv-menuitem" action="subsysCommon.Usuario@Main-action" groups="admins" order="2"  />
 
 
     <menuitem name="registro-menuitem"  title="Registro"             order="60"/>
         <menuitem name="registro-entrada-menuitem" parent="registro-menuitem" title="Entrada"     action="subsysRegistroEntradaSalida.RegistroEntrada@Main-action"  order="1"/>
         <menuitem name="registro-salida-menuitem"  parent="registro-menuitem" title="Salida"      action="subsysRegistroEntradaSalida.RegistroSalida@Main-action"   order="2"/>
-    <menuitem name="firmarDocumentos-menuitem"                  title="Firmar documentos"    order="70"/>
-        <menuitem name="firmarDocumentos-todos-menuitem"      parent="firmarDocumentos-menuitem" title="Todos"       action="subsysFirma.TareaFirma@Todos-action"      order="1"/>
-        <menuitem name="firmarDocumentos-pendientes-menuitem"  parent="firmarDocumentos-menuitem" title="Pendientes"  action="subsysFirma.TareaFirma@Pendiente-action"  order="2"/>
-        <menuitem name="firmarDocumentos-firmados-menuitem"    parent="firmarDocumentos-menuitem" title="Firmados"    action="subsysFirma.TareaFirma@Firmado-action"    order="3"/>
-        <menuitem name="firmarDocumentos-rechazados-menuitem"  parent="firmarDocumentos-menuitem" title="Rechazados"  action="subsysFirma.TareaFirma@Rechazado-action"  order="4"/>
+
+    <menuitem name="firmarDocumentos-menuitem"  title="Firmar documentos"  order="70"/>
+        <menuitem name="firmarDocumentos-pendientes-menuitem"  parent="firmarDocumentos-menuitem" title="Pendientes"  action="subsysFirma.TareaFirma@Pendiente-action"  order="1"/>
+        <menuitem name="firmarDocumentos-firmados-menuitem"    parent="firmarDocumentos-menuitem" title="Firmados"    action="subsysFirma.TareaFirma@Firmado-action"    order="2"/>
+        <menuitem name="firmarDocumentos-rechazados-menuitem"  parent="firmarDocumentos-menuitem" title="Rechazados"  action="subsysFirma.TareaFirma@Rechazado-action"  order="3"/>
+        <menuitem name="firmarDocumentos-todos-menuitem"       parent="firmarDocumentos-menuitem" title="Todos"       action="subsysFirma.TareaFirma@Todos-action"       order="4"/>
+
     <menuitem name="utilidadesPdf-menuitem"           title="Utilidades de PDF"    order="80" icon="picture_as_pdf"/>
         <menuitem name="utilidadesPdf-informacion-menuitem"      parent="utilidadesPdf-menuitem" title="Información"          action="subsysPdfUtilities.Info-action"        order="1"/>
         <menuitem name="utilidadesPdf-posicionesFirma-menuitem"     parent="utilidadesPdf-menuitem" title="Posiciones Firma"     action="subsysPdfUtilities.Firma-action"       order="2"/>
