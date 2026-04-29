@@ -42,10 +42,10 @@
     <menuitem name="administracionSv-menuitem"   groups="admins"  title="Administración SV" order="50"/>
         <menuitem name="administracionSv-centro-menuitem" title="Centro"
                   parent="administracionSv-menuitem" action="subsysCommon.Centro@Main-action" groups="admins" order="1" />
-        <!--<menuitem name="subsysCommon.Importacion@Main-menuitem" title="Ficheros importación"
-                  parent="subsysCommon-menuitem" action="subsysImportacion.TareaImportacion@Main-action" groups="admins" order="2" />-->
+        <menuitem name="administracionSv-importacion-menuitem" title="Ficheros importación"
+                  parent="administracionSv-menuitem" action="subsysImportacion.TareaImportacion@Main-action" groups="admins" order="2" />
         <menuitem name="administracionSv-usuarios-menuitem" title="Usuarios"
-                  parent="administracionSv-menuitem" action="subsysCommon.Usuario@Main-action" groups="admins" order="2"  />
+                  parent="administracionSv-menuitem" action="subsysCommon.Usuario@Main-action" groups="admins" order="3"  />
 
 
     <menuitem name="registro-menuitem"  title="Registro"             order="60"/>
