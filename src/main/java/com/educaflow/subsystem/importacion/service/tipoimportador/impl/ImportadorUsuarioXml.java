@@ -1,7 +1,6 @@
-package com.educaflow.subsystem.importacion.service.impl;
+package com.educaflow.subsystem.importacion.service.tipoimportador.impl;
 
 import com.axelor.db.JpaRepository;
-import com.axelor.inject.Beans;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessage;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
@@ -10,9 +9,7 @@ import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.base.util.XMLUtil;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.TipoUsuario;
-import com.educaflow.subsystem.common.db.repo.CentroRepository;
-import com.educaflow.subsystem.importacion.db.TareaImportacion;
-import com.educaflow.subsystem.importacion.service.ImportadorTipoFichero;
+import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorTipoFichero;
 import com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado;
 import com.educaflow.subsystem.registrousuario.db.repo.UsuarioAutorizadoRepository;
 import org.w3c.dom.Document;
@@ -94,21 +91,6 @@ public class ImportadorUsuarioXml implements ImportadorTipoFichero {
         }
 
         return construirResumen(creados, existentes, errores, items.getLength());
-    }
-
-    @Override
-    public BusinessMessages importar(byte[] contenido) throws BusinessException {
-        Element root = XMLUtil.getDocument(contenido).getDocumentElement();
-        String codigoCentro = XMLUtil.getStringAttribute(root, "codigo", null);
-        String cursoStr = XMLUtil.getStringAttribute(root, "curso", null);
-        String centroActivo = SecurityUtil.getUser().getCentroActivo() != null ? SecurityUtil.getUser().getCentroActivo().getCode() : "ninguno";
-        if (codigoCentro != null && !codigoCentro.equals(centroActivo)) {
-            throw new BusinessException(new BusinessMessage(
-                    "El fichero pertenece al centro '" + codigoCentro + "', pero tu centro activo es '" + centroActivo + "'"));
-        }
-        Centro centro = codigoCentro != null ? Beans.get(CentroRepository.class).findByCode(codigoCentro) : null;
-        Integer curso = cursoStr != null ? Integer.parseInt(cursoStr) : null;
-        return importar(contenido, centro, curso);
     }
 
     private void validarEsquema(byte[] contenido) throws BusinessException {

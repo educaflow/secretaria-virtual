@@ -1,14 +1,13 @@
-package com.educaflow.subsystem.importacion.service.impl;
+package com.educaflow.subsystem.importacion.service.tipoimportador.impl;
 
 import com.axelor.db.JpaRepository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessage;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
 import com.educaflow.base.util.DniUtil;
-import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.TipoUsuario;
-import com.educaflow.subsystem.importacion.service.ImportadorTipoFichero;
+import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorTipoFichero;
 import com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado;
 import com.educaflow.subsystem.registrousuario.db.repo.UsuarioAutorizadoRepository;
 
@@ -91,19 +90,6 @@ public class ImportadorProfesoresExternos implements ImportadorTipoFichero {
                 creados, existentes, errores.size(), total)));
         errores.forEach(msg -> result.add(new BusinessMessage(msg)));
         return result;
-    }
-
-    @Override
-    public BusinessMessages importar(byte[] contenido) throws BusinessException {
-        Centro centro = SecurityUtil.getUser().getCentroActivo();
-        if (centro == null) {
-            throw new BusinessException(new BusinessMessage("El usuario no tiene un centro activo asignado"));
-        }
-        Integer curso = centro.getCurso();
-        if (curso == null) {
-            throw new BusinessException(new BusinessMessage("El centro activo no tiene un curso académico configurado"));
-        }
-        return importar(contenido, centro, curso);
     }
 
     private TipoUsuario obtenerTipoUsuario() throws BusinessException {

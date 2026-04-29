@@ -61,22 +61,23 @@
     </action-group>
 
     <action-group name="subsysImportacion.TareaImportacion@Main-btnSave-action">
-        <action name="subsysImportacion.TareaImportacion@Main-Remote-importarDatos-action"/>
+        <!--<action name="subsysImportacion.TareaImportacion@Main-Remote-importarDatos-action"/>-->
         <action name="save"/>
+        <action name="reload"/> <!-- Para recargar la vista y mostrar el log actualizado tras la importación -->
         <!--<action name="force-back"/>-->
     </action-group>
 
     <!-- *********************************************************************************************  -->
     <!-- ************************** Acciones de llamadas Remotas al servidor *************************  -->
     <!-- *********************************************************************************************  -->
-    <action-method name="subsysImportacion.TareaImportacion@Main-Remote-validarCentro-action"
+    <!--<action-method name="subsysImportacion.TareaImportacion@Main-Remote-validarCentro-action"
                    model="com.educaflow.subsystem.importacion.db.TareaImportacion">
         <call class="com.educaflow.subsystem.importacion.controller.ImportacionController" method="validarCentro" />
     </action-method>
     <action-method name="subsysImportacion.TareaImportacion@Main-Remote-importarDatos-action"
                    model="com.educaflow.subsystem.importacion.db.TareaImportacion">
         <call class="com.educaflow.subsystem.importacion.controller.ImportacionController" method="importarDatos" />
-    </action-method>
+    </action-method>-->
 
     <!-- *********************************************************************************************  -->
     <!-- ************************ Acciones básicas que cambian campos simples ************************  -->
