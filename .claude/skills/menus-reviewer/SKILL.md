@@ -1,13 +1,13 @@
 ---
 name: menus-reviewer
-description: Revisa que los menús `<menuitem>` de Axelor creados o modificados cumplen todas las reglas de /menus-knowledge — nomenclatura, atributos, jerarquía, referencias a action-view y orden.
+description: Revisa que los menús `<menuitem>` de Axelor creados o modificados cumplen todas las reglas de /menus-knowledge — nomenclatura, atributos, jerarquía, referencias a action-view y orden. Lo hace una única vez sin orquetar ni la modificación ni nada más
 ---
 
 # menus-reviewer
 
 ## Propósito
 
-Verificar que los menús (`<menuitem>`) creados o modificados siguen las reglas definidas en `/menus-knowledge`.
+Verificar que los menús (`<menuitem>`) creados o modificados siguen las reglas definidas en el skill `/menus-knowledge`.
 
 ## Qué leer
 
@@ -17,17 +17,13 @@ Verificar que los menús (`<menuitem>`) creados o modificados siguen las reglas 
 
 ## Ubicación de los menuitems
 
-- [ ] Los menuitems **raíz** están en `src/main/java/com/educaflow/secretariavirtual/menus/`.
-- [ ] Los menuitems **hoja** (con `action`) está justo debajo de los menuitems raíz o subsección a los que pertenecen y con una identación
+- [ ] Todos los menuitems están en `src/main/java/com/educaflow/secretariavirtual/menus/`.
+- [ ] Los menuitems **hoja** (tienen el atributo `action`) está justo debajo de los menuitems raíz y con una identación
 
 ## Nomenclatura de los `<menuitem>`
 
-Patrón: `{Prefijo}[-menuitem | .{Entidad}@{Vista}-menuitem | -{concepto}-menuitem]`
-
-- [ ] El prefijo es `subsys{Subsistema}` para subsistemas o `sys{Sistema}` para sistemas (PascalCase sin separador).
-- [ ] El menuitem raíz (sección) sigue el patrón `subsys{Seccion}-menuitem` o `sys{Seccion}-menuitem`.
-- [ ] Los menuitems de entrada a una entidad siguen `{Prefijo}.{Entidad}@{Vista}-menuitem`.
-- [ ] Todos los menuitems terminan con el sufijo `-menuitem`.
+- [ ] Los menuitems raíz siguen la convención: título del menú en minúscula, formato camelCase y sufijo `-menuitem`.
+- [ ] Los menuitems hoja siguen la convención: nombre del menú padre, un guión, título del menú en formato camelCase y sufijo `-menuitem`.
 
 ## Atributos obligatorios de `<menuitem>`
 

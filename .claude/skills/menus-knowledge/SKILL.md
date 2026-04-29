@@ -15,61 +15,62 @@ Existen 2 tipos de menuitems:
 - hoja: son entradas finales que abren una vista, llevan `action` apuntando a una `action-view` y `parent` apuntando al menuitem raíz o subsección al que pertenecen.
 
 ## Ubicación de los menuitems
-Los `<menuitem>` se colocan siempre en el fichero `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`
-Como un `<menuitem>` puede depender de otro `<menuitem>` el `<menuitem>` se colocará justo debajo.
+- Los `<menuitem>` se colocan siempre en el fichero `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`
+- Los `<menuitem>` hoja se colocará justo debajo del `<menuitem>` raíz al que pertenece.
 
 
 ## Etiqueta `<menuitem>`
 
 ### Atributos
 
-| Atributo  | Descripción                                                                                                                             | Obligatorio              |
-|-----------|-----------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
-| `name`    | Identificador único del menuitem (ver convención de nombres)                                                                            | Sí                       |
-| `title`   | Texto visible en el menú                                                                                                                | Sí                       |
-| `order`   | Orden de aparición (número entero). Siempre debe coincidir con el número del nombre el fichero y no se debe repetir en el mismo submenu | Sí                       |
-| `parent`  | Nombre del menuitem padre (para subentradas)                                                                                            | No (solo menuitems hijo) |
-| `action`  | Nombre de la `action-view` que se abre al pulsar                                                                                        | No (solo menuitems hoja) |
-| `groups`  | Grupos de usuarios que pueden ver el menuitem                                                                                           | No                       |
+| Atributo  | Descripción                                                                                                                                               | Obligatorio              |
+|-----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| `name`    | Identificador único del menuitem (ver convención de nombres)                                                                                              | Sí                       |
+| `title`   | Texto visible en el menú                                                                                                                                  | Sí                       |
+| `order`   | Orden de aparición (número entero que empieza por 1). Siempre debe coincidir con el número del nombre el fichero y no se debe repetir en el mismo submenu | Sí                       |
+| `parent`  | Nombre del menuitem padre (para subentradas)                                                                                                              | No (solo menuitems hoja) |
+| `action`  | Nombre de la `action-view` que se abre al pulsar                                                                                                          | No (solo menuitems hoja) |
 
 ### Reglas
 
-- El menuitem **raíz** (sección) no lleva `action` ni `parent`, solo `title` y `order`. 
-- Los menuitems **hoja** llevan `action` apuntando a una `action-view`. 
+- El menuitem **raíz**:no lleva `action` ni `parent`, solo `title` y `order`. 
+- Los menuitems **hoja**: llevan `action` apuntando a una `action-view`. 
 
 ## Convención de nombres de menuitems raiz:
 
-El nombre de los menuitems es: `{Prefijo}[-menuitem | .{Entidad}@{Vista}-menuitem | -{concepto}-menuitem]`
+- El menuitem **raíz**: Se llamará como el título del menú en minúscula pero en formato camelCase y el sufijo `-menuitem`.
+- Los menuitems **hoja**: Se llamará como el nobmre del menú padre, un guión, el título del menú en formato calCase y el sufijo `-menuitem`.
 
-### Prefijos
-
-- Subsistemas: `subsys{Subsistema}` (PascalCase sin separador), p.ej. `subsysFirma`, `subsysRegistroEntradaSalida`
-- Sistemas: `sys{Sistema}` (PascalCase sin separador), p.ej. `sysImportar`
-
-Las entidades se separan con `.` (punto) y el nombre de la vista con `@`, igual que en grids y formularios.
 
 #### Ejemplos
 
-| Caso                                | Patrón                                 | Ejemplo                                      |
-|-------------------------------------|----------------------------------------|----------------------------------------------|
-| Sección raíz (subsistema)           | `subsys{NombreSubsistema}-menuitem`    | `subsysFirma-menuitem`                       |
-| Sección raíz (sistema)              | `sys{NombreSistema}-menuitem`          | `sysImportar-menuitem`                       |
-| Entrada a entidad (vista principal) | `{Prefijo}.{Entidad}@Main-menuitem`    | `subsysSistemaEducativo.Ciclo@Main-menuitem` |
-| Entrada a entidad (otra vista)      | `{Prefijo}.{Entidad}@{Vista}-menuitem` | `subsysFirma.TareaFirma@Pendiente-menuitem`  |
+| Titulo del menú         | parent                         | Nombre                                      |
+|-------------------------|--------------------------------|---------------------------------------------|
+| Expedientes             |                                | `expedientes-menuitem`                      |
+| Abiertos                | `expedientes-menuitem`         | `expedientes-abiertos-menuitem`             |
+| Cerrados por el cliente | `expedientes-menuitem`         | `expedientes-cerradosCliente-menuitem` |
+| Registro                |                                | `registro-menuitem`                         |
+| Entrada                 | `registro-menuitem`            | `registro-entrada-menuitem`                 |
+| Firmar documentos       |                                | `firmarDocumentos-menuitem`                 |
+| Todos                   | `firmarDocumentos-menuitem`    | `firmarDocumentos-todos-menuitem`           |
+| Pendientes              | `firmarDocumentos-menuitem`    | `firmarDocumentos-pendientes-menuitem`      |
+| Firmados                | `firmarDocumentos-menuitem`    | `firmarDocumentos-firmados-menuitem`        |
+| Rechazados              | `firmarDocumentos-menuitem`    | `firmarDocumentos-rechazados-menuitem`      |
+
 
 ## Ejemplos completos
 
 ### Menú raíz — fichero en `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`
 
 ```xml
-<menuitem name="subsysSistemaEducativo-menuitem" title="Sistema educativo" order="10"/>
-    <menuitem name="subsysSistemaEducativo.Ciclo@Main-menuitem" parent="subsysSistemaEducativo-menuitem" title="Ciclos" action="subsysSistemaEducativo.Ciclo@Main-action"  order="1"/>
-    <menuitem name="subsysSistemaEducativo.Centro@Main-menuitem" parent="subsysSistemaEducativo-menuitem" title="Centro" action="subsysSistemaEducativo.Ciclo@Main-action"  order="2"/>
-<menuitem name="subsysFirma-menuitem"                  title="Firmar documentos"    order="20"/>
-    <menuitem name="subsysFirma.TareaFirma@Todos-menuitem" parent="subsysFirma-menuitem" title="Todos" action="subsysFirma.TareaFirma@Todos-action"  order="1"/>
-    <menuitem name="subsysFirma.TareaFirma@Pendiente-menuitem" parent="subsysFirma-menuitem" title="Pendientes" action="subsysFirma.TareaFirma@Pendiente-action"  order="2"/>
-    <menuitem name="subsysFirma.TareaFirma@Firmado-menuitem" parent="subsysFirma-menuitem" title="Firmados" action="subsysFirma.TareaFirma@Firmado-action"  order="3"/>
-    <menuitem name="subsysFirma.TareaFirma@Rechazado-menuitem" parent="subsysFirma-menuitem" title="Rechazados" action="subsysFirma.TareaFirma@Rechazado-action"  order="4"/>
+<menuitem name="sistemaEducativo-menuitem" title="Sistema educativo" order="1"/>
+    <menuitem name="sistemaEducativo-ciclos-menuitem" parent="sistemaEducativo-menuitem" title="Ciclos" action="subsysSistemaEducativo.Ciclo@Main-action"  order="1"/>
+    <menuitem name="sistemaEducativo-centro-menuitem" parent="sistemaEducativo-menuitem" title="Centro" action="subsysSistemaEducativo.Ciclo@Main-action"  order="2"/>
+<menuitem name="firmarDocumentos-menuitem"                  title="Firmar documentos"    order="2"/>
+    <menuitem name="firmarDocumentos-todos-menuitem" parent="firmarDocumentos-menuitem" title="Todos" action="subsysFirma.TareaFirma@Todos-action"  order="1"/>
+    <menuitem name="firmarDocumentos-pendientes-menuitem" parent="firmarDocumentos-menuitem" title="Pendientes" action="subsysFirma.TareaFirma@Pendiente-action"  order="2"/>
+    <menuitem name="firmarDocumentos-firmados-menuitem" parent="firmarDocumentos-menuitem" title="Firmados" action="subsysFirma.TareaFirma@Firmado-action"  order="3"/>
+    <menuitem name="firmarDocumentos-rechazados-menuitem" parent="firmarDocumentos-menuitem" title="Rechazados" action="subsysFirma.TareaFirma@Rechazado-action"  order="4"/>
 ```
 
 Un detalle, los menuitem hoja, llevan una identación debajo del menuitem raíz al que pertenecen de esa forma se visualiza mejor la jerarquía.
