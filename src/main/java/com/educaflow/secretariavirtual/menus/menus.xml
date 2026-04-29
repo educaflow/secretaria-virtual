@@ -3,22 +3,22 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <menuitem name="subsysExpedientes-menuitem"            title="Expedientes"          order="20"/>
-        <menuitem name="sysTramites-nuevo-menuitem"                              parent="subsysExpedientes-menuitem" title="Trámites"                action="sysTramites-nuevo-action" icon="list_alt_add"     order="1"/>
-        <menuitem name="subsysExpedientes.Expediente@Pendiente-menuitem"         parent="subsysExpedientes-menuitem" title="Expedientes Pendientes"  action="subsysExpedientes.Expediente@Pendiente-action"    order="2"/>
-        <menuitem name="subsysExpedientes.Expediente@Esperando-menuitem"         parent="subsysExpedientes-menuitem" title="Expedientes Esperando"   action="subsysExpedientes.Expediente@Esperando-action"    order="3"/>
-        <menuitem name="subsysExpedientes.Expediente@Cerrados-menuitem"          parent="subsysExpedientes-menuitem" title="Expedientes Cerrados"    action="subsysExpedientes.Expediente@Cerrados-action"     order="4"/>
-        <menuitem name="subsysExpedientes.TipoExpediente@Main-menuitem"          parent="subsysExpedientes-menuitem" title="Tipos Expedientes"       action="subsysExpedientes.TipoExpediente@Main-action"     order="5"/>
-        <menuitem name="subsysExpedientes.Expediente@PruebaSearch-menuitem"      parent="subsysExpedientes-menuitem" title="Prueba Búsqueda"         action="subsysExpedientes.Expediente@PruebaSearch-action" order="6"/>
-    <menuitem name="subsysSistemaEducativo-menuitem"       title="Sistema educativo"    order="30"/>
-        <menuitem name="subsysSistemaEducativo.FamiliaProfesional@Main-menuitem" parent="subsysSistemaEducativo-menuitem" title="Familia profesional" action="subsysSistemaEducativo.FamiliaProfesional@Main-action"  order="1"/>
-        <menuitem name="subsysSistemaEducativo.Ciclo@Main-menuitem"              parent="subsysSistemaEducativo-menuitem" title="Ciclos"              action="subsysSistemaEducativo.Ciclo@Main-action"               order="2"/>
-        <menuitem name="subsysSistemaEducativo.Curso@Main-menuitem"              parent="subsysSistemaEducativo-menuitem" title="Cursos"              action="subsysSistemaEducativo.Curso@Main-action"               order="3"/>
-        <menuitem name="subsysSistemaEducativo.Modulo@Main-menuitem"             parent="subsysSistemaEducativo-menuitem" title="Módulos"             action="subsysSistemaEducativo.Modulo@Main-action"              order="4"/>
-        <menuitem name="subsysSistemaEducativo.CursoModulo@Main-menuitem"        parent="subsysSistemaEducativo-menuitem" title="Cursos-Módulos"      action="subsysSistemaEducativo.CursoModulo@Main-action"         order="5"/>
-        <menuitem name="subsysSistemaEducativo.LeyEducativa@Main-menuitem"       parent="subsysSistemaEducativo-menuitem" title="Leyes Educativas"    action="subsysSistemaEducativo.LeyEducativa@Main-action"        order="6"/>
-        <menuitem name="subsysSistemaEducativo.Grado@Main-menuitem"              parent="subsysSistemaEducativo-menuitem" title="Grados"              action="subsysSistemaEducativo.Grado@Main-action"               order="7"/>
-        <menuitem name="subsysSistemaEducativo.Nivel@Main-menuitem"              parent="subsysSistemaEducativo-menuitem" title="Niveles"             action="subsysSistemaEducativo.Nivel@Main-action"               order="8"/>
+    <menuitem name="expedientes-menuitem"            title="Expedientes"          order="20"/>
+        <menuitem name="expedientes-tramites-menuitem"                              parent="expedientes-menuitem" title="Trámites"                action="sysTramites-nuevo-action" icon="list_alt_add"     order="1"/>
+        <menuitem name="expedientes-expedientesPendientes-menuitem"         parent="expedientes-menuitem" title="Expedientes Pendientes"  action="subsysExpedientes.Expediente@Pendiente-action"    order="2"/>
+        <menuitem name="expedientes-expedientesEsperando-menuitem"         parent="expedientes-menuitem" title="Expedientes Esperando"   action="subsysExpedientes.Expediente@Esperando-action"    order="3"/>
+        <menuitem name="expedientes-expedientesCerrados-menuitem"          parent="expedientes-menuitem" title="Expedientes Cerrados"    action="subsysExpedientes.Expediente@Cerrados-action"     order="4"/>
+        <menuitem name="expedientes-tiposExpedientes-menuitem"          parent="expedientes-menuitem" title="Tipos Expedientes"       action="subsysExpedientes.TipoExpediente@Main-action"     order="5"/>
+        <menuitem name="expedientes-pruebaBusqueda-menuitem"      parent="expedientes-menuitem" title="Prueba Búsqueda"         action="subsysExpedientes.Expediente@PruebaSearch-action" order="6"/>
+    <menuitem name="sistemaEducativo-menuitem"       title="Sistema educativo"    order="30"/>
+        <menuitem name="sistemaEducativo-familiaProfesional-menuitem" parent="sistemaEducativo-menuitem" title="Familia profesional" action="subsysSistemaEducativo.FamiliaProfesional@Main-action"  order="1"/>
+        <menuitem name="sistemaEducativo-ciclos-menuitem"              parent="sistemaEducativo-menuitem" title="Ciclos"              action="subsysSistemaEducativo.Ciclo@Main-action"               order="2"/>
+        <menuitem name="sistemaEducativo-cursos-menuitem"              parent="sistemaEducativo-menuitem" title="Cursos"              action="subsysSistemaEducativo.Curso@Main-action"               order="3"/>
+        <menuitem name="sistemaEducativo-modulos-menuitem"             parent="sistemaEducativo-menuitem" title="Módulos"             action="subsysSistemaEducativo.Modulo@Main-action"              order="4"/>
+        <menuitem name="sistemaEducativo-cursosModulos-menuitem"        parent="sistemaEducativo-menuitem" title="Cursos-Módulos"      action="subsysSistemaEducativo.CursoModulo@Main-action"         order="5"/>
+        <menuitem name="sistemaEducativo-leyesEducativas-menuitem"       parent="sistemaEducativo-menuitem" title="Leyes Educativas"    action="subsysSistemaEducativo.LeyEducativa@Main-action"        order="6"/>
+        <menuitem name="sistemaEducativo-grados-menuitem"              parent="sistemaEducativo-menuitem" title="Grados"              action="subsysSistemaEducativo.Grado@Main-action"               order="7"/>
+        <menuitem name="sistemaEducativo-niveles-menuitem"              parent="sistemaEducativo-menuitem" title="Niveles"             action="subsysSistemaEducativo.Nivel@Main-action"               order="8"/>
 
     <!--<menuitem name="sysGestion-menuitem" title="Gestión" groups="admins,users" order="40"/>
         <menuitem name="sysGestion.Centro@Main-menuitem" title="Centros"
@@ -39,27 +39,27 @@
                   parent="sysGestion.Usuarios-menuitem" action="sysGestion.UsuarioRegistrado@Main-action"
                   groups="users" order="2"/>-->
 
-    <menuitem name="subsysCommon-menuitem"   groups="admins"  title="Administración SV" order="50"/>
-        <menuitem name="subsysCommon.Centro@Main-menuitem" title="Centro"
-                  parent="subsysCommon-menuitem" action="subsysCommon.Centro@Main-action" groups="admins" order="1" />
+    <menuitem name="administracionSv-menuitem"   groups="admins"  title="Administración SV" order="50"/>
+        <menuitem name="administracionSv-centro-menuitem" title="Centro"
+                  parent="administracionSv-menuitem" action="subsysCommon.Centro@Main-action" groups="admins" order="1" />
         <!--<menuitem name="subsysCommon.Importacion@Main-menuitem" title="Ficheros importación"
                   parent="subsysCommon-menuitem" action="subsysImportacion.TareaImportacion@Main-action" groups="admins" order="2" />-->
-        <menuitem name="subsysCommon.Usuario@Main-menuitem" title="Usuarios"
-                  parent="subsysCommon-menuitem" action="subsysCommon.Usuario@Main-action" groups="admins" order="3"  />
+        <menuitem name="administracionSv-usuarios-menuitem" title="Usuarios"
+                  parent="administracionSv-menuitem" action="subsysCommon.Usuario@Main-action" groups="admins" order="2"  />
 
 
-    <menuitem name="subsysRegistroEntradaSalida-menuitem"  title="Registro"             order="60"/>
-        <menuitem name="subsysRegistroEntradaSalida.RegistroEntrada@Main-menuitem" parent="subsysRegistroEntradaSalida-menuitem" title="Entrada"     action="subsysRegistroEntradaSalida.RegistroEntrada@Main-action"  order="1"/>
-        <menuitem name="subsysRegistroEntradaSalida.RegistroSalida@Main-menuitem"  parent="subsysRegistroEntradaSalida-menuitem" title="Salida"      action="subsysRegistroEntradaSalida.RegistroSalida@Main-action"   order="2"/>
-    <menuitem name="subsysFirma-menuitem"                  title="Firmar documentos"    order="70"/>
-        <menuitem name="subsysFirma.TareaFirma@Todos-menuitem"      parent="subsysFirma-menuitem" title="Todos"       action="subsysFirma.TareaFirma@Todos-action"      order="1"/>
-        <menuitem name="subsysFirma.TareaFirma@Pendiente-menuitem"  parent="subsysFirma-menuitem" title="Pendientes"  action="subsysFirma.TareaFirma@Pendiente-action"  order="2"/>
-        <menuitem name="subsysFirma.TareaFirma@Firmado-menuitem"    parent="subsysFirma-menuitem" title="Firmados"    action="subsysFirma.TareaFirma@Firmado-action"    order="3"/>
-        <menuitem name="subsysFirma.TareaFirma@Rechazado-menuitem"  parent="subsysFirma-menuitem" title="Rechazados"  action="subsysFirma.TareaFirma@Rechazado-action"  order="4"/>
-    <menuitem name="subsysPdfUtilities-menuitem"           title="Utilidades de PDF"    order="80" icon="picture_as_pdf"/>
-        <menuitem name="subsysPdfUtilities.Info@Main-menuitem"      parent="subsysPdfUtilities-menuitem" title="Información"          action="subsysPdfUtilities.Info-action"        order="1"/>
-        <menuitem name="subsysPdfUtilities.Firma@Main-menuitem"     parent="subsysPdfUtilities-menuitem" title="Posiciones Firma"     action="subsysPdfUtilities.Firma-action"       order="2"/>
-        <menuitem name="subsysPdfUtilities.AutoFirma@Main-menuitem" parent="subsysPdfUtilities-menuitem" title="Posición Autofirma__!!" action="subsysPdfUtilities.AutoFirma-action"  order="3"/>
+    <menuitem name="registro-menuitem"  title="Registro"             order="60"/>
+        <menuitem name="registro-entrada-menuitem" parent="registro-menuitem" title="Entrada"     action="subsysRegistroEntradaSalida.RegistroEntrada@Main-action"  order="1"/>
+        <menuitem name="registro-salida-menuitem"  parent="registro-menuitem" title="Salida"      action="subsysRegistroEntradaSalida.RegistroSalida@Main-action"   order="2"/>
+    <menuitem name="firmarDocumentos-menuitem"                  title="Firmar documentos"    order="70"/>
+        <menuitem name="firmarDocumentos-todos-menuitem"      parent="firmarDocumentos-menuitem" title="Todos"       action="subsysFirma.TareaFirma@Todos-action"      order="1"/>
+        <menuitem name="firmarDocumentos-pendientes-menuitem"  parent="firmarDocumentos-menuitem" title="Pendientes"  action="subsysFirma.TareaFirma@Pendiente-action"  order="2"/>
+        <menuitem name="firmarDocumentos-firmados-menuitem"    parent="firmarDocumentos-menuitem" title="Firmados"    action="subsysFirma.TareaFirma@Firmado-action"    order="3"/>
+        <menuitem name="firmarDocumentos-rechazados-menuitem"  parent="firmarDocumentos-menuitem" title="Rechazados"  action="subsysFirma.TareaFirma@Rechazado-action"  order="4"/>
+    <menuitem name="utilidadesPdf-menuitem"           title="Utilidades de PDF"    order="80" icon="picture_as_pdf"/>
+        <menuitem name="utilidadesPdf-informacion-menuitem"      parent="utilidadesPdf-menuitem" title="Información"          action="subsysPdfUtilities.Info-action"        order="1"/>
+        <menuitem name="utilidadesPdf-posicionesFirma-menuitem"     parent="utilidadesPdf-menuitem" title="Posiciones Firma"     action="subsysPdfUtilities.Firma-action"       order="2"/>
+        <menuitem name="utilidadesPdf-posicionAutofirma-menuitem" parent="utilidadesPdf-menuitem" title="Posición Autofirma" action="subsysPdfUtilities.AutoFirma-action"  order="3"/>
 
 
 </object-views>
