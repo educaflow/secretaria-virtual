@@ -59,7 +59,7 @@
     <menuitem name="utilidadesPdf-menuitem"           title="Utilidades de PDF"    order="80" icon="picture_as_pdf"/>
         <menuitem name="utilidadesPdf-informacion-menuitem"      parent="utilidadesPdf-menuitem" title="Información"          action="subsysPdfUtilities.Info-action"        order="1"/>
         <menuitem name="utilidadesPdf-posicionesFirma-menuitem"     parent="utilidadesPdf-menuitem" title="Posiciones Firma"     action="subsysPdfUtilities.Firma-action"       order="2"/>
-        <menuitem name="utilidadesPdf-posicionAutofirma-menuitem" parent="utilidadesPdf-menuitem" title="Posición Autofirma" action="subsysPdfUtilities.AutoFirma-action"  order="3"/>
+        <menuitem name="utilidadesPdf-posicionAutofirma-menuitem" parent="utilidadesPdf-menuitem" title="Posición Autofirma__!!" action="subsysPdfUtilities.AutoFirma-action"  order="3"/>
 
 
 </object-views>

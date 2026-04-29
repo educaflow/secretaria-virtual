@@ -1,10 +1,47 @@
 # CLAUDE.md — secretaria-virtual
 
-- No hagas cambios haste tener el 95% de confianza. Preguntame hasta llegas a ese nivel.
-- /compact al 60%, no al 90%
+La secretaría virtual es un proyecto de gestión de expedientes administrativos con tramitación electrónica, firmado digital y gestión documental. Está construido sobre el framework Axelor, que proporciona una base sólida de JPA/ORM, vistas XML, seguridad y DI.
 
-## Skills obligatorios — NUNCA omitir
-NUNCA respondas directamente sobre nombres de vistas, menús, acciones, modelos o sistemas sin invocar primero el skill correspondiente. Esto incluye cualquier acción de: revisar, comprobar, auditar, sugerir, renombrar o crear. Skills aplicables: `menu`, `vistas`, `sistemas`, `modelos`, `seguridad`.
+## Tecnologías
+- Java 21
+- Kotlin 21
+- iText 9 para PDF
+- PostgreSQL 12 como base de datos
+- Guice para injección de dependencias
+- Axelor framework 8.1 para la capa de aplicación (ORM, vistas, seguridad, etc.)
+- JPA para acceso a datos, con repositorios personalizados y genéricos
+
+## Script del proyecto
+
+- Para compilar el proyecto ejecuta: `./gradlew clean build --info`
+- Para ejecutar el proyecto ejecuta: `./gradlew --no-daemon run --debug-jvm --port 8080 --context-path /`
+
+
+## Skills
+Debido a que toda la aplicación está fuertemente acoplada al framework Axelor y que debes tener pocos conocimientos de Axelor se ha creado un sistema de skills para gestionar toda la parte de axelor.
+
+Para cada parte de Axelor se han creado conjuntos de Skills:
+- menu → para todo lo relacionado con menús
+- vistas → para todo lo relacionado con vistas
+- sistemas → para todo lo relacionado con sistemas (tipos de expediente, tramites, etc.)
+- modelos → para todo lo relacionado con modelos (entidades JPA)
+- seguridad → para todo lo relacionado con seguridad (permisos, roles, etc.)
+- acciones → para todo lo relacionado con acciones (action-views, controllers, etc.)
+
+Es imperativo que siempre uses los skills correspondientes para cualquier acción relacionada con Axelor, ya que siguen una arquitectura propia de la secretaría virtual y del framework Axelor.
+
+### Conjuntos de Skills
+A fin de crear skills lo más especificos posibles se han creado conjuntos de skills para cada parte de la aplicación.
+
+Por ejemplo para los menus se han creado los siguientes skills:
+- menus-knowledge → No hace nada, solo es información sobre cómo funcionan los menús
+- menus-steps → Su tarea es indicar los pasos a seguir para crear o modificar un menú, usa el skill `menus-knowledge` para resolver cualquier duda sobre los pasos a seguir
+- menus-reviewer → Su tarea es revisar los menús existente y detectar fallos o mejoras,usa el skill `menus-knowledge` para resolver cualquier duda sobre como deben ser las cosas.
+- menus-builder-orchestrator → Su tarea es crear nuevos menús desde cero o modificar los existentes, siguiendo los pasos indicados en el skill `menus-steps` y los revisa con el skill `menus-reviewer` . Pero de forma iterativa, es decir, va creando o modificando los menús poco a poco con `menus-steps` y revisando cada paso con el skill `menus-reviewer` para asegurarse de que va por el buen camino.
+- menus-fixer-orchestrator → Su tarea es revisar lo que ya está hecho para detectar errores, inconsistencias o mejoras usando el skill `menus-reviewer` y corriendolo con el skill `menus-steps`. Pero de forma iterativa, es decir, va detectando errores o mejoras con `menus-reviewer` y corrigiendo poco a poco con `menus-steps` para asegurarse de que va por el buen camino.
+
+Los skills importantes son los `-orchestrator`, ya que son los encargados de realizar las acciones en forma de iteraciones susesivas para realizar las tareas.
+
 
 ### JPQL en `domain` — reglas del proyecto
 - `:__user__` es el objeto `User` (no un Long) → usar `cu.usuario = :__user__` sin `.id`
@@ -19,89 +56,25 @@ NUNCA respondas directamente sobre nombres de vistas, menús, acciones, modelos 
 - Entidades con herencia JOINED (`TipoUsuario`, `CentroUsuario`) → navegar a campos de subtipo puede fallar; usar subselect explícito:
   `t.tipoUsuario IN (SELECT tu FROM TipoUsuario tu WHERE tu.code = 'X')`
 - 
-## Commands
 
-```bash
-# Build and run the application
-./run.sh
 
-# Build only
-./gradlew clean build --info
+## Architectura
 
-# Run tests only
-./gradlew clean test --info
-
-# Run specific test class
-./gradlew test --tests "com.educaflow.SomeTest"
-
-# Run with debug mode
-./gradlew --no-daemon run --debug-jvm --port 8080 --context-path /
-
-# Run normally
-./gradlew --no-daemon run --port 8080 --context-path /
-```
-
-The build triggers several custom Gradle tasks automatically (code generation, view processing, i18n, domain copy, PDF copy, data-init copy, docs).
-
-## Architecture
-
-**Stack:** Axelor framework (JPA/ORM, REST, XML views, Guice DI), Java 21, Kotlin 21, iText 9, PostgreSQL.
-
-**Layer dependencies (inner → outer):**
-```
-secretariavirtual → system → subsystem → base/infrastructure → base/util
-```
-
-### Package structure under `com.educaflow`
-
+Existen 5 grandes paquetes en `com.educaflow.`:
 - **`base/util/`** — shared utilities: `JsonUtil`, `MetaFileUtil`, `ActionRequestHelper`, `AllowProperties`, `AxelorViewUtil`, `TextUtil`, `Convert`, `DniUtil`, `ReflectionUtil`, `SecurityUtil`, `CryptoUtil`, `XmlUtil`
 - **`base/infrastructure/`** — infrastructure modules: `pdf` (iText PDF operations), `validation` (BusinessMessages/BusinessException/ValidationEngine DSL), `criptografia` (X.509 certs, HSMs, FNMT/ACCV/DNI issuers), `autofirma` (desktop client integration), `mapper` (BeanMapperModel), `mail`, `evaluator` (Groovy expressions), `numeradores`, `metafile`
 - **`subsystem/`** — business subsystems: `firmas`, `expedientes`, `registroentradasalida`, `pdfutilities`, `common`, `certificados`, `importer`, `sistemaeducativo`, `security`
-- **`system/`** — concrete expediente types and active tramites: `tiposexpedientes/`, `tramites/`
+- **`system/`** — business systems
 - **`secretariavirtual/`** — top-level menus and navigation
 
-### Axelor conventions
+## Sistemas y subsistemas
 
-- **DI:** `Beans.get(Clase.class)` to get instances; `@Inject` for field injection; extend `AxelorModule` and override `configure()` with `bind(Interface.class).to(Impl.class)`
-- **Controllers:** methods annotated `@CallMethod`, parameters `(ActionRequest, ActionResponse)`; use `ActionRequestHelper<T>` to extract model/id/data
-- **Transactions:** `@Transactional` from Guice Persist
-- **Repositories:** Axelor JPA repositories (e.g., `TareaFirmaRepository`, `JpaRepository.of(Class)`)
-- **Views:** XML files in `domains/` (domain-models namespace) and `views/` (object-views namespace); i18n via `i18n_es.csv` / `i18n_ca.csv` alongside the source
 
-### Expedientes subsystem (state machine)
 
-The core tramitación engine is a state machine built on:
+## Expedientes
 
-- **`EventManager<T,State,Event,Profile>`** — abstract class per expediente type; convention-based dispatch: event `SOME_EVENT` → method `triggerSomeEvent(@WhenEvent ...)`, state `SOME_STATE` → method `onEnterSomeSate(@OnEnterState ...)`
-- **`Tramitador`** — orchestrates `triggerInitialEvent` and `triggerEvent`; applies `StateEventValidator` rules, copies only allowed properties via `AllowProperties`, validates with `ValidationEngine`, saves via JPA repository
-- **`StateEventValidator`** — per-expediente class; methods named `getForState{STATE}InEvent{EVENT}()` annotated `@BeanValidationRulesForStateAndEvent` return `BeanValidationRules`
-- **View naming convention:** `exp-{EXPEDIENT_CODE}-{STATE_CODE}-{PROFILE_CODE}-form` (with fallback to `exp-{EXPEDIENT_CODE}-{STATE_CODE}-form`)
 
-### Firmas subsystem
-
-- **`FirmaService`/`FirmaServiceImpl`:** `insert(DatosFirma)` creates PENDIENTE task cloning documents; `marcarComoFirmada` / `marcarComoRechazada` update state
-- **`DatosFirma`** (record DTO): firmante, documentos, motivoFirma, areaFirma (`Rectangulo`), `firmaNotifierClass`, `callBackData`
-- **Callback mechanism:** `fqcnFirmaNotifier` + `fqcnCallBackData` + `callBackData` (JSON) persisted in `TareaFirma`; on invoke: `Class.forName()` → `Beans.get()` → `JsonUtil.fromJson()` → `notifier.notify()`
-- **Controller:** `FirmarController` — `marcarComoFirmada` allows only `documentosFirma.documentoFirmado` via `AllowProperties`
-- **Views (4 separate):** `firma-pendiente`, `firma-firmado`, `firma-rechazado`, `firma-todos`
-
-### Tipos de expediente (system/tiposexpedientes)
-
-Each expediente type lives in its own package (e.g., `comision_servicio/`) and contains:
-- `domains.xml` — entity extending base `Expediente`
-- `TipoExpedienteInstance.xml` — data-init configuration
-- `EventManagerImpl.java` — concrete `EventManager` subclass
-- `StateEventValidatorImpl.kt` — Kotlin validation rules
-- `views.xml` — UI views following the naming convention
-- `i18n_es.csv` / `i18n_ca.csv` — translations
-
-### Security / property filtering
-
-`AllowProperties` controls which fields can be updated when copying request data to entities. Always use it via `ActionRequestHelper.getModel(AllowProperties)` or `BeanMapperModel.copyMapToEntity(...)` — never allow all properties at system boundaries unless explicitly intended.
-
-### PDF operations
-
-Use `DocumentoPdfFactory.getDocumentoPdf(byte[], fileName)` or `MetaFileHelper.getDocumentoPdf(MetaFile)` to get a `DocumentoPdf` instance. Signing uses `CampoFirma` builder + `AlmacenClave`. AutoFirma (desktop client) integration uses the `AutoFirma` builder and `AutoFirma.sendToActionResponse(...)`.
-
-### i18n
+## i18n
 Nunca jamás, crear los ficheros `i18n_ca.csv` ni `i18n_es.csv` ya que hay un script que los genera automáticamente, así que es totalmente innecesario.
+A veces hay palabras que acaban con "__!!" como en "AutoFirma__!!" esto es para indicar que esa palabra no se debe traducir, ya que el script de generación de i18n las deja tal cual pero sin el "__!!" al final, así que no hay que preocuparse por eso.
+Por eso cuando se usa la palabra por ejemplo para ponerla en formato camelCase hay que quitar el "__!!" y ponerla en formato camelCase, por ejemplo "AutoFirma__!!" se convierte en "autoFirma" para usarla en el código.
