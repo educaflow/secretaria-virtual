@@ -20,16 +20,17 @@
           canEditOnClick="true"
     >
         <field name="tipoFichero" width="180px"/>
-        <field name="centro" />
-        <field name="curso" width="130px"/>
+        <field name="centro" width="180px"/>
+        <field name="curso" width="180px"/>
         <field name="usuario" width="180px"/>
-        <field name="fichero" widget="binary-link"/>
-        <field name="createdOn" title="Fecha de importación" width="160px"/>
+        <field name="fichero" widget="binary-link" width="180px"/>
+        <field name="createdOn" title="Fecha" width="160px"/>
+        <field name="exito" title="Importación correcta" width="180px"/>
     </grid>
 
     <form name="subsysImportacion.TareaImportacion@Main-form" title="Importar fichero"
           model="com.educaflow.subsystem.importacion.db.TareaImportacion"
-          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="true" canMore="false"
+          width="large" canAttach="false" canBack="false" canBackOnSave="false" canDelete="false" canNew="false" canSave="true" canMore="false"
           onNew="subsysImportacion.TareaImportacion@Main-onNew-action">
 
         <panel title="" colSpan="12">
@@ -61,9 +62,8 @@
     </action-group>
 
     <action-group name="subsysImportacion.TareaImportacion@Main-btnSave-action">
-        <!--<action name="subsysImportacion.TareaImportacion@Main-Remote-importarDatos-action"/>-->
         <action name="save"/>
-        <action name="reload"/> <!-- Para recargar la vista y mostrar el log actualizado tras la importación -->
+        <!--<action name="reload"/>--> <!-- Para recargar la vista y mostrar el log actualizado tras la importación -->
         <!--<action name="force-back"/>-->
     </action-group>
 

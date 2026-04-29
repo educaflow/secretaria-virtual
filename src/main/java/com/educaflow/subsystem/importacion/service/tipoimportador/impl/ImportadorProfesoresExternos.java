@@ -7,6 +7,7 @@ import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
 import com.educaflow.base.util.DniUtil;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.TipoUsuario;
+import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorException;
 import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorTipoFichero;
 import com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado;
 import com.educaflow.subsystem.registrousuario.db.repo.UsuarioAutorizadoRepository;
@@ -24,13 +25,14 @@ public class ImportadorProfesoresExternos implements ImportadorTipoFichero {
     private static final String TIPO_CODE = "PROFESOR_EXTERNO";
 
     @Override
-    public BusinessMessages importar(byte[] contenido, Centro centro, Integer curso) throws BusinessException {
+    public List<String> importar(byte[] contenido, Centro centro, Integer curso) {
         TipoUsuario tipoUsuario = obtenerTipoUsuario();
         UsuarioAutorizadoRepository repo = (UsuarioAutorizadoRepository) JpaRepository.of(UsuarioAutorizado.class);
 
         int creados = 0;
         int existentes = 0;
         List<String> errores = new ArrayList<>();
+        List<String> log = new ArrayList<>();
         int fila = 0;
         int total = 0;
 
@@ -39,7 +41,7 @@ public class ImportadorProfesoresExternos implements ImportadorTipoFichero {
 
             String line = reader.readLine(); // cabecera
             if (line == null) {
-                throw new BusinessException(new BusinessMessage("El fichero CSV está vacío"));
+                throw new ImportadorException("El fichero CSV está vacío");
             }
 
             while ((line = reader.readLine()) != null) {
@@ -49,56 +51,49 @@ public class ImportadorProfesoresExternos implements ImportadorTipoFichero {
 
                 total++;
                 String documentoRaw = line.split(",")[0].replace("\"", "").trim();
-                try {
-                    String dni = DniUtil.clean(documentoRaw);
-                    if (!DniUtil.isValid(dni)) {
-                        throw new IllegalArgumentException("DNI inválido: " + documentoRaw);
-                    }
+                String dni = DniUtil.clean(documentoRaw);
+                if (!DniUtil.isValid(dni)) {
+                    errores.add("DNI inválido: " + documentoRaw);
+                }
 
-                    boolean existe = repo.all()
-                            .filter("self.centro = :centro AND self.curso = :curso AND self.dni = :dni AND self.tipoUsuario = :tipoUsuario")
-                            .bind("centro", centro)
-                            .bind("curso", curso)
-                            .bind("dni", dni)
-                            .bind("tipoUsuario", tipoUsuario)
-                            .count() > 0;
+                boolean existe = repo.all()
+                        .filter("self.centro = :centro AND self.curso = :curso AND self.dni = :dni AND self.tipoUsuario = :tipoUsuario")
+                        .bind("centro", centro)
+                        .bind("curso", curso)
+                        .bind("dni", dni)
+                        .bind("tipoUsuario", tipoUsuario)
+                        .count() > 0;
 
-                    if (existe) {
-                        existentes++;
-                    } else {
-                        UsuarioAutorizado ua = new UsuarioAutorizado();
-                        ua.setCentro(centro);
-                        ua.setCurso(curso);
-                        ua.setDni(dni);
-                        ua.setTipoUsuario(tipoUsuario);
-                        repo.save(ua);
-                        creados++;
-                    }
-                } catch (Exception e) {
-                    errores.add("Fila " + fila + " [" + documentoRaw + "]: " + e.getMessage());
+                if (existe) {
+                    existentes++;
+                } else {
+                    UsuarioAutorizado ua = new UsuarioAutorizado();
+                    ua.setCentro(centro);
+                    ua.setCurso(curso);
+                    ua.setDni(dni);
+                    ua.setTipoUsuario(tipoUsuario);
+                    repo.save(ua);
+                    creados++;
                 }
             }
-        } catch (BusinessException e) {
-            throw e;
         } catch (IOException e) {
-            throw new BusinessException(new BusinessMessage("Error leyendo el fichero CSV: " + e.getMessage()));
+            throw new ImportadorException("Error leyendo el fichero CSV: " + e.getMessage());
         }
 
-        BusinessMessages result = new BusinessMessages();
-        result.add(new BusinessMessage(String.format(
+        log.add((String.format(
                 "Nuevos: %d | Ya existían: %d | Errores: %d | Total: %d",
                 creados, existentes, errores.size(), total)));
-        errores.forEach(msg -> result.add(new BusinessMessage(msg)));
-        return result;
+        errores.forEach(msg -> log.add(msg));
+        return log;
     }
 
-    private TipoUsuario obtenerTipoUsuario() throws BusinessException {
+    private TipoUsuario obtenerTipoUsuario() {
         TipoUsuario tipoUsuario = JpaRepository.of(TipoUsuario.class).all()
                 .filter("self.code = :code")
                 .bind("code", TIPO_CODE)
                 .fetchOne();
         if (tipoUsuario == null) {
-            throw new BusinessException(new BusinessMessage("TipoUsuario no encontrado: " + TIPO_CODE));
+            throw new ImportadorException("TipoUsuario no encontrado: " + TIPO_CODE);
         }
         return tipoUsuario;
     }

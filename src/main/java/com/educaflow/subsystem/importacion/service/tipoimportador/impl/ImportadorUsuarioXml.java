@@ -9,6 +9,7 @@ import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.base.util.XMLUtil;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.TipoUsuario;
+import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorException;
 import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorTipoFichero;
 import com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado;
 import com.educaflow.subsystem.registrousuario.db.repo.UsuarioAutorizadoRepository;
@@ -36,15 +37,21 @@ public class ImportadorUsuarioXml implements ImportadorTipoFichero {
     }
 
     @Override
-    public BusinessMessages importar(byte[] contenido, Centro centro, Integer curso) throws BusinessException {
+    public List<String> importar(byte[] contenido, Centro centro, Integer curso) {
+        int creados = 0;
+        int existentes = 0;
+        List<String> log = new ArrayList<>();
+        List<String> errores = new ArrayList<>();
+        int total = 0;
+
         validarEsquema(contenido);
         Centro centroActivo = SecurityUtil.getUser().getCentroActivo();
         if (centroActivo == null) {
-            throw new BusinessException(new BusinessMessage("No tienes un centro activo asignado en tu perfil"));
+            throw new ImportadorException("No tienes un centro activo asignado en tu perfil");
         }
         if (!centroActivo.getCode().equals(centro.getCode())) {
-            throw new BusinessException(new BusinessMessage(
-                    "El fichero pertenece al centro '" + centro.getName() + "', pero tu centro activo es '" + centroActivo.getName() + "'"));
+            throw new ImportadorException(
+                    "El fichero pertenece al centro '" + centro.getName() + "', pero tu centro activo es '" + centroActivo.getName() + "'");
         }
         TipoUsuario tipoUsuario = obtenerTipoUsuario();
         UsuarioAutorizadoRepository repo = (UsuarioAutorizadoRepository) JpaRepository.of(UsuarioAutorizado.class);
@@ -53,17 +60,13 @@ public class ImportadorUsuarioXml implements ImportadorTipoFichero {
         Element root = doc.getDocumentElement();
         NodeList items = root.getElementsByTagName(nodoItem);
 
-        int creados = 0;
-        int existentes = 0;
-        List<String> errores = new ArrayList<>();
-
         for (int i = 0; i < items.getLength(); i++) {
             Element item = (Element) items.item(i);
             String documentoRaw = item.getAttribute("documento");
             try {
                 String dni = DniUtil.clean(documentoRaw);
                 if (!DniUtil.isValid(dni)) {
-                    throw new IllegalArgumentException("DNI inválido: " + documentoRaw);
+                    errores.add("DNI inválido: " + documentoRaw);
                 }
 
                 boolean existe = repo.all()
@@ -90,43 +93,45 @@ public class ImportadorUsuarioXml implements ImportadorTipoFichero {
             }
         }
 
-        return construirResumen(creados, existentes, errores, items.getLength());
+        log.add((String.format(
+                "Nuevos: %d | Ya existían: %d | Errores: %d | Total: %d",
+                creados, existentes, errores.size(), total)));
+        errores.forEach(msg -> log.add(msg));
+        return log;
     }
 
-    private void validarEsquema(byte[] contenido) throws BusinessException {
+    private void validarEsquema(byte[] contenido) {
         try (InputStream schema = getClass().getResourceAsStream(schemaPath);
              InputStream data = new ByteArrayInputStream(contenido)) {
             if (schema == null) {
-                throw new BusinessException(new BusinessMessage("Esquema de validación no encontrado: " + schemaPath));
+                throw new ImportadorException("Esquema de validación no encontrado: " + schemaPath);
             }
             Optional<String> error = XMLUtil.validarConSchema(data, schema);
             if (error.isPresent()) {
-                throw new BusinessException(new BusinessMessage("El fichero XML no es válido: " + error.get()));
+                throw new ImportadorException("El fichero XML no es válido: " + error.get());
             }
-        } catch (BusinessException e) {
-            throw e;
         } catch (IOException e) {
-            throw new BusinessException(new BusinessMessage("Error leyendo el esquema de validación: " + schemaPath));
+            throw new ImportadorException("Error leyendo el esquema de validación: " + schemaPath);
         }
     }
 
-    private TipoUsuario obtenerTipoUsuario() throws BusinessException {
+    private TipoUsuario obtenerTipoUsuario() {
         TipoUsuario tipoUsuario = JpaRepository.of(TipoUsuario.class).all()
                 .filter("self.code = :code")
                 .bind("code", tipoUsuarioCode)
                 .fetchOne();
         if (tipoUsuario == null) {
-            throw new BusinessException(new BusinessMessage("TipoUsuario no encontrado: " + tipoUsuarioCode));
+            throw new ImportadorException("TipoUsuario no encontrado: " + tipoUsuarioCode);
         }
         return tipoUsuario;
     }
 
-    private BusinessMessages construirResumen(int creados, int existentes, List<String> errores, int total) {
+    /*private BusinessMessages construirResumen(int creados, int existentes, List<String> errores, int total) {
         BusinessMessages result = new BusinessMessages();
         result.add(new BusinessMessage(String.format(
                 "Nuevos: %d | Ya existían: %d | Errores: %d | Total: %d",
                 creados, existentes, errores.size(), total)));
         errores.forEach(msg -> result.add(new BusinessMessage(msg)));
         return result;
-    }
+    }*/
 }

@@ -12,6 +12,7 @@ import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.repo.CentroRepository;
 import com.educaflow.subsystem.importacion.db.TareaImportacion;
 import com.educaflow.subsystem.importacion.db.TipoFicheroImportacion;
+import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorException;
 import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorTipoFichero;
 import com.educaflow.subsystem.importacion.service.TareaImportacionService;
 
@@ -38,25 +39,19 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
 
     @Override
     public TareaImportacion insert(TareaImportacion tareaImportacion) {
-        List<String> logs = new ArrayList<>();
-
+        StringBuilder logs = new StringBuilder();
         try {
-            BusinessMessages businessMessages = this.importar(tareaImportacion);
-
-            for (BusinessMessage businessMessage : businessMessages) {
-                logs.add(businessMessage.getMessage());
+            List<String> log = this.importar(tareaImportacion);
+            for (String mensaje : log) {
+                logs.append(mensaje).append("\n");
             }
-            String logText = String.join(System.lineSeparator(), logs);
-
-            tareaImportacion.setImportLog(logText);
-            return super.insert(tareaImportacion);
-        } catch (BusinessException e) {
-            for (BusinessMessage businessMessage : e.getBusinessMessages()) {
-                logs.add(businessMessage.getMessage());
-            }
-            String logText = String.join(System.lineSeparator(), logs);
-            throw new RuntimeException("Error durante la importación: " + logText);
+            tareaImportacion.setExito(true);
+            tareaImportacion.setImportLog(logs.toString());
+        } catch (ImportadorException e) {
+            tareaImportacion.setImportLog(e.getMessage());
+            tareaImportacion.setExito(false);
         }
+        return super.insert(tareaImportacion);
     }
 
     @Override
@@ -69,10 +64,10 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
         throw new UnsupportedOperationException("No se permite eliminar una tarea de importación. Si quieres eliminar la referencia al fichero, borra el fichero desde su ubicación original.");
     }
 
-    private BusinessMessages importar(TareaImportacion tareaImportacion) throws BusinessException {
+    private List<String> importar(TareaImportacion tareaImportacion) {
         ImportadorTipoFichero importador = IMPORTADORES.get(tareaImportacion.getTipoFichero());
         if (importador == null) {
-            throw new BusinessException(new BusinessMessage("Tipo de fichero sin importador: " + tareaImportacion.getTipoFichero()));
+            throw new ImportadorException("Tipo de fichero sin importador: " + tareaImportacion.getTipoFichero());
         }
 
         byte[] contenido = MetaFileUtil.downloadContent(tareaImportacion.getFichero());
@@ -83,11 +78,11 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
         if (tareaImportacion.getTipoFichero() == TipoFicheroImportacion.PROFESOR_EXTERNO) {
             centro = tareaImportacion.getUsuario().getCentroActivo();
             if (centro == null) {
-                throw new BusinessException(new BusinessMessage("El usuario no tiene un centro activo asignado"));
+                throw new ImportadorException("El usuario no tiene un centro activo asignado");
             }
             curso = centro.getCurso();
             if (curso == null) {
-                throw new BusinessException(new BusinessMessage("El centro activo no tiene un curso académico configurado"));
+                throw new ImportadorException("El centro activo no tiene un curso académico configurado");
             }
         } else {
             Element root = XMLUtil.getDocument(contenido).getDocumentElement();

@@ -12,6 +12,7 @@
         <string name="ficheroSchema" title="Fichero XSD"/>-->
         <enum name="tipoFichero" ref="TipoFicheroImportacion" title="Tipo"/>
         <string name="importLog" large="true" title="Log__!!"/>
+        <boolean name="exito" title="Importación correcta"/>
         <!--<string name="fqcnTipoFicheroDatos" title="FQCN del fichero de datos"/>
         <string name="datosFichero" title="Datos fichero importación" transient="true"/>-->
     </entity>
