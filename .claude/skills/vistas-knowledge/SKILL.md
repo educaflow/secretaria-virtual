@@ -42,25 +42,16 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 ## Vistas de Search y View
 - El `<grid>`  de búsqueda (Search) se nombran con el sufijo `@Search-grid` y se usan para mostrar resultados de búsqueda.
 - El `<form>` de solo lectura (View) se nombran con el sufijo `@View-form` y se usan para mostrar detalles de un registro sin permitir edición.
-- Se usan en los `<field>` de las vistas principales para mostrar información relacionada o para mostrar resultados de búsqueda.
-- Ejemplo: en un formulario, un campo de búsqueda de Centro se mostraría con `subsysSistemaEducativo.Centro@Search-grid` y un campo de solo lectura de Centro se mostraría con `subsysSistemaEducativo.Centro@View-form`.
+- Se usan en los `<field>` de las vistas principales para mostrar información relacionada o para mostrar resultados de búsqueda. 
+  - El atributo `grid-view` de un `<field>` apunta a la vista de búsqueda (Search) que se usará para mostrar resultados de búsqueda relacionados con ese campo.
+  - El atributo `form-view` de un `<field>` apunta a la vista de solo lectura (View) que se usará para mostrar detalles relacionados con ese campo.
+- Este `<grid>`  de búsqueda (Search) y `<form>` de solo lectura (View) siempre debe ir en un fichero llamado `views/<NombreEntidad>-ref.xml`.
+
+### Ejemplo de uso de Search y View
 ```xml
 <field name="centro" colSpan="6" grid-view="subsysCommon.Centro@Search-grid" form-view="subsysCommon.Centro@View-form"/>
 ```
+- En un formulario, un campo de búsqueda de Centro se mostraría con `subsysSistemaEducativo.Centro@Search-grid` y un campo de solo lectura de Centro se mostraría con `subsysSistemaEducativo.Centro@View-form`.
+- En el ejemplo anterior, el `<grid>`  de búsqueda y `<form>` de solo lectura de Centro irían en `views/Centro-ref.xml` en el subsistema `subsysCommon`.
 
-Este `<grid>`  de búsqueda (Search) y `<form>` de solo lectura (View) siempre debe ir en un fichero llamado `views/<NombreEntidad>-ref.xml`. En el ejemplo anterior, el `<grid>`  de búsqueda y `<form>` de solo lectura de Centro irían en `views/Centro-ref.xml` en el subsistema `subsysCommon`.
 
-
-## Convenciones de nomenclatura
-
-Ver el skill `/sistemas-knowledge` para la referencia completa de nombres. Resumen:
-
-| Elemento             | Patrón                            | Ejemplo                                    |
-|----------------------|-----------------------------------|--------------------------------------------|
-| Grid principal       | `{Prefijo}.{Entidad}@Main-grid`   | `subsysSistemaEducativo.Ciclo@Main-grid`   |
-| Form principal       | `{Prefijo}.{Entidad}@Main-form`   | `subsysSistemaEducativo.Ciclo@Main-form`   |
-| Action principal     | `{Prefijo}.{Entidad}@Main-action` | `subsysSistemaEducativo.Ciclo@Main-action` |
-| Grid busqueda        | `{Prefijo}.{Entidad}@Search-grid` | `subsysSistemaEducativo.Ciclo@Search-grid` |
-| Form de solo lectura | `{Prefijo}.{Entidad}@View-form`   | `subsysSistemaEducativo.Ciclo@View-form`   |
-
-Prefijos: `subsys{Subsistema}` para subsistemas, `sys{Sistema}` para sistemas.
