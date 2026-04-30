@@ -44,11 +44,5 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         </panel>
     </form>
 
-    <grid name="subsysSistemaEducativo.FamiliaProfesional@Search-grid" title="Familia Profesional" model="com.educaflow.subsystem.sistemaeducativo.db.FamiliaProfesional"
-          groups="admins,users"
-          orderBy="name"
-          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
-        <field name="name" />
-    </grid>
 
 </object-views>

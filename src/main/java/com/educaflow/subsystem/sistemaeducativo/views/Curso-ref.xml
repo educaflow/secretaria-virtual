@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <grid name="subsysSistemaEducativo.Curso@Search-grid" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
+          groups="admins,users"
+          orderBy="name"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="ciclo.familiaProfesional" />
+        <field name="ciclo"  />
+        <field name="name" />
+    </grid>
+
+    <form name="subsysSistemaEducativo.Curso@View-form" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
+          groups="admins"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="Curso" title="">
+            <field name="code" colSpan="3" readonly="true" />
+            <field name="name" colOffset="9"  colSpan="6" readonly="true"/>
+            <field name="ciclo" colOffset="6" colSpan="6" readonly="true" />
+            <field name="leyEducativa" colSpan="12" />
+        </panel>
+    </form>
+
+</object-views>

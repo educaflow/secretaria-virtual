@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <grid name="subsysSistemaEducativo.CursoModulo@Search-grid" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+          groups="admins,users"
+          orderBy="name"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="curso"  />
+        <field name="modulo" />
+    </grid>
+
+    <form name="subsysSistemaEducativo.CursoModulo@View-form" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+          groups="admins"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="Curso" title="">
+            <field name="curso"  colSpan="6"  grid-view="subsysSistemaEducativo.Curso@Search-grid" />
+            <field name="modulo" colSpan="6" colOffset="6"  grid-view="subsysSistemaEducativo.Modulo@Search-grid" />
+        </panel>
+    </form>
+
+</object-views>

@@ -53,22 +53,6 @@
         </panel>
     </form>
 
-    <grid name="subsysCommon.Centro@Search-grid" title="Centro" model="com.educaflow.subsystem.common.db.Centro"
-          groups="admins,users"
-          orderBy="name"
-          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
-        <field name="name" />
-    </grid>
-
-    <form name="subsysCommon.Centro@View-form" title="Centro" model="com.educaflow.subsystem.common.db.Centro"
-          width="large"
-          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
-        <panel name="Centro" title="">
-            <field name="code"               colSpan="6"  readonly="true" />
-            <field name="name" colSpan="6"  readonly="true"  />
-        </panel>
-    </form>
-
     <!-- ******************************************************************************************************** -->
     <!-- ********************************* Vistas de Centro -> CentroUsuario ********************************* -->
     <!-- ******************************************************************************************************** -->
