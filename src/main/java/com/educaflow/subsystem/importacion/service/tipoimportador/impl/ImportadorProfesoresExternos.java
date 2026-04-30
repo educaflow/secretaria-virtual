@@ -1,14 +1,13 @@
 package com.educaflow.subsystem.importacion.service.tipoimportador.impl;
 
 import com.axelor.db.JpaRepository;
-import com.educaflow.base.infrastructure.validation.messages.BusinessException;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessage;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
 import com.educaflow.base.util.DniUtil;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.TipoUsuario;
 import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorException;
-import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorTipoFichero;
+import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorFichero;
+import com.educaflow.subsystem.importacion.service.tipoimportador.ResultadoImportacion;
+import com.educaflow.subsystem.importacion.service.tipoimportador.ResultadoImportacion.MensajeImportacion;
 import com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado;
 import com.educaflow.subsystem.registrousuario.db.repo.UsuarioAutorizadoRepository;
 
@@ -20,19 +19,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ImportadorProfesoresExternos implements ImportadorTipoFichero {
+public class ImportadorProfesoresExternos implements ImportadorFichero {
 
     private static final String TIPO_CODE = "PROFESOR_EXTERNO";
 
     @Override
-    public List<String> importar(byte[] contenido, Centro centro, Integer curso) {
+    public ResultadoImportacion importar(byte[] contenido, Centro centro, Integer curso) {
         TipoUsuario tipoUsuario = obtenerTipoUsuario();
         UsuarioAutorizadoRepository repo = (UsuarioAutorizadoRepository) JpaRepository.of(UsuarioAutorizado.class);
 
         int creados = 0;
         int existentes = 0;
-        List<String> errores = new ArrayList<>();
-        List<String> log = new ArrayList<>();
+        List<MensajeImportacion> mensajes = new ArrayList<>();
         int fila = 0;
         int total = 0;
 
@@ -53,7 +51,8 @@ public class ImportadorProfesoresExternos implements ImportadorTipoFichero {
                 String documentoRaw = line.split(",")[0].replace("\"", "").trim();
                 String dni = DniUtil.clean(documentoRaw);
                 if (!DniUtil.isValid(dni)) {
-                    errores.add("DNI inválido: " + documentoRaw);
+                    mensajes.add(new MensajeImportacion(fila, documentoRaw, "DNI inválido"));
+                    continue;
                 }
 
                 boolean existe = repo.all()
@@ -80,11 +79,9 @@ public class ImportadorProfesoresExternos implements ImportadorTipoFichero {
             throw new ImportadorException("Error leyendo el fichero CSV: " + e.getMessage());
         }
 
-        log.add((String.format(
-                "Nuevos: %d | Ya existían: %d | Errores: %d | Total: %d",
-                creados, existentes, errores.size(), total)));
-        errores.forEach(msg -> log.add(msg));
-        return log;
+        String resumen = String.format("Nuevos: %d | Ya existían: %d | Avisos: %d | Total: %d",
+                creados, existentes, mensajes.size(), total);
+        return new ResultadoImportacion(resumen, mensajes);
     }
 
     private TipoUsuario obtenerTipoUsuario() {

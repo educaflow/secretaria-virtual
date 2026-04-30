@@ -34,7 +34,7 @@
           onNew="subsysImportacion.TareaImportacion@Main-onNew-action">
 
         <panel title="" colSpan="12">
-            <field name="tipoFichero" colSpan="6" widget="RadioSelect" x-direction="vertical" required="true"
+            <field name="tipoFichero" colSpan="12" widget="SwitchSelect" required="true"
                    readonlyIf="id != null"/>
             <field name="fichero" colSpan="6" required="true" widget="binary-link"
                    readonlyIf="id != null"/>
