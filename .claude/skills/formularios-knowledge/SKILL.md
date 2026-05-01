@@ -9,34 +9,87 @@ description: Estructura y patrones básicos de los formularios en el proyecto Ax
 
 ```xml
 <form name="subsysSistemaEducativo.Ciclo@Main-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
-      width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
-    <panel name="nombrePanel1" title="Titulo1" colSpan="12">
+      width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+    <panel name="Ciclo" title="Ciclo">
         <field name="code"/>
         <field name="name"/>
     </panel>
 
-   <panel name="nombrePanel2" title="Titulo2">
-      <field name="centro" form-view="Nombre de formulario para ver todos los datos del centro. Un nombre típico suele ser sysCentro.Centro@View" grid-view="Nombre de grid para buscar un centro. Un nombre típico suele ser sysCentro.Centro@Search"  />
+   <panel name="otroPanel" title="Otro panel">
+      <field name="centro" form-view="subsysCentro.Centro@View-form" grid-view="subsysCentro.Centro@Search-grid"  />
       <field name="grado" colOffset="6" colSpan="4"              grid-view="subsysSistemaEducativo.Grado@Search-grid"  domain="(self.code='D' OR self.code='E')" />
       <field name="nivel" colSpan="4"                            grid-view="subsysSistemaEducativo.Nivel@Search-grid"  showIf="grado.code=='D'" requiredIf="grado.code=='D'" domain="(self.code='D' OR self.code='E')"/>       
    </panel>
 
-    <panel-related name="modulos" field="modulos"  title="Módulos" newButtonTitle="Añadir un nuevo módulo" grid-view="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-grid"  form-view="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-form"
-        colSpan="12" showFooter="false"  canEdit="false" canRemove="false" forceEdit="true"
+    <panel-related name="modulos" field="modulos" title="Módulos" newButtonTitle="Añadir un nuevo módulo"
+        grid-view="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-grid" form-view="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-form"
+        colSpan="12" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
     />
    
     <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
-        <button name="btnDelete" title="Borrar" onClick="accionesBtnDelete" css="btn-danger" colSpan="2"  outline="true" showIf="(id != null)"/>
-        <button name="btnCancel" title="Cancelar" onClick="accionesBtnCancel"  colSpan="2" colOffset="6" outline="true"   />
-        <button name="btnSave" title="Guardar" onClick="accionesBtnSave"  colSpan="2"  />
+        <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Ciclo@Main-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid!=null)"/>
+        <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Ciclo@Main-btnCancel-action"  colSpan="2" colOffset="6" outline="true"   />
+        <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Ciclo@Main-btnSave-action"  colSpan="2"  />
     </panel>
     
 </form>
 ```
 
 IMPORTANTE:
- - En <form> deben estar todos los atributos que se han indicado en la plantilla (width, canAttach, canBack, canDelete, canNew, canSave, canMore) con los valores indicados.
- - En <panel-related> deben estar todos los atributos que se han indicado en la plantilla (colSpan, showFooter, canEdit, canRemove, forceEdit) con los valores indicados.
+ - En <form> deben estar todos los atributos que se han indicado en la plantilla (width, canAttach, canBack, canDelete, canNew, canSave, canMore, canBackOnSave) con los valores indicados. `canBackOnSave="true"` solo aplica al form principal (no al modal de entidad hija). El form modal **no lleva `canBackOnSave`** y **sí lleva `onNew`** para inyectar la referencia al padre.
+ - En <panel-related> deben estar todos los atributos que se han indicado en la plantilla (newButtonTitle, colSpan, showFooter, canEdit, canRemove, forceEdit) con los valores indicados.
+ - El botón Borrar debe tener `showIf="(id!=null) || (cid!=null)"` — `id` es el ID del registro ya guardado; `cid` es el ID temporal de un registro nuevo todavía no guardado.
+ - Los nombres de los `onClick` de los botones siguen el patrón `{Prefijo}.{EntidadJerárquica}@Main-{btnXxx}-action`, donde `{EntidadJerárquica}` puede incluir la jerarquía de entidades separadas por punto (p.ej. `Ciclo.Curso`). Por ejemplo: `subsysSistemaEducativo.Ciclo@Main-btnDelete-action` para la entidad raíz, o `subsysSistemaEducativo.Ciclo.Curso@Main-btnDelete-action` para la entidad hija.
+ - Los nombres de los paneles siguen el patrón del nombre de la entidad (p.ej. `name="Ciclo"`), no nombres genéricos como `nombrePanel1`.
+ - En campos relacionales: `form-view` apunta al `@View-form` de la entidad (p.ej. `subsysCentro.Centro@View-form`) y `grid-view` apunta al `@Search-grid` (p.ej. `subsysCentro.Centro@Search-grid`).
+
+## Form modal (entidad hija en `panel-related`)
+
+Cuando una entidad hija se edita desde un `<panel-related>`, su formulario es un **modal** con diferencias importantes respecto al form principal:
+
+```xml
+<form name="subsysSistemaEducativo.Ciclo.Curso@Main-form" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
+      width="large"
+      onNew="subsysSistemaEducativo.Ciclo.Curso@Main-onNew-action"
+      canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+    <panel name="Curso" title="">
+        <field name="ciclo" showIf="false"/>   <!-- campo padre, oculto pero presente en el modelo -->
+        <field name="code" colSpan="3"/>
+        <field name="name" colSpan="6" colOffset="3"/>
+    </panel>
+
+    <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+        <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Ciclo.Curso@Main-btnDelete-action"
+                css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+        <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Ciclo.Curso@Main-btnCancel-action"
+                colSpan="2" colOffset="6" outline="true"/>
+        <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Ciclo.Curso@Main-btnSave-action"
+                colSpan="2"/>
+    </panel>
+</form>
+```
+
+Diferencias respecto al form principal:
+- **Sin `canBackOnSave`** — el cierre del modal lo gestiona `save-modal` en el action-group del botón guardar.
+- **Con `onNew`** — inyecta la referencia al padre cuando se crea un registro nuevo.
+- **Campo padre con `showIf="false"`** — está en el modelo pero no es visible al usuario.
+
+Los action-groups de los botones del form modal usan acciones específicas del framework:
+- Botón Borrar: `<action name="delete-modal"/>` (no `delete`)
+- Botón Cancelar: `<action name="close"/>` (no `back`)
+- Botón Guardar: `<action name="save-modal"/>` (no `save`)
+
+### Tabla comparativa: form principal vs form modal
+
+| Aspecto                | Form principal | Form modal                                |
+|------------------------|----------------|-------------------------------------------|
+| `canBackOnSave`        | `true`         | ausente                                   |
+| `onNew`                | ausente        | presente (inyecta el padre)               |
+| Campo padre            | no existe      | `showIf="false"`                          |
+| `<action-view>` propio | sí             | no (lo abre el `panel-related` del padre) |
+| Botón Borrar acción    | `delete`       | `delete-modal`                            |
+| Botón Cancelar acción  | `back`         | `close`                                   |
+| Botón Guardar acción   | `save`         | `save-modal`                              |
 
 ## Botones principales y secundarios
 - Los botones principales (guardar, cancelar, etc) están a la derecha del todo
@@ -88,13 +141,13 @@ Se usa para colecciones relacionales `<one-to-many>` del modelo y muestra una re
 
 ### Atributos
 - `domain`:Permite restringir los valores disponibles en campos de selección (por ejemplo, campos relacionales o enums) usando expresiones booleanas que hacen referencia a los atributos del campo. Por ejemplo, para mostrar un campo solo si el código es 'D' o 'E', se usaría: `domain="(self.code='D' OR self.code='E')"`
-- `showIf`: Permite mostrar un campo solo si se cumple una condición.Por ejemplo, para mostrar un campo solo si el código es 'D', se usaría: `showIf="self.code=='D'"`
+- `showIf`: Permite mostrar un campo solo si se cumple una condición. Por ejemplo, para mostrar un campo solo si el código es 'D', se usaría: `showIf="grado.code=='D'"` (se referencia directamente el campo del formulario, sin prefijo `self.`)
 - `widget="binary-link"`: para campos `MetaFile` permite cargar/descargar un fichero.
 - `widget="binary"`: Para descargar directamente el `content` del  ̀MetaFile`.
 - `x-accept`: para restringir tipos de fichero (por ejemplo PDF o imagen).
 - `widget="SwitchSelect"`: Para campos del modelo de tipo enum (horizontal o vertical con `x-direction`).
 - `widget="Text"` para textos largos (por ejemplo motivos de rechazo).
-- `widget="suggest"` / selección asistida en campos relacionales con `domain`.
+- `widget="SuggestBox"` / selección asistida en campos relacionales con `domain`.
 - `readonly="true"` para mostrar un campo como solo lectura.
 - `colSpan`: Para definir el tamaño del campo. Vease más abajo para entenderlo mejor.
 - `colOffset`: Para dejar un espacio a la izquierda del campo. Vease más abajo para entenderlo mejor.
