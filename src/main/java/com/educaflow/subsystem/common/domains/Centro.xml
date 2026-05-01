@@ -44,12 +44,12 @@
         </many-to-one>
         <one-to-many name="administradores" ref="com.educaflow.subsystem.common.db.CentroUsuario" transient="true" title="Administradores">
             <![CDATA[
-                return com.axelor.inject.Beans.get(com.educaflow.subsystem.common.service.CentroService.class).getAdministradoresByCentro(id);
+                return ((com.educaflow.subsystem.common.service.CentroService)com.axelor.inject.Beans.get(com.axelor.db.modelservice.ModelServiceFactory.class).resolve(Centro.class)).getAdministradoresByCentro(id);
             ]]>
         </one-to-many>
         <one-to-many name="jefesEstudio" ref="com.educaflow.subsystem.common.db.CentroUsuario" transient="true" title="Jefes de estudio">
             <![CDATA[
-                return com.axelor.inject.Beans.get(com.educaflow.subsystem.common.service.CentroService.class).getJefesEstudioByCentro(id);
+                return ((com.educaflow.subsystem.common.service.CentroService)com.axelor.inject.Beans.get(com.axelor.db.modelservice.ModelServiceFactory.class).resolve(Centro.class)).getJefesEstudioByCentro(id);
             ]]>
         </one-to-many>
     </entity>
