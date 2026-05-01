@@ -18,11 +18,9 @@
     <can create="false" read="false" write="true" remove="false" export="false"/>
   </permission>
 
-  <!-- Los usuarios normales solo ven su propio centro activo -->
+  <!-- Los usuarios pueden ver todos los centros donde tengan un CentroUsuario -->
   <permission name="Centro.leer"
               object="com.educaflow.subsystem.common.db.Centro"
-              condition="self = ?"
-              conditionParams="__user__.centroActivo"
   >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
@@ -30,8 +28,6 @@
   <!-- Permiso adicional de escritura para el administrador del centro -->
   <permission name="Centro.editar"
               object="com.educaflow.subsystem.common.db.Centro"
-              condition="self = ?"
-              conditionParams="__user__.centroActivo"
   >
     <can create="false" read="false" write="true" remove="false" export="false"/>
   </permission>

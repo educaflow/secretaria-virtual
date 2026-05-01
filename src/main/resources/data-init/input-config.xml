@@ -98,9 +98,9 @@
             </bind>
         </bind>
 
-        <bind node="group" type="com.axelor.auth.db.Group" search="self.code = :code" create="true" update="true">
+        <bind node="group" type="com.axelor.auth.db.Group" search="self.code = :code" create="false" update="true">
             <bind node="@code" to="code"/>
-            <bind node="role" to="roles" search="self.name = :name">
+            <bind node="permission" to="permissions" search="self.name = :name">
                 <bind node="@name" to="name"/>
             </bind>
         </bind>

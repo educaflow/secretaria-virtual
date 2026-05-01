@@ -27,7 +27,9 @@
 
             <bind to="centro" eval="centroActual"/>
 
-            <bind to="centroUsuarioTipoUsuario" type="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario" update="true" create="true">
+            <bind to="centroUsuarioTipoUsuario" type="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario"
+                  search="self.centroUsuario.usuario.code = :documentoLimpio AND self.centroUsuario.centro = :centroActual"
+                  update="true" create="true">
                 <bind to="tipoUsuario" eval="_node.name" adapter="TipoUsuarioAdapter"/>
             </bind>
         </bind>

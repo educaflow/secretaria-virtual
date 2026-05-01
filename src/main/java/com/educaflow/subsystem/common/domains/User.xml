@@ -10,7 +10,6 @@
         <string name="dni" title="DNI"  />
         <string name="email" title="Correo electrónico" unique="false"/>
         <one-to-many name="centroUsuarios" ref="com.educaflow.subsystem.common.db.CentroUsuario" mappedBy="usuario" title=""/>
-
         <string name="nombre" title="Nombre" />
         <string name="apellidos" title="Apellidos" />
 

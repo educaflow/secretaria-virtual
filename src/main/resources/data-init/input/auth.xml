@@ -1,57 +1,258 @@
 <?xml version="1.0"?>
 <auth>
 
-  <role name="users.all" description="Permisos de usuarios normales">
-    <!-- Expedientes -->
-    <permission name="TipoExpediente.all"/>
-    <permission name="Tramite.creador"/>
-    <permission name="Expediente.creador"/>
-    <permission name="Expediente.porExpediente"/>
-    <permission name="Expediente.porTipoExpediente"/>
-    <permission name="Expediente.porTramite"/>
-    <permission name="Prueba.all"/>
-    <permission name="FormacionCentroTrabajo.all"/>
-    <permission name="HistorialEstado.all"/>
+  <!-- Axelor -->
+  <permission name="User.all" object="com.axelor.auth.db.User">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="MetaFile.all" object="com.axelor.meta.db.MetaFile">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="DMSFile.all" object="com.axelor.dms.db.DMSFile">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <!-- Base -->
+  <permission name="Numerador.all" object="com.educaflow.base.infrastructure.numeradores.db.Numerador">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <!-- Common -->
+  <permission name="Centro.all" object="com.educaflow.subsystem.common.db.Centro">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="Cargo.all" object="com.educaflow.subsystem.common.db.Cargo">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="CentroUsuario.all" object="com.educaflow.subsystem.common.db.CentroUsuario">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="CentroUsuarioTipoUsuario.all" object="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="ComunidadAutonoma.all" object="com.educaflow.subsystem.common.db.ComunidadAutonoma">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="Conselleria.all" object="com.educaflow.subsystem.common.db.Conselleria">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="Departamento.all" object="com.educaflow.subsystem.configuracioncentro.db.Departamento">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="Municipio.all" object="com.educaflow.subsystem.common.db.Municipio">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="Persona.all" object="com.educaflow.subsystem.common.db.Persona">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="Provincia.all" object="com.educaflow.subsystem.common.db.Provincia">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="TipoUsuario.all" object="com.educaflow.subsystem.common.db.TipoUsuario">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <!-- Expedientes -->
+  <permission name="TipoExpediente.all" object="com.educaflow.subsystem.expedientes.db.TipoExpediente">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="Tramite.all" object="com.educaflow.subsystem.expedientes.db.Tramite">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="Expediente.all" object="com.educaflow.subsystem.expedientes.db.Expediente">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="HistorialEstado.all" object="com.educaflow.subsystem.expedientes.db.HistorialEstado">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="PerfilExpediente.all" object="com.educaflow.subsystem.expedientes.db.PerfilExpediente">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="TipoTramite.all" object="com.educaflow.subsystem.expedientes.db.TipoTramite">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="CertificadoTutor.all" object="com.educaflow.subsystem.expedientes.db.CertificadoTutor">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="ValoresAmbito.all" object="com.educaflow.subsystem.expedientes.db.ValoresAmbito">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="Prueba.all" object="com.educaflow.subsystem.expedientes.db.Prueba">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="FormacionCentroTrabajo.all" object="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="SearchExpedientes.all" object="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <!-- Firmas -->
+  <permission name="TareaFirma.all" object="com.educaflow.subsystem.firmas.db.TareaFirma">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="DocumentoFirma.all" object="com.educaflow.subsystem.firmas.db.DocumentoFirma">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <!-- PDF Utilities -->
+  <permission name="PdfUtilities.all" object="com.educaflow.subsystem.pdfutilities.db.PdfUtilities">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <!-- Registro entrada/salida -->
+  <permission name="RegistroEntrada.all" object="com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="RegistroSalida.all" object="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <!-- Registro usuario -->
+  <permission name="RegistroPendiente.all" object="com.educaflow.subsystem.registrousuario.db.RegistroPendiente">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="UsuarioAutorizado.all" object="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <!-- Security -->
+  <permission name="Ace.all" object="com.educaflow.subsystem.security.db.Ace">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="Perfil.all" object="com.educaflow.subsystem.security.db.Perfil">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <!-- Sistema educativo -->
+  <permission name="Ciclo.all" object="com.educaflow.subsystem.sistemaeducativo.db.Ciclo">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="Curso.all" object="com.educaflow.subsystem.sistemaeducativo.db.Curso">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="CursoModulo.all" object="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="FamiliaProfesional.all" object="com.educaflow.subsystem.sistemaeducativo.db.FamiliaProfesional">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="Grado.all" object="com.educaflow.subsystem.sistemaeducativo.db.Grado">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="LeyEducativa.all" object="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="Modulo.all" object="com.educaflow.subsystem.sistemaeducativo.db.Modulo">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="Nivel.all" object="com.educaflow.subsystem.sistemaeducativo.db.Nivel">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <!-- Gestión centro -->
+  <permission name="ViewGestionCentroImport.all" object="com.educaflow.system.gestioncentro.db.ViewGestionCentroImport">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+  <permission name="ViewGestionCentroCambioCurso.all" object="com.educaflow.system.gestioncentro.db.ViewGestionCentroCambioCurso">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+
+  <group code="admins">
+    <permission name="User.all"/>
     <permission name="MetaFile.all"/>
-    <permission name="TipoTramite.leer"/>
-    <permission name="SearchExpedientes.all"/>
+    <permission name="DMSFile.all"/>
+    <permission name="Numerador.all"/>
+    <permission name="Centro.all"/>
+    <permission name="Cargo.all"/>
+    <permission name="CentroUsuario.all"/>
+    <permission name="CentroUsuarioTipoUsuario.all"/>
+    <permission name="ComunidadAutonoma.all"/>
+    <permission name="Conselleria.all"/>
+    <permission name="Departamento.all"/>
+    <permission name="Municipio.all"/>
+    <permission name="Persona.all"/>
+    <permission name="Provincia.all"/>
+    <permission name="TipoUsuario.all"/>
+    <permission name="TipoExpediente.all"/>
+    <permission name="Tramite.all"/>
+    <permission name="Expediente.all"/>
+    <permission name="HistorialEstado.all"/>
+    <permission name="PerfilExpediente.all"/>
+    <permission name="TipoTramite.all"/>
     <permission name="CertificadoTutor.all"/>
     <permission name="ValoresAmbito.all"/>
-    <permission name="DMSFile.all"/>
-    <!-- Firmas -->
-    <permission name="TareaFirma.firmante"/>
-    <permission name="DocumentoFirma.propio"/>
-    <!-- Datos comunes -->
-    <permission name="User.leer"/>
-    <permission name="User.editar-propio"/>
-    <permission name="Centro.leer"/>
-    <permission name="Departamento.leer"/>
-    <permission name="Cargo.leer"/>
-    <!-- Seguridad propia -->
-    <permission name="CentroUsuario.propio"/>
-    <permission name="CentroUsuarioTipoUsuario.propio"/>
-    <permission name="TipoUsuario.leer"/>
-  </role>
-
-  <!--<role name="center.admin" description="Permisos adicionales del administrador del centro">
-    <permission name="Centro.editar"/>
-    <permission name="UsuarioAutorizado.admin"/>
-    <permission name="ViewGestionCentroImport.admin"/>
-    <permission name="ViewGestionCentroCambioCurso.admin"/>
-  </role>
-
-  <group code="users">
-    <role name="users.all"/>
+    <permission name="Prueba.all"/>
+    <permission name="FormacionCentroTrabajo.all"/>
+    <permission name="SearchExpedientes.all"/>
+    <permission name="TareaFirma.all"/>
+    <permission name="DocumentoFirma.all"/>
+    <permission name="PdfUtilities.all"/>
+    <permission name="RegistroEntrada.all"/>
+    <permission name="RegistroSalida.all"/>
+    <permission name="RegistroPendiente.all"/>
+    <permission name="UsuarioAutorizado.all"/>
+    <permission name="Ace.all"/>
+    <permission name="Perfil.all"/>
+    <permission name="Ciclo.all"/>
+    <permission name="Curso.all"/>
+    <permission name="CursoModulo.all"/>
+    <permission name="FamiliaProfesional.all"/>
+    <permission name="Grado.all"/>
+    <permission name="LeyEducativa.all"/>
+    <permission name="Modulo.all"/>
+    <permission name="Nivel.all"/>
+    <permission name="ViewGestionCentroImport.all"/>
+    <permission name="ViewGestionCentroCambioCurso.all"/>
   </group>
 
-  <group code="center-admins">
-    <role name="users.all"/>
-    <role name="center.admin"/>
-  </group>-->
-
-  <!--<users>
-    <user code="cesar" language="es" name="César Guijarro Rosaleny" email="cesar@secretariavirtual.es" password="cesar" group="admins"/>
-    <user code="lorenzo" language="es" name="Lorenzo González Gascón" email="lorenzo@secretariavirtual.es" password="lorenzo" group="admins"/>
-  </users>-->
+  <group code="users">
+    <permission name="User.all"/>
+    <permission name="MetaFile.all"/>
+    <permission name="DMSFile.all"/>
+    <permission name="Numerador.all"/>
+    <permission name="Centro.all"/>
+    <permission name="Cargo.all"/>
+    <permission name="CentroUsuario.all"/>
+    <permission name="CentroUsuarioTipoUsuario.all"/>
+    <permission name="ComunidadAutonoma.all"/>
+    <permission name="Conselleria.all"/>
+    <permission name="Departamento.all"/>
+    <permission name="Municipio.all"/>
+    <permission name="Persona.all"/>
+    <permission name="Provincia.all"/>
+    <permission name="TipoUsuario.all"/>
+    <permission name="TipoExpediente.all"/>
+    <permission name="Tramite.all"/>
+    <permission name="Expediente.all"/>
+    <permission name="HistorialEstado.all"/>
+    <permission name="PerfilExpediente.all"/>
+    <permission name="TipoTramite.all"/>
+    <permission name="CertificadoTutor.all"/>
+    <permission name="ValoresAmbito.all"/>
+    <permission name="Prueba.all"/>
+    <permission name="FormacionCentroTrabajo.all"/>
+    <permission name="SearchExpedientes.all"/>
+    <permission name="TareaFirma.all"/>
+    <permission name="DocumentoFirma.all"/>
+    <permission name="PdfUtilities.all"/>
+    <permission name="RegistroEntrada.all"/>
+    <permission name="RegistroSalida.all"/>
+    <permission name="RegistroPendiente.all"/>
+    <permission name="UsuarioAutorizado.all"/>
+    <permission name="Ace.all"/>
+    <permission name="Perfil.all"/>
+    <permission name="Ciclo.all"/>
+    <permission name="Curso.all"/>
+    <permission name="CursoModulo.all"/>
+    <permission name="FamiliaProfesional.all"/>
+    <permission name="Grado.all"/>
+    <permission name="LeyEducativa.all"/>
+    <permission name="Modulo.all"/>
+    <permission name="Nivel.all"/>
+    <permission name="ViewGestionCentroImport.all"/>
+    <permission name="ViewGestionCentroCambioCurso.all"/>
+  </group>
 
 </auth>

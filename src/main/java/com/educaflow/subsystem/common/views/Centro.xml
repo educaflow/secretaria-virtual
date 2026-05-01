@@ -38,18 +38,18 @@
                 <field name="municipio"   colSpan="4" domain="self.provincia = :provincia"/>
                 <field name="conselleria" colSpan="6"/>
             </panel>
-            <panel-related name="usuarios" title="Usuarios" field="usuarios" colSpan="12"
+            <!--<panel-related name="usuarios" title="Usuarios" field="usuarios" colSpan="12"
                            grid-view="subsysCommon.Centro.CentroUsuario@Main-grid"
                            form-view="subsysCommon.Centro.CentroUsuario@Main-form"
                            newButtonTitle="Nuevo usuario"
                            showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
-            />
+            />-->
         </panel-tabs>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
 
-            <button name="btnDelete" title="Borrar" onClick="subsysCommon.Centro@Main-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id != null) || (cid != null)"/>
+            <button name="btnDelete" title="Borrar" onClick="delete" css="btn-danger" colSpan="2"  outline="true" showIf="(id != null) || (cid != null)"/>
             <button name="btnCancel" title="Cancelar" onClick="back"  colSpan="2" colOffset="6" outline="true"   />
-            <button name="btnSave" title="Guardar" onClick="subsysCommon.Centro@Main-btnSave-action"  colSpan="2"  />
+            <button name="btnSave" title="Guardar" onClick="save"  colSpan="2"  />
         </panel>
     </form>
 
@@ -73,25 +73,27 @@
     <!-- ********************************* Vistas de Centro -> CentroUsuario ********************************* -->
     <!-- ******************************************************************************************************** -->
     <grid name="subsysCommon.Centro.CentroUsuario@Main-grid" title="" model="com.educaflow.subsystem.common.db.CentroUsuario"
-          allowSearchFields="true" orderBy="usuario.apellidos"
+          allowSearchFields="true"
           canAdvanceSearch="false" canRefresh="false"
           canNew="true" editable="false"
           edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
     >
-        <field name="usuario.nombre" />
-        <field name="usuario.apellidos" />
+        <!--<field name="usuario.nombre" />
+        <field name="usuario.apellidos" />-->
+            <field name="usuario" width="400px"/>
     </grid>
 
     <form name="subsysCommon.Centro.CentroUsuario@Main-form" title="Usuario" model="com.educaflow.subsystem.common.db.CentroUsuario"
-          groups="admins"
+          groups="admins,users"
           onNew="subsysCommon.Centro.CentroUsuario@Main-onNew-action"
           canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="Usuario" title="">
             <field name="centro"  colSpan="6" showIf="false"/>
             <field name="usuario" colSpan="12"
                    readonlyIf="id != null"
+                   onChange="subsysCommon.Centro.CentroUsuario@Main-onChange-usuario-action"
                    grid-view="subsysCommon.Usuario@Search-grid"
-                   form-view="subsysCommon.Usuario@View-form"/>
+            />
         </panel>
         <panel-related name="centroUsuarioTipoUsuario" title="Tipos de usuario" field="centroUsuarioTipoUsuario" colSpan="12"
                        grid-view="subsysCommon.Centro.CentroUsuario.CentroUsuarioTipoUsuario@Main-grid"
@@ -113,7 +115,7 @@
     <!-- ******************* Vistas de Centro -> CentroUsuario -> CentroUsuarioTipoUsuario ************************** -->
     <!-- ******************************************************************************************************** -->
     <grid name="subsysCommon.Centro.CentroUsuario.CentroUsuarioTipoUsuario@Main-grid" title="Tipos de usuario" model="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario"
-          groups="admins"
+          groups="admins,users"
           canNew="true"
           canRefresh="false" canAdvanceSearch="false" allowSearchFields="false"
           editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="true" canSave="false"
@@ -123,7 +125,7 @@
     </grid>
 
     <form name="subsysCommon.Centro.CentroUsuario.CentroUsuarioTipoUsuario@Main-form" title="Tipo de usuario" model="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario"
-          groups="admins"
+          groups="admins,users"
           onNew="subsysCommon.Centro.CentroUsuario.CentroUsuarioTipoUsuario@Main-onNew-action"
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="centroUsuarioTipoUsuario-datos-panel" title="">
@@ -176,7 +178,11 @@
     </action-record>
 
     <action-record name="subsysCommon.Centro.CentroUsuario@Main-set-centro-parent-action" model="com.educaflow.subsystem.common.db.CentroUsuario">
-        <field name="centro" expr="eval: __parent__"/>
+        <field name="centro" expr="eval: __repo__(com.educaflow.subsystem.common.db.Centro).find(__parent__?.id)"/>
+    </action-record>
+
+    <action-record name="subsysCommon.Centro.CentroUsuario@Main-onChange-usuario-action" model="com.educaflow.subsystem.common.db.CentroUsuario">
+        <field name="usuario" expr="eval: __repo__(com.axelor.auth.db.User).find(usuario?.id)"/>
     </action-record>
 
     <action-record name="subsysCommon.Centro.CentroUsuario.CentroUsuarioTipoUsuario@Main-set-centroUsuario-parent-action" model="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario">

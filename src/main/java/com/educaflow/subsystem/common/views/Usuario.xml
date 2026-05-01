@@ -28,14 +28,6 @@
         <field name="active"/>
     </grid>
 
-    <grid name="subsysCommon.Usuario@Search-grid" title="Usuario" model="com.axelor.auth.db.User"
-          groups="admins"
-          orderBy="apellidos"
-          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
-        <field name="nombre"/>
-        <field name="apellidos"/>
-        <field name="email"/>
-    </grid>
 
     <form name="subsysCommon.Usuario@Main-form" title="Usuario" model="com.axelor.auth.db.User"
           width="large"
@@ -60,6 +52,15 @@
         </panel>
     </form>
 
+    <grid name="subsysCommon.Usuario@Search-grid" title="Usuario" model="com.axelor.auth.db.User"
+          groups="admins"
+          orderBy="apellidos"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="nombre"/>
+        <field name="apellidos"/>
+        <field name="email"/>
+    </grid>
+
     <form name="subsysCommon.Usuario@View-form" title="Usuario" model="com.axelor.auth.db.User"
           width="large"
           canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
@@ -67,10 +68,6 @@
             <field name="nombre"    colSpan="6" readonly="true"/>
             <field name="apellidos" colSpan="6" readonly="true"/>
             <field name="email"     colSpan="6" readonly="true"/>
-        </panel>
-        <panel name="botones" showFrame="false">
-            <spacer colSpan="11"/>
-            <button name="btnCerrar" title="Cerrar" onClick="subsysCommon.Usuario@View-btnCerrar-action" outline="true" colSpan="1"/>
         </panel>
     </form>
 
@@ -81,15 +78,11 @@
     </action-group>
 
     <action-group name="subsysCommon.Usuario@Main-btnCancelar-action">
-        <action name="close"/>
+        <action name="back"/>
     </action-group>
 
     <action-group name="subsysCommon.Usuario@Main-btnGuardar-action">
         <action name="save"/>
-    </action-group>
-
-    <action-group name="subsysCommon.Usuario@View-btnCerrar-action">
-        <action name="close"/>
     </action-group>
 
     <!-- ***** Acciones de Validaciones en local ***** -->

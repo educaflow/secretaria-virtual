@@ -202,19 +202,13 @@
          ===================================================================== -->
     <tipos>
 
-        <!-- == CIPFP Mislata — equipo directivo (PROFESOR + cargo) == -->
+        <!-- == CIPFP Mislata — equipo directivo == -->
         <tipo usuarioCode="director.cipfpmislata@secretaria.virtual.es"       centroCode="46019660" tipoCode="PROFESOR"/>
-        <tipo usuarioCode="director.cipfpmislata@secretaria.virtual.es"       centroCode="46019660" tipoCode="DIRECTOR"/>
         <tipo usuarioCode="vicedirector.cipfpmislata@secretaria.virtual.es"   centroCode="46019660" tipoCode="PROFESOR"/>
-        <tipo usuarioCode="vicedirector.cipfpmislata@secretaria.virtual.es"   centroCode="46019660" tipoCode="VICEDIRECTOR"/>
         <tipo usuarioCode="secretario.cipfpmislata@secretaria.virtual.es"     centroCode="46019660" tipoCode="PROFESOR"/>
-        <tipo usuarioCode="secretario.cipfpmislata@secretaria.virtual.es"     centroCode="46019660" tipoCode="SECRETARIO"/>
         <tipo usuarioCode="vicesecretario.cipfpmislata@secretaria.virtual.es" centroCode="46019660" tipoCode="PROFESOR"/>
-        <tipo usuarioCode="vicesecretario.cipfpmislata@secretaria.virtual.es" centroCode="46019660" tipoCode="VICESECRETARIO"/>
         <tipo usuarioCode="jefeestudios1.cipfpmislata@secretaria.virtual.es"  centroCode="46019660" tipoCode="PROFESOR"/>
-        <tipo usuarioCode="jefeestudios1.cipfpmislata@secretaria.virtual.es"  centroCode="46019660" tipoCode="JEFE_ESTUDIOS"/>
         <tipo usuarioCode="jefeestudios2.cipfpmislata@secretaria.virtual.es"  centroCode="46019660" tipoCode="PROFESOR"/>
-        <tipo usuarioCode="jefeestudios2.cipfpmislata@secretaria.virtual.es"  centroCode="46019660" tipoCode="JEFE_ESTUDIOS"/>
 
         <!-- == CIPFP Mislata — profesores sin cargo == -->
         <tipo usuarioCode="profesor1.cipfpmislata@secretaria.virtual.es"      centroCode="46019660" tipoCode="PROFESOR"/>
@@ -241,19 +235,13 @@
         <tipo usuarioCode="familiar2.cipfpmislata@secretaria.virtual.es"      centroCode="46019660" tipoCode="FAMILIAR"/>
         <tipo usuarioCode="familiar3.cipfpmislata@secretaria.virtual.es"      centroCode="46019660" tipoCode="FAMILIAR"/>
 
-        <!-- == CIPFP Batoi — equipo directivo (PROFESOR + cargo) == -->
+        <!-- == CIPFP Batoi — equipo directivo == -->
         <tipo usuarioCode="director.cipfpbatoi@secretaria.virtual.es"         centroCode="03012165" tipoCode="PROFESOR"/>
-        <tipo usuarioCode="director.cipfpbatoi@secretaria.virtual.es"         centroCode="03012165" tipoCode="DIRECTOR"/>
         <tipo usuarioCode="vicedirector.cipfpbatoi@secretaria.virtual.es"     centroCode="03012165" tipoCode="PROFESOR"/>
-        <tipo usuarioCode="vicedirector.cipfpbatoi@secretaria.virtual.es"     centroCode="03012165" tipoCode="VICEDIRECTOR"/>
         <tipo usuarioCode="secretario.cipfpbatoi@secretaria.virtual.es"       centroCode="03012165" tipoCode="PROFESOR"/>
-        <tipo usuarioCode="secretario.cipfpbatoi@secretaria.virtual.es"       centroCode="03012165" tipoCode="SECRETARIO"/>
         <tipo usuarioCode="vicesecretario.cipfpbatoi@secretaria.virtual.es"   centroCode="03012165" tipoCode="PROFESOR"/>
-        <tipo usuarioCode="vicesecretario.cipfpbatoi@secretaria.virtual.es"   centroCode="03012165" tipoCode="VICESECRETARIO"/>
         <tipo usuarioCode="jefeestudios1.cipfpbatoi@secretaria.virtual.es"    centroCode="03012165" tipoCode="PROFESOR"/>
-        <tipo usuarioCode="jefeestudios1.cipfpbatoi@secretaria.virtual.es"    centroCode="03012165" tipoCode="JEFE_ESTUDIOS"/>
         <tipo usuarioCode="jefeestudios2.cipfpbatoi@secretaria.virtual.es"    centroCode="03012165" tipoCode="PROFESOR"/>
-        <tipo usuarioCode="jefeestudios2.cipfpbatoi@secretaria.virtual.es"    centroCode="03012165" tipoCode="JEFE_ESTUDIOS"/>
 
         <!-- == CIPFP Batoi — profesores sin cargo == -->
         <tipo usuarioCode="profesor1.cipfpbatoi@secretaria.virtual.es"        centroCode="03012165" tipoCode="PROFESOR"/>

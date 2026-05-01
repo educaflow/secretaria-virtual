@@ -5,10 +5,12 @@
 
     <form name="sysGestionCentro.Centro@Cargos-form" title="Cargos" model="com.educaflow.subsystem.common.db.Centro">
         <panel title="Cargos">
+            <!--
             <field name="director"       colSpan="6" readonly="true"/>
             <field name="vicedirector"   colSpan="6" readonly="true"/>
             <field name="secretario"     colSpan="6" readonly="true"/>
             <field name="vicesecretario" colSpan="6" readonly="true"/>
+            -->
             <panel-related field="administradores" title="Administradores"
                            x-selector="none" colSpan="12"
                            editable="false" edit-icon="false"

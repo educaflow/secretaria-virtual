@@ -140,6 +140,30 @@
     </input>
 
 
+    <!-- Paso 5b-cargo: Crear Ace con cargo sobre TipoExpediente -->
+    <input file="permisos-demo.xml" root="datos">
+        <bind node="asignacionesCargoTipoExpediente/asignacion" type="com.educaflow.subsystem.security.db.Ace"
+              search="self.cargo.code = :cargoCode AND self.perfil.name = :perfilName AND self.tipoExpediente.code = :tipoExpedienteCode"
+              create="true" update="false">
+            <bind node="@cargoCode"          alias="cargoCode"/>
+            <bind node="@perfilName"         alias="perfilName"/>
+            <bind node="@tipoExpedienteCode" alias="tipoExpedienteCode"/>
+            <bind to="cargo"
+                  type="com.educaflow.subsystem.common.db.Cargo"
+                  search="self.code = :cargoCode"
+                  update="false" create="false"/>
+            <bind to="perfil"
+                  type="com.educaflow.subsystem.security.db.Perfil"
+                  search="self.name = :perfilName"
+                  update="false" create="false"/>
+            <bind to="tipoExpediente"
+                  type="com.educaflow.subsystem.expedientes.db.TipoExpediente"
+                  search="self.code = :tipoExpedienteCode"
+                  update="false" create="false"/>
+        </bind>
+    </input>
+
+
     <!-- Paso 5c: Crear Ace con centroUsuario (usuario concreto en un centro) -->
     <input file="permisos-demo.xml" root="datos">
         <bind node="asignacionesCentroUsuario/asignacion" type="com.educaflow.subsystem.security.db.Ace"

@@ -14,7 +14,7 @@ public class UsuarioListener {
 
     private final Logger logger = LoggerFactory.getLogger(UsuarioListener.class);
 
-    @PrePersist
+    /*@PrePersist
     private void onPrePersist(User usuario) {
 
         if (TextUtil.isNullOrBlank(usuario.getCode())){
@@ -31,9 +31,15 @@ public class UsuarioListener {
 
     @PreUpdate
     private void onPreUpdate(User usuario){
-        if (TextUtil.isNullOrBlank(usuario.getName())) {
-            usuario.setName(usuario.getNombre() + " " + usuario.getApellidos());
+        // 2. Concatenar nombre con seguridad
+        String nombre = usuario.getNombre() != null ? usuario.getNombre() : "";
+        String apellidos = usuario.getApellidos() != null ? usuario.getApellidos() : "";
+        String nombreCompleto = (nombre + " " + apellidos).trim();
+
+        // Solo asignamos si el nombre resultante no está vacío y el actual sí lo está
+        if (TextUtil.isNullOrBlank(usuario.getName()) && !nombreCompleto.isEmpty()) {
+            usuario.setName(nombreCompleto);
         }
-    }
+    }*/
 
 }

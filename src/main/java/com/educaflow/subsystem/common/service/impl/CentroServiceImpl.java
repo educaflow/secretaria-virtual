@@ -12,6 +12,8 @@ import com.educaflow.subsystem.common.db.CentroUsuario;
 import com.educaflow.subsystem.common.db.repo.CentroUsuarioRepository;
 import com.educaflow.subsystem.common.db.repo.CentroUsuarioTipoUsuarioRepository;
 import jakarta.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,9 +30,24 @@ public class CentroServiceImpl extends DefaultModelService<Centro> implements Ce
     @Inject
     UsuarioAutorizadoRepository usuarioAutorizadoRepo;*/
 
+    private Logger logger = LoggerFactory.getLogger(CentroServiceImpl.class);
+
     public CentroServiceImpl(Class<Centro> model, Repository repository) {
         super(model, repository);
     }
+
+    @Override
+    public Centro insert(Centro centro) {
+        logger.info("Insertando Centro: code={}, name={}", centro.getCode(), centro.getName());
+        return null;
+    }
+
+    @Override
+    public Centro update(Centro centroActualizado, Centro centroOriginal) {
+        logger.info("Actualizando centro: code={}, name={}", centroActualizado.getCode(), centroActualizado.getName());
+        return super.update(centroActualizado, centroOriginal);
+    }
+
 
     @Override
     public List<CentroUsuario> getAdministradoresByCentro(Long id) {

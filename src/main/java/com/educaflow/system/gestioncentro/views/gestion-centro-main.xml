@@ -29,10 +29,12 @@
                 <field name="conselleria" colSpan="6"/>
             </panel>
             <panel name="cargosCentroPanel" title="Cargos">
+                <!--
                 <field name="director"       colSpan="6" readonly="true"/>
                 <field name="vicedirector"   colSpan="6" readonly="true"/>
                 <field name="secretario"     colSpan="6" readonly="true"/>
                 <field name="vicesecretario" colSpan="6" readonly="true"/>
+                -->
                 <panel-related name="administradores" field="usuarios" title="Administradores"
                                domain="self.id IN (SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t WHERE t.tipoUsuario.code = 'ADMINISTRADOR')"
                                x-selector="none" colSpan="12" showFooter="false"

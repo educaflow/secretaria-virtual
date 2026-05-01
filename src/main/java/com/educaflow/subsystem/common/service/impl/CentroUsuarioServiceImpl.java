@@ -10,14 +10,24 @@ import com.educaflow.subsystem.common.db.repo.CentroUsuarioTipoUsuarioRepository
 import com.educaflow.subsystem.common.service.CentroUsuarioService;
 import com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado;
 import com.educaflow.subsystem.registrousuario.db.repo.UsuarioAutorizadoRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CentroUsuarioServiceImpl extends DefaultModelService<CentroUsuario> implements CentroUsuarioService {
 
+    private Logger logger = LoggerFactory.getLogger(CentroUsuarioServiceImpl.class);
+
     public CentroUsuarioServiceImpl(Class<CentroUsuario> model, Repository repository) {
         super(model, repository);
+    }
+
+    @Override
+    public CentroUsuario insert(CentroUsuario centroUsuario) {
+        logger.info("Insertando CentroUsuario: centroId={}, usuarioId={}", centroUsuario.getCentro().getId(), centroUsuario.getUsuario().getId());
+        return super.insert(centroUsuario);
     }
 
     @Override

@@ -39,13 +39,13 @@
                   parent="sysGestion.Usuarios-menuitem" action="sysGestion.UsuarioRegistrado@Main-action"
                   groups="users" order="2"/>-->
 
-    <menuitem name="administracionSv-menuitem"   groups="admins"  title="Administración SV" order="50"/>
+    <menuitem name="administracionSv-menuitem"   groups="admins,users"  title="Administración SV" order="50"/>
         <menuitem name="administracionSv-centro-menuitem" title="Centro"
-                  parent="administracionSv-menuitem" action="subsysCommon.Centro@Main-action" groups="admins" order="1" />
+                  parent="administracionSv-menuitem" action="subsysCommon.Centro@Main-action" groups="admins,users" order="1" />
         <menuitem name="administracionSv-importacion-menuitem" title="Ficheros importación"
-                  parent="administracionSv-menuitem" action="subsysImportacion.TareaImportacion@Main-action" groups="admins" order="2" />
+                  parent="administracionSv-menuitem" action="subsysImportacion.TareaImportacion@Main-action" groups="admins,users" order="2" />
         <menuitem name="administracionSv-usuarios-menuitem" title="Usuarios"
-                  parent="administracionSv-menuitem" action="subsysCommon.Usuario@Main-action" groups="admins" order="3"  />
+                  parent="administracionSv-menuitem" action="subsysCommon.Usuario@Main-action" groups="admins,users" order="3"  />
 
 
     <menuitem name="registro-menuitem"  title="Registro"             order="60"/>
