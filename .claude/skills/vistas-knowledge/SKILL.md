@@ -311,21 +311,21 @@ Esta notación se usa de forma idéntica en cabeceras de comentarios y en **nomb
 Cada sección jerárquica comienza con un bloque de **tres líneas**:
 
 ```xml
-<!-- ***************************************************************************** -->
-<!-- ****************************** Vistas de Ciclo ****************************** -->
-<!-- ***************************************************************************** -->
+<!-- *************************************************************************** -->
+<!-- ****************************** Ciclo: Vistas ****************************** -->
+<!-- *************************************************************************** -->
 ```
 
 ```xml
-<!-- *********************************************************************************** -->
-<!-- ****************************** Vistas de Ciclo.Curso ****************************** -->
-<!-- *********************************************************************************** -->
+<!-- ********************************************************************************** -->
+<!-- ****************************** Ciclo.Curso : Vistas ****************************** -->
+<!-- ********************************************************************************** -->
 ```
 
 - La línea 2: Se usan **exactamente 30 asteriscos** a ambos lados del texto. 30 asteriscos en el lado izquierdo, luego un espacio, el texto "Vistas de <NombreJerárquico>", otro espacio y 30 asteriscos a la derecha.
-- MUY IMPORANTE: **La línea 1 debe tener tantos asteriscos de forma que el "-->" acabe justo debajo del "-->" de la línea 2. Es decir que debes contar cuantos caracteres tiene la línea 2 hasta el "-->" y poner los asteriscos necesarios para que tenga los mismos caracteres que la línea 2 hasta el "-->".**
-- MUY IMPORANTE: **La línea 3 debe tener tantos asteriscos de forma que el "-->" acabe justo debajo del "-->" de la línea 2. Es decir que debes contar cuantos caracteres tiene la línea 2 hasta el "-->" y poner los asteriscos necesarios para que tenga los mismos caracteres que la línea 2 hasta el "-->".**
-
+- MUY IMPORTANTE: **La línea 1 debe tener tantos asteriscos de forma que el "-->" acabe justo debajo del "-->" de la línea 2. Es decir que debes contar cuantos caracteres tiene la línea 2 hasta el "-->" y poner los asteriscos necesarios para que tenga los mismos caracteres que la línea 2 hasta el "-->".**
+- MUY IMPORTANTE: **La línea 3 debe tener tantos asteriscos de forma que el "-->" acabe justo debajo del "-->" de la línea 2. Es decir que debes contar cuantos caracteres tiene la línea 2 hasta el "-->" y poner los asteriscos necesarios para que tenga los mismos caracteres que la línea 2 hasta el "-->".**
+- Por favor, es muy importante que revises mediante alguna herramienta de Bash que las líneas 1 y 3 tienen el mismo número de caracteres que la línea 2 hasta el "-->". Y corrijas las líneas 1 y 3 para que tengan el mismo tamaño que la 2. Esto es fundamental para mantener la consistencia visual del código. 
 
 
 ### Comentarios de grupos de acciones
