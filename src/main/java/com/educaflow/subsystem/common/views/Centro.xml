@@ -12,7 +12,7 @@
 
     <grid name="subsysCommon.Centro@Main-grid" title="Centros" model="com.educaflow.subsystem.common.db.Centro"
           canNew="true" newButtonTitle="Nuevo centro"
-          canRefresh="false" canAdvanceSearch="false" allowSearchFields="false"
+          canRefresh="false" canAdvanceSearch="false" allowSearchFields="true"
           editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"
           canEditOnClick="true"          >
         <field name="code" width="200px"/>
@@ -79,6 +79,7 @@
           edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
           orderBy="usuario.apellidos"
     >
+        <field name="usuario.dni" />
         <field name="usuario.nombre" />
         <field name="usuario.apellidos" />
         <!--<field name="usuario" width="400px"/>-->
@@ -92,7 +93,6 @@
             <field name="centro"  colSpan="6" showIf="false"/>
             <field name="usuario" colSpan="12"
                    readonlyIf="id != null"
-                   onChange="subsysCommon.Centro.CentroUsuario@Main-onChange-usuario-action"
                    grid-view="subsysCommon.Usuario@Search-grid"
             />
         </panel>
@@ -179,12 +179,12 @@
     </action-record>
 
     <action-record name="subsysCommon.Centro.CentroUsuario@Main-set-centro-parent-action" model="com.educaflow.subsystem.common.db.CentroUsuario">
-        <field name="centro" expr="eval: __repo__(com.educaflow.subsystem.common.db.Centro).find(__parent__?.id)"/>
+        <field name="centro" expr="eval: __parent__"/>
     </action-record>
 
-    <action-record name="subsysCommon.Centro.CentroUsuario@Main-onChange-usuario-action" model="com.educaflow.subsystem.common.db.CentroUsuario">
-        <field name="usuario" expr="eval: __repo__(com.axelor.auth.db.User).find(usuario?.id)"/>
-    </action-record>
+    <!--<action-record name="subsysCommon.Centro.CentroUsuario@Main-onChange-usuario-action" model="com.educaflow.subsystem.common.db.CentroUsuario">
+        <field name="usuario" expr="eval: __parent__"/>
+    </action-record>-->
 
     <action-record name="subsysCommon.Centro.CentroUsuario.CentroUsuarioTipoUsuario@Main-set-centroUsuario-parent-action" model="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario">
         <field name="centroUsuario" expr="eval: __parent__"/>
