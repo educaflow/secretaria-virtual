@@ -36,7 +36,7 @@ public class CentroServiceImpl extends DefaultModelService<Centro> implements Ce
         super(model, repository);
     }
 
-    @Override
+    /*@Override
     public Centro insert(Centro centro) {
         logger.info("Insertando Centro: code={}, name={}", centro.getCode(), centro.getName());
         return null;
@@ -46,7 +46,7 @@ public class CentroServiceImpl extends DefaultModelService<Centro> implements Ce
     public Centro update(Centro centroActualizado, Centro centroOriginal) {
         logger.info("Actualizando centro: code={}, name={}", centroActualizado.getCode(), centroActualizado.getName());
         return super.update(centroActualizado, centroOriginal);
-    }
+    }*/
 
 
     @Override

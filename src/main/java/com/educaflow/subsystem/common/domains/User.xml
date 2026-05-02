@@ -6,7 +6,7 @@
     <module name="auth" package="com.axelor.auth.db"/>
 
     <entity name="User">
-        <many-to-one name="centroActivo" ref="com.educaflow.subsystem.common.db.Centro" title="Centro Activo" />
+        <many-to-one name="centroActivo" ref="com.educaflow.subsystem.common.db.Centro" title="Centro Activo" cascade="merge"/>
         <string name="dni" title="DNI"  />
         <string name="email" title="Correo electrónico" unique="false"/>
         <one-to-many name="centroUsuarios" ref="com.educaflow.subsystem.common.db.CentroUsuario" mappedBy="usuario" title=""/>

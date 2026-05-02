@@ -24,11 +24,18 @@ public class CentroUsuarioServiceImpl extends DefaultModelService<CentroUsuario>
         super(model, repository);
     }
 
-    @Override
+    /*@Override
     public CentroUsuario insert(CentroUsuario centroUsuario) {
         logger.info("Insertando CentroUsuario: centroId={}, usuarioId={}", centroUsuario.getCentro().getId(), centroUsuario.getUsuario().getId());
         return super.insert(centroUsuario);
     }
+
+
+    @Override
+    public CentroUsuario update(CentroUsuario centroUsuarionew, CentroUsuario b) {
+        logger.info("jhfhfg");
+        return null;
+    }*/
 
     @Override
     public List<String> calcularTipoUsuarioRegistrado(Long centroId, Integer curso) {

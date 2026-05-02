@@ -38,12 +38,12 @@
                 <field name="municipio"   colSpan="4" domain="self.provincia = :provincia"/>
                 <field name="conselleria" colSpan="6"/>
             </panel>
-            <!--<panel-related name="usuarios" title="Usuarios" field="usuarios" colSpan="12"
+            <panel-related name="usuarios" title="Usuarios" field="usuarios" colSpan="12"
                            grid-view="subsysCommon.Centro.CentroUsuario@Main-grid"
                            form-view="subsysCommon.Centro.CentroUsuario@Main-form"
                            newButtonTitle="Nuevo usuario"
                            showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
-            />-->
+            />
         </panel-tabs>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
 
@@ -77,10 +77,11 @@
           canAdvanceSearch="false" canRefresh="false"
           canNew="true" editable="false"
           edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
+          orderBy="usuario.apellidos"
     >
-        <!--<field name="usuario.nombre" />
-        <field name="usuario.apellidos" />-->
-            <field name="usuario" width="400px"/>
+        <field name="usuario.nombre" />
+        <field name="usuario.apellidos" />
+        <!--<field name="usuario" width="400px"/>-->
     </grid>
 
     <form name="subsysCommon.Centro.CentroUsuario@Main-form" title="Usuario" model="com.educaflow.subsystem.common.db.CentroUsuario"

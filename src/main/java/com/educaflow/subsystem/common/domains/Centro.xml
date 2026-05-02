@@ -17,7 +17,6 @@
 
         <one-to-many name="usuarios" ref="com.educaflow.subsystem.common.db.CentroUsuario" mappedBy="centro" title=""/>
         <one-to-many name="tareasImportacion" ref="com.educaflow.subsystem.importacion.db.TareaImportacion" mappedBy="centro" title="Tareas de importación"/>
-        <one-to-many name="usuariosActivos" ref="com.axelor.auth.db.User" mappedBy="centroActivo" title="Usuarios activos"/>
 
         <!--<many-to-one name="director" ref="com.axelor.auth.db.User" formula="true" title="Director">
             SELECT cu.usuario FROM common_centro_usuario cu
