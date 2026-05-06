@@ -82,6 +82,7 @@ Atributos **obligatorios** (ver `grids-knowledge`):
 - `canEdit="false" canDelete="false" canSave="false"` — siempre así.
 - `canEditOnClick="true"` — al hacer clic en una fila se abre el form en edición.
 - Si no se puede crear desde el grid: `canNew="false"` y quitar `newButtonTitle`.
+- No poner nunca el atributo "archived" en los grid. Borrarlo si existe excepto si se dice explicitamente que tiene que estar.
 
 ### `@Main-form` — formulario principal (pantalla completa)
 
@@ -306,14 +307,16 @@ Esta notación se usa de forma idéntica en cabeceras de comentarios y en **nomb
 
 ## Convención de comentarios
 
+- Todos los comentarios empiezan siempre por el nobmre jetarquico de la sección a la que se refieren, seguido de un espacio, dos puntos, un espacio y el texto del comentario.
+
 ### Comentarios de cabecera de sección
 
 Cada sección jerárquica comienza con un bloque de **tres líneas**:
 
 ```xml
-<!-- *************************************************************************** -->
-<!-- ****************************** Ciclo: Vistas ****************************** -->
-<!-- *************************************************************************** -->
+<!-- **************************************************************************** -->
+<!-- ****************************** Ciclo : Vistas ****************************** -->
+<!-- **************************************************************************** -->
 ```
 
 ```xml
@@ -321,11 +324,11 @@ Cada sección jerárquica comienza con un bloque de **tres líneas**:
 <!-- ****************************** Ciclo.Curso : Vistas ****************************** -->
 <!-- ********************************************************************************** -->
 ```
-
+- El texto del comentario del ésto es "Vistas" y como ya hemos dijo, delante va el nombre jerarquico (y no al revés, eso era antes)
 - La línea 2: Se usan **exactamente 30 asteriscos** a ambos lados del texto. 30 asteriscos en el lado izquierdo, luego un espacio, el texto "Vistas de <NombreJerárquico>", otro espacio y 30 asteriscos a la derecha.
-- MUY IMPORTANTE: **La línea 1 debe tener tantos asteriscos de forma que el "-->" acabe justo debajo del "-->" de la línea 2. Es decir que debes contar cuantos caracteres tiene la línea 2 hasta el "-->" y poner los asteriscos necesarios para que tenga los mismos caracteres que la línea 2 hasta el "-->".**
-- MUY IMPORTANTE: **La línea 3 debe tener tantos asteriscos de forma que el "-->" acabe justo debajo del "-->" de la línea 2. Es decir que debes contar cuantos caracteres tiene la línea 2 hasta el "-->" y poner los asteriscos necesarios para que tenga los mismos caracteres que la línea 2 hasta el "-->".**
-- Por favor, es muy importante que revises mediante alguna herramienta de Bash que las líneas 1 y 3 tienen el mismo número de caracteres que la línea 2 hasta el "-->". Y corrijas las líneas 1 y 3 para que tengan el mismo tamaño que la 2. Esto es fundamental para mantener la consistencia visual del código. 
+- MUY IMPORTANTE: **La línea 1 debe tener tantos asteriscos de forma que el `-->` acabe justo debajo del `-->` de la línea 2. Es decir que debes contar cuantos caracteres tiene la línea 2 hasta el `-->` y poner los asteriscos necesarios para que tenga los mismos caracteres que la línea 2 hasta el `-->`.**
+- MUY IMPORTANTE: **La línea 3 debe tener tantos asteriscos de forma que el `-->` acabe justo debajo del `-->` de la línea 2. Es decir que debes contar cuantos caracteres tiene la línea 2 hasta el `-->` y poner los asteriscos necesarios para que tenga los mismos caracteres que la línea 2 hasta el `-->`.**
+- Por favor, es muy importante que revises mediante alguna herramienta de Bash que las líneas 1 y 3 tienen el mismo número de caracteres que la línea 2 hasta el `-->`. Y corrijas las líneas 1 y 3 para que tengan el mismo tamaño que la 2. Esto es fundamental para mantener la consistencia visual del código. 
 
 
 ### Comentarios de grupos de acciones
@@ -368,9 +371,9 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://axelor.com/xml/ns/object-views
 https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <!-- ***************************************************************************** -->
-    <!-- ****************************** Vistas de Ciclo ****************************** -->
-    <!-- ***************************************************************************** -->
+    <!-- *************************************************************************** -->
+    <!-- ****************************** Ciclo: Vistas ****************************** -->
+    <!-- *************************************************************************** -->
 
     <action-view name="subsysSistemaEducativo.Ciclo@Main-action" title="Ciclos" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo">
         <view type="grid" name="subsysSistemaEducativo.Ciclo@Main-grid"/>
@@ -431,9 +434,9 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     <!-- *************** Ciclo : Acciones de llamadas Remotas al servidor *************** -->
 
 
-    <!-- *********************************************************************************** -->
-    <!-- ****************************** Vistas de Ciclo.Curso ****************************** -->
-    <!-- *********************************************************************************** -->
+    <!-- ********************************************************************************** -->
+    <!-- ****************************** Ciclo.Curso : Vistas ****************************** -->
+    <!-- ********************************************************************************** -->
 
     <grid name="subsysSistemaEducativo.Ciclo.Curso@Main-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
           title="" orderBy="name" newButtonTitle="Añadir un nuevo curso" allowSearchFields="true"

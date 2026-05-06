@@ -4,9 +4,9 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://axelor.com/xml/ns/object-views
 https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <!-- ************************************************************************************ -->
-    <!-- ****************************** Vistas de LeyEducativa ****************************** -->
-    <!-- ************************************************************************************ -->
+    <!-- *********************************************************************************** -->
+    <!-- ****************************** LeyEducativa : Vistas ****************************** -->
+    <!-- *********************************************************************************** -->
 
     <action-view name="subsysSistemaEducativo.LeyEducativa@Main-action" title="Leyes educativas" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa">
         <view type="grid" name="subsysSistemaEducativo.LeyEducativa@Main-grid"/>

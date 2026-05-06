@@ -4,6 +4,10 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://axelor.com/xml/ns/object-views
 https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
+    <!-- **************************************************************************** -->
+    <!-- ****************************** Nivel : Vistas ****************************** -->
+    <!-- **************************************************************************** -->
+
     <action-view name="subsysSistemaEducativo.Nivel@Main-action" title="Niveles" model="com.educaflow.subsystem.sistemaeducativo.db.Nivel">
         <view type="grid" name="subsysSistemaEducativo.Nivel@Main-grid"/>
         <view type="form" name="subsysSistemaEducativo.Nivel@Main-form"/>
@@ -11,31 +15,48 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
-    <grid name="subsysSistemaEducativo.Nivel@Main-grid" title="Nivel" model="com.educaflow.subsystem.sistemaeducativo.db.Nivel"
+    <grid name="subsysSistemaEducativo.Nivel@Main-grid" title="" model="com.educaflow.subsystem.sistemaeducativo.db.Nivel"
           groups="admins"
-          canNew="true"
-          canRefresh="false" canAdvanceSearch="false" allowSearchFields="false"
+          orderBy="name" canNew="true" newButtonTitle="Añadir un nuevo nivel"
+          canRefresh="false" canAdvanceSearch="false" allowSearchFields="true"
           editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"
           canEditOnClick="true">
         <hilite color="danger" if="archived"/>
         <field name="code" width="200px" />
         <field name="name" />
+        <field name="archived" width="100px" />
     </grid>
 
     <form name="subsysSistemaEducativo.Nivel@Main-form" title="Nivel" model="com.educaflow.subsystem.sistemaeducativo.db.Nivel"
           groups="admins"
-          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
-        <panel name="Nivel" title="">
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+        <panel name="Nivel" title="Nivel">
             <field name="code" colSpan="3" />
-            <field name="name" colOffset="9" />
+            <field name="name" colOffset="3" colSpan="6" />
         </panel>
 
-        <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
-            <button name="btnDelete" title="Borrar" onClick="delete" css="btn-danger" colSpan="2"  outline="true" showIf="(id != null)"/>
-            <button name="btnCancel" title="Cancelar" onClick="back"  colSpan="2" colOffset="6" outline="true"   />
-            <button name="btnSave" title="Guardar" onClick="save,force-back"  colSpan="2"  />
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Nivel@Main-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Nivel@Main-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Nivel@Main-btnSave-action" colSpan="2"/>
         </panel>
     </form>
 
+    <!-- *************** Nivel : Acciones de las tareas principales *************** -->
+    <action-group name="subsysSistemaEducativo.Nivel@Main-btnDelete-action">
+        <action name="delete"/>
+    </action-group>
+    <action-group name="subsysSistemaEducativo.Nivel@Main-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+    <action-group name="subsysSistemaEducativo.Nivel@Main-btnSave-action">
+        <action name="save"/>
+    </action-group>
+
+    <!-- *************** Nivel : Acciones de Validaciones en local *************** -->
+
+    <!-- *************** Nivel : Acciones básicas que cambian campos simples *************** -->
+
+    <!-- *************** Nivel : Acciones de llamadas Remotas al servidor *************** -->
 
 </object-views>

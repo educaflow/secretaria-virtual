@@ -4,6 +4,10 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://axelor.com/xml/ns/object-views
 https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
+    <!-- ********************************************************************************** -->
+    <!-- ****************************** CursoModulo : Vistas ****************************** -->
+    <!-- ********************************************************************************** -->
+
     <action-view name="subsysSistemaEducativo.CursoModulo@Main-action" title="Cursos-Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo">
         <view type="grid" name="subsysSistemaEducativo.CursoModulo@Main-grid"/>
         <view type="form" name="subsysSistemaEducativo.CursoModulo@Main-form"/>
@@ -11,10 +15,10 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <view-param name="forceEdit" value="true"/>
     </action-view>
 
-    <grid name="subsysSistemaEducativo.CursoModulo@Main-grid" title="Curso-Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+    <grid name="subsysSistemaEducativo.CursoModulo@Main-grid" title="" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
           groups="admins"
-          canNew="true"
-          canRefresh="false" canAdvanceSearch="false" allowSearchFields="false"
+          orderBy="modulo.name" canNew="true" newButtonTitle="Añadir un nuevo curso-módulo"
+          canRefresh="false" canAdvanceSearch="false" allowSearchFields="true"
           editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"
           canEditOnClick="true">
         <hilite color="danger" if="archived"/>
@@ -25,18 +29,34 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <form name="subsysSistemaEducativo.CursoModulo@Main-form" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
           groups="admins"
-          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
         <panel name="CursoModulo" title="">
-            <field name="curso"  colSpan="6"  grid-view="subsysSistemaEducativo.Curso@Search-grid" />
-            <field name="modulo" colSpan="6" colOffset="6" grid-view="subsysSistemaEducativo.Modulo@Search-grid" />
+            <field name="curso"  colSpan="6"  grid-view="subsysSistemaEducativo.Curso@Search-grid"  form-view="subsysSistemaEducativo.Curso@View-form" />
+            <field name="modulo" colSpan="6" colOffset="6" grid-view="subsysSistemaEducativo.Modulo@Search-grid" form-view="subsysSistemaEducativo.Modulo@View-form" />
         </panel>
 
-        <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
-            <button name="btnDelete" title="Borrar" onClick="delete" css="btn-danger" colSpan="2"  outline="true" showIf="(id != null)"/>
-            <button name="btnCancel" title="Cancelar" onClick="back"  colSpan="2" colOffset="6" outline="true"   />
-            <button name="btnSave" title="Guardar" onClick="save,force-back"  colSpan="2"  />
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.CursoModulo@Main-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.CursoModulo@Main-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.CursoModulo@Main-btnSave-action" colSpan="2"/>
         </panel>
     </form>
 
+    <!-- *************** CursoModulo : Acciones de las tareas principales *************** -->
+    <action-group name="subsysSistemaEducativo.CursoModulo@Main-btnDelete-action">
+        <action name="delete"/>
+    </action-group>
+    <action-group name="subsysSistemaEducativo.CursoModulo@Main-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+    <action-group name="subsysSistemaEducativo.CursoModulo@Main-btnSave-action">
+        <action name="save"/>
+    </action-group>
+
+    <!-- *************** CursoModulo : Acciones de Validaciones en local *************** -->
+
+    <!-- *************** CursoModulo : Acciones básicas que cambian campos simples *************** -->
+
+    <!-- *************** CursoModulo : Acciones de llamadas Remotas al servidor *************** -->
 
 </object-views>
