@@ -38,12 +38,10 @@
                 <field name="municipio"   colSpan="4" domain="self.provincia = :provincia"/>
                 <field name="conselleria" colSpan="6"/>
             </panel>
-            <panel-related name="usuarios" title="Usuarios" field="usuarios" colSpan="12"
-                           grid-view="subsysCommon.Centro.CentroUsuario@Main-grid"
-                           form-view="subsysCommon.Centro.CentroUsuario@Main-form"
-                           newButtonTitle="Nuevo usuario"
-                           showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
-            />
+            <panel-dashlet name="usuarios" title="Usuarios"
+                           canNew="true" newButtonTitle="Nuevo usuario"
+                           action="subsysCommon.Centro.CentroUsuario@Main-action"
+                           colSpan="12" height="350" canSearch="true"/>
         </panel-tabs>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
 
@@ -75,7 +73,7 @@
     <grid name="subsysCommon.Centro.CentroUsuario@Main-grid" title="" model="com.educaflow.subsystem.common.db.CentroUsuario"
           allowSearchFields="true"
           canAdvanceSearch="false" canRefresh="false"
-          canNew="true" editable="false"
+          canNew="true" newButtonTitle="Nuevo usuario" editable="false"
           edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
           orderBy="usuario.apellidos"
     >
@@ -105,11 +103,11 @@
                        canRemove="false"
                        forceEdit="true"
         />
-        <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
+        <!--<panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
             <button name="btnDelete" title="Borrar" onClick="delete-modal" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid!=null)"/>
             <button name="btnCancel" title="Cancelar" onClick="close"  colSpan="2" colOffset="6" outline="true"   />
             <button name="btnSave" title="Guardar" onClick="save-modal"  colSpan="2"  />
-        </panel>
+        </panel>-->
     </form>
 
     <!-- ******************************************************************************************************** -->
@@ -138,6 +136,18 @@
             <button name="btnSave" title="Guardar" onClick="save-modal"  colSpan="2"  />
         </panel>
     </form>
+    <action-view name="subsysCommon.Centro.CentroUsuario@Main-action"
+                 title="Usuarios"
+                 model="com.educaflow.subsystem.common.db.CentroUsuario">
+        <view type="grid" name="subsysCommon.Centro.CentroUsuario@Main-grid"/>
+        <view type="form" name="subsysCommon.Centro.CentroUsuario@Main-form"/>
+        <view-param name="forceEdit" value="true"/>
+        <view-param name="limit" value="15"/>
+        <view-param name="popup" value="true"/>
+        <domain>self.centro.id = :centroId</domain>
+        <context name="centroId" expr="eval: id"/>
+    </action-view>
+
     <!-- *********************************************************************************************  -->
     <!-- ***************************** Acciones de las tareas principales ****************************  -->
     <!-- *********************************************************************************************  -->

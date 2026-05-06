@@ -1,12 +1,15 @@
 package com.educaflow.subsystem.importacion.service.impl;
 
+import com.axelor.db.JpaRepository;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.inject.Beans;
 import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.base.util.XMLUtil;
 import com.educaflow.subsystem.common.db.Centro;
+import com.educaflow.subsystem.common.db.TipoUsuario;
 import com.educaflow.subsystem.common.db.repo.CentroRepository;
+import com.educaflow.subsystem.common.db.repo.TipoUsuarioRepository;
 import com.educaflow.subsystem.importacion.db.TareaImportacion;
 import com.educaflow.subsystem.importacion.db.TipoFicheroImportacion;
 import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorException;
@@ -47,10 +50,12 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
             tareaImportacion.setExito(true);
             tareaImportacion.setImportLog(logs.toString());
         } catch (ImportadorException e) {
-            tareaImportacion.setImportLog(renderTable("Error", e));
             tareaImportacion.setExito(false);
+            tareaImportacion.setImportLog(renderTable("Error", e));
         }
+
         return super.insert(tareaImportacion);
+
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.educaflow.subsystem.common.db.CentroUsuario;
 import com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario;
+import com.educaflow.subsystem.common.db.TipoUsuario;
 import com.educaflow.subsystem.common.db.repo.CentroUsuarioRepository;
 import com.educaflow.subsystem.common.db.repo.CentroUsuarioTipoUsuarioRepository;
 import com.educaflow.subsystem.common.service.CentroUsuarioService;
