@@ -36,9 +36,16 @@ Verificar que los servicios Java (interfaz + implementación) creados o modifica
 
 ### Constructor obligatorio
 
-- [ ] Existe el constructor `public MiEntidadServiceImpl(Class<MiEntidad> model, Repository repository)` que llama a `super(model, repository)`.
+- [ ] Existe el constructor `public MiEntidadServiceImpl(Class<MiEntidad> model, Repository<MiEntidad> repository)` que llama a `super(model, repository)` 
+- [ ] `Repository` en el constructor lleva el tipo genérico: `Repository<MiEntidad>`, nunca `Repository` sin tipo.
 - [ ] El constructor NO tiene `@Inject` (salvo caso excepcional con dependencias de constructor — poco habitual).
-- [ ] Las dependencias adicionales están declaradas como campos `@Inject`, no como parámetros del constructor.
+- [ ] Los repositorios adicionales se declaran como campos `@Inject`, no como parámetros del constructor.
+- [ ] **No existe ningún campo `@Inject OtroServicio`** — los servicios adicionales se obtienen con `modelServiceFactory.resolve(OtraEntidad.class)`, nunca se inyectan directamente.
+
+### Uso del repository
+
+- [ ] Los métodos del servicio usan `repository.all()`, `repository.find()`, etc. para consultar la propia entidad — **no** `JpaRepository.of(MiEntidad.class)`.
+- [ ] `JpaRepository.of(OtraEntidad.class)` solo aparece cuando se necesita consultar una entidad **diferente** a la que gestiona el servicio.
 
 ### Métodos CRUD
 
@@ -73,8 +80,9 @@ Verificar que los servicios Java (interfaz + implementación) creados o modifica
 
 - [ ] La interfaz extiende `ModelService<T>` de `com.axelor.db.modelservice`
 - [ ] La implementación extiende `DefaultModelService<T>` e implementa la interfaz
-- [ ] El constructor `(Class<T> model, Repository repository)` llama a `super(model, repository)`
-- [ ] Las dependencias adicionales son campos `@Inject`, no parámetros del constructor
+- [ ] El constructor tiene `Repository<T>` (con tipo genérico) y llama a `super(model, repository)` 
+- [ ] Los métodos usan `repository.*` para la propia entidad, no `JpaRepository.of(MiEntidad.class)`
+- [ ] Los repositorios adicionales son campos `@Inject`, no parámetros del constructor. Los servicios adicionales **nunca** son `@Inject` — se resuelven con `modelServiceFactory.resolve()`
 - [ ] Los métodos CRUD sobreescritos llaman a `super.*()` para persistir
 - [ ] Los métodos `validate*` devuelven `Optional<BusinessMessages>` y nunca lanzan `BusinessException`
 - [ ] Los efectos secundarios están en métodos `fireActionRule_*` privados

@@ -68,12 +68,12 @@ import java.util.Optional;
 
 public class MiEntidadServiceImpl extends DefaultModelService<MiEntidad> implements MiEntidadService {
 
-    // Dependencias adicionales se inyectan como campos (Guice las inyecta tras construir)
+    // Repositorios adicionales (NO servicios) se pueden inyectar como campos con @Inject
     @Inject
     OtroRepositorio otroRepositorio;
 
     // Constructor obligatorio — ModelServiceFactory lo invoca por reflexión
-    public MiEntidadServiceImpl(Class<MiEntidad> model, Repository repository) {
+    public MiEntidadServiceImpl(Class<MiEntidad> model, Repository<MiEntidad> repository) {
         super(model, repository);
     }
 
@@ -165,12 +165,31 @@ public class MiEntidadServiceImpl extends DefaultModelService<MiEntidad> impleme
 `ModelServiceFactory` instancia el servicio **por reflexión** buscando exactamente este constructor:
 
 ```java
-public MiEntidadServiceImpl(Class<MiEntidad> model, Repository repository) {
+public MiEntidadServiceImpl(Class<MiEntidad> model, Repository<MiEntidad> repository) {
     super(model, repository);
 }
 ```
 
-Si el constructor no existe, la factoría lanza `IllegalStateException`. Las dependencias adicionales **no van en el constructor**: se declaran como campos `@Inject` y Guice las inyecta después de construir el objeto.
+Reglas del constructor:
+- `Repository` **siempre** lleva el tipo genérico: `Repository<MiEntidad>` (nunca `Repository` sin tipo).
+- El `super()` recibe el parámetro `model` y el `repository`.
+- Si el constructor no existe, la factoría lanza `IllegalStateException`.
+- Las dependencias adicionales **no van en el constructor**: se declaran como campos `@Inject` y Guice las inyecta después de construir el objeto.
+
+## Usar `repository` en los métodos
+
+El `repository` pasado al constructor queda disponible como campo protegido heredado de `DefaultModelService`. **Úsalo directamente** — no vuelvas a crearlo con `JpaRepository.of(MiEntidad.class)`:
+
+```java
+// MAL — crear otro repository para la misma entidad
+List<MiEntidad> todos = JpaRepository.of(MiEntidad.class).all().fetch();
+
+// BIEN — usar el repository heredado
+List<MiEntidad> todos = repository.all().fetch();
+MiEntidad una = repository.all().filter("self.campo = :v").bind("v", valor).fetchOne();
+```
+
+`JpaRepository.of(OtraEntidad.class)` sí es válido cuando necesitas consultar una entidad **diferente** a la que gestiona el servicio.
 
 ## DTO de inserción (cuando el insert necesita datos especiales)
 
@@ -234,20 +253,27 @@ return messages.isEmpty() ? Optional.empty() : Optional.of(messages);
 ```
 
 ### Obtener otro servicio desde un servicio
+
+**NUNCA** inyectar un servicio con `@Inject` — ni dentro de otro servicio ni en un controlador. Siempre se usa `ModelServiceFactory`:
+
 ```java
-// Con @Inject en campo (preferido)
+// MAL — prohibido
 @Inject
 OtroServicio otroServicio;
 
-// O con Beans.get (para clases conocidas en tiempo de ejecución)
-OtroServicio otroServicio = Beans.get(OtroServicio.class);
+// BIEN — inyectar ModelServiceFactory y resolver en el método
+@Inject
+ModelServiceFactory modelServiceFactory;
+
+// Dentro del método que lo necesite:
+final OtroServicio otroServicio = (OtroServicio) modelServiceFactory.resolve(OtraEntidad.class);
 ```
 
 ## Checklist de desarrollo de servicios
 - [ ] La interfaz extiende `ModelService<T>` del paquete `com.axelor.db.modelservice`
 - [ ] La implementación extiende `DefaultModelService<T>` e implementa la interfaz
-- [ ] El constructor `(Class<T> model, Repository repository)` llama a `super(model, repository)` — sin `@Inject` en el constructor salvo que haya dependencias que Guice deba inyectar por constructor (poco habitual)
-- [ ] Las dependencias adicionales van como campos `@Inject`, no en el constructor
+- [ ] El constructor tiene la firma `(Class<T> model, Repository<T> repository)` y llama a `super(model, repository)` 
+- [ ] Los repositorios adicionales van como campos `@Inject`, no en el constructor. Los servicios adicionales **nunca** se inyectan con `@Inject` — se obtienen con `modelServiceFactory.resolve(OtraEntidad.class)`
 - [ ] Los métodos `insert` / `update` / `remove` llaman a `super.*()` para persistir — nunca llaman directamente a `repository.save()`
 - [ ] Los métodos de validación devuelven `Optional<BusinessMessages>` — no lanzan `BusinessException`
 - [ ] La implementación está en `service.impl.MiEntidadServiceImpl` para que la factoría la descubra sin registro explícito

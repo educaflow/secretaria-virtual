@@ -53,8 +53,19 @@ La plantilla exige todos estos atributos con los valores indicados, salvo que el
 - [ ] Ninguna fila supera 12 columnas en total (`colSpan` + `colOffset` de todos los campos en la misma fila ≤ 12).
 - [ ] No hay filas con espacio vacío innecesario (los `colSpan` se ajustan al contenido real del campo).
 - [ ] Los campos de la misma fila están agrupados temáticamente.
-- [ ] Los campos en filas consecutivas tienen alineación coherente (las columnas se repiten entre filas cuando es posible).
+- [ ] Los campos en filas consecutivas tienen alineación coherente: cuando es posible, las filas siguientes (incluidos los paneles anidados condicionales) usan el mismo split de columnas que la primera fila. Si el split difiere, verificar que hay una razón semántica o de proporcionalidad que lo justifique; si no la hay, corregirlo.
 - [ ] Los campos con texto largo (`name`, `descripcion`, `asunto`) tienen `colSpan` mayor que los campos cortos (`fecha`, `código`).
+- [ ] **Campos condicionales sin huecos**: si en la misma fila hay campos con `showIf` mutuamente excluyentes, se usan paneles anidados con `showIf` en el panel (no en los campos individuales). Un campo oculto dentro de un panel sigue ocupando espacio en el grid; un panel oculto no deja hueco.
+- [ ] **Sin campos solos en filas anchas**: si un campo queda solo en una fila con más de 6 columnas vacías a la derecha, revisar si debe agruparse con otro campo relacionado o si hay un hueco causado por un campo oculto.
+- [ ] **Proporcionalidad**: rutas/paths usan `colSpan` ≥ 9; widgets compactos (binary-link, slot) usan ≤ 4; PINs/contraseñas usan 4–6.
+
+### Ejemplo de error de hueco a detectar:
+```xml
+<!-- ERROR: cuando 'fichero' está oculto, 'password' aparece desplazado a la derecha -->
+<field name="fichero"  colSpan="6" showIf="tipo == 'FICHERO'"/>
+<field name="password" colSpan="6" showIf="tipo != 'PKCS11'"/>
+```
+Solución: agrupar en paneles anidados según el tipo, poniendo `showIf` en el panel.
 
 ## Paneles (`<panel>`)
 

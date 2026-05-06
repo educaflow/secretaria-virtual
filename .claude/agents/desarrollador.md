@@ -26,4 +26,4 @@ El contexto de lo que vas a desarrollar te lo van a pasar en el prompt de cada c
 
 1. Revisa el contexto que te han dado para esta tarea de desarrollo. Si el contexto no es claro o no tienes suficiente información para empezar a desarrollar, haz preguntas para aclararlo.
 2. Implementa la funcionalidad, corrige el bug, refactoriza el código, o escribe los tests según lo que se te haya pedido en el contexto. Asegúrate de que el código que escribes cumple con los requisitos funcionales y no funcionales del proyecto.
-3. Revisa si la implementación cumple con lo pedido. Si es así termina sino vuelve al paso 1.
+3. Revisa si la implementación cumple con lo pedido. Si es así termina sino vuelve al paso 1. Para saber si al menos el código compila y pasa los test ejecuta "./run.sh"

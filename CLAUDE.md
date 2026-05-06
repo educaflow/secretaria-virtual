@@ -13,8 +13,8 @@ La secretaría virtual es un proyecto de gestión de expedientes administrativos
 
 ## Script del proyecto
 
-- Para compilar el proyecto ejecuta: `./gradlew clean build --info`
-- Para ejecutar el proyecto ejecuta: `./gradlew --no-daemon run --debug-jvm --port 8080 --context-path /`
+- Para compilar el proyecto lanza el comando: `./gradlew clean build --info`
+- Para ejecutar el proyecto lanza el comando: `./gradlew --no-daemon run --debug-jvm --port 8080 --context-path /`
 
 
 ## Skills

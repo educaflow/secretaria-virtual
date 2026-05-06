@@ -17,6 +17,7 @@ Verificar que los controladores Java creados o modificados siguen las reglas def
 
 ## Estructura de la clase
 
+- [ ] El nombre de la clase es `<NombreEntidad>Controller` y solo contiene métodos para esa única entidad (no agrupa varias entidades).
 - [ ] La clase NO tiene `@RequestScope`.
 - [ ] La única inyección de campo es `@Inject private ModelServiceFactory modelServiceFactory`.
 - [ ] No hay inyecciones directas de servicios con `@Inject MiServicio miServicio` — los servicios se resuelven dentro de cada método.
@@ -32,7 +33,7 @@ Verificar que los controladores Java creados o modificados siguen las reglas def
 
 - [ ] Dentro de cada método se obtiene el servicio con `modelServiceFactory.resolve(MiEntidad.class)`.
 - [ ] El resultado de `resolve` se castea al tipo de la interfaz del servicio.
-- [ ] Cuando el servicio necesita un repositorio explícito, se usa `JpaRepository.of(MiEntidad.class)` y se pasa a `resolve(MiEntidad.class, repository)`.
+- [ ] **No existe** ninguna llamada a `JpaRepository.of(MiEntidad.class)` para crear un repositorio y pasárselo a `resolve` — esa forma está prohibida.
 
 ## Uso de ActionRequestHelper
 
@@ -60,8 +61,9 @@ Verificar que los controladores Java creados o modificados siguen las reglas def
 
 ## Checklist final
 
+- [ ] El nombre de la clase es `<NombreEntidad>Controller` y solo contiene métodos de esa entidad
 - [ ] No hay `@RequestScope` en la clase
-- [ ] Solo `ModelServiceFactory` se inyecta; los servicios se resuelven en cada método
+- [ ] Solo `ModelServiceFactory` se inyecta; los servicios se resuelven en cada método con `resolve(MiEntidad.class)` sin crear un `Repository` explícito
 - [ ] Todos los métodos públicos llevan `@CallMethod`
 - [ ] Los métodos que escriben en BD llevan `@Transactional`; los de solo lectura no
 - [ ] `AllowProperties` se usa en todos los métodos que guardan datos

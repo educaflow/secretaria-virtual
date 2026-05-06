@@ -1,5 +1,7 @@
 # Controllers
 
+> **ATENCIÓN — patrón del proyecto**: Este fichero es la documentación oficial de Axelor. El patrón que muestra (`@RequestScoped`, `@Inject private HelloService service`) **NO se usa en este proyecto**. En este proyecto: sin `@RequestScoped`, sin `@Inject` directo de servicios. Los servicios siempre se obtienen con `modelServiceFactory.resolve(MiEntidad.class)`. Ver SKILL.md del directorio padre.
+
 The controllers are intermediary between views & services
 
 ```java

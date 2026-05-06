@@ -21,28 +21,40 @@
         <menuitem name="sistemaEducativo-niveles-menuitem"              parent="sistemaEducativo-menuitem" title="Niveles"             action="subsysSistemaEducativo.Nivel@Main-action"               order="8"/>
 
     <!--<menuitem name="sysGestion-menuitem" title="Gestión" groups="admins,users" order="40"/>
-        <menuitem name="sysGestion.Centro@Main-menuitem" title="Centros"
-                  parent="sysGestion-menuitem" action="sysGestion.Centro@Main-action"
+        <menuitem name="sysGestion.Centro@SecretariaVirtualModule-menuitem" title="Centros"
+                  parent="sysGestion-menuitem" action="sysGestion.Centro@SecretariaVirtualModule-action"
                   groups="admins" order="1"/>
-        <menuitem name="sysGestion.CentroAdmin@Main-menuitem" title="Mi Centro"
-                  parent="sysGestion-menuitem" action="sysGestion.CentroAdmin@Main-action"
+        <menuitem name="sysGestion.CentroAdmin@SecretariaVirtualModule-menuitem" title="Mi Centro"
+                  parent="sysGestion-menuitem" action="sysGestion.CentroAdmin@SecretariaVirtualModule-action"
                   groups="users" if="__user__?.tiposUsuarioActivos?.any { it.code == 'ADMINISTRADOR' }" order="1"/>
-        <menuitem name="sysGestion.Importacion@Main-menuitem" title="Ficheros de importación"
-                  parent="sysGestion-menuitem" action="sysGestion.Importacion@Main-action"
+        <menuitem name="sysGestion.Importacion@SecretariaVirtualModule-menuitem" title="Ficheros de importación"
+                  parent="sysGestion-menuitem" action="sysGestion.Importacion@SecretariaVirtualModule-action"
                   groups="users" order="2"/>
         <menuitem name="sysGestion.Usuarios-menuitem" title="Usuarios"
                   parent="sysGestion-menuitem" groups="users" order="3"/>
-        <menuitem name="sysGestion.UsuarioAutorizado@Main-menuitem" title="Autorizados"
-                  parent="sysGestion.Usuarios-menuitem" action="sysGestion.UsuarioAutorizado@Main-action"
+        <menuitem name="sysGestion.UsuarioAutorizado@SecretariaVirtualModule-menuitem" title="Autorizados"
+                  parent="sysGestion.Usuarios-menuitem" action="sysGestion.UsuarioAutorizado@SecretariaVirtualModule-action"
                   groups="users" order="1"/>
-        <menuitem name="sysGestion.UsuarioRegistrado@Main-menuitem" title="Registrados"
-                  parent="sysGestion.Usuarios-menuitem" action="sysGestion.UsuarioRegistrado@Main-action"
+        <menuitem name="sysGestion.UsuarioRegistrado@SecretariaVirtualModule-menuitem" title="Registrados"
+                  parent="sysGestion.Usuarios-menuitem" action="sysGestion.UsuarioRegistrado@SecretariaVirtualModule-action"
                   groups="users" order="2"/>-->
 
     <menuitem name="administracionSv-menuitem"   groups="admins"  title="Administración SV" order="50"/>
         <menuitem name="administracionSv-centro-menuitem" parent="administracionSv-menuitem" title="Centro" action="subsysCommon.Centro@Main-action" groups="admins" order="1" />
         <menuitem name="administracionSv-importacion-menuitem" parent="administracionSv-menuitem" title="Ficheros importación" action="subsysImportacion.TareaImportacion@Main-action" groups="admins" order="2" />
         <menuitem name="administracionSv-usuarios-menuitem" parent="administracionSv-menuitem" title="Usuarios" action="subsysCommon.Usuario@Main-action" groups="admins" order="3"  />
+        <menuitem name="administracionSv-dispositivosCriptograficos-menuitem"
+                  parent="administracionSv-menuitem"
+                  title="Dispositivos criptográficos"
+                  action="subsysCriptografia.DispositivoCriptografico@Main-action"
+                  groups="admins"
+                  order="10"/>
+        <menuitem name="administracionSv-certificadosDigitales-menuitem"
+                  parent="administracionSv-menuitem"
+                  title="Certificados digitales"
+                  action="subsysCriptografia.CertificadoDigital@Main-action"
+                  groups="admins"
+                  order="11"/>
 
 
     <menuitem name="registro-menuitem"  title="Registro"             order="60"/>

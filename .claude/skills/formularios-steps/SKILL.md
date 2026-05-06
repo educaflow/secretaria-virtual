@@ -23,6 +23,7 @@ description: Este skill sirve para diseñar, generar o coregir formularios dentr
 ## Layout del formulario
  - Decidir el layout de los paneles es decir su colOffet y colSpan. Normalmente se suele usar un colSpan de 12 columnas.
  - Decidir el layout de los campos dentro de cada panel, es decir su colOffet y colSpan. Esta es la parte más compleja de todo.
+ - **Campos condicionales**: cuando hay campos que se muestran/ocultan según el valor de otro campo, usar paneles anidados con `showIf` en el panel, no en los campos individuales. Un campo oculto sigue ocupando espacio en el grid CSS; un panel oculto no deja hueco visual. Ver la sección "CRÍTICO: Campos condicionales" en `/formularios-knowledge`.
 
 ## En caso de tener que tener que crear el formulario
  - Crear la etiqueta `<form>` con el nombre correcto siguiendo la convención de nomenclatura y los atributos que se han indicado que siempre deben estar.

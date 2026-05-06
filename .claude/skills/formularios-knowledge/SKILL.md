@@ -129,6 +129,94 @@ Otra excepción es el caso de formularios del propio Axelor que se modifican par
     - Se pueden incluir secciones de ayuda dentro de los paneles usando `<help variant="info|warning|...">` para guiar al usuario.
     - Los botones de acción se colocan dentro de un panel específico (normalmente al final del formulario) y se configuran con `onClick` para lanzar las acciones correspondientes.
 
+## CRÍTICO: Campos condicionales y el problema de los huecos en el grid
+
+Los campos ocultos con `showIf` en Axelor siguen ocupando espacio en el grid CSS porque tienen asignación explícita de columnas. Esto genera **huecos visuales** cuando un campo está oculto.
+
+**Ejemplo del problema:**
+```xml
+<!-- MAL: cuando campoA está oculto, campoB aparece desplazado a la derecha, dejando cols vacías a la izquierda -->
+<field name="campoA" colSpan="6" showIf="tipo == 'MODO_X'"/>
+<field name="campoB" colSpan="6" showIf="tipo == 'MODO_X' || tipo == 'MODO_Y'"/>
+```
+
+**Solución: Paneles anidados con `showIf` en el panel (no en el campo)**
+
+Un panel oculto no ocupa espacio vertical (es un bloque que desaparece). Los campos dentro de un panel visible sí ocupan su espacio en el grid horizontal.
+
+```xml
+<!-- BIEN: cada modo tiene su propio panel. Cuando el panel está oculto, no deja hueco -->
+<panel name="panelModoX" colSpan="12" showIf="tipo == 'MODO_X'" showFrame="false">
+    <field name="campoA" colSpan="3"/>
+    <field name="campoB" colSpan="9"/>
+</panel>
+<panel name="panelModoY" colSpan="12" showIf="tipo == 'MODO_Y'" showFrame="false">
+    <field name="campoB" colSpan="4"/>
+    <field name="campoC" colSpan="8"/>
+</panel>
+```
+
+**Regla:** Siempre que varios campos se muestren/oculten de forma exclusiva según el valor de otro campo, agrúpalos en paneles anidados con `showIf` en el panel. Nunca uses `showIf` directo en campos de la misma fila cuando alguno puede quedar oculto dejando el otro desplazado.
+
+El mismo campo puede aparecer en varios paneles mutuamente excluyentes (p.ej. `campoB` en panelModoX y panelModoY). Al ser excluyentes, Axelor siempre ve solo uno activo y el binding de datos funciona correctamente.
+
+## Principios de diseño visual de formularios
+
+### Agrupación semántica de campos
+Campos relacionados semánticamente deben ir en la misma fila:
+- Fecha de inicio + Fecha de fin → misma fila
+- Slot + PIN (acceso a dispositivo) → misma fila
+- Slot + Alias (identificación de certificado en dispositivo) → misma fila
+- Fichero (subida) + Contraseña (para abrirlo) → misma fila
+- Ruta de un fichero + Contraseña → misma fila o filas contiguas en el mismo panel
+
+### Alineación vertical entre filas
+
+Siempre que sea posible, los bordes de columna deben repetirse entre filas. Si la primera fila usa un split 4+8, las filas siguientes —especialmente los paneles anidados condicionales— deberían usar ese mismo split. No es una regla rígida: a veces el contenido justifica un split diferente. Pero cuando se puede mantener la alineación, el resultado visual es notablemente mejor.
+
+Si cambias el split de la primera fila, revisa si los paneles condicionales siguen alineados o hay que actualizarlos también.
+
+**Ejemplo con alineación:**
+```
+aaaabbbbbbbb   ← campoCorto(4) + selector(8)  [fila 1]
+ccccdddddddd   ← campoCorto(4) + contenido(8) [panel modo1: border en col 4|5]
+cccceeeeeeee   ← campoCorto(4) + contenido(8) [panel modo2: border en col 4|5]
+ccccffffffff   ← campoCorto(4) + contenido(8) [panel modo3: border en col 4|5]
+```
+
+**Ejemplo sin alineación (peor):**
+```
+aaaabbbbbbbb   ← campoCorto(4) + selector(8)
+ccccccdddddd   ← campoCorto(6) + contenido(6) [border en col 6|7 ≠ 4|5]
+```
+
+### Proporcionalidad al contenido: label + tipo de dato
+
+El `colSpan` debe reflejar el espacio que ocupan **tanto el título del campo como el valor** que el usuario va a introducir o ver. Un label corto + un valor corto = pocas columnas, aunque el formulario tenga espacio libre.
+
+| Tipo de campo | Ejemplos de título | Ejemplos de valor | colSpan orientativo |
+|---|---|---|---|
+| Número/código muy corto | "Slot", "Nº" | 0, 1, 2 | **2** |
+| PIN / código corto | "PIN", "CVV" | 1234, AB12 | **3** |
+| DNI / código identificador | "DNI", "Código" | 12345678Z | **3** |
+| Fecha | "Fecha inicio" | 01/01/2025 | **3** |
+| Nombre corto / identificador | "Nombre", "Alias" | "DNIe", "HSM prod" | **6–8** |
+| Nombre o descripción media | "Descripción", "Asunto" | texto moderado | **8–10** |
+| Ruta de fichero / path | "Ruta librería", "Ruta classpath" | /usr/lib/.../opensc.so | **9–10** |
+| Selector enum largo | "Tipo", "Estado" | "Opción con texto largo" | **4–6** |
+| Widget compacto (binary-link) | "Fichero" | [botón subir] | **3–4** |
+| Campo de texto libre / multiline | "Motivo", "Observaciones" | texto largo | **12** |
+
+**Regla clave:** no asignar 12 columnas a un campo solo porque "puede ser largo". Pensar en el valor típico real. Un nombre corto rara vez supera 20 caracteres → 6-8 cols es generoso. Una ruta de fichero puede tener 40 caracteres → 9–10 cols. Un selector enum muestra el texto con scroll interno → no necesita tantas cols como su opción más larga. Un número o código muy corto → 2 cols.
+
+### Un campo solo en una fila es una señal de alerta
+Si un campo queda solo en una fila con mucho espacio vacío a su derecha, es probable que:
+1. Deba agruparse con otro campo relacionado en la misma fila, o
+2. Su `colSpan` sea demasiado pequeño para el espacio disponible, o
+3. Sea el resultado de un campo oculto que crea un hueco (usar paneles anidados)
+
+Un campo corto (slot, PIN) que queda solo en una fila con 9 columnas vacías **sigue siendo correcto** si no hay ningún campo semánticamente relacionado con el que agruparlo. No hay que rellenar el espacio a la fuerza.
+
 
 
 ## `<panel-related>`
@@ -187,6 +275,15 @@ Es importante usar `colSpan` y `colOffset` de manera coherente para lograr una m
 Si el texto es largo, se puede usar `colSpan="12"` para que ocupe toda la línea y evitar que se corte. Por ejemplo para campos de fechas sobra con colSpan="2".
 Tambien hay que ver que pones en la misma linea, normalmente son campos relacionados, por ejemplo fecha de inicio y fecha de fin, o nombre y apellidos.
 
+**Los campos no tienen que rellenar las 12 columnas**
+Una fila no necesita sumar exactamente 12 columnas. Cada campo debe tener el `colSpan` que su label y su dato realmente necesitan. No se añaden columnas de más para rellenar el espacio.
+
+```
+nnnnnn·······   ← nombre(6): un nombre corto no necesita 12
+rrrrrrrrrss·    ← rutaLarga(9) + codigoCorto(2) = 11: la vacía final es aceptable
+ppp·········    ← pin(3): un PIN no necesita 12 aunque haya espacio libre
+```
+
 **Distribución proporcional al contenido real del campo**
 No hay que dividir el espacio equitativamente entre campos de la misma fila: hay que asignar más espacio al campo cuyo valor ocupa más texto visualmente.
 
@@ -232,6 +329,42 @@ Una mejor forma de hacerlo sería:
 </panel>
 ```
 En este ejemplo, "campo1" está alineado con "campo4", "campo2" está alineado con "campo5" y "campo3" está alineado con "campo6". Esto hace que el formulario se vea más organizado y facilita la lectura.
+
+## Herramienta: análisis ASCII del layout — obligatorio antes de escribir el XML
+
+Antes de escribir (o revisar) el XML de un formulario, **siempre** hay que hacer este análisis en dos pasos:
+
+### Paso 1: dibujar el ASCII
+
+Representa cada campo con una letra repetida `colSpan` veces y los `colOffset` con espacios. Usa `·` para columnas vacías al final de una fila. Los paneles condicionales se dibujan en bloques separados.
+
+```
+aabb········   ← codigo(2) + selector(2) = 4, 8 vacías
+── MODO_X ──────────────────────
+ccdddddddddd   ← campoCorto(2) + campoLargo(10) = 12
+── MODO_Y ──────────────────────
+cceeeeeeeeee   ← campoCorto(2) + otroCampoLargo(10) = 12
+```
+
+### Paso 2: analizar si tiene sentido
+
+Con el ASCII delante, razonar explícitamente sobre cada decisión:
+
+- **¿El tamaño de cada campo refleja su dato y su título?**  
+  Un código corto (2-3 chars) no necesita más de 2-3 cols. Un selector enum no necesita tantas cols como su opción más larga — el dropdown ya gestiona el ancho internamente. Una ruta de fichero o un texto descriptivo largo sí justifican 8-10 cols.
+
+- **¿La alineación de inicio de columnas es coherente entre filas?**  
+  La alineación se mide por dónde **empiezan** los campos, no por dónde acaban. En el ejemplo anterior, la segunda columna siempre empieza en la posición 3 (tras 2 cols del campo izquierdo). El campo derecho de la fila 1 tiene colSpan=2 y los de las filas condicionales tienen colSpan=10 — eso es correcto: cada uno tiene el ancho que su contenido necesita. La segunda columna no tiene que terminar en el mismo sitio en todas las filas, solo tiene que empezar en el mismo sitio.
+
+- **¿Hay filas con espacio vacío excesivo o campos ridículamente estrechos?**  
+  Si un campo queda solo con muchas `·` a la derecha y hay otro campo relacionado que podría acompañarlo → reagrupar en la misma fila.  
+  Si un campo ocupa 10 cols pero su valor típico es de 5 chars → reducir.
+
+- **¿El resultado visual es agradable?** Imaginarlo renderizado en el navegador. Si algo "no encaja" en el ASCII, tampoco va a encajar en la UI.
+
+### Paso 3: si el análisis no convence → ajustar y redibujar
+
+No pasar al XML hasta que el ASCII y el razonamiento tengan sentido. Es mucho más rápido iterar en texto que en XML.
 
 ## Referencias
 Para una referencia completa de todo lo relacionado con formularios , puedes consultar los siguientes documentos:

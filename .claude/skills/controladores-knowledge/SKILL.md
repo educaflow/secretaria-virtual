@@ -17,9 +17,13 @@ Referencias:
  * La referencia a como llamar al controlador desde las vistas Axelor con `<action-method>` está en [ActionMethod](references/action-method.md)
  * La referencia a la estructura de un controlador está en [Controller](references/controller.md)
 
+## Regla fundamental: un controlador por entidad
+
+**Cada entidad tiene exactamente su propio controlador.** Un controlador solo contiene métodos para una única entidad. No se crea un controlador que agrupe métodos de varias entidades. El nombre del controlador siempre es `<NombreEntidad>Controller` (p.ej. `CertificadoDigitalController`, `DispositivoCriptograficoController`).
+
 ## Lista de tareas al desarrollar un controlador
 Deberás hacer lo siguiente
-1. Crear la clase Java del controlador.
+1. Crear la clase Java del controlador con nombre `<NombreEntidad>Controller`.
 2. Pensar, analizar y crear los métodos del controlador
 3. Decidir si cada método usa `ActionRequest`/`ActionResponse` o parámetros de entrada "normales" de Java y que retornan un `Response` o un valor concreto (p.ej. `String`, `boolean`, etc.)
 4. Decidir cuando usar `ActionRequestHelper` para simplificar el código (deberás analizar la clase `ActionRequestHelper` para ver que hace y cuando usarla en lugar de trabajar directamente con `ActionRequest`)
@@ -71,15 +75,19 @@ private ModelServiceFactory modelServiceFactory;
 Dentro de cada método, se resuelve el servicio justo antes de usarlo:
 
 ```java
-// Sin repositorio explícito (lo más habitual)
+// Forma correcta — siempre usar esta
 final MiEntidadService miEntidadService = (MiEntidadService) modelServiceFactory.resolve(MiEntidad.class);
-
-// Con repositorio explícito (cuando el servicio lo necesita en el constructor)
-final Repository repository = JpaRepository.of(MiEntidad.class);
-final MiEntidadService miEntidadService = (MiEntidadService) modelServiceFactory.resolve(MiEntidad.class, repository);
 ```
 
 El cast al tipo de la interfaz del servicio es necesario porque `resolve` devuelve `ModelService`.
+
+**NUNCA** crear un `Repository` explícito para pasárselo a `resolve`. Esta forma está **prohibida**:
+
+```java
+// MAL — no crear el Repository explícitamente
+final Repository repository = JpaRepository.of(MiEntidad.class);
+final MiEntidadService miEntidadService = (MiEntidadService) modelServiceFactory.resolve(MiEntidad.class, repository);
+```
 
 
 ## ActionRequestHelper y ActionResponseHelper
@@ -96,8 +104,6 @@ import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
 ```java
 package com.educaflow.{layer}.{nombre}.controller;
 
-import com.axelor.db.JpaRepository;
-import com.axelor.db.Repository;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.CallMethod;
 import com.axelor.rpc.ActionRequest;
@@ -143,8 +149,7 @@ public class MiEntidadController {
 
     @CallMethod
     public void validarAntesDeBorrar(ActionRequest actionRequest, ActionResponse actionResponse) {
-        final Repository repository = JpaRepository.of(MiEntidad.class);
-        final MiEntidadService miEntidadService = (MiEntidadService) modelServiceFactory.resolve(MiEntidad.class, repository);
+        final MiEntidadService miEntidadService = (MiEntidadService) modelServiceFactory.resolve(MiEntidad.class);
 
         ActionRequestHelper<MiEntidad> actionRequestHelper = new ActionRequestHelper(actionRequest, MiEntidad.class);
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
@@ -191,9 +196,10 @@ public void prepararAlgo(ActionRequest actionRequest, ActionResponse actionRespo
 
 ## Checklist de tareas de desarrollo de controladores
 Deberás comprobar antes de terminar
+- [ ] Que el controlador tiene nombre `<NombreEntidad>Controller` y solo contiene métodos para esa única entidad (no agrupar varias entidades en un mismo controlador).
 - [ ] Que has creado el controlador con métodos que llevan la anotación `@CallMethod`
 - [ ] Que los métodos del controlador llaman a los servicios para realizar la lógica de negocio, y que no contienen lógica de negocio por sí mismos (solo llaman a los servicios).
-- [ ] Que el controlador inyecta `ModelServiceFactory` y obtiene el servicio con `modelServiceFactory.resolve(MiEntidad.class)` en cada método que lo necesite.
+- [ ] Que el controlador inyecta `ModelServiceFactory` y obtiene el servicio con `modelServiceFactory.resolve(MiEntidad.class)` en cada método que lo necesite (sin crear un `Repository` explícito).
 - [ ] Que los métodos del controlador manejan los errores de negocio usando `actionResponseHelper.doResponseBusinessMessagesAsError(...)` o `actionResponseHelper.doResponseBusinessMessages(...)`, y relanzan cualquier otro error como `RuntimeException`.
 - [ ] Que en el controlador, los métodos que escriben en BD llevan `@Transactional` y los que no escriben no lo llevan.
 - [ ] Que en el controlador, si existe el ActionRequest usas `ActionRequestHelper.getOriginalModel()` para obtener el estado original de la entidad y `ActionRequestHelper.getModel(allowProperties)` con `AllowProperties` para obtener solo los campos permitidos.

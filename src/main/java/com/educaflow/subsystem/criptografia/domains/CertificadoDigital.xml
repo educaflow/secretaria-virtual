@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="criptografia" package="com.educaflow.subsystem.criptografia.db"/>
+
+    <entity name="CertificadoDigital">
+        <string name="dni" required="true" unique="true" title="DNI"/>
+        <enum name="tipoCertificado" ref="TipoUbicacionCertificado" required="true" title="Tipo de certificado"/>
+        <many-to-one name="fichero" ref="com.axelor.meta.db.MetaFile" title="Fichero"/>
+        <string name="password" title="Contraseña"/>
+        <integer name="slot" title="Slot__!!"/>
+        <string name="alias" title="Alias"/>
+        <string name="rutaClasspath" title="Ruta classpath__!!"/>
+        <string name="rutaSistemaArchivos" title="Ruta sistema de archivos"/>
+    </entity>
+
+    <enum name="TipoUbicacionCertificado">
+        <item name="FICHERO_BD" title="Fichero en base de datos"/>
+        <item name="DISPOSITIVO_PKCS11" title="Dispositivo PKCS#11"/>
+        <item name="CLASSPATH" title="Dentro del WAR__!! classpath__!!"/>
+        <item name="SISTEMA_ARCHIVOS" title="Ruta del sistema de archivos"/>
+    </enum>
+
+</domain-models>

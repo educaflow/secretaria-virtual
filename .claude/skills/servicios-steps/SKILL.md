@@ -42,9 +42,9 @@ description: Skill para crear o corregir servicios de negocio en EducaFlow. Un s
 ### 3. Crear la implementación
 
 - Extender `DefaultModelService<MiEntidad>` e implementar la interfaz
-- Añadir el constructor obligatorio **sin `@Inject`** (salvo que haya que inyectar dependencias adicionales por constructor, que es poco habitual):
+- Añadir el constructor obligatorio **sin `@Inject`**:
   ```java
-  public MiEntidadServiceImpl(Class<MiEntidad> model, Repository repository) {
+  public MiEntidadServiceImpl(Class<MiEntidad> model, Repository<MiEntidad> repository) {
       super(model, repository);
   }
   ```
@@ -63,7 +63,8 @@ description: Skill para crear o corregir servicios de negocio en EducaFlow. Un s
 
 - Verificar que la interfaz extiende `ModelService<T>` (no alguna interfaz antigua)
 - Verificar que la implementación extiende `DefaultModelService<T>`
-- Verificar que existe el constructor `(Class<T> model, Repository repository)` llamando a `super`
+- Verificar que existe el constructor `(Class<T> model, Repository<T> repository)` llamando a `super(model, repository)` 
+- Verificar que los métodos usan `repository.*` para consultar la propia entidad, no `JpaRepository.of(MiEntidad.class)`
 - Si los métodos de validación lanzan `BusinessException` en lugar de devolver `Optional<BusinessMessages>`, refactorizarlos para que acumulen y devuelvan
 - Si `update` llama a `repository.save()` directamente, sustituir por `super.update(entidad, entidadOriginal)`
 - Si hay dependencias en el constructor en lugar de en campos `@Inject`, moverlas a campos
@@ -72,7 +73,8 @@ description: Skill para crear o corregir servicios de negocio en EducaFlow. Un s
 ## Revisión
 - [ ] La interfaz extiende `ModelService<T>` de `com.axelor.db.modelservice`
 - [ ] La implementación extiende `DefaultModelService<T>` e implementa la interfaz
-- [ ] Existe el constructor `(Class<T> model, Repository repository)` que llama a `super(model, repository)`
+- [ ] Existe el constructor `(Class<T> model, Repository<T> repository)` que llama a `supermodel, repository)` 
+- [ ] Los métodos usan `repository.*` para la propia entidad, nunca `JpaRepository.of(MiEntidad.class)`
 - [ ] Las dependencias adicionales son campos `@Inject`, no parámetros del constructor
 - [ ] Los métodos `insert` / `update` / `remove` llaman a `super.*()` para persistir
 - [ ] Los métodos `validate*` devuelven `Optional<BusinessMessages>` y no lanzan `BusinessException`
