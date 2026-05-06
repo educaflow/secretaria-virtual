@@ -22,8 +22,8 @@ description: Pasos para crear o modificar ficheros XML de vistas de Axelor — g
 ## Al crear un fichero de vistas nuevo
 
 - Usar exactamente la declaración XML de cabecera definida en `/vistas-knowledge`.
-- Nombrar el fichero `<NombreEntidad>.xml` o por funcionalidad si agrupa varias entidades.
-- Seguir las convenciones de nombres de vistas y acciones definidas en `/sistemas-knowledge`.
+- Decidir el nombre del fichero xml de la vista siguiendo las convenciones de nombres.
+- Seguir las convenciones de nombres de vistas y acciones.
 
 ## Al modificar un fichero de vistas existente
 
@@ -33,8 +33,8 @@ description: Pasos para crear o modificar ficheros XML de vistas de Axelor — g
 
 ## Revisión
 - [ ] El XML es válido y usa el namespace `object-views` correcto
-- [ ] Los nombres de grids, forms y actions siguen las convenciones del proyecto (`/sistemas-knowledge`)
+- [ ] Los nombres de grids, forms y actions siguen las convenciones 
 - [ ] Todas las referencias a actions, grids y forms apuntan a elementos que existen en el proyecto
 - [ ] Los ficheros `i18n_*.csv` no se han creado ni modificado a mano
-- [ ] Las vistas de menú globales están en `secretariavirtual/menus/`, no en `views/`
+- [ ] Las vistas de menús están en `secretariavirtual/menus/menus.xml`
 - [ ] Ejecutar `/checkvistas-knowledge` para verificar coherencia de nombres y referencias

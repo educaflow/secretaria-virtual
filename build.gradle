@@ -83,11 +83,36 @@ afterEvaluate {
 }
 
 
+tasks.register('injectBuildInfo') {
+    description = 'Inyecta rama, fecha y hash de git en axelor-config.properties del build.'
+    group = 'build'
+    dependsOn 'processResources'
+    // Sin outputs declarados → siempre se ejecuta
+
+    doLast {
+        def gitBranch = ['git', 'rev-parse', '--abbrev-ref', 'HEAD'].execute().text.trim()
+        def gitHash   = ['git', 'rev-parse', '--short', 'HEAD'].execute().text.trim()
+        def buildDate = new Date().format('yyyy-MM-dd HH:mm:ss')
+
+        // Leemos siempre del fuente original para evitar acumulación de cambios
+        def sourceContent = file('src/main/resources/axelor-config.properties').text
+        def newFooter = "application.sign-in.footer = Esta aplicaci\\u00F3n est\\u00E1 en pruebas. | Rama: ${gitBranch} | Fecha: ${buildDate} | Commit: ${gitHash}"
+
+        layout.buildDirectory.file('resources/main/axelor-config.properties').get().asFile.text =
+            sourceContent.replaceAll(/(?m)^application\.sign-in\.footer\s*=.*$/) { newFooter }
+    }
+}
+
 war {
     archiveFileName = 'secretariavirtual.war'
+    dependsOn 'injectBuildInfo'
 }
 jar {
     enabled = false
+}
+
+tasks.named('run') {
+    dependsOn 'injectBuildInfo'
 }
 
 tasks.register('viewProcessorTask', JavaExec) {

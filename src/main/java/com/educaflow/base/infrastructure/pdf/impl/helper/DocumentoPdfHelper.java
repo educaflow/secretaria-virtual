@@ -3,6 +3,8 @@ package com.educaflow.base.infrastructure.pdf.impl.helper;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.ResultadoFirma;
 import com.educaflow.base.infrastructure.pdf.impl.DocumentoPdfImplIText;
+import com.educaflow.base.util.AsciiTableUtil;
+import com.educaflow.base.util.AxelorUtil;
 import com.itextpdf.forms.PdfAcroForm;
 import com.itextpdf.forms.fields.PdfFormField;
 import com.itextpdf.kernel.pdf.PdfDictionary;
@@ -79,9 +81,9 @@ public class DocumentoPdfHelper {
             rows.add(row);
 
 
-            return renderTable("Nombre del fichero", null, rows);
+            return AsciiTableUtil.renderTable("Nombre del fichero", null, rows);
         } catch (Exception e) {
-            return renderTable("Nombre del fichero", e);
+            return AsciiTableUtil.renderTable("Nombre del fichero", e);
         }
 
     }
@@ -115,9 +117,9 @@ public class DocumentoPdfHelper {
                 }
             }
 
-            return renderTable("Campos del formulario del documento", List.of("Nombre", "valores"), rows);
+            return AsciiTableUtil.renderTable("Campos del formulario del documento", List.of("Nombre", "valores"), rows);
         } catch (Exception e) {
-            return renderTable("Campos del formulario del documento", e);
+            return AsciiTableUtil.renderTable("Campos del formulario del documento", e);
         }
     }
     
@@ -163,9 +165,9 @@ public class DocumentoPdfHelper {
             }
 
 
-            return renderTable("Campos sueltos por página",List.of("Página","Nombre","valores"),rows);
+            return AsciiTableUtil.renderTable("Campos sueltos por página",List.of("Página","Nombre","valores"),rows);
         } catch (Exception e) {
-            return renderTable("Campos sueltos por página",e);
+            return AsciiTableUtil.renderTable("Campos sueltos por página",e);
         }
     }    
     
@@ -190,9 +192,9 @@ public class DocumentoPdfHelper {
             }
 
 
-            return renderTable("Fuentes de los campos del formulario", List.of("Campo", "Nombre", "Tipo", "Base", "Incrustada"), rows);
+            return AsciiTableUtil.renderTable("Fuentes de los campos del formulario", List.of("Campo", "Nombre", "Tipo", "Base", "Incrustada"), rows);
         } catch (Exception e) {
-            return renderTable("Fuentes de los campos del formulario", e);
+            return AsciiTableUtil.renderTable("Fuentes de los campos del formulario", e);
         }
     }   
     
@@ -211,9 +213,9 @@ public class DocumentoPdfHelper {
             }
 
 
-            return renderTable("Fuentes del formulario", List.of("Nombre", "Tipo", "Base", "Incrustada"), rows);
+            return AsciiTableUtil.renderTable("Fuentes del formulario", List.of("Nombre", "Tipo", "Base", "Incrustada"), rows);
         } catch (Exception e) {
-            return renderTable("Fuentes del formulario", e);
+            return AsciiTableUtil.renderTable("Fuentes del formulario", e);
         }
     }     
     
@@ -232,9 +234,9 @@ public class DocumentoPdfHelper {
                 }
             }
 
-            return renderTable("Fuentes de páginas",List.of("Página","Nombre","Tipo","Base","Incrustada"),rows);
+            return AsciiTableUtil.renderTable("Fuentes de páginas",List.of("Página","Nombre","Tipo","Base","Incrustada"),rows);
         } catch (Exception e) {
-            return renderTable("Fuentes de páginas",e);
+            return AsciiTableUtil.renderTable("Fuentes de páginas",e);
         }
     }    
     
@@ -272,9 +274,9 @@ public class DocumentoPdfHelper {
                 rows.add(row);
             }
 
-            return renderTable("Firmas", List.of("Fecha Firma", "Correcta", "Valido según TSL", "Es sello tiempo", "Nombre Campo", "CN Firmante", "Nombre", "Apellidos", "DNI", "CIF", "CN Emisor", "Tipo emisor certificado", "Tipo Certificado", "Fecha inicio", "Fecha fin","Motivo"), rows);
+            return AsciiTableUtil.renderTable("Firmas", List.of("Fecha Firma", "Correcta", "Valido según TSL", "Es sello tiempo", "Nombre Campo", "CN Firmante", "Nombre", "Apellidos", "DNI", "CIF", "CN Emisor", "Tipo emisor certificado", "Tipo Certificado", "Fecha inicio", "Fecha fin","Motivo"), rows);
         } catch (Exception e) {
-            return renderTable("Firmas", e);
+            return AsciiTableUtil.renderTable("Firmas", e);
         }
         
     }
@@ -304,10 +306,10 @@ public class DocumentoPdfHelper {
                 }
             }
         
-            return renderTable("MXP Documento",List.of("Path","Value","Namespace"),rows);            
+            return AsciiTableUtil.renderTable("MXP Documento",List.of("Path","Value","Namespace"),rows);            
 
         } catch (Exception e) {
-            return renderTable("MXP Documento",e);
+            return AsciiTableUtil.renderTable("MXP Documento",e);
         }
     }    
     
@@ -339,10 +341,10 @@ public class DocumentoPdfHelper {
                     }
                 }
             }
-            return renderTable("MXP Página",List.of("Página","Path","Value","Namespace"),rows);            
+            return AsciiTableUtil.renderTable("MXP Página",List.of("Página","Path","Value","Namespace"),rows);            
 
         } catch (Exception e) {
-            return renderTable("MXP Página",e);
+            return AsciiTableUtil.renderTable("MXP Página",e);
         }
     }    
     
@@ -363,9 +365,9 @@ public class DocumentoPdfHelper {
             row.add(PdfDocumentHelper.getPdfConformance(pdfDocument));
             rows.add(row);
 
-            return renderTable("Otros Datos", List.of("Clave", "Valor"), rows);
+            return AsciiTableUtil.renderTable("Otros Datos", List.of("Clave", "Valor"), rows);
         } catch (Exception e) {
-            return renderTable("Otros Datos", e);
+            return AsciiTableUtil.renderTable("Otros Datos", e);
         }
 
     }
@@ -394,64 +396,15 @@ public class DocumentoPdfHelper {
                 }
             }
 
-            return renderTable("Verificacion PDF/A Conformance con VeraPdf", List.of("Versión", "Resultado"), rows);
+            return AsciiTableUtil.renderTable("Verificacion PDF/A Conformance con VeraPdf", List.of("Versión", "Resultado"), rows);
         } catch (Exception e) {
-            return renderTable("Verificacion PDF/A Conformance con VeraPdf", e);
+            return AsciiTableUtil.renderTable("Verificacion PDF/A Conformance con VeraPdf", e);
         }
 
 
     }
 
-    private static  String renderTable(String tableName,Exception ex) {
-        List<List<Object>> rows=new ArrayList<>();
 
-        for(String trace:getStackTrace(ex,0)) {
-            List<Object> row=new ArrayList<>();
-            row.add(trace);
-            rows.add(row);
-        }
-
-        return renderTable(tableName,List.of("Error"),rows);
-    }
-
-    private static  String renderTable(String tableName,List<String> heads,List<List<Object>> rows) {
-
-        List<String> titulo=new ArrayList<>();
-        if ((heads!=null) && (heads.isEmpty()==false)) {
-            for(int i=0;i<heads.size()-1;i++) {
-                titulo.add(null);
-            }
-        }
-
-        titulo.add(tableName);
-        
-        AsciiTable at = new AsciiTable();
-        at.addRule();
-        at.addRow(titulo.toArray());
-        if ((heads!=null) && (heads.isEmpty()==false)) {
-            at.addRule();
-            at.addRow(heads.toArray());
-        }
-        at.addRule();
-        
-        for (List<Object> row : rows) {
-            for (int i = 0; i < row.size(); i++) {
-                if (row.get(i) == null) {
-                    row.set(i, "__null__");
-                }
-            }
-        }        
-        
-        if (rows.size()>0) {
-            for(List<Object> row:rows) {
-                at.addRow(row.toArray());
-            }
-            at.addRule();
-        }
-        at.getRenderer().setCWC(new CWC_LongestLine());
-        
-        return at.render();
-    }  
     
     
     private static  void addFontToRows(PdfDictionary pdfDictionary,Object key,List<List<Object>> rows) {       
@@ -485,24 +438,5 @@ public class DocumentoPdfHelper {
         
     }
 
-    private static List<String> getStackTrace(Throwable ex,int deep) {
-        String tabulador="\u00B7".repeat(4);
 
-        List<String> stackTrace=new ArrayList<>();
-
-        if (deep==0) {
-            stackTrace.add(ex.getLocalizedMessage());
-        }
-
-        for (StackTraceElement stackTraceElement : ex.getStackTrace()) {
-            stackTrace.add(tabulador.repeat(deep)+stackTraceElement.toString());
-        }
-
-        if (ex.getCause()!=null) {
-            stackTrace.add(tabulador.repeat(deep)+"Caused by:"+ex.getCause().getLocalizedMessage());
-            stackTrace.addAll(getStackTrace(ex.getCause(),deep+1));
-        }
-
-        return stackTrace;
-    }
 }

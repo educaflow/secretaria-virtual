@@ -4,12 +4,12 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://axelor.com/xml/ns/object-views
 https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <!-- ********************************************************************************************************* -->
-    <!-- ******************************************** Vistas de Ciclo ******************************************** -->
-    <!-- ********************************************************************************************************* -->
+    <!-- **************************************************************************** -->
+    <!-- ****************************** Ciclo : Vistas ****************************** -->
+    <!-- **************************************************************************** -->
 
 
-    <action-view name="subsysSistemaEducativo.Ciclo@Main-action" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo">
+    <action-view name="subsysSistemaEducativo.Ciclo@Main-action" title="Ciclos" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo">
         <view type="grid" name="subsysSistemaEducativo.Ciclo@Main-grid"/>
         <view type="form" name="subsysSistemaEducativo.Ciclo@Main-form"/>
         <view-param name="show-toolbar-form" value="false"/>
@@ -25,13 +25,13 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     </grid>
 
     <form name="subsysSistemaEducativo.Ciclo@Main-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
-          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
         <panel name="Ciclo" title="Ciclo">
             <field name="code" colSpan="3" />
-            <field name="name" colOffset="9" colSpan="6" />
-            <field name="familiaProfesional" colOffset="6" colSpan="6" grid-view="subsysSistemaEducativo.FamiliaProfesional@Search-grid" />
-            <field name="grado" colOffset="6" colSpan="4"              grid-view="subsysSistemaEducativo.Grado@Search-grid"  domain="(self.code='D' OR self.code='E')" />
-            <field name="nivel" colSpan="4"                            grid-view="subsysSistemaEducativo.Nivel@Search-grid"  showIf="grado.code=='D'" requiredIf="grado.code=='D'" domain="(self.code='D' OR self.code='E')"/>
+            <field name="name" colOffset="3" colSpan="6" />
+            <field name="familiaProfesional" colOffset="6" colSpan="6" grid-view="subsysSistemaEducativo.FamiliaProfesional@Search-grid" form-view="subsysSistemaEducativo.FamiliaProfesional@View-form" />
+            <field name="grado" colOffset="6" colSpan="3"              grid-view="subsysSistemaEducativo.Grado@Search-grid"  form-view="subsysSistemaEducativo.Grado@View-form"  domain="(self.code='D' OR self.code='E')" />
+            <field name="nivel" colSpan="3"                            grid-view="subsysSistemaEducativo.Nivel@Search-grid"  form-view="subsysSistemaEducativo.Nivel@View-form"  showIf="grado.code=='D'" requiredIf="grado.code=='D'" domain="(self.code='D' OR self.code='E')"/>
         </panel>
 
         <panel-related name="cursos" field="cursos"  title="Cursos"
@@ -42,38 +42,43 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         />
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
-            <button name="btnDelete" title="Borrar" onClick="delete" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid!=null)"/>
-            <button name="btnCancel" title="Cancelar" onClick="back"  colSpan="2" colOffset="6" outline="true"   />
-            <button name="btnSave" title="Guardar" onClick="save,force-back"  colSpan="2"  />
+            <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Ciclo@Main-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Ciclo@Main-btnCancel-action"  colSpan="2" colOffset="6" outline="true"   />
+            <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Ciclo@Main-btnSave-action"  colSpan="2"  />
         </panel>
 
     </form>
 
-    <grid name="subsysSistemaEducativo.Ciclo@Search-grid"  model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" orderBy="name"
-          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true" title=""
-    >
-        <field name="familiaProfesional" />
-        <field name="name" />
-    </grid>
+    <!-- *************** Ciclo : Acciones de las tareas principales *************** -->
+    <action-group name="subsysSistemaEducativo.Ciclo@Main-btnDelete-action">
+        <action name="delete"/>
+    </action-group>
+    <action-group name="subsysSistemaEducativo.Ciclo@Main-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+    <action-group name="subsysSistemaEducativo.Ciclo@Main-btnSave-action">
+        <action name="save"/>
+    </action-group>
 
-    <form name="subsysSistemaEducativo.Ciclo@View-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
-          width="large"
-          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
-        <panel name="Ciclo" title="">
-            <field name="name"               colSpan="6"  readonly="true" />
-            <field name="familiaProfesional" colSpan="6"  readonly="true"  />
-            <field name="grado"              colSpan="4"  readonly="true"      />
-            <field name="nivel"              colSpan="4"  readonly="true"      />
-        </panel>
-    </form>
+    <!-- *************** Ciclo : Acciones de Validaciones en local *************** -->
 
-    <!-- ********************************************************************************************************* -->
-    <!-- *************************************** Vistas de Ciclo -> Curso **************************************** -->
-    <!-- ********************************************************************************************************* -->
+
+    <!-- *************** Ciclo : Acciones básicas que cambian campos simples *************** -->
+
+
+    <!-- *************** Ciclo : Acciones de llamadas Remotas al servidor *************** -->
+
+
+
+
+
+    <!-- ********************************************************************************** -->
+    <!-- ****************************** Ciclo.Curso : Vistas ****************************** -->
+    <!-- ********************************************************************************** -->
 
 
     <grid name="subsysSistemaEducativo.Ciclo.Curso@Main-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"  allowSearchFields="true" orderBy="name"
-          canAdvanceSearch="false" canRefresh="false" canNew="true" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true" title=""
+          canAdvanceSearch="false" canRefresh="false" canNew="true" newButtonTitle="Añadir un nuevo curso" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true" title=""
     >
         <field name="code" width="150px" />
         <field name="name" width="200px" />
@@ -86,10 +91,10 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
           canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false"
     >
         <panel name="Curso" title="">
-            <field name="code" colSpan="3" />
-            <field name="name" colOffset="9"  colSpan="6"/>
             <field name="ciclo" showIf="false"/>
-            <field name="leyEducativa" colOffset="12" colSpan="12"  />
+            <field name="code" colSpan="3" />
+            <field name="name" colOffset="3" colSpan="6"/>
+            <field name="leyEducativa" colSpan="12" grid-view="subsysSistemaEducativo.LeyEducativa@Search-grid" form-view="subsysSistemaEducativo.LeyEducativa@View-form" />
         </panel>
 
         <panel-related name="modulos" field="modulos"  title="Módulos"
@@ -103,18 +108,47 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
                        forceEdit="true"
         />
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
-            <button name="btnDelete" title="Borrar" onClick="delete-modal" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid != null)"/>
-            <button name="btnCancel" title="Cancelar" onClick="close"  colSpan="2" colOffset="6" outline="true"   />
-            <button name="btnSave" title="Guardar" onClick="save-modal"  colSpan="2"  />
+            <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Ciclo.Curso@Main-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid != null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Ciclo.Curso@Main-btnCancel-action"  colSpan="2" colOffset="6" outline="true"   />
+            <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Ciclo.Curso@Main-btnSave-action"  colSpan="2"  />
         </panel>
     </form>
 
-    <!-- ****************************************************************************** -->
-    <!-- ********************* Vistas de Ciclo -> Curso -> Modulo ********************* -->
-    <!-- ****************************************************************************** -->
 
-    <grid name="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-grid" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo" allowSearchFields="false" orderBy="name"
-          canAdvanceSearch="false" canRefresh="false" canNew="true" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true" title=""
+
+    <!-- *************** Ciclo.Curso : Acciones de las tareas principales *************** -->
+    <action-group name="subsysSistemaEducativo.Ciclo.Curso@Main-btnDelete-action">
+        <action name="delete-modal"/>
+    </action-group>
+    <action-group name="subsysSistemaEducativo.Ciclo.Curso@Main-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+    <action-group name="subsysSistemaEducativo.Ciclo.Curso@Main-btnSave-action">
+        <action name="save-modal"/>
+    </action-group>
+
+    <action-group name="subsysSistemaEducativo.Ciclo.Curso@Main-onNew-action">
+        <action name="subsysSistemaEducativo.Ciclo.Curso@Main-set-ciclo-parent-action"/>
+    </action-group>
+
+    <!-- *************** Ciclo.Curso : Acciones de Validaciones en local *************** -->
+
+
+    <!-- *************** Ciclo.Curso : Acciones básicas que cambian campos simples *************** -->
+    <action-record name="subsysSistemaEducativo.Ciclo.Curso@Main-set-ciclo-parent-action" model="com.educaflow.subsystem.sistemaeducativo.db.Curso">
+        <field name="ciclo" expr="eval: __parent__"/>
+    </action-record>
+
+    <!-- *************** Ciclo.Curso : Acciones de llamadas Remotas al servidor *************** -->
+
+
+
+    <!-- ********************************************************************************************** -->
+    <!-- ****************************** Ciclo.Curso.CursoModulo : Vistas ****************************** -->
+    <!-- ********************************************************************************************** -->
+
+    <grid name="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-grid" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo" allowSearchFields="true" orderBy="modulo.name"
+          canAdvanceSearch="false" canRefresh="false" canNew="true" newButtonTitle="Añadir un nuevo módulo" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true" title=""
     >
         <field name="modulo" />
     </grid>
@@ -123,52 +157,43 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
           onNew="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-onNew-action"
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="CursoModulo" title="">
-            <field name="curso"  colSpan="6" showIf="false" />
-            <field name="modulo" colSpan="6" colOffset="6" grid-view="subsysSistemaEducativo.Modulo@Search-grid" />
+            <field name="curso" showIf="false"/>
+            <field name="modulo" colSpan="6" colOffset="6" grid-view="subsysSistemaEducativo.Modulo@Search-grid" form-view="subsysSistemaEducativo.Modulo@View-form" />
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
-            <button name="btnDelete" title="Borrar" onClick="delete-modal" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid != null)"/>
-            <button name="btnCancel" title="Cancelar" onClick="close"  colSpan="2" colOffset="6" outline="true"   />
-            <button name="btnSave" title="Guardar" onClick="save-modal"  colSpan="2"  />
+            <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid != null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-btnCancel-action"  colSpan="2" colOffset="6" outline="true"   />
+            <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-btnSave-action"  colSpan="2"  />
         </panel>
     </form>
 
-    <!-- *********************************************************************************************  -->
-    <!-- ***************************** Acciones de las tareas principales ****************************  -->
-    <!-- *********************************************************************************************  -->
-    <action-group name="subsysSistemaEducativo.Ciclo.Curso@Main-onNew-action">
-        <action name="subsysSistemaEducativo.Ciclo.Curso@Main-set-ciclo-parent-action"/>
+    <!-- *************** Ciclo.Curso.CursoModulo : Acciones de las tareas principales *************** -->
+    <action-group name="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-btnDelete-action">
+        <action name="delete-modal"/>
     </action-group>
+    <action-group name="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+    <action-group name="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-btnSave-action">
+        <action name="save-modal"/>
+    </action-group>
+
     <action-group name="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-onNew-action">
         <action name="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-set-curso-parent-action"/>
     </action-group>
 
 
-
-
-    <!-- *********************************************************************************************  -->
-    <!-- ***************************** Acciones de Validaciones en local  ****************************  -->
-    <!-- *********************************************************************************************  -->
+    <!-- *************** Ciclo.Curso.CursoModulo : Acciones de Validaciones en local *************** -->
 
 
 
 
-    <!-- *********************************************************************************************  -->
-    <!-- ************************ Acciones básicas que cambian campos simples ************************  -->
-    <!-- *********************************************************************************************  -->
-    <action-record name="subsysSistemaEducativo.Ciclo.Curso@Main-set-ciclo-parent-action" model="com.educaflow.subsystem.sistemaeducativo.db.Curso">
-        <field name="ciclo" expr="eval: __parent__"/>
-    </action-record>
+    <!-- *************** Ciclo.Curso.CursoModulo : Acciones básicas que cambian campos simples *************** -->
     <action-record name="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-set-curso-parent-action" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo">
         <field name="curso" expr="eval: __parent__"/>
     </action-record>
 
-
-
-
-    <!-- *********************************************************************************************  -->
-    <!-- ************************** Acciones de llamadas Remotas al servidor *************************  -->
-    <!-- *********************************************************************************************  -->
+    <!-- *************** Ciclo.Curso.CursoModulo : Acciones de llamadas Remotas al servidor *************** -->
 
 
 </object-views>
