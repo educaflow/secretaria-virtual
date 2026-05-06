@@ -3,7 +3,7 @@ package com.educaflow.secretariavirtual.startup;
 import com.axelor.app.AppSettings;
 import com.axelor.app.AxelorModule;
 import com.educaflow.base.infrastructure.criptografia.EntornoCriptografico;
-import com.educaflow.base.infrastructure.criptografia.config.EntornoCriptograficoConfig;
+import com.educaflow.base.infrastructure.criptografia.config.AlmacenCertificadosConfiablesConfig;
 import com.educaflow.base.infrastructure.mail.MailSender;
 import com.educaflow.base.infrastructure.mail.impl.MailSenderImpl;
 import com.educaflow.base.infrastructure.mail.impl.SmtpCredentialSimplePassword;
@@ -27,9 +27,9 @@ public class Main extends AxelorModule {
 
 
     private void configureEntornoCriptografico() {
-        EntornoCriptograficoConfigProvider entornoCriptograficoConfigProvider=new EntornoCriptograficoConfigProvider();
-        EntornoCriptograficoConfig entornoCriptograficoConfig = entornoCriptograficoConfigProvider.getEntornoCriptograficoConfigFromAppSettings();
-        EntornoCriptografico.configure(entornoCriptograficoConfig);
+        AlmacenCertificadosConfiablesConfig almacenConfig = new AlmacenCertificadosConfiablesProvider().getAlmacenCertificadosConfiablesConfig();
+        EntornoCriptografico.configureAlmacenCertificadosConfiables(almacenConfig);
+        EntornoCriptografico.configureDispositivosCriptograficos(null);
     }
 
     private void configureDatabase() {
