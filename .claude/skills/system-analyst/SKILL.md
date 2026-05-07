@@ -22,26 +22,47 @@ Esto aplica aunque la solicitud parezca simple o el usuario parezca tener prisa.
 La estructura de carpetas es la siguiente:
 
 ```
-prompts/
+user-stories/
 └── YYYY-MM-DD_HH-MM_{resumen-5-palabras}/   ← carpeta de la iniciativa
-    ├── historia_usuario.md                    ← historia de usuario original
-    └── analisis_YYYY-MM-DD_HH-MM/            ← subcarpeta por cada análisis (timestamp = momento de creación)
-        ├── analisis.md                        ← el análisis (nombre fijo dentro de su subcarpeta)
-        └── disenyo_YYYY-MM-DD_HH-MM.md       ← diseño(s) generados desde este análisis
+    ├── user-story.md                          ← historia de usuario original
+    └── analysis_YYYY-MM-DD_HH-MM/            ← subcarpeta por cada análisis (timestamp = momento de creación)
+        ├── analysis.md                        ← el análisis (nombre fijo dentro de su subcarpeta)
+        └── design_YYYY-MM-DD_HH-MM.md        ← diseño(s) generados desde este análisis
 ```
 
 El skill puede recibir el input de dos formas:
 
-**A) Se recibe una ruta a un fichero existente** (p.ej. `prompts/2025-05-07_10-30_gestion-firmas/historia_usuario.md`):
+**A) Se recibe una ruta a un fichero existente** (p.ej. `user-stories/2025-05-07_10-30_gestion-firmas/user-story.md`):
 - Lee el fichero para obtener la historia de usuario.
-- La **carpeta de la iniciativa** es la carpeta que contiene ese fichero.
-- NO crees ni la carpeta ni el fichero `historia_usuario.md` — ya existen.
+- **Valida que el fichero tiene la cabecera frontmatter correcta.** Las primeras líneas deben ser exactamente:
+  ```
+  ---
+  type: user-story
+  ---
+  ```
+  Si el fichero no tiene esta cabecera, **detente y muestra este error al usuario, sin continuar:**
+  > Error: el fichero `{ruta}` no es una historia de usuario válida. Debe comenzar con:
+  > ```
+  > ---
+  > type: user-story
+  > ---
+  > ```
+  > Si tienes un fichero de análisis, usa `/system-designer`. Si tienes un diseño, usa `/system-implementer`.
+- Si la cabecera es correcta, la **carpeta de la iniciativa** es la carpeta que contiene ese fichero.
+- NO crees ni la carpeta ni el fichero `user-story.md` — ya existen.
 
 **B) Se recibe texto libre** (descripción o historia de usuario directamente en el prompt):
 - Determina un resumen de 5 palabras en kebab-case que describa la solicitud (ej. `gestion-firmas-digitales-documentos`).
 - Obtén la fecha y hora actuales en formato `YYYY-MM-DD_HH-MM`.
-- La **carpeta de la iniciativa** es: `prompts/YYYY-MM-DD_HH-MM_{resumen-5-palabras}/`
-- Crea la carpeta y guarda la historia de usuario en `historia_usuario.md` dentro de ella con el texto recibido tal cual.
+- La **carpeta de la iniciativa** es: `user-stories/YYYY-MM-DD_HH-MM_{resumen-5-palabras}/`
+- Crea la carpeta y guarda la historia de usuario en `user-story.md` dentro de ella con la siguiente estructura:
+  ```
+  ---
+  type: user-story
+  ---
+
+  {texto recibido tal cual}
+  ```
 
 En ambos casos, al llegar a la Fase 4 (guardar), se creará una **subcarpeta de análisis** con timestamp dentro de la carpeta de la iniciativa.
 
@@ -192,30 +213,38 @@ Si detectas algo ambiguo o faltante, añádelo a "Asunciones tomadas" o vuelve a
 Solo tras aprobación, guarda el análisis.
 
 > **REGLA OBLIGATORIA — ruta:** se crea una **subcarpeta de análisis** dentro de la carpeta
-> de la iniciativa, con el nombre `analisis_YYYY-MM-DD_HH-MM` (fecha y hora actuales).
-> Dentro de esa subcarpeta se guarda el fichero con el nombre fijo `analisis.md`.
+> de la iniciativa, con el nombre `analysis_YYYY-MM-DD_HH-MM` (fecha y hora actuales).
+> Dentro de esa subcarpeta se guarda el fichero con el nombre fijo `analysis.md`.
 >
 > Ejemplo:
 > ```
-> prompts/2025-05-07_10-30_gestion-firmas-digitales/
-> └── analisis_2025-05-07_11-45/
->     └── analisis.md
+> user-stories/2025-05-07_10-30_gestion-firmas-digitales/
+> └── analysis_2025-05-07_11-45/
+>     └── analysis.md
 > ```
 >
-> Pueden existir varias subcarpetas `analisis_*/` en la misma carpeta de iniciativa (iteraciones sucesivas).
+> Pueden existir varias subcarpetas `analysis_*/` en la misma carpeta de iniciativa (iteraciones sucesivas).
 > **Nunca en la raíz del proyecto ni en ninguna otra carpeta.**
 
-El fichero guardado es el formato del borrador aprobado por el usuario, sin cambios adicionales.
+El fichero guardado debe comenzar **obligatoriamente** con la siguiente cabecera frontmatter, seguida del contenido del borrador aprobado:
+
+```
+---
+type: analysis
+---
+
+{contenido del borrador aprobado}
+```
 
 ### Transición al planner
 
 Al finalizar, indica al usuario:
 
 ```
-Análisis guardado en prompts/{carpeta-iniciativa}/analisis_YYYY-MM-DD_HH-MM/analisis.md
+Análisis guardado en user-stories/{carpeta-iniciativa}/analysis_YYYY-MM-DD_HH-MM/analysis.md
 
 Para generar el plan de implementación ejecuta:
-  /system-designer prompts/{carpeta-iniciativa}/analisis_YYYY-MM-DD_HH-MM/analisis.md
+  /system-designer user-stories/{carpeta-iniciativa}/analysis_YYYY-MM-DD_HH-MM/analysis.md
 ```
 
 No lances `system-designer` tú mismo. El usuario decide cuándo ejecutarlo.

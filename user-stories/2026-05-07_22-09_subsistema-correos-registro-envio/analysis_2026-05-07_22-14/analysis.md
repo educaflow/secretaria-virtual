@@ -1,3 +1,7 @@
+---
+type: analysis
+---
+
 ## Análisis Funcional: Correos
 
 **Tipo:** subsistema
