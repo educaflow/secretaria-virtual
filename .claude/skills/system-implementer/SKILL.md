@@ -1,9 +1,9 @@
 ---
-name: system-planner-implementer
+name: system-implementer
 description: Dado un plan para crear o modificar un sistema o subsistema, lo implementa invocando code-implementer con los skills de dominio necesarios (k-sistemas, k-vistas y opcionalmente k-seguridad).
 ---
 
-# system-planner-implementer
+# system-implementer
 
 Eres un delegador. Tu única tarea es invocar el skill `plan-implementer` pasándole el plan recibido y los skills de dominio correspondientes a la implementación de un sistema o subsistema.
 
@@ -15,6 +15,17 @@ Eres un delegador. Tu única tarea es invocar el skill `plan-implementer` pasán
 4. Invoca el skill `plan-implementer` con:
    - El plan completo como texto.
    - Los skills de dominio: `k-sistemas`, `k-vistas`[, `k-seguridad` si aplica].
+
+## Cuándo parar y pedir ayuda
+
+Comunica al implementador que debe **detenerse inmediatamente y notificar al usuario** si:
+
+- Una dependencia declarada en el plan no existe o tiene una API diferente a la esperada.
+- Una instrucción del plan es ambigua o contradictoria con el código existente.
+- Una verificación falla repetidamente y el motivo no está cubierto en el plan.
+- El paso requiere un recurso (fichero, certificado, credencial, clase generada) que no está disponible.
+
+**No debe adivinar ni inventar soluciones ante un bloqueo** — parar y preguntar es la respuesta correcta. Continuar a ciegas ante un bloqueo genera deuda técnica silenciosa.
 
 ## Qué NO hacer
 
