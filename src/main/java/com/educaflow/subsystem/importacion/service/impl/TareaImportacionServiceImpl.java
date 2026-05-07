@@ -1,15 +1,13 @@
 package com.educaflow.subsystem.importacion.service.impl;
 
-import com.axelor.db.JpaRepository;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.inject.Beans;
+import com.educaflow.base.util.AsciiTableUtil;
 import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.base.util.XMLUtil;
 import com.educaflow.subsystem.common.db.Centro;
-import com.educaflow.subsystem.common.db.TipoUsuario;
 import com.educaflow.subsystem.common.db.repo.CentroRepository;
-import com.educaflow.subsystem.common.db.repo.TipoUsuarioRepository;
 import com.educaflow.subsystem.importacion.db.TareaImportacion;
 import com.educaflow.subsystem.importacion.db.TipoFicheroImportacion;
 import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorException;
@@ -19,8 +17,6 @@ import com.educaflow.subsystem.importacion.service.tipoimportador.ResultadoImpor
 import com.educaflow.subsystem.importacion.service.TareaImportacionService;
 import org.w3c.dom.Element;
 
-import de.vandermeer.asciitable.AsciiTable;
-import de.vandermeer.asciitable.CWC_LongestLine;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,24 +30,12 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
     public TareaImportacion insert(TareaImportacion tareaImportacion) {
         try {
             ResultadoImportacion resultado = this.importar(tareaImportacion);
-            StringBuilder logs = new StringBuilder();
-            logs.append(resultado.resumen()).append("\n");
-            if (!resultado.mensajes().isEmpty()) {
-                List<List<Object>> rows = new ArrayList<>();
-                for (ResultadoImportacion.MensajeImportacion m : resultado.mensajes()) {
-                    List<Object> row = new ArrayList<>();
-                    row.add(m.fila() != null ? m.fila() : "");
-                    row.add(m.dato());
-                    row.add(m.mensaje());
-                    rows.add(row);
-                }
-                logs.append(renderTable("Detalle", List.of("Fila", "Dato", "Mensaje"), rows));
-            }
+            String logs = buildResultado(resultado);
             tareaImportacion.setExito(true);
-            tareaImportacion.setImportLog(logs.toString());
+            tareaImportacion.setImportLog(logs);
         } catch (ImportadorException e) {
             tareaImportacion.setExito(false);
-            tareaImportacion.setImportLog(renderTable("Error", e));
+            tareaImportacion.setImportLog(AsciiTableUtil.renderTable("Error", e));
         }
 
         return super.insert(tareaImportacion);
@@ -98,66 +82,21 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
         return importador.importar(contenido, centro, curso);
     }
 
-    private static String renderTable(String tableName, Exception ex) {
-        List<List<Object>> rows = new ArrayList<>();
-        for (String trace : getStackTrace(ex, 0)) {
-            List<Object> row = new ArrayList<>();
-            row.add(trace);
-            rows.add(row);
-        }
-        return renderTable(tableName, List.of("Error"), rows);
-    }
-
-    private static String renderTable(String tableName, List<String> heads, List<List<Object>> rows) {
-        List<String> titulo = new ArrayList<>();
-        if ((heads != null) && (!heads.isEmpty())) {
-            for (int i = 0; i < heads.size() - 1; i++) {
-                titulo.add(null);
+    private String buildResultado(ResultadoImportacion resultadoImportacion) {
+        StringBuilder logs = new StringBuilder();
+        logs.append(resultadoImportacion.resumen()).append("\n");
+        if (!resultadoImportacion.mensajes().isEmpty()) {
+            List<List<Object>> rows = new ArrayList<>();
+            for (ResultadoImportacion.MensajeImportacion m : resultadoImportacion.mensajes()) {
+                List<Object> row = new ArrayList<>();
+                row.add(m.fila() != null ? m.fila() : "");
+                row.add(m.dato());
+                row.add(m.mensaje());
+                rows.add(row);
             }
+            logs.append(AsciiTableUtil.renderTable("Detalle", List.of("Fila", "Dato", "Mensaje"), rows));
         }
-        titulo.add(tableName);
-
-        AsciiTable at = new AsciiTable();
-        at.addRule();
-        at.addRow(titulo.toArray());
-        if ((heads != null) && (!heads.isEmpty())) {
-            at.addRule();
-            at.addRow(heads.toArray());
-        }
-        at.addRule();
-
-        for (List<Object> row : rows) {
-            for (int i = 0; i < row.size(); i++) {
-                if (row.get(i) == null) {
-                    row.set(i, "__null__");
-                }
-            }
-        }
-
-        if (!rows.isEmpty()) {
-            for (List<Object> row : rows) {
-                at.addRow(row.toArray());
-            }
-            at.addRule();
-        }
-        at.getRenderer().setCWC(new CWC_LongestLine());
-        return at.render();
-    }
-
-    private static List<String> getStackTrace(Throwable ex, int deep) {
-        String tabulador = "·".repeat(4);
-        List<String> stackTrace = new ArrayList<>();
-        if (deep == 0) {
-            stackTrace.add(ex.getLocalizedMessage());
-        }
-        for (StackTraceElement element : ex.getStackTrace()) {
-            stackTrace.add(tabulador.repeat(deep) + element.toString());
-        }
-        if (ex.getCause() != null) {
-            stackTrace.add(tabulador.repeat(deep) + "Caused by:" + ex.getCause().getLocalizedMessage());
-            stackTrace.addAll(getStackTrace(ex.getCause(), deep + 1));
-        }
-        return stackTrace;
+        return logs.toString();
     }
 
 }

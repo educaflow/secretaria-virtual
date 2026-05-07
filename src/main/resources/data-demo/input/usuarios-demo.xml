@@ -4,221 +4,200 @@
     <!-- =====================================================================
          USUARIOS (com.axelor.auth.db.User)
          Paso 1: crear credenciales de autenticación
+         DNIs alineados con los ficheros de importación de /datos/demo
          ===================================================================== -->
     <usuarios>
 
         <!-- == CIPFP Mislata (46019660) == -->
         <usuario email="director.cipfpmislata@secretaria.virtual.es"
-                 documento="46100001A" name="Ana García López"
-                 nombre="Ana" apellidos="García López" password="demo1234"/>
+                 documento="24362574P" name="Lorenzo González Gascón"
+                 nombre="Lorenzo" apellidos="González Gascón" password="demo1234"/>
         <usuario email="vicedirector.cipfpmislata@secretaria.virtual.es"
-                 documento="46100002B" name="Carlos Martínez Pérez"
-                 nombre="Carlos" apellidos="Martínez Pérez" password="demo1234"/>
+                 documento="30000000L" name="Antonio Blanco Roca"
+                 nombre="Antonio" apellidos="Blanco Roca" password="demo1234"/>
         <usuario email="secretario.cipfpmislata@secretaria.virtual.es"
-                 documento="46100003C" name="María Fernández Ruiz"
-                 nombre="María" apellidos="Fernández Ruiz" password="demo1234"/>
+                 documento="30000001C" name="Mercedes Català Ferrer"
+                 nombre="Mercedes" apellidos="Català Ferrer" password="demo1234"/>
         <usuario email="vicesecretario.cipfpmislata@secretaria.virtual.es"
-                 documento="46100004D" name="José Sánchez Torres"
-                 nombre="José" apellidos="Sánchez Torres" password="demo1234"/>
+                 documento="30000002K" name="Mariano Monzó Del Olmo"
+                 nombre="Mariano" apellidos="Monzó Del Olmo" password="demo1234"/>
+        <!-- 30000006W: PROFESOR en 2024 y 2025 (estable) -->
         <usuario email="jefeestudios1.cipfpmislata@secretaria.virtual.es"
-                 documento="46100005E" name="Laura Gómez Jiménez"
-                 nombre="Laura" apellidos="Gómez Jiménez" password="demo1234"/>
+                 documento="30000006W" name="Joaquín Escriche Arcusa"
+                 nombre="Joaquín" apellidos="Escriche Arcusa" password="demo1234"/>
         <usuario email="jefeestudios2.cipfpmislata@secretaria.virtual.es"
-                 documento="46100006F" name="Antonio López Díaz"
-                 nombre="Antonio" apellidos="López Díaz" password="demo1234"/>
+                 documento="30000004T" name="Elisa Tortajada Trenco"
+                 nombre="Elisa" apellidos="Tortajada Trenco" password="demo1234"/>
+        <!-- 30000003E: PROFESOR en 2024 → EXPROFESOR al importar 2025 (caso de prueba) -->
         <usuario email="profesor1.cipfpmislata@secretaria.virtual.es"
-                 documento="46100007G" name="Isabel Ramírez Castro"
-                 nombre="Isabel" apellidos="Ramírez Castro" password="demo1234"/>
+                 documento="30000003E" name="José Vicente Ruíz Almeda"
+                 nombre="José Vicente" apellidos="Ruíz Almeda" password="demo1234"/>
         <usuario email="profesor2.cipfpmislata@secretaria.virtual.es"
-                 documento="46100008H" name="Miguel Moreno Ortega"
-                 nombre="Miguel" apellidos="Moreno Ortega" password="demo1234"/>
+                 documento="52648745C" name="César Guijarro Rosaleny"
+                 nombre="César" apellidos="Guijarro Rosaleny" password="demo1234"/>
+        <!-- 40000000X, 40000001B: salieron del claustro en 2024 → ya son EXPROFESOR -->
         <usuario email="exprofesor1.cipfpmislata@secretaria.virtual.es"
-                 documento="46100009I" name="Roberto Gil Navarro"
-                 nombre="Roberto" apellidos="Gil Navarro" password="demo1234"/>
+                 documento="40000000X" name="Cristóbal Jordá Tomás"
+                 nombre="Cristóbal" apellidos="Jordá Tomás" password="demo1234"/>
         <usuario email="exprofesor2.cipfpmislata@secretaria.virtual.es"
-                 documento="46100010J" name="Patricia Ramos Herrera"
-                 nombre="Patricia" apellidos="Ramos Herrera" password="demo1234"/>
+                 documento="40000001B" name="Francisca Tomás Casas"
+                 nombre="Francisca" apellidos="Tomás Casas" password="demo1234"/>
+        <!-- 10000004H, 10000007K, 10000011W, 10000009T: continúan en 2024 y 2025 -->
         <usuario email="alumno1.cipfpmislata@secretaria.virtual.es"
-                 documento="46100011K" name="Sofía Blanco Mendoza"
-                 nombre="Sofía" apellidos="Blanco Mendoza" password="demo1234"/>
+                 documento="10000004H" name="Ana Jiménez García"
+                 nombre="Ana" apellidos="Jiménez García" password="demo1234"/>
         <usuario email="alumno2.cipfpmislata@secretaria.virtual.es"
-                 documento="46100012L" name="Diego Vargas Vega"
-                 nombre="Diego" apellidos="Vargas Vega" password="demo1234"/>
+                 documento="10000007K" name="Ismaél Monleón Rubio"
+                 nombre="Ismaél" apellidos="Monleón Rubio" password="demo1234"/>
         <usuario email="alumno3.cipfpmislata@secretaria.virtual.es"
-                 documento="46100013M" name="Carmen Aguilar Reyes"
-                 nombre="Carmen" apellidos="Aguilar Reyes" password="demo1234"/>
+                 documento="10000011W" name="Andrés Torres Vidal"
+                 nombre="Andrés" apellidos="Torres Vidal" password="demo1234"/>
+        <!-- 10000000Z, 10000001S: ALUMNO en 2024 → EXALUMNO al importar 2025 (caso de prueba) -->
         <usuario email="alumno4.cipfpmislata@secretaria.virtual.es"
-                 documento="46100014N" name="Pablo Molina Serrano"
-                 nombre="Pablo" apellidos="Molina Serrano" password="demo1234"/>
+                 documento="10000000Z" name="Angela Hermosilla Del Río"
+                 nombre="Angela" apellidos="Hermosilla Del Río" password="demo1234"/>
         <usuario email="alumno5.cipfpmislata@secretaria.virtual.es"
-                 documento="46100015O" name="Lucía Campos Romero"
-                 nombre="Lucía" apellidos="Campos Romero" password="demo1234"/>
+                 documento="10000001S" name="Soledad Berenguer Reyes"
+                 nombre="Soledad" apellidos="Berenguer Reyes" password="demo1234"/>
         <usuario email="alumno6.cipfpmislata@secretaria.virtual.es"
-                 documento="46100016P" name="Adrián Ríos Guerrero"
-                 nombre="Adrián" apellidos="Ríos Guerrero" password="demo1234"/>
+                 documento="10000009T" name="Gael Ishimi Baquedano"
+                 nombre="Gael" apellidos="Ishimi Baquedano" password="demo1234"/>
+        <!-- 20000000M, 20000001Y: salieron en 2024 → ya son EXALUMNO -->
         <usuario email="exalumno1.cipfpmislata@secretaria.virtual.es"
-                 documento="46100017Q" name="Elena Cano Medina"
-                 nombre="Elena" apellidos="Cano Medina" password="demo1234"/>
+                 documento="20000000M" name="Esteban Adarme Sanchís"
+                 nombre="Esteban" apellidos="Adarme Sanchís" password="demo1234"/>
         <usuario email="exalumno2.cipfpmislata@secretaria.virtual.es"
-                 documento="46100018R" name="Sergio Peña Gallego"
-                 nombre="Sergio" apellidos="Peña Gallego" password="demo1234"/>
+                 documento="20000001Y" name="Yaiza Tendillo Ruiz"
+                 nombre="Yaiza" apellidos="Tendillo Ruiz" password="demo1234"/>
+        <!-- 50000000R, 50000001W: familiares estables 2024 y 2025 -->
         <usuario email="familiar1.cipfpmislata@secretaria.virtual.es"
-                 documento="46100019S" name="Rosa Delgado Fuentes"
-                 nombre="Rosa" apellidos="Delgado Fuentes" password="demo1234"/>
+                 documento="50000000R" name="José Vargas Ortiz"
+                 nombre="José" apellidos="Vargas Ortiz" password="demo1234"/>
         <usuario email="familiar2.cipfpmislata@secretaria.virtual.es"
-                 documento="46100020T" name="Pedro Iglesias Prieto"
-                 nombre="Pedro" apellidos="Iglesias Prieto" password="demo1234"/>
+                 documento="50000001W" name="Teresa Ortiz Bravo"
+                 nombre="Teresa" apellidos="Ortiz Bravo" password="demo1234"/>
+        <!-- 50000003G: FAMILIAR en 2024 → pierde autorización al importar 2025 (caso de prueba) -->
         <usuario email="familiar3.cipfpmislata@secretaria.virtual.es"
-                 documento="46100021U" name="Teresa Rubio Cabrera"
-                 nombre="Teresa" apellidos="Rubio Cabrera" password="demo1234"/>
+                 documento="50000003G" name="Nuria Campos Delgado"
+                 nombre="Nuria" apellidos="Campos Delgado" password="demo1234"/>
 
         <!-- == CIPFP Batoi (03012165) == -->
+        <!-- Solo 4 profesores: coinciden exactamente con profesores_2024.xml -->
+        <!-- 31000003M: PROFESOR en 2024 → EXPROFESOR al importar 2025 (caso de prueba) -->
         <usuario email="director.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100001A" name="Fernando Bravo Salinas"
-                 nombre="Fernando" apellidos="Bravo Salinas" password="demo1234"/>
+                 documento="31000000W" name="Profe1 Test Batoi"
+                 nombre="Profe1" apellidos="Test Batoi" password="demo1234"/>
         <usuario email="vicedirector.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100002B" name="Marta Paredes Lozano"
-                 nombre="Marta" apellidos="Paredes Lozano" password="demo1234"/>
+                 documento="31000001A" name="Profe2 Test Batoi"
+                 nombre="Profe2" apellidos="Test Batoi" password="demo1234"/>
         <usuario email="secretario.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100003C" name="Raúl Domínguez Alonso"
-                 nombre="Raúl" apellidos="Domínguez Alonso" password="demo1234"/>
+                 documento="31000002G" name="Profe3 Test Batoi"
+                 nombre="Profe3" apellidos="Test Batoi" password="demo1234"/>
         <usuario email="vicesecretario.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100004D" name="Silvia Núñez Marín"
-                 nombre="Silvia" apellidos="Núñez Marín" password="demo1234"/>
-        <usuario email="jefeestudios1.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100005E" name="Javier Suárez Vidal"
-                 nombre="Javier" apellidos="Suárez Vidal" password="demo1234"/>
-        <usuario email="jefeestudios2.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100006F" name="Nuria Calvo Ibáñez"
-                 nombre="Nuria" apellidos="Calvo Ibáñez" password="demo1234"/>
-        <usuario email="profesor1.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100007G" name="Héctor Guzmán Crespo"
-                 nombre="Héctor" apellidos="Guzmán Crespo" password="demo1234"/>
-        <usuario email="profesor2.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100008H" name="Beatriz Pascual Lara"
-                 nombre="Beatriz" apellidos="Pascual Lara" password="demo1234"/>
-        <usuario email="exprofesor1.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100009I" name="Óscar Benítez Montes"
-                 nombre="Óscar" apellidos="Benítez Montes" password="demo1234"/>
-        <usuario email="exprofesor2.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100010J" name="Pilar Contreras Santos"
-                 nombre="Pilar" apellidos="Contreras Santos" password="demo1234"/>
+                 documento="31000003M" name="Profe4 Test Batoi"
+                 nombre="Profe4" apellidos="Test Batoi" password="demo1234"/>
+        <!-- 11000000C..11000003T: continúan en 2025; 11000004R y 11000005W → EXALUMNO en 2025 -->
         <usuario email="alumno1.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100011K" name="Marco Arroyo Espinosa"
-                 nombre="Marco" apellidos="Arroyo Espinosa" password="demo1234"/>
+                 documento="11000000C" name="Alumno1 Test Batoi"
+                 nombre="Alumno1" apellidos="Test Batoi" password="demo1234"/>
         <usuario email="alumno2.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100012L" name="Natalia Herrero Moya"
-                 nombre="Natalia" apellidos="Herrero Moya" password="demo1234"/>
+                 documento="11000001K" name="Alumno2 Test Batoi"
+                 nombre="Alumno2" apellidos="Test Batoi" password="demo1234"/>
         <usuario email="alumno3.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100013M" name="Samuel Méndez Trillo"
-                 nombre="Samuel" apellidos="Méndez Trillo" password="demo1234"/>
+                 documento="11000002E" name="Alumno3 Test Batoi"
+                 nombre="Alumno3" apellidos="Test Batoi" password="demo1234"/>
         <usuario email="alumno4.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100014N" name="Verónica Pardo Quintero"
-                 nombre="Verónica" apellidos="Pardo Quintero" password="demo1234"/>
+                 documento="11000003T" name="Alumno4 Test Batoi"
+                 nombre="Alumno4" apellidos="Test Batoi" password="demo1234"/>
         <usuario email="alumno5.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100015O" name="Alexis Vela Carrasco"
-                 nombre="Alexis" apellidos="Vela Carrasco" password="demo1234"/>
+                 documento="11000004R" name="Alumno5 Test Batoi"
+                 nombre="Alumno5" apellidos="Test Batoi" password="demo1234"/>
         <usuario email="alumno6.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100016P" name="Irene Soler Durán"
-                 nombre="Irene" apellidos="Soler Durán" password="demo1234"/>
-        <usuario email="exalumno1.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100017Q" name="Gonzalo Fuentes Morales"
-                 nombre="Gonzalo" apellidos="Fuentes Morales" password="demo1234"/>
-        <usuario email="exalumno2.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100018R" name="Cristina Villar Espejo"
-                 nombre="Cristina" apellidos="Villar Espejo" password="demo1234"/>
+                 documento="11000005W" name="Alumno6 Test Batoi"
+                 nombre="Alumno6" apellidos="Test Batoi" password="demo1234"/>
+        <!-- 51000000F, 51000001P: estables; 51000002D → pierde autorización en 2025 -->
         <usuario email="familiar1.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100019S" name="Manuel León Pascual"
-                 nombre="Manuel" apellidos="León Pascual" password="demo1234"/>
+                 documento="51000000F" name="Familiar1 Test Batoi"
+                 nombre="Familiar1" apellidos="Test Batoi" password="demo1234"/>
         <usuario email="familiar2.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100020T" name="Amparo Rojas Tejada"
-                 nombre="Amparo" apellidos="Rojas Tejada" password="demo1234"/>
+                 documento="51000001P" name="Familiar2 Test Batoi"
+                 nombre="Familiar2" apellidos="Test Batoi" password="demo1234"/>
         <usuario email="familiar3.cipfpbatoi@secretaria.virtual.es"
-                 documento="03100021U" name="Enrique Montes Vera"
-                 nombre="Enrique" apellidos="Montes Vera" password="demo1234"/>
+                 documento="51000002D" name="Familiar3 Test Batoi"
+                 nombre="Familiar3" apellidos="Test Batoi" password="demo1234"/>
 
     </usuarios>
 
 
     <!-- =====================================================================
          CENTRO USUARIOS (com.educaflow.subsystem.common.db.CentroUsuario)
-         Paso 2: vincular cada usuario a su centro y actualizar centroActivo
+         Paso 2: vincular cada usuario a su centro
          ===================================================================== -->
     <centroUsuarios>
 
         <!-- == CIPFP Mislata (46019660) == -->
-        <centroUsuario usuarioCode="director.cipfpmislata@secretaria.virtual.es"      centroCode="46019660"/>
-        <centroUsuario usuarioCode="vicedirector.cipfpmislata@secretaria.virtual.es"  centroCode="46019660"/>
-        <centroUsuario usuarioCode="secretario.cipfpmislata@secretaria.virtual.es"    centroCode="46019660"/>
+        <centroUsuario usuarioCode="director.cipfpmislata@secretaria.virtual.es"       centroCode="46019660"/>
+        <centroUsuario usuarioCode="vicedirector.cipfpmislata@secretaria.virtual.es"   centroCode="46019660"/>
+        <centroUsuario usuarioCode="secretario.cipfpmislata@secretaria.virtual.es"     centroCode="46019660"/>
         <centroUsuario usuarioCode="vicesecretario.cipfpmislata@secretaria.virtual.es" centroCode="46019660"/>
-        <centroUsuario usuarioCode="jefeestudios1.cipfpmislata@secretaria.virtual.es" centroCode="46019660"/>
-        <centroUsuario usuarioCode="jefeestudios2.cipfpmislata@secretaria.virtual.es" centroCode="46019660"/>
-        <centroUsuario usuarioCode="profesor1.cipfpmislata@secretaria.virtual.es"     centroCode="46019660"/>
-        <centroUsuario usuarioCode="profesor2.cipfpmislata@secretaria.virtual.es"     centroCode="46019660"/>
-        <centroUsuario usuarioCode="exprofesor1.cipfpmislata@secretaria.virtual.es"   centroCode="46019660"/>
-        <centroUsuario usuarioCode="exprofesor2.cipfpmislata@secretaria.virtual.es"   centroCode="46019660"/>
-        <centroUsuario usuarioCode="alumno1.cipfpmislata@secretaria.virtual.es"       centroCode="46019660"/>
-        <centroUsuario usuarioCode="alumno2.cipfpmislata@secretaria.virtual.es"       centroCode="46019660"/>
-        <centroUsuario usuarioCode="alumno3.cipfpmislata@secretaria.virtual.es"       centroCode="46019660"/>
-        <centroUsuario usuarioCode="alumno4.cipfpmislata@secretaria.virtual.es"       centroCode="46019660"/>
-        <centroUsuario usuarioCode="alumno5.cipfpmislata@secretaria.virtual.es"       centroCode="46019660"/>
-        <centroUsuario usuarioCode="alumno6.cipfpmislata@secretaria.virtual.es"       centroCode="46019660"/>
-        <centroUsuario usuarioCode="exalumno1.cipfpmislata@secretaria.virtual.es"     centroCode="46019660"/>
-        <centroUsuario usuarioCode="exalumno2.cipfpmislata@secretaria.virtual.es"     centroCode="46019660"/>
-        <centroUsuario usuarioCode="familiar1.cipfpmislata@secretaria.virtual.es"     centroCode="46019660"/>
-        <centroUsuario usuarioCode="familiar2.cipfpmislata@secretaria.virtual.es"     centroCode="46019660"/>
-        <centroUsuario usuarioCode="familiar3.cipfpmislata@secretaria.virtual.es"     centroCode="46019660"/>
+        <centroUsuario usuarioCode="jefeestudios1.cipfpmislata@secretaria.virtual.es"  centroCode="46019660"/>
+        <centroUsuario usuarioCode="jefeestudios2.cipfpmislata@secretaria.virtual.es"  centroCode="46019660"/>
+        <centroUsuario usuarioCode="profesor1.cipfpmislata@secretaria.virtual.es"      centroCode="46019660"/>
+        <centroUsuario usuarioCode="profesor2.cipfpmislata@secretaria.virtual.es"      centroCode="46019660"/>
+        <centroUsuario usuarioCode="exprofesor1.cipfpmislata@secretaria.virtual.es"    centroCode="46019660"/>
+        <centroUsuario usuarioCode="exprofesor2.cipfpmislata@secretaria.virtual.es"    centroCode="46019660"/>
+        <centroUsuario usuarioCode="alumno1.cipfpmislata@secretaria.virtual.es"        centroCode="46019660"/>
+        <centroUsuario usuarioCode="alumno2.cipfpmislata@secretaria.virtual.es"        centroCode="46019660"/>
+        <centroUsuario usuarioCode="alumno3.cipfpmislata@secretaria.virtual.es"        centroCode="46019660"/>
+        <centroUsuario usuarioCode="alumno4.cipfpmislata@secretaria.virtual.es"        centroCode="46019660"/>
+        <centroUsuario usuarioCode="alumno5.cipfpmislata@secretaria.virtual.es"        centroCode="46019660"/>
+        <centroUsuario usuarioCode="alumno6.cipfpmislata@secretaria.virtual.es"        centroCode="46019660"/>
+        <centroUsuario usuarioCode="exalumno1.cipfpmislata@secretaria.virtual.es"      centroCode="46019660"/>
+        <centroUsuario usuarioCode="exalumno2.cipfpmislata@secretaria.virtual.es"      centroCode="46019660"/>
+        <centroUsuario usuarioCode="familiar1.cipfpmislata@secretaria.virtual.es"      centroCode="46019660"/>
+        <centroUsuario usuarioCode="familiar2.cipfpmislata@secretaria.virtual.es"      centroCode="46019660"/>
+        <centroUsuario usuarioCode="familiar3.cipfpmislata@secretaria.virtual.es"      centroCode="46019660"/>
 
         <!-- == CIPFP Batoi (03012165) == -->
-        <centroUsuario usuarioCode="director.cipfpbatoi@secretaria.virtual.es"        centroCode="03012165"/>
-        <centroUsuario usuarioCode="vicedirector.cipfpbatoi@secretaria.virtual.es"    centroCode="03012165"/>
-        <centroUsuario usuarioCode="secretario.cipfpbatoi@secretaria.virtual.es"      centroCode="03012165"/>
-        <centroUsuario usuarioCode="vicesecretario.cipfpbatoi@secretaria.virtual.es"  centroCode="03012165"/>
-        <centroUsuario usuarioCode="jefeestudios1.cipfpbatoi@secretaria.virtual.es"   centroCode="03012165"/>
-        <centroUsuario usuarioCode="jefeestudios2.cipfpbatoi@secretaria.virtual.es"   centroCode="03012165"/>
-        <centroUsuario usuarioCode="profesor1.cipfpbatoi@secretaria.virtual.es"       centroCode="03012165"/>
-        <centroUsuario usuarioCode="profesor2.cipfpbatoi@secretaria.virtual.es"       centroCode="03012165"/>
-        <centroUsuario usuarioCode="exprofesor1.cipfpbatoi@secretaria.virtual.es"     centroCode="03012165"/>
-        <centroUsuario usuarioCode="exprofesor2.cipfpbatoi@secretaria.virtual.es"     centroCode="03012165"/>
-        <centroUsuario usuarioCode="alumno1.cipfpbatoi@secretaria.virtual.es"         centroCode="03012165"/>
-        <centroUsuario usuarioCode="alumno2.cipfpbatoi@secretaria.virtual.es"         centroCode="03012165"/>
-        <centroUsuario usuarioCode="alumno3.cipfpbatoi@secretaria.virtual.es"         centroCode="03012165"/>
-        <centroUsuario usuarioCode="alumno4.cipfpbatoi@secretaria.virtual.es"         centroCode="03012165"/>
-        <centroUsuario usuarioCode="alumno5.cipfpbatoi@secretaria.virtual.es"         centroCode="03012165"/>
-        <centroUsuario usuarioCode="alumno6.cipfpbatoi@secretaria.virtual.es"         centroCode="03012165"/>
-        <centroUsuario usuarioCode="exalumno1.cipfpbatoi@secretaria.virtual.es"       centroCode="03012165"/>
-        <centroUsuario usuarioCode="exalumno2.cipfpbatoi@secretaria.virtual.es"       centroCode="03012165"/>
-        <centroUsuario usuarioCode="familiar1.cipfpbatoi@secretaria.virtual.es"       centroCode="03012165"/>
-        <centroUsuario usuarioCode="familiar2.cipfpbatoi@secretaria.virtual.es"       centroCode="03012165"/>
-        <centroUsuario usuarioCode="familiar3.cipfpbatoi@secretaria.virtual.es"       centroCode="03012165"/>
+        <centroUsuario usuarioCode="director.cipfpbatoi@secretaria.virtual.es"         centroCode="03012165"/>
+        <centroUsuario usuarioCode="vicedirector.cipfpbatoi@secretaria.virtual.es"     centroCode="03012165"/>
+        <centroUsuario usuarioCode="secretario.cipfpbatoi@secretaria.virtual.es"       centroCode="03012165"/>
+        <centroUsuario usuarioCode="vicesecretario.cipfpbatoi@secretaria.virtual.es"   centroCode="03012165"/>
+        <centroUsuario usuarioCode="alumno1.cipfpbatoi@secretaria.virtual.es"          centroCode="03012165"/>
+        <centroUsuario usuarioCode="alumno2.cipfpbatoi@secretaria.virtual.es"          centroCode="03012165"/>
+        <centroUsuario usuarioCode="alumno3.cipfpbatoi@secretaria.virtual.es"          centroCode="03012165"/>
+        <centroUsuario usuarioCode="alumno4.cipfpbatoi@secretaria.virtual.es"          centroCode="03012165"/>
+        <centroUsuario usuarioCode="alumno5.cipfpbatoi@secretaria.virtual.es"          centroCode="03012165"/>
+        <centroUsuario usuarioCode="alumno6.cipfpbatoi@secretaria.virtual.es"          centroCode="03012165"/>
+        <centroUsuario usuarioCode="familiar1.cipfpbatoi@secretaria.virtual.es"        centroCode="03012165"/>
+        <centroUsuario usuarioCode="familiar2.cipfpbatoi@secretaria.virtual.es"        centroCode="03012165"/>
+        <centroUsuario usuarioCode="familiar3.cipfpbatoi@secretaria.virtual.es"        centroCode="03012165"/>
 
     </centroUsuarios>
 
 
     <!-- =====================================================================
          TIPOS DE USUARIO (com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario)
-         Paso 3: asignar roles a cada usuario en su centro
-         Los usuarios con cargo de equipo directivo llevan PROFESOR + su rol específico
+         Paso 3: tipos iniciales — reflejan el estado del curso 2024
+         Tras importar los datos 2024, calcularTiposUsuarioRegistrados confirma/corrige estos tipos
          ===================================================================== -->
     <tipos>
 
-        <!-- == CIPFP Mislata — equipo directivo == -->
+        <!-- == CIPFP Mislata — profesores en 2024 == -->
         <tipo usuarioCode="director.cipfpmislata@secretaria.virtual.es"       centroCode="46019660" tipoCode="PROFESOR"/>
         <tipo usuarioCode="vicedirector.cipfpmislata@secretaria.virtual.es"   centroCode="46019660" tipoCode="PROFESOR"/>
         <tipo usuarioCode="secretario.cipfpmislata@secretaria.virtual.es"     centroCode="46019660" tipoCode="PROFESOR"/>
         <tipo usuarioCode="vicesecretario.cipfpmislata@secretaria.virtual.es" centroCode="46019660" tipoCode="PROFESOR"/>
         <tipo usuarioCode="jefeestudios1.cipfpmislata@secretaria.virtual.es"  centroCode="46019660" tipoCode="PROFESOR"/>
         <tipo usuarioCode="jefeestudios2.cipfpmislata@secretaria.virtual.es"  centroCode="46019660" tipoCode="PROFESOR"/>
-
-        <!-- == CIPFP Mislata — profesores sin cargo == -->
         <tipo usuarioCode="profesor1.cipfpmislata@secretaria.virtual.es"      centroCode="46019660" tipoCode="PROFESOR"/>
         <tipo usuarioCode="profesor2.cipfpmislata@secretaria.virtual.es"      centroCode="46019660" tipoCode="PROFESOR"/>
 
-        <!-- == CIPFP Mislata — exprofesores == -->
+        <!-- == CIPFP Mislata — exprofesores (salieron en 2024) == -->
         <tipo usuarioCode="exprofesor1.cipfpmislata@secretaria.virtual.es"    centroCode="46019660" tipoCode="EXPROFESOR"/>
         <tipo usuarioCode="exprofesor2.cipfpmislata@secretaria.virtual.es"    centroCode="46019660" tipoCode="EXPROFESOR"/>
 
-        <!-- == CIPFP Mislata — alumnos == -->
+        <!-- == CIPFP Mislata — alumnos en 2024 == -->
         <tipo usuarioCode="alumno1.cipfpmislata@secretaria.virtual.es"        centroCode="46019660" tipoCode="ALUMNO"/>
         <tipo usuarioCode="alumno2.cipfpmislata@secretaria.virtual.es"        centroCode="46019660" tipoCode="ALUMNO"/>
         <tipo usuarioCode="alumno3.cipfpmislata@secretaria.virtual.es"        centroCode="46019660" tipoCode="ALUMNO"/>
@@ -226,32 +205,22 @@
         <tipo usuarioCode="alumno5.cipfpmislata@secretaria.virtual.es"        centroCode="46019660" tipoCode="ALUMNO"/>
         <tipo usuarioCode="alumno6.cipfpmislata@secretaria.virtual.es"        centroCode="46019660" tipoCode="ALUMNO"/>
 
-        <!-- == CIPFP Mislata — exalumnos == -->
+        <!-- == CIPFP Mislata — exalumnos (salieron en 2024) == -->
         <tipo usuarioCode="exalumno1.cipfpmislata@secretaria.virtual.es"      centroCode="46019660" tipoCode="EXALUMNO"/>
         <tipo usuarioCode="exalumno2.cipfpmislata@secretaria.virtual.es"      centroCode="46019660" tipoCode="EXALUMNO"/>
 
-        <!-- == CIPFP Mislata — familiares == -->
+        <!-- == CIPFP Mislata — familiares en 2024 == -->
         <tipo usuarioCode="familiar1.cipfpmislata@secretaria.virtual.es"      centroCode="46019660" tipoCode="FAMILIAR"/>
         <tipo usuarioCode="familiar2.cipfpmislata@secretaria.virtual.es"      centroCode="46019660" tipoCode="FAMILIAR"/>
         <tipo usuarioCode="familiar3.cipfpmislata@secretaria.virtual.es"      centroCode="46019660" tipoCode="FAMILIAR"/>
 
-        <!-- == CIPFP Batoi — equipo directivo == -->
+        <!-- == CIPFP Batoi — profesores en 2024 == -->
         <tipo usuarioCode="director.cipfpbatoi@secretaria.virtual.es"         centroCode="03012165" tipoCode="PROFESOR"/>
         <tipo usuarioCode="vicedirector.cipfpbatoi@secretaria.virtual.es"     centroCode="03012165" tipoCode="PROFESOR"/>
         <tipo usuarioCode="secretario.cipfpbatoi@secretaria.virtual.es"       centroCode="03012165" tipoCode="PROFESOR"/>
         <tipo usuarioCode="vicesecretario.cipfpbatoi@secretaria.virtual.es"   centroCode="03012165" tipoCode="PROFESOR"/>
-        <tipo usuarioCode="jefeestudios1.cipfpbatoi@secretaria.virtual.es"    centroCode="03012165" tipoCode="PROFESOR"/>
-        <tipo usuarioCode="jefeestudios2.cipfpbatoi@secretaria.virtual.es"    centroCode="03012165" tipoCode="PROFESOR"/>
 
-        <!-- == CIPFP Batoi — profesores sin cargo == -->
-        <tipo usuarioCode="profesor1.cipfpbatoi@secretaria.virtual.es"        centroCode="03012165" tipoCode="PROFESOR"/>
-        <tipo usuarioCode="profesor2.cipfpbatoi@secretaria.virtual.es"        centroCode="03012165" tipoCode="PROFESOR"/>
-
-        <!-- == CIPFP Batoi — exprofesores == -->
-        <tipo usuarioCode="exprofesor1.cipfpbatoi@secretaria.virtual.es"      centroCode="03012165" tipoCode="EXPROFESOR"/>
-        <tipo usuarioCode="exprofesor2.cipfpbatoi@secretaria.virtual.es"      centroCode="03012165" tipoCode="EXPROFESOR"/>
-
-        <!-- == CIPFP Batoi — alumnos == -->
+        <!-- == CIPFP Batoi — alumnos en 2024 == -->
         <tipo usuarioCode="alumno1.cipfpbatoi@secretaria.virtual.es"          centroCode="03012165" tipoCode="ALUMNO"/>
         <tipo usuarioCode="alumno2.cipfpbatoi@secretaria.virtual.es"          centroCode="03012165" tipoCode="ALUMNO"/>
         <tipo usuarioCode="alumno3.cipfpbatoi@secretaria.virtual.es"          centroCode="03012165" tipoCode="ALUMNO"/>
@@ -259,11 +228,7 @@
         <tipo usuarioCode="alumno5.cipfpbatoi@secretaria.virtual.es"          centroCode="03012165" tipoCode="ALUMNO"/>
         <tipo usuarioCode="alumno6.cipfpbatoi@secretaria.virtual.es"          centroCode="03012165" tipoCode="ALUMNO"/>
 
-        <!-- == CIPFP Batoi — exalumnos == -->
-        <tipo usuarioCode="exalumno1.cipfpbatoi@secretaria.virtual.es"        centroCode="03012165" tipoCode="EXALUMNO"/>
-        <tipo usuarioCode="exalumno2.cipfpbatoi@secretaria.virtual.es"        centroCode="03012165" tipoCode="EXALUMNO"/>
-
-        <!-- == CIPFP Batoi — familiares == -->
+        <!-- == CIPFP Batoi — familiares en 2024 == -->
         <tipo usuarioCode="familiar1.cipfpbatoi@secretaria.virtual.es"        centroCode="03012165" tipoCode="FAMILIAR"/>
         <tipo usuarioCode="familiar2.cipfpbatoi@secretaria.virtual.es"        centroCode="03012165" tipoCode="FAMILIAR"/>
         <tipo usuarioCode="familiar3.cipfpbatoi@secretaria.virtual.es"        centroCode="03012165" tipoCode="FAMILIAR"/>

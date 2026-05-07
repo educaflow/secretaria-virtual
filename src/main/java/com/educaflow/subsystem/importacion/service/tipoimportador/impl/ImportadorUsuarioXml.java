@@ -1,17 +1,23 @@
 package com.educaflow.subsystem.importacion.service.tipoimportador.impl;
 
 import com.axelor.db.JpaRepository;
+import com.axelor.db.modelservice.ModelServiceFactory;
+import com.axelor.inject.Beans;
 import com.educaflow.base.util.DniUtil;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.base.util.XMLUtil;
 import com.educaflow.subsystem.common.db.Centro;
+import com.educaflow.subsystem.common.db.CentroUsuario;
 import com.educaflow.subsystem.common.db.TipoUsuario;
+import com.educaflow.subsystem.common.service.CentroUsuarioService;
 import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorException;
 import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorFichero;
 import com.educaflow.subsystem.importacion.service.tipoimportador.ResultadoImportacion;
 import com.educaflow.subsystem.importacion.service.tipoimportador.ResultadoImportacion.MensajeImportacion;
 import com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado;
 import com.educaflow.subsystem.registrousuario.db.repo.UsuarioAutorizadoRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -21,79 +27,99 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;  // kept for XMLUtil.validarConSchema return type
+import java.util.Optional;
 
 public class ImportadorUsuarioXml implements ImportadorFichero {
 
     private final String nodoItem;
     private final String tipoUsuarioCode;
     private final String schemaPath;
+    private final UsuarioAutorizadoRepository usuarioAutorizadoRepository;
+
+    private final Logger logger = LoggerFactory.getLogger(ImportadorUsuarioXml.class);
 
     public ImportadorUsuarioXml(String nodoItem, String tipoUsuarioCode, String schemaPath) {
         this.nodoItem = nodoItem;
         this.tipoUsuarioCode = tipoUsuarioCode;
         this.schemaPath = schemaPath;
+        this.usuarioAutorizadoRepository = (UsuarioAutorizadoRepository) JpaRepository.of(UsuarioAutorizado.class);
+
     }
 
     @Override
     public ResultadoImportacion importar(byte[] contenido, Centro centro, Integer curso) {
-        int creados = 0;
-        int existentes = 0;
-        List<MensajeImportacion> mensajes = new ArrayList<>();
-
         validarEsquema(contenido);
-        Centro centroActivo = SecurityUtil.getUser().getCentroActivo();
-        if (centroActivo == null) {
-            throw new ImportadorException("No tienes un centro activo asignado en tu perfil");
-        }
-        if (!centroActivo.getCode().equals(centro.getCode())) {
-            throw new ImportadorException(
-                    "El fichero pertenece al centro '" + centro.getName() + "', pero tu centro activo es '" + centroActivo.getName() + "'");
-        }
-        TipoUsuario tipoUsuario = obtenerTipoUsuario();
-        UsuarioAutorizadoRepository repo = (UsuarioAutorizadoRepository) JpaRepository.of(UsuarioAutorizado.class);
+        comprobarCentroActivo(centro);
+        TipoUsuario tipoUsuario = obtenerTipoUsuario().orElseThrow(
+                () -> new ImportadorException("Tipo de usuario no encontrado: " + tipoUsuarioCode)
+        );
 
+        logger.info("Importando usuarios del tipo '{}' para el centro '{}' y curso '{}'",
+                tipoUsuario.getName(), centro.getName(), curso);
+
+        NodeList items = parsearItems(contenido);
+        List<MensajeImportacion> mensajes = new ArrayList<>();
+        int[] contadores = procesarItems(items, centro, curso, tipoUsuario, mensajes);
+
+        CentroUsuarioService centroUsuarioService = (CentroUsuarioService) Beans.get(ModelServiceFactory.class).resolve(CentroUsuario.class);
+        if (curso <= centro.getCurso()) {
+            centroUsuarioService.calcularTiposUsuarioRegistrados(centro.getId())
+                    .stream()
+                    .map(cambio -> new MensajeImportacion(null, null, cambio))
+                    .forEach(mensajes::add);
+        }
+
+        String resumen = construirResumen(centro, tipoUsuario, curso, contadores[0], contadores[1], mensajes.size(), items.getLength());
+        return new ResultadoImportacion(resumen, mensajes);
+    }
+
+    private NodeList parsearItems(byte[] contenido) {
         Document doc = XMLUtil.getDocument(contenido);
-        Element root = doc.getDocumentElement();
-        NodeList items = root.getElementsByTagName(nodoItem);
+        return doc.getDocumentElement().getElementsByTagName(nodoItem);
+    }
 
+    private int[] procesarItems(NodeList items, Centro centro, Integer curso, TipoUsuario tipoUsuario,
+                                 List<MensajeImportacion> mensajes) {
+        usuarioAutorizadoRepository.deleteByCentroAndCursoAndTipoUsuario(centro.getId(), curso, tipoUsuario.getId());
+
+        int creados = 0;
+        int errores = 0;
         for (int i = 0; i < items.getLength(); i++) {
             Element item = (Element) items.item(i);
             String documentoRaw = item.getAttribute("documento");
             try {
-                String dni = DniUtil.clean(documentoRaw);
-                if (!DniUtil.isValid(dni)) {
-                    mensajes.add(new MensajeImportacion(i + 1, documentoRaw, "DNI inválido"));
-                    continue;
-                }
-
-                boolean existe = repo.all()
-                        .filter("self.centro = :centro AND self.curso = :curso AND self.dni = :dni AND self.tipoUsuario = :tipoUsuario")
-                        .bind("centro", centro)
-                        .bind("curso", curso)
-                        .bind("dni", dni)
-                        .bind("tipoUsuario", tipoUsuario)
-                        .count() > 0;
-
-                if (existe) {
-                    existentes++;
-                } else {
-                    UsuarioAutorizado ua = new UsuarioAutorizado();
-                    ua.setCentro(centro);
-                    ua.setCurso(curso);
-                    ua.setDni(dni);
-                    ua.setTipoUsuario(tipoUsuario);
-                    repo.save(ua);
-                    creados++;
-                }
+                procesarItem(documentoRaw, centro, curso, tipoUsuario);
+                creados++;
             } catch (Exception e) {
+                errores++;
                 mensajes.add(new MensajeImportacion(i + 1, documentoRaw, e.getMessage()));
             }
         }
+        return new int[]{creados, errores};
+    }
 
-        String resumen = String.format("Nuevos: %d | Ya existían: %d | Avisos: %d | Total: %d",
-                creados, existentes, mensajes.size(), items.getLength());
-        return new ResultadoImportacion(resumen, mensajes);
+    private void procesarItem(String documentoRaw, Centro centro, Integer curso, TipoUsuario tipoUsuario) {
+        String dni = DniUtil.clean(documentoRaw);
+        if (!DniUtil.isValid(dni)) {
+            throw new ImportadorException("DNI inválido: " + documentoRaw);
+        }
+        UsuarioAutorizado ua = new UsuarioAutorizado();
+        ua.setCentro(centro);
+        ua.setCurso(curso);
+        ua.setDni(dni);
+        ua.setTipoUsuario(tipoUsuario);
+        usuarioAutorizadoRepository.save(ua);
+    }
+
+    private String construirResumen(Centro centro, TipoUsuario tipoUsuario, Integer curso,
+                                    int creados, int errores, int avisos, int total) {
+        return "Importando usuarios del tipo '" + tipoUsuario.getName() +
+                "' para el centro '" + centro.getName() +
+                "' y curso '" + curso + "'\n" +
+                "Importados: " + creados +
+                " | Errores: " + errores +
+                " | Avisos: " + avisos +
+                " | Total: " + total;
     }
 
     private void validarEsquema(byte[] contenido) {
@@ -111,15 +137,22 @@ public class ImportadorUsuarioXml implements ImportadorFichero {
         }
     }
 
-    private TipoUsuario obtenerTipoUsuario() {
+    private void comprobarCentroActivo(Centro centro) {
+        Centro centroActivo = SecurityUtil.getUser().getCentroActivo();
+        if (centroActivo == null) {
+            throw new ImportadorException("No tienes un centro activo asignado en tu perfil");
+        }
+        if (!centroActivo.getCode().equals(centro.getCode())) {
+            throw new ImportadorException(
+                    "El fichero pertenece al centro '" + centro.getName() + "', pero tu centro activo es '" + centroActivo.getName() + "'");
+        }
+    }
+
+    private Optional<TipoUsuario> obtenerTipoUsuario() {
         TipoUsuario tipoUsuario = JpaRepository.of(TipoUsuario.class).all()
                 .filter("self.code = :code")
                 .bind("code", tipoUsuarioCode)
                 .fetchOne();
-        if (tipoUsuario == null) {
-            throw new ImportadorException("TipoUsuario no encontrado: " + tipoUsuarioCode);
-        }
-        return tipoUsuario;
+        return Optional.ofNullable(tipoUsuario);
     }
-
 }

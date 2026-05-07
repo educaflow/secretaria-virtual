@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface CentroUsuarioService extends ModelService<CentroUsuario> {
 
-    List<String> calcularTipoUsuarioRegistrado(Long centroId, Integer curso);
+    List<String> calcularTiposUsuarioRegistrados(Long centroId);
 }

@@ -14,4 +14,11 @@ public class TipoUsuarioRepository extends AbstractTipoUsuarioRepository {
                 .bind("curso", curso)
                 .fetch();
     }
+
+    public TipoUsuario findByCodigo(String codigo) {
+        return all()
+                .filter("self.code = :codigo")
+                .bind("codigo", codigo)
+                .fetchOne();
+    }
 }

@@ -47,7 +47,7 @@
 
             <button name="btnDelete" title="Borrar" onClick="delete" css="btn-danger" colSpan="2"  outline="true" showIf="(id != null) || (cid != null)"/>
             <button name="btnCancel" title="Cancelar" onClick="back"  colSpan="2" colOffset="6" outline="true"   />
-            <button name="btnSave" title="Guardar" onClick="save"  colSpan="2"  />
+            <button name="btnSave" title="Guardar" onClick="save"  colSpan="2" />
         </panel>
     </form>
 

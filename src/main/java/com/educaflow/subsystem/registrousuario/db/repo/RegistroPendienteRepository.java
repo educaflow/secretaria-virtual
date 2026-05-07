@@ -17,10 +17,8 @@ import java.util.stream.Collectors;
 
 public class RegistroPendienteRepository extends AbstractRegistroPendienteRepository {
 
-    static final Map<String, String> EX_MAPPING = Map.of(
-            "PROFESOR", "EXPROFESOR",
-            "ALUMNO",   "EXALUMNO"
-    );
+    //static final Map<String, String> EX_MAPPING = UsuarioAutorizadoRepository.EX_MAPPING;
+    static final Map<String, String> EX_MAPPING = Map.of();
 
     public Optional<RegistroPendiente> findByToken(String token) {
         return Optional.ofNullable(

@@ -39,15 +39,17 @@ Análisis realizado el 2026-04-13. Revisar y corregir los siguientes problemas.
       Problema: el valor codigoXml (procedente del fichero subido) se concatena sin escapar en el mensaje de error.
       Fix: escapar caracteres especiales (<, >, &) o no incluir el valor en el mensaje.
 
-## Importación CSV
+## Importación XML
 
-[x] 14. Verificar filas realmente insertadas tras importación CSV
-       Fichero: subsystem/importacion/service/impl/TareaImportacionServiceImpl.java
-       Problema: Axelor CSVImporter reporta "Éxitos: N" aunque no persista ninguna fila (count++ ocurre
-       antes del commit; si el bean es null o el commit falla, el contador no lo refleja).
-       Fix: tras el import, parsear el CSV para extraer los DNIs, consultar UsuarioAutorizadoRepository
-       con countByDnisYCentroYCurso() y añadir advertencia a BusinessMessages si el count real difiere
-       del número de filas del CSV.
+[ ] 14. Modal de confirmación antes de importar
+       Ficheros: subsystem/importacion/views/tarea-importacion.xml
+                 system/gestioncentro/views/gestion-centro-main.xml
+       Motivo: la importación XML es ahora sustitutiva (borra y recrea los UsuarioAutorizado del
+       mismo tipo+curso), por lo que conviene avisar al usuario antes de ejecutarla.
+       Fix: añadir <action-validate> con <alert> en tarea-importacion.xml y referenciarla desde
+       los tres botones "Importar" de ambos ficheros.
+
+## Importación CSV
 
 [ ] 15. DNI importado como PROFESOR_EXTERNO puede duplicar entrada existente como PROFESOR
        Fichero: data-import/profesores-externos-csv-config.xml + subsystem/registrousuario
@@ -67,14 +69,6 @@ Análisis realizado el 2026-04-13. Revisar y corregir los siguientes problemas.
             con los realmente insertados → log muestra cuáles se saltaron. Resuelve también TODO-14.
        Verificar también: RegistroServiceImpl crea un CentroUsuarioTipoUsuario por cada elemento
        de la lista devuelta por findTiposUsuarioByDni — confirmar que doble rol es o no aceptable.
-
-## Pendiente de investigar
-       Fichero: subsystem/importacion/service/impl/TareaImportacionServiceImpl.java
-       Problema: Axelor CSVImporter reporta "Éxitos: N" aunque no persista ninguna fila (count++ ocurre
-       antes del commit; si el bean es null o el commit falla, el contador no lo refleja).
-       Fix: tras el import, parsear el CSV para extraer los DNIs, consultar UsuarioAutorizadoRepository
-       con countByDnisYCentroYCurso() y añadir advertencia a BusinessMessages si el count real difiere
-       del número de filas del CSV.
 
 ## Pendiente de investigar
 

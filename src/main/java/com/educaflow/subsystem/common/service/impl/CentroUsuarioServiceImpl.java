@@ -3,68 +3,66 @@ package com.educaflow.subsystem.common.service.impl;
 import com.axelor.db.JpaRepository;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
+import com.axelor.db.modelservice.ModelServiceFactory;
+import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.CentroUsuario;
 import com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario;
 import com.educaflow.subsystem.common.db.TipoUsuario;
 import com.educaflow.subsystem.common.db.repo.CentroUsuarioRepository;
-import com.educaflow.subsystem.common.db.repo.CentroUsuarioTipoUsuarioRepository;
 import com.educaflow.subsystem.common.service.CentroUsuarioService;
 import com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado;
-import com.educaflow.subsystem.registrousuario.db.repo.UsuarioAutorizadoRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.educaflow.subsystem.registrousuario.service.UsuarioAutorizadoService;
+import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class CentroUsuarioServiceImpl extends DefaultModelService<CentroUsuario> implements CentroUsuarioService {
 
-    private Logger logger = LoggerFactory.getLogger(CentroUsuarioServiceImpl.class);
+    private static final List<String> TIPOS_PRESERVADOS = List.of("PROFESOR_EXTERNO", "SUPERVISOR");
+
+    @Inject
+    ModelServiceFactory modelServiceFactory;
 
     public CentroUsuarioServiceImpl(Class<CentroUsuario> model, Repository repository) {
-        super(model, repository);
+        super(model, (CentroUsuarioRepository) repository);
     }
 
-    /*@Override
-    public CentroUsuario insert(CentroUsuario centroUsuario) {
-        logger.info("Insertando CentroUsuario: centroId={}, usuarioId={}", centroUsuario.getCentro().getId(), centroUsuario.getUsuario().getId());
-        return super.insert(centroUsuario);
+    private CentroUsuarioRepository repo() {
+        return (CentroUsuarioRepository) repository;
     }
 
-
     @Override
-    public CentroUsuario update(CentroUsuario centroUsuarionew, CentroUsuario b) {
-        logger.info("jhfhfg");
-        return null;
-    }*/
+    @Transactional
+    public List<String> calcularTiposUsuarioRegistrados(Long centroId) {
+        Centro centro = JpaRepository.of(Centro.class).find(centroId);
+        if (centro == null) return List.of();
 
-    @Override
-    public List<String> calcularTipoUsuarioRegistrado(Long centroId, Integer curso) {
-        UsuarioAutorizadoRepository usuarioAutorizadoRepo = (UsuarioAutorizadoRepository) JpaRepository.of(UsuarioAutorizado.class);
-        CentroUsuarioTipoUsuarioRepository centroUsuarioTipoUsuarioRepo = (CentroUsuarioTipoUsuarioRepository) JpaRepository.of(CentroUsuarioTipoUsuario.class);
+        List<CentroUsuario> anteriores = repo().findByCentro(centroId);
 
-        List<UsuarioAutorizado> autorizados = usuarioAutorizadoRepo.findByCentroAndCurso(centroId, curso);
+        UsuarioAutorizadoService usuarioAutorizadoService = (UsuarioAutorizadoService) modelServiceFactory.resolve(UsuarioAutorizado.class);
+        List<UsuarioAutorizado> usuarioAutorizados = usuarioAutorizadoService.getByCentroAndCurso(centro, centro.getCurso());
 
-        List<String> profesorDnis = autorizados.stream()
-                .filter(ua -> "PROFESOR".equals(ua.getTipoUsuario().getCode()))
-                .map(UsuarioAutorizado::getDni)
-                .toList();
+        Map<String, List<TipoUsuario>> tiposPorDni = usuarioAutorizados.stream()
+                .collect(Collectors.groupingBy(
+                        UsuarioAutorizado::getDni,
+                        Collectors.mapping(UsuarioAutorizado::getTipoUsuario, Collectors.toList())
+                ));
 
-        List<String> alumnoDnis = autorizados.stream()
-                .filter(ua -> "ALUMNO".equals(ua.getTipoUsuario().getCode()))
-                .map(UsuarioAutorizado::getDni)
-                .toList();
+        repo().deleteTiposUsuarioByCentroExcluyendo(centroId, TIPOS_PRESERVADOS);
 
-        int degradadosProfesores = centroUsuarioTipoUsuarioRepo.degradarProfesores(centroId);
-        int degradadosAlumnos    = centroUsuarioTipoUsuarioRepo.degradarAlumnos(centroId);
-        int profesoresActivos    = profesorDnis.isEmpty() ? 0 : centroUsuarioTipoUsuarioRepo.promoverAProfesor(centroId, profesorDnis);
-        int alumnosActivos       = alumnoDnis.isEmpty()   ? 0 : centroUsuarioTipoUsuarioRepo.promoverAAlumno(centroId, alumnoDnis);
+        for (CentroUsuario centroUsuario : anteriores) {
+            String dni = centroUsuario.getUsuario() != null ? centroUsuario.getUsuario().getDni() : null;
+            for (TipoUsuario tipo : tiposPorDni.getOrDefault(dni, List.of())) {
+                CentroUsuarioTipoUsuario cutu = new CentroUsuarioTipoUsuario();
+                cutu.setTipoUsuario(tipo);
+                centroUsuario.addCentroUsuarioTipoUsuario(cutu);
+            }
+            repository.save(centroUsuario);
+        }
 
-        List<String> resultado = new ArrayList<>();
-        resultado.add("Profesores activos en el nuevo curso: " + profesoresActivos);
-        resultado.add("Convertidos a exprofesor: " + (degradadosProfesores - profesoresActivos));
-        resultado.add("Alumnos activos en el nuevo curso: " + alumnosActivos);
-        resultado.add("Convertidos a exalumno: " + (degradadosAlumnos - alumnosActivos));
-        return resultado;
+        return List.of();
     }
 }
