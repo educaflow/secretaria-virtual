@@ -13,6 +13,7 @@ import com.educaflow.base.util.DniUtil;
 import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
 import com.educaflow.subsystem.criptografia.db.TipoUbicacionCertificado;
+import com.educaflow.subsystem.criptografia.db.repo.CertificadoDigitalRepository;
 import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
 
 import java.io.ByteArrayInputStream;
@@ -31,10 +32,7 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
 
     @Override
     public AlmacenClave getAlmacenClaveByDni(String dni) {
-        CertificadoDigital certificado = repository.all()
-                .filter("self.dni = :dni")
-                .bind("dni", dni)
-                .fetchOne();
+        CertificadoDigital certificado = ((CertificadoDigitalRepository) repository).findByDni(dni);
 
         if (certificado == null) {
             throw new RuntimeException("No existe certificado para el DNI: " + dni);
