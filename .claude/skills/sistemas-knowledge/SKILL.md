@@ -5,7 +5,10 @@ description: Este Skill permite diseñar y generar la estructura de carpetas, fi
 
 # Sistemas y Subsistemas
 
-Este Skill permite diseñar y generar la estructura de carpetas, ficheros y código Java y XML de un sistema o subsistema en el proyecto Axelor, siguiendo las reglas de dependencia, estructura interna y patrones de vistas definidos en este documento.
+Un sistema y un subsistema son técnicamente idénticos en estructura. La diferencia es conceptual:
+
+- **Subsistema** — capacidad reutilizable que usan otros subsistemas o sistemas. No desaparecería si se eliminara un sistema concreto. Ejemplos: `firmas`, `registroentradasalida`, `sistemaeducativo`, `common`.
+- **Sistema** — funcionalidad concreta ofrecida al usuario. No necesita ser reutilizada por nadie. Se eliminaría sin afectar al resto. Ejemplos: `actas`, `importar`, `tiposexpedientes/comision_servicio`.
 
 ## Reglas de dependencia
 
@@ -16,25 +19,93 @@ base/util  ←  base/infrastructure  ←  subsystem  ←  system
 - Un **subsistema** puede depender de `base/` y de otros subsistemas (sin ciclos). Nunca de un sistema.
 - Un **sistema** puede depender de `base/` y de subsistemas. **Nunca de otro sistema.**
 
+## Raíz de cada capa
+
+| Capa                | Paquete Java                        | Ruta de ficheros       |
+|---------------------|-------------------------------------|------------------------|
+| base/util           | `com.educaflow.base.util`           | `base/util/`           |
+| base/infrastructure | `com.educaflow.base.infrastructure` | `base/infrastructure/` |
+| subsystem           | `com.educaflow.subsystem.<nombre>`  | `subsystem/<nombre>/`  |
+| system              | `com.educaflow.system.<nombre>`     | `system/<nombre>/`     |
+
 ## Estructura interna
 
 Tanto sistemas como subsistemas comparten la misma estructura de carpetas:
 
 ```
 <nombre>/
-├── domains/          ← entidades JPA (ficheros XML de Axelor)
-├── service/          ← interfaz del servicio + DTOs de entrada
-│   └── impl/         ← implementación del servicio
-├── db/               ← repositorios JPA y listeners
+├── domains/            ← modelos de datos (XML de Axelor)
+├── service/            ← interfaz del servicio + DTOs + interfaces de callback
+│   └── impl/           ← implementación del servicio
+├── db/                 ← repositorios JPA y listeners (generados o escritos a mano)
 │   └── repo/
-├── module/           ← módulo Guice (bindings interfaz → impl)
-├── controller/       ← controladores Axelor (@CallMethod), si los hay
-└── views/            ← vistas XML de Axelor (grids, formularios, menús)
+├── controller/         ← controladores Axelor (@CallMethod), si los hay
+├── module/             ← módulo Guice (solo si hay bindings que no descubre ModelServiceFactory)
+├── views/              ← vistas XML de Axelor (grids, formularios, actions, menuitems inline)
+├── documentospdf/      ← plantillas PDF propias del sistema/subsistema (opcional)
+└── data-init/          ← datos iniciales de BD (opcional)
+    └── input/
 ```
 
-También puede haber carpetas adicionales según la naturaleza del subsistema, como `documentospdf/` para plantillas PDF propias del subsistema.
+### `domains/`
 
-## Ejemplo: `subsystem/firmas`
+Contiene los ficheros XML de definición de entidades Axelor (namespace `domain-models`). Un fichero por entidad. El build genera las clases Java correspondientes en `db/` (no se editan manualmente).
+
+También puede contener diagramas de modelo (`.plantuml`, `.png`) para documentación.
+
+### `service/`
+
+Contiene:
+- La **interfaz** del servicio: `MiEntidadService.java` — extiende `ModelService<MiEntidad>`.
+- Los **DTOs de inserción** si son necesarios: `MiEntidadInsertDTO.java` (record Java).
+- **Interfaces de callback** si las hay: p.ej. `TareaFirmaNotifier.java`.
+- La subpaquete `impl/` con la **implementación**: `MiEntidadServiceImpl.java` — extiende `DefaultModelService<MiEntidad>`.
+
+El paquete `service.impl` es el que busca `ModelServiceFactory` por convención — sin necesidad de módulo Guice.
+
+### `db/`
+
+La carpeta `db/` está reservada para las clases Java generadas automáticamente por el build de Axelor a partir de los XML de `domains/`. **No se editan manualmente.**
+
+La subcarpeta `db/repo/` sí se edita manualmente cuando se necesita:
+- **Repository personalizado**: hereda de `Abstract<Entidad>Repository` (generado) para añadir queries propias.
+- **Listener JPA**: intercepta eventos de ciclo de vida (prePersist, preUpdate, etc.).
+
+Si no hay repositorios ni listeners propios, la carpeta puede existir vacía con un `.gitkeep`.
+
+### `controller/`
+
+Contiene los controladores Java: clases con métodos `@CallMethod` que reciben `ActionRequest`/`ActionResponse` y delegan en los servicios. Solo existen si las vistas necesitan lógica de negocio disparada por botones o eventos de formulario.
+
+Convención de paquete: `com.educaflow.{layer}.{nombre}.controller` (singular).
+
+### `module/`
+
+Módulo Guice que registra bindings interfaz → implementación cuando `ModelServiceFactory` no los puede descubrir automáticamente (p.ej. servicios que no son `ModelService`, implementaciones de terceros).
+
+Solo se crea si es necesario. Muchos sistemas/subsistemas no lo necesitan.
+
+### `views/`
+
+Ficheros XML de vistas Axelor (namespace `object-views`). Cada fichero puede contener grids, formularios y actions para una o varias entidades del sistema/subsistema.
+
+Convención de nombres de ficheros: `<NombreEntidad>.xml` (si hay pocas vistas) o agrupar por funcionalidad.
+
+También contiene `i18n_es.csv` e `i18n_ca.csv` (generados automáticamente por el build — **no se crean a mano**).
+
+### `documentospdf/` (opcional)
+
+Plantillas PDF (`.pdf`, `.odt`) y recursos gráficos (`.png`, logos) usados para generar documentos PDF dentro del servicio. Se cargan como recursos del classpath.
+
+### `data-init/` (opcional)
+
+Datos iniciales de base de datos cargados al arrancar la aplicación:
+- `input-config.xml` — configura las fuentes de datos a importar.
+- `input/*.xml` — registros concretos a insertar (roles, permisos, tipos, etc.).
+
+## Ejemplos
+
+### `subsystem/firmas`
 
 ```
 firmas/
@@ -59,7 +130,7 @@ firmas/
     └── firma-todos.xml
 ```
 
-## Ejemplo: `subsystem/registroentradasalida`
+### `subsystem/registroentradasalida`
 
 ```
 registroentradasalida/
@@ -68,9 +139,9 @@ registroentradasalida/
 │   └── RegistroSalida.xml
 ├── service/
 │   ├── RegistroEntradaService.java
+│   ├── RegistroEntradaInsertDTO.java
 │   ├── RegistroSalidaService.java
-│   ├── DatosRegistroEntrada.java  ← record DTO
-│   ├── DatosRegistroSalida.java   ← record DTO
+│   ├── RegistroSalidaInsertDTO.java
 │   ├── PersonaRegistro.java       ← record DTO
 │   └── impl/
 │       ├── RegistroEntradaServiceImpl.java
@@ -81,67 +152,42 @@ registroentradasalida/
 │       ├── RegistroEntradaListener.java
 │       ├── RegistroSalidaRepository.java
 │       └── RegistroSalidaListener.java
-├── documentospdf/                 ← plantillas PDF propias del subsistema
+├── documentospdf/
 │   └── registro_entrada_plantilla.pdf
-├── module/
-│   └── RegistroEntradaSalidaModule.java
 └── views/
     ├── registro_entrada.xml
     └── registro_salida.xml
 ```
 
+### `subsystem/sistemaeducativo`
 
-
-## Ficheros de vistas XML
-
-> Para crear o modificar el contenido de los ficheros XML de vistas usa los skills `/vistas-steps`, `/formularios-steps`, `/grids-steps` y `/actions-steps`.
-
-Los ficheros de vistas se ubican en la carpeta `views/` del sistema o subsistema. Los ficheros de vistas se nombran siguiendo la convención:
-- `subsystem/<nombre>/views/<NombreEntidad>.xml`
-- `system/<nombre>/views/<NombreEntidad>.xml`
-
-Aunque si hay muchas vistas también se pueden organizar en varios ficheros según su funcionalidad dentro de la carpeta views.
-
-## Nombre de las vistas y acciones
-
-
-El nombre de las vistas de acción es:      `{Prefijo}.{Entidad}@[Main|otro nombre][-{mas cosas}]*-action`
-
-
-El grid `{Prefijo}.{Entidad}@Search-grid` se usa como selector en campos many-to-one para abrir un grid de búsqueda específico en lugar del grid por defecto que se abre al pulsar la lupa.
-El form `{Prefijo}.{Entidad}@View-form` se usa para abrir un form de solo lectura al hacer clic sobre el registro ya seleccionado en lugar del form por defecto que se abre al pulsar la lupa.
-
-El grid `{Prefijo}.{Entidad}[.{EntidadHija}]*@Main-grid` se usa para la pantalla principal de listado de esa entidad
-El form `{Prefijo}.{Entidad}[.{EntidadHija}]*@Main-form` se usa para la pantalla principal de edición de esa entidad. 
-La acción `{Prefijo}.{Entidad}[.{EntidadHija}]*@Main-action` se usa para abrir la pantalla principal de esa entidad desde el menú o desde otras vistas.
-
-### Prefijos
-
-- Subsistemas: `subsys{Subsistema}` (PascalCase sin separador), p.ej. `subsysFirma`, `subsysRegistroEntradaSalida`
-- Sistemas: `sys{Sistema}` (PascalCase sin separador), p.ej. `sysImportar`
-- Excepción: el prefijo `exp-` se reserva exclusivamente para las vistas del framework de tipos de expediente
-
-Las entidades se separan con `.` (punto) y los nombres de ese formulario o grid con `@` 
-
-
-### Actions (`-action`)
-
-Todos los tipos de action terminan en `-action`. Los action son alguno de los siguientes tags `action-view`, `action-record`, `action-method`, `action-group`, `action-validate`, `action-script`) 
-
-#### action-view
-
-
-| Caso                               | Patrón                                         | Ejemplo                                             |
-|------------------------------------|------------------------------------------------|-----------------------------------------------------|
-| Mantenimiento o pantalla principal | `subsys{Subsistema}.{Entidad}@Main-action`     | `subsysSistemaEducativo.Ciclo@Main-action` |
-| Otro mantenimiento o pantalla      | `subsys{Subsistema}.{Entidad}@{Nombre}-action` | `subsysFirma.TareaFirma@Pendiente-action`           |
-
-
-### Menuitems (`-menuitem`)
-
-Para la convención completa de nombres de menuitems, ver `/menus-knowledge`.
-
-
+```
+sistemaeducativo/
+├── domains/
+│   ├── LeyEducativa.xml
+│   ├── Nivel.xml
+│   ├── Grado.xml
+│   ├── FamiliaProfesional.xml
+│   ├── Ciclo.xml
+│   ├── Curso.xml
+│   ├── CursoModulo.xml
+│   └── Modulo.xml
+├── service/
+│   ├── LeyEducativaService.java
+│   └── impl/
+│       └── LeyEducativaServiceImpl.java
+├── controller/
+│   └── LeyEducativaController.java
+└── views/
+    ├── LeyEducativa.xml
+    ├── Nivel.xml
+    ├── Grado.xml
+    ├── FamiliaProfesional.xml
+    ├── Ciclo.xml
+    ├── Curso.xml
+    ├── CursoModulo.xml
+    └── Modulo.xml
+```
 
 ## Workflow para crear un sistema o subsistema
 
@@ -149,7 +195,7 @@ Cuando se crea o modifica un sistema/subsistema, seguir este orden:
 
 1. **Analiza** qué hay que crear: dominio, servicios, controladores, vistas, menús
 2. **Lee los ficheros existentes** antes de generar nada — modelo, vistas del sistema o subsistema, menús, etc.
-3. **Decide el patrón estructural** de vistas a aplicar (ver sección siguiente)
+3. **Decide el patrón estructural** de vistas a aplicar (ver `/vistas-knowledge`)
 4. **Genera o modifica el dominio** usando el skill `/modelos-steps`
 5. **Genera o modifica los servicios** usando el skill `/servicios-steps`
 6. **Genera o modifica los controladores** usando el skill `/controladores-steps`
@@ -182,7 +228,7 @@ El grid y el form del `panel-related` se preceden de este bloque de comentarios 
 ```
 Si hay anidamiento, el texto del comentario refleja todos los niveles: `Vistas de ModeloMaestro -> ModeloDetalle1 -> ModeloDetalle2`.
 
-### Comentarios 
+### Comentarios
 Organización del fichero de vistas con comentarios (relleno con `*`, `-->` alineados):
 ```xml
 <!-- **********************************************************  -->
@@ -232,13 +278,10 @@ Organización del fichero de vistas con comentarios (relleno con `*`, `-->` alin
 - Se crean `action-record` que asignan `pasoActual` al nuevo estado (van en la sección de acciones básicas).
 - El form tiene `onLoad="subsys{X}.{Entidad}@{Estado}-set-pasoActual-{pasoInicial}-action"` para inicializar al primer paso al abrir el formulario.
 
-
 ## Cuándo crear un subsistema vs un sistema
 
 Crear un **subsistema** cuando la capacidad es reutilizable (no necesariamente) por múltiples sistemas o por otros subsistemas (ej: firmas, registro de entrada/salida, certificados digitales).
 
-Crear un **sistema** es similar a un subsistema solo no necesita ser reutilizada por nadie (Se podría eliminar sin problemas si se deja de usar) un sistema no depende de otros sistemas pero si de otros subsistemas. Ejemplos: `tiposexpedientes/comision_servicio`, `importar`, `actas`. 
+Crear un **sistema** es similar a un subsistema solo que no necesita ser reutilizada por nadie (Se podría eliminar sin problemas si se deja de usar). Un sistema no depende de otros sistemas pero sí de otros subsistemas. Ejemplos: `tiposexpedientes/comision_servicio`, `importar`, `actas`.
 
-
-Pero la diferencia principal entre un sistema y un subsistema es que el sistema suele representar una funcionalidad que se ofrece a los usuarios y que ellos han solicitado. Es decir es una diferencia desde el punto de vista del negocio. Por ejemplo, el registro de entrada/salida no es algo que solicitan sino que es una necesidad que usan los expedientes.
-Mientras que el subsistema es una parte más genérica y reutilizable que puede ser usada por varios sistemas. Por ejemplo, el subsistema de `firmas` puede ser usado por múltiples sistemas para gestionar la firma de documentos, mientras que el sistema `comision_servicio` es una funcionalidad concreta que utiliza el subsistema de firmas para gestionar los expedientes de comisión de servicio.
+La diferencia principal entre un sistema y un subsistema es que el sistema suele representar una funcionalidad que se ofrece a los usuarios y que ellos han solicitado. Es decir, es una diferencia desde el punto de vista del negocio. Por ejemplo, el registro de entrada/salida no es algo que los usuarios solicitan sino que es una necesidad que usan los expedientes. Mientras que el subsistema es una parte más genérica y reutilizable que puede ser usada por varios sistemas. Por ejemplo, el subsistema de `firmas` puede ser usado por múltiples sistemas para gestionar la firma de documentos, mientras que el sistema `comision_servicio` es una funcionalidad concreta que utiliza el subsistema de firmas para gestionar los expedientes de comisión de servicio.

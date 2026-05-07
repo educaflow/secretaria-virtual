@@ -40,6 +40,40 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 - Los ficheros `i18n_es.csv` e `i18n_ca.csv` se generan automáticamente — **no crearlos a mano**
 - Las vistas de menús van en `secretariavirtual/menus/`, no en `views/`
 
+## Nombre de las vistas y acciones
+
+El nombre de las vistas de acción es: `{Prefijo}.{Entidad}@[Main|otro nombre][-{mas cosas}]*-action`
+
+El grid `{Prefijo}.{Entidad}@Search-grid` se usa como selector en campos many-to-one para abrir un grid de búsqueda específico en lugar del grid por defecto que se abre al pulsar la lupa.
+El form `{Prefijo}.{Entidad}@View-form` se usa para abrir un form de solo lectura al hacer clic sobre el registro ya seleccionado en lugar del form por defecto que se abre al pulsar la lupa.
+
+El grid `{Prefijo}.{Entidad}[.{EntidadHija}]*@Main-grid` se usa para la pantalla principal de listado de esa entidad.
+El form `{Prefijo}.{Entidad}[.{EntidadHija}]*@Main-form` se usa para la pantalla principal de edición de esa entidad.
+La acción `{Prefijo}.{Entidad}[.{EntidadHija}]*@Main-action` se usa para abrir la pantalla principal de esa entidad desde el menú o desde otras vistas.
+
+### Prefijos
+
+- Subsistemas: `subsys{Subsistema}` (PascalCase sin separador), p.ej. `subsysFirma`, `subsysRegistroEntradaSalida`
+- Sistemas: `sys{Sistema}` (PascalCase sin separador), p.ej. `sysImportar`
+- Excepción: el prefijo `exp-` se reserva exclusivamente para las vistas del framework de tipos de expediente
+
+Las entidades se separan con `.` (punto) y los nombres de ese formulario o grid con `@`
+
+### Actions (`-action`)
+
+Todos los tipos de action terminan en `-action`. Los action son alguno de los siguientes tags: `action-view`, `action-record`, `action-method`, `action-group`, `action-validate`, `action-script`
+
+#### action-view
+
+| Caso                               | Patrón                                         | Ejemplo                                             |
+|------------------------------------|------------------------------------------------|-----------------------------------------------------|
+| Mantenimiento o pantalla principal | `subsys{Subsistema}.{Entidad}@Main-action`     | `subsysSistemaEducativo.Ciclo@Main-action`          |
+| Otro mantenimiento o pantalla      | `subsys{Subsistema}.{Entidad}@{Nombre}-action` | `subsysFirma.TareaFirma@Pendiente-action`           |
+
+### Menuitems (`-menuitem`)
+
+Para la convención completa de nombres de menuitems, ver `/menus-knowledge`.
+
 ---
 
 ## Vistas de mantenimiento (`@Main`)
