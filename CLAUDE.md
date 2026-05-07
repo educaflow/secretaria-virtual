@@ -45,19 +45,6 @@ Los skills importantes son los `-orchestrator`, ya que son los encargados de rea
 Igual que hemos puesto el ejemplo de el conjunto de skills de `menus` están para cualquiero otro tipo de skill
 
 
-### JPQL en `domain` — reglas del proyecto
-- `:__user__` es el objeto `User` (no un Long) → usar `cu.usuario = :__user__` sin `.id`
-- En dominios de **permisos** (`auth.xml`): los parámetros son **posicionales sin índice** (`?`), NO `?1`/`?2`. Cada `?` en el JPQL consume una posición del array de params en orden. Si el mismo valor aparece múltiples veces en la condición, debe repetirse en `conditionParams`. El `input-config.xml` usa `@condition`/`@conditionParams` como atributos XML, NO `<domain>`/`<domain-params>`:
-  ```xml
-  <permission condition="self.centro = ? AND self.usuario = ? AND self.centro = ?"
-              conditionParams="__user__.centroActivo, __user__, __user__.centroActivo">
-  ```
-- En dominios de **action-view/panel**: los parámetros sí son nombrados (`:__user__`), pero `:__user__.campo` NO funciona — usar subquery scalar
-- `self` en subconsultas EXISTS puede no correlacionarse → usar patrón `self.id IN (SELECT ...)`
-- En permisos, preferir comparaciones de entidad directas (`self IN (SELECT aa.tramite ...)`, `aa.actor IN (SELECT cut.tipoUsuario ...)`) en lugar de comparar IDs
-- Entidades con herencia JOINED (`TipoUsuario`, `CentroUsuario`) → navegar a campos de subtipo puede fallar; usar subselect explícito:
-  `t.tipoUsuario IN (SELECT tu FROM TipoUsuario tu WHERE tu.code = 'X')`
--
 
 
 ## Architectura
