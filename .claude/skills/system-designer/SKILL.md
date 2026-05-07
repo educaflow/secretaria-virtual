@@ -9,34 +9,41 @@ Eres un arquitecto técnico que convierte un análisis funcional en un plan de i
 
 **Regla de oro:** NO generes el plan sin haber leído el fichero de análisis funcional completo. El análisis es la fuente de verdad — no interpretes ni amplíes más allá de lo que dice.
 
-**Argumento de entrada:** ruta al fichero de análisis funcional (`docs/analisis/YYYY-MM-DD_HH-MM-<nombre>.md`). Si el usuario no lo proporciona, pídelo antes de continuar.
+**Argumento de entrada:** ruta al fichero de análisis funcional (`prompts/{carpeta-iniciativa}/analisis_YYYY-MM-DD_HH-MM/analisis.md`). Si el usuario no lo proporciona, pídelo antes de continuar.
 
-
+---
 
 ## Fase 0 — Carga de contexto
 
 Antes de generar nada:
 
 1. **Lee el fichero de análisis funcional** en la ruta indicada. Extrae: entidades, operaciones, vistas, seguridad, validaciones y asunciones.
-2. **Carga los skills técnicos necesarios** según las áreas que cubre el análisis:
+2. **Determina la carpeta de trabajo**: es la carpeta `analisis_YYYY-MM-DD_HH-MM/` que contiene el `analisis.md` recibido.
+   - Ejemplo: si el análisis está en `prompts/2025-05-07_10-30_gestion-firmas/analisis_2025-05-07_11-45/analisis.md`, la carpeta de trabajo es `prompts/2025-05-07_10-30_gestion-firmas/analisis_2025-05-07_11-45/`.
+   - El diseño se guardará en esa misma carpeta (junto al `analisis.md`).
+3. **Carga los skills técnicos necesarios** según las áreas que cubre el análisis:
    - Siempre: `k-sistemas` (dominio, servicios, controladores, validaciones)
    - Siempre: `k-validaciones` (taxonomía de validaciones, mensajes de error, campos calculados, ciclo de vida — referencia funcional para traducir las validaciones del análisis a código)
    - Si hay vistas o menús: `k-vistas`
    - Si hay permisos o roles: `k-seguridad`
    Son la fuente de verdad sobre cómo implementar cada cosa — sin ellos el plan puede ser incorrecto.
-3. **Explora el código existente** para entender patrones reales:
+4. **Explora el código existente** para entender patrones reales:
    - Mira qué ya existe en `subsystem/` y `system/` relacionado con el análisis.
    - Verifica que los subsistemas de los que depende el nuevo sistema existen y cómo se usan.
    - **NUNCA uses como referencia `expedientes`, `tiposexpedientes` ni `tramites`.**
-4. **Identifica ficheros a crear o modificar**: dominios, servicios, controladores, vistas, menús, seguridad, datos iniciales.
+5. **Identifica ficheros a crear o modificar**: dominios, servicios, controladores, vistas, menús, seguridad, datos iniciales.
 
 ---
 
 ## Fase 1 — Generación del plan
 
-> **REGLA OBLIGATORIA — ruta del plan:** se guarda **siempre** en
-> `docs/plans/YYYY-MM-DD_HH-MM-<nombre>.md`
-> (fecha y hora actuales, nombre en kebab-case).
+> **REGLA OBLIGATORIA — ruta del diseño:** se guarda en la **carpeta de trabajo** determinada
+> en la Fase 0 (la subcarpeta `analisis_YYYY-MM-DD_HH-MM/`), con el nombre: `disenyo_YYYY-MM-DD_HH-MM.md`
+> (fecha y hora actuales en formato `YYYY-MM-DD_HH-MM`).
+>
+> Ejemplo: `prompts/2025-05-07_10-30_gestion-firmas/analisis_2025-05-07_11-45/disenyo_2025-05-07_12-10.md`
+>
+> Pueden existir varios ficheros `disenyo_*.md` en la misma subcarpeta de análisis (iteraciones sucesivas).
 > **Nunca en la raíz del proyecto ni en ninguna otra carpeta.**
 
 ### Estructura del plan
@@ -46,7 +53,7 @@ Antes de generar nada:
 
 **Objetivo:** <Una frase>
 **Capa:** system|subsystem/<nombre>
-**Análisis de origen:** docs/analisis/YYYY-MM-DD_HH-MM-<nombre>.md
+**Análisis de origen:** prompts/{carpeta-iniciativa}/analisis_YYYY-MM-DD_HH-MM/analisis.md
 **Skills necesarios para la implementación:** k-sistemas, k-vistas[, k-seguridad]
 
 ## Ficheros a crear o modificar
@@ -116,8 +123,8 @@ Antes de guardar, comprueba cada punto:
 - [ ] **¿Las validaciones del análisis funcional están mapeadas a la capa correcta?** Nivel 1-2 (`k-validaciones`) → cliente; Nivel 3-5 → servidor. Ver tabla en `k-sistemas/validaciones.md`.
 - [ ] **¿Algún paso crea un módulo Guice para un `ModelService`?** Si es así, eliminarlo — `ModelServiceFactory` los descubre automáticamente.
 - [ ] **¿Algún paso crea un listener JPA para lógica de negocio?** Si es así, moverlo al servicio como `fireActionRule_*`.
-- [ ] ¿El plan referencia el fichero de análisis de origen en la cabecera?
-- [ ] ¿El fichero del plan se guarda en `docs/plans/YYYY-MM-DD_HH-MM-<nombre>.md`?
+- [ ] ¿El plan referencia el fichero de análisis de origen en la cabecera (`prompts/{carpeta-iniciativa}/analisis_YYYY-MM-DD_HH-MM/analisis.md`)?
+- [ ] ¿El fichero del plan se guarda en `prompts/{carpeta-iniciativa}/analisis_YYYY-MM-DD_HH-MM/disenyo_YYYY-MM-DD_HH-MM.md`?
 
 Si encuentras algún problema, corrígelo antes de guardar.
 
@@ -128,10 +135,10 @@ Si encuentras algún problema, corrígelo antes de guardar.
 Al guardar el plan, indica al usuario:
 
 ```
-Plan guardado en docs/plans/YYYY-MM-DD_HH-MM-<nombre>.md
+Diseño guardado en prompts/{carpeta-iniciativa}/analisis_YYYY-MM-DD_HH-MM/disenyo_YYYY-MM-DD_HH-MM.md
 
 Para implementarlo ejecuta:
-  /system-implementer docs/plans/YYYY-MM-DD_HH-MM-<nombre>.md
+  /system-implementer prompts/{carpeta-iniciativa}/analisis_YYYY-MM-DD_HH-MM/disenyo_YYYY-MM-DD_HH-MM.md
 ```
 
 No lances `system-implementer` tú mismo. El usuario decide cuándo ejecutarlo.
