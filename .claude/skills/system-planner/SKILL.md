@@ -15,12 +15,14 @@ Eres un arquitecto que convierte historias de usuario en planes de implementaci�
 
 Antes de hacer ninguna pregunta:
 
-1. Lee el CLAUDE.md del proyecto para entender las capas, convenciones y tecnologías.
-2. Explora los sistemas/subsistemas existentes para entender patrones reales aplicados:
+1. **Carga los skills que necesites para hacer bien tu trabajo.** Antes de planificar nada, razona qué áreas cubre el plan (dominio, servicios, vistas, seguridad…) y carga los skills correspondientes. Son la fuente de verdad sobre cómo se implementan las cosas en este proyecto — sin ellos, cualquier estructura o código que propongas en el plan puede ser incorrecto.
+
+2. Lee el CLAUDE.md del proyecto para entender las capas, convenciones y tecnologías.
+3. Explora los sistemas/subsistemas existentes para entender patrones reales aplicados:
    - `src/main/java/com/educaflow/subsystem/` y `src/main/java/com/educaflow/system/` para ver qué ya existe.
    - Si la historia de usuario menciona algo concreto (un subsistema, una entidad, una vista), léelo antes de preguntar.
    - **NUNCA leas ni uses como referencia el código de `expedientes`, `tiposexpedientes` ni `tramites`** — siguen una arquitectura completamente distinta al resto del proyecto y tomarlos como ejemplo llevaría a implementaciones incorrectas.
-3. Identifica si ya existe algo relacionado con lo que se pide y qué habría que reutilizar o extender.
+4. Identifica si ya existe algo relacionado con lo que se pide y qué habría que reutilizar o extender.
 
 ---
 
@@ -135,11 +137,11 @@ Si detectas algo ambiguo, añádelo a la sección de "Asunciones tomadas" o vuel
 
 Solo tras aprobación del borrador de diseño, genera el plan de implementación.
 
-> **REGLA OBLIGATORIA — ruta del fichero del plan:** el plan se guarda **siempre** en `docs/plans/YYYY-MM-DD-<nombre>.md` (con la fecha de hoy en formato ISO y el nombre en kebab-case). **Nunca en la raíz del proyecto ni en ninguna otra carpeta.**
+> **REGLA OBLIGATORIA — ruta del fichero del plan:** el plan se guarda **siempre** en `docs/plans/YYYY-MM-DD_HH-MM-<nombre>.md` (con la fecha y hora actuales en formato ISO y el nombre en kebab-case). **Nunca en la raíz del proyecto ni en ninguna otra carpeta.**
 
 ### Estructura del plan
 
-El plan se guarda en `docs/plans/YYYY-MM-DD-<nombre>.md` con esta estructura:
+El plan se guarda en `docs/plans/YYYY-MM-DD_HH-MM-<nombre>.md` con esta estructura:
 
 ```markdown
 # Plan: <Nombre>
@@ -192,7 +194,7 @@ Antes de guardar el plan, comprueba:
 - **¿El plan incluye validaciones en el cliente** (`action-validate` con los campos obligatorios y reglas de negocio) **y en el servidor** (método `validateSave` en el controlador que llama a `service.validateInsert()`)?  Si hay operaciones que crean o modifican datos y el plan no tiene validaciones, es un error — añadirlas.
 - **¿Algún paso crea un módulo Guice para registrar un `ModelService`?** Si es así, elimínalo — `ModelServiceFactory` los descubre automáticamente.
 - **¿Algún paso crea un listener JPA para implementar lógica de negocio?** Si es así, mover esa lógica al servicio como un método `fireActionRule_*`.
-- **¿El fichero del plan se va a guardar en `docs/plans/YYYY-MM-DD_HH-MM_<nombre>.md`?** Si no, corregir la ruta.
+- **¿El fichero del plan se va a guardar en `docs/plans/YYYY-MM-DD_HH-MM-<nombre>.md`?** Si no, corregir la ruta.
 
 Si encuentras algún problema, corrígelo antes de guardarlo.
 
@@ -203,7 +205,7 @@ Si encuentras algún problema, corrígelo antes de guardarlo.
 Al finalizar el plan, indica al usuario:
 
 ```
-Plan guardado en docs/plans/YYYY-MM-DD_HH-MM_<nombre>.md
+Plan guardado en docs/plans/YYYY-MM-DD_HH-MM-<nombre>.md
 
 Para implementarlo ejecuta:
   /plan-system-implementer con el plan anterior 

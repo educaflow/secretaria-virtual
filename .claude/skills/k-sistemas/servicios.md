@@ -192,7 +192,7 @@ List<MiEntidad> activos = ((MiEntidadRepository) repository).findActivos();
 
 ## Las consultas con filtros van en el repositorio, nunca en el servicio
 
-**REGLA CRÍTICA:** Cualquier consulta JPA que use `.filter()` / `.bind()` **no va inline en el servicio**. Pertenece al repositorio como un `<finder>` en el XML de dominio o como un método en el repositorio personalizado.
+**REGLA CRÍTICA:** Cualquier consulta JPA que use `.filter()` / `.bind()` **no va inline en el servicio**. Pertenece al repositorio como un `<finder-method>` en el XML de dominio o como un método en el repositorio personalizado.
 
 ```java
 // MAL — consulta JPA inline en el servicio
