@@ -37,7 +37,8 @@ class DocumentoPdfImplITextTest {
 
     @BeforeAll
     static void initAll() {
-        EntornoCriptografico.configure(null);
+        EntornoCriptografico.configureAlmacenCertificadosConfiables(null);
+        EntornoCriptografico.configureDispositivosCriptograficos(null);
     }
 
 

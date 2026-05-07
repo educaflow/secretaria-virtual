@@ -2,9 +2,14 @@ package com.educaflow.subsystem.certificados;
 
 import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClaveFichero;
+import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
 import com.educaflow.subsystem.common.db.Centro;
+import com.google.inject.Inject;
 
 public class AlmacenClaveLoader {
+
+    @Inject
+    private CertificadoDigitalService certificadoDigitalService;
 
     public AlmacenClave getDirector(Centro centro) {
         //AlmacenClaveDispositivo almacenClave=new AlmacenClaveDispositivo( 0,"CertFirmaDigitalDirector");
@@ -23,12 +28,7 @@ public class AlmacenClaveLoader {
 
 
     public AlmacenClave getByDNI(String dni) {
-        if ("1234567Z".equals(dni)) {
-            return new AlmacenClaveFichero(AlmacenClaveLoader.class.getClassLoader().getResourceAsStream("/firma/mi_certificado.p12"),"nadanada");
-        } else {
-            throw new RuntimeException("No existe certificado para el DNI: " + dni);
-        }
-
+        return certificadoDigitalService.getAlmacenClaveByDni(dni);
     }
 
     public AlmacenClave getDummy() {

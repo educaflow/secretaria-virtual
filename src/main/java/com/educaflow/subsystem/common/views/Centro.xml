@@ -136,7 +136,7 @@
     <!-- ***************************** Acciones de las tareas principales ****************************  -->
     <!-- *********************************************************************************************  -->
     <action-group name="subsysCommon.Centro@Main-btnSave-action">
-        <!--<action name="subsysCommon.Centro@Main-Local-validateSave-action"/>-->
+        <!--<action name="subsysCommon.Centro@SecretariaVirtualModule-Local-validateSave-action"/>-->
         <action name="save"/>
         <action name="force-back"/>
     </action-group>
@@ -155,7 +155,7 @@
     <!-- *********************************************************************************************  -->
     <!-- ***************************** Acciones de Validaciones en local  ****************************  -->
     <!-- *********************************************************************************************  -->
-    <!--<action-validate name="subsysCommon.Centro@Main-Local-validateSave-action">
+    <!--<action-validate name="subsysCommon.Centro@SecretariaVirtualModule-Local-validateSave-action">
         <error message="El nombre no puede ser dd" if="name=='dd'"/>
         <error message="El código no puede ser dd" if="code=='dd'"/>
     </action-validate>-->
