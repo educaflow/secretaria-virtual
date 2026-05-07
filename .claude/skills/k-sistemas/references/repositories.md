@@ -29,7 +29,7 @@ using Guice module (however, only one implementation can be bound).
 
 ## Finders
 
-The `<finder>` tag can be used to define finder methods for the repository classes.
+The `<finder-method>` tag can be used to define finder methods for the repository classes.
 
 | Attribute | Description |
 |---|---|
@@ -57,13 +57,13 @@ ANDed filter on the given names is generated.
 examples:
 
 ```xml
-<finder name="findByName" using="fullName" />
-<finder name="findByNameOrEmail" using="fullName,email" />
+<finder-method name="findByName" using="fullName" />
+<finder-method name="findByNameOrEmail" using="fullName,email" />
 
-<finder name="findByCountry" using="String:country"
+<finder-method name="findByCountry" using="String:country"
   filter="self.country.code = :country" all="true" />
 
-<finder name="findByAnyOf" using="long:id,email,String:country"
+<finder-method name="findByAnyOf" using="long:id,email,String:country"
   filter="self.id = :id or self.email = :email or self.country.code = :country"
   all="true" />
 ```

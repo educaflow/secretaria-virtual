@@ -181,14 +181,39 @@ El `repository` pasado al constructor queda disponible como campo protegido here
 
 ```java
 // MAL — crear otro repository para la misma entidad
-List<MiEntidad> todos = JpaRepository.of(MiEntidad.class).all().fetch();
+List<MiEntidad> activos = JpaRepository.of(MiEntidad.class).all()
+        .filter("self.activo = true").fetch();
 
-// BIEN — usar el repository heredado
-List<MiEntidad> todos = repository.all().fetch();
-MiEntidad una = repository.all().filter("self.campo = :v").bind("v", valor).fetchOne();
+// BIEN — delegar en un finder del repositorio heredado
+List<MiEntidad> activos = ((MiEntidadRepository) repository).findActivos();
 ```
 
 `JpaRepository.of(OtraEntidad.class)` sí es válido cuando necesitas consultar una entidad **diferente** a la que gestiona el servicio.
+
+## Las consultas con filtros van en el repositorio, nunca en el servicio
+
+**REGLA CRÍTICA:** Cualquier consulta JPA que use `.filter()` / `.bind()` **no va inline en el servicio**. Pertenece al repositorio como un `<finder>` en el XML de dominio o como un método en el repositorio personalizado.
+
+```java
+// MAL — consulta JPA inline en el servicio
+CertificadoDigital certificado = repository.all()
+        .filter("self.dni = :dni")
+        .bind("dni", dni)
+        .fetchOne();
+
+// BIEN — delegar en un finder definido en el repositorio (con cast al tipo específico)
+CertificadoDigital certificado = ((CertificadoDigitalRepository) repository).findByDni(dni);
+```
+
+El campo `repository` heredado de `DefaultModelService` es de tipo `Repository<T>` (interfaz genérica). El método `findByDni` se genera en la clase concreta `MiEntidadRepository` del paquete `db/repo/`. Por eso es necesario el cast: `((MiEntidadRepository) repository).findByMethod(param)`.
+
+Para definir el finder, añade `<finder-method>` en el XML de dominio de la entidad:
+
+```xml
+<finder-method name="findByDni" using="String:dni" filter="self.dni = :dni" />
+```
+
+Axelor genera automáticamente el método `findByDni(String dni)` en `MiEntidadRepository` (en `build/src-gen/.../db/repo/`). Si el finder necesita lógica más compleja que no cabe en el XML, crea un repositorio personalizado en `src/.../db/repo/MiEntidadRepository.java` que extienda el generado y añade el método allí.
 
 ## DTO de inserción (cuando el insert necesita datos especiales)
 
@@ -277,3 +302,4 @@ final OtroServicio otroServicio = (OtroServicio) modelServiceFactory.resolve(Otr
 - [ ] Los métodos de validación devuelven `Optional<BusinessMessages>` — no lanzan `BusinessException`
 - [ ] La implementación está en `service.impl.MiEntidadServiceImpl` para que la factoría la descubra sin registro explícito
 - [ ] Si el insert necesita parámetros especiales, se crea un `record` DTO en el paquete del servicio
+- [ ] **Las consultas JPA con `.filter()/.bind()` nunca están inline en el servicio** — se definen como `<finder>` en el XML de dominio o como métodos en el repositorio y se llaman desde el servicio

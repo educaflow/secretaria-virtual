@@ -87,6 +87,9 @@ La subcarpeta `db/repo/` sí se edita manualmente cuando se necesita:
 
 Si no hay repositorios ni listeners propios, la carpeta puede existir vacía con un `.gitkeep`.
 
+> **REGLA CRÍTICA — las consultas JPA van en el repositorio, nunca inline en el servicio:**
+> Todo código que use `.all().filter().bind().fetch*()` pertenece al repositorio. En el servicio **jamás** se escriben consultas JPA con filtros inline. Para añadir consultas al repositorio usa `<finder>` en el XML de dominio (Axelor lo genera en `Abstract<Entidad>Repository`) o un repositorio personalizado en `db/repo/`. El servicio solo llama a métodos con nombre del repositorio: `repository.findByDni(dni)`, nunca `repository.all().filter("self.dni = :dni").bind(...)`.
+
 > **REGLA CRÍTICA — lógica de negocio en el servicio, NO en listeners:**
 > Los listeners JPA se usan **rarísimamente** y solo para casos técnicos muy específicos (auditoría externa, sincronización con sistemas de terceros). La lógica de negocio **NUNCA va en un listener** — va siempre en el servicio mediante métodos `fireActionRule_*` llamados desde `insert()`/`update()`/`remove()`. Si tienes dudas, usa el servicio.
 

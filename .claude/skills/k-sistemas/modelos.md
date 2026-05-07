@@ -78,12 +78,12 @@ Tambien es posible definir nuevos métodos en el repositorio de una entidad para
 Por ejemplo, si queremos crear un método de búsqueda que permita buscar por correo y pais una lista de factura, podríamos añadir el siguiente finder al xml del modelo de la entidad Factura:
 
 ```xml
-<finder name="findByEmailAndPais" using="email,String:pais"
+<finder-method name="findByEmailAndPais" using="email,String:pais"
   filter="self.email = :email and self.pais.code = :pais"
   all="true" />
 ```
 
-Que creara el método findByEmailAndPais en el repositorio de la entidad Factura, con los parámetros email y pais, y que realizará la consulta definida en el filtro.
+Que creará el método findByEmailAndPais en el repositorio de la entidad Factura, con los parámetros email y pais, y que realizará la consulta definida en el filtro.
 
 ## Extra code en repositorios
 También es posible añadir código extra a la clase repositorio de una entidad usando el tag <extra-code> dentro del tag <entity> en el XML de dominio. Esto permite añadir métodos o funcionalidades adicionales al repositorio sin tener que crear una clase repositorio personalizada desde cero. El código añadido en <extra-code> se incluirá en la clase Abstract<NombreEntidad>Repository generada automáticamente por Axelor a partir del XML de dominio.
