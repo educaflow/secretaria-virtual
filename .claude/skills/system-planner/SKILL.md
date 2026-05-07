@@ -192,7 +192,7 @@ Antes de guardar el plan, comprueba:
 - **¿El plan incluye validaciones en el cliente** (`action-validate` con los campos obligatorios y reglas de negocio) **y en el servidor** (método `validateSave` en el controlador que llama a `service.validateInsert()`)?  Si hay operaciones que crean o modifican datos y el plan no tiene validaciones, es un error — añadirlas.
 - **¿Algún paso crea un módulo Guice para registrar un `ModelService`?** Si es así, elimínalo — `ModelServiceFactory` los descubre automáticamente.
 - **¿Algún paso crea un listener JPA para implementar lógica de negocio?** Si es así, mover esa lógica al servicio como un método `fireActionRule_*`.
-- **¿El fichero del plan se va a guardar en `docs/plans/YYYY-MM-DD-<nombre>.md`?** Si no, corregir la ruta.
+- **¿El fichero del plan se va a guardar en `docs/plans/YYYY-MM-DD_HH-MM_<nombre>.md`?** Si no, corregir la ruta.
 
 Si encuentras algún problema, corrígelo antes de guardarlo.
 
@@ -203,7 +203,7 @@ Si encuentras algún problema, corrígelo antes de guardarlo.
 Al finalizar el plan, indica al usuario:
 
 ```
-Plan guardado en docs/plans/YYYY-MM-DD-<nombre>.md
+Plan guardado en docs/plans/YYYY-MM-DD_HH-MM_<nombre>.md
 
 Para implementarlo ejecuta:
   /plan-system-implementer con el plan anterior 
