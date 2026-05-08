@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- ************************************************************************** -->
+    <!-- ****************************** Correo : Vistas ****************************** -->
+    <!-- ************************************************************************** -->
+
+    <action-view name="subsysCorreos.Correo@All-action" title="Todos los correos"
+                 model="com.educaflow.subsystem.correos.db.Correo">
+        <view type="grid" name="subsysCorreos.Correo@Main-grid"/>
+        <view type="form" name="subsysCorreos.Correo@Main-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="forceEdit" value="true"/>
+    </action-view>
+
+    <action-view name="subsysCorreos.Correo@Centro-action" title="Correos del centro"
+                 model="com.educaflow.subsystem.correos.db.Correo">
+        <view type="grid" name="subsysCorreos.Correo@Main-grid"/>
+        <view type="form" name="subsysCorreos.Correo@Main-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="forceEdit" value="true"/>
+        <domain>self.centro IN (SELECT u.centroActivo FROM com.axelor.auth.db.User u WHERE u = :__user__)</domain>
+    </action-view>
+
+    <action-view name="subsysCorreos.Correo@Propios-action" title="Mis correos"
+                 model="com.educaflow.subsystem.correos.db.Correo">
+        <view type="grid" name="subsysCorreos.Correo@Propios-grid"/>
+        <view type="form" name="subsysCorreos.Correo@Main-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="forceEdit" value="true"/>
+        <domain>self.usuario = :__user__</domain>
+    </action-view>
+
+    <grid name="subsysCorreos.Correo@Main-grid"
+          model="com.educaflow.subsystem.correos.db.Correo"
+          title="" orderBy="createdOn DESC" newButtonTitle="Nuevo correo"
+          allowSearchFields="true" canAdvanceSearch="false" canRefresh="false"
+          canNew="true" editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
+    >
+        <field name="estado"    width="120px"/>
+        <field name="asunto"/>
+        <field name="para"      width="200px"/>
+        <field name="dni"       width="120px"/>
+        <field name="centro"    width="180px"/>
+        <field name="createdOn" width="160px"/>
+    </grid>
+
+    <grid name="subsysCorreos.Correo@Propios-grid"
+          model="com.educaflow.subsystem.correos.db.Correo"
+          title="" orderBy="createdOn DESC"
+          allowSearchFields="true" canAdvanceSearch="false" canRefresh="false"
+          canNew="false" editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
+    >
+        <field name="estado"    width="120px"/>
+        <field name="asunto"/>
+        <field name="para"      width="200px"/>
+        <field name="dni"       width="120px"/>
+        <field name="centro"    width="180px"/>
+        <field name="createdOn" width="160px"/>
+    </grid>
+
+    <form name="subsysCorreos.Correo@Main-form" title="Correo"
+          model="com.educaflow.subsystem.correos.db.Correo"
+          width="large"
+          onNew="subsysCorreos.Correo@Main-onNew-action"
+          canAttach="false" canBack="false" canDelete="false"
+          canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+
+        <!-- Panel de creación: solo visible para registros nuevos -->
+        <panel name="Correo-crear" title="Nuevo correo" showIf="id == null" colSpan="12">
+            <field name="para"        colSpan="6"  required="true"/>
+            <field name="asunto"      colSpan="6"  required="true"/>
+            <field name="dni"         colSpan="6"  required="true"/>
+            <field name="expediente"  colSpan="6"/>
+            <field name="cuerpoHtml"  colSpan="12" multiline="true" large="true" widget="html"/>
+            <field name="cuerpoTexto" colSpan="12" multiline="true" large="true"/>
+            <field name="adjuntos"    colSpan="12"/>
+            <field name="centro"      showIf="false"/>
+        </panel>
+
+        <!-- Panel de detalle: solo visible para registros existentes, todo readonly -->
+        <panel name="Correo-detalle" title="Detalle del correo"
+               showIf="id != null" colSpan="12" readonly="true">
+            <field name="estado"        colSpan="3"/>
+            <field name="enviadoEn"     colSpan="3" showIf="enviadoEn != null"/>
+            <field name="ultimoFalloEn" colSpan="3" showIf="ultimoFalloEn != null"/>
+            <field name="createdOn"     colSpan="3"/>
+            <field name="asunto"        colSpan="8"/>
+            <field name="centro"        colSpan="4"/>
+            <field name="para"          colSpan="4"/>
+            <field name="de"            colSpan="4"/>
+            <field name="dni"           colSpan="2"/>
+            <field name="usuario"       colSpan="2"/>
+            <field name="expediente"    colSpan="4"/>
+            <field name="cuerpoHtml"    colSpan="12" readonly="true" widget="html"/>
+            <field name="cuerpoTexto"   colSpan="12" showIf="cuerpoTexto != null"/>
+            <field name="adjuntos"      colSpan="12" readonly="true"/>
+        </panel>
+
+        <!-- Panel de botones -->
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnReenviar" title="Reenviar"
+                    onClick="subsysCorreos.Correo@Main-btnReenviar-action"
+                    css="btn-warning" colSpan="2" outline="true"
+                    showIf="id != null &amp;&amp; estado == 'ERROR'"/>
+            <button name="btnCancel" title="Cancelar"
+                    onClick="subsysCorreos.Correo@Main-btnCancel-action"
+                    colSpan="2" colOffset="6" outline="true"
+                    showIf="id == null"/>
+            <button name="btnVolver" title="Volver"
+                    onClick="back"
+                    colSpan="2" colOffset="8" outline="true"
+                    showIf="id != null"/>
+            <button name="btnSave" title="Enviar"
+                    onClick="subsysCorreos.Correo@Main-btnSave-action"
+                    colSpan="2"
+                    showIf="id == null"/>
+        </panel>
+    </form>
+
+    <!-- *************** Correo : Acciones de las tareas principales *************** -->
+    <action-group name="subsysCorreos.Correo@Main-btnSave-action">
+        <action name="subsysCorreos.Correo@Main-Local-validateFields-action"/>
+        <action name="subsysCorreos.Correo@Main-Local-validateCuerpo-action"/>
+        <action name="save"/>
+    </action-group>
+
+    <action-group name="subsysCorreos.Correo@Main-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+
+    <action-group name="subsysCorreos.Correo@Main-btnReenviar-action">
+        <action name="subsysCorreos.Correo@Main-Remote-reenviar-action"/>
+    </action-group>
+
+    <action-group name="subsysCorreos.Correo@Main-onNew-action">
+        <action name="subsysCorreos.Correo@Main-set-centro-action"/>
+    </action-group>
+
+    <!-- *************** Correo : Acciones de Validaciones en local *************** -->
+    <action-condition name="subsysCorreos.Correo@Main-Local-validateFields-action">
+        <check field="para"/>
+        <check field="para"
+               if="para != null &amp;&amp; !String(para).match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)"
+               error="El formato del email no es válido. Debe tener el formato usuario@dominio.com"/>
+        <check field="asunto"/>
+        <check field="dni"/>
+        <check field="dni"
+               if="dni != null &amp;&amp; !String(dni).match(/^(\d{8}|[XYZxyz]\d{7})[A-Za-z]$/i)"
+               error="El formato del DNI/NIE no es válido."/>
+        <check field="centro"/>
+    </action-condition>
+
+    <action-validate name="subsysCorreos.Correo@Main-Local-validateCuerpo-action">
+        <error message="Debe indicar el cuerpo del correo en formato HTML o en texto plano."
+               if="(cuerpoHtml == null || cuerpoHtml.isEmpty()) &amp;&amp; (cuerpoTexto == null || cuerpoTexto.isEmpty())"/>
+    </action-validate>
+
+    <!-- *************** Correo : Acciones básicas que cambian campos simples *************** -->
+    <action-record name="subsysCorreos.Correo@Main-set-centro-action"
+                   model="com.educaflow.subsystem.correos.db.Correo">
+        <field name="centro" expr="eval: __user__?.centroActivo"/>
+    </action-record>
+
+    <!-- *************** Correo : Acciones de llamadas Remotas al servidor *************** -->
+    <action-method name="subsysCorreos.Correo@Main-Remote-reenviar-action"
+                   model="com.educaflow.subsystem.correos.db.Correo">
+        <call class="com.educaflow.subsystem.correos.controller.CorreoController"
+              method="reenviar"/>
+    </action-method>
+
+</object-views>

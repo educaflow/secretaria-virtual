@@ -40,6 +40,27 @@
                   groups="users" order="2"/>-->
 
 
+    <menuitem name="notificaciones-menuitem" title="Notificaciones" order="40"/>
+        <menuitem name="notificaciones-correos-menuitem" parent="notificaciones-menuitem" title="Correos" order="1"/>
+        <menuitem name="notificaciones-correos-todos-menuitem"
+                  parent="notificaciones-correos-menuitem"
+                  title="Todos los correos"
+                  action="subsysCorreos.Correo@All-action"
+                  groups="admins"
+                  order="1"/>
+        <menuitem name="notificaciones-correos-centro-menuitem"
+                  parent="notificaciones-correos-menuitem"
+                  title="Correos del centro"
+                  action="subsysCorreos.Correo@Centro-action"
+                  groups="center-admins"
+                  order="2"/>
+        <menuitem name="notificaciones-correos-propios-menuitem"
+                  parent="notificaciones-correos-menuitem"
+                  title="Mis correos"
+                  action="subsysCorreos.Correo@Propios-action"
+                  groups="users"
+                  order="3"/>
+
     <menuitem name="administracionSv-menuitem"   groups="admins"  title="Administración SV" order="50"/>
         <menuitem name="administracionSv-centro-menuitem" parent="administracionSv-menuitem" title="Centro" action="subsysCommon.Centro@Main-action" groups="admins" order="1" />
         <menuitem name="administracionSv-importacion-menuitem" parent="administracionSv-menuitem" title="Ficheros importación" action="subsysImportacion.TareaImportacion@Main-action" groups="admins" order="2" />
