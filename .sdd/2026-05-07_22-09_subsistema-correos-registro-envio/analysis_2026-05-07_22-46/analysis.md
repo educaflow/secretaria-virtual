@@ -1,5 +1,6 @@
 ---
 type: analysis
+user-story-file: ../user-story.md
 ---
 
 ## Análisis Funcional: correos

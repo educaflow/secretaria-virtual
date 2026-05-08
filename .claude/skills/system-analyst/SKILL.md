@@ -22,7 +22,7 @@ Esto aplica aunque la solicitud parezca simple o el usuario parezca tener prisa.
 La estructura de carpetas es la siguiente:
 
 ```
-user-stories/
+.sdd/
 └── YYYY-MM-DD_HH-MM_{resumen-5-palabras}/   ← carpeta de la iniciativa
     ├── user-story.md                          ← historia de usuario original
     └── analysis_YYYY-MM-DD_HH-MM/            ← subcarpeta por cada análisis (timestamp = momento de creación)
@@ -32,7 +32,7 @@ user-stories/
 
 El skill puede recibir el input de dos formas:
 
-**A) Se recibe una ruta a un fichero existente** (p.ej. `user-stories/2025-05-07_10-30_gestion-firmas/user-story.md`):
+**A) Se recibe una ruta a un fichero existente** (p.ej. `.sdd/2025-05-07_10-30_gestion-firmas/user-story.md`):
 - Lee el fichero para obtener la historia de usuario.
 - **Valida que el fichero tiene la cabecera frontmatter correcta.** Las primeras líneas deben ser exactamente:
   ```
@@ -54,7 +54,7 @@ El skill puede recibir el input de dos formas:
 **B) Se recibe texto libre** (descripción o historia de usuario directamente en el prompt):
 - Determina un resumen de 5 palabras en kebab-case que describa la solicitud (ej. `gestion-firmas-digitales-documentos`).
 - Obtén la fecha y hora actuales en formato `YYYY-MM-DD_HH-MM`.
-- La **carpeta de la iniciativa** es: `user-stories/YYYY-MM-DD_HH-MM_{resumen-5-palabras}/`
+- La **carpeta de la iniciativa** es: `.sdd/YYYY-MM-DD_HH-MM_{resumen-5-palabras}/`
 - Crea la carpeta y guarda la historia de usuario en `user-story.md` dentro de ella con la siguiente estructura:
   ```
   ---
@@ -218,7 +218,7 @@ Solo tras aprobación, guarda el análisis.
 >
 > Ejemplo:
 > ```
-> user-stories/2025-05-07_10-30_gestion-firmas-digitales/
+> .sdd/2025-05-07_10-30_gestion-firmas-digitales/
 > └── analysis_2025-05-07_11-45/
 >     └── analysis.md
 > ```
@@ -231,20 +231,23 @@ El fichero guardado debe comenzar **obligatoriamente** con la siguiente cabecera
 ```
 ---
 type: analysis
+user-story-file: ../user-story.md
 ---
 
 {contenido del borrador aprobado}
 ```
+
+El valor de `user-story-file` es una ruta **relativa al propio fichero `analysis.md`**. Como el análisis se guarda en `analysis_YYYY-MM-DD_HH-MM/analysis.md` y el `user-story.md` está en la carpeta padre, la ruta relativa es siempre `../user-story.md`. Si el análisis se guarda en otro lugar (p.ej. `.sdd/`), calcula la ruta relativa correcta desde ahí.
 
 ### Transición al planner
 
 Al finalizar, indica al usuario:
 
 ```
-Análisis guardado en user-stories/{carpeta-iniciativa}/analysis_YYYY-MM-DD_HH-MM/analysis.md
+Análisis guardado en .sdd/{carpeta-iniciativa}/analysis_YYYY-MM-DD_HH-MM/analysis.md
 
 Para generar el plan de implementación ejecuta:
-  /system-designer user-stories/{carpeta-iniciativa}/analysis_YYYY-MM-DD_HH-MM/analysis.md
+  /system-designer .sdd/{carpeta-iniciativa}/analysis_YYYY-MM-DD_HH-MM/analysis.md
 ```
 
 No lances `system-designer` tú mismo. El usuario decide cuándo ejecutarlo.

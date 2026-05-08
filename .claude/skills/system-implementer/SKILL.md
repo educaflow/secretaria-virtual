@@ -9,26 +9,40 @@ Eres un delegador. Tu única tarea es invocar el skill `plan-implementer` pasán
 
 ## Qué hacer
 
-1. Recibe el plan (ruta a un fichero `design_YYYY-MM-DD_HH-MM.md` dentro de `user-stories/{carpeta}/`).
+1. Recibe el plan (ruta a un fichero `design*.md`; puede estar en `.sdd/` o en la carpeta `.sdd/` de un sistema/subsistema existente).
 2. Lee el contenido del fichero antes de continuar.
-3. **Valida que el fichero tiene la cabecera frontmatter correcta.** Las primeras líneas deben ser exactamente:
-   ```
-   ---
-   type: design
-   ---
-   ```
-   Si el fichero no tiene esta cabecera, **detente y muestra este error al usuario, sin continuar:**
-   > Error: el fichero `{ruta}` no es un diseño válido. Debe comenzar con:
+3. **Valida que el fichero tiene la cabecera frontmatter correcta.** El fichero debe comenzar con un bloque frontmatter (entre `---`) que contenga `type: design`. Puede tener otros atributos adicionales (como `analysis-file:`).
+   Si el fichero no contiene `type: design` en el frontmatter, **detente y muestra este error al usuario, sin continuar:**
+   > Error: el fichero `{ruta}` no es un diseño válido. Debe contener en el frontmatter:
    > ```
    > ---
    > type: design
+   > analysis-file: analysis.md
    > ---
    > ```
+   > (la ruta de `analysis-file` es relativa al propio `design.md`)
    > Si tienes una historia de usuario, usa `/system-analyst`. Si tienes un análisis, usa `/system-designer`.
 4. Determina si el plan incluye permisos o seguridad (busca palabras como "seguridad", "permisos", "roles", "data-init/input", "k-seguridad"). Si las encuentra, incluye `k-seguridad` en los skills.
-6. Invoca el skill `plan-implementer` con:
+5. Invoca el skill `plan-implementer` con:
    - El plan completo como texto.
    - Los skills de dominio: `k-sistemas`, `k-vistas`[, `k-seguridad` si aplica].
+6. **Tras completar la implementación**, crea la carpeta `.sdd/` en el directorio raíz del sistema o subsistema implementado (la ruta indicada en `**Capa:**` del plan, p.ej. `subsystem/correos/.sdd/`) y copia ahí los 3 ficheros con nombres fijos:
+
+   **a) Obtén las rutas** siguiendo la cadena de atributos frontmatter:
+   - La ruta del `analysis.md` está en el atributo `analysis-file:` del diseño.
+   - La ruta del `user-story.md` está en el atributo `user-story-file:` del analysis.
+
+   **b) Crea los 3 ficheros en `.sdd/`**, actualizando los atributos para que apunten a ficheros dentro de la propia carpeta:
+
+   - `user-story.md` — copia exacta del `user-story.md` original (sin cambios en el frontmatter).
+   - `analysis.md` — copia del `analysis.md` original, con el atributo actualizado:
+     ```
+     user-story-file: user-story.md
+     ```
+   - `design.md` — copia del fichero de diseño recibido, con el atributo actualizado:
+     ```
+     analysis-file: analysis.md
+     ```
 
 ## Cuándo parar y pedir ayuda
 
