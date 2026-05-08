@@ -11,6 +11,26 @@ La secretaría virtual es un proyecto de gestión de expedientes administrativos
 - Axelor framework 8.1 para la capa de aplicación (ORM, vistas, seguridad, etc.)
 - JPA para acceso a datos, con repositorios personalizados y genéricos
 
+## MCP de IntelliJ
+Tienes disponible el MCP de IntelliJ (`mcp__intellij-index__`). **Debes usarlo siempre que sea posible** en lugar de `grep`, `find` o búsquedas manuales. Los tools disponibles son:
+
+- `ide_find_class` — buscar una clase por nombre
+- `ide_find_file` — buscar un fichero por nombre
+- `ide_find_definition` — ir a la definición de un símbolo
+- `ide_find_references` — encontrar todos los usos de un símbolo
+- `ide_find_implementations` — encontrar implementaciones de una interfaz o clase abstracta
+- `ide_find_super_methods` — encontrar métodos padre
+- `ide_call_hierarchy` / `ide_type_hierarchy` — jerarquías de llamadas y tipos
+- `ide_search_text` — búsqueda de texto en el proyecto
+- `ide_diagnostics` — diagnósticos y errores del IDE
+- `ide_index_status` — estado del índice de IntelliJ
+- `ide_refactor_rename` — renombrar símbolo de forma segura
+- `ide_refactor_safe_delete` — eliminar símbolo de forma segura
+- `ide_move_file` — mover fichero de forma segura
+- `ide_sync_files` — sincronizar ficheros con el IDE
+
+Usar estos tools garantiza que las búsquedas y refactorizaciones son correctas y tienen en cuenta el índice real del proyecto.
+
 ## Script del proyecto
 
 - Para compilar el proyecto lanza el comando: `./gradlew clean build --info`
