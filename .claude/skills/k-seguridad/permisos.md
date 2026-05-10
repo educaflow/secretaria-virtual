@@ -27,7 +27,7 @@ Axelor evalúa permisos con **lógica OR**: si cualquiera de los permisos asigna
 - **Cada `?`** en el JPQL consume **una posición** de `conditionParams` en orden. Si el mismo valor aparece N veces en la condición, se repite N veces en `conditionParams`.
 - Pasar **objetos entidad**, no IDs: `__user__` es el objeto `User`, `__user__.centroActivo` es el `Centro`.
 - La condición actúa también como **check de autorización al serializar relaciones** — si es demasiado restrictiva causa `Authorization Error` al abrir formularios con referencias a ese objeto.
-- En dominios de **action-view/panel**: los parámetros son nombrados (`:__user__`), pero `:__user__.campo` NO funciona — usar subquery scalar en su lugar.
+- En dominios de **action-view/panel**: los parámetros son nombrados (`:nombre`). `:__user__` se admite como objeto entidad completo, pero **`:__user__.campo` NO funciona** — Hibernate no admite puntos en nombres de parámetro. Solución: definir un `<context name="campo" expr="eval:__user__.campo"/>` dentro del `<action-view>` y referenciarlo como `:campo` en el `<domain>`.
 - `self` en subconsultas `EXISTS` puede no correlacionarse correctamente → usar patrón `self.id IN (SELECT ...)`.
 - Preferir comparaciones de entidad directas en lugar de comparar IDs: `self IN (SELECT aa.tramite ...)`, `aa.actor IN (SELECT cut.tipoUsuario ...)`.
 - Entidades con herencia JOINED (`TipoUsuario`, `CentroUsuario`) → navegar a campos de subtipo puede fallar; usar subselect explícito:
@@ -136,19 +136,24 @@ El subquery de actor es el mismo en todas las condiciones. El orden de los `?` e
 
 ### Filtro de domain en vistas (parámetros nombrados)
 
-En `domain` de `<action-view>` o `<panel>` se usan parámetros **nombrados** (`:__user__`), a diferencia de los permisos que usan `?`:
+En `domain` de `<action-view>` o `<panel>` se usan parámetros **nombrados** (`:nombre`), a diferencia de los permisos que usan `?`. `:__user__` puede aparecer **sin punto** (recibe el objeto `User` completo); para acceder a un atributo del usuario hay que definir un `<context>` con `eval:__user__.atributo` y referenciarlo por su nombre plano:
 
 ```xml
-domain="self IN (
-    SELECT aa.tramite FROM ...AccessAssignment aa
-    WHERE aa.accessProfile.name = 'CREADOR'
-    AND aa.tramite IS NOT NULL
-    AND (aa.centro IS NULL OR aa.centro = :__user__.centroActivo)
-    AND (aa.actor IN (SELECT cut.tipoUsuario FROM ...CentroUsuarioTipoUsuario cut
-                      WHERE cut.centroUsuario.usuario = :__user__)
-         OR aa.actor IN (SELECT cu FROM ...CentroUsuario cu WHERE cu.usuario = :__user__))
-)"
+<action-view ...>
+    <domain>self IN (
+        SELECT aa.tramite FROM ...AccessAssignment aa
+        WHERE aa.accessProfile.name = 'CREADOR'
+        AND aa.tramite IS NOT NULL
+        AND (aa.centro IS NULL OR aa.centro = :centroActivo)
+        AND (aa.actor IN (SELECT cut.tipoUsuario FROM ...CentroUsuarioTipoUsuario cut
+                          WHERE cut.centroUsuario.usuario = :__user__)
+             OR aa.actor IN (SELECT cu FROM ...CentroUsuario cu WHERE cu.usuario = :__user__))
+    )</domain>
+    <context name="centroActivo" expr="eval:__user__.centroActivo"/>
+</action-view>
 ```
+
+> **No usar nunca** `:__user__.centroActivo` (con punto) en un `<domain>`: Hibernate no admite puntos en nombres de parámetro y produce `no viable alternative at input '.'`.
 
 ---
 

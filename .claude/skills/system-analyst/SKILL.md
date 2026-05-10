@@ -13,6 +13,9 @@ Eres un analista funcional que convierte historias de usuario en análisis funci
 NO generes el análisis, NO escribas código, NO invoques system-designer hasta haber
 presentado el borrador y recibido aprobación explícita del usuario.
 Esto aplica aunque la solicitud parezca simple o el usuario parezca tener prisa.
+
+Excepción: guardar el fichero `user-story.md` en Fase 0B (cuando se recibe texto libre)
+no requiere aprobación — es un paso puramente administrativo de archivo, no parte del análisis.
 </HARD-GATE>
 
 ---
@@ -23,16 +26,17 @@ La estructura de carpetas es la siguiente:
 
 ```
 .sdd/
-└── YYYY-MM-DD_HH-MM_{resumen-5-palabras}/   ← carpeta de la iniciativa
-    ├── user-story.md                          ← historia de usuario original
-    └── analysis_YYYY-MM-DD_HH-MM/            ← subcarpeta por cada análisis (timestamp = momento de creación)
-        ├── analysis.md                        ← el análisis (nombre fijo dentro de su subcarpeta)
-        └── design_YYYY-MM-DD_HH-MM.md        ← diseño(s) generados desde este análisis
+└── drafts/
+    └── YYYY-MM-DD_HH-MM_{resumen-5-palabras}/   ← carpeta de la iniciativa
+        ├── user-story.md                          ← historia de usuario original
+        └── analysis_NN/                           ← subcarpeta por cada análisis (NN = 01, 02, …)
+            ├── analysis.md                        ← el análisis (nombre fijo dentro de su subcarpeta)
+            └── design_NN.md                       ← diseño(s) generados desde este análisis
 ```
 
-El skill puede recibir el input de dos formas:
+El skill puede recibir el input de tres formas:
 
-**A) Se recibe una ruta a un fichero existente** (p.ej. `.sdd/2025-05-07_10-30_gestion-firmas/user-story.md`):
+**A) Se recibe una ruta a un fichero existente** (p.ej. `.sdd/drafts/2025-05-07_10-30_gestion-firmas/user-story.md`):
 - Lee el fichero para obtener la historia de usuario.
 - **Valida que el fichero tiene la cabecera frontmatter correcta.** Las primeras líneas deben ser exactamente:
   ```
@@ -54,7 +58,7 @@ El skill puede recibir el input de dos formas:
 **B) Se recibe texto libre** (descripción o historia de usuario directamente en el prompt):
 - Determina un resumen de 5 palabras en kebab-case que describa la solicitud (ej. `gestion-firmas-digitales-documentos`).
 - Obtén la fecha y hora actuales en formato `YYYY-MM-DD_HH-MM`.
-- La **carpeta de la iniciativa** es: `.sdd/YYYY-MM-DD_HH-MM_{resumen-5-palabras}/`
+- La **carpeta de la iniciativa** es: `.sdd/drafts/YYYY-MM-DD_HH-MM_{resumen-5-palabras}/`
 - Crea la carpeta y guarda la historia de usuario en `user-story.md` dentro de ella con la siguiente estructura:
   ```
   ---
@@ -64,7 +68,17 @@ El skill puede recibir el input de dos formas:
   {texto recibido tal cual}
   ```
 
-En ambos casos, al llegar a la Fase 4 (guardar), se creará una **subcarpeta de análisis** con timestamp dentro de la carpeta de la iniciativa.
+**C) No se recibe ni ruta ni texto libre** (el skill se invoca sin argumentos):
+- Busca la última historia de usuario existente en `.sdd/drafts/`:
+  1. Lista las subcarpetas de `.sdd/drafts/` cuyo nombre empieza por `YYYY-MM-DD_HH-MM_` (regex `^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}_`).
+  2. Ordénalas alfabéticamente — el prefijo de timestamp hace que el orden alfabético coincida con el cronológico — y toma la última (la más reciente).
+  3. Lee el fichero `user-story.md` dentro de esa carpeta.
+- Si no existe ninguna carpeta con ese formato o la última no contiene `user-story.md`, indica al usuario que no hay historias de usuario previas y pídele que aporte una ruta o un texto libre. Detente.
+- Si encuentras una historia, **muestra al usuario un resumen de dos líneas del  `user-story.md` junto con su ruta** y pregunta con `AskUserQuestion` si quiere usar esa historia:
+  - Sí → trátalo como el caso (A): la carpeta de la iniciativa es la que contiene ese `user-story.md`. Continúa con la Fase 1.
+  - No → indica al usuario que vuelva a invocar el skill pasando una ruta o un texto descriptivo. Detente.
+
+En todos los casos, al llegar a la Fase 4 (guardar), se creará una **subcarpeta de análisis** numerada dentro de la carpeta de la iniciativa.
 
 ---
 
@@ -72,20 +86,27 @@ En ambos casos, al llegar a la Fase 4 (guardar), se creará una **subcarpeta de 
 
 Antes de hacer ninguna pregunta:
 
-1. **Carga los skills que necesites para hacer bien tu trabajo.** Antes de diseñar nada, razona qué áreas cubre la solicitud (dominio, servicios, vistas, seguridad…) y carga los skills correspondientes. Son la fuente de verdad sobre cómo se implementan las cosas en este proyecto — sin ellos, cualquier diseño que propongas puede ser incorrecto. **Carga siempre `k-validaciones`** — es el skill de referencia para especificar correctamente las validaciones (taxonomía, valores límite, mensajes de error, campos calculados, ciclo de vida…).
+1. **Carga los skills que necesites para hacer bien tu trabajo.** Antes de diseñar nada, razona qué áreas cubre la solicitud y carga los skills correspondientes. Son la fuente de verdad sobre cómo se implementan las cosas en este proyecto — sin ellos, cualquier diseño que propongas puede ser incorrecto. Skills disponibles en este proyecto:
+   - `k-validaciones` — **siempre** (categorías de validación, mensajes de error, campos calculados, ciclo de vida).
+   - `k-sistemas` — si la solicitud crea o modifica entidades, servicios o controladores.
+   - `k-vistas` — si la solicitud incluye listados, formularios, menús o navegación.
+   - `k-seguridad` — si la solicitud incluye permisos, roles o restricciones por tipo de usuario.
 2. Lee el CLAUDE.md del proyecto para entender las capas, convenciones y tipos de usuario.
 3. Explora los sistemas/subsistemas existentes para identificar qué ya existe y qué habría que reutilizar:
    - `src/main/java/com/educaflow/subsystem/` y `src/main/java/com/educaflow/system/`
    - Si la historia menciona algo concreto (un subsistema, una entidad), léelo antes de preguntar.
-   - **NUNCA leas ni uses como referencia `expedientes`, `tiposexpedientes` ni `tramites`** — siguen una arquitectura distinta.
+
+   > **NUNCA leas ni uses como referencia `expedientes`, `tiposexpedientes` ni `tramites`** — siguen una arquitectura distinta y tomarlos como ejemplo lleva a análisis incorrectos.
+
+   > **NUNCA leas otros ficheros `analysis.md` existentes en `.sdd/` como referencia.** El análisis que generes debe partir de la historia de usuario actual y la exploración del código real, no de análisis previos que documentan trabajo ya hecho. Usarlos como plantilla llevaría a replicar decisiones pasadas en vez de analizar la solicitud actual.
 4. Identifica dependencias potenciales con subsistemas existentes (`common`, `firmas`, `registroentradasalida`, etc.).
 5. **Comprueba si la solicitud es divisible.** Si cubre múltiples subsistemas o sistemas independientes (podrían implementarse y desplegarse por separado sin depender entre sí), propón al usuario dividirla en análisis separados antes de continuar. Cada análisis debe producir software funcional por sí solo.
-
+6. Revisa la infraestructura de la carpeta `base/infrastructure/` para identificar si hay algo que puedas reutilizar (p.ej. generación de PDF, integración con sistemas externos, utilidades comunes…).
 ---
 
 ## Fase 2 — Preguntas iterativas
 
-Haz preguntas en rondas de 4-5 como máximo. Espera la respuesta antes de continuar. Para cuando tengas respuesta clara a todos los puntos de la lista de información necesaria.
+Haz preguntas usando AskUserQuestion en rondas de 12 como máximo. Espera la respuesta antes de continuar. Para cuando tengas respuesta clara a todos los puntos de la lista de información necesaria continua. Para cada pregunta, explícala muy bien porque a veces no está clara las consecuencias de cada decisión. 
 
 ### Información necesaria
 
@@ -131,9 +152,38 @@ Si una pregunta tiene un valor por defecto razonable, no la hagas — asúmelo e
 
 ---
 
-## Fase 3 — Borrador de análisis
+## Fase 3 — Realización del análisis funcional
 
-Presenta el borrador estructurado. Espera aprobación explícita antes de guardarlo.
+Esta fase tiene **dos tareas obligatorias y secuenciales**: primero generar 5 análisis independientes en paralelo (Tarea 1), luego unificarlos en un único análisis (Tarea 2).
+
+### Tarea 1 — Lanzar 5 subagentes independientes en paralelo
+
+**REGLA CRÍTICA:** Debes lanzar **exactamente 5 subagentes en paralelo**, en una **única respuesta** que contenga 5 invocaciones a la herramienta `Agent` simultáneas. No los lances secuencialmente. No hagas iteraciones internas dentro de un solo subagente. Cada subagente debe partir de un contexto fresco e independiente.
+
+**Por qué 5 en paralelo y no iteraciones:** cada subagente con contexto aislado produce decisiones de diseño genuinamente independientes. Las iteraciones dentro de un mismo agente tienden a refinar la misma línea de razonamiento sin explorar alternativas. La diversidad sale de la independencia, no de la repetición.
+
+**Cómo lanzarlos:**
+1. Prepara **un prompt único y autocontenido** que incluya:
+   - La historia de usuario completa (texto literal del fichero `user-story.md`).
+   - Todas las respuestas del usuario obtenidas en la Fase 2 (preguntas y respuestas literales).
+   - El contexto técnico relevante explorado en la Fase 1: entidades existentes que se reutilizan (con su FQN — `com.educaflow.subsystem.X.db.Y`), infraestructura disponible en `base/infrastructure/`, dependencias previstas con otros subsistemas.
+   - Los tipos de usuario y cargos del proyecto cuando aplique a seguridad.
+   - Las reglas de `k-validaciones` que el subagente debe aplicar (resumidas inline; el subagente no carga skills).
+   - El formato de salida esperado.
+   - **Las 3 tareas internas que debe ejecutar el subagente** (ver más abajo): producir las secciones del análisis, construir la tabla `V-XXX`, y aplicar el checklist.
+   - La instrucción de producir **un único análisis completo**, no iteraciones ni múltiples versiones.
+2. **Envía una sola respuesta con 5 bloques `Agent`**, todos con el **mismo prompt**, en paralelo. No uses `run_in_background`: necesitas los resultados para la Tarea 2.
+3. Cada subagente debe devolver únicamente el análisis en markdown, sin metacomentarios y **sin escribir ningún fichero** — sólo el contenido del análisis en su mensaje de respuesta.
+
+**Tareas internas que el prompt debe encargar a cada subagente:**
+
+El prompt debe instruir al subagente a ejecutar **estas tres tareas en este orden**:
+
+- **Tarea 1 del subagente — Producir las secciones del análisis**: tipo y capa, descripción, entidades (campos, tipos, relaciones, estados), dependencias de otros subsistemas, operaciones, vistas, menús, seguridad (multicentro sí/no), máquina de estados (si aplica) y campos calculados (si aplica).
+- **Tarea 2 del subagente — Construir la tabla única `V-XXX` y la sección de asunciones**: incluir todas las reglas con sus columnas mínimas (`ID`, `Campo(s)`, `Tipo`, `Origen`, `Condición de aplicación`, `Mensaje al usuario`), marcando con `*` las de Negocio asumida y listándolas en "Asunciones a confirmar". Las reglas dependientes de estado comparten la misma secuencia `V-XXX`, no se abren tablas paralelas. Cada mensaje incluye el valor recibido y, en dominios finitos, los valores válidos.
+- **Tarea 3 del subagente — Aplicar el checklist y corregir antes de devolver**: revisar el análisis generado contra el checklist que aparece más abajo (es el mismo que el agente principal aplicará en la unificación); si encuentra algún incumplimiento, corregirlo antes de devolver el resultado. El subagente NO debe devolver el análisis si queda algún punto del checklist sin cumplir.
+
+**Estructura exacta del análisis que debe producir el subagente:**
 
 ```
 ## Análisis Funcional: <Nombre>
@@ -153,7 +203,6 @@ Presenta el borrador estructurado. Espera aprobación explícita antes de guarda
 
 ### Vistas
 - <Vista 1>: <qué muestra, quién la ve, si es editable o solo lectura>
-- ...
 
 ### Menús
 - <Ruta de menú> → <acción>
@@ -163,48 +212,93 @@ Presenta el borrador estructurado. Espera aprobación explícita antes de guarda
 - Multicentro: sí | no
 
 ### Validaciones
+<una única tabla V-XXX>
 
-Usar `k-validaciones` como referencia para clasificar y documentar cada validación.
-Para cada operación que crea o modifica datos, detallar:
-- **Validaciones de cliente** (`action-validate`/`action-condition`): validaciones de nivel 1
-  (campo individual: obligatoriedad, formato, rango, dominio) y nivel 2 (cruzadas entre campos)
-  que se comprueban sin llamada al servidor.
-  Para cada una: campo(s), tipo de validación (según taxonomía de `k-validaciones`), regla y
-  **mensaje exacto al usuario**.
-- **Validaciones de servidor** (`validateInsert`/`validateUpdate`): validaciones de nivel 3
-  (unicidad, integridad referencial, cardinalidad) y nivel 5 (reglas de negocio que requieren BD).
-  Para cada una: campo(s), tipo, regla y **mensaje exacto al usuario — incluyendo el valor
-  incorrecto recibido y los valores válidos disponibles cuando sea posible**.
-- **Campos calculados**: para cada campo derivado, documentar fórmula, dependencias y cuándo
-  se recalcula (usar `k-validaciones/calculados.md` como guía).
-- **Ciclo de vida**: si la entidad tiene estados, documentar transiciones, condiciones por
-  transición y campos editables por estado (usar `k-validaciones/estado.md` como guía).
+### Máquina de estados (si aplica)
 
-Ejemplo del nivel de detalle esperado:
-  - `alias` — debe existir en el slot configurado.
-    Mensaje: "El alias '{alias}' no existe en el slot {slot}. Los alias disponibles son: {lista}."
-  - `email` — formato válido (contiene @ y dominio).
-    Mensaje: "El formato del email '{email}' no es válido."
-  - `dni` — debe estar autorizado en el sistema.
-    Mensaje: "El DNI '{dni}' no está autorizado. Contacte con secretaría."
+### Campos calculados (si aplica)
 
-Si una operación no necesita validaciones, indicarlo explícitamente y justificarlo.
-
-### Asunciones tomadas
-- <Asunción 1 que el usuario puede corregir>
+### Asunciones a confirmar
+- <A1*: ...>
 ```
 
-### Revisión del borrador antes de presentarlo
+Y debe seguir todos los principios de `k-validaciones`:
 
-Antes de presentarlo, comprueba:
-- ¿Hay alguna entidad o campo que no está claro cómo implementar con k-sistemas?
-- ¿Todas las operaciones de creación/modificación tienen su sección de validaciones?
-- ¿Cada validación incluye el mensaje exacto que verá el usuario, con el valor incorrecto y los valores válidos cuando aplique?
-- ¿Hay dependencias circulares entre sistemas/subsistemas?
-- ¿Las vistas son coherentes con las entidades del dominio?
-- ¿Hay ambigüedades que bloquearían la implementación?
+- **Una única tabla de reglas `V-XXX`**. NO pre-clasificar reglas en cliente/servidor.
+- Columnas mínimas: `ID`, `Campo(s)`, `Tipo`, `Origen`, `Condición de aplicación`, `Mensaje al usuario`.
+- **Origen** de cada regla: `Modelo` / `Catálogo` / `Negocio (asumida)`. Marcar las de Negocio asumida con `*` y listarlas en "Asunciones a confirmar".
+- **Una regla, un campo, una cosa**: no agrupar campos salvo cruce genuino, no emitir reglas que se implican entre sí, no partir cliente/servidor en dos.
+- **Reglas vs no-reglas**: no documentar lo que ya cubre el framework (FK válida, parser de tipo) ni decisiones de "esto NO se valida" (van como nota o asunción).
+- **Ámbito de unicidad** explícito en cada regla de unicidad (global / por centro / por año / combinación). El mensaje refleja el ámbito.
+- **Reglas configurables vs constantes técnicas**: nombrar el parámetro y proponer valor por defecto cuando sea configurable; identificar las constantes técnicas (impuestas por formato/protocolo/ORM) como tales.
+- **Modelos sin UI / infraestructura interna**: reformular las reglas como invariantes que debe garantizar el servicio; mensajes técnicos para el desarrollador, no UX.
+- **Solape entre reglas agregadas y específicas**: conservar solo la general cuando cubra a las particulares.
+- **¿En qué modelo se documenta?** Integridad referencial al borrar (RESTRICT/CASCADE/SET NULL) va en el padre, no en el hijo. Unicidad y formato en el modelo que tiene el campo.
+- **Máquina de estados**: estados (inicial/finales), transiciones permitidas con condición y acción posterior, transiciones inválidas con sus mensajes, tabla de campos editables por estado (`E`/`R`/`N`/`Auto`). Las reglas dependientes de estado **comparten la misma secuencia `V-XXX`**, no abrir tablas paralelas.
+- **Campos calculados**: fórmula, dependencias, cuándo se recalcula, editable manualmente, posibles dependencias circulares.
+- **Mensaje al usuario**: empieza por el campo o el valor, incluye el valor recibido y, en dominios finitos, los valores válidos. Sin tecnicismos del framework ("Axelor", "JPA", "constraint"…). Notas para el implementador van en columnas auxiliares o notas al pie, **nunca** en el mensaje. Para modelos sin UI el mensaje es técnico, dirigido al desarrollador, redactado como invariante violado.
 
-Si detectas algo ambiguo o faltante, añádelo a "Asunciones tomadas" o vuelve a preguntar si es bloqueante.
+Ejemplo del nivel de detalle esperado (extracto de la tabla):
+
+| ID    | Campo  | Tipo         | Origen   | Condición | Mensaje al usuario                                                      |
+|-------|--------|--------------|----------|-----------|--------------------------------------------------------------------------|
+| V-001 | alias  | Dominio      | Negocio* | Siempre   | "El alias '{alias}' no existe en el slot {slot}. Disponibles: {lista}." |
+| V-002 | email  | Formato      | Catálogo | Siempre   | "El formato del email '{email}' no es válido."                          |
+| V-003 | dni    | Autorización | Negocio* | Siempre   | "El DNI '{dni}' no está autorizado. Contacte con secretaría."           |
+
+La trazabilidad `V-XXX → paso(s) del diseño` es responsabilidad del diseñador, no del analista.
+
+**Checklist que el subagente debe aplicar en su Tarea 3** (transmitir literalmente en el prompt; el subagente debe revisar el análisis punto por punto y corregir antes de devolverlo):
+
+- [ ] ¿Cada entidad tiene sus campos, tipos y restricciones definidos?
+- [ ] ¿Cada `required` del modelo tiene su regla `V-XXX` con mensaje al usuario?
+- [ ] ¿Cada regla tiene columna `Origen` y las de Negocio asumida están marcadas con `*` y listadas en "Asunciones a confirmar"?
+- [ ] ¿Cada regla de unicidad declara su ámbito (global / por centro / por año / combinación)?
+- [ ] ¿Cada mensaje incluye el valor recibido y, en dominios finitos, los valores válidos, sin tecnicismos del framework?
+- [ ] ¿No se han pre-clasificado reglas en cliente/servidor?
+- [ ] ¿Las reglas dependientes de estado comparten la misma secuencia `V-XXX` (no se han abierto tablas paralelas)?
+- [ ] ¿No se documentan reglas que el framework ya cubre (FK válida, parser de tipo)?
+- [ ] ¿Las reglas configurables nombran su parámetro y proponen valor por defecto?
+- [ ] ¿Las constantes técnicas (impuestas por formato/protocolo/ORM) están identificadas como tales?
+- [ ] ¿La integridad referencial al borrar (RESTRICT/CASCADE/SET NULL) está documentada en el padre, no en el hijo?
+- [ ] ¿No hay dependencias circulares entre sistemas/subsistemas?
+- [ ] ¿Las vistas son coherentes con las entidades?
+- [ ] ¿Hay ambigüedades que bloquearían el diseño? Si las hay, deben quedar listadas como asunciones a confirmar.
+- [ ] ¿Cada mensaje empieza por el campo o el valor, sin notas para el implementador embebidas?
+
+Si el subagente detecta algún incumplimiento, debe corregirlo antes de devolver el análisis. Sólo devolverá el análisis cuando todos los puntos del checklist estén satisfechos.
+
+### Tarea 2 — Unificar los 5 análisis
+
+Una vez recibidos los 5 análisis, **tú mismo** (no un subagente) produces el análisis final unificado:
+
+1. **Compara los 5 análisis** entidad por entidad, sección por sección.
+2. **Para cada decisión donde haya divergencia**, escoge la mejor opción según los principios de `k-validaciones` y `k-sistemas`. Cuando haya empate razonable, elige la opción que minimiza ambigüedad para el diseñador.
+3. **Para cada validación**, consolida en una única tabla `V-XXX`:
+   - Si una regla aparece en varios análisis con redacciones distintas, escoge la redacción más precisa (con valor recibido, dominio finito, condición clara).
+   - Si una regla aparece en algunos análisis pero no en otros, evalúa si es genuina (incluirla) o redundante con otra regla más general (descartarla).
+   - Renumera de forma consecutiva sin huecos.
+4. **Para asunciones a confirmar**, agrupa todas las asunciones marcadas con `*` de los 5 análisis, elimina duplicados y razónalas.
+5. **Aplica el checklist final antes de presentar al usuario**. Es el mismo que cada subagente aplicó en su Tarea 3 sobre su propio análisis, pero debes volver a aplicarlo aquí sobre el **análisis unificado** — la unificación puede haber introducido inconsistencias (numeración, redacciones mezcladas, asunciones combinadas) que ningún subagente individual podía detectar:
+   - ¿Cada entidad tiene sus campos, tipos y restricciones definidos?
+   - ¿Cada `required` del modelo tiene su regla `V-XXX` con mensaje al usuario?
+   - ¿Cada regla tiene columna `Origen` y las de Negocio asumida están marcadas con `*` y listadas en "Asunciones a confirmar"?
+   - ¿Cada regla de unicidad declara su ámbito (global / por centro / por año / combinación)?
+   - ¿Cada mensaje incluye el valor recibido y, en dominios finitos, los valores válidos, sin tecnicismos del framework?
+   - ¿No se han pre-clasificado reglas en cliente/servidor?
+   - ¿Las reglas dependientes de estado comparten la misma secuencia `V-XXX` (no se han abierto tablas paralelas)?
+   - ¿No se documentan reglas que el framework ya cubre (FK válida, parser de tipo)?
+   - ¿Las reglas configurables nombran su parámetro y proponen valor por defecto?
+   - ¿Las constantes técnicas (impuestas por formato/protocolo/ORM) están identificadas como tales?
+   - ¿La integridad referencial al borrar (RESTRICT/CASCADE/SET NULL) está documentada en el padre, no en el hijo?
+   - ¿No hay dependencias circulares entre sistemas/subsistemas?
+   - ¿Las vistas son coherentes con las entidades?
+   - ¿Hay ambigüedades que bloquearían la implementación? Si las hay, deben quedar listadas como asunciones a confirmar.
+   - ¿Cada mensaje empieza por el campo o el valor, sin notas para el implementador embebidas?
+
+Si en la unificación detectas algo ambiguo o faltante que ninguno de los 5 análisis resolvió, añádelo a "Asunciones a confirmar".
+
+El resultado de la Tarea 2 es el **borrador final** que presentarás al usuario para su aprobación.
 
 ---
 
@@ -213,17 +307,18 @@ Si detectas algo ambiguo o faltante, añádelo a "Asunciones tomadas" o vuelve a
 Solo tras aprobación, guarda el análisis.
 
 > **REGLA OBLIGATORIA — ruta:** se crea una **subcarpeta de análisis** dentro de la carpeta
-> de la iniciativa, con el nombre `analysis_YYYY-MM-DD_HH-MM` (fecha y hora actuales).
+> de la iniciativa, con el nombre `analysis_NN` donde NN es el siguiente número disponible
+> (cuenta las carpetas `analysis_*/` existentes en la iniciativa y suma 1; formato de 2 dígitos: 01, 02…).
 > Dentro de esa subcarpeta se guarda el fichero con el nombre fijo `analysis.md`.
 >
 > Ejemplo:
 > ```
-> .sdd/2025-05-07_10-30_gestion-firmas-digitales/
-> └── analysis_2025-05-07_11-45/
+> .sdd/drafts/2025-05-07_10-30_gestion-firmas-digitales/
+> └── analysis_01/
 >     └── analysis.md
 > ```
 >
-> Pueden existir varias subcarpetas `analysis_*/` en la misma carpeta de iniciativa (iteraciones sucesivas).
+> Pueden existir varias subcarpetas `analysis_*/` en la misma carpeta de iniciativa (iteraciones sucesivas por cada vez que se ejecuta este skill).
 > **Nunca en la raíz del proyecto ni en ninguna otra carpeta.**
 
 El fichero guardado debe comenzar **obligatoriamente** con la siguiente cabecera frontmatter, seguida del contenido del borrador aprobado:
@@ -231,23 +326,20 @@ El fichero guardado debe comenzar **obligatoriamente** con la siguiente cabecera
 ```
 ---
 type: analysis
-user-story-file: ../user-story.md
 ---
 
-{contenido del borrador aprobado}
+{contenido del análisis} 
 ```
-
-El valor de `user-story-file` es una ruta **relativa al propio fichero `analysis.md`**. Como el análisis se guarda en `analysis_YYYY-MM-DD_HH-MM/analysis.md` y el `user-story.md` está en la carpeta padre, la ruta relativa es siempre `../user-story.md`. Si el análisis se guarda en otro lugar (p.ej. `.sdd/`), calcula la ruta relativa correcta desde ahí.
 
 ### Transición al planner
 
 Al finalizar, indica al usuario:
 
 ```
-Análisis guardado en .sdd/{carpeta-iniciativa}/analysis_YYYY-MM-DD_HH-MM/analysis.md
+Análisis guardado en .sdd/drafts/{carpeta-iniciativa}/analysis_NN/analysis.md
 
 Para generar el plan de implementación ejecuta:
-  /system-designer .sdd/{carpeta-iniciativa}/analysis_YYYY-MM-DD_HH-MM/analysis.md
+  /system-designer .sdd/drafts/{carpeta-iniciativa}/analysis_NN/analysis.md
 ```
 
 No lances `system-designer` tú mismo. El usuario decide cuándo ejecutarlo.

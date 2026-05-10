@@ -67,6 +67,71 @@ Igual que hemos puesto el ejemplo de el conjunto de skills de `menus` están par
 
 
 
+## Framework SDD (Spec-Driven Development)
+
+Para construir o modificar sistemas/subsistemas se usa un pipeline de 3 fases con artefactos versionados en disco. Cada fase consume el artefacto de la anterior. Los artefactos se identifican por una cabecera frontmatter obligatoria con el campo `type:`.
+
+### Pipeline
+
+```
+historia de usuario  →  /system-analyst   →  analysis.md      (type: analysis)
+analysis.md          →  /system-designer  →  design_NN.md     (type: design)
+design_NN.md         →  /system-implementer → código real + copia a .sdd/specs/
+```
+
+- **`/system-analyst`** — convierte una historia de usuario en análisis funcional. Hace preguntas iterativas con `AskUserQuestion` antes de generar nada (HARD-GATE: nunca genera sin aprobación). Produce entidades, operaciones, vistas, seguridad y una **tabla única `V-XXX` de validaciones** con columnas (`ID`, `Campo(s)`, `Tipo`, `Origen`, `Condición`, `Mensaje al usuario`). Internamente lanza **5 subagentes en paralelo** y unifica.
+- **`/system-designer`** — convierte el análisis en un **diseño**, NO una implementación. Estructura de clases/métodos/vistas/acciones con firmas y comentarios descriptivos, pero **sin cuerpos de método ni XML literal de vistas/acciones** (la única excepción son los dominios XML, que sí van completos). Cobertura total obligatoria: cada `V-XXX` y regla de negocio del análisis debe tener una entrada en la matriz de trazabilidad apuntando a una clase+método o fichero+acción concreta. También lanza 5 subagentes en paralelo y unifica.
+- **`/system-implementer`** — delega en `code-implementer` pasándole el diseño y los skills (`k-sistemas`, `k-vistas`, opcionalmente `k-seguridad`). NO implementa nada por sí mismo. Tras implementar, copia los artefactos finales a `.sdd/specs/`.
+
+### Estructura de carpetas
+
+```
+.sdd/
+├── drafts/
+│   └── YYYY-MM-DD_HH-MM_{resumen-5-palabras}/   ← carpeta de iniciativa
+│       ├── user-story.md            (type: user-story)
+│       ├── design-guidelines.md     (type: design-guidelines, opcional)
+│       └── analysis_NN/             ← una subcarpeta por análisis (01, 02…)
+│           ├── analysis.md          (type: analysis)
+│           └── design_NN.md         (type: design, varios por análisis)
+└── specs/
+    └── NNNN_{descr}/                ← spec final tras implementar (0001, 0002…)
+        ├── user-story.md
+        ├── analysis.md
+        ├── design.md
+        └── design-guidelines.md     (si existía)
+```
+
+- La iniciativa se identifica por `YYYY-MM-DD_HH-MM_{resumen-kebab-case}`.
+- `analysis_NN/` se numera por iniciativa (01, 02…); `design_NN.md` se numera por análisis.
+- En `.sdd/specs/` la numeración es global con 4 dígitos y solo cuenta carpetas que empiezan por `^[0-9]{4}_`.
+- `design-guidelines.md` persiste a nivel de iniciativa: aplica a todos sus análisis y diseños.
+
+### Tipos de frontmatter (obligatorios)
+
+Cada artefacto empieza con un bloque `---` con uno de estos `type:`:
+
+- `type: user-story` → input de `/system-analyst`
+- `type: analysis` → output de `/system-analyst`, input de `/system-designer`
+- `type: design-guidelines` → opcional, modifica el comportamiento de `/system-designer`
+- `type: design` → output de `/system-designer`, input de `/system-implementer`
+
+Si el frontmatter no coincide con lo que la fase espera, la fase se detiene con error.
+
+### Auto-detección sin ruta
+
+Si se invoca un skill sin ruta, busca el último artefacto disponible (orden alfabético del prefijo timestamp coincide con el cronológico) y pregunta al usuario con `AskUserQuestion` si quiere usarlo.
+
+### Reglas críticas del framework
+
+- **NUNCA** usar como referencia `expedientes`, `tiposexpedientes` ni `tramites` — siguen otra arquitectura.
+- **NUNCA** leer otros `analysis*.md` ni `design*.md` previos como plantilla — cada artefacto se genera desde su input directo y el código real.
+- En el diseño: dominios XML completos sí, **cuerpos Java implementados y XML literal de acciones/vistas NO**.
+- Validaciones mapeadas por capa: campo individual y entre campos del mismo registro → cliente (`action-validate`/`action-condition`); integridad entre registros, ciclo de vida y reglas de negocio → servidor (`validateInsert`/`validateUpdate`/`fireActionRule_*`).
+- NO crear módulos Guice para `ModelService` (los descubre `ModelServiceFactory`).
+- NO crear listeners JPA para lógica de negocio (va en el servicio como `fireActionRule_*`).
+
+
 ## Architectura
 Todo el pryecto cuelga del paquete: `com.educaflow`
 

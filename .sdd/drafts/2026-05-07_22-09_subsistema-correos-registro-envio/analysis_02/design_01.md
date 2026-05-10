@@ -1,13 +1,12 @@
 ---
 type: design
-analysis-file: analysis.md
 ---
 
 # Plan: subsistema correos
 
-**Objetivo:** Crear el subsistema `correos` para envío y registro de correos electrónicos con persistencia del estado de envío y reenvío manual en caso de error.
+**Objetivo:** Crear el subsistema `correos` para el envío y registro de correos electrónicos, con persistencia del estado de envío y reenvío manual en caso de error.
 **Capa:** `subsystem/correos`
-**Análisis de origen:** user-stories/2026-05-07_22-09_subsistema-correos-registro-envio/analysis_2026-05-07_22-46/analysis.md
+**Análisis de origen:** `prompts/2026-05-07_22-09_subsistema-correos-registro-envio/analisis_2026-05-07_22-46/analisis.md`
 **Skills necesarios para la implementación:** k-sistemas, k-vistas, k-seguridad
 
 ---
@@ -18,12 +17,12 @@ analysis-file: analysis.md
 |---------|--------|-------------|
 | `src/main/java/com/educaflow/subsystem/correos/domains/Correo.xml` | Crear | Entidad Correo + enum EstadoCorreo |
 | `src/main/java/com/educaflow/subsystem/correos/service/CorreoService.java` | Crear | Interfaz del servicio |
-| `src/main/java/com/educaflow/subsystem/correos/service/impl/CorreoServiceImpl.java` | Crear | Implementación con envío en background |
-| `src/main/java/com/educaflow/subsystem/correos/controller/CorreoController.java` | Crear | Controlador: reenviar |
-| `src/main/java/com/educaflow/subsystem/correos/views/Correo.xml` | Crear | Grids, formulario inteligente, actions, menuitems |
-| `src/main/resources/data-init/input/auth-correos.xml` | Crear | Permisos Correo.centro y Correo.propio |
-| `src/main/resources/data-init/input-config.xml` | Modificar | Añadir bloque auth-correos.xml antes de auth.xml |
-| `src/main/resources/data-init/input/auth.xml` | Modificar | Añadir Correo.all + asignar permisos a grupos |
+| `src/main/java/com/educaflow/subsystem/correos/service/impl/CorreoServiceImpl.java` | Crear | Implementación del servicio con envío en background |
+| `src/main/java/com/educaflow/subsystem/correos/controller/CorreoController.java` | Crear | Controlador: validateSave + reenviar |
+| `src/main/java/com/educaflow/subsystem/correos/views/Correo.xml` | Crear | Grids, formulario inteligente (crear/ver), actions, menuitems |
+| `src/main/resources/data-init/input/auth-correos.xml` | Crear | Permisos de la entidad Correo |
+| `src/main/resources/data-init/input-config.xml` | Modificar | Añadir bloque para auth-correos.xml antes de auth.xml |
+| `src/main/resources/data-init/input/auth.xml` | Modificar | Añadir Correo.all al grupo admins; Correo.propio al grupo users |
 | `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml` | Modificar | Añadir menú Notificaciones con submenús de correos |
 
 ---
@@ -34,6 +33,8 @@ analysis-file: analysis.md
 
 **Fichero a crear:** `src/main/java/com/educaflow/subsystem/correos/domains/Correo.xml`
 
+Crear el fichero con el siguiente contenido exacto:
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <domain-models xmlns="http://axelor.com/xml/ns/domain-models"
@@ -43,19 +44,23 @@ analysis-file: analysis.md
     <module name="correos" package="com.educaflow.subsystem.correos.db"/>
 
     <entity name="Correo">
-        <many-to-one name="centro"        ref="com.educaflow.subsystem.common.db.Centro"                  required="true" title="Centro"/>
-        <string      name="para"          required="true"  title="Para"/>
-        <string      name="de"            title="De"/>
-        <string      name="asunto"        required="true"  title="Asunto"/>
-        <string      name="cuerpoHtml"    large="true" multiline="true" title="Cuerpo HTML"/>
-        <string      name="cuerpoTexto"   large="true" multiline="true" title="Cuerpo texto plano"/>
-        <string      name="dni"           required="true"  title="DNI"/>
-        <many-to-one name="usuario"       ref="com.axelor.auth.db.User"                                    title="Usuario"/>
-        <many-to-one name="expediente"    ref="com.educaflow.subsystem.expedientes.db.Expediente"          title="Expediente"/>
-        <enum        name="estado"        ref="EstadoCorreo" required="true"                               title="Estado"/>
-        <datetime    name="enviadoEn"     title="Enviado en"/>
+        <many-to-one name="centro"      ref="com.educaflow.subsystem.common.db.Centro"                    required="true" title="Centro"/>
+        <string      name="para"        required="true"  title="Para"/>
+        <string      name="de"          title="De"/>
+        <string      name="asunto"      required="true"  title="Asunto"/>
+        <string      name="cuerpoHtml"  large="true" multiline="true" title="Cuerpo HTML"/>
+        <string      name="cuerpoTexto" large="true" multiline="true" title="Cuerpo texto plano"/>
+        <string      name="dni"         required="true"  title="DNI"/>
+        <many-to-one name="usuario"     ref="com.axelor.auth.db.User"                                     title="Usuario"/>
+        <many-to-one name="expediente"  ref="com.educaflow.subsystem.expedientes.db.Expediente"           title="Expediente"/>
+        <enum        name="estado"      ref="EstadoCorreo" required="true"                                title="Estado"/>
+        <datetime    name="enviadoEn"   title="Enviado en"/>
         <datetime    name="ultimoFalloEn" title="Último fallo en"/>
-        <many-to-many name="adjuntos"     ref="com.axelor.meta.db.MetaFile"                                title="Adjuntos"/>
+        <many-to-many name="adjuntos"   ref="com.axelor.meta.db.MetaFile"                                 title="Adjuntos"/>
+
+        <finder-method name="findByUsuario"
+                       using="com.axelor.auth.db.User:usuario"
+                       filter="self.usuario = :usuario"/>
     </entity>
 
     <enum name="EstadoCorreo">
@@ -67,7 +72,7 @@ analysis-file: analysis.md
 </domain-models>
 ```
 
-**Verificación:** Compilar con `./gradlew clean build --info`. Las clases `Correo`, `EstadoCorreo` y `AbstractCorreoRepository` deben aparecer en `build/src-gen/`. No debe haber errores de compilación.
+**Verificación:** Compilar con `./gradlew clean build --info` y confirmar que no hay errores en el dominio. El build genera las clases `Correo`, `EstadoCorreo` y `AbstractCorreoRepository` en `build/src-gen/`.
 
 ---
 
@@ -77,13 +82,12 @@ analysis-file: analysis.md
 - `MailSender` está en `com.educaflow.base.infrastructure.mail.MailSender` con método `void send(Mail mail)`.
 - `Mail` es un record: `Mail(List<String> to, String from, String subject, String htmlBody, String textBody, List<Attach> attachs)`.
 - `Attach` es un record: `Attach(String fileName, byte[] data, String mimeType)`.
-- `SmtpCredentialSimplePassword` es un record en `com.educaflow.base.infrastructure.mail.impl.SmtpCredentialSimplePassword`. El campo `userName()` contiene la dirección del remitente (`de`).
-- `MetaFileUtil.downloadContent(MetaFile)` devuelve `byte[]` y está en `com.educaflow.base.util.MetaFileUtil`.
-- `MetaFile.getFileType()` devuelve el mimeType del adjunto.
-- El envío se hace en un hilo background que gestiona su propia transacción JPA via `JPA.em().getTransaction()`.
-- Las consultas JPQL van en repositorios, pero la búsqueda de `User` por `dni` se hace con `JpaRepository.of(User.class)` ya que es una entidad de otra capa sin repositorio propio en `correos`.
+- `SmtpCredentialSimplePassword` es un record: `SmtpCredentialSimplePassword(String host, String userName, String password)`. El campo `userName` contiene la dirección `de` (remitente).
+- `MetaFileUtil.downloadContent(MetaFile metaFile)` devuelve `byte[]` con el contenido del fichero adjunto.
+- `User` tiene el campo `dni` (String) definido en `common/domains/User.xml`.
+- El envío se hace en un hilo de background. El hilo necesita su propia transacción JPA. Usar `com.axelor.db.JPA` para gestionar la transacción. Verificar el método exacto disponible en `JPA` (probablemente `JPA.runInTransaction(Callable)` o `JPA.run(Runnable)`) antes de implementar. Si no existe `runInTransaction`, gestionar la transacción manualmente con `JPA.em().getTransaction()`.
 
-**Fichero 1 — Interfaz:** `src/main/java/com/educaflow/subsystem/correos/service/CorreoService.java`
+**Fichero 1:** `src/main/java/com/educaflow/subsystem/correos/service/CorreoService.java`
 
 ```java
 package com.educaflow.subsystem.correos.service;
@@ -99,11 +103,11 @@ public interface CorreoService extends ModelService<Correo> {
     Optional<BusinessMessages> validateInsert(Correo correo);
     Optional<BusinessMessages> validateUpdate(Correo correo, Correo correoOriginal);
 
-    void reenviar(Correo correo);
+    Correo reenviar(Correo correo);
 }
 ```
 
-**Fichero 2 — Implementación:** `src/main/java/com/educaflow/subsystem/correos/service/impl/CorreoServiceImpl.java`
+**Fichero 2:** `src/main/java/com/educaflow/subsystem/correos/service/impl/CorreoServiceImpl.java`
 
 ```java
 package com.educaflow.subsystem.correos.service.impl;
@@ -146,7 +150,9 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
     public Correo insert(Correo correo) {
         correo.setDe(smtpCredentialSimplePassword.userName());
         correo.setEstado(EstadoCorreo.PENDIENTE);
+
         fireActionRule_AutoResolverUsuario(correo);
+
         correo = super.insert(correo);
 
         final Long correoId = correo.getId();
@@ -158,11 +164,12 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
     }
 
     @Override
-    public void reenviar(Correo correo) {
+    public Correo reenviar(Correo correo) {
         final Long correoId = correo.getId();
         Thread thread = new Thread(() -> fireActionRule_EnviarCorreo(correoId));
         thread.setDaemon(true);
         thread.start();
+        return correo;
     }
 
     @Override
@@ -183,6 +190,7 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
         if (correo.getDni() == null || correo.getDni().isBlank()) {
             return;
         }
+        // Consulta sobre entidad diferente (User) — válido hacerlo en el servicio
         User usuario = JpaRepository.of(User.class).all()
                 .filter("self.dni = :dni")
                 .bind("dni", correo.getDni())
@@ -191,7 +199,16 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
     }
 
     private void fireActionRule_EnviarCorreo(Long correoId) {
-        // Este método se ejecuta en un hilo background con su propia transacción JPA.
+        // IMPORTANTE: Este método se ejecuta en un hilo background.
+        // Necesita su propia transacción JPA. Verificar el método exacto de JPA disponible
+        // en com.axelor.db.JPA. Si existe runInTransaction, usarlo así:
+        //
+        // JPA.runInTransaction(() -> { ... return null; });
+        //
+        // Si no existe, gestionar manualmente con em().getTransaction().begin()/commit()/rollback()
+        // y em().close() al final.
+        //
+        // Implementación de referencia:
         try {
             JPA.em().getTransaction().begin();
             Correo correo = JpaRepository.of(Correo.class).find(correoId);
@@ -235,33 +252,30 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
 }
 ```
 
-**Verificación:** Compilar. No debe haber errores. `ModelServiceFactory` descubre `CorreoServiceImpl` automáticamente por convención de paquetes — no crear ningún módulo Guice.
+**Verificación:** Compilar. `CorreoServiceImpl` debe compilar sin errores. Confirmar que `ModelServiceFactory` puede descubrirlo automáticamente por convención de paquetes (no se necesita módulo Guice).
 
 ---
 
 ### Paso 3 — Controlador: `CorreoController`
 
 **Contexto necesario:**
-- `ActionRequestHelper` y `ActionResponseHelper` están en `com.educaflow.base.infrastructure.axelorhelper`.
-- `@CallMethod` está en `com.axelor.meta.CallMethod`.
-- `modelServiceFactory.resolve(Correo.class)` devuelve el servicio (sin repositorio explícito, igual que en `TareaFirmaController`).
-- Para error simple de texto usar `actionResponse.setError(message)` directamente (no existe `doResponseError` en `ActionResponseHelper`).
-- Para reload usar `actionResponse.setReload(true)` directamente.
-- `requestHelper.getOriginalModel()` (sin parámetros) carga el modelo desde BD clonado; devuelve `null` si `id == null`.
-- La validación de reenvío es: `estado` debe ser `EstadoCorreo.ERROR`. Mensaje: `"No se puede reenviar el correo '{asunto}' porque su estado actual es '{estado}'. Solo se pueden reenviar correos en estado ERROR."`
+- La validación de reenvío (Nivel 4A) es: `estado` debe ser `ERROR`. Mensaje: `"No se puede reenviar el correo '{asunto}' porque su estado actual es '{estado}'. Solo se pueden reenviar correos en estado ERROR."`
+- Después de llamar a `service.reenviar()`, la respuesta debe indicar `reload` para que la UI recargue el formulario y muestre el estado actualizado (que puede tardar en cambiar por el hilo background).
+- Para errores simples de texto (no `BusinessMessages`), verificar en `ActionResponseHelper` el método correcto. Buscar métodos como `doResponseError(String)`, `setException(String)` o similar.
 
 **Fichero:** `src/main/java/com/educaflow/subsystem/correos/controller/CorreoController.java`
 
 ```java
 package com.educaflow.subsystem.correos.controller;
 
+import com.axelor.db.JpaRepository;
+import com.axelor.db.Repository;
 import com.axelor.db.modelservice.ModelServiceFactory;
-import com.axelor.meta.CallMethod;
 import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
-import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
-import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
 import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.educaflow.base.util.ActionRequestHelper;
+import com.educaflow.base.util.ActionResponseHelper;
 import com.educaflow.base.util.AllowProperties;
 import com.educaflow.subsystem.correos.db.Correo;
 import com.educaflow.subsystem.correos.db.EstadoCorreo;
@@ -275,17 +289,41 @@ public class CorreoController {
     @Inject
     private ModelServiceFactory modelServiceFactory;
 
-    @CallMethod
-    public void reenviar(ActionRequest actionRequest, ActionResponse actionResponse) {
-        final CorreoService service = (CorreoService) modelServiceFactory.resolve(Correo.class);
+    public void validateSave(ActionRequest actionRequest, ActionResponse actionResponse) {
+        final Repository<Correo> repository = JpaRepository.of(Correo.class);
+        final CorreoService service = (CorreoService) modelServiceFactory.resolve(Correo.class, repository);
 
         ActionRequestHelper<Correo> requestHelper = new ActionRequestHelper<>(actionRequest, Correo.class);
+        ActionResponseHelper responseHelper = new ActionResponseHelper(actionResponse);
+
+        AllowProperties allowProperties = AllowProperties.createAllowAllProperties();
+        Correo correo = requestHelper.getModel(allowProperties);
+
+        Optional<BusinessMessages> result;
+        if (requestHelper.getId() == null) {
+            result = service.validateInsert(correo);
+        } else {
+            Correo original = requestHelper.getOriginalModel(allowProperties);
+            result = service.validateUpdate(correo, original);
+        }
+
+        if (result.isPresent()) {
+            responseHelper.doResponseBusinessMessagesAsError(result.get());
+        }
+    }
+
+    public void reenviar(ActionRequest actionRequest, ActionResponse actionResponse) {
+        final Repository<Correo> repository = JpaRepository.of(Correo.class);
+        final CorreoService service = (CorreoService) modelServiceFactory.resolve(Correo.class, repository);
+
+        ActionRequestHelper<Correo> requestHelper = new ActionRequestHelper<>(actionRequest, Correo.class);
+        ActionResponseHelper responseHelper = new ActionResponseHelper(actionResponse);
 
         AllowProperties allowProperties = AllowProperties.createAllowAllProperties();
         Correo correo = requestHelper.getModel(allowProperties);
 
         if (correo.getEstado() != EstadoCorreo.ERROR) {
-            actionResponse.setError(
+            responseHelper.doResponseError(
                 "No se puede reenviar el correo '" + correo.getAsunto()
                 + "' porque su estado actual es '" + correo.getEstado()
                 + "'. Solo se pueden reenviar correos en estado ERROR."
@@ -294,27 +332,36 @@ public class CorreoController {
         }
 
         service.reenviar(correo);
-        actionResponse.setReload(true);
+        responseHelper.doResponseReload();
     }
 }
 ```
 
-**Verificación:** Compilar. No debe haber errores.
+**Nota sobre anotaciones:** Verificar si los métodos del controlador necesitan `@CallMethod` según `k-sistemas/controladores.md`. Si es necesario, añadir la anotación de la clase de Axelor correspondiente. Verificar también qué método de `ActionResponseHelper` se usa para error simple de texto (`doResponseError` o `setError` o similar) mirando los métodos públicos de esa clase.
+
+**Verificación:** Compilar. El controlador debe compilar sin errores.
 
 ---
 
 ### Paso 4 — Vistas: `Correo.xml`
 
-**Diseño:**
-- Prefijo de vistas: `subsysCorreos`
-- Tres `action-view` con dominios diferentes para los tres menús
-- Dos grids: `@Main-grid` (canNew=true, para admins/center-admins) y `@Propios-grid` (canNew=false, para users)
-- Un formulario `@Main-form` inteligente con dos paneles condicionales:
-  - Panel "crear" (`showIf="id == null"`): campos editables para nuevo correo
-  - Panel "detalle" (`showIf="id != null"`): todos los campos readonly
-- El campo `expediente` NO lleva `grid-view` ni `form-view` porque las vistas `subsysExpedientes.Expediente@Search-grid` y `subsysExpedientes.Expediente@View-form` no existen en el subsistema de expedientes.
+**Diseño de vistas:**
+
+Se usan dos grids y un formulario inteligente:
+- `subsysCorreos.Correo@Main-grid`: con `canNew="true"` (para admins y center-admins)
+- `subsysCorreos.Correo@Propios-grid`: con `canNew="false"` (para usuarios normales — "Mis correos")
+- `subsysCorreos.Correo@Main-form`: formulario único que se adapta:
+  - Cuando `id == null` (nuevo): muestra panel de creación con campos editables
+  - Cuando `id != null` (existente): muestra panel de detalle con todos los campos readonly + botón Reenviar
+
+Tres action-views con filtros `domain` diferentes:
+- `@All-action`: sin filtro (todos los correos — administradores)
+- `@Centro-action`: filtro por centro (`self.centro IN (SELECT u.centroActivo FROM com.axelor.auth.db.User u WHERE u = :__user__)`)
+- `@Propios-action`: filtro por usuario (`self.usuario = :__user__`) + usa `@Propios-grid`
 
 **Fichero a crear:** `src/main/java/com/educaflow/subsystem/correos/views/Correo.xml`
+
+Contenido completo:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -323,9 +370,9 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://axelor.com/xml/ns/object-views
 https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <!-- ************************************************************************** -->
+    <!-- ********************************************************************************** -->
     <!-- ****************************** Correo : Vistas ****************************** -->
-    <!-- ************************************************************************** -->
+    <!-- ********************************************************************************** -->
 
     <action-view name="subsysCorreos.Correo@All-action" title="Todos los correos"
                  model="com.educaflow.subsystem.correos.db.Correo">
@@ -390,19 +437,23 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
           canAttach="false" canBack="false" canDelete="false"
           canNew="false" canSave="false" canMore="false" canBackOnSave="true">
 
-        <!-- Panel de creación: solo visible para registros nuevos -->
+        <!-- Panel de creación: solo visible para registros nuevos (id == null) -->
         <panel name="Correo-crear" title="Nuevo correo" showIf="id == null" colSpan="12">
             <field name="para"        colSpan="6"  required="true"/>
             <field name="asunto"      colSpan="6"  required="true"/>
             <field name="dni"         colSpan="6"  required="true"/>
-            <field name="expediente"  colSpan="6"/>
-            <field name="cuerpoHtml"  colSpan="12" multiline="true" large="true" widget="html"/>
+            <field name="expediente"  colSpan="6"
+                   grid-view="subsysExpedientes.Expediente@Search-grid"
+                   form-view="subsysExpedientes.Expediente@View-form"/>
+            <field name="cuerpoHtml"  colSpan="12" multiline="true" large="true"
+                   widget="html"/>
             <field name="cuerpoTexto" colSpan="12" multiline="true" large="true"/>
             <field name="adjuntos"    colSpan="12"/>
+            <!-- centro oculto: se auto-rellena en onNew con el centroActivo del usuario -->
             <field name="centro"      showIf="false"/>
         </panel>
 
-        <!-- Panel de detalle: solo visible para registros existentes, todo readonly -->
+        <!-- Panel de detalle: solo visible para registros existentes (id != null), todo readonly -->
         <panel name="Correo-detalle" title="Detalle del correo"
                showIf="id != null" colSpan="12" readonly="true">
             <field name="estado"        colSpan="3"/>
@@ -455,6 +506,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <action-group name="subsysCorreos.Correo@Main-btnReenviar-action">
         <action name="subsysCorreos.Correo@Main-Remote-reenviar-action"/>
+        <action name="reload"/>
     </action-group>
 
     <action-group name="subsysCorreos.Correo@Main-onNew-action">
@@ -471,7 +523,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <check field="dni"/>
         <check field="dni"
                if="dni != null &amp;&amp; !String(dni).match(/^(\d{8}|[XYZxyz]\d{7})[A-Za-z]$/i)"
-               error="El formato del DNI/NIE no es válido."/>
+               error="El formato del DNI/NIE es incorrecto. Debe tener 8 dígitos seguidos de una letra (DNI) o una letra X, Y o Z seguida de 7 dígitos y una letra (NIE)."/>
         <check field="centro"/>
     </action-condition>
 
@@ -496,16 +548,12 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 </object-views>
 ```
 
-**Notas:**
-- Si `widget="html"` en `cuerpoHtml` da errores, sustituir por `multiline="true"` sin widget.
+**Notas de implementación:**
+- El campo `expediente` en el panel de creación usa `grid-view="subsysExpedientes.Expediente@Search-grid"` y `form-view="subsysExpedientes.Expediente@View-form"`. Si estas vistas no existen, omitir los atributos `grid-view` y `form-view` en ese campo.
+- El `widget="html"` en `cuerpoHtml` muestra un editor HTML rico. Si no está disponible o da errores, sustituir por `multiline="true"` sin widget.
 - El `showIf` del botón `btnReenviar` usa `&amp;&amp;` (escape XML de `&&`).
-- `createdOn` es el campo heredado de Axelor (equivalente al `creadoEn` del análisis).
 
-**Verificación:** Compilar. Grep para confirmar que todas las actions están definidas:
-```bash
-grep 'name="subsysCorreos' src/main/java/com/educaflow/subsystem/correos/views/Correo.xml | wc -l
-```
-Debe retornar al menos 12 líneas.
+**Verificación:** Compilar. No debe haber errores. Hacer grep de los nombres de actions en el fichero para confirmar que todos están definidos: `grep "name=" Correo.xml | grep "action"`.
 
 ---
 
@@ -513,44 +561,41 @@ Debe retornar al menos 12 líneas.
 
 **Fichero a modificar:** `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`
 
-Insertar el siguiente bloque **antes** del `<menuitem name="administracionSv-menuitem" ...>` (que tiene `order="50"`), de forma que quede con `order="40"`:
+Añadir antes de `<!-- Administración SV -->` (orden 50) el siguiente bloque con `order="40"`:
 
 ```xml
-    <menuitem name="notificaciones-menuitem" title="Notificaciones" order="40"/>
-        <menuitem name="notificaciones-correos-menuitem" parent="notificaciones-menuitem" title="Correos" order="1"/>
-            <menuitem name="notificaciones-correos-todos-menuitem"
-                      parent="notificaciones-correos-menuitem"
-                      title="Todos los correos"
-                      action="subsysCorreos.Correo@All-action"
-                      groups="admins"
-                      order="1"/>
-            <menuitem name="notificaciones-correos-centro-menuitem"
-                      parent="notificaciones-correos-menuitem"
-                      title="Correos del centro"
-                      action="subsysCorreos.Correo@Centro-action"
-                      groups="center-admins"
-                      order="2"/>
-            <menuitem name="notificaciones-correos-propios-menuitem"
-                      parent="notificaciones-correos-menuitem"
-                      title="Mis correos"
-                      action="subsysCorreos.Correo@Propios-action"
-                      groups="users"
-                      order="3"/>
+<menuitem name="notificaciones-menuitem" title="Notificaciones" order="40"/>
+    <menuitem name="notificaciones-correos-menuitem" parent="notificaciones-menuitem" title="Correos" order="1"/>
+        <menuitem name="notificaciones-correos-todos-menuitem"
+                  parent="notificaciones-correos-menuitem"
+                  title="Todos los correos"
+                  action="subsysCorreos.Correo@All-action"
+                  groups="admins"
+                  order="1"/>
+        <menuitem name="notificaciones-correos-centro-menuitem"
+                  parent="notificaciones-correos-menuitem"
+                  title="Correos del centro"
+                  action="subsysCorreos.Correo@Centro-action"
+                  groups="users"
+                  if="__user__?.tiposUsuarioActivos?.any { it.code == 'SUPERVISOR' || it.code == 'DIRECTOR' || it.code == 'JEFE_ESTUDIOS' || it.code == 'SECRETARIO' || it.code == 'VICESECRETARIO' || it.code == 'ADMINISTRATIVO' || it.code == 'CONSERJE' }"
+                  order="2"/>
+        <menuitem name="notificaciones-correos-propios-menuitem"
+                  parent="notificaciones-correos-menuitem"
+                  title="Mis correos"
+                  action="subsysCorreos.Correo@Propios-action"
+                  groups="users"
+                  order="3"/>
 ```
 
-**Verificación:** Compilar y confirmar que el XML es válido.
+**Nota:** Los códigos de tipo de usuario del atributo `if` deben coincidir con los valores del campo `code` en la tabla `TipoUsuario`. Verificar los valores reales en `src/main/resources/data-init/input/tiposUsuario.xml` antes de escribirlos. Ajustar si los códigos difieren.
+
+**Verificación:** Compilar y confirmar que el bloque de menú está correctamente anidado y no hay errores XML.
 
 ---
 
 ### Paso 6 — Seguridad: permisos de `Correo`
 
-**Contexto de seguridad:**
-- `admins` → acceso total (`Correo.all` sin condición, en auth.xml)
-- `center-admins` → ven y crean correos de su centro (`Correo.centro` con condición `self.centro = ?`)
-- `users` → solo ven sus propios correos, no pueden crear (`Correo.propio` con condición `self.usuario = ?`)
-- Parámetros: `?` sin índice, nunca `?1`. Se pasan objetos entidad, no IDs.
-- Los permisos en `auth-correos.xml` deben ir ANTES del bloque de `auth.xml` en `input-config.xml`.
-- En `auth-correos.xml` usar atributos `@condition` y `@conditionParams` (no elementos hijo), o el binding de `input-config.xml` los dejará como `null`.
+**Contexto:** Los permisos de Axelor usan lógica OR (si cualquier permiso concede acceso, se concede). El grupo `admins` tiene acceso total. El grupo `users` (usuarios normales) solo debe ver sus propios correos. Los datos de init globales están en `src/main/resources/data-init/`.
 
 **Fichero 1 a crear:** `src/main/resources/data-init/input/auth-correos.xml`
 
@@ -558,15 +603,15 @@ Insertar el siguiente bloque **antes** del `<menuitem name="administracionSv-men
 <?xml version="1.0"?>
 <auth>
 
-  <!-- Permiso para center-admins: ver y crear los correos de su centro -->
+  <!-- Permiso para centro-admins: ver y crear los correos de su centro -->
   <permission name="Correo.centro"
               object="com.educaflow.subsystem.correos.db.Correo"
-              condition="self.centro = ?"
-              conditionParams="__user__.centroActivo">
+              condition="self.centro IN (SELECT u.centroActivo FROM com.axelor.auth.db.User u WHERE u = ?)"
+              conditionParams="__user__">
     <can create="true" read="true" write="false" remove="false" export="false"/>
   </permission>
 
-  <!-- Permiso para users: solo ver sus propios correos, no crear -->
+  <!-- Permiso para usuarios normales: solo ver sus propios correos, no crear -->
   <permission name="Correo.propio"
               object="com.educaflow.subsystem.correos.db.Correo"
               condition="self.usuario = ?"
@@ -579,27 +624,27 @@ Insertar el siguiente bloque **antes** del `<menuitem name="administracionSv-men
 
 **Fichero 2 a modificar:** `src/main/resources/data-init/input-config.xml`
 
-Añadir el siguiente bloque **antes** del bloque `<input file="auth.xml" ...>`. Insertarlo después del bloque de `auth-gestioncentro.xml`:
+Añadir el siguiente bloque **antes** del bloque `<input file="auth.xml" ...>` (que debe ir siempre el último). Insertarlo tras el bloque de `auth-gestioncentro.xml`:
 
 ```xml
-    <input file="auth-correos.xml" root="auth">
-        <bind node="permission" type="com.axelor.auth.db.Permission" search="self.name = :name" create="true" update="true">
-            <bind node="@name" to="name"/>
-            <bind node="@object" to="object"/>
-            <bind node="@condition" to="condition"/>
-            <bind node="@conditionParams" to="conditionParams"/>
-            <bind node="can/@create" to="canCreate"/>
-            <bind node="can/@read" to="canRead"/>
-            <bind node="can/@write" to="canWrite"/>
-            <bind node="can/@remove" to="canRemove"/>
-            <bind node="can/@export" to="canExport"/>
-        </bind>
-    </input>
+<input file="auth-correos.xml" root="auth">
+    <bind node="permission" type="com.axelor.auth.db.Permission" search="self.name = :name" create="true" update="true">
+        <bind node="@name" to="name"/>
+        <bind node="@object" to="object"/>
+        <bind node="@condition" to="condition"/>
+        <bind node="@conditionParams" to="conditionParams"/>
+        <bind node="can/@create" to="canCreate"/>
+        <bind node="can/@read" to="canRead"/>
+        <bind node="can/@write" to="canWrite"/>
+        <bind node="can/@remove" to="canRemove"/>
+        <bind node="can/@export" to="canExport"/>
+    </bind>
+</input>
 ```
 
 **Fichero 3 a modificar:** `src/main/resources/data-init/input/auth.xml`
 
-**3a.** Añadir la declaración del permiso `Correo.all` antes del bloque `<group code="admins">`, junto a los demás permisos:
+1. Añadir la declaración del permiso `Correo.all` junto a los demás permisos de la sección correspondiente (antes de `<group code="admins">`):
 
 ```xml
   <!-- Correos -->
@@ -608,35 +653,27 @@ Añadir el siguiente bloque **antes** del bloque `<input file="auth.xml" ...>`. 
   </permission>
 ```
 
-**3b.** Añadir `Correo.all` al grupo `admins` (al final de la lista de permisos del grupo):
+2. Añadir `Correo.all` al grupo `admins` (junto a los demás permisos del grupo):
 
 ```xml
     <permission name="Correo.all"/>
 ```
 
-**3c.** Añadir `Correo.propio` al grupo `users` (al final de la lista de permisos del grupo):
+3. Añadir `Correo.propio` al grupo `users` (en lugar de `Correo.all`, para que los usuarios normales solo vean sus propios correos):
 
 ```xml
     <permission name="Correo.propio"/>
 ```
 
-**3d.** Añadir el grupo `center-admins` con el permiso `Correo.centro` (si no existe ya en auth.xml, añadirlo antes del cierre del fichero `</auth>`):
+**Nota importante:** El permiso `Correo.propio` en el grupo `users` tiene condición `self.usuario = ?`. Cuando un usuario normal crea un correo nuevo (si tiene acceso de creación), la condición se evalúa en la instancia ya guardada. Sin embargo, dado que `Correo.propio` tiene `canCreate="false"`, los usuarios normales no pueden crear correos. El acceso a creación es exclusivo de admins (vía `Correo.all`) y center-admins (vía `Correo.centro`, una vez que el grupo `center-admins` esté configurado en auth.xml).
 
-```xml
-  <group code="center-admins">
-    <permission name="Correo.centro"/>
-  </group>
-```
-
-**Verificación:** Compilar. Confirmar que `input-config.xml` tiene `auth-correos.xml` antes de `auth.xml`:
-```bash
-grep -n "auth-correos\|auth\.xml" src/main/resources/data-init/input-config.xml
-```
-La línea de `auth-correos.xml` debe aparecer con número menor que la de `auth.xml`.
+**Verificación:** Compilar. Confirmar que `input-config.xml` tiene `auth-correos.xml` antes de `auth.xml`.
 
 ---
 
 ### Paso 7 — Verificación final
+
+Compilar el proyecto completo:
 
 ```bash
 ./gradlew clean build --info
@@ -645,5 +682,5 @@ La línea de `auth-correos.xml` debe aparecer con número menor que la de `auth.
 Confirmar que:
 1. La compilación termina sin errores (`BUILD SUCCESSFUL`).
 2. Las clases `Correo`, `EstadoCorreo` y `AbstractCorreoRepository` aparecen en `build/src-gen/`.
-3. El servicio es descubrible automáticamente: `grep -r "CorreoServiceImpl" build/ | head -3` debe encontrar la clase compilada.
-4. Las vistas referencian correctamente el controlador: `grep "CorreoController" src/main/java/com/educaflow/subsystem/correos/views/Correo.xml` debe retornar la línea de `action-method`.
+3. Grep para confirmar que el servicio se puede descubrir: `grep -r "CorreoServiceImpl" build/` debería encontrar la clase compilada.
+4. No hay referencias rotas en las vistas: `grep "subsysCorreos" src/main/java/com/educaflow/subsystem/correos/views/Correo.xml | wc -l` debería mostrar varias líneas.
