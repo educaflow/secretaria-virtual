@@ -14,7 +14,7 @@ public class CentroUsuarioRepository extends AbstractCentroUsuarioRepository {
         return all()
                 .filter("self.centro.id = :centroId AND self.id IN " +
                         "(SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t " +
-                        " WHERE t.centroUsuario.centro.id = :centroId AND t.tipoUsuario.code = :tipoCode)")
+                        " WHERE t.centroUsuario.centro.id = :centroId AND t.tipoUsuario.codigo = :tipoCode)")
                 .bind("centroId", centroId)
                 .bind("tipoCode", tipoCode)
                 .fetch();
@@ -34,7 +34,7 @@ public class CentroUsuarioRepository extends AbstractCentroUsuarioRepository {
         return all()
                 .filter("self.centro.id = :centroId AND EXISTS " +
                         "(SELECT t FROM CentroUsuarioTipoUsuario t " +
-                        " WHERE t.centroUsuario = self AND t.tipoUsuario.code = :codigoTipo)")
+                        " WHERE t.centroUsuario = self AND t.tipoUsuario.codigo = :codigoTipo)")
                 .bind("centroId", centroId)
                 .bind("codigoTipo", codigoTipo)
                 .fetchOne();
@@ -54,7 +54,7 @@ public class CentroUsuarioRepository extends AbstractCentroUsuarioRepository {
         return all()
                 .filter("self.centro.id = :centroId AND EXISTS " +
                         "(SELECT t FROM CentroUsuarioTipoUsuario t " +
-                        " WHERE t.centroUsuario = self AND t.tipoUsuario.code = :codigoTipo)")
+                        " WHERE t.centroUsuario = self AND t.tipoUsuario.codigo = :codigoTipo)")
                 .bind("centroId", centroId)
                 .bind("codigoTipo", codigoTipo)
                 .fetch();
@@ -64,7 +64,7 @@ public class CentroUsuarioRepository extends AbstractCentroUsuarioRepository {
         return all()
                 .filter("self.centro = :centro AND EXISTS " +
                         "(SELECT t FROM CentroUsuarioTipoUsuario t " +
-                        " WHERE t.centroUsuario = self AND t.tipoUsuario.code = :codigoTipo)")
+                        " WHERE t.centroUsuario = self AND t.tipoUsuario.codigo = :codigoTipo)")
                 .bind("centro", centro)
                 .bind("codigoTipo", codigoTipo)
                 .fetch();
@@ -89,11 +89,21 @@ public class CentroUsuarioRepository extends AbstractCentroUsuarioRepository {
                 .executeUpdate();
     }
 
+    public void deleteTiposUsuarioByCentroParaCodigos(Long centroId, List<String> codigos) {
+        JPA.em().createQuery(
+                        "DELETE FROM CentroUsuarioTipoUsuario c " +
+                        "WHERE c.centroUsuario.centro.id = :centroId " +
+                        "AND c.tipoUsuario.codigo IN :codigos")
+                .setParameter("centroId", centroId)
+                .setParameter("codigos", codigos)
+                .executeUpdate();
+    }
+
     public void deleteTiposUsuarioByCentroExcluyendo(Long centroId, List<String> codesExcluidos) {
         JPA.em().createQuery(
                         "DELETE FROM CentroUsuarioTipoUsuario c " +
                         "WHERE c.centroUsuario.centro.id = :centroId " +
-                        "AND c.tipoUsuario.code NOT IN :codes")
+                        "AND c.tipoUsuario.codigo NOT IN :codes")
                 .setParameter("centroId", centroId)
                 .setParameter("codes", codesExcluidos)
                 .executeUpdate();

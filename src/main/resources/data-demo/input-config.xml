@@ -66,7 +66,7 @@
     <input file="usuarios-demo.xml" root="datos">
         <bind node="tipos/tipo"
               type="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario"
-              search="self.centroUsuario.usuario.code = :usuarioCode AND self.centroUsuario.centro.code = :centroCode AND self.tipoUsuario.code = :tipoCode"
+              search="self.centroUsuario.usuario.code = :usuarioCode AND self.centroUsuario.centro.code = :centroCode AND self.tipoUsuario.codigo = :tipoCode"
               create="true" update="false">
             <bind node="@usuarioCode" alias="usuarioCode"/>
             <bind node="@centroCode"  alias="centroCode"/>
@@ -77,7 +77,7 @@
                   update="false" create="false"/>
             <bind to="tipoUsuario"
                   type="com.educaflow.subsystem.common.db.TipoUsuario"
-                  search="self.code = :tipoCode"
+                  search="self.codigo = :tipoCode"
                   update="false" create="false"/>
         </bind>
     </input>
@@ -95,14 +95,14 @@
     <!-- Paso 5a: Crear Ace con tipoUsuario (rol genérico) -->
     <input file="permisos-demo.xml" root="datos">
         <bind node="asignacionesTipoUsuario/asignacion" type="com.educaflow.subsystem.security.db.Ace"
-              search="self.tipoUsuario.code = :tipoUsuarioCode AND self.perfil.name = :perfilName AND self.tramite.code = :tramiteCode"
+              search="self.tipoUsuario.codigo = :tipoUsuarioCode AND self.perfil.name = :perfilName AND self.tramite.code = :tramiteCode"
               create="true" update="false">
             <bind node="@tipoUsuarioCode" alias="tipoUsuarioCode"/>
             <bind node="@perfilName"      alias="perfilName"/>
             <bind node="@tramiteCode"     alias="tramiteCode"/>
             <bind to="tipoUsuario"
                   type="com.educaflow.subsystem.common.db.TipoUsuario"
-                  search="self.code = :tipoUsuarioCode"
+                  search="self.codigo = :tipoUsuarioCode"
                   update="false" create="false"/>
             <bind to="perfil"
                   type="com.educaflow.subsystem.security.db.Perfil"
@@ -119,14 +119,14 @@
     <!-- Paso 5b: Crear Ace con tipoUsuario sobre TipoExpediente -->
     <input file="permisos-demo.xml" root="datos">
         <bind node="asignacionesTipoUsuarioTipoExpediente/asignacion" type="com.educaflow.subsystem.security.db.Ace"
-              search="self.tipoUsuario.code = :tipoUsuarioCode AND self.perfil.name = :perfilName AND self.tipoExpediente.code = :tipoExpedienteCode"
+              search="self.tipoUsuario.codigo = :tipoUsuarioCode AND self.perfil.name = :perfilName AND self.tipoExpediente.code = :tipoExpedienteCode"
               create="true" update="false">
             <bind node="@tipoUsuarioCode"    alias="tipoUsuarioCode"/>
             <bind node="@perfilName"         alias="perfilName"/>
             <bind node="@tipoExpedienteCode" alias="tipoExpedienteCode"/>
             <bind to="tipoUsuario"
                   type="com.educaflow.subsystem.common.db.TipoUsuario"
-                  search="self.code = :tipoUsuarioCode"
+                  search="self.codigo = :tipoUsuarioCode"
                   update="false" create="false"/>
             <bind to="perfil"
                   type="com.educaflow.subsystem.security.db.Perfil"

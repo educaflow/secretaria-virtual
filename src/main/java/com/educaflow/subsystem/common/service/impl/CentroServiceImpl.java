@@ -3,6 +3,7 @@ package com.educaflow.subsystem.common.service.impl;
 import com.axelor.db.JpaRepository;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
+import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.CentroUsuario;
 import com.educaflow.subsystem.common.db.repo.CentroRepository;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 
 public class CentroServiceImpl extends DefaultModelService<Centro> implements CentroService {
 
@@ -20,6 +22,16 @@ public class CentroServiceImpl extends DefaultModelService<Centro> implements Ce
     public CentroServiceImpl(Class<Centro> model, Repository repository) {
         super(model, (CentroRepository) repository);
     }
+
+    private CentroRepository getCentroRepository() {
+        return (CentroRepository) repository;
+    }
+
+    @Override
+    public Optional<Centro> findByCodigo(String codigo) {
+        return getCentroRepository().findByCodigo(codigo);
+    }
+
 
     @Override
     public List<CentroUsuario> getAdministradoresByCentro(Long id) {

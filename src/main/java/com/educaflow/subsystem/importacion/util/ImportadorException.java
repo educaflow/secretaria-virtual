@@ -1,4 +1,4 @@
-package com.educaflow.subsystem.importacion.service.tipoimportador;
+package com.educaflow.subsystem.importacion.util;
 
 public class ImportadorException extends RuntimeException {
     public ImportadorException(String message) {

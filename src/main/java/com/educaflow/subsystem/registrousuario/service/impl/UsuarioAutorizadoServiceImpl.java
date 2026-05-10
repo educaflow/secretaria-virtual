@@ -12,7 +12,6 @@ import com.educaflow.subsystem.registrousuario.service.UsuarioAutorizadoService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class UsuarioAutorizadoServiceImpl extends DefaultModelService<UsuarioAutorizado> implements UsuarioAutorizadoService {
@@ -27,23 +26,31 @@ public class UsuarioAutorizadoServiceImpl extends DefaultModelService<UsuarioAut
         super(model, (UsuarioAutorizadoRepository) repository);
     }
 
-    private UsuarioAutorizadoRepository repo() {
+    private UsuarioAutorizadoRepository getUsuarioAutorizadoRepository() {
         return (UsuarioAutorizadoRepository) repository;
     }
 
     @Override
     public boolean isAuthorized(String dni) {
-        return repo().isAuthorized(dni);
+        return getUsuarioAutorizadoRepository().isAuthorized(dni);
     }
 
     @Override
-    public List<UsuarioAutorizado> getByCentroAndCurso(Centro centro, Integer curso) {
+    public List<TipoUsuario> getByCentroAndDni(Centro centro, String dni) {
+        return getUsuarioAutorizadoRepository().findByCentroAndDocumento(centro, dni)
+                .stream()
+                .map(UsuarioAutorizado::getTipoUsuario)
+                .toList();
+    }
+
+    @Override
+    public List<UsuarioAutorizado> getByCentro(Centro centro) {
         Map<String, TipoUsuario> tiposPorCodigo = JpaRepository.of(TipoUsuario.class).all().fetch()
-                .stream().collect(Collectors.toMap(TipoUsuario::getCode, t -> t, (a, b) -> a));
+                .stream().collect(Collectors.toMap(TipoUsuario::getCodigo, t -> t, (a, b) -> a));
 
         List<UsuarioAutorizado> resultado = new ArrayList<>();
-        for (UsuarioAutorizado ua : repo().findByCentroHastaCurso(centro.getId(), curso)) {
-            if (Objects.equals(ua.getCurso(), curso)) {
+        for (UsuarioAutorizado ua : getUsuarioAutorizadoRepository().findByCentro(centro.getId())) {
+            if (Boolean.TRUE.equals(ua.getActivo())) {
                 resultado.add(ua);
             } else {
                 UsuarioAutorizado uaEx = clonarComoEx(ua, tiposPorCodigo);
@@ -53,8 +60,49 @@ public class UsuarioAutorizadoServiceImpl extends DefaultModelService<UsuarioAut
         return resultado;
     }
 
+    @Override
+    public void marcarTodosInactivos(Centro centro, TipoUsuario tipoUsuario) {
+        getUsuarioAutorizadoRepository().marcarTodosInactivos(centro.getId(), tipoUsuario.getId());
+    }
+
+    @Override
+    public void activarOInsertar(String dni, Centro centro, TipoUsuario tipoUsuario) {
+        getUsuarioAutorizadoRepository()
+                .findByCentroAndDocumento(centro, dni)
+                .stream()
+                .filter(ua -> ua.getTipoUsuario().getId().equals(tipoUsuario.getId()))
+                .findFirst()
+                .ifPresentOrElse(
+                        ua -> { ua.setActivo(true); update(ua, null); },
+                        () -> {
+                            UsuarioAutorizado ua = new UsuarioAutorizado();
+                            ua.setCentro(centro);
+                            ua.setDni(dni);
+                            ua.setTipoUsuario(tipoUsuario);
+                            ua.setActivo(true);
+                            insert(ua);
+                        }
+                );
+    }
+
+    @Override
+    public void insertarInactivoSiNoExiste(String dni, Centro centro, TipoUsuario tipoUsuario) {
+        boolean existe = getUsuarioAutorizadoRepository()
+                .findByCentroAndDocumento(centro, dni)
+                .stream()
+                .anyMatch(ua -> ua.getTipoUsuario().getId().equals(tipoUsuario.getId()));
+        if (existe) return;
+
+        UsuarioAutorizado ua = new UsuarioAutorizado();
+        ua.setCentro(centro);
+        ua.setDni(dni);
+        ua.setTipoUsuario(tipoUsuario);
+        ua.setActivo(false);
+        insert(ua);
+    }
+
     private UsuarioAutorizado clonarComoEx(UsuarioAutorizado ua, Map<String, TipoUsuario> tiposPorCodigo) {
-        String exCode = EX_MAPPING.get(ua.getTipoUsuario().getCode());
+        String exCode = EX_MAPPING.get(ua.getTipoUsuario().getCodigo());
         if (exCode == null) return null;
         TipoUsuario tipoEx = tiposPorCodigo.get(exCode);
         if (tipoEx == null) return null;

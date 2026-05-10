@@ -6,8 +6,8 @@
     <module name="common" package="com.educaflow.subsystem.common.db"/>
 
     <entity name="TipoUsuario" repository="abstract">
-        <string name="code"/>
-        <string name="name" namecolumn="true"/>
+        <string name="codigo" title="Código"/>
+        <string name="nombre" namecolumn="true" title="Nombre"/>
         <one-to-many name="centroUsuarioTipoUsuario"
                      ref="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario"
                      mappedBy="tipoUsuario" title=""/>

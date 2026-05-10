@@ -11,14 +11,16 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class RegistroPendienteRepository extends AbstractRegistroPendienteRepository {
 
-    //static final Map<String, String> EX_MAPPING = UsuarioAutorizadoRepository.EX_MAPPING;
-    static final Map<String, String> EX_MAPPING = Map.of();
+    static final Map<String, String> EX_MAPPING = Map.of(
+            "PROFESOR", "EXPROFESOR",
+            "ALUMNO",   "EXALUMNO",
+            "FAMILIAR", "EXFAMILIAR"
+    );
 
     public Optional<RegistroPendiente> findByToken(String token) {
         return Optional.ofNullable(
@@ -31,13 +33,7 @@ public class RegistroPendienteRepository extends AbstractRegistroPendienteReposi
                 .all()
                 .filter("self.dni = :dni" +
                         " AND self.centro IS NOT NULL" +
-                        " AND self.tipoUsuario IS NOT NULL" +
-                        " AND self.curso = (" +
-                        "   SELECT MAX(ua2.curso) FROM UsuarioAutorizado ua2" +
-                        "   WHERE ua2.dni = self.dni" +
-                        "   AND ua2.centro = self.centro" +
-                        "   AND ua2.tipoUsuario = self.tipoUsuario" +
-                        " )")
+                        " AND self.tipoUsuario IS NOT NULL")
                 .bind("dni", dni)
                 .fetch();
 
@@ -45,7 +41,7 @@ public class RegistroPendienteRepository extends AbstractRegistroPendienteReposi
                 .all()
                 .fetch()
                 .stream()
-                .collect(Collectors.toMap(TipoUsuario::getCode, t -> t, (a, b) -> a));
+                .collect(Collectors.toMap(TipoUsuario::getCodigo, t -> t, (a, b) -> a));
 
         return resolverPerfiles(entradas, tiposPorCodigo);
     }
@@ -58,15 +54,13 @@ public class RegistroPendienteRepository extends AbstractRegistroPendienteReposi
 
         for (UsuarioAutorizado ua : entradas) {
             Centro centro = ua.getCentro();
-            String codigoBase = ua.getTipoUsuario().getCode();
-            boolean esCursoActual = Objects.equals(ua.getCurso(), centro.getCurso());
-
             TipoUsuario tipo;
-            if (esCursoActual) {
+
+            if (Boolean.TRUE.equals(ua.getActivo())) {
                 tipo = ua.getTipoUsuario();
             } else {
-                String codigoEx = EX_MAPPING.get(codigoBase);
-                if (codigoEx == null) continue; // FAMILIAR y similares sin versión "ex" → omitir
+                String codigoEx = EX_MAPPING.get(ua.getTipoUsuario().getCodigo());
+                if (codigoEx == null) continue;
                 tipo = tiposPorCodigo.get(codigoEx);
                 if (tipo == null) continue;
             }

@@ -24,6 +24,7 @@
 
             <xs:attribute name="codigo" type="xs:string" use="required"/>
             <xs:attribute name="curso" type="xs:string" use="required"/>
+            <xs:attribute name="fechaExportacion" type="xs:string" use="required"/>
             <xs:anyAttribute processContents="lax"/>
         </xs:complexType>
     </xs:element>

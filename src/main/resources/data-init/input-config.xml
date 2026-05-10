@@ -130,9 +130,9 @@
     </input>
 
     <input file="tiposUsuario.xml" root="datos">
-        <bind node="tiposUsuario/tipoUsuario" type="com.educaflow.subsystem.common.db.TipoUsuario" search="self.code = :code" create="true" update="true">
-            <bind node="@code" to="code"/>
-            <bind node="@name" to="name"/>
+        <bind node="tiposUsuario/tipoUsuario" type="com.educaflow.subsystem.common.db.TipoUsuario" search="self.codigo = :codigo" create="true" update="true">
+            <bind node="@codigo" to="codigo"/>
+            <bind node="@nombre" to="nombre"/>
         </bind>
     </input>
 
@@ -140,7 +140,7 @@
         <bind node="cargos/cargo" type="com.educaflow.subsystem.common.db.Cargo" search="self.code = :code" create="true" update="true">
             <bind node="@code" to="code"/>
             <bind node="@name" to="name"/>
-            <bind node="@tipoUsuario" to="tipoUsuario" search="self.code = :tipoUsuario" update="false" create="false"/>
+            <bind node="@tipoUsuario" to="tipoUsuario" search="self.codigo = :tipoUsuario" update="false" create="false"/>
         </bind>
     </input>
 

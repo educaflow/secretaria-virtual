@@ -19,9 +19,9 @@ public class GestionCentroRepository extends JpaRepository<Centro> {
         List<Integer> cursos = JPA.em().createQuery(
                 "SELECT ic.curso FROM GestionCentroImportacion ic " +
                         "WHERE ic.centro.id = :centroId " +
-                        "AND ic.tipoUsuario.code IN ('PROFESOR', 'ALUMNO', 'FAMILIAR') " +
+                        "AND ic.tipoUsuario.codigo IN ('PROFESOR', 'ALUMNO', 'FAMILIAR') " +
                         "GROUP BY ic.curso " +
-                        "HAVING COUNT(DISTINCT ic.tipoUsuario.code) = 3 " +
+                        "HAVING COUNT(DISTINCT ic.tipoUsuario.codigo) = 3 " +
                         "ORDER BY ic.curso ASC",
                 Integer.class
         ).setParameter("centroId", centroId).getResultList();

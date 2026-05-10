@@ -3,6 +3,7 @@ package com.educaflow.subsystem.common.db.repo;
 import com.educaflow.subsystem.common.db.TipoUsuario;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public class TipoUsuarioRepository extends AbstractTipoUsuarioRepository {
@@ -15,10 +16,11 @@ public class TipoUsuarioRepository extends AbstractTipoUsuarioRepository {
                 .fetch();
     }
 
-    public TipoUsuario findByCodigo(String codigo) {
-        return all()
-                .filter("self.code = :codigo")
+    public Optional<TipoUsuario> findByCodigo(String codigo) {
+        TipoUsuario tipoUsuario = all()
+                .filter("self.codigo = :codigo")
                 .bind("codigo", codigo)
                 .fetchOne();
+        return Optional.ofNullable(tipoUsuario);
     }
 }

@@ -8,20 +8,17 @@
         <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro"/>
         <integer name="curso" title="Curso académico"/>
         <many-to-one name="fichero" ref="com.axelor.meta.db.MetaFile" required="true" title="Fichero"/>
-        <!--<string name="ficheroConfig" required="true" title="Fichero de configuración de la importación"/>
-        <string name="ficheroSchema" title="Fichero XSD"/>-->
         <enum name="tipoFichero" ref="TipoFicheroImportacion" title="Tipo"/>
+        <date name="fechaExportacion" title="Fecha de exportación"/>
         <string name="importLog" large="true" title="Log__!!"/>
         <boolean name="exito" title="Importación correcta"/>
-        <!--<string name="fqcnTipoFicheroDatos" title="FQCN del fichero de datos"/>
-        <string name="datosFichero" title="Datos fichero importación" transient="true"/>-->
     </entity>
 
     <enum name="TipoFicheroImportacion">
-        <item name="ALUMNOS" title="Alumnos" help="Fichero de importación de alumnos"/>
-        <item name="PROFESORES" title="Profesores" help="Fichero de importación de profesores"/>
-        <item name="FAMILIARES" title="Familiares" help="Fichero de importación de familiares"/>
-        <item name="PROFESOR_EXTERNO" title="Profesor externo" help="Fichero CSV de profesores externos autorizados"/>
+        <item name="ALUMNO" title="Alumnos" help="Fichero de importación de alumnos" value="ALUMNO"/>
+        <item name="PROFESOR" title="Profesores" help="Fichero de importación de profesores" value="PROFESOR"/>
+        <item name="FAMILIAR" title="Familiares" help="Fichero de importación de familiares" value="FAMILIAR"/>
+        <item name="PROFESOR_EXTERNO" title="Profesor externo" help="Fichero CSV de profesores externos autorizados" value="PROFESOR_EXTERNO"/>
     </enum>
 
 </domain-models>

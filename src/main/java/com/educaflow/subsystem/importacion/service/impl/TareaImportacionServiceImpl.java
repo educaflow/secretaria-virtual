@@ -2,20 +2,16 @@ package com.educaflow.subsystem.importacion.service.impl;
 
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
-import com.axelor.inject.Beans;
 import com.educaflow.base.util.AsciiTableUtil;
 import com.educaflow.base.util.MetaFileUtil;
-import com.educaflow.base.util.XMLUtil;
 import com.educaflow.subsystem.common.db.Centro;
-import com.educaflow.subsystem.common.db.repo.CentroRepository;
 import com.educaflow.subsystem.importacion.db.TareaImportacion;
-import com.educaflow.subsystem.importacion.db.TipoFicheroImportacion;
-import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorException;
-import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorFichero;
-import com.educaflow.subsystem.importacion.service.tipoimportador.ImportadorFicheroFactory;
-import com.educaflow.subsystem.importacion.service.tipoimportador.ResultadoImportacion;
+import com.educaflow.subsystem.importacion.util.MensajeImportacion;
+import com.educaflow.subsystem.importacion.util.ImportadorException;
+import com.educaflow.subsystem.importacion.util.ImportadorFichero;
+import com.educaflow.subsystem.importacion.util.ImportadorFicheroFactory;
+import com.educaflow.subsystem.importacion.util.ResultadoImportacion;
 import com.educaflow.subsystem.importacion.service.TareaImportacionService;
-import org.w3c.dom.Element;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,13 +25,13 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
     @Override
     public TareaImportacion insert(TareaImportacion tareaImportacion) {
         try {
-            ResultadoImportacion resultado = this.importar(tareaImportacion);
-            String logs = buildResultado(resultado);
+            ResultadoImportacion resultadoImportacion = this.importar(tareaImportacion);
+            String logs = buildResultado(resultadoImportacion);
             tareaImportacion.setExito(true);
             tareaImportacion.setImportLog(logs);
         } catch (ImportadorException e) {
             tareaImportacion.setExito(false);
-            tareaImportacion.setImportLog(AsciiTableUtil.renderTable("Error", e));
+            tareaImportacion.setImportLog(e.getMessage());
         }
 
         return super.insert(tareaImportacion);
@@ -53,33 +49,17 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
     }
 
     private ResultadoImportacion importar(TareaImportacion tareaImportacion) {
-        ImportadorFichero importador = ImportadorFicheroFactory.getImportadorFichero(tareaImportacion.getTipoFichero());
-
         byte[] contenido = MetaFileUtil.downloadContent(tareaImportacion.getFichero());
+        ImportadorFichero importador = ImportadorFicheroFactory.getImportadorFichero(tareaImportacion.getTipoFichero(), contenido);
 
-        Centro centro;
-        Integer curso;
-
-        if (tareaImportacion.getTipoFichero() == TipoFicheroImportacion.PROFESOR_EXTERNO) {
-            centro = tareaImportacion.getUsuario().getCentroActivo();
-            if (centro == null) {
-                throw new ImportadorException("El usuario no tiene un centro activo asignado");
-            }
-            curso = centro.getCurso();
-            if (curso == null) {
-                throw new ImportadorException("El centro activo no tiene un curso académico configurado");
-            }
-        } else {
-            Element root = XMLUtil.getDocument(contenido).getDocumentElement();
-            String codigoCentro = XMLUtil.getStringAttribute(root, "codigo", null);
-            String cursoStr = XMLUtil.getStringAttribute(root, "curso", null);
-            centro = codigoCentro != null ? Beans.get(CentroRepository.class).findByCode(codigoCentro) : null;
-            curso = cursoStr != null ? Integer.parseInt(cursoStr) : null;
-        }
+        ResultadoImportacion resultadoImportacion = importador.importar();
+        Centro centro = resultadoImportacion.centro();
+        Integer curso = resultadoImportacion.curso();
 
         tareaImportacion.setCentro(centro);
         tareaImportacion.setCurso(curso);
-        return importador.importar(contenido, centro, curso);
+        tareaImportacion.setFechaExportacion(resultadoImportacion.fechaExportacion());
+        return resultadoImportacion;
     }
 
     private String buildResultado(ResultadoImportacion resultadoImportacion) {
@@ -87,7 +67,7 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
         logs.append(resultadoImportacion.resumen()).append("\n");
         if (!resultadoImportacion.mensajes().isEmpty()) {
             List<List<Object>> rows = new ArrayList<>();
-            for (ResultadoImportacion.MensajeImportacion m : resultadoImportacion.mensajes()) {
+            for (MensajeImportacion m : resultadoImportacion.mensajes()) {
                 List<Object> row = new ArrayList<>();
                 row.add(m.fila() != null ? m.fila() : "");
                 row.add(m.dato());

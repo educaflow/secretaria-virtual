@@ -36,7 +36,7 @@
                 <field name="vicesecretario" colSpan="6" readonly="true"/>
                 -->
                 <panel-related name="administradores" field="usuarios" title="Administradores"
-                               domain="self.id IN (SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t WHERE t.tipoUsuario.code = 'ADMINISTRADOR')"
+                               domain="self.id IN (SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t WHERE t.tipoUsuario.codigo = 'ADMINISTRADOR')"
                                x-selector="none" colSpan="12" showFooter="false"
                                edit-icon="false" canNew="false" canEdit="false"
                                canRemove="false" canViewOnClick="false">
@@ -44,7 +44,7 @@
                     <field name="usuario.apellidos" title="Apellidos"/>
                 </panel-related>
                 <panel-related name="jefesEstudio" field="usuarios" title="Jefes de estudio"
-                               domain="self.id IN (SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t WHERE t.tipoUsuario.code = 'JEFE_ESTUDIOS')"
+                               domain="self.id IN (SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t WHERE t.tipoUsuario.codigo = 'JEFE_ESTUDIOS')"
                                x-selector="none" colSpan="12" showFooter="false"
                                edit-icon="false" canNew="false" canEdit="false"
                                canRemove="false" canViewOnClick="false">
@@ -55,12 +55,12 @@
             <panel-related name="profesores" title="Profesores" field="usuarios" colSpan="12"
                            grid-view="sysGestionCentro.CentroUsuario@Main-grid"
                            form-view="sysGestionCentro.CentroUsuario@Edit-form"
-                           domain="self.id IN (SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t WHERE t.tipoUsuario.code = 'PROFESOR')"
+                           domain="self.id IN (SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t WHERE t.tipoUsuario.codigo = 'PROFESOR')"
                            showFooter="false" canEdit="false" canRemove="false" forceEdit="true" canSearch="true"/>
             <panel-related name="alumnos" title="Alumnos" field="usuarios" colSpan="12"
                            grid-view="sysGestionCentro.CentroUsuario@Main-grid"
                            form-view="sysGestionCentro.CentroUsuario@Edit-form"
-                           domain="self.id IN (SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t WHERE t.tipoUsuario.code = 'ALUMNO')"
+                           domain="self.id IN (SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t WHERE t.tipoUsuario.codigo = 'ALUMNO')"
                            showFooter="false" canEdit="false" canRemove="false" forceEdit="true" canSearch="true"/>
             <panel name="cambioCursoPanel" title="Cambio de curso" showTitle="false" colSpan="12">
                 <panel-dashlet action="sysGestionCentro.ViewGestionCentroCambioCurso@Main-action" colSpan="12"/>

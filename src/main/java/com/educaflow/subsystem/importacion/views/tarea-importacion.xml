@@ -8,7 +8,7 @@
         <view type="form" name="subsysImportacion.TareaImportacion@Main-form"/>
         <view-param name="forceEdit" value="true"/>
         <view-param name="show-toolbar-form" value="false"/>
-        <domain><![CDATA[:__user__ IN (SELECT u FROM User u WHERE u.group.code = 'admins') OR self.centro IN (SELECT cu.centro FROM CentroUsuario cu WHERE cu.usuario = :__user__ AND cu IN (SELECT cutu.centroUsuario FROM CentroUsuarioTipoUsuario cutu WHERE cutu.tipoUsuario IN (SELECT tu FROM TipoUsuario tu WHERE tu.code = 'ADMINISTRADOR')))]]></domain>
+        <domain><![CDATA[:__user__ IN (SELECT u FROM User u WHERE u.group.code = 'admins') OR self.centro IN (SELECT cu.centro FROM CentroUsuario cu WHERE cu.usuario = :__user__ AND cu IN (SELECT cutu.centroUsuario FROM CentroUsuarioTipoUsuario cutu WHERE cutu.tipoUsuario IN (SELECT tu FROM TipoUsuario tu WHERE tu.codigo = 'ADMINISTRADOR')))]]></domain>
     </action-view>
 
     <grid name="subsysImportacion.TareaImportacion@Main-grid" title="Tareas de importación"
