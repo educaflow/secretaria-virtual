@@ -112,9 +112,16 @@ Módulo Guice que registra bindings interfaz → implementación cuando `ModelSe
 
 ### `views/`
 
-Ficheros XML de vistas Axelor (namespace `object-views`). Cada fichero puede contener grids, formularios y actions para una o varias entidades del sistema/subsistema.
+Ficheros XML de vistas Axelor (namespace `object-views`). Cada fichero contiene un grid, un form, sus paneles auxiliares y todas las acciones (`action-group`, `action-method`, `action-record`, `action-attrs`, `action-validate`, `action-condition`) que necesita **un único `<action-view>`**.
 
-Convención de nombres de ficheros: `<NombreEntidad>.xml` (si hay pocas vistas) o agrupar por funcionalidad.
+> **REGLA ARQUITECTÓNICA — un `<action-view>` por fichero:**
+> Cada `<action-view>` se declara en su propio fichero XML, junto con el grid, el form y las acciones que sólo usa él. Aunque dos `<action-view>` de la misma entidad compartan campos o acciones, se mantienen en ficheros separados porque **pueden evolucionar de forma independiente** (una nueva columna en uno, una validación distinta en otro, un botón sólo para administradores en un tercero…). Mantenerlos juntos en un fichero único genera ramas de `showIf`/`groups`/`if` cruzadas que se vuelven difíciles de mantener.
+>
+> Cuántos `<action-view>` se necesitan en una entidad es decisión del diseño o análisis y puede haber uno por estado de la máquina (PENDIENTE/FIRMADO/RECHAZADO), uno por tipo de usuario (firmante/administrador), uno por caso de uso (alta/búsqueda/auditoría) o cualquier combinación. La regla arquitectónica es independiente: **sea cual sea el número, cada uno va en su propio fichero**.
+>
+> Convención de nombre de fichero: `<NombreEntidad>-<discriminador>.xml`, donde el discriminador identifica el `<action-view>` (estado, perfil, caso de uso). Si un fichero es `<NombreEntidad>-<discriminador>.xml` es porque la acción tendrá el sufijo `@Discriminador` excepto con  `@Main` que va simplemente en el fichero  `<NombreEntidad>.xml`.
+>
+> Las vistas de búsqueda/referencia (`@Search-grid` + `@View-form`) son la excepción: viven juntas en un único fichero `<NombreEntidad>-ref.xml` (ver `k-vistas`), porque su función es ser referenciadas desde otros formularios y no abren un `<action-view>` propio.
 
 También contiene `i18n_es.csv` e `i18n_ca.csv` (generados automáticamente por el build — **no se crean a mano**).
 

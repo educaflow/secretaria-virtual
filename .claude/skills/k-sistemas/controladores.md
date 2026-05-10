@@ -34,9 +34,9 @@ Existen 3 tipos de métodos en un controlador, cada uno con su propia estructura
 ```java
 public class HelloController {
   @CallMethod 
-  public void type1(ActionRequest request, ActionResponse response) {
-    Contact contact = request.getContext().asType(Contact.class);
-    response.setFlash("Hello " + contact.getName()); 
+  public void type1(ActionRequest actionRequest, ActionResponse actionResponse) {
+    Contact contact = actionRequest.getContext().asType(Contact.class);
+    actionResponse.setFlash("Hello " + contact.getName()); 
   }
 
   @CallMethod 
@@ -56,6 +56,13 @@ public class HelloController {
  * **type1**: método con `ActionRequest` y `ActionResponse`. Es el tipo más común de método en controladores, recomendado para acciones que necesitan acceder al contexto del formulario, a los datos enviados por el cliente, o que necesitan configurar una respuesta compleja (p.ej. cerrar el formulario, mostrar mensajes, actualizar campos, etc.)
  * **type2**: método con parámetros de entrada "normales" de Java y que retorna un `Response`. Es recomendado para acciones que no necesitan acceder al contexto del formulario ni a los datos enviados por el cliente, pero que necesitan retornar un `Response` para mostrar mensajes de error o éxito en la vista.
  * **type3**: método con parámetros de entrada "normales" de Java y que retorna un valor concreto (p.ej. `String`, `boolean`, etc.). Es recomendado para acciones que no necesitan acceder al contexto del formulario ni a los datos enviados por el cliente, y que solo necesitan retornar un valor concreto para actualizar un campo en la vista sin necesidad de recargar toda la entidad.
+
+> **REGLA DE NAMING — parámetros de los métodos type1:**
+> Cuando un método del controlador recibe `ActionRequest` y/o `ActionResponse`, los parámetros se nombran **siempre** `actionRequest` y `actionResponse` (camelCase, completo, sin abreviar). Prohibido abreviar como `req`/`resp`/`request`/`response`.
+>
+> Razón: los nombres `request` y `response` colisionan con los nombres genéricos del paradigma HTTP/Servlet y otros frameworks (Spring `HttpServletRequest`, `HttpServletResponse`); usar el nombre completo deja inequívoco que se trata del par específico de Axelor y mejora la legibilidad cuando se mezclan con otras variables (`actionRequestHelper`, `actionResponseHelper`).
+>
+> Aplica también a las firmas que aparezcan en diseños (`/system-designer`) y a los ejemplos de cualquier skill.
 
 
 ## Obtener el servicio con ModelServiceFactory
