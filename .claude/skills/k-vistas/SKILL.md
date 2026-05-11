@@ -1,6 +1,6 @@
 ---
 name: k-vistas
-description: Referencia completa de vistas Axelor — namespace, estructura de ficheros, convenciones de nombres, `<grid>`, `<form>`, `<panel>`, `<panel-related>`, `<action-view>`, `<action-group>`, `<action-method>`, `<action-record>`, `<action-attrs>`, `<action-validate>`, `<action-condition>`, `<action-script>`, `<menuitem>`.
+description: Referencia completa de vistas Axelor — namespace, estructura de ficheros, convenciones de nombres, `<grid>`, `<form>`, `<chart>`, `<panel>`, `<panel-related>`, `<action-view>`, `<action-group>`, `<action-method>`, `<action-record>`, `<action-attrs>`, `<action-validate>`, `<action-condition>`, `<action-script>`, `<menuitem>`.
 ---
 
 # Vistas de Axelor — referencia
@@ -14,6 +14,7 @@ description: Referencia completa de vistas Axelor — namespace, estructura de f
 | `actions.md` | Cómo definir acciones: `action-group`, `action-method`, `action-record`, `action-attrs`, `action-validate`, `action-condition` y `action-script` |
 | `menus.md` | Cómo definir menús: `menuitem`, atributos, orden y convención de nombres |
 | `tree.md` | Cómo definir vistas de árbol: `<tree>`, `<node>`, `<column>`, `<button>` y patrones de uso |
+| `charts.md` | Cómo definir gráficas: `<chart>`, `<dataset>`, `<category>`, `<series>`, tipos de gráfica, SQL/JPQL y convención de nombres |
 
 ---
 
@@ -44,6 +45,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 | Acciones   | `<action-*>` | Lógica asociada a botones y eventos                              | `actions.md` |
 | Menú       | `<menuitem>` | Entradas de navegación                                           | `menus.md`   |
 | Árbol      | `<tree>`     | Registros en estructura jerárquica de árbol (nodos padre-hijo)   | `tree.md`    |
+| Gráfica    | `<chart>`    | Gráficas 2D (barras, líneas, tarta…) basadas en consultas SQL/JPQL | `charts.md` |
 
 ## Organización de ficheros
 
@@ -390,6 +392,7 @@ Uso en un campo relacional de otro formulario:
 | Acciones | `actions.md` | Tipos de acción, estructura, atributos, convenciones de nombres y ejemplos |
 | Menús | `menus.md` | Etiqueta menuitem, atributos, convención de nombres y ejemplos |
 | Árbol | `tree.md` | Estructura jerárquica de árbol: `<tree>`, `<column>`, `<node>`, `<field>`, `<button>`, patrones de uso y convención de nombres |
+| Gráficas | `charts.md` | Gráficas 2D con `<chart>`, dataset SQL/JPQL, `<category>`, `<series>`, tipos de gráfica y convención de nombres |
 
 ## Referencias detalladas
 
@@ -399,4 +402,5 @@ Uso en un campo relacional de otro formulario:
 - `references/widgets.md` — referencia de los 63+ widgets disponibles
 - `references/actions.md` — sintaxis completa de todos los tipos de acción
 - `references/menu.md` — atributos completos de menuitem
+- `references/charts.md` — referencia completa de `<chart>`: atributos, tipos de gráfica, `<dataset>`, `<category>`, `<series>`, `<config>` y `<actions>`
 - `references/object-views.xsd` — **schema XSD oficial de Axelor 8.1**: fuente de verdad para verificar qué atributos y etiquetas son válidos en cualquier elemento de vistas (`<grid>`, `<form>`, `<tree>`, `<action-*>`, `<panel>`, `<field>`, `<button>`, etc.) y si un fichero XML está bien formado. Consultar este fichero ante cualquier duda sobre si un atributo existe o cuáles son sus valores permitidos.

@@ -1,0 +1,175 @@
+# Chart View
+
+The chart view shows data as 2D graphs and is powered by [Apache ECharts](https://echarts.apache.org/).
+
+```xml
+<chart name="chart.sales.per.month" title="Sales per month"> <!-- 1 -->
+  <search-fields> <!-- 2 -->
+     <field type="datetime" name="fromDateTime" title="From Date"/>
+     <field type="datetime" name="toDateTime" title="To Date"/>
+  </search-fields>
+  <dataset type="jpql"> <!-- 3 -->
+  <![CDATA[
+  SELECT
+      SUM(self.totalAmount) AS amount,
+      MONTH(self.orderDate) AS month,
+      _customer.fullName AS customer
+  FROM
+      Order self
+  LEFT JOIN
+      self.customer AS _customer
+  WHERE
+      YEAR(self.orderDate) = YEAR(current_date)
+      AND self.orderDate > :fromDateTime
+      AND self.orderDate < :toDateTime
+  GROUP BY
+      _customer,
+      MONTH(self.orderDate)
+  ORDER BY
+      month
+  ]]>
+  </dataset>
+  <category key="month" type="month"/> <!-- 4 -->
+  <series key="amount" groupBy="customer" type="bar"/> <!-- 5 -->
+</chart>
+```
+
+1. define a chart view
+2. define search fields (the input values can be used as query params)
+3. define the data source for the chart (jpql, sql or rpc)
+4. define the category axis
+5. define the series for the chart
+
+The chart view is not bound to any object but depends on dataset retrieved with
+JPQL/SQL queries or the given rpc (method call).
+
+The optional `<search-fields>` can be used to define input fields to provide
+query parameter values or context for the rpc calls.
+
+## Chart types
+
+Following chart types are supported:
+
+- pie
+- bar
+- hbar
+- line
+- area
+- donut
+- funnel
+- radar
+- gauge
+- scatter
+
+A chart view requires following information:
+
+- `name` - unique name for the chart
+- `title` - chart title
+- `stacked` - whether to create stacked chart
+- `onInit` - action to call during chart init
+- `<dataset>` - JPQL/SQL select query with select name aliases
+- `<category>` - defines the X-Axis of the chart with
+  - `key` - the dataset field to be used to categorize the data (used as X-Axis data points)
+  - `type` - category type can be, numeric, date, time, month, year or text
+  - `title` - category title displayed on X-Axis
+- `<series>` - list of data series defines the Y-Axis (for the moment only one series is allowed)
+  - `key` - the dataset field to be used as Y-Axis data points
+  - `groupBy` - the dataset field use to group the related data
+  - `title` - the title for the Y-Axis
+  - `type` - graph type, (pie, bar, hbar, line, area)
+  - `side` - Y-Axis side (left or right)
+- `<config>` - custom configuration data
+  - `name` - name of the configuration item
+  - `value` - configuration value
+- `<actions>` - add actions on chart menu
+
+## Config
+
+Charts can be configured with specific config values. These configurations may
+not be applicable to all chart types.
+
+Most important config values are:
+
+- `width` - width of the chart
+- `height` - height of the chart
+- `xFormat` - custom x-axis format, like `MM-YYYY` or `DD/MM/YYYY`
+- `percent` - used with pie chart, show labels in percent
+- `colors` - specify base colors for charts, each color is used to provide 4 gradient shades
+- `shades` - number of gradient shades used for colors
+- `hideLegend` - show/hide the legend
+- `axisScale` - used with radar chart, define the axis scales. Values can be:
+  - `fixed` : use a fixed scale for all axis. Value should be provided by `max` config.
+  - `distinct` : use a distinct scale by axis, based on the series values. This is the default.
+  - `unique` : use a unique scale for all axis, based on the series values.
+- `min/max` - used with gauge and radar chart (max support), define the minimum and maximum values.
+- `onClick` - call specified action with clicked data in context
+
+## Colors
+
+Colors can be specified with `colors` config value. It can be either:
+
+- a pre-defined palette name: `material`, `roma`, `chartjs`, `roma` or `macarons`
+- comma-separated list of named and/or hex colors
+
+If `shades` config value is provided (should be greater than `1`), it will generate a smooth range of variations for
+each color by adjusting the brightness.
+
+```xml
+<chart ...>
+  ...
+  ...
+  <!-- named and/or colors -->
+  <config name="colors" value="red,green" />
+  <config name="colors" value="#f44336,#4caf50" />
+  <config name="colors" value="#f44336,green" />
+
+  <!-- or pre-defined palette name -->
+  <config name="colors" value="roma" />
+
+  <!-- with custom shades -->
+  <config name="shades" value="10" />
+
+</chart>
+```
+
+## Actions
+
+Adding actions on chart menu (gear icon on the top right) is supported using
+following syntax:
+
+```xml
+<chart ...>
+  ...
+  <actions>
+    <action name="myBtn1" title="Act1" action="com.axelor.Hello:myAction1"/>
+    <action name="myBtn2" title="Act2" action="some-action2"/>
+  </actions>
+</chart>
+```
+
+where:
+
+- `name` : Name of the action
+- `title` : Title of the button displayed on chart menu
+- `action` : Action to execute.
+
+`<actions>` should have at least one `<action>`.
+The action will get current chart name and data in context. Example:
+
+```json
+{
+  "_chart": "chart.sales.per.month.pie",
+  "_data": [{...}, ...],
+  "_domainAction": "chart:chart.sales.per.month.pie",
+  "_parent": {...},
+  "fromDate": "2022-04-20",
+  "_signal": "myBtn1"
+}
+```
+
+1. Name of the chart
+2. Dataset of the chart
+3. Dashlet action
+4. Parent context
+5. Fields data defined in `<search-fields>`
+6. Action signal (ie, the name)
