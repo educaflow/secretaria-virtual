@@ -1,9 +1,9 @@
 ---
-name: sdd-finish-spec
+name: sdd-close-spec
 description: Cierra una iniciativa SDD — lee el último draft (user-story + analysis + design), usa `git diff` para identificar qué ficheros realmente cambiaron, actualiza los CLAUDE.md de cada carpeta afectada regenerándolos desde el código real, y archiva los artefactos en .sdd/specs/NNNN_desc/ con un design.md corregido que refleja lo que se implementó de verdad.
 ---
 
-# sdd-finish-spec
+# sdd-close-spec
 
 Eres el paso de cierre del pipeline SDD. Tu trabajo tiene tres entregables concretos:
 
@@ -14,6 +14,15 @@ Eres el paso de cierre del pipeline SDD. Tu trabajo tiene tres entregables concr
 ---
 
 ## Fase 0 — Localizar y confirmar el draft
+
+### Argumentos aceptados
+
+```
+/sdd-close-spec [ruta-design] [hash-commit-base]
+```
+
+- `ruta-design` (opcional): ruta al `design_NN.md` del draft. Si se omite, se auto-detecta (paso 0.1).
+- `hash-commit-base` (opcional): hash del commit anterior al inicio de la iniciativa. Si se pasa, el `git diff` de la Fase 1 abarcará desde ese commit hasta el workspace incluido (commits posteriores + staged + unstaged + untracked); si no, el diff cubre solo lo que hay en el workspace contra HEAD (sin comitear + untracked).
 
 ### 0.1 Localizar el último draft
 
@@ -56,25 +65,34 @@ Esta es la fuente de verdad: **el código real, no el diseño**.
 
 ### 1.1 Git diff para ficheros modificados
 
-Ejecuta:
-```bash
-git diff --name-only HEAD~1 HEAD
-```
+**Antes de ejecutar el diff, anuncia al usuario qué modo vas a usar.** Una sola línea, con el formato:
 
-Si la iniciativa abarca más de un commit (por ejemplo, varios commits desde que arrancó el draft), usa:
-```bash
-git log --oneline
-```
-para identificar el commit anterior al inicio de la iniciativa, y entonces:
-```bash
-git diff --name-only {commit-base} HEAD
-```
+- Sin hash: `Buscando diferencias solo en el workspace (cambios sin comitear contra HEAD).`
+- Con hash: `Buscando diferencias desde el commit {hash-corto} hasta el workspace (commits posteriores + cambios sin comitear).`
 
-Si no hay commits relevantes (trabajo no comiteado), usa:
+Esto le da al usuario la oportunidad de corregirte si el modo no es el correcto antes de procesar el diff completo.
+
+El diff debe abarcar **desde un punto base hasta el workspace incluido** (commits posteriores al base + staged + unstaged + untracked). El punto base depende de si el usuario pasó un hash:
+
+**Por defecto (sin hash) — el punto base es HEAD.** Asume que las modificaciones de la iniciativa están sin comitear:
+
 ```bash
 git diff --name-only HEAD
 git status --porcelain
 ```
+
+`git diff --name-only HEAD` cubre staged + unstaged respecto a HEAD; `git status --porcelain` añade los untracked (nuevos sin añadir al index). Unifica ambas listas.
+
+**Si el usuario pasó un hash — el punto base es ese hash.** En este caso el diff debe cubrir todo el rango desde el hash hasta el workspace, incluyendo commits intermedios, staged, unstaged y untracked:
+
+```bash
+git diff --name-only {hash-base}
+git status --porcelain
+```
+
+`git diff --name-only {hash-base}` (sin segundo argumento) compara el workspace contra ese commit, por lo que ya incluye en una sola pasada los commits posteriores y los cambios staged/unstaged. `git status --porcelain` añade los untracked. Unifica ambas listas.
+
+**Si no hay nada que mostrar** (las listas vacías y no se ha pasado hash), detente y avisa al usuario: la iniciativa no parece haber tocado código, o las modificaciones están en commits anteriores y necesitas un hash base.
 
 ### 1.2 Identificar carpetas afectadas
 
@@ -253,6 +271,6 @@ Divergencias diseño→implementación: {ninguna | N divergencias — ver design
 ## Cuándo parar y pedir ayuda
 
 Detente y avisa al usuario si:
-- El `git diff` no produce resultados útiles y no hay forma de determinar qué cambió.
+- Las tres listas de Fase 1.1 (`git diff HEAD`, status untracked y, en su caso, `git diff {hash-base} HEAD`) salen vacías. Probablemente la iniciativa ya está comiteada y el usuario debe pasar el hash base.
 - Una carpeta afectada no tiene código legible (error de acceso, vacía, etc.).
 - El draft no tiene los tres artefactos mínimos (user-story, analysis, design).

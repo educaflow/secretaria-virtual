@@ -681,6 +681,6 @@ Pruebas manuales tras arrancar:
 - **Modelo `EstadoCorreo`:** se usa `<enum>` nativo Axelor 8.1 (no `<selection>`), coherente con el resto de subsistemas y con la mención literal del análisis (enum).
 - **Repositorio personalizado:** `CorreoRepository` con `findUserByDni` para encapsular la única consulta JPA (I-3). Sin filter/bind inline en el servicio.
 - **DTO de entrada:** record `CorreoEnviarDTO` que reúne los 8 argumentos de `enviarCorreo` para no exponer un método con tantos parámetros.
-- **Helpers privados del servicio (`intentarEnvio`, `extraerMensaje`, `clonarSnapshot`, `comprobarInmutable`, `idOf`, `sameMetaFiles`):** se enuncian con firma + comentario para que el implementador sepa que existen y qué papel cumplen, pero su cuerpo lo escribe `system-implementer` siguiendo `k-sistemas/validaciones.md`.
+- **Helpers privados del servicio (`intentarEnvio`, `extraerMensaje`, `clonarSnapshot`, `comprobarInmutable`, `idOf`, `sameMetaFiles`):** se enuncian con firma + comentario para que el implementador sepa que existen y qué papel cumplen, pero su cuerpo lo escribe `sdd-implementer-system` siguiendo `k-sistemas/validaciones.md`.
 - **Forms Main solo lectura:** todos los `panel` de `Main-form` y `CarpetaCiudadana-form` están con `readonly=true`. Las validaciones cliente quedan declaradas para coherencia con el patrón del proyecto y para un eventual form de creación administrativa futuro.
 - **`i18n_es.csv` / `i18n_ca.csv`:** NO se crean en el diseño; los genera el script automáticamente (regla del proyecto en `CLAUDE.md`).

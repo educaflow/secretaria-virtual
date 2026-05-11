@@ -1,16 +1,16 @@
 ---
-name: system-analyst
-description: Dado una historia de usuario o descripción funcional, hace preguntas iterativas hasta tener toda la información necesaria y genera un análisis funcional completo (entidades, operaciones, vistas, seguridad y validaciones detalladas con mensajes de error). El análisis resultante es el input del skill system-designer.
+name: sdd-analyst-system
+description: Dado una historia de usuario o descripción funcional, hace preguntas iterativas hasta tener toda la información necesaria y genera un análisis funcional completo (entidades, operaciones, vistas, seguridad y validaciones detalladas con mensajes de error). El análisis resultante es el input del skill sdd-designer-system.
 ---
 
-# system-analyst
+# sdd-analyst-system
 
 Eres un analista funcional que convierte historias de usuario en análisis funcionales detallados para sistemas o subsistemas del proyecto EducaFlow.
 
 **Regla de oro:** NO generes el análisis hasta haber hecho las preguntas necesarias y recibir la aprobación del usuario sobre el borrador. Primero entender, luego diseñar.
 
 <HARD-GATE>
-NO generes el análisis, NO escribas código, NO invoques system-designer hasta haber
+NO generes el análisis, NO escribas código, NO invoques sdd-designer-system hasta haber
 presentado el borrador y recibido aprobación explícita del usuario.
 Esto aplica aunque la solicitud parezca simple o el usuario parezca tener prisa.
 
@@ -51,7 +51,7 @@ El skill puede recibir el input de tres formas:
   > type: user-story
   > ---
   > ```
-  > Si tienes un fichero de análisis, usa `/system-designer`. Si tienes un diseño, usa `/system-implementer`.
+  > Si tienes un fichero de análisis, usa `/sdd-designer-system`. Si tienes un diseño, usa `/sdd-implementer-system`.
 - Si la cabecera es correcta, la **carpeta de la iniciativa** es la carpeta que contiene ese fichero.
 - NO crees ni la carpeta ni el fichero `user-story.md` — ya existen.
 
@@ -339,7 +339,7 @@ Al finalizar, indica al usuario:
 Análisis guardado en .sdd/drafts/{carpeta-iniciativa}/analysis_NN/analysis.md
 
 Para generar el plan de implementación ejecuta:
-  /system-designer .sdd/drafts/{carpeta-iniciativa}/analysis_NN/analysis.md
+  /sdd-designer-system .sdd/drafts/{carpeta-iniciativa}/analysis_NN/analysis.md
 ```
 
-No lances `system-designer` tú mismo. El usuario decide cuándo ejecutarlo.
+No lances `sdd-designer-system` tú mismo. El usuario decide cuándo ejecutarlo.

@@ -5,7 +5,7 @@ Documento que registra cada iteración del bucle FASE 1 → FASE 2 → FASE 3 so
 ## Iteración 1 — 2026-05-10 17:00
 
 ### Estado de los skills al lanzar
-- `/system-designer` SKILL.md: versión committed en HEAD (sin cambios desde el inicio del experimento).
+- `/sdd-designer-system` SKILL.md: versión committed en HEAD (sin cambios desde el inicio del experimento).
 - `k-sistemas`, `k-vistas`, `k-seguridad`, `k-validaciones`: versiones committed en HEAD.
 - `design-guidelines.md` activo: solo guías 1 (callback FQCN+JSON) y 2 (clonado de PDF). Las guías 3-7 se eliminaron antes de la iteración (intencional — para forzar la derivación desde skills).
 
@@ -73,7 +73,7 @@ Las divergencias D no requieren acción — son alternativas legítimas en las q
 ### Próximos pasos (FASE 3)
 
 Antes de aplicar la propuesta de mejora a `k-vistas/SKILL.md`, conviene confirmar con el usuario:
-1. ¿Es deseable que `/system-designer` produzca consistentemente 4 ficheros por estado (alineado con gold)? ¿O es aceptable la versión consolidada (alineada con la mayoría de subagentes)?
+1. ¿Es deseable que `/sdd-designer-system` produzca consistentemente 4 ficheros por estado (alineado con gold)? ¿O es aceptable la versión consolidada (alineada con la mayoría de subagentes)?
 2. Si se opta por 4 ficheros, ¿se añade la regla a `k-vistas` (genérica para cualquier entidad con estados) o se documenta como "patrón opcional de gran granularidad"?
 
 ---
@@ -90,7 +90,7 @@ Antes de aplicar la propuesta de mejora a `k-vistas/SKILL.md`, conviene confirma
    - Convención de nombre: `<NombreEntidad>-<discriminador>.xml`.
    - Excepción: vistas `@Search-grid` + `@View-form` viven juntas en `<NombreEntidad>-ref.xml`.
 
-2. **`/.claude/skills/system-designer/SKILL.md`**:
+2. **`/.claude/skills/sdd-designer-system/SKILL.md`**:
    - Añadido bullet en "Reglas adicionales obligatorias" que transmite la regla a los 5 subagentes.
    - Añadido item al checklist de Tarea 3 del subagente y al checklist final de Fase 2.
 
@@ -143,12 +143,12 @@ Antes de aplicar la propuesta de mejora a `k-vistas/SKILL.md`, conviene confirma
 
 **Cobertura ≈ 98% del gold.** Las únicas diferencias restantes son cosméticas (orden de declaraciones de clases dentro del paso 2, presencia/ausencia de "(XML completo)" en headers, dos puntos en "Clase:" vs "Clase").
 
-**El experimento se cierra:** `/system-designer` con la regla añadida produce un diseño funcionalmente equivalente al gold partiendo de un análisis y guías de diseño neutros, sin trampas.
+**El experimento se cierra:** `/sdd-designer-system` con la regla añadida produce un diseño funcionalmente equivalente al gold partiendo de un análisis y guías de diseño neutros, sin trampas.
 
 ### Cambios aplicados a los skills (resumen para commit/PR)
 
 1. `.claude/skills/k-sistemas/SKILL.md`: regla "un `<action-view>` por fichero" en la sección `views/`.
-2. `.claude/skills/system-designer/SKILL.md`: bullet en "Reglas adicionales obligatorias" + 2 nuevos items de checklist (Tarea 3 del subagente y Fase 2 del agente principal).
+2. `.claude/skills/sdd-designer-system/SKILL.md`: bullet en "Reglas adicionales obligatorias" + 2 nuevos items de checklist (Tarea 3 del subagente y Fase 2 del agente principal).
 
 ---
 
@@ -162,7 +162,7 @@ Antes de aplicar la propuesta de mejora a `k-vistas/SKILL.md`, conviene confirma
    - Corregido el ejemplo "type1" para usar `actionRequest`/`actionResponse` (era inconsistente con los ejemplos posteriores).
    - Añadido bloque destacado **"REGLA DE NAMING — parámetros de los métodos type1"** con el razonamiento (evita colisión con `request`/`response` de HTTP/Servlet/Spring; mejora la legibilidad junto a `actionRequestHelper`/`actionResponseHelper`).
 
-2. **`.claude/skills/system-designer/SKILL.md`**:
+2. **`.claude/skills/sdd-designer-system/SKILL.md`**:
    - Bullet en "Reglas adicionales obligatorias" que transmite la regla a los 5 subagentes.
    - Item nuevo en el checklist (aplicado a Tarea 3 del subagente y Fase 2 del agente principal).
 
@@ -222,4 +222,4 @@ Las únicas diferencias restantes son cosméticas (naming de ficheros de vistas 
 
 1. `.claude/skills/k-sistemas/SKILL.md`: regla "un `<action-view>` por fichero".
 2. `.claude/skills/k-sistemas/controladores.md`: regla de naming `actionRequest`/`actionResponse` + corrección del ejemplo "type1".
-3. `.claude/skills/system-designer/SKILL.md`: 2 bullets en "Reglas adicionales obligatorias" + 2 items en el checklist (Tarea 3 + Fase 2).
+3. `.claude/skills/sdd-designer-system/SKILL.md`: 2 bullets en "Reglas adicionales obligatorias" + 2 items en el checklist (Tarea 3 + Fase 2).
