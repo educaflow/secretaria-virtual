@@ -6,18 +6,20 @@ import com.educaflow.subsystem.common.db.TipoUsuario;
 import com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UsuarioAutorizadoService extends ModelService<UsuarioAutorizado> {
 
-    boolean isAuthorized(String dni);
+
+    void cambiarTipoParaCentro(Centro centro, TipoUsuario tipoUsuarioAnterior, TipoUsuario tipoUsuarioNuevo);
 
     List<UsuarioAutorizado> getByCentro(Centro centro);
 
-    List<TipoUsuario> getByCentroAndDni(Centro centro, String dni);
-
     void marcarTodosInactivos(Centro centro, TipoUsuario tipoUsuario);
 
-    void activarOInsertar(String dni, Centro centro, TipoUsuario tipoUsuario);
+    Optional<UsuarioAutorizado> findByCentroAndDniAndTipoUsuario(Centro centro, String dni, TipoUsuario tipoUsuario);
 
-    void insertarInactivoSiNoExiste(String dni, Centro centro, TipoUsuario tipoUsuario);
+    List<UsuarioAutorizado> findByCentroAndCodigoTipoUsuario(Long centroId, String codigoTipoUsuario);
+
+    List<UsuarioAutorizado> findActivosByCentroAndCodigo(Long centroId, String codigoTipoUsuario);
 }

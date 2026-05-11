@@ -6,6 +6,7 @@ import com.educaflow.subsystem.common.db.CentroUsuario;
 import com.educaflow.subsystem.common.db.TipoUsuario;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public class CentroUsuarioRepository extends AbstractCentroUsuarioRepository {
@@ -68,6 +69,48 @@ public class CentroUsuarioRepository extends AbstractCentroUsuarioRepository {
                 .bind("centro", centro)
                 .bind("codigoTipo", codigoTipo)
                 .fetch();
+    }
+
+    public void convertirTipo(Long centroId, Long tipoOrigenId, Long tipoDestinoId) {
+        JPA.em().createQuery(
+                "UPDATE CentroUsuarioTipoUsuario c" +
+                " SET c.tipoUsuario = (SELECT t FROM TipoUsuario t WHERE t.id = :tipoDestinoId)" +
+                " WHERE c.centroUsuario.centro.id = :centroId" +
+                " AND c.tipoUsuario.id = :tipoOrigenId")
+                .setParameter("centroId", centroId)
+                .setParameter("tipoOrigenId", tipoOrigenId)
+                .setParameter("tipoDestinoId", tipoDestinoId)
+                .executeUpdate();
+    }
+
+    public void deleteTipoParaDnis(Long centroId, Long tipoId, List<String> dnis) {
+        JPA.em().createQuery(
+                "DELETE FROM CentroUsuarioTipoUsuario c" +
+                " WHERE c.centroUsuario.centro.id = :centroId" +
+                " AND c.tipoUsuario.id = :tipoId" +
+                " AND c.centroUsuario.usuario.dni IN :dnis")
+                .setParameter("centroId", centroId)
+                .setParameter("tipoId", tipoId)
+                .setParameter("dnis", dnis)
+                .executeUpdate();
+    }
+
+    public List<CentroUsuario> findByCentroAndUsuarioDniIn(Long centroId, List<String> dnis) {
+        return all()
+                .filter("self.centro.id = :centroId AND self.usuario.dni IN :dnis")
+                .bind("centroId", centroId)
+                .bind("dnis", dnis)
+                .fetch();
+    }
+
+    public Optional<CentroUsuario> findByCentroAndUsuarioDni(Long centroId, String dni) {
+        return Optional.ofNullable(
+                all()
+                        .filter("self.centro.id = :centroId AND self.usuario.dni = :dni")
+                        .bind("centroId", centroId)
+                        .bind("dni", dni)
+                        .fetchOne()
+        );
     }
 
     public List<CentroUsuario> findByCentro(Long centroId) {

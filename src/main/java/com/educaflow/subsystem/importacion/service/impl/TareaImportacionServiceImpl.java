@@ -1,11 +1,13 @@
 package com.educaflow.subsystem.importacion.service.impl;
 
+import com.axelor.db.JpaRepository;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.educaflow.base.util.AsciiTableUtil;
 import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.importacion.db.TareaImportacion;
+import com.educaflow.subsystem.importacion.db.TipoFicheroImportacion;
 import com.educaflow.subsystem.importacion.util.MensajeImportacion;
 import com.educaflow.subsystem.importacion.util.ImportadorException;
 import com.educaflow.subsystem.importacion.util.ImportadorFichero;
@@ -13,8 +15,10 @@ import com.educaflow.subsystem.importacion.util.ImportadorFicheroFactory;
 import com.educaflow.subsystem.importacion.util.ResultadoImportacion;
 import com.educaflow.subsystem.importacion.service.TareaImportacionService;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class TareaImportacionServiceImpl extends DefaultModelService<TareaImportacion> implements TareaImportacionService {
 
@@ -46,6 +50,21 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
     @Override
     public void remove(TareaImportacion tareaImportacion) {
         throw new UnsupportedOperationException("No se permite eliminar una tarea de importación. Si quieres eliminar la referencia al fichero, borra el fichero desde su ubicación original.");
+    }
+
+    @Override
+    public Optional<LocalDate> findFechaUltimaImportacion(Long centroId, TipoFicheroImportacion tipoFichero) {
+        return Optional.ofNullable(
+                JpaRepository.of(TareaImportacion.class)
+                        .all()
+                        .filter("self.centro.id = :centroId" +
+                                " AND self.tipoFichero = :tipoFichero" +
+                                " AND self.fechaExportacion IS NOT NULL")
+                        .bind("centroId", centroId)
+                        .bind("tipoFichero", tipoFichero)
+                        .order("-fechaExportacion")
+                        .fetchOne()
+        ).map(TareaImportacion::getFechaExportacion);
     }
 
     private ResultadoImportacion importar(TareaImportacion tareaImportacion) {

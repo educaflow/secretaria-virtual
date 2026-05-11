@@ -7,7 +7,8 @@
         <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" required="true"/>
         <string name="dni" title="dni__!!" required="true"/>
         <many-to-one name="tipoUsuario" ref="com.educaflow.subsystem.common.db.TipoUsuario" required="true" title="Tipo de usuario"/>
-        <boolean name="activo" title="Activo" default="true"/>
+        <integer name="curso" />
+        <date name="fechaExportacion" title="Fecha de exportación"/>
         <unique-constraint columns="centro,dni,tipoUsuario"/>
     </entity>
 

@@ -3,9 +3,13 @@ package com.educaflow.subsystem.importacion.util.impl;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.Centro;
+import com.educaflow.subsystem.common.db.CentroUsuario;
 import com.educaflow.subsystem.common.db.TipoUsuario;
+import com.educaflow.subsystem.common.service.CentroUsuarioService;
 import com.educaflow.subsystem.common.service.TipoUsuarioService;
 import com.educaflow.subsystem.importacion.db.TipoFicheroImportacion;
+import com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado;
+import com.educaflow.subsystem.registrousuario.service.UsuarioAutorizadoService;
 import com.educaflow.subsystem.importacion.util.ImportadorException;
 import com.educaflow.subsystem.importacion.util.ImportadorFichero;
 import com.educaflow.subsystem.importacion.util.ImportadorUsuarioUtil;
@@ -49,8 +53,27 @@ public class ImportadorUsuarioCsv implements ImportadorFichero {
         List<MensajeImportacion> mensajes = new ArrayList<>();
         int[] contadores = procesarItems(lineas, mensajes);
 
+        sincronizarCentroUsuarioTipoUsuario();
+
         String resumen = ImportadorUsuarioUtil.construirResumen(tipoUsuario, centro, curso, contadores[0], contadores[1], mensajes.size(), lineas.size());
         return new ResultadoImportacion(resumen, mensajes, centro, curso, LocalDate.now());
+    }
+
+    private void sincronizarCentroUsuarioTipoUsuario() {
+        UsuarioAutorizadoService usuarioAutorizadoService =
+                (UsuarioAutorizadoService) modelServiceFactory.resolve(UsuarioAutorizado.class);
+        CentroUsuarioService centroUsuarioService =
+                (CentroUsuarioService) modelServiceFactory.resolve(CentroUsuario.class);
+
+        for (UsuarioAutorizado ua : usuarioAutorizadoService.findByCentroAndCodigoTipoUsuario(centro.getId(), tipoUsuarioCode)) {
+            centroUsuarioService.findByCentroAndUsuarioDni(centro.getId(), ua.getDni()).ifPresent(cu -> {
+                boolean tieneTipo = cu.getCentroUsuarioTipoUsuario().stream()
+                        .anyMatch(cutu -> tipoUsuario.getId().equals(cutu.getTipoUsuario().getId()));
+                if (!tieneTipo) {
+                    centroUsuarioService.agregarTipo(cu, tipoUsuario);
+                }
+            });
+        }
     }
 
     private List<String> parsearLineas() {

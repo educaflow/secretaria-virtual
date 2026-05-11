@@ -12,6 +12,7 @@ import com.educaflow.subsystem.registrousuario.service.UsuarioAutorizadoService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class UsuarioAutorizadoServiceImpl extends DefaultModelService<UsuarioAutorizado> implements UsuarioAutorizadoService {
@@ -28,19 +29,6 @@ public class UsuarioAutorizadoServiceImpl extends DefaultModelService<UsuarioAut
 
     private UsuarioAutorizadoRepository getUsuarioAutorizadoRepository() {
         return (UsuarioAutorizadoRepository) repository;
-    }
-
-    @Override
-    public boolean isAuthorized(String dni) {
-        return getUsuarioAutorizadoRepository().isAuthorized(dni);
-    }
-
-    @Override
-    public List<TipoUsuario> getByCentroAndDni(Centro centro, String dni) {
-        return getUsuarioAutorizadoRepository().findByCentroAndDocumento(centro, dni)
-                .stream()
-                .map(UsuarioAutorizado::getTipoUsuario)
-                .toList();
     }
 
     @Override
@@ -66,39 +54,18 @@ public class UsuarioAutorizadoServiceImpl extends DefaultModelService<UsuarioAut
     }
 
     @Override
-    public void activarOInsertar(String dni, Centro centro, TipoUsuario tipoUsuario) {
-        getUsuarioAutorizadoRepository()
-                .findByCentroAndDocumento(centro, dni)
-                .stream()
-                .filter(ua -> ua.getTipoUsuario().getId().equals(tipoUsuario.getId()))
-                .findFirst()
-                .ifPresentOrElse(
-                        ua -> { ua.setActivo(true); update(ua, null); },
-                        () -> {
-                            UsuarioAutorizado ua = new UsuarioAutorizado();
-                            ua.setCentro(centro);
-                            ua.setDni(dni);
-                            ua.setTipoUsuario(tipoUsuario);
-                            ua.setActivo(true);
-                            insert(ua);
-                        }
-                );
+    public Optional<UsuarioAutorizado> findByCentroAndDniAndTipoUsuario(Centro centro, String dni, TipoUsuario tipoUsuario) {
+        return getUsuarioAutorizadoRepository().findByCentroAndDocumentoAndTipoUsuario(centro, dni, tipoUsuario);
     }
 
     @Override
-    public void insertarInactivoSiNoExiste(String dni, Centro centro, TipoUsuario tipoUsuario) {
-        boolean existe = getUsuarioAutorizadoRepository()
-                .findByCentroAndDocumento(centro, dni)
-                .stream()
-                .anyMatch(ua -> ua.getTipoUsuario().getId().equals(tipoUsuario.getId()));
-        if (existe) return;
+    public List<UsuarioAutorizado> findByCentroAndCodigoTipoUsuario(Long centroId, String codigoTipoUsuario) {
+        return getUsuarioAutorizadoRepository().findByCentroAndCodigoTipoUsuario(centroId, codigoTipoUsuario);
+    }
 
-        UsuarioAutorizado ua = new UsuarioAutorizado();
-        ua.setCentro(centro);
-        ua.setDni(dni);
-        ua.setTipoUsuario(tipoUsuario);
-        ua.setActivo(false);
-        insert(ua);
+    @Override
+    public List<UsuarioAutorizado> findActivosByCentroAndCodigo(Long centroId, String codigoTipoUsuario) {
+        return getUsuarioAutorizadoRepository().findActivosByCentroAndCodigo(centroId, codigoTipoUsuario);
     }
 
     private UsuarioAutorizado clonarComoEx(UsuarioAutorizado ua, Map<String, TipoUsuario> tiposPorCodigo) {

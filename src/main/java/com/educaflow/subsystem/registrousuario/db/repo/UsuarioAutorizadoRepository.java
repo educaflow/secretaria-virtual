@@ -6,6 +6,7 @@ import com.educaflow.subsystem.common.db.TipoUsuario;
 import com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado;
 
 import java.util.List;
+import java.util.Optional;
 
 public class UsuarioAutorizadoRepository extends AbstractUsuarioAutorizadoRepository {
 
@@ -24,6 +25,33 @@ public class UsuarioAutorizadoRepository extends AbstractUsuarioAutorizadoReposi
                 .bind("centroId", centro.getId())
                 .bind("dni", documento)
                 .fetch();
+    }
+
+    public List<UsuarioAutorizado> findByCentroAndCodigoTipoUsuario(Long centroId, String codigoTipoUsuario) {
+        return all()
+                .filter("self.centro.id = :centroId AND self.tipoUsuario.codigo = :codigo")
+                .bind("centroId", centroId)
+                .bind("codigo", codigoTipoUsuario)
+                .fetch();
+    }
+
+    public List<UsuarioAutorizado> findActivosByCentroAndCodigo(Long centroId, String codigoTipoUsuario) {
+        return all()
+                .filter("self.centro.id = :centroId AND self.tipoUsuario.codigo = :codigo AND self.activo = true")
+                .bind("centroId", centroId)
+                .bind("codigo", codigoTipoUsuario)
+                .fetch();
+    }
+
+    public Optional<UsuarioAutorizado> findByCentroAndDocumentoAndTipoUsuario(Centro centro, String documento, TipoUsuario tipoUsuario) {
+        return Optional.ofNullable(
+                all()
+                        .filter("self.centro.id = :centroId AND self.dni = :dni AND self.tipoUsuario.id = :tipoUsuarioId")
+                        .bind("centroId", centro.getId())
+                        .bind("dni", documento)
+                        .bind("tipoUsuarioId", tipoUsuario.getId())
+                        .fetchOne()
+        );
     }
 
     public List<UsuarioAutorizado> findAllByDni(String dni) {

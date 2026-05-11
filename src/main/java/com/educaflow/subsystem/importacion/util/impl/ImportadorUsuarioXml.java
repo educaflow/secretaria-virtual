@@ -1,7 +1,7 @@
 package com.educaflow.subsystem.importacion.util.impl;
 
-import com.axelor.db.JpaRepository;
 import com.axelor.db.modelservice.ModelServiceFactory;
+import com.educaflow.base.util.DniUtil;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.base.util.XMLUtil;
 import com.educaflow.subsystem.common.db.Centro;
@@ -12,6 +12,7 @@ import com.educaflow.subsystem.common.service.CentroUsuarioService;
 import com.educaflow.subsystem.common.service.TipoUsuarioService;
 import com.educaflow.subsystem.importacion.db.TareaImportacion;
 import com.educaflow.subsystem.importacion.db.TipoFicheroImportacion;
+import com.educaflow.subsystem.importacion.service.TareaImportacionService;
 import com.educaflow.subsystem.importacion.util.ImportadorException;
 import com.educaflow.subsystem.importacion.util.ImportadorFichero;
 import com.educaflow.subsystem.importacion.util.ImportadorUsuarioUtil;
@@ -50,6 +51,12 @@ public class ImportadorUsuarioXml implements ImportadorFichero {
             TipoFicheroImportacion.FAMILIAR, "/data-import/schemas/familiares.xsd"
     );
 
+    private static final Map<String, String> EX_MAPPING = Map.of(
+            "PROFESOR", "EXPROFESOR",
+            "ALUMNO",   "EXALUMNO",
+            "FAMILIAR", "EXFAMILIAR"
+    );
+
     private static final DateTimeFormatter FORMATO_FECHA_EXPORTACION =
             DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
@@ -77,57 +84,56 @@ public class ImportadorUsuarioXml implements ImportadorFichero {
 
     @Override
     public ResultadoImportacion importar() {
-        this.tipoUsuario = ((TipoUsuarioService) modelServiceFactory.resolve(TipoUsuario.class))
-                .findByCodigo(tipoUsuarioCode)
+        List<MensajeImportacion> mensajes = new ArrayList<>();
+
+        TipoUsuarioService tipoUsuarioService = (TipoUsuarioService) modelServiceFactory.resolve(TipoUsuario.class);
+        TareaImportacionService tareaImportacionService = (TareaImportacionService) modelServiceFactory.resolve(TareaImportacion.class);
+        UsuarioAutorizadoService usuarioAutorizadoService = (UsuarioAutorizadoService) modelServiceFactory.resolve(UsuarioAutorizado.class);
+
+        this.tipoUsuario = tipoUsuarioService.findByCodigo(tipoUsuarioCode)
                 .orElseThrow(() -> new ImportadorException("Tipo de usuario no encontrado: " + tipoUsuarioCode));
-        validarEsquema(contenido);
         centro = getCentroFromXml().orElseThrow(() -> new ImportadorException("Centro no encontrado en el fichero XML"));
         curso = getCursoFromXml().orElseThrow(() -> new ImportadorException("Curso no encontrado en el fichero XML"));
-        comprobarCentroActivo();
-        comprobarCursoNoFuturo();
-
         LocalDate fechaExportacion = getFechaExportacionFromXml()
                 .orElseThrow(() -> new ImportadorException("Fecha de exportación no encontrada en el fichero XML"));
 
-        boolean esActual = esImportacionActual(fechaExportacion);
-        UsuarioAutorizadoService usuarioAutorizadoService =
-                (UsuarioAutorizadoService) modelServiceFactory.resolve(UsuarioAutorizado.class);
-
-        if (esActual) {
-            usuarioAutorizadoService.marcarTodosInactivos(centro, tipoUsuario);
-        }
+        validar();
 
         NodeList items = document.getDocumentElement().getElementsByTagName(nodoItem);
-        List<MensajeImportacion> mensajes = new ArrayList<>();
-        int[] contadores = procesarItems(items, mensajes, esActual);
+        List<String> documentos = getDocumentosFromXml(items);
 
-        int avisos = 0;
+        boolean esActual = tareaImportacionService.findFechaUltimaImportacion(centro.getId(), tipoFicheroImportacion)
+                .map(ultima -> !fechaExportacion.isBefore(ultima))
+                .orElse(true);
+
         if (esActual) {
-            CentroUsuarioService centroUsuarioService =
-                    (CentroUsuarioService) modelServiceFactory.resolve(CentroUsuario.class);
-            List<String> cambios = centroUsuarioService.calcularTiposUsuarioRegistrados(centro.getId(), tipoUsuario);
-            cambios.stream()
-                    .map(cambio -> new MensajeImportacion(null, null, cambio))
-                    .forEach(mensajes::add);
-            avisos = cambios.size();
+            TipoUsuario tipoEx = tipoUsuarioService.findByCodigo(EX_MAPPING.get(tipoUsuario.getCodigo())).orElseThrow(
+                    () -> new ImportadorException("Tipo de usuario EX no encontrado para el tipo: " + tipoUsuario.getCodigo())
+            );
+            usuarioAutorizadoService.cambiarTipoParaCentro(centro, tipoUsuario, tipoEx);
+            ImportadorUsuarioUtil.procesarDocumentos(documentos, centro, tipoUsuario, tipoEx);
+            //usuarioAutorizadoService.marcarTodosInactivos(centro, tipoUsuario);
+        } else {
+            tipoUsuario = tipoUsuarioService.findByCodigo(EX_MAPPING.get(tipoUsuario.getCodigo()))
+                    .orElseThrow(() -> new ImportadorException("Tipo de usuario EX no encontrado para el tipo: " + tipoUsuario.getCodigo()));
         }
 
+        int[] contadores = procesarItems(items, mensajes, esActual);
+
+        CentroUsuarioService centroUsuarioService =
+                (CentroUsuarioService) modelServiceFactory.resolve(CentroUsuario.class);
+        centroUsuarioService.calcularTiposUsuarioRegistrados(centro.getId(), tipoUsuario, esActual);
+
         String resumen = ImportadorUsuarioUtil.construirResumen(tipoUsuario, centro, curso,
-                contadores[0], contadores[1], avisos, items.getLength());
+                contadores[0], contadores[1], 0, items.getLength());
         return new ResultadoImportacion(resumen, mensajes, centro, curso, fechaExportacion);
     }
 
-    private boolean esImportacionActual(LocalDate fechaExportacion) {
-        TareaImportacion ultima = JpaRepository.of(TareaImportacion.class)
-                .all()
-                .filter("self.centro.id = :centroId" +
-                        " AND self.tipoFichero = :tipoFichero" +
-                        " AND self.fechaExportacion IS NOT NULL")
-                .bind("centroId", centro.getId())
-                .bind("tipoFichero", tipoFicheroImportacion)
-                .order("-fechaExportacion")
-                .fetchOne();
-        return ultima == null || !fechaExportacion.isBefore(ultima.getFechaExportacion());
+    private void validar() {
+        validarEsquema(contenido);
+
+        comprobarCentroActivo();
+        comprobarCursoNoFuturo();
     }
 
     private void validarEsquema(byte[] contenido) {
@@ -167,7 +173,17 @@ public class ImportadorUsuarioXml implements ImportadorFichero {
         }
     }
 
-    private int[] procesarItems(NodeList items, List<MensajeImportacion> mensajes, boolean esActual) {
+    private List<String> getDocumentosFromXml(NodeList items) {
+        List<String> documentos = new ArrayList<>();
+        for (int i = 0; i < items.getLength(); i++) {
+            Element item = (Element) items.item(i);
+            String documentoRaw = item.getAttribute("documento");
+            documentos.add(documentoRaw);
+        }
+        return documentos;
+    }
+
+    /*private int[] procesarItems(NodeList items, List<MensajeImportacion> mensajes, boolean esActual) {
         int creados = 0;
         int errores = 0;
         for (int i = 0; i < items.getLength(); i++) {
@@ -182,7 +198,7 @@ public class ImportadorUsuarioXml implements ImportadorFichero {
             }
         }
         return new int[]{creados, errores};
-    }
+    }*/
 
     private Optional<Centro> getCentroFromXml() {
         String codigoCentro = document.getDocumentElement().getAttribute("codigo");
