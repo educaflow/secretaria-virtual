@@ -1,6 +1,5 @@
 ---
 type: design
-analysis-file: analysis.md
 ---
 
 # Plan: Subsistema de Correos

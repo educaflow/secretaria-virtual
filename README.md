@@ -75,3 +75,9 @@ https://shivantra.com/axelor-theme-designer/#/designer
     <context name="_showRecord" expr="3" />
 </action-view>  
 ```     
+
+# MCP IntelliJ
+Instala este plugin que es un servidor de MCP: https://plugins.jetbrains.com/plugin/29174-ide-index-mcp-server
+Por si está instalado quita el plugin de MCP genérico de JetBrains para evitar conflictos: `claude mcp remove jetbrains`
+Ejecuta: `claude mcp add --transport http --scope user intellij-index http://127.0.0.1:29170/index-mcp/streamable-http` 
+
