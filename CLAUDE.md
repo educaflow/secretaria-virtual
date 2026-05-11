@@ -85,7 +85,7 @@ código + draft       →  /sdd-close-spec         →  CLAUDE.md + archivo en .
 - **`/sdd-analyst-system`** — convierte una historia de usuario en análisis funcional. Hace preguntas iterativas con `AskUserQuestion` antes de generar nada (HARD-GATE: nunca genera sin aprobación). Produce entidades, operaciones, vistas, seguridad y una **tabla única `V-XXX` de validaciones** con columnas (`ID`, `Campo(s)`, `Tipo`, `Origen`, `Condición`, `Mensaje al usuario`). Internamente lanza **5 subagentes en paralelo** y unifica.
 - **`/sdd-designer-system`** — convierte el análisis en un **diseño**, NO una implementación. Estructura de clases/métodos/vistas/acciones con firmas y comentarios descriptivos, pero **sin cuerpos de método ni XML literal de vistas/acciones** (la única excepción son los dominios XML, que sí van completos). Cobertura total obligatoria: cada `V-XXX` y regla de negocio del análisis debe tener una entrada en la matriz de trazabilidad apuntando a una clase+método o fichero+acción concreta. También lanza 5 subagentes en paralelo y unifica.
 - **`/sdd-implementer-system`** — delega en `code-implementer` pasándole el diseño y los skills (`k-sistemas`, `k-vistas`, opcionalmente `k-seguridad`). NO implementa nada por sí mismo y **NO archiva nada** en `.sdd/specs/`. Tras implementar, los drafts quedan intactos.
-- **`/sdd-close-spec`** — cierra la iniciativa cuando el usuario está conforme con la implementación: usa `git diff` para identificar los ficheros que cambiaron, regenera los `CLAUDE.md` de las carpetas afectadas desde el código real, y archiva `user-story.md` + `analysis.md` + `design.md` (corregido as-built) en `.sdd/specs/NNNN_{desc}/`.
+- **`/sdd-close-spec`** — cierra la iniciativa cuando el usuario está conforme con la implementación: usa `git diff` para identificar los ficheros que cambiaron, regenera los `CLAUDE.md` de las carpetas afectadas desde el código real, y archiva los tres artefactos en `.sdd/specs/NNNN_{desc}/` en versión **as-built**: el `analysis.md` y el `design.md` se corrigen para reflejar la implementación real, y el `user-story.md` se ajusta solo si la implementación reveló contradicciones evidentes con la intención original (cambios excepcionales). Cada artefacto archivado lleva una sección "Notas de cierre (as-built)" listando los cambios o "Sin cambios respecto al draft original."
 
 ### Estructura de carpetas
 
@@ -137,7 +137,7 @@ Si se invoca un skill sin ruta, busca el último artefacto disponible (orden alf
 
 
 ## Architectura
-Todo el pryecto cuelga del paquete: `com.educaflow`
+Todo el proyecto cuelga del paquete: `com.educaflow`
 
 Bajo el paquete `com.educaflow` existen estos 5 grandes paquetes:
 - `base.util` — Son las utilidaes de bajo nivel para no repetir pequeños trozos de código. Ejemplos de ello son: `JsonUtil`, `MetaFileUtil`, `ActionRequestHelper`, `AllowProperties`, `AxelorViewUtil`, `TextUtil`, `Convert`, `DniUtil`, `ReflectionUtil`, `SecurityUtil`, `CryptoUtil`, `XmlUtil`
