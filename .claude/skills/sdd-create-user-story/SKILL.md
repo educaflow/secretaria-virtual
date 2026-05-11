@@ -79,6 +79,16 @@ Cuando termines, lanza `/sdd-analyst-system` para producir el análisis funciona
 resuelve, en qué contexto de la secretaría virtual encaja. Evita detalles de
 implementación.]
 
+## En una frase
+
+**Como** [rol / actor principal],
+**quiero** [resultado o capacidad que busca],
+**para** [beneficio / objetivo mayor].
+
+> Esta frase resume la intención de la iniciativa. Si te cuesta escribirla porque
+> mezclas varios objetivos, probablemente conviene partir la iniciativa en dos
+> historias separadas.
+
 ## Quién interviene
 
 - **[Actor 1]**: [quién es, qué papel cumple, qué necesita o aporta]
@@ -116,6 +126,18 @@ implementación.]
 >
 > Si hay transiciones de estado (ej. "pendiente → firmada"), menciónalas explícitamente
 > en el paso donde ocurren.
+>
+> De estos pasos derivará el analista los **criterios de aceptación** del análisis
+> funcional. Cuanto más claros estén, menos preguntas hará después.
+
+## Fuera de alcance (opcional)
+
+- [Algo que parece encajar pero NO entra en esta iniciativa]
+- [...]
+
+> Si hay zonas grises (cosas adyacentes que un lector podría suponer que entran),
+> lístalas aquí para evitar malentendidos en el análisis posterior. Si todo está
+> claro, borra esta sección entera.
 
 ## Restricciones que no pueden romperse
 
@@ -135,8 +157,16 @@ implementación.]
 - [...]
 
 > Por qué merece la pena hacer esto. Útil para el análisis posterior, ayuda a
-> entender qué es lo verdaderamente importante si hay que priorizar o decidir entre
-> alternativas.
+> entender qué es lo verdaderamente importante si hay que decidir entre alternativas.
+
+## Preguntas abiertas (opcional)
+
+- [Duda sin resolver — el analista la abordará en su fase de preguntas]
+- [...]
+
+> Si tienes dudas concretas sobre cómo debe comportarse algo, anótalas aquí en
+> vez de inventarte una respuesta. El analista las usará como punto de partida
+> para preguntarte. Si no hay dudas, borra esta sección entera.
 ```
 
 ### 6. Mensaje final al usuario
