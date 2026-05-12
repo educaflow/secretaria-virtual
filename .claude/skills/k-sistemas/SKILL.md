@@ -261,27 +261,7 @@ Cuando una entidad tiene una relación `one-to-many` que se edita inline, usa `<
 - Si hay varias colecciones, agrúpalas dentro de `<panel-tabs>`.
 - El patrón aplica en cualquier profundidad: cada nivel tiene su `panel-related`, su form hijo con `onNew` y su `action-record` que asigna `__parent__`. El nombre de la vista refleja todos los niveles: `subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-grid`.
 
-El grid y el form del `panel-related` se preceden de este bloque de comentarios (relleno con `*`, `-->` alineados):
-```xml
-<!-- ************************************************************************************ -->
-<!-- ********************* Vistas de ModeloMaestro -> ModeloDetalle ********************* -->
-<!-- ************************************************************************************ -->
-```
-Si hay anidamiento, el texto del comentario refleja todos los niveles: `Vistas de ModeloMaestro -> ModeloDetalle1 -> ModeloDetalle2`.
-
-### Comentarios
-Organización del fichero de vistas con comentarios (relleno con `*`, `-->` alineados):
-```xml
-<!-- **********************************************************  -->
-<!-- ****************** Acciones de los botones ***************  -->
-<!-- **********************************************************  -->
-<!-- action-group y action-method de cada botón -->
-
-<!-- **********************************************************  -->
-<!-- ********* Acciones básicas que cambian campos ************  -->
-<!-- **********************************************************  -->
-<!-- action-record que solo asignan valores -->
-```
+Para los comentarios que separan las vistas y los grupos de acciones, consultar el skill `k-vistas` (secciones "Comentarios de cabecera de sección" y "Comentarios de grupos de acciones").
 
 ### Patrón 2 — Fichero de menú
 
