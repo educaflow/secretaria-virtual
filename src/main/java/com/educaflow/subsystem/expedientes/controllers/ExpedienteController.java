@@ -23,7 +23,7 @@ import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
 import com.educaflow.base.util.Convert;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 

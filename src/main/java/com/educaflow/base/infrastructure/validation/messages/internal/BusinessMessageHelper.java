@@ -1,7 +1,7 @@
 package com.educaflow.base.infrastructure.validation.messages.internal;
 
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessage;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessage;
+import com.axelor.db.modelservice.BusinessMessages;
 
 import java.util.ArrayList;
 import java.util.HashMap;

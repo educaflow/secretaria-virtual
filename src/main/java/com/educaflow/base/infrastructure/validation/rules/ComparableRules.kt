@@ -1,7 +1,7 @@
 package com.educaflow.base.infrastructure.validation.rules
 
 import com.educaflow.base.infrastructure.validation.engine.ValidationRule
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages
+import com.axelor.db.modelservice.BusinessMessages
 import kotlin.reflect.KFunction
 
 data class GreaterThan<T : Comparable<T>>(val comparableAnotherField:KFunction<T?>) : ValidationRule {

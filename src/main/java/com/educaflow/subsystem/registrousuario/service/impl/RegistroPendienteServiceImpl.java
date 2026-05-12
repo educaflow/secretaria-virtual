@@ -1,38 +1,26 @@
 package com.educaflow.subsystem.registrousuario.service.impl;
 
-import com.axelor.auth.AuthService;
-import com.axelor.auth.db.Group;
 import com.axelor.auth.db.User;
 import com.axelor.auth.db.repo.UserRepository;
 import com.axelor.db.JpaRepository;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
-import com.educaflow.base.infrastructure.mail.Mail;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessage;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessage;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.base.util.CodigoVerificacionUtil;
 import com.educaflow.base.util.DniUtil;
 import com.educaflow.base.util.TokenUtil;
-import com.educaflow.subsystem.common.db.Centro;
-import com.educaflow.subsystem.registrousuario.RegistroException;
 import com.educaflow.subsystem.registrousuario.db.RegistroPendiente;
 import com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado;
 import com.educaflow.subsystem.registrousuario.db.repo.RegistroPendienteRepository;
 import com.educaflow.subsystem.registrousuario.db.repo.UsuarioAutorizadoRepository;
-import com.educaflow.subsystem.registrousuario.service.DatosBasicosUsuario;
 import com.educaflow.subsystem.registrousuario.service.RegistroPendienteService;
-import com.educaflow.subsystem.common.db.CentroUsuario;
-import com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario;
-import com.educaflow.subsystem.common.db.TipoUsuario;
 import com.google.inject.persist.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public class RegistroPendienteServiceImpl extends DefaultModelService<RegistroPendiente> implements RegistroPendienteService {

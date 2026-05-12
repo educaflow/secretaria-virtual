@@ -1,17 +1,11 @@
 package com.educaflow.subsystem.registrousuario.controllers;
 
-import com.axelor.auth.db.User;
-import com.axelor.db.JpaRepository;
-import com.axelor.db.Repository;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.base.util.DniUtil;
-import com.educaflow.subsystem.registrousuario.RegistroException;
 import com.educaflow.subsystem.registrousuario.db.RegistroPendiente;
-import com.educaflow.subsystem.registrousuario.service.DatosBasicosUsuario;
 import com.educaflow.subsystem.registrousuario.service.RegistroPendienteService;
-import com.educaflow.subsystem.registrousuario.service.RegistroService;
 import com.google.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -26,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.Optional;
 
 @Path("/public/registro")
 public class RegistroController {

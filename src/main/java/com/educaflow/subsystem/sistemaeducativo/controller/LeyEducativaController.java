@@ -8,7 +8,7 @@ import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
 import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.base.util.AllowProperties;
 import com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa;
 import com.educaflow.subsystem.sistemaeducativo.service.LeyEducativaService;
@@ -32,13 +32,14 @@ public class LeyEducativaController {
 
         AllowProperties allowProperties = AllowProperties.createAllowAllProperties();
         LeyEducativa leyEducativa = actionRequestHelper.getModel(allowProperties);
+        LeyEducativa leyEducativaOriginal = actionRequestHelper.getOriginalModel();
 
 
         Optional<BusinessMessages> validationResult;
         if (actionRequestHelper.getId()==null) {
             validationResult = leyEducativaService.validateInsert(leyEducativa);
         } else {
-            validationResult = leyEducativaService.validateUpdate(leyEducativa);
+            validationResult = leyEducativaService.validateUpdate(leyEducativa,leyEducativaOriginal);
         }
         if (validationResult.isPresent()) {
             actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());

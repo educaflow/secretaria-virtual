@@ -2,8 +2,8 @@ package com.educaflow.subsystem.sistemaeducativo.service.impl;
 
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessage;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessage;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa;
 import com.educaflow.subsystem.sistemaeducativo.service.LeyEducativaService;
 
@@ -46,7 +46,7 @@ public class LeyEducativaServiceImpl extends DefaultModelService<LeyEducativa> i
     }
 
     @Override
-    public Optional<BusinessMessages> validateUpdate(LeyEducativa leyEducativa) {
+    public Optional<BusinessMessages> validateUpdate(LeyEducativa leyEducativa,LeyEducativa original) {
         BusinessMessages messages = new BusinessMessages();
 
         if (leyEducativa.getName() != null && leyEducativa.getName().trim().equalsIgnoreCase("bb")) {

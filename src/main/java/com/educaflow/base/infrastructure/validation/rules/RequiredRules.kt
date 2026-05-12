@@ -2,7 +2,7 @@ package com.educaflow.base.infrastructure.validation.rules
 
 import com.axelor.meta.db.MetaFile
 import com.educaflow.base.infrastructure.validation.engine.ValidationRule
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages
+import com.axelor.db.modelservice.BusinessMessages
 import java.math.BigDecimal
 
 class Required : ValidationRule {

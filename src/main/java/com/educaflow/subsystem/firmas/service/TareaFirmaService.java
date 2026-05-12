@@ -2,7 +2,7 @@ package com.educaflow.subsystem.firmas.service;
 
 import com.axelor.db.modelservice.ModelService;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.subsystem.firmas.db.TareaFirma;
 
 import java.util.Optional;

@@ -17,7 +17,7 @@ import com.educaflow.base.infrastructure.numeradores.db.repo.NumeradorRepository
 import com.educaflow.base.infrastructure.mapper.BeanMapperModel;
 import com.educaflow.base.infrastructure.validation.engine.*;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.subsystem.expedientes.services.eventmanager.EventManager;
 import com.educaflow.subsystem.expedientes.services.validation.StateEventValidator;
 import com.google.common.base.CaseFormat;

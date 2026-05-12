@@ -1,5 +1,8 @@
 package com.educaflow.base.infrastructure.validation.messages;
 
+import com.axelor.db.modelservice.BusinessMessage;
+import com.axelor.db.modelservice.BusinessMessages;
+
 public class BusinessException extends Exception {
 
     private BusinessMessages businessMessages=new BusinessMessages();
