@@ -1,203 +1,156 @@
 ---
 name: k-validaciones
-description: Cómo escribir reglas de validación al analizar un modelo. Formato de regla, catálogo de tipos, redacción de mensajes, casos especiales (estados, campos calculados) y trazabilidad al diseño.
+description: Cómo documentar al analizar una entidad sus validaciones (V-XXX) y sus reglas de negocio (R-XXX). Formato de tablas, catálogo de tipos de validación, redacción de mensajes, ejemplos de reglas de negocio y trazabilidad al diseño.
 ---
 
 # k-validaciones
 
-Cada validación se documenta como una **regla**:
+Este skill describe cómo documentar, al analizar una entidad, las dos cosas que el sistema debe garantizar sobre ella: las **validaciones** y las **reglas de negocio**. El resultado son dos tablas, `V-XXX` y `R-XXX`, que se trazan al diseño.
 
-| ID    | Campo(s)  | Tipo                  | Condición de aplicación     | Mensaje al usuario                                                     |
-|-------|-----------|-----------------------|-----------------------------|------------------------------------------------------------------------|
-| V-001 | email     | Formato               | Siempre                     | "El email debe tener el formato usuario@dominio.com"                   |
-| V-002 | nif       | Formato + dígito ctrl | Siempre                     | "El NIF '{valor}' no es válido. Compruebe la letra verificadora"       |
-| V-003 | fecha_fin | Consistencia temporal | Si fecha_inicio tiene valor | "La fecha de fin ({fin}) debe ser posterior a la de inicio ({inicio})" |
-| V-004 | nif       | Unicidad              | Al guardar                  | "Ya existe una persona con el NIF {valor}"                             |
+- **Validación** (`V-XXX`): condición que un dato o un registro debe cumplir para que una operación sea aceptada. Si no se cumple, el sistema **impide** la operación y muestra un mensaje al usuario. Una validación nunca modifica el estado del sistema. Ejemplo: *"El email debe tener el formato `usuario@dominio.com`"*.
+- **Regla de negocio** (`R-XXX`): acción automática que el sistema **ejecuta** cuando ocurre un evento sobre la entidad (insertar, actualizar, borrar, cambiar de estado, etc.). Modifica el estado del sistema o produce efectos colaterales: calcular un campo derivado, generar un PDF, enviar un correo, crear o cancelar un registro relacionado, etc. Ejemplo: *"El total de la factura es la suma del importe de sus líneas"*.
 
----
+La regla mnemotécnica es: **una validación dice "no" y bloquea; una regla de negocio dice "ahora hago esto" y actúa**.
+
+
+## Validaciones
+Cada campo del modelo va a tener una serie de validaciones que se deben cumplir para ello se debe generar una tabla con todas las validaciones. Un ejemplo es el siguiente
+
+| ID    | Campo(s)  | Descripción                                      | Condición de aplicación       | Mensaje al usuario                                                     |
+|-------|-----------|--------------------------------------------------|-------------------------------|------------------------------------------------------------------------|
+| V-001 | email     | Debe cumplir el formato de un EMail              | Siempre                       | "El email debe tener el formato usuario@dominio.com"                   |
+| V-002 | nif       | Debe cumplir el formato de un NIF/DNI/NIE        | Siempre                       | "El NIF '{valor}' no es válido. Compruebe la letra verificadora"       |
+| V-003 | fecha_fin | La fecha de fin debe ser mayor que fecha_inicio  | Si fecha_inicio tiene valor   | "La fecha de fin ({fin}) debe ser posterior a la de inicio ({inicio})" |
+| V-004 | nif       | Unicidad                                         | Siempre                       | "Ya existe una persona con el NIF {valor}"                             |
+| V-005 | fecha_fin | Es requerida                                     | Si fecha_inicio tiene valor   | "La fecha de fin es requerida si existe la fecha de inicio"            |
+
 
 ## Tipos de validación
 
-**Sobre el propio campo** *(cliente — `action-validate` / `action-condition`)*
-- Obligatoriedad — siempre / nunca / condicional
-- Tipo de dato — entero, decimal, fecha, booleano, lista, referencia, archivo
-- Longitud — mín / máx / exacta
-- Formato — email, NIF, IBAN, teléfono… *(ver catálogo abajo)*
-- Rango numérico — mín, máx, decimales, negativos
-- Rango de fechas — mín/máx (absoluta o relativa), pasada/futura
-- Dominio — lista cerrada / abierta / cascada / referencia a otra entidad
-- Caracteres permitidos — solo dígitos, sin tildes, ASCII…
-- Dígito de control
+Cada bloque es un catálogo de patrones concretos de regla. El analista elige el patrón aplicable, sustituye `A`, `B`, `X`, `F`, … por los nombres reales y redacta el mensaje al usuario siguiendo el ejemplo.
 
-**Entre campos del mismo registro** *(cliente)*
-- Consistencia temporal / numérica / de dominio
-- Requerimiento mutuo — si hay X, también Y (AND)
-- Alternativa requerida — al menos uno de {X, Y, …} (OR)
-- Exclusión mutua — NIF y CIF no a la vez
-- Totales cruzados — suma líneas = total
-- Condicional — `SI tipo = JURIDICA ENTONCES CIF obligatorio`
+### Sobre el propio campo
 
-**Entre registros — requiere BD** *(servidor — `validateInsert` / `validateUpdate`)*
-- Unicidad — clave única en un ámbito (global / por centro / por año / combinación)
-- Integridad referencial — al borrar el padre: RESTRICT (bloquea), CASCADE (borra hijos), SET NULL (deja huérfano)
-- Cardinalidad — `1..*`, `0..1`, `N..M`; verificar al cambiar de estado
-- Registros maestros — debe existir la configuración previa
+| Descripción de la regla                                                   | Cuándo se aplica            | Mensaje al usuario                          | Ejemplo de mensaje                                                  |
+|---------------------------------------------------------------------------|-----------------------------|---------------------------------------------|---------------------------------------------------------------------|
+| El campo A es obligatorio                                                 | Siempre                     | El A es obligatorio                         | "El email es obligatorio"                                           |
+| El campo A es obligatorio si el campo B tiene valor                       | Si B tiene valor            | El A es obligatorio cuando existe B         | "La fecha de fin es obligatoria si existe la fecha de inicio"       |
+| El campo A es obligatorio si el campo B vale X                            | Si B = X                    | El A es obligatorio cuando B vale X         | "El CIF es obligatorio si el tipo es JURIDICA"                      |
+| El campo A no admite valor                                                | Siempre                     | El A no admite valor                        | "El NIE no se admite en este formulario"                            |
+| El campo A debe tener una longitud mínima de X caracteres                 | Siempre                     | El A debe tener al menos X caracteres       | "El nombre debe tener al menos 2 caracteres"                        |
+| El campo A debe tener una longitud máxima de X caracteres                 | Siempre                     | El A no puede superar X caracteres          | "El asunto no puede superar 255 caracteres"                         |
+| El campo A debe tener una longitud exacta de X caracteres                 | Siempre                     | El A debe tener exactamente X caracteres    | "El código postal debe tener exactamente 5 caracteres"              |
+| El campo A debe tener un valor mínimo de X                                | Siempre                     | El A debe ser mayor o igual que X           | "La cantidad debe ser mayor o igual que 1"                          |
+| El campo A debe tener un valor máximo de X                                | Siempre                     | El A no puede superar X                     | "El descuento no puede superar el 100%"                             |
+| El campo A debe tener un valor exacto de X                                | Siempre                     | El A debe valer exactamente X               | "El número de copias debe ser 1"                                    |
+| El campo A debe estar entre X e Y                                         | Siempre                     | El A debe estar entre X e Y                 | "La cantidad debe estar entre 1 y 999"                              |
+| El campo A no puede ser negativo                                          | Siempre                     | El A no puede ser negativo                  | "El importe no puede ser negativo"                                  |
+| El campo A admite como máximo N decimales                                 | Siempre                     | El A admite hasta N decimales               | "El precio admite hasta 2 decimales"                                |
+| El campo A debe ser una fecha en el pasado                                | Siempre                     | El A debe ser una fecha pasada              | "La fecha de nacimiento debe ser anterior a hoy"                    |
+| El campo A debe ser una fecha en el futuro                                | Siempre                     | El A debe ser una fecha futura              | "La fecha de cita debe ser posterior a hoy"                         |
+| El campo A debe ser una fecha posterior a F                               | Siempre                     | El A debe ser posterior a F                 | "La fecha de matrícula debe ser posterior al 01/09/2024"            |
+| El campo A debe ser una fecha anterior a F                                | Siempre                     | El A debe ser anterior a F                  | "La fecha de pago debe ser anterior al 31/12/2024"                  |
+| El campo A debe estar entre las fechas F1 y F2                            | Siempre                     | El A debe estar entre F1 y F2               | "La fecha de matrícula debe estar entre 01/09/2024 y 30/09/2024"    |
+| El campo A debe cumplir el formato F *(ver catálogo)*                     | Siempre                     | El A debe tener el formato F                | "El email debe tener el formato usuario@dominio.com"                |
+| El campo A debe tener un dígito de control válido                         | Siempre                     | El A no tiene un dígito de control válido   | "El NIF '12345678X' no es válido. Compruebe la letra verificadora"  |
+| El campo A solo admite caracteres del conjunto C                          | Siempre                     | El A solo admite los caracteres C           | "El código solo admite letras y dígitos"                            |
+| El campo A debe ser un valor de la lista cerrada {X, Y, Z}                | Siempre                     | El A debe ser uno de {X, Y, Z}              | "El estado debe ser uno de: BORRADOR, ENVIADO, APROBADO"            |
+| El campo A debe referenciar a un registro existente de la entidad E       | Siempre                     | El A debe referenciar un E existente        | "El centro indicado no existe"                                      |
 
-**¿En qué modelo se documenta?** La regla pertenece al modelo en cuyo XML vive el campo o relación que dispara la validación:
-- Integridad referencial al borrar (RESTRICT/CASCADE/SET NULL): se documenta en el **padre** (el que se borra), no en el hijo. *"No se puede borrar `FamiliaProfesional` con ciclos asociados"* es regla de `FamiliaProfesional`, aunque mencione `Ciclo`.
-- Unicidad y formato: en el modelo que tiene el campo.
-- Validaciones cruzadas entre dos entidades (coherencia centro↔expediente): en el modelo que dispara la operación; si hay duda, en el que tiene la responsabilidad funcional.
+### Entre campos del mismo registro 
 
-**De negocio** *(servidor)*
-- Restricciones — "cliente con deudas no pide"
-- Autorizaciones — "descuentos > 20% requieren director"
-- Reglas temporales — "matrícula del 1 al 30 sept"
-- Cálculos / derivaciones — *(ver "Campos calculados" abajo)*
+| Descripción de la regla                                                   | Cuándo se aplica            | Mensaje al usuario                          | Ejemplo de mensaje                                                  |
+|---------------------------------------------------------------------------|-----------------------------|---------------------------------------------|---------------------------------------------------------------------|
+| El campo A debe ser mayor que el campo B                                  | Si B tiene valor            | El A debe ser mayor que B                   | "La fecha de fin debe ser posterior a la de inicio"                 |
+| El campo A debe ser mayor o igual que el campo B                          | Si B tiene valor            | El A debe ser mayor o igual que B           | "La fecha de cierre debe ser mayor o igual que la de apertura"      |
+| El campo A debe ser menor que el campo B                                  | Si B tiene valor            | El A debe ser menor que B                   | "El descuento aplicado debe ser menor que el precio"                |
+| El campo A debe ser menor o igual que el campo B                          | Si B tiene valor            | El A debe ser menor o igual que B           | "La fecha de aviso debe ser menor o igual que la de vencimiento"    |
+| El campo A debe ser igual que el campo B                                  | Si B tiene valor            | El A debe coincidir con B                   | "La confirmación de la contraseña debe coincidir con la contraseña" |
+| El campo A debe ser distinto del campo B                                  | Si B tiene valor            | El A debe ser distinto de B                 | "El revisor debe ser distinto del solicitante"                      |
+| Si existe el valor del campo A, debe existir también el valor del campo B | Si A tiene valor            | Debe rellenar también B                     | "Si indica fecha de inicio debe indicar también fecha de fin"       |
+| Debe existir al menos uno de los campos {A, B, …}                         | Siempre                     | Debe rellenar al menos uno entre A, B, …    | "Debe indicar al menos un identificador entre DNI, NIA o NRP"       |
+| No pueden existir a la vez los valores de A y B                           | Si A y B tienen valor       | No puede rellenar a la vez A y B            | "No puede indicar NIF y CIF a la vez"                               |
+| Si existe el valor del campo A, no puede existir el valor del campo B     | Si A tiene valor            | No puede rellenar B si existe A             | "Si ha indicado NIE no puede indicar NIF"                           |
+| La suma de A1, A2, …, An debe ser igual al campo B                        | Siempre                     | La suma de A1…An debe coincidir con B       | "La suma de las líneas (450,00 €) debe coincidir con el total (500,00 €)" |
+| Si el campo A vale X, el campo B debe valer Y                             | Si A = X                    | Cuando A vale X, B debe valer Y             | "Si el tipo es JURIDICA, la forma jurídica debe ser SA, SL o CB"    |
+| Si el campo A vale X, el campo B es obligatorio                           | Si A = X                    | Cuando A vale X, B es obligatorio           | "Si el tipo es JURIDICA el CIF es obligatorio"                      |
+| Si el campo A vale X, el campo B no admite valor                          | Si A = X                    | Cuando A vale X, B no se admite             | "Si el tipo es FISICA no debe indicar CIF"                          |
 
-Las reglas de servidor pueden duplicarse en cliente para mejor UX, pero **siempre** deben estar en servidor.
+### Entre registros 
 
----
+| Descripción de la regla                                                   | Cuándo se aplica            | Mensaje al usuario                          | Ejemplo de mensaje                                                  |
+|---------------------------------------------------------------------------|-----------------------------|---------------------------------------------|---------------------------------------------------------------------|
+| El campo A debe ser único globalmente                                     | Al crear o modificar A      | Ya existe un registro con A                 | "Ya existe una persona con NIF '12345678Z'"                         |
+| El campo A debe ser único dentro del ámbito C                             | Al crear o modificar A      | Ya existe un registro con A en C            | "Ya existe un aula con código 'A-101' en el centro IES Levante"     |
+| La combinación (A, B, …) debe ser única                                   | Al crear o modificar A o B  | Ya existe un registro con esa combinación   | "Ya existe una matrícula del alumno '12345678Z' en el curso 2024/2025" |
+| No se puede borrar el registro padre si tiene registros hijos *(RESTRICT)* | Al borrar el padre          | No se puede borrar P porque tiene H asociados | "No se puede borrar la familia profesional 'Informática' porque tiene 3 ciclos asociados" |
+| Al borrar el padre se borran también los registros hijos *(CASCADE)*      | Al borrar el padre          | Se borrarán también los H asociados         | "Se borrarán también las N líneas del pedido"                       |
+| Al borrar el padre los hijos pierden la referencia *(SET NULL)*           | Al borrar el padre          | Los H quedarán sin P asignado               | "Los alumnos del aula quedarán sin aula asignada"                   |
+| El registro debe tener al menos N hijos de tipo H                         | Al guardar / cambiar estado | Debe tener al menos N H                     | "El ciclo debe tener al menos 1 módulo asociado"                    |
+| El registro debe tener entre N y M hijos de tipo H                        | Al guardar / cambiar estado | Debe tener entre N y M H                    | "El tribunal debe tener entre 3 y 5 miembros"                       |
+| El registro debe tener exactamente N hijos de tipo H                      | Al guardar / cambiar estado | Debe tener exactamente N H                  | "El expediente debe tener exactamente 1 solicitante"                |
+| Debe existir el registro maestro M antes de crear este                    | Al crear                    | Debe configurar previamente M               | "Debe configurar el plan de estudios antes de crear matrículas"     |
 
-## El mensaje
+### De negocio 
 
-Incluir el valor recibido y, en servidor con dominio finito, los valores válidos:
+| Descripción de la regla                                                   | Cuándo se aplica            | Mensaje al usuario                          | Ejemplo de mensaje                                                  |
+|---------------------------------------------------------------------------|-----------------------------|---------------------------------------------|---------------------------------------------------------------------|
+| No se puede ejecutar la operación O si se cumple la condición C           | Al ejecutar O               | No se puede O cuando C                      | "No se puede matricular a un alumno con recibos pendientes de pago" |
+| La operación O requiere el rol R                                          | Al ejecutar O               | Solo R puede ejecutar O                     | "Solo el director puede aprobar descuentos superiores al 20%"       |
+| La operación O solo se admite entre F1 y F2                               | Al ejecutar O               | O solo se admite entre F1 y F2              | "La matrícula solo se admite entre el 01/09/2024 y el 30/09/2024"   |
+| El campo A es inmutable a partir del estado X                             | Si estado ≥ X               | A no se puede modificar tras X              | "No se puede modificar el NIA tras la matriculación"                |
+| El registro completo es inmutable en el estado final F                    | Si estado = F               | El registro no se puede modificar en F      | "El expediente FINALIZADO no admite modificaciones"                 |
+| Solo se admite la transición de estado X a Y                              | Al cambiar de estado        | No se admite pasar de X a Z                 | "No se admite pasar de BORRADOR a APROBADO sin enviar antes"        |
 
-> "El alias '{alias}' no existe en el slot {slot}. Disponibles: {lista}."
-
-| Mal | Bien |
-|-----|------|
-| "Campo obligatorio" | "Introduzca el nombre del solicitante" |
-| "Formato inválido" | "El email debe tener el formato usuario@dominio.com" |
-| "Valor fuera de rango" | "La cantidad debe estar entre 1 y 999" |
-| "Error de consistencia" | "La fecha de fin (15/03/2024) no puede ser anterior a la de inicio (20/03/2024)" |
-| "Registro duplicado" | "Ya existe un alumno con NIF '12345678Z'. ¿Desea ver su ficha?" |
-
-Empezar por el campo o el valor (no por "Error:"). Sin tecnicismos. Sin culpar al usuario.
-
-**El mensaje es para el usuario final.** Nada de jerga técnica ni referencias internas:
-
-- ❌ "El asunto no puede superar 255 caracteres (longitud por defecto Axelor)" — el usuario no sabe qué es Axelor.
-- ✅ "El asunto no puede superar 255 caracteres."
-
-Notas para el implementador (origen del valor, default del framework, "ver issue X", "regla configurable") van en columnas auxiliares de la tabla o en notas al pie, **nunca** en el texto que verá el usuario.
-
-## Reglas configurables vs constantes técnicas
-
-Distinguir tres orígenes posibles de un valor en una regla:
-
-- **Constante de negocio** — el negocio fija el número y no varía (ej. "DNI español tiene 8 dígitos + letra"). Va literal en la regla.
-- **Parámetro de configuración** — el administrador puede cambiarlo en App Settings sin tocar código (ej. tamaño máximo de adjunto, lista de tipos MIME, ventana temporal de matrícula). El mensaje usa placeholder; la regla nombra el parámetro: *"Parámetro: `correos.anexos.tamañoMaxMB`, configurable por administrador en App Settings"*. En "Asunciones a confirmar" separar el valor por defecto propuesto (requiere confirmación) de la mecánica configurable (decisión de diseño).
-- **Constante técnica** — la impone el formato, el protocolo o el ORM (ej. dimensión máxima de un PDF = 14400 puntos, longitud máxima de email RFC = 254, INTEGER de SQL = 2³¹−1). No es configurable y no se discute con el cliente. Documentarla como tal: *"Constante técnica del formato PDF; no procede configurar"*. Si se documenta como regla, el origen es **Catálogo** o **Modelo**, no Negocio.
-
-No tratar como configurable lo que no es elegible. Si una regla menciona "valor por defecto X" pero X viene fijado por la tecnología, no es configurable: es una constante técnica que conviene declarar para que el implementador no se invente otra.
-
-## Solape entre reglas agregadas y específicas
-
-Si una regla "general" cubre lógicamente a otra "específica" (ej. *"el registro completo es inmutable tras el estado final"* hace innecesario *"la colección de hijos es inmutable tras el estado final"*), conservar **solo la general**. Una regla específica únicamente añade valor cuando dice algo que la general no dice (un mensaje distinto, una condición distinta, un campo permitido como excepción). Si se mantienen ambas, justificar la diferencia en una nota.
-
----
-
-## Máquina de estados
-
-Si la entidad tiene estados, además de las reglas habituales documentar:
-
-- **Lista de estados** — cuál es el inicial y cuáles son finales.
-- **Transiciones permitidas** — origen → destino, condición, rol, acción posterior (notificación, número, fecha…).
-- **Campos editables por estado** — `E` editable, `R` solo lectura, `N` no visible, `Auto` calculado.
-- **Validaciones que solo aplican en cierto estado** (ej. en `PENDIENTE` revisor ≠ solicitante).
-- **Transiciones inválidas explícitas** y su mensaje.
-
-Patrón típico: en `BORRADOR` se valida lo introducido; al `ENVIAR` se exige completitud, cruzadas y cardinalidad.
-
-**Numeración única:** las reglas que dependen del estado (inmutabilidad tras un estado final, condiciones por estado) **comparten la misma secuencia `V-XXX`** que las del resto. La tabla principal mantiene la condición "Si estado = X" en su columna correspondiente. No abrir tablas paralelas con su propia numeración dentro de la sección de estados.
 
 ---
 
-## Campos calculados
+### Guías para los mensajes
+- Incluir el valor recibido y si es posible los valores válidos: "El tipo de usuario 'Conseller' no es válido. Los posibles valores son 'Profesor' o 'Alumno'."
+- Empezar por el campo y el valor (no por "Error:"): "El email debe tener el formato usuario@dominio.com" en vez de "Error: Formato inválido"
+- No usar formato técnico sino cercano al usuario: "El email debe tener el formato usuario@dominio.com" en vez de "El email debe tener el formato /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/"
+- Decir como debe ser en vez de como no debe ser. "La fecha de fin (15/03/2024) debe ser posterior a la de inicio (20/03/2024)" en vez de "La fecha de fin (15/03/2024) no puede ser anterior a la de inicio (20/03/2024)"
 
-Para cada campo calculado documentar: **fórmula**, **dependencias**, **cuándo se recalcula** (tiempo real / al guardar / derivado del sistema), si es **editable manualmente**.
 
-Cuidado con dependencias circulares (A depende de B y B depende de A): identificar cuál introduce el usuario y reformular.
+
+## Reglas de negocio
+
+Para cada regla de negocio hay que indicar en la tabla `R-XXX`:
+
+- **Entidad afectada**: la entidad sobre la que opera la regla. Por ejemplo "Factura", "Expediente".
+- **Método del servicio donde se aplica**: `insert`, `update`, `remove`, `cambiarEstado` o cualquier otro método concreto del servicio.
+- **Momento de aplicación**: `Antes` (pre) si la regla debe ejecutarse antes de la operación, `Después` (post) si debe ejecutarse tras la operación.
+- **Más información**: condiciones de aplicación, dependencias, datos que se modifican, etc.
+
+| ID    | Descripción de la regla de negocio                                          | Entidad     | Método           | Momento  | Más información                                                |
+|-------|-----------------------------------------------------------------------------|-------------|------------------|----------|----------------------------------------------------------------|
+| R-001 | El total de la factura es la suma del importe de todas las líneas           | Factura     | insert / update  | Antes    | Calcula `total = sum(lineas.importe)` y lo asigna al registro  |
+| R-002 | Enviar un correo con el documento al solicitante                            | Expediente  | cambiarEstado    | Después  | Solo si el estado pasa a APROBADO                              |
+| R-003 | Asignar el número de expediente secuencial dentro del centro                | Expediente  | insert           | Antes    | Formato `EXP-{año}-{secuencial}` por centro                    |
+| R-004 | Generar el PDF del expediente y adjuntarlo al registro                      | Expediente  | cambiarEstado    | Después  | Al pasar a APROBADO; se firma con el certificado del centro    |
+| R-005 | Registrar quién aprobó y cuándo                                             | Expediente  | cambiarEstado    | Antes    | Rellena `aprobadoPor`, `aprobadoEn` al pasar a APROBADO        |
+| R-006 | Al modificar el NIF de una persona, propagar el cambio a sus expedientes    | Persona     | update           | Después  | Solo si `nif` cambió respecto al valor anterior                |
+| R-007 | Al cerrar un curso, cancelar todas las matrículas activas                   | Curso       | cambiarEstado    | Después  | Recorre matrículas con estado ACTIVA y las pasa a CANCELADA    |
+| R-008 | Al borrar un alumno, archivar sus documentos en lugar de eliminarlos        | Alumno      | remove           | Antes    | Mueve los documentos asociados al archivo histórico            |
+
+
+### Guías para las reglas de negocio
+- Describir **qué hace el sistema**, no qué tiene que hacer el usuario: "Al aprobar el expediente, se genera el PDF y se adjunta al registro" en vez de "El usuario debe generar el PDF al aprobar".
+- Si la regla depende de una condición, especificarla en "Más información": "Solo si el estado pasa a APROBADO", "Solo si el campo X cambió respecto al valor anterior".
+- Si la regla **impide** guardar/cambiar estado cuando no se cumple, es una validación `V-XXX`, no una regla `R-XXX`. Las reglas de negocio **siempre tienen efecto** sobre el sistema; las validaciones nunca modifican estado, solo bloquean.
+- Si la regla escribe sobre el **mismo registro** debe ir como `Antes` (pre) para que los cambios se persistan junto al resto del registro. Si tiene **efectos colaterales** sobre otros registros, envíos externos o documentos, suele ir como `Después` (post), cuando ya se sabe que la operación principal ha tenido éxito.
+- Una regla con muchas condiciones distintas suele ser en realidad varias reglas — partirla en `R-XXX` separadas mejora la trazabilidad al diseño.
+
 
 ---
 
-## Catálogo de formatos españoles
 
-| Campo | Formato | Ejemplo | Dígito de control |
-|-------|---------|---------|-------------------|
-| NIF | 8 dígitos + letra | `12345678Z` | módulo 23 → tabla TRWAGMYFPDXBNJZSQVHLCKE |
-| NIE | X/Y/Z + 7 dígitos + letra | `X1234567L` | igual que NIF tras X→0/Y→1/Z→2 |
-| CIF | letra + 7 dígitos + control | `A12345678` | letra o dígito según fórmula |
-| IBAN ES | `ES` + 22 dígitos | `ES9121000418450200051332` | módulo 97 = 1 |
-| Teléfono ES | 9 dígitos, empieza por 6/7/8/9 | `612345678` | — |
-| Código postal ES | 5 dígitos (01000-52999) | `46001` | — |
-| Matrícula actual ES | 4 dígitos + 3 letras consonantes | `1234 BCD` | — |
-| NSS Seg. Social | 2 + 8 + 2 dígitos | `281234567840` | fórmula sobre los 10 primeros |
-| Email | `texto@texto.dominio` | `usuario@empresa.com` | — |
-| Fecha / Hora | `DD/MM/AAAA` / `HH:MM` | `15/03/2024` / `14:30` | — |
-
-El analista indica que el campo tiene dígito de control; el implementador aplica el algoritmo.
-
----
-
-## Origen de cada regla
-
-Cada regla nace de uno de tres sitios. Marcar el origen en una columna o etiqueta evita mezclar lo que el modelo exige con lo que el analista supone:
-
-- **Modelo** — derivada directa del XML/anotaciones (tipo, `required`, `unique`, `<many-to-one>`…). No requiere confirmación.
-- **Catálogo** — formato/dígito de control del catálogo de abajo (NIF, IBAN, CP…). No requiere confirmación.
-- **Negocio (asumida)** — el analista la deduce del dominio pero no está en el modelo (ej. "al menos un identificador entre DNI/NIA/NRP", "el cp debe coincidir con el del municipio"). **Marcar con `*` y listar al final en "Asunciones a confirmar"**.
-
-Si una regla es Negocio asumida, el diseño no avanza hasta que el cliente la confirme o descarte.
-
-## Lo que NO se documenta como validación
-
-El framework ya lo cubre — no añade información:
-
-- Que un `many-to-one` apunte a un registro existente (JPA lo garantiza).
-- Que un campo `<integer>` no acepte texto, o `<date>` no acepte basura (parser del tipo).
-- Longitudes por defecto del framework (Axelor `<string>` = 255) **salvo** que el negocio imponga un límite distinto. Si se documenta una longitud por defecto, indicar explícitamente "longitud por defecto Axelor".
-
-Para `required="true"` y `unique="true"` declarados en el XML: **sí se documenta una regla**, porque el modelo solo dice *que* falla, no *qué mensaje* mostrar. La regla aporta el mensaje. No inventar una "obligatoriedad funcional" separada de la técnica: es **la misma regla**.
-
-## Una regla, un campo, una cosa
-
-- **No agrupar campos en una sola regla** ("introduzca CCAA, provincia y municipio") salvo que la condición sea genuinamente cruzada (requerimiento mutuo, exclusión). Si tres campos son cada uno obligatorio, son tres reglas — así el mensaje señala el campo concreto que falta.
-- **No emitir reglas que se implican entre sí**. Si pides "rango 2000-2100" para un entero, no añadas también "longitud 4 dígitos": el rango ya lo implica. Una sola regla cubre ambos casos.
-- **No partir una regla en cliente y servidor como si fueran dos reglas**. Es la misma regla; el documento de diseño decide dónde se ejecuta (ver "Trazabilidad").
-
-## Modelos sin UI (infraestructura interna)
-
-Algunos modelos no se editan por vista — solo los toca un servicio interno (numeradores, logs, contadores, semáforos, configuraciones de sistema). En esos casos:
-
-- **No documentar reglas de cliente**: no hay vista que dispare `action-validate`. Cualquier mensaje "para el usuario final" es ficción.
-- **Reformular las reglas como invariantes que el servicio debe garantizar**, no como mensajes de UX. El "mensaje" pasa a ser texto técnico de excepción/log para el desarrollador, redactado como invariante violado: *"El último número no puede decrecer: actual={anterior}, propuesto={nuevo}."*
-- **Las reglas que aportan información son las que el XML no expresa por sí solo**: monotonía de un contador, inmutabilidad de la clave lógica, formato de un campo `String` que apunta lógicamente a otra entidad. Las que ya están en el XML (`required`, `unique-constraint`) se incluyen para fijar el mensaje técnico, no porque aporten una validación nueva.
-- **Trazabilidad**: las reglas caen en el servicio (`FooService`) o en `validateInsert/Update` del repositorio. Nunca en cliente.
-
-## Reglas vs no-reglas
-
-La tabla `V-XXX` solo contiene reglas que **se aplicarán**. Hay tres cosas que confunden y no deben entrar como filas:
-
-- **Decisiones de "esto NO se valida"** (ej. "se permite que solicitante e interesado coincidan"). No es regla: es ausencia de regla. Si es relevante dejarlo por escrito, va a "Asunciones a confirmar" o a una nota, no a la tabla con un mensaje vacío.
-- **Comportamientos del sistema** (autogeneración de número, asignación automática del usuario desde sesión). No son reglas de validación; son lógica de creación. Si el negocio exige que el usuario no pueda alterarlos, *eso sí* es regla, y se redacta como **inmutabilidad / readonly**: el mensaje describe que el campo lo gestiona el sistema y rechazar el cambio, no la generación en sí.
-- **Documentación del modelo** (qué significa el campo, para qué sirve). Va al análisis funcional, no a la tabla de reglas.
-
-Para inmutabilidad / readonly: la regla se documenta una sola vez, con el mensaje del rechazo. La doble protección (vista `readonly` + servidor que rechaza cambios) es decisión de diseño, no son dos reglas.
-
-## Ámbito de las reglas de unicidad
-
-Toda regla de unicidad debe declarar su **ámbito** explícitamente. No basta con "unicidad" a secas. Posibilidades típicas:
-
-- **Global** — único en todo el sistema (ej. DNI de persona física).
-- **Por centro** — único dentro del centro (ej. código de aula dentro de un centro).
-- **Por año / curso académico** — único dentro de un periodo.
-- **Combinación** — único para la tupla (campo1, campo2, …).
-
-El mensaje debe reflejar el ámbito: *"Ya existe un alumno con NIA '{valor}' en el centro {centro}"* es distinto de *"Ya existe una persona con NIA '{valor}'"*. Si el ámbito no es obvio del modelo, listarlo como asunción a confirmar.
 
 ## Trazabilidad: del análisis al diseño
 
-- Cada regla `V-XXX` del análisis aparece en al menos un paso del diseño.
+- Cada validación `V-XXX` del análisis aparece en al menos un paso del diseño.
+- Cada regla `R-XXX` del análisis aparece en al menos un paso del diseño.
 - Cada paso del diseño que implementa validaciones lista qué `V-XXX` cubre. Ejemplo: *"Paso 5 — `FooService.validateInsert`. Cubre V-002, V-004."*
+- Cada paso del diseño que implementa reglas lista qué `R-XXX` cubre. Ejemplo: *"Paso 5 — `FooService.validateInsert`. Cubre R-002, R-004."*
 - Antes de cerrar el diseño, construir la matriz `V-XXX → paso(s)`. Ninguna fila puede quedar vacía.
+- Antes de cerrar el diseño, construir la matriz `R-XXX → paso(s)`. Ninguna fila puede quedar vacía.
