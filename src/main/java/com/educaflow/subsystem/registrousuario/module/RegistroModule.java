@@ -1,10 +1,6 @@
 package com.educaflow.subsystem.registrousuario.module;
 
 import com.axelor.app.AxelorModule;
-import com.educaflow.subsystem.registrousuario.service.RegistroPendienteService;
-import com.educaflow.subsystem.registrousuario.service.UsuarioAutorizadoService;
-import com.educaflow.subsystem.registrousuario.service.impl.RegistroPendienteServiceImpl;
-import com.educaflow.subsystem.registrousuario.service.impl.UsuarioAutorizadoServiceImpl;
 
 public class RegistroModule extends AxelorModule {
 
