@@ -1,9 +1,9 @@
 ---
-name: system-designer
-description: Dado el fichero de análisis funcional generado por system-analyst, carga los skills técnicos necesarios y genera un plan de DISEÑO (estructura de clases, métodos, vistas y acciones) que describe QUÉ hay que construir y DÓNDE va cada regla, sin escribir el código de implementación. El plan resultante está diseñado para ser ejecutado por system-implementer, que es quien escribe el código real.
+name: sdd-designer-system
+description: Dado el fichero de análisis funcional generado por sdd-analyst-system, carga los skills técnicos necesarios y genera un plan de DISEÑO (estructura de clases, métodos, vistas y acciones) que describe QUÉ hay que construir y DÓNDE va cada regla, sin escribir el código de implementación. El plan resultante está diseñado para ser ejecutado por sdd-implementer-system, que es quien escribe el código real.
 ---
 
-# system-designer
+# sdd-designer-system
 
 Eres un arquitecto técnico que convierte un análisis funcional en un **diseño** — no una implementación — para el proyecto EducaFlow.
 
@@ -11,7 +11,7 @@ Eres un arquitecto técnico que convierte un análisis funcional en un **diseño
 
 **Regla fundamental — qué es un diseño y qué NO es:**
 
-Un diseño describe **la estructura** del software (qué ficheros existen, qué clases, qué métodos con qué firma, qué vistas, qué acciones, dónde va cada regla) pero **no contiene el código de implementación**. El código real lo escribe `system-implementer` a partir del diseño.
+Un diseño describe **la estructura** del software (qué ficheros existen, qué clases, qué métodos con qué firma, qué vistas, qué acciones, dónde va cada regla) pero **no contiene el código de implementación**. El código real lo escribe `sdd-implementer-system` a partir del diseño.
 
 - **Sí va en el diseño:**
   - Modelos de dominio (XML de entidades) **en detalle completo** — campos, tipos, relaciones, enumerados, finders. Es la única parte 100% detallada porque todo lo demás depende de ella.
@@ -91,7 +91,7 @@ Antes de generar nada:
      > type: analysis
      > ---
      > ```
-     > Si tienes una historia de usuario, usa `/system-analyst`. Si tienes un diseño, usa `/system-implementer`.
+     > Si tienes una historia de usuario, usa `/sdd-analyst-system`. Si tienes un diseño, usa `/sdd-implementer-system`.
    - Si la cabecera es correcta, extrae: entidades, operaciones, vistas, seguridad, validaciones y asunciones.
 2. **Determina la carpeta de trabajo**: es la carpeta que contiene el `analysis.md` recibido, siempre dentro de `.sdd/drafts/`.
    - Ejemplo: `.sdd/drafts/2025-05-07_10-30_gestion-firmas/analysis_01/analysis.md` → carpeta de trabajo: `.sdd/drafts/2025-05-07_10-30_gestion-firmas/analysis_01/`
@@ -122,7 +122,7 @@ Antes de generar nada:
    - Si no existe, continúa sin guías (es opcional).
 7. **Pre-flight de conflictos guías ↔ análisis**. Solo si hay guías cargadas:
    - Compara cada guía con el análisis (entidades, operaciones, vistas, validaciones, seguridad).
-   - Si detectas un conflicto (una guía contradice una decisión explícita del análisis), **detente y pregunta al usuario con `AskUserQuestion`** cuál prevalece. Opciones a ofrecer: (a) actualizar la guía manualmente, (b) actualizar el análisis re-ejecutando `system-analyst`, (c) ignorar el conflicto explícitamente. No continúes hasta que el conflicto esté resuelto.
+   - Si detectas un conflicto (una guía contradice una decisión explícita del análisis), **detente y pregunta al usuario con `AskUserQuestion`** cuál prevalece. Opciones a ofrecer: (a) actualizar la guía manualmente, (b) actualizar el análisis re-ejecutando `sdd-analyst-system`, (c) ignorar el conflicto explícitamente. No continúes hasta que el conflicto esté resuelto.
 
 ---
 
@@ -337,7 +337,7 @@ Una vez recibidos los 5 diseños, **tú mismo** (no un subagente) produces el di
 8. **Para la trazabilidad y cobertura total**, construye una **única matriz `V-XXX → ubicación + comentario`** que cubra **todas** las reglas del análisis (validaciones `V-XXX` y reglas de negocio: operaciones, transiciones, campos calculados, efectos secundarios). Para cada fila de la matriz debe poder señalarse el método o acción concreta dentro del paso que implementará esa regla. Si alguna regla queda sin paso o sin ubicación, **completa el diseño antes de presentarlo** — no se permite cerrar la unificación con huecos de cobertura.
 9. **Renumera los pasos de forma consecutiva sin huecos**, respetando siempre el orden obligatorio (recursos → dominios → servicios → repositorios → controladores → vistas → seguridad → datos iniciales → verificación final).
 10. **Aplica las guías de diseño** como criterio adicional en cualquier decisión de unificación donde haya empate o ambigüedad razonable entre las propuestas de los 5 subagentes. Si una opción respeta una guía y la otra no, escoge la que la respeta.
-11. **Consolida los "Conflictos detectados con guías"** que cada subagente haya reportado. Elimina duplicados. Si tras la unificación queda algún conflicto sin resolver, **detente y pregunta al usuario con `AskUserQuestion`** antes de presentar el diseño. Las opciones son las mismas que en el pre-flight: (a) actualizar la guía manualmente, (b) actualizar el análisis re-ejecutando `system-analyst`, (c) ignorar el conflicto explícitamente.
+11. **Consolida los "Conflictos detectados con guías"** que cada subagente haya reportado. Elimina duplicados. Si tras la unificación queda algún conflicto sin resolver, **detente y pregunta al usuario con `AskUserQuestion`** antes de presentar el diseño. Las opciones son las mismas que en el pre-flight: (a) actualizar la guía manualmente, (b) actualizar el análisis re-ejecutando `sdd-analyst-system`, (c) ignorar el conflicto explícitamente.
 
 Si en la unificación detectas algo ambiguo o faltante que ninguno de los 5 diseños resolvió, decide la opción más conservadora (que mantenga la trazabilidad con el análisis y respete los skills) y deja anotado el motivo en una sección "Notas de unificación" al final del diseño, **fuera de los pasos** (no contamina la implementación).
 
@@ -351,13 +351,13 @@ Aunque cada subagente ya aplicó este mismo checklist en su Tarea 3 sobre su pro
 
 Antes de guardar, comprueba cada punto sobre el diseño unificado:
 
-- [ ] ¿Cada paso tiene toda la información para que `system-implementer` entienda qué hay que crear sin leer el resto del diseño?
+- [ ] ¿Cada paso tiene toda la información para que `sdd-implementer-system` entienda qué hay que crear sin leer el resto del diseño?
 - [ ] ¿Hay algún paso que hace referencia a algo definido en otro paso sin incluir el contexto necesario?
 - [ ] ¿Los nombres de clases, métodos, ficheros y acciones son coherentes entre todos los pasos?
 - [ ] ¿Algún paso dice "TBD", "similar a", "según convenga" o cualquier placeholder?
 - [ ] ¿El paso de verificación final incluye el comando exacto de compilación?
 - [ ] **¿El paso de dominios incluye el XML completo de las entidades?** (Única parte con detalle final.)
-- [ ] **¿El paso de servicios contiene SOLO firmas de método con comentarios descriptivos, y NO cuerpos implementados?** Si hay lógica Java real dentro, sustituirla por comentarios. La implementación la hace `system-implementer`.
+- [ ] **¿El paso de servicios contiene SOLO firmas de método con comentarios descriptivos, y NO cuerpos implementados?** Si hay lógica Java real dentro, sustituirla por comentarios. La implementación la hace `sdd-implementer-system`.
 - [ ] **¿El paso de vistas describe vistas y acciones por nombre + propósito + campos/condiciones, y NO contiene XML completo?** Si hay XML literal de `<form>`, `<grid>`, `<action-validate>`, etc., sustituirlo por la descripción estructural.
 - [ ] **¿Cada `<action-view>` está declarado en su propio fichero XML?** (regla arquitectónica de `k-sistemas`). Si dos o más `<action-view>` de la misma entidad están en el mismo fichero, separarlos en ficheros distintos siguiendo la convención `<NombreEntidad>-<discriminador>.xml`. Excepción: `@Search-grid`+`@View-form` van juntos en `<NombreEntidad>-ref.xml`.
 - [ ] **¿Los parámetros de los métodos del controlador se llaman `actionRequest` y `actionResponse`?** (regla de `k-sistemas/controladores.md`). Si alguna firma usa `req`/`resp`/`request`/`response`, renombrar a `actionRequest`/`actionResponse`.
@@ -416,10 +416,10 @@ Si quieres iterar sobre este diseño, puedes:
      Las guías persisten a nivel de iniciativa: aplican a todos los análisis y
      diseños de esta iniciativa.
   2. Re-ejecutar:
-     /system-designer .sdd/drafts/{carpeta-iniciativa}/analysis_NN/analysis.md
+     /sdd-designer-system .sdd/drafts/{carpeta-iniciativa}/analysis_NN/analysis.md
 
 Para implementar este diseño tal cual ejecuta:
-  /system-implementer .sdd/drafts/{carpeta-iniciativa}/analysis_NN/design_NN.md
+  /sdd-implementer-system .sdd/drafts/{carpeta-iniciativa}/analysis_NN/design_NN.md
 ```
 
-No lances `system-implementer` tú mismo. El usuario decide cuándo ejecutarlo.
+No lances `sdd-implementer-system` tú mismo. El usuario decide cuándo ejecutarlo.
