@@ -93,4 +93,5 @@ Una vez completados todos los pasos:
 - **Contexto completo por subagente**: cada subagente recibe el texto completo de lo que necesita, nunca referencias a ficheros del plan que tendría que buscar por su cuenta.
 - **No fuerces bloqueos**: si algo no está claro o no funciona tras varios intentos, para y pide ayuda. No rodees el problema con hacks.
 - **Evidencia antes de completar**: ningún paso se marca como hecho sin que el verificador haya obtenido evidencia real.
-- **Contexto mínimo al orquestador**: los subagentes no devuelven información innecesaria al orquestador para no aumentar el contexto principal.
+- **Contexto mínimo al orquestador**: los subag
+- entes no devuelven información innecesaria al orquestador para no aumentar el contexto principal.

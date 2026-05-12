@@ -34,7 +34,7 @@ public class RegistroServiceImpl extends DefaultModelService<User> implements Re
     @Override
     @Transactional
     public User registrarUsuario(DatosBasicosUsuario datos, String token) throws BusinessException {
-        GroupRepository groupRepository = (GroupRepository) JpaRepository.of(Group.class);
+        /*GroupRepository groupRepository = (GroupRepository) JpaRepository.of(Group.class);
         RegistroPendienteRepository registroPendienteRepository = (RegistroPendienteRepository) JpaRepository.of(RegistroPendiente.class);
 
         RegistroPendiente pendiente = registroPendienteRepository.findByToken(token)
@@ -68,11 +68,12 @@ public class RegistroServiceImpl extends DefaultModelService<User> implements Re
 
         registroPendienteRepository.remove(pendiente);
 
-        return user;
+        return user;*/
+        return null;
     }
 
     private void crearCentroUsuarios(User user, String dni) {
-        RegistroPendienteRepository registroPendienteRepository = (RegistroPendienteRepository) JpaRepository.of(RegistroPendiente.class);
+        /*RegistroPendienteRepository registroPendienteRepository = (RegistroPendienteRepository) JpaRepository.of(RegistroPendiente.class);
         //UserRepository userRepository = (UserRepository) JpaRepository.of(User.class);
 
         Map<Centro, List<TipoUsuario>> tiposPorCentro = registroPendienteRepository.findTiposUsuarioByDni(dni);
@@ -99,7 +100,7 @@ public class RegistroServiceImpl extends DefaultModelService<User> implements Re
         if (primerCentro != null) {
             user.setCentroActivo(primerCentro);
             super.update(user, null);
-        }
+        }*/
     }
 
 }

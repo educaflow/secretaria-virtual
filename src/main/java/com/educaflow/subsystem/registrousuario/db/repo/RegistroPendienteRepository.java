@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class RegistroPendienteRepository extends AbstractRegistroPendienteRepository {
 
-    static final Map<String, String> EX_MAPPING = Map.of(
+    /*static final Map<String, String> EX_MAPPING = Map.of(
             "PROFESOR", "EXPROFESOR",
             "ALUMNO",   "EXALUMNO",
             "FAMILIAR", "EXFAMILIAR"
@@ -69,5 +69,5 @@ public class RegistroPendienteRepository extends AbstractRegistroPendienteReposi
         }
 
         return resultado;
-    }
+    }*/
 }
