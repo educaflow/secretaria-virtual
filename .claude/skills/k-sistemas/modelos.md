@@ -48,6 +48,22 @@ Un ejemplo de modelo de la entidad TareaFirma es el siguiente fichero TareaFirma
 Como se puede ver cada entidad está en su propio fichero XML y se definen los atributos con su tipo, título, ayuda, validaciones, etc. Además se pueden definir relaciones entre entidades (many-to-one, one-to-many) y enumerados.
 Tambien cada entidad está en un paquete concreto definido en el atributo package del módulo. En este caso la entidad TareaFirma está en el paquete com.educaflow.subsystem.firma.db
 
+## REGLA CRÍTICA — `name` del `<module>` debe coincidir con el final del paquete
+
+El atributo `name` del elemento `<module>` **siempre** tiene que ser idéntico al último segmento del `package` justo antes del sufijo `.db`. Es decir, el paquete tiene que acabar siempre en `.{name}.db`.
+
+- Paquete `com.educaflow.subsystem.firma.db` → `name="firma"` ✅
+- Paquete `com.educaflow.system.actas.db` → `name="actas"` ✅
+- Paquete `com.educaflow.subsystem.registroentradasalida.db` → `name="registroentradasalida"` ✅
+- Paquete `com.educaflow.subsystem.firma.db` → `name="firmas"` ❌ (no coincide con `firma`)
+- Paquete `com.educaflow.subsystem.firma` → cualquier `name` ❌ (el paquete no acaba en `.db`)
+
+### Checklist al crear/modificar el `<module>` de un dominio
+
+- [ ] El `package` acaba en `.db`.
+- [ ] El segmento inmediatamente anterior al `.db` coincide **exacto** con el `name` (mismas letras, mismo singular/plural, sin guiones bajos extra).
+- [ ] El `name` y el segmento del paquete coinciden con el nombre de la carpeta del sistema/subsistema (`subsystem/<nombre>/` o `system/<nombre>/`).
+
 Los enumerados se definen con el elemento <enum> y sus items con el elemento <item>, indicando su nombre, título y descripción.
 
 Cada fichero de dominio suele estar definido en carpeta "domains" , aunque hay excepciones.
