@@ -183,6 +183,43 @@ El prompt debe instruir al subagente a ejecutar **estas tres tareas en este orde
 - **Tarea 2 del subagente — Construir la tabla única `V-XXX` y la sección de asunciones**: incluir todas las reglas con sus columnas mínimas (`ID`, `Campo(s)`, `Tipo`, `Origen`, `Condición de aplicación`, `Mensaje al usuario`), marcando con `*` las de Negocio asumida y listándolas en "Asunciones a confirmar". Las reglas dependientes de estado comparten la misma secuencia `V-XXX`, no se abren tablas paralelas. Cada mensaje incluye el valor recibido y, en dominios finitos, los valores válidos.
 - **Tarea 3 del subagente — Aplicar el checklist y corregir antes de devolver**: revisar el análisis generado contra el checklist que aparece más abajo (es el mismo que el agente principal aplicará en la unificación); si encuentra algún incumplimiento, corregirlo antes de devolver el resultado. El subagente NO debe devolver el análisis si queda algún punto del checklist sin cumplir.
 
+**REGLA CRÍTICA — Frontera entre análisis y diseño (transmitir literalmente al subagente):**
+
+El análisis describe **QUÉ** se necesita en términos funcionales y de negocio. **NUNCA** describe **CÓMO** se va a implementar. La elección de clases, métodos, ficheros, nombres de acciones del framework, lenguajes de consulta o cualquier detalle técnico es responsabilidad exclusiva del diseñador (`sdd-designer-system`), no del analista.
+
+Está **PROHIBIDO** en cualquier sección del análisis:
+
+- Nombres de clases Java o paquetes (`TareaCorreoService`, `XxxController`, `XxxRepository`, `XxxImpl`, FQN como `com.educaflow.subsystem.x.db.Y`).
+- Signaturas de método con paréntesis y parámetros (`enviar(centro, para, asunto, …)`, `validateInsert(...)`, `reenviar(ActionRequest, ActionResponse)`).
+- Tipos del framework como elementos del análisis (`ActionRequest`, `ActionResponse`, `ModelService`, `BusinessMessages`, anotaciones `@CallMethod`/`@Inject`).
+- Nombres técnicos de acciones, vistas o formularios del framework Axelor (`subsysX.Entidad@Main-action`, `@All-action`, `@Centro-action`, `@Search-grid`, `@View-form`, `@Main-form`).
+- Consultas o expresiones de código (JPQL, SQL, Groovy, expresiones `self.X = :user`, `eval:`, dominios Axelor literales).
+- Decisiones de implementación (transacciones JPA, hilos background, listeners, módulos Guice, factorías, `fireActionRule_*`).
+- Detalles de capa (que algo está "en el servicio", "en el controlador", "en el repositorio" o "en validateInsert").
+
+Cada sección debe describirse al nivel funcional adecuado:
+
+| Sección | Qué SÍ va | Qué NO va |
+|---------|-----------|-----------|
+| **Operaciones** | Nombre funcional de la operación, quién la ejecuta, qué entradas conceptuales necesita, qué efecto produce, restricciones de negocio para invocarla. | Nombres de clases, signaturas Java, tipos del framework, ubicación en capa. |
+| **Vistas** | Nombre funcional ("Todos los correos"), quién la ve, filtro aplicado en lenguaje natural, modo (lectura/edición), descripción de qué muestra y qué acciones permite. | Nombres `@Main-action`, `@Search-grid`, `@View-form` ni convenciones de nombres del framework. |
+| **Menús** | Ítem de menú, ruta jerárquica, vista funcional destino, quién lo ve. | Nombres de acciones del framework (la asociación menú↔acción la decide el diseño). |
+| **Seguridad** | Qué puede ver, crear, editar o borrar cada rol descrito en lenguaje natural. Multicentro sí/no. | Reglas JPQL, condiciones del framework, nombres técnicos de permisos. |
+| **Campos calculados** | Qué representa, lógica funcional de cálculo, dependencias (otros campos), cuándo se recalcula. | Clases o métodos del framework (`SmtpCredentialSimplePassword.userName()`, `Beans.get(...)`, etc.). |
+| **Validaciones** | El mensaje al usuario y la condición funcional. | Implementación: ni capa (cliente/servidor), ni `action-validate`/`validateInsert`, ni nombres de acciones. |
+
+**Ejemplos de MAL vs BIEN:**
+
+| MAL (es diseño) | BIEN (es análisis) |
+|------------------|---------------------|
+| `TareaCorreoService.enviar(centro, para, asunto, ...)`: crea registro, persiste, lanza hilo background con transacción JPA | **Enviar correo**: cualquier sistema solicita el envío indicando destinatario, asunto, cuerpo, adjuntos opcionales y centro. El sistema crea un registro inmutable e intenta el envío. |
+| Vista `TareaCorreo@Centro-action` con dominio `self.centro = :user.centroActivo` | Vista **Correos del centro**: lista los correos cuyo centro coincide con el centro activo del usuario logado. La ven Supervisor y Administrativa. |
+| Menú "Mis correos" → `subsysCorreos.TareaCorreo@Propios-action` | Menú **Mis correos** (Notificaciones > Correos) → vista **Mis correos**. Lo ve el grupo de profesores, alumnos y familiares. |
+| `admins`: regla JPQL sin filtro; `users`: `self.usuario = :user` | **Administrador**: ve todos los correos del sistema. **Profesor / Alumno / Familiar / Ex***: ve únicamente los correos cuyo destinatario coincide con su cuenta. |
+| `de` se asigna desde `SmtpCredentialSimplePassword.userName()` en `insert()` | `de`: se asigna automáticamente con la dirección remitente configurada en el SMTP del sistema, en el momento de la creación del registro. |
+
+Si el subagente duda si algo es análisis o diseño, debe aplicar este criterio: **¿el negocio cambiaría su decisión si el framework subyacente fuera distinto (otro ORM, otra UI, otro lenguaje)?** Si la respuesta es no, va al diseño. Si la respuesta es sí, va al análisis.
+
 **Estructura exacta del análisis que debe producir el subagente:**
 
 ```
@@ -202,13 +239,13 @@ El prompt debe instruir al subagente a ejecutar **estas tres tareas en este orde
 - **<Operación>**: <descripción de lo que hace, quién la ejecuta, qué datos necesita>
 
 ### Vistas
-- <Vista 1>: <qué muestra, quién la ve, si es editable o solo lectura>
+- <Nombre funcional de la vista>: <qué muestra, quién la ve, filtro aplicado en lenguaje natural, modo (lectura/edición)>
 
 ### Menús
-- <Ruta de menú> → <acción>
+- <Ruta jerárquica de menú> → <vista funcional destino> (<quién lo ve>)
 
 ### Seguridad
-- <Tipo de usuario>: puede <ver|editar|…> <qué>
+- <Tipo de usuario>: puede <ver|editar|…> <qué>, en lenguaje natural (sin JPQL ni código)
 - Multicentro: sí | no
 
 ### Validaciones
@@ -265,6 +302,11 @@ La trazabilidad `V-XXX → paso(s) del diseño` es responsabilidad del diseñado
 - [ ] ¿Las vistas son coherentes con las entidades?
 - [ ] ¿Hay ambigüedades que bloquearían el diseño? Si las hay, deben quedar listadas como asunciones a confirmar.
 - [ ] ¿Cada mensaje empieza por el campo o el valor, sin notas para el implementador embebidas?
+- [ ] **¿La sección de operaciones está libre de nombres de clase, signaturas de método, tipos del framework y referencias a capas técnicas?**
+- [ ] **¿La sección de vistas está libre de nombres técnicos del framework Axelor (`@Main-action`, `@All-action`, `@Search-grid`, `@View-form`, `@Main-form`, etc.)?**
+- [ ] **¿La sección de menús describe la asociación menú → vista funcional, sin nombres de acciones del framework?**
+- [ ] **¿La sección de seguridad está descrita en lenguaje natural, sin JPQL ni expresiones de código (`self.X = :user`, dominios literales, etc.)?**
+- [ ] **¿La sección de campos calculados describe la lógica funcional sin mencionar clases ni métodos del framework?**
 
 Si el subagente detecta algún incumplimiento, debe corregirlo antes de devolver el análisis. Sólo devolverá el análisis cuando todos los puntos del checklist estén satisfechos.
 
@@ -295,6 +337,11 @@ Una vez recibidos los 5 análisis, **tú mismo** (no un subagente) produces el a
    - ¿Las vistas son coherentes con las entidades?
    - ¿Hay ambigüedades que bloquearían la implementación? Si las hay, deben quedar listadas como asunciones a confirmar.
    - ¿Cada mensaje empieza por el campo o el valor, sin notas para el implementador embebidas?
+   - **¿La sección de operaciones está libre de nombres de clase, signaturas de método, tipos del framework y referencias a capas técnicas?**
+   - **¿La sección de vistas está libre de nombres técnicos del framework Axelor (`@Main-action`, `@All-action`, `@Search-grid`, `@View-form`, `@Main-form`, etc.)?**
+   - **¿La sección de menús describe la asociación menú → vista funcional, sin nombres de acciones del framework?**
+   - **¿La sección de seguridad está descrita en lenguaje natural, sin JPQL ni expresiones de código?**
+   - **¿La sección de campos calculados describe la lógica funcional sin mencionar clases ni métodos del framework?**
 
 Si en la unificación detectas algo ambiguo o faltante que ninguno de los 5 análisis resolvió, añádelo a "Asunciones a confirmar".
 
