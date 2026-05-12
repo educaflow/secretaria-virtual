@@ -1,11 +1,16 @@
 ---
 name: sdd-create-user-story
-description: Crea una nueva iniciativa SDD — genera la carpeta `.sdd/drafts/YYYY-MM-DD_HH-MM_{nombre-kebab-case}/` y dentro un `user-story.md` con frontmatter `type: user-story` y una plantilla que el usuario debe rellenar. Es el primer paso del pipeline SDD; el output sirve de input a `/sdd-analyst-system`.
+description: Crea una nueva iniciativa SDD — genera la carpeta `.sdd/drafts/YYYY-MM-DD_HH-MM_{nombre-kebab-case}/` y dentro un `user-story.md` con frontmatter `type: user-story` (plantilla a rellenar) y un `design-guidelines.md` con frontmatter `type: design-guidelines` (esqueleto mínimo, opcional de rellenar). Es el primer paso del pipeline SDD; el output sirve de input a `/sdd-analyst-system`.
 ---
 
 # sdd-create-user-story
 
-Eres el paso de **arranque** del pipeline SDD. Tu única tarea es crear la carpeta de una iniciativa nueva en `.sdd/drafts/` con un `user-story.md` plantillado. **NO rellenas tú la historia de usuario** — solo dejas un esqueleto vacío con secciones explicadas para que el usuario lo complete después.
+Eres el paso de **arranque** del pipeline SDD. Tu única tarea es crear la carpeta de una iniciativa nueva en `.sdd/drafts/` con dos ficheros plantillados:
+
+- `user-story.md` con frontmatter `type: user-story` — esqueleto detallado a rellenar.
+- `design-guidelines.md` con frontmatter `type: design-guidelines` — esqueleto mínimo, **opcional**: solo se rellena si esta iniciativa concreta tiene desviaciones del default de los skills `k-*` (k-sistemas, k-vistas, k-seguridad…). Si no hay ninguna excepción, el usuario puede borrar el fichero.
+
+**NO rellenas tú ninguno de los dos ficheros** — solo dejas los esqueletos para que el usuario los complete después.
 
 ## Argumentos aceptados
 
@@ -50,9 +55,13 @@ Calcula la ruta destino: `.sdd/drafts/{timestamp}_{nombre-kebab}/`.
 
 Si esa carpeta ya existe (caso muy raro — colisión de timestamp), espera 1 minuto y vuelve a generar el timestamp, o pide al usuario que reintente.
 
-### 5. Crear la carpeta y el `user-story.md`
+### 5. Crear la carpeta y los ficheros plantillados
 
-Crea la carpeta `.sdd/drafts/{timestamp}_{nombre-kebab}/` y dentro un fichero `user-story.md` con **exactamente** este contenido (sustituyendo `{TÍTULO DESCRIPTIVO}` por una capitalización legible del nombre dado por el usuario — por ejemplo de `firma-de-documentos` → `Firma de documentos`):
+Crea la carpeta `.sdd/drafts/{timestamp}_{nombre-kebab}/` y dentro **dos ficheros**:
+
+#### 5.1. `user-story.md`
+
+Con **exactamente** este contenido (sustituyendo `{TÍTULO DESCRIPTIVO}` por una capitalización legible del nombre dado por el usuario — por ejemplo de `firma-de-documentos` → `Firma de documentos`):
 
 ```markdown
 ---
@@ -169,17 +178,53 @@ implementación.]
 > para preguntarte. Si no hay dudas, borra esta sección entera.
 ```
 
+#### 5.2. `design-guidelines.md`
+
+En la misma carpeta, crea un fichero `design-guidelines.md` con **exactamente** este contenido (literal — no lo adaptes al nombre de la iniciativa, no añadas secciones, no rellenes ejemplos concretos):
+
+```markdown
+---
+type: design-guidelines
+---
+
+<!--
+Guías de diseño específicas de esta iniciativa.
+
+Este fichero es OPCIONAL. Solo escribe aquí desviaciones del default que marcan
+los skills `k-*` (k-sistemas, k-vistas, k-seguridad, k-validaciones, …). Las
+convenciones normales (estructura de paquetes, ModelService, vistas en
+`src/main/java/.../views/`, patrón de controladores, etc.) ya las conocen esos
+skills y NO hay que repetirlas aquí.
+
+Si esta iniciativa NO tiene ninguna excepción respecto al default, borra este
+fichero entero — su ausencia es perfectamente válida.
+
+Ejemplos de cosas que SÍ van aquí:
+- "Esta iniciativa NO usa ModelService porque [razón concreta]."
+- "Las vistas de este subsistema viven en un paquete distinto al estándar porque [razón]."
+- "La validación X se aplica en cliente en vez de servidor porque [razón]."
+- "Se reutiliza la entidad Y de otro subsistema en vez de crear una nueva porque [razón]."
+
+Formato libre: lista con viñetas, prosa corta, o lo que mejor exprese la guía.
+Cada punto debería incluir el QUÉ se desvía y el PORQUÉ.
+-->
+```
+
 ### 6. Mensaje final al usuario
 
 Tras crear el fichero, indica al usuario:
 
 ```
 Iniciativa creada: .sdd/drafts/{timestamp}_{nombre-kebab}/
-Historia de usuario plantillada en: .sdd/drafts/{timestamp}_{nombre-kebab}/user-story.md
+Ficheros generados:
+  - user-story.md          (obligatorio rellenar)
+  - design-guidelines.md   (opcional — borrar si esta iniciativa no se desvía del default)
 
 Próximos pasos:
   1. Abre el `user-story.md` y rellena las secciones marcadas con [corchetes].
-  2. Cuando esté listo, lanza `/sdd-analyst-system` para producir el análisis funcional.
+  2. Si esta iniciativa tiene desviaciones del default de los skills `k-*`,
+     anótalas en `design-guidelines.md`. Si no, borra el fichero.
+  3. Cuando esté listo, lanza `/sdd-analyst-system` para producir el análisis funcional.
 ```
 
 Sustituye `{timestamp}_{nombre-kebab}` por los valores reales.
@@ -193,6 +238,7 @@ Sustituye `{timestamp}_{nombre-kebab}` por los valores reales.
 ## Qué NO hacer
 
 - **No rellenes la historia de usuario tú mismo.** La plantilla es para el usuario, no para ti. Si el usuario te dio una descripción más larga al invocar, igualmente deja la plantilla vacía y dile al usuario que la rellene él.
-- **No leas otros `user-story.md`** ni otros artefactos SDD como inspiración. Cada iniciativa empieza desde cero con la plantilla literal.
+- **No rellenes el `design-guidelines.md` tú mismo.** Tampoco infieras desviaciones de los skills `k-*` a partir del nombre o la descripción. Deja el comentario plantillado tal cual; el usuario decidirá si lo rellena o lo borra.
+- **No leas otros `user-story.md` ni otros `design-guidelines.md`** ni otros artefactos SDD como inspiración. Cada iniciativa empieza desde cero con las plantillas literales.
 - **No invoques `/sdd-analyst-system`** automáticamente al terminar. El usuario decide cuándo lanzarlo.
-- **No modifiques la plantilla** según el nombre dado. La plantilla es siempre la misma — las secciones son genéricas y se aplican a cualquier iniciativa.
+- **No modifiques las plantillas** según el nombre dado. Las plantillas son siempre las mismas — las secciones son genéricas y se aplican a cualquier iniciativa.
