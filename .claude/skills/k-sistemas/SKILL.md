@@ -12,7 +12,8 @@ description: Este Skill permite diseñar y generar la estructura de carpetas, fi
 | `modelos.md` | Cómo definir entidades en XML de dominio: tipos de campo, relaciones, enumerados, herencia, finders y extra-code |
 | `servicios.md` | Cómo implementar la capa de servicio: interfaz `ModelService`, implementación `DefaultModelService`, constructor obligatorio, validaciones con `BusinessMessages` y DTOs |
 | `controladores.md` | Cómo implementar controladores: tipos de método con `@CallMethod`, `ActionRequestHelper`, `ActionResponseHelper`, `AllowProperties` y señales de respuesta |
-| `validaciones.md` | Cómo implementar validaciones en Axelor: capa cliente (atributos de campo, `action-condition`, `action-validate`) y capa servidor (`validateInsert`/`validateUpdate`/`validateRemove` + controlador), con el patrón completo `action-group` que encadena ambas capas |
+
+> Para validaciones (`V-XXX`), reglas de negocio (`R-XXX`) y reglas de UI (`U-XXX`), ver el skill **`k-validaciones`**.
 
 ---
 
@@ -335,7 +336,8 @@ La diferencia principal entre un sistema y un subsistema es que el sistema suele
 | Modelos | `modelos.md` | Entidades XML de dominio, tipos de campo, relaciones, enumerados, finders, extra-code en repositorio y en dominio |
 | Servicios | `servicios.md` | Interfaz `ModelService`, implementación `DefaultModelService`, constructor obligatorio, validaciones, DTOs y descubrimiento automático |
 | Controladores | `controladores.md` | Estructura, tipos de método, `ModelServiceFactory`, `ActionRequestHelper`, `ActionResponseHelper` y reglas de diseño |
-| Validaciones | `validaciones.md` | Las dos capas de validación: cliente (atributos de campo, `action-condition`, `action-validate`) y servidor (`validateInsert`/`validateUpdate`/`validateRemove` + controlador). Patrón completo `action-group`. Qué poner en cada capa. |
+
+> Para validaciones (`V-XXX`), reglas de negocio (`R-XXX`) y reglas de UI (`U-XXX`), ver el skill **`k-validaciones`**.
 
 ## Referencias detalladas
 

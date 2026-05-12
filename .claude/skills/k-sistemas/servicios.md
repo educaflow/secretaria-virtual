@@ -23,27 +23,41 @@ Un servicio de negocio en EducaFlow se compone de dos ficheros Java:
 package com.educaflow.subsystem.SUBSYSTEM.service;
 
 import com.axelor.db.modelservice.ModelService;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.subsystem.SUBSYSTEM.db.MiEntidad;
 
 import java.util.Optional;
 
 public interface MiEntidadService extends ModelService<MiEntidad> {
 
-    // Métodos de validación — devuelven Optional<BusinessMessages>, nunca lanzan BusinessException
-    Optional<BusinessMessages> validateInsert(MiEntidad entidad);
-    Optional<BusinessMessages> validateUpdate(MiEntidad entidad, MiEntidad entidadOriginal);
-    Optional<BusinessMessages> validateRemove(MiEntidad entidad);
-
-    // Métodos de negocio adicionales (si los hay)
+    // Solo se declaran los métodos PROPIOS del subsistema.
+    // No re-declarar validateInsert/validateUpdate/validateRemove ni insert/update/remove:
+    // ya los hereda de ModelService<MiEntidad>.
     MiEntidad hacerAlgoEspecial(MiEntidad entidad);
 }
 ```
+
+> ⚠️ **Regla obligatoria**: la interfaz del servicio del subsistema **NUNCA re-declara** `validateInsert`, `validateUpdate` ni `validateRemove`. Los hereda automáticamente de `ModelService<T>`. Solo se declaran en la interfaz los métodos **nuevos** del subsistema (operaciones custom, DTOs, etc.).
+>
+> **Antiejemplo (lo que NO hay que hacer):**
+> ```java
+> public interface CertificadoDigitalService extends ModelService<CertificadoDigital> {
+>     Optional<BusinessMessages> validateInsert(CertificadoDigital certificado);   // ❌ ya heredado
+>     Optional<BusinessMessages> validateUpdate(CertificadoDigital c, CertificadoDigital original); // ❌
+>     Optional<BusinessMessages> validateRemove(CertificadoDigital certificado);   // ❌
+> }
+> ```
+> Re-declarar estos métodos no aporta nada: el compilador no obliga a sobrescribirlos en la impl (porque ya heredan implementación por defecto del padre `DefaultModelService`) y solo añade ruido.
+
+> **Nota sobre `BusinessMessage` / `BusinessMessages`**: son clases del framework Axelor (`com.axelor.db.modelservice.*`), no del proyecto. Siempre se importan desde ese paquete.
 
 Los métodos declarados en `ModelService<T>` que ya hereda la interfaz son:
 - `T insert(T entity)`
 - `T update(T entity, T original)`
 - `void remove(T entity)`
+- `Optional<BusinessMessages> validateInsert(T entity)`
+- `Optional<BusinessMessages> validateUpdate(T entity, T original)`
+- `Optional<BusinessMessages> validateRemove(T entity)`
 - `Map<String, Object> validate(Map<String, Object> json, Map<String, Object> context)`
 
 ## Estructura de la implementación
@@ -53,8 +67,8 @@ package com.educaflow.subsystem.SUBSYSTEM.service.impl;
 
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessage;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessage;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.subsystem.SUBSYSTEM.db.MiEntidad;
 import com.educaflow.subsystem.SUBSYSTEM.service.MiEntidadService;
 import jakarta.inject.Inject;
@@ -113,7 +127,7 @@ public class MiEntidadServiceImpl extends DefaultModelService<MiEntidad> impleme
             messages.add(new BusinessMessage("campoB", "No puede estar vacío"));
         }
 
-        return messages.isEmpty() ? Optional.empty() : Optional.of(messages);
+        return messages.isValid() ? Optional.empty() : Optional.of(messages);
     }
 
     @Override
@@ -122,7 +136,7 @@ public class MiEntidadServiceImpl extends DefaultModelService<MiEntidad> impleme
 
         // Validaciones de actualización...
 
-        return messages.isEmpty() ? Optional.empty() : Optional.of(messages);
+        return messages.isValid() ? Optional.empty() : Optional.of(messages);
     }
 
     @Override
@@ -131,7 +145,7 @@ public class MiEntidadServiceImpl extends DefaultModelService<MiEntidad> impleme
 
         // Validaciones de borrado...
 
-        return messages.isEmpty() ? Optional.empty() : Optional.of(messages);
+        return messages.isValid() ? Optional.empty() : Optional.of(messages);
     }
 
     /*************************************************************************************/
@@ -171,7 +185,7 @@ public MiEntidadServiceImpl(Class<MiEntidad> model, Repository<MiEntidad> reposi
 
 Reglas del constructor:
 - `Repository` **siempre** lleva el tipo genérico: `Repository<MiEntidad>` (nunca `Repository` sin tipo).
-- El `super()` recibe el parámetro `model` y el `repository`.
+- El `super()` recibe el parámetro `model` tal cual — **no** hardcodear `MiEntidad.class` ni hacer `(MiEntidadRepository) repository`. La forma canónica es exactamente `super(model, repository);`.
 - Si el constructor no existe, la factoría lanza `IllegalStateException`.
 - Las dependencias adicionales **no van en el constructor**: se declaran como campos `@Inject` y Guice las inyecta después de construir el objeto.
 
@@ -259,7 +273,7 @@ public MiEntidad insert(MiEntidadInsertDTO dto) {
 
 ### Nombres de métodos privados
 - `fireActionRule_NombreAccion(...)` — efecto secundario (asignar datos, notificar, callback). Se llama antes o después de persistir.
-- Los métodos de validación van en la interfaz con nombre `validateInsert` / `validateUpdate` / `validateRemove` y devuelven `Optional<BusinessMessages>`.
+- Los métodos de validación tienen nombre `validateInsert` / `validateUpdate` / `validateRemove`, devuelven `Optional<BusinessMessages>` y se sobrescriben en el `*ServiceImpl`. No se re-declaran en la interfaz del subsistema (se heredan de `ModelService<T>`).
 
 ### Errores de negocio
 Los métodos de validación **nunca lanzan `BusinessException`**: acumulan en `BusinessMessages` y devuelven `Optional`. El controlador decide cómo mostrar los errores.
@@ -273,7 +287,7 @@ Varios errores:
 ```java
 messages.add(new BusinessMessage("campoA", "Es requerido"));
 messages.add(new BusinessMessage("campoB", "No puede estar vacío"));
-return messages.isEmpty() ? Optional.empty() : Optional.of(messages);
+return messages.isValid() ? Optional.empty() : Optional.of(messages);
 ```
 
 ### Obtener otro servicio desde un servicio
