@@ -148,16 +148,16 @@ firmas/
 │   ├── TareaFirma.xml
 │   └── DocumentoFirma.xml
 ├── service/
-│   ├── FirmaService.java          ← interfaz
+│   ├── TareaFirmaService.java          ← interfaz
 │   ├── DatosFirma.java            ← record DTO de entrada
 │   ├── FirmaNotifier.java         ← interfaz de callback
 │   └── impl/
-│       └── FirmaServiceImpl.java
+│       └── TareaFirmaServiceImpl.java
 ├── db/                            ← (vacío, repos generados por Axelor)
 ├── module/
-│   └── FirmaModule.java
+│   └── FirmasModule.java
 ├── controller/
-│   └── FirmarController.java
+│   └── TareaFirmaController.java
 └── views/
     ├── firma-pendiente.xml
     ├── firma-firmado.xml

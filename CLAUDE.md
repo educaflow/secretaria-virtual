@@ -12,7 +12,22 @@ La secretaría virtual es un proyecto de gestión de expedientes administrativos
 - JPA para acceso a datos, con repositorios personalizados y genéricos
 
 ## MCP de IntelliJ
-Tienes disponible el MCP de IntelliJ (`mcp__intellij-index__`). **Debes usarlo siempre que sea posible** en lugar de `grep`, `find` o búsquedas manuales. Los tools disponibles son:
+Tienes disponible el MCP de IntelliJ (`mcp__intellij-index__`). **Debes usarlo siempre que sea posible** en lugar de `grep`, `find`, `Glob` o búsquedas manuales con `Bash`.
+
+Estos tools son de solo lectura o refactor seguro a través del índice de IntelliJ y **no tienen riesgo**, por lo que **debes invocarlos directamente sin pedir confirmación previa al usuario** y sin anunciar que vas a usarlos: simplemente úsalos. Están preautorizados en `.claude/settings.local.json` para que no aparezcan prompts de permiso.
+
+Reglas concretas de sustitución:
+- Buscar texto en el código → `ide_search_text` (NO `grep`/`rg`/`Bash`).
+- Localizar un fichero por nombre → `ide_find_file` (NO `find`/`ls`/`Glob`).
+- Localizar una clase → `ide_find_class` (NO buscar el `.java` con grep).
+- Ir a la definición de un símbolo → `ide_find_definition`.
+- Encontrar usos de un símbolo → `ide_find_references` (NO `grep` por el nombre).
+- Renombrar, mover o borrar símbolos/ficheros → `ide_refactor_rename`, `ide_move_file`, `ide_refactor_safe_delete` (NO `mv`/`sed`/edición manual).
+- Antes de asumir que el índice está disponible, si dudas, comprueba con `ide_index_status`.
+
+Solo se admite recurrir a `grep`/`find`/`Bash` si el MCP de IntelliJ no está disponible o el caso queda fuera de lo que ofrece (por ejemplo, búsqueda en ficheros fuera del proyecto indexado).
+
+Los tools disponibles son:
 
 - `ide_find_class` — buscar una clase por nombre
 - `ide_find_file` — buscar un fichero por nombre

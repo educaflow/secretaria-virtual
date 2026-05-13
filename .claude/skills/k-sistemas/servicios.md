@@ -292,26 +292,39 @@ return messages.isValid() ? Optional.empty() : Optional.of(messages);
 
 ### Obtener otro servicio desde un servicio
 
-**NUNCA** inyectar un servicio con `@Inject` — ni dentro de otro servicio ni en un controlador. Siempre se usa `ModelServiceFactory`:
+**Esta regla aplica ÚNICAMENTE a `ModelService`** (servicios que extienden `ModelService<T>` / `DefaultModelService<T>` y viven en `service.impl`). Para clases que **no** son `ModelService` (infraestructura, callbacks, helpers, implementaciones de interfaces de terceros, etc.) sí está permitido inyectar con `@Inject` y registrar el binding en un módulo Guice del paquete `module/` del subsistema.
+
+**NUNCA** inyectar un `ModelService` con `@Inject` — ni dentro de otro servicio ni en un controlador. Siempre se usa `ModelServiceFactory`:
 
 ```java
-// MAL — prohibido
+// MAL — prohibido para ModelService
 @Inject
-OtroServicio otroServicio;
+OtroModelService otroServicio;
 
 // BIEN — inyectar ModelServiceFactory y resolver en el método
 @Inject
 ModelServiceFactory modelServiceFactory;
 
 // Dentro del método que lo necesite:
-final OtroServicio otroServicio = (OtroServicio) modelServiceFactory.resolve(OtraEntidad.class);
+final OtroModelService otroServicio = (OtroModelService) modelServiceFactory.resolve(OtraEntidad.class);
 ```
+
+Para clases que **no son `ModelService`** (p. ej. `MailSender`, un `AlmacenClaveLoader`, un cliente HTTP de terceros…) el patrón normal de Guice es válido:
+
+```java
+// BIEN — clase que NO es ModelService: @Inject + binding en el módulo del subsistema
+@Inject
+private MailSender mailSender;
+```
+
+Con su binding correspondiente en `module/<Subsistema>Module.java` (`bind(MailSender.class).to(MailSenderImpl.class)`, `@Provides`, etc.).
 
 ## Checklist de desarrollo de servicios
 - [ ] La interfaz extiende `ModelService<T>` del paquete `com.axelor.db.modelservice`
 - [ ] La implementación extiende `DefaultModelService<T>` e implementa la interfaz
 - [ ] El constructor tiene la firma `(Class<T> model, Repository<T> repository)` y llama a `super(model, repository)` 
-- [ ] Los repositorios adicionales van como campos `@Inject`, no en el constructor. Los servicios adicionales **nunca** se inyectan con `@Inject` — se obtienen con `modelServiceFactory.resolve(OtraEntidad.class)`
+- [ ] Los repositorios adicionales van como campos `@Inject`, no en el constructor. Los **`ModelService`** adicionales **nunca** se inyectan con `@Inject` — se obtienen con `modelServiceFactory.resolve(OtraEntidad.class)`.
+- [ ] Las dependencias que **no son `ModelService`** (infraestructura, callbacks, terceros) sí pueden inyectarse con `@Inject` y registrarse en el módulo Guice del subsistema
 - [ ] Los métodos `insert` / `update` / `remove` llaman a `super.*()` para persistir — nunca llaman directamente a `repository.save()`
 - [ ] Los métodos de validación devuelven `Optional<BusinessMessages>` — no lanzan `BusinessException`
 - [ ] La implementación está en `service.impl.MiEntidadServiceImpl` para que la factoría la descubra sin registro explícito
