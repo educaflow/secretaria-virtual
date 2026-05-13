@@ -44,15 +44,43 @@ Las guías NO sustituyen al análisis: son recomendaciones técnicas que orienta
 
 **Argumento de entrada:** ruta al fichero de análisis funcional (`analysis.md`); debe estar en `.sdd/drafts/{carpeta-iniciativa}/analysis_NN/`.
 
+### Override de rutas (para testing)
+
+Para poder probar este skill en un sandbox alternativo sin tocar el árbol real (testing unitario del propio skill, iteración de mejoras, etc.), se aceptan en el prompt los siguientes overrides (también se reconocen las formas `entrada: <ruta>`, `salida: <ruta>`, `raíz: <ruta>`):
+
+- `--in=<ruta>` — fichero `analysis.md` de entrada explícito. Si se indica, sustituye al fichero por defecto y **desactiva la auto-detección**.
+- `--out=<ruta>` — fichero `design_NN.md` de salida explícito. Si se indica, **se escribe el diseño literalmente en esa ruta** y se omite el cálculo de `design_NN.md`. La ruta debe ser un fichero, no una carpeta.
+- `--root=<ruta>` — raíz alternativa a `.sdd/drafts/`. Todas las rutas relativas se resuelven contra esta raíz.
+
+Reglas:
+- Si `--out` apunta a un fichero que ya existe, detente y avisa en vez de sobrescribir.
+- Si se usa `--in`, la "carpeta de trabajo" se considera la carpeta que contiene ese `analysis.md`.
+- Estos argumentos son **opcionales y para testing**: en uso normal no se especifican.
+
 **Si el usuario no proporciona ruta**, busca el último análisis disponible antes de continuar:
 
-1. Lista las subcarpetas de `.sdd/drafts/` cuyo nombre empieza por `YYYY-MM-DD_HH-MM_` (regex `^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}_`) y ordénalas alfabéticamente — el prefijo de timestamp hace que el orden alfabético coincida con el cronológico — y toma la última (la iniciativa más reciente).
-2. Dentro de esa iniciativa, lista las subcarpetas `analysis_NN/` y toma la del número más alto (el análisis más reciente).
-3. Lee el fichero `analysis.md` dentro de esa subcarpeta.
-4. Si no existe ninguna iniciativa, ningún `analysis_NN/` o no hay `analysis.md`, indica al usuario que no hay análisis previos y pídele que indique una ruta. Detente.
-5. **Muestra al usuario el nombre del fichero `analysis.md` junto con su ruta** y pregunta con `AskUserQuestion` si quiere usar ese análisis:
-   - Sí → continúa con la Fase 0 usando esa ruta.
-   - No → pide al usuario la ruta del análisis que quiere usar. Detente.
+> **PROCEDIMIENTO OBLIGATORIO para detectar el análisis más reciente:**
+>
+> 1. **Listar** las subcarpetas de `.sdd/drafts/` cuyo nombre empieza por `YYYY-MM-DD_HH-MM_` (regex `^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}_`):
+>    ```bash
+>    ls -d .sdd/drafts/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-9]_*/ 2>/dev/null
+>    ```
+>    Ordenarlas **alfabéticamente** (el prefijo timestamp coincide con el orden cronológico) y tomar **la última** (la iniciativa más reciente).
+> 2. Dentro de esa iniciativa, **listar** las subcarpetas `analysis_NN/`:
+>    ```bash
+>    ls -d .sdd/drafts/{iniciativa}/analysis_*/ 2>/dev/null
+>    ```
+>    Tomar la del **número más alto** (NO por `mtime`, NO la primera): si existen `analysis_01`, `analysis_02`, `analysis_03`, se elige `analysis_03`.
+> 3. **Leer** el fichero `analysis.md` dentro de esa subcarpeta.
+> 4. Si no existe ninguna iniciativa, ningún `analysis_NN/` o no hay `analysis.md`, indicar al usuario que no hay análisis previos y pedir una ruta. **Detente.**
+> 5. **Mostrar al usuario el nombre del fichero `analysis.md` junto con su ruta** y preguntar con `AskUserQuestion` si quiere usar ese análisis:
+>    - Sí → continuar con la Fase 0 usando esa ruta.
+>    - No → pedir al usuario la ruta del análisis que quiere usar. **Detente.**
+>
+> **PROHIBIDO:**
+> - Elegir una iniciativa que no sea la última por orden alfabético del prefijo timestamp.
+> - Elegir un `analysis_NN` que no sea el del **número más alto** dentro de la iniciativa elegida (no usar `mtime`, no "el que parezca más relevante").
+> - Continuar sin confirmación del usuario tras mostrar la ruta detectada.
 
 ---
 
@@ -302,6 +330,7 @@ Acciones:
 - **El paso de vistas** debe declarar los nombres de las `action-validate`/`action-condition` de cliente para los campos obligatorios y reglas de formato validables sin servidor, junto con su descripción.
 - **Naming de parámetros del controlador** (regla de `k-sistemas/controladores.md`): cuando una firma del controlador recibe `ActionRequest` y/o `ActionResponse`, los parámetros se llaman **siempre** `actionRequest` y `actionResponse` (camelCase completo). Prohibido `req`/`resp`/`request`/`response`. Aplica a todas las firmas que aparezcan en el diseño.
 - **Un `<action-view>` por fichero** (regla arquitectónica de `k-sistemas`): cada `<action-view>` se declara en su propio fichero XML, junto con el grid, el form y las acciones que sólo usa él. Aunque dos `<action-view>` de la misma entidad compartan campos o acciones, viven en ficheros separados porque pueden evolucionar de forma independiente. Cuántos `<action-view>` se necesitan en una entidad es decisión del diseño funcional: puede haber uno por estado de la máquina (PENDIENTE/FIRMADO/RECHAZADO), uno por tipo de usuario (firmante/administrador), uno por caso de uso, o cualquier combinación. La regla arquitectónica es independiente: sea cual sea el número, **cada uno va en su propio fichero**. Convención de nombre: `<NombreEntidad>-<discriminador>.xml`. Si la entidad tiene un solo `<action-view>`, el fichero es `<NombreEntidad>.xml`. Excepción: las vistas de búsqueda/referencia (`@Search-grid` + `@View-form`) viven juntas en `<NombreEntidad>-ref.xml`. Si un fichero es `<NombreEntidad>-<discriminador>.xml` es porque la acción tendrá el sufijo `@Discriminador` excepto con  `@Main` que va simplemente en el fichero  `<NombreEntidad>.xml`.
+- **Menús en fichero único** (regla de `k-vistas/menus.md`): TODOS los `<menuitem>` del proyecto viven en el único fichero `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`. Los menús de un subsistema o sistema nuevo se AÑADEN como entradas en ese fichero (junto a su menuitem raíz y sus hijos), **NUNCA** se crean ficheros separados tipo `menus-<subsistema>.xml`. Si la tabla "Ficheros a crear o modificar" lista un fichero nuevo para menús, debe corregirse a "Modificar `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`".
 - **Trazabilidad obligatoria:** la matriz `V-XXX`/`R-XXX`/`U-XXX` → ubicación no es opcional. Cada fila (de las tres tablas) debe apuntar a la clase + método o al fichero XML + nombre de acción que implementará la regla. Si la matriz tiene una fila sin ubicación, el diseño no está terminado.
 
 **Checklist que el subagente debe aplicar en su Tarea 3** (transmitir literalmente en el prompt; el subagente debe revisar el diseño punto por punto y corregir antes de devolverlo):
@@ -315,6 +344,7 @@ Acciones:
 - [ ] **¿El paso de servicios contiene SOLO firmas de método con comentarios descriptivos del cuerpo, y NO cuerpos implementados?** Si hay código Java real dentro de los métodos (lógica, `if`, `for`, `messages.add(...)` con strings literales), eliminarlo y dejarlo como comentario describiendo qué hay que hacer.
 - [ ] **¿El paso de vistas describe vistas y acciones por nombre + propósito + campos/condiciones implicados, y NO contiene XML completo de `<form>`, `<grid>`, `<action-validate>`, etc.?** Si hay XML literal con todos sus elementos hijos, sustituirlo por la descripción estructural.
 - [ ] **¿Cada `<action-view>` está declarado en su propio fichero XML?** (regla arquitectónica de `k-sistemas`). Si dos o más `<action-view>` de la misma entidad están en el mismo fichero, separarlos en ficheros distintos siguiendo la convención `<NombreEntidad>-<discriminador>.xml`. Excepción: `@Search-grid`+`@View-form` van juntos en `<NombreEntidad>-ref.xml`.
+- [ ] **¿Los `<menuitem>` se añaden al fichero único `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`?** (regla de `k-vistas/menus.md`). Si la tabla "Ficheros a crear o modificar" lista cualquier fichero nuevo para menús (`menus-<subsistema>.xml`, `menus-<sistema>.xml`, o similar), sustituirlo por "Modificar `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`".
 - [ ] **¿Los parámetros de los métodos del controlador se llaman `actionRequest` y `actionResponse`?** (regla de `k-sistemas/controladores.md`). Si alguna firma usa `req`/`resp`/`request`/`response`, renombrar a `actionRequest`/`actionResponse`.
 - [ ] ¿Cada método en el paso de servicios tiene un comentario que indica qué reglas `V-XXX` o `R-XXX` aplica, qué lógica ejecuta y qué mensajes de error produce (descritos por su contenido, no su literal)?
 - [ ] ¿Cada acción de vista declarada tiene un comentario de su propósito y los campos/condiciones que intervienen?
@@ -369,6 +399,7 @@ Antes de guardar, comprueba cada punto sobre el diseño unificado:
 - [ ] **¿El paso de servicios contiene SOLO firmas de método con comentarios descriptivos, y NO cuerpos implementados?** Si hay lógica Java real dentro, sustituirla por comentarios. La implementación la hace `sdd-implementer-system`.
 - [ ] **¿El paso de vistas describe vistas y acciones por nombre + propósito + campos/condiciones, y NO contiene XML completo?** Si hay XML literal de `<form>`, `<grid>`, `<action-validate>`, etc., sustituirlo por la descripción estructural.
 - [ ] **¿Cada `<action-view>` está declarado en su propio fichero XML?** (regla arquitectónica de `k-sistemas`). Si dos o más `<action-view>` de la misma entidad están en el mismo fichero, separarlos en ficheros distintos siguiendo la convención `<NombreEntidad>-<discriminador>.xml`. Excepción: `@Search-grid`+`@View-form` van juntos en `<NombreEntidad>-ref.xml`.
+- [ ] **¿Los `<menuitem>` se añaden al fichero único `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`?** (regla de `k-vistas/menus.md`). Si la tabla "Ficheros a crear o modificar" lista cualquier fichero nuevo para menús (`menus-<subsistema>.xml`, `menus-<sistema>.xml`, o similar), sustituirlo por "Modificar `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`".
 - [ ] **¿Los parámetros de los métodos del controlador se llaman `actionRequest` y `actionResponse`?** (regla de `k-sistemas/controladores.md`). Si alguna firma usa `req`/`resp`/`request`/`response`, renombrar a `actionRequest`/`actionResponse`.
 - [ ] **¿Las validaciones del análisis funcional están mapeadas a la capa correcta?** Validaciones de campo individual y entre campos del mismo registro → cliente; integridad entre registros, ciclo de vida y reglas de negocio → servidor. Ver `k-validaciones`.
 - [ ] **¿TODAS las reglas `V-XXX` del análisis están ubicadas en algún método o acción del diseño con un comentario que describe su lógica?** Recorrer la tabla `V-XXX` del análisis una por una; para cada regla debe existir en algún paso un método (con su firma y comentario) o una acción XML (con su nombre y propósito) donde se implementará. No basta con "se valida en el servicio" — el comentario debe decir qué se comprueba y qué transmite el mensaje.
@@ -396,6 +427,23 @@ Si encuentras algún problema, corrígelo antes de guardar.
 >
 > Pueden existir varios ficheros `design_*.md` en la misma subcarpeta de análisis (iteraciones sucesivas).
 > **Nunca en la raíz del proyecto ni en ninguna otra carpeta.**
+
+> **PROCEDIMIENTO OBLIGATORIO antes de escribir el fichero — evita sobrescribir diseños previos:**
+>
+> 1. **Listar** los ficheros `design_*.md` existentes en la carpeta de trabajo con un comando Bash explícito (no asumir nada):
+>    ```bash
+>    ls .sdd/drafts/{carpeta-iniciativa}/analysis_NN/design_*.md 2>/dev/null
+>    ```
+> 2. **Calcular NN** como el mayor número encontrado + 1, formateado a 2 dígitos. Si no hay ningún fichero, NN = `01`. Ejemplos:
+>    - No existe ningún `design_*.md` → crear `design_01.md`.
+>    - Existen `design_01.md` y `design_02.md` → crear `design_03.md`.
+>    - Existen `design_01.md` y `design_03.md` (con hueco) → crear `design_04.md` (siempre **máximo + 1**, **nunca rellenar huecos**).
+> 3. **Verificar** que el fichero `design_NN.md` calculado **NO existe** antes de escribirlo. Si por error existiera, **detente** y avisa al usuario; nunca sobrescribas.
+> 4. Escribir `design_NN.md` en la carpeta de trabajo.
+>
+> **PROHIBIDO:**
+> - Usar un número fijo como `design_01.md` sin haber listado primero.
+> - Escribir `design_NN.md` sobre un fichero existente — eso destruye un diseño anterior. Si el `Write` te pide leer el fichero existente antes de sobrescribir, **es la señal inequívoca de que has elegido un NN equivocado**: vuelve al paso 1 y recalcula NN, no leas el fichero para luego sobrescribirlo.
 
 El fichero del diseño debe comenzar **obligatoriamente** con la siguiente cabecera frontmatter:
 

@@ -15,10 +15,21 @@ Eres el paso de **arranque** del pipeline SDD. Tu única tarea es crear la carpe
 ## Argumentos aceptados
 
 ```
-/sdd-create-user-story [nombre]
+/sdd-create-user-story [nombre] [--root=<ruta>] [--out=<ruta>]
 ```
 
 - `nombre` (opcional): nombre corto descriptivo de la iniciativa, en cualquier formato (palabras sueltas con espacios, kebab-case, etc.). Si se omite, se pide al usuario con `AskUserQuestion`.
+
+### Override de rutas (para testing)
+
+Para poder probar este skill en un sandbox alternativo sin tocar el árbol real (testing unitario del propio skill, iteración de mejoras, etc.), se aceptan en el prompt los siguientes overrides (también se reconocen las formas `raíz: <ruta>` y `salida: <ruta>`):
+
+- `--root=<ruta>` — raíz alternativa a `.sdd/drafts/`. La iniciativa se creará en `<ruta>/{timestamp}_{nombre-kebab}/`.
+- `--out=<ruta>` — carpeta de iniciativa explícita. Si se indica, **se usa esa ruta literal** para crear los ficheros y se ignoran tanto la raíz por defecto como el cálculo `{timestamp}_{nombre-kebab}`.
+
+Reglas:
+- Si la ruta indicada con `--out` ya existe, detente y avisa al usuario en vez de sobrescribir.
+- Estos argumentos son **opcionales y para testing**: en uso normal no se especifican y la iniciativa se crea bajo `.sdd/drafts/`.
 
 ## Qué hacer
 

@@ -111,6 +111,8 @@ Módulo Guice que registra bindings interfaz → implementación cuando `ModelSe
 
 > **REGLA CRÍTICA — NUNCA crear un módulo para implementaciones de `ModelService`:** `ModelServiceFactory` descubre automáticamente cualquier clase en el paquete `service.impl.*ServiceImpl`. Crear un módulo Guice para registrar un `ModelService` es un error — el servicio quedaría registrado dos veces y rompería la factoría. Solo crear `module/` cuando haya bindings que genuinamente no pueden descubrirse por convención (interfaces no relacionadas con `ModelService`, decoradores, servicios de infraestructura).
 
+> **REGLA CRÍTICA — los `AxelorModule` del subsistema NO se instalan manualmente:** la clase `module/<Subsistema>Module.java` debe extender `com.axelor.app.AxelorModule`. Axelor descubre y carga automáticamente todos los `AxelorModule` del classpath al arrancar, así que **NUNCA** se añade un `install(new <Subsistema>Module())` en `SecretariaVirtualModule` ni en ningún otro sitio. Cualquier paso de diseño o implementación que diga "registrar el módulo en `SecretariaVirtualModule`" es incorrecto y debe omitirse.
+
 ### `views/`
 
 Ficheros XML de vistas Axelor (namespace `object-views`). Cada fichero contiene un grid, un form, sus paneles auxiliares y todas las acciones (`action-group`, `action-method`, `action-record`, `action-attrs`, `action-validate`, `action-condition`) que necesita **un único `<action-view>`**.

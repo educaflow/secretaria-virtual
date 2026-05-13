@@ -20,6 +20,21 @@ no requiere aprobación — es un paso puramente administrativo de archivo, no p
 
 ---
 
+## Override de rutas (para testing)
+
+Para poder probar este skill en un sandbox alternativo sin tocar el árbol real (testing unitario del propio skill, iteración de mejoras, etc.), se aceptan en el prompt los siguientes overrides (también se reconocen las formas `entrada: <ruta>`, `salida: <ruta>`, `raíz: <ruta>`):
+
+- `--in=<ruta>` — fichero `user-story.md` de entrada explícito. Si se indica, sustituye al fichero por defecto y **desactiva la auto-detección** (caso C de la Fase 0).
+- `--out=<ruta>` — fichero `analysis.md` de salida explícito. Si se indica, **se escribe el análisis literalmente en esa ruta** y se omite el cálculo de `analysis_NN/analysis.md`. La ruta debe ser un fichero, no una carpeta.
+- `--root=<ruta>` — raíz alternativa a `.sdd/drafts/`. Todas las rutas relativas (auto-detección, carpeta de la iniciativa, subcarpetas `analysis_NN`) se resuelven contra esta raíz.
+
+Reglas:
+- Si `--out` apunta a un fichero que ya existe, detente y avisa en vez de sobrescribir.
+- Si se usa `--in`, la "carpeta de la iniciativa" se considera la carpeta que contiene ese fichero (igual que en el caso A).
+- Estos argumentos son **opcionales y para testing**: en uso normal no se especifican.
+
+---
+
 ## Fase 0 — Gestión del fichero de entrada y carpeta de trabajo
 
 La estructura de carpetas es la siguiente:
@@ -69,14 +84,24 @@ El skill puede recibir el input de tres formas:
   ```
 
 **C) No se recibe ni ruta ni texto libre** (el skill se invoca sin argumentos):
-- Busca la última historia de usuario existente en `.sdd/drafts/`:
-  1. Lista las subcarpetas de `.sdd/drafts/` cuyo nombre empieza por `YYYY-MM-DD_HH-MM_` (regex `^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}_`).
-  2. Ordénalas alfabéticamente — el prefijo de timestamp hace que el orden alfabético coincida con el cronológico — y toma la última (la más reciente).
-  3. Lee el fichero `user-story.md` dentro de esa carpeta.
-- Si no existe ninguna carpeta con ese formato o la última no contiene `user-story.md`, indica al usuario que no hay historias de usuario previas y pídele que aporte una ruta o un texto libre. Detente.
-- Si encuentras una historia, **muestra al usuario un resumen de dos líneas del  `user-story.md` junto con su ruta** y pregunta con `AskUserQuestion` si quiere usar esa historia:
-  - Sí → trátalo como el caso (A): la carpeta de la iniciativa es la que contiene ese `user-story.md`. Continúa con la Fase 1.
-  - No → indica al usuario que vuelva a invocar el skill pasando una ruta o un texto descriptivo. Detente.
+
+> **PROCEDIMIENTO OBLIGATORIO para detectar la historia de usuario más reciente:**
+>
+> 1. **Listar** las subcarpetas de `.sdd/drafts/` cuyo nombre empieza por `YYYY-MM-DD_HH-MM_` (regex `^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}_`) con un comando Bash explícito:
+>    ```bash
+>    ls -d .sdd/drafts/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-9]_*/ 2>/dev/null
+>    ```
+> 2. **Ordenarlas alfabéticamente** — el prefijo de timestamp hace que el orden alfabético coincida con el cronológico — y tomar la **última** (la más reciente por fecha+hora del nombre, **no** por `mtime` ni por orden de aparición de `ls`).
+> 3. **Leer** el fichero `user-story.md` dentro de esa carpeta.
+> 4. Si no existe ninguna carpeta con ese formato o la última no contiene `user-story.md`, indicar al usuario que no hay historias de usuario previas y pedir una ruta o un texto libre. **Detente.**
+> 5. Si se encuentra una historia, **mostrar al usuario un resumen de dos líneas del `user-story.md` junto con su ruta** y preguntar con `AskUserQuestion` si quiere usar esa historia:
+>    - Sí → tratarlo como el caso (A): la carpeta de la iniciativa es la que contiene ese `user-story.md`. Continuar con la Fase 1.
+>    - No → indicar al usuario que vuelva a invocar el skill pasando una ruta o un texto descriptivo. **Detente.**
+>
+> **PROHIBIDO:**
+> - Elegir cualquier carpeta que no sea la última por orden alfabético del prefijo timestamp (no usar `mtime`, ni la primera, ni una "que parezca relevante").
+> - Continuar sin confirmación del usuario tras mostrar el resumen.
+> - Asumir que solo hay una carpeta de iniciativa: aunque haya muchas, siempre se toma **la última** por timestamp.
 
 En todos los casos, al llegar a la Fase 4 (guardar), se creará una **subcarpeta de análisis** numerada dentro de la carpeta de la iniciativa.
 
@@ -427,6 +452,24 @@ Solo tras aprobación, guarda el análisis.
 >
 > Pueden existir varias subcarpetas `analysis_*/` en la misma carpeta de iniciativa (iteraciones sucesivas por cada vez que se ejecuta este skill).
 > **Nunca en la raíz del proyecto ni en ninguna otra carpeta.**
+
+> **PROCEDIMIENTO OBLIGATORIO antes de escribir el fichero — evita sobrescribir análisis previos:**
+>
+> 1. **Listar** las subcarpetas existentes en la carpeta de la iniciativa con un comando Bash explícito (no asumir nada):
+>    ```bash
+>    ls -d .sdd/drafts/{carpeta-iniciativa}/analysis_*/ 2>/dev/null
+>    ```
+> 2. **Calcular NN** como el mayor número encontrado + 1, formateado a 2 dígitos. Si no hay ninguna subcarpeta, NN = `01`. Ejemplos:
+>    - No existe ninguna `analysis_*/` → crear `analysis_01`.
+>    - Existen `analysis_01` y `analysis_02` → crear `analysis_03`.
+>    - Existen `analysis_01` y `analysis_03` (con hueco) → crear `analysis_04` (siempre **máximo + 1**, **nunca rellenar huecos**).
+> 3. **Verificar** que la subcarpeta `analysis_NN` calculada **NO existe** antes de crearla. Si por error existiera, **detente** y avisa al usuario; nunca sobrescribas.
+> 4. Crear la subcarpeta con `mkdir -p .sdd/drafts/{carpeta-iniciativa}/analysis_NN`.
+> 5. Escribir `analysis.md` dentro de esa nueva subcarpeta.
+>
+> **PROHIBIDO:**
+> - Usar un número fijo como `analysis_01` sin haber listado primero.
+> - Escribir `analysis.md` en una subcarpeta `analysis_NN` que ya contenga un `analysis.md` previo — eso destruye un análisis anterior. Si el `Write` te pide leer el fichero existente antes de sobrescribir, **es la señal inequívoca de que has elegido un NN equivocado**: vuelve al paso 1 y recalcula NN, no leas el fichero para luego sobrescribirlo.
 
 El fichero guardado debe comenzar **obligatoriamente** con la siguiente cabecera frontmatter, seguida del contenido del borrador aprobado:
 

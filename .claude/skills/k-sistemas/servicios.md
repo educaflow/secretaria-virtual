@@ -317,7 +317,7 @@ Para clases que **no son `ModelService`** (p. ej. `MailSender`, un `AlmacenClave
 private MailSender mailSender;
 ```
 
-Con su binding correspondiente en `module/<Subsistema>Module.java` (`bind(MailSender.class).to(MailSenderImpl.class)`, `@Provides`, etc.).
+Con su binding correspondiente en `module/<Subsistema>Module.java` (`bind(MailSender.class).to(MailSenderImpl.class)`, `@Provides`, etc.) — sin necesidad de registrarlo en `SecretariaVirtualModule`: el módulo extiende `AxelorModule` y Axelor lo descubre automáticamente.
 
 ## Checklist de desarrollo de servicios
 - [ ] La interfaz extiende `ModelService<T>` del paquete `com.axelor.db.modelservice`
