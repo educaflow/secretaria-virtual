@@ -208,10 +208,10 @@ El prompt debe instruir al subagente a ejecutar **estas tres tareas en este orde
 
 - **Tarea 1 del subagente — Producir las secciones del análisis**: tipo y capa, descripción, entidades (campos, tipos, relaciones, estados), dependencias de otros subsistemas, operaciones, vistas, menús, seguridad (multicentro sí/no), máquina de estados (si aplica) y campos calculados (si aplica).
 - **Tarea 2 del subagente — Construir las tres tablas paralelas (`V-XXX`, `R-XXX`, `U-XXX`) y la sección de asunciones**:
-  - **Tabla `V-XXX`** (validaciones que bloquean) con columnas `ID | Campo(s) | Tipo | Origen | Condición de aplicación | Mensaje al usuario`. Las reglas dependientes de estado comparten la misma secuencia `V-XXX`, no se abren tablas paralelas. Cada mensaje incluye el valor recibido y, en dominios finitos, los valores válidos.
-  - **Tabla `R-XXX`** (reglas de negocio que el sistema ejecuta) con columnas `ID | Descripción | Entidad | Operación | Momento (Antes/Después) | Origen | Más información`. Describir qué hace el sistema, no qué hace el usuario. Las condiciones de aplicación van en "Más información".
-  - **Tabla `U-XXX`** (reglas de UI que cambian el formulario) con columnas `ID | Disparador | Efecto | Campo/Panel afectado | Condición | Origen`. Disparador puede ser un evento (`onNew`, `onLoad`, `onChange:campoX`) o `continuo` para los atributos `*If`. Describir qué ve el usuario, no cómo se implementa.
-  - Las tres tablas usan la columna `Origen` con los mismos valores (`Modelo` / `Catálogo` / `Negocio (asumida)`); las de Negocio asumida se marcan con `*` y se listan en "Asunciones a confirmar".
+  - **Tabla `V-XXX`** (validaciones que bloquean) con columnas `ID | Campo(s) | Descripción | Condición | Mensaje al usuario` (formato de análisis, sin columnas de implementación — esas se añaden en el diseño). Las reglas dependientes de estado comparten la misma secuencia `V-XXX`, no se abren tablas paralelas. Cada mensaje incluye el valor recibido y, en dominios finitos, los valores válidos.
+  - **Tabla `R-XXX`** (reglas de negocio que el sistema ejecuta) con columnas `ID | Descripción | Entidad | Método | Momento | Más información`. Describir qué hace el sistema, no qué hace el usuario. Las condiciones de aplicación van en "Más información".
+  - **Tabla `U-XXX`** (reglas de UI que cambian el formulario) con columnas `ID | Disparador | Efecto | Campo/Panel afectado | Condición`. Disparador puede ser un evento (`onNew`, `onLoad`, `onChange:campoX`) o `continuo` para los atributos `*If`. Describir qué ve el usuario, no cómo se implementa.
+  - Las asunciones de negocio se marcan con `*` en la primera columna (ID) y se listan en "Asunciones a confirmar".
   - Si una regla bloquea, es `V-XXX`. Si actúa sobre el sistema, es `R-XXX`. Si solo cambia el formulario, es `U-XXX`. **Una misma regla no debe aparecer en dos tablas.**
 - **Tarea 3 del subagente — Aplicar el checklist y corregir antes de devolver**: revisar el análisis generado contra el checklist que aparece más abajo (es el mismo que el agente principal aplicará en la unificación); si encuentra algún incumplimiento, corregirlo antes de devolver el resultado. El subagente NO debe devolver el análisis si queda algún punto del checklist sin cumplir.
 
@@ -305,13 +305,13 @@ Y debe seguir todos los principios de `k-validaciones`:
 
 - **Tres tablas paralelas**, una por categoría: `V-XXX` (validaciones), `R-XXX` (reglas de negocio), `U-XXX` (reglas de UI). Cada tabla con su propia numeración consecutiva. NO pre-clasificar reglas en cliente/servidor.
 - **Clasificación correcta**: si la regla bloquea una operación, es `V-XXX`; si el sistema la ejecuta automáticamente modificando estado o produciendo efectos colaterales, es `R-XXX`; si solo cambia el aspecto del formulario, es `U-XXX`. Una misma regla no aparece en dos tablas.
-- **Origen** en las tres tablas: `Modelo` / `Catálogo` / `Negocio (asumida)`. Marcar las de Negocio asumida con `*` y listarlas en "Asunciones a confirmar".
+- **Asunciones**: las reglas asumidas por análisis (no explícitas en la historia ni en el código) se marcan con `*` en el ID y se listan en "Asunciones a confirmar".
 - **Una regla, una cosa**: no agrupar campos salvo cruce genuino, no emitir reglas que se implican entre sí.
 - **Reglas vs no-reglas**: no documentar lo que ya cubre el framework (FK válida, parser de tipo) ni decisiones de "esto NO se valida" (van como nota o asunción).
 
 **Principios específicos de `V-XXX`:**
 
-- Columnas mínimas: `ID`, `Campo(s)`, `Tipo`, `Origen`, `Condición de aplicación`, `Mensaje al usuario`.
+- Columnas mínimas: `ID`, `Campo(s)`, `Descripción`, `Condición`, `Mensaje al usuario`.
 - **Ámbito de unicidad** explícito en cada regla de unicidad (global / por centro / por año / combinación). El mensaje refleja el ámbito.
 - **Reglas configurables vs constantes técnicas**: nombrar el parámetro y proponer valor por defecto cuando sea configurable; identificar las constantes técnicas (impuestas por formato/protocolo/ORM) como tales.
 - **Modelos sin UI / infraestructura interna**: reformular las reglas como invariantes que debe garantizar el servicio; mensajes técnicos para el desarrollador, no UX.
@@ -322,7 +322,7 @@ Y debe seguir todos los principios de `k-validaciones`:
 
 **Principios específicos de `R-XXX`:**
 
-- Columnas mínimas: `ID`, `Descripción`, `Entidad`, `Operación` (`insert`/`update`/`remove`/`cambiarEstado`/operación custom), `Momento` (`Antes` / `Después`), `Origen`, `Más información` (condiciones, dependencias, datos que se modifican).
+- Columnas mínimas: `ID`, `Descripción`, `Entidad`, `Método` (`insert`/`update`/`remove`/`cambiarEstado`/método custom), `Momento` (`Antes` / `Después`), `Más información` (condiciones, dependencias, datos que se modifican).
 - **Antes** si la regla escribe sobre el mismo registro que se está guardando; **Después** si tiene efectos colaterales (correos, PDFs, propagación a otras entidades).
 - **Si la regla bloquea cuando no se cumple, no es `R-XXX`** — es `V-XXX`. Las `R-XXX` siempre tienen efecto, nunca bloquean.
 - **Describir qué hace el sistema**, no qué hace el usuario.
@@ -330,7 +330,7 @@ Y debe seguir todos los principios de `k-validaciones`:
 
 **Principios específicos de `U-XXX`:**
 
-- Columnas mínimas: `ID`, `Disparador`, `Efecto`, `Campo/Panel afectado`, `Condición`, `Origen`.
+- Columnas mínimas: `ID`, `Disparador`, `Efecto`, `Campo/Panel afectado`, `Condición`.
 - **Disparador**: evento (`onNew`, `onLoad`, `onChange:campoX`) o `continuo` cuando se evalúa permanentemente mediante un atributo `*If`.
 - **Efecto**: mostrar/ocultar, marcar readonly, marcar requerido, fijar valor por defecto, filtrar dominio, cambiar título.
 - **Si la regla bloquea guardar, no es `U-XXX`** — es `V-XXX`. **Si escribe en BD o produce efectos colaterales, no es `U-XXX`** — es `R-XXX`.
@@ -341,20 +341,20 @@ Y debe seguir todos los principios de `k-validaciones`:
 
 Ejemplos del nivel de detalle esperado (un extracto por cada tabla):
 
-| ID    | Campo  | Tipo         | Origen   | Condición | Mensaje al usuario                                                      |
-|-------|--------|--------------|----------|-----------|--------------------------------------------------------------------------|
-| V-001 | alias  | Dominio      | Negocio* | Siempre   | "El alias '{alias}' no existe en el slot {slot}. Disponibles: {lista}." |
-| V-002 | email  | Formato      | Catálogo | Siempre   | "El formato del email '{email}' no es válido."                          |
+| ID     | Campo(s) | Descripción                                                | Condición | Mensaje al usuario                                                        |
+|--------|----------|------------------------------------------------------------|-----------|---------------------------------------------------------------------------|
+| V-001* | alias    | El alias debe existir en el slot indicado                  | Siempre   | "El alias '{alias}' no existe en el slot {slot}. Disponibles: {lista}."   |
+| V-002  | email    | El email debe tener el formato `usuario@dominio.com`       | Siempre   | "El formato del email '{email}' no es válido."                            |
 
-| ID    | Descripción                                                       | Entidad     | Operación      | Momento  | Origen   | Más información                                            |
-|-------|-------------------------------------------------------------------|-------------|----------------|----------|----------|------------------------------------------------------------|
-| R-001 | Asigna el número de expediente secuencial dentro del centro       | Expediente  | insert         | Antes    | Negocio  | Formato `EXP-{año}-{secuencial}` por centro                |
-| R-002 | Envía un correo al solicitante con el documento aprobado          | Expediente  | cambiarEstado  | Después  | Negocio* | Solo si el estado pasa a APROBADO                          |
+| ID     | Descripción                                                       | Entidad     | Método         | Momento  | Más información                                            |
+|--------|-------------------------------------------------------------------|-------------|----------------|----------|------------------------------------------------------------|
+| R-001  | Asigna el número de expediente secuencial dentro del centro       | Expediente  | insert         | Antes    | Formato `EXP-{año}-{secuencial}` por centro                |
+| R-002* | Envía un correo al solicitante con el documento aprobado          | Expediente  | cambiarEstado  | Después  | Solo si el estado pasa a APROBADO                          |
 
-| ID    | Disparador               | Efecto              | Campo/Panel afectado | Condición                            | Origen   |
-|-------|--------------------------|---------------------|----------------------|--------------------------------------|----------|
-| U-001 | continuo                 | Marcar solo lectura | `descripcion`        | `estado != 'BORRADOR'`               | Modelo   |
-| U-002 | `onNew`                  | Valor por defecto   | `centro`             | Siempre (centro del usuario actual)  | Negocio  |
+| ID    | Disparador               | Efecto              | Campo/Panel afectado | Condición                            |
+|-------|--------------------------|---------------------|----------------------|--------------------------------------|
+| U-001 | continuo                 | Marcar solo lectura | `descripcion`        | `estado != 'BORRADOR'`               |
+| U-002 | `onNew`                  | Valor por defecto   | `centro`             | Siempre (centro del usuario actual)  |
 
 La trazabilidad `V-XXX`/`R-XXX`/`U-XXX` → paso(s) del diseño es responsabilidad del diseñador, no del analista.
 
@@ -362,12 +362,12 @@ La trazabilidad `V-XXX`/`R-XXX`/`U-XXX` → paso(s) del diseño es responsabilid
 
 - [ ] ¿Cada entidad tiene sus campos, tipos y restricciones definidos?
 - [ ] ¿Cada `required` del modelo tiene su regla `V-XXX` con mensaje al usuario?
-- [ ] ¿Cada regla (V/R/U) tiene columna `Origen` y las de Negocio asumida están marcadas con `*` y listadas en "Asunciones a confirmar"?
+- [ ] ¿Las reglas (V/R/U) asumidas por análisis están marcadas con `*` en el ID y listadas en "Asunciones a confirmar"?
 - [ ] ¿Cada regla de unicidad `V-XXX` declara su ámbito (global / por centro / por año / combinación)?
 - [ ] ¿Cada mensaje de `V-XXX` incluye el valor recibido y, en dominios finitos, los valores válidos, sin tecnicismos del framework?
 - [ ] ¿No se han pre-clasificado reglas `V-XXX` en cliente/servidor?
 - [ ] ¿Las reglas `V-XXX` dependientes de estado comparten la misma secuencia (no se han abierto tablas paralelas)?
-- [ ] ¿Cada `R-XXX` indica `Entidad`, `Operación`, `Momento` (Antes/Después) y describe qué hace el sistema (no qué hace el usuario)?
+- [ ] ¿Cada `R-XXX` indica `Entidad`, `Método`, `Momento` (Antes/Después) y describe qué hace el sistema (no qué hace el usuario)?
 - [ ] ¿Ninguna `R-XXX` bloquea? (las que bloquean deben ser `V-XXX`)
 - [ ] ¿Cada `U-XXX` indica `Disparador` (evento o `continuo`), `Efecto` y `Campo/Panel afectado`?
 - [ ] ¿Ninguna `U-XXX` bloquea ni escribe en BD? (las que bloquean son `V-XXX`; las que escriben son `R-XXX`)
@@ -404,12 +404,12 @@ Una vez recibidos los 5 análisis, **tú mismo** (no un subagente) produces el a
 5. **Aplica el checklist final antes de presentar al usuario**. Es el mismo que cada subagente aplicó en su Tarea 3 sobre su propio análisis, pero debes volver a aplicarlo aquí sobre el **análisis unificado** — la unificación puede haber introducido inconsistencias (numeración, redacciones mezcladas, asunciones combinadas, reglas duplicadas entre tablas) que ningún subagente individual podía detectar:
    - ¿Cada entidad tiene sus campos, tipos y restricciones definidos?
    - ¿Cada `required` del modelo tiene su regla `V-XXX` con mensaje al usuario?
-   - ¿Cada regla (V/R/U) tiene columna `Origen` y las de Negocio asumida están marcadas con `*` y listadas en "Asunciones a confirmar"?
+   - ¿Las reglas (V/R/U) asumidas por análisis están marcadas con `*` en el ID y listadas en "Asunciones a confirmar"?
    - ¿Cada regla de unicidad `V-XXX` declara su ámbito (global / por centro / por año / combinación)?
    - ¿Cada mensaje de `V-XXX` incluye el valor recibido y, en dominios finitos, los valores válidos, sin tecnicismos del framework?
    - ¿No se han pre-clasificado reglas `V-XXX` en cliente/servidor?
    - ¿Las reglas `V-XXX` dependientes de estado comparten la misma secuencia (no se han abierto tablas paralelas)?
-   - ¿Cada `R-XXX` indica `Entidad`, `Operación`, `Momento` y describe qué hace el sistema, sin bloquear?
+   - ¿Cada `R-XXX` indica `Entidad`, `Método`, `Momento` y describe qué hace el sistema, sin bloquear?
    - ¿Cada `U-XXX` indica `Disparador`, `Efecto` y `Campo/Panel afectado`, sin bloquear ni escribir en BD?
    - ¿Cada regla aparece en **una sola** de las tres tablas (sin solape V/R/U)?
    - ¿Las tres tablas están renumeradas consecutivamente sin huecos?
