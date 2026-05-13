@@ -44,18 +44,21 @@ public class MailSenderImpl implements MailSender {
             properties.put("mail.smtp.starttls.required", "true");
             properties.put("mail.smtp.auth.mechanisms", "LOGIN PLAIN");
 
+            // Timeouts (10s) para que no se cuelgue si el servidor no responde
+            properties.put("mail.smtp.connectiontimeout", "10000");
+            properties.put("mail.smtp.timeout", "10000");
+            properties.put("mail.smtp.writetimeout", "10000");
+
             Authenticator authenticator = new SMTPAuthenticator(smtpUserName, smtpPassword);
 
             Session session = Session.getInstance(properties, authenticator);
 
             Message message=JavaMailHelper.getMessage(mail, session);
 
-/*
-            Transport transport = session.getTransport();
-            transport.connect();
-            transport.sendMessage(message,message.getRecipients(jakarta.mail.Message.RecipientType.TO));
-            transport.close();
-*/
+            try (Transport transport = session.getTransport("smtp")) {
+                transport.connect();
+                transport.sendMessage(message,message.getRecipients(jakarta.mail.Message.RecipientType.TO));
+            }
 
         } catch (Exception ex) {
             throw new RuntimeException(ex);
