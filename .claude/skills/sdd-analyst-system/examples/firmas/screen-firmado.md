@@ -23,7 +23,7 @@
 | Ordenación por defecto             | fecha de solicitud ascendente                                                  |
 | ¿Permite buscar?                   | NO                                                                             |
 | Formulario que abre el onclick     | Formulario 1 — Tarea firmada (en modo solo lectura)                            |
-| Botones del toolbar                | —                                                                              |
+| Botones del toolbar                | — (las tareas las crean otros sistemas que solicitan la firma)                 |
 | Botones de las columnas            | —                                                                              |
 
 ## Formulario 1 — Tarea firmada
@@ -58,7 +58,7 @@
 | Ordenación por defecto             | —                                                                    |
 | ¿Permite buscar?                   | NO                                                                   |
 | Formulario que abre el onclick     | Formulario 2 — Documento firmado (en modo solo lectura)              |
-| Botones del toolbar                | —                                                                    |
+| Botones del toolbar                | — (los documentos se crean junto con la tarea, no manualmente)       |
 | Botones de las columnas            | —                                                                    |
 
 ## Formulario 2 — Documento firmado
