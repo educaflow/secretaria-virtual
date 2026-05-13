@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- *************************************************************************************** -->
+    <!-- ****************************** TareaImportacion : Vistas ****************************** -->
+    <!-- *************************************************************************************** -->
+
+    <action-view name="subsysImportacion.TareaImportacion@Main-action"
+                 title="Ficheros importación"
+                 model="com.educaflow.subsystem.importacion.db.TareaImportacion">
+        <view type="grid" name="subsysImportacion.TareaImportacion@Main-grid"/>
+        <view type="form" name="subsysImportacion.TareaImportacion@Main-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="forceEdit" value="true"/>
+        <view-param name="reload-grid" value="true"/>
+    </action-view>
+
+    <grid name="subsysImportacion.TareaImportacion@Main-grid"
+          model="com.educaflow.subsystem.importacion.db.TareaImportacion"
+          title=""
+          canAdvanceSearch="false" canRefresh="false" allowSearchFields="false"
+          canNew="true" newButtonTitle="Importar nueva"
+          canEdit="false" canDelete="false" canSave="false"
+          editable="false" edit-icon="false" x-selector="none"
+          canEditOnClick="true"
+          orderBy="-fechaImportacion"
+    >
+        <field name="fechaImportacion"/>
+        <field name="tipoFichero"/>
+        <field name="centro"/>
+        <field name="curso"/>
+        <field name="fechaExportacion"/>
+        <field name="estado" x-true-text="Correcta" x-false-text="Fallida"/>
+        <field name="usuario"/>
+    </grid>
+
+    <form name="subsysImportacion.TareaImportacion@Main-form"
+          model="com.educaflow.subsystem.importacion.db.TareaImportacion"
+          title="Importar fichero"
+          width="large"
+          onNew="subsysImportacion.TareaImportacion@Main-onNew-action"
+          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false"
+          canBackOnSave="false">
+
+        <panel name="panelEntrada" title="Nueva importación" showIf="id == null">
+            <field name="tipoFichero" widget="SwitchSelect" required="true" colSpan="12"/>
+            <field name="fichero" widget="binary-link" required="true" colSpan="12"/>
+        </panel>
+
+        <panel name="panelResultado" title="Resultado" showIf="id != null" readonlyIf="true">
+            <panel name="panelDatosResultado" title="" showFrame="false">
+                <field name="usuario"          colSpan="6"/>
+                <field name="fechaImportacion" colSpan="6"/>
+                <field name="tipoFichero"      colSpan="6"/>
+                <field name="centro"           colSpan="6"/>
+                <field name="curso"            colSpan="6"/>
+                <field name="fechaExportacion" colSpan="6"/>
+                <field name="fichero"          widget="binary-link" colSpan="12"/>
+            </panel>
+            <panel name="panelEstadoLog" title="" showFrame="false">
+                <field name="estado" x-true-text="Correcta" x-false-text="Fallida"/>
+                <field name="log" widget="text" colSpan="12"/>
+            </panel>
+        </panel>
+
+        <panel name="panelBotones" showFrame="false" colSpan="12">
+            <button name="btnCancelar" title="Cancelar"
+                    onClick="subsysImportacion.TareaImportacion@Main-btnCancelar-action"
+                    outline="true" colSpan="2" colOffset="6" showIf="id == null"/>
+            <button name="btnImportar" title="Importar"
+                    onClick="subsysImportacion.TareaImportacion@Main-btnImportar-action"
+                    colSpan="2" showIf="id == null"/>
+            <button name="btnAceptar" title="Aceptar"
+                    onClick="subsysImportacion.TareaImportacion@Main-btnAceptar-action"
+                    colSpan="2" colOffset="8" showIf="id != null"/>
+        </panel>
+
+    </form>
+
+    <!-- *************** TareaImportacion : Acciones de las tareas principales *************** -->
+    <action-group name="subsysImportacion.TareaImportacion@Main-btnCancelar-action">
+        <action name="back"/>
+    </action-group>
+
+    <action-group name="subsysImportacion.TareaImportacion@Main-btnImportar-action">
+        <action name="subsysImportacion.TareaImportacion@Main-Local-validateImportar-action"/>
+        <action name="subsysImportacion.TareaImportacion@Main-Remote-validateSave-action"/>
+        <action name="save"/>
+    </action-group>
+
+    <action-group name="subsysImportacion.TareaImportacion@Main-btnAceptar-action">
+        <action name="back"/>
+    </action-group>
+
+    <action-group name="subsysImportacion.TareaImportacion@Main-onNew-action">
+        <action name="subsysImportacion.TareaImportacion@Main-set-campos-sistema-action"/>
+    </action-group>
+
+    <!-- *************** TareaImportacion : Acciones de Validaciones en local *************** -->
+    <action-condition name="subsysImportacion.TareaImportacion@Main-Local-validateImportar-action">
+        <check field="tipoFichero" error="El tipo de fichero es obligatorio. Valores válidos: Profesor, Alumno, Familiar, Profesor externo"/>
+        <check field="fichero" error="El fichero es obligatorio"/>
+    </action-condition>
+
+    <!-- *************** TareaImportacion : Acciones básicas que cambian campos simples *************** -->
+    <action-record name="subsysImportacion.TareaImportacion@Main-set-campos-sistema-action"
+                   model="com.educaflow.subsystem.importacion.db.TareaImportacion">
+        <field name="usuario"          expr="eval: __user__"/>
+        <field name="fechaImportacion" expr="eval: __datetime__"/>
+    </action-record>
+
+    <!-- *************** TareaImportacion : Acciones de llamadas Remotas al servidor *************** -->
+    <action-method name="subsysImportacion.TareaImportacion@Main-Remote-validateSave-action"
+                   model="com.educaflow.subsystem.importacion.db.TareaImportacion">
+        <call class="com.educaflow.subsystem.importacion.controller.TareaImportacionController"
+              method="validateSave"/>
+    </action-method>
+
+</object-views>
