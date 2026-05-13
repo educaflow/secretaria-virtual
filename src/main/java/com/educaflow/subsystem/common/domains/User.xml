@@ -44,7 +44,5 @@
             }
         ]]>
         </extra-code-model>
-
-        <entity-listener class="com.educaflow.subsystem.common.db.repo.UsuarioListener"/>
     </entity>
 </domain-models>

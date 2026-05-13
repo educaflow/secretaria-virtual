@@ -26,8 +26,8 @@ public class CentroUsuarioServiceImpl extends DefaultModelService<CentroUsuario>
     @Inject
     ModelServiceFactory modelServiceFactory;
 
-    public CentroUsuarioServiceImpl(Class<CentroUsuario> model, Repository repository) {
-        super(model, (CentroUsuarioRepository) repository);
+    public CentroUsuarioServiceImpl(Class<CentroUsuario> model, Repository<CentroUsuario> repository) {
+        super(model, repository);
     }
 
     private CentroUsuarioRepository repo() {
@@ -35,10 +35,15 @@ public class CentroUsuarioServiceImpl extends DefaultModelService<CentroUsuario>
     }
 
     @Override
+    public List<CentroUsuario> getCargosByCentro(Long centroId, String tipoCode) {
+        return repo().getCargosByCentro(centroId, tipoCode);
+    }
+
+    @Override
     @Transactional
-    public List<String> calcularTiposUsuarioRegistrados(Long centroId) {
+    public void calcularTiposUsuarioRegistrados(Long centroId) {
         Centro centro = JpaRepository.of(Centro.class).find(centroId);
-        if (centro == null) return List.of();
+        if (centro == null) return;
 
         List<CentroUsuario> anteriores = repo().findByCentro(centroId);
 
@@ -62,7 +67,5 @@ public class CentroUsuarioServiceImpl extends DefaultModelService<CentroUsuario>
             }
             repository.save(centroUsuario);
         }
-
-        return List.of();
     }
 }

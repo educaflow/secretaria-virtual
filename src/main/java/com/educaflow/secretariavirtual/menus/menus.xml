@@ -21,22 +21,22 @@
         <menuitem name="sistemaEducativo-niveles-menuitem"              parent="sistemaEducativo-menuitem" title="Niveles"             action="subsysSistemaEducativo.Nivel@Main-action"               order="8"/>
 
     <!--<menuitem name="sysGestion-menuitem" title="Gestión" groups="admins,users" order="40"/>
-        <menuitem name="sysGestion.Centro@SecretariaVirtualModule-menuitem" title="Centros"
-                  parent="sysGestion-menuitem" action="sysGestion.Centro@SecretariaVirtualModule-action"
+        <menuitem name="sysGestion.Centro@CriptografiaModule-menuitem" title="Centros"
+                  parent="sysGestion-menuitem" action="sysGestion.Centro@CriptografiaModule-action"
                   groups="admins" order="1"/>
-        <menuitem name="sysGestion.CentroAdmin@SecretariaVirtualModule-menuitem" title="Mi Centro"
-                  parent="sysGestion-menuitem" action="sysGestion.CentroAdmin@SecretariaVirtualModule-action"
+        <menuitem name="sysGestion.CentroAdmin@CriptografiaModule-menuitem" title="Mi Centro"
+                  parent="sysGestion-menuitem" action="sysGestion.CentroAdmin@CriptografiaModule-action"
                   groups="users" if="__user__?.tiposUsuarioActivos?.any { it.code == 'ADMINISTRADOR' }" order="1"/>
-        <menuitem name="sysGestion.Importacion@SecretariaVirtualModule-menuitem" title="Ficheros de importación"
-                  parent="sysGestion-menuitem" action="sysGestion.Importacion@SecretariaVirtualModule-action"
+        <menuitem name="sysGestion.Importacion@CriptografiaModule-menuitem" title="Ficheros de importación"
+                  parent="sysGestion-menuitem" action="sysGestion.Importacion@CriptografiaModule-action"
                   groups="users" order="2"/>
         <menuitem name="sysGestion.Usuarios-menuitem" title="Usuarios"
                   parent="sysGestion-menuitem" groups="users" order="3"/>
-        <menuitem name="sysGestion.UsuarioAutorizado@SecretariaVirtualModule-menuitem" title="Autorizados"
-                  parent="sysGestion.Usuarios-menuitem" action="sysGestion.UsuarioAutorizado@SecretariaVirtualModule-action"
+        <menuitem name="sysGestion.UsuarioAutorizado@CriptografiaModule-menuitem" title="Autorizados"
+                  parent="sysGestion.Usuarios-menuitem" action="sysGestion.UsuarioAutorizado@CriptografiaModule-action"
                   groups="users" order="1"/>
-        <menuitem name="sysGestion.UsuarioRegistrado@SecretariaVirtualModule-menuitem" title="Registrados"
-                  parent="sysGestion.Usuarios-menuitem" action="sysGestion.UsuarioRegistrado@SecretariaVirtualModule-action"
+        <menuitem name="sysGestion.UsuarioRegistrado@CriptografiaModule-menuitem" title="Registrados"
+                  parent="sysGestion.Usuarios-menuitem" action="sysGestion.UsuarioRegistrado@CriptografiaModule-action"
                   groups="users" order="2"/>-->
 
 
@@ -69,9 +69,9 @@
         <menuitem name="firmarDocumentos-firmados-menuitem"    parent="firmarDocumentos-menuitem" title="Firmados"    action="subsysFirma.TareaFirma@Firmado-action"    order="3"/>
         <menuitem name="firmarDocumentos-rechazados-menuitem"  parent="firmarDocumentos-menuitem" title="Rechazados"  action="subsysFirma.TareaFirma@Rechazado-action"  order="4"/>
     <menuitem name="utilidadesPdf-menuitem"           title="Utilidades de PDF"    order="80" icon="picture_as_pdf"/>
-        <menuitem name="utilidadesPdf-informacion-menuitem"      parent="utilidadesPdf-menuitem" title="Información"          action="subsysPdfUtilities.Info-action"        order="1"/>
-        <menuitem name="utilidadesPdf-posicionesFirma-menuitem"     parent="utilidadesPdf-menuitem" title="Posiciones Firma"     action="subsysPdfUtilities.Firma-action"       order="2"/>
-        <menuitem name="utilidadesPdf-posicionAutofirma-menuitem" parent="utilidadesPdf-menuitem" title="Posición Autofirma__!!" action="subsysPdfUtilities.AutoFirma-action"  order="3"/>
+        <menuitem name="utilidadesPdf-informacion-menuitem"      parent="utilidadesPdf-menuitem" title="Información"          action="subsysPdfUtilities.PdfUtilities@Info-action"        order="1"/>
+        <menuitem name="utilidadesPdf-posicionesFirma-menuitem"     parent="utilidadesPdf-menuitem" title="Posiciones Firma"     action="subsysPdfUtilities.PdfUtilities@Firma-action"       order="2"/>
+        <menuitem name="utilidadesPdf-posicionAutofirma-menuitem" parent="utilidadesPdf-menuitem" title="Posición Autofirma__!!" action="subsysPdfUtilities.PdfUtilities@AutoFirma-action"  order="3"/>
 
 
 </object-views>

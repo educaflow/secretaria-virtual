@@ -63,10 +63,7 @@ public class ImportadorUsuarioXml implements ImportadorFichero {
 
         CentroUsuarioService centroUsuarioService = (CentroUsuarioService) Beans.get(ModelServiceFactory.class).resolve(CentroUsuario.class);
         if (curso <= centro.getCurso()) {
-            centroUsuarioService.calcularTiposUsuarioRegistrados(centro.getId())
-                    .stream()
-                    .map(cambio -> new MensajeImportacion(null, null, cambio))
-                    .forEach(mensajes::add);
+            centroUsuarioService.calcularTiposUsuarioRegistrados(centro.getId());
         }
 
         String resumen = construirResumen(centro, tipoUsuario, curso, contadores[0], contadores[1], mensajes.size(), items.getLength());

@@ -7,5 +7,7 @@ import java.util.List;
 
 public interface CentroUsuarioService extends ModelService<CentroUsuario> {
 
-    List<String> calcularTiposUsuarioRegistrados(Long centroId);
+    void calcularTiposUsuarioRegistrados(Long centroId);
+
+    List<CentroUsuario> getCargosByCentro(Long centroId, String tipoCode);
 }

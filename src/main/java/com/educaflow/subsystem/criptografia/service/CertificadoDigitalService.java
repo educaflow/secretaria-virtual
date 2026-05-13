@@ -3,13 +3,14 @@ package com.educaflow.subsystem.criptografia.service;
 import com.axelor.db.modelservice.ModelService;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
 import com.axelor.db.modelservice.BusinessMessages;
+import com.educaflow.base.infrastructure.criptografia.AlmacenClaveFichero;
+import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
 
 import java.util.Optional;
 
 public interface CertificadoDigitalService extends ModelService<CertificadoDigital> {
 
-    AlmacenClave getAlmacenClaveByDni(String dni);
 
     Optional<BusinessMessages> validateInsert(CertificadoDigital certificado);
 
@@ -17,4 +18,5 @@ public interface CertificadoDigitalService extends ModelService<CertificadoDigit
 
     Optional<BusinessMessages> validateRemove(CertificadoDigital certificado);
 
+    AlmacenClave getAlmacenClaveByDni(String dni);
 }

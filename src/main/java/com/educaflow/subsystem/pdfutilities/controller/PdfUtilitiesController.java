@@ -12,17 +12,15 @@ import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.base.util.AllowProperties;
 import com.educaflow.base.util.Convert;
-import com.educaflow.subsystem.certificados.AlmacenClaveLoader;
+import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
 import com.educaflow.subsystem.pdfutilities.db.PdfUtilities;
 import com.educaflow.base.infrastructure.autofirma.AutoFirma;
 import jakarta.inject.Inject;
 
-import java.util.Map;
-
 public class PdfUtilitiesController {
 
     @Inject
-    AlmacenClaveLoader almacenClaveLoader;
+    AlmacenClaveResolver almacenClaveResolver;
 
 
     @CallMethod
@@ -60,7 +58,7 @@ public class PdfUtilitiesController {
             for (int x = 0; x <= 500; x += 100) {
                 for (int y = 0; y <= 700; y += 50) {
                     CampoFirma campoFirma = new CampoFirma(new Rectangulo(x, y, 100, 20)).setNumeroPagina(numeroPagina).setMensaje(x + "," + y);
-                    AlmacenClave almacenClave = almacenClaveLoader.getDummy();
+                    AlmacenClave almacenClave = almacenClaveResolver.getDummy();
                     documentoPdf = documentoPdf.firmar(almacenClave, campoFirma);
                 }
             }
@@ -79,9 +77,9 @@ public class PdfUtilitiesController {
         ActionRequestHelper requestHelper=new ActionRequestHelper(actionRequest,PdfUtilities.class);
 
         int x= Convert.coerceToInt(requestHelper.getRequestData().get("x"));
-        int y=Convert.coerceToInt(requestHelper.getRequestData().get("y"));;
-        int width=Convert.coerceToInt(requestHelper.getRequestData().get("width"));;
-        int height=Convert.coerceToInt(requestHelper.getRequestData().get("height"));;
+        int y=Convert.coerceToInt(requestHelper.getRequestData().get("y"));
+        int width=Convert.coerceToInt(requestHelper.getRequestData().get("width"));
+        int height=Convert.coerceToInt(requestHelper.getRequestData().get("height"));
         int numeroPagina = Convert.coerceToInt(requestHelper.getRequestData().get("numeroPagina"));
 
         if (width==0) {

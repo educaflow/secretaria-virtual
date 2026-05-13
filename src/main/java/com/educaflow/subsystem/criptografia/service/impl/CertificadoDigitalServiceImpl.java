@@ -11,6 +11,7 @@ import com.axelor.db.modelservice.BusinessMessage;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.base.util.DniUtil;
 import com.educaflow.base.util.MetaFileUtil;
+import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
 import com.educaflow.subsystem.criptografia.db.TipoUbicacionCertificado;
 import com.educaflow.subsystem.criptografia.db.repo.CertificadoDigitalRepository;

@@ -35,7 +35,7 @@
             <field name="fechaSolicitud"   colSpan="4"/>
             <field name="estadoTareaFirma"   colSpan="4"/>
             <field name="fechaResolucion"   colSpan="4" colOffset="4" showIf="fechaResolucion!=null"/>
-            <field name="pasoActual"  />
+            <field name="pasoActual" showIf="false"/>
         </panel>
 
 
@@ -93,9 +93,7 @@
     </form>
 
 
-    <!-- *********************************************************************************************  -->
-    <!-- ***************************** Acciones de las tareas principales ****************************  -->
-    <!-- *********************************************************************************************  -->
+    <!-- *************** TareaFirma@Pendiente : Acciones de las tareas principales *************** -->
     <action-group name="subsysFirma.TareaFirma@Pendiente-btnPaso1InicioRechazar-action">
         <action name="subsysFirma.TareaFirma@Pendiente-set-pasoActual-paso2Rechazado-action"/>
     </action-group>
@@ -124,18 +122,14 @@
 
 
 
-    <!-- *********************************************************************************************  -->
-    <!-- ***************************** Acciones de Validaciones en local  ****************************  -->
-    <!-- *********************************************************************************************  -->
+    <!-- *************** TareaFirma@Pendiente : Acciones de Validaciones en local *************** -->
     <action-condition name="subsysFirma.TareaFirma@Pendiente-Local-validateMarcarComoRechazada-action">
         <check field="motivoRechazo"/>
     </action-condition>
 
 
 
-    <!-- *********************************************************************************************  -->
-    <!-- ************************ Acciones básicas que cambian campos simples ************************  -->
-    <!-- *********************************************************************************************  -->
+    <!-- *************** TareaFirma@Pendiente : Acciones básicas que cambian campos simples *************** -->
     <action-record name="subsysFirma.TareaFirma@Pendiente-set-pasoActual-paso1Inicio-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
         <field name="pasoActual" expr="paso1Inicio" />
     </action-record>
@@ -149,9 +143,7 @@
 
 
 
-    <!-- *********************************************************************************************  -->
-    <!-- ************************** Acciones de llamadas Remotas al servidor *************************  -->
-    <!-- *********************************************************************************************  -->
+    <!-- *************** TareaFirma@Pendiente : Acciones de llamadas Remotas al servidor *************** -->
     <action-method name="subsysFirma.TareaFirma@Pendiente-Remote-validarDocumentosFirmados-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
         <call class="com.educaflow.subsystem.firmas.controller.TareaFirmaController" method="validarDocumentosFirmados" />
     </action-method>

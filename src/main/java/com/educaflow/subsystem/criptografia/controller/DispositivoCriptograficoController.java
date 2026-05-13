@@ -20,7 +20,7 @@ public class DispositivoCriptograficoController {
     private ModelServiceFactory modelServiceFactory;
 
     @CallMethod
-    public void validarDispositivoCriptografico(ActionRequest actionRequest, ActionResponse actionResponse) {
+    public void validateSave(ActionRequest actionRequest, ActionResponse actionResponse) {
         final DispositivoCriptograficoService service = (DispositivoCriptograficoService) modelServiceFactory.resolve(DispositivoCriptografico.class);
 
         ActionRequestHelper<DispositivoCriptografico> actionRequestHelper = new ActionRequestHelper<>(actionRequest, DispositivoCriptografico.class);

@@ -7,23 +7,23 @@
 
 
 
-    <action-view name="subsysPdfUtilities.Info-action"  title="Información para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities"  >
-        <view type="form" name="subsysPdfUtilities.Info-form"/>
+    <action-view name="subsysPdfUtilities.PdfUtilities@Info-action"  title="Información para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities"  >
+        <view type="form" name="subsysPdfUtilities.PdfUtilities@Info-form"/>
     </action-view>
 
-    <form name="subsysPdfUtilities.Info-form" title="Utilidades para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities" width="large">
+    <form name="subsysPdfUtilities.PdfUtilities@Info-form" title="Utilidades para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities" width="large">
 
         <panel name="main" title="PDF">
-            <field name="pdf"  colSpan="12" onChange="subsysPdfUtilities.Info-form-onChange-pdf-action" widget="binary-link" />
+            <field name="pdf"  colSpan="12" onChange="subsysPdfUtilities.PdfUtilities@Info-form-onChange-pdf-action" widget="binary-link" />
         </panel>
         <panel name="info-panel" title="Información del PDF">
             <field name="info"  colSpan="12"  height="1000px"  widget="code-editor" readonly="true" />
         </panel>
     </form>
-    <action-record name="subsysPdfUtilities.Info-form-onChange-pdf-action" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities">
-        <field name="info" expr="action:subsysPdfUtilities.Info-form-getInfoPdf-action" />
+    <action-record name="subsysPdfUtilities.PdfUtilities@Info-form-onChange-pdf-action" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities">
+        <field name="info" expr="action:subsysPdfUtilities.PdfUtilities@Info-form-getInfoPdf-action" />
     </action-record>
-    <action-method name="subsysPdfUtilities.Info-form-getInfoPdf-action">
+    <action-method name="subsysPdfUtilities.PdfUtilities@Info-form-getInfoPdf-action">
         <call class="com.educaflow.subsystem.pdfutilities.controller.PdfUtilitiesController" method="getInfo(pdf)"/>
     </action-method>
 

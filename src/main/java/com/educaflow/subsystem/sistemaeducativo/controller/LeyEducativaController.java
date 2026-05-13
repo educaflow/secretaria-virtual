@@ -1,7 +1,5 @@
 package com.educaflow.subsystem.sistemaeducativo.controller;
 
-import com.axelor.db.JpaRepository;
-import com.axelor.db.Repository;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.CallMethod;
 import com.axelor.rpc.ActionRequest;
@@ -24,8 +22,7 @@ public class LeyEducativaController {
 
     @CallMethod
     public void validateSave(ActionRequest actionRequest, ActionResponse actionResponse) {
-        final Repository repository = JpaRepository.of(LeyEducativa.class);
-        final LeyEducativaService leyEducativaService = (LeyEducativaService)modelServiceFactory.resolve(LeyEducativa.class, repository);
+        final LeyEducativaService leyEducativaService = (LeyEducativaService)modelServiceFactory.resolve(LeyEducativa.class);
 
         ActionRequestHelper<LeyEducativa> actionRequestHelper = new ActionRequestHelper(actionRequest, LeyEducativa.class);
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
@@ -49,8 +46,7 @@ public class LeyEducativaController {
 
     @CallMethod
     public void validateDelete(ActionRequest actionRequest, ActionResponse actionResponse) {
-        final Repository repository = JpaRepository.of(LeyEducativa.class);
-        final LeyEducativaService leyEducativaService = (LeyEducativaService)modelServiceFactory.resolve(LeyEducativa.class, repository);
+        final LeyEducativaService leyEducativaService = (LeyEducativaService)modelServiceFactory.resolve(LeyEducativa.class);
 
         ActionRequestHelper<LeyEducativa> actionRequestHelper = new ActionRequestHelper(actionRequest, LeyEducativa.class);
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);

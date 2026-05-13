@@ -51,7 +51,6 @@ public class TareaFirmaController {
         final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
 
         ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
-        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
 
         TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
         AllowProperties allowProperties = AllowProperties.createAllowProperties(Map.of("documentosFirma", Map.of("documentoFirmado", Map.of())));
@@ -67,7 +66,6 @@ public class TareaFirmaController {
         final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
 
         ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
-        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
 
         TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
         AllowProperties allowProperties = AllowProperties.createAllowProperties(Map.of("motivoRechazo", Map.of()));

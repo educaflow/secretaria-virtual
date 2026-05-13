@@ -8,13 +8,15 @@ import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.numeradores.db.repo.NumeradorRepository;
 import com.educaflow.base.infrastructure.pdf.*;
 import com.educaflow.base.util.TextUtil;
-import com.educaflow.subsystem.certificados.AlmacenClaveLoader;
+import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.registroentradasalida.service.RegistroEntradaInsertDTO;
 import com.educaflow.subsystem.registroentradasalida.service.PersonaRegistro;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada;
 import com.educaflow.subsystem.registroentradasalida.service.RegistroEntradaService;
 import jakarta.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,16 +27,18 @@ import java.util.Map;
 
 public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntrada> implements RegistroEntradaService {
 
+    private static final Logger log = LoggerFactory.getLogger(RegistroEntradaServiceImpl.class);
+
     private static final Rectangulo rectanguloPosicionFirmaPDFRegistroEntrada =new Rectangulo(80,200,400,100);
 
     @Inject
     NumeradorRepository numeradorRepository;
 
     @Inject
-    AlmacenClaveLoader almacenClaveLoader;
+    AlmacenClaveResolver almacenClaveResolver;
 
     @Inject
-    public RegistroEntradaServiceImpl(Class<RegistroEntrada> model, Repository repository) {
+    public RegistroEntradaServiceImpl(Class<RegistroEntrada> model, Repository<RegistroEntrada> repository) {
         super(model, repository);
     }
 
@@ -88,7 +92,7 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
 
 
     private DocumentoPdf firmarPorSecretario(DocumentoPdf documentoPdf,Centro centro) {
-        AlmacenClave almacenClave=almacenClaveLoader.getSecretario(centro);
+        AlmacenClave almacenClave= almacenClaveResolver.getSecretario(centro);
         CampoFirma campoFirma=new CampoFirma(rectanguloPosicionFirmaPDFRegistroEntrada).setNumeroPagina(1);
 
         DocumentoPdf documentoPdfFirmado=documentoPdf.firmar(almacenClave,campoFirma);
@@ -102,7 +106,8 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
 
         try (InputStream in = getInputStreamFromDocumentosPdf(pdfFileName)) {
             if (in == null) {
-                throw new RuntimeException("No se encontró el recurso: " + pdfFileName);
+                log.error("No se encontró el recurso: {}", pdfFileName);
+                throw new IllegalStateException("No se encontró el recurso: " + pdfFileName);
             }
             DocumentoPdf documentoPdfVacio = DocumentoPdfFactory.getDocumentoPdf(in.readAllBytes(), getNombreDocumentoResguardoPresentacion(datosRegistroEntradaPdf));
 
@@ -112,7 +117,8 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
 
             return documentoPdfRelleno;
         } catch (IOException e) {
-            throw new RuntimeException("Error al cargar el documento PDF: " + pdfFileName, e);
+            log.error("Error al cargar el documento PDF: {}", pdfFileName, e);
+            throw new IllegalStateException("Error al cargar el documento PDF: " + pdfFileName, e);
         }
     }
 
@@ -139,21 +145,9 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
     }
 
     private InputStream getInputStreamFromDocumentosPdf(String nombreFicheroPdf) {
-        final int upperPackages=2; //Este numero es los paquetes que hay que subir para llegar a la carpeta 'documentospdf'
+        String nombreCompletoDocumentoPdf = "/com/educaflow/subsystem/registroentradasalida/documentospdf/" + nombreFicheroPdf;
 
-        String packagePath = this.getClass().getPackage().getName().replace('.', '/');
-        String[] parts = packagePath.split("/");
-        StringBuilder sb = new StringBuilder("/");
-        for (int i = 0; i < parts.length - upperPackages; i++) {
-            sb.append(parts[i]).append("/");
-        }
-        sb.append("documentospdf/"+nombreFicheroPdf);
-
-        String nombreCompletoDocumentoPdf = sb.toString();
-
-        System.out.println("-------------------Cargando recurso PDF desde: " + nombreCompletoDocumentoPdf);
-
-        return getClass().getClassLoader().getResourceAsStream(nombreCompletoDocumentoPdf);
+        return getClass().getResourceAsStream(nombreCompletoDocumentoPdf);
     }
 
 

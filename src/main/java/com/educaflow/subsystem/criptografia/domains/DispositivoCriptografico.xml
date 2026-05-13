@@ -5,7 +5,7 @@
 
     <module name="criptografia" package="com.educaflow.subsystem.criptografia.db"/>
 
-    <entity name="DispositivoCriptografico">
+    <entity name="DispositivoCriptografico" repository="abstract">
         <string name="nombre" required="true" title="Nombre" max="255"/>
         <string name="pkcs11LibraryPath" required="true" title="Ruta librería PKCS#11" default="/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so"/>
         <integer name="slot" required="true" title="Slot__!!" default="0"/>

@@ -8,13 +8,14 @@ import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import java.util.List;
 import java.util.Objects;
 
-public record TareaFirmaInsertDTO(User firmante, List<MetaFile> documentos, String motivoFirma, Rectangulo areaFirma, Class<? extends TareaFirmaNotifier> firmaNotifierClass, Object callBackData) {
+public record TareaFirmaInsertDTO(User firmante, List<MetaFile> documentos, String motivoFirma, Rectangulo areaFirma, Integer page, Class<? extends TareaFirmaNotifier> firmaNotifierClass, Object callBackData) {
 
     public TareaFirmaInsertDTO {
         Objects.requireNonNull(firmante, "firmante no puede ser null");
         Objects.requireNonNull(documentos, "documentos no pueden ser null");
         Objects.requireNonNull(motivoFirma, "motivoFirma no puede ser null");
         Objects.requireNonNull(areaFirma, "areaFirma no puede ser null");
+        Objects.requireNonNull(page, "page no puede ser null");
         Objects.requireNonNull(firmaNotifierClass, "firmaNotifierClass no puede ser null");
 
         if (documentos.isEmpty()) {
