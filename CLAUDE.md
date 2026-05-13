@@ -79,7 +79,21 @@ Los skills importantes son los `-orchestrator`, ya que son los encargados de rea
 
 Igual que hemos puesto el ejemplo de el conjunto de skills de `menus` están para cualquiero otro tipo de skill
 
+### Convención obligatoria: override de rutas para testing
 
+**Cualquier skill que lea ficheros de entrada o escriba ficheros de salida en rutas por defecto (p.ej. `.sdd/drafts/...`, `src/main/java/...`, etc.) debe permitir al usuario sobrescribir esas rutas mediante argumentos explícitos en el prompt.** Esto es indispensable para poder hacer "testing" del skill: ejecutarlo en un sandbox alternativo (otra carpeta), comparar resultados sin tocar el proyecto real e iterar mejoras del propio skill como si fueran pruebas unitarias.
+
+Convención de argumentos a reconocer en el prompt del skill (cualquiera de estas formas):
+
+- `--in=<ruta>` o `entrada: <ruta>` — fichero/carpeta de entrada explícito; si se indica, sustituye al fichero por defecto y desactiva la auto-detección.
+- `--out=<ruta>` o `salida: <ruta>` — fichero/carpeta de salida explícito; si se indica, se usa esa ruta literal en vez de la calculada por las convenciones del skill (incluida la numeración `NN`).
+- `--root=<ruta>` o `raíz: <ruta>` — raíz alternativa que sustituye la raíz por defecto (p.ej. `.sdd/drafts/`); todas las rutas relativas del skill se resuelven contra esa raíz.
+
+Reglas:
+
+- Si el usuario aporta uno de estos argumentos, **úsalo literal** sin reescribirlo ni intentar adivinar otro mejor.
+- Si la ruta indicada no existe (para entrada) o ya existe (para salida y supondría sobrescribir), detente y avisa, igual que en el flujo por defecto.
+- Esta convención **debe quedar reflejada explícitamente** en el SKILL.md de cualquier skill nuevo o existente que tenga rutas por defecto.
 
 
 ## Framework SDD (Spec-Driven Development)
