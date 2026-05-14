@@ -1,7 +1,5 @@
 package com.educaflow.subsystem.importacion.controller;
 
-import com.axelor.db.JpaRepository;
-import com.axelor.db.Repository;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.CallMethod;
 import com.axelor.rpc.ActionRequest;
@@ -24,10 +22,10 @@ public class TareaImportacionController {
 
     @CallMethod
     public void validateSave(ActionRequest actionRequest, ActionResponse actionResponse) {
-        final TareaImportacionService tareaImportacionService = (TareaImportacionService) modelServiceFactory.resolve(TareaImportacion.class);
+        var tareaImportacionService = (TareaImportacionService) modelServiceFactory.resolve(TareaImportacion.class);
 
-        ActionRequestHelper<TareaImportacion> actionRequestHelper = new ActionRequestHelper<>(actionRequest, TareaImportacion.class);
-        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
+        var actionRequestHelper = new ActionRequestHelper<TareaImportacion>(actionRequest, TareaImportacion.class);
+        var actionResponseHelper = new ActionResponseHelper(actionResponse);
 
         AllowProperties allowProperties = AllowProperties.createAllowProperties(
                 Map.of("tipoFichero", Map.of(), "fichero", Map.of())

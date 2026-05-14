@@ -83,7 +83,6 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
         try {
             ResultadoImportacion resultado = importador.importar();
             tareaImportacion.setEstado(true);
-            tareaImportacion.setLog(resultado.log());
             tareaImportacion.setCentro(resultado.centro());
             tareaImportacion.setCurso(resultado.curso());
             tareaImportacion.setLog("Importación finalizada. " + resultado.log());

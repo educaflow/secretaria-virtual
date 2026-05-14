@@ -10,14 +10,9 @@ public final class ImportadorFicheroFactory {
     private ImportadorFicheroFactory() {}
 
     public static ImportadorFichero create(TipoFicheroImportacion tipoFichero, MetaFile fichero) {
-        if (tipoFichero == TipoFicheroImportacion.PROFESOR
-                || tipoFichero == TipoFicheroImportacion.ALUMNO
-                || tipoFichero == TipoFicheroImportacion.FAMILIAR) {
-            return new ImportadorUsuarioXML(fichero, tipoFichero);
-        } else if (tipoFichero == TipoFicheroImportacion.PROFESOR_EXTERNO) {
-            return new ImportadorUsuarioCSV(fichero, tipoFichero);
-        } else {
-            throw new IllegalArgumentException("Tipo de fichero no soportado: " + tipoFichero);
-        }
+        return switch (tipoFichero) {
+            case PROFESOR, ALUMNO, FAMILIAR -> new ImportadorUsuarioXML(fichero, tipoFichero);
+            case PROFESOR_EXTERNO           -> new ImportadorUsuarioCSV(fichero, tipoFichero);
+        };
     }
 }
