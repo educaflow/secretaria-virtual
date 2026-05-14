@@ -30,25 +30,25 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
     // --- Métodos CRUD ---
 
     @Override
-    public TareaImportacion insert(TareaImportacion entidad) {
+    public TareaImportacion insert(TareaImportacion tareaImportacion) {
         logger.info("Empezando importación");
-        fireActionRule_asignarCamposSistema(entidad);
-        fireActionRule_ejecutarImportacion(entidad);
-        return super.insert(entidad);
+        fireActionRule_asignarCamposSistema(tareaImportacion);
+        fireActionRule_ejecutarImportacion(tareaImportacion);
+        return super.insert(tareaImportacion);
     }
 
     // --- Métodos de validación ---
 
     @Override
-    public Optional<BusinessMessages> validateInsert(TareaImportacion entidad) {
+    public Optional<BusinessMessages> validateInsert(TareaImportacion tareaImportacion) {
         BusinessMessages messages = new BusinessMessages();
 
-        if (entidad.getTipoFichero() == null) {
+        if (tareaImportacion.getTipoFichero() == null) {
             messages.add(new BusinessMessage("tipoFichero",
                     "El tipo de fichero es obligatorio. Valores válidos: PROFESOR, ALUMNO, FAMILIAR, PROFESOR_EXTERNO"));
         }
 
-        if (entidad.getFichero() == null) {
+        if (tareaImportacion.getFichero() == null) {
             messages.add(new BusinessMessage("fichero", "El fichero es obligatorio"));
         }
 
@@ -74,28 +74,28 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
     /********************************    Action Rules    *********************************/
     /*************************************************************************************/
 
-    private void fireActionRule_asignarCamposSistema(TareaImportacion entidad) {
-        entidad.setUsuario(AuthUtils.getUser());
-        entidad.setFechaImportacion(LocalDateTime.now());
-        entidad.setFechaExportacion(null);
-        entidad.setEstado(false);
-        entidad.setLog(null);
+    private void fireActionRule_asignarCamposSistema(TareaImportacion tareaImportacion) {
+        tareaImportacion.setUsuario(AuthUtils.getUser());
+        tareaImportacion.setFechaImportacion(LocalDateTime.now());
+        tareaImportacion.setFechaExportacion(null);
+        tareaImportacion.setEstado(false);
+        tareaImportacion.setLog(null);
     }
 
-    private void fireActionRule_ejecutarImportacion(TareaImportacion entidad) {
+    private void fireActionRule_ejecutarImportacion(TareaImportacion tareaImportacion) {
         ImportadorFichero importador = ImportadorFicheroFactory.create(
-                entidad.getTipoFichero(), entidad.getFichero());
+                tareaImportacion.getTipoFichero(), tareaImportacion.getFichero());
         try {
             ResultadoImportacion resultado = importador.importar();
-            entidad.setEstado(true);
-            entidad.setLog(resultado.log());
-            entidad.setCentro(resultado.centro());
-            entidad.setCurso(resultado.curso());
-            entidad.setLog("Importación finalizada. " + resultado.log());
-            entidad.setFechaExportacion(LocalDateTime.now());
+            tareaImportacion.setEstado(true);
+            tareaImportacion.setLog(resultado.log());
+            tareaImportacion.setCentro(resultado.centro());
+            tareaImportacion.setCurso(resultado.curso());
+            tareaImportacion.setLog("Importación finalizada. " + resultado.log());
+            tareaImportacion.setFechaExportacion(LocalDateTime.now());
         } catch (ImportadorException ex) {
-            entidad.setEstado(false);
-            entidad.setLog(ex.getMessage());
+            tareaImportacion.setEstado(false);
+            tareaImportacion.setLog(ex.getMessage());
         }
     }
 }
