@@ -4,9 +4,9 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://axelor.com/xml/ns/object-views
 https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <!-- ********************************************************************************* -->
+    <!-- ***************************************************************************************** -->
     <!-- ****************************** CertificadoDigital : Vistas ****************************** -->
-    <!-- ********************************************************************************* -->
+    <!-- ***************************************************************************************** -->
 
     <action-view name="subsysCriptografia.CertificadoDigital@Main-action" title="Certificados digitales" model="com.educaflow.subsystem.criptografia.db.CertificadoDigital">
         <view type="grid" name="subsysCriptografia.CertificadoDigital@Main-grid"/>
@@ -77,7 +77,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <!-- *************** CertificadoDigital : Acciones de llamadas Remotas al servidor *************** -->
     <action-method name="subsysCriptografia.CertificadoDigital@Main-Remote-validateSave-action" model="com.educaflow.subsystem.criptografia.db.CertificadoDigital">
-        <call class="com.educaflow.subsystem.criptografia.controller.CertificadoDigitalController" method="validarCertificadoDigital"/>
+        <call class="com.educaflow.subsystem.criptografia.controller.CertificadoDigitalController" method="validateSave"/>
     </action-method>
 
 </object-views>

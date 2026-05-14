@@ -1,7 +1,7 @@
 package com.educaflow.subsystem.criptografia.service;
 
 import com.axelor.db.modelservice.ModelService;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.subsystem.criptografia.db.DispositivoCriptografico;
 
 import java.util.Optional;

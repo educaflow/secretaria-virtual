@@ -227,12 +227,14 @@ En cada uno de los tres, **añade al final una sección "Notas de cierre (as-bui
 
 - Lee el `analysis.md` del draft.
 - Usando los ficheros del `git diff` de la Fase 1, identifica divergencias entre lo analizado y lo implementado:
-  - **Validaciones V-XXX** que no se implementaron, o cuya condición/mensaje cambió.
+  - **Validaciones `V-XXX`** que no se implementaron, o cuya condición/mensaje cambió.
+  - **Reglas de negocio `R-XXX`** que no se implementaron, o cuya operación/momento/efecto cambió.
+  - **Reglas de UI `U-XXX`** que no se implementaron, o cuyo disparador/efecto/condición cambió.
   - **Campos de entidad** añadidos, eliminados o renombrados.
   - **Operaciones** (endpoints, métodos públicos) con firma o nombre distinto.
   - **Vistas** con nombre, granularidad o filtro distinto.
   - **Reglas de seguridad** ajustadas durante la implementación.
-- Aplica las correcciones al `analysis.md`. Si se ajustaron filas de la tabla `V-XXX`, **renumera consecutivamente sin huecos**. Si el código no validó algo que el análisis decía que sí, NO inventes la validación: bórrala del analysis y déjalo reflejado en la nota de cierre.
+- Aplica las correcciones al `analysis.md`. Si se ajustaron filas de alguna de las tablas `V-XXX`/`R-XXX`/`U-XXX`, **renumera cada tabla por separado de forma consecutiva sin huecos**. Si el código no implementó algo que el análisis decía que sí, NO inventes la regla: bórrala del analysis y déjalo reflejado en la nota de cierre.
 
 #### 3.2.c `design.md` — as-built completo
 
@@ -241,8 +243,10 @@ En cada uno de los tres, **añade al final una sección "Notas de cierre (as-bui
   - Métodos añadidos, eliminados o con firma cambiada.
   - Entidades con campos distintos.
   - Vistas con nombres o estructura distinta.
-  - Validaciones que cambiaron de capa (cliente↔servidor).
-  - Matriz de trazabilidad: cada V-XXX/RN debe seguir apuntando a una ubicación real del código.
+  - Validaciones `V-XXX` que cambiaron de capa (cliente↔servidor↔modelo).
+  - Reglas de negocio `R-XXX` que cambiaron de momento (Antes↔Después) u operación.
+  - Reglas de UI `U-XXX` que cambiaron de mecanismo (atributo inline ↔ `<action-attrs>`/`<action-record>`).
+  - Matriz de trazabilidad: cada `V-XXX`, `R-XXX` y `U-XXX` debe seguir apuntando a una ubicación real del código.
 - Aplica las correcciones al diseño.
 
 Formato común de la nota de cierre (al final de cada uno de los tres ficheros):

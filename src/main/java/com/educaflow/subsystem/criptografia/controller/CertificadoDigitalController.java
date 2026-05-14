@@ -6,7 +6,7 @@ import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
 import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.base.util.AllowProperties;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
 import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
@@ -20,7 +20,7 @@ public class CertificadoDigitalController {
     private ModelServiceFactory modelServiceFactory;
 
     @CallMethod
-    public void validarCertificadoDigital(ActionRequest actionRequest, ActionResponse actionResponse) {
+    public void validateSave(ActionRequest actionRequest, ActionResponse actionResponse) {
         final CertificadoDigitalService service = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);
 
         ActionRequestHelper<CertificadoDigital> actionRequestHelper = new ActionRequestHelper<>(actionRequest, CertificadoDigital.class);

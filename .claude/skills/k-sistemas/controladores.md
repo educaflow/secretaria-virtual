@@ -2,7 +2,7 @@
 
 **NOTA: Aunque vamos a usar ejemplos de Systemas, todo lo explicado aquí es aplicable a cualquier subsistema.**
 
-Un controlador es un fichero Java que expone métodos públicos con `@CallMethod` para ser llamados desde las vistas Axelor desde un `<action-method>` en XML. El controlador es el punto de entrada desde las vistas Axelor a la lógica de negocio implementada en los servicios. El controlador recibe un `ActionRequest` con toda la información enviada por el cliente (contexto del formulario, filtros, campos, etc.) y un `ActionResponse` para configurar la respuesta que se enviará al cliente (p.ej. cerrar el formulario, mostrar mensajes, actualizar campos, etc.). El controlador debe llamar a los servicios para realizar la lógica de negocio y manejar cualquier error de negocio lanzado por los servicios para mostrarlo correctamente en la vista.
+Un controlador es un fichero Java que expone métodos públicos con `@CallMethod` (de `com.axelor.meta.CallMethod`) para ser llamados desde las vistas Axelor desde un `<action-method>` en XML. El controlador es el punto de entrada desde las vistas Axelor a la lógica de negocio implementada en los servicios. El controlador recibe un `ActionRequest` con toda la información enviada por el cliente (contexto del formulario, filtros, campos, etc.) y un `ActionResponse` para configurar la respuesta que se enviará al cliente (p.ej. cerrar el formulario, mostrar mensajes, actualizar campos, etc.). El controlador debe llamar a los servicios para realizar la lógica de negocio y manejar cualquier error de negocio lanzado por los servicios para mostrarlo correctamente en la vista.
 
 **El controlador no ejecuta lógica de negocio, solo es el punto de entrada desde las vistas y el encargado de llamar a los servicios. Toda la lógica de negocio (validaciones, cálculos, persistencia, etc.) debe estar en los servicios.**
 
@@ -91,6 +91,8 @@ final Repository repository = JpaRepository.of(MiEntidad.class);
 final MiEntidadService miEntidadService = (MiEntidadService) modelServiceFactory.resolve(MiEntidad.class, repository);
 ```
 
+**El controlador no debe construir repositorios.** Si el método del servicio que vas a llamar necesita un repositorio, eso es asunto del servicio: `DefaultModelService` ya recibe el suyo por inyección en su constructor. El controlador solo llama a métodos del servicio.
+
 
 ## ActionRequestHelper y ActionResponseHelper
 
@@ -112,7 +114,7 @@ import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
 import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.base.util.AllowProperties;
 import com.educaflow.subsystem.SUBSYSTEM.db.MiEntidad;
 import com.educaflow.subsystem.SUBSYSTEM.service.MiEntidadService;

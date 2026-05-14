@@ -4,7 +4,7 @@ import com.axelor.meta.db.MetaFile
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil
 import com.educaflow.base.infrastructure.validation.engine.ValidationRule
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages
+import com.axelor.db.modelservice.BusinessMessages
 import kotlin.reflect.KCallable
 
 data class FirmaPdf(val documentoOriginalField: KCallable<*>, val dniField: KCallable<*>) : ValidationRule {

@@ -3,23 +3,19 @@ package com.educaflow.subsystem.importacion.service.impl;
 import com.axelor.auth.AuthUtils;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessage;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessage;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.subsystem.importacion.db.TareaImportacion;
 import com.educaflow.subsystem.importacion.exception.ImportadorException;
 import com.educaflow.subsystem.importacion.importador.ImportadorFichero;
 import com.educaflow.subsystem.importacion.importador.ImportadorFicheroFactory;
 import com.educaflow.subsystem.importacion.importador.ResultadoImportacion;
 import com.educaflow.subsystem.importacion.service.TareaImportacionService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 public class TareaImportacionServiceImpl extends DefaultModelService<TareaImportacion> implements TareaImportacionService {
-
-    private final Logger logger = LoggerFactory.getLogger(TareaImportacionServiceImpl.class);
 
     // Constructor obligatorio — ModelServiceFactory lo invoca por reflexión
     public TareaImportacionServiceImpl(Class<TareaImportacion> model,
@@ -31,7 +27,6 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
 
     @Override
     public TareaImportacion insert(TareaImportacion tareaImportacion) {
-        logger.info("Empezando importación");
         fireActionRule_asignarCamposSistema(tareaImportacion);
         fireActionRule_ejecutarImportacion(tareaImportacion);
         return super.insert(tareaImportacion);

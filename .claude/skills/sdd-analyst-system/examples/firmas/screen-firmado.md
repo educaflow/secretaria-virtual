@@ -1,0 +1,76 @@
+# Pantalla: "Documentos ya firmados"
+
+## Identidad
+
+- **Quién la usa:** cualquier usuario firmante.
+- **Qué muestra:** las tareas de firma del usuario actual cuyo estado es FIRMADO, en modo consulta.
+
+## Menú
+
+| Propiedad        | Valor                                       |
+|------------------|---------------------------------------------|
+| Ruta jerárquica  | *(pendiente)* → "Ya firmados"               |
+| Título visible   | "Documentos ya firmados"                    |
+| Quién lo ve      | Todo usuario firmante                       |
+
+---
+
+## Grid 1 — "Firmas"
+
+| Propiedad                          | Valor                                                                          |
+|------------------------------------|--------------------------------------------------------------------------------|
+| Columnas (en orden)                | fecha de solicitud, fecha de resolución, firmante, motivo de la firma, estado  |
+| Ordenación por defecto             | fecha de solicitud ascendente                                                  |
+| ¿Permite buscar?                   | NO                                                                             |
+| Formulario que abre el onclick     | Formulario 1 — Tarea firmada (en modo solo lectura)                            |
+| Botones del toolbar                | —                                                                              |
+| Botones de las columnas            | —                                                                              |
+
+## Formulario 1 — Tarea firmada
+
+### Paneles
+
+| Panel (título)                  | Tipo                              | Campos                                                                |
+|---------------------------------|-----------------------------------|-----------------------------------------------------------------------|
+| "Estado de la tarea firmada"    | normal (siempre solo lectura)     | motivo de la firma, fecha de solicitud, estado, fecha de resolución   |
+| "Documentos"                    | anidado → Grid 2 ("Documentos")   | —                                                                     |
+| (sin título)                    | botones                           | botón "Salir"                                                         |
+
+### Botones
+
+| Botón     | Qué hace                                  |
+|-----------|-------------------------------------------|
+| "Salir"   | Cierra el formulario y vuelve al grid     |
+
+### Reglas de UI (U-XXX)
+
+| ID    | Disparador | Efecto           | Campo/Panel afectado          | Condición                                  |
+|-------|------------|------------------|-------------------------------|--------------------------------------------|
+| U-014 | continuo   | Mostrar/ocultar  | campo "fecha de resolución"   | Visible solo si la tarea ya está resuelta  |
+
+---
+
+## Grid 2 — "Documentos"
+
+| Propiedad                          | Valor                                                                |
+|------------------------------------|----------------------------------------------------------------------|
+| Columnas (en orden)                | documento firmado (nombre del fichero)                               |
+| Ordenación por defecto             | —                                                                    |
+| ¿Permite buscar?                   | NO                                                                   |
+| Formulario que abre el onclick     | Formulario 2 — Documento firmado (en modo solo lectura)              |
+| Botones del toolbar                | —                                                                    |
+| Botones de las columnas            | —                                                                    |
+
+## Formulario 2 — Documento firmado
+
+### Paneles
+
+| Panel (título)         | Tipo     | Campos                                          |
+|------------------------|----------|-------------------------------------------------|
+| "Documento firmado"    | pestaña  | visor PDF del documento firmado (incrustado)    |
+
+*(sin botones)*
+
+### Reglas de UI (U-XXX)
+
+*(no aplica)*

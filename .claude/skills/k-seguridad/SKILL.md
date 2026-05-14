@@ -1,6 +1,6 @@
 ---
 name: k-seguridad
-description: Referencia completa del subsistema de seguridad de EducaFlow — modelo de dominio SecurityActor/AccessProfile/AccessAssignment, Permission/Role/Group de Axelor, reglas JPQL, patrones de condición, separación read/write, EducaFlowAuthResolver y pasos para crear o modificar permisos.
+description: "⚠️ OBSOLETO — pendiente de rehacer desde el código real. NO USAR. El modelo de dominio descrito (SecurityActor/AccessProfile/AccessAssignment) no coincide con las clases reales (Perfil/Ace en subsystem/security)."
 ---
 
 # Seguridad en EducaFlow

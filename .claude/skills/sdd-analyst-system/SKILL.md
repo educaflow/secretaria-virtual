@@ -1,6 +1,6 @@
 ---
 name: sdd-analyst-system
-description: Dado una historia de usuario o descripción funcional, hace preguntas iterativas hasta tener toda la información necesaria y genera un análisis funcional completo (entidades, operaciones, vistas, seguridad y validaciones detalladas con mensajes de error). El análisis resultante es el input del skill sdd-designer-system.
+description: Dado una historia de usuario o descripción funcional, hace preguntas iterativas hasta tener toda la información necesaria y genera un análisis funcional completo (entidades, operaciones, vistas, seguridad y tres tablas paralelas de reglas con mensajes de error: validaciones `V-XXX`, reglas de negocio `R-XXX` y reglas de UI `U-XXX`). El análisis resultante es el input del skill sdd-designer-system.
 ---
 
 # sdd-analyst-system
@@ -17,6 +17,21 @@ Esto aplica aunque la solicitud parezca simple o el usuario parezca tener prisa.
 Excepción: guardar el fichero `user-story.md` en Fase 0B (cuando se recibe texto libre)
 no requiere aprobación — es un paso puramente administrativo de archivo, no parte del análisis.
 </HARD-GATE>
+
+---
+
+## Override de rutas (para testing)
+
+Para poder probar este skill en un sandbox alternativo sin tocar el árbol real (testing unitario del propio skill, iteración de mejoras, etc.), se aceptan en el prompt los siguientes overrides (también se reconocen las formas `entrada: <ruta>`, `salida: <ruta>`, `raíz: <ruta>`):
+
+- `--in=<ruta>` — fichero `user-story.md` de entrada explícito. Si se indica, sustituye al fichero por defecto y **desactiva la auto-detección** (caso C de la Fase 0).
+- `--out=<ruta>` — fichero `analysis.md` de salida explícito. Si se indica, **se escribe el análisis literalmente en esa ruta** y se omite el cálculo de `analysis_NN/analysis.md`. La ruta debe ser un fichero, no una carpeta.
+- `--root=<ruta>` — raíz alternativa a `.sdd/drafts/`. Todas las rutas relativas (auto-detección, carpeta de la iniciativa, subcarpetas `analysis_NN`) se resuelven contra esta raíz.
+
+Reglas:
+- Si `--out` apunta a un fichero que ya existe, detente y avisa en vez de sobrescribir.
+- Si se usa `--in`, la "carpeta de la iniciativa" se considera la carpeta que contiene ese fichero (igual que en el caso A).
+- Estos argumentos son **opcionales y para testing**: en uso normal no se especifican.
 
 ---
 
@@ -69,14 +84,24 @@ El skill puede recibir el input de tres formas:
   ```
 
 **C) No se recibe ni ruta ni texto libre** (el skill se invoca sin argumentos):
-- Busca la última historia de usuario existente en `.sdd/drafts/`:
-  1. Lista las subcarpetas de `.sdd/drafts/` cuyo nombre empieza por `YYYY-MM-DD_HH-MM_` (regex `^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}_`).
-  2. Ordénalas alfabéticamente — el prefijo de timestamp hace que el orden alfabético coincida con el cronológico — y toma la última (la más reciente).
-  3. Lee el fichero `user-story.md` dentro de esa carpeta.
-- Si no existe ninguna carpeta con ese formato o la última no contiene `user-story.md`, indica al usuario que no hay historias de usuario previas y pídele que aporte una ruta o un texto libre. Detente.
-- Si encuentras una historia, **muestra al usuario un resumen de dos líneas del  `user-story.md` junto con su ruta** y pregunta con `AskUserQuestion` si quiere usar esa historia:
-  - Sí → trátalo como el caso (A): la carpeta de la iniciativa es la que contiene ese `user-story.md`. Continúa con la Fase 1.
-  - No → indica al usuario que vuelva a invocar el skill pasando una ruta o un texto descriptivo. Detente.
+
+> **PROCEDIMIENTO OBLIGATORIO para detectar la historia de usuario más reciente:**
+>
+> 1. **Listar** las subcarpetas de `.sdd/drafts/` cuyo nombre empieza por `YYYY-MM-DD_HH-MM_` (regex `^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}_`) con un comando Bash explícito:
+>    ```bash
+>    ls -d .sdd/drafts/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-9]_*/ 2>/dev/null
+>    ```
+> 2. **Ordenarlas alfabéticamente** — el prefijo de timestamp hace que el orden alfabético coincida con el cronológico — y tomar la **última** (la más reciente por fecha+hora del nombre, **no** por `mtime` ni por orden de aparición de `ls`).
+> 3. **Leer** el fichero `user-story.md` dentro de esa carpeta.
+> 4. Si no existe ninguna carpeta con ese formato o la última no contiene `user-story.md`, indicar al usuario que no hay historias de usuario previas y pedir una ruta o un texto libre. **Detente.**
+> 5. Si se encuentra una historia, **mostrar al usuario un resumen de dos líneas del `user-story.md` junto con su ruta** y preguntar con `AskUserQuestion` si quiere usar esa historia:
+>    - Sí → tratarlo como el caso (A): la carpeta de la iniciativa es la que contiene ese `user-story.md`. Continuar con la Fase 1.
+>    - No → indicar al usuario que vuelva a invocar el skill pasando una ruta o un texto descriptivo. **Detente.**
+>
+> **PROHIBIDO:**
+> - Elegir cualquier carpeta que no sea la última por orden alfabético del prefijo timestamp (no usar `mtime`, ni la primera, ni una "que parezca relevante").
+> - Continuar sin confirmación del usuario tras mostrar el resumen.
+> - Asumir que solo hay una carpeta de iniciativa: aunque haya muchas, siempre se toma **la última** por timestamp.
 
 En todos los casos, al llegar a la Fase 4 (guardar), se creará una **subcarpeta de análisis** numerada dentro de la carpeta de la iniciativa.
 
@@ -122,7 +147,9 @@ Haz preguntas usando AskUserQuestion en rondas de 12 como máximo. Espera la res
 
 **Lógica de negocio:**
 - ¿Qué operaciones expone la interfaz? (crear, editar, aprobar, rechazar, firmar…)
-- ¿Hay reglas de validación? (campos obligatorios condicionales, restricciones de negocio, unicidad…)
+- ¿Hay **validaciones (`V-XXX`)** que bloqueen una operación? (campos obligatorios condicionales, restricciones de negocio, unicidad, formato, dígito de control…)
+- ¿Hay **reglas de negocio (`R-XXX`)** que el sistema ejecute automáticamente ante un evento? (calcular un campo derivado, enviar un correo, generar un PDF, propagar cambios a otros registros, asignar numeración…)
+- ¿Hay **reglas de UI (`U-XXX`)** que cambien el formulario según el contexto? (mostrar/ocultar paneles según estado, marcar campos como solo lectura, fijar valores por defecto al crear, filtrar opciones de un relacional…)
 - ¿Necesita PDF, firmas digitales, registro de entrada/salida u otros subsistemas?
 
 **Vistas:**
@@ -145,7 +172,7 @@ Para cuando:
 - Sabes qué operaciones expone la interfaz y sus reglas de negocio.
 - Sabes qué vistas hay y cómo se navega entre ellas.
 - Sabes quién accede a qué y con qué restricciones.
-- Sabes qué se valida en cada operación y qué mensaje se muestra al usuario.
+- Sabes qué se valida (`V-XXX`), qué reglas de negocio se disparan (`R-XXX`) y qué reglas de UI cambian el formulario (`U-XXX`) en cada operación, y qué mensaje se muestra al usuario.
 - No quedan ambigüedades que bloqueen el diseño.
 
 Si una pregunta tiene un valor por defecto razonable, no la hagas — asúmelo en el borrador y permite que el usuario lo corrija.
@@ -170,7 +197,7 @@ Esta fase tiene **dos tareas obligatorias y secuenciales**: primero generar 5 an
    - Los tipos de usuario y cargos del proyecto cuando aplique a seguridad.
    - Las reglas de `k-validaciones` que el subagente debe aplicar (resumidas inline; el subagente no carga skills).
    - El formato de salida esperado.
-   - **Las 3 tareas internas que debe ejecutar el subagente** (ver más abajo): producir las secciones del análisis, construir la tabla `V-XXX`, y aplicar el checklist.
+   - **Las 3 tareas internas que debe ejecutar el subagente** (ver más abajo): producir las secciones del análisis, construir las tres tablas paralelas `V-XXX` / `R-XXX` / `U-XXX`, y aplicar el checklist.
    - La instrucción de producir **un único análisis completo**, no iteraciones ni múltiples versiones.
 2. **Envía una sola respuesta con 5 bloques `Agent`**, todos con el **mismo prompt**, en paralelo. No uses `run_in_background`: necesitas los resultados para la Tarea 2.
 3. Cada subagente debe devolver únicamente el análisis en markdown, sin metacomentarios y **sin escribir ningún fichero** — sólo el contenido del análisis en su mensaje de respuesta.
@@ -180,7 +207,12 @@ Esta fase tiene **dos tareas obligatorias y secuenciales**: primero generar 5 an
 El prompt debe instruir al subagente a ejecutar **estas tres tareas en este orden**:
 
 - **Tarea 1 del subagente — Producir las secciones del análisis**: tipo y capa, descripción, entidades (campos, tipos, relaciones, estados), dependencias de otros subsistemas, operaciones, vistas, menús, seguridad (multicentro sí/no), máquina de estados (si aplica) y campos calculados (si aplica).
-- **Tarea 2 del subagente — Construir la tabla única `V-XXX` y la sección de asunciones**: incluir todas las reglas con sus columnas mínimas (`ID`, `Campo(s)`, `Tipo`, `Origen`, `Condición de aplicación`, `Mensaje al usuario`), marcando con `*` las de Negocio asumida y listándolas en "Asunciones a confirmar". Las reglas dependientes de estado comparten la misma secuencia `V-XXX`, no se abren tablas paralelas. Cada mensaje incluye el valor recibido y, en dominios finitos, los valores válidos.
+- **Tarea 2 del subagente — Construir las tres tablas paralelas (`V-XXX`, `R-XXX`, `U-XXX`) y la sección de asunciones**:
+  - **Tabla `V-XXX`** (validaciones que bloquean) con columnas `ID | Campo(s) | Descripción | Condición | Mensaje al usuario` (formato de análisis, sin columnas de implementación — esas se añaden en el diseño). Las reglas dependientes de estado comparten la misma secuencia `V-XXX`, no se abren tablas paralelas. Cada mensaje incluye el valor recibido y, en dominios finitos, los valores válidos.
+  - **Tabla `R-XXX`** (reglas de negocio que el sistema ejecuta) con columnas `ID | Descripción | Entidad | Método | Momento | Más información`. Describir qué hace el sistema, no qué hace el usuario. Las condiciones de aplicación van en "Más información".
+  - **Tabla `U-XXX`** (reglas de UI que cambian el formulario) con columnas `ID | Disparador | Efecto | Campo/Panel afectado | Condición`. Disparador puede ser un evento (`onNew`, `onLoad`, `onChange:campoX`) o `continuo` para los atributos `*If`. Describir qué ve el usuario, no cómo se implementa.
+  - Las asunciones de negocio se marcan con `*` en la primera columna (ID) y se listan en "Asunciones a confirmar".
+  - Si una regla bloquea, es `V-XXX`. Si actúa sobre el sistema, es `R-XXX`. Si solo cambia el formulario, es `U-XXX`. **Una misma regla no debe aparecer en dos tablas.**
 - **Tarea 3 del subagente — Aplicar el checklist y corregir antes de devolver**: revisar el análisis generado contra el checklist que aparece más abajo (es el mismo que el agente principal aplicará en la unificación); si encuentra algún incumplimiento, corregirlo antes de devolver el resultado. El subagente NO debe devolver el análisis si queda algún punto del checklist sin cumplir.
 
 **REGLA CRÍTICA — Frontera entre análisis y diseño (transmitir literalmente al subagente):**
@@ -206,7 +238,9 @@ Cada sección debe describirse al nivel funcional adecuado:
 | **Menús** | Ítem de menú, ruta jerárquica, vista funcional destino, quién lo ve. | Nombres de acciones del framework (la asociación menú↔acción la decide el diseño). |
 | **Seguridad** | Qué puede ver, crear, editar o borrar cada rol descrito en lenguaje natural. Multicentro sí/no. | Reglas JPQL, condiciones del framework, nombres técnicos de permisos. |
 | **Campos calculados** | Qué representa, lógica funcional de cálculo, dependencias (otros campos), cuándo se recalcula. | Clases o métodos del framework (`SmtpCredentialSimplePassword.userName()`, `Beans.get(...)`, etc.). |
-| **Validaciones** | El mensaje al usuario y la condición funcional. | Implementación: ni capa (cliente/servidor), ni `action-validate`/`validateInsert`, ni nombres de acciones. |
+| **Validaciones (`V-XXX`)** | El mensaje al usuario y la condición funcional. | Implementación: ni capa (cliente/servidor), ni `action-validate`/`validateInsert`, ni nombres de acciones. |
+| **Reglas de negocio (`R-XXX`)** | Qué hace el sistema, sobre qué entidad, ante qué operación y momento (Antes/Después). | Implementación: ni `fireActionRule_*`, ni `insert()`/`update()` de Java, ni nombres de servicios o métodos. |
+| **Reglas de UI (`U-XXX`)** | Qué ve el usuario en el formulario, qué disparador y bajo qué condición. | Implementación: ni `showIf`/`requiredIf`/`<action-attrs>`/`<action-record>`, ni nombres técnicos de acciones. |
 
 **Ejemplos de MAL vs BIEN:**
 
@@ -248,8 +282,14 @@ Si el subagente duda si algo es análisis o diseño, debe aplicar este criterio:
 - <Tipo de usuario>: puede <ver|editar|…> <qué>, en lenguaje natural (sin JPQL ni código)
 - Multicentro: sí | no
 
-### Validaciones
-<una única tabla V-XXX>
+### Validaciones (`V-XXX`)
+<tabla V-XXX>
+
+### Reglas de negocio (`R-XXX`)
+<tabla R-XXX>
+
+### Reglas de UI (`U-XXX`)
+<tabla U-XXX>
 
 ### Máquina de estados (si aplica)
 
@@ -261,39 +301,77 @@ Si el subagente duda si algo es análisis o diseño, debe aplicar este criterio:
 
 Y debe seguir todos los principios de `k-validaciones`:
 
-- **Una única tabla de reglas `V-XXX`**. NO pre-clasificar reglas en cliente/servidor.
-- Columnas mínimas: `ID`, `Campo(s)`, `Tipo`, `Origen`, `Condición de aplicación`, `Mensaje al usuario`.
-- **Origen** de cada regla: `Modelo` / `Catálogo` / `Negocio (asumida)`. Marcar las de Negocio asumida con `*` y listarlas en "Asunciones a confirmar".
-- **Una regla, un campo, una cosa**: no agrupar campos salvo cruce genuino, no emitir reglas que se implican entre sí, no partir cliente/servidor en dos.
+**Principios comunes a las tres tablas:**
+
+- **Tres tablas paralelas**, una por categoría: `V-XXX` (validaciones), `R-XXX` (reglas de negocio), `U-XXX` (reglas de UI). Cada tabla con su propia numeración consecutiva. NO pre-clasificar reglas en cliente/servidor.
+- **Clasificación correcta**: si la regla bloquea una operación, es `V-XXX`; si el sistema la ejecuta automáticamente modificando estado o produciendo efectos colaterales, es `R-XXX`; si solo cambia el aspecto del formulario, es `U-XXX`. Una misma regla no aparece en dos tablas.
+- **Asunciones**: las reglas asumidas por análisis (no explícitas en la historia ni en el código) se marcan con `*` en el ID y se listan en "Asunciones a confirmar".
+- **Una regla, una cosa**: no agrupar campos salvo cruce genuino, no emitir reglas que se implican entre sí.
 - **Reglas vs no-reglas**: no documentar lo que ya cubre el framework (FK válida, parser de tipo) ni decisiones de "esto NO se valida" (van como nota o asunción).
+
+**Principios específicos de `V-XXX`:**
+
+- Columnas mínimas: `ID`, `Campo(s)`, `Descripción`, `Condición`, `Mensaje al usuario`.
 - **Ámbito de unicidad** explícito en cada regla de unicidad (global / por centro / por año / combinación). El mensaje refleja el ámbito.
 - **Reglas configurables vs constantes técnicas**: nombrar el parámetro y proponer valor por defecto cuando sea configurable; identificar las constantes técnicas (impuestas por formato/protocolo/ORM) como tales.
 - **Modelos sin UI / infraestructura interna**: reformular las reglas como invariantes que debe garantizar el servicio; mensajes técnicos para el desarrollador, no UX.
 - **Solape entre reglas agregadas y específicas**: conservar solo la general cuando cubra a las particulares.
 - **¿En qué modelo se documenta?** Integridad referencial al borrar (RESTRICT/CASCADE/SET NULL) va en el padre, no en el hijo. Unicidad y formato en el modelo que tiene el campo.
-- **Máquina de estados**: estados (inicial/finales), transiciones permitidas con condición y acción posterior, transiciones inválidas con sus mensajes, tabla de campos editables por estado (`E`/`R`/`N`/`Auto`). Las reglas dependientes de estado **comparten la misma secuencia `V-XXX`**, no abrir tablas paralelas.
-- **Campos calculados**: fórmula, dependencias, cuándo se recalcula, editable manualmente, posibles dependencias circulares.
-- **Mensaje al usuario**: empieza por el campo o el valor, incluye el valor recibido y, en dominios finitos, los valores válidos. Sin tecnicismos del framework ("Axelor", "JPA", "constraint"…). Notas para el implementador van en columnas auxiliares o notas al pie, **nunca** en el mensaje. Para modelos sin UI el mensaje es técnico, dirigido al desarrollador, redactado como invariante violado.
+- **Máquina de estados**: las reglas dependientes de estado **comparten la misma secuencia `V-XXX`**, no abrir tablas paralelas.
+- **Mensaje al usuario**: aplicar las guías de redacción definidas en `k-validaciones/validaciones.md` §2.3 (*Guías para redactar el mensaje*). Notas para el implementador van en columnas auxiliares o notas al pie, **nunca** en el mensaje. Para modelos sin UI el mensaje es técnico, dirigido al desarrollador, redactado como invariante violado.
 
-Ejemplo del nivel de detalle esperado (extracto de la tabla):
+**Principios específicos de `R-XXX`:**
 
-| ID    | Campo  | Tipo         | Origen   | Condición | Mensaje al usuario                                                      |
-|-------|--------|--------------|----------|-----------|--------------------------------------------------------------------------|
-| V-001 | alias  | Dominio      | Negocio* | Siempre   | "El alias '{alias}' no existe en el slot {slot}. Disponibles: {lista}." |
-| V-002 | email  | Formato      | Catálogo | Siempre   | "El formato del email '{email}' no es válido."                          |
-| V-003 | dni    | Autorización | Negocio* | Siempre   | "El DNI '{dni}' no está autorizado. Contacte con secretaría."           |
+- Columnas mínimas: `ID`, `Descripción`, `Entidad`, `Método` (`insert`/`update`/`remove`/`cambiarEstado`/método custom), `Momento` (`Antes` / `Después`), `Más información` (condiciones, dependencias, datos que se modifican).
+- **Antes** si la regla escribe sobre el mismo registro que se está guardando; **Después** si tiene efectos colaterales (correos, PDFs, propagación a otras entidades).
+- **Si la regla bloquea cuando no se cumple, no es `R-XXX`** — es `V-XXX`. Las `R-XXX` siempre tienen efecto, nunca bloquean.
+- **Describir qué hace el sistema**, no qué hace el usuario.
+- Una regla con varias condiciones disjuntas se parte en varias `R-XXX` separadas — mejora la trazabilidad.
 
-La trazabilidad `V-XXX → paso(s) del diseño` es responsabilidad del diseñador, no del analista.
+**Principios específicos de `U-XXX`:**
+
+- Columnas mínimas: `ID`, `Disparador`, `Efecto`, `Campo/Panel afectado`, `Condición`.
+- **Disparador**: evento (`onNew`, `onLoad`, `onChange:campoX`) o `continuo` cuando se evalúa permanentemente mediante un atributo `*If`.
+- **Efecto**: mostrar/ocultar, marcar readonly, marcar requerido, fijar valor por defecto, filtrar dominio, cambiar título.
+- **Si la regla bloquea guardar, no es `U-XXX`** — es `V-XXX`. **Si escribe en BD o produce efectos colaterales, no es `U-XXX`** — es `R-XXX`.
+- Los valores por defecto al crear (`onNew`) son `U-XXX`, no `R-XXX` — el valor solo se ve hasta que el usuario pulsa Guardar.
+- **Describir qué ve el usuario**, no cómo se implementa.
+
+**Campos calculados:** fórmula, dependencias, cuándo se recalcula, editable manualmente, posibles dependencias circulares. Se documentan en la sección "Campos calculados" Y como `R-XXX` (regla que el sistema ejecuta para recalcular).
+
+Ejemplos del nivel de detalle esperado (un extracto por cada tabla):
+
+| ID     | Campo(s) | Descripción                                                | Condición | Mensaje al usuario                                                        |
+|--------|----------|------------------------------------------------------------|-----------|---------------------------------------------------------------------------|
+| V-001* | alias    | El alias debe existir en el slot indicado                  | Siempre   | "El alias '{alias}' no existe en el slot {slot}. Disponibles: {lista}."   |
+| V-002  | email    | El email debe tener el formato `usuario@dominio.com`       | Siempre   | "El formato del email '{email}' no es válido."                            |
+
+| ID     | Descripción                                                       | Entidad     | Método         | Momento  | Más información                                            |
+|--------|-------------------------------------------------------------------|-------------|----------------|----------|------------------------------------------------------------|
+| R-001  | Asigna el número de expediente secuencial dentro del centro       | Expediente  | insert         | Antes    | Formato `EXP-{año}-{secuencial}` por centro                |
+| R-002* | Envía un correo al solicitante con el documento aprobado          | Expediente  | cambiarEstado  | Después  | Solo si el estado pasa a APROBADO                          |
+
+| ID    | Disparador               | Efecto              | Campo/Panel afectado | Condición                            |
+|-------|--------------------------|---------------------|----------------------|--------------------------------------|
+| U-001 | continuo                 | Marcar solo lectura | `descripcion`        | `estado != 'BORRADOR'`               |
+| U-002 | `onNew`                  | Valor por defecto   | `centro`             | Siempre (centro del usuario actual)  |
+
+La trazabilidad `V-XXX`/`R-XXX`/`U-XXX` → paso(s) del diseño es responsabilidad del diseñador, no del analista.
 
 **Checklist que el subagente debe aplicar en su Tarea 3** (transmitir literalmente en el prompt; el subagente debe revisar el análisis punto por punto y corregir antes de devolverlo):
 
 - [ ] ¿Cada entidad tiene sus campos, tipos y restricciones definidos?
 - [ ] ¿Cada `required` del modelo tiene su regla `V-XXX` con mensaje al usuario?
-- [ ] ¿Cada regla tiene columna `Origen` y las de Negocio asumida están marcadas con `*` y listadas en "Asunciones a confirmar"?
-- [ ] ¿Cada regla de unicidad declara su ámbito (global / por centro / por año / combinación)?
-- [ ] ¿Cada mensaje incluye el valor recibido y, en dominios finitos, los valores válidos, sin tecnicismos del framework?
-- [ ] ¿No se han pre-clasificado reglas en cliente/servidor?
-- [ ] ¿Las reglas dependientes de estado comparten la misma secuencia `V-XXX` (no se han abierto tablas paralelas)?
+- [ ] ¿Las reglas (V/R/U) asumidas por análisis están marcadas con `*` en el ID y listadas en "Asunciones a confirmar"?
+- [ ] ¿Cada regla de unicidad `V-XXX` declara su ámbito (global / por centro / por año / combinación)?
+- [ ] ¿Cada mensaje de `V-XXX` incluye el valor recibido y, en dominios finitos, los valores válidos, sin tecnicismos del framework?
+- [ ] ¿No se han pre-clasificado reglas `V-XXX` en cliente/servidor?
+- [ ] ¿Las reglas `V-XXX` dependientes de estado comparten la misma secuencia (no se han abierto tablas paralelas)?
+- [ ] ¿Cada `R-XXX` indica `Entidad`, `Método`, `Momento` (Antes/Después) y describe qué hace el sistema (no qué hace el usuario)?
+- [ ] ¿Ninguna `R-XXX` bloquea? (las que bloquean deben ser `V-XXX`)
+- [ ] ¿Cada `U-XXX` indica `Disparador` (evento o `continuo`), `Efecto` y `Campo/Panel afectado`?
+- [ ] ¿Ninguna `U-XXX` bloquea ni escribe en BD? (las que bloquean son `V-XXX`; las que escriben son `R-XXX`)
+- [ ] ¿Cada regla aparece en **una sola** de las tres tablas (no hay solape V/R/U)?
 - [ ] ¿No se documentan reglas que el framework ya cubre (FK válida, parser de tipo)?
 - [ ] ¿Las reglas configurables nombran su parámetro y proponen valor por defecto?
 - [ ] ¿Las constantes técnicas (impuestas por formato/protocolo/ORM) están identificadas como tales?
@@ -301,12 +379,13 @@ La trazabilidad `V-XXX → paso(s) del diseño` es responsabilidad del diseñado
 - [ ] ¿No hay dependencias circulares entre sistemas/subsistemas?
 - [ ] ¿Las vistas son coherentes con las entidades?
 - [ ] ¿Hay ambigüedades que bloquearían el diseño? Si las hay, deben quedar listadas como asunciones a confirmar.
-- [ ] ¿Cada mensaje empieza por el campo o el valor, sin notas para el implementador embebidas?
+- [ ] ¿Cada mensaje `V-XXX` empieza por el campo o el valor, sin notas para el implementador embebidas?
 - [ ] **¿La sección de operaciones está libre de nombres de clase, signaturas de método, tipos del framework y referencias a capas técnicas?**
 - [ ] **¿La sección de vistas está libre de nombres técnicos del framework Axelor (`@Main-action`, `@All-action`, `@Search-grid`, `@View-form`, `@Main-form`, etc.)?**
 - [ ] **¿La sección de menús describe la asociación menú → vista funcional, sin nombres de acciones del framework?**
 - [ ] **¿La sección de seguridad está descrita en lenguaje natural, sin JPQL ni expresiones de código (`self.X = :user`, dominios literales, etc.)?**
-- [ ] **¿La sección de campos calculados describe la lógica funcional sin mencionar clases ni métodos del framework?**
+- [ ] **¿La sección de campos calculados describe la lógica funcional sin mencionar clases ni métodos del framework?** ¿Cada campo calculado tiene además su `R-XXX` correspondiente?
+- [ ] **¿Las tablas `R-XXX` y `U-XXX` están libres de nombres de método (`fireActionRule_*`, `insert`/`update`), atributos XML (`showIf`, `<action-attrs>`, `<action-record>`) y otros detalles técnicos de implementación?**
 
 Si el subagente detecta algún incumplimiento, debe corregirlo antes de devolver el análisis. Sólo devolverá el análisis cuando todos los puntos del checklist estén satisfechos.
 
@@ -316,19 +395,24 @@ Una vez recibidos los 5 análisis, **tú mismo** (no un subagente) produces el a
 
 1. **Compara los 5 análisis** entidad por entidad, sección por sección.
 2. **Para cada decisión donde haya divergencia**, escoge la mejor opción según los principios de `k-validaciones` y `k-sistemas`. Cuando haya empate razonable, elige la opción que minimiza ambigüedad para el diseñador.
-3. **Para cada validación**, consolida en una única tabla `V-XXX`:
-   - Si una regla aparece en varios análisis con redacciones distintas, escoge la redacción más precisa (con valor recibido, dominio finito, condición clara).
-   - Si una regla aparece en algunos análisis pero no en otros, evalúa si es genuina (incluirla) o redundante con otra regla más general (descartarla).
-   - Renumera de forma consecutiva sin huecos.
+3. **Para cada una de las tres tablas (`V-XXX`, `R-XXX`, `U-XXX`)**, consolida por separado:
+   - Si una regla aparece en varios análisis con redacciones distintas, escoge la más precisa (con valor recibido, dominio finito, condición clara; descripción del sistema y no del usuario en R-XXX; efecto y disparador claros en U-XXX).
+   - Si una regla aparece en algunos análisis pero no en otros, evalúa si es genuina (incluirla) o redundante con otra más general (descartarla).
+   - Verifica que ninguna regla esté duplicada entre tablas: si una aparece tanto en `V-XXX` como en `R-XXX` o `U-XXX`, decide a cuál pertenece realmente (bloquea → V, actúa → R, cambia formulario → U) y elimínala de las otras.
+   - Renumera cada tabla de forma consecutiva sin huecos.
 4. **Para asunciones a confirmar**, agrupa todas las asunciones marcadas con `*` de los 5 análisis, elimina duplicados y razónalas.
-5. **Aplica el checklist final antes de presentar al usuario**. Es el mismo que cada subagente aplicó en su Tarea 3 sobre su propio análisis, pero debes volver a aplicarlo aquí sobre el **análisis unificado** — la unificación puede haber introducido inconsistencias (numeración, redacciones mezcladas, asunciones combinadas) que ningún subagente individual podía detectar:
+5. **Aplica el checklist final antes de presentar al usuario**. Es el mismo que cada subagente aplicó en su Tarea 3 sobre su propio análisis, pero debes volver a aplicarlo aquí sobre el **análisis unificado** — la unificación puede haber introducido inconsistencias (numeración, redacciones mezcladas, asunciones combinadas, reglas duplicadas entre tablas) que ningún subagente individual podía detectar:
    - ¿Cada entidad tiene sus campos, tipos y restricciones definidos?
    - ¿Cada `required` del modelo tiene su regla `V-XXX` con mensaje al usuario?
-   - ¿Cada regla tiene columna `Origen` y las de Negocio asumida están marcadas con `*` y listadas en "Asunciones a confirmar"?
-   - ¿Cada regla de unicidad declara su ámbito (global / por centro / por año / combinación)?
-   - ¿Cada mensaje incluye el valor recibido y, en dominios finitos, los valores válidos, sin tecnicismos del framework?
-   - ¿No se han pre-clasificado reglas en cliente/servidor?
-   - ¿Las reglas dependientes de estado comparten la misma secuencia `V-XXX` (no se han abierto tablas paralelas)?
+   - ¿Las reglas (V/R/U) asumidas por análisis están marcadas con `*` en el ID y listadas en "Asunciones a confirmar"?
+   - ¿Cada regla de unicidad `V-XXX` declara su ámbito (global / por centro / por año / combinación)?
+   - ¿Cada mensaje de `V-XXX` incluye el valor recibido y, en dominios finitos, los valores válidos, sin tecnicismos del framework?
+   - ¿No se han pre-clasificado reglas `V-XXX` en cliente/servidor?
+   - ¿Las reglas `V-XXX` dependientes de estado comparten la misma secuencia (no se han abierto tablas paralelas)?
+   - ¿Cada `R-XXX` indica `Entidad`, `Método`, `Momento` y describe qué hace el sistema, sin bloquear?
+   - ¿Cada `U-XXX` indica `Disparador`, `Efecto` y `Campo/Panel afectado`, sin bloquear ni escribir en BD?
+   - ¿Cada regla aparece en **una sola** de las tres tablas (sin solape V/R/U)?
+   - ¿Las tres tablas están renumeradas consecutivamente sin huecos?
    - ¿No se documentan reglas que el framework ya cubre (FK válida, parser de tipo)?
    - ¿Las reglas configurables nombran su parámetro y proponen valor por defecto?
    - ¿Las constantes técnicas (impuestas por formato/protocolo/ORM) están identificadas como tales?
@@ -336,12 +420,13 @@ Una vez recibidos los 5 análisis, **tú mismo** (no un subagente) produces el a
    - ¿No hay dependencias circulares entre sistemas/subsistemas?
    - ¿Las vistas son coherentes con las entidades?
    - ¿Hay ambigüedades que bloquearían la implementación? Si las hay, deben quedar listadas como asunciones a confirmar.
-   - ¿Cada mensaje empieza por el campo o el valor, sin notas para el implementador embebidas?
+   - ¿Cada mensaje `V-XXX` empieza por el campo o el valor, sin notas para el implementador embebidas?
    - **¿La sección de operaciones está libre de nombres de clase, signaturas de método, tipos del framework y referencias a capas técnicas?**
    - **¿La sección de vistas está libre de nombres técnicos del framework Axelor (`@Main-action`, `@All-action`, `@Search-grid`, `@View-form`, `@Main-form`, etc.)?**
    - **¿La sección de menús describe la asociación menú → vista funcional, sin nombres de acciones del framework?**
    - **¿La sección de seguridad está descrita en lenguaje natural, sin JPQL ni expresiones de código?**
-   - **¿La sección de campos calculados describe la lógica funcional sin mencionar clases ni métodos del framework?**
+   - **¿La sección de campos calculados describe la lógica funcional sin mencionar clases ni métodos del framework? ¿Cada campo calculado tiene su `R-XXX` correspondiente?**
+   - **¿Las tablas `R-XXX` y `U-XXX` están libres de detalles técnicos (`fireActionRule_*`, `showIf`, `<action-attrs>`, `<action-record>`, nombres de métodos Java)?**
 
 Si en la unificación detectas algo ambiguo o faltante que ninguno de los 5 análisis resolvió, añádelo a "Asunciones a confirmar".
 
@@ -367,6 +452,24 @@ Solo tras aprobación, guarda el análisis.
 >
 > Pueden existir varias subcarpetas `analysis_*/` en la misma carpeta de iniciativa (iteraciones sucesivas por cada vez que se ejecuta este skill).
 > **Nunca en la raíz del proyecto ni en ninguna otra carpeta.**
+
+> **PROCEDIMIENTO OBLIGATORIO antes de escribir el fichero — evita sobrescribir análisis previos:**
+>
+> 1. **Listar** las subcarpetas existentes en la carpeta de la iniciativa con un comando Bash explícito (no asumir nada):
+>    ```bash
+>    ls -d .sdd/drafts/{carpeta-iniciativa}/analysis_*/ 2>/dev/null
+>    ```
+> 2. **Calcular NN** como el mayor número encontrado + 1, formateado a 2 dígitos. Si no hay ninguna subcarpeta, NN = `01`. Ejemplos:
+>    - No existe ninguna `analysis_*/` → crear `analysis_01`.
+>    - Existen `analysis_01` y `analysis_02` → crear `analysis_03`.
+>    - Existen `analysis_01` y `analysis_03` (con hueco) → crear `analysis_04` (siempre **máximo + 1**, **nunca rellenar huecos**).
+> 3. **Verificar** que la subcarpeta `analysis_NN` calculada **NO existe** antes de crearla. Si por error existiera, **detente** y avisa al usuario; nunca sobrescribas.
+> 4. Crear la subcarpeta con `mkdir -p .sdd/drafts/{carpeta-iniciativa}/analysis_NN`.
+> 5. Escribir `analysis.md` dentro de esa nueva subcarpeta.
+>
+> **PROHIBIDO:**
+> - Usar un número fijo como `analysis_01` sin haber listado primero.
+> - Escribir `analysis.md` en una subcarpeta `analysis_NN` que ya contenga un `analysis.md` previo — eso destruye un análisis anterior. Si el `Write` te pide leer el fichero existente antes de sobrescribir, **es la señal inequívoca de que has elegido un NN equivocado**: vuelve al paso 1 y recalcula NN, no leas el fichero para luego sobrescribirlo.
 
 El fichero guardado debe comenzar **obligatoriamente** con la siguiente cabecera frontmatter, seguida del contenido del borrador aprobado:
 

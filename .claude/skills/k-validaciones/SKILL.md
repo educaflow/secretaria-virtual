@@ -1,203 +1,89 @@
 ---
 name: k-validaciones
-description: Cómo escribir reglas de validación al analizar un modelo. Formato de regla, catálogo de tipos, redacción de mensajes, casos especiales (estados, campos calculados) y trazabilidad al diseño.
+description: Documentar e implementar las tres categorías de reglas sobre las entidades — validaciones (`V-XXX`, bloquean), reglas de negocio (`R-XXX`, actúan sobre el sistema) y reglas de UI (`U-XXX`, solo cambian el formulario) — con sus tablas de análisis, capas de implementación y trazabilidad al diseño.
 ---
 
 # k-validaciones
 
-Cada validación se documenta como una **regla**:
+Este skill describe tres tipos de comprobaciones que se aplican sobre las entidades de la aplicación — **validaciones**, **reglas de negocio** y **reglas de UI** — y cómo documentarlas durante el análisis e implementarlas en el código.
 
-| ID    | Campo(s)  | Tipo                  | Condición de aplicación     | Mensaje al usuario                                                     |
-|-------|-----------|-----------------------|-----------------------------|------------------------------------------------------------------------|
-| V-001 | email     | Formato               | Siempre                     | "El email debe tener el formato usuario@dominio.com"                   |
-| V-002 | nif       | Formato + dígito ctrl | Siempre                     | "El NIF '{valor}' no es válido. Compruebe la letra verificadora"       |
-| V-003 | fecha_fin | Consistencia temporal | Si fecha_inicio tiene valor | "La fecha de fin ({fin}) debe ser posterior a la de inicio ({inicio})" |
-| V-004 | nif       | Unicidad              | Al guardar                  | "Ya existe una persona con el NIF {valor}"                             |
+## Conceptos
 
----
+- **Validación** (`V-XXX`): condición que un dato o un registro debe cumplir para que una operación sea aceptada. Si no se cumple, el sistema **impide** la operación y muestra un mensaje al usuario. Una validación nunca modifica el estado del sistema. Ejemplo: *"El email debe tener el formato `usuario@dominio.com`"*.
+- **Regla de negocio** (`R-XXX`): acción automática que el sistema **ejecuta** cuando ocurre un evento sobre la entidad (insertar, actualizar, borrar, cambiar de estado, etc.). Modifica el estado del sistema o produce efectos colaterales: calcular un campo derivado, generar un PDF, enviar un correo, crear o cancelar un registro relacionado, etc. Ejemplo: *"El total de la factura es la suma del importe de sus líneas"*.
+- **Regla de UI** (`U-XXX`): cambio en el aspecto o el estado del formulario en función del valor de un campo, del usuario o del registro padre (mostrar/ocultar, readonly, required, valor por defecto, filtrado de dominio). No bloquea operaciones ni modifica el estado del sistema. Ejemplo: *"El campo `motivoRechazo` se muestra solo cuando el estado es `RECHAZADO`"*.
 
-## Tipos de validación
+Regla mnemotécnica: **una validación dice "no" y bloquea; una regla de negocio dice "ahora hago esto" y actúa; una regla de UI dice "ahora ves esto" y solo afecta al formulario**.
 
-**Sobre el propio campo** *(cliente — `action-validate` / `action-condition`)*
-- Obligatoriedad — siempre / nunca / condicional
-- Tipo de dato — entero, decimal, fecha, booleano, lista, referencia, archivo
-- Longitud — mín / máx / exacta
-- Formato — email, NIF, IBAN, teléfono… *(ver catálogo abajo)*
-- Rango numérico — mín, máx, decimales, negativos
-- Rango de fechas — mín/máx (absoluta o relativa), pasada/futura
-- Dominio — lista cerrada / abierta / cascada / referencia a otra entidad
-- Caracteres permitidos — solo dígitos, sin tildes, ASCII…
-- Dígito de control
+## Cómo se definen
 
-**Entre campos del mismo registro** *(cliente)*
-- Consistencia temporal / numérica / de dominio
-- Requerimiento mutuo — si hay X, también Y (AND)
-- Alternativa requerida — al menos uno de {X, Y, …} (OR)
-- Exclusión mutua — NIF y CIF no a la vez
-- Totales cruzados — suma líneas = total
-- Condicional — `SI tipo = JURIDICA ENTONCES CIF obligatorio`
+Los tres tipos se documentan **durante el análisis funcional** en tablas con identificadores estables (`V-XXX`, `R-XXX` y `U-XXX`) que luego se trazan al diseño y a la implementación:
 
-**Entre registros — requiere BD** *(servidor — `validateInsert` / `validateUpdate`)*
-- Unicidad — clave única en un ámbito (global / por centro / por año / combinación)
-- Integridad referencial — al borrar el padre: RESTRICT (bloquea), CASCADE (borra hijos), SET NULL (deja huérfano)
-- Cardinalidad — `1..*`, `0..1`, `N..M`; verificar al cambiar de estado
-- Registros maestros — debe existir la configuración previa
+- **Validaciones** — tabla `V-XXX` con columnas `ID | Campo(s) | Descripción | Condición | Mensaje al usuario | Modelo XML | Servidor (validate*) | Cliente`. Cada `V-XXX` se asigna a una o varias de las **tres capas** posibles (Modelo XML declarativo, Servidor `validate*`, Cliente XML opcional) y debe ir como mínimo en Modelo o Servidor (principio "servidor es la fuente de verdad").
+- **Reglas de negocio** — tabla `R-XXX` con columnas `ID | Descripción | Entidad | Método | Momento | Más información`. Cada `R-XXX` indica el método del servicio (`insert`, `update`, `remove`, `cambiarEstado`…) y el momento (`Antes` / `Después`) en que se ejecuta. En la implementación se materializa como un método `fireActionRule_<Nombre>(...)` en el `*ServiceImpl`.
+- **Reglas de UI** — tabla `U-XXX` con columnas `ID | Disparador | Efecto | Campo/Panel afectado | Condición | Mecanismo`. Cada `U-XXX` indica cuándo se dispara (`onNew`, `onLoad`, `onChange:campo` o continuo), qué efecto produce en la pantalla y cómo se implementa (`showIf`/`hideIf`/`readonlyIf`/`requiredIf`, `<action-attrs>`, `<action-record>`).
 
-**¿En qué modelo se documenta?** La regla pertenece al modelo en cuyo XML vive el campo o relación que dispara la validación:
-- Integridad referencial al borrar (RESTRICT/CASCADE/SET NULL): se documenta en el **padre** (el que se borra), no en el hijo. *"No se puede borrar `FamiliaProfesional` con ciclos asociados"* es regla de `FamiliaProfesional`, aunque mencione `Ciclo`.
-- Unicidad y formato: en el modelo que tiene el campo.
-- Validaciones cruzadas entre dos entidades (coherencia centro↔expediente): en el modelo que dispara la operación; si hay duda, en el que tiene la responsabilidad funcional.
+Cada identificador del análisis aparece en al menos un paso del diseño, y cada paso del diseño que toca validaciones/reglas lista qué `V-XXX`/`R-XXX`/`U-XXX` cubre — así se construye la matriz de trazabilidad antes de cerrar el diseño.
 
-**De negocio** *(servidor)*
-- Restricciones — "cliente con deudas no pide"
-- Autorizaciones — "descuentos > 20% requieren director"
-- Reglas temporales — "matrícula del 1 al 30 sept"
-- Cálculos / derivaciones — *(ver "Campos calculados" abajo)*
+## Coexistencia de `V-XXX` y `R-XXX` en una misma operación
 
-Las reglas de servidor pueden duplicarse en cliente para mejor UX, pero **siempre** deben estar en servidor.
+`V-XXX` (validaciones) y `R-XXX` (reglas de negocio) no compiten — coexisten en el mismo flujo. En `insert`/`update`/`remove` del `*ServiceImpl` el orden es:
+
+```java
+@Override
+public T insert(T entidad) {
+    fireActionRule_X_Antes(entidad);     // R-XXX que escriben sobre el mismo registro
+    entidad = super.insert(entidad);     // super dispara validateInsert (V-XXX) y persiste
+    fireActionRule_Y_Despues(entidad);   // R-XXX con efectos colaterales (correos, PDFs, otros registros)
+    return entidad;
+}
+```
+
+- Las `V-XXX` viven en `validateInsert`/`validateUpdate`/`validateRemove` y se ejecutan **dentro** de `super.*` (salvaguarda de `DefaultModelService`); si fallan, abortan la operación.
+- Las `R-XXX` viven en métodos `fireActionRule_<Nombre>` y se ejecutan **fuera** de `super.*`: antes si modifican el mismo registro (cambios persistirán junto al `save`), después si tienen efectos colaterales.
 
 ---
 
-## El mensaje
+## Validaciones — dónde está cada cosa
 
-Incluir el valor recibido y, en servidor con dominio finito, los valores válidos:
+- **`validaciones.md`** — documento principal de validaciones. Explica:
+  - El principio fundamental (el servidor es la fuente de verdad) y los dos mecanismos del servidor: declarativo en el dominio XML y imperativo en `validateInsert`/`validateUpdate`/`validateRemove`.
+  - La salvaguarda automática de `DefaultModelService` y cómo se llaman desde la vista (`<action-method>` remoto + validaciones locales opcionales).
+  - El patrón `action-group` **Local → Remote → save** que encadena las tres etapas en cada operación, y su extensión a operaciones custom (`btnAprobar`, `btnDelete`, etc.).
+  - El controlador como puente (`@CallMethod validateSave`) entre la vista y el servicio.
+  - La **tabla `V-XXX`** completa con ejemplos y la **tabla de atributos del modelo XML** (`required`, `unique`, `min`/`max`, `precision`/`scale`, `<unique-constraint>`…) con la regla que implementa cada uno.
+  - Las **guías de redacción de los mensajes** (incluir valor recibido, empezar por el campo, decir cómo debe ser en vez de cómo no debe ser).
+  - La **trazabilidad `V-XXX → paso del diseño`**.
 
-> "El alias '{alias}' no existe en el slot {slot}. Disponibles: {lista}."
+- **`examples/ejemplos-validaciones.md`** — catálogo de **17 patrones XML** de validación cliente extraídos de vistas reales de axelor-open-suite y reformulados a las convenciones del proyecto, listos para copiar y adaptar:
+  - **P1–P6** con `<action-condition>` — errores pegados a un campo: obligatorio, comparación de fechas, validación cruzada de dos campos, comparación con padre (`__parent__`), fecha en el futuro (`__config__.date`), varios obligatorios agrupados.
+  - **P7–P17** con `<action-validate>` — diálogos a nivel de formulario: varios `<error>`, rango, lista vacía, estado prohibido, permiso por grupo (`__user__.group`), `<alert>` para confirmar, `<alert>` con interpolación `${campo}`, `<info>`, `<notify>`, `<error>` con `action=` correctiva.
+  - Cada patrón incluye el XML completo y los casos en los que aplica.
 
-| Mal | Bien |
-|-----|------|
-| "Campo obligatorio" | "Introduzca el nombre del solicitante" |
-| "Formato inválido" | "El email debe tener el formato usuario@dominio.com" |
-| "Valor fuera de rango" | "La cantidad debe estar entre 1 y 999" |
-| "Error de consistencia" | "La fecha de fin (15/03/2024) no puede ser anterior a la de inicio (20/03/2024)" |
-| "Registro duplicado" | "Ya existe un alumno con NIF '12345678Z'. ¿Desea ver su ficha?" |
-
-Empezar por el campo o el valor (no por "Error:"). Sin tecnicismos. Sin culpar al usuario.
-
-**El mensaje es para el usuario final.** Nada de jerga técnica ni referencias internas:
-
-- ❌ "El asunto no puede superar 255 caracteres (longitud por defecto Axelor)" — el usuario no sabe qué es Axelor.
-- ✅ "El asunto no puede superar 255 caracteres."
-
-Notas para el implementador (origen del valor, default del framework, "ver issue X", "regla configurable") van en columnas auxiliares de la tabla o en notas al pie, **nunca** en el texto que verá el usuario.
-
-## Reglas configurables vs constantes técnicas
-
-Distinguir tres orígenes posibles de un valor en una regla:
-
-- **Constante de negocio** — el negocio fija el número y no varía (ej. "DNI español tiene 8 dígitos + letra"). Va literal en la regla.
-- **Parámetro de configuración** — el administrador puede cambiarlo en App Settings sin tocar código (ej. tamaño máximo de adjunto, lista de tipos MIME, ventana temporal de matrícula). El mensaje usa placeholder; la regla nombra el parámetro: *"Parámetro: `correos.anexos.tamañoMaxMB`, configurable por administrador en App Settings"*. En "Asunciones a confirmar" separar el valor por defecto propuesto (requiere confirmación) de la mecánica configurable (decisión de diseño).
-- **Constante técnica** — la impone el formato, el protocolo o el ORM (ej. dimensión máxima de un PDF = 14400 puntos, longitud máxima de email RFC = 254, INTEGER de SQL = 2³¹−1). No es configurable y no se discute con el cliente. Documentarla como tal: *"Constante técnica del formato PDF; no procede configurar"*. Si se documenta como regla, el origen es **Catálogo** o **Modelo**, no Negocio.
-
-No tratar como configurable lo que no es elegible. Si una regla menciona "valor por defecto X" pero X viene fijado por la tecnología, no es configurable: es una constante técnica que conviene declarar para que el implementador no se invente otra.
-
-## Solape entre reglas agregadas y específicas
-
-Si una regla "general" cubre lógicamente a otra "específica" (ej. *"el registro completo es inmutable tras el estado final"* hace innecesario *"la colección de hijos es inmutable tras el estado final"*), conservar **solo la general**. Una regla específica únicamente añade valor cuando dice algo que la general no dice (un mensaje distinto, una condición distinta, un campo permitido como excepción). Si se mantienen ambas, justificar la diferencia en una nota.
+  - **`reference/validaciones.md`** — **catálogo de tipos de validaciones** agrupado por ámbito, pensado para que el analista identifique rápidamente qué validaciones aplican a un campo:
+    - Validaciones **sobre el propio campo** (obligatorio, longitud, rango, formato, dígito de control, lista cerrada…).
+    - Validaciones **entre campos del mismo registro** (mayor/menor que, igual, distinto, mutuamente excluyentes, suma de líneas igual al total…).
+    - Validaciones **entre registros** (unicidad global o de ámbito, integridad referencial, cardinalidad de hijos, prerrequisitos…).
+    - Validaciones **de negocio** (operación no admitida según condición, requiere rol, ventana temporal, inmutabilidad por estado, transiciones de estado…).
+    - Cada fila incluye descripción de la regla, cuándo se aplica, plantilla de mensaje y ejemplo redactado.
 
 ---
 
-## Máquina de estados
+## Reglas de negocio — dónde está cada cosa
 
-Si la entidad tiene estados, además de las reglas habituales documentar:
-
-- **Lista de estados** — cuál es el inicial y cuáles son finales.
-- **Transiciones permitidas** — origen → destino, condición, rol, acción posterior (notificación, número, fecha…).
-- **Campos editables por estado** — `E` editable, `R` solo lectura, `N` no visible, `Auto` calculado.
-- **Validaciones que solo aplican en cierto estado** (ej. en `PENDIENTE` revisor ≠ solicitante).
-- **Transiciones inválidas explícitas** y su mensaje.
-
-Patrón típico: en `BORRADOR` se valida lo introducido; al `ENVIAR` se exige completitud, cruzadas y cardinalidad.
-
-**Numeración única:** las reglas que dependen del estado (inmutabilidad tras un estado final, condiciones por estado) **comparten la misma secuencia `V-XXX`** que las del resto. La tabla principal mantiene la condición "Si estado = X" en su columna correspondiente. No abrir tablas paralelas con su propia numeración dentro de la sección de estados.
+- **`reglas-negocio.md`** — documento único de reglas de negocio. Explica:
+  - La **implementación**: cada `R-XXX` se materializa como un método privado `fireActionRule_<NombreDescriptivo>` en el `*ServiceImpl`, invocado desde `insert`/`update`/`remove`/operaciones custom, **antes** de `super.*` si escribe sobre el mismo registro o **después** si tiene efectos colaterales externos.
+  - Las **convenciones** del método: nombre descriptivo de la acción (no de la condición), recibe la entidad y `original` si depende del cambio, devuelve `void`, **no lanza `BusinessException`** (si bloquea, es una `V-XXX` no una `R-XXX`).
+  - La **documentación al analizar**: tabla `R-XXX` con columnas `ID | Descripción | Entidad | Método | Momento | Más información` y guías de redacción (describir qué hace el sistema, no qué hace el usuario; condiciones en "Más información"; partir reglas con varias condiciones en varias `R-XXX`).
+  - La **trazabilidad `R-XXX → paso del diseño`**.
 
 ---
 
-## Campos calculados
+## Reglas de UI — dónde está cada cosa
 
-Para cada campo calculado documentar: **fórmula**, **dependencias**, **cuándo se recalcula** (tiempo real / al guardar / derivado del sistema), si es **editable manualmente**.
-
-Cuidado con dependencias circulares (A depende de B y B depende de A): identificar cuál introduce el usuario y reformular.
-
----
-
-## Catálogo de formatos españoles
-
-| Campo | Formato | Ejemplo | Dígito de control |
-|-------|---------|---------|-------------------|
-| NIF | 8 dígitos + letra | `12345678Z` | módulo 23 → tabla TRWAGMYFPDXBNJZSQVHLCKE |
-| NIE | X/Y/Z + 7 dígitos + letra | `X1234567L` | igual que NIF tras X→0/Y→1/Z→2 |
-| CIF | letra + 7 dígitos + control | `A12345678` | letra o dígito según fórmula |
-| IBAN ES | `ES` + 22 dígitos | `ES9121000418450200051332` | módulo 97 = 1 |
-| Teléfono ES | 9 dígitos, empieza por 6/7/8/9 | `612345678` | — |
-| Código postal ES | 5 dígitos (01000-52999) | `46001` | — |
-| Matrícula actual ES | 4 dígitos + 3 letras consonantes | `1234 BCD` | — |
-| NSS Seg. Social | 2 + 8 + 2 dígitos | `281234567840` | fórmula sobre los 10 primeros |
-| Email | `texto@texto.dominio` | `usuario@empresa.com` | — |
-| Fecha / Hora | `DD/MM/AAAA` / `HH:MM` | `15/03/2024` / `14:30` | — |
-
-El analista indica que el campo tiene dígito de control; el implementador aplica el algoritmo.
-
----
-
-## Origen de cada regla
-
-Cada regla nace de uno de tres sitios. Marcar el origen en una columna o etiqueta evita mezclar lo que el modelo exige con lo que el analista supone:
-
-- **Modelo** — derivada directa del XML/anotaciones (tipo, `required`, `unique`, `<many-to-one>`…). No requiere confirmación.
-- **Catálogo** — formato/dígito de control del catálogo de abajo (NIF, IBAN, CP…). No requiere confirmación.
-- **Negocio (asumida)** — el analista la deduce del dominio pero no está en el modelo (ej. "al menos un identificador entre DNI/NIA/NRP", "el cp debe coincidir con el del municipio"). **Marcar con `*` y listar al final en "Asunciones a confirmar"**.
-
-Si una regla es Negocio asumida, el diseño no avanza hasta que el cliente la confirme o descarte.
-
-## Lo que NO se documenta como validación
-
-El framework ya lo cubre — no añade información:
-
-- Que un `many-to-one` apunte a un registro existente (JPA lo garantiza).
-- Que un campo `<integer>` no acepte texto, o `<date>` no acepte basura (parser del tipo).
-- Longitudes por defecto del framework (Axelor `<string>` = 255) **salvo** que el negocio imponga un límite distinto. Si se documenta una longitud por defecto, indicar explícitamente "longitud por defecto Axelor".
-
-Para `required="true"` y `unique="true"` declarados en el XML: **sí se documenta una regla**, porque el modelo solo dice *que* falla, no *qué mensaje* mostrar. La regla aporta el mensaje. No inventar una "obligatoriedad funcional" separada de la técnica: es **la misma regla**.
-
-## Una regla, un campo, una cosa
-
-- **No agrupar campos en una sola regla** ("introduzca CCAA, provincia y municipio") salvo que la condición sea genuinamente cruzada (requerimiento mutuo, exclusión). Si tres campos son cada uno obligatorio, son tres reglas — así el mensaje señala el campo concreto que falta.
-- **No emitir reglas que se implican entre sí**. Si pides "rango 2000-2100" para un entero, no añadas también "longitud 4 dígitos": el rango ya lo implica. Una sola regla cubre ambos casos.
-- **No partir una regla en cliente y servidor como si fueran dos reglas**. Es la misma regla; el documento de diseño decide dónde se ejecuta (ver "Trazabilidad").
-
-## Modelos sin UI (infraestructura interna)
-
-Algunos modelos no se editan por vista — solo los toca un servicio interno (numeradores, logs, contadores, semáforos, configuraciones de sistema). En esos casos:
-
-- **No documentar reglas de cliente**: no hay vista que dispare `action-validate`. Cualquier mensaje "para el usuario final" es ficción.
-- **Reformular las reglas como invariantes que el servicio debe garantizar**, no como mensajes de UX. El "mensaje" pasa a ser texto técnico de excepción/log para el desarrollador, redactado como invariante violado: *"El último número no puede decrecer: actual={anterior}, propuesto={nuevo}."*
-- **Las reglas que aportan información son las que el XML no expresa por sí solo**: monotonía de un contador, inmutabilidad de la clave lógica, formato de un campo `String` que apunta lógicamente a otra entidad. Las que ya están en el XML (`required`, `unique-constraint`) se incluyen para fijar el mensaje técnico, no porque aporten una validación nueva.
-- **Trazabilidad**: las reglas caen en el servicio (`FooService`) o en `validateInsert/Update` del repositorio. Nunca en cliente.
-
-## Reglas vs no-reglas
-
-La tabla `V-XXX` solo contiene reglas que **se aplicarán**. Hay tres cosas que confunden y no deben entrar como filas:
-
-- **Decisiones de "esto NO se valida"** (ej. "se permite que solicitante e interesado coincidan"). No es regla: es ausencia de regla. Si es relevante dejarlo por escrito, va a "Asunciones a confirmar" o a una nota, no a la tabla con un mensaje vacío.
-- **Comportamientos del sistema** (autogeneración de número, asignación automática del usuario desde sesión). No son reglas de validación; son lógica de creación. Si el negocio exige que el usuario no pueda alterarlos, *eso sí* es regla, y se redacta como **inmutabilidad / readonly**: el mensaje describe que el campo lo gestiona el sistema y rechazar el cambio, no la generación en sí.
-- **Documentación del modelo** (qué significa el campo, para qué sirve). Va al análisis funcional, no a la tabla de reglas.
-
-Para inmutabilidad / readonly: la regla se documenta una sola vez, con el mensaje del rechazo. La doble protección (vista `readonly` + servidor que rechaza cambios) es decisión de diseño, no son dos reglas.
-
-## Ámbito de las reglas de unicidad
-
-Toda regla de unicidad debe declarar su **ámbito** explícitamente. No basta con "unicidad" a secas. Posibilidades típicas:
-
-- **Global** — único en todo el sistema (ej. DNI de persona física).
-- **Por centro** — único dentro del centro (ej. código de aula dentro de un centro).
-- **Por año / curso académico** — único dentro de un periodo.
-- **Combinación** — único para la tupla (campo1, campo2, …).
-
-El mensaje debe reflejar el ámbito: *"Ya existe un alumno con NIA '{valor}' en el centro {centro}"* es distinto de *"Ya existe una persona con NIA '{valor}'"*. Si el ámbito no es obvio del modelo, listarlo como asunción a confirmar.
-
-## Trazabilidad: del análisis al diseño
-
-- Cada regla `V-XXX` del análisis aparece en al menos un paso del diseño.
-- Cada paso del diseño que implementa validaciones lista qué `V-XXX` cubre. Ejemplo: *"Paso 5 — `FooService.validateInsert`. Cubre V-002, V-004."*
-- Antes de cerrar el diseño, construir la matriz `V-XXX → paso(s)`. Ninguna fila puede quedar vacía.
+- **`reglas-ui.md`** — documento único de reglas de UI. Explica:
+  - La **distinción** entre `U-XXX` (solo afecta al formulario), `V-XXX` (bloquea operaciones) y `R-XXX` (modifica el estado del sistema), con la regla mnemotécnica "no puedes / ahora hago / ahora ves".
+  - La **tabla `U-XXX`** con columnas `ID | Disparador | Efecto | Campo/Panel afectado | Condición | Mecanismo` y ejemplos representativos (paneles con `showIf`, valores por defecto con `<action-record>`, dominios dinámicos con `<action-attrs>`, etc.).
+  - La **tabla de decisión de mecanismos**: cuándo usar atributos inline (`showIf`/`hideIf`/`readonlyIf`/`requiredIf`), cuándo `<action-attrs>` desde un evento y cuándo `<action-record>` desde `onNew`/`onChange`.
+  - Las **guías de redacción** (describir qué ve el usuario, partir reglas con varios efectos, no confundir con V-XXX/R-XXX).
+  - La **trazabilidad `U-XXX → paso del diseño`**.

@@ -1,10 +1,7 @@
 package com.educaflow.subsystem.common.db.repo;
 
-import com.axelor.auth.db.User;
-import com.axelor.db.JPA;
 import com.axelor.db.JpaRepository;
 import com.educaflow.subsystem.common.db.Centro;
-import com.educaflow.subsystem.common.db.CentroUsuario;
 
 import java.util.Optional;
 

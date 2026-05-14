@@ -12,7 +12,22 @@ La secretaría virtual es un proyecto de gestión de expedientes administrativos
 - JPA para acceso a datos, con repositorios personalizados y genéricos
 
 ## MCP de IntelliJ
-Tienes disponible el MCP de IntelliJ (`mcp__intellij-index__`). **Debes usarlo siempre que sea posible** en lugar de `grep`, `find` o búsquedas manuales. Los tools disponibles son:
+Tienes disponible el MCP de IntelliJ (`mcp__intellij-index__`). **Debes usarlo siempre que sea posible** en lugar de `grep`, `find`, `Glob` o búsquedas manuales con `Bash`.
+
+Estos tools son de solo lectura o refactor seguro a través del índice de IntelliJ y **no tienen riesgo**, por lo que **debes invocarlos directamente sin pedir confirmación previa al usuario** y sin anunciar que vas a usarlos: simplemente úsalos. Están preautorizados en `.claude/settings.local.json` para que no aparezcan prompts de permiso.
+
+Reglas concretas de sustitución:
+- Buscar texto en el código → `ide_search_text` (NO `grep`/`rg`/`Bash`).
+- Localizar un fichero por nombre → `ide_find_file` (NO `find`/`ls`/`Glob`).
+- Localizar una clase → `ide_find_class` (NO buscar el `.java` con grep).
+- Ir a la definición de un símbolo → `ide_find_definition`.
+- Encontrar usos de un símbolo → `ide_find_references` (NO `grep` por el nombre).
+- Renombrar, mover o borrar símbolos/ficheros → `ide_refactor_rename`, `ide_move_file`, `ide_refactor_safe_delete` (NO `mv`/`sed`/edición manual).
+- Antes de asumir que el índice está disponible, si dudas, comprueba con `ide_index_status`.
+
+Solo se admite recurrir a `grep`/`find`/`Bash` si el MCP de IntelliJ no está disponible o el caso queda fuera de lo que ofrece (por ejemplo, búsqueda en ficheros fuera del proyecto indexado).
+
+Los tools disponibles son:
 
 - `ide_find_class` — buscar una clase por nombre
 - `ide_find_file` — buscar un fichero por nombre
@@ -64,7 +79,21 @@ Los skills importantes son los `-orchestrator`, ya que son los encargados de rea
 
 Igual que hemos puesto el ejemplo de el conjunto de skills de `menus` están para cualquiero otro tipo de skill
 
+### Convención obligatoria: override de rutas para testing
 
+**Cualquier skill que lea ficheros de entrada o escriba ficheros de salida en rutas por defecto (p.ej. `.sdd/drafts/...`, `src/main/java/...`, etc.) debe permitir al usuario sobrescribir esas rutas mediante argumentos explícitos en el prompt.** Esto es indispensable para poder hacer "testing" del skill: ejecutarlo en un sandbox alternativo (otra carpeta), comparar resultados sin tocar el proyecto real e iterar mejoras del propio skill como si fueran pruebas unitarias.
+
+Convención de argumentos a reconocer en el prompt del skill (cualquiera de estas formas):
+
+- `--in=<ruta>` o `entrada: <ruta>` — fichero/carpeta de entrada explícito; si se indica, sustituye al fichero por defecto y desactiva la auto-detección.
+- `--out=<ruta>` o `salida: <ruta>` — fichero/carpeta de salida explícito; si se indica, se usa esa ruta literal en vez de la calculada por las convenciones del skill (incluida la numeración `NN`).
+- `--root=<ruta>` o `raíz: <ruta>` — raíz alternativa que sustituye la raíz por defecto (p.ej. `.sdd/drafts/`); todas las rutas relativas del skill se resuelven contra esa raíz.
+
+Reglas:
+
+- Si el usuario aporta uno de estos argumentos, **úsalo literal** sin reescribirlo ni intentar adivinar otro mejor.
+- Si la ruta indicada no existe (para entrada) o ya existe (para salida y supondría sobrescribir), detente y avisa, igual que en el flujo por defecto.
+- Esta convención **debe quedar reflejada explícitamente** en el SKILL.md de cualquier skill nuevo o existente que tenga rutas por defecto.
 
 
 ## Framework SDD (Spec-Driven Development)
@@ -82,8 +111,8 @@ código + draft       →  /sdd-close-spec         →  CLAUDE.md + archivo en .
 ```
 
 - **`/sdd-create-user-story`** — arranca una iniciativa: crea la carpeta `.sdd/drafts/YYYY-MM-DD_HH-MM_{nombre-kebab}/` con un `user-story.md` plantillado (`type: user-story`). El usuario rellena la plantilla; el skill no completa la historia por ti.
-- **`/sdd-analyst-system`** — convierte una historia de usuario en análisis funcional. Hace preguntas iterativas con `AskUserQuestion` antes de generar nada (HARD-GATE: nunca genera sin aprobación). Produce entidades, operaciones, vistas, seguridad y una **tabla única `V-XXX` de validaciones** con columnas (`ID`, `Campo(s)`, `Tipo`, `Origen`, `Condición`, `Mensaje al usuario`). Internamente lanza **5 subagentes en paralelo** y unifica.
-- **`/sdd-designer-system`** — convierte el análisis en un **diseño**, NO una implementación. Estructura de clases/métodos/vistas/acciones con firmas y comentarios descriptivos, pero **sin cuerpos de método ni XML literal de vistas/acciones** (la única excepción son los dominios XML, que sí van completos). Cobertura total obligatoria: cada `V-XXX` y regla de negocio del análisis debe tener una entrada en la matriz de trazabilidad apuntando a una clase+método o fichero+acción concreta. También lanza 5 subagentes en paralelo y unifica.
+- **`/sdd-analyst-system`** — convierte una historia de usuario en análisis funcional. Hace preguntas iterativas con `AskUserQuestion` antes de generar nada (HARD-GATE: nunca genera sin aprobación). Produce entidades, operaciones, vistas, seguridad y **tres tablas paralelas de reglas**: validaciones `V-XXX` (bloquean), reglas de negocio `R-XXX` (actúan sobre el sistema) y reglas de UI `U-XXX` (solo cambian el formulario), cada una con sus columnas propias y mensajes al usuario donde corresponda. Internamente lanza **5 subagentes en paralelo** y unifica.
+- **`/sdd-designer-system`** — convierte el análisis en un **diseño**, NO una implementación. Estructura de clases/métodos/vistas/acciones con firmas y comentarios descriptivos, pero **sin cuerpos de método ni XML literal de vistas/acciones** (la única excepción son los dominios XML, que sí van completos). Cobertura total obligatoria: cada `V-XXX`, `R-XXX` y `U-XXX` del análisis debe tener una entrada en la matriz de trazabilidad apuntando a una clase+método o fichero+acción concreta. También lanza 5 subagentes en paralelo y unifica.
 - **`/sdd-implementer-system`** — delega en `code-implementer` pasándole el diseño y los skills (`k-sistemas`, `k-vistas`, opcionalmente `k-seguridad`). NO implementa nada por sí mismo y **NO archiva nada** en `.sdd/specs/`. Tras implementar, los drafts quedan intactos.
 - **`/sdd-close-spec`** — cierra la iniciativa cuando el usuario está conforme con la implementación: usa `git diff` para identificar los ficheros que cambiaron, regenera los `CLAUDE.md` de las carpetas afectadas desde el código real, y archiva los tres artefactos en `.sdd/specs/NNNN_{desc}/` en versión **as-built**: el `analysis.md` y el `design.md` se corrigen para reflejar la implementación real, y el `user-story.md` se ajusta solo si la implementación reveló contradicciones evidentes con la intención original (cambios excepcionales). Cada artefacto archivado lleva una sección "Notas de cierre (as-built)" listando los cambios o "Sin cambios respecto al draft original."
 
@@ -131,7 +160,10 @@ Si se invoca un skill sin ruta, busca el último artefacto disponible (orden alf
 - **NUNCA** usar como referencia `expedientes`, `tiposexpedientes` ni `tramites` — siguen otra arquitectura.
 - **NUNCA** leer otros `analysis*.md` ni `design*.md` previos como plantilla — cada artefacto se genera desde su input directo y el código real.
 - En el diseño: dominios XML completos sí, **cuerpos Java implementados y XML literal de acciones/vistas NO**.
-- Validaciones mapeadas por capa: campo individual y entre campos del mismo registro → cliente (`action-validate`/`action-condition`); integridad entre registros, ciclo de vida y reglas de negocio → servidor (`validateInsert`/`validateUpdate`/`fireActionRule_*`).
+- Tres categorías de reglas sobre las entidades (skill `k-validaciones`):
+  - **Validaciones (`V-XXX`)** — condiciones que **bloquean** una operación si no se cumplen; viven en el modelo XML (`required`/`unique`/...), en `validateInsert`/`validateUpdate`/`validateRemove` del servicio (fuente de verdad) y opcionalmente en `<action-condition>`/`<action-validate>` del cliente para UX.
+  - **Reglas de negocio (`R-XXX`)** — acciones que el sistema **ejecuta** ante un evento (insert/update/remove/cambio de estado); se implementan como métodos `fireActionRule_*` en el `*ServiceImpl`, antes o después de `super.*` según escriban en el mismo registro o tengan efectos colaterales.
+  - **Reglas de UI (`U-XXX`)** — cambios en el **formulario** (mostrar/ocultar, readonly, required, valor por defecto, filtrado de dominio) según el valor de otros campos, el usuario o el padre; se implementan con `showIf`/`hideIf`/`readonlyIf`/`requiredIf` o con `<action-attrs>`/`<action-record>` desde eventos `onNew`/`onLoad`/`onChange`.
 - NO crear módulos Guice para `ModelService` (los descubre `ModelServiceFactory`).
 - NO crear listeners JPA para lógica de negocio (va en el servicio como `fireActionRule_*`).
 

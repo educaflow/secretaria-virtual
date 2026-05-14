@@ -7,16 +7,47 @@ description: Dado un plan para crear o modificar un sistema o subsistema, lo imp
 
 Eres un delegador. Tu única tarea es invocar el skill `code-implementer` pasándole el plan recibido y los skills de dominio correspondientes a la implementación de un sistema o subsistema.
 
+## Override de rutas (para testing)
+
+Para poder probar este skill en un sandbox alternativo sin tocar el árbol real (testing unitario del propio skill, iteración de mejoras, etc.), se aceptan en el prompt los siguientes overrides (también se reconocen las formas `entrada: <ruta>` y `raíz: <ruta>`):
+
+- `--in=<ruta>` — fichero `design_NN.md` de entrada explícito. Si se indica, sustituye al fichero por defecto y **desactiva la auto-detección**.
+- `--root=<ruta>` — raíz alternativa a `.sdd/drafts/`. Todas las rutas relativas se resuelven contra esta raíz.
+
+No hay `--out` porque este skill no crea ficheros en `.sdd/`: delega en `code-implementer`, que escribe código en el árbol del proyecto. Para probar el implementer en un sandbox, ejecútalo apuntando a una copia del proyecto.
+
+Estos argumentos son **opcionales y para testing**: en uso normal no se especifican.
+
 ## Qué hacer
 
 1. **Si el usuario no proporciona ruta**, busca el último diseño disponible antes de continuar:
-   a. Lista las subcarpetas de `.sdd/drafts/` cuyo nombre empieza por `YYYY-MM-DD_HH-MM_` (regex `^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}_`) y ordénalas alfabéticamente — el prefijo de timestamp hace que el orden alfabético coincida con el cronológico — y toma la última (la iniciativa más reciente).
-   b. Dentro de esa iniciativa, lista las subcarpetas `analysis_NN/` y toma la del número más alto (el análisis más reciente).
-   c. Dentro de esa subcarpeta, lista los ficheros `design_NN.md` y toma el del número más alto (el diseño más reciente).
-   d. Si no existe ninguna iniciativa, ningún `analysis_NN/` o ningún `design_NN.md`, indica al usuario que no hay diseños previos y pídele que indique una ruta. Detente.
-   e. **Muestra al usuario el nombre del fichero `design_NN.md` junto con su ruta** y pregunta con `AskUserQuestion` si quiere usar ese diseño:
-      - Sí → continúa con el resto de los pasos usando esa ruta.
-      - No → pide al usuario la ruta del diseño que quiere implementar. Detente.
+
+   > **PROCEDIMIENTO OBLIGATORIO para detectar el diseño más reciente:**
+   >
+   > a. **Listar** las subcarpetas de `.sdd/drafts/` cuyo nombre empieza por `YYYY-MM-DD_HH-MM_` (regex `^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}_`):
+   >    ```bash
+   >    ls -d .sdd/drafts/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-9]_*/ 2>/dev/null
+   >    ```
+   >    Ordenarlas **alfabéticamente** (orden coincide con cronológico) y tomar **la última** (la iniciativa más reciente).
+   > b. Dentro de esa iniciativa, **listar** las subcarpetas `analysis_NN/`:
+   >    ```bash
+   >    ls -d .sdd/drafts/{iniciativa}/analysis_*/ 2>/dev/null
+   >    ```
+   >    Tomar la del **número más alto** (NO por `mtime`).
+   > c. Dentro de esa subcarpeta, **listar** los ficheros `design_NN.md`:
+   >    ```bash
+   >    ls .sdd/drafts/{iniciativa}/analysis_NN/design_*.md 2>/dev/null
+   >    ```
+   >    Tomar el del **número más alto** (NO por `mtime`).
+   > d. Si no existe ninguna iniciativa, ningún `analysis_NN/` o ningún `design_NN.md`, indicar al usuario que no hay diseños previos y pedir una ruta. **Detente.**
+   > e. **Mostrar al usuario el nombre del fichero `design_NN.md` junto con su ruta** y preguntar con `AskUserQuestion` si quiere usar ese diseño:
+   >    - Sí → continuar con el resto de los pasos usando esa ruta.
+   >    - No → pedir al usuario la ruta del diseño que quiere implementar. **Detente.**
+   >
+   > **PROHIBIDO:**
+   > - Elegir una iniciativa, `analysis_NN` o `design_NN` que no sea el de mayor timestamp / mayor número en cada nivel.
+   > - Usar `mtime` o cualquier criterio distinto del orden alfabético (para timestamp) o numérico (para NN).
+   > - Continuar sin confirmación del usuario tras mostrar la ruta detectada.
 2. Recibe el plan (ruta a un fichero `design*.md`; debe estar en `.sdd/drafts/{iniciativa}/analysis_NN/`).
 3. Lee el contenido del fichero antes de continuar.
 4. **Valida que el fichero tiene la cabecera frontmatter correcta.** El fichero debe comenzar con un bloque frontmatter (entre `---`) que contenga `type: design`.

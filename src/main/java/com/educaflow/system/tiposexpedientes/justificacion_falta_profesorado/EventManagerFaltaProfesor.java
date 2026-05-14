@@ -1,7 +1,5 @@
 package com.educaflow.system.tiposexpedientes.justificacion_falta_profesorado;
 
-import com.axelor.db.JpaRepository;
-import com.axelor.db.Repository;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
@@ -9,7 +7,7 @@ import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.util.SecurityUtil;
-import com.educaflow.subsystem.certificados.AlmacenClaveLoader;
+import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
 import com.educaflow.subsystem.common.db.Persona;
 import com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesorado;
 import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
@@ -44,7 +42,7 @@ public class EventManagerFaltaProfesor extends com.educaflow.subsystem.expedient
     @Inject
     RegistroEntradaRepository registroEntradaRepository;
     @Inject
-    AlmacenClaveLoader almacenClaveLoader;
+    AlmacenClaveResolver almacenClaveResolver;
     @Inject
     private ModelServiceFactory modelServiceFactory;
 
@@ -82,7 +80,7 @@ public class EventManagerFaltaProfesor extends com.educaflow.subsystem.expedient
 
         ///Quitar esto es solo una prueba
         final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
-        TareaFirmaInsertDTO tareaFirmaInsertDTO =new TareaFirmaInsertDTO(SecurityUtil.getUser(),List.of(pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud),"Firma Expediente:"+justificacionFaltaProfesorado.getNumeroExpediente(),new Rectangulo(100,100,400,50),this.getClass(),"Datos de callback");
+        TareaFirmaInsertDTO tareaFirmaInsertDTO =new TareaFirmaInsertDTO(SecurityUtil.getUser(),List.of(pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud,pdfSolicitud),"Firma Expediente:"+justificacionFaltaProfesorado.getNumeroExpediente(),new Rectangulo(100,100,400,50),1,this.getClass(),"Datos de callback");
         tareaFirmaService.insert(tareaFirmaInsertDTO);
     }
     @WhenEvent
@@ -123,7 +121,7 @@ public class EventManagerFaltaProfesor extends com.educaflow.subsystem.expedient
         TipoResolucionJustificacionFaltaProfesorado tipoResolucion = justificacionFaltaProfesorado.getTipoResolucion();
         DocumentoPdf resolucion = justificacionFaltaProfesorado.getDocumentoPdf(JustificacionFaltaProfesorado.TipoDocumentoPdf.RESOLUCION);
 
-        DocumentoPdf resolucionFirmada =resolucion.firmar(almacenClaveLoader.getDirector(justificacionFaltaProfesorado.getCentro()),new CampoFirma(rectanguloPosicionFirmaPDFResolucion));
+        DocumentoPdf resolucionFirmada =resolucion.firmar(almacenClaveResolver.getDirector(justificacionFaltaProfesorado.getCentro()),new CampoFirma(rectanguloPosicionFirmaPDFResolucion));
 
         MetaFile pdfResolucion = MetaFileHelper.createMetaFile(resolucionFirmada);
 

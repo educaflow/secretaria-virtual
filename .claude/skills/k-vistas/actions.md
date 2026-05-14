@@ -154,6 +154,80 @@ Validaciones a nivel de campo concreto, que muestran el mensaje de error justo d
 - El atributo `error` indica el mensaje de error que se va a mostrar debajo del campo si la validación falla.
 - Si no se indica el atributo `if` se comprueba que no esté vacío.
 
+### Patrón: `Local-validateXXX-action` directo o como `<action-group>`
+
+`<action-validate>` y `<action-condition>` son elementos XML distintos con gramáticas distintas: **no se pueden mezclar en el mismo elemento**.
+
+- `<action-validate>` solo admite hijos `<error>`/`<alert>`/`<info>`/`<notify>` — mensajes a nivel de formulario.
+- `<action-condition>` solo admite hijos `<check>` — errores pegados a un campo concreto.
+
+Por eso, un nombre como `subsysXxx.MiEntidad@Main-Local-validateSave-action` se materializa de tres formas distintas según qué tipos de validación cliente necesite la entidad para ese evento:
+
+| Tipos de validación que se necesitan         | Forma de `Local-validateSave-action`                                      |
+|----------------------------------------------|---------------------------------------------------------------------------|
+| Solo errores generales del formulario        | Un único `<action-validate>` con ese nombre                               |
+| Solo errores pegados a campos concretos      | Un único `<action-condition>` con ese nombre                              |
+| Se necesitan **los dos**                     | Un `<action-group>` con ese nombre que encadena los dos con sub-nombres   |
+
+El `<action-group>` del botón (`Main-btnSave-action`) referencia siempre el mismo nombre `Main-Local-validateSave-action` — qué hay detrás (un único elemento o un grupo) es interno y puede cambiar sin tocar el botón.
+
+**Caso 1 — Solo un tipo (un único elemento):**
+
+```xml
+<action-condition name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action">
+    <check field="name" if="name == null" error="El nombre es obligatorio"/>
+    <check field="code" if="code == null" error="El código es obligatorio"/>
+</action-condition>
+```
+
+**Caso 2 — Hace falta combinar `<action-validate>` con `<action-condition>`:**
+
+`Local-validateSave-action` pasa a ser un `<action-group>`. Los componentes internos extienden el nombre con un sufijo que describe **qué validan** (no el tipo XML que usan):
+
+```xml
+<!-- El nombre genérico ahora es un action-group -->
+<action-group name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action">
+    <action name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-requiredFields-action"/>
+    <action name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-codeFormat-action"/>
+</action-group>
+
+<!-- Errores pegados a cada campo -->
+<action-condition name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-requiredFields-action">
+    <check field="name" if="name == null" error="El nombre es obligatorio"/>
+    <check field="code" if="code == null" error="El código es obligatorio"/>
+</action-condition>
+
+<!-- Errores generales del formulario -->
+<action-validate name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-codeFormat-action">
+    <error message="El código no puede empezar por número"
+           if="code != null &amp;&amp; code ==~ /^[0-9].*/"/>
+    <alert message="El código contiene caracteres especiales. ¿Continuar?"
+           if="code != null &amp;&amp; code ==~ /.*[^a-zA-Z0-9].*/"/>
+</action-validate>
+```
+
+El botón Guardar no cambia entre el Caso 1 y el Caso 2:
+
+```xml
+<action-group name="subsysSistemaEducativo.LeyEducativa@Main-btnSave-action">
+    <action name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action"/>
+    <action name="subsysSistemaEducativo.LeyEducativa@Main-Remote-validateSave-action"/>
+    <action name="save"/>
+</action-group>
+```
+
+**Convención para los sub-nombres del Caso 2:**
+
+Los sub-nombres siguen el patrón `Local-{validacion}-{subPropósito}-action`, donde `{subPropósito}` describe **qué se valida** en cada bloque, no el tipo XML utilizado. Ejemplos válidos:
+
+- `Local-validateSave-requiredFields-action` (campos obligatorios)
+- `Local-validateSave-codeFormat-action` (formato del código)
+- `Local-validateSave-dateRange-action` (consistencia de fechas)
+- `Local-validateSave-amountLimit-action` (límites de importe)
+- `Local-validateSave-businessRules-action` (reglas cruzadas)
+
+Evitar sub-nombres que repitan el tipo XML (`-condition`, `-validate`) — no aportan información sobre qué hace cada bloque.
+
 ### `<action-script>`
 
 Permite ejecutar acciones complejas mediante un script en `js` o `groovy`. Se utilizan en vez de crear un controlador en Java.
@@ -203,7 +277,7 @@ Permite ejecutar acciones complejas mediante un script en `js` o `groovy`. Se ut
 | `{Entidad}`                      | Nombre exacto de la clase Java                                                  | `LeyEducativa`, `TareaFirma`                    |
 | `@{Vista}`                       | Identificador del contexto de vista                                             | `@Main`, `@Pendiente`, `@Firmado`               |
 | `{evento}`                       | Sin prefijo: evento o botón para `action-group` (`on{Evento}` o `btn{Nombre}`)  | `onLoad`, `btnSave`                             |
-| `Local-{nombreValidacion}`       | Validación client-side (`action-validate` o `action-condition`)                 | `Local-validateSave`                            |
+| `Local-{nombreValidacion}`       | Validación cliente: `action-validate`, `action-condition` o `action-group`      | `Local-validateSave`                            |
 | `Remote-{nombreFuncionJava}`     | Llamada a función Java en el servidor (`action-method` o `action-script`)       | `Remote-marcarComoFirmada`                      |
 | `set-{campo}-{valor}`            | Asigna un valor a un campo (`<action-record>`)                                  | `set-centro-null`                               |
 | `set-{campo}.{atributo}-{valor}` | Modifica un atributo de un campo (`<action-attrs>`)                             | `set-apellidos.readonly-true`                   |

@@ -7,8 +7,8 @@ import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessage;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessage;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.base.util.JsonUtil;
 import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.subsystem.firmas.db.DocumentoFirma;
@@ -24,8 +24,8 @@ import java.util.*;
 
 public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> implements TareaFirmaService {
 
-    public TareaFirmaServiceImpl(Class<TareaFirma> model, Repository repository) {
-        super(TareaFirma.class, repository);
+    public TareaFirmaServiceImpl(Class<TareaFirma> model, Repository<TareaFirma> repository) {
+        super(model, repository);
     }
 
     @Override
@@ -66,7 +66,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
         tareaFirma.setWidth(BigDecimal.valueOf(tareaFirmaInsertDTO.areaFirma().width()));
         tareaFirma.setHeight(BigDecimal.valueOf(tareaFirmaInsertDTO.areaFirma().height()));
 
-
+        tareaFirma.setPage(tareaFirmaInsertDTO.page());
 
         tareaFirma = super.insert(tareaFirma);
 
@@ -76,7 +76,6 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     @Override
     public TareaFirma marcarComoFirmada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal)  {
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
-        tareaFirma.setMotivoRechazo(null);
         tareaFirma.setFechaResolucion(LocalDateTime.now());
 
         tareaFirma = super.update(tareaFirma, tareaFirmaOriginal);
@@ -141,7 +140,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
 
             tareaFirmaNotifier.notify(tareaFirma, callBackData);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("No se encontró la clase necesaria para notificar la firma resuelta: " + e.getMessage(), e);
         }
     }
 

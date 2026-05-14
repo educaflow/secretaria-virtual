@@ -1,10 +1,11 @@
 package com.educaflow.subsystem.importacion.service;
 
 import com.axelor.db.modelservice.ModelService;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
-import com.educaflow.subsystem.importacion.db.TareaImportacion;
+import com.axelor.db.modelservice.BusinessMessages;
 
 import java.util.Optional;
+
+import com.educaflow.subsystem.importacion.db.TareaImportacion;
 
 public interface TareaImportacionService extends ModelService<TareaImportacion> {
 

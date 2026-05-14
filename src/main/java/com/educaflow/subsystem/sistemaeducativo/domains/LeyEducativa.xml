@@ -4,8 +4,8 @@
 
     <module name="sistemaeducativo" package="com.educaflow.subsystem.sistemaeducativo.db"/>
     <entity name="LeyEducativa">
-        <string name="code"  required="true"  />
-        <string name="name" namecolumn="true"  required="true" />
+        <string name="code"  required="true" title="Código" />
+        <string name="name" namecolumn="true"  required="true" title="Nombre" />
     </entity>
 
 </domain-models>

@@ -228,7 +228,7 @@ Concretamente, el prompt que recibe cada subagente prohíbe explícitamente:
 
 1. **Lanzamiento (Fase 1):** 5 invocaciones a `Agent` en paralelo, mismo prompt autocontenido para los 5. Cada subagente devuelve un output completo.
 2. **Unificación (Fase 1, parte 2):** el orquestador combina las 5 salidas usando el algoritmo de unificación que el propio skill objetivo define en su SKILL.md (Tarea 2). Aplica el checklist completo del skill objetivo sobre el resultado.
-3. **Diff vs gold (Fase 2):** comparación por 12 ejes (frontmatter, cabecera, tabla de ficheros, dominios, servicios, controladores, vistas, seguridad, validaciones, matriz de trazabilidad, asunciones, notas). Cada divergencia significativa se clasifica:
+3. **Diff vs gold (Fase 2):** comparación por 12 ejes (frontmatter, cabecera, tabla de ficheros, dominios, servicios, controladores, vistas, seguridad, reglas `V-XXX`/`R-XXX`/`U-XXX`, matriz de trazabilidad, asunciones, notas). Cada divergencia significativa se clasifica:
    - **A** — falta de instrucción en el skill.
    - **B** — conocimiento técnico ausente en `k-*`.
    - **C** — ambigüedad en el input.
@@ -312,8 +312,8 @@ Para empezar, lanza:
 
 **Caso B (solo gold):**
 - Avisa al usuario: "Solo recibí el gold; voy a derivar por ingeniería inversa el input neutral. **El input derivado describirá el QUÉ, no el CÓMO** — no debe contener nombres concretos de clases ni decisiones de implementación que el skill objetivo deba inferir."
-- Para `/sdd-analyst-system`: deriva `user-story.md` desde el `analysis.md` gold. La user-story debe ser un relato de usuario realista, sin tablas de validaciones, sin nombres de entidades en formato técnico, sin asunciones marcadas. Solo el problema funcional desde el punto de vista del usuario y las restricciones que no pueden romperse.
-- Para `/sdd-designer-system`: deriva `analysis.md` desde el `design.md` gold. El análisis debe usar el formato `type: analysis` (entidades, operaciones, vistas, seguridad, validaciones V-XXX, asunciones), pero **no debe mencionar nombres de clases Java, métodos concretos del gold ni detalles de XML de vistas** — solo el QUÉ funcional. Si el gold tiene decisiones de diseño que no son derivables del análisis funcional (ej. mecanismo de callback FQCN+JSON, clonado de PDF), opcionalmente derívalas también a un `design-guidelines.md` (`type: design-guidelines`) y avisa al usuario para que confirme cuáles deben permanecer (cosas no derivables) y cuáles se eliminan (cosas que "fugan" demasiado).
+- Para `/sdd-analyst-system`: deriva `user-story.md` desde el `analysis.md` gold. La user-story debe ser un relato de usuario realista, sin tablas de reglas (V/R/U), sin nombres de entidades en formato técnico, sin asunciones marcadas. Solo el problema funcional desde el punto de vista del usuario y las restricciones que no pueden romperse.
+- Para `/sdd-designer-system`: deriva `analysis.md` desde el `design.md` gold. El análisis debe usar el formato `type: analysis` (entidades, operaciones, vistas, seguridad, tablas `V-XXX`/`R-XXX`/`U-XXX`, asunciones), pero **no debe mencionar nombres de clases Java, métodos concretos del gold ni detalles de XML de vistas** — solo el QUÉ funcional. Si el gold tiene decisiones de diseño que no son derivables del análisis funcional (ej. mecanismo de callback FQCN+JSON, clonado de PDF), opcionalmente derívalas también a un `design-guidelines.md` (`type: design-guidelines`) y avisa al usuario para que confirme cuáles deben permanecer (cosas no derivables) y cuáles se eliminan (cosas que "fugan" demasiado).
 - Muestra al usuario los artefactos derivados y pídele aprobación con `AskUserQuestion` antes de continuar.
 
 ### 0.4 Crear estructura de carpetas
@@ -416,8 +416,10 @@ Compara el output unificado con el gold. Hazlo por **ejes**, no en bruto. Los ej
 | Controladores (si aplica) | Firmas de endpoints + transaccionalidad + AllowProperties | Lista y diff |
 | Vistas (si aplica) | Granularidad de ficheros, nombres de vistas, acciones | Lista por fichero |
 | Seguridad (si aplica) | Permisos, condiciones JPQL, granularidad de `<can>` | Lista de permisos |
-| Validaciones (V-XXX si aplica) | IDs, capas, mensajes | Tabla y diff |
-| Matriz de trazabilidad (si aplica) | Cobertura: cada V-XXX/RN ubicado en clase+método o fichero+acción | Recorrido fila por fila |
+| Validaciones (`V-XXX` si aplica) | IDs, capas, mensajes | Tabla y diff |
+| Reglas de negocio (`R-XXX` si aplica) | IDs, entidad, operación, momento (Antes/Después) | Tabla y diff |
+| Reglas de UI (`U-XXX` si aplica) | IDs, disparador, efecto, campo/panel afectado | Tabla y diff |
+| Matriz de trazabilidad (si aplica) | Cobertura: cada `V-XXX`/`R-XXX`/`U-XXX` ubicado en clase+método o fichero+acción | Recorrido fila por fila |
 | Asunciones / notas | Lista de asunciones marcadas con `*` | Lista y diff |
 
 Para cada eje produce un veredicto: **OK**, **diferencia cosmética**, o **divergencia significativa**.

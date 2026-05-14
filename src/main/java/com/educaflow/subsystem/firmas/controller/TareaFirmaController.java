@@ -1,14 +1,13 @@
 package com.educaflow.subsystem.firmas.controller;
 
 import com.axelor.db.JpaRepository;
-import com.axelor.db.Repository;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.CallMethod;
 import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
 import com.educaflow.base.infrastructure.autofirma.AutoFirma;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.base.util.AllowProperties;
 import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
@@ -52,7 +51,6 @@ public class TareaFirmaController {
         final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
 
         ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
-        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
 
         TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
         AllowProperties allowProperties = AllowProperties.createAllowProperties(Map.of("documentosFirma", Map.of("documentoFirmado", Map.of())));
@@ -68,7 +66,6 @@ public class TareaFirmaController {
         final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
 
         ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
-        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
 
         TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
         AllowProperties allowProperties = AllowProperties.createAllowProperties(Map.of("motivoRechazo", Map.of()));

@@ -6,7 +6,7 @@ import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
 import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.base.util.AllowProperties;
 import com.educaflow.subsystem.criptografia.db.DispositivoCriptografico;
 import com.educaflow.subsystem.criptografia.service.DispositivoCriptograficoService;
@@ -20,7 +20,7 @@ public class DispositivoCriptograficoController {
     private ModelServiceFactory modelServiceFactory;
 
     @CallMethod
-    public void validarDispositivoCriptografico(ActionRequest actionRequest, ActionResponse actionResponse) {
+    public void validateSave(ActionRequest actionRequest, ActionResponse actionResponse) {
         final DispositivoCriptograficoService service = (DispositivoCriptograficoService) modelServiceFactory.resolve(DispositivoCriptografico.class);
 
         ActionRequestHelper<DispositivoCriptografico> actionRequestHelper = new ActionRequestHelper<>(actionRequest, DispositivoCriptografico.class);

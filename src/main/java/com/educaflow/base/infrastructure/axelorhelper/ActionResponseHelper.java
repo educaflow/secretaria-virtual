@@ -3,12 +3,10 @@ package com.educaflow.base.infrastructure.axelorhelper;
 import com.axelor.db.Model;
 import com.axelor.meta.schema.actions.ActionView;
 import com.axelor.rpc.ActionResponse;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessage;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+import com.axelor.db.modelservice.BusinessMessage;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.base.infrastructure.validation.messages.internal.BusinessMessageHelper;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 

@@ -1,6 +1,6 @@
 package com.educaflow.base.infrastructure.validation.engine
 
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages
+import com.axelor.db.modelservice.BusinessMessages
 
 interface ValidationRule {
 

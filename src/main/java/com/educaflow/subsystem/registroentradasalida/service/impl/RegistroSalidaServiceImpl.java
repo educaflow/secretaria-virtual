@@ -4,12 +4,16 @@ import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
+import com.educaflow.base.infrastructure.mail.Attach;
+import com.educaflow.base.infrastructure.mail.Mail;
+import com.educaflow.base.infrastructure.mail.MailSender;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.numeradores.db.repo.NumeradorRepository;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
-import com.educaflow.subsystem.certificados.AlmacenClaveLoader;
+import com.educaflow.base.util.MetaFileUtil;
+import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.registroentradasalida.service.RegistroSalidaInsertDTO;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroSalida;
@@ -17,6 +21,7 @@ import com.educaflow.subsystem.registroentradasalida.service.RegistroSalidaServi
 import jakarta.inject.Inject;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalida> implements RegistroSalidaService {
@@ -27,14 +32,32 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
     NumeradorRepository numeradorRepository;
 
     @Inject
-    AlmacenClaveLoader almacenClaveLoader;
+    AlmacenClaveResolver almacenClaveResolver;
 
     @Inject
-    public RegistroSalidaServiceImpl(Class<RegistroSalida> model, Repository repository) {
+    MailSender mailSender;
+
+    @Inject
+    public RegistroSalidaServiceImpl(Class<RegistroSalida> model, Repository<RegistroSalida> repository) {
         super(model, repository);
     }
 
 
+    @Override
+    public RegistroSalida insert(RegistroSalida entity) {
+        entity = super.insert(entity);
+        fireActionRule_NotificarRegistroSalida(entity);
+        return entity;
+    }
+
+    @Override
+    public RegistroSalida update(RegistroSalida entity, RegistroSalida original) {
+        entity = super.update(entity, original);
+        fireActionRule_NotificarRegistroSalida(entity);
+        return entity;
+    }
+
+    @Override
     public RegistroSalida createRegistroSalida(RegistroSalidaInsertDTO registroSalidaInsertDTO, MetaFile documentoOriginal, List<MetaFile> anexos) {
 
         if (MetaFileHelper.isPdf(documentoOriginal)==false) {
@@ -45,7 +68,7 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
         String asunto= registroSalidaInsertDTO.asunto();
         Centro centro= registroSalidaInsertDTO.centro();
         String numeroRegistro=getNumeroRegistro(centro,ahora);
-        AlmacenClave almacenClave=almacenClaveLoader.getSecretario(centro);
+        AlmacenClave almacenClave= almacenClaveResolver.getSecretario(centro);
         MetaFile documento=firmarRegistroSalidaPorSecretario(MetaFileHelper.getDocumentoPdf(documentoOriginal),almacenClave,numeroRegistro);
 
         RegistroSalida registroSalida=new RegistroSalida();
@@ -72,6 +95,29 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
         String numeroRegistro = String.format("%05d", numeroRegistroSinAnyo) + "/" + anyoActual;
 
         return numeroRegistro;
+    }
+
+
+    private void fireActionRule_NotificarRegistroSalida(RegistroSalida registroSalida) {
+        List<Attach> attachs = createAttachFromMetaFiles(registroSalida.getAnexos());
+        attachs.add(createAttachFromMetaFile(registroSalida.getDocumento()));
+        String subject = "Nuevo Registro de Salida Nº " + registroSalida.getNumeroRegistro();
+        String body = "Se ha creado un nuevo registro de salida con número " + registroSalida.getNumeroRegistro() + " en el centro " + registroSalida.getCentro().getName();
+        Mail mail = new Mail(List.of("nada@gmail.com"), "secretariavirtual@fpmislata.com", subject, body, body, attachs);
+
+        mailSender.send(mail);
+    }
+
+    private Attach createAttachFromMetaFile(MetaFile metaFile) {
+        return new Attach(metaFile.getFileName(), MetaFileUtil.downloadContent(metaFile), metaFile.getFileType());
+    }
+
+    private List<Attach> createAttachFromMetaFiles(List<MetaFile> metaFiles) {
+        List<Attach> attachs = new ArrayList<>();
+        for (MetaFile metaFile : metaFiles) {
+            attachs.add(createAttachFromMetaFile(metaFile));
+        }
+        return attachs;
     }
 
 

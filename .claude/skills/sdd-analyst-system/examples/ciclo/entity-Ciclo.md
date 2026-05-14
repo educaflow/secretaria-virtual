@@ -1,0 +1,30 @@
+# Entidad: Ciclo
+
+## Modelo de datos
+
+| Campo                | Tipo de dato | Relación                          | Notas                            |
+|----------------------|--------------|-----------------------------------|----------------------------------|
+| code                 | texto        | —                                 | código identificador del ciclo   |
+| name                 | texto        | —                                 | nombre legible                   |
+| familiaProfesional   | relación     | → FamiliaProfesional              |                                  |
+| grado                | relación     | → Grado                           | dominio limitado a "D" o "E"     |
+| nivel                | relación     | → Nivel                           | dominio limitado a "D" o "E"     |
+| cursos               | lista        | → Curso (uno a varios, hijos)     | se mantiene desde la pantalla    |
+
+## Validaciones (V-XXX)
+
+| ID    | Campo(s) | Descripción                                | Condición            | Mensaje al usuario                                |
+|-------|----------|--------------------------------------------|----------------------|---------------------------------------------------|
+| V-001 | nivel    | El nivel debe estar relleno                | Solo si grado = "D"  | "El nivel es obligatorio cuando el grado es 'D'." |
+
+## Acciones
+
+| Operación          | Cuándo se permite | Validaciones que aplican | Reglas que dispara |
+|--------------------|-------------------|--------------------------|--------------------|
+| Crear (insert)     | Siempre           | V-001                    | —                  |
+| Modificar (update) | Siempre           | V-001                    | —                  |
+| Borrar (remove)    | Siempre           | —                        | —                  |
+
+## Reglas de negocio (R-XXX)
+
+*(no hay reglas de negocio asociadas a Ciclo)*

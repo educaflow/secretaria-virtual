@@ -12,7 +12,8 @@ description: Este Skill permite diseñar y generar la estructura de carpetas, fi
 | `modelos.md` | Cómo definir entidades en XML de dominio: tipos de campo, relaciones, enumerados, herencia, finders y extra-code |
 | `servicios.md` | Cómo implementar la capa de servicio: interfaz `ModelService`, implementación `DefaultModelService`, constructor obligatorio, validaciones con `BusinessMessages` y DTOs |
 | `controladores.md` | Cómo implementar controladores: tipos de método con `@CallMethod`, `ActionRequestHelper`, `ActionResponseHelper`, `AllowProperties` y señales de respuesta |
-| `validaciones.md` | Cómo implementar validaciones en Axelor: capa cliente (atributos de campo, `action-condition`, `action-validate`) y capa servidor (`validateInsert`/`validateUpdate`/`validateRemove` + controlador), con el patrón completo `action-group` que encadena ambas capas |
+
+> Para validaciones (`V-XXX`), reglas de negocio (`R-XXX`) y reglas de UI (`U-XXX`), ver el skill **`k-validaciones`**.
 
 ---
 
@@ -110,6 +111,8 @@ Módulo Guice que registra bindings interfaz → implementación cuando `ModelSe
 
 > **REGLA CRÍTICA — NUNCA crear un módulo para implementaciones de `ModelService`:** `ModelServiceFactory` descubre automáticamente cualquier clase en el paquete `service.impl.*ServiceImpl`. Crear un módulo Guice para registrar un `ModelService` es un error — el servicio quedaría registrado dos veces y rompería la factoría. Solo crear `module/` cuando haya bindings que genuinamente no pueden descubrirse por convención (interfaces no relacionadas con `ModelService`, decoradores, servicios de infraestructura).
 
+> **REGLA CRÍTICA — los `AxelorModule` del subsistema NO se instalan manualmente:** la clase `module/<Subsistema>Module.java` debe extender `com.axelor.app.AxelorModule`. Axelor descubre y carga automáticamente todos los `AxelorModule` del classpath al arrancar, así que **NUNCA** se añade un `install(new <Subsistema>Module())` en `SecretariaVirtualModule` ni en ningún otro sitio. Cualquier paso de diseño o implementación que diga "registrar el módulo en `SecretariaVirtualModule`" es incorrecto y debe omitirse.
+
 ### `views/`
 
 Ficheros XML de vistas Axelor (namespace `object-views`). Cada fichero contiene un grid, un form, sus paneles auxiliares y todas las acciones (`action-group`, `action-method`, `action-record`, `action-attrs`, `action-validate`, `action-condition`) que necesita **un único `<action-view>`**.
@@ -147,16 +150,16 @@ firmas/
 │   ├── TareaFirma.xml
 │   └── DocumentoFirma.xml
 ├── service/
-│   ├── FirmaService.java          ← interfaz
+│   ├── TareaFirmaService.java          ← interfaz
 │   ├── DatosFirma.java            ← record DTO de entrada
 │   ├── FirmaNotifier.java         ← interfaz de callback
 │   └── impl/
-│       └── FirmaServiceImpl.java
+│       └── TareaFirmaServiceImpl.java
 ├── db/                            ← (vacío, repos generados por Axelor)
 ├── module/
-│   └── FirmaModule.java
+│   └── FirmasModule.java
 ├── controller/
-│   └── FirmarController.java
+│   └── TareaFirmaController.java
 └── views/
     ├── firma-pendiente.xml
     ├── firma-firmado.xml
@@ -260,27 +263,7 @@ Cuando una entidad tiene una relación `one-to-many` que se edita inline, usa `<
 - Si hay varias colecciones, agrúpalas dentro de `<panel-tabs>`.
 - El patrón aplica en cualquier profundidad: cada nivel tiene su `panel-related`, su form hijo con `onNew` y su `action-record` que asigna `__parent__`. El nombre de la vista refleja todos los niveles: `subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-grid`.
 
-El grid y el form del `panel-related` se preceden de este bloque de comentarios (relleno con `*`, `-->` alineados):
-```xml
-<!-- ************************************************************************************ -->
-<!-- ********************* Vistas de ModeloMaestro -> ModeloDetalle ********************* -->
-<!-- ************************************************************************************ -->
-```
-Si hay anidamiento, el texto del comentario refleja todos los niveles: `Vistas de ModeloMaestro -> ModeloDetalle1 -> ModeloDetalle2`.
-
-### Comentarios
-Organización del fichero de vistas con comentarios (relleno con `*`, `-->` alineados):
-```xml
-<!-- **********************************************************  -->
-<!-- ****************** Acciones de los botones ***************  -->
-<!-- **********************************************************  -->
-<!-- action-group y action-method de cada botón -->
-
-<!-- **********************************************************  -->
-<!-- ********* Acciones básicas que cambian campos ************  -->
-<!-- **********************************************************  -->
-<!-- action-record que solo asignan valores -->
-```
+Para los comentarios que separan las vistas y los grupos de acciones, consultar el skill `k-vistas` (secciones "Comentarios de cabecera de sección" y "Comentarios de grupos de acciones").
 
 ### Patrón 2 — Fichero de menú
 
@@ -335,7 +318,8 @@ La diferencia principal entre un sistema y un subsistema es que el sistema suele
 | Modelos | `modelos.md` | Entidades XML de dominio, tipos de campo, relaciones, enumerados, finders, extra-code en repositorio y en dominio |
 | Servicios | `servicios.md` | Interfaz `ModelService`, implementación `DefaultModelService`, constructor obligatorio, validaciones, DTOs y descubrimiento automático |
 | Controladores | `controladores.md` | Estructura, tipos de método, `ModelServiceFactory`, `ActionRequestHelper`, `ActionResponseHelper` y reglas de diseño |
-| Validaciones | `validaciones.md` | Las dos capas de validación: cliente (atributos de campo, `action-condition`, `action-validate`) y servidor (`validateInsert`/`validateUpdate`/`validateRemove` + controlador). Patrón completo `action-group`. Qué poner en cada capa. |
+
+> Para validaciones (`V-XXX`), reglas de negocio (`R-XXX`) y reglas de UI (`U-XXX`), ver el skill **`k-validaciones`**.
 
 ## Referencias detalladas
 

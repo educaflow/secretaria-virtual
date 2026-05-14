@@ -1,9 +1,10 @@
 package com.educaflow.subsystem.registrousuario.service.impl;
 
 import com.axelor.db.Repository;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages;
+
 import com.educaflow.subsystem.registrousuario.db.RegistroPendiente;
 import com.educaflow.subsystem.registrousuario.service.RegistroPendienteService;
 import com.google.inject.persist.Transactional;

@@ -11,8 +11,6 @@
         <many-to-one name="documento" ref="com.axelor.meta.db.MetaFile" required="true" title="Documento de salida"/>
         <one-to-many name="anexos" ref="com.axelor.meta.db.MetaFile" title="Anexos" />
         <string name="asunto"  />
-
-        <entity-listener class="com.educaflow.subsystem.registroentradasalida.db.repo.RegistroSalidaListener"/>
     </entity>
 
 </domain-models>

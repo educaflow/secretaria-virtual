@@ -3,8 +3,8 @@ package com.educaflow.base.infrastructure.validation.engine
 import com.axelor.db.annotations.Widget
 import com.axelor.i18n.I18n
 import com.educaflow.base.util.TextUtil
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessage
-import com.educaflow.base.infrastructure.validation.messages.BusinessMessages
+import com.axelor.db.modelservice.BusinessMessage
+import com.axelor.db.modelservice.BusinessMessages
 import java.lang.reflect.Field
 import kotlin.reflect.KFunction
 
