@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<datos>
+
+    <metaSchedule name="procesador-correos"
+                  description="Procesa las TareaCorreo en estado PENDIENTE y las envía"
+                  job="com.educaflow.subsystem.correos.job.ProcesadorCorreosJob"
+                  cron="0 */5 * * * ?"
+                  active="true"/>
+
+</datos>

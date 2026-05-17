@@ -12,3 +12,5 @@ Datos de la persona o entidad interesada (Lo correcto)
 Dades de la persona representant / Datos de la persona representante
 
 incluir el nombre de la conselleria en los documentos. que se añada al centro
+
+Añadir `sudo apt install libxml2-utils` tambien en el imagen de despliegue.

@@ -65,8 +65,28 @@ Para cada parte de Axelor se han creado conjuntos de Skills:
 
 Es imperativo que siempre uses los skills correspondientes para cualquier acción relacionada con Axelor, ya que siguen una arquitectura propia de la secretaría virtual y del framework Axelor.
 
+## Flujo SDD (Spec-Driven Development)
 
+El desarrollo de cualquier funcionalidad nueva en la secretaría virtual se hace siguiendo un pipeline de skills `/sdd-*` que transforma una idea informal en código implementado, pasando por etapas intermedias revisables. Cada etapa produce artefactos que sirven de input a la siguiente.
 
+Skills del pipeline (en orden de uso):
+
+1. `/sdd-create-user-story` — Crea la iniciativa: genera la carpeta `.sdd/drafts/YYYY-MM-DD_HH-MM_{nombre}/` con un `user-story.md` (intención del usuario) y un `design-guidelines.md` (directrices opcionales). Es el punto de entrada del pipeline.
+2. `/sdd-specification-system` — Toma la historia de usuario y, mediante preguntas iterativas, produce una `specification.md` completa: entidades, operaciones, vistas, seguridad y las tres tablas de reglas (`V-XXX` validaciones, `R-XXX` reglas de negocio, `U-XXX` reglas de UI) con sus mensajes de error.
+3. `/sdd-analyst-system` — Interpreta la especificación y genera los artefactos de análisis: un `analysis.md` índice, un `entity-<Nombre>.md` por cada entidad detectada y un `screen-<nombre>.md` por cada pantalla.
+4. `/sdd-designer-system` — A partir del análisis, produce un plan de DISEÑO que describe qué clases, métodos, vistas y acciones hay que construir y dónde va cada regla, sin escribir todavía el código.
+5. `/sdd-implementer-system` — Ejecuta el plan de diseño escribiendo el código real (Java, XML de vistas, etc.) invocando internamente los skills técnicos de dominio.
+6. `/sdd-close-spec` — Cierra la iniciativa: archiva los artefactos en `.sdd/specs/NNNN_desc/` como versión "as-built" (corrigiendo análisis y diseño para reflejar lo realmente implementado) y actualiza los `CLAUDE.md` de las carpetas afectadas.
+
+Skill auxiliar (no forma parte del flujo de desarrollo):
+
+- `/sdd-eval` — Herramienta de meta-evaluación para medir y mejorar la calidad de los propios skills SDD comparando su output contra un artefacto "gold" de referencia.
+
+Flujo resumido:
+
+```
+user-story  →  specification  →  analysis  →  design  →  implementation  →  close
+```
 
 ## Architectura
 Todo el proyecto cuelga del paquete: `com.educaflow`

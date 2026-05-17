@@ -73,5 +73,13 @@
         <menuitem name="utilidadesPdf-posicionesFirma-menuitem"     parent="utilidadesPdf-menuitem" title="Posiciones Firma"     action="subsysPdfUtilities.PdfUtilities@Firma-action"       order="2"/>
         <menuitem name="utilidadesPdf-posicionAutofirma-menuitem" parent="utilidadesPdf-menuitem" title="Posición Autofirma__!!" action="subsysPdfUtilities.PdfUtilities@AutoFirma-action"  order="3"/>
 
+    <menuitem name="correos-menuitem" title="Correos" order="35"/>
+        <menuitem name="correos-todos-menuitem" parent="correos-menuitem" title="Todos los correos" action="subsysCorreos.TareaCorreo@Todos-action" groups="admins" order="1"/>
+        <menuitem name="correos-nuevo-menuitem" parent="correos-menuitem" title="Nuevo correo" action="subsysCorreos.TareaCorreo@Nuevo-action" groups="admins" order="2"/>
+        <menuitem name="correos-centro-menuitem" parent="correos-menuitem" title="Correos del centro" action="subsysCorreos.TareaCorreo@Centro-action" order="3"/>
+        <menuitem name="correos-grafica-menuitem" parent="correos-menuitem" title="Gráfica de correos enviados" action="subsysCorreos.TareaCorreo@Grafica-action" groups="admins" order="4"/>
+
+    <menuitem name="carpetaCiudadana-menuitem" title="Carpeta ciudadana" order="36"/>
+        <menuitem name="carpetaCiudadana-misCorreos-menuitem" parent="carpetaCiudadana-menuitem" title="Mis correos" action="subsysCorreos.TareaCorreo@Mis-action" order="10"/>
 
 </object-views>

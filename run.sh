@@ -12,5 +12,5 @@ clear
 ./gradlew clean build --info
 # ./gradlew clean test --info
 #./gradlew --no-daemon run --debug-jvm --port 8080 --context-path /
-./gradlew --no-daemon run --port 8080 --context-path /
+./gradlew --no-daemon run --port 8080 --context-path /  --config ../secretaria-virtual-secrets/secretaria-virtual.properties
 
