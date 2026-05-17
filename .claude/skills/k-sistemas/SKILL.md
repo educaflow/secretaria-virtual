@@ -65,7 +65,7 @@ Contiene los ficheros XML de definición de entidades Axelor (namespace `domain-
 
 También puede contener diagramas de modelo (`.plantuml`, `.png`) para documentación.
 
-**Cuándo consultar `modelos.md`:** al crear o modificar cualquier fichero XML de esta carpeta — tipos de campo, relaciones, enumerados, finders, extra-code en repositorio o en dominio. Ver también `references/models.md` y `references/repositories.md` para la referencia XSD completa. Ante cualquier duda sobre si un atributo existe o qué valores acepta, consultar `references/domain-models.xsd` — es la fuente de verdad oficial del schema.
+**Cuándo consultar `modelos.md`:** al crear o modificar cualquier fichero XML de esta carpeta — tipos de campo, relaciones, enumerados, finders, extra-code en repositorio o en dominio. Ver también `references/models.md` y `references/repositories.md` para la referencia XSD completa. Ante cualquier duda sobre si un atributo existe o qué valores acepta, consultar `../axelor-open-platform/axelor-core/src/main/resources/domain-models.xsd` — es la fuente de verdad oficial del schema.
 
 ### `service/`
 
@@ -323,7 +323,7 @@ La diferencia principal entre un sistema y un subsistema es que el sistema suele
 
 ## Referencias detalladas
 
-- `references/domain-models.xsd` — **schema XSD oficial de Axelor 8.1**: fuente de verdad para verificar qué atributos y etiquetas son válidos en cualquier elemento de dominio (`<entity>`, `<string>`, `<integer>`, `<many-to-one>`, `<one-to-many>`, `<enum>`, `<finder-method>`, `<extra-code>`, etc.) y si un fichero XML está bien formado. Consultar este fichero ante cualquier duda sobre si un atributo existe o cuáles son sus valores permitidos.
+- `../axelor-open-platform/axelor-core/src/main/resources/domain-models.xsd` — **schema XSD oficial de Axelor 8.1**: fuente de verdad para verificar qué atributos y etiquetas son válidos en cualquier elemento de dominio (`<entity>`, `<string>`, `<integer>`, `<many-to-one>`, `<one-to-many>`, `<enum>`, `<finder-method>`, `<extra-code>`, etc.) y si un fichero XML está bien formado. Consultar este fichero ante cualquier duda sobre si un atributo existe o cuáles son sus valores permitidos.
 - `references/models.md` — atributos y elementos completos del modelo de dominio XML
 - `references/repositories.md` — finders y extra-code en repositorios
 - `references/ActionRequest.md` — métodos públicos de `ActionRequest`

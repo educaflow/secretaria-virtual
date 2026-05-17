@@ -4,6 +4,7 @@
 
 - **Quién la usa:** cualquier usuario que tenga tareas pendientes de firma (firmante).
 - **Qué muestra:** las tareas de firma del usuario actual cuyo estado es PENDIENTE. Permite firmar o rechazar la firma de los documentos a través de un asistente con tres pasos.
+- 
 
 ## Menú
 
@@ -15,10 +16,18 @@
 
 ---
 
+## Estructura jerarquica de las pantallas
+```
+TareaFirma
+└── DocumentoFirma
+```
+
+
 ## Grid 1 — "Firmas"
 
 | Propiedad                          | Valor                                                              |
 |------------------------------------|--------------------------------------------------------------------|
+| Entidad                            | TareaFirma                                                         |
 | Columnas (en orden)                | fecha de solicitud, firmante, motivo de la firma, estado           |
 | Ordenación por defecto             | fecha de solicitud ascendente                                      |
 | ¿Permite buscar?                   | NO                                                                 |
@@ -27,6 +36,11 @@
 | Botones de las columnas            | —                                                                  |
 
 ## Formulario 1 — Tarea pendiente
+
+| Propiedad     | Valor                                                                                                          |
+|---------------|----------------------------------------------------------------------------------------------------------------|
+| Entidad       | TareaFirma                                                                                                     |
+| Solo lectura  | no — los campos de estado son solo lectura, pero el formulario permite firmar/rechazar mediante el asistente   |
 
 ### Paneles
 
@@ -45,19 +59,19 @@
 | "Rechazar firmar"                                       | Cambia el asistente al paso "rechazar"                                                                                                                                  |
 | "Firmar todos los documentos"                           | Cambia el asistente al paso "firmar"                                                                                                                                    |
 | "Atrás" (en panel "Rechazar firmar el documento")       | Vuelve el asistente al paso "Resolver" (paso 1)                                                                                                                         |
-| "Finalizar"                                             | Valida V-006 → ejecuta la operación "Marcar como rechazada" (R-001, R-002) → cierra el formulario                                                                       |
+| "Finalizar"                                             | Valida V-TareaFirma-006 → ejecuta la operación "Marcar como rechazada" (R-TareaFirma-001, R-TareaFirma-002) → cierra el formulario                                                                       |
 | "Atrás" (en panel "Firmar el documento")                | Vuelve el asistente al paso "Resolver" (paso 1)                                                                                                                         |
-| "Firmar todos los documentos con AutoFirma y finalizar" | Ejecuta la operación "Firmar documentos con AutoFirma" (R-005) → valida V-007 → ejecuta la operación "Marcar como firmada" (R-003, R-004) → cierra el formulario        |
+| "Firmar todos los documentos con AutoFirma y finalizar" | Ejecuta la operación "Firmar documentos con AutoFirma" (R-TareaFirma-005) → valida V-TareaFirma-007 → ejecuta la operación "Marcar como firmada" (R-TareaFirma-003, R-TareaFirma-004) → cierra el formulario        |
 
-### Reglas de UI (U-XXX)
+### Reglas de UI (U-pendiente-NNN)
 
 | ID    | Disparador | Efecto                       | Campo/Panel afectado                  | Condición                                                  |
 |-------|------------|------------------------------|---------------------------------------|------------------------------------------------------------|
-| U-004 | continuo   | Mostrar/ocultar              | campo "fecha de resolución"           | Visible solo si la tarea ya está resuelta                  |
-| U-005 | onLoad     | Iniciar paso del asistente   | asistente del formulario              | Al abrir, posicionarse en el paso "Resolver" (paso 1)      |
-| U-006 | continuo   | Mostrar/ocultar              | panel "Resolver"                      | Visible solo cuando el asistente está en el paso 1         |
-| U-007 | continuo   | Mostrar/ocultar              | panel "Rechazar firmar el documento"  | Visible solo cuando el asistente está en el paso "rechazar"|
-| U-008 | continuo   | Mostrar/ocultar              | panel "Firmar el documento"           | Visible solo cuando el asistente está en el paso "firmar"  |
+| U-pendiente-001 | continuo   | Mostrar/ocultar              | campo "fecha de resolución"           | Visible solo si la tarea ya está resuelta                  |
+| U-pendiente-002 | onLoad     | Iniciar paso del asistente   | asistente del formulario              | Al abrir, posicionarse en el paso "Resolver" (paso 1)      |
+| U-pendiente-003 | continuo   | Mostrar/ocultar              | panel "Resolver"                      | Visible solo cuando el asistente está en el paso 1         |
+| U-pendiente-004 | continuo   | Mostrar/ocultar              | panel "Rechazar firmar el documento"  | Visible solo cuando el asistente está en el paso "rechazar"|
+| U-pendiente-005 | continuo   | Mostrar/ocultar              | panel "Firmar el documento"           | Visible solo cuando el asistente está en el paso "firmar"  |
 
 ---
 
@@ -65,6 +79,7 @@
 
 | Propiedad                          | Valor                                                              |
 |------------------------------------|--------------------------------------------------------------------|
+| Entidad                            | DocumentoFirma                                                     |
 | Columnas (en orden)                | documento original (nombre del fichero)                            |
 | Ordenación por defecto             | —                                                                  |
 | ¿Permite buscar?                   | NO                                                                 |
@@ -73,6 +88,11 @@
 | Botones de las columnas            | —                                                                  |
 
 ## Formulario 2 — Documento
+
+| Propiedad     | Valor           |
+|---------------|-----------------|
+| Entidad       | DocumentoFirma  |
+| Solo lectura  | sí              |
 
 ### Paneles
 
@@ -83,8 +103,8 @@
 
 *(sin botones)*
 
-### Reglas de UI (U-XXX)
+### Reglas de UI (U-pendiente-NNN)
 
 | ID    | Disparador | Efecto           | Campo/Panel afectado          | Condición                                |
 |-------|------------|------------------|-------------------------------|------------------------------------------|
-| U-013 | continuo   | Mostrar/ocultar  | pestaña "Documento firmado"   | Visible solo si existe documento firmado |
+| U-pendiente-006 | continuo   | Mostrar/ocultar  | pestaña "Documento firmado"   | Visible solo si existe documento firmado |

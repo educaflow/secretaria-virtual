@@ -17,12 +17,20 @@ Pantalla que ilustra el uso del botón **"Reintentar"** como **botón de columna
 
 ---
 
+## Estructura jerarquica de las pantallas
+```
+TareaCorreo
+└── AdjuntoCorreo
+```
+
+
 ## Grid 1 — "Correos"
 
 ### Propiedades
 
 | Propiedad                          | Valor                                                                              |
 |------------------------------------|------------------------------------------------------------------------------------|
+| Entidad                            | TareaCorreo                                                                        |
 | Columnas (en orden)                | estado, fecha de creación, centro, email destinatario, DNI destinatario, asunto, nº intentos, fecha de envío OK |
 | Ordenación por defecto             | fecha de creación descendente                                                      |
 | ¿Permite buscar?                   | SÍ — búsqueda libre + filtros por estado, fecha de creación, centro, DNI destinatario, email destinatario |
@@ -35,15 +43,22 @@ Pantalla que ilustra el uso del botón **"Reintentar"** como **botón de columna
 | Botón          | Qué hace                                                                                         |
 |----------------|--------------------------------------------------------------------------------------------------|
 | "Nuevo correo" | Abre el formulario para crear un nuevo correo                                                    |
-| "Reintentar"   | Ejecuta la operación "Reintentar envío" sobre el correo de la fila (R-002) → recarga el listado  |
+| "Reintentar"   | Ejecuta la operación "Reintentar envío" sobre el correo de la fila (R-TareaCorreo-002) → recarga el listado  |
 
-### Reglas de UI (U-XXX)
+### Reglas de UI (U-todos-NNN)
 
 | ID    | Disparador | Efecto          | Campo/Panel afectado            | Condición                              |
 |-------|------------|-----------------|---------------------------------|----------------------------------------|
-| U-001 | continuo   | Mostrar/ocultar | botón "Reintentar" de la fila   | Visible solo si la fila tiene estado FALLADO |
+| U-todos-001 | continuo   | Mostrar/ocultar | botón "Reintentar" de la fila   | Visible solo si la fila tiene estado FALLADO |
 
 ## Formulario 1 — Correo
+
+### Propiedades
+
+| Propiedad     | Valor                                                                                              |
+|---------------|----------------------------------------------------------------------------------------------------|
+| Entidad       | TareaCorreo                                                                                        |
+| Solo lectura  | no — al abrir desde el grid se muestra en solo lectura; al crear un nuevo correo es editable        |
 
 ### Paneles
 
@@ -59,14 +74,14 @@ Pantalla que ilustra el uso del botón **"Reintentar"** como **botón de columna
 
 *(sin botones — la acción "Reintentar" se ejecuta desde la columna del grid)*
 
-### Reglas de UI (U-XXX)
+### Reglas de UI (U-todos-NNN)
 
 | ID    | Disparador | Efecto             | Campo/Panel afectado                                                          | Condición                                                  |
 |-------|------------|--------------------|-------------------------------------------------------------------------------|------------------------------------------------------------|
-| U-002 | continuo   | Solo lectura       | centro, asunto, DNI/NIE, email, nombre, cuerpo HTML, cuerpo texto plano       | El registro ya existe (no es nuevo)                        |
-| U-003 | continuo   | Solo lectura       | campo "de"                                                                    | Siempre (lo asigna el sistema)                             |
-| U-004 | continuo   | Mostrar/ocultar    | panel "Log de errores"                                                        | Visible solo si hay errores que mostrar                    |
-| U-005 | continuo   | Mostrar/ocultar    | panel "Expediente relacionado"                                                | Visible solo si el correo proviene de un expediente        |
+| U-todos-002 | continuo   | Solo lectura       | centro, asunto, DNI/NIE, email, nombre, cuerpo HTML, cuerpo texto plano       | El registro ya existe (no es nuevo)                        |
+| U-todos-003 | continuo   | Solo lectura       | campo "de"                                                                    | Siempre (lo asigna el sistema)                             |
+| U-todos-004 | continuo   | Mostrar/ocultar    | panel "Log de errores"                                                        | Visible solo si hay errores que mostrar                    |
+| U-todos-005 | continuo   | Mostrar/ocultar    | panel "Expediente relacionado"                                                | Visible solo si el correo proviene de un expediente        |
 
 ---
 
@@ -76,6 +91,7 @@ Pantalla que ilustra el uso del botón **"Reintentar"** como **botón de columna
 
 | Propiedad                          | Valor                                          |
 |------------------------------------|------------------------------------------------|
+| Entidad                            | AdjuntoCorreo                                  |
 | Columnas (en orden)                | nombre del fichero                             |
 | Ordenación por defecto             | —                                              |
 | ¿Permite buscar?                   | NO                                             |
@@ -90,6 +106,13 @@ Pantalla que ilustra el uso del botón **"Reintentar"** como **botón de columna
 | "Añadir adjunto" | Abre el formulario para subir un nuevo fichero adjunto         |
 
 ## Formulario 2 — Adjunto
+
+### Propiedades
+
+| Propiedad     | Valor          |
+|---------------|----------------|
+| Entidad       | AdjuntoCorreo  |
+| Solo lectura  | no             |
 
 ### Paneles
 

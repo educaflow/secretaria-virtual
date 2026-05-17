@@ -11,20 +11,20 @@
 | nivel                | relación     | → Nivel                           | dominio limitado a "D" o "E"     |
 | cursos               | lista        | → Curso (uno a varios, hijos)     | se mantiene desde la pantalla    |
 
-## Validaciones (V-XXX)
+## Validaciones (V-Ciclo-NNN)
 
 | ID    | Campo(s) | Descripción                                | Condición            | Mensaje al usuario                                |
 |-------|----------|--------------------------------------------|----------------------|---------------------------------------------------|
-| V-001 | nivel    | El nivel debe estar relleno                | Solo si grado = "D"  | "El nivel es obligatorio cuando el grado es 'D'." |
+| V-Ciclo-001 | nivel    | El nivel debe estar relleno                | Solo si grado = "D"  | "El nivel es obligatorio cuando el grado es 'D'." |
 
 ## Acciones
 
 | Operación          | Cuándo se permite | Validaciones que aplican | Reglas que dispara |
 |--------------------|-------------------|--------------------------|--------------------|
-| Crear (insert)     | Siempre           | V-001                    | —                  |
-| Modificar (update) | Siempre           | V-001                    | —                  |
+| Crear (insert)     | Siempre           | V-Ciclo-001                    | —                  |
+| Modificar (update) | Siempre           | V-Ciclo-001                    | —                  |
 | Borrar (remove)    | Siempre           | —                        | —                  |
 
-## Reglas de negocio (R-XXX)
+## Reglas de negocio (R-Ciclo-NNN)
 
 *(no hay reglas de negocio asociadas a Ciclo)*

@@ -10,7 +10,7 @@
 | ciclo        | relación     | → Ciclo (padre)                       | asignado por el sistema          |
 | modulos      | lista        | → CursoModulo (uno a varios, hijos)   | se mantiene desde la pantalla    |
 
-## Validaciones (V-XXX)
+## Validaciones (V-Curso-NNN)
 
 *(no hay validaciones específicas de Curso)*
 
@@ -22,6 +22,6 @@
 | Modificar (update) | Siempre                                        | —                        | —                  |
 | Borrar (remove)    | Siempre                                        | —                        | —                  |
 
-## Reglas de negocio (R-XXX)
+## Reglas de negocio (R-Curso-NNN)
 
 *(no hay reglas de negocio asociadas a Curso)*

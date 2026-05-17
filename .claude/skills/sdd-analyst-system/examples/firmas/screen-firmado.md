@@ -5,6 +5,7 @@
 - **Quién la usa:** cualquier usuario firmante.
 - **Qué muestra:** las tareas de firma del usuario actual cuyo estado es FIRMADO, en modo consulta.
 
+
 ## Menú
 
 | Propiedad        | Valor                                       |
@@ -15,10 +16,17 @@
 
 ---
 
+## Estructura jerarquica de las pantallas
+```
+TareaFirma
+└── DocumentoFirma
+```
+
 ## Grid 1 — "Firmas"
 
 | Propiedad                          | Valor                                                                          |
 |------------------------------------|--------------------------------------------------------------------------------|
+| Entidad                            | TareaFirma                                                                     |
 | Columnas (en orden)                | fecha de solicitud, fecha de resolución, firmante, motivo de la firma, estado  |
 | Ordenación por defecto             | fecha de solicitud ascendente                                                  |
 | ¿Permite buscar?                   | NO                                                                             |
@@ -27,6 +35,11 @@
 | Botones de las columnas            | —                                                                              |
 
 ## Formulario 1 — Tarea firmada
+
+| Propiedad     | Valor       |
+|---------------|-------------|
+| Entidad       | TareaFirma  |
+| Solo lectura  | sí          |
 
 ### Paneles
 
@@ -42,11 +55,11 @@
 |-----------|-------------------------------------------|
 | "Salir"   | Cierra el formulario y vuelve al grid     |
 
-### Reglas de UI (U-XXX)
+### Reglas de UI (U-firmado-NNN)
 
 | ID    | Disparador | Efecto           | Campo/Panel afectado          | Condición                                  |
 |-------|------------|------------------|-------------------------------|--------------------------------------------|
-| U-014 | continuo   | Mostrar/ocultar  | campo "fecha de resolución"   | Visible solo si la tarea ya está resuelta  |
+| U-firmado-001 | continuo   | Mostrar/ocultar  | campo "fecha de resolución"   | Visible solo si la tarea ya está resuelta  |
 
 ---
 
@@ -54,6 +67,7 @@
 
 | Propiedad                          | Valor                                                                |
 |------------------------------------|----------------------------------------------------------------------|
+| Entidad                            | DocumentoFirma                                                       |
 | Columnas (en orden)                | documento firmado (nombre del fichero)                               |
 | Ordenación por defecto             | —                                                                    |
 | ¿Permite buscar?                   | NO                                                                   |
@@ -63,6 +77,11 @@
 
 ## Formulario 2 — Documento firmado
 
+| Propiedad     | Valor           |
+|---------------|-----------------|
+| Entidad       | DocumentoFirma  |
+| Solo lectura  | sí              |
+
 ### Paneles
 
 | Panel (título)         | Tipo     | Campos                                          |
@@ -71,6 +90,6 @@
 
 *(sin botones)*
 
-### Reglas de UI (U-XXX)
+### Reglas de UI (U-firmado-NNN)
 
 *(no aplica)*

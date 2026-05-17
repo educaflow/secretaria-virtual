@@ -9,7 +9,7 @@ Entidad puente que asocia un Curso con un Módulo del catálogo.
 | curso  | relación     | → Curso (padre)        | asignado por el sistema      |
 | modulo | relación     | → Modulo (catálogo)    | seleccionado por el usuario  |
 
-## Validaciones (V-XXX)
+## Validaciones (V-CursoModulo-NNN)
 
 *(no hay validaciones específicas de CursoModulo)*
 
@@ -21,6 +21,6 @@ Entidad puente que asocia un Curso con un Módulo del catálogo.
 | Modificar (update) | Siempre                                        | —                        | —                  |
 | Borrar (remove)    | Siempre                                        | —                        | —                  |
 
-## Reglas de negocio (R-XXX)
+## Reglas de negocio (R-CursoModulo-NNN)
 
 *(no hay reglas de negocio asociadas a CursoModulo)*

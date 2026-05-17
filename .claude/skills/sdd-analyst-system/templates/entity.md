@@ -39,24 +39,24 @@ Lista de campos de la entidad en lenguaje funcional. **No** se usan tipos Java (
 
 ---
 
-## Validaciones (V-XXX)
+## Validaciones (V-{NombreEntidad}-NNN)
 
 Tabla canónica de `k-validaciones`. Una validación es una condición que **bloquea** una operación si no se cumple. Si no hay ninguna, se pone `*(no hay validaciones específicas)*`.
 
-| ID    | Campo(s)                                   | Descripción                                      | Condición                          | Mensaje al usuario                                                           |
-|-------|--------------------------------------------|--------------------------------------------------|------------------------------------|------------------------------------------------------------------------------|
-| V-001 | *(uno o varios campos separados por coma)* | *(qué condición funcional debe cumplir el dato)* | *(cuándo se aplica la validación)* | *("Mensaje literal entre comillas con `{valor}` interpolado donde proceda")* |
+| ID                  | Campo(s)                                   | Descripción                                      | Condición                          | Mensaje al usuario                                                           |
+|---------------------|--------------------------------------------|--------------------------------------------------|------------------------------------|------------------------------------------------------------------------------|
+| V-{Entidad}-001     | *(uno o varios campos separados por coma)* | *(qué condición funcional debe cumplir el dato)* | *(cuándo se aplica la validación)* | *("Mensaje literal entre comillas con `{valor}` interpolado donde proceda")* |
 
 **Reglas:**
 
-- **ID global** del análisis: `V-001`, `V-002`, … sin reinicio por entidad. Numeración consecutiva sin huecos.
-- Si la validación se **asume** por análisis (no está explícitamente en la historia de usuario), marcar con `*` el ID (`V-007*`) y listarla en "Asunciones a confirmar" al final del análisis.
+- **ID con prefijo de entidad**: `V-<NombreEntidad>-001`, `V-<NombreEntidad>-002`, … La numeración es **local por entidad** y empieza siempre en 001, sin huecos. El `<NombreEntidad>` coincide con el nombre del fichero `entity-<NombreEntidad>.md` (CamelCase). Ejemplo: para `entity-TareaCorreo.md` → `V-TareaCorreo-001`, `V-TareaCorreo-002`, …
+- Si la validación se **asume** por análisis (no está explícitamente en la historia de usuario), marcar con `*` el ID (`V-TareaCorreo-007*`) y listarla en "Asunciones a confirmar" al final del análisis.
 - **Condición**: lenguaje natural (`Siempre`, `Solo al rechazar la firma`, `Solo si grado = "D"`). Nunca expresiones de código.
 - **Mensaje al usuario**: literal entre comillas. Sigue las guías de redacción de `k-validaciones`:
   - Empezar por el campo o el valor recibido.
   - Incluir el valor recibido (`'{email}'`) y, en dominios finitos, los valores válidos.
   - No usar tecnicismos del framework.
-- Las validaciones dependientes de estado **comparten la misma secuencia V-XXX**, no se abren tablas paralelas.
+- Las validaciones dependientes de estado **comparten la misma secuencia `V-<Entidad>-NNN`**, no se abren tablas paralelas.
 - Las reglas de unicidad declaran su **ámbito** (global / por centro / por año / combinación) en `Descripción` o `Condición`.
 
 ---
@@ -65,13 +65,13 @@ Tabla canónica de `k-validaciones`. Una validación es una condición que **blo
 
 Una entrada por cada operación que el sistema permite sobre esta entidad. Las tres primeras filas (`Crear`, `Modificar`, `Borrar`) son **fijas y siempre aparecen**, aunque sea con "Cuándo se permite = Nunca — \<motivo\>". Después se añaden las operaciones de negocio puntuales (Aprobar, Rechazar, Reintentar, Archivar, etc.), una fila por cada una.
 
-| Operación              | Cuándo se permite  | Validaciones que aplican  | Reglas que dispara      |
-|------------------------|--------------------|---------------------------|-------------------------|
-| Crear (insert)         | *(condición)*      | *(V-XXX referenciadas)*   | *(R-XXX referenciadas)* |
-| Modificar (update)     | *(condición)*      | *(V-XXX)*                 | *(R-XXX)*               |
-| Borrar (remove)        | *(condición)*      | *(V-XXX)*                 | *(R-XXX)*               |
-| *(operación custom 1)* | *(condición)*      | *(V-XXX)*                 | *(R-XXX)*               |
-| *(operación custom 2)* | …                  | …                         | …                       |
+| Operación              | Cuándo se permite  | Validaciones que aplican          | Reglas que dispara              |
+|------------------------|--------------------|-----------------------------------|---------------------------------|
+| Crear (insert)         | *(condición)*      | *(V-{Entidad}-NNN referenciadas)* | *(R-{Entidad}-NNN referenciadas)* |
+| Modificar (update)     | *(condición)*      | *(V-{Entidad}-NNN)*               | *(R-{Entidad}-NNN)*             |
+| Borrar (remove)        | *(condición)*      | *(V-{Entidad}-NNN)*               | *(R-{Entidad}-NNN)*             |
+| *(operación custom 1)* | *(condición)*      | *(V-{Entidad}-NNN)*               | *(R-{Entidad}-NNN)*             |
+| *(operación custom 2)* | …                  | …                                 | …                               |
 
 **Valores admitidos en `Cuándo se permite`**:
 
@@ -85,36 +85,36 @@ Si una operación es `Nunca`, las columnas de validaciones y reglas quedan en `�
 
 ---
 
-## Reglas de negocio (R-XXX)
+## Reglas de negocio (R-{NombreEntidad}-NNN)
 
-Tabla canónica de `k-validaciones`. Una regla de negocio es una acción que el sistema **ejecuta** automáticamente ante un evento (insertar, actualizar, borrar, operación custom). Modifica el estado del sistema o produce efectos colaterales. **Nunca bloquea** — si bloquea, es una `V-XXX`.
+Tabla canónica de `k-validaciones`. Una regla de negocio es una acción que el sistema **ejecuta** automáticamente ante un evento (insertar, actualizar, borrar, operación custom). Modifica el estado del sistema o produce efectos colaterales. **Nunca bloquea** — si bloquea, es una `V-<Entidad>-NNN`.
 
 Si no hay reglas, se pone `*(no hay reglas de negocio asociadas a <Entidad>)*`.
 
-| ID    | Descripción                                     | Entidad                        | Método                      | Momento             | Más información                                  |
-|-------|-------------------------------------------------|--------------------------------|-----------------------------|---------------------|--------------------------------------------------|
-| R-001 | *(qué hace el sistema, no qué hace el usuario)* | *(entidad sobre la que actúa)* | *(operación de la entidad)* | *(Antes / Después)* | *(condiciones, dependencias, datos modificados)* |
+| ID                 | Descripción                                     | Entidad                        | Método                      | Momento             | Más información                                  |
+|--------------------|-------------------------------------------------|--------------------------------|-----------------------------|---------------------|--------------------------------------------------|
+| R-{Entidad}-001    | *(qué hace el sistema, no qué hace el usuario)* | *(entidad sobre la que actúa)* | *(operación de la entidad)* | *(Antes / Después)* | *(condiciones, dependencias, datos modificados)* |
 
 **Reglas:**
 
-- **ID global** del análisis: `R-001`, `R-002`, … sin reinicio por entidad. Numeración consecutiva sin huecos.
-- **Reglas asumidas** se marcan con `*` en el ID y se listan en "Asunciones a confirmar".
+- **ID con prefijo de entidad**: `R-<NombreEntidad>-001`, `R-<NombreEntidad>-002`, … Numeración **local por entidad** desde 001, sin huecos. El `<NombreEntidad>` coincide con el del fichero. Ejemplo: para `entity-TareaCorreo.md` → `R-TareaCorreo-001`, `R-TareaCorreo-002`, …
+- **Reglas asumidas** se marcan con `*` en el ID (`R-TareaCorreo-005*`) y se listan en "Asunciones a confirmar".
 - **Descripción**: describir qué hace el sistema (`Asigna el número de expediente secuencial`, `Envía un correo al solicitante`), nunca qué hace el usuario.
 - **Entidad**: la entidad sobre la que la regla actúa (normalmente la del fichero, pero puede ser otra si la regla tiene efectos colaterales en hijos).
 - **Método**: la operación de la entidad donde se dispara la regla. Valores típicos: `insert`, `update`, `remove`, `cambiarEstado`, o el nombre de una operación custom (`Marcar como rechazada`, `Reintentar envío`…). El nombre debe coincidir con el de la columna `Operación` de la tabla de Acciones.
 - **Momento**:
   - `Antes` si la regla **escribe sobre el mismo registro** que se está guardando (los cambios persistirán junto con el `save`).
   - `Después` si tiene **efectos colaterales** (correos, PDFs, propagación a otras entidades, llamadas a sistemas externos).
-- Si una regla mezcla escritura propia + efectos colaterales, **partirla en dos R-XXX separadas** (una Antes, otra Después) — mejora la trazabilidad al diseño.
+- Si una regla mezcla escritura propia + efectos colaterales, **partirla en dos `R-<Entidad>-NNN` separadas** (una Antes, otra Después) — mejora la trazabilidad al diseño.
 - **Más información**: condiciones de aplicación (`Solo si el estado pasa a APROBADO`), datos que se modifican, dependencias, etc.
 
 ---
 
 ## Asunciones a confirmar (opcional, al final del análisis completo)
 
-Las reglas `V-XXX` o `R-XXX` marcadas con `*` se listan aquí. Esta sección **no va en cada fichero de entidad**, sino al final del análisis general (en un fichero `assumptions.md` o similar, según convención).
+Las reglas `V-<Entidad>-NNN` o `R-<Entidad>-NNN` marcadas con `*` se listan en el `analysis.md` consolidado, no en cada fichero de entidad.
 
 Cada asunción se redacta como una pregunta corta y verificable, p.ej.:
 
-- **V-007**: ¿es correcto que el motivo de rechazo sea obligatorio solo al pasar a RECHAZADO, no en otros momentos?
-- **R-002**: ¿realmente se debe notificar al sistema solicitante al firmar, o basta con guardar?
+- **V-TareaFirma-007**: ¿es correcto que el motivo de rechazo sea obligatorio solo al pasar a RECHAZADO, no en otros momentos?
+- **R-TareaFirma-002**: ¿realmente se debe notificar al sistema solicitante al firmar, o basta con guardar?

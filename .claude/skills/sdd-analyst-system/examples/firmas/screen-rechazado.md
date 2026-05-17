@@ -15,10 +15,17 @@
 
 ---
 
+## Estructura jerarquica de las pantallas
+```
+TareaFirma
+└── DocumentoFirma
+```
+
 ## Grid 1 — "Firmas"
 
 | Propiedad                          | Valor                                                                          |
 |------------------------------------|--------------------------------------------------------------------------------|
+| Entidad                            | TareaFirma                                                                     |
 | Columnas (en orden)                | fecha de solicitud, fecha de resolución, firmante, motivo de la firma, estado  |
 | Ordenación por defecto             | fecha de solicitud ascendente                                                  |
 | ¿Permite buscar?                   | NO                                                                             |
@@ -27,6 +34,11 @@
 | Botones de las columnas            | —                                                                              |
 
 ## Formulario 1 — Tarea rechazada
+
+| Propiedad     | Valor       |
+|---------------|-------------|
+| Entidad       | TareaFirma  |
+| Solo lectura  | sí          |
 
 ### Paneles
 
@@ -42,7 +54,7 @@
 |-----------|-------------------------------------------|
 | "Salir"   | Cierra el formulario y vuelve al grid     |
 
-### Reglas de UI (U-XXX)
+### Reglas de UI (U-rechazado-NNN)
 
 *(no aplica)*
 
@@ -52,6 +64,7 @@
 
 | Propiedad                          | Valor                                                                |
 |------------------------------------|----------------------------------------------------------------------|
+| Entidad                            | DocumentoFirma                                                       |
 | Columnas (en orden)                | documento original (nombre del fichero)                              |
 | Ordenación por defecto             | —                                                                    |
 | ¿Permite buscar?                   | NO                                                                   |
@@ -61,6 +74,11 @@
 
 ## Formulario 2 — Documento original
 
+| Propiedad     | Valor           |
+|---------------|-----------------|
+| Entidad       | DocumentoFirma  |
+| Solo lectura  | sí              |
+
 ### Paneles
 
 | Panel (título)         | Tipo     | Campos                                          |
@@ -69,6 +87,6 @@
 
 *(sin botones)*
 
-### Reglas de UI (U-XXX)
+### Reglas de UI (U-rechazado-NNN)
 
 *(no aplica)*
