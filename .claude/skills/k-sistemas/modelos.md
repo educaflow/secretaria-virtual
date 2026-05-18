@@ -4,7 +4,7 @@ Referencia del modelo de dominio XML de Axelor. Define la estructura de entidade
 
 La descripción exacta del XML está descrita en [references/models.md](references/models.md) y en [references/repositories.md](references/repositories.md).
 
-`references/domain-models.xsd` — **schema XSD oficial de Axelor 8.1**: fuente de verdad para verificar qué atributos y etiquetas son válidos en cualquier elemento de dominio (`<entity>`, `<string>`, `<integer>`, `<many-to-one>`, `<one-to-many>`, `<enum>`, `<finder-method>`, `<extra-code>`, `<extra-code-model>`, etc.) y si un fichero XML está bien formado. Consultar este fichero ante cualquier duda sobre si un atributo existe o cuáles son sus valores permitidos.
+`../axelor-open-platform/axelor-core/src/main/resources/domain-models.xsd` — **schema XSD oficial de Axelor 8.1**: fuente de verdad para verificar qué atributos y etiquetas son válidos en cualquier elemento de dominio (`<entity>`, `<string>`, `<integer>`, `<many-to-one>`, `<one-to-many>`, `<enum>`, `<finder-method>`, `<extra-code>`, `<extra-code-model>`, etc.) y si un fichero XML está bien formado. Consultar este fichero ante cualquier duda sobre si un atributo existe o cuáles son sus valores permitidos.
 
 Un ejemplo de modelo de la entidad TareaFirma es el siguiente fichero TareaFirma.xml:
 

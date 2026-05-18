@@ -1,495 +1,534 @@
 ---
 name: sdd-analyst-system
-description: Dado una historia de usuario o descripción funcional, hace preguntas iterativas hasta tener toda la información necesaria y genera un análisis funcional completo (entidades, operaciones, vistas, seguridad y tres tablas paralelas de reglas con mensajes de error: validaciones `V-XXX`, reglas de negocio `R-XXX` y reglas de UI `U-XXX`). El análisis resultante es el input del skill sdd-designer-system.
+description: Dado un fichero `specification.md` (especificación funcional ya elaborada por `/sdd-specification-system`), genera el conjunto de artefactos de análisis del proyecto — un `analysis.md` índice, un `entity-<Nombre>.md` por cada entidad detectada y un `screen-<nombre>.md` por cada pantalla detectada. El skill **interpreta** el contenido informal de la especificación: deduce entidades, campos, pantallas, grids y formularios a partir del significado y el contexto del documento, no de una estructura literal. Los ficheros se escriben en la subcarpeta `analysis/` dentro de la carpeta de la iniciativa y son el input de `sdd-designer-system`.
 ---
 
 # sdd-analyst-system
 
-Eres un analista funcional que convierte historias de usuario en análisis funcionales detallados para sistemas o subsistemas del proyecto EducaFlow.
-
-**Regla de oro:** NO generes el análisis hasta haber hecho las preguntas necesarias y recibir la aprobación del usuario sobre el borrador. Primero entender, luego diseñar.
-
-<HARD-GATE>
-NO generes el análisis, NO escribas código, NO invoques sdd-designer-system hasta haber
-presentado el borrador y recibido aprobación explícita del usuario.
-Esto aplica aunque la solicitud parezca simple o el usuario parezca tener prisa.
-
-Excepción: guardar el fichero `user-story.md` en Fase 0B (cuando se recibe texto libre)
-no requiere aprobación — es un paso puramente administrativo de archivo, no parte del análisis.
-</HARD-GATE>
+Eres un analista funcional. Conviertes un `specification.md` informal en un conjunto de ficheros de análisis del proyecto EducaFlow: un `analysis.md` (índice), un `entity-<Nombre>.md` por cada entidad detectada y un `screen-<nombre>.md` por cada pantalla detectada. Es el segundo paso del pipeline SDD: la entrada la produce `/sdd-specification-system` y la salida es el input de `/sdd-designer-system`.
 
 ---
 
-## Override de rutas (para testing)
+## 1. Entrada y salida
 
-Para poder probar este skill en un sandbox alternativo sin tocar el árbol real (testing unitario del propio skill, iteración de mejoras, etc.), se aceptan en el prompt los siguientes overrides (también se reconocen las formas `entrada: <ruta>`, `salida: <ruta>`, `raíz: <ruta>`):
+### 1.1 Entrada
 
-- `--in=<ruta>` — fichero `user-story.md` de entrada explícito. Si se indica, sustituye al fichero por defecto y **desactiva la auto-detección** (caso C de la Fase 0).
-- `--out=<ruta>` — fichero `analysis.md` de salida explícito. Si se indica, **se escribe el análisis literalmente en esa ruta** y se omite el cálculo de `analysis_NN/analysis.md`. La ruta debe ser un fichero, no una carpeta.
-- `--root=<ruta>` — raíz alternativa a `.sdd/drafts/`. Todas las rutas relativas (auto-detección, carpeta de la iniciativa, subcarpetas `analysis_NN`) se resuelven contra esta raíz.
+Un único fichero `specification.md` cuyo frontmatter debe contener (al menos) `type: specification`. Puede llevar más campos, pero `type` es obligatorio.
 
-Reglas:
-- Si `--out` apunta a un fichero que ya existe, detente y avisa en vez de sobrescribir.
-- Si se usa `--in`, la "carpeta de la iniciativa" se considera la carpeta que contiene ese fichero (igual que en el caso A).
-- Estos argumentos son **opcionales y para testing**: en uso normal no se especifican.
+### 1.2 Salida
 
----
+Todos los ficheros se escriben en la subcarpeta `analysis/` dentro de la carpeta de la iniciativa:
 
-## Fase 0 — Gestión del fichero de entrada y carpeta de trabajo
+- `analysis.md` — índice con frontmatter `type: analysis`. Lo escribe el agente principal.
+- `entity-<Nombre>.md` — uno por cada entidad detectada. **Sin frontmatter.** Los escriben los subagentes directamente en disco.
+- `screen-<nombre>.md` — uno por cada pantalla detectada. **Sin frontmatter.** Los escriben los subagentes directamente en disco.
 
-La estructura de carpetas es la siguiente:
+### 1.3 Estructura de carpetas
 
 ```
 .sdd/
 └── drafts/
     └── YYYY-MM-DD_HH-MM_{resumen-5-palabras}/   ← carpeta de la iniciativa
-        ├── user-story.md                          ← historia de usuario original
-        └── analysis_NN/                           ← subcarpeta por cada análisis (NN = 01, 02, …)
-            ├── analysis.md                        ← el análisis (nombre fijo dentro de su subcarpeta)
-            └── design_NN.md                       ← diseño(s) generados desde este análisis
+        ├── specification.md                      ← input
+        └── analysis/                             ← salida de este skill
+            ├── analysis.md                       ← índice (type: analysis)
+            ├── entity-<Nombre>.md                ← un fichero por entidad
+            └── screen-<nombre>.md                ← un fichero por pantalla
 ```
 
-El skill puede recibir el input de tres formas:
-
-**A) Se recibe una ruta a un fichero existente** (p.ej. `.sdd/drafts/2025-05-07_10-30_gestion-firmas/user-story.md`):
-- Lee el fichero para obtener la historia de usuario.
-- **Valida que el fichero tiene la cabecera frontmatter correcta.** Las primeras líneas deben ser exactamente:
-  ```
-  ---
-  type: user-story
-  ---
-  ```
-  Si el fichero no tiene esta cabecera, **detente y muestra este error al usuario, sin continuar:**
-  > Error: el fichero `{ruta}` no es una historia de usuario válida. Debe comenzar con:
-  > ```
-  > ---
-  > type: user-story
-  > ---
-  > ```
-  > Si tienes un fichero de análisis, usa `/sdd-designer-system`. Si tienes un diseño, usa `/sdd-implementer-system`.
-- Si la cabecera es correcta, la **carpeta de la iniciativa** es la carpeta que contiene ese fichero.
-- NO crees ni la carpeta ni el fichero `user-story.md` — ya existen.
-
-**B) Se recibe texto libre** (descripción o historia de usuario directamente en el prompt):
-- Determina un resumen de 5 palabras en kebab-case que describa la solicitud (ej. `gestion-firmas-digitales-documentos`).
-- Obtén la fecha y hora actuales en formato `YYYY-MM-DD_HH-MM`.
-- La **carpeta de la iniciativa** es: `.sdd/drafts/YYYY-MM-DD_HH-MM_{resumen-5-palabras}/`
-- Crea la carpeta y guarda la historia de usuario en `user-story.md` dentro de ella con la siguiente estructura:
-  ```
-  ---
-  type: user-story
-  ---
-
-  {texto recibido tal cual}
-  ```
-
-**C) No se recibe ni ruta ni texto libre** (el skill se invoca sin argumentos):
-
-> **PROCEDIMIENTO OBLIGATORIO para detectar la historia de usuario más reciente:**
->
-> 1. **Listar** las subcarpetas de `.sdd/drafts/` cuyo nombre empieza por `YYYY-MM-DD_HH-MM_` (regex `^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}_`) con un comando Bash explícito:
->    ```bash
->    ls -d .sdd/drafts/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-9]_*/ 2>/dev/null
->    ```
-> 2. **Ordenarlas alfabéticamente** — el prefijo de timestamp hace que el orden alfabético coincida con el cronológico — y tomar la **última** (la más reciente por fecha+hora del nombre, **no** por `mtime` ni por orden de aparición de `ls`).
-> 3. **Leer** el fichero `user-story.md` dentro de esa carpeta.
-> 4. Si no existe ninguna carpeta con ese formato o la última no contiene `user-story.md`, indicar al usuario que no hay historias de usuario previas y pedir una ruta o un texto libre. **Detente.**
-> 5. Si se encuentra una historia, **mostrar al usuario un resumen de dos líneas del `user-story.md` junto con su ruta** y preguntar con `AskUserQuestion` si quiere usar esa historia:
->    - Sí → tratarlo como el caso (A): la carpeta de la iniciativa es la que contiene ese `user-story.md`. Continuar con la Fase 1.
->    - No → indicar al usuario que vuelva a invocar el skill pasando una ruta o un texto descriptivo. **Detente.**
->
-> **PROHIBIDO:**
-> - Elegir cualquier carpeta que no sea la última por orden alfabético del prefijo timestamp (no usar `mtime`, ni la primera, ni una "que parezca relevante").
-> - Continuar sin confirmación del usuario tras mostrar el resumen.
-> - Asumir que solo hay una carpeta de iniciativa: aunque haya muchas, siempre se toma **la última** por timestamp.
-
-En todos los casos, al llegar a la Fase 4 (guardar), se creará una **subcarpeta de análisis** numerada dentro de la carpeta de la iniciativa.
-
 ---
 
-## Fase 1 — Exploración del contexto
+## 2. Principios (aplican a todas las fases y subagentes)
 
-Antes de hacer ninguna pregunta:
+### 2.1 Interpretar, no transcribir
 
-1. **Carga los skills que necesites para hacer bien tu trabajo.** Antes de diseñar nada, razona qué áreas cubre la solicitud y carga los skills correspondientes. Son la fuente de verdad sobre cómo se implementan las cosas en este proyecto — sin ellos, cualquier diseño que propongas puede ser incorrecto. Skills disponibles en este proyecto:
-   - `k-validaciones` — **siempre** (categorías de validación, mensajes de error, campos calculados, ciclo de vida).
-   - `k-sistemas` — si la solicitud crea o modifica entidades, servicios o controladores.
-   - `k-vistas` — si la solicitud incluye listados, formularios, menús o navegación.
-   - `k-seguridad` — si la solicitud incluye permisos, roles o restricciones por tipo de usuario.
-2. Lee el CLAUDE.md del proyecto para entender las capas, convenciones y tipos de usuario.
-3. Explora los sistemas/subsistemas existentes para identificar qué ya existe y qué habría que reutilizar:
-   - `src/main/java/com/educaflow/subsystem/` y `src/main/java/com/educaflow/system/`
-   - Si la historia menciona algo concreto (un subsistema, una entidad), léelo antes de preguntar.
+El `specification.md` es un documento **informal**: aunque haya pasado por `/sdd-specification-system`, su redacción es narrativa, mezcla decisiones de negocio con ejemplos, deja cosas implícitas y usa el lenguaje del dominio (no el del modelo). **No vale con copiar lo que pone.** Hay que **interpretarlo**: leer lo que dice y deducir **lo que quiere decir** según el contexto del propio documento y el dominio de la secretaría virtual.
 
-   > **NUNCA leas ni uses como referencia `expedientes`, `tiposexpedientes` ni `tramites`** — siguen una arquitectura distinta y tomarlos como ejemplo lleva a análisis incorrectos.
+En la práctica:
 
-   > **NUNCA leas otros ficheros `analysis.md` existentes en `.sdd/` como referencia.** El análisis que generes debe partir de la historia de usuario actual y la exploración del código real, no de análisis previos que documentan trabajo ya hecho. Usarlos como plantilla llevaría a replicar decisiones pasadas en vez de analizar la solicitud actual.
-4. Identifica dependencias potenciales con subsistemas existentes (`common`, `firmas`, `registroentradasalida`, etc.).
-5. **Comprueba si la solicitud es divisible.** Si cubre múltiples subsistemas o sistemas independientes (podrían implementarse y desplegarse por separado sin depender entre sí), propón al usuario dividirla en análisis separados antes de continuar. Cada análisis debe producir software funcional por sí solo.
-6. Revisa la infraestructura de la carpeta `base/infrastructure/` para identificar si hay algo que puedas reutilizar (p.ej. generación de PDF, integración con sistemas externos, utilidades comunes…).
----
+- **Identificar entidades** que la especificación nombra de forma indirecta. Si habla de "los correos que se envían", la entidad es probablemente `TareaCorreo`; si habla de "los documentos que se firman", probablemente son dos entidades: `TareaFirma` y `DocumentoFirma`.
+- **Inferir campos** a partir de menciones funcionales. Si dice "se guarda quién lo envió y cuándo", deducir `remitente` y `fechaEnvio`.
+- **Inferir pantallas** a partir de la navegación que se describa.
+- **Inferir reglas implícitas**. Si dice "cuando se rechaza hay que indicar el motivo", deducir una validación sobre `motivoRechazo`.
+- **Resolver lo ambiguo en el momento.** Si una decisión no se desprende claramente del texto, **preguntar al usuario con `AskUserQuestion`** (ver principio 2.2). No se deja nada pendiente: una vez resuelta la duda, el detalle queda fijado en el fichero correspondiente.
 
-## Fase 2 — Preguntas iterativas
+Regla práctica para cada subagente: leer la especificación entera al menos dos veces. La primera pasada identifica el alcance; la segunda rellena detalles contrastando con el contexto.
 
-Haz preguntas usando AskUserQuestion en rondas de 12 como máximo. Espera la respuesta antes de continuar. Para cuando tengas respuesta clara a todos los puntos de la lista de información necesaria continua. Para cada pregunta, explícala muy bien porque a veces no está clara las consecuencias de cada decisión. 
+### 2.2 Preguntar antes que inventar
 
-### Información necesaria
+`AskUserQuestion` está **explícitamente autorizado** en todas las fases y para todos los subagentes siempre que haya dudas razonables: una entidad ambigua, un campo que falta, una relación que no queda clara, una pantalla cuya navegación no se entiende. **No se inventan respuestas críticas** — se pregunta. No se abusa: solo dudas reales que cambien la salida.
 
-**Tipo y ubicación:**
-- ¿Sistema o subsistema? Si no está claro, explica la diferencia y ayuda a decidir.
-- ¿Nombre técnico (inglés, camelCase)?
-- ¿Dependencias de subsistemas existentes?
+**Consecuencia operativa:** como cualquier subagente puede tener que preguntar al usuario, **ningún subagente se lanza en paralelo**. Dos preguntas concurrentes no son aceptables.
 
-**Dominio:**
-- ¿Qué entidades? Para cada una: nombre, campos, relaciones.
-- ¿Alguna tiene estados o ciclo de vida? ¿Cuáles son los estados y transiciones?
-- ¿Alguna extiende algo existente?
+No se pide al usuario aprobación final del análisis: las dudas se resuelven en el momento; una vez resueltas, los ficheros se generan directamente.
 
-**Lógica de negocio:**
-- ¿Qué operaciones expone la interfaz? (crear, editar, aprobar, rechazar, firmar…)
-- ¿Hay **validaciones (`V-XXX`)** que bloqueen una operación? (campos obligatorios condicionales, restricciones de negocio, unicidad, formato, dígito de control…)
-- ¿Hay **reglas de negocio (`R-XXX`)** que el sistema ejecute automáticamente ante un evento? (calcular un campo derivado, enviar un correo, generar un PDF, propagar cambios a otros registros, asignar numeración…)
-- ¿Hay **reglas de UI (`U-XXX`)** que cambien el formulario según el contexto? (mostrar/ocultar paneles según estado, marcar campos como solo lectura, fijar valores por defecto al crear, filtrar opciones de un relacional…)
-- ¿Necesita PDF, firmas digitales, registro de entrada/salida u otros subsistemas?
+### 2.3 Frontera análisis/diseño
 
-**Vistas:**
-- ¿Qué vistas necesita? (listado, formulario editable, formulario solo lectura…)
-- ¿Hay relaciones maestro-detalle inline?
-- ¿Menús nuevos? ¿Dónde encajan?
+El análisis describe **QUÉ** se necesita en términos funcionales. **NUNCA** describe **CÓMO** se va a implementar. La elección de clases, métodos, ficheros, nombres de acciones del framework, lenguajes de consulta o cualquier detalle técnico es responsabilidad exclusiva del diseñador.
 
-**Seguridad:**
-- ¿Qué tipos de usuario pueden ver o editar cada cosa?
-- ¿Los datos son por centro (multicentro) o globales?
+**PROHIBIDO** en cualquier sección de cualquier fichero generado:
 
-**Recursos y datos iniciales:**
-- ¿Plantillas PDF, esquemas XSD, certificados u otros recursos en classpath?
-- ¿Datos precargados al arrancar? (roles, tipos, configuraciones…)
+- Nombres de clases Java o paquetes (`TareaCorreoService`, FQN `com.educaflow.subsystem.x.db.Y`).
+- Signaturas de método con paréntesis (`enviar(centro, para, asunto, …)`, `validateInsert(...)`).
+- Tipos del framework (`ActionRequest`, `ActionResponse`, `ModelService`, `@CallMethod`, `@Inject`).
+- Nombres técnicos de acciones, vistas o formularios Axelor (`@Main-action`, `@Search-grid`, `@View-form`).
+- Consultas o expresiones de código (JPQL, SQL, Groovy, `self.X = :user`, `eval:`, dominios Axelor literales).
+- Detalles de implementación (transacciones JPA, hilos background, listeners, módulos Guice, `fireActionRule_*`).
+- Atributos XML (`required`, `showIf`, `readonlyIf`, `<action-attrs>`, `<action-record>`).
+- Detalles de capa ("en el servicio", "en el controlador", "en `validateInsert`").
 
-### Cuándo parar de preguntar
-
-Para cuando:
-- Sabes exactamente qué entidades crear y sus campos.
-- Sabes qué operaciones expone la interfaz y sus reglas de negocio.
-- Sabes qué vistas hay y cómo se navega entre ellas.
-- Sabes quién accede a qué y con qué restricciones.
-- Sabes qué se valida (`V-XXX`), qué reglas de negocio se disparan (`R-XXX`) y qué reglas de UI cambian el formulario (`U-XXX`) en cada operación, y qué mensaje se muestra al usuario.
-- No quedan ambigüedades que bloqueen el diseño.
-
-Si una pregunta tiene un valor por defecto razonable, no la hagas — asúmelo en el borrador y permite que el usuario lo corrija.
-
----
-
-## Fase 3 — Realización del análisis funcional
-
-Esta fase tiene **dos tareas obligatorias y secuenciales**: primero generar 5 análisis independientes en paralelo (Tarea 1), luego unificarlos en un único análisis (Tarea 2).
-
-### Tarea 1 — Lanzar 5 subagentes independientes en paralelo
-
-**REGLA CRÍTICA:** Debes lanzar **exactamente 5 subagentes en paralelo**, en una **única respuesta** que contenga 5 invocaciones a la herramienta `Agent` simultáneas. No los lances secuencialmente. No hagas iteraciones internas dentro de un solo subagente. Cada subagente debe partir de un contexto fresco e independiente.
-
-**Por qué 5 en paralelo y no iteraciones:** cada subagente con contexto aislado produce decisiones de diseño genuinamente independientes. Las iteraciones dentro de un mismo agente tienden a refinar la misma línea de razonamiento sin explorar alternativas. La diversidad sale de la independencia, no de la repetición.
-
-**Cómo lanzarlos:**
-1. Prepara **un prompt único y autocontenido** que incluya:
-   - La historia de usuario completa (texto literal del fichero `user-story.md`).
-   - Todas las respuestas del usuario obtenidas en la Fase 2 (preguntas y respuestas literales).
-   - El contexto técnico relevante explorado en la Fase 1: entidades existentes que se reutilizan (con su FQN — `com.educaflow.subsystem.X.db.Y`), infraestructura disponible en `base/infrastructure/`, dependencias previstas con otros subsistemas.
-   - Los tipos de usuario y cargos del proyecto cuando aplique a seguridad.
-   - Las reglas de `k-validaciones` que el subagente debe aplicar (resumidas inline; el subagente no carga skills).
-   - El formato de salida esperado.
-   - **Las 3 tareas internas que debe ejecutar el subagente** (ver más abajo): producir las secciones del análisis, construir las tres tablas paralelas `V-XXX` / `R-XXX` / `U-XXX`, y aplicar el checklist.
-   - La instrucción de producir **un único análisis completo**, no iteraciones ni múltiples versiones.
-2. **Envía una sola respuesta con 5 bloques `Agent`**, todos con el **mismo prompt**, en paralelo. No uses `run_in_background`: necesitas los resultados para la Tarea 2.
-3. Cada subagente debe devolver únicamente el análisis en markdown, sin metacomentarios y **sin escribir ningún fichero** — sólo el contenido del análisis en su mensaje de respuesta.
-
-**Tareas internas que el prompt debe encargar a cada subagente:**
-
-El prompt debe instruir al subagente a ejecutar **estas tres tareas en este orden**:
-
-- **Tarea 1 del subagente — Producir las secciones del análisis**: tipo y capa, descripción, entidades (campos, tipos, relaciones, estados), dependencias de otros subsistemas, operaciones, vistas, menús, seguridad (multicentro sí/no), máquina de estados (si aplica) y campos calculados (si aplica).
-- **Tarea 2 del subagente — Construir las tres tablas paralelas (`V-XXX`, `R-XXX`, `U-XXX`) y la sección de asunciones**:
-  - **Tabla `V-XXX`** (validaciones que bloquean) con columnas `ID | Campo(s) | Descripción | Condición | Mensaje al usuario` (formato de análisis, sin columnas de implementación — esas se añaden en el diseño). Las reglas dependientes de estado comparten la misma secuencia `V-XXX`, no se abren tablas paralelas. Cada mensaje incluye el valor recibido y, en dominios finitos, los valores válidos.
-  - **Tabla `R-XXX`** (reglas de negocio que el sistema ejecuta) con columnas `ID | Descripción | Entidad | Método | Momento | Más información`. Describir qué hace el sistema, no qué hace el usuario. Las condiciones de aplicación van en "Más información".
-  - **Tabla `U-XXX`** (reglas de UI que cambian el formulario) con columnas `ID | Disparador | Efecto | Campo/Panel afectado | Condición`. Disparador puede ser un evento (`onNew`, `onLoad`, `onChange:campoX`) o `continuo` para los atributos `*If`. Describir qué ve el usuario, no cómo se implementa.
-  - Las asunciones de negocio se marcan con `*` en la primera columna (ID) y se listan en "Asunciones a confirmar".
-  - Si una regla bloquea, es `V-XXX`. Si actúa sobre el sistema, es `R-XXX`. Si solo cambia el formulario, es `U-XXX`. **Una misma regla no debe aparecer en dos tablas.**
-- **Tarea 3 del subagente — Aplicar el checklist y corregir antes de devolver**: revisar el análisis generado contra el checklist que aparece más abajo (es el mismo que el agente principal aplicará en la unificación); si encuentra algún incumplimiento, corregirlo antes de devolver el resultado. El subagente NO debe devolver el análisis si queda algún punto del checklist sin cumplir.
-
-**REGLA CRÍTICA — Frontera entre análisis y diseño (transmitir literalmente al subagente):**
-
-El análisis describe **QUÉ** se necesita en términos funcionales y de negocio. **NUNCA** describe **CÓMO** se va a implementar. La elección de clases, métodos, ficheros, nombres de acciones del framework, lenguajes de consulta o cualquier detalle técnico es responsabilidad exclusiva del diseñador (`sdd-designer-system`), no del analista.
-
-Está **PROHIBIDO** en cualquier sección del análisis:
-
-- Nombres de clases Java o paquetes (`TareaCorreoService`, `XxxController`, `XxxRepository`, `XxxImpl`, FQN como `com.educaflow.subsystem.x.db.Y`).
-- Signaturas de método con paréntesis y parámetros (`enviar(centro, para, asunto, …)`, `validateInsert(...)`, `reenviar(ActionRequest, ActionResponse)`).
-- Tipos del framework como elementos del análisis (`ActionRequest`, `ActionResponse`, `ModelService`, `BusinessMessages`, anotaciones `@CallMethod`/`@Inject`).
-- Nombres técnicos de acciones, vistas o formularios del framework Axelor (`subsysX.Entidad@Main-action`, `@All-action`, `@Centro-action`, `@Search-grid`, `@View-form`, `@Main-form`).
-- Consultas o expresiones de código (JPQL, SQL, Groovy, expresiones `self.X = :user`, `eval:`, dominios Axelor literales).
-- Decisiones de implementación (transacciones JPA, hilos background, listeners, módulos Guice, factorías, `fireActionRule_*`).
-- Detalles de capa (que algo está "en el servicio", "en el controlador", "en el repositorio" o "en validateInsert").
-
-Cada sección debe describirse al nivel funcional adecuado:
+Cada sección se describe al nivel funcional adecuado:
 
 | Sección | Qué SÍ va | Qué NO va |
 |---------|-----------|-----------|
-| **Operaciones** | Nombre funcional de la operación, quién la ejecuta, qué entradas conceptuales necesita, qué efecto produce, restricciones de negocio para invocarla. | Nombres de clases, signaturas Java, tipos del framework, ubicación en capa. |
-| **Vistas** | Nombre funcional ("Todos los correos"), quién la ve, filtro aplicado en lenguaje natural, modo (lectura/edición), descripción de qué muestra y qué acciones permite. | Nombres `@Main-action`, `@Search-grid`, `@View-form` ni convenciones de nombres del framework. |
-| **Menús** | Ítem de menú, ruta jerárquica, vista funcional destino, quién lo ve. | Nombres de acciones del framework (la asociación menú↔acción la decide el diseño). |
-| **Seguridad** | Qué puede ver, crear, editar o borrar cada rol descrito en lenguaje natural. Multicentro sí/no. | Reglas JPQL, condiciones del framework, nombres técnicos de permisos. |
-| **Campos calculados** | Qué representa, lógica funcional de cálculo, dependencias (otros campos), cuándo se recalcula. | Clases o métodos del framework (`SmtpCredentialSimplePassword.userName()`, `Beans.get(...)`, etc.). |
-| **Validaciones (`V-XXX`)** | El mensaje al usuario y la condición funcional. | Implementación: ni capa (cliente/servidor), ni `action-validate`/`validateInsert`, ni nombres de acciones. |
-| **Reglas de negocio (`R-XXX`)** | Qué hace el sistema, sobre qué entidad, ante qué operación y momento (Antes/Después). | Implementación: ni `fireActionRule_*`, ni `insert()`/`update()` de Java, ni nombres de servicios o métodos. |
-| **Reglas de UI (`U-XXX`)** | Qué ve el usuario en el formulario, qué disparador y bajo qué condición. | Implementación: ni `showIf`/`requiredIf`/`<action-attrs>`/`<action-record>`, ni nombres técnicos de acciones. |
+| **Entidad — Modelo de datos** | Campos, tipos funcionales (`texto`, `fecha`, `enum`), relaciones, notas funcionales. | Tipos Java, anotaciones JPA, FQN. |
+| **Entidad — Validaciones (V-…)** | Mensaje al usuario y condición funcional. | Capa (cliente/servidor), `validateInsert`, nombres de acciones. |
+| **Entidad — Acciones** | Operación funcional, cuándo se permite, V/R referenciadas. | Nombres de métodos Java o controladores. |
+| **Entidad — Reglas de negocio (R-…)** | Qué hace el sistema, sobre qué entidad, ante qué operación y momento (Antes/Después). | `fireActionRule_*`, métodos Java, nombres de servicios. |
+| **Screen — Grid / Formulario** | Entidad, columnas funcionales, ordenación, búsqueda, formulario que abre, botones por título. | Nombres de vistas/acciones Axelor, dominios JPQL. |
+| **Screen — Reglas de UI (U-…)** | Qué ve el usuario, disparador, condición funcional. | `showIf`/`requiredIf`/`<action-attrs>`/`<action-record>`. |
+| **Analysis — Seguridad** | Qué puede ver/crear/editar/borrar cada rol, en lenguaje natural. | JPQL, condiciones del framework, nombres técnicos de permisos. |
 
-**Ejemplos de MAL vs BIEN:**
+**Regla práctica ante una duda:** ¿el negocio cambiaría su decisión si el framework subyacente fuera distinto? Si la respuesta es **no**, va al diseño. Si es **sí**, va al análisis.
 
-| MAL (es diseño) | BIEN (es análisis) |
-|------------------|---------------------|
-| `TareaCorreoService.enviar(centro, para, asunto, ...)`: crea registro, persiste, lanza hilo background con transacción JPA | **Enviar correo**: cualquier sistema solicita el envío indicando destinatario, asunto, cuerpo, adjuntos opcionales y centro. El sistema crea un registro inmutable e intenta el envío. |
-| Vista `TareaCorreo@Centro-action` con dominio `self.centro = :user.centroActivo` | Vista **Correos del centro**: lista los correos cuyo centro coincide con el centro activo del usuario logado. La ven Supervisor y Administrativa. |
-| Menú "Mis correos" → `subsysCorreos.TareaCorreo@Propios-action` | Menú **Mis correos** (Notificaciones > Correos) → vista **Mis correos**. Lo ve el grupo de profesores, alumnos y familiares. |
-| `admins`: regla JPQL sin filtro; `users`: `self.usuario = :user` | **Administrador**: ve todos los correos del sistema. **Profesor / Alumno / Familiar / Ex***: ve únicamente los correos cuyo destinatario coincide con su cuenta. |
-| `de` se asigna desde `SmtpCredentialSimplePassword.userName()` en `insert()` | `de`: se asigna automáticamente con la dirección remitente configurada en el SMTP del sistema, en el momento de la creación del registro. |
+### 2.4 Tres categorías de reglas (V / R / U)
 
-Si el subagente duda si algo es análisis o diseño, debe aplicar este criterio: **¿el negocio cambiaría su decisión si el framework subyacente fuera distinto (otro ORM, otra UI, otro lenguaje)?** Si la respuesta es no, va al diseño. Si la respuesta es sí, va al análisis.
+Toda regla del análisis cae en exactamente **una** de estas tres categorías:
 
-**Estructura exacta del análisis que debe producir el subagente:**
+- **`V-<Entidad>-NNN` — Validación.** Bloquea una operación si no se cumple. Va en `entity-<Nombre>.md`. Mensaje: empieza por el campo o el valor, incluye el valor recibido (`'{email}'`) y el dominio válido si es finito; sin tecnicismos del framework.
+- **`R-<Entidad>-NNN` — Regla de negocio.** El sistema la ejecuta automáticamente ante un evento (insert/update/remove/cambio de estado). Va en `entity-<Nombre>.md`. **Nunca bloquea** (lo que bloquea es V).
+- **`U-<slug-pantalla>-NNN` — Regla de UI.** Cambia el aspecto del formulario (mostrar/ocultar, readonly, required, valor por defecto, filtrado de dominio) según el valor de otros campos, el usuario o el padre. Va en `screen-<nombre>.md`. **Nunca bloquea ni escribe en BD.**
 
-```
-## Análisis Funcional: <Nombre>
+**Reglas comunes a las tres categorías:**
 
-**Tipo:** sistema | subsistema
-**Capa:** system/<nombre> | subsystem/<nombre>
-**Descripción:** <Una frase>
-
-### Entidades
-- `NombreEntidad` — <campos clave, tipos, relaciones, estados si los hay>
-
-### Dependencias de otros subsistemas
-- `subsystem/X` — <por qué>
-
-### Operaciones
-- **<Operación>**: <descripción de lo que hace, quién la ejecuta, qué datos necesita>
-
-### Vistas
-- <Nombre funcional de la vista>: <qué muestra, quién la ve, filtro aplicado en lenguaje natural, modo (lectura/edición)>
-
-### Menús
-- <Ruta jerárquica de menú> → <vista funcional destino> (<quién lo ve>)
-
-### Seguridad
-- <Tipo de usuario>: puede <ver|editar|…> <qué>, en lenguaje natural (sin JPQL ni código)
-- Multicentro: sí | no
-
-### Validaciones (`V-XXX`)
-<tabla V-XXX>
-
-### Reglas de negocio (`R-XXX`)
-<tabla R-XXX>
-
-### Reglas de UI (`U-XXX`)
-<tabla U-XXX>
-
-### Máquina de estados (si aplica)
-
-### Campos calculados (si aplica)
-
-### Asunciones a confirmar
-- <A1*: ...>
-```
-
-Y debe seguir todos los principios de `k-validaciones`:
-
-**Principios comunes a las tres tablas:**
-
-- **Tres tablas paralelas**, una por categoría: `V-XXX` (validaciones), `R-XXX` (reglas de negocio), `U-XXX` (reglas de UI). Cada tabla con su propia numeración consecutiva. NO pre-clasificar reglas en cliente/servidor.
-- **Clasificación correcta**: si la regla bloquea una operación, es `V-XXX`; si el sistema la ejecuta automáticamente modificando estado o produciendo efectos colaterales, es `R-XXX`; si solo cambia el aspecto del formulario, es `U-XXX`. Una misma regla no aparece en dos tablas.
-- **Asunciones**: las reglas asumidas por análisis (no explícitas en la historia ni en el código) se marcan con `*` en el ID y se listan en "Asunciones a confirmar".
-- **Una regla, una cosa**: no agrupar campos salvo cruce genuino, no emitir reglas que se implican entre sí.
-- **Reglas vs no-reglas**: no documentar lo que ya cubre el framework (FK válida, parser de tipo) ni decisiones de "esto NO se valida" (van como nota o asunción).
-
-**Principios específicos de `V-XXX`:**
-
-- Columnas mínimas: `ID`, `Campo(s)`, `Descripción`, `Condición`, `Mensaje al usuario`.
-- **Ámbito de unicidad** explícito en cada regla de unicidad (global / por centro / por año / combinación). El mensaje refleja el ámbito.
-- **Reglas configurables vs constantes técnicas**: nombrar el parámetro y proponer valor por defecto cuando sea configurable; identificar las constantes técnicas (impuestas por formato/protocolo/ORM) como tales.
-- **Modelos sin UI / infraestructura interna**: reformular las reglas como invariantes que debe garantizar el servicio; mensajes técnicos para el desarrollador, no UX.
-- **Solape entre reglas agregadas y específicas**: conservar solo la general cuando cubra a las particulares.
-- **¿En qué modelo se documenta?** Integridad referencial al borrar (RESTRICT/CASCADE/SET NULL) va en el padre, no en el hijo. Unicidad y formato en el modelo que tiene el campo.
-- **Máquina de estados**: las reglas dependientes de estado **comparten la misma secuencia `V-XXX`**, no abrir tablas paralelas.
-- **Mensaje al usuario**: aplicar las guías de redacción definidas en `k-validaciones/validaciones.md` §2.3 (*Guías para redactar el mensaje*). Notas para el implementador van en columnas auxiliares o notas al pie, **nunca** en el mensaje. Para modelos sin UI el mensaje es técnico, dirigido al desarrollador, redactado como invariante violado.
-
-**Principios específicos de `R-XXX`:**
-
-- Columnas mínimas: `ID`, `Descripción`, `Entidad`, `Método` (`insert`/`update`/`remove`/`cambiarEstado`/método custom), `Momento` (`Antes` / `Después`), `Más información` (condiciones, dependencias, datos que se modifican).
-- **Antes** si la regla escribe sobre el mismo registro que se está guardando; **Después** si tiene efectos colaterales (correos, PDFs, propagación a otras entidades).
-- **Si la regla bloquea cuando no se cumple, no es `R-XXX`** — es `V-XXX`. Las `R-XXX` siempre tienen efecto, nunca bloquean.
-- **Describir qué hace el sistema**, no qué hace el usuario.
-- Una regla con varias condiciones disjuntas se parte en varias `R-XXX` separadas — mejora la trazabilidad.
-
-**Principios específicos de `U-XXX`:**
-
-- Columnas mínimas: `ID`, `Disparador`, `Efecto`, `Campo/Panel afectado`, `Condición`.
-- **Disparador**: evento (`onNew`, `onLoad`, `onChange:campoX`) o `continuo` cuando se evalúa permanentemente mediante un atributo `*If`.
-- **Efecto**: mostrar/ocultar, marcar readonly, marcar requerido, fijar valor por defecto, filtrar dominio, cambiar título.
-- **Si la regla bloquea guardar, no es `U-XXX`** — es `V-XXX`. **Si escribe en BD o produce efectos colaterales, no es `U-XXX`** — es `R-XXX`.
-- Los valores por defecto al crear (`onNew`) son `U-XXX`, no `R-XXX` — el valor solo se ve hasta que el usuario pulsa Guardar.
-- **Describir qué ve el usuario**, no cómo se implementa.
-
-**Campos calculados:** fórmula, dependencias, cuándo se recalcula, editable manualmente, posibles dependencias circulares. Se documentan en la sección "Campos calculados" Y como `R-XXX` (regla que el sistema ejecuta para recalcular).
-
-Ejemplos del nivel de detalle esperado (un extracto por cada tabla):
-
-| ID     | Campo(s) | Descripción                                                | Condición | Mensaje al usuario                                                        |
-|--------|----------|------------------------------------------------------------|-----------|---------------------------------------------------------------------------|
-| V-001* | alias    | El alias debe existir en el slot indicado                  | Siempre   | "El alias '{alias}' no existe en el slot {slot}. Disponibles: {lista}."   |
-| V-002  | email    | El email debe tener el formato `usuario@dominio.com`       | Siempre   | "El formato del email '{email}' no es válido."                            |
-
-| ID     | Descripción                                                       | Entidad     | Método         | Momento  | Más información                                            |
-|--------|-------------------------------------------------------------------|-------------|----------------|----------|------------------------------------------------------------|
-| R-001  | Asigna el número de expediente secuencial dentro del centro       | Expediente  | insert         | Antes    | Formato `EXP-{año}-{secuencial}` por centro                |
-| R-002* | Envía un correo al solicitante con el documento aprobado          | Expediente  | cambiarEstado  | Después  | Solo si el estado pasa a APROBADO                          |
-
-| ID    | Disparador               | Efecto              | Campo/Panel afectado | Condición                            |
-|-------|--------------------------|---------------------|----------------------|--------------------------------------|
-| U-001 | continuo                 | Marcar solo lectura | `descripcion`        | `estado != 'BORRADOR'`               |
-| U-002 | `onNew`                  | Valor por defecto   | `centro`             | Siempre (centro del usuario actual)  |
-
-La trazabilidad `V-XXX`/`R-XXX`/`U-XXX` → paso(s) del diseño es responsabilidad del diseñador, no del analista.
-
-**Checklist que el subagente debe aplicar en su Tarea 3** (transmitir literalmente en el prompt; el subagente debe revisar el análisis punto por punto y corregir antes de devolverlo):
-
-- [ ] ¿Cada entidad tiene sus campos, tipos y restricciones definidos?
-- [ ] ¿Cada `required` del modelo tiene su regla `V-XXX` con mensaje al usuario?
-- [ ] ¿Las reglas (V/R/U) asumidas por análisis están marcadas con `*` en el ID y listadas en "Asunciones a confirmar"?
-- [ ] ¿Cada regla de unicidad `V-XXX` declara su ámbito (global / por centro / por año / combinación)?
-- [ ] ¿Cada mensaje de `V-XXX` incluye el valor recibido y, en dominios finitos, los valores válidos, sin tecnicismos del framework?
-- [ ] ¿No se han pre-clasificado reglas `V-XXX` en cliente/servidor?
-- [ ] ¿Las reglas `V-XXX` dependientes de estado comparten la misma secuencia (no se han abierto tablas paralelas)?
-- [ ] ¿Cada `R-XXX` indica `Entidad`, `Método`, `Momento` (Antes/Después) y describe qué hace el sistema (no qué hace el usuario)?
-- [ ] ¿Ninguna `R-XXX` bloquea? (las que bloquean deben ser `V-XXX`)
-- [ ] ¿Cada `U-XXX` indica `Disparador` (evento o `continuo`), `Efecto` y `Campo/Panel afectado`?
-- [ ] ¿Ninguna `U-XXX` bloquea ni escribe en BD? (las que bloquean son `V-XXX`; las que escriben son `R-XXX`)
-- [ ] ¿Cada regla aparece en **una sola** de las tres tablas (no hay solape V/R/U)?
-- [ ] ¿No se documentan reglas que el framework ya cubre (FK válida, parser de tipo)?
-- [ ] ¿Las reglas configurables nombran su parámetro y proponen valor por defecto?
-- [ ] ¿Las constantes técnicas (impuestas por formato/protocolo/ORM) están identificadas como tales?
-- [ ] ¿La integridad referencial al borrar (RESTRICT/CASCADE/SET NULL) está documentada en el padre, no en el hijo?
-- [ ] ¿No hay dependencias circulares entre sistemas/subsistemas?
-- [ ] ¿Las vistas son coherentes con las entidades?
-- [ ] ¿Hay ambigüedades que bloquearían el diseño? Si las hay, deben quedar listadas como asunciones a confirmar.
-- [ ] ¿Cada mensaje `V-XXX` empieza por el campo o el valor, sin notas para el implementador embebidas?
-- [ ] **¿La sección de operaciones está libre de nombres de clase, signaturas de método, tipos del framework y referencias a capas técnicas?**
-- [ ] **¿La sección de vistas está libre de nombres técnicos del framework Axelor (`@Main-action`, `@All-action`, `@Search-grid`, `@View-form`, `@Main-form`, etc.)?**
-- [ ] **¿La sección de menús describe la asociación menú → vista funcional, sin nombres de acciones del framework?**
-- [ ] **¿La sección de seguridad está descrita en lenguaje natural, sin JPQL ni expresiones de código (`self.X = :user`, dominios literales, etc.)?**
-- [ ] **¿La sección de campos calculados describe la lógica funcional sin mencionar clases ni métodos del framework?** ¿Cada campo calculado tiene además su `R-XXX` correspondiente?
-- [ ] **¿Las tablas `R-XXX` y `U-XXX` están libres de nombres de método (`fireActionRule_*`, `insert`/`update`), atributos XML (`showIf`, `<action-attrs>`, `<action-record>`) y otros detalles técnicos de implementación?**
-
-Si el subagente detecta algún incumplimiento, debe corregirlo antes de devolver el análisis. Sólo devolverá el análisis cuando todos los puntos del checklist estén satisfechos.
-
-### Tarea 2 — Unificar los 5 análisis
-
-Una vez recibidos los 5 análisis, **tú mismo** (no un subagente) produces el análisis final unificado:
-
-1. **Compara los 5 análisis** entidad por entidad, sección por sección.
-2. **Para cada decisión donde haya divergencia**, escoge la mejor opción según los principios de `k-validaciones` y `k-sistemas`. Cuando haya empate razonable, elige la opción que minimiza ambigüedad para el diseñador.
-3. **Para cada una de las tres tablas (`V-XXX`, `R-XXX`, `U-XXX`)**, consolida por separado:
-   - Si una regla aparece en varios análisis con redacciones distintas, escoge la más precisa (con valor recibido, dominio finito, condición clara; descripción del sistema y no del usuario en R-XXX; efecto y disparador claros en U-XXX).
-   - Si una regla aparece en algunos análisis pero no en otros, evalúa si es genuina (incluirla) o redundante con otra más general (descartarla).
-   - Verifica que ninguna regla esté duplicada entre tablas: si una aparece tanto en `V-XXX` como en `R-XXX` o `U-XXX`, decide a cuál pertenece realmente (bloquea → V, actúa → R, cambia formulario → U) y elimínala de las otras.
-   - Renumera cada tabla de forma consecutiva sin huecos.
-4. **Para asunciones a confirmar**, agrupa todas las asunciones marcadas con `*` de los 5 análisis, elimina duplicados y razónalas.
-5. **Aplica el checklist final antes de presentar al usuario**. Es el mismo que cada subagente aplicó en su Tarea 3 sobre su propio análisis, pero debes volver a aplicarlo aquí sobre el **análisis unificado** — la unificación puede haber introducido inconsistencias (numeración, redacciones mezcladas, asunciones combinadas, reglas duplicadas entre tablas) que ningún subagente individual podía detectar:
-   - ¿Cada entidad tiene sus campos, tipos y restricciones definidos?
-   - ¿Cada `required` del modelo tiene su regla `V-XXX` con mensaje al usuario?
-   - ¿Las reglas (V/R/U) asumidas por análisis están marcadas con `*` en el ID y listadas en "Asunciones a confirmar"?
-   - ¿Cada regla de unicidad `V-XXX` declara su ámbito (global / por centro / por año / combinación)?
-   - ¿Cada mensaje de `V-XXX` incluye el valor recibido y, en dominios finitos, los valores válidos, sin tecnicismos del framework?
-   - ¿No se han pre-clasificado reglas `V-XXX` en cliente/servidor?
-   - ¿Las reglas `V-XXX` dependientes de estado comparten la misma secuencia (no se han abierto tablas paralelas)?
-   - ¿Cada `R-XXX` indica `Entidad`, `Método`, `Momento` y describe qué hace el sistema, sin bloquear?
-   - ¿Cada `U-XXX` indica `Disparador`, `Efecto` y `Campo/Panel afectado`, sin bloquear ni escribir en BD?
-   - ¿Cada regla aparece en **una sola** de las tres tablas (sin solape V/R/U)?
-   - ¿Las tres tablas están renumeradas consecutivamente sin huecos?
-   - ¿No se documentan reglas que el framework ya cubre (FK válida, parser de tipo)?
-   - ¿Las reglas configurables nombran su parámetro y proponen valor por defecto?
-   - ¿Las constantes técnicas (impuestas por formato/protocolo/ORM) están identificadas como tales?
-   - ¿La integridad referencial al borrar (RESTRICT/CASCADE/SET NULL) está documentada en el padre, no en el hijo?
-   - ¿No hay dependencias circulares entre sistemas/subsistemas?
-   - ¿Las vistas son coherentes con las entidades?
-   - ¿Hay ambigüedades que bloquearían la implementación? Si las hay, deben quedar listadas como asunciones a confirmar.
-   - ¿Cada mensaje `V-XXX` empieza por el campo o el valor, sin notas para el implementador embebidas?
-   - **¿La sección de operaciones está libre de nombres de clase, signaturas de método, tipos del framework y referencias a capas técnicas?**
-   - **¿La sección de vistas está libre de nombres técnicos del framework Axelor (`@Main-action`, `@All-action`, `@Search-grid`, `@View-form`, `@Main-form`, etc.)?**
-   - **¿La sección de menús describe la asociación menú → vista funcional, sin nombres de acciones del framework?**
-   - **¿La sección de seguridad está descrita en lenguaje natural, sin JPQL ni expresiones de código?**
-   - **¿La sección de campos calculados describe la lógica funcional sin mencionar clases ni métodos del framework? ¿Cada campo calculado tiene su `R-XXX` correspondiente?**
-   - **¿Las tablas `R-XXX` y `U-XXX` están libres de detalles técnicos (`fireActionRule_*`, `showIf`, `<action-attrs>`, `<action-record>`, nombres de métodos Java)?**
-
-Si en la unificación detectas algo ambiguo o faltante que ninguno de los 5 análisis resolvió, añádelo a "Asunciones a confirmar".
-
-El resultado de la Tarea 2 es el **borrador final** que presentarás al usuario para su aprobación.
+- Numeración **local** por entidad o por pantalla, empezando siempre en `001`, sin huecos.
+- El prefijo (`V-TareaCorreo-…`, `U-mis-correos-…`) garantiza unicidad global. **No se renumera nunca.**
+- Una misma regla **no** aparece en dos categorías.
+- Una regla con varias condiciones disjuntas se parte en varias reglas separadas (mejora la trazabilidad).
+- No documentar reglas que el framework ya cubre (FK válida, parser de tipo).
 
 ---
 
-## Fase 4 — Guardar el análisis
+## 3. Flujo general
 
-Solo tras aprobación, guarda el análisis.
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  Fase 0  Localizar specification.md                                 │
+│  Fase 1  Preparar la carpeta analysis/                              │
+│  Fase 2  Cargar contexto técnico (skills k-*, subsistemas)          │
+│  Fase 3  Lectura rápida de la especificación                        │
+│  Fase 4  Generación del análisis                                    │
+│            ├── Etapa A    Inventario (1 subagente)                  │
+│            ├── Etapa B.1  Entidades (1 subagente para todas)        │
+│            ├── Etapa B.2  Pantallas (N subagentes, secuenciales)    │
+│            └── Etapa C    Consolidación (agente principal)          │
+│  Fase 5  Escritura del analysis.md                                  │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
-> **REGLA OBLIGATORIA — ruta:** se crea una **subcarpeta de análisis** dentro de la carpeta
-> de la iniciativa, con el nombre `analysis_NN` donde NN es el siguiente número disponible
-> (cuenta las carpetas `analysis_*/` existentes en la iniciativa y suma 1; formato de 2 dígitos: 01, 02…).
-> Dentro de esa subcarpeta se guarda el fichero con el nombre fijo `analysis.md`.
->
-> Ejemplo:
-> ```
-> .sdd/drafts/2025-05-07_10-30_gestion-firmas-digitales/
-> └── analysis_01/
->     └── analysis.md
-> ```
->
-> Pueden existir varias subcarpetas `analysis_*/` en la misma carpeta de iniciativa (iteraciones sucesivas por cada vez que se ejecuta este skill).
-> **Nunca en la raíz del proyecto ni en ninguna otra carpeta.**
+Todo es **estrictamente secuencial**. Ningún subagente se lanza en paralelo (ver principio 2.2).
 
-> **PROCEDIMIENTO OBLIGATORIO antes de escribir el fichero — evita sobrescribir análisis previos:**
->
-> 1. **Listar** las subcarpetas existentes en la carpeta de la iniciativa con un comando Bash explícito (no asumir nada):
->    ```bash
->    ls -d .sdd/drafts/{carpeta-iniciativa}/analysis_*/ 2>/dev/null
->    ```
-> 2. **Calcular NN** como el mayor número encontrado + 1, formateado a 2 dígitos. Si no hay ninguna subcarpeta, NN = `01`. Ejemplos:
->    - No existe ninguna `analysis_*/` → crear `analysis_01`.
->    - Existen `analysis_01` y `analysis_02` → crear `analysis_03`.
->    - Existen `analysis_01` y `analysis_03` (con hueco) → crear `analysis_04` (siempre **máximo + 1**, **nunca rellenar huecos**).
-> 3. **Verificar** que la subcarpeta `analysis_NN` calculada **NO existe** antes de crearla. Si por error existiera, **detente** y avisa al usuario; nunca sobrescribas.
-> 4. Crear la subcarpeta con `mkdir -p .sdd/drafts/{carpeta-iniciativa}/analysis_NN`.
-> 5. Escribir `analysis.md` dentro de esa nueva subcarpeta.
->
-> **PROHIBIDO:**
-> - Usar un número fijo como `analysis_01` sin haber listado primero.
-> - Escribir `analysis.md` en una subcarpeta `analysis_NN` que ya contenga un `analysis.md` previo — eso destruye un análisis anterior. Si el `Write` te pide leer el fichero existente antes de sobrescribir, **es la señal inequívoca de que has elegido un NN equivocado**: vuelve al paso 1 y recalcula NN, no leas el fichero para luego sobrescribirlo.
+---
 
-El fichero guardado debe comenzar **obligatoriamente** con la siguiente cabecera frontmatter, seguida del contenido del borrador aprobado:
+## 4. Fase 0 — Localizar la especificación
+
+### 4.1 Caso 1 — Ruta explícita
+
+Si el usuario invoca el skill con una ruta (p.ej. `.sdd/drafts/2026-05-11_23-19_tareas-de-envio-de-correos/specification.md`):
+
+1. Leer el fichero.
+2. **Validar el frontmatter.** Debe comenzar con un bloque `---` … `---` que contenga la línea `type: specification`. Puede haber más campos; solo `type` es obligatorio. Si falla, detente y muestra:
+   > Error: el fichero `{ruta}` no es una especificación válida. Su frontmatter debe incluir `type: specification`.
+   > Para generar una especificación, usa `/sdd-specification-system`.
+3. La **carpeta de la iniciativa** es la que contiene ese fichero.
+
+### 4.2 Caso 2 — Sin ruta (auto-detección)
+
+Si el skill se invoca sin argumentos:
+
+1. Listar las subcarpetas de `.sdd/drafts/` cuyo nombre cumple `^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}_`:
+   ```bash
+   ls -d .sdd/drafts/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-9]_*/ 2>/dev/null
+   ```
+2. Ordenar alfabéticamente (el prefijo timestamp hace que el orden alfabético coincida con el cronológico) y tomar la **última** (no por `mtime`, no por orden de `ls`).
+3. Leer el `specification.md` dentro de esa carpeta.
+4. Si no hay ninguna carpeta con ese formato o la última no contiene `specification.md`, indicar al usuario que no hay especificaciones disponibles y pedir una ruta. Detente.
+5. Mostrar al usuario un resumen de dos líneas del `specification.md` junto con su ruta y preguntar con `AskUserQuestion` si quiere usarlo. Si dice "no", indicar que vuelva a invocar el skill con una ruta y detente.
+
+Una vez localizado, se aplica el mismo flujo que en el caso 1 (validación de frontmatter incluida).
+
+---
+
+## 5. Fase 1 — Preparar la carpeta de salida
+
+Borrar toda la subcarpeta `analysis/` dentro de la carpeta de la iniciativa si ya existe, y **recrearla vacía** acto seguido. Es la única forma de garantizar que ficheros antiguos no contaminen la salida (entidades renombradas, pantallas que ya no existen, validaciones obsoletas), y deja la carpeta lista para que los subagentes de la Fase 4 escriban directamente en ella.
+
+```bash
+rm -rf .sdd/drafts/{carpeta-iniciativa}/analysis/
+mkdir -p .sdd/drafts/{carpeta-iniciativa}/analysis/
+```
+
+**No** se borran el `specification.md`, el `design-guidelines.md` (si existe) ni ninguna otra cosa de la carpeta de la iniciativa. Solo `analysis/`.
+
+---
+
+## 6. Fase 2 — Cargar contexto técnico
+
+1. **Cargar los skills técnicos necesarios** — son la fuente de verdad sobre cómo se implementan las cosas en este proyecto:
+   - `k-validaciones` — **siempre** (categorías V/R/U, mensajes de error, ciclo de vida, campos calculados).
+   - `k-sistemas` — si la especificación crea o modifica entidades, servicios o controladores.
+   - `k-vistas` — si la especificación incluye listados, formularios, menús o navegación.
+   - `k-seguridad` — si la especificación incluye permisos, roles o restricciones por tipo de usuario.
+2. Leer el `CLAUDE.md` del proyecto para entender capas, convenciones y tipos de usuario.
+3. Explorar los sistemas/subsistemas existentes para identificar qué reutilizar: `src/main/java/com/educaflow/subsystem/` y `src/main/java/com/educaflow/system/`. Si la especificación menciona algo concreto, léelo antes de interpretar.
+4. Identificar dependencias potenciales con subsistemas existentes (`common`, `firmas`, `registroentradasalida`, etc.).
+5. Revisar `base/infrastructure/` para identificar utilidades reutilizables (PDF, integración externa, mail, etc.).
+
+**Prohibiciones:**
+
+- **NUNCA leas ni uses como referencia `expedientes`, `tiposexpedientes` ni `tramites`** — siguen otra arquitectura.
+- **NUNCA leas otros ficheros `analysis.md`, `entity-*.md` o `screen-*.md` previos como plantilla** — solo se usa la especificación actual y el código real. Los únicos ficheros que se pueden mirar como referencia de **formato** son los de `templates/` y `examples/` de este propio skill (ver Apéndice B).
+
+---
+
+## 7. Fase 3 — Lectura rápida de la especificación
+
+El agente principal lee el `specification.md` **una vez** para enmarcar el contexto: cuántas entidades aproximadas hay, qué tipo de pantallas se describen, qué subsistemas existentes se mencionan. **No** elabora la lista detallada — eso lo hacen los subagentes en la Fase 4.
+
+Si tras esta lectura la especificación parece tan ambigua que ni siquiera permite enumerar entidades o pantallas con un mínimo de certeza, detente y avisa al usuario:
+
+> La especificación no contiene información suficiente para inferir el modelo (entidades / pantallas). Considera ejecutar `/sdd-specification-system` para completarla antes de relanzar el análisis.
+
+En caso contrario, pasa directamente a la Fase 4.
+
+---
+
+## 8. Fase 4 — Generación del análisis
+
+### 8.1 Arquitectura: tres etapas secuenciales
+
+La generación se hace en tres etapas **estrictamente secuenciales** (ver principio 2.2):
+
+1. **Etapa A — Inventario** (un solo subagente): identifica las entidades y las pantallas a generar. Su salida es un documento de alcance.
+2. **Etapa B — Detalle** (dos olas secuenciales):
+   - **B.1 — Entidades** (un solo subagente): genera **todos** los `entity-*.md` en una sola pasada. Un único subagente ve las entidades en conjunto y decide FK, enums compartidos y tipos comunes de forma coherente.
+   - **B.2 — Pantallas** (un subagente por pantalla, **uno detrás de otro**): genera cada `screen-*.md` con los `entity-*.md` ya en disco como referencia.
+3. **Etapa C — Consolidación** (agente principal, sin subagente): lee los ficheros de disco, valida formato e IDs, resuelve referencias cruzadas y prepara el contenido del `analysis.md` índice (que se escribirá en la Fase 5).
+
+Los subagentes de las Etapas B.1 y B.2 **escriben directamente en disco** con `Write` en la carpeta `analysis/`. El agente principal solo recibe una confirmación corta (una línea por fichero escrito).
+
+### 8.2 Etapa A — Inventario (1 subagente)
+
+Lanza **un único** subagente con `Agent` cuyo prompt incluye:
+
+- El texto **literal** del `specification.md` completo.
+- El contexto técnico relevante de la Fase 2: entidades existentes que se reutilizan (con su FQN), infraestructura disponible, dependencias.
+- Los tipos de usuario y cargos del proyecto cuando aplique a seguridad.
+- Los principios 2.1 (interpretar, no transcribir), 2.2 (puede preguntar al usuario con `AskUserQuestion` si hay dudas reales sobre qué entidades o pantallas existen) y la frontera análisis/diseño 2.3.
+- Las tareas, el formato de salida y el checklist (todo lo de abajo).
+
+**Tareas del subagente de inventario:**
+
+1. **Leer dos veces la especificación.** Primera pasada: identificar entidades a partir del lenguaje de dominio. Segunda pasada: confirmar que cada entidad tiene sentido, identificar relaciones y pantallas.
+2. **Producir la lista de entidades**, cada una con:
+   - Nombre técnico (CamelCase) — coherente con la convención del proyecto.
+   - Descripción de una o dos frases (qué representa en el negocio).
+   - Relaciones esperadas con otras entidades de la lista (padre/hijo, FK, lista).
+   - Justificación: cita literal o referencia al párrafo de la especificación en que se basa.
+
+   El **detalle** (campos, tipos, estados/ciclo de vida, validaciones, reglas de negocio) se decide en la Etapa B y vive en `entity-*.md`. El inventario solo fija qué entidades existen y cómo se relacionan.
+3. **Producir la lista de pantallas**, cada una con:
+   - Nombre del fichero (`screen-<kebab-case>.md`).
+   - Título funcional (lo que verá el usuario).
+   - Quién la usa.
+   - Qué muestra y con qué filtro (lenguaje natural).
+   - **Entidad raíz** del grid principal y entidades anidadas (esto define la jerarquía Grid 1 → Form 1 → Grid 2 → …).
+   - Modo (lectura / edición / mixto).
+   - Justificación: cita o referencia a la especificación.
+4. **Resolver las dudas con `AskUserQuestion`** antes de devolver el inventario. Si una entidad o pantalla no se deduce con claridad de la especificación, pregunta al usuario; no devuelvas un inventario con incógnitas pendientes.
+5. **Aplicar el checklist** antes de devolver.
+
+**Formato de salida:**
+
+```
+=== INVENTARIO ===
+
+## Entidades
+| # | Nombre        | Fichero                  | Descripción breve                                       | Justificación                          |
+|---|---------------|--------------------------|---------------------------------------------------------|----------------------------------------|
+| 1 | TareaCorreo   | entity-TareaCorreo.md    | Cada correo que la aplicación envía o intenta enviar.   | "los correos que se envían…" (§2)      |
+| 2 | AdjuntoCorreo | entity-AdjuntoCorreo.md  | Fichero adjunto vinculado a una TareaCorreo.            | "se pueden añadir adjuntos" (§3)       |
+
+## Relaciones entre entidades
+- TareaCorreo (1) ─── (N) AdjuntoCorreo
+
+## Pantallas
+| # | Fichero               | Título               | Quién la usa      | Entidad raíz | Anidadas       | Modo         | Justificación                    |
+|---|-----------------------|----------------------|-------------------|--------------|----------------|--------------|----------------------------------|
+| 1 | screen-todos.md       | "Todos los correos"  | Administrador     | TareaCorreo  | AdjuntoCorreo  | solo lectura | "el admin ve todos…" (§4)        |
+| 2 | screen-mis-correos.md | "Mis correos"        | Cualquier usuario | TareaCorreo  | AdjuntoCorreo  | solo lectura | "cada usuario ve los suyos" (§4) |
+
+## Tipo y capa
+- **Tipo:** subsistema
+- **Capa:** subsystem/correos
+- **Descripción global:** <una frase>
+- **Dependencias:** subsystem/centros (multicentro), base/infrastructure/mail
+- **Multicentro:** sí
+- **Seguridad** (resumen):
+  - Administrador: ve todos los correos.
+  - Resto: ve solo los suyos.
+```
+
+**Checklist del subagente de inventario:**
+
+- [ ] ¿Cada entidad tiene nombre, descripción, fichero, relaciones y justificación?
+- [ ] ¿Cada pantalla tiene nombre de fichero, título, quién la usa, entidad raíz, anidadas, modo y justificación?
+- [ ] ¿Las pantallas son coherentes con las entidades (las entidades raíz y anidadas existen en la lista de entidades)?
+- [ ] ¿Las dudas razonables se han resuelto preguntando al usuario, en vez de marcadas como pendientes?
+- [ ] ¿Las relaciones entre entidades están descritas (cardinalidad, padre/hijo)?
+- [ ] ¿No se ha incluido detalle de campos, validaciones, reglas de negocio o reglas de UI? (Eso es para la Etapa B; aquí solo es alcance.)
+
+**Revisión del agente principal:**
+
+Cuando recibas el inventario, revísalo brevemente antes de continuar:
+
+- Si falta una entidad o pantalla obvia, añádela manualmente.
+- Si una entidad o pantalla es claramente redundante, elimínala.
+- Si el inventario parece muy descabellado (alucinaciones del subagente), aborta y reintenta con un prompt más restrictivo.
+
+No se pide aprobación del usuario aquí: las dudas las resuelve el propio subagente con `AskUserQuestion`.
+
+### 8.3 Etapa B.1 — Entidades (1 subagente para todas, con generación paralela de candidatos)
+
+Lanza un único subagente "coordinador de entidades". Este subagente **no genera él mismo el contenido de las entidades**; su trabajo es orquestar una fase interna de generación paralela y quedarse con la mejor candidatura.
+
+**Cómo trabaja el coordinador de entidades:**
+
+1. **Fase B.1.a — Generación paralela de candidatos.** Lanza **5 sub-subagentes en paralelo**, todos en la misma respuesta. Cada uno trabaja con el mismo prompt y produce **una candidatura completa** de los `entity-<Nombre>.md` de todas las entidades del inventario. Los 5 trabajan aislados, sin verse entre sí, y **NO usan `AskUserQuestion`** (al correr en paralelo no pueden preguntar — ver principio 2.2). Tampoco escriben en disco: devuelven el contenido al coordinador.
+2. **Fase B.1.b — Selección del candidato más completo.** El coordinador compara las 5 candidaturas y se queda con **una sola**, la que considere más completa según los criterios listados más abajo.
+3. **Fase B.1.c — Resolución de dudas y escritura.** Sobre la candidatura elegida, si quedan dudas razonables, el coordinador usa `AskUserQuestion` para resolverlas y ajusta el contenido. Después escribe cada `entity-<Nombre>.md` en `analysis/` con `Write`.
+
+**Por qué generación paralela aquí:** las entidades forman un grafo (FK, enums compartidos, tipos comunes) y la calidad varía mucho entre intentos. Comparando 5 candidaturas el coordinador puede quedarse con la más exhaustiva sin gastar tokens del agente principal. Solo se permite paralelismo aquí porque los sub-subagentes no preguntan al usuario.
+
+**Prompt común para los 5 sub-subagentes de generación de candidatos (Fase B.1.a):**
+
+- El texto **literal** del `specification.md`.
+- El **inventario completo** de la Etapa A.
+- El contexto técnico de la Fase 2.
+- Los principios 2.1, 2.3 y 2.4 (transmitir literalmente o referenciar el SKILL.md). **No** se transmite el principio 2.2: estos sub-subagentes corren en paralelo y **no deben usar `AskUserQuestion`** ni escribir en disco. Si hay ambigüedad, eligen una interpretación razonable y siguen adelante, **registrando esa duda explícitamente al final de su respuesta** (ver formato más abajo) para que, si esta candidatura resulta elegida, el coordinador pueda llevársela al usuario en la Fase B.1.c.
+- La plantilla literal `templates/entity.md`.
+- La instrucción de generar el contenido de un fichero `entity-<Nombre>.md` por cada entidad del inventario, con las cuatro secciones obligatorias en orden: `Modelo de datos`, `Validaciones`, `Acciones`, `Reglas de negocio`.
+- La instrucción explícita de tratar las entidades como un **grafo coherente** (FK, enums, tipos comunes consistentes entre `entity-*.md`).
+- Numeración local por entidad: `V-<NombreEntidad>-001`, `R-<NombreEntidad>-001`, … (ver principio 2.4). NO se renumera más adelante.
+- El checklist de entidad (ver abajo) — el sub-subagente lo aplica a su propia candidatura antes de devolverla.
+- **Formato de respuesta:** bloques etiquetados por nombre de fichero seguidos de un bloque final `=== DUDAS ===` con las preguntas pendientes (vacío si no hay), p.ej.
+  ```
+  === FILE: entity-TareaCorreo.md ===
+  …contenido…
+  === END FILE ===
+  === FILE: entity-AdjuntoCorreo.md ===
+  …contenido…
+  === END FILE ===
+  === DUDAS ===
+  - En `TareaCorreo` he asumido que `fechaEnvio` se rellena al pasar a ENVIADO; la especificación no lo concreta. ¿Es correcto, o se rellena al crear la tarea?
+  - He metido `motivoFallo` como texto libre en `TareaCorreo`. ¿Debería ser un enum con valores cerrados (SMTP_TIMEOUT, DESTINATARIO_INVALIDO, …)?
+  - No queda claro si `AdjuntoCorreo` puede existir sin `TareaCorreo` padre. He asumido que no (FK obligatoria + borrado en cascada).
+  === END DUDAS ===
+  ```
+  Cada duda es una pregunta concreta, no una observación vaga, y referencia la entidad/campo/regla afectada. Si el sub-subagente no tiene dudas, devuelve el bloque vacío entre las marcas.
+
+**Criterios de selección de candidatura (Fase B.1.b)** — el coordinador puntúa cada candidatura y se queda con la mejor:
+
+1. **Cobertura de campos**: cuántos campos relevantes del dominio recoge cada entidad (más es mejor, siempre que estén justificados por la especificación).
+2. **Cobertura de validaciones `V-…`**: número de validaciones bien formuladas (mensaje correcto, condición clara, no duplicadas).
+3. **Cobertura de reglas de negocio `R-…`**: efectos colaterales y automatismos que el sistema debe ejecutar.
+4. **Coherencia del grafo**: las FK entre entidades coinciden en nombre y tipo, los enums compartidos están alineados.
+5. **Cumplimiento de la frontera análisis/diseño** (principio 2.3): la candidatura que mete tecnicismos del framework pierde puntos.
+6. **Mensajes de validación bien redactados** (principio 2.4): empiezan por campo/valor, incluyen `'{valor}'` y dominio finito.
+
+Empata: el coordinador puede fusionar partes de varias candidaturas si una es claramente mejor en entidad A y otra en entidad B, pero **evitando incoherencias del grafo** (los nombres de FK deben seguir alineados). En la duda, mejor quedarse con una candidatura entera.
+
+**Fase B.1.c — Tras la selección, el coordinador:**
+
+- Revisa la candidatura ganadora aplicando el checklist completo.
+- **Toma el bloque `=== DUDAS ===` de la candidatura elegida** y plantea cada una al usuario con `AskUserQuestion`. Estas preguntas tienen prioridad: son las cosas que el sub-subagente ganador no pudo decidir por sí solo.
+- Si tras revisar la candidatura el coordinador detecta dudas adicionales que el sub-subagente no había recogido, también las pregunta.
+- Aplica las respuestas del usuario al contenido (editando los `entity-*.md` candidatos antes de escribirlos en disco) para que no quede ninguna asunción sin confirmar.
+- Escribe cada `entity-<Nombre>.md` en la carpeta de salida con `Write`.
+- **Formato de respuesta al agente principal:** una sola línea por fichero escrito, p.ej. `escrito: analysis/entity-TareaCorreo.md`. **No** pegar el contenido — ya está en disco.
+
+**Checklist de entidad** (aplicable a cada `entity-*.md` escrito):
+
+- [ ] ¿El fichero tiene las cuatro secciones obligatorias en orden (`Modelo de datos`, `Validaciones`, `Acciones`, `Reglas de negocio`)?
+- [ ] ¿La tabla `Acciones` incluye al menos las tres operaciones fijas (`Crear (insert)`, `Modificar (update)`, `Borrar (remove)`)? Si alguna no aplica, ¿está marcada como `Nunca — <motivo>`?
+- [ ] ¿Cada regla usa el formato `V-<NombreEntidad>-NNN` / `R-<NombreEntidad>-NNN`, con el nombre completo de la entidad y numeración local desde 001?
+- [ ] ¿Los mensajes de validación empiezan por el campo o el valor, incluyen el valor recibido (`'{valor}'`) y el dominio finito si aplica?
+- [ ] ¿Ninguna `R-<Entidad>-NNN` bloquea? (lo que bloquea es `V-<Entidad>-NNN`)
+- [ ] ¿La columna `Reglas que dispara` de Acciones referencia los IDs con prefijo correctamente?
+- [ ] ¿No hay nombres de clase Java, métodos, FQN, anotaciones, atributos XML, JPQL ni nombres técnicos del framework? (Ver principio 2.3.)
+- [ ] ¿La integridad referencial al borrar (RESTRICT/CASCADE/SET NULL) está en el padre, no en el hijo?
+
+### 8.4 Etapa B.2 — Pantallas (N subagentes, uno detrás de otro)
+
+Tras la Etapa B.1, los `entity-*.md` están en disco. Para cada pantalla del inventario, lanza un subagente — **uno detrás de otro, nunca dos a la vez**. No uses `run_in_background`.
+
+**Prompt de cada subagente de pantalla:**
+
+- El texto **literal** del `specification.md`.
+- El **inventario completo** de la Etapa A.
+- El contexto técnico de la Fase 2.
+- Los principios 2.1, 2.2, 2.3 y 2.4.
+- La plantilla literal `templates/screen.md`.
+- El nombre del fichero asignado (p.ej. `screen-todos.md`) y los datos de la pantalla del inventario (título, quién la usa, entidad raíz, anidadas, modo).
+- **La ruta absoluta de la carpeta de salida** y la instrucción de escribir el fichero directamente con `Write` en `analysis/screen-<nombre>.md`.
+- La instrucción de **leer los `entity-*.md` ya escritos en disco** (las entidades implicadas según el inventario) para construir columnas, formularios y referencias coherentes con el modelo de datos real.
+- La instrucción de generar el fichero incluyendo:
+  - Sección `## Estructura jerarquica de las pantallas` con bloque ASCII de las entidades anidadas.
+  - Para cada Grid: tabla de propiedades con `Entidad` como **primera fila**.
+  - Para cada Formulario: tabla `Propiedad/Valor` de dos filas (`Entidad`, `Solo lectura`) **al principio**, antes de Paneles/Botones/Reglas de UI.
+  - Toda la jerarquía maestro-detalle vive en este único fichero (Grid 1 → Form 1 → Grid 2 → Form 2 → …).
+- Numeración local por pantalla: `U-<slug-pantalla>-001`, donde `<slug-pantalla>` es el slug kebab-case del fichero sin el prefijo `screen-` ni la extensión (p.ej. `screen-mis-correos.md` → `U-mis-correos-001`). NO se renumera en la Etapa C.
+- Si hay dudas razonables sobre columnas, formularios o reglas de UI, **preguntar al usuario con `AskUserQuestion`** antes de escribir. No dejar incógnitas en el fichero.
+- El checklist (ver abajo).
+- **Formato de respuesta al agente principal:** una sola línea `escrito: analysis/screen-<nombre>.md`. No pegar el contenido.
+
+**Checklist de pantalla** (aplicable al `screen-*.md` escrito):
+
+- [ ] ¿El fichero tiene la sección `## Estructura jerarquica de las pantallas`?
+- [ ] ¿Cada Grid lleva la fila `Entidad` como **primera** de su tabla de propiedades?
+- [ ] ¿Cada Formulario lleva al principio la tabla `Propiedad/Valor` con `Entidad` y `Solo lectura`?
+- [ ] ¿Toda la jerarquía maestro-detalle vive en este único fichero (no se crean ficheros aparte para sub-grids)?
+- [ ] ¿Cada Grid decide explícitamente si tiene o no botón "Nuevo" (incluido el motivo si no lo tiene)?
+- [ ] ¿Cada regla usa el formato `U-<slug-pantalla>-NNN` con numeración local desde 001?
+- [ ] ¿Ninguna `U-<pantalla>-NNN` bloquea ni escribe en BD? (Eso son V/R, no U.)
+- [ ] ¿Los campos mencionados en columnas, formularios y reglas existen en el `entity-*.md` correspondiente (ya en disco)?
+- [ ] ¿No hay nombres de clase Java, FQN, anotaciones, atributos XML ni dominios JPQL? (Ver principio 2.3.)
+
+### 8.5 Etapa C — Consolidación (agente principal)
+
+Una vez los subagentes de las Etapas B.1 y B.2 han confirmado que sus ficheros están escritos, el agente principal **lee los `entity-*.md` y `screen-*.md` desde disco** con `Read` y los valida. Las correcciones se aplican con `Edit` sobre los ficheros ya en disco.
+
+> Con la convención `V-<Entidad>-NNN` / `R-<Entidad>-NNN` / `U-<pantalla>-NNN`, los IDs ya son únicos en todo el análisis. **No se renumera nada en esta etapa**; solo se valida consistencia y se construye el índice.
+
+**Pasos de la Etapa C:**
+
+1. **Validar formato de los IDs.** Leer cada `entity-*.md` y `screen-*.md` y verificar que las reglas siguen el patrón con prefijo y numeración local desde 001 sin huecos. Si algún subagente se salió del formato (IDs cortos, abreviados o globales), reescribir esos IDs con `Edit`.
+2. **Validar consistencia entidad-pantalla.** Para cada `screen-*.md`, comprobar que los campos mencionados en columnas, formularios y reglas existen en el `entity-*.md` correspondiente. Si no existen, decidir si añadirlos a la entidad (interpretación que se quedó corta) o eliminarlos de la pantalla (interpretación que se pasó), y aplicar la corrección con `Edit`. Si la elección no es obvia, **pregunta al usuario con `AskUserQuestion`** antes de decidir.
+3. **Validar referencias cruzadas.** La columna `Reglas que dispara` de la tabla `Acciones` de cada entidad debe referenciar IDs `V-<Entidad>-NNN` / `R-<Entidad>-NNN` que realmente existan (en el propio fichero o en otra entidad si tiene efectos colaterales). Las cadenas `Qué hace` de los botones en formularios deben referenciar IDs V/R/U existentes. Cualquier referencia rota se corrige con `Edit`.
+4. **Validar que ninguna regla aparece duplicada entre categorías V/R/U.** Si una misma regla aparece en dos sitios (p.ej. una validación que también está como `R-…`), decidir a cuál pertenece de verdad (bloquea → V, actúa → R, cambia formulario → U) y eliminarla de las otras.
+5. **Construir el contenido del `analysis.md` índice** con la estructura siguiente (sin escribir aún; la escritura va en la Fase 5):
+
+   ```
+   ## Análisis Funcional: <Nombre>
+
+   **Tipo:** sistema | subsistema
+   **Capa:** system/<nombre> | subsystem/<nombre>
+   **Descripción:** <una frase>
+
+   ### Dependencias de otros subsistemas
+   - `subsystem/X` — <por qué>
+
+   ### Seguridad
+   - <Tipo de usuario>: puede <ver|editar|…> <qué>, en lenguaje natural.
+   - Multicentro: sí | no
+
+   ### Entidades
+   | Fichero                                              | Entidad        | Para qué sirve                                          |
+   |------------------------------------------------------|----------------|---------------------------------------------------------|
+   | [entity-TareaCorreo.md](./entity-TareaCorreo.md)     | TareaCorreo    | Cada correo que la aplicación envía o intenta enviar.   |
+   | [entity-AdjuntoCorreo.md](./entity-AdjuntoCorreo.md) | AdjuntoCorreo  | Fichero adjunto vinculado a una TareaCorreo.            |
+
+   ### Pantallas
+   | Fichero                                          | Pantalla            | Para qué sirve                                                  |
+   |--------------------------------------------------|---------------------|-----------------------------------------------------------------|
+   | [screen-todos.md](./screen-todos.md)             | "Todos los correos" | Vista del administrador con los correos de todos los centros.   |
+   | [screen-mis-correos.md](./screen-mis-correos.md) | "Mis correos"       | Vista por usuario de los correos cuyo destinatario es él.       |
+
+   ### Resumen de reglas
+   Cada entidad numera sus propias reglas como `V-<Entidad>-NNN` y `R-<Entidad>-NNN` (ver `entity-*.md`).
+   Cada pantalla numera sus propias reglas como `U-<slug-pantalla>-NNN` (ver `screen-*.md`).
+
+   - Total validaciones: N
+   - Total reglas de negocio: M
+   - Total reglas de UI: K
+   ```
+
+   El `analysis.md` **no duplica** el contenido de los `entity-*.md` ni de los `screen-*.md`: es un índice navegable con descripciones cortas.
+
+**Checklist final de la Etapa C:**
+
+- [ ] ¿Cada regla tiene formato `V-<Entidad>-NNN`, `R-<Entidad>-NNN` o `U-<slug-pantalla>-NNN`, con numeración local desde 001 sin huecos dentro de su ámbito?
+- [ ] ¿Todas las referencias cruzadas apuntan a IDs que existen realmente?
+- [ ] ¿No hay reglas duplicadas entre categorías V/R/U?
+- [ ] ¿Las pantallas son coherentes con las entidades (cada campo del formulario existe en su entidad)?
+- [ ] ¿El `analysis.md` que se va a escribir enlaza con todos los `entity-*.md` y `screen-*.md` mediante rutas relativas `./<fichero>.md`?
+- [ ] ¿La integridad referencial al borrar está en el padre, no en el hijo?
+- [ ] ¿No hay nombres de clase, métodos Java, anotaciones, FQN, atributos XML, JPQL ni nombres técnicos del framework en ningún fichero?
+
+---
+
+## 9. Fase 5 — Escritura del `analysis.md`
+
+El agente principal escribe el `analysis.md` con `Write` en la carpeta `analysis/`, junto a los `entity-*.md` y `screen-*.md` ya generados por los subagentes. **Obligatoriamente** lleva frontmatter:
 
 ```
 ---
 type: analysis
 ---
 
-{contenido del análisis} 
+{contenido construido en la Etapa C}
 ```
 
-### Transición al planner
+Los `entity-*.md` y `screen-*.md` **no** llevan frontmatter (no son entrada directa de ningún skill; el input del diseñador es el `analysis.md` que los enlaza).
 
-Al finalizar, indica al usuario:
+Estructura resultante:
 
 ```
-Análisis guardado en .sdd/drafts/{carpeta-iniciativa}/analysis_NN/analysis.md
+.sdd/drafts/2026-05-11_23-19_tareas-de-envio-de-correos/
+├── specification.md
+└── analysis/
+    ├── analysis.md            ← lo escribe el agente principal aquí (con frontmatter)
+    ├── entity-TareaCorreo.md     (escrito por la Etapa B.1)
+    ├── entity-AdjuntoCorreo.md   (escrito por la Etapa B.1)
+    ├── screen-todos.md           (escrito por la Etapa B.2)
+    └── screen-mis-correos.md     (escrito por la Etapa B.2)
+```
 
-Para generar el plan de implementación ejecuta:
-  /sdd-designer-system .sdd/drafts/{carpeta-iniciativa}/analysis_NN/analysis.md
+### Mensaje de cierre al usuario
+
+```
+Análisis guardado en .sdd/drafts/{carpeta-iniciativa}/analysis/
+
+Ficheros generados:
+  - analysis.md
+  - entity-<Nombre>.md  (N ficheros)
+  - screen-<nombre>.md  (M ficheros)
+
+Para generar el plan de diseño ejecuta:
+  /sdd-designer-system .sdd/drafts/{carpeta-iniciativa}/analysis/analysis.md
 ```
 
 No lances `sdd-designer-system` tú mismo. El usuario decide cuándo ejecutarlo.
+
+---
+
+## Apéndice A — Override de rutas (para testing)
+
+Para probar este skill en un sandbox alternativo sin tocar el árbol real, se aceptan los siguientes overrides (también se reconocen las formas `entrada: <ruta>`, `salida: <ruta>`, `raíz: <ruta>`):
+
+- `--in=<ruta>` — fichero `specification.md` de entrada explícito. **Desactiva la auto-detección** descrita en la Fase 0 caso 2. La "carpeta de la iniciativa" es la que contiene ese fichero.
+- `--out=<ruta>` — **carpeta** donde se escriben los ficheros generados. Sustituye literalmente a `analysis/` en la Fase 1 (limpieza y creación), en la Fase 4 (los subagentes escriben ahí) y en la Fase 5 (el agente principal escribe el `analysis.md` ahí).
+- `--root=<ruta>` — raíz alternativa a `.sdd/drafts/`. Todas las rutas relativas (auto-detección, carpeta de la iniciativa) se resuelven contra esta raíz.
+
+En uso normal no se especifican.
+
+---
+
+## Apéndice B — Plantillas y ejemplos de referencia
+
+Los subagentes reciben en su prompt la plantilla correspondiente:
+
+- `templates/entity.md` — estructura de un `entity-<Nombre>.md` (cuatro secciones: Modelo de datos, Validaciones, Acciones, Reglas de negocio).
+- `templates/screen.md` — estructura de un `screen-<nombre>.md` (Estructura jerárquica + Grids + Formularios + Reglas de UI).
+
+Los ejemplos en `examples/` (subsistema de correos, firmas, ciclos…) son referencias de **formato**, no de contenido. **Nunca** se usan como plantilla para inferir entidades, pantallas o reglas (ver prohibición en Fase 2).

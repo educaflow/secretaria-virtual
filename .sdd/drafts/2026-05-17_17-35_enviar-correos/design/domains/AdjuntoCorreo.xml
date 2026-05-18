@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="correos" package="com.educaflow.subsystem.correos.db"/>
+
+    <entity name="AdjuntoCorreo">
+        <many-to-one name="tareaCorreo" ref="TareaCorreo" required="true" title="Tarea de correo"/>
+        <string name="nombreFichero" required="true" title="Nombre del fichero"/>
+        <many-to-one name="contenidoFichero" ref="com.axelor.meta.db.MetaFile" required="true" title="Fichero"/>
+    </entity>
+
+</domain-models>

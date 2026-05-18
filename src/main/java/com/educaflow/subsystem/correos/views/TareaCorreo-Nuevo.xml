@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+
+    <action-view name="subsysCorreos.TareaCorreo@Nuevo-action" title="Nuevo correo" model="com.educaflow.subsystem.correos.db.TareaCorreo">
+        <view type="form" name="subsysCorreos.TareaCorreo@Nuevo-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="forceEdit" value="true"/>
+    </action-view>
+
+    <form name="subsysCorreos.TareaCorreo@Nuevo-form" title="Nuevo correo" model="com.educaflow.subsystem.correos.db.TareaCorreo"
+          canEdit="true" canAttach="false" canBack="false" canBackOnSave="true" canDelete="false" canNew="false" canSave="false" canCancel="false" canMore="false"
+          related='{"adjuntos":["nombreFichero","contenidoFichero"]}'>
+
+        <panel name="datosDelCorreo" title="Datos del correo" colSpan="12">
+            <field name="asunto" colSpan="12"/>
+            <field name="dniDestinatario" colSpan="6"/>
+            <field name="emailDestinatario" colSpan="6"/>
+            <field name="centro" colSpan="6"/>
+            <field name="historialEstado" colSpan="6"/>
+        </panel>
+
+        <panel name="contenido" title="Contenido" colSpan="12">
+            <field name="cuerpo" colSpan="12" widget="html" showTitle="false"/>
+        </panel>
+
+        <panel-related name="adjuntos" title="Adjuntos" field="adjuntos" colSpan="12"
+                       grid-view="subsysCorreos.TareaCorreo.AdjuntoCorreo@Nuevo-grid"
+                       form-view="subsysCorreos.TareaCorreo.AdjuntoCorreo@Nuevo-form"/>
+
+        <panel name="buttons-panel" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Cancelar" onClick="back" css="btn-secondary" colSpan="3" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="save" colSpan="3" colOffset="6"/>
+        </panel>
+
+    </form>
+
+    <grid name="subsysCorreos.TareaCorreo.AdjuntoCorreo@Nuevo-grid" title="Adjuntos" model="com.educaflow.subsystem.correos.db.AdjuntoCorreo"
+          edit-icon="false" x-selector="none" canNew="true" canEdit="true" canDelete="true" canSave="false" canViewOnClick="false"
+          orderBy="nombreFichero">
+        <field name="nombreFichero"/>
+        <field name="contenidoFichero"/>
+    </grid>
+
+    <form name="subsysCorreos.TareaCorreo.AdjuntoCorreo@Nuevo-form" title="Adjunto" model="com.educaflow.subsystem.correos.db.AdjuntoCorreo"
+          canAttach="false" canEdit="true" canBack="true" canDelete="false" canNew="false" canSave="true" canMore="false">
+        <panel name="datosAdjunto" colSpan="12">
+            <field name="nombreFichero" colSpan="12"/>
+            <field name="contenidoFichero" colSpan="12"/>
+        </panel>
+    </form>
+
+</object-views>

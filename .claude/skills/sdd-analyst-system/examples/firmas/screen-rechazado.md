@@ -15,18 +15,30 @@
 
 ---
 
+## Estructura jerarquica de las pantallas
+```
+TareaFirma
+└── DocumentoFirma
+```
+
 ## Grid 1 — "Firmas"
 
 | Propiedad                          | Valor                                                                          |
 |------------------------------------|--------------------------------------------------------------------------------|
+| Entidad                            | TareaFirma                                                                     |
 | Columnas (en orden)                | fecha de solicitud, fecha de resolución, firmante, motivo de la firma, estado  |
 | Ordenación por defecto             | fecha de solicitud ascendente                                                  |
 | ¿Permite buscar?                   | NO                                                                             |
 | Formulario que abre el onclick     | Formulario 1 — Tarea rechazada (en modo solo lectura)                          |
-| Botones del toolbar                | —                                                                              |
+| Botones del toolbar                | — (las tareas las crean otros sistemas que solicitan la firma)                 |
 | Botones de las columnas            | —                                                                              |
 
 ## Formulario 1 — Tarea rechazada
+
+| Propiedad     | Valor       |
+|---------------|-------------|
+| Entidad       | TareaFirma  |
+| Solo lectura  | sí          |
 
 ### Paneles
 
@@ -42,7 +54,7 @@
 |-----------|-------------------------------------------|
 | "Salir"   | Cierra el formulario y vuelve al grid     |
 
-### Reglas de UI (U-XXX)
+### Reglas de UI (U-rechazado-NNN)
 
 *(no aplica)*
 
@@ -52,14 +64,20 @@
 
 | Propiedad                          | Valor                                                                |
 |------------------------------------|----------------------------------------------------------------------|
+| Entidad                            | DocumentoFirma                                                       |
 | Columnas (en orden)                | documento original (nombre del fichero)                              |
 | Ordenación por defecto             | —                                                                    |
 | ¿Permite buscar?                   | NO                                                                   |
 | Formulario que abre el onclick     | Formulario 2 — Documento original (en modo solo lectura)             |
-| Botones del toolbar                | —                                                                    |
+| Botones del toolbar                | — (los documentos se crean junto con la tarea, no manualmente)       |
 | Botones de las columnas            | —                                                                    |
 
 ## Formulario 2 — Documento original
+
+| Propiedad     | Valor           |
+|---------------|-----------------|
+| Entidad       | DocumentoFirma  |
+| Solo lectura  | sí              |
 
 ### Paneles
 
@@ -69,6 +87,6 @@
 
 *(sin botones)*
 
-### Reglas de UI (U-XXX)
+### Reglas de UI (U-rechazado-NNN)
 
 *(no aplica)*

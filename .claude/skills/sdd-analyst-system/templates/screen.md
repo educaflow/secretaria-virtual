@@ -27,6 +27,20 @@ Sección **opcional**. Una pantalla que no se alcanza desde el menú (p.ej. se a
 
 ---
 
+## Estructura jerarquica de las pantallas
+
+Representación jerárquica de las entidades navegables desde esta pantalla. Cada nivel corresponde a un Grid/Formulario anidado. Los nombres son los de las **entidades** (no los títulos visibles), reflejando cómo cada formulario contiene un grid que lleva a otra entidad y a su formulario.
+
+```
+<EntidadRaíz>
+└── <EntidadAnidada1>
+    └── <EntidadAnidada2>
+```
+
+*(Si la pantalla no tiene anidación, mostrar solo la entidad raíz.)*
+
+---
+
 ## Grid N — "<Título del grid>"
 
 *(Se numera 1, 2, 3… secuencialmente dentro de la pantalla. Si la pantalla solo tiene formulario sin grid, se omite esta sección.)*
@@ -35,6 +49,7 @@ Sección **opcional**. Una pantalla que no se alcanza desde el menú (p.ej. se a
 
 | Propiedad                   | Valor                                                                                                                   |
 |-----------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| Entidad                     | *(nombre técnico de la entidad cuyos registros se listan, ej.: `TareaCorreo`)*                                          |
 | Columnas (en orden)         | *(nombres funcionales de las columnas, separados por comas, en el orden de izquierda a derecha)*                        |
 | Ordenación por defecto      | *(`<campo> ascendente/descendente` o `—`)*                                                                              |
 | ¿Permite buscar?            | *(`SÍ — <descripción de los filtros y búsqueda libre>` o `NO`)*                                                         |
@@ -44,11 +59,13 @@ Sección **opcional**. Una pantalla que no se alcanza desde el menú (p.ej. se a
 
 **Valores admitidos por propiedad**:
 
+- **Entidad**: nombre técnico de la entidad JPA cuyos registros muestra el grid (ej.: `TareaCorreo`, `Ciclo`). Es la primera fila de la tabla.
 - **Columnas (en orden)**: nombres funcionales. No usar nombres técnicos del modelo (`fechaSolicitud` → `fecha de solicitud`).
 - **Ordenación por defecto**: `<campo> ascendente`, `<campo> descendente`, o `—`.
 - **¿Permite buscar?**: `SÍ — <qué se puede filtrar y por dónde>`, `SÍ — búsqueda libre por todos los campos visibles`, o `NO`.
 - **Formulario que abre el onclick**: el formulario al que se navega al hacer click en una fila. Modos: `en modo edición`, `en modo solo lectura`. Si se abre como ventana modal sobre la pantalla actual, añadir `, como ventana modal`. Si el grid no abre nada al hacer click, poner `—`.
 - **Botones del toolbar**: títulos visibles de los botones que aparecen encima del grid, separados por comas. Incluye el botón "Nuevo" (con su título personalizado, p.ej. `"Añadir un nuevo ciclo"`) y cualquier botón extra del toolbar (`"Importar"`, `"Exportar"`, etc.). `—` si no hay ninguno (ni siquiera "Nuevo"). El detalle de cada botón se describe en la tabla `Botones`.
+  - **Decisión obligatoria sobre el botón "Nuevo"**: en cada grid el análisis debe **decidir explícitamente** si existe el botón "Nuevo" o no. Si existe, se lista aquí con su título personalizado. Si no existe, hay que justificar el motivo — bien dentro de esta propiedad (p.ej. `— (las tareas las crean otros sistemas, no se permite crear desde aquí)`), bien en la tabla `Acciones` de la entidad donde la operación "Crear (insert)" estará marcada como `Nunca — <motivo>`. No vale dejarlo implícito.
 - **Botones de las columnas**: títulos visibles de los botones que aparecen como columna adicional en cada fila (p.ej. `"Reintentar"`, `"Ver detalle"`), separados por comas. `—` si no hay ninguno. El detalle se describe en la tabla `Botones`.
 
 ### Botones
@@ -66,21 +83,33 @@ Sección **opcional**. Si el grid no tiene botones (ni Nuevo, ni toolbar, ni de 
 - Botones del toolbar (los que actúan sobre la selección o sin selección) y botones de las columnas (los que aparecen en cada fila y actúan sobre el registro de esa fila) se listan **en la misma tabla**, sin separación. El contexto se aclara en `Qué hace` si hace falta (`Borra las filas seleccionadas`, `Abre el wizard de importación`).
 - La visibilidad de un botón **no** se pone aquí: si es condicional, se documenta en la sección `Reglas de UI` de abajo (botones de las columnas) o en la `Reglas de UI` del formulario (botones del formulario).
 
-### Reglas de UI (U-XXX)
+### Reglas de UI (U-{slug-pantalla}-NNN)
 
 Sección **opcional** del grid. Solo puede contener reglas sobre **botones de las columnas** que se muestran u ocultan según los datos de la fila (p.ej. botón "Aprobar" visible solo si la fila está en estado `PENDIENTE`). **Los botones del toolbar no admiten visibilidad condicional** — están siempre o no están. Si no hay reglas, se omite la sección o se pone `*(no aplica)*`.
 
-| ID | Disparador | Efecto | Campo/Panel afectado | Condición |
-|----|------------|--------|----------------------|-----------|
-| U-XXX | continuo | Mostrar/ocultar | botón "<título>" de la fila | *(condición funcional sobre los datos de la fila)* |
+| ID                       | Disparador | Efecto          | Campo/Panel afectado        | Condición                                           |
+|--------------------------|------------|-----------------|-----------------------------|-----------------------------------------------------|
+| U-{slug-pantalla}-NNN    | continuo   | Mostrar/ocultar | botón "<título>" de la fila | *(condición funcional sobre los datos de la fila)*  |
 
-Las reglas usan el mismo formato y pool de numeración global que las del formulario. Solo se admite el disparador `continuo` y el efecto `Mostrar/ocultar` sobre botones de las columnas — cualquier otro caso pertenece a la `Reglas de UI` del formulario.
+Las reglas usan el mismo formato y la misma secuencia local de la pantalla que las del formulario (se numeran juntas, no en pools separados grid/form). Solo se admite el disparador `continuo` y el efecto `Mostrar/ocultar` sobre botones de las columnas — cualquier otro caso pertenece a la `Reglas de UI` del formulario.
 
 ---
 
 ## Formulario N — <Título del formulario>
 
 *(Se numera N empezando por el mismo número del grid que lo abre — Grid 1 abre Formulario 1, Grid 2 abre Formulario 2, etc.)*
+
+### Propiedades
+
+| Propiedad     | Valor                                                                                          |
+|---------------|------------------------------------------------------------------------------------------------|
+| Entidad       | *(nombre técnico de la entidad que se edita/consulta, ej.: `TareaCorreo`)*                     |
+| Solo lectura  | *(`sí` si el formulario completo es de solo lectura; `no` si permite edición/creación)*        |
+
+**Valores admitidos**:
+
+- **Entidad**: nombre técnico de la entidad JPA del formulario (ej.: `TareaFirma`, `Curso`).
+- **Solo lectura**: `sí` cuando el formulario solo se usa en consulta (no tiene botón "Guardar" y sus campos no son editables); `no` cuando el formulario permite crear o modificar registros. Si el modo depende del contexto (p.ej. solo lectura al abrir desde el grid, editable al crear), poner `no — <matiz breve>`.
 
 ### Paneles
 
@@ -119,23 +148,23 @@ Sección **opcional**. Igual estructura que la del grid: `Botón | Qué hace`. S
 La cadena de acciones se separa con `→` cuando hay varios pasos. Cada paso puede ser:
 
 - **Cambio puramente de UI**: `Cambia el asistente al paso "rechazar"`, `Vuelve al paso 1`.
-- **Validación**: `Valida V-006`.
-- **Operación de la entidad**: `Ejecuta la operación "Marcar como rechazada" (R-001, R-002)` — el nombre coincide con el de la tabla `Acciones` de la entidad.
+- **Validación**: `Valida V-<Entidad>-NNN` (p.ej. `Valida V-TareaFirma-006`).
+- **Operación de la entidad**: `Ejecuta la operación "Marcar como rechazada" (R-<Entidad>-NNN, R-<Entidad>-NNN)` (p.ej. `(R-TareaFirma-001, R-TareaFirma-002)`) — el nombre coincide con el de la tabla `Acciones` de la entidad.
 - **Navegación**: `Cierra el formulario`, `Vuelve a la pantalla anterior`, `Redirige a la pantalla X`.
 
 Si dos botones tienen el **mismo título** dentro del mismo formulario (típico en asistentes con un "Atrás" en cada paso), se desambigua con un calificador entre paréntesis: `"Atrás" (en panel "<X>")`.
 
-### Reglas de UI (U-XXX)
+### Reglas de UI (U-{slug-pantalla}-NNN)
 
 Tabla canónica de `k-validaciones` para reglas de UI. Una regla de UI cambia el aspecto del formulario en función del valor de un campo, del usuario o del padre. **No bloquea ni escribe en BD**. Si no hay reglas, se pone `*(no aplica)*`.
 
-| ID    | Disparador                                               | Efecto                | Campo/Panel afectado       | Condición                                   |
-|-------|----------------------------------------------------------|-----------------------|----------------------------|---------------------------------------------|
-| U-001 | *(`continuo` / `onNew` / `onLoad` / `onChange:<campo>`)* | *(ver efectos abajo)* | *(campo o panel concreto)* | *(condición funcional en lenguaje natural)* |
+| ID                       | Disparador                                               | Efecto                | Campo/Panel afectado       | Condición                                   |
+|--------------------------|----------------------------------------------------------|-----------------------|----------------------------|---------------------------------------------|
+| U-{slug-pantalla}-001    | *(`continuo` / `onNew` / `onLoad` / `onChange:<campo>`)* | *(ver efectos abajo)* | *(campo o panel concreto)* | *(condición funcional en lenguaje natural)* |
 
 **Reglas:**
 
-- **ID global** del análisis: `U-001`, `U-002`, … sin reinicio por pantalla. Mismo pool que para `V-XXX` y `R-XXX` lo es para las suyas.
+- **ID con prefijo de pantalla**: `U-<slug-pantalla>-001`, `U-<slug-pantalla>-002`, … La numeración es **local por pantalla** y empieza siempre en 001, sin huecos. El `<slug-pantalla>` es el slug kebab-case del fichero sin el prefijo `screen-` ni la extensión. Ejemplo: para `screen-mis-correos.md` → `U-mis-correos-001`, `U-mis-correos-002`, … Las reglas de los grids y del formulario comparten esta única secuencia dentro de la pantalla.
 - **Disparador**:
   - `continuo` — la regla se evalúa permanentemente (atributos `*If` declarativos en el diseño).
   - `onNew` — al abrir el formulario en modo nuevo (valor inicial al crear).
@@ -165,15 +194,17 @@ Esquema típico de una pantalla con dos niveles de anidación:
 ## Identidad
 ## Menú
 ---
+## Estructura jerarquica de las pantallas
+---
 ## Grid 1 — "..."
-   ### Propiedades / ### Botones
+   ### Propiedades (con fila "Entidad") / ### Botones
 ## Formulario 1 — ...
-   ### Paneles / ### Botones / ### Reglas de UI (U-XXX)
+   ### Propiedades (Entidad / Solo lectura) / ### Paneles / ### Botones / ### Reglas de UI (U-<slug-pantalla>-NNN)
 ---
 ## Grid 2 — "..."
-   ### Propiedades / ### Botones
+   ### Propiedades (con fila "Entidad") / ### Botones
 ## Formulario 2 — ...
-   ### Paneles / ### Botones / ### Reglas de UI (U-XXX)
+   ### Propiedades (Entidad / Solo lectura) / ### Paneles / ### Botones / ### Reglas de UI (U-<slug-pantalla>-NNN)
 ---
 ## Grid 3 — "..."
    ...
