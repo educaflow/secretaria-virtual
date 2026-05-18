@@ -81,3 +81,6 @@ Instala este plugin que es un servidor de MCP: https://plugins.jetbrains.com/plu
 Por si está instalado quita el plugin de MCP genérico de JetBrains para evitar conflictos: `claude mcp remove jetbrains`
 Ejecuta: `claude mcp add --transport http --scope user intellij-index http://127.0.0.1:29170/index-mcp/streamable-http` 
 
+
+
+Leer este artículo: https://corpwaters.substack.com/p/the-ultimate-guide-to-claude-code
