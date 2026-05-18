@@ -14,3 +14,14 @@ Dades de la persona representant / Datos de la persona representante
 incluir el nombre de la conselleria en los documentos. que se añada al centro
 
 Añadir `sudo apt install libxml2-utils` tambien en el imagen de despliegue.
+
+
+
+Que que los xml y xsd se queden en el war; realmente debería quedarse todo incluido los PDF o los odt porque no pasa nada
+
+Usar pnpm para instalar las dependencias de node pero tan aqui como en el script de despliegue
+
+Cuando se sube un PDF en el menu de utilidaes de PDF no se indica que el demasiado grande. Y falla silenciosamente si es grande.
+
+Hacer el backup de los documento además de la base de datos
+
