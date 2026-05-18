@@ -387,22 +387,9 @@ Fichero: `src/main/java/com/educaflow/subsystem/importacion/importador/impl/Impo
 
 FQN: `com.educaflow.subsystem.importacion.importador.impl.ImportadorUsuarioCSV`
 
-#### Campo inyectado y constructor
+#### Obtención de servicios
 
-```java
-/**
- * Guice no gestiona esta clase (se crea con `new` desde ImportadorFicheroFactory),
- * pero se puede forzar la inyección de campos @Inject llamando explícitamente al
- * injector en el constructor. El constructor mantiene la firma original.
- */
-@Inject
-private ModelServiceFactory modelServiceFactory;
-
-public ImportadorUsuarioCSV(MetaFile fichero, TipoFicheroImportacion tipoFichero);
-// En el cuerpo del constructor, tras asignar los campos finales:
-//   Beans.get(Injector.class).injectMembers(this)
-// Esto fuerza a Guice a inyectar modelServiceFactory aunque la clase no sea un bean.
-```
+La clase se instancia con `new` desde `ImportadorFicheroFactory` (fuera de Guice). No hay campo `ModelServiceFactory` inyectado ni llamada a `injectMembers`. Los métodos que necesitan servicios llaman a `Beans.get(ModelServiceFactory.class)` directamente en el punto de uso.
 
 #### Método público — contrato sin cambios
 
@@ -426,7 +413,7 @@ public ResultadoImportacion importar() throws ImportadorException;
 ```java
 /**
  * Datos inmutables resueltos antes del bucle principal:
- * centro activo, curso activo y TipoUsuario con código "PROFESOR_EXTERNO".
+ * centro activo, curso activo y TipoUsuario resuelto por tipoFichero.name().
  */
 private record ContextoImportacion(Centro centro, Integer curso, TipoUsuario tipoUsuario) {}
 ```
@@ -452,14 +439,14 @@ private static final class ContadorImportacion { ... }
  *          "Importación abortada: el importador no tiene centro activo asignado."
  * R-003 — Si centro.getCurso() es null → lanza ImportadorException con mensaje:
  *          "Importación abortada: el centro '{centro.getName()}' no tiene curso activo asignado."
- * R-004 — Busca TipoUsuario con código "PROFESOR_EXTERNO" a través del servicio del
- *          subsistema common (regla de fronteras):
+ * R-004 — Busca TipoUsuario por convención tipoFichero.name() a través del servicio del
+ *          subsistema common:
  *          TipoUsuarioService tipoUsuarioSvc =
- *              (TipoUsuarioService) modelServiceFactory.resolve(TipoUsuario.class)
- *          tipoUsuarioSvc.findByCodigo("PROFESOR_EXTERNO")
+ *              (TipoUsuarioService) Beans.get(ModelServiceFactory.class).resolve(TipoUsuario.class)
+ *          tipoUsuarioSvc.findByCodigo(tipoFichero.name())
  *          Si devuelve Optional vacío → lanza ImportadorException con mensaje:
- *          "Importación abortada: error de configuración, no existe el tipo de usuario con código 'PROFESOR_EXTERNO'."
- *          El mapeo enum→código es explícito ("PROFESOR_EXTERNO"), no por convención (A1*).
+ *          "Importación abortada: error de configuración, no existe el tipo de usuario
+ *           con código '{tipoFichero.name()}'."
  */
 private ContextoImportacion resolverContexto() throws ImportadorException;
 
@@ -479,9 +466,8 @@ private List<String> leerLineas() throws ImportadorException;
  *          no llama a procesarLinea (no cuenta en ningún contador, no aparece en el log).
  * Para cada línea no vacía, delega en procesarLinea(...) y actualiza el ContadorImportacion.
  * Al finalizar, llama a componerLog() y devuelve ResultadoImportacion.
- * Resuelve UsuarioAutorizadoService una sola vez antes del bucle usando el campo
- * inyectado modelServiceFactory:
- *   (UsuarioAutorizadoService) modelServiceFactory.resolve(UsuarioAutorizado.class)
+ * Resuelve UsuarioAutorizadoService una sola vez antes del bucle:
+ *   (UsuarioAutorizadoService) Beans.get(ModelServiceFactory.class).resolve(UsuarioAutorizado.class)
  */
 private ResultadoImportacion procesarLineas(List<String> lineas,
                                              ContextoImportacion ctx);
@@ -548,8 +534,8 @@ No se añade ningún campo nuevo. El único cambio es en `fireActionRule_ejecuta
  *   tarea.setLog(resultado.log()) — sin el prefijo "Importación finalizada. " que
  *   contradice R-013 (el log ya empieza con "Creados: {n}\nIgnorados: {n}\nErrores: {n}").
  * La llamada a ImportadorFicheroFactory.create() mantiene su firma original de dos
- * argumentos: ImportadorUsuarioCSV inyecta ModelServiceFactory internamente con
- * Beans.get(Injector.class).injectMembers(this) en su constructor.
+ * argumentos: ImportadorUsuarioCSV obtiene los servicios con Beans.get(ModelServiceFactory.class)
+ * directamente en el punto de uso.
  * El resto no cambia: estado=true + centro + curso + fechaExportacion en éxito (R-014);
  * estado=false + log=ex.getMessage() en ImportadorException capturada (R-015).
  */
@@ -571,7 +557,7 @@ La compilación verifica que:
 - El XML de `TipoUsuario.xml` regenera `AbstractTipoUsuarioRepository` con `findByCodigo(String)`.
 - `TipoUsuarioRepository` y `UsuarioAutorizadoRepository` extienden sus respectivos abstractos.
 - `UsuarioAutorizadoServiceImpl` compila usando el cast al repositorio abstracto.
-- `ImportadorUsuarioCSV` compila con el constructor de dos parámetros y el campo `@Inject ModelServiceFactory` inyectado vía `Beans.get(Injector.class).injectMembers(this)`.
+- `ImportadorUsuarioCSV` compila con el constructor de dos parámetros; los servicios se obtienen con `Beans.get(ModelServiceFactory.class)` directamente en el punto de uso.
 - `ResultadoImportacion` con `creados`/`ignorados`/`errores` hace fallar cualquier uso de los campos renombrados, forzando actualización.
 - `ImportadorFicheroFactory.create()` mantiene su firma original de dos argumentos sin cambios.
 
@@ -614,7 +600,7 @@ Sin cambios. El catálogo de `TipoUsuario` con código `PROFESOR_EXTERNO` debe e
 | R-001 | Determinar centro activo del importador | Importador | `ImportadorUsuarioCSV.resolverContexto()` — `AuthUtils.getUser().getCentroActivo()` |
 | R-002 | Sin centro activo → abortar | Importador | `ImportadorUsuarioCSV.resolverContexto()` → lanza `ImportadorException` con mensaje fijo; capturado en `TareaImportacionServiceImpl.fireActionRule_ejecutarImportacion()` → `estado=false` |
 | R-003 | Centro sin curso activo → abortar | Importador | `ImportadorUsuarioCSV.resolverContexto()` → lanza `ImportadorException` con nombre del centro; capturado en `fireActionRule_ejecutarImportacion()` |
-| R-004 | TipoUsuario PROFESOR_EXTERNO no existe → abortar | Importador | `ImportadorUsuarioCSV.resolverContexto()` → `TipoUsuarioService.findByCodigo("PROFESOR_EXTERNO")` vía `modelServiceFactory.resolve(TipoUsuario.class)`; si vacío, lanza `ImportadorException` |
+| R-004 | TipoUsuario no existe para el código del enum → abortar | Importador | `ImportadorUsuarioCSV.resolverContexto()` → `TipoUsuarioService.findByCodigo(tipoFichero.name())` vía `Beans.get(ModelServiceFactory.class).resolve(TipoUsuario.class)`; si vacío, lanza `ImportadorException` |
 | R-005 | CSV ilegible → abortar | Importador | `ImportadorUsuarioCSV.leerLineas()` → captura `IOException`, lanza `ImportadorException` |
 | R-006 | Numeración 1-based incluyendo líneas en blanco | Importador | `ImportadorUsuarioCSV.procesarLineas()` → bucle con índice explícito 0-based, `numeroLinea = i+1` |
 | R-007 | Líneas vacías → ignorar silenciosamente | Importador | `ImportadorUsuarioCSV.procesarLineas()` → `if (linea.isBlank()) continue` (no llama a procesarLinea; el número de línea sí avanza) |
@@ -645,3 +631,12 @@ Sin entradas. Esta iniciativa no añade reglas de UI.
 4. **validateInsert solo cubre V-001**: V-002..V-004 están garantizadas por `required=true` en el XML y se listan en la trazabilidad solo por completitud (el análisis los relista "por trazabilidad"). No se añade código de validación Java para ellas.
 
 5. **Prefijo del log eliminado**: `"Importación finalizada. "` se eliminó de `fireActionRule_ejecutarImportacion` porque contradice R-013 (el log debe empezar con "Creados: {n}"). Todos los subagentes coincidieron en este cambio.
+
+---
+
+## Notas de cierre (as-built)
+
+Cambios aplicados respecto al draft original:
+- **Paso 8 — "Campo inyectado y constructor"**: eliminado. La implementación real no usa `@Inject ModelServiceFactory` ni `Beans.get(Injector.class).injectMembers(this)`. Los servicios se obtienen con `Beans.get(ModelServiceFactory.class)` directamente en el punto de uso (`resolverContexto` y `procesarLineas`).
+- **R-004 (docstring `resolverContexto`, Paso 9, Matriz y trazabilidad)**: actualizado para reflejar que el código usa `tipoFichero.name()` por convención en lugar del literal `"PROFESOR_EXTERNO"`. El mensaje de error del log también es dinámico.
+- **ContextoImportacion record (docstring)**: actualizado para reflejar `tipoFichero.name()` en lugar de `"PROFESOR_EXTERNO"`.

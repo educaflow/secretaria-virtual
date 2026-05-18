@@ -1,15 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <domain-models xmlns="http://axelor.com/xml/ns/domain-models"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models
+                   https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
 
     <module name="registro" package="com.educaflow.subsystem.registrousuario.db"/>
+
     <entity name="UsuarioAutorizado" repository="abstract">
-        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" required="true"/>
+
+        <many-to-one name="centro"
+                     ref="com.educaflow.subsystem.common.db.Centro"
+                     required="true"/>
+
         <string name="dni" title="dni__!!" required="true"/>
-        <many-to-one name="tipoUsuario" ref="com.educaflow.subsystem.common.db.TipoUsuario" required="true" title="Tipo de usuario"/>
-        <integer name="curso" />
-        <date name="fechaExportacion" title="Fecha de exportación"/>
-        <unique-constraint columns="centro,dni,tipoUsuario"/>
+
+        <many-to-one name="tipoUsuario"
+                     ref="com.educaflow.subsystem.common.db.TipoUsuario"
+                     required="true"
+                     title="Tipo de usuario"/>
+
+        <integer name="curso" required="true"/>
+
+        <datetime name="fechaExportacion" title="Fecha de exportación"/>
+
+        <unique-constraint columns="centro,dni,tipoUsuario,curso"/>
+
+        <finder-method name="findByCentroAndDniAndTipoUsuarioAndCurso"
+                       using="com.educaflow.subsystem.common.db.Centro:centro,
+                              String:dni,
+                              com.educaflow.subsystem.common.db.TipoUsuario:tipoUsuario,
+                              Integer:curso"
+                       filter="self.centro = :centro
+                           AND self.dni = :dni
+                           AND self.tipoUsuario = :tipoUsuario
+                           AND self.curso = :curso"/>
+
     </entity>
 
 </domain-models>
