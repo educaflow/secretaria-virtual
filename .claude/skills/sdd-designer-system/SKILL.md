@@ -207,6 +207,7 @@ Según las áreas que cubre el análisis:
 
 - **Siempre** `k-sistemas` — arquitectura de dominios, servicios, controladores; convenciones de FQN y nombres de clase.
 - **Siempre** `k-validaciones` — categorías V/R/U, en qué capa va cada tipo, cómo se redactan los mensajes.
+- **Siempre** `k-code-quality` — reglas de calidad de Java/Kotlin (descomposición de métodos, responsabilidad única, nombrado, idiomas modernos, convenciones Axelor/Guice/JPA). Aplica al diseñar firmas, descomponer servicios en colaboradores y nombrar clases/métodos.
 - Si hay vistas o menús: `k-vistas` — estructura de ficheros XML, nombres de vistas y acciones.
 - Si hay permisos o roles: `k-seguridad` — qué permisos/roles crear y cómo se nombran.
 
@@ -275,7 +276,7 @@ La generación paralela en la Tarea 2.1 aporta diversidad de decisiones (troceo 
 - El `analysis.md` completo y los `entity-*.md` / `screen-*.md` enlazados (texto literal).
 - La carpeta de trabajo determinada en la Fase 0.
 - El contexto técnico de la Fase 1: subsistemas reutilizables con su FQN (`com.educaflow.subsystem.X.db.Y`), infraestructura en `base/infrastructure/`, patrones reales de servicios y controladores ya implementados — **descritos como contrato**, no como código copiado.
-- El contenido relevante de los skills cargados (`k-sistemas`, `k-validaciones`, `k-vistas`, `k-seguridad`) resumido inline. **El subagente NO carga skills** — solo lee el prompt.
+- El contenido relevante de los skills cargados (`k-sistemas`, `k-validaciones`, `k-code-quality`, `k-vistas`, `k-seguridad`) resumido inline. **El subagente NO carga skills** — solo lee el prompt.
 - Las **guías de diseño** literales (si existían). El subagente debe respetarlas y, si encuentra una contradicción local con el análisis no detectada en el pre-flight, documentarla en una sección "Conflictos detectados con guías" al final.
 - Los principios 2.2, 2.4, 2.5, 2.6 y 2.7 (transmitir literalmente).
 - El formato de salida esperado y el checklist (ver más abajo).
@@ -315,7 +316,7 @@ El prompt debe encargar al subagente, en este orden:
 **Objetivo:** <Una frase>
 **Capa:** system|subsystem/<nombre>
 **Análisis de origen:** .sdd/drafts/{carpeta-iniciativa}/analysis/analysis.md
-**Skills necesarios para la implementación:** k-sistemas, k-vistas[, k-seguridad]
+**Skills necesarios para la implementación:** k-sistemas, k-code-quality, k-vistas[, k-seguridad]
 
 ## Ficheros a crear o modificar
 
@@ -472,6 +473,7 @@ Para cada regla compleja identificada, **lanza un subagente** con `Agent`. Si ha
 - El momento previsto (Antes/Después de `super.*`) decidido en la unificación.
 - El FQN de la clase y el nombre del método `fireActionRule_*` donde vivirá (decidido en la unificación).
 - El contexto técnico relevante de la Fase 1: subsistemas existentes que puede reutilizar, infraestructura de `base/infrastructure/` disponible, FQN de tipos y servicios ya implementados.
+- El contenido relevante de `k-code-quality` resumido inline (reglas de descomposición de métodos, responsabilidad única, nombrado, idiomas Java modernos) — aplica al diseñar las clases nuevas, interfaces y tipos propios del diseño detallado.
 - Los principios 2.1, 2.2 y 2.7 (transmitir literalmente).
 - La instrucción de **NO usar `AskUserQuestion`** y de registrar dudas en `=== DUDAS ===`.
 - Las dos tareas internas del subagente (ver 6.6.3) y el formato de salida esperado (ver 6.6.4).
