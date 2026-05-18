@@ -11,6 +11,16 @@ Los métodos `@CallMethod` de controladores deben:
 
 ---
 
+## Fronteras entre subsistemas
+
+Cualquier acceso a entidades de otro subsistema — lectura, escritura o eliminación — debe hacerse a través del servicio de ese subsistema (`*Service`), nunca llamando directamente a su repositorio. El repositorio es un detalle de implementación interno del subsistema propietario.
+
+**Violación:** acceder a `UsuarioAutorizadoRepository` desde `subsystem/importacion`, ya sea para leer o para escribir.
+
+**Correcto:** exponer en el servicio del subsistema propietario los métodos que necesiten los subsistemas clientes — tanto de consulta como de mutación — y llamarlos desde fuera: `usuarioAutorizadoService.findByCentroDniTipoUsuarioCurso(...)` o `.insert(...)`. Las validaciones de negocio (`validateInsert`, `fireActionRule_*`) se ejecutan siempre, independientemente del origen de la llamada.
+
+---
+
 ## Capa de servicio
 
 **JPQL en el repositorio, nunca en el servicio.** Todo código con `.all().filter().bind().fetch*()` pertenece al repositorio. En el servicio solo se llaman métodos nombrados del repositorio: `repository.findByDni(dni)`, nunca `repository.all().filter("self.dni = :dni").bind(...)`.
