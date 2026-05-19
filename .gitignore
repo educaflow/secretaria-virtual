@@ -50,3 +50,28 @@ java_pid*.hprof
 ### Archivos idiomas ###
 i18n_ca.csv
 i18n_es.csv
+
+# Logs
+*.log
+
+# Node / npm
+node_modules/
+
+# Playwright Test (@playwright/test)
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+playwright/.auth/
+
+# Playwright MCP (trazas de los Test Agents)
+.playwright-mcp/
+
+# Playwright Agent CLI (sesiones y caché locales)
+.playwright-cli/
+playwright/.sessions/
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local

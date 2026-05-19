@@ -1,0 +1,22 @@
+{
+  "name": "secretaria-virtual",
+  "version": "1.0.0",
+  "description": "```bash",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/educaflow/secretaria-virtual.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/educaflow/secretaria-virtual/issues"
+  },
+  "homepage": "https://github.com/educaflow/secretaria-virtual#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/node": "^25.8.0"
+  }
+}

@@ -84,3 +84,15 @@ Ejecuta: `claude mcp add --transport http --scope user intellij-index http://127
 
 
 Leer este artículo: https://corpwaters.substack.com/p/the-ultimate-guide-to-claude-code
+
+
+# instalar en desarrollo (No para desplegar)
+sudo apt install libxml2-utils
+
+# Playwright Agents
+https://playwright.dev/docs/test-agents
+
+``` 
+npm init playwright@latest
+npx playwright init-agents --loop=claude-code
+```
