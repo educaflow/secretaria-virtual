@@ -48,6 +48,74 @@ Un ejemplo de modelo de la entidad TareaFirma es el siguiente fichero TareaFirma
 Como se puede ver cada entidad está en su propio fichero XML y se definen los atributos con su tipo, título, ayuda, validaciones, etc. Además se pueden definir relaciones entre entidades (many-to-one, one-to-many) y enumerados.
 Tambien cada entidad está en un paquete concreto definido en el atributo package del módulo. En este caso la entidad TareaFirma está en el paquete com.educaflow.subsystem.firma.db
 
+## REGLA CRÍTICA — Campos rellenados por el sistema NO llevan `required="true"`
+
+Los campos que rellena el propio sistema dentro de `service.insert(...)` / `service.update(...)` (estados de máquina, fechas de creación/última actualización, contadores de intentos, motivos de fallo automáticos, usuario auditado, etc.) **NUNCA** deben declararse con `required="true"` en el dominio XML, aunque al final del flujo nunca queden a null.
+
+### Por qué
+
+El flujo de guardado de Axelor en `com.axelor.rpc.Resource.save` ejecuta los pasos en este orden:
+
+1. `JPA.manage(bean)` → internamente llama a `em().persist(bean)` + `em().flush()`. **Aquí se ejecuta la validación de Jakarta Bean Validation y la INSERT en BD.**
+2. `modelService.insert(bean)` → solo se ejecuta **después** de la INSERT. Aquí es donde nuestro código pone `estado=PENDIENTE`, `fechaCreacion=now`, etc.
+3. `super.insert(bean)` dentro de `modelService.insert` hace un `merge` que vuelca los campos del sistema con un UPDATE adicional.
+
+Si un campo del sistema lleva `required="true"`:
+
+- El dominio generado pone `@NotNull` en el atributo Java.
+- La columna SQL se crea `NOT NULL`.
+- Jakarta Bean Validation **falla en el paso 1**, antes de que `modelService.insert` tenga oportunidad de rellenar el valor.
+- Resultado: `ConstraintViolationException` con mensaje "no debe ser nulo" en pleno `save` aunque el código posterior fuera a poner el valor correcto.
+
+Sin `required="true"`:
+
+- El paso 1 inserta una fila con `null` en esos campos (transitorio).
+- El paso 2-3 los rellena y emite el UPDATE.
+- El estado final en BD es correcto.
+
+### Cuándo SÍ usar `required="true"`
+
+Solo en campos **introducidos por el usuario** a través del formulario, cuya ausencia es un error funcional (asunto del correo, DNI del destinatario, cuerpo del mensaje, fichero a importar, etc.). En esos casos `required="true"` es la validación declarativa correcta y bloquea el guardado con el mensaje estándar.
+
+### Patrón estándar para campos del sistema
+
+```xml
+<!-- Dominio: NO declarar required en estos campos -->
+<entity name="TareaCorreo">
+    <string name="asunto" required="true" title="Asunto"/>            <!-- usuario → required SÍ -->
+    <string name="cuerpo" required="true" large="true" title="Cuerpo"/>  <!-- usuario → required SÍ -->
+
+    <datetime name="fechaCreacion" title="Fecha de creación"/>        <!-- sistema → SIN required -->
+    <integer  name="numeroIntentos" title="Número de intentos"/>      <!-- sistema → SIN required -->
+    <enum     name="estado" ref="EstadoTareaCorreo" title="Estado"/>  <!-- sistema → SIN required -->
+</entity>
+```
+
+```java
+// Servicio: rellena los campos del sistema en insert ANTES de super.insert
+@Override
+public TareaCorreo insert(TareaCorreo entidad) {
+    if (entidad.getId() == null) {
+        entidad.setEstado(EstadoTareaCorreo.PENDIENTE);
+        entidad.setFechaCreacion(LocalDateTime.now());
+        entidad.setNumeroIntentos(0);
+    }
+    return super.insert(entidad);
+}
+```
+
+> **Antipatrón a evitar:** suplir la inicialización con un `<action-record>` ejecutado desde `onNew` en la vista. Es frágil (depende de que la creación pase por esa vista concreta), duplica la lógica entre Java y XML y mezcla responsabilidades. La inicialización de campos del sistema vive en el servicio; la vista no debe saber del estado interno del dominio.
+
+> **Antipatrón a evitar:** dentro de `insert(entidad)`, guardar la inicialización detrás de `if (entidad.getId() == null) { ... }`. Cuando el flujo de `Resource.save` invoca `modelService.insert`, ya ha pasado por `JPA.manage(bean)` → `em.persist(bean)`, así que **`entidad.getId()` ya NO es null** dentro de `insert`. El `if` parece una guarda defensiva pero realmente nunca se cumple y la inicialización queda muerta. `insert` solo se llama al crear, así que la guarda sobra — quita el `if` y ejecuta la inicialización directamente.
+
+### Checklist al añadir un campo nuevo a un dominio
+
+- [ ] ¿Quién rellena el valor? El **usuario** (formulario) → `required="true"` si la regla de negocio lo exige. El **sistema** (servicio/job/scheduler) → **sin** `required="true"`.
+- [ ] Si es del sistema, ¿el servicio (`insert`/`update` o un método de transición) lo rellena en algún camino? Si no, es un bug: el campo se quedará null permanentemente.
+- [ ] No usar `<action-record>` en `onNew` como sustituto de la inicialización en el servicio.
+
+---
+
 ## REGLA CRÍTICA — `name` del `<module>` debe coincidir con el final del paquete
 
 El atributo `name` del elemento `<module>` **siempre** tiene que ser idéntico al último segmento del `package` justo antes del sufijo `.db`. Es decir, el paquete tiene que acabar siempre en `.{name}.db`.

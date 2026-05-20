@@ -64,9 +64,11 @@ Representación jerárquica de las entidades navegables desde esta pantalla. Cad
 - **Ordenación por defecto**: `<campo> ascendente`, `<campo> descendente`, o `—`.
 - **¿Permite buscar?**: `SÍ — <qué se puede filtrar y por dónde>`, `SÍ — búsqueda libre por todos los campos visibles`, o `NO`.
 - **Formulario que abre el onclick**: el formulario al que se navega al hacer click en una fila. Modos: `en modo edición`, `en modo solo lectura`. Si se abre como ventana modal sobre la pantalla actual, añadir `, como ventana modal`. Si el grid no abre nada al hacer click, poner `—`.
-- **Botones del toolbar**: títulos visibles de los botones que aparecen encima del grid, separados por comas. Incluye el botón "Nuevo" (con su título personalizado, p.ej. `"Añadir un nuevo ciclo"`) y cualquier botón extra del toolbar (`"Importar"`, `"Exportar"`, etc.). `—` si no hay ninguno (ni siquiera "Nuevo"). El detalle de cada botón se describe en la tabla `Botones`.
+- **Botones del toolbar**: títulos visibles de los botones que aparecen encima del grid, separados por comas.
+  - **Regla por defecto**: en un grid (sea pantalla raíz o sub-grid dentro de un `panel-related`) **el único botón que va en el toolbar es el "Nuevo algo"** (`"Nuevo correo"`, `"Añadir un nuevo ciclo"`, `"Añadir adjunto"`…), con su título personalizado. Si la operación Crear de la entidad está marcada como `Nunca` en la tabla `Acciones`, entonces el grid no lleva ningún botón de toolbar (`—`).
   - **Decisión obligatoria sobre el botón "Nuevo"**: en cada grid el análisis debe **decidir explícitamente** si existe el botón "Nuevo" o no. Si existe, se lista aquí con su título personalizado. Si no existe, hay que justificar el motivo — bien dentro de esta propiedad (p.ej. `— (las tareas las crean otros sistemas, no se permite crear desde aquí)`), bien en la tabla `Acciones` de la entidad donde la operación "Crear (insert)" estará marcada como `Nunca — <motivo>`. No vale dejarlo implícito.
-- **Botones de las columnas**: títulos visibles de los botones que aparecen como columna adicional en cada fila (p.ej. `"Reintentar"`, `"Ver detalle"`), separados por comas. `—` si no hay ninguno. El detalle se describe en la tabla `Botones`.
+  - **Cualquier otro botón en el toolbar** (`"Importar"`, `"Exportar"`, `"Refrescar"`, etc.) solo se añade si el usuario lo pide **explícitamente**. La regla por defecto es no añadirlos. Las acciones cuyo verbo recae sobre "esta fila concreta" **no** van en el toolbar bajo ningún concepto.
+- **Botones de las columnas**: **por defecto, vacío (`—`)**. La convención del proyecto es que las acciones sobre una fila concreta (borrar, descargar, abrir detalle, aprobar/rechazar/reenviar) **no** se exponen como botones de fila: la fila se abre con click, y dentro del Formulario asociado a la fila están los botones que actúan sobre ese registro (con la convención de orden de la sección Botones del formulario: destructivo · cancelar · principal). Solo se añaden botones de columna cuando el usuario lo pide **explícitamente** o cuando una acción es lo bastante trivial y frecuente como para justificar el atajo (p.ej. un selector visual). En ese caso se listan aquí los títulos separados por comas; en caso contrario, `—`.
 
 ### Botones
 
@@ -80,16 +82,16 @@ Sección **opcional**. Si el grid no tiene botones (ni Nuevo, ni toolbar, ni de 
 
 - Cada botón se identifica por su **título visible** entre comillas.
 - Para el botón "Nuevo" se pone su título personalizado (p.ej. `"Añadir un nuevo ciclo"`, `"Nuevo correo"`). Su `Qué hace` típicamente es `Abre el formulario para crear un nuevo <entidad>`.
-- Botones del toolbar (los que actúan sobre la selección o sin selección) y botones de las columnas (los que aparecen en cada fila y actúan sobre el registro de esa fila) se listan **en la misma tabla**, sin separación. El contexto se aclara en `Qué hace` si hace falta (`Borra las filas seleccionadas`, `Abre el wizard de importación`).
+- Botones del toolbar (acciones **sin** fila concreta: crear nuevo, importar, exportar, refrescar, operar sobre el filtro entero) y botones de las columnas (acciones por fila que **solo** se añaden si el usuario lo pide explícitamente) se listan **en la misma tabla**, sin separación. El contexto se aclara en `Qué hace` si hace falta (`Abre el wizard de importación`, `Descarga el adjunto de esta fila`). **La regla por defecto es no usar botones de fila**: las acciones sobre un registro concreto se realizan abriendo su detalle (Formulario asociado al grid) y pulsando un botón allí, donde aplican las convenciones de orden de la sección Botones del formulario.
 - La visibilidad de un botón **no** se pone aquí: si es condicional, se documenta en la sección `Reglas de UI` de abajo (botones de las columnas) o en la `Reglas de UI` del formulario (botones del formulario).
 
 ### Reglas de UI (U-{slug-pantalla}-NNN)
 
 Sección **opcional** del grid. Solo puede contener reglas sobre **botones de las columnas** que se muestran u ocultan según los datos de la fila (p.ej. botón "Aprobar" visible solo si la fila está en estado `PENDIENTE`). **Los botones del toolbar no admiten visibilidad condicional** — están siempre o no están. Si no hay reglas, se omite la sección o se pone `*(no aplica)*`.
 
-| ID                       | Disparador | Efecto          | Campo/Panel afectado        | Condición                                           |
-|--------------------------|------------|-----------------|-----------------------------|-----------------------------------------------------|
-| U-{slug-pantalla}-NNN    | continuo   | Mostrar/ocultar | botón "<título>" de la fila | *(condición funcional sobre los datos de la fila)*  |
+| ID                       | Disparador | Efecto          | Campo/Panel afectado        | Condición                                           | Origen EARS                                          |
+|--------------------------|------------|-----------------|-----------------------------|-----------------------------------------------------|------------------------------------------------------|
+| U-{slug-pantalla}-NNN    | continuo   | Mostrar/ocultar | botón "<título>" de la fila | *(condición funcional sobre los datos de la fila)*  | *(`E-XX-NNN` del spec separados por comas, o `—`)*   |
 
 Las reglas usan el mismo formato y la misma secuencia local de la pantalla que las del formulario (se numeran juntas, no en pools separados grid/form). Solo se admite el disparador `continuo` y el efecto `Mostrar/ocultar` sobre botones de las columnas — cualquier otro caso pertenece a la `Reglas de UI` del formulario.
 
@@ -139,6 +141,16 @@ Lista de paneles del formulario **en el orden vertical en el que aparecen**. Una
 
 Sección **opcional**. Igual estructura que la del grid: `Botón | Qué hace`. Si el formulario no tiene botones se pone `*(sin botones)*`.
 
+**Convención obligatoria de orden de los botones en el panel `botones` del formulario** (de izquierda a derecha):
+
+1. **Botón destructivo** (`"Borrar"`, `"Eliminar"`, `"Quitar"`, `"Rechazar"`…) — más a la izquierda. Solo aparece si la operación está permitida sobre la entidad (no `Nunca` en la tabla `Acciones`).
+2. **Botón de cancelación / salida** (`"Cancelar"` en modo edición/creación, `"Cerrar"` en modo solo lectura) — al centro.
+3. **Botón principal** (`"Guardar"`, `"Guardar y enviar"`, `"Aprobar"`, `"Descargar"`, `"Reenviar"`…) — más a la derecha; es la acción que el usuario espera realizar de salida.
+
+Esta convención se mantiene incluso si algún botón solo es visible condicionalmente (las reglas U-…-NNN lo ocultan según modo/estado, pero la posición visual de los que sí están es siempre la misma).
+
+La cabecera de la sección puede incluir una frase corta explicitando qué botones aparecen en cada modo cuando el formulario tiene varios (p.ej. "En modo creación: Cancelar (izquierda) · Guardar y enviar (derecha)").
+
 | Botón                  | Qué hace               |
 |------------------------|------------------------|
 | *("<título visible>")* | *(cadena de acciones)* |
@@ -158,9 +170,9 @@ Si dos botones tienen el **mismo título** dentro del mismo formulario (típico 
 
 Tabla canónica de `k-validaciones` para reglas de UI. Una regla de UI cambia el aspecto del formulario en función del valor de un campo, del usuario o del padre. **No bloquea ni escribe en BD**. Si no hay reglas, se pone `*(no aplica)*`.
 
-| ID                       | Disparador                                               | Efecto                | Campo/Panel afectado       | Condición                                   |
-|--------------------------|----------------------------------------------------------|-----------------------|----------------------------|---------------------------------------------|
-| U-{slug-pantalla}-001    | *(`continuo` / `onNew` / `onLoad` / `onChange:<campo>`)* | *(ver efectos abajo)* | *(campo o panel concreto)* | *(condición funcional en lenguaje natural)* |
+| ID                       | Disparador                                               | Efecto                | Campo/Panel afectado       | Condición                                   | Origen EARS                                          |
+|--------------------------|----------------------------------------------------------|-----------------------|----------------------------|---------------------------------------------|------------------------------------------------------|
+| U-{slug-pantalla}-001    | *(`continuo` / `onNew` / `onLoad` / `onChange:<campo>`)* | *(ver efectos abajo)* | *(campo o panel concreto)* | *(condición funcional en lenguaje natural)* | *(`E-XX-NNN` del spec separados por comas, o `—`)*   |
 
 **Reglas:**
 
@@ -180,6 +192,7 @@ Tabla canónica de `k-validaciones` para reglas de UI. Una regla de UI cambia el
 - **Campo/Panel afectado**: nombre funcional del elemento (`campo "fecha de resolución"`, `panel "Log de errores"`, `botón "Reintentar"`).
 - **Condición**: lenguaje natural. **NO** se escriben expresiones de código (`estado != 'BORRADOR'` se escribe como `Visible solo si el estado no es BORRADOR`).
 - **Las reglas disparadas por clicks de botón NO van aquí** — se describen en la tabla `Botones` del formulario. La visibilidad de un botón **sí** va aquí si es más restrictiva que la del panel que lo contiene.
+- **Origen EARS**: lista de IDs `E-XX-NNN` del `specification.md` que dieron lugar a esta regla de UI, separados por comas (típicamente `E-ST-NNN`; ocasionalmente `E-OP-NNN` cuando el efecto es solo sobre el formulario). `—` si la regla fue inventada por el analista durante la interpretación. Los IDs deben existir realmente en el spec.
 
 ---
 

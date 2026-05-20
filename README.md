@@ -96,3 +96,13 @@ https://playwright.dev/docs/test-agents
 npm init playwright@latest
 npx playwright init-agents --loop=claude-code
 ```
+
+# Playwright Agent CLI
+https://playwright.dev/agent-cli/introduction
+
+```
+npm install -g @playwright/cli@latest
+playwright-cli --help
+playwright-cli install-browser --with-deps
+playwright-cli install --skills
+```

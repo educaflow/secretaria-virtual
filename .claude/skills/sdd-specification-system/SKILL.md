@@ -1,6 +1,6 @@
 ---
 name: sdd-specification-system
-description: Dado una historia de usuario o descripción funcional, hace preguntas iterativas hasta tener toda la información necesaria y genera una especificación funcional en lenguaje de negocio (entidades como conceptos, campos relevantes sin tipo, operaciones, vistas, seguridad y una única sección de reglas y validaciones en prosa mezclando validaciones, reglas de negocio y reglas de UI, sin numerar ni clasificar). La formalización (tipos, clasificación V/R/U, numeración, anclaje a entidad/campo) es responsabilidad de `sdd-analyst-system`. La especificación funcional resultante es el input del skill `sdd-analyst-system`.
+description: Dado una historia de usuario o descripción funcional, hace preguntas iterativas hasta tener toda la información necesaria y genera una especificación funcional en lenguaje de negocio (entidades como conceptos, campos relevantes sin tipo, operaciones, vistas, seguridad, **flujos principales `F-NNN`** narrativos en 1-3 frases que sirven de semilla para los tests E2E, y los requisitos redactados con plantillas EARS — Ubicuos `E-UB`, Eventos `E-EV`, Estados `E-ST`, No deseado `E-UN`, Opcionales `E-OP` — numerados localmente por patrón, sin clasificar todavía en validaciones, reglas de negocio o reglas de UI). La clasificación V/R/U y el anclaje a entidad/campo siguen siendo responsabilidad de `sdd-analyst-system`. La especificación funcional resultante es el input del skill `sdd-analyst-system`.
 ---
 
 # sdd-specification-system
@@ -72,9 +72,9 @@ La especificación describe **QUÉ necesita el negocio**, en lenguaje de negocio
 - Consultas o expresiones de código (JPQL, SQL, Groovy, `self.X = :user`, `eval:`, dominios Axelor literales).
 - Decisiones de implementación (transacciones JPA, hilos background, listeners, `fireActionRule_*`, `validateInsert`, `showIf`/`requiredIf`, `<action-attrs>`, `<action-record>`).
 - Identificadores `V-XXX`/`R-XXX`/`U-XXX` ni clasificación bloqueante / no bloqueante / de UI.
-- Tablas estructuradas para reglas y validaciones — solo una lista plana en prosa.
 - Detalles de capa ("en el servicio", "en el controlador", "en `validateInsert`").
 - Campos técnicos que el usuario no ve (auditoría, IDs, FKs internas, versiones, flags de control).
+- Escenarios de prueba detallados al estilo Given/When/Then con pasos numerados, nombres de pantalla, botones o mensajes literales. Los **flujos principales** (sección dedicada) son narrativos en 1-3 frases; los escenarios concretos los produce el análisis.
 
 Cada sección se describe al nivel funcional adecuado:
 
@@ -82,32 +82,67 @@ Cada sección se describe al nivel funcional adecuado:
 |---------|-----------|-----------|
 | **Entidades** | Nombre conceptual + descripción + campos funcionalmente relevantes sin tipo. | Tipos de campo, campos técnicos, FKs, IDs, anotaciones JPA. |
 | **Operaciones** | Nombre funcional, quién la ejecuta, qué datos conceptuales necesita, qué efecto produce. | Nombres de clases, signaturas Java, tipos del framework, ubicación en capa. |
+| **Flujos principales** | Descripción narrativa de un caso de uso completo de extremo a extremo, en 1-3 frases. Numerados `F-NNN`. Dicen **qué hace el usuario** y **qué hace el sistema** en respuesta. No son tests; son intención. | Pasos Given/When/Then (eso es análisis), nombres de pantallas concretas, botones, campos UI, mensajes literales, comandos `playwright-cli`. |
 | **Pantallas** | Nombre funcional, quién la ve, filtro aplicado en lenguaje natural, modo (lectura/edición). | Nombres `@Main-action`, `@Search-grid`, `@View-form`, dominios JPQL. |
 | **Menús** | Ítem de menú, ruta jerárquica, pantalla funcional destino, quién lo ve. | Nombres de acciones del framework. |
 | **Seguridad** | Qué puede ver, crear, editar o borrar cada rol en lenguaje natural. Multicentro sí/no. | Reglas JPQL, condiciones del framework, nombres técnicos de permisos. |
 | **Campos calculados** | Qué representa, lógica funcional de cálculo, de qué depende, cuándo se recalcula (funcionalmente). | Clases o métodos del framework. |
-| **Reglas y validaciones** | Frase en prosa: campo/pantalla afectada, condición funcional, mensaje al usuario si aplica. | Clasificación V/R/U, numeración, momento Antes/Después, capa, atributos XML. |
+| **Requisitos (EARS)** | Frase con plantilla EARS (Ubicuo / Evento / Estado / No deseado / Opcional), numerada `E-XX-NNN`: trigger/condición funcional, sistema o entidad afectada, respuesta del sistema y, si aplica, mensaje al usuario. | Clasificación V/R/U, momento Antes/Después, capa, atributos XML. |
 
 **Regla práctica ante una duda:** ¿el negocio cambiaría su decisión si el framework subyacente fuera distinto? Si la respuesta es **no**, va al diseño o al análisis (no a la especificación). Si es **sí**, va a la especificación.
 
-### 2.4 Una sola sección de reglas y validaciones, sin clasificar y sin numerar
+### 2.4 Requisitos en formato EARS, agrupados por patrón y numerados
 
-Las reglas y validaciones se escriben en **una única sección titulada "Reglas y validaciones"**, en **lista plana de bullets en prosa**, sin numerar y sin clasificar en validaciones / reglas de negocio / reglas de UI.
+Los requisitos del sistema (lo que antes era una sola lista plana en prosa) se escriben en una sección única titulada **"Requisitos (EARS)"**, dividida en **5 subsecciones, una por patrón EARS**. Cada bullet usa la plantilla del patrón y lleva un identificador `E-XX-NNN` con numeración **local por patrón**, empezando en 001 y sin huecos. **Sigue sin haber clasificación V/R/U** — esa es tarea del análisis.
 
-- Una regla y validación por bullet, en lenguaje de negocio.
-- Cada regla y validación incluye lo mínimo funcional: el campo o pantalla afectada, la condición funcional y, si aplica, el mensaje que el usuario vería.
-- **No** se indica si es bloqueante, ni cuándo se ejecuta (`Antes`/`Después`), ni cómo se implementa.
-- Las reglas y validaciones inferidas (asunciones del autor que la historia no menciona explícitamente) se marcan al final del bullet con `*` y se listan también en "Asunciones a confirmar".
-- **NO** se generan las tablas `V-XXX`, `R-XXX` ni `U-XXX`. **NO** se clasifica nada. Esa es la tarea del análisis (`sdd-analyst-system`).
+**EARS** (Easy Approach to Requirements Syntax) es una técnica de redacción de requisitos. Su valor aquí es disciplinar el **trigger** y la **condición** de cada requisito: cada frase deja explícito si es un invariante, una reacción a un evento, un comportamiento sostenido mientras dura un estado, una respuesta a algo no deseado, o un comportamiento que solo aplica con cierta feature. Esto reduce la ambigüedad que el análisis tendría que adivinar después.
 
-Ejemplos:
+#### 2.4.1 Las cinco subsecciones y sus plantillas
 
-| MAL (es análisis/diseño) | BIEN (es especificación) |
-|------------------|---------------------|
+| Subsección | Prefijo | Plantilla literal (en español) |
+|---|---|---|
+| Ubicuos | `E-UB` | `El <sistema/entidad> debe <respuesta>.` |
+| Dirigidos por evento | `E-EV` | `Cuando <trigger>, el <sistema/entidad> debe <respuesta>.` |
+| Dirigidos por estado | `E-ST` | `Mientras <estado>, el <sistema/entidad> debe <respuesta>.` |
+| Comportamiento no deseado | `E-UN` | `Si <condición indeseada>, entonces el <sistema/entidad> debe <respuesta>.` |
+| Características opcionales | `E-OP` | `Donde <feature>, el <sistema/entidad> debe <respuesta>.` |
+
+#### 2.4.2 Cómo elegir patrón EARS
+
+Árbol de decisión, en orden de precedencia (la primera que aplique gana):
+
+1. ¿Es un **rechazo** o un **error** (el sistema dice "no", impide o avisa de un mal uso)? → `E-UN` (`Si … entonces …`).
+2. ¿Aplica solo cuando una **feature/configuración opcional** está activa? → `E-OP` (`Donde …`).
+3. ¿Es una **reacción a un evento puntual** (algo que ocurre y dispara una respuesta)? → `E-EV` (`Cuando …`).
+4. ¿Es un comportamiento **sostenido mientras dura un estado**? → `E-ST` (`Mientras …`).
+5. ¿Es un **invariante siempre activo**, sin condición ni trigger? → `E-UB`.
+
+**Reglas complejas** (combinaciones, p.ej. `Mientras S, cuando E, el sistema debe Y`): van en la subsección del verbo dominante. Si combinan `Si … entonces …`, gana `E-UN`.
+
+#### 2.4.3 Numeración
+
+- Numeración **local por patrón**, empezando en `001`: `E-UB-001`, `E-EV-001`, `E-EV-002`, `E-ST-001`, `E-UN-001`, `E-OP-001`…
+- Cuando se borra un requisito **se conserva el número como hueco** (no se reutiliza) para no romper referencias desde análisis ya producidos en iteraciones anteriores.
+- Cada subsección lleva los requisitos en una lista plana, un bullet por requisito.
+
+#### 2.4.4 Inferencias
+
+Los requisitos que el spec deduce sin que el usuario los haya enunciado explícitamente se marcan con un `*` **antes del ID** (p.ej. `*E-EV-007`) y se listan también en "Asunciones a confirmar" al final del documento.
+
+#### 2.4.5 Lo que NO se hace en el spec
+
+- **NO** se generan tablas `V-XXX`, `R-XXX` ni `U-XXX`. **NO** se clasifica nada en validaciones / reglas de negocio / reglas de UI.
+- **NO** se indica si un requisito es bloqueante, ni el momento `Antes`/`Después`, ni la capa cliente/servidor, ni atributos XML.
+- **NO** se mezclan patrones dentro de la misma subsección.
+
+#### 2.4.6 Ejemplos
+
+| MAL (es análisis/diseño) | BIEN (es especificación EARS) |
+|---|---|
 | `destinatario: String`, `fechaEnvio: LocalDateTime` | `destinatario`, `fecha de envío` |
-| `V-001 \| motivoRechazo \| Siempre \| "El motivo es obligatorio"` | "El motivo de rechazo es obligatorio cuando se rechaza una firma." |
-| `R-002 \| Envía un correo \| TareaFirma \| cambiarEstado \| Después \| Solo si estado=APROBADO` | "Al aprobar una firma, el sistema envía un correo al interesado con el documento firmado." |
-| `U-001 \| continuo \| readonly \| descripcion \| estado != BORRADOR` | "La descripción solo es editable mientras la tarea está en borrador." |
+| `V-001 \| motivoRechazo \| Siempre \| "El motivo es obligatorio"` | `E-UN-001 — Si una TareaFirma se rechaza sin motivo, entonces el sistema debe rechazar la operación con error "El motivo de rechazo es obligatorio".` |
+| `R-002 \| Envía un correo \| TareaFirma \| cambiarEstado \| Después \| Solo si estado=APROBADO` | `E-EV-001 — Cuando una TareaFirma pasa al estado APROBADO, el sistema debe enviar un correo al interesado con el documento firmado.` |
+| `U-001 \| continuo \| readonly \| descripcion \| estado != BORRADOR` | `E-ST-001 — Mientras una TareaFirma no está en estado BORRADOR, la pantalla Detalle debe mostrar la descripción en modo lectura.` |
 | Vista `TareaCorreo@Centro-action` con dominio `self.centro = :user.centroActivo` | Pantalla "Correos del centro": lista los correos del centro del usuario. La ven Supervisor y Administrativa. |
 
 ---
@@ -161,6 +196,32 @@ Una vez localizada, se aplica el mismo flujo que en el caso 1 (validación de fr
 - Elegir cualquier carpeta que no sea la última por orden alfabético del prefijo timestamp.
 - Continuar sin confirmación del usuario tras mostrar el resumen.
 
+### 4.3 Guard: ¿ya existe `specification.md`?
+
+Antes de pasar a la Fase 1, comprobar si **ya existe** un `specification.md` en la carpeta de la iniciativa (`.sdd/drafts/{carpeta}/specification.md`). Si **no existe**, continuar normalmente con la Fase 1.
+
+Si **sí existe**, **detener el flujo y preguntar al usuario con `AskUserQuestion`** entre dos opciones:
+
+1. **Revisar el spec existente** (recomendado si el spec se editó a mano y solo quieres validar formato/numeración/plantillas EARS): el skill se **detiene** aquí e indica al usuario que lance `/sdd-specification-system-review` sobre el mismo fichero, preservando sus ediciones.
+2. **Regenerar desde la historia de usuario** (pisa el spec actual): el skill **continúa** con la Fase 1 y siguientes; el `specification.md` antiguo será sustituido íntegramente en la Fase 4.
+
+Mensaje exacto al usuario:
+
+> Ya existe `specification.md` en `{carpeta}`. ¿Qué quieres hacer?
+> - **Revisar el spec existente**: preserva tus ediciones, valida formato, plantillas EARS y numeración. Lanza `/sdd-specification-system-review` por separado.
+> - **Regenerar desde la historia de usuario**: descarta el spec actual y vuelve a generarlo desde cero a partir de `user-story.md`.
+
+Si el usuario elige "Revisar", responder literalmente:
+
+```
+Para revisar el spec existente sin perder tus ediciones, ejecuta:
+  /sdd-specification-system-review .sdd/drafts/{carpeta}/specification.md
+```
+
+Y **detente**. No lances `/sdd-specification-system-review` tú mismo.
+
+Si el usuario elige "Regenerar", continuar con la Fase 1.
+
 ---
 
 ## 5. Fase 1 — Exploración del contexto
@@ -206,7 +267,8 @@ Haz preguntas usando `AskUserQuestion` en rondas de 12 como máximo. Espera la r
 
 **Lógica de negocio:**
 - ¿Qué operaciones expone la interfaz? (crear, editar, aprobar, rechazar, firmar…)
-- ¿Qué **reglas y validaciones** hay sobre estas operaciones? Pregunta de forma abierta y mezclada: *"¿qué tiene que ser obligatorio, qué no se puede hacer, qué se calcula solo, qué cambia en la pantalla según el estado…?"*. Recoge todo en una lista sin clasificar — la clasificación (validación / regla de negocio / regla de UI) la hará el análisis.
+- ¿Cuáles son los **flujos principales** del sistema (los casos de uso de extremo a extremo que un usuario debería poder completar)? Pregunta abierta. Cada flujo se describe en 1-3 frases narrativas: qué hace el usuario y qué hace el sistema en respuesta, **sin** mencionar pantallas, botones, campos UI ni mensajes concretos. Estos flujos son la semilla de los tests E2E que el análisis materializará después.
+- ¿Qué **requisitos** hay sobre estas operaciones? Pregunta de forma abierta y mezclada: *"¿qué tiene que ser obligatorio, qué no se puede hacer, qué se calcula solo, qué cambia en la pantalla según el estado…?"*. Recoge todo y, al redactar, **encaja cada requisito en uno de los 5 patrones EARS** (Ubicuo / Evento / Estado / No deseado / Opcional) según el árbol de decisión §2.4.2. La clasificación V/R/U (validación / regla de negocio / regla de UI) la hará el análisis.
 - ¿Necesita PDF, firmas digitales, registro de entrada/salida u otros subsistemas?
 
 **Pantallas:**
@@ -229,7 +291,8 @@ Para cuando:
 
 - Sabes qué conceptos/entidades hay y sus campos funcionalmente relevantes (sin tipos).
 - Sabes qué operaciones expone la interfaz.
-- Sabes qué reglas y validaciones de negocio aplican (sin clasificar todavía).
+- Sabes cuáles son los flujos principales (casos de uso de extremo a extremo) del sistema.
+- Sabes qué requisitos de negocio aplican (cada uno encajable en un patrón EARS; sin clasificar todavía en V/R/U).
 - Sabes qué pantallas hay y cómo se navega entre ellas, en lenguaje funcional.
 - Sabes quién accede a qué y con qué restricciones, en lenguaje natural.
 - No quedan ambigüedades de **negocio** que bloqueen el análisis. (Las ambigüedades técnicas — qué entidad lleva qué campo, qué regla o validación es bloqueante — las resuelve el analista.)
@@ -259,7 +322,7 @@ Lanza **exactamente 5 subagentes en paralelo**, en una **única respuesta** que 
 - Todas las respuestas del usuario obtenidas en la Fase 2 (preguntas y respuestas literales).
 - El contexto explorado en la Fase 1: subsistemas existentes que se reutilizan (por nombre funcional, no por FQN), infraestructura disponible en `base/infrastructure/`, dependencias previstas.
 - Los tipos de usuario y cargos del proyecto cuando aplique a seguridad.
-- Los principios 2.1 (lenguaje de negocio), 2.3 (frontera spec/análisis/diseño) y 2.4 (una sola sección de reglas y validaciones sin clasificar). **No** se transmite el principio 2.2: estos subagentes corren en paralelo y **no deben usar `AskUserQuestion`**. Si hay ambigüedad, eligen una interpretación razonable, la marcan con `*` en "Asunciones a confirmar" y siguen adelante.
+- Los principios 2.1 (lenguaje de negocio), 2.3 (frontera spec/análisis/diseño) y 2.4 (requisitos en formato EARS, 5 subsecciones numeradas, sin clasificar V/R/U). **No** se transmite el principio 2.2: estos subagentes corren en paralelo y **no deben usar `AskUserQuestion`**. Si hay ambigüedad, eligen una interpretación razonable, la marcan con `*` antes del ID del requisito y la añaden a "Asunciones a confirmar".
 - Las tareas internas (sección 7.2.1).
 - La plantilla literal de salida (sección 7.2.2).
 - El checklist (sección 7.2.3) y la instrucción de aplicarlo antes de devolver el resultado.
@@ -270,13 +333,20 @@ Lanza **exactamente 5 subagentes en paralelo**, en una **única respuesta** que 
 Cada subagente ejecuta **estas tres tareas, en este orden**:
 
 1. **Tarea 1 — Producir las secciones funcionales**: tipo y capa funcional, descripción, entidades (como conceptos, con campos funcionalmente relevantes **sin tipo**), dependencias de otros subsistemas, operaciones, pantallas, menús, seguridad (multicentro sí/no), máquina de estados (si aplica) y campos calculados (si aplica, descritos solo a nivel funcional).
-2. **Tarea 2 — Construir la sección única de reglas y validaciones y la lista de asunciones**:
-   - Una sola sección titulada **"Reglas y validaciones"** con todas las reglas y validaciones mezcladas: las que bloquean, las que el sistema ejecuta automáticamente y las que cambian el formulario, **sin distinguir** y **sin numerar**.
-   - Formato: lista plana de frases en lenguaje de negocio. Una regla y validación por bullet.
-   - Cada regla y validación incluye lo mínimo funcional: el campo o pantalla afectada, la condición funcional y, si aplica, el mensaje que el usuario vería.
-   - Las reglas y validaciones inferidas se marcan al final con `*` y se listan también en "Asunciones a confirmar".
-   - **NO** se generan tablas. **NO** se clasifica V/R/U. **NO** se numera.
-3. **Tarea 3 — Aplicar el checklist (sección 7.2.3) y corregir antes de devolver**. El subagente no debe devolver la especificación si queda algún punto del checklist sin cumplir.
+2. **Tarea 1bis — Identificar los flujos principales del sistema**:
+   - Un **flujo principal** representa un caso de uso completo de extremo a extremo (lo que un usuario hace de principio a fin para conseguir un objetivo de negocio: enviar un correo, rechazar una solicitud, firmar un documento…).
+   - Se numera `F-001`, `F-002`… local al spec, sin huecos. Cuando se borra un flujo se conserva el número como hueco (no se reutiliza).
+   - Cada flujo es una frase narrativa de **1 a 3 oraciones** que dice **qué hace el usuario** y **qué hace el sistema** en respuesta, **sin** mencionar pantallas, botones, campos UI ni mensajes literales.
+   - Los flujos inferidos por el subagente (no enunciados explícitamente por el usuario) se marcan con `*` antes del ID y se listan también en "Asunciones a confirmar".
+   - **NO** son tests Given/When/Then; son intención narrativa. La materialización en tests concretos la hace el análisis (`tests.md`) usando estos flujos + las pantallas + las V/R/U.
+3. **Tarea 2 — Construir la sección "Requisitos (EARS)" y la lista de asunciones**:
+   - Una sola sección titulada **"Requisitos (EARS)"** con **5 subsecciones**, una por patrón: Ubicuos (`E-UB`), Dirigidos por evento (`E-EV`), Dirigidos por estado (`E-ST`), Comportamiento no deseado (`E-UN`), Características opcionales (`E-OP`). Cada subsección lleva sus bullets numerados localmente desde `001`.
+   - Cada bullet sigue **literalmente** la plantilla EARS de su patrón (ver §2.4.1) y empieza por su ID (`E-UB-001 — El sistema debe …`).
+   - Para elegir patrón, aplicar el árbol de decisión §2.4.2 (gana `E-UN` ante rechazos/errores, luego `E-OP`, luego `E-EV`, luego `E-ST`, luego `E-UB`). Las reglas complejas van en la subsección del verbo dominante manteniendo plantilla compuesta.
+   - Cada requisito incluye lo mínimo funcional: el trigger/estado/condición, el sistema o entidad afectada, la respuesta del sistema y, si aplica, el mensaje que el usuario vería.
+   - Los requisitos inferidos se marcan con `*` **antes del ID** (p.ej. `*E-EV-007`) y se listan también en "Asunciones a confirmar".
+   - **NO** se clasifica V/R/U. **NO** se mezclan patrones dentro de una subsección. **NO** se reutilizan números de huecos eliminados.
+4. **Tarea 3 — Aplicar el checklist (sección 7.2.3) y corregir antes de devolver**. El subagente no debe devolver la especificación si queda algún punto del checklist sin cumplir.
 
 #### 7.2.2 Plantilla de salida
 
@@ -298,6 +368,10 @@ El subagente devuelve una especificación con esta estructura exacta:
 ### Operaciones
 - **<Operación>**: <descripción de qué hace, quién la ejecuta, qué datos conceptuales necesita>.
 
+### Flujos principales
+- F-001 — <Una a tres frases narrativas: el usuario hace X, el sistema responde Y, ambos completan el caso de uso de extremo a extremo>.
+- *F-002 — <Flujo inferido por el spec sin que el usuario lo haya enunciado explícitamente>.  *(inferido)*
+
 ### Pantallas
 - **<Nombre funcional>**: <qué muestra, quién la ve, filtro en lenguaje natural, modo lectura/edición>.
 
@@ -314,32 +388,52 @@ El subagente devuelve una especificación con esta estructura exacta:
 ### Campos calculados (si aplica)
 - **<campo>**: <qué representa, lógica funcional, de qué depende, cuándo se recalcula>.
 
-### Reglas y validaciones
-- <Regla o validación 1 en prosa, mezclada — bloqueante, automática o de UI, sin distinguir>.
-- <Regla o validación 2…>
-- <Regla o validación N*: regla o validación inferida, no presente en la historia de usuario>.
+### Requisitos (EARS)
+
+#### Ubicuos (E-UB)
+- E-UB-001 — El <sistema/entidad> debe <respuesta>.
+- *E-UB-002 — El <sistema/entidad> debe <respuesta>.  *(requisito inferido)*
+
+#### Dirigidos por evento (E-EV)
+- E-EV-001 — Cuando <trigger>, el <sistema/entidad> debe <respuesta>.
+
+#### Dirigidos por estado (E-ST)
+- E-ST-001 — Mientras <estado>, el <sistema/entidad> debe <respuesta>.
+
+#### Comportamiento no deseado (E-UN)
+- E-UN-001 — Si <condición indeseada>, entonces el <sistema/entidad> debe <respuesta>.
+
+#### Características opcionales (E-OP)
+- E-OP-001 — Donde <feature>, el <sistema/entidad> debe <respuesta>.
 
 ### Asunciones a confirmar
-- <Las reglas y validaciones y decisiones marcadas con `*`, repetidas aquí con justificación breve>.
+- <Los flujos `*F-NNN` y los requisitos `*E-XX-NNN` marcados como inferidos, y otras decisiones marcadas con `*`, repetidos aquí con justificación breve>.
 ```
 
-> Nota: en los bullets de "Reglas y validaciones" usar "o" es natural (un bullet concreto es una regla **o** una validación). El nombre canónico de la sección y los términos genéricos siguen siendo "reglas y validaciones".
+> Nota: si una subsección EARS no tiene ningún requisito en esta especificación, se omite la subsección entera (no se deja vacía).
 
 #### 7.2.3 Checklist del subagente
 
 - [ ] ¿Cada entidad describe qué representa y enumera sus campos funcionalmente relevantes **sin tipo**?
 - [ ] ¿La especificación está libre de campos técnicos (IDs, FKs internas, auditoría, flags de control, versiones)?
-- [ ] ¿La sección "Reglas y validaciones" es **una sola** lista plana en prosa, sin tablas, sin numerar (no hay `V-XXX`/`R-XXX`/`U-XXX`)?
-- [ ] ¿Las reglas y validaciones están escritas en lenguaje que un supervisor entendería sin formación técnica?
-- [ ] ¿Las reglas y validaciones inferidas (no explícitas en la historia) están marcadas con `*` y listadas en "Asunciones a confirmar"?
-- [ ] ¿La especificación está libre de cualquier indicación de **bloqueante / no bloqueante**, **Antes/Después**, **capa cliente/servidor** o **clasificación V/R/U**?
+- [ ] ¿La sección **"Flujos principales"** lista al menos un flujo `F-NNN` y cada uno se describe en 1-3 frases narrativas?
+- [ ] ¿Los flujos principales están libres de nombres de pantalla concretos, botones, campos UI, mensajes literales y pasos Given/When/Then? (Esa materialización es del análisis.)
+- [ ] ¿Los flujos inferidos están marcados con `*` antes del ID y listados también en "Asunciones a confirmar"?
+- [ ] ¿La numeración `F-NNN` es local al spec, empieza en `001` y no reutiliza huecos eliminados?
+- [ ] ¿La sección "Requisitos (EARS)" tiene exactamente las 5 subsecciones (Ubicuos / Eventos / Estados / No deseado / Opcionales), omitiendo solo las que no contienen ningún requisito?
+- [ ] ¿Cada requisito empieza con un ID `E-UB-NNN` / `E-EV-NNN` / `E-ST-NNN` / `E-UN-NNN` / `E-OP-NNN`, con numeración local por patrón desde 001 y sin huecos en esta especificación?
+- [ ] ¿Cada requisito sigue **literalmente** la plantilla de su patrón (`El … debe …`, `Cuando …, el … debe …`, `Mientras …, el … debe …`, `Si …, entonces el … debe …`, `Donde …, el … debe …`)?
+- [ ] ¿Cada requisito está en la subsección correcta según el árbol de decisión §2.4.2 (rechazos/errores en `E-UN`, opcionales en `E-OP`, eventos en `E-EV`, estados en `E-ST`, invariantes en `E-UB`)?
+- [ ] ¿Los requisitos están escritos en lenguaje que un supervisor entendería sin formación técnica?
+- [ ] ¿Los requisitos inferidos (no explícitos en la historia) están marcados con `*` antes del ID y listados en "Asunciones a confirmar"?
+- [ ] ¿La especificación está libre de cualquier indicación de **bloqueante / no bloqueante**, **Antes/Después**, **capa cliente/servidor** o **clasificación V/R/U**? La clasificación V/R/U es responsabilidad del análisis.
 - [ ] ¿La sección de operaciones está libre de nombres de clase, signaturas de método, tipos del framework y referencias a capas técnicas?
 - [ ] ¿La sección de pantallas está libre de nombres técnicos del framework Axelor (`@Main-action`, `@All-action`, `@Search-grid`, `@View-form`, `@Main-form`)?
 - [ ] ¿La sección de menús describe la asociación menú → pantalla funcional, sin nombres de acciones del framework?
 - [ ] ¿La sección de seguridad está descrita en lenguaje natural, sin JPQL ni expresiones de código?
 - [ ] ¿La sección de campos calculados describe la lógica funcional sin mencionar clases ni métodos del framework?
-- [ ] ¿Las reglas y validaciones están libres de atributos XML (`showIf`, `requiredIf`, `<action-attrs>`, `<action-record>`) y nombres de método (`fireActionRule_*`, `insert`/`update`/`validateInsert`)?
-- [ ] ¿No se documentan reglas ni validaciones que el framework ya cubre por su propia naturaleza (FK válida, parser de tipo, formato de fecha)?
+- [ ] ¿Los requisitos están libres de atributos XML (`showIf`, `requiredIf`, `<action-attrs>`, `<action-record>`) y nombres de método (`fireActionRule_*`, `insert`/`update`/`validateInsert`)?
+- [ ] ¿No se documentan requisitos que el framework ya cubre por su propia naturaleza (FK válida, parser de tipo, formato de fecha)?
 - [ ] ¿No hay dependencias circulares entre sistemas/subsistemas?
 - [ ] ¿Las pantallas son coherentes con las entidades y operaciones descritas?
 - [ ] ¿Hay ambigüedades de **negocio** que bloquearían el análisis? Si las hay, deben quedar listadas como asunciones a confirmar.
@@ -350,14 +444,19 @@ Una vez recibidas las 5 candidaturas, **el agente principal** (no un subagente) 
 
 1. **Compara las 5 especificaciones** entidad por entidad, sección por sección.
 2. **Para cada decisión donde haya divergencia**, escoge la mejor opción según el criterio funcional: claridad para negocio, ausencia de detalles técnicos, fidelidad a la historia de usuario. Cuando haya empate razonable, elige la opción que minimiza ambigüedad para el análisis.
-3. **Para la sección de reglas y validaciones**, consolida en una sola lista plana:
-   - Si una regla o validación aparece en varias candidaturas con redacciones distintas, escoge la más precisa y comprensible para negocio.
-   - Si una regla o validación aparece en algunas candidaturas pero no en otras, evalúa si es genuina (incluirla) o si es una asunción agresiva (incluirla con `*`).
-   - **No clasifiques las reglas y validaciones**. **No numeres**. La sección sigue siendo una lista plana mezclada — la formalización es trabajo del análisis.
-4. **Para asunciones a confirmar**, agrupa todas las asunciones marcadas con `*` de las 5 candidaturas, elimina duplicados y razónalas.
-5. **Resuelve dudas con `AskUserQuestion`** si en la unificación detectas algo ambiguo que ninguna candidatura resolvió de forma satisfactoria. Aquí sí puedes preguntar (estás en el agente principal, no en paralelo).
-6. **Aplica el checklist final (7.2.3)** sobre la especificación unificada — la unificación puede haber introducido inconsistencias (redacciones mezcladas, asunciones combinadas, campos técnicos colados al consolidar) que ningún subagente individual podía detectar.
-7. **Presenta el borrador al usuario para su aprobación.** No se guarda hasta tener el visto bueno.
+3. **Para la sección "Flujos principales"**, consolida los flujos de las 5 candidaturas:
+   - Si un mismo flujo aparece redactado de distintas formas, elige la versión más narrativa y libre de tecnicismos.
+   - Si una candidatura propone un flujo que las demás no, evalúa si es genuino (incluirlo) o si es una invención (incluirlo con `*` antes del ID y añadirlo a "Asunciones a confirmar").
+   - **Renumera** `F-001`, `F-002`… sin huecos. Los IDs que vinieran de los subagentes no son vinculantes: el ID final lo asignas tú al consolidar.
+4. **Para la sección "Requisitos (EARS)"**, consolida en las 5 subsecciones EARS:
+   - Si un requisito equivalente aparece en varias candidaturas con redacciones distintas (o incluso clasificado en distintos patrones EARS), elige el patrón correcto según el árbol §2.4.2 y la redacción más precisa.
+   - Si un requisito aparece en algunas candidaturas pero no en otras, evalúa si es genuino (incluirlo) o si es una asunción agresiva (incluirlo con `*` antes del ID).
+   - **Renumera** dentro de cada patrón empezando en `001` y sin huecos. Los IDs que vinieran de los subagentes no son vinculantes: el ID final lo asignas tú al consolidar.
+   - **No clasifiques en V/R/U**. La clasificación V/R/U sigue siendo trabajo del análisis.
+5. **Para asunciones a confirmar**, agrupa todas las asunciones marcadas con `*` de las 5 candidaturas, elimina duplicados y razónalas.
+6. **Resuelve dudas con `AskUserQuestion`** si en la unificación detectas algo ambiguo que ninguna candidatura resolvió de forma satisfactoria. Aquí sí puedes preguntar (estás en el agente principal, no en paralelo).
+7. **Aplica el checklist final (7.2.3)** sobre la especificación unificada — la unificación puede haber introducido inconsistencias (redacciones mezcladas, asunciones combinadas, campos técnicos colados al consolidar) que ningún subagente individual podía detectar.
+8. **Presenta el borrador al usuario para su aprobación.** No se guarda hasta tener el visto bueno.
 
 ---
 
@@ -407,7 +506,7 @@ type: specification
 ```
 Especificación funcional guardada en .sdd/drafts/{carpeta-iniciativa}/specification.md
 
-Para generar el análisis (entidades formales, pantallas estructuradas y tablas V-XXX/R-XXX/U-XXX) ejecuta:
+Para generar el análisis (entidades formales, pantallas estructuradas, tablas V-XXX/R-XXX/U-XXX con trazabilidad a los requisitos EARS, y tests E2E `tests.md` materializados a partir de los flujos principales) ejecuta:
   /sdd-analyst-system .sdd/drafts/{carpeta-iniciativa}/specification.md
 ```
 

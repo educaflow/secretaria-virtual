@@ -43,9 +43,9 @@ Lista de campos de la entidad en lenguaje funcional. **No** se usan tipos Java (
 
 Tabla canónica de `k-validaciones`. Una validación es una condición que **bloquea** una operación si no se cumple. Si no hay ninguna, se pone `*(no hay validaciones específicas)*`.
 
-| ID                  | Campo(s)                                   | Descripción                                      | Condición                          | Mensaje al usuario                                                           |
-|---------------------|--------------------------------------------|--------------------------------------------------|------------------------------------|------------------------------------------------------------------------------|
-| V-{Entidad}-001     | *(uno o varios campos separados por coma)* | *(qué condición funcional debe cumplir el dato)* | *(cuándo se aplica la validación)* | *("Mensaje literal entre comillas con `{valor}` interpolado donde proceda")* |
+| ID                  | Campo(s)                                   | Descripción                                      | Condición                          | Mensaje al usuario                                                           | Origen EARS                                          |
+|---------------------|--------------------------------------------|--------------------------------------------------|------------------------------------|------------------------------------------------------------------------------|------------------------------------------------------|
+| V-{Entidad}-001     | *(uno o varios campos separados por coma)* | *(qué condición funcional debe cumplir el dato)* | *(cuándo se aplica la validación)* | *("Mensaje literal entre comillas con `{valor}` interpolado donde proceda")* | *(`E-XX-NNN` del spec separados por comas, o `—`)*   |
 
 **Reglas:**
 
@@ -58,6 +58,7 @@ Tabla canónica de `k-validaciones`. Una validación es una condición que **blo
   - No usar tecnicismos del framework.
 - Las validaciones dependientes de estado **comparten la misma secuencia `V-<Entidad>-NNN`**, no se abren tablas paralelas.
 - Las reglas de unicidad declaran su **ámbito** (global / por centro / por año / combinación) en `Descripción` o `Condición`.
+- **Origen EARS**: lista de IDs `E-XX-NNN` del `specification.md` que dieron lugar a esta validación, separados por comas (típicamente uno o varios `E-UN-NNN`, ocasionalmente otros patrones). Si la validación es **inventada por el analista** (no estaba en ningún `E-XX-NNN` del spec), se pone `—`. Los IDs deben existir realmente en el spec.
 
 ---
 
@@ -91,9 +92,9 @@ Tabla canónica de `k-validaciones`. Una regla de negocio es una acción que el 
 
 Si no hay reglas, se pone `*(no hay reglas de negocio asociadas a <Entidad>)*`.
 
-| ID                 | Descripción                                     | Entidad                        | Método                      | Momento             | Más información                                  |
-|--------------------|-------------------------------------------------|--------------------------------|-----------------------------|---------------------|--------------------------------------------------|
-| R-{Entidad}-001    | *(qué hace el sistema, no qué hace el usuario)* | *(entidad sobre la que actúa)* | *(operación de la entidad)* | *(Antes / Después)* | *(condiciones, dependencias, datos modificados)* |
+| ID                 | Descripción                                     | Entidad                        | Método                      | Momento             | Más información                                  | Origen EARS                                          |
+|--------------------|-------------------------------------------------|--------------------------------|-----------------------------|---------------------|--------------------------------------------------|------------------------------------------------------|
+| R-{Entidad}-001    | *(qué hace el sistema, no qué hace el usuario)* | *(entidad sobre la que actúa)* | *(operación de la entidad)* | *(Antes / Después)* | *(condiciones, dependencias, datos modificados)* | *(`E-XX-NNN` del spec separados por comas, o `—`)*   |
 
 **Reglas:**
 
@@ -107,6 +108,7 @@ Si no hay reglas, se pone `*(no hay reglas de negocio asociadas a <Entidad>)*`.
   - `Después` si tiene **efectos colaterales** (correos, PDFs, propagación a otras entidades, llamadas a sistemas externos).
 - Si una regla mezcla escritura propia + efectos colaterales, **partirla en dos `R-<Entidad>-NNN` separadas** (una Antes, otra Después) — mejora la trazabilidad al diseño.
 - **Más información**: condiciones de aplicación (`Solo si el estado pasa a APROBADO`), datos que se modifican, dependencias, etc.
+- **Origen EARS**: lista de IDs `E-XX-NNN` del `specification.md` que dieron lugar a esta regla, separados por comas (típicamente `E-EV-NNN` o `E-UB-NNN`; ocasionalmente otros patrones según el efecto). `—` si la regla fue inventada por el analista durante la interpretación.
 
 ---
 

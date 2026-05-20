@@ -1,6 +1,6 @@
 ---
 name: sdd-designer-system
-description: Dado el fichero de análisis funcional generado por sdd-analyst-system, carga los skills técnicos necesarios y genera un plan de DISEÑO (estructura de clases, métodos, vistas y acciones) que describe QUÉ hay que construir y DÓNDE va cada regla, sin escribir el código Java de implementación. Materializa directamente como ficheros XML reales los modelos de dominio, las vistas y los menús (validados con xmllint contra sus XSD). El plan resultante está diseñado para ser ejecutado por sdd-implementer-system, que es quien escribe el código Java real.
+description: Dado el fichero de análisis funcional generado por sdd-analyst-system, carga los skills técnicos necesarios y genera un plan de DISEÑO (estructura de clases, métodos, vistas y acciones) que describe QUÉ hay que construir y DÓNDE va cada regla, sin escribir el código Java de implementación. Materializa directamente como ficheros XML reales los modelos de dominio, las vistas y los menús (validados con xmllint contra sus XSD). Propaga `tests.md` desde `analysis/` a `design/` tal cual (contrato fijo entre análisis e implementación; los tests E2E los ejecutará `sdd-implementer-system` con `playwright-cli`). El plan resultante está diseñado para ser ejecutado por sdd-implementer-system, que es quien escribe el código Java real.
 ---
 
 # sdd-designer-system
@@ -27,6 +27,7 @@ Una **carpeta** `design/` dentro de la carpeta de la iniciativa, con:
 - `domains/<Entidad>.xml` — uno por entidad detectada. XML completo, válido contra `../axelor-open-platform/axelor-core/src/main/resources/domain-models.xsd`.
 - `views/<Fichero>.xml` — uno por `<action-view>` (regla "un `<action-view>` por fichero"). XML completo, válido contra `../axelor-open-platform/axelor-core/src/main/resources/object-views.xsd`.
 - `menus.xml` — XML con los `<menuitem>` a añadir al fichero único del proyecto. Válido contra `../axelor-open-platform/axelor-core/src/main/resources/object-views.xsd`.
+- `tests.md` — **copia literal** del `analysis/tests.md`. El diseñador no lo modifica; solo lo propaga. Es el contrato verificable que `/sdd-implementer-system` ejecutará con `playwright-cli` tras escribir el Java.
 - `rules/R-<Entidad>-NNN.md` — **solo para reglas de negocio complejas** (ver sub-tarea 6.6). Un fichero por cada regla `R-` cuya implementación requiera clases auxiliares, tipos propios, interfaces, máquinas de estado, integraciones externas o algoritmos no triviales. El fichero describe el diseño completo de esas piezas (clases con FQN, interfaces, enums, DTOs, secuencia de invocación) sin escribir el código Java de los cuerpos. El comentario del método `fireActionRule_*` en `design.md` referencia este fichero.
 
 Los ficheros XML generados aquí son los **mismos** que `sdd-implementer-system` copiará a su ubicación final en `src/main/...` (o que fusionará con el `menus.xml` existente). El diseño no inventa nada que no se vaya a usar tal cual.
@@ -42,7 +43,8 @@ Los ficheros XML generados aquí son los **mismos** que `sdd-implementer-system`
         ├── analysis/                             ← entrada
         │   ├── analysis.md
         │   ├── entity-*.md
-        │   └── screen-*.md
+        │   ├── screen-*.md
+        │   └── tests.md                          ← se copia tal cual a design/tests.md
         └── design/                               ← salida de este skill
             ├── design.md                         ← plan (type: design)
             ├── domains/
@@ -50,6 +52,7 @@ Los ficheros XML generados aquí son los **mismos** que `sdd-implementer-system`
             ├── views/
             │   └── <Fichero>.xml                 ← un fichero por <action-view>
             ├── menus.xml                         ← <menuitem> del subsistema
+            ├── tests.md                          ← copia literal de analysis/tests.md
             └── rules/                            ← solo si hay reglas R complejas
                 └── R-<Entidad>-NNN.md            ← diseño detallado de una regla compleja
 ```
@@ -121,6 +124,12 @@ Si algún fichero falla, se corrige (Edit) y se revalida hasta que pase. Si tras
 - **NO crear módulos Guice para `ModelService`** — `ModelServiceFactory` los descubre automáticamente.
 - **NO crear listeners JPA para lógica de negocio** — esa lógica va en el servicio como `fireActionRule_*`.
 - **Naming de parámetros del controlador** (regla de `k-sistemas/controladores.md`): cuando una firma del controlador recibe `ActionRequest`/`ActionResponse`, los parámetros se llaman **siempre** `actionRequest` y `actionResponse` (camelCase completo). Prohibido `req`/`resp`/`request`/`response`.
+
+### 2.8 `tests.md` propaga sin modificar
+
+El fichero `analysis/tests.md` (cuando existe) es contrato fijo entre el análisis y la implementación: el diseñador lo **copia tal cual** a `design/tests.md` en la Fase 4 (§8.2 paso 3) y no toca su contenido. Mismo principio que con los XML (§2.1 + §2.3): **prohibido** regenerarlo, reformatearlo, resumirlo o "limpiarlo" durante el diseño. Si el diseñador detecta que el `tests.md` contiene errores o referencias rotas (botones inexistentes, mensajes que no se van a implementar), **debe detenerse** y pedir al usuario reabrir `/sdd-analyst-system` para regenerar los tests; no los corrige aquí.
+
+Si `analysis/tests.md` no existe (iniciativa legacy sin flujos principales en el spec), el diseñador no genera `design/tests.md` y `/sdd-implementer-system` saltará su Fase 3.5 sin error.
 
 ---
 
@@ -197,6 +206,32 @@ Tras resolver la ruta del análisis, si en los argumentos queda texto adicional,
    > Error: ya existe `{ruta}/design-guidelines.md`. No se puede pasar guías por el prompt cuando el fichero ya existe — edita el fichero directamente. Razón: garantizar una única fuente de verdad y evitar pérdidas accidentales.
 4. **Si NO hay prompt adicional**: continúa con la Fase 1 (las guías se cargarán allí si el fichero existe).
 
+### 4.4 Guard: ¿ya existe la carpeta `design/`?
+
+Antes de pasar a la Fase 1, comprobar si **ya existe** una carpeta `design/` no vacía en la carpeta de la iniciativa (`.sdd/drafts/{carpeta}/design/`). Si **no existe** o está vacía, continuar normalmente con la Fase 1.
+
+Si **sí existe** (y contiene al menos `design.md`), **detener el flujo y preguntar al usuario con `AskUserQuestion`** entre dos opciones:
+
+1. **Revisar el diseño existente** (recomendado si el `design.md` o los XML se editaron a mano y solo quieres validar XSD con `xmllint`, cobertura V/R/U → ubicación, reglas arquitectónicas): el skill se **detiene** aquí e indica al usuario que lance `/sdd-designer-system-review`, preservando sus ediciones.
+2. **Regenerar desde el análisis** (pisa el diseño actual): el skill **continúa** con la Fase 1; la carpeta `design/` será borrada y recreada en la Fase 4.
+
+Mensaje exacto al usuario:
+
+> Ya existe `design/` en `{carpeta}`. ¿Qué quieres hacer?
+> - **Revisar el diseño existente**: preserva tus ediciones, valida XML con xmllint, cobertura V/R/U → ubicación y reglas arquitectónicas. Lanza `/sdd-designer-system-review` por separado.
+> - **Regenerar desde el análisis**: descarta el diseño actual y vuelve a generarlo desde cero a partir de `analysis/`.
+
+Si el usuario elige "Revisar", responder literalmente:
+
+```
+Para revisar el diseño existente sin perder tus ediciones, ejecuta:
+  /sdd-designer-system-review .sdd/drafts/{carpeta}/design/
+```
+
+Y **detente**. No lances `/sdd-designer-system-review` tú mismo.
+
+Si el usuario elige "Regenerar", continuar con la Fase 1.
+
 ---
 
 ## 5. Fase 1 — Cargar contexto técnico
@@ -239,6 +274,62 @@ Comprobar si en `{iniciativa}/design-guidelines.md` existe el fichero:
 - Si la cabecera es correcta, extraer las guías como texto literal y mostrar al usuario: `Cargando guías de diseño desde {ruta}`.
 - Si no existe, continuar sin guías (es opcional).
 
+### 5.3.bis Derivar invariantes verificables a partir de las guías
+
+**Por qué este paso existe.** Una guía en prosa libre ("encapsular SMTP en `MailSenderProvider`, no afectar al resto del código") es fácil de absorber como inspiración y olvidar como obligación. Los subagentes que generan el diseño leen el texto, marcan en su checklist "respeta la guía" como `OK` y siguen — pero pueden haber dejado fugas (p.ej. el servicio leyendo `AppSettings.get("mail.smtp.user")` directamente, duplicando la responsabilidad que la guía pedía encapsular). Para evitarlo, **la guía se traduce a invariantes nombradas y verificables antes de generar el diseño**.
+
+Este paso lo ejecuta **el agente principal** (no se delega en subagentes), justo después de cargar las guías y antes del pre-flight de conflictos.
+
+#### Cómo derivar las invariantes
+
+Por cada bloque/párrafo de `design-guidelines.md`, identificar:
+
+1. **Encapsulaciones prescritas** ("X se encapsula en la clase Y", "la lógica de Z vive en W"): producen una invariante negativa de fuga.
+   - Forma: `G-NNN: Solo el fichero/clase Y contiene <patrón concreto>. Cualquier referencia a <patrón> desde otros ficheros del diseño es violación.`
+   - Es **clave** convertir la frase positiva ("encapsular en Y") en su contrapartida negativa verificable ("nadie fuera de Y referencia X-internals"), porque la negación es lo que un `grep` puede comprobar.
+2. **Nombres prescritos** (de clase, paquete, método, fichero, propiedad de configuración): producen invariantes de identidad.
+   - Forma: `G-NNN: La clase se llama exactamente <Nombre> y vive en el paquete <FQN>.`
+3. **Patrones a evitar** ("no usar X", "evitar Y"): producen invariantes negativas directas.
+   - Forma: `G-NNN: Ningún fichero del diseño puede contener <patrón>.`
+4. **Mecánicas obligatorias** ("se hace asíncrono con scheduler", "se firma con HSM", "se valida con regex X"): producen invariantes de mecanismo.
+   - Forma: `G-NNN: La operación <op> se realiza vía <mecanismo>, no de forma <alternativa>.`
+
+#### Formato de las invariantes
+
+Cada invariante lleva:
+
+- **ID** `G-NNN` (numeración local secuencial dentro de la iniciativa).
+- **Texto** en una frase corta, formulada como una afirmación que puede ser cierta o falsa al inspeccionar el `design.md` resultante.
+- **Verificación**: `grep` concreto (si la invariante es un patrón textual sobre el diseño) o `manual` (si requiere lectura semántica).
+
+Ejemplo (derivado del caso `enviar-correos`, design-guidelines que pedía encapsular SMTP en `MailSenderProvider`):
+
+```
+G-001  Solo `module/MailSenderProvider.java` lee las propiedades `mail.smtp.*` de AppSettings.
+       Verificación: grep -rn "AppSettings.*mail\.smtp\|mail\.smtp\.[a-z]+" design/ design.md
+                     → todas las coincidencias deben estar bajo la sección/fichero MailSenderProvider.
+
+G-002  La clase de provisión se llama exactamente `MailSenderProvider` y vive en el paquete
+       `com.educaflow.subsystem.correos.module`.
+       Verificación: grep -n "MailSenderProvider" design.md  → debe aparecer; grep de variantes
+                     (MailProvider, MailSenderFactory) → 0 coincidencias.
+
+G-003  El envío de correos es asíncrono vía scheduler con cron de cada minuto, no síncrono en
+       la creación de TareaCorreo.
+       Verificación: manual (revisar paso del job y MetaSchedule).
+```
+
+#### Qué hacer con las invariantes
+
+- Mostrar la lista al usuario con `AskUserQuestion` (`¿son correctas estas invariantes derivadas de tu guía?`) **solo si** alguna no es obvia o si el agente principal tiene dudas sobre la traducción. Si la derivación es mecánica y unívoca, no preguntar (no se piden aprobaciones cosméticas).
+- Pasarlas a los subagentes en Fase 2 (ver §6.2).
+- Re-verificarlas mecánicamente al final de Fase 2 (ver §6.5.bis).
+- Incluirlas en el `design.md` final (ver §8.4) para que `sdd-implementer-system` y `sdd-designer-system-review` puedan re-comprobarlas.
+
+Si **no hay** `design-guidelines.md`, este paso se omite (no se inventan invariantes).
+
+---
+
 ### 5.4 Pre-flight de conflictos guías ↔ análisis
 
 Solo si hay guías cargadas:
@@ -277,7 +368,7 @@ La generación paralela en la Tarea 2.1 aporta diversidad de decisiones (troceo 
 - La carpeta de trabajo determinada en la Fase 0.
 - El contexto técnico de la Fase 1: subsistemas reutilizables con su FQN (`com.educaflow.subsystem.X.db.Y`), infraestructura en `base/infrastructure/`, patrones reales de servicios y controladores ya implementados — **descritos como contrato**, no como código copiado.
 - El contenido relevante de los skills cargados (`k-sistemas`, `k-validaciones`, `k-code-quality`, `k-vistas`, `k-seguridad`) resumido inline. **El subagente NO carga skills** — solo lee el prompt.
-- Las **guías de diseño** literales (si existían). El subagente debe respetarlas y, si encuentra una contradicción local con el análisis no detectada en el pre-flight, documentarla en una sección "Conflictos detectados con guías" al final.
+- Las **invariantes `G-NNN` derivadas en §5.3.bis** (si había guías) en formato tabla, seguidas del **texto literal** de la guía. El subagente debe redactar el diseño de forma que **cada invariante quede satisfecha**. Para cada `G-NNN`, al final de su respuesta el subagente declara una tabla `G-NNN | ubicación en el diseño que la cumple | método de verificación`. Si una invariante no puede satisfacerse por incompatibilidad local con el análisis, va a `=== DUDAS ===` (no en "Conflictos detectados con guías" — esa sección se reserva para conflictos genuinos detectados durante la redacción, ortogonales a las invariantes). Si no había `design-guidelines.md`, omitir el bloque de invariantes.
 - Los principios 2.2, 2.4, 2.5, 2.6 y 2.7 (transmitir literalmente).
 - El formato de salida esperado y el checklist (ver más abajo).
 - Las **tres tareas internas** del subagente (ver 6.2.1).
@@ -577,6 +668,42 @@ Si tras revisar todas las `R-` del análisis ninguna cumple los criterios de 6.6
 
 ---
 
+### 6.7 Verificación mecánica de las invariantes derivadas de las guías
+
+Tras la unificación (y, si existió, la Tarea 2.3) y antes de entrar en la Fase 3 de revisión, **el agente principal vuelve a comprobar cada invariante `G-NNN` derivada en §5.3.bis contra el diseño unificado** — no contra la declaración que hicieron los subagentes, sino contra el texto real del diseño y los XML generados.
+
+Este paso solo aplica si en §5.3.bis se derivaron invariantes. Si no había `design-guidelines.md`, se omite.
+
+#### Procedimiento
+
+Para cada invariante `G-NNN`:
+
+1. **Si la verificación es `grep`** (la mayoría):
+   - Ejecutar el `grep` exacto definido en la columna "Verificación" de la invariante, sobre el texto completo del diseño unificado **y** sobre los bloques de XML embebidos (en este punto los XML todavía no se han materializado a `design/`, así que el grep va sobre el contenido en memoria).
+   - Filtrar las coincidencias permitidas (las que la invariante autoriza, p.ej. dentro de la sección del `MailSenderProvider`).
+   - Si quedan coincidencias **no permitidas** → la invariante está violada.
+2. **Si la verificación es `manual`**:
+   - Releer las secciones del diseño relevantes a la invariante y juzgar si se cumple.
+   - Si se viola → tratarla como las del grep.
+
+#### Qué hacer si una invariante está violada
+
+No marcar el diseño como bueno. Se elige una de estas dos vías, según la gravedad y unicidad de la fuga:
+
+- **Fuga local y obvia** (una sola referencia mal puesta, p.ej. el helper `construirMail` leyendo `AppSettings.get("mail.smtp.user")` cuando la invariante exigía encapsular SMTP en el provider): el agente principal **edita el diseño unificado en memoria** para mover la responsabilidad al sitio que la invariante exige, dejando una nota corta en "Notas de unificación" que mencione la corrección. Repetir la verificación.
+- **Fuga estructural** (varias referencias diseminadas, contradicción de fondo, invariante incompatible con el análisis): **detenerse y preguntar al usuario** con `AskUserQuestion`. Opciones:
+  - (a) Reabrir Tarea 2.1 con un prompt reforzado que recalca la invariante violada,
+  - (b) Reformular la invariante en `design-guidelines.md` (la guía resultó ser ambigua o sobre-restrictiva),
+  - (c) Aceptar la violación como excepción explícita documentada en el diseño (último recurso — debe quedar en una sección "Excepciones a las invariantes" con justificación).
+
+No avanzar a Fase 3 con invariantes violadas y sin documentar la excepción.
+
+#### Por qué este paso no se delega al checklist humano
+
+El checklist de Fase 3 (§7) tiene un punto genérico "¿respeta las guías?" que ya existía antes. La experiencia muestra que ese check es **subjetivo**: un lector apresurado marca OK sin haber comprobado fugas textuales. Esta §6.7 lo convierte en **mecánico y reproducible** — un grep que falla es señal inequívoca, no interpretable. Mantenemos el checklist genérico de §7 como red de seguridad, pero la verificación dura vive aquí.
+
+---
+
 ## 7. Fase 3 — Revisión del diseño unificado
 
 Aunque cada subagente ya aplicó el checklist 6.4 sobre su propia candidatura, debes volver a aplicarlo sobre el **diseño unificado** — la unificación puede haber introducido inconsistencias (numeración de pasos, nombres mezclados, descripciones combinadas) que ningún subagente individual podía detectar.
@@ -588,7 +715,7 @@ Antes de pasar a la Fase 4, comprueba sobre el diseño unificado:
 - [ ] ¿La matriz V/R/U final tiene una entrada por cada regla del análisis sin huecos?
 - [ ] **¿Cada regla `R-` que cumple los criterios de 6.6.1 tiene su fichero `rules/R-<Entidad>-NNN.md` en memoria (a escribir en 8.2) y su comentario inline del `fireActionRule_*` ha sido sustituido por el contenido del bloque `=== FIRE-ACTION ===` que referencia el fichero?** Si una regla compleja sigue documentada solo inline, lanzar el subagente de la Tarea 2.3 para esa regla antes de continuar.
 - [ ] **¿La matriz de trazabilidad de cada regla compleja `R-` incluye el puntero `Detalle: design/rules/R-<Entidad>-NNN.md`?**
-- [ ] ¿El diseño unificado respeta todas las guías de `design-guidelines.md` (si existían)? Si alguna no se cumple sin razón documentada, corregirlo; si no es posible, detenerse y preguntar al usuario.
+- [ ] ¿La verificación mecánica de §6.7 quedó limpia para todas las invariantes `G-NNN`? Si alguna requirió excepción, ¿está documentada en la sección "Excepciones a las invariantes" del `design.md` con razón y ubicación? El bullet genérico "respeta las guías" se considera cubierto por la §6.7 — este checklist solo verifica que esa sub-fase se ejecutó y dejó trazas en el `design.md`.
 
 Si encuentras algún problema, corrígelo antes de pasar a la Fase 4.
 
@@ -616,6 +743,13 @@ Esto sustituye sin ambigüedad cualquier diseño previo. No se conservan iteraci
 
 1. **XML**: recorre el diseño unificado y, por cada bloque ```xml etiquetado con una línea `Fichero: design/...`, escribe ese contenido como fichero en la ruta indicada (`Write`).
 2. **Ficheros de reglas complejas** (si la Tarea 2.3 los produjo): por cada bloque `=== FILE: rules/R-<Entidad>-NNN.md ===` que guardaste en memoria tras la Tarea 2.3, escríbelo en `design/rules/R-<Entidad>-NNN.md` (`Write`).
+3. **Tests E2E (copia literal de `analysis/tests.md`)**: el diseñador **no toca** el contenido del `tests.md`; solo lo pasa al siguiente eslabón del pipeline. Copia el fichero tal cual:
+
+   ```bash
+   cp .sdd/drafts/{iniciativa}/analysis/tests.md .sdd/drafts/{iniciativa}/design/tests.md
+   ```
+
+   Si `analysis/tests.md` no existe (iniciativa antigua sin tests), saltar este paso con un aviso al usuario: `/sdd-implementer-system` saltará el bucle de tests. **Prohibido** regenerar, reformatear o resumir el `tests.md` — su contenido es contrato fijo entre análisis e implementación (mismo principio que con los XML).
 
 Estructura resultante esperada:
 
@@ -625,6 +759,7 @@ Estructura resultante esperada:
 ├── domains/<Entidad>.xml           ← uno por entidad
 ├── views/<Fichero>.xml             ← uno por <action-view> + ficheros *-ref.xml
 ├── menus.xml                       ← <menuitem> a fusionar con el menus.xml del proyecto
+├── tests.md                        ← copia literal de analysis/tests.md
 └── rules/R-<Entidad>-NNN.md        ← solo si hay reglas R complejas (Tarea 2.3)
 ```
 
@@ -675,6 +810,34 @@ type: design
 
 El `design.md` **no contiene** los XML completos inline (esos viven en sus ficheros); en su lugar contiene, por cada fichero XML generado, una entrada con su ruta y el resumen estructural (vistas, acciones, propósito).
 
+#### Sección obligatoria "Invariantes de las guías"
+
+Si en §5.3.bis se derivaron invariantes `G-NNN`, el `design.md` debe incluir **al final** (antes de "Conflictos detectados con guías" si la hay) una sección con esta forma:
+
+```markdown
+## Invariantes de las guías
+
+Estas invariantes se derivaron de `design-guidelines.md` y se verificaron mecánicamente
+en §6.7 contra el diseño unificado. Sirven de contrato para `sdd-implementer-system`
+(las re-verifica sobre el código Java generado) y `sdd-designer-system-review`
+(las re-verifica sobre el diseño materializado).
+
+| ID    | Invariante | Ubicación que la cumple | Verificación |
+|-------|------------|-------------------------|--------------|
+| G-001 | Solo `module/MailSenderProvider.java` lee `mail.smtp.*` de AppSettings. | Paso 7 del diseño (Provider) | `grep -rn "AppSettings.*mail\.smtp\|mail\.smtp\.[a-z]+" design/ design.md` → todas las coincidencias bajo el bloque del Provider. |
+| G-002 | …          | …                       | …            |
+```
+
+**Si una invariante quedó como excepción explícita** (vía §6.7 opción c), añadir además una subsección:
+
+```markdown
+### Excepciones a las invariantes
+
+- **G-NNN** — Excepción aceptada por el usuario el {fecha}. Razón: {motivo}. Ubicación de la fuga aceptada: {ruta/sección}.
+```
+
+Si **no había guías** y por tanto no hay invariantes, omitir toda la sección (no escribir un encabezado vacío).
+
 ---
 
 ## 9. Fase 5 — Mensaje de cierre al usuario
@@ -687,6 +850,7 @@ Ficheros generados:
   - domains/ (N ficheros XML — validados contra domain-models.xsd)
   - views/   (M ficheros XML — validados contra object-views.xsd)
   - menus.xml (validado contra object-views.xsd)
+  - tests.md  (copia literal de analysis/tests.md — los ejecutará /sdd-implementer-system con playwright-cli)
   - rules/   (K ficheros markdown — solo si hay reglas R complejas)
 
 Si quieres iterar sobre este diseño, puedes:

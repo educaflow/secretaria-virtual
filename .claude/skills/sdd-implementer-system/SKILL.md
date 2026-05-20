@@ -1,6 +1,6 @@
 ---
 name: sdd-implementer-system
-description: Dado un plan para crear o modificar un sistema o subsistema, copia primero los XML ya materializados por sdd-designer-system (dominios, vistas, menús) a sus ubicaciones reales en el proyecto y después invoca code-implementer con los skills de dominio necesarios (k-sistemas, k-vistas y opcionalmente k-seguridad) para implementar el código Java.
+description: Dado un plan para crear o modificar un sistema o subsistema, copia primero los XML ya materializados por sdd-designer-system (dominios, vistas, menús) a sus ubicaciones reales en el proyecto, invoca code-implementer con los skills de dominio necesarios (k-sistemas, k-vistas y opcionalmente k-seguridad) para implementar el código Java, y por último — si existe `design/tests.md` — arranca la app y ejecuta los tests E2E con `playwright-cli` en un **bucle de auto-corrección**: si algún test falla, vuelve a invocar a `code-implementer` con el reporte de fallos para que arregle el código Java, hasta un máximo de 3 iteraciones. Tras agotarlas, se detiene y pregunta al usuario qué hacer (puede ser bug irresoluble, test mal escrito o diseño incorrecto).
 ---
 
 # sdd-implementer-system
@@ -21,10 +21,11 @@ Un único fichero `design.md` cuyo frontmatter debe contener (al menos) `type: d
 ├── domains/<Entidad>.xml          ← uno por entidad
 ├── views/<Fichero>.xml            ← uno por <action-view>
 ├── menus.xml                      ← porción de <menuitem> a fusionar
+├── tests.md                       ← escenarios E2E (copia literal de analysis/tests.md)
 └── rules/R-<Entidad>-NNN.md       ← opcional, solo documentación
 ```
 
-Estos XML **ya están validados con `xmllint`** por el diseñador (ver `sdd-designer-system`, Fase 4) y son la fuente de verdad: este skill los copia tal cual, no los regenera.
+Los XML **ya están validados con `xmllint`** por el diseñador (ver `sdd-designer-system`, Fase 4) y `tests.md` es copia literal de `analysis/tests.md`. Todos son la fuente de verdad: este skill los copia tal cual, no los regenera.
 
 ### 1.2 Salida
 
@@ -45,6 +46,7 @@ Este skill **no escribe ficheros en `.sdd/`**. Su salida vive en dos sitios:
             ├── domains/<Entidad>.xml
             ├── views/<Fichero>.xml
             ├── menus.xml
+            ├── tests.md                          ← se ejecuta en Fase 3.5 con playwright-cli
             └── rules/R-<Entidad>-NNN.md  (opcional)
 
 src/main/java/com/educaflow/
@@ -90,7 +92,21 @@ Tanto en la fase de materialización como en la delegación al implementador, **
 
 **No adivinar ni inventar soluciones.** Continuar a ciegas ante un bloqueo genera deuda técnica silenciosa.
 
-`AskUserQuestion` solo se usa para lo imprescindible: confirmación de la ruta del diseño detectado y conflictos al sobrescribir ficheros o `<menuitem>` ya existentes. No se piden aprobaciones cosméticas.
+`AskUserQuestion` solo se usa para lo imprescindible: confirmación de la ruta del diseño detectado, conflictos al sobrescribir ficheros o `<menuitem>` ya existentes, y decisiones tras agotar el bucle de auto-corrección de tests (§7bis). No se piden aprobaciones cosméticas.
+
+### 2.5 Tests E2E son contrato verificable
+
+El `tests.md` describe el comportamiento esperado del sistema en lenguaje de negocio (Given/When/Then). El bucle de la Fase 3.5 lo convierte en **verificación real** ejecutándolo con `playwright-cli` contra la app arrancada. Un test que falla es señal de uno de tres errores:
+
+- **Código** (más frecuente): la implementación de Java/XML no cumple lo descrito → reinvocar `code-implementer` con el reporte de fallos.
+- **Test mal escrito**: el escenario referencia botones/campos/mensajes que no coinciden con lo realmente implementado → detenerse y preguntar al usuario.
+- **Diseño incorrecto**: el comportamiento esperado no se puede implementar como está → detenerse y volver al diseñador.
+
+Distinguir entre los tres es trabajo del agente principal del implementer, no de `code-implementer` ni del usuario por defecto.
+
+### 2.6 No editar `tests.md` durante el bucle
+
+Si un test falla repetidamente, el implementer **no** modifica `design/tests.md` para que pase: eso ocultaría el bug. Editar el test es decisión del usuario tras agotar las iteraciones, y se hace fuera del bucle (manualmente o relanzando `/sdd-analyst-system`). Esto preserva la invariante de que el `tests.md` es contrato fijo entre análisis e implementación, igual que los XML.
 
 ---
 
@@ -98,20 +114,21 @@ Tanto en la fase de materialización como en la delegación al implementador, **
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│  Fase 0  Localizar el design.md                                     │
-│  Fase 1  Validar el frontmatter del diseño                          │
-│  Fase 2  Materializar los XML del diseño en el proyecto             │
-│            ├── 6.1  Resolver la tabla de ficheros                   │
-│            ├── 6.2  Copiar dominios                                 │
-│            ├── 6.3  Copiar vistas                                   │
-│            ├── 6.4  Fusionar menus.xml                              │
-│            └── 6.5  Resumen al usuario antes de delegar             │
-│  Fase 3  Delegar en code-implementer la parte Java                  │
-│  Fase 4  Mensaje final al usuario                                   │
+│  Fase 0    Localizar el design.md                                   │
+│  Fase 1    Validar el frontmatter del diseño                        │
+│  Fase 2    Materializar los XML del diseño en el proyecto           │
+│              ├── 6.1  Resolver la tabla de ficheros                 │
+│              ├── 6.2  Copiar dominios                               │
+│              ├── 6.3  Copiar vistas                                 │
+│              ├── 6.4  Fusionar menus.xml                            │
+│              └── 6.5  Resumen al usuario antes de delegar           │
+│  Fase 3    Delegar en code-implementer la parte Java                │
+│  Fase 3.5  Ejecutar tests E2E con playwright-cli (bucle ≤3 iter)    │
+│  Fase 4    Mensaje final al usuario                                 │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-Las fases se ejecutan **estrictamente en orden**. No se delega en `code-implementer` hasta que los XML estén copiados, fusionados y, en el caso de `menus.xml`, validados con xmllint.
+Las fases se ejecutan **estrictamente en orden**. No se delega en `code-implementer` hasta que los XML estén copiados, fusionados y, en el caso de `menus.xml`, validados con xmllint. La Fase 3.5 solo se entra si existe `design/tests.md`.
 
 ---
 
@@ -246,17 +263,159 @@ Delegando ahora en code-implementer la implementación del código Java...
 
 ---
 
+## 7bis. Fase 3.5 — Ejecutar tests E2E con `playwright-cli` (bucle de auto-corrección)
+
+Tras `code-implementer`, los XML están copiados y el código Java escrito. Esta fase verifica que el sistema **realmente funciona** ejecutando los escenarios de `design/tests.md` contra la app arrancada, y entra en un bucle de auto-corrección si hay fallos.
+
+### 7bis.1 Pre-condiciones
+
+1. **Comprobar que existe `design/tests.md`.**
+   - Si **no existe** (iniciativa antigua o spec sin flujos principales): saltar toda la Fase 3.5 con un aviso al usuario:
+     > No se ha encontrado `design/tests.md`. La iniciativa no tiene tests E2E. Salto la fase de verificación con `playwright-cli`. Si quieres añadir tests, relanza `/sdd-analyst-system` para generarlos.
+     Pasar directamente a la Fase 4.
+   - Si existe pero está vacío (ninguna sección `## T-NNN`): mismo trato, saltar con aviso.
+2. **Comprobar que `playwright-cli` está disponible**:
+   ```bash
+   playwright-cli --version || npx --no-install playwright-cli --version
+   ```
+   Si no está disponible, detente y avisa al usuario para que lo instale. No intentes instalarlo tú.
+3. **Cargar el skill `playwright-cli`** para conocer los comandos disponibles (`open`, `goto`, `snapshot`, `click`, `fill`, `eval`, etc.). El skill `k-playwright` (`when-to-use.md`) aclara que para este caso de uso ("ejecutar un escenario puntual contra la app, sin generar `.spec.ts`") la herramienta correcta es **Agent CLI** (`playwright-cli`), no Test Agents ni `@playwright/test` directo.
+
+### 7bis.2 Arrancar la app
+
+1. Comprobar si la app ya está respondiendo:
+   ```bash
+   curl -sS -o /dev/null -w "%{http_code}\n" http://localhost:8080/ 2>/dev/null || echo "down"
+   ```
+2. Si está **down**, arrancarla en background:
+   ```bash
+   ./gradlew --no-daemon run --port 8080 --context-path / 
+   ```
+   con `run_in_background: true`. Notifica al usuario que estás arrancando la app.
+3. Esperar a que el endpoint responda (poll cada 5s, máximo 120s — Axelor tarda en arrancar). Si tras 120s no responde, detente y reporta al usuario con la salida del proceso de Gradle.
+4. **Anotar si la app la arrancó este skill o ya estaba arrancada antes**: lo usaremos en el mensaje final (§7bis.5) para decirle al usuario si tiene un proceso `gradlew run` huérfano que él controla.
+
+### 7bis.3 Bucle de ejecución y auto-corrección
+
+**Variables del bucle:**
+
+- `max_iter = 3`.
+- `iter = 1`.
+- `fallos_previos = []` (para detectar fallos persistentes que `code-implementer` no resuelve).
+
+**Iteración:**
+
+1. **Leer `design/tests.md`** y parsear las secciones `## T-NNN` con sus campos de cabecera (`Origen F`, `Verifica`, `Pantalla principal`, `Tipo`), Precondiciones, Pasos y Resultado esperado.
+2. **Para cada test, en orden**:
+   1. Resetear el navegador con `playwright-cli close` (idempotente; ignora error si no había sesión).
+   2. Abrir la app: `playwright-cli open http://localhost:8080`.
+   3. Hacer login con un usuario apto para el rol que el test pida (ver §7bis.4 sobre credenciales).
+   4. **Traducir los pasos Given/When/Then al vuelo** a comandos `playwright-cli`:
+      - `Dado el usuario en la pantalla "X"` → `goto` al menú correspondiente + `snapshot` para resolver refs.
+      - `Cuando pulsa el botón "B"` → `snapshot`, localizar el ref del botón por su texto, `click eN`.
+      - `Y rellena el campo "C" con "valor"` → `snapshot`, localizar el ref del campo por su etiqueta, `fill eN "valor"`.
+      - `Entonces el sistema muestra "M"` → `snapshot` + búsqueda de la cadena `M` en el snapshot (o `eval` sobre el DOM). Si la cadena no aparece, el assert falla.
+      - Para preparar precondiciones (entidades preexistentes en BD), preferentemente crear vía la propia UI antes del test. Si no es viable, documentar el fallo como "precondición no satisfecha" en lugar de inventar SQL.
+   5. Recoger el resultado del test: `OK` o `FAIL` con (a) paso fallido, (b) error observado, (c) snapshot del momento, (d) consola del navegador (`playwright-cli console`).
+3. **Si todos los tests pasan** → salir del bucle con éxito, ir a §7bis.5 (limpieza).
+4. **Si algún test falla**:
+   - **Diagnóstico previo (criterio §2.5).** Antes de invocar a `code-implementer`, clasifica cada fallo en una de tres categorías:
+     - **Código**: el fallo encaja con una validación, regla o vista del diseño que existe pero no funciona. Asumir esta categoría por defecto cuando el diagnóstico no es claro.
+     - **Test mal escrito**: el escenario referencia botones, campos o mensajes que **no existen** en los XML / Java del proyecto (el design tampoco los menciona). Es señal de que el `tests.md` está desalineado con el diseño.
+     - **Diseño incorrecto**: el comportamiento esperado contradice el `design.md` (p.ej. el test exige que el botón aparezca para un rol al que el diseño explícitamente no le da acceso).
+   - **Si la categoría es "test mal escrito" o "diseño incorrecto"** → detente inmediatamente (sin agotar iteraciones) y pregunta al usuario con `AskUserQuestion` qué hacer. Razones por las que no seguir iterando: `code-implementer` no puede arreglar un test mal escrito tocando código.
+   - **Si la categoría es "código"**:
+     - **Detectar fallos persistentes**: si un fallo de un test es **idéntico** al de la iteración anterior (mismo paso, mismo error), `code-implementer` no está progresando. Trata el caso como `iter == max_iter` y para.
+     - **Si `iter < max_iter`**:
+       - Construir un **plan de corrección** en markdown — un fichero pequeño con un paso por fallo, no el `design.md` completo (si pasaras el design entero a `code-implementer` reejecutaría todo el plan en vez de solo arreglar los fallos):
+         ```
+         # Plan de corrección de tests E2E — iteración N
+
+         ## Contexto
+         El código Java de esta iniciativa ya está implementado a partir del diseño
+         `.sdd/drafts/{iniciativa}/design/design.md`. La ejecución de los tests E2E
+         de `design/tests.md` con `playwright-cli` ha dejado fallos que hay que
+         corregir tocando **solo código Java**. Los XML de dominios/vistas/menús
+         (ya copiados a `src/main/...`) y el propio `tests.md` son **contrato fijo**:
+         no se tocan.
+
+         Para entender el comportamiento esperado, lee `.sdd/drafts/{iniciativa}/design/design.md`
+         y los `screen-*.md` / `entity-*.md` del análisis. Para entender el
+         comportamiento observado, lee los fallos de abajo.
+
+         ## Pasos
+
+         ### Paso 1 — Corregir T-001 (<nombre>)
+         **Paso fallido:** <texto literal del paso>
+         **Error observado:** <mensaje del assert / esperado vs ocurrido>
+         **Snapshot relevante:** <snapshot recortado>
+         **Consola del navegador:** <líneas relevantes si las hay>
+         **Hipótesis de causa:** <una frase, opcional>
+         **Restricción:** solo editar código Java (servicios, controladores,
+         repositorios, data-init). No editar XML ya copiados ni `tests.md`.
+
+         ### Paso 2 — Corregir T-003 (<nombre>)
+         …
+         ```
+       - **Reinvocar `code-implementer`** pasándole **ese plan de corrección** (no el `design.md` completo) junto con los mismos skills de dominio que se usaron en la Fase 3 (`k-sistemas`, `k-vistas`, opcionalmente `k-seguridad`).
+       - Instruirle **explícitamente** en el propio plan que: (a) **solo corrija código Java**, (b) **NO edite XML de dominios/vistas/menús ya copiados** (principio 2.1), (c) **NO edite `design/tests.md`** (principio 2.6).
+       - Tras la corrección, **reiniciar la app** (el código Java cambió: hay que rebuild + restart). Esperar de nuevo a que responda. Incrementar `iter` y volver al paso 1.
+     - **Si `iter == max_iter`**:
+       - **Detente y pregunta al usuario con `AskUserQuestion`** ofreciendo:
+         1. **Marcar como bug de código irresoluble**: dejar el reporte en pantalla para investigación manual. La Fase 4 (mensaje final) avisará que la implementación está incompleta.
+         2. **Revisar el test**: el escenario puede estar mal escrito. El usuario edita `design/tests.md` (y/o `analysis/tests.md` para mantener sincronía) fuera del skill, y luego puede relanzar `/sdd-implementer-system`.
+         3. **Revisar el diseño**: relanzar `/sdd-designer-system` para corregirlo y rehacer el implementer.
+         4. **Continuar sin verificación**: aceptar el código tal cual y pasar a Fase 4 (no recomendado).
+
+### 7bis.4 Credenciales para login
+
+Cada test puede requerir un rol distinto (Administrador, Supervisor, Profesor…). El implementer debe disponer de credenciales válidas para esos roles.
+
+1. **Por defecto**, asumir que el `data-init` del proyecto crea un usuario por cada rol con contraseña conocida. Inspeccionar los ficheros XML en `src/main/resources/data-init/input/` (en particular `auth*.xml`) para descubrir los usuarios de prueba disponibles y sus credenciales.
+2. **Si no hay convención clara** (o estamos en un entorno limpio sin data-init de usuarios), preguntar al usuario una sola vez al inicio de la Fase 3.5 qué credenciales usar para cada rol que aparezca en los tests, y reutilizarlas en todo el bucle.
+3. Almacenar las credenciales en una variable de la sesión, no en disco. **Nunca** las muestres en mensajes al usuario ni en reportes de fallos.
+
+### 7bis.5 Limpieza
+
+Al salir del bucle (con éxito o por interrupción):
+
+1. Cerrar el navegador: `playwright-cli close`.
+2. Si la app la arrancó este skill (§7bis.2 paso 4), **dejarla corriendo** salvo que el usuario diga lo contrario — apagarla obliga a re-arrancarla en la siguiente iteración manual y enfada al desarrollador. Avisar al usuario:
+   > La app sigue arrancada en http://localhost:8080. Pulsa Ctrl+C en su terminal cuando quieras detenerla.
+
+### 7bis.6 Resumen para la Fase 4
+
+Tras el bucle, construir un resumen breve para incluir en el mensaje final de Fase 4:
+
+```
+Tests E2E ejecutados con playwright-cli:
+  - Iteraciones del bucle: N (de 3 máximo)
+  - Tests totales: T
+  - OK en la última iteración: T_ok
+  - FAIL en la última iteración: T_fail
+  - Estado: completado | detenido por el usuario | bug irresoluble
+```
+
+---
+
 ## 8. Fase 4 — Mensaje final al usuario
 
-Tras completar la implementación, indica:
+Tras completar la implementación (y la verificación de tests si aplica), indica:
 
 ```
 Implementación completada.
+
+{resumen de tests de la Fase 3.5, ver §7bis.6 — omitir esta sección si la Fase 3.5 se saltó}
+
 Los artefactos del draft se mantienen en .sdd/drafts/{iniciativa}/ — no se ha archivado nada en .sdd/specs/.
 Cuando estés conforme con la implementación, lanza `/sdd-close-spec` para cerrar la iniciativa: actualizará los CLAUDE.md afectados y archivará la spec en .sdd/specs/.
 ```
 
 Sustituye `{iniciativa}` por el nombre real de la carpeta del draft.
+
+**Importante:** si la Fase 3.5 acabó con tests `FAIL` (bug irresoluble) o se detuvo por elección del usuario, dilo explícitamente en el mensaje:
+
+> ⚠ Atención: la verificación con `playwright-cli` no fue limpia. T_fail tests fallan tras N iteraciones. Revisa el reporte de fallos antes de lanzar `/sdd-close-spec`, o relanza este skill tras corregir el diseño / los tests.
 
 No lances `/sdd-close-spec` tú mismo. El usuario decide cuándo ejecutarlo.
 
