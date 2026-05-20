@@ -1,57 +1,56 @@
 # Entidad: TareaCorreo
 
-Representa un correo electrónico que el sistema debe enviar a un destinatario o que ya ha sido enviado. Una vez creada, su contenido es inmutable; solo cambian su estado y los datos asociados al intento de envío, gestionados por el propio sistema.
+Representa un correo electrónico que el sistema debe enviar o ya ha enviado a un destinatario concreto. Su contenido es inmutable una vez creada; solo cambian con el tiempo su estado y los datos asociados al intento de envío.
 
 ## Modelo de datos
 
-| Campo | Tipo de dato | Relación | Notas |
-|-------|--------------|----------|-------|
-| asunto | texto | — | Asunto del correo. |
-| cuerpo | HTML enriquecido | — | Cuerpo del mensaje. |
-| dniDestinatario | texto | — | DNI del destinatario. Se registra aunque no exista un usuario asociado. |
-| emailDestinatario | texto | — | Dirección de correo del destinatario. |
-| centro | relación | → Centro | Opcional. Lo fija quien crea la tarea. Vacío significa correo de ámbito global. |
-| historialEstado | relación | → HistorialEstado | Opcional. Vincula el correo a un cambio de estado de un expediente. |
-| fechaCreacion | fecha-hora | — | Momento en que se creó la tarea. |
-| fechaUltimoIntento | fecha-hora | — | Momento del último intento de envío. Vacío hasta el primer intento. |
-| numeroIntentos | entero | — | Número de intentos realizados. Inicial 0. |
-| motivoFallo | texto largo | — | Motivo del último fallo. Vacío si no ha fallado o tras reenviar. |
-| estado | enum | valores: PENDIENTE, ENVIANDO, ENVIADO, FALLADO | Solo lo cambia el sistema. |
-| adjuntos | lista | → AdjuntoCorreo (uno a varios, hijos) | Copia propia e inmutable de los ficheros adjuntos. |
+| Campo                          | Tipo de dato | Relación                                                | Notas                                                                                                  |
+|--------------------------------|--------------|---------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| asunto                         | texto        | —                                                       | Asunto del correo electrónico. Inmutable una vez creada la tarea.                                      |
+| cuerpo                         | texto largo  | —                                                       | Cuerpo del correo. Inmutable una vez creada la tarea.                                                  |
+| dniDestinatario                | texto        | —                                                       | DNI del destinatario; cualquier identificador, exista o no como usuario dado de alta.                  |
+| correoDestinatario             | texto        | —                                                       | Dirección de correo electrónico del destinatario.                                                      |
+| centro                         | relación     | → Centro                                                | Opcional. Si está vacío, la tarea es de ámbito global y solo la ven Administrador y destinatario.      |
+| historialEstadoExpediente      | relación     | → HistorialEstadoExpediente                             | Opcional. Asocia el correo a un cambio de estado concreto de un expediente.                            |
+| fechaCreacion                  | fecha-hora   | —                                                       | Asignada por el sistema al crear la tarea.                                                             |
+| fechaUltimoIntento             | fecha-hora   | —                                                       | Opcional. Se actualiza en cada transición a ENVIANDO.                                                  |
+| numeroIntentos                 | entero       | —                                                       | Número de veces que la tarea ha pasado por ENVIANDO. Se incrementa en cada transición a ENVIANDO.      |
+| motivoFallo                    | texto largo  | —                                                       | Opcional. Mensaje devuelto por el envío SMTP cuando la tarea pasa a FALLADO.                           |
+| estado                         | enum         | valores: PENDIENTE, ENVIANDO, ENVIADO, FALLADO          | Estado de la tarea de envío. Solo lo modifica el sistema, nunca el usuario.                            |
+| adjuntos                       | lista        | → AdjuntoCorreo (uno a varios, hijos)                   | Ficheros adjuntos al correo. Cada adjunto guarda su propio contenido desacoplado del fichero original. |
+
+Integridad referencial al borrar (definida en este padre): al borrar una TareaCorreo se borran en cascada sus AdjuntoCorreo. En la práctica la operación Borrar está prohibida (ver Acciones), por lo que la cascada no se ejerce en condiciones normales.
 
 ## Validaciones (V-TareaCorreo-NNN)
 
-| ID | Campo(s) | Descripción | Condición | Mensaje al usuario |
-|----|----------|-------------|-----------|--------------------|
-| V-TareaCorreo-001 | asunto | El asunto es obligatorio. | asunto vacío | El asunto es obligatorio. |
-| V-TareaCorreo-002 | cuerpo | El cuerpo es obligatorio. | cuerpo vacío | El cuerpo del correo es obligatorio. |
-| V-TareaCorreo-003 | dniDestinatario | El DNI del destinatario es obligatorio. | dniDestinatario vacío | El DNI del destinatario es obligatorio. |
-| V-TareaCorreo-004 | emailDestinatario | La dirección de correo del destinatario es obligatoria. | emailDestinatario vacío | La dirección de correo del destinatario es obligatoria. |
-| V-TareaCorreo-005 | emailDestinatario | La dirección de correo debe tener formato válido. | emailDestinatario no respeta el formato de un email | La dirección de correo '{valor}' no tiene un formato válido. |
-| V-TareaCorreo-006 | historialEstado | Si se indica un historial de estado, debe existir. | historialEstado referencia un registro inexistente | El historial de estado indicado no existe. |
-| V-TareaCorreo-007 | centro | Si se indica un centro, debe existir. | centro referencia un registro inexistente | El centro indicado no existe. |
-| V-TareaCorreo-008 | estado | El estado solo puede tomar uno de los valores admitidos. | estado fuera de {PENDIENTE, ENVIANDO, ENVIADO, FALLADO} | El estado '{valor}' no es válido. Valores admitidos: PENDIENTE, ENVIANDO, ENVIADO, FALLADO. |
+| ID                  | Campo(s)                                                      | Descripción                                                                              | Condición                                                              | Mensaje al usuario                                                                                                  | Origen EARS                |
+|---------------------|---------------------------------------------------------------|------------------------------------------------------------------------------------------|------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|----------------------------|
+| V-TareaCorreo-001   | asunto                                                        | El asunto es obligatorio.                                                                | Al crear.                                                              | "El asunto es obligatorio."                                                                                         | E-UN-001                   |
+| V-TareaCorreo-002   | cuerpo                                                        | El cuerpo es obligatorio.                                                                | Al crear.                                                              | "El cuerpo es obligatorio."                                                                                         | E-UN-001                   |
+| V-TareaCorreo-003   | dniDestinatario                                               | El DNI del destinatario es obligatorio.                                                  | Al crear.                                                              | "El DNI del destinatario es obligatorio."                                                                           | E-UN-001                   |
+| V-TareaCorreo-004   | correoDestinatario                                            | La dirección de correo del destinatario es obligatoria.                                  | Al crear.                                                              | "La dirección de correo del destinatario es obligatoria."                                                           | E-UN-001                   |
+| V-TareaCorreo-005   | correoDestinatario                                            | La dirección de correo del destinatario debe tener formato válido de correo electrónico. | Al crear, si el campo no está vacío.                                   | "La dirección de correo '{correoDestinatario}' no tiene un formato válido."                                         | E-UN-002                   |
+| V-TareaCorreo-006   | historialEstadoExpediente                                     | Si se indica historial de estado de expediente, debe corresponder a un evento existente. | Al crear, si el campo no está vacío.                                   | "El historial de estado del expediente indicado no existe."                                                         | E-UN-003                   |
+| V-TareaCorreo-007   | asunto, cuerpo, dniDestinatario, correoDestinatario, centro, historialEstadoExpediente, adjuntos, estado | Una TareaCorreo ya creada no puede modificarse en ninguno de sus datos funcionales. | Al modificar.                                                          | "Los correos enviados son un registro histórico y no pueden modificarse."                                           | E-UN-004                   |
+| V-TareaCorreo-008   | —                                                             | Una TareaCorreo no puede borrarse.                                                       | Al borrar.                                                             | "Los correos enviados son un registro histórico y no pueden borrarse."                                              | E-UN-005                   |
+| V-TareaCorreo-009   | estado                                                        | El reenvío solo es válido sobre una TareaCorreo en estado FALLADO.                       | Al ejecutar Reenviar.                                                  | "Solo se pueden reenviar correos en estado FALLADO; este correo está en estado '{estado}'."                         | E-UN-006                   |
 
 ## Acciones
 
-| Operación | Cuándo se permite | Validaciones que aplican | Reglas que dispara |
-|-----------|-------------------|--------------------------|--------------------|
-| Crear (insert) | Solo Administrador. | V-TareaCorreo-001, V-TareaCorreo-002, V-TareaCorreo-003, V-TareaCorreo-004, V-TareaCorreo-005, V-TareaCorreo-006, V-TareaCorreo-007 | R-TareaCorreo-001, R-TareaCorreo-002, R-TareaCorreo-003 |
-| Modificar (update) | Nunca — la tarea de correo es inmutable salvo por los cambios de estado y datos de intento que ejecuta el propio sistema. | — | — |
-| Borrar (remove) | Nunca — las tareas de correo deben conservarse como traza permanente del envío. | — | — |
-| Procesar envío | El sistema, en segundo plano, sobre tareas en estado PENDIENTE. | V-TareaCorreo-008 | R-TareaCorreo-004, R-TareaCorreo-005, R-TareaCorreo-006, R-TareaCorreo-007 |
-| Reenviar | Solo Administrador, y solo si el estado actual es FALLADO. | V-TareaCorreo-008 | R-TareaCorreo-008 |
-| Consultar | Cada rol según sus filtros de visibilidad. Solo lectura. | — | — |
+| Operación              | Cuándo se permite                                                                | Validaciones que aplican                                                                          | Reglas que dispara                                                       |
+|------------------------|----------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| Crear (insert)         | Solo si el usuario es Administrador.                                             | V-TareaCorreo-001, V-TareaCorreo-002, V-TareaCorreo-003, V-TareaCorreo-004, V-TareaCorreo-005, V-TareaCorreo-006 | R-TareaCorreo-001, R-TareaCorreo-002                                     |
+| Modificar (update)     | Nunca — los correos enviados son un registro histórico inmutable.                | V-TareaCorreo-007                                                                                 | —                                                                        |
+| Borrar (remove)        | Nunca — los correos enviados son un registro histórico inmutable.                | V-TareaCorreo-008                                                                                 | —                                                                        |
+| Reenviar               | Solo si el usuario es Administrador y la TareaCorreo está en estado FALLADO.     | V-TareaCorreo-009                                                                                 | R-TareaCorreo-003                                                        |
+| Procesar envío         | Solo el sistema (scheduler asíncrono). Cualquier TareaCorreo en estado PENDIENTE.| —                                                                                                 | R-TareaCorreo-004, R-TareaCorreo-005                                     |
 
 ## Reglas de negocio (R-TareaCorreo-NNN)
 
-| ID | Descripción | Entidad | Método | Momento | Más información |
-|----|-------------|---------|--------|---------|-----------------|
-| R-TareaCorreo-001 | Al crear, el estado inicial es PENDIENTE, el número de intentos 0, la fecha del último intento y el motivo de fallo vacíos. | TareaCorreo | Crear | Antes | Garantiza el punto de partida de la máquina de estados. |
-| R-TareaCorreo-002 | Al crear, si el usuario que crea pertenece a un centro, se asigna ese centro automáticamente. | TareaCorreo | Crear | Antes | Si el creador es Administrador y no indica centro, queda vacío (ámbito global). |
-| R-TareaCorreo-003 | Al crear, se generan los AdjuntoCorreo como copia propia e inmutable de los ficheros aportados. | TareaCorreo | Crear | Después | La copia desacopla el correo de los ficheros originales. |
-| R-TareaCorreo-004 | Al iniciar el procesamiento, el estado pasa de PENDIENTE a ENVIANDO, se incrementa en 1 el número de intentos y se actualiza la fecha del último intento. | TareaCorreo | Procesar envío | Antes | Marca el inicio del intento de envío. |
-| R-TareaCorreo-005 | El envío del correo se realiza de forma asíncrona, sin bloquear al usuario que creó la tarea. | TareaCorreo | Procesar envío | Después | El control vuelve enseguida al usuario tras crear. |
-| R-TareaCorreo-006 | Si el envío tiene éxito, el estado pasa de ENVIANDO a ENVIADO. ENVIADO es un estado final. | TareaCorreo | Procesar envío | Después | No se permiten transiciones desde ENVIADO. |
-| R-TareaCorreo-007 | Si el envío falla, el estado pasa de ENVIANDO a FALLADO y se registra el motivo del fallo. | TareaCorreo | Procesar envío | Después | El motivo queda disponible para diagnóstico y para mostrarlo al Administrador. |
-| R-TareaCorreo-008 | Al reenviar, el estado pasa de FALLADO a PENDIENTE y se limpia el motivo del fallo previo. El contenido del correo no se altera. | TareaCorreo | Reenviar | Antes | El nuevo intento será contabilizado por R-TareaCorreo-004 cuando el sistema procese la tarea. |
+| ID                  | Descripción                                                                                                                                                                                | Entidad        | Método           | Momento  | Más información                                                                                                                                              | Origen EARS                |
+|---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------|
+| R-TareaCorreo-001   | Al crear una TareaCorreo el sistema asigna `fechaCreacion` al instante actual, `estado` = PENDIENTE y `numeroIntentos` = 0.                                                                | TareaCorreo    | Crear (insert)   | Antes    | Estado inicial fijo. El usuario no puede elegir estado al crear.                                                                                             | E-UB-005                   |
+| R-TareaCorreo-002   | Al crear una TareaCorreo con adjuntos, el sistema guarda una copia propia del contenido de cada adjunto, desacoplada del fichero original.                                                 | AdjuntoCorreo  | Crear (insert)   | Antes    | Coordina con R-AdjuntoCorreo-001.                                                                                                                            | E-EV-001                   |
+| R-TareaCorreo-003   | Al ejecutar la operación Reenviar sobre una TareaCorreo en estado FALLADO, el sistema deja `estado` = PENDIENTE sin alterar ningún otro dato funcional. El resto de cambios los aplica el envío. | TareaCorreo    | Reenviar         | Antes    | El número de intentos y la fecha del último intento se actualizan después, dentro de R-TareaCorreo-004, cuando el scheduler vuelva a tomarla.                | E-EV-002                   |
+| R-TareaCorreo-004   | Cuando el scheduler toma una TareaCorreo en PENDIENTE, el sistema la pasa a ENVIANDO, incrementa `numeroIntentos` en 1 y actualiza `fechaUltimoIntento` al instante actual.                | TareaCorreo    | Procesar envío   | Antes    | Es la única vía por la que una tarea sale de PENDIENTE. Los campos calculados (intentos y fecha) se materializan aquí.                                       | E-UB-005, E-EV-002         |
+| R-TareaCorreo-005   | Tras el intento SMTP, el sistema pasa la TareaCorreo a ENVIADO si el envío fue exitoso, o a FALLADO registrando `motivoFallo` con el mensaje devuelto por el envío en caso contrario.      | TareaCorreo    | Procesar envío   | Después  | ENVIADO es estado final (no admite transiciones). FALLADO admite retorno a PENDIENTE por la operación Reenviar.                                              | E-UB-005, E-EV-003         |

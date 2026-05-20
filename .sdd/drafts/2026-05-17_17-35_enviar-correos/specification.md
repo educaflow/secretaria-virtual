@@ -27,6 +27,13 @@ type: specification
 - **Consultar correos**: cada usuario ve la lista de correos que le corresponden según su rol, en modo solo lectura, y puede abrir el detalle de cualquiera de ellos.
 - **Consultar la gráfica de envíos**: el Administrador elige dos fechas y obtiene una serie diaria del número de correos creados en ese rango, desglosada por estado.
 
+### Flujos principales
+
+- F-001 — El Administrador consulta el listado completo de correos del sistema y abre el detalle de uno cualquiera para revisar su contenido, destinatario, fechas y adjuntos.
+- F-002 — El Administrador crea un correo nuevo con sus adjuntos; tras la operación el correo queda registrado y aparece en el listado de todos los correos con todos sus datos.
+- F-003 — El Administrador crea un correo asociado a un centro concreto, y tanto el Supervisor como la Administrativa de ese centro lo ven en el listado de correos de su centro y pueden abrir su detalle completo.
+- F-004 — El Administrador crea un correo dirigido a un DNI concreto, y el usuario titular de ese DNI lo ve en su listado personal de correos y puede abrir su detalle completo.
+
 ### Pantallas
 
 - **Todos los correos**: lista todas las TareaCorreo del sistema con asunto, DNI del destinatario, centro, fecha de creación y estado. La ve únicamente el Administrador. Permite abrir el detalle, crear un correo nuevo y reenviar uno fallido.
@@ -67,34 +74,50 @@ type: specification
 - **Fecha del último intento**: se actualiza en cada transición a ENVIANDO.
 - **Series de la gráfica de correos**: para cada día del rango elegido, número de TareaCorreo creadas ese día desglosado por estado.
 
-### Reglas y validaciones
+### Requisitos (EARS)
 
-- Al crear una TareaCorreo, son obligatorios el asunto, el cuerpo, el DNI del destinatario y la dirección de correo del destinatario; si falta alguno se avisa al usuario indicando el dato que falta.
-- El DNI del destinatario se registra aunque no exista un usuario dado de alta con ese DNI: no se exige que el destinatario sea un usuario del sistema.
-- La dirección de correo del destinatario debe tener forma de correo electrónico válida; en caso contrario se avisa al usuario de que la dirección no es válida.*
-- El centro de la TareaCorreo es opcional y lo fija quien crea el correo; si se deja vacío, el correo se considera "del sistema" y solo lo ven el Administrador y el propio destinatario en "Mis correos".
-- La referencia al historial de estado de un expediente es opcional; cuando se indica, debe corresponder a un evento de historial existente y enlaza la TareaCorreo con ese cambio de estado concreto (no con el expediente "en general").
-- Los adjuntos son opcionales; cuando se adjunta un fichero, el sistema guarda una copia propia, de modo que el contenido registrado coincide siempre con el contenido enviado, aunque el fichero original cambie o se borre después.
-- Una vez creada, una TareaCorreo no se puede modificar en ninguno de sus datos funcionales (asunto, cuerpo, destinatario, dirección de correo, centro, expediente relacionado, adjuntos); si se intenta, se avisa de que los correos enviados son un registro histórico y no pueden modificarse.
-- Una TareaCorreo no se puede borrar nunca; si se intenta, se avisa con el mismo motivo.
-- El envío al servidor de correo no es síncrono: cuando el Administrador pulsa enviar, el sistema confirma la creación inmediatamente y entrega el correo en segundo plano.
-- El estado de una TareaCorreo solo lo cambia el propio sistema durante el procesamiento de envío; ningún usuario lo edita a mano.
-- La acción de reenviar solo está disponible cuando la TareaCorreo está en estado FALLADO; si el usuario intenta reenviar un correo en PENDIENTE, ENVIANDO o ENVIADO, se le indica que el correo no está en un estado que permita reenvío.
-- Solo el Administrador puede crear correos nuevos y solo el Administrador puede reenviar correos fallidos; si otro usuario lo intenta, se le indica que no tiene permiso para esta acción.
-- Al reenviar, se reutiliza la misma TareaCorreo: no se crea una nueva, su estado pasa a PENDIENTE, se actualiza la fecha del último intento y se incrementa el número de intentos.
-- Cuando una TareaCorreo pasa a FALLADO, se registra el motivo del fallo devuelto por el envío SMTP para que el Administrador pueda diagnosticarlo.
-- Un Supervisor o Administrativa nunca ve correos de otro centro distinto del suyo, ni los correos sin centro asignado; tampoco puede acceder al detalle de un correo fuera de su centro por acceso directo.
-- Un usuario destinatario (Profesor, Exprofesor, Alumno, Exalumno, Familiar, Externo) solo ve los correos cuyo DNI de destinatario coincide con el suyo, sin filtro adicional por centro; nunca ve correos dirigidos a otras personas.
-- En la pantalla "Todos los correos" el Administrador ve todos los correos, con y sin centro.
-- En la gráfica de envíos, las dos fechas son obligatorias y la fecha inicial no puede ser posterior a la fecha final; si lo es, se avisa al usuario de que el rango de fechas no es válido.*
-- En el detalle, los adjuntos son siempre descargables, también cuando el correo está fallado o pendiente.*
-- Cuando la TareaCorreo está asociada a un expediente, desde el detalle del correo se puede navegar al expediente correspondiente.*
+#### Ubicuos (E-UB)
+
+- E-UB-001 — El sistema debe aceptar como DNI del destinatario de una TareaCorreo cualquier identificador, exista o no como usuario dado de alta.
+- E-UB-002 — El sistema debe permitir crear una TareaCorreo sin centro asignado; en ese caso la TareaCorreo se considera de ámbito global y solo la ven el Administrador y el propio destinatario en "Mis correos".
+- E-UB-003 — El sistema debe permitir crear una TareaCorreo sin referencia a un historial de estado de expediente.
+- E-UB-004 — El sistema debe permitir crear una TareaCorreo sin adjuntos.
+- E-UB-005 — El sistema debe procesar el envío SMTP de las TareaCorreo de forma asíncrona, confirmando la creación al usuario inmediatamente y entregando el correo en segundo plano.
+- E-UB-006 — El sistema debe ser el único que modifica el estado de una TareaCorreo; ningún usuario puede editarlo manualmente.
+- E-UB-007 — El sistema debe restringir a Supervisor y Administrativa la visibilidad de las TareaCorreo a aquellas cuyo centro coincide con su propio centro, excluyendo además las TareaCorreo sin centro asignado.
+- E-UB-008 — El sistema debe restringir a Profesor, Exprofesor, Alumno, Exalumno, Familiar y Externo la visibilidad de las TareaCorreo a aquellas cuyo DNI del destinatario coincide con el suyo, sin filtro adicional por centro.
+- E-UB-009 — El sistema debe permitir al Administrador ver en la pantalla "Todos los correos" la totalidad de las TareaCorreo, con y sin centro asignado.
+- *E-UB-010 — La pantalla "Gráfica de correos enviados" debe exigir la fecha inicial y la fecha final como obligatorias.
+- *E-UB-011 — El sistema debe permitir descargar los adjuntos de una TareaCorreo desde la pantalla Detalle en cualquier estado del correo (PENDIENTE, ENVIANDO, ENVIADO o FALLADO).
+
+#### Dirigidos por evento (E-EV)
+
+- E-EV-001 — Cuando se adjunta un fichero a una TareaCorreo en su creación, el sistema debe guardar una copia propia del contenido, desacoplada del fichero original.
+- E-EV-002 — Cuando el Administrador reenvía una TareaCorreo en estado FALLADO, el sistema debe reutilizar la misma TareaCorreo pasándola a PENDIENTE, actualizando la fecha del último intento e incrementando el número de intentos, sin alterar el resto de su contenido.
+- E-EV-003 — Cuando el envío SMTP de una TareaCorreo falla, el sistema debe pasar la tarea al estado FALLADO y registrar el motivo del fallo devuelto por el envío.
+
+#### Dirigidos por estado (E-ST)
+
+- E-ST-001 — Mientras una TareaCorreo no esté en estado FALLADO, la pantalla Detalle del correo debe ocultar al Administrador la acción "Reenviar".
+- *E-ST-002 — Mientras una TareaCorreo tenga referencia a un historial de estado de expediente, la pantalla Detalle del correo debe ofrecer un enlace para navegar al expediente correspondiente, sin conceder permisos adicionales sobre él.
+
+#### Comportamiento no deseado (E-UN)
+
+- E-UN-001 — Si se intenta crear una TareaCorreo sin asunto, sin cuerpo, sin DNI del destinatario o sin dirección de correo del destinatario, entonces el sistema debe rechazar la creación avisando al usuario del dato concreto que falta.
+- *E-UN-002 — Si la dirección de correo del destinatario no tiene un formato válido de correo electrónico, entonces el sistema debe rechazar la creación de la TareaCorreo con el mensaje "La dirección de correo '{valor}' no tiene un formato válido".
+- E-UN-003 — Si la referencia a historial de estado indicada al crear una TareaCorreo no corresponde a un evento existente, entonces el sistema debe rechazar la creación.
+- E-UN-004 — Si se intenta modificar cualquier dato funcional (asunto, cuerpo, destinatario, dirección de correo, centro, expediente relacionado, adjuntos) de una TareaCorreo ya creada, entonces el sistema debe rechazar la operación avisando de que los correos enviados son un registro histórico y no pueden modificarse.
+- E-UN-005 — Si se intenta borrar una TareaCorreo, entonces el sistema debe rechazar la operación avisando de que los correos enviados son un registro histórico y no pueden borrarse.
+- E-UN-006 — Si el Administrador intenta reenviar una TareaCorreo que no está en estado FALLADO (PENDIENTE, ENVIANDO o ENVIADO), entonces el sistema debe rechazar la operación indicando que el correo no está en un estado que permita reenvío.
+- E-UN-007 — Si un usuario que no es Administrador intenta crear una TareaCorreo nueva o reenviar una TareaCorreo fallida, entonces el sistema debe rechazar la operación indicando que no tiene permiso para esta acción.
+- E-UN-008 — Si un Supervisor o Administrativa intenta acceder por cualquier vía (listado o acceso directo) al detalle de una TareaCorreo cuyo centro no coincide con el suyo, o que no tiene centro asignado, entonces el sistema debe rechazar el acceso.
+- *E-UN-009 — Si en la pantalla "Gráfica de correos enviados" la fecha inicial seleccionada es posterior a la fecha final, entonces el sistema debe avisar al usuario de que el rango de fechas no es válido.
 
 ### Asunciones a confirmar
 
-- **Formato del correo electrónico del destinatario** se valida en el momento de crear la TareaCorreo (no se pospone al envío SMTP). Justificación: es mejor avisar al usuario en el momento de introducir el dato.
-- **Correos sin centro**: solo el Administrador los ve en sus listados; el propio destinatario los sigue viendo en "Mis correos". Supervisor y Administrativa no los ven aunque el destinatario pertenezca a su centro, porque el criterio acordado es el campo "centro" **explícito** y no la deducción a partir del DNI.
-- **Rango de fechas de la gráfica**: ambas fechas son obligatorias y la inicial no puede ser posterior a la final. Justificación: interpretación natural de "una gráfica entre dos fechas".
-- **Adjuntos descargables en cualquier estado**: incluso si el correo está FALLADO o aún PENDIENTE; útil para el Administrador y para el destinatario.
-- **Navegación al expediente desde el detalle** cuando hay referencia a historial de estado: facilita la trazabilidad pero no concede permisos adicionales sobre el expediente.
-- **Número de intentos y fecha del último intento** como datos visibles en el detalle: útiles para diagnosticar reenvíos sucesivos
+- **`*E-UN-002` — Formato del correo electrónico del destinatario**: se valida en el momento de crear la TareaCorreo (no se pospone al envío SMTP). Justificación: es mejor avisar al usuario en el momento de introducir el dato.
+- **`E-UB-002` y `E-UB-007` — Correos sin centro**: solo el Administrador los ve en sus listados; el propio destinatario los sigue viendo en "Mis correos". Supervisor y Administrativa no los ven aunque el destinatario pertenezca a su centro, porque el criterio acordado es el campo "centro" **explícito** y no la deducción a partir del DNI.
+- **`*E-UB-010` y `*E-UN-009` — Rango de fechas de la gráfica**: ambas fechas son obligatorias y la inicial no puede ser posterior a la final. Justificación: interpretación natural de "una gráfica entre dos fechas".
+- **`*E-UB-011` — Adjuntos descargables en cualquier estado**: incluso si el correo está FALLADO o aún PENDIENTE; útil para el Administrador y para el destinatario.
+- **`*E-ST-002` — Navegación al expediente desde el detalle** cuando hay referencia a historial de estado: facilita la trazabilidad pero no concede permisos adicionales sobre el expediente.
+- **Número de intentos y fecha del último intento** como datos visibles en el detalle: útiles para diagnosticar reenvíos sucesivos.

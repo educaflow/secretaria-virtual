@@ -1,51 +1,56 @@
 # Pantalla: "Gráfica de correos enviados"
 
 ## Identidad
+
 - **Quién la usa:** Administrador.
-- **Qué muestra:** una gráfica de barras diaria con el número de TareaCorreo creadas entre dos fechas elegidas, desglosado por estado (PENDIENTE, ENVIANDO, ENVIADO, FALLADO).
+- **Qué muestra:** una gráfica diaria del número de TareaCorreo creadas en un rango de fechas, desglosada por estado (PENDIENTE, ENVIANDO, ENVIADO, FALLADO). El usuario elige fecha inicial y fecha final, ambas obligatorias.
 
 ## Menú
-| Propiedad | Valor |
-|-----------|-------|
-| Ruta jerárquica | "Correos" → "Gráfica de correos enviados" |
-| Título visible | "Gráfica de correos enviados" |
-| Quién lo ve | Administrador |
+
+| Propiedad        | Valor                                                |
+|------------------|------------------------------------------------------|
+| Ruta jerárquica  | "Correos" → "Gráfica de correos enviados"            |
+| Título visible   | "Gráfica de correos enviados"                        |
+| Quién lo ve      | Administrador                                        |
 
 ---
 
 ## Estructura jerarquica de las pantallas
 
 ```
-TareaCorreo (agregada)
+TareaCorreo
 ```
+
+*(La pantalla no navega a sub-pantallas: solo presenta la gráfica agregada.)*
 
 ---
 
-## Gráfica 1 — "Correos enviados por día"
+## Formulario 1 — "Gráfica de correos enviados"
 
 ### Propiedades
-| Propiedad | Valor |
-|-----------|-------|
-| Entidad | TareaCorreo (agregada para la serie) |
-| Tipo de gráfica | barras apiladas |
-| Eje X | día (fecha de creación, agrupada por día) |
-| Eje Y | número de TareaCorreo |
-| Series | una por estado (PENDIENTE, ENVIANDO, ENVIADO, FALLADO) |
-| Parámetros de entrada | fecha inicial (obligatoria), fecha final (obligatoria) |
-| Botones | "Refrescar" |
+
+| Propiedad     | Valor                                                                                   |
+|---------------|-----------------------------------------------------------------------------------------|
+| Entidad       | TareaCorreo                                                                             |
+| Solo lectura  | no — el formulario permite editar los criterios (fechas) pero no modifica TareaCorreo.  |
+
+### Paneles
+
+| Panel (título)             | Tipo                | Campos                                                                                                                              |
+|----------------------------|---------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| "Rango de fechas"          | normal              | fecha inicial, fecha final, botón "Actualizar gráfica"                                                                              |
+| "Correos por día"          | normal              | gráfica diaria del número de TareaCorreo creadas en el rango seleccionado, desglosada por estado (PENDIENTE, ENVIANDO, ENVIADO, FALLADO) |
 
 ### Botones
-| Botón | Qué hace |
-|-------|----------|
-| "Refrescar" | Vuelve a calcular y dibujar la gráfica con el rango de fechas indicado |
+
+| Botón                  | Qué hace                                                                                                                                       |
+|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| "Actualizar gráfica"   | Recarga la gráfica con el rango de fechas seleccionado. Si el rango no es válido (ver U-grafica-003), muestra el aviso y no recarga.           |
 
 ### Reglas de UI (U-grafica-NNN)
 
-| ID | Disparador | Efecto | Campo/Panel afectado | Condición |
-|----|------------|--------|----------------------|-----------|
-| U-grafica-001 | onLoad | Valor por defecto | campo "fecha inicial" | Primer día del mes en curso |
-| U-grafica-002 | onLoad | Valor por defecto | campo "fecha final" | Día de hoy |
-| U-grafica-003 | continuo | Marcar obligatorio | campo "fecha inicial" | Siempre |
-| U-grafica-004 | continuo | Marcar obligatorio | campo "fecha final" | Siempre |
-| U-grafica-005 | onChange:fecha inicial | Mostrar/ocultar | mensaje de error "El rango de fechas no es válido: la fecha inicial '{valor}' es posterior a la fecha final" | Visible cuando fecha inicial > fecha final |
-| U-grafica-006 | onChange:fecha final | Mostrar/ocultar | mensaje de error "El rango de fechas no es válido: la fecha inicial es posterior a la fecha final '{valor}'" | Visible cuando fecha inicial > fecha final |
+| ID              | Disparador            | Efecto             | Campo/Panel afectado     | Condición                                                                                              | Origen EARS |
+|-----------------|-----------------------|--------------------|--------------------------|--------------------------------------------------------------------------------------------------------|-------------|
+| U-grafica-001   | continuo              | Marcar obligatorio | campo "fecha inicial"    | Siempre.                                                                                               | E-UB-010    |
+| U-grafica-002   | continuo              | Marcar obligatorio | campo "fecha final"      | Siempre.                                                                                               | E-UB-010    |
+| U-grafica-003   | continuo              | Mostrar aviso      | panel "Rango de fechas"  | Si la fecha inicial es posterior a la fecha final, mostrar el mensaje "El rango de fechas no es válido: la fecha inicial es posterior a la fecha final." | E-UN-009    |

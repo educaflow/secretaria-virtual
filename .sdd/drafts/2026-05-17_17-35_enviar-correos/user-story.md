@@ -74,33 +74,6 @@ Enviar finalmente el correo desde Java ya está implementado en el módulo de in
 - No se pueden modificar ni borrar las tareas de correo una vez creadas — son registros históricos inmutables.
 - El contenido del correo que se registra debe ser exactamente el que se ha enviado, sin modificaciones posteriores.
 
-## Cómo se comporta y cómo se prueba
-
-Lista de escenarios que describen cómo se comporta la iniciativa y cómo
-verificarla. Cada escenario es autocontenido: una breve narrativa del recorrido
-y, debajo, el criterio observable de verificación.
-
-### Escenario 1 — Administrador ver correos
-
-El administrador accede al menú de todos los correos y ve la lista completa de todos los correos enviados en el sistema.
-Si hay algún correo lo abre para ver su contenido completo, destinatarios, fecha de envío, adjuntos, etc.
-
-
-### Escenario 2 — Crea un nuevo correo
-
-El administrador accede al menú de todos los correos y envia enviar un nuevo correo. 
-Una vez enviado, ve el nuevo correo en la lista, con su contenido completo, destinatarios, fecha de envío, adjuntos, etc. 
-
-### Escenario 3 — Correo de centro
-
-El administrador envía un nuevo correo asociado a un centro concreto. 
-El supervisor de ese centro accede al menú de correos del centro y ve el nuevo correo en la lista, con su contenido completo, destinatarios, fecha de envío, adjuntos, etc.
-El administrativo de ese centro accede al menú de correos del centro y ve el nuevo correo en la lista, con su contenido completo, destinatarios, fecha de envío, adjuntos, etc.
-
-### Escenario 3 — Correo de centro
-
-El administrador envía un nuevo correo asociado a un DNI en concreto
-El usuario con ese DNI accede al menú de sus correos y ve el nuevo correo en la lista, con su contenido completo, destinatarios, fecha de envío, adjuntos, etc.
 
 
 
