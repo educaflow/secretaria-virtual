@@ -159,9 +159,6 @@
   </permission>
 
   <!-- Correos -->
-  <permission name="Correo.all" object="com.educaflow.subsystem.correos.db.Correo">
-    <can create="true" read="true" write="true" remove="true" export="true"/>
-  </permission>
 
 
   <group code="admins">
@@ -210,7 +207,6 @@
     <permission name="Nivel.all"/>
     <permission name="ViewGestionCentroImport.all"/>
     <permission name="ViewGestionCentroCambioCurso.all"/>
-    <permission name="Correo.all"/>
   </group>
 
   <group code="users">
@@ -259,11 +255,8 @@
     <permission name="Nivel.all"/>
     <permission name="ViewGestionCentroImport.all"/>
     <permission name="ViewGestionCentroCambioCurso.all"/>
-    <permission name="Correo.propio"/>
   </group>
 
-  <group code="center-admins">
-    <permission name="Correo.centro"/>
-  </group>
+
 
 </auth>

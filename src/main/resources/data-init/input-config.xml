@@ -77,20 +77,6 @@
         </bind>
     </input>
 
-    <input file="auth-correos.xml" root="auth">
-        <bind node="permission" type="com.axelor.auth.db.Permission" search="self.name = :name" create="true" update="true">
-            <bind node="@name" to="name"/>
-            <bind node="@object" to="object"/>
-            <bind node="@condition" to="condition"/>
-            <bind node="@conditionParams" to="conditionParams"/>
-            <bind node="can/@create" to="canCreate"/>
-            <bind node="can/@read" to="canRead"/>
-            <bind node="can/@write" to="canWrite"/>
-            <bind node="can/@remove" to="canRemove"/>
-            <bind node="can/@export" to="canExport"/>
-        </bind>
-    </input>
-
     <input file="auth.xml" root="auth">
         <bind node="permission" type="com.axelor.auth.db.Permission" search="self.name = :name" create="true" update="true">
             <bind node="@name" to="name"/>
@@ -129,15 +115,7 @@
         </bind>
     </input>
 
-    <input file="correos-MetaSchedule.xml" root="datos">
-        <bind node="metaSchedule" type="com.axelor.meta.db.MetaSchedule" search="self.name = :name" create="true" update="true">
-            <bind node="@name" to="name"/>
-            <bind node="@description" to="description"/>
-            <bind node="@job" to="job"/>
-            <bind node="@cron" to="cron"/>
-            <bind node="@active" to="active"/>
-        </bind>
-    </input>
+
 
     <input file="tiposUsuario.xml" root="datos">
         <bind node="tiposUsuario/tipoUsuario" type="com.educaflow.subsystem.common.db.TipoUsuario" search="self.codigo = :codigo" create="true" update="true">

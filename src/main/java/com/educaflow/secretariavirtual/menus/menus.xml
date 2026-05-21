@@ -74,7 +74,5 @@
         <menuitem name="utilidadesPdf-posicionAutofirma-menuitem" parent="utilidadesPdf-menuitem" title="Posición Autofirma__!!" action="subsysPdfUtilities.PdfUtilities@AutoFirma-action"  order="3"/>
 
 
-    <menuitem name="carpetaCiudadana-menuitem" title="Carpeta ciudadana" order="36"/>
-        <menuitem name="carpetaCiudadana-misCorreos-menuitem" parent="carpetaCiudadana-menuitem" title="Mis correos" action="subsysCorreos.TareaCorreo@Mis-action" order="10"/>
 
 </object-views>
