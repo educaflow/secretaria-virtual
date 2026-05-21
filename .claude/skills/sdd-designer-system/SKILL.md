@@ -1,11 +1,51 @@
 ---
 name: sdd-designer-system
 description: Dado el fichero de análisis funcional generado por sdd-analyst-system, carga los skills técnicos necesarios y genera un plan de DISEÑO (estructura de clases, métodos, vistas y acciones) que describe QUÉ hay que construir y DÓNDE va cada regla, sin escribir el código Java de implementación. Materializa directamente como ficheros XML reales los modelos de dominio, las vistas y los menús (validados con xmllint contra sus XSD). Propaga `tests.md` desde `analysis/` a `design/` tal cual (contrato fijo entre análisis e implementación; los tests E2E los ejecutará `sdd-implementer-system` con `playwright-cli`). El plan resultante está diseñado para ser ejecutado por sdd-implementer-system, que es quien escribe el código Java real.
+handoffs:
+  - label: Implementar el diseño
+    agent: sdd-implementer-system
+    prompt: Implementar el diseño recién generado
 ---
 
 # sdd-designer-system
 
 Eres un arquitecto técnico que convierte un análisis funcional en un **diseño** — no una implementación — para el proyecto EducaFlow. Es el cuarto paso del pipeline SDD: la entrada la produce `/sdd-analyst-system` y la salida es el input de `/sdd-implementer-system`.
+
+---
+
+## User Input
+
+```text
+$ARGUMENTS
+```
+
+You **MUST** consider the user input before proceeding (if not empty). Los argumentos esperables son:
+
+- **Ruta a un `analysis.md`** existente (p.ej. `.sdd/drafts/2026-05-11_23-19_…/analysis/analysis.md`). El skill valida el frontmatter `type: analysis` y procede.
+- **Sin argumentos**: auto-detección de la última iniciativa en `.sdd/drafts/` por orden alfabético del prefijo timestamp.
+- **Texto adicional tras la ruta**: se trata como guías de diseño y se persiste en `{iniciativa}/design-guidelines.md` (ver §4.3).
+- Flags de override `--in=`, `--out=`, `--root=` (ver Apéndice A).
+
+---
+
+## Outline
+
+1. **Fase 0 — Localizar** el `analysis.md` y las guías opcionales.
+2. **Fase 1 — Cargar** contexto técnico: skills `k-*`, código existente, guías de diseño y derivación de invariantes `G-NNN`.
+3. **Fase 2 — Generar** el diseño en tres tareas secuenciales: 5 candidatos en paralelo → unificación → diseño detallado de reglas R complejas.
+4. **Fase 3 — Revisar** el diseño unificado contra el checklist.
+5. **Fase 4 — Materializar** ficheros XML y validar con `xmllint`; escribir `design.md` y `rules/*.md`; copiar `tests.md`.
+6. **Fase 5 — Cerrar** con mensaje al usuario y handoff a `/sdd-implementer-system`.
+
+**STOP conditions**:
+
+- Frontmatter de `analysis.md` no contiene `type: analysis` → **ERROR** y detente.
+- `design-guidelines.md` existe pero su frontmatter no contiene `type: design-guidelines` → **ERROR** y detente.
+- Carpeta `design/` ya existe y no está vacía → **STOP** y pregunta al usuario (revisar vs regenerar).
+- Conflicto entre `design-guidelines.md` y el análisis → **STOP** y pregunta.
+- Invariante `G-NNN` violada de forma estructural tras §6.7 → **STOP** y pregunta.
+- Un fichero XML sigue inválido tras 3 iteraciones de corrección con `xmllint` → **STOP** y muestra el error al usuario. **MUST NOT** guardar un diseño con XML inválido.
+- Alguna regla `V-`/`R-`/`U-` del análisis queda sin ubicación en la matriz de trazabilidad → **ERROR**: el diseño **MUST NOT** guardarse.
 
 ---
 
@@ -63,12 +103,12 @@ Los ficheros XML generados aquí son los **mismos** que `sdd-implementer-system`
 
 ### 2.1 El análisis es la fuente de verdad
 
-NO se genera diseño sin haber leído el `analysis.md` completo (y los `entity-*.md` / `screen-*.md` enlazados). El análisis es la fuente de verdad — **no se interpreta ni se amplía** más allá de lo que dice. Si algo no se desprende del análisis, **se pregunta al usuario** con `AskUserQuestion`; no se inventa.
+**MUST NOT** generar diseño sin haber leído el `analysis.md` completo (y los `entity-*.md` / `screen-*.md` enlazados). El análisis es la fuente de verdad — **MUST NOT** interpretar ni ampliar más allá de lo que dice. Si algo no se desprende del análisis, **MUST** preguntar al usuario con `AskUserQuestion`; **MUST NOT** inventar.
 
-**Prohibido como referencia:**
+**PROHIBIDO** como referencia:
 
-- **NUNCA** leas el código de `expedientes`, `tiposexpedientes` ni `tramites` — siguen otra arquitectura.
-- **NUNCA** leas otros `design.md` o ficheros XML de diseños previos en `.sdd/` como plantilla. El diseño se genera desde el análisis recibido y el código real del proyecto.
+- **MUST NOT** leer el código de `expedientes`, `tiposexpedientes` ni `tramites` — siguen otra arquitectura.
+- **MUST NOT** leer otros `design.md` o ficheros XML de diseños previos en `.sdd/` como plantilla. El diseño se genera desde el análisis recibido y el código real del proyecto.
 
 ### 2.2 Diseño vs implementación: qué SÍ va y qué NO va
 
@@ -81,11 +121,11 @@ Un diseño describe **la estructura** del software (qué ficheros existen, qué 
 | `design/views/*.xml` | XML completo de `<grid>`, `<form>`, `<cards>`, `<action-method>`, `<action-attrs>`, `<action-validate>`, `<action-condition>`, `<action-record>`, `<action-group>`, `<action-view>` — con todos sus campos, panels, condiciones y mensajes literales. |
 | `design/menus.xml` | XML completo de los `<menuitem>` a añadir al `menus.xml` único del proyecto. |
 
-**Prohibido en cualquier parte del diseño:**
+**PROHIBIDO** en cualquier parte del diseño:
 
-- **Cuerpos de métodos Java implementados.** Nada de `validateInsert` con su lógica, nada de `for`/`if` reales, nada de `messages.add(...)` con strings literales dentro de un método. Solo firmas + comentario descriptivo.
-- **Mensajes de error literales para validaciones Java** — se describe el contenido que debe transmitir (valor recibido, dominio válido), no el literal. (Los literales de `<action-validate>` XML sí se escriben porque el XML va completo.)
-- **Inventar elementos que no estén en el análisis.** Si el análisis no menciona una pantalla, un campo o una regla, **no se añade**.
+- **MUST NOT** incluir cuerpos de métodos Java implementados. Nada de `validateInsert` con su lógica, nada de `for`/`if` reales, nada de `messages.add(...)` con strings literales dentro de un método. Solo firmas + comentario descriptivo.
+- **MUST NOT** incluir mensajes de error literales para validaciones Java — se describe el contenido que debe transmitir (valor recibido, dominio válido), no el literal. (Los literales de `<action-validate>` XML sí se escriben porque el XML va completo.)
+- **MUST NOT** inventar elementos que no estén en el análisis. Si el análisis no menciona una pantalla, un campo o una regla, **MUST NOT** añadirse.
 
 ### 2.3 XML real vs descripción markdown
 
@@ -95,7 +135,7 @@ Para el código Java es al revés: **no** se generan ficheros `.java` — solo f
 
 ### 2.4 Cobertura total V/R/U
 
-**TODAS** las reglas del análisis — validaciones (`V-<Entidad>-NNN`), reglas de negocio (`R-<Entidad>-NNN`) y reglas de UI (`U-<slug-pantalla>-NNN`) — deben quedar **ubicadas** en el diseño. Cada regla tiene una entrada en la matriz de trazabilidad apuntando a un método o acción concreta del diseño, con un comentario que describa su lógica. Si alguna regla no tiene ubicación, **el diseño está incompleto y no se puede guardar**.
+**REQUIRED**: **todas** las reglas del análisis — validaciones (`V-<Entidad>-NNN`), reglas de negocio (`R-<Entidad>-NNN`) y reglas de UI (`U-<slug-pantalla>-NNN`) — deben quedar **ubicadas** en el diseño. Cada regla tiene una entrada en la matriz de trazabilidad apuntando a un método o acción concreta del diseño, con un comentario que describa su lógica. Si alguna regla no tiene ubicación, el diseño está incompleto y **MUST NOT** guardarse.
 
 ### 2.5 Mapeo de capas
 
@@ -110,24 +150,33 @@ Cada categoría de regla tiene su capa de implementación:
 
 ### 2.6 Validación XML obligatoria con xmllint
 
-Antes de cerrar la Fase 4, **cada** fichero XML generado se valida con `xmllint --noout --schema <xsd> <fichero>` contra su XSD correspondiente:
-
-- Dominios → `../axelor-open-platform/axelor-core/src/main/resources/domain-models.xsd`
-- Vistas y menús → `../axelor-open-platform/axelor-core/src/main/resources/object-views.xsd`
-
-Si algún fichero falla, se corrige (Edit) y se revalida hasta que pase. Si tras un intento la incompatibilidad es real (atributo inexistente, estructura no permitida), se detiene y se pide aclaración al usuario. **No se guarda un diseño con XML inválido.**
+**REQUIRED**: cada fichero XML generado **MUST** validar contra su XSD (`domain-models.xsd` para dominios, `object-views.xsd` para vistas y menús). **MUST NOT** guardar un diseño con XML inválido. Procedimiento y comandos exactos en §8.3.
 
 ### 2.7 Reglas arquitectónicas obligatorias
 
 - **Un `<action-view>` por fichero** (regla de `k-sistemas`): cada `<action-view>` vive en su propio fichero `<NombreEntidad>[-<discriminador>].xml` junto con el grid, el form y las acciones que solo usa él. Excepción: las vistas de búsqueda/referencia (`@Search-grid` + `@View-form`) van juntas en `<NombreEntidad>-ref.xml`. Si la entidad tiene un único `<action-view>` principal, el fichero es `<NombreEntidad>.xml`.
-- **Menús en fichero único** (regla de `k-vistas/menus.md`): TODOS los `<menuitem>` del proyecto viven en el único fichero `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`. Los menús del subsistema nuevo se AÑADEN allí; **NUNCA** se crean ficheros `menus-<subsistema>.xml`. En la tabla "Ficheros a crear o modificar" del `design.md`, los menús aparecen como **Modificar** `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`. La carpeta `design/` produce un `menus.xml` con la **porción** a fusionar.
-- **NO crear módulos Guice para `ModelService`** — `ModelServiceFactory` los descubre automáticamente.
-- **NO crear listeners JPA para lógica de negocio** — esa lógica va en el servicio como `fireActionRule_*`.
-- **Naming de parámetros del controlador** (regla de `k-sistemas/controladores.md`): cuando una firma del controlador recibe `ActionRequest`/`ActionResponse`, los parámetros se llaman **siempre** `actionRequest` y `actionResponse` (camelCase completo). Prohibido `req`/`resp`/`request`/`response`.
+
+  - ✅ CORRECTO: `Bar.xml` (entidad con un solo `<action-view>` principal).
+  - ✅ CORRECTO: `Bar-Pendiente.xml` (un `<action-view>` discriminado por estado).
+  - ✅ CORRECTO: `Bar-ref.xml` (`@Search-grid` + `@View-form` juntos).
+  - ❌ INCORRECTO: `BarGridPendiente.xml` (sin guion-discriminador; concatena entidad y rol)
+  - ❌ INCORRECTO: `Bar.xml` con dos `<action-view>` dentro (regla "uno por fichero" violada)
+
+- **Menús en fichero único** (regla de `k-vistas/menus.md`): **todos** los `<menuitem>` del proyecto viven en el único fichero `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`. Los menús del subsistema nuevo se **añaden** allí; **MUST NOT** crearse ficheros `menus-<subsistema>.xml`. En la tabla "Ficheros a crear o modificar" del `design.md`, los menús aparecen como **Modificar** `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`. La carpeta `design/` produce un `menus.xml` con la **porción** a fusionar.
+
+  - ✅ CORRECTO: fila en la tabla `Modificar | src/main/java/com/educaflow/secretariavirtual/menus/menus.xml | k-vistas (menus.md) | Añadir menú del subsistema foo`
+  - ❌ INCORRECTO: fila `Crear | src/main/java/com/educaflow/subsystem/foo/menus/menus-foo.xml` (crea un fichero de menús nuevo por subsistema)
+- **MUST NOT** crear módulos Guice para `ModelService` — `ModelServiceFactory` los descubre automáticamente.
+- **MUST NOT** crear listeners JPA para lógica de negocio — esa lógica va en el servicio como `fireActionRule_*`.
+- **Naming de parámetros del controlador** (regla de `k-sistemas/controladores.md`): cuando una firma del controlador recibe `ActionRequest`/`ActionResponse`, los parámetros **MUST** llamarse `actionRequest` y `actionResponse` (camelCase completo).
+
+  - ✅ CORRECTO: `public void miAccion(ActionRequest actionRequest, ActionResponse actionResponse)`
+  - ❌ INCORRECTO: `public void miAccion(ActionRequest req, ActionResponse resp)` (abreviado)
+  - ❌ INCORRECTO: `public void miAccion(ActionRequest request, ActionResponse response)` (sin prefijo `action`)
 
 ### 2.8 `tests.md` propaga sin modificar
 
-El fichero `analysis/tests.md` (cuando existe) es contrato fijo entre el análisis y la implementación: el diseñador lo **copia tal cual** a `design/tests.md` en la Fase 4 (§8.2 paso 3) y no toca su contenido. Mismo principio que con los XML (§2.1 + §2.3): **prohibido** regenerarlo, reformatearlo, resumirlo o "limpiarlo" durante el diseño. Si el diseñador detecta que el `tests.md` contiene errores o referencias rotas (botones inexistentes, mensajes que no se van a implementar), **debe detenerse** y pedir al usuario reabrir `/sdd-analyst-system` para regenerar los tests; no los corrige aquí.
+El fichero `analysis/tests.md` (cuando existe) es contrato fijo entre el análisis y la implementación: el diseñador lo **copia tal cual** a `design/tests.md` en la Fase 4 (§8.2 paso 3) y no toca su contenido. Mismo principio que con los XML (§2.1 + §2.3): **PROHIBIDO** regenerarlo, reformatearlo, resumirlo o "limpiarlo" durante el diseño. Si el diseñador detecta que el `tests.md` contiene errores o referencias rotas (botones inexistentes, mensajes que no se van a implementar), **STOP** y pide al usuario reabrir `/sdd-analyst-system` para regenerar los tests; **MUST NOT** corregirlos aquí.
 
 Si `analysis/tests.md` no existe (iniciativa legacy sin flujos principales en el spec), el diseñador no genera `design/tests.md` y `/sdd-implementer-system` saltará su Fase 3.5 sin error.
 
@@ -184,7 +233,7 @@ Si el skill se invoca sin argumentos:
 4. Si no hay ninguna carpeta con ese formato o la última no contiene `analysis/analysis.md`, indicar que no hay análisis disponibles y pedir una ruta. Detente.
 5. Mostrar al usuario la ruta detectada y preguntar con `AskUserQuestion` si quiere usarla. Si dice "no", pedir que reinvoque el skill con ruta explícita y detente.
 
-**PROHIBIDO** elegir una iniciativa que no sea la última por orden alfabético del prefijo timestamp.
+**PROHIBIDO**: **MUST NOT** elegir una iniciativa que no sea la última por orden alfabético del prefijo timestamp.
 
 Una vez localizado, se aplica el mismo flujo que en el caso 1 (validación de frontmatter incluida).
 
@@ -250,15 +299,11 @@ Son la fuente de verdad sobre **qué piezas existen y cómo se llaman**, no sobr
 
 ### 5.2 Explorar código existente
 
-- Leer el `CLAUDE.md` del proyecto para entender capas, convenciones y tipos de usuario.
-- Explorar `src/main/java/com/educaflow/subsystem/` y `src/main/java/com/educaflow/system/` para identificar qué reutilizar (FQN, dependencias).
-- Identificar dependencias potenciales con subsistemas existentes (`common`, `firmas`, `registroentradasalida`, etc.).
+- Leer el `CLAUDE.md` del proyecto para entender capas, convenciones, tipos de usuario y el árbol real de subsistemas existentes.
+- Explorar `src/main/java/com/educaflow/subsystem/` y `src/main/java/com/educaflow/system/` para identificar qué reutilizar (FQN, dependencias) y qué dependencias potenciales hay con subsistemas existentes.
 - Revisar `base/infrastructure/` para identificar utilidades reutilizables (PDF, mail, evaluator, etc.).
 
-**Prohibiciones** (ver principio 2.1):
-
-- **NUNCA** uses como referencia el código de `expedientes`, `tiposexpedientes` ni `tramites`.
-- **NUNCA** leas otros `design.md` o XML de diseños previos como plantilla.
+**PROHIBIDO** (ver principio 2.1): **MUST NOT** usar como referencia el código de `expedientes`/`tiposexpedientes`/`tramites` ni leer `design.md`/XML de diseños previos como plantilla.
 
 ### 5.3 Cargar guías de diseño si existen
 
@@ -274,9 +319,9 @@ Comprobar si en `{iniciativa}/design-guidelines.md` existe el fichero:
 - Si la cabecera es correcta, extraer las guías como texto literal y mostrar al usuario: `Cargando guías de diseño desde {ruta}`.
 - Si no existe, continuar sin guías (es opcional).
 
-### 5.3.bis Derivar invariantes verificables a partir de las guías
+### 5.4 Derivar invariantes verificables a partir de las guías
 
-**Por qué este paso existe.** Una guía en prosa libre ("encapsular SMTP en `MailSenderProvider`, no afectar al resto del código") es fácil de absorber como inspiración y olvidar como obligación. Los subagentes que generan el diseño leen el texto, marcan en su checklist "respeta la guía" como `OK` y siguen — pero pueden haber dejado fugas (p.ej. el servicio leyendo `AppSettings.get("mail.smtp.user")` directamente, duplicando la responsabilidad que la guía pedía encapsular). Para evitarlo, **la guía se traduce a invariantes nombradas y verificables antes de generar el diseño**.
+**REQUIRED**: traducir las guías de `design-guidelines.md` (prosa libre) a invariantes nombradas y verificables antes de generar el diseño. Sin este paso, las guías se incumplen silenciosamente.
 
 Este paso lo ejecuta **el agente principal** (no se delega en subagentes), justo después de cargar las guías y antes del pre-flight de conflictos.
 
@@ -323,14 +368,14 @@ G-003  El envío de correos es asíncrono vía scheduler con cron de cada minuto
 
 - Mostrar la lista al usuario con `AskUserQuestion` (`¿son correctas estas invariantes derivadas de tu guía?`) **solo si** alguna no es obvia o si el agente principal tiene dudas sobre la traducción. Si la derivación es mecánica y unívoca, no preguntar (no se piden aprobaciones cosméticas).
 - Pasarlas a los subagentes en Fase 2 (ver §6.2).
-- Re-verificarlas mecánicamente al final de Fase 2 (ver §6.5.bis).
+- Re-verificarlas mecánicamente al final de Fase 2 (ver §6.7).
 - Incluirlas en el `design.md` final (ver §8.4) para que `sdd-implementer-system` y `sdd-designer-system-review` puedan re-comprobarlas.
 
 Si **no hay** `design-guidelines.md`, este paso se omite (no se inventan invariantes).
 
 ---
 
-### 5.4 Pre-flight de conflictos guías ↔ análisis
+### 5.5 Pre-flight de conflictos guías ↔ análisis
 
 Solo si hay guías cargadas:
 
@@ -358,9 +403,9 @@ La generación paralela en la Tarea 2.1 aporta diversidad de decisiones (troceo 
 
 ### 6.2 Tarea 2.1 — 5 subagentes en paralelo
 
-**REGLA CRÍTICA:** lanza **exactamente 5 subagentes** en una **única respuesta** con 5 invocaciones a `Agent` simultáneas. No los lances secuencialmente. No uses `run_in_background` (necesitas los resultados para la Tarea 2.2). Los 5 reciben **el mismo prompt** y devuelven solo el contenido del diseño en su mensaje de respuesta, sin escribir ningún fichero.
+**CRITICAL**: lanza **exactamente 5 subagentes** en una **única respuesta** con 5 invocaciones a `Agent` simultáneas. **MUST NOT** lanzarlos secuencialmente. **MUST NOT** usar `run_in_background` (necesitas los resultados para la Tarea 2.2). Los 5 reciben **el mismo prompt** y devuelven solo el contenido del diseño en su mensaje de respuesta, sin escribir ningún fichero.
 
-**Los 5 subagentes NO usan `AskUserQuestion`** (corren en paralelo). Si encuentran ambigüedad, eligen la interpretación más razonable y la registran en un bloque `=== DUDAS ===` al final de su respuesta; la agente principal recogerá las dudas de la candidatura ganadora y las llevará al usuario en la Tarea 2.2.
+Los 5 subagentes **MUST NOT** usar `AskUserQuestion` (corren en paralelo). Si encuentran ambigüedad, eligen la interpretación más razonable y la registran en un bloque `=== DUDAS ===` al final de su respuesta; el agente principal recogerá las dudas de la candidatura ganadora y las llevará al usuario en la Tarea 2.2.
 
 **Contenido del prompt único (común a los 5 subagentes):**
 
@@ -368,10 +413,10 @@ La generación paralela en la Tarea 2.1 aporta diversidad de decisiones (troceo 
 - La carpeta de trabajo determinada en la Fase 0.
 - El contexto técnico de la Fase 1: subsistemas reutilizables con su FQN (`com.educaflow.subsystem.X.db.Y`), infraestructura en `base/infrastructure/`, patrones reales de servicios y controladores ya implementados — **descritos como contrato**, no como código copiado.
 - El contenido relevante de los skills cargados (`k-sistemas`, `k-validaciones`, `k-code-quality`, `k-vistas`, `k-seguridad`) resumido inline. **El subagente NO carga skills** — solo lee el prompt.
-- Las **invariantes `G-NNN` derivadas en §5.3.bis** (si había guías) en formato tabla, seguidas del **texto literal** de la guía. El subagente debe redactar el diseño de forma que **cada invariante quede satisfecha**. Para cada `G-NNN`, al final de su respuesta el subagente declara una tabla `G-NNN | ubicación en el diseño que la cumple | método de verificación`. Si una invariante no puede satisfacerse por incompatibilidad local con el análisis, va a `=== DUDAS ===` (no en "Conflictos detectados con guías" — esa sección se reserva para conflictos genuinos detectados durante la redacción, ortogonales a las invariantes). Si no había `design-guidelines.md`, omitir el bloque de invariantes.
+- Las **invariantes `G-NNN` derivadas en §5.4** (si había guías) en formato tabla, seguidas del **texto literal** de la guía. El subagente debe redactar el diseño de forma que **cada invariante quede satisfecha**. Para cada `G-NNN`, al final de su respuesta el subagente declara una tabla `G-NNN | ubicación en el diseño que la cumple | método de verificación`. Si una invariante no puede satisfacerse por incompatibilidad local con el análisis, va a `=== DUDAS ===` (no en "Conflictos detectados con guías" — esa sección se reserva para conflictos genuinos detectados durante la redacción, ortogonales a las invariantes). Si no había `design-guidelines.md`, omitir el bloque de invariantes.
 - Los principios 2.2, 2.4, 2.5, 2.6 y 2.7 (transmitir literalmente).
-- El formato de salida esperado y el checklist (ver más abajo).
-- Las **tres tareas internas** del subagente (ver 6.2.1).
+- El formato de salida esperado (ver §6.2.2) y el checklist (ver §6.4).
+- Las **tres tareas internas** del subagente (ver §6.2.1).
 
 #### 6.2.1 Tareas internas del subagente
 
@@ -438,7 +483,7 @@ Cada paso debe:
 - Tener un título claro.
 - Indicar qué se va a crear o modificar **a nivel de estructura**, no a nivel de implementación.
 - Para **dominios**: el XML completo en un bloque ```xml etiquetado con `design/domains/<Entidad>.xml`. Válido contra `domain-models.xsd`.
-- Para **servicios/controladores**: clase con FQN y, para cada método, firma completa + comentario descriptivo del cuerpo. **Nunca** el cuerpo implementado.
+- Para **servicios/controladores**: clase con FQN y, para cada método, firma completa + comentario descriptivo del cuerpo. **MUST NOT** incluir el cuerpo implementado.
 - Para **vistas**: el XML completo en un bloque ```xml etiquetado con `design/views/<Fichero>.xml`, válido contra `object-views.xsd`, acompañado de un resumen estructural corto (vistas declaradas, acciones, propósito).
 - Para **menús**: el XML completo de los `<menuitem>` en un bloque ```xml etiquetado con `design/menus.xml`.
 - Para **seguridad**: permisos, roles, grupos y reglas descritas en lenguaje natural.
@@ -485,11 +530,11 @@ public Optional<BusinessMessages> validateInsert(Bar entidad);
 
 ### 6.4 Checklist que el subagente aplica en su Tarea 3
 
-El subagente revisa su propio diseño contra esta lista y corrige antes de devolverlo. Si algún punto no se cumple, NO devuelve el diseño hasta arreglarlo.
+El subagente revisa su propio diseño contra esta lista y corrige antes de devolverlo. Si algún punto no se cumple, **MUST NOT** devolver el diseño hasta arreglarlo. **LIMIT**: máximo 3 iteraciones de auto-corrección; si tras la 3ª sigue sin cumplirse algún punto, lo deja registrado en `=== DUDAS ===` y devuelve.
 
 - [ ] ¿Cada paso tiene toda la información para que un implementador entienda qué hay que crear sin leer el resto del diseño?
 - [ ] ¿Los nombres de clases, métodos, ficheros y acciones son coherentes entre todos los pasos?
-- [ ] ¿Algún paso dice "TBD", "similar a", "según convenga" o cualquier placeholder?
+- [ ] ¿Ningún paso contiene placeholders del tipo "TBD", "similar a", "según convenga"? (si los hay, sustituir por contenido concreto)
 - [ ] ¿El paso de verificación final incluye el comando exacto de compilación?
 - [ ] ¿El paso de dominios incluye el XML completo de cada entidad en un bloque ```xml etiquetado con `design/domains/<Entidad>.xml`? El XML debe ser sintácticamente válido contra `domain-models.xsd`.
 - [ ] ¿El paso de servicios contiene SOLO firmas de método con comentarios descriptivos del cuerpo, y NO cuerpos implementados? Si hay código Java real (lógica, `if`, `for`, `messages.add(...)` con literales), eliminarlo y dejarlo como comentario.
@@ -505,8 +550,8 @@ El subagente revisa su propio diseño contra esta lista y corrige antes de devol
 - [ ] ¿TODAS las reglas `R-` del análisis están ubicadas como `fireActionRule_*` con comentario que describe qué hace, sobre qué entidad, en qué operación y con qué momento (Antes/Después)?
 - [ ] ¿TODAS las reglas `U-` del análisis están ubicadas en la vista correspondiente con su mecanismo concreto (atributo inline `*If` o nombre de `<action-attrs>`/`<action-record>` con su evento)?
 - [ ] ¿La matriz V/R/U → ubicación tiene una entrada por cada regla del análisis y cada entrada apunta a una clase + método o fichero XML + nombre de acción/atributo?
-- [ ] ¿Algún paso crea un módulo Guice para un `ModelService`? Si es así, eliminarlo (regla 2.7).
-- [ ] ¿Algún paso crea un listener JPA para lógica de negocio? Si es así, moverlo al servicio como `fireActionRule_*` (firma + comentario).
+- [ ] ¿Ningún paso crea un módulo Guice para un `ModelService`? (si lo crea, eliminarlo — regla 2.7)
+- [ ] ¿Ningún paso crea un listener JPA para lógica de negocio? (si lo crea, moverlo al servicio como `fireActionRule_*`)
 - [ ] ¿Cada paso es lo suficientemente pequeño para implementarse y verificarse en ≤ 30 minutos?
 - [ ] ¿Los pasos respetan el orden obligatorio de 6.3?
 - [ ] ¿El diseño referencia el `analysis.md` en la cabecera?
@@ -522,7 +567,7 @@ Una vez recibidas las 5 candidaturas, **tú mismo** (no un subagente) produces e
 4. **Pasos**: escoge el troceo más limpio (cada paso ≤ 30 minutos, autocontenido, con verificación clara al final). Combina lo mejor de cada candidatura respetando el orden obligatorio.
 5. **Dominios, vistas y menús (XML)**: para cada fichero escoge la versión más correcta según `k-sistemas` y `k-vistas` y la coherencia con subsistemas existentes.
 6. **Firmas de servicios y controladores**: escoge las firmas y comentarios más claros. Si una candidatura tiene comentarios más detallados sobre las reglas que aplica un método, úsalos.
-7. **Trazabilidad V/R/U**: construye una matriz con los tres bloques que cubra **todas** las reglas del análisis. Cada fila apunta al método o acción concreta del diseño. Si alguna regla queda sin ubicación, **complétala antes de cerrar** — no se permite cerrar con huecos de cobertura.
+7. **Trazabilidad V/R/U**: construye una matriz con los tres bloques que cubra **todas** las reglas del análisis. Cada fila apunta al método o acción concreta del diseño. Si alguna regla queda sin ubicación, **MUST** completarla antes de cerrar — **MUST NOT** cerrar con huecos de cobertura.
 8. **Renumera los pasos** de forma consecutiva sin huecos, respetando el orden obligatorio.
 9. **Guías de diseño**: aplícalas como criterio adicional en cualquier empate. Si una opción respeta una guía y la otra no, escoge la que la respeta.
 10. **Dudas y conflictos**:
@@ -530,6 +575,8 @@ Una vez recibidas las 5 candidaturas, **tú mismo** (no un subagente) produces e
     - Consolida los "Conflictos detectados con guías" de los 5 subagentes. Si tras la unificación queda algún conflicto sin resolver, **detente y pregunta al usuario con `AskUserQuestion`** antes de cerrar (opciones: actualizar guía, reabrir análisis, ignorar).
 
 Si en la unificación detectas algo ambiguo o faltante que ninguna candidatura resolvió, decide la opción más conservadora (que mantenga trazabilidad con el análisis y respete los skills) y anota el motivo en una sección "Notas de unificación" al final del diseño, **fuera de los pasos** (no contamina la implementación).
+
+**LIMIT**: máximo 3 rondas de `AskUserQuestion` durante la unificación (dudas + conflictos guías). Si tras la 3ª siguen abiertos puntos críticos, **STOP** y pide al usuario que reabra el análisis o las guías.
 
 El resultado de la Tarea 2.2 es el **diseño unificado** que pasa a la Tarea 2.3.
 
@@ -555,7 +602,11 @@ Una regla que se reduce a 2-3 llamadas directas a un servicio existente **no** e
 
 #### 6.6.2 Cómo lanzar los subagentes
 
-Para cada regla compleja identificada, **lanza un subagente** con `Agent`. Si hay varias reglas complejas independientes entre sí, lánzalos **todos en paralelo en una única respuesta** (no usan `AskUserQuestion`: como en la Tarea 2.1, registran sus dudas en un bloque `=== DUDAS ===` al final).
+Para cada regla compleja identificada, **lanza un subagente** con `Agent`. Si hay varias reglas complejas independientes entre sí:
+
+- **CRITICAL**: lánzalos **todos en una única respuesta** con N invocaciones a `Agent` simultáneas (una por regla compleja). **MUST NOT** lanzarlos secuencialmente.
+- **MUST NOT** usar `run_in_background` — necesitas los resultados completos para continuar con la Fase 3.
+- **MUST NOT** usar `AskUserQuestion` dentro de los subagentes: como en la Tarea 2.1, registran sus dudas en un bloque `=== DUDAS ===` al final y el agente principal las recoge tras la espera.
 
 **Contenido del prompt de cada subagente (uno por regla compleja):**
 
@@ -670,9 +721,9 @@ Si tras revisar todas las `R-` del análisis ninguna cumple los criterios de 6.6
 
 ### 6.7 Verificación mecánica de las invariantes derivadas de las guías
 
-Tras la unificación (y, si existió, la Tarea 2.3) y antes de entrar en la Fase 3 de revisión, **el agente principal vuelve a comprobar cada invariante `G-NNN` derivada en §5.3.bis contra el diseño unificado** — no contra la declaración que hicieron los subagentes, sino contra el texto real del diseño y los XML generados.
+Tras la unificación (y, si existió, la Tarea 2.3) y antes de entrar en la Fase 3 de revisión, **el agente principal vuelve a comprobar cada invariante `G-NNN` derivada en §5.4 contra el diseño unificado** — no contra la declaración que hicieron los subagentes, sino contra el texto real del diseño y los XML generados.
 
-Este paso solo aplica si en §5.3.bis se derivaron invariantes. Si no había `design-guidelines.md`, se omite.
+Este paso solo aplica si en §5.4 se derivaron invariantes. Si no había `design-guidelines.md`, se omite.
 
 #### Procedimiento
 
@@ -690,17 +741,13 @@ Para cada invariante `G-NNN`:
 
 No marcar el diseño como bueno. Se elige una de estas dos vías, según la gravedad y unicidad de la fuga:
 
-- **Fuga local y obvia** (una sola referencia mal puesta, p.ej. el helper `construirMail` leyendo `AppSettings.get("mail.smtp.user")` cuando la invariante exigía encapsular SMTP en el provider): el agente principal **edita el diseño unificado en memoria** para mover la responsabilidad al sitio que la invariante exige, dejando una nota corta en "Notas de unificación" que mencione la corrección. Repetir la verificación.
+- **Fuga local y obvia** (una sola referencia mal puesta, p.ej. el helper `construirMail` leyendo `AppSettings.get("mail.smtp.user")` cuando la invariante exigía encapsular SMTP en el provider): el agente principal **edita el diseño unificado en memoria** para mover la responsabilidad al sitio que la invariante exige, dejando una nota corta en "Notas de unificación" que mencione la corrección. Repetir la verificación. **LIMIT**: máximo 3 ediciones-revalidaciones por invariante; si tras la 3ª sigue violada, tratarla como fuga estructural.
 - **Fuga estructural** (varias referencias diseminadas, contradicción de fondo, invariante incompatible con el análisis): **detenerse y preguntar al usuario** con `AskUserQuestion`. Opciones:
   - (a) Reabrir Tarea 2.1 con un prompt reforzado que recalca la invariante violada,
   - (b) Reformular la invariante en `design-guidelines.md` (la guía resultó ser ambigua o sobre-restrictiva),
   - (c) Aceptar la violación como excepción explícita documentada en el diseño (último recurso — debe quedar en una sección "Excepciones a las invariantes" con justificación).
 
-No avanzar a Fase 3 con invariantes violadas y sin documentar la excepción.
-
-#### Por qué este paso no se delega al checklist humano
-
-El checklist de Fase 3 (§7) tiene un punto genérico "¿respeta las guías?" que ya existía antes. La experiencia muestra que ese check es **subjetivo**: un lector apresurado marca OK sin haber comprobado fugas textuales. Esta §6.7 lo convierte en **mecánico y reproducible** — un grep que falla es señal inequívoca, no interpretable. Mantenemos el checklist genérico de §7 como red de seguridad, pero la verificación dura vive aquí.
+**MUST NOT** avanzar a Fase 3 con invariantes violadas y sin documentar la excepción.
 
 ---
 
@@ -717,13 +764,13 @@ Antes de pasar a la Fase 4, comprueba sobre el diseño unificado:
 - [ ] **¿La matriz de trazabilidad de cada regla compleja `R-` incluye el puntero `Detalle: design/rules/R-<Entidad>-NNN.md`?**
 - [ ] ¿La verificación mecánica de §6.7 quedó limpia para todas las invariantes `G-NNN`? Si alguna requirió excepción, ¿está documentada en la sección "Excepciones a las invariantes" del `design.md` con razón y ubicación? El bullet genérico "respeta las guías" se considera cubierto por la §6.7 — este checklist solo verifica que esa sub-fase se ejecutó y dejó trazas en el `design.md`.
 
-Si encuentras algún problema, corrígelo antes de pasar a la Fase 4.
+Si encuentras algún problema, corrígelo antes de pasar a la Fase 4. **LIMIT**: máximo 3 pasadas de revisión-corrección sobre el diseño unificado; si tras la 3ª siguen apareciendo problemas no triviales, **STOP** y pregunta al usuario.
 
 ---
 
 ## 8. Fase 4 — Materializar y validar
 
-> **REGLA OBLIGATORIA — ubicación del diseño:** se guarda en la subcarpeta `design/` dentro de la carpeta de la iniciativa (la misma que contiene `analysis/`). Ejemplo: `.sdd/drafts/2026-05-11_23-19_tareas-de-envio-de-correos/design/`. **Nunca en la raíz del proyecto ni en otra carpeta.**
+> **REQUIRED** — ubicación del diseño: se guarda en la subcarpeta `design/` dentro de la carpeta de la iniciativa (la misma que contiene `analysis/`). Ejemplo: `.sdd/drafts/2026-05-11_23-19_tareas-de-envio-de-correos/design/`. **MUST NOT** guardarse en la raíz del proyecto ni en otra carpeta.
 
 ### 8.1 Borrar diseño previo
 
@@ -749,7 +796,7 @@ Esto sustituye sin ambigüedad cualquier diseño previo. No se conservan iteraci
    cp .sdd/drafts/{iniciativa}/analysis/tests.md .sdd/drafts/{iniciativa}/design/tests.md
    ```
 
-   Si `analysis/tests.md` no existe (iniciativa antigua sin tests), saltar este paso con un aviso al usuario: `/sdd-implementer-system` saltará el bucle de tests. **Prohibido** regenerar, reformatear o resumir el `tests.md` — su contenido es contrato fijo entre análisis e implementación (mismo principio que con los XML).
+   Si `analysis/tests.md` no existe (iniciativa antigua sin tests), saltar este paso con un aviso al usuario: `/sdd-implementer-system` saltará el bucle de tests. **PROHIBIDO**: **MUST NOT** regenerar, reformatear o resumir el `tests.md` — su contenido es contrato fijo entre análisis e implementación (mismo principio que con los XML).
 
 Estructura resultante esperada:
 
@@ -791,14 +838,14 @@ xmllint --noout --schema ../axelor-open-platform/axelor-core/src/main/resources/
 **Si algún fichero falla la validación:**
 
 1. Lee el error de `xmllint` y corrige el XML con `Edit` sobre el fichero.
-2. Vuelve a ejecutar `xmllint` sobre ese fichero hasta que pase.
-3. Si tras un intento de corrección el error persiste por una incompatibilidad real con el XSD (atributo inexistente, estructura no permitida), **detente y muestra el error al usuario** — no escribas un diseño con XML inválido. Pide al usuario que aclare o reabra el análisis.
+2. Vuelve a ejecutar `xmllint` sobre ese fichero. **LIMIT**: máximo 3 iteraciones de corrección por fichero.
+3. Si tras la 3ª iteración el error persiste por una incompatibilidad real con el XSD (atributo inexistente, estructura no permitida), **STOP** y muestra el error al usuario. **MUST NOT** escribir un diseño con XML inválido. Pide al usuario que aclare o reabra el análisis.
 
-No se considera terminada la Fase 4 hasta que **todos** los XML pasan `xmllint` sin errores.
+La Fase 4 **MUST NOT** considerarse terminada hasta que **todos** los XML pasan `xmllint` sin errores.
 
 ### 8.4 Escribir el `design.md`
 
-Escribir el `design.md` en la raíz de `design/`. **Obligatoriamente** lleva frontmatter:
+Escribir el `design.md` en la raíz de `design/`. **REQUIRED** frontmatter:
 
 ```
 ---
@@ -812,7 +859,7 @@ El `design.md` **no contiene** los XML completos inline (esos viven en sus fiche
 
 #### Sección obligatoria "Invariantes de las guías"
 
-Si en §5.3.bis se derivaron invariantes `G-NNN`, el `design.md` debe incluir **al final** (antes de "Conflictos detectados con guías" si la hay) una sección con esta forma:
+Si en §5.4 se derivaron invariantes `G-NNN`, el `design.md` debe incluir **al final** (antes de "Conflictos detectados con guías" si la hay) una sección con esta forma:
 
 ```markdown
 ## Invariantes de las guías
@@ -868,16 +915,26 @@ Para implementar este diseño tal cual ejecuta:
   /sdd-implementer-system .sdd/drafts/{carpeta-iniciativa}/design/design.md
 ```
 
-No lances `sdd-implementer-system` tú mismo. El usuario decide cuándo ejecutarlo.
+**MUST NOT** lanzar `sdd-implementer-system` tú mismo. El usuario decide cuándo ejecutarlo.
+
+---
+
+## Quick Guidelines
+
+- El análisis es la fuente de verdad. **MUST NOT** inventar elementos no presentes en él; ante ambigüedad, `AskUserQuestion`.
+- Diseño ≠ implementación: XML completo va a ficheros reales en `design/domains|views/` + `design/menus.xml`; para Java solo firmas + comentarios del cuerpo. **MUST NOT** incluir lógica Java real.
+- **Cobertura total V/R/U** sin huecos; matriz de trazabilidad apuntando a ubicación concreta. Un `<action-view>` por fichero; `<menuitem>` al `menus.xml` único del proyecto (**MUST NOT** crear `menus-<subsistema>.xml`).
+- Validación `xmllint` obligatoria contra `domain-models.xsd` y `object-views.xsd`. **LIMIT**: 3 iteraciones por fichero; tras la 3ª, **STOP**.
+- `tests.md` se copia literal de `analysis/` a `design/`. **MUST NOT** modificarlo, reformatearlo ni resumirlo.
+- Generación: **CRITICAL** lanzar exactamente 5 subagentes en una única respuesta (Tarea 2.1) → unificación (agente principal) → 1 subagente por regla R compleja (Tarea 2.3). Subagentes paralelos **MUST NOT** usar `AskUserQuestion`.
+- Si hay `design-guidelines.md`: derivar invariantes `G-NNN` verificables (§5.4), re-verificarlas mecánicamente (§6.7) e incluirlas en el `design.md` final.
 
 ---
 
 ## Apéndice A — Override de rutas (para testing)
 
-Para probar este skill en un sandbox alternativo sin tocar el árbol real, se aceptan los siguientes overrides (también se reconocen las formas `entrada: <ruta>`, `salida: <ruta>`, `raíz: <ruta>`):
-
-- `--in=<ruta>` — fichero `analysis.md` de entrada explícito. **Desactiva la auto-detección** descrita en la Fase 0 caso 2. La "carpeta de la iniciativa" es la carpeta padre de la carpeta `analysis/` que contiene ese fichero.
-- `--out=<ruta>` — **carpeta** donde se materializa la estructura `design/` (con `design.md`, `domains/`, `views/`, `menus.xml`). Sustituye literalmente a `{carpeta-iniciativa}/design/` en la Fase 4 (limpieza, escritura y validación) y en el mensaje de la Fase 5. La ruta debe ser una carpeta, no un fichero. Si ya existe, se **borra recursivamente** antes de escribir.
+- `--in=<ruta>` — fichero `analysis.md` de entrada explícito. **Desactiva la auto-detección** de la Fase 0 caso 2. La "carpeta de la iniciativa" es la carpeta padre de la carpeta `analysis/` que contiene ese fichero.
+- `--out=<ruta>` — **carpeta** donde se materializa la estructura `design/`. Sustituye literalmente a `{carpeta-iniciativa}/design/` en Fase 4 y en el mensaje de Fase 5. Si ya existe, se **borra recursivamente** antes de escribir.
 - `--root=<ruta>` — raíz alternativa a `.sdd/drafts/`. Todas las rutas relativas se resuelven contra esta raíz.
 
 En uso normal no se especifican.

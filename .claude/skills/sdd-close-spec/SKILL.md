@@ -1,121 +1,234 @@
 ---
 name: sdd-close-spec
-description: Cierra una iniciativa SDD — lee el último draft (user-story + analysis + design), usa `git diff` para identificar qué ficheros realmente cambiaron, actualiza los CLAUDE.md de cada carpeta afectada regenerándolos desde el código real, y archiva los artefactos en .sdd/specs/NNNN_desc/ con versiones as-built: el design.md y el analysis.md se corrigen para reflejar lo que se implementó (validaciones reales, firmas reales, vistas reales) y el user-story.md se ajusta solo si la implementación reveló contradicciones evidentes con la intención original.
+description: Cierra una iniciativa SDD — lee el último draft (user-story + analysis + design), usa `git diff` para identificar qué ficheros realmente cambiaron, actualiza los CLAUDE.md de cada carpeta afectada regenerándolos desde el código real, y archiva los artefactos en `.sdd/specs/NNNN_desc/` con versiones as-built: el `design.md` y el `analysis.md` se corrigen para reflejar lo que se implementó (validaciones reales, firmas reales, vistas reales) y el `user-story.md` se ajusta solo si la implementación reveló contradicciones evidentes con la intención original. Es el último paso del pipeline SDD: la entrada es el draft producido por `/sdd-implementer-system` ya aplicado al código, la salida son los artefactos as-built archivados y los `CLAUDE.md` regenerados.
 ---
 
 # sdd-close-spec
 
-Eres el paso de cierre del pipeline SDD. Tu trabajo tiene tres entregables concretos:
-
-1. **CLAUDE.md actualizados** — uno por cada carpeta de código afectada, generados desde el código real.
-2. **Artefactos archivados** en `.sdd/specs/NNNN_desc/` — los tres artefactos (`user-story.md`, `analysis.md`, `design.md`) en versión **as-built**: el `analysis.md` y el `design.md` se corrigen para reflejar la implementación real, y el `user-story.md` se ajusta solo en cambios excepcionales (ver Fase 3.2.a).
-3. **Confirmación al usuario** de qué se cerró y dónde quedó todo, indicando para cada artefacto archivado si hubo cambios respecto al draft.
+Eres el paso de cierre del pipeline SDD. Transformas **un draft (user-story + analysis + design) + el código real ya implementado** en **una spec archivada as-built en `.sdd/specs/NNNN_desc/` + un `CLAUDE.md` regenerado por cada carpeta de código afectada**. La fuente de verdad es **el código**, no el diseño.
 
 ---
 
-## Fase 0 — Localizar y confirmar el draft
+## User Input
 
-### Argumentos aceptados
-
-```
-/sdd-close-spec [ruta-design] [hash-commit-base]
+```text
+$ARGUMENTS
 ```
 
-- `ruta-design` (opcional): ruta al `design_NN.md` del draft. Si se omite, se auto-detecta (paso 0.1).
-- `hash-commit-base` (opcional): hash del commit anterior al inicio de la iniciativa. Si se pasa, el `git diff` de la Fase 1 abarcará desde ese commit hasta el workspace incluido (commits posteriores + staged + unstaged + untracked); si no, el diff cubre solo lo que hay en el workspace contra HEAD (sin comitear + untracked).
+You **MUST** consider the user input before proceeding (if not empty). Los argumentos esperables son:
 
-### 0.1 Localizar el último draft
+- `ruta-design` (opcional, posicional 1): ruta absoluta o relativa al `design_NN.md` del draft a cerrar. Si se omite, auto-detecta el último (paso 0.1).
+- `hash-commit-base` (opcional, posicional 2): hash del commit anterior al inicio de la iniciativa. Si se pasa, el `git diff` de la Fase 1 abarca desde ese commit hasta el workspace incluido (commits posteriores + staged + unstaged + untracked); si no, el diff cubre solo lo que hay en el workspace contra `HEAD`.
 
-Si el usuario no proporciona ruta:
+Si los argumentos están vacíos, asume cierre del último draft sin hash base.
 
-1. Lista las subcarpetas de `.sdd/drafts/` cuyo nombre empieza por `^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}_`. Ordénalas alfabéticamente (el prefijo timestamp hace que orden alfabético = cronológico). Toma la última.
-2. Dentro de esa iniciativa, toma la subcarpeta `analysis_NN/` con el número más alto.
-3. Dentro de esa subcarpeta, toma el fichero `design_NN.md` con el número más alto.
-4. Si no hay iniciativas, indica al usuario que no hay drafts y detente.
+---
 
-### 0.2 Confirmar con el usuario
+## Outline
 
-Muestra al usuario con `AskUserQuestion`:
+1. **Localizar y confirmar** el draft a cerrar (Fase 0).
+2. **Identificar** qué cambió realmente con `git diff` (Fase 1).
+3. **Regenerar** los `CLAUDE.md` de cada carpeta afectada en paralelo (Fase 2).
+4. **Archivar** los tres artefactos como versiones as-built en `.sdd/specs/NNNN_desc/` (Fase 3).
+5. **Reportar** al usuario qué se cerró y dónde quedó (Fase 4).
+
+**STOP conditions**:
+
+- El draft no contiene los tres artefactos mínimos (`user-story.md`, `analysis.md`, `design_NN.md`) → **ERROR** y detente.
+- El frontmatter `type:` de cualquier artefacto no coincide con el esperado (§4.3) → **ERROR** y detente indicando qué fichero falla.
+- Las listas del diff en §5.2 salen vacías y **no** se pasó hash base → **STOP** y avisa al usuario: probablemente la iniciativa ya está comiteada y necesita pasar el hash.
+- El usuario rechaza el draft auto-detectado en §4.2 y no proporciona ruta alternativa → **STOP**.
+- Una carpeta afectada no tiene código legible (acceso denegado, vacía) → **STOP** y avisa al usuario.
+
+---
+
+## 1. Entrada y salida
+
+### 1.1 Entrada
+
+- `.sdd/drafts/{YYYY-MM-DD_HH-MM_nombre}/user-story.md` — historia de usuario original.
+- `.sdd/drafts/{...}/design-guidelines.md` — directrices opcionales (no es error si falta).
+- `.sdd/drafts/{...}/analysis_NN/analysis.md` — análisis del que cuelga el diseño.
+- `.sdd/drafts/{...}/analysis_NN/design_NN.md` — diseño implementado.
+- **El código real** del workspace (es la fuente de verdad).
+
+### 1.2 Salida
+
+- `{carpeta-afectada}/CLAUDE.md` regenerado por cada carpeta tocada por el diff.
+- `.sdd/specs/{NNNN}_{descripcion}/user-story.md` — versión as-built.
+- `.sdd/specs/{NNNN}_{descripcion}/analysis.md` — versión as-built.
+- `.sdd/specs/{NNNN}_{descripcion}/design.md` — versión as-built.
+- `.sdd/specs/{NNNN}_{descripcion}/design-guidelines.md` — copia literal si existía.
+
+### 1.3 Estructura de carpetas
+
+```
+.sdd/
+├── drafts/
+│   └── 2026-05-21_14-30_firmas-bulk/      ← intacta tras el cierre
+│       ├── user-story.md
+│       ├── design-guidelines.md
+│       └── analysis_02/
+│           ├── analysis.md
+│           └── design_01.md
+└── specs/
+    └── 0007_firmas-bulk/                  ← creada por este skill
+        ├── user-story.md   (as-built)
+        ├── analysis.md     (as-built)
+        ├── design.md       (as-built)
+        └── design-guidelines.md (si existía)
+```
+
+---
+
+## 2. Principios
+
+### 2.1 El código manda
+
+Los artefactos archivados reflejan **lo que se implementó**, no lo que se planeó. Si el código difiere del diseño, **MUST** corregir `analysis.md` y `design.md` al estado real. `user-story.md` se conserva salvo contradicción dura (ver §7.2.a).
+
+### 2.2 git diff es la fuente de verdad de qué cambió
+
+**MUST NOT** leer carpetas enteras buscando cambios. **MUST** partir del diff y a partir de él identificar carpetas afectadas.
+
+### 2.3 Regenerar, no fusionar
+
+Los `CLAUDE.md` se **regeneran desde cero** desde el código. El CLAUDE.md anterior es referencia de estructura, nunca fuente de verdad. **MUST NOT** hacer merge textual.
+
+### 2.4 El draft no se toca
+
+**MUST NOT** modificar nada bajo `.sdd/drafts/`. Es histórico.
+
+### 2.5 Specs anteriores no son referencia de contenido
+
+**MUST NOT** leer `.sdd/specs/*` como fuente de contenido. El contenido viene del código.
+
+---
+
+## 3. Flujo general
+
+```
+Fase 0 ── localizar draft ── confirmar con usuario ── leer + validar frontmatter
+   │
+Fase 1 ── anunciar modo diff ── git diff vs base ── identificar carpetas afectadas
+   │
+Fase 2 ── N subagentes en paralelo (uno por carpeta) ── regenerar CLAUDE.md
+   │
+Fase 3 ── numerar spec ── generar as-built (user-story, analysis, design) ── escribir
+   │
+Fase 4 ── reportar al usuario
+```
+
+---
+
+## 4. Fase 0 — Localizar y confirmar el draft
+
+### 4.1 Localizar el último draft
+
+Si el usuario no proporciona `ruta-design`:
+
+1. Lista las subcarpetas de `.sdd/drafts/` cuyo nombre cumpla el regex `^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}_`. Ordena alfabéticamente (el prefijo timestamp ya da orden cronológico). Toma la última.
+2. Dentro de esa iniciativa, toma la subcarpeta `analysis_NN/` con `NN` más alto.
+3. Dentro, toma el `design_NN.md` con `NN` más alto.
+4. Si no hay iniciativas → **STOP** y avisa al usuario.
+
+Ejemplos de nombres de iniciativa:
+
+- ✅ CORRECTO: `2026-05-21_14-30_firmas-bulk`
+- ❌ INCORRECTO: `firmas-bulk_2026-05-21` (timestamp al final, no ordenable)
+- ❌ INCORRECTO: `2026-5-21_14-30_firmas-bulk` (mes sin pad de cero, regex no cumple)
+
+### 4.2 Confirmar con el usuario
+
+Pregunta con `AskUserQuestion`:
 
 > Voy a cerrar la iniciativa: `{nombre-iniciativa}`
 > Draft: `{ruta/design_NN.md}`
 > ¿Continuamos?
 
-Opciones: "Sí, cerrar esta iniciativa" / "No, quiero indicar otra ruta". Si "No", pide la ruta y vuelve al paso 0.1 con esa ruta.
+Opciones: "Sí, cerrar esta iniciativa" / "No, quiero indicar otra ruta". Si "No", pide la ruta y vuelve a §4.1 con esa ruta.
 
-### 0.3 Leer artefactos del draft
+### 4.3 Leer y validar artefactos del draft
 
 Lee en paralelo:
+
 - `user-story.md` (dos niveles arriba del design)
 - `analysis.md` (mismo nivel que el design)
 - `design_NN.md` (el localizado)
-- `design-guidelines.md` (opcional, junto al user-story — no es error si no existe)
+- `design-guidelines.md` (opcional)
 
-Valida los frontmatter de todos los artefactos. Si alguno no coincide, detente con error indicando qué fichero falla y qué `type:` se esperaba:
-- `user-story.md` debe contener `type: user-story`.
-- `analysis.md` debe contener `type: analysis`.
-- `design_NN.md` debe contener `type: design`.
-- `design-guidelines.md`, si existe, debe contener `type: design-guidelines`.
+**REQUIRED**: validar frontmatter `type:` de cada artefacto. Si alguno no coincide → **ERROR** y detente indicando el fichero y el `type:` esperado:
+
+| Fichero | `type:` esperado |
+|---------|------------------|
+| `user-story.md` | `user-story` |
+| `analysis.md` | `analysis` |
+| `design_NN.md` | `design` |
+| `design-guidelines.md` (si existe) | `design-guidelines` |
 
 ---
 
-## Fase 1 — Identificar qué cambió realmente
+## 5. Fase 1 — Identificar qué cambió realmente
 
-Esta es la fuente de verdad: **el código real, no el diseño**.
+### 5.1 Anunciar el modo de diff
 
-### 1.1 Git diff para ficheros modificados
-
-**Antes de ejecutar el diff, anuncia al usuario qué modo vas a usar.** Una sola línea, con el formato:
+**MUST**, antes de ejecutar el diff, anunciar al usuario en una sola línea qué modo vas a usar (le da oportunidad de corregirte):
 
 - Sin hash: `Buscando diferencias solo en el workspace (cambios sin comitear contra HEAD).`
 - Con hash: `Buscando diferencias desde el commit {hash-corto} hasta el workspace (commits posteriores + cambios sin comitear).`
 
-Esto le da al usuario la oportunidad de corregirte si el modo no es el correcto antes de procesar el diff completo.
+### 5.2 Calcular el diff
 
-El diff debe abarcar **desde un punto base hasta el workspace incluido** (commits posteriores al base + staged + unstaged + untracked). El punto base depende de si el usuario pasó un hash:
+El diff **MUST** abarcar desde un punto base hasta el workspace incluido (commits posteriores al base + staged + unstaged + untracked). El punto base depende del argumento:
 
-**Por defecto (sin hash) — el punto base es HEAD.** Asume que las modificaciones de la iniciativa están sin comitear:
+**Sin hash** — punto base `HEAD`:
 
 ```bash
 git diff --name-only HEAD
-git status --porcelain
+git ls-files --others --exclude-standard
 ```
 
-`git diff --name-only HEAD` cubre staged + unstaged respecto a HEAD; `git status --porcelain` añade los untracked (nuevos sin añadir al index). Unifica ambas listas.
-
-**Si el usuario pasó un hash — el punto base es ese hash.** En este caso el diff debe cubrir todo el rango desde el hash hasta el workspace, incluyendo commits intermedios, staged, unstaged y untracked:
+**Con hash** — punto base `{hash-base}`:
 
 ```bash
 git diff --name-only {hash-base}
-git status --porcelain
+git ls-files --others --exclude-standard
 ```
 
-`git diff --name-only {hash-base}` (sin segundo argumento) compara el workspace contra ese commit, por lo que ya incluye en una sola pasada los commits posteriores y los cambios staged/unstaged. `git status --porcelain` añade los untracked. Unifica ambas listas.
+`git diff --name-only` cubre staged + unstaged contra el base; `git ls-files --others --exclude-standard` añade los untracked (que el diff no ve). Unifica ambas listas en un único conjunto de ficheros, eliminando duplicados.
 
-**Si no hay nada que mostrar** (las listas vacías y no se ha pasado hash), detente y avisa al usuario: la iniciativa no parece haber tocado código, o las modificaciones están en commits anteriores y necesitas un hash base.
+### 5.3 Identificar carpetas afectadas
 
-### 1.2 Identificar carpetas afectadas
+A partir de la lista unificada, identifica carpetas dentro de `src/main/java/com/educaflow/` candidatas a tener `CLAUDE.md`:
 
-A partir de la lista de ficheros modificados, identifica qué carpetas dentro de `src/main/java/com/educaflow/` están afectadas. Las carpetas candidatas a tener `CLAUDE.md` son:
+- `subsystem/{nombre}/`
+- `system/{nombre}/`
+- `base/infrastructure/{nombre}/`
+- `base/util/`
 
-- `subsystem/{nombre}/` — si hay ficheros en ese subsistema
-- `system/{nombre}/` — si hay ficheros en ese sistema
-- `base/infrastructure/{nombre}/` — si hay ficheros en esa carpeta de infraestructura
-- `base/util/` — si hay ficheros en util
+**REQUIRED**: la granularidad es el **subsistema/sistema completo**, no subcarpetas internas.
 
-**Regla**: si el diff toca ficheros de `subsystem/firmas/service/` y `subsystem/firmas/controller/`, la carpeta afectada es `subsystem/firmas/` (el nivel del subsistema, no sus subcarpetas).
+- ✅ CORRECTO: diff toca `subsystem/firmas/service/Foo.java` y `subsystem/firmas/controller/Bar.java` → carpeta afectada = `subsystem/firmas/`
+- ❌ INCORRECTO: dos entradas separadas `subsystem/firmas/service/` y `subsystem/firmas/controller/` (granularidad incorrecta, se regeneraría el mismo CLAUDE.md dos veces)
+- ❌ INCORRECTO: `base/util/StringUtil.java` → carpeta afectada = `base/util/StringUtil/` (subcarpeta inexistente; lo correcto es `base/util/`)
 
 ---
 
-## Fase 2 — Actualizar CLAUDE.md de cada carpeta afectada
+## 6. Fase 2 — Regenerar los CLAUDE.md afectados
 
-Para cada carpeta afectada, lanza un subagente en paralelo. Todos los subagentes se lanzan en una única respuesta (una invocación a `Agent` por carpeta).
+**CRITICAL**: lanza **un subagente por cada carpeta afectada identificada en §5.3**, todos en **una única respuesta** con N invocaciones a `Agent`. **REQUIRED**: exactamente N subagentes (N = número de carpetas afectadas). **MUST NOT** lanzarlos secuencialmente. **MUST NOT** usar `run_in_background` (necesitas los resultados para Fase 3).
 
-### Prompt del subagente (autocontenido)
+**REQUIRED — restricciones de los subagentes**:
 
-El prompt que recibirá cada subagente debe incluir literalmente:
+- **MUST NOT** invocar `AskUserQuestion`. Cualquier pregunta la hace el agente principal antes o después.
+- **MUST NOT** leer otras carpetas distintas de la asignada.
+- **MUST** escribir el `CLAUDE.md` sobrescribiendo si existe.
 
-```
+### 6.1 Plantilla literal del prompt del subagente
+
+El prompt **MUST** ser literal (copiar tal cual, sustituyendo `{ruta-carpeta}`):
+
+````text
 Eres un generador de CLAUDE.md para una carpeta de código.
 
 Tu tarea:
@@ -137,15 +250,15 @@ FORMATO OBLIGATORIO del CLAUDE.md:
 
 ## Lo no obvio
 [Solo si hay algo que se desvía de la arquitectura estándar (DefaultModelService,
-@CallMethod, action-views en XML, etc.), restricciones ocultas, workarounds, otras clases además de los controladores y servicios
-decisiones contraintuitivas. Si todo sigue el patrón estándar, OMITE esta sección.]
+@CallMethod, action-views en XML, etc.), restricciones ocultas, workarounds, otras clases
+además de los controladores y servicios, decisiones contraintuitivas. Si todo sigue el
+patrón estándar, OMITE esta sección.]
 
 ## Controladores y métodos (Una tabla por controlador)
 | Método | Qué hace en una línea |
 |---|---|
 | `NombreControlador.metodo(params)` | descripción |
 [Solo métodos públicos relevantes — no getters/setters]
-
 
 ## Servicios y métodos públicos (Una tabla por servicio)
 | Método | Qué hace en una línea |
@@ -156,18 +269,15 @@ decisiones contraintuitivas. Si todo sigue el patrón estándar, OMITE esta secc
 ## Repositorios y métodos públicos (Una tabla por repositorio)
 | Método | Qué hace en una línea |
 |---|---|
-| `NombreService.metodo(params)` | descripción |
+| `NombreRepository.metodo(params)` | descripción |
 [Solo métodos públicos relevantes — no getters/setters, no métodos heredados de JpaRepository]
-
 
 ## Vistas   (Una tabla por vista)
 | Vista | Para qué |
 |---|---|
 | `nombre-vista` | descripción |
 
-
-
-## Dependencias 
+## Dependencias
 
 Tabla con dependencias con otros subsistemas
 | Subsistema | Para qué |
@@ -187,91 +297,123 @@ QUÉ NO INCLUIR (aunque lo veas en el código):
 
 Escribe el CLAUDE.md en `{ruta-carpeta}/CLAUDE.md`. Sobreescríbelo si ya existe.
 No escribas nada más. No expliques lo que has hecho.
-```
+No hagas preguntas al usuario. No invoques AskUserQuestion bajo ninguna circunstancia.
+````
 
-Sustituye `{ruta-carpeta}` por la ruta real de cada carpeta.
+### 6.2 Checklist del subagente
 
-### Esperar a todos los subagentes
+Antes de devolver, el subagente **MUST** auto-verificar:
 
-Recoge los resultados de todos los subagentes antes de continuar a la Fase 3.
+- [ ] ¿Existe el fichero `{ruta-carpeta}/CLAUDE.md` recién escrito?
+- [ ] ¿Contiene al menos la sección `## ¿Para qué sirve esto?`?
+- [ ] ¿No quedó vacío (>200 bytes razonable)?
+- [ ] ¿Toda tabla con encabezado tiene al menos una fila, o se ha omitido la sección entera?
+
+El subagente **MUST NOT** devolver si queda algún punto sin cumplir.
+
+### 6.3 Relanzamiento del agente principal
+
+Tras recoger los resultados de los N subagentes, el agente principal vuelve a aplicar el checklist §6.2 sobre cada fichero generado. Si alguno falla, **relánzalo** sobre la misma carpeta con el mismo prompt.
+
+**LIMIT**: máximo 3 relanzamientos por carpeta. Si tras la 3ª sigue fallando, anota la incidencia y continúa con Fase 3 reportándolo en el mensaje final.
 
 ---
 
-## Fase 3 — Archivar los artefactos
+## 7. Fase 3 — Archivar los artefactos as-built
 
-### 3.1 Determinar el número de spec
+### 7.1 Determinar el número de spec
 
-Lista las entradas de `.sdd/specs/`. Considera solo las carpetas cuyo nombre empiece por 4 dígitos seguidos de `_` (regex `^[0-9]{4}_`). Toma el máximo de esos números y suma 1. Formato 4 dígitos: `0001`, `0002`…
+Lista `.sdd/specs/`. Considera solo carpetas cuyo nombre cumpla `^[0-9]{4}_`. Toma el máximo numérico y suma 1, con pad a 4 dígitos. Si no hay ninguna, el número es `0001`.
 
-Si no hay carpetas que cumplan el patrón, el número es `0001`.
-
-La descripción es el nombre de la iniciativa sin el prefijo de timestamp (todo lo que va después de `YYYY-MM-DD_HH-MM_`).
+La descripción es el nombre de la iniciativa sin el prefijo de timestamp (todo lo que va tras `YYYY-MM-DD_HH-MM_`).
 
 Destino: `.sdd/specs/{NNNN}_{descripcion}/`
 
-### 3.2 Generar las versiones as-built de los tres artefactos
+- ✅ CORRECTO: iniciativa `2026-05-21_14-30_firmas-bulk` con último spec `0006_…` → destino `.sdd/specs/0007_firmas-bulk/`
+- ❌ INCORRECTO: `.sdd/specs/7_firmas-bulk/` (falta pad a 4 dígitos)
+- ❌ INCORRECTO: `.sdd/specs/0007_2026-05-21_14-30_firmas-bulk/` (lleva el timestamp original; **MUST** quitarlo)
 
-Cada artefacto del draft refleja una **intención** en un momento concreto. La spec archivada debe reflejar la **realidad**. Aplica el principio "el código manda" a los tres niveles, pero con diferente intensidad según el tipo de artefacto.
+### 7.2 Generar las versiones as-built
 
-En cada uno de los tres, **añade al final una sección "Notas de cierre (as-built)"** listando los cambios aplicados (o "Sin cambios respecto al draft" si no hubo). Esa sección es obligatoria aunque la lista esté vacía: hace explícita la verificación.
+Cada artefacto del draft refleja una **intención** en un momento concreto. La spec archivada **MUST** reflejar la **realidad**. Aplica "el código manda" con diferente intensidad según el tipo de artefacto.
 
-#### 3.2.a `user-story.md` — cambios excepcionales
+En cada uno de los tres, **MUST** añadir al final la sección `## Notas de cierre (as-built)` con la lista de cambios aplicados o explícitamente "Sin cambios respecto al draft original." (la sección es obligatoria aunque la lista esté vacía: hace explícita la verificación).
 
-- **Por defecto, copia literal del draft.** La intención del usuario no debe falsearse: si la implementación se desvió del objetivo, eso es información histórica valiosa que la nota de cierre captura, no un error a corregir reescribiendo la historia.
-- **Solo se modifica si** la implementación reveló que un actor, una restricción dura o un caso de uso del flujo principal estaba **mal expresado** (no "incompleto" o "matizado", sino contradictorio con el código que se implementó y aprobó). Ejemplos:
-  - La user-story decía "solo el administrador ve todas las solicitudes" pero se implementó (con razón) que también las ven los supervisores → corregir.
-  - La user-story decía "una solicitud rechazada no se puede revertir" pero se implementó la posibilidad de reabrir → corregir.
-- **No se modifica** para: añadir matices que se aclararon durante el análisis, ajustar redacción, completar secciones que estaban vacías porque el usuario las dejó así adrede.
+#### 7.2.a `user-story.md` — cambios excepcionales
 
-#### 3.2.b `analysis.md` — correcciones de requisitos
+- **Por defecto, copia literal del draft.** La intención del usuario no se falsea: si la implementación se desvió del objetivo, eso es información histórica valiosa que captura la nota de cierre, no un error a corregir reescribiendo la historia.
+- **Solo se modifica si** la implementación reveló que un actor, una restricción dura o un caso de uso del flujo principal estaba **mal expresado** (contradictorio con el código aprobado, no meramente "incompleto" o "matizado").
+  - ✅ Ejemplo: user-story decía "solo el administrador ve todas las solicitudes" pero se implementó (con razón) que también las ven los supervisores → corregir.
+  - ✅ Ejemplo: user-story decía "una solicitud rechazada no se puede revertir" pero se implementó la posibilidad de reabrir → corregir.
+- **MUST NOT** modificar para: añadir matices que se aclararon durante el análisis, ajustar redacción, completar secciones que estaban vacías porque el usuario las dejó así adrede.
 
-- Lee el `analysis.md` del draft.
-- Usando los ficheros del `git diff` de la Fase 1, identifica divergencias entre lo analizado y lo implementado:
-  - **Validaciones `V-XXX`** que no se implementaron, o cuya condición/mensaje cambió.
-  - **Reglas de negocio `R-XXX`** que no se implementaron, o cuya operación/momento/efecto cambió.
-  - **Reglas de UI `U-XXX`** que no se implementaron, o cuyo disparador/efecto/condición cambió.
-  - **Campos de entidad** añadidos, eliminados o renombrados.
-  - **Operaciones** (endpoints, métodos públicos) con firma o nombre distinto.
-  - **Vistas** con nombre, granularidad o filtro distinto.
-  - **Reglas de seguridad** ajustadas durante la implementación.
-- Aplica las correcciones al `analysis.md`. Si se ajustaron filas de alguna de las tablas `V-XXX`/`R-XXX`/`U-XXX`, **renumera cada tabla por separado de forma consecutiva sin huecos**. Si el código no implementó algo que el análisis decía que sí, NO inventes la regla: bórrala del analysis y déjalo reflejado en la nota de cierre.
+#### 7.2.b `analysis.md` — correcciones de requisitos
 
-#### 3.2.c `design.md` — as-built completo
+Usando los ficheros del `git diff` de Fase 1, identifica divergencias entre lo analizado y lo implementado:
 
-- Lee el `design_NN.md` del draft.
-- Usando los ficheros del `git diff`, identifica divergencias entre lo diseñado y lo implementado:
-  - Métodos añadidos, eliminados o con firma cambiada.
-  - Entidades con campos distintos.
-  - Vistas con nombres o estructura distinta.
-  - Validaciones `V-XXX` que cambiaron de capa (cliente↔servidor↔modelo).
-  - Reglas de negocio `R-XXX` que cambiaron de momento (Antes↔Después) u operación.
-  - Reglas de UI `U-XXX` que cambiaron de mecanismo (atributo inline ↔ `<action-attrs>`/`<action-record>`).
-  - Matriz de trazabilidad: cada `V-XXX`, `R-XXX` y `U-XXX` debe seguir apuntando a una ubicación real del código.
-- Aplica las correcciones al diseño.
+- **Validaciones `V-XXX`** no implementadas, o con condición/mensaje cambiado.
+- **Reglas de negocio `R-XXX`** no implementadas, o con operación/momento/efecto cambiado.
+- **Reglas de UI `U-XXX`** no implementadas, o con disparador/efecto/condición cambiado.
+- **Campos de entidad** añadidos, eliminados o renombrados.
+- **Operaciones** (endpoints, métodos públicos) con firma o nombre distinto.
+- **Vistas** con nombre, granularidad o filtro distinto.
+- **Reglas de seguridad** ajustadas.
 
-Formato común de la nota de cierre (al final de cada uno de los tres ficheros):
+**REQUIRED**: si se ajustaron filas de alguna tabla `V-XXX`/`R-XXX`/`U-XXX`, **MUST** renumerar cada tabla por separado de forma **consecutiva sin huecos**, manteniendo el orden de aparición tras el ajuste.
+
+- ✅ CORRECTO: tabla original `V-001, V-002, V-003, V-004`; se elimina la 2 → resultado `V-001, V-002, V-003` (renumeradas).
+- ❌ INCORRECTO: tras eliminar `V-002`, dejar `V-001, V-003, V-004` (hueco en la numeración).
+- ❌ INCORRECTO: renumerar conjuntamente V y R (mezclar categorías). Cada tabla se renumera **por separado**.
+
+**MUST NOT** inventar una regla porque "el código la tiene": si la regla está en el código pero no estaba en el análisis original, añádela documentándola en la nota de cierre. Si el código **no** la implementó pero el análisis decía que sí, **MUST** borrarla del analysis y dejarlo en la nota de cierre.
+
+#### 7.2.c `design.md` — as-built completo
+
+Usando el `git diff`, identifica divergencias entre lo diseñado y lo implementado:
+
+- Métodos añadidos, eliminados o con firma cambiada.
+- Entidades con campos distintos.
+- Vistas con nombres o estructura distinta.
+- `V-XXX` que cambiaron de capa (cliente↔servidor↔modelo).
+- `R-XXX` que cambiaron de momento (Antes↔Después) u operación.
+- `U-XXX` que cambiaron de mecanismo (atributo inline ↔ `<action-attrs>`/`<action-record>`).
+- Matriz de trazabilidad: cada `V-XXX`, `R-XXX`, `U-XXX` **MUST** seguir apuntando a una ubicación real del código.
+
+#### 7.2.d Plantilla literal de la nota de cierre
+
+Al final de cada uno de los tres ficheros archivados:
 
 ```markdown
 ## Notas de cierre (as-built)
 
 Cambios aplicados respecto al draft original:
-- {descripción breve de cada cambio, o "Sin cambios respecto al draft original."}
+- {descripción breve de cada cambio}
 ```
 
-### 3.3 Escribir ficheros al destino
+Si no hubo cambios:
 
-Escribe al destino las versiones **as-built** producidas en el paso 3.2 (no copias literales del draft, salvo si la versión as-built coincide tal cual con el original):
+```markdown
+## Notas de cierre (as-built)
 
-- `user-story.md` — versión as-built del paso 3.2.a (casi siempre idéntica al draft + nota de cierre vacía)
-- `analysis.md` — versión as-built del paso 3.2.b
-- `design.md` — versión as-built del paso 3.2.c
-- `design-guidelines.md` — solo si existía en el draft; copia literal (este fichero no se reescribe, es la decisión local del subsistema y no cambia con la implementación)
+Sin cambios respecto al draft original.
+```
+
+### 7.3 Escribir ficheros al destino
+
+Escribe al destino las versiones as-built del paso 7.2:
+
+- `user-story.md` — as-built de §7.2.a.
+- `analysis.md` — as-built de §7.2.b.
+- `design.md` — as-built de §7.2.c.
+- `design-guidelines.md` — copia literal del draft **solo si existía**. Este fichero **MUST NOT** reescribirse: es la decisión local del subsistema y no cambia con la implementación.
 
 ---
 
-## Fase 4 — Mensaje final al usuario
+## 8. Fase 4 — Reportar al usuario
 
-```
+Plantilla literal del mensaje final:
+
+```text
 Iniciativa cerrada: {nombre-iniciativa}
 
 CLAUDE.md actualizados:
@@ -288,18 +430,25 @@ Spec archivada en: .sdd/specs/{NNNN}_{desc}/
 
 ---
 
-## Reglas críticas
+## Quick Guidelines
 
-- **El código manda, no la intención.** Si el código difiere de lo planeado, los artefactos archivados (`analysis.md`, `design.md`) reflejan el código. El `user-story.md` solo se ajusta en cambios excepcionales (ver 3.2.a); en lo demás, conserva la intención original.
-- **git diff es la fuente de verdad** para saber qué cambió. No leas carpetas enteras si el diff te dice que no se tocaron.
-- **Regenera el CLAUDE.md desde cero** usando el código como fuente. El CLAUDE.md anterior es solo referencia de estructura. Nunca hagas merge textual.
-- **No modifiques el draft original.** Los ficheros en `.sdd/drafts/` quedan intactos.
-- **No leas specs anteriores** de `.sdd/specs/` como referencia para el contenido. El contenido viene del código.
-- **Los subagentes de Fase 2 se lanzan en paralelo** — una sola respuesta con múltiples invocaciones a `Agent`.
+- **El código manda**, no la intención: `analysis.md` y `design.md` archivados reflejan el código; `user-story.md` solo se ajusta en contradicciones duras (§7.2.a).
+- **`git diff` es la fuente de verdad** de qué cambió. **MUST NOT** explorar carpetas que el diff no señala.
+- **Regenera** los `CLAUDE.md` desde cero usando el código; el CLAUDE.md previo es solo referencia de estructura. **MUST NOT** hacer merge textual.
+- **Subagentes Fase 2 en paralelo**: una única respuesta con N invocaciones a `Agent`, sin `run_in_background`, sin `AskUserQuestion`.
+- **Granularidad de carpeta afectada** = subsistema/sistema completo, no subcarpetas internas (`subsystem/firmas/`, no `subsystem/firmas/service/`).
+- **No tocar el draft** (`.sdd/drafts/` queda intacto) ni leer otras specs (`.sdd/specs/*`) como referencia de contenido.
+- **Numeración de spec**: 4 dígitos con pad cero (`0007_firmas-bulk`), sin timestamp en el nombre archivado.
+- Nota de cierre **obligatoria** en los tres artefactos archivados, aunque sea para decir "Sin cambios".
 
-## Cuándo parar y pedir ayuda
+---
 
-Detente y avisa al usuario si:
-- Las tres listas de Fase 1.1 (`git diff HEAD`, status untracked y, en su caso, `git diff {hash-base} HEAD`) salen vacías. Probablemente la iniciativa ya está comiteada y el usuario debe pasar el hash base.
-- Una carpeta afectada no tiene código legible (error de acceso, vacía, etc.).
-- El draft no tiene los tres artefactos mínimos (user-story, analysis, design).
+## Apéndice A — Override de rutas (para testing)
+
+Para ejecutar el skill sobre un sandbox alternativo sin tocar el árbol real:
+
+- `--in=<ruta>` — ruta explícita al `design_NN.md` del draft. Desactiva la auto-detección de §4.1.
+- `--out=<ruta>` — carpeta destino explícita para los artefactos as-built (sustituye `.sdd/specs/{NNNN}_{desc}/`).
+- `--root=<ruta>` — raíz alternativa a `.sdd/` para resolver `drafts/` y `specs/`.
+
+En uso normal no se especifican.

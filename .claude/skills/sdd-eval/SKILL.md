@@ -7,22 +7,84 @@ description: Evalúa un skill SDD (`/sdd-analyst-system` o `/sdd-designer-system
 
 Eres un evaluador de skills SDD. Tu trabajo es someter al skill objetivo a un bucle iterativo de **generar → comparar con gold → clasificar divergencias → refinar el skill → repetir**, hasta que el skill produzca outputs estructuralmente equivalentes al gold partiendo de inputs neutros.
 
-**Regla de oro del experimento:** los subagentes que ejecutan el skill objetivo **nunca** deben ver el gold ni el código que lo generó. Si ven el gold, el experimento queda invalidado: ya no estás midiendo si el skill funciona, sino si los subagentes saben copiar.
+**CRITICAL — Regla de oro del experimento:** los subagentes que ejecutan el skill objetivo **MUST NOT** ver el gold ni el código que lo generó. Si lo ven, el experimento queda invalidado: ya no estás midiendo si el skill funciona, sino si los subagentes saben copiar.
 
 ---
 
-## Skills objetivo soportados
+## User Input
 
-| Skill objetivo | Input que consume | Output que produce | Ficheros opcionales |
+```text
+$ARGUMENTS
+```
+
+You **MUST** consider the user input before proceeding (if not empty). Los argumentos posibles son:
+
+- `<skill-objetivo> <gold> <input> [<guidelines>]` — modo A (todo aportado).
+- `<skill-objetivo> <gold>` — modo B (deriva input por ingeniería inversa).
+- (vacío) — modo C (guiado interactivo G1–G5).
+- `help` / `--help` / `-h` / `?` / frases de ayuda en lenguaje natural — modo D (solo documentación).
+
+Si los argumentos están vacíos, entra en modo guiado. Si el primer argumento es de ayuda, entra en modo ayuda y **MUST NOT** ejecutar evaluación. Detalle completo en §2.
+
+---
+
+## Outline
+
+1. **Resolver argumentos** y decidir modo de invocación (A/B/C/D) — §2.
+2. **Fase 0 — Setup** — validar skill objetivo, gold e inputs; crear workspace; construir prompt anti-trampa — §3.
+3. **Fase 1 — Iteración** — lanzar **exactamente 5 subagentes en paralelo**, unificar las 5 salidas, guardar output — §4.
+4. **Fase 2 — Diff estructural vs gold** — comparar por ejes, clasificar divergencias A/B/C/D — §5.
+5. **Fase 3 — Refinamiento con aprobación** — proponer cambios genéricos a los skills, aplicarlos tras `AskUserQuestion`, volver a Fase 1 — §6.
+6. **Parada** — aplicar criterios de §7 y emitir mensaje de cierre — §§8–9.
+
+**STOP conditions**:
+
+- El skill objetivo no es `sdd-analyst-system` ni `sdd-designer-system` → **ERROR** y detente.
+- El fichero gold no existe, no es legible, o su frontmatter no coincide con el output esperado del skill objetivo → **ERROR** y detente.
+- El input aportado no existe o no tiene el `type:` esperado → **ERROR** y detente.
+- En modo B (solo gold), el usuario no aprueba los artefactos derivados por ingeniería inversa → **STOP**.
+- El usuario cancela en G5 (modo guiado) → **STOP** sin crear workspace.
+- Modo ayuda (D) detectado → **MUST NOT** crear workspace, **MUST NOT** invocar `AskUserQuestion`, imprime documentación y termina.
+- Tras **LIMIT**: 3 iteraciones consecutivas sin reducir A/B/C → **STOP** y pide intervención del usuario.
+- Cualquier subagente intenta leer el gold o el código fuente del que salió → **ERROR** y aborta la iteración.
+
+---
+
+## 1. Entrada y salida
+
+### 1.1 Entrada
+
+| Skill objetivo | Input principal | Frontmatter esperado | Opcional |
 |---|---|---|---|
-| `/sdd-analyst-system` | `user-story.md` (`type: user-story`) | `analysis.md` (`type: analysis`) | — |
-| `/sdd-designer-system` | `analysis.md` (`type: analysis`) | `design.md` (`type: design`) | `design-guidelines.md` (`type: design-guidelines`) |
+| `sdd-analyst-system` | `user-story.md` | `type: user-story` | — |
+| `sdd-designer-system` | `analysis.md` | `type: analysis` | `design-guidelines.md` (`type: design-guidelines`) |
 
-El contrato exacto (folder layout, dónde guarda el output, cómo se invoca) se lee del propio `SKILL.md` del skill objetivo en la Fase 0.
+Adicional, siempre: el **fichero gold** (referencia contra la que medir) con `type: analysis` o `type: design` según el skill objetivo.
+
+### 1.2 Salida
+
+- Un workspace de evaluación en `.sdd/drafts/YYYY-MM-DD_HH-MM_eval-{skill}-{nombre}/` con los inputs, las iteraciones sucesivas y un `iteraciones.md` con la trazabilidad completa.
+- Posibles ediciones (con aprobación del usuario) en `.claude/skills/sdd-*/SKILL.md` o en skills `k-*` referenciados — siempre como reglas **genéricas**, nunca específicas del gold.
+
+### 1.3 Estructura de carpetas
+
+```
+.sdd/drafts/YYYY-MM-DD_HH-MM_eval-{skill-objetivo}-{nombre-corto}/
+├── user-story.md            (input cuando se evalúa sdd-analyst-system; derivado en modo B cuando se evalúa sdd-designer-system y no se aporta)
+├── design-guidelines.md     (opcional, solo al evaluar sdd-designer-system)
+├── iteraciones.md           (registro del experimento — se va actualizando)
+└── analysis_01/
+    ├── analysis.md          (input principal cuando se evalúa sdd-designer-system; output gold cuando se evalúa sdd-analyst-system)
+    ├── design_01.md         (gold, solo cuando se evalúa sdd-designer-system)
+    ├── design_02.md, ...    (outputs sucesivos cuando se evalúa sdd-designer-system)
+    └── (analysis_02/, analysis_03/, ... cuando se evalúa sdd-analyst-system)
+```
+
+El contrato exacto (folder layout, dónde guarda el output, cómo se invoca) **MUST** leerse del propio `SKILL.md` del skill objetivo en la Fase 0 — esta tabla es solo el resumen estable.
 
 ---
 
-## Argumentos
+## 2. Formas de invocación
 
 Cuatro formas de invocación:
 
@@ -62,9 +124,9 @@ También se considera modo ayuda si el primer argumento contiene literalmente la
 
 ---
 
-## Modo guiado (sin argumentos)
+### 2.1 Modo guiado (sin argumentos)
 
-Cuando se invoca `/sdd-eval` sin argumentos (forma C), sigue **estrictamente** este flujo. No empieces a configurar el workspace ni a leer ningún fichero hasta haber completado los pasos G1–G5.
+Cuando se invoca `/sdd-eval` sin argumentos (forma C), sigue **estrictamente** este flujo. **MUST NOT** configurar el workspace ni leer ningún fichero hasta haber completado los pasos G1–G5.
 
 ### G1 — Mensaje de bienvenida + breve explicación
 
@@ -110,7 +172,7 @@ Antes de arrancar la evaluación, muestra un resumen al usuario:
 
 ```
 Voy a evaluar:
-  Skill objetivo:  /system-{analyst|designer}
+  Skill objetivo:  /sdd-{analyst|designer}-system
   Gold:            <ruta>
   Input:           <ruta o "se derivará por ingeniería inversa">
   Guidelines:      <ruta o "ninguna">
@@ -122,167 +184,62 @@ Tras cada iteración te enseñaré las divergencias clasificadas y te preguntar�
 ¿Arrancamos?
 ```
 
-Con `AskUserQuestion`: "Arrancar evaluación / Cancelar / Cambiar algo". Si "Arrancar", saltas a Fase 0.4 (la estructura ya está clara). Si "Cancelar", terminas. Si "Cambiar algo", vuelves al paso correspondiente.
+Con `AskUserQuestion`: "Arrancar evaluación / Cancelar / Cambiar algo". Si "Arrancar", saltas a la Fase 0 (§3) ya con todos los datos resueltos. Si "Cancelar", terminas. Si "Cambiar algo", vuelves al paso G2–G4 correspondiente.
 
 ### Reglas del modo guiado
 
-- **Una pregunta por turno** (no hagas listas largas con `AskUserQuestion` multiSelect en un solo turno; el usuario quiere conversar, no rellenar formularios).
-- **Recuérdale el modo ayuda** una sola vez en G1; no repitas.
-- **No cargues skills, no crees carpetas, no escribas ficheros** hasta haber pasado G5 (confirmación). El usuario podría cancelar.
-- **Si el usuario escribe una respuesta libre que no encaja en las opciones** (con `AskUserQuestion` siempre puede hacerlo), interpreta su intención y reformula la pregunta o procede según corresponda.
+- **REQUIRED — Una pregunta por turno**: **MUST NOT** hacer listas largas con `AskUserQuestion` multiSelect en un solo turno; el usuario quiere conversar, no rellenar formularios.
+- **Recuérdale el modo ayuda** una sola vez en G1; **MUST NOT** repetir.
+- **MUST NOT** cargar skills, crear carpetas ni escribir ficheros hasta haber pasado G5 (confirmación). El usuario podría cancelar.
+- Si el usuario escribe una respuesta libre que no encaja en las opciones, interpreta su intención y reformula la pregunta o procede según corresponda.
 
 ---
 
-## Modo ayuda
+### 2.2 Modo ayuda
 
-Cuando se detecta el modo ayuda (forma D), **NO ejecutes evaluación**. Imprime la documentación completa estructurada como sigue, en un único mensaje (markdown). No uses `AskUserQuestion`. No leas ficheros del proyecto. No crees workspace.
+Cuando se detecta el modo ayuda (forma D), **NO ejecutes evaluación**. Imprime un resumen breve en un único mensaje markdown y termina.
 
-### Estructura del mensaje de ayuda
+**Reglas del modo ayuda**:
+
+- **MUST** imprimir todo en un solo mensaje. **MUST NOT** partir la ayuda en varios turnos.
+- **MUST NOT** leer nada del proyecto. El modo ayuda funciona offline.
+- **MUST NOT** invocar `AskUserQuestion`. El usuario quiere leer documentación, no responder preguntas.
+- **MUST NOT** ofrecer "¿quieres que arranque ahora?" al final. El usuario decidirá invocar de nuevo.
+- **MUST NOT** duplicar el contenido detallado del SKILL.md. El resumen es la puerta de entrada; el detalle vive en este propio fichero.
+
+**Estructura mínima del mensaje** (puedes ampliar pero no duplicar §§3–9):
 
 ````markdown
 # /sdd-eval — Evaluador de skills SDD
 
-## Qué hace
-
-Somete un skill SDD (`/sdd-analyst-system` o `/sdd-designer-system`) a un bucle iterativo:
-
-```
-gold (referencia) ─┐
-                   │
- input neutral ────┼──► /skill-objetivo (5 subagentes paralelos + unificación)
-                   │              │
-                   │              ▼
-                   │         output generado
-                   │              │
-                   └──► diff por ejes ─► clasificar A/B/C/D
-                                              │
-                          ┌───────────────────┘
-                          ▼
-                  proponer cambios al skill (con tu aprobación)
-                          │
-                          ▼
-                       repetir
-```
-
-Tras N iteraciones, el output generado debería converger al gold. Cada divergencia que no converge revela una regla que falta en el skill, una ambigüedad en el input, o una decisión legítima del subsistema (que entonces va a `design-guidelines.md`, no al skill).
-
-## Cuándo usarlo
-
-- Acabas de modificar un skill `/system-*` y quieres validar que sigue produciendo outputs equivalentes a casos previos.
-- Tienes un caso real (subsistema implementado) y quieres comprobar si el skill SDD sería capaz de generar el mismo diseño desde cero.
-- Quieres encontrar reglas que faltan en los skills `k-*` analizando huecos sistemáticos en lo que producen los subagentes.
-
-NO uses `/sdd-eval` para:
-- Generar diseños o análisis "de producción". Para eso usa los skills directamente. `/sdd-eval` crea workspaces de evaluación, no entregables.
-- Comparar dos diseños que no estén producidos por el mismo skill — el experimento no tiene sentido.
-
-Skills objetivo soportados: `/sdd-analyst-system` (consume `user-story.md`, produce `analysis.md`) y `/sdd-designer-system` (consume `analysis.md`, produce `design.md`; admite `design-guidelines.md` opcional).
+Somete un skill SDD (`/sdd-analyst-system` o `/sdd-designer-system`) a un bucle
+**generar → diff vs gold → clasificar A/B/C/D → refinar skill → repetir**.
+Los 5 subagentes que ejecutan el skill objetivo nunca ven el gold ni el código del
+que salió — si lo vieran, el experimento queda invalidado.
 
 ## Formas de invocación
 
-**A — Todo aportado:**
-`/sdd-eval <skill> <gold> <input> [<guidelines>]`
+- `/sdd-eval <skill> <gold> <input> [<guidelines>]` — todo aportado (modo A).
+- `/sdd-eval <skill> <gold>` — solo gold; el input se deriva por ingeniería inversa (modo B).
+- `/sdd-eval` — modo guiado interactivo (modo C).
+- `/sdd-eval help` (o `--help`, `-h`, `?`) — esta ayuda (modo D).
 
-**B — Solo gold (deriva input por ingeniería inversa):**
-`/sdd-eval <skill> <gold>`
+## Skills objetivo soportados
 
-**C — Sin argumentos (modo guiado):**
-`/sdd-eval` — hace preguntas hasta tener todo.
+- `sdd-analyst-system` — consume `user-story.md` → produce `analysis.md`.
+- `sdd-designer-system` — consume `analysis.md` (+ opcional `design-guidelines.md`) → produce `design.md`.
 
-**D — Esta ayuda:**
-`/sdd-eval help` (también `--help`, `-h`, `?`, o frases en lenguaje natural pidiendo ayuda).
+## Para detalles
 
-## Ejemplos
-
-```bash
-# Evaluar /sdd-designer-system con un gold y su análisis
-/sdd-eval sdd-designer-system .sdd/specs/0001_correos/design.md .sdd/specs/0001_correos/analysis.md
-
-# Evaluar /sdd-designer-system derivando el análisis del gold
-/sdd-eval sdd-designer-system .sdd/drafts/2026-05-10_17-00_firmas/analysis_01/design_01.md
-
-# Evaluar /sdd-analyst-system con todo aportado
-/sdd-eval sdd-analyst-system .sdd/specs/0001_correos/analysis.md .sdd/specs/0001_correos/user-story.md
-
-# Modo guiado interactivo
-/sdd-eval
-
-# Esta ayuda
-/sdd-eval help
-```
-
-## Regla de oro: anti-trampa
-
-Los 5 subagentes que ejecutan el skill objetivo **nunca ven el gold ni el código del que salió**. Si lo ven, el experimento queda invalidado.
-
-El gold lo usa solo el orquestador (yo) para hacer el diff de la Fase 2.
-
-Concretamente, el prompt que recibe cada subagente prohíbe explícitamente:
-- Leer la ruta del gold.
-- Leer el directorio del código fuente del que se generó el gold (si aplica).
-- Leer otros artefactos del workspace de evaluación.
-- Leer otros `analysis*.md`, `design*.md`, `user-story*.md` en `.sdd/`.
-- Leer código que el proyecto excluye explícitamente (en EducaFlow: `expedientes`, `tiposexpedientes`, `tramites`).
-
-## Qué pasa en cada iteración
-
-1. **Lanzamiento (Fase 1):** 5 invocaciones a `Agent` en paralelo, mismo prompt autocontenido para los 5. Cada subagente devuelve un output completo.
-2. **Unificación (Fase 1, parte 2):** el orquestador combina las 5 salidas usando el algoritmo de unificación que el propio skill objetivo define en su SKILL.md (Tarea 2). Aplica el checklist completo del skill objetivo sobre el resultado.
-3. **Diff vs gold (Fase 2):** comparación por 12 ejes (frontmatter, cabecera, tabla de ficheros, dominios, servicios, controladores, vistas, seguridad, reglas `V-XXX`/`R-XXX`/`U-XXX`, matriz de trazabilidad, asunciones, notas). Cada divergencia significativa se clasifica:
-   - **A** — falta de instrucción en el skill.
-   - **B** — conocimiento técnico ausente en `k-*`.
-   - **C** — ambigüedad en el input.
-   - **D** — alternativa legítima (no requiere acción).
-4. **Refinamiento (Fase 3):** para cada A/B/C te pregunto con `AskUserQuestion` qué hacer (aplicar / posponer / descartar). Si apruebas, modifico el skill correspondiente con una regla **genérica** (nunca específica del gold). Cualquier divergencia que solo se resolvería con una regla específica del subsistema va a `design-guidelines.md` del workspace, no al skill.
-
-## Criterios de parada
-
-- Cobertura ≥ 95% (solo quedan D y diferencias cosméticas).
-- Tú decides parar.
-- 3 iteraciones consecutivas sin reducir el número de A/B/C.
-- Una A/B/C resulta ser D enmascarada (no se puede resolver sin una regla específica del gold).
-
-## Artefactos generados
-
-Workspace en `.sdd/drafts/YYYY-MM-DD_HH-MM_eval-{skill}-{nombre}/` con los inputs, los outputs de cada iteración y un `iteraciones.md` que registra la trazabilidad completa del experimento. Estructura detallada en la sección "Artefactos generados" al final de este SKILL.md.
-
-## Coste y duración estimados
-
-- Cada iteración: ~3–5 minutos (5 subagentes en paralelo + unificación + diff + decisiones del usuario).
-- Workspace típico: 3–5 iteraciones para converger en un caso "sano"; más si se descubren huecos importantes en los skills.
-- Cada subagente consume ~50–60 K tokens. Total por iteración: ~300 K tokens.
-
-## Lo que el skill NO hace (lista explícita)
-
-- No lee el gold para construir el prompt de los subagentes.
-- No modifica el gold.
-- No se salta la unificación (1 sola salida no es representativa).
-- No aplica cambios a los skills sin aprobación del usuario.
-- No añade reglas específicas del gold a los skills (eso va a `design-guidelines.md`).
-- No usa `run_in_background` para los 5 subagentes (necesita las salidas para unificar).
-- No abrevia el prompt del subagente asumiendo contexto previo.
-- No ejecuta los skills "de producción" tras evaluar.
-
----
-
-Para empezar, lanza:
-- `/sdd-eval` (modo guiado), o
-- `/sdd-eval <skill> <gold>` (deriva input por ingeniería inversa), o
-- `/sdd-eval <skill> <gold> <input>` (todo aportado).
+Lee `.claude/skills/sdd-eval/SKILL.md` — contiene anti-trampa (§3.5), fases (§§3–6),
+clasificación de divergencias (§5), criterios de parada (§7) y artefactos (§8).
 ````
 
-### Reglas del modo ayuda
-
-- **Imprimir todo en un solo mensaje.** No partas la ayuda en varios turnos.
-- **No leer nada del proyecto.** El modo ayuda funciona offline; no necesitas inspeccionar el workspace ni los skills.
-- **No invocar `AskUserQuestion`.** El usuario quiere leer la documentación, no responder preguntas.
-- **No ofrecer "¿quieres que arranque ahora?"** al final. El usuario decidirá invocar de nuevo.
-
 ---
 
-## Fase 0 — Setup
+## 3. Fase 0 — Setup
 
-### 0.1 Resolver y validar el skill objetivo
+### 3.1 Resolver y validar el skill objetivo
 
 1. Normaliza el nombre del skill objetivo (quita `/` inicial si lo tiene).
 2. Comprueba que existe `/.claude/skills/{skill-objetivo}/SKILL.md`. Si no, detente con error.
@@ -295,7 +252,7 @@ Para empezar, lanza:
    - Referencias a guías opcionales (ej. `design-guidelines.md` para `/sdd-designer-system`).
    - **Toda regla genérica que el skill aplica** (reglas obligatorias, checklists, convenciones de naming) — la necesitarás para construir el prompt de los subagentes.
 
-### 0.2 Validar el gold
+### 3.2 Validar el gold
 
 1. Lee el frontmatter del fichero gold.
 2. Comprueba que `type:` coincide con el output esperado del skill objetivo. Si no:
@@ -303,12 +260,12 @@ Para empezar, lanza:
    Detente.
 3. Lee el contenido completo del gold y guárdalo en una variable de trabajo (no se le pasa a los subagentes — pero sí lo usarás tú para el diff).
 
-### 0.3 Resolver el input (con o sin ingeniería inversa)
+### 3.3 Resolver el input (con o sin ingeniería inversa)
 
 **Caso A (input proporcionado):**
 - Lee el fichero de input. Valida frontmatter (`type:` debe coincidir con el input que el skill objetivo espera). Si no, error y detente.
 - Si el skill objetivo es `/sdd-designer-system` y el usuario pasó un cuarto argumento, valídalo como `design-guidelines.md` (`type: design-guidelines`).
-- Salta a 0.4.
+- Salta a §3.4.
 
 **Caso B (solo gold):**
 - Avisa al usuario: "Solo recibí el gold; voy a derivar por ingeniería inversa el input neutral. **El input derivado describirá el QUÉ, no el CÓMO** — no debe contener nombres concretos de clases ni decisiones de implementación que el skill objetivo deba inferir."
@@ -316,37 +273,29 @@ Para empezar, lanza:
 - Para `/sdd-designer-system`: deriva `analysis.md` desde el `design.md` gold. El análisis debe usar el formato `type: analysis` (entidades, operaciones, vistas, seguridad, tablas `V-XXX`/`R-XXX`/`U-XXX`, asunciones), pero **no debe mencionar nombres de clases Java, métodos concretos del gold ni detalles de XML de vistas** — solo el QUÉ funcional. Si el gold tiene decisiones de diseño que no son derivables del análisis funcional (ej. mecanismo de callback FQCN+JSON, clonado de PDF), opcionalmente derívalas también a un `design-guidelines.md` (`type: design-guidelines`) y avisa al usuario para que confirme cuáles deben permanecer (cosas no derivables) y cuáles se eliminan (cosas que "fugan" demasiado).
 - Muestra al usuario los artefactos derivados y pídele aprobación con `AskUserQuestion` antes de continuar.
 
-### 0.4 Crear estructura de carpetas
+### 3.4 Crear estructura de carpetas
 
-Convención del workspace de evaluación (sigue el folder layout del skill objetivo):
+Crea el workspace según la estructura definida en §1.3. Reglas de numeración:
 
-```
-.sdd/drafts/YYYY-MM-DD_HH-MM_eval-{skill-objetivo}-{nombre-corto}/
-├── user-story.md            (siempre, derivado o aportado)
-├── design-guidelines.md     (solo para evaluar /sdd-designer-system si existe/se deriva)
-├── iteraciones.md           (registro del experimento — se va actualizando)
-└── analysis_01/
-    ├── analysis.md          (siempre — input para /sdd-designer-system o output gold para /sdd-analyst-system)
-    ├── design_01.md         (gold, solo cuando se evalúa /sdd-designer-system)
-    ├── design_02.md, ...    (outputs sucesivos cuando se evalúa /sdd-designer-system)
-    └── ...
-```
-
-- Si se evalúa `/sdd-designer-system`: el gold es `analysis_01/design_01.md`; las iteraciones se guardan como `analysis_01/design_02.md`, `design_03.md`, etc.
-- Si se evalúa `/sdd-analyst-system`: el gold es `analysis_01/analysis.md`; las iteraciones se guardan como `analysis_02/analysis.md`, `analysis_03/analysis.md`, etc. (cada ejecución de `/sdd-analyst-system` crea su propia subcarpeta `analysis_NN`).
+- Si se evalúa `/sdd-designer-system`: el gold se copia como `analysis_01/design_01.md`; las iteraciones se guardan como `analysis_01/design_02.md`, `design_03.md`, etc.
+- Si se evalúa `/sdd-analyst-system`: el gold se copia como `analysis_01/analysis.md`; las iteraciones se guardan como `analysis_02/analysis.md`, `analysis_03/analysis.md`, etc. (cada ejecución de `/sdd-analyst-system` crea su propia subcarpeta `analysis_NN`).
 
 `{nombre-corto}` lo deriva el evaluador del nombre del fichero gold o lo pregunta al usuario.
 
-### 0.5 Construir el prompt unificado de los subagentes
+- ✅ CORRECTO: `.sdd/drafts/2026-05-21_10-30_eval-sdd-designer-system-correos/`
+- ❌ INCORRECTO: `.sdd/drafts/2026-05-21_eval/` (sin hora, sin skill, sin nombre — colisiona si se evalúan varios)
 
-Construye un fichero **autocontenido** en `$TMPDIR/sdd_eval_subagent_prompt.md` que se le pasará a los 5 subagentes en cada iteración. Contenido obligatorio del prompt:
+### 3.5 Construir el prompt unificado de los subagentes
 
-1. **Restricciones específicas del experimento (anti-trampa) — lo primero del prompt**:
-   - "NO leas el fichero gold `{ruta-gold}` bajo ninguna circunstancia."
-   - "NO leas otros artefactos del workspace de evaluación que no sean el input que se te indica."
-   - Si el gold proviene de código real existente: "NO leas el directorio `{ruta-código-fuente-del-gold}`. Para este ejercicio, ese código NO existe todavía y debes producir el output desde cero a partir del input."
-   - "NO leas otros `analysis*.md`, `design*.md`, `user-story*.md` dentro de `.sdd/`. Solo el input explícito que se te ha pasado."
-   - "NO uses como referencia código que el proyecto explícitamente declara como excluido (ej. en CLAUDE.md). Para EducaFlow: jamás `expedientes`, `tiposexpedientes`, `tramites`."
+Construye un fichero **autocontenido** en `$TMPDIR/sdd_eval_subagent_prompt.md` que se le pasará a los 5 subagentes en cada iteración. **MUST** contener:
+
+1. **CRITICAL — Restricciones anti-trampa, lo primero del prompt** (los subagentes **MUST NOT** saltárselas):
+   - "**MUST NOT** leer el fichero gold `{ruta-gold}` bajo ninguna circunstancia."
+   - "**MUST NOT** leer otros artefactos del workspace de evaluación que no sean el input que se te indica."
+   - Si el gold proviene de código real existente: "**MUST NOT** leer el directorio `{ruta-código-fuente-del-gold}`. Para este ejercicio, ese código NO existe todavía y debes producir el output desde cero a partir del input."
+   - "**MUST NOT** leer otros `analysis*.md`, `design*.md`, `user-story*.md` dentro de `.sdd/`. Solo el input explícito que se te ha pasado."
+   - "**MUST NOT** usar como referencia código que el proyecto explícitamente declara como excluido (ej. en CLAUDE.md). Para EducaFlow: jamás `expedientes`, `tiposexpedientes`, `tramites`."
+   - "**MUST NOT** invocar `AskUserQuestion`. Si te falta información, asúmela razonablemente y deja un asunción marcada con `*` en el output."
 
 2. **El input completo (literal)**: contenido del `user-story.md` o `analysis.md` (según el skill objetivo) embebido tal cual en el prompt.
 
@@ -357,9 +306,11 @@ Construye un fichero **autocontenido** en `$TMPDIR/sdd_eval_subagent_prompt.md` 
    - `k-validaciones` (resumen).
    - `k-vistas` (resumen, si aplica).
    - `k-seguridad` (resumen, si aplica).
-   - **Importante:** estos resúmenes deben reflejar el estado *actual* de los skills, no una versión congelada. Re-leelos en cada iteración por si se han modificado en la Fase 3.
+   - **CRITICAL**: estos resúmenes **MUST** reflejar el estado *actual* de los skills al inicio de cada iteración. **MUST** re-leer los SKILL.md desde disco antes de regenerar el prompt en la Fase 3 (los skills pueden haber cambiado).
 
-5. **FQNs de la infraestructura reutilizable** que aparezca relevante en el input.
+5. **FQNs de la infraestructura reutilizable** relevante para el input — clases base, interfaces, utilidades que el subagente debería referenciar en lugar de reinventar.
+   - ✅ CORRECTO: `com.educaflow.base.infrastructure.validation.ValidationEngine`, `com.educaflow.base.infrastructure.mapper.BeanMapperModel`.
+   - ❌ INCORRECTO: "Usa las utilidades de validación habituales del proyecto." (vago — el subagente no las conoce sin FQN explícito)
 
 6. **Las 3 tareas internas** que el skill objetivo encarga al subagente (las extraes de su SKILL.md):
    - Tarea 1 — construir el output.
@@ -374,17 +325,21 @@ Construye un fichero **autocontenido** en `$TMPDIR/sdd_eval_subagent_prompt.md` 
 
 ---
 
-## Fase 1 — Iteración (ejecutar el skill objetivo)
+## 4. Fase 1 — Iteración (ejecutar el skill objetivo)
 
 Esta fase se ejecuta una vez por iteración. La numeración de iteración empieza en 1.
 
-### 1.1 Lanzar 5 subagentes en paralelo
+### 4.1 Lanzar 5 subagentes en paralelo
 
-**REGLA CRÍTICA:** los 5 subagentes se lanzan en una **única respuesta** con 5 invocaciones a `Agent` simultáneas. Mismo prompt para los 5 (apuntando al fichero del paso 0.5). No `run_in_background` — necesitas las salidas para la unificación.
+**CRITICAL — REQUIRED**: exactamente 5 subagentes, ni más ni menos. **MUST** lanzarlos en **una única respuesta** con 5 invocaciones a `Agent` simultáneas. Mismo prompt para los 5 (apuntando al fichero del paso 4.5).
+
+- **MUST NOT** usar `run_in_background` — necesitas las salidas para la unificación.
+- **MUST NOT** los subagentes invocar `AskUserQuestion`. Solo el orquestador (tú) lo usa antes (G1–G5) y después (Fase 3).
+- **MUST NOT** abreviar el prompt asumiendo contexto previo; el prompt del paso 4.5 es autocontenido.
 
 Prompt de cada subagente: "Lee el fichero `$TMPDIR/sdd_eval_subagent_prompt.md` completo y sigue al pie de la letra las instrucciones que contiene. Eres uno de 5 subagentes ejecutándose en paralelo con contexto fresco — produce decisiones genuinamente independientes. Devuelve únicamente el output en markdown como mensaje final, sin escribir ficheros, sin metacomentarios. Respeta las restricciones anti-trampa."
 
-### 1.2 Unificar las 5 salidas (Tarea 2 del propio skill objetivo)
+### 4.2 Unificar las 5 salidas (Tarea 2 del propio skill objetivo)
 
 **Tú** (no un subagente) produces la salida unificada aplicando el algoritmo de unificación que el skill objetivo describe en su SKILL.md. Resumen genérico:
 
@@ -394,14 +349,24 @@ Prompt de cada subagente: "Lee el fichero `$TMPDIR/sdd_eval_subagent_prompt.md` 
 4. Renumera consecutivamente sin huecos.
 5. Aplica el checklist completo del skill objetivo sobre el output unificado.
 
-### 1.3 Guardar el output
+#### 4.2.1 Checklist de la unificación
+
+- [ ] ¿Todas las secciones obligatorias del checklist del skill objetivo están presentes?
+- [ ] ¿Numeración local sin huecos (V/R/U/E-XX-NNN según aplique)?
+- [ ] ¿Matriz de trazabilidad cubre el 100% de IDs declarados?
+- [ ] ¿Frontmatter del output coincide con el `type:` esperado?
+- [ ] ¿Ninguna sección incluye contenido inventado por un subagente que no esté en el input?
+
+**LIMIT**: máximo 3 iteraciones de auto-corrección sobre el unificado antes de guardarlo. Si tras la 3ª siguen quedando puntos del checklist sin cumplir, documenta las inconsistencias residuales en `iteraciones.md` y continúa con la Fase 2.
+
+### 4.3 Guardar el output
 
 - Para `/sdd-designer-system`: guarda como `analysis_01/design_NN.md` con `NN = max(design_*.md existentes) + 1` y frontmatter `---type: design---`.
 - Para `/sdd-analyst-system`: guarda como `analysis_NN/analysis.md` con `NN = max(analysis_NN/ existentes) + 1` y frontmatter `---type: analysis---`.
 
 ---
 
-## Fase 2 — Diff estructural vs gold
+## 5. Fase 2 — Diff estructural vs gold
 
 Compara el output unificado con el gold. Hazlo por **ejes**, no en bruto. Los ejes mínimos:
 
@@ -438,7 +403,7 @@ Cada divergencia significativa se clasifica en una de estas categorías:
 
 ---
 
-## Fase 3 — Refinamiento (con aprobación del usuario)
+## 6. Fase 3 — Refinamiento (con aprobación del usuario)
 
 Para cada divergencia A/B/C, propone al usuario con `AskUserQuestion` qué hacer:
 
@@ -448,35 +413,39 @@ Para cada divergencia A/B/C, propone al usuario con `AskUserQuestion` qué hacer
 
 **Reglas críticas para los cambios al skill:**
 
-1. **Genéricos, jamás específicos del gold.** Si el cambio menciona el nombre del subsistema/sistema concreto del gold, está mal — replantéalo. Por ejemplo, NO añadas a `k-sistemas/SKILL.md` "para firmas, usa 4 ficheros"; SÍ añade "cuando hay múltiples `<action-view>` por estado/perfil/caso de uso, cada uno va en su propio fichero".
+1. **CRITICAL — Genéricos, jamás específicos del gold.** Si el cambio menciona el nombre del subsistema/sistema concreto del gold, está mal — replantéalo.
 
-2. **Razonamiento incluido.** Cada regla nueva debe incluir el porqué (en formato `> **Razón:** ...` o equivalente), para que el lector futuro entienda y pueda decidir en casos límite.
+   - ✅ CORRECTO: "Cuando hay múltiples `<action-view>` por estado/perfil/caso de uso, cada uno va en su propio fichero."
+   - ❌ INCORRECTO: "Para el subsistema de firmas, usa 4 ficheros de vistas." (menciona el nombre del subsistema del gold)
+   - ❌ INCORRECTO: "Añade el campo `firmaDigital` al dominio `Documento`." (nombres concretos del gold — esto va a `design-guidelines.md`, no al skill)
 
-3. **Coherencia con el resto del skill.** Si el cambio entra en un checklist, también debe haber un bullet en las "reglas obligatorias" o sección equivalente. Si el cambio modifica un ejemplo, también deben actualizarse los ejemplos paralelos.
+2. **Razonamiento incluido.** Cada regla nueva **MUST** incluir el porqué (en formato `> **Razón:** ...` o equivalente), para que el lector futuro entienda y pueda decidir en casos límite.
 
-4. **No tocar `/sdd-implementer-system`** salvo que el problema sea claramente suyo. Es el ejecutor final, no el productor de los outputs que se evalúan aquí.
+3. **Coherencia con el resto del skill.** Si el cambio entra en un checklist, **MUST** haber también un bullet en las "reglas obligatorias" o sección equivalente. Si el cambio modifica un ejemplo, **MUST** actualizar los ejemplos paralelos.
 
-5. **Si la divergencia se debe a una regla local del subsistema** (no genérica), el cambio NO va al skill — va a `design-guidelines.md` del workspace de evaluación. Y avisas al usuario que esa regla quedará guardada como "decisión local de este caso", no como regla del framework.
+4. **MUST NOT** tocar `/sdd-implementer-system` salvo que el problema sea claramente suyo. Es el ejecutor final, no el productor de los outputs que se evalúan aquí.
+
+5. **Si la divergencia se debe a una regla local del subsistema** (no genérica), el cambio **MUST NOT** ir al skill — va a `design-guidelines.md` del workspace de evaluación. Avisa al usuario que esa regla quedará guardada como "decisión local de este caso", no como regla del framework.
 
 Tras aplicar los cambios:
-- Re-construye el prompt del subagente (paso 0.5) con los skills actualizados.
-- **Limpia el caché de outputs anteriores** (no los borres, simplemente apunta a la nueva iteración).
+- Re-construye el prompt del subagente (paso 4.5) con los skills actualizados.
+- **MUST NOT** borrar outputs anteriores; simplemente apunta a la nueva iteración.
 - Vuelve a Fase 1 con `iteración = N+1`.
 
 ---
 
-## Criterios de parada
+## 7. Criterios de parada
 
 Detén el bucle cuando se cumpla **alguno** de estos:
 
 1. La cobertura semántica vs gold es ≥ 95% (todas las divergencias significativas son D, o solo quedan diferencias cosméticas).
 2. El usuario decide cerrar (`AskUserQuestion` lo permite).
-3. **3 iteraciones consecutivas sin reducción del número de divergencias A/B/C** → el skill no converge; pide intervención del usuario para revisar el caso de prueba o el algoritmo de unificación.
+3. **LIMIT**: 3 iteraciones consecutivas sin reducción del número de divergencias A/B/C → el skill no converge; **STOP** y pide intervención del usuario para revisar el caso de prueba o el algoritmo de unificación.
 4. Una divergencia A/B/C **no es resoluble sin una regla específica del gold** → es D enmascarada; clasifícala como D y continúa.
 
 ---
 
-## Artefactos generados
+## 8. Artefactos generados
 
 Al final del experimento, el workspace contiene:
 
@@ -507,7 +476,7 @@ Al final del experimento, el workspace contiene:
 
 ---
 
-## Mensaje de transición tras parar
+## 9. Mensaje de transición tras parar
 
 Tras parar, indica al usuario:
 
@@ -524,4 +493,31 @@ Workspace: .sdd/drafts/YYYY-MM-DD_HH-MM_eval-{skill}-{nombre}/
 Trazabilidad completa: {workspace}/iteraciones.md
 ```
 
-NO ejecutes el skill objetivo de forma "de producción" tras evaluar — los workspaces de eval son experimentos, no entregables.
+**MUST NOT** ejecutar el skill objetivo de forma "de producción" tras evaluar — los workspaces de eval son experimentos, no entregables.
+
+---
+
+## Quick Guidelines
+
+- **CRITICAL — Anti-trampa**: los 5 subagentes **MUST NOT** ver el gold, ni el código del que salió, ni otros artefactos `.sdd/`. Si lo ven, el experimento queda invalidado.
+- **REQUIRED**: exactamente 5 subagentes en una **única respuesta** con 5 invocaciones a `Agent`. **MUST NOT** usar `run_in_background`. Los subagentes **MUST NOT** invocar `AskUserQuestion`.
+- **LIMIT**: máximo 3 iteraciones consecutivas sin reducción de A/B/C antes de **STOP** y pedir intervención al usuario.
+- Diff por ejes (no en bruto): clasifica cada divergencia como **A** (falta instrucción), **B** (falta conocimiento `k-*`), **C** (input ambiguo) o **D** (alternativa legítima).
+- Cambios a los skills **MUST** ser genéricos. Si necesitan mencionar el nombre del subsistema del gold, van a `design-guidelines.md` del workspace, no al skill.
+- Cada regla nueva añadida a un skill **MUST** llevar `> **Razón:** ...` para que el lector futuro entienda el porqué.
+- Modo ayuda (`/sdd-eval help`): un solo mensaje, **MUST NOT** leer ficheros del proyecto, **MUST NOT** invocar `AskUserQuestion`, **MUST NOT** crear workspace.
+- Modo guiado (sin args): pasos G1–G5 secuenciales, una pregunta por turno; **MUST NOT** crear nada hasta confirmar en G5.
+
+---
+
+## Apéndice A — Override de rutas (para testing)
+
+Para evaluar sobre un workspace alternativo sin tocar el árbol real:
+
+- `--in=<ruta>` — fichero de input explícito (`user-story.md` o `analysis.md`). Desactiva la auto-detección.
+- `--gold=<ruta>` — fichero gold explícito.
+- `--out=<ruta>` — carpeta de workspace de evaluación explícita (en lugar de `.sdd/drafts/YYYY-MM-DD_HH-MM_eval-...`).
+- `--root=<ruta>` — raíz alternativa para resolver rutas relativas y resolver skills (`.claude/skills/` cuelga de aquí).
+- `--guidelines=<ruta>` — `design-guidelines.md` explícito (solo aplica al evaluar `/sdd-designer-system`).
+
+En uso normal no se especifican.
