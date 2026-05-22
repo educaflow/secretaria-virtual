@@ -105,7 +105,7 @@ Los ficheros XML generados aquí son los **mismos** que `sdd-implementer-system`
 
 **MUST NOT** generar diseño sin haber leído el `analysis.md` completo (y los `entity-*.md` / `screen-*.md` enlazados). El análisis es la fuente de verdad — **MUST NOT** interpretar ni ampliar más allá de lo que dice. Si algo no se desprende del análisis, **MUST** preguntar al usuario con `AskUserQuestion`; **MUST NOT** inventar.
 
-**PROHIBIDO** como referencia:
+**MUST NOT** como referencia:
 
 - **MUST NOT** leer el código de `expedientes`, `tiposexpedientes` ni `tramites` — siguen otra arquitectura.
 - **MUST NOT** leer otros `design.md` o ficheros XML de diseños previos en `.sdd/` como plantilla. El diseño se genera desde el análisis recibido y el código real del proyecto.
@@ -121,7 +121,7 @@ Un diseño describe **la estructura** del software (qué ficheros existen, qué 
 | `design/views/*.xml` | XML completo de `<grid>`, `<form>`, `<cards>`, `<action-method>`, `<action-attrs>`, `<action-validate>`, `<action-condition>`, `<action-record>`, `<action-group>`, `<action-view>` — con todos sus campos, panels, condiciones y mensajes literales. |
 | `design/menus.xml` | XML completo de los `<menuitem>` a añadir al `menus.xml` único del proyecto. |
 
-**PROHIBIDO** en cualquier parte del diseño:
+**MUST NOT** en cualquier parte del diseño:
 
 - **MUST NOT** incluir cuerpos de métodos Java implementados. Nada de `validateInsert` con su lógica, nada de `for`/`if` reales, nada de `messages.add(...)` con strings literales dentro de un método. Solo firmas + comentario descriptivo.
 - **MUST NOT** incluir mensajes de error literales para validaciones Java — se describe el contenido que debe transmitir (valor recibido, dominio válido), no el literal. (Los literales de `<action-validate>` XML sí se escriben porque el XML va completo.)
@@ -176,7 +176,7 @@ Cada categoría de regla tiene su capa de implementación:
 
 ### 2.8 `tests.md` propaga sin modificar
 
-El fichero `analysis/tests.md` (cuando existe) es contrato fijo entre el análisis y la implementación: el diseñador lo **copia tal cual** a `design/tests.md` en la Fase 4 (§8.2 paso 3) y no toca su contenido. Mismo principio que con los XML (§2.1 + §2.3): **PROHIBIDO** regenerarlo, reformatearlo, resumirlo o "limpiarlo" durante el diseño. Si el diseñador detecta que el `tests.md` contiene errores o referencias rotas (botones inexistentes, mensajes que no se van a implementar), **STOP** y pide al usuario reabrir `/sdd-analyst-system` para regenerar los tests; **MUST NOT** corregirlos aquí.
+El fichero `analysis/tests.md` (cuando existe) es contrato fijo entre el análisis y la implementación: el diseñador lo **copia tal cual** a `design/tests.md` en la Fase 4 (§8.2 paso 3) y no toca su contenido. Mismo principio que con los XML (§2.1 + §2.3): **MUST NOT** regenerarlo, reformatearlo, resumirlo o "limpiarlo" durante el diseño. Si el diseñador detecta que el `tests.md` contiene errores o referencias rotas (botones inexistentes, mensajes que no se van a implementar), **STOP** y pide al usuario reabrir `/sdd-analyst-system` para regenerar los tests; **MUST NOT** corregirlos aquí.
 
 Si `analysis/tests.md` no existe (iniciativa legacy sin flujos principales en el spec), el diseñador no genera `design/tests.md` y `/sdd-implementer-system` saltará su Fase 3.5 sin error.
 
@@ -233,7 +233,7 @@ Si el skill se invoca sin argumentos:
 4. Si no hay ninguna carpeta con ese formato o la última no contiene `analysis/analysis.md`, indicar que no hay análisis disponibles y pedir una ruta. Detente.
 5. Mostrar al usuario la ruta detectada y preguntar con `AskUserQuestion` si quiere usarla. Si dice "no", pedir que reinvoque el skill con ruta explícita y detente.
 
-**PROHIBIDO**: **MUST NOT** elegir una iniciativa que no sea la última por orden alfabético del prefijo timestamp.
+**MUST NOT** elegir una iniciativa que no sea la última por orden alfabético del prefijo timestamp.
 
 Una vez localizado, se aplica el mismo flujo que en el caso 1 (validación de frontmatter incluida).
 
@@ -303,7 +303,7 @@ Son la fuente de verdad sobre **qué piezas existen y cómo se llaman**, no sobr
 - Explorar `src/main/java/com/educaflow/subsystem/` y `src/main/java/com/educaflow/system/` para identificar qué reutilizar (FQN, dependencias) y qué dependencias potenciales hay con subsistemas existentes.
 - Revisar `base/infrastructure/` para identificar utilidades reutilizables (PDF, mail, evaluator, etc.).
 
-**PROHIBIDO** (ver principio 2.1): **MUST NOT** usar como referencia el código de `expedientes`/`tiposexpedientes`/`tramites` ni leer `design.md`/XML de diseños previos como plantilla.
+**MUST NOT** usar como referencia el código de `expedientes`/`tiposexpedientes`/`tramites` ni leer `design.md`/XML de diseños previos como plantilla (ver principio 2.1).
 
 ### 5.3 Cargar guías de diseño si existen
 
@@ -494,7 +494,7 @@ Cada paso debe:
 
 1. **Ficheros estáticos y recursos** (si los hay) — plantillas PDF, esquemas XSD, certificados.
 2. **Dominios** — XML completo de cada entidad, un bloque por entidad con ruta `design/domains/<Entidad>.xml`.
-3. **Servicios** — interfaz `ModelService` + implementación `DefaultModelService`. Firma completa + comentario del cuerpo para cada método (constructor, CRUD, `validateInsert`/`validateUpdate`/`validateRemove`, `fireActionRule_*`, métodos de negocio).
+3. **Servicios** — interfaz `<Entidad>Service` (extiende `ModelService<Entidad>`) + implementación `<Entidad>ServiceImpl` (extiende `DefaultModelService<Entidad>`). Firma completa + comentario del cuerpo para cada método (constructor, CRUD, `validateInsert`/`validateUpdate`/`validateRemove`, `fireActionRule_*`, métodos de negocio).
 4. **Repositorios** (si hay queries propias) — `db/repo/` con la lista de finders adicionales (firma + comentario del cuerpo).
 5. **Controladores** (si hay lógica de botones) — clase con FQN; para cada `@CallMethod`, firma y comentario que indique en qué método de servicio delega. Parámetros llamados **siempre** `actionRequest` y `actionResponse` (ver principio 2.7).
 6. **Vistas** — un fichero XML por `<action-view>` (regla "un `<action-view>` por fichero"). XML completo + resumen estructural por fichero.
@@ -516,7 +516,7 @@ Cada firma de `validateInsert`/`validateUpdate`/`validateRemove` (para V-) y de 
 Ejemplo:
 
 ```java
-// Clase: com.educaflow.subsystem.foo.service.impl.DefaultBarService
+// Clase: com.educaflow.subsystem.foo.service.impl.BarServiceImpl
 // Método:
 public Optional<BusinessMessages> validateInsert(Bar entidad);
 //   Aplica:
@@ -654,7 +654,7 @@ El subagente devuelve **dos cosas** en su respuesta:
    **Entidad:** <Entidad>
    **Operación:** insert | update | remove | <operación custom>
    **Momento:** Antes | Después de super.*
-   **Servicio host:** com.educaflow.subsystem.<x>.service.impl.Default<Entidad>Service
+   **Servicio host:** com.educaflow.subsystem.<x>.service.impl.<Entidad>ServiceImpl
    **Método host:** fireActionRule_<nombreLegible>(<firma>)
 
    ## Análisis de la regla
@@ -708,7 +708,7 @@ Por cada subagente terminado:
 3. Asegurarse de que la **tabla de trazabilidad V/R/U** del diseño marca la regla compleja con un puntero al fichero detallado, p.ej.:
 
    ```
-   | R-Bar-003 | Default BarService.fireActionRule_publicar (Después de super.update) | Detalle: design/rules/R-Bar-003.md |
+   | R-Bar-003 | BarServiceImpl.fireActionRule_publicar (Después de super.update) | Detalle: design/rules/R-Bar-003.md |
    ```
 
 4. Recoger las **dudas** del bloque `=== DUDAS ===` (si las hubiera) y plantearlas al usuario con `AskUserQuestion` antes de pasar a la Fase 3. Aplicar las respuestas al fichero markdown en memoria.
@@ -770,6 +770,8 @@ Si encuentras algún problema, corrígelo antes de pasar a la Fase 4. **LIMIT**:
 
 ## 8. Fase 4 — Materializar y validar
 
+**MUST NOT** mostrar el diseño unificado al usuario ni preguntar si lo aprueba antes de escribir los ficheros. Tras la revisión interna de la Fase 3, el skill pasa directamente a escribir XML, `design.md`, `rules/*.md` y `tests.md`. El usuario revisará el `design/` ya materializado y, si quiere cambios, los edita a mano o lanza `/sdd-designer-system-review`.
+
 > **REQUIRED** — ubicación del diseño: se guarda en la subcarpeta `design/` dentro de la carpeta de la iniciativa (la misma que contiene `analysis/`). Ejemplo: `.sdd/drafts/2026-05-11_23-19_tareas-de-envio-de-correos/design/`. **MUST NOT** guardarse en la raíz del proyecto ni en otra carpeta.
 
 ### 8.1 Borrar diseño previo
@@ -796,7 +798,7 @@ Esto sustituye sin ambigüedad cualquier diseño previo. No se conservan iteraci
    cp .sdd/drafts/{iniciativa}/analysis/tests.md .sdd/drafts/{iniciativa}/design/tests.md
    ```
 
-   Si `analysis/tests.md` no existe (iniciativa antigua sin tests), saltar este paso con un aviso al usuario: `/sdd-implementer-system` saltará el bucle de tests. **PROHIBIDO**: **MUST NOT** regenerar, reformatear o resumir el `tests.md` — su contenido es contrato fijo entre análisis e implementación (mismo principio que con los XML).
+   Si `analysis/tests.md` no existe (iniciativa antigua sin tests), saltar este paso con un aviso al usuario: `/sdd-implementer-system` saltará el bucle de tests. **MUST NOT** regenerar, reformatear o resumir el `tests.md` — su contenido es contrato fijo entre análisis e implementación (mismo principio que con los XML).
 
 Estructura resultante esperada:
 

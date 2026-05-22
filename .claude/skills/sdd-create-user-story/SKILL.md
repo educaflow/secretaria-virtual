@@ -171,7 +171,7 @@ Sustituye `{timestamp}_{nombre-kebab}` por los valores reales.
 
 ---
 
-## 9. PROHIBIDO
+## 9. MUST NOT
 
 - **MUST NOT** rellenar la historia de usuario ni el `design-guidelines.md` tú mismo, ni siquiera si el usuario te dio una descripción larga al invocar. Las plantillas se entregan intactas.
 - **MUST NOT** inferir desviaciones de los skills `k-*` a partir del nombre o la descripción.

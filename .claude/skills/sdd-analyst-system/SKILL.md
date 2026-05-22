@@ -127,7 +127,7 @@ No se pide al usuario aprobación final del análisis: las dudas se resuelven en
 
 El análisis describe **QUÉ** se necesita en términos funcionales. **MUST NOT** describir **CÓMO** se va a implementar — eso es del diseñador.
 
-**PROHIBIDO** en cualquier sección de cualquier fichero generado:
+**MUST NOT** en cualquier sección de cualquier fichero generado:
 
 - Nombres de clases Java o paquetes (`TareaCorreoService`, FQN `com.educaflow.subsystem.x.db.Y`).
 - Signaturas de método con paréntesis (`enviar(centro, para, asunto, …)`, `validateInsert(...)`).
@@ -284,7 +284,7 @@ mkdir -p .sdd/drafts/{carpeta-iniciativa}/analysis/
 4. Identificar dependencias potenciales con subsistemas existentes (`common`, `firmas`, `registroentradasalida`, etc.).
 5. Revisar `base/infrastructure/` para identificar utilidades reutilizables (PDF, integración externa, mail, etc.).
 
-**PROHIBIDO:**
+**MUST NOT:**
 
 - **MUST NOT** leer ni usar como referencia `expedientes`, `tiposexpedientes` ni `tramites` — siguen otra arquitectura.
 - **MUST NOT** leer otros ficheros `analysis.md`, `entity-*.md` o `screen-*.md` previos como plantilla — solo se usa la especificación actual y el código real. Los únicos ficheros que se pueden mirar como referencia de **formato** son los de `templates/` y `examples/` de este propio skill (ver Apéndice B).
@@ -695,6 +695,8 @@ Una vez los subagentes de las Etapas B.1 y B.2 han confirmado que sus ficheros e
 ---
 
 ## 9. Fase 5 — Escritura del `analysis.md`
+
+**MUST NOT** mostrar el contenido del `analysis.md` al usuario ni preguntar si lo aprueba antes de escribirlo. La escritura es directa; el usuario revisará los ficheros ya guardados y, si quiere cambios, los edita a mano o lanza `/sdd-analyst-system-review`.
 
 **MUST** verificar antes de escribir que la carpeta `analysis/` contiene todos los ficheros listados en el inventario (un `entity-*.md` por entidad, un `screen-*.md` por pantalla, y `tests.md` si la Etapa B.3 se ejecutó). Si falta alguno → **ERROR** y detente.
 

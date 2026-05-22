@@ -1,6 +1,7 @@
 ---
 name: code-implementer
 description: Dado un plan con una serie de pasos, los implementa de forma iterativa usando subagentes con contexto aislado. Cada paso se implementa, verifica y revisa antes de continuar con el siguiente. Se detiene ante bloqueos o ambigüedades y pide aclaración al usuario.
+allowed-tools: Bash(playwright-cli:*) Bash(ls:*) Bash(grep:*) Bash(cp:*) Bash(mkdir:*) Bash(find:*) Read Edit(src/**) Write(src/**) Bash(./gradlew:*)  AskUserQuestion
 ---
 
 # code-implementer

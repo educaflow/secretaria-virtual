@@ -73,7 +73,7 @@ Contiene:
 - La **interfaz** del servicio: `MiEntidadService.java` — extiende `ModelService<MiEntidad>`.
 - Los **DTOs de inserción** si son necesarios: `MiEntidadInsertDTO.java` (record Java).
 - **Interfaces de callback** si las hay: p.ej. `TareaFirmaNotifier.java`.
-- La subpaquete `impl/` con la **implementación**: `MiEntidadServiceImpl.java` — extiende `DefaultModelService<MiEntidad>`.
+- La subpaquete `impl/` con la **implementación**: `MiEntidadServiceImpl.java` — extiende `DefaultModelService<MiEntidad>`. **CRITICAL**: el nombre **MUST** ser exactamente `<Entidad>ServiceImpl` (sin prefijo `Default`); `ModelServiceFactory` resuelve la clase por reflexión sobre ese FQN y devuelve `null` si no coincide. Ver `servicios.md` §"Descubrimiento automático" para los ejemplos ✅/❌.
 
 El paquete `service.impl` es el que busca `ModelServiceFactory` por convención — sin necesidad de módulo Guice.
 
@@ -88,6 +88,15 @@ La subcarpeta `db/repo/` sí se edita manualmente cuando se necesita:
 - **Listener JPA**: intercepta eventos de ciclo de vida (prePersist, preUpdate, etc.).
 
 Si no hay repositorios ni listeners propios, la carpeta puede existir vacía con un `.gitkeep`.
+
+> **CRITICAL — al crear un repository personalizado, la entidad MUST declarar `repository="abstract"`:**
+> Cuando se escribe a mano un `<Entidad>Repository` en `db/repo/`, el `<entity>` correspondiente en `domains/<Entidad>.xml` **MUST** llevar el atributo `repository="abstract"`. Esto hace que Axelor genere `Abstract<Entidad>Repository` (sin la clase concreta `<Entidad>Repository`) y deje que la clase personalizada sea la única implementación concreta. Si se omite, Axelor genera además un `<Entidad>Repository` por defecto que colisiona con el personalizado y el binding queda ambiguo.
+>
+> - ✅ CORRECTO: `<entity name="Persona" repository="abstract">` + `class PersonaRepository extends AbstractPersonaRepository { … }`
+> - ❌ INCORRECTO: `<entity name="Persona">` + `class PersonaRepository extends AbstractPersonaRepository { … }` (Axelor genera también `PersonaRepository` por defecto; colisión)
+> - ❌ INCORRECTO: `<entity name="Persona" repository="none">` + repository personalizado (no se genera `AbstractPersonaRepository`; no hay de qué heredar)
+>
+> Si **no** hay repository personalizado, **MUST NOT** poner `repository="abstract"` — déjalo en su valor por defecto para que Axelor genere el repositorio concreto. Ver `references/repositories.md` §"repository=abstract" para el detalle del schema.
 
 > **REGLA CRÍTICA — las consultas JPA van en el repositorio, nunca inline en el servicio:**
 > Todo código que use `.all().filter().bind().fetch*()` pertenece al repositorio. En el servicio **jamás** se escriben consultas JPA con filtros inline. Para añadir consultas al repositorio usa `<finder>` en el XML de dominio (Axelor lo genera en `Abstract<Entidad>Repository`) o un repositorio personalizado en `db/repo/`. El servicio solo llama a métodos con nombre del repositorio: `repository.findByDni(dni)`, nunca `repository.all().filter("self.dni = :dni").bind(...)`.
@@ -109,7 +118,9 @@ Convención de paquete: `com.educaflow.{layer}.{nombre}.controller` (singular).
 
 Módulo Guice que registra bindings interfaz → implementación cuando `ModelServiceFactory` no los puede descubrir automáticamente (p.ej. servicios que no son `ModelService`, implementaciones de terceros).
 
-> **REGLA CRÍTICA — NUNCA crear un módulo para implementaciones de `ModelService`:** `ModelServiceFactory` descubre automáticamente cualquier clase en el paquete `service.impl.*ServiceImpl`. Crear un módulo Guice para registrar un `ModelService` es un error — el servicio quedaría registrado dos veces y rompería la factoría. Solo crear `module/` cuando haya bindings que genuinamente no pueden descubrirse por convención (interfaces no relacionadas con `ModelService`, decoradores, servicios de infraestructura).
+> **CRITICAL — NUNCA crear un módulo para implementaciones de `ModelService`:** `ModelServiceFactory` descubre automáticamente cualquier clase cuyo nombre sea exactamente `<Entidad>Service` o `<Entidad>ServiceImpl` en `service/` o `service/impl/`. Crear un módulo Guice para registrar un `ModelService` es un error — el servicio quedaría registrado dos veces y rompería la factoría. Solo crear `module/` cuando haya bindings que genuinamente no pueden descubrirse por convención (interfaces no relacionadas con `ModelService`, decoradores, servicios de infraestructura).
+>
+> **MUST NOT** llamar a la implementación `Default<Entidad>Service` ni `Default<Entidad>ServiceImpl` — esos nombres no entran en la lista de FQN que la factoría inspecciona. Ver `servicios.md` §"Descubrimiento automático".
 
 > **REGLA CRÍTICA — los `AxelorModule` del subsistema NO se instalan manualmente:** la clase `module/<Subsistema>Module.java` debe extender `com.axelor.app.AxelorModule`. Axelor descubre y carga automáticamente todos los `AxelorModule` del classpath al arrancar, así que **NUNCA** se añade un `install(new <Subsistema>Module())` en `SecretariaVirtualModule` ni en ningún otro sitio. Cualquier paso de diseño o implementación que diga "registrar el módulo en `SecretariaVirtualModule`" es incorrecto y debe omitirse.
 

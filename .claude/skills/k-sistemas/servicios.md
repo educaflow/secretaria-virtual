@@ -8,14 +8,23 @@ Un servicio de negocio en EducaFlow se compone de dos ficheros Java:
 
 ## Descubrimiento automático — sin registro en módulo
 
-`ModelServiceFactory` descubre la implementación por convención de paquetes. Para la entidad `com.pkg.db.MiEntidad` busca en orden:
+`ModelServiceFactory` descubre la implementación **por convención de nombre y paquete** — instancia la clase por reflexión sobre FQN fijos. Para la entidad `com.pkg.db.MiEntidad` busca **exactamente** estas cuatro clases, en este orden:
 
 1. `com.pkg.service.MiEntidadService`
 2. `com.pkg.service.MiEntidadServiceImpl`
 3. `com.pkg.service.impl.MiEntidadService`
 4. `com.pkg.service.impl.MiEntidadServiceImpl`
 
-**No hace falta ningún fichero de módulo ni binding explícito.** La implementación debe estar en uno de esos paquetes y tener el constructor obligatorio (ver abajo).
+**CRITICAL** — el nombre de la clase de implementación **MUST** ser `<Entidad>ServiceImpl`. La factoría construye los FQN candidatos concatenando el nombre simple de la entidad + el sufijo `Service`/`ServiceImpl`; si la clase se llama de otra forma, la factoría **NO** la encuentra, `resolve(...)` devuelve `null` y el subsistema falla en runtime **sin error de compilación**.
+
+El prefijo `Default` pertenece **solo** a la clase padre (`DefaultModelService<T>`). **MUST NOT** anteponerlo al nombre de la implementación concreta.
+
+- ✅ CORRECTO: `CorreoServiceImpl extends DefaultModelService<Correo> implements CorreoService`
+- ❌ INCORRECTO: `DefaultCorreoService` (lleva el prefijo `Default` del padre y le falta el sufijo `Impl` — la factoría no lo encuentra)
+- ❌ INCORRECTO: `DefaultCorreoServiceImpl` (mezcla el prefijo `Default` del padre con el sufijo `Impl` de la implementación — la factoría no lo encuentra)
+- ❌ INCORRECTO: `CorreoSvcImpl` (sufijo abreviado no contemplado por la factoría)
+
+**No hace falta ningún fichero de módulo ni binding explícito.** La implementación **MUST** estar en uno de esos cuatro paquetes con **ese nombre exacto** y tener el constructor obligatorio (ver abajo).
 
 ## Estructura de la interfaz
 

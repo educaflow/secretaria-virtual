@@ -9,13 +9,15 @@ Plantilla de historia de usuario para el pipeline SDD.
 
 Rellena cada sección con texto en lenguaje natural y vocabulario del usuario.
 NO uses formato técnico (nombres de clases Java, tablas de validaciones formales,
-XML…) — todo eso lo derivará después `/sdd-analyst-system`.
+XML…) — todo eso lo derivará después `/sdd-specification-system` y los skills
+posteriores del pipeline.
 
 Si una sección no aplica a tu iniciativa, déjala vacía o bórrala.
-Si tienes dudas sobre algún detalle, déjalo abierto — el analista te preguntará
-durante `/sdd-analyst-system` para resolver lo que falte.
+Si tienes dudas sobre algún detalle, déjalo abierto — se resolverán durante
+`/sdd-specification-system` con preguntas iterativas.
 
-Cuando termines, lanza `/sdd-analyst-system` para producir el análisis funcional.
+Cuando termines, lanza `/sdd-specification-system` para producir la
+especificación funcional.
 -->
 
 [Párrafo introductorio de 2–4 líneas: en qué consiste esta iniciativa, qué problema
@@ -77,63 +79,13 @@ implementación.]
 > modificar después de cierto punto, estados que no se pueden revertir, campos
 > obligatorios, validaciones criptográficas u otras que no son negociables.
 
-## Cómo se comporta y cómo se prueba
 
-Lista de escenarios que describen cómo se comporta la iniciativa y cómo
-verificarla. Cada escenario es autocontenido: una breve narrativa del recorrido
-y, debajo, el criterio observable de verificación.
-
-### Escenario 1 — [nombre corto: camino principal]
-
-[2–4 líneas en prosa: cómo arranca este caso, qué pasos atraviesa el actor,
-cómo termina. Menciona transiciones de estado relevantes si las hay
-(ej. "pendiente → firmada"). No describas pantallas concretas ni botones —
-solo lo que el actor consigue.]
-
-**Verificación**: dado [contexto / estado inicial], cuando [acción del actor],
-entonces [resultado observable que se puede comprobar].
-
-### Escenario 2 — [nombre corto: rama alternativa]
-
-[Narrativa breve del caso.]
-
-**Verificación**: dado [contexto / estado inicial], cuando [acción del actor],
-entonces [resultado observable que se puede comprobar].
-
-### Escenario 3 — [nombre corto: error o restricción dura]
-
-[Narrativa breve del caso de error.]
-
-**Verificación**: dado [...], cuando [...], entonces [mensaje, bloqueo o
-resultado esperado].
-
-> Cubre el camino principal, las ramas relevantes y al menos un caso de error o
-> restricción dura (de los que aparecen en "Restricciones que no pueden romperse").
-> Añade tantos escenarios como necesites — la numeración es solo para identificarlos.
->
-> La **verificación** debe ser observable: el resultado tiene que poder verse en
-> una pantalla, en un correo, en el estado de una entidad, en un mensaje de error…
-> No describas comprobaciones internas de implementación (consultas SQL, logs,
-> nombres de métodos). Si no se puede observar desde fuera, no es un criterio
-> de prueba útil.
->
-> Estos escenarios son la base de los **criterios de aceptación** del análisis
-> y la guía para validar manualmente la implementación al final del pipeline.
-
-## Lo que aporta valor
-
-- [Beneficio 1 para algún actor]
-- [Beneficio 2]
-- [...]
-
-> Por qué merece la pena hacer esto. Útil para el análisis posterior, ayuda a
-> entender qué es lo verdaderamente importante si hay que decidir entre alternativas.
 
 ## Preguntas abiertas (opcional)
 
-- [Duda sin resolver — el analista la abordará en su fase de preguntas]
+- [Duda sin resolver — En la especificación se abordará en su fase de preguntas]
 - [...]
 
 > Si tienes dudas concretas sobre cómo debe comportarse algo, anótalas aquí en
-> vez de inventarte una respuesta. El analista las usará como punto de partida
+> vez de inventarte una respuesta. En la especificación se usará como punto de partida
 > para preguntarte. Si no hay dudas, borra esta sección entera.

@@ -239,7 +239,7 @@ Tras la cobertura, **actualizar los contadores** en la sección "Tests E2E" del 
 
 ### 4.7 Prohibiciones (ver §2.3 del skill original)
 
-**PROHIBIDO** en cualquier fichero de `analysis/` (mismo barrido que en `sdd-specification-system-review`):
+Si , **MUST NOT** en cualquier fichero de `analysis/` (mismo barrido que en `sdd-specification-system-review`):
 
 - Clases Java, FQN (`com.educaflow…`), signaturas de método, tipos del framework Axelor.
 - JPQL embebido.
@@ -293,7 +293,7 @@ Aplica este checklist literal al terminar las correcciones. **MUST NOT** delegar
 - [ ] ¿Cada campo mencionado en columnas Grid, paneles Form o reglas U existe en el `entity-*.md` correspondiente?
 - [ ] ¿Las columnas `Reglas que dispara` y los `Qué hace` de Botones referencian IDs V/R/U existentes?
 - [ ] ¿La decisión `CASCADE / RESTRICT / SET NULL` está en el lado padre de la relación, no en el hijo?
-- [ ] ¿Ningún fichero contiene tecnicismos **PROHIBIDOS** (FQN, JPQL, atributos XML, nombres de método del runtime)?
+- [ ] ¿Ningún fichero contiene tecnicismos **prohibidos** (FQN, JPQL, atributos XML, nombres de método del runtime)?
 
 **Contadores actualizados:**
 
@@ -350,7 +350,7 @@ La carpeta analysis/ ya está conforme con el contrato actual. No se ha modifica
 - **MUST NOT** regenerar contenido desde el spec — solo corregir lo existente. La regeneración es trabajo de `/sdd-analyst-system`.
 - Corrección mecánica cuando es inequívoca (typos, encabezados de columna, normalización de IDs, contadores); `AskUserQuestion` cuando hay juicio (huecos en numeración con `design/` ya existente, descartar EARS, etiquetar cobertura V/R/U sin tests).
 - Trazabilidad bidireccional **REQUIRED**: EARS ↔ V/R/U y F ↔ T. Cada extremo debe estar mapeado o explícitamente descartado/justificado.
-- **PROHIBIDO** en análisis: tecnicismos Java/XML/JPQL, nombres de método del runtime, FQN.
+- **MUST NOT** en análisis: tecnicismos Java/XML/JPQL, nombres de método del runtime, FQN.
 - Pasos de tests en lenguaje de negocio (`Dado/Cuando/Entonces`). Cualquier selector CSS, ref `eN` o comando `playwright-cli` es invasión del territorio del implementer y se reporta.
 - **LIMIT**: máximo 3 iteraciones del checklist final §8.6 antes de devolver el control al usuario con los pendientes documentados.
 - No lanzar subagentes en paralelo — esta revisión es secuencial y preserva la intención de las ediciones manuales.

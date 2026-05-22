@@ -5,6 +5,7 @@ handoffs:
   - label: Implementar el diseño
     agent: sdd-implementer-system
     prompt: Implementar el diseño ya revisado
+allowed-tools: Bash(xmllint:*) Bash(ls:*) Bash(grep:*) Bash(cp:*) Bash(mkdir:*) Bash(find:*) Read Edit(./**) Write(./**) AskUserQuestion
 ---
 
 # sdd-designer-system-review
@@ -216,7 +217,7 @@ Aplicar las prohibiciones del §2.2 del skill original al texto markdown (no a l
 - **JPQL real** en tablas o ejemplos.
   - ✅ CORRECTO: "Busca solicitudes pendientes del usuario actual."
   - ❌ INCORRECTO: `SELECT s FROM SolicitudFirma s WHERE s.estado = 'PENDIENTE'` (es implementación).
-- **Acoplamiento a `expedientes`/`tiposexpedientes`/`tramites`** (arquitectura distinta — **PROHIBIDO** como referencia salvo iniciativas dentro de ese subsistema).
+- **Acoplamiento a `expedientes`/`tiposexpedientes`/`tramites`** (arquitectura distinta — **MUST NOT** como referencia salvo iniciativas dentro de ese subsistema).
   - ❌ INCORRECTO: `extends com.educaflow.subsystem.expedientes.AbstractExpedienteService`.
 
 ### 5.7 Tests E2E (`tests.md`) — copia literal del análisis
@@ -230,7 +231,7 @@ El `design/tests.md` debe ser **una copia idéntica** del `analysis/tests.md` (m
    - Mezclar manualmente (abortar la revisión, pedir al usuario que lo resuelva fuera del skill).
 3. Si **ninguno existe**: comprobar si el `specification.md` de la iniciativa tiene sección "Flujos principales" con `F-NNN`. **Si tiene flujos**, es un olvido: avisar y ofrecer relanzar `/sdd-analyst-system` para generar `tests.md`. **Si no tiene flujos**, es el caso legacy correcto: la iniciativa no usa tests E2E y `/sdd-implementer-system` saltará la Fase 3.5 sin error. Sin acción.
 
-**PROHIBIDO** reformatear, recortar o "limpiar" `design/tests.md` durante la revisión: su contenido es contrato. **MUST NOT** modificarlo salvo en el caso 1 (copia íntegra desde `analysis/tests.md`) o en el caso 2 con decisión explícita del usuario.
+**MUST NOT** reformatear, recortar o "limpiar" `design/tests.md` durante la revisión: su contenido es contrato. **MUST NOT** modificarlo salvo en el caso 1 (copia íntegra desde `analysis/tests.md`) o en el caso 2 con decisión explícita del usuario.
 
 ### 5.8 Coherencia diseño ↔ análisis (sin redibujar el diseño)
 
@@ -326,7 +327,7 @@ La carpeta design/ ya está conforme con el contrato actual. No se ha modificado
 - Cobertura V/R/U es el núcleo: cada V/R/U del análisis aparece en la matriz **y** su ubicación referenciada existe en un fichero real.
 - XML del diseño **MUST** validar contra los XSD de Axelor con `xmllint`; los errores semánticos no se autoarreglan.
 - `design/tests.md` es **contrato**: idéntico a `analysis/tests.md` salvo decisión explícita del usuario.
-- **PROHIBIDO** en `design.md`: cuerpos Java, JPQL, acoplamiento a `expedientes`/`tiposexpedientes`/`tramites`.
+- **MUST NOT** en `design.md`: cuerpos Java, JPQL, acoplamiento a `expedientes`/`tiposexpedientes`/`tramites`.
 - **LIMIT**: máximo 3 iteraciones del checklist §5.10 antes de reportar residuos al usuario.
 
 ---

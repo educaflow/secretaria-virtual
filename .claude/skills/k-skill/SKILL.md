@@ -235,7 +235,6 @@ $ARGUMENTS
 
 - **MUST** escribir el cuerpo del skill en **español** (es el idioma del proyecto EducaFlow).
 - **MUST** mantener las **palabras-clave imperativas en inglés**: `MUST`, `MUST NOT`, `REQUIRED`, `CRITICAL`, `STOP`, `ERROR`, `LIMIT`. Razones: (a) son palabras-señal visuales reconocibles, (b) el modelo las trata como tokens imperativos con peso especial, (c) coinciden con el estilo de `github/spec-kit` y otros frameworks de prompts.
-- **MUST** mantener en español: `PROHIBIDO` (es una etiqueta del proyecto, ya usada en los skills existentes).
 - **MUST NOT** mezclar prosa en inglés con prosa en español dentro del mismo párrafo (salvo las palabras-clave anteriores).
 
 ### 5.2 Tono
@@ -268,7 +267,6 @@ Usa estos marcadores **solo** para instrucciones realmente bloqueantes o crític
 | `**STOP**` | El skill **debe detenerse** y esperar al usuario o salir limpiamente. |
 | `**ERROR**` | Condición de error que aborta el flujo con un mensaje al usuario. |
 | `**LIMIT**` | Límite numérico duro (máx N preguntas, máx N iteraciones, exactamente N subagentes). |
-| `**PROHIBIDO**` | Etiqueta del proyecto para listas de cosas que nunca se hacen. |
 
 **Ejemplos**:
 
@@ -381,7 +379,7 @@ En uso normal no se especifican.
 
 ## 7. Lo que un skill NUNCA debe hacer
 
-**PROHIBIDO**:
+**MUST NOT**:
 
 - **MUST NOT** lanzar otros skills tú mismo si el flujo del proyecto dice que el usuario decide cuándo. Indica al usuario el comando exacto a ejecutar (`/sdd-foo …`) y **STOP**.
 - **MUST NOT** suponer que el usuario ha leído el SKILL.md. El skill se dirige al **modelo**, no al humano.
@@ -394,7 +392,7 @@ En uso normal no se especifican.
 
 ## 8. Quick Guidelines
 
-- Cuerpo en español, palabras-clave en inglés (`MUST`, `MUST NOT`, `REQUIRED`, `CRITICAL`, `STOP`, `ERROR`, `LIMIT`) + etiqueta `PROHIBIDO` del proyecto.
+- Cuerpo en español, palabras-clave en inglés (`MUST`, `MUST NOT`, `REQUIRED`, `CRITICAL`, `STOP`, `ERROR`, `LIMIT`).
 - Frontmatter mínimo: `name` + `description` larga. `handoffs` si hay siguiente paso en el pipeline.
 - Tipo knowledge (`k-*`): documenta convenciones y patrones. Tipo action (`sdd-*`, `code-*`): ejecuta proceso con fases numeradas.
 - Estructura mínima de action-skill: `User Input` → `Outline` (con `STOP conditions`) → fases numeradas → `Quick Guidelines`.
@@ -429,7 +427,6 @@ Aplica este checklist a cualquier `SKILL.md` que escribas o revises. **LIMIT**: 
 
 - [ ] ¿El cuerpo está en español?
 - [ ] ¿Las palabras-clave imperativas (`MUST`, `MUST NOT`, `REQUIRED`, `CRITICAL`, `STOP`, `ERROR`, `LIMIT`) están en inglés y se usan solo en instrucciones realmente bloqueantes?
-- [ ] ¿`PROHIBIDO` se usa para etiquetas de listas de cosas que nunca se hacen?
 - [ ] ¿Las instrucciones están en imperativo de segunda persona ("lee", "valida", "lanza")?
 
 ### 9.4 Contenido

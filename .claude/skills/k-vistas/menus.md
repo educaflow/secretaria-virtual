@@ -11,7 +11,7 @@ Existen 2 tipos de menuitems:
 
 ## Ubicación de los menuitems
 - **REGLA OBLIGATORIA — fichero único:** TODOS los `<menuitem>` del proyecto se colocan en el ÚNICO fichero `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`. Esto aplica también a los menús de subsistemas y sistemas nuevos: sus entradas se AÑADEN a ese fichero existente.
-- **PROHIBIDO** crear ficheros nuevos como `menus-<subsistema>.xml`, `menus-<sistema>.xml` o cualquier otro fichero adicional para menuitems, ni en `secretariavirtual/views/` ni en cualquier otra carpeta. Si un diseño los lista como ficheros a crear, es un error del diseño que debe corregirse antes de implementar.
+- **MUST NOT** crear ficheros nuevos como `menus-<subsistema>.xml`, `menus-<sistema>.xml` o cualquier otro fichero adicional para menuitems, ni en `secretariavirtual/views/` ni en cualquier otra carpeta. Si un diseño los lista como ficheros a crear, es un error del diseño que debe corregirse antes de implementar.
 - Los `<menuitem>` hoja se colocará justo debajo del `<menuitem>` raíz al que pertenece.
 
 

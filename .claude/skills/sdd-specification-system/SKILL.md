@@ -30,15 +30,14 @@ You **MUST** consider the user input before proceeding (if not empty). Si los ar
 
 1. **Localizar** la `user-story.md` (Fase 0) — ruta explícita o auto-detección de la carpeta más reciente en `.sdd/drafts/`.
 2. **Explorar** el contexto del proyecto (Fase 1) — `k-sistemas`, `k-seguridad`, `CLAUDE.md`, subsistemas existentes.
-3. **Preguntar** al usuario hasta tener toda la info de negocio (Fase 2) — **LIMIT**: máximo 12 preguntas por ronda.
+3. **Preguntar** al usuario hasta tener toda la info de negocio (Fase 2) — sin límite de preguntas ni de rondas.
 4. **Generar** la especificación (Fase 3) — Etapa A: **exactamente 5** subagentes en paralelo; Etapa B: unificación por el agente principal.
-5. **Guardar** la especificación tras aprobación (Fase 4) — `.sdd/drafts/{iniciativa}/specification.md`.
+5. **Guardar** la especificación (Fase 4) — `.sdd/drafts/{iniciativa}/specification.md`.
 
 **STOP conditions**:
 
 - Frontmatter de `user-story.md` inválido → **ERROR** y detente.
 - `specification.md` ya existe → **STOP** y preguntar al usuario antes de regenerar (ver "Guard" en Fase 0).
-- Spec no aprobada por el usuario → **MUST NOT** guardar el fichero.
 
 ---
 
@@ -83,7 +82,16 @@ Regla práctica de duda: **¿lo entendería un supervisor del centro sin formaci
 
 `AskUserQuestion` está **explícitamente autorizado** en la Fase 2 y en la unificación final (Fase 3, Etapa B) siempre que haya dudas razonables de **negocio**: una operación ambigua, una regla o validación que falta, una relación que no queda clara, un actor cuyo permiso no se entiende. **No se inventan respuestas críticas** — se pregunta. No se abusa: solo dudas reales que cambien la salida.
 
-**Consecuencia operativa:** los 5 subagentes que generan candidaturas de especificación (Fase 3, Etapa A) corren **en paralelo** y por eso **no pueden usar `AskUserQuestion`**. Si encuentran ambigüedad, eligen una interpretación razonable, la marcan como asunción y siguen adelante. El agente principal sí puede preguntar, antes (Fase 2) y después (unificación).
+**CRITICAL — silencio de la US sobre un concepto conocido del proyecto NO es licencia para inferir.** Si la spec va a hablar de un rol, subsistema, entidad o concepto que **existe en el proyecto** (p.ej. aparece en `CLAUDE.md`, en los `k-*` cargados, o en el árbol de `subsystem/` y `system/`) pero la historia de usuario **no lo menciona ni lo excluye**, **MUST** preguntar al usuario qué hacer con ese concepto antes de redactarlo. **MUST NOT** asumir "no mencionado = sin acceso", ni "no mencionado = igual que el más parecido", ni omitirlo silenciosamente. La marca `*` de inferido **NO** sustituye a preguntar en estos casos: solo aplica a matices secundarios que no cambian el alcance.
+
+Ejemplos concretos del proyecto donde aplica esta regla:
+
+- ✅ CORRECTO: la US menciona Profesor/Alumno/Familiar para "Mis correos" pero no menciona Externo (que existe como rol en `CLAUDE.md`). Preguntar en Fase 2: *"El rol Externo no aparece en la US, ¿qué acceso tiene al subsistema?"*.
+- ✅ CORRECTO: la US habla de "expedientes" sin precisar si el correo se asocia a uno solo o a varios. Preguntar.
+- ❌ INCORRECTO: marcar `*Externo: sin acceso *(inferido)*` sin haber preguntado, porque "el usuario no lo mencionó".
+- ❌ INCORRECTO: incluir Externo silenciosamente en la lista de "Mis correos" porque "es parecido a Alumno".
+
+**Consecuencia operativa:** los 5 subagentes que generan candidaturas de especificación (Fase 3, Etapa A) corren **en paralelo** y por eso **no pueden usar `AskUserQuestion`**. Si encuentran ambigüedad, eligen una interpretación razonable, la marcan como asunción y siguen adelante. El agente principal sí puede preguntar, antes (Fase 2) y después (unificación) — y en el caso de conceptos conocidos del proyecto omitidos por la US, **MUST** hacerlo (ver párrafo anterior y la verificación obligatoria al inicio de la Etapa B).
 
 ### 2.3 Frontera especificación / análisis / diseño
 
@@ -95,7 +103,7 @@ La especificación describe **QUÉ necesita el negocio**, en lenguaje de negocio
 - En qué entidad concreta vive cada campo cuando hay ambigüedad → análisis.
 - Cómo se implementa nada (clases, métodos, vistas concretas) → diseño.
 
-**PROHIBIDO** en cualquier sección de la especificación: cualquier elemento de la columna "Qué NO va" de la tabla siguiente. Cada sección se describe al nivel funcional adecuado:
+**MUST NOT** en cualquier sección de la especificación: cualquier elemento de la columna "Qué NO va" de la tabla siguiente. Cada sección se describe al nivel funcional adecuado:
 
 | Sección | Qué SÍ va | Qué NO va |
 |---------|-----------|-----------|
@@ -158,7 +166,7 @@ Los requisitos del sistema (lo que antes era una sola lista plana en prosa) se e
 
 #### 2.4.4 Inferencias
 
-Los requisitos que el spec deduce sin que el usuario los haya enunciado explícitamente se marcan con un `*` **antes del ID** (p.ej. `*E-EV-007`) y se listan también en "Asunciones a confirmar" al final del documento.
+Los requisitos que el spec deduce sin que el usuario los haya enunciado explícitamente se marcan con un `*` **antes del ID** (p.ej. `*E-EV-007`) y se listan también en "Asunciones a confirmar" al final del documento. **Esta marca y esa sección son intermedias**: existen solo en el output de los subagentes de la Etapa A (que no pueden preguntar) y desaparecen en la Etapa B, donde el agente principal **MUST** resolver cada asunción con `AskUserQuestion`, aplicar la respuesta al spec y eliminar tanto las marcas `*` como la sección "Asunciones a confirmar" antes de guardar. El `specification.md` final que se escribe en Fase 4 **MUST NOT** contener ninguna marca `*` ni sección "Asunciones a confirmar".
 
 #### 2.4.5 Ejemplos
 
@@ -217,7 +225,7 @@ Si el skill se invoca sin argumentos:
 
 Una vez localizada, se aplica el mismo flujo que en el caso 1 (validación de frontmatter incluida).
 
-**PROHIBIDO**:
+**MUST NOT**:
 - **MUST NOT** elegir cualquier carpeta que no sea la última por orden alfabético del prefijo timestamp.
 - **MUST NOT** continuar sin confirmación del usuario tras mostrar el resumen.
 
@@ -259,7 +267,7 @@ Antes de hacer ninguna pregunta:
 4. **Comprobar si la solicitud es divisible.** Si cubre múltiples subsistemas o sistemas independientes (podrían implementarse y desplegarse por separado sin depender entre sí), propón al usuario dividirla en especificaciones separadas antes de continuar. Cada especificación debe producir software funcional por sí solo.
 5. Revisar `src/main/java/com/educaflow/base/infrastructure/` para identificar utilidades reutilizables (PDF, integración externa, mail, etc.).
 
-**PROHIBIDO**:
+**MUST NOT**:
 
 - **MUST NOT** leer ni usar como referencia `expedientes`, `tiposexpedientes` ni `tramites` — siguen otra arquitectura y tomarlos como ejemplo lleva a especificaciones incorrectas.
 - **MUST NOT** leer otros ficheros `specification.md` existentes en `.sdd/` como referencia. La especificación que generes debe partir de la historia de usuario actual y la exploración del código real, no de especificaciones previas que documentan trabajo ya hecho.
@@ -268,7 +276,7 @@ Antes de hacer ninguna pregunta:
 
 ## 6. Fase 2 — Preguntas iterativas
 
-Haz preguntas usando `AskUserQuestion` en rondas. **LIMIT**: máximo 12 preguntas por ronda. **LIMIT**: máximo 3 rondas antes de proceder con asunciones marcadas con `*` para las dudas que sigan abiertas. Espera la respuesta antes de continuar. Para cuando tengas respuesta clara a todos los puntos de la lista de información necesaria, continúa con la Fase 3. Para cada pregunta, explícala muy bien porque a veces no está clara la consecuencia de cada decisión.
+Haz preguntas usando `AskUserQuestion` en rondas. **Sin límite** de preguntas ni de rondas: pregunta todo lo que necesites hasta cerrar las dudas de negocio. Agrupa preguntas relacionadas en la misma llamada (hasta 4 por llamada, que es el límite del propio `AskUserQuestion`) para no fragmentar la conversación. Espera la respuesta antes de continuar. Para cuando tengas respuesta clara a todos los puntos de la lista de información necesaria, continúa con la Fase 3. Para cada pregunta, explícala muy bien porque a veces no está clara la consecuencia de cada decisión.
 
 **CRITICAL**: estás preguntando para una **especificación funcional, no para un análisis técnico**. **MUST NOT** preguntar por tipos de campos, por nombres técnicos de validaciones, por momentos `Antes`/`Después`, ni por implementación. Pregunta por **qué necesita el negocio**.
 
@@ -300,6 +308,7 @@ Haz preguntas usando `AskUserQuestion` en rondas. **LIMIT**: máximo 12 pregunta
 **Seguridad:**
 - ¿Qué tipos de usuario pueden ver o editar cada cosa?
 - ¿Los datos son por centro (multicentro) o globales?
+- **REQUIRED — Cobertura explícita de los roles del proyecto.** Toma la lista de tipos de usuario y cargos del proyecto (la que aparece en `CLAUDE.md` y/o `k-seguridad`) y, para cada rol que **NO** esté mencionado expresamente en la historia de usuario, pregunta su nivel de acceso al subsistema (ver acceso filtrado, ver acceso global, sin acceso, etc.). **MUST NOT** dar por sentado que el silencio de la US significa "sin acceso" ni "igual que el rol más parecido". Aplica también a conceptos del proyecto distintos de roles (subsistemas, entidades) que la US no mencione pero que la spec va a tocar.
 
 **Recursos y datos iniciales:**
 - ¿Plantillas PDF, esquemas XSD, certificados u otros recursos en classpath?
@@ -314,10 +323,10 @@ Para cuando:
 - Sabes cuáles son los flujos principales (casos de uso de extremo a extremo) del sistema.
 - Sabes qué requisitos de negocio aplican (cada uno encajable en un patrón EARS; sin clasificar todavía en V/R/U).
 - Sabes qué pantallas hay y cómo se navega entre ellas, en lenguaje funcional.
-- Sabes quién accede a qué y con qué restricciones, en lenguaje natural.
+- Sabes quién accede a qué y con qué restricciones, en lenguaje natural, **incluido el acceso (o no acceso) de cada rol del proyecto listado en `CLAUDE.md` que la US no mencione expresamente**.
 - No quedan ambigüedades de **negocio** que bloqueen el análisis. (Las ambigüedades técnicas — qué entidad lleva qué campo, qué regla o validación es bloqueante — las resuelve el analista.)
 
-Si una pregunta tiene un valor por defecto razonable, no la hagas — asúmelo en el borrador y marca la asunción con `*` para que el usuario la corrija.
+Si una pregunta tiene un valor por defecto razonable y secundario (no cambia el alcance del subsistema), puedes diferirla a la resolución final de asunciones en Etapa B paso 7 (que la preguntará igualmente). **Excepción:** la cobertura de roles/conceptos conocidos del proyecto omitidos por la US (ver principio 2.2) **MUST** preguntarse aquí en Fase 2, no diferirse.
 
 ---
 
@@ -436,9 +445,13 @@ El subagente devuelve una especificación con esta estructura exacta:
 - <Los flujos `*F-NNN` y los requisitos `*E-XX-NNN` marcados como inferidos, y otras decisiones marcadas con `*`, repetidos aquí con justificación breve>.
 ```
 
-> Nota: si una subsección EARS no tiene ningún requisito en esta especificación, se omite la subsección entera (no se deja vacía).
+> Nota 1: si una subsección EARS no tiene ningún requisito en esta especificación, se omite la subsección entera (no se deja vacía).
+>
+> Nota 2 — **plantilla intermedia, no final**: esta plantilla la rellena cada subagente de la Etapa A. La sección "Asunciones a confirmar" y las marcas `*` antes de IDs son **intermedias**: el agente principal las resuelve en Etapa B paso 7 preguntando al usuario, aplica las respuestas al spec, y **MUST** eliminar tanto las marcas `*` como la sección "Asunciones a confirmar" antes de guardar el `specification.md` final en Fase 4.
 
 #### Checklist del subagente
+
+> **Nota — alcance del checklist**: evalúa el output **intermedio** de cada subagente de la Etapa A. Por eso aquí sí se exigen marcas `*` y sección "Asunciones a confirmar" cuando haya inferencias. La limpieza final (borrar marcas `*` y la sección entera tras resolver con el usuario) la hace el agente principal en Etapa B paso 7, no el subagente.
 
 - [ ] ¿Cada entidad describe qué representa y enumera sus campos funcionalmente relevantes **sin tipo**?
 - [ ] ¿La especificación está libre de campos técnicos (IDs, FKs internas, auditoría, flags de control, versiones)?
@@ -468,27 +481,30 @@ El subagente devuelve una especificación con esta estructura exacta:
 
 Una vez recibidas las 5 candidaturas, **el agente principal** (no un subagente) produce la especificación final unificada:
 
+0. **REQUIRED — Auditoría de inferencias sobre conceptos del proyecto** (paso previo, red de seguridad por si la Fase 2 dejó algún hueco). Antes de empezar a consolidar, recorre las 5 candidaturas y haz una lista de los **roles, subsistemas, entidades y conceptos del proyecto** que cualquiera de ellas haya incluido **sin que la historia de usuario los mencione expresamente** — tanto si los marca con `*` como si los introduce sin marca. Para cada uno, comprueba si está cubierto por una respuesta del usuario en Fase 2. Si no lo está, **MUST** preguntar al usuario ahora con `AskUserQuestion` antes de consolidar; la respuesta se aplica a todas las candidaturas. **MUST NOT** dejar pasar la inferencia con `*` como sustituto de la pregunta (ver principio 2.2). Casos típicos: roles del proyecto omitidos por la US (Externo, Familiar…), subsistemas adyacentes que las candidaturas asumen como dependencia sin que la US lo confirme, conceptos de seguridad/centro inferidos.
+
 1. **Compara las 5 especificaciones** entidad por entidad, sección por sección.
 2. **Para cada decisión donde haya divergencia**, escoge la mejor opción según el criterio funcional: claridad para negocio, ausencia de detalles técnicos, fidelidad a la historia de usuario. Cuando haya empate razonable, elige la opción que minimiza ambigüedad para el análisis.
 3. **Para la sección "Flujos principales"**, consolida los flujos de las 5 candidaturas:
    - Si un mismo flujo aparece redactado de distintas formas, elige la versión más narrativa y libre de tecnicismos.
-   - Si una candidatura propone un flujo que las demás no, evalúa si es genuino (incluirlo) o si es una invención (incluirlo con `*` antes del ID y añadirlo a "Asunciones a confirmar").
+   - Si una candidatura propone un flujo que las demás no, evalúa si es genuino (incluirlo) o si es una asunción agresiva. Si dudas, marca provisional con `*` antes del ID y añádelo a la lista de trabajo del paso 5; el paso 7 **MUST** preguntarlo al usuario y resolverlo antes de guardar. Esa marca `*` es temporal y desaparecerá del spec final.
    - **Renumera** `F-001`, `F-002`… sin huecos. Los IDs que vinieran de los subagentes no son vinculantes: el ID final lo asignas tú al consolidar.
 4. **Para la sección "Requisitos (EARS)"**, consolida en las 5 subsecciones EARS:
    - Si un requisito equivalente aparece en varias candidaturas con redacciones distintas (o incluso clasificado en distintos patrones EARS), elige el patrón correcto según el árbol §2.4.2 y la redacción más precisa.
-   - Si un requisito aparece en algunas candidaturas pero no en otras, evalúa si es genuino (incluirlo) o si es una asunción agresiva (incluirlo con `*` antes del ID).
+   - Si un requisito aparece en algunas candidaturas pero no en otras, evalúa si es genuino (incluirlo) o si es una asunción agresiva. Si dudas, marca provisional con `*` antes del ID y añádelo a la lista de trabajo del paso 5; el paso 7 **MUST** preguntarlo al usuario y resolverlo antes de guardar. Esa marca `*` es temporal y desaparecerá del spec final.
    - **Renumera** dentro de cada patrón empezando en `001` y sin huecos. Los IDs que vinieran de los subagentes no son vinculantes: el ID final lo asignas tú al consolidar.
    - **No clasifiques en V/R/U**. La clasificación V/R/U sigue siendo trabajo del análisis.
-5. **Para asunciones a confirmar**, agrupa todas las asunciones marcadas con `*` de las 5 candidaturas, elimina duplicados y razónalas.
-6. **Resuelve dudas con `AskUserQuestion`** si en la unificación detectas algo ambiguo que ninguna candidatura resolvió de forma satisfactoria. Aquí sí puedes preguntar (estás en el agente principal, no en paralelo).
-7. **Aplica el checklist final** (ver subsección "Checklist del subagente" en Etapa A) sobre la especificación unificada — la unificación puede haber introducido inconsistencias (redacciones mezcladas, asunciones combinadas, campos técnicos colados al consolidar) que ningún subagente individual podía detectar. **LIMIT**: máximo 3 iteraciones de corrección; si tras la 3ª siguen fallando ítems, documenta las inconsistencias residuales y avísalo al usuario antes de presentar el borrador.
-8. **REQUIRED — Presenta el borrador al usuario para su aprobación.** **MUST NOT** guardar nada hasta tener el visto bueno explícito.
+5. **Recoge todas las asunciones marcadas con `*`** de las 5 candidaturas (en flujos `*F-NNN`, requisitos `*E-XX-NNN`, secciones "Asunciones a confirmar" y cualquier otra marca de inferencia) más las que tú mismo introduzcas al consolidar en los pasos 3 y 4. Deduplica las equivalentes y consolídalas en una única lista interna de trabajo.
+6. **Resuelve dudas con `AskUserQuestion`** si en la unificación detectas algo ambiguo adicional (redacciones contradictorias entre candidatos, decisiones de empate que no resolvió ningún subagente, etc.).
+7. **REQUIRED — Resuelve TODAS las asunciones de la lista del paso 5 con el usuario antes de guardar.** Recorre la lista y pregunta cada asunción con `AskUserQuestion`, agrupando hasta 4 por llamada para no abrumar al usuario. Aplica cada respuesta al spec unificado: sustituye el texto inferido por la decisión del usuario, elimina la marca `*` antes del ID del flujo o requisito afectado y, si la respuesta invalida un ítem, elimínalo. Tras procesar toda la lista, **MUST** borrar íntegramente la sección "Asunciones a confirmar" del spec final. **MUST NOT** dejar ninguna marca `*` ni sección "Asunciones a confirmar" en el fichero que se va a guardar. Si una asunción no admite respuesta clara del usuario (genuino out-of-scope), conviértela en una nota explícita dentro de la sección correspondiente del spec (p.ej. "frecuencia del job: pendiente de configurar por administración") y elimínala de la lista de asunciones.
+8. **Aplica el checklist final** (ver subsección "Checklist del subagente" en Etapa A) sobre la especificación unificada — la unificación puede haber introducido inconsistencias (redacciones mezcladas, campos técnicos colados al consolidar) que ningún subagente individual podía detectar. Añade además estos dos checks específicos de la unificación: (a) el spec final NO contiene ninguna marca `*` antes de ningún ID; (b) el spec final NO contiene la sección "Asunciones a confirmar". **LIMIT**: máximo 3 iteraciones de corrección; si tras la 3ª siguen fallando ítems, documenta las inconsistencias residuales y avisa al usuario tras guardar el fichero.
+9. **Pasa directamente a la Fase 4 y guarda el fichero sin pedir aprobación.** **MUST NOT** mostrar el borrador completo al usuario ni preguntar si lo aprueba antes de escribirlo. El usuario revisará el `specification.md` ya guardado y, si quiere cambios, lo edita a mano o lanza `/sdd-specification-system-review`.
 
 ---
 
 ## 8. Fase 4 — Guardar la especificación
 
-**REQUIRED**: solo tras aprobación explícita del usuario, guarda la especificación. **MUST NOT** guardar sin aprobación.
+**REQUIRED**: guarda la especificación directamente al terminar la unificación. **MUST NOT** mostrar el borrador completo al usuario ni preguntar si lo aprueba antes de escribir el fichero — la salida final es el propio `specification.md` guardado.
 
 > **REGLA OBLIGATORIA — ruta:** la especificación se guarda **en la misma carpeta que el fichero `user-story.md`** (la carpeta de la iniciativa), con el nombre fijo **`specification.md`**. **No** se crea ninguna subcarpeta.
 >
@@ -503,13 +519,13 @@ Una vez recibidas las 5 candidaturas, **el agente principal** (no un subagente) 
 
 **Procedimiento obligatorio antes de escribir el fichero:**
 
-Escribir el `specification.md` en `.sdd/drafts/{carpeta-iniciativa}/specification.md` con la herramienta `Write` (sobrescribe si ya existía — la nueva especificación sustituye totalmente a la anterior; **MUST NOT** conservar versiones previas).
+Escribir el `specification.md` en `.sdd/drafts/{carpeta-iniciativa}/specification.md` con la herramienta `Write` (sobrescribe si ya existía — la nueva especificación sustituye totalmente a la anterior; **MUST NOT** conservar versiones previas). El fichero se escribe **sin pedir aprobación previa**: el usuario lo revisará ya escrito.
 
-**PROHIBIDO**:
+**MUST NOT**:
 - **MUST NOT** crear subcarpetas tipo `specification_NN/` — el fichero se guarda directo en la carpeta de la iniciativa.
 - **MUST NOT** conservar versiones previas: solo existe un `specification.md` por iniciativa en cada momento.
 
-El fichero guardado **MUST** comenzar con la siguiente cabecera frontmatter, seguida del contenido del borrador aprobado:
+El fichero guardado **MUST** comenzar con la siguiente cabecera frontmatter, seguida del contenido del spec unificado en Etapa B (con todas las asunciones ya resueltas en el paso 7, sin marcas `*` ni sección "Asunciones a confirmar"):
 
 ```
 ---
@@ -538,8 +554,8 @@ Para generar el análisis (entidades formales, pantallas estructuradas, tablas V
 - **MUST NOT** incluir tipos de campo, nombres de clase, signaturas de método, ni clasificación `V-XXX`/`R-XXX`/`U-XXX`.
 - Cada requisito **MUST** seguir literalmente una de las 5 plantillas EARS (`E-UB`/`E-EV`/`E-ST`/`E-UN`/`E-OP`).
 - Cada flujo principal `F-NNN` **MUST** ser narrativo (1-3 frases), **MUST NOT** ser Given/When/Then ni mencionar pantallas/botones/campos UI.
-- **REQUIRED**: preguntar antes que inventar; lo inferido se marca con `*` antes del ID y se lista en "Asunciones a confirmar".
-- **LIMIT**: máximo 12 preguntas por ronda y máximo 3 rondas en Fase 2; **exactamente 5 subagentes en paralelo** en una única respuesta en Fase 3 Etapa A.
+- **REQUIRED**: preguntar antes que inventar. Los subagentes paralelos (Etapa A) que no pueden preguntar marcan lo inferido con `*` antes del ID y lo listan en "Asunciones a confirmar"; el agente principal (Etapa B paso 7) resuelve cada una con `AskUserQuestion`, aplica las respuestas al spec y borra tanto las marcas `*` como la sección antes de guardar. El `specification.md` final **MUST NOT** contener ninguna marca `*` ni sección "Asunciones a confirmar".
+- **Fase 2 sin límite** de preguntas ni de rondas; **exactamente 5 subagentes en paralelo** en una única respuesta en Fase 3 Etapa A.
 - **CRITICAL**: la regla de oro ante la duda — ¿lo entendería un supervisor del centro sin formación técnica? Si la respuesta es **no**, no va en la especificación.
 
 ---

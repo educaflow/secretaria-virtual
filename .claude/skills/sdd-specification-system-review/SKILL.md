@@ -119,7 +119,7 @@ Las validaciones se ejecutan **en este orden estricto**: §5.1 → §5.7.
 - Cada bullet **MUST** empezar por su ID `F-NNN` (con `*` antes si es inferido), seguido de `—` y la frase narrativa.
 - Cada flujo se describe en **1 a 3 frases narrativas**. Si un bullet excede 3 frases, avisa y propón dividirlo.
 - Numeración local desde `F-001` sin huecos. Mismas reglas que EARS sobre duplicados / huecos / IDs malformados (ver §5.4).
-- **PROHIBIDO** en flujos:
+- **MUST NOT** en flujos:
   - Nombres concretos de pantalla (mayúsculas o entre comillas).
   - Botones (`"Guardar"`, `"Rechazar"`).
   - Nombres de campo UI o mensajes de error literales.
@@ -179,7 +179,7 @@ Si un bullet está en la subsección incorrecta según el árbol §2.4.2 del ski
 
 ### 5.6 Prohibiciones
 
-Busca y reporta. **PROHIBIDO** en cualquier sección (corrige cuando sea inequívoco, pregunta cuando no):
+Busca y reporta. **MUST NOT** en cualquier sección (corrige cuando sea inequívoco, pregunta cuando no):
 
 - Tipos Java (`String`, `LocalDateTime`, `Integer`, `boolean`, `Long`).
 - FQN `com.educaflow.*` o nombres de clase Java (`*Service`, `*Controller`, `*Impl`).
@@ -262,7 +262,7 @@ specification.md ya está conforme con el contrato actual. No se ha modificado n
 - Numeración local por patrón con tres dígitos, sin huecos salvo que el spec ya haya sido consumido por el analyst.
 - **MUST NOT** renumerar IDs si ya existe la carpeta `analysis/` hermana — los huecos se conservan y se documentan para no romper trazabilidad.
 - Cada bullet inferido (`*`) **MUST** tener entrada en "Asunciones a confirmar".
-- **PROHIBIDO** introducir tecnicismos (V/R/U, FQN, JPQL, atributos XML, Given/When/Then) en cualquier sección del spec.
+- **MUST NOT** introducir tecnicismos (V/R/U, FQN, JPQL, atributos XML, Given/When/Then) en cualquier sección del spec.
 - Edita en sitio: nunca crea, mueve o renombra ficheros.
 
 ---

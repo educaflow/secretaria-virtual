@@ -5,6 +5,7 @@ handoffs:
   - label: Cerrar la iniciativa
     agent: sdd-close-spec
     prompt: Cerrar la iniciativa recién implementada — archivar en .sdd/specs/ y actualizar los CLAUDE.md afectados.
+allowed-tools: Bash(playwright-cli:*) Bash(ls:*) Bash(grep:*) Bash(cp:*) Bash(mkdir:*) Bash(find:*) Read Edit(src/**) Write(src/**) Bash(./gradlew:*)  AskUserQuestion
 ---
 
 # sdd-implementer-system
@@ -105,7 +106,7 @@ src/main/java/com/educaflow/
 
 Los XML de `design/domains/`, `design/views/` y `design/menus.xml` son la fuente de verdad: el diseñador ya los validó con `xmllint` contra sus XSD. **MUST** copiarlos tal cual al destino.
 
-**PROHIBIDO**:
+**MUST NOT**:
 
 - **MUST NOT** reescribir los XML desde el `design.md`.
 - **MUST NOT** reformatearlos al vuelo (cambios de indentación, reordenar atributos, etc.).
@@ -118,7 +119,7 @@ Si al copiar detectas que un XML del diseño está mal, **STOP** y pide al usuar
 
 Este skill **MUST NOT** escribir código Java. Una vez los XML están en su sitio, toda la implementación (servicios, controladores, repositorios, datos iniciales, seguridad) se delega en `code-implementer` pasándole el `design.md` completo y los skills de dominio (`k-sistemas`, `k-vistas`, y `k-seguridad` si aplica).
 
-**PROHIBIDO**:
+**MUST NOT**:
 
 - **MUST NOT** pasar al implementador un `design.md` resumido, troceado o reescrito. Se le entrega tal cual lo dejó el diseñador. El diseño es el contrato.
 
@@ -210,7 +211,7 @@ Si el skill se invoca sin argumentos:
    - Sí → continuar con la Fase 1.
    - No → pedir al usuario la ruta del diseño que quiere implementar. Detente.
 
-**PROHIBIDO**:
+**MUST NOT**:
 
 - **MUST NOT** elegir una iniciativa que no sea la última por orden alfabético del prefijo timestamp.
 - **MUST NOT** usar `mtime` o cualquier criterio distinto del orden alfabético del timestamp.
@@ -309,7 +310,7 @@ Delegando ahora en code-implementer la implementación del código Java...
      - Si detecta que un XML ya copiado tiene un error, **detenerse y notificar** — no editarlo (la fuente de verdad es el diseño; corregirlo requiere volver a `/sdd-designer-system`).
    - La instrucción de **STOP** y preguntar ante cualquier bloqueo (principio 2.4): dependencia inexistente, instrucción ambigua, verificación que falla, recurso no disponible. **MUST NOT** adivinar.
 
-**PROHIBIDO**:
+**MUST NOT**:
 
 - **MUST NOT** que el implementador lea otros `design.md` o `analysis.md` de otras iniciativas en `.sdd/` como referencia. Implementa únicamente el diseño recibido. Consultar diseños anteriores mezclaría decisiones de distintas iteraciones.
 
