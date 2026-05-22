@@ -65,6 +65,10 @@ Para cada parte de Axelor se han creado conjuntos de Skills:
 
 Es imperativo que siempre uses los skills correspondientes para cualquier acción relacionada con Axelor, ya que siguen una arquitectura propia de la secretaría virtual y del framework Axelor.
 
+### Modificación de skills
+
+Siempre que crees o modifiques un skill (cualquier `SKILL.md` en `.claude/skills/`), **MUST** consultar y aplicar el skill `/k-skill`, que define las reglas, frontmatter obligatorio, estructura y convenciones de redacción de los skills del proyecto.
+
 ## Flujo SDD (Spec-Driven Development)
 
 El desarrollo de cualquier funcionalidad nueva en la secretaría virtual se hace siguiendo un pipeline de skills `/sdd-*` que transforma una idea informal en código implementado, pasando por etapas intermedias revisables. Cada etapa produce artefactos que sirven de input a la siguiente.
