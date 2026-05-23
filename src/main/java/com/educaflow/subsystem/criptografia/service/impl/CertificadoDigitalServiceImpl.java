@@ -11,7 +11,6 @@ import com.axelor.db.modelservice.BusinessMessage;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.base.util.DniUtil;
 import com.educaflow.base.util.MetaFileUtil;
-import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
 import com.educaflow.subsystem.criptografia.db.TipoUbicacionCertificado;
 import com.educaflow.subsystem.criptografia.db.repo.CertificadoDigitalRepository;
@@ -33,6 +32,7 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
 
     @Override
     public AlmacenClave getAlmacenClaveByDni(String dni) {
+        validateGetAlmacenClaveByDni(dni).ifPresent(BusinessMessages::throwIfInvalid);
         CertificadoDigital certificado = ((CertificadoDigitalRepository) repository).findByDni(dni);
 
         if (certificado == null) {
@@ -64,6 +64,15 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         };
     }
 
+    /****************************************************************************************/
+    /******************************** Métodos de Validación *********************************/
+    /****************************************************************************************/
+
+    @Override
+    public Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni) {
+        return Optional.empty();
+    }
+
     @Override
     public Optional<BusinessMessages> validateInsert(CertificadoDigital certificado) {
         return validateCertificado(certificado);
@@ -74,10 +83,9 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         return validateCertificado(certificado);
     }
 
-    @Override
-    public Optional<BusinessMessages> validateRemove(CertificadoDigital certificado) {
-        return Optional.empty();
-    }
+    /**************************************************************************************/
+    /********************************    Otras funciones    *******************************/
+    /**************************************************************************************/
 
     private Optional<BusinessMessages> validateCertificado(CertificadoDigital certificado) {
         BusinessMessages messages = new BusinessMessages();

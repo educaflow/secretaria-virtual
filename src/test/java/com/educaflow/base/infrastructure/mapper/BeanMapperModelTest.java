@@ -2,7 +2,7 @@ package com.educaflow.base.infrastructure.mapper;
 
 import com.axelor.db.Model;
 import com.educaflow.base.infrastructure.junit.JUnitHelper;
-import com.educaflow.base.util.AllowProperties;
+import com.axelor.db.modelservice.AllowProperties;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;

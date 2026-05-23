@@ -7,7 +7,6 @@ import com.axelor.rpc.ActionResponse;
 import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
 import com.axelor.db.modelservice.BusinessMessages;
-import com.educaflow.base.util.AllowProperties;
 import com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa;
 import com.educaflow.subsystem.sistemaeducativo.service.LeyEducativaService;
 import com.google.inject.Inject;
@@ -27,15 +26,14 @@ public class LeyEducativaController {
         ActionRequestHelper<LeyEducativa> actionRequestHelper = new ActionRequestHelper(actionRequest, LeyEducativa.class);
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
 
-        AllowProperties allowProperties = AllowProperties.createAllowAllProperties();
-        LeyEducativa leyEducativa = actionRequestHelper.getModel(allowProperties);
         LeyEducativa leyEducativaOriginal = actionRequestHelper.getOriginalModel();
-
 
         Optional<BusinessMessages> validationResult;
         if (actionRequestHelper.getId()==null) {
+            LeyEducativa leyEducativa = actionRequestHelper.getModel(leyEducativaService.allowPropertiesInsert());
             validationResult = leyEducativaService.validateInsert(leyEducativa);
         } else {
+            LeyEducativa leyEducativa = actionRequestHelper.getModel(leyEducativaService.allowPropertiesUpdate());
             validationResult = leyEducativaService.validateUpdate(leyEducativa,leyEducativaOriginal);
         }
         if (validationResult.isPresent()) {
@@ -51,8 +49,7 @@ public class LeyEducativaController {
         ActionRequestHelper<LeyEducativa> actionRequestHelper = new ActionRequestHelper(actionRequest, LeyEducativa.class);
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
 
-        AllowProperties allowProperties = AllowProperties.createAllowAllProperties();
-        LeyEducativa leyEducativa = actionRequestHelper.getModel(allowProperties);
+        LeyEducativa leyEducativa = actionRequestHelper.getModel(leyEducativaService.allowPropertiesRemove());
 
         Optional<BusinessMessages> validationResult =leyEducativaService.validateRemove(leyEducativa);
         if (validationResult.isPresent()) {

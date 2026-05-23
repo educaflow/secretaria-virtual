@@ -4,6 +4,7 @@ package com.educaflow.subsystem.expedientes.services.tramitacion;
 import com.axelor.db.JPA;
 import com.axelor.db.JpaRepository;
 import com.axelor.db.Model;
+import com.axelor.db.modelservice.AllowProperties;
 import com.educaflow.base.util.*;
 import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
 import com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil;

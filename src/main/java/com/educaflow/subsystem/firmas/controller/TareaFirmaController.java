@@ -8,7 +8,6 @@ import com.axelor.rpc.ActionResponse;
 import com.educaflow.base.infrastructure.autofirma.AutoFirma;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.axelor.db.modelservice.BusinessMessages;
-import com.educaflow.base.util.AllowProperties;
 import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
 import com.educaflow.subsystem.firmas.db.DocumentoFirma;
@@ -18,10 +17,9 @@ import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-public class TareaFirmaController {
+public class  TareaFirmaController {
 
     @Inject
     private ModelServiceFactory modelServiceFactory;
@@ -53,8 +51,7 @@ public class TareaFirmaController {
         ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
 
         TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
-        AllowProperties allowProperties = AllowProperties.createAllowProperties(Map.of("documentosFirma", Map.of("documentoFirmado", Map.of())));
-        TareaFirma tareaFirma = actionRequestHelper.getModel(allowProperties);
+        TareaFirma tareaFirma = actionRequestHelper.getModel(tareaFirmaService.allowPropertiesMarcarComoFirmada());
 
         tareaFirmaService.marcarComoFirmada(tareaFirma, tareaFirmaOriginal);
 
@@ -68,8 +65,7 @@ public class TareaFirmaController {
         ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
 
         TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
-        AllowProperties allowProperties = AllowProperties.createAllowProperties(Map.of("motivoRechazo", Map.of()));
-        TareaFirma tareaFirma = actionRequestHelper.getModel(allowProperties);
+        TareaFirma tareaFirma = actionRequestHelper.getModel(tareaFirmaService.allowPropertiesMarcarComoRechazada());
 
         tareaFirmaService.marcarComoRechazada(tareaFirma, tareaFirmaOriginal);
 
@@ -83,8 +79,7 @@ public class TareaFirmaController {
         ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
 
-        AllowProperties allowProperties = AllowProperties.createAllowProperties(Map.of("documentosFirma", Map.of("documentoFirmado", Map.of())));
-        TareaFirma tareaFirma = actionRequestHelper.getModel(allowProperties);
+        TareaFirma tareaFirma = actionRequestHelper.getModel(tareaFirmaService.allowPropertiesValidarDocumentosFirmados());
         Optional<BusinessMessages> validationResult = tareaFirmaService.validarDocumentosFirmados(tareaFirma);
 
         if (validationResult.isPresent()) {
@@ -92,5 +87,8 @@ public class TareaFirmaController {
         }
 
     }
+
+
+
 
 }

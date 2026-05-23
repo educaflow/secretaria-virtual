@@ -10,10 +10,6 @@ public interface DispositivoCriptograficoService extends ModelService<Dispositiv
 
     void recargarDispositivosEnEntornoCriptografico();
 
-    Optional<BusinessMessages> validateInsert(DispositivoCriptografico dispositivo);
-
-    Optional<BusinessMessages> validateUpdate(DispositivoCriptografico dispositivo, DispositivoCriptografico dispositivoOriginal);
-
-    Optional<BusinessMessages> validateRemove(DispositivoCriptografico dispositivo);
+    Optional<BusinessMessages> validateRecargarDispositivosEnEntornoCriptografico();
 
 }

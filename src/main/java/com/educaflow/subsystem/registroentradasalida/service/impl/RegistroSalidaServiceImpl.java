@@ -1,6 +1,7 @@
 package com.educaflow.subsystem.registroentradasalida.service.impl;
 
 import com.axelor.db.Repository;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
@@ -23,6 +24,7 @@ import jakarta.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalida> implements RegistroSalidaService {
 
@@ -59,6 +61,7 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
 
     @Override
     public RegistroSalida createRegistroSalida(RegistroSalidaInsertDTO registroSalidaInsertDTO, MetaFile documentoOriginal, List<MetaFile> anexos) {
+        validateCreateRegistroSalida(registroSalidaInsertDTO, documentoOriginal, anexos).ifPresent(BusinessMessages::throwIfInvalid);
 
         if (MetaFileHelper.isPdf(documentoOriginal)==false) {
             throw new IllegalArgumentException("El fichero proporcionado no es un PDF válido.");
@@ -86,17 +89,19 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
     }
 
 
+    /****************************************************************************************/
+    /******************************** Métodos de Validación *********************************/
+    /****************************************************************************************/
 
-
-    private String getNumeroRegistro(Centro centro, LocalDateTime ahora) {
-        String anyoActual= String.valueOf(ahora.getYear());
-        String codigoCentro = centro.getCode();
-        long numeroRegistroSinAnyo = numeradorRepository.getSiguienteNumeroRegistroSalida(codigoCentro, anyoActual);
-        String numeroRegistro = String.format("%05d", numeroRegistroSinAnyo) + "/" + anyoActual;
-
-        return numeroRegistro;
+    @Override
+    public Optional<BusinessMessages> validateCreateRegistroSalida(RegistroSalidaInsertDTO registroSalidaInsertDTO, MetaFile documentoOriginal, List<MetaFile> anexos) {
+        return Optional.empty();
     }
 
+
+    /*************************************************************************************/
+    /********************************    Action Rules    *********************************/
+    /*************************************************************************************/
 
     private void fireActionRule_NotificarRegistroSalida(RegistroSalida registroSalida) {
         List<Attach> attachs = createAttachFromMetaFiles(registroSalida.getAnexos());
@@ -106,6 +111,20 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
         Mail mail = new Mail(List.of("nada@gmail.com"), "secretariavirtual@fpmislata.com", subject, body, body, attachs);
 
         mailSender.send(mail);
+    }
+
+
+    /*************************************************************************************/
+    /********************************    Otras funciones    ******************************/
+    /*************************************************************************************/
+
+    private String getNumeroRegistro(Centro centro, LocalDateTime ahora) {
+        String anyoActual= String.valueOf(ahora.getYear());
+        String codigoCentro = centro.getCode();
+        long numeroRegistroSinAnyo = numeradorRepository.getSiguienteNumeroRegistroSalida(codigoCentro, anyoActual);
+        String numeroRegistro = String.format("%05d", numeroRegistroSinAnyo) + "/" + anyoActual;
+
+        return numeroRegistro;
     }
 
     private Attach createAttachFromMetaFile(MetaFile metaFile) {
@@ -130,8 +149,6 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
         return MetaFileHelper.createMetaFile(documentoPdfFirmado);
 
     }
-
-
 
 
 

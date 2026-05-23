@@ -10,7 +10,7 @@ import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
-import com.educaflow.base.util.AllowProperties;
+import com.axelor.db.modelservice.AllowProperties;
 import com.educaflow.base.util.Convert;
 import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
 import com.educaflow.subsystem.pdfutilities.db.PdfUtilities;

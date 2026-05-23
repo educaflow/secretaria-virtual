@@ -9,8 +9,8 @@ public class SecurityUtil {
         return AuthUtils.getUser();
     }
 
-    public static boolean esAdmin(User user) {
-        return user != null && user.getGroup() != null && "admins".equals(user.getGroup().getCode());
+    public static boolean isAdmin(User user) {
+        return AuthUtils.isAdmin(user);
     }
 
 }

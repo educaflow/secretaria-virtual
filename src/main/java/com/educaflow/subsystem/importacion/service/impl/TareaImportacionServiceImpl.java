@@ -5,6 +5,7 @@ import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.db.modelservice.BusinessMessage;
 import com.axelor.db.modelservice.BusinessMessages;
+import com.axelor.db.modelservice.AllowProperties;
 import com.educaflow.subsystem.importacion.db.TareaImportacion;
 import com.educaflow.subsystem.importacion.exception.ImportadorException;
 import com.educaflow.subsystem.importacion.importador.ImportadorFichero;
@@ -13,6 +14,7 @@ import com.educaflow.subsystem.importacion.importador.ResultadoImportacion;
 import com.educaflow.subsystem.importacion.service.TareaImportacionService;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 
 public class TareaImportacionServiceImpl extends DefaultModelService<TareaImportacion> implements TareaImportacionService {
@@ -23,8 +25,6 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
         super(model, repository);
     }
 
-    // --- Métodos CRUD ---
-
     @Override
     public TareaImportacion insert(TareaImportacion tareaImportacion) {
         fireActionRule_asignarCamposSistema(tareaImportacion);
@@ -32,7 +32,9 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
         return super.insert(tareaImportacion);
     }
 
-    // --- Métodos de validación ---
+    /****************************************************************************************/
+    /******************************** Métodos de Validación *********************************/
+    /****************************************************************************************/
 
     @Override
     public Optional<BusinessMessages> validateInsert(TareaImportacion tareaImportacion) {
@@ -63,6 +65,18 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
         BusinessMessages messages = new BusinessMessages();
         messages.add(new BusinessMessage("Las importaciones no se pueden eliminar"));
         return Optional.of(messages);
+    }
+
+    /**************************************************************************************/
+    /********************************   AllowProperties   *********************************/
+    /**************************************************************************************/
+
+    @Override
+    public AllowProperties allowPropertiesInsert() {
+        return AllowProperties.createAllowProperties(Map.of(
+                "tipoFichero", Map.of(),
+                "fichero", Map.of()
+        ));
     }
 
     /*************************************************************************************/

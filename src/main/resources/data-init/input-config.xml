@@ -132,4 +132,14 @@
         </bind>
     </input>
 
+    <input file="metaSchedules.xml" root="datos">
+        <bind node="metaSchedules/metaSchedule" type="com.axelor.meta.db.MetaSchedule" search="self.name = :name" create="true" update="true">
+            <bind node="@name" to="name"/>
+            <bind node="@job" to="job"/>
+            <bind node="@cron" to="cron"/>
+            <bind node="@description" to="description"/>
+            <bind node="@active" to="active"/>
+        </bind>
+    </input>
+
 </xml-inputs>

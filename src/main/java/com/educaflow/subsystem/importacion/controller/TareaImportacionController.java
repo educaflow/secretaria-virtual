@@ -7,12 +7,10 @@ import com.axelor.rpc.ActionResponse;
 import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
 import com.axelor.db.modelservice.BusinessMessages;
-import com.educaflow.base.util.AllowProperties;
 import com.educaflow.subsystem.importacion.db.TareaImportacion;
 import com.educaflow.subsystem.importacion.service.TareaImportacionService;
 import com.google.inject.Inject;
 
-import java.util.Map;
 import java.util.Optional;
 
 public class TareaImportacionController {
@@ -27,15 +25,12 @@ public class TareaImportacionController {
         var actionRequestHelper = new ActionRequestHelper<TareaImportacion>(actionRequest, TareaImportacion.class);
         var actionResponseHelper = new ActionResponseHelper(actionResponse);
 
-        AllowProperties allowProperties = AllowProperties.createAllowProperties(
-                Map.of("tipoFichero", Map.of(), "fichero", Map.of())
-        );
-        TareaImportacion tareaImportacion = actionRequestHelper.getModel(allowProperties);
-
         Optional<BusinessMessages> validationResult;
         if (actionRequestHelper.getId() == null) {
+            TareaImportacion tareaImportacion = actionRequestHelper.getModel(tareaImportacionService.allowPropertiesInsert());
             validationResult = tareaImportacionService.validateInsert(tareaImportacion);
         } else {
+            TareaImportacion tareaImportacion = actionRequestHelper.getModel(tareaImportacionService.allowPropertiesUpdate());
             validationResult = tareaImportacionService.validateUpdate(tareaImportacion, null);
         }
         validationResult.ifPresent(actionResponseHelper::doResponseBusinessMessagesAsError);

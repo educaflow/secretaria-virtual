@@ -4,7 +4,7 @@ import com.axelor.db.Model;
 import com.axelor.db.JpaRepository;
 import com.axelor.rpc.ActionRequest;
 import com.educaflow.base.infrastructure.mapper.BeanMapperModel;
-import com.educaflow.base.util.AllowProperties;
+import com.axelor.db.modelservice.AllowProperties;
 import com.educaflow.base.util.Convert;
 
 import java.util.Map;

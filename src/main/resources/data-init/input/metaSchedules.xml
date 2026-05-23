@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<datos>
+    <metaSchedules>
+        <metaSchedule name="correos-envio"
+                      job="com.educaflow.subsystem.correos.jobs.EnviarCorreosJob"
+                      cron="0 */5 * * * ?"
+                      description="Envío periódico de correos pendientes"
+                      active="true"/>
+    </metaSchedules>
+</datos>

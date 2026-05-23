@@ -2,7 +2,7 @@ package com.educaflow.base.infrastructure.mapper;
 
 import com.axelor.db.Model;
 import com.axelor.meta.db.MetaFile;
-import com.educaflow.base.util.AllowProperties;
+import com.axelor.db.modelservice.AllowProperties;
 import org.apache.commons.beanutils.PropertyUtils;
 
 import java.beans.PropertyDescriptor;

@@ -26,6 +26,10 @@ public class RegistroPendienteServiceImpl extends DefaultModelService<RegistroPe
     @Override
     @Transactional
     public RegistroPendiente insertar(RegistroPendiente registroPendiente) throws BusinessException {
+        Optional<BusinessMessages> validation = validateInsertar(registroPendiente);
+        if (validation.isPresent()) {
+            throw new IllegalArgumentException(validation.get().toString());
+        }
         /*Optional<BusinessMessages> validation = validarEmailDni(registroPendiente);
         if (validation.isPresent()) {
             throw new BusinessException(validation.get());
@@ -46,6 +50,10 @@ public class RegistroPendienteServiceImpl extends DefaultModelService<RegistroPe
     /****************************************************************************************/
     /******************************** Métodos de Validación *********************************/
     /****************************************************************************************/
+
+    public Optional<BusinessMessages> validateInsertar(RegistroPendiente registroPendiente) {
+        return Optional.empty();
+    }
 
     private Optional<BusinessMessages> validarEmailDni(RegistroPendiente registroPendiente) {
         /*BusinessMessages businessMessages=new BusinessMessages();

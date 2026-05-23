@@ -7,7 +7,6 @@ import com.axelor.rpc.ActionResponse;
 import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
 import com.axelor.db.modelservice.BusinessMessages;
-import com.educaflow.base.util.AllowProperties;
 import com.educaflow.subsystem.criptografia.db.DispositivoCriptografico;
 import com.educaflow.subsystem.criptografia.service.DispositivoCriptograficoService;
 import com.google.inject.Inject;
@@ -26,13 +25,12 @@ public class DispositivoCriptograficoController {
         ActionRequestHelper<DispositivoCriptografico> actionRequestHelper = new ActionRequestHelper<>(actionRequest, DispositivoCriptografico.class);
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
 
-        AllowProperties allowProperties = AllowProperties.createAllowAllProperties();
-        DispositivoCriptografico dispositivo = actionRequestHelper.getModel(allowProperties);
-
         Optional<BusinessMessages> validationResult;
         if (actionRequestHelper.getId() == null) {
+            DispositivoCriptografico dispositivo = actionRequestHelper.getModel(service.allowPropertiesInsert());
             validationResult = service.validateInsert(dispositivo);
         } else {
+            DispositivoCriptografico dispositivo = actionRequestHelper.getModel(service.allowPropertiesUpdate());
             DispositivoCriptografico dispositivoOriginal = actionRequestHelper.getOriginalModel();
             validationResult = service.validateUpdate(dispositivo, dispositivoOriginal);
         }

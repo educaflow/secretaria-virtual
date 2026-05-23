@@ -1,6 +1,7 @@
 package com.educaflow.subsystem.registroentradasalida.service.impl;
 
 import com.axelor.db.Repository;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
@@ -23,6 +24,7 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 
 public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntrada> implements RegistroEntradaService {
@@ -44,6 +46,7 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
 
     @Override
     public RegistroEntrada createRegistroEntrada(RegistroEntradaInsertDTO registroEntradaInsertDTO, MetaFile documentoOriginalFirmado, List<MetaFile> anexos) {
+        validateCreateRegistroEntrada(registroEntradaInsertDTO, documentoOriginalFirmado, anexos).ifPresent(BusinessMessages::throwIfInvalid);
 
         if (MetaFileHelper.isPdf(documentoOriginalFirmado)==false) {
             throw new IllegalArgumentException("El fichero proporcionado no es un PDF válido.");
@@ -80,6 +83,26 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
         return registroEntrada;
     }
 
+    /****************************************************************************************/
+    /******************************** Métodos de Validación *********************************/
+    /****************************************************************************************/
+
+    @Override
+    public Optional<BusinessMessages> validateCreateRegistroEntrada(RegistroEntradaInsertDTO registroEntradaInsertDTO, MetaFile documentoOriginalFirmado, List<MetaFile> anexos) {
+        return Optional.empty();
+    }
+
+    /**************************************************************************************/
+    /********************************   AllowProperties   *********************************/
+    /**************************************************************************************/
+
+    /*************************************************************************************/
+    /********************************    Action Rules    *********************************/
+    /*************************************************************************************/
+
+    /*************************************************************************************/
+    /********************************    Otras funciones    ******************************/
+    /*************************************************************************************/
 
     private String getNumeroRegistro(Centro centro, LocalDateTime ahora) {
         String anyoActual= String.valueOf(ahora.getYear());
@@ -149,7 +172,6 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
 
         return getClass().getResourceAsStream(nombreCompletoDocumentoPdf);
     }
-
 
 
 

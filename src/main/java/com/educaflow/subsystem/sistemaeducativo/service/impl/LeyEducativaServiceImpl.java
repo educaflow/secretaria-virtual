@@ -17,6 +17,10 @@ public class LeyEducativaServiceImpl extends DefaultModelService<LeyEducativa> i
         super(model, repository);
     }
 
+    /****************************************************************************************/
+    /******************************** Métodos de Validación *********************************/
+    /****************************************************************************************/
+
     @Override
     public Optional<BusinessMessages> validateInsert(LeyEducativa leyEducativa) {
         BusinessMessages messages = new BusinessMessages();
@@ -32,7 +36,7 @@ public class LeyEducativaServiceImpl extends DefaultModelService<LeyEducativa> i
     }
 
     @Override
-    public Optional<BusinessMessages> validateUpdate(LeyEducativa leyEducativa,LeyEducativa original) {
+    public Optional<BusinessMessages> validateUpdate(LeyEducativa leyEducativa, LeyEducativa original) {
         BusinessMessages messages = new BusinessMessages();
 
         if (leyEducativa.getName() != null && leyEducativa.getName().trim().equalsIgnoreCase("bb")) {
@@ -41,7 +45,6 @@ public class LeyEducativaServiceImpl extends DefaultModelService<LeyEducativa> i
         if (leyEducativa.getCode() != null && leyEducativa.getCode().trim().equalsIgnoreCase("bb")) {
             messages.add(new BusinessMessage("code", "No puede ser 'bb'", I18n.get(Mapper.of(LeyEducativa.class).getProperty("code").getTitle())));
         }
-
 
         return messages.isValid() ? Optional.empty() : Optional.of(messages);
     }
@@ -60,7 +63,4 @@ public class LeyEducativaServiceImpl extends DefaultModelService<LeyEducativa> i
         return messages.isValid() ? Optional.empty() : Optional.of(messages);
     }
 
-
 }
-
-

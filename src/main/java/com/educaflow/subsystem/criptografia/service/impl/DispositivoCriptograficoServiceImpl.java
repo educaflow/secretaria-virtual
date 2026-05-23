@@ -26,35 +26,32 @@ public class DispositivoCriptograficoServiceImpl extends DefaultModelService<Dis
     @Override
     public DispositivoCriptografico insert(DispositivoCriptografico dispositivo) {
         DispositivoCriptografico resultado = super.insert(dispositivo);
-        recargarDispositivosEnEntornoCriptografico();
+        fireActionRule_RecargarDispositivos();
         return resultado;
     }
 
     @Override
     public DispositivoCriptografico update(DispositivoCriptografico dispositivo, DispositivoCriptografico original) {
         DispositivoCriptografico resultado = super.update(dispositivo, original);
-        recargarDispositivosEnEntornoCriptografico();
+        fireActionRule_RecargarDispositivos();
         return resultado;
     }
 
     @Override
     public void remove(DispositivoCriptografico dispositivo) {
         super.remove(dispositivo);
-        recargarDispositivosEnEntornoCriptografico();
+        fireActionRule_RecargarDispositivos();
     }
 
     @Override
     public void recargarDispositivosEnEntornoCriptografico() {
-        List<DispositivoCriptografico> todos = ((DispositivoCriptograficoRepository) repository).findAll();
-        List<DispositivoCriptograficoConfig> configs = todos.stream()
-                .map(d -> new DispositivoCriptograficoConfig(
-                        Path.of(d.getPkcs11LibraryPath()),
-                        d.getSlot(),
-                        d.getPin()
-                ))
-                .toList();
-        EntornoCriptografico.configureDispositivosCriptograficos(configs);
+        validateRecargarDispositivosEnEntornoCriptografico().ifPresent(BusinessMessages::throwIfInvalid);
+        fireActionRule_RecargarDispositivos();
     }
+
+    /****************************************************************************************/
+    /******************************** Métodos de Validación *********************************/
+    /****************************************************************************************/
 
     @Override
     public Optional<BusinessMessages> validateInsert(DispositivoCriptografico dispositivo) {
@@ -67,9 +64,29 @@ public class DispositivoCriptograficoServiceImpl extends DefaultModelService<Dis
     }
 
     @Override
-    public Optional<BusinessMessages> validateRemove(DispositivoCriptografico dispositivo) {
+    public Optional<BusinessMessages> validateRecargarDispositivosEnEntornoCriptografico() {
         return Optional.empty();
     }
+
+    /****************************************************************************/
+    /******************************* Action Rules *******************************/
+    /****************************************************************************/
+
+    private void fireActionRule_RecargarDispositivos() {
+        List<DispositivoCriptografico> todos = ((DispositivoCriptograficoRepository) repository).findAll();
+        List<DispositivoCriptograficoConfig> configs = todos.stream()
+                .map(d -> new DispositivoCriptograficoConfig(
+                        Path.of(d.getPkcs11LibraryPath()),
+                        d.getSlot(),
+                        d.getPin()
+                ))
+                .toList();
+        EntornoCriptografico.configureDispositivosCriptograficos(configs);
+    }
+
+    /*****************************************************************************/
+    /****************************** Otras funciones ******************************/
+    /*****************************************************************************/
 
     private Optional<BusinessMessages> validateDispositivo(DispositivoCriptografico dispositivo) {
         BusinessMessages messages = new BusinessMessages();
