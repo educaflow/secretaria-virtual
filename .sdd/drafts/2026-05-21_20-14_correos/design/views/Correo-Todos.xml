@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- *************************************************************************** -->
+    <!-- ****************************** Correo : Vistas *************************** -->
+    <!-- *************************************************************************** -->
+
+    <action-view name="subsysCorreos.Correo@Todos-action" title="Todos los correos"
+                 model="com.educaflow.subsystem.correos.db.Correo">
+        <view type="grid" name="subsysCorreos.Correo@Todos-grid"/>
+        <view type="form" name="subsysCorreos.Correo@Main-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <!-- Sin <domain>: el Administrador ve todos los correos sin filtro de centro (menú groups="admins") -->
+    </action-view>
+
+    <grid name="subsysCorreos.Correo@Todos-grid" model="com.educaflow.subsystem.correos.db.Correo"
+          title="" orderBy="-fechaCreacion" newButtonTitle="Nuevo correo" allowSearchFields="true"
+          canAdvanceSearch="false" canRefresh="false" canNew="true"
+          editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="asunto"/>
+        <field name="dniDestinatario"/>
+        <field name="emailDestinatario"/>
+        <field name="estado"/>
+        <field name="numeroIntentos"/>
+        <field name="fechaCreacion"/>
+        <field name="fechaEnvio"/>
+        <field name="centro"/>
+    </grid>
+
+    <!-- Formulario COMPARTIDO alta+detalle (lo referencian también @MiCentro y @Mios en modo detalle) -->
+    <form name="subsysCorreos.Correo@Main-form" title="Correo" model="com.educaflow.subsystem.correos.db.Correo"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false"
+          canMore="false" canBackOnSave="true">
+        <panel name="Destinatario" title="Destinatario" readonlyIf="id != null">
+            <field name="dniDestinatario"   colSpan="3" onChange="subsysCorreos.Correo@Main-onChange-dni-action"/>
+            <field name="emailDestinatario" colSpan="6"/>
+        </panel>
+        <panel name="Mensaje" title="Mensaje" readonlyIf="id != null">
+            <field name="asunto" colSpan="12"/>
+            <field name="cuerpo" colSpan="12" widget="html"/>
+        </panel>
+        <panel-related name="adjuntos" field="adjuntos" title="Adjuntos"
+            grid-view="subsysCorreos.Correo.AdjuntoCorreo@Main-grid"
+            form-view="subsysCorreos.Correo.AdjuntoCorreo@Main-form"
+            colSpan="12" newButtonTitle="Añadir adjunto"
+            showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
+            readonlyIf="id != null"/>
+        <panel name="Seguimiento" title="Seguimiento" showIf="id != null">
+            <field name="estado"             colSpan="3" readonly="true"/>
+            <field name="numeroIntentos"     colSpan="3" readonly="true"/>
+            <field name="fechaUltimoIntento" colSpan="3" readonly="true"/>
+            <field name="fechaEnvio"         colSpan="3" readonly="true"/>
+            <field name="motivoUltimoFallo"  colSpan="12" readonly="true"/>
+            <field name="fechaCreacion"      colSpan="3" readonly="true"/>
+            <field name="centro"             colSpan="6" readonly="true"/>
+            <field name="referenciaHistorialEstadoExpediente" colSpan="6" readonly="true"/>
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel"   title="Cancelar" onClick="subsysCorreos.Correo@Main-btnCancel-action"
+                    colSpan="2" colOffset="2" outline="true" showIf="id == null"/>
+            <button name="btnCerrar"   title="Cerrar"   onClick="subsysCorreos.Correo@Main-btnCerrar-action"
+                    colSpan="2" outline="true" showIf="id != null"/>
+            <button name="btnReenviar" title="Reenviar" onClick="subsysCorreos.Correo@Main-btnReenviar-action"
+                    colSpan="2" showIf="id != null &amp;&amp; estado == 'FALLIDO'"/>
+            <button name="btnSave"     title="Guardar"  onClick="subsysCorreos.Correo@Main-btnSave-action"
+                    colSpan="2" showIf="id == null"/>
+        </panel>
+    </form>
+
+    <!-- *************** Correo : Acciones de las tareas principales *************** -->
+    <action-group name="subsysCorreos.Correo@Main-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+    <action-group name="subsysCorreos.Correo@Main-btnCerrar-action">
+        <action name="back"/>
+    </action-group>
+    <action-group name="subsysCorreos.Correo@Main-btnReenviar-action">
+        <action name="subsysCorreos.Correo@Main-Remote-reenviar-action"/>
+    </action-group>
+    <action-group name="subsysCorreos.Correo@Main-btnSave-action">
+        <action name="save"/>
+    </action-group>
+
+    <action-group name="subsysCorreos.Correo@Main-onChange-dni-action">
+        <action name="subsysCorreos.Correo@Main-Remote-onChangeDni-action"/>
+    </action-group>
+
+    <!-- *************** Correo : Acciones de Validaciones en local *************** -->
+
+    <!-- *************** Correo : Acciones básicas que cambian campos simples *************** -->
+
+    <!-- *************** Correo : Acciones de llamadas Remotas al servidor *************** -->
+    <action-method name="subsysCorreos.Correo@Main-Remote-reenviar-action"
+                   model="com.educaflow.subsystem.correos.db.Correo">
+        <call class="com.educaflow.subsystem.correos.controller.CorreoController" method="btnReenviar"/>
+    </action-method>
+    <action-method name="subsysCorreos.Correo@Main-Remote-onChangeDni-action"
+                   model="com.educaflow.subsystem.correos.db.Correo">
+        <call class="com.educaflow.subsystem.correos.controller.CorreoController" method="onChangeDni"/>
+    </action-method>
+
+
+    <!-- ******************************************************************************************* -->
+    <!-- ****************************** Correo.AdjuntoCorreo : Vistas ***************************** -->
+    <!-- ******************************************************************************************* -->
+
+    <grid name="subsysCorreos.Correo.AdjuntoCorreo@Main-grid" model="com.educaflow.subsystem.correos.db.AdjuntoCorreo"
+          title="" orderBy="nombreFichero"
+          editable="false" edit-icon="false" x-selector="none"
+          canNew="true" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true">
+        <field name="nombreFichero"/>
+        <field name="contenido" widget="binary"/>
+    </grid>
+
+    <form name="subsysCorreos.Correo.AdjuntoCorreo@Main-form" title="Adjunto del correo"
+          model="com.educaflow.subsystem.correos.db.AdjuntoCorreo"
+          width="large"
+          onNew="subsysCorreos.Correo.AdjuntoCorreo@Main-onNew-action"
+          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="AdjuntoCorreo" title="">
+            <field name="correo" showIf="false"/>
+            <field name="nombreFichero" colSpan="6"/>
+            <field name="contenido"     colSpan="6" widget="binary-link"/>
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Cancelar" onClick="subsysCorreos.Correo.AdjuntoCorreo@Main-btnCancel-action"
+                    colSpan="2" colOffset="8" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="subsysCorreos.Correo.AdjuntoCorreo@Main-btnSave-action"
+                    colSpan="2"/>
+        </panel>
+    </form>
+
+    <!-- *************** Correo.AdjuntoCorreo : Acciones de las tareas principales *************** -->
+    <action-group name="subsysCorreos.Correo.AdjuntoCorreo@Main-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+    <action-group name="subsysCorreos.Correo.AdjuntoCorreo@Main-btnSave-action">
+        <action name="save-modal"/>
+    </action-group>
+    <action-group name="subsysCorreos.Correo.AdjuntoCorreo@Main-onNew-action">
+        <action name="subsysCorreos.Correo.AdjuntoCorreo@Main-set-correo-parent-action"/>
+    </action-group>
+
+    <!-- *************** Correo.AdjuntoCorreo : Acciones de Validaciones en local *************** -->
+
+    <!-- *************** Correo.AdjuntoCorreo : Acciones básicas que cambian campos simples *************** -->
+    <action-record name="subsysCorreos.Correo.AdjuntoCorreo@Main-set-correo-parent-action"
+                   model="com.educaflow.subsystem.correos.db.AdjuntoCorreo">
+        <field name="correo" expr="eval: __parent__"/>   <!-- R-AdjuntoCorreo-001 -->
+    </action-record>
+
+    <!-- *************** Correo.AdjuntoCorreo : Acciones de llamadas Remotas al servidor *************** -->
+
+</object-views>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="correos" package="com.educaflow.subsystem.correos.db"/>
+
+    <entity name="Correo">
+        <!-- Campos cliente (los aporta el usuario en el alta) -> required -->
+        <string  name="asunto"            title="Asunto"             required="true"/>
+        <string  name="cuerpo"            title="Cuerpo" large="true" required="true"/>   <!-- HTML enriquecido (E-UB-005): widget html en la vista -->
+        <string  name="dniDestinatario"   title="DNI destinatario"    required="true"/>
+        <string  name="emailDestinatario" title="Email destinatario"  required="true"/>
+
+        <!-- Campos servidor -> SIN required (los rellena el servicio tras el persist; ver k-sistemas/modelos.md) -->
+        <datetime name="fechaCreacion"      title="Fecha de creación"/>
+        <datetime name="fechaEnvio"         title="Fecha de envío"/>
+        <enum     name="estado"             title="Estado" ref="EstadoCorreo"/>
+        <integer  name="numeroIntentos"     title="Número de intentos"/>
+        <datetime name="fechaUltimoIntento" title="Fecha del último intento"/>
+        <string   name="motivoUltimoFallo"  title="Motivo del último fallo" large="true" multiline="true"/>
+
+        <!-- servidor: vacío en alta manual; lo dicta el subsistema invocador en alta programática -->
+        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro"/>
+
+        <!-- Referencia EXTERNA y OPCIONAL al historial de estado de un expediente.
+             Solo asignable programáticamente (E-UN-009 / V-Correo-006). -->
+        <many-to-one name="referenciaHistorialEstadoExpediente"
+                     ref="com.educaflow.subsystem.expedientes.db.HistorialEstado"
+                     title="Referencia al expediente"/>
+
+        <one-to-many name="adjuntos" ref="AdjuntoCorreo" mappedBy="correo" title="Adjuntos"/>
+
+        <finder-method name="findByEstado" using="EstadoCorreo:estado"
+                       filter="self.estado = :estado" all="true"/>
+        <finder-method name="findByCentro" using="com.educaflow.subsystem.common.db.Centro:centro"
+                       filter="self.centro = :centro" all="true"/>
+        <finder-method name="findByDniDestinatario" using="String:dniDestinatario"
+                       filter="self.dniDestinatario = :dniDestinatario" all="true"/>
+    </entity>
+
+    <enum name="EstadoCorreo">
+        <item name="PENDIENTE" title="Pendiente"/>
+        <item name="ENVIADO"   title="Enviado"/>
+        <item name="FALLIDO"   title="Fallido"/>
+    </enum>
+
+</domain-models>
