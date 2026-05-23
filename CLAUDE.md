@@ -49,7 +49,7 @@ Usar estos tools garantiza que las búsquedas y refactorizaciones son correctas 
 ## Script del proyecto
 
 - Para compilar el proyecto lanza el comando: `./gradlew clean build --info`
-- Para ejecutar el proyecto lanza el comando: `./gradlew --no-daemon run --debug-jvm --port 8080 --context-path /`
+- Para ejecutar el proyecto lanza el comando: `./gradlew --no-daemon run --debug-jvm --port 8080 --context-path / --config ../secretaria-virtual-private/axelor-config.dev.properties`
 
 
 ## Skills
@@ -60,7 +60,8 @@ Para cada parte de Axelor se han creado conjuntos de Skills:
 - vistas → para todo lo relacionado con vistas
 - sistemas → para todo lo relacionado con sistemas (tipos de expediente, tramites, etc.)
 - modelos → para todo lo relacionado con modelos (entidades JPA)
-- seguridad → para todo lo relacionado con seguridad (permisos, roles, etc.)
+- seguridad (`k-seguridad`) → modelo de seguridad de la aplicación: roles, usuarios, permisos, ACL del negocio (**qué** puede hacer cada rol).
+- secure-coding (`k-secure-coding`) → reglas de codificación segura: mass-assignment, `AllowProperties` por acción, asignación incondicional de campos `servidor` en `*ServiceImpl.insert/update`, multi-centro/IDOR, JPQL, log injection, adjuntos, secretos (**cómo** se escribe el código para que la seguridad del negocio no se pueda saltar). **CRITICAL**: aplicación obligatoria en cualquier modificación de código que toque entidades, servicios o controladores.
 - acciones → para todo lo relacionado con acciones (action-views, controllers, etc.)
 
 Es imperativo que siempre uses los skills correspondientes para cualquier acción relacionada con Axelor, ya que siguen una arquitectura propia de la secretaría virtual y del framework Axelor.
@@ -77,7 +78,7 @@ Skills del pipeline (en orden de uso):
 
 1. `/sdd-create-user-story` — Crea la iniciativa: genera la carpeta `.sdd/drafts/YYYY-MM-DD_HH-MM_{nombre}/` con un `user-story.md` (intención del usuario) y un `design-guidelines.md` (directrices opcionales). Es el punto de entrada del pipeline.
 2. `/sdd-specification-system` — Toma la historia de usuario y, mediante preguntas iterativas, produce una `specification.md` completa en lenguaje de negocio: entidades, operaciones, **flujos principales `F-NNN`** (narrativos, semilla de los tests E2E), pantallas, menús, seguridad y los requisitos del sistema en formato EARS (`E-UB`, `E-EV`, `E-ST`, `E-UN`, `E-OP`). La clasificación V/R/U es responsabilidad del analista.
-3. `/sdd-analyst-system` — Interpreta la especificación y genera los artefactos de análisis: un `analysis.md` índice, un `entity-<Nombre>.md` por cada entidad detectada, un `screen-<nombre>.md` por cada pantalla, y un `tests.md` con escenarios E2E Given/When/Then (`T-NNN`) que materializan los `F-NNN` del spec. Cada V/R/U y cada test mantienen trazabilidad al spec (columnas "Origen EARS" y "Origen F").
+3. `/sdd-analyst-system` — Interpreta la especificación y genera los artefactos de análisis: un `analysis.md` índice, un `entity-<Nombre>.md` por cada entidad detectada, un `screen-<nombre>.md` por cada pantalla, y un `tests.md` con escenarios E2E Given/When/Then (`T-NNN`) que materializan los `F-NNN` del spec. Cada V/R/U y cada test mantienen trazabilidad al spec (columnas "Origen EARS" y "Origen F"). El analista además clasifica cada campo de cada entidad en `cliente` o `servidor` (columna "Origen del valor") — esa decisión es la base sobre la que el diseñador construye `AllowProperties` y la asignación incondicional anti mass-assignment (ver `k-secure-coding`).
 4. `/sdd-designer-system` — A partir del análisis, produce un plan de DISEÑO que describe qué clases, métodos, vistas y acciones hay que construir y dónde va cada regla, sin escribir todavía el código. Propaga `tests.md` desde `analysis/` a `design/` tal cual (contrato fijo).
 5. `/sdd-implementer-system` — Ejecuta el plan de diseño en tres fases: (a) copia los XML del diseño al árbol del proyecto, (b) invoca `code-implementer` para escribir el código Java, y (c) si existe `design/tests.md`, arranca la app y ejecuta los tests E2E con `playwright-cli` en un bucle de auto-corrección (máx 3 iteraciones; si fallan, reinvoca `code-implementer` con el reporte; si tras la 3ª siguen fallos, para y pregunta al usuario).
 6. `/sdd-close-spec` — Cierra la iniciativa: archiva los artefactos en `.sdd/specs/NNNN_desc/` como versión "as-built" (corrigiendo análisis y diseño para reflejar lo realmente implementado) y actualiza los `CLAUDE.md` de las carpetas afectadas.
@@ -96,8 +97,8 @@ user-story  →  specification  →  analysis  →  design  →  implementation 
 Todo el proyecto cuelga del paquete: `com.educaflow`
 
 Bajo el paquete `com.educaflow` existen estos 5 grandes paquetes:
-- `base.util` — Son las utilidaes de bajo nivel para no repetir pequeños trozos de código. Ejemplos de ello son: `JsonUtil`, `MetaFileUtil`, `ActionRequestHelper`, `AllowProperties`, `AxelorViewUtil`, `TextUtil`, `Convert`, `DniUtil`, `ReflectionUtil`, `SecurityUtil`, `CryptoUtil`, `XmlUtil`
-- `base.infrastructure` — Son clase completas y reutilizables en cualquier proyecto. Ejemplos de ello son `pdf` (iText PDF operations), `validation` (BusinessMessages/BusinessException/ValidationEngine DSL), `criptografia` (X.509 certs, HSMs, FNMT/ACCV/DNI issuers), `autofirma` (desktop client integration), `mapper` (BeanMapperModel), `mail`, `evaluator` (Groovy expressions), `numeradores`, `metafile`
+- `base.util` — Son las utilidaes de bajo nivel para no repetir pequeños trozos de código. Ejemplos de ello son: `JsonUtil`, `MetaFileUtil`, `ActionRequestHelper`, `AllowProperties`, `AxelorViewUtil`, `TextUtil`, `Convert`, `DniUtil`, `ReflectionUtil`, `SecurityUtil`, `CryptoUtil`, `XmlUtil`. El catálogo completo de clases y sus métodos está documentado en [`src/main/java/com/educaflow/base/util/CLAUDE.md`](src/main/java/com/educaflow/base/util/CLAUDE.md).
+- `base.infrastructure` — Son clases completas y reutilizables en cualquier proyecto (PDF, validación, criptografía, autofirma, mail, mapper, etc.). El catálogo de paquetes está documentado en [`src/main/java/com/educaflow/base/infrastructure/CLAUDE.md`](src/main/java/com/educaflow/base/infrastructure/CLAUDE.md).
 - `subsystem` — Son subsistema que tiene una función completa dentro de la aplicación: `firmas`, `expedientes`, `registroentradasalida`, `pdfutilities`, `common`, `certificados`, `importer`, `sistemaeducativo`, `security`
 - `system` — Son sistemas completos que tiene una función completa dentro de la aplicación
 - `secretariavirtual` — Es donde están los menús y las tareas de inicialización.
