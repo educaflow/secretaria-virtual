@@ -379,6 +379,8 @@ Compara el output unificado con el gold. Hazlo por **ejes**, no en bruto. Los ej
 | Dominios XML (si aplica) | Estructura de entidades, campos, tipos | Diff por entidad |
 | Servicios (si aplica) | Firmas de métodos | Lista de firmas y diff |
 | Controladores (si aplica) | Firmas de endpoints + transaccionalidad + AllowProperties | Lista y diff |
+| Origen del valor (si aplica, en `entity-*.md`) | Para cada campo de cada entidad, valor exacto de la columna "Origen del valor" (`cliente`/`servidor`) | Tabla campo→origen y diff. Ver `[[k-secure-coding]]` §2. |
+| Frontera de confianza — AllowProperties (si aplica, en `design.md`) | Por cada acción del servicio invocada desde `@CallMethod`: forma elegida en `allowPropertiesXxx` (`createAllowProperties` whitelist / `createAllowAllProperties` abierto), contenido de la lista blanca (si whitelist) o lista de campos `servidor` con la ubicación de su asignación incondicional (si abierto), justificación | Tabla por acción y diff. Ver `[[k-secure-coding]]` §3. |
 | Vistas (si aplica) | Granularidad de ficheros, nombres de vistas, acciones | Lista por fichero |
 | Seguridad (si aplica) | Permisos, condiciones JPQL, granularidad de `<can>` | Lista de permisos |
 | Validaciones (`V-XXX` si aplica) | IDs, capas, mensajes | Tabla y diff |

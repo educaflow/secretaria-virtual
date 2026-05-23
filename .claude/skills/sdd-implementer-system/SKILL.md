@@ -117,7 +117,7 @@ Si al copiar detectas que un XML del diseño está mal, **STOP** y pide al usuar
 
 ### 2.2 No implementar Java directamente — delegar en `code-implementer`
 
-Este skill **MUST NOT** escribir código Java. Una vez los XML están en su sitio, toda la implementación (servicios, controladores, repositorios, datos iniciales, seguridad) se delega en `code-implementer` pasándole el `design.md` completo y los skills de dominio (`k-sistemas`, `k-vistas`, y `k-seguridad` si aplica).
+Este skill **MUST NOT** escribir código Java. Una vez los XML están en su sitio, toda la implementación (servicios, controladores, repositorios, datos iniciales, seguridad) se delega en `code-implementer` pasándole el `design.md` completo y los skills de dominio (`k-sistemas`, `k-vistas`, `k-secure-coding`, y `k-seguridad` si aplica). **CRITICAL**: `k-secure-coding` se carga **siempre** — define defensas (mass-assignment, AllowProperties, asignación incondicional de campos `servidor`, multi-centro/IDOR, JPQL, adjuntos) que protegen al resto del sistema.
 
 **MUST NOT**:
 
@@ -303,7 +303,7 @@ Delegando ahora en code-implementer la implementación del código Java...
 1. Determina si el plan incluye permisos o seguridad (busca palabras como "seguridad", "permisos", "roles", "data-init/input", "k-seguridad"). Si las encuentra, incluye `k-seguridad` en los skills.
 2. Invoca el skill `code-implementer` con:
    - El plan completo como texto (`design.md`), **sin resumir ni reescribir** (principio 2.2).
-   - Los skills de dominio: `k-sistemas`, `k-vistas`[, `k-seguridad` si aplica].
+   - Los skills de dominio: `k-sistemas`, `k-vistas`, `k-secure-coding`[, `k-seguridad` si aplica].
    - Una **nota explícita** al principio del prompt indicándole que los XML de dominios, vistas y menús **ya están copiados** en sus ubicaciones del proyecto y **NO debe regenerarlos ni reescribirlos** (principio 2.1). Su trabajo es:
      - Implementar el código Java (servicios `ModelService`/`DefaultModelService`, controladores, repositorios personalizados, datos iniciales, seguridad).
      - Tratar los ficheros XML ya copiados como **contrato fijo**: las firmas de los métodos Java deben coincidir con las acciones declaradas en las vistas (`<action-method>` → `controlador.metodo`), y las entidades JPA generadas deben coincidir con los dominios XML (principio 2.3).

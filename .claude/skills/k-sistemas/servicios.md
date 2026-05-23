@@ -39,24 +39,28 @@ import java.util.Optional;
 
 public interface MiEntidadService extends ModelService<MiEntidad> {
 
-    // Solo se declaran los métodos PROPIOS del subsistema.
-    // No re-declarar validateInsert/validateUpdate/validateRemove ni insert/update/remove:
-    // ya los hereda de ModelService<MiEntidad>.
-    MiEntidad hacerAlgoEspecial(MiEntidad entidad);
+    // Acciones propias del subsistema (además de insert/update/remove, ya
+    // expuestos por Axelor vía /ws/rest/<FQN> y heredados de ModelService<T>).
+    MiEntidad hacerAlgoEspecial(MiEntidad entidad, MiEntidad original);
+
+    // Validaciones — UNA por cada acción propia del subsistema. NO se
+    // declaran validateInsert/Update/Remove aquí: DefaultModelService ya las
+    // implementa por defecto (Optional.empty()).
+    Optional<BusinessMessages> validateHacerAlgoEspecial(MiEntidad entidad, MiEntidad original);
+
+    // AllowProperties — UNA por cada acción del subsistema que sea invocada
+    // desde un @CallMethod del controlador propio. NO se declara para
+    // insert/update/remove: el endpoint REST automático de Axelor no pasa
+    // por el controlador propio, y DefaultModelService ya trae sus defaults.
+    AllowProperties allowPropertiesHacerAlgoEspecial();
 }
 ```
 
-> ⚠️ **Regla obligatoria**: la interfaz del servicio del subsistema **NUNCA re-declara** `validateInsert`, `validateUpdate` ni `validateRemove`. Los hereda automáticamente de `ModelService<T>`. Solo se declaran en la interfaz los métodos **nuevos** del subsistema (operaciones custom, DTOs, etc.).
+> ⚠️ **Regla obligatoria**: la interfaz **MUST** declarar cada acción propia del subsistema `miAccion(...)` **junto con su validador** `validateMiAccion(...)` y, si esa acción se invoca desde el controlador propio, también **junto con su** `allowPropertiesMiAccion()`. La tripleta `acción + validador + allowProperties` es el contrato público de la acción.
 >
-> **Antiejemplo (lo que NO hay que hacer):**
-> ```java
-> public interface CertificadoDigitalService extends ModelService<CertificadoDigital> {
->     Optional<BusinessMessages> validateInsert(CertificadoDigital certificado);   // ❌ ya heredado
->     Optional<BusinessMessages> validateUpdate(CertificadoDigital c, CertificadoDigital original); // ❌
->     Optional<BusinessMessages> validateRemove(CertificadoDigital certificado);   // ❌
-> }
-> ```
-> Re-declarar estos métodos no aporta nada: el compilador no obliga a sobrescribirlos en la impl (porque ya heredan implementación por defecto del padre `DefaultModelService`) y solo añade ruido.
+> **¿Y para `insert` / `update` / `remove`?** **MUST NOT** re-declararlas, ni a ellas ni a sus `validateInsert/Update/Remove` ni a sus `allowPropertiesInsert/Update/Remove`. Estas acciones se invocan **siempre** desde el endpoint REST automático de Axelor (`/ws/rest/<FQN>`), nunca desde un `@CallMethod` del controlador propio. `ModelService<T>` ya declara las firmas y `DefaultModelService<T>` provee implementaciones por defecto (`Optional.empty()` para los `validate*`, defaults razonables para los `allowProperties*`, y el patrón `validate → super` dentro de `insert/update/remove`). Solo se sobrescribe en la `*Impl` lo que **realmente** se quiera cambiar.
+>
+> **MUST NOT** olvidar declarar el `validateMiAccion(...)` ni el `allowPropertiesMiAccion()` correspondientes a una acción nueva del subsistema invocada desde el controlador propio. Sin ellos el contrato queda incompleto y el controlador no puede aplicar la whitelist.
 
 > **Nota sobre `BusinessMessage` / `BusinessMessages`**: son clases del framework Axelor (`com.axelor.db.modelservice.*`), no del proyecto. Siempre se importan desde ese paquete.
 
@@ -67,9 +71,55 @@ Los métodos declarados en `ModelService<T>` que ya hereda la interfaz son:
 - `Optional<BusinessMessages> validateInsert(T entity)`
 - `Optional<BusinessMessages> validateUpdate(T entity, T original)`
 - `Optional<BusinessMessages> validateRemove(T entity)`
+- `AllowProperties allowPropertiesInsert()`
+- `AllowProperties allowPropertiesUpdate()`
+- `AllowProperties allowPropertiesRemove()`
 - `Map<String, Object> validate(Map<String, Object> json, Map<String, Object> context)`
 
+Todas estas firmas se heredan tal cual desde `ModelService<T>` y vienen implementadas por defecto en `DefaultModelService<T>`. **MUST NOT** re-declararlas en el interface del subsistema ni sobrescribirlas en la `*Impl` salvo que se quiera añadir lógica específica.
+
+## Patrón validate + throw
+
+**MUST** que cada acción propia del subsistema empiece llamando a su validador correspondiente y dispare la excepción de negocio si la validación falla, usando la utilidad `BusinessMessages::throwIfInvalid`.
+
+**Motivo**: una acción propia del subsistema (las que NO son `insert/update/remove`) puede ser invocada desde dos vías distintas:
+- **Caso A — código directo** (otro servicio, job, etc.): nada valida automáticamente; debe hacerlo el propio servicio.
+- **Caso B — controller `@CallMethod`**: el UI llamó (o debería haber llamado) a `<action-validate>` antes; si llega al servicio con datos inválidos es un bug del controlador o un intento malicioso.
+
+Para `insert / update / remove` **no aplica** este patrón en la `*Impl`: `DefaultModelService` ya invoca `validateInsert(...).ifPresent(throwIfInvalid)` (y análogamente `update`/`remove`) antes de llamar a `super`. Por tanto **MUST NOT** sobrescribirlos solo para repetir ese patrón. Solo se sobrescriben si se quiere añadir lógica adicional propia (action rules, decoración del bean, etc.).
+
+**Forma canónica** (acciones propias del subsistema):
+
+```java
+@Override
+public MiEntidad miAccion(MiEntidad entidad, MiEntidad entidadOriginal) {
+    validateMiAccion(entidad, entidadOriginal).ifPresent(BusinessMessages::throwIfInvalid);
+
+    // …resto del cuerpo (action rules, super.xxx(...))…
+}
+```
+
+✅ CORRECTO: la primera línea ejecutable del método es `validateMiAccion(...).ifPresent(BusinessMessages::throwIfInvalid)`.
+❌ INCORRECTO: la acción modifica el bean antes de validar; un valor inválido pasa por la validación parcialmente modificado.
+❌ INCORRECTO: reimplementar el patrón con `throw new IllegalArgumentException(...)` — `BusinessMessages::throwIfInvalid` ya lo encapsula y mantiene la semántica de errores de negocio.
+
 ## Estructura de la implementación
+
+La implementación **MUST** ordenar sus métodos en estos cinco bloques, en este orden:
+
+1. **Acciones** (sin header) — métodos `public` que ejecutan la lógica de negocio: las acciones propias del subsistema y, **solo si se quieren sobrescribir**, `insert` / `update` / `remove`. Cada acción propia **MUST** empezar con el patrón validate + throw (ver §"Patrón validate + throw"); los `insert/update/remove`, si se sobrescriben, **NO** repiten el patrón validate + throw porque `super.insert/update/remove` ya lo aplica.
+2. **Métodos de Validación** (con header) — métodos `public` que devuelven `Optional<BusinessMessages>`. Uno por cada acción propia del subsistema declarada en el interface. **NO** se sobrescriben `validateInsert/Update/Remove` salvo que se quieran añadir reglas: el default `Optional.empty()` ya viene de `DefaultModelService`.
+3. **AllowProperties** (con header) — métodos `public` que devuelven `AllowProperties`. Uno por cada acción propia del subsistema **invocada desde un `@CallMethod` del controlador propio**. **NO** se sobrescriben `allowPropertiesInsert/Update/Remove` salvo que se quieran restringir: los defaults vienen de `DefaultModelService`. Las reglas de qué forma usar (`createAllowProperties` vs `createAllowAllProperties`) y de cómo tratar los campos `servidor` en la acción están en `[[k-secure-coding]]` §3 — **CRITICAL**.
+4. **Action Rules** (con header) — métodos `private` cuyo nombre empieza por `fireActionRule_`. Encapsulan las reglas de negocio que ejecuta cada acción.
+5. **Otras funciones** (con header) — helpers `private` que no son ni validaciones, ni allow-properties, ni action rules: utilidades internas, conversiones, builders, métodos compartidos.
+
+Los headers son tres líneas de comentario `/************...************/`. **MUST** que las 3 líneas de un mismo bloque tengan **exactamente el mismo número de caracteres** (ajustar con `*` si difieren). Verifica con:
+
+```bash
+awk '/\/\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*/{print NR": "length($0)}' <fichero>
+```
+
+Cada header puede tener una longitud distinta de los otros — lo que importa es la coherencia interna de las 3 líneas de cada bloque.
 
 ```java
 package com.educaflow.subsystem.SUBSYSTEM.service.impl;
@@ -78,10 +128,12 @@ import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.db.modelservice.BusinessMessage;
 import com.axelor.db.modelservice.BusinessMessages;
+import com.educaflow.base.util.AllowProperties;
 import com.educaflow.subsystem.SUBSYSTEM.db.MiEntidad;
 import com.educaflow.subsystem.SUBSYSTEM.service.MiEntidadService;
 import jakarta.inject.Inject;
 
+import java.util.Map;
 import java.util.Optional;
 
 public class MiEntidadServiceImpl extends DefaultModelService<MiEntidad> implements MiEntidadService {
@@ -95,38 +147,31 @@ public class MiEntidadServiceImpl extends DefaultModelService<MiEntidad> impleme
         super(model, repository);
     }
 
-    // --- Métodos CRUD (solo si necesitan lógica extra; si no, los hereda de DefaultModelService) ---
+    // NOTA: NO se sobrescriben insert/update/remove salvo que se quiera añadir
+    // lógica propia (p.ej. disparar una action rule, decorar el bean). El
+    // patrón `validate → super` ya lo aplica DefaultModelService. Si se
+    // sobrescribe, NO se repite el `validateXxx().ifPresent(throwIfInvalid)`
+    // porque `super.insert/update/remove` ya lo hace.
 
     @Override
-    public MiEntidad insert(MiEntidad entidad) {
-        fireActionRule_NombreRule1(entidad);
+    public MiEntidad hacerAlgoEspecial(MiEntidad entidad, MiEntidad entidadOriginal) {
+        validateHacerAlgoEspecial(entidad, entidadOriginal).ifPresent(BusinessMessages::throwIfInvalid);
 
-        entidad = super.insert(entidad);   // persiste con repository.save()
-
-        fireActionRule_NombreRule2(entidad);
+        fireActionRule_AsignarCampoCalculado(entidad);
+        entidad = super.update(entidad, entidadOriginal);
+        fireActionRule_NotificarCambio(entidad);
         return entidad;
     }
 
-    @Override
-    public MiEntidad update(MiEntidad entidad, MiEntidad entidadOriginal) {
-        fireActionRule_NombreRule3(entidad, entidadOriginal);
+    /****************************************************************************************/
+    /******************************** Métodos de Validación *********************************/
+    /****************************************************************************************/
 
-        entidad = super.update(entidad, entidadOriginal);   // persiste con repository.save()
-
-        fireActionRule_NombreRule4(entidad, entidadOriginal);
-        fireActionRule_NombreRule5(entidad, entidadOriginal);
-        return entidad;
-    }
+    // NOTA: NO se sobrescriben validateInsert/Update/Remove salvo que haya reglas.
+    // DefaultModelService devuelve Optional.empty() por defecto.
 
     @Override
-    public void remove(MiEntidad entidad) {
-        super.remove(entidad);   // elimina con repository.remove()
-    }
-
-    // --- Métodos de validación — devuelven Optional<BusinessMessages> ---
-
-    @Override
-    public Optional<BusinessMessages> validateInsert(MiEntidad entidad) {
+    public Optional<BusinessMessages> validateHacerAlgoEspecial(MiEntidad entidad, MiEntidad entidadOriginal) {
         BusinessMessages messages = new BusinessMessages();
 
         if (entidad.getCampoA() == null) {
@@ -139,46 +184,46 @@ public class MiEntidadServiceImpl extends DefaultModelService<MiEntidad> impleme
         return messages.isValid() ? Optional.empty() : Optional.of(messages);
     }
 
-    @Override
-    public Optional<BusinessMessages> validateUpdate(MiEntidad entidad, MiEntidad entidadOriginal) {
-        BusinessMessages messages = new BusinessMessages();
+    /**************************************************************************************/
+    /********************************   AllowProperties   *********************************/
+    /**************************************************************************************/
 
-        // Validaciones de actualización...
-
-        return messages.isValid() ? Optional.empty() : Optional.of(messages);
-    }
+    // NOTA: NO se sobrescriben allowPropertiesInsert/Update/Remove salvo que se quiera
+    // restringir. Reglas de elección en [[k-secure-coding]] §3.
 
     @Override
-    public Optional<BusinessMessages> validateRemove(MiEntidad entidad) {
-        BusinessMessages messages = new BusinessMessages();
-
-        // Validaciones de borrado...
-
-        return messages.isValid() ? Optional.empty() : Optional.of(messages);
+    public AllowProperties allowPropertiesHacerAlgoEspecial() {
+        return AllowProperties.createAllowProperties(Map.of(
+            "campoA", Map.of(),
+            "campoB", Map.of()
+        ));
     }
 
     /*************************************************************************************/
     /********************************    Action Rules    *********************************/
     /*************************************************************************************/
 
-    private void fireActionRule_NombreRule1(MiEntidad entidad) {
-
+    private void fireActionRule_AsignarCampoCalculado(MiEntidad entidad) {
+        // efecto secundario: asignar un valor derivado de otros campos
     }
 
-    private void fireActionRule_NombreRule2(MiEntidad entidad) {
-
+    private void fireActionRule_NotificarCambio(MiEntidad entidad) {
+        // efecto secundario: notificar tras persistir
     }
 
-    private void fireActionRule_NombreRule3(MiEntidad entidad, MiEntidad entidadOriginal) {
+    /*************************************************************************************/
+    /********************************    Otras funciones    ******************************/
+    /*************************************************************************************/
 
+    private String formatearCampoX(MiEntidad entidad) {
+        // helper interno: ni validación ni regla de negocio
+        return entidad.getCampoX() == null ? "" : entidad.getCampoX().trim().toUpperCase();
     }
 
-    private void fireActionRule_NombreRule4(MiEntidad entidad, MiEntidad entidadOriginal) {
-
+    private boolean cumpleCondicionTecnica(MiEntidad entidad) {
+        // otro helper interno
+        return entidad.getCampoY() != null;
     }
-    private void fireActionRule_NombreRule5(MiEntidad entidad, MiEntidad entidadOriginal) {
-
-    }    
 }
 ```
 
@@ -257,32 +302,54 @@ public record MiEntidadInsertDTO(String campo1, OtraEntidad relacion) {
 }
 ```
 
-La interfaz del servicio sobrescribe `insert` con el DTO:
+La interfaz del servicio declara la acción **y su validador**:
 
 ```java
 public interface MiEntidadService extends ModelService<MiEntidad> {
     MiEntidad insert(MiEntidadInsertDTO dto);
+    Optional<BusinessMessages> validateInsert(MiEntidadInsertDTO dto);
 }
 ```
 
-La implementación construye la entidad a partir del DTO y llama a `super.insert()`:
+La implementación aplica el patrón validate + throw, construye la entidad y delega en `super.insert()` (que a su vez disparará la `validateInsert(MiEntidad)` heredada de `ModelService`):
 
 ```java
 @Override
 public MiEntidad insert(MiEntidadInsertDTO dto) {
+    Optional<BusinessMessages> validation = validateInsert(dto);
+    if (validation.isPresent()) {
+        throw new IllegalArgumentException(validation.get().toString());
+    }
+
     MiEntidad entidad = new MiEntidad();
     entidad.setCampo1(dto.campo1());
     entidad.setRelacion(dto.relacion());
     // ...
     return super.insert(entidad);
 }
+
+@Override
+public Optional<BusinessMessages> validateInsert(MiEntidadInsertDTO dto) {
+    BusinessMessages messages = new BusinessMessages();
+    // Validaciones específicas del DTO (formato, presencia de campos no nullables, etc.)
+    return messages.isValid() ? Optional.empty() : Optional.of(messages);
+}
 ```
+
+> **Nota**: `validateInsert(MiEntidadInsertDTO)` y `validateInsert(MiEntidad)` son overloads distintos. Cada uno valida la entrada de su correspondiente acción. Ambos van en el interface y en la impl.
 
 ## Convenciones clave
 
-### Nombres de métodos privados
-- `fireActionRule_NombreAccion(...)` — efecto secundario (asignar datos, notificar, callback). Se llama antes o después de persistir.
-- Los métodos de validación tienen nombre `validateInsert` / `validateUpdate` / `validateRemove`, devuelven `Optional<BusinessMessages>` y se sobrescriben en el `*ServiceImpl`. No se re-declaran en la interfaz del subsistema (se heredan de `ModelService<T>`).
+### Nombres y emparejamiento acción ↔ validador ↔ allowProperties
+- Por cada acción propia del subsistema `miAccion(parametros)` **MUST** existir un método `validateMiAccion(parametros)` con **la misma firma de parámetros** y retorno `Optional<BusinessMessages>`. Ambos van en el interface; ambos se implementan en el `*ServiceImpl`.
+- Si esa acción se invoca desde un `@CallMethod` del controlador propio, **MUST** además existir `allowPropertiesMiAccion()` (sin parámetros, retorno `AllowProperties`). También en el interface y en la `*Impl`.
+- Las acciones `insert` / `update` / `remove` heredadas de `ModelService<T>` ya tienen su validador (`validateInsert`/`validateUpdate`/`validateRemove`) y su `allowProperties*` con defaults en `DefaultModelService`. **MUST NOT** re-declararlos en el interface ni sobrescribirlos en la `*Impl` salvo que se añada lógica real.
+- `fireActionRule_NombreRegla(...)` — efecto secundario (asignar datos, notificar, callback). Se llama antes o después de persistir, **dentro de la acción correspondiente**.
+
+### Patrón validate + throw en cada acción propia
+- Cada acción propia `public` del subsistema **MUST** empezar con `validateMiAccion(...).ifPresent(BusinessMessages::throwIfInvalid);`. Ver §"Patrón validate + throw" arriba.
+- **MUST NOT** repetir este patrón al sobrescribir `insert/update/remove`: `super.insert/update/remove` ya lo aplica.
+- **MUST NOT** usar `throw new IllegalArgumentException(...)` para este patrón — la forma canónica es `BusinessMessages::throwIfInvalid`.
 
 ### Errores de negocio
 Los métodos de validación **nunca lanzan `BusinessException`**: acumulan en `BusinessMessages` y devuelven `Optional`. El controlador decide cómo mostrar los errores.
@@ -328,14 +395,57 @@ private MailSender mailSender;
 
 Con su binding correspondiente en `module/<Subsistema>Module.java` (`bind(MailSender.class).to(MailSenderImpl.class)`, `@Provides`, etc.) — sin necesidad de registrarlo en `SecretariaVirtualModule`: el módulo extiende `AxelorModule` y Axelor lo descubre automáticamente.
 
-## Checklist de desarrollo de servicios
-- [ ] La interfaz extiende `ModelService<T>` del paquete `com.axelor.db.modelservice`
-- [ ] La implementación extiende `DefaultModelService<T>` e implementa la interfaz
-- [ ] El constructor tiene la firma `(Class<T> model, Repository<T> repository)` y llama a `super(model, repository)` 
-- [ ] Los repositorios adicionales van como campos `@Inject`, no en el constructor. Los **`ModelService`** adicionales **nunca** se inyectan con `@Inject` — se obtienen con `modelServiceFactory.resolve(OtraEntidad.class)`.
-- [ ] Las dependencias que **no son `ModelService`** (infraestructura, callbacks, terceros) sí pueden inyectarse con `@Inject` y registrarse en el módulo Guice del subsistema
-- [ ] Los métodos `insert` / `update` / `remove` llaman a `super.*()` para persistir — nunca llaman directamente a `repository.save()`
-- [ ] Los métodos de validación devuelven `Optional<BusinessMessages>` — no lanzan `BusinessException`
-- [ ] La implementación está en `service.impl.MiEntidadServiceImpl` para que la factoría la descubra sin registro explícito
-- [ ] Si el insert necesita parámetros especiales, se crea un `record` DTO en el paquete del servicio
-- [ ] **Las consultas JPA con `.filter()/.bind()` nunca están inline en el servicio** — se definen como `<finder>` en el XML de dominio o como métodos en el repositorio y se llaman desde el servicio
+## `allowPropertiesXxx` y campos `servidor`
+
+> **CRITICAL** → la decisión sobre qué forma usar (`createAllowProperties` vs `createAllowAllProperties`) y cómo asignar incondicionalmente los campos `servidor` en la acción está descrita en `[[k-secure-coding]]` §3. Es lectura **obligatoria** al implementar o revisar cualquier `allowPropertiesXxx` o cualquier acción que toque campos `servidor`.
+
+Estructuralmente:
+
+- El interface declara `AllowProperties allowPropertiesMiAccion()` para cada acción invocada desde un `@CallMethod`.
+- La `*Impl` ubica su implementación en el bloque (3) `AllowProperties` (ver §"Estructura de la implementación").
+- El controlador la consume con `service.allowPropertiesMiAccion()` (nunca construye el `AllowProperties` inline con `Map.of(...)`).
+
+
+## Checklist 
+Checklist única para desarrollar y revisar `*Service` / `*ServiceImpl`. Cada ítem es un tipo de problema concreto observado en revisiones reales o una regla obligatoria del patrón.
+
+### Estructura básica
+
+- [ ] La interfaz extiende `ModelService<T>` del paquete `com.axelor.db.modelservice`.
+- [ ] La implementación extiende `DefaultModelService<T>` e implementa la interfaz.
+- [ ] La implementación está en `service.impl.MiEntidadServiceImpl` para que `ModelServiceFactory` la descubra sin registro explícito.
+- [ ] El constructor tiene la firma `(Class<T> model, Repository<T> repository)` y llama a `super(model, repository)`.
+
+### Interface (`*Service`)
+
+- [ ] Por cada acción propia del subsistema `miAccion(...)` está declarado su `validateMiAccion(...)` con la **misma firma de parámetros** y retorno `Optional<BusinessMessages>`.
+- [ ] Por cada acción propia invocada desde un `@CallMethod` del controlador propio está declarado su `allowPropertiesMiAccion()` (retorno `AllowProperties`).
+- [ ] **NO** re-declara `validateInsert/Update/Remove` ni `allowPropertiesInsert/Update/Remove`: vienen de `ModelService<T>` con defaults en `DefaultModelService<T>`.
+- [ ] **NO** declara `validateXxx` / `allowPropertiesXxx` cuyo cuerpo en la `*Impl` será un stub vacío (`Optional.empty()` / default). Esos casos se quedan con el heredado.
+- [ ] **NO** tiene acciones cuyo retorno `Optional<BusinessMessages>` las haga "validadores disfrazados" duplicando el `validate*` del par. O es acción, o es validador.
+- [ ] Si el insert necesita parámetros especiales, se crea un `record` DTO en el paquete del servicio.
+
+### Implementación (`*ServiceImpl`)
+
+- [ ] **NO** sobrescribe `insert/update/remove` solo para repetir `validateXxx().ifPresent(throwIfInvalid)` + `super.xxx()`. `DefaultModelService` ya lo hace.
+- [ ] Si sobrescribe `insert/update/remove`, es porque añade lógica real (`fireActionRule_*`, decoración del bean). En ese caso **NO** repite `validateXxx().ifPresent(throwIfInvalid)` dentro — `super.*` ya lo aplica.
+- [ ] Tiene `@Override` en cada método que sobrescribe del interface o de la clase padre (acciones, `validateXxx`, `allowPropertiesXxx`).
+- [ ] Cada acción propia empieza con `validateMiAccion(...).ifPresent(BusinessMessages::throwIfInvalid);`. **NO** usa `throw new IllegalArgumentException(...)` ni `BusinessException` directamente para esto.
+- [ ] La acción **NO** incluye comprobaciones inline (`if (...) throw new BusinessException(...)`) que pertenecen al validador. Se delegan a `validateMiAccion` y se acumulan en `BusinessMessages`.
+- [ ] Las validaciones devuelven `Optional<BusinessMessages>`. **Nunca** lanzan `BusinessException` ni `IllegalArgumentException`.
+- [ ] Cada acción que persiste llama a `super.insert(...)` / `super.update(...)`. **NO** devuelve la entidad sin persistir. **NO** llama directamente a `repository.save()`.
+- [ ] Los `ModelService` adicionales **nunca** se inyectan con `@Inject` — se obtienen con `modelServiceFactory.resolve(OtraEntidad.class)`. Las dependencias que **no** son `ModelService` (infraestructura, terceros) sí pueden inyectarse con `@Inject`.
+- [ ] Las consultas JPA con `.filter()/.bind()` **nunca** están inline — se definen como `<finder>` en el XML de dominio o como métodos en el repositorio.
+
+### Orden de los métodos en la `*Impl`
+
+- [ ] 5 bloques en este orden: (1) acciones (sin header), (2) `Métodos de Validación`, (3) `AllowProperties`, (4) `Action Rules`, (5) `Otras funciones`.
+- [ ] No falta ningún header cuando el bloque tiene métodos. Ningún bloque está fuera de sitio.
+- [ ] Los headers `/************…************/` tienen 3 líneas de la **misma longitud** dentro de cada bloque (verifica con `awk '/\/\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*/{print NR": "length($0)}' <fichero>`).
+- [ ] Los helpers privados que devuelven `Optional<BusinessMessages>` están en `Métodos de Validación`, no en `Otras funciones`.
+- [ ] Ningún método tiene `;` sobrante tras la `}` de cierre.
+- [ ] Nomenclatura `fireActionRule_<NombreEnPascalCase>` consistente (no `fireActionRule_asignarCosa` con minúscula tras el guion bajo).
+
+### Seguridad — `allowPropertiesXxx` y campos `servidor`
+
+- [ ] Las reglas de elección (`createAllowProperties` whitelist vs `createAllowAllProperties` abierto) y de asignación incondicional de campos `servidor` están en `[[k-secure-coding]]` §3 y **MUST** aplicarse. Aplica los detectores mecánicos del §3.4 al revisar.

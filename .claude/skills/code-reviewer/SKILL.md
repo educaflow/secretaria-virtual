@@ -12,6 +12,8 @@ description: Usa este skill para orquestar subagentes en un bucle de revisar y a
 - También te debe indicar la ubicación del código a revisar y corregir. Si no te indican la ubicación, no harás nada e indicarás que no se te ha indicado el código a revisar.
 - Opcionalmente se puede indicar una descripción de qué se ha construido y los requisitos que debe cumplir. Si se proporciona, debe pasarse al subagente revisor como contexto.
 
+> **REQUIRED — `k-secure-coding` se carga siempre que la revisión toque entidades, servicios, controladores, vistas con `<form>` que escribe en BD, o cualquier endpoint nuevo.** Aunque la invocación original no lo liste explícitamente, **MUST** añadirlo a la lista de skills cargados en estos casos. Cubre defensas universales (mass-assignment, AllowProperties por acción, asignación incondicional de campos `servidor`, multi-centro/IDOR, JPQL, log injection, adjuntos) que son **BLOCKING** si se violan. Solo se puede omitir si la revisión es estrictamente sobre código sin frontera de confianza (utilidad pura sin acceso a entidades, refactor de tests, etc.).
+
 Ejecuta este bucle:
 
 1. Lanza un subagente con su propio contexto que revise el código. Este subagente debe hacer lo siguiente:

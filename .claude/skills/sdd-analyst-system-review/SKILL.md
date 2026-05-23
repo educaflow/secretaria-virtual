@@ -237,6 +237,16 @@ Tras la cobertura, **actualizar los contadores** en la sección "Tests E2E" del 
 - **Referencias cruzadas en Acciones:** la columna `Reglas que dispara` de cada Acción debe referenciar IDs V/R que existen realmente. Los `Qué hace` de los Botones en formularios referencian IDs V/R/U existentes. Cualquier referencia rota se corrige (typo) o se pregunta.
 - **Integridad referencial:** en Modelo de datos, las relaciones `→ <Entidad> (uno a varios, hijos)` (lado padre) son las que llevan la decisión de `CASCADE / RESTRICT / SET NULL` en su nota; el hijo no la lleva. Si está al revés, corregir.
 
+### 4.6.1 Clasificación de seguridad de campos (columna "Origen del valor")
+
+La tabla `Modelo de datos` de cada `entity-*.md` **MUST** llevar la columna **"Origen del valor"** con uno de dos valores por campo: `cliente` o `servidor` (ver `[[k-secure-coding]]` §2 y la plantilla `templates/entity.md`). Validar:
+
+- **Columna presente:** si la columna no existe en algún `entity-*.md`, **MUST** preguntar al usuario si quiere clasificar los campos uno a uno (la review no inventa la clasificación). Si el usuario lo confirma, se añade la columna y se pregunta el valor para cada campo agrupando con `AskUserQuestion` (LIMIT 4 preguntas por invocación).
+- **Valores válidos:** cada celda debe ser exactamente `cliente` o `servidor`. Otros valores (`sistema`, `derivado`, `auto`, `calculado`, vacío) se normalizan al canónico tras preguntar al usuario en caso de ambigüedad. **Migración**: las clasificaciones antiguas `sistema` y `derivado` se unifican a `servidor` sin preguntar (es renombrado, no re-clasificación).
+- **Coherencia `servidor` ↔ R-Antes-de-Crear:** cada campo `servidor` **DEBE** estar respaldado por al menos una `R-<Entidad>-NNN` con momento `Antes` que documente cómo lo asigna el servidor. Si no aparece ninguna, preguntar al usuario si la regla existe (y debería añadirse) o si la clasificación es errónea.
+- **Coherencia `cliente` ↔ R-Antes-de-Crear:** un campo clasificado como `cliente` **NO DEBE** aparecer asignado por una `R-<Entidad>-NNN` con momento `Antes` de `Crear`. Si lo hace, la clasificación es inconsistente: preguntar si el campo es realmente `servidor` o si la R-… sobra.
+- **Resumen en `analysis.md`:** la sección "Resumen de campos por origen" del `analysis.md` debe reflejar el conteo real por entidad (`cliente` / `servidor`). Si los contadores están desactualizados, reescribirlos tras la validación.
+
 ### 4.7 Prohibiciones (ver §2.3 del skill original)
 
 Si , **MUST NOT** en cualquier fichero de `analysis/` (mismo barrido que en `sdd-specification-system-review`):
@@ -294,6 +304,14 @@ Aplica este checklist literal al terminar las correcciones. **MUST NOT** delegar
 - [ ] ¿Las columnas `Reglas que dispara` y los `Qué hace` de Botones referencian IDs V/R/U existentes?
 - [ ] ¿La decisión `CASCADE / RESTRICT / SET NULL` está en el lado padre de la relación, no en el hijo?
 - [ ] ¿Ningún fichero contiene tecnicismos **prohibidos** (FQN, JPQL, atributos XML, nombres de método del runtime)?
+
+**Clasificación de seguridad (Origen del valor):**
+
+- [ ] ¿Cada `entity-*.md` lleva la columna **"Origen del valor"** en la tabla `Modelo de datos`?
+- [ ] ¿Cada campo tiene su celda rellena con exactamente `cliente` o `servidor`?
+- [ ] ¿Cada campo `servidor` está respaldado por al menos una `R-<Entidad>-NNN` con momento `Antes`?
+- [ ] ¿Ningún campo `cliente` aparece como asignado por una R-Antes-de-Crear?
+- [ ] ¿La sección "Resumen de campos por origen" del `analysis.md` refleja los conteos reales por entidad?
 
 **Contadores actualizados:**
 

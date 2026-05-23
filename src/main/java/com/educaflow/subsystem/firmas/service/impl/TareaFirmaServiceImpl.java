@@ -9,6 +9,7 @@ import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil;
 import com.axelor.db.modelservice.BusinessMessage;
 import com.axelor.db.modelservice.BusinessMessages;
+import com.axelor.db.modelservice.AllowProperties;
 import com.educaflow.base.util.JsonUtil;
 import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.subsystem.firmas.db.DocumentoFirma;
@@ -30,6 +31,8 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
 
     @Override
     public TareaFirma insert(TareaFirmaInsertDTO tareaFirmaInsertDTO)  {
+        validateInsert(tareaFirmaInsertDTO).ifPresent(BusinessMessages::throwIfInvalid);
+
         TareaFirma tareaFirma=new TareaFirma();
         tareaFirma.setFirmante(tareaFirmaInsertDTO.firmante());
         tareaFirma.setFechaSolicitud(LocalDateTime.now());
@@ -75,6 +78,8 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
 
     @Override
     public TareaFirma marcarComoFirmada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal)  {
+        validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginal).ifPresent(BusinessMessages::throwIfInvalid);
+
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
         tareaFirma.setFechaResolucion(LocalDateTime.now());
 
@@ -87,6 +92,8 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
 
     @Override
     public TareaFirma marcarComoRechazada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal)  {
+        validateMarcarComoRechazada(tareaFirma, tareaFirmaOriginal).ifPresent(BusinessMessages::throwIfInvalid);
+
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.RECHAZADO);
         tareaFirma.setFechaResolucion(LocalDateTime.now());
 
@@ -97,12 +104,10 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
         return tareaFirma;
     }
 
-    /****************************************************************************************/
-    /******************************** Métodos de Validación *********************************/
-    /****************************************************************************************/
-
     @Override
     public Optional<BusinessMessages> validarDocumentosFirmados(TareaFirma tareaFirma) {
+        validateValidarDocumentosFirmados(tareaFirma).ifPresent(BusinessMessages::throwIfInvalid);
+
         BusinessMessages businessMessages=new BusinessMessages();
 
         for (DocumentoFirma documentoFirma : tareaFirma.getDocumentosFirma()) {
@@ -121,6 +126,38 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
         }
 
     }
+
+
+    /****************************************************************************************/
+    /******************************** Métodos de Validación *********************************/
+    /****************************************************************************************/
+
+    public Optional<BusinessMessages> validateInsert(TareaFirmaInsertDTO tareaFirmaInsertDTO) {
+        return Optional.empty();
+    }
+    public Optional<BusinessMessages> validateMarcarComoFirmada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) {
+        return Optional.empty();
+    }
+    public Optional<BusinessMessages> validateMarcarComoRechazada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) {
+        return Optional.empty();
+    }
+    public Optional<BusinessMessages> validateValidarDocumentosFirmados(TareaFirma tareaFirma) { return Optional.empty();}
+
+
+    /**************************************************************************************/
+    /********************************   AllowProperties   *********************************/
+    /**************************************************************************************/
+
+    public AllowProperties allowPropertiesMarcarComoFirmada() {
+        return AllowProperties.createAllowProperties(Map.of("documentosFirma", Map.of("documentoFirmado", Map.of())));
+    };
+    public AllowProperties allowPropertiesMarcarComoRechazada() {
+        return AllowProperties.createAllowProperties(Map.of("motivoRechazo", Map.of()));
+    };
+    public AllowProperties allowPropertiesValidarDocumentosFirmados(){
+        return AllowProperties.createAllowAllProperties();
+    };
+
 
     /*************************************************************************************/
     /********************************    Action Rules    *********************************/

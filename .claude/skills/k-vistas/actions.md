@@ -328,6 +328,8 @@ Además de las acciones definidas por el desarrollador, el framework de Axelor t
 - `save-modal`: guarda el registro actual mostrando un modal de confirmación.
 - `new`: crea un nuevo registro.
 
+`save`/`delete` (form principal) y `save-modal`/`delete-modal` (form modal de entidades hijas en `<panel-related>`) son las únicas formas correctas de persistir y borrar registros desde el cliente. Estas acciones disparan el endpoint REST automático `/ws/rest/<FQN>` que entra al servicio aplicando `validate → super` y `AllowProperties`. **MUST NOT** sustituirlas por un `<action-method>` (`Remote-…-action`) que llame a un controlador propio para guardar o borrar. Ver `[[controladores.md]]` del skill `k-sistemas`.
+
 
 ## Orden de las acciones en el código:
 

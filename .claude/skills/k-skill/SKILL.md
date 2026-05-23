@@ -28,7 +28,7 @@ Si los argumentos están vacíos, asume que el usuario pide la **referencia comp
 ## Outline
 
 1. **Decidir el tipo de skill** (§3) — knowledge (`k-*`) o action (`sdd-*`/`code-*`/imperativo).
-2. **Escribir el frontmatter** (§4) — `name`, `description`, `handoffs` opcional.
+2. **Escribir el frontmatter** (§4) — `name`, `description`, `allowed-tools` (opcional).
 3. **Escribir el cuerpo** (§5) — H1 + intro + estructura según tipo.
 4. **Aplicar las convenciones de estilo** (§6) — idioma, marcadores, ejemplos, límites, plantillas, checklists.
 5. **Validar contra el checklist final** (§9) — **LIMIT**: máximo 3 iteraciones de corrección antes de dar por bueno el skill.
@@ -203,10 +203,6 @@ $ARGUMENTS
   ---
   name: sdd-analyst-system
   description: Dado un fichero `specification.md`, genera los artefactos de análisis (analysis.md + entity-*.md + screen-*.md + tests.md) con trazabilidad EARS → V/R/U. La entrada la produce `/sdd-specification-system` y la salida la consume `/sdd-designer-system`.
-  handoffs:
-    - label: Generar diseño
-      agent: sdd-designer-system
-      prompt: Generar el diseño desde el análisis recién creado
   ---
   ```
 

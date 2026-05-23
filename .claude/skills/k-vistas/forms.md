@@ -34,6 +34,7 @@ IMPORTANTE:
  - En <form> deben estar todos los atributos que se han indicado en la plantilla (width, canAttach, canBack, canDelete, canNew, canSave, canMore, canBackOnSave) con los valores indicados. `canBackOnSave="true"` solo aplica al form principal (no al modal de entidad hija). El form modal **no lleva `canBackOnSave`** y **sí lleva `onNew`** para inyectar la referencia al padre.
  - En <panel-related> deben estar todos los atributos que se han indicado en la plantilla (newButtonTitle, colSpan, showFooter, canEdit, canRemove, forceEdit) con los valores indicados.
  - El botón Borrar debe tener `showIf="(id!=null) || (cid!=null)"` — `id` es el ID del registro ya guardado; `cid` es el ID temporal de un registro nuevo todavía no guardado.
+ - El `<action-group>` del botón `btnSave` **MUST** terminar con `<action name="save"/>` y el del botón `btnDelete` **MUST** terminar con `<action name="delete"/>` (acciones predefinidas del framework de Axelor). **MUST NOT** llamar a un `<action-method>` propio (`Remote-…-action`) para persistir o borrar: Axelor ya expone el endpoint REST `/ws/rest/<FQN>` que aplica `validate → super` con `AllowProperties`. Ver `[[controladores.md]]` del skill `k-sistemas` y `[[k-secure-coding]]`.
  - Los nombres de los `onClick` de los botones siguen el patrón `{Prefijo}.{EntidadJerárquica}@Main-{btnXxx}-action`, donde `{EntidadJerárquica}` puede incluir la jerarquía de entidades separadas por punto (p.ej. `Ciclo.Curso`). Por ejemplo: `subsysSistemaEducativo.Ciclo@Main-btnDelete-action` para la entidad raíz, o `subsysSistemaEducativo.Ciclo.Curso@Main-btnDelete-action` para la entidad hija.
  - Los nombres de los paneles siguen el patrón del nombre de la entidad (p.ej. `name="Ciclo"`), no nombres genéricos como `nombrePanel1`.
  - En campos relacionales: `form-view` apunta al `@View-form` de la entidad (p.ej. `subsysCentro.Centro@View-form`) y `grid-view` apunta al `@Search-grid` (p.ej. `subsysCentro.Centro@Search-grid`).
@@ -69,7 +70,8 @@ Diferencias respecto al form principal:
 - **Con `onNew`** — inyecta la referencia al padre cuando se crea un registro nuevo.
 - **Campo padre con `showIf="false"`** — está en el modelo pero no es visible al usuario.
 
-Los action-groups de los botones del form modal usan acciones específicas del framework:
+Los action-groups de los botones del form modal usan acciones específicas del framework (predefinidas por Axelor). El `<action-group>` del botón `btnSave` **MUST** terminar con `<action name="save-modal"/>` y el del botón `btnDelete` con `<action name="delete-modal"/>`. **MUST NOT** llamar a un `<action-method>` propio para persistir o borrar — igual que en el form principal, ver `[[controladores.md]]` del skill `k-sistemas`:
+
 - Botón Borrar: `<action name="delete-modal"/>` (no `delete`)
 - Botón Cancelar: `<action name="close"/>` (no `back`)
 - Botón Guardar: `<action name="save-modal"/>` (no `save`)
@@ -123,6 +125,8 @@ Otra excepción es el caso de formularios del propio Axelor que se modifican par
     - Se usan condicionales (`showIf`, `hideIf`, `requiredIf`, `readonlyIf`) para mostrar, ocultar o modificar la interactividad de campos y paneles según el estado del formulario o los datos.
     - Se pueden incluir secciones de ayuda dentro de los paneles usando `<help variant="info|warning|...">` para guiar al usuario.
     - Los botones de acción se colocan dentro de un panel específico (normalmente al final del formulario) y se configuran con `onClick` para lanzar las acciones correspondientes.
+
+> **CRITICAL — `readonly`/`showIf`/`hideIf`/`hidden`/`required` NO son defensas de seguridad.** Estos atributos solo afectan al cliente. Un atacante con Postman/curl ignora la UI y envía cualquier campo al endpoint REST genérico `POST /ws/rest/<FQN>`. La defensa real vive en el servidor: `AllowProperties` en el controller + asignación incondicional de campos `servidor` en `*ServiceImpl.insert/update` + `validateInsert`/`validateUpdate`. Si necesitas que un campo no se pueda enviar desde el cliente, **MUST** consultar `[[k-secure-coding]]` §1-§2 — no basta con marcarlo `readonly` o `hidden` en la vista.
 
 ## CRÍTICO: Campos condicionales y el problema de los huecos en el grid
 

@@ -16,9 +16,9 @@ Las cuatro secciones (`Modelo de datos`, `Validaciones`, `Acciones`, `Reglas de 
 
 Lista de campos de la entidad en lenguaje funcional. **No** se usan tipos Java (`String`, `LocalDateTime`…) ni anotaciones JPA — se describe el tipo desde el punto de vista del negocio.
 
-| Campo                | Tipo de dato                 | Relación                          | Notas                                                                    |
-|----------------------|------------------------------|-----------------------------------|--------------------------------------------------------------------------|
-| *(nombre del campo)* | *(ver tabla de tipos abajo)* | *(ver tabla de relaciones abajo)* | *(opcional — aclaraciones funcionales, restricciones, quién lo rellena)* |
+| Campo                | Tipo de dato                 | Relación                          | Origen del valor    | Notas                                                                    |
+|----------------------|------------------------------|-----------------------------------|---------------------|--------------------------------------------------------------------------|
+| *(nombre del campo)* | *(ver tabla de tipos abajo)* | *(ver tabla de relaciones abajo)* | `cliente` / `servidor` | *(opcional — aclaraciones funcionales, restricciones, quién lo rellena)* |
 
 **Valores admitidos en `Tipo de dato`** (siempre funcionales, nunca Java):
 
@@ -31,6 +31,18 @@ Lista de campos de la entidad en lenguaje funcional. **No** se usan tipos Java (
 - `→ <Entidad> (padre)` si la relación apunta al padre en una jerarquía.
 - `→ <Entidad> (uno a varios, hijos)` si es una colección.
 - `valores: X, Y, Z` si el tipo es `enum`.
+
+**Valores admitidos en `Origen del valor`** — clasificación de seguridad **obligatoria** (ver `[[k-secure-coding]]` §3):
+
+- **`cliente`** — el valor lo aporta el usuario en el alta/edición. Validable con V-rules. Permitido en `AllowProperties` del controller. Es el caso típico de campos como `asunto`, `cuerpo`, `dniDestinatario`, etc.
+- **`servidor`** — el valor lo dicta el servidor en una regla de negocio. Cubre tanto valores que vienen de fuera del bean (fechas de creación, estados iniciales, contadores, IDs generados, snapshots del usuario autenticado) como valores calculados a partir de otros campos (totales, hashes, denormalizaciones). El cliente **NUNCA** lo puede dictar; el servidor lo asigna/recalcula incondicionalmente. La diferencia entre "venía de fuera" y "calculado" se explica en el comentario de la R-… que lo asigna, no como categoría aparte.
+
+**MUST** que cada campo tenga su `Origen del valor` relleno con `cliente` o `servidor`. Si la clasificación es ambigua (p.ej. un campo que en la UI rellena el usuario pero en un import masivo lo dicta el servidor), **pregunta al usuario con `AskUserQuestion`** — no inventes.
+
+**Coherencia con las tablas de reglas:**
+
+- Cada campo `servidor` **DEBE** estar respaldado por al menos una `R-<Entidad>-NNN` con momento `Antes` que documente cómo lo asigna el servidor (o aparecer justificado en "Asunciones a confirmar").
+- Un campo clasificado como `cliente` **MUST NOT** aparecer como asignado por una `R-<Entidad>-NNN` con momento `Antes` de `Crear` (eso lo convertiría implícitamente en `servidor`).
 
 **Columna `Notas`** — opcional. Útil para indicar:
 - Quién rellena el campo (`asignado por el sistema`, `seleccionado por el usuario`, `viene de otra pantalla`).

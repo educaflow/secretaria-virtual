@@ -31,7 +31,7 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 
 1. **Localizar** el `specification.md` y validar su frontmatter (Fase 0).
 2. **Preparar** la carpeta `analysis/` borrando residuos antiguos (Fase 1).
-3. **Cargar** los skills técnicos `k-validaciones`, `k-sistemas`, `k-vistas`, `k-seguridad` según aplique (Fase 2).
+3. **Cargar** los skills técnicos `k-validaciones`, `k-sistemas`, `k-vistas`, `k-seguridad`, `k-secure-coding` según aplique (Fase 2).
 4. **Leer** la especificación una vez para enmarcar el alcance (Fase 3).
 5. **Generar** el análisis en tres etapas **estrictamente secuenciales** (Fase 4):
    - Etapa A — Inventario (1 subagente).
@@ -276,6 +276,7 @@ mkdir -p .sdd/drafts/{carpeta-iniciativa}/analysis/
 
 1. **Cargar los skills técnicos necesarios** — son la fuente de verdad sobre cómo se implementan las cosas en este proyecto:
    - `k-validaciones` — **siempre** (categorías V/R/U, mensajes de error, ciclo de vida, campos calculados).
+   - `k-secure-coding` — **siempre** que la especificación cree o modifique entidades (clasificación del **origen del valor** de cada campo como `cliente` o `servidor`, mass-assignment, multi-centro/IDOR, defensa servidor vs UI).
    - `k-sistemas` — si la especificación crea o modifica entidades, servicios o controladores.
    - `k-vistas` — si la especificación incluye listados, formularios, menús o navegación.
    - `k-seguridad` — si la especificación incluye permisos, roles o restricciones por tipo de usuario.
@@ -426,6 +427,7 @@ Lanza un único subagente "coordinador de entidades". Este subagente **no genera
 - La instrucción de generar el contenido de un fichero `entity-<Nombre>.md` por cada entidad del inventario, con las cuatro secciones obligatorias en orden: `Modelo de datos`, `Validaciones`, `Acciones`, `Reglas de negocio`.
 - La instrucción explícita de tratar las entidades como un **grafo coherente** (FK, enums, tipos comunes consistentes entre `entity-*.md`).
 - Numeración local por entidad: `V-<NombreEntidad>-001`, `R-<NombreEntidad>-001`, … (ver principio 2.4). NO se renumera más adelante.
+- **Clasificación de seguridad de cada campo (`Origen del valor`):** la tabla `Modelo de datos` lleva una columna **"Origen del valor"** con uno de dos valores: `cliente` (lo aporta el usuario; validable con V; permitido en `AllowProperties`) o `servidor` (lo dicta el servidor en una R-… — timestamps, estados iniciales, contadores, snapshots, valores calculados — y se asigna/recalcula incondicionalmente en `*ServiceImpl.insert/update`). Ver `[[k-secure-coding]]` §2. **MUST** clasificar todos los campos; si la clasificación es ambigua, registrarla en `=== DUDAS ===` para que el coordinador la lleve al usuario. Coherencia obligatoria: cada campo `servidor` **DEBE** estar respaldado por al menos una `R-<Entidad>-NNN` con momento `Antes` que documente cómo lo asigna el servidor; un campo `cliente` **NO** debe aparecer asignado por una R-Antes-de-Crear (eso lo convertiría implícitamente en `servidor`).
 - **Trazabilidad EARS → V/R/U:** las tablas de Validaciones y Reglas de negocio llevan una columna **"Origen EARS"**. Para cada V/R, listar los IDs `E-XX-NNN` del spec que la originaron (separados por comas, p.ej. `E-UN-001` o `E-EV-002, E-UB-001`), o `—` si la regla fue inventada durante la interpretación. La correlación natural es `E-UN → V`, `E-EV / E-UB → R`, `E-ST → U` (esta última en pantallas), `E-OP → R o U` según efecto; pero la decisión final depende del efecto que produce la regla, no del patrón EARS.
 - El checklist de entidad (ver abajo) — el sub-subagente lo aplica a su propia candidatura antes de devolverla.
 - **Formato de respuesta:** bloques etiquetados por nombre de fichero seguidos de un bloque final `=== DUDAS ===` con las preguntas pendientes (vacío si no hay), p.ej.
@@ -476,6 +478,8 @@ En empate, el coordinador **puede** fusionar partes de varias candidaturas siemp
 - [ ] ¿La columna `Reglas que dispara` de Acciones referencia los IDs con prefijo correctamente?
 - [ ] ¿Las tablas de Validaciones y Reglas de negocio tienen columna **"Origen EARS"** con los IDs `E-XX-NNN` correspondientes, o `—` si la regla fue inventada por el analista?
 - [ ] ¿Los IDs EARS referenciados existen realmente en el `specification.md` (no se inventan IDs)?
+- [ ] ¿La tabla `Modelo de datos` tiene columna **"Origen del valor"** rellena para todos los campos con `cliente` o `servidor` (ver `[[k-secure-coding]]` §2)?
+- [ ] ¿Cada campo `servidor` está respaldado por al menos una `R-<Entidad>-NNN` con momento `Antes` que lo asigna? ¿Ningún campo `cliente` aparece como asignado por una R-Antes-de-Crear?
 - [ ] ¿No hay nombres de clase Java, métodos, FQN, anotaciones, atributos XML, JPQL ni nombres técnicos del framework? (Ver principio 2.3.)
 - [ ] ¿La integridad referencial al borrar (RESTRICT/CASCADE/SET NULL) está en el padre, no en el hijo?
 
@@ -628,6 +632,14 @@ Una vez los subagentes de las Etapas B.1 y B.2 han confirmado que sus ficheros e
    - Total reglas de negocio: M (sin Origen EARS: m)
    - Total reglas de UI: K (sin Origen EARS: k)
 
+   ### Resumen de campos por origen
+   Cada `entity-*.md` clasifica cada campo en `cliente` (lo aporta el usuario) o `servidor` (lo dicta el servidor en una R-… — ver `[[k-secure-coding]]` §2). El diseñador usa esta clasificación para decidir `AllowProperties` y asignación incondicional por acción.
+
+   | Entidad | cliente | servidor |
+   |---------|---------|----------|
+   | TareaCorreo | 4 | 6 |
+   | AdjuntoCorreo | 2 | 1 |
+
    ### Tests E2E
    Los escenarios concretos de prueba viven en [tests.md](./tests.md), numerados `T-NNN` y trazables a los `F-NNN` del spec.
    `/sdd-implementer-system` los ejecuta con `playwright-cli` tras escribir el código Java (bucle de auto-corrección).
@@ -681,6 +693,7 @@ Una vez los subagentes de las Etapas B.1 y B.2 han confirmado que sus ficheros e
 - [ ] ¿No hay reglas duplicadas entre categorías V/R/U?
 - [ ] ¿Las pantallas son coherentes con las entidades (cada campo del formulario existe en su entidad)?
 - [ ] ¿Cada V/R/U tiene su columna **"Origen EARS"** rellena (con uno o varios IDs `E-XX-NNN` que existen en el spec, o con `—` si fue inventada por el análisis)?
+- [ ] ¿Cada campo de cada `entity-*.md` tiene su columna **"Origen del valor"** rellena con `cliente` o `servidor`, y la clasificación es coherente con las R-… del propio fichero (cada `servidor` respaldado por una R-Antes-de-Crear, ningún `cliente` asignado por una R-Antes-de-Crear)?
 - [ ] ¿Cada `E-XX-NNN` del `specification.md` aparece como Origen de al menos una V/R/U, **o** está listado en "EARS descartados" del `analysis.md` con justificación?
 - [ ] **Si la Etapa B.3 se ejecutó** (spec con `F-NNN`): ¿existe `tests.md` en `analysis/` y cada `F-NNN` del spec aparece como `Origen F` en al menos un test (o está listado en "Flujos sin tests" con justificación)?
 - [ ] **Si la Etapa B.3 se ejecutó**: ¿cada referencia de `tests.md` (`Origen F`, `Verifica`, `Pantalla principal`) apunta a un ID o fichero que existe realmente?

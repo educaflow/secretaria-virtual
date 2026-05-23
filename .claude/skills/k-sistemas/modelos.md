@@ -92,21 +92,29 @@ Solo en campos **introducidos por el usuario** a través del formulario, cuya au
 ```
 
 ```java
-// Servicio: rellena los campos del sistema en insert ANTES de super.insert
+// Servicio: rellena los campos del sistema en insert ANTES de super.insert.
+// La inicialización es una regla de negocio (R-XXX) y vive en su propio
+// fireActionRule_* — no se hace inline en `insert`. Ver [[k-validaciones]] §reglas R-XXX.
+// ASIGNACIÓN INCONDICIONAL dentro del fireActionRule_: sin `if (campo == null) ...`.
+// Ver [[k-secure-coding]] §2.
 @Override
 public TareaCorreo insert(TareaCorreo entidad) {
-    if (entidad.getId() == null) {
-        entidad.setEstado(EstadoTareaCorreo.PENDIENTE);
-        entidad.setFechaCreacion(LocalDateTime.now());
-        entidad.setNumeroIntentos(0);
-    }
+    fireActionRule_AsignarValoresIniciales(entidad);   // R-TareaCorreo-001
     return super.insert(entidad);
+}
+
+private void fireActionRule_AsignarValoresIniciales(TareaCorreo entidad) {
+    entidad.setEstado(EstadoTareaCorreo.PENDIENTE);
+    entidad.setFechaCreacion(LocalDateTime.now());
+    entidad.setNumeroIntentos(0);
 }
 ```
 
 > **Antipatrón a evitar:** suplir la inicialización con un `<action-record>` ejecutado desde `onNew` en la vista. Es frágil (depende de que la creación pase por esa vista concreta), duplica la lógica entre Java y XML y mezcla responsabilidades. La inicialización de campos del sistema vive en el servicio; la vista no debe saber del estado interno del dominio.
 
 > **Antipatrón a evitar:** dentro de `insert(entidad)`, guardar la inicialización detrás de `if (entidad.getId() == null) { ... }`. Cuando el flujo de `Resource.save` invoca `modelService.insert`, ya ha pasado por `JPA.manage(bean)` → `em.persist(bean)`, así que **`entidad.getId()` ya NO es null** dentro de `insert`. El `if` parece una guarda defensiva pero realmente nunca se cumple y la inicialización queda muerta. `insert` solo se llama al crear, así que la guarda sobra — quita el `if` y ejecuta la inicialización directamente.
+
+> **Antipatrón CRÍTICO de seguridad:** guardar la inicialización de un campo del sistema detrás de `if (entidad.getCampo() == null) { entidad.setCampo(valor); }`. El endpoint REST genérico `/ws/rest/<FQN>` permite al cliente enviar el campo ya relleno; el `if` lo respeta y el atacante falsifica `fechaCreacion`, `estado`, contadores, etc. **MUST** asignar **incondicionalmente** (`entidad.setCampo(valor)` sin `if`). Ver `[[k-secure-coding]]` §2 — es un fallo de seguridad explotable, no de estilo.
 
 ### Checklist al añadir un campo nuevo a un dominio
 

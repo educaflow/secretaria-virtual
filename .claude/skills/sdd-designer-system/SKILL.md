@@ -292,6 +292,7 @@ Según las áreas que cubre el análisis:
 - **Siempre** `k-sistemas` — arquitectura de dominios, servicios, controladores; convenciones de FQN y nombres de clase.
 - **Siempre** `k-validaciones` — categorías V/R/U, en qué capa va cada tipo, cómo se redactan los mensajes.
 - **Siempre** `k-code-quality` — reglas de calidad de Java/Kotlin (descomposición de métodos, responsabilidad única, nombrado, idiomas modernos, convenciones Axelor/Guice/JPA). Aplica al diseñar firmas, descomponer servicios en colaboradores y nombrar clases/métodos.
+- **Siempre** `k-secure-coding` — frontera de confianza Axelor, mass-assignment, asignación incondicional de campos `servidor` en `*ServiceImpl.insert/update`, `AllowProperties` por acción, multi-centro/IDOR. **Determina** qué pieza implementa cada R-Antes-de-Crear y cómo se compone la lista blanca de cada `@CallMethod`.
 - Si hay vistas o menús: `k-vistas` — estructura de ficheros XML, nombres de vistas y acciones.
 - Si hay permisos o roles: `k-seguridad` — qué permisos/roles crear y cómo se nombran.
 
@@ -452,7 +453,7 @@ El prompt debe encargar al subagente, en este orden:
 **Objetivo:** <Una frase>
 **Capa:** system|subsystem/<nombre>
 **Análisis de origen:** .sdd/drafts/{carpeta-iniciativa}/analysis/analysis.md
-**Skills necesarios para la implementación:** k-sistemas, k-code-quality, k-vistas[, k-seguridad]
+**Skills necesarios para la implementación:** k-sistemas, k-code-quality, k-secure-coding, k-vistas[, k-seguridad]
 
 ## Ficheros a crear o modificar
 
@@ -466,6 +467,9 @@ El prompt debe encargar al subagente, en este orden:
 ## Pasos
 
 ### Paso N — <Título>
+...
+
+## Frontera de confianza — AllowProperties por controller
 ...
 
 ## Trazabilidad V/R/U → ubicación
@@ -528,6 +532,57 @@ public Optional<BusinessMessages> validateInsert(Bar entidad);
 //       caracteres. Mensaje debe transmitir: nombre recibido + longitud actual + rango.
 ```
 
+#### 6.3.2 Detalle del paso de servicios (cómo documentar campos `servidor` — defensa anti mass-assignment)
+
+Para cada R-<Entidad>-NNN con momento `Antes` que asigna un campo clasificado como `servidor` en el análisis (columna "Origen del valor" del `entity-*.md`), el comentario del `fireActionRule_*` correspondiente **MUST** documentar explícitamente:
+
+1. Que la asignación es **incondicional** (sin `if (campo == null)`). Ver `[[k-secure-coding]]` §2.
+2. El origen del valor (`LocalDateTime.now()`, `AuthUtils.getUser().getCentro()`, constante del enum, etc.).
+3. Que el cliente NO puede dictar este campo aunque venga relleno en el JSON del endpoint REST genérico.
+
+✅ CORRECTO (comentario en `design.md`):
+
+```java
+private void fireActionRule_AsignarFechaCreacion(Bar bar);
+//   Aplica R-Bar-001 (campo `fechaCreacion`, clasificado `servidor` en entity-Bar.md):
+//   asignación INCONDICIONAL `bar.setFechaCreacion(LocalDateTime.now())`.
+//   MUST NOT añadir guarda `if (bar.getFechaCreacion() == null)`: permitiría que un
+//   atacante por el endpoint REST genérico cuele una fecha falsificada (ver k-secure-coding §2).
+```
+
+❌ INCORRECTO:
+
+```java
+private void fireActionRule_AsignarFechaCreacion(Bar bar);
+//   Si fechaCreacion es null, asignar LocalDateTime.now().
+```
+
+Para campos inmutables tras crear (típico `fechaCreacion`, `numeroSecuencial`), el `design.md` **MUST** excluirlos de la whitelist `allowPropertiesUpdate` para que el cliente no pueda enviarlos (ver `[[k-secure-coding]]` §3.2 regla 1).
+
+#### 6.3.3 Sección "Frontera de confianza — AllowProperties por acción"
+
+El `design.md` final **MUST** llevar una sección `## Frontera de confianza — AllowProperties por acción` con una tabla por cada acción del servicio invocada desde un `@CallMethod`. La tabla materializa la decisión de seguridad sobre qué campos del bean acepta esa acción.
+
+> Las reglas de validez (qué forma elegir, qué campos pueden o no estar) viven en `[[k-secure-coding]]` §3. Este apartado solo fija **el formato del documento**; las reglas no se repiten aquí.
+
+**Formato de cada tabla**:
+
+```markdown
+### `BarServiceImpl.<accion>` (invocado desde `BarController.<callMethod>`)
+
+Entidad: `Bar`. **Forma elegida**: `createAllowProperties` | `createAllowAllProperties`.
+
+| Campo            | Origen   | En whitelist | Justificación / Ubicación de la asignación              |
+|------------------|----------|--------------|---------------------------------------------------------|
+| `nombre`         | cliente  | sí           | Input directo del usuario.                              |
+| `fechaCreacion`  | servidor | **NO**       | Asignada en `BarServiceImpl.insert` → `fireActionRule_…`; en `update` no se toca (excluida de la whitelist). |
+| `estado`         | servidor | **NO**       | Recalculada en `BarServiceImpl.update` → `fireActionRule_…`. |
+```
+
+Si hay alta programática vía DTO (`record`), añadir sub-apartado `### DTO de alta programática` con los campos del record y justificación de cualquier `servidor` que aparezca.
+
+Esta sección es el contrato de seguridad. `sdd-designer-system-review` la valida aplicando `[[k-secure-coding]]` §3, `sdd-implementer-system` la usa para generar el `allowPropertiesXxx` real, y los code-reviews humanos la consultan ante cualquier campo nuevo.
+
 ### 6.4 Checklist que el subagente aplica en su Tarea 3
 
 El subagente revisa su propio diseño contra esta lista y corrige antes de devolverlo. Si algún punto no se cumple, **MUST NOT** devolver el diseño hasta arreglarlo. **LIMIT**: máximo 3 iteraciones de auto-corrección; si tras la 3ª sigue sin cumplirse algún punto, lo deja registrado en `=== DUDAS ===` y devuelve.
@@ -546,6 +601,9 @@ El subagente revisa su propio diseño contra esta lista y corrige antes de devol
 - [ ] ¿Cada método en el paso de servicios tiene un comentario que indica qué reglas `V-`/`R-` aplica, qué lógica ejecuta y qué transmiten los mensajes de error?
 - [ ] ¿Cada acción de vista declarada tiene un comentario de su propósito y los campos/condiciones que intervienen?
 - [ ] ¿Las reglas están mapeadas a la capa correcta según el principio 2.5?
+- [ ] ¿El diseño tiene la sección `## Frontera de confianza — AllowProperties por acción` con una tabla por cada acción del servicio invocada desde un `@CallMethod`, en el formato fijado en §6.3.3, y pasando las reglas de `[[k-secure-coding]]` §3?
+- [ ] ¿Cada R-<Entidad>-NNN con momento `Antes` que asigna un campo `servidor` tiene un comentario en su `fireActionRule_*` que documenta asignación **incondicional** (sin `if (campo == null)`) y referencia `[[k-secure-coding]]` §3.3?
+- [ ] ¿Ningún cuerpo de método del diseño contiene el anti-patrón `if (campo == null) setCampo(...)` para campos `servidor`?
 - [ ] ¿TODAS las reglas `V-` del análisis están ubicadas con un comentario que describe qué se comprueba y qué transmite el mensaje?
 - [ ] ¿TODAS las reglas `R-` del análisis están ubicadas como `fireActionRule_*` con comentario que describe qué hace, sobre qué entidad, en qué operación y con qué momento (Antes/Después)?
 - [ ] ¿TODAS las reglas `U-` del análisis están ubicadas en la vista correspondiente con su mecanismo concreto (atributo inline `*If` o nombre de `<action-attrs>`/`<action-record>` con su evento)?

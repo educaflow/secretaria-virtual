@@ -188,6 +188,25 @@ Tratamiento de errores:
 
 Reportar los contadores finales: V/R/U cubiertos, V/R/U sin cubrir, entradas con referencia rota.
 
+### 5.3.1 Frontera de confianza — AllowProperties y campos `servidor` (ver `[[k-secure-coding]]` §3)
+
+Si en algún `entity-*.md` del análisis hay campos clasificados como `servidor` en la columna "Origen del valor", el `design.md` **MUST** contener la sección `## Frontera de confianza — AllowProperties por acción` con una tabla por cada acción del servicio invocada desde un `@CallMethod`.
+
+Validaciones:
+
+1. **Sección presente:** si el análisis tiene campos `servidor` y la sección falta, reportar al usuario y ofrecer (a) relanzar `/sdd-designer-system`, (b) añadir un placeholder a completar a mano. **MUST NOT** inventar la sección automáticamente.
+2. **Coherencia con `entity-*.md`:** la columna `Origen` de cada tabla **MUST** coincidir con la columna "Origen del valor" del `entity-*.md` correspondiente. Cualquier divergencia es un error: preguntar al usuario qué versión es la canónica.
+3. **Reglas de `[[k-secure-coding]]` §3:** para cada tabla, aplicar las reglas del §3 (forma elegida válida según los `servidor` que la acción cubre, ningún `servidor` en una whitelist, cobertura completa si `createAllowAllProperties`). Cualquier fallo se reporta como **vulnerabilidad de mass-assignment** al usuario para corregir. Si `createAllowAllProperties` carece de la lista de ubicaciones de asignación incondicional, no es admisible → preguntar si pasa a whitelist o completa la cobertura.
+4. **Asignación incondicional en servicios:** para cada R-Antes-de-Crear que asigne un campo `servidor`, el comentario de `fireActionRule_*` correspondiente en el `design.md` **MUST** documentar asignación **incondicional**. Detector mecánico (`[[k-secure-coding]]` §3.4):
+
+```
+grep -nE "if\s*\(.*==\s*null\s*\).*set[A-Z]" design.md
+```
+
+   Cualquier coincidencia que afecte a un campo `servidor` es un fallo: preguntar al usuario antes de corregir (la corrección es eliminar el `if`).
+
+5. **DTO de alta programática:** si el diseño documenta un DTO `record` para alta programática, comprobar que cualquier campo `servidor` listado en el DTO tiene justificación explícita. Si no la tiene, preguntar.
+
 ### 5.4 Reglas arquitectónicas (ver §2.7 del skill original)
 
 - **Un `<action-view>` por fichero** en `design/views/`. Si un fichero tiene varios, preguntar para partirlo.
@@ -264,6 +283,7 @@ Aplicar el **checklist §6.4 del skill original** entero al terminar las correcc
 - [ ] Secciones obligatorias del `design.md` presentes (§5.1.1): cabecera + metadatos, `## Ficheros a crear o modificar`, `## Pasos`, `## Trazabilidad V/R/U → ubicación`.
 - [ ] Todos los XML pasan `xmllint --noout --schema` contra el XSD correspondiente (§5.2).
 - [ ] Cada V/R/U del `analysis/` aparece en la matriz de trazabilidad y su ubicación referenciada existe en algún fichero del diseño (§5.3).
+- [ ] Si hay campos `servidor` en algún `entity-*.md`: sección `## Frontera de confianza — AllowProperties por acción` presente con una tabla por cada acción del servicio invocada desde `@CallMethod`, columnas `Origen` coherentes con `entity-*.md`, y todas las reglas de `[[k-secure-coding]]` §3 satisfechas. Ningún `if (campo == null) setCampo(...)` para campos `servidor` en comentarios o cuerpos (§5.3.1).
 - [ ] Un `<action-view>` por fichero en `design/views/` y FQN coherentes (§5.4).
 - [ ] Ningún comentario de método en `design.md` contiene código Java de implementación (§5.4).
 - [ ] Cada `R-*` compleja tiene su `rules/R-*.md` y viceversa (§5.5).

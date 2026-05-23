@@ -358,6 +358,7 @@ Usando los ficheros del `git diff` de Fase 1, identifica divergencias entre lo a
 - **Operaciones** (endpoints, métodos públicos) con firma o nombre distinto.
 - **Vistas** con nombre, granularidad o filtro distinto.
 - **Reglas de seguridad** ajustadas.
+- **Columna "Origen del valor"** de cada `entity-*.md`: para cada campo clasificado como `servidor`, verificar que el `*ServiceImpl.insert`/`update` real lo asigna o recalcula **incondicionalmente** (sin `if (campo == null)`); para cada campo `cliente`, verificar que el servicio NO lo asigna en una R-Antes-de-Crear. Si la realidad del código discrepa, corregir la clasificación en el `analysis.md` as-built y dejarlo en la nota de cierre. Ver `[[k-secure-coding]]` §2.
 
 **REQUIRED**: si se ajustaron filas de alguna tabla `V-XXX`/`R-XXX`/`U-XXX`, **MUST** renumerar cada tabla por separado de forma **consecutiva sin huecos**, manteniendo el orden de aparición tras el ajuste.
 
@@ -374,10 +375,11 @@ Usando el `git diff`, identifica divergencias entre lo diseñado y lo implementa
 - Métodos añadidos, eliminados o con firma cambiada.
 - Entidades con campos distintos.
 - Vistas con nombres o estructura distinta.
-- `V-XXX` que cambiaron de capa (cliente↔servidor↔modelo).
+- `V-XXX` que cambiaron de **capa de validación** (navegador `<action-validate>` ↔ servicio `validateInsert`/`validateUpdate` ↔ modelo JPA). **Nota terminológica**: aquí "capa" se refiere al sitio donde se ejecuta la validación, no al "Origen del valor" de un campo (ese eje vive en el `analysis.md` y se trata en §7.2.b).
 - `R-XXX` que cambiaron de momento (Antes↔Después) u operación.
 - `U-XXX` que cambiaron de mecanismo (atributo inline ↔ `<action-attrs>`/`<action-record>`).
 - Matriz de trazabilidad: cada `V-XXX`, `R-XXX`, `U-XXX` **MUST** seguir apuntando a una ubicación real del código.
+- **Sección "Frontera de confianza — AllowProperties por acción"**: para cada acción del servicio invocada desde `@CallMethod` (que tenga su `allowPropertiesXxx` declarado), verificar contra el código real (a) la **forma** declarada en `allowPropertiesXxx` (`createAllowProperties(Map.of(...))` whitelist / `createAllowAllProperties()` abierto) coincide con la implementación; (b) en whitelist, la lista real no contiene ningún campo `servidor` y enumera todos los `cliente` necesarios; (c) en abierto, **todos** los campos `servidor` se asignan **incondicionalmente** en la acción del `*ServiceImpl` real (sin `if (campo == null)`). Si discrepa, corregir el `design.md` as-built y registrar en la nota de cierre. Ver `[[k-secure-coding]]` §3.
 
 #### 7.2.d Plantilla literal de la nota de cierre
 

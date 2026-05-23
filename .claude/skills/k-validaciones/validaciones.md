@@ -217,13 +217,12 @@ public void validateSave(ActionRequest actionRequest, ActionResponse actionRespo
     ActionRequestHelper<MiEntidad> requestHelper = new ActionRequestHelper(actionRequest, MiEntidad.class);
     ActionResponseHelper responseHelper = new ActionResponseHelper(actionResponse);
 
-    AllowProperties allowProperties = AllowProperties.createAllowAllProperties();
-    MiEntidad entidad = requestHelper.getModel(allowProperties);
-
     Optional<BusinessMessages> result;
     if (requestHelper.getId() == null) {
+        MiEntidad entidad = requestHelper.getModel(service.allowPropertiesInsert());
         result = service.validateInsert(entidad);
     } else {
+        MiEntidad entidad = requestHelper.getModel(service.allowPropertiesUpdate());
         MiEntidad original = requestHelper.getOriginalModel();
         result = service.validateUpdate(entidad, original);
     }
