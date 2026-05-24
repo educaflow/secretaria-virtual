@@ -766,7 +766,7 @@ Por cada subagente terminado:
 3. Asegurarse de que la **tabla de trazabilidad V/R/U** del diseño marca la regla compleja con un puntero al fichero detallado, p.ej.:
 
    ```
-   | R-Bar-003 | BarServiceImpl.fireActionRule_publicar (Después de super.update) | Detalle: design/rules/R-Bar-003.md |
+   | R-Bar-003 | BarServiceImpl.fireActionRule_publicar (Después de repository.save) | Detalle: design/rules/R-Bar-003.md |
    ```
 
 4. Recoger las **dudas** del bloque `=== DUDAS ===` (si las hubiera) y plantearlas al usuario con `AskUserQuestion` antes de pasar a la Fase 3. Aplicar las respuestas al fichero markdown en memoria.

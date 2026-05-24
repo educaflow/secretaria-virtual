@@ -69,36 +69,36 @@ Convenciones del método:
 - **Devuelve `void`** — ejecuta el efecto directamente sobre la entidad u otros registros.
 - **No lanza `BusinessException`** — si hay que bloquear la operación, eso es una validación `V-XXX` en `validate*`, no una regla `R-XXX`.
 
-### 3.2 Dónde se invoca: `Antes` o `Después` de `super.*`
+### 3.2 Dónde se invoca: `Antes` o `Después` de la persistencia
 
-Las reglas se llaman desde el método sobreescrito del servicio (`insert`, `update`, `remove`, `cambiarEstado`…) colocando la llamada antes o después de `super.*` según su momento de aplicación:
+Las reglas se llaman desde la acción del servicio colocando la llamada antes o después del punto de persistencia, que **siempre** es `repository.save(...)` / `repository.remove(...)` — **nunca** `super.insert/update/remove` (prohibido en toda la `*Impl`, también al sobrescribir `insert/update/remove`; ver `[[k-sistemas]]` §"Persistir: siempre `repository`, nunca `super.*`"). Cuando sobrescribes `insert/update/remove`, la `validateXxx(...).ifPresent(throwIfInvalid)` la pones tú como primera línea.
 
 ```java
 @Override
 public MiEntidad insert(MiEntidad entidad) {
+    validateInsert(entidad).ifPresent(BusinessMessages::throwIfInvalid);   // V-XXX
+
     fireActionRule_AsignarNumeracion(entidad);     // R-XXX Antes — escribe sobre el mismo registro
-
-    entidad = super.insert(entidad);               // persiste
-
+    entidad = repository.save(entidad);            // persiste (NUNCA super.insert)
     fireActionRule_EnviarNotificacion(entidad);    // R-XXX Después — efecto colateral externo
     return entidad;
 }
 
 @Override
 public MiEntidad update(MiEntidad entidad, MiEntidad original) {
+    validateUpdate(entidad, original).ifPresent(BusinessMessages::throwIfInvalid);   // V-XXX
+
     fireActionRule_RecalcularTotal(entidad);       // R-XXX Antes — campo derivado
-
-    entidad = super.update(entidad, original);
-
+    entidad = repository.save(entidad);            // persiste (NUNCA super.update)
     fireActionRule_PropagrarCambioNif(entidad, original);  // R-XXX Después — propaga a otras entidades
     return entidad;
 }
 ```
 
-| Momento     | Dónde en el código                       | Por qué                                                                                            |
-|-------------|------------------------------------------|----------------------------------------------------------------------------------------------------|
-| **Antes**   | Antes de `super.insert/update/remove`    | Para que los cambios escritos sobre el mismo registro se persistan junto al resto del `save`.      |
-| **Después** | Después de `super.insert/update/remove`  | Para garantizar que la operación principal tuvo éxito antes de ejecutar el efecto colateral externo. |
+| Momento     | Dónde en el código              | Por qué                                                                                            |
+|-------------|---------------------------------|----------------------------------------------------------------------------------------------------|
+| **Antes**   | Antes de `repository.save/remove`   | Para que los cambios escritos sobre el mismo registro se persistan junto al resto del `save`.      |
+| **Después** | Después de `repository.save/remove` | Para garantizar que la operación principal tuvo éxito antes de ejecutar el efecto colateral externo. |
 
 ---
 

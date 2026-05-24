@@ -58,7 +58,7 @@ El flujo de guardado de Axelor en `com.axelor.rpc.Resource.save` ejecuta los pas
 
 1. `JPA.manage(bean)` → internamente llama a `em().persist(bean)` + `em().flush()`. **Aquí se ejecuta la validación de Jakarta Bean Validation y la INSERT en BD.**
 2. `modelService.insert(bean)` → solo se ejecuta **después** de la INSERT. Aquí es donde nuestro código pone `estado=PENDIENTE`, `fechaCreacion=now`, etc.
-3. `super.insert(bean)` dentro de `modelService.insert` hace un `merge` que vuelca los campos del sistema con un UPDATE adicional.
+3. `repository.save(bean)` dentro de `modelService.insert` (sea el heredado de `DefaultModelService` o tu sobrescritura) hace un `merge` que vuelca los campos del sistema con un UPDATE adicional.
 
 Si un campo del sistema lleva `required="true"`:
 
@@ -92,15 +92,16 @@ Solo en campos **introducidos por el usuario** a través del formulario, cuya au
 ```
 
 ```java
-// Servicio: rellena los campos del sistema en insert ANTES de super.insert.
+// Servicio: rellena los campos del sistema en insert ANTES de repository.save.
 // La inicialización es una regla de negocio (R-XXX) y vive en su propio
 // fireActionRule_* — no se hace inline en `insert`. Ver [[k-validaciones]] §reglas R-XXX.
 // ASIGNACIÓN INCONDICIONAL dentro del fireActionRule_: sin `if (campo == null) ...`.
 // Ver [[k-secure-coding]] §2.
 @Override
 public TareaCorreo insert(TareaCorreo entidad) {
+    validateInsert(entidad).ifPresent(BusinessMessages::throwIfInvalid);
     fireActionRule_AsignarValoresIniciales(entidad);   // R-TareaCorreo-001
-    return super.insert(entidad);
+    return repository.save(entidad);                   // NUNCA super.insert (ver [[k-sistemas]] servicios.md)
 }
 
 private void fireActionRule_AsignarValoresIniciales(TareaCorreo entidad) {

@@ -34,15 +34,16 @@ Cada identificador del análisis aparece en al menos un paso del diseño, y cada
 ```java
 @Override
 public T insert(T entidad) {
+    validateInsert(entidad).ifPresent(BusinessMessages::throwIfInvalid);   // V-XXX (primera línea)
     fireActionRule_X_Antes(entidad);     // R-XXX que escriben sobre el mismo registro
-    entidad = super.insert(entidad);     // super dispara validateInsert (V-XXX) y persiste
+    entidad = repository.save(entidad);  // persiste (NUNCA super.insert)
     fireActionRule_Y_Despues(entidad);   // R-XXX con efectos colaterales (correos, PDFs, otros registros)
     return entidad;
 }
 ```
 
-- Las `V-XXX` viven en `validateInsert`/`validateUpdate`/`validateRemove` y se ejecutan **dentro** de `super.*` (salvaguarda de `DefaultModelService`); si fallan, abortan la operación.
-- Las `R-XXX` viven en métodos `fireActionRule_<Nombre>` y se ejecutan **fuera** de `super.*`: antes si modifican el mismo registro (cambios persistirán junto al `save`), después si tienen efectos colaterales.
+- Las `V-XXX` viven en `validateInsert`/`validateUpdate`/`validateRemove`. Si **no** sobrescribes `insert/update/remove`, las dispara `DefaultModelService` (salvaguarda); si los sobrescribes, las disparas **tú** como primera línea con `validateXxx(...).ifPresent(throwIfInvalid)`. Si fallan, abortan la operación.
+- Las `R-XXX` viven en métodos `fireActionRule_<Nombre>` y se ejecutan alrededor de `repository.save/remove` (**nunca** `super.*`): antes si modifican el mismo registro (cambios persistirán junto al `save`), después si tienen efectos colaterales.
 
 ---
 

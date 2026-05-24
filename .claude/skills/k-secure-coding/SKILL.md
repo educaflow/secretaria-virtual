@@ -302,7 +302,9 @@ Adjuntos subidos por el usuario son superficie de ataque clásica. Tres defensas
 
 ## 9. Defensa en profundidad: `validate*` en el servicio
 
-`validateInsert/Update/Remove` del `*ServiceImpl` son la red de seguridad final del flujo de guardado: tanto la Vía A como la Vía B acaban pasando por aquí.
+`validateInsert/Update/Remove` del `*ServiceImpl` son la red de seguridad final del **flujo de guardado genérico** (`insert`/`update`/`remove`): tanto la Vía A (un botón que invoca la acción genérica) como la Vía B acaban pasando por aquí.
+
+> **Matiz — acciones propias**: una acción propia (`marcarComoFirmada`, `cambiarEstado`…) solo se alcanza por Vía A (`@CallMethod`), persiste con `repository.save/remove` y **NO** pasa por `validateUpdate`. Su red de seguridad final es **su propio** `validateMiAccion(...)`, ejecutado como primera línea de la acción (patrón validate + throw). **MUST** implementar ahí las V-rules que apliquen a esa acción. Recuerda: en la `*Impl` **MUST NOT** llamar **nunca** a `super.insert/update/remove` (ni siquiera al sobrescribir `insert/update/remove`); se persiste con `repository.save/remove` y el `validateXxx(...).ifPresent(throwIfInvalid)` lo pones tú como primera línea (ver `[[k-sistemas]]` §"Persistir: siempre `repository`, nunca `super.*`").
 
 **MUST** implementar las validaciones `V-<Entidad>-NNN` declarativas de la entidad **aquí**. **MUST NOT** dejar la validación solo en `<action-validate>`/`<action-condition>` del XML ni en chequeos JS del cliente: la Vía B se salta la vista entera y solo pasa por el servicio. Los chequeos en XML/JS sirven para UX, no para integridad.
 
@@ -325,7 +327,7 @@ public Optional<BusinessMessages> validateUpdate(Correo nuevo, Correo original) 
 }
 ```
 
-El `update`/`remove` correspondiente **no re-comprueba** la condición de la V-…: confía en que `validateUpdate` ya corrió y filtró los casos inválidos. Su cuerpo es el flujo normal de la operación (sobrescrituras de campos `servidor`, restauraciones de inmutables, `super.update(...)`).
+El `update`/`remove` correspondiente, **si lo sobrescribes**, pone `validateUpdate(...).ifPresent(throwIfInvalid)` como primera línea y luego el flujo normal de la operación (sobrescrituras de campos `servidor`, restauraciones de inmutables, `repository.save/remove` — **nunca** `super.update/remove`). Las comprobaciones de la V-… viven en `validateUpdate`, no se repiten inline en el cuerpo.
 
 ### 9.2 Caso particular: entidad que NUNCA admite la operación
 

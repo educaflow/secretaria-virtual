@@ -58,7 +58,7 @@ public interface MiEntidadService extends ModelService<MiEntidad> {
 
 > ⚠️ **Regla obligatoria**: la interfaz **MUST** declarar cada acción propia del subsistema `miAccion(...)` **junto con su validador** `validateMiAccion(...)` y, si esa acción se invoca desde el controlador propio, también **junto con su** `allowPropertiesMiAccion()`. La tripleta `acción + validador + allowProperties` es el contrato público de la acción.
 >
-> **¿Y para `insert` / `update` / `remove`?** **MUST NOT** re-declararlas, ni a ellas ni a sus `validateInsert/Update/Remove` ni a sus `allowPropertiesInsert/Update/Remove`. Estas acciones se invocan **siempre** desde el endpoint REST automático de Axelor (`/ws/rest/<FQN>`), nunca desde un `@CallMethod` del controlador propio. `ModelService<T>` ya declara las firmas y `DefaultModelService<T>` provee implementaciones por defecto (`Optional.empty()` para los `validate*`, defaults razonables para los `allowProperties*`, y el patrón `validate → super` dentro de `insert/update/remove`). Solo se sobrescribe en la `*Impl` lo que **realmente** se quiera cambiar.
+> **¿Y para `insert` / `update` / `remove`?** **MUST NOT** re-declararlas, ni a ellas ni a sus `validateInsert/Update/Remove` ni a sus `allowPropertiesInsert/Update/Remove`. Estas acciones se invocan **siempre** desde el endpoint REST automático de Axelor (`/ws/rest/<FQN>`), nunca desde un `@CallMethod` del controlador propio. `ModelService<T>` ya declara las firmas y `DefaultModelService<T>` provee implementaciones por defecto (`Optional.empty()` para los `validate*`, defaults razonables para los `allowProperties*`, y el patrón `validate → repository.save/remove` dentro de `insert/update/remove`). Solo se sobrescribe en la `*Impl` lo que **realmente** se quiera cambiar.
 >
 > **MUST NOT** olvidar declarar el `validateMiAccion(...)` ni el `allowPropertiesMiAccion()` correspondientes a una acción nueva del subsistema invocada desde el controlador propio. Sin ellos el contrato queda incompleto y el controlador no puede aplicar la whitelist.
 
@@ -80,34 +80,60 @@ Todas estas firmas se heredan tal cual desde `ModelService<T>` y vienen implemen
 
 ## Patrón validate + throw
 
-**MUST** que cada acción propia del subsistema empiece llamando a su validador correspondiente y dispare la excepción de negocio si la validación falla, usando la utilidad `BusinessMessages::throwIfInvalid`.
+**MUST** que **toda** acción que escribas en la `*Impl` —tanto las acciones propias del subsistema como las sobrescrituras de `insert`/`update`/`remove`— empiece llamando a su validador correspondiente y dispare la excepción de negocio si la validación falla, usando la utilidad `BusinessMessages::throwIfInvalid`.
 
-**Motivo**: una acción propia del subsistema (las que NO son `insert/update/remove`) puede ser invocada desde dos vías distintas:
+**Motivo**: una acción puede ser invocada desde dos vías distintas:
 - **Caso A — código directo** (otro servicio, job, etc.): nada valida automáticamente; debe hacerlo el propio servicio.
 - **Caso B — controller `@CallMethod`**: el UI llamó (o debería haber llamado) a `<action-validate>` antes; si llega al servicio con datos inválidos es un bug del controlador o un intento malicioso.
 
-Para `insert / update / remove` **no aplica** este patrón en la `*Impl`: `DefaultModelService` ya invoca `validateInsert(...).ifPresent(throwIfInvalid)` (y análogamente `update`/`remove`) antes de llamar a `super`. Por tanto **MUST NOT** sobrescribirlos solo para repetir ese patrón. Solo se sobrescriben si se quiere añadir lógica adicional propia (action rules, decoración del bean, etc.).
+**¿Y para `insert` / `update` / `remove`?** Hay dos situaciones:
+- **No los sobrescribes** → los hereda `DefaultModelService`, que ya hace `validateXxx(...).ifPresent(throwIfInvalid)` + `repository.save/remove` por ti. **MUST NOT** sobrescribirlos solo para replicar eso.
+- **Los sobrescribes** (para añadir action rules, decorar el bean, etc.) → como ya **NO** se llama a `super.insert/update/remove` (ver §"Persistir: siempre `repository`, nunca `super.*`"), **MUST** poner tú mismo `validateXxx(...).ifPresent(throwIfInvalid)` como primera línea y persistir con `repository.save/remove`. Aplican exactamente el mismo patrón que cualquier otra acción.
 
-**Forma canónica** (acciones propias del subsistema):
+**Forma canónica** (toda acción de la `*Impl`):
 
 ```java
 @Override
 public MiEntidad miAccion(MiEntidad entidad, MiEntidad entidadOriginal) {
     validateMiAccion(entidad, entidadOriginal).ifPresent(BusinessMessages::throwIfInvalid);
 
-    // …resto del cuerpo (action rules, super.xxx(...))…
+    // …action rules…
+    entidad = repository.save(entidad);   // persiste con repository, NUNCA super.insert/update/remove
+    // …action rules…
+    return entidad;
 }
 ```
 
 ✅ CORRECTO: la primera línea ejecutable del método es `validateMiAccion(...).ifPresent(BusinessMessages::throwIfInvalid)`.
+✅ CORRECTO: la acción persiste con `repository.save(...)` / `repository.remove(...)` (ver §"Persistir: siempre `repository`, nunca `super.*`").
 ❌ INCORRECTO: la acción modifica el bean antes de validar; un valor inválido pasa por la validación parcialmente modificado.
 ❌ INCORRECTO: reimplementar el patrón con `throw new IllegalArgumentException(...)` — `BusinessMessages::throwIfInvalid` ya lo encapsula y mantiene la semántica de errores de negocio.
+❌ INCORRECTO: persistir con `super.insert/update/remove` — está prohibido en la `*Impl` (ver §"Persistir: siempre `repository`, nunca `super.*`").
+
+## Persistir: siempre `repository`, nunca `super.*`
+
+> **CRITICAL** — En un `*ServiceImpl` **MUST NOT** llamar **nunca** a `super.insert` / `super.update` / `super.remove`. **Toda** acción que persista —las sobrescrituras de `insert`/`update`/`remove`, sus overloads (`insert(MiEntidadInsertDTO)`) y las acciones propias (`marcarComoFirmada`, `cambiarEstado`, `reenviar`, …)— sigue el **mismo patrón**: `validateXxx(...).ifPresent(throwIfInvalid)` como primera línea y luego `repository.save(entidad)` (alta/modificación) o `repository.remove(entidad)` (baja).
+
+**Motivo 1 — coherencia y no duplicar la validación.** `super.insert/update/remove` **no** son un "persistir" neutro: en `DefaultModelService` su cuerpo es `validateXxx(...).ifPresent(throwIfInvalid)` **+** `repository.save/remove`. Si sobrescribes el método, tú ya ejecutas el `validateXxx` en la primera línea; llamar después a `super.*` **repetiría** esa misma validación. Persistiendo siempre con `repository` queda **una sola forma** de escribir cualquier acción: validas y llamas al repositorio.
+
+**Motivo 2 — cada acción tiene su propio validador.** Una acción propia tiene su **propia tripleta** `acción + validador + allowProperties`. `marcarComoFirmada` ya valida con `validateMarcarComoFirmada` (primera línea) y restringe el mass-assignment con `allowPropertiesMarcarComoFirmada`. Si llamara a `super.update(...)`, le impondría además `validateUpdate` — la validación de **otra** acción (la genérica `update`), diseñada para un contrato distinto. Aplicar la validación de otra acción no tiene sentido y puede bloquear el flujo legítimo o validar campos que esta acción nunca toca.
+
+> **CRITICAL — responsabilidad del autor**: como ya **no** llamas a `super.*`, la "salvaguarda" automática de `DefaultModelService` (validar antes de persistir) **solo** existe para los métodos que **no** sobrescribes. En cuanto sobrescribes `insert`/`update`/`remove`, **MUST** poner tú el `validateXxx(...).ifPresent(throwIfInvalid)` como primera línea: si lo olvidas, persistes sin validar.
+
+**No hay riesgo de mass-assignment** por usar `repository.save(...)`: la única vía por la que un **cliente** puede invocar una acción es el `@CallMethod` del controlador (que filtra el bean con `allowPropertiesXxx()`) o el endpoint REST genérico (que pasa por `validate(json, context)`, el cual también filtra con `allowPropertiesInsert/Update`). Si la acción la invoca código servidor de confianza (otro servicio, un job), no hay cliente que filtrar. En todos los casos al `repository.save(...)` le llega un bean ya seguro; `repository.save(...)` solo persiste.
+
+- ✅ CORRECTO: `insert` sobrescrito → `validateInsert(entidad).ifPresent(BusinessMessages::throwIfInvalid); ... return repository.save(entidad);`
+- ✅ CORRECTO: dentro de `marcarComoFirmada(...)` → `tareaFirma = repository.save(tareaFirma);`
+- ✅ CORRECTO: dentro de `insert(MiEntidadInsertDTO dto)` → `return repository.save(entidad);` (tras `validateInsert(dto).ifPresent(...)`).
+- ❌ INCORRECTO: dentro de un `insert`/`update`/`remove` sobrescrito → `super.insert/update/remove(...)` (prohibido; usa `repository` + tu `validateXxx` al inicio).
+- ❌ INCORRECTO: dentro de `marcarComoFirmada(...)` → `super.update(tareaFirma, original);` (arrastra `validateUpdate`, validación de otra acción).
+- ❌ INCORRECTO: dentro de una acción `borrarBorrador(...)` → `super.remove(entidad);` (debe ser `repository.remove(entidad)`).
 
 ## Estructura de la implementación
 
 La implementación **MUST** ordenar sus métodos en estos cinco bloques, en este orden:
 
-1. **Acciones** (sin header) — métodos `public` que ejecutan la lógica de negocio: las acciones propias del subsistema y, **solo si se quieren sobrescribir**, `insert` / `update` / `remove`. Cada acción propia **MUST** empezar con el patrón validate + throw (ver §"Patrón validate + throw"); los `insert/update/remove`, si se sobrescriben, **NO** repiten el patrón validate + throw porque `super.insert/update/remove` ya lo aplica.
+1. **Acciones** (sin header) — métodos `public` que ejecutan la lógica de negocio: las acciones propias del subsistema y, **solo si se quieren sobrescribir**, `insert` / `update` / `remove`. **Toda** acción —propia o sobrescritura de `insert/update/remove`— **MUST** empezar con el patrón validate + throw (ver §"Patrón validate + throw") y persistir con `repository.save/remove`, **nunca** con `super.insert/update/remove` (ver §"Persistir: siempre `repository`, nunca `super.*`").
 2. **Métodos de Validación** (con header) — métodos `public` que devuelven `Optional<BusinessMessages>`. Uno por cada acción propia del subsistema declarada en el interface. **NO** se sobrescriben `validateInsert/Update/Remove` salvo que se quieran añadir reglas: el default `Optional.empty()` ya viene de `DefaultModelService`.
 3. **AllowProperties** (con header) — métodos `public` que devuelven `AllowProperties`. Uno por cada acción propia del subsistema **invocada desde un `@CallMethod` del controlador propio**. **NO** se sobrescriben `allowPropertiesInsert/Update/Remove` salvo que se quieran restringir: los defaults vienen de `DefaultModelService`. Las reglas de qué forma usar (`createAllowProperties` vs `createAllowAllProperties`) y de cómo tratar los campos `servidor` en la acción están en `[[k-secure-coding]]` §3 — **CRITICAL**.
 4. **Action Rules** (con header) — métodos `private` cuyo nombre empieza por `fireActionRule_`. Encapsulan las reglas de negocio que ejecuta cada acción.
@@ -148,17 +174,27 @@ public class MiEntidadServiceImpl extends DefaultModelService<MiEntidad> impleme
     }
 
     // NOTA: NO se sobrescriben insert/update/remove salvo que se quiera añadir
-    // lógica propia (p.ej. disparar una action rule, decorar el bean). El
-    // patrón `validate → super` ya lo aplica DefaultModelService. Si se
-    // sobrescribe, NO se repite el `validateXxx().ifPresent(throwIfInvalid)`
-    // porque `super.insert/update/remove` ya lo hace.
+    // lógica propia (p.ej. disparar una action rule, decorar el bean). Si NO los
+    // sobrescribes, DefaultModelService ya hace `validate + repository.save/remove`.
+    // Si SÍ los sobrescribes, MUST poner tú el validateXxx().ifPresent(throwIfInvalid)
+    // como primera línea y persistir con repository — NUNCA super.insert/update/remove.
+
+    @Override
+    public MiEntidad update(MiEntidad entidad, MiEntidad entidadOriginal) {
+        validateUpdate(entidad, entidadOriginal).ifPresent(BusinessMessages::throwIfInvalid);
+
+        fireActionRule_AsignarCampoCalculado(entidad);
+        entidad = repository.save(entidad);   // sobrescritura de update → repository, NUNCA super.update
+        fireActionRule_NotificarCambio(entidad);
+        return entidad;
+    }
 
     @Override
     public MiEntidad hacerAlgoEspecial(MiEntidad entidad, MiEntidad entidadOriginal) {
         validateHacerAlgoEspecial(entidad, entidadOriginal).ifPresent(BusinessMessages::throwIfInvalid);
 
         fireActionRule_AsignarCampoCalculado(entidad);
-        entidad = super.update(entidad, entidadOriginal);
+        entidad = repository.save(entidad);   // acción propia → repository, NUNCA super.*
         fireActionRule_NotificarCambio(entidad);
         return entidad;
     }
@@ -311,21 +347,18 @@ public interface MiEntidadService extends ModelService<MiEntidad> {
 }
 ```
 
-La implementación aplica el patrón validate + throw, construye la entidad y delega en `super.insert()` (que a su vez disparará la `validateInsert(MiEntidad)` heredada de `ModelService`):
+La implementación aplica el patrón validate + throw con el validador de **esta** acción (`validateInsert(dto)`), construye la entidad y persiste con `repository.save()` — **nunca** `super.insert` (ver §"Persistir: siempre `repository`, nunca `super.*`"). La `validateInsert(MiEntidad)` (validador del overload de entidad) **no** corre aquí: el validador propio de esta acción es `validateInsert(dto)`, ya ejecutado:
 
 ```java
 @Override
 public MiEntidad insert(MiEntidadInsertDTO dto) {
-    Optional<BusinessMessages> validation = validateInsert(dto);
-    if (validation.isPresent()) {
-        throw new IllegalArgumentException(validation.get().toString());
-    }
+    validateInsert(dto).ifPresent(BusinessMessages::throwIfInvalid);
 
     MiEntidad entidad = new MiEntidad();
     entidad.setCampo1(dto.campo1());
     entidad.setRelacion(dto.relacion());
     // ...
-    return super.insert(entidad);
+    return repository.save(entidad);
 }
 
 @Override
@@ -346,9 +379,9 @@ public Optional<BusinessMessages> validateInsert(MiEntidadInsertDTO dto) {
 - Las acciones `insert` / `update` / `remove` heredadas de `ModelService<T>` ya tienen su validador (`validateInsert`/`validateUpdate`/`validateRemove`) y su `allowProperties*` con defaults en `DefaultModelService`. **MUST NOT** re-declararlos en el interface ni sobrescribirlos en la `*Impl` salvo que se añada lógica real.
 - `fireActionRule_NombreRegla(...)` — efecto secundario (asignar datos, notificar, callback). Se llama antes o después de persistir, **dentro de la acción correspondiente**.
 
-### Patrón validate + throw en cada acción propia
-- Cada acción propia `public` del subsistema **MUST** empezar con `validateMiAccion(...).ifPresent(BusinessMessages::throwIfInvalid);`. Ver §"Patrón validate + throw" arriba.
-- **MUST NOT** repetir este patrón al sobrescribir `insert/update/remove`: `super.insert/update/remove` ya lo aplica.
+### Patrón validate + throw en cada acción
+- **Toda** acción `public` (propia o sobrescritura de `insert/update/remove`) **MUST** empezar con `validateXxx(...).ifPresent(BusinessMessages::throwIfInvalid);`. Ver §"Patrón validate + throw" arriba.
+- Si sobrescribes `insert/update/remove`, **MUST** poner tú el `validateXxx(...).ifPresent(throwIfInvalid)` como primera línea: como ya **no** llamas a `super.*`, nadie más lo hace por ti.
 - **MUST NOT** usar `throw new IllegalArgumentException(...)` para este patrón — la forma canónica es `BusinessMessages::throwIfInvalid`.
 
 ### Errores de negocio
@@ -427,13 +460,13 @@ Checklist única para desarrollar y revisar `*Service` / `*ServiceImpl`. Cada í
 
 ### Implementación (`*ServiceImpl`)
 
-- [ ] **NO** sobrescribe `insert/update/remove` solo para repetir `validateXxx().ifPresent(throwIfInvalid)` + `super.xxx()`. `DefaultModelService` ya lo hace.
-- [ ] Si sobrescribe `insert/update/remove`, es porque añade lógica real (`fireActionRule_*`, decoración del bean). En ese caso **NO** repite `validateXxx().ifPresent(throwIfInvalid)` dentro — `super.*` ya lo aplica.
+- [ ] **NO** sobrescribe `insert/update/remove` salvo que añada lógica real (`fireActionRule_*`, decoración del bean). Si no la añade, los hereda de `DefaultModelService` (que ya hace `validate + repository.save/remove`).
+- [ ] Si sobrescribe `insert/update/remove`, **SÍ** pone `validateXxx().ifPresent(throwIfInvalid)` como primera línea y persiste con `repository.save/remove` — **NUNCA** `super.insert/update/remove`.
 - [ ] Tiene `@Override` en cada método que sobrescribe del interface o de la clase padre (acciones, `validateXxx`, `allowPropertiesXxx`).
 - [ ] Cada acción propia empieza con `validateMiAccion(...).ifPresent(BusinessMessages::throwIfInvalid);`. **NO** usa `throw new IllegalArgumentException(...)` ni `BusinessException` directamente para esto.
 - [ ] La acción **NO** incluye comprobaciones inline (`if (...) throw new BusinessException(...)`) que pertenecen al validador. Se delegan a `validateMiAccion` y se acumulan en `BusinessMessages`.
 - [ ] Las validaciones devuelven `Optional<BusinessMessages>`. **Nunca** lanzan `BusinessException` ni `IllegalArgumentException`.
-- [ ] Cada acción que persiste llama a `super.insert(...)` / `super.update(...)`. **NO** devuelve la entidad sin persistir. **NO** llama directamente a `repository.save()`.
+- [ ] Cada acción que persiste lo hace de verdad (**NO** devuelve la entidad sin persistir) con `repository.save(...)` / `repository.remove(...)`. **NUNCA** llama a `super.insert/update/remove` (prohibido en toda la `*Impl`, también en las sobrescrituras de `insert/update/remove` y sus overloads). Ver §"Persistir: siempre `repository`, nunca `super.*`".
 - [ ] Los `ModelService` adicionales **nunca** se inyectan con `@Inject` — se obtienen con `modelServiceFactory.resolve(OtraEntidad.class)`. Las dependencias que **no** son `ModelService` (infraestructura, terceros) sí pueden inyectarse con `@Inject`.
 - [ ] Las consultas JPA con `.filter()/.bind()` **nunca** están inline — se definen como `<finder>` en el XML de dominio o como métodos en el repositorio.
 

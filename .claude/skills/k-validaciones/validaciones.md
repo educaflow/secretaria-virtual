@@ -120,6 +120,8 @@ public void remove(T entity) {
 
 Si una validación detecta un problema en este punto, `throwIfInvalid` lanza una `ValidationException` y la operación se aborta. **En condiciones normales esta salvaguarda nunca debería dispararse**, porque las vistas ya han llamado a los mismos métodos `validate*` antes de pedir el `save`/`delete`. Solo actúa si algo evita el flujo normal (script externo, llamada por API directa, integración batch, etc.).
 
+> **Importante** — esta salvaguarda automática **solo** existe mientras **no** sobrescribas `insert`/`update`/`remove` en tu `*ServiceImpl`. En cuanto los sobrescribes (para añadir reglas de negocio, decorar el bean…), **MUST NOT** llamar a `super.insert/update/remove`: persistes con `repository.save/remove` y **eres tú** quien pone `validateXxx(...).ifPresent(throwIfInvalid)` como primera línea. Ver `[[k-sistemas]]` §"Persistir: siempre `repository`, nunca `super.*`".
+
 ### 3.5 Capa 3 — Cliente (opcional)
 
 Solo UX. Duplica validaciones del servidor para que el usuario vea el error sin esperar al roundtrip.
