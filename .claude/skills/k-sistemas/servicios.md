@@ -426,7 +426,9 @@ Para clases que **no son `ModelService`** (p. ej. `MailSender`, un `AlmacenClave
 private MailSender mailSender;
 ```
 
-Con su binding correspondiente en `module/<Subsistema>Module.java` (`bind(MailSender.class).to(MailSenderImpl.class)`, `@Provides`, etc.) — sin necesidad de registrarlo en `SecretariaVirtualModule`: el módulo extiende `AxelorModule` y Axelor lo descubre automáticamente.
+Con su binding correspondiente en `module/<Subsistema>Module.java` — sin necesidad de registrarlo en `SecretariaVirtualModule`: el módulo extiende `AxelorModule` y Axelor lo descubre automáticamente.
+
+> **CRITICAL** → la forma de binding (`bind(Clase)`, `bind(Iface).to(Impl)`, `.toProvider(...)`, `@Provides`) **no** es intercambiable. Si la clase necesita valores de **configuración** o de **runtime** (no otros beans), un `bind(...).to(...)` directo falla en arranque con `Guice/MissingConstructor` y **MUST** usarse un `Provider`. Lee `[[k-guice]]` antes de escribir cualquier binding cuya construcción no sea trivial.
 
 ## `allowPropertiesXxx` y campos `servidor`
 
