@@ -2,24 +2,21 @@
 type: design-guidelines
 ---
 
-<!--
-Guías de diseño específicas de esta iniciativa.
+Los valores del usuario, contraseña, servidor smpt se encuentran en el fichero de configuración de la aplicación
 
-Este fichero es OPCIONAL. Solo escribe aquí desviaciones del default que marcan
-los skills `k-*` (k-sistemas, k-vistas, k-seguridad, k-validaciones, …). Las
-convenciones normales (estructura de paquetes, ModelService, vistas en
-`src/main/java/.../views/`, patrón de controladores, etc.) ya las conocen esos
-skills y NO hay que repetirlas aquí.
+Para enviar los correos no se hace directamente cuando se crea la TareaCorreo sino que habrá un scheduler que cada minuto va a enviar correos.
+Para saber como va el schedule se usa el skill de /k-scheduler El scheduler se encarga de ejecutar tareas cada cierto tiempo. Para esto se le asigna una tarea que se llama "Enviar Correos" y se le asigna un cron de cada minuto.
+El scheduler debe cambiar el estado de la TareaCorreo según lo que ocurra.
 
-Si esta iniciativa NO tiene ninguna excepción respecto al default, borra este
-fichero entero — su ausencia es perfectamente válida.
+Va a haber un provider de guice que se encargará de crear el MailSender con las credenciales necesarias para enviar los correos. 
+```java
+String host = AppSettings.get().get("mail.smtp.host");
+String user = AppSettings.get().get("mail.smtp.user");
+String pass = AppSettings.get().get("mail.smtp.password");
 
-Ejemplos de cosas que SÍ van aquí:
-- "Esta iniciativa NO usa ModelService porque [razón concreta]."
-- "Las vistas de este subsistema viven en un paquete distinto al estándar porque [razón]."
-- "La validación X se aplica en cliente en vez de servidor porque [razón]."
-- "Se reutiliza la entidad Y de otro subsistema en vez de crear una nueva porque [razón]."
+SmtpCredentialSimplePassword smtpCredentialSimplePassword = new SmtpCredentialSimplePassword(host, user, pass);
 
-Formato libre: lista con viñetas, prosa corta, o lo que mejor exprese la guía.
-Cada punto debería incluir el QUÉ se desvía y el PORQUÉ.
--->
+MailSender mailSender= new MailSenderImpl(smtpCredentialSimplePassword);
+```
+
+El `from` de los correos es el mismo que el `user` para enviar correos

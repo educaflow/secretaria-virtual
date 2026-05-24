@@ -11,9 +11,7 @@ Escenarios E2E Given/When/Then que materializan los flujos principales `F-NNN` d
 
 **Fixture de identidad usado (de `data-demo`):**
 - Administrador: usuario `admin` (grupo `admins`); ve todos los correos, crea y reenvía.
-- `profesor1.cipfpmislata` — DNI `10000001T`, email `profesor1.cipfpmislata@secretaria.virtual.es`, contraseña `demo1234`, centro `46019660` (CIPFP Mislata).
-- `alumno1.cipfpmislata` — DNI `20000001T`, email `alumno1.cipfpmislata@secretaria.virtual.es`, contraseña `demo1234`, centro `46019660`.
-- Centros: `46019660` (CIPFP Mislata) y `03012165` (CIPFP Batoi).
+- Centros: `46019660` (CIPFP Mislata)
 
 **Tarea periódica de envío:** se ejecuta cada minuto. Para los tests que dependen del envío, la preparación incluye **esperar ~70 s** (margen sobre el minuto del cron) a que la tarea procese el correo. Un correo con email de formato válido acaba en ENVIADO; un correo con un email malformado (p. ej. `a@@a.com`) acaba en FALLIDO.
 
@@ -142,10 +140,9 @@ Escenarios E2E Given/When/Then que materializan los flujos principales `F-NNN` d
 ### Precondiciones (pasos de preparación)
 1. Inicio sesión como Administrador (usuario `admin`).
 2. Navego a "Todos los correos" y pulso "Nuevo correo".
-> Apoyo de fixture: el usuario demo `profesor1.cipfpmislata` (DNI `10000001T`, email `profesor1.cipfpmislata@secretaria.virtual.es`) existe por la semilla de `data-demo`.
 ### Pasos (objetivo del test)
-1. **Cuando** en el campo dniDestinatario escribo `10000001T` (DNI del usuario demo existente).
-2. **Entonces** el campo emailDestinatario se rellena automáticamente con `profesor1.cipfpmislata@secretaria.virtual.es`.
+1. **Cuando** en el campo dniDestinatario escribo `24362574P` (DNI del usuario demo existente).
+2. **Entonces** el campo emailDestinatario se rellena automáticamente con `lorenzo.profesor@gmail.com`.
 3. **Y** cuando borro el DNI y escribo `99999999R` (un DNI que no corresponde a ningún usuario), el campo emailDestinatario queda vacío.
 4. **Y** cierro sesión y salgo de la aplicación.
 ### Resultado esperado
@@ -181,7 +178,7 @@ Escenarios E2E Given/When/Then que materializan los flujos principales `F-NNN` d
 **Tipo:** happy
 ### Precondiciones (pasos de preparación)
 1. Inicio sesión como Administrador (usuario `admin`).
-2. Navego a "Todos los correos", pulso "Nuevo correo" y doy de alta un correo con un email de **formato válido y entregable** (p. ej. `profesor1.cipfpmislata@secretaria.virtual.es`), asunto y cuerpo válidos, y pulso "Guardar" (queda en PENDIENTE).
+2. Navego a "Todos los correos", pulso "Nuevo correo" y doy de alta un correo con un email de **formato válido y entregable** (p. ej. `lorenzo.profesor@gmail.com`), asunto y cuerpo válidos, y pulso "Guardar" (queda en PENDIENTE).
 3. Espero ~70 s a que la tarea periódica de envío (que se ejecuta cada minuto) procese el correo.
 ### Pasos (objetivo del test)
 1. **Cuando** abro ese correo desde la pantalla "Todos los correos".
@@ -256,34 +253,8 @@ Escenarios E2E Given/When/Then que materializan los flujos principales `F-NNN` d
 
 ---
 
-## T-013 — (eliminado)
 
-> **T-013 eliminado.** Cubría F-005 (alta programática de un Correo solicitada por otro subsistema). Esa operación **no tiene interfaz de usuario** y no puede ejercitarse desde la pantalla de login: probarla corresponde a un **test unitario** del servicio, no a un test E2E. Por eso F-005 queda sin test E2E (ver `analysis.md` → "Flujos sin tests"). Se conserva el hueco de numeración para no romper las referencias de `design/tests.md` e `implementation/`.
 
----
-
-## T-014 — Consulta de Correos del propio centro por Supervisor/Administrativa
-**Origen F:** F-006
-**Verifica:** U-mi-centro-001
-**Pantalla principal:** screen-mi-centro.md
-**Tipo:** happy
-### Precondiciones (pasos de preparación)
-1. **Requisito de identidad:** debe existir un usuario con rol Supervisor o Administrativa asociado a un centro (p. ej. CIPFP Mislata `46019660`).
-   > NOTA: la semilla `data-demo` no incluye hoy un usuario con rol Supervisor/Administrativa; hay que crearlo o sembrarlo antes de poder ejecutar este test.
-2. **Requisito de datos:** deben existir Correos con `centro` asignado: al menos uno del centro del usuario (`46019660`) y al menos uno de otro centro (`03012165`).
-   > NOTA: el campo `centro` de un Correo **solo se asigna en el alta programática** (R-Correo-003); el alta manual del Administrador deja `centro` vacío (R-Correo-002) y no hay forma de asignarlo desde la interfaz. Por tanto estos Correos deben crearse/sembrarse programáticamente antes del test.
-3. Inicio sesión como el usuario Supervisor/Administrativa de `46019660`.
-### Pasos (objetivo del test)
-1. **Cuando** navego a la pantalla "Correos de mi centro" y consulto el grid.
-2. **Entonces** veo únicamente los Correos cuyo centro coincide con mi centro activo (`46019660`).
-3. **Y** cierro sesión y salgo de la aplicación.
-### Resultado esperado
-- Los Correos de otros centros (`03012165`) no aparecen en el listado.
-- El grid muestra las columnas asunto, dniDestinatario, emailDestinatario, estado, fechaCreacion y fechaEnvio.
-- No existe botón "Nuevo correo" ni botón "Reenviar" en esta pantalla.
-- Al buscar por estado, destinatario o fechas, los resultados siguen restringidos al centro activo.
-
----
 
 ## T-015 — Consulta de los propios correos por su destinatario
 **Origen F:** F-007
@@ -292,15 +263,15 @@ Escenarios E2E Given/When/Then que materializan los flujos principales `F-NNN` d
 **Tipo:** happy
 ### Precondiciones (pasos de preparación)
 1. Inicio sesión como Administrador (usuario `admin`).
-2. Navego a "Todos los correos" y doy de alta un correo dirigido al DNI del usuario demo `profesor1.cipfpmislata` (dniDestinatario `10000001T`, emailDestinatario `profesor1.cipfpmislata@secretaria.virtual.es`), con asunto y cuerpo válidos, y pulso "Guardar".
+2. Navego a "Todos los correos" y doy de alta un correo dirigido al DNI del usuario demo  (dniDestinatario `24362574P`, emailDestinatario `lorenzo.profesor@gmail.com`), con asunto y cuerpo válidos, y pulso "Guardar".
 3. Doy de alta un segundo correo dirigido a OTRO DNI distinto, el del usuario demo `alumno1.cipfpmislata` (dniDestinatario `20000001T`), con asunto y cuerpo válidos, y pulso "Guardar".
 4. Cierro la sesión del Administrador.
 ### Pasos (objetivo del test)
-1. **Cuando** inicio sesión como `profesor1.cipfpmislata` (contraseña `demo1234`) y navego a la pantalla "Mis correos" y consulto el grid.
-2. **Entonces** veo únicamente el Correo cuyo dniDestinatario es `10000001T` (el mío).
+1. **Cuando** inicio sesión como `admin` (contraseña `admin`) y navego a la pantalla "Mis correos" y consulto el grid.
+2. **Entonces** veo únicamente el Correo cuyo dniDestinatario es `24362574P` (el mío).
 3. **Y** cierro sesión y salgo de la aplicación.
 ### Resultado esperado
-- El Correo dirigido al DNI `20000001T` no aparece en el listado.
+- El Correo dirigido al DNI `24362574P` no aparece en el listado.
 - El grid muestra las columnas asunto, estado, fechaCreacion y fechaEnvio.
 - No existe botón "Nuevo correo" ni botón "Reenviar".
 - Al buscar por asunto, estado o fechas, los resultados siguen restringidos a los correos del propio usuario.

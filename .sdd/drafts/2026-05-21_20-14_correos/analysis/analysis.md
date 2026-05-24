@@ -70,14 +70,20 @@ Cada `entity-*.md` clasifica cada campo en `cliente` (lo aporta el usuario) o `s
 Los escenarios concretos de prueba viven en [tests.md](./tests.md), numerados `T-NNN` y trazables a los `F-NNN` del spec.
 `/sdd-implementer-system` los ejecuta con `playwright-cli` tras escribir el código Java (bucle de auto-corrección).
 
-- Total tests: 17 (T-001 … T-017)
-- Flujos del spec cubiertos: 8 / 8 (todos los `F-NNN` aparecen como `Origen F` en al menos un test)
+- Total tests: 16 (T-001 … T-017, sin T-013, eliminado)
+- Flujos del spec cubiertos: 7 / 8 (F-005 queda sin test E2E; ver "Flujos sin tests")
 
-> **Nota sobre tests no navegables solo con navegador:** T-009 y T-010 (F-002 / F-003) dependen de disparar la tarea periódica de envío asíncrona; T-013 (F-005) depende de un alta programática solicitada por otro subsistema. En los tres casos el resultado se verifica abriendo el Correo en "Todos los correos", pero el disparo no tiene botón de UI: `/sdd-implementer-system` deberá provocar la ejecución de la tarea / el alta programática por otro medio.
+> **Convención de independencia de los tests:** cada test de `tests.md` es autónomo y no asume datos de negocio previos en la BD: empieza en login, crea por la UI lo que necesita y termina cerrando sesión. Lo único que se da por existente es la semilla de identidad de `data-demo` (usuarios, centros, tipos).
+
+> **Nota sobre tests dependientes de la tarea periódica:** T-009 y T-010 (F-002 / F-003) dependen del envío asíncrono, pero la tarea periódica se ejecuta cada minuto, así que su preparación se resuelve esperando ~60 s a que procese el correo (email válido → ENVIADO; email malformado `a@@a.com` → FALLIDO); no requieren disparo manual.
+
+> **Nota sobre T-013:** se ha eliminado. Cubría F-005 (alta programática solicitada por otro subsistema), que no tiene interfaz de usuario y no puede ejercitarse desde login; su prueba corresponde a un test unitario del servicio, no a un E2E. El hueco de numeración se conserva para no romper las referencias de `design/tests.md` e `implementation/`.
 
 ### Flujos sin tests
 
-*(todos los flujos principales están cubiertos por tests)*
+| Flujo | Motivo |
+|-------|--------|
+| F-005 (alta programática por otro subsistema) | No tiene interfaz de usuario; no es ejercitable como E2E desde login. Debe cubrirse con un test unitario del servicio de alta de Correo. |
 
 ### V/R/U sin tests
 

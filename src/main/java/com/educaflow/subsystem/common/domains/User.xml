@@ -13,6 +13,8 @@
         <string name="nombre" title="Nombre" />
         <string name="apellidos" title="Apellidos" />
 
+        <finder-method name="findByDni" using="String:dni" filter="self.dni = :dni" />
+
         <extra-imports-model>
         <![CDATA[
             import java.util.List;
