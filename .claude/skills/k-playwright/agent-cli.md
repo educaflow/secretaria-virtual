@@ -4,11 +4,13 @@ CLI de Playwright pensada para que un agente de coding (Claude Code, Copilot) pi
 
 Es **una integración alternativa** a los Playwright Test Agents (MCP). Conviven sin conflicto. Los criterios para elegir están en `when-to-use.md`.
 
-## Cuándo instalarla (no está instalada por defecto en este repo)
+## Cuándo usarla (ya está instalada en este repo)
 
-Solo si vas a usar Claude para **pilotar el navegador en tareas de coding generales** (verificar una pantalla tras un cambio, depurar un bug, comprobar tráfico de red, capturar storage). Si solo quieres construir suite de tests E2E, los Test Agents bastan.
+El binario `playwright-cli` **ya está instalado** (compruébalo con `playwright-cli --help`) y sus docs de comandos viven en el skill `playwright-cli` (`.claude/skills/playwright-cli/`), **distinto de este `k-playwright`**: aquél lo añade `install --skills`, éste es la guía del proyecto.
 
-## Instalación
+Úsala solo para **pilotar el navegador en tareas de coding generales** (verificar una pantalla tras un cambio, depurar un bug, comprobar tráfico de red, capturar storage). Si solo quieres construir suite de tests E2E, los Test Agents bastan. **MUST NOT** usarla para escribir tests — no genera `.spec.ts` (ver `when-to-use.md`).
+
+## Instalación (solo si falta en otro entorno)
 
 ```bash
 # 1. Paquete (global recomendado)

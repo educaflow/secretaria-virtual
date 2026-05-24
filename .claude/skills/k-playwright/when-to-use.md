@@ -2,6 +2,15 @@
 
 En este proyecto coexisten **tres formas** de interactuar con Playwright. Elegir la correcta evita malgastar tokens y produce resultados más rápidos.
 
+## Modelo mental — dónde actúa la IA
+
+La diferencia de fondo no es de capacidad, sino de **dónde actúa la IA**:
+
+- Un `.spec.ts` lleva IA **solo al generarlo** (generator). Al ejecutarse con `npx playwright test` es código determinista: sin IA, sin tokens, repetible en CI. Si la UI cambia, **falla** — y eso es lo que quieres: un test existe para **detectar regresiones**.
+- El Agent CLI lleva IA **en cada ejecución** y se adapta a cambios pequeños sobre la marcha. Esa adaptabilidad sirve para *explorar*, pero **MUST NOT** usarse como suite de tests: al improvisar puede pasar por encima de un bug real y **ocultar la regresión** que el test debería cazar.
+
+**Tradeoff asumido a propósito**: construir la suite con el generator (MCP) cuesta ~4× más tokens que pilotar con el Agent CLI, pero produce un artefacto **determinista y barato de re-ejecutar**. El proyecto acepta ese coste a cambio de reproducibilidad; la resiliencia ante cambios legítimos de UI la aporta el **healer** bajo demanda, no la IA improvisando en cada run.
+
 ## Las tres opciones
 
 | Herramienta | Cómo se usa | Documentada en |

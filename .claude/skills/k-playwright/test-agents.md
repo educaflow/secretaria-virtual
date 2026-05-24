@@ -113,5 +113,5 @@ npx playwright show-report                   # informe HTML
 1. **No mezcles roles.** Si la tarea es planificar, lanza solo al planner. No le pidas que también genere.
 2. **El plan se revisa con el usuario antes de generar.** El plan es el artefacto humano; los tests son su consecuencia.
 3. **No edites a mano un `.spec.ts` recién generado** salvo para ajustes menores. Si está mal, vuelve a invocar al generator con un escenario corregido.
-4. **El healer edita tests, no código de producción.** Si el test falla porque la app está rota, dilo y para. No "arregles" el test ocultando un bug real.
-5. **Los snapshots en `.playwright-mcp/` son trazas temporales.** No se commitean. Añadir a `.gitignore` si no lo está.
+4. **El healer edita tests, no código de producción.** Si el test falla porque la app está rota, dilo y para. No "arregles" el test ocultando un bug real (el porqué, en `when-to-use.md` § *Modelo mental — dónde actúa la IA*).
+5. **Los snapshots en `.playwright-mcp/` son trazas temporales.** No se commitean. Ya están en `.gitignore`.

@@ -8,7 +8,7 @@ Estructura, nombres y patrones para todos los tests E2E de la secretaría virtua
 - **Login:** `http://localhost:8080/#/login`
 - La aplicación arranca con `./gradlew --no-daemon run --debug-jvm --port 8080 --context-path /` (ver `CLAUDE.md`).
 
-`playwright.config.ts` aún no tiene `baseURL` configurado. Cuando se ajuste, será `http://localhost:8080`.
+`playwright.config.ts` tiene `baseURL` = `http://localhost:8080`. **MUST** preferir rutas relativas en los tests (`page.goto('/#/login')`); usa la URL absoluta solo si necesitas otro host.
 
 ## Estructura de carpetas
 
@@ -85,8 +85,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Login', () => {
   test('successful login', async ({ page }) => {
-    // Paso 1: abrir login
-    await page.goto('http://localhost:8080/#/login');
+    // Paso 1: abrir login (ruta relativa — baseURL ya configurada)
+    await page.goto('/#/login');
 
     // Paso 2: introducir credenciales
     await page.getByLabel('Usuario').fill('admin');
@@ -137,10 +137,8 @@ Ya está en `.gitignore`:
 - `blob-report/`
 - `playwright/.cache/`
 - `playwright/.auth/`
-
-**Pendiente añadir** (si no está aún):
-
-- `.playwright-mcp/` — trazas del servidor MCP.
+- `.playwright-mcp/` — trazas del servidor MCP (Test Agents).
+- `.playwright-cli/` y `playwright/.sessions/` — sesiones y caché del Agent CLI.
 
 ## Pre-requisito: arrancar la app
 

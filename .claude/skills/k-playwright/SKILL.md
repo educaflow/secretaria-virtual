@@ -20,10 +20,10 @@ Este skill documenta cómo se hacen tests end-to-end de la aplicación con **Pla
 
 La aplicación es una secretaría virtual sobre Axelor 8.1 que se sirve por defecto en `http://localhost:8080/`. La ruta de login es `http://localhost:8080/#/login`.
 
-Hay **dos integraciones de Playwright con Claude Code** instaladas o disponibles en este repo:
+Hay **dos integraciones de Playwright con Claude Code** instaladas en este repo:
 
 1. **Playwright Test Agents (MCP)** — ya instalados. Tres subagentes especializados que producen y mantienen una suite de tests `.spec.ts`. Idóneo para construir cobertura E2E estructurada.
-2. **Playwright Agent CLI** — opcional, no instalado por defecto. Comandos shell `playwright-cli` para pilotar el navegador durante tareas de coding generales (verificar una UI, depurar un bug, no escribir tests).
+2. **Playwright Agent CLI** — ya instalado (binario `playwright-cli`; sus docs de comandos están en el skill `playwright-cli`, distinto de éste). Comandos shell para pilotar el navegador durante tareas de coding generales (verificar una UI, depurar un bug, **no escribir tests** — no genera `.spec.ts`).
 
 Ambas conviven sin conflicto. La elección depende de la tarea — ver `when-to-use.md`.
 
