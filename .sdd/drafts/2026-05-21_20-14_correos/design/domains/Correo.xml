@@ -31,7 +31,7 @@
 
         <one-to-many name="adjuntos" ref="AdjuntoCorreo" mappedBy="correo" title="Adjuntos"/>
 
-        <finder-method name="findByEstado" using="EstadoCorreo:estado"
+        <finder-method name="findByEstado" using="com.educaflow.subsystem.correos.db.EstadoCorreo:estado"
                        filter="self.estado = :estado" all="true"/>
         <finder-method name="findByCentro" using="com.educaflow.subsystem.common.db.Centro:centro"
                        filter="self.centro = :centro" all="true"/>
