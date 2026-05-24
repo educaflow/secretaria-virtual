@@ -102,21 +102,21 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
     /* ===== (1) ACCIONES ===== */
 
     // insert(Correo) — alta MANUAL (Administrador, vía REST /ws/rest). Sobrescrito porque dispara R-Correo-001 y R-Correo-002.
-    //   Cuerpo: fireActionRule_InicializarCorreo(correo); fireActionRule_AltaManualSinCentro(correo); return super.insert(correo);
-    //   NO repite validate (super.insert ya aplica validateInsert).
+    //   Cuerpo: validateInsert(correo).ifPresent(throwIfInvalid); fireActionRule_InicializarCorreo(correo); fireActionRule_AltaManualSinCentro(correo); return repository.save(correo);
+    //   MUST validar como PRIMERA línea: al persistir con repository (NUNCA super.insert) nadie valida por ti.
     @Override public Correo insert(Correo correo);
 
-    // insert(CorreoInsertDTO) — alta PROGRAMÁTICA. Patrón validate+throw del DTO, construye el Correo,
-    //   dispara R-Correo-001 y R-Correo-003 (centro + referencia del invocador), y delega en super.insert(correo).
+    // insert(CorreoInsertDTO) — alta PROGRAMÁTICA. validateInsert(dto).ifPresent(throwIfInvalid) como primera línea, construye el Correo,
+    //   dispara R-Correo-001 y R-Correo-003 (centro + referencia del invocador), y persiste con repository.save(correo).
     @Override public Correo insert(CorreoInsertDTO dto);
 
     // update(Correo,Correo) — INMUTABLE: lanza UnsupportedOperationException incondicional (k-secure-coding §9.2).
     @Override public Correo update(Correo correo, Correo correoOriginal);
 
-    // remove(Correo) — R-Correo-008: borra en cascada sus AdjuntoCorreo (borrado de hijos) ANTES de super.remove(correo).
+    // remove(Correo) — R-Correo-008: validateRemove(correo).ifPresent(throwIfInvalid); borra en cascada sus AdjuntoCorreo (borrado de hijos) ANTES de repository.remove(correo).
     @Override public void remove(Correo correo);
 
-    // reenviar — patrón validate+throw; dispara R-Correo-005 (estado=PENDIENTE) y persiste con super.update.
+    // reenviar — validateReenviar(...).ifPresent(throwIfInvalid) primera línea; dispara R-Correo-005 (estado=PENDIENTE) y persiste con repository.save.
     @Override public Correo reenviar(Correo correo, Correo correoOriginal);
 
     // enviarCorreosPendientes — envío asíncrono. R-Correo-006 + R-Correo-007.
@@ -351,14 +351,14 @@ Reglas aplicadas (k-secure-coding §3): ninguna whitelist enumera un campo `serv
 ### Reglas de negocio (R-)
 | ID | Ubicación |
 |----|-----------|
-| R-Correo-001 (init estado/fecha/intentos) | `fireActionRule_InicializarCorreo` (antes de `super.insert`, en ambos `insert`). |
+| R-Correo-001 (init estado/fecha/intentos) | `fireActionRule_InicializarCorreo` (antes de `repository.save`, en ambos `insert`). |
 | R-Correo-002 (alta manual sin centro) | `fireActionRule_AltaManualSinCentro` (en `insert(Correo)`). |
 | R-Correo-003 (alta programática centro+referencia) | `fireActionRule_AltaProgramaticaCentroYReferencia` (en `insert(CorreoInsertDTO)`). |
 | R-Correo-004 (proponer email por DNI) | UI: `CorreoController.onChangeDni` + `CorreoService.proponerEmailPorDni` + `setValue` (campo cliente). Ver U-correo-001. |
 | R-Correo-005 (reenvío → PENDIENTE) | `fireActionRule_ReactivarCorreo` (en `reenviar`). |
 | R-Correo-006 (registrar intento) | `fireActionRule_RegistrarIntento` (antes del intento). **Detalle: `design/rules/R-Correo-006.md`**. |
 | R-Correo-007 (registrar resultado) | `fireActionRule_RegistrarResultadoEnvio` (después del intento). **Detalle: `design/rules/R-Correo-006.md`**. |
-| R-Correo-008 (cascada borrado adjuntos) | `CorreoServiceImpl.remove` (borra hijos antes de `super.remove`); `one-to-many adjuntos mappedBy="correo"`. |
+| R-Correo-008 (cascada borrado adjuntos) | `CorreoServiceImpl.remove` (borra hijos antes de `repository.remove`); `one-to-many adjuntos mappedBy="correo"`. |
 | R-AdjuntoCorreo-001 (vincular al padre) | `subsysCorreos.Correo.AdjuntoCorreo@Main-set-correo-parent-action` (`<action-record>` con `__parent__`). |
 
 ### Reglas de UI (U-)
