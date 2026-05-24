@@ -71,7 +71,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
 
         tareaFirma.setPage(tareaFirmaInsertDTO.page());
 
-        tareaFirma = super.insert(tareaFirma);
+        tareaFirma = repository.save(tareaFirma);
 
         return tareaFirma;
     }
@@ -83,7 +83,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
         tareaFirma.setFechaResolucion(LocalDateTime.now());
 
-        tareaFirma = super.update(tareaFirma, tareaFirmaOriginal);
+        tareaFirma = repository.save(tareaFirma);
 
         fireActionRule_NotificarFirmaResuelta(tareaFirma);
 
@@ -97,7 +97,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.RECHAZADO);
         tareaFirma.setFechaResolucion(LocalDateTime.now());
 
-        tareaFirma = super.update(tareaFirma, tareaFirmaOriginal);
+        tareaFirma = repository.save(tareaFirma);
 
         fireActionRule_NotificarFirmaResuelta(tareaFirma);
 

@@ -25,21 +25,24 @@ public class DispositivoCriptograficoServiceImpl extends DefaultModelService<Dis
 
     @Override
     public DispositivoCriptografico insert(DispositivoCriptografico dispositivo) {
-        DispositivoCriptografico resultado = super.insert(dispositivo);
+        validateInsert(dispositivo).ifPresent(BusinessMessages::throwIfInvalid);
+        DispositivoCriptografico resultado = repository.save(dispositivo);
         fireActionRule_RecargarDispositivos();
         return resultado;
     }
 
     @Override
     public DispositivoCriptografico update(DispositivoCriptografico dispositivo, DispositivoCriptografico original) {
-        DispositivoCriptografico resultado = super.update(dispositivo, original);
+        validateUpdate(dispositivo, original).ifPresent(BusinessMessages::throwIfInvalid);
+        DispositivoCriptografico resultado = repository.save(dispositivo);
         fireActionRule_RecargarDispositivos();
         return resultado;
     }
 
     @Override
     public void remove(DispositivoCriptografico dispositivo) {
-        super.remove(dispositivo);
+        validateRemove(dispositivo).ifPresent(BusinessMessages::throwIfInvalid);
+        repository.remove(dispositivo);
         fireActionRule_RecargarDispositivos();
     }
 

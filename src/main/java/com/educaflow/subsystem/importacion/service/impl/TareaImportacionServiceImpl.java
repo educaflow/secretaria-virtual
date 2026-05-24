@@ -27,9 +27,10 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
 
     @Override
     public TareaImportacion insert(TareaImportacion tareaImportacion) {
+        validateInsert(tareaImportacion).ifPresent(BusinessMessages::throwIfInvalid);
         fireActionRule_asignarCamposSistema(tareaImportacion);
         fireActionRule_ejecutarImportacion(tareaImportacion);
-        return super.insert(tareaImportacion);
+        return repository.save(tareaImportacion);
     }
 
     /****************************************************************************************/

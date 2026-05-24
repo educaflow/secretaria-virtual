@@ -47,14 +47,16 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
 
     @Override
     public RegistroSalida insert(RegistroSalida entity) {
-        entity = super.insert(entity);
+        validateInsert(entity).ifPresent(BusinessMessages::throwIfInvalid);
+        entity = repository.save(entity);
         fireActionRule_NotificarRegistroSalida(entity);
         return entity;
     }
 
     @Override
     public RegistroSalida update(RegistroSalida entity, RegistroSalida original) {
-        entity = super.update(entity, original);
+        validateUpdate(entity, original).ifPresent(BusinessMessages::throwIfInvalid);
+        entity = repository.save(entity);
         fireActionRule_NotificarRegistroSalida(entity);
         return entity;
     }
