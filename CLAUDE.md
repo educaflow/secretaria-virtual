@@ -52,6 +52,13 @@ Usar estos tools garantiza que las búsquedas y refactorizaciones son correctas 
 - Para ejecutar el proyecto lanza el comando: `./gradlew --no-daemon run --debug-jvm --port 8080 --context-path / --config ../secretaria-virtual-private/axelor-config.dev.properties`
 
 
+## Configuración
+
+La configuración de la aplicación está en [`src/main/resources/axelor-config.properties`](src/main/resources/axelor-config.properties). **Ese es el fichero donde deben estar las propiedades de configuración**, así que cuando busques o añadas una propiedad de configuración mírala/ponla ahí. Contiene, entre otras: información de la aplicación, modo (`application.mode`), locale, página de login, base de datos (`db.default.*`), Quartz scheduler (`quartz.*`, incluido `correos.envio.cron`), correo SMTP/IMAP (`mail.*`), adjuntos (`data.upload.*`), logging y entorno criptográfico (`entornoCriptografico.*`).
+
+El otro fichero de configuración que se pasa al arrancar (`--config ../secretaria-virtual-private/axelor-config.dev.properties`, fuera de este repositorio) es para las propiedades **privadas**: las que no deben versionarse ni hacerse públicas (credenciales reales, secretos, etc.). Sus valores **sobrescriben** a los de `axelor-config.properties`.
+
+
 ## Skills
 Debido a que toda la aplicación está fuertemente acoplada al framework Axelor y que debes tener pocos conocimientos de Axelor se ha creado un sistema de skills para gestionar toda la parte de axelor.
 
@@ -60,6 +67,7 @@ Para cada parte de Axelor se han creado conjuntos de Skills:
 - vistas → para todo lo relacionado con vistas
 - sistemas → para todo lo relacionado con sistemas (tipos de expediente, tramites, etc.)
 - modelos → para todo lo relacionado con modelos (entidades JPA)
+- guice (`k-guice`) → inyección de dependencias con Guice: módulos `module/<Subsistema>Module.java`, formas de binding (`bind`, `.to`, `.toProvider`, `@Provides`), cuándo hace falta un `Provider` (deps que vienen de configuración o runtime, no de otros beans) y diagnóstico del error `Guice/MissingConstructor`. Consúltalo **siempre que cablees el DI de un sistema y la construcción de un objeto no sea trivial**.
 - seguridad (`k-seguridad`) → modelo de seguridad de la aplicación: roles, usuarios, permisos, ACL del negocio (**qué** puede hacer cada rol).
 - secure-coding (`k-secure-coding`) → reglas de codificación segura: mass-assignment, `AllowProperties` por acción, asignación incondicional de campos `servidor` en `*ServiceImpl.insert/update`, multi-centro/IDOR, JPQL, log injection, adjuntos, secretos (**cómo** se escribe el código para que la seguridad del negocio no se pueda saltar). **CRITICAL**: aplicación obligatoria en cualquier modificación de código que toque entidades, servicios o controladores.
 - acciones → para todo lo relacionado con acciones (action-views, controllers, etc.)
