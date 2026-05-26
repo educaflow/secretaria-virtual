@@ -67,6 +67,7 @@ Un skill se carga en contexto cada vez que se invoca. Cada línea **cuesta token
 - **MUST NOT** repetir teoría general que el modelo ya sabe (p.ej. "qué es JPA", "cómo funciona git").
 - **MUST NOT** convertirse en un manual de usuario: el skill se dirige al modelo, no a un humano que aprende.
 - **REQUIRED**: si una regla puede expresarse como ejemplo ✅/❌, va como ejemplo y **no** como párrafo.
+- **REQUIRED**: si un contenido es una secuencia de acciones o un conjunto de reglas, va en **formato receta** —lista numerada, guiones o fases (ver §6.1)— y **no** como prosa.
 
 **Regla práctica de duda**: ¿esta línea cambiaría la salida del modelo si la quito? Si la respuesta es **no**, sobra.
 
@@ -250,7 +251,42 @@ $ARGUMENTS
 
 ## 6. Convenciones de estilo (transversales)
 
-### 6.1 Marcadores imperativos en inglés
+### 6.1 Formato receta sobre prosa
+
+**CRITICAL**: un skill es una **receta para el modelo**, no un ensayo. Cualquier contenido que sea una secuencia de acciones o un conjunto de reglas **MUST** expresarse en **formato receta** (estructura escaneable), **no** como párrafos.
+
+Vale **cualquier** estructura tipo receta, la que mejor encaje con el contenido:
+
+1. **Lista numerada jerárquica** (`1.`, `1.1`, `1.2`, `2.`…) — para un proceso con orden y sub-pasos.
+2. **Lista con guiones** (`-`) — para un conjunto de reglas o elementos sin orden estricto.
+3. **Fases** (`## N. Fase N — <Nombre>`) — para procesos largos multi-etapa (patrón de los `sdd-*`).
+
+Reglas:
+
+1. **MUST** convertir cada párrafo que describa "qué hacer" o "qué reglas aplican" en una de las estructuras anteriores (un ítem = una acción o una regla).
+2. **MUST NOT** dejar un párrafo de más de ~3 líneas cuando su contenido es enumerable.
+3. **REQUIRED**: la prosa solo se reserva para una frase de contexto que introduce la lista o la fase.
+4. Al **revisar** un skill existente: detecta los párrafos enumerables y reescríbelos en formato receta; mantén el sentido, no el formato.
+5. La elección entre numeración / guiones / fases es de estilo — lo **MUST** es que no sea prosa; lo concreto es libre.
+
+**Ejemplos**:
+
+- ✅ CORRECTO (pasos numerados):
+  ```markdown
+  1. Lee el fichero de entrada.
+     1.1 Valida el frontmatter.
+     1.2 Si falta `name` → **ERROR** y detente.
+  2. Genera el artefacto y aplica el checklist §N.
+  ```
+- ✅ CORRECTO (guiones para reglas):
+  ```markdown
+  - **MUST** validar el frontmatter antes de generar nada.
+  - **MUST NOT** sobrescribir un fichero existente sin preguntar.
+  ```
+- ✅ CORRECTO (fases): `## 4. Fase 1 — Generar artefactos`
+- ❌ INCORRECTO: `Primero lee el fichero, y una vez leído conviene validar el frontmatter; si por casualidad falta el name entonces es un error y debes detenerte antes de generar nada.` (prosa enumerable → **MUST** ser formato receta)
+
+### 6.2 Marcadores imperativos en inglés
 
 Usa estos marcadores **solo** para instrucciones realmente bloqueantes o críticas. Si los usas en todo el documento pierden su peso visual.
 
@@ -271,7 +307,7 @@ Usa estos marcadores **solo** para instrucciones realmente bloqueantes o crític
 - ❌ INCORRECTO: `**MUST** leer el fichero. **MUST** validar el frontmatter. **MUST** continuar con la Fase 1. **MUST** preguntar al usuario.` (uso excesivo, pierden peso)
 - ❌ INCORRECTO: `Es muy importante que recuerdes leer el fichero antes de continuar.` (prosa débil; el imperativo debería ir como `**MUST** leer el fichero antes de continuar`)
 
-### 6.2 Ejemplos ✅/❌ inline
+### 6.3 Ejemplos ✅/❌ inline
 
 Para formatos rígidos (plantillas, IDs, identificadores, frontmatters, comandos), **MUST** dar ejemplos ✅ correctos y ❌ incorrectos con anotación corta del fallo. Un ejemplo vale más que tres párrafos de descripción.
 
@@ -286,7 +322,7 @@ Para formatos rígidos (plantillas, IDs, identificadores, frontmatters, comandos
 
 **REQUIRED**: cada ❌ **MUST** llevar una razón entre paréntesis.
 
-### 6.3 Límites numéricos duros
+### 6.4 Límites numéricos duros
 
 Cuando una instrucción admita cardinalidad ("haz preguntas", "itera la validación", "lanza subagentes"), **MUST** expresarla como **LIMIT** numérico explícito, no como adjetivo vago.
 
@@ -295,7 +331,7 @@ Cuando una instrucción admita cardinalidad ("haz preguntas", "itera la validaci
 - ❌ INCORRECTO: `Haz preguntas hasta tener suficiente información, sin abusar.` (sin número)
 - ❌ INCORRECTO: `Itera el checklist varias veces si hace falta.` (sin número)
 
-### 6.4 Plantillas embebidas literalmente
+### 6.5 Plantillas embebidas literalmente
 
 Cuando un skill produce un fichero con estructura fija (`specification.md`, `analysis.md`, …), **MUST** embeber la plantilla literal del fichero a generar dentro del propio skill — el modelo copia y rellena, no improvisa.
 
@@ -318,7 +354,7 @@ El subagente devuelve un fichero con esta estructura exacta:
 
 **MUST NOT** sustituir la plantilla por una descripción ("la salida tiene un título, un campo y una sección de bullets") — el modelo entonces inventa formato.
 
-### 6.5 Checklists con bucle de auto-validación
+### 6.6 Checklists con bucle de auto-validación
 
 Si un skill genera un artefacto, **MUST** incluir un checklist explícito de calidad al final de la fase de generación, y un bucle de auto-corrección con **LIMIT** numérico.
 
@@ -336,7 +372,7 @@ El subagente **MUST NOT** devolver el artefacto si queda algún punto del checkl
 **LIMIT**: máximo 3 iteraciones de corrección. Si tras la 3ª siguen fallando ítems, documenta las inconsistencias residuales y avísalo al usuario.
 ```
 
-### 6.6 STOP conditions explícitas
+### 6.7 STOP conditions explícitas
 
 El `## Outline` **MUST** terminar con una subsección **STOP conditions** que enumere los casos en que el skill aborta antes de completar.
 
@@ -348,7 +384,7 @@ El `## Outline` **MUST** terminar con una subsección **STOP conditions** que en
   - El usuario no aprueba el borrador → **MUST NOT** guardar nada.
   ```
 
-### 6.7 Subagentes en paralelo
+### 6.8 Subagentes en paralelo
 
 Si el skill lanza subagentes en paralelo (patrón usado en `sdd-specification-system`, `sdd-analyst-system`, …):
 
@@ -357,7 +393,7 @@ Si el skill lanza subagentes en paralelo (patrón usado en `sdd-specification-sy
 - **MUST NOT** usar `run_in_background` si necesitas los resultados para una fase posterior.
 - **MUST** indicar que los subagentes en paralelo **MUST NOT** usar `AskUserQuestion` (el agente principal sí puede, antes y después).
 
-### 6.8 Overrides para testing (Apéndice A)
+### 6.9 Overrides para testing (Apéndice A)
 
 Los action-skills que escriben ficheros **RECOMENDADO**: añadir un Apéndice A con flags `--in=`, `--out=`, `--root=` para poder ejecutarlos en un sandbox alternativo sin tocar el árbol real. Patrón estándar:
 
@@ -389,6 +425,7 @@ En uso normal no se especifican.
 ## 8. Quick Guidelines
 
 - Cuerpo en español, palabras-clave en inglés (`MUST`, `MUST NOT`, `REQUIRED`, `CRITICAL`, `STOP`, `ERROR`, `LIMIT`).
+- **Formato receta sobre prosa** (§6.1): todo lo enumerable va como lista numerada, guiones o fases —no como párrafo—; la estructura concreta es libre.
 - Frontmatter mínimo: `name` + `description` larga. `handoffs` si hay siguiente paso en el pipeline.
 - Tipo knowledge (`k-*`): documenta convenciones y patrones. Tipo action (`sdd-*`, `code-*`): ejecuta proceso con fases numeradas.
 - Estructura mínima de action-skill: `User Input` → `Outline` (con `STOP conditions`) → fases numeradas → `Quick Guidelines`.
@@ -424,6 +461,7 @@ Aplica este checklist a cualquier `SKILL.md` que escribas o revises. **LIMIT**: 
 - [ ] ¿El cuerpo está en español?
 - [ ] ¿Las palabras-clave imperativas (`MUST`, `MUST NOT`, `REQUIRED`, `CRITICAL`, `STOP`, `ERROR`, `LIMIT`) están en inglés y se usan solo en instrucciones realmente bloqueantes?
 - [ ] ¿Las instrucciones están en imperativo de segunda persona ("lee", "valida", "lanza")?
+- [ ] ¿El contenido enumerable está en formato receta —lista numerada, guiones o fases— y no como prosa (§6.1)? ¿No queda ningún párrafo de más de ~3 líneas reescribible como pasos/reglas?
 
 ### 9.4 Contenido
 

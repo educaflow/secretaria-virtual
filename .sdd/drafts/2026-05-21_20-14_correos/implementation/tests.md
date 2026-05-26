@@ -271,7 +271,7 @@ Escenarios E2E Given/When/Then que materializan los flujos principales `F-NNN` d
 2. **Entonces** veo únicamente el Correo cuyo dniDestinatario es `24362574P` (el mío).
 3. **Y** cierro sesión y salgo de la aplicación.
 ### Resultado esperado
-- El Correo dirigido al DNI `24362574P` no aparece en el listado.
+- El Correo dirigido al DNI `24362574P` aparece en el listado.
 - El grid muestra las columnas asunto, estado, fechaCreacion y fechaEnvio.
 - No existe botón "Nuevo correo" ni botón "Reenviar".
 - Al buscar por asunto, estado o fechas, los resultados siguen restringidos a los correos del propio usuario.

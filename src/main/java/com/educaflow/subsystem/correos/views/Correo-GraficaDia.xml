@@ -26,8 +26,8 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
                 FROM
                     correos_correo self
                 WHERE
-                    (:fechaInicial IS NULL OR self.fecha_creacion >= :fechaInicial)
-                    AND (:fechaFinal IS NULL OR self.fecha_creacion <= :fechaFinal)
+                    (CAST(:fechaInicial AS date) IS NULL OR self.fecha_creacion >= CAST(:fechaInicial AS date))
+                    AND (CAST(:fechaFinal AS date) IS NULL OR self.fecha_creacion <= CAST(:fechaFinal AS date))
                 GROUP BY
                     _intervalo, self.estado
                 ORDER BY

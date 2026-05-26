@@ -6,7 +6,7 @@ Estructura, nombres y patrones para todos los tests E2E de la secretaría virtua
 
 - **Base local:** `http://localhost:8080/`
 - **Login:** `http://localhost:8080/#/login`
-- La aplicación arranca con `./gradlew --no-daemon run --debug-jvm --port 8080 --context-path /` (ver `CLAUDE.md`).
+- La aplicación se compila y arranca con `./run.sh` (ver `CLAUDE.md`).
 
 `playwright.config.ts` tiene `baseURL` = `http://localhost:8080`. **MUST** preferir rutas relativas en los tests (`page.goto('/#/login')`); usa la URL absoluta solo si necesitas otro host.
 

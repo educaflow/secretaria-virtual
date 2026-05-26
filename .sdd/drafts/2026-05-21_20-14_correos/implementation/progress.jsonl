@@ -1,0 +1,13 @@
+{"id":"T-001","nombre":"Alta manual de un Correo sin adjuntos","resultado":"PASS","intentos":0,"detalle":null,"ts":"2026-05-25T11:40:00"}
+{"id":"T-002","nombre":"Alta manual de un Correo con adjuntos","resultado":"PASS","intentos":0,"detalle":null,"ts":"2026-05-25T12:05:00"}
+{"id":"T-003","nombre":"Alta manual sin DNI rechazada","resultado":"PASS","intentos":0,"detalle":null,"ts":"2026-05-25T12:12:00"}
+{"id":"T-004","nombre":"Alta manual sin email rechazada","resultado":"PASS","intentos":0,"detalle":null,"ts":"2026-05-25T12:18:00"}
+{"id":"T-005","nombre":"Alta manual sin asunto rechazada","resultado":"PASS","intentos":0,"detalle":null,"ts":"2026-05-25T12:24:00"}
+{"id":"T-006","nombre":"Alta manual sin cuerpo rechazada","resultado":"PASS","intentos":0,"detalle":null,"ts":"2026-05-25T12:30:00"}
+{"id":"T-007","nombre":"Autocompletado del email a partir del DNI","resultado":"PASS","intentos":0,"detalle":null,"ts":"2026-05-25T12:36:00"}
+{"id":"T-008","nombre":"El detalle de un correo ya creado es solo lectura","resultado":"PASS","intentos":0,"detalle":null,"ts":"2026-05-25T12:43:00"}
+{"id":"T-009","nombre":"Envío automático con éxito","resultado":"PASS","intentos":0,"detalle":null,"ts":"2026-05-25T23:35:00"}
+{"id":"T-010","nombre":"Envío automático con fallo","resultado":"PASS","intentos":0,"detalle":null,"ts":"2026-05-25T23:52:00"}
+{"id":"T-011","nombre":"Reenvío de un Correo FALLIDO","resultado":"PASS","intentos":0,"detalle":null,"ts":"2026-05-26T00:02:00"}
+{"id":"T-012","nombre":"No se puede reenviar un Correo que no está en FALLIDO","resultado":"PASS","intentos":0,"detalle":null,"ts":"2026-05-26T00:12:00"}
+{"id":"T-015","nombre":"Consulta de los propios correos por su destinatario","resultado":"PASS","intentos":0,"detalle":null,"ts":"2026-05-26T00:25:00"}

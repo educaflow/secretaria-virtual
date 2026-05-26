@@ -48,8 +48,8 @@ Usar estos tools garantiza que las búsquedas y refactorizaciones son correctas 
 
 ## Script del proyecto
 
-- Para compilar el proyecto lanza el comando: `./gradlew clean build --info`
-- Para ejecutar el proyecto lanza el comando: `./gradlew --no-daemon run --debug-jvm --port 8080 --context-path / --config ../secretaria-virtual-private/axelor-config.dev.properties`
+- Para compilar **y arrancar** el proyecto lanza **siempre** el script: `./run.sh`. Hace `./gradlew clean build --info` y luego arranca la app en el puerto 8080 con la configuración correcta (`--config ../secretaria-virtual-private/axelor-config.dev.properties`). **NO** invoques `gradlew run` a mano ni añadas `--debug-jvm`: ese flag suspende la JVM esperando a que se conecte un depurador, así que la app nunca llega a responder y nunca debe usarse para arrancarla de forma desatendida.
+- Si solo necesitas compilar sin arrancar: `./gradlew clean build --info`.
 
 
 ## Configuración
