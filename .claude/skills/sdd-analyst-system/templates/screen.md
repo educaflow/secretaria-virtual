@@ -4,7 +4,7 @@ Esta plantilla describe la estructura obligatoria del fichero de análisis de un
 
 Una "pantalla" es la unidad de navegación que el usuario percibe como un todo. Si una pantalla contiene `panel-related` con sub-grids y sub-formularios anidados (relación maestro-detalle), **toda la jerarquía vive en el mismo fichero** y se enumera como Grid 1 → Formulario 1 → Grid 2 → Formulario 2 → … No se abren ficheros separados para las pantallas anidadas.
 
-> **Importante**: la plantilla describe **QUÉ ve el usuario** en la pantalla y **qué puede hacer**. No deben aparecer nombres de vistas Axelor (`@Main-action`, `@Search-grid`), atributos XML (`canNew`, `showIf`, `readonlyIf`), ni nombres de acciones del framework. Si dudas, mira `SKILL.md` § "Frontera entre análisis y diseño".
+> **Importante**: la plantilla describe **QUÉ ve el usuario** en la pantalla y **qué puede hacer**. No deben aparecer nombres de vistas Axelor (`@Main-action`, `@Search-grid`), atributos XML (`canNew`, `showIf`, `readonlyIf`), ni nombres de acciones del framework. Si dudas, mira `SKILL.md` §2.3 "Frontera análisis/diseño".
 
 ---
 
@@ -89,9 +89,9 @@ Sección **opcional**. Si el grid no tiene botones (ni Nuevo, ni toolbar, ni de 
 
 Sección **opcional** del grid. Solo puede contener reglas sobre **botones de las columnas** que se muestran u ocultan según los datos de la fila (p.ej. botón "Aprobar" visible solo si la fila está en estado `PENDIENTE`). **Los botones del toolbar no admiten visibilidad condicional** — están siempre o no están. Si no hay reglas, se omite la sección o se pone `*(no aplica)*`.
 
-| ID                       | Disparador | Efecto          | Campo/Panel afectado        | Condición                                           | Origen EARS                                          |
+| ID                       | Disparador | Efecto          | Campo/Panel afectado        | Condición                                           | Origen spec                                          |
 |--------------------------|------------|-----------------|-----------------------------|-----------------------------------------------------|------------------------------------------------------|
-| U-{slug-pantalla}-NNN    | continuo   | Mostrar/ocultar | botón "<título>" de la fila | *(condición funcional sobre los datos de la fila)*  | *(`E-XX-NNN` del spec separados por comas, o `—`)*   |
+| U-{slug-pantalla}-NNN    | continuo   | Mostrar/ocultar | botón "<título>" de la fila | *(condición funcional sobre los datos de la fila)*  | *(`RUI-NNN` del spec separados por comas, o `—`)*    |
 
 Las reglas usan el mismo formato y la misma secuencia local de la pantalla que las del formulario (se numeran juntas, no en pools separados grid/form). Solo se admite el disparador `continuo` y el efecto `Mostrar/ocultar` sobre botones de las columnas — cualquier otro caso pertenece a la `Reglas de UI` del formulario.
 
@@ -129,6 +129,7 @@ Lista de paneles del formulario **en el orden vertical en el que aparecen**. Una
 - `botones` — panel que solo contiene botones (típicamente al final del formulario).
 - `pestañas` — panel que agrupa pestañas (`panel-tabs`). Cada pestaña hija se lista como un panel `pestaña` aparte.
 - `pestaña` — pestaña dentro de un panel `pestañas`.
+- Cualquiera de los anteriores admite un **matiz funcional libre entre paréntesis** cuando aporta contexto, p.ej. `normal (asistente — paso 1)`, `normal (asistente — paso 2 rechazo)`.
 
 **Columna `Campos`**:
 
@@ -170,9 +171,9 @@ Si dos botones tienen el **mismo título** dentro del mismo formulario (típico 
 
 Tabla canónica de `k-validaciones` para reglas de UI. Una regla de UI cambia el aspecto del formulario en función del valor de un campo, del usuario o del padre. **No bloquea ni escribe en BD**. Si no hay reglas, se pone `*(no aplica)*`.
 
-| ID                       | Disparador                                               | Efecto                | Campo/Panel afectado       | Condición                                   | Origen EARS                                          |
+| ID                       | Disparador                                               | Efecto                | Campo/Panel afectado       | Condición                                   | Origen spec                                          |
 |--------------------------|----------------------------------------------------------|-----------------------|----------------------------|---------------------------------------------|------------------------------------------------------|
-| U-{slug-pantalla}-001    | *(`continuo` / `onNew` / `onLoad` / `onChange:<campo>`)* | *(ver efectos abajo)* | *(campo o panel concreto)* | *(condición funcional en lenguaje natural)* | *(`E-XX-NNN` del spec separados por comas, o `—`)*   |
+| U-{slug-pantalla}-001    | *(`continuo` / `onNew` / `onLoad` / `onChange:<campo>`)* | *(ver efectos abajo)* | *(campo o panel concreto)* | *(condición funcional en lenguaje natural)* | *(`RUI-NNN` del spec separados por comas, o `—`)*    |
 
 **Reglas:**
 
@@ -192,7 +193,7 @@ Tabla canónica de `k-validaciones` para reglas de UI. Una regla de UI cambia el
 - **Campo/Panel afectado**: nombre funcional del elemento (`campo "fecha de resolución"`, `panel "Log de errores"`, `botón "Reintentar"`).
 - **Condición**: lenguaje natural. **NO** se escriben expresiones de código (`estado != 'BORRADOR'` se escribe como `Visible solo si el estado no es BORRADOR`).
 - **Las reglas disparadas por clicks de botón NO van aquí** — se describen en la tabla `Botones` del formulario. La visibilidad de un botón **sí** va aquí si es más restrictiva que la del panel que lo contiene.
-- **Origen EARS**: lista de IDs `E-XX-NNN` del `specification.md` que dieron lugar a esta regla de UI, separados por comas (típicamente `E-ST-NNN`; ocasionalmente `E-OP-NNN` cuando el efecto es solo sobre el formulario). `—` si la regla fue inventada por el analista durante la interpretación. Los IDs deben existir realmente en el spec.
+- **Origen spec**: lista de IDs del `specification.md` que dieron lugar a esta regla de UI, separados por comas (típicamente `RUI-NNN`). `—` si la regla fue inventada por el analista durante la interpretación. Los IDs deben existir realmente en el spec. Si una `RUI-NNN` aplica a varias pantallas, cada pantalla lleva su propia U con el mismo Origen spec.
 
 ---
 

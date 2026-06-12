@@ -4,7 +4,6 @@
 
 - **Quién la usa:** cualquier usuario que tenga tareas pendientes de firma (firmante).
 - **Qué muestra:** las tareas de firma del usuario actual cuyo estado es PENDIENTE. Permite firmar o rechazar la firma de los documentos a través de un asistente con tres pasos.
-- 
 
 ## Menú
 
@@ -25,6 +24,8 @@ TareaFirma
 
 ## Grid 1 — "Firmas"
 
+### Propiedades
+
 | Propiedad                          | Valor                                                              |
 |------------------------------------|--------------------------------------------------------------------|
 | Entidad                            | TareaFirma                                                         |
@@ -36,6 +37,8 @@ TareaFirma
 | Botones de las columnas            | —                                                                  |
 
 ## Formulario 1 — Tarea pendiente
+
+### Propiedades
 
 | Propiedad     | Valor                                                                                                          |
 |---------------|----------------------------------------------------------------------------------------------------------------|
@@ -65,17 +68,19 @@ TareaFirma
 
 ### Reglas de UI (U-pendiente-NNN)
 
-| ID    | Disparador | Efecto                       | Campo/Panel afectado                  | Condición                                                  |
-|-------|------------|------------------------------|---------------------------------------|------------------------------------------------------------|
-| U-pendiente-001 | continuo   | Mostrar/ocultar              | campo "fecha de resolución"           | Visible solo si la tarea ya está resuelta                  |
-| U-pendiente-002 | onLoad     | Iniciar paso del asistente   | asistente del formulario              | Al abrir, posicionarse en el paso "Resolver" (paso 1)      |
-| U-pendiente-003 | continuo   | Mostrar/ocultar              | panel "Resolver"                      | Visible solo cuando el asistente está en el paso 1         |
-| U-pendiente-004 | continuo   | Mostrar/ocultar              | panel "Rechazar firmar el documento"  | Visible solo cuando el asistente está en el paso "rechazar"|
-| U-pendiente-005 | continuo   | Mostrar/ocultar              | panel "Firmar el documento"           | Visible solo cuando el asistente está en el paso "firmar"  |
+| ID    | Disparador | Efecto                       | Campo/Panel afectado                  | Condición                                                  | Origen spec |
+|-------|------------|------------------------------|---------------------------------------|------------------------------------------------------------|-------------|
+| U-pendiente-001 | continuo   | Mostrar/ocultar              | campo "fecha de resolución"           | Visible solo si la tarea ya está resuelta                  | —           |
+| U-pendiente-002 | onLoad     | Iniciar paso del asistente   | asistente del formulario              | Al abrir, posicionarse en el paso "Resolver" (paso 1)      | —           |
+| U-pendiente-003 | continuo   | Mostrar/ocultar              | panel "Resolver"                      | Visible solo cuando el asistente está en el paso 1         | —           |
+| U-pendiente-004 | continuo   | Mostrar/ocultar              | panel "Rechazar firmar el documento"  | Visible solo cuando el asistente está en el paso "rechazar"| —           |
+| U-pendiente-005 | continuo   | Mostrar/ocultar              | panel "Firmar el documento"           | Visible solo cuando el asistente está en el paso "firmar"  | —           |
 
 ---
 
 ## Grid 2 — "Documentos a firmar"
+
+### Propiedades
 
 | Propiedad                          | Valor                                                              |
 |------------------------------------|--------------------------------------------------------------------|
@@ -88,6 +93,8 @@ TareaFirma
 | Botones de las columnas            | —                                                                  |
 
 ## Formulario 2 — Documento
+
+### Propiedades
 
 | Propiedad     | Valor           |
 |---------------|-----------------|
@@ -105,6 +112,6 @@ TareaFirma
 
 ### Reglas de UI (U-pendiente-NNN)
 
-| ID    | Disparador | Efecto           | Campo/Panel afectado          | Condición                                |
-|-------|------------|------------------|-------------------------------|------------------------------------------|
-| U-pendiente-006 | continuo   | Mostrar/ocultar  | pestaña "Documento firmado"   | Visible solo si existe documento firmado |
+| ID    | Disparador | Efecto           | Campo/Panel afectado          | Condición                                | Origen spec |
+|-------|------------|------------------|-------------------------------|------------------------------------------|-------------|
+| U-pendiente-006 | continuo   | Mostrar/ocultar  | pestaña "Documento firmado"   | Visible solo si existe documento firmado | —           |

@@ -1,6 +1,6 @@
 ---
 name: k-validaciones
-description: Documentar e implementar las tres categorías de reglas sobre las entidades — validaciones (`V-XXX`, bloquean), reglas de negocio (`R-XXX`, actúan sobre el sistema) y reglas de UI (`U-XXX`, solo cambian el formulario) — con sus tablas de análisis, capas de implementación y trazabilidad al diseño.
+description: Documentar e implementar las tres categorías de reglas sobre las entidades — validaciones (`V-XXX`, bloquean), reglas de negocio (`R-XXX`, actúan sobre el sistema) y reglas de UI (`U-XXX`, solo cambian el formulario) — con sus tablas de análisis, capas de implementación y trazabilidad al diseño. Incluye el mapeo desde las cinco categorías numeradas de la especificación (`RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN`) hacia V/R/U.
 ---
 
 # k-validaciones
@@ -16,6 +16,20 @@ Este skill describe tres tipos de comprobaciones que se aplican sobre las entida
 Regla mnemotécnica: **una validación dice "no" y bloquea; una regla de negocio dice "ahora hago esto" y actúa; una regla de UI dice "ahora ves esto" y solo afecta al formulario**.
 
 > **Ortogonal a V/R/U: el "origen del valor" de cada campo.** La clasificación V/R/U describe *qué* hace cada regla. Aparte, cada campo de la entidad se clasifica en el análisis (`entity-*.md`) por **origen del valor**: `cliente` (lo aporta el usuario, validable con V, permitido en `AllowProperties`) o `servidor` (lo dicta el servidor en una R-…; típicamente una `R-XXX` con momento `Antes` de `Crear` lo asigna/recalcula **incondicionalmente**). Las dos clasificaciones se cruzan: un campo `servidor` puede tener varias `V-XXX` que validen el valor que el servidor le acaba poniendo, y siempre tendrá una `R-XXX` `Antes` que lo asigne. Ver `[[k-secure-coding]]` §3 para por qué esta distinción importa (mass-assignment) y cómo se implementa la asignación incondicional de campos `servidor`.
+
+## Cómo encajan las categorías de la especificación
+
+La especificación (`specification.md`, plantilla de `sdd-specification-system`) clasifica las reglas en **cinco** categorías numeradas con sus propios prefijos; el análisis las mapea a las **tres** categorías V/R/U de este skill, conservando el ID del spec en la columna "Origen spec":
+
+| Categoría del spec | Prefijo | Se convierte en | Notas |
+|---|---|---|---|
+| Restricción (invariante de entidad) | `RES-NNN` | `V-XXX` | Aplica a todos los eventos; típicamente declarativa en el modelo XML (única, obligatoria, comparación de fechas). |
+| Validación (de un evento) | `VAL-NNN` | `V-XXX` | Anclada a la operación del evento. |
+| Regla de negocio | `RN-NNN` | `R-XXX` | La `fase` del spec (`antes_de_commit`/`después_de_commit`) orienta el momento `Antes`/`Después`. |
+| Regla de UI | `RUI-NNN` | `U-XXX` | Anclada a la(s) pantalla(s) afectadas. |
+| Campo calculado | `CC-NNN` | campo `servidor` + `R-XXX` `Antes` (momento `escritura`), o campo derivado de solo lectura (momento `lectura`) | El atributo `sobreescribible` del spec se documenta en la R. |
+
+La decisión final depende del **efecto real** (bloquea → V, actúa → R, cambia formulario → U), no de la categoría del spec: si contradicen, el analista lo pregunta al usuario.
 
 ## Cómo se definen
 

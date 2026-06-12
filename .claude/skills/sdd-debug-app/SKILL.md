@@ -1,7 +1,7 @@
 ---
 name: sdd-debug-app
 description: Dado el `implementation/tests.md` de una iniciativa SDD (por defecto el de la carpeta `.sdd/drafts/` más nueva), ejecuta cada test E2E Given/When/Then contra la aplicación real lanzando un subagente por test; cuando un test falla, corrige el código Java, reinicia la app y reintenta (LIMIT 3 por test). La primera vez un test se ejecuta con `playwright-cli` y, al pasar, se **cachea como un `.spec.ts`** (lo autora el subagente `playwright-test-generator` y, si la validación con `npx` falla, lo sana el subagente `playwright-test-healer` en un bucle mixto de hasta 5 intentos) en `implementation/test_e2e/`; las siguientes veces ese test se ejecuta directamente con `npx playwright test` (mucho más rápido, sin bucle LLM↔navegador). Va anotando el progreso test a test en un fichero JSON Lines reanudable (`implementation/progress.jsonl`): si se interrumpe, al relanzarlo salta los tests ya resueltos y sigue por el primero pendiente. Termina con un listado PASS/FAIL de todos los tests. Es una herramienta de depuración E2E independiente del pipeline; modifica código en `src/main/...` y mantiene los artefactos de progreso/reporte/spec en `implementation/`.
-allowed-tools: Bash(playwright-cli:*) Bash(npx:*) Bash(curl:*) Bash(./run.sh:*) Bash(./gradlew:*) Bash(fuser:*) Bash(lsof:*) Bash(kill:*) Bash(xargs:*) Bash(ls:*) Bash(find:*) Bash(grep:*) Bash(printf:*) Bash(mkdir:*) Bash(mv:*) Bash(cp:*) Bash(rm:*) Read Write(.sdd/**) Skill AskUserQuestion Agent Monitor mcp__intellij-index__ide_search_text mcp__intellij-index__ide_find_class mcp__intellij-index__ide_find_file mcp__intellij-index__ide_find_definition mcp__intellij-index__ide_find_references mcp__intellij-index__ide_find_implementations mcp__intellij-index__ide_find_super_methods mcp__intellij-index__ide_call_hierarchy mcp__intellij-index__ide_type_hierarchy mcp__intellij-index__ide_diagnostics mcp__intellij-index__ide_index_status mcp__intellij-index__ide_sync_files
+allowed-tools: Bash(playwright-cli:*), Bash(npx:*), Bash(curl:*), Bash(./run.sh:*), Bash(./gradlew:*), Bash(fuser:*), Bash(lsof:*), Bash(kill:*), Bash(xargs:*), Bash(ls:*), Bash(find:*), Bash(grep:*), Bash(printf:*), Bash(mkdir:*), Bash(mv:*), Bash(cp:*), Bash(rm:*), Read, Write(.sdd/**), Edit(tests/**), Edit(.sdd/**), Skill, AskUserQuestion, Agent, Monitor, mcp__intellij-index__ide_search_text, mcp__intellij-index__ide_find_class, mcp__intellij-index__ide_find_file, mcp__intellij-index__ide_find_definition, mcp__intellij-index__ide_find_references, mcp__intellij-index__ide_find_implementations, mcp__intellij-index__ide_find_super_methods, mcp__intellij-index__ide_call_hierarchy, mcp__intellij-index__ide_type_hierarchy, mcp__intellij-index__ide_diagnostics, mcp__intellij-index__ide_index_status, mcp__intellij-index__ide_sync_files
 ---
 
 # sdd-debug-app
@@ -48,6 +48,7 @@ You **MUST** consider the user input before proceeding (if not empty). Los argum
 - El proyecto no compila tras `**LIMIT**: 3` correcciones de compilación dentro de un intento → ese intento cuenta como fallido; al agotar los 3 intentos del test se marca `FAIL` y se pasa al siguiente.
 - Una corrección requeriría tocar XML de dominios/vistas materializados o cambiar el contrato del diseño → **STOP** y pregunta al usuario (no es trabajo de este skill; eso vuelve a `/sdd-designer-system`).
 - No se logra generar un `.spec.ts` que pase tras `**LIMIT**: 5` intentos aunque el test pasa con `playwright-cli` → **STOP** y pregunta al usuario (algo anómalo; ver Fase 2.4).
+- El generator no escribe ningún fichero nuevo bajo `tests/` (no hay spec que sanar) → **STOP** y pregunta al usuario (§6.4.1).
 
 ---
 
@@ -115,7 +116,7 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
 El subagente runner **solo ejecuta el test** y reporta `PASS`/`FAIL` con una descripción del fallo. **MUST NOT** modificar código. La corrección de un fallo se reparte en dos responsabilidades:
 
 - **Diagnóstico** (lo hace el orquestador, este skill): a partir de la **descripción del fallo** que devuelve el runner y del **log de la app** (`implementation/app-debug.log`), localiza la causa en el código con el MCP de IntelliJ.
-- **Escritura del fix** (se delega en `code-implementer`): el orquestador construye un **plan de corrección pequeño** y lo pasa a `code-implementer` con la herramienta `Skill`, junto con los skills de dominio aplicables. **MUST NOT** escribir el fix tú mismo con `Edit`: el código del proyecto se escribe a través de `code-implementer` —que implementa, verifica y revisa cada paso— igual que en `/sdd-implementer-system`.
+- **Escritura del fix** (se delega en `code-implementer`): el orquestador construye un **plan de corrección pequeño** y lo pasa a `code-implementer` con la herramienta `Skill`, junto con los skills de dominio aplicables. **MUST NOT** escribir el fix tú mismo con `Edit`: el código del proyecto se escribe a través de `code-implementer` —que implementa, verifica y revisa cada paso— como hace también `/sdd-implementer-system` (allí la invocación va dentro de un subagente `Agent`; aquí es directa con `Skill`).
 
 **CRITICAL**: el plan de corrección **MUST** incluir `k-secure-coding` y `k-code-quality` entre los skills cuando toque entidades, servicios o controladores. Las correcciones **MUST NOT** introducir mass-assignment, saltarse `AllowProperties` ni la asignación incondicional de campos `servidor`.
 
@@ -129,7 +130,7 @@ Cada test lo ejecuta **un subagente** lanzado con `Agent` (`subagent_type: claud
 
 ### 2.5 Detenerse y preguntar ante un bloqueo
 
-`AskUserQuestion` solo para lo imprescindible: confirmación de la ruta auto-detectada (Fase 0), app que no levanta a `200`, y bloqueos del principio 2.3. **MUST NOT** adivinar soluciones ni pedir aprobaciones cosméticas.
+`AskUserQuestion` solo para lo imprescindible: confirmación de la ruta auto-detectada (Fase 0), app que no levanta a `200`, bloqueos del principio 2.3, y los STOP de la Fase 2.4 (el generator no escribe ningún spec / sanado agotado tras 5 intentos). **MUST NOT** adivinar soluciones ni pedir aprobaciones cosméticas.
 
 ### 2.6 Mensajes de validación: equivalencia semántica, no literal
 
@@ -342,7 +343,7 @@ Donde `{ruta-app-debug.log}` es `.sdd/drafts/{iniciativa}/implementation/app-deb
 - Si la primera línea es `PASS {id}` → registra el test como **PASS**. Si el modo fue `MODO cli`, **retén el bloque `=== RECETA DE EJECUCIÓN ===`** que devolvió el runner: es la entrada autoritativa de la Fase 2.4. Luego **genera el `.spec.ts` si procede** (paso 6.4), **escribe su línea en `progress.jsonl`** (paso 6.5) y pasa al siguiente test (vuelve a 6.1 con el siguiente).
 - Si la primera línea es `FAIL {id}` → entra en el **bucle de corrección** (6.3) con la descripción devuelta. Si el runner reportó `MODO spec`, ten en cuenta la **invalidación de spec obsoleto** del principio 2.8 al diagnosticar.
 
-### 6.3 Bucle de corrección (solo si FAIL)
+### 6.3 Fase 2.3 — Bucle de corrección (solo si FAIL)
 
 **Variables**: `**LIMIT**: max_intentos = 3`, `intento = 1`.
 
@@ -361,7 +362,7 @@ Cada **intento**:
 
 **MUST NOT** superar los 3 intentos por test. Tras agotarlos, el test queda **FAIL** y el bucle continúa con el resto.
 
-### 6.4 Materializar el `.spec.ts`: autoría (generator) + sanado (healer), LIMIT 5
+### 6.4 Fase 2.4 — Materializar el `.spec.ts`: autoría (generator) + sanado (healer), LIMIT 5
 
 Tras un **PASS**, antes de escribir el checkpoint, el orquestador decide si materializa el test como `.spec.ts` (principio 2.8). **Genera el spec si y solo si** se cumplen las dos condiciones:
 

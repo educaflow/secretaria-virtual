@@ -117,7 +117,7 @@ description: <una frase que diga qué cubre y cuándo aplicar este skill>
 
 Ejecutan un **proceso multi-fase**: leen artefactos, hacen preguntas, generan ficheros, invocan subagentes, validan resultados.
 
-**Ejemplos**: `sdd-create-user-story`, `sdd-specification-system`, `sdd-analyst-system`, `sdd-designer-system`, `sdd-implementer-system`, `sdd-close-spec`, `code-implementer`, `code-reviewer`.
+**Ejemplos**: `sdd-specification-system`, `sdd-analyst-system`, `sdd-designer-system`, `sdd-implementer-system`, `sdd-close-spec`, `code-implementer`, `code-reviewer`.
 
 **Estructura mínima OBLIGATORIA** (inspirada en `github/spec-kit`):
 
@@ -195,7 +195,8 @@ $ARGUMENTS
 
 | Campo | Cuándo se usa |
 |-------|---------------|
-| `handoffs` | En action-skills que tienen un "siguiente paso" claro en un pipeline. Cada handoff lleva `label`, `agent` y `prompt`. |
+| `handoffs` | En action-skills que tienen un "siguiente paso" claro en un pipeline. Cada handoff lleva `label`, `agent` y `prompt`. El `prompt` **MUST** incluir la ruta del artefacto de entrada (con placeholder `{carpeta-iniciativa}` si no se conoce de antemano) — un handoff sin ruta hace que el skill destino auto-detecte "la última carpeta", que puede no ser la iniciativa trabajada. |
+| `allowed-tools` | En action-skills que quieren restringir las herramientas disponibles. Lista **separada por comas** de tools, con scoping opcional: `Bash(xmllint:*)`, `Write(.sdd/**)`, `Edit(tests/**)`, `Read`, `Skill`, `Agent`. **MUST** incluir todas las herramientas que el cuerpo del skill ordena usar (si el cuerpo manda editar un fichero, `Edit(...)` debe estar en la lista). |
 
 ### 4.3 Ejemplos ✅/❌
 
@@ -203,7 +204,7 @@ $ARGUMENTS
   ```yaml
   ---
   name: sdd-analyst-system
-  description: Dado un fichero `specification.md`, genera los artefactos de análisis (analysis.md + entity-*.md + screen-*.md + tests.md) con trazabilidad EARS → V/R/U. La entrada la produce `/sdd-specification-system` y la salida la consume `/sdd-designer-system`.
+  description: Dado un fichero `specification.md`, genera los artefactos de análisis (analysis.md + entity-*.md + screen-*.md + tests.md) con trazabilidad `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` → V/R/U. La entrada la produce `/sdd-specification-system` y la salida la consume `/sdd-designer-system`.
   ---
   ```
 
@@ -384,14 +385,16 @@ El `## Outline` **MUST** terminar con una subsección **STOP conditions** que en
   - El usuario no aprueba el borrador → **MUST NOT** guardar nada.
   ```
 
-### 6.8 Subagentes en paralelo
+### 6.8 Subagentes: paralelos vs secuenciales
 
-Si el skill lanza subagentes en paralelo (patrón usado en `sdd-specification-system`, `sdd-analyst-system`, …):
+Si el skill lanza subagentes en paralelo (patrón usado en `sdd-analyst-system`, `sdd-designer-system`, `sdd-eval`, …):
 
 - **MUST** indicar el número exacto (`**REQUIRED**: exactamente N subagentes`).
 - **MUST** decir explícitamente que se lancen en **una única respuesta** con N invocaciones a `Agent`.
 - **MUST NOT** usar `run_in_background` si necesitas los resultados para una fase posterior.
-- **MUST** indicar que los subagentes en paralelo **MUST NOT** usar `AskUserQuestion` (el agente principal sí puede, antes y después).
+- **MUST** indicar que los subagentes en paralelo **MUST NOT** usar `AskUserQuestion` (el agente principal sí puede, antes y después); sus dudas se registran en un bloque parseable (p.ej. `=== DUDAS ===`) que el agente principal lleva al usuario.
+
+Si los subagentes **pueden necesitar preguntar al usuario**, **MUST** lanzarse secuencialmente (uno detrás de otro): dos preguntas concurrentes no son aceptables.
 
 ### 6.9 Overrides para testing (Apéndice A)
 
@@ -406,6 +409,17 @@ Los action-skills que escriben ficheros **RECOMENDADO**: añadir un Apéndice A 
 
 En uso normal no se especifican.
 ```
+
+### 6.10 Contrato de respuesta de los subagentes
+
+Cuando un action-skill lanza subagentes y necesita interpretar su resultado, el contrato de respuesta **MUST** quedar definido en el propio skill:
+
+1. **Estados enumerados con tokens literales**: la respuesta del subagente empieza por un estado de una lista cerrada (p.ej. `DONE` / `BLOCKED`, `PASS {id}` / `FAIL {id}`, `OK-No hay problemas`). **MUST** escribir los tokens exactos en el skill — el orquestador compara por literal, no por intención.
+   - ✅ CORRECTO: `Si no encuentra problemas responde exactamente: **OK-No hay problemas**`
+   - ❌ INCORRECTO: `Si todo está bien, que lo indique de alguna forma` (el orquestador no puede comparar "de alguna forma")
+2. **Marcadores parseables**: si el orquestador extrae bloques de la respuesta, los delimitadores van **literales** en el skill (p.ej. `=== FILE: x ===` … `=== END FILE ===`, `BEGIN:----` … `END:----`). **MUST NOT** variar los marcadores entre el ejemplo y el texto.
+3. **Contexto mínimo de vuelta**: el subagente devuelve solo lo que el orquestador necesita (estado + resumen corto, o `escrito: <ruta>` por fichero). **MUST NOT** pegar contenido completo que ya está en disco — gasta el contexto del orquestador y arriesga divergencia.
+4. **Modo subagente**: si el propio skill puede ejecutarse **dentro de un subagente** (lo invocan otros skills vía `Agent`), **MUST** definir el comportamiento sin usuario: ante un bloqueo, **devolver el estado de bloqueo como resultado final** en vez de `AskUserQuestion`/esperar — el orquestador padre decide.
 
 ---
 
@@ -432,6 +446,7 @@ En uso normal no se especifican.
 - Plantillas literales embebidas para todo fichero de salida. **MUST NOT** describirlas en prosa.
 - Ejemplos ✅/❌ inline con razón corta entre paréntesis para cada ❌.
 - Límites numéricos duros (máx N preguntas, máx N iteraciones, exactamente N subagentes) en vez de adjetivos vagos.
+- Contrato de subagentes (§6.10): tokens de estado literales, marcadores parseables exactos, contexto mínimo de vuelta, y modo subagente (devolver bloqueos, no esperar) si otros skills lo invocan vía `Agent`.
 - **CRITICAL**: cada línea cuesta tokens. Si quitarla no cambia la salida del modelo, sobra.
 
 ---
@@ -453,7 +468,7 @@ Aplica este checklist a cualquier `SKILL.md` que escribas o revises. **LIMIT**: 
 - [ ] Si es action-skill: ¿tiene `## User Input` con bloque `$ARGUMENTS`?
 - [ ] Si es action-skill: ¿tiene `## Outline` con pasos numerados y `**STOP conditions**`?
 - [ ] Si es action-skill: ¿hay al menos una sección de detalle por fase del Outline?
-- [ ] ¿Termina con `## Quick Guidelines` (5-7 bullets escaneables)?
+- [ ] ¿Tiene `## Quick Guidelines` al final del cuerpo (bullets escaneables, orientativo 5-10), antes de checklists finales y apéndices?
 - [ ] Si escribe ficheros: ¿tiene `## Apéndice A — Override de rutas` con `--in=`/`--out=`/`--root=`?
 
 ### 9.3 Estilo
@@ -470,6 +485,9 @@ Aplica este checklist a cualquier `SKILL.md` que escribas o revises. **LIMIT**: 
 - [ ] ¿Las plantillas de fichero de salida están embebidas **literalmente** dentro del skill?
 - [ ] Si genera artefactos: ¿hay un checklist explícito y un bucle de auto-corrección con `**LIMIT**: máximo 3 iteraciones`?
 - [ ] Si lanza subagentes en paralelo: ¿está el número exacto, la instrucción de "una única respuesta con N invocaciones a `Agent`", la prohibición de `run_in_background` y la prohibición de `AskUserQuestion` en los subagentes?
+- [ ] Si lanza subagentes: ¿el contrato de respuesta está definido (§6.10) — tokens de estado literales con ejemplos ✅/❌, marcadores parseables exactos, contexto mínimo de vuelta?
+- [ ] Si el skill puede ejecutarse dentro de un subagente: ¿define el modo subagente (§6.10.4) — devolver el bloqueo como resultado en vez de esperar al usuario?
+- [ ] Si tiene `handoffs`: ¿cada `prompt` incluye la ruta del artefacto (o el placeholder `{carpeta-iniciativa}`)?
 
 ### 9.5 Higiene
 

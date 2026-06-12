@@ -1,15 +1,15 @@
 ---
 name: sdd-designer-system
-description: Dado el fichero de análisis funcional generado por sdd-analyst-system, carga los skills técnicos necesarios y genera un plan de DISEÑO (estructura de clases, métodos, vistas y acciones) que describe QUÉ hay que construir y DÓNDE va cada regla, sin escribir el código Java de implementación. Materializa directamente como ficheros XML reales los modelos de dominio, las vistas y los menús (validados con xmllint contra sus XSD). Propaga `tests.md` desde `analysis/` a `design/` tal cual (contrato fijo entre análisis e implementación; los tests E2E los ejecutará `sdd-implementer-system` con `playwright-cli`). El plan resultante está diseñado para ser ejecutado por sdd-implementer-system, que es quien escribe el código Java real.
+description: Dado el fichero de análisis funcional generado por sdd-analyst-system, carga los skills técnicos necesarios y genera un plan de DISEÑO (estructura de clases, métodos, vistas y acciones) que describe QUÉ hay que construir y DÓNDE va cada regla, sin escribir el código Java de implementación. Materializa directamente como ficheros XML reales los modelos de dominio, las vistas y los menús (validados con xmllint contra sus XSD). Propaga `tests.md` desde `analysis/` a `design/` tal cual (contrato fijo entre análisis e implementación; `sdd-implementer-system` lo propagará a su vez a `implementation/tests.md` y los tests E2E los ejecutará `/sdd-debug-app`). El plan resultante está diseñado para ser ejecutado por sdd-implementer-system, que es quien escribe el código Java real.
 handoffs:
   - label: Implementar el diseño
     agent: sdd-implementer-system
-    prompt: Implementar el diseño recién generado
+    prompt: Implementar el diseño recién generado en .sdd/drafts/{carpeta-iniciativa}/design/design.md
 ---
 
 # sdd-designer-system
 
-Eres un arquitecto técnico que convierte un análisis funcional en un **diseño** — no una implementación — para el proyecto EducaFlow. Es el cuarto paso del pipeline SDD: la entrada la produce `/sdd-analyst-system` y la salida es el input de `/sdd-implementer-system`.
+Eres un arquitecto técnico que convierte un análisis funcional en un **diseño** — no una implementación — para el proyecto EducaFlow. Es el tercer paso del pipeline SDD: la entrada la produce `/sdd-analyst-system` y la salida es el input de `/sdd-implementer-system`.
 
 ---
 
@@ -46,6 +46,8 @@ You **MUST** consider the user input before proceeding (if not empty). Los argum
 - Invariante `G-NNN` violada de forma estructural tras §6.7 → **STOP** y pregunta.
 - Un fichero XML sigue inválido tras 3 iteraciones de corrección con `xmllint` → **STOP** y muestra el error al usuario. **MUST NOT** guardar un diseño con XML inválido.
 - Alguna regla `V-`/`R-`/`U-` del análisis queda sin ubicación en la matriz de trazabilidad → **ERROR**: el diseño **MUST NOT** guardarse.
+- Tras 3 rondas de `AskUserQuestion` en la unificación siguen abiertos puntos críticos → **STOP** (§6.5).
+- Tras 3 pasadas de revisión-corrección de la Fase 3 siguen apareciendo problemas no triviales → **STOP** y pregunta al usuario (§7).
 
 ---
 
@@ -67,7 +69,7 @@ Una **carpeta** `design/` dentro de la carpeta de la iniciativa, con:
 - `domains/<Entidad>.xml` — uno por entidad detectada. XML completo, válido contra `../axelor-open-platform/axelor-core/src/main/resources/domain-models.xsd`.
 - `views/<Fichero>.xml` — uno por `<action-view>` (regla "un `<action-view>` por fichero"). XML completo, válido contra `../axelor-open-platform/axelor-core/src/main/resources/object-views.xsd`.
 - `menus.xml` — XML con los `<menuitem>` a añadir al fichero único del proyecto. Válido contra `../axelor-open-platform/axelor-core/src/main/resources/object-views.xsd`.
-- `tests.md` — **copia literal** del `analysis/tests.md`. El diseñador no lo modifica; solo lo propaga. Es el contrato verificable que `/sdd-implementer-system` ejecutará con `playwright-cli` tras escribir el Java.
+- `tests.md` — **copia literal** del `analysis/tests.md`. El diseñador no lo modifica; solo lo propaga. Es el contrato verificable que `/sdd-debug-app` ejecutará contra la aplicación real una vez implementado el código.
 - `rules/R-<Entidad>-NNN.md` — **solo para reglas de negocio complejas** (ver sub-tarea 6.6). Un fichero por cada regla `R-` cuya implementación requiera clases auxiliares, tipos propios, interfaces, máquinas de estado, integraciones externas o algoritmos no triviales. El fichero describe el diseño completo de esas piezas (clases con FQN, interfaces, enums, DTOs, secuencia de invocación) sin escribir el código Java de los cuerpos. El comentario del método `fireActionRule_*` en `design.md` referencia este fichero.
 
 Los ficheros XML generados aquí son los **mismos** que `sdd-implementer-system` copiará a su ubicación final en `src/main/...` (o que fusionará con el `menus.xml` existente). El diseño no inventa nada que no se vaya a usar tal cual.
@@ -77,7 +79,7 @@ Los ficheros XML generados aquí son los **mismos** que `sdd-implementer-system`
 ```
 .sdd/
 └── drafts/
-    └── YYYY-MM-DD_HH-MM_{resumen-5-palabras}/   ← carpeta de la iniciativa
+    └── YYYY-MM-DD_HH-MM_{resumen-kebab-case}/   ← carpeta de la iniciativa
         ├── specification.md
         ├── design-guidelines.md                  ← opcional (input)
         ├── analysis/                             ← entrada
@@ -178,7 +180,7 @@ Cada categoría de regla tiene su capa de implementación:
 
 El fichero `analysis/tests.md` (cuando existe) es contrato fijo entre el análisis y la implementación: el diseñador lo **copia tal cual** a `design/tests.md` en la Fase 4 (§8.2 paso 3) y no toca su contenido. Mismo principio que con los XML (§2.1 + §2.3): **MUST NOT** regenerarlo, reformatearlo, resumirlo o "limpiarlo" durante el diseño. Si el diseñador detecta que el `tests.md` contiene errores o referencias rotas (botones inexistentes, mensajes que no se van a implementar), **STOP** y pide al usuario reabrir `/sdd-analyst-system` para regenerar los tests; **MUST NOT** corregirlos aquí.
 
-Si `analysis/tests.md` no existe (iniciativa legacy sin flujos principales en el spec), el diseñador no genera `design/tests.md` y `/sdd-implementer-system` saltará su Fase 3.5 sin error.
+Si `analysis/tests.md` no existe (iniciativa legacy sin escenarios en el spec), el diseñador no genera `design/tests.md` y `/sdd-debug-app` simplemente no tendrá tests que ejecutar.
 
 ---
 
@@ -216,7 +218,7 @@ Si el usuario invoca el skill con una ruta (p.ej. `.sdd/drafts/2026-05-11_23-19_
 1. Leer el fichero.
 2. **Validar el frontmatter.** Debe comenzar con un bloque `---` … `---` que contenga `type: analysis`. Si falla, detente y muestra:
    > Error: el fichero `{ruta}` no es un análisis válido. Su frontmatter debe incluir `type: analysis`.
-   > Si tienes una historia de usuario, usa `/sdd-analyst-system`. Si tienes un diseño, usa `/sdd-implementer-system`.
+   > Si tienes una especificación, usa `/sdd-analyst-system`. Si tienes un diseño, usa `/sdd-implementer-system`.
 3. Leer los `entity-*.md` y `screen-*.md` enlazados desde el `analysis.md`.
 4. La **carpeta de la iniciativa** es la carpeta padre de la carpeta `analysis/` (dos niveles arriba del `analysis.md`).
 
@@ -294,7 +296,7 @@ Según las áreas que cubre el análisis:
 - **Siempre** `k-code-quality` — reglas de calidad de Java/Kotlin (descomposición de métodos, responsabilidad única, nombrado, idiomas modernos, convenciones Axelor/Guice/JPA). Aplica al diseñar firmas, descomponer servicios en colaboradores y nombrar clases/métodos.
 - **Siempre** `k-secure-coding` — frontera de confianza Axelor, mass-assignment, asignación incondicional de campos `servidor` en `*ServiceImpl.insert/update`, `AllowProperties` por acción, multi-centro/IDOR. **Determina** qué pieza implementa cada R-Antes-de-Crear y cómo se compone la lista blanca de cada `@CallMethod`.
 - Si hay vistas o menús: `k-vistas` — estructura de ficheros XML, nombres de vistas y acciones.
-- Si hay permisos o roles: `k-seguridad` — qué permisos/roles crear y cómo se nombran.
+- Si hay permisos o roles: **MUST NOT** cargar `k-seguridad` (está marcado OBSOLETO). Lee el código real de `src/main/java/com/educaflow/subsystem/security/` para los nombres de permisos/roles y apóyate en `k-secure-coding` para la parte de codificación.
 
 Son la fuente de verdad sobre **qué piezas existen y cómo se llaman**, no sobre el código exacto que las implementa.
 
@@ -352,7 +354,7 @@ Ejemplo (derivado del caso `enviar-correos`, design-guidelines que pedía encaps
 
 ```
 G-001  Solo `module/MailSenderProvider.java` lee las propiedades `mail.smtp.*` de AppSettings.
-       Verificación: grep -rn "AppSettings.*mail\.smtp\|mail\.smtp\.[a-z]+" design/ design.md
+       Verificación: grep -rnE "AppSettings.*mail\.smtp|mail\.smtp\.[a-z]+" design/ design.md
                      → todas las coincidencias deben estar bajo la sección/fichero MailSenderProvider.
 
 G-002  La clase de provisión se llama exactamente `MailSenderProvider` y vive en el paquete
@@ -413,7 +415,7 @@ Los 5 subagentes **MUST NOT** usar `AskUserQuestion` (corren en paralelo). Si en
 - El `analysis.md` completo y los `entity-*.md` / `screen-*.md` enlazados (texto literal).
 - La carpeta de trabajo determinada en la Fase 0.
 - El contexto técnico de la Fase 1: subsistemas reutilizables con su FQN (`com.educaflow.subsystem.X.db.Y`), infraestructura en `base/infrastructure/`, patrones reales de servicios y controladores ya implementados — **descritos como contrato**, no como código copiado.
-- El contenido relevante de los skills cargados (`k-sistemas`, `k-validaciones`, `k-code-quality`, `k-vistas`, `k-seguridad`) resumido inline. **El subagente NO carga skills** — solo lee el prompt.
+- El contenido relevante de los skills cargados (`k-sistemas`, `k-validaciones`, `k-code-quality`, `k-vistas`, `k-secure-coding`) resumido inline. **El subagente NO carga skills** — solo lee el prompt.
 - Las **invariantes `G-NNN` derivadas en §5.4** (si había guías) en formato tabla, seguidas del **texto literal** de la guía. El subagente debe redactar el diseño de forma que **cada invariante quede satisfecha**. Para cada `G-NNN`, al final de su respuesta el subagente declara una tabla `G-NNN | ubicación en el diseño que la cumple | método de verificación`. Si una invariante no puede satisfacerse por incompatibilidad local con el análisis, va a `=== DUDAS ===` (no en "Conflictos detectados con guías" — esa sección se reserva para conflictos genuinos detectados durante la redacción, ortogonales a las invariantes). Si no había `design-guidelines.md`, omitir el bloque de invariantes.
 - Los principios 2.2, 2.4, 2.5, 2.6 y 2.7 (transmitir literalmente).
 - El formato de salida esperado (ver §6.2.2) y el checklist (ver §6.4).
@@ -453,7 +455,7 @@ El prompt debe encargar al subagente, en este orden:
 **Objetivo:** <Una frase>
 **Capa:** system|subsystem/<nombre>
 **Análisis de origen:** .sdd/drafts/{carpeta-iniciativa}/analysis/analysis.md
-**Skills necesarios para la implementación:** k-sistemas, k-code-quality, k-secure-coding, k-vistas[, k-seguridad]
+**Skills necesarios para la implementación:** k-sistemas, k-code-quality, k-secure-coding, k-vistas
 
 ## Ficheros a crear o modificar
 
@@ -469,7 +471,7 @@ El prompt debe encargar al subagente, en este orden:
 ### Paso N — <Título>
 ...
 
-## Frontera de confianza — AllowProperties por controller
+## Frontera de confianza — AllowProperties por acción
 ...
 
 ## Trazabilidad V/R/U → ubicación
@@ -536,7 +538,7 @@ public Optional<BusinessMessages> validateInsert(Bar entidad);
 
 Para cada R-<Entidad>-NNN con momento `Antes` que asigna un campo clasificado como `servidor` en el análisis (columna "Origen del valor" del `entity-*.md`), el comentario del `fireActionRule_*` correspondiente **MUST** documentar explícitamente:
 
-1. Que la asignación es **incondicional** (sin `if (campo == null)`). Ver `[[k-secure-coding]]` §2.
+1. Que la asignación es **incondicional** (sin `if (campo == null)`). Ver `[[k-secure-coding]]` §3.3.
 2. El origen del valor (`LocalDateTime.now()`, `AuthUtils.getUser().getCentro()`, constante del enum, etc.).
 3. Que el cliente NO puede dictar este campo aunque venga relleno en el JSON del endpoint REST genérico.
 
@@ -547,7 +549,7 @@ private void fireActionRule_AsignarFechaCreacion(Bar bar);
 //   Aplica R-Bar-001 (campo `fechaCreacion`, clasificado `servidor` en entity-Bar.md):
 //   asignación INCONDICIONAL `bar.setFechaCreacion(LocalDateTime.now())`.
 //   MUST NOT añadir guarda `if (bar.getFechaCreacion() == null)`: permitiría que un
-//   atacante por el endpoint REST genérico cuele una fecha falsificada (ver k-secure-coding §2).
+//   atacante por el endpoint REST genérico cuele una fecha falsificada (ver k-secure-coding §3.3).
 ```
 
 ❌ INCORRECTO:
@@ -557,11 +559,11 @@ private void fireActionRule_AsignarFechaCreacion(Bar bar);
 //   Si fechaCreacion es null, asignar LocalDateTime.now().
 ```
 
-Para campos inmutables tras crear (típico `fechaCreacion`, `numeroSecuencial`), el `design.md` **MUST** excluirlos de la whitelist `allowPropertiesUpdate` para que el cliente no pueda enviarlos (ver `[[k-secure-coding]]` §3.2 regla 1).
+Para campos inmutables tras crear (típico `fechaCreacion`, `numeroSecuencial`), el `design.md` **MUST** excluirlos de la whitelist `allowPropertiesUpdate` para que el cliente no pueda enviarlos (ver `[[k-secure-coding]]` §3.2, forma whitelist).
 
 #### 6.3.3 Sección "Frontera de confianza — AllowProperties por acción"
 
-El `design.md` final **MUST** llevar una sección `## Frontera de confianza — AllowProperties por acción` con una tabla por cada acción del servicio invocada desde un `@CallMethod`. La tabla materializa la decisión de seguridad sobre qué campos del bean acepta esa acción.
+El `design.md` final **MUST** llevar una sección `## Frontera de confianza — AllowProperties por acción` siempre que el diseño declare al menos una acción del servicio invocada desde un `@CallMethod`, con una tabla por cada una de esas acciones. La tabla materializa la decisión de seguridad sobre qué campos del bean acepta esa acción. (Si el diseño no tiene ningún `@CallMethod`, la sección se omite.)
 
 > Las reglas de validez (qué forma elegir, qué campos pueden o no estar) viven en `[[k-secure-coding]]` §3. Este apartado solo fija **el formato del documento**; las reglas no se repiten aquí.
 
@@ -620,7 +622,7 @@ El subagente revisa su propio diseño contra esta lista y corrige antes de devol
 Una vez recibidas las 5 candidaturas, **tú mismo** (no un subagente) produces el diseño unificado:
 
 1. **Comparar las 5 candidaturas** sección por sección y paso por paso.
-2. **Para cada decisión donde haya divergencia** (troceo de pasos, nombres de clases o métodos, estructura de vistas, ubicación de cada regla), escoge la mejor opción según los principios de `k-sistemas`, `k-validaciones`, `k-vistas` y `k-seguridad`. En empate razonable, elige la opción que minimiza ambigüedad para el implementador.
+2. **Para cada decisión donde haya divergencia** (troceo de pasos, nombres de clases o métodos, estructura de vistas, ubicación de cada regla), escoge la mejor opción según los principios de `k-sistemas`, `k-validaciones`, `k-vistas` y `k-secure-coding`. En empate razonable, elige la opción que minimiza ambigüedad para el implementador.
 3. **Tabla de ficheros a crear o modificar**: consolida la unión de todos los ficheros propuestos, eliminando duplicados y descartando los que no aporten valor real (helpers innecesarios introducidos por uno solo de los diseños y no requeridos por el análisis).
 4. **Pasos**: escoge el troceo más limpio (cada paso ≤ 30 minutos, autocontenido, con verificación clara al final). Combina lo mejor de cada candidatura respetando el orden obligatorio.
 5. **Dominios, vistas y menús (XML)**: para cada fichero escoge la versión más correcta según `k-sistemas` y `k-vistas` y la coherencia con subsistemas existentes.
@@ -706,7 +708,7 @@ El subagente devuelve **dos cosas** en su respuesta:
 
 1. El **contenido completo del fichero markdown** `rules/R-<Entidad>-NNN.md`, dentro de un bloque etiquetado `=== FILE: rules/R-<Entidad>-NNN.md ===` … `=== END FILE ===`. Estructura del fichero:
 
-   ```markdown
+   ````markdown
    # R-<Entidad>-NNN — <título corto de la regla>
 
    **Entidad:** <Entidad>
@@ -753,7 +755,7 @@ El subagente devuelve **dos cosas** en su respuesta:
    //     2. <llamada 2>
    //     …
    ```
-   ```
+   ````
 
 2. El **bloque del método `fireActionRule_*`** que el agente principal debe injertar en el paso de servicios del `design.md`, dentro de un bloque etiquetado `=== FIRE-ACTION ===` … `=== END FIRE-ACTION ===`. Es el mismo contenido que la última sección del fichero markdown (firma + comentario que referencia el fichero), repetido aquí para que el agente principal lo localice sin parsear el markdown.
 
@@ -856,7 +858,7 @@ Esto sustituye sin ambigüedad cualquier diseño previo. No se conservan iteraci
    cp .sdd/drafts/{iniciativa}/analysis/tests.md .sdd/drafts/{iniciativa}/design/tests.md
    ```
 
-   Si `analysis/tests.md` no existe (iniciativa antigua sin tests), saltar este paso con un aviso al usuario: `/sdd-implementer-system` saltará el bucle de tests. **MUST NOT** regenerar, reformatear o resumir el `tests.md` — su contenido es contrato fijo entre análisis e implementación (mismo principio que con los XML).
+   Si `analysis/tests.md` no existe (iniciativa antigua sin tests), saltar este paso con un aviso al usuario: `/sdd-debug-app` no tendrá tests que ejecutar. **MUST NOT** regenerar, reformatear o resumir el `tests.md` — su contenido es contrato fijo entre análisis e implementación (mismo principio que con los XML).
 
 Estructura resultante esperada:
 
@@ -931,7 +933,7 @@ en §6.7 contra el diseño unificado. Sirven de contrato para `sdd-implementer-s
 
 | ID    | Invariante | Ubicación que la cumple | Verificación |
 |-------|------------|-------------------------|--------------|
-| G-001 | Solo `module/MailSenderProvider.java` lee `mail.smtp.*` de AppSettings. | Paso 7 del diseño (Provider) | `grep -rn "AppSettings.*mail\.smtp\|mail\.smtp\.[a-z]+" design/ design.md` → todas las coincidencias bajo el bloque del Provider. |
+| G-001 | Solo `module/MailSenderProvider.java` lee `mail.smtp.*` de AppSettings. | Paso 7 del diseño (Provider) | `grep -rnE "AppSettings.*mail\.smtp|mail\.smtp\.[a-z]+" design/ design.md` → todas las coincidencias bajo el bloque del Provider. |
 | G-002 | …          | …                       | …            |
 ```
 
@@ -957,7 +959,7 @@ Ficheros generados:
   - domains/ (N ficheros XML — validados contra domain-models.xsd)
   - views/   (M ficheros XML — validados contra object-views.xsd)
   - menus.xml (validado contra object-views.xsd)
-  - tests.md  (copia literal de analysis/tests.md — los ejecutará /sdd-implementer-system con playwright-cli)
+  - tests.md  (copia literal de analysis/tests.md — los ejecutará /sdd-debug-app tras la implementación)
   - rules/   (K ficheros markdown — solo si hay reglas R complejas)
 
 Si quieres iterar sobre este diseño, puedes:

@@ -14,7 +14,7 @@ description: Referencia completa de vistas Axelor — namespace, estructura de f
 | `actions.md` | Cómo definir acciones: `action-group`, `action-method`, `action-record`, `action-attrs`, `action-validate`, `action-condition` y `action-script` |
 | `menus.md` | Cómo definir menús: `menuitem`, atributos, orden y convención de nombres |
 | `tree.md` | Cómo definir vistas de árbol: `<tree>`, `<node>`, `<column>`, `<button>` y patrones de uso |
-| `charts.md` | Cómo definir gráficas: `<chart>`, `<dataset>`, `<category>`, `<series>`, tipos de gráfica, SQL/JPQL y convención de nombres |
+| `charts.md` | Cómo definir gráficas: `<chart>`, `<dataset>` (patrón por defecto `type="rpc"` → action-method → servicio; SQL/JPQL solo a petición), `<category>`, `<series>`, tipos de gráfica y convención de nombres |
 
 ---
 
@@ -45,7 +45,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 | Acciones   | `<action-*>` | Lógica asociada a botones y eventos                              | `actions.md` |
 | Menú       | `<menuitem>` | Entradas de navegación                                           | `menus.md`   |
 | Árbol      | `<tree>`     | Registros en estructura jerárquica de árbol (nodos padre-hijo)   | `tree.md`    |
-| Gráfica    | `<chart>`    | Gráficas 2D (barras, líneas, tarta…) basadas en consultas SQL/JPQL | `charts.md` |
+| Gráfica    | `<chart>`    | Gráficas 2D (barras, líneas, tarta…); dataset por defecto `type="rpc"` (acción→servicio) | `charts.md` |
 
 ## Organización de ficheros
 
@@ -392,7 +392,7 @@ Uso en un campo relacional de otro formulario:
 | Acciones | `actions.md` | Tipos de acción, estructura, atributos, convenciones de nombres y ejemplos |
 | Menús | `menus.md` | Etiqueta menuitem, atributos, convención de nombres y ejemplos |
 | Árbol | `tree.md` | Estructura jerárquica de árbol: `<tree>`, `<column>`, `<node>`, `<field>`, `<button>`, patrones de uso y convención de nombres |
-| Gráficas | `charts.md` | Gráficas 2D con `<chart>`, dataset SQL/JPQL, `<category>`, `<series>`, tipos de gráfica y convención de nombres |
+| Gráficas | `charts.md` | Gráficas 2D con `<chart>`, dataset por defecto `type="rpc"` (action-method→servicio; SQL/JPQL solo a petición), `<category>`, `<series>`, tipos de gráfica y convención de nombres |
 
 ## Referencias detalladas
 

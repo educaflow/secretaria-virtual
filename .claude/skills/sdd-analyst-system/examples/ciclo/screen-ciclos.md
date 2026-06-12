@@ -27,6 +27,8 @@ Ciclo
 
 ## Grid 1 — "Ciclos"
 
+### Propiedades
+
 | Propiedad                          | Valor                                                  |
 |------------------------------------|--------------------------------------------------------|
 | Entidad                            | Ciclo                                                  |
@@ -44,6 +46,8 @@ Ciclo
 | "Añadir un nuevo ciclo"| Abre el formulario para crear un nuevo ciclo            |
 
 ## Formulario 1 — Ciclo
+
+### Propiedades
 
 | Propiedad     | Valor   |
 |---------------|---------|
@@ -68,16 +72,18 @@ Ciclo
 
 ### Reglas de UI (U-ciclos-NNN)
 
-| ID    | Disparador | Efecto           | Campo/Panel afectado | Condición                                  |
-|-------|------------|------------------|----------------------|--------------------------------------------|
-| U-ciclos-001 | continuo   | Mostrar/ocultar  | campo "nivel"        | Visible solo si grado = "D"                |
-| U-ciclos-002 | continuo   | Filtrar dominio  | campo "grado"        | Mostrar solo grados con código "D" o "E"   |
-| U-ciclos-003 | continuo   | Filtrar dominio  | campo "nivel"        | Mostrar solo niveles con código "D" o "E"  |
-| U-ciclos-004 | continuo   | Mostrar/ocultar  | botón "Borrar"       | Visible solo si el registro ya existe      |
+| ID    | Disparador | Efecto           | Campo/Panel afectado | Condición                                  | Origen spec |
+|-------|------------|------------------|----------------------|--------------------------------------------|-------------|
+| U-ciclos-001 | continuo   | Mostrar/ocultar  | campo "nivel"        | Visible solo si grado = "D"                | —           |
+| U-ciclos-002 | continuo   | Filtrar dominio  | campo "grado"        | Mostrar solo grados con código "D" o "E"   | —           |
+| U-ciclos-003 | continuo   | Filtrar dominio  | campo "nivel"        | Mostrar solo niveles con código "D" o "E"  | —           |
+| U-ciclos-004 | continuo   | Mostrar/ocultar  | botón "Borrar"       | Visible solo si el registro ya existe      | —           |
 
 ---
 
 ## Grid 2 — "Cursos"
+
+### Propiedades
 
 | Propiedad                          | Valor                                                                |
 |------------------------------------|----------------------------------------------------------------------|
@@ -96,6 +102,8 @@ Ciclo
 | "Añadir un nuevo curso"| Abre el formulario para crear un nuevo curso            |
 
 ## Formulario 2 — Curso
+
+### Propiedades
 
 | Propiedad     | Valor  |
 |---------------|--------|
@@ -120,14 +128,16 @@ Ciclo
 
 ### Reglas de UI (U-ciclos-NNN)
 
-| ID    | Disparador | Efecto             | Campo/Panel afectado | Condición                                                 |
-|-------|------------|--------------------|----------------------|-----------------------------------------------------------|
-| U-ciclos-005 | onNew      | Valor por defecto  | campo "ciclo"        | Al crear desde la pantalla anidada, fijar al ciclo padre  |
-| U-ciclos-006 | continuo   | Mostrar/ocultar    | botón "Borrar"       | Visible solo si el registro ya existe                     |
+| ID    | Disparador | Efecto             | Campo/Panel afectado | Condición                                                 | Origen spec |
+|-------|------------|--------------------|----------------------|-----------------------------------------------------------|-------------|
+| U-ciclos-005 | onNew      | Valor por defecto  | campo "ciclo"        | Al crear desde la pantalla anidada, fijar al ciclo padre  | —           |
+| U-ciclos-006 | continuo   | Mostrar/ocultar    | botón "Borrar"       | Visible solo si el registro ya existe                     | —           |
 
 ---
 
 ## Grid 3 — "Módulos"
+
+### Propiedades
 
 | Propiedad                          | Valor                                                                |
 |------------------------------------|----------------------------------------------------------------------|
@@ -146,6 +156,8 @@ Ciclo
 | "Añadir un nuevo módulo"| Abre el formulario para crear un nuevo módulo           |
 
 ## Formulario 3 — Módulo (CursoModulo)
+
+### Propiedades
 
 | Propiedad     | Valor        |
 |---------------|--------------|
@@ -169,7 +181,7 @@ Ciclo
 
 ### Reglas de UI (U-ciclos-NNN)
 
-| ID    | Disparador | Efecto             | Campo/Panel afectado | Condición                                                 |
-|-------|------------|--------------------|----------------------|-----------------------------------------------------------|
-| U-ciclos-007 | onNew      | Valor por defecto  | campo "curso"        | Al crear desde la pantalla anidada, fijar al curso padre  |
-| U-ciclos-008 | continuo   | Mostrar/ocultar    | botón "Borrar"       | Visible solo si el registro ya existe                     |
+| ID    | Disparador | Efecto             | Campo/Panel afectado | Condición                                                 | Origen spec |
+|-------|------------|--------------------|----------------------|-----------------------------------------------------------|-------------|
+| U-ciclos-007 | onNew      | Valor por defecto  | campo "curso"        | Al crear desde la pantalla anidada, fijar al curso padre  | —           |
+| U-ciclos-008 | continuo   | Mostrar/ocultar    | botón "Borrar"       | Visible solo si el registro ya existe                     | —           |

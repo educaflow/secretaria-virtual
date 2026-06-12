@@ -47,9 +47,9 @@ TareaCorreo
 
 ### Reglas de UI (U-todos-NNN)
 
-| ID    | Disparador | Efecto          | Campo/Panel afectado            | Condición                              |
-|-------|------------|-----------------|---------------------------------|----------------------------------------|
-| U-todos-001 | continuo   | Mostrar/ocultar | botón "Reintentar" de la fila   | Visible solo si la fila tiene estado FALLADO |
+| ID    | Disparador | Efecto          | Campo/Panel afectado            | Condición                              | Origen spec |
+|-------|------------|-----------------|---------------------------------|----------------------------------------|-------------|
+| U-todos-001 | continuo   | Mostrar/ocultar | botón "Reintentar" de la fila   | Visible solo si la fila tiene estado FALLADO | —           |
 
 ## Formulario 1 — Correo
 
@@ -76,12 +76,12 @@ TareaCorreo
 
 ### Reglas de UI (U-todos-NNN)
 
-| ID    | Disparador | Efecto             | Campo/Panel afectado                                                          | Condición                                                  |
-|-------|------------|--------------------|-------------------------------------------------------------------------------|------------------------------------------------------------|
-| U-todos-002 | continuo   | Solo lectura       | centro, asunto, DNI/NIE, email, nombre, cuerpo HTML, cuerpo texto plano       | El registro ya existe (no es nuevo)                        |
-| U-todos-003 | continuo   | Solo lectura       | campo "de"                                                                    | Siempre (lo asigna el sistema)                             |
-| U-todos-004 | continuo   | Mostrar/ocultar    | panel "Log de errores"                                                        | Visible solo si hay errores que mostrar                    |
-| U-todos-005 | continuo   | Mostrar/ocultar    | panel "Expediente relacionado"                                                | Visible solo si el correo proviene de un expediente        |
+| ID    | Disparador | Efecto             | Campo/Panel afectado                                                          | Condición                                                  | Origen spec |
+|-------|------------|--------------------|-------------------------------------------------------------------------------|------------------------------------------------------------|-------------|
+| U-todos-002 | continuo   | Solo lectura       | centro, asunto, DNI/NIE, email, nombre, cuerpo HTML, cuerpo texto plano       | El registro ya existe (no es nuevo)                        | —           |
+| U-todos-003 | continuo   | Solo lectura       | campo "de"                                                                    | Siempre (lo asigna el sistema)                             | —           |
+| U-todos-004 | continuo   | Mostrar/ocultar    | panel "Log de errores"                                                        | Visible solo si hay errores que mostrar                    | —           |
+| U-todos-005 | continuo   | Mostrar/ocultar    | panel "Expediente relacionado"                                                | Visible solo si el correo proviene de un expediente        | —           |
 
 ---
 

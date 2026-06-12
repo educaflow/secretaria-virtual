@@ -1,11 +1,11 @@
 ---
 name: sdd-implementer-system
-description: Dado un `design.md` ya producido por `/sdd-designer-system`, lo descompone en una lista de tareas atómicas (`implementation/task_NN.md` más el índice `task.md`) con una tarea por fichero, agrupando los ficheros fuertemente acoplados, donde cada tarea lleva sus skills de dominio y el texto verbatim del diseño que la describe. Tras la aprobación del usuario, implementa cada tarea delegando en `code-implementer` (o copiando literalmente los XML ya materializados), y por último compila el proyecto en un bucle de auto-corrección hasta que `./gradlew clean build` pase (LIMIT 3 iteraciones). Es el quinto paso del pipeline SDD; la entrada la produce `/sdd-designer-system` y la salida es código real en `src/main/...` listo para `/sdd-close-spec`.
+description: Dado un `design.md` ya producido por `/sdd-designer-system`, lo descompone en una lista de tareas atómicas (`implementation/task_NN.md` más el índice `task.md`) con una tarea por fichero, agrupando los ficheros fuertemente acoplados, donde cada tarea lleva sus skills de dominio y el texto verbatim del diseño que la describe. Propaga `design/tests.md` a `implementation/tests.md` tal cual (contrato fijo que después ejecuta `/sdd-debug-app`). Tras la aprobación del usuario, implementa cada tarea delegando en `code-implementer` (o copiando literalmente los XML ya materializados), y por último compila el proyecto en un bucle de auto-corrección hasta que `./gradlew clean build` pase (LIMIT 3 iteraciones). Es el cuarto paso del pipeline SDD; la entrada la produce `/sdd-designer-system` y la salida es código real en `src/main/...` listo para `/sdd-close-spec`.
 handoffs:
   - label: Cerrar la iniciativa
     agent: sdd-close-spec
     prompt: Cerrar la iniciativa recién implementada — archivar en .sdd/specs/ y actualizar los CLAUDE.md afectados.
-allowed-tools: Bash(playwright-cli:*) Bash(ls:*) Bash(grep:*) Bash(cp:*) Bash(mkdir:*) Bash(find:*) Bash(xmllint:*) Read Edit(src/**) Edit(.sdd/**) Write(src/**) Write(.sdd/**) Bash(./gradlew:*) Skill AskUserQuestion Agent
+allowed-tools: Bash(ls:*), Bash(grep:*), Bash(cp:*), Bash(mkdir:*), Bash(find:*), Bash(xmllint:*), Read, Edit(src/**), Edit(.sdd/**), Write(src/**), Write(.sdd/**), Bash(./gradlew:*), Skill, AskUserQuestion, Agent
 ---
 
 # sdd-implementer-system
@@ -13,7 +13,7 @@ allowed-tools: Bash(playwright-cli:*) Bash(ls:*) Bash(grep:*) Bash(cp:*) Bash(mk
 Eres un delegador. Conviertes un `design.md` ya producido por `/sdd-designer-system` en código real dentro del proyecto en tres movimientos: 
 1. **descompones** el diseño en una lista de tareas atómicas escritas en `implementation/`, una por fichero (agrupando ficheros fuertemente acoplados), cada una con sus skills de dominio y el texto del diseño que la describe
 2. Tras la aprobación del usuario, **implementas** cada tarea delegando en `code-implementer` o copiando literalmente los XML ya materializados por el diseñador
-3. **compilas** el proyecto en un bucle de auto-corrección hasta que `./gradlew clean build` pase. Es el quinto paso del pipeline SDD: la entrada la produce `/sdd-designer-system` y la salida es código real en `src/main/...` listo para ser cerrado con `/sdd-close-spec`.
+3. **compilas** el proyecto en un bucle de auto-corrección hasta que `./gradlew clean build` pase. Es el cuarto paso del pipeline SDD: la entrada la produce `/sdd-designer-system` y la salida es código real en `src/main/...` listo para ser cerrado con `/sdd-close-spec`.
 
 ---
 
@@ -36,7 +36,7 @@ You **MUST** consider the user input before proceeding (if not empty). Los argum
 1. **Localizar** el `design.md` (Fase 0 — ruta explícita o auto-detección).
 2. **Validar** el frontmatter del diseño (Fase 1 — `type: design` REQUIRED).
 3. **Generar las tareas** en `implementation/` (Fase 2 — una `task_NN.md` por fichero, agrupando acoplados).
-4. **Generar el índice** `implementation/task.md` (Fase 3).
+4. **Generar el índice** `implementation/task.md` y **propagar** `design/tests.md` → `implementation/tests.md` si existe (Fase 3).
 5. **Pedir revisión** al usuario y **STOP** hasta que apruebe (Fase 4).
 6. **Implementar** cada tarea: delegar Java en `code-implementer`, copiar literal los XML materializados (Fase 5).
 7. **Compilar** en bucle hasta que `./gradlew clean build` pase (Fase 6 — `**LIMIT**: 3 iteraciones`).
@@ -67,6 +67,7 @@ Un único `design.md` cuyo frontmatter debe contener (al menos) `type: design`. 
 ├── domains/<Entidad>.xml          ← uno por entidad (XML materializado, ya validado con xmllint)
 ├── views/<Fichero>.xml            ← uno por <action-view> (XML materializado)
 ├── menus.xml                      ← porción de <menuitem> a fusionar
+├── tests.md                       ← opcional, tests E2E propagados desde analysis/ (contrato fijo)
 └── rules/R-<Entidad>-NNN.md       ← opcional, solo documentación referenciada por el design.md
 ```
 
@@ -76,7 +77,7 @@ Los XML **ya están validados con `xmllint`** por el diseñador. Son la fuente d
 
 Este skill escribe en dos sitios:
 
-- En `.sdd/drafts/{iniciativa}/implementation/`: la lista de tareas (`task_NN.md`) y su índice (`task.md`).
+- En `.sdd/drafts/{iniciativa}/implementation/`: la lista de tareas (`task_NN.md`), su índice (`task.md`) y, si existe `design/tests.md`, su copia literal `tests.md` (entrada de `/sdd-debug-app`).
 - En el árbol del proyecto (`src/main/java/com/educaflow/...`): los XML del diseño copiados/fusionados a su ubicación real y todo el código Java escrito por `code-implementer`.
 - En la conversación: un mensaje final indicando que la implementación está completa y que el siguiente paso es `/sdd-close-spec`.
 
@@ -85,19 +86,21 @@ Este skill escribe en dos sitios:
 ```
 .sdd/
 └── drafts/
-    └── YYYY-MM-DD_HH-MM_{resumen}/          ← carpeta de la iniciativa
+    └── YYYY-MM-DD_HH-MM_{resumen-kebab-case}/  ← carpeta de la iniciativa
         ├── analysis/                        ← input del designer
         ├── design/                          ← input de este skill
         │   ├── design.md
         │   ├── domains/<Entidad>.xml
         │   ├── views/<Fichero>.xml
         │   ├── menus.xml
+        │   ├── tests.md  (opcional)
         │   └── rules/R-<Entidad>-NNN.md  (opcional)
         └── implementation/                  ← salida de la Fase 2 y 3 de este skill
             ├── task.md                       ← índice (type: implementation-tasks)
             ├── task_01.md                    ← una tarea (type: implementation-task)
             ├── task_02.md
-            └── …
+            ├── …
+            └── tests.md                      ← copia literal de design/tests.md (si existe)
 
 src/main/java/com/educaflow/
 ├── <capa>/<x>/domains/<Entidad>.xml          ← destino de los dominios
@@ -231,7 +234,7 @@ Si el skill se invoca sin argumentos:
    > type: design
    > ---
    > ```
-   > Si tienes una historia de usuario, usa `/sdd-analyst-system`. Si tienes un análisis, usa `/sdd-designer-system`.
+   > Si tienes una especificación, usa `/sdd-analyst-system`. Si tienes un análisis, usa `/sdd-designer-system`.
 
 ---
 
@@ -241,7 +244,7 @@ Tu trabajo en esta fase es **descomponer el `design.md` en tareas atómicas** es
 
 ### 6.1 Leer el `design.md` íntegro y su tabla de ficheros
 
-1. Lee **todo** el `design.md`, no solo la tabla. La tabla dice **qué** ficheros hay; las secciones "Paso N", "Frontera de confianza / AllowProperties" y "Trazabilidad V/R/U" dicen **cómo** se implementa cada uno.
+1. Lee **todo** el `design.md`, no solo la tabla. La tabla dice **qué** ficheros hay; las secciones "Paso N", "Frontera de confianza — AllowProperties por acción" y "Trazabilidad V/R/U" dicen **cómo** se implementa cada uno.
 2. Localiza la tabla "Ficheros a crear o modificar". Cada fila tiene la forma:
 
    | Fichero | Acción | Skill | Descripción |
@@ -289,7 +292,7 @@ Reglas de relleno:
 - **`<texto del prompt>`**: todo lo relevante del `design.md` para los ficheros de esta tarea, copiado **verbatim**. **MUST** incluir, cuando apliquen:
   - La(s) fila(s) de la tabla "Ficheros a crear o modificar" de esos ficheros (con su ruta destino).
   - La(s) sección(es) "Paso N" que describen esos ficheros (firmas, comentarios, estructura).
-  - Las secciones transversales que apliquen a esos ficheros: "Frontera de confianza / AllowProperties" y las filas de "Trazabilidad V/R/U → ubicación" que les correspondan.
+  - Las secciones transversales que apliquen a esos ficheros: "Frontera de confianza — AllowProperties por acción" y las filas de "Trazabilidad V/R/U → ubicación" que les correspondan.
   - Las referencias a `rules/R-*.md` citadas para esos ficheros (cita la ruta; **MUST NOT** copiar su contenido entero si es extenso).
 - Para una tarea de **XML ya materializado** (dominio, vista, `menus.xml`), el `<texto del prompt>` **MUST** indicar explícitamente que el fichero está en `design/...` y que se debe **copiar literalmente** (o fusionar, para `menus.xml`) a su ruta destino, **sin regenerarlo** (principio 2.1).
 
@@ -305,9 +308,10 @@ Ejemplos ✅/❌ de cabecera de tarea:
 
 ---
 
-## 7. Fase 3 — Generar el índice `task.md`
+## 7. Fase 3 — Generar el índice `task.md` y propagar `tests.md`
 
-Escribe `.sdd/drafts/{iniciativa}/implementation/task.md` con **exactamente** esta plantilla, una línea por tarea generada:
+1. Si existe `.sdd/drafts/{iniciativa}/design/tests.md`, **cópialo literalmente** (`cp`) a `.sdd/drafts/{iniciativa}/implementation/tests.md`. Es contrato fijo: **MUST NOT** modificarlo, resumirlo ni renumerarlo — es la entrada que `/sdd-debug-app` ejecutará contra la aplicación real. Si no existe, no pasa nada: `/sdd-debug-app` simplemente no tendrá tests que ejecutar.
+2. Escribe `.sdd/drafts/{iniciativa}/implementation/task.md` con **exactamente** esta plantilla, una línea por tarea generada:
 
 ```
 ---
@@ -387,7 +391,7 @@ Tras implementar todas las tareas, verifica que el proyecto compila y entra en u
    - **Detectar fallos persistentes**: si los errores de compilación son **idénticos** a los de la iteración anterior, `code-implementer` no está progresando. Trata el caso como `iter == max_iter` y **STOP**.
    - **Si `iter < max_iter`**:
      - Construye un **plan de corrección** pequeño en markdown — un paso por error de compilación, con el mensaje literal del compilador, el fichero/línea y la tarea de origen. **MUST NOT** volver a pasar todas las tareas completas; solo los errores a corregir.
-     - **Reinvoca `code-implementer`** con ese plan de corrección y los skills de dominio de las tareas afectadas. Instrúyele **explícitamente** que: (a) **solo corrija código Java**, (b) **NO edite los XML ya copiados** (principio 2.1).
+     - **Reinvoca `code-implementer`** con ese plan de corrección y los skills de dominio de las tareas afectadas, usando el mismo mecanismo de la Fase 5: un subagente `Agent` que carga los skills y dentro invoca `code-implementer` (**MUST NOT** invocarlo tú directamente). Instrúyele **explícitamente** que: (a) **solo corrija código Java**, (b) **NO edite los XML ya copiados** (principio 2.1).
      - Incrementa `iter` y vuelve al paso 1.
    - **Si `iter == max_iter`**:
      - **STOP** y `AskUserQuestion` ofreciendo: (1) dejar el reporte de errores para investigación manual; (2) revisar el diseño relanzando `/sdd-designer-system`; (3) continuar sin compilación limpia (no recomendado).
@@ -405,6 +409,7 @@ Tareas generadas e implementadas: N (ver .sdd/drafts/{iniciativa}/implementation
 Compilación: {limpia en M iteraciones | NO limpia tras 3 iteraciones}.
 
 Los artefactos del draft se mantienen en .sdd/drafts/{iniciativa}/ — no se ha archivado nada en .sdd/specs/.
+{Si existe implementation/tests.md:} Los tests E2E están en implementation/tests.md — puedes ejecutarlos contra la aplicación real con `/sdd-debug-app`.
 Cuando estés conforme con la implementación, lanza `/sdd-close-spec` para cerrar la iniciativa: actualizará los CLAUDE.md afectados y archivará la spec en .sdd/specs/.
 ```
 
@@ -441,6 +446,7 @@ Antes de emitir el mensaje final de la Fase 7, **MUST** recorrer este checklist.
 - [ ] ¿Cada `task_NN.md` tiene `type: implementation-task`, su lista de skills y el texto del diseño verbatim? (Fase 2.4)
 - [ ] ¿Las tareas Java de entidades/servicios/controladores incluyen `k-secure-coding`? (Fase 2.3)
 - [ ] ¿Existe `implementation/task.md` con `type: implementation-tasks` y un enlace correcto por tarea? (Fase 3)
+- [ ] Si existía `design/tests.md`: ¿se copió literalmente a `implementation/tests.md` sin modificarlo? (Fase 3)
 - [ ] ¿Se pidió aprobación al usuario y se esperó antes de implementar? (Fase 4)
 - [ ] ¿Los XML del diseño se copiaron/fusionaron literalmente, sin regenerarlos? (Fase 5, principio 2.1)
 - [ ] ¿El Java se implementó lanzando un subagente (`Agent`) por tarea, y ese subagente cargó **obligatoriamente** los skills de `## Skills a usar` antes de invocar `code-implementer`? (Fase 5, principio 2.2)

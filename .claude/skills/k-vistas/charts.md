@@ -1,6 +1,6 @@
 # Vista `<chart>` — referencia
 
-La vista `<chart>` muestra datos agregados como gráficas 2D (barras, líneas, tarta, etc.) impulsadas por Apache ECharts. A diferencia de `<grid>` o `<form>`, **no está ligada a un modelo de dominio concreto**: sus datos provienen de una consulta SQL o JPQL que define el desarrollador. Se usa principalmente en pantallas de estadísticas y dashboards.
+La vista `<chart>` muestra datos agregados como gráficas 2D (barras, líneas, tarta, etc.) impulsadas por Apache ECharts. A diferencia de `<grid>` o `<form>`, **no está ligada a un modelo de dominio concreto**: sus datos provienen de un `<dataset>` que define el desarrollador (por defecto en el proyecto, una acción Java vía `type="rpc"`; ver §*Dataset*). Se usa principalmente en pantallas de estadísticas y dashboards.
 
 La referencia técnica completa de todos los atributos está en `references/charts.md`.
 
@@ -14,26 +14,20 @@ La referencia técnica completa de todos los atributos está en `references/char
     <view type="chart" name="{prefijo}.{Entidad}@{Nombre}-chart"/>
 </action-view>
 
+<!-- Patrón por defecto: dataset type="rpc" → action-method → servicio -->
 <chart name="{prefijo}.{Entidad}@{Nombre}-chart" title="Título de la gráfica">
-    <dataset type="sql">
-        <![CDATA[
-            SELECT
-                campo_agrupacion  AS _eje_x,
-                SUM(campo_valor)  AS _valor
-            FROM
-                nombre_tabla self
-            WHERE
-                condicion = :parametro
-            GROUP BY
-                campo_agrupacion
-            ORDER BY
-                campo_agrupacion
-        ]]>
-    </dataset>
+    <dataset type="rpc">action-{entidad}-{nombre}</dataset>
     <category key="_eje_x" type="text" title="Etiqueta eje X"/>
     <series   key="_valor" type="bar"  title="Etiqueta eje Y"/>
 </chart>
+
+<action-method name="action-{entidad}-{nombre}">
+    <call class="com.educaflow.subsys.{subsistema}.service.{Entidad}ChartService"
+          method="{nombre}"/>
+</action-method>
 ```
+
+El método del servicio obtiene y devuelve los datos (ver §*Dataset* → *type="rpc"* para el método Java completo).
 
 ---
 
@@ -41,11 +35,19 @@ La referencia técnica completa de todos los atributos está en `references/char
 
 - El `<action-view>` **no lleva atributo `model`** — la gráfica no está ligada a una entidad JPA.
 - La `<view>` dentro del `<action-view>` lleva `type="chart"` en lugar de `type="grid"` o `type="form"`.
-- Los datos se obtienen únicamente mediante el `<dataset>` con SQL o JPQL — no hay un ORM gestionando el acceso.
+- Los datos se obtienen mediante el `<dataset>` — por defecto una acción Java (`type="rpc"`), o SQL/JPQL si se pide expresamente — no hay un ORM gestionando el acceso.
 
 ---
 
-## Dataset: SQL vs JPQL
+## Dataset: SQL, JPQL y RPC
+
+El `<dataset>` admite tres tipos (enumerados en `axelor-core/src/main/resources/object-views.xsd`): `sql` y `jpql` resuelven los datos con una consulta declarativa, y `rpc` delega en una **acción Java** que devuelve los datos por código (útil cuando hay que validar los `search-fields` o ejecutar lógica antes de pintar la gráfica).
+
+**REQUIRED — patrón por defecto del proyecto.** Salvo indicación expresa en contrario, toda gráfica sigue el patrón `chart → <action-method> → servicio`:
+
+- **MUST** usar `type="rpc"` en el `<dataset>`, apuntando a un `<action-method>`.
+- El controlador (`<action-method>`) **MUST** limitarse a delegar en un método de servicio; el servicio es quien obtiene y devuelve los datos.
+- **MUST NOT** usar `type="sql"` ni `type="jpql"` salvo que el usuario lo pida de forma expresa.
 
 ### type="sql" — consulta directa a la base de datos
 
@@ -93,6 +95,127 @@ Usa los nombres de las entidades y campos JPA. Permite navegar relaciones con no
     ]]>
 </dataset>
 ```
+
+### type="rpc" — datos calculados por una acción Java
+
+Cuando el tipo es `rpc`, el contenido del `<dataset>` **es el nombre de una acción Axelor** (típicamente un `<action-method>`), **no** una consulta ni un `FQN.Clase:metodo`. `MetaService.getChart(...)` (`axelor-core/src/main/java/com/axelor/meta/service/MetaService.java`, ~línea 483) la ejecuta vía `ActionExecutor`, le pasa los `search-fields` dentro de `request.getData().get("context")` y pinta lo que la acción devuelva en `response.setData(...)`:
+
+```java
+if ("rpc".equals(chart.getDataSet().getType())) {
+    ActionRequest req = new ActionRequest();
+    ActionResponse res = new ActionResponse();
+    Map<String, Object> reqData = new HashMap<>();
+    reqData.put("context", context);     // search-fields van aquí
+    req.setModel(ScriptBindings.class.getName());
+    req.setData(reqData);
+    req.setAction(string);               // texto del <dataset>
+    res = actionExecutor.execute(req);
+    data.put("dataset", res.getData());  // el chart pinta esto
+}
+```
+
+La acción debe devolver una `List<Map<String,Object>>` cuyas claves coincidan **exactamente** con los `key` de `<category>` y `<series>` (incluido el guion bajo si lo usas). El contexto incluye además `__user__`, `__userId__`, `__userCode__`, añadidos por `MetaService`.
+
+**1. Vista del chart** — el `<dataset>` apunta a la acción por su nombre:
+
+```xml
+<chart name="subsysCorreos.Correo@GraficaDia-chart" title="Correos por estado (por día)" stacked="true">
+    <search-fields>
+        <field type="date" name="fechaInicial" title="Fecha inicial"/>
+        <field type="date" name="fechaFinal"   title="Fecha final"/>
+    </search-fields>
+    <dataset type="rpc">action-correo-grafica-dia</dataset>
+    <category key="_intervalo" type="date" title="Día"/>
+    <series   key="_total"     type="bar"  title="Correos" groupBy="_estado"/>
+</chart>
+```
+
+**2. Acción que enlaza el `dataset` con el método Java:**
+
+```xml
+<action-method name="action-correo-grafica-dia">
+    <call class="com.educaflow.subsys.correos.service.CorreoChartService"
+          method="graficaDia"/>
+</action-method>
+```
+
+**3. Método Java** — lee y valida los `search-fields` desde `context` y devuelve la lista de filas:
+
+```java
+package com.educaflow.subsys.correos.service;
+
+import com.axelor.db.JPA;
+import com.axelor.i18n.I18n;
+import com.axelor.rpc.ActionRequest;
+import com.axelor.rpc.ActionResponse;
+import jakarta.persistence.Query;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+
+public class CorreoChartService {
+
+    @SuppressWarnings("unchecked")
+    public void graficaDia(ActionRequest request, ActionResponse response) {
+
+        Map<String, Object> ctx =
+            (Map<String, Object>) request.getData().get("context");
+
+        LocalDate fechaInicial = toDate(ctx.get("fechaInicial"));
+        LocalDate fechaFinal   = toDate(ctx.get("fechaFinal"));
+
+        // Validación de los search-fields
+        if (fechaInicial != null && fechaFinal != null
+                && fechaInicial.isAfter(fechaFinal)) {
+            response.setError(
+                I18n.get("La fecha inicial no puede ser posterior a la fecha final."));
+            return;
+        }
+
+        String sql =
+            "SELECT DATE_TRUNC('day', c.fecha_creacion) AS _intervalo, " +
+            "       c.estado                            AS _estado, " +
+            "       COUNT(*)                            AS _total " +
+            "  FROM correos_correo c " +
+            " WHERE (CAST(:fechaInicial AS date) IS NULL " +
+            "        OR c.fecha_creacion >= CAST(:fechaInicial AS date)) " +
+            "   AND (CAST(:fechaFinal AS date) IS NULL " +
+            "        OR c.fecha_creacion <= CAST(:fechaFinal AS date)) " +
+            " GROUP BY _intervalo, c.estado " +
+            " ORDER BY _intervalo";
+
+        Query q = JPA.em().createNativeQuery(sql);
+        q.setParameter("fechaInicial", fechaInicial);
+        q.setParameter("fechaFinal",   fechaFinal);
+
+        List<Object[]> rows = q.getResultList();
+        List<Map<String, Object>> data = rows.stream()
+            .map(r -> {
+                Map<String, Object> m = new java.util.HashMap<>();
+                m.put("_intervalo", r[0]);
+                m.put("_estado",    r[1]);
+                m.put("_total",     r[2]);
+                return m;
+            })
+            .toList();
+
+        response.setData(data);
+    }
+
+    private static LocalDate toDate(Object v) {
+        if (v == null || "".equals(v)) return null;
+        if (v instanceof LocalDate d) return d;
+        return LocalDate.parse(v.toString());
+    }
+}
+```
+
+Trampas a tener en cuenta con `rpc`:
+
+- Las claves del `Map` deben coincidir **exactamente** con los `key` de `<category>`/`<series>`; un alias mal escrito hace que la serie salga vacía sin error.
+- Para abortar el render y mostrar un diálogo de error en el cliente, usa `response.setError(mensaje)` y `return`.
+- Si el método pertenece a un servicio Guice, el `<action-method>` lo instancia con inyección estándar; no hace falta gestión manual.
+- El mismo mecanismo `dataset type="rpc"` funciona en **report-box / informes** (`MetaService.getDataSet(...)`, ~línea 600).
 
 ### Parámetros del dataset
 
@@ -232,6 +355,8 @@ Cuando la gráfica es un dashlet sin entidad clara, puede usarse solo el prefijo
 ---
 
 ## Ejemplo completo: barras de correos enviados por día
+
+> Este ejemplo ilustra la variante `type="sql"`. Recuerda que el **patrón por defecto del proyecto es `type="rpc"`** (`chart → <action-method> → servicio`, ver la subsección *type="rpc"*); usa SQL solo si se pide explícitamente.
 
 ```xml
 <action-view name="subsysNotificaciones.Correo@EnviadosPorDia-action"

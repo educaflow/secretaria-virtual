@@ -4,8 +4,8 @@ description: Revisa la carpeta `design/` ya existente de una iniciativa SDD (`de
 handoffs:
   - label: Implementar el diseño
     agent: sdd-implementer-system
-    prompt: Implementar el diseño ya revisado
-allowed-tools: Bash(xmllint:*) Bash(ls:*) Bash(grep:*) Bash(cp:*) Bash(mkdir:*) Bash(find:*) Read Edit(./**) Write(./**) AskUserQuestion
+    prompt: Implementar el diseño ya revisado en .sdd/drafts/{carpeta-iniciativa}/design/design.md
+allowed-tools: Bash(xmllint:*), Bash(ls:*), Bash(grep:*), Bash(cp:*), Bash(mkdir:*), Bash(find:*), Bash(diff:*), Read, Edit(./**), Write(./**), AskUserQuestion
 ---
 
 # sdd-designer-system-review
@@ -68,14 +68,13 @@ Los **mismos** ficheros de `design/`, editados en sitio. No se crean ficheros nu
 
 ```
 .sdd/drafts/YYYY-MM-DD_HH-MM_<slug>/
-├── user-story.md
 ├── design-guidelines.md          # opcional
 ├── specification.md
 ├── analysis/                     # REQUIRED como hermano del design/
 │   ├── analysis.md
 │   ├── entity-<Nombre>.md
 │   ├── screen-<nombre>.md
-│   └── tests.md                  # opcional (solo si hay flujos F-NNN)
+│   └── tests.md                  # opcional (solo si el spec tiene escenarios ESC-NNN)
 └── design/                       # objeto de esta revisión
     ├── design.md
     ├── domains/<Entidad>.xml
@@ -146,12 +145,13 @@ Según la plantilla §6.2.2 del skill original, `design.md` debe contener — ad
 1. **Cabecera** con título `# Diseño: <Nombre>` y las cuatro líneas de metadatos: `**Objetivo:**`, `**Capa:**`, `**Análisis de origen:**` y `**Skills necesarios para la implementación:**`.
 2. **`## Ficheros a crear o modificar`** — tabla con columnas `Fichero | Acción | Skill | Descripción` y al menos una fila.
 3. **`## Pasos`** — al menos un paso (`### Paso N — <Título>`), respetando el orden obligatorio del §6.3 del skill original (estáticos → dominios → servicios → repositorios → controladores → vistas → menús → seguridad → datos iniciales → verificación final). El review **no** reordena los pasos automáticamente: si detecta desorden, lo reporta y pregunta.
-4. **`## Trazabilidad V/R/U → ubicación`** — tabla/matriz con una entrada por V/R/U del análisis (su validación de cobertura vive en §4.3, pero la presencia de la sección se valida aquí).
+4. **`## Trazabilidad V/R/U → ubicación`** — tabla/matriz con una entrada por V/R/U del análisis (su validación de cobertura vive en §5.3, pero la presencia de la sección se valida aquí).
 
-Secciones opcionales (no obligatorias, no reportar si faltan):
+Secciones condicionales/opcionales:
 
+- `## Frontera de confianza — AllowProperties por acción` — **obligatoria si y solo si** el diseño declara acciones invocadas desde `@CallMethod`. Validada en §5.3.1.
 - `## Notas de unificación` — solo si el agente principal dejó constancia de decisiones tomadas durante la unificación (§6.5 del skill original).
-- `## Conflictos detectados con guías` — solo si hubo contradicciones entre guías de diseño y análisis (§6.2.1).
+- `## Conflictos detectados con guías` — solo si hubo contradicciones entre guías de diseño y análisis (§6.2 del skill original).
 - `## Invariantes de las guías` — **obligatoria si y solo si** existe `design-guidelines.md` en la raíz de la iniciativa. Validada en §5.9.
 - `### Excepciones a las invariantes` — solo si alguna invariante quedó como excepción explícita aceptada por el usuario (§6.7 opción c del skill original).
 
@@ -190,11 +190,11 @@ Reportar los contadores finales: V/R/U cubiertos, V/R/U sin cubrir, entradas con
 
 ### 5.3.1 Frontera de confianza — AllowProperties y campos `servidor` (ver `[[k-secure-coding]]` §3)
 
-Si en algún `entity-*.md` del análisis hay campos clasificados como `servidor` en la columna "Origen del valor", el `design.md` **MUST** contener la sección `## Frontera de confianza — AllowProperties por acción` con una tabla por cada acción del servicio invocada desde un `@CallMethod`.
+Si el diseño declara al menos una acción del servicio invocada desde un `@CallMethod`, el `design.md` **MUST** contener la sección `## Frontera de confianza — AllowProperties por acción` con una tabla por cada una de esas acciones (haya o no campos `servidor` en el análisis).
 
 Validaciones:
 
-1. **Sección presente:** si el análisis tiene campos `servidor` y la sección falta, reportar al usuario y ofrecer (a) relanzar `/sdd-designer-system`, (b) añadir un placeholder a completar a mano. **MUST NOT** inventar la sección automáticamente.
+1. **Sección presente:** si el diseño tiene acciones `@CallMethod` y la sección falta, reportar al usuario y ofrecer (a) relanzar `/sdd-designer-system`, (b) añadir un placeholder a completar a mano. **MUST NOT** inventar la sección automáticamente.
 2. **Coherencia con `entity-*.md`:** la columna `Origen` de cada tabla **MUST** coincidir con la columna "Origen del valor" del `entity-*.md` correspondiente. Cualquier divergencia es un error: preguntar al usuario qué versión es la canónica.
 3. **Reglas de `[[k-secure-coding]]` §3:** para cada tabla, aplicar las reglas del §3 (forma elegida válida según los `servidor` que la acción cubre, ningún `servidor` en una whitelist, cobertura completa si `createAllowAllProperties`). Cualquier fallo se reporta como **vulnerabilidad de mass-assignment** al usuario para corregir. Si `createAllowAllProperties` carece de la lista de ubicaciones de asignación incondicional, no es admisible → preguntar si pasa a whitelist o completa la cobertura.
 4. **Asignación incondicional en servicios:** para cada R-Antes-de-Crear que asigne un campo `servidor`, el comentario de `fireActionRule_*` correspondiente en el `design.md` **MUST** documentar asignación **incondicional**. Detector mecánico (`[[k-secure-coding]]` §3.4):
@@ -218,7 +218,7 @@ grep -nE "if\s*\(.*==\s*null\s*\).*set[A-Z]" design.md
 - **Sin código Java de implementación** en los comentarios de métodos en `design.md`: solo descripción del cuerpo (qué reglas aplica, qué llamadas hace, efectos colaterales).
   - ✅ CORRECTO: `// Aplica V-Alumno-001 (DNI no vacío) y delega en RegistroService.crear().`
   - ❌ INCORRECTO: `// if (alumno.getDni() == null) throw new BusinessException(...);` (cuerpo Java real → reportarlo).
-- **Capas correctas** según §2.5 del skill original: dónde va cada V (validator / `<action-validate>` / `validateInsert`), cada R (servicio / controlador / `<action-method>`) y cada U (`<action-attrs>` / `<action-record>` / `<action-condition>` / atributo del campo).
+- **Capas correctas** según §2.5 del skill original: cada V en atributos declarativos del modelo XML (`required`, `unique`, `min`, `max`), en cliente (`<action-validate>`/`<action-condition>`) o en servidor (`validateInsert`/`validateUpdate`/`validateRemove` del `*ServiceImpl`); cada R **solo** en servidor como `fireActionRule_*` del `*ServiceImpl` (Antes/Después de `super.*`); cada U en la vista como atributo `showIf`/`hideIf`/`readonlyIf`/`requiredIf` o como `<action-attrs>`/`<action-record>` desde `onNew`/`onLoad`/`onChange`.
 
 ### 5.5 Reglas R complejas en `rules/`
 
@@ -248,7 +248,7 @@ El `design/tests.md` debe ser **una copia idéntica** del `analysis/tests.md` (m
    - Mantener `design/tests.md` (y propagar al `analysis/`).
    - Mantener `analysis/tests.md` (y sobrescribir `design/tests.md`).
    - Mezclar manualmente (abortar la revisión, pedir al usuario que lo resuelva fuera del skill).
-3. Si **ninguno existe**: comprobar si el `specification.md` de la iniciativa tiene sección "Flujos principales" con `F-NNN`. **Si tiene flujos**, es un olvido: avisar y ofrecer relanzar `/sdd-analyst-system` para generar `tests.md`. **Si no tiene flujos**, es el caso legacy correcto: la iniciativa no usa tests E2E y `/sdd-implementer-system` saltará la Fase 3.5 sin error. Sin acción.
+3. Si **ninguno existe**: comprobar si el `specification.md` de la iniciativa tiene sección "Escenarios" con `ESC-NNN`. **Si tiene escenarios**, es un olvido: avisar y ofrecer relanzar `/sdd-analyst-system` para generar `tests.md`. **Si no tiene escenarios**, es el caso legacy correcto: la iniciativa no usa tests E2E y `/sdd-debug-app` no tendrá tests que ejecutar. Sin acción.
 
 **MUST NOT** reformatear, recortar o "limpiar" `design/tests.md` durante la revisión: su contenido es contrato. **MUST NOT** modificarlo salvo en el caso 1 (copia íntegra desde `analysis/tests.md`) o en el caso 2 con decisión explícita del usuario.
 
@@ -262,7 +262,7 @@ El `design/tests.md` debe ser **una copia idéntica** del `analysis/tests.md` (m
 
 ### 5.9 Re-verificación de las invariantes derivadas de las guías
 
-Si existe `design-guidelines.md` en la raíz de la iniciativa, el `design.md` **debe** contener la sección `## Invariantes de las guías` (tabla `G-NNN | Invariante | Ubicación | Verificación`). Esta sección la genera el designer en §8.4 del skill original a partir de §5.3.bis y se verifica mecánicamente en §6.7 contra el diseño antes de materializarse.
+Si existe `design-guidelines.md` en la raíz de la iniciativa, el `design.md` **debe** contener la sección `## Invariantes de las guías` (tabla `G-NNN | Invariante | Ubicación | Verificación`). Esta sección la genera el designer en §8.4 del skill original a partir de §5.4 y se verifica mecánicamente en §6.7 contra el diseño antes de materializarse.
 
 Este review **re-ejecuta** la verificación mecánica contra el diseño ya materializado:
 
@@ -283,7 +283,7 @@ Aplicar el **checklist §6.4 del skill original** entero al terminar las correcc
 - [ ] Secciones obligatorias del `design.md` presentes (§5.1.1): cabecera + metadatos, `## Ficheros a crear o modificar`, `## Pasos`, `## Trazabilidad V/R/U → ubicación`.
 - [ ] Todos los XML pasan `xmllint --noout --schema` contra el XSD correspondiente (§5.2).
 - [ ] Cada V/R/U del `analysis/` aparece en la matriz de trazabilidad y su ubicación referenciada existe en algún fichero del diseño (§5.3).
-- [ ] Si hay campos `servidor` en algún `entity-*.md`: sección `## Frontera de confianza — AllowProperties por acción` presente con una tabla por cada acción del servicio invocada desde `@CallMethod`, columnas `Origen` coherentes con `entity-*.md`, y todas las reglas de `[[k-secure-coding]]` §3 satisfechas. Ningún `if (campo == null) setCampo(...)` para campos `servidor` en comentarios o cuerpos (§5.3.1).
+- [ ] Si el diseño declara acciones invocadas desde `@CallMethod`: sección `## Frontera de confianza — AllowProperties por acción` presente con una tabla por cada una de esas acciones, columnas `Origen` coherentes con `entity-*.md`, y todas las reglas de `[[k-secure-coding]]` §3 satisfechas. Ningún `if (campo == null) setCampo(...)` para campos `servidor` en comentarios o cuerpos (§5.3.1).
 - [ ] Un `<action-view>` por fichero en `design/views/` y FQN coherentes (§5.4).
 - [ ] Ningún comentario de método en `design.md` contiene código Java de implementación (§5.4).
 - [ ] Cada `R-*` compleja tiene su `rules/R-*.md` y viceversa (§5.5).
@@ -354,7 +354,7 @@ La carpeta design/ ya está conforme con el contrato actual. No se ha modificado
 
 ## Apéndice A — Override de rutas (para testing)
 
-Idéntico al Apéndice A del skill `sdd-designer-system`:
+Análogo al Apéndice A del skill `sdd-designer-system` (aquí las rutas apuntan a la carpeta `design/` a revisar):
 
 - `--in=<ruta>` — fichero `design.md` o carpeta `design/` de entrada explícita.
 - `--out=<ruta>` — carpeta de salida si se quiere revisar copiando en vez de editar en sitio.

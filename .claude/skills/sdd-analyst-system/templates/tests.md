@@ -1,16 +1,16 @@
 # Tests E2E
 
-Escenarios concretos de prueba end-to-end materializados a partir de los flujos principales (`F-NNN`) del `specification.md` y de las V/R/U inferidas en `entity-*.md` / `screen-*.md`.
+Tests concretos de prueba end-to-end materializados a partir de los escenarios (`ESC-NNN`) del `specification.md` y de las V/R/U inferidas en `entity-*.md` / `screen-*.md`.
 
-Cada test es **independiente** (no depende del estado dejado por otro test) y **trazable** (cada uno declara qué `F-NNN` materializa y qué V/R/U verifica).
+Cada test es **independiente** (no depende del estado dejado por otro test) y **trazable** (cada uno declara qué `ESC-NNN` materializa y qué V/R/U verifica).
 
-`/sdd-implementer-system` lee este fichero tras escribir el código Java, traduce cada escenario a comandos `playwright-cli` al vuelo y ejecuta un **bucle de auto-corrección**: si un test falla, vuelve a invocar a `code-implementer` con el reporte para que arregle el código.
+`/sdd-debug-app` lee este fichero (propagado hasta `implementation/tests.md`) una vez implementado el código: la primera vez traduce cada escenario a comandos `playwright-cli` al vuelo (y al pasar lo cachea como `.spec.ts` para reejecuciones rápidas con `npx playwright test`) y ejecuta un **bucle de auto-corrección**: si un test falla, corrige el código y reintenta.
 
 ---
 
 ## T-001 — <Nombre corto descriptivo del escenario>
 
-**Origen F:** F-001
+**Origen ESC:** ESC-001
 **Verifica:** V-TareaCorreo-001, U-mis-correos-002
 **Pantalla principal:** screen-mis-correos.md
 **Tipo:** happy | error | UI
@@ -36,7 +36,7 @@ Cada test es **independiente** (no depende del estado dejado por otro test) y **
 
 ## T-002 — <Otro escenario>
 
-**Origen F:** F-001, F-003
+**Origen ESC:** ESC-001, ESC-003
 **Verifica:** —
 **Pantalla principal:** screen-todos.md
 **Tipo:** happy
@@ -57,9 +57,9 @@ Cada test es **independiente** (no depende del estado dejado por otro test) y **
 ## Reglas de redacción
 
 - **Nombres**: pantallas, botones, campos y mensajes se citan **exactamente** como aparecen en `screen-*.md` / `entity-*.md`. Si una validación tiene mensaje `"El motivo es obligatorio"`, ese es el texto que va en el resultado esperado.
-- **Lenguaje**: usar `Dado` / `Cuando` / `Y` / `Entonces` (o `Given` / `When` / `And` / `Then`). No usar selectores CSS, refs `eN`, ni comandos `playwright-cli`. La traducción a comandos la hace el implementer.
+- **Lenguaje**: usar `Dado` / `Cuando` / `Y` / `Entonces` (o `Given` / `When` / `And` / `Then`). No usar selectores CSS, refs `eN`, ni comandos `playwright-cli`. La traducción a comandos la hace `/sdd-debug-app`.
 - **Atomicidad**: cada test cubre **un** escenario completo. No mezclar varios casos en el mismo test (un happy y un error en el mismo `T-NNN` rompe el diagnóstico cuando falla).
 - **Independencia**: cada test prepara sus propias precondiciones desde un estado conocido. **No** asumir datos creados por un test anterior.
-- **Cobertura mínima**: cada `F-NNN` del spec aparece como `Origen F` en al menos un test. Los tests adicionales para V/R/U críticas son opcionales (criterio del analista).
+- **Cobertura mínima**: cada `ESC-NNN` del spec aparece como `Origen ESC` en al menos un test. Los tests adicionales para V/R/U críticas son opcionales (criterio del analista).
 - **Trazabilidad**: si un test no verifica ninguna V/R/U concreta (happy path puro), poner `Verifica: —`. No inventar IDs.
 - **Numeración**: `T-001`, `T-002`… global al fichero, sin huecos.

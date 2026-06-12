@@ -1,6 +1,6 @@
 ---
 name: sdd-analyst-system
-description: Dado un fichero `specification.md` (especificación funcional ya elaborada por `/sdd-specification-system`, con requisitos en formato EARS y flujos principales `F-NNN`), genera el conjunto de artefactos de análisis del proyecto — un `analysis.md` índice, un `entity-<Nombre>.md` por cada entidad detectada, un `screen-<nombre>.md` por cada pantalla detectada y un `tests.md` con escenarios E2E Given/When/Then concretos (`T-NNN`) que materializan los `F-NNN` del spec. El skill **interpreta** el contenido de la especificación: deduce entidades, campos, pantallas, grids y formularios a partir del significado y el contexto del documento; clasifica cada requisito EARS como validación (`V-…`), regla de negocio (`R-…`) o regla de UI (`U-…`) **manteniendo trazabilidad** mediante una columna "Origen EARS" en cada tabla; y para cada flujo principal del spec genera al menos un test concreto con trazabilidad `Origen F` y `Verifica` V/R/U. Los ficheros se escriben en la subcarpeta `analysis/` dentro de la carpeta de la iniciativa y son el input de `sdd-designer-system`.
+description: Dado un fichero `specification.md` (especificación funcional ya elaborada por `/sdd-specification-system`, con escenarios `ESC-NNN` y reglas numeradas `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN`), genera el conjunto de artefactos de análisis del proyecto — un `analysis.md` índice, un `entity-<Nombre>.md` por cada entidad detectada, un `screen-<nombre>.md` por cada pantalla detectada y un `tests.md` con escenarios E2E Given/When/Then concretos (`T-NNN`) que materializan los escenarios `ESC-NNN` del spec. El skill **interpreta** el contenido de la especificación: deduce entidades, campos, pantallas, grids y formularios a partir del significado y el contexto del documento; convierte cada regla numerada del spec en validación (`V-…`), regla de negocio (`R-…`) o regla de UI (`U-…`) **manteniendo trazabilidad** mediante una columna "Origen spec" en cada tabla; y para cada escenario del spec genera al menos un test concreto con trazabilidad `Origen ESC` y `Verifica` V/R/U. Los ficheros se escriben en la subcarpeta `analysis/` dentro de la carpeta de la iniciativa y son el input de `sdd-designer-system`.
 handoffs:
   - label: Generar el diseño técnico
     agent: sdd-designer-system
@@ -31,13 +31,13 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 
 1. **Localizar** el `specification.md` y validar su frontmatter (Fase 0).
 2. **Preparar** la carpeta `analysis/` borrando residuos antiguos (Fase 1).
-3. **Cargar** los skills técnicos `k-validaciones`, `k-sistemas`, `k-vistas`, `k-seguridad`, `k-secure-coding` según aplique (Fase 2).
+3. **Cargar** los skills técnicos `k-validaciones`, `k-sistemas`, `k-vistas`, `k-secure-coding` según aplique (Fase 2).
 4. **Leer** la especificación una vez para enmarcar el alcance (Fase 3).
 5. **Generar** el análisis en tres etapas **estrictamente secuenciales** (Fase 4):
    - Etapa A — Inventario (1 subagente).
    - Etapa B.1 — Entidades (1 coordinador + **exactamente 5** sub-subagentes en paralelo).
    - Etapa B.2 — Pantallas (N subagentes secuenciales).
-   - Etapa B.3 — Tests E2E (1 subagente, **opcional** — solo si el spec tiene `F-NNN`).
+   - Etapa B.3 — Tests E2E (1 subagente, **opcional** — solo si el spec tiene escenarios `ESC-NNN`).
    - Etapa C — Consolidación (agente principal).
 6. **Escribir** el `analysis.md` índice con frontmatter `type: analysis` (Fase 5).
 
@@ -47,9 +47,10 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 - Sin argumentos y no hay ninguna subcarpeta de `.sdd/drafts/` con el patrón requerido → **STOP** y pide ruta explícita.
 - El usuario rechaza el `specification.md` auto-detectado en la Fase 0 → **STOP** y pide ruta explícita.
 - La carpeta `analysis/` ya existe y el usuario elige "Revisar el análisis existente" → **STOP** e indica `/sdd-analyst-system-review`. **MUST NOT** lanzar el review tú mismo.
-- La especificación carece de "Flujos principales" `F-NNN` y el usuario elige "Abortar" → **STOP** y dirige a `/sdd-specification-system-review`.
+- La especificación carece de sección "Escenarios" con al menos un `ESC-NNN` y el usuario elige "Abortar" → **STOP** y dirige a `/sdd-specification-system`.
 - La especificación es tan ambigua que no permite ni enumerar entidades → **STOP** y dirige a `/sdd-specification-system`.
 - Tras la Etapa C, faltan en `analysis/` ficheros del inventario → **ERROR** y detente antes de escribir `analysis.md`.
+- Tras 3 iteraciones de la Etapa C siguen quedando ítems del checklist sin cumplir → **STOP** y pide al usuario decisión explícita (§8.6).
 
 ---
 
@@ -66,14 +67,14 @@ Todos los ficheros se escriben en la subcarpeta `analysis/` dentro de la carpeta
 - `analysis.md` — índice con frontmatter `type: analysis`. Lo escribe el agente principal.
 - `entity-<Nombre>.md` — uno por cada entidad detectada. **Sin frontmatter.** Los escriben los subagentes directamente en disco.
 - `screen-<nombre>.md` — uno por cada pantalla detectada. **Sin frontmatter.** Los escriben los subagentes directamente en disco.
-- `tests.md` — escenarios E2E concretos en formato Given/When/Then, uno por sección `## T-NNN`. **Sin frontmatter.** Lo escribe un subagente directamente en disco (Etapa B.3). Es el contrato verificable que `/sdd-implementer-system` ejecutará después con `playwright-cli`.
+- `tests.md` — escenarios E2E concretos en formato Given/When/Then, uno por sección `## T-NNN`. **Sin frontmatter.** Lo escribe un subagente directamente en disco (Etapa B.3). Es el contrato verificable que `/sdd-debug-app` ejecutará contra la aplicación real una vez implementado el código.
 
 ### 1.3 Estructura de carpetas
 
 ```
 .sdd/
 └── drafts/
-    └── YYYY-MM-DD_HH-MM_{resumen-5-palabras}/   ← carpeta de la iniciativa
+    └── YYYY-MM-DD_HH-MM_{resumen-kebab-case}/   ← carpeta de la iniciativa
         ├── specification.md                      ← input
         └── analysis/                             ← salida de este skill
             ├── analysis.md                       ← índice (type: analysis)
@@ -86,32 +87,34 @@ Todos los ficheros se escriben en la subcarpeta `analysis/` dentro de la carpeta
 
 ## 2. Principios (aplican a todas las fases y subagentes)
 
-### 2.1 Interpretar y clasificar (con trazabilidad EARS → V/R/U)
+### 2.1 Interpretar y mapear (con trazabilidad spec → V/R/U)
 
-El `specification.md` es **semi-formal**: la prosa (entidades, operaciones, pantallas) hay que interpretarla; la sección **"Requisitos (EARS)"** ya viene estructurada en 5 subsecciones (`E-UB`, `E-EV`, `E-ST`, `E-UN`, `E-OP`) con IDs numerados. El análisis hace dos cosas:
+El `specification.md` es **semi-formal**: la prosa (Objetivo, Actores y modelos, Historias de usuario, Menús y pantallas) hay que interpretarla; la sección de reglas ya viene **clasificada y numerada** por entidad en 5 categorías — Restricciones (`RES-NNN`), Validaciones (`VAL-NNN`), Reglas de negocio (`RN-NNN`), Reglas de UI (`RUI-NNN`) y Campos calculados (`CC-NNN`) — y los Escenarios vienen numerados como `ESC-NNN`. El análisis hace dos cosas:
 
 1. **Interpretar la prosa** para deducir entidades, campos, pantallas y navegación. Ejemplos: "los correos que se envían" → entidad `TareaCorreo`; "se guarda quién lo envió y cuándo" → campos `remitente` y `fechaEnvio`.
-2. **Clasificar cada `E-XX-NNN`** en `V-<Entidad>-NNN`, `R-<Entidad>-NNN` o `U-<slug-pantalla>-NNN` según el efecto real (**bloquea → V**, **actúa → R**, **cambia formulario → U**), anclándolo a la entidad o pantalla correcta y anotando el ID en la columna **"Origen EARS"**.
+2. **Mapear cada regla numerada del spec** a `V-<Entidad>-NNN`, `R-<Entidad>-NNN` o `U-<slug-pantalla>-NNN`, anclándola a la entidad o pantalla correcta y anotando el ID del spec en la columna **"Origen spec"**.
 
-**Mapeo orientativo EARS → V/R/U** (correlación natural; la decisión final depende del efecto):
+**Mapeo spec → V/R/U** (correlación natural; la decisión final depende del **efecto real**: bloquea → V, actúa → R, cambia formulario → U):
 
-- `E-UN` (Si … entonces …) → **V**.
-- `E-EV` (Cuando …) → **R**.
-- `E-UB` (El sistema debe …) → **R** (invariante).
-- `E-ST` (Mientras …) → **U** si actúa sobre el formulario; **R** si actúa sobre datos.
-- `E-OP` (Donde …) → **R** o **U** según el efecto.
+- `RES-NNN` (restricción, invariante de entidad) → **V** (típicamente declarativa en el modelo: única, obligatoria, comparación de fechas), aplicable a todos los eventos.
+- `VAL-NNN` (validación de un evento) → **V**, anclada a la operación correspondiente.
+- `RN-NNN` (regla de negocio) → **R**. El atributo `fase` del spec (`antes_de_commit`/`después_de_commit`) orienta el momento `Antes`/`Después` de la R.
+- `RUI-NNN` (regla de UI) → **U**, anclada a la(s) pantalla(s) donde aplica. Si una `RUI-NNN` aplica a varias pantallas, se materializa como una U en cada `screen-*.md` afectado, todas con el mismo Origen spec.
+- `CC-NNN` (campo calculado) → campo con **Origen del valor `servidor`** en el Modelo de datos + una **R** con momento `Antes` que lo asigna/recalcula (si `momento: escritura`), o campo derivado de solo lectura (si `momento: lectura`). Si `sobreescribible` lista roles, documentarlo en la R.
+
+Si el efecto real de una regla contradice su categoría en el spec (p.ej. una `RUI-NNN` que en realidad bloquea), **MUST** preguntar al usuario con `AskUserQuestion` antes de mapearla a otra categoría — puede ser un error del spec que conviene corregir allí.
 
 **Reglas de trazabilidad:**
 
-- Una V/R/U **puede** tener varios Orígenes EARS (lista separada por comas: `E-UN-001, E-UN-003`).
-- Un mismo `E-XX-NNN` **puede** partirse en varias V/R/U y aparece como Origen en todas.
-- Si el analista **crea** una V/R/U que no provenía de ningún requisito EARS, la columna Origen EARS lleva `—` (señal al usuario: "estas son de mi cosecha, repásalas").
-- **Cobertura inversa**: cada `E-XX-NNN` del spec **MUST** aparecer como Origen de al menos una V/R/U; en otro caso, **MUST** listarse en la sección **"EARS descartados"** del `analysis.md` con justificación (validado en Etapa C).
+- Una V/R/U **puede** tener varios Orígenes spec (lista separada por comas: `VAL-001, RES-003`).
+- Un mismo ID del spec **puede** partirse en varias V/R/U y aparece como Origen en todas.
+- Si el analista **crea** una V/R/U que no provenía de ninguna regla del spec, la columna Origen spec lleva `—` (señal al usuario: "estas son de mi cosecha, repásalas").
+- **Cobertura inversa**: cada `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` del spec **MUST** aparecer como Origen de al menos una V/R/U (o, para `CC-NNN` de lectura, de un campo del modelo); en otro caso, **MUST** listarse en la sección **"Reglas del spec descartadas"** del `analysis.md` con justificación (validado en Etapa C).
 - **Inferir reglas adicionales** cuando el spec se quede corto; si la duda es razonable, confirmar con `AskUserQuestion` antes de añadirlas (ver §2.2).
 
-**MUST** leer la especificación entera al menos dos veces en cada subagente: 1.ª pasada identifica el alcance; 2.ª pasada clasifica cada `E-XX-NNN` en V/R/U y rellena la columna Origen EARS.
+**MUST** leer la especificación entera al menos dos veces en cada subagente: 1.ª pasada identifica el alcance; 2.ª pasada mapea cada regla numerada del spec a V/R/U y rellena la columna Origen spec.
 
-**Tests E2E (`tests.md`).** Cada `F-NNN` de "Flujos principales" se materializa en uno o más escenarios concretos en `tests.md`, usando nombres reales de botones, campos y mensajes tomados de los `screen-*.md` y `entity-*.md`. **MUST**: cada `F-NNN` tiene al menos un test asociado. Formato Given/When/Then en lenguaje de negocio; **MUST NOT** incluir comandos `playwright-cli` ni selectores CSS — la traducción la hace `/sdd-implementer-system`.
+**Tests E2E (`tests.md`).** Cada escenario `ESC-NNN` del spec se materializa en uno o más tests concretos en `tests.md`, usando nombres reales de botones, campos y mensajes tomados de los `screen-*.md` y `entity-*.md`. **MUST**: cada `ESC-NNN` tiene al menos un test asociado. Formato Given/When/Then en lenguaje de negocio; **MUST NOT** incluir comandos `playwright-cli` ni selectores CSS — la traducción la hace `/sdd-debug-app` al ejecutarlos.
 
 ### 2.2 Preguntar antes que inventar
 
@@ -143,11 +146,11 @@ Nivel funcional admisible por sección:
 | Sección | Qué SÍ va | Qué NO va |
 |---------|-----------|-----------|
 | **Entidad — Modelo de datos** | Campos, tipos funcionales (`texto`, `fecha`, `enum`), relaciones, notas funcionales. | Tipos Java, anotaciones JPA, FQN. |
-| **Entidad — Validaciones (V-…)** | Mensaje al usuario, condición funcional, Origen EARS (`E-XX-NNN` o vacío). | Capa (cliente/servidor), `validateInsert`, nombres de acciones. |
+| **Entidad — Validaciones (V-…)** | Mensaje al usuario, condición funcional, Origen spec (`RES-`/`VAL-NNN` o `—`). | Capa (cliente/servidor), `validateInsert`, nombres de acciones. |
 | **Entidad — Acciones** | Operación funcional, cuándo se permite, V/R referenciadas. | Nombres de métodos Java o controladores. |
-| **Entidad — Reglas de negocio (R-…)** | Qué hace el sistema, sobre qué entidad, ante qué operación, momento (Antes/Después), Origen EARS. | `fireActionRule_*`, métodos Java, nombres de servicios. |
+| **Entidad — Reglas de negocio (R-…)** | Qué hace el sistema, sobre qué entidad, ante qué operación, momento (Antes/Después), Origen spec (`RN-`/`CC-NNN` o `—`). | `fireActionRule_*`, métodos Java, nombres de servicios. |
 | **Screen — Grid / Formulario** | Entidad, columnas funcionales, ordenación, búsqueda, formulario que abre, botones por título. | Nombres de vistas/acciones Axelor, dominios JPQL. |
-| **Screen — Reglas de UI (U-…)** | Qué ve el usuario, disparador, condición funcional, Origen EARS. | `showIf`/`requiredIf`/`<action-attrs>`/`<action-record>`. |
+| **Screen — Reglas de UI (U-…)** | Qué ve el usuario, disparador, condición funcional, Origen spec (`RUI-NNN` o `—`). | `showIf`/`requiredIf`/`<action-attrs>`/`<action-record>`. |
 | **Analysis — Seguridad** | Qué puede ver/crear/editar/borrar cada rol, en lenguaje natural. | JPQL, condiciones del framework, nombres técnicos de permisos. |
 
 **Regla práctica ante una duda:** ¿el negocio cambiaría su decisión si el framework subyacente fuera distinto? Si la respuesta es **no**, va al diseño. Si es **sí**, va al análisis.
@@ -163,21 +166,21 @@ Toda regla del análisis cae en exactamente **una** de estas tres categorías:
 **Reglas comunes a las tres categorías:**
 
 - Numeración **local** por entidad o por pantalla, empezando siempre en `001`, sin huecos.
-- El prefijo (`V-TareaCorreo-…`, `U-mis-correos-…`) garantiza unicidad global. **No se renumera nunca.**
+- El prefijo (`V-TareaCorreo-…`, `U-mis-correos-…`) garantiza unicidad global. **Este skill no renumera nunca** (ni en la Etapa C ni en pasos posteriores del pipeline); la única excepción es `/sdd-analyst-system-review`, que puede cerrar huecos mientras no exista `design/` actualizando a la vez todas las referencias.
 - Una misma regla **no** aparece en dos categorías.
 - Una regla con varias condiciones disjuntas se parte en varias reglas separadas (mejora la trazabilidad).
 - No documentar reglas que el framework ya cubre (FK válida, parser de tipo).
-- **Columna obligatoria "Origen EARS"** en las tres tablas: lista de IDs `E-XX-NNN` del spec que originaron la regla, separados por comas; o `—` si la regla fue inventada por el analista durante la interpretación (no provenía de ningún requisito EARS explícito).
+- **Columna obligatoria "Origen spec"** en las tres tablas: lista de IDs `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` del spec que originaron la regla, separados por comas; o `—` si la regla fue inventada por el analista durante la interpretación (no provenía de ninguna regla numerada del spec).
 
 **Ejemplos de IDs V/R/U:**
 
 - ✅ CORRECTO: `V-TareaCorreo-001`, `R-AdjuntoCorreo-003`, `U-mis-correos-002`
 - ❌ INCORRECTO: `V-001` (sin entidad), `V-tareaCorreo-001` (entidad no en CamelCase), `U-MisCorreos-001` (slug de pantalla debe ir en kebab-case), `V-TareaCorreo-01` (numeración debe ser de 3 dígitos desde 001).
 
-**Ejemplos de columna "Origen EARS":**
+**Ejemplos de columna "Origen spec":**
 
-- ✅ CORRECTO: `E-UN-001`, `E-EV-002, E-UB-001`, `—`
-- ❌ INCORRECTO: `UN-1` (sin prefijo `E-` y sin 3 dígitos), `EARS-001` (no usa el patrón del spec), celda vacía (debe ir `—` explícito si fue inventada).
+- ✅ CORRECTO: `VAL-001`, `RN-002, RES-001`, `CC-003`, `—`
+- ❌ INCORRECTO: `VAL-1` (sin 3 dígitos), `E-UN-001` (patrón EARS del formato antiguo de spec), `V-001` (prefijo del análisis, no del spec), celda vacía (debe ir `—` explícito si fue inventada).
 
 ---
 
@@ -191,10 +194,10 @@ Toda regla del análisis cae en exactamente **una** de estas tres categorías:
 │  Fase 3  Lectura rápida de la especificación                        │
 │  Fase 4  Generación del análisis                                    │
 │            ├── Etapa A    Inventario (1 subagente)                  │
-│            ├── Etapa B.1  Entidades (1 subagente para todas)        │
+│            ├── Etapa B.1  Entidades (1 coordinador + 5 candidatos)  │
 │            ├── Etapa B.2  Pantallas (N subagentes, secuenciales)    │
 │            ├── Etapa B.3  Tests E2E (1 subagente, solo si el spec   │
-│            │              tiene "Flujos principales" — ver Fase 3)  │
+│            │              tiene "Escenarios" ESC-NNN — ver Fase 3)  │
 │            └── Etapa C    Consolidación (agente principal)          │
 │  Fase 5  Escritura del analysis.md                                  │
 └─────────────────────────────────────────────────────────────────────┘
@@ -237,13 +240,13 @@ Antes de pasar a la Fase 1, comprobar si **ya existe** una carpeta `analysis/` n
 
 Si **sí existe** (y contiene al menos `analysis.md`), **detener el flujo y preguntar al usuario con `AskUserQuestion`** entre dos opciones:
 
-1. **Revisar el análisis existente** (recomendado si los `entity-*.md` / `screen-*.md` se editaron a mano y solo quieres validar numeración, columna "Origen EARS", cobertura, coherencia): el skill se **detiene** aquí e indica al usuario que lance `/sdd-analyst-system-review`, preservando sus ediciones.
+1. **Revisar el análisis existente** (recomendado si los `entity-*.md` / `screen-*.md` se editaron a mano y solo quieres validar numeración, columna "Origen spec", cobertura, coherencia): el skill se **detiene** aquí e indica al usuario que lance `/sdd-analyst-system-review`, preservando sus ediciones.
 2. **Regenerar desde la especificación** (pisa el análisis actual): el skill **continúa** con la Fase 1; la carpeta `analysis/` será borrada y recreada en la Fase 1.
 
 Mensaje exacto al usuario:
 
 > Ya existe `analysis/` en `{carpeta}`. ¿Qué quieres hacer?
-> - **Revisar el análisis existente**: preserva tus ediciones, valida numeración V/R/U, columna "Origen EARS" y cobertura EARS → V/R/U. Lanza `/sdd-analyst-system-review` por separado.
+> - **Revisar el análisis existente**: preserva tus ediciones, valida numeración V/R/U, columna "Origen spec" y cobertura spec → V/R/U. Lanza `/sdd-analyst-system-review` por separado.
 > - **Regenerar desde la especificación**: descarta el análisis actual y vuelve a generarlo desde cero a partir de `specification.md`.
 
 Si el usuario elige "Revisar", responder literalmente:
@@ -279,7 +282,7 @@ mkdir -p .sdd/drafts/{carpeta-iniciativa}/analysis/
    - `k-secure-coding` — **siempre** que la especificación cree o modifique entidades (clasificación del **origen del valor** de cada campo como `cliente` o `servidor`, mass-assignment, multi-centro/IDOR, defensa servidor vs UI).
    - `k-sistemas` — si la especificación crea o modifica entidades, servicios o controladores.
    - `k-vistas` — si la especificación incluye listados, formularios, menús o navegación.
-   - `k-seguridad` — si la especificación incluye permisos, roles o restricciones por tipo de usuario.
+   - Si la especificación incluye permisos, roles o restricciones por tipo de usuario: **MUST NOT** cargar `k-seguridad` (está marcado OBSOLETO); lee el código real de `src/main/java/com/educaflow/subsystem/security/`.
 2. Leer el `CLAUDE.md` del proyecto para entender capas, convenciones y tipos de usuario.
 3. Explorar los sistemas/subsistemas existentes para identificar qué reutilizar: `src/main/java/com/educaflow/subsystem/` y `src/main/java/com/educaflow/system/`. Si la especificación menciona algo concreto, léelo antes de interpretar.
 4. Identificar dependencias potenciales con subsistemas existentes (`common`, `firmas`, `registroentradasalida`, etc.).
@@ -294,18 +297,20 @@ mkdir -p .sdd/drafts/{carpeta-iniciativa}/analysis/
 
 ## 7. Fase 3 — Lectura rápida de la especificación
 
-El agente principal lee el `specification.md` **una vez** para enmarcar el contexto: cuántas entidades aproximadas hay, qué tipo de pantallas se describen, cuántos flujos principales `F-NNN` declara, qué subsistemas existentes se mencionan. **No** elabora la lista detallada — eso lo hacen los subagentes en la Fase 4.
+El agente principal lee el `specification.md` **una vez** para enmarcar el contexto: cuántas entidades aproximadas hay, qué tipo de pantallas se describen, cuántos escenarios `ESC-NNN` declara, cuántas reglas numeradas (`RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN`) contiene, qué subsistemas existentes se mencionan. **No** elabora la lista detallada — eso lo hacen los subagentes en la Fase 4.
 
 Si tras esta lectura la especificación parece tan ambigua que ni siquiera permite enumerar entidades o pantallas con un mínimo de certeza, detente y avisa al usuario:
 
 > La especificación no contiene información suficiente para inferir el modelo (entidades / pantallas). Considera ejecutar `/sdd-specification-system` para completarla antes de relanzar el análisis.
 
-**Detección de spec legacy sin "Flujos principales".** Si el `specification.md` **no contiene** "Flujos principales" con al menos un `F-NNN`, pregunta al usuario con **una sola** invocación de `AskUserQuestion` (default sugerido: opción 2 — sin flujos no hay tests):
+**Detección de spec sin "Escenarios".** Si el `specification.md` **no contiene** la sección "Escenarios" con al menos un `ESC-NNN`, pregunta al usuario con **una sola** invocación de `AskUserQuestion` (default sugerido: opción 2 — sin escenarios no hay tests):
 
 1. **Continuar sin tests**: se omite la Etapa B.3 y el `analysis.md` lleva la variante "B.3 saltada" (§8.6).
-2. **Abortar**: **STOP** y dirige al usuario a `/sdd-specification-system-review`.
+2. **Abortar**: **STOP** y dirige al usuario a `/sdd-specification-system` para añadir escenarios al spec.
 
-Si el spec sí tiene `F-NNN`, pasa directamente a la Fase 4.
+Si el spec sí tiene escenarios `ESC-NNN`, pasa directamente a la Fase 4.
+
+**Detección de reglas sin numerar.** Si la sección de reglas del spec existe pero sus elementos **no llevan IDs** (`RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN`), avisa al usuario: sin IDs no hay trazabilidad spec → V/R/U. Ofrece (a) abortar y relanzar `/sdd-specification-system` (review) para numerarlas, o (b) continuar tratando todas las reglas del spec como prosa (las V/R/U llevarán `—` en "Origen spec" y la sección "Reglas del spec descartadas" no aplicará).
 
 ---
 
@@ -317,9 +322,9 @@ La generación se hace en tres etapas **estrictamente secuenciales** (ver princi
 
 1. **Etapa A — Inventario** (un solo subagente): identifica las entidades y las pantallas a generar. Su salida es un documento de alcance.
 2. **Etapa B — Detalle** (tres olas secuenciales):
-   - **B.1 — Entidades** (un solo subagente): genera **todos** los `entity-*.md` en una sola pasada. Un único subagente ve las entidades en conjunto y decide FK, enums compartidos y tipos comunes de forma coherente.
+   - **B.1 — Entidades** (1 coordinador + exactamente 5 sub-subagentes en paralelo, ver §8.3): el coordinador orquesta 5 candidaturas completas de **todos** los `entity-*.md`, se queda con la mejor y la escribe. Ver las entidades en conjunto permite decidir FK, enums compartidos y tipos comunes de forma coherente.
    - **B.2 — Pantallas** (un subagente por pantalla, **uno detrás de otro**): genera cada `screen-*.md` con los `entity-*.md` ya en disco como referencia.
-   - **B.3 — Tests E2E** (un solo subagente, **opcional** — solo si la Fase 3 detectó que el spec tiene sección "Flujos principales" con al menos un `F-NNN`): genera `tests.md` con los `entity-*.md` y `screen-*.md` ya en disco como referencia, materializando los `F-NNN` del spec como escenarios concretos.
+   - **B.3 — Tests E2E** (un solo subagente, **opcional** — solo si la Fase 3 detectó que el spec tiene sección "Escenarios" con al menos un `ESC-NNN`): genera `tests.md` con los `entity-*.md` y `screen-*.md` ya en disco como referencia, materializando los escenarios `ESC-NNN` del spec como tests concretos.
 3. **Etapa C — Consolidación** (agente principal, sin subagente): lee los ficheros de disco, valida formato e IDs, resuelve referencias cruzadas y prepara el contenido del `analysis.md` índice (que se escribirá en la Fase 5).
 
 Los subagentes de las Etapas B.1, B.2 y B.3 **escriben directamente en disco** con `Write` en la carpeta `analysis/`. El agente principal solo recibe una confirmación corta (una línea por fichero escrito).
@@ -427,8 +432,8 @@ Lanza un único subagente "coordinador de entidades". Este subagente **no genera
 - La instrucción de generar el contenido de un fichero `entity-<Nombre>.md` por cada entidad del inventario, con las cuatro secciones obligatorias en orden: `Modelo de datos`, `Validaciones`, `Acciones`, `Reglas de negocio`.
 - La instrucción explícita de tratar las entidades como un **grafo coherente** (FK, enums, tipos comunes consistentes entre `entity-*.md`).
 - Numeración local por entidad: `V-<NombreEntidad>-001`, `R-<NombreEntidad>-001`, … (ver principio 2.4). NO se renumera más adelante.
-- **Clasificación de seguridad de cada campo (`Origen del valor`):** la tabla `Modelo de datos` lleva una columna **"Origen del valor"** con uno de dos valores: `cliente` (lo aporta el usuario; validable con V; permitido en `AllowProperties`) o `servidor` (lo dicta el servidor en una R-… — timestamps, estados iniciales, contadores, snapshots, valores calculados — y se asigna/recalcula incondicionalmente en `*ServiceImpl.insert/update`). Ver `[[k-secure-coding]]` §2. **MUST** clasificar todos los campos; si la clasificación es ambigua, registrarla en `=== DUDAS ===` para que el coordinador la lleve al usuario. Coherencia obligatoria: cada campo `servidor` **DEBE** estar respaldado por al menos una `R-<Entidad>-NNN` con momento `Antes` que documente cómo lo asigna el servidor; un campo `cliente` **NO** debe aparecer asignado por una R-Antes-de-Crear (eso lo convertiría implícitamente en `servidor`).
-- **Trazabilidad EARS → V/R/U:** las tablas de Validaciones y Reglas de negocio llevan una columna **"Origen EARS"**. Para cada V/R, listar los IDs `E-XX-NNN` del spec que la originaron (separados por comas, p.ej. `E-UN-001` o `E-EV-002, E-UB-001`), o `—` si la regla fue inventada durante la interpretación. La correlación natural es `E-UN → V`, `E-EV / E-UB → R`, `E-ST → U` (esta última en pantallas), `E-OP → R o U` según efecto; pero la decisión final depende del efecto que produce la regla, no del patrón EARS.
+- **Clasificación de seguridad de cada campo (`Origen del valor`):** la tabla `Modelo de datos` lleva una columna **"Origen del valor"** con uno de dos valores: `cliente` (lo aporta el usuario; validable con V; permitido en `AllowProperties`) o `servidor` (lo dicta el servidor en una R-… — timestamps, estados iniciales, contadores, snapshots, valores calculados — y se asigna/recalcula incondicionalmente en `*ServiceImpl.insert/update`). Ver `[[k-secure-coding]]` §3.1. **MUST** clasificar todos los campos; si la clasificación es ambigua, registrarla en `=== DUDAS ===` para que el coordinador la lleve al usuario. Coherencia obligatoria: cada campo `servidor` **DEBE** estar respaldado por al menos una `R-<Entidad>-NNN` con momento `Antes` que documente cómo lo asigna el servidor — con la excepción de los campos derivados de solo lectura (`CC-NNN` con `momento: lectura`), que no se persisten ni requieren R-Antes (documentar el cálculo en `Notas`); un campo `cliente` **NO** debe aparecer asignado por una R-Antes-de-Crear (eso lo convertiría implícitamente en `servidor`).
+- **Trazabilidad spec → V/R/U:** las tablas de Validaciones y Reglas de negocio llevan una columna **"Origen spec"**. Para cada V/R, listar los IDs del spec que la originaron (separados por comas, p.ej. `VAL-001` o `RN-002, RES-001`), o `—` si la regla fue inventada durante la interpretación. El mapeo natural es `RES / VAL → V`, `RN → R`, `CC → campo servidor + R-Antes` (escritura) o campo derivado (lectura), `RUI → U` (esta última en pantallas); pero la decisión final depende del efecto que produce la regla, no de la categoría del spec — si contradice el spec, el coordinador lo preguntará al usuario (registrar en `=== DUDAS ===`).
 - El checklist de entidad (ver abajo) — el sub-subagente lo aplica a su propia candidatura antes de devolverla.
 - **Formato de respuesta:** bloques etiquetados por nombre de fichero seguidos de un bloque final `=== DUDAS ===` con las preguntas pendientes (vacío si no hay), p.ej.
   ```
@@ -476,10 +481,10 @@ En empate, el coordinador **puede** fusionar partes de varias candidaturas siemp
 - [ ] ¿Los mensajes de validación empiezan por el campo o el valor, incluyen el valor recibido (`'{valor}'`) y el dominio finito si aplica?
 - [ ] ¿Ninguna `R-<Entidad>-NNN` bloquea? (lo que bloquea es `V-<Entidad>-NNN`)
 - [ ] ¿La columna `Reglas que dispara` de Acciones referencia los IDs con prefijo correctamente?
-- [ ] ¿Las tablas de Validaciones y Reglas de negocio tienen columna **"Origen EARS"** con los IDs `E-XX-NNN` correspondientes, o `—` si la regla fue inventada por el analista?
-- [ ] ¿Los IDs EARS referenciados existen realmente en el `specification.md` (no se inventan IDs)?
-- [ ] ¿La tabla `Modelo de datos` tiene columna **"Origen del valor"** rellena para todos los campos con `cliente` o `servidor` (ver `[[k-secure-coding]]` §2)?
-- [ ] ¿Cada campo `servidor` está respaldado por al menos una `R-<Entidad>-NNN` con momento `Antes` que lo asigna? ¿Ningún campo `cliente` aparece como asignado por una R-Antes-de-Crear?
+- [ ] ¿Las tablas de Validaciones y Reglas de negocio tienen columna **"Origen spec"** con los IDs `RES-`/`VAL-`/`RN-`/`CC-NNN` correspondientes, o `—` si la regla fue inventada por el analista?
+- [ ] ¿Los IDs del spec referenciados existen realmente en el `specification.md` (no se inventan IDs)?
+- [ ] ¿La tabla `Modelo de datos` tiene columna **"Origen del valor"** rellena para todos los campos con `cliente` o `servidor` (ver `[[k-secure-coding]]` §3.1)?
+- [ ] ¿Cada campo `servidor` está respaldado por al menos una `R-<Entidad>-NNN` con momento `Antes` que lo asigna (salvo los derivados de solo lectura, documentados en `Notas`)? ¿Ningún campo `cliente` aparece como asignado por una R-Antes-de-Crear?
 - [ ] ¿No hay nombres de clase Java, métodos, FQN, anotaciones, atributos XML, JPQL ni nombres técnicos del framework? (Ver principio 2.3.)
 - [ ] ¿La integridad referencial al borrar (RESTRICT/CASCADE/SET NULL) está en el padre, no en el hijo?
 
@@ -505,7 +510,7 @@ Tras la Etapa B.1, los `entity-*.md` están en disco. Para cada pantalla del inv
   - Para cada Formulario: tabla `Propiedad/Valor` de dos filas (`Entidad`, `Solo lectura`) **al principio**, antes de Paneles/Botones/Reglas de UI.
   - Toda la jerarquía maestro-detalle vive en este único fichero (Grid 1 → Form 1 → Grid 2 → Form 2 → …).
 - Numeración local por pantalla: `U-<slug-pantalla>-001`, donde `<slug-pantalla>` es el slug kebab-case del fichero sin el prefijo `screen-` ni la extensión (p.ej. `screen-mis-correos.md` → `U-mis-correos-001`). NO se renumera en la Etapa C.
-- **Trazabilidad EARS → U:** la tabla de Reglas de UI lleva una columna **"Origen EARS"**. Para cada U, listar los IDs `E-XX-NNN` del spec que la originaron (típicamente `E-ST-*`, ocasionalmente `E-OP-*`), o `—` si la regla fue inventada durante la interpretación. Los IDs deben existir realmente en el `specification.md`.
+- **Trazabilidad spec → U:** la tabla de Reglas de UI lleva una columna **"Origen spec"**. Para cada U, listar los IDs del spec que la originaron (típicamente `RUI-NNN`), o `—` si la regla fue inventada durante la interpretación. Los IDs deben existir realmente en el `specification.md`. Si una `RUI-NNN` aplica a varias pantallas, cada `screen-*.md` afectado lleva su propia U con el mismo Origen spec.
 - Si hay dudas razonables sobre columnas, formularios o reglas de UI, **preguntar al usuario con `AskUserQuestion`** antes de escribir. No dejar incógnitas en el fichero.
 - El checklist (ver abajo).
 - **Formato de respuesta al agente principal:** una sola línea `escrito: analysis/screen-<nombre>.md`. No pegar el contenido.
@@ -522,8 +527,8 @@ Tras la Etapa B.1, los `entity-*.md` están en disco. Para cada pantalla del inv
 - [ ] ¿Cada regla usa el formato `U-<slug-pantalla>-NNN` con numeración local desde 001?
 - [ ] ¿Ninguna `U-<pantalla>-NNN` bloquea ni escribe en BD? (Eso son V/R, no U.)
 - [ ] ¿Los campos mencionados en columnas, formularios y reglas existen en el `entity-*.md` correspondiente (ya en disco)?
-- [ ] ¿La tabla de Reglas de UI tiene columna **"Origen EARS"** con los IDs `E-XX-NNN` correspondientes, o `—` si la regla fue inventada por el analista?
-- [ ] ¿Los IDs EARS referenciados existen realmente en el `specification.md`?
+- [ ] ¿La tabla de Reglas de UI tiene columna **"Origen spec"** con los IDs `RUI-NNN` (u otros del spec) correspondientes, o `—` si la regla fue inventada por el analista?
+- [ ] ¿Los IDs del spec referenciados existen realmente en el `specification.md`?
 - [ ] ¿No hay nombres de clase Java, FQN, anotaciones, atributos XML ni dominios JPQL? (Ver principio 2.3.)
 
 **LIMIT**: máximo 3 iteraciones de auto-corrección del `screen-*.md` antes de escribirlo en disco. Si tras la 3ª siguen fallando ítems, escribe el fichero con una nota `<!-- inconsistencias residuales: ... -->` y devuelve el `escrito:` con un sufijo `(con notas)` para que el agente principal lo revise en la Etapa C.
@@ -532,7 +537,7 @@ Tras la Etapa B.1, los `entity-*.md` están en disco. Para cada pantalla del inv
 
 Tras la Etapa B.2, los `entity-*.md` y `screen-*.md` están en disco. **MUST NOT** lanzar la Etapa B.3 antes de que B.2 haya terminado (B.3 lee los `screen-*.md` y `entity-*.md` desde disco). Lanza **un único** subagente con `Agent` cuyo prompt incluye:
 
-- El texto **literal** del `specification.md`, con foco en la sección "Flujos principales" (cada `F-NNN`).
+- El texto **literal** del `specification.md`, con foco en la sección "Escenarios" (cada `ESC-NNN`).
 - El **inventario completo** de la Etapa A.
 - El contexto técnico de la Fase 2.
 - Los principios 2.1 (sección "Tests E2E"), 2.2 y 2.3.
@@ -541,26 +546,26 @@ Tras la Etapa B.2, los `entity-*.md` y `screen-*.md` están en disco. **MUST NOT
 - **La ruta absoluta de la carpeta de salida** y la instrucción de escribir el fichero directamente con `Write` en `analysis/tests.md`.
 - Numeración local `T-001`, `T-002`… global al fichero (no por pantalla), sin huecos, empezando en `001`.
 - **Trazabilidad obligatoria** en cada test (sección de cabecera):
-  - `Origen F`: lista de `F-NNN` del spec que el test materializa. **Mínimo 1**, puede ser más si el test cubre varios flujos.
+  - `Origen ESC`: lista de `ESC-NNN` del spec que el test materializa. **Mínimo 1**, puede ser más si el test cubre varios escenarios.
   - `Verifica`: lista de IDs `V-<Entidad>-NNN`, `R-<Entidad>-NNN` y `U-<slug-pantalla>-NNN` que el test verifica. Puede estar vacío (`—`) para happy paths puros que solo verifican el camino feliz sin reglas específicas.
   - `Pantalla principal`: el `screen-*.md` que el test usa como punto de entrada.
   - `Tipo`: `happy` | `error` | `UI` (orientativo).
-- **Cobertura mínima obligatoria**: cada `F-NNN` del spec aparece como `Origen F` en **al menos un test**. Tests adicionales para V/R/U críticas son opcionales — decide caso por caso.
-  - ✅ CORRECTO `Origen F`: `F-001`, `F-002, F-005`
-  - ❌ INCORRECTO: `F-1` (sin 3 dígitos), `Flujo 1` (sin prefijo `F-`), celda vacía (debe haber mínimo 1 ID — un test sin `Origen F` es inválido).
+- **Cobertura mínima obligatoria**: cada `ESC-NNN` del spec aparece como `Origen ESC` en **al menos un test**. Tests adicionales para V/R/U críticas son opcionales — decide caso por caso.
+  - ✅ CORRECTO `Origen ESC`: `ESC-001`, `ESC-002, ESC-005`
+  - ❌ INCORRECTO: `ESC-1` (sin 3 dígitos), `Escenario 1` (sin prefijo `ESC-`), `F-001` (prefijo del formato antiguo), celda vacía (debe haber mínimo 1 ID — un test sin `Origen ESC` es inválido).
 - Para cada test:
   - Nombre corto descriptivo.
   - Precondiciones (datos preexistentes, usuario logueado, estados de entidades).
   - Pasos en lenguaje de negocio con palabras `Dado` / `Cuando` / `Y` / `Entonces` (o `Given`/`When`/`Then`), usando nombres reales de pantallas (entrecomillados como aparecen en `screen-*.md`), botones y campos.
   - Resultado esperado: asserts concretos (mensaje exacto que aparece, cambio de estado verificable, dato persistido).
-- Si hay dudas razonables sobre qué pantalla usar, qué datos crear, o cómo materializar un flujo ambiguo, **preguntar al usuario con `AskUserQuestion`** antes de escribir. No dejar incógnitas en el fichero.
+- Si hay dudas razonables sobre qué pantalla usar, qué datos crear, o cómo materializar un escenario ambiguo, **preguntar al usuario con `AskUserQuestion`** antes de escribir. No dejar incógnitas en el fichero.
 - El checklist (ver abajo).
 - **Formato de respuesta al agente principal:** una sola línea `escrito: analysis/tests.md`. No pegar el contenido.
 
 **Checklist de tests** (aplicable al `tests.md` escrito):
 
-- [ ] ¿Cada `F-NNN` del spec aparece como `Origen F` en al menos un test?
-- [ ] ¿Cada test tiene `Origen F` con al menos un ID, `Verifica` (o `—`), `Pantalla principal` y `Tipo`?
+- [ ] ¿Cada `ESC-NNN` del spec aparece como `Origen ESC` en al menos un test?
+- [ ] ¿Cada test tiene `Origen ESC` con al menos un ID, `Verifica` (o `—`), `Pantalla principal` y `Tipo`?
 - [ ] ¿Cada pantalla referenciada en "Pantalla principal" existe como fichero `screen-*.md` en disco?
 - [ ] ¿Cada `V-…` / `R-…` / `U-…` referenciado en "Verifica" existe realmente en los `entity-*.md` / `screen-*.md` ya en disco?
 - [ ] ¿Cada campo, botón o mensaje mencionado en los pasos existe en el `screen-*.md` o `entity-*.md` correspondiente (no nombres inventados)?
@@ -574,7 +579,7 @@ Tras la Etapa B.2, los `entity-*.md` y `screen-*.md` están en disco. **MUST NOT
 
 ### 8.6 Etapa C — Consolidación (agente principal)
 
-Una vez los subagentes de las Etapas B.1 y B.2 han confirmado que sus ficheros están escritos, el agente principal **lee los `entity-*.md` y `screen-*.md` desde disco** con `Read` y los valida. Las correcciones se aplican con `Edit` sobre los ficheros ya en disco.
+Una vez los subagentes de las Etapas B.1, B.2 y B.3 (si se ejecutó) han confirmado que sus ficheros están escritos, el agente principal **lee los `entity-*.md`, `screen-*.md` (y `tests.md` si existe) desde disco** con `Read` y los valida. Las correcciones se aplican con `Edit` sobre los ficheros ya en disco.
 
 > Con la convención `V-<Entidad>-NNN` / `R-<Entidad>-NNN` / `U-<pantalla>-NNN`, los IDs ya son únicos en todo el análisis. **No se renumera nada en esta etapa**; solo se valida consistencia y se construye el índice.
 
@@ -584,10 +589,10 @@ Una vez los subagentes de las Etapas B.1 y B.2 han confirmado que sus ficheros e
 2. **Validar consistencia entidad-pantalla.** Para cada `screen-*.md`, comprobar que los campos mencionados en columnas, formularios y reglas existen en el `entity-*.md` correspondiente. Si no existen, decidir si añadirlos a la entidad (interpretación que se quedó corta) o eliminarlos de la pantalla (interpretación que se pasó), y aplicar la corrección con `Edit`. Si la elección no es obvia, **pregunta al usuario con `AskUserQuestion`** antes de decidir.
 3. **Validar referencias cruzadas.** La columna `Reglas que dispara` de la tabla `Acciones` de cada entidad debe referenciar IDs `V-<Entidad>-NNN` / `R-<Entidad>-NNN` que realmente existan (en el propio fichero o en otra entidad si tiene efectos colaterales). Las cadenas `Qué hace` de los botones en formularios deben referenciar IDs V/R/U existentes. Cualquier referencia rota se corrige con `Edit`.
 4. **Validar que ninguna regla aparece duplicada entre categorías V/R/U.** Si una misma regla aparece en dos sitios (p.ej. una validación que también está como `R-…`), decidir a cuál pertenece de verdad (bloquea → V, actúa → R, cambia formulario → U) y eliminarla de las otras.
-5. **Validar cobertura EARS → V/R/U.** Extraer del `specification.md` la lista completa de IDs `E-XX-NNN` (todas las subsecciones: `E-UB`, `E-EV`, `E-ST`, `E-UN`, `E-OP`). Para cada uno, comprobar que aparece como Origen en al menos una V/R/U de algún `entity-*.md` o `screen-*.md`. Los IDs EARS que **no** aparezcan en ningún Origen se listan en la sección **"EARS descartados"** del `analysis.md` con una justificación corta por cada uno: por ejemplo "duplica `E-EV-002`", "lo cubre el framework", "fuera de alcance, ya tratado en `subsystem/X`". Si el motivo no es obvio, **preguntar al usuario con `AskUserQuestion`** antes de descartar — un EARS sin mapeo es una señal de que algo se ha perdido en la interpretación.
-6. **Validar consistencia de IDs Origen EARS.** Cada referencia en una columna Origen EARS debe corresponder a un ID que existe realmente en el `specification.md`. Si hay referencias rotas, corregirlas con `Edit` (o vaciar la columna y marcarla como `—` si la regla resulta ser inventada por el analista).
-7. **Validar cobertura de tests F → T.** **Solo aplica si la Etapa B.3 se ejecutó** (spec con `F-NNN`); si se saltó, omitir este paso y el siguiente. Extraer del `specification.md` la lista completa de IDs `F-NNN` de la sección "Flujos principales". Para cada uno, comprobar que aparece como `Origen F` en al menos un test del `tests.md`. Los flujos sin test se listan en una sección **"Flujos sin tests"** del `analysis.md` con justificación, pero **es muy raro que sea legítimo**: lo normal es que falte un test. Si encuentras un `F-NNN` sin test, **preguntar al usuario con `AskUserQuestion`** antes de descartarlo — la elección por defecto es generar el test, no descartar el flujo.
-8. **Validar consistencia de referencias en `tests.md`** (solo si B.3 se ejecutó). Cada `Origen F` referencia un ID `F-NNN` que existe en el spec. Cada ID en `Verifica` (`V-…` / `R-…` / `U-…`) existe en algún `entity-*.md` / `screen-*.md`. Cada `Pantalla principal` referencia un fichero `screen-*.md` real. Si hay referencias rotas, corregirlas con `Edit` (o preguntar al usuario si la corrección no es obvia).
+5. **Validar cobertura spec → V/R/U.** Extraer del `specification.md` la lista completa de IDs de reglas (`RES-NNN`, `VAL-NNN`, `RN-NNN`, `RUI-NNN`, `CC-NNN`). Para cada uno, comprobar que aparece como Origen en al menos una V/R/U de algún `entity-*.md` o `screen-*.md` (o, para `CC-NNN` de lectura, en un campo del modelo). Los IDs del spec que **no** aparezcan en ningún Origen se listan en la sección **"Reglas del spec descartadas"** del `analysis.md` con una justificación corta por cada uno: por ejemplo "duplica `VAL-002`", "lo cubre el framework", "fuera de alcance, ya tratado en `subsystem/X`". Si el motivo no es obvio, **preguntar al usuario con `AskUserQuestion`** antes de descartar — una regla del spec sin mapeo es una señal de que algo se ha perdido en la interpretación.
+6. **Validar consistencia de IDs Origen spec.** Cada referencia en una columna Origen spec debe corresponder a un ID que existe realmente en el `specification.md`. Si hay referencias rotas, corregirlas con `Edit` (o vaciar la columna y marcarla como `—` si la regla resulta ser inventada por el analista).
+7. **Validar cobertura de tests ESC → T.** **Solo aplica si la Etapa B.3 se ejecutó** (spec con `ESC-NNN`); si se saltó, omitir este paso y el siguiente. Extraer del `specification.md` la lista completa de IDs `ESC-NNN` de la sección "Escenarios". Para cada uno, comprobar que aparece como `Origen ESC` en al menos un test del `tests.md`. Los escenarios sin test se listan en una sección **"Escenarios sin tests"** del `analysis.md` con justificación, pero **es muy raro que sea legítimo**: lo normal es que falte un test. Si encuentras un `ESC-NNN` sin test, **preguntar al usuario con `AskUserQuestion`** antes de descartarlo — la elección por defecto es generar el test, no descartar el escenario.
+8. **Validar consistencia de referencias en `tests.md`** (solo si B.3 se ejecutó). Cada `Origen ESC` referencia un ID `ESC-NNN` que existe en el spec. Cada ID en `Verifica` (`V-…` / `R-…` / `U-…`) existe en algún `entity-*.md` / `screen-*.md`. Cada `Pantalla principal` referencia un fichero `screen-*.md` real. Si hay referencias rotas, corregirlas con `Edit` (o preguntar al usuario si la corrección no es obvia).
 9. **Validar cobertura inversa V/R/U → T.** **Solo aplica si la Etapa B.3 se ejecutó.** Invertir la columna `Verifica` de `tests.md`: construir, para cada V/R/U declarada en los `entity-*.md` y `screen-*.md`, la lista de tests `T-NNN` que la verifican. Las V/R/U que **no** aparecen en `Verifica` de ningún test se listan en una sección nueva **"V/R/U sin tests"** del `analysis.md`, **una fila por regla**, con una de estas etiquetas en la columna `Cobertura`:
    - `smoke manual` — la regla se valida manualmente, no procede test E2E (típico de muchas U triviales: showIf/hideIf, ordenación, anchos de columna).
    - `cubierta indirectamente por T-NNN` — la regla se ejerce dentro de un test que la lista en `Verifica` solo de forma agregada; conviene dejarlo explícito.
@@ -626,14 +631,14 @@ Una vez los subagentes de las Etapas B.1 y B.2 han confirmado que sus ficheros e
    ### Resumen de reglas
    Cada entidad numera sus propias reglas como `V-<Entidad>-NNN` y `R-<Entidad>-NNN` (ver `entity-*.md`).
    Cada pantalla numera sus propias reglas como `U-<slug-pantalla>-NNN` (ver `screen-*.md`).
-   Cada V/R/U lleva en su tabla una columna **"Origen EARS"** con los IDs `E-XX-NNN` del `specification.md` que la originaron, o `—` si fue inventada por el análisis.
+   Cada V/R/U lleva en su tabla una columna **"Origen spec"** con los IDs `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` del `specification.md` que la originaron, o `—` si fue inventada por el análisis.
 
-   - Total validaciones: N (de las cuales sin Origen EARS: n)
-   - Total reglas de negocio: M (sin Origen EARS: m)
-   - Total reglas de UI: K (sin Origen EARS: k)
+   - Total validaciones: N (de las cuales sin Origen spec: n)
+   - Total reglas de negocio: M (sin Origen spec: m)
+   - Total reglas de UI: K (sin Origen spec: k)
 
    ### Resumen de campos por origen
-   Cada `entity-*.md` clasifica cada campo en `cliente` (lo aporta el usuario) o `servidor` (lo dicta el servidor en una R-… — ver `[[k-secure-coding]]` §2). El diseñador usa esta clasificación para decidir `AllowProperties` y asignación incondicional por acción.
+   Cada `entity-*.md` clasifica cada campo en `cliente` (lo aporta el usuario) o `servidor` (lo dicta el servidor en una R-… — ver `[[k-secure-coding]]` §3.1). El diseñador usa esta clasificación para decidir `AllowProperties` y asignación incondicional por acción.
 
    | Entidad | cliente | servidor |
    |---------|---------|----------|
@@ -641,18 +646,18 @@ Una vez los subagentes de las Etapas B.1 y B.2 han confirmado que sus ficheros e
    | AdjuntoCorreo | 2 | 1 |
 
    ### Tests E2E
-   Los escenarios concretos de prueba viven en [tests.md](./tests.md), numerados `T-NNN` y trazables a los `F-NNN` del spec.
-   `/sdd-implementer-system` los ejecuta con `playwright-cli` tras escribir el código Java (bucle de auto-corrección).
+   Los tests concretos de prueba viven en [tests.md](./tests.md), numerados `T-NNN` y trazables a los escenarios `ESC-NNN` del spec.
+   `/sdd-debug-app` los ejecuta contra la aplicación real tras la implementación (bucle de auto-corrección).
 
    - Total tests: T
-   - Flujos del spec cubiertos: F1 / F2 (todos los `F-NNN` aparecen como `Origen F` en al menos un test)
+   - Escenarios del spec cubiertos: E1 / E2 (todos los `ESC-NNN` aparecen como `Origen ESC` en al menos un test)
 
-   ### Flujos sin tests
-   IDs `F-NNN` del `specification.md` que **no** se han materializado en ningún test, con su justificación. Lo normal es que esta sección esté **vacía** (`*(todos los flujos principales están cubiertos por tests)*`). Si tiene contenido, indica que algo se ha perdido: revisarlo manualmente.
+   ### Escenarios sin tests
+   IDs `ESC-NNN` del `specification.md` que **no** se han materializado en ningún test, con su justificación. Lo normal es que esta sección esté **vacía** (`*(todos los escenarios están cubiertos por tests)*`). Si tiene contenido, indica que algo se ha perdido: revisarlo manualmente.
 
-   | Origen F | Motivo                                                  |
-   |----------|---------------------------------------------------------|
-   | F-007    | (Solo si hay un motivo legítimo y confirmado por el usuario.) |
+   | Origen ESC | Motivo                                                  |
+   |------------|---------------------------------------------------------|
+   | ESC-007    | (Solo si hay un motivo legítimo y confirmado por el usuario.) |
 
    ### V/R/U sin tests
    V/R/U declaradas en los `entity-*.md` / `screen-*.md` que **no** aparecen en la columna `Verifica` de ningún test `T-NNN`. Si esta sección está vacía, ponerlo explícito (`*(toda V/R/U está cubierta por al menos un test)*`). El propósito es hacer **explícita** la decisión, no bloquear: cada fila lleva una etiqueta de cobertura confirmada con el usuario.
@@ -664,27 +669,27 @@ Una vez los subagentes de las Etapas B.1 y B.2 han confirmado que sus ficheros e
    | R-TareaCorreo-007  | pendiente                            | Falta test E2E del reenvío con adjuntos > 10 MB.                |
    | U-todos-002        | aceptada sin verificar               | Coloreo decorativo del grid; sin valor de negocio que validar.  |
 
-   *Solo se aplica si el spec tiene "Flujos principales" (Etapa B.3 ejecutada). Si no, omitir esta sección.*
+   *Solo se aplica si el spec tiene "Escenarios" (Etapa B.3 ejecutada). Si no, omitir esta sección.*
 
-   ### EARS descartados
-   IDs `E-XX-NNN` del `specification.md` que **no** se han mapeado a ninguna V/R/U, con su justificación. Si esta sección está vacía, ponerlo explícito (`*(ningún requisito EARS ha quedado sin mapear)*`).
+   ### Reglas del spec descartadas
+   IDs `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` del `specification.md` que **no** se han mapeado a ninguna V/R/U (ni a un campo del modelo, en el caso de `CC-NNN` de lectura), con su justificación. Si esta sección está vacía, ponerlo explícito (`*(ninguna regla del spec ha quedado sin mapear)*`).
 
-   | Origen EARS | Motivo                                                                 |
+   | Origen spec | Motivo                                                                 |
    |-------------|------------------------------------------------------------------------|
-   | E-UN-003    | Lo cubre el framework por la propia validez de FK; no aporta valor.    |
-   | E-EV-005    | Duplica `E-EV-002` (mismo trigger y respuesta).                        |
+   | VAL-003     | Lo cubre el framework por la propia validez de FK; no aporta valor.    |
+   | RN-005      | Duplica `RN-002` (mismo evento y misma acción).                        |
    ```
 
    El `analysis.md` **no duplica** el contenido de los `entity-*.md` ni de los `screen-*.md`: es un índice navegable con descripciones cortas.
 
-> **Variante "B.3 saltada"** (spec legacy sin "Flujos principales"): si la Etapa B.3 se omitió en la Fase 3, las secciones **"Tests E2E"** y **"Flujos sin tests"** de la plantilla anterior se sustituyen por **una única** sección "Tests E2E" con este contenido literal y nada más:
+> **Variante "B.3 saltada"** (spec sin "Escenarios"): si la Etapa B.3 se omitió en la Fase 3, las secciones **"Tests E2E"** y **"Escenarios sin tests"** de la plantilla anterior se sustituyen por **una única** sección "Tests E2E" con este contenido literal y nada más:
 >
 > ```
 > ### Tests E2E
-> *(Spec sin flujos principales — no se generaron tests E2E. `/sdd-implementer-system` saltará la Fase 3.5 de verificación con playwright-cli. Para añadir tests, relanza `/sdd-specification-system-review` para añadir flujos al spec y luego `/sdd-analyst-system` para regenerar el análisis.)*
+> *(Spec sin escenarios — no se generaron tests E2E. `/sdd-debug-app` no tendrá tests que ejecutar. Para añadir tests, relanza `/sdd-specification-system` para añadir escenarios `ESC-NNN` al spec y luego `/sdd-analyst-system` para regenerar el análisis.)*
 > ```
 >
-> No incluyas la sección "Flujos sin tests" en esta variante.
+> No incluyas la sección "Escenarios sin tests" en esta variante.
 
 **Checklist final de la Etapa C:**
 
@@ -692,13 +697,14 @@ Una vez los subagentes de las Etapas B.1 y B.2 han confirmado que sus ficheros e
 - [ ] ¿Todas las referencias cruzadas apuntan a IDs que existen realmente?
 - [ ] ¿No hay reglas duplicadas entre categorías V/R/U?
 - [ ] ¿Las pantallas son coherentes con las entidades (cada campo del formulario existe en su entidad)?
-- [ ] ¿Cada V/R/U tiene su columna **"Origen EARS"** rellena (con uno o varios IDs `E-XX-NNN` que existen en el spec, o con `—` si fue inventada por el análisis)?
-- [ ] ¿Cada campo de cada `entity-*.md` tiene su columna **"Origen del valor"** rellena con `cliente` o `servidor`, y la clasificación es coherente con las R-… del propio fichero (cada `servidor` respaldado por una R-Antes-de-Crear, ningún `cliente` asignado por una R-Antes-de-Crear)?
-- [ ] ¿Cada `E-XX-NNN` del `specification.md` aparece como Origen de al menos una V/R/U, **o** está listado en "EARS descartados" del `analysis.md` con justificación?
-- [ ] **Si la Etapa B.3 se ejecutó** (spec con `F-NNN`): ¿existe `tests.md` en `analysis/` y cada `F-NNN` del spec aparece como `Origen F` en al menos un test (o está listado en "Flujos sin tests" con justificación)?
-- [ ] **Si la Etapa B.3 se ejecutó**: ¿cada referencia de `tests.md` (`Origen F`, `Verifica`, `Pantalla principal`) apunta a un ID o fichero que existe realmente?
+- [ ] ¿Cada V/R/U tiene su columna **"Origen spec"** rellena (con uno o varios IDs `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` que existen en el spec, o con `—` si fue inventada por el análisis)?
+- [ ] ¿Cada campo de cada `entity-*.md` tiene su columna **"Origen del valor"** rellena con `cliente` o `servidor`, y la clasificación es coherente con las R-… del propio fichero (cada `servidor` respaldado por una R-… con momento `Antes` — salvo derivados de solo lectura documentados en `Notas` —, ningún `cliente` asignado por una R-… con momento `Antes` de Crear)?
+- [ ] ¿Cada `CC-NNN` del spec está reflejado como campo con Origen del valor `servidor` + R-Antes (escritura) o como campo derivado de solo lectura (lectura)?
+- [ ] ¿Cada `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` del `specification.md` aparece como Origen de al menos una V/R/U (o campo del modelo), **o** está listado en "Reglas del spec descartadas" del `analysis.md` con justificación?
+- [ ] **Si la Etapa B.3 se ejecutó** (spec con `ESC-NNN`): ¿existe `tests.md` en `analysis/` y cada `ESC-NNN` del spec aparece como `Origen ESC` en al menos un test (o está listado en "Escenarios sin tests" con justificación)?
+- [ ] **Si la Etapa B.3 se ejecutó**: ¿cada referencia de `tests.md` (`Origen ESC`, `Verifica`, `Pantalla principal`) apunta a un ID o fichero que existe realmente?
 - [ ] **Si la Etapa B.3 se ejecutó**: ¿cada V/R/U declarada aparece como `Verifica` en al menos un test, **o** está listada en "V/R/U sin tests" del `analysis.md` con etiqueta de cobertura (`smoke manual` / `cubierta indirectamente por T-NNN` / `pendiente` / `aceptada sin verificar`) confirmada con el usuario?
-- [ ] **Si la Etapa B.3 se saltó** (spec sin "Flujos principales"): ¿el `analysis.md` lleva la nota explícita "Spec sin flujos principales — no se generaron tests E2E" en la sección "Tests E2E"?
+- [ ] **Si la Etapa B.3 se saltó** (spec sin "Escenarios"): ¿el `analysis.md` lleva la nota explícita "Spec sin escenarios — no se generaron tests E2E" en la sección "Tests E2E"?
 - [ ] ¿El `analysis.md` que se va a escribir enlaza con todos los `entity-*.md`, `screen-*.md` (y `tests.md` si la Etapa B.3 se ejecutó) mediante rutas relativas `./<fichero>.md`?
 - [ ] ¿La integridad referencial al borrar está en el padre, no en el hijo?
 - [ ] ¿No hay nombres de clase, métodos Java, anotaciones, FQN, atributos XML, JPQL ni nombres técnicos del framework en ningún fichero?
@@ -734,7 +740,7 @@ Ficheros generados:
   - analysis.md
   - entity-<Nombre>.md  (N ficheros)
   - screen-<nombre>.md  (M ficheros)
-  - tests.md            (escenarios E2E — solo si el spec tenía flujos principales `F-NNN`)
+  - tests.md            (tests E2E — solo si el spec tenía escenarios `ESC-NNN`)
 
 Para generar el plan de diseño ejecuta:
   /sdd-designer-system .sdd/drafts/{carpeta-iniciativa}/analysis/analysis.md
@@ -746,10 +752,10 @@ Para generar el plan de diseño ejecuta:
 
 ## Quick Guidelines
 
-- **Interpreta**, no transcribas. El spec es semi-formal: deduce entidades/campos/pantallas a partir del lenguaje de dominio, y clasifica cada `E-XX-NNN` como V, R o U según el efecto (bloquea / actúa / cambia formulario).
-- **Trazabilidad obligatoria en ambos sentidos**: cada V/R/U lleva columna `Origen EARS` (IDs reales del spec o `—` si inventada); cada `F-NNN` del spec aparece como `Origen F` en al menos un test; cada V/R/U aparece en `Verifica` de algún test o se justifica en "V/R/U sin tests".
+- **Interpreta**, no transcribas. El spec es semi-formal: deduce entidades/campos/pantallas a partir del lenguaje de dominio, y mapea cada regla numerada del spec (`RES`/`VAL` → V, `RN` → R, `RUI` → U, `CC` → campo servidor + R) verificando el efecto real (bloquea / actúa / cambia formulario).
+- **Trazabilidad obligatoria en ambos sentidos**: cada V/R/U lleva columna `Origen spec` (IDs reales del spec o `—` si inventada); cada `ESC-NNN` del spec aparece como `Origen ESC` en al menos un test; cada V/R/U aparece en `Verifica` de algún test o se justifica en "V/R/U sin tests".
 - **Frontera análisis/diseño** (§2.3): nada de FQN, clases Java, métodos, anotaciones, atributos XML, JPQL ni nombres técnicos de acciones/vistas Axelor. Eso es del diseñador.
-- **Numeración local desde 001 sin huecos** por entidad/pantalla. El prefijo (`V-TareaCorreo-…`, `U-mis-correos-…`) garantiza unicidad global. No se renumera nunca.
+- **Numeración local desde 001 sin huecos** por entidad/pantalla. El prefijo (`V-TareaCorreo-…`, `U-mis-correos-…`) garantiza unicidad global. Este skill no renumera nunca (solo `/sdd-analyst-system-review` puede cerrar huecos mientras no exista `design/`).
 - **Pregunta antes de inventar** (`AskUserQuestion`): cualquier subagente puede preguntar al usuario salvo los 5 de la Fase B.1.a (que registran las dudas en `=== DUDAS ===` para que el coordinador las plantee).
 - **Estrictamente secuencial** salvo Fase B.1.a (exactamente 5 sub-subagentes en paralelo, una sola respuesta, sin `run_in_background`, sin `AskUserQuestion`).
 - **CRITICAL**: cada subagente escribe directamente en disco y devuelve solo `escrito: analysis/<fichero>`. **MUST NOT** pegar el contenido al agente principal.
@@ -774,8 +780,8 @@ Los subagentes reciben en su prompt la plantilla correspondiente:
 
 - `templates/entity.md` — estructura de un `entity-<Nombre>.md` (cuatro secciones: Modelo de datos, Validaciones, Acciones, Reglas de negocio).
 - `templates/screen.md` — estructura de un `screen-<nombre>.md` (Estructura jerárquica + Grids + Formularios + Reglas de UI).
-- `templates/tests.md` — estructura de `tests.md` (escenarios `T-NNN` en formato Given/When/Then con `Origen F`, `Verifica`, `Pantalla principal` y `Tipo`).
+- `templates/tests.md` — estructura de `tests.md` (tests `T-NNN` en formato Given/When/Then con `Origen ESC`, `Verifica`, `Pantalla principal` y `Tipo`).
 
 Los ejemplos en `examples/` (subsistema de correos, firmas, ciclos…) son referencias de **formato**, no de contenido. **Nunca** se usan como plantilla para inferir entidades, pantallas o reglas (ver prohibición en Fase 2).
 
-> **Nota sobre plantillas externas.** `k-skill` §6.4 exige embeber las plantillas literalmente en el `SKILL.md`. Aquí se mantienen en `templates/*.md` por tamaño (cada una supera las ~300 líneas y embeberlas saturaría el contexto del skill principal). Los subagentes las reciben **literalmente** en su prompt cargándolas con `Read`: el efecto sobre el modelo es equivalente al embebido directo.
+> **Nota sobre plantillas externas.** `k-skill` §6.5 exige embeber las plantillas literalmente en el `SKILL.md`. Aquí se mantienen en `templates/*.md` por tamaño (en conjunto suman varios cientos de líneas y embeberlas saturaría el contexto del skill principal). Los subagentes las reciben **literalmente** en su prompt cargándolas con `Read`: el efecto sobre el modelo es equivalente al embebido directo.

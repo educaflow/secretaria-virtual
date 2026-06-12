@@ -25,6 +25,8 @@ TareaFirma
 
 ## Grid 1 — "Firmas"
 
+### Propiedades
+
 | Propiedad                          | Valor                                                                          |
 |------------------------------------|--------------------------------------------------------------------------------|
 | Entidad                            | TareaFirma                                                                     |
@@ -36,6 +38,8 @@ TareaFirma
 | Botones de las columnas            | —                                                                              |
 
 ## Formulario 1 — Tarea de firma
+
+### Propiedades
 
 | Propiedad     | Valor       |
 |---------------|-------------|
@@ -58,14 +62,16 @@ TareaFirma
 
 ### Reglas de UI (U-todos-NNN)
 
-| ID    | Disparador | Efecto           | Campo/Panel afectado          | Condición                                  |
-|-------|------------|------------------|-------------------------------|--------------------------------------------|
-| U-todos-001 | continuo   | Mostrar/ocultar  | campo "fecha de resolución"   | Visible solo si la tarea ya está resuelta  |
-| U-todos-002 | continuo   | Mostrar/ocultar  | campo "motivo de rechazo"     | Visible solo si la tarea ha sido rechazada |
+| ID    | Disparador | Efecto           | Campo/Panel afectado          | Condición                                  | Origen spec |
+|-------|------------|------------------|-------------------------------|--------------------------------------------|-------------|
+| U-todos-001 | continuo   | Mostrar/ocultar  | campo "fecha de resolución"   | Visible solo si la tarea ya está resuelta  | —           |
+| U-todos-002 | continuo   | Mostrar/ocultar  | campo "motivo de rechazo"     | Visible solo si la tarea ha sido rechazada | —           |
 
 ---
 
 ## Grid 2 — "Documentos"
+
+### Propiedades
 
 | Propiedad                          | Valor                                                                |
 |------------------------------------|----------------------------------------------------------------------|
@@ -78,6 +84,8 @@ TareaFirma
 | Botones de las columnas            | —                                                                    |
 
 ## Formulario 2 — Documento
+
+### Propiedades
 
 | Propiedad     | Valor           |
 |---------------|-----------------|
@@ -95,6 +103,6 @@ TareaFirma
 
 ### Reglas de UI (U-todos-NNN)
 
-| ID    | Disparador | Efecto           | Campo/Panel afectado          | Condición                                |
-|-------|------------|------------------|-------------------------------|------------------------------------------|
-| U-todos-003 | continuo   | Mostrar/ocultar  | pestaña "Documento firmado"   | Visible solo si existe documento firmado |
+| ID    | Disparador | Efecto           | Campo/Panel afectado          | Condición                                | Origen spec |
+|-------|------------|------------------|-------------------------------|------------------------------------------|-------------|
+| U-todos-003 | continuo   | Mostrar/ocultar  | pestaña "Documento firmado"   | Visible solo si existe documento firmado | —           |

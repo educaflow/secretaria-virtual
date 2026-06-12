@@ -23,6 +23,8 @@ TareaFirma
 
 ## Grid 1 — "Firmas"
 
+### Propiedades
+
 | Propiedad                          | Valor                                                                          |
 |------------------------------------|--------------------------------------------------------------------------------|
 | Entidad                            | TareaFirma                                                                     |
@@ -34,6 +36,8 @@ TareaFirma
 | Botones de las columnas            | —                                                                              |
 
 ## Formulario 1 — Tarea rechazada
+
+### Propiedades
 
 | Propiedad     | Valor       |
 |---------------|-------------|
@@ -62,6 +66,8 @@ TareaFirma
 
 ## Grid 2 — "Documentos"
 
+### Propiedades
+
 | Propiedad                          | Valor                                                                |
 |------------------------------------|----------------------------------------------------------------------|
 | Entidad                            | DocumentoFirma                                                       |
@@ -73,6 +79,8 @@ TareaFirma
 | Botones de las columnas            | —                                                                    |
 
 ## Formulario 2 — Documento original
+
+### Propiedades
 
 | Propiedad     | Valor           |
 |---------------|-----------------|

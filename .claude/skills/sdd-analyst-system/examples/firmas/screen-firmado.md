@@ -24,6 +24,8 @@ TareaFirma
 
 ## Grid 1 — "Firmas"
 
+### Propiedades
+
 | Propiedad                          | Valor                                                                          |
 |------------------------------------|--------------------------------------------------------------------------------|
 | Entidad                            | TareaFirma                                                                     |
@@ -35,6 +37,8 @@ TareaFirma
 | Botones de las columnas            | —                                                                              |
 
 ## Formulario 1 — Tarea firmada
+
+### Propiedades
 
 | Propiedad     | Valor       |
 |---------------|-------------|
@@ -57,13 +61,15 @@ TareaFirma
 
 ### Reglas de UI (U-firmado-NNN)
 
-| ID    | Disparador | Efecto           | Campo/Panel afectado          | Condición                                  |
-|-------|------------|------------------|-------------------------------|--------------------------------------------|
-| U-firmado-001 | continuo   | Mostrar/ocultar  | campo "fecha de resolución"   | Visible solo si la tarea ya está resuelta  |
+| ID    | Disparador | Efecto           | Campo/Panel afectado          | Condición                                  | Origen spec |
+|-------|------------|------------------|-------------------------------|--------------------------------------------|-------------|
+| U-firmado-001 | continuo   | Mostrar/ocultar  | campo "fecha de resolución"   | Visible solo si la tarea ya está resuelta  | —           |
 
 ---
 
 ## Grid 2 — "Documentos"
+
+### Propiedades
 
 | Propiedad                          | Valor                                                                |
 |------------------------------------|----------------------------------------------------------------------|
@@ -76,6 +82,8 @@ TareaFirma
 | Botones de las columnas            | —                                                                    |
 
 ## Formulario 2 — Documento firmado
+
+### Propiedades
 
 | Propiedad     | Valor           |
 |---------------|-----------------|
