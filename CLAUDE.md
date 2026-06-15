@@ -63,14 +63,15 @@ El otro fichero de configuración que se pasa al arrancar (`--config ../secretar
 Debido a que toda la aplicación está fuertemente acoplada al framework Axelor y que debes tener pocos conocimientos de Axelor se ha creado un sistema de skills para gestionar toda la parte de axelor.
 
 Para cada parte de Axelor se han creado conjuntos de Skills:
-- menu → para todo lo relacionado con menús
-- vistas → para todo lo relacionado con vistas
-- sistemas → para todo lo relacionado con sistemas (tipos de expediente, tramites, etc.)
-- modelos → para todo lo relacionado con modelos (entidades JPA)
+- menus (`k-vistas`, fichero `menus.md`) → para todo lo relacionado con menús
+- vistas (`k-vistas`) → para todo lo relacionado con vistas
+- sistemas (`k-sistemas`) → para todo lo relacionado con sistemas y subsistemas (estructura de carpetas, servicios, controladores)
+- modelos (`k-sistemas`, fichero `modelos.md`) → para todo lo relacionado con modelos (entidades JPA, dominios XML)
+- validaciones (`k-validaciones`) → **cómo se implementan** en código/XML las restricciones (`RES-`), validaciones (`VAL-`), reglas de negocio (`RN-`), reglas de UI (`RUI-`) y campos calculados (`CC-`) que la spec ya definió (capas modelo XML / `validate*` / `fireActionRule_*` / vista). No clasifica las reglas: eso es del spec.
 - guice (`k-guice`) → inyección de dependencias con Guice: módulos `module/<Subsistema>Module.java`, formas de binding (`bind`, `.to`, `.toProvider`, `@Provides`), cuándo hace falta un `Provider` (deps que vienen de configuración o runtime, no de otros beans) y diagnóstico del error `Guice/MissingConstructor`. Consúltalo **siempre que cablees el DI de un sistema y la construcción de un objeto no sea trivial**.
-- seguridad (`k-seguridad`) → modelo de seguridad de la aplicación: roles, usuarios, permisos, ACL del negocio (**qué** puede hacer cada rol).
+- seguridad (`k-seguridad`) → ⚠️ **OBSOLETO — NO USAR**: su modelo de dominio no coincide con las clases reales. Pendiente de rehacer. Para roles/permisos lee el código real en `src/main/java/com/educaflow/subsystem/security/`.
 - secure-coding (`k-secure-coding`) → reglas de codificación segura: mass-assignment, `AllowProperties` por acción, asignación incondicional de campos `servidor` en `*ServiceImpl.insert/update`, multi-centro/IDOR, JPQL, log injection, adjuntos, secretos (**cómo** se escribe el código para que la seguridad del negocio no se pueda saltar). **CRITICAL**: aplicación obligatoria en cualquier modificación de código que toque entidades, servicios o controladores.
-- acciones → para todo lo relacionado con acciones (action-views, controllers, etc.)
+- acciones (`k-vistas`, fichero `actions.md`, y `k-sistemas`, fichero `controladores.md`) → para todo lo relacionado con acciones (action-views, controllers, etc.)
 
 Es imperativo que siempre uses los skills correspondientes para cualquier acción relacionada con Axelor, ya que siguen una arquitectura propia de la secretaría virtual y del framework Axelor.
 
@@ -84,21 +85,23 @@ El desarrollo de cualquier funcionalidad nueva en la secretaría virtual se hace
 
 Skills del pipeline (en orden de uso):
 
-1. `/sdd-create-user-story` — Crea la iniciativa: genera la carpeta `.sdd/drafts/YYYY-MM-DD_HH-MM_{nombre}/` con un `user-story.md` (intención del usuario) y un `design-guidelines.md` (directrices opcionales). Es el punto de entrada del pipeline.
-2. `/sdd-specification-system` — Toma la historia de usuario y, mediante preguntas iterativas, produce una `specification.md` completa en lenguaje de negocio: entidades, operaciones, **flujos principales `F-NNN`** (narrativos, semilla de los tests E2E), pantallas, menús, seguridad y los requisitos del sistema en formato EARS (`E-UB`, `E-EV`, `E-ST`, `E-UN`, `E-OP`). La clasificación V/R/U es responsabilidad del analista.
-3. `/sdd-analyst-system` — Interpreta la especificación y genera los artefactos de análisis: un `analysis.md` índice, un `entity-<Nombre>.md` por cada entidad detectada, un `screen-<nombre>.md` por cada pantalla, y un `tests.md` con escenarios E2E Given/When/Then (`T-NNN`) que materializan los `F-NNN` del spec. Cada V/R/U y cada test mantienen trazabilidad al spec (columnas "Origen EARS" y "Origen F"). El analista además clasifica cada campo de cada entidad en `cliente` o `servidor` (columna "Origen del valor") — esa decisión es la base sobre la que el diseñador construye `AllowProperties` y la asignación incondicional anti mass-assignment (ver `k-secure-coding`).
-4. `/sdd-designer-system` — A partir del análisis, produce un plan de DISEÑO que describe qué clases, métodos, vistas y acciones hay que construir y dónde va cada regla, sin escribir todavía el código. Propaga `tests.md` desde `analysis/` a `design/` tal cual (contrato fijo).
-5. `/sdd-implementer-system` — Ejecuta el plan de diseño en tres fases: (a) copia los XML del diseño al árbol del proyecto, (b) invoca `code-implementer` para escribir el código Java, y (c) si existe `design/tests.md`, arranca la app y ejecuta los tests E2E con `playwright-cli` en un bucle de auto-corrección (máx 3 iteraciones; si fallan, reinvoca `code-implementer` con el reporte; si tras la 3ª siguen fallos, para y pregunta al usuario).
-6. `/sdd-close-spec` — Cierra la iniciativa: archiva los artefactos en `.sdd/specs/NNNN_desc/` como versión "as-built" (corrigiendo análisis y diseño para reflejar lo realmente implementado) y actualiza los `CLAUDE.md` de las carpetas afectadas.
+1. `/sdd-specification-system` — Punto de entrada del pipeline. Crea, mejora o revisa de forma interactiva (preguntando mucho al usuario) una especificación **multi-fichero** en lenguaje de negocio en `.sdd/drafts/YYYY-MM-DD_HH-MM_{nombre}/`: un índice `specification.md` (objetivo, actores, historias de usuario con sus **escenarios `ESC-NNN`** —semilla de los tests E2E—, tablas de enlaces a modelos y pantallas, seguridad, recursos y fuera de alcance), un `entity-<Nombre>.md` por cada modelo (campos, estados, restricciones `RES-NNN`, campos calculados `CC-NNN`, las **propiedades editables por acción `AllowProperties`**, y por evento validaciones `VAL-NNN` y reglas de negocio `RN-NNN`) y un `screen-<slug>.md` por cada pantalla (identidad, menú, paneles, botones, reglas de UI `RUI-NNN`). La historia de usuario va **embebida** en la propia spec (no hay fichero `user-story.md`). Se puede invocar varias veces sobre la misma spec; siempre pregunta si crear nueva / refinar la última / elegir otra, y sobre una spec existente si además hacer un review. La conversión a la capa técnica (taxonomía `V`/`R`/`U`, clasificación `cliente`/`servidor` por campo) y la materialización de los tests E2E las asumirá `/sdd-designer-system` (migración pendiente del usuario).
+2. `/sdd-designer-system` — A partir de la spec, produce un plan de DISEÑO que describe qué clases, métodos, vistas y acciones hay que construir y dónde va cada regla, sin escribir todavía el código. Propaga `tests.md` a `design/` tal cual (contrato fijo). *(Nota: este skill aún no está migrado al formato multi-fichero de la spec; sigue esperando una carpeta `analysis/` — el usuario lo migrará después.)*
+3. `/sdd-implementer-system` — Descompone el `design.md` en tareas atómicas (`implementation/task_NN.md` + índice `task.md`), propaga `design/tests.md` a `implementation/tests.md` tal cual y, tras la aprobación del usuario, implementa cada tarea: copia literalmente los XML ya materializados por el diseñador y delega el código Java en `code-implementer`. Termina compilando en un bucle de auto-corrección hasta que `./gradlew clean build` pase (máx 3 iteraciones; si tras la 3ª sigue sin compilar, para y pregunta al usuario). No ejecuta tests E2E — eso es de `/sdd-debug-app`.
+4. `/sdd-close-spec` — Cierra la iniciativa: archiva los artefactos en `.sdd/specs/NNNN_desc/` como versión "as-built" (corrigiendo análisis y diseño para reflejar lo realmente implementado) y actualiza los `CLAUDE.md` de las carpetas afectadas.
 
-Skill auxiliar (no forma parte del flujo de desarrollo):
+Skills auxiliares (no forman parte del flujo lineal de desarrollo):
 
+- `/sdd-designer-system-review` — Revisa la carpeta `design/` ya existente sin regenerarla (XSD con xmllint, cobertura V/R/U, reglas arquitectónicas, `tests.md` idéntico al de su origen).
+- `/sdd-debug-app` — Ejecuta los tests E2E de `implementation/tests.md` contra la aplicación real (un subagente por test, con `playwright-cli` la primera vez y cacheo como `.spec.ts` para reejecuciones); cuando un test falla, corrige el código Java y reintenta (máx 3 por test). Progreso reanudable en `implementation/progress.jsonl`.
 - `/sdd-eval` — Herramienta de meta-evaluación para medir y mejorar la calidad de los propios skills SDD comparando su output contra un artefacto "gold" de referencia.
 
 Flujo resumido:
 
 ```
-user-story  →  specification  →  analysis  →  design  →  implementation  →  close
+specification  →  design  →  implementation  →  close
+                                  ↑
+                  (debug E2E con /sdd-debug-app)
 ```
 
 ## Architectura
