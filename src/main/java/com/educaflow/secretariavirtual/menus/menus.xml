@@ -73,15 +73,6 @@
         <menuitem name="utilidadesPdf-posicionesFirma-menuitem"     parent="utilidadesPdf-menuitem" title="Posiciones Firma"     action="subsysPdfUtilities.PdfUtilities@Firma-action"       order="2"/>
         <menuitem name="utilidadesPdf-posicionAutofirma-menuitem" parent="utilidadesPdf-menuitem" title="Posición Autofirma__!!" action="subsysPdfUtilities.PdfUtilities@AutoFirma-action"  order="3"/>
 
-    <menuitem name="correos-menuitem" title="Correos" order="40"/>
-        <menuitem name="correos-todos-menuitem"    parent="correos-menuitem" title="Todos los correos"     action="subsysCorreos.Correo@Todos-action"    groups="admins" order="1"/>
-        <menuitem name="correos-miCentro-menuitem" parent="correos-menuitem" title="Correos de mi centro"  action="subsysCorreos.Correo@MiCentro-action" order="2"/>
-        <menuitem name="correos-mios-menuitem"     parent="correos-menuitem" title="Mis correos"           action="subsysCorreos.Correo@Mios-action"     order="3"/>
-        <menuitem name="correos-grafica-menuitem"  parent="correos-menuitem" title="Gráfica de correos"    groups="admins" order="4"/>
-            <menuitem name="correos-graficaDia-menuitem"    parent="correos-grafica-menuitem" title="Diaria"   action="subsysCorreos.Correo@GraficaDia-action"    groups="admins" order="1"/>
-            <menuitem name="correos-graficaSemana-menuitem" parent="correos-grafica-menuitem" title="Semanal"  action="subsysCorreos.Correo@GraficaSemana-action" groups="admins" order="2"/>
-            <menuitem name="correos-graficaMes-menuitem"    parent="correos-grafica-menuitem" title="Mensual"  action="subsysCorreos.Correo@GraficaMes-action"    groups="admins" order="3"/>
-
 
 
 </object-views>
