@@ -1,5 +1,9 @@
 # Catálogo de tipos de validación
 
+Catálogo de referencia para identificar, al rellenar las **Validaciones** (`VAL-`) y las **Restricciones** (`RES-`) de un `entity-*.md`, qué comprobaciones aplican a cada campo. Recorre las cuatro tablas por ámbito y comprueba, campo a campo, cuáles aplican. Las columnas "Mensaje al usuario" y "Ejemplo de mensaje" sirven de guía para redactar el `mensaje` de cada validación en lenguaje de negocio.
+
+Es una ayuda **no exhaustiva**: cubre los tipos más habituales, pero si el negocio necesita una validación o una restricción que no figura aquí, decláralo igualmente.
+
 ## Validaciones sobre el propio campo
 
 | Descripción de la regla                                                   | Cuándo se aplica            | Mensaje al usuario                          | Ejemplo de mensaje                                                  |
@@ -78,4 +82,3 @@
 | El campo A es inmutable a partir del estado X                             | Si estado ≥ X               | A no se puede modificar tras X              | "No se puede modificar el NIA tras la matriculación"                |
 | El registro completo es inmutable en el estado final F                    | Si estado = F               | El registro no se puede modificar en F      | "El expediente FINALIZADO no admite modificaciones"                 |
 | Solo se admite la transición de estado X a Y                              | Al cambiar de estado        | No se admite pasar de X a Z                 | "No se admite pasar de BORRADOR a APROBADO sin enviar antes"        |
-
