@@ -1,15 +1,15 @@
 ---
 name: sdd-analyst-system
-description: Dado un fichero `specification.md` (especificación funcional ya elaborada por `/sdd-specification-system`, con escenarios `ESC-NNN` y reglas numeradas `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN`), genera el conjunto de artefactos de análisis del proyecto — un `analysis.md` índice, un `entity-<Nombre>.md` por cada entidad detectada, un `screen-<nombre>.md` por cada pantalla detectada y un `tests.md` con escenarios E2E Given/When/Then concretos (`T-NNN`) que materializan los escenarios `ESC-NNN` del spec. El skill **interpreta** el contenido de la especificación: deduce entidades, campos, pantallas, grids y formularios a partir del significado y el contexto del documento; convierte cada regla numerada del spec en validación (`V-…`), regla de negocio (`R-…`) o regla de UI (`U-…`) **manteniendo trazabilidad** mediante una columna "Origen spec" en cada tabla; y para cada escenario del spec genera al menos un test concreto con trazabilidad `Origen ESC` y `Verifica` V/R/U. Los ficheros se escriben en la subcarpeta `analysis/` dentro de la carpeta de la iniciativa y son el input de `sdd-designer-system`.
+description: Dado un fichero `specification.md` (especificación funcional ya elaborada por `/sdd-specification`, con escenarios `ESC-NNN` y reglas numeradas `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN`), genera el conjunto de artefactos de análisis del proyecto — un `analysis.md` índice, un `entity-<Nombre>.md` por cada entidad detectada, un `screen-<nombre>.md` por cada pantalla detectada y un `tests.md` con escenarios E2E Given/When/Then concretos (`T-NNN`) que materializan los escenarios `ESC-NNN` del spec. El skill **interpreta** el contenido de la especificación: deduce entidades, campos, pantallas, grids y formularios a partir del significado y el contexto del documento; convierte cada regla numerada del spec en validación (`V-…`), regla de negocio (`R-…`) o regla de UI (`U-…`) **manteniendo trazabilidad** mediante una columna "Origen spec" en cada tabla; y para cada escenario del spec genera al menos un test concreto con trazabilidad `Origen ESC` y `Verifica` V/R/U. Los ficheros se escriben en la subcarpeta `analysis/` dentro de la carpeta de la iniciativa y son el input de `sdd-designer`.
 handoffs:
   - label: Generar el diseño técnico
-    agent: sdd-designer-system
+    agent: sdd-designer
     prompt: Generar el plan de diseño a partir del análisis recién creado en .sdd/drafts/<carpeta>/analysis/analysis.md
 ---
 
 # sdd-analyst-system
 
-Eres un analista funcional. Conviertes un `specification.md` en un conjunto de ficheros de análisis (`analysis.md` + `entity-*.md` + `screen-*.md` + `tests.md`) que serán el input de `/sdd-designer-system`.
+Eres un analista funcional. Conviertes un `specification.md` en un conjunto de ficheros de análisis (`analysis.md` + `entity-*.md` + `screen-*.md` + `tests.md`) que serán el input de `/sdd-designer`.
 
 ---
 
@@ -47,8 +47,8 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 - Sin argumentos y no hay ninguna subcarpeta de `.sdd/drafts/` con el patrón requerido → **STOP** y pide ruta explícita.
 - El usuario rechaza el `specification.md` auto-detectado en la Fase 0 → **STOP** y pide ruta explícita.
 - La carpeta `analysis/` ya existe y el usuario elige "Revisar el análisis existente" → **STOP** e indica `/sdd-analyst-system-review`. **MUST NOT** lanzar el review tú mismo.
-- La especificación carece de sección "Escenarios" con al menos un `ESC-NNN` y el usuario elige "Abortar" → **STOP** y dirige a `/sdd-specification-system`.
-- La especificación es tan ambigua que no permite ni enumerar entidades → **STOP** y dirige a `/sdd-specification-system`.
+- La especificación carece de sección "Escenarios" con al menos un `ESC-NNN` y el usuario elige "Abortar" → **STOP** y dirige a `/sdd-specification`.
+- La especificación es tan ambigua que no permite ni enumerar entidades → **STOP** y dirige a `/sdd-specification`.
 - Tras la Etapa C, faltan en `analysis/` ficheros del inventario → **ERROR** y detente antes de escribir `analysis.md`.
 - Tras 3 iteraciones de la Etapa C siguen quedando ítems del checklist sin cumplir → **STOP** y pide al usuario decisión explícita (§8.6).
 
@@ -216,7 +216,7 @@ Si el usuario invoca el skill con una ruta (p.ej. `.sdd/drafts/2026-05-11_23-19_
 1. Leer el fichero.
 2. **Validar el frontmatter.** Debe comenzar con un bloque `---` … `---` que contenga la línea `type: specification`. Puede haber más campos; solo `type` es obligatorio. Si falla, detente y muestra:
    > Error: el fichero `{ruta}` no es una especificación válida. Su frontmatter debe incluir `type: specification`.
-   > Para generar una especificación, usa `/sdd-specification-system`.
+   > Para generar una especificación, usa `/sdd-specification`.
 3. La **carpeta de la iniciativa** es la que contiene ese fichero.
 
 ### 4.2 Caso 2 — Sin ruta (auto-detección)
@@ -301,16 +301,16 @@ El agente principal lee el `specification.md` **una vez** para enmarcar el conte
 
 Si tras esta lectura la especificación parece tan ambigua que ni siquiera permite enumerar entidades o pantallas con un mínimo de certeza, detente y avisa al usuario:
 
-> La especificación no contiene información suficiente para inferir el modelo (entidades / pantallas). Considera ejecutar `/sdd-specification-system` para completarla antes de relanzar el análisis.
+> La especificación no contiene información suficiente para inferir el modelo (entidades / pantallas). Considera ejecutar `/sdd-specification` para completarla antes de relanzar el análisis.
 
 **Detección de spec sin "Escenarios".** Si el `specification.md` **no contiene** la sección "Escenarios" con al menos un `ESC-NNN`, pregunta al usuario con **una sola** invocación de `AskUserQuestion` (default sugerido: opción 2 — sin escenarios no hay tests):
 
 1. **Continuar sin tests**: se omite la Etapa B.3 y el `analysis.md` lleva la variante "B.3 saltada" (§8.6).
-2. **Abortar**: **STOP** y dirige al usuario a `/sdd-specification-system` para añadir escenarios al spec.
+2. **Abortar**: **STOP** y dirige al usuario a `/sdd-specification` para añadir escenarios al spec.
 
 Si el spec sí tiene escenarios `ESC-NNN`, pasa directamente a la Fase 4.
 
-**Detección de reglas sin numerar.** Si la sección de reglas del spec existe pero sus elementos **no llevan IDs** (`RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN`), avisa al usuario: sin IDs no hay trazabilidad spec → V/R/U. Ofrece (a) abortar y relanzar `/sdd-specification-system` (review) para numerarlas, o (b) continuar tratando todas las reglas del spec como prosa (las V/R/U llevarán `—` en "Origen spec" y la sección "Reglas del spec descartadas" no aplicará).
+**Detección de reglas sin numerar.** Si la sección de reglas del spec existe pero sus elementos **no llevan IDs** (`RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN`), avisa al usuario: sin IDs no hay trazabilidad spec → V/R/U. Ofrece (a) abortar y relanzar `/sdd-specification` (review) para numerarlas, o (b) continuar tratando todas las reglas del spec como prosa (las V/R/U llevarán `—` en "Origen spec" y la sección "Reglas del spec descartadas" no aplicará).
 
 ---
 
@@ -686,7 +686,7 @@ Una vez los subagentes de las Etapas B.1, B.2 y B.3 (si se ejecutó) han confirm
 >
 > ```
 > ### Tests E2E
-> *(Spec sin escenarios — no se generaron tests E2E. `/sdd-debug-app` no tendrá tests que ejecutar. Para añadir tests, relanza `/sdd-specification-system` para añadir escenarios `ESC-NNN` al spec y luego `/sdd-analyst-system` para regenerar el análisis.)*
+> *(Spec sin escenarios — no se generaron tests E2E. `/sdd-debug-app` no tendrá tests que ejecutar. Para añadir tests, relanza `/sdd-specification` para añadir escenarios `ESC-NNN` al spec y luego `/sdd-analyst-system` para regenerar el análisis.)*
 > ```
 >
 > No incluyas la sección "Escenarios sin tests" en esta variante.
@@ -743,10 +743,10 @@ Ficheros generados:
   - tests.md            (tests E2E — solo si el spec tenía escenarios `ESC-NNN`)
 
 Para generar el plan de diseño ejecuta:
-  /sdd-designer-system .sdd/drafts/{carpeta-iniciativa}/analysis/analysis.md
+  /sdd-designer .sdd/drafts/{carpeta-iniciativa}/analysis/analysis.md
 ```
 
-**MUST NOT** lanzar `sdd-designer-system` tú mismo. El usuario decide cuándo ejecutarlo.
+**MUST NOT** lanzar `sdd-designer` tú mismo. El usuario decide cuándo ejecutarlo.
 
 ---
 

@@ -4,14 +4,16 @@ Explica qué debe contener cada fichero de la especificación, cómo clasificar 
 
 La especificación **no es un único fichero**: es un conjunto de ficheros dentro de la carpeta de la iniciativa.
 
-| Fichero | Plantilla | Qué contiene |
-|---|---|---|
+| Fichero | Plantilla | Qué contiene                                                                                                                                                                                                                     |
+|---|---|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `specification.md` | `template/specification.md` | El **índice**: objetivo, actores, historias de usuario con sus escenarios, las **tablas de enlaces** a los modelos y a las pantallas, seguridad, recursos y fuera de alcance. Es el único con frontmatter `type: specification`. |
-| `entity-<Nombre>.md` | `template/entity.md` | Un fichero **por cada modelo**: su descripción, campos, estados, restricciones (`RES-`), campos calculados (`CC-`) y, por evento, validaciones (`VAL-`) y reglas de negocio (`RN-`). |
-| `screen-<slug>.md` | `template/screen.md` | Un fichero **por cada pantalla**: su identidad, menú, paneles, botones y reglas de UI (`RUI-`). |
+| `entity-<Nombre>.md` | `template/entity.md` | Un fichero **por cada modelo**: su descripción, campos, estados, restricciones (`RES-`), campos calculados (`CC-`) y, por evento, validaciones (`VAL-`) y reglas de negocio (`RN-`).                                             |
+| `screen-<slug>.md` | `template/screen.md` | Un fichero **por cada pantalla**: su identidad, menú, vistas, botones y reglas de UI (`RUI-`).                                                                                                                                   |
+| `model.puml` | *(sin plantilla; PlantUML)* | Un **único** fichero por spec: el **diagrama de clases** en PlantUML de los modelos definidos en los `entity-*.md` y de sus relaciones. Es una vista de conjunto; no añade información nueva.                                       |
+| `model.png` | *(sin plantilla; imagen)* | Un **único** fichero por spec: la **imagen** del diagrama, renderizada **siempre** a partir de `model.puml` (nunca a mano). Se (re)genera cada vez que se crea o cambia `model.puml`.                                                |
 
-- `<Nombre>` del modelo va en **PascalCase** (p. ej. `entity-SolicitudCertificado.md`); `<slug>` de la pantalla en **kebab-case** (p. ej. `screen-mis-certificados.md`).
-- Solo `specification.md` lleva frontmatter. Los `entity-*.md` y `screen-*.md` empiezan directamente por su `# Modelo: …` / `# Pantalla: …`.
+- `<Nombre>` del modelo va en **PascalCase** (p. ej. `entity-SolicitudCertificado.md`); `<slug>` de la pantalla en **kebab-case** (p. ej. `screen-mis-certificados.md`). `model.puml` y `model.png` son **nombres fijos** (uno por spec), sin sufijo variable.
+- Solo `specification.md` lleva frontmatter. Los `entity-*.md` y `screen-*.md` empiezan directamente por su `# Modelo: …` / `# Pantalla: …`. `model.puml` empieza por `@startuml` y termina por `@enduml`.
 
 ---
 
@@ -61,6 +63,8 @@ Los actores que intervienen en la spec: quiénes son y qué papel juegan. (Los *
 Usando los actores y el vocabulario de los modelos. Cada historia es un encabezado `## HU-NNN — Como [Actor] quiero [feature] para [motivo]` y, **debajo de cada historia, van sus escenarios** `ESC-NNN`: las secuencias de acciones que muestran cómo funciona esa historia. No hay un apartado de escenarios aparte — cada escenario vive bajo la historia a la que pertenece.
 
 Cada historia tiene **al menos un escenario** y cada escenario pertenece a exactamente una historia (la que lo contiene). Los escenarios deben cubrir el camino feliz (happy path), los alternativos y los errores/excepciones.
+
+**CRITICAL — claridad, especificidad y explicitud.** Cada escenario debe ser **muy claro, específico y explícito**: nombra los datos concretos que se usan (no «un alumno» sino «el alumno Juan Pérez»), el valor exacto que se introduce en cada campo, la acción precisa que dispara cada paso y la respuesta literal del sistema (el texto del mensaje, el estado resultante). Nada se deja implícito ni a interpretación: quien lo lea para construir el test E2E debe poder reproducir cada paso sin tener que adivinar ningún dato, condición ni resultado.
 
 **CRITICAL — formato y autosuficiencia.** Cada `ESC-NNN` se convierte en el diseño en un test E2E que se ejecuta contra una aplicación recién arrancada, **sin estado previo**. Por eso **cada escenario se escribe SIEMPRE como una lista de pasos numerados** (un paso por línea); **MUST NOT** escribirse como varias frases separadas por «;» en una sola línea, aunque el escenario sea simple. La secuencia es **completa, verificable y autosuficiente**:
 
@@ -128,7 +132,8 @@ Una **tabla índice** con una fila por modelo: el enlace a su `entity-<Nombre>.m
 Una **tabla índice** con una fila por pantalla: el enlace a su `screen-<slug>.md`, el nombre de la pantalla y una línea de para qué sirve y a quién.
 
 - Cada pantalla que aparezca en la tabla **MUST** tener su `screen-<slug>.md`, y al revés.
-- Si varios listados abren el **mismo** formulario en modo detalle, ese formulario se describe **una sola vez** como una pantalla compartida (un único `screen-*.md`), y los listados lo referencian; así se evita duplicarlo.
+- Una **pantalla** (una fila de la tabla, un `screen-*.md`) normalmente se compone de **varias vistas** que se abren unas a otras: como mínimo suele haber un **listado** y su **formulario** de detalle, y a menudo además los formularios de sus hijos maestro-detalle. En la tabla del índice va **una fila por pantalla**, no por vista; las vistas se detallan dentro del `screen-*.md`.
+- Si varios puntos de entrada **distintos** abren el **mismo** formulario en modo detalle, ese formulario se describe **una sola vez** como una pantalla compartida (un único `screen-*.md`), y los demás lo referencian; así se evita duplicarlo.
 - **Qué NO va:** nombres técnicos de acciones o vistas del framework, dominios JPQL.
 
 ## Seguridad
@@ -297,34 +302,190 @@ Un encabezado `## Acción: <Nombre>` por cada acción de la entidad (Crear, Modi
 
 ---
 
+# El diagrama de clases — `model.puml` y `model.png`
+
+Un **único** fichero `model.puml` por spec con un diagrama de clases en **PlantUML** que representa visualmente los modelos definidos en los `entity-<Nombre>.md` y cómo se relacionan, más su imagen renderizada `model.png`. Es una **vista de conjunto**: de un vistazo se ven todas las entidades de la spec y sus relaciones.
+
+**No añade información nueva.** Todo lo que contiene ya está en los `entity-*.md` (campos, estados) y en el apartado «Modelos» del índice (relaciones). Si el diagrama y el texto discrepan, **manda el texto** y hay que corregir el diagrama. Por eso `model.puml` (y su `model.png`) se **regeneran** cada vez que se crea la spec o cambia **cualquier entidad o relación** (un campo, un estado, una entidad nueva o borrada, una multiplicidad). En modo "refinar", si ninguna entidad ni relación cambió, **MUST NOT** tocarlos.
+
+## Qué contiene
+
+- Una **clase** por cada modelo de la tabla «Modelos» del índice (una por `entity-*.md`).
+- Dentro de cada clase, sus **campos** funcionalmente relevantes (los de la sección «Campos» de su `entity-*.md`), uno por línea.
+- Un **enum** por cada campo de estado con ciclo de vida, con sus valores (los de «Estados y transiciones»), enlazado a la clase que lo usa.
+- Las **relaciones entre modelos** descritas bajo la tabla «Modelos» del índice: **composición** para el maestro-detalle con borrado en cascada, **asociación** para una referencia, con su **multiplicidad**.
+
+## Qué NO va
+
+- **Tipos de dato, FQN, anotaciones JPA, visibilidad técnica:** igual que en los `entity-*.md`, los campos van **sin tipo** — solo el nombre de negocio (PlantUML permite omitirlo: `+ tipo de certificado`).
+- **Campos técnicos** (IDs, FKs internas, auditoría, versiones), que tampoco aparecen en los `entity-*.md`.
+- **Métodos:** una entidad de la spec no declara métodos.
+
+## Sintaxis y convenciones
+
+- El fichero empieza por `@startuml` y termina por `@enduml`.
+- Nombre de clase en **PascalCase**, idéntico al `<Nombre>` de su `entity-*.md`.
+- Relaciones (la flecha sale del padre):
+  - `*--` **composición** para maestro-detalle con borrado en cascada (los hijos no viven sin el padre);
+  - `-->` **asociación** para una referencia a otra entidad independiente (opcional o no);
+  - **multiplicidad** entre comillas en los extremos (`"1"`, `"0..*"`, `"many"`).
+- Un enum se declara con `enum <Nombre>` y se enlaza con `-->` a la clase que lo usa.
+
+**Ejemplo** (coherente con `entity-SolicitudCertificado.md`, `entity-AdjuntoSolicitud.md` y `entity-TipoCertificado.md` del ejemplo):
+
+```plantuml
+@startuml
+
+class SolicitudCertificado {
+  + alumno solicitante
+  + tipo de certificado
+  + fecha de solicitud
+  + estado
+  + motivo de rechazo
+  + fecha de resolución
+  + documento emitido
+}
+
+enum EstadoSolicitud {
+  PENDIENTE
+  EMITIDA
+  RECHAZADA
+}
+
+class AdjuntoSolicitud {
+  + documento
+}
+
+class TipoCertificado {
+  + nombre
+  + descripción
+}
+
+SolicitudCertificado --> EstadoSolicitud
+SolicitudCertificado "1" *-- "0..*" AdjuntoSolicitud : adjuntos
+SolicitudCertificado "many" --> "1" TipoCertificado : tipo
+@enduml
+```
+
+## Render a `model.png`
+
+`model.png` es la imagen de `model.puml` y **MUST** obtenerse **siempre** renderizando el `.puml` con PlantUML, **nunca** dibujarse a mano. Se (re)renderiza cada vez que `model.puml` se crea o cambia.
+
+- En la **carpeta de la iniciativa** (donde está `model.puml`), ejecuta:
+  ```bash
+  java -jar "$(find ~/.m2 -name 'plantuml-*.jar' ! -name '*-sources.jar' | head -1)" -tpng model.puml
+  ```
+- Si PlantUML no está disponible (no se encuentra el jar), **MUST NOT** fallar en silencio: conserva `model.puml` y **avisa al usuario** de que falta `model.png`.
+
+---
+
 # Los ficheros de pantalla — `screen-<slug>.md`
 
 Un fichero por cada pantalla de la tabla "Pantallas" del índice. Describe la pantalla en lenguaje de negocio y aloja sus reglas de UI. El título es `# Pantalla: <Nombre>`.
 
+## Una pantalla casi siempre tiene varias vistas
+
+Lo que el usuario percibe como **una pantalla** casi nunca es una sola vista. Lo **mínimo habitual** es un **listado** (grid) y el **formulario** de detalle que ese listado abre; y muy a menudo hay más vistas que se van **abriendo unas a otras**:
+
+- un **listado** que, al pulsar una fila o con «Nuevo», abre el **formulario de detalle** de ese registro;
+- un **formulario** con un panel **maestro-detalle**: ese panel es a su vez un **listado** (grid) de los hijos embebido en el formulario y, al pulsar una fila (o «Añadir»), abre el **formulario del hijo**;
+- un **botón** que abre otra vista.
+
+Por eso, al bajar por la jerarquía, las vistas **alternan listado y formulario**: un listado abre un formulario, ese formulario contiene un listado de hijos (el panel maestro-detalle), que abre el formulario del hijo, que contiene otro listado, y así sucesivamente (**grid → formulario → grid → formulario → …**).
+
+Todas las vistas alcanzables **en línea** desde un mismo punto de entrada se describen en **un único** `screen-*.md` (no en uno por vista). Ejemplo: una pantalla «Ciclo» encadena listado de ciclos → formulario de ciclo → listado de cursos (panel «Cursos») → formulario de curso → listado de módulos (panel «Módulos») → formulario de módulo: seis vistas que alternan grid y formulario, **un solo** fichero de pantalla. La regla de «formulario compartido» sigue valiendo: si distintos puntos de entrada abren el **mismo** formulario, ese formulario es una pantalla compartida con su propio `screen-*.md`.
+
+**CRITICAL — un nodo del árbol es un hijo maestro-detalle, NO un selector de campo.** Acota la regla anterior: «vista alcanzable en línea» se refiere a los **hijos maestro-detalle** (un panel que lista los hijos que *pertenecen* al registro y abre el formulario de cada hijo), no a los selectores de un campo. Distingue:
+
+- **SÍ es un nodo del árbol** — un panel **maestro-detalle**: lista los registros hijos que pertenecen al registro padre y abre el formulario del hijo. En «Ciclo», los paneles «Cursos» y «Módulos» son nodos.
+- **NO es un nodo del árbol** — el **selector de un campo que referencia otra entidad**: el desplegable o popup con el que el usuario **elige** un registro ya existente de *otra* entidad independiente (no lo crea ni lo edita aquí). Esa otra entidad tiene su propia pantalla en otro sitio; en esta solo aparece como **un campo más** de su panel, sin sección `## Vista` propia. En «Ciclo», los campos `familia profesional`, `grado` y `nivel` son selectores → **no** son nodos del árbol, solo campos.
+
+Por eso un `screen-*.md` describe **siempre** sus vistas de la misma forma, haya una o varias: tras `Identidad` y `Menú`, una sección `## Estructura jerárquica de las vistas` con el árbol y luego una sección `## Vista: <Nombre>` por cada vista, cada una con su ficha breve y sus `### Paneles`, `### Botones` y `### Reglas de UI` (ver los ejemplos `screen-mis-solicitudes.md` y `screen-solicitudes-centro.md`). **No hay un formato aparte para el caso de una sola vista:** si la pantalla es un único formulario (un asistente, un formulario de configuración) o un grid suelto, el árbol es un único nodo y hay una sola sección `## Vista` — exactamente la misma estructura.
+
 ## Identidad
 
 - **Quién la usa:** los roles que ven o usan la pantalla y en qué modo cada uno.
-- **Qué muestra:** qué presenta, sobre qué modelo, con qué filtro en lenguaje natural y en qué modo (lectura/edición), incluidas las relaciones maestro-detalle inline si las hay.
+- **Qué muestra:** qué presenta el conjunto, sobre qué modelo(s), con qué filtro en lenguaje natural y en qué modo (lectura/edición), incluidas las relaciones maestro-detalle inline si las hay.
 
 ## Menú
 
-El menú que da entrada a la pantalla: dónde cuelga en la jerarquía y quién lo ve. Si la pantalla no se abre desde un menú sino desde un listado (formulario de detalle), indícalo así.
+El menú que da entrada a la pantalla: dónde cuelga en la jerarquía y quién lo ve. El menú lleva a la **vista de entrada** (la raíz del árbol, normalmente el listado). Si la pantalla no cuelga de ningún menú sino que se abre desde otra pantalla (p. ej. un formulario compartido), indícalo así.
 
-## Paneles
+## Estructura jerárquica de las vistas
 
-Los bloques visibles de la pantalla, uno por viñeta, en lenguaje de negocio: el título del panel en negrita y, tras un `—`, qué campos o contenido agrupa. Para una pantalla que **no** es un formulario de una entidad (p. ej. una gráfica), describe aquí sus **parámetros de entrada** y qué representa, en vez de paneles de campos.
+Siempre presente. Un árbol con las vistas que componen la pantalla y, **entre paréntesis, cómo se llega de cada vista padre a su hija**: al pulsar una fila del listado o con «Nuevo», desde un panel maestro-detalle concreto, al pulsar un botón. La raíz es la vista de entrada. Si la pantalla tiene una sola vista, el árbol es ese único nodo.
 
-**Qué NO va:** nombres técnicos de vista o de campo del framework, atributos XML.
+Recuerda que un panel **maestro-detalle** es a la vez un nodo del árbol (un **listado** de hijos) y un panel de la vista padre: por eso el árbol alterna listado y formulario.
 
-## Botones
+```
+Listado de ciclos
+└── Formulario de ciclo   (se abre al pulsar una fila o con «Nuevo»)
+    └── Listado de cursos   (panel maestro-detalle «Cursos» del formulario de ciclo)
+        └── Formulario de curso   (se abre al pulsar una fila del listado de cursos o con «Añadir»)
+            └── Listado de módulos   (panel maestro-detalle «Módulos» del formulario de curso)
+                └── Formulario de módulo   (se abre al pulsar una fila del listado de módulos o con «Añadir»)
+```
 
-Las acciones disponibles en la pantalla, una por viñeta: la etiqueta del botón en negrita y, tras un `—`, qué acción de negocio dispara y cuándo es visible. Si no hay botones, escribe `*(sin botones)*`.
+## Vista: `<Nombre>`
 
-## Reglas de UI
+Una sección `## Vista: <Nombre>` por cada vista del árbol, en el mismo orden (al menos una). Toda vista empieza por la **misma ficha** y luego trae **solo las subsecciones propias de su tipo**: un **listado** (grid) y un **formulario** no se describen igual — un listado no tiene paneles, y un formulario no tiene columnas. La ficha común:
+
+- **Tipo:** `listado` | `formulario` | `gráfica` | …
+- **Qué muestra:** sobre qué modelo, con qué filtro en lenguaje natural y en qué modo (lectura/edición).
+- **Se abre desde:** cómo se llega a esta vista:
+  - un **formulario** se abre desde su listado: «el listado de cursos, al pulsar una fila o «Añadir»»;
+  - un **listado embebido** (un panel maestro-detalle) no se abre, va dentro de su formulario padre: «embebido como panel «Cursos» en el formulario de ciclo»;
+  - la **raíz** del árbol: «es la vista de entrada de la pantalla».
+
+Tras la ficha, **usa solo las subsecciones del tipo de la vista**, como se detalla a continuación. La subsección `### Reglas de UI` es común a cualquier tipo y va siempre la última.
+
+### Subsecciones de un listado (grid)
+
+Un listado **no tiene paneles**. Lleva una subsección `### Propiedades` con, una por viñeta y en lenguaje de negocio:
+
+- **Columnas (en orden):** los campos que se ven como columnas, en el orden en que aparecen.
+- **Ordenación por defecto:** por qué campo y en qué sentido se ordenan las filas (o «sin orden definido»).
+- **Búsqueda / filtros:** si el usuario puede filtrar la lista y por qué campos (o «no»).
+- **Al pulsar una fila abre:** qué formulario abre el listado (o «no abre detalle»). Es la arista del árbol que sale de este listado.
+- **Mensaje de ayuda (opcional):** un texto de ayuda que el listado muestra al usuario (p. ej. «Aquí se listan todos los ciclos que hay en el sistema»). Solo si lo hay; si no, se omite la viñeta.
+
+Y una subsección `### Botones` con **dos clases** de acción, marcando entre paréntesis cuál es cada una:
+
+- las de la **barra superior** (`Nuevo`, `Añadir…`): crean o añaden registros a la lista;
+- las de **fila/columna** (`Descargar`, `Ver…`): actúan sobre la fila seleccionada.
+
+Si no hay botones, `*(sin botones)*`.
+
+### Subsecciones de un formulario
+
+Un formulario lleva `### Propiedades`, `### Paneles` y `### Botones`.
+
+`### Propiedades`, una viñeta:
+
+- **Modo:** cuándo el formulario es editable y cuándo es de solo lectura (p. ej. «editable en el alta; en detalle, solo lectura»). Si siempre es editable o siempre de solo lectura, dilo.
+- **Mensaje de ayuda (opcional):** un texto de ayuda que el formulario muestra al usuario. Solo si lo hay; si no, se omite la viñeta.
+
+`### Paneles` — los bloques visibles del formulario, uno por viñeta: el **título** del panel en negrita, su **tipo** entre paréntesis y, tras un `—`, qué campos o contenido agrupa, en lenguaje de negocio. Tipos de panel:
+
+- **normal** — campos del propio modelo;
+- **maestro-detalle → «<vista listado hija>»** — lista los hijos que pertenecen al registro y abre su formulario; es a la vez un nodo del árbol;
+- **botonera** — solo botones (que se enumeran igualmente en `### Botones`).
+
+Un campo que **referencia otra entidad** (el usuario elige un registro existente con un selector) se lista como **un campo más** del panel, no como una vista. Por defecto basta con el nombre del campo: el diseño ya sabe con qué vista se elige. **Solo si** hace falta una vista distinta de la por defecto, anótalo entre paréntesis en lenguaje de negocio (p. ej. `nivel (se elige del catálogo de niveles de grado superior)`).
+
+`### Botones` — las acciones del formulario, una por viñeta: la etiqueta en negrita y, tras un `—`, qué acción de negocio dispara y cuándo es visible. Si no hay, `*(sin botones)*`.
+
+### Subsecciones de una gráfica u otra vista no-formulario
+
+Lleva solo `### Propiedades` describiendo sus **parámetros de entrada** y qué **representa** (qué datos agrega y cómo), en vez de paneles.
+
+**Qué NO va (en cualquier tipo):** nombres técnicos de vista, de campo o de acción del framework, atributos XML, dominios JPQL.
+
+### Reglas de UI
 
 **Qué son:** condiciones que cambian el aspecto o el estado de un formulario en función del valor de uno o varios campos, del usuario actual, del registro padre o de un evento (al crear, al cargar, al cambiar un campo). Solo afectan a lo que **ve** y puede editar el usuario en pantalla — **no bloquean operaciones ni modifican el estado del sistema**.
 
-**Cómo se asocian:** a una **pantalla** (formulario), **no** a una entidad — por eso viven en el `screen-*.md`, no en el `entity-*.md`. Cada regla pertenece a la pantalla en cuyo fichero está; si una misma conducta se necesita en otra pantalla, es otra regla de UI con su propio ID en ese otro `screen-*.md`.
+**Cómo se asocian:** a una **vista** (un formulario), **no** a una entidad — por eso viven en el `screen-*.md`, no en el `entity-*.md`, en el `### Reglas de UI` de la vista a la que afectan. Si una misma conducta se necesita en otra vista, es otra regla de UI con su propio ID. La numeración `RUI-NNN` es **global a toda la spec** (no por vista ni por pantalla): el siguiente `RUI-` continúa la cuenta esté en la vista que esté.
 
 **Regla mnemotécnica para distinguirlas:**
 
@@ -356,3 +517,102 @@ Las acciones disponibles en la pantalla, una por viñeta: la etiqueta del botón
   - disparador: al cargar
   - condición: Siempre
   - actor: [ADMIN]
+
+---
+
+## Ejemplo de pantalla de varias vistas
+
+Esqueleto de un `screen-*.md` con seis vistas que **alternan listado y formulario** (maestro-detalle de dos niveles, como `Ciclo.xml`), abreviado. El árbol de «Estructura jerárquica de las vistas» va, en el fichero real, en su propio bloque de código:
+
+````
+# Pantalla: Ciclo
+
+## Identidad
+- **Quién la usa:** Administrador, en edición.
+- **Qué muestra:** el listado de ciclos formativos y, al entrar en uno, su configuración con los cursos y, dentro de cada curso, sus módulos.
+
+## Menú
+- Configuración → Ciclos — lo ve el Administrador; lleva a esta pantalla.
+
+## Estructura jerárquica de las vistas
+Listado de ciclos
+└── Formulario de ciclo   (se abre al pulsar una fila o con «Nuevo»)
+    └── Listado de cursos   (panel maestro-detalle «Cursos» del formulario de ciclo)
+        └── Formulario de curso   (se abre al pulsar una fila del listado de cursos o con «Añadir»)
+            └── Listado de módulos   (panel maestro-detalle «Módulos» del formulario de curso)
+                └── Formulario de módulo   (se abre al pulsar una fila del listado de módulos o con «Añadir»)
+
+## Vista: Listado de ciclos
+- **Tipo:** listado
+- **Qué muestra:** los ciclos formativos, en lectura.
+- **Se abre desde:** es la vista de entrada de la pantalla.
+### Propiedades
+- **Columnas (en orden):** código, nombre, familia profesional
+- **Ordenación por defecto:** por nombre, ascendente
+- **Búsqueda / filtros:** no
+- **Al pulsar una fila abre:** el formulario de ciclo
+- **Mensaje de ayuda (opcional):** «Aquí se listan todos los ciclos que hay en el sistema»
+### Botones
+- **Nuevo ciclo** (barra superior) — Abre el formulario de alta de un ciclo.
+
+## Vista: Formulario de ciclo
+- **Tipo:** formulario
+- **Qué muestra:** los datos del ciclo, en edición.
+- **Se abre desde:** el listado de ciclos, al pulsar una fila o «Nuevo».
+### Propiedades
+- **Modo:** editable.
+### Paneles
+- **Ciclo** (normal) — código, nombre, familia profesional, grado, nivel
+- **Cursos** (maestro-detalle → «Listado de cursos») — los cursos del ciclo
+### Botones
+- **Guardar** — Guarda el ciclo.
+
+## Vista: Listado de cursos
+- **Tipo:** listado
+- **Qué muestra:** los cursos del ciclo, en lectura.
+- **Se abre desde:** embebido como panel «Cursos» en el formulario de ciclo.
+### Propiedades
+- **Columnas (en orden):** código, nombre, ley educativa
+- **Ordenación por defecto:** por nombre, ascendente
+- **Búsqueda / filtros:** no
+- **Al pulsar una fila abre:** el formulario de curso
+### Botones
+- **Añadir un nuevo curso** (barra superior) — Abre el formulario de alta de un curso.
+
+## Vista: Formulario de curso
+- **Tipo:** formulario
+- **Qué muestra:** los datos de un curso del ciclo, en edición.
+- **Se abre desde:** el listado de cursos, al pulsar una fila o «Añadir un nuevo curso».
+### Propiedades
+- **Modo:** editable.
+### Paneles
+- **Curso** (normal) — código, nombre, ley educativa
+- **Módulos** (maestro-detalle → «Listado de módulos») — los módulos del curso
+### Botones
+- **Guardar** — Guarda el curso.
+
+## Vista: Listado de módulos
+- **Tipo:** listado
+- **Qué muestra:** los módulos del curso, en lectura.
+- **Se abre desde:** embebido como panel «Módulos» en el formulario de curso.
+### Propiedades
+- **Columnas (en orden):** módulo
+- **Ordenación por defecto:** por nombre del módulo, ascendente
+- **Búsqueda / filtros:** no
+- **Al pulsar una fila abre:** el formulario de módulo
+### Botones
+- **Añadir un nuevo módulo** (barra superior) — Abre el formulario de alta de un módulo.
+
+## Vista: Formulario de módulo
+- **Tipo:** formulario
+- **Qué muestra:** el módulo asociado al curso, en edición.
+- **Se abre desde:** el listado de módulos, al pulsar una fila o «Añadir un nuevo módulo».
+### Propiedades
+- **Modo:** editable.
+### Paneles
+- **Módulo** (normal) — módulo
+### Botones
+- **Guardar** — Guarda el módulo.
+````
+
+(Los `RUI-NNN`, si los hubiera, se reparten entre los `### Reglas de UI` de cada vista pero comparten la numeración global de la spec.)

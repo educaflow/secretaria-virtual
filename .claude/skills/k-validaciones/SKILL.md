@@ -1,13 +1,13 @@
 ---
 name: k-validaciones
-description: Cómo se IMPLEMENTAN en código Java y XML las restricciones (`RES-`), validaciones (`VAL-`), reglas de negocio (`RN-`), reglas de UI (`RUI-`) y campos calculados (`CC-`) que la especificación (`/sdd-specification-system`) ya definió y clasificó. Cubre las capas (modelo XML del dominio, `validate*` del servicio, `fireActionRule_*`, vista cliente) y dónde vive cada regla. NO documenta cómo se especifican ni clasifican esas reglas — eso es trabajo de la spec.
+description: Cómo se IMPLEMENTAN en código Java y XML las restricciones (`RES-`), validaciones (`VAL-`), reglas de negocio (`RN-`), reglas de UI (`RUI-`) y campos calculados (`CC-`) que la especificación (`/sdd-specification`) ya definió y clasificó. Cubre las capas (modelo XML del dominio, `validate*` del servicio, `fireActionRule_*`, vista cliente) y dónde vive cada regla. NO documenta cómo se especifican ni clasifican esas reglas — eso es trabajo de la spec.
 ---
 
 # k-validaciones
 
-Las restricciones, validaciones, reglas de negocio, reglas de UI y campos calculados de una entidad se **definen y clasifican en la especificación** (`/sdd-specification-system`), cada una con su identificador estable (`RES-`/`VAL-`/`RN-`/`RUI-`/`CC-`). Este skill describe **únicamente cómo se materializan en código y XML**: en qué capa vive cada tipo y con qué mecanismo. Lo cargan los skills `sdd-*` y `code-*` al implementar.
+Las restricciones, validaciones, reglas de negocio, reglas de UI y campos calculados de una entidad se **definen y clasifican en la especificación** (`/sdd-specification`), cada una con su identificador estable (`RES-`/`VAL-`/`RN-`/`RUI-`/`CC-`). Este skill describe **únicamente cómo se materializan en código y XML**: en qué capa vive cada tipo y con qué mecanismo. Lo cargan los skills `sdd-*` y `code-*` al implementar.
 
-**MUST NOT** reabrir aquí qué es cada tipo, cómo se distinguen ni cómo se documentan: para eso, la spec y su guía `sdd-specification-system/template/explain.md`.
+**MUST NOT** reabrir aquí qué es cada tipo, cómo se distinguen ni cómo se documentan: para eso, la spec y su guía `sdd-specification/template/README.md`.
 
 ---
 

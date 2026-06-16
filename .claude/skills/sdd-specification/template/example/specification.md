@@ -52,18 +52,17 @@ Permitir que los alumnos soliciten certificados académicos a su centro y que la
 | Fichero | Modelo | Qué representa |
 |---|---|---|
 | [entity-SolicitudCertificado.md](./entity-SolicitudCertificado.md) | SolicitudCertificado | Petición de un alumno para obtener un certificado académico, con su ciclo de resolución. |
+| [entity-AdjuntoSolicitud.md](./entity-AdjuntoSolicitud.md) | AdjuntoSolicitud | Documento que el alumno aporta junto a una solicitud de certificado. |
 | [entity-TipoCertificado.md](./entity-TipoCertificado.md) | TipoCertificado | Catálogo de certificados que el centro puede emitir. |
 
-Una SolicitudCertificado referencia un único TipoCertificado del catálogo. El catálogo de tipos existe con independencia de las solicitudes.
+Una SolicitudCertificado referencia un único TipoCertificado del catálogo. El catálogo de tipos existe con independencia de las solicitudes. Una SolicitudCertificado contiene cero o varios AdjuntoSolicitud (composición: los adjuntos se borran al borrar la solicitud).
 
 # Pantallas
 
 | Fichero | Pantalla | Para qué sirve |
 |---|---|---|
-| [screen-mis-solicitudes.md](./screen-mis-solicitudes.md) | Listado de mis solicitudes | Listado del alumno con sus propias solicitudes y su estado; entrada al alta. |
-| [screen-formulario-solicitud.md](./screen-formulario-solicitud.md) | Formulario de solicitud (alumno) | Alta de una solicitud eligiendo el tipo de certificado. |
-| [screen-solicitudes-centro.md](./screen-solicitudes-centro.md) | Listado de solicitudes del centro | Solicitudes del centro del usuario conectado, filtrables por estado. |
-| [screen-formulario-resolucion.md](./screen-formulario-resolucion.md) | Formulario de resolución (secretaría) | Detalle de una solicitud con las acciones Emitir y Rechazar. |
+| [screen-mis-solicitudes.md](./screen-mis-solicitudes.md) | Mis certificados (alumno) | Listado del alumno con sus solicitudes y el formulario de alta/detalle de una solicitud. |
+| [screen-solicitudes-centro.md](./screen-solicitudes-centro.md) | Solicitudes del centro (secretaría) | Listado de las solicitudes del centro y el formulario de resolución (Emitir/Rechazar). |
 
 # Seguridad
 

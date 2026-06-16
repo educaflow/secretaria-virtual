@@ -6,6 +6,7 @@ Petición de un alumno para obtener un certificado académico de su centro. Tien
 
 - **alumno solicitante** — el alumno que pide el certificado
 - **tipo de certificado** — el tipo elegido del catálogo
+- **documentos adjuntos** — los ficheros que el alumno aporta junto a la solicitud
 - **fecha de solicitud** — cuándo se registró la solicitud
 - **estado** — situación de la solicitud (sus valores, en «Estados y transiciones»)
 - **motivo de rechazo** — explicación cuando se rechaza
@@ -33,7 +34,7 @@ Petición de un alumno para obtener un certificado académico de su centro. Tien
 
 ## Acción: Crear
 
-**Input AllowProperties:** tipo de certificado
+**Input AllowProperties:** tipo de certificado, documentos adjuntos
 
 **Validaciones:**
 

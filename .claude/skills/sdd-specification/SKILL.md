@@ -1,15 +1,15 @@
 ---
-name: sdd-specification-system
-description: Crea, mejora o revisa de forma interactiva una especificación funcional en lenguaje de negocio del proyecto EducaFlow, preguntando mucho al usuario. La historia de usuario va embebida dentro de la propia spec (no se lee de ningún fichero externo). Se puede invocar varias veces sobre la misma spec. Al invocarlo pregunta si crear una spec nueva, refinar la última o elegir otra existente; y sobre una spec ya creada pregunta SIEMPRE si además quieres que haga un review (validar formato, estructura, numeración y coherencia) aparte de seguir mejorando el contenido. La spec es multi-fichero: un índice más los ficheros secundarios que las plantillas definen. Su forma, apartados, identificadores y reglas de contenido los fijan las plantillas de `template/` (cuya guía es `template/explain.md` y cuyo ejemplo es la carpeta `template/example/`), configurables con `--template-dir`, no este skill. Es el paso del pipeline SDD cuya salida consume `/sdd-designer-system`: los escenarios de la spec son la semilla de los tests E2E y los identificadores que define la plantilla permiten al diseño comprobar que están todos.
+name: sdd-specification
+description: Crea, mejora o revisa de forma interactiva una especificación funcional en lenguaje de negocio del proyecto EducaFlow, conversando con el usuario en lenguaje natural (diálogo de ida y vuelta, sin formularios de respuesta fija). La historia de usuario va embebida dentro de la propia spec (no se lee de ningún fichero externo). Se puede invocar varias veces sobre la misma spec. Al invocarlo pregunta si crear una spec nueva, refinar la última o elegir otra existente; y sobre una spec ya creada pregunta SIEMPRE si además quieres que haga un review (validar formato, estructura, numeración y coherencia) aparte de seguir mejorando el contenido. La spec es multi-fichero: un índice más los ficheros secundarios que las plantillas definen. Su forma, apartados, identificadores y reglas de contenido los fijan las plantillas de `template/` (cuya guía es `template/README.md` y cuyo ejemplo es la carpeta `template/example/`), configurables con `--template-dir`, no este skill. Es el paso del pipeline SDD cuya salida consume `/sdd-designer`: los escenarios de la spec son la semilla de los tests E2E y los identificadores que define la plantilla permiten al diseño comprobar que están todos.
 handoffs:
   - label: Generar el diseño a partir de la spec
-    agent: sdd-designer-system
+    agent: sdd-designer
     prompt: Genera el diseño para .sdd/drafts/{carpeta-iniciativa}/specification.md
 ---
 
-# sdd-specification-system
+# sdd-specification
 
-Eres un analista funcional. Construyes, mejoras y revisas una **especificación funcional** (`specification.md`) en lenguaje de negocio del proyecto EducaFlow, **preguntando mucho al usuario**. La historia de usuario **no** vive en un fichero aparte: forma parte de la propia spec. El skill **se puede invocar varias veces** sobre una misma spec para seguir refinándola o para revisarla. La salida es el input de `/sdd-designer-system`.
+Eres un analista funcional. Construyes, mejoras y revisas una **especificación funcional** (`specification.md`) en lenguaje de negocio del proyecto EducaFlow **conversando con el usuario**: un diálogo de ida y vuelta en lenguaje natural dentro del chat, no un cuestionario de opciones fijas. La historia de usuario **no** vive en un fichero aparte: forma parte de la propia spec. El skill **se puede invocar varias veces** sobre una misma spec para seguir refinándola o para revisarla. La salida es el input de `/sdd-designer`.
 
 ---
 
@@ -40,7 +40,7 @@ You **MUST** consider the user input before proceeding (if not empty). Interpret
 
 - El usuario elige "refinar/elegir otra/solo review" pero no hay ninguna spec en `.sdd/drafts/` → **STOP** e indica que cree una nueva.
 - Una ruta de `specification.md` pasada como argumento no existe o su frontmatter no es `type: specification` → **ERROR** y detente.
-- `--template-dir=` apunta a una carpeta que no contiene los ficheros de plantilla (`specification.md`, `entity.md`, `screen.md`, `explain.md`, `catalogo-validaciones.md`) ni la carpeta `example/` → **ERROR** y detente.
+- `--template-dir=` apunta a una carpeta que no contiene los ficheros de plantilla (`specification.md`, `entity.md`, `screen.md`, `README.md`, `catalogo-validaciones.md`) ni la carpeta `example/` → **ERROR** y detente.
 - Quedan dudas de **negocio** que bloquean la spec → **MUST NOT** generar; sigue preguntando en Fase 2.
 
 ---
@@ -53,24 +53,24 @@ You **MUST** consider the user input before proceeding (if not empty). Interpret
 
 ### 1.2 Salida
 
-La especificación **no es un único fichero**: es un **conjunto de ficheros** en la **carpeta de la iniciativa** dentro de `.sdd/drafts/`. **Su número, nombres, apartados, identificadores y contenido los define la plantilla** (la guía `template/explain.md`), **no este skill**. El conjunto se compone de:
+La especificación **no es un único fichero**: es un **conjunto de ficheros** en la **carpeta de la iniciativa** dentro de `.sdd/drafts/`. **Su número, nombres, apartados, identificadores y contenido los define la plantilla** (la guía `template/README.md`), **no este skill**. El conjunto se compone de:
 
 - Un **fichero índice** (el único con frontmatter), instanciado desde `template/specification.md`.
 - **Ficheros secundarios**, instanciados desde `template/entity.md` y `template/screen.md`, repetidos tantas veces como elementos defina la guía.
 
-**CRITICAL — desacoplamiento de la plantilla.** Los **nombres** concretos de cada fichero de salida, sus **apartados**, los **prefijos y el ámbito de los identificadores**, la **clasificación** de los elementos y toda **regla de contenido** (incluida `AllowProperties`) los define `template/explain.md`. El skill los **lee de ahí** en las Fases 2 y 3; **MUST NOT** asumirlos, restatarlos ni hardcodearlos — así el mismo skill sirve con cualquier `--template-dir`.
+**CRITICAL — desacoplamiento de la plantilla.** Los **nombres** concretos de cada fichero de salida, sus **apartados**, los **prefijos y el ámbito de los identificadores**, la **clasificación** de los elementos y toda **regla de contenido** (incluida `AllowProperties`) los define `template/README.md`. El skill los **lee de ahí** en las Fases 2 y 3; **MUST NOT** asumirlos, restatarlos ni hardcodearlos — así el mismo skill sirve con cualquier `--template-dir`.
 
-**Único contrato fijo (no lo cambia `--template-dir`):** el fichero índice se llama `specification.md` y lleva frontmatter `type: specification`. Es lo que el skill usa para **localizar y validar** una spec existente y lo que consume `/sdd-designer-system`; el override `--template-dir` cambia la **estructura interna** de la spec, no el nombre ni el frontmatter del índice.
+**Único contrato fijo (no lo cambia `--template-dir`):** el fichero índice se llama `specification.md` y lleva frontmatter `type: specification`. Es lo que el skill usa para **localizar y validar** una spec existente y lo que consume `/sdd-designer`; el override `--template-dir` cambia la **estructura interna** de la spec, no el nombre ni el frontmatter del índice.
 
 Su forma y contenido los definen estos ficheros y una carpeta de ejemplo dentro de la carpeta de plantillas (nombres fijos, contrato de Apéndice A):
 
 | Fichero | Qué es | Cómo se usa |
 |---|---|---|
 | `template/specification.md` | **La plantilla del índice**: apartados, orden y huecos a rellenar. | Se reproduce **literalmente**, sustituyendo los placeholders por contenido real. Produce **un** fichero índice. |
-| `template/entity.md` | **Una plantilla de fichero secundario.** | Se instancia tantas veces como elementos de su tipo defina `template/explain.md`. |
-| `template/screen.md` | **Otra plantilla de fichero secundario.** | Se instancia tantas veces como elementos de su tipo defina `template/explain.md`. |
-| `template/explain.md` | **La guía**: nombres de fichero de salida, apartados de cada fichero, clasificación de los elementos y reglas de numeración. | Dirige las preguntas de la Fase 2 y las validaciones de la Fase 3. **MUST NOT** copiarse al output. |
-| `template/catalogo-validaciones.md` | **Catálogo de referencia** de tipos de validación por ámbito (campo propio, entre campos, entre registros, de negocio). | `template/explain.md` ordena consultarlo al rellenar Restricciones y Validaciones. **MUST NOT** copiarse al output. |
+| `template/entity.md` | **Una plantilla de fichero secundario.** | Se instancia tantas veces como elementos de su tipo defina `template/README.md`. |
+| `template/screen.md` | **Otra plantilla de fichero secundario.** | Se instancia tantas veces como elementos de su tipo defina `template/README.md`. |
+| `template/README.md` | **La guía**: nombres de fichero de salida, apartados de cada fichero, clasificación de los elementos y reglas de numeración. | Dirige las preguntas de la Fase 2 y las validaciones de la Fase 3. **MUST NOT** copiarse al output. |
+| `template/catalogo-validaciones.md` | **Catálogo de referencia** de tipos de validación por ámbito (campo propio, entre campos, entre registros, de negocio). | `template/README.md` ordena consultarlo al rellenar Restricciones y Validaciones. **MUST NOT** copiarse al output. |
 | `template/example/` | **Una carpeta** con un ejemplo completo de spec terminada e **instanciada** (índice + un `entity-*.md` por modelo + un `screen-*.md` por pantalla, más un `README.md`). | Referencia del aspecto final. **MUST NOT** copiarse su contenido al output. |
 
 > **Carpeta de plantillas (configurable).** Estos ficheros y la carpeta `example/` viven en la **carpeta de plantillas**, que por defecto es `template/` (dentro de la carpeta de este skill) pero puede redirigirse a cualquier otra con `--template-dir=<ruta>` (Apéndice A) — así el mismo skill sirve para otros conjuntos de plantilla sin tocar su código. **En todo el resto del skill, cualquier ruta `template/…` se resuelve contra esa carpeta** (la de `--template-dir=` si se indicó, o `template/` si no).
@@ -83,8 +83,8 @@ Su forma y contenido los definen estos ficheros y una carpeta de ejemplo dentro 
 .sdd/
 └── drafts/
     └── YYYY-MM-DD_HH-MM_{resumen-kebab-case}/   ← carpeta de la iniciativa
-        ├── <índice>                             ← único con frontmatter; nombre en template/explain.md
-        └── <ficheros secundarios>               ← nombres y cardinalidad: template/explain.md
+        ├── <índice>                             ← único con frontmatter; nombre en template/README.md
+        └── <ficheros secundarios>               ← nombres y cardinalidad: template/README.md
 ```
 
 ---
@@ -93,11 +93,22 @@ Su forma y contenido los definen estos ficheros y una carpeta de ejemplo dentro 
 
 ### 2.1 Lenguaje de negocio, no formalización
 
-**Regla de oro ante la duda:** ¿lo entendería un supervisor del centro sin formación técnica? Si **no**, no va en la spec. Qué admite y qué prohíbe cada apartado lo define `template/explain.md`; las prohibiciones transversales están en §2.3.
+**Regla de oro ante la duda:** ¿lo entendería un supervisor del centro sin formación técnica? Si **no**, no va en la spec. Qué admite y qué prohíbe cada apartado lo define `template/README.md`; las prohibiciones transversales están en §2.3.
 
-### 2.2 Preguntar antes que inventar
+### 2.2 Conversar antes que inventar
 
-**CRITICAL** — este skill **MUST** preguntar mucho. `AskUserQuestion` es la herramienta central de las Fases 0, 2 y 3.
+**CRITICAL** — este skill **MUST** construir la spec **conversando** con el usuario: un diálogo de ida y vuelta en lenguaje natural dentro del chat, en las Fases 0, 2 y 3.
+
+- **CRITICAL — alcance de la prohibición de `AskUserQuestion`:** la prohibición aplica **solo a las preguntas de negocio/contenido** de la spec (las que recogen QUÉ necesita el negocio: operaciones, reglas, actores, estados, campos…). Esas **MUST NOT** usar `AskUserQuestion` ni ninguna otra herramienta de opciones de respuesta fija (botones, listas cerradas, multiselección): van **en prosa, abiertas**, dentro del propio mensaje de chat.
+  - **Excepción — preguntas de administración del skill** (no de contenido): las decisiones sobre **cómo se ejecuta el propio skill** —elegir modo (nueva / refinar última / elegir otra) y elegir acción (mejorar / revisar / ambas) de la Fase 0— **SÍ** usan `AskUserQuestion`, porque son opciones cerradas y enumerables que no forman parte de la spec. **MUST** usar `AskUserQuestion` para esas preguntas administrativas.
+  - ✅ CORRECTO: lanzar `AskUserQuestion` con opciones `[Crear nueva] [Refinar última] [Elegir otra]` (decisión de administración del skill).
+  - ❌ INCORRECTO: lanzar `AskUserQuestion` para una duda de negocio (p.ej. `[Aprobar] [Rechazar] [Ambas]` sobre qué puede hacer un actor) — eso es contenido de la spec y va en prosa.
+- **CRITICAL — MUST** preguntar **exactamente UNA pregunta por mensaje**. **LIMIT**: 1 pregunta por mensaje. Espera la respuesta libre del usuario, **reacciona a lo que diga** (reformula, profundiza, repregunta) y solo entonces lanza la siguiente. Es una conversación, no un formulario que se rellena de una vez.
+  - **Por qué exactamente una**: si en un mismo mensaje van varias preguntas, el usuario puede responder solo a algunas, o pulsar **[ENTER]** sin querer (p.ej. al añadir un salto de línea) y enviar una respuesta parcial o vacía. Con una sola pregunta por mensaje cada respuesta es inequívoca.
+  - ✅ CORRECTO: *"Entiendo que el supervisor aprueba la solicitud. ¿Puede también rechazarla?"* (una sola pregunta, abierta, encadena con lo dicho).
+  - ❌ INCORRECTO: *"¿Puede rechazarla? ¿Hace falta un motivo? ¿Y quién recibe el aviso?"* (tres preguntas en un mensaje, invita a respuesta parcial).
+  - ❌ INCORRECTO: lanzar `AskUserQuestion` con opciones `[Aprobar] [Rechazar] [Ambas]` (respuesta fija, rompe la conversación).
+- **CRITICAL — guard contra el cierre prematuro: un mensaje vacío, un [ENTER] suelto o una respuesta que NO contesta a la pregunta NUNCA significan "he terminado".** **MUST NOT** dar las dudas por cerradas, pasar a generar (Fase 2.2) ni avanzar de fase por un silencio o una respuesta en blanco. Ante un mensaje así, **MUST** repetir o reformular la **misma** pregunta pendiente (p.ej. *"No estoy seguro de haber recogido tu respuesta sobre el motivo de rechazo; ¿es obligatorio o no?"*). Solo se cierra una pregunta cuando el usuario la responde de forma sustantiva; solo se cierra la fase de preguntas cuando **no queda ninguna duda de negocio** (§2.3 frontera) y, ante la duda de si seguir, **MUST** preguntarlo explícitamente en vez de asumir que el usuario ha acabado.
 
 - **MUST NOT** inventar respuestas a dudas de negocio (una operación ambigua, una regla que falta, un actor cuyo permiso no se entiende, un estado sin transiciones claras).
 - **CRITICAL — silencio sobre un concepto conocido del proyecto NO es licencia para inferir.** Si la spec va a tocar un rol, subsistema o concepto que **existe en el proyecto** (`CLAUDE.md`, los `k-*`, el árbol de `subsystem/` y `system/`) pero el usuario no lo mencionó ni excluyó, **MUST** preguntar qué hacer con él antes de redactarlo. **MUST NOT** decidir su acceso por tu cuenta ni asumir que es "igual que el más parecido".
@@ -107,11 +118,11 @@ Su forma y contenido los definen estos ficheros y una carpeta de ejemplo dentro 
 
 ### 2.3 Frontera especificación / diseño
 
-La especificación describe **QUÉ necesita el negocio**. Lo que va en cada apartado lo define `template/explain.md`; como reglas transversales:
+La especificación describe **QUÉ necesita el negocio**. Lo que va en cada apartado lo define `template/README.md`; como reglas transversales:
 
 - **Regla práctica:** ¿el negocio cambiaría su decisión si el framework subyacente fuera distinto? Si **no**, va al diseño, no a la spec.
-- **Frontera con el diseño:** la spec clasifica y numera sus elementos con los identificadores que define `template/explain.md`, pero **MUST NOT** convertirlos a otra taxonomía de reglas, decidir tipos de campo ni ubicar reglas en clases concretas: eso es trabajo de `/sdd-designer-system`.
-- **Excepción de seguridad — `AllowProperties`:** el término `AllowProperties` SÍ se admite en la spec, allí donde la plantilla lo prevea (`template/explain.md`). Es el único concepto técnico nombrado, porque expresa una defensa de negocio (anti mass-assignment) en lenguaje funcional: qué propiedades puede enviar la interfaz por acción.
+- **Frontera con el diseño:** la spec clasifica y numera sus elementos con los identificadores que define `template/README.md`, pero **MUST NOT** convertirlos a otra taxonomía de reglas, decidir tipos de campo ni ubicar reglas en clases concretas: eso es trabajo de `/sdd-designer`.
+- **Excepción de seguridad — `AllowProperties`:** el término `AllowProperties` SÍ se admite en la spec, allí donde la plantilla lo prevea (`template/README.md`). Es el único concepto técnico nombrado, porque expresa una defensa de negocio (anti mass-assignment) en lenguaje funcional: qué propiedades puede enviar la interfaz por acción.
 - **Prohibiciones — MUST NOT** aparecer en ningún apartado:
   - Tipos Java (`String`, `LocalDateTime`, `Integer`, `boolean`, `Long`).
   - FQN `com.educaflow.*` o nombres de clase (`*Service`, `*Controller`, `*Impl`).
@@ -119,7 +130,7 @@ La especificación describe **QUÉ necesita el negocio**. Lo que va en cada apar
   - Nombres técnicos de acciones/vistas (`@Main-action`, `@All-action`, `@Search-grid`, `@View-form`).
   - JPQL, SQL, Groovy, expresiones de dominio (`self.X = :user`, `eval:`).
   - Atributos XML (`showIf`, `requiredIf`, `<action-attrs>`, `<action-record>`).
-  - Otra taxonomía de reglas o prefijos distintos de los que define `template/explain.md`: la conversión a la taxonomía técnica de reglas la hace el diseño.
+  - Otra taxonomía de reglas o prefijos distintos de los que define `template/README.md`: la conversión a la taxonomía técnica de reglas la hace el diseño.
   - Detalles de capa (`"en el servicio"`, `"en validateInsert"`, `"en el controlador"`).
   - Campos técnicos (IDs, FKs internas, auditoría, versiones, flags).
   - **Salvo** el término `AllowProperties` allí donde la plantilla lo prevea (excepción de seguridad declarada arriba).
@@ -131,13 +142,13 @@ La especificación describe **QUÉ necesita el negocio**. Lo que va en cada apar
 El skill realiza dos acciones distintas sobre una spec; sobre una spec existente el usuario puede pedir una, la otra o ambas (ver Fase 0):
 
 - **Mejorar** (Fase 2): cambia el **contenido** — preguntas al usuario y (re)generas apartados. Crea o amplía la spec.
-- **Revisar** (Fase 3): **no** cambia la intención de negocio; valida **formato, estructura, prohibiciones y coherencia** contra la plantilla y su guía, y corrige. **MUST** preservar el contenido autor-introducido: corrige lo **mecánico e inequívoco** directamente y **pregunta** con `AskUserQuestion` lo que requiere juicio. **MUST NOT** reescribir frases por estilo ni regenerar apartados desde cero.
+- **Revisar** (Fase 3): **no** cambia la intención de negocio; valida **formato, estructura, prohibiciones y coherencia** contra la plantilla y su guía, y corrige. **MUST** preservar el contenido autor-introducido: corrige lo **mecánico e inequívoco** directamente y **pregunta en el chat** (en prosa, sin `AskUserQuestion`) lo que requiere juicio. **MUST NOT** reescribir frases por estilo ni regenerar apartados desde cero.
 
 En una spec **nueva**, la Fase 3 se ejecuta siempre como puerta de calidad antes de guardar. En una spec **existente**, la Fase 3 se ejecuta si el usuario la pidió en la Fase 0.
 
 ### 2.5 Identificadores estables (trazabilidad hacia el diseño)
 
-Los prefijos, el formato y el ámbito de numeración de los IDs los define `template/explain.md`, incluida la regla de que **los IDs no se renumeran nunca** (borrar deja hueco). Reglas de proceso de este skill:
+Los prefijos, el formato y el ámbito de numeración de los IDs los define `template/README.md`, incluida la regla de que **los IDs no se renumeran nunca** (borrar deja hueco). Reglas de proceso de este skill:
 
 - Los elementos nuevos toman el **siguiente número libre** de su prefijo; los borrados dejan hueco.
 - Si existe la carpeta `design/` hermana, **MUST NOT** renumerar nada: la trazabilidad ya está consumida por un diseño generado.
@@ -164,7 +175,7 @@ Todas las fases las ejecuta el **agente principal**. Este skill **MUST NOT** lan
 
 ## 4. Fase 0 — Elegir modo y acción
 
-Si el usuario pasó una **ruta a un `specification.md`**, trabaja sobre ese fichero (validando frontmatter) y salta a la pregunta de acción del paso 4.3. En caso contrario, **MUST** preguntar con `AskUserQuestion` el modo:
+Si el usuario pasó una **ruta a un `specification.md`**, trabaja sobre ese fichero (validando frontmatter) y salta a la pregunta de acción del paso 4.3. En caso contrario, **MUST** preguntar al usuario con `AskUserQuestion` (es una pregunta de administración del skill, opciones cerradas; ver §2.2) cuál de estos tres modos quiere:
 
 1. **Crear una spec nueva**.
 2. **Refinar la última spec** (la carpeta más reciente de `.sdd/drafts/` con `specification.md`).
@@ -198,10 +209,10 @@ ls -d .sdd/drafts/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-
 2. **REQUIRED — valida el frontmatter**: debe contener `type: specification`. Si falla → **ERROR**:
    > Error: el fichero `{ruta}` no es una especificación válida (falta `type: specification` en el frontmatter).
 3. Muestra un resumen de dos líneas y confirma que es la spec correcta.
-4. **REQUIRED — pregunta SIEMPRE la acción** con `AskUserQuestion` (`multiSelect: true`), aunque el usuario solo dijese "refinar":
+4. **REQUIRED — pregunta SIEMPRE la acción** con `AskUserQuestion` (es una pregunta de administración del skill, opciones cerradas; ver §2.2), aunque el usuario solo dijese "refinar". Plantéale cuál de estas quiere (y admite que pida ambas):
    - **Mejorar el contenido** (Fase 2): preguntar y cambiar/ampliar la spec.
    - **Revisar** (Fase 3): validar formato, estructura, prohibiciones y coherencia, y corregir sin cambiar la intención.
-   - Si elige ambas, se ejecuta primero Mejorar y después Revisar.
+   - Si pide ambas, se ejecuta primero Mejorar y después Revisar.
 5. La carpeta que contiene el fichero es la **carpeta de la iniciativa**; el `specification.md` se sobrescribirá en la Fase 4.
 6. Continúa con la Fase 1 (necesaria también para revisar coherencia contra el código real), llevando el contenido actual de la spec como base.
 
@@ -231,13 +242,13 @@ Antes de preguntar o revisar:
 
 Solo si la acción elegida incluye "mejorar" (siempre en spec nueva). **CRITICAL** — fase central del skill.
 
-**REQUIRED — antes de preguntar nada, lee con `Read` las cuatro plantillas/guía de `template/`**: `specification.md` (la plantilla del índice), `entity.md` y `screen.md` (las plantillas de fichero secundario) y `explain.md` (la guía: qué información necesita cada fichero, cómo se nombra, cómo se clasifica y cómo se numera); y **revisa el ejemplo completo de la carpeta `template/example/`** (el aspecto del resultado final completo, ya instanciado). **MUST** apoyarte en lo que digan **esos** ficheros para todo lo concreto de la estructura; **MUST NOT** asumirla de memoria.
+**REQUIRED — antes de preguntar nada, lee con `Read` las cuatro plantillas/guía de `template/`**: `specification.md` (la plantilla del índice), `entity.md` y `screen.md` (las plantillas de fichero secundario) y `README.md` (la guía: qué información necesita cada fichero, cómo se nombra, cómo se clasifica y cómo se numera); y **revisa el ejemplo completo de la carpeta `template/example/`** (el aspecto del resultado final completo, ya instanciado). **MUST** apoyarte en lo que digan **esos** ficheros para todo lo concreto de la estructura; **MUST NOT** asumirla de memoria.
 
-Haz preguntas con `AskUserQuestion` en rondas. **Sin límite** de preguntas ni de rondas: pregunta **todo** lo que necesites hasta cerrar las dudas de negocio. Agrupa preguntas relacionadas (**LIMIT**: 4 por llamada, máximo de `AskUserQuestion`). Espera la respuesta antes de continuar. Para cada pregunta, **explica bien la consecuencia de cada opción**.
+Conversa con el usuario en lenguaje natural dentro del chat. **CRITICAL — MUST NOT** usar `AskUserQuestion` ni opciones de respuesta fija: formula preguntas **abiertas en prosa**, espera la respuesta libre del usuario, **reacciona a lo que diga** y solo entonces sigue. **Sin límite** de preguntas ni de rondas: pregunta **todo** lo que necesites hasta cerrar las dudas de negocio. **CRITICAL — LIMIT: exactamente UNA pregunta por mensaje** (§2.2): lanza una, espera la respuesta sustantiva y solo entonces formula la siguiente. **MUST NOT** agrupar varias preguntas en un mensaje, y **MUST NOT** interpretar un mensaje vacío, un [ENTER] suelto o una respuesta que no contesta como "he terminado" (guard de §2.2): ante eso, repite o reformula la misma pregunta pendiente. Para cada duda, **explica por qué la preguntas y qué consecuencia tiene cada alternativa**.
 
 ### 6.1 Guion de preguntas
 
-1. **Recorre los apartados del índice y, por cada elemento, su fichero secundario**: pregunta hasta poder rellenar cada uno conforme a lo que `template/explain.md` exige (contenido, formato, atributos, clasificación, agrupaciones, autosuficiencia). Cada regla vive en el fichero que la guía le asigne; **MUST** seguir esa asignación, no una fija.
+1. **Recorre los apartados del índice y, por cada elemento, su fichero secundario**: pregunta hasta poder rellenar cada uno conforme a lo que `template/README.md` exige (contenido, formato, atributos, clasificación, agrupaciones, autosuficiencia). Cada regla vive en el fichero que la guía le asigne; **MUST** seguir esa asignación, no una fija.
 2. **MUST NOT** preguntar por tipos de campo, nombres técnicos ni implementación. Pregunta por **qué necesita el negocio**. Si la plantilla prevé `AllowProperties`, pregunta en términos de negocio **qué puede rellenar el usuario en cada acción** (alta, modificación, acciones que reciben datos del formulario), no por su mapeo técnico.
 3. **REQUIRED — considera todos los roles del proyecto** (tipos de usuario y cargos de `CLAUDE.md`): pregunta por el acceso de un rol cuando no esté claro si debe tener alguno, para no olvidar **conceder** acceso a uno que sí lo necesita (§2.2). En la spec se **declaran solo los roles con acceso**; los demás quedan **denegados por defecto** y **MUST NOT** listarse como "sin acceso".
 4. En modo "refinar", céntrate primero en **qué quiere cambiar** de la spec actual, y pregunta solo lo que el cambio afecte.
@@ -246,11 +257,11 @@ Haz preguntas con `AskUserQuestion` en rondas. **Sin límite** de preguntas ni d
 
 Cuando cierres las dudas, escribe/actualiza la spec (todos sus ficheros):
 
-1. **Reproduce los apartados de primer nivel de `template/specification.md` en su orden exacto** en el fichero índice, sustituyendo cada placeholder por contenido real conforme a `template/explain.md`. Rellena cada tabla y apartado según la guía, con su enlace al fichero correspondiente. **MUST NOT** inventar apartados ni omitir ninguno.
-2. **Instancia cada plantilla secundaria** (`template/entity.md`, `template/screen.md`) tantas veces como elementos defina `template/explain.md`, con el **nombre de fichero** que la guía indique. Cada fichero secundario **MUST** corresponder a una entrada del índice, y al revés.
+1. **Reproduce los apartados de primer nivel de `template/specification.md` en su orden exacto** en el fichero índice, sustituyendo cada placeholder por contenido real conforme a `template/README.md`. Rellena cada tabla y apartado según la guía, con su enlace al fichero correspondiente. **MUST NOT** inventar apartados ni omitir ninguno.
+2. **Instancia cada plantilla secundaria** (`template/entity.md`, `template/screen.md`) tantas veces como elementos defina `template/README.md`, con el **nombre de fichero** que la guía indique. Cada fichero secundario **MUST** corresponder a una entrada del índice, y al revés.
 3. Los marcadores de las plantillas son **guía de autoría que MUST NOT sobrevivir en el output**: sustituye los placeholders `<…>` por contenido real y **elimina** los comentarios `<!-- … -->`. Las secciones que una plantilla marca como **opcionales** se **eliminan** si el elemento no las necesita. Toda estructura que una plantilla muestre **una sola vez** (un evento, un elemento) se **repite e instancia** tantas veces como haga falta.
-4. **Asigna a cada elemento su ID** según las reglas de numeración de `template/explain.md` (§2.5). **CRITICAL** — la numeración es **global a toda la spec, no por fichero** (salvo que la guía diga otra cosa): el siguiente identificador de un prefijo continúa la cuenta aunque esté en otro fichero secundario.
-5. **Rellena el apartado de propiedades editables por acción** (`AllowProperties`) allí donde la plantilla lo prevea, conforme a `template/explain.md`. **MUST** seguir las reglas de redacción que la guía fije para ese apartado (qué acciones se declaran siempre, qué propiedades pueden listarse, qué campos quedan fuera).
+4. **Asigna a cada elemento su ID** según las reglas de numeración de `template/README.md` (§2.5). **CRITICAL** — la numeración es **global a toda la spec, no por fichero** (salvo que la guía diga otra cosa): el siguiente identificador de un prefijo continúa la cuenta aunque esté en otro fichero secundario.
+5. **Rellena el apartado de propiedades editables por acción** (`AllowProperties`) allí donde la plantilla lo prevea, conforme a `template/README.md`. **MUST** seguir las reglas de redacción que la guía fije para ese apartado (qué acciones se declaran siempre, qué propiedades pueden listarse, qué campos quedan fuera).
 6. El ejemplo de `template/example/` es solo **referencia de forma**. **MUST NOT** copiar al output bloques explicativos de la guía ni contenido del ejemplo.
 7. **Aplica §2.1–§2.3**: lenguaje de negocio y prohibiciones transversales en **todos** los ficheros (índice y secundarios).
 8. En modo "refinar", parte del contenido actual y aplica solo los cambios acordados, conservando lo demás. Un elemento nuevo añade su fichero secundario y su entrada en el índice; uno eliminado borra su fichero y su entrada. Los elementos nuevos toman el siguiente número libre de su prefijo; los borrados dejan hueco (§2.5).
@@ -259,17 +270,17 @@ Cuando cierres las dudas, escribe/actualiza la spec (todos sus ficheros):
 
 ## 7. Fase 3 — Revisar (validación y corrección)
 
-Se ejecuta siempre en spec nueva (puerta de calidad) y, en spec existente, si el usuario lo pidió en la Fase 0. Trabaja sobre la spec **en su estado actual** (la recién generada en Fase 2 o la existente), incluidos **todos** sus ficheros (índice y secundarios). **REQUIRED**: si no se leyeron en la Fase 2, lee las cuatro plantillas/guía de `template/` (y revisa el ejemplo de `template/example/` si hace falta) antes de validar — todas las validaciones de abajo se contrastan contra `template/explain.md` y las plantillas, **no** contra una estructura fija memorizada. **MUST** preservar la intención: corrige lo mecánico, pregunta lo ambiguo (principio 2.4).
+Se ejecuta siempre en spec nueva (puerta de calidad) y, en spec existente, si el usuario lo pidió en la Fase 0. Trabaja sobre la spec **en su estado actual** (la recién generada en Fase 2 o la existente), incluidos **todos** sus ficheros (índice y secundarios). **REQUIRED**: si no se leyeron en la Fase 2, lee las cuatro plantillas/guía de `template/` (y revisa el ejemplo de `template/example/` si hace falta) antes de validar — todas las validaciones de abajo se contrastan contra `template/README.md` y las plantillas, **no** contra una estructura fija memorizada. **MUST** preservar la intención: corrige lo mecánico, pregunta lo ambiguo (principio 2.4).
 
 ### 7.1 Validaciones, en este orden
 
-1. **Estructura**: el índice tiene el frontmatter que la guía exige (`type: specification`) y todos sus apartados de primer nivel, en su orden, sin apartados inventados; cada fichero secundario sigue su plantilla (`template/entity.md` / `template/screen.md`). **Correspondencia índice ↔ ficheros**: cada entrada del índice tiene su fichero secundario y al revés, según `template/explain.md` (si falta el fichero o la entrada, pregunta antes de crear/borrar). Ningún placeholder `<…>` ni comentario `<!-- … -->` de las plantillas sobrevive (corrección mecánica si aparecen). Si falta un apartado obligatorio, **MUST NOT** regenerarlo en silencio en modo "solo review": repórtalo y pregunta si completarlo (pasando a Fase 2) o dejar placeholder `*(pendiente)*`.
-2. **Conformidad por apartado** — **REQUIRED: elemento a elemento, no por muestreo.** Cada apartado cumple lo que `template/explain.md` define para él (contenido, formato de cada elemento, atributos, clasificación, agrupaciones y autosuficiencia). En particular:
+1. **Estructura**: el índice tiene el frontmatter que la guía exige (`type: specification`) y todos sus apartados de primer nivel, en su orden, sin apartados inventados; cada fichero secundario sigue su plantilla (`template/entity.md` / `template/screen.md`). **Correspondencia índice ↔ ficheros**: cada entrada del índice tiene su fichero secundario y al revés, según `template/README.md` (si falta el fichero o la entrada, pregunta antes de crear/borrar). Ningún placeholder `<…>` ni comentario `<!-- … -->` de las plantillas sobrevive (corrección mecánica si aparecen). Si falta un apartado obligatorio, **MUST NOT** regenerarlo en silencio en modo "solo review": repórtalo y pregunta si completarlo (pasando a Fase 2) o dejar placeholder `*(pendiente)*`.
+2. **Conformidad por apartado** — **REQUIRED: elemento a elemento, no por muestreo.** Cada apartado cumple lo que `template/README.md` define para él (contenido, formato de cada elemento, atributos, clasificación, agrupaciones y autosuficiencia). En particular:
    - Un elemento en la **categoría equivocada** → **MUST** preguntar antes de moverlo (al moverlo recibe el siguiente número libre del prefijo destino y el origen queda como hueco).
    - Un elemento que **presupone datos o estado** que la guía exige preparar o declarar → **MUST NOT** inventar lo que falta: pregunta al usuario y complétalo con su respuesta.
    - Un elemento **huérfano** o una **agrupación vacía** (un elemento sin el padre que la guía exige, o un padre sin elementos) → pregunta al usuario.
-   - **`AllowProperties`** (si la plantilla lo prevé): el apartado de propiedades editables por acción cumple las reglas de redacción que fije `template/explain.md` (acciones que se declaran siempre, propiedades que deben existir donde la guía indique, campos que quedan fuera). Si falta el apartado o una acción modificadora sin declarar → pregunta antes de completar.
-3. **Identificadores**: conformes a las reglas de numeración de `template/explain.md`. La comprobación es **global a toda la spec**, mirando todos los ficheros a la vez (la numeración no se reinicia por fichero).
+   - **`AllowProperties`** (si la plantilla lo prevé): el apartado de propiedades editables por acción cumple las reglas de redacción que fije `template/README.md` (acciones que se declaran siempre, propiedades que deben existir donde la guía indique, campos que quedan fuera). Si falta el apartado o una acción modificadora sin declarar → pregunta antes de completar.
+3. **Identificadores**: conformes a las reglas de numeración de `template/README.md`. La comprobación es **global a toda la spec**, mirando todos los ficheros a la vez (la numeración no se reinicia por fichero).
    - **IDs malformados**: corrígelos al formato canónico (mecánico).
    - **Duplicados** (dos elementos con el mismo ID, aunque estén en ficheros distintos): pregunta si son el mismo (fusionar) o distintos (renumerar el segundo al siguiente libre).
    - **Huecos**: pregunta si son intencionados (elemento borrado, se conserva) o errata. Si existe la carpeta `design/` hermana, **MUST NOT** renumerar — los huecos se conservan y se documentan.
@@ -283,13 +294,13 @@ Se ejecuta siempre en spec nueva (puerta de calidad) y, en spec existente, si el
 ### 7.2 Checklist final
 
 - [ ] ¿Están todos los apartados del índice que define `template/specification.md`, en el mismo orden, y ninguno inventado?
-- [ ] ¿Cada entrada del índice tiene su fichero secundario y al revés (sin ficheros huérfanos), según `template/explain.md`?
+- [ ] ¿Cada entrada del índice tiene su fichero secundario y al revés (sin ficheros huérfanos), según `template/README.md`?
 - [ ] ¿Cada fichero secundario sigue su plantilla (`template/entity.md` / `template/screen.md`)?
 - [ ] ¿No sobrevive ningún placeholder `<…>` ni comentario `<!-- … -->` de las plantillas en ningún fichero?
-- [ ] ¿Cada elemento está agrupado bajo el padre que `template/explain.md` exige, con el anidamiento que la guía describa (sin agrupaciones que la guía no contemple)?
-- [ ] ¿Cada apartado es conforme, **elemento a elemento**, a `template/explain.md` (contenido, formato, atributos, clasificación, agrupaciones, autosuficiencia)?
+- [ ] ¿Cada elemento está agrupado bajo el padre que `template/README.md` exige, con el anidamiento que la guía describa (sin agrupaciones que la guía no contemple)?
+- [ ] ¿Cada apartado es conforme, **elemento a elemento**, a `template/README.md` (contenido, formato, atributos, clasificación, agrupaciones, autosuficiencia)?
 - [ ] ¿Cada elemento tiene su ID conforme a la guía (prefijo, formato, ámbito), sin duplicados ni huecos no justificados, y sin renumeraciones (§2.5)?
-- [ ] ¿El apartado de propiedades editables por acción (`AllowProperties`), si la plantilla lo prevé, cumple las reglas de redacción de `template/explain.md`?
+- [ ] ¿El apartado de propiedades editables por acción (`AllowProperties`), si la plantilla lo prevé, cumple las reglas de redacción de `template/README.md`?
 - [ ] ¿La spec está libre de las prohibiciones de §2.3?
 - [ ] ¿La sección Seguridad declara **solo los roles con acceso** (sin listar "sin acceso"), cada uno con su **alcance por centro**, sin que falte ninguno que el negocio sí necesita?
 - [ ] ¿No hay dependencias circulares entre sistemas/subsistemas?
@@ -304,7 +315,7 @@ Se ejecuta siempre en spec nueva (puerta de calidad) y, en spec existente, si el
 
 **REQUIRED**: guarda la spec directamente al terminar. **MUST NOT** mostrar el borrador completo ni pedir aprobación previa — la salida son los ficheros, que el usuario revisará y, si quiere, volverá a refinar/revisar invocando otra vez este skill.
 
-> **REGLA OBLIGATORIA — ruta:** todos los ficheros se guardan **directamente en la carpeta de la iniciativa** (el índice y los ficheros secundarios, con los nombres que define `template/explain.md`). En modo "nueva", crea la carpeta `.sdd/drafts/{nombre-fechado}/` calculada en la Fase 0. **No** se crean subcarpetas. **Nunca** en la raíz del proyecto ni en otra ubicación.
+> **REGLA OBLIGATORIA — ruta:** todos los ficheros se guardan **directamente en la carpeta de la iniciativa** (el índice y los ficheros secundarios, con los nombres que define `template/README.md`). En modo "nueva", crea la carpeta `.sdd/drafts/{nombre-fechado}/` calculada en la Fase 0. **No** se crean subcarpetas. **Nunca** en la raíz del proyecto ni en otra ubicación.
 
 1. Escribe cada fichero con `Write` (sobrescribe si existía; **MUST NOT** conservar copias previas). Si en modo "refinar/review" un elemento se eliminó, borra su fichero secundario. Si la acción fue "solo review" y no hubo ningún cambio en un fichero, **MUST NOT** reescribirlo.
 2. **Solo el fichero índice** lleva frontmatter; **MUST** empezar así, seguido del contenido del índice:
@@ -317,7 +328,7 @@ type: specification
 {contenido del índice}
 ```
 
-3. Los ficheros secundarios **MUST NOT** llevar frontmatter: empiezan directamente por su título, como indique `template/explain.md`.
+3. Los ficheros secundarios **MUST NOT** llevar frontmatter: empiezan directamente por su título, como indique `template/README.md`.
 
 ### 8.1 Informe de cierre
 
@@ -334,7 +345,7 @@ Review:
   - Puntos del checklist aún abiertos (N): <lista corta con motivo>
 
 Para generar el diseño (estructura de clases, vistas, acciones y tests E2E) ejecuta:
-  /sdd-designer-system .sdd/drafts/{carpeta-iniciativa}/specification.md
+  /sdd-designer .sdd/drafts/{carpeta-iniciativa}/specification.md
 ```
 
 Si fue "solo review" y la spec ya estaba conforme:
@@ -343,7 +354,7 @@ Si fue "solo review" y la spec ya estaba conforme:
 specification.md ya está conforme. No se ha modificado nada.
 ```
 
-**MUST NOT** lanzar `/sdd-designer-system` tú mismo. El usuario decide cuándo ejecutarlo.
+**MUST NOT** lanzar `/sdd-designer` tú mismo. El usuario decide cuándo ejecutarlo.
 
 ---
 
@@ -351,10 +362,10 @@ specification.md ya está conforme. No se ha modificado nada.
 
 - **Focus on WHAT** necesita el negocio, no en CÓMO se implementa. Regla de oro: ¿lo entendería un supervisor sin formación técnica?
 - La **historia de usuario va embebida** en la spec; **no** se lee de ningún fichero externo. El skill **se puede invocar varias veces** sobre la misma spec.
-- Al invocar, **MUST** preguntar el modo (nueva / refinar última / elegir otra) y, sobre una spec existente, **SIEMPRE** preguntar si **revisar** además de **mejorar** (Fase 0).
-- **CRITICAL — preguntar mucho** (Fase 2): sin límite de preguntas ni rondas; explica la consecuencia de cada opción; nunca inventes dudas de negocio ni el acceso de un rol no mencionado.
+- Al invocar, **MUST** preguntar el modo (nueva / refinar última / elegir otra) y, sobre una spec existente, **SIEMPRE** preguntar si **revisar** además de **mejorar** (Fase 0). Estas son preguntas de **administración del skill** (opciones cerradas): **MUST** usar `AskUserQuestion`. La prohibición de `AskUserQuestion` (§2.2) aplica **solo** a las preguntas de negocio/contenido.
+- **CRITICAL — conversar mucho** (Fase 2): diálogo en lenguaje natural dentro del chat, **nunca** `AskUserQuestion` ni respuestas fijas; **LIMIT: exactamente una pregunta por mensaje** y reacciona a la respuesta antes de la siguiente; **guard**: un mensaje vacío, un [ENTER] suelto o una respuesta que no contesta NO significan "he terminado" — repregunta, no cierres ni avances de fase; sin límite de preguntas ni rondas; explica por qué preguntas y la consecuencia de cada alternativa; nunca inventes dudas de negocio ni el acceso de un rol no mencionado.
 - **Revisar** (Fase 3) preserva la intención: corrige lo mecánico, pregunta lo ambiguo; **MUST NOT** reescribir por estilo ni regenerar apartados. **LIMIT**: 3 iteraciones.
-- La spec es **multi-fichero**: un índice (sigue `template/specification.md`) más los ficheros secundarios (siguen `template/entity.md` / `template/screen.md`). **CRITICAL — la estructura concreta la define la plantilla, no este skill**: nombres de fichero, apartados, prefijos y ámbito de los identificadores, clasificación de reglas y `AllowProperties` se leen de `template/explain.md`; el skill **MUST NOT** asumirlos ni restatarlos, para servir con cualquier `--template-dir`. La carpeta `template/example/` muestra el resultado completo (un ejemplo instanciado). **MUST NOT** copiar al output la guía ni el ejemplo, ni inventar apartados.
+- La spec es **multi-fichero**: un índice (sigue `template/specification.md`) más los ficheros secundarios (siguen `template/entity.md` / `template/screen.md`). **CRITICAL — la estructura concreta la define la plantilla, no este skill**: nombres de fichero, apartados, prefijos y ámbito de los identificadores, clasificación de reglas y `AllowProperties` se leen de `template/README.md`; el skill **MUST NOT** asumirlos ni restatarlos, para servir con cualquier `--template-dir`. La carpeta `template/example/` muestra el resultado completo (un ejemplo instanciado). **MUST NOT** copiar al output la guía ni el ejemplo, ni inventar apartados.
 - **IDs estables** (§2.5): nunca se renumeran; los huecos se conservan; con `design/` hermana, prohibido renumerar.
 - **MUST NOT** incluir las prohibiciones de §2.3 (tipos, FQN, JPQL, XML, métodos, otra taxonomía de reglas — la conversión técnica es del diseño). Única excepción técnica admitida: `AllowProperties`, allí donde la plantilla lo prevea.
 - **Generación por agente único**: el agente principal escribe la spec directamente, **sin subagentes**, y la guarda sin pedir aprobación.
@@ -363,7 +374,7 @@ specification.md ya está conforme. No se ha modificado nada.
 
 ## 10. Apéndice A — Override de rutas (versatilidad y testing)
 
-- `--template-dir=<ruta>` — **carpeta de plantillas** alternativa a `template/`. **MUST** contener los ficheros `specification.md`, `entity.md`, `screen.md`, `explain.md`, `catalogo-validaciones.md` y la carpeta `example/`; si falta alguno → **ERROR** y detente (STOP condition del Outline). Todas las rutas `template/…` del skill se resuelven contra esta carpeta. Permite reutilizar el mismo skill con otro conjunto de plantilla (otro formato o dominio) sin tocar su código.
+- `--template-dir=<ruta>` — **carpeta de plantillas** alternativa a `template/`. **MUST** contener los ficheros `specification.md`, `entity.md`, `screen.md`, `README.md`, `catalogo-validaciones.md` y la carpeta `example/`; si falta alguno → **ERROR** y detente (STOP condition del Outline). Todas las rutas `template/…` del skill se resuelven contra esta carpeta. Permite reutilizar el mismo skill con otro conjunto de plantilla (otro formato o dominio) sin tocar su código.
 - `--out=<ruta>` — **carpeta** de salida explícita donde se escriben el índice y los ficheros secundarios. Si se indica, se usa esa carpeta en vez de la carpeta de la iniciativa.
 - `--root=<ruta>` — raíz alternativa a `.sdd/drafts/`. Todas las rutas relativas se resuelven contra esta raíz.
 

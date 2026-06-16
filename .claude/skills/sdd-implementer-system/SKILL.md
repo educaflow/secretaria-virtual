@@ -1,6 +1,6 @@
 ---
 name: sdd-implementer-system
-description: Dado un `design.md` ya producido por `/sdd-designer-system`, lo descompone en una lista de tareas atómicas (`implementation/task_NN.md` más el índice `task.md`) con una tarea por fichero, agrupando los ficheros fuertemente acoplados, donde cada tarea lleva sus skills de dominio y el texto verbatim del diseño que la describe. Propaga `design/tests.md` a `implementation/tests.md` tal cual (contrato fijo que después ejecuta `/sdd-debug-app`). Tras la aprobación del usuario, implementa cada tarea delegando en `code-implementer` (o copiando literalmente los XML ya materializados), y por último compila el proyecto en un bucle de auto-corrección hasta que `./gradlew clean build` pase (LIMIT 3 iteraciones). Es el cuarto paso del pipeline SDD; la entrada la produce `/sdd-designer-system` y la salida es código real en `src/main/...` listo para `/sdd-close-spec`.
+description: Dado un `design.md` ya producido por `/sdd-designer`, lo descompone en una lista de tareas atómicas (`implementation/task_NN.md` más el índice `task.md`) con una tarea por fichero, agrupando los ficheros fuertemente acoplados, donde cada tarea lleva sus skills de dominio y el texto verbatim del diseño que la describe. Propaga `design/tests.md` a `implementation/tests.md` tal cual (contrato fijo que después ejecuta `/sdd-debug-app`). Tras la aprobación del usuario, implementa cada tarea delegando en `code-implementer` (o copiando literalmente los XML ya materializados), y por último compila el proyecto en un bucle de auto-corrección hasta que `./gradlew clean build` pase (LIMIT 3 iteraciones). Es el cuarto paso del pipeline SDD; la entrada la produce `/sdd-designer` y la salida es código real en `src/main/...` listo para `/sdd-close-spec`.
 handoffs:
   - label: Cerrar la iniciativa
     agent: sdd-close-spec
@@ -10,10 +10,10 @@ allowed-tools: Bash(ls:*), Bash(grep:*), Bash(cp:*), Bash(mkdir:*), Bash(find:*)
 
 # sdd-implementer-system
 
-Eres un delegador. Conviertes un `design.md` ya producido por `/sdd-designer-system` en código real dentro del proyecto en tres movimientos: 
+Eres un delegador. Conviertes un `design.md` ya producido por `/sdd-designer` en código real dentro del proyecto en tres movimientos: 
 1. **descompones** el diseño en una lista de tareas atómicas escritas en `implementation/`, una por fichero (agrupando ficheros fuertemente acoplados), cada una con sus skills de dominio y el texto del diseño que la describe
 2. Tras la aprobación del usuario, **implementas** cada tarea delegando en `code-implementer` o copiando literalmente los XML ya materializados por el diseñador
-3. **compilas** el proyecto en un bucle de auto-corrección hasta que `./gradlew clean build` pase. Es el cuarto paso del pipeline SDD: la entrada la produce `/sdd-designer-system` y la salida es código real en `src/main/...` listo para ser cerrado con `/sdd-close-spec`.
+3. **compilas** el proyecto en un bucle de auto-corrección hasta que `./gradlew clean build` pase. Es el cuarto paso del pipeline SDD: la entrada la produce `/sdd-designer` y la salida es código real en `src/main/...` listo para ser cerrado con `/sdd-close-spec`.
 
 ---
 
@@ -46,7 +46,7 @@ You **MUST** consider the user input before proceeding (if not empty). Los argum
 
 - El fichero de entrada no tiene `type: design` en el frontmatter → **ERROR** y detente sin escribir nada.
 - El `design.md` no contiene la tabla "Ficheros a crear o modificar" → **ERROR** y detente.
-- Un XML ya materializado en `design/` está mal y `code-implementer` lo detecta → **STOP**, no editarlo aquí; volver a `/sdd-designer-system`.
+- Un XML ya materializado en `design/` está mal y `code-implementer` lo detecta → **STOP**, no editarlo aquí; volver a `/sdd-designer`.
 - Conflicto al sobrescribir un fichero destino o un `<menuitem>` ya existente → **STOP** y `AskUserQuestion` (sobrescribir / mantener / abortar).
 - La validación con `xmllint` del `menus.xml` fusionado falla → **STOP** sin continuar con esa tarea.
 - El usuario no aprueba la lista de tareas en la Fase 4 → **MUST NOT** implementar nada.
@@ -122,7 +122,7 @@ Los XML de `design/domains/`, `design/views/` y `design/menus.xml` son la fuente
 - **MUST NOT** reescribir los XML desde el `design.md`.
 - **MUST NOT** reformatearlos al vuelo (cambios de indentación, reordenar atributos, etc.).
 
-Re-generarlos pierde correcciones manuales aplicadas al diseño, rompe la validación del designer e introduce divergencias silenciosas. Si al copiar detectas que un XML del diseño está mal, **STOP** y pide al usuario reabrir `/sdd-designer-system`. **MUST NOT** arreglarlo aquí.
+Re-generarlos pierde correcciones manuales aplicadas al diseño, rompe la validación del designer e introduce divergencias silenciosas. Si al copiar detectas que un XML del diseño está mal, **STOP** y pide al usuario reabrir `/sdd-designer`. **MUST NOT** arreglarlo aquí.
 
 ### 2.2 No implementar Java directamente — delegar en `code-implementer`
 
@@ -134,7 +134,7 @@ Cuando `code-implementer` escriba Java, los XML de dominios y vistas ya están e
 
 - Las firmas de los métodos Java deben coincidir con las acciones declaradas en las vistas (`<action-method method="action-..." class="..."/>` ↔ controlador.método).
 - Las entidades JPA generadas deben coincidir con los dominios XML (nombres de campos, tipos, relaciones).
-- Si `code-implementer` detecta que un XML ya copiado tiene un error, debe **detenerse y notificar** — no editarlo. Corregirlo requiere volver a `/sdd-designer-system`.
+- Si `code-implementer` detecta que un XML ya copiado tiene un error, debe **detenerse y notificar** — no editarlo. Corregirlo requiere volver a `/sdd-designer`.
 
 ### 2.4 Detenerse y preguntar ante un bloqueo
 
@@ -234,7 +234,7 @@ Si el skill se invoca sin argumentos:
    > type: design
    > ---
    > ```
-   > Si tienes una especificación, usa `/sdd-analyst-system`. Si tienes un análisis, usa `/sdd-designer-system`.
+   > Si tienes una especificación, usa `/sdd-analyst-system`. Si tienes un análisis, usa `/sdd-designer`.
 
 ---
 
@@ -394,7 +394,7 @@ Tras implementar todas las tareas, verifica que el proyecto compila y entra en u
      - **Reinvoca `code-implementer`** con ese plan de corrección y los skills de dominio de las tareas afectadas, usando el mismo mecanismo de la Fase 5: un subagente `Agent` que carga los skills y dentro invoca `code-implementer` (**MUST NOT** invocarlo tú directamente). Instrúyele **explícitamente** que: (a) **solo corrija código Java**, (b) **NO edite los XML ya copiados** (principio 2.1).
      - Incrementa `iter` y vuelve al paso 1.
    - **Si `iter == max_iter`**:
-     - **STOP** y `AskUserQuestion` ofreciendo: (1) dejar el reporte de errores para investigación manual; (2) revisar el diseño relanzando `/sdd-designer-system`; (3) continuar sin compilación limpia (no recomendado).
+     - **STOP** y `AskUserQuestion` ofreciendo: (1) dejar el reporte de errores para investigación manual; (2) revisar el diseño relanzando `/sdd-designer`; (3) continuar sin compilación limpia (no recomendado).
 
 ---
 
@@ -429,7 +429,7 @@ Sustituye `{iniciativa}` por el nombre real de la carpeta del draft.
 - Una tarea por fichero, **agrupando ficheros fuertemente acoplados** de un mismo componente lógico (servicio + impl + DTO). Si dudas, NO agrupes.
 - El `<texto del prompt>` de cada tarea se copia **verbatim** del `design.md` (fila de la tabla + "Paso N" + transversales aplicables). **MUST NOT** resumir ni inventar.
 - `k-secure-coding` va **siempre** en tareas Java de entidades/servicios/controladores.
-- Los XML de `design/` son **contrato fijo**: se copian literalmente. Si están mal, **STOP** y vuelve a `/sdd-designer-system`.
+- Los XML de `design/` son **contrato fijo**: se copian literalmente. Si están mal, **STOP** y vuelve a `/sdd-designer`.
 - **MUST NOT** implementar nada hasta que el usuario apruebe la lista de tareas (Fase 4).
 - El bucle de compilación tiene **LIMIT**: 3 iteraciones. Tras agotarlo, **STOP** y `AskUserQuestion`.
 - `AskUserQuestion` solo para lo imprescindible: ruta auto-detectada, aprobación de tareas, sobrescritura de ficheros/`<menuitem>` y decisión tras agotar el bucle de compilación.
