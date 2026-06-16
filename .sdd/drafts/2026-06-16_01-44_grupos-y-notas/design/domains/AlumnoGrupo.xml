@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="grupos" package="com.educaflow.system.grupos.db"/>
+
+    <entity name="AlumnoGrupo">
+
+        <!-- servidor: lo inyecta el formulario modal hijo (onNew __parent__); inmutable -->
+        <many-to-one name="grupo" title="Grupo" ref="com.educaflow.system.grupos.db.Grupo" required="true"/>
+
+        <!-- cliente: el usuario de tipo Alumno elegido entre los del centro del grupo -->
+        <many-to-one name="alumno" title="Alumno" ref="com.axelor.auth.db.User" required="true"/>
+
+        <!-- Composición: al quitar el alumno del grupo se borran sus notas (ESC-005) -->
+        <one-to-many name="notas" title="Notas del alumno" ref="com.educaflow.system.grupos.db.Nota" mappedBy="alumnoGrupo" orphanRemoval="true"/>
+
+        <!-- CC-001 nota media (momento: lectura). Campo derivado de solo lectura, NO se persiste:
+             media redondeada al entero más cercano de las notas del alumno, contando
+             Matrícula de Honor como 10 y excluyendo los módulos en No evaluado; "Sin nota" si
+             ninguno está evaluado. Se calcula al serializar mediante el helper NotaMediaCalculator. -->
+        <string name="notaMedia" title="Nota media" transient="true">
+            <![CDATA[
+                return com.educaflow.system.grupos.service.NotaMediaCalculator.calcular(this);
+            ]]>
+        </string>
+
+        <!-- RES-005: un mismo alumno no aparece dos veces en el mismo grupo -->
+        <unique-constraint columns="grupo,alumno"/>
+
+        <!-- VAL-013 / RES-004: pertenencias del alumno en otros grupos del mismo centro y curso académico -->
+        <finder-method name="findByAlumnoAndCentroAndCursoAcademico"
+                       using="alumno,com.educaflow.subsystem.common.db.Centro:centro,Integer:cursoAcademico"
+                       filter="self.alumno = :alumno AND self.grupo.centro = :centro AND self.grupo.cursoAcademico = :cursoAcademico"
+                       all="true"/>
+
+    </entity>
+
+</domain-models>

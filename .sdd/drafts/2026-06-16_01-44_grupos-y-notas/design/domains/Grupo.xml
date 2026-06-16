@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="grupos" package="com.educaflow.system.grupos.db"/>
+
+    <entity name="Grupo">
+
+        <!-- Campo de usuario (cliente). RES-001 nombre obligatorio se respalda con required + V-Grupo-001 -->
+        <string name="nombre" title="Nombre" required="true"/>
+
+        <!-- Campo de usuario (cliente), inmutable tras crear. De él derivan ciclo y módulos -->
+        <many-to-one name="curso" title="Curso" ref="com.educaflow.subsystem.sistemaeducativo.db.Curso" required="true"/>
+
+        <!-- cliente para el administrador; el servidor lo sobrescribe para el supervisor (R-Grupo-002). SIN required (lo rellena el servidor) -->
+        <integer name="cursoAcademico" title="Curso académico"/>
+
+        <!-- cliente para el administrador; el servidor lo sobrescribe para el supervisor (R-Grupo-002). SIN required -->
+        <many-to-one name="centro" title="Centro" ref="com.educaflow.subsystem.common.db.Centro"/>
+
+        <!-- Campo del sistema (servidor): estado inicial ABIERTO (R-Grupo-003). SIN required -->
+        <enum name="estado" title="Estado" ref="com.educaflow.system.grupos.db.EstadoGrupo"/>
+
+        <!-- Campo del sistema (servidor): fecha de cierre (R-Grupo-004/005). SIN required -->
+        <datetime name="fechaCierre" title="Fecha de cierre"/>
+
+        <!-- Composición: al borrar el grupo se borran sus módulos (y, en cascada anidada, sus notas) -->
+        <one-to-many name="modulos" title="Módulos del grupo" ref="com.educaflow.system.grupos.db.ModuloGrupo" mappedBy="grupo" orphanRemoval="true"/>
+
+        <!-- Composición: al borrar el grupo se borran sus alumnos (y sus notas) -->
+        <one-to-many name="alumnos" title="Alumnos del grupo" ref="com.educaflow.system.grupos.db.AlumnoGrupo" mappedBy="grupo" orphanRemoval="true"/>
+
+        <!-- RES-001: nombre único dentro del mismo centro y curso académico -->
+        <unique-constraint columns="centro,cursoAcademico,nombre"/>
+
+        <!-- VAL-003 / VAL-005: localizar un grupo homónimo en el mismo centro y curso académico -->
+        <finder-method name="findByCentroAndCursoAcademicoAndNombre"
+                       using="centro,cursoAcademico,nombre"
+                       filter="self.centro = :centro AND self.cursoAcademico = :cursoAcademico AND self.nombre = :nombre"/>
+
+    </entity>
+
+    <enum name="EstadoGrupo">
+        <item name="ABIERTO" title="Abierto"/>
+        <item name="CERRADO" title="Cerrado"/>
+    </enum>
+
+</domain-models>

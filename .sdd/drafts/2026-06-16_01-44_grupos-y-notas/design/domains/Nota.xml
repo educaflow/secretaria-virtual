@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="grupos" package="com.educaflow.system.grupos.db"/>
+
+    <entity name="Nota">
+
+        <!-- servidor: lo asigna R-AlumnoGrupo-001 al crear la nota -->
+        <many-to-one name="moduloGrupo" title="Módulo del grupo" ref="com.educaflow.system.grupos.db.ModuloGrupo" required="true"/>
+
+        <!-- servidor: lo asigna R-AlumnoGrupo-001 al crear la nota -->
+        <many-to-one name="alumnoGrupo" title="Alumno del grupo" ref="com.educaflow.system.grupos.db.AlumnoGrupo" required="true"/>
+
+        <!-- Valor de la nota = tipoValor + valorNumerico.
+             servidor al crear (NO_EVALUADO via R-AlumnoGrupo-001); cliente al modificar. SIN required -->
+        <enum name="tipoValor" title="Tipo de valor" ref="com.educaflow.system.grupos.db.TipoValorNota"/>
+
+        <!-- cliente al modificar; solo tiene sentido cuando tipoValor == NUMERICA. min/max declarativos -->
+        <integer name="valorNumerico" title="Valor" min="1" max="10"/>
+
+        <!-- CC-002 (servidor): fecha y hora en que se pone valor por primera vez. SIN required -->
+        <datetime name="fechaCalificacion" title="Fecha de calificación"/>
+
+        <!-- CC-003 (servidor): fecha y hora de la última modificación del valor. SIN required -->
+        <datetime name="fechaUltimaModificacion" title="Fecha de última modificación"/>
+
+        <!-- Campo derivado de solo lectura para la columna "Valor": "No evaluado" / el número / "Matrícula de Honor" -->
+        <string name="valorTexto" title="Valor" transient="true">
+            <![CDATA[
+                return com.educaflow.system.grupos.service.NotaMediaCalculator.texto(this);
+            ]]>
+        </string>
+
+        <!-- RES-006: una sola nota por alumno del grupo y módulo del grupo -->
+        <unique-constraint columns="moduloGrupo,alumnoGrupo"/>
+
+        <!-- VAL-017: notas con Matrícula de Honor de un módulo (para contar el máximo de 3) -->
+        <finder-method name="findByModuloGrupoAndTipoValor"
+                       using="moduloGrupo,tipoValor"
+                       filter="self.moduloGrupo = :moduloGrupo AND self.tipoValor = :tipoValor"
+                       all="true"/>
+
+    </entity>
+
+    <enum name="TipoValorNota">
+        <item name="NO_EVALUADO" title="No evaluado"/>
+        <item name="NUMERICA" title="Numérica"/>
+        <item name="MATRICULA_HONOR" title="Matrícula de Honor"/>
+    </enum>
+
+</domain-models>

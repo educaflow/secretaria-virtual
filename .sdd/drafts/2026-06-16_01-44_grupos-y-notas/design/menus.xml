@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- Porción a FUSIONAR con src/main/java/com/educaflow/secretariavirtual/menus/menus.xml (fichero único del proyecto). -->
+
+    <!-- Raíz nueva "Notas": el supervisor ve "Grupos"; el alumno ve "Mis notas". -->
+    <menuitem name="notas-menuitem" title="Notas" order="35"/>
+        <menuitem name="notas-grupos-menuitem" parent="notas-menuitem" title="Grupos" action="sysGrupos.Grupo@Main-action" order="1" if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'SUPERVISOR' }"/>
+        <menuitem name="notas-misNotas-menuitem" parent="notas-menuitem" title="Mis notas" action="sysGrupos.AlumnoGrupo@Alumno-action" order="2" if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'ALUMNO' }"/>
+
+    <!-- Hoja añadida a la raíz existente "Administración SV" (groups="admins"): pantalla de administración de grupos. -->
+        <menuitem name="administracionSv-grupos-menuitem" parent="administracionSv-menuitem" title="Grupos (administración)" action="sysGrupos.Grupo@Admin-action" groups="admins" order="4"/>
+
+</object-views>

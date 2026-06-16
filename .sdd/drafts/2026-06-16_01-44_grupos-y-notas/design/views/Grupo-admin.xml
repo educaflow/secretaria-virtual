@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- Pantalla: Grupos (administración). El administrador ve los grupos de TODOS los centros (sin <domain> de centro). -->
+    <action-view name="sysGrupos.Grupo@Admin-action" title="Grupos (administración)" model="com.educaflow.system.grupos.db.Grupo">
+        <view type="grid" name="sysGrupos.Grupo@Admin-grid"/>
+        <view type="form" name="sysGrupos.Grupo@Admin-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="forceEdit" value="true"/>
+        <view-param name="reload-grid" value="true"/>
+    </action-view>
+
+    <!-- ====================================== GRIDS ====================================== -->
+
+    <grid name="sysGrupos.Grupo@Admin-grid" title="Grupos (administración)" model="com.educaflow.system.grupos.db.Grupo"
+          orderBy="centro,nombre" allowSearchFields="true" canNew="true" newButtonTitle="Nuevo grupo" canEditOnClick="true"
+          canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false">
+        <field name="centro"/>
+        <field name="cursoAcademico" width="150px"/>
+        <field name="curso.ciclo" title="Ciclo"/>
+        <field name="nombre"/>
+        <field name="estado" width="150px"/>
+    </grid>
+
+    <grid name="sysGrupos.Grupo.ModuloGrupo@Admin-grid" title="Módulos" model="com.educaflow.system.grupos.db.ModuloGrupo"
+          orderBy="modulo.name" allowSearchFields="false" canViewOnClick="true"
+          canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none"
+          canNew="false" canEdit="false" canDelete="false" canSave="false">
+        <field name="modulo"/>
+    </grid>
+
+    <grid name="sysGrupos.Grupo.ModuloGrupo.Nota@Admin-grid" title="Alumnos" model="com.educaflow.system.grupos.db.Nota"
+          orderBy="alumnoGrupo.alumno.nombre" allowSearchFields="false" canViewOnClick="true"
+          canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none"
+          canNew="false" canEdit="false" canDelete="false" canSave="false">
+        <field name="alumnoGrupo" title="Alumno"/>
+        <field name="valorTexto" title="Valor" width="150px"/>
+        <field name="fechaCalificacion" width="180px"/>
+        <field name="fechaUltimaModificacion" width="180px"/>
+    </grid>
+
+    <grid name="sysGrupos.Grupo.AlumnoGrupo@Admin-grid" title="Alumnos" model="com.educaflow.system.grupos.db.AlumnoGrupo"
+          orderBy="alumno.nombre" allowSearchFields="false" canViewOnClick="true"
+          canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none"
+          canNew="false" canEdit="false" canDelete="false" canSave="false">
+        <field name="alumno"/>
+        <field name="notaMedia" title="Nota media" width="150px"/>
+    </grid>
+
+    <!-- ====================================== FORMS ====================================== -->
+
+    <!-- Formulario de grupo (administración) (RUI-009: todo readonly cuando CERRADO, salvo el botón Reabrir). -->
+    <form name="sysGrupos.Grupo@Admin-form" title="Grupo (administración)" model="com.educaflow.system.grupos.db.Grupo"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false"
+          canMore="false" canBackOnSave="true" readonlyIf="estado == 'CERRADO'"
+          onNew="sysGrupos.Grupo@Admin-onNew-action">
+        <panel name="Grupo" title="Datos del grupo">
+            <field name="nombre" colSpan="6"/>
+            <!-- RUI-006: el administrador elige centro y curso académico al crear; inmutables tras crear -->
+            <field name="centro" colSpan="6" readonlyIf="id != null" grid-view="subsysCommon.Centro@Search-grid"/>
+            <field name="cursoAcademico" colSpan="3" readonlyIf="id != null"/>
+            <field name="curso" colSpan="6" readonlyIf="id != null" grid-view="subsysSistemaEducativo.Curso@Search-grid"/>
+            <field name="estado" colSpan="3" readonly="true"/>
+            <field name="fechaCierre" colSpan="3" readonly="true" showIf="estado == 'CERRADO'"/>
+        </panel>
+
+        <panel-related name="modulos" field="modulos" title="Módulos" newButtonTitle=""
+                       grid-view="sysGrupos.Grupo.ModuloGrupo@Admin-grid" form-view="sysGrupos.Grupo.ModuloGrupo@Admin-form"
+                       colSpan="12" showFooter="false" canEdit="false" canRemove="false" canNew="false" forceEdit="true"/>
+
+        <panel-related name="alumnos" field="alumnos" title="Alumnos" newButtonTitle="Añadir alumno"
+                       grid-view="sysGrupos.Grupo.AlumnoGrupo@Admin-grid" form-view="sysGrupos.Grupo.AlumnoGrupo@Admin-form"
+                       colSpan="12" showFooter="false" canEdit="false" canRemove="true" canNew="true" forceEdit="true"/>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnDelete" title="Borrar" onClick="sysGrupos.Grupo@Admin-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnReabrir" title="Reabrir grupo" onClick="sysGrupos.Grupo@Admin-btnReabrir-action" colSpan="2" outline="true" showIf="estado == 'CERRADO' &amp;&amp; id != null"/>
+            <button name="btnCerrar" title="Cerrar grupo" onClick="sysGrupos.Grupo@Admin-btnCerrar-action" colSpan="2" outline="true" showIf="estado == 'ABIERTO' &amp;&amp; id != null"/>
+            <button name="btnCancel" title="Cancelar" onClick="sysGrupos.Grupo@Admin-btnCancel-action" colSpan="2" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="sysGrupos.Grupo@Admin-btnSave-action" colSpan="2"/>
+        </panel>
+    </form>
+
+    <form name="sysGrupos.Grupo.ModuloGrupo@Admin-form" title="Módulo del grupo" model="com.educaflow.system.grupos.db.ModuloGrupo"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" readonlyIf="true">
+        <panel name="ModuloGrupo" title="Módulo">
+            <field name="modulo" colSpan="6"/>
+        </panel>
+        <panel-related name="notas" field="notas" title="Alumnos" newButtonTitle=""
+                       grid-view="sysGrupos.Grupo.ModuloGrupo.Nota@Admin-grid" form-view="sysGrupos.Grupo.ModuloGrupo.Nota@Admin-form"
+                       colSpan="12" showFooter="false" canEdit="false" canRemove="false" canNew="false" forceEdit="true"/>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Cerrar" onClick="sysGrupos.Grupo.ModuloGrupo@Admin-btnCancel-action" colSpan="2" colOffset="10" outline="true"/>
+        </panel>
+    </form>
+
+    <!-- RUI-010: valor editable solo si el grupo está ABIERTO. -->
+    <form name="sysGrupos.Grupo.ModuloGrupo.Nota@Admin-form" title="Nota" model="com.educaflow.system.grupos.db.Nota"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="Nota" title="Nota">
+            <field name="alumnoGrupo" title="Alumno" colSpan="6" readonly="true"/>
+            <field name="moduloGrupo" title="Módulo" colSpan="6" readonly="true"/>
+            <field name="tipoValor" title="Valor" colSpan="4" readonlyIf="moduloGrupo.grupo.estado == 'CERRADO'"/>
+            <field name="valorNumerico" title="Nota numérica" colSpan="3" showIf="tipoValor == 'NUMERICA'" requiredIf="tipoValor == 'NUMERICA'" readonlyIf="moduloGrupo.grupo.estado == 'CERRADO'"/>
+            <field name="fechaCalificacion" colSpan="3" readonly="true"/>
+            <field name="fechaUltimaModificacion" colSpan="3" readonly="true"/>
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Cancelar" onClick="sysGrupos.Grupo.ModuloGrupo.Nota@Admin-btnCancel-action" colSpan="2" colOffset="8" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="sysGrupos.Grupo.ModuloGrupo.Nota@Admin-btnSave-action" colSpan="2" showIf="moduloGrupo.grupo.estado == 'ABIERTO'"/>
+        </panel>
+    </form>
+
+    <form name="sysGrupos.Grupo.AlumnoGrupo@Admin-form" title="Alumno del grupo" model="com.educaflow.system.grupos.db.AlumnoGrupo"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false"
+          onNew="sysGrupos.Grupo.AlumnoGrupo@Admin-onNew-action">
+        <panel name="AlumnoGrupo" title="Alumno">
+            <field name="grupo" showIf="false"/>
+            <field name="alumno" colSpan="6" readonlyIf="id != null" grid-view="subsysCommon.Usuario@Search-grid"/>
+            <field name="notaMedia" colSpan="3" readonly="true"/>
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnDelete" title="Quitar" onClick="sysGrupos.Grupo.AlumnoGrupo@Admin-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="sysGrupos.Grupo.AlumnoGrupo@Admin-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="sysGrupos.Grupo.AlumnoGrupo@Admin-btnSave-action" colSpan="2" showIf="id == null"/>
+        </panel>
+    </form>
+
+    <!-- *********************************************************************************************  -->
+    <!-- ***************************** Acciones de las tareas principales ****************************  -->
+    <!-- *********************************************************************************************  -->
+
+    <action-group name="sysGrupos.Grupo@Admin-onNew-action">
+        <action name="sysGrupos.Grupo@Admin-set-estadoInicial-action"/>
+    </action-group>
+
+    <action-group name="sysGrupos.Grupo@Admin-btnSave-action">
+        <action name="sysGrupos.Grupo@Admin-Local-validateSave-action"/>
+        <action name="sysGrupos.Grupo@Admin-Remote-validateSave-action"/>
+        <action name="save"/>
+    </action-group>
+
+    <action-group name="sysGrupos.Grupo@Admin-btnDelete-action">
+        <action name="sysGrupos.Grupo@Admin-Remote-validateDelete-action"/>
+        <action name="delete"/>
+    </action-group>
+
+    <action-group name="sysGrupos.Grupo@Admin-btnCerrar-action">
+        <action name="sysGrupos.Grupo@Admin-Remote-cerrar-action"/>
+    </action-group>
+
+    <action-group name="sysGrupos.Grupo@Admin-btnReabrir-action">
+        <action name="sysGrupos.Grupo@Admin-Remote-reabrir-action"/>
+    </action-group>
+
+    <action-group name="sysGrupos.Grupo@Admin-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+
+    <action-group name="sysGrupos.Grupo.ModuloGrupo@Admin-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+
+    <action-group name="sysGrupos.Grupo.ModuloGrupo.Nota@Admin-btnSave-action">
+        <action name="sysGrupos.Grupo.ModuloGrupo.Nota@Admin-Local-validateSave-action"/>
+        <action name="sysGrupos.Grupo.ModuloGrupo.Nota@Admin-Remote-validateSave-action"/>
+        <action name="save-modal"/>
+    </action-group>
+
+    <action-group name="sysGrupos.Grupo.ModuloGrupo.Nota@Admin-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+
+    <action-group name="sysGrupos.Grupo.AlumnoGrupo@Admin-onNew-action">
+        <action name="sysGrupos.Grupo.AlumnoGrupo@Admin-set-grupo-parent-action"/>
+        <action name="sysGrupos.Grupo.AlumnoGrupo@Admin-set-alumno.domain-action"/>
+    </action-group>
+
+    <action-group name="sysGrupos.Grupo.AlumnoGrupo@Admin-btnSave-action">
+        <action name="sysGrupos.Grupo.AlumnoGrupo@Admin-Local-validateSave-action"/>
+        <action name="sysGrupos.Grupo.AlumnoGrupo@Admin-Remote-validateSave-action"/>
+        <action name="save-modal"/>
+    </action-group>
+
+    <action-group name="sysGrupos.Grupo.AlumnoGrupo@Admin-btnDelete-action">
+        <action name="sysGrupos.Grupo.AlumnoGrupo@Admin-Remote-validateDelete-action"/>
+        <action name="delete-modal"/>
+    </action-group>
+
+    <action-group name="sysGrupos.Grupo.AlumnoGrupo@Admin-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+
+    <!-- *********************************************************************************************  -->
+    <!-- ***************************** Acciones de Validaciones en local  ****************************  -->
+    <!-- *********************************************************************************************  -->
+
+    <action-condition name="sysGrupos.Grupo@Admin-Local-validateSave-action">
+        <check field="nombre" if="!nombre" error="El nombre del grupo es obligatorio"/>
+        <check field="curso" if="!curso" error="El curso es obligatorio"/>
+        <check field="centro" if="!centro" error="El centro es obligatorio"/>
+        <check field="cursoAcademico" if="!cursoAcademico" error="El curso académico es obligatorio"/>
+    </action-condition>
+
+    <action-condition name="sysGrupos.Grupo.ModuloGrupo.Nota@Admin-Local-validateSave-action">
+        <check field="valorNumerico" if="tipoValor == 'NUMERICA' &amp;&amp; (!valorNumerico || valorNumerico &lt; 1 || valorNumerico &gt; 10)" error="La nota debe ser No evaluado, un número entero del 1 al 10 o Matrícula de Honor"/>
+    </action-condition>
+
+    <action-condition name="sysGrupos.Grupo.AlumnoGrupo@Admin-Local-validateSave-action">
+        <check field="alumno" if="!alumno" error="Debe elegir un alumno"/>
+    </action-condition>
+
+    <!-- *********************************************************************************************  -->
+    <!-- ************************ Acciones básicas que cambian campos simples ************************  -->
+    <!-- *********************************************************************************************  -->
+
+    <action-record name="sysGrupos.Grupo@Admin-set-estadoInicial-action" model="com.educaflow.system.grupos.db.Grupo">
+        <field name="estado" expr="eval: 'ABIERTO'"/>
+    </action-record>
+
+    <action-record name="sysGrupos.Grupo.AlumnoGrupo@Admin-set-grupo-parent-action" model="com.educaflow.system.grupos.db.AlumnoGrupo">
+        <field name="grupo" expr="eval: __parent__"/>
+    </action-record>
+
+    <action-attrs name="sysGrupos.Grupo.AlumnoGrupo@Admin-set-alumno.domain-action">
+        <attribute for="alumno" name="domain"
+                   expr="eval: &quot;self.id IN (SELECT cutu.centroUsuario.usuario.id FROM CentroUsuarioTipoUsuario cutu WHERE cutu.tipoUsuario.codigo = 'ALUMNO' AND cutu.centroUsuario.centro.id = ${__parent__?.centro?.id})&quot;"/>
+    </action-attrs>
+
+    <!-- *********************************************************************************************  -->
+    <!-- ************************** Acciones de llamadas Remotas al servidor *************************  -->
+    <!-- *********************************************************************************************  -->
+
+    <action-method name="sysGrupos.Grupo@Admin-Remote-validateSave-action" model="com.educaflow.system.grupos.db.Grupo">
+        <call class="com.educaflow.system.grupos.controller.GrupoController" method="validateSave"/>
+    </action-method>
+    <action-method name="sysGrupos.Grupo@Admin-Remote-validateDelete-action" model="com.educaflow.system.grupos.db.Grupo">
+        <call class="com.educaflow.system.grupos.controller.GrupoController" method="validateDelete"/>
+    </action-method>
+    <action-method name="sysGrupos.Grupo@Admin-Remote-cerrar-action" model="com.educaflow.system.grupos.db.Grupo">
+        <call class="com.educaflow.system.grupos.controller.GrupoController" method="cerrar"/>
+    </action-method>
+    <action-method name="sysGrupos.Grupo@Admin-Remote-reabrir-action" model="com.educaflow.system.grupos.db.Grupo">
+        <call class="com.educaflow.system.grupos.controller.GrupoController" method="reabrir"/>
+    </action-method>
+
+    <action-method name="sysGrupos.Grupo.ModuloGrupo.Nota@Admin-Remote-validateSave-action" model="com.educaflow.system.grupos.db.Nota">
+        <call class="com.educaflow.system.grupos.controller.NotaController" method="validateSave"/>
+    </action-method>
+
+    <action-method name="sysGrupos.Grupo.AlumnoGrupo@Admin-Remote-validateSave-action" model="com.educaflow.system.grupos.db.AlumnoGrupo">
+        <call class="com.educaflow.system.grupos.controller.AlumnoGrupoController" method="validateSave"/>
+    </action-method>
+    <action-method name="sysGrupos.Grupo.AlumnoGrupo@Admin-Remote-validateDelete-action" model="com.educaflow.system.grupos.db.AlumnoGrupo">
+        <call class="com.educaflow.system.grupos.controller.AlumnoGrupoController" method="validateDelete"/>
+    </action-method>
+
+</object-views>
