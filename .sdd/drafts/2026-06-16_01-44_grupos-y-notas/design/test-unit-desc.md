@@ -1,6 +1,6 @@
 # Tests unitarios (TDD)
 
-Descripción de los tests unitarios (JUnit 5 + Mockito) por clase y método para el diseño. **Solo descripción, sin código**: `/sdd-implementer-system` genera el código a partir de aquí. Las reglas que viven solo en la capa cliente/XML (`U-`) no se testean aquí (van como E2E en `tests.md`).
+Descripción de los tests unitarios (JUnit 5 + Mockito) por clase y método para el diseño. **Solo descripción, sin código**: `/sdd-implementer-system` genera el código a partir de aquí. Las reglas que viven solo en la capa cliente/XML (`U-`) no se testean aquí (van como E2E en `test-e2e-desc.md`).
 
 ## Convenciones
 - JUnit 5 (Jupiter) + Mockito (`MockitoExtension`). Estáticos del stack con `Mockito.mockStatic`.
@@ -399,7 +399,7 @@ Descripción de los tests unitarios (JUnit 5 + Mockito) por clase y método para
 
 ---
 
-> Sobre el getter de dominio `AlumnoGrupo.getNotaMedia()` (cuerpo CDATA con el algoritmo de CC-001 inline): es código generado por Axelor desde el XML, no testeable de forma aislada con JUnit en esta fase; su cálculo queda cubierto por los tests de `AlumnoGrupoServiceImpl.calcularNotaMedia` (que lo invoca con entidades reales) y, en E2E, por ESC-007/008/014 en `tests.md`.
+> Sobre el getter de dominio `AlumnoGrupo.getNotaMedia()` (cuerpo CDATA con el algoritmo de CC-001 inline): es código generado por Axelor desde el XML, no testeable de forma aislada con JUnit en esta fase; su cálculo queda cubierto por los tests de `AlumnoGrupoServiceImpl.calcularNotaMedia` (que lo invoca con entidades reales) y, en E2E, por ESC-007/008/014 en `test-e2e-desc.md`.
 
 ---
 
@@ -463,7 +463,7 @@ Descripción de los tests unitarios (JUnit 5 + Mockito) por clase y método para
 - **Reglas server-side cubiertas (V):** V-Grupo-001, V-Grupo-002, V-Grupo-003, V-Grupo-004, V-Grupo-005, V-Grupo-006, V-Grupo-007, V-Grupo-008, V-Grupo-009, V-ModuloGrupo-001, V-AlumnoGrupo-001, V-AlumnoGrupo-002, V-AlumnoGrupo-003, V-AlumnoGrupo-004, V-AlumnoGrupo-005, V-AlumnoGrupo-006, V-Nota-001, V-Nota-002, V-Nota-003, V-Nota-005.
 - **Reglas server-side cubiertas (R):** R-Grupo-001, R-Grupo-002, R-Grupo-003, R-Grupo-004, R-AlumnoGrupo-001, R-AlumnoGrupo-002, R-Nota-001, R-Nota-002.
 - **Campos calculados cubiertos (CC):** CC-001 (algoritmo inline en el CDATA del dominio, cubierto vía `AlumnoGrupoServiceImpl.calcularNotaMedia`). CC-002/CC-003 cubiertos vía R-Nota-001/R-Nota-002 (fijado de fechas en `guardarNota`).
-- **Reglas solo-cliente excluidas (E2E en tests.md):** U-grupos-supervisor-001 (RUI-001), U-grupos-supervisor-002 (RUI-002), U-grupos-supervisor-003 (RUI-003), U-grupos-supervisor-004 (RUI-004), U-grupos-supervisor-005 (filtro selector alumno; respaldo servidor V-AlumnoGrupo-003), U-grupos-supervisor-006 (RUI-005), U-grupos-administracion-001 (RUI-006), U-grupos-administracion-002 (RUI-008), U-grupos-administracion-003 (RUI-007), U-grupos-administracion-004 (RUI-009), U-grupos-administracion-005 (RUI-010), U-mis-notas-alumno (acceso de rol + `<domain>` + readonly).
+- **Reglas solo-cliente excluidas (E2E en test-e2e-desc.md):** U-grupos-supervisor-001 (RUI-001), U-grupos-supervisor-002 (RUI-002), U-grupos-supervisor-003 (RUI-003), U-grupos-supervisor-004 (RUI-004), U-grupos-supervisor-005 (filtro selector alumno; respaldo servidor V-AlumnoGrupo-003), U-grupos-supervisor-006 (RUI-005), U-grupos-administracion-001 (RUI-006), U-grupos-administracion-002 (RUI-008), U-grupos-administracion-003 (RUI-007), U-grupos-administracion-004 (RUI-009), U-grupos-administracion-005 (RUI-010), U-mis-notas-alumno (acceso de rol + `<domain>` + readonly).
 
 ## Supuestos documentados
 - **Inyección de colaboradores en los `*ServiceImpl`:** el constructor de Axelor es `(Class<T>, Repository<T>)` y los demás colaboradores son campos `@Inject`. Los tests los rellenan con mocks (vía reflexión/`@InjectMocks` adaptado o un constructor de test si el implementador lo añade), sin tocar BD real.

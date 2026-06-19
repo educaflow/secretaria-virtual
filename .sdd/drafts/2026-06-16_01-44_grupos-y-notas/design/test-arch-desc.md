@@ -137,6 +137,6 @@ Descripción de los tests de arquitectura (ArchUnit 1.4.2, JUnit 5) que verifica
   - Controladores (`GrupoController`, `NotaController`) → C9, C10, C14, C15.
   - Todas las clases del sistema → C4, C5, C8, C22.
 - Reglas del catálogo aplicadas: C4, C5, C8, C9, C10, C11, C12, C13, C14, C15, C16, C17, C18, C21, C22.
-- Reglas específicas del diseño: ninguna (el spec/diseño no impone restricciones estructurales no cubiertas por el catálogo; el control multi-centro/IDOR queda fuera del alcance de ArchUnit y se cubre con `k-secure-coding` y los tests E2E de `tests.md`).
+- Reglas específicas del diseño: ninguna (el spec/diseño no impone restricciones estructurales no cubiertas por el catálogo; el control multi-centro/IDOR queda fuera del alcance de ArchUnit y se cubre con `k-secure-coding` y los tests E2E de `test-e2e-desc.md`).
 - Reglas no aplicables (justificadas): C1, C2, C3, C6, C7, C19, C20.
 - Reglas en FREEZE (deuda preexistente): ninguna (todo el código del sistema es nuevo y debe cumplir; el ámbito acotado a `com.educaflow.system.gruposnotas` excluye la deuda preexistente de otros paquetes).

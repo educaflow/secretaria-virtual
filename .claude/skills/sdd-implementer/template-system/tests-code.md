@@ -4,12 +4,12 @@ Lo leen el **descomponedor** (README §2.1, para crear las tareas de test) y el 
 
 El diseñador (`/sdd-designer`) **solo describe** los tests; aquí se **genera el código**. Dos descripciones, dos tipos de test:
 
-- `design/unit-test-desc.md` → tests unitarios (JUnit 5 + Mockito).
-- `design/arch-test-desc.md` → tests de arquitectura (ArchUnit).
+- `design/test-unit-desc.md` → tests unitarios (JUnit 5 + Mockito).
+- `design/test-arch-desc.md` → tests de arquitectura (ArchUnit).
 
 Ambos los compila y ejecuta `./gradlew clean build` (ver `build.md`): si fallan, los arregla el bucle de build. Los tests **E2E** (`tests.md`) **NO** se generan aquí — los ejecuta `/sdd-debug-app`.
 
-> Si el diseño **no** trae `unit-test-desc.md` ni `arch-test-desc.md` (no hay clases Java), **no se crea ninguna tarea de test** (sin error).
+> Si el diseño **no** trae `test-unit-desc.md` ni `test-arch-desc.md` (no hay clases Java), **no se crea ninguna tarea de test** (sin error).
 
 ---
 
@@ -17,8 +17,8 @@ Ambos los compila y ejecuta `./gradlew clean build` (ver `build.md`): si fallan,
 
 | Tipo | Descripción de entrada | Código de salida | Skills de la tarea |
 |---|---|---|---|
-| Tests unitarios | `design/unit-test-desc.md` | `src/test/java/com/educaflow/<paquete-de-la-clase>/<Clase>Test.java` | `k-code-quality` (y los skills de dominio de la clase bajo test, p.ej. `k-sistemas`) |
-| Tests de arquitectura | `design/arch-test-desc.md` | `src/test/java/com/educaflow/.../architecture/<...>Test.java` según las convenciones de `k-archunit` | `k-archunit` |
+| Tests unitarios | `design/test-unit-desc.md` | `src/test/java/com/educaflow/<paquete-de-la-clase>/<Clase>Test.java` | `k-code-quality` (y los skills de dominio de la clase bajo test, p.ej. `k-sistemas`) |
+| Tests de arquitectura | `design/test-arch-desc.md` | `src/test/java/com/educaflow/.../architecture/<...>Test.java` según las convenciones de `k-archunit` | `k-archunit` |
 
 El paquete de cada test **MUST** reflejar el de la clase que prueba (mismo paquete bajo `src/test/...`). Para los tests de arquitectura, la ubicación, el `@AnalyzeClasses` y las convenciones de clase las define el skill `k-archunit` (`secretaria-virtual-rules.md` es el catálogo de reglas `C1`–`C22`).
 
@@ -28,13 +28,13 @@ El paquete de cada test **MUST** reflejar el de la clase que prueba (mismo paque
 
 En el orden de §2 de `decomposition.md` (tests al final):
 
-1. **Tests unitarios** — **una tarea por clase de producción** que `unit-test-desc.md` describe (o agrupando la clase con su test, criterio de acoplamiento de `decomposition.md` §2). Cada tarea referencia la **sección concreta** de `unit-test-desc.md` que describe esa clase.
-2. **Tests de arquitectura** — **una sola tarea** que materializa todo `arch-test-desc.md` (las reglas seleccionadas del catálogo `k-archunit`).
+1. **Tests unitarios** — **una tarea por clase de producción** que `test-unit-desc.md` describe (o agrupando la clase con su test, criterio de acoplamiento de `decomposition.md` §2). Cada tarea referencia la **sección concreta** de `test-unit-desc.md` que describe esa clase.
+2. **Tests de arquitectura** — **una sola tarea** que materializa todo `test-arch-desc.md` (las reglas seleccionadas del catálogo `k-archunit`).
 
 Plantilla del `<texto del prompt>` de una tarea de test (rellena la de `decomposition.md` §4):
 
 ```
-Genera el código de los tests <unitarios|de arquitectura> descritos en `design/<unit-test-desc.md|arch-test-desc.md>`
+Genera el código de los tests <unitarios|de arquitectura> descritos en `design/<test-unit-desc.md|test-arch-desc.md>`
 <para la clase <FQN> | en su totalidad>.
 
 - La descripción es el contrato: implementa EXACTAMENTE los tests que describe (nombre, propósito, mocks,
@@ -53,7 +53,7 @@ Genera el código de los tests <unitarios|de arquitectura> descritos en `design/
 
 ## 3. Materialización (implementador)
 
-Una tarea de test es **código Java** → aplica `implementation.md` §2: carga primero los skills de la tarea (`Skill`) y delega en `code-implementer` con el texto de la tarea **verbatim**. La descripción (`unit-test-desc.md` / `arch-test-desc.md`) es el contrato del **qué** testear; `code-implementer` escribe el **cómo** (el código JUnit/ArchUnit real).
+Una tarea de test es **código Java** → aplica `implementation.md` §2: carga primero los skills de la tarea (`Skill`) y delega en `code-implementer` con el texto de la tarea **verbatim**. La descripción (`test-unit-desc.md` / `test-arch-desc.md`) es el contrato del **qué** testear; `code-implementer` escribe el **cómo** (el código JUnit/ArchUnit real).
 
 **MUST NOT**:
 

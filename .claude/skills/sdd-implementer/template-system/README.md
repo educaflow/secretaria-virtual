@@ -24,7 +24,7 @@ El skill abre `README.md` y, a través de él, usa los demás. Cada uno se trans
 | `README.md` | **Esta guía/índice**: contrato fijo, estructura de entrada/salida, contexto del proyecto, y los principios comunes a todos los roles. | Todos los subagentes (es el contrato que el skill nombra). **MUST NOT** copiarse al output. |
 | `decomposition.md` | **Cómo descomponer el diseño en tareas**: qué tareas crear de cada parte del diseño (XML, Java, tests unitarios, tests de arquitectura), cómo agrupar los ficheros acoplados, el orden de implementación, cómo determinar los skills de cada tarea, el texto del diseño a copiar verbatim, la propagación de los ficheros de contrato hacia abajo, las **plantillas exactas** de `task_NN.md` / `task.md` y el checklist. | El **descomponedor** (§2.1). |
 | `implementation.md` | **Cómo materializar una tarea** en el árbol del proyecto: copiar literalmente los XML ya materializados, fusionar `menus.xml` y validarlo, y delegar el código Java en `code-implementer` (cargando antes los skills). Define los principios de no-regenerar-XML, no-escribir-Java-a-mano y el manejo de conflictos/bloqueos. | El **implementador** (§2.2); el **corrector-build** (§2.4) lo consulta para saber qué puede tocar al corregir. |
-| `tests-code.md` | **Cómo generar el código de los tests** a partir de las descripciones del diseño: tests unitarios (JUnit 5 + Mockito) desde `design/unit-test-desc.md` y tests de arquitectura (ArchUnit) desde `design/arch-test-desc.md`, dónde se ubican (`src/test/...`), qué skills cargar y cómo delegarlos en `code-implementer`. | El **descomponedor** (§2.1, para crear las tareas de test); el **implementador** (§2.2, para materializarlas). |
+| `tests-code.md` | **Cómo generar el código de los tests** a partir de las descripciones del diseño: tests unitarios (JUnit 5 + Mockito) desde `design/test-unit-desc.md` y tests de arquitectura (ArchUnit) desde `design/test-arch-desc.md`, dónde se ubican (`src/test/...`), qué skills cargar y cómo delegarlos en `code-implementer`. | El **descomponedor** (§2.1, para crear las tareas de test); el **implementador** (§2.2, para materializarlas). |
 | `build.md` | **Cómo verificar y corregir el build**: el comando de compilación (`./gradlew clean build`), qué cuenta como éxito, cómo reportar los errores en JSONL, la detección de fallos persistentes y qué puede/no puede tocar el corrector. | El **verificador-build** (§2.3); el **corrector-build** (§2.4). |
 
 ---
@@ -50,7 +50,7 @@ Solo el **descomponedor** lee el diseño íntegro para planificar; el **implemen
 
 **Tarea:** leer la carpeta `{iniciativa}/design` y **escribir la lista de tareas de implementación** en `{iniciativa}/implementation/`, una tarea por fichero (agrupando los ficheros fuertemente acoplados), cada una con sus skills y el texto del diseño que la describe; más el índice y los ficheros de contrato propagados.
 
-- **Lee de esta plantilla:** `decomposition.md` (qué tareas crear, cómo agrupar, el orden, los skills por tarea, el texto a copiar verbatim, la propagación, las plantillas de `task_NN.md` / `task.md` y el **checklist**); y `tests-code.md` para crear las tareas que materializan los tests unitarios (desde `design/unit-test-desc.md`) y de arquitectura (desde `design/arch-test-desc.md`), si el diseño los describe.
+- **Lee de esta plantilla:** `decomposition.md` (qué tareas crear, cómo agrupar, el orden, los skills por tarea, el texto a copiar verbatim, la propagación, las plantillas de `task_NN.md` / `task.md` y el **checklist**); y `tests-code.md` para crear las tareas que materializan los tests unitarios (desde `design/test-unit-desc.md`) y de arquitectura (desde `design/test-arch-desc.md`), si el diseño los describe.
 - **Entrada propia:** la carpeta `{iniciativa}/design` —sobre todo `design.md` (la tabla de ficheros y las secciones de pasos), y las descripciones de tests si existen—.
 - **MUST NOT** materializar código en `src/...`: solo escribe los ficheros de `implementation/`. **MUST NOT** dar la descomposición por terminada sin pasar el checklist de `decomposition.md`.
 
@@ -94,9 +94,9 @@ El diseñador (`/sdd-designer`) dejó en `{iniciativa}/design/` el diseño compl
     ├── domains/<Entidad>.xml           ← XML materializados (ya validados con xmllint por el designer)
     ├── views/<Fichero>.xml
     ├── menus.xml                        ← porción de <menuitem> a fusionar
-    ├── tests.md                         ← tests E2E (si los hay) — se propaga tal cual
-    ├── unit-test-desc.md               ← descripción de los tests unitarios (si hay clases Java)
-    ├── arch-test-desc.md               ← descripción de los tests de arquitectura (si hay clases Java)
+    ├── test-e2e-desc.md                 ← tests E2E (si los hay) — se propaga tal cual
+    ├── test-unit-desc.md               ← descripción de los tests unitarios (si hay clases Java)
+    ├── test-arch-desc.md               ← descripción de los tests de arquitectura (si hay clases Java)
     └── rules/R-<Entidad>-NNN.md         ← reglas complejas (si las hay) — documentación referenciada
 ```
 
@@ -111,7 +111,7 @@ El descomponedor escribe `{iniciativa}/implementation/`; los implementadores esc
 └── implementation/
     ├── task.md                         ← índice de tareas (type: implementation-tasks)
     ├── task_01.md … task_NN.md          ← una tarea por fichero/componente (type: implementation-task)
-    └── tests.md                         ← copia literal de design/tests.md (si existe) — la consume /sdd-debug-app
+    └── tests.md                         ← copia literal de design/test-e2e-desc.md (si existe) — la consume /sdd-debug-app
 
 src/main/java/com/educaflow/…           ← XML materializados colocados/fusionados + código Java
 src/test/java/com/educaflow/…           ← tests unitarios (JUnit+Mockito) y de arquitectura (ArchUnit)

@@ -9,12 +9,12 @@ Este `README.md` es **el único fichero que el skill conoce por nombre**. **Lo l
 - **enriquecedor** — **detecta** qué ventajas de los diseños descartados conviene incorporar al ganador (§2.5).
 - **verificador** — **busca problemas** en un diseño y los reporta (§2.3).
 - **corrector** — **corrige** los problemas que el verificador reportó e **incorpora** las mejoras que el enriquecedor propuso (§2.4).
-- **test-unitarios** — **describe** los tests unitarios (JUnit + Mockito) de las clases Java del diseño en `unit-test-desc.md` (§2.6).
-- **verificador-test-unitarios** — **comprueba** que `unit-test-desc.md` es coherente con el diseño y reporta las incoherencias (§2.7).
-- **corrector-test-unitarios** — **corrige** en `unit-test-desc.md` las incoherencias reportadas (§2.8).
-- **test-arquitectura** — **describe** los tests de arquitectura (ArchUnit) de las clases Java del diseño en `arch-test-desc.md` (§2.9).
-- **verificador-test-arquitectura** — **comprueba** que `arch-test-desc.md` es coherente con el diseño y el catálogo, y reporta las incoherencias (§2.10).
-- **corrector-test-arquitectura** — **corrige** en `arch-test-desc.md` las incoherencias reportadas (§2.11).
+- **test-unitarios** — **describe** los tests unitarios (JUnit + Mockito) de las clases Java del diseño en `test-unit-desc.md` (§2.6).
+- **verificador-test-unitarios** — **comprueba** que `test-unit-desc.md` es coherente con el diseño y reporta las incoherencias (§2.7).
+- **corrector-test-unitarios** — **corrige** en `test-unit-desc.md` las incoherencias reportadas (§2.8).
+- **test-arquitectura** — **describe** los tests de arquitectura (ArchUnit) de las clases Java del diseño en `test-arch-desc.md` (§2.9).
+- **verificador-test-arquitectura** — **comprueba** que `test-arch-desc.md` es coherente con el diseño y el catálogo, y reporta las incoherencias (§2.10).
+- **corrector-test-arquitectura** — **corrige** en `test-arch-desc.md` las incoherencias reportadas (§2.11).
 
 A través de este README cada subagente descubre y lee **solo los ficheros de esta carpeta que su tarea necesita** (§2). **MUST NOT** copiarse ningún bloque explicativo de esta plantilla al `design.md` de salida.
 
@@ -31,9 +31,9 @@ El skill abre `README.md` y, a través de él, usa los demás. Cada uno se trans
 | `README.md` | **Esta guía/índice**: contrato fijo, estructura de salida, contexto del proyecto a cargar, y las partes que el diseño incluye. | Todos los subagentes (es el contrato que el skill nombra). **MUST NOT** copiarse al output. |
 | `design-contract.md` | **Qué produce el diseño y cómo**: estructura del diseño, conversión spec→V/R/U, clasificación `cliente`/`servidor`, cobertura, mapeo de capas, reglas arquitectónicas, reglas para los pasos y su orden, cómo documentar servicios y campos `servidor`, frontera de confianza `AllowProperties`, el checklist del diseño y la estructura del `design.md`. | El **diseñador** (para producir el diseño); el **juez** (para comparar); el **enriquecedor** (como criterios para decidir si una ventaja procede); el **verificador** (para verificar) y el **corrector** (para saber a qué regla ajustar la corrección). |
 | `reglas-complejas.md` | **Parte del diseño — reglas complejas**: criterios de "regla compleja" y formato del fichero `rules/R-*.md`. | El **diseñador** (lo produce como parte del diseño); el **verificador** (comprueba el formato); el **corrector** (solo si un fallo reportado afecta a una `rules/R-*.md`). |
-| `tests-e2e.md` | **Parte del diseño — tests E2E**: reglas de materialización, plantilla de `design/tests.md` y checklist. | El **diseñador** (lo produce); el **verificador** (comprueba el formato); el **corrector** (solo si un fallo reportado afecta a `tests.md`). |
-| `tests-unitarios.md` | **Parte del diseño — tests unitarios**: qué clases Java testear, estrategia de mocking del stack (Axelor/Guice/JPA), plantilla de `design/unit-test-desc.md`, trazabilidad, checklist y las **comprobaciones de coherencia con el diseño**. | El **test-unitarios** (lo produce); el **verificador-test-unitarios** (aplica las comprobaciones de coherencia §7); el **corrector-test-unitarios** (para ajustar la corrección al contrato). |
-| `test-arquitectura.md` | **Parte del diseño — tests de arquitectura (ArchUnit)**: qué reglas del catálogo `k-archunit` aplican a los paquetes/clases del diseño, estrategia de anclaje/ámbito (`@AnalyzeClasses`), plantilla de `design/arch-test-desc.md`, trazabilidad, checklist y las **comprobaciones de coherencia con el diseño**. | El **test-arquitectura** (lo produce); el **verificador-test-arquitectura** (aplica las comprobaciones de coherencia §7); el **corrector-test-arquitectura** (para ajustar la corrección al contrato). |
+| `tests-e2e.md` | **Parte del diseño — tests E2E**: reglas de materialización, plantilla de `design/test-e2e-desc.md` y checklist. | El **diseñador** (lo produce); el **verificador** (comprueba el formato); el **corrector** (solo si un fallo reportado afecta a `test-e2e-desc.md`). |
+| `tests-unitarios.md` | **Parte del diseño — tests unitarios**: qué clases Java testear, estrategia de mocking del stack (Axelor/Guice/JPA), plantilla de `design/test-unit-desc.md`, trazabilidad, checklist y las **comprobaciones de coherencia con el diseño**. | El **test-unitarios** (lo produce); el **verificador-test-unitarios** (aplica las comprobaciones de coherencia §7); el **corrector-test-unitarios** (para ajustar la corrección al contrato). |
+| `test-arquitectura.md` | **Parte del diseño — tests de arquitectura (ArchUnit)**: qué reglas del catálogo `k-archunit` aplican a los paquetes/clases del diseño, estrategia de anclaje/ámbito (`@AnalyzeClasses`), plantilla de `design/test-arch-desc.md`, trazabilidad, checklist y las **comprobaciones de coherencia con el diseño**. | El **test-arquitectura** (lo produce); el **verificador-test-arquitectura** (aplica las comprobaciones de coherencia §7); el **corrector-test-arquitectura** (para ajustar la corrección al contrato). |
 | `validacion.md` | **Reglas de verificación**: la validación XML mecánica (delegada en `validate.sh`) y las comprobaciones semánticas de coherencia/cobertura/seguridad. | El **verificador** (aplica las comprobaciones semánticas §2); el **corrector** (para entender por qué cada cosa es un fallo y cuál es la corrección esperada). |
 | `validate.sh` | **Script de validación mecánica**: valida cada XML del diseño contra su XSD de AOP con `xmllint`; imprime `FAIL: <fichero>` y termina con código `≠0` si algo no valida. | **Lo ejecuta el verificador** con `Bash` (lo prescribe `validacion.md` §1). **MUST NOT** copiarse al output. |
 
@@ -54,12 +54,12 @@ El skill `sdd-designer` lanza estos once roles (diseñador, juez, enriquecedor, 
 | **Enriquecedor** (§2.5) | **Detecta** qué ventajas de los descartados incorporar al ganador | la carpeta `design/` ganadora + `log_best.txt` | `design-contract.md` (como criterios para decidir si una ventaja procede) | la lista de mejoras a aplicar (no las aplica) |
 | **Verificador** (§2.3) | **Busca problemas** en un diseño | la carpeta `design/` ganadora | `validacion.md`; consulta `design-contract.md` / `reglas-complejas.md` / `tests-e2e.md` para saber qué *debería* existir | la lista de fallos, o conforme (no corrige) |
 | **Corrector** (§2.4) | **Corrige** los problemas reportados e **incorpora** las mejoras del enriquecedor | la carpeta `design/` + la lista de fallos/mejoras | `validacion.md` + `design-contract.md`; `reglas-complejas.md` / `tests-e2e.md` solo si un fallo/mejora afecta a esa parte | la carpeta `design/` corregida/enriquecida en sitio |
-| **test-unitarios** (§2.6) | **Describe** los tests unitarios de las clases Java del diseño | la carpeta `design/` (sobre todo `design.md`) | `tests-unitarios.md` (qué testear, mocking, plantilla, cobertura) | `design/unit-test-desc.md` (solo descripción, sin código) |
-| **verificador-test-unitarios** (§2.7) | **Comprueba** que `unit-test-desc.md` es coherente con el diseño | `design/unit-test-desc.md` + `design.md` (fuente de verdad) | `tests-unitarios.md` §7 (comprobaciones de coherencia) | la lista de incoherencias, o conforme (no corrige) |
-| **corrector-test-unitarios** (§2.8) | **Corrige** las incoherencias de `unit-test-desc.md` | `design/unit-test-desc.md` + la lista de incoherencias | `tests-unitarios.md` (plantilla/contrato) | `design/unit-test-desc.md` corregido en sitio |
-| **test-arquitectura** (§2.9) | **Describe** los tests de arquitectura de las clases Java del diseño | la carpeta `design/` (sobre todo `design.md`) | `test-arquitectura.md` (qué reglas del catálogo aplican, anclaje, plantilla, cobertura) | `design/arch-test-desc.md` (solo descripción, sin código) |
-| **verificador-test-arquitectura** (§2.10) | **Comprueba** que `arch-test-desc.md` es coherente con el diseño y el catálogo | `design/arch-test-desc.md` + `design.md` + catálogo `k-archunit` | `test-arquitectura.md` §7 (comprobaciones de coherencia) | la lista de incoherencias, o conforme (no corrige) |
-| **corrector-test-arquitectura** (§2.11) | **Corrige** las incoherencias de `arch-test-desc.md` | `design/arch-test-desc.md` + la lista de incoherencias | `test-arquitectura.md` (plantilla/contrato) | `design/arch-test-desc.md` corregido en sitio |
+| **test-unitarios** (§2.6) | **Describe** los tests unitarios de las clases Java del diseño | la carpeta `design/` (sobre todo `design.md`) | `tests-unitarios.md` (qué testear, mocking, plantilla, cobertura) | `design/test-unit-desc.md` (solo descripción, sin código) |
+| **verificador-test-unitarios** (§2.7) | **Comprueba** que `test-unit-desc.md` es coherente con el diseño | `design/test-unit-desc.md` + `design.md` (fuente de verdad) | `tests-unitarios.md` §7 (comprobaciones de coherencia) | la lista de incoherencias, o conforme (no corrige) |
+| **corrector-test-unitarios** (§2.8) | **Corrige** las incoherencias de `test-unit-desc.md` | `design/test-unit-desc.md` + la lista de incoherencias | `tests-unitarios.md` (plantilla/contrato) | `design/test-unit-desc.md` corregido en sitio |
+| **test-arquitectura** (§2.9) | **Describe** los tests de arquitectura de las clases Java del diseño | la carpeta `design/` (sobre todo `design.md`) | `test-arquitectura.md` (qué reglas del catálogo aplican, anclaje, plantilla, cobertura) | `design/test-arch-desc.md` (solo descripción, sin código) |
+| **verificador-test-arquitectura** (§2.10) | **Comprueba** que `test-arch-desc.md` es coherente con el diseño y el catálogo | `design/test-arch-desc.md` + `design.md` + catálogo `k-archunit` | `test-arquitectura.md` §7 (comprobaciones de coherencia) | la lista de incoherencias, o conforme (no corrige) |
+| **corrector-test-arquitectura** (§2.11) | **Corrige** las incoherencias de `test-arch-desc.md` | `design/test-arch-desc.md` + la lista de incoherencias | `test-arquitectura.md` (plantilla/contrato) | `design/test-arch-desc.md` corregido en sitio |
 
 Solo el **diseñador** carga el contexto del proyecto de §4; los otros diez trabajan sobre lo que ya está en disco (el **test-unitarios**, el **test-arquitectura** y sus verificadores pueden consultar el código real: el **test-unitarios** para clases que el diseño *modifica* o utilidades a mockear; el **test-arquitectura** y el **verificador-test-arquitectura** cargan además el skill `k-archunit` para el catálogo de reglas).
 
@@ -69,7 +69,7 @@ Solo el **diseñador** carga el contexto del proyecto de §4; los otros diez tra
 
 - **Lee de esta plantilla:** `design-contract.md` (qué producir, cómo convertir el spec, cómo estructurar, el orden de los pasos y el **checklist**, que aplica antes de terminar); `reglas-complejas.md` y `tests-e2e.md` **solo cuando aplican** (§5).
 - **Carga además** el contexto del proyecto de §4 (skills técnicos + código existente): es el único rol que lo necesita para producir.
-- **Produce:** todos los ficheros de §3 — `design.md`, `domains/*.xml`, `views/*.xml`, `menus.xml`, y las partes condicionales (`rules/R-*.md`, `tests.md`) cuando apliquen.
+- **Produce:** todos los ficheros de §3 — `design.md`, `domains/*.xml`, `views/*.xml`, `menus.xml`, y las partes condicionales (`rules/R-*.md`, `test-e2e-desc.md`) cuando apliquen.
 - **MUST NOT** dar el diseño por terminado sin pasar el checklist de `design-contract.md`. **MUST NOT** inventar elementos que no estén en el spec.
 
 ### 2.2 Juez — elige entre dos diseños
@@ -92,7 +92,7 @@ Solo el **diseñador** carga el contexto del proyecto de §4; los otros diez tra
 
 **Tarea:** dada la lista de fallos del verificador (§2.3) o la lista de mejoras del enriquecedor (§2.5), **aplicarla en sitio** sobre la carpeta `design/` (`Edit`/`Write` sobre sus ficheros), sin regenerar el diseño.
 
-- **Lee de esta plantilla:** `validacion.md` (para entender por qué cada cosa es un fallo y cuál es la corrección esperada) y `design-contract.md` (las reglas a las que debe ajustar la corrección o la mejora); además `reglas-complejas.md` o `tests-e2e.md` **solo si** un fallo/mejora afecta a una `rules/R-*.md` o a `tests.md` respectivamente (para conocer el formato correcto al que ajustar el cambio).
+- **Lee de esta plantilla:** `validacion.md` (para entender por qué cada cosa es un fallo y cuál es la corrección esperada) y `design-contract.md` (las reglas a las que debe ajustar la corrección o la mejora); además `reglas-complejas.md` o `tests-e2e.md` **solo si** un fallo/mejora afecta a una `rules/R-*.md` o a `test-e2e-desc.md` respectivamente (para conocer el formato correcto al que ajustar el cambio).
 - **Aplica** exactamente los fallos/mejoras reportados, manteniendo la estructura y las decisiones del diseño que no estén en falta.
 - **MUST NOT** renombrar ni mover la carpeta `design/`. **MUST NOT** regenerar el diseño entero ni reconstruirlo desde el spec: solo aplica los cambios puntuales.
 
@@ -107,24 +107,24 @@ Solo el **diseñador** carga el contexto del proyecto de §4; los otros diez tra
 
 ### 2.6 test-unitarios — describe los tests unitarios
 
-**Tarea:** describir en `design/unit-test-desc.md` los **tests unitarios** (JUnit 5 + Mockito) necesarios para las clases Java del diseño. **Solo descripción, sin código** (el código lo genera `/sdd-implementer` a partir de `unit-test-desc.md`).
+**Tarea:** describir en `design/test-unit-desc.md` los **tests unitarios** (JUnit 5 + Mockito) necesarios para las clases Java del diseño. **Solo descripción, sin código** (el código lo genera `/sdd-implementer` a partir de `test-unit-desc.md`).
 
-- **Lee de esta plantilla:** `tests-unitarios.md` — define qué clases testear, la **estrategia de mocking** del stack (Axelor/Guice/JPA), la **plantilla** de `unit-test-desc.md`, la trazabilidad y el checklist.
+- **Lee de esta plantilla:** `tests-unitarios.md` — define qué clases testear, la **estrategia de mocking** del stack (Axelor/Guice/JPA), la **plantilla** de `test-unit-desc.md`, la trazabilidad y el checklist.
 - **Entrada propia:** la carpeta `{iniciativa}/design` (sobre todo `design.md`, de donde sale el **inventario de clases Java**, sus métodos y las reglas `V`/`R`/`CC` que aplican) y el `specification.md` (para los mensajes/semántica exactos).
 - **CRITICAL:** en esta fase **aún no existe el código Java** del sistema; enumera las clases **desde el diseño**, no del árbol de fuentes. Para clases que el diseño **modifica** (ya existentes) o utilidades/bases a mockear, puede consultar el código real.
 - **MUST NOT** escribir código Java (ni `@Test`, ni imports, ni cuerpos): solo la descripción de cada test (nombre, propósito, mocks, acción, aserción/mensaje, regla `V`/`R`/`CC` que verifica).
 
 ### 2.7 verificador-test-unitarios — comprueba la coherencia de los tests unitarios
 
-**Tarea:** revisar `design/unit-test-desc.md` (ya escrito por el `test-unitarios`) y **reportar todas las incoherencias** respecto al diseño; si todo cuadra, declararlo conforme. **MUST NOT** regenerar ni completar los tests: solo **detecta y reporta**.
+**Tarea:** revisar `design/test-unit-desc.md` (ya escrito por el `test-unitarios`) y **reportar todas las incoherencias** respecto al diseño; si todo cuadra, declararlo conforme. **MUST NOT** regenerar ni completar los tests: solo **detecta y reporta**.
 
 - **Lee de esta plantilla:** `tests-unitarios.md` — en particular su sección de **comprobaciones de coherencia con el diseño** (§7): clases descritas que existen en el diseño, métodos que existen, reglas `V`/`R`/`CC` referenciadas que existen, cobertura declarada que cuadra, sin clases ni métodos inventados, estructura de plantilla respetada y sin código Java.
-- **Entrada propia:** `{iniciativa}/design/unit-test-desc.md` (lo que se verifica) y `{iniciativa}/design` —sobre todo `design.md`— como **fuente de verdad** del inventario de clases/métodos/reglas.
+- **Entrada propia:** `{iniciativa}/design/test-unit-desc.md` (lo que se verifica) y `{iniciativa}/design` —sobre todo `design.md`— como **fuente de verdad** del inventario de clases/métodos/reglas.
 - **MUST NOT** modificar nada: corregir es tarea del corrector-test-unitarios (§2.8). **MUST NOT** modificar el diseño para que cuadre con los tests.
 
 ### 2.8 corrector-test-unitarios — corrige los tests unitarios
 
-**Tarea:** dada la lista de incoherencias del verificador-test-unitarios (§2.7), **aplicarla en sitio** sobre `design/unit-test-desc.md` (`Edit`/`Write`), sin regenerar el fichero.
+**Tarea:** dada la lista de incoherencias del verificador-test-unitarios (§2.7), **aplicarla en sitio** sobre `design/test-unit-desc.md` (`Edit`/`Write`), sin regenerar el fichero.
 
 - **Lee de esta plantilla:** `tests-unitarios.md` (la plantilla/contrato al que ajustar la corrección).
 - **Fuente de verdad:** `design.md`. **MUST NOT** modificar el diseño para que cuadre con los tests: corrige los tests para que cuadren con el diseño.
@@ -132,9 +132,9 @@ Solo el **diseñador** carga el contexto del proyecto de §4; los otros diez tra
 
 ### 2.9 test-arquitectura — describe los tests de arquitectura
 
-**Tarea:** describir en `design/arch-test-desc.md` los **tests de arquitectura** (ArchUnit) que verifican que las clases Java del diseño respetan la arquitectura documentada del proyecto (capas, Controller→Service→Repository, nomenclatura/ubicación, inyección, higiene). **Solo descripción, sin código** (el código lo genera `/sdd-implementer` a partir de `arch-test-desc.md`).
+**Tarea:** describir en `design/test-arch-desc.md` los **tests de arquitectura** (ArchUnit) que verifican que las clases Java del diseño respetan la arquitectura documentada del proyecto (capas, Controller→Service→Repository, nomenclatura/ubicación, inyección, higiene). **Solo descripción, sin código** (el código lo genera `/sdd-implementer` a partir de `test-arch-desc.md`).
 
-- **Lee de esta plantilla:** `test-arquitectura.md` — define qué reglas describir, cómo seleccionarlas del catálogo, la **estrategia de anclaje/ámbito** (`@AnalyzeClasses`), la **plantilla** de `arch-test-desc.md`, la trazabilidad y el checklist.
+- **Lee de esta plantilla:** `test-arquitectura.md` — define qué reglas describir, cómo seleccionarlas del catálogo, la **estrategia de anclaje/ámbito** (`@AnalyzeClasses`), la **plantilla** de `test-arch-desc.md`, la trazabilidad y el checklist.
 - **Carga además** el skill `k-archunit` y lee su fichero `secretaria-virtual-rules.md`: es el **catálogo de reglas** del proyecto (`C1`–`C22`), fuente única de las reglas de arquitectura. **MUST NOT** inventar criterios distintos a los del catálogo para una regla que el catálogo ya define.
 - **Entrada propia:** la carpeta `{iniciativa}/design` (sobre todo `design.md`, de donde salen los **paquetes y FQN** de las clases que el diseño crea/modifica) y el `specification.md`/guías (para restricciones estructurales específicas, reglas `A-NNN`).
 - **CRITICAL:** en esta fase **aún no existe el código Java** del sistema; enumera los **paquetes/clases desde el diseño**, no del árbol de fuentes. Para clases que el diseño **modifica** (ya existentes) puede consultar el código real y el «Estado actual» del catálogo para decidir si una regla va en `FREEZE`.
@@ -142,16 +142,16 @@ Solo el **diseñador** carga el contexto del proyecto de §4; los otros diez tra
 
 ### 2.10 verificador-test-arquitectura — comprueba la coherencia de los tests de arquitectura
 
-**Tarea:** revisar `design/arch-test-desc.md` (ya escrito por el `test-arquitectura`) y **reportar todas las incoherencias** respecto al diseño y al catálogo; si todo cuadra, declararlo conforme. **MUST NOT** regenerar ni completar los tests: solo **detecta y reporta**.
+**Tarea:** revisar `design/test-arch-desc.md` (ya escrito por el `test-arquitectura`) y **reportar todas las incoherencias** respecto al diseño y al catálogo; si todo cuadra, declararlo conforme. **MUST NOT** regenerar ni completar los tests: solo **detecta y reporta**.
 
 - **Lee de esta plantilla:** `test-arquitectura.md` — en particular su sección de **comprobaciones de coherencia con el diseño** (§7): paquetes/clases descritos que existen en el diseño (FQN), reglas `C…` que existen en el catálogo y se usan con su criterio, `A-NNN` trazadas al spec/guías, cada artefacto del diseño cubierto, reglas no aplicables justificadas, sin paquetes ni clases inventados, estructura respetada y sin código Java.
 - **Carga además** el skill `k-archunit` (`secretaria-virtual-rules.md`) para validar las reglas `C…` citadas.
-- **Entrada propia:** `{iniciativa}/design/arch-test-desc.md` (lo que se verifica) y `{iniciativa}/design` —sobre todo `design.md`— como **fuente de verdad** de los paquetes/FQN.
+- **Entrada propia:** `{iniciativa}/design/test-arch-desc.md` (lo que se verifica) y `{iniciativa}/design` —sobre todo `design.md`— como **fuente de verdad** de los paquetes/FQN.
 - **MUST NOT** modificar nada: corregir es tarea del corrector-test-arquitectura (§2.11).
 
 ### 2.11 corrector-test-arquitectura — corrige los tests de arquitectura
 
-**Tarea:** dada la lista de incoherencias del verificador-test-arquitectura (§2.10), **aplicarla en sitio** sobre `design/arch-test-desc.md` (`Edit`/`Write`), sin regenerar el fichero.
+**Tarea:** dada la lista de incoherencias del verificador-test-arquitectura (§2.10), **aplicarla en sitio** sobre `design/test-arch-desc.md` (`Edit`/`Write`), sin regenerar el fichero.
 
 - **Lee de esta plantilla:** `test-arquitectura.md` (la plantilla/contrato al que ajustar la corrección) y carga `k-archunit` para las reglas del catálogo.
 - **Fuente de verdad:** `design.md` y el catálogo. **MUST NOT** modificar el diseño para que cuadre con los tests: corrige los tests para que cuadren con el diseño y el catálogo.
@@ -173,9 +173,9 @@ La salida es una **carpeta** `design/` dentro de la carpeta de la iniciativa. El
     ├── domains/<Entidad>.xml             ← un fichero por entidad
     ├── views/<Fichero>.xml               ← un fichero por <action-view>
     ├── menus.xml                         ← <menuitem> del subsistema
-    ├── tests.md                          ← materializado desde los escenarios del spec (si los hay)
-    ├── unit-test-desc.md                            ← descripción de los tests unitarios (si hay clases Java) — lo produce el rol `test-unitarios`
-    ├── arch-test-desc.md                            ← descripción de los tests de arquitectura (si hay clases Java) — lo produce el rol `test-arquitectura`
+    ├── test-e2e-desc.md                          ← materializado desde los escenarios del spec (si los hay)
+    ├── test-unit-desc.md                            ← descripción de los tests unitarios (si hay clases Java) — lo produce el rol `test-unitarios`
+    ├── test-arch-desc.md                            ← descripción de los tests de arquitectura (si hay clases Java) — lo produce el rol `test-arquitectura`
     └── rules/R-<Entidad>-NNN.md          ← solo si hay reglas R complejas
 ```
 
@@ -218,10 +218,10 @@ Además de los dominios, vistas y menús, el diseño que escribe el diseñador i
 | Parte | Cuándo se incluye | Contrato |
 |---|---|---|
 | `rules/R-<Entidad>-NNN.md` (una por regla compleja) | si alguna regla `R-` cumple los criterios de complejidad | `reglas-complejas.md` |
-| `tests.md` (tests E2E) | si el spec tiene escenarios | `tests-e2e.md` |
+| `test-e2e-desc.md` (tests E2E) | si el spec tiene escenarios | `tests-e2e.md` |
 
 Si una parte no aplica (su columna "Cuándo se incluye" no se cumple), simplemente **no se crea** (sin error). El verificador comprueba que las partes que **deben** existir, existen.
 
-`unit-test-desc.md` (tests unitarios) **NO** lo produce el diseñador: lo genera el rol **`test-unitarios`** en una fase posterior del skill (sobre el ganador `design/`), siempre que el diseño defina clases Java — ver §2.6 y `tests-unitarios.md`.
+`test-unit-desc.md` (tests unitarios) **NO** lo produce el diseñador: lo genera el rol **`test-unitarios`** en una fase posterior del skill (sobre el ganador `design/`), siempre que el diseño defina clases Java — ver §2.6 y `tests-unitarios.md`.
 
-`arch-test-desc.md` (tests de arquitectura) **tampoco** lo produce el diseñador: lo genera el rol **`test-arquitectura`** en una fase posterior del skill (sobre el ganador `design/`), siempre que el diseño defina clases Java — ver §2.9 y `test-arquitectura.md`.
+`test-arch-desc.md` (tests de arquitectura) **tampoco** lo produce el diseñador: lo genera el rol **`test-arquitectura`** en una fase posterior del skill (sobre el ganador `design/`), siempre que el diseño defina clases Java — ver §2.9 y `test-arquitectura.md`.

@@ -43,7 +43,7 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 3. **Fase 2 — Descomponer**: lanzar el subagente **descomponedor**, que escribe las tareas en `implementation/` (§7).
 4. **Fase 3 — Revisar**: mostrar el resumen de tareas y **STOP** con `AskUserQuestion` hasta que el usuario apruebe (§8).
 5. **Fase 4 — Implementar**: lanzar **un subagente implementador por tarea**, en orden, que materializa cada tarea en el árbol del proyecto (§9).
-6. **Fase 5 — Verificar/corregir el build**: bucle subagente **verificador-build** → (si falla) subagente **corrector-build**, hasta `OK-COMPILA` (**LIMIT** 3 iteraciones) (§10).
+6. **Fase 5 — Verificar/corregir el build**: bucle subagente **verificador-build** → (si falla) subagente **corrector-build**, hasta `OK-COMPILA` (**LIMIT** 20 iteraciones) (§10).
 7. **Fase 6 — Cerrar** con mensaje al usuario y handoff a `/sdd-close-spec` (§11).
 
 **STOP conditions**:
@@ -55,7 +55,7 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 - El usuario no aprueba la lista de tareas en la Fase 3 → **MUST NOT** implementar nada.
 - Un **implementador** devuelve `CONFLICT` (fichero/elemento destino ya existe) → **STOP** y `AskUserQuestion` (sobrescribir / mantener / abortar); relanza el implementador con la decisión.
 - Un **implementador** devuelve `BLOCKED` (dependencia inexistente, instrucción ambigua, recurso no disponible, XML del diseño mal) → **STOP** y pregunta al usuario. **MUST NOT** adivinar.
-- Tras **3** iteraciones del bucle de build (Fase 5) el verificador-build sigue sin responder `OK-COMPILA` → **STOP** y `AskUserQuestion`. **MUST NOT** dar la implementación por buena.
+- Tras **20** iteraciones del bucle de build (Fase 5) el verificador-build sigue sin responder `OK-COMPILA` → **STOP** y `AskUserQuestion`. **MUST NOT** dar la implementación por buena.
 
 ---
 
@@ -137,7 +137,7 @@ Todo lo específico de la implementación (qué contiene el diseño, cómo se de
 │  Fase 3  Mostrar resumen → AskUserQuestion → STOP hasta aprobar     │
 │  Fase 4  Para cada tarea en orden:                                  │
 │            implementador(tarea) → DONE | CONFLICT | BLOCKED         │
-│  Fase 5  Bucle (LIMIT 3):                                           │
+│  Fase 5  Bucle (LIMIT 20):                                           │
 │            verificador-build() → OK-COMPILA ?  (vuelca su JSONL     │
 │              sí  → fin                          a log_build.txt)    │
 │              no  → corrector-build(errores) → repetir               │
@@ -274,18 +274,18 @@ Implementa las tareas en orden. **MUST NOT** pasar a la Fase 5 hasta que todas l
 
 ---
 
-## 10. Fase 5 — Verificar y corregir el build (bucle, LIMIT 3)
+## 10. Fase 5 — Verificar y corregir el build (bucle, LIMIT 20)
 
-Tras materializar todas las tareas, verifica que el proyecto compila (y que sus tests de compilación pasan) y entra en un bucle de auto-corrección si falla. Repite este bucle **como máximo 3 veces** (**LIMIT**: 3 iteraciones); lleva un contador de iteración `{k}` empezando en 1, y guarda el JSONL de errores de la iteración previa para detectar fallos persistentes.
+Tras materializar todas las tareas, verifica que el proyecto compila (y que sus tests de compilación pasan) y entra en un bucle de auto-corrección si falla. Repite este bucle **como máximo 20 veces** (**LIMIT**: 20 iteraciones); lleva un contador de iteración `{k}` empezando en 1, y guarda el JSONL de errores de la iteración previa para detectar fallos persistentes.
 
 1. **Lanzar el subagente verificador-build** (uno solo).
 2. **Volcar su respuesta a `implementation/log_build.txt`**: añade (append) la respuesta **literal** —sus líneas JSONL, o `OK-COMPILA`— precedida de la cabecera `# Build — iteración {k}`. Es un append acumulativo (una sección por iteración).
 3. Si respondió **exactamente** `OK-COMPILA` → el proyecto compila: sal del bucle y ve a la Fase 6.
 4. Si respondió **cualquier otra cosa** (las líneas JSONL de errores): **MUST** mostrar al usuario por pantalla, tal cual, las líneas JSONL (bloque ` ```jsonl `), antes de continuar.
-   - **Detectar fallos persistentes**: si el JSONL es **idéntico** al de la iteración anterior, el corrector no está progresando. Trata el caso como `k == 3` (paso 6).
-   - Si `k < 3`: **lanza el subagente corrector-build** pasándole esas mismas líneas JSONL, para que corrija **en sitio**. Incrementa `{k}` y vuelve al paso 1.
+   - **Detectar fallos persistentes**: si el JSONL es **idéntico** al de la iteración anterior, el corrector no está progresando. Trata el caso como `k == 20` (paso 6).
+   - Si `k < 20`: **lanza el subagente corrector-build** pasándole esas mismas líneas JSONL, para que corrija **en sitio**. Incrementa `{k}` y vuelve al paso 1.
 5. (continúa el bucle)
-6. Si tras la 3ª iteración el verificador-build sigue sin responder `OK-COMPILA` (o se detectaron fallos persistentes) → **STOP** y `AskUserQuestion` ofreciendo: (1) dejar el reporte de errores (`log_build.txt`) para investigación manual; (2) revisar el diseño relanzando `/sdd-designer`; (3) continuar sin compilación limpia (no recomendado). **MUST NOT** dar la implementación por buena.
+6. Si tras la 20ª iteración el verificador-build sigue sin responder `OK-COMPILA` (o se detectaron fallos persistentes) → **STOP** y `AskUserQuestion` ofreciendo: (1) dejar el reporte de errores (`log_build.txt`) para investigación manual; (2) revisar el diseño relanzando `/sdd-designer`; (3) continuar sin compilación limpia (no recomendado). **MUST NOT** dar la implementación por buena.
 
 **Prompt del subagente verificador-build**:
 
@@ -349,7 +349,7 @@ Ajusta la lista de ficheros a la estructura real que define la plantilla.
 
 **CRITICAL**: si la Fase 5 acabó sin compilación limpia (bug irresoluble o elección del usuario), **MUST** decirlo explícitamente:
 
-> Atención: el proyecto no compila limpio tras 3 iteraciones. Revisa `implementation/log_build.txt` antes de lanzar `/sdd-close-spec`, o relanza este skill tras corregir el diseño.
+> Atención: el proyecto no compila limpio tras 20 iteraciones. Revisa `implementation/log_build.txt` antes de lanzar `/sdd-close-spec`, o relanza este skill tras corregir el diseño.
 
 **MUST NOT** lanzar `/sdd-close-spec` tú mismo: el usuario decide cuándo.
 
@@ -363,7 +363,7 @@ Ajusta la lista de ficheros a la estructura real que define la plantilla.
 - **Descomponer** (§7): **un** subagente descomponedor escribe `implementation/`; responde `ESCRITO: implementation/` + bloque `=== TAREAS ===` (una línea por tarea, en orden). **MUST NOT** materializar código.
 - **Revisar** (§8): muestra el resumen y **STOP** con `AskUserQuestion`; **MUST NOT** implementar sin aprobación.
 - **Implementar** (§9): **un subagente implementador por tarea, en orden** (nunca en paralelo ni `run_in_background`). Cada uno carga los skills de su tarea y, si el contrato lo dice, invoca `code-implementer`. Responde `DONE` / `CONFLICT` / `BLOCKED`; el motor lleva `CONFLICT`/`BLOCKED` al usuario.
-- **Verificar/corregir el build** (§10): bucle verificador-build → corrector-build hasta `OK-COMPILA` (**LIMIT** 3; tras la 3ª o si los errores se repiten, **STOP** y `AskUserQuestion`). El verificador-build compila (comando de la plantilla) y reporta en **JSONL** (`id`/`tipo`/`fichero`/`ubicacion`/`tarea`/`mensaje`/`correccion`); el motor lo vuelca a `implementation/log_build.txt`. El motor **MUST NOT** compilar él mismo (§2.2).
+- **Verificar/corregir el build** (§10): bucle verificador-build → corrector-build hasta `OK-COMPILA` (**LIMIT** 20; tras la 20ª o si los errores se repiten, **STOP** y `AskUserQuestion`). El verificador-build compila (comando de la plantilla) y reporta en **JSONL** (`id`/`tipo`/`fichero`/`ubicacion`/`tarea`/`mensaje`/`correccion`); el motor lo vuelca a `implementation/log_build.txt`. El motor **MUST NOT** compilar él mismo (§2.2).
 - **Contrato de tokens** (§2.3): el skill compara por literal exacto — `ESCRITO: implementation/`, `DONE`/`CONFLICT`/`BLOCKED`, `OK-COMPILA`. Los subagentes **MUST NOT** pegar el código en su respuesta (ya está en disco).
 - **MUST NOT** invocar `code-implementer` tú mismo ni lanzar `/sdd-close-spec`: el código lo escriben los implementadores; el cierre lo decide el usuario.
 

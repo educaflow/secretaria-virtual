@@ -52,7 +52,7 @@ El corrector-build resuelve cada línea JSONL. Reglas duras:
 
 - **MUST** corregir **solo código Java** (producción o tests). Si el contrato de dominio lo aconseja, delega en `code-implementer` cargando antes los skills de la tarea de origen (`tarea`).
 - **MUST NOT** editar los XML del diseño ya colocados (dominios, vistas, `menus.xml`): son **contrato fijo** (`implementation.md` §1/§4). Si un error apunta a que un XML está mal, **detente y repórtalo** en tu respuesta (no lo edites) — hay que volver a `/sdd-designer`.
-- Ante un error de **test** (`tipo: TEST`): decide si el fallo es del **código de producción** (corrige la producción) o del **test mal generado** (corrige el test para que refleje la descripción de `design/unit-test-desc.md` / `arch-test-desc.md`). **MUST NOT** debilitar un test para que pase si el fallo real está en la producción.
+- Ante un error de **test** (`tipo: TEST`): decide si el fallo es del **código de producción** (corrige la producción) o del **test mal generado** (corrige el test para que refleje la descripción de `design/test-unit-desc.md` / `test-arch-desc.md`). **MUST NOT** debilitar un test para que pase si el fallo real está en la producción.
 - **MUST NOT** usar `AskUserQuestion`: ante un bloqueo, descríbelo en tu respuesta y termina (el motor lo lleva al usuario).
 
 Tras corregir, el motor relanza el verificador-build (§1). El bucle tiene **LIMIT 3** iteraciones (lo controla `SKILL.md` §10); si los mismos errores se repiten entre iteraciones, el motor para y pregunta al usuario.

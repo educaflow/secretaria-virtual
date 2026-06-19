@@ -12,7 +12,7 @@ El diseñador escribe, dentro de su carpeta `design_<n>/`, un diseño completo y
 - `domains/<Entidad>.xml` — uno por entidad. XML completo, válido contra `domain-models.xsd` (ver `validacion.md`).
 - `views/<Fichero>.xml` — uno por `<action-view>` (regla "un `<action-view>` por fichero", §6). XML completo, válido contra `object-views.xsd`.
 - `menus.xml` — XML con los `<menuitem>` a añadir al fichero único del proyecto. Válido contra `object-views.xsd`.
-- `tests.md` — tests E2E (ver `tests-e2e.md`), si el spec tiene escenarios.
+- `test-e2e-desc.md` — tests E2E (ver `tests-e2e.md`), si el spec tiene escenarios.
 - `rules/R-<Entidad>-NNN.md` — solo para reglas de negocio complejas (ver `reglas-complejas.md`).
 
 (Cuando el diseño gana el torneo, su carpeta `design_<n>/` se renombra a `design/`.) Los ficheros XML de `domains/`, `views/` y `menus.xml` están **completos y materializados**: `/sdd-implementer` los **copia verbatim** a su ubicación final en `src/main/...` (los `<menuitem>` de `menus.xml` se fusionan en el fichero único del proyecto). **MUST NOT** modificarlos, reescribirlos ni regenerarlos durante la implementación: se colocan en su sitio **tal cual están**. El diseño no inventa nada que no se vaya a usar tal cual.
@@ -27,12 +27,12 @@ Un diseño describe **la estructura** del software (qué ficheros existen, qué 
 | `domains/*.xml` | XML completo de cada entidad (campos, tipos, relaciones, enumerados, finders). Es declarativo y va al 100%. |
 | `views/*.xml` | XML completo de `<grid>`, `<form>`, `<cards>`, `<action-method>`, `<action-attrs>`, `<action-validate>`, `<action-condition>`, `<action-record>`, `<action-group>`, `<action-view>` — con todos sus campos, panels, condiciones y mensajes literales. |
 | `menus.xml` | XML completo de los `<menuitem>` a añadir al `menus.xml` único del proyecto. |
-| `tests.md` | Tests E2E `T-NNN` en lenguaje de negocio Given/When/Then (sin código ni selectores). |
+| `test-e2e-desc.md` | Tests E2E `T-NNN` en lenguaje de negocio Given/When/Then (sin código ni selectores). |
 
 **MUST NOT** en cualquier parte del diseño:
 
 - **MUST NOT** incluir cuerpos de métodos Java implementados. Nada de `validateInsert` con su lógica, nada de `for`/`if` reales, nada de `messages.add(...)` con strings literales dentro de un método. Solo firmas + comentario descriptivo.
-- **MUST NOT** incluir mensajes de error literales para validaciones Java — se describe el contenido que debe transmitir (valor recibido, dominio válido), no el literal. (Los literales de `<action-validate>` XML sí se escriben porque el XML va completo; y los mensajes que cita `tests.md` se toman tal cual del spec/vista.)
+- **MUST NOT** incluir mensajes de error literales para validaciones Java — se describe el contenido que debe transmitir (valor recibido, dominio válido), no el literal. (Los literales de `<action-validate>` XML sí se escriben porque el XML va completo; y los mensajes que cita `test-e2e-desc.md` se toman tal cual del spec/vista.)
 - **MUST NOT** inventar elementos que no estén en la especificación. Si el spec no menciona una pantalla, un campo o una regla, **MUST NOT** añadirse.
 - **MUST NOT** usar como referencia el código de `expedientes`/`tiposexpedientes`/`tramites` ni JPQL real.
 
@@ -161,8 +161,8 @@ El diseñador escribe en su carpeta `design_<n>/` el diseño completo. El **índ
 ...
 
 ## Tests
-- **Tests unitarios** (JUnit + Mockito): descritos en `unit-test-desc.md` (lo materializa una fase posterior del pipeline).
-- **Tests de arquitectura** (ArchUnit): descritos en `arch-test-desc.md` (lo materializa una fase posterior del pipeline).
+- **Tests unitarios** (JUnit + Mockito): descritos en `test-unit-desc.md` (lo materializa una fase posterior del pipeline).
+- **Tests de arquitectura** (ArchUnit): descritos en `test-arch-desc.md` (lo materializa una fase posterior del pipeline).
 
 ## Reglas del spec descartadas
 ...
@@ -182,7 +182,7 @@ El diseñador escribe en su carpeta `design_<n>/` el diseño completo. El **índ
    - **Menús** — `design_<n>/menus.xml`, válido contra `object-views.xsd`.
    - **Seguridad** — en el `design.md`, permisos, roles, grupos por nombre y la regla de acceso en lenguaje natural.
    - **Trazabilidad** — matriz con tres bloques (`V-<Entidad>-NNN`, `R-<Entidad>-NNN`, `U-<slug>-NNN`), cada fila con su **`Origen spec`** (IDs `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` o `—`) y su **ubicación** (clase.método o fichero XML + nombre de acción), demostrando que **toda regla del spec está ubicada** según el mapeo de capas de §5. Las reglas del spec que no se mapeen van a "Reglas del spec descartadas" con justificación.
-   - **Partes condicionales** — `rules/R-*.md` (ver `reglas-complejas.md`) y `tests.md` (ver `tests-e2e.md`), cuando apliquen.
+   - **Partes condicionales** — `rules/R-*.md` (ver `reglas-complejas.md`) y `test-e2e-desc.md` (ver `tests-e2e.md`), cuando apliquen.
 4. **Aplicar el checklist (§9) y corregir antes de terminar.** El diseñador NO debe dar el diseño por terminado hasta que todos los puntos del checklist estén satisfechos.
 
 ---
@@ -326,7 +326,7 @@ El diseñador revisa su diseño contra esta lista y corrige antes de terminar. S
 - [ ] ¿Cada paso es lo suficientemente pequeño para implementarse y verificarse en ≤ 30 minutos?
 - [ ] ¿Los pasos respetan el orden obligatorio de §8?
 - [ ] ¿El diseño referencia el `specification.md` en la cabecera?
-- [ ] ¿El `design.md` tiene la sección `## Tests` que referencia `unit-test-desc.md` (tests unitarios) y `arch-test-desc.md` (tests de arquitectura)?
+- [ ] ¿El `design.md` tiene la sección `## Tests` que referencia `test-unit-desc.md` (tests unitarios) y `test-arch-desc.md` (tests de arquitectura)?
 - [ ] ¿El diseño respeta todas las guías de `design-guidelines.md` (si existe)? Si alguna no se ha podido respetar por incompatibilidad con el spec, ¿está documentada en "Notas y supuestos"?
 
 ---
@@ -343,4 +343,4 @@ type: design
 {contenido del diseño, con resumen estructural por cada XML — no el XML inline}
 ```
 
-El `design.md` **no contiene** los XML completos inline (esos viven en sus ficheros); en su lugar contiene, por cada fichero XML generado, una entrada con su ruta y el resumen estructural (vistas, acciones, propósito), más la matriz de trazabilidad `Origen spec → V/R/U → ubicación`, la sección "Frontera de confianza — AllowProperties por acción" (§8.3) y, si aplica, "Reglas del spec descartadas". Incluye además una sección "Tests" que referencia `unit-test-desc.md` (tests unitarios) y `arch-test-desc.md` (tests de arquitectura), ambos materializados en una fase posterior del pipeline. Las decisiones tomadas ante ambigüedades van en "Notas y supuestos".
+El `design.md` **no contiene** los XML completos inline (esos viven en sus ficheros); en su lugar contiene, por cada fichero XML generado, una entrada con su ruta y el resumen estructural (vistas, acciones, propósito), más la matriz de trazabilidad `Origen spec → V/R/U → ubicación`, la sección "Frontera de confianza — AllowProperties por acción" (§8.3) y, si aplica, "Reglas del spec descartadas". Incluye además una sección "Tests" que referencia `test-unit-desc.md` (tests unitarios) y `test-arch-desc.md` (tests de arquitectura), ambos materializados en una fase posterior del pipeline. Las decisiones tomadas ante ambigüedades van en "Notas y supuestos".

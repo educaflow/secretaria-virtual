@@ -19,7 +19,7 @@ Lo lee el **descomponedor** (README §2.1). Define **cómo convertir el diseño 
 
    Si no existe esa tabla → responde con el token de bloqueo del descomponedor (`ESCRITO: implementation/` no aplica: en su lugar, indica el problema; el motor lo trata como STOP).
 3. Las rutas relativas tipo `subsystem/foo/domains/Bar.xml` se resuelven contra el prefijo estándar `src/main/java/com/educaflow/`. Las rutas que ya empiezan por `src/main/...` se usan tal cual.
-4. Comprueba si el diseño trae descripciones de tests (`design/unit-test-desc.md`, `design/arch-test-desc.md`): generarán **tareas de test** (ver `tests-code.md`).
+4. Comprueba si el diseño trae descripciones de tests (`design/test-unit-desc.md`, `design/test-arch-desc.md`): generarán **tareas de test** (ver `tests-code.md`).
 
 ---
 
@@ -89,7 +89,7 @@ Reglas de relleno:
   - Las secciones transversales que apliquen: "Frontera de confianza — AllowProperties por acción" y las filas de "Trazabilidad V/R/U → ubicación" que les correspondan.
   - Las referencias a `rules/R-*.md` citadas para esos ficheros (cita la ruta; **MUST NOT** copiar su contenido entero si es extenso).
 - Para una tarea de **XML ya materializado** (dominio, vista, `menus.xml`), el `<texto del prompt>` **MUST** indicar explícitamente que el fichero está en `design/...` y que se debe **copiar literalmente** (o fusionar, para `menus.xml`) a su ruta destino, **sin regenerarlo** (ver `implementation.md` §1).
-- Para una tarea de **test**, el `<texto del prompt>` lo fija `tests-code.md` (referencia a `design/unit-test-desc.md` o `design/arch-test-desc.md` y la ubicación destino en `src/test/...`).
+- Para una tarea de **test**, el `<texto del prompt>` lo fija `tests-code.md` (referencia a `design/test-unit-desc.md` o `design/test-arch-desc.md` y la ubicación destino en `src/test/...`).
 
 **MUST NOT**:
 
@@ -124,7 +124,7 @@ Reglas:
 - ✅ CORRECTO: `- [Tarea 01](task_01.md)`.
 - ❌ INCORRECTO: `- [Tarea 1](tarea_01.md)` (número sin dos dígitos y nombre de fichero que no coincide con el real).
 
-2. Si existe `{iniciativa}/design/tests.md`, **cópialo literalmente** a `{iniciativa}/implementation/tests.md`. Es **contrato fijo hacia abajo**: **MUST NOT** modificarlo, resumirlo ni renumerarlo — es la entrada que `/sdd-debug-app` ejecutará contra la aplicación real. Si no existe, no pasa nada.
+2. Si existe `{iniciativa}/design/test-e2e-desc.md`, **cópialo literalmente** a `{iniciativa}/implementation/tests.md`. Es **contrato fijo hacia abajo**: **MUST NOT** modificarlo, resumirlo ni renumerarlo — es la entrada que `/sdd-debug-app` ejecutará contra la aplicación real. Si no existe, no pasa nada.
 
 ---
 
@@ -146,8 +146,8 @@ Antes de devolver el token, **MUST** recorrer este checklist. Si algo falla, cor
 - [ ] ¿Cada fichero de la tabla está cubierto por **exactamente una** tarea (agrupando solo los acoplados)?
 - [ ] ¿Cada `task_NN.md` tiene `type: implementation-task`, su lista de skills y el texto del diseño **verbatim**?
 - [ ] ¿Las tareas Java de entidades/servicios/controladores incluyen `k-secure-coding` y `k-code-quality`?
-- [ ] ¿Se crearon las tareas de tests unitarios y de arquitectura si el diseño trae `unit-test-desc.md` / `arch-test-desc.md` (ver `tests-code.md`)?
+- [ ] ¿Se crearon las tareas de tests unitarios y de arquitectura si el diseño trae `test-unit-desc.md` / `test-arch-desc.md` (ver `tests-code.md`)?
 - [ ] ¿El orden de numeración respeta dominios → servicios → … → tests?
 - [ ] ¿Existe `implementation/task.md` con `type: implementation-tasks` y un enlace correcto por tarea, en orden?
-- [ ] Si existía `design/tests.md`: ¿se copió literalmente a `implementation/tests.md` sin modificarlo?
+- [ ] Si existía `design/test-e2e-desc.md`: ¿se copió literalmente a `implementation/tests.md` sin modificarlo?
 - [ ] ¿La respuesta lleva `ESCRITO: implementation/` + el bloque `=== TAREAS ===` con una línea por tarea?

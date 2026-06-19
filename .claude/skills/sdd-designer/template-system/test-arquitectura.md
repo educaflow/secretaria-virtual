@@ -1,10 +1,10 @@
 # Parte del diseño: tests de arquitectura (ArchUnit)
 
-Como parte del diseño, **el subagente `test-arquitectura`** escribe `design/arch-test-desc.md`: la **descripción** (no el código) de los tests de arquitectura **ArchUnit** que verifican que las clases Java que el diseño planifica respetan la arquitectura documentada del proyecto (capas, Controller→Service→Repository, nomenclatura/ubicación, inyección de dependencias, higiene). `/sdd-implementer` genera el código de los tests a partir de esta descripción.
+Como parte del diseño, **el subagente `test-arquitectura`** escribe `design/test-arch-desc.md`: la **descripción** (no el código) de los tests de arquitectura **ArchUnit** que verifican que las clases Java que el diseño planifica respetan la arquitectura documentada del proyecto (capas, Controller→Service→Repository, nomenclatura/ubicación, inyección de dependencias, higiene). `/sdd-implementer` genera el código de los tests a partir de esta descripción.
 
 **CRITICAL — todavía no hay código.** Cuando se ejecuta esta fase, las clases Java del sistema **aún no existen** (las crea `/sdd-implementer`). El subagente `test-arquitectura` enumera los **paquetes y artefactos** que el diseño va a crear (controladores, servicios, impl., repositorios, módulos Guice, DTOs, entidades) **desde el diseño** (`design.md`: la sección de ficheros a crear/modificar y los FQN de cada clase), **no** del árbol de fuentes. Es un planteamiento *fitness-function*: la descripción de los tests de arquitectura se escribe **antes** del código, a partir del diseño.
 
-**Diferencia con `unit-test-desc.md`.** Los tests unitarios (`tests-unitarios.md`) verifican el **comportamiento** de cada método (validaciones, reglas de negocio, campos calculados) con JUnit + Mockito. Los tests de arquitectura verifican la **estructura** del código (de qué depende cada capa, cómo se llaman y dónde viven las clases) con ArchUnit, sin ejecutar lógica. Son complementarios: una clase puede pasar todos sus tests unitarios y aun así violar la arquitectura (p.ej. un controlador que accede al repositorio).
+**Diferencia con `test-unit-desc.md`.** Los tests unitarios (`tests-unitarios.md`) verifican el **comportamiento** de cada método (validaciones, reglas de negocio, campos calculados) con JUnit + Mockito. Los tests de arquitectura verifican la **estructura** del código (de qué depende cada capa, cómo se llaman y dónde viven las clases) con ArchUnit, sin ejecutar lógica. Son complementarios: una clase puede pasar todos sus tests unitarios y aun así violar la arquitectura (p.ej. un controlador que accede al repositorio).
 
 **Quién lo usa** (`README.md` §2): lo produce el subagente `test-arquitectura` (§2.9); ningún otro rol lo modifica.
 
@@ -31,7 +31,7 @@ El criterio es: **toda regla del catálogo `C1`–`C22` que afecte a algún arte
 - **MUST** describir **solo** las reglas cuyo sujeto **existe** en el diseño. Si el diseño **no** tiene DTOs, **no** se describe `C20`; si no tiene módulo Guice, **no** se describe `C19`; etc. Indicar las no aplicables en la sección «Reglas del catálogo no aplicables» con su motivo (p.ej. «C20 — el diseño no define DTOs»).
 - **MUST** describir las reglas de **capa** (`C1`–`C8`) que correspondan a la capa donde vive el diseño. Ejemplo: un diseño en `com.educaflow.subsystem.X` describe `C3` (no depende de `system`/`secretariavirtual`) y `C7` (sin ciclos entre subsistemas); un diseño en `com.educaflow.system.X` describe `C4` (no depende de `secretariavirtual`) y `C8` (sistemas independientes).
 - **PUEDE** describir **reglas nuevas, específicas de este diseño**, cuando el spec o las guías imponen una restricción estructural que el catálogo genérico no cubre (p.ej. «el sistema `grupos` no debe depender del subsistema `firmas`»). Numéralas `A-NNN` (`A-001`, `A-002`…) para distinguirlas de las del catálogo (`C…`), y dales el mismo tratamiento (qué verifica, paquete, origen).
-- **MUST NOT** describir reglas que el catálogo lista en «Reglas genéricas deliberadamente NO incluidas» ni cosas que «Fuera del alcance de ArchUnit» (mass-assignment, autorización multicentro/IDOR, validación de adjuntos…): esas se cubren con `k-secure-coding` y con los tests E2E de `tests.md`, no con ArchUnit.
+- **MUST NOT** describir reglas que el catálogo lista en «Reglas genéricas deliberadamente NO incluidas» ni cosas que «Fuera del alcance de ArchUnit» (mass-assignment, autorización multicentro/IDOR, validación de adjuntos…): esas se cubren con `k-secure-coding` y con los tests E2E de `test-e2e-desc.md`, no con ArchUnit.
 
 ## 2. Qué describir en cada test de arquitectura (y qué NO)
 
@@ -65,7 +65,7 @@ El criterio es: **toda regla del catálogo `C1`–`C22` que afecte a algún arte
 - **MUST**: las reglas del catálogo cuyo sujeto **no** existe en el diseño se listan como **no aplicables** con su motivo (no se describen como test, pero se justifican para que conste que se evaluaron).
 - **MUST**: toda regla sobre código **nuevo** tiene resultado esperado `PASS`; cualquier `FREEZE` se justifica con la clase preexistente y su estado en el catálogo.
 
-## 5. Plantilla de `arch-test-desc.md`
+## 5. Plantilla de `test-arch-desc.md`
 
 El subagente escribe un fichero con esta estructura exacta:
 
@@ -121,13 +121,13 @@ Descripción de los tests de arquitectura (ArchUnit 1.4.2, JUnit 5) que verifica
 - [ ] ¿NO hay nada de código Java (ni `@ArchTest`, ni `@AnalyzeClasses`, ni reglas fluidas, ni imports)? Solo descripción.
 - [ ] ¿La estructura sigue la plantilla §5?
 
-El subagente **MUST NOT** devolver `ESCRITO: arch-test-desc.md` si queda algún punto sin cumplir. **LIMIT**: máximo 3 iteraciones de autocorrección.
+El subagente **MUST NOT** devolver `ESCRITO: test-arch-desc.md` si queda algún punto sin cumplir. **LIMIT**: máximo 3 iteraciones de autocorrección.
 
 ---
 
 ## 7. Verificación de coherencia con el diseño (post-generación)
 
-Tras escribir `arch-test-desc.md`, el skill lanza un bucle aparte con dos subagentes: **`verificador-test-arquitectura`** (busca incoherencias entre `arch-test-desc.md`, el diseño y el catálogo) y **`corrector-test-arquitectura`** (las corrige). Esta sección define **qué cuenta como incoherencia** — es la referencia del verificador. La **fuente de verdad** es el diseño (`design.md`) y el catálogo `k-archunit` (`secretaria-virtual-rules.md`): si una regla descrita no cuadra, se corrige el **fichero de tests**, nunca el diseño ni el catálogo.
+Tras escribir `test-arch-desc.md`, el skill lanza un bucle aparte con dos subagentes: **`verificador-test-arquitectura`** (busca incoherencias entre `test-arch-desc.md`, el diseño y el catálogo) y **`corrector-test-arquitectura`** (las corrige). Esta sección define **qué cuenta como incoherencia** — es la referencia del verificador. La **fuente de verdad** es el diseño (`design.md`) y el catálogo `k-archunit` (`secretaria-virtual-rules.md`): si una regla descrita no cuadra, se corrige el **fichero de tests**, nunca el diseño ni el catálogo.
 
 ### 7.1 Comprobaciones del `verificador-test-arquitectura`
 
@@ -136,12 +136,12 @@ Tras escribir `arch-test-desc.md`, el skill lanza un bucle aparte con dos subage
 - **`A-NNN` trazada:** cada regla específica `A-NNN` **MUST** declarar el punto del spec/guías que la impone. Una `A-NNN` sin origen trazable → `IMPORTANT`.
 - **Cobertura cuadra:** cada artefacto del diseño (controlador/servicio/impl./repo/módulo/DTO/entidad) **MUST** estar cubierto por al menos una regla aplicable, y la sección «Reglas del catálogo no aplicables» **MUST** justificar las omitidas (su sujeto realmente no existe en el diseño). Discrepancias → `IMPORTANT`.
 - **Resultado coherente:** el `Resultado esperado` de una regla sobre código **nuevo** **MUST** ser `PASS`; un `FREEZE` **MUST** justificarse con una clase **preexistente** que el diseño modifica y su «Estado actual» en el catálogo. Un `FREEZE` sobre código nuevo → `BLOCKING`.
-- **Sin invención:** **MUST NOT** haber paquetes, clases ni reglas en `arch-test-desc.md` que no estén en el diseño o en el catálogo. Cualquier elemento inventado → `BLOCKING`.
+- **Sin invención:** **MUST NOT** haber paquetes, clases ni reglas en `test-arch-desc.md` que no estén en el diseño o en el catálogo. Cualquier elemento inventado → `BLOCKING`.
 - **Estructura y forma:** la estructura sigue la plantilla §5 y **no** hay código Java (ni `@ArchTest`, ni `@AnalyzeClasses`, ni reglas fluidas, ni imports). Desvíos → `MINOR`/`IMPORTANT` según gravedad.
 
 ### 7.2 Tarea del `corrector-test-arquitectura`
 
-- Aplica **en sitio** sobre `design/arch-test-desc.md` cada incoherencia reportada (eliminar la regla sin sujeto y moverla a «no aplicables», corregir el FQN del ámbito, añadir la traza de la `A-NNN`, ajustar `PASS`/`FREEZE`…), ajustándose a la plantilla §5.
+- Aplica **en sitio** sobre `design/test-arch-desc.md` cada incoherencia reportada (eliminar la regla sin sujeto y moverla a «no aplicables», corregir el FQN del ámbito, añadir la traza de la `A-NNN`, ajustar `PASS`/`FREEZE`…), ajustándose a la plantilla §5.
 - **MUST NOT** modificar `design.md`, el catálogo ni ningún otro fichero del diseño: la fuente de verdad es el diseño y el catálogo.
 - **MUST NOT** introducir paquetes/clases/reglas nuevos que no estén en el diseño o el catálogo.
 

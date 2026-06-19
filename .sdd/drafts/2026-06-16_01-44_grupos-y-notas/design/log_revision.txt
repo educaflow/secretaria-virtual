@@ -28,7 +28,7 @@
 OK-CORRECTO
 
 # Verificación — iteración 1
-{"id":"P-001","severidad":"IMPORTANT","fichero":"design/tdd.md","ubicacion":"Nombre del fichero de descripción de tests unitarios","origen":"template-system/README.md §3 y §2.6","problema":"La descripción de los tests unitarios está en 'design/tdd.md', pero la plantilla prescribe que ese artefacto se llame 'design/unit-test-desc.md'.","correccion":"Renombrar 'design/tdd.md' a 'design/unit-test-desc.md'."}
+{"id":"P-001","severidad":"IMPORTANT","fichero":"design/tdd.md","ubicacion":"Nombre del fichero de descripción de tests unitarios","origen":"template-system/README.md §3 y §2.6","problema":"La descripción de los tests unitarios está en 'design/tdd.md', pero la plantilla prescribe que ese artefacto se llame 'design/test-unit-desc.md'.","correccion":"Renombrar 'design/tdd.md' a 'design/test-unit-desc.md'."}
 {"id":"P-002","severidad":"MINOR","fichero":"design/design.md","ubicacion":"Paso 3 — Repositorios, comentario de NotaRepository.countMatriculasHonorByModuloGrupo","origen":"design-contract.md §1.1 / validacion.md §2.g","problema":"El comentario del método reproduce el cuerpo Java implementado completo y JPQL real dentro de design.md, que el contrato prohíbe.","correccion":"Sustituir el cuerpo literal por una descripción del comportamiento sin reproducir el código ni el JPQL exacto."}
 
 # Verificación — iteración 2
