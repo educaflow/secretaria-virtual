@@ -1,6 +1,6 @@
 # Plantilla de implementación de un sistema — guía e índice
 
-Esta carpeta de plantillas define **todo lo específico de convertir un DISEÑO (`design.md`) en código real** de un sistema/subsistema del proyecto EducaFlow. El skill `sdd-implementer` aporta solo el **flujo** (localizar el diseño, descomponer, pedir aprobación, implementar tarea a tarea, verificar/corregir el build, cerrar) y es **agnóstico**: no sabe nada de cómo se descompone ni se materializa. Lo lee todo de aquí.
+Esta carpeta de plantillas define **todo lo específico de convertir un DISEÑO (`design.md`) en código real** de un sistema/subsistema del proyecto EducaFlow. El skill `sdd-implementer` aporta solo el **flujo** (localizar el diseño, descomponer, implementar tarea a tarea, verificar/corregir el build, cerrar) y es **agnóstico**: no sabe nada de cómo se descompone ni se materializa. Lo lee todo de aquí.
 
 Este `README.md` es **el único fichero que el skill conoce por nombre**. **Lo leen los cuatro subagentes** y, según su rol, cada uno tiene una tarea distinta:
 

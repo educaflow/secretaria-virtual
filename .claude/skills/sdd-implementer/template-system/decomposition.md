@@ -48,6 +48,14 @@ Numera las tareas `01`, `02`, … en el **orden lógico de implementación** del
 
 Razón del orden: las tareas posteriores dependen del código de las anteriores, y los tests se generan al final (ver `tests-code.md`).
 
+**Ordenar por dependencias.** El orden por capas de arriba es el caso habitual, pero la regla general es: **coloca cada tarea después de aquellas de las que depende** y **empieza por las que no dependen de nadie**. Usa la dirección de dependencias real del diseño (qué clase usa a cuál); el orden por capas es solo el fallback cuando no hay más información.
+
+**Dependencias cruzadas — no bloquean.** Si dos o más tareas se dependen mutuamente (dependencia cruzada o cíclica) y no existe un orden perfecto:
+
+- **MUST NOT** detenerte, bloquear ni reportar el ciclo como error; **MUST NOT** fusionar tareas solo para romperlo.
+- Elige un orden razonable (el de capas de arriba sirve) y **continúa**. Cada tarea se implementa con lo que dice **su propio** `<texto del prompt>` (el texto del diseño copiado verbatim), no con el código de las demás, así que el orden exacto entre tareas mutuamente dependientes no afecta a lo que se escribe.
+- Una dependencia que de verdad importe a la arquitectura ya está cubierta por los **tests de arquitectura** (`design/test-arch-desc.md`), que el build verificará (`SKILL.md` §10). La descomposición **no** tiene que garantizarla con el orden.
+
 ---
 
 ## 3. Determinar los skills de cada tarea
@@ -147,7 +155,7 @@ Antes de devolver el token, **MUST** recorrer este checklist. Si algo falla, cor
 - [ ] ¿Cada `task_NN.md` tiene `type: implementation-task`, su lista de skills y el texto del diseño **verbatim**?
 - [ ] ¿Las tareas Java de entidades/servicios/controladores incluyen `k-secure-coding` y `k-code-quality`?
 - [ ] ¿Se crearon las tareas de tests unitarios y de arquitectura si el diseño trae `test-unit-desc.md` / `test-arch-desc.md` (ver `tests-code.md`)?
-- [ ] ¿El orden de numeración respeta dominios → servicios → … → tests?
+- [ ] ¿El orden de numeración sigue las dependencias (empezando por las que no dependen de nadie; el orden por capas dominios → servicios → … → tests como fallback) **sin** detenerse por dependencias cruzadas?
 - [ ] ¿Existe `implementation/task.md` con `type: implementation-tasks` y un enlace correcto por tarea, en orden?
 - [ ] Si existía `design/test-e2e-desc.md`: ¿se copió literalmente a `implementation/tests.md` sin modificarlo?
 - [ ] ¿La respuesta lleva `ESCRITO: implementation/` + el bloque `=== TAREAS ===` con una línea por tarea?

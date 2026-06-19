@@ -1,6 +1,6 @@
 ---
 name: sdd-implementer
-description: Cuarto paso del pipeline SDD. Dado un `design.md` (`type: design`) producido por `/sdd-designer`, convierte el diseño en código real dentro del proyecto. El skill es un MOTOR genérico y agnóstico al artefacto: aporta solo el flujo (localizar la iniciativa, cargar el contrato, lanzar un subagente descomponedor que escribe las tareas, pedir aprobación al usuario, lanzar un subagente implementador por tarea que materializa el código, y verificar/corregir la compilación en bucle) y delega TODO lo específico de la implementación en la guía `template-system/README.md` (configurable con `--template-dir`), que los subagentes leen como contrato. No sabe nada de cómo se descompone ni se materializa el diseño; cambiar `--template-dir` a otra plantilla cambia por completo qué y cómo se implementa sin tocar este skill. La salida es código en `src/main/...` y `src/test/...` listo para `/sdd-close-spec`.
+description: Cuarto paso del pipeline SDD. Dado un `design.md` (`type: design`) producido por `/sdd-designer`, convierte el diseño en código real dentro del proyecto. El skill es un MOTOR genérico y agnóstico al artefacto: aporta solo el flujo (localizar la iniciativa, cargar el contrato, lanzar un subagente descomponedor que escribe las tareas, lanzar un subagente implementador por tarea que materializa el código, y verificar/corregir la compilación en bucle) y delega TODO lo específico de la implementación en la guía `template-system/README.md` (configurable con `--template-dir`), que los subagentes leen como contrato. No sabe nada de cómo se descompone ni se materializa el diseño; cambiar `--template-dir` a otra plantilla cambia por completo qué y cómo se implementa sin tocar este skill. La salida es código en `src/main/...` y `src/test/...` listo para `/sdd-close-spec`.
 handoffs:
   - label: Cerrar la iniciativa
     agent: sdd-close-spec
@@ -41,7 +41,7 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 1. **Fase 0 — Localizar** la iniciativa y su `design.md`, y **confirmar** la ruta detectada (§4).
 2. **Fase 1 — Cargar** el contrato (`template-system/README.md`), resolver las rutas de entrada y **validar** el frontmatter `type: design` (§5).
 3. **Fase 2 — Descomponer**: lanzar el subagente **descomponedor**, que escribe las tareas en `implementation/` (§7).
-4. **Fase 3 — Revisar**: mostrar el resumen de tareas y **STOP** con `AskUserQuestion` hasta que el usuario apruebe (§8).
+4. **Fase 3 — Informar**: mostrar el resumen de tareas (**informativo, sin bloquear**) y continuar automáticamente (§8).
 5. **Fase 4 — Implementar**: lanzar **un subagente implementador por tarea**, en orden, que materializa cada tarea en el árbol del proyecto (§9).
 6. **Fase 5 — Verificar/corregir el build**: bucle subagente **verificador-build** → (si falla) subagente **corrector-build**, hasta `OK-COMPILA` (**LIMIT** 20 iteraciones) (§10).
 7. **Fase 6 — Cerrar** con mensaje al usuario y handoff a `/sdd-close-spec` (§11).
@@ -52,7 +52,6 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 - Frontmatter de `design.md` no contiene `type: design` → **ERROR** y detente sin escribir nada.
 - El usuario no confirma la ruta auto-detectada (Fase 0 caso 2) → **STOP** y pide la ruta.
 - El **descomponedor** no devuelve el token `ESCRITO: implementation/` con su lista de tareas tras 1 reintento → **STOP** y muestra el problema.
-- El usuario no aprueba la lista de tareas en la Fase 3 → **MUST NOT** implementar nada.
 - Un **implementador** devuelve `CONFLICT` (fichero/elemento destino ya existe) → **STOP** y `AskUserQuestion` (sobrescribir / mantener / abortar); relanza el implementador con la decisión.
 - Un **implementador** devuelve `BLOCKED` (dependencia inexistente, instrucción ambigua, recurso no disponible, XML del diseño mal) → **STOP** y pregunta al usuario. **MUST NOT** adivinar.
 - Tras **20** iteraciones del bucle de build (Fase 5) el verificador-build sigue sin responder `OK-COMPILA` → **STOP** y `AskUserQuestion`. **MUST NOT** dar la implementación por buena.
@@ -134,7 +133,7 @@ Todo lo específico de la implementación (qué contiene el diseño, cómo se de
 │  Fase 0  Localizar la iniciativa + design.md (+ confirmar ruta)     │
 │  Fase 1  Cargar el contrato (README), resolver rutas, validar type  │
 │  Fase 2  descomponedor(design) → implementation/ (tareas + índice)  │
-│  Fase 3  Mostrar resumen → AskUserQuestion → STOP hasta aprobar     │
+│  Fase 3  Mostrar resumen de tareas (informativo, sin bloquear)      │
 │  Fase 4  Para cada tarea en orden:                                  │
 │            implementador(tarea) → DONE | CONFLICT | BLOCKED         │
 │  Fase 5  Bucle (LIMIT 20):                                           │
@@ -145,7 +144,7 @@ Todo lo específico de la implementación (qué contiene el diseño, cómo se de
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-Las fases se ejecutan **estrictamente en orden**. **MUST NOT** implementar ninguna tarea (Fase 4) hasta que el usuario apruebe la lista (Fase 3).
+Las fases se ejecutan **estrictamente en orden**: la Fase 4 no empieza hasta que el descomponedor ha escrito todas las tareas (Fase 2) y se ha mostrado el resumen (Fase 3). **CRITICAL — salvo la confirmación inicial de qué diseño implementar (Fase 0), el flujo no pide aprobación**: la lista de tareas (Fase 3) no se aprueba, se implementa automáticamente. El skill **solo** se detiene a preguntar en esa confirmación inicial (Fase 0) y ante una **excepción** real: un `ERROR` de configuración/entrada (Fase 1), un `CONFLICT` o `BLOCKED` (Fase 4, §9) o un build que no compila tras el **LIMIT** (Fase 5, §10).
 
 ---
 
@@ -234,11 +233,11 @@ El skill parsea la primera línea `ESCRITO: implementation/` y, tras `=== TAREAS
 
 ---
 
-## 8. Fase 3 — Pedir revisión al usuario
+## 8. Fase 3 — Mostrar el resumen de tareas (informativo)
 
-1. Muestra al usuario un **resumen**: número de tareas generadas y, por cada una, su título y los ficheros que cubre (a partir de la lista `=== TAREAS ===` del descomponedor). Indícale la ruta de `{iniciativa}/implementation/` para que revise las tareas.
-2. **STOP** con `AskUserQuestion`: pregunta si las tareas están conformes para empezar a implementarlas (opciones: **Empezar** / **Revisar más** / **Abortar**).
-3. **MUST NOT** pasar a la Fase 4 sin aprobación explícita. Si el usuario edita tareas a mano, vuelve a leer la lista de `implementation/` antes de implementar (re-lanza la descomposición solo si lo pide; por defecto respeta sus ediciones).
+1. Muestra al usuario un **resumen**: número de tareas generadas y, por cada una, su título y los ficheros que cubre (a partir de la lista `=== TAREAS ===` del descomponedor). Indícale la ruta de `{iniciativa}/implementation/` por si quiere consultar las tareas.
+2. **Continúa automáticamente** a la Fase 4. El resumen es **solo informativo**: si el descomponedor terminó bien (token `ESCRITO: implementation/`), **MUST NOT** pedir aprobación ni detener el flujo.
+3. **MUST NOT** usar `AskUserQuestion` en esta fase. El flujo solo se interrumpe más adelante ante una **excepción** real: `CONFLICT`/`BLOCKED` en la Fase 4 (§9) o un build que no compila tras el **LIMIT** en la Fase 5 (§10).
 
 ---
 
@@ -361,7 +360,7 @@ Ajusta la lista de ficheros a la estructura real que define la plantilla.
 - **Localizar** (§4): ruta explícita, o auto-detectar la **última** iniciativa de `.sdd/drafts/` con `design/design.md` y **confirmar** con `AskUserQuestion`. **MUST NOT** usar `mtime`.
 - **Cargar y validar** (§5): lee solo `template-system/README.md`; valida `type: design` en el frontmatter (si no → **ERROR**).
 - **Descomponer** (§7): **un** subagente descomponedor escribe `implementation/`; responde `ESCRITO: implementation/` + bloque `=== TAREAS ===` (una línea por tarea, en orden). **MUST NOT** materializar código.
-- **Revisar** (§8): muestra el resumen y **STOP** con `AskUserQuestion`; **MUST NOT** implementar sin aprobación.
+- **Informar** (§8): muestra el resumen de tareas y **continúa automáticamente**; si todo va bien **MUST NOT** pedir aprobación. Solo se interrumpe ante excepciones (`CONFLICT`/`BLOCKED`, build que no compila).
 - **Implementar** (§9): **un subagente implementador por tarea, en orden** (nunca en paralelo ni `run_in_background`). Cada uno carga los skills de su tarea y, si el contrato lo dice, invoca `code-implementer`. Responde `DONE` / `CONFLICT` / `BLOCKED`; el motor lleva `CONFLICT`/`BLOCKED` al usuario.
 - **Verificar/corregir el build** (§10): bucle verificador-build → corrector-build hasta `OK-COMPILA` (**LIMIT** 20; tras la 20ª o si los errores se repiten, **STOP** y `AskUserQuestion`). El verificador-build compila (comando de la plantilla) y reporta en **JSONL** (`id`/`tipo`/`fichero`/`ubicacion`/`tarea`/`mensaje`/`correccion`); el motor lo vuelca a `implementation/log_build.txt`. El motor **MUST NOT** compilar él mismo (§2.2).
 - **Contrato de tokens** (§2.3): el skill compara por literal exacto — `ESCRITO: implementation/`, `DONE`/`CONFLICT`/`BLOCKED`, `OK-COMPILA`. Los subagentes **MUST NOT** pegar el código en su respuesta (ya está en disco).
