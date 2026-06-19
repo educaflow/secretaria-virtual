@@ -2,471 +2,648 @@
 type: design
 ---
 
-# Diseño: Grupos y Notas
+# Diseño: Grupos y notas
 
-**Objetivo:** Construir el sistema `grupos`, que permite a la secretaría de un centro (Supervisor) definir grupos de alumnos ligados a un curso del catálogo educativo, registrar la nota final de cada alumno en cada módulo del grupo (a partir de las actas), calcular la nota media de cada alumno y cerrar/reabrir grupos para fijar las calificaciones. El Administrador hace lo mismo sobre cualquier centro y además puede reabrir grupos cerrados. El Alumno consulta en solo lectura sus grupos, sus notas por módulo y su nota media.
-
-**Capa:** system/grupos
+**Objetivo:** Permitir a la secretaría de un centro definir grupos de alumnos ligados a un curso, registrar la nota final de cada alumno por módulo y consultar la nota media; el alumno consulta sus propias notas en solo lectura.
+**Capa:** system/gruposnotas
 **Especificación de origen:** .sdd/drafts/2026-06-16_01-44_grupos-y-notas/specification.md
-**Skills necesarios para la implementación:** k-sistemas, k-code-quality, k-secure-coding, k-vistas, k-validaciones
-
----
-
-## Decisiones de modelado
-
-### Valor de la Nota (enum + integer)
-El valor de la Nota tiene tres formas («No evaluado», entero 1..10, «Matrícula de Honor»). Se modela con **dos campos**:
-- `tipoValor` — enum `TipoValorNota {NO_EVALUADO, NUMERICA, MATRICULA_HONOR}` (discriminador).
-- `valorNumerico` — `<integer min="1" max="10">`, solo significativo cuando `tipoValor == NUMERICA`.
-
-Justificación: un único entero necesitaría valores mágicos (0 = no evaluado, 11 = MH) frágiles e incompatibles con `min/max`; un único enum de 12 valores complica `min/max`, el conteo de MH (VAL-017) y el cálculo de la media (CC-001). Dos campos permiten validación declarativa, conteo limpio de MH y un cálculo de media robusto. La columna «valor» de los grids se muestra con el campo derivado `valorTexto`.
-
-### Curso académico = integer (no existe entidad CursoAcademico)
-En el modelo real, «curso académico» es un `integer` (año). En `Centro` es el campo `curso`. Por tanto `Grupo.cursoAcademico` es `<integer>`. Para el supervisor lo asigna el servidor desde `SecurityUtil.getUser().getCentroActivo().getCurso()` (R-Grupo-002); el administrador lo introduce. La presentación «2024/2025» de los escenarios es un formato de UI fuera de alcance del modelo.
-
-### Roles
-- **Administrador**: `com.educaflow.base.util.SecurityUtil.isAdmin(user)`. Menú con `groups="admins"`.
-- **Supervisor**: `User.getTiposUsuarioActivos()` contiene `TipoUsuario` con `codigo == "SUPERVISOR"`. Menú con `if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'SUPERVISOR' }"`.
-- **Alumno**: `codigo == "ALUMNO"`. Menú con `if=...'ALUMNO'`.
-
-### Nota media y valorTexto (campos derivados, momento: lectura)
-`AlumnoGrupo.notaMedia` (CC-001) y `Nota.valorTexto` se modelan como campos `transient` con cuerpo `<![CDATA[]]>` que delega en el helper estático `com.educaflow.system.grupos.service.NotaMediaCalculator` (patrón real del proyecto, cf. `Centro.xml`). No se persisten ni requieren R-Antes.
-
----
+**Skills necesarios para la implementación:** k-sistemas, k-validaciones, k-code-quality, k-secure-coding, k-vistas
 
 ## Ficheros a crear o modificar
 
 | Fichero | Acción | Skill | Descripción |
-|---|---|---|---|
-| `src/main/java/com/educaflow/system/grupos/domains/Grupo.xml` | Crear | k-sistemas | Entidad Grupo + enum EstadoGrupo, unique-constraint RES-001, finder VAL-003/005 |
-| `src/main/java/com/educaflow/system/grupos/domains/ModuloGrupo.xml` | Crear | k-sistemas | Entidad ModuloGrupo, unique-constraint RES-003 |
-| `src/main/java/com/educaflow/system/grupos/domains/AlumnoGrupo.xml` | Crear | k-sistemas | Entidad AlumnoGrupo, notaMedia (CC-001), unique-constraint RES-005, finder VAL-013 |
-| `src/main/java/com/educaflow/system/grupos/domains/Nota.xml` | Crear | k-sistemas | Entidad Nota + enum TipoValorNota, valorTexto, unique-constraint RES-006, finder VAL-017 |
-| `src/main/java/com/educaflow/system/grupos/service/GrupoService.java` | Crear | k-sistemas, k-secure-coding | Interfaz ModelService<Grupo> + tripletas cerrar/reabrir |
-| `src/main/java/com/educaflow/system/grupos/service/impl/GrupoServiceImpl.java` | Crear | k-sistemas, k-secure-coding, k-validaciones | Lógica de Grupo (VAL-001..009, RN-001..004, estado inicial) |
-| `src/main/java/com/educaflow/system/grupos/service/AlumnoGrupoService.java` | Crear | k-sistemas | Interfaz ModelService<AlumnoGrupo> |
-| `src/main/java/com/educaflow/system/grupos/service/impl/AlumnoGrupoServiceImpl.java` | Crear | k-sistemas, k-secure-coding, k-validaciones | Lógica de AlumnoGrupo (VAL-010..014, RN-005) |
-| `src/main/java/com/educaflow/system/grupos/service/NotaService.java` | Crear | k-sistemas | Interfaz ModelService<Nota> |
-| `src/main/java/com/educaflow/system/grupos/service/impl/NotaServiceImpl.java` | Crear | k-sistemas, k-secure-coding, k-validaciones | Lógica de Nota (VAL-015..017, CC-002/003) |
-| `src/main/java/com/educaflow/system/grupos/service/ModuloGrupoService.java` | Crear | k-sistemas | Interfaz ModelService<ModuloGrupo> (vacía, para descubrimiento) |
-| `src/main/java/com/educaflow/system/grupos/service/impl/ModuloGrupoServiceImpl.java` | Crear | k-sistemas | Impl ModuloGrupo (sin AllowProperties cliente) |
-| `src/main/java/com/educaflow/system/grupos/service/NotaMediaCalculator.java` | Crear | k-code-quality | Helper estático: cálculo de la nota media (CC-001) y texto de la nota (valorTexto) |
-| `src/main/java/com/educaflow/system/grupos/controller/GrupoController.java` | Crear | k-sistemas, k-secure-coding | validateSave/validateDelete + cerrar + reabrir |
-| `src/main/java/com/educaflow/system/grupos/controller/AlumnoGrupoController.java` | Crear | k-sistemas, k-secure-coding | validateSave/validateDelete de AlumnoGrupo |
-| `src/main/java/com/educaflow/system/grupos/controller/NotaController.java` | Crear | k-sistemas, k-secure-coding | validateSave de Nota |
-| `src/main/java/com/educaflow/system/grupos/views/Grupo.xml` | Crear | k-vistas | Pantalla supervisor (action-view @Main + cadena de vistas anidadas) |
-| `src/main/java/com/educaflow/system/grupos/views/Grupo-admin.xml` | Crear | k-vistas | Pantalla administración (action-view @Admin + reabrir) |
-| `src/main/java/com/educaflow/system/grupos/views/AlumnoGrupo-alumno.xml` | Crear | k-vistas | Pantalla «Mis notas» del alumno (action-view @Alumno, solo lectura) |
-| `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml` | Modificar | k-vistas (menus.md) | Añadir raíz «Notas» (Grupos supervisor / Mis notas alumno) y hoja «Grupos (administración)» bajo «Administración SV» |
+|---------|--------|-------|-------------|
+| `system/gruposnotas/domains/Grupo.xml` | Crear | k-sistemas (modelos.md) | Entidad Grupo + enum EstadoGrupo |
+| `system/gruposnotas/domains/ModuloGrupo.xml` | Crear | k-sistemas (modelos.md) | Entidad ModuloGrupo |
+| `system/gruposnotas/domains/AlumnoGrupo.xml` | Crear | k-sistemas (modelos.md) | Entidad AlumnoGrupo + campo calculado `notaMedia` (CC-001, propiedad transient con cuerpo CDATA) |
+| `system/gruposnotas/domains/Nota.xml` | Crear | k-sistemas (modelos.md) | Entidad Nota + enum ValorNota |
+| `system/gruposnotas/service/GrupoService.java` | Crear | k-sistemas (servicios.md) | Interfaz del servicio de Grupo |
+| `system/gruposnotas/service/impl/GrupoServiceImpl.java` | Crear | k-sistemas, k-validaciones, k-secure-coding | Validaciones, reglas y acciones de Grupo |
+| `system/gruposnotas/service/ModuloGrupoService.java` | Crear | k-sistemas (servicios.md) | Interfaz del servicio de ModuloGrupo |
+| `system/gruposnotas/service/impl/ModuloGrupoServiceImpl.java` | Crear | k-sistemas, k-validaciones | Restricciones de ModuloGrupo |
+| `system/gruposnotas/service/AlumnoGrupoService.java` | Crear | k-sistemas (servicios.md) | Interfaz del servicio de AlumnoGrupo |
+| `system/gruposnotas/service/impl/AlumnoGrupoServiceImpl.java` | Crear | k-sistemas, k-validaciones, k-secure-coding | Validaciones, reglas y cálculo de media de AlumnoGrupo |
+| `system/gruposnotas/service/NotaService.java` | Crear | k-sistemas (servicios.md) | Interfaz del servicio de Nota |
+| `system/gruposnotas/service/impl/NotaServiceImpl.java` | Crear | k-sistemas, k-validaciones, k-secure-coding | Validaciones, fechas y acción guardarNota |
+| `system/gruposnotas/db/repo/GrupoRepository.java` | Crear | k-sistemas (modelos.md) | Finder duplicado de nombre |
+| `system/gruposnotas/db/repo/AlumnoGrupoRepository.java` | Crear | k-sistemas (modelos.md) | Finders de pertenencia |
+| `system/gruposnotas/db/repo/NotaRepository.java` | Crear | k-sistemas (modelos.md) | Contador de matrículas de honor por módulo |
+| `system/gruposnotas/controller/GrupoController.java` | Crear | k-sistemas (controladores.md), k-secure-coding | Botones "Cerrar grupo" y "Reabrir grupo" |
+| `system/gruposnotas/controller/NotaController.java` | Crear | k-sistemas (controladores.md), k-secure-coding | Botón "Guardar" de la nota |
+| `system/gruposnotas/views/Grupo-Supervisor.xml` | Crear | k-vistas | Pantalla "Grupos" (supervisor) |
+| `system/gruposnotas/views/Grupo-Administracion.xml` | Crear | k-vistas | Pantalla "Grupos (administración)" |
+| `system/gruposnotas/views/Grupo-MisNotas.xml` | Crear | k-vistas | Pantalla "Mis notas" (alumno) |
+| `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml` | Modificar | k-vistas (menus.md) | Añadir menús "Notas → Grupos", "Mis notas" y "Administración → Grupos (administración)" |
+| `src/main/resources/data-init/input/auth-gruposnotas.xml` (+ entrada en `input-config.xml`) | Crear/Modificar | k-secure-coding | Permisos del grupo `admins`/`users` sobre las 4 entidades (descrito en Seguridad) |
 
-> Los ficheros XML materializados en `design/domains`, `design/views` y `design/menus.xml` son los **mismos** que `sdd-implementer-system` copiará a `src/main/java/com/educaflow/system/grupos/...` (los menús se fusionan con el `menus.xml` único del proyecto). **No** se crean repositorios personalizados ni módulo Guice (los `ModelService` los descubre `ModelServiceFactory`; los finders se declaran en el dominio y se invocan casteando el `repository` al repo generado).
-
----
+> **Repositorios personalizados**: como se crean `GrupoRepository`, `AlumnoGrupoRepository` y `NotaRepository` a mano en `db/repo/`, las entidades `Grupo`, `AlumnoGrupo` y `Nota` llevan **ya** `repository="abstract"` en su `<entity>` dentro de los `domains/*.xml` del diseño (XML declarativo completo, listo para copiar tal cual por `/sdd-implementer-system`, sin edición manual posterior). `ModuloGrupo` no tiene repo propio (sus finders/contadores viven en otras entidades), así que NO lleva `repository="abstract"`.
 
 ## Pasos
 
-### Paso 1 — Recursos
-No hay ficheros estáticos. Los enums viven en sus dominios (`EstadoGrupo` en `Grupo.xml`, `TipoValorNota` en `Nota.xml`). i18n se genera por script (no se crean csv a mano).
+### Paso 1 — Dominios
 
-### Paso 2 — Dominios
+Se crean cuatro ficheros de dominio en `system/gruposnotas/domains/` (módulo `gruposnotas`, paquete `com.educaflow.system.gruposnotas.db`). XML completo en `design_5/domains/`.
 
-Ver el XML completo en `design/domains/*.xml` (validados contra `domain-models.xsd`). Resumen estructural:
+- **`Grupo.xml`** — Entidad `Grupo`. Campos: `nombre` (string, namecolumn, required), `curso` (many-to-one → `com.educaflow.subsystem.sistemaeducativo.db.Curso`, required), `cursoAcademico` (integer, required), `centro` (many-to-one → `com.educaflow.subsystem.common.db.Centro`, required), `estado` (enum `EstadoGrupo`, required), `fechaCierre` (datetime), `modulosGrupo` (one-to-many → ModuloGrupo, mappedBy="grupo"), `alumnosGrupo` (one-to-many → AlumnoGrupo, mappedBy="grupo"). `unique-constraint(nombre,centro,cursoAcademico)` (RES-001). `finder-method findByNombreCentroCursoAcademico`. Enum `EstadoGrupo { ABIERTO, CERRADO }`.
+- **`ModuloGrupo.xml`** — Entidad `ModuloGrupo`. Campos: `grupo` (many-to-one → Grupo, required), `modulo` (many-to-one → `com.educaflow.subsystem.sistemaeducativo.db.Modulo`, required), `notas` (one-to-many → Nota, mappedBy="moduloGrupo"). `unique-constraint(grupo,modulo)` (RES-003).
+- **`AlumnoGrupo.xml`** — Entidad `AlumnoGrupo`. Campos: `grupo` (many-to-one → Grupo, required), `alumno` (many-to-one → `com.axelor.auth.db.User`, required), `notas` (one-to-many → Nota, mappedBy="alumnoGrupo"), `centro` (many-to-one → Centro, **transient**, auxiliar UI para filtrar el selector de alumno). **CC-001 (nota media; momento lectura)**: se declara como **propiedad del dominio** — un `<string name="notaMedia" transient="true">` con **el algoritmo completo inline en el cuerpo CDATA del propio campo** (patrón de `Persona.nombreApellidos` / `Centro.administradores`, que computan inline sin utilidades externas). La entidad de dominio es un POJO y **NO** puede depender de `..service..` (C13 `entidadesDominioSonPojos`), por lo que el cálculo **no** se extrae a ninguna clase de `service.impl`: vive en el CDATA y solo referencia `Nota` y `ValorNota`, del mismo paquete `..db..`. Al ser una propiedad declarada, el `<field name="notaMedia"/>` de grids/forms la resuelve; `transient="true"` hace que no se persista y se calcule en memoria al leer, sin onLoad ni llamadas de servicio por fila. Axelor genera el getter desde el cuerpo CDATA: **MUST NOT** añadir además un getter manual del mismo nombre (no compilaría) ni dejarlo como getter suelto en `extra-code-model` (no quedaría registrado como propiedad). `unique-constraint(grupo,alumno)` (RES-005). `finder-method findByGrupo`.
+- **`Nota.xml`** — Entidad `Nota`. Campos: `moduloGrupo` (many-to-one → ModuloGrupo, required), `alumnoGrupo` (many-to-one → AlumnoGrupo, required), `valor` (enum `ValorNota`, required), `fechaCalificacion` (datetime), `fechaUltimaModificacion` (datetime). `unique-constraint(moduloGrupo,alumnoGrupo)` (RES-006). El contador de matrículas de honor por módulo (V-Nota-003) **NO** es un `finder-method` (un finder de Axelor devuelve la primera entidad o un `Query`, nunca un `long`): se implementa como método propio de `NotaRepository` con `all().filter(...).bind(...).count()` (ver Paso 3). Enum `ValorNota { NO_EVALUADO, NOTA_01..NOTA_10, MATRICULA_HONOR }`.
 
-- **`design/domains/Grupo.xml`** — entidad `Grupo` (módulo `grupos`): `nombre` (string, required, cliente), `curso` (m2o Curso, required, cliente, inmutable), `cursoAcademico` (integer, cliente/servidor según rol, SIN required), `centro` (m2o Centro, cliente/servidor según rol, SIN required), `estado` (enum EstadoGrupo, servidor, SIN required), `fechaCierre` (datetime, servidor, SIN required), `modulos` (o2m ModuloGrupo, orphanRemoval), `alumnos` (o2m AlumnoGrupo, orphanRemoval). `unique-constraint(centro,cursoAcademico,nombre)` [RES-001]. `finder-method findByCentroAndCursoAcademicoAndNombre` [VAL-003/005]. Enum `EstadoGrupo {ABIERTO, CERRADO}`.
-- **`design/domains/ModuloGrupo.xml`** — `grupo` (m2o, required, servidor), `modulo` (m2o Modulo, required, servidor), `notas` (o2m Nota, orphanRemoval). `unique-constraint(grupo,modulo)` [RES-003].
-- **`design/domains/AlumnoGrupo.xml`** — `grupo` (m2o, required, servidor), `alumno` (m2o User, required, cliente), `notas` (o2m Nota, orphanRemoval), `notaMedia` (string transient CDATA → `NotaMediaCalculator.calcular(this)`) [CC-001]. `unique-constraint(grupo,alumno)` [RES-005]. `finder-method findByAlumnoAndCentroAndCursoAcademico` (all) [VAL-013/RES-004].
-- **`design/domains/Nota.xml`** — `moduloGrupo` (m2o, required, servidor), `alumnoGrupo` (m2o, required, servidor), `tipoValor` (enum TipoValorNota, SIN required, servidor al crear / cliente al modificar), `valorNumerico` (integer min=1 max=10, SIN required, cliente al modificar), `fechaCalificacion` (datetime, servidor) [CC-002], `fechaUltimaModificacion` (datetime, servidor) [CC-003], `valorTexto` (string transient CDATA → `NotaMediaCalculator.texto(this)`). `unique-constraint(moduloGrupo,alumnoGrupo)` [RES-006]. `finder-method findByModuloGrupoAndTipoValor` (all) [VAL-017]. Enum `TipoValorNota {NO_EVALUADO, NUMERICA, MATRICULA_HONOR}`.
+**Verificar:** `bash .claude/skills/sdd-designer/template-system/validate.sh <design>` imprime `VALIDACION-XML: OK`.
 
-**Cascadas de borrado (composición del spec):** borrar Grupo → orphanRemoval de `modulos` y `alumnos`; quitar alumno → orphanRemoval de sus `notas` (ESC-005); borrar módulo del grupo → orphanRemoval de sus `notas`. La Nota tiene `mappedBy` desde dos padres (`moduloGrupo` y `alumnoGrupo`), ambos con `orphanRemoval`; Hibernate puede emitir borrados redundantes pero idempotentes (verificar en implementación; alternativa: borrar las notas del módulo en un `fireActionRule_*` de `ModuloGrupo.remove`).
+### Paso 2 — Servicios
 
-### Paso 3 — Servicios
+Todos extienden `ModelService`/`DefaultModelService` y los descubre `ModelServiceFactory` por convención (sin módulo Guice). Persisten siempre con `repository.save/remove`, **nunca** `super.*`. Las firmas y comentarios siguen; **no** se incluye cuerpo Java.
 
-#### `com.educaflow.system.grupos.service.NotaMediaCalculator` (helper estático, no es ModelService)
-```java
-// Helper de cálculo de campos derivados de solo lectura (CC-001 y valorTexto).
-public final class NotaMediaCalculator {
-    // CC-001: media de las notas del alumno en el grupo. Recorre alumnoGrupo.getNotas():
-    //   excluye NO_EVALUADO; MATRICULA_HONOR cuenta como 10; NUMERICA cuenta valorNumerico.
-    //   Devuelve la media redondeada al entero más cercano (HALF_UP) como String, o "Sin nota"
-    //   si no hay ningún módulo evaluado. NO persiste.
-    public static String calcular(AlumnoGrupo alumnoGrupo);
-    // Texto presentable del valor de una nota: "No evaluado" / el número / "Matrícula de Honor".
-    public static String texto(Nota nota);
-}
-```
+#### `com.educaflow.system.gruposnotas.service.GrupoService`
 
-#### `com.educaflow.system.grupos.service.GrupoService`
 ```java
 public interface GrupoService extends ModelService<Grupo> {
-    // Acción propia: cerrar el grupo (RN-003).
-    Grupo cerrar(Grupo grupo);
-    Optional<BusinessMessages> validateCerrar(Grupo grupo);
-    AllowProperties allowPropertiesCerrar();
+    Grupo cerrar(Grupo grupo, Grupo grupoOriginal);
+    Grupo reabrir(Grupo grupo, Grupo grupoOriginal);
 
-    // Acción propia: reabrir el grupo (RN-004), solo administrador (VAL-008).
-    Grupo reabrir(Grupo grupo);
-    Optional<BusinessMessages> validateReabrir(Grupo grupo);
+    Optional<BusinessMessages> validateCerrar(Grupo grupo, Grupo grupoOriginal);
+    Optional<BusinessMessages> validateReabrir(Grupo grupo, Grupo grupoOriginal);
+
+    AllowProperties allowPropertiesCerrar();
     AllowProperties allowPropertiesReabrir();
 }
 ```
 
-#### `com.educaflow.system.grupos.service.impl.GrupoServiceImpl extends DefaultModelService<Grupo> implements GrupoService`
+#### `com.educaflow.system.gruposnotas.service.impl.GrupoServiceImpl`
+
 ```java
-public GrupoServiceImpl(Class<Grupo> model, Repository<Grupo> repository) { super(model, repository); }
+public class GrupoServiceImpl extends DefaultModelService<Grupo> implements GrupoService {
+
+    @Inject GrupoRepository grupoRepository;
+    @Inject ModuloGrupoRepository moduloGrupoRepository;   // (Axelor-generated abstract base; ver Paso 3)
+
+    @Inject
+    public GrupoServiceImpl(Class<Grupo> model, Repository<Grupo> repository) { super(model, repository); }
+
+    @Override
+    public Grupo insert(Grupo grupo);
+    //   1. validateInsert(grupo).ifPresent(throwIfInvalid)  → V-Grupo-001/002/003.
+    //   2. fireActionRule_FijarCentroYCursoAcademicoSiSupervisor(grupo)  → R-Grupo-002 (Antes).
+    //   3. fireActionRule_EstadoInicialAbierto(grupo)  → estado inicial servidor (Antes).
+    //   4. grupo = repository.save(grupo).
+    //   5. fireActionRule_CrearModulosGrupo(grupo)  → R-Grupo-001 (Después: crea hijos ModuloGrupo).
+
+    @Override
+    public Grupo update(Grupo grupo, Grupo original);
+    //   1. validateUpdate(grupo, original).ifPresent(throwIfInvalid)  → V-Grupo-004/005.
+    //   2. Restaurar inmutables desde original: curso, centro, cursoAcademico, estado, fechaCierre
+    //      (no se recalculan aquí; el cliente no los puede cambiar — k-secure-coding §3).
+    //   3. return repository.save(grupo).
+
+    @Override
+    public Optional<BusinessMessages> validateInsert(Grupo grupo);
+    //   Aplica:
+    //     - V-Grupo-001 (Origen spec: VAL-001) nombre obligatorio: comprueba nombre no vacío.
+    //       Mensaje transmite: el nombre del grupo es obligatorio.
+    //     - V-Grupo-002 (Origen spec: VAL-002) curso obligatorio: comprueba curso != null.
+    //       Mensaje transmite: el curso es obligatorio.
+    //     - V-Grupo-003 (Origen spec: VAL-003, RES-001) nombre único por centro+cursoAcademico:
+    //       consulta grupoRepository.findByNombreCentroCursoAcademico; si existe otro, rechaza.
+    //       Mensaje transmite: ya existe un grupo con ese nombre en este centro y curso académico.
+
+    @Override
+    public Optional<BusinessMessages> validateUpdate(Grupo grupo, Grupo original);
+    //   Aplica:
+    //     - V-Grupo-004 (Origen spec: VAL-004) grupo abierto: si original.estado == CERRADO,
+    //       rechaza cualquier modificación. Mensaje transmite: no se puede modificar un grupo cerrado.
+    //     - V-Grupo-005 (Origen spec: VAL-005, RES-001) nombre único (igual que V-Grupo-003 pero
+    //       excluyendo el propio grupo por id). Mensaje transmite: ya existe un grupo con ese nombre…
+
+    @Override
+    public Optional<BusinessMessages> validateRemove(Grupo grupo);
+    //   Aplica:
+    //     - V-Grupo-006 (Origen spec: VAL-009) grupo abierto: si estado == CERRADO, rechaza.
+    //       Mensaje transmite: no se puede borrar un grupo cerrado.
+
+    @Override
+    public Grupo cerrar(Grupo grupo, Grupo grupoOriginal);
+    //   1. validateCerrar(grupo, grupoOriginal).ifPresent(throwIfInvalid)  → V-Grupo-009.
+    //   2. fireActionRule_RegistrarCierre(grupo)  → R-Grupo-003 (Antes).
+    //   3. return repository.save(grupo).
+
+    @Override
+    public Optional<BusinessMessages> validateCerrar(Grupo grupo, Grupo grupoOriginal);
+    //   Aplica:
+    //     - V-Grupo-009 (Origen spec: VAL-006) estado ABIERTO: si grupoOriginal.estado != ABIERTO,
+    //       rechaza. Mensaje transmite: el grupo ya está cerrado.
+
+    @Override
+    public Grupo reabrir(Grupo grupo, Grupo grupoOriginal);
+    //   1. validateReabrir(grupo, grupoOriginal).ifPresent(throwIfInvalid)  → V-Grupo-007/008.
+    //   2. fireActionRule_RegistrarReapertura(grupo)  → R-Grupo-004 (Antes).
+    //   3. return repository.save(grupo).
+
+    @Override
+    public Optional<BusinessMessages> validateReabrir(Grupo grupo, Grupo grupoOriginal);
+    //   Aplica:
+    //     - V-Grupo-007 (Origen spec: VAL-007) estado CERRADO: si grupoOriginal.estado != CERRADO, rechaza.
+    //       Mensaje transmite: el grupo ya está abierto.
+    //     - V-Grupo-008 (Origen spec: VAL-008) solo administrador: comprueba que el usuario autenticado
+    //       (AuthUtils.getUser()) pertenece al grupo `admins`; si no, rechaza. Mensaje transmite: no tiene
+    //       permisos para reabrir el grupo. (Defensa de servidor además del control de menú/grupo.)
+
+    // --- Reglas de negocio / campos servidor ---
+
+    private void fireActionRule_FijarCentroYCursoAcademicoSiSupervisor(Grupo grupo);
+    //   Aplica R-Grupo-002 (Origen spec: RN-002; campos `centro` y `cursoAcademico` clasificados servidor
+    //   para el supervisor). Si el usuario autenticado NO es administrador (es supervisor), asignación
+    //   INCONDICIONAL: grupo.setCentro(AuthUtils.getUser().getCentroActivo());
+    //   grupo.setCursoAcademico(centroActivo.getCurso()). MUST NOT usar `if (campo==null)`: el cliente no
+    //   puede dictar estos campos aunque vengan en el JSON del endpoint REST genérico (k-secure-coding §3.3).
+    //   Si es administrador, se respetan los valores `cliente` (centro y cursoAcademico que él eligió).
+
+    private void fireActionRule_EstadoInicialAbierto(Grupo grupo);
+    //   Asigna INCONDICIONALMENTE grupo.setEstado(EstadoGrupo.ABIERTO) en el alta (campo `estado` servidor).
+    //   MUST NOT añadir guarda `if (estado==null)` (k-secure-coding §3.3).
+
+    private void fireActionRule_CrearModulosGrupo(Grupo grupo);
+    //   Aplica R-Grupo-001 (Origen spec: RN-001, RES-002). Momento: Después de repository.save (necesita
+    //   el grupo persistido para asignarlo a cada ModuloGrupo). Por cada CursoModulo del curso del grupo
+    //   (grupo.getCurso().getModulos()), crea un ModuloGrupo {grupo, modulo} vía moduloGrupoRepository.save.
+    //   Efecto colateral: inserta N filas ModuloGrupo. No es compleja (bucle de 2-3 llamadas).
+
+    private void fireActionRule_RegistrarCierre(Grupo grupo);
+    //   Aplica R-Grupo-003 (Origen spec: RN-003; campos `estado`/`fechaCierre` servidor). Asignación
+    //   INCONDICIONAL: grupo.setEstado(CERRADO); grupo.setFechaCierre(LocalDateTime.now()). Sin `if`.
+
+    private void fireActionRule_RegistrarReapertura(Grupo grupo);
+    //   Aplica R-Grupo-004 (Origen spec: RN-004; campos `estado`/`fechaCierre` servidor). Asignación
+    //   INCONDICIONAL: grupo.setEstado(ABIERTO); grupo.setFechaCierre(null). Sin `if`.
+
+    @Override public AllowProperties allowPropertiesInsert();   // whitelist: nombre, curso, centro, cursoAcademico, alumnosGrupo (ver Frontera de confianza)
+    @Override public AllowProperties allowPropertiesUpdate();   // whitelist: nombre (solo)
+    @Override public AllowProperties allowPropertiesRemove();   // denyAll (no campos del cliente)
+    @Override public AllowProperties allowPropertiesCerrar();   // denyAll (cierre dictado por servidor)
+    @Override public AllowProperties allowPropertiesReabrir();  // denyAll (reapertura dictada por servidor)
+}
 ```
 
-**(1) Acciones**
+#### `com.educaflow.system.gruposnotas.service.ModuloGrupoService` / `…impl.ModuloGrupoServiceImpl`
+
 ```java
-// insert: valida (VAL-001/002/003) como primera línea; aplica R-Grupo-002 (override
-//   centro/cursoAcademico para supervisor) y R-Grupo-003 (estado inicial ABIERTO) ANTES de
-//   persistir, y R-Grupo-001 (generar ModuloGrupo desde curso.modulos) también ANTES.
-//   Persiste con repository.save (NUNCA super.insert).
-@Override public Grupo insert(Grupo grupo);
+public interface ModuloGrupoService extends ModelService<ModuloGrupo> { }
 
-// update: valida (VAL-004 grupo ABIERTO, VAL-005 nombre único). Persiste con repository.save.
-@Override public Grupo update(Grupo grupo, Grupo original);
+public class ModuloGrupoServiceImpl extends DefaultModelService<ModuloGrupo> implements ModuloGrupoService {
+    @Inject public ModuloGrupoServiceImpl(Class<ModuloGrupo> model, Repository<ModuloGrupo> repository) { super(model, repository); }
 
-// remove: valida (VAL-009 grupo ABIERTO). repository.remove; la cascada borra módulos/alumnos/notas.
-@Override public void remove(Grupo grupo);
+    @Override
+    public Optional<BusinessMessages> validateInsert(ModuloGrupo moduloGrupo);
+    //   Aplica:
+    //     - V-ModuloGrupo-001 (Origen spec: RES-003) módulo no repetido en el grupo: respaldo de la
+    //       unique-constraint(grupo,modulo); comprueba que no exista ya un ModuloGrupo con ese grupo y módulo.
+    //       Mensaje transmite: el módulo ya está en el grupo.
 
-// cerrar: valida (VAL-006). Aplica R-Grupo-004 (estado=CERRADO, fechaCierre=now). repository.save.
-@Override public Grupo cerrar(Grupo grupo);
+    @Override
+    public ModuloGrupo update(ModuloGrupo moduloGrupo, ModuloGrupo original);
+    //   Defensa en profundidad (k-secure-coding §9.2): ModuloGrupo lo crea el sistema (R-Grupo-001) y NO es
+    //   editable. Lanza UnsupportedOperationException incondicionalmente, además del allowPropertiesUpdate
+    //   denyAll, para que la invariante de no-editabilidad sea un rechazo explícito de la operación.
 
-// reabrir: valida (VAL-007, VAL-008 solo admin). Aplica R-Grupo-005 (estado=ABIERTO,
-//   fechaCierre=null). repository.save.
-@Override public Grupo reabrir(Grupo grupo);
+    @Override public AllowProperties allowPropertiesInsert();   // denyAll: los crea el servidor (R-Grupo-001), el cliente no envía nada
+    @Override public AllowProperties allowPropertiesUpdate();   // denyAll: ModuloGrupo no se edita
+}
 ```
 
-**(2) Métodos de Validación**
+#### `com.educaflow.system.gruposnotas.service.AlumnoGrupoService` / `…impl.AlumnoGrupoServiceImpl`
+
 ```java
-// V-Grupo-001 (VAL-001): nombre vacío → mensaje "el nombre del grupo es obligatorio" (transmite el campo).
-// V-Grupo-002 (VAL-002): curso null → mensaje "el curso es obligatorio".
-// V-Grupo-003 (VAL-003, RES-001): ((GrupoRepository)repository).findByCentroAndCursoAcademicoAndNombre(
-//   centro, cursoAcademico, nombre) != null (con centro/cursoAcademico ya resueltos por R-Grupo-002)
-//   → mensaje de duplicado (transmite nombre+centro+curso académico).
-@Override public Optional<BusinessMessages> validateInsert(Grupo grupo);
+public interface AlumnoGrupoService extends ModelService<AlumnoGrupo> {
+    String calcularNotaMedia(AlumnoGrupo alumnoGrupo);   // CC-001 (lectura)
+}
 
-// V-Grupo-004 (VAL-004): estado != ABIERTO → "no se puede modificar un grupo cerrado".
-// V-Grupo-005 (VAL-005, RES-001): findByCentroAndCursoAcademicoAndNombre devuelve otro grupo con
-//   id != grupo.id → mensaje de duplicado.
-@Override public Optional<BusinessMessages> validateUpdate(Grupo grupo, Grupo original);
+public class AlumnoGrupoServiceImpl extends DefaultModelService<AlumnoGrupo> implements AlumnoGrupoService {
 
-// V-Grupo-009 (VAL-009): estado != ABIERTO → "no se puede borrar un grupo cerrado".
-@Override public Optional<BusinessMessages> validateRemove(Grupo grupo);
+    @Inject AlumnoGrupoRepository alumnoGrupoRepository;
+    @Inject NotaRepository notaRepository;
+    @Inject ModelServiceFactory modelServiceFactory;   // para resolver NotaService al crear las notas
 
-// V-Grupo-006 (VAL-006): estado != ABIERTO → "el grupo ya está cerrado".
-public Optional<BusinessMessages> validateCerrar(Grupo grupo);
+    @Inject public AlumnoGrupoServiceImpl(Class<AlumnoGrupo> model, Repository<AlumnoGrupo> repository) { super(model, repository); }
 
-// V-Grupo-007 (VAL-007): estado != CERRADO → "el grupo ya está abierto".
-// V-Grupo-008 (VAL-008): !SecurityUtil.isAdmin(SecurityUtil.getUser()) → "no tiene permisos para reabrir el grupo".
-public Optional<BusinessMessages> validateReabrir(Grupo grupo);
+    @Override
+    public AlumnoGrupo insert(AlumnoGrupo alumnoGrupo);
+    //   0. fireActionRule_RestaurarGrupoDesdeContexto(alumnoGrupo)  → asigna `grupo` (campo servidor)
+    //      desde la fuente de confianza (el grupo padre del request) ANTES de validar, porque
+    //      `grupo` queda FUERA de la whitelist de allowPropertiesInsert (el cliente no lo dicta).
+    //      Sin esto, validateInsert recibiría grupo=null y V-AlumnoGrupo-002 daría NPE.
+    //   1. validateInsert(alumnoGrupo).ifPresent(throwIfInvalid)  → V-AlumnoGrupo-001..005.
+    //   2. alumnoGrupo = repository.save(alumnoGrupo).
+    //   3. fireActionRule_CrearNotasNoEvaluado(alumnoGrupo)  → R-AlumnoGrupo-001 (Después).
+
+    @Override
+    public Optional<BusinessMessages> validateInsert(AlumnoGrupo alumnoGrupo);
+    //   Aplica:
+    //     - V-AlumnoGrupo-001 (Origen spec: VAL-010) alumno indicado: alumno != null.
+    //       Mensaje transmite: debe elegir un alumno.
+    //     - V-AlumnoGrupo-002 (Origen spec: VAL-011) grupo ABIERTO: alumnoGrupo.getGrupo().getEstado()==ABIERTO.
+    //       Mensaje transmite: no se pueden añadir alumnos a un grupo cerrado.
+    //     - V-AlumnoGrupo-003 (Origen spec: VAL-012) alumno del centro y tipo Alumno: comprueba que el
+    //       alumno es usuario del centro del grupo con tipoUsuario codigo 'ALUMNO' (consulta repo/relación
+    //       CentroUsuario/CentroUsuarioTipoUsuario). Mensaje transmite: el alumno debe ser un usuario de tipo
+    //       Alumno del centro del grupo. (Defensa de servidor del filtro de UI U-…-005.)
+    //     - V-AlumnoGrupo-004 (Origen spec: VAL-013, RES-004) no pertenece a otro grupo del mismo curso
+    //       académico: alumnoGrupoRepository.existsOtroGrupoMismoCursoAcademico(alumno, centro,
+    //       cursoAcademico, null). En el alta no hay id propio que excluir, por eso excludeAlumnoGrupoId=null.
+    //       El centro y cursoAcademico se toman de alumnoGrupo.getGrupo() (grupo ya restaurado en servidor).
+    //       Mensaje transmite: el alumno ya pertenece a otro grupo de este curso académico.
+    //     - V-AlumnoGrupo-005 (Origen spec: RES-005) alumno no repetido en el grupo: respaldo de la
+    //       unique-constraint(grupo,alumno). Mensaje transmite: el alumno ya está en el grupo.
+
+    @Override
+    public Optional<BusinessMessages> validateRemove(AlumnoGrupo alumnoGrupo);
+    //   Aplica:
+    //     - V-AlumnoGrupo-006 (Origen spec: VAL-014) grupo ABIERTO al quitar: estado==ABIERTO.
+    //       Mensaje transmite: no se pueden quitar alumnos de un grupo cerrado.
+
+    @Override
+    public AlumnoGrupo update(AlumnoGrupo alumnoGrupo, AlumnoGrupo original);
+    //   Defensa en profundidad (k-secure-coding §9.2): la pertenencia alumno↔grupo NO es editable (solo se
+    //   crea o se quita). Lanza UnsupportedOperationException incondicionalmente, además del
+    //   allowPropertiesUpdate denyAll, para convertir la invariante de no-editabilidad en rechazo explícito.
+
+    private void fireActionRule_RestaurarGrupoDesdeContexto(AlumnoGrupo alumnoGrupo);
+    //   Campo `grupo` clasificado SERVIDOR (k-secure-coding §3): el alumno se añade SIEMPRE desde el
+    //   panel maestro-detalle "Alumnos" del formulario de grupo, así que el grupo padre es la fuente de
+    //   confianza, NO un campo que el cliente pueda dictar. `grupo` está FUERA de la whitelist de
+    //   allowPropertiesInsert, de modo que AllowProperties.filter lo elimina del bean entrante y aquí
+    //   llega siempre como null. Asignación INCONDICIONAL desde el contexto del padre del request
+    //   (el id del Grupo padre que Axelor incluye en el contexto maestro-detalle / `__parent__`),
+    //   resolviendo el Grupo por id con grupoRepository.find(parentId). MUST NOT usar `if (grupo==null)`
+    //   ni confiar en un `grupo` que venga en el JSON (k-secure-coding §3.3): por la vía REST genérica un
+    //   atacante podría intentar apuntar la pertenencia a un grupo de otro centro (IDOR) — al restaurarlo
+    //   siempre desde el padre se preserva la frontera multi-centro. El controlador del save-modal extrae
+    //   el bean con allowPropertiesInsert() (whitelist: alumno) y el id del grupo padre del contexto; este
+    //   método lo aplica antes de validateInsert para que V-AlumnoGrupo-002/004/etc. operen sobre el grupo
+    //   correcto. No es compleja (resolución por id + set).
+
+    private void fireActionRule_CrearNotasNoEvaluado(AlumnoGrupo alumnoGrupo);
+    //   Aplica R-AlumnoGrupo-001 (Origen spec: RN-005). Momento: Después de repository.save. Por cada
+    //   ModuloGrupo del grupo, crea una Nota {moduloGrupo, alumnoGrupo, valor=NO_EVALUADO} delegando en
+    //   NotaService (resuelto por ModelServiceFactory). Efecto colateral: inserta N notas. No es compleja
+    //   (bucle de 2-3 llamadas). El borrado en cascada de las notas al quitar el alumno lo gestiona el
+    //   one-to-many/composición del modelo (orphanRemoval del mappedBy="alumnoGrupo").
+
+    @Override
+    public String calcularNotaMedia(AlumnoGrupo alumnoGrupo);
+    //   Implementa CC-001 (Origen spec: CC-001; momento lectura) **delegando en el getter del dominio**:
+    //   return alumnoGrupo.getNotaMedia(). El algoritmo (recorre las notas, excluye NO_EVALUADO; mapea
+    //   NOTA_01..NOTA_10 a 1..10 y MATRICULA_HONOR a 10; "Sin nota" si no hay ninguna evaluada; en otro
+    //   caso la media redondeada con Math.round como texto) vive ÚNICAMENTE en el cuerpo CDATA de la
+    //   propiedad `notaMedia` del dominio (única fuente de verdad). El servicio NO reimplementa ni extrae
+    //   el cálculo a una utilidad: solo delega, evitando duplicar la lógica y evitando que la entidad de
+    //   dominio dependa de `..service..` (C13). Es campo derivado de SOLO LECTURA: no se persiste
+    //   (propiedad transient `notaMedia`), por lo que el campo se rellena solo al renderizarse en grid/form
+    //   sin onLoad ni llamada de servicio por fila. No es compleja (algoritmo aritmético simple).
+
+    @Override public AllowProperties allowPropertiesInsert();   // whitelist: alumno (solo). grupo se restaura en servidor desde el contexto del padre (fireActionRule_RestaurarGrupoDesdeContexto); centro es transient auxiliar; notaMedia transient nunca entra
+    @Override public AllowProperties allowPropertiesUpdate();   // denyAll: la pertenencia no se edita
+    @Override public AllowProperties allowPropertiesRemove();   // denyAll
+}
 ```
 
-**(3) AllowProperties**
+#### `com.educaflow.system.gruposnotas.service.NotaService` / `…impl.NotaServiceImpl`
+
 ```java
-// Crear: cliente = nombre, curso, centro, cursoAcademico, alumnos. estado/fechaCierre/modulos
-//   son servidor → fuera de la whitelist. (centro/cursoAcademico en la whitelist porque el admin
-//   los envía; R-Grupo-002 los sobrescribe condicionalmente para el supervisor.)
-@Override public AllowProperties allowPropertiesInsert(); // createAllowProperties(nombre,curso,centro,cursoAcademico,alumnos)
-// Modificar: cliente = SOLO nombre. curso/centro/cursoAcademico inmutables; estado/fechaCierre servidor.
-@Override public AllowProperties allowPropertiesUpdate(); // createAllowProperties(nombre)
-// Cerrar/Reabrir: ningún campo cliente (solo cambian estado/fechaCierre en el servidor).
-public AllowProperties allowPropertiesCerrar();  // createAllowProperties(Map.of()) — whitelist vacía
-public AllowProperties allowPropertiesReabrir(); // createAllowProperties(Map.of()) — whitelist vacía
+public interface NotaService extends ModelService<Nota> {
+    Nota guardarNota(Nota nota, Nota notaOriginal);
+    Optional<BusinessMessages> validateGuardarNota(Nota nota, Nota notaOriginal);
+    AllowProperties allowPropertiesGuardarNota();
+}
+
+public class NotaServiceImpl extends DefaultModelService<Nota> implements NotaService {
+
+    @Inject NotaRepository notaRepository;
+
+    @Inject public NotaServiceImpl(Class<Nota> model, Repository<Nota> repository) { super(model, repository); }
+
+    @Override
+    public Optional<BusinessMessages> validateInsert(Nota nota);
+    //   Aplica:
+    //     - V-Nota-005 (Origen spec: RES-006) una nota por alumno+módulo: respaldo de la
+    //       unique-constraint(moduloGrupo,alumnoGrupo). Mensaje transmite: ya existe nota para ese alumno y módulo.
+    //   (El alta normal de notas la hace el servidor desde R-AlumnoGrupo-001 con valor NO_EVALUADO.)
+
+    @Override
+    public Nota guardarNota(Nota nota, Nota notaOriginal);
+    //   1. validateGuardarNota(nota, notaOriginal).ifPresent(throwIfInvalid)  → V-Nota-001..003.
+    //   2. fireActionRule_FijarFechasCalificacion(nota, notaOriginal)  → R-Nota-001/002 (Antes).
+    //   3. return repository.save(nota).
+
+    @Override
+    public Optional<BusinessMessages> validateGuardarNota(Nota nota, Nota notaOriginal);
+    //   Aplica:
+    //     - V-Nota-001 (Origen spec: VAL-016) valor en dominio: comprueba que `valor` es uno de
+    //       {NO_EVALUADO, NOTA_01..NOTA_10, MATRICULA_HONOR} (el enum lo garantiza, pero se valida en
+    //       servidor para la vía REST). Mensaje transmite: la nota debe ser No evaluado, un número entero
+    //       del 1 al 10 o Matrícula de Honor.
+    //     - V-Nota-002 (Origen spec: VAL-015) grupo ABIERTO: nota.getModuloGrupo().getGrupo().getEstado()==ABIERTO.
+    //       Mensaje transmite: no se pueden modificar las notas de un grupo cerrado.
+    //     - V-Nota-003 (Origen spec: VAL-017) máx 3 matrículas por módulo: si el valor que se pone es
+    //       MATRICULA_HONOR y notaOriginal.valor != MATRICULA_HONOR, comprueba que
+    //       notaRepository.countMatriculasHonorByModuloGrupo(moduloGrupo) < 3. Mensaje transmite: no se pueden
+    //       poner más de 3 matrículas de honor en un módulo.
+
+    private void fireActionRule_FijarFechasCalificacion(Nota nota, Nota notaOriginal);
+    //   Aplica R-Nota-001 (Origen spec: CC-002; campo `fechaCalificacion` servidor) y R-Nota-002
+    //   (Origen spec: CC-003; campo `fechaUltimaModificacion` servidor). Momento: Antes de save.
+    //   Lógica:
+    //     - Si notaOriginal.valor == NO_EVALUADO && nota.valor != NO_EVALUADO  → primera calificación:
+    //       asignación INCONDICIONAL nota.setFechaCalificacion(LocalDateTime.now()).
+    //     - Si notaOriginal.valor != NO_EVALUADO && el valor cambia  → modificación posterior:
+    //       asignación INCONDICIONAL nota.setFechaUltimaModificacion(LocalDateTime.now()).
+    //   En todo caso se restauran desde notaOriginal las fechas que esta rama no toca, para que el cliente
+    //   no las pueda dictar. MUST NOT usar `if (campo==null) set(...)` (k-secure-coding §3.3). Estos dos
+    //   campos quedan FUERA de la whitelist de guardarNota (solo `valor` es cliente).
+
+    @Override public AllowProperties allowPropertiesInsert();        // denyAll: las notas las crea el servidor (R-AlumnoGrupo-001)
+    @Override public AllowProperties allowPropertiesUpdate();        // denyAll: la nota se cambia por guardarNota, no por update genérico
+    @Override public AllowProperties allowPropertiesRemove();        // denyAll
+    @Override public AllowProperties allowPropertiesGuardarNota();   // whitelist: valor (solo)
+}
 ```
 
-**(4) Action Rules**
+### Paso 3 — Repositorios
+
+Repositorios personalizados en `system/gruposnotas/db/repo/` (las consultas JPA viven aquí, nunca inline en el servicio — k-sistemas). Heredan de la clase abstracta generada por Axelor (las entidades deben declarar `repository="abstract"`).
+
 ```java
-// R-Grupo-002 (RN-002, Antes de Crear): si !SecurityUtil.isAdmin(user) asigna INCONDICIONALMENTE
-//   grupo.setCentro(user.getCentroActivo()) y grupo.setCursoAcademico(user.getCentroActivo().getCurso()),
-//   ignorando lo recibido. Si es admin, respeta lo recibido. Override CONDICIONAL por rol
-//   (k-secure-coding §4): para el no-admin estos campos son de facto servidor; MUST NOT añadir
-//   guarda if(==null) en la rama del supervisor.
-private void fireActionRule_AsignarCentroYCursoAcademico(Grupo grupo);
+// com.educaflow.system.gruposnotas.db.repo.GrupoRepository extends AbstractGrupoRepository
+public Grupo findByNombreCentroCursoAcademico(String nombre, Centro centro, Integer cursoAcademico);
+//   Generado por el finder-method del dominio. Devuelve el grupo homónimo en el centro+cursoAcademico o null.
+//   Lo usan V-Grupo-003 (alta) y V-Grupo-005 (modificación, que además excluye el propio id).
 
-// R-Grupo-003 (estado inicial, Antes de Crear): grupo.setEstado(EstadoGrupo.ABIERTO) INCONDICIONAL
-//   (campo servidor; k-secure-coding §3.3). Origen spec: "Estado inicial: ABIERTO".
-private void fireActionRule_AsignarEstadoInicial(Grupo grupo);
+// com.educaflow.system.gruposnotas.db.repo.AlumnoGrupoRepository extends AbstractAlumnoGrupoRepository
+public boolean existsOtroGrupoMismoCursoAcademico(User alumno, Centro centro, Integer cursoAcademico, Long excludeAlumnoGrupoId);
+//   Cuenta los AlumnoGrupo del alumno cuyos grupos tienen el mismo centro+cursoAcademico, excluyendo el
+//   registro con id = excludeAlumnoGrupoId cuando se pasa (si excludeAlumnoGrupoId es null, no excluye
+//   ninguno: ese es el caso del alta, donde la pertenencia aún no tiene id). Filtro JPQL con :param y bind
+//   (k-secure-coding §5). Lo usa V-AlumnoGrupo-004 (RES-004), que en el alta lo invoca con null.
 
-// R-Grupo-001 (RN-001, Antes de Crear, RES-002): por cada CursoModulo de grupo.getCurso().getModulos()
-//   crea un ModuloGrupo(grupo, modulo) y lo añade a grupo.getModulos(). Garantiza que los módulos del
-//   grupo coinciden con los del curso.
-private void fireActionRule_GenerarModulosDelCurso(Grupo grupo);
-
-// R-Grupo-004 (RN-003, Antes de cerrar): estado=CERRADO, fechaCierre=LocalDateTime.now() INCONDICIONAL.
-private void fireActionRule_RegistrarCierre(Grupo grupo);
-
-// R-Grupo-005 (RN-004, Antes de reabrir): estado=ABIERTO, fechaCierre=null INCONDICIONAL.
-private void fireActionRule_RegistrarReapertura(Grupo grupo);
+// com.educaflow.system.gruposnotas.db.repo.NotaRepository extends AbstractNotaRepository
+public long countMatriculasHonorByModuloGrupo(ModuloGrupo moduloGrupo);
+//   Método propio del repositorio (NO finder-method: un finder devuelve la primera entidad o un Query,
+//   nunca un long). Cuenta las Notas con valor MATRICULA_HONOR del módulo (moduloGrupo) dado: filtra
+//   por el módulo y por el enum ValorNota.MATRICULA_HONOR (se compara contra el enum, no contra el
+//   literal), usando filtro con :param y bind, y termina la consulta del repositorio en .count().
+//   Filtro JPQL con :param y bind (k-secure-coding §5). Lo usa V-Nota-003 (VAL-017).
 ```
 
-**(5) Otras funciones:** `boolean esAdmin()` → `SecurityUtil.isAdmin(SecurityUtil.getUser())`. Alta de los alumnos enviados al crear (si los hay) delegando en `modelServiceFactory.resolve(AlumnoGrupo.class)`.
+`ModuloGrupo` no tiene repositorio personalizado; sus inserciones las hace `GrupoServiceImpl` a través del `Repository<ModuloGrupo>` genérico.
 
-#### `com.educaflow.system.grupos.service.ModuloGrupoService` / `ModuloGrupoServiceImpl`
-Interfaz vacía (`extends ModelService<ModuloGrupo>`). Impl con el constructor obligatorio; no expone acciones ni AllowProperties cliente (los módulos los crea el sistema). Existe solo para que `ModelServiceFactory` lo descubra.
+### Paso 4 — Controladores
 
-#### `com.educaflow.system.grupos.service.AlumnoGrupoService` / `AlumnoGrupoServiceImpl`
+#### `com.educaflow.system.gruposnotas.controller.GrupoController`
+
 ```java
-public AlumnoGrupoServiceImpl(Class<AlumnoGrupo> model, Repository<AlumnoGrupo> repository) { super(model, repository); }
-```
-**(1) Acciones**
-```java
-// insert: valida (VAL-010/011/012/013). Aplica R-AlumnoGrupo-001 (crear Nota NO_EVALUADO por cada
-//   ModuloGrupo del grupo) DESPUÉS de persistir el AlumnoGrupo. repository.save.
-@Override public AlumnoGrupo insert(AlumnoGrupo alumnoGrupo);
-// remove: valida (VAL-014 grupo ABIERTO). repository.remove; la cascada borra sus notas (ESC-005).
-@Override public void remove(AlumnoGrupo alumnoGrupo);
-```
-**(2) Métodos de Validación**
-```java
-// V-AlumnoGrupo-001 (VAL-010): alumno null → "debe elegir un alumno".
-// V-AlumnoGrupo-002 (VAL-011): grupo.estado != ABIERTO → "no se pueden añadir alumnos a un grupo cerrado".
-// V-AlumnoGrupo-003 (VAL-012): alumno.getTiposUsuarioActivos() no contiene code "ALUMNO" o el centro
-//   activo del alumno != grupo.getCentro() → "el alumno debe ser un usuario de tipo Alumno del centro del grupo"
-//   (transmite el alumno y el centro).
-// V-AlumnoGrupo-004 (VAL-013, RES-004): findByAlumnoAndCentroAndCursoAcademico(alumno, grupo.centro,
-//   grupo.cursoAcademico) contiene alguna pertenencia de otro grupo → "el alumno ya pertenece a otro
-//   grupo de este curso académico". (RES-005 «mismo alumno dos veces en el mismo grupo» lo bloquea el
-//   unique-constraint(grupo,alumno) — ESC-019.)
-@Override public Optional<BusinessMessages> validateInsert(AlumnoGrupo alumnoGrupo);
-// V-AlumnoGrupo-005 (VAL-014): grupo.estado != ABIERTO → "no se pueden quitar alumnos de un grupo cerrado".
-@Override public Optional<BusinessMessages> validateRemove(AlumnoGrupo alumnoGrupo);
-```
-**(3) AllowProperties**
-```java
-// Crear: cliente = SOLO alumno. grupo es servidor (lo inyecta el modal onNew __parent__) → fuera de la whitelist.
-@Override public AllowProperties allowPropertiesInsert(); // createAllowProperties(alumno)
-```
-**(4) Action Rules**
-```java
-// R-AlumnoGrupo-001 (RN-005, Después de Crear): por cada ModuloGrupo de alumnoGrupo.getGrupo().getModulos()
-//   crea una Nota(moduloGrupo, alumnoGrupo, tipoValor=NO_EVALUADO) y la persiste
-//   (modelServiceFactory.resolve(Nota.class) o repository propio de Nota). Efecto colateral → fase Después.
-private void fireActionRule_CrearNotasNoEvaluado(AlumnoGrupo alumnoGrupo);
+public class GrupoController {
+
+    @Inject private ModelServiceFactory modelServiceFactory;
+
+    @CallMethod @Transactional
+    public void cerrar(ActionRequest actionRequest, ActionResponse actionResponse);
+    //   Delega en GrupoService.cerrar. Extrae el bean con allowPropertiesCerrar() (denyAll) y el original.
+    //   Patrón TareaFirmaController: getOriginalModel() + getModel(allowProperties).
+
+    @CallMethod @Transactional
+    public void reabrir(ActionRequest actionRequest, ActionResponse actionResponse);
+    //   Delega en GrupoService.reabrir. Extrae el bean con allowPropertiesReabrir() (denyAll) y el original.
+    //   La V-Grupo-008 (solo administrador) se valida en el servicio, no solo aquí.
+}
 ```
 
-#### `com.educaflow.system.grupos.service.NotaService` / `NotaServiceImpl`
+#### `com.educaflow.system.gruposnotas.controller.NotaController`
+
 ```java
-public NotaServiceImpl(Class<Nota> model, Repository<Nota> repository) { super(model, repository); }
-```
-**(1) Acciones**
-```java
-// update: valida (VAL-015/016/017). Aplica R-Nota-001 (CC-002) y R-Nota-002 (CC-003) ANTES de persistir.
-//   repository.save. (No hay insert por el cliente: las notas las crea R-AlumnoGrupo-001.)
-@Override public Nota update(Nota nota, Nota original);
-```
-**(2) Métodos de Validación**
-```java
-// V-Nota-001 (VAL-015): nota.getModuloGrupo().getGrupo().estado != ABIERTO → "no se pueden modificar las
-//   notas de un grupo cerrado".
-// V-Nota-002 (VAL-016): combinación inválida (NO_EVALUADO/ MH con valorNumerico no nulo, o NUMERICA sin
-//   entero 1..10) → "la nota debe ser No evaluado, un número entero del 1 al 10 o Matrícula de Honor".
-// V-Nota-003 (VAL-017): si tipoValor==MATRICULA_HONOR y findByModuloGrupoAndTipoValor(moduloGrupo,
-//   MATRICULA_HONOR) ya tiene 3 (excluyendo la propia nota por id) → "no se pueden poner más de 3
-//   matrículas de honor en un módulo".
-@Override public Optional<BusinessMessages> validateUpdate(Nota nota, Nota original);
-```
-**(3) AllowProperties**
-```java
-// Modificar: cliente = tipoValor, valorNumerico (componen "valor"). moduloGrupo/alumnoGrupo/
-//   fechaCalificacion/fechaUltimaModificacion son servidor → fuera de la whitelist.
-@Override public AllowProperties allowPropertiesUpdate(); // createAllowProperties(tipoValor, valorNumerico)
-```
-**(4) Action Rules**
-```java
-// R-Nota-001 (CC-002, Antes de update): si la nota pasa de NO_EVALUADO a evaluada por primera vez
-//   (original.tipoValor == NO_EVALUADO y nota.tipoValor != NO_EVALUADO) asigna fechaCalificacion = now.
-//   Campo servidor; la comparación usa el estado persistido (original), no datos del cliente.
-private void fireActionRule_RegistrarFechaCalificacion(Nota nota, Nota original);
-// R-Nota-002 (CC-003, Antes de update): si la nota YA estaba evaluada (original.fechaCalificacion != null)
-//   y el valor cambia, asigna fechaUltimaModificacion = now. Campo servidor.
-private void fireActionRule_RegistrarFechaUltimaModificacion(Nota nota, Nota original);
+public class NotaController {
+
+    @Inject private ModelServiceFactory modelServiceFactory;
+
+    @CallMethod @Transactional
+    public void guardarNota(ActionRequest actionRequest, ActionResponse actionResponse);
+    //   Delega en NotaService.guardarNota. Extrae el bean con allowPropertiesGuardarNota() (whitelist: valor)
+    //   y el original con getOriginalModel(). Parámetros nombrados actionRequest/actionResponse (k-sistemas).
+}
 ```
 
-### Paso 4 — Repositorios
-No se crean repositorios personalizados. Los finders se declaran con `<finder-method>` en los dominios y se invocan casteando el `repository` heredado al repo generado: `((GrupoRepository) repository).findByCentroAndCursoAcademicoAndNombre(...)`, `((AlumnoGrupoRepository) repository).findByAlumnoAndCentroAndCursoAcademico(...)`, `((NotaRepository) repository).findByModuloGrupoAndTipoValor(...)`.
+### Paso 5 — Vistas
 
-### Paso 5 — Controladores
+Un `<action-view>` por fichero (k-sistemas/k-vistas). Prefijo `sysGruposNotas`. XML completo en `design_5/views/`.
 
-#### `com.educaflow.system.grupos.controller.GrupoController`
-```java
-@Inject private ModelServiceFactory modelServiceFactory;
+- **`Grupo-Supervisor.xml`** — `action-view sysGruposNotas.Grupo@Supervisor-action` (pantalla "Grupos" del supervisor). Lleva `<domain>self.centro = :centroActivoUsuario</domain>` + `<context>` con `__user__?.centroActivo?.id` (multi-centro, k-secure-coding §4). Contiene: grid de grupos (columnas curso académico, ciclo, nombre, estado); form de grupo con paneles "Datos del grupo", "Módulos" (panel-related → ModuloGrupo), "Alumnos" (panel-related → AlumnoGrupo); botones "Cerrar grupo" (showIf ABIERTO → action-method `cerrar`), "Guardar", "Cancelar"; grids/forms anidados ModuloGrupo → Nota (botón "Guardar" → action-method `guardarNota`) y AlumnoGrupo (selector de alumno con `domain` filtrado por centro y tipo ALUMNO). `onNew` fija estado ABIERTO y, además, `centro = __user__?.centroActivo` y `cursoAcademico = __user__?.centroActivo?.curso` (RUI-001/RUI-002: rellenos y readonly en el alta; UX, el servidor los fija incondicionalmente vía R-Grupo-002, y además alimenta el selector de alumno del panel Alumnos vía `__parent__?.centro`); en AlumnoGrupo, el `onNew` fija el grupo padre y el centro auxiliar.
+- **`Grupo-Administracion.xml`** — `action-view sysGruposNotas.Grupo@Administracion-action` (pantalla "Grupos (administración)"). Sin `<domain>` de centro (el administrador ve todos). Añade columna y campos editables `centro` y `cursoAcademico` en el alta (readonlyIf id!=null). Botón adicional "Reabrir grupo" (showIf CERRADO → action-method `reabrir`). Resto análogo al supervisor con sufijo `@Administracion`.
+- **`Grupo-MisNotas.xml`** — `action-view sysGruposNotas.AlumnoGrupo@MisNotas-action` (pantalla "Mis notas" del alumno). Lleva `<domain>self.alumno = :__user__</domain>` (el alumno solo ve sus pertenencias). Grid de mis grupos (curso académico, ciclo, nombre, nota media); form "Mi grupo" (solo lectura) con panel "Mis notas" (panel-related → Nota, solo lectura); grid/form de mi nota (módulo, valor, fechas), todo readonly.
 
-// Decide insert/update por la presencia de id; extrae el bean con allowPropertiesInsert()/Update()
-//   del servicio y ejecuta validateInsert/validateUpdate; entrega los BusinessMessages como error.
-@CallMethod public void validateSave(ActionRequest actionRequest, ActionResponse actionResponse);
-// Extrae con allowPropertiesRemove(); ejecuta validateRemove (VAL-009).
-@CallMethod public void validateDelete(ActionRequest actionRequest, ActionResponse actionResponse);
-// Extrae con allowPropertiesCerrar() y llama a service.cerrar(...); errores como BusinessMessages.
-@Transactional @CallMethod public void cerrar(ActionRequest actionRequest, ActionResponse actionResponse);
-// Extrae con allowPropertiesReabrir() y llama a service.reabrir(...). La autorización (solo admin)
-//   la impone VAL-008 en el servicio, NO el controlador.
-@Transactional @CallMethod public void reabrir(ActionRequest actionRequest, ActionResponse actionResponse);
+**Verificar:** `validate.sh` imprime `VALIDACION-XML: OK`.
+
+### Paso 6 — Módulos Guice
+
+No aplica: las cuatro entidades tienen servicio `ModelService`/`DefaultModelService` descubierto por `ModelServiceFactory`. **MUST NOT** crear módulo Guice (k-sistemas §module). Los controladores y servicios inyectan repositorios y `ModelServiceFactory`, todos disponibles sin binding manual.
+
+### Paso 7 — Jobs programados
+
+No aplica (no hay tarea recurrente).
+
+### Paso 8 — Menús
+
+Modificar `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml` añadiendo la porción de `design_5/menus.xml`:
+
+- `notas-menuitem` "Notas" (order 35, `if` tipo activo SUPERVISOR) → hijo "Grupos" → `sysGruposNotas.Grupo@Supervisor-action`.
+- `misNotas-menuitem` "Mis notas" (order 36, `if` tipo activo ALUMNO) → `sysGruposNotas.AlumnoGrupo@MisNotas-action`.
+- `administracionSv-grupos-menuitem` "Grupos (administración)" bajo `administracionSv-menuitem` (groups="admins", order 20) → `sysGruposNotas.Grupo@Administracion-action`.
+
+La visibilidad de menú es solo conveniencia: la frontera real la imponen el `<domain>` de las action-view, los `allowProperties` y las validaciones de servidor.
+
+### Paso 9 — Seguridad
+
+Modelo de roles del proyecto (código real en `subsystem/security`, NO k-seguridad): grupos `admins` y `users`, y tipos de usuario (`TipoUsuario.codigo`: SUPERVISOR, ALUMNO, …). Reglas de acceso, en lenguaje natural:
+
+- **Administrador** (grupo `admins`): permisos CREATE/READ/WRITE/REMOVE sobre `Grupo`, `ModuloGrupo`, `AlumnoGrupo`, `Nota` sin restricción de centro. Ve "Grupos (administración)" y puede reabrir (V-Grupo-008 lo confirma en servidor).
+- **Supervisor** (tipo activo SUPERVISOR, grupo `users`): permisos CREATE/READ/WRITE/REMOVE sobre las 4 entidades **restringidos a su centro**; la restricción operativa la imponen el `<domain>` de la action-view del supervisor y las reglas de servidor (R-Grupo-002 fija centro/cursoAcademico; nunca puede reabrir). No ve "Grupos (administración)".
+- **Alumno** (tipo activo ALUMNO, grupo `users`): permiso **solo READ** sobre `AlumnoGrupo` y `Nota` (y lectura de `Grupo`/`ModuloGrupo` para mostrar nombres), restringido a sus propias pertenencias por el `<domain>self.alumno = :__user__`. No crea ni modifica nada.
+
+Materialización: fichero `data-init/input/auth-gruposnotas.xml` con los permisos (`Permission`) y su asignación a los grupos `admins`/`users` siguiendo el patrón de `auth-security.xml`/`auth-expedientes.xml` existentes, más la entrada en `data-init/input-config.xml`. El control fino por centro y por propiedad lo dan el diseño de servicio/vista descrito arriba (k-secure-coding), no un ACL por campo.
+
+### Paso 10 — Datos iniciales
+
+No se precargan catálogos propios del sistema (Grupo/ModuloGrupo/AlumnoGrupo/Nota son datos de explotación, no maestros). Los datos maestros (centros, catálogo educativo, usuarios y sus tipos) ya los gestionan `common` y `sistemaeducativo`; el tipo `SUPERVISOR` ya existe en `data-init/input/tiposUsuario.xml`. Solo se añaden los permisos del Paso 9.
+
+### Paso 11 — Verificación final
+
+Compilar el proyecto y confirmar que arranca sin errores:
+
+```
+./gradlew clean build --info
 ```
 
-#### `com.educaflow.system.grupos.controller.AlumnoGrupoController`
-```java
-// validateSave (VAL-010..013) y validateDelete (VAL-014). Extrae con allowPropertiesInsert()/Remove().
-@CallMethod public void validateSave(ActionRequest actionRequest, ActionResponse actionResponse);
-@CallMethod public void validateDelete(ActionRequest actionRequest, ActionResponse actionResponse);
-```
-
-#### `com.educaflow.system.grupos.controller.NotaController`
-```java
-// validateSave (VAL-015..017). Extrae con allowPropertiesUpdate().
-@CallMethod public void validateSave(ActionRequest actionRequest, ActionResponse actionResponse);
-```
-
-### Paso 6 — Vistas
-
-Ver el XML completo en `design/views/*.xml` (validados contra `object-views.xsd`). Un `<action-view>` por fichero.
-
-- **`design/views/Grupo.xml`** (pantalla supervisor): action-view `sysGrupos.Grupo@Main-action` con `<domain>self.centro = :centroActivoUsuario</domain>` (multi-centro). Grids `@Main` de Grupo (cursoAcademico, curso.ciclo, nombre, estado), ModuloGrupo, Nota (alumnoGrupo, valorTexto, fechas) y AlumnoGrupo (alumno, notaMedia). Forms `@Main`: Grupo (paneles Datos / Módulos / Alumnos; botones Guardar, Cerrar grupo [showIf ABIERTO — RUI-003], Borrar, Cancelar; readonlyIf CERRADO — RUI-004; onNew rellena estado/centro/cursoAcademico — RUI-001/002), ModuloGrupo (modal solo lectura con panel-related notas), Nota (modal; valor editable solo si grupo ABIERTO — RUI-005), AlumnoGrupo (modal; selector de alumno con domain por centro+tipo — ESC-020). Action-groups btnSave/btnDelete/btnCerrar/onNew, action-condition Local-validate (VAL-001/002/010/016 UX), action-record/action-attrs (valores iniciales, grupo padre, domain alumno) y action-method Remote-*.
-- **`design/views/Grupo-admin.xml`** (pantalla administración): action-view `sysGrupos.Grupo@Admin-action` SIN domain de centro (ve todos). Igual cadena con discriminador `@Admin`, columna `centro` en el grid, `centro`/`cursoAcademico` editables al crear y readonly tras crear (RUI-006), botones Cerrar (RUI-007) y Reabrir (RUI-008), readonlyIf CERRADO salvo Reabrir (RUI-009), nota editable solo si ABIERTO (RUI-010).
-- **`design/views/AlumnoGrupo-alumno.xml`** (pantalla «Mis notas»): action-view `sysGrupos.AlumnoGrupo@Alumno-action` con `<domain>self.alumno = :usuarioActual</domain>`. Grid de AlumnoGrupo (grupo.cursoAcademico, grupo.curso.ciclo, grupo.nombre, notaMedia) y grid de Nota (modulo, valorTexto, fechaCalificacion). Forms solo lectura (readonlyIf="true"); el alumno no crea ni modifica nada.
-
-### Paso 7 — Menús
-Modificar `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml` fusionando la porción de `design/menus.xml`: raíz `notas-menuitem` («Notas», order 35) con hoja «Grupos» (action `sysGrupos.Grupo@Main-action`, `if` SUPERVISOR) y hoja «Mis notas» (action `sysGrupos.AlumnoGrupo@Alumno-action`, `if` ALUMNO); y hoja `administracionSv-grupos-menuitem` («Grupos (administración)», action `sysGrupos.Grupo@Admin-action`, `groups="admins"`) bajo la raíz existente `administracionSv-menuitem`.
-
-### Paso 8 — Seguridad
-Ver la sección «Frontera de confianza — AllowProperties por acción». Visibilidad por rol en los menús (`if`/`groups`). El filtrado multi-centro vive en los `<domain>` de los action-view (supervisor/alumno) y en las validaciones del servidor (VAL-012, R-Grupo-002).
-
-### Paso 9 — Datos iniciales
-Ninguno propio. El tipo de usuario `SUPERVISOR` y `ALUMNO` ya existen en `data-init/input/tiposUsuario.xml`.
-
-### Paso 10 — Verificación final
-Compilar con `./gradlew clean build`. Debe compilar sin errores y arrancar (`./run.sh`).
-
----
+Comprobar que las 4 entidades generan sus clases en `build/src-gen`, que `ModelServiceFactory` resuelve los 4 servicios y que las 3 action-view aparecen en sus menús.
 
 ## Frontera de confianza — AllowProperties por acción
 
-### `GrupoServiceImpl` (insert vía `GrupoController.validateSave` + `/ws/rest/Grupo`)
-Entidad `Grupo`. **Forma elegida**: `createAllowProperties`. **Origen spec:** `Input AllowProperties` de la acción *Crear* de `entity-Grupo.md`.
+Tablas por cada acción de servicio invocada desde un `@CallMethod`. Reglas de validez en k-secure-coding §3.
 
-| Campo | Origen | En whitelist (insert) | Justificación / Ubicación |
+### `GrupoServiceImpl.insert` (invocado desde el botón "Guardar" genérico de la vista, vía `save`)
+
+Entidad: `Grupo`. **Forma elegida**: `createAllowProperties` (whitelist).
+**Origen spec:** `Input AllowProperties` de la acción `Crear` de `entity-Grupo.md` (nombre, curso, centro, curso académico, alumnos del grupo).
+
+| Campo | Origen | En whitelist | Justificación / Ubicación de la asignación |
 |---|---|---|---|
 | `nombre` | cliente | sí | Input directo del usuario. |
-| `curso` | cliente | sí | Input directo; inmutable tras crear. |
-| `centro` | cliente | sí | Lo envía el admin; para el supervisor lo sobrescribe R-Grupo-002 (override condicional por rol). |
-| `cursoAcademico` | cliente | sí | Ídem `centro`. |
-| `alumnos` | cliente | sí | Input AllowProperties de *Crear* (alta inline opcional). El flujo canónico añade alumnos por el panel tras guardar (cada uno pasa por `AlumnoGrupoServiceImpl`). |
-| `estado` | servidor | **NO** | R-Grupo-003 lo fija a ABIERTO incondicionalmente en `insert`. |
-| `fechaCierre` | servidor | **NO** | Solo lo toca cerrar/reabrir. |
-| `modulos` | servidor | **NO** | R-Grupo-001 los genera desde el curso. |
+| `curso` | cliente | sí | Input directo (de él derivan ciclo y módulos). |
+| `centro` | cliente (admin) / servidor (supervisor) | sí | En `AllowProperties` de Crear; para el supervisor lo sobrescribe INCONDICIONALMENTE R-Grupo-002 en `insert`, ignorando lo que llegue. |
+| `cursoAcademico` | cliente (admin) / servidor (supervisor) | sí | Igual que `centro`: lo fija R-Grupo-002 para el supervisor. |
+| `alumnosGrupo` | cliente | sí | En `AllowProperties` de Crear (alta de alumnos junto al grupo). |
+| `estado` | servidor | **NO** | Asignado en `insert` → `fireActionRule_EstadoInicialAbierto` (ABIERTO). |
+| `fechaCierre` | servidor | **NO** | Solo lo escribe el cierre/reapertura; nunca el cliente. |
 
-### `GrupoServiceImpl.update` (vía `GrupoController.validateSave` + `/ws/rest/Grupo`)
-**Forma**: `createAllowProperties`. **Origen spec:** *Modificar* de `entity-Grupo.md`.
+### `GrupoServiceImpl.update` (invocado desde "Guardar" genérico, vía `save`)
 
-| Campo | Origen | En whitelist (update) | Justificación |
+Entidad: `Grupo`. **Forma elegida**: `createAllowProperties` (whitelist).
+**Origen spec:** `Input AllowProperties` de la acción `Modificar` de `entity-Grupo.md` (nombre).
+
+| Campo | Origen | En whitelist | Justificación / Ubicación de la asignación |
 |---|---|---|---|
-| `nombre` | cliente | sí | Único campo modificable. |
-| `curso` / `centro` / `cursoAcademico` | cliente | **NO** | Inmutables tras crear (de ellos dependen módulos y notas). |
-| `estado` / `fechaCierre` / `modulos` / `alumnos` | servidor | **NO** | Gestionados por el servidor / sus propias acciones. |
+| `nombre` | cliente | sí | Único campo editable tras crear. |
+| `curso` | servidor | **NO** | Inmutable; se restaura desde `original` en `update`. |
+| `centro` | servidor | **NO** | Inmutable; restaurado desde `original`. |
+| `cursoAcademico` | servidor | **NO** | Inmutable; restaurado desde `original`. |
+| `estado` | servidor | **NO** | Solo lo cambian cerrar/reabrir; restaurado desde `original` en `update`. |
+| `fechaCierre` | servidor | **NO** | Restaurado desde `original`. |
 
-### `GrupoServiceImpl.cerrar` y `.reabrir` (vía `GrupoController.cerrar`/`reabrir`)
-**Forma**: `createAllowProperties(Map.of())` (whitelist vacía). No aceptan ningún campo del cliente: `estado` y `fechaCierre` los asignan R-Grupo-004/005 en el servidor.
+### `GrupoServiceImpl.cerrar` (invocado desde `GrupoController.cerrar`)
 
-### `AlumnoGrupoServiceImpl.insert` (vía `AlumnoGrupoController.validateSave` + `/ws/rest/AlumnoGrupo`)
-**Forma**: `createAllowProperties`. **Origen spec:** *Crear* de `entity-AlumnoGrupo.md`.
+Entidad: `Grupo`. **Forma elegida**: `createDenyAllProperties`.
+**Origen spec:** acción `Cerrar` de `entity-Grupo.md` (sin `Input AllowProperties`: el cliente no aporta ningún campo).
 
-| Campo | Origen | En whitelist | Justificación |
+| Campo | Origen | En whitelist | Justificación / Ubicación de la asignación |
 |---|---|---|---|
-| `alumno` | cliente | sí | Input directo del usuario (validado por VAL-012/013). |
-| `grupo` | servidor | **NO** | Lo inyecta el modal hijo (`onNew __parent__`); el servidor lo toma del contexto. |
-| `notas` | servidor | **NO** | R-AlumnoGrupo-001 las crea. |
-| `notaMedia` | servidor (derivado) | **NO** | Campo transient calculado. |
+| `estado` | servidor | **NO** | `fireActionRule_RegistrarCierre` → CERRADO (incondicional). |
+| `fechaCierre` | servidor | **NO** | `fireActionRule_RegistrarCierre` → `LocalDateTime.now()` (incondicional). |
+| (resto) | servidor | **NO** | El cierre no acepta ningún campo del cliente; se opera sobre el grupo por id. |
 
-### `NotaServiceImpl.update` (vía `NotaController.validateSave` + `/ws/rest/Nota`)
-**Forma**: `createAllowProperties`. **Origen spec:** *Modificar* de `entity-Nota.md` (`valor`).
+### `GrupoServiceImpl.reabrir` (invocado desde `GrupoController.reabrir`)
 
-| Campo | Origen | En whitelist | Justificación |
+Entidad: `Grupo`. **Forma elegida**: `createDenyAllProperties`.
+**Origen spec:** acción `Reabrir` de `entity-Grupo.md` (sin `Input AllowProperties`).
+
+| Campo | Origen | En whitelist | Justificación / Ubicación de la asignación |
 |---|---|---|---|
-| `tipoValor` | cliente | sí | Componente de «valor». |
-| `valorNumerico` | cliente | sí | Componente de «valor». |
-| `moduloGrupo` / `alumnoGrupo` | servidor | **NO** | Fijados al crear; no se cambian. |
-| `fechaCalificacion` | servidor | **NO** | R-Nota-001 (CC-002). |
-| `fechaUltimaModificacion` | servidor | **NO** | R-Nota-002 (CC-003). |
+| `estado` | servidor | **NO** | `fireActionRule_RegistrarReapertura` → ABIERTO (incondicional). |
+| `fechaCierre` | servidor | **NO** | `fireActionRule_RegistrarReapertura` → `null` (incondicional). |
+| (resto) | servidor | **NO** | La reapertura no acepta campos del cliente. V-Grupo-008 exige rol admin en servidor. |
 
----
+### `AlumnoGrupoServiceImpl.insert` (invocado desde "Guardar/Añadir alumno" genérico, vía `save-modal`)
+
+Entidad: `AlumnoGrupo`. **Forma elegida**: `createAllowProperties` (whitelist).
+**Origen spec:** `Input AllowProperties` de la acción `Crear` de `entity-AlumnoGrupo.md` (alumno).
+
+| Campo | Origen | En whitelist | Justificación / Ubicación de la asignación |
+|---|---|---|---|
+| `alumno` | cliente | sí | Input directo (elegido en el selector filtrado). Validado por V-AlumnoGrupo-003. |
+| `grupo` | servidor | **NO** | Fuera de la whitelist: el cliente NO lo dicta. Se asigna INCONDICIONALMENTE en `insert` → `fireActionRule_RestaurarGrupoDesdeContexto` desde el Grupo padre del contexto del request (`__parent__` id), antes de `validateInsert`. El `onNew` (`grupo = __parent__`) es solo UX; el servidor lo restaura siempre, de modo que el cliente no puede reapuntar la pertenencia a otro grupo (defensa IDOR multi-centro, k-secure-coding §3.3/§4). |
+| `centro` | servidor | **NO** | Campo transient auxiliar de UI; nunca se persiste ni lo dicta el cliente. |
+| `notaMedia` | servidor | **NO** | Campo transient calculado (CC-001); fuera de la whitelist. |
+
+### `NotaServiceImpl.guardarNota` (invocado desde `NotaController.guardarNota`)
+
+Entidad: `Nota`. **Forma elegida**: `createAllowProperties` (whitelist).
+**Origen spec:** `Input AllowProperties` de la acción `Modificar` de `entity-Nota.md` (valor).
+
+| Campo | Origen | En whitelist | Justificación / Ubicación de la asignación |
+|---|---|---|---|
+| `valor` | cliente | sí | Único campo que el usuario edita. Validado por V-Nota-001/003. |
+| `moduloGrupo` | servidor | **NO** | Inmutable; se opera sobre la nota por id, se restaura desde `original`. |
+| `alumnoGrupo` | servidor | **NO** | Inmutable; restaurado desde `original`. |
+| `fechaCalificacion` | servidor | **NO** | `fireActionRule_FijarFechasCalificacion` (incondicional, R-Nota-001). |
+| `fechaUltimaModificacion` | servidor | **NO** | `fireActionRule_FijarFechasCalificacion` (incondicional, R-Nota-002). |
 
 ## Trazabilidad Origen spec → V/R/U → ubicación
 
 ### Validaciones (V)
+
 | V | Origen spec | Ubicación |
 |---|---|---|
-| V-Grupo-001 | VAL-001 | `GrupoServiceImpl.validateInsert` (+ `nombre required` en el modelo) |
-| V-Grupo-002 | VAL-002 | `GrupoServiceImpl.validateInsert` (+ `curso required`) |
-| V-Grupo-003 | VAL-003, RES-001 | `GrupoServiceImpl.validateInsert` (finder) |
-| V-Grupo-004 | VAL-004 | `GrupoServiceImpl.validateUpdate` |
-| V-Grupo-005 | VAL-005, RES-001 | `GrupoServiceImpl.validateUpdate` (finder, excluye id) |
-| V-Grupo-006 | VAL-006 | `GrupoServiceImpl.validateCerrar` |
-| V-Grupo-007 | VAL-007 | `GrupoServiceImpl.validateReabrir` |
-| V-Grupo-008 | VAL-008 | `GrupoServiceImpl.validateReabrir` (SecurityUtil.isAdmin) |
-| V-Grupo-009 | VAL-009 | `GrupoServiceImpl.validateRemove` |
-| V-AlumnoGrupo-001 | VAL-010 | `AlumnoGrupoServiceImpl.validateInsert` |
-| V-AlumnoGrupo-002 | VAL-011 | `AlumnoGrupoServiceImpl.validateInsert` |
-| V-AlumnoGrupo-003 | VAL-012 | `AlumnoGrupoServiceImpl.validateInsert` (+ domain UX en `AlumnoGrupo@*-form`) |
-| V-AlumnoGrupo-004 | VAL-013, RES-004 | `AlumnoGrupoServiceImpl.validateInsert` (finder) |
-| V-AlumnoGrupo-005 | VAL-014 | `AlumnoGrupoServiceImpl.validateRemove` |
-| V-Nota-001 | VAL-015 | `NotaServiceImpl.validateUpdate` |
-| V-Nota-002 | VAL-016 | `NotaServiceImpl.validateUpdate` (+ `valorNumerico min/max`) |
-| V-Nota-003 | VAL-017 | `NotaServiceImpl.validateUpdate` (finder de conteo) |
+| V-Grupo-001 | VAL-001 | GrupoServiceImpl.validateInsert |
+| V-Grupo-002 | VAL-002 | GrupoServiceImpl.validateInsert |
+| V-Grupo-003 | VAL-003, RES-001 | GrupoServiceImpl.validateInsert (+ unique-constraint en Grupo.xml) |
+| V-Grupo-004 | VAL-004 | GrupoServiceImpl.validateUpdate |
+| V-Grupo-005 | VAL-005, RES-001 | GrupoServiceImpl.validateUpdate |
+| V-Grupo-006 | VAL-009 | GrupoServiceImpl.validateRemove |
+| V-Grupo-007 | VAL-007 | GrupoServiceImpl.validateReabrir |
+| V-Grupo-008 | VAL-008 | GrupoServiceImpl.validateReabrir |
+| V-Grupo-009 | VAL-006 | GrupoServiceImpl.validateCerrar |
+| V-ModuloGrupo-001 | RES-003 | ModuloGrupoServiceImpl.validateInsert (+ unique-constraint en ModuloGrupo.xml) |
+| V-AlumnoGrupo-001 | VAL-010 | AlumnoGrupoServiceImpl.validateInsert |
+| V-AlumnoGrupo-002 | VAL-011 | AlumnoGrupoServiceImpl.validateInsert |
+| V-AlumnoGrupo-003 | VAL-012 | AlumnoGrupoServiceImpl.validateInsert |
+| V-AlumnoGrupo-004 | VAL-013, RES-004 | AlumnoGrupoServiceImpl.validateInsert (+ AlumnoGrupoRepository.existsOtroGrupoMismoCursoAcademico) |
+| V-AlumnoGrupo-005 | RES-005 | AlumnoGrupoServiceImpl.validateInsert (+ unique-constraint en AlumnoGrupo.xml) |
+| V-AlumnoGrupo-006 | VAL-014 | AlumnoGrupoServiceImpl.validateRemove |
+| V-Nota-001 | VAL-016 | NotaServiceImpl.validateGuardarNota (+ enum ValorNota en Nota.xml) |
+| V-Nota-002 | VAL-015 | NotaServiceImpl.validateGuardarNota |
+| V-Nota-003 | VAL-017 | NotaServiceImpl.validateGuardarNota (+ NotaRepository.countMatriculasHonorByModuloGrupo) |
+| V-Nota-005 | RES-006 | NotaServiceImpl.validateInsert (+ unique-constraint en Nota.xml) |
 
 ### Reglas de negocio (R)
+
 | R | Origen spec | Ubicación | Momento |
 |---|---|---|---|
-| R-Grupo-001 | RN-001, RES-002 | `GrupoServiceImpl.fireActionRule_GenerarModulosDelCurso` | Antes de Crear |
-| R-Grupo-002 | RN-002 | `GrupoServiceImpl.fireActionRule_AsignarCentroYCursoAcademico` | Antes de Crear |
-| R-Grupo-003 | — (Estado inicial ABIERTO) | `GrupoServiceImpl.fireActionRule_AsignarEstadoInicial` | Antes de Crear |
-| R-Grupo-004 | RN-003 | `GrupoServiceImpl.fireActionRule_RegistrarCierre` | Antes de cerrar |
-| R-Grupo-005 | RN-004 | `GrupoServiceImpl.fireActionRule_RegistrarReapertura` | Antes de reabrir |
-| R-AlumnoGrupo-001 | RN-005 | `AlumnoGrupoServiceImpl.fireActionRule_CrearNotasNoEvaluado` | Después de Crear |
-| R-Nota-001 | CC-002 | `NotaServiceImpl.fireActionRule_RegistrarFechaCalificacion` | Antes de update |
-| R-Nota-002 | CC-003 | `NotaServiceImpl.fireActionRule_RegistrarFechaUltimaModificacion` | Antes de update |
+| R-Grupo-001 | RN-001, RES-002 | GrupoServiceImpl.fireActionRule_CrearModulosGrupo | Después de save |
+| R-Grupo-002 | RN-002 | GrupoServiceImpl.fireActionRule_FijarCentroYCursoAcademicoSiSupervisor | Antes de save |
+| R-Grupo-003 | RN-003 | GrupoServiceImpl.fireActionRule_RegistrarCierre | Antes de save (en `cerrar`) |
+| R-Grupo-004 | RN-004 | GrupoServiceImpl.fireActionRule_RegistrarReapertura | Antes de save (en `reabrir`) |
+| R-AlumnoGrupo-001 | RN-005 | AlumnoGrupoServiceImpl.fireActionRule_CrearNotasNoEvaluado | Después de save |
+| R-AlumnoGrupo-002 | — (campo `grupo` servidor; derivado de la frontera de confianza de la acción `Crear`) | AlumnoGrupoServiceImpl.fireActionRule_RestaurarGrupoDesdeContexto | Antes de validar |
+| R-Nota-001 | CC-002 | NotaServiceImpl.fireActionRule_FijarFechasCalificacion (campo `fechaCalificacion`) | Antes de save (en `guardarNota`) |
+| R-Nota-002 | CC-003 | NotaServiceImpl.fireActionRule_FijarFechasCalificacion (campo `fechaUltimaModificacion`) | Antes de save (en `guardarNota`) |
 
-### Campos calculados / derivados (CC)
-| CC | Origen spec | Ubicación |
-|---|---|---|
-| CC-001 (nota media) | CC-001 | `AlumnoGrupo.notaMedia` (transient) → `NotaMediaCalculator.calcular` |
-| CC-002 (fecha calificación) | CC-002 | campo `Nota.fechaCalificacion` (servidor) + R-Nota-001 |
-| CC-003 (fecha últ. modificación) | CC-003 | campo `Nota.fechaUltimaModificacion` (servidor) + R-Nota-002 |
+> Nota de numeración: en `Nota` el cálculo de CC-002/CC-003 lo hace un único método; se han numerado R-Nota-001 (fechaCalificacion/CC-002) y R-Nota-002 (fechaUltimaModificacion/CC-003) por el campo servidor que cada una asegura, aunque comparten método host. En la firma del método se indica que implementa ambas.
+
+#### Campos calculados de solo lectura (no son R)
+
+`CC-001` (nota media; `momento: lectura`) **no** se mapea a una regla de negocio `R-`: según `design-contract.md` §2/§3, un `CC-NNN` de momento lectura es un **campo derivado de solo lectura del modelo**, no una R. Se cubre con la propiedad transient `notaMedia` de `AlumnoGrupo` (`<string name="notaMedia" transient="true">` con el algoritmo completo inline en el cuerpo CDATA, paquete `..db..`), renderizada como `<field name="notaMedia"/>` en los grids/forms; `AlumnoGrupoServiceImpl.calcularNotaMedia` se limita a delegar en el getter `getNotaMedia()`. Ver el detalle en «Notas y supuestos → CC-001». No lleva identificador `R-` (en particular **no** reutiliza `R-AlumnoGrupo-001`, que designa la R de RN-005, `fireActionRule_CrearNotasNoEvaluado`).
 
 ### Reglas de UI (U)
+
 | U | Origen spec | Ubicación |
 |---|---|---|
-| U-grupos-supervisor-001 | RUI-001 | `Grupo.xml` onNew `set-valoresIniciales` (centro) + `field centro readonly` |
-| U-grupos-supervisor-002 | RUI-002 | `Grupo.xml` onNew `set-valoresIniciales` (cursoAcademico) + `field cursoAcademico readonly` |
-| U-grupos-supervisor-003 | RUI-003 | `Grupo.xml` botón `btnCerrar showIf estado=='ABIERTO'` |
-| U-grupos-supervisor-004 | RUI-004 | `Grupo.xml` form `readonlyIf estado=='CERRADO'` |
-| U-grupos-supervisor-005 | RUI-005 | `Grupo.xml` Nota: botón Guardar `showIf grupo ABIERTO` + valor `readonlyIf CERRADO` |
-| U-grupos-administrador-001 | RUI-006 | `Grupo-admin.xml` centro/cursoAcademico `readonlyIf id!=null` (editables al crear) |
-| U-grupos-administrador-002 | RUI-007 | `Grupo-admin.xml` botón `btnCerrar showIf ABIERTO` |
-| U-grupos-administrador-003 | RUI-008 | `Grupo-admin.xml` botón `btnReabrir showIf CERRADO` |
-| U-grupos-administrador-004 | RUI-009 | `Grupo-admin.xml` form `readonlyIf CERRADO` (Reabrir aparte) |
-| U-grupos-administrador-005 | RUI-010 | `Grupo-admin.xml` Nota: Guardar `showIf ABIERTO` + valor `readonlyIf CERRADO` |
+| U-grupos-supervisor-001 | RUI-001 | Grupo-Supervisor.xml: campo `centro` readonly + onNew `set-centro-curso-academico-action` (`centro = eval: __user__?.centroActivo`) que lo rellena en el alta (UX; el servidor lo fija incondicionalmente, R-Grupo-002) |
+| U-grupos-supervisor-002 | RUI-002 | Grupo-Supervisor.xml: campo `cursoAcademico` readonly + onNew `set-centro-curso-academico-action` (`cursoAcademico = eval: __user__?.centroActivo?.curso`) que lo rellena en el alta (UX; el servidor lo fija incondicionalmente, R-Grupo-002) |
+| U-grupos-supervisor-003 | RUI-003 | Grupo-Supervisor.xml: botón "Cerrar grupo" `showIf="estado == 'ABIERTO' && id != null"` (y ausencia de "Reabrir grupo") |
+| U-grupos-supervisor-004 | RUI-004 | Grupo-Supervisor.xml: panel "Datos del grupo" y panel "Alumnos" `readonlyIf="estado == 'CERRADO'"`; valor de nota `readonlyIf` grupo CERRADO |
+| U-grupos-supervisor-005 | — | Grupo-Supervisor.xml: campo `alumno` con `domain` (alumnos del centro del grupo, tipo ALUMNO). U añadida por el diseño (filtro del selector); no proviene de ninguna RUI. Su respaldo de servidor es VAL-012 (V-AlumnoGrupo-003), que materializa ESC-020 |
+| U-grupos-administracion-001 | RUI-006 | Grupo-Administracion.xml: campos `centro` y `cursoAcademico` editables en alta (`readonlyIf="id != null"`) |
+| U-grupos-administracion-002 | RUI-008 | Grupo-Administracion.xml: botón "Reabrir grupo" `showIf="estado == 'CERRADO'"` |
+| U-grupos-administracion-003 | RUI-007 | Grupo-Administracion.xml: botón "Cerrar grupo" `showIf="estado == 'ABIERTO' && id != null"` |
+| U-grupos-administracion-004 | RUI-009 | Grupo-Administracion.xml: paneles `readonlyIf="estado == 'CERRADO'"` (salvo "Reabrir grupo") |
+| U-grupos-supervisor-006 | RUI-005 | Grupo-Supervisor.xml: campo `valor` de la nota `readonlyIf="moduloGrupo.grupo.estado == 'CERRADO'"` |
+| U-grupos-administracion-005 | RUI-010 | Grupo-Administracion.xml: campo `valor` de la nota `readonlyIf="moduloGrupo.grupo.estado == 'CERRADO'"` |
+| U-mis-notas-alumno | (acceso de rol; sin RUI propia) | Grupo-MisNotas.xml: action-view con `<domain>self.alumno = :__user__</domain>` y todos los paneles readonly |
 
-### Restricciones (RES) declarativas
-| RES | Ubicación |
-|---|---|
-| RES-001 | `Grupo.xml` `unique-constraint(centro,cursoAcademico,nombre)` (+ V-Grupo-003/005) |
-| RES-002 | Garantizada por R-Grupo-001 + módulos no editables |
-| RES-003 | `ModuloGrupo.xml` `unique-constraint(grupo,modulo)` |
-| RES-004 | V-AlumnoGrupo-004 (finder) |
-| RES-005 | `AlumnoGrupo.xml` `unique-constraint(grupo,alumno)` |
-| RES-006 | `Nota.xml` `unique-constraint(moduloGrupo,alumnoGrupo)` |
-
----
+> `U-grupos-supervisor-005` la **añadió el diseño** por necesidad técnica (filtrar el selector de alumno por centro y tipo ALUMNO, que materializa ESC-020): no proviene de ninguna RUI del spec, por lo que su `Origen spec` es `—`. Su respaldo de negocio es la VAL-012 (V-AlumnoGrupo-003), que es la defensa de servidor. La pantalla "Mis notas" no define RUI; su comportamiento de solo-su-grupo/solo-lectura es alcance de rol (Seguridad), materializado con el `<domain>` y los `readonly`.
 
 ## Reglas del spec descartadas
-Ninguna. Todas las `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-` del spec están ubicadas en la matriz anterior.
 
----
+Ninguna. Todas las reglas del spec (`RES-001..006`, `VAL-001..017`, `RN-001..005`, `RUI-001..010`, `CC-001..003`) están mapeadas a una V/R/U ubicada según las tablas de trazabilidad.
 
-## Notas de unificación
-- **Override condicional de `centro`/`cursoAcademico`** (R-Grupo-002): son `cliente` (en la whitelist de insert porque el admin los envía) pero el servidor los sobrescribe para el supervisor. Es el patrón de k-secure-coding §4 (admin dropdown = cliente; no-admin = servidor); el override es por rol, no incondicional global.
-- **`alumnos` en `allowPropertiesInsert` de Grupo**: incluido porque el spec lo lista en *Crear*. El flujo canónico (y los tests) añade alumnos por el panel tras guardar el grupo, de modo que cada `AlumnoGrupo` pasa por su servicio (VAL-010..013 y R-AlumnoGrupo-001). Si en el futuro se permite el alta en cascada de alumnos junto al grupo, hay que disparar esas validaciones desde `GrupoServiceImpl.insert`.
-- **Doble `orphanRemoval` de `Nota`** (desde `ModuloGrupo` y `AlumnoGrupo`): necesario para que tanto «quitar alumno» como «borrar módulo» borren las notas. Verificar en implementación que Hibernate no emite errores de doble cascada; alternativa: dejar el `orphanRemoval` solo en `AlumnoGrupo.notas` y borrar las notas del módulo en `ModuloGrupoServiceImpl.remove`.
-- **Población de campos transient** (`notaMedia`, `valorTexto`) en grids embebidos: se usa el patrón de campo transient con cuerpo `<![CDATA[]]>` (cf. `Centro.xml`). Si el render de un grid embebido no lo dispara, la alternativa documentada es un getter en `extra-code-model` o materializar `notaMedia` como campo persistido recalculado en una R-Después de `NotaServiceImpl.update`.
-- **Binding del domain del selector de alumno** (ESC-020): se construye con `<action-attrs>` desde `onNew` usando `${__parent__?.centro?.id}`. Es UX; la garantía real es V-AlumnoGrupo-003 en el servidor.
-- **Menús**: el spec ubica «Grupos» bajo «Notas» (supervisor) y «Mis notas» como entrada del alumno; se crea la raíz «Notas» con ambas hojas filtradas por rol y se reutiliza la raíz existente «Administración SV» para la pantalla de administración.
+## Notas y supuestos
+
+- **Es un sistema** (`com.educaflow.system.gruposnotas`), no un subsistema: nadie depende de él (CLAUDE.md). Carpetas `domains/`, `service/`, `service/impl/`, `controller/`, `db/repo/`, `views/`.
+- **Curso académico = Integer.** El modelo real no tiene entidad CursoAcademico: el curso académico del centro es `Centro.curso` (Integer, p.ej. 2024). Por tanto `Grupo.cursoAcademico` es un `Integer` alineado con `Centro.curso`. El spec habla de «2024/2025»; en el modelo se guarda el entero del año de inicio (2024). En las pantallas/tests se muestra/usa el entero.
+- **Representación del valor de la nota.** Se eligió un `<enum name="ValorNota">` con items `NO_EVALUADO`, `NOTA_01`..`NOTA_10` (títulos "1".."10") y `MATRICULA_HONOR`, en lugar de un selection-string o un numérico+flag. Razones: (a) sigue la convención del proyecto (los estados/dominios cerrados se modelan con `<enum>`, p.ej. `EstadoTareaFirma`); (b) restringe el dominio a nivel de modelo, reforzando VAL-016; (c) el cálculo de la media mapea el enum a int (NOTA_0n→n, MATRICULA_HONOR→10, NO_EVALUADO excluido) de forma trivial. Los items numéricos llevan prefijo `NOTA_` porque los nombres de item de enum deben ser identificadores Java válidos (no pueden empezar por dígito).
+- **CC-001 (nota media), momento lectura.** Se modela como una **propiedad del dominio**: un `<string name="notaMedia" transient="true">` con **cuerpo CDATA dentro del propio campo** (patrón de `Persona.nombreApellidos` / `Centro.administradores`). Al ser una propiedad declarada, el `<field name="notaMedia"/>` de grids/forms la resuelve (un getter suelto en `extra-code-model` NO se registra como propiedad → columna en blanco / fallo de meta-vista). `transient="true"` => no se persiste y se calcula en memoria al leer. Axelor genera el getter a partir del cuerpo CDATA: **MUST NOT** declarar a la vez el campo y un getter manual del mismo nombre (no compilaría). El cuerpo devuelve `String` (para poder devolver "Sin nota" o el entero) **calculando** la media con el algoritmo completo inline en el propio CDATA (única fuente de verdad), referenciando solo `Nota` y `ValorNota` del paquete `..db..`; **no** se extrae a ninguna clase de `service.impl` porque la entidad de dominio es un POJO y no puede depender de `..service..` (C13 `entidadesDominioSonPojos`). El `AlumnoGrupoServiceImpl.calcularNotaMedia` **delega en el getter** `getNotaMedia()`, no reimplementa el cálculo. NO es campo cliente. Como computa al leer, el campo `<field name="notaMedia"/>` se renderiza solo en los grids/forms (sin onLoad ni llamada de servicio por fila), cumpliendo ESC-007 (media 9 con una MH), ESC-008 ("Sin nota" sin evaluadas) y ESC-014 (media 7). El cálculo: excluye NO_EVALUADO, MATRICULA_HONOR=10, media redondeada al entero más cercano (Math.round), "Sin nota" si no hay ninguna evaluada.
+- **CC-002/CC-003 (fechas de la nota), momento escritura.** Campos `servidor` asignados INCONDICIONALMENTE en `NotaServiceImpl.guardarNota` → `fireActionRule_FijarFechasCalificacion`, fuera de la whitelist (solo `valor` es cliente). Defensa anti mass-assignment (k-secure-coding §3.3): sin `if (campo==null)`.
+- **Multi-centro / IDOR.** La pantalla del supervisor filtra por `<domain>self.centro = :centroActivoUsuario</domain>` (centro activo del servidor); al crear, el supervisor recibe centro y cursoAcademico fijados por el servidor (R-Grupo-002). El administrador los elige (campos cliente). El alumno solo ve `self.alumno = :__user__`. El selector de alumno se filtra por centro del grupo y tipo ALUMNO (UI) con respaldo de servidor V-AlumnoGrupo-003. Al añadir un alumno, el `grupo` de la pertenencia NO lo dicta el cliente: queda fuera de la whitelist y se restaura en servidor desde el Grupo padre del contexto (R-AlumnoGrupo-002), evitando que por la vía REST genérica se apunte la pertenencia a un grupo de otro centro.
+- **`grupo` de AlumnoGrupo es campo servidor (regla añadida por el diseño).** R-AlumnoGrupo-002 (`fireActionRule_RestaurarGrupoDesdeContexto`) no proviene de ninguna regla del spec: la añade el diseño porque la frontera de confianza de la acción `Crear` deja `grupo` fuera de la whitelist (`Input AllowProperties` = solo alumno) y, sin asignarlo en servidor, las validaciones que navegan el grupo (V-AlumnoGrupo-002 grupo ABIERTO, V-AlumnoGrupo-004 mismo curso académico) recibirían `grupo=null` y darían NPE. Es análoga a U-grupos-supervisor-005 (añadida por necesidad técnica). No se descarta ninguna regla del spec.
+- **Composición / borrado en cascada.** Modelado **en los `domains/*.xml`** del diseño (el `cascade`/`orphanRemoval` es atributo de dominio en este proyecto, p.ej. `tiposexpedientes/prueba/domains.xml`), no diferido a la implementación. Propietarios del ciclo de vida y borrado en cascada:
+  - `Grupo.modulosGrupo` y `Grupo.alumnosGrupo` → `cascade="all" orphanRemoval="true"`: al borrar el Grupo se borran sus ModuloGrupo y AlumnoGrupo.
+  - `AlumnoGrupo.notas` → `cascade="all" orphanRemoval="true"`: AlumnoGrupo es el **padre propietario** de la Nota; al quitar un alumno del grupo se borran sus Notas (ESC-005). Por la cadena Grupo→AlumnoGrupo→Nota, al borrar el Grupo también se borran las Notas.
+  - `ModuloGrupo.notas` → **navegación inversa SOLO** (sin cascade/orphanRemoval): la Nota tiene un único padre propietario (AlumnoGrupo) para no declarar dos padres con `orphanRemoval` sobre la misma Nota (borrado contradictorio). Un ModuloGrupo solo se elimina al borrar su Grupo, y en ese caso sus Notas ya se borran por la cadena Grupo→AlumnoGrupo→Nota.
+- **Reglas complejas.** Ninguna `R-` cumple los criterios de complejidad (R-Grupo-001 y R-AlumnoGrupo-001 son bucles de 2-3 llamadas; el cálculo de la media es aritmético simple; las fechas son asignaciones directas). Por eso NO se crea la carpeta `rules/`.
+- **`repository="abstract"`.** `Grupo`, `AlumnoGrupo` y `Nota` ya declaran `repository="abstract"` en sus `domains/*.xml` (tienen repo personalizado); `ModuloGrupo` no. Se documenta también en la tabla de ficheros.
+- **ADMINISTRADOR no es tipoUsuario.** El administrador se identifica por el grupo `admins` (no hay `TipoUsuario` codigo ADMINISTRADOR en `data-init`). Por eso el menú de administración usa `groups="admins"` y V-Grupo-008 comprueba pertenencia al grupo `admins` en servidor.

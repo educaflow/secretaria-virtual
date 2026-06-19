@@ -346,7 +346,7 @@ Prompt de cada subagente: "Lee el fichero `$TMPDIR/sdd_eval_subagent_prompt.md` 
 **Tú** (no un subagente) produces la salida unificada aplicando el algoritmo de unificación que el skill objetivo describe en su SKILL.md. Resumen genérico:
 
 1. Compara las 5 salidas sección por sección.
-2. Para cada divergencia, escoge la mejor opción según los principios de los skills técnicos. En empate, escoge la que minimiza ambigüedad para el siguiente consumidor (`/sdd-designer` o `/sdd-implementer-system`).
+2. Para cada divergencia, escoge la mejor opción según los principios de los skills técnicos. En empate, escoge la que minimiza ambigüedad para el siguiente consumidor (`/sdd-designer` o `/sdd-implementer`).
 3. Construye una matriz de trazabilidad consolidada (si aplica al output).
 4. Renumera los **pasos** consecutivamente sin huecos (solo aplica al evaluar `sdd-designer`). **MUST NOT** renumerar IDs `V-`/`R-`/`U-`/`T-` al evaluar `sdd-analyst-system` — su contrato prohíbe renumerar.
 5. Aplica el checklist completo del skill objetivo sobre el output unificado.
@@ -427,7 +427,7 @@ Para cada divergencia A/B/C, propone al usuario con `AskUserQuestion` qué hacer
 
 3. **Coherencia con el resto del skill.** Si el cambio entra en un checklist, **MUST** haber también un bullet en las "reglas obligatorias" o sección equivalente. Si el cambio modifica un ejemplo, **MUST** actualizar los ejemplos paralelos.
 
-4. **MUST NOT** tocar `/sdd-implementer-system` salvo que el problema sea claramente suyo. Es el ejecutor final, no el productor de los outputs que se evalúan aquí.
+4. **MUST NOT** tocar `/sdd-implementer` salvo que el problema sea claramente suyo. Es el ejecutor final, no el productor de los outputs que se evalúan aquí.
 
 5. **Si la divergencia se debe a una regla local del subsistema** (no genérica), el cambio **MUST NOT** ir al skill — va a `design-guidelines.md` del workspace de evaluación. Avisa al usuario que esa regla quedará guardada como "decisión local de este caso", no como regla del framework.
 

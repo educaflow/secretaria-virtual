@@ -1,24 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <domain-models xmlns="http://axelor.com/xml/ns/domain-models"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
 
-    <module name="grupos" package="com.educaflow.system.grupos.db"/>
+    <module name="gruposnotas" package="com.educaflow.system.gruposnotas.db"/>
 
     <entity name="ModuloGrupo">
+        <many-to-one name="grupo" ref="com.educaflow.system.gruposnotas.db.Grupo" title="Grupo" required="true"/>
+        <many-to-one name="modulo" ref="com.educaflow.subsystem.sistemaeducativo.db.Modulo" title="Módulo" required="true"/>
 
-        <!-- servidor: lo asigna R-Grupo-001 al crear el grupo a partir del curso -->
-        <many-to-one name="grupo" title="Grupo" ref="com.educaflow.system.grupos.db.Grupo" required="true"/>
+        <!-- Navegación inversa SOLO (sin cascade/orphanRemoval): el propietario del ciclo de vida de la
+             Nota es AlumnoGrupo (ver AlumnoGrupo.notas), para no declarar dos padres con orphanRemoval
+             sobre la misma Nota (borrado contradictorio). Un ModuloGrupo solo se elimina al borrar su
+             Grupo; en ese caso sus Notas ya se borran por la cascada Grupo→AlumnoGrupo→Nota. -->
+        <one-to-many name="notas" ref="com.educaflow.system.gruposnotas.db.Nota" mappedBy="moduloGrupo" title="Notas del módulo"/>
 
-        <!-- servidor: el módulo del catálogo educativo heredado del curso -->
-        <many-to-one name="modulo" title="Módulo" ref="com.educaflow.subsystem.sistemaeducativo.db.Modulo" required="true"/>
-
-        <!-- Composición: al borrar el módulo del grupo se borran sus notas -->
-        <one-to-many name="notas" title="Notas del módulo" ref="com.educaflow.system.grupos.db.Nota" mappedBy="moduloGrupo" orphanRemoval="true"/>
-
-        <!-- RES-003: un mismo módulo no aparece dos veces en el mismo grupo -->
         <unique-constraint columns="grupo,modulo"/>
-
     </entity>
 
 </domain-models>

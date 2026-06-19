@@ -1,0 +1,87 @@
+name: claude-sandbox
+
+services:
+
+  # ── Base de datos PostgreSQL (privada, sin puertos publicados) ───────────────
+  # Misma versión que usa el devops: postgres:12.22.
+  # Solo es accesible desde la red interna "backend"; no se expone al host.
+  db:
+    image: postgres:12.22
+    hostname: educaflow-db
+    container_name: claude-sandbox-db
+    environment:
+      TZ: Europe/Madrid
+      POSTGRES_USER: educaflow
+      POSTGRES_PASSWORD: educaflow
+      POSTGRES_DB: educaflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U educaflow -d educaflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ── Sandbox: Claude Code + tooling de la secretaría virtual + Playwright ─────
+  claude-sandbox:
+    build:
+      context: .
+      args:
+        HOST_UID: ${HOST_UID:-1000}
+        HOST_GID: ${HOST_GID:-1000}
+    image: claude-sandbox:latest
+    container_name: claude-sandbox
+    hostname: claude-sandbox
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Madrid
+      # La BD se apunta al servicio "db" SIN tocar el código montado: Axelor lee
+      # estas variables (prefijo AXELOR_CONFIG_) por encima de axelor-config.properties.
+      AXELOR_CONFIG_DB_DEFAULT_URL: jdbc:postgresql://educaflow-db:5432/educaflow
+      AXELOR_CONFIG_DB_DEFAULT_USER: educaflow
+      AXELOR_CONFIG_DB_DEFAULT_PASSWORD: educaflow
+      NODE_OPTIONS: --max-old-space-size=6096
+      GRADLE_OPTS: -Xmx4g
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+    depends_on:
+      db:
+        condition: service_healthy
+    # Permite que el contenedor alcance el host (para puentear los MCP que el host
+    # expone en 127.0.0.1, p.ej. el de IntelliJ). Lo usa claude-sandbox.sh con socat.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      # La app de la secretaría virtual (cuando lances ./run.sh dentro del sandbox).
+      # Se publica en el 8081 del host porque el 8080 ya está ocupado por otra app;
+      # dentro del contenedor la app sigue escuchando en 8080 (Playwright interno no
+      # se ve afectado). Cambia "8081" si quieres otro puerto en el host.
+      - "8081:8080"
+    volumes:
+      # --- Código: cada repo montado por separado (NO se monta un padre común,
+      #     así no se anida la propia carpeta claude-sandbox dos veces) ---
+      - ../../secretaria-virtual:/workspace/secretaria-virtual
+      - ../../axelor-ui:/workspace/axelor-ui
+      - ../../axelor-open-platform:/workspace/axelor-open-platform
+      - ../../EducaFlowBuildTools:/workspace/EducaFlowBuildTools
+      - ../../secretaria-virtual-private:/workspace/secretaria-virtual-private
+      # --- Auth de Claude Code: reutiliza la sesión del host ---
+      - ${HOME}/.claude:/home/developer/.claude
+      - ${HOME}/.claude.json:/home/developer/.claude.json
+      # --- Maven del HOST compartido: se reutilizan los jars de Axelor ya
+      #     compilados en ~/.m2 del host; NO se recompila nada dentro del contenedor ---
+      - ${HOME}/.m2:/home/developer/.m2
+    networks:
+      - backend
+    working_dir: /workspace/secretaria-virtual
+
+volumes:
+  postgres_data:
+
+networks:
+  # Red interna privada: la app llega a la BD por el hostname "educaflow-db".
+  backend:

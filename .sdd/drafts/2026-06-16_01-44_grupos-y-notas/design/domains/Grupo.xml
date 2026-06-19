@@ -1,44 +1,29 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <domain-models xmlns="http://axelor.com/xml/ns/domain-models"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
 
-    <module name="grupos" package="com.educaflow.system.grupos.db"/>
+    <module name="gruposnotas" package="com.educaflow.system.gruposnotas.db"/>
 
-    <entity name="Grupo">
-
-        <!-- Campo de usuario (cliente). RES-001 nombre obligatorio se respalda con required + V-Grupo-001 -->
-        <string name="nombre" title="Nombre" required="true"/>
-
-        <!-- Campo de usuario (cliente), inmutable tras crear. De él derivan ciclo y módulos -->
-        <many-to-one name="curso" title="Curso" ref="com.educaflow.subsystem.sistemaeducativo.db.Curso" required="true"/>
-
-        <!-- cliente para el administrador; el servidor lo sobrescribe para el supervisor (R-Grupo-002). SIN required (lo rellena el servidor) -->
-        <integer name="cursoAcademico" title="Curso académico"/>
-
-        <!-- cliente para el administrador; el servidor lo sobrescribe para el supervisor (R-Grupo-002). SIN required -->
-        <many-to-one name="centro" title="Centro" ref="com.educaflow.subsystem.common.db.Centro"/>
-
-        <!-- Campo del sistema (servidor): estado inicial ABIERTO (R-Grupo-003). SIN required -->
-        <enum name="estado" title="Estado" ref="com.educaflow.system.grupos.db.EstadoGrupo"/>
-
-        <!-- Campo del sistema (servidor): fecha de cierre (R-Grupo-004/005). SIN required -->
+    <entity name="Grupo" repository="abstract">
+        <string name="nombre" title="Nombre" namecolumn="true" required="true"/>
+        <many-to-one name="curso" ref="com.educaflow.subsystem.sistemaeducativo.db.Curso" title="Curso" required="true"/>
+        <integer name="cursoAcademico" title="Curso académico" help="Ejemplo: 2024" required="true"/>
+        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro" required="true"/>
+        <enum name="estado" ref="EstadoGrupo" title="Estado" required="true"/>
         <datetime name="fechaCierre" title="Fecha de cierre"/>
 
-        <!-- Composición: al borrar el grupo se borran sus módulos (y, en cascada anidada, sus notas) -->
-        <one-to-many name="modulos" title="Módulos del grupo" ref="com.educaflow.system.grupos.db.ModuloGrupo" mappedBy="grupo" orphanRemoval="true"/>
+        <!-- Composición: el Grupo es el propietario del ciclo de vida de sus ModuloGrupo y AlumnoGrupo;
+             al borrar el grupo se borran (cascade="all") y, al quitarlos de la colección, se eliminan
+             como huérfanos (orphanRemoval="true"). El borrado de un AlumnoGrupo arrastra a su vez sus
+             Notas vía AlumnoGrupo.notas (orphanRemoval). -->
+        <one-to-many name="modulosGrupo" ref="com.educaflow.system.gruposnotas.db.ModuloGrupo" mappedBy="grupo" title="Módulos del grupo" cascade="all" orphanRemoval="true"/>
+        <one-to-many name="alumnosGrupo" ref="com.educaflow.system.gruposnotas.db.AlumnoGrupo" mappedBy="grupo" title="Alumnos del grupo" cascade="all" orphanRemoval="true"/>
 
-        <!-- Composición: al borrar el grupo se borran sus alumnos (y sus notas) -->
-        <one-to-many name="alumnos" title="Alumnos del grupo" ref="com.educaflow.system.grupos.db.AlumnoGrupo" mappedBy="grupo" orphanRemoval="true"/>
+        <unique-constraint columns="nombre,centro,cursoAcademico"/>
 
-        <!-- RES-001: nombre único dentro del mismo centro y curso académico -->
-        <unique-constraint columns="centro,cursoAcademico,nombre"/>
-
-        <!-- VAL-003 / VAL-005: localizar un grupo homónimo en el mismo centro y curso académico -->
-        <finder-method name="findByCentroAndCursoAcademicoAndNombre"
-                       using="centro,cursoAcademico,nombre"
-                       filter="self.centro = :centro AND self.cursoAcademico = :cursoAcademico AND self.nombre = :nombre"/>
-
+        <finder-method name="findByNombreCentroCursoAcademico"
+                       using="String:nombre,com.educaflow.subsystem.common.db.Centro:centro,Integer:cursoAcademico"
+                       filter="self.nombre = :nombre AND self.centro = :centro AND self.cursoAcademico = :cursoAcademico"/>
     </entity>
 
     <enum name="EstadoGrupo">

@@ -1,14 +1,29 @@
 # Guía de los ficheros de la especificación
 
-Explica qué debe contener cada fichero de la especificación, cómo clasificar sus elementos y cómo numerarlos. Hay un ejemplo completo en la carpeta `template/example/`. Esta guía dirige la redacción y la revisión de la spec; **MUST NOT** copiarse ninguno de sus bloques explicativos al output.
+Explica qué debe contener cada fichero de la especificación, cómo clasificar sus elementos y cómo numerarlos. Esta guía dirige la redacción y la revisión de la spec; **MUST NOT** copiarse ninguno de sus bloques explicativos al output.
+
+Es **el único fichero de esta carpeta de plantillas que el skill `sdd-specification` conoce por nombre**: el skill lee este `README.md` y, a través de él, descubre y usa el resto. Por eso aquí se declara qué hay en la carpeta y cómo se usa cada cosa.
+
+## Ficheros de esta carpeta de plantillas
+
+| Fichero | Qué es | Cómo se usa |
+|---|---|---|
+| `README.md` | **Esta guía**: el conjunto de ficheros, los apartados de cada uno, la clasificación de los elementos y las reglas de numeración. | Es la única referencia que el skill conoce por nombre; dirige las preguntas de la Fase 2 y las validaciones de la Fase 3. **MUST NOT** copiarse al output. |
+| `specification.md` | **La plantilla del índice.** | Se reproduce **literalmente**, sustituyendo los placeholders por contenido real. Produce **un** fichero índice (el único con frontmatter `type: specification`). |
+| `entity.md` | **La plantilla de los ficheros de modelo.** | Se instancia tantas veces como modelos defina la spec, una por `entity-<Nombre>.md`. |
+| `screen.md` | **La plantilla de los ficheros de pantalla.** | Se instancia tantas veces como pantallas defina la spec, una por `screen-<slug>.md`. |
+| `catalogo-validaciones.md` | **Catálogo de referencia** de tipos de validación por ámbito (campo propio, entre campos, entre registros, de negocio). | Se consulta al rellenar Restricciones y Validaciones. **MUST NOT** copiarse al output. |
+| `example/` | **Carpeta con un ejemplo completo** de spec terminada e instanciada (índice + un `entity-*.md` por modelo + un `screen-*.md` por pantalla). | Referencia del aspecto final. **MUST NOT** copiarse su contenido al output. |
+
+## Ficheros que produce la especificación
 
 La especificación **no es un único fichero**: es un conjunto de ficheros dentro de la carpeta de la iniciativa.
 
 | Fichero | Plantilla | Qué contiene                                                                                                                                                                                                                     |
 |---|---|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `specification.md` | `template/specification.md` | El **índice**: objetivo, actores, historias de usuario con sus escenarios, las **tablas de enlaces** a los modelos y a las pantallas, seguridad, recursos y fuera de alcance. Es el único con frontmatter `type: specification`. |
-| `entity-<Nombre>.md` | `template/entity.md` | Un fichero **por cada modelo**: su descripción, campos, estados, restricciones (`RES-`), campos calculados (`CC-`) y, por evento, validaciones (`VAL-`) y reglas de negocio (`RN-`).                                             |
-| `screen-<slug>.md` | `template/screen.md` | Un fichero **por cada pantalla**: su identidad, menú, vistas, botones y reglas de UI (`RUI-`).                                                                                                                                   |
+| `specification.md` | `specification.md` | El **índice**: objetivo, actores, historias de usuario con sus escenarios, las **tablas de enlaces** a los modelos y a las pantallas, seguridad, recursos y fuera de alcance. Es el único con frontmatter `type: specification`. |
+| `entity-<Nombre>.md` | `entity.md` | Un fichero **por cada modelo**: su descripción, campos, estados, restricciones (`RES-`), campos calculados (`CC-`) y, por evento, validaciones (`VAL-`) y reglas de negocio (`RN-`).                                             |
+| `screen-<slug>.md` | `screen.md` | Un fichero **por cada pantalla**: su identidad, menú, vistas, botones y reglas de UI (`RUI-`).                                                                                                                                   |
 | `model.puml` | *(sin plantilla; PlantUML)* | Un **único** fichero por spec: el **diagrama de clases** en PlantUML de los modelos definidos en los `entity-*.md` y de sus relaciones. Es una vista de conjunto; no añade información nueva.                                       |
 | `model.png` | *(sin plantilla; imagen)* | Un **único** fichero por spec: la **imagen** del diagrama, renderizada **siempre** a partir de `model.puml` (nunca a mano). Se (re)genera cada vez que se crea o cambia `model.puml`.                                                |
 
@@ -188,7 +203,7 @@ Solo si el modelo tiene ciclo de vida: su estado inicial, las transiciones (qué
 
 **Regla de clasificación:** si la condición debe cumplirse en todas las acciones de la entidad, es una restricción. Si solo aplica a una acción concreta, es una validación.
 
-**REQUIRED — identificación:** para no olvidar ninguna restricción, recorre el catálogo `template/catalogo-validaciones.md` (sobre todo las tablas "entre registros" y "de negocio": unicidad, cardinalidad de hijos, inmutabilidad por estado) y comprueba, campo a campo, cuáles aplican siempre (→ restricción) y cuáles solo en una acción (→ validación). El catálogo es una ayuda **no exhaustiva**: si el negocio necesita una restricción que no aparece en él, decláralo igualmente.
+**REQUIRED — identificación:** para no olvidar ninguna restricción, recorre el catálogo `catalogo-validaciones.md` (sobre todo las tablas "entre registros" y "de negocio": unicidad, cardinalidad de hijos, inmutabilidad por estado) y comprueba, campo a campo, cuáles aplican siempre (→ restricción) y cuáles solo en una acción (→ validación). El catálogo es una ayuda **no exhaustiva**: si el negocio necesita una restricción que no aparece en él, decláralo igualmente.
 
 **Ejemplo:**
 
@@ -254,7 +269,7 @@ Un encabezado `## Acción: <Nombre>` por cada acción de la entidad (Crear, Modi
 
 **Cómo se asocian:** a una acción de una entidad.
 
-**REQUIRED — identificación:** para identificar qué validaciones aplican a cada campo, recorre el catálogo de tipos de validación `template/catalogo-validaciones.md` (campo propio, entre campos del mismo registro, entre registros, de negocio); sus columnas de mensaje sirven de guía para redactar el `mensaje` en lenguaje de negocio. El catálogo es una ayuda **no exhaustiva**: si el negocio necesita una validación que no aparece en él, declárala igualmente.
+**REQUIRED — identificación:** para identificar qué validaciones aplican a cada campo, recorre el catálogo de tipos de validación `catalogo-validaciones.md` (campo propio, entre campos del mismo registro, entre registros, de negocio); sus columnas de mensaje sirven de guía para redactar el `mensaje` en lenguaje de negocio. El catálogo es una ayuda **no exhaustiva**: si el negocio necesita una validación que no aparece en él, declárala igualmente.
 
 **El texto es la aserción; `condición` es la guardia.** El **texto** de la validación es *lo que debe cumplirse* (la aserción que, si no se da, bloquea). El atributo `condición` es la **guardia**: *cuándo* se evalúa la validación. Son cosas distintas — si la guardia repite lo que ya afirma el texto, la validación nunca falla y sobra. Por eso una precondición de estado pura ("la solicitud está en estado PENDIENTE") va como **texto**, no como `condición`.
 

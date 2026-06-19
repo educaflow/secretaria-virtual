@@ -117,7 +117,7 @@ description: <una frase que diga qué cubre y cuándo aplicar este skill>
 
 Ejecutan un **proceso multi-fase**: leen artefactos, hacen preguntas, generan ficheros, invocan subagentes, validan resultados.
 
-**Ejemplos**: `sdd-specification`, `sdd-analyst-system`, `sdd-designer`, `sdd-implementer-system`, `sdd-close-spec`, `code-implementer`, `code-reviewer`.
+**Ejemplos**: `sdd-specification`, `sdd-analyst-system`, `sdd-designer`, `sdd-implementer`, `sdd-close-spec`, `code-implementer`, `code-reviewer`.
 
 **Estructura mínima OBLIGATORIA** (inspirada en `github/spec-kit`):
 

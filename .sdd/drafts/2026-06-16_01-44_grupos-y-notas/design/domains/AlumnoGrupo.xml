@@ -1,40 +1,69 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <domain-models xmlns="http://axelor.com/xml/ns/domain-models"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
 
-    <module name="grupos" package="com.educaflow.system.grupos.db"/>
+    <module name="gruposnotas" package="com.educaflow.system.gruposnotas.db"/>
 
-    <entity name="AlumnoGrupo">
+    <entity name="AlumnoGrupo" repository="abstract">
+        <many-to-one name="grupo" ref="com.educaflow.system.gruposnotas.db.Grupo" title="Grupo" required="true"/>
+        <many-to-one name="alumno" ref="com.axelor.auth.db.User" title="Alumno" required="true"/>
 
-        <!-- servidor: lo inyecta el formulario modal hijo (onNew __parent__); inmutable -->
-        <many-to-one name="grupo" title="Grupo" ref="com.educaflow.system.grupos.db.Grupo" required="true"/>
+        <!-- Composición PROPIETARIA del ciclo de vida de la Nota: AlumnoGrupo es el padre que controla
+             el borrado de las notas. Al quitar un alumno del grupo (borrar el AlumnoGrupo) se borran sus
+             Notas (cascade="all" orphanRemoval="true"), cumpliendo ESC-005. Es la única relación con
+             orphanRemoval sobre Nota; ModuloGrupo.notas es solo navegación inversa (ver ModuloGrupo.xml). -->
+        <one-to-many name="notas" ref="com.educaflow.system.gruposnotas.db.Nota" mappedBy="alumnoGrupo" title="Notas" cascade="all" orphanRemoval="true"/>
 
-        <!-- cliente: el usuario de tipo Alumno elegido entre los del centro del grupo -->
-        <many-to-one name="alumno" title="Alumno" ref="com.axelor.auth.db.User" required="true"/>
-
-        <!-- Composición: al quitar el alumno del grupo se borran sus notas (ESC-005) -->
-        <one-to-many name="notas" title="Notas del alumno" ref="com.educaflow.system.grupos.db.Nota" mappedBy="alumnoGrupo" orphanRemoval="true"/>
-
-        <!-- CC-001 nota media (momento: lectura). Campo derivado de solo lectura, NO se persiste:
-             media redondeada al entero más cercano de las notas del alumno, contando
-             Matrícula de Honor como 10 y excluyendo los módulos en No evaluado; "Sin nota" si
-             ninguno está evaluado. Se calcula al serializar mediante el helper NotaMediaCalculator. -->
+        <!-- CC-001 (nota media; momento: lectura). Campo calculado de SOLO LECTURA declarado como
+             PROPIEDAD del dominio: <string transient="true"> con cuerpo CDATA dentro del propio campo
+             (patrón de Persona.nombreApellidos / Centro.administradores). transient="true" => no se
+             persiste y se calcula en memoria al leer. Al ser una propiedad declarada, el
+             <field name="notaMedia"/> de las vistas la resuelve correctamente. Axelor genera el getter
+             a partir del cuerpo CDATA: NO se declara además un getter manual del mismo nombre (no
+             compilaría) ni un getter suelto en <extra-code-model> (no quedaría registrado como propiedad).
+             El algoritmo vive ÍNTEGRAMENTE en este cuerpo CDATA (la entidad de dominio es un POJO y NO
+             puede depender de ..service.. — C13 entidadesDominioSonPojos): excluye NO_EVALUADO,
+             MATRICULA_HONOR=10, NOTA_0n->n, media redondeada (Math.round) como texto, "Sin nota" si no
+             hay ninguna nota evaluada. Solo referencia Nota y ValorNota, del mismo paquete ..db.. El
+             servicio NO duplica el cálculo: AlumnoGrupoServiceImpl.calcularNotaMedia delega en este getter
+             (getNotaMedia()), así la lógica tiene una única fuente de verdad. -->
         <string name="notaMedia" title="Nota media" transient="true">
             <![CDATA[
-                return com.educaflow.system.grupos.service.NotaMediaCalculator.calcular(this);
+                java.util.List<Nota> notas = this.getNotas();
+                if (notas == null) {
+                    return "Sin nota";
+                }
+                int suma = 0;
+                int evaluadas = 0;
+                for (Nota nota : notas) {
+                    ValorNota valor = nota.getValor();
+                    if (valor == null || valor == ValorNota.NO_EVALUADO) {
+                        continue;
+                    }
+                    if (valor == ValorNota.MATRICULA_HONOR) {
+                        suma += 10;
+                    } else {
+                        suma += Integer.parseInt(valor.name().substring("NOTA_".length()));
+                    }
+                    evaluadas++;
+                }
+                if (evaluadas == 0) {
+                    return "Sin nota";
+                }
+                return String.valueOf(Math.round((double) suma / evaluadas));
             ]]>
         </string>
 
-        <!-- RES-005: un mismo alumno no aparece dos veces en el mismo grupo -->
+        <!-- Campo auxiliar transient: lo rellena el onNew de la vista con el centro del grupo padre,
+             para filtrar el selector de alumno (UX). El centro real del grupo es Grupo.centro;
+             este campo NO se persiste y la VAL-012 es la defensa de servidor. -->
+        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro" transient="true"/>
+
         <unique-constraint columns="grupo,alumno"/>
 
-        <!-- VAL-013 / RES-004: pertenencias del alumno en otros grupos del mismo centro y curso académico -->
-        <finder-method name="findByAlumnoAndCentroAndCursoAcademico"
-                       using="alumno,com.educaflow.subsystem.common.db.Centro:centro,Integer:cursoAcademico"
-                       filter="self.alumno = :alumno AND self.grupo.centro = :centro AND self.grupo.cursoAcademico = :cursoAcademico"
-                       all="true"/>
-
+        <finder-method name="findByGrupo"
+                       using="com.educaflow.system.gruposnotas.db.Grupo:grupo"
+                       filter="self.grupo = :grupo"/>
     </entity>
 
 </domain-models>

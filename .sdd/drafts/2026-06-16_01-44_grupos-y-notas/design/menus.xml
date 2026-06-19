@@ -3,14 +3,21 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <!-- Porción a FUSIONAR con src/main/java/com/educaflow/secretariavirtual/menus/menus.xml (fichero único del proyecto). -->
+    <!-- Notas → Grupos (supervisor): visible solo para usuarios cuyo tipo activo es SUPERVISOR. -->
+    <menuitem name="notas-menuitem" title="Notas" order="35"
+              if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'SUPERVISOR' }"/>
+        <menuitem name="notas-grupos-menuitem" parent="notas-menuitem" title="Grupos"
+                  action="sysGruposNotas.Grupo@Supervisor-action"
+                  if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'SUPERVISOR' }" order="1"/>
 
-    <!-- Raíz nueva "Notas": el supervisor ve "Grupos"; el alumno ve "Mis notas". -->
-    <menuitem name="notas-menuitem" title="Notas" order="35"/>
-        <menuitem name="notas-grupos-menuitem" parent="notas-menuitem" title="Grupos" action="sysGrupos.Grupo@Main-action" order="1" if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'SUPERVISOR' }"/>
-        <menuitem name="notas-misNotas-menuitem" parent="notas-menuitem" title="Mis notas" action="sysGrupos.AlumnoGrupo@Alumno-action" order="2" if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'ALUMNO' }"/>
+    <!-- Mis notas (alumno): visible solo para usuarios cuyo tipo activo es ALUMNO. -->
+    <menuitem name="misNotas-menuitem" title="Mis notas" order="36"
+              action="sysGruposNotas.AlumnoGrupo@MisNotas-action"
+              if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'ALUMNO' }"/>
 
-    <!-- Hoja añadida a la raíz existente "Administración SV" (groups="admins"): pantalla de administración de grupos. -->
-        <menuitem name="administracionSv-grupos-menuitem" parent="administracionSv-menuitem" title="Grupos (administración)" action="sysGrupos.Grupo@Admin-action" groups="admins" order="4"/>
+    <!-- Administración → Grupos (administración): visible solo para el grupo de administradores. -->
+    <menuitem name="administracionSv-grupos-menuitem" parent="administracionSv-menuitem"
+              title="Grupos (administración)" action="sysGruposNotas.Grupo@Administracion-action"
+              groups="admins" order="20"/>
 
 </object-views>

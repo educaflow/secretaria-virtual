@@ -1,20 +1,22 @@
 ---
 name: sdd-designer
-description: Dada la especificación funcional multi-fichero generada por `/sdd-specification` (`specification.md` + `entity-*.md` + `screen-*.md`), carga los skills técnicos necesarios y genera un plan de DISEÑO (estructura de clases, métodos, vistas y acciones) que describe QUÉ hay que construir y DÓNDE va cada regla, sin escribir el código Java de implementación. Asume la conversión a la capa técnica: mapea cada regla del spec (`RES`/`VAL`/`RN`/`RUI`/`CC-NNN`) a la taxonomía `V`/`R`/`U` con trazabilidad `Origen spec`, clasifica cada campo `cliente`/`servidor` apoyándose en las líneas `Input AllowProperties` y los campos calculados del spec, y **materializa los tests E2E** `design/tests.md` a partir de los escenarios `ESC-NNN` embebidos en las historias de usuario del spec. Materializa directamente como ficheros XML reales los modelos de dominio, las vistas y los menús (validados con xmllint contra sus XSD). Se puede invocar varias veces sobre la misma iniciativa: si el `design/` ya existe, pregunta si **regenerarlo** desde cero o entrar en el modo **Revisar/Modificar**, que valida (frontmatter, XSD, cobertura spec→V/R/U, reglas arquitectónicas, seguridad AllowProperties, tests) y aplica cambios puntuales **sin regenerar**, preservando las ediciones manuales. El plan resultante está diseñado para ser ejecutado por `/sdd-implementer-system`, que es quien escribe el código Java real.
+description: Segundo paso del pipeline SDD. Dada una especificación funcional (`specification.md`, `type: specification`) producida por `/sdd-specification`, genera un plan de DISEÑO en una carpeta `design/` (índice `design.md`, `type: design`) que consume `/sdd-implementer`. El skill es un MOTOR genérico y agnóstico al artefacto: aporta solo el flujo (localizar la iniciativa, decidir modo Generar/Revisar, lanzar 5 subagentes diseñadores en paralelo que escriben un diseño completo cada uno, elegir el mejor con un juez por torneo, y verificar/corregir el ganador en bucle) y delega TODO lo específico del diseño en la guía `template-system/README.md` (configurable con `--template-dir`), que los subagentes leen como contrato. No sabe nada de cómo es el diseño; cambiar `--template-dir` a otra plantilla (p.ej. una futura `template-expediente/`) cambia por completo qué y cómo se diseña sin tocar este skill.
 handoffs:
   - label: Implementar el diseño
-    agent: sdd-implementer-system
+    agent: sdd-implementer
     prompt: Implementar el diseño recién generado en .sdd/drafts/{carpeta-iniciativa}/design/design.md
 ---
 
 # sdd-designer
 
-Eres un arquitecto técnico que convierte una **especificación funcional** en un **diseño** — no una implementación — para el proyecto EducaFlow. Es el segundo paso del pipeline SDD: la entrada la produce `/sdd-specification` y la salida es el input de `/sdd-implementer-system`. La fase de análisis ya no existe: la conversión a la capa técnica (taxonomía `V`/`R`/`U`, clasificación `cliente`/`servidor` por campo) y la materialización de los tests E2E las asume este skill.
+Eres un **motor de diseño** del pipeline SDD: transformas una **especificación funcional** en un **plan de diseño** (no una implementación). La entrada la produce `/sdd-specification` y la salida la consume `/sdd-implementer`.
 
-El skill tiene **dos modos** (la decisión se toma en la Fase 0, §4.4, según exista o no la carpeta `design/`):
+**CRITICAL — eres agnóstico al artefacto.** Este `SKILL.md` define **solo el flujo y la orquestación de agentes**. **No sabe nada de qué se diseña** (ni qué ficheros tiene la spec más allá de su índice, ni qué reglas, taxonomías, capas, ficheros de salida, formatos o validaciones existen): **todo eso lo declara la guía `template-system/README.md`**, que los subagentes leen como contrato. **MUST NOT** asumir de memoria ningún detalle del diseño; **MUST NOT** nombrar ficheros, identificadores, taxonomías ni validaciones concretas en este skill. Así, apuntar `--template-dir` a otra carpeta de plantillas con un README distinto cambia por completo el diseño producido **sin tocar este skill**.
 
-- **Generar/Regenerar** (Fases 1-5): produce el `design/` desde cero a partir del spec (5 candidatos en paralelo → unificación → reglas R complejas → tests → materializar). Es el modo por defecto cuando no hay `design/`.
-- **Revisar/Modificar** (§10): re-invocación sobre un `design/` existente. **No regenera**: valida el diseño actual contra el contrato (frontmatter, XSD, cobertura spec→V/R/U, reglas arquitectónicas, seguridad, tests) y aplica los cambios puntuales que pida el usuario, preservando las ediciones manuales.
+El skill tiene **dos modos** (se decide en la Fase 0, §4.4, según exista o no la carpeta `design/`):
+
+- **Generar/Regenerar** (Fases 1-11): produce el `design/` desde cero (5 diseñadores en paralelo → torneo del juez → renombrar ganador → enriquecer → bucle verificar/corregir diseño → describir tests unitarios → bucle verificar/corregir tests unitarios → describir tests de arquitectura → bucle verificar/corregir tests de arquitectura). Modo por defecto cuando no hay `design/`.
+- **Revisar/Modificar** (§16): re-invocación sobre un `design/` existente. **No regenera**: aplica los cambios puntuales que pida el usuario y pasa el bucle verificar/corregir, preservando las ediciones manuales.
 
 ---
 
@@ -24,41 +26,45 @@ El skill tiene **dos modos** (la decisión se toma en la Fase 0, §4.4, según e
 $ARGUMENTS
 ```
 
-You **MUST** consider the user input before proceeding (if not empty). Los argumentos esperables son:
+You **MUST** consider the user input before proceeding (if not empty). Argumentos esperables:
 
-- **Ruta a un `specification.md`** existente (p.ej. `.sdd/drafts/2026-05-11_23-19_…/specification.md`). El skill valida el frontmatter `type: specification` y procede.
-- **Sin argumentos**: el skill pregunta con `AskUserQuestion` qué iniciativa de `.sdd/drafts/` usar — la última (recomendada, por orden alfabético del prefijo timestamp) o **elegir otra** distinta de la última (§4.2).
+- **Ruta a un `specification.md`** existente. El skill valida el frontmatter `type: specification` y procede.
+- **Sin argumentos**: el skill pregunta con `AskUserQuestion` qué iniciativa de `.sdd/drafts/` usar — la última (recomendada) o elegir otra (§4.2).
 - **Texto adicional tras la ruta**:
-  - En modo **Generar/Regenerar**: se trata como guías de diseño y se persiste en `{iniciativa}/design-guidelines.md` (ver §4.3).
-  - En modo **Revisar/Modificar** (el `design/` ya existe y el usuario lo elige): se trata como la **lista de cambios puntuales** a aplicar sobre el diseño existente (ver §10).
-- Flags de override `--in=`, `--out=`, `--root=` (ver Apéndice A).
+  - En modo **Generar/Regenerar**: se trata como guías de diseño y se persiste en `{iniciativa}/design-guidelines.md` (§4.3).
+  - En modo **Revisar/Modificar**: es la **lista de cambios puntuales** a aplicar sobre el diseño existente (§16).
+- Flags de override `--template-dir=`, `--in=`, `--out=`, `--root=` (Apéndice A).
 
 ---
 
 ## Outline
 
-1. **Fase 0 — Localizar** el `specification.md` (con sus `entity-*.md` / `screen-*.md`), las guías opcionales y **decidir el modo** (Generar/Regenerar vs Revisar/Modificar) según exista o no `design/` (§4.4).
-2. **Fase 1 — Cargar** contexto técnico: skills `k-*`, código existente, guías de diseño y derivación de invariantes `G-NNN`. (Común a ambos modos.)
-3. **Fase 2 — Generar** el diseño: 5 candidatos en paralelo → unificación → diseño detallado de reglas R complejas → materialización de tests E2E desde los `ESC-NNN`. (Solo modo Generar/Regenerar.)
-4. **Fase 3 — Revisar** el diseño unificado contra el checklist. (Solo modo Generar/Regenerar.)
-5. **Fase 4 — Materializar** ficheros XML y validar con `xmllint`; escribir `design.md`, `rules/*.md` y `tests.md`. (Solo modo Generar/Regenerar.)
-6. **Fase 5 — Cerrar** con mensaje al usuario y handoff a `/sdd-implementer-system`.
-7. **§10 — Modo Revisar/Modificar**: ruta alternativa desde la Fase 0 cuando el `design/` ya existe y el usuario elige revisarlo/modificarlo (valida y aplica cambios puntuales sin regenerar).
+1. **Fase 0 — Localizar** la iniciativa y su `specification.md`, las guías opcionales, y **decidir el modo** según exista o no `design/` (§4.4).
+2. **Fase 1 — Cargar** el contrato (`template-system/README.md`) y resolver las rutas de entrada que se pasarán a los subagentes. (Común a ambos modos.)
+3. **Fase 2 — Diseñar**: lanzar **5 subagentes diseñadores en paralelo**, cada uno escribe un diseño completo en `design_<n>/`. (Solo Generar/Regenerar.)
+4. **Fase 3 — Elegir**: un subagente **juez** decide por **torneo** (ganador acumulado vs siguiente diseño) hasta quedar uno, **justificando y mostrando por pantalla** en cada comparación por qué elige un diseño frente al otro. (Solo Generar/Regenerar.)
+5. **Fase 4 — Seleccionar**: renombrar la carpeta ganadora a `design/`, mover `log_best.txt` y borrar el resto. (Solo Generar/Regenerar.)
+6. **Fase 5 — Enriquecer**: un subagente **enriquecedor** revisa, a partir de `log_best.txt`, qué ventajas de los diseños descartados faltan en el ganador y tienen sentido; reporta las mejoras a implementar y un subagente **corrector** las aplica. (Solo Generar/Regenerar.)
+7. **Fase 6 — Verificar/corregir**: bucle subagente verificador (que aplica la validación que prescriba la plantilla) → (si hay fallos) subagente corrector, hasta `OK-CORRECTO`. (Común a ambos modos.)
+8. **Fase 7 — Tests unitarios**: un subagente **test-unitarios** describe en `design/unit-test-desc.md` los tests unitarios (JUnit + Mockito) de las clases Java del diseño (solo descripción, sin código). (Común a ambos modos.)
+9. **Fase 8 — Verificar/corregir tests unitarios**: bucle subagente **verificador-test-unitarios** (comprueba que `unit-test-desc.md` es coherente con el diseño) → (si hay fallos) subagente **corrector-test-unitarios**, hasta `OK-CORRECTO`. (Común a ambos modos.)
+10. **Fase 9 — Tests de arquitectura**: un subagente **test-arquitectura** describe en `design/arch-test-desc.md` los tests de arquitectura (ArchUnit) de las clases Java del diseño (solo descripción, sin código). (Común a ambos modos.)
+11. **Fase 10 — Verificar/corregir tests de arquitectura**: bucle subagente **verificador-test-arquitectura** (comprueba que `arch-test-desc.md` es coherente con el diseño) → (si hay fallos) subagente **corrector-test-arquitectura**, hasta `OK-CORRECTO`. (Común a ambos modos.)
+12. **Fase 11 — Cerrar** con mensaje al usuario y handoff a `/sdd-implementer`.
+13. **§16 — Modo Revisar/Modificar**: ruta alternativa desde la Fase 0.
 
 **STOP conditions**:
 
+- `--template-dir=` apunta a una carpeta que **no contiene `README.md`** (la guía que declara todo lo específico) → **ERROR** y detente.
 - Frontmatter de `specification.md` no contiene `type: specification` → **ERROR** y detente.
 - `design-guidelines.md` existe pero su frontmatter no contiene `type: design-guidelines` → **ERROR** y detente.
-- Carpeta `design/` ya existe y no está vacía → **STOP** y pregunta al usuario: Regenerar desde cero vs Revisar/Modificar (§4.4).
-- En modo Revisar/Modificar, el frontmatter de `design.md` no es `type: design` → **ERROR** y detente (§10).
-- En modo Revisar/Modificar, falta una sección obligatoria del núcleo del diseño (`## Ficheros a crear o modificar`, `## Pasos`, la matriz de trazabilidad) → **STOP** y pregunta; **MUST NOT** regenerar el contenido (§10).
-- Conflicto entre `design-guidelines.md` y la especificación → **STOP** y pregunta.
-- Invariante `G-NNN` violada de forma estructural tras §6.7 → **STOP** y pregunta.
-- Un fichero XML sigue inválido tras 3 iteraciones de corrección con `xmllint` → **STOP** y muestra el error al usuario. **MUST NOT** guardar un diseño con XML inválido.
-- Alguna regla `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` del spec queda sin ubicación en la matriz de trazabilidad y sin justificación en "Reglas del spec descartadas" → **ERROR**: el diseño **MUST NOT** guardarse.
-- Algún escenario `ESC-NNN` del spec queda sin ningún test `T-NNN` que lo materialice → **ERROR**: el diseño **MUST NOT** guardarse.
-- Tras 3 rondas de `AskUserQuestion` en la unificación siguen abiertos puntos críticos → **STOP** (§6.5).
-- Tras 3 pasadas de revisión-corrección de la Fase 3 siguen apareciendo problemas no triviales → **STOP** y pregunta al usuario (§7).
+- Carpeta `design/` ya existe y no está vacía → **STOP** y pregunta: Regenerar vs Revisar/Modificar (§4.4).
+- En modo Revisar/Modificar, el frontmatter de `design.md` no es `type: design` → **ERROR** y detente (§16).
+- Ningún diseñador produjo una carpeta `design_<n>/` con contenido → **ERROR** y detente.
+- El juez no devuelve un token `GANADOR: design_<n>` válido tras 1 reintento → **STOP** y muestra el problema.
+- Tras **10** iteraciones del bucle verificar/corregir del diseño (Fase 6) el verificador sigue sin responder `OK-CORRECTO` → **STOP** y muestra al usuario las líneas JSONL de los problemas residuales. **MUST NOT** dar el diseño por bueno.
+- Tras **10** iteraciones del bucle verificar/corregir de los tests unitarios (Fase 8) el `verificador-test-unitarios` sigue sin responder `OK-CORRECTO` → **STOP** y muestra al usuario las líneas JSONL residuales. **MUST NOT** dar `unit-test-desc.md` por bueno.
+- Tras **10** iteraciones del bucle verificar/corregir de los tests de arquitectura (Fase 10) el `verificador-test-arquitectura` sigue sin responder `OK-CORRECTO` → **STOP** y muestra al usuario las líneas JSONL residuales. **MUST NOT** dar `arch-test-desc.md` por bueno.
 
 ---
 
@@ -66,30 +72,24 @@ You **MUST** consider the user input before proceeding (if not empty). Los argum
 
 ### 1.1 Entrada
 
-La **especificación multi-fichero** de la iniciativa, cuyo índice es `specification.md` (único fichero con frontmatter, que debe contener `type: specification`). El índice enlaza:
+La **especificación** de la iniciativa, cuyo índice es `specification.md` (único fichero de entrada con nombre fijo; debe contener `type: specification`). El índice enlaza otros ficheros en su carpeta — el skill **no asume cuáles son** (los define la plantilla de `/sdd-specification`); los subagentes los leen siguiendo el índice.
 
-- `entity-<Nombre>.md` — un fichero por modelo: campos, estados, restricciones `RES-NNN`, campos calculados `CC-NNN`, y por acción las líneas `Input AllowProperties`, validaciones `VAL-NNN` y reglas de negocio `RN-NNN`.
-- `screen-<slug>.md` — un fichero por pantalla: identidad, menú, estructura de vistas, paneles, botones y reglas de UI `RUI-NNN`.
-- `model.puml` / `model.png` (opcionales) — diagrama de clases; solo apoyo visual, no añade información.
-
-Las historias de usuario `HU-NNN` y sus escenarios `ESC-NNN` viven **embebidos** dentro de `specification.md` (no hay fichero de tests de entrada). **No** existe ninguna carpeta `analysis/`.
-
-Opcionalmente, en la raíz de la carpeta de la iniciativa puede existir un fichero `design-guidelines.md` con frontmatter `type: design-guidelines` y guías técnicas que orientan el diseño (preferencias arquitectónicas, nombres concretos, patrones a evitar). Si existe, se carga en la Fase 1 y se transmite a los subagentes.
-
-Las guías NO sustituyen a la especificación: orientan decisiones donde el spec no es prescriptivo. Si una guía contradice algo del spec, el skill se detiene y pide aclaración con `AskUserQuestion`.
+Opcionalmente, en la carpeta de la iniciativa puede existir `design-guidelines.md` (frontmatter `type: design-guidelines`) con guías técnicas que orientan el diseño. Si existe, se pasa **tal cual** a los subagentes. Si **no existe**, simplemente no se pasa.
 
 ### 1.2 Salida
 
-Una **carpeta** `design/` dentro de la carpeta de la iniciativa, con:
+Una **carpeta** `design/` dentro de la carpeta de la iniciativa.
 
-- `design.md` — plan markdown con frontmatter `type: design`. Lo escribe el agente principal. Contiene firmas Java, comentarios descriptivos, matriz de trazabilidad `Origen spec` → V/R/U → ubicación y resúmenes estructurales de cada fichero XML generado. **No** duplica el XML completo: cada XML vive en su fichero.
-- `domains/<Entidad>.xml` — uno por entidad. XML completo, válido contra `../axelor-open-platform/axelor-core/src/main/resources/domain-models.xsd`.
-- `views/<Fichero>.xml` — uno por `<action-view>` (regla "un `<action-view>` por fichero"). XML completo, válido contra `../axelor-open-platform/axelor-core/src/main/resources/object-views.xsd`.
-- `menus.xml` — XML con los `<menuitem>` a añadir al fichero único del proyecto. Válido contra `../axelor-open-platform/axelor-core/src/main/resources/object-views.xsd`.
-- `tests.md` — **materializado por el diseñador** a partir de los escenarios `ESC-NNN` del spec: tests E2E concretos `T-NNN` en formato Given/When/Then, con trazabilidad `Origen ESC` y `Verifica`. Es el contrato verificable que `/sdd-implementer-system` propaga a `implementation/tests.md` y que `/sdd-debug-app` ejecuta contra la aplicación real una vez implementado el código.
-- `rules/R-<Entidad>-NNN.md` — **solo para reglas de negocio complejas** (ver sub-tarea 6.6). Un fichero por cada regla `R-` cuya implementación requiera clases auxiliares, tipos propios, interfaces, máquinas de estado, integraciones externas o algoritmos no triviales. El comentario del método `fireActionRule_*` en `design.md` referencia este fichero.
+**CRITICAL — la estructura interna de `design/` la define `template-system/README.md`, no este skill.** Qué ficheros y subcarpetas la componen, qué contiene cada uno y cómo se valida, **lo declara la guía**, que los subagentes leen. El skill **MUST NOT** asumir esos detalles de memoria; solo manipula la carpeta como una unidad (la crea cada diseñador, el juez la compara, el verificador la valida).
 
-Los ficheros XML generados aquí son los **mismos** que `sdd-implementer-system` copiará a su ubicación final en `src/main/...` (o que fusionará con el `menus.xml` existente). El diseño no inventa nada que no se vaya a usar tal cual.
+**Único contrato fijo (no lo cambia `--template-dir`):** el índice de la salida se llama `design.md` y lleva frontmatter `type: design`. Es lo que el skill usa para **localizar y validar** un diseño existente (Fase 0 / §16) y lo que consume `/sdd-implementer`.
+
+**Logs de orquestación del motor.** Además de la estructura que define la plantilla, el motor escribe en la carpeta de salida sus propios ficheros de **log** (no son contenido de diseño ni los define la plantilla; los verificadores los ignoran):
+
+- `log_best.txt` — las **ventajas de cada diseño** que el juez detalla en cada comparación del torneo (§7), para poder auditar después si el diseño ganador las cumple. Solo en modo Generar/Regenerar (en Revisar/Modificar no hay torneo).
+- `log_revision.txt` — la salida **JSONL literal de cada subagente verificador** de la Fase 6 (§10), una sección por iteración. En ambos modos.
+- `log_revision_unit-test.txt` — la salida **JSONL literal de cada `verificador-test-unitarios`** de la Fase 8 (§12), una sección por iteración. En ambos modos.
+- `log_revision_arch-test.txt` — la salida **JSONL literal de cada `verificador-test-arquitectura`** de la Fase 10 (§14), una sección por iteración. En ambos modos.
 
 ### 1.3 Estructura de carpetas
 
@@ -97,138 +97,45 @@ Los ficheros XML generados aquí son los **mismos** que `sdd-implementer-system`
 .sdd/
 └── drafts/
     └── YYYY-MM-DD_HH-MM_{resumen-kebab-case}/   ← carpeta de la iniciativa
-        ├── specification.md                     ← índice (type: specification) — input
-        ├── entity-<Nombre>.md                   ← un fichero por modelo   — input
-        ├── screen-<slug>.md                     ← un fichero por pantalla — input
-        ├── model.puml / model.png               ← opcionales (apoyo visual)
+        ├── specification.md                     ← índice de entrada (type: specification)
+        ├── <ficheros que enlace specification.md> ← input (los define la plantilla del spec)
         ├── design-guidelines.md                 ← opcional (input)
-        └── design/                              ← salida de este skill
-            ├── design.md                        ← plan (type: design)
-            ├── domains/
-            │   └── <Entidad>.xml                ← un fichero por entidad
-            ├── views/
-            │   └── <Fichero>.xml                ← un fichero por <action-view>
-            ├── menus.xml                        ← <menuitem> del subsistema
-            ├── tests.md                         ← materializado desde los ESC-NNN del spec
-            └── rules/                           ← solo si hay reglas R complejas
-                └── R-<Entidad>-NNN.md           ← diseño detallado de una regla compleja
+        ├── design_1/ … design_5/                ← borradores de cada diseñador (efímeros)
+        └── design/                              ← ganador renombrado (salida final)
+            ├── design.md                        ← índice (type: design)
+            ├── …                                ← ficheros y carpetas que declare template-system/README.md
+            ├── log_best.txt                     ← log del motor: ventajas de cada diseño (§7, solo Generar)
+            ├── log_revision.txt                 ← log del motor: JSONL de cada verificador del diseño (§10)
+            ├── log_revision_unit-test.txt       ← log del motor: JSONL de cada verificador-test-unitarios (§12)
+            └── log_revision_arch-test.txt       ← log del motor: JSONL de cada verificador-test-arquitectura (§14)
 ```
 
 ---
 
-## 2. Principios (aplican a todas las fases y subagentes)
+## 2. Principios
 
 ### 2.1 La especificación es la fuente de verdad
 
-**MUST NOT** generar diseño sin haber leído la especificación completa: `specification.md` y **todos** los `entity-*.md` / `screen-*.md` enlazados. La especificación es la fuente de verdad — **MUST NOT** interpretar ni ampliar más allá de lo que dice. Si algo no se desprende del spec, **MUST** preguntar al usuario con `AskUserQuestion`; **MUST NOT** inventar.
+La especificación es la fuente de verdad — **MUST NOT** interpretar ni ampliar más allá de lo que dice. Los subagentes leen `specification.md` y todos los ficheros que enlace. **MUST NOT** usar otros `design.md` o diseños previos de `.sdd/` como plantilla.
 
-**MUST NOT** como referencia:
+### 2.2 El README es el contrato único
 
-- **MUST NOT** leer el código de `expedientes`, `tiposexpedientes` ni `tramites` — siguen otra arquitectura.
-- **MUST NOT** leer otros `design.md` o ficheros XML de diseños previos en `.sdd/` como plantilla. El diseño se genera desde la especificación recibida y el código real del proyecto.
+Todo lo específico del diseño (qué se produce, cómo se convierte el spec, qué contexto cargar, cómo se valida) lo define `template-system/README.md` y los ficheros que él referencie. Los subagentes los **leen de disco**; el skill **MUST NOT** asumirlos, restatarlos ni hardcodearlos aquí. El skill solo pasa a cada subagente **las rutas** de los ficheros de entrada y su rol.
 
-### 2.2 Conversión spec → taxonomía técnica V/R/U (con trazabilidad)
+**CRITICAL — `README.md` es el ÚNICO fichero de la plantilla que el motor conoce por nombre.** El skill **MUST NOT** nombrar, leer, resolver ni **ejecutar** ningún otro fichero de la plantilla (ni los documentos que el README referencie, ni ningún script de validación que la plantilla traiga). Esos ficheros los descubren y usan **los subagentes** leyendo el `README.md`. En particular:
 
-El spec ya trae sus reglas **clasificadas y numeradas** en categorías de negocio. El diseño las **convierte** a la taxonomía técnica V/R/U y las ubica en su capa. La numeración V/R/U es **local** por entidad o pantalla, empezando en `001`; el prefijo (`V-<Entidad>-NNN`, `U-<slug-pantalla>-NNN`) garantiza unicidad global.
+- Si la plantilla prescribe una validación que se ejecuta como **comando o script** (p.ej. validar con una herramienta externa los artefactos generados), **la ejecuta el subagente verificador** —que lee la plantilla y la descubre—, **NUNCA el motor**.
+- **MUST NOT** añadir "pasos de `Bash`" en este skill que corran validaciones, comprobaciones o herramientas específicas del diseño. El motor solo usa `Bash`/`Write` para orquestación **agnóstica** (listar `.sdd/drafts/`, `mv`/`rm` de carpetas `design_<n>/`, y escribir sus propios **logs de orquestación** `log_best.txt`/`log_revision.txt` — §7/§10), nunca para validar el contenido del diseño.
+- Esos dos logs son artefactos **del motor**, no contenido de diseño ni ficheros que declare la plantilla: el verificador no los valida y `--template-dir` no los cambia.
+- Único acoplamiento permitido por nombre: `README.md` (contrato de la plantilla) y el contrato fijo de I/O `specification.md` / `design.md`.
 
-**Mapeo spec → V/R/U** (correlación natural; la decisión final depende del **efecto real**: bloquea → V, actúa → R, cambia formulario → U):
+**REQUIRED — el README de la plantilla es leído por los 11 roles.** Este skill lanza **once** subagentes con tareas distintas sobre el mismo diseño: **diseñador** (crea), **juez** (elige entre dos), **enriquecedor** (detecta qué ventajas de los descartados incorporar), **verificador** (busca problemas en el diseño), **corrector** (corrige/incorpora en el diseño), **test-unitarios** (describe los tests unitarios), **verificador-test-unitarios** (comprueba que los tests unitarios son coherentes con el diseño), **corrector-test-unitarios** (corrige los tests unitarios), **test-arquitectura** (describe los tests de arquitectura), **verificador-test-arquitectura** (comprueba que los tests de arquitectura son coherentes con el diseño) y **corrector-test-arquitectura** (corrige los tests de arquitectura) — ver §2.3, §6–§14. Los once reciben las mismas rutas de entrada y **leen el mismo `README.md` de la plantilla**, pero cada uno hace una cosa distinta y necesita un subconjunto distinto de sus ficheros. Por tanto, **cualquier `README.md` de plantilla** (la `template-system/` actual o una futura apuntada con `--template-dir=`, p.ej. `template-expediente/README.md`) **MUST** estar redactado teniendo en cuenta esos 11 roles: debe delimitar, por rol, qué tarea hace y qué ficheros de la plantilla le aplican. Un README que solo contemple al diseñador es **incompleto** para este skill.
 
-- `RES-NNN` (restricción, invariante de entidad) → **V**, típicamente declarativa en el modelo (única, obligatoria, comparación de fechas), aplicable a todas las acciones.
-- `VAL-NNN` (validación de una acción) → **V**, anclada a la operación correspondiente.
-- `RN-NNN` (regla de negocio) → **R**. El atributo `fase` del spec (`antes_de_commit`/`después_de_commit`) orienta el momento `Antes`/`Después` de la R.
-- `RUI-NNN` (regla de UI) → **U**, anclada a la(s) pantalla(s) donde aplica. Si una `RUI-NNN` aplica a varias pantallas, se materializa como una U en cada vista afectada, todas con el mismo Origen spec.
-- `CC-NNN` (campo calculado) → campo con **origen `servidor`** + una **R** con momento `Antes` que lo asigna/recalcula (si `momento: escritura`), o campo derivado de solo lectura (si `momento: lectura`). Si `sobreescribible` lista roles, documentarlo en la R.
+### 2.3 Orquestación de subagentes
 
-**Trazabilidad obligatoria — columna/atributo `Origen spec`:**
-
-- Cada V/R/U del diseño declara su `Origen spec`: la lista de IDs `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` que la originaron (`VAL-001` o `RN-002, RES-001`), o `—` si el diseño la añadió por necesidad técnica (no provenía de ninguna regla del spec — señal al usuario de "repásala").
-- **Cobertura inversa**: cada `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` del spec **MUST** aparecer como Origen de al menos una V/R/U (o, para `CC-NNN` de lectura, de un campo del modelo); en otro caso **MUST** listarse en la sección **"Reglas del spec descartadas"** del `design.md` con justificación.
-- Si el efecto real de una regla contradice su categoría en el spec (p.ej. una `RUI-NNN` que en realidad bloquea), **MUST** preguntar al usuario con `AskUserQuestion` antes de mapearla a otra categoría.
-
-- ✅ CORRECTO: `V-SolicitudCertificado-002` con Origen spec `VAL-004, RES-002`
-- ❌ INCORRECTO: `V-001` (sin entidad), `V-solicitudCertificado-001` (entidad no en PascalCase), `U-MisSolicitudes-001` (slug de pantalla debe ir en kebab-case), Origen spec `VAL-4` (sin 3 dígitos), celda vacía (debe ir `—` si fue añadida por el diseño)
-
-### 2.3 Clasificación `cliente`/`servidor` por campo (apoyada en el spec)
-
-El diseño clasifica el **origen del valor** de cada campo en `cliente` (lo aporta el usuario; validable con V; permitido en `AllowProperties`) o `servidor` (lo dicta el servidor — timestamps, estados iniciales, contadores, snapshots, valores calculados — asignado/recalculado **incondicionalmente** en `*ServiceImpl.insert/update`). Ver `[[k-secure-coding]]` §3.1.
-
-La clasificación **no se inventa**: se deriva del spec, que ya da la información de negocio:
-
-- Un campo listado en alguna línea `**Input AllowProperties:**` de una acción → `cliente` para esa acción.
-- Un `CC-NNN` (campo calculado) → siempre `servidor`.
-- Un campo que **nunca** aparece en ninguna línea `Input AllowProperties` y que el servidor fija (estado, auditoría, snapshots) → `servidor`.
-- Un campo **inmutable** (aparece en `Crear` pero no en `Modificar`) → `cliente` en alta, excluido de la whitelist de `update`.
-
-**Coherencia obligatoria:** cada campo `servidor` **DEBE** estar respaldado por al menos una `R-<Entidad>-NNN` con momento `Antes` que lo asigna — salvo los derivados de solo lectura (`CC-NNN` con `momento: lectura`), que no se persisten (documentar el cálculo en notas). Un campo `cliente` **NO** debe aparecer asignado por una R-Antes-de-Crear (eso lo convertiría implícitamente en `servidor`).
-
-### 2.4 Diseño vs implementación: qué SÍ va y qué NO va
-
-Un diseño describe **la estructura** del software (qué ficheros existen, qué clases, qué métodos con qué firma, qué vistas, qué acciones, dónde va cada regla) y materializa **directamente como ficheros XML reales** todas las partes declarativas. **No contiene el código Java de implementación** — eso lo escribe `sdd-implementer-system`.
-
-| Va en… | Contenido |
-|--------|-----------|
-| `design.md` | Lista de ficheros a crear/modificar en el proyecto real; FQN de cada clase y firma completa de cada método con comentario descriptivo del cuerpo (qué reglas aplica, qué llamadas hace, qué efectos colaterales); resumen estructural de cada XML generado; matriz de trazabilidad `Origen spec` → V/R/U → ubicación. |
-| `design/domains/*.xml` | XML completo de cada entidad (campos, tipos, relaciones, enumerados, finders). Es declarativo y va al 100%. |
-| `design/views/*.xml` | XML completo de `<grid>`, `<form>`, `<cards>`, `<action-method>`, `<action-attrs>`, `<action-validate>`, `<action-condition>`, `<action-record>`, `<action-group>`, `<action-view>` — con todos sus campos, panels, condiciones y mensajes literales. |
-| `design/menus.xml` | XML completo de los `<menuitem>` a añadir al `menus.xml` único del proyecto. |
-| `design/tests.md` | Tests E2E `T-NNN` materializados desde los `ESC-NNN`, en lenguaje de negocio Given/When/Then (sin código ni selectores). |
-
-**MUST NOT** en cualquier parte del diseño:
-
-- **MUST NOT** incluir cuerpos de métodos Java implementados. Nada de `validateInsert` con su lógica, nada de `for`/`if` reales, nada de `messages.add(...)` con strings literales dentro de un método. Solo firmas + comentario descriptivo.
-- **MUST NOT** incluir mensajes de error literales para validaciones Java — se describe el contenido que debe transmitir (valor recibido, dominio válido), no el literal. (Los literales de `<action-validate>` XML sí se escriben porque el XML va completo; y los mensajes que cita `tests.md` se toman tal cual del spec/vista.)
-- **MUST NOT** inventar elementos que no estén en la especificación. Si el spec no menciona una pantalla, un campo o una regla, **MUST NOT** añadirse.
-
-### 2.5 XML real vs descripción markdown
-
-Los XML generados son **ficheros reales** dentro de `design/`, no bloques inline copiados dentro del `design.md`. La fase de generación de los subagentes produce bloques ```xml etiquetados con la ruta destino (`Fichero: design/...`); la Fase 4 extrae cada bloque y lo escribe como fichero independiente. El `design.md` resultante **solo contiene** un resumen estructural por cada fichero XML (qué vistas declara, qué acciones, propósito); el XML completo vive en su fichero.
-
-Para el código Java es al revés: **no** se generan ficheros `.java` — solo firmas y comentarios dentro del `design.md`. Los `.java` los escribe `sdd-implementer-system`.
-
-### 2.6 Cobertura total de las reglas del spec
-
-**REQUIRED**: **todas** las reglas del spec — `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` — deben quedar **ubicadas** en el diseño (convertidas a una V/R/U con una entrada en la matriz de trazabilidad apuntando a un método o acción concreta, con un comentario que describa su lógica) **o** listadas en "Reglas del spec descartadas" con justificación. Si alguna regla no tiene ni ubicación ni justificación, el diseño está incompleto y **MUST NOT** guardarse.
-
-### 2.7 Mapeo de capas
-
-Cada categoría de regla tiene su capa de implementación:
-
-- **`V-<Entidad>-NNN`** (validación):
-  - Validaciones declarativas simples → atributos del modelo XML (`required`, `unique`, `min`, `max`).
-  - Validaciones de campo individual y entre campos del mismo registro → cliente (`<action-validate>`/`<action-condition>`).
-  - Integridad entre registros y ciclo de vida → servidor (`validateInsert`/`validateUpdate`/`validateRemove` del `*ServiceImpl`).
-- **`R-<Entidad>-NNN`** (regla de negocio): servidor, como método `fireActionRule_*` del `*ServiceImpl` invocado desde `insert`/`update`/`remove`/operación custom, **Antes** de `super.*` si escribe en el mismo registro o **Después** si tiene efectos colaterales.
-- **`U-<slug-pantalla>-NNN`** (regla de UI): vista, como atributo `showIf`/`hideIf`/`readonlyIf`/`requiredIf` en `<field>`/`<panel>`, o `<action-attrs>`/`<action-record>` referenciado desde `onNew`/`onLoad`/`onChange`.
-
-### 2.8 Validación XML obligatoria con xmllint
-
-**REQUIRED**: cada fichero XML generado **MUST** validar contra su XSD (`domain-models.xsd` para dominios, `object-views.xsd` para vistas y menús). **MUST NOT** guardar un diseño con XML inválido. Procedimiento y comandos exactos en §8.3.
-
-### 2.9 Reglas arquitectónicas obligatorias
-
-- **Un `<action-view>` por fichero** (regla de `k-sistemas`): cada `<action-view>` vive en su propio fichero `<NombreEntidad>[-<discriminador>].xml` junto con el grid, el form y las acciones que solo usa él. Excepción: las vistas de búsqueda/referencia (`@Search-grid` + `@View-form`) van juntas en `<NombreEntidad>-ref.xml`. Si la entidad tiene un único `<action-view>` principal, el fichero es `<NombreEntidad>.xml`.
-
-  - ✅ CORRECTO: `Bar.xml` (entidad con un solo `<action-view>` principal).
-  - ✅ CORRECTO: `Bar-Pendiente.xml` (un `<action-view>` discriminado por estado).
-  - ✅ CORRECTO: `Bar-ref.xml` (`@Search-grid` + `@View-form` juntos).
-  - ❌ INCORRECTO: `BarGridPendiente.xml` (sin guion-discriminador; concatena entidad y rol)
-  - ❌ INCORRECTO: `Bar.xml` con dos `<action-view>` dentro (regla "uno por fichero" violada)
-
-- **Menús en fichero único** (regla de `k-vistas/menus.md`): **todos** los `<menuitem>` del proyecto viven en el único fichero `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`. Los menús del subsistema nuevo se **añaden** allí; **MUST NOT** crearse ficheros `menus-<subsistema>.xml`. En la tabla "Ficheros a crear o modificar" del `design.md`, los menús aparecen como **Modificar** `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`. La carpeta `design/` produce un `menus.xml` con la **porción** a fusionar.
-
-  - ✅ CORRECTO: fila en la tabla `Modificar | src/main/java/com/educaflow/secretariavirtual/menus/menus.xml | k-vistas (menus.md) | Añadir menú del subsistema foo`
-  - ❌ INCORRECTO: fila `Crear | src/main/java/com/educaflow/subsystem/foo/menus/menus-foo.xml` (crea un fichero de menús nuevo por subsistema)
-- **MUST NOT** crear módulos Guice para `ModelService` — `ModelServiceFactory` los descubre automáticamente.
-- **MUST NOT** crear listeners JPA para lógica de negocio — esa lógica va en el servicio como `fireActionRule_*`.
-- **Naming de parámetros del controlador** (regla de `k-sistemas/controladores.md`): cuando una firma del controlador recibe `ActionRequest`/`ActionResponse`, los parámetros **MUST** llamarse `actionRequest` y `actionResponse` (camelCase completo).
-
-  - ✅ CORRECTO: `public void miAccion(ActionRequest actionRequest, ActionResponse actionResponse)`
-  - ❌ INCORRECTO: `public void miAccion(ActionRequest req, ActionResponse resp)` (abreviado)
-  - ❌ INCORRECTO: `public void miAccion(ActionRequest request, ActionResponse response)` (sin prefijo `action`)
-
-### 2.10 Tests E2E materializados desde los `ESC-NNN`
-
-El diseñador **materializa** `design/tests.md` a partir de los escenarios `ESC-NNN` embebidos bajo cada historia de usuario `HU-NNN` de `specification.md` (no existe ningún `tests.md` de entrada que copiar). Cada `ESC-NNN` se convierte en uno o más tests `T-NNN` Given/When/Then en lenguaje de negocio, citando los nombres reales de botones, campos y mensajes de los `screen-*.md` y `entity-*.md`. **MUST**: cada `ESC-NNN` tiene al menos un test asociado. **MUST NOT** incluir comandos `playwright-cli` ni selectores CSS — la traducción la hace `/sdd-debug-app` al ejecutarlos. Procedimiento en §6.8.
+- Los **diseñadores** corren **en paralelo** (§6); **MUST NOT** usar `AskUserQuestion`. El **juez**, el **enriquecedor**, el **verificador**, el **corrector**, el **test-unitarios**, el **verificador-test-unitarios**, el **corrector-test-unitarios**, el **test-arquitectura**, el **verificador-test-arquitectura** y el **corrector-test-arquitectura** corren **de uno en uno** (cada uno depende del resultado del anterior).
+- **MUST NOT** usar `run_in_background`: el skill necesita el resultado de cada subagente para continuar.
+- Cada rol responde con un **token literal** que el skill parsea (definidos en cada fase). El skill compara por literal exacto.
 
 ---
 
@@ -236,70 +143,71 @@ El diseñador **materializa** `design/tests.md` a partir de los escenarios `ESC-
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│  Fase 0  Localizar specification.md (+ entity/screen) + guías        │
-│  Fase 1  Cargar contexto técnico (skills k-*, subsistemas, guías)   │
-│  Fase 2  Generación del diseño                                      │
-│            ├── Tarea 2.1   5 subagentes en paralelo (candidatos)    │
-│            ├── Tarea 2.2   Unificación (agente principal)           │
-│            ├── Tarea 2.3   Diseño detallado de reglas R complejas   │
-│            │               (1 subagente por regla compleja)         │
-│            └── Tarea 2.4   Materialización de tests E2E (1 subagente,│
-│                            solo si el spec tiene ESC-NNN)           │
-│  Fase 3  Revisión del diseño unificado (checklist)                  │
-│  Fase 4  Materializar y validar                                     │
-│            ├── 4.1  Borrar design/ previo                           │
-│            ├── 4.2  Extraer bloques XML y escribir ficheros         │
-│            ├── 4.3  Validar cada XML con xmllint                    │
-│            ├── 4.4  Escribir tests.md                               │
-│            └── 4.5  Escribir design.md                              │
-│  Fase 5  Mensaje de cierre al usuario                               │
+│  Fase 0  Localizar la iniciativa + specification.md + guías + modo  │
+│  Fase 1  Cargar el contrato (README) y resolver rutas de entrada    │
+│  Fase 2  5 diseñadores en paralelo → design_1/ … design_5/          │
+│  Fase 3  Torneo del juez:  g=design_1                               │
+│            para i=2..N:  g = juez(g, design_i)                      │
+│            (muestra ventajas+justificación; acumula ventajas en     │
+│             log_best.txt para auditar luego al ganador)             │
+│  Fase 4  Renombrar el ganador a design/ ; mover log_best.txt;       │
+│            borrar el resto                                          │
+│  Fase 5  enriquecedor(design/, log_best.txt) → mejoras a aplicar    │
+│            → corrector(design/, mejoras)  (mejoras de los           │
+│              descartados que faltan en el ganador y tienen sentido) │
+│  Fase 6  Bucle (LIMIT 10):                                          │
+│            verificador(design/) → OK-CORRECTO ?  (vuelca su JSONL   │
+│              sí  → fin                           a log_revision.txt)│
+│              no  → corrector(design/, fallos) → repetir             │
+│  Fase 7  test-unitarios(design/) → design/unit-test-desc.md         │
+│            (descripción de tests unitarios; solo descripción)       │
+│  Fase 8  Bucle (LIMIT 10):  coherencia tests unitarios ↔ diseño    │
+│            verificador-test-unitarios(design/) → OK-CORRECTO ?      │
+│              sí  → fin    (vuelca JSONL a log_revision_unit-test.txt)│
+│              no  → corrector-test-unitarios(design/, fallos) → rep. │
+│  Fase 9  test-arquitectura(design/) → design/arch-test-desc.md      │
+│            (descripción de tests de arquitectura; solo descripción) │
+│  Fase 10 Bucle (LIMIT 10):  coherencia tests arquitectura ↔ diseño │
+│            verificador-test-arquitectura(design/) → OK-CORRECTO ?   │
+│              sí  → fin    (vuelca JSONL a log_revision_arch-test.txt)│
+│              no  → corrector-test-arquitectura(design/, fallos)→rep.│
+│  Fase 11 Mensaje de cierre al usuario                               │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-La generación paralela de 5 candidatos en la Tarea 2.1 es la única parte concurrente y solo se permite porque esos subagentes NO usan `AskUserQuestion` (registran sus dudas en un bloque que el agente principal lleva al usuario en la unificación).
-
 ---
 
-## 4. Fase 0 — Localizar la especificación
+## 4. Fase 0 — Localizar la iniciativa y decidir modo
 
 ### 4.1 Caso 1 — Ruta explícita
 
-Si el usuario invoca el skill con una ruta (p.ej. `.sdd/drafts/2026-05-11_23-19_tareas-de-envio-de-correos/specification.md`):
+Si el usuario invoca con una ruta a un `specification.md`:
 
 1. Leer el fichero.
-2. **Validar el frontmatter.** Debe comenzar con un bloque `---` … `---` que contenga `type: specification`. Si falla, detente y muestra:
+2. **Validar el frontmatter**: debe contener `type: specification`. Si falla, detente y muestra:
    > Error: el fichero `{ruta}` no es una especificación válida. Su frontmatter debe incluir `type: specification`.
    > Para crear o mejorar una especificación, usa `/sdd-specification`.
-3. Leer **todos** los `entity-*.md` y `screen-*.md` enlazados desde el `specification.md` (están en la misma carpeta).
-4. La **carpeta de la iniciativa** es la carpeta que contiene el `specification.md`.
+3. La **carpeta de la iniciativa** es la que contiene el `specification.md`.
 
 ### 4.2 Caso 2 — Sin ruta (elección de iniciativa)
-
-Si el skill se invoca sin argumentos:
 
 1. Listar las subcarpetas de `.sdd/drafts/` cuyo nombre cumple `^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}_`:
    ```bash
    ls -d .sdd/drafts/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-9]_*/ 2>/dev/null
    ```
-2. Quedarte con las que contienen `specification.md` y ordenarlas alfabéticamente (el prefijo timestamp hace que el orden alfabético coincida con el cronológico); la **última** es la iniciativa por defecto (recomendada).
-3. Si no hay ninguna carpeta con ese formato que contenga `specification.md`, indicar que no hay especificaciones disponibles y pedir una ruta. Detente.
-4. **Preguntar con `AskUserQuestion`** (pregunta de administración del skill, opciones cerradas) qué iniciativa usar — igual que hace `/sdd-specification` al elegir spec:
-   - **Usar la última** `{nombre-de-la-última}` (recomendado).
-   - **Elegir otra** — muestra el resto de iniciativas con `specification.md` y deja que el usuario seleccione una **distinta de la última** (su spec y, si existe, su diseño).
-
-   Es legítimo elegir una iniciativa que **no** sea la última: la decisión es de **administración del skill**, no de contenido, y **MUST** usar `AskUserQuestion`.
-5. Leer `specification.md` dentro de la carpeta elegida.
-
-Una vez localizado, se aplica el mismo flujo que en el caso 1 (validación de frontmatter y lectura de `entity-*.md` / `screen-*.md` incluidas). El guard §4.4 decide después, **para esa iniciativa**, entre Generar/Regenerar y Revisar/Modificar el diseño.
+2. Quedarte con las que contienen `specification.md` y ordenarlas alfabéticamente (el prefijo timestamp = orden cronológico); la **última** es la recomendada.
+3. Si no hay ninguna, indica que no hay especificaciones disponibles y pide una ruta. Detente.
+4. **Preguntar con `AskUserQuestion`** (administración del skill, opciones cerradas): **Usar la última** `{nombre}` (recomendado) o **Elegir otra** (muestra el resto y deja seleccionar una distinta de la última).
+5. Leer `specification.md` dentro de la carpeta elegida y aplicar el flujo del caso 1.
 
 ### 4.3 Guías de diseño opcionales desde el prompt
 
-**Orden**: el guard §4.4 (¿existe `design/`?) se evalúa **antes** que este apartado. Este apartado **solo** aplica en modo **Generar/Regenerar**. En modo **Revisar/Modificar** el texto adicional del prompt **NO** se persiste como guías: es la lista de cambios puntuales que gestiona §10.
+**Orden**: el guard §4.4 se evalúa **antes** que este apartado, que **solo** aplica en modo Generar/Regenerar. En modo Revisar/Modificar el texto adicional es la lista de cambios (§16), no guías.
 
-Tras resolver la ruta de la especificación y confirmar el modo Generar/Regenerar, si en los argumentos queda texto adicional, se trata como guías de diseño y se gestiona así:
+Tras confirmar el modo Generar/Regenerar, si en los argumentos queda texto adicional:
 
-1. Determinar la ruta `{iniciativa}/design-guidelines.md` (carpeta de iniciativa = la que contiene el `specification.md`).
-2. **Si NO existe el fichero y hay prompt adicional**: créalo con el contenido literal del prompt precedido de la cabecera frontmatter:
+1. Determinar la ruta `{iniciativa}/design-guidelines.md`.
+2. **Si NO existe el fichero y hay prompt adicional**: créalo con el contenido literal del prompt precedido de:
    ```
    ---
    type: design-guidelines
@@ -307,818 +215,431 @@ Tras resolver la ruta de la especificación y confirmar el modo Generar/Regenera
 
    {texto del prompt tal cual}
    ```
-   Indica al usuario: `Guías de diseño guardadas en {ruta}`. Continúa con la Fase 1.
-3. **Si YA existe el fichero y hay prompt adicional**: detente con este error sin crear ni modificar nada:
-   > Error: ya existe `{ruta}/design-guidelines.md`. No se puede pasar guías por el prompt cuando el fichero ya existe — edita el fichero directamente. Razón: garantizar una única fuente de verdad y evitar pérdidas accidentales.
-4. **Si NO hay prompt adicional**: continúa con la Fase 1 (las guías se cargarán allí si el fichero existe).
+   Indica: `Guías de diseño guardadas en {ruta}`. Continúa con la Fase 1.
+3. **Si YA existe y hay prompt adicional**: detente sin tocar nada:
+   > Error: ya existe `{ruta}/design-guidelines.md`. No se puede pasar guías por el prompt cuando el fichero ya existe — edita el fichero directamente. Razón: una única fuente de verdad y evitar pérdidas.
+4. **Si NO hay prompt adicional**: continúa con la Fase 1.
 
 ### 4.4 Guard: ¿ya existe la carpeta `design/`? — elección de modo
 
-Comprobar si **ya existe** una carpeta `design/` no vacía en la carpeta de la iniciativa (`.sdd/drafts/{carpeta}/design/`).
+Comprobar si **ya existe** una carpeta `design/` no vacía en la carpeta de la iniciativa.
 
-- Si **no existe** o está vacía: el modo es **Generar/Regenerar**. Continúa con §4.3 (guías) y luego la Fase 1 → Fase 5.
-- Si **sí existe** (y contiene al menos `design.md`): **detener el flujo y preguntar al usuario con `AskUserQuestion`** (pregunta de administración del skill, opciones cerradas) entre dos opciones:
+- Si **no existe** o está vacía: modo **Generar/Regenerar**. Continúa con §4.3 y luego la Fase 1 → Fase 6.
+- Si **sí existe** (y contiene al menos `design.md`): **detener y preguntar con `AskUserQuestion`** entre:
 
-1. **Revisar / modificar el diseño existente** (recomendado si el `design.md` o los XML se editaron a mano, o si solo quieres aplicar cambios puntuales): el skill **NO regenera**; entra en el **modo Revisar/Modificar (§10)**, que valida el diseño contra el contrato y aplica los cambios que pidas, preservando tus ediciones.
-2. **Regenerar desde la especificación** (pisa el diseño actual): el skill **continúa** con §4.3 y la Fase 1; la carpeta `design/` será borrada y recreada en la Fase 4.
+1. **Revisar / modificar el diseño existente** (recomendado si se editó a mano o solo quieres cambios puntuales): **NO regenera**; entra en el **modo Revisar/Modificar (§16)**.
+2. **Regenerar desde la especificación** (pisa el diseño actual): continúa con §4.3 y la Fase 1; los borradores `design_<n>/` y `design/` se rehacen.
 
 Mensaje exacto al usuario:
 
 > Ya existe `design/` en `{carpeta}`. ¿Qué quieres hacer?
-> - **Revisar / modificar el diseño existente**: preserva tus ediciones, valida XML con xmllint, cobertura spec → V/R/U → ubicación, reglas arquitectónicas y seguridad, y aplica los cambios puntuales que indiques. No regenera.
+> - **Revisar / modificar el diseño existente**: preserva tus ediciones, aplica los cambios que indiques y pasa el verificador. No regenera.
 > - **Regenerar desde la especificación**: descarta el diseño actual y vuelve a generarlo desde cero a partir del spec.
 
-- Si el usuario elige **"Revisar / modificar"**: ve al **§10 (modo Revisar/Modificar)**. Si en el prompt había texto adicional, es la lista de cambios a aplicar; si no lo había, el modo solo valida y corrige (no modifica intención).
-- Si el usuario elige **"Regenerar"**: continúa con §4.3 (guías) y la Fase 1.
+---
+
+## 5. Fase 1 — Cargar el contrato y resolver rutas de entrada
+
+1. **REQUIRED — lee con `Read` la guía `template-system/README.md`** (resuelta contra `--template-dir`): confirma que existe (si no → **ERROR**, STOP condition) y entiende, a alto nivel, qué rol pide a cada subagente. **No** necesitas memorizar su contenido: los subagentes la leerán de disco. Es el **único fichero que el skill conoce por nombre**; el README referencia los demás ficheros de la plantilla, que los subagentes seguirán.
+2. **Resolver las rutas de entrada** que se pasarán a los subagentes (no su contenido):
+   - la ruta de la guía `template-system/README.md` (las **reglas para el diseño**),
+   - la ruta de `specification.md` (la **especificación**),
+   - la ruta de `design-guidelines.md` (las **guías de diseño**) **solo si el fichero existe**; si no, no se pasa.
+3. Si existe `design-guidelines.md`, **validar** su frontmatter `type: design-guidelines`; si no lo tiene → **ERROR**:
+   > Error: el fichero `{ruta}` no es un fichero de guías de diseño válido. Debe empezar con `---` / `type: design-guidelines` / `---`.
+
+No hay más preparación: el skill no carga skills técnicos ni explora el código — eso lo hace cada subagente leyendo el README (que indica qué contexto cargar).
 
 ---
 
-## 5. Fase 1 — Cargar contexto técnico
+## 6. Fase 2 — Diseñar (5 subagentes en paralelo)
 
-### 5.1 Cargar skills técnicos
+**CRITICAL**: lanza **exactamente 5 subagentes diseñadores** en una **única respuesta** con 5 invocaciones a `Agent` simultáneas. **MUST NOT** lanzarlos secuencialmente. **MUST NOT** usar `run_in_background`. Numéralos `n = 1..5`; el diseñador `n` escribe su diseño en la carpeta `design_<n>/` de la iniciativa.
 
-Según las áreas que cubre la especificación:
+> Si en el futuro se quisiera otro número de diseñadores, basta lanzar `N` y numerarlos `1..N`; el resto del flujo (torneo, selección) opera sobre los `design_<n>/` que existan, sea cual sea `N`.
 
-- **Siempre** `k-sistemas` — arquitectura de dominios, servicios, controladores; convenciones de FQN y nombres de clase.
-- **Siempre** `k-validaciones` — categorías V/R/U, en qué capa va cada tipo, cómo se redactan los mensajes. **Es la referencia de la conversión** spec → V/R/U del principio 2.2.
-- **Siempre** `k-code-quality` — reglas de calidad de Java/Kotlin (descomposición de métodos, responsabilidad única, nombrado, idiomas modernos, convenciones Axelor/Guice/JPA). Aplica al diseñar firmas, descomponer servicios en colaboradores y nombrar clases/métodos.
-- **Siempre** `k-secure-coding` — frontera de confianza Axelor, mass-assignment, asignación incondicional de campos `servidor` en `*ServiceImpl.insert/update`, `AllowProperties` por acción, multi-centro/IDOR. **Determina** la clasificación `cliente`/`servidor` del principio 2.3, qué pieza implementa cada R-Antes-de-Crear y cómo se compone la lista blanca de cada `@CallMethod`.
-- Si hay vistas o menús: `k-vistas` — estructura de ficheros XML, nombres de vistas y acciones.
-- Si hay permisos o roles: **MUST NOT** cargar `k-seguridad` (está marcado OBSOLETO). Lee el código real de `src/main/java/com/educaflow/subsystem/security/` para los nombres de permisos/roles y apóyate en `k-secure-coding` para la parte de codificación.
+**Prompt de cada subagente diseñador `n`** (mismo para los 5 salvo el número de carpeta):
 
-Son la fuente de verdad sobre **qué piezas existen y cómo se llaman**, no sobre el código exacto que las implementa.
+> Eres un experto arquitecto y diseñador en Java y el framework Axelor, que tienes que crear un diseño en base a una especificación, unas guías de diseño y unas reglas para el diseño.
+>
+> - **Reglas para el diseño**: lee `{ruta de template-system/README.md}` y **todos los ficheros que referencie**. Son el contrato: define qué producir, cómo, con qué estructura y qué contexto del proyecto cargar. Síguelo al pie de la letra.
+> - **Especificación**: lee `{ruta de specification.md}` y todos los ficheros que enlace.
+> - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(esta línea solo si el fichero existe)*.
+> - **Salida**: escribe el **diseño completo y autosuficiente** en la carpeta `{iniciativa}/design_<n>/`, con la estructura exacta que define el README (incluido su índice `design.md` con frontmatter `type: design`).
+> - **MUST NOT** usar `AskUserQuestion`. Ante una ambigüedad, toma la decisión más razonable y documéntala dentro del propio diseño.
+> - Al terminar, responde **exactamente** `ESCRITO: design_<n>` y, opcionalmente, 1-2 líneas de notas. **MUST NOT** pegar el contenido del diseño en la respuesta (ya está en disco).
 
-### 5.2 Explorar código existente
+Tras los 5: comprueba que cada `design_<n>/` existe y tiene contenido. Si **ninguna** se creó → **ERROR** (STOP condition). Si alguna falta o quedó vacía, descártala: el torneo opera solo sobre las carpetas válidas.
 
-- Leer el `CLAUDE.md` del proyecto para entender capas, convenciones, tipos de usuario y el árbol real de subsistemas existentes.
-- Explorar `src/main/java/com/educaflow/subsystem/` y `src/main/java/com/educaflow/system/` para identificar qué reutilizar (FQN, dependencias) y qué dependencias potenciales hay con subsistemas existentes.
-- Revisar `base/infrastructure/` para identificar utilidades reutilizables (PDF, mail, evaluator, etc.).
-
-**MUST NOT** usar como referencia el código de `expedientes`/`tiposexpedientes`/`tramites` ni leer `design.md`/XML de diseños previos como plantilla (ver principio 2.1).
-
-### 5.3 Marco del spec: entidades, pantallas, reglas y escenarios
-
-El agente principal lee la especificación **una vez** para enmarcar el contexto antes de generar: cuántas entidades (un `entity-*.md` por una), cuántas pantallas (un `screen-*.md` por una), cuántas reglas numeradas (`RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN`) y cuántos escenarios `ESC-NNN` declara, qué subsistemas existentes menciona. No elabora la lista detallada — eso lo hacen los subagentes en la Fase 2.
-
-- **Detección de spec sin escenarios.** Si `specification.md` **no contiene** ningún `ESC-NNN`, la Tarea 2.4 (tests) se omite y no se genera `design/tests.md`; avisa al usuario de que `/sdd-debug-app` no tendrá tests que ejecutar. Lo normal es que el spec tenga escenarios.
-- **Detección de reglas sin numerar.** Si el spec describe reglas pero **sin IDs** (`RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN`), avisa: sin IDs no hay trazabilidad `Origen spec`. Las V/R/U llevarán `—` en `Origen spec` y la cobertura inversa no aplicará. Sugiere relanzar `/sdd-specification` (review) para numerarlas.
-
-### 5.4 Cargar guías de diseño si existen
-
-Comprobar si en `{iniciativa}/design-guidelines.md` existe el fichero:
-
-- Si existe, validar el frontmatter `type: design-guidelines`. Si no lo tiene, detente con error:
-  > Error: el fichero `{ruta}` no es un fichero de guías de diseño válido. Debe comenzar con:
-  > ```
-  > ---
-  > type: design-guidelines
-  > ---
-  > ```
-- Si la cabecera es correcta, extraer las guías como texto literal y mostrar al usuario: `Cargando guías de diseño desde {ruta}`.
-- Si no existe, continuar sin guías (es opcional).
-
-### 5.5 Derivar invariantes verificables a partir de las guías
-
-**REQUIRED**: traducir las guías de `design-guidelines.md` (prosa libre) a invariantes nombradas y verificables antes de generar el diseño. Sin este paso, las guías se incumplen silenciosamente.
-
-Este paso lo ejecuta **el agente principal** (no se delega en subagentes), justo después de cargar las guías y antes del pre-flight de conflictos.
-
-#### Cómo derivar las invariantes
-
-Por cada bloque/párrafo de `design-guidelines.md`, identificar:
-
-1. **Encapsulaciones prescritas** ("X se encapsula en la clase Y", "la lógica de Z vive en W"): producen una invariante negativa de fuga.
-   - Forma: `G-NNN: Solo el fichero/clase Y contiene <patrón concreto>. Cualquier referencia a <patrón> desde otros ficheros del diseño es violación.`
-   - Es **clave** convertir la frase positiva ("encapsular en Y") en su contrapartida negativa verificable ("nadie fuera de Y referencia X-internals"), porque la negación es lo que un `grep` puede comprobar.
-2. **Nombres prescritos** (de clase, paquete, método, fichero, propiedad de configuración): producen invariantes de identidad.
-   - Forma: `G-NNN: La clase se llama exactamente <Nombre> y vive en el paquete <FQN>.`
-3. **Patrones a evitar** ("no usar X", "evitar Y"): producen invariantes negativas directas.
-   - Forma: `G-NNN: Ningún fichero del diseño puede contener <patrón>.`
-4. **Mecánicas obligatorias** ("se hace asíncrono con scheduler", "se firma con HSM", "se valida con regex X"): producen invariantes de mecanismo.
-   - Forma: `G-NNN: La operación <op> se realiza vía <mecanismo>, no de forma <alternativa>.`
-
-#### Formato de las invariantes
-
-Cada invariante lleva:
-
-- **ID** `G-NNN` (numeración local secuencial dentro de la iniciativa).
-- **Texto** en una frase corta, formulada como una afirmación que puede ser cierta o falsa al inspeccionar el `design.md` resultante.
-- **Verificación**: `grep` concreto (si la invariante es un patrón textual sobre el diseño) o `manual` (si requiere lectura semántica).
-
-Ejemplo (derivado del caso `enviar-correos`, design-guidelines que pedía encapsular SMTP en `MailSenderProvider`):
-
-```
-G-001  Solo `module/MailSenderProvider.java` lee las propiedades `mail.smtp.*` de AppSettings.
-       Verificación: grep -rnE "AppSettings.*mail\.smtp|mail\.smtp\.[a-z]+" design/ design.md
-                     → todas las coincidencias deben estar bajo la sección/fichero MailSenderProvider.
-
-G-002  La clase de provisión se llama exactamente `MailSenderProvider` y vive en el paquete
-       `com.educaflow.subsystem.correos.module`.
-       Verificación: grep -n "MailSenderProvider" design.md  → debe aparecer; grep de variantes
-                     (MailProvider, MailSenderFactory) → 0 coincidencias.
-
-G-003  El envío de correos es asíncrono vía scheduler con cron de cada minuto, no síncrono en
-       la creación de TareaCorreo.
-       Verificación: manual (revisar paso del job y MetaSchedule).
-```
-
-#### Qué hacer con las invariantes
-
-- Mostrar la lista al usuario con `AskUserQuestion` (`¿son correctas estas invariantes derivadas de tu guía?`) **solo si** alguna no es obvia o si el agente principal tiene dudas sobre la traducción. Si la derivación es mecánica y unívoca, no preguntar (no se piden aprobaciones cosméticas).
-- Pasarlas a los subagentes en Fase 2 (ver §6.2).
-- Re-verificarlas mecánicamente al final de Fase 2 (ver §6.7).
-- Incluirlas en el `design.md` final (ver §8.5) para que `sdd-implementer-system` (sobre el código) y el modo Revisar/Modificar (§10, sobre el diseño) puedan re-comprobarlas.
-
-Si **no hay** `design-guidelines.md`, este paso se omite (no se inventan invariantes).
-
-### 5.6 Pre-flight de conflictos guías ↔ especificación
-
-Solo si hay guías cargadas:
-
-- Comparar cada guía con la especificación (entidades, acciones, vistas, validaciones, seguridad).
-- Si detectas un conflicto (una guía contradice una decisión explícita del spec), **detente y pregunta al usuario con `AskUserQuestion`**. Opciones:
-  - (a) actualizar la guía manualmente,
-  - (b) actualizar la especificación re-ejecutando `/sdd-specification`,
-  - (c) ignorar el conflicto explícitamente.
-
-No continuar hasta que el conflicto esté resuelto.
+- ✅ CORRECTO (respuesta del diseñador): `ESCRITO: design_3`
+- ❌ INCORRECTO: `He guardado el diseño 3` (token no parseable), pegar el `design.md` completo en la respuesta (gasta contexto, ya está en disco)
 
 ---
 
-## 6. Fase 2 — Generación del diseño
+## 7. Fase 3 — Elegir el mejor diseño (torneo del juez)
 
-### 6.1 Arquitectura: cuatro tareas secuenciales
+El ganador se decide por **torneo acumulativo** con un subagente **juez** que compara **dos diseños cada vez**. Sea `D` la lista ordenada de carpetas válidas (`design_1`, `design_2`, …):
 
-La generación se hace en cuatro tareas estrictamente secuenciales:
+1. `ganador = D[0]`.
+2. **Para cada** `design_i` siguiente de la lista: lanza el juez con (`ganador`, `design_i`); su veredicto pasa a ser el nuevo `ganador`.
+3. Al agotar la lista, `ganador` es el diseño elegido.
 
-1. **Tarea 2.1 — Candidatos**: lanzar **exactamente 5 subagentes en paralelo** que producen 5 propuestas de diseño independientes (cada una ya hace la conversión spec → V/R/U y la clasificación `cliente`/`servidor`).
-2. **Tarea 2.2 — Unificación**: el agente principal compara las 5 propuestas y produce el diseño unificado final.
-3. **Tarea 2.3 — Diseño detallado de reglas R complejas**: sobre el diseño unificado, el agente principal identifica las reglas de negocio `R-` complejas y lanza **un subagente por cada una** que produce un fichero `rules/R-<Entidad>-NNN.md`.
-4. **Tarea 2.4 — Materialización de tests E2E**: un subagente materializa `tests.md` desde los `ESC-NNN` del spec usando el diseño unificado y los `screen-*.md` / `entity-*.md` como referencia de nombres reales. **Opcional** — solo si el spec tiene `ESC-NNN`.
+Cada invocación del juez es **secuencial** (depende del ganador anterior). Si solo hay **una** carpeta válida, no hay torneo: esa es el ganador.
 
-La generación paralela en la Tarea 2.1 aporta diversidad de decisiones. La unificación elige la mejor opción por cada decisión y resuelve dudas con el usuario. La Tarea 2.3 es **opcional** (si ninguna regla es lo bastante compleja, se omite). La Tarea 2.4 es **opcional** (si el spec no tiene escenarios, se omite).
+**Prompt del subagente juez** (en cada comparación):
 
-### 6.2 Tarea 2.1 — 5 subagentes en paralelo
+> Eres un experto arquitecto y diseñador en Java y el framework Axelor, que tienes que elegir entre 2 diseños en base a una especificación, unas guías de diseño y unas reglas para el diseño.
+>
+> - **Reglas para el diseño**: lee `{ruta de template-system/README.md}` y los ficheros que referencie.
+> - **Especificación**: lee `{ruta de specification.md}` y los ficheros que enlace.
+> - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
+> - **Diseños a comparar**: la carpeta `{iniciativa}/{ganador}` (la llamo `<carpeta-A>`) y la carpeta `{iniciativa}/design_<i>` (la llamo `<carpeta-B>`).
+> - Elige cuál de los dos cumple mejor la especificación, las guías y las reglas, **detallando las ventajas concretas de CADA uno de los dos diseños** y con cuál te quedas.
+> - Responde con este formato **exacto** (cuatro bloques, en este orden):
+>   - Primera línea: **exactamente** `GANADOR: <nombre-de-carpeta>` (una de las dos comparadas).
+>   - Una línea **exactamente** `=== VENTAJAS <carpeta-A> ===` y debajo, en bullets (`- `), las **ventajas concretas** de ese diseño (qué hace bien, qué punto del spec/guías/reglas cubre mejor — no elogios genéricos). **LIMIT**: 2-6 bullets.
+>   - Una línea **exactamente** `=== VENTAJAS <carpeta-B> ===` y debajo, igual, las ventajas concretas del otro diseño. **LIMIT**: 2-6 bullets.
+>   - Una línea **exactamente** `=== JUSTIFICACIÓN ===` y debajo la justificación: **MUST** explicar **por qué** el ganador es mejor **frente al otro diseño**, citando las diferencias decisivas (qué hace mejor el ganador, en qué falla o se queda corto el perdedor) y, cuando aplique, contra qué punto de la especificación, las guías o las reglas. **LIMIT**: entre 3 y 8 líneas.
+>   - `<carpeta-A>`/`<carpeta-B>` son los nombres reales de las dos carpetas comparadas (p.ej. `design_2`, `design_3`).
 
-**CRITICAL**: lanza **exactamente 5 subagentes** en una **única respuesta** con 5 invocaciones a `Agent` simultáneas. **MUST NOT** lanzarlos secuencialmente. **MUST NOT** usar `run_in_background` (necesitas los resultados para la Tarea 2.2). Los 5 reciben **el mismo prompt** y devuelven solo el contenido del diseño en su mensaje de respuesta, sin escribir ningún fichero.
+El skill parsea la primera línea `GANADOR: design_<n>`. Si el token no aparece, no es una de las dos carpetas comparadas, o falta alguno de los tres bloques `=== … ===`, **reintenta esa comparación 1 vez**; si vuelve a fallar → **STOP** (STOP condition).
 
-Los 5 subagentes **MUST NOT** usar `AskUserQuestion` (corren en paralelo). Si encuentran ambigüedad, eligen la interpretación más razonable y la registran en un bloque `=== DUDAS ===` al final de su respuesta; el agente principal recogerá las dudas de la candidatura ganadora y las llevará al usuario en la Tarea 2.2.
+**REQUIRED — mostrar por pantalla y registrar en `log_best.txt`.** Tras cada comparación válida, antes de seguir el torneo, el skill **MUST**:
 
-**Contenido del prompt único (común a los 5 subagentes):**
-
-- El texto **literal** de `specification.md` y de **todos** los `entity-*.md` / `screen-*.md` enlazados.
-- La carpeta de trabajo determinada en la Fase 0.
-- El contexto técnico de la Fase 1: subsistemas reutilizables con su FQN (`com.educaflow.subsystem.X.db.Y`), infraestructura en `base/infrastructure/`, patrones reales de servicios y controladores ya implementados — **descritos como contrato**, no como código copiado.
-- El contenido relevante de los skills cargados (`k-sistemas`, `k-validaciones`, `k-code-quality`, `k-vistas`, `k-secure-coding`) resumido inline. **El subagente NO carga skills** — solo lee el prompt.
-- Las **invariantes `G-NNN` derivadas en §5.5** (si había guías) en formato tabla, seguidas del **texto literal** de la guía. El subagente debe redactar el diseño de forma que **cada invariante quede satisfecha**. Para cada `G-NNN`, al final de su respuesta el subagente declara una tabla `G-NNN | ubicación en el diseño que la cumple | método de verificación`. Si una invariante no puede satisfacerse por incompatibilidad local con el spec, va a `=== DUDAS ===`. Si no había `design-guidelines.md`, omitir el bloque de invariantes.
-- Los principios 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8 y 2.9 (transmitir literalmente).
-- El formato de salida esperado (ver §6.2.2) y el checklist (ver §6.4).
-- Las **cuatro tareas internas** del subagente (ver §6.2.1): leer/convertir, construir, detallar, aplicar el checklist.
-
-#### 6.2.1 Tareas internas del subagente
-
-El prompt debe encargar al subagente, en este orden:
-
-1. **Leer la especificación dos veces.** 1.ª pasada: enmarcar el alcance (entidades, pantallas). 2.ª pasada: **convertir cada regla del spec** (`RES`/`VAL`/`RN`/`RUI`/`CC-NNN`) a su V/R/U (principio 2.2) y **clasificar cada campo** `cliente`/`servidor` (principio 2.3, apoyándose en las líneas `Input AllowProperties` y los `CC-NNN` del spec).
-2. **Construir el diseño**: cabecera (Objetivo, Capa, Especificación de origen, Skills necesarios), tabla de ficheros a crear o modificar, y lista de pasos respetando el orden obligatorio (ver 6.3).
-3. **Detallar contenido del diseño, XML y trazabilidad**:
-   - **Dominios** — escribir el XML completo de cada entidad en un bloque ```xml etiquetado con la ruta destino:
-
-     ````
-     Fichero: design/domains/Bar.xml
-     ```xml
-     <?xml version="1.0" encoding="UTF-8"?>
-     <domain-models ...>
-       ...
-     </domain-models>
-     ```
-     ````
-
-     Válido contra `domain-models.xsd`.
-   - **Servicios y controladores** — clases con FQN y, para cada una, todas las firmas de método (modificadores, retorno, parámetros, excepciones) con comentario descriptivo del cuerpo (qué reglas aplica, qué llamadas hace, qué efectos colaterales). **Sin código Java real dentro.**
-   - **Vistas** — XML completo de cada fichero (`<grid>`, `<form>`, `<cards>`, `<action-method>`, `<action-attrs>`, `<action-validate>`, `<action-condition>`, `<action-record>`, `<action-group>`, `<action-view>`) en bloques etiquetados con ruta `design/views/<Fichero>.xml`, válido contra `object-views.xsd`. Acompañado de un resumen estructural corto.
-   - **Menús** — XML completo de los `<menuitem>` en un bloque etiquetado `Fichero: design/menus.xml`. Válido contra `object-views.xsd`.
-   - **Seguridad** — permisos, roles, grupos por nombre y la regla de acceso en lenguaje natural.
-   - **Trazabilidad** — matriz con tres bloques (`V-<Entidad>-NNN`, `R-<Entidad>-NNN`, `U-<slug>-NNN`), cada fila con su **`Origen spec`** (IDs `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` o `—`) y su **ubicación** (clase.método o fichero XML + nombre de acción), demostrando que **toda regla del spec está ubicada** según el mapeo de capas del principio 2.7. Las reglas del spec que no se mapeen van a la sección "Reglas del spec descartadas" con justificación.
-4. **Aplicar el checklist y corregir antes de devolver** (ver 6.4). El subagente NO debe devolver el diseño hasta que todos los puntos del checklist estén satisfechos.
-
-#### 6.2.2 Estructura del diseño que devuelve el subagente
-
-```markdown
-# Diseño: <Nombre>
-
-**Objetivo:** <Una frase>
-**Capa:** system|subsystem/<nombre>
-**Especificación de origen:** .sdd/drafts/{carpeta-iniciativa}/specification.md
-**Skills necesarios para la implementación:** k-sistemas, k-code-quality, k-secure-coding, k-vistas
-
-## Ficheros a crear o modificar
-
-| Fichero | Acción | Skill | Descripción |
-|---------|--------|-------|-------------|
-| `subsystem/foo/domains/Bar.xml` | Crear | k-sistemas (modelos.md) | Entidad Bar |
-| `subsystem/foo/views/Bar.xml`   | Crear | k-vistas (forms.md, grids.md) | Vistas de Bar |
-| `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml` | Modificar | k-vistas (menus.md) | Añadir menú del subsistema |
-| ... | | | |
-
-## Pasos
-
-### Paso N — <Título>
-...
-
-## Frontera de confianza — AllowProperties por acción
-...
-
-## Trazabilidad Origen spec → V/R/U → ubicación
-...
-
-## Reglas del spec descartadas
-...
-
-=== DUDAS ===
-- ...
-=== END DUDAS ===
-```
-
-### 6.3 Reglas para los pasos
-
-Cada paso debe:
-
-- Tener un título claro.
-- Indicar qué se va a crear o modificar **a nivel de estructura**, no a nivel de implementación.
-- Para **dominios**: el XML completo en un bloque ```xml etiquetado con `design/domains/<Entidad>.xml`. Válido contra `domain-models.xsd`.
-- Para **servicios/controladores**: clase con FQN y, para cada método, firma completa + comentario descriptivo del cuerpo. **MUST NOT** incluir el cuerpo implementado.
-- Para **vistas**: el XML completo en un bloque ```xml etiquetado con `design/views/<Fichero>.xml`, válido contra `object-views.xsd`, acompañado de un resumen estructural corto.
-- Para **menús**: el XML completo de los `<menuitem>` en un bloque ```xml etiquetado con `design/menus.xml`.
-- Para **seguridad**: permisos, roles, grupos y reglas descritas en lenguaje natural.
-- Ser lo suficientemente pequeño para implementarse y verificarse de forma independiente (≤ 30 minutos).
-- Indicar qué verificar al final (¿compila?, ¿qué grep confirma que está bien?).
-
-**Orden obligatorio de los pasos:**
-
-1. **Ficheros estáticos y recursos** (si los hay) — plantillas PDF, esquemas XSD, certificados.
-2. **Dominios** — XML completo de cada entidad, un bloque por entidad con ruta `design/domains/<Entidad>.xml`.
-3. **Servicios** — interfaz `<Entidad>Service` (extiende `ModelService<Entidad>`) + implementación `<Entidad>ServiceImpl` (extiende `DefaultModelService<Entidad>`). Firma completa + comentario del cuerpo para cada método (constructor, CRUD, `validateInsert`/`validateUpdate`/`validateRemove`, `fireActionRule_*`, métodos de negocio).
-4. **Repositorios** (si hay queries propias) — `db/repo/` con la lista de finders adicionales (firma + comentario del cuerpo).
-5. **Controladores** (si hay lógica de botones) — clase con FQN; para cada `@CallMethod`, firma y comentario que indique en qué método de servicio delega. Parámetros llamados **siempre** `actionRequest` y `actionResponse` (ver principio 2.9).
-6. **Vistas** — un fichero XML por `<action-view>` (regla "un `<action-view>` por fichero"). XML completo + resumen estructural por fichero.
-7. **Menús** — modificación del `menus.xml` único del proyecto; en `design/menus.xml` la porción a fusionar.
-8. **Seguridad** — `data-init/input/` con la lista de permisos, roles, grupos y la descripción en lenguaje natural de cada regla de acceso.
-9. **Datos iniciales** — catálogos precargados (descripción de qué registros se cargan, no el XML de import).
-10. **Verificación final** — compilar y confirmar que arranca sin errores. Comando exacto.
-
-#### 6.3.1 Detalle del paso de servicios (cómo documentar V y R)
-
-Cada firma de `validateInsert`/`validateUpdate`/`validateRemove` (para V-) y de `fireActionRule_*` (para R-) lleva un comentario que describe, **para cada regla ubicada en ese método**:
-
-1. **Identificador** (`V-<Entidad>-NNN` o `R-<Entidad>-NNN`) y su **`Origen spec`** (IDs `RES-`/`VAL-`/`RN-`/`CC-NNN` o `—`).
-2. **Lógica resumida** — qué se comprueba (V) o qué hace el sistema (R).
-3. Para V: **contenido del mensaje de error** descrito por lo que debe transmitir (valor recibido + dominio válido). **No el literal.**
-4. Para R: **momento** (Antes/Después de `super.*`) y **efectos colaterales** previstos.
-5. Si los valores válidos o las dependencias vienen de BD, indicar la fuente (catálogo, repositorio, etc.).
-
-Ejemplo:
-
-```java
-// Clase: com.educaflow.subsystem.foo.service.impl.BarServiceImpl
-// Método:
-public Optional<BusinessMessages> validateInsert(Bar entidad);
-//   Aplica:
-//     - V-Bar-001 (Origen spec: VAL-007) alias del HSM: comprueba que el alias exista en el
-//       slot indicado. Mensaje debe transmitir: alias recibido + slot recibido + lista de
-//       aliases disponibles (del repositorio de aliases del slot, en try/catch para que un
-//       fallo de conectividad no bloquee otras validaciones).
-//     - V-Bar-002 (Origen spec: RES-003) longitud del nombre: comprueba 3..50 caracteres.
-//       Mensaje debe transmitir: nombre recibido + longitud actual + rango.
-```
-
-#### 6.3.2 Detalle del paso de servicios (cómo documentar campos `servidor` — defensa anti mass-assignment)
-
-Para cada R-<Entidad>-NNN con momento `Antes` que asigna un campo clasificado como `servidor` (principio 2.3), el comentario del `fireActionRule_*` correspondiente **MUST** documentar explícitamente:
-
-1. Que la asignación es **incondicional** (sin `if (campo == null)`). Ver `[[k-secure-coding]]` §3.3.
-2. El origen del valor (`LocalDateTime.now()`, `AuthUtils.getUser().getCentro()`, constante del enum, etc.).
-3. Que el cliente NO puede dictar este campo aunque venga relleno en el JSON del endpoint REST genérico.
-
-✅ CORRECTO (comentario en `design.md`):
-
-```java
-private void fireActionRule_AsignarFechaCreacion(Bar bar);
-//   Aplica R-Bar-001 (Origen spec: CC-002, campo `fechaCreacion` clasificado `servidor`):
-//   asignación INCONDICIONAL `bar.setFechaCreacion(LocalDateTime.now())`.
-//   MUST NOT añadir guarda `if (bar.getFechaCreacion() == null)`: permitiría que un
-//   atacante por el endpoint REST genérico cuele una fecha falsificada (ver k-secure-coding §3.3).
-```
-
-❌ INCORRECTO:
-
-```java
-private void fireActionRule_AsignarFechaCreacion(Bar bar);
-//   Si fechaCreacion es null, asignar LocalDateTime.now().
-```
-
-Para campos inmutables tras crear (típico `fechaCreacion`, `numeroSecuencial`), el `design.md` **MUST** excluirlos de la whitelist `allowPropertiesUpdate` para que el cliente no pueda enviarlos (ver `[[k-secure-coding]]` §3.2, forma whitelist). El spec lo refleja porque esos campos aparecen en la línea `Input AllowProperties` de `Crear` pero **no** en la de `Modificar`.
-
-#### 6.3.3 Sección "Frontera de confianza — AllowProperties por acción"
-
-El `design.md` final **MUST** llevar una sección `## Frontera de confianza — AllowProperties por acción` siempre que el diseño declare al menos una acción del servicio invocada desde un `@CallMethod`, con una tabla por cada una de esas acciones. La tabla materializa la decisión de seguridad sobre qué campos del bean acepta esa acción, partiendo de las líneas `**Input AllowProperties:**` del `entity-*.md` del spec. (Si el diseño no tiene ningún `@CallMethod`, la sección se omite.)
-
-> Las reglas de validez (qué forma elegir, qué campos pueden o no estar) viven en `[[k-secure-coding]]` §3. Este apartado solo fija **el formato del documento**; las reglas no se repiten aquí.
-
-**Formato de cada tabla**:
-
-```markdown
-### `BarServiceImpl.<accion>` (invocado desde `BarController.<callMethod>`)
-
-Entidad: `Bar`. **Forma elegida**: `createAllowProperties` | `createAllowAllProperties`.
-**Origen spec:** `Input AllowProperties` de la acción `<Acción>` de `entity-Bar.md`.
-
-| Campo            | Origen   | En whitelist | Justificación / Ubicación de la asignación              |
-|------------------|----------|--------------|---------------------------------------------------------|
-| `nombre`         | cliente  | sí           | Input directo del usuario (en `Input AllowProperties`). |
-| `fechaCreacion`  | servidor | **NO**       | Asignada en `BarServiceImpl.insert` → `fireActionRule_…`; en `update` no se toca (excluida de la whitelist). |
-| `estado`         | servidor | **NO**       | Recalculada en `BarServiceImpl.update` → `fireActionRule_…`. |
-```
-
-Si hay alta programática vía DTO (`record`), añadir sub-apartado `### DTO de alta programática` con los campos del record y justificación de cualquier `servidor` que aparezca.
-
-Esta sección es el contrato de seguridad. El modo Revisar/Modificar (§10) la valida aplicando `[[k-secure-coding]]` §3, `sdd-implementer-system` la usa para generar el `allowPropertiesXxx` real, y los code-reviews humanos la consultan ante cualquier campo nuevo.
-
-### 6.4 Checklist que el subagente aplica en su Tarea 4
-
-El subagente revisa su propio diseño contra esta lista y corrige antes de devolverlo. Si algún punto no se cumple, **MUST NOT** devolver el diseño hasta arreglarlo. **LIMIT**: máximo 3 iteraciones de auto-corrección; si tras la 3ª sigue sin cumplirse algún punto, lo deja registrado en `=== DUDAS ===` y devuelve.
-
-- [ ] ¿Cada paso tiene toda la información para que un implementador entienda qué hay que crear sin leer el resto del diseño?
-- [ ] ¿Los nombres de clases, métodos, ficheros y acciones son coherentes entre todos los pasos?
-- [ ] ¿Ningún paso contiene placeholders del tipo "TBD", "similar a", "según convenga"? (si los hay, sustituir por contenido concreto)
-- [ ] ¿El paso de verificación final incluye el comando exacto de compilación?
-- [ ] ¿El paso de dominios incluye el XML completo de cada entidad en un bloque ```xml etiquetado con `design/domains/<Entidad>.xml`? El XML debe ser sintácticamente válido contra `domain-models.xsd`.
-- [ ] ¿El paso de servicios contiene SOLO firmas de método con comentarios descriptivos del cuerpo, y NO cuerpos implementados? Si hay código Java real (lógica, `if`, `for`, `messages.add(...)` con literales), eliminarlo y dejarlo como comentario.
-- [ ] ¿El paso de vistas incluye el XML completo de cada fichero en un bloque ```xml etiquetado con `design/views/<Fichero>.xml`, acompañado de un resumen estructural? Válido contra `object-views.xsd`.
-- [ ] ¿Hay un bloque ```xml etiquetado con `design/menus.xml`? Válido contra `object-views.xsd`.
-- [ ] ¿Cada `<action-view>` está declarado en su propio fichero (regla 2.9)? Excepción: `@Search-grid`+`@View-form` van juntos en `<NombreEntidad>-ref.xml`.
-- [ ] ¿La tabla "Ficheros a crear o modificar" lista los menús como "Modificar `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`", no como un fichero nuevo `menus-<subsistema>.xml`?
-- [ ] ¿Los parámetros de los métodos del controlador se llaman `actionRequest` y `actionResponse`?
-- [ ] ¿Cada V/R/U tiene su columna **`Origen spec`** con los IDs `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` que la originaron (que existen realmente en el spec), o `—` si la añadió el diseño?
-- [ ] ¿Cada campo de cada dominio está clasificado `cliente` o `servidor` de forma coherente con las líneas `Input AllowProperties` y los `CC-NNN` del spec? ¿Cada `servidor` está respaldado por una R-Antes (salvo derivados de solo lectura) y ningún `cliente` aparece asignado por una R-Antes-de-Crear?
-- [ ] ¿Cada `CC-NNN` del spec está reflejado como campo `servidor` + R-Antes (escritura) o campo derivado de solo lectura (lectura)?
-- [ ] ¿Cada método en el paso de servicios tiene un comentario que indica qué reglas `V-`/`R-` aplica (con su `Origen spec`), qué lógica ejecuta y qué transmiten los mensajes de error?
-- [ ] ¿Cada acción de vista declarada tiene un comentario de su propósito y los campos/condiciones que intervienen?
-- [ ] ¿Las reglas están mapeadas a la capa correcta según el principio 2.7?
-- [ ] ¿El diseño tiene la sección `## Frontera de confianza — AllowProperties por acción` con una tabla por cada acción del servicio invocada desde un `@CallMethod`, en el formato fijado en §6.3.3, y pasando las reglas de `[[k-secure-coding]]` §3?
-- [ ] ¿Cada R-<Entidad>-NNN con momento `Antes` que asigna un campo `servidor` documenta asignación **incondicional** (sin `if (campo == null)`) y referencia `[[k-secure-coding]]` §3.3?
-- [ ] ¿Ningún cuerpo de método del diseño contiene el anti-patrón `if (campo == null) setCampo(...)` para campos `servidor`?
-- [ ] ¿TODAS las reglas `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` del spec están mapeadas a una V/R/U ubicada (o a un campo del modelo, para `CC-` de lectura), **o** listadas en "Reglas del spec descartadas" con justificación?
-- [ ] ¿La matriz de trazabilidad tiene una entrada por cada V/R/U y cada entrada apunta a una clase + método o fichero XML + nombre de acción/atributo y declara su `Origen spec`?
-- [ ] ¿Ningún paso crea un módulo Guice para un `ModelService`? (si lo crea, eliminarlo — regla 2.9)
-- [ ] ¿Ningún paso crea un listener JPA para lógica de negocio? (si lo crea, moverlo al servicio como `fireActionRule_*`)
-- [ ] ¿Cada paso es lo suficientemente pequeño para implementarse y verificarse en ≤ 30 minutos?
-- [ ] ¿Los pasos respetan el orden obligatorio de 6.3?
-- [ ] ¿El diseño referencia el `specification.md` en la cabecera?
-- [ ] ¿El diseño respeta todas las guías de diseño recibidas? Si alguna no se ha podido respetar por incompatibilidad con el spec, ¿está documentada en una sección "Conflictos detectados con guías"?
-
-### 6.5 Tarea 2.2 — Unificación (agente principal)
-
-Una vez recibidas las 5 candidaturas, **tú mismo** (no un subagente) produces el diseño unificado:
-
-1. **Comparar las 5 candidaturas** sección por sección y paso por paso.
-2. **Para cada decisión donde haya divergencia** (troceo de pasos, nombres de clases o métodos, estructura de vistas, conversión de una regla del spec a V/R/U, clasificación `cliente`/`servidor` de un campo, ubicación de cada regla), escoge la mejor opción según los principios de `k-sistemas`, `k-validaciones`, `k-vistas` y `k-secure-coding`. En empate razonable, elige la opción que minimiza ambigüedad para el implementador.
-3. **Tabla de ficheros a crear o modificar**: consolida la unión de todos los ficheros propuestos, eliminando duplicados y descartando los que no aporten valor real.
-4. **Pasos**: escoge el troceo más limpio (cada paso ≤ 30 minutos, autocontenido, con verificación clara al final). Combina lo mejor de cada candidatura respetando el orden obligatorio.
-5. **Dominios, vistas y menús (XML)**: para cada fichero escoge la versión más correcta según `k-sistemas` y `k-vistas` y la coherencia con subsistemas existentes.
-6. **Firmas de servicios y controladores**: escoge las firmas y comentarios más claros. Si una candidatura tiene comentarios más detallados sobre las reglas que aplica un método, úsalos.
-7. **Conversión spec → V/R/U y clasificación `cliente`/`servidor`**: unifica las decisiones de las candidaturas. Si difieren en cómo mapean una regla del spec o en cómo clasifican un campo, elige la coherente con `k-validaciones` / `k-secure-coding` y las líneas `Input AllowProperties` del spec.
-8. **Trazabilidad**: construye una matriz que cubra **todas** las reglas del spec. Cada fila lleva `Origen spec` y apunta al método o acción concreta del diseño. Si algún `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` del spec queda sin V/R/U y sin justificación en "Reglas del spec descartadas", **MUST** completarlo antes de cerrar — **MUST NOT** cerrar con huecos de cobertura.
-9. **Renumera los pasos** de forma consecutiva sin huecos, respetando el orden obligatorio.
-10. **Guías de diseño**: aplícalas como criterio adicional en cualquier empate. Si una opción respeta una guía y la otra no, escoge la que la respeta.
-11. **Dudas y conflictos**:
-    - Toma el bloque `=== DUDAS ===` de la candidatura ganadora (y de las demás si añaden dudas relevantes); plantea cada una al usuario con `AskUserQuestion` y aplica las respuestas al diseño.
-    - Consolida los "Conflictos detectados con guías" de los 5 subagentes. Si tras la unificación queda algún conflicto sin resolver, **detente y pregunta al usuario con `AskUserQuestion`** antes de cerrar.
-
-Si en la unificación detectas algo ambiguo o faltante que ninguna candidatura resolvió, decide la opción más conservadora (que mantenga trazabilidad con el spec y respete los skills) y anota el motivo en una sección "Notas de unificación" al final del diseño, **fuera de los pasos**.
-
-**LIMIT**: máximo 3 rondas de `AskUserQuestion` durante la unificación. Si tras la 3ª siguen abiertos puntos críticos, **STOP** y pide al usuario que reabra el spec o las guías.
-
-El resultado de la Tarea 2.2 es el **diseño unificado** que pasa a la Tarea 2.3.
-
-### 6.6 Tarea 2.3 — Diseño detallado de reglas R complejas
-
-Sobre el diseño unificado de la Tarea 2.2, el agente principal recorre la matriz de trazabilidad `R-<Entidad>-NNN` → ubicación y decide cuáles requieren un fichero de diseño detallado aparte.
-
-#### 6.6.1 Criterios para considerar una regla "compleja"
-
-Una regla `R-<Entidad>-NNN` se considera compleja — y por tanto necesita su propio fichero `rules/R-<Entidad>-NNN.md` — si su implementación cumple **al menos uno** de estos criterios:
-
-- Necesita **clases auxiliares** propias (helpers, builders, calculadoras, parsers, generadores) que no encajan en el `*ServiceImpl` y que no son utilidades genéricas de `base/infrastructure/`.
-- Necesita **tipos propios** del dominio de la regla (DTOs, value objects, records, sealed types) que no son entidades JPA y no existen ya.
-- Necesita **interfaces nuevas** (contratos para estrategias, adaptadores de integración, ports de hexagonal).
-- Implementa una **máquina de estados** con transiciones, guardas y acciones por transición.
-- Coordina **varios subsistemas** o servicios (más de dos colaboradores externos al servicio donde vive `fireActionRule_*`).
-- Integra con un **sistema externo** (correo SMTP, HSM, firma, OCR, registro telemático, pasarela de pagos, etc.) más allá de un wrapper trivial.
-- Aplica un **algoritmo no trivial** (planificación, optimización, conciliación, paginación específica, retry/backoff con políticas) que merece quedar documentado.
-- Tiene **efectos colaterales transaccionales** complejos (commit/rollback parcial, idempotencia, deduplicación, locks).
-- Genera artefactos (PDF, CSV, XML firmado) con su propio diseño de plantilla, contenido y composición.
-
-Una regla que se reduce a 2-3 llamadas directas a un servicio existente **no** es compleja: se documenta inline en el comentario del `fireActionRule_*` del `design.md` y no necesita fichero aparte.
-
-#### 6.6.2 Cómo lanzar los subagentes
-
-Para cada regla compleja identificada, **lanza un subagente** con `Agent`. Si hay varias reglas complejas independientes entre sí:
-
-- **CRITICAL**: lánzalos **todos en una única respuesta** con N invocaciones a `Agent` simultáneas (una por regla compleja). **MUST NOT** lanzarlos secuencialmente.
-- **MUST NOT** usar `run_in_background` — necesitas los resultados completos para continuar.
-- **MUST NOT** usar `AskUserQuestion` dentro de los subagentes: registran sus dudas en un bloque `=== DUDAS ===` al final y el agente principal las recoge tras la espera.
-
-**Contenido del prompt de cada subagente (uno por regla compleja):**
-
-- El identificador de la regla (`R-<Entidad>-NNN`), su `Origen spec` y su descripción literal extraída del `entity-<Entidad>.md` del spec (la `RN-NNN` correspondiente).
-- La entidad afectada y la operación que la dispara (insert/update/remove/operación custom) según la acción del `entity-*.md`.
-- El momento previsto (Antes/Después de `super.*`) decidido en la unificación (orientado por la `fase` de la `RN-NNN` del spec).
-- El FQN de la clase y el nombre del método `fireActionRule_*` donde vivirá (decidido en la unificación).
-- El contexto técnico relevante de la Fase 1: subsistemas existentes que puede reutilizar, infraestructura de `base/infrastructure/` disponible, FQN de tipos y servicios ya implementados.
-- El contenido relevante de `k-code-quality` resumido inline.
-- Los principios 2.1, 2.4 y 2.9 (transmitir literalmente).
-- La instrucción de **NO usar `AskUserQuestion`** y de registrar dudas en `=== DUDAS ===`.
-- Las dos tareas internas del subagente (ver 6.6.3) y el formato de salida esperado (ver 6.6.4).
-
-#### 6.6.3 Tareas internas del subagente
-
-El subagente ejecuta **estas dos tareas en orden**:
-
-1. **Análisis de la regla**: antes de proponer ningún diseño, escribe (en la sección `## Análisis de la regla` del fichero markdown) qué hace la regla en términos funcionales, paso a paso:
-   - Qué se dispara y cuándo (entidad, operación, momento).
-   - Qué información necesita leer y de dónde (otras entidades, parámetros del request, configuración, integraciones externas).
-   - Qué acciones realiza y en qué orden (cálculos, llamadas, escrituras, notificaciones).
-   - Qué efectos colaterales produce y qué garantías de transaccionalidad/idempotencia debe cumplir.
-   - Qué casos de error o excepciones puede encontrar y cómo deben tratarse.
-   - Qué entradas/salidas tiene cada colaborador identificado.
-
-   **Solo después de tener el análisis completo** pasa a la siguiente tarea.
-
-2. **Diseño detallado**: a partir del análisis, define las piezas que hacen falta — sin escribir el cuerpo Java:
-   - **Clases nuevas** con su FQN, su responsabilidad en una frase y sus métodos (firma completa + comentario descriptivo del cuerpo).
-   - **Interfaces** con sus métodos y la justificación de por qué se necesita la abstracción.
-   - **Tipos propios** (DTOs, value objects, records, sealed types, enums) con sus campos y su semántica.
-   - **Diagrama de secuencia** en ASCII o lista numerada que muestre el orden de llamadas entre colaboradores.
-   - **Tabla de errores**: para cada excepción/condición de error, qué pieza la genera, cómo se traduce a `BusinessMessages` o se propaga.
-   - **Contenido del método `fireActionRule_*`** — únicamente la firma + un comentario que liste, en orden, las llamadas a los colaboradores y referencie este fichero como fuente del diseño completo. **Sin código Java real dentro.**
-
-#### 6.6.4 Formato de salida del subagente
-
-El subagente devuelve **dos cosas** en su respuesta:
-
-1. El **contenido completo del fichero markdown** `rules/R-<Entidad>-NNN.md`, dentro de un bloque etiquetado `=== FILE: rules/R-<Entidad>-NNN.md ===` … `=== END FILE ===`. Estructura del fichero:
-
-   ````markdown
-   # R-<Entidad>-NNN — <título corto de la regla>
-
-   **Entidad:** <Entidad>
-   **Origen spec:** <RN-NNN, …>
-   **Operación:** insert | update | remove | <operación custom>
-   **Momento:** Antes | Después de super.*
-   **Servicio host:** com.educaflow.subsystem.<x>.service.impl.<Entidad>ServiceImpl
-   **Método host:** fireActionRule_<nombreLegible>(<firma>)
-
-   ## Análisis de la regla
-   <descripción funcional paso a paso del qué/cuándo/cómo/errores>
-
-   ## Diseño detallado
-
-   ### Clases nuevas
-   - <FQN> — <responsabilidad en una frase>
-     - <firma de método> — <comentario>
-     - …
-
-   ### Interfaces
-   - <FQN> — <responsabilidad y justificación>
-     - <firma de método> — <comentario>
-
-   ### Tipos propios
-   - <FQN> (record/value object/enum) — <campos> — <semántica>
-
-   ### Diagrama de secuencia
-   fireActionRule_<x>
-     ├─ <Colaborador1>.metodo(...) → <qué devuelve>
-     ├─ <Colaborador2>.metodo(...) → <qué devuelve>
-     └─ …
-
-   ### Errores
-   | Condición | Origen | Tratamiento |
-   |-----------|--------|-------------|
-   | <cuándo>  | <clase.método> | <BusinessMessages | excepción | log + retry | …> |
-
-   ### Contenido del método `fireActionRule_*`
-   ```java
-   // Firma:
-   <firma completa>
-   //   Implementa R-<Entidad>-NNN (Origen spec: RN-NNN). Diseño detallado en design/rules/R-<Entidad>-NNN.md.
-   //   Secuencia:
-   //     1. <llamada 1>
-   //     2. <llamada 2>
-   //     …
+1. **Mostrar al usuario** el veredicto, las ventajas de cada diseño y la justificación que devolvió el juez, con este formato:
    ```
-   ````
-
-2. El **bloque del método `fireActionRule_*`** que el agente principal debe injertar en el paso de servicios del `design.md`, dentro de un bloque etiquetado `=== FIRE-ACTION ===` … `=== END FIRE-ACTION ===`. Es el mismo contenido que la última sección del fichero markdown.
-
-#### 6.6.5 Qué hace el agente principal con la respuesta del subagente
-
-Por cada subagente terminado:
-
-1. Extraer el bloque `=== FILE: rules/R-<Entidad>-NNN.md ===` y **guardarlo en memoria** — el fichero físico se escribe en la Fase 4. No lo escribas todavía.
-2. Extraer el bloque `=== FIRE-ACTION ===` y **sustituir** en el diseño unificado el comentario inline previo del método `fireActionRule_*` correspondiente por este nuevo contenido (que ahora referencia el fichero `design/rules/R-<Entidad>-NNN.md`).
-3. Asegurarse de que la **matriz de trazabilidad** marca la regla compleja con un puntero al fichero detallado, p.ej.:
-
+   Comparación {k}/{total}: {carpeta-A} vs {carpeta-B} → gana design_<n>
+   {bloques === VENTAJAS … === y === JUSTIFICACIÓN === literales del juez}
    ```
-   | R-Bar-003 | RN-008 | BarServiceImpl.fireActionRule_publicar (Después de repository.save) | Detalle: design/rules/R-Bar-003.md |
+   **MUST NOT** ocultar ni resumir las ventajas/justificación hasta perder el detalle de la comparación.
+2. **Añadir (append)** a `{iniciativa}/log_best.txt` una sección con esta comparación: la cabecera `### Comparación {k}: {carpeta-A} vs {carpeta-B} → gana design_<n>` y, debajo, los dos bloques `=== VENTAJAS … ===` **literales** del juez. Es un append acumulativo (una sección por comparación). Razón: este log recoge las ventajas reclamadas de cada diseño para **auditar después si el ganador realmente las cumple**. Se escribe en la carpeta de la iniciativa y la Fase 4 lo mueve a la carpeta de salida (`design/log_best.txt`).
+
+Si solo hay **una** carpeta válida (sin torneo), escribe en `{iniciativa}/log_best.txt` una única línea: `Un único diseño válido (sin torneo ni comparación de ventajas).`
+
+- ✅ CORRECTO (respuesta del juez): `GANADOR: design_2` + `=== VENTAJAS design_2 ===` + `=== VENTAJAS design_3 ===` + `=== JUSTIFICACIÓN ===`, cada bloque con sus bullets/líneas
+- ❌ INCORRECTO: `Me quedo con el segundo` (sin token), `GANADOR: design_9` (carpeta que no estaba en la comparación), `GANADOR: design_2` sin los bloques `=== VENTAJAS … ===` (no hay ventajas que registrar en `log_best.txt`), ventaja tipo `design_2 está más completo` (elogio genérico, no concreta qué hace bien)
+
+---
+
+## 8. Fase 4 — Seleccionar el ganador
+
+Una vez conocido el ganador:
+
+1. **Renombrar** la carpeta ganadora a `design/`:
+   ```bash
+   mv .sdd/drafts/{iniciativa}/{ganador} .sdd/drafts/{iniciativa}/design
    ```
+   (Si el ganador ya fuera `design`, no aplica.)
+2. **Borrar** el resto de carpetas de borrador:
+   ```bash
+   rm -rf .sdd/drafts/{iniciativa}/design_[0-9]*
+   ```
+3. **Mover** el log de ventajas dentro de la carpeta de salida (el motor lo acumuló en la iniciativa durante el torneo, §7):
+   ```bash
+   mv .sdd/drafts/{iniciativa}/log_best.txt .sdd/drafts/{iniciativa}/design/log_best.txt
+   ```
+   (Si se indicó `--out=`, el destino es `{--out=}/log_best.txt`.)
 
-4. Recoger las **dudas** del bloque `=== DUDAS ===` (si las hubiera) y plantearlas al usuario con `AskUserQuestion` antes de pasar a la Tarea 2.4. Aplicar las respuestas al fichero markdown en memoria.
-
-#### 6.6.6 Si no hay reglas R complejas
-
-Si tras revisar todas las `R-` ninguna cumple los criterios de 6.6.1, **se omite la Tarea 2.3** completa. La carpeta `design/rules/` no se crea y el `design.md` no contiene referencias a ficheros de detalle de reglas. Esperable en subsistemas CRUD sencillos.
-
-### 6.7 Verificación mecánica de las invariantes derivadas de las guías
-
-Tras la unificación (y, si existió, la Tarea 2.3) y antes de materializar los tests (Tarea 2.4) y de entrar en la Fase 3, **el agente principal vuelve a comprobar cada invariante `G-NNN` derivada en §5.5 contra el diseño unificado** — no contra la declaración de los subagentes, sino contra el texto real del diseño y los XML generados.
-
-Este paso solo aplica si en §5.5 se derivaron invariantes. Si no había `design-guidelines.md`, se omite.
-
-#### Procedimiento
-
-Para cada invariante `G-NNN`:
-
-1. **Si la verificación es `grep`** (la mayoría):
-   - Ejecutar el `grep` exacto definido en la columna "Verificación", sobre el texto completo del diseño unificado **y** sobre los bloques de XML embebidos (en este punto los XML todavía no se han materializado, así que el grep va sobre el contenido en memoria).
-   - Filtrar las coincidencias permitidas (las que la invariante autoriza).
-   - Si quedan coincidencias **no permitidas** → la invariante está violada.
-2. **Si la verificación es `manual`**:
-   - Releer las secciones relevantes y juzgar si se cumple.
-   - Si se viola → tratarla como las del grep.
-
-#### Qué hacer si una invariante está violada
-
-No marcar el diseño como bueno. Se elige una de estas dos vías:
-
-- **Fuga local y obvia**: el agente principal **edita el diseño unificado en memoria** para mover la responsabilidad al sitio que la invariante exige, con una nota corta en "Notas de unificación". Repetir la verificación. **LIMIT**: máximo 3 ediciones-revalidaciones por invariante; si tras la 3ª sigue violada, tratarla como fuga estructural.
-- **Fuga estructural**: **detenerse y preguntar al usuario** con `AskUserQuestion`. Opciones:
-  - (a) Reabrir Tarea 2.1 con un prompt reforzado que recalca la invariante violada,
-  - (b) Reformular la invariante en `design-guidelines.md`,
-  - (c) Aceptar la violación como excepción explícita documentada en el diseño (último recurso — sección "Excepciones a las invariantes" con justificación).
-
-**MUST NOT** avanzar a Fase 3 con invariantes violadas y sin documentar la excepción.
-
-### 6.8 Tarea 2.4 — Materialización de tests E2E (1 subagente, opcional)
-
-Sobre el diseño unificado (ya con sus V/R/U y sus pantallas), el agente principal lanza **un único** subagente que materializa `tests.md` a partir de los escenarios `ESC-NNN` del spec. **MUST NOT** ejecutar esta tarea si el spec no tiene ningún `ESC-NNN` (§5.3): en ese caso no se genera `design/tests.md`.
-
-**MUST NOT** usar `run_in_background` (necesitas el resultado para la Fase 3/4). El subagente **puede** usar `AskUserQuestion` (corre solo, no en paralelo) si hay dudas reales sobre cómo materializar un escenario ambiguo.
-
-**Contenido del prompt del subagente:**
-
-- El texto **literal** de `specification.md`, con foco en las historias `HU-NNN` y sus escenarios `ESC-NNN` embebidos.
-- El **diseño unificado** completo (para conocer las V/R/U y su `Origen spec`, los nombres de pantallas, botones, campos y mensajes ya decididos).
-- Los `screen-*.md` y `entity-*.md` del spec (para citar nombres de botones, campos y mensajes en lenguaje de negocio tal como los verá el usuario).
-- El principio 2.10 (transmitir literalmente).
-- La plantilla literal de `tests.md` (ver §6.8.1).
-- La instrucción de escribir **solo** el contenido de `tests.md` en su respuesta dentro de un bloque `=== FILE: tests.md ===` … `=== END FILE ===` (no escribe en disco; el agente principal lo escribe en la Fase 4).
-- El checklist (ver §6.8.2).
-
-**Reglas de materialización:**
-
-- Numeración `T-001`, `T-002`… global al fichero, sin huecos, empezando en `001`.
-- Cada test declara en su cabecera: `Origen ESC` (lista de `ESC-NNN` que materializa, **mínimo 1**), `Verifica` (lista de `V-`/`R-`/`U-` que ejerce, o `—`), `Pantalla principal` (un `screen-*.md`) y `Tipo` (`happy` | `error` | `UI`).
-- **Cobertura mínima obligatoria**: cada `ESC-NNN` del spec aparece como `Origen ESC` en **al menos un test**. Un escenario con ramas condicionales puede dar lugar a **más de un test** (uno por rama).
-- Pasos en lenguaje de negocio con `Dado`/`Cuando`/`Y`/`Entonces` (o `Given`/`When`/`And`/`Then`), usando nombres reales de pantallas (entrecomillados), botones, campos y mensajes. **MUST NOT** selectores CSS ni comandos `playwright-cli`.
-- Cada test es **autosuficiente e independiente**: empieza por el login del actor, prepara sus propios datos (el único estado previo admisible es el de "Recursos y datos iniciales" del spec), realiza la acción y verifica la respuesta — igual que exige el escenario del spec.
-
-- ✅ CORRECTO `Origen ESC`: `ESC-001`, `ESC-002, ESC-005`
-- ❌ INCORRECTO: `ESC-1` (sin 3 dígitos), `Escenario 1` (sin prefijo), celda vacía en `Origen ESC` (mínimo 1 ID)
-
-#### 6.8.1 Plantilla de `tests.md`
-
-El subagente devuelve un fichero con esta estructura exacta:
-
-```markdown
-# Tests E2E
-
-Tests concretos end-to-end materializados a partir de los escenarios (`ESC-NNN`) de las historias de usuario del `specification.md` y de las V/R/U del diseño.
-
-Cada test es **independiente** (no depende del estado dejado por otro) y **trazable** (declara qué `ESC-NNN` materializa y qué V/R/U verifica). `/sdd-debug-app` lo ejecuta contra la aplicación real tras la implementación (bucle de auto-corrección).
+Tras esto solo queda `design/` (más `--out=` si se indicó: en ese caso, el destino final es esa carpeta).
 
 ---
 
-## T-001 — <Nombre corto descriptivo del escenario>
+## 9. Fase 5 — Enriquecer el ganador con las ventajas de los descartados
 
-**Origen ESC:** ESC-001
-**Verifica:** V-SolicitudCertificado-005, U-mis-solicitudes-002
-**Pantalla principal:** screen-mis-solicitudes.md
-**Tipo:** happy | error | UI
+**Solo en modo Generar/Regenerar** (depende del torneo y de `log_best.txt`; en Revisar/Modificar no aplica — §16). Tras seleccionar el ganador, el diseño se **enriquece** incorporando las ventajas de los diseños descartados que el ganador no tenga y que tengan sentido. Los diseños descartados ya no están en disco (la Fase 4 los borró): la fuente de esas ventajas es `design/log_best.txt`.
 
-### Precondiciones
-- El usuario `<rol>` ha iniciado sesión.
-- (Si aplica) Existe una `<Entidad>` "X1" en estado `<ESTADO>` con `<campo>` = "<valor>".
+1. **Lanzar el subagente enriquecedor** (uno solo). Recibe todo el contexto + `log_best.txt`; **comprueba** qué ventajas de cada diseño faltan en el ganador y procede aplicar, y las **reporta** (no las implementa).
+2. **Mostrar al usuario** la respuesta del enriquecedor (las mejoras a implementar, o que no hay ninguna).
+3. Si respondió **exactamente** `OK-SIN-MEJORAS` → no hay nada que incorporar: ve directamente a la Fase 6.
+4. Si respondió líneas **JSONL** de mejoras: **lanza el subagente corrector** pasándole esas mismas líneas, para que las aplique en sitio sobre `design/`. Luego ve a la Fase 6.
+5. Si la respuesta no es ni `OK-SIN-MEJORAS` ni JSONL parseable, **reintenta 1 vez**; si vuelve a fallar, trata el enriquecimiento como vacío (avísalo al usuario) y continúa con la Fase 6. **MUST NOT** bloquear el diseño por esto.
 
-### Pasos
-1. **Dado** que el usuario está en la pantalla "Mis solicitudes".
-2. **Cuando** abre el detalle de "X1".
-3. **Y** pulsa el botón "<Botón tal cual aparece en screen-*.md>".
-4. **Y** deja el campo "<Campo tal cual aparece en screen-*.md>" vacío.
-5. **Y** pulsa "Confirmar".
+**Prompt del subagente enriquecedor**:
 
-### Resultado esperado
-- El sistema muestra el mensaje "<Mensaje exacto definido en la VAL-/RES- del spec>".
-- "X1" sigue en estado `<ESTADO>` (no se ha modificado).
+> Eres un experto arquitecto y diseñador en Java y el framework Axelor. Tienes un diseño **ganador** de un torneo y el registro `log_best.txt` con las **ventajas** que el juez atribuyó a cada diseño comparado (incluidos los **descartados**). Tu tarea es decidir qué ventajas de los diseños descartados **conviene incorporar** al ganador.
+>
+> - **Reglas para el diseño**: lee `{ruta de template-system/README.md}` y los ficheros que referencie.
+> - **Especificación**: lee `{ruta de specification.md}` y los ficheros que enlace.
+> - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
+> - **Diseño ganador**: la carpeta `{iniciativa}/design`.
+> - **Ventajas de cada diseño**: lee `{iniciativa}/design/log_best.txt`.
+> - Para **cada ventaja** que aparezca en `log_best.txt`: comprueba (a) **si ya existe** en el diseño ganador, y (b) **si tiene sentido aplicarla** (coherente con la especificación, las guías y las reglas, sin contradecir las decisiones del ganador). Reporta **solo** las ventajas que **faltan** en el ganador **y** tienen sentido incorporar; descarta las que ya están o que no procede aplicar.
+> - **MUST NOT** modificar el diseño: solo **detecta y reporta** las mejoras (las aplicará el corrector).
+>
+> **Formato de salida (REQUIRED)**:
+> - Si **no** hay ninguna mejora que incorporar (el ganador ya tiene todas las ventajas relevantes, o ninguna procede), responde **exactamente** y solo: `OK-SIN-MEJORAS`.
+> - Si hay mejoras, responde **únicamente** con líneas **JSONL**: **una mejora por línea**, sin texto antes ni después, sin envoltorio de array. Cada línea **MUST** ser un objeto JSON con **exactamente** estos campos, en este orden:
+>   - `id` — identificador correlativo, formato `M-NNN` (`M-001`, `M-002`, …).
+>   - `origen` — de qué diseño/ventaja del `log_best.txt` procede (p.ej. `design_3: validación de cliente para VAL-001/002/010`).
+>   - `fichero` — fichero del diseño donde aplicarla relativo a la iniciativa (p.ej. `design/views/Grupo-Supervisor.xml`), o `null`.
+>   - `ubicacion` — sección, tabla, clase/método o vista concreta; `null` si no aplica.
+>   - `mejora` — qué ventaja falta en el ganador y se quiere incorporar.
+>   - `justificacion` — por qué no está ya en el ganador y por qué tiene sentido aplicarla (contra qué punto del spec/guías/reglas).
+>   - `correccion` — qué cambio concreto hacer para incorporarla.
+> - Cada línea **MUST** ser JSON válido en una sola línea (escapa saltos como `\n`). **MUST NOT** añadir comentarios ni texto fuera de las líneas JSONL.
+>
+> Ejemplo de salida con mejoras:
+>
+> ```jsonl
+> {"id":"M-001","origen":"design_3: validación de cliente para VAL-001/002/010","fichero":"design/views/Grupo-Supervisor.xml","ubicacion":"action-validate al guardar","mejora":"Añadir validación de cliente (UX) además de la de servidor para nombre/curso/alumno.","justificacion":"El ganador solo valida en servidor; design-contract §5 recomienda también la capa cliente para VAL de campo. No contradice ninguna decisión del ganador.","correccion":"Añadir <action-validate>/<action-condition> en la vista para VAL-001/002/010, manteniendo la validación de servidor."}
+> ```
 
----
+**Prompt del subagente corrector** (para aplicar las mejoras del enriquecedor):
 
-## T-002 — <Otro escenario>
+> Eres un experto arquitecto y diseñador en Java y el framework Axelor, que tienes que **incorporar al diseño** las mejoras indicadas. Deberás indicar de la forma más clara posible las mejoras que has aplicado.
+>
+> - **Reglas para el diseño**: lee `{ruta de template-system/README.md}` y los ficheros que referencie.
+> - **Especificación**: lee `{ruta de specification.md}` y los ficheros que enlace.
+> - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
+> - **Diseño a enriquecer**: la carpeta `{iniciativa}/design` — aplica las mejoras **en sitio** (`Edit`/`Write`), sin renombrar ni mover la carpeta, sin regenerar el diseño ni romper las decisiones del ganador que no estén en falta. Tras editar cualquier XML, asegúrate de que sigue validando contra su XSD.
+> - **Mejoras a incorporar** (las reportó el enriquecedor, en formato JSONL, una por línea): `{líneas JSONL literales del enriquecedor}`. Aplica cada `correccion` en el `fichero`/`ubicacion` indicados; mantén la trazabilidad y la coherencia (matriz, frontera de confianza, tests) que la plantilla exige.
 
-**Origen ESC:** ESC-002, ESC-003
-**Verifica:** —
-**Pantalla principal:** screen-solicitudes-centro.md
-**Tipo:** happy
-
-### Precondiciones
-- (vacío si no se asume nada más allá de "Recursos y datos iniciales")
-
-### Pasos
-1. **Dado** …
-2. **Cuando** …
-3. **Entonces** …
-
-### Resultado esperado
-- …
-```
-
-#### 6.8.2 Checklist del subagente de tests
-
-- [ ] ¿Cada `ESC-NNN` del spec aparece como `Origen ESC` en al menos un test?
-- [ ] ¿Cada test tiene `Origen ESC` (mínimo 1), `Verifica` (o `—`), `Pantalla principal` y `Tipo`?
-- [ ] ¿Cada `Pantalla principal` referencia un `screen-*.md` que existe?
-- [ ] ¿Cada `V-`/`R-`/`U-` de `Verifica` existe en el diseño unificado?
-- [ ] ¿Cada campo, botón o mensaje de los pasos existe en el `screen-*.md` / `entity-*.md` correspondiente (no inventado)?
-- [ ] ¿Los pasos están en `Dado`/`Cuando`/`Y`/`Entonces`, sin selectores CSS ni comandos `playwright-cli`?
-- [ ] ¿Cada test es independiente y prepara sus propias precondiciones desde el login (sin presuponer estado salvo "Recursos y datos iniciales")?
-- [ ] ¿La numeración `T-NNN` es global al fichero, empieza en `001` y no tiene huecos?
-
-**LIMIT**: máximo 3 iteraciones de auto-corrección antes de devolver. Si tras la 3ª siguen fallando ítems, devuelve el contenido con una nota `<!-- inconsistencias residuales: ... -->` y el agente principal decide en la Fase 3.
+- ✅ CORRECTO (respuesta del enriquecedor sin mejoras): `OK-SIN-MEJORAS`
+- ✅ CON MEJORAS (una línea JSONL por mejora, sin texto alrededor): `{"id":"M-001","origen":"…","fichero":"…","ubicacion":"…","mejora":"…","justificacion":"…","correccion":"…"}`
+- ❌ INCORRECTO: `No hace falta nada ✅` (token no exacto), reportar ventajas que el ganador **ya tiene** (la tarea es solo las que faltan), o devolver las mejoras como prosa/array en vez de una línea JSONL por mejora.
 
 ---
 
-## 7. Fase 3 — Revisión del diseño unificado
+## 10. Fase 6 — Verificar y corregir (bucle, LIMIT 10)
 
-Aunque cada subagente ya aplicó el checklist 6.4 sobre su propia candidatura, debes volver a aplicarlo sobre el **diseño unificado** — la unificación puede haber introducido inconsistencias.
+Sobre la carpeta `design/`, repite este bucle **como máximo 10 veces** (**LIMIT**: 10 iteraciones); lleva un contador de iteración `{k}` empezando en 1:
 
-Antes de pasar a la Fase 4, comprueba sobre el diseño unificado:
+1. **Lanzar el subagente verificador** (uno solo).
+2. **Volcar su respuesta a `design/log_revision.txt`**: añade (append) la respuesta **literal** del verificador —sus líneas JSONL, o `OK-CORRECTO`— precedida de la cabecera `# Verificación — iteración {k}`. Es un append acumulativo (una sección por iteración). Razón: `log_revision.txt` guarda literalmente el JSONL de cada subagente verificador para revisar después qué encontró cada pasada.
+3. Si el verificador respondió **exactamente** `OK-CORRECTO` → el diseño está conforme: sal del bucle y ve a la Fase 7.
+4. Si respondió **cualquier otra cosa** (las líneas JSONL de problemas): **MUST** mostrar al usuario por pantalla, tal cual, las líneas JSONL que devolvió el verificador (bloque ` ```jsonl `), antes de continuar; luego **lanza el subagente corrector** pasándole esas mismas líneas, para que corrija en sitio sobre `design/`.
+5. Incrementa `{k}` y vuelve al paso 1.
 
-- [ ] Todos los puntos del checklist 6.4 sobre el contenido unificado.
-- [ ] ¿La tabla "Ficheros a crear o modificar" del proyecto real es coherente con los bloques XML generados? (si hay un bloque `design/views/Bar-Pendiente.xml`, debe haber su fila en `src/main/...`).
-- [ ] ¿Cada `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` del spec aparece como `Origen spec` de al menos una V/R/U (o campo del modelo), **o** está listado en "Reglas del spec descartadas" con justificación?
-- [ ] ¿La matriz de trazabilidad final tiene una entrada por cada V/R/U, con su `Origen spec` y su ubicación, sin huecos?
-- [ ] ¿La clasificación `cliente`/`servidor` de cada campo es coherente con las líneas `Input AllowProperties` y los `CC-NNN` del spec, y con las R-Antes del diseño?
-- [ ] **Si hubo Tarea 2.4** (spec con `ESC-NNN`): ¿existe el contenido de `tests.md` en memoria y cada `ESC-NNN` del spec aparece como `Origen ESC` en al menos un test? ¿Cada referencia de `tests.md` (`Verifica`, `Pantalla principal`) apunta a algo que existe en el diseño? Si un `ESC-NNN` quedó sin test, **ERROR**: relanzar la Tarea 2.4 para ese escenario antes de continuar.
-- [ ] **¿Cada regla `R-` que cumple los criterios de 6.6.1 tiene su fichero `rules/R-<Entidad>-NNN.md` en memoria y su comentario inline sustituido por el bloque `=== FIRE-ACTION ===`?**
-- [ ] **¿La matriz de trazabilidad de cada regla compleja incluye el puntero `Detalle: design/rules/R-<Entidad>-NNN.md`?**
-- [ ] ¿La verificación mecánica de §6.7 quedó limpia para todas las invariantes `G-NNN`? Si alguna requirió excepción, ¿está documentada en "Excepciones a las invariantes"?
+Si tras la 10ª iteración el verificador sigue sin responder `OK-CORRECTO` → **STOP** (STOP condition): muestra al usuario las líneas JSONL de los problemas residuales que reportó el verificador y **MUST NOT** dar el diseño por bueno.
 
-Si encuentras algún problema, corrígelo antes de pasar a la Fase 4. **LIMIT**: máximo 3 pasadas de revisión-corrección; si tras la 3ª siguen apareciendo problemas no triviales, **STOP** y pregunta al usuario.
+**Prompt del subagente verificador**:
 
----
+> Eres un experto arquitecto y diseñador en Java y el framework Axelor, que tienes que verificar si hay algún error en el diseño en base a una especificación, unas guías de diseño y unas reglas para el diseño.
+>
+> - **Reglas para el diseño**: lee `{ruta de template-system/README.md}` y los ficheros que referencie (incluida la validación que prescriban — **aplícala tal cual, ejecutando los comandos o scripts de validación que la plantilla indique**, p.ej. validar los artefactos generados).
+> - **Especificación**: lee `{ruta de specification.md}` y los ficheros que enlace.
+> - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
+> - **Diseño a verificar**: la carpeta `{iniciativa}/design`.
+>
+> **Formato de salida (REQUIRED)**:
+> - Si **no** has encontrado nada que corregir, responde **exactamente** y solo: `OK-CORRECTO`.
+> - Si has encontrado problemas, responde **únicamente** con líneas **JSONL** (JSON Lines): **un problema por línea**, sin texto antes ni después, sin envoltorio de array. Cada línea **MUST** ser un objeto JSON con **exactamente** estos campos, en este orden:
+>   - `id` — identificador correlativo del problema, formato `P-NNN` (`P-001`, `P-002`, …).
+>   - `severidad` — uno de `BLOCKING` | `IMPORTANT` | `MINOR`.
+>   - `fichero` — ruta del fichero del diseño afectado relativa a la iniciativa (p.ej. `design/design.md`), o `null` si es transversal.
+>   - `ubicacion` — sección, tabla, clase/método o línea concreta dentro de ese fichero; `null` si no aplica.
+>   - `origen` — el identificador del spec/guía/regla que se incumple (p.ej. `VAL-003`, `RUI-002`, `ESC-009`, o el nombre de la regla de la plantilla), o `null`.
+>   - `problema` — descripción clara y concreta del fallo/error/inconsistencia.
+>   - `correccion` — qué hay que cambiar para resolverlo.
+> - Cada línea **MUST** ser JSON válido en una sola línea (sin saltos de línea internos; escapa los que necesites como `\n`). **MUST NOT** añadir comentarios, numeración ni explicaciones fuera de las líneas JSONL.
+>
+> Ejemplo de salida con problemas:
+>
+> ```jsonl
+> {"id":"P-001","severidad":"BLOCKING","fichero":"design/design.md","ubicacion":"Tabla de validaciones, fila V-003","origen":"VAL-003","problema":"La validación VAL-003 del spec no está mapeada a ninguna regla V-/R-/U- en el diseño.","correccion":"Añadir la fila V-003 en la tabla de validaciones con su clasificación y método validate*."}
+> {"id":"P-002","severidad":"IMPORTANT","fichero":"design/tests.md","ubicacion":"Test T-009","origen":"ESC-009","problema":"El escenario ESC-009 del spec no tiene ningún test E2E que lo materialice.","correccion":"Crear un test Given/When/Then que cubra ESC-009 con su trazabilidad Origen ESC."}
+> ```
 
-## 8. Fase 4 — Materializar y validar
+**Prompt del subagente corrector**:
 
-**MUST NOT** mostrar el diseño unificado al usuario ni preguntar si lo aprueba antes de escribir los ficheros. Tras la revisión interna de la Fase 3, el skill pasa directamente a escribir XML, `tests.md`, `rules/*.md` y `design.md`. El usuario revisará el `design/` ya materializado y, si quiere cambios, los edita a mano o re-invoca `/sdd-designer` (modo Revisar/Modificar, §10).
+> Eres un experto arquitecto y diseñador en Java y el framework Axelor, que tienes que corregir los errores en el diseño en base a una especificación, unas guías de diseño y unas reglas para el diseño. Deberás indicar de la forma más clara posible los fallos/errores/inconsistencias que has corregido.
+>
+> - **Reglas para el diseño**: lee `{ruta de template-system/README.md}` y los ficheros que referencie.
+> - **Especificación**: lee `{ruta de specification.md}` y los ficheros que enlace.
+> - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
+> - **Diseño a corregir**: la carpeta `{iniciativa}/design` — corrige **en sitio** (`Edit`/`Write` sobre sus ficheros), sin renombrar ni mover la carpeta.
+> - **Problemas a corregir** (los reportó el verificador, en formato JSONL, un problema por línea): `{líneas JSONL literales del verificador}`. Resuelve cada línea (`id`/`severidad`/`fichero`/`ubicacion`/`origen`/`problema`/`correccion`); aplica la `correccion` en el `fichero`/`ubicacion` indicados.
 
-> **REQUIRED** — ubicación del diseño: se guarda en la subcarpeta `design/` dentro de la carpeta de la iniciativa (la que contiene `specification.md`). Ejemplo: `.sdd/drafts/2026-05-11_23-19_tareas-de-envio-de-correos/design/`. **MUST NOT** guardarse en la raíz del proyecto ni en otra carpeta.
-
-### 8.1 Borrar diseño previo
-
-Borrar recursivamente la carpeta `design/` si ya existe y recrear el esqueleto:
-
-```bash
-rm -rf .sdd/drafts/{carpeta-iniciativa}/design
-mkdir -p .sdd/drafts/{carpeta-iniciativa}/design/domains
-mkdir -p .sdd/drafts/{carpeta-iniciativa}/design/views
-# Solo si la Tarea 2.3 produjo ficheros de reglas complejas:
-mkdir -p .sdd/drafts/{carpeta-iniciativa}/design/rules
-```
-
-Esto sustituye sin ambigüedad cualquier diseño previo. No se conservan iteraciones anteriores.
-
-### 8.2 Extraer los XML del diseño unificado y los ficheros de reglas, y escribirlos como ficheros reales
-
-1. **XML**: recorre el diseño unificado y, por cada bloque ```xml etiquetado con una línea `Fichero: design/...`, escribe ese contenido como fichero en la ruta indicada (`Write`).
-2. **Ficheros de reglas complejas** (si la Tarea 2.3 los produjo): por cada bloque `=== FILE: rules/R-<Entidad>-NNN.md ===` que guardaste en memoria, escríbelo en `design/rules/R-<Entidad>-NNN.md` (`Write`).
-
-### 8.3 Validar cada XML con xmllint
-
-Una vez escritos, validar **cada** fichero XML con `xmllint --noout --schema <xsd> <fichero>`:
-
-- **Dominios** → `../axelor-open-platform/axelor-core/src/main/resources/domain-models.xsd`
-- **Vistas y menús** → `../axelor-open-platform/axelor-core/src/main/resources/object-views.xsd`
-
-Comandos concretos (ejecutar para cada fichero):
-
-```bash
-# Dominios
-for f in .sdd/drafts/{iniciativa}/design/domains/*.xml; do
-  xmllint --noout --schema ../axelor-open-platform/axelor-core/src/main/resources/domain-models.xsd "$f" || echo "FAIL: $f"
-done
-
-# Vistas
-for f in .sdd/drafts/{iniciativa}/design/views/*.xml; do
-  xmllint --noout --schema ../axelor-open-platform/axelor-core/src/main/resources/object-views.xsd "$f" || echo "FAIL: $f"
-done
-
-# Menús
-xmllint --noout --schema ../axelor-open-platform/axelor-core/src/main/resources/object-views.xsd \
-  .sdd/drafts/{iniciativa}/design/menus.xml
-```
-
-**Si algún fichero falla la validación:**
-
-1. Lee el error de `xmllint` y corrige el XML con `Edit` sobre el fichero.
-2. Vuelve a ejecutar `xmllint` sobre ese fichero. **LIMIT**: máximo 3 iteraciones de corrección por fichero.
-3. Si tras la 3ª iteración el error persiste por una incompatibilidad real con el XSD, **STOP** y muestra el error al usuario. **MUST NOT** escribir un diseño con XML inválido. Pide al usuario que aclare o reabra el spec.
-
-La Fase 4 **MUST NOT** considerarse terminada hasta que **todos** los XML pasan `xmllint` sin errores.
-
-### 8.4 Escribir `tests.md`
-
-Si la Tarea 2.4 produjo contenido de tests (spec con `ESC-NNN`), extrae el bloque `=== FILE: tests.md ===` que tienes en memoria y escríbelo en `.sdd/drafts/{iniciativa}/design/tests.md` (`Write`). **MUST NOT** regenerarlo, reformatearlo ni resumirlo en este punto — ya está validado por su checklist (§6.8.2).
-
-Si el spec **no** tenía escenarios (Tarea 2.4 omitida), no se escribe `tests.md`; avisa al usuario de que `/sdd-debug-app` no tendrá tests que ejecutar.
-
-Estructura resultante esperada:
-
-```
-.sdd/drafts/{iniciativa}/design/
-├── design.md                       ← se escribe en 8.5
-├── domains/<Entidad>.xml           ← uno por entidad
-├── views/<Fichero>.xml             ← uno por <action-view> + ficheros *-ref.xml
-├── menus.xml                       ← <menuitem> a fusionar con el menus.xml del proyecto
-├── tests.md                        ← materializado desde los ESC-NNN (si los hay)
-└── rules/R-<Entidad>-NNN.md        ← solo si hay reglas R complejas (Tarea 2.3)
-```
-
-### 8.5 Escribir el `design.md`
-
-Escribir el `design.md` en la raíz de `design/`. **REQUIRED** frontmatter:
-
-```
----
-type: design
----
-
-{contenido del diseño unificado, con resumen estructural por cada XML — no el XML inline}
-```
-
-El `design.md` **no contiene** los XML completos inline (esos viven en sus ficheros); en su lugar contiene, por cada fichero XML generado, una entrada con su ruta y el resumen estructural (vistas, acciones, propósito), más la matriz de trazabilidad `Origen spec → V/R/U → ubicación`, la sección "Frontera de confianza — AllowProperties por acción" y, si aplica, "Reglas del spec descartadas".
-
-#### Sección obligatoria "Invariantes de las guías"
-
-Si en §5.5 se derivaron invariantes `G-NNN`, el `design.md` debe incluir **al final** (antes de "Conflictos detectados con guías" si la hay) una sección con esta forma:
-
-```markdown
-## Invariantes de las guías
-
-Estas invariantes se derivaron de `design-guidelines.md` y se verificaron mecánicamente
-en §6.7 contra el diseño unificado. Sirven de contrato para `sdd-implementer-system`
-(las re-verifica sobre el código Java generado) y para el modo Revisar/Modificar de
-`/sdd-designer` (las re-verifica sobre el diseño materializado).
-
-| ID    | Invariante | Ubicación que la cumple | Verificación |
-|-------|------------|-------------------------|--------------|
-| G-001 | Solo `module/MailSenderProvider.java` lee `mail.smtp.*` de AppSettings. | Paso 7 del diseño (Provider) | `grep -rnE "AppSettings.*mail\.smtp|mail\.smtp\.[a-z]+" design/ design.md` → todas las coincidencias bajo el bloque del Provider. |
-| G-002 | …          | …                       | …            |
-```
-
-**Si una invariante quedó como excepción explícita** (vía §6.7 opción c), añadir además una subsección:
-
-```markdown
-### Excepciones a las invariantes
-
-- **G-NNN** — Excepción aceptada por el usuario el {fecha}. Razón: {motivo}. Ubicación de la fuga aceptada: {ruta/sección}.
-```
-
-Si **no había guías** y por tanto no hay invariantes, omitir toda la sección (no escribir un encabezado vacío).
+- ✅ CORRECTO (respuesta del verificador sin problemas): `OK-CORRECTO`
+- ✅ CON PROBLEMAS (una línea JSONL por problema, sin texto alrededor): `{"id":"P-001","severidad":"BLOCKING","fichero":"design/design.md","ubicacion":"…","origen":"VAL-003","problema":"…","correccion":"…"}`
+- ❌ INCORRECTO: `Todo correcto ✅` (token no exacto; el skill compara por literal), o devolver los problemas como prosa/array JSON en vez de una línea JSONL por problema.
 
 ---
 
-## 9. Fase 5 — Mensaje de cierre al usuario
+## 11. Fase 7 — Tests unitarios (describirlos)
+
+**Común a ambos modos** (Generar/Regenerar y Revisar/Modificar): una vez el diseño está conforme (`OK-CORRECTO`), un subagente **test-unitarios** describe los **tests unitarios** (JUnit 5 + Mockito) necesarios para las clases Java que el diseño planifica y los escribe en `design/unit-test-desc.md`. **Solo descripción, sin código**: el código de los tests lo genera `/sdd-implementer` a partir de `unit-test-desc.md`.
+
+1. **Lanzar el subagente test-unitarios** (uno solo). Produce `design/unit-test-desc.md` siguiendo el contrato que la plantilla prescribe para los tests unitarios (lo descubre vía el README). Ante una `unit-test-desc.md` previa, la **regenera** para reflejar el diseño actual.
+2. Cuando responda **exactamente** `ESCRITO: unit-test-desc.md`, continúa con la Fase 8.
+3. Si no produce `unit-test-desc.md` o no devuelve el token, **reintenta 1 vez**; si vuelve a fallar, avísalo al usuario y continúa con la Fase 8 (**MUST NOT** bloquear el flujo por esto).
+
+**Prompt del subagente test-unitarios**:
+
+> Eres un experto arquitecto Java especializado en **tests unitarios con JUnit** (JUnit 5/Jupiter) y **Mockito**. Tu tarea es **describir** —no implementar— los tests unitarios necesarios para las clases Java que define un diseño, de modo que `/sdd-implementer` pueda luego generar el código de los tests a partir de tu descripción.
+>
+> - **Reglas para el diseño y para los tests unitarios**: lee `{ruta de template-system/README.md}` y **los ficheros que referencie** —en particular el contrato de los **tests unitarios**—. Define qué clases testear, la estrategia de mocking del stack (Axelor/Guice/JPA), la plantilla exacta de `unit-test-desc.md`, la trazabilidad y el checklist. Síguelo al pie de la letra.
+> - **Especificación**: lee `{ruta de specification.md}` y todos los ficheros que enlace (para los mensajes/semántica exactos de cada regla).
+> - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
+> - **Diseño**: lee la carpeta `{iniciativa}/design` —sobre todo `design.md`— de donde sale el **inventario de clases Java** (servicios, controladores, helpers…), sus **métodos** y las reglas `V`/`R`/`CC` que cada método aplica. **CRITICAL**: en esta fase **todavía no existe el código Java** del sistema (lo creará `/sdd-implementer`); enumera las clases y métodos **desde el diseño**, no del árbol de fuentes. Para clases que el diseño **modifica** (ya existentes) o utilidades/bases que haya que mockear, puedes explorar el código real.
+> - **Salida**: escribe `{iniciativa}/design/unit-test-desc.md` con la **descripción** de los tests por clase y método, según la plantilla del contrato. **MUST NOT** escribir código Java de tests (ni `@Test`, ni imports, ni cuerpos): solo la descripción (nombre del test, propósito, qué mockear y qué devuelve, acción, aserción/excepción/mensaje esperado, y la regla `V`/`R`/`CC` que verifica).
+> - **MUST NOT** usar `AskUserQuestion`. Ante una ambigüedad, decide lo más razonable y documéntalo en `unit-test-desc.md`.
+> - Aplica el **checklist** del contrato antes de terminar (**LIMIT**: 3 iteraciones de autocorrección).
+> - Al terminar, responde **exactamente** `ESCRITO: unit-test-desc.md` y, opcionalmente, 1-2 líneas de notas (cobertura). **MUST NOT** pegar el contenido de `unit-test-desc.md` en la respuesta (ya está en disco).
+
+- ✅ CORRECTO (respuesta del subagente test-unitarios): `ESCRITO: unit-test-desc.md`
+- ❌ INCORRECTO: `He creado los tests` (token no parseable), pegar `unit-test-desc.md` en la respuesta, o incluir código Java de tests en `unit-test-desc.md` (la fase solo describe; el código lo genera `/sdd-implementer`)
+
+---
+
+## 12. Fase 8 — Verificar y corregir los tests unitarios (bucle, LIMIT 10)
+
+**Común a ambos modos** (Generar/Regenerar y Revisar/Modificar). Una vez `unit-test-desc.md` está escrito (Fase 7), comprueba **en bucle** que es **coherente con el diseño**: que las clases que dice probar existen en el diseño, que los métodos existen, que las reglas `V`/`R`/`CC` que cita existen, que la cobertura declarada cuadra y que no hay clases ni métodos inventados. Sobre la carpeta `design/`, repite este bucle **como máximo 10 veces** (**LIMIT**: 10 iteraciones); lleva un contador de iteración `{k}` empezando en 1:
+
+1. **Lanzar el subagente verificador-test-unitarios** (uno solo).
+2. **Volcar su respuesta a `design/log_revision_unit-test.txt`**: añade (append) la respuesta **literal** —sus líneas JSONL, o `OK-CORRECTO`— precedida de la cabecera `# Verificación tests unitarios — iteración {k}`. Es un append acumulativo (una sección por iteración).
+3. Si respondió **exactamente** `OK-CORRECTO` → `unit-test-desc.md` es coherente con el diseño: sal del bucle y ve a la Fase 9.
+4. Si respondió **cualquier otra cosa** (las líneas JSONL de problemas): **MUST** mostrar al usuario por pantalla, tal cual, las líneas JSONL que devolvió (bloque ` ```jsonl `), antes de continuar; luego **lanza el subagente corrector-test-unitarios** pasándole esas mismas líneas, para que corrija en sitio sobre `design/unit-test-desc.md`.
+5. Incrementa `{k}` y vuelve al paso 1.
+
+Si tras la 10ª iteración el verificador sigue sin responder `OK-CORRECTO` → **STOP** (STOP condition): muestra al usuario las líneas JSONL residuales y **MUST NOT** dar `unit-test-desc.md` por bueno.
+
+**Prompt del subagente verificador-test-unitarios**:
+
+> Eres un experto arquitecto Java especializado en **tests unitarios con JUnit** (JUnit 5/Jupiter) y **Mockito**, que tienes que verificar si la **descripción de los tests unitarios** ya escrita es **coherente con el diseño**. **MUST NOT** regenerar ni completar los tests: solo **detectas y reportas** incoherencias.
+>
+> - **Reglas para el diseño y para los tests unitarios**: lee `{ruta de template-system/README.md}` y **los ficheros que referencie** —en particular el contrato de los **tests unitarios** y, dentro de él, sus **comprobaciones de coherencia con el diseño**—. Aplícalas tal cual.
+> - **Especificación**: lee `{ruta de specification.md}` y los ficheros que enlace.
+> - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
+> - **Diseño**: lee la carpeta `{iniciativa}/design` —sobre todo `design.md`— como **fuente de verdad** del inventario de clases Java, sus métodos y las reglas `V`/`R`/`CC`. Para clases que el diseño **modifica** (ya existentes) puedes explorar el código real.
+> - **Fichero a verificar**: `{iniciativa}/design/unit-test-desc.md`.
+>
+> **Formato de salida (REQUIRED)**:
+> - Si **no** has encontrado nada incoherente, responde **exactamente** y solo: `OK-CORRECTO`.
+> - Si has encontrado problemas, responde **únicamente** con líneas **JSONL** (JSON Lines): **un problema por línea**, sin texto antes ni después, sin envoltorio de array. Cada línea **MUST** ser un objeto JSON con **exactamente** estos campos, en este orden:
+>   - `id` — identificador correlativo, formato `P-NNN` (`P-001`, `P-002`, …).
+>   - `severidad` — uno de `BLOCKING` | `IMPORTANT` | `MINOR`.
+>   - `fichero` — siempre `design/unit-test-desc.md`, o `null` si es transversal.
+>   - `ubicacion` — la clase/método/test concreto dentro del fichero; `null` si no aplica.
+>   - `origen` — la clase/método/regla del diseño que se incumple (p.ej. `Clase NotaServiceImpl`, `método validateInsert`, `V-Nota-003`), o `null`.
+>   - `problema` — descripción clara de la incoherencia (p.ej. clase/método inexistente en el diseño, regla inexistente, cobertura que no cuadra).
+>   - `correccion` — qué hay que cambiar en `unit-test-desc.md` para resolverlo.
+> - Cada línea **MUST** ser JSON válido en una sola línea (escapa los saltos como `\n`). **MUST NOT** añadir comentarios ni texto fuera de las líneas JSONL.
+>
+> Ejemplo de salida con problemas:
+>
+> ```jsonl
+> {"id":"P-001","severidad":"BLOCKING","fichero":"design/unit-test-desc.md","ubicacion":"Clase NotaCalculator","origen":"Clase NotaCalculator","problema":"Se describen tests para la clase NotaCalculator, que no existe en el diseño (design.md no la define).","correccion":"Eliminar la sección de NotaCalculator o sustituirla por la clase real del diseño que hace ese cálculo."}
+> {"id":"P-002","severidad":"IMPORTANT","fichero":"design/unit-test-desc.md","ubicacion":"NotaServiceImpl, test validateUpdate_…","origen":"método validateUpdate","problema":"El test ejerce validateUpdate, pero el diseño solo define validateInsert para NotaServiceImpl.","correccion":"Reasignar el test al método real o eliminarlo si la regla no aplica en update."}
+> ```
+
+**Prompt del subagente corrector-test-unitarios**:
+
+> Eres un experto arquitecto Java especializado en **tests unitarios con JUnit** (JUnit 5/Jupiter) y **Mockito**, que tienes que corregir las incoherencias detectadas en la **descripción de los tests unitarios**. Deberás indicar de la forma más clara posible las incoherencias que has corregido.
+>
+> - **Reglas para el diseño y para los tests unitarios**: lee `{ruta de template-system/README.md}` y los ficheros que referencie (el contrato de los tests unitarios).
+> - **Especificación**: lee `{ruta de specification.md}` y los ficheros que enlace.
+> - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
+> - **Diseño**: la carpeta `{iniciativa}/design` —sobre todo `design.md`— es la **fuente de verdad**; **MUST NOT** modificar el diseño para que cuadre con los tests: corrige los tests para que cuadren con el diseño.
+> - **Fichero a corregir**: `{iniciativa}/design/unit-test-desc.md` — corrige **en sitio** (`Edit`/`Write`), respetando la plantilla del contrato; no toques otros ficheros del diseño.
+> - **Problemas a corregir** (los reportó el verificador-test-unitarios, en formato JSONL, un problema por línea): `{líneas JSONL literales del verificador}`. Aplica cada `correccion` en la `ubicacion` indicada.
+
+- ✅ CORRECTO (respuesta del verificador-test-unitarios sin problemas): `OK-CORRECTO`
+- ✅ CON PROBLEMAS (una línea JSONL por problema, sin texto alrededor): `{"id":"P-001","severidad":"BLOCKING","fichero":"design/unit-test-desc.md","ubicacion":"…","origen":"…","problema":"…","correccion":"…"}`
+- ❌ INCORRECTO: `Todo correcto ✅` (token no exacto; el skill compara por literal), o devolver los problemas como prosa/array JSON en vez de una línea JSONL por problema.
+
+---
+
+## 13. Fase 9 — Tests de arquitectura (describirlos)
+
+**Común a ambos modos** (Generar/Regenerar y Revisar/Modificar): tras verificar los tests unitarios (Fase 8), un subagente **test-arquitectura** describe los **tests de arquitectura** (ArchUnit) que verifican que las clases Java del diseño respetan la arquitectura documentada del proyecto (capas, Controller→Service→Repository, nomenclatura/ubicación, inyección, higiene) y los escribe en `design/arch-test-desc.md`. **Solo descripción, sin código**: el código de los tests lo genera `/sdd-implementer` a partir de `arch-test-desc.md`.
+
+1. **Lanzar el subagente test-arquitectura** (uno solo). Produce `design/arch-test-desc.md` siguiendo el contrato que la plantilla prescribe para los tests de arquitectura (lo descubre vía el README). Ante una `arch-test-desc.md` previa, la **regenera** para reflejar el diseño actual.
+2. Cuando responda **exactamente** `ESCRITO: arch-test-desc.md`, continúa con la Fase 10.
+3. Si no produce `arch-test-desc.md` o no devuelve el token, **reintenta 1 vez**; si vuelve a fallar, avísalo al usuario y continúa con la Fase 10 (**MUST NOT** bloquear el flujo por esto).
+
+**Prompt del subagente test-arquitectura**:
+
+> Eres un experto arquitecto Java especializado en **tests de arquitectura con ArchUnit** (ArchUnit 1.4.2, JUnit 5). Tu tarea es **describir** —no implementar— los tests de arquitectura necesarios para verificar que las clases Java que define un diseño respetan la arquitectura documentada del proyecto, de modo que `/sdd-implementer` pueda luego generar el código de los tests a partir de tu descripción.
+>
+> - **Reglas para el diseño y para los tests de arquitectura**: lee `{ruta de template-system/README.md}` y **los ficheros que referencie** —en particular el contrato de los **tests de arquitectura**—. Define qué reglas describir, cómo seleccionarlas del catálogo, la estrategia de anclaje/ámbito (`@AnalyzeClasses`), la plantilla exacta de `arch-test-desc.md`, la trazabilidad y el checklist. Síguelo al pie de la letra.
+> - **Catálogo de reglas**: carga el skill `k-archunit` y lee su fichero `secretaria-virtual-rules.md` —es la **fuente única** de las reglas de arquitectura del proyecto (`C1`–`C22`)—. **MUST NOT** redefinir con otro criterio una regla que el catálogo ya define; selecciona y especializa de ese catálogo las que apliquen al diseño.
+> - **Especificación**: lee `{ruta de specification.md}` y todos los ficheros que enlace (para restricciones estructurales específicas que impongan reglas `A-NNN`).
+> - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
+> - **Diseño**: lee la carpeta `{iniciativa}/design` —sobre todo `design.md`— de donde salen los **paquetes y FQN** de las clases que el diseño crea/modifica (controladores, servicios, impl., repositorios, módulos Guice, DTOs, entidades). **CRITICAL**: en esta fase **todavía no existe el código Java** del sistema (lo creará `/sdd-implementer`); enumera los paquetes/clases **desde el diseño**, no del árbol de fuentes. Para clases que el diseño **modifica** (ya existentes) puedes explorar el código real y el «Estado actual» del catálogo para decidir si una regla va en `FREEZE`.
+> - **Salida**: escribe `{iniciativa}/design/arch-test-desc.md` con la **descripción** de las reglas de arquitectura aplicables, según la plantilla del contrato. **MUST NOT** escribir código Java (ni `@ArchTest`, ni `@AnalyzeClasses`, ni reglas fluidas, ni imports): solo la descripción (id `C…`/`A-NNN`, qué verifica, ámbito, sujetos del diseño, resultado esperado, origen).
+> - **MUST NOT** usar `AskUserQuestion`. Ante una ambigüedad, decide lo más razonable y documéntalo en `arch-test-desc.md`.
+> - Aplica el **checklist** del contrato antes de terminar (**LIMIT**: 3 iteraciones de autocorrección).
+> - Al terminar, responde **exactamente** `ESCRITO: arch-test-desc.md` y, opcionalmente, 1-2 líneas de notas (cobertura). **MUST NOT** pegar el contenido de `arch-test-desc.md` en la respuesta (ya está en disco).
+
+- ✅ CORRECTO (respuesta del subagente test-arquitectura): `ESCRITO: arch-test-desc.md`
+- ❌ INCORRECTO: `He creado los tests de arquitectura` (token no parseable), pegar `arch-test-desc.md` en la respuesta, o incluir código Java/ArchUnit en `arch-test-desc.md` (la fase solo describe; el código lo genera `/sdd-implementer`)
+
+---
+
+## 14. Fase 10 — Verificar y corregir los tests de arquitectura (bucle, LIMIT 10)
+
+**Común a ambos modos** (Generar/Regenerar y Revisar/Modificar). Una vez `arch-test-desc.md` está escrito (Fase 9), comprueba **en bucle** que es **coherente con el diseño**: que los paquetes y clases que dice probar existen en el diseño (FQN), que cada regla `C…` que cita existe en el catálogo `k-archunit` y cada `A-NNN` traza al spec/guías, que cada artefacto del diseño está cubierto, que las reglas no aplicables están justificadas y que no hay paquetes ni clases inventados. Sobre la carpeta `design/`, repite este bucle **como máximo 10 veces** (**LIMIT**: 10 iteraciones); lleva un contador de iteración `{k}` empezando en 1:
+
+1. **Lanzar el subagente verificador-test-arquitectura** (uno solo).
+2. **Volcar su respuesta a `design/log_revision_arch-test.txt`**: añade (append) la respuesta **literal** —sus líneas JSONL, o `OK-CORRECTO`— precedida de la cabecera `# Verificación tests arquitectura — iteración {k}`. Es un append acumulativo (una sección por iteración).
+3. Si respondió **exactamente** `OK-CORRECTO` → `arch-test-desc.md` es coherente con el diseño: sal del bucle y ve a la Fase 11.
+4. Si respondió **cualquier otra cosa** (las líneas JSONL de problemas): **MUST** mostrar al usuario por pantalla, tal cual, las líneas JSONL que devolvió (bloque ` ```jsonl `), antes de continuar; luego **lanza el subagente corrector-test-arquitectura** pasándole esas mismas líneas, para que corrija en sitio sobre `design/arch-test-desc.md`.
+5. Incrementa `{k}` y vuelve al paso 1.
+
+Si tras la 10ª iteración el verificador sigue sin responder `OK-CORRECTO` → **STOP** (STOP condition): muestra al usuario las líneas JSONL residuales y **MUST NOT** dar `arch-test-desc.md` por bueno.
+
+**Prompt del subagente verificador-test-arquitectura**:
+
+> Eres un experto arquitecto Java especializado en **tests de arquitectura con ArchUnit** (ArchUnit 1.4.2, JUnit 5), que tienes que verificar si la **descripción de los tests de arquitectura** ya escrita es **coherente con el diseño** y con el catálogo de reglas. **MUST NOT** regenerar ni completar los tests: solo **detectas y reportas** incoherencias.
+>
+> - **Reglas para el diseño y para los tests de arquitectura**: lee `{ruta de template-system/README.md}` y **los ficheros que referencie** —en particular el contrato de los **tests de arquitectura** y, dentro de él, sus **comprobaciones de coherencia con el diseño**—. Aplícalas tal cual.
+> - **Catálogo de reglas**: carga el skill `k-archunit` y lee su fichero `secretaria-virtual-rules.md` —es la **fuente única** de las reglas (`C1`–`C22`)—; comprueba que cada `C…` citada existe y se usa con su criterio.
+> - **Especificación**: lee `{ruta de specification.md}` y los ficheros que enlace (para validar las reglas `A-NNN`).
+> - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
+> - **Diseño**: lee la carpeta `{iniciativa}/design` —sobre todo `design.md`— como **fuente de verdad** de los paquetes y FQN de las clases que el diseño crea/modifica.
+> - **Fichero a verificar**: `{iniciativa}/design/arch-test-desc.md`.
+>
+> **Formato de salida (REQUIRED)**:
+> - Si **no** has encontrado nada incoherente, responde **exactamente** y solo: `OK-CORRECTO`.
+> - Si has encontrado problemas, responde **únicamente** con líneas **JSONL** (JSON Lines): **un problema por línea**, sin texto antes ni después, sin envoltorio de array. Cada línea **MUST** ser un objeto JSON con **exactamente** estos campos, en este orden:
+>   - `id` — identificador correlativo, formato `P-NNN` (`P-001`, `P-002`, …).
+>   - `severidad` — uno de `BLOCKING` | `IMPORTANT` | `MINOR`.
+>   - `fichero` — siempre `design/arch-test-desc.md`, o `null` si es transversal.
+>   - `ubicacion` — la regla/ámbito concreto dentro del fichero (p.ej. `C9`, `A-001`, `Cobertura`); `null` si no aplica.
+>   - `origen` — el paquete/clase/regla del diseño o del catálogo que se incumple (p.ej. `com.educaflow.system.grupos.controller`, `C9`, `A-001`), o `null`.
+>   - `problema` — descripción clara de la incoherencia (p.ej. paquete inexistente en el diseño, regla `C…` inexistente en el catálogo, artefacto sin cubrir).
+>   - `correccion` — qué hay que cambiar en `arch-test-desc.md` para resolverlo.
+> - Cada línea **MUST** ser JSON válido en una sola línea (escapa los saltos como `\n`). **MUST NOT** añadir comentarios ni texto fuera de las líneas JSONL.
+>
+> Ejemplo de salida con problemas:
+>
+> ```jsonl
+> {"id":"P-001","severidad":"BLOCKING","fichero":"design/arch-test-desc.md","ubicacion":"C9","origen":"com.educaflow.system.grupos.controller","problema":"La regla C9 se ancla en un paquete .controller que el diseño no crea (no hay ningún controlador en el diseño).","correccion":"Eliminar C9 (sin sujeto en el diseño) y listarla en «Reglas del catálogo no aplicables» con su motivo."}
+> {"id":"P-002","severidad":"IMPORTANT","fichero":"design/arch-test-desc.md","ubicacion":"A-001","origen":"A-001","problema":"La regla A-001 no traza a ningún punto del spec/guías que imponga esa restricción estructural.","correccion":"Añadir la referencia al punto del spec que la origina, o eliminar A-001 si no procede."}
+> ```
+
+**Prompt del subagente corrector-test-arquitectura**:
+
+> Eres un experto arquitecto Java especializado en **tests de arquitectura con ArchUnit** (ArchUnit 1.4.2, JUnit 5), que tienes que corregir las incoherencias detectadas en la **descripción de los tests de arquitectura**. Deberás indicar de la forma más clara posible las incoherencias que has corregido.
+>
+> - **Reglas para el diseño y para los tests de arquitectura**: lee `{ruta de template-system/README.md}` y los ficheros que referencie (el contrato de los tests de arquitectura).
+> - **Catálogo de reglas**: carga el skill `k-archunit` y lee `secretaria-virtual-rules.md` (las reglas `C1`–`C22`).
+> - **Especificación**: lee `{ruta de specification.md}` y los ficheros que enlace.
+> - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
+> - **Diseño**: la carpeta `{iniciativa}/design` —sobre todo `design.md`— es la **fuente de verdad**; **MUST NOT** modificar el diseño para que cuadre con los tests: corrige los tests para que cuadren con el diseño y el catálogo.
+> - **Fichero a corregir**: `{iniciativa}/design/arch-test-desc.md` — corrige **en sitio** (`Edit`/`Write`), respetando la plantilla del contrato; no toques otros ficheros del diseño.
+> - **Problemas a corregir** (los reportó el verificador-test-arquitectura, en formato JSONL, un problema por línea): `{líneas JSONL literales del verificador}`. Aplica cada `correccion` en la `ubicacion` indicada.
+
+- ✅ CORRECTO (respuesta del verificador-test-arquitectura sin problemas): `OK-CORRECTO`
+- ✅ CON PROBLEMAS (una línea JSONL por problema, sin texto alrededor): `{"id":"P-001","severidad":"BLOCKING","fichero":"design/arch-test-desc.md","ubicacion":"…","origen":"…","problema":"…","correccion":"…"}`
+- ❌ INCORRECTO: `Todo correcto ✅` (token no exacto; el skill compara por literal), o devolver los problemas como prosa/array JSON en vez de una línea JSONL por problema.
+
+---
+
+## 15. Fase 11 — Mensaje de cierre al usuario
 
 ```
 Diseño guardado en .sdd/drafts/{carpeta-iniciativa}/design/
 
-Ficheros generados:
   - design.md
-  - domains/ (N ficheros XML — validados contra domain-models.xsd)
-  - views/   (M ficheros XML — validados contra object-views.xsd)
-  - menus.xml (validado contra object-views.xsd)
-  - tests.md  (materializado desde los ESC-NNN del spec — los ejecutará /sdd-debug-app tras la implementación)
-  - rules/   (K ficheros markdown — solo si hay reglas R complejas)
+  - {resto de ficheros y carpetas según la estructura que define la plantilla}
+  - unit-test-desc.md (descripción de los tests unitarios — los implementa /sdd-implementer)
+  - arch-test-desc.md (descripción de los tests de arquitectura — los implementa /sdd-implementer)
+
+Verificación del diseño: OK-CORRECTO (tras {N} iteración(es) de verificar/corregir).
+Tests unitarios: descritos en design/unit-test-desc.md (coherencia con el diseño: OK-CORRECTO).
+Tests de arquitectura (ArchUnit): descritos en design/arch-test-desc.md (coherencia con el diseño: OK-CORRECTO).
 
 Si quieres iterar sobre este diseño, puedes:
   1. Editar (o crear) .sdd/drafts/{carpeta-iniciativa}/design-guidelines.md con guías
@@ -1126,125 +647,59 @@ Si quieres iterar sobre este diseño, puedes:
        ---
        type: design-guidelines
        ---
-     Las guías persisten a nivel de iniciativa.
   2. Re-ejecutar:
      /sdd-designer .sdd/drafts/{carpeta-iniciativa}/specification.md
-     (la carpeta design/ anterior se borrará y se generará una nueva).
+     (se volverá a generar desde cero).
 
 Para implementar este diseño tal cual ejecuta:
-  /sdd-implementer-system .sdd/drafts/{carpeta-iniciativa}/design/design.md
+  /sdd-implementer .sdd/drafts/{carpeta-iniciativa}/design/design.md
 ```
 
-**MUST NOT** lanzar `sdd-implementer-system` tú mismo. El usuario decide cuándo ejecutarlo.
+Ajusta la lista de ficheros a la estructura real que define la plantilla. **MUST NOT** lanzar `/sdd-implementer` tú mismo: el usuario decide cuándo.
 
 ---
 
-## 10. Modo Revisar/Modificar (`design/` existente)
+## 16. Modo Revisar/Modificar (`design/` existente)
 
-Ruta alternativa desde la Fase 0 (§4.4) cuando el `design/` ya existe y el usuario elige "Revisar / modificar". **No regenera** el diseño: valida el contenido actual contra el contrato de este skill y aplica los cambios puntuales que pida el usuario, **preservando las ediciones manuales**.
+Ruta alternativa desde la Fase 0 (§4.4) cuando el `design/` ya existe y el usuario elige "Revisar / modificar". **No regenera** (no lanza diseñadores ni torneo, **ni enriquece** — la Fase 5 es solo de Generar/Regenerar): aplica los cambios puntuales que pida el usuario, pasa el bucle verificar/corregir del diseño y regenera **y verifica** los tests unitarios y de arquitectura, **preservando las ediciones manuales**.
 
-### 10.1 Principios del modo
+1. Ejecutar la **Fase 1 (§5)**: leer `template-system/README.md` y resolver las rutas de entrada (spec, guías si existen).
+2. Leer `design.md`. Si su frontmatter no es `type: design` → **ERROR** y detente.
+3. **Aplicar los cambios pedidos** (si el usuario pasó texto de cambios en el prompt): lánzalos como tarea del subagente **corrector**, pasándole los cambios como la "lista a corregir" y la carpeta `design/`; corrige **en sitio**. Si no hubo cambios pedidos, salta este paso.
+4. **Pasar la Fase 6 (§10)**: bucle verificar/corregir sobre `design/` (**LIMIT** 10) hasta `OK-CORRECTO`.
+5. **Pasar la Fase 7 (§11, Tests unitarios)**: lanza el subagente **test-unitarios** para (re)generar `design/unit-test-desc.md` reflejando el diseño ya modificado.
+6. **Pasar la Fase 8 (§12)**: bucle `verificador-test-unitarios` → `corrector-test-unitarios` sobre `design/unit-test-desc.md` (**LIMIT** 10) hasta `OK-CORRECTO`.
+7. **Pasar la Fase 9 (§13, Tests de arquitectura)**: lanza el subagente **test-arquitectura** para (re)generar `design/arch-test-desc.md` reflejando el diseño ya modificado.
+8. **Pasar la Fase 10 (§14)**: bucle `verificador-test-arquitectura` → `corrector-test-arquitectura` sobre `design/arch-test-desc.md` (**LIMIT** 10) hasta `OK-CORRECTO`.
+9. **Cerrar** con un mensaje análogo al de la Fase 11, indicando los cambios aplicados y el resultado de la verificación. Si nada hubo que tocar y el verificador respondió `OK-CORRECTO` a la primera: `La carpeta design/ ya está conforme. No se ha modificado nada.`
 
-- **MUST NOT** reconstruir el diseño desde el spec. Se edita lo que ya hay. Si falta una pieza estructural (una entidad sin su `domains/<Entidad>.xml`, una sección obligatoria del `design.md`), **STOP** y pregunta — **MUST NOT** inventarla.
-- **MUST** aplicar correcciones directamente **solo** cuando la respuesta correcta es inequívoca (frontmatter deducible, error de sintaxis XML evidente, referencia rota obvia). **MUST** usar `AskUserQuestion` para todo lo que requiera juicio (nombre canónico de un campo, si una R es compleja, cómo resolver una divergencia).
-- **MUST** editar en sitio los mismos ficheros de `design/` (`Edit`). **MUST NOT** mover ni renombrar ficheros sin avisar. No se crean ficheros nuevos salvo correcciones muy concretas (p.ej. un `rules/R-*.md` cuyo placeholder figuraba en `design.md` pero no existía).
-
-### 10.2 Cargar contexto y leer el diseño
-
-1. Ejecutar la **Fase 1 (§5)** completa para cargar skills (`k-validaciones`, `k-secure-coding`, `k-sistemas`, `k-vistas`, `k-code-quality`), el código real y, si existe, `design-guidelines.md` con sus invariantes `G-NNN` (§5.5).
-2. Leer el spec completo (`specification.md` + todos los `entity-*.md` / `screen-*.md`) y extraer: la lista de reglas `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` y la lista de escenarios `ESC-NNN`.
-3. Leer `design.md`, todos los `domains/*.xml`, `views/*.xml`, `menus.xml`, `tests.md` (si existe) y los `rules/R-*.md` (si existen).
-4. Si el frontmatter de `design.md` no es `type: design` → **ERROR** y detente. **MUST NOT** continuar sin frontmatter válido.
-
-### 10.3 Aplicar los cambios pedidos (parte "Modificar")
-
-Si el usuario pasó texto de cambios en el prompt (§4.4):
-
-1. Aplicarlos de forma **quirúrgica** con `Edit` sobre los ficheros afectados, tocando **solo** lo que el cambio implica y preservando el resto del diseño.
-2. Si un cambio toca un XML, re-validar ese fichero con `xmllint` (§8.3, **LIMIT** 3 iteraciones por fichero).
-3. Si un cambio añade o elimina una V/R/U, actualizar **a la vez** la matriz de trazabilidad (`Origen spec` → V/R/U → ubicación) y, si procede, la sección "Frontera de confianza" y los `rules/R-*.md`.
-4. Si un cambio es ambiguo o contradice el spec, **AskUserQuestion** antes de aplicarlo.
-
-Si **no** hubo texto de cambios, saltar directamente a §10.4 (solo validación; **MUST NOT** modificar la intención del diseño).
-
-### 10.4 Validaciones y correcciones (parte "Revisar")
-
-Aplicar §10.1 en cada punto (corrección mecánica solo si inequívoca; si no, `AskUserQuestion`):
-
-- **a) Estructura.** `design.md` con frontmatter `type: design` y las secciones canónicas de §6.2.2 (cabecera + metadatos, `## Ficheros a crear o modificar`, `## Pasos` en el orden de §6.3, la matriz de trazabilidad). Un `domains/<Entidad>.xml` por entidad del spec; un `views/<Fichero>.xml` por `<action-view>`; `menus.xml`. Cada `rules/R-*.md` referenciado desde `design.md` y viceversa. Si falta una sección del **núcleo** (`## Ficheros…`, `## Pasos`, matriz) → **STOP** y pregunta; **MUST NOT** regenerarla.
-- **b) XML con xmllint** (§8.3). Error de sintaxis → corrección mecánica y reintento. Error semántico (entidad/FQN inexistente) → **STOP** y pregunta; **MUST NOT** autoarreglar.
-- **c) Cobertura spec → V/R/U → ubicación** (núcleo). Cada `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` del spec aparece como `Origen spec` de al menos una V/R/U en la matriz (o, para `CC-` de lectura, en un campo del modelo), **o** está en "Reglas del spec descartadas" con justificación. Cada ubicación referenciada en la matriz existe en un fichero real del diseño. Reportar contadores: reglas del spec cubiertas, sin cubrir, entradas con referencia rota. Para cada hueco, `AskUserQuestion` (documentar la ubicación olvidada o justificar el descarte).
-- **d) Frontera de confianza — AllowProperties y campos `servidor`** (§6.3.3 + `[[k-secure-coding]]` §3). Si hay acciones invocadas desde `@CallMethod`, la sección **MUST** existir. Las columnas `Origen` coherentes con las líneas `Input AllowProperties` y los `CC-NNN` del spec (principio 2.3). Aplicar las reglas de `[[k-secure-coding]]` §3; cualquier fallo es vulnerabilidad de mass-assignment. Detector mecánico del anti-patrón para campos `servidor`:
-  ```bash
-  grep -nE "if\s*\(.*==\s*null\s*\).*set[A-Z]" .sdd/drafts/{iniciativa}/design/design.md
-  ```
-  Cualquier coincidencia sobre un campo `servidor` es un fallo: preguntar antes de corregir (la corrección es eliminar el `if`).
-- **e) Reglas arquitectónicas** (§2.9). Un `<action-view>` por fichero; FQN coherentes (`com.educaflow.subsystem.X.…` / `com.educaflow.system.X.…`); ningún cuerpo Java de implementación en los comentarios de `design.md`; cada V/R/U en su capa correcta (§2.7).
-- **f) Reglas R complejas** (§6.6). Cada `R-` que cumple los criterios de §6.6.1 tiene su `rules/R-<Entidad>-NNN.md` (y viceversa); ningún `rules/R-*.md` con cuerpos Java.
-- **g) Prohibiciones en `design.md`** (§2.4). Sin cuerpos de método Java, sin JPQL real, sin acoplamiento a `expedientes`/`tiposexpedientes`/`tramites`.
-- **h) Tests E2E** (`design/tests.md`). Cada `ESC-NNN` del spec aparece como `Origen ESC` en al menos un test; cada `Verifica` y `Pantalla principal` referencia algo que existe. **Si `tests.md` falta y el spec tiene `ESC-NNN`**: es un olvido → ofrecer (a) materializarlo lanzando la **Tarea 2.4 (§6.8)** ahora, o (b) regenerar. **Si el spec no tiene `ESC-NNN`**: sin tests, sin acción. **MUST NOT** reformatear `tests.md` arbitrariamente; si un test referencia algo inexistente, preguntar.
-- **i) Coherencia diseño ↔ spec.** Los campos de cada `domains/<Entidad>.xml` coinciden con su `entity-*.md` (mismos nombres, mismos enums); las columnas/paneles de `views/*.xml` coinciden con su `screen-*.md`; los `<menuitem>` coinciden con los menús del spec. Una divergencia de nombre → `AskUserQuestion` cuál es canónico; **MUST NOT** decidir unilateralmente.
-- **j) Invariantes de las guías** (§6.7). Si existe `design-guidelines.md`, la sección `## Invariantes de las guías` **MUST** estar en `design.md`; re-ejecutar la verificación mecánica de §6.7 contra el diseño materializado. Las violaciones se reportan con las opciones de §6.7; las que figuran en `### Excepciones a las invariantes` se saltan. **MUST NOT** re-derivar invariantes nuevas aquí (eso es de la Fase 1 en modo Regenerar).
-
-### 10.5 Checklist y cierre del modo
-
-- [ ] Frontmatter `type: design` válido.
-- [ ] Secciones canónicas del `design.md` presentes (§10.4.a).
-- [ ] Todos los XML pasan `xmllint` contra su XSD (§10.4.b).
-- [ ] Cada regla del spec cubierta en la matriz o justificada como descartada; sin referencias rotas (§10.4.c).
-- [ ] Frontera de confianza correcta; ningún `if (campo == null) setCampo(...)` para campos `servidor` (§10.4.d).
-- [ ] Reglas arquitectónicas y prohibiciones respetadas (§10.4.e, §10.4.g).
-- [ ] Cada `R-` compleja con su `rules/R-*.md` y viceversa (§10.4.f).
-- [ ] Cada `ESC-NNN` con al menos un test; referencias de `tests.md` válidas (§10.4.h).
-- [ ] Coherencia diseño ↔ spec verificada (§10.4.i).
-- [ ] Si hay `design-guidelines.md`: invariantes `G-NNN` sin violaciones abiertas (§10.4.j).
-- [ ] Los cambios pedidos por el usuario aplicados y re-validados (§10.3).
-
-**LIMIT**: máximo 3 iteraciones de corrección. Si tras la 3ª siguen quedando puntos sin marcar, **MUST NOT** dar el modo por terminado: documenta los residuos en el informe y avísalo al usuario. **CRITICAL**: **MUST NOT** cerrar mientras quede una invariante violada sin excepción documentada.
-
-Mensaje de cierre del modo Revisar/Modificar:
-
-```
-Revisión/modificación de design/ completada en .sdd/drafts/{carpeta-iniciativa}/design/
-
-Validación XML (xmllint): OK N / Errores M
-Cobertura spec → V/R/U: reglas del spec X · cubiertas Y · sin cubrir W · referencias rotas Z
-Tests: cada ESC-NNN con test (sí/no)
-
-Cambios aplicados (mecánicos + pedidos): N
-  - <lista corta>
-Decisiones tras preguntar al usuario: N
-  - <lista corta>
-Puntos del checklist abiertos: N
-  - <lista corta>
-
-Para implementar este diseño ejecuta:
-  /sdd-implementer-system .sdd/drafts/{carpeta-iniciativa}/design/design.md
-```
-
-Si nada hubo que tocar y no se pidieron cambios: `La carpeta design/ ya está conforme con el contrato actual. No se ha modificado nada.`
+**MUST NOT** reconstruir el diseño desde el spec en este modo. Si el verificador detecta que falta una pieza estructural completa, repórtalo al usuario en el cierre; **MUST NOT** regenerar el diseño entero.
 
 ---
 
 ## Quick Guidelines
 
-- La especificación (`specification.md` + `entity-*.md` + `screen-*.md`) es la fuente de verdad. **MUST NOT** inventar elementos no presentes en ella; ante ambigüedad, `AskUserQuestion`. Ya no hay carpeta `analysis/`.
-- El diseño **convierte** cada regla del spec (`RES`/`VAL` → V, `RN` → R, `RUI` → U, `CC` → campo servidor + R) y clasifica cada campo `cliente`/`servidor` (apoyado en `Input AllowProperties` y `CC-NNN`), con columna **`Origen spec`** en toda V/R/U y cobertura total (cada regla del spec ubicada o descartada con justificación).
-- Diseño ≠ implementación: XML completo va a ficheros reales en `design/domains|views/` + `design/menus.xml`; para Java solo firmas + comentarios del cuerpo. **MUST NOT** incluir lógica Java real.
-- **Tests E2E materializados** desde los `ESC-NNN` de las historias de usuario del spec (Tarea 2.4) → `design/tests.md`; cada `ESC-NNN` con al menos un `T-NNN`. **MUST NOT** copiar de ningún `tests.md` de entrada (ya no existe).
-- Un `<action-view>` por fichero; `<menuitem>` al `menus.xml` único del proyecto (**MUST NOT** crear `menus-<subsistema>.xml`).
-- Validación `xmllint` obligatoria contra `domain-models.xsd` y `object-views.xsd`. **LIMIT**: 3 iteraciones por fichero; tras la 3ª, **STOP**.
-- Generación: **CRITICAL** lanzar exactamente 5 subagentes en una única respuesta (Tarea 2.1) → unificación (agente principal) → 1 subagente por regla R compleja (Tarea 2.3) → 1 subagente de tests (Tarea 2.4). Subagentes paralelos **MUST NOT** usar `AskUserQuestion`.
-- Si hay `design-guidelines.md`: derivar invariantes `G-NNN` verificables (§5.5), re-verificarlas mecánicamente (§6.7) e incluirlas en el `design.md` final.
-- **Elección de iniciativa al invocar** (§4.2): sin ruta, el skill pregunta con `AskUserQuestion` qué iniciativa usar — la última (recomendada) o **elegir otra** distinta de la última, como hace `/sdd-specification`.
-- **Dos modos** (§4.4): si **no** existe `design/` → Generar (Fases 1-5). Si **existe** → preguntar Regenerar (pisa) vs **Revisar/Modificar** (§10: valida contra el contrato y aplica cambios puntuales **sin regenerar**, preservando ediciones; el texto extra del prompt son los cambios a aplicar).
+- **CRITICAL — agnosticismo**: este SKILL es un **motor de flujo**; **no sabe nada de cómo es el diseño**. Todo lo específico lo define `template-system/README.md` (configurable con `--template-dir`), que **leen los subagentes** de disco. **MUST NOT** nombrar aquí ficheros, identificadores, taxonomías ni validaciones del diseño. Único contrato fijo: entrada `specification.md` (`type: specification`), salida carpeta `design/` con `design.md` (`type: design`).
+- **Dos modos** (§4.4): sin `design/` → Generar (Fases 1-11). Con `design/` → preguntar Regenerar (pisa) vs **Revisar/Modificar** (§16: aplica cambios puntuales + verifica el diseño + regenera y verifica tests unitarios y de arquitectura, **sin regenerar ni enriquecer**).
+- **Diseñar** (§6): **CRITICAL** exactamente 5 subagentes diseñadores en **una única respuesta**, cada uno escribe `design_<n>/` completo; **MUST NOT** `AskUserQuestion` ni `run_in_background`. Responden `ESCRITO: design_<n>`.
+- **Elegir** (§7): torneo acumulativo de un juez de dos en dos (`ganador = juez(ganador, design_i)`), **secuencial**; el juez responde `GANADOR: design_<n>` + `=== VENTAJAS <carpeta-A> ===` + `=== VENTAJAS <carpeta-B> ===` + `=== JUSTIFICACIÓN ===`. **REQUIRED**: el motor **MUST** mostrar por pantalla las ventajas de cada diseño y la justificación tras cada comparación, y **MUST** acumular (append) los bloques de ventajas en `{iniciativa}/log_best.txt` (para auditar luego si el ganador las cumple).
+- **Seleccionar** (§8): renombrar el ganador a `design/`, mover `log_best.txt` dentro de la salida, borrar el resto.
+- **Enriquecer** (§9, solo Generar): un subagente **enriquecedor** lee `log_best.txt` y reporta (en JSONL `M-NNN`, o `OK-SIN-MEJORAS`) qué ventajas de los descartados faltan en el ganador y tienen sentido; el motor las muestra y un **corrector** las aplica. Luego sigue la Fase 6.
+- **Verificar/corregir el diseño** (§10): bucle verificador → corrector hasta `OK-CORRECTO` (**LIMIT** 10; tras la 10ª, **STOP**). El verificador valida los artefactos como prescriba la plantilla (incluido ejecutar los scripts de validación que ella indique). El motor **MUST NOT** ejecutar esas validaciones él mismo (§2.2). El verificador reporta los problemas en **JSONL** (un problema por línea, campos `id`/`severidad`/`fichero`/`ubicacion`/`origen`/`problema`/`correccion`); el motor **MUST** mostrárselos al usuario en cada iteración con problemas y **MUST** volcar la respuesta literal de cada verificador a `design/log_revision.txt` (una sección por iteración).
+- **Tests unitarios** (§11, ambos modos): un subagente **test-unitarios** describe en `design/unit-test-desc.md` los tests unitarios (JUnit 5 + Mockito) de las clases Java del diseño — **solo descripción, sin código** (lo implementa `/sdd-implementer`). Enumera las clases **desde el diseño** (aún no hay `.java`); responde `ESCRITO: unit-test-desc.md`.
+- **Verificar/corregir tests unitarios** (§12, ambos modos): bucle `verificador-test-unitarios` → `corrector-test-unitarios` hasta `OK-CORRECTO` (**LIMIT** 10; tras la 10ª, **STOP**). Comprueba que `unit-test-desc.md` es **coherente con el diseño** (clases/métodos/reglas existentes, cobertura cuadra, nada inventado); JSONL con los campos `id`/`severidad`/`fichero`/`ubicacion`/`origen`/`problema`/`correccion`; vuelca el JSONL a `design/log_revision_unit-test.txt`.
+- **Tests de arquitectura** (§13, ambos modos): un subagente **test-arquitectura** describe en `design/arch-test-desc.md` los tests de arquitectura (ArchUnit) de las clases Java del diseño — **solo descripción, sin código** (lo implementa `/sdd-implementer`). Selecciona las reglas del catálogo `k-archunit` (`secretaria-virtual-rules.md`) que apliquen a los paquetes/clases del diseño; enumera los paquetes **desde el diseño** (aún no hay `.java`); responde `ESCRITO: arch-test-desc.md`.
+- **Verificar/corregir tests de arquitectura** (§14, ambos modos): bucle `verificador-test-arquitectura` → `corrector-test-arquitectura` hasta `OK-CORRECTO` (**LIMIT** 10; tras la 10ª, **STOP**). Comprueba que `arch-test-desc.md` es **coherente con el diseño** y el catálogo (paquetes/clases existentes, reglas `C…` del catálogo, `A-NNN` trazadas, artefactos cubiertos, nada inventado); JSONL con los mismos campos; vuelca el JSONL a `design/log_revision_arch-test.txt`.
+- **Contrato de tokens** (§2.3): el skill compara por literal exacto — `ESCRITO: design_<n>`, `GANADOR: design_<n>`, `OK-CORRECTO`. Los subagentes **MUST NOT** pegar el diseño en su respuesta (ya está en disco).
+- **MUST NOT** lanzar `/sdd-implementer` tú mismo: indica el comando y **STOP**.
 
 ---
 
-## Apéndice A — Override de rutas (para testing)
+## Apéndice A — Override de rutas (para testing y versatilidad)
 
-- `--in=<ruta>` — fichero `specification.md` de entrada explícito. **Desactiva la elección de iniciativa** de la Fase 0 caso 2. La "carpeta de la iniciativa" es la que contiene ese fichero (con sus `entity-*.md` / `screen-*.md`).
-- `--out=<ruta>` — **carpeta** donde se materializa la estructura `design/`. Sustituye literalmente a `{carpeta-iniciativa}/design/` en Fase 4 y en el mensaje de Fase 5. Si ya existe, se **borra recursivamente** antes de escribir.
-- `--root=<ruta>` — raíz alternativa a `.sdd/drafts/`. Todas las rutas relativas se resuelven contra esta raíz.
+- `--template-dir=<ruta>` — **carpeta de plantillas** alternativa a `template-system/`. **MUST** contener un `README.md` (la guía, que declara todo lo específico y referencia los demás ficheros); si falta → **ERROR** y detente. El skill resuelve `README.md` contra esta carpeta y pasa esa ruta a los subagentes; **MUST NOT** resolver ni ejecutar ningún otro fichero de la carpeta (cualquier script de validación lo descubre y ejecuta el verificador vía el README — §2.2). Ese `README.md` **MUST** estar redactado para los **11 roles** que lanza este skill (diseñador, juez, enriquecedor, verificador, corrector, test-unitarios, verificador-test-unitarios, corrector-test-unitarios, test-arquitectura, verificador-test-arquitectura, corrector-test-arquitectura — ver §2.2), no solo para el diseñador. Permite usar el mismo flujo con otro tipo de artefacto (p.ej. una futura `template-expediente/`) sin tocar el código del skill.
+- `--in=<ruta>` — fichero `specification.md` de entrada explícito. **Desactiva la elección de iniciativa** de la Fase 0 caso 2. La "carpeta de la iniciativa" es la que lo contiene.
+- `--out=<ruta>` — **carpeta** donde queda el diseño final (sustituye a `{carpeta-iniciativa}/design/` en las Fases 4-8). Los borradores `design_<n>/` se crean junto a `specification.md`; el ganador se mueve a `--out=`.
+- `--root=<ruta>` — raíz alternativa a `.sdd/drafts/`. Las rutas relativas se resuelven contra esta raíz.
 
-En uso normal no se especifican.
+En uso normal no se especifican: se usa la carpeta `template-system/` del skill, la carpeta de la iniciativa y `.sdd/drafts/`.
