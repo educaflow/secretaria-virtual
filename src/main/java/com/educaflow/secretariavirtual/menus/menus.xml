@@ -3,13 +3,13 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <menuitem name="expedientes-menuitem"            title="Expedientes"          order="20"/>
-        <menuitem name="expedientes-tramites-menuitem"                              parent="expedientes-menuitem" title="Trámites"                action="sysTramites-nuevo-action" icon="list_alt_add"     order="1"/>
-        <menuitem name="expedientes-expedientesPendientes-menuitem"         parent="expedientes-menuitem" title="Expedientes Pendientes"  action="subsysExpedientes.Expediente@Pendiente-action"    order="2"/>
-        <menuitem name="expedientes-expedientesEsperando-menuitem"         parent="expedientes-menuitem" title="Expedientes Esperando"   action="subsysExpedientes.Expediente@Esperando-action"    order="3"/>
-        <menuitem name="expedientes-expedientesCerrados-menuitem"          parent="expedientes-menuitem" title="Expedientes Cerrados"    action="subsysExpedientes.Expediente@Cerrados-action"     order="4"/>
-        <menuitem name="expedientes-tiposExpedientes-menuitem"          parent="expedientes-menuitem" title="Tipos Expedientes"       action="subsysExpedientes.TipoExpediente@Main-action"     order="5"/>
-        <menuitem name="expedientes-pruebaBusqueda-menuitem"      parent="expedientes-menuitem" title="Prueba Búsqueda"         action="subsysExpedientes.Expediente@PruebaSearch-action" order="6"/>
+    <menuitem name="expedientes-menuitem"            title="Expedientes"          order="20" groups="users,admins"/>
+        <menuitem name="expedientes-tramites-menuitem"                              parent="expedientes-menuitem" title="Trámites"                action="sysTramites-nuevo-action" icon="list_alt_add"     order="1" groups="users,admins"/>
+        <menuitem name="expedientes-expedientesPendientes-menuitem"         parent="expedientes-menuitem" title="Expedientes Pendientes"  action="subsysExpedientes.Expediente@Pendiente-action"    order="2" groups="users,admins"/>
+        <menuitem name="expedientes-expedientesEsperando-menuitem"         parent="expedientes-menuitem" title="Expedientes Esperando"   action="subsysExpedientes.Expediente@Esperando-action"    order="3" groups="users,admins"/>
+        <menuitem name="expedientes-expedientesCerrados-menuitem"          parent="expedientes-menuitem" title="Expedientes Cerrados"    action="subsysExpedientes.Expediente@Cerrados-action"     order="4" groups="users,admins"/>
+        <menuitem name="expedientes-tiposExpedientes-menuitem"          parent="expedientes-menuitem" title="Tipos Expedientes"       action="subsysExpedientes.TipoExpediente@Main-action"     order="5" groups="users,admins"/>
+        <menuitem name="expedientes-pruebaBusqueda-menuitem"      parent="expedientes-menuitem" title="Prueba Búsqueda"         action="subsysExpedientes.Expediente@PruebaSearch-action" order="6" groups="users,admins"/>
     <menuitem name="sistemaEducativo-menuitem"       title="Sistema educativo"    order="30"/>
         <menuitem name="sistemaEducativo-familiaProfesional-menuitem" parent="sistemaEducativo-menuitem" title="Familia profesional" action="subsysSistemaEducativo.FamiliaProfesional@Main-action"  order="1"/>
         <menuitem name="sistemaEducativo-ciclos-menuitem"              parent="sistemaEducativo-menuitem" title="Ciclos"              action="subsysSistemaEducativo.Ciclo@Main-action"               order="2"/>

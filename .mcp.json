@@ -6,6 +6,10 @@
         "playwright",
         "run-test-mcp-server"
       ]
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "postgresql://educaflow:educaflow@localhost:5432/educaflow"]
     }
   }
 }

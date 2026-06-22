@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <auth>
 
-  <permission name="TipoExpediente.all"
+  <permission name="TipoExpediente.conAce"
               object="com.educaflow.subsystem.expedientes.db.TipoExpediente"
               condition="self IN (
         SELECT aa.tipoExpediente
@@ -11,9 +11,10 @@
         AND (
             aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = ?)
             OR aa.centroUsuario = ?
+            OR aa.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = ?)
         )
     )"
-              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
+              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
   >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
@@ -29,16 +30,17 @@
         AND (
             aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = ?)
             OR aa.centroUsuario = ?
+            OR aa.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = ?)
         )
     )"
-              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
+              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
   >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
   <permission name="Expediente.creador"
               object="com.educaflow.subsystem.expedientes.db.Expediente"
-              condition="self.creador = ?"
+              condition="self.usuarioRegistrador = ?"
               conditionParams="__user__"
   >
     <can create="false" read="true" write="false" remove="false" export="true"/>
@@ -54,9 +56,10 @@
         AND (
             aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = ?)
             OR aa.centroUsuario = ?
+            OR aa.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = ?)
         )
     )"
-              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
+              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
   >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
@@ -71,9 +74,10 @@
         AND (
             aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = ?)
             OR aa.centroUsuario = ?
+            OR aa.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = ?)
         )
     )"
-              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
+              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
   >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
@@ -89,9 +93,10 @@
         AND (
             aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = ?)
             OR aa.centroUsuario = ?
+            OR aa.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = ?)
         )
     )"
-              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
+              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
   >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>

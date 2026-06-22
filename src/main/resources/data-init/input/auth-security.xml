@@ -24,4 +24,17 @@
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
+  <!-- Solo puede ver los cargos de sus propias CentroUsuario -->
+  <permission name="CentroUsuarioCargo.propio"
+              object="com.educaflow.subsystem.common.db.CentroUsuarioCargo"
+              condition="self.centroUsuario.usuario = ?"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Cargo.leer" object="com.educaflow.subsystem.common.db.Cargo">
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
 </auth>

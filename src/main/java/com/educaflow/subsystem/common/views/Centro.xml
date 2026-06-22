@@ -87,6 +87,15 @@
                        canRemove="false"
                        forceEdit="true"
         />
+        <panel-related name="centroUsuarioCargo" title="Cargos" field="centroUsuarioCargo" colSpan="12"
+                       grid-view="subsysCommon.Centro.CentroUsuario.CentroUsuarioCargo@Main-grid"
+                       form-view="subsysCommon.Centro.CentroUsuario.CentroUsuarioCargo@Main-form"
+                       showFooter="false"
+                       newButtonTitle="Nuevo cargo"
+                       canEdit="false"
+                       canRemove="false"
+                       forceEdit="true"
+        />
         <!--<panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
             <button name="btnDelete" title="Borrar" onClick="delete-modal" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid!=null)"/>
             <button name="btnCancel" title="Cancelar" onClick="close"  colSpan="2" colOffset="6" outline="true"   />
@@ -178,6 +187,33 @@
 
     <!-- *************** Centro.CentroUsuario : Acciones de llamadas Remotas al servidor *************** -->
 
+    <!-- *************** Centro.CentroUsuario.CentroUsuarioCargo : Vistas *************** -->
+
+    <grid name="subsysCommon.Centro.CentroUsuario.CentroUsuarioCargo@Main-grid" title="Cargos" model="com.educaflow.subsystem.common.db.CentroUsuarioCargo"
+          groups="admins,users"
+          canNew="true"
+          canRefresh="false" canAdvanceSearch="false" allowSearchFields="false"
+          editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="true" canSave="false"
+          canEditOnClick="true"
+    >
+        <field name="cargo"/>
+    </grid>
+
+    <form name="subsysCommon.Centro.CentroUsuario.CentroUsuarioCargo@Main-form" title="Cargo" model="com.educaflow.subsystem.common.db.CentroUsuarioCargo"
+          groups="admins,users"
+          onNew="subsysCommon.Centro.CentroUsuario.CentroUsuarioCargo@Main-onNew-action"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="centroUsuarioCargo-datos-panel" title="">
+            <field name="cargo" colSpan="12"
+                   domain="self.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = :centroUsuario)"/>
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
+            <button name="btnDelete" title="Borrar" onClick="delete-modal" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="close"  colSpan="2" colOffset="6" outline="true"   />
+            <button name="btnSave" title="Guardar" onClick="save-modal"  colSpan="2"  />
+        </panel>
+    </form>
+
     <!-- *************** Centro.CentroUsuario.CentroUsuarioTipoUsuario : Acciones de las tareas principales *************** -->
 
     <action-group name="subsysCommon.Centro.CentroUsuario.CentroUsuarioTipoUsuario@Main-onNew-action">
@@ -193,5 +229,19 @@
     </action-record>
 
     <!-- *************** Centro.CentroUsuario.CentroUsuarioTipoUsuario : Acciones de llamadas Remotas al servidor *************** -->
+
+    <!-- *************** Centro.CentroUsuario.CentroUsuarioCargo : Acciones de las tareas principales *************** -->
+
+    <action-group name="subsysCommon.Centro.CentroUsuario.CentroUsuarioCargo@Main-onNew-action">
+        <action name="subsysCommon.Centro.CentroUsuario.CentroUsuarioCargo@Main-set-centroUsuario-parent-action"/>
+    </action-group>
+
+    <!-- *************** Centro.CentroUsuario.CentroUsuarioCargo : Acciones básicas que cambian campos simples *************** -->
+
+    <action-record name="subsysCommon.Centro.CentroUsuario.CentroUsuarioCargo@Main-set-centroUsuario-parent-action" model="com.educaflow.subsystem.common.db.CentroUsuarioCargo">
+        <field name="centroUsuario" expr="eval: __parent__"/>
+    </action-record>
+
+    <!-- *************** Centro.CentroUsuario.CentroUsuarioCargo : Acciones de llamadas Remotas al servidor *************** -->
 
 </object-views>

@@ -30,6 +30,9 @@
   <permission name="CentroUsuarioTipoUsuario.all" object="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
+  <permission name="CentroUsuarioCargo.all" object="com.educaflow.subsystem.common.db.CentroUsuarioCargo">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
   <permission name="ComunidadAutonoma.all" object="com.educaflow.subsystem.common.db.ComunidadAutonoma">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
@@ -170,6 +173,7 @@
     <permission name="Cargo.all"/>
     <permission name="CentroUsuario.all"/>
     <permission name="CentroUsuarioTipoUsuario.all"/>
+    <permission name="CentroUsuarioCargo.all"/>
     <permission name="ComunidadAutonoma.all"/>
     <permission name="Conselleria.all"/>
     <permission name="Departamento.all"/>
@@ -218,6 +222,7 @@
     <permission name="Cargo.all"/>
     <permission name="CentroUsuario.all"/>
     <permission name="CentroUsuarioTipoUsuario.all"/>
+    <permission name="CentroUsuarioCargo.all"/>
     <permission name="ComunidadAutonoma.all"/>
     <permission name="Conselleria.all"/>
     <permission name="Departamento.all"/>
@@ -225,19 +230,22 @@
     <permission name="Persona.all"/>
     <permission name="Provincia.all"/>
     <permission name="TipoUsuario.all"/>
-    <permission name="TipoExpediente.all"/>
-    <permission name="Tramite.all"/>
-    <permission name="Expediente.all"/>
+    <permission name="TipoExpediente.conAce"/>
+    <permission name="Tramite.creador"/>
+    <permission name="Expediente.creador"/>
+    <permission name="Expediente.porExpediente"/>
+    <permission name="Expediente.porTipoExpediente"/>
+    <permission name="Expediente.porTramite"/>
     <permission name="HistorialEstado.all"/>
     <permission name="PerfilExpediente.all"/>
-    <permission name="TipoTramite.all"/>
+    <permission name="TipoTramite.leer"/>
     <permission name="CertificadoTutor.all"/>
     <permission name="ValoresAmbito.all"/>
     <permission name="Prueba.all"/>
     <permission name="FormacionCentroTrabajo.all"/>
     <permission name="SearchExpedientes.all"/>
-    <permission name="TareaFirma.all"/>
-    <permission name="DocumentoFirma.all"/>
+    <permission name="TareaFirma.firmante"/>
+    <permission name="DocumentoFirma.propio"/>
     <permission name="PdfUtilities.all"/>
     <permission name="RegistroEntrada.all"/>
     <permission name="RegistroSalida.all"/>

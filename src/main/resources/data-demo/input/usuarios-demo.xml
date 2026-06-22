@@ -6,12 +6,12 @@
     TT = tipo: 10=ProfMis  20=AlumMis  30=FamMis
                40=ProfBatoi 50=AlumBatoi 60=FamBatoi
     YY = año de baja: 00=activo, 24=baja en 2024, 25=baja en 2025
-    SSSS = secuencia, L = letra DNI
+    SSSS = secuencia, L = letra DNI (calculada con módulo 23)
 
   Qué esperar al importar 2025:
-    10250001Y → EXPROFESOR    |  20250001M → EXALUMNO    |  30250001G → EXFAMILIAR
-    40250001A → EXPROFESOR    |  50250001G → EXALUMNO    |  60250001W → EXFAMILIAR
-                              |  50250002M → EXALUMNO
+    10250001M → EXPROFESOR    |  20250001L → EXALUMNO    |  30250001X → EXFAMILIAR
+    40250001R → EXPROFESOR    |  50250001S → EXALUMNO    |  60250001Y → EXFAMILIAR
+                              |  50250002Q → EXALUMNO
 -->
 <datos>
 
@@ -24,118 +24,118 @@
 
         <!-- Profesores activos en 2024 (permanentes) -->
         <usuario email="profesor1.cipfpmislata@secretaria.virtual.es"
-                 documento="10000001T" name="Profesor1 CIPFP Mislata"
+                 documento="10000001S" name="Profesor1 CIPFP Mislata"
                  nombre="Profesor1" apellidos="CIPFP Mislata" password="demo1234"/>
         <usuario email="profesor2.cipfpmislata@secretaria.virtual.es"
-                 documento="10000002R" name="Profesor2 CIPFP Mislata"
+                 documento="10000002Q" name="Profesor2 CIPFP Mislata"
                  nombre="Profesor2" apellidos="CIPFP Mislata" password="demo1234"/>
         <usuario email="profesor3.cipfpmislata@secretaria.virtual.es"
-                 documento="10000003W" name="Profesor3 CIPFP Mislata"
+                 documento="10000003V" name="Profesor3 CIPFP Mislata"
                  nombre="Profesor3" apellidos="CIPFP Mislata" password="demo1234"/>
         <usuario email="profesor4.cipfpmislata@secretaria.virtual.es"
-                 documento="10000004A" name="Profesor4 CIPFP Mislata"
+                 documento="10000004H" name="Profesor4 CIPFP Mislata"
                  nombre="Profesor4" apellidos="CIPFP Mislata" password="demo1234"/>
 
         <!-- Activo en 2024, NO en 2025 → se convierte en EXPROFESOR al importar 2025 -->
         <usuario email="profesor5.cipfpmislata@secretaria.virtual.es"
-                 documento="10250001Y" name="Profesor7 CIPFP Mislata"
+                 documento="10250001M" name="Profesor7 CIPFP Mislata"
                  nombre="Profesor7" apellidos="CIPFP Mislata" password="demo1234"/>
 
         <!-- Exprofesores: ya EXPROFESOR tras importar 2024 -->
-        <!-- 10240001P: estaba en profesores_2024 pero NO en profesores2_2024 (baja mid-2024) -->
+        <!-- 10240001X: estaba en profesores_2024 pero NO en profesores2_2024 (baja mid-2024) -->
         <usuario email="exprofesor1.cipfpmislata@secretaria.virtual.es"
-                 documento="10240001P" name="Exprofesor1 CIPFP Mislata"
+                 documento="10240001X" name="Exprofesor1 CIPFP Mislata"
                  nombre="Exprofesor1" apellidos="CIPFP Mislata" password="demo1234"/>
-        <!-- 10240002D: solo en 2023, no en ninguna importación de 2024 -->
+        <!-- 10240002B: solo en 2023, no en ninguna importación de 2024 -->
         <usuario email="exprofesor2.cipfpmislata@secretaria.virtual.es"
-                 documento="10240002D" name="Exprofesor2 CIPFP Mislata"
+                 documento="10240002B" name="Exprofesor2 CIPFP Mislata"
                  nombre="Exprofesor2" apellidos="CIPFP Mislata" password="demo1234"/>
 
         <!-- Alumnos activos en 2024 (permanentes) -->
         <usuario email="alumno1.cipfpmislata@secretaria.virtual.es"
-                 documento="20000001T" name="Alumno1 CIPFP Mislata"
+                 documento="20000001Y" name="Alumno1 CIPFP Mislata"
                  nombre="Alumno1" apellidos="CIPFP Mislata" password="demo1234"/>
         <usuario email="alumno2.cipfpmislata@secretaria.virtual.es"
-                 documento="20000002R" name="Alumno2 CIPFP Mislata"
+                 documento="20000002F" name="Alumno2 CIPFP Mislata"
                  nombre="Alumno2" apellidos="CIPFP Mislata" password="demo1234"/>
         <usuario email="alumno3.cipfpmislata@secretaria.virtual.es"
-                 documento="20000003W" name="Alumno3 CIPFP Mislata"
+                 documento="20000003P" name="Alumno3 CIPFP Mislata"
                  nombre="Alumno3" apellidos="CIPFP Mislata" password="demo1234"/>
 
         <!-- Activo en 2024, NO en 2025 → se convierte en EXALUMNO al importar 2025 -->
         <usuario email="alumno4.cipfpmislata@secretaria.virtual.es"
-                 documento="20250001M" name="Alumno6 CIPFP Mislata"
+                 documento="20250001L" name="Alumno6 CIPFP Mislata"
                  nombre="Alumno6" apellidos="CIPFP Mislata" password="demo1234"/>
 
         <!-- Exalumnos: ya EXALUMNO tras importar 2024 -->
-        <!-- 20240001Y: en alumnos_2024 pero NO en alumnos2_2024 (baja mid-2024) -->
+        <!-- 20240001R: en alumnos_2024 pero NO en alumnos2_2024 (baja mid-2024) -->
         <usuario email="alumno5.cipfpmislata@secretaria.virtual.es"
-                 documento="20240001Y" name="Alumno7 CIPFP Mislata"
+                 documento="20240001R" name="Alumno7 CIPFP Mislata"
                  nombre="Alumno7" apellidos="CIPFP Mislata" password="demo1234"/>
-        <!-- 20240002F: solo en 2023, no en ninguna importación de 2024 -->
+        <!-- 20240002W: solo en 2023, no en ninguna importación de 2024 -->
         <usuario email="exalumno1.cipfpmislata@secretaria.virtual.es"
-                 documento="20240002F" name="Exalumno1 CIPFP Mislata"
+                 documento="20240002W" name="Exalumno1 CIPFP Mislata"
                  nombre="Exalumno1" apellidos="CIPFP Mislata" password="demo1234"/>
 
         <!-- Familiares activos en 2024 (permanentes) -->
         <usuario email="familiar1.cipfpmislata@secretaria.virtual.es"
-                 documento="30000001T" name="Familiar1 CIPFP Mislata"
+                 documento="30000001C" name="Familiar1 CIPFP Mislata"
                  nombre="Familiar1" apellidos="CIPFP Mislata" password="demo1234"/>
         <usuario email="familiar2.cipfpmislata@secretaria.virtual.es"
-                 documento="30000002R" name="Familiar2 CIPFP Mislata"
+                 documento="30000002K" name="Familiar2 CIPFP Mislata"
                  nombre="Familiar2" apellidos="CIPFP Mislata" password="demo1234"/>
 
         <!-- Activo en 2024, NO en 2025 → pierde autorización al importar 2025 -->
         <usuario email="familiar3.cipfpmislata@secretaria.virtual.es"
-                 documento="30250001G" name="Familiar5 CIPFP Mislata"
+                 documento="30250001X" name="Familiar5 CIPFP Mislata"
                  nombre="Familiar5" apellidos="CIPFP Mislata" password="demo1234"/>
 
 
         <!-- == CIPFP Batoi (03012165) == -->
 
-        <!-- Profesores: 40250001A activo en 2024, → EXPROFESOR al importar 2025 -->
+        <!-- Profesores: 40250001R activo en 2024, → EXPROFESOR al importar 2025 -->
         <usuario email="profesor1.cipfpbatoi@secretaria.virtual.es"
-                 documento="40000001T" name="Profesor1 CIPFP Batoi"
+                 documento="40000001B" name="Profesor1 CIPFP Batoi"
                  nombre="Profesor1" apellidos="CIPFP Batoi" password="demo1234"/>
         <usuario email="profesor2.cipfpbatoi@secretaria.virtual.es"
-                 documento="40000002R" name="Profesor2 CIPFP Batoi"
+                 documento="40000002N" name="Profesor2 CIPFP Batoi"
                  nombre="Profesor2" apellidos="CIPFP Batoi" password="demo1234"/>
         <usuario email="profesor3.cipfpbatoi@secretaria.virtual.es"
-                 documento="40000003W" name="Profesor3 CIPFP Batoi"
+                 documento="40000003J" name="Profesor3 CIPFP Batoi"
                  nombre="Profesor3" apellidos="CIPFP Batoi" password="demo1234"/>
         <usuario email="profesor4.cipfpbatoi@secretaria.virtual.es"
-                 documento="40250001A" name="Profesor4 CIPFP Batoi"
+                 documento="40250001R" name="Profesor4 CIPFP Batoi"
                  nombre="Profesor4" apellidos="CIPFP Batoi" password="demo1234"/>
 
-        <!-- Alumnos: 50250001G y 50250002M activos en 2024, → EXALUMNO al importar 2025 -->
+        <!-- Alumnos: 50250001S y 50250002Q activos en 2024, → EXALUMNO al importar 2025 -->
         <usuario email="alumno1.cipfpbatoi@secretaria.virtual.es"
-                 documento="50000001T" name="Alumno1 CIPFP Batoi"
+                 documento="50000001W" name="Alumno1 CIPFP Batoi"
                  nombre="Alumno1" apellidos="CIPFP Batoi" password="demo1234"/>
         <usuario email="alumno2.cipfpbatoi@secretaria.virtual.es"
-                 documento="50000002R" name="Alumno2 CIPFP Batoi"
+                 documento="50000002A" name="Alumno2 CIPFP Batoi"
                  nombre="Alumno2" apellidos="CIPFP Batoi" password="demo1234"/>
         <usuario email="alumno3.cipfpbatoi@secretaria.virtual.es"
-                 documento="50000003W" name="Alumno3 CIPFP Batoi"
+                 documento="50000003G" name="Alumno3 CIPFP Batoi"
                  nombre="Alumno3" apellidos="CIPFP Batoi" password="demo1234"/>
         <usuario email="alumno4.cipfpbatoi@secretaria.virtual.es"
-                 documento="50000004A" name="Alumno4 CIPFP Batoi"
+                 documento="50000004M" name="Alumno4 CIPFP Batoi"
                  nombre="Alumno4" apellidos="CIPFP Batoi" password="demo1234"/>
         <usuario email="alumno5.cipfpbatoi@secretaria.virtual.es"
-                 documento="50250001G" name="Alumno5 CIPFP Batoi"
+                 documento="50250001S" name="Alumno5 CIPFP Batoi"
                  nombre="Alumno5" apellidos="CIPFP Batoi" password="demo1234"/>
         <usuario email="alumno6.cipfpbatoi@secretaria.virtual.es"
-                 documento="50250002M" name="Alumno6 CIPFP Batoi"
+                 documento="50250002Q" name="Alumno6 CIPFP Batoi"
                  nombre="Alumno6" apellidos="CIPFP Batoi" password="demo1234"/>
 
-        <!-- Familiares: 60250001W activo en 2024, → pierde autorización al importar 2025 -->
+        <!-- Familiares: 60250001Y activo en 2024, → pierde autorización al importar 2025 -->
         <usuario email="familiar1.cipfpbatoi@secretaria.virtual.es"
-                 documento="60000001T" name="Familiar1 CIPFP Batoi"
+                 documento="60000001Q" name="Familiar1 CIPFP Batoi"
                  nombre="Familiar1" apellidos="CIPFP Batoi" password="demo1234"/>
         <usuario email="familiar2.cipfpbatoi@secretaria.virtual.es"
-                 documento="60000002R" name="Familiar2 CIPFP Batoi"
+                 documento="60000002V" name="Familiar2 CIPFP Batoi"
                  nombre="Familiar2" apellidos="CIPFP Batoi" password="demo1234"/>
         <usuario email="familiar3.cipfpbatoi@secretaria.virtual.es"
-                 documento="60250001W" name="Familiar3 CIPFP Batoi"
+                 documento="60250001Y" name="Familiar3 CIPFP Batoi"
                  nombre="Familiar3" apellidos="CIPFP Batoi" password="demo1234"/>
 
     </usuarios>
@@ -193,7 +193,7 @@
         <tipo usuarioCode="profesor2.cipfpmislata@secretaria.virtual.es"   centroCode="46019660" tipoCode="PROFESOR"/>
         <tipo usuarioCode="profesor3.cipfpmislata@secretaria.virtual.es"   centroCode="46019660" tipoCode="PROFESOR"/>
         <tipo usuarioCode="profesor4.cipfpmislata@secretaria.virtual.es"   centroCode="46019660" tipoCode="PROFESOR"/>
-        <!-- 10250001Y: activo en 2024, cambiará a EXPROFESOR al importar 2025 -->
+        <!-- 10250001M: activo en 2024, cambiará a EXPROFESOR al importar 2025 -->
         <tipo usuarioCode="profesor5.cipfpmislata@secretaria.virtual.es"   centroCode="46019660" tipoCode="PROFESOR"/>
 
         <!-- == CIPFP Mislata — exprofesores (EXPROFESOR tras importar 2024) == -->
@@ -204,25 +204,25 @@
         <tipo usuarioCode="alumno1.cipfpmislata@secretaria.virtual.es"     centroCode="46019660" tipoCode="ALUMNO"/>
         <tipo usuarioCode="alumno2.cipfpmislata@secretaria.virtual.es"     centroCode="46019660" tipoCode="ALUMNO"/>
         <tipo usuarioCode="alumno3.cipfpmislata@secretaria.virtual.es"     centroCode="46019660" tipoCode="ALUMNO"/>
-        <!-- 20250001M: activo en 2024, cambiará a EXALUMNO al importar 2025 -->
+        <!-- 20250001L: activo en 2024, cambiará a EXALUMNO al importar 2025 -->
         <tipo usuarioCode="alumno4.cipfpmislata@secretaria.virtual.es"     centroCode="46019660" tipoCode="ALUMNO"/>
 
         <!-- == CIPFP Mislata — exalumnos (EXALUMNO tras importar 2024) == -->
-        <!-- 20240001Y: EXALUMNO tras importar 2024b (mid-año) -->
+        <!-- 20240001R: EXALUMNO tras importar 2024b (mid-año) -->
         <tipo usuarioCode="alumno5.cipfpmislata@secretaria.virtual.es"     centroCode="46019660" tipoCode="EXALUMNO"/>
         <tipo usuarioCode="exalumno1.cipfpmislata@secretaria.virtual.es"   centroCode="46019660" tipoCode="EXALUMNO"/>
 
         <!-- == CIPFP Mislata — familiares activos en 2024 == -->
         <tipo usuarioCode="familiar1.cipfpmislata@secretaria.virtual.es"   centroCode="46019660" tipoCode="FAMILIAR"/>
         <tipo usuarioCode="familiar2.cipfpmislata@secretaria.virtual.es"   centroCode="46019660" tipoCode="FAMILIAR"/>
-        <!-- 30250001G: activo en 2024, cambiará a EXFAMILIAR al importar 2025 -->
+        <!-- 30250001X: activo en 2024, cambiará a EXFAMILIAR al importar 2025 -->
         <tipo usuarioCode="familiar3.cipfpmislata@secretaria.virtual.es"   centroCode="46019660" tipoCode="FAMILIAR"/>
 
         <!-- == CIPFP Batoi — profesores activos en 2024 == -->
         <tipo usuarioCode="profesor1.cipfpbatoi@secretaria.virtual.es"     centroCode="03012165" tipoCode="PROFESOR"/>
         <tipo usuarioCode="profesor2.cipfpbatoi@secretaria.virtual.es"     centroCode="03012165" tipoCode="PROFESOR"/>
         <tipo usuarioCode="profesor3.cipfpbatoi@secretaria.virtual.es"     centroCode="03012165" tipoCode="PROFESOR"/>
-        <!-- 40250001A: activo en 2024, cambiará a EXPROFESOR al importar 2025 -->
+        <!-- 40250001R: activo en 2024, cambiará a EXPROFESOR al importar 2025 -->
         <tipo usuarioCode="profesor4.cipfpbatoi@secretaria.virtual.es"     centroCode="03012165" tipoCode="PROFESOR"/>
 
         <!-- == CIPFP Batoi — alumnos activos en 2024 == -->
@@ -230,14 +230,14 @@
         <tipo usuarioCode="alumno2.cipfpbatoi@secretaria.virtual.es"       centroCode="03012165" tipoCode="ALUMNO"/>
         <tipo usuarioCode="alumno3.cipfpbatoi@secretaria.virtual.es"       centroCode="03012165" tipoCode="ALUMNO"/>
         <tipo usuarioCode="alumno4.cipfpbatoi@secretaria.virtual.es"       centroCode="03012165" tipoCode="ALUMNO"/>
-        <!-- 50250001G y 50250002M: activos en 2024, cambiarán a EXALUMNO al importar 2025 -->
+        <!-- 50250001S y 50250002Q: activos en 2024, cambiarán a EXALUMNO al importar 2025 -->
         <tipo usuarioCode="alumno5.cipfpbatoi@secretaria.virtual.es"       centroCode="03012165" tipoCode="ALUMNO"/>
         <tipo usuarioCode="alumno6.cipfpbatoi@secretaria.virtual.es"       centroCode="03012165" tipoCode="ALUMNO"/>
 
         <!-- == CIPFP Batoi — familiares activos en 2024 == -->
         <tipo usuarioCode="familiar1.cipfpbatoi@secretaria.virtual.es"     centroCode="03012165" tipoCode="FAMILIAR"/>
         <tipo usuarioCode="familiar2.cipfpbatoi@secretaria.virtual.es"     centroCode="03012165" tipoCode="FAMILIAR"/>
-        <!-- 60250001W: activo en 2024, cambiará a EXFAMILIAR al importar 2025 -->
+        <!-- 60250001Y: activo en 2024, cambiará a EXFAMILIAR al importar 2025 -->
         <tipo usuarioCode="familiar3.cipfpbatoi@secretaria.virtual.es"     centroCode="03012165" tipoCode="FAMILIAR"/>
 
     </tipos>

@@ -11,6 +11,9 @@
         <one-to-many name="centroUsuarioTipoUsuario"
                      ref="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario"
                      mappedBy="centroUsuario" title=""/>
+        <one-to-many name="centroUsuarioCargo"
+                     ref="com.educaflow.subsystem.common.db.CentroUsuarioCargo"
+                     mappedBy="centroUsuario" title=""/>
         <unique-constraint columns="centro,usuario" />
     </entity>
 
