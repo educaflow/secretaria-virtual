@@ -34,7 +34,7 @@ type: design
 | `system/gruposnotas/views/Grupo-Administracion.xml` | Crear | k-vistas | Pantalla "Grupos (administración)" |
 | `system/gruposnotas/views/Grupo-MisNotas.xml` | Crear | k-vistas | Pantalla "Mis notas" (alumno) |
 | `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml` | Modificar | k-vistas (menus.md) | Añadir menús "Notas → Grupos", "Mis notas" y "Administración → Grupos (administración)" |
-| `src/main/resources/data-init/input/auth-gruposnotas.xml` (+ entrada en `input-config.xml`) | Crear/Modificar | k-secure-coding | Permisos del grupo `admins`/`users` sobre las 4 entidades (descrito en Seguridad) |
+| `system/gruposnotas/data-init/input/auth-gruposnotas.xml` (+ entrada en su `system/gruposnotas/data-init/input-config.xml`) | Crear/Modificar | k-secure-coding, k-datainit | Permisos del grupo `admins`/`users` sobre las 4 entidades (descrito en Seguridad) |
 
 > **Repositorios personalizados**: como se crean `GrupoRepository`, `AlumnoGrupoRepository` y `NotaRepository` a mano en `db/repo/`, las entidades `Grupo`, `AlumnoGrupo` y `Nota` llevan **ya** `repository="abstract"` en su `<entity>` dentro de los `domains/*.xml` del diseño (XML declarativo completo, listo para copiar tal cual por `/sdd-implementer-system`, sin edición manual posterior). `ModuloGrupo` no tiene repo propio (sus finders/contadores viven en otras entidades), así que NO lleva `repository="abstract"`.
 
@@ -466,11 +466,11 @@ Modelo de roles del proyecto (código real en `subsystem/security`, NO k-segurid
 - **Supervisor** (tipo activo SUPERVISOR, grupo `users`): permisos CREATE/READ/WRITE/REMOVE sobre las 4 entidades **restringidos a su centro**; la restricción operativa la imponen el `<domain>` de la action-view del supervisor y las reglas de servidor (R-Grupo-002 fija centro/cursoAcademico; nunca puede reabrir). No ve "Grupos (administración)".
 - **Alumno** (tipo activo ALUMNO, grupo `users`): permiso **solo READ** sobre `AlumnoGrupo` y `Nota` (y lectura de `Grupo`/`ModuloGrupo` para mostrar nombres), restringido a sus propias pertenencias por el `<domain>self.alumno = :__user__`. No crea ni modifica nada.
 
-Materialización: fichero `data-init/input/auth-gruposnotas.xml` con los permisos (`Permission`) y su asignación a los grupos `admins`/`users` siguiendo el patrón de `auth-security.xml`/`auth-expedientes.xml` existentes, más la entrada en `data-init/input-config.xml`. El control fino por centro y por propiedad lo dan el diseño de servicio/vista descrito arriba (k-secure-coding), no un ACL por campo.
+Materialización: fichero `system/gruposnotas/data-init/input/auth-gruposnotas.xml` con los permisos (`Permission`) y su asignación a los grupos `admins`/`users` siguiendo el patrón de los `auth-<sistema>.xml` existentes (p.ej. `subsystem/security/data-init/input/auth-security.xml`, `subsystem/expedientes/data-init/input/auth-expedientes.xml`), más la entrada en `system/gruposnotas/data-init/input-config.xml`. Cada sistema/subsistema lleva su seguridad en su propia carpeta `data-init` (ver `k-datainit`), no en el `data-init` global. El control fino por centro y por propiedad lo dan el diseño de servicio/vista descrito arriba (k-secure-coding), no un ACL por campo.
 
 ### Paso 10 — Datos iniciales
 
-No se precargan catálogos propios del sistema (Grupo/ModuloGrupo/AlumnoGrupo/Nota son datos de explotación, no maestros). Los datos maestros (centros, catálogo educativo, usuarios y sus tipos) ya los gestionan `common` y `sistemaeducativo`; el tipo `SUPERVISOR` ya existe en `data-init/input/tiposUsuario.xml`. Solo se añaden los permisos del Paso 9.
+No se precargan catálogos propios del sistema (Grupo/ModuloGrupo/AlumnoGrupo/Nota son datos de explotación, no maestros). Los datos maestros (centros, catálogo educativo, usuarios y sus tipos) ya los gestionan `common` y `sistemaeducativo`; el tipo `SUPERVISOR` ya existe en `subsystem/common/data-init/input/tiposUsuario.xml`. Solo se añaden los permisos del Paso 9.
 
 ### Paso 11 — Verificación final
 

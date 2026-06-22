@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- ************************************************************************************** -->
+    <!-- ****************************** AlumnoGrupo : Vistas (mis notas) ********************** -->
+    <!-- ************************************************************************************** -->
+
+    <action-view name="sysGruposNotas.AlumnoGrupo@MisNotas-action" title="Mis notas" model="com.educaflow.system.gruposnotas.db.AlumnoGrupo">
+        <view type="grid" name="sysGruposNotas.AlumnoGrupo@MisNotas-grid"/>
+        <view type="form" name="sysGruposNotas.AlumnoGrupo@MisNotas-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <domain>self.alumno = :__user__</domain>
+    </action-view>
+
+    <grid name="sysGruposNotas.AlumnoGrupo@MisNotas-grid" model="com.educaflow.system.gruposnotas.db.AlumnoGrupo"
+          title="" orderBy="-grupo.cursoAcademico"
+          editable="false" edit-icon="false" x-selector="none"
+          canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="grupo.cursoAcademico" title="Curso académico"/>
+        <field name="grupo.curso.ciclo" title="Ciclo"/>
+        <field name="grupo.nombre" title="Nombre"/>
+        <field name="notaMedia"/>
+    </grid>
+
+    <form name="sysGruposNotas.AlumnoGrupo@MisNotas-form" title="Mi grupo" model="com.educaflow.system.gruposnotas.db.AlumnoGrupo"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="miGrupoPanel" title="Mi grupo" readonly="true">
+            <field name="grupo.nombre" title="Nombre" colSpan="6"/>
+            <field name="grupo.curso" title="Curso" colSpan="6"/>
+            <field name="grupo.cursoAcademico" title="Curso académico" colSpan="6"/>
+            <field name="notaMedia" colSpan="6"/>
+        </panel>
+
+        <panel-related name="misNotasPanel" field="notas" title="Mis notas"
+                       grid-view="sysGruposNotas.AlumnoGrupo.Nota@MisNotas-grid"
+                       form-view="sysGruposNotas.AlumnoGrupo.Nota@MisNotas-form"
+                       colSpan="12" showFooter="false" readonly="true"
+                       canNew="false" canEdit="false" canRemove="false" canViewOnClick="true"/>
+    </form>
+
+
+    <!-- ************************************************************************************************** -->
+    <!-- ************************ AlumnoGrupo.Nota : Vistas (mis notas) ******************************** -->
+    <!-- ************************************************************************************************** -->
+
+    <grid name="sysGruposNotas.AlumnoGrupo.Nota@MisNotas-grid" model="com.educaflow.system.gruposnotas.db.Nota"
+          title="" orderBy="moduloGrupo.modulo.name"
+          editable="false" edit-icon="false" x-selector="none"
+          canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="moduloGrupo.modulo" title="Módulo"/>
+        <field name="valor"/>
+        <field name="fechaCalificacion"/>
+    </grid>
+
+    <form name="sysGruposNotas.AlumnoGrupo.Nota@MisNotas-form" title="Mi nota" model="com.educaflow.system.gruposnotas.db.Nota"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="miNotaPanel" title="Mi nota" readonly="true">
+            <field name="moduloGrupo.modulo" title="Módulo" colSpan="6"/>
+            <field name="valor" colSpan="6"/>
+            <field name="fechaCalificacion" colSpan="6"/>
+            <field name="fechaUltimaModificacion" colSpan="6"/>
+        </panel>
+    </form>
+
+</object-views>

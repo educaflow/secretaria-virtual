@@ -4,78 +4,14 @@
             xsi:schemaLocation="http://axelor.com/xml/ns/data-import
   https://axelor.com/xml/ns/data-import/data-import_8.0.xsd">
 
-    <!-- Los bloques de permisos (auth-*.xml) deben ir ANTES de auth.xml,
-         porque auth.xml define roles que referencian permisos por nombre. -->
+    <!-- data-init GLOBAL: solo datos verdaderamente transversales que no pertenecen
+         a un único sistema/subsistema.
 
-    <input file="auth-expedientes.xml" root="auth">
-        <bind node="permission" type="com.axelor.auth.db.Permission" search="self.name = :name" create="true" update="true">
-            <bind node="@name" to="name"/>
-            <bind node="@object" to="object"/>
-            <bind node="@condition" to="condition"/>
-            <bind node="@conditionParams" to="conditionParams"/>
-            <bind node="can/@create" to="canCreate"/>
-            <bind node="can/@read" to="canRead"/>
-            <bind node="can/@write" to="canWrite"/>
-            <bind node="can/@remove" to="canRemove"/>
-            <bind node="can/@export" to="canExport"/>
-        </bind>
-    </input>
-
-    <input file="auth-firmas.xml" root="auth">
-        <bind node="permission" type="com.axelor.auth.db.Permission" search="self.name = :name" create="true" update="true">
-            <bind node="@name" to="name"/>
-            <bind node="@object" to="object"/>
-            <bind node="@condition" to="condition"/>
-            <bind node="@conditionParams" to="conditionParams"/>
-            <bind node="can/@create" to="canCreate"/>
-            <bind node="can/@read" to="canRead"/>
-            <bind node="can/@write" to="canWrite"/>
-            <bind node="can/@remove" to="canRemove"/>
-            <bind node="can/@export" to="canExport"/>
-        </bind>
-    </input>
-
-    <input file="auth-common.xml" root="auth">
-        <bind node="permission" type="com.axelor.auth.db.Permission" search="self.name = :name" create="true" update="true">
-            <bind node="@name" to="name"/>
-            <bind node="@object" to="object"/>
-            <bind node="@condition" to="condition"/>
-            <bind node="@conditionParams" to="conditionParams"/>
-            <bind node="can/@create" to="canCreate"/>
-            <bind node="can/@read" to="canRead"/>
-            <bind node="can/@write" to="canWrite"/>
-            <bind node="can/@remove" to="canRemove"/>
-            <bind node="can/@export" to="canExport"/>
-        </bind>
-    </input>
-
-    <input file="auth-security.xml" root="auth">
-        <bind node="permission" type="com.axelor.auth.db.Permission" search="self.name = :name" create="true" update="true">
-            <bind node="@name" to="name"/>
-            <bind node="@object" to="object"/>
-            <bind node="@condition" to="condition"/>
-            <bind node="@conditionParams" to="conditionParams"/>
-            <bind node="can/@create" to="canCreate"/>
-            <bind node="can/@read" to="canRead"/>
-            <bind node="can/@write" to="canWrite"/>
-            <bind node="can/@remove" to="canRemove"/>
-            <bind node="can/@export" to="canExport"/>
-        </bind>
-    </input>
-
-    <input file="auth-gestioncentro.xml" root="auth">
-        <bind node="permission" type="com.axelor.auth.db.Permission" search="self.name = :name" create="true" update="true">
-            <bind node="@name" to="name"/>
-            <bind node="@object" to="object"/>
-            <bind node="@condition" to="condition"/>
-            <bind node="@conditionParams" to="conditionParams"/>
-            <bind node="can/@create" to="canCreate"/>
-            <bind node="can/@read" to="canRead"/>
-            <bind node="can/@write" to="canWrite"/>
-            <bind node="can/@remove" to="canRemove"/>
-            <bind node="can/@export" to="canExport"/>
-        </bind>
-    </input>
+         Los datos y permisos propios de cada sistema/subsistema viven ahora en el
+         data-init de cada uno (p.ej. subsystem/common/data-init, system/gruposnotas/data-init),
+         con priority="10", por lo que sus permisos se cargan ANTES que este auth.xml
+         (priority="-1", el último). auth.xml define los roles y grupos transversales
+         (admins, users) y los usuarios, y enlaza los permisos por nombre. -->
 
     <input file="auth.xml" root="auth">
         <bind node="permission" type="com.axelor.auth.db.Permission" search="self.name = :name" create="true" update="true">
@@ -115,31 +51,5 @@
         </bind>
     </input>
 
-
-
-    <input file="tiposUsuario.xml" root="datos">
-        <bind node="tiposUsuario/tipoUsuario" type="com.educaflow.subsystem.common.db.TipoUsuario" search="self.codigo = :codigo" create="true" update="true">
-            <bind node="@codigo" to="codigo"/>
-            <bind node="@nombre" to="nombre"/>
-        </bind>
-    </input>
-
-    <input file="cargos.xml" root="datos">
-        <bind node="cargos/cargo" type="com.educaflow.subsystem.common.db.Cargo" search="self.code = :code" create="true" update="true">
-            <bind node="@code" to="code"/>
-            <bind node="@name" to="name"/>
-            <bind node="@tipoUsuario" to="tipoUsuario" search="self.codigo = :tipoUsuario" update="false" create="false"/>
-        </bind>
-    </input>
-
-    <input file="metaSchedules.xml" root="datos">
-        <bind node="metaSchedules/metaSchedule" type="com.axelor.meta.db.MetaSchedule" search="self.name = :name" create="true" update="true">
-            <bind node="@name" to="name"/>
-            <bind node="@job" to="job"/>
-            <bind node="@cron" to="cron"/>
-            <bind node="@description" to="description"/>
-            <bind node="@active" to="active"/>
-        </bind>
-    </input>
 
 </xml-inputs>

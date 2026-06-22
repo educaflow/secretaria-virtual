@@ -4,27 +4,8 @@
             xsi:schemaLocation="http://axelor.com/xml/ns/data-import
   https://axelor.com/xml/ns/data-import/data-import_8.0.xsd">
 
-
-
-
-    <input file="TipoTramites.xml" root="datos">
-
-        <bind node="tipostramites/tipotramite" type="com.educaflow.subsystem.expedientes.db.TipoTramite" search="self.code = :code" create="true" update="true">
-            <bind node="@code" to="code" />
-            <bind node="@name" to="name" />
-        </bind>
-
-
-        <bind node="perfilesexpedientes/perfilexpediente" type="com.educaflow.subsystem.expedientes.db.PerfilExpediente" search="self.code = :code" create="true" update="true">
-            <bind node="@code" to="code" />
-            <bind node="@name" to="name" />
-        </bind>
-
-
-    </input>
-
-    <!-- Permisos del subsistema expedientes -->
-    <input file="auth-expedientes.xml" root="auth">
+    <!-- Permisos del sistema gestioncentro -->
+    <input file="auth-gestioncentro.xml" root="auth">
         <bind node="permission" type="com.axelor.auth.db.Permission" search="self.name = :name" create="true" update="true">
             <bind node="@name" to="name"/>
             <bind node="@object" to="object"/>
@@ -37,6 +18,5 @@
             <bind node="can/@export" to="canExport"/>
         </bind>
     </input>
-
 
 </xml-inputs>

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<auth>
+
+  <permission name="Grupo.all" object="com.educaflow.system.gruposnotas.db.Grupo">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <permission name="ModuloGrupo.all" object="com.educaflow.system.gruposnotas.db.ModuloGrupo">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <permission name="AlumnoGrupo.all" object="com.educaflow.system.gruposnotas.db.AlumnoGrupo">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <permission name="Nota.all" object="com.educaflow.system.gruposnotas.db.Nota">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+</auth>
