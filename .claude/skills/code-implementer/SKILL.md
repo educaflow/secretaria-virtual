@@ -1,6 +1,6 @@
 ---
 name: code-implementer
-description: Dado un plan con una serie de pasos (texto completo del plan y, opcionalmente, los skills de dominio a usar), lo implementa de forma iterativa lanzando subagentes con contexto aislado; por cada paso un subagente implementador, un subagente verificador que exige evidencia real y, si hay skills de dominio, un subagente revisor de calidad. La salida es código real en el árbol del proyecto más un resumen final basado en evidencia. Se detiene ante bloqueos o ambigüedades (o los devuelve como resultado si se ejecuta dentro de un subagente). Lo invocan `sdd-implementer-system` y `sdd-debug-app` para escribir todo el código Java del pipeline SDD.
+description: Dado un plan con una serie de pasos (texto completo del plan y, opcionalmente, los skills de dominio a usar), lo implementa de forma iterativa lanzando subagentes con contexto aislado; por cada paso un subagente implementador, un subagente verificador que exige evidencia real y, si hay skills de dominio, un subagente revisor de calidad. La salida es código real en el árbol del proyecto más un resumen final basado en evidencia. Se detiene ante bloqueos o ambigüedades (o los devuelve como resultado si se ejecuta dentro de un subagente). Lo invocan `sdd-implementer` y `sdd-debug-app` para escribir todo el código Java del pipeline SDD.
 allowed-tools: Bash(ls:*), Bash(grep:*), Bash(find:*), Bash(git:*), Read, AskUserQuestion, Agent
 ---
 
@@ -76,7 +76,7 @@ Ningún paso se marca como hecho sin que el verificador haya obtenido **evidenci
 
 ### 2.5 Modo subagente
 
-Si este skill se ejecuta **dentro de un subagente** (lo invocan `sdd-implementer-system` o `sdd-debug-app` vía `Agent`), no hay usuario al que preguntar: ante `NEEDS_CONTEXT` o `BLOCKED`, **devuelve el estado de bloqueo con su descripción detallada como resultado final** en vez de `AskUserQuestion`/esperar — el orquestador padre decide.
+Si este skill se ejecuta **dentro de un subagente** (lo invocan `sdd-implementer` o `sdd-debug-app` vía `Agent`), no hay usuario al que preguntar: ante `NEEDS_CONTEXT` o `BLOCKED`, **devuelve el estado de bloqueo con su descripción detallada como resultado final** en vez de `AskUserQuestion`/esperar — el orquestador padre decide.
 
 ### 2.6 No forzar bloqueos
 

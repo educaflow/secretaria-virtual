@@ -207,7 +207,7 @@ public class HelloController {
 >
 > Razón: los nombres `request` y `response` colisionan con los nombres genéricos del paradigma HTTP/Servlet y otros frameworks (Spring `HttpServletRequest`, `HttpServletResponse`); usar el nombre completo deja inequívoco que se trata del par específico de Axelor y mejora la legibilidad cuando se mezclan con otras variables (`actionRequestHelper`, `actionResponseHelper`).
 >
-> Aplica también a las firmas que aparezcan en diseños (`/sdd-designer-system`) y a los ejemplos de cualquier skill.
+> Aplica también a las firmas que aparezcan en diseños (`/sdd-designer`) y a los ejemplos de cualquier skill.
 
 
 ## Obtener el servicio con ModelServiceFactory

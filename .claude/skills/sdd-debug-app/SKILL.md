@@ -46,7 +46,7 @@ You **MUST** consider the user input before proceeding (if not empty). Los argum
 - El `tests.md` no existe o no contiene ningún bloque `## T-NNN` → **ERROR** y detente sin ejecutar nada.
 - La app no levanta a `200` en `http://localhost:8080` tras arrancarla (compila pero no responde) → **STOP** y `AskUserQuestion` (reintentar / ver log / abortar).
 - El proyecto no compila tras `**LIMIT**: 3` correcciones de compilación dentro de un intento → ese intento cuenta como fallido; al agotar los 3 intentos del test se marca `FAIL` y se pasa al siguiente.
-- Una corrección requeriría tocar XML de dominios/vistas materializados o cambiar el contrato del diseño → **STOP** y pregunta al usuario (no es trabajo de este skill; eso vuelve a `/sdd-designer-system`).
+- Una corrección requeriría tocar XML de dominios/vistas materializados o cambiar el contrato del diseño → **STOP** y pregunta al usuario (no es trabajo de este skill; eso vuelve a `/sdd-designer`).
 - No se logra generar un `.spec.ts` que pase tras `**LIMIT**: 5` intentos aunque el test pasa con `playwright-cli` → **STOP** y pregunta al usuario (algo anómalo; ver Fase 2.4).
 - El generator no escribe ningún fichero nuevo bajo `tests/` (no hay spec que sanar) → **STOP** y pregunta al usuario (§6.4.1).
 
@@ -116,13 +116,13 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
 El subagente runner **solo ejecuta el test** y reporta `PASS`/`FAIL` con una descripción del fallo. **MUST NOT** modificar código. La corrección de un fallo se reparte en dos responsabilidades:
 
 - **Diagnóstico** (lo hace el orquestador, este skill): a partir de la **descripción del fallo** que devuelve el runner y del **log de la app** (`implementation/app-debug.log`), localiza la causa en el código con el MCP de IntelliJ.
-- **Escritura del fix** (se delega en `code-implementer`): el orquestador construye un **plan de corrección pequeño** y lo pasa a `code-implementer` con la herramienta `Skill`, junto con los skills de dominio aplicables. **MUST NOT** escribir el fix tú mismo con `Edit`: el código del proyecto se escribe a través de `code-implementer` —que implementa, verifica y revisa cada paso— como hace también `/sdd-implementer-system` (allí la invocación va dentro de un subagente `Agent`; aquí es directa con `Skill`).
+- **Escritura del fix** (se delega en `code-implementer`): el orquestador construye un **plan de corrección pequeño** y lo pasa a `code-implementer` con la herramienta `Skill`, junto con los skills de dominio aplicables. **MUST NOT** escribir el fix tú mismo con `Edit`: el código del proyecto se escribe a través de `code-implementer` —que implementa, verifica y revisa cada paso— como hace también `/sdd-implementer` (allí la invocación va dentro de un subagente `Agent`; aquí es directa con `Skill`).
 
 **CRITICAL**: el plan de corrección **MUST** incluir `k-secure-coding` y `k-code-quality` entre los skills cuando toque entidades, servicios o controladores. Las correcciones **MUST NOT** introducir mass-assignment, saltarse `AllowProperties` ni la asignación incondicional de campos `servidor`.
 
 ### 2.3 No tocar el contrato — solo código Java
 
-**MUST NOT** modificar `tests.md` para que un test pase (eso es trampa). **MUST NOT** editar XML de dominios o vistas materializados ni cambiar firmas declaradas por el diseño para cuadrar un test: si el fallo exige eso, **STOP** y pregunta al usuario — la corrección vuelve a `/sdd-designer-system`. Este skill corrige **lógica Java** (servicios, controladores, repositorios, validaciones, jobs, datos iniciales).
+**MUST NOT** modificar `tests.md` para que un test pase (eso es trampa). **MUST NOT** editar XML de dominios o vistas materializados ni cambiar firmas declaradas por el diseño para cuadrar un test: si el fallo exige eso, **STOP** y pregunta al usuario — la corrección vuelve a `/sdd-designer`. Este skill corrige **lógica Java** (servicios, controladores, repositorios, validaciones, jobs, datos iniciales).
 
 ### 2.4 Un subagente por test, en secuencia
 
@@ -537,7 +537,7 @@ Para cada `FAIL` incluye en una línea sangrada la última descripción del fall
 - **Fallos recurrentes de specs** (principio 2.9): **toda espera lleva `timeout` acotado** (`expect.poll({timeout, intervals})` + `test.setTimeout` si supera 30 s). **NUNCA** `browser_wait_for`/`verify_text` sobre el value de un input (cuelga; usar `verify_value`/`toHaveValue`). Para sondear cambios async (cron) usar REST autenticado (`page.request`) o `page.reload()`, **NUNCA** `page.goto` a la misma url (la SPA cachea form y grid). El cuerpo (`contenteditable`) se rellena con `keyboard.type`, no `.fill()`.
 - App **idempotente y por puerto**: comprobar `200` con `curl`, arrancar en segundo plano con log a fichero, parar con kill por puerto 8080. **MUST NOT** levantar dos instancias.
 - Diagnostica con el **MCP de IntelliJ** y el log `implementation/app-debug.log`; el fix lo escribe **`code-implementer`** con un plan pequeño y los skills de dominio (`k-secure-coding` + `k-code-quality` si toca entidades/servicios/controladores). **MUST NOT** escribir el fix con `Edit`.
-- **MUST NOT** modificar `tests.md` ni XML/contrato del diseño para que un test pase; si hace falta, **STOP** y vuelve a `/sdd-designer-system`.
+- **MUST NOT** modificar `tests.md` ni XML/contrato del diseño para que un test pase; si hace falta, **STOP** y vuelve a `/sdd-designer`.
 - **LIMIT**: 3 intentos de corrección por test; tras agotarlos, `FAIL` y siguiente test.
 - **Checkpoint reanudable**: al resolver cada test (PASS o FAIL definitivo) **añade** una línea JSON a `implementation/progress.jsonl` (con `>>`, nunca `Write`). Al arrancar, lee ese fichero y **salta** los tests ya resueltos. El test es atómico: si se interrumpe a mitad, no tiene línea y se reejecuta entero. `--fresh` ignora el progreso previo.
 - Termina **siempre** escribiendo el listado `PASS`/`FAIL` en `implementation/debug-report.md` (generado desde `progress.jsonl`) **y** mostrándolo en la conversación, sin ocultar fallos.

@@ -30,6 +30,21 @@ Un grid es la vista tabular de Axelor para listar registros (filas) de un modelo
   - Normalmente el atributo `orderBy` valdrá `name` pero se puede valer otro campo relevante para ordenar los registros como alguna fecha.
 
 
+## Mensaje de ayuda (`<help>`)
+
+Un grid admite opcionalmente un hijo `<help>` con un mensaje de ayuda que se muestra al usuario sobre el listado. Es una **etiqueta hija**, no un atributo del `<grid>`, y debe ir la **primera**, antes de los `<field>`.
+
+```xml
+<grid name="subsysSistemaEducativo.Ciclo@Main-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" ...>
+    <help>Aquí se listan todos los ciclos que hay en el sistema</help>
+    <field name="code" width="200px" />
+    <field name="name" />
+</grid>
+```
+
+- ✅ CORRECTO: `<help>...</help>` como primer hijo dentro de `<grid>`.
+- ❌ INCORRECTO: poner el texto en un atributo `help="..."` del `<grid>` (en el grid es etiqueta hija, no atributo; `help` como atributo solo existe en los campos).
+
 ## Nombre de los grids
 
 El nombre de las vistas de grids es:       `{Prefijo}.{Entidad}[.{EntidadHija}]*@[Main|Search|otro nombre]-grid`

@@ -1,0 +1,3 @@
+# El build context es solo esta carpeta. No hay nada pesado que enviar al daemon.
+.env
+*.md

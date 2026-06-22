@@ -117,7 +117,7 @@ description: <una frase que diga qué cubre y cuándo aplicar este skill>
 
 Ejecutan un **proceso multi-fase**: leen artefactos, hacen preguntas, generan ficheros, invocan subagentes, validan resultados.
 
-**Ejemplos**: `sdd-specification-system`, `sdd-analyst-system`, `sdd-designer-system`, `sdd-implementer-system`, `sdd-close-spec`, `code-implementer`, `code-reviewer`.
+**Ejemplos**: `sdd-specification`, `sdd-analyst-system`, `sdd-designer`, `sdd-implementer`, `sdd-close-spec`, `code-implementer`, `code-reviewer`.
 
 **Estructura mínima OBLIGATORIA** (inspirada en `github/spec-kit`):
 
@@ -204,7 +204,7 @@ $ARGUMENTS
   ```yaml
   ---
   name: sdd-analyst-system
-  description: Dado un fichero `specification.md`, genera los artefactos de análisis (analysis.md + entity-*.md + screen-*.md + tests.md) con trazabilidad `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` → V/R/U. La entrada la produce `/sdd-specification-system` y la salida la consume `/sdd-designer-system`.
+  description: Dado un fichero `specification.md`, genera los artefactos de análisis (analysis.md + entity-*.md + screen-*.md + tests.md) con trazabilidad `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` → V/R/U. La entrada la produce `/sdd-specification` y la salida la consume `/sdd-designer`.
   ---
   ```
 
@@ -387,7 +387,7 @@ El `## Outline` **MUST** terminar con una subsección **STOP conditions** que en
 
 ### 6.8 Subagentes: paralelos vs secuenciales
 
-Si el skill lanza subagentes en paralelo (patrón usado en `sdd-analyst-system`, `sdd-designer-system`, `sdd-eval`, …):
+Si el skill lanza subagentes en paralelo (patrón usado en `sdd-analyst-system`, `sdd-designer`, `sdd-eval`, …):
 
 - **MUST** indicar el número exacto (`**REQUIRED**: exactamente N subagentes`).
 - **MUST** decir explícitamente que se lancen en **una única respuesta** con N invocaciones a `Agent`.

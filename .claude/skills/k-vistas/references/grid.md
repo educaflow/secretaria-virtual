@@ -80,6 +80,7 @@ With TreeGrid widget, there are some additional limitations:
 
 The grid view has the following child items:
 
+- `help` - define a help message shown above the list (must be the first child)
 - `field` - define a column bound to the model fields
 - `button` - define a button to execute an action
 - `toolbar` - define custom toolbar buttons
@@ -87,6 +88,23 @@ The grid view has the following child items:
 - `hilite` - define rules to highlight rows/cells
 
 Let's see them in details:
+
+---
+
+## Help
+
+The `<help>` item shows a help message to the user above the grid. On a grid view
+`help` is a **child element**, not an attribute (the `help` attribute only exists on
+fields/widgets, not on `<grid>`). It must appear as the **first** child of `<grid>`,
+before `toolbar`/`field`.
+
+```xml
+<grid name="contact-grid" title="Contacts" model="com.axelor.contact.db.Contact">
+  <help>This list shows all the contacts in the system.</help>
+  <field name="fullName"/>
+  <field name="email"/>
+</grid>
+```
 
 ---
 
