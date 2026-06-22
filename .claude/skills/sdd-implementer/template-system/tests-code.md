@@ -7,7 +7,7 @@ El diseñador (`/sdd-designer`) **solo describe** los tests; aquí se **genera e
 - `design/test-unit-desc.md` → tests unitarios (JUnit 5 + Mockito).
 - `design/test-arch-desc.md` → tests de arquitectura (ArchUnit).
 
-Ambos los compila y ejecuta `./gradlew clean build` (ver `build.md`): si fallan, los arregla el bucle de build. Los tests **E2E** (`tests.md`) **NO** se generan aquí — los ejecuta `/sdd-debug-app`.
+Ambos los compila y ejecuta `./gradlew clean build` (ver `build.md`): si fallan, los arregla el bucle de build. Los tests **E2E** (`test-e2e-desc.md`) **NO** se generan aquí — los ejecuta `/sdd-debug-app`.
 
 > Si el diseño **no** trae `test-unit-desc.md` ni `test-arch-desc.md` (no hay clases Java), **no se crea ninguna tarea de test** (sin error).
 
@@ -58,5 +58,5 @@ Una tarea de test es **código Java** → aplica `implementation.md` §2: carga 
 **MUST NOT**:
 
 - **MUST NOT** modificar el código de producción para que un test pase: si un test no cuadra con el código, es señal de un fallo previo → reporta `BLOCKED`. (Cuadrar tests con código que ya está mal es trabajo del bucle de build, no de la generación.)
-- **MUST NOT** convertir en tests las reglas `U-` (UI/cliente): esas se verifican como E2E en `tests.md`, no aquí.
+- **MUST NOT** convertir en tests las reglas `U-` (UI/cliente): esas se verifican como E2E en `test-e2e-desc.md`, no aquí.
 - **MUST NOT** redefinir con otro criterio una regla de arquitectura que el catálogo `k-archunit` ya define; usa la del catálogo.

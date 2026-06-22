@@ -79,3 +79,13 @@ Reportar (no adivinar) es la respuesta correcta ante:
 - `DONE: {tarea}` — solo cuando la tarea quedó materializada correctamente.
 
 **MUST NOT** pegar el código generado en la respuesta (ya está en disco): solo el token + 1-2 líneas de resumen.
+
+---
+
+## 6. Marcar la tarea como completada en el índice
+
+**Solo al devolver `DONE`** (la tarea quedó materializada): **antes** de responder, marca **esta** tarea como completada en el índice `{iniciativa}/implementation/tasks.md`. Cambia su línea de `- [ ] [Tarea NN](task_NN.md)` a `- [x] [Tarea NN](task_NN.md)` (con `Edit`).
+
+- **MUST** marcar **solo** la línea de la tarea recibida; **MUST NOT** tocar las demás (las marca cada implementador al completar la suya).
+- **MUST NOT** marcar ante `CONFLICT` o `BLOCKED`: el checkbox refleja tareas realmente terminadas.
+- Si el índice se llama distinto o no existe (otra plantilla), omite este paso sin error.

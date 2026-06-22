@@ -111,9 +111,9 @@ Ejemplos ✅/❌ de cabecera de tarea:
 
 ---
 
-## 5. Escribir el índice `task.md` y propagar los ficheros de contrato
+## 5. Escribir el índice `tasks.md` y propagar los ficheros de contrato
 
-1. Escribe `{iniciativa}/implementation/task.md` con **exactamente** esta plantilla, una línea por tarea generada, en orden:
+1. Escribe `{iniciativa}/implementation/tasks.md` con **exactamente** esta plantilla, una línea por tarea generada, en orden. Cada tarea lleva delante un **checkbox sin marcar** (`- [ ]`) que sirve de seguimiento: el implementador lo marca (`- [x]`) a medida que completa cada tarea en la Fase 4 (ver `implementation.md` §5):
 
 ```
 ---
@@ -121,18 +121,19 @@ type: implementation-tasks
 ---
 
 # Lista de tareas a implementar
-- [Tarea 01](task_01.md)
-- [Tarea 02](task_02.md)
+- [ ] [Tarea 01](task_01.md)
+- [ ] [Tarea 02](task_02.md)
 ```
 
 Reglas:
 
-- Un enlace por cada `task_NN.md` creado, en orden.
+- Un enlace por cada `task_NN.md` creado, en orden, **precedido de un checkbox sin marcar** `- [ ]`.
 - El texto del enlace es `Tarea NN`; el destino es `task_NN.md`.
-- ✅ CORRECTO: `- [Tarea 01](task_01.md)`.
-- ❌ INCORRECTO: `- [Tarea 1](tarea_01.md)` (número sin dos dígitos y nombre de fichero que no coincide con el real).
+- Todos los checkboxes se escriben **sin marcar** (`- [ ]`): marcarlos es responsabilidad del implementador al completar cada tarea, **MUST NOT** marcarlos al crear el índice.
+- ✅ CORRECTO: `- [ ] [Tarea 01](task_01.md)`.
+- ❌ INCORRECTO: `- [Tarea 01](task_01.md)` (sin checkbox), `- [x] [Tarea 01](task_01.md)` (no se marca al crear el índice), `- [ ] [Tarea 1](tarea_01.md)` (número sin dos dígitos y nombre de fichero que no coincide con el real).
 
-2. Si existe `{iniciativa}/design/test-e2e-desc.md`, **cópialo literalmente** a `{iniciativa}/implementation/tests.md`. Es **contrato fijo hacia abajo**: **MUST NOT** modificarlo, resumirlo ni renumerarlo — es la entrada que `/sdd-debug-app` ejecutará contra la aplicación real. Si no existe, no pasa nada.
+2. Si existe `{iniciativa}/design/test-e2e-desc.md`, **cópialo literalmente** a `{iniciativa}/implementation/test-e2e-desc.md`. Es **contrato fijo hacia abajo**: **MUST NOT** modificarlo, resumirlo ni renumerarlo — es la entrada que `/sdd-debug-app` ejecutará contra la aplicación real. Si no existe, no pasa nada.
 
 ---
 
@@ -156,6 +157,6 @@ Antes de devolver el token, **MUST** recorrer este checklist. Si algo falla, cor
 - [ ] ¿Las tareas Java de entidades/servicios/controladores incluyen `k-secure-coding` y `k-code-quality`?
 - [ ] ¿Se crearon las tareas de tests unitarios y de arquitectura si el diseño trae `test-unit-desc.md` / `test-arch-desc.md` (ver `tests-code.md`)?
 - [ ] ¿El orden de numeración sigue las dependencias (empezando por las que no dependen de nadie; el orden por capas dominios → servicios → … → tests como fallback) **sin** detenerse por dependencias cruzadas?
-- [ ] ¿Existe `implementation/task.md` con `type: implementation-tasks` y un enlace correcto por tarea, en orden?
-- [ ] Si existía `design/test-e2e-desc.md`: ¿se copió literalmente a `implementation/tests.md` sin modificarlo?
+- [ ] ¿Existe `implementation/tasks.md` con `type: implementation-tasks` y, por tarea, un checkbox **sin marcar** `- [ ]` + enlace correcto, en orden?
+- [ ] Si existía `design/test-e2e-desc.md`: ¿se copió literalmente a `implementation/test-e2e-desc.md` sin modificarlo?
 - [ ] ¿La respuesta lleva `ESCRITO: implementation/` + el bloque `=== TAREAS ===` con una línea por tarea?
