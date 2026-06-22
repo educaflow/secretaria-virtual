@@ -55,7 +55,7 @@ Tanto sistemas como subsistemas comparten la misma estructura de carpetas:
 ├── module/             ← módulo Guice (solo si hay bindings que no descubre ModelServiceFactory)
 ├── views/              ← vistas XML de Axelor (grids, formularios, actions, menuitems inline)
 ├── documentospdf/      ← plantillas PDF propias del sistema/subsistema (opcional)
-└── data-init/          ← datos iniciales de BD (opcional)
+└── data-init/          ← datos iniciales de BD propios del sistema/subsistema (ver k-datainit)
     └── input/
 ```
 
@@ -145,11 +145,16 @@ También contiene `i18n_es.csv` e `i18n_ca.csv` (generados automáticamente por 
 
 Plantillas PDF (`.pdf`, `.odt`) y recursos gráficos (`.png`, logos) usados para generar documentos PDF dentro del servicio. Se cargan como recursos del classpath.
 
-### `data-init/` (opcional)
+### `data-init/`
 
-Datos iniciales de base de datos cargados al arrancar la aplicación:
-- `input-config.xml` — configura las fuentes de datos a importar.
-- `input/*.xml` — registros concretos a insertar (roles, permisos, tipos, etc.).
+Datos iniciales de base de datos que el sistema/subsistema necesita al arrancar (datos maestros/semilla y sus permisos). Es **opcional solo si el sistema/subsistema no necesita datos iniciales**; en cuanto los necesite, su carga es **OBLIGATORIA aquí**:
+
+- **CRITICAL — cada sistema/subsistema es dueño de sus datos iniciales.** El sistema/subsistema que **define la tabla principal** que usa unos datos **MUST** crear su **propia** carpeta `data-init/` en su raíz e incluir ahí esos datos. **MUST NOT** dejarlos en la carpeta global `src/main/resources/data-init/`. Ejemplo: `Cargo`/`TipoUsuario` (de `subsystem/common`) llevan sus `cargos.xml`/`tiposUsuario.xml` en `subsystem/common/data-init/`, no en la global.
+- `input-config.xml` — manifiesto de binding (qué nodo XML mapea a qué entidad/atributo).
+- `input/*.xml` — los registros concretos (tipos, datos maestros, etc.).
+- **CRITICAL — los permisos del sistema/subsistema** van en `input/auth-<nombresistema>.xml` **dentro de este `data-init/`**, **MUST NOT** mezclarse en la global.
+
+**Cuándo consultar `k-datainit`:** al crear o modificar cualquier `data-init/` — formato exacto de `input-config.xml`, de los ficheros de datos y de `auth-<nombresistema>.xml`, el atributo `priority` para ordenar la carga y dónde ubicar la carpeta.
 
 ## Ejemplos
 
@@ -331,6 +336,8 @@ La diferencia principal entre un sistema y un subsistema es que el sistema suele
 | Controladores | `controladores.md` | Estructura, tipos de método, `ModelServiceFactory`, `ActionRequestHelper`, `ActionResponseHelper` y reglas de diseño |
 
 > Para validaciones (`V-XXX`), reglas de negocio (`R-XXX`) y reglas de UI (`U-XXX`), ver el skill **`k-validaciones`**.
+
+> Para los datos iniciales de base de datos del sistema/subsistema (carpeta `data-init/`), ver el skill **`k-datainit`**.
 
 ## Referencias detalladas
 
