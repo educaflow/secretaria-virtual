@@ -71,10 +71,14 @@ docker compose logs -f claude-sandbox
 ./claude-sandbox.sh
 ```
 
-Levanta los contenedores, **puentea los MCP que el host expone en `127.0.0.1`** (p.ej. el
-de IntelliJ, descubiertos de `~/.claude.json` y los `.mcp.json`) para que sean accesibles
-desde dentro del contenedor en el mismo `127.0.0.1:PUERTO`, entra en Claude y **deshace los
-puentes al salir**. Pide `sudo` una vez (regla de firewall acotada; ver `CLAUDE.md`).
+**Resetea la BD a vacía** (`down -v`), levanta los contenedores, **puentea los MCP que el
+host expone en `127.0.0.1`** (p.ej. el de IntelliJ, descubiertos de `~/.claude.json` y los
+`.mcp.json`) para que sean accesibles desde dentro del contenedor en el mismo
+`127.0.0.1:PUERTO`, entra en Claude y **deshace los puentes al salir**. Pide `sudo` una vez
+(regla de firewall acotada; ver `CLAUDE.md`).
+
+> La BD arranca **siempre vacía** con este script: la primera `./run.sh` dentro recrea el
+> esquema y carga `data-init`. El reset solo borra el volumen `postgres_data`.
 
 ### Entrar a trabajar con Claude Code (sin puentear MCP)
 

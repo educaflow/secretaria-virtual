@@ -54,7 +54,11 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-# ── 1. Levantar los contenedores ──────────────────────────────────────────────
+# ── 1. Levantar los contenedores (BD SIEMPRE vacía) ───────────────────────────
+# down -v borra el volumen postgres_data → la BD arranca vacía en cada ejecución.
+# Solo afecta a ese volumen; el código, ~/.m2 y ~/.claude son bind-mounts y NO se tocan.
+log "Reseteando la base de datos (docker compose down -v)..."
+docker compose down -v 2>/dev/null || true
 log "Levantando contenedores (docker compose up -d)..."
 docker compose up -d || { log "ERROR: docker compose up falló."; exit 1; }
 

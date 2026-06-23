@@ -54,9 +54,15 @@ recoge lo que un agente necesita saber para trabajar aquí sin romper nada.
 
 ## `claude-sandbox.sh` — entrar con los MCP del host puenteados
 
-`./claude-sandbox.sh` es la vía recomendada para entrar: levanta los contenedores,
+`./claude-sandbox.sh` es la vía recomendada para entrar: **resetea la BD a vacía**
+(`docker compose down -v` borra el volumen `postgres_data`), levanta los contenedores,
 **puentea los MCP que el host expone en `127.0.0.1`** (los descubre de `~/.claude.json`
 y de los `.mcp.json`), entra en Claude y **deshace los puentes al salir**.
+
+> **La BD arranca SIEMPRE vacía** con este script (decisión deliberada): cada ejecución
+> hace `down -v`, así que no persiste nada entre sesiones. La primera `./run.sh` dentro
+> del contenedor recrea el esquema (`ddl=update`) y carga `data-init`. El `down -v` solo
+> borra `postgres_data`; código, `~/.m2` y `~/.claude` son bind-mounts y no se tocan.
 
 El puente es un **doble socat** por puerto, para que dentro del contenedor el MCP siga
 en el **mismo `127.0.0.1:PUERTO`** (sin tocar la config montada):
