@@ -162,7 +162,6 @@ El diseñador escribe en su carpeta `design_<n>/` el diseño completo. El **índ
 
 ## Tests
 - **Tests unitarios** (JUnit + Mockito): descritos en `test-unit-desc.md` (lo materializa una fase posterior del pipeline).
-- **Tests de arquitectura** (ArchUnit): descritos en `test-arch-desc.md` (lo materializa una fase posterior del pipeline).
 
 ## Reglas del spec descartadas
 ...
@@ -326,7 +325,7 @@ El diseñador revisa su diseño contra esta lista y corrige antes de terminar. S
 - [ ] ¿Cada paso es lo suficientemente pequeño para implementarse y verificarse en ≤ 30 minutos?
 - [ ] ¿Los pasos respetan el orden obligatorio de §8?
 - [ ] ¿El diseño referencia el `specification.md` en la cabecera?
-- [ ] ¿El `design.md` tiene la sección `## Tests` que referencia `test-unit-desc.md` (tests unitarios) y `test-arch-desc.md` (tests de arquitectura)?
+- [ ] ¿El `design.md` tiene la sección `## Tests` que referencia `test-unit-desc.md` (tests unitarios)?
 - [ ] ¿El diseño respeta todas las guías de `design-guidelines.md` (si existe)? Si alguna no se ha podido respetar por incompatibilidad con el spec, ¿está documentada en "Notas y supuestos"?
 
 ---
@@ -343,4 +342,4 @@ type: design
 {contenido del diseño, con resumen estructural por cada XML — no el XML inline}
 ```
 
-El `design.md` **no contiene** los XML completos inline (esos viven en sus ficheros); en su lugar contiene, por cada fichero XML generado, una entrada con su ruta y el resumen estructural (vistas, acciones, propósito), más la matriz de trazabilidad `Origen spec → V/R/U → ubicación`, la sección "Frontera de confianza — AllowProperties por acción" (§8.3) y, si aplica, "Reglas del spec descartadas". Incluye además una sección "Tests" que referencia `test-unit-desc.md` (tests unitarios) y `test-arch-desc.md` (tests de arquitectura), ambos materializados en una fase posterior del pipeline. Las decisiones tomadas ante ambigüedades van en "Notas y supuestos".
+El `design.md` **no contiene** los XML completos inline (esos viven en sus ficheros); en su lugar contiene, por cada fichero XML generado, una entrada con su ruta y el resumen estructural (vistas, acciones, propósito), más la matriz de trazabilidad `Origen spec → V/R/U → ubicación`, la sección "Frontera de confianza — AllowProperties por acción" (§8.3) y, si aplica, "Reglas del spec descartadas". Incluye además una sección "Tests" que referencia `test-unit-desc.md` (tests unitarios), materializado en una fase posterior del pipeline. Las decisiones tomadas ante ambigüedades van en "Notas y supuestos".

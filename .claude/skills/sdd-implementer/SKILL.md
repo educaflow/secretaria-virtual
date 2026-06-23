@@ -68,7 +68,7 @@ El **diseño** de la iniciativa, cuyo índice es `design.md` (único fichero de 
 
 Este skill produce salida en tres sitios:
 
-- En `.sdd/drafts/{iniciativa}/implementation/`: la lista de tareas y los ficheros de contrato hacia abajo (los consumen `/sdd-debug-app` y `/sdd-close-spec`). **Su estructura interna la define la plantilla**, no este skill.
+- En `.sdd/drafts/{iniciativa}/implementation/`: la lista de tareas y los ficheros de contrato hacia abajo (los consumen `/sdd-test-e2e` y `/sdd-close-spec`). **Su estructura interna la define la plantilla**, no este skill.
 - En el **árbol del proyecto** (`src/main/...`, `src/test/...`): el código real (XML materializados colocados/fusionados, código Java y tests) que escriben los subagentes implementadores.
 - En la conversación: un mensaje final indicando que la implementación está completa y el siguiente paso (`/sdd-close-spec`).
 
@@ -297,7 +297,7 @@ Tras materializar todas las tareas, verifica que el proyecto compila (y que sus 
 > - Si la compilación **pasa**, responde **exactamente** y solo: `OK-COMPILA`.
 > - Si **falla**, responde **únicamente** con líneas **JSONL** (JSON Lines): **un error por línea**, sin texto antes ni después, sin envoltorio de array. Cada línea **MUST** ser un objeto JSON con **exactamente** estos campos, en este orden:
 >   - `id` — identificador correlativo, formato `E-NNN` (`E-001`, `E-002`, …).
->   - `tipo` — uno de `COMPILE` | `TEST`.
+>   - `tipo` — uno de `COMPILE` | `TEST` | `CONFORMANCE` (los que defina el contrato de build de la plantilla).
 >   - `fichero` — ruta del fichero afectado (p.ej. `src/main/java/com/educaflow/.../BarServiceImpl.java`), o `null`.
 >   - `ubicacion` — línea/método/test concreto; `null` si no aplica.
 >   - `tarea` — la tarea de `implementation/` de la que probablemente proviene el error (p.ej. `task_03.md`), o `null`.
@@ -338,7 +338,7 @@ Tareas generadas e implementadas: N.
 Build: {OK-COMPILA tras M iteración(es) | NO limpio tras 3 iteraciones — ver implementation/log_build.txt}.
 
 Los artefactos del draft se mantienen en .sdd/drafts/{carpeta-iniciativa}/ — no se ha archivado nada en .sdd/specs/.
-Si la plantilla propagó tests E2E a implementation/, puedes ejecutarlos contra la aplicación real con /sdd-debug-app.
+Si la plantilla propagó tests E2E a implementation/, puedes ejecutarlos contra la aplicación real con /sdd-test-e2e.
 
 Para cerrar la iniciativa (archivar en .sdd/specs/ y actualizar los CLAUDE.md afectados) ejecuta:
   /sdd-close-spec

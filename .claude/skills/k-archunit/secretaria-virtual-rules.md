@@ -649,4 +649,4 @@ recordatorio, sin regla automatizable:
 - Validación de adjuntos, inyección JPQL/SQL, log injection, manejo de secretos.
 
 Para estas, la defensa vive en revisiones con `k-secure-coding` y en los tests E2E
-(`/sdd-debug-app`), no en ArchUnit.
+(`/sdd-test-e2e`), no en ArchUnit.

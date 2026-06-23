@@ -2,7 +2,7 @@
 
 Lo lee el **implementador** (README §2.2) y lo consulta el **corrector-build** (README §2.4) para saber qué puede tocar. Define **cómo materializar UNA tarea** en el árbol del proyecto. El implementador recibe la ruta de **una** `task_NN.md`; este contrato dice cómo ejecutarla según su naturaleza.
 
-> Si la tarea es de **tests** (unitarios o de arquitectura), su materialización la define `tests-code.md`.
+> Si la tarea es de **tests** unitarios, su materialización la define `tests-code.md`.
 
 ---
 
@@ -31,7 +31,20 @@ El implementador **MUST NOT** escribir código Java directamente. Toda la implem
 Al invocar `code-implementer`, inclúyele además:
 
 - Una **nota** de que los XML de dominios/vistas/menús de los que dependa **ya están colocados** en `src/main/...` y son **contrato fijo**: **NO** debe regenerarlos ni editarlos; las firmas Java deben coincidir con las acciones de las vistas (`<action-method method="action-..." class="..."/>` ↔ controlador.método) y las entidades JPA con los dominios. Si detecta un XML mal, **detenerse y notificar**, no editarlo.
+- La restricción de **superficie cerrada** (§2.1): **MUST** crear solo los ficheros y métodos/clases públicos que la tarea lista; **MUST NOT** inventar clases/controladores/métodos de más ni clonar el patrón de otra entidad. Si "haría falta" algo no listado, **parar y reportar**, no inventarlo.
 - La instrucción de **parar y reportar** ante cualquier bloqueo. **MUST NOT** adivinar.
+
+### 2.1 Superficie cerrada — implementar solo lo que la tarea lista
+
+**CRITICAL**: la tarea define la **superficie exacta** a crear. El implementador (y `code-implementer`) **MUST** materializar **únicamente** los ficheros y los métodos/clases públicos que la tarea enumera (su tabla de ficheros y los bloques de firma del diseño verbatim).
+
+- **MUST NOT** crear clases, controladores, métodos públicos, acciones ni endpoints que la tarea **no** liste.
+- **MUST NOT** renombrar un método de la tarea (p.ej. `insert` → `guardarX`) ni cambiar su firma.
+- **MUST NOT** clonar el patrón de **otra** entidad/tarea (p.ej. añadir un `XxxController.guardarXxx` porque otra entidad lo tenga) si la tarea actual no lo pide. La "coherencia" entre entidades la decide el diseño, no el implementador.
+- Si crees que la tarea está incompleta o que "haría falta" un método/clase de más para que funcione → **MUST NOT** inventarlo: responde `BLOCKED: {tarea} — superficie insuficiente: {qué falta y por qué}`. Ampliar la superficie lo decide `/sdd-designer`, no el implementador.
+
+- ✅ CORRECTO: la tarea lista `insert` + guardado por `save-modal` genérico → implementas `insert`, **sin** controlador.
+- ❌ INCORRECTO: la tarea lista `insert` pero implementas `guardarAlumnoGrupo(...)` + un `AlumnoGrupoController` clonando el patrón de `Nota` (superficie no listada → debió ser `BLOCKED`).
 
 ---
 
@@ -47,7 +60,7 @@ Según los ficheros que la tarea cubre:
   ```
   Si falla, responde `BLOCKED: {tarea} — xmllint no valida el menus.xml fusionado: {detalle}`.
 - **Tarea de Java** (servicios, controladores, repositorios, DTOs, jobs, datos iniciales, seguridad): aplica §2 (cargar skills → invocar `code-implementer`).
-- **Tarea de tests** (unitarios / arquitectura): ver `tests-code.md` (también delega en `code-implementer`).
+- **Tarea de tests** unitarios: ver `tests-code.md` (también delega en `code-implementer`).
 
 **MUST NOT** que `code-implementer` lea otros `design.md`/`analysis.md` de otras iniciativas como referencia: implementa **únicamente** la tarea recibida.
 

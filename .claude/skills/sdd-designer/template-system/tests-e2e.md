@@ -2,11 +2,11 @@
 
 Como parte del diseño, **el diseñador** escribe `design_<n>/test-e2e-desc.md` a partir de los escenarios del spec.
 
-**Cuándo se incluye:** solo si `specification.md` contiene al menos un escenario `ESC-NNN`. Si el spec no tiene escenarios, **no se crea** `test-e2e-desc.md` (y `/sdd-debug-app` no tendrá tests que ejecutar).
+**Cuándo se incluye:** solo si `specification.md` contiene al menos un escenario `ESC-NNN`. Si el spec no tiene escenarios, **no se crea** `test-e2e-desc.md` (y `/sdd-test-e2e` no tendrá tests que ejecutar).
 
 **Quién más lo usa** (`README.md` §2): el **verificador** comprueba que `test-e2e-desc.md` existe cuando el spec tiene escenarios y que cubre cada `ESC-NNN` (`validacion.md` §2.h); el **corrector** solo consulta este fichero si un fallo reportado afecta a `test-e2e-desc.md`.
 
-`test-e2e-desc.md` se materializa a partir de los escenarios `ESC-NNN` embebidos bajo cada historia de usuario `HU-NNN` de `specification.md`, usando el propio diseño (las V/R/U y su `Origen spec`) y los `screen-*.md` / `entity-*.md` del spec como referencia de nombres reales (pantallas, botones, campos, mensajes). Cada `ESC-NNN` se convierte en uno o más tests `T-NNN` Given/When/Then en lenguaje de negocio. **MUST**: cada `ESC-NNN` tiene al menos un test asociado. **MUST NOT** incluir comandos `playwright-cli` ni selectores CSS — la traducción la hace `/sdd-debug-app` al ejecutarlos.
+`test-e2e-desc.md` se materializa a partir de los escenarios `ESC-NNN` embebidos bajo cada historia de usuario `HU-NNN` de `specification.md`, usando el propio diseño (las V/R/U y su `Origen spec`) y los `screen-*.md` / `entity-*.md` del spec como referencia de nombres reales (pantallas, botones, campos, mensajes). Cada `ESC-NNN` se convierte en uno o más tests `T-NNN` Given/When/Then en lenguaje de negocio. **MUST**: cada `ESC-NNN` tiene al menos un test asociado. **MUST NOT** incluir comandos `playwright-cli` ni selectores CSS — la traducción la hace `/sdd-test-e2e` al ejecutarlos.
 
 ---
 
@@ -18,7 +18,7 @@ Como parte del diseño, **el diseñador** escribe `design_<n>/test-e2e-desc.md` 
 - Pasos en lenguaje de negocio con `Dado`/`Cuando`/`Y`/`Entonces` (o `Given`/`When`/`And`/`Then`), usando nombres reales de pantallas (entrecomillados), botones, campos y mensajes. **MUST NOT** selectores CSS ni comandos `playwright-cli`.
 - Cada test es **autosuficiente e independiente**: empieza por el login del actor, prepara sus propios datos (el único estado previo admisible es el de la sección «Estado inicial de la base de datos» de este fichero — ver abajo), realiza la acción y verifica la respuesta — igual que exige el escenario del spec.
 - **Estado inicial de la base de datos (precondición común).** `test-e2e-desc.md` **MUST** empezar con una sección `## Estado inicial de la base de datos` que **materialice** el estado previo que el spec describe en su apartado de recursos/datos iniciales (p.ej. "Recursos y datos iniciales"): los datos maestros que gestionan otros subsistemas y de los que parten **todos** los escenarios (centros, catálogo educativo, usuarios…). Es el **único** estado previo que un test puede presuponer; cada test lo referencia en sus `Precondiciones` en lugar de repetirlo.
-- **Credenciales de acceso.** Esa sección **MUST** incluir una **tabla de usuarios** con el `login` y la `contraseña` de **cada** usuario/actor que algún test usa para iniciar sesión (más su rol/tipo y, si el spec es multi-centro, su centro). `/sdd-debug-app` necesita esas credenciales para hacer login real contra la aplicación: un test cuyo actor inicia sesión sin figurar en la tabla es un fallo de cobertura. Si el spec no fija las credenciales, el diseñador define una convención coherente (logins derivados del nombre/rol del usuario; una contraseña común salvo que el spec diga otra cosa) y la documenta en esa misma sección.
+- **Credenciales de acceso.** Esa sección **MUST** incluir una **tabla de usuarios** con el `login` y la `contraseña` de **cada** usuario/actor que algún test usa para iniciar sesión (más su rol/tipo y, si el spec es multi-centro, su centro). `/sdd-test-e2e` necesita esas credenciales para hacer login real contra la aplicación: un test cuyo actor inicia sesión sin figurar en la tabla es un fallo de cobertura. Si el spec no fija las credenciales, el diseñador define una convención coherente (logins derivados del nombre/rol del usuario; una contraseña común salvo que el spec diga otra cosa) y la documenta en esa misma sección.
 
 - ✅ CORRECTO `Origen ESC`: `ESC-001`, `ESC-002, ESC-005`
 - ❌ INCORRECTO: `ESC-1` (sin 3 dígitos), `Escenario 1` (sin prefijo), celda vacía en `Origen ESC` (mínimo 1 ID)
@@ -34,7 +34,7 @@ El subagente devuelve un fichero con esta estructura exacta:
 
 Tests concretos end-to-end materializados a partir de los escenarios (`ESC-NNN`) de las historias de usuario del `specification.md` y de las V/R/U del diseño.
 
-Cada test es **independiente** (no depende del estado dejado por otro) y **trazable** (declara qué `ESC-NNN` materializa y qué V/R/U verifica). `/sdd-debug-app` lo ejecuta contra la aplicación real tras la implementación (bucle de auto-corrección).
+Cada test es **independiente** (no depende del estado dejado por otro) y **trazable** (declara qué `ESC-NNN` materializa y qué V/R/U verifica). `/sdd-test-e2e` lo ejecuta contra la aplicación real tras la implementación (bucle de auto-corrección).
 
 ---
 
@@ -46,7 +46,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 - <Dato maestro 2, p.ej. cursos y módulos del catálogo educativo>
 - …
 
-**Usuarios de acceso** (login y contraseña que `/sdd-debug-app` usará para iniciar sesión):
+**Usuarios de acceso** (login y contraseña que `/sdd-test-e2e` usará para iniciar sesión):
 
 | Login | Contraseña | Rol / Tipo | Centro |
 |---|---|---|---|

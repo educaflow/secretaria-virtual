@@ -15,8 +15,8 @@ Eres un **motor de diseño** del pipeline SDD: transformas una **especificación
 
 El skill tiene **dos modos** (se decide en la Fase 0, §4.4, según exista o no la carpeta `design/`):
 
-- **Generar/Regenerar** (Fases 1-11): produce el `design/` desde cero (5 diseñadores en paralelo → torneo del juez → renombrar ganador → enriquecer → bucle verificar/corregir diseño → describir tests unitarios → bucle verificar/corregir tests unitarios → describir tests de arquitectura → bucle verificar/corregir tests de arquitectura). Modo por defecto cuando no hay `design/`.
-- **Revisar/Modificar** (§16): re-invocación sobre un `design/` existente. **No regenera**: aplica los cambios puntuales que pida el usuario y pasa el bucle verificar/corregir, preservando las ediciones manuales.
+- **Generar/Regenerar** (Fases 1-9): produce el `design/` desde cero (5 diseñadores en paralelo → torneo del juez → renombrar ganador → enriquecer → bucle verificar/corregir diseño → describir tests unitarios → bucle verificar/corregir tests unitarios). Modo por defecto cuando no hay `design/`.
+- **Revisar/Modificar** (§14): re-invocación sobre un `design/` existente. **No regenera**: aplica los cambios puntuales que pida el usuario y pasa el bucle verificar/corregir, preservando las ediciones manuales.
 
 ---
 
@@ -32,7 +32,7 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 - **Sin argumentos**: el skill pregunta con `AskUserQuestion` qué iniciativa de `.sdd/drafts/` usar — la última (recomendada) o elegir otra (§4.2).
 - **Texto adicional tras la ruta**:
   - En modo **Generar/Regenerar**: se trata como guías de diseño y se persiste en `{iniciativa}/design-guidelines.md` (§4.3).
-  - En modo **Revisar/Modificar**: es la **lista de cambios puntuales** a aplicar sobre el diseño existente (§16).
+  - En modo **Revisar/Modificar**: es la **lista de cambios puntuales** a aplicar sobre el diseño existente (§14).
 - Flags de override `--template-dir=`, `--in=`, `--out=`, `--root=` (Apéndice A).
 
 ---
@@ -48,10 +48,8 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 7. **Fase 6 — Verificar/corregir**: bucle subagente verificador (que aplica la validación que prescriba la plantilla) → (si hay fallos) subagente corrector, hasta `OK-CORRECTO`. (Común a ambos modos.)
 8. **Fase 7 — Tests unitarios**: un subagente **test-unitarios** describe en `design/test-unit-desc.md` los tests unitarios (JUnit + Mockito) de las clases Java del diseño (solo descripción, sin código). (Común a ambos modos.)
 9. **Fase 8 — Verificar/corregir tests unitarios**: bucle subagente **verificador-test-unitarios** (comprueba que `test-unit-desc.md` es coherente con el diseño) → (si hay fallos) subagente **corrector-test-unitarios**, hasta `OK-CORRECTO`. (Común a ambos modos.)
-10. **Fase 9 — Tests de arquitectura**: un subagente **test-arquitectura** describe en `design/test-arch-desc.md` los tests de arquitectura (ArchUnit) de las clases Java del diseño (solo descripción, sin código). (Común a ambos modos.)
-11. **Fase 10 — Verificar/corregir tests de arquitectura**: bucle subagente **verificador-test-arquitectura** (comprueba que `test-arch-desc.md` es coherente con el diseño) → (si hay fallos) subagente **corrector-test-arquitectura**, hasta `OK-CORRECTO`. (Común a ambos modos.)
-12. **Fase 11 — Cerrar** con mensaje al usuario y handoff a `/sdd-implementer`.
-13. **§16 — Modo Revisar/Modificar**: ruta alternativa desde la Fase 0.
+10. **Fase 9 — Cerrar** con mensaje al usuario y handoff a `/sdd-implementer`.
+11. **§14 — Modo Revisar/Modificar**: ruta alternativa desde la Fase 0.
 
 **STOP conditions**:
 
@@ -59,12 +57,11 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 - Frontmatter de `specification.md` no contiene `type: specification` → **ERROR** y detente.
 - `design-guidelines.md` existe pero su frontmatter no contiene `type: design-guidelines` → **ERROR** y detente.
 - Carpeta `design/` ya existe y no está vacía → **STOP** y pregunta: Regenerar vs Revisar/Modificar (§4.4).
-- En modo Revisar/Modificar, el frontmatter de `design.md` no es `type: design` → **ERROR** y detente (§16).
+- En modo Revisar/Modificar, el frontmatter de `design.md` no es `type: design` → **ERROR** y detente (§14).
 - Ningún diseñador produjo una carpeta `design_<n>/` con contenido → **ERROR** y detente.
 - El juez no devuelve un token `GANADOR: design_<n>` válido tras 1 reintento → **STOP** y muestra el problema.
 - Tras **10** iteraciones del bucle verificar/corregir del diseño (Fase 6) el verificador sigue sin responder `OK-CORRECTO` → **STOP** y muestra al usuario las líneas JSONL de los problemas residuales. **MUST NOT** dar el diseño por bueno.
 - Tras **10** iteraciones del bucle verificar/corregir de los tests unitarios (Fase 8) el `verificador-test-unitarios` sigue sin responder `OK-CORRECTO` → **STOP** y muestra al usuario las líneas JSONL residuales. **MUST NOT** dar `test-unit-desc.md` por bueno.
-- Tras **10** iteraciones del bucle verificar/corregir de los tests de arquitectura (Fase 10) el `verificador-test-arquitectura` sigue sin responder `OK-CORRECTO` → **STOP** y muestra al usuario las líneas JSONL residuales. **MUST NOT** dar `test-arch-desc.md` por bueno.
 
 ---
 
@@ -82,14 +79,13 @@ Una **carpeta** `design/` dentro de la carpeta de la iniciativa.
 
 **CRITICAL — la estructura interna de `design/` la define `template-system/README.md`, no este skill.** Qué ficheros y subcarpetas la componen, qué contiene cada uno y cómo se valida, **lo declara la guía**, que los subagentes leen. El skill **MUST NOT** asumir esos detalles de memoria; solo manipula la carpeta como una unidad (la crea cada diseñador, el juez la compara, el verificador la valida).
 
-**Único contrato fijo (no lo cambia `--template-dir`):** el índice de la salida se llama `design.md` y lleva frontmatter `type: design`. Es lo que el skill usa para **localizar y validar** un diseño existente (Fase 0 / §16) y lo que consume `/sdd-implementer`.
+**Único contrato fijo (no lo cambia `--template-dir`):** el índice de la salida se llama `design.md` y lleva frontmatter `type: design`. Es lo que el skill usa para **localizar y validar** un diseño existente (Fase 0 / §14) y lo que consume `/sdd-implementer`.
 
 **Logs de orquestación del motor.** Además de la estructura que define la plantilla, el motor escribe en la carpeta de salida sus propios ficheros de **log** (no son contenido de diseño ni los define la plantilla; los verificadores los ignoran):
 
 - `log_best.txt` — las **ventajas de cada diseño** que el juez detalla en cada comparación del torneo (§7), para poder auditar después si el diseño ganador las cumple. Solo en modo Generar/Regenerar (en Revisar/Modificar no hay torneo).
 - `log_revision.txt` — la salida **JSONL literal de cada subagente verificador** de la Fase 6 (§10), una sección por iteración. En ambos modos.
 - `log_revision_unit-test.txt` — la salida **JSONL literal de cada `verificador-test-unitarios`** de la Fase 8 (§12), una sección por iteración. En ambos modos.
-- `log_revision_arch-test.txt` — la salida **JSONL literal de cada `verificador-test-arquitectura`** de la Fase 10 (§14), una sección por iteración. En ambos modos.
 
 ### 1.3 Estructura de carpetas
 
@@ -106,8 +102,7 @@ Una **carpeta** `design/` dentro de la carpeta de la iniciativa.
             ├── …                                ← ficheros y carpetas que declare template-system/README.md
             ├── log_best.txt                     ← log del motor: ventajas de cada diseño (§7, solo Generar)
             ├── log_revision.txt                 ← log del motor: JSONL de cada verificador del diseño (§10)
-            ├── log_revision_unit-test.txt       ← log del motor: JSONL de cada verificador-test-unitarios (§12)
-            └── log_revision_arch-test.txt       ← log del motor: JSONL de cada verificador-test-arquitectura (§14)
+            └── log_revision_unit-test.txt       ← log del motor: JSONL de cada verificador-test-unitarios (§12)
 ```
 
 ---
@@ -129,11 +124,11 @@ Todo lo específico del diseño (qué se produce, cómo se convierte el spec, qu
 - Esos dos logs son artefactos **del motor**, no contenido de diseño ni ficheros que declare la plantilla: el verificador no los valida y `--template-dir` no los cambia.
 - Único acoplamiento permitido por nombre: `README.md` (contrato de la plantilla) y el contrato fijo de I/O `specification.md` / `design.md`.
 
-**REQUIRED — el README de la plantilla es leído por los 11 roles.** Este skill lanza **once** subagentes con tareas distintas sobre el mismo diseño: **diseñador** (crea), **juez** (elige entre dos), **enriquecedor** (detecta qué ventajas de los descartados incorporar), **verificador** (busca problemas en el diseño), **corrector** (corrige/incorpora en el diseño), **test-unitarios** (describe los tests unitarios), **verificador-test-unitarios** (comprueba que los tests unitarios son coherentes con el diseño), **corrector-test-unitarios** (corrige los tests unitarios), **test-arquitectura** (describe los tests de arquitectura), **verificador-test-arquitectura** (comprueba que los tests de arquitectura son coherentes con el diseño) y **corrector-test-arquitectura** (corrige los tests de arquitectura) — ver §2.3, §6–§14. Los once reciben las mismas rutas de entrada y **leen el mismo `README.md` de la plantilla**, pero cada uno hace una cosa distinta y necesita un subconjunto distinto de sus ficheros. Por tanto, **cualquier `README.md` de plantilla** (la `template-system/` actual o una futura apuntada con `--template-dir=`, p.ej. `template-expediente/README.md`) **MUST** estar redactado teniendo en cuenta esos 11 roles: debe delimitar, por rol, qué tarea hace y qué ficheros de la plantilla le aplican. Un README que solo contemple al diseñador es **incompleto** para este skill.
+**REQUIRED — el README de la plantilla es leído por los 8 roles.** Este skill lanza **ocho** subagentes con tareas distintas sobre el mismo diseño: **diseñador** (crea), **juez** (elige entre dos), **enriquecedor** (detecta qué ventajas de los descartados incorporar), **verificador** (busca problemas en el diseño), **corrector** (corrige/incorpora en el diseño), **test-unitarios** (describe los tests unitarios), **verificador-test-unitarios** (comprueba que los tests unitarios son coherentes con el diseño) y **corrector-test-unitarios** (corrige los tests unitarios) — ver §2.3, §6–§12. Los ocho reciben las mismas rutas de entrada y **leen el mismo `README.md` de la plantilla**, pero cada uno hace una cosa distinta y necesita un subconjunto distinto de sus ficheros. Por tanto, **cualquier `README.md` de plantilla** (la `template-system/` actual o una futura apuntada con `--template-dir=`, p.ej. `template-expediente/README.md`) **MUST** estar redactado teniendo en cuenta esos 8 roles: debe delimitar, por rol, qué tarea hace y qué ficheros de la plantilla le aplican. Un README que solo contemple al diseñador es **incompleto** para este skill.
 
 ### 2.3 Orquestación de subagentes
 
-- Los **diseñadores** corren **en paralelo** (§6); **MUST NOT** usar `AskUserQuestion`. El **juez**, el **enriquecedor**, el **verificador**, el **corrector**, el **test-unitarios**, el **verificador-test-unitarios**, el **corrector-test-unitarios**, el **test-arquitectura**, el **verificador-test-arquitectura** y el **corrector-test-arquitectura** corren **de uno en uno** (cada uno depende del resultado del anterior).
+- Los **diseñadores** corren **en paralelo** (§6); **MUST NOT** usar `AskUserQuestion`. El **juez**, el **enriquecedor**, el **verificador**, el **corrector**, el **test-unitarios**, el **verificador-test-unitarios** y el **corrector-test-unitarios** corren **de uno en uno** (cada uno depende del resultado del anterior).
 - **MUST NOT** usar `run_in_background`: el skill necesita el resultado de cada subagente para continuar.
 - Cada rol responde con un **token literal** que el skill parsea (definidos en cada fase). El skill compara por literal exacto.
 
@@ -165,13 +160,7 @@ Todo lo específico del diseño (qué se produce, cómo se convierte el spec, qu
 │            verificador-test-unitarios(design/) → OK-CORRECTO ?      │
 │              sí  → fin    (vuelca JSONL a log_revision_unit-test.txt)│
 │              no  → corrector-test-unitarios(design/, fallos) → rep. │
-│  Fase 9  test-arquitectura(design/) → design/test-arch-desc.md      │
-│            (descripción de tests de arquitectura; solo descripción) │
-│  Fase 10 Bucle (LIMIT 10):  coherencia tests arquitectura ↔ diseño │
-│            verificador-test-arquitectura(design/) → OK-CORRECTO ?   │
-│              sí  → fin    (vuelca JSONL a log_revision_arch-test.txt)│
-│              no  → corrector-test-arquitectura(design/, fallos)→rep.│
-│  Fase 11 Mensaje de cierre al usuario                               │
+│  Fase 9  Mensaje de cierre al usuario                               │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -202,7 +191,7 @@ Si el usuario invoca con una ruta a un `specification.md`:
 
 ### 4.3 Guías de diseño opcionales desde el prompt
 
-**Orden**: el guard §4.4 se evalúa **antes** que este apartado, que **solo** aplica en modo Generar/Regenerar. En modo Revisar/Modificar el texto adicional es la lista de cambios (§16), no guías.
+**Orden**: el guard §4.4 se evalúa **antes** que este apartado, que **solo** aplica en modo Generar/Regenerar. En modo Revisar/Modificar el texto adicional es la lista de cambios (§14), no guías.
 
 Tras confirmar el modo Generar/Regenerar, si en los argumentos queda texto adicional:
 
@@ -227,7 +216,7 @@ Comprobar si **ya existe** una carpeta `design/` no vacía en la carpeta de la i
 - Si **no existe** o está vacía: modo **Generar/Regenerar**. Continúa con §4.3 y luego la Fase 1 → Fase 6.
 - Si **sí existe** (y contiene al menos `design.md`): **detener y preguntar con `AskUserQuestion`** entre:
 
-1. **Revisar / modificar el diseño existente** (recomendado si se editó a mano o solo quieres cambios puntuales): **NO regenera**; entra en el **modo Revisar/Modificar (§16)**.
+1. **Revisar / modificar el diseño existente** (recomendado si se editó a mano o solo quieres cambios puntuales): **NO regenera**; entra en el **modo Revisar/Modificar (§14)**.
 2. **Regenerar desde la especificación** (pisa el diseño actual): continúa con §4.3 y la Fase 1; los borradores `design_<n>/` y `design/` se rehacen.
 
 Mensaje exacto al usuario:
@@ -346,7 +335,7 @@ Tras esto solo queda `design/` (más `--out=` si se indicó: en ese caso, el des
 
 ## 9. Fase 5 — Enriquecer el ganador con las ventajas de los descartados
 
-**Solo en modo Generar/Regenerar** (depende del torneo y de `log_best.txt`; en Revisar/Modificar no aplica — §16). Tras seleccionar el ganador, el diseño se **enriquece** incorporando las ventajas de los diseños descartados que el ganador no tenga y que tengan sentido. Los diseños descartados ya no están en disco (la Fase 4 los borró): la fuente de esas ventajas es `design/log_best.txt`.
+**Solo en modo Generar/Regenerar** (depende del torneo y de `log_best.txt`; en Revisar/Modificar no aplica — §14). Tras seleccionar el ganador, el diseño se **enriquece** incorporando las ventajas de los diseños descartados que el ganador no tenga y que tengan sentido. Los diseños descartados ya no están en disco (la Fase 4 los borró): la fuente de esas ventajas es `design/log_best.txt`.
 
 1. **Lanzar el subagente enriquecedor** (uno solo). Recibe todo el contexto + `log_best.txt`; **comprueba** qué ventajas de cada diseño faltan en el ganador y procede aplicar, y las **reporta** (no las implementa).
 2. **Mostrar al usuario** la respuesta del enriquecedor (las mejoras a implementar, o que no hay ninguna).
@@ -488,7 +477,7 @@ Si tras la 10ª iteración el verificador sigue sin responder `OK-CORRECTO` → 
 
 1. **Lanzar el subagente verificador-test-unitarios** (uno solo).
 2. **Volcar su respuesta a `design/log_revision_unit-test.txt`**: añade (append) la respuesta **literal** —sus líneas JSONL, o `OK-CORRECTO`— precedida de la cabecera `# Verificación tests unitarios — iteración {k}`. Es un append acumulativo (una sección por iteración).
-3. Si respondió **exactamente** `OK-CORRECTO` → `test-unit-desc.md` es coherente con el diseño: sal del bucle y ve a la Fase 9.
+3. Si respondió **exactamente** `OK-CORRECTO` → `test-unit-desc.md` es coherente con el diseño: sal del bucle y ve a la Fase 9 (cierre).
 4. Si respondió **cualquier otra cosa** (las líneas JSONL de problemas): **MUST** mostrar al usuario por pantalla, tal cual, las líneas JSONL que devolvió (bloque ` ```jsonl `), antes de continuar; luego **lanza el subagente corrector-test-unitarios** pasándole esas mismas líneas, para que corrija en sitio sobre `design/test-unit-desc.md`.
 5. Incrementa `{k}` y vuelve al paso 1.
 
@@ -540,94 +529,7 @@ Si tras la 10ª iteración el verificador sigue sin responder `OK-CORRECTO` → 
 
 ---
 
-## 13. Fase 9 — Tests de arquitectura (describirlos)
-
-**Común a ambos modos** (Generar/Regenerar y Revisar/Modificar): tras verificar los tests unitarios (Fase 8), un subagente **test-arquitectura** describe los **tests de arquitectura** (ArchUnit) que verifican que las clases Java del diseño respetan la arquitectura documentada del proyecto (capas, Controller→Service→Repository, nomenclatura/ubicación, inyección, higiene) y los escribe en `design/test-arch-desc.md`. **Solo descripción, sin código**: el código de los tests lo genera `/sdd-implementer` a partir de `test-arch-desc.md`.
-
-1. **Lanzar el subagente test-arquitectura** (uno solo). Produce `design/test-arch-desc.md` siguiendo el contrato que la plantilla prescribe para los tests de arquitectura (lo descubre vía el README). Ante una `test-arch-desc.md` previa, la **regenera** para reflejar el diseño actual.
-2. Cuando responda **exactamente** `ESCRITO: test-arch-desc.md`, continúa con la Fase 10.
-3. Si no produce `test-arch-desc.md` o no devuelve el token, **reintenta 1 vez**; si vuelve a fallar, avísalo al usuario y continúa con la Fase 10 (**MUST NOT** bloquear el flujo por esto).
-
-**Prompt del subagente test-arquitectura**:
-
-> Eres un experto arquitecto Java especializado en **tests de arquitectura con ArchUnit** (ArchUnit 1.4.2, JUnit 5). Tu tarea es **describir** —no implementar— los tests de arquitectura necesarios para verificar que las clases Java que define un diseño respetan la arquitectura documentada del proyecto, de modo que `/sdd-implementer` pueda luego generar el código de los tests a partir de tu descripción.
->
-> - **Reglas para el diseño y para los tests de arquitectura**: lee `{ruta de template-system/README.md}` y **los ficheros que referencie** —en particular el contrato de los **tests de arquitectura**—. Define qué reglas describir, cómo seleccionarlas del catálogo, la estrategia de anclaje/ámbito (`@AnalyzeClasses`), la plantilla exacta de `test-arch-desc.md`, la trazabilidad y el checklist. Síguelo al pie de la letra.
-> - **Catálogo de reglas**: carga el skill `k-archunit` y lee su fichero `secretaria-virtual-rules.md` —es la **fuente única** de las reglas de arquitectura del proyecto (`C1`–`C22`)—. **MUST NOT** redefinir con otro criterio una regla que el catálogo ya define; selecciona y especializa de ese catálogo las que apliquen al diseño.
-> - **Especificación**: lee `{ruta de specification.md}` y todos los ficheros que enlace (para restricciones estructurales específicas que impongan reglas `A-NNN`).
-> - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
-> - **Diseño**: lee la carpeta `{iniciativa}/design` —sobre todo `design.md`— de donde salen los **paquetes y FQN** de las clases que el diseño crea/modifica (controladores, servicios, impl., repositorios, módulos Guice, DTOs, entidades). **CRITICAL**: en esta fase **todavía no existe el código Java** del sistema (lo creará `/sdd-implementer`); enumera los paquetes/clases **desde el diseño**, no del árbol de fuentes. Para clases que el diseño **modifica** (ya existentes) puedes explorar el código real y el «Estado actual» del catálogo para decidir si una regla va en `FREEZE`.
-> - **Salida**: escribe `{iniciativa}/design/test-arch-desc.md` con la **descripción** de las reglas de arquitectura aplicables, según la plantilla del contrato. **MUST NOT** escribir código Java (ni `@ArchTest`, ni `@AnalyzeClasses`, ni reglas fluidas, ni imports): solo la descripción (id `C…`/`A-NNN`, qué verifica, ámbito, sujetos del diseño, resultado esperado, origen).
-> - **MUST NOT** usar `AskUserQuestion`. Ante una ambigüedad, decide lo más razonable y documéntalo en `test-arch-desc.md`.
-> - Aplica el **checklist** del contrato antes de terminar (**LIMIT**: 3 iteraciones de autocorrección).
-> - Al terminar, responde **exactamente** `ESCRITO: test-arch-desc.md` y, opcionalmente, 1-2 líneas de notas (cobertura). **MUST NOT** pegar el contenido de `test-arch-desc.md` en la respuesta (ya está en disco).
-
-- ✅ CORRECTO (respuesta del subagente test-arquitectura): `ESCRITO: test-arch-desc.md`
-- ❌ INCORRECTO: `He creado los tests de arquitectura` (token no parseable), pegar `test-arch-desc.md` en la respuesta, o incluir código Java/ArchUnit en `test-arch-desc.md` (la fase solo describe; el código lo genera `/sdd-implementer`)
-
----
-
-## 14. Fase 10 — Verificar y corregir los tests de arquitectura (bucle, LIMIT 10)
-
-**Común a ambos modos** (Generar/Regenerar y Revisar/Modificar). Una vez `test-arch-desc.md` está escrito (Fase 9), comprueba **en bucle** que es **coherente con el diseño**: que los paquetes y clases que dice probar existen en el diseño (FQN), que cada regla `C…` que cita existe en el catálogo `k-archunit` y cada `A-NNN` traza al spec/guías, que cada artefacto del diseño está cubierto, que las reglas no aplicables están justificadas y que no hay paquetes ni clases inventados. Sobre la carpeta `design/`, repite este bucle **como máximo 10 veces** (**LIMIT**: 10 iteraciones); lleva un contador de iteración `{k}` empezando en 1:
-
-1. **Lanzar el subagente verificador-test-arquitectura** (uno solo).
-2. **Volcar su respuesta a `design/log_revision_arch-test.txt`**: añade (append) la respuesta **literal** —sus líneas JSONL, o `OK-CORRECTO`— precedida de la cabecera `# Verificación tests arquitectura — iteración {k}`. Es un append acumulativo (una sección por iteración).
-3. Si respondió **exactamente** `OK-CORRECTO` → `test-arch-desc.md` es coherente con el diseño: sal del bucle y ve a la Fase 11.
-4. Si respondió **cualquier otra cosa** (las líneas JSONL de problemas): **MUST** mostrar al usuario por pantalla, tal cual, las líneas JSONL que devolvió (bloque ` ```jsonl `), antes de continuar; luego **lanza el subagente corrector-test-arquitectura** pasándole esas mismas líneas, para que corrija en sitio sobre `design/test-arch-desc.md`.
-5. Incrementa `{k}` y vuelve al paso 1.
-
-Si tras la 10ª iteración el verificador sigue sin responder `OK-CORRECTO` → **STOP** (STOP condition): muestra al usuario las líneas JSONL residuales y **MUST NOT** dar `test-arch-desc.md` por bueno.
-
-**Prompt del subagente verificador-test-arquitectura**:
-
-> Eres un experto arquitecto Java especializado en **tests de arquitectura con ArchUnit** (ArchUnit 1.4.2, JUnit 5), que tienes que verificar si la **descripción de los tests de arquitectura** ya escrita es **coherente con el diseño** y con el catálogo de reglas. **MUST NOT** regenerar ni completar los tests: solo **detectas y reportas** incoherencias.
->
-> - **Reglas para el diseño y para los tests de arquitectura**: lee `{ruta de template-system/README.md}` y **los ficheros que referencie** —en particular el contrato de los **tests de arquitectura** y, dentro de él, sus **comprobaciones de coherencia con el diseño**—. Aplícalas tal cual.
-> - **Catálogo de reglas**: carga el skill `k-archunit` y lee su fichero `secretaria-virtual-rules.md` —es la **fuente única** de las reglas (`C1`–`C22`)—; comprueba que cada `C…` citada existe y se usa con su criterio.
-> - **Especificación**: lee `{ruta de specification.md}` y los ficheros que enlace (para validar las reglas `A-NNN`).
-> - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
-> - **Diseño**: lee la carpeta `{iniciativa}/design` —sobre todo `design.md`— como **fuente de verdad** de los paquetes y FQN de las clases que el diseño crea/modifica.
-> - **Fichero a verificar**: `{iniciativa}/design/test-arch-desc.md`.
->
-> **Formato de salida (REQUIRED)**:
-> - Si **no** has encontrado nada incoherente, responde **exactamente** y solo: `OK-CORRECTO`.
-> - Si has encontrado problemas, responde **únicamente** con líneas **JSONL** (JSON Lines): **un problema por línea**, sin texto antes ni después, sin envoltorio de array. Cada línea **MUST** ser un objeto JSON con **exactamente** estos campos, en este orden:
->   - `id` — identificador correlativo, formato `P-NNN` (`P-001`, `P-002`, …).
->   - `severidad` — uno de `BLOCKING` | `IMPORTANT` | `MINOR`.
->   - `fichero` — siempre `design/test-arch-desc.md`, o `null` si es transversal.
->   - `ubicacion` — la regla/ámbito concreto dentro del fichero (p.ej. `C9`, `A-001`, `Cobertura`); `null` si no aplica.
->   - `origen` — el paquete/clase/regla del diseño o del catálogo que se incumple (p.ej. `com.educaflow.system.grupos.controller`, `C9`, `A-001`), o `null`.
->   - `problema` — descripción clara de la incoherencia (p.ej. paquete inexistente en el diseño, regla `C…` inexistente en el catálogo, artefacto sin cubrir).
->   - `correccion` — qué hay que cambiar en `test-arch-desc.md` para resolverlo.
-> - Cada línea **MUST** ser JSON válido en una sola línea (escapa los saltos como `\n`). **MUST NOT** añadir comentarios ni texto fuera de las líneas JSONL.
->
-> Ejemplo de salida con problemas:
->
-> ```jsonl
-> {"id":"P-001","severidad":"BLOCKING","fichero":"design/test-arch-desc.md","ubicacion":"C9","origen":"com.educaflow.system.grupos.controller","problema":"La regla C9 se ancla en un paquete .controller que el diseño no crea (no hay ningún controlador en el diseño).","correccion":"Eliminar C9 (sin sujeto en el diseño) y listarla en «Reglas del catálogo no aplicables» con su motivo."}
-> {"id":"P-002","severidad":"IMPORTANT","fichero":"design/test-arch-desc.md","ubicacion":"A-001","origen":"A-001","problema":"La regla A-001 no traza a ningún punto del spec/guías que imponga esa restricción estructural.","correccion":"Añadir la referencia al punto del spec que la origina, o eliminar A-001 si no procede."}
-> ```
-
-**Prompt del subagente corrector-test-arquitectura**:
-
-> Eres un experto arquitecto Java especializado en **tests de arquitectura con ArchUnit** (ArchUnit 1.4.2, JUnit 5), que tienes que corregir las incoherencias detectadas en la **descripción de los tests de arquitectura**. Deberás indicar de la forma más clara posible las incoherencias que has corregido.
->
-> - **Reglas para el diseño y para los tests de arquitectura**: lee `{ruta de template-system/README.md}` y los ficheros que referencie (el contrato de los tests de arquitectura).
-> - **Catálogo de reglas**: carga el skill `k-archunit` y lee `secretaria-virtual-rules.md` (las reglas `C1`–`C22`).
-> - **Especificación**: lee `{ruta de specification.md}` y los ficheros que enlace.
-> - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
-> - **Diseño**: la carpeta `{iniciativa}/design` —sobre todo `design.md`— es la **fuente de verdad**; **MUST NOT** modificar el diseño para que cuadre con los tests: corrige los tests para que cuadren con el diseño y el catálogo.
-> - **Fichero a corregir**: `{iniciativa}/design/test-arch-desc.md` — corrige **en sitio** (`Edit`/`Write`), respetando la plantilla del contrato; no toques otros ficheros del diseño.
-> - **Problemas a corregir** (los reportó el verificador-test-arquitectura, en formato JSONL, un problema por línea): `{líneas JSONL literales del verificador}`. Aplica cada `correccion` en la `ubicacion` indicada.
-
-- ✅ CORRECTO (respuesta del verificador-test-arquitectura sin problemas): `OK-CORRECTO`
-- ✅ CON PROBLEMAS (una línea JSONL por problema, sin texto alrededor): `{"id":"P-001","severidad":"BLOCKING","fichero":"design/test-arch-desc.md","ubicacion":"…","origen":"…","problema":"…","correccion":"…"}`
-- ❌ INCORRECTO: `Todo correcto ✅` (token no exacto; el skill compara por literal), o devolver los problemas como prosa/array JSON en vez de una línea JSONL por problema.
-
----
-
-## 15. Fase 11 — Mensaje de cierre al usuario
+## 13. Fase 9 — Mensaje de cierre al usuario
 
 ```
 Diseño guardado en .sdd/drafts/{carpeta-iniciativa}/design/
@@ -635,11 +537,9 @@ Diseño guardado en .sdd/drafts/{carpeta-iniciativa}/design/
   - design.md
   - {resto de ficheros y carpetas según la estructura que define la plantilla}
   - test-unit-desc.md (descripción de los tests unitarios — los implementa /sdd-implementer)
-  - test-arch-desc.md (descripción de los tests de arquitectura — los implementa /sdd-implementer)
 
 Verificación del diseño: OK-CORRECTO (tras {N} iteración(es) de verificar/corregir).
 Tests unitarios: descritos en design/test-unit-desc.md (coherencia con el diseño: OK-CORRECTO).
-Tests de arquitectura (ArchUnit): descritos en design/test-arch-desc.md (coherencia con el diseño: OK-CORRECTO).
 
 Si quieres iterar sobre este diseño, puedes:
   1. Editar (o crear) .sdd/drafts/{carpeta-iniciativa}/design-guidelines.md con guías
@@ -659,9 +559,9 @@ Ajusta la lista de ficheros a la estructura real que define la plantilla. **MUST
 
 ---
 
-## 16. Modo Revisar/Modificar (`design/` existente)
+## 14. Modo Revisar/Modificar (`design/` existente)
 
-Ruta alternativa desde la Fase 0 (§4.4) cuando el `design/` ya existe y el usuario elige "Revisar / modificar". **No regenera** (no lanza diseñadores ni torneo, **ni enriquece** — la Fase 5 es solo de Generar/Regenerar): aplica los cambios puntuales que pida el usuario, pasa el bucle verificar/corregir del diseño y regenera **y verifica** los tests unitarios y de arquitectura, **preservando las ediciones manuales**.
+Ruta alternativa desde la Fase 0 (§4.4) cuando el `design/` ya existe y el usuario elige "Revisar / modificar". **No regenera** (no lanza diseñadores ni torneo, **ni enriquece** — la Fase 5 es solo de Generar/Regenerar): aplica los cambios puntuales que pida el usuario, pasa el bucle verificar/corregir del diseño y regenera **y verifica** los tests unitarios, **preservando las ediciones manuales**.
 
 1. Ejecutar la **Fase 1 (§5)**: leer `template-system/README.md` y resolver las rutas de entrada (spec, guías si existen).
 2. Leer `design.md`. Si su frontmatter no es `type: design` → **ERROR** y detente.
@@ -669,9 +569,7 @@ Ruta alternativa desde la Fase 0 (§4.4) cuando el `design/` ya existe y el usua
 4. **Pasar la Fase 6 (§10)**: bucle verificar/corregir sobre `design/` (**LIMIT** 10) hasta `OK-CORRECTO`.
 5. **Pasar la Fase 7 (§11, Tests unitarios)**: lanza el subagente **test-unitarios** para (re)generar `design/test-unit-desc.md` reflejando el diseño ya modificado.
 6. **Pasar la Fase 8 (§12)**: bucle `verificador-test-unitarios` → `corrector-test-unitarios` sobre `design/test-unit-desc.md` (**LIMIT** 10) hasta `OK-CORRECTO`.
-7. **Pasar la Fase 9 (§13, Tests de arquitectura)**: lanza el subagente **test-arquitectura** para (re)generar `design/test-arch-desc.md` reflejando el diseño ya modificado.
-8. **Pasar la Fase 10 (§14)**: bucle `verificador-test-arquitectura` → `corrector-test-arquitectura` sobre `design/test-arch-desc.md` (**LIMIT** 10) hasta `OK-CORRECTO`.
-9. **Cerrar** con un mensaje análogo al de la Fase 11, indicando los cambios aplicados y el resultado de la verificación. Si nada hubo que tocar y el verificador respondió `OK-CORRECTO` a la primera: `La carpeta design/ ya está conforme. No se ha modificado nada.`
+7. **Cerrar** con un mensaje análogo al de la Fase 9, indicando los cambios aplicados y el resultado de la verificación. Si nada hubo que tocar y el verificador respondió `OK-CORRECTO` a la primera: `La carpeta design/ ya está conforme. No se ha modificado nada.`
 
 **MUST NOT** reconstruir el diseño desde el spec en este modo. Si el verificador detecta que falta una pieza estructural completa, repórtalo al usuario en el cierre; **MUST NOT** regenerar el diseño entero.
 
@@ -680,7 +578,7 @@ Ruta alternativa desde la Fase 0 (§4.4) cuando el `design/` ya existe y el usua
 ## Quick Guidelines
 
 - **CRITICAL — agnosticismo**: este SKILL es un **motor de flujo**; **no sabe nada de cómo es el diseño**. Todo lo específico lo define `template-system/README.md` (configurable con `--template-dir`), que **leen los subagentes** de disco. **MUST NOT** nombrar aquí ficheros, identificadores, taxonomías ni validaciones del diseño. Único contrato fijo: entrada `specification.md` (`type: specification`), salida carpeta `design/` con `design.md` (`type: design`).
-- **Dos modos** (§4.4): sin `design/` → Generar (Fases 1-11). Con `design/` → preguntar Regenerar (pisa) vs **Revisar/Modificar** (§16: aplica cambios puntuales + verifica el diseño + regenera y verifica tests unitarios y de arquitectura, **sin regenerar ni enriquecer**).
+- **Dos modos** (§4.4): sin `design/` → Generar (Fases 1-9). Con `design/` → preguntar Regenerar (pisa) vs **Revisar/Modificar** (§14: aplica cambios puntuales + verifica el diseño + regenera y verifica tests unitarios, **sin regenerar ni enriquecer**).
 - **Diseñar** (§6): **CRITICAL** exactamente 5 subagentes diseñadores en **una única respuesta**, cada uno escribe `design_<n>/` completo; **MUST NOT** `AskUserQuestion` ni `run_in_background`. Responden `ESCRITO: design_<n>`.
 - **Elegir** (§7): torneo acumulativo de un juez de dos en dos (`ganador = juez(ganador, design_i)`), **secuencial**; el juez responde `GANADOR: design_<n>` + `=== VENTAJAS <carpeta-A> ===` + `=== VENTAJAS <carpeta-B> ===` + `=== JUSTIFICACIÓN ===`. **REQUIRED**: el motor **MUST** mostrar por pantalla las ventajas de cada diseño y la justificación tras cada comparación, y **MUST** acumular (append) los bloques de ventajas en `{iniciativa}/log_best.txt` (para auditar luego si el ganador las cumple).
 - **Seleccionar** (§8): renombrar el ganador a `design/`, mover `log_best.txt` dentro de la salida, borrar el resto.
@@ -688,8 +586,6 @@ Ruta alternativa desde la Fase 0 (§4.4) cuando el `design/` ya existe y el usua
 - **Verificar/corregir el diseño** (§10): bucle verificador → corrector hasta `OK-CORRECTO` (**LIMIT** 10; tras la 10ª, **STOP**). El verificador valida los artefactos como prescriba la plantilla (incluido ejecutar los scripts de validación que ella indique). El motor **MUST NOT** ejecutar esas validaciones él mismo (§2.2). El verificador reporta los problemas en **JSONL** (un problema por línea, campos `id`/`severidad`/`fichero`/`ubicacion`/`origen`/`problema`/`correccion`); el motor **MUST** mostrárselos al usuario en cada iteración con problemas y **MUST** volcar la respuesta literal de cada verificador a `design/log_revision.txt` (una sección por iteración).
 - **Tests unitarios** (§11, ambos modos): un subagente **test-unitarios** describe en `design/test-unit-desc.md` los tests unitarios (JUnit 5 + Mockito) de las clases Java del diseño — **solo descripción, sin código** (lo implementa `/sdd-implementer`). Enumera las clases **desde el diseño** (aún no hay `.java`); responde `ESCRITO: test-unit-desc.md`.
 - **Verificar/corregir tests unitarios** (§12, ambos modos): bucle `verificador-test-unitarios` → `corrector-test-unitarios` hasta `OK-CORRECTO` (**LIMIT** 10; tras la 10ª, **STOP**). Comprueba que `test-unit-desc.md` es **coherente con el diseño** (clases/métodos/reglas existentes, cobertura cuadra, nada inventado); JSONL con los campos `id`/`severidad`/`fichero`/`ubicacion`/`origen`/`problema`/`correccion`; vuelca el JSONL a `design/log_revision_unit-test.txt`.
-- **Tests de arquitectura** (§13, ambos modos): un subagente **test-arquitectura** describe en `design/test-arch-desc.md` los tests de arquitectura (ArchUnit) de las clases Java del diseño — **solo descripción, sin código** (lo implementa `/sdd-implementer`). Selecciona las reglas del catálogo `k-archunit` (`secretaria-virtual-rules.md`) que apliquen a los paquetes/clases del diseño; enumera los paquetes **desde el diseño** (aún no hay `.java`); responde `ESCRITO: test-arch-desc.md`.
-- **Verificar/corregir tests de arquitectura** (§14, ambos modos): bucle `verificador-test-arquitectura` → `corrector-test-arquitectura` hasta `OK-CORRECTO` (**LIMIT** 10; tras la 10ª, **STOP**). Comprueba que `test-arch-desc.md` es **coherente con el diseño** y el catálogo (paquetes/clases existentes, reglas `C…` del catálogo, `A-NNN` trazadas, artefactos cubiertos, nada inventado); JSONL con los mismos campos; vuelca el JSONL a `design/log_revision_arch-test.txt`.
 - **Contrato de tokens** (§2.3): el skill compara por literal exacto — `ESCRITO: design_<n>`, `GANADOR: design_<n>`, `OK-CORRECTO`. Los subagentes **MUST NOT** pegar el diseño en su respuesta (ya está en disco).
 - **MUST NOT** lanzar `/sdd-implementer` tú mismo: indica el comando y **STOP**.
 
@@ -697,7 +593,7 @@ Ruta alternativa desde la Fase 0 (§4.4) cuando el `design/` ya existe y el usua
 
 ## Apéndice A — Override de rutas (para testing y versatilidad)
 
-- `--template-dir=<ruta>` — **carpeta de plantillas** alternativa a `template-system/`. **MUST** contener un `README.md` (la guía, que declara todo lo específico y referencia los demás ficheros); si falta → **ERROR** y detente. El skill resuelve `README.md` contra esta carpeta y pasa esa ruta a los subagentes; **MUST NOT** resolver ni ejecutar ningún otro fichero de la carpeta (cualquier script de validación lo descubre y ejecuta el verificador vía el README — §2.2). Ese `README.md` **MUST** estar redactado para los **11 roles** que lanza este skill (diseñador, juez, enriquecedor, verificador, corrector, test-unitarios, verificador-test-unitarios, corrector-test-unitarios, test-arquitectura, verificador-test-arquitectura, corrector-test-arquitectura — ver §2.2), no solo para el diseñador. Permite usar el mismo flujo con otro tipo de artefacto (p.ej. una futura `template-expediente/`) sin tocar el código del skill.
+- `--template-dir=<ruta>` — **carpeta de plantillas** alternativa a `template-system/`. **MUST** contener un `README.md` (la guía, que declara todo lo específico y referencia los demás ficheros); si falta → **ERROR** y detente. El skill resuelve `README.md` contra esta carpeta y pasa esa ruta a los subagentes; **MUST NOT** resolver ni ejecutar ningún otro fichero de la carpeta (cualquier script de validación lo descubre y ejecuta el verificador vía el README — §2.2). Ese `README.md` **MUST** estar redactado para los **8 roles** que lanza este skill (diseñador, juez, enriquecedor, verificador, corrector, test-unitarios, verificador-test-unitarios, corrector-test-unitarios — ver §2.2), no solo para el diseñador. Permite usar el mismo flujo con otro tipo de artefacto (p.ej. una futura `template-expediente/`) sin tocar el código del skill.
 - `--in=<ruta>` — fichero `specification.md` de entrada explícito. **Desactiva la elección de iniciativa** de la Fase 0 caso 2. La "carpeta de la iniciativa" es la que lo contiene.
 - `--out=<ruta>` — **carpeta** donde queda el diseño final (sustituye a `{carpeta-iniciativa}/design/` en las Fases 4-8). Los borradores `design_<n>/` se crean junto a `specification.md`; el ganador se mueve a `--out=`.
 - `--root=<ruta>` — raíz alternativa a `.sdd/drafts/`. Las rutas relativas se resuelven contra esta raíz.

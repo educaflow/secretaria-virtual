@@ -67,7 +67,7 @@ Todos los ficheros se escriben en la subcarpeta `analysis/` dentro de la carpeta
 - `analysis.md` — índice con frontmatter `type: analysis`. Lo escribe el agente principal.
 - `entity-<Nombre>.md` — uno por cada entidad detectada. **Sin frontmatter.** Los escriben los subagentes directamente en disco.
 - `screen-<nombre>.md` — uno por cada pantalla detectada. **Sin frontmatter.** Los escriben los subagentes directamente en disco.
-- `tests.md` — escenarios E2E concretos en formato Given/When/Then, uno por sección `## T-NNN`. **Sin frontmatter.** Lo escribe un subagente directamente en disco (Etapa B.3). Es el contrato verificable que `/sdd-debug-app` ejecutará contra la aplicación real una vez implementado el código.
+- `tests.md` — escenarios E2E concretos en formato Given/When/Then, uno por sección `## T-NNN`. **Sin frontmatter.** Lo escribe un subagente directamente en disco (Etapa B.3). Es el contrato verificable que `/sdd-test-e2e` ejecutará contra la aplicación real una vez implementado el código.
 
 ### 1.3 Estructura de carpetas
 
@@ -114,7 +114,7 @@ Si el efecto real de una regla contradice su categoría en el spec (p.ej. una `R
 
 **MUST** leer la especificación entera al menos dos veces en cada subagente: 1.ª pasada identifica el alcance; 2.ª pasada mapea cada regla numerada del spec a V/R/U y rellena la columna Origen spec.
 
-**Tests E2E (`tests.md`).** Cada escenario `ESC-NNN` del spec se materializa en uno o más tests concretos en `tests.md`, usando nombres reales de botones, campos y mensajes tomados de los `screen-*.md` y `entity-*.md`. **MUST**: cada `ESC-NNN` tiene al menos un test asociado. Formato Given/When/Then en lenguaje de negocio; **MUST NOT** incluir comandos `playwright-cli` ni selectores CSS — la traducción la hace `/sdd-debug-app` al ejecutarlos.
+**Tests E2E (`tests.md`).** Cada escenario `ESC-NNN` del spec se materializa en uno o más tests concretos en `tests.md`, usando nombres reales de botones, campos y mensajes tomados de los `screen-*.md` y `entity-*.md`. **MUST**: cada `ESC-NNN` tiene al menos un test asociado. Formato Given/When/Then en lenguaje de negocio; **MUST NOT** incluir comandos `playwright-cli` ni selectores CSS — la traducción la hace `/sdd-test-e2e` al ejecutarlos.
 
 ### 2.2 Preguntar antes que inventar
 
@@ -647,7 +647,7 @@ Una vez los subagentes de las Etapas B.1, B.2 y B.3 (si se ejecutó) han confirm
 
    ### Tests E2E
    Los tests concretos de prueba viven en [tests.md](./tests.md), numerados `T-NNN` y trazables a los escenarios `ESC-NNN` del spec.
-   `/sdd-debug-app` los ejecuta contra la aplicación real tras la implementación (bucle de auto-corrección).
+   `/sdd-test-e2e` los ejecuta contra la aplicación real tras la implementación (bucle de auto-corrección).
 
    - Total tests: T
    - Escenarios del spec cubiertos: E1 / E2 (todos los `ESC-NNN` aparecen como `Origen ESC` en al menos un test)
@@ -686,7 +686,7 @@ Una vez los subagentes de las Etapas B.1, B.2 y B.3 (si se ejecutó) han confirm
 >
 > ```
 > ### Tests E2E
-> *(Spec sin escenarios — no se generaron tests E2E. `/sdd-debug-app` no tendrá tests que ejecutar. Para añadir tests, relanza `/sdd-specification` para añadir escenarios `ESC-NNN` al spec y luego `/sdd-analyst-system` para regenerar el análisis.)*
+> *(Spec sin escenarios — no se generaron tests E2E. `/sdd-test-e2e` no tendrá tests que ejecutar. Para añadir tests, relanza `/sdd-specification` para añadir escenarios `ESC-NNN` al spec y luego `/sdd-analyst-system` para regenerar el análisis.)*
 > ```
 >
 > No incluyas la sección "Escenarios sin tests" en esta variante.
