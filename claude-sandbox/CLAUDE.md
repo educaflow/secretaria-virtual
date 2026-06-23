@@ -59,10 +59,12 @@ recoge lo que un agente necesita saber para trabajar aquí sin romper nada.
 **puentea los MCP que el host expone en `127.0.0.1`** (los descubre de `~/.claude.json`
 y de los `.mcp.json`), entra en Claude y **deshace los puentes al salir**.
 
-> **La BD arranca SIEMPRE vacía** con este script (decisión deliberada): cada ejecución
-> hace `down -v`, así que no persiste nada entre sesiones. La primera `./run.sh` dentro
-> del contenedor recrea el esquema (`ddl=update`) y carga `data-init`. El `down -v` solo
-> borra `postgres_data`; código, `~/.m2` y `~/.claude` son bind-mounts y no se tocan.
+> **La BD arranca vacía por defecto**: cada ejecución hace `down -v`, así que no persiste
+> nada entre sesiones. La primera `./run.sh` dentro del contenedor recrea el esquema
+> (`ddl=update`) y carga `data-init`. El `down -v` solo borra `postgres_data`; código,
+> `~/.m2` y `~/.claude` son bind-mounts y no se tocan.
+>
+> Flag **`--keep-db`** para conservar la BD entre sesiones: `./claude-sandbox.sh --keep-db`.
 
 El puente es un **doble socat** por puerto, para que dentro del contenedor el MCP siga
 en el **mismo `127.0.0.1:PUERTO`** (sin tocar la config montada):

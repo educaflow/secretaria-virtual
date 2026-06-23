@@ -77,8 +77,9 @@ host expone en `127.0.0.1`** (p.ej. el de IntelliJ, descubiertos de `~/.claude.j
 `127.0.0.1:PUERTO`, entra en Claude y **deshace los puentes al salir**. Pide `sudo` una vez
 (regla de firewall acotada; ver `CLAUDE.md`).
 
-> La BD arranca **siempre vacía** con este script: la primera `./run.sh` dentro recrea el
-> esquema y carga `data-init`. El reset solo borra el volumen `postgres_data`.
+> La BD arranca **vacía por defecto**: la primera `./run.sh` dentro recrea el esquema y
+> carga `data-init`. El reset solo borra el volumen `postgres_data`. Para conservarla entre
+> sesiones: `./claude-sandbox.sh --keep-db`.
 
 ### Entrar a trabajar con Claude Code (sin puentear MCP)
 

@@ -16,6 +16,11 @@
 # descarta el tráfico contenedor->host, así que el script añade (con sudo) una regla
 # iptables ACCEPT acotada a GATEWAY:PUERTO mientras dura la sesión y la elimina al salir.
 #
+# Uso:
+#   ./claude-sandbox.sh             BD vacía (resetea el volumen postgres_data en cada arranque)
+#   ./claude-sandbox.sh --keep-db   conserva la BD entre sesiones (no la resetea)
+#   ./claude-sandbox.sh -h|--help   esta ayuda
+#
 set -uo pipefail
 cd "$(dirname "$0")"
 
@@ -23,6 +28,21 @@ CONTAINER="claude-sandbox"
 HOST_SOCAT_PIDS=()
 IPTABLES_RULES=()   # cada entrada: "GW PORT" de una regla INPUT que añadimos
 HAVE_SUDO=0
+KEEP_DB=0           # 0 = resetear BD a vacía (por defecto); 1 = conservarla (--keep-db)
+
+usage() {
+  sed -n 's/^# \{0,1\}//p' "$0" | sed -n '/^Uso:/,/--help/p'
+  exit 0
+}
+
+# ── Argumentos ────────────────────────────────────────────────────────────────
+for arg in "$@"; do
+  case "$arg" in
+    --keep-db)   KEEP_DB=1 ;;
+    -h|--help)   usage ;;
+    *) echo "Opción desconocida: $arg (usa -h para la ayuda)" >&2; exit 2 ;;
+  esac
+done
 
 log() { echo "==> [claude-sandbox.sh] $*"; }
 
@@ -54,11 +74,15 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-# ── 1. Levantar los contenedores (BD SIEMPRE vacía) ───────────────────────────
-# down -v borra el volumen postgres_data → la BD arranca vacía en cada ejecución.
-# Solo afecta a ese volumen; el código, ~/.m2 y ~/.claude son bind-mounts y NO se tocan.
-log "Reseteando la base de datos (docker compose down -v)..."
-docker compose down -v 2>/dev/null || true
+# ── 1. Levantar los contenedores ──────────────────────────────────────────────
+# Por defecto la BD arranca vacía: down -v borra el volumen postgres_data. Con --keep-db
+# se conserva. En ambos casos el código, ~/.m2 y ~/.claude (bind-mounts) NO se tocan.
+if [ "$KEEP_DB" = "1" ]; then
+  log "Conservando la base de datos (--keep-db)."
+else
+  log "Reseteando la base de datos a vacía (docker compose down -v)..."
+  docker compose down -v 2>/dev/null || true
+fi
 log "Levantando contenedores (docker compose up -d)..."
 docker compose up -d || { log "ERROR: docker compose up falló."; exit 1; }
 
