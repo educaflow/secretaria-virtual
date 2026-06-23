@@ -83,6 +83,27 @@
     </input>
 
 
+    <!-- Paso 3b: Crear CentroUsuarioCargo (asigna un cargo a un profesor del centro) -->
+    <input file="usuarios-demo.xml" root="datos">
+        <bind node="cargos/cargo"
+              type="com.educaflow.subsystem.common.db.CentroUsuarioCargo"
+              search="self.centroUsuario.usuario.code = :usuarioCode AND self.centroUsuario.centro.code = :centroCode AND self.cargo.code = :cargoCode"
+              create="true" update="false">
+            <bind node="@usuarioCode" alias="usuarioCode"/>
+            <bind node="@centroCode"  alias="centroCode"/>
+            <bind node="@cargoCode"   alias="cargoCode"/>
+            <bind to="centroUsuario"
+                  type="com.educaflow.subsystem.common.db.CentroUsuario"
+                  search="self.usuario.code = :usuarioCode AND self.centro.code = :centroCode"
+                  update="false" create="false"/>
+            <bind to="cargo"
+                  type="com.educaflow.subsystem.common.db.Cargo"
+                  search="self.code = :cargoCode"
+                  update="false" create="false"/>
+        </bind>
+    </input>
+
+
     <!-- Paso 4: Crear Perfil (idempotente por name) -->
     <input file="permisos-demo.xml" root="datos">
         <bind node="perfiles/perfil" type="com.educaflow.subsystem.security.db.Perfil"
