@@ -25,3 +25,5 @@ Cuando se sube un PDF en el menu de utilidaes de PDF no se indica que el demasia
 
 Hacer el backup de los documento además de la base de datos
 
+
+Que haya una relación entre los familiares y los alumnos poruqe ahora no se sabe para un familiar a que alumno pertenece. Y que se pueda consultar desde el familiar los alumnos que tiene asociados.
