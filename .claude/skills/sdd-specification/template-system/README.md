@@ -262,6 +262,7 @@ Un encabezado `## Acción: <Nombre>` por cada acción de la entidad (Crear, Modi
 - Las propiedades listadas **MUST** existir en "Campos" o "Campos calculados" de la entidad.
 - Lenguaje de negocio: nombres funcionales de propiedad, no tipos ni atributos técnicos.
 - **MUST NOT** usar `todas`: la lista es siempre cerrada (propiedades explícitas o `(ninguna)`).
+- **CRITICAL — referencia al padre en un alta dentro de un formulario hijo maestro-detalle.** Si la entidad se da de alta **dentro del formulario de su padre** (el formulario del hijo se abre embebido en un panel maestro-detalle del padre — ver «Una pantalla casi siempre tiene varias vistas»), la **referencia al padre SÍ va en `AllowProperties` de Crear**: la interfaz la rellena con el registro padre y la envía, porque el servidor que procesa el alta del hijo no puede deducir por su cuenta cuál es el padre. Al convertirse en un dato que dicta el cliente, **MUST** acompañarse **siempre** de las otras dos piezas: (a) una **regla de UI** que fije esa referencia desde el padre (ver «Reglas de UI») y (b) una **validación** que compruebe el padre recibido (ver «Validaciones»). La regla de UI **no es la defensa** —un cliente puede saltársela—; la defensa es la validación.
 
 ### Validaciones
 
@@ -270,6 +271,8 @@ Un encabezado `## Acción: <Nombre>` por cada acción de la entidad (Crear, Modi
 **Cómo se asocian:** a una acción de una entidad.
 
 **REQUIRED — identificación:** para identificar qué validaciones aplican a cada campo, recorre el catálogo de tipos de validación `catalogo-validaciones.md` (campo propio, entre campos del mismo registro, entre registros, de negocio); sus columnas de mensaje sirven de guía para redactar el `mensaje` en lenguaje de negocio. El catálogo es una ayuda **no exhaustiva**: si el negocio necesita una validación que no aparece en él, declárala igualmente.
+
+**REQUIRED — referencia al padre recibida del cliente:** si una propiedad que **referencia al padre** llega del cliente porque el alta ocurre dentro de un formulario hijo maestro-detalle (está en la línea `AllowProperties` de Crear por la regla anterior), declara validaciones que comprueben ese padre: que **está indicado**, que el usuario **tiene permiso sobre él** (su centro o su alcance), y que el **estado del padre admite** la operación. Sin estas validaciones, un cliente manipulado podría apuntar a un padre ajeno (de otro centro, o ya cerrado) saltándose la regla de UI que lo rellena — el padre es un dato del cliente, no una verdad del servidor.
 
 **El texto es la aserción; `condición` es la guardia.** El **texto** de la validación es *lo que debe cumplirse* (la aserción que, si no se da, bloquea). El atributo `condición` es la **guardia**: *cuándo* se evalúa la validación. Son cosas distintas — si la guardia repite lo que ya afirma el texto, la validación nunca falla y sobra. Por eso una precondición de estado pura ("la solicitud está en estado PENDIENTE") va como **texto**, no como `condición`.
 
@@ -517,6 +520,8 @@ Lleva solo `### Propiedades` describiendo sus **parámetros de entrada** y qué 
 **Efectos típicos:** mostrar/ocultar un campo o panel, marcar un campo como solo lectura u obligatorio, fijar un valor por defecto al crear, filtrar las opciones de un campo relacional, cambiar el título de un campo.
 
 **Convención de redacción:** describir qué **ve** el usuario, no cómo se implementa. Un valor por defecto al crear es una regla de UI (no una regla de negocio), porque no se escribe nada hasta que el usuario pulsa Guardar. Si una regla combina varios efectos sobre campos distintos, separarla en varias reglas de UI.
+
+**CRITICAL — fijar el padre en el alta de un formulario hijo maestro-detalle.** Cuando un formulario es el **alta de un hijo embebido en el formulario de su padre** (un panel maestro-detalle), declara **siempre** una regla de UI que **fije la referencia al padre** con el registro padre desde el que se abre el formulario (un valor por defecto al crear). Es el origen del dato que viaja en la línea `AllowProperties` de Crear del hijo (ver «Input AllowProperties»). Recuerda que esta regla de UI **no es una defensa**: solo rellena el campo en pantalla; que ese padre sea legítimo lo garantiza la **validación** del hijo (ver «Validaciones»), no la regla de UI. Si el hijo cuelga de varios niveles (padre, abuelo…), declara una regla de UI por cada referencia que el formulario deba fijar.
 
 **Ejemplo** (en `screen-formulario-expediente.md`):
 

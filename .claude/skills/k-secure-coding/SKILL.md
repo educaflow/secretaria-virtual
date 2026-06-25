@@ -147,6 +147,18 @@ correo.setCentro(AuthUtils.getUser().getCentroActivo());
 
 Si la entrada viene de otro subsistema con un `record`/DTO propio (no del REST), el DTO ya **es** la whitelist; no hace falta `AllowProperties`. Cualquier campo `servidor` en el DTO sin justificación es un error de diseño.
 
+### 3.6 Referencia al padre en un alta dentro de un formulario hijo
+
+Cuando una entidad se da de alta **embebida en el formulario de su padre** (un panel maestro-detalle: p.ej. añadir un alumno dentro del formulario de su grupo), la referencia al padre la rellena el cliente con una **regla de UI** (`U-…`) desde el registro padre y viaja en el JSON. El servidor que procesa el alta del hijo **no conoce el padre por su cuenta** (en `*ServiceImpl` no hay `_parent`). Reglas:
+
+1. El campo del padre se clasifica **`cliente`** y entra en la **whitelist** de `allowPropertiesInsert` (§3.2) — es un dato que dicta el cliente, no el servidor.
+2. **CRITICAL — la regla de UI NO es la defensa.** La Vía B (`POST /ws/rest/<FQN>`) se salta la regla de UI y manda **cualquier** padre. La única defensa es **validar el padre recibido en `validateInsert`** (§9), comprobando: (a) que **está indicado** (no nulo); (b) que el usuario **está autorizado** sobre ese padre — su centro/alcance (§4); (c) que el **estado del padre admite** la operación (p.ej. grupo ABIERTO).
+3. El campo del padre es **inmutable** tras el alta: va en `allowPropertiesInsert` pero **MUST NOT** ir en `allowPropertiesUpdate` (un hijo no se reparenta; se quita y se crea otro).
+
+- ✅ CORRECTO: `alumnoGrupo.grupo` es `cliente`, está en `allowPropertiesInsert`, y `validateInsert` comprueba que el grupo está indicado, pertenece al `centroActivo` del supervisor y está ABIERTO.
+- ❌ INCORRECTO: confiar en que el `<grid>` maestro-detalle "ya fija el grupo" y omitir la validación (Postman manda un grupo de otro centro → IDOR).
+- ❌ INCORRECTO: restaurar el padre en el controller desde `getContext().getParent()` como **única** defensa (la Vía B no pasa por el controller, así que no es universal; la validación en `validateInsert` sí).
+
 ---
 
 ## 4. Multi-centro / IDOR
@@ -363,6 +375,7 @@ Aplicar a cada PR o cambio que toque `*ServiceImpl`, `*Controller`, vistas XML c
 - [ ] **`allowPropertiesXxx`** (§3.2): ¿cada acción del servicio invocada desde `@CallMethod` tiene su `allowPropertiesXxx` declarado? Si usa `createAllowProperties` (whitelist): ¿enumera solo campos `cliente`? Si usa `createAllowAllProperties` (abierto): ¿**todos** los campos `servidor` se asignan incondicionalmente en esa acción?
 - [ ] **Asignación incondicional de campos `servidor`** (§3.3): ¿hay algún `if (campo == null) setCampo(...)` en una acción del `*ServiceImpl` para un campo clasificado `servidor` en `entity-*.md`? → quitar el `if`, asignación incondicional.
 - [ ] **Campos `servidor` que la acción NO toca** (§3.2 regla 1): ¿están **excluidos** de la whitelist? Si la acción no los asigna, el cliente no puede enviarlos.
+- [ ] **Referencia al padre de un alta anidada** (§3.6): si la entidad se crea dentro del formulario de su padre, ¿el campo del padre está en la whitelist de `insert` (clasificado `cliente`) Y `validateInsert` valida que el padre está indicado, autorizado para el usuario (centro/alcance) y en un estado que admite la operación? ¿Está **fuera** de la whitelist de `update`?
 - [ ] **Multi-centro**: ¿toda consulta de detalle/listado filtra por el centro del usuario — en Java `AuthUtils.getUser().getCentroActivo()`, en XML un `<context>` referenciado como `:nombrePlano` en el `<domain>` (NUNCA `:__user__.centroActivo` con punto)? ¿`<action-view>` de centro lleva `<domain>`?
 - [ ] **Asignación de centro al crear**: si el centro lo dicta el servidor, ¿se asigna incondicionalmente en `*ServiceImpl.insert` desde `AuthUtils.getUser().getCentroActivo()`?
 - [ ] **JPQL/SQL**: ¿todos los filtros usan `:param` con `bind(...)`? ¿Ninguna query concatena strings con input del usuario?
@@ -384,6 +397,7 @@ Aplicar a cada PR o cambio que toque `*ServiceImpl`, `*Controller`, vistas XML c
 | `createAllowAllProperties()` en una acción que **no** sobrescribe en una R-… todos los no-`cliente` | El cliente puede mandar cualquier campo y el servicio no lo neutraliza | Pasar a whitelist (`createAllowProperties(...)`) o añadir/extender la R-…                                 |
 | `update` que no restaura campos inmutables ni lanza `UnsupportedOperationException`                 | El cliente pisa `fechaCreacion`/`numeroSecuencial`/etc.                | Restaurar desde `original` o lanzar `UnsupportedOperationException`                                       |
 | `filter("self.id = :id")` sin centro                                                                | IDOR cross-tenant                                                      | `filter("self.centro = :centro AND self.id = :id").bind("centro", AuthUtils.getUser().getCentroActivo())` |
+| Confiar en que el panel maestro-detalle "ya fija el padre" y no validar la referencia al padre en `validateInsert` | Vía B (`/ws/rest`) manda un padre de otro centro o cerrado → IDOR | Padre `cliente` en la whitelist de `insert` + validación en `validateInsert` (indicado, autorizado por centro/alcance, estado del padre admite) — §3.6 |
 | `AuthUtils.getUser().getCentro()`                                                                   | API inexistente — no compila                                           | `AuthUtils.getUser().getCentroActivo()`                                                                   |
 | `<domain>self.centro = :__user__.centro</domain>`                                                   | Campo incorrecto en el `User` (es `centroActivo`)                      | `<context name="c" expr="eval: __user__?.centroActivo"/>` + `<domain>self.centro = :c</domain>`           |
 | `<domain>self.centro = :__user__.centroActivo</domain>` (parámetro con punto)                       | Hibernate no admite puntos en el nombre del parámetro → listado vacío  | `<context name="c" expr="eval: __user__?.centroActivo"/>` + `<domain>self.centro = :c</domain>` (domain antes que context, lo exige el XSD) |
