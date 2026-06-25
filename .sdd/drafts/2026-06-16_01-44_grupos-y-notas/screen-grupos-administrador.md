@@ -16,8 +16,8 @@ Listado de grupos (administración)
 └── Formulario de grupo (administración)   (se abre al pulsar una fila o con «Nuevo grupo»)
     ├── Listado de módulos del grupo (administración)   (panel maestro-detalle «Módulos» del formulario de grupo)
     │   └── Formulario de módulo del grupo (administración)   (se abre al pulsar una fila del listado de módulos)
-    │       └── Listado de alumnos del módulo (administración)   (panel maestro-detalle «Alumnos» del formulario de módulo: las notas de ese módulo)
-    │           └── Formulario de nota (administración)   (se abre al pulsar una fila del listado de alumnos del módulo)
+    │       └── Listado de notas del módulo (administración)   (panel maestro-detalle «Notas» del formulario de módulo: la nota de cada alumno del grupo en este módulo)
+    │           └── Formulario de nota (administración)   (se abre al pulsar una fila del listado de notas del módulo)
     └── Listado de alumnos del grupo (administración)   (panel maestro-detalle «Alumnos» del formulario de grupo)
         └── Formulario de alumno del grupo (administración)   (se abre al pulsar una fila o con «Añadir alumno»)
 ```
@@ -114,7 +114,7 @@ Listado de grupos (administración)
 ### Paneles
 
 - **Módulo** (normal) — módulo
-- **Alumnos** (maestro-detalle → «Listado de alumnos del módulo (administración)») — la nota de cada alumno del grupo en este módulo
+- **Notas** (maestro-detalle → «Listado de notas del módulo (administración)») — la nota de cada alumno del grupo en este módulo
 
 ### Botones
 
@@ -122,11 +122,11 @@ Listado de grupos (administración)
 
 ---
 
-## Vista: Listado de alumnos del módulo (administración)
+## Vista: Listado de notas del módulo (administración)
 
 - **Tipo:** listado
-- **Qué muestra:** la nota de cada alumno del grupo en este módulo, en lectura.
-- **Se abre desde:** embebido como panel «Alumnos» en el formulario de módulo del grupo (administración).
+- **Qué muestra:** la nota de cada alumno del grupo en este módulo, en lectura. Los alumnos provienen del grupo (no del módulo); lo que cuelga del módulo es su nota.
+- **Se abre desde:** embebido como panel «Notas» en el formulario de módulo del grupo (administración).
 
 ### Propiedades
 
@@ -145,7 +145,7 @@ Listado de grupos (administración)
 
 - **Tipo:** formulario
 - **Qué muestra:** la nota de un alumno en un módulo.
-- **Se abre desde:** el listado de alumnos del módulo (administración), al pulsar una fila.
+- **Se abre desde:** el listado de notas del módulo (administración), al pulsar una fila.
 
 ### Propiedades
 
@@ -203,3 +203,9 @@ Listado de grupos (administración)
 ### Botones
 
 - **Guardar** — Añade el alumno al grupo.
+
+### Reglas de UI
+
+- RUI-012 — Al añadir un alumno, su grupo se fija automáticamente al grupo desde el que se abre el formulario (el grupo padre)
+  - disparador: al crear
+  - condición: Siempre

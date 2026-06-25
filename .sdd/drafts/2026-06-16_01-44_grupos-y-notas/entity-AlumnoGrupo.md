@@ -22,7 +22,9 @@ Representa que un alumno forma parte de un grupo. El supervisor lo crea eligiend
 
 ## Acción: Crear
 
-**Input AllowProperties:** alumno
+**Input AllowProperties:** alumno, grupo
+
+(El grupo lo rellena la interfaz a partir del grupo padre desde el que se añade el alumno —el formulario de alumno se abre dentro del formulario de su grupo—, por lo que llega como un dato más del cliente; el servidor lo valida antes de aceptarlo.)
 
 **Validaciones:**
 
@@ -34,6 +36,11 @@ Representa que un alumno forma parte de un grupo. El supervisor lo crea eligiend
   - mensaje: "El alumno debe ser un usuario de tipo Alumno del centro del grupo"
 - VAL-013 — El alumno no pertenece ya a otro grupo del mismo curso académico
   - mensaje: "El alumno ya pertenece a otro grupo de este curso académico"
+- VAL-018 — El grupo está indicado
+  - mensaje: "El grupo es obligatorio"
+- VAL-019 — El grupo pertenece al centro del usuario
+  - actor: [SUPERVISOR]
+  - mensaje: "El grupo no pertenece a su centro"
 
 **Reglas de negocio:**
 

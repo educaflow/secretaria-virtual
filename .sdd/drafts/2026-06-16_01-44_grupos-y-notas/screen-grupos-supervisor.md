@@ -16,8 +16,8 @@ Listado de grupos
 └── Formulario de grupo   (se abre al pulsar una fila o con «Nuevo grupo»)
     ├── Listado de módulos del grupo   (panel maestro-detalle «Módulos» del formulario de grupo)
     │   └── Formulario de módulo del grupo   (se abre al pulsar una fila del listado de módulos)
-    │       └── Listado de alumnos del módulo   (panel maestro-detalle «Alumnos» del formulario de módulo: las notas de ese módulo)
-    │           └── Formulario de nota   (se abre al pulsar una fila del listado de alumnos del módulo)
+    │       └── Listado de notas del módulo   (panel maestro-detalle «Notas» del formulario de módulo: la nota de cada alumno del grupo en este módulo)
+    │           └── Formulario de nota   (se abre al pulsar una fila del listado de notas del módulo)
     └── Listado de alumnos del grupo   (panel maestro-detalle «Alumnos» del formulario de grupo)
         └── Formulario de alumno del grupo   (se abre al pulsar una fila o con «Añadir alumno»)
 ```
@@ -113,7 +113,7 @@ Listado de grupos
 ### Paneles
 
 - **Módulo** (normal) — módulo
-- **Alumnos** (maestro-detalle → «Listado de alumnos del módulo») — la nota de cada alumno del grupo en este módulo
+- **Notas** (maestro-detalle → «Listado de notas del módulo») — la nota de cada alumno del grupo en este módulo
 
 ### Botones
 
@@ -121,11 +121,11 @@ Listado de grupos
 
 ---
 
-## Vista: Listado de alumnos del módulo
+## Vista: Listado de notas del módulo
 
 - **Tipo:** listado
-- **Qué muestra:** la nota de cada alumno del grupo en este módulo, en lectura.
-- **Se abre desde:** embebido como panel «Alumnos» en el formulario de módulo del grupo.
+- **Qué muestra:** la nota de cada alumno del grupo en este módulo, en lectura. Los alumnos provienen del grupo (no del módulo); lo que cuelga del módulo es su nota.
+- **Se abre desde:** embebido como panel «Notas» en el formulario de módulo del grupo.
 
 ### Propiedades
 
@@ -144,7 +144,7 @@ Listado de grupos
 
 - **Tipo:** formulario
 - **Qué muestra:** la nota de un alumno en un módulo.
-- **Se abre desde:** el listado de alumnos del módulo, al pulsar una fila.
+- **Se abre desde:** el listado de notas del módulo, al pulsar una fila.
 
 ### Propiedades
 
@@ -202,3 +202,9 @@ Listado de grupos
 ### Botones
 
 - **Guardar** — Añade el alumno al grupo.
+
+### Reglas de UI
+
+- RUI-011 — Al añadir un alumno, su grupo se fija automáticamente al grupo desde el que se abre el formulario (el grupo padre)
+  - disparador: al crear
+  - condición: Siempre
