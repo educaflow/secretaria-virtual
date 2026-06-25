@@ -46,11 +46,17 @@ recoge lo que un agente necesita saber para trabajar aquí sin romper nada.
 5. **Auth de Claude Code** = bind-mount de `~/.claude` y `~/.claude.json` del host →
    reutiliza la sesión del host.
 
-6. **`claude` arranca sin restricciones de permisos.** El aislamiento lo da el
-   contenedor (es el motivo de usarlo), así que un wrapper en `/usr/local/bin/claude`
-   (sombrea a `/usr/bin/claude`) añade `--dangerously-skip-permissions`. Permitido
-   porque corremos como `developer` (no-root). Para invocar Claude **con** restricciones
-   de forma puntual: `/usr/bin/claude` directamente.
+6. **`claude` arranca sin restricciones de permisos y SIN ningún prompt.** El aislamiento
+   lo da el contenedor (es el motivo de usarlo). En vez del flag
+   `--dangerously-skip-permissions` (que fuerza la pantalla de aceptación "Bypass
+   Permissions mode… Yes, I accept"), se fija en un **managed-settings**
+   (`/etc/claude-code/managed-settings.json`, máxima precedencia, fuera del repo y del
+   `~/.claude` montados):
+   `{ "permissions": { "defaultMode": "bypassPermissions" }, "sandbox": { "enabled": false } }`.
+   Así `claude` a secas ya permite todo sin pantallas. `sandbox.enabled=false` apaga el
+   sandbox de comandos propio de Claude Code (el aislamiento ya lo da Docker; si se deja,
+   avisa de que falta bubblewrap). **No** pasar `--dangerously-skip-permissions` (reintroduce
+   el prompt). Verificado en headless: ejecuta herramientas sin prompt ni warning.
 
 ## `claude-sandbox.sh` — entrar con los MCP del host puenteados
 

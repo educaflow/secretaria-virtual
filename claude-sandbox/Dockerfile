@@ -57,15 +57,21 @@ RUN corepack enable
 # ── Claude Code ───────────────────────────────────────────────────────────────
 RUN npm install -g @anthropic-ai/claude-code
 
-# Wrapper: dentro del sandbox Claude debe ir SIN restricciones de permisos (el
-# aislamiento lo da el contenedor, que es justo para lo que se usa). /usr/local/bin
-# va antes que /usr/bin en el PATH, así que este wrapper sombrea al binario real
-# (/usr/bin/claude) y le añade --dangerously-skip-permissions. Corremos como usuario
-# no-root "developer", por lo que ese flag está permitido.
-# Para invocar Claude SIN el flag (excepción puntual): usar /usr/bin/claude directamente.
-RUN printf '%s\n' '#!/usr/bin/env bash' 'exec /usr/bin/claude --dangerously-skip-permissions "$@"' \
-      > /usr/local/bin/claude \
-    && chmod +x /usr/local/bin/claude
+# Dentro del sandbox Claude debe ir SIN restricciones de permisos (el aislamiento lo da
+# el contenedor, que es justo para lo que se usa). La forma recomendada por la doc para
+# contenedores aislados es fijar permissions.defaultMode=bypassPermissions en un fichero
+# de settings y NO pasar --dangerously-skip-permissions: ese flag fuerza la pantalla de
+# aceptación ("WARNING: Bypass Permissions mode… Yes, I accept"), mientras que el
+# defaultMode arranca directamente en modo bypass sin ningún prompt.
+# Usamos managed-settings (máxima precedencia, en /etc, fuera del repo y del ~/.claude
+# montados), de modo que `claude` a secas ya arranca permitiéndolo todo.
+# sandbox.enabled=false: desactiva el sandbox de comandos PROPIO de Claude Code (distinto
+# del contenedor). El aislamiento ya lo da Docker; si se deja activo, avisa de que falta
+# bubblewrap y ejecuta igualmente sin sandboxing. Lo apagamos para no tener restricciones
+# ni warnings.
+RUN mkdir -p /etc/claude-code \
+    && printf '%s\n' '{ "permissions": { "defaultMode": "bypassPermissions" }, "sandbox": { "enabled": false } }' \
+       > /etc/claude-code/managed-settings.json
 
 # ── Playwright + navegador (chromium) con sus libs de sistema ─────────────────
 # Los navegadores se instalan en una ruta compartida y legible por todos, de modo

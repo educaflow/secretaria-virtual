@@ -89,9 +89,11 @@ docker compose exec -it claude-sandbox claude
 docker compose exec -it claude-sandbox bash
 ```
 
-Dentro del contenedor `claude` arranca **sin restricciones de permisos**
-(`--dangerously-skip-permissions`): el aislamiento lo da el propio contenedor. Si en algún
-caso quieres Claude **con** las restricciones normales, llama a `/usr/bin/claude`.
+Dentro del contenedor `claude` arranca **sin restricciones de permisos y sin ningún
+prompt**: el aislamiento lo da el propio contenedor. Esto se consigue con un
+managed-settings (`/etc/claude-code/managed-settings.json`) que fija
+`permissions.defaultMode=bypassPermissions` (no con `--dangerously-skip-permissions`, que
+mostraría la pantalla de aceptación). Ver `CLAUDE.md` (decisión nº 6).
 
 Ya dentro, el directorio de trabajo es `/workspace/secretaria-virtual`. Para compilar
 y arrancar la app (igual que en local):
