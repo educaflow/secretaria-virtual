@@ -44,15 +44,6 @@ hold the detail — load them as needed instead of guessing:
   conventions, cycle detection, onion architecture, generic coding rules, and
   sharing rules across modules). Read this when the user wants a concrete
   starting point.
-- **`secretaria-virtual-rules.md`** — the **project-specific** architecture rule
-  catalogue for the secretaría virtual (in Spanish). Each rule (layer
-  dependencies between `base.util`/`base.infrastructure`/`subsystem`/`system`/
-  `secretariavirtual`, Controller→Service→Repository, naming/location of
-  controllers/services/repositories/modules/DTOs, Guice `ModelService` injection,
-  generic hygiene) ships with a ready-to-use ArchUnit `@ArchTest` anchored in the
-  real `com.educaflow` packages, the documented source of the rule, and its
-  current compliance status. Read this when writing ArchUnit tests **for this
-  project** rather than generic ones.
 
 ## Installation
 

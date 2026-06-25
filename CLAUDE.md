@@ -2,54 +2,17 @@
 
 La secretaría virtual es un proyecto de gestión de expedientes administrativos con tramitación electrónica, firmado digital y gestión documental. Está construido sobre el framework Axelor, que proporciona una base sólida de JPA/ORM, vistas XML, seguridad y DI.
 
-## Tecnologías
-- Java 21
-- Kotlin 21
-- iText 9 para PDF
-- PostgreSQL 12 como base de datos
-- Guice para injección de dependencias
-- Axelor framework 8.1 para la capa de aplicación (ORM, vistas, seguridad, etc.)
-- JPA para acceso a datos, con repositorios personalizados y genéricos
+## Documentación bajo demanda (progressive disclosure)
+
+Este proyecto usa un **progressive disclosure pattern to respect LLM instruction capacity limits**: el `CLAUDE.md` mantiene solo lo imprescindible y el resto de la documentación general vive en [`agent_docs/`](agent_docs/README.md), que se **carga solo cuando se necesita** para la tarea concreta — no todo de golpe. Consulta el índice [`agent_docs/README.md`](agent_docs/README.md) y carga únicamente el documento que aplique. Por ejemplo, el stack tecnológico (Java, Kotlin, Axelor, PostgreSQL, Guice, iText, JPA) está en [`agent_docs/tech-stack.md`](agent_docs/tech-stack.md).
 
 ## MCP de IntelliJ
-Tienes disponible el MCP de IntelliJ (`mcp__intellij-index__`). **Debes usarlo siempre que sea posible** en lugar de `grep`, `find`, `Glob` o búsquedas manuales con `Bash`.
 
-Estos tools son de solo lectura o refactor seguro a través del índice de IntelliJ y **no tienen riesgo**, por lo que **debes invocarlos directamente sin pedir confirmación previa al usuario** y sin anunciar que vas a usarlos: simplemente úsalos. Están preautorizados en `.claude/settings.local.json` para que no aparezcan prompts de permiso.
-
-Reglas concretas de sustitución:
-- Buscar texto en el código → `ide_search_text` (NO `grep`/`rg`/`Bash`).
-- Localizar un fichero por nombre → `ide_find_file` (NO `find`/`ls`/`Glob`).
-- Localizar una clase → `ide_find_class` (NO buscar el `.java` con grep).
-- Ir a la definición de un símbolo → `ide_find_definition`.
-- Encontrar usos de un símbolo → `ide_find_references` (NO `grep` por el nombre).
-- Renombrar, mover o borrar símbolos/ficheros → `ide_refactor_rename`, `ide_move_file`, `ide_refactor_safe_delete` (NO `mv`/`sed`/edición manual).
-- Antes de asumir que el índice está disponible, si dudas, comprueba con `ide_index_status`.
-
-Solo se admite recurrir a `grep`/`find`/`Bash` si el MCP de IntelliJ no está disponible o el caso queda fuera de lo que ofrece (por ejemplo, búsqueda en ficheros fuera del proyecto indexado).
-
-Los tools disponibles son:
-
-- `ide_find_class` — buscar una clase por nombre
-- `ide_find_file` — buscar un fichero por nombre
-- `ide_find_definition` — ir a la definición de un símbolo
-- `ide_find_references` — encontrar todos los usos de un símbolo
-- `ide_find_implementations` — encontrar implementaciones de una interfaz o clase abstracta
-- `ide_find_super_methods` — encontrar métodos padre
-- `ide_call_hierarchy` / `ide_type_hierarchy` — jerarquías de llamadas y tipos
-- `ide_search_text` — búsqueda de texto en el proyecto
-- `ide_diagnostics` — diagnósticos y errores del IDE
-- `ide_index_status` — estado del índice de IntelliJ
-- `ide_refactor_rename` — renombrar símbolo de forma segura
-- `ide_refactor_safe_delete` — eliminar símbolo de forma segura
-- `ide_move_file` — mover fichero de forma segura
-- `ide_sync_files` — sincronizar ficheros con el IDE
-
-Usar estos tools garantiza que las búsquedas y refactorizaciones son correctas y tienen en cuenta el índice real del proyecto.
+**Usa siempre el MCP de IntelliJ (`mcp__intellij-index__`) en lugar de `grep`/`find`/`Glob`/`Bash`** para buscar texto, ficheros, clases, definiciones, referencias y para renombrar/mover/borrar símbolos. Son tools sin riesgo y preautorizados: invócalos directamente, sin pedir confirmación ni anunciarlos. Las reglas de sustitución concretas, el listado completo de tools y los demás MCP del proyecto (PostgreSQL, Playwright, IDE) están en [`agent_docs/mcp.md`](agent_docs/mcp.md).
 
 ## Script del proyecto
 
-- Para compilar **y arrancar** el proyecto lanza **siempre** el script: `./run.sh`. Hace `./gradlew clean build --info` y luego arranca la app en el puerto 8080 con la configuración correcta (`--config ../secretaria-virtual-private/axelor-config.dev.properties`). **NO** invoques `gradlew run` a mano ni añadas `--debug-jvm`: ese flag suspende la JVM esperando a que se conecte un depurador, así que la app nunca llega a responder y nunca debe usarse para arrancarla de forma desatendida.
-- Si solo necesitas compilar sin arrancar: `./gradlew clean build --info`.
+Compila **y arranca** siempre con `./run.sh` (hace `./gradlew clean build` —compila y ejecuta los tests— y arranca en el 8080 con la config privada). **NO** uses `gradlew run` a mano ni `--debug-jvm`. Cómo probar tests, compilar sin arrancar, arrancar/reiniciar/resetear la BD y acceder con `psql`: ver [`agent_docs/deploy.md`](agent_docs/deploy.md).
 
 
 ## Configuración
@@ -82,54 +45,15 @@ Siempre que crees o modifiques un skill (cualquier `SKILL.md` en `.claude/skills
 
 ## Flujo SDD (Spec-Driven Development)
 
-El desarrollo de cualquier funcionalidad nueva en la secretaría virtual se hace siguiendo un pipeline de skills `/sdd-*` que transforma una idea informal en código implementado, pasando por etapas intermedias revisables. Cada etapa produce artefactos que sirven de input a la siguiente.
+El desarrollo de cualquier funcionalidad nueva se hace siguiendo el pipeline de skills `/sdd-*`. La descripción de cada skill, su orden de ejecución y los skills auxiliares está en [`agent_docs/sdd-workflow.md`](agent_docs/sdd-workflow.md). Consúltalo siempre que vayas a trabajar con el pipeline SDD.
 
-Skills del pipeline (en orden de uso):
+## Arquitectura
 
-1. `/sdd-specification` — Punto de entrada del pipeline. Crea, mejora o revisa de forma interactiva (preguntando mucho al usuario) una especificación **multi-fichero** en lenguaje de negocio en `.sdd/drafts/YYYY-MM-DD_HH-MM_{nombre}/`: un índice `specification.md` (objetivo, actores, historias de usuario con sus **escenarios `ESC-NNN`** —semilla de los tests E2E—, tablas de enlaces a modelos y pantallas, seguridad, recursos y fuera de alcance), un `entity-<Nombre>.md` por cada modelo (campos, estados, restricciones `RES-NNN`, campos calculados `CC-NNN`, las **propiedades editables por acción `AllowProperties`**, y por evento validaciones `VAL-NNN` y reglas de negocio `RN-NNN`) y un `screen-<slug>.md` por cada pantalla (identidad, menú, paneles, botones, reglas de UI `RUI-NNN`). La historia de usuario va **embebida** en la propia spec (no hay fichero `user-story.md`). Se puede invocar varias veces sobre la misma spec; siempre pregunta si crear nueva / refinar la última / elegir otra, y sobre una spec existente si además hacer un review. La conversión a la capa técnica (taxonomía `V`/`R`/`U`, clasificación `cliente`/`servidor` por campo) y la materialización de los tests E2E las asume `/sdd-designer`.
-2. `/sdd-designer` — A partir de la spec multi-fichero (`specification.md` + `entity-*.md` + `screen-*.md`, sin fase de análisis), produce un plan de DISEÑO que describe qué clases, métodos, vistas y acciones hay que construir y dónde va cada regla, sin escribir todavía el código. Asume la conversión a la capa técnica: mapea cada regla del spec (`RES`/`VAL`/`RN`/`RUI`/`CC-NNN`) a la taxonomía `V`/`R`/`U` con trazabilidad `Origen spec`, clasifica cada campo `cliente`/`servidor` (apoyado en las líneas `Input AllowProperties` y los `CC-NNN` del spec) y **materializa `design/tests.md`** desde los escenarios `ESC-NNN` del spec. Si el `design/` ya existe, al re-invocarlo pregunta si **regenerarlo** o entrar en el modo **Revisar/Modificar** (valida frontmatter/XSD/cobertura/arquitectura/seguridad/tests y aplica cambios puntuales sin regenerar, preservando ediciones).
-3. `/sdd-implementer` — Convierte el `design.md` en código real. Es un **MOTOR genérico y agnóstico al artefacto** (igual que `/sdd-designer` y `/sdd-specification`): el `SKILL.md` solo aporta el flujo y la orquestación de subagentes, y delega TODO lo específico de la implementación en `template-system/README.md` (configurable con `--template-dir`), que los subagentes leen como contrato. Lanza cuatro roles: un **descomponedor** que escribe las tareas atómicas (`implementation/task_NN.md` + índice `task.md`) y propaga `design/tests.md` a `implementation/tests.md`; tras la aprobación del usuario, un **implementador** por tarea que copia literalmente los XML materializados por el diseñador, delega el código Java en `code-implementer` y **genera el código de los tests** (unitarios JUnit+Mockito desde `design/unit-test-desc.md`); y un bucle **verificador-build** → **corrector-build** que compila hasta que `./gradlew clean build` pase —lo que compila Y ejecuta esos tests unitarios— (máx 3 iteraciones; si tras la 3ª sigue sin compilar, para y pregunta al usuario). No ejecuta tests E2E — eso es de `/sdd-test-e2e`.
-4. `/sdd-close-spec` — Cierra la iniciativa: archiva los artefactos en `.sdd/specs/NNNN_desc/` como versión "as-built" (corrigiendo análisis y diseño para reflejar lo realmente implementado) y actualiza los `CLAUDE.md` de las carpetas afectadas.
-
-Skills auxiliares (no forman parte del flujo lineal de desarrollo):
-
-- `/sdd-test-e2e` — Ejecuta los tests E2E (`test-e2e-desc.md`, producido por `/sdd-designer`) contra la aplicación real. Es un **MOTOR genérico y agnóstico al artefacto** (igual que el resto del pipeline): el `SKILL.md` solo aporta el flujo y delega TODO lo específico en `template-system/README.md`. Lanza tres roles: un **descomponedor** que trocea `test-e2e-desc.md` en una carpeta `test-e2e/` (un índice `tests-e2e-desc.md` con un checkbox por test + un `test-e2e-desc_NN.md` autocontenido por test); un **ejecutor** por test que lo pilota con `playwright-cli` contra la app real y devuelve `SUCCESS`/`FAIL`; y, ante un `FAIL`, un **corrector** que analiza el problema (con el log de la app), carga los skills que necesite y arregla el código Java (delegando en `code-implementer`), reiniciando la app y reejecutando (**LIMIT** 10 ciclos por test). La app la gestiona el propio motor (tracked en segundo plano con `./run.sh`). Progreso reanudable por los checkboxes del índice (un test que pasa se marca `[x]`).
-- `/sdd-eval` — Herramienta de meta-evaluación para medir y mejorar la calidad de los propios skills SDD comparando su output contra un artefacto "gold" de referencia.
-
-Flujo resumido:
-
-```
-specification  →  design  →  implementation  →  close
-                                  ↑
-                  (test E2E con /sdd-test-e2e)
-```
-
-## Architectura
-Todo el proyecto cuelga del paquete: `com.educaflow`
-
-Bajo el paquete `com.educaflow` existen estos 5 grandes paquetes:
-- `base.util` — Son las utilidaes de bajo nivel para no repetir pequeños trozos de código. Ejemplos de ello son: `JsonUtil`, `MetaFileUtil`, `ActionRequestHelper`, `AllowProperties`, `AxelorViewUtil`, `TextUtil`, `Convert`, `DniUtil`, `ReflectionUtil`, `SecurityUtil`, `CryptoUtil`, `XmlUtil`. El catálogo completo de clases y sus métodos está documentado en [`src/main/java/com/educaflow/base/util/CLAUDE.md`](src/main/java/com/educaflow/base/util/CLAUDE.md).
-- `base.infrastructure` — Son clases completas y reutilizables en cualquier proyecto (PDF, validación, criptografía, autofirma, mail, mapper, etc.). El catálogo de paquetes está documentado en [`src/main/java/com/educaflow/base/infrastructure/CLAUDE.md`](src/main/java/com/educaflow/base/infrastructure/CLAUDE.md).
-- `subsystem` — Son subsistema que tiene una función completa dentro de la aplicación: `firmas`, `expedientes`, `registroentradasalida`, `pdfutilities`, `common`, `certificados`, `importer`, `sistemaeducativo`, `security`
-- `system` — Son sistemas completos que tiene una función completa dentro de la aplicación
-- `secretariavirtual` — Es donde están los menús y las tareas de inicialización.
-
-> **IMPORTANTE — mantener sincronizadas las reglas de arquitectura:** las reglas de arquitectura del proyecto (dependencias entre capas, Controller→Service→Repository, nomenclatura, etc.) están codificadas como reglas ArchUnit en [`.claude/skills/k-archunit/secretaria-virtual-rules.md`](.claude/skills/k-archunit/secretaria-virtual-rules.md). **Siempre que cambie algo de la arquitectura** (nueva capa, cambio en las reglas de dependencia, nueva convención de nombres/ubicación, nuevo paquete exento, etc.) **MUST** actualizar ese fichero para que siga reflejando la arquitectura vigente.
-
-### Sistemas y subsistemas
-Un sistema y un subsistema siguen exactamente la misma estructura:
-
-La diferencia entre uno y otro es que nadie depende de un sistema , mientras que alguien si que depende de los subsistemas.
-De un subsistema puede depender un sistema u otro subsistema. Lo que no puede haber son relaciones cíclicas.
+La descripción de la arquitectura (paquetes de `com.educaflow`, sistemas vs subsistemas y la arquitectura especial de expedientes) está en [`agent_docs/architecture.md`](agent_docs/architecture.md). Las invariantes **verificables** de esa arquitectura (dependencias entre capas, Controller→Service→Repository, nomenclatura/ubicación) están codificadas como reglas ArchUnit en [`agent_docs/architecture-rules.md`](agent_docs/architecture-rules.md), que `/create-arch-tests` proyecta a tests JUnit. **Ambos ficheros deben mantenerse coherentes entre sí.** Cárgalos solo cuando trabajes con la arquitectura.
 
 
 
-### Expedientes
-Los expedientes es la parte más importate de la secretaría virtual y la más compleja debido a ello siguen una arquitecura diferente al resto de la aplicación.
-
-
-
-### i18n
+## i18n
 Nunca jamás, crear los ficheros `i18n_ca.csv` ni `i18n_es.csv` ya que hay un script que los genera automáticamente, así que es totalmente innecesario.
 A veces hay palabras que acaban con `__!!` como en `AutoFirma__!!` esto es para indicar que esa palabra no se debe traducir, ya que el script de generación de i18n las deja tal cual pero sin el `__!!`  al final, así que no hay que preocuparse por eso. Pero cuando se use la palabra por ejemplo para ponerla en formato camelCase primero hay que quitar el `__!!` y ponerla en formato camelCase, por ejemplo `AutoFirma__!!` se convierte en "autoFirma".
 

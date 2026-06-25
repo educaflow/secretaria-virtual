@@ -6,6 +6,13 @@ ejemplo ArchUnit listo para usar (ArchUnit 1.4.2, JUnit 5) anclado en los paquet
 de `com.educaflow`. Este fichero es la base para, en el futuro, generar tests ArchUnit del
 proyecto.
 
+> **Mantener coherencia con [`architecture.md`](architecture.md).** Este fichero **codifica
+> como reglas verificables** las invariantes de la arquitectura; `architecture.md` la
+> **describe** en prosa (paquetes, responsabilidades, sistemas/subsistemas, expedientes). Si
+> cambias una regla aquí, **MUST** comprobar si hay que actualizar la descripción de
+> `architecture.md`, y viceversa. Los dos ficheros describen la misma arquitectura desde
+> ángulos distintos y no deben divergir.
+
 ## Fuente de verdad
 
 Las reglas se derivan de la **arquitectura documentada**, NO de lo que el código hace hoy
@@ -116,9 +123,9 @@ de fallo claros); C6 es la versión consolidada con `layeredArchitecture()`.
 static final ArchRule c1_baseUtilNoDependeDeOtrosPaquetesEducaflow =
     noClasses()
         .that().resideInAPackage("com.educaflow.base.util..")
-        .should().dependOnClassesThat()
-            .resideInAPackage("com.educaflow..")
-            .and().doNotResideInAPackage("com.educaflow.base.util..")
+        .should().dependOnClassesThat(
+            resideInAPackage("com.educaflow..")
+                .and(DescribedPredicate.not(resideInAPackage("com.educaflow.base.util.."))))
         .because("base/util es la capa más baja: no puede depender de ningún otro paquete com.educaflow");
 ```
 
@@ -271,7 +278,13 @@ static final ArchRule c7_subsistemasSinCiclos =
         .ignoreDependency(DescribedPredicate.alwaysTrue(), resideInAPackage("..expedientes.."));
 ```
 
-> **Estado actual:** ✅ CUMPLE. El grafo de dependencias entre subsistemas es acíclico hoy.
+> **Estado actual:** ❌ INCUMPLE (usar `freeze()`). Existe un ciclo
+> `subsystem.common ↔ subsystem.importacion` por la relación JPA bidireccional
+> `Centro.tareasImportacion` (en `common`) ↔ `TareaImportacion.centro` /
+> `ResultadoImportacion.centro` (en `importacion`). El ciclo se congela como deuda conocida para
+> no romper el build; arreglarlo más adelante (p.ej. eliminar la back-reference
+> `Centro.tareasImportacion`) hará que la store se encoja. Es un bug del código respecto a la
+> regla, no una excepción a ella.
 
 ### C8 — Los sistemas son independientes entre sí
 
@@ -459,9 +472,10 @@ static final ArchRule c15b_controllersResidenEnPaqueteController =
         .should().resideInAPackage("..controller..");
 ```
 
-> **Estado actual:** ✅ CUMPLE. Los 10 controladores (`CertificadoDigitalController`,
+> **Estado actual:** ✅ CUMPLE. Los controladores (`CertificadoDigitalController`,
 > `TareaFirmaController`, `GestionCentroController`, `LeyEducativaController`…) cumplen ambas
-> direcciones.
+> direcciones. Corregido: `RegistroController` residía en `registrousuario.controllers`
+> (plural); se movió a `registrousuario.controller` para satisfacer C15b.
 
 ### C16 — Impl. de servicio: `DefaultModelService` ⇒ `*ServiceImpl` en `..service.impl..`
 
@@ -542,11 +556,10 @@ static final ArchRule c19_modulosGuiceNombreYUbicacion =
         .because("los módulos Guice se llaman <Subsistema>Module y viven en module/");
 ```
 
-> **Estado actual:** ⚠️ INCUMPLE parcial. Los módulos de subsistema/sistema cumplen
-> (`SecurityModule`, `CriptografiaModule`, `RegistroModule`, `GestionModule` en `..module..`),
-> pero `com.educaflow.secretariavirtual.startup.SecretariaVirtualModule` (módulo raíz del
-> ensamblaje) reside en `startup`, no en `..module..`. Decidir: (a) tratarlo como excepción
-> documentada del ensamblaje, o (b) `freeze()`. La regla arquitectónica se mantiene.
+> **Estado actual:** ✅ CUMPLE. Los módulos de subsistema/sistema cumplen
+> (`SecurityModule`, `CriptografiaModule`, `RegistroModule`, `GestionModule` en `..module..`) y
+> el módulo raíz del ensamblaje se movió de `startup` a `com.educaflow.secretariavirtual.module`
+> (`SecretariaVirtualModule`), por lo que ya reside en `..module..`.
 
 ### C20 — DTOs: `*DTO` son `record` y residen en `..service..`
 
