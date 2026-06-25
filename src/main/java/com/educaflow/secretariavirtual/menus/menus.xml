@@ -20,9 +20,6 @@
         <menuitem name="sistemaEducativo-grados-menuitem"              parent="sistemaEducativo-menuitem" title="Grados"              action="subsysSistemaEducativo.Grado@Main-action"               order="7"/>
         <menuitem name="sistemaEducativo-niveles-menuitem"              parent="sistemaEducativo-menuitem" title="Niveles"             action="subsysSistemaEducativo.Nivel@Main-action"               order="8"/>
 
-    <menuitem name="notas-menuitem" title="Notas" order="35" if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'SUPERVISOR' }"/>
-        <menuitem name="notas-grupos-menuitem" parent="notas-menuitem" title="Grupos" action="sysGruposNotas.Grupo@Supervisor-action" if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'SUPERVISOR' }" order="1"/>
-    <menuitem name="misNotas-menuitem" title="Mis notas" order="36" action="sysGruposNotas.AlumnoGrupo@MisNotas-action" if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'ALUMNO' }"/>
 
     <!--<menuitem name="sysGestion-menuitem" title="Gestión" groups="admins,users" order="40"/>
         <menuitem name="sysGestion.Centro@CriptografiaModule-menuitem" title="Centros"
