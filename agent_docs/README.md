@@ -6,14 +6,14 @@ que necesites para la tarea concreta, **no** todos.
 
 ## Índice tarea → documento
 
-| Cuándo lo necesitas | Documento |
-|---------------------|-----------|
-| Saber versiones/librerías del proyecto (Java, Axelor, PostgreSQL, etc.) | [`tech-stack.md`](tech-stack.md) |
-| Entender cómo está organizado el proyecto (paquetes, sistemas/subsistemas, expedientes) | [`architecture.md`](architecture.md) |
+| Cuándo lo necesitas                                                                                       | Documento                                        |
+|-----------------------------------------------------------------------------------------------------------|--------------------------------------------------|
+| Saber versiones/librerías del proyecto (Java, Axelor, PostgreSQL, etc.)                                   | [`tech-stack.md`](tech-stack.md)                 |
+| Entender cómo está organizado el proyecto (paquetes, sistemas/subsistemas, expedientes)                   | [`architecture.md`](architecture.md)             |
 | Reglas de arquitectura que se verifican con ArchUnit (capas, Controller→Service→Repository, nomenclatura) | [`architecture-rules.md`](architecture-rules.md) |
-| Trabajar con el pipeline SDD (`/sdd-*`): qué hace cada skill y en qué orden | [`sdd-workflow.md`](sdd-workflow.md) |
-| Usar los MCP del proyecto (IntelliJ, PostgreSQL, Playwright, IDE) | [`mcp.md`](mcp.md) |
-| Compilar, probar tests, arrancar la app, reiniciar/acceder a la BD (`psql`) | [`deploy.md`](deploy.md) |
+| Trabajar con el pipeline SDD (`/sdd-*`): qué hace cada skill y en qué orden                               | [`sdd-workflow.md`](sdd-workflow.md)             |
+| Usar los MCP del proyecto (IntelliJ, PostgreSQL, Playwright, IDE)                                         | [`mcp.md`](mcp.md)                               |
+| Compilar, probar tests, arrancar la app, reiniciar/acceder a la BD (`psql`)                               | [`deploy.md`](deploy.md)                         |
 
 ## Convención
 
