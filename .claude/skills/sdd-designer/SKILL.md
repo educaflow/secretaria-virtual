@@ -44,7 +44,7 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 3. **Fase 2 — Diseñar**: lanzar **5 subagentes diseñadores en paralelo**, cada uno escribe un diseño completo en `design_<n>/`. (Solo Generar/Regenerar.)
 4. **Fase 3 — Elegir**: un subagente **juez** decide por **torneo** (ganador acumulado vs siguiente diseño) hasta quedar uno, **justificando y mostrando por pantalla** en cada comparación por qué elige un diseño frente al otro. (Solo Generar/Regenerar.)
 5. **Fase 4 — Seleccionar**: renombrar la carpeta ganadora a `design/`, mover `log_best.txt` y borrar el resto. (Solo Generar/Regenerar.)
-6. **Fase 5 — Enriquecer**: un subagente **enriquecedor** revisa, a partir de `log_best.txt`, qué ventajas de los diseños descartados faltan en el ganador y tienen sentido; reporta las mejoras a implementar y un subagente **corrector** las aplica. (Solo Generar/Regenerar.)
+6. **Fase 5 — Enriquecer y sanear**: un subagente **enriquecedor** revisa, a partir de `log_best.txt`, (a) qué ventajas de los diseños descartados faltan en el ganador y tienen sentido, y (b) qué **defectos/errores que el juez atribuyó al propio ganador** siguen presentes; reporta unas y otros como mejoras a implementar y un subagente **corrector** las aplica. (Solo Generar/Regenerar.)
 7. **Fase 6 — Verificar/corregir**: bucle subagente verificador (que aplica la validación que prescriba la plantilla) → (si hay fallos) subagente corrector, hasta `OK-CORRECTO`. (Común a ambos modos.)
 8. **Fase 7 — Tests unitarios**: un subagente **test-unitarios** describe en `design/test-unit-desc.md` los tests unitarios (JUnit + Mockito) de las clases Java del diseño (solo descripción, sin código). (Común a ambos modos.)
 9. **Fase 8 — Verificar/corregir tests unitarios**: bucle subagente **verificador-test-unitarios** (comprueba que `test-unit-desc.md` es coherente con el diseño) → (si hay fallos) subagente **corrector-test-unitarios**, hasta `OK-CORRECTO`. (Común a ambos modos.)
@@ -83,7 +83,7 @@ Una **carpeta** `design/` dentro de la carpeta de la iniciativa.
 
 **Logs de orquestación del motor.** Además de la estructura que define la plantilla, el motor escribe en la carpeta de salida sus propios ficheros de **log** (no son contenido de diseño ni los define la plantilla; los verificadores los ignoran):
 
-- `log_best.txt` — las **ventajas de cada diseño** que el juez detalla en cada comparación del torneo (§7), para poder auditar después si el diseño ganador las cumple. Solo en modo Generar/Regenerar (en Revisar/Modificar no hay torneo).
+- `log_best.txt` — las **ventajas y los defectos de cada diseño** que el juez detalla en cada comparación del torneo (§7), para poder auditar después tanto si el diseño ganador cumple las ventajas reclamadas como si arrastra alguno de los defectos que el juez le detectó (para corregirlo en la Fase 5). Solo en modo Generar/Regenerar (en Revisar/Modificar no hay torneo).
 - `log_revision.txt` — la salida **JSONL literal de cada subagente verificador** de la Fase 6 (§10), una sección por iteración. En ambos modos.
 - `log_revision_unit-test.txt` — la salida **JSONL literal de cada `verificador-test-unitarios`** de la Fase 8 (§12), una sección por iteración. En ambos modos.
 
@@ -100,7 +100,7 @@ Una **carpeta** `design/` dentro de la carpeta de la iniciativa.
         └── design/                              ← ganador renombrado (salida final)
             ├── design.md                        ← índice (type: design)
             ├── …                                ← ficheros y carpetas que declare template-system/README.md
-            ├── log_best.txt                     ← log del motor: ventajas de cada diseño (§7, solo Generar)
+            ├── log_best.txt                     ← log del motor: ventajas y defectos de cada diseño (§7, solo Generar)
             ├── log_revision.txt                 ← log del motor: JSONL de cada verificador del diseño (§10)
             └── log_revision_unit-test.txt       ← log del motor: JSONL de cada verificador-test-unitarios (§12)
 ```
@@ -124,7 +124,7 @@ Todo lo específico del diseño (qué se produce, cómo se convierte el spec, qu
 - Esos dos logs son artefactos **del motor**, no contenido de diseño ni ficheros que declare la plantilla: el verificador no los valida y `--template-dir` no los cambia.
 - Único acoplamiento permitido por nombre: `README.md` (contrato de la plantilla) y el contrato fijo de I/O `specification.md` / `design.md`.
 
-**REQUIRED — el README de la plantilla es leído por los 8 roles.** Este skill lanza **ocho** subagentes con tareas distintas sobre el mismo diseño: **diseñador** (crea), **juez** (elige entre dos), **enriquecedor** (detecta qué ventajas de los descartados incorporar), **verificador** (busca problemas en el diseño), **corrector** (corrige/incorpora en el diseño), **test-unitarios** (describe los tests unitarios), **verificador-test-unitarios** (comprueba que los tests unitarios son coherentes con el diseño) y **corrector-test-unitarios** (corrige los tests unitarios) — ver §2.3, §6–§12. Los ocho reciben las mismas rutas de entrada y **leen el mismo `README.md` de la plantilla**, pero cada uno hace una cosa distinta y necesita un subconjunto distinto de sus ficheros. Por tanto, **cualquier `README.md` de plantilla** (la `template-system/` actual o una futura apuntada con `--template-dir=`, p.ej. `template-expediente/README.md`) **MUST** estar redactado teniendo en cuenta esos 8 roles: debe delimitar, por rol, qué tarea hace y qué ficheros de la plantilla le aplican. Un README que solo contemple al diseñador es **incompleto** para este skill.
+**REQUIRED — el README de la plantilla es leído por los 8 roles.** Este skill lanza **ocho** subagentes con tareas distintas sobre el mismo diseño: **diseñador** (crea), **juez** (elige entre dos), **enriquecedor** (detecta qué ventajas de los descartados incorporar y qué defectos del propio ganador sanear), **verificador** (busca problemas en el diseño), **corrector** (corrige/incorpora en el diseño), **test-unitarios** (describe los tests unitarios), **verificador-test-unitarios** (comprueba que los tests unitarios son coherentes con el diseño) y **corrector-test-unitarios** (corrige los tests unitarios) — ver §2.3, §6–§12. Los ocho reciben las mismas rutas de entrada y **leen el mismo `README.md` de la plantilla**, pero cada uno hace una cosa distinta y necesita un subconjunto distinto de sus ficheros. Por tanto, **cualquier `README.md` de plantilla** (la `template-system/` actual o una futura apuntada con `--template-dir=`, p.ej. `template-expediente/README.md`) **MUST** estar redactado teniendo en cuenta esos 8 roles: debe delimitar, por rol, qué tarea hace y qué ficheros de la plantilla le aplican. Un README que solo contemple al diseñador es **incompleto** para este skill.
 
 ### 2.3 Orquestación de subagentes
 
@@ -143,13 +143,15 @@ Todo lo específico del diseño (qué se produce, cómo se convierte el spec, qu
 │  Fase 2  5 diseñadores en paralelo → design_1/ … design_5/          │
 │  Fase 3  Torneo del juez:  g=design_1                               │
 │            para i=2..N:  g = juez(g, design_i)                      │
-│            (muestra ventajas+justificación; acumula ventajas en     │
-│             log_best.txt para auditar luego al ganador)             │
+│            (muestra ventajas+defectos+justificación; acumula        │
+│             ventajas y defectos en log_best.txt para auditar luego  │
+│             al ganador)                                             │
 │  Fase 4  Renombrar el ganador a design/ ; mover log_best.txt;       │
 │            borrar el resto                                          │
 │  Fase 5  enriquecedor(design/, log_best.txt) → mejoras a aplicar    │
-│            → corrector(design/, mejoras)  (mejoras de los           │
-│              descartados que faltan en el ganador y tienen sentido) │
+│            → corrector(design/, mejoras)  (ventajas de los          │
+│              descartados que faltan en el ganador + defectos que    │
+│              el juez detectó en el propio ganador y siguen ahí)     │
 │  Fase 6  Bucle (LIMIT 10):                                          │
 │            verificador(design/) → OK-CORRECTO ?  (vuelca su JSONL   │
 │              sí  → fin                           a log_revision.txt)│
@@ -283,30 +285,32 @@ Cada invocación del juez es **secuencial** (depende del ganador anterior). Si s
 > - **Especificación**: lee `{ruta de specification.md}` y los ficheros que enlace.
 > - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
 > - **Diseños a comparar**: la carpeta `{iniciativa}/{ganador}` (la llamo `<carpeta-A>`) y la carpeta `{iniciativa}/design_<i>` (la llamo `<carpeta-B>`).
-> - Elige cuál de los dos cumple mejor la especificación, las guías y las reglas, **detallando las ventajas concretas de CADA uno de los dos diseños** y con cuál te quedas.
-> - Responde con este formato **exacto** (cuatro bloques, en este orden):
+> - Elige cuál de los dos cumple mejor la especificación, las guías y las reglas, **detallando las ventajas concretas Y los defectos/errores concretos de CADA uno de los dos diseños** y con cuál te quedas.
+> - Responde con este formato **exacto** (seis bloques, en este orden):
 >   - Primera línea: **exactamente** `GANADOR: <nombre-de-carpeta>` (una de las dos comparadas).
 >   - Una línea **exactamente** `=== VENTAJAS <carpeta-A> ===` y debajo, en bullets (`- `), las **ventajas concretas** de ese diseño (qué hace bien, qué punto del spec/guías/reglas cubre mejor — no elogios genéricos). **LIMIT**: 2-6 bullets.
+>   - Una línea **exactamente** `=== DEFECTOS <carpeta-A> ===` y debajo, en bullets (`- `), los **defectos/errores/carencias concretos** de ese diseño (qué hace mal, qué punto del spec/guías/reglas incumple o cubre peor, qué regla/escenario falta — no pegas genéricas; si de verdad no le ves ninguno, un único bullet `- Ninguno detectado`). Estos defectos se auditarán en la Fase 5 aunque este diseño acabe ganando. **LIMIT**: 1-6 bullets.
 >   - Una línea **exactamente** `=== VENTAJAS <carpeta-B> ===` y debajo, igual, las ventajas concretas del otro diseño. **LIMIT**: 2-6 bullets.
+>   - Una línea **exactamente** `=== DEFECTOS <carpeta-B> ===` y debajo, igual, los defectos/errores/carencias concretos del otro diseño (o `- Ninguno detectado`). **LIMIT**: 1-6 bullets.
 >   - Una línea **exactamente** `=== JUSTIFICACIÓN ===` y debajo la justificación: **MUST** explicar **por qué** el ganador es mejor **frente al otro diseño**, citando las diferencias decisivas (qué hace mejor el ganador, en qué falla o se queda corto el perdedor) y, cuando aplique, contra qué punto de la especificación, las guías o las reglas. **LIMIT**: entre 3 y 8 líneas.
 >   - `<carpeta-A>`/`<carpeta-B>` son los nombres reales de las dos carpetas comparadas (p.ej. `design_2`, `design_3`).
 
-El skill parsea la primera línea `GANADOR: design_<n>`. Si el token no aparece, no es una de las dos carpetas comparadas, o falta alguno de los tres bloques `=== … ===`, **reintenta esa comparación 1 vez**; si vuelve a fallar → **STOP** (STOP condition).
+El skill parsea la primera línea `GANADOR: design_<n>`. Si el token no aparece, no es una de las dos carpetas comparadas, o falta alguno de los cinco bloques `=== … ===` (las dos `VENTAJAS`, los dos `DEFECTOS` y la `JUSTIFICACIÓN`), **reintenta esa comparación 1 vez**; si vuelve a fallar → **STOP** (STOP condition).
 
 **REQUIRED — mostrar por pantalla y registrar en `log_best.txt`.** Tras cada comparación válida, antes de seguir el torneo, el skill **MUST**:
 
-1. **Mostrar al usuario** el veredicto, las ventajas de cada diseño y la justificación que devolvió el juez, con este formato:
+1. **Mostrar al usuario** el veredicto, las ventajas y los defectos de cada diseño y la justificación que devolvió el juez, con este formato:
    ```
    Comparación {k}/{total}: {carpeta-A} vs {carpeta-B} → gana design_<n>
-   {bloques === VENTAJAS … === y === JUSTIFICACIÓN === literales del juez}
+   {bloques === VENTAJAS … ===, === DEFECTOS … === y === JUSTIFICACIÓN === literales del juez}
    ```
-   **MUST NOT** ocultar ni resumir las ventajas/justificación hasta perder el detalle de la comparación.
-2. **Añadir (append)** a `{iniciativa}/log_best.txt` una sección con esta comparación: la cabecera `### Comparación {k}: {carpeta-A} vs {carpeta-B} → gana design_<n>` y, debajo, los dos bloques `=== VENTAJAS … ===` **literales** del juez. Es un append acumulativo (una sección por comparación). Razón: este log recoge las ventajas reclamadas de cada diseño para **auditar después si el ganador realmente las cumple**. Se escribe en la carpeta de la iniciativa y la Fase 4 lo mueve a la carpeta de salida (`design/log_best.txt`).
+   **MUST NOT** ocultar ni resumir las ventajas/defectos/justificación hasta perder el detalle de la comparación.
+2. **Añadir (append)** a `{iniciativa}/log_best.txt` una sección con esta comparación: la cabecera `### Comparación {k}: {carpeta-A} vs {carpeta-B} → gana design_<n>` y, debajo, los cuatro bloques `=== VENTAJAS … ===` y `=== DEFECTOS … ===` **literales** del juez (los dos de ventajas y los dos de defectos). Es un append acumulativo (una sección por comparación). Razón: este log recoge tanto las ventajas reclamadas de cada diseño para **auditar después si el ganador realmente las cumple**, como los **defectos detectados** —incluidos los del propio ganador— para que la Fase 5 los **corrija automáticamente**. Se escribe en la carpeta de la iniciativa y la Fase 4 lo mueve a la carpeta de salida (`design/log_best.txt`).
 
-Si solo hay **una** carpeta válida (sin torneo), escribe en `{iniciativa}/log_best.txt` una única línea: `Un único diseño válido (sin torneo ni comparación de ventajas).`
+Si solo hay **una** carpeta válida (sin torneo), escribe en `{iniciativa}/log_best.txt` una única línea: `Un único diseño válido (sin torneo ni comparación de ventajas ni defectos).`
 
-- ✅ CORRECTO (respuesta del juez): `GANADOR: design_2` + `=== VENTAJAS design_2 ===` + `=== VENTAJAS design_3 ===` + `=== JUSTIFICACIÓN ===`, cada bloque con sus bullets/líneas
-- ❌ INCORRECTO: `Me quedo con el segundo` (sin token), `GANADOR: design_9` (carpeta que no estaba en la comparación), `GANADOR: design_2` sin los bloques `=== VENTAJAS … ===` (no hay ventajas que registrar en `log_best.txt`), ventaja tipo `design_2 está más completo` (elogio genérico, no concreta qué hace bien)
+- ✅ CORRECTO (respuesta del juez): `GANADOR: design_2` + `=== VENTAJAS design_2 ===` + `=== DEFECTOS design_2 ===` + `=== VENTAJAS design_3 ===` + `=== DEFECTOS design_3 ===` + `=== JUSTIFICACIÓN ===`, cada bloque con sus bullets/líneas
+- ❌ INCORRECTO: `Me quedo con el segundo` (sin token), `GANADOR: design_9` (carpeta que no estaba en la comparación), `GANADOR: design_2` sin los bloques `=== VENTAJAS … ===`/`=== DEFECTOS … ===` (no hay ventajas ni defectos que registrar en `log_best.txt`), ventaja tipo `design_2 está más completo` o defecto tipo `design_3 es peor` (genéricos, no concretan qué hace bien/mal)
 
 ---
 
@@ -323,7 +327,7 @@ Una vez conocido el ganador:
    ```bash
    rm -rf .sdd/drafts/{iniciativa}/design_[0-9]*
    ```
-3. **Mover** el log de ventajas dentro de la carpeta de salida (el motor lo acumuló en la iniciativa durante el torneo, §7):
+3. **Mover** el log de ventajas y defectos dentro de la carpeta de salida (el motor lo acumuló en la iniciativa durante el torneo, §7):
    ```bash
    mv .sdd/drafts/{iniciativa}/log_best.txt .sdd/drafts/{iniciativa}/design/log_best.txt
    ```
@@ -333,59 +337,66 @@ Tras esto solo queda `design/` (más `--out=` si se indicó: en ese caso, el des
 
 ---
 
-## 9. Fase 5 — Enriquecer el ganador con las ventajas de los descartados
+## 9. Fase 5 — Enriquecer el ganador con las ventajas de los descartados y sanear sus defectos
 
-**Solo en modo Generar/Regenerar** (depende del torneo y de `log_best.txt`; en Revisar/Modificar no aplica — §14). Tras seleccionar el ganador, el diseño se **enriquece** incorporando las ventajas de los diseños descartados que el ganador no tenga y que tengan sentido. Los diseños descartados ya no están en disco (la Fase 4 los borró): la fuente de esas ventajas es `design/log_best.txt`.
+**Solo en modo Generar/Regenerar** (depende del torneo y de `log_best.txt`; en Revisar/Modificar no aplica — §14). Tras seleccionar el ganador, el diseño se **enriquece y sanea** en una sola pasada, a partir de `design/log_best.txt`:
 
-1. **Lanzar el subagente enriquecedor** (uno solo). Recibe todo el contexto + `log_best.txt`; **comprueba** qué ventajas de cada diseño faltan en el ganador y procede aplicar, y las **reporta** (no las implementa).
+- **(a) Enriquecer**: incorporar las **ventajas de los diseños descartados** que el ganador no tenga y que tengan sentido. Los diseños descartados ya no están en disco (la Fase 4 los borró): la fuente de esas ventajas es `log_best.txt`.
+- **(b) Sanear**: corregir los **defectos/errores que el juez atribuyó al propio diseño ganador** en `log_best.txt` y que **sigan presentes** en él. El objetivo de este punto es exactamente lo que pidió el usuario: que, al elegir un ganador, no se arrastren sin más los fallos que el juez ya le había detectado, sino que se corrijan automáticamente.
+
+1. **Lanzar el subagente enriquecedor** (uno solo). Recibe todo el contexto + `log_best.txt`; **comprueba** (a) qué ventajas de los diseños descartados faltan en el ganador y procede aplicar, y (b) qué defectos que el juez le atribuyó al ganador siguen presentes, y **reporta** unas y otros como mejoras (no las implementa).
 2. **Mostrar al usuario** la respuesta del enriquecedor (las mejoras a implementar, o que no hay ninguna).
-3. Si respondió **exactamente** `OK-SIN-MEJORAS` → no hay nada que incorporar: ve directamente a la Fase 6.
+3. Si respondió **exactamente** `OK-SIN-MEJORAS` → no hay nada que incorporar ni sanear: ve directamente a la Fase 6.
 4. Si respondió líneas **JSONL** de mejoras: **lanza el subagente corrector** pasándole esas mismas líneas, para que las aplique en sitio sobre `design/`. Luego ve a la Fase 6.
 5. Si la respuesta no es ni `OK-SIN-MEJORAS` ni JSONL parseable, **reintenta 1 vez**; si vuelve a fallar, trata el enriquecimiento como vacío (avísalo al usuario) y continúa con la Fase 6. **MUST NOT** bloquear el diseño por esto.
 
 **Prompt del subagente enriquecedor**:
 
-> Eres un experto arquitecto y diseñador en Java y el framework Axelor. Tienes un diseño **ganador** de un torneo y el registro `log_best.txt` con las **ventajas** que el juez atribuyó a cada diseño comparado (incluidos los **descartados**). Tu tarea es decidir qué ventajas de los diseños descartados **conviene incorporar** al ganador.
+> Eres un experto arquitecto y diseñador en Java y el framework Axelor. Tienes un diseño **ganador** de un torneo y el registro `log_best.txt` con las **ventajas** y los **defectos/errores** que el juez atribuyó a cada diseño comparado (incluidos los **descartados** y el **propio ganador**). Tu tarea tiene dos partes: **(a)** decidir qué ventajas de los diseños descartados **conviene incorporar** al ganador, y **(b)** detectar qué **defectos que el juez le atribuyó al propio ganador siguen presentes** en él, para que se corrijan.
 >
 > - **Reglas para el diseño**: lee `{ruta de template-system/README.md}` y los ficheros que referencie.
 > - **Especificación**: lee `{ruta de specification.md}` y los ficheros que enlace.
 > - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
 > - **Diseño ganador**: la carpeta `{iniciativa}/design`.
-> - **Ventajas de cada diseño**: lee `{iniciativa}/design/log_best.txt`.
-> - Para **cada ventaja** que aparezca en `log_best.txt`: comprueba (a) **si ya existe** en el diseño ganador, y (b) **si tiene sentido aplicarla** (coherente con la especificación, las guías y las reglas, sin contradecir las decisiones del ganador). Reporta **solo** las ventajas que **faltan** en el ganador **y** tienen sentido incorporar; descarta las que ya están o que no procede aplicar.
+> - **Ventajas y defectos de cada diseño**: lee `{iniciativa}/design/log_best.txt` (bloques `=== VENTAJAS … ===` y `=== DEFECTOS … ===` de cada comparación).
+> - **(a) Ventajas de los descartados**: para **cada ventaja** de un diseño **descartado** que aparezca en `log_best.txt`, comprueba (1) **si ya existe** en el diseño ganador, y (2) **si tiene sentido aplicarla** (coherente con la especificación, las guías y las reglas, sin contradecir las decisiones del ganador). Reporta **solo** las que **faltan** en el ganador **y** tienen sentido incorporar.
+> - **(b) Defectos del propio ganador**: para **cada defecto** que el juez haya atribuido al **diseño que resultó ganador** (los bloques `=== DEFECTOS <ganador> ===` de `log_best.txt`), comprueba **en la carpeta `design/` actual** si ese defecto **sigue presente**. Reporta **solo** los defectos del ganador que **persisten** y que tiene sentido corregir (coherentes con spec/guías/reglas); descarta los que ya estén resueltos, los marcados `Ninguno detectado` o los que no procedan. **Ignora** los bloques `=== DEFECTOS … ===` de los diseños **descartados** (esos defectos murieron con su diseño; aquí solo importan los del ganador).
+> - Reporta tanto (a) como (b) en la **misma** lista de mejoras de salida (un `tipo` distingue cuál es cuál).
 > - **MUST NOT** modificar el diseño: solo **detecta y reporta** las mejoras (las aplicará el corrector).
 >
 > **Formato de salida (REQUIRED)**:
-> - Si **no** hay ninguna mejora que incorporar (el ganador ya tiene todas las ventajas relevantes, o ninguna procede), responde **exactamente** y solo: `OK-SIN-MEJORAS`.
+> - Si **no** hay ninguna mejora que incorporar ni ningún defecto del ganador que persista (el ganador ya tiene todas las ventajas relevantes y no arrastra defectos), responde **exactamente** y solo: `OK-SIN-MEJORAS`.
 > - Si hay mejoras, responde **únicamente** con líneas **JSONL**: **una mejora por línea**, sin texto antes ni después, sin envoltorio de array. Cada línea **MUST** ser un objeto JSON con **exactamente** estos campos, en este orden:
 >   - `id` — identificador correlativo, formato `M-NNN` (`M-001`, `M-002`, …).
->   - `origen` — de qué diseño/ventaja del `log_best.txt` procede (p.ej. `design_3: validación de cliente para VAL-001/002/010`).
+>   - `tipo` — `VENTAJA` (ventaja de un descartado que se incorpora) o `DEFECTO-GANADOR` (defecto del propio ganador que se sanea).
+>   - `origen` — de qué diseño/ventaja/defecto del `log_best.txt` procede (p.ej. `design_3: validación de cliente para VAL-001/002/010`, o `design_2 (ganador): falta validación de servidor para VAL-005`).
 >   - `fichero` — fichero del diseño donde aplicarla relativo a la iniciativa (p.ej. `design/views/Grupo-Supervisor.xml`), o `null`.
 >   - `ubicacion` — sección, tabla, clase/método o vista concreta; `null` si no aplica.
->   - `mejora` — qué ventaja falta en el ganador y se quiere incorporar.
->   - `justificacion` — por qué no está ya en el ganador y por qué tiene sentido aplicarla (contra qué punto del spec/guías/reglas).
->   - `correccion` — qué cambio concreto hacer para incorporarla.
+>   - `mejora` — qué ventaja falta en el ganador y se quiere incorporar, o qué defecto del ganador hay que corregir.
+>   - `justificacion` — para `VENTAJA`: por qué no está ya en el ganador y por qué tiene sentido aplicarla; para `DEFECTO-GANADOR`: por qué el defecto que reportó el juez **sigue presente** en `design/` y contra qué punto del spec/guías/reglas va. En ambos casos, contra qué punto del spec/guías/reglas.
+>   - `correccion` — qué cambio concreto hacer para incorporar la ventaja o resolver el defecto.
 > - Cada línea **MUST** ser JSON válido en una sola línea (escapa saltos como `\n`). **MUST NOT** añadir comentarios ni texto fuera de las líneas JSONL.
 >
 > Ejemplo de salida con mejoras:
 >
 > ```jsonl
-> {"id":"M-001","origen":"design_3: validación de cliente para VAL-001/002/010","fichero":"design/views/Grupo-Supervisor.xml","ubicacion":"action-validate al guardar","mejora":"Añadir validación de cliente (UX) además de la de servidor para nombre/curso/alumno.","justificacion":"El ganador solo valida en servidor; design-contract §5 recomienda también la capa cliente para VAL de campo. No contradice ninguna decisión del ganador.","correccion":"Añadir <action-validate>/<action-condition> en la vista para VAL-001/002/010, manteniendo la validación de servidor."}
+> {"id":"M-001","tipo":"VENTAJA","origen":"design_3: validación de cliente para VAL-001/002/010","fichero":"design/views/Grupo-Supervisor.xml","ubicacion":"action-validate al guardar","mejora":"Añadir validación de cliente (UX) además de la de servidor para nombre/curso/alumno.","justificacion":"El ganador solo valida en servidor; design-contract §5 recomienda también la capa cliente para VAL de campo. No contradice ninguna decisión del ganador.","correccion":"Añadir <action-validate>/<action-condition> en la vista para VAL-001/002/010, manteniendo la validación de servidor."}
+> {"id":"M-002","tipo":"DEFECTO-GANADOR","origen":"design_2 (ganador): RN-004 sin asignación de capa servidor","fichero":"design/design.md","ubicacion":"Tabla de reglas de negocio, fila R-004","mejora":"Corregir el defecto que el juez detectó: RN-004 quedó sin método de servidor que la aplique.","justificacion":"El juez marcó este defecto en design_2 y sigue presente en design/: la fila R-004 no referencia ningún validate*; el spec exige aplicar RN-004 en servidor.","correccion":"Asignar RN-004 al método de servidor correspondiente y reflejarlo en la tabla y en la clase del diseño."}
 > ```
 
 **Prompt del subagente corrector** (para aplicar las mejoras del enriquecedor):
 
-> Eres un experto arquitecto y diseñador en Java y el framework Axelor, que tienes que **incorporar al diseño** las mejoras indicadas. Deberás indicar de la forma más clara posible las mejoras que has aplicado.
+> Eres un experto arquitecto y diseñador en Java y el framework Axelor, que tienes que **incorporar al diseño** las mejoras indicadas (ventajas de otros diseños que faltan y defectos del propio diseño que hay que sanear). Deberás indicar de la forma más clara posible las mejoras que has aplicado.
 >
 > - **Reglas para el diseño**: lee `{ruta de template-system/README.md}` y los ficheros que referencie.
 > - **Especificación**: lee `{ruta de specification.md}` y los ficheros que enlace.
 > - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
-> - **Diseño a enriquecer**: la carpeta `{iniciativa}/design` — aplica las mejoras **en sitio** (`Edit`/`Write`), sin renombrar ni mover la carpeta, sin regenerar el diseño ni romper las decisiones del ganador que no estén en falta. Tras editar cualquier XML, asegúrate de que sigue validando contra su XSD.
-> - **Mejoras a incorporar** (las reportó el enriquecedor, en formato JSONL, una por línea): `{líneas JSONL literales del enriquecedor}`. Aplica cada `correccion` en el `fichero`/`ubicacion` indicados; mantén la trazabilidad y la coherencia (matriz, frontera de confianza, tests) que la plantilla exige.
+> - **Diseño a enriquecer y sanear**: la carpeta `{iniciativa}/design` — aplica las mejoras **en sitio** (`Edit`/`Write`), sin renombrar ni mover la carpeta, sin regenerar el diseño ni romper las decisiones del ganador que no estén en falta. Tras editar cualquier XML, asegúrate de que sigue validando contra su XSD.
+> - **Mejoras a incorporar** (las reportó el enriquecedor, en formato JSONL, una por línea; el campo `tipo` indica si es una `VENTAJA` que incorporar o un `DEFECTO-GANADOR` que corregir): `{líneas JSONL literales del enriquecedor}`. Aplica cada `correccion` en el `fichero`/`ubicacion` indicados; mantén la trazabilidad y la coherencia (matriz, frontera de confianza, tests) que la plantilla exige.
 
 - ✅ CORRECTO (respuesta del enriquecedor sin mejoras): `OK-SIN-MEJORAS`
-- ✅ CON MEJORAS (una línea JSONL por mejora, sin texto alrededor): `{"id":"M-001","origen":"…","fichero":"…","ubicacion":"…","mejora":"…","justificacion":"…","correccion":"…"}`
-- ❌ INCORRECTO: `No hace falta nada ✅` (token no exacto), reportar ventajas que el ganador **ya tiene** (la tarea es solo las que faltan), o devolver las mejoras como prosa/array en vez de una línea JSONL por mejora.
+- ✅ CON MEJORAS (una línea JSONL por mejora, sin texto alrededor): `{"id":"M-001","tipo":"VENTAJA","origen":"…","fichero":"…","ubicacion":"…","mejora":"…","justificacion":"…","correccion":"…"}` o `{"id":"M-002","tipo":"DEFECTO-GANADOR","origen":"…","fichero":"…","ubicacion":"…","mejora":"…","justificacion":"…","correccion":"…"}`
+- ❌ INCORRECTO: `No hace falta nada ✅` (token no exacto), reportar ventajas que el ganador **ya tiene** o defectos del ganador **ya resueltos** (la tarea es solo las ventajas que faltan y los defectos que persisten), reportar defectos de diseños **descartados** (solo importan los del ganador), o devolver las mejoras como prosa/array en vez de una línea JSONL por mejora.
 
 ---
 
@@ -580,9 +591,9 @@ Ruta alternativa desde la Fase 0 (§4.4) cuando el `design/` ya existe y el usua
 - **CRITICAL — agnosticismo**: este SKILL es un **motor de flujo**; **no sabe nada de cómo es el diseño**. Todo lo específico lo define `template-system/README.md` (configurable con `--template-dir`), que **leen los subagentes** de disco. **MUST NOT** nombrar aquí ficheros, identificadores, taxonomías ni validaciones del diseño. Único contrato fijo: entrada `specification.md` (`type: specification`), salida carpeta `design/` con `design.md` (`type: design`).
 - **Dos modos** (§4.4): sin `design/` → Generar (Fases 1-9). Con `design/` → preguntar Regenerar (pisa) vs **Revisar/Modificar** (§14: aplica cambios puntuales + verifica el diseño + regenera y verifica tests unitarios, **sin regenerar ni enriquecer**).
 - **Diseñar** (§6): **CRITICAL** exactamente 5 subagentes diseñadores en **una única respuesta**, cada uno escribe `design_<n>/` completo; **MUST NOT** `AskUserQuestion` ni `run_in_background`. Responden `ESCRITO: design_<n>`.
-- **Elegir** (§7): torneo acumulativo de un juez de dos en dos (`ganador = juez(ganador, design_i)`), **secuencial**; el juez responde `GANADOR: design_<n>` + `=== VENTAJAS <carpeta-A> ===` + `=== VENTAJAS <carpeta-B> ===` + `=== JUSTIFICACIÓN ===`. **REQUIRED**: el motor **MUST** mostrar por pantalla las ventajas de cada diseño y la justificación tras cada comparación, y **MUST** acumular (append) los bloques de ventajas en `{iniciativa}/log_best.txt` (para auditar luego si el ganador las cumple).
+- **Elegir** (§7): torneo acumulativo de un juez de dos en dos (`ganador = juez(ganador, design_i)`), **secuencial**; el juez responde `GANADOR: design_<n>` + `=== VENTAJAS <carpeta-A> ===` + `=== DEFECTOS <carpeta-A> ===` + `=== VENTAJAS <carpeta-B> ===` + `=== DEFECTOS <carpeta-B> ===` + `=== JUSTIFICACIÓN ===`. **REQUIRED**: el motor **MUST** mostrar por pantalla las ventajas y los defectos de cada diseño y la justificación tras cada comparación, y **MUST** acumular (append) los bloques de ventajas y defectos en `{iniciativa}/log_best.txt` (para auditar luego si el ganador cumple las ventajas y para sanear en la Fase 5 los defectos que el juez le detectó).
 - **Seleccionar** (§8): renombrar el ganador a `design/`, mover `log_best.txt` dentro de la salida, borrar el resto.
-- **Enriquecer** (§9, solo Generar): un subagente **enriquecedor** lee `log_best.txt` y reporta (en JSONL `M-NNN`, o `OK-SIN-MEJORAS`) qué ventajas de los descartados faltan en el ganador y tienen sentido; el motor las muestra y un **corrector** las aplica. Luego sigue la Fase 6.
+- **Enriquecer y sanear** (§9, solo Generar): un subagente **enriquecedor** lee `log_best.txt` y reporta (en JSONL `M-NNN` con campo `tipo` `VENTAJA`/`DEFECTO-GANADOR`, o `OK-SIN-MEJORAS`) qué ventajas de los descartados faltan en el ganador **y** qué defectos que el juez le atribuyó al propio ganador siguen presentes; el motor las muestra y un **corrector** las aplica (incorpora las ventajas y corrige los defectos). Luego sigue la Fase 6.
 - **Verificar/corregir el diseño** (§10): bucle verificador → corrector hasta `OK-CORRECTO` (**LIMIT** 10; tras la 10ª, **STOP**). El verificador valida los artefactos como prescriba la plantilla (incluido ejecutar los scripts de validación que ella indique). El motor **MUST NOT** ejecutar esas validaciones él mismo (§2.2). El verificador reporta los problemas en **JSONL** (un problema por línea, campos `id`/`severidad`/`fichero`/`ubicacion`/`origen`/`problema`/`correccion`); el motor **MUST** mostrárselos al usuario en cada iteración con problemas y **MUST** volcar la respuesta literal de cada verificador a `design/log_revision.txt` (una sección por iteración).
 - **Tests unitarios** (§11, ambos modos): un subagente **test-unitarios** describe en `design/test-unit-desc.md` los tests unitarios (JUnit 5 + Mockito) de las clases Java del diseño — **solo descripción, sin código** (lo implementa `/sdd-implementer`). Enumera las clases **desde el diseño** (aún no hay `.java`); responde `ESCRITO: test-unit-desc.md`.
 - **Verificar/corregir tests unitarios** (§12, ambos modos): bucle `verificador-test-unitarios` → `corrector-test-unitarios` hasta `OK-CORRECTO` (**LIMIT** 10; tras la 10ª, **STOP**). Comprueba que `test-unit-desc.md` es **coherente con el diseño** (clases/métodos/reglas existentes, cobertura cuadra, nada inventado); JSONL con los campos `id`/`severidad`/`fichero`/`ubicacion`/`origen`/`problema`/`correccion`; vuelca el JSONL a `design/log_revision_unit-test.txt`.

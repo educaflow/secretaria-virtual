@@ -5,8 +5,8 @@ Esta carpeta de plantillas define **todo lo específico de convertir una especif
 Este `README.md` es **el único fichero que el skill conoce por nombre**. **Lo leen los ocho subagentes** y, según su rol, cada uno tiene una tarea distinta sobre el mismo diseño:
 
 - **diseñador** — **crea** un diseño desde cero (§2.1).
-- **juez** — **elige** entre dos diseños cuál es mejor (§2.2).
-- **enriquecedor** — **detecta** qué ventajas de los diseños descartados conviene incorporar al ganador (§2.5).
+- **juez** — **elige** entre dos diseños cuál es mejor, detallando las ventajas **y los defectos/errores** de cada uno (§2.2).
+- **enriquecedor** — **detecta** qué ventajas de los diseños descartados conviene incorporar al ganador y qué **defectos que el juez detectó en el propio ganador** siguen presentes para sanearlos (§2.5).
 - **verificador** — **busca problemas** en un diseño y los reporta (§2.3).
 - **corrector** — **corrige** los problemas que el verificador reportó e **incorpora** las mejoras que el enriquecedor propuso (§2.4).
 - **test-unitarios** — **describe** los tests unitarios (JUnit + Mockito) de las clases Java del diseño en `test-unit-desc.md` (§2.6).
@@ -46,8 +46,8 @@ El skill `sdd-designer` lanza estos ocho roles (diseñador, juez, enriquecedor, 
 | Rol | Escenario — qué hace | Entrada propia | Lee de esta plantilla | Resultado |
 |---|---|---|---|---|
 | **Diseñador** (§2.1) | **Crea** un diseño desde cero | spec (+ guías) + contexto del proyecto (§4) | `design-contract.md`; `reglas-complejas.md` / `tests-e2e.md` solo si aplican (§5) | la carpeta `design_<n>/` completa |
-| **Juez** (§2.2) | **Elige** entre dos diseños | las dos carpetas `design_<n>/` a comparar | `design-contract.md` (como criterios) | el diseño ganador (no lo modifica) |
-| **Enriquecedor** (§2.5) | **Detecta** qué ventajas de los descartados incorporar al ganador | la carpeta `design/` ganadora + `log_best.txt` | `design-contract.md` (como criterios para decidir si una ventaja procede) | la lista de mejoras a aplicar (no las aplica) |
+| **Juez** (§2.2) | **Elige** entre dos diseños, detallando ventajas **y defectos** de cada uno | las dos carpetas `design_<n>/` a comparar | `design-contract.md` (como criterios) | el diseño ganador + ventajas/defectos de cada uno (no lo modifica) |
+| **Enriquecedor** (§2.5) | **Detecta** qué ventajas de los descartados incorporar al ganador **y qué defectos del propio ganador sanear** | la carpeta `design/` ganadora + `log_best.txt` | `design-contract.md` (como criterios para decidir si una ventaja/defecto procede) | la lista de mejoras a aplicar (no las aplica) |
 | **Verificador** (§2.3) | **Busca problemas** en un diseño | la carpeta `design/` ganadora | `validacion.md`; consulta `design-contract.md` / `reglas-complejas.md` / `tests-e2e.md` para saber qué *debería* existir | la lista de fallos, o conforme (no corrige) |
 | **Corrector** (§2.4) | **Corrige** los problemas reportados e **incorpora** las mejoras del enriquecedor | la carpeta `design/` + la lista de fallos/mejoras | `validacion.md` + `design-contract.md`; `reglas-complejas.md` / `tests-e2e.md` solo si un fallo/mejora afecta a esa parte | la carpeta `design/` corregida/enriquecida en sitio |
 | **test-unitarios** (§2.6) | **Describe** los tests unitarios de las clases Java del diseño | la carpeta `design/` (sobre todo `design.md`) | `tests-unitarios.md` (qué testear, mocking, plantilla, cobertura) | `design/test-unit-desc.md` (solo descripción, sin código) |
@@ -67,11 +67,12 @@ Solo el **diseñador** carga el contexto del proyecto de §4; los otros siete tr
 
 ### 2.2 Juez — elige entre dos diseños
 
-**Tarea:** dadas **dos** carpetas de diseño completas, decidir **cuál cumple mejor** la especificación, las guías y las reglas de la plantilla, y devolver el ganador.
+**Tarea:** dadas **dos** carpetas de diseño completas, decidir **cuál cumple mejor** la especificación, las guías y las reglas de la plantilla, y devolver el ganador, **detallando las ventajas y los defectos/errores concretos de CADA uno** (el formato exacto de la respuesta lo fija el skill).
 
-- **Lee de esta plantilla:** `design-contract.md` — son los **criterios** que un buen diseño debe cumplir (cobertura, taxonomía, clasificación de campos, reglas arquitectónicas, frontera de confianza). Es el rasero de la comparación.
+- **Lee de esta plantilla:** `design-contract.md` — son los **criterios** que un buen diseño debe cumplir (cobertura, taxonomía, clasificación de campos, reglas arquitectónicas, frontera de confianza). Es el rasero tanto para las ventajas como para los defectos de cada diseño.
+- **Detalla los defectos de los DOS diseños, no solo del perdedor:** los defectos que reportes del diseño que acabe ganando se auditarán después (el enriquecedor, §2.5, los corrige sobre el ganador). Sé concreto: qué punto del spec/guías/reglas incumple o cubre peor, qué regla/escenario falta.
 - **NO** ejecuta la validación de `validacion.md` (eso es del verificador) ni carga el contexto del proyecto de §4: compara los dos diseños tal y como están en disco.
-- **MUST NOT** modificar, completar ni corregir ninguno de los dos diseños: su única salida es **elegir uno**. Si ambos son deficientes, elige el menos malo (el bucle de verificación posterior corrige el ganador).
+- **MUST NOT** modificar, completar ni corregir ninguno de los dos diseños: su única salida es **elegir uno** y exponer ventajas/defectos de ambos. Si ambos son deficientes, elige el menos malo (el enriquecedor y el bucle de verificación posteriores corrigen el ganador).
 
 ### 2.3 Verificador — busca problemas en un diseño
 
@@ -89,13 +90,14 @@ Solo el **diseñador** carga el contexto del proyecto de §4; los otros siete tr
 - **Aplica** exactamente los fallos/mejoras reportados, manteniendo la estructura y las decisiones del diseño que no estén en falta.
 - **MUST NOT** renombrar ni mover la carpeta `design/`. **MUST NOT** regenerar el diseño entero ni reconstruirlo desde el spec: solo aplica los cambios puntuales.
 
-### 2.5 Enriquecedor — detecta qué ventajas de los descartados incorporar
+### 2.5 Enriquecedor — incorpora ventajas de los descartados y sanea los defectos del ganador
 
-**Tarea:** dado el ganador ya seleccionado y el log `log_best.txt` (las ventajas que el juez atribuyó a cada diseño comparado, incluidos los **descartados**), decidir **qué ventajas de los descartados conviene incorporar** al ganador y **reportarlas** (no las aplica; las aplica el corrector, §2.4).
+**Tarea:** dado el ganador ya seleccionado y el log `log_best.txt` (las ventajas **y los defectos** que el juez atribuyó a cada diseño comparado, incluidos los **descartados** y el **propio ganador**), decidir **(a)** qué ventajas de los descartados conviene incorporar al ganador y **(b)** qué **defectos que el juez atribuyó al propio ganador siguen presentes** en él, y **reportar** unas y otros (no los aplica; los aplica el corrector, §2.4).
 
-- **Lee de esta plantilla:** `design-contract.md` — son los **criterios** para juzgar si una ventaja ya está cubierta y si tiene sentido aplicarla (cobertura, taxonomía, clasificación de campos, reglas arquitectónicas, frontera de confianza), igual que el juez.
+- **Lee de esta plantilla:** `design-contract.md` — son los **criterios** para juzgar si una ventaja ya está cubierta y si tiene sentido aplicarla, y para juzgar si un defecto del ganador es real y persiste (cobertura, taxonomía, clasificación de campos, reglas arquitectónicas, frontera de confianza), igual que el juez.
 - **Entrada propia:** la carpeta `{iniciativa}/design` (el ganador) y `{iniciativa}/design/log_best.txt`. Los diseños descartados ya no están en disco: la fuente de sus ventajas es `log_best.txt`.
-- Para **cada ventaja** del log: comprueba (a) si **ya existe** en el ganador y (b) si **tiene sentido aplicarla** (coherente con spec/guías/reglas, sin contradecir las decisiones del ganador). Reporta **solo** las que faltan **y** procede incorporar.
+- **(a) Ventajas de los descartados:** para **cada ventaja** de un descartado en el log, comprueba si **ya existe** en el ganador y si **tiene sentido aplicarla** (coherente con spec/guías/reglas, sin contradecir las decisiones del ganador). Reporta **solo** las que faltan **y** procede incorporar.
+- **(b) Defectos del propio ganador:** para **cada defecto** que el juez atribuyó al **diseño que ganó** (bloques `=== DEFECTOS <ganador> ===` del log), comprueba **en la carpeta `design/` actual** si **sigue presente**. Reporta **solo** los que **persisten** y procede corregir. **Ignora** los defectos de los diseños **descartados** (murieron con su diseño) y los marcados `Ninguno detectado`.
 - **MUST NOT** modificar el diseño ni cargar el contexto del proyecto de §4: solo **detecta y reporta** sobre lo que ya está en disco.
 
 ### 2.6 test-unitarios — describe los tests unitarios
