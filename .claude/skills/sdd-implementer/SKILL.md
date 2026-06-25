@@ -53,7 +53,8 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 - El usuario no confirma la ruta auto-detectada (Fase 0 caso 2) → **STOP** y pide la ruta.
 - El **descomponedor** no devuelve el token `ESCRITO: implementation/` con su lista de tareas tras 1 reintento → **STOP** y muestra el problema.
 - Un **implementador** devuelve `CONFLICT` (fichero/elemento destino ya existe) → **STOP** y `AskUserQuestion` (sobrescribir / mantener / abortar); relanza el implementador con la decisión.
-- Un **implementador** devuelve `BLOCKED` (dependencia inexistente, instrucción ambigua, recurso no disponible, XML del diseño mal) → **STOP** y pregunta al usuario. **MUST NOT** adivinar.
+- Un **implementador** devuelve `BLOCKED` (dependencia externa inexistente, recurso no disponible, instrucción ambigua que no es culpa del diseño) → **STOP** y pregunta al usuario. **MUST NOT** adivinar.
+- Un **implementador** o un **corrector-build** devuelve `DESIGN-ERROR` (el problema está en el diseño y **no se puede resolver con código**: hay que volver a `/sdd-designer`) → el motor escribe `implementation/error_design.log` con la explicación detallada y **detiene el skill** (**STOP**): no pregunta al usuario, no relanza subagentes, no pasa a la siguiente fase (§9.1). **MUST NOT** editar el diseño para forzar que cuadre.
 - Tras **20** iteraciones del bucle de build (Fase 5) el verificador-build sigue sin responder `OK-COMPILA` → **STOP** y `AskUserQuestion`. **MUST NOT** dar la implementación por buena.
 
 ---
@@ -79,6 +80,7 @@ Este skill produce salida en tres sitios:
 **Logs de orquestación del motor.** Además de la estructura que define la plantilla, el motor escribe en `implementation/` su propio **log** (no es contenido de la plantilla; los subagentes lo ignoran):
 
 - `log_build.txt` — la salida **JSONL literal de cada verificador-build** de la Fase 5 (§10), una sección por iteración, para auditar qué errores encontró cada pasada.
+- `error_design.log` — explicación detallada de un **error de diseño irresoluble** detectado por un implementador o un corrector-build (§9.1). **Solo** se escribe en ese caso; su presencia indica que la implementación se detuvo porque el diseño está mal y hay que volver a `/sdd-designer`.
 
 ### 1.3 Estructura de carpetas
 
@@ -91,7 +93,8 @@ Este skill produce salida en tres sitios:
         │   └── …                                ← resto del diseño (lo define la plantilla del designer)
         └── implementation/                      ← salida del descomponedor (Fase 2)
             ├── …                                ← tareas e índice (los define template-system/README.md)
-            └── log_build.txt                    ← log del motor: JSONL de cada verificador-build (§10)
+            ├── log_build.txt                    ← log del motor: JSONL de cada verificador-build (§10)
+            └── error_design.log                 ← log del motor: solo si hay un error de diseño irresoluble (§9.1)
 
 src/main/…  y  src/test/…                        ← código real (lo escriben los implementadores)
 ```
@@ -136,15 +139,17 @@ Todo lo específico de la implementación (qué contiene el diseño, cómo se de
 │  Fase 3  Mostrar resumen de tareas (informativo, sin bloquear)      │
 │  Fase 4  Para cada tarea en orden:                                  │
 │            implementador(tarea) → DONE | CONFLICT | BLOCKED         │
+│                                  | DESIGN-ERROR → error_design.log  │
 │  Fase 5  Bucle (LIMIT 20):                                           │
 │            verificador-build() → OK-COMPILA ?  (vuelca su JSONL     │
 │              sí  → fin                          a log_build.txt)    │
 │              no  → corrector-build(errores) → repetir               │
+│                      └ DESIGN-ERROR → error_design.log + STOP       │
 │  Fase 6  Mensaje de cierre al usuario (handoff a /sdd-close-spec)   │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-Las fases se ejecutan **estrictamente en orden**: la Fase 4 no empieza hasta que el descomponedor ha escrito todas las tareas (Fase 2) y se ha mostrado el resumen (Fase 3). **CRITICAL — salvo la confirmación inicial de qué diseño implementar (Fase 0), el flujo no pide aprobación**: la lista de tareas (Fase 3) no se aprueba, se implementa automáticamente. El skill **solo** se detiene a preguntar en esa confirmación inicial (Fase 0) y ante una **excepción** real: un `ERROR` de configuración/entrada (Fase 1), un `CONFLICT` o `BLOCKED` (Fase 4, §9) o un build que no compila tras el **LIMIT** (Fase 5, §10).
+Las fases se ejecutan **estrictamente en orden**: la Fase 4 no empieza hasta que el descomponedor ha escrito todas las tareas (Fase 2) y se ha mostrado el resumen (Fase 3). **CRITICAL — salvo la confirmación inicial de qué diseño implementar (Fase 0), el flujo no pide aprobación**: la lista de tareas (Fase 3) no se aprueba, se implementa automáticamente. El skill **solo** se detiene a preguntar en esa confirmación inicial (Fase 0) y ante una **excepción** real: un `ERROR` de configuración/entrada (Fase 1), un `CONFLICT` o `BLOCKED` (Fase 4, §9) o un build que no compila tras el **LIMIT** (Fase 5, §10). Además, ante un `DESIGN-ERROR` (Fase 4 o Fase 5) el skill **se detiene sin preguntar**: escribe `implementation/error_design.log` y termina (§9.1).
 
 ---
 
@@ -253,11 +258,12 @@ Recorre la lista ordenada de tareas (la que devolvió el descomponedor en `=== T
 > - **Diseño**: la carpeta `{iniciativa}/design` (los XML materializados de los que dependa esta tarea son **contrato fijo**: si el contrato manda colocarlos, se copian/fusionan **tal cual**, **NO** se regeneran).
 > - **Tarea a implementar**: `{ruta de la tarea, p.ej. {iniciativa}/implementation/task_03.md}`. Léela entera (skills a usar + texto del diseño verbatim) y materialízala según el contrato.
 > - **OBLIGATORIO**: si la tarea lista skills en su sección de skills, **cárgalos con la herramienta `Skill` antes de implementar nada** y, si el contrato lo indica, **invoca `code-implementer`** pasándole el texto de la tarea **verbatim**. **MUST NOT** empezar a implementar sin haber cargado esos skills.
-> - **MUST NOT** usar `AskUserQuestion`. Ante un bloqueo (dependencia inexistente, instrucción ambigua, recurso no disponible, un XML del diseño que está mal) **MUST NOT** adivinar: repórtalo con el token de bloqueo.
+> - **MUST NOT** usar `AskUserQuestion`. Ante un bloqueo **MUST NOT** adivinar: repórtalo con el token que corresponda según su **origen**. Si el problema está en el **diseño** —un XML materializado del diseño mal formado o inconsistente, el diseño referencia una entidad/campo/acción que él mismo no define, dos reglas del diseño se contradicen, o falta información imprescindible que el diseño debería aportar— es un `DESIGN-ERROR`: **MUST NOT** editar el diseño para forzar que cuadre. Si el problema es del **entorno** —dependencia externa inexistente, recurso no disponible, instrucción ambigua que no es culpa del diseño— es un `BLOCKED`.
 > - Al terminar, responde con **exactamente uno** de estos tokens en la primera línea, y 1-2 líneas de resumen:
 >   - `DONE: {ruta de la tarea}` — la tarea quedó materializada en el árbol del proyecto.
 >   - `CONFLICT: {ruta de la tarea} — {qué fichero o elemento destino ya existe}` — hay un conflicto al sobrescribir que requiere decisión del usuario.
->   - `BLOCKED: {ruta de la tarea} — {motivo}` — un bloqueo que impide continuar.
+>   - `BLOCKED: {ruta de la tarea} — {motivo}` — un bloqueo del entorno que impide continuar (no es culpa del diseño).
+>   - `DESIGN-ERROR: {ruta de la tarea} — {motivo detallado}` — el diseño está mal y no se puede implementar sin volver a `/sdd-designer` (§9.1). Da el **máximo detalle**: qué fichero del diseño, qué es inconsistente o falta, y por qué no se puede resolver escribiendo código.
 >   - **MUST NOT** pegar el código implementado en la respuesta (ya está en disco).
 
 El skill parsea la primera línea:
@@ -265,11 +271,42 @@ El skill parsea la primera línea:
 - `DONE: …` → pasa a la siguiente tarea.
 - `CONFLICT: …` → **STOP** y `AskUserQuestion` (**Sobrescribir** / **Mantener** / **Abortar**). Según la respuesta, **relanza el implementador** de esa misma tarea indicándole la decisión (sobrescribir o saltar el fichero en conflicto), o aborta. **MUST NOT** sobrescribir sin preguntar.
 - `BLOCKED: …` → **STOP** y muestra el motivo al usuario; pregunta cómo proceder (STOP condition). **MUST NOT** continuar con las tareas siguientes.
+- `DESIGN-ERROR: …` → el motor **escribe `implementation/error_design.log`** con el motivo detallado y **detiene el skill** (§9.1). **MUST NOT** continuar con las tareas siguientes, **MUST NOT** preguntar al usuario y **MUST NOT** pasar a la Fase 5.
 
-Implementa las tareas en orden. **MUST NOT** pasar a la Fase 5 hasta que todas las tareas estén materializadas (o se haya detenido por un conflicto/bloqueo no resuelto).
+Implementa las tareas en orden. **MUST NOT** pasar a la Fase 5 hasta que todas las tareas estén materializadas (o se haya detenido por un conflicto/bloqueo/error de diseño no resuelto).
 
 - ✅ CORRECTO (respuesta del implementador): `DONE: task_03.md` + 1 línea de resumen
-- ❌ INCORRECTO: `Tarea hecha` (token no parseable), pegar el `.java` generado en la respuesta, sobrescribir un fichero existente sin devolver `CONFLICT`
+- ✅ CORRECTO (error de diseño): `DESIGN-ERROR: task_03.md — domains/Bar.xml referencia el campo centro que el diseño no define en ninguna entidad` + 1 línea de resumen
+- ❌ INCORRECTO: `Tarea hecha` (token no parseable), pegar el `.java` generado en la respuesta, sobrescribir un fichero existente sin devolver `CONFLICT`, devolver `BLOCKED` cuando el problema es del diseño (debe ser `DESIGN-ERROR`)
+
+### 9.1 Error de diseño irresoluble (`DESIGN-ERROR` → `error_design.log`)
+
+Un **error de diseño** es un problema cuyo origen está en el propio diseño (`design/`) y que **NO se puede resolver implementando ni corrigiendo código**: el diseño está mal y hay que volver a `/sdd-designer`. Ejemplos: un XML materializado del diseño mal formado o inconsistente, el diseño referencia una entidad/campo/acción que él mismo no define, dos reglas del diseño se contradicen, o falta información imprescindible que el diseño debería aportar.
+
+- Tanto el **implementador** (§9) como el **corrector-build** (§10) lo señalan con el token `DESIGN-ERROR: {motivo detallado}` en la primera línea, **en vez** de `BLOCKED` o de seguir corrigiendo. **MUST NOT** editar el diseño para forzar que cuadre.
+- Cuando el motor recibe `DESIGN-ERROR: …` (de cualquiera de los dos roles, en Fase 4 o Fase 5), **MUST**:
+  1. Escribir con `Write` el fichero `{iniciativa}/implementation/error_design.log` con la plantilla de abajo, volcando **verbatim** el motivo detallado del token.
+  2. **Detener el skill inmediatamente** (**STOP**): **MUST NOT** preguntar al usuario, **MUST NOT** relanzar ningún subagente, **MUST NOT** continuar con tareas siguientes ni pasar a la Fase 5/6.
+  3. Mostrar al usuario la ruta de `error_design.log` y avisar de que el diseño tiene un error: hay que corregirlo con `/sdd-designer` y relanzar `/sdd-implementer`. **MUST NOT** lanzar `/sdd-designer` tú mismo.
+
+**Plantilla de `error_design.log`** (la escribe el motor, literal; rellena los `{…}`):
+
+```
+# Error de diseño — implementación detenida
+
+Iniciativa: {carpeta-iniciativa}
+Detectado por: {implementador {ruta-tarea} | corrector-build iteración {k}}
+Fase: {Fase 4 — implementar | Fase 5 — build}
+
+## Problema
+{motivo detallado del token DESIGN-ERROR, verbatim}
+
+## Por qué no se puede resolver implementando
+{por qué es un fallo del diseño y no del código: el diseño es contrato fijo y corregir el código no lo arregla}
+
+## Acción requerida
+Corregir el diseño con /sdd-designer y volver a lanzar /sdd-implementer.
+```
 
 ---
 
@@ -282,7 +319,9 @@ Tras materializar todas las tareas, verifica que el proyecto compila (y que sus 
 3. Si respondió **exactamente** `OK-COMPILA` → el proyecto compila: sal del bucle y ve a la Fase 6.
 4. Si respondió **cualquier otra cosa** (las líneas JSONL de errores): **MUST** mostrar al usuario por pantalla, tal cual, las líneas JSONL (bloque ` ```jsonl `), antes de continuar.
    - **Detectar fallos persistentes**: si el JSONL es **idéntico** al de la iteración anterior, el corrector no está progresando. Trata el caso como `k == 20` (paso 6).
-   - Si `k < 20`: **lanza el subagente corrector-build** pasándole esas mismas líneas JSONL, para que corrija **en sitio**. Incrementa `{k}` y vuelve al paso 1.
+   - Si `k < 20`: **lanza el subagente corrector-build** pasándole esas mismas líneas JSONL, para que corrija **en sitio**.
+     - Si el corrector-build responde en su primera línea `DESIGN-ERROR: …` → el error solo se puede resolver cambiando el diseño: el motor escribe `implementation/error_design.log` y **detiene el skill** (§9.1). **MUST NOT** incrementar `{k}` ni volver al paso 1.
+     - En otro caso, incrementa `{k}` y vuelve al paso 1.
 5. (continúa el bucle)
 6. Si tras la 20ª iteración el verificador-build sigue sin responder `OK-COMPILA` (o se detectaron fallos persistentes) → **STOP** y `AskUserQuestion` ofreciendo: (1) dejar el reporte de errores (`log_build.txt`) para investigación manual; (2) revisar el diseño relanzando `/sdd-designer`; (3) continuar sin compilación limpia (no recomendado). **MUST NOT** dar la implementación por buena.
 
@@ -316,13 +355,14 @@ Tras materializar todas las tareas, verifica que el proyecto compila (y que sus 
 > Eres un experto arquitecto en Java y el framework Axelor, que tienes que **corregir los errores de compilación** reportados. Deberás indicar de la forma más clara posible los errores que has corregido.
 >
 > - **Reglas para el build y la implementación**: lee `{ruta de template-system/README.md}` y los ficheros que referencie (en particular qué puedes y qué **no** puedes tocar al corregir).
-> - **Diseño**: la carpeta `{iniciativa}/design` —los XML materializados son **contrato fijo**: **MUST NOT** editarlos para que cuadre el Java; corrige el Java para que cuadre con ellos. Si un XML del diseño está mal, **detente y repórtalo**, no lo edites.
+> - **Diseño**: la carpeta `{iniciativa}/design` —los XML materializados son **contrato fijo**: **MUST NOT** editarlos para que cuadre el Java; corrige el Java para que cuadre con ellos. Si el error **solo** se puede resolver cambiando el diseño (un XML del diseño está mal o es inconsistente, el diseño referencia algo que él mismo no define, reglas contradictorias…), **MUST NOT** editar el diseño ni adivinar: responde en la **primera línea** con `DESIGN-ERROR: {motivo detallado}` (qué fichero del diseño, qué es inconsistente y por qué no se puede arreglar con código) y termina (§9.1).
 > - **Errores a corregir** (los reportó el verificador-build, en JSONL, un error por línea): `{líneas JSONL literales del verificador-build}`. Resuelve cada línea; si el contrato lo indica, delega la corrección del código Java en `code-implementer` cargando antes los skills de dominio aplicables.
-> - **MUST NOT** usar `AskUserQuestion`: ante un bloqueo, descríbelo en tu respuesta y termina.
+> - **MUST NOT** usar `AskUserQuestion`: ante un bloqueo del entorno, descríbelo en tu respuesta y termina; ante un error del diseño, usa el token `DESIGN-ERROR` (arriba).
 
 - ✅ CORRECTO (respuesta del verificador-build cuando compila): `OK-COMPILA`
 - ✅ CON ERRORES (una línea JSONL por error, sin texto alrededor): `{"id":"E-001","tipo":"COMPILE","fichero":"…","ubicacion":"…","tarea":"task_03.md","mensaje":"…","correccion":"…"}`
-- ❌ INCORRECTO: `Compila bien ✅` (token no exacto; el skill compara por literal), devolver los errores como prosa/array JSON en vez de una línea JSONL por error, o que el corrector-build edite un XML del diseño
+- ✅ CORRECTO (corrector-build ante un error de diseño): `DESIGN-ERROR: el servicio debe llamar a Bar.getCentro() pero el dominio Bar.xml del diseño no define el campo centro; no se puede arreglar en el Java`
+- ❌ INCORRECTO: `Compila bien ✅` (token no exacto; el skill compara por literal), devolver los errores como prosa/array JSON en vez de una línea JSONL por error, o que el corrector-build **edite un XML del diseño** en vez de devolver `DESIGN-ERROR`
 
 ---
 
@@ -361,9 +401,10 @@ Ajusta la lista de ficheros a la estructura real que define la plantilla.
 - **Cargar y validar** (§5): lee solo `template-system/README.md`; valida `type: design` en el frontmatter (si no → **ERROR**).
 - **Descomponer** (§7): **un** subagente descomponedor escribe `implementation/`; responde `ESCRITO: implementation/` + bloque `=== TAREAS ===` (una línea por tarea, en orden). **MUST NOT** materializar código.
 - **Informar** (§8): muestra el resumen de tareas y **continúa automáticamente**; si todo va bien **MUST NOT** pedir aprobación. Solo se interrumpe ante excepciones (`CONFLICT`/`BLOCKED`, build que no compila).
-- **Implementar** (§9): **un subagente implementador por tarea, en orden** (nunca en paralelo ni `run_in_background`). Cada uno carga los skills de su tarea y, si el contrato lo dice, invoca `code-implementer`. Responde `DONE` / `CONFLICT` / `BLOCKED`; el motor lleva `CONFLICT`/`BLOCKED` al usuario.
-- **Verificar/corregir el build** (§10): bucle verificador-build → corrector-build hasta `OK-COMPILA` (**LIMIT** 20; tras la 20ª o si los errores se repiten, **STOP** y `AskUserQuestion`). El verificador-build compila (comando de la plantilla) y reporta en **JSONL** (`id`/`tipo`/`fichero`/`ubicacion`/`tarea`/`mensaje`/`correccion`); el motor lo vuelca a `implementation/log_build.txt`. El motor **MUST NOT** compilar él mismo (§2.2).
-- **Contrato de tokens** (§2.3): el skill compara por literal exacto — `ESCRITO: implementation/`, `DONE`/`CONFLICT`/`BLOCKED`, `OK-COMPILA`. Los subagentes **MUST NOT** pegar el código en su respuesta (ya está en disco).
+- **Implementar** (§9): **un subagente implementador por tarea, en orden** (nunca en paralelo ni `run_in_background`). Cada uno carga los skills de su tarea y, si el contrato lo dice, invoca `code-implementer`. Responde `DONE` / `CONFLICT` / `BLOCKED` / `DESIGN-ERROR`; el motor lleva `CONFLICT`/`BLOCKED` al usuario.
+- **Error de diseño** (§9.1): si un implementador o un corrector-build devuelve `DESIGN-ERROR` (el problema está en el diseño y no se arregla con código), el motor escribe `implementation/error_design.log` con la explicación detallada y **detiene el skill sin preguntar**. **MUST NOT** editar el diseño para forzar que cuadre; corregirlo es trabajo de `/sdd-designer`.
+- **Verificar/corregir el build** (§10): bucle verificador-build → corrector-build hasta `OK-COMPILA` (**LIMIT** 20; tras la 20ª o si los errores se repiten, **STOP** y `AskUserQuestion`). El verificador-build compila (comando de la plantilla) y reporta en **JSONL** (`id`/`tipo`/`fichero`/`ubicacion`/`tarea`/`mensaje`/`correccion`); el motor lo vuelca a `implementation/log_build.txt`. Si el corrector-build devuelve `DESIGN-ERROR`, se aplica §9.1. El motor **MUST NOT** compilar él mismo (§2.2).
+- **Contrato de tokens** (§2.3): el skill compara por literal exacto — `ESCRITO: implementation/`, `DONE`/`CONFLICT`/`BLOCKED`/`DESIGN-ERROR`, `OK-COMPILA`. Los subagentes **MUST NOT** pegar el código en su respuesta (ya está en disco).
 - **MUST NOT** invocar `code-implementer` tú mismo ni lanzar `/sdd-close-spec`: el código lo escriben los implementadores; el cierre lo decide el usuario.
 
 ---

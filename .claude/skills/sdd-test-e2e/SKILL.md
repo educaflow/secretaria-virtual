@@ -56,7 +56,8 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 - El usuario no confirma la ruta auto-detectada (Fase 0 caso 2) → **STOP** y pide la ruta.
 - El **descomponedor** no devuelve el token `ESCRITO: test-e2e/` con su lista de tests tras 1 reintento → **STOP** y muestra el problema.
 - La app no responde `200` en `http://localhost:8080` tras arrancarla (compila pero no levanta) → **STOP** y `AskUserQuestion` (reintentar / ver log / abortar).
-- El **corrector** devuelve `BLOQUEADO` (la corrección exigiría tocar `test-e2e-desc.md`, el XML/contrato del diseño, o un recurso ausente) → **STOP** y pregunta al usuario (no es trabajo de este skill; eso vuelve a `/sdd-designer`). **MUST NOT** adivinar.
+- El **corrector** devuelve `BLOQUEADO` (falta un recurso del entorno ajeno al diseño) → **STOP** y pregunta al usuario. **MUST NOT** adivinar.
+- El **corrector** devuelve `DESIGN-ERROR` (la corrección exigiría tocar `test-e2e-desc.md`, el XML/contrato del diseño o firmas declaradas: el fallo es del diseño y **no se puede resolver con código Java**) → el motor escribe `test-e2e/error_design.log` con la explicación detallada y **detiene el skill** (**STOP**): no pregunta al usuario, no sigue con los demás tests (§9.3). **MUST NOT** editar el diseño para forzar que el test pase; eso vuelve a `/sdd-designer`.
 - Tras **10** ciclos de corrección un test sigue en `FAIL` → ese test queda `FAIL` (sin marcar en el índice) y el bucle continúa con el resto; al final se reporta como `FAIL`.
 
 ---
@@ -76,6 +77,7 @@ Un único `test-e2e-desc.md` que vive **siempre en la subcarpeta `implementation
 **Logs de orquestación del motor** (en `test-e2e/`, no son contenido de la plantilla; los subagentes los ignoran):
 
 - `app.log` — la salida de la app arrancada por el motor (§2.2, §8); el motor la lee al diagnosticar un `FAIL` y pasa el extracto relevante al corrector.
+- `error_design.log` — explicación detallada de un **error de diseño irresoluble** detectado por el corrector (§9.3). **Solo** se escribe en ese caso; su presencia indica que el testing se detuvo porque un test no se puede hacer pasar sin corregir el diseño, y hay que volver a `/sdd-designer`.
 
 **MUST NOT** modificar `test-e2e-desc.md` ni ningún artefacto de `design/` o `implementation/` para que un test pase. Este skill solo lee la descripción de tests, escribe `test-e2e/` y corrige **código Java**.
 
@@ -88,7 +90,8 @@ Un único `test-e2e-desc.md` que vive **siempre en la subcarpeta `implementation
 └── test-e2e/                   ← salida del descomponedor (Fase 2)
     ├── tests-e2e-desc.md        ← índice con un checkbox por test (type: test-e2e-index)
     ├── test-e2e-desc_01.md … test-e2e-desc_NN.md   ← un fichero autocontenido por test (type: test-e2e)
-    └── app.log                  ← log del motor: salida de la app arrancada en la Fase 3
+    ├── app.log                  ← log del motor: salida de la app arrancada en la Fase 3
+    └── error_design.log         ← log del motor: solo si hay un error de diseño irresoluble (§9.3)
 
 src/main/java/com/educaflow/...  ← código Java que se corrige
 ```
@@ -119,7 +122,7 @@ Reglas que el motor **MUST** cumplir (los comandos exactos están en el README):
 
 ### 2.3 No tocar el contrato — solo código Java
 
-**MUST NOT** modificar `test-e2e-desc.md` ni los ficheros de `test-e2e/` para que un test pase (eso es trampa). **MUST NOT** editar XML de dominios/vistas materializados ni cambiar firmas declaradas por el diseño: si el fallo exige eso, el corrector devuelve `BLOQUEADO` y el motor **STOP** y pregunta al usuario — la corrección vuelve a `/sdd-designer`. Este skill corrige **lógica Java** (servicios, controladores, repositorios, validaciones, jobs, datos iniciales).
+**MUST NOT** modificar `test-e2e-desc.md` ni los ficheros de `test-e2e/` para que un test pase (eso es trampa). **MUST NOT** editar XML de dominios/vistas materializados ni cambiar firmas declaradas por el diseño: si el fallo exige eso, es un **error de diseño** — el corrector devuelve `DESIGN-ERROR`, el motor escribe `test-e2e/error_design.log` y **detiene el skill** sin preguntar (§9.3); la corrección vuelve a `/sdd-designer`. (Si lo que falta es un recurso del **entorno** ajeno al diseño, el corrector devuelve `BLOQUEADO` y el motor **STOP** y pregunta al usuario.) Este skill corrige **lógica Java** (servicios, controladores, repositorios, validaciones, jobs, datos iniciales).
 
 ### 2.4 Orquestación de subagentes
 
@@ -153,11 +156,12 @@ El índice `tests-e2e-desc.md` es el checkpoint: un test pasa → el motor marca
 │            └─ FAIL → bucle (LIMIT 10):                               │
 │                 corrector(problema + log app) → parar/rearrancar app │
 │                 → reejecutar; al pasar marcar [x]; al agotar, FAIL   │
+│                 └ DESIGN-ERROR → test-e2e/error_design.log + STOP    │
 │  Fase 5  Reporte final SUCCESS/FAIL de todos los tests               │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-Las fases se ejecutan **en orden**. Salvo la confirmación inicial (Fase 0) y los `STOP` ante una excepción real, el flujo **no pide aprobación**: tras descomponer, se ejecuta automáticamente.
+Las fases se ejecutan **en orden**. Salvo la confirmación inicial (Fase 0) y los `STOP` ante una excepción real, el flujo **no pide aprobación**: tras descomponer, se ejecuta automáticamente. Ante un `DESIGN-ERROR` del corrector el skill **se detiene sin preguntar**: escribe `test-e2e/error_design.log` y termina (§9.3).
 
 ---
 
@@ -277,12 +281,15 @@ Cada **ciclo**:
    > - **Log de la app** (extracto relevante): `{extracto de test-e2e/app.log}`.
    > - **OBLIGATORIO**: analiza qué skills de dominio necesitas para el arreglo (p.ej. `k-secure-coding` + `k-code-quality` si tocas entidades/servicios/controladores; además `k-sistemas`, `k-scheduler`, `k-validaciones`, `k-i18n`… según el fallo), **cárgalos con la herramienta `Skill` antes de corregir** y, si el contrato lo indica, delega el código en `code-implementer`.
    > - **MUST NOT** usar `AskUserQuestion`. **MUST NOT** modificar `test-e2e-desc.md` ni los ficheros de `test-e2e/`, ni editar XML de dominios/vistas materializados o el contrato del diseño para cuadrar el test.
+   > - Distingue el **origen** del bloqueo: si la corrección **solo** se puede lograr cambiando el diseño (`test-e2e-desc.md`, un XML de dominio/vista materializado, una firma declarada por el diseño, reglas contradictorias) es un `DESIGN-ERROR`; si lo que falta es un recurso del **entorno** ajeno al diseño es un `BLOQUEADO`. **MUST NOT** editar el diseño para forzar que cuadre.
    > - Al terminar, responde con **exactamente uno** de estos tokens en la primera línea + 1-2 líneas de resumen:
    >   - `CORREGIDO: {T-NNN}` — aplicaste un cambio de código que debería hacer pasar el test.
-   >   - `BLOQUEADO: {T-NNN} — {motivo}` — la corrección exigiría tocar el contrato/diseño/XML, o falta un recurso; no se puede arreglar solo con código Java.
+   >   - `BLOQUEADO: {T-NNN} — {motivo}` — falta un recurso del entorno ajeno al diseño; no se puede arreglar solo con código Java.
+   >   - `DESIGN-ERROR: {T-NNN} — {motivo detallado}` — el test no se puede hacer pasar sin tocar el diseño (§9.3). Da el **máximo detalle**: qué fichero del diseño, qué es inconsistente o falta y por qué no se puede resolver escribiendo código Java.
 
 3. **Interpreta el token del corrector**:
-   - `BLOQUEADO: …` → **STOP** y `AskUserQuestion` mostrando el motivo (la corrección vuelve a `/sdd-designer` o requiere decisión del usuario). **MUST NOT** seguir con este test por tu cuenta.
+   - `BLOQUEADO: …` → **STOP** y `AskUserQuestion` mostrando el motivo (falta un recurso del entorno; requiere decisión del usuario). **MUST NOT** seguir con este test por tu cuenta.
+   - `DESIGN-ERROR: …` → el motor **escribe `test-e2e/error_design.log`** con el motivo detallado y **detiene el skill** (§9.3). **MUST NOT** seguir con este test ni con los demás, **MUST NOT** preguntar al usuario.
    - `CORREGIDO: …` → continúa al paso 4.
 4. **Para y rearranca la app** (la gestiona el motor, §2.2): párala por puerto y arráncala de nuevo (el arranque recompila el fix); sondea hasta `200`. Si no compila o no levanta (lee el final de `test-e2e/app.log`; si ves `BUILD FAILED` es error de compilación), trátalo como fallo de este ciclo.
 5. **Reejecuta el test**: vuelve a lanzar el ejecutor (§9.1) para el mismo test.
@@ -293,7 +300,37 @@ Cada **ciclo**:
 
 - ✅ CORRECTO (ejecutor): `SUCCESS T-001` / `FAIL T-001` + bloque `=== FALLO ===`
 - ✅ CORRECTO (corrector): `CORREGIDO: T-001` + 1 línea de resumen
-- ❌ INCORRECTO: `El test pasa ✅` (token no exacto), pegar el código en la respuesta, que el corrector edite `test-e2e-desc.md` o un XML del diseño
+- ✅ CORRECTO (corrector, error de diseño): `DESIGN-ERROR: T-009 — el test espera que GrupoService.cerrar() exista, pero el diseño no declara ese método en ninguna firma; no se puede arreglar con código`
+- ❌ INCORRECTO: `El test pasa ✅` (token no exacto), pegar el código en la respuesta, que el corrector **edite** `test-e2e-desc.md` o un XML del diseño en vez de devolver `DESIGN-ERROR`
+
+### 9.3 Error de diseño irresoluble (`DESIGN-ERROR` → `error_design.log`)
+
+Un **error de diseño** es un fallo de test cuyo origen está en el propio diseño (`design/`, los XML/firmas materializados o el propio `test-e2e-desc.md`) y que **NO se puede resolver corrigiendo código Java**: hay que volver a `/sdd-designer`. Ejemplos: el test espera un método/firma que el diseño no declara, una vista/dominio materializado es inconsistente con lo que el test exige, o el `test-e2e-desc.md` describe un comportamiento que contradice el diseño.
+
+- El **corrector** (§9.2) lo señala con el token `DESIGN-ERROR: {T-NNN} — {motivo detallado}` en la primera línea, **en vez** de `BLOQUEADO` o de `CORREGIDO`. **MUST NOT** editar el diseño para forzar que el test pase.
+- Cuando el motor recibe `DESIGN-ERROR: …`, **MUST**:
+  1. Escribir con `Write` el fichero `{iniciativa}/test-e2e/error_design.log` con la plantilla de abajo, volcando **verbatim** el motivo detallado del token.
+  2. **Detener el skill inmediatamente** (**STOP**): **MUST NOT** preguntar al usuario, **MUST NOT** relanzar ningún subagente, **MUST NOT** seguir con los demás tests ni pasar a la Fase 5.
+  3. Mostrar al usuario la ruta de `error_design.log` y avisar de que el diseño tiene un error: hay que corregirlo con `/sdd-designer` y relanzar el pipeline. **MUST NOT** lanzar `/sdd-designer` tú mismo.
+
+**Plantilla de `error_design.log`** (la escribe el motor, literal; rellena los `{…}`):
+
+```
+# Error de diseño — testing E2E detenido
+
+Iniciativa: {carpeta-iniciativa}
+Test: {T-NNN — nombre}
+Detectado por: corrector, ciclo {ciclo}
+
+## Problema
+{motivo detallado del token DESIGN-ERROR, verbatim}
+
+## Por qué no se puede resolver con código Java
+{por qué es un fallo del diseño y no del código: el diseño/contrato es fijo y corregir el Java no hace pasar el test}
+
+## Acción requerida
+Corregir el diseño con /sdd-designer (y reimplementar con /sdd-implementer si procede) y volver a lanzar /sdd-test-e2e.
+```
 
 ---
 
@@ -325,9 +362,10 @@ Para cada `FAIL` incluye en una línea sangrada la última descripción del fall
 - **App por el motor** (§2.2, §8): arrancar como **tarea tracked en segundo plano**, limpiar el puerto de verdad antes, sondear hasta `200`, parar por puerto. **MUST NOT** dejar que un subagente arranque la app. Idempotente: no levantar dos instancias.
 - **Ejecutar** (§9.1): **un ejecutor por test, en secuencia** (nunca en paralelo ni `run_in_background`). Responde `SUCCESS {id}` / `FAIL {id}` + `=== FALLO ===`. **MUST NOT** modificar código.
 - **Corregir** (§9.2): ante `FAIL`, **un corrector** que **analiza qué skills necesita, los carga** y arregla el código Java (delegando en `code-implementer` si el contrato lo dice), con el problema + el log de la app. Tras `CORREGIDO`, el motor rearranca la app y reejecuta. **LIMIT** 10 ciclos por test; al agotar, `FAIL` y siguiente. `BLOQUEADO` → **STOP** y `AskUserQuestion`.
-- **No tocar el contrato** (§2.3): **MUST NOT** modificar `test-e2e-desc.md`, los ficheros de `test-e2e/`, ni el XML/contrato del diseño para que un test pase; si hace falta, `BLOQUEADO` → vuelve a `/sdd-designer`.
+- **Error de diseño** (§9.3): si el corrector devuelve `DESIGN-ERROR` (el test no se puede hacer pasar sin tocar el diseño), el motor escribe `test-e2e/error_design.log` con la explicación detallada y **detiene el skill sin preguntar**. Corregir el diseño es trabajo de `/sdd-designer`.
+- **No tocar el contrato** (§2.3): **MUST NOT** modificar `test-e2e-desc.md`, los ficheros de `test-e2e/`, ni el XML/contrato del diseño para que un test pase; si hace falta, es un `DESIGN-ERROR` → `error_design.log` y vuelve a `/sdd-designer`.
 - **Progreso reanudable** (§2.6): al pasar un test, el motor marca `[x]` en el índice; al (re)invocar, salta los `[x]`. `--fresh` reinicia todos a `[ ]`.
-- **Contrato de tokens**: literal exacto — `ESCRITO: test-e2e/`, `SUCCESS`/`FAIL`, `CORREGIDO`/`BLOQUEADO`. Los subagentes **MUST NOT** pegar contenido que ya está en disco.
+- **Contrato de tokens**: literal exacto — `ESCRITO: test-e2e/`, `SUCCESS`/`FAIL`, `CORREGIDO`/`BLOQUEADO`/`DESIGN-ERROR`. Los subagentes **MUST NOT** pegar contenido que ya está en disco.
 
 ---
 
