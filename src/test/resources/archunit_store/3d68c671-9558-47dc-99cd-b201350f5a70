@@ -1,0 +1,17 @@
+Cycle detected: Slice common -> \
+                Slice importacion -> \
+                Slice common\
+  1. Dependencies of Slice common\
+    - Field <com.educaflow.subsystem.common.db.Centro.tareasImportacion> has generic type <java.util.List<com.educaflow.subsystem.importacion.db.TareaImportacion>> with type argument depending on <com.educaflow.subsystem.importacion.db.TareaImportacion> in (Centro.java:0)\
+    - Method <com.educaflow.subsystem.common.db.Centro.addTareasImportacion(com.educaflow.subsystem.importacion.db.TareaImportacion)> has parameter of type <com.educaflow.subsystem.importacion.db.TareaImportacion> in (Centro.java:0)\
+    - Method <com.educaflow.subsystem.common.db.Centro.getTareasImportacion()> has generic return type <java.util.List<com.educaflow.subsystem.importacion.db.TareaImportacion>> with type argument depending on <com.educaflow.subsystem.importacion.db.TareaImportacion> in (Centro.java:0)\
+    - Method <com.educaflow.subsystem.common.db.Centro.removeTareasImportacion(com.educaflow.subsystem.importacion.db.TareaImportacion)> has parameter of type <com.educaflow.subsystem.importacion.db.TareaImportacion> in (Centro.java:0)\
+    - Method <com.educaflow.subsystem.common.db.Centro.setTareasImportacion(java.util.List)> has generic parameter type <java.util.List<com.educaflow.subsystem.importacion.db.TareaImportacion>> with type argument depending on <com.educaflow.subsystem.importacion.db.TareaImportacion> in (Centro.java:0)\
+    - Method <com.educaflow.subsystem.common.db.Centro.addTareasImportacion(com.educaflow.subsystem.importacion.db.TareaImportacion)> calls method <com.educaflow.subsystem.importacion.db.TareaImportacion.setCentro(com.educaflow.subsystem.common.db.Centro)> in (Centro.java:331)\
+  2. Dependencies of Slice importacion\
+    - Constructor <com.educaflow.subsystem.importacion.importador.ResultadoImportacion.<init>(int, int, java.lang.String, com.educaflow.subsystem.common.db.Centro, java.lang.Integer)> has parameter of type <com.educaflow.subsystem.common.db.Centro> in (ResultadoImportacion.java:0)\
+    - Field <com.educaflow.subsystem.importacion.db.TareaImportacion.centro> has type <com.educaflow.subsystem.common.db.Centro> in (TareaImportacion.java:0)\
+    - Field <com.educaflow.subsystem.importacion.importador.ResultadoImportacion.centro> has type <com.educaflow.subsystem.common.db.Centro> in (ResultadoImportacion.java:0)\
+    - Method <com.educaflow.subsystem.importacion.db.TareaImportacion.getCentro()> has return type <com.educaflow.subsystem.common.db.Centro> in (TareaImportacion.java:0)\
+    - Method <com.educaflow.subsystem.importacion.db.TareaImportacion.setCentro(com.educaflow.subsystem.common.db.Centro)> has parameter of type <com.educaflow.subsystem.common.db.Centro> in (TareaImportacion.java:0)\
+    - Method <com.educaflow.subsystem.importacion.importador.ResultadoImportacion.centro()> has return type <com.educaflow.subsystem.common.db.Centro> in (ResultadoImportacion.java:0)

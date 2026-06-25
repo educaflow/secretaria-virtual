@@ -1,0 +1,7 @@
+#
+#Thu Jun 25 16:17:45 CEST 2026
+no\ classes\ should\ access\ standard\ streams=0f36d1bb-19e3-4dce-8759-c8f192095e3b
+no\ classes\ that\ reside\ in\ a\ package\ '..controller..'\ and\ reside\ outside\ of\ packages\ ['..expedientes..',\ '..tiposexpedientes..',\ '..tramites..']\ should\ depend\ on\ classes\ that\ have\ fully\ qualified\ name\ 'com.axelor.db.JpaRepository',\ because\ cargar\ entidades\ es\ del\ servicio;\ el\ controlador\ no\ usa\ JpaRepository=06612b64-9dd6-42d6-a30d-eb5d40c36f66
+no\ classes\ that\ reside\ in\ a\ package\ '..controller..'\ and\ reside\ outside\ of\ packages\ ['..expedientes..',\ '..tiposexpedientes..',\ '..tramites..']\ should\ depend\ on\ classes\ that\ reside\ in\ a\ package\ '..db.repo..',\ because\ el\ controlador\ delega\ el\ acceso\ a\ datos\ en\ el\ servicio,\ nunca\ usa\ el\ repositorio\ directamente=d227fcd4-6000-46b1-9d0d-9bbe8aba7dcb
+no\ classes\ that\ reside\ in\ any\ package\ ['..controller..',\ '..service.impl..']\ and\ reside\ outside\ of\ packages\ ['..expedientes..',\ '..tiposexpedientes..',\ '..tramites..']\ should\ depend\ on\ classes\ that\ have\ fully\ qualified\ name\ 'com.axelor.inject.Beans',\ because\ Beans.get\ es\ service-locator;\ se\ usa\ inyecci\u00F3n\ /\ ModelServiceFactory=ded9489a-68f5-4974-953f-2ea9b3d66201
+slices\ matching\ 'com.educaflow.subsystem.(*)..'\ should\ be\ free\ of\ cycles=3d68c671-9558-47dc-99cd-b201350f5a70

@@ -1,0 +1,1 @@
+Method <com.educaflow.subsystem.firmas.service.impl.TareaFirmaServiceImpl.fireActionRule_NotificarFirmaResuelta(com.educaflow.subsystem.firmas.db.TareaFirma)> calls method <com.axelor.inject.Beans.get(java.lang.Class)> in (TareaFirmaServiceImpl.java:170)

@@ -1,4 +1,4 @@
-package com.educaflow.subsystem.registrousuario.controllers;
+package com.educaflow.subsystem.registrousuario.controller;
 
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;

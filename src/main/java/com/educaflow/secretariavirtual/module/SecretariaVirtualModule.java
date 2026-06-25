@@ -1,6 +1,8 @@
-package com.educaflow.secretariavirtual.startup;
+package com.educaflow.secretariavirtual.module;
 
 import com.axelor.app.AxelorModule;
+import com.educaflow.secretariavirtual.startup.AppEventObserver;
+import com.educaflow.secretariavirtual.startup.DataBaseStartup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

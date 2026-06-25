@@ -1,0 +1,2 @@
+Method <com.educaflow.subsystem.firmas.controller.TareaFirmaController.firmarDocumentosConAutoFirma(com.axelor.rpc.ActionRequest, com.axelor.rpc.ActionResponse)> calls method <com.axelor.db.JpaRepository.find(java.lang.Long)> in (TareaFirmaController.java:30)
+Method <com.educaflow.subsystem.firmas.controller.TareaFirmaController.firmarDocumentosConAutoFirma(com.axelor.rpc.ActionRequest, com.axelor.rpc.ActionResponse)> calls method <com.axelor.db.JpaRepository.of(java.lang.Class)> in (TareaFirmaController.java:30)

@@ -5,6 +5,7 @@ import com.axelor.db.JpaRepository;
 import com.educaflow.base.infrastructure.criptografia.EntornoCriptografico;
 import com.educaflow.base.infrastructure.criptografia.config.AlmacenCertificadosConfiablesConfig;
 import com.educaflow.base.infrastructure.criptografia.config.DispositivoCriptograficoConfig;
+import com.educaflow.secretariavirtual.module.SecretariaVirtualModule;
 import com.educaflow.subsystem.criptografia.db.DispositivoCriptografico;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
