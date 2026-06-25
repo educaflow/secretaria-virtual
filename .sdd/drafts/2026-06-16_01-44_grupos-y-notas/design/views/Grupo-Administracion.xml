@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- *********************************************************************************** -->
+    <!-- ****************************** Grupo : Vistas (Administración) ******************** -->
+    <!-- *********************************************************************************** -->
+
+    <action-view name="sysGruposNotas.Grupo@Administracion-action" title="Grupos (administración)" model="com.educaflow.system.gruposnotas.db.Grupo">
+        <view type="grid" name="sysGruposNotas.Grupo@Administracion-grid"/>
+        <view type="form" name="sysGruposNotas.Grupo@Administracion-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="forceEdit" value="true"/>
+        <!-- El administrador ve los grupos de todos los centros (sin domain de centro). -->
+    </action-view>
+
+    <grid name="sysGruposNotas.Grupo@Administracion-grid" title="" model="com.educaflow.system.gruposnotas.db.Grupo"
+          orderBy="centro.name,nombre" canNew="true" newButtonTitle="Nuevo grupo"
+          canRefresh="false" canAdvanceSearch="false" allowSearchFields="true"
+          editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false" canEditOnClick="true">
+        <field name="centro"/>
+        <field name="cursoAcademico" width="130px"/>
+        <field name="curso.ciclo" title="Ciclo"/>
+        <field name="nombre"/>
+        <field name="estado" width="120px"/>
+    </grid>
+
+    <form name="sysGruposNotas.Grupo@Administracion-form" title="Grupo" model="com.educaflow.system.gruposnotas.db.Grupo"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+        <panel name="Grupo" title="Datos del grupo" readonlyIf="estado == 'CERRADO'">
+            <field name="nombre" colSpan="6"/>
+            <field name="estado" colSpan="3" readonly="true"/>
+            <!-- RUI-006: el administrador elige centro y curso académico al crear (editables solo en el alta). -->
+            <field name="centro" colSpan="6" readonlyIf="id != null"/>
+            <field name="cursoAcademico" colSpan="3" readonlyIf="id != null"/>
+            <field name="curso" colSpan="6" readonlyIf="id != null"
+                   grid-view="subsysSistemaEducativo.Curso@Search-grid" form-view="subsysSistemaEducativo.Curso@View-form"/>
+            <field name="fechaCierre" colSpan="3" readonly="true"/>
+        </panel>
+
+        <panel-related name="modulosGrupo" field="modulosGrupo" title="Módulos"
+                       grid-view="sysGruposNotas.Grupo.ModuloGrupo@Administracion-grid"
+                       form-view="sysGruposNotas.Grupo.ModuloGrupo@Administracion-form"
+                       colSpan="12" newButtonTitle=""
+                       showFooter="false" canNew="false" canEdit="false" canRemove="false" forceEdit="true"/>
+
+        <panel-related name="alumnosGrupo" field="alumnosGrupo" title="Alumnos"
+                       grid-view="sysGruposNotas.Grupo.AlumnoGrupo@Administracion-grid"
+                       form-view="sysGruposNotas.Grupo.AlumnoGrupo@Administracion-form"
+                       colSpan="12" newButtonTitle="Añadir alumno"
+                       showFooter="false" canEdit="false" canRemove="true" forceEdit="true"/>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnDelete" title="Borrar" onClick="sysGruposNotas.Grupo@Administracion-btnDelete-action"
+                    css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCerrarGrupo" title="Cerrar grupo" onClick="sysGruposNotas.Grupo@Administracion-btnCerrarGrupo-action"
+                    colSpan="2" showIf="id != null &amp;&amp; estado == 'ABIERTO'"/>
+            <button name="btnReabrirGrupo" title="Reabrir grupo" onClick="sysGruposNotas.Grupo@Administracion-btnReabrirGrupo-action"
+                    colSpan="2" showIf="id != null &amp;&amp; estado == 'CERRADO'"/>
+            <button name="btnCancel" title="Cancelar" onClick="sysGruposNotas.Grupo@Administracion-btnCancel-action"
+                    colSpan="2" colOffset="2" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="sysGruposNotas.Grupo@Administracion-btnSave-action"
+                    colSpan="2"/>
+        </panel>
+    </form>
+
+    <!-- *************** Grupo : Acciones de las tareas principales *************** -->
+    <action-group name="sysGruposNotas.Grupo@Administracion-btnDelete-action">
+        <action name="delete"/>
+    </action-group>
+    <action-group name="sysGruposNotas.Grupo@Administracion-btnCerrarGrupo-action">
+        <action name="sysGruposNotas.Grupo@Administracion-Remote-cerrarGrupo-action"/>
+    </action-group>
+    <action-group name="sysGruposNotas.Grupo@Administracion-btnReabrirGrupo-action">
+        <action name="sysGruposNotas.Grupo@Administracion-Remote-reabrirGrupo-action"/>
+    </action-group>
+    <action-group name="sysGruposNotas.Grupo@Administracion-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+    <action-group name="sysGruposNotas.Grupo@Administracion-btnSave-action">
+        <action name="save"/>
+    </action-group>
+
+    <!-- *************** Grupo : Acciones de Validaciones en local *************** -->
+
+    <!-- *************** Grupo : Acciones básicas que cambian campos simples *************** -->
+
+    <!-- *************** Grupo : Acciones de llamadas Remotas al servidor *************** -->
+    <action-method name="sysGruposNotas.Grupo@Administracion-Remote-cerrarGrupo-action" model="com.educaflow.system.gruposnotas.db.Grupo">
+        <call class="com.educaflow.system.gruposnotas.controller.GrupoController" method="cerrarGrupo"/>
+    </action-method>
+    <action-method name="sysGruposNotas.Grupo@Administracion-Remote-reabrirGrupo-action" model="com.educaflow.system.gruposnotas.db.Grupo">
+        <call class="com.educaflow.system.gruposnotas.controller.GrupoController" method="reabrirGrupo"/>
+    </action-method>
+
+
+    <!-- *************************************************************************************************** -->
+    <!-- ****************************** Grupo.ModuloGrupo : Vistas (Administración) ********************** -->
+    <!-- *************************************************************************************************** -->
+
+    <grid name="sysGruposNotas.Grupo.ModuloGrupo@Administracion-grid" title="" model="com.educaflow.system.gruposnotas.db.ModuloGrupo"
+          orderBy="modulo.name"
+          canRefresh="false" canAdvanceSearch="false"
+          editable="false" edit-icon="false" x-selector="none"
+          canNew="false" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true">
+        <field name="modulo"/>
+    </grid>
+
+    <form name="sysGruposNotas.Grupo.ModuloGrupo@Administracion-form" title="Módulo del grupo" model="com.educaflow.system.gruposnotas.db.ModuloGrupo"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="ModuloGrupo" title="Módulo">
+            <field name="modulo" colSpan="6" readonly="true"/>
+        </panel>
+
+        <panel-related name="notas" field="notas" title="Notas"
+                       grid-view="sysGruposNotas.Grupo.ModuloGrupo.Nota@Administracion-grid"
+                       form-view="sysGruposNotas.Grupo.ModuloGrupo.Nota@Administracion-form"
+                       colSpan="12" newButtonTitle=""
+                       showFooter="false" canNew="false" canEdit="false" canRemove="false" forceEdit="true"/>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Cerrar" onClick="sysGruposNotas.Grupo.ModuloGrupo@Administracion-btnCancel-action"
+                    colSpan="2" colOffset="10" outline="true"/>
+        </panel>
+    </form>
+
+    <!-- *************** Grupo.ModuloGrupo : Acciones de las tareas principales *************** -->
+    <action-group name="sysGruposNotas.Grupo.ModuloGrupo@Administracion-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+
+    <!-- *************** Grupo.ModuloGrupo : Acciones de Validaciones en local *************** -->
+
+    <!-- *************** Grupo.ModuloGrupo : Acciones básicas que cambian campos simples *************** -->
+
+    <!-- *************** Grupo.ModuloGrupo : Acciones de llamadas Remotas al servidor *************** -->
+
+
+    <!-- ******************************************************************************************************* -->
+    <!-- ****************************** Grupo.ModuloGrupo.Nota : Vistas (Administración) ********************* -->
+    <!-- ******************************************************************************************************* -->
+
+    <grid name="sysGruposNotas.Grupo.ModuloGrupo.Nota@Administracion-grid" title="" model="com.educaflow.system.gruposnotas.db.Nota"
+          orderBy="alumnoGrupo.alumno.name"
+          canRefresh="false" canAdvanceSearch="false"
+          editable="false" edit-icon="false" x-selector="none"
+          canNew="false" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true">
+        <field name="alumnoGrupo.alumno" title="Alumno"/>
+        <field name="valor" width="160px"/>
+        <field name="fechaCalificacion" width="170px"/>
+        <field name="fechaUltimaModificacion" width="190px"/>
+    </grid>
+
+    <form name="sysGruposNotas.Grupo.ModuloGrupo.Nota@Administracion-form" title="Nota" model="com.educaflow.system.gruposnotas.db.Nota"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="Nota" title="Nota">
+            <field name="alumnoGrupo" colSpan="6" readonly="true" title="Alumno"/>
+            <field name="moduloGrupo" colSpan="6" readonly="true" title="Módulo"/>
+            <!-- RUI-010: el valor solo es editable cuando el grupo está ABIERTO. -->
+            <field name="valor" colSpan="6" readonlyIf="moduloGrupo.grupo.estado == 'CERRADO'"/>
+            <field name="fechaCalificacion" colSpan="3" readonly="true"/>
+            <field name="fechaUltimaModificacion" colSpan="3" readonly="true"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Cancelar" onClick="sysGruposNotas.Grupo.ModuloGrupo.Nota@Administracion-btnCancel-action"
+                    colSpan="2" colOffset="8" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="sysGruposNotas.Grupo.ModuloGrupo.Nota@Administracion-btnSave-action"
+                    colSpan="2"/>
+        </panel>
+    </form>
+
+    <!-- *************** Grupo.ModuloGrupo.Nota : Acciones de las tareas principales *************** -->
+    <action-group name="sysGruposNotas.Grupo.ModuloGrupo.Nota@Administracion-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+    <action-group name="sysGruposNotas.Grupo.ModuloGrupo.Nota@Administracion-btnSave-action">
+        <action name="save-modal"/>
+    </action-group>
+
+    <!-- *************** Grupo.ModuloGrupo.Nota : Acciones de Validaciones en local *************** -->
+
+    <!-- *************** Grupo.ModuloGrupo.Nota : Acciones básicas que cambian campos simples *************** -->
+
+    <!-- *************** Grupo.ModuloGrupo.Nota : Acciones de llamadas Remotas al servidor *************** -->
+
+
+    <!-- ************************************************************************************************* -->
+    <!-- ****************************** Grupo.AlumnoGrupo : Vistas (Administración) ******************** -->
+    <!-- ************************************************************************************************* -->
+
+    <grid name="sysGruposNotas.Grupo.AlumnoGrupo@Administracion-grid" title="" model="com.educaflow.system.gruposnotas.db.AlumnoGrupo"
+          orderBy="alumno.name"
+          canRefresh="false" canAdvanceSearch="false"
+          editable="false" edit-icon="false" x-selector="none"
+          canNew="true" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true">
+        <field name="alumno"/>
+        <field name="notaMedia" title="Nota media"/>
+    </grid>
+
+    <form name="sysGruposNotas.Grupo.AlumnoGrupo@Administracion-form" title="Alumno del grupo" model="com.educaflow.system.gruposnotas.db.AlumnoGrupo"
+          onNew="sysGruposNotas.Grupo.AlumnoGrupo@Administracion-onNew-action"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="AlumnoGrupo" title="Alumno">
+            <field name="grupo" showIf="false"/>
+            <!-- El selector ofrece usuarios de tipo Alumno (UX). La defensa real es VAL-012 en el servidor, que comprueba el centro del grupo. -->
+            <field name="alumno" colSpan="6" readonlyIf="id != null"
+                   domain="self.id IN (SELECT cu.usuario.id FROM CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario t WHERE t.tipoUsuario.codigo = 'ALUMNO')"/>
+            <field name="notaMedia" colSpan="3" readonly="true" title="Nota media" showIf="id != null"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Cancelar" onClick="sysGruposNotas.Grupo.AlumnoGrupo@Administracion-btnCancel-action"
+                    colSpan="2" colOffset="8" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="sysGruposNotas.Grupo.AlumnoGrupo@Administracion-btnSave-action"
+                    colSpan="2"/>
+        </panel>
+    </form>
+
+    <!-- *************** Grupo.AlumnoGrupo : Acciones de las tareas principales *************** -->
+    <action-group name="sysGruposNotas.Grupo.AlumnoGrupo@Administracion-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+    <action-group name="sysGruposNotas.Grupo.AlumnoGrupo@Administracion-btnSave-action">
+        <action name="save-modal"/>
+    </action-group>
+
+    <action-group name="sysGruposNotas.Grupo.AlumnoGrupo@Administracion-onNew-action">
+        <action name="sysGruposNotas.Grupo.AlumnoGrupo@Administracion-set-grupo-parent-action"/>
+    </action-group>
+
+    <!-- *************** Grupo.AlumnoGrupo : Acciones de Validaciones en local *************** -->
+
+    <!-- *************** Grupo.AlumnoGrupo : Acciones básicas que cambian campos simples *************** -->
+    <!-- RUI-012: al añadir un alumno, su grupo se fija al grupo padre. -->
+    <action-record name="sysGruposNotas.Grupo.AlumnoGrupo@Administracion-set-grupo-parent-action" model="com.educaflow.system.gruposnotas.db.AlumnoGrupo">
+        <field name="grupo" expr="eval: __parent__"/>
+    </action-record>
+
+    <!-- *************** Grupo.AlumnoGrupo : Acciones de llamadas Remotas al servidor *************** -->
+
+</object-views>
