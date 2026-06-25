@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<auth>
+
+  <permission name="FamiliaProfesional.all" object="com.educaflow.subsystem.sistemaeducativo.db.FamiliaProfesional">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <permission name="Grado.all" object="com.educaflow.subsystem.sistemaeducativo.db.Grado">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <permission name="Nivel.all" object="com.educaflow.subsystem.sistemaeducativo.db.Nivel">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <permission name="LeyEducativa.all" object="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <permission name="Modulo.all" object="com.educaflow.subsystem.sistemaeducativo.db.Modulo">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <permission name="Ciclo.all" object="com.educaflow.subsystem.sistemaeducativo.db.Ciclo">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <permission name="Curso.all" object="com.educaflow.subsystem.sistemaeducativo.db.Curso">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+  <permission name="CursoModulo.all" object="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo">
+    <can create="true" read="true" write="true" remove="true" export="true"/>
+  </permission>
+
+</auth>

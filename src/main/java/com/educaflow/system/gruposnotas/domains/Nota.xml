@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="gruposnotas" package="com.educaflow.system.gruposnotas.db"/>
+
+    <entity name="Nota" repository="abstract">
+
+        <!-- servidor: módulo del grupo al que corresponde la nota (lo fija RN-005 al crear las notas). required. -->
+        <many-to-one name="moduloGrupo" title="Módulo" ref="com.educaflow.system.gruposnotas.db.ModuloGrupo" required="true"/>
+
+        <!-- servidor: alumno del grupo al que corresponde la nota (lo fija RN-005). required. -->
+        <many-to-one name="alumnoGrupo" title="Alumno" ref="com.educaflow.system.gruposnotas.db.AlumnoGrupo" required="true"/>
+
+        <!-- cliente: valor de la calificación (Input AllowProperties de Modificar). Enum: NO_EVALUADO, NOTA_1..NOTA_10, MATRICULA_HONOR. Inicial NO_EVALUADO (RN-005). SIN required (el servidor lo inicializa a NO_EVALUADO). -->
+        <enum name="valor" title="Valor" ref="ValorNota"/>
+
+        <!-- servidor (CC-002, momento escritura): fecha en que la nota deja por primera vez de ser NO_EVALUADO. La asigna R-Nota-001. SIN required. -->
+        <datetime name="fechaCalificacion" title="Fecha de calificación"/>
+
+        <!-- servidor (CC-003, momento escritura): fecha del último cambio de valor posterior al primero. La asigna R-Nota-002. SIN required. -->
+        <datetime name="fechaUltimaModificacion" title="Fecha de última modificación"/>
+
+        <!-- RES-006: una sola nota por alumno del grupo y módulo del grupo. -->
+        <unique-constraint columns="moduloGrupo,alumnoGrupo"/>
+
+        <!-- VAL-017: contar las notas con MATRICULA_HONOR ya existentes en un módulo del grupo (excluyendo la nota actual). -->
+        <finder-method name="countMatriculasHonorByModuloGrupo"
+                       using="com.educaflow.system.gruposnotas.db.ModuloGrupo:moduloGrupo,long:notaId"
+                       filter="self.moduloGrupo = :moduloGrupo AND self.valor = 'MATRICULA_HONOR' AND self.id != :notaId"
+                       all="true"/>
+
+    </entity>
+
+    <enum name="ValorNota">
+        <item name="NO_EVALUADO" title="No evaluado"/>
+        <item name="NOTA_1" title="1"/>
+        <item name="NOTA_2" title="2"/>
+        <item name="NOTA_3" title="3"/>
+        <item name="NOTA_4" title="4"/>
+        <item name="NOTA_5" title="5"/>
+        <item name="NOTA_6" title="6"/>
+        <item name="NOTA_7" title="7"/>
+        <item name="NOTA_8" title="8"/>
+        <item name="NOTA_9" title="9"/>
+        <item name="NOTA_10" title="10"/>
+        <item name="MATRICULA_HONOR" title="Matrícula de Honor"/>
+    </enum>
+
+</domain-models>

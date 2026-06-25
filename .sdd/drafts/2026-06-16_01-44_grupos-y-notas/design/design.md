@@ -140,8 +140,8 @@ public GrupoServiceImpl(Class<Grupo> model, Repository<Grupo> repository);
 @Override public Optional<BusinessMessages> validateReabrirGrupo(Grupo grupo, Grupo original);
 //   - V-Grupo-007 (Origen spec: VAL-007) el grupo está CERRADO; si ya está ABIERTO se rechaza.
 //       Mensaje literal: "El grupo ya está abierto".
-//   - V-Grupo-008 (Origen spec: VAL-008) el usuario conectado es ADMINISTRADOR (SecurityUtil/AuthUtils +
-//       getTiposUsuarioActivos con código 'ADMINISTRADOR'). Si no, se rechaza.
+//   - V-Grupo-008 (Origen spec: VAL-008) el usuario conectado es administrador / superusuario de Axelor,
+//       comprobado con SecurityUtil.isAdmin() / AuthUtils.isAdmin(). Si no, se rechaza.
 //       Mensaje literal: "No tiene permisos para reabrir el grupo".
 
 /******** AllowProperties ********/

@@ -6,7 +6,7 @@ Descripción de los tests unitarios (JUnit 5 + Mockito) por clase y método para
 - JUnit 5 (Jupiter) + Mockito (`MockitoExtension`). Estáticos del stack con `Mockito.mockStatic`.
 - Aserciones con `org.junit.jupiter.api.Assertions` (`assertThrows`, `assertEquals`, `assertNull`, `assertNotNull`), no AssertJ. Helper `com.educaflow.base.infrastructure.junit.JUnitHelper.assertThrowsCause` disponible para excepciones envueltas.
 - Nombres de test: `metodo_condicion_resultadoEsperado`.
-- **Estáticos a mockear** según el diseño: `com.educaflow.base.util.SecurityUtil` (`getUser`, `isAdmin`) y `com.axelor.auth.AuthUtils` (`getUser`) para el usuario/centro/tipos activos; `com.axelor.inject.Beans` (`get`) e/o `ModelServiceFactory` para resolver servicios colaboradores; `com.axelor.i18n.I18n` (`get`) si los mensajes se obtienen vía I18n (programar `I18n.get(x)` → `x`, identidad). El rol del usuario se programa vía `AuthUtils.getUser().getTiposUsuarioActivos()` (lista de `TipoUsuario` con `getCodigo()` `ADMINISTRADOR`/`SUPERVISOR`/`ALUMNO`) y el centro vía `AuthUtils.getUser().getCentroActivo()`.
+- **Estáticos a mockear** según el diseño: `com.educaflow.base.util.SecurityUtil` (`getUser`, `isAdmin`) y `com.axelor.auth.AuthUtils` (`getUser`) para el usuario/centro/tipos activos; `com.axelor.inject.Beans` (`get`) e/o `ModelServiceFactory` para resolver servicios colaboradores; `com.axelor.i18n.I18n` (`get`) si los mensajes se obtienen vía I18n (programar `I18n.get(x)` → `x`, identidad). El rol administrador se programa vía `SecurityUtil.isAdmin()`/`AuthUtils.isAdmin()`; los roles SUPERVISOR/ALUMNO se programan vía `AuthUtils.getUser().getTiposUsuarioActivos()` (lista de `TipoUsuario` con `getCodigo()` `SUPERVISOR`/`ALUMNO`) y el centro vía `AuthUtils.getUser().getCentroActivo()`.
 - **Supuesto documentado:** el diseño dice "validateXxx(...).ifPresent(BusinessMessages::throwIfInvalid)". Los `validate*` devuelven `Optional<BusinessMessages>`. Por tanto **dos estilos de aserción** son válidos y se indican en cada test:
   - sobre el `validate*` directamente → se afirma que el `Optional` viene **presente** y contiene el mensaje literal (caso fallo) o **vacío** (caso OK);
   - sobre la acción pública (`insert`/`update`/`remove`/`cerrarGrupo`/`reabrirGrupo`) → se afirma que lanza la excepción de negocio (`ValidationException` de Axelor, o `Throwable` con `assertThrowsCause`) con el mensaje literal, o que **no** lanza y persiste (`verify(repository).save(...)`).
@@ -87,11 +87,11 @@ Descripción de los tests unitarios (JUnit 5 + Mockito) por clase y método para
 ### Método: `Optional<BusinessMessages> validateReabrirGrupo(Grupo grupo, Grupo original)`
 
 - **`validateReabrirGrupo_grupoYaAbierto_devuelveError`** — Tipo: error. Verifica: `V-Grupo-007`.
-  - **Arrange:** `original` con `estado=ABIERTO`; usuario ADMINISTRADOR (`getTiposUsuarioActivos` con código `ADMINISTRADOR`).
+  - **Arrange:** `original` con `estado=ABIERTO`; usuario administrador (`SecurityUtil.isAdmin()`/`AuthUtils.isAdmin()` → `true`).
   - **Act:** `validateReabrirGrupo(grupo, original)`.
   - **Assert:** `Optional` presente con **"El grupo ya está abierto"**.
 - **`validateReabrirGrupo_usuarioNoAdministrador_devuelveError`** — Tipo: error. Verifica: `V-Grupo-008`.
-  - **Arrange:** `original` con `estado=CERRADO`; usuario SUPERVISOR (no administrador): `AuthUtils.getUser().getTiposUsuarioActivos()` → tipos sin `ADMINISTRADOR`.
+  - **Arrange:** `original` con `estado=CERRADO`; usuario SUPERVISOR (no administrador): `SecurityUtil.isAdmin()` → `false` y `AuthUtils.getUser().getTiposUsuarioActivos()` → `SUPERVISOR`.
   - **Act:** `validateReabrirGrupo(grupo, original)`.
   - **Assert:** `Optional` presente con **"No tiene permisos para reabrir el grupo"**.
 - **`validateReabrirGrupo_grupoCerradoYUsuarioAdministrador_devuelveVacio`** — Tipo: happy. Verifica: `V-Grupo-007`,`V-Grupo-008`.

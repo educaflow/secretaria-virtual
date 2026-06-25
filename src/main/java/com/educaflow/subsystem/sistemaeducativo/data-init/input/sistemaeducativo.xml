@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<datos>
+
+    <familiasProfesionales>
+        <familiaProfesional code="INFORMATICA" name="Informática y Comunicaciones"/>
+    </familiasProfesionales>
+
+    <grados>
+        <grado code="GS" name="Grado Superior"/>
+        <grado code="GM" name="Grado Medio"/>
+    </grados>
+
+    <leyesEducativas>
+        <leyEducativa code="LOE" name="LOE"/>
+    </leyesEducativas>
+
+    <modulos>
+        <modulo code="PROG" name="Programación"/>
+        <modulo code="BD" name="Bases de datos"/>
+        <modulo code="MME" name="Montaje y mantenimiento de equipos"/>
+    </modulos>
+
+    <ciclos>
+        <ciclo code="DAM" name="Desarrollo de Aplicaciones Multiplataforma"
+               familiaProfesional="INFORMATICA" grado="GS"/>
+        <ciclo code="SMR" name="Sistemas Microinformáticos y Redes"
+               familiaProfesional="INFORMATICA" grado="GM"/>
+    </ciclos>
+
+    <cursos>
+        <curso code="1DAM" name="1º DAM" ciclo="DAM" leyEducativa="LOE"/>
+        <curso code="1SMR" name="1º SMR" ciclo="SMR" leyEducativa="LOE"/>
+    </cursos>
+
+    <cursoModulos>
+        <cursoModulo curso="1DAM" modulo="PROG"/>
+        <cursoModulo curso="1DAM" modulo="BD"/>
+        <cursoModulo curso="1SMR" modulo="MME"/>
+    </cursoModulos>
+
+</datos>

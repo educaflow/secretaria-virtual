@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<auth>
+
+  <!-- ===================================================================
+       SUPERVISOR — acceso restringido al centro activo del usuario.
+       Condición por centro (navegando al grupo según la entidad).
+       Permite create/read/write/remove sobre los datos de su centro.
+       =================================================================== -->
+
+  <permission name="Grupo.supervisor"
+              object="com.educaflow.system.gruposnotas.db.Grupo"
+              condition="self.centro = ?"
+              conditionParams="__user__.centroActivo"
+  >
+    <can create="true" read="true" write="true" remove="true" export="false"/>
+  </permission>
+
+  <permission name="ModuloGrupo.supervisor"
+              object="com.educaflow.system.gruposnotas.db.ModuloGrupo"
+              condition="self.grupo.centro = ?"
+              conditionParams="__user__.centroActivo"
+  >
+    <can create="true" read="true" write="true" remove="true" export="false"/>
+  </permission>
+
+  <permission name="Nota.supervisor"
+              object="com.educaflow.system.gruposnotas.db.Nota"
+              condition="self.moduloGrupo.grupo.centro = ?"
+              conditionParams="__user__.centroActivo"
+  >
+    <can create="true" read="true" write="true" remove="true" export="false"/>
+  </permission>
+
+  <permission name="AlumnoGrupo.supervisor"
+              object="com.educaflow.system.gruposnotas.db.AlumnoGrupo"
+              condition="self.grupo.centro = ?"
+              conditionParams="__user__.centroActivo"
+  >
+    <can create="true" read="true" write="true" remove="true" export="false"/>
+  </permission>
+
+  <!-- ===================================================================
+       ADMINISTRADOR — acceso completo sin condición de centro
+       (gestiona cualquier centro y puede reabrir).
+       =================================================================== -->
+
+  <permission name="Grupo.admin"
+              object="com.educaflow.system.gruposnotas.db.Grupo"
+  >
+    <can create="true" read="true" write="true" remove="true" export="false"/>
+  </permission>
+
+  <permission name="ModuloGrupo.admin"
+              object="com.educaflow.system.gruposnotas.db.ModuloGrupo"
+  >
+    <can create="true" read="true" write="true" remove="true" export="false"/>
+  </permission>
+
+  <permission name="Nota.admin"
+              object="com.educaflow.system.gruposnotas.db.Nota"
+  >
+    <can create="true" read="true" write="true" remove="true" export="false"/>
+  </permission>
+
+  <permission name="AlumnoGrupo.admin"
+              object="com.educaflow.system.gruposnotas.db.AlumnoGrupo"
+  >
+    <can create="true" read="true" write="true" remove="true" export="false"/>
+  </permission>
+
+  <!-- ===================================================================
+       ALUMNO — solo lectura, restringido a SUS propios datos
+       (sus grupos, sus módulos y sus notas).
+       =================================================================== -->
+
+  <permission name="AlumnoGrupo.alumno"
+              object="com.educaflow.system.gruposnotas.db.AlumnoGrupo"
+              condition="self.alumno = ?"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Nota.alumno"
+              object="com.educaflow.system.gruposnotas.db.Nota"
+              condition="self.alumnoGrupo.alumno = ?"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="ModuloGrupo.alumno"
+              object="com.educaflow.system.gruposnotas.db.ModuloGrupo"
+              condition="self.grupo IN (
+        SELECT ag.grupo FROM com.educaflow.system.gruposnotas.db.AlumnoGrupo ag WHERE ag.alumno = ?
+    )"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Grupo.alumno"
+              object="com.educaflow.system.gruposnotas.db.Grupo"
+              condition="self IN (
+        SELECT ag.grupo FROM com.educaflow.system.gruposnotas.db.AlumnoGrupo ag WHERE ag.alumno = ?
+    )"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+</auth>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="gruposnotas" package="com.educaflow.system.gruposnotas.db"/>
+
+    <entity name="Grupo" repository="abstract">
+
+        <!-- cliente: nombre del grupo (Input AllowProperties de Crear y Modificar). required: lo introduce el usuario. -->
+        <string name="nombre" title="Nombre" namecolumn="true" required="true"/>
+
+        <!-- cliente: curso del catálogo educativo (Input AllowProperties de Crear). De él derivan ciclo y módulos. Inmutable tras crear. -->
+        <many-to-one name="curso" title="Curso" ref="com.educaflow.subsystem.sistemaeducativo.db.Curso" required="true"/>
+
+        <!-- cliente/servidor: el administrador lo aporta (Crear); para el supervisor lo sobrescribe el servidor (RN-002). Inmutable tras crear. SIN required (lo fija el servicio para el supervisor). -->
+        <many-to-one name="centro" title="Centro" ref="com.educaflow.subsystem.common.db.Centro"/>
+
+        <!-- cliente/servidor: el administrador lo aporta (Crear); para el supervisor lo sobrescribe el servidor (RN-002). Entero (año de inicio, p.ej. 2024), coherente con Centro.curso. Inmutable tras crear. SIN required. -->
+        <integer name="cursoAcademico" title="Curso académico" help="Año de inicio del curso académico, p.ej. 2024"/>
+
+        <!-- servidor: estado de la máquina ABIERTO/CERRADO. Inicial ABIERTO (R-Grupo-001). SIN required (lo asigna el servicio). -->
+        <enum name="estado" title="Estado" ref="EstadoGrupo"/>
+
+        <!-- servidor: fecha de cierre (CC del flujo Cerrar/Reabrir; R-Grupo-003 la asigna, R-Grupo-004 la borra). SIN required. -->
+        <datetime name="fechaCierre" title="Fecha de cierre"/>
+
+        <!-- composición: módulos del grupo (se generan de los módulos del curso; orphanRemoval para borrar en cascada). -->
+        <one-to-many name="modulosGrupo" title="Módulos" ref="com.educaflow.system.gruposnotas.db.ModuloGrupo" mappedBy="grupo" orphanRemoval="true"/>
+
+        <!-- composición: alumnos del grupo (orphanRemoval para que al quitar un alumno se borre su AlumnoGrupo y sus notas). -->
+        <one-to-many name="alumnosGrupo" title="Alumnos" ref="com.educaflow.system.gruposnotas.db.AlumnoGrupo" mappedBy="grupo" orphanRemoval="true"/>
+
+        <!-- RES-001 / VAL-003 / VAL-005: nombre único por centro + curso académico. -->
+        <unique-constraint columns="nombre,centro,cursoAcademico"/>
+
+        <!-- VAL-003 / VAL-005: comprobación de duplicado de nombre por centro + curso académico. -->
+        <finder-method name="findByNombreAndCentroAndCursoAcademico"
+                       using="String:nombre,com.educaflow.subsystem.common.db.Centro:centro,Integer:cursoAcademico"
+                       filter="self.nombre = :nombre AND self.centro = :centro AND self.cursoAcademico = :cursoAcademico"/>
+
+        <!-- El ciclo del grupo (RES-derivación) se muestra en los grids con el path 'curso.ciclo'; no se persiste. -->
+
+    </entity>
+
+    <enum name="EstadoGrupo">
+        <item name="ABIERTO" title="Abierto"/>
+        <item name="CERRADO" title="Cerrado"/>
+    </enum>
+
+</domain-models>

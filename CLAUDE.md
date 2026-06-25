@@ -81,6 +81,8 @@ Los cargos son:
 
 El hecho de que exista el tipo de  usuario administrador y que pueda ver cosas de cualquier centro hace que ha veces haya que añadir una nueva "pantalla" para que el administrador pueda ver de cualquier centro.
 
+Existe un usuario administrador con login `admin` y contraseña `admin`.
+
 La sistemas o subsistemas que existen o van a existir son:
 - Registro de entrada/salida: Los documentos que se presentan en la aplicación y los que genera la aplicación para los usuarios
 - Notificaciones: Cada una de las notificaciones que se envian a los usuarios. Por ahora las únicas notificaciones son correos electrónicos
