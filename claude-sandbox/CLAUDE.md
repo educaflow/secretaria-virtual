@@ -108,8 +108,10 @@ es lo de siempre: `./run.sh` (que hace `./gradlew clean build` + `run` en el 808
 
 ## Avisos para el agente
 
-- **Reconstruir la imagen** (`up -d --build`) tras tocar `Dockerfile` o `entrypoint.sh`:
-  ambos quedan horneados en la imagen.
+- `claude-sandbox.sh` ya lanza `docker compose up -d --build` siempre, así que recoge
+  solo los cambios en `Dockerfile`/`entrypoint.sh` (horneados en la imagen). La caché de
+  capas hace que el build sea casi instantáneo si nada cambió. Si levantas a mano con
+  `docker compose up -d` (sin `--build`), esos cambios NO se aplican.
 - Los comandos `docker` necesitan el **socket de Docker**; bajo el sandbox de comandos de
   Claude Code fallan con `permission denied ... docker.sock`. Hay que ejecutarlos con el
   sandbox desactivado.

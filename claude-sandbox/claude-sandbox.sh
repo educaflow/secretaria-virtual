@@ -83,8 +83,10 @@ else
   log "Reseteando la base de datos a vacía (docker compose down -v)..."
   docker compose down -v 2>/dev/null || true
 fi
-log "Levantando contenedores (docker compose up -d)..."
-docker compose up -d || { log "ERROR: docker compose up falló."; exit 1; }
+# --build siempre: con la caché de capas es casi instantáneo si nada cambió, y recoge
+# automáticamente cambios en Dockerfile/entrypoint.sh (que van horneados en la imagen).
+log "Levantando contenedores (docker compose up -d --build)..."
+docker compose up -d --build || { log "ERROR: docker compose up falló."; exit 1; }
 
 # ── 2. Puentear cada puerto MCP ───────────────────────────────────────────────
 mapfile -t PORTS < <(discover_mcp_ports)
@@ -125,8 +127,12 @@ else
   fi
 fi
 
-# ── 3. Entrar en Claude Code (el wrapper añade --dangerously-skip-permissions) ─
+# ── 3. Entrar en Claude Code ──────────────────────────────────────────────────
+# El managed-settings de la imagen ya arranca en modo bypass (sin prompts).
+# --append-system-prompt: nota persistente para toda la sesión (no es un mensaje de
+# usuario, así que no provoca ninguna acción) avisando de cómo acceder a la BD.
+DB_HINT='Para acceder a la base de datos PostgreSQL desde la shell, usa el comando "psql" (ya está configurado con las variables PGHOST=educaflow-db, PGUSER/PGPASSWORD/PGDATABASE=educaflow, así que "psql" a secas conecta). También es accesible en localhost:5432 y en educaflow-db:5432.'
 log "Entrando en Claude Code..."
-docker compose exec -it "$CONTAINER" claude || true
+docker compose exec -it "$CONTAINER" claude --append-system-prompt "$DB_HINT" || true
 
 # Al salir de claude, el trap EXIT ejecuta cleanup().

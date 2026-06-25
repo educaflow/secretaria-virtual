@@ -92,6 +92,16 @@ RUN groupadd -g ${HOST_GID} developer 2>/dev/null || true \
     && mkdir -p /workspace /home/developer/.m2 \
     && chown -R developer:developer /workspace /home/developer
 
+# Directorios de datos en runtime que la app espera de axelor-config.properties:
+#   data.upload.dir      = /opt/secretariavirtual/data/attachments
+#   data.upload.temp-dir = /opt/secretariavirtual/data/temp
+#   logging.path         = /opt/secretariavirtual/data/logs
+# Deben existir y pertenecer a "developer" (el usuario que ejecuta la app).
+RUN mkdir -p /opt/secretariavirtual/data/attachments \
+             /opt/secretariavirtual/data/temp \
+             /opt/secretariavirtual/data/logs \
+    && chown -R developer:developer /opt/secretariavirtual
+
 COPY --chown=developer:developer entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 

@@ -48,6 +48,11 @@ services:
       NODE_OPTIONS: --max-old-space-size=6096
       GRADLE_OPTS: -Xmx4g
       PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+      # Para que `psql` a secas (sin -h/-U/-d) conecte a la BD desde la shell.
+      PGHOST: educaflow-db
+      PGUSER: educaflow
+      PGPASSWORD: educaflow
+      PGDATABASE: educaflow
     depends_on:
       db:
         condition: service_healthy
