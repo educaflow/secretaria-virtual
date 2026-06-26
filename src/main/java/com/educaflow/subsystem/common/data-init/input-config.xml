@@ -22,54 +22,52 @@
         </bind>
     </input>
 
-    <!-- Centros: deben existir ANTES que los usuarios (los usuarios los referencian). -->
-    <input file="centros.xml" root="datos">
+    <!-- Geografía: ComunidadAutonoma -> Provincia -> Municipio (cadena de FKs por código).
+         Conselleria es independiente. Todos deben existir ANTES que Centro. -->
+    <input file="ComunidadAutonoma.xml" root="datos">
+        <bind node="comunidadesAutonomas/comunidadAutonoma" type="com.educaflow.subsystem.common.db.ComunidadAutonoma" search="self.code = :code" create="true" update="true">
+            <bind node="@code" to="code"/>
+            <bind node="@name" to="name"/>
+        </bind>
+    </input>
+
+    <input file="Provincia.xml" root="datos">
+        <bind node="provincias/provincia" type="com.educaflow.subsystem.common.db.Provincia" search="self.code = :code" create="true" update="true">
+            <bind node="@code" to="code"/>
+            <bind node="@name" to="name"/>
+            <bind node="@comunidadAutonoma" to="comunidadAutonoma" search="self.code = :comunidadAutonoma" create="false" update="false"/>
+        </bind>
+    </input>
+
+    <input file="Municipio.xml" root="datos">
+        <bind node="municipios/municipio" type="com.educaflow.subsystem.common.db.Municipio" search="self.code = :code" create="true" update="true">
+            <bind node="@code" to="code"/>
+            <bind node="@name" to="name"/>
+            <bind node="@provincia" to="provincia" search="self.code = :provincia" create="false" update="false"/>
+        </bind>
+    </input>
+
+    <input file="Conselleria.xml" root="datos">
+        <bind node="consellerias/conselleria" type="com.educaflow.subsystem.common.db.Conselleria" search="self.code = :code" create="true" update="true">
+            <bind node="@code" to="code"/>
+            <bind node="@name" to="name"/>
+        </bind>
+    </input>
+
+    <!-- Centros: deben existir ANTES que los usuarios (los usuarios los referencian).
+         Refieren a Municipio y Conselleria por código. -->
+    <input file="Centro.xml" root="datos">
         <bind node="centros/centro" type="com.educaflow.subsystem.common.db.Centro" search="self.code = :code" create="true" update="true">
             <bind node="@code" to="code"/>
             <bind node="@name" to="name"/>
+            <bind node="@direccion" to="direccion"/>
+            <bind node="@codigoPostal" to="codigoPostal"/>
             <bind node="@curso" to="curso"/>
+            <bind node="@municipio" to="municipio" search="self.code = :municipio" create="false" update="false"/>
+            <bind node="@conselleria" to="conselleria" search="self.code = :conselleria" create="false" update="false"/>
         </bind>
     </input>
 
-    <!-- Usuarios con login funcional. TRES inputs sobre el mismo fichero, en orden:
-         (a) User, (b) CentroUsuario, (c) CentroUsuarioTipoUsuario.
-         El grupo `users` se referencia con create="true": en common (priority=10) se
-         crea como shell si aún no existe; el data-init global (priority=-1, carga DESPUÉS)
-         lo encuentra por code y lo completa con sus permisos (update="true"). Así el User
-         siempre tiene group asignado (requisito para login) sin duplicar el grupo. -->
-    <input file="usuarios.xml" root="usuarios">
-        <bind node="usuario" type="com.axelor.auth.db.User" search="self.code = :code" create="true" update="true" call="com.axelor.auth.AuthService:encrypt">
-            <bind node="@code" to="code"/>
-            <bind node="@name" to="name"/>
-            <bind node="@nombre" to="nombre"/>
-            <bind node="@apellidos" to="apellidos"/>
-            <bind node="@email" to="email"/>
-            <bind node="@dni" to="dni"/>
-            <bind to="language" eval="'es'"/>
-            <bind node="@password" to="password"/>
-            <bind node="@group" to="group" search="self.code = :group" create="true" update="false"/>
-            <bind node="@centro" to="centroActivo" search="self.code = :centro" create="false" update="false"/>
-        </bind>
-    </input>
-
-    <input file="usuarios.xml" root="usuarios">
-        <bind node="usuario" type="com.educaflow.subsystem.common.db.CentroUsuario" search="self.centro.code = :centro AND self.usuario.code = :usuario" create="true" update="true">
-            <bind node="@centro" alias="centro"/>
-            <bind node="@code" alias="usuario"/>
-            <bind node="@centro" to="centro" search="self.code = :centro" create="false" update="false"/>
-            <bind node="@code" to="usuario" search="self.code = :usuario" create="false" update="false"/>
-        </bind>
-    </input>
-
-    <input file="usuarios.xml" root="usuarios">
-        <bind node="usuario" type="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario" search="self.centroUsuario.centro.code = :centro AND self.centroUsuario.usuario.code = :usuario AND self.tipoUsuario.codigo = :tipoUsuario" create="true" update="true">
-            <bind node="@centro" alias="centro"/>
-            <bind node="@code" alias="usuario"/>
-            <bind node="@tipoUsuario" alias="tipoUsuario"/>
-            <bind node="@code" to="centroUsuario" search="self.centro.code = :centro AND self.usuario.code = :usuario" create="false" update="false"/>
-            <bind node="@tipoUsuario" to="tipoUsuario" search="self.codigo = :tipoUsuario" create="false" update="false"/>
-        </bind>
-    </input>
 
     <!-- Permisos del subsistema common -->
     <input file="auth-common.xml" root="auth">

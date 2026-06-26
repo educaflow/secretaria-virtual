@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<datos>
+    <familiasProfesionales>
+        <familiaProfesional code="FISICAS_DEPORTIVAS" name="Actividades Físicas y Deportivas"/>
+        <familiaProfesional code="001" name="Administración y Gestión"/>
+        <familiaProfesional code="AGRARIA" name="Agraria"/>
+        <familiaProfesional code="GRAFICAS" name="Artes Gráficas"/>
+        <familiaProfesional code="020" name="Comercio y Marketing"/>
+        <familiaProfesional code="EDIFICACION" name="Edificación y Obra Civil"/>
+        <familiaProfesional code="ELECTRICIDAD" name="Electricidad y Electrónica"/>
+        <familiaProfesional code="129" name="Fabricación Mecánica"/>
+        <familiaProfesional code="039" name="Hostelería y Turismo"/>
+        <familiaProfesional code="IMAGENPERSONAL" name="Imagen Personal"/>
+        <familiaProfesional code="IMAGENSONIDO" name="Imagen y Sonido"/>
+        <familiaProfesional code="INDUSTRIA_ALIMENTARIA" name="Industrias Alimentarias"/>
+        <familiaProfesional code="INDUSTRIA_EXTRACTIVA" name="Industrias Extractivas"/>
+        <familiaProfesional code="190" name="Informática y Comunicaciones"/>
+        <familiaProfesional code="INSTALACION" name="Instalación y Mantenimiento"/>
+        <familiaProfesional code="MADERA" name="Madera, Mueble y Corcho"/>
+        <familiaProfesional code="MARITIMO" name="Marítimo - Pesquera"/>
+        <familiaProfesional code="QUIMICA" name="Química"/>
+        <familiaProfesional code="061" name="Sanidad"/>
+        <familiaProfesional code="MEDIO_AMBIENTE" name="Seguridad y Medio Ambiente"/>
+        <familiaProfesional code="SOCIO_CULTURALES" name="Servicios Socioculturales y a la Comunidad"/>
+        <familiaProfesional code="TEXTIL" name="Textil, Confección y Piel"/>
+        <familiaProfesional code="TRANSPORTE" name="Transporte y Mantenimiento de Vehículos"/>
+        <familiaProfesional code="VIDRIO" name="Vidrio y Cerámica"/>
+        <familiaProfesional code="ARTES_GRAFICAS" name="Artes y Artesanías"/>
+        <familiaProfesional code="ENERGIA" name="Energía y Agua"/>
+    </familiasProfesionales>
+</datos>

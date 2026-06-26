@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<datos>
+    <ciclos>
+        <ciclo code="DAW" name="Desarrollo de Aplicaciones Web" familiaProfesional="190" grado="D" nivel="GS"/>
+        <ciclo code="DAM" name="Desarrollo de Aplicaciones Multiplataforma" familiaProfesional="190" grado="D" nivel="GS"/>
+        <ciclo code="ASIR" name="Administración de Sistemas Informáticos en Red" familiaProfesional="190" grado="D" nivel="GS"/>
+        <ciclo code="SMR" name="Sistemas Microinformáticos y Redes" familiaProfesional="190" grado="D" nivel="GM"/>
+        <ciclo code="GAT" name="Gestión de Alojamientos Turísticos" familiaProfesional="039" grado="D" nivel="GS"/>
+        <ciclo code="GIAT" name="Guía, Información y Asistencia Turística" familiaProfesional="039" grado="D" nivel="GS"/>
+        <ciclo code="AVGA" name="Agencia de Viajes y Gestión de Eventos" familiaProfesional="039" grado="D" nivel="GS"/>
+    </ciclos>
+</datos>

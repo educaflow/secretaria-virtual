@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<datos>
+    <cursos>
+        <curso code="DAW1" name="1º DAW" ciclo="DAW" leyEducativa="LOFP"/>
+        <curso code="DAW2" name="2º DAW" ciclo="DAW" leyEducativa="LOFP"/>
+        <curso code="DAM1" name="1º DAM" ciclo="DAM" leyEducativa="LOFP"/>
+        <curso code="DAM2" name="2º DAM" ciclo="DAM" leyEducativa="LOFP"/>
+        <curso code="ASIR1" name="1º ASIR" ciclo="ASIR" leyEducativa="LOFP"/>
+        <curso code="ASIR2" name="2º ASIR" ciclo="ASIR" leyEducativa="LOFP"/>
+        <curso code="SMR1" name="1º 1SMR" ciclo="SMR" leyEducativa="LOFP"/>
+        <curso code="SMR2" name="2º SMR" ciclo="SMR" leyEducativa="LOFP"/>
+        <curso code="GAT1" name="1º GAT" ciclo="GAT" leyEducativa="LOFP"/>
+        <curso code="GAT2" name="2º GAT" ciclo="GAT" leyEducativa="LOFP"/>
+        <curso code="GIAT1" name="1º GIAT" ciclo="GIAT" leyEducativa="LOFP"/>
+        <curso code="GIAT2" name="2º GIAT" ciclo="GIAT" leyEducativa="LOFP"/>
+        <curso code="AVGA1" name="1º AVGA" ciclo="AVGA" leyEducativa="LOFP"/>
+        <curso code="AVGA2" name="2º AVGA" ciclo="AVGA" leyEducativa="LOFP"/>
+    </cursos>
+</datos>

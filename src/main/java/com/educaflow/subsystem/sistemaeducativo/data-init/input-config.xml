@@ -5,46 +5,63 @@
   https://axelor.com/xml/ns/data-import/data-import_8.0.xsd">
 
     <!-- Datos semilla del catálogo educativo (subsistema sistemaeducativo).
-         Orden de los <input> = orden de dependencias de datos:
+         Un fichero por entidad. El orden de los <input> = orden de dependencias de datos:
          primero las entidades base (FamiliaProfesional, Grado, Nivel, LeyEducativa,
          Modulo), luego Ciclo (refiere a FamiliaProfesional/Grado/Nivel), luego Curso
          (refiere a Ciclo/LeyEducativa) y por último CursoModulo (refiere a Curso/Modulo). -->
 
-    <input file="sistemaeducativo.xml" root="datos">
-
-        <!-- 1. Familias profesionales -->
+    <!-- 1. Familias profesionales -->
+    <input file="FamiliaProfesional.xml" root="datos">
         <bind node="familiasProfesionales/familiaProfesional"
               type="com.educaflow.subsystem.sistemaeducativo.db.FamiliaProfesional"
               search="self.code = :code" create="true" update="true">
             <bind node="@code" to="code"/>
             <bind node="@name" to="name"/>
         </bind>
+    </input>
 
-        <!-- 2. Grados -->
+    <!-- 2. Grados -->
+    <input file="Grado.xml" root="datos">
         <bind node="grados/grado"
               type="com.educaflow.subsystem.sistemaeducativo.db.Grado"
               search="self.code = :code" create="true" update="true">
             <bind node="@code" to="code"/>
             <bind node="@name" to="name"/>
         </bind>
+    </input>
 
-        <!-- 4. Leyes educativas -->
+    <!-- 3. Niveles -->
+    <input file="Nivel.xml" root="datos">
+        <bind node="niveles/nivel"
+              type="com.educaflow.subsystem.sistemaeducativo.db.Nivel"
+              search="self.code = :code" create="true" update="true">
+            <bind node="@code" to="code"/>
+            <bind node="@name" to="name"/>
+        </bind>
+    </input>
+
+    <!-- 4. Leyes educativas -->
+    <input file="LeyEducativa.xml" root="datos">
         <bind node="leyesEducativas/leyEducativa"
               type="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa"
               search="self.code = :code" create="true" update="true">
             <bind node="@code" to="code"/>
             <bind node="@name" to="name"/>
         </bind>
+    </input>
 
-        <!-- 5. Módulos -->
+    <!-- 5. Módulos -->
+    <input file="Modulo.xml" root="datos">
         <bind node="modulos/modulo"
               type="com.educaflow.subsystem.sistemaeducativo.db.Modulo"
               search="self.code = :code" create="true" update="true">
             <bind node="@code" to="code"/>
             <bind node="@name" to="name"/>
         </bind>
+    </input>
 
-        <!-- 6. Ciclos (refiere a FamiliaProfesional, Grado y Nivel) -->
+    <!-- 6. Ciclos (refiere a FamiliaProfesional, Grado y Nivel) -->
+    <input file="Ciclo.xml" root="datos">
         <bind node="ciclos/ciclo"
               type="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
               search="self.code = :code" create="true" update="true">
@@ -57,8 +74,10 @@
             <bind node="@nivel" to="nivel"
                   search="self.code = :nivel" create="false" update="false"/>
         </bind>
+    </input>
 
-        <!-- 7. Cursos (refiere a Ciclo y LeyEducativa) -->
+    <!-- 7. Cursos (refiere a Ciclo y LeyEducativa) -->
+    <input file="Curso.xml" root="datos">
         <bind node="cursos/curso"
               type="com.educaflow.subsystem.sistemaeducativo.db.Curso"
               search="self.code = :code" create="true" update="true">
@@ -69,8 +88,10 @@
             <bind node="@leyEducativa" to="leyEducativa"
                   search="self.code = :leyEducativa" create="false" update="false"/>
         </bind>
+    </input>
 
-        <!-- 8. CursoModulo (refiere a Curso y Modulo; clave natural compuesta) -->
+    <!-- 8. CursoModulo (refiere a Curso y Modulo; clave natural compuesta) -->
+    <input file="CursoModulo.xml" root="datos">
         <bind node="cursoModulos/cursoModulo"
               type="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
               search="self.curso.code = :curso AND self.modulo.code = :modulo"
@@ -80,7 +101,6 @@
             <bind node="@modulo" to="modulo"
                   search="self.code = :modulo" create="false" update="false"/>
         </bind>
-
     </input>
 
     <!-- Permisos del subsistema sistemaeducativo -->

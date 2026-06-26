@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<datos>
+    <comunidadesAutonomas>
+        <comunidadAutonoma code="01" name="Andalucía"/>
+        <comunidadAutonoma code="02" name="Aragón"/>
+        <comunidadAutonoma code="03" name="Asturias, Principado de"/>
+        <comunidadAutonoma code="04" name="Balears, Illes"/>
+        <comunidadAutonoma code="05" name="Canarias"/>
+        <comunidadAutonoma code="06" name="Cantabria"/>
+        <comunidadAutonoma code="07" name="Castilla y León"/>
+        <comunidadAutonoma code="08" name="Castilla - La Mancha"/>
+        <comunidadAutonoma code="09" name="Cataluña"/>
+        <comunidadAutonoma code="10" name="Comunitat Valenciana"/>
+        <comunidadAutonoma code="11" name="Extremadura"/>
+        <comunidadAutonoma code="12" name="Galicia"/>
+        <comunidadAutonoma code="13" name="Madrid, Comunidad de"/>
+        <comunidadAutonoma code="14" name="Murcia, Región de"/>
+        <comunidadAutonoma code="15" name="Navarra, Comunidad Foral de"/>
+        <comunidadAutonoma code="16" name="País Vasco"/>
+        <comunidadAutonoma code="17" name="Rioja, La"/>
+        <comunidadAutonoma code="18" name="Ceuta"/>
+        <comunidadAutonoma code="19" name="Melilla"/>
+    </comunidadesAutonomas>
+</datos>

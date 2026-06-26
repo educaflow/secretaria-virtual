@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<datos>
+    <niveles>
+        <nivel code="1" name="Ciclos formativos de grado Básico"/>
+        <nivel code="GM" name="Ciclos Formativos de Grado Medio"/>
+        <nivel code="GS" name="Ciclos Formativos de Grado Superior"/>
+        <nivel code="CES" name="Cursos de Especialización"/>
+    </niveles>
+</datos>

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<datos>
+    <grados>
+        <grado code="A" name="Acreditación parcial de competencia"/>
+        <grado code="B" name="Certificado de competencia"/>
+        <grado code="C" name="Certificado profesional"/>
+        <grado code="D" name="Ciclo formativo"/>
+        <grado code="E" name="Curso de especialización"/>
+    </grados>
+</datos>

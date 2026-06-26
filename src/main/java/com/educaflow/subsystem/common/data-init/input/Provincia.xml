@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<datos>
+    <provincias>
+        <provincia code="01" name="Araba/Álava" comunidadAutonoma="16"/>
+        <provincia code="02" name="Albacete" comunidadAutonoma="08"/>
+        <provincia code="03" name="Alicante/Alacant" comunidadAutonoma="10"/>
+        <provincia code="04" name="Almería" comunidadAutonoma="01"/>
+        <provincia code="05" name="Ávila" comunidadAutonoma="07"/>
+        <provincia code="06" name="Badajoz" comunidadAutonoma="11"/>
+        <provincia code="07" name="Balears, Illes" comunidadAutonoma="04"/>
+        <provincia code="08" name="Barcelona" comunidadAutonoma="09"/>
+        <provincia code="09" name="Burgos" comunidadAutonoma="07"/>
+        <provincia code="10" name="Cáceres" comunidadAutonoma="11"/>
+        <provincia code="11" name="Cádiz" comunidadAutonoma="01"/>
+        <provincia code="12" name="Castellón/Castelló" comunidadAutonoma="10"/>
+        <provincia code="13" name="Ciudad Real" comunidadAutonoma="08"/>
+        <provincia code="14" name="Córdoba" comunidadAutonoma="01"/>
+        <provincia code="15" name="Coruña, A" comunidadAutonoma="12"/>
+        <provincia code="16" name="Cuenca" comunidadAutonoma="08"/>
+        <provincia code="17" name="Girona" comunidadAutonoma="09"/>
+        <provincia code="18" name="Granada" comunidadAutonoma="01"/>
+        <provincia code="19" name="Guadalajara" comunidadAutonoma="08"/>
+        <provincia code="20" name="Gipuzkoa" comunidadAutonoma="16"/>
+        <provincia code="21" name="Huelva" comunidadAutonoma="01"/>
+        <provincia code="22" name="Huesca" comunidadAutonoma="02"/>
+        <provincia code="23" name="Jaén" comunidadAutonoma="01"/>
+        <provincia code="24" name="León" comunidadAutonoma="07"/>
+        <provincia code="25" name="Lleida" comunidadAutonoma="09"/>
+        <provincia code="26" name="Rioja, La" comunidadAutonoma="17"/>
+        <provincia code="27" name="Lugo" comunidadAutonoma="12"/>
+        <provincia code="28" name="Madrid" comunidadAutonoma="13"/>
+        <provincia code="29" name="Málaga" comunidadAutonoma="01"/>
+        <provincia code="30" name="Murcia" comunidadAutonoma="14"/>
+        <provincia code="31" name="Navarra" comunidadAutonoma="15"/>
+        <provincia code="32" name="Ourense" comunidadAutonoma="12"/>
+        <provincia code="33" name="Asturias" comunidadAutonoma="03"/>
+        <provincia code="34" name="Palencia" comunidadAutonoma="07"/>
+        <provincia code="35" name="Palmas, Las" comunidadAutonoma="05"/>
+        <provincia code="36" name="Pontevedra" comunidadAutonoma="12"/>
+        <provincia code="37" name="Salamanca" comunidadAutonoma="07"/>
+        <provincia code="38" name="Santa Cruz de Tenerife" comunidadAutonoma="05"/>
+        <provincia code="39" name="Cantabria" comunidadAutonoma="06"/>
+        <provincia code="40" name="Segovia" comunidadAutonoma="07"/>
+        <provincia code="41" name="Sevilla" comunidadAutonoma="01"/>
+        <provincia code="42" name="Soria" comunidadAutonoma="07"/>
+        <provincia code="43" name="Tarragona" comunidadAutonoma="09"/>
+        <provincia code="44" name="Teruel" comunidadAutonoma="02"/>
+        <provincia code="45" name="Toledo" comunidadAutonoma="08"/>
+        <provincia code="46" name="Valencia/Valéncia" comunidadAutonoma="10"/>
+        <provincia code="47" name="Valladolid" comunidadAutonoma="07"/>
+        <provincia code="48" name="Bizkaia" comunidadAutonoma="16"/>
+        <provincia code="49" name="Zamora" comunidadAutonoma="07"/>
+        <provincia code="50" name="Zaragoza" comunidadAutonoma="02"/>
+        <provincia code="51" name="Ceuta" comunidadAutonoma="18"/>
+        <provincia code="52" name="Melilla" comunidadAutonoma="19"/>
+    </provincias>
+</datos>
