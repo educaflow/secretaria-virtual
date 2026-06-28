@@ -46,18 +46,20 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 5. **Fase 4 — Generar, verificar y sanar** (§9), tres subagentes aislados por test:
    - **§9.0 — validar el helper de auth** (login/logout) contra la app real **una vez**; si está roto, corregirlo antes de generar nada.
    - Por cada test, en orden: **generador** escribe `t-NNN-<slug>.spec.ts` (no juzga) → el motor lo **ejecuta** con el runner real → si **verde**, el **verificador** independiente audita que es fiel (`OK`/`INFIEL`).
-   - si **RED** o **INFIEL** → bucle **sanador** → reejecutar y volver a verificar (**LIMIT** 8 ciclos). Como el test ya pasó al depurar, la causa por defecto es el `.spec.ts`, no el código (§2.3). Al agotar, dejar el `.spec.ts` y reportar FAIL.
+   - si **RED** o **INFIEL** → bucle **sanador** → reejecutar y volver a verificar (**LIMIT** 8 ciclos). Como el test ya pasó al depurar, la causa por defecto es el `.spec.ts`, no el código (§2.3). Si no se logra, se trata como **fallo por test** (§2.7): registrar, borrar el `.spec.ts` y seguir.
 6. **Fase 5 — Reportar** el listado final SUCCESS/FAIL y **parar la app** (§10).
 
-**STOP conditions**:
+**CRITICAL — el skill es AUTÓNOMO por defecto** (§2.7): la **única** pregunta al usuario es en la **Fase 0** (qué iniciativa trabajar, como todos los `/sdd-*`); a partir de ahí **MUST NOT** usar `AskUserQuestion`. Un test que no se puede crear se **registra** en `fail_create_tests.log`, se **borra** su `.spec.ts` a medias y se **salta al siguiente**.
+
+**Condiciones de ABORTO global** (solo estas detienen toda la pasada; **ERROR** con mensaje, sin preguntar):
 
 - `--template-dir=` apunta a una carpeta que **no contiene `README.md`** → **ERROR** y detente.
 - No se encuentra ninguna carpeta `test-e2e-desc/` con `tests-e2e-desc.md` → **ERROR**: indica que hay que ejecutar antes `/sdd-debug-with-test-e2e-desc` y detente.
-- El índice **no tiene ningún test `[x]`** → **STOP** e informa: no hay nada verificado que materializar (deja pasar antes los tests con `/sdd-debug-with-test-e2e-desc`).
-- El usuario no confirma la ruta auto-detectada (Fase 0 caso 2) → **STOP** y pide la ruta.
-- La app no responde `200` en `http://localhost:8080` tras arrancarla → **STOP** y `AskUserQuestion` (reintentar / ver log / abortar).
-- El **validador de auth** (§9.0), el **generador** o el **sanador** devuelven `BLOQUEADO` (falta un recurso del entorno, el helper de auth no se puede cuadrar, o el fallo no es del `.spec.ts` sino de la app: posible regresión) → **STOP** y pregunta al usuario. **MUST NOT** tocar código Java para forzar el test.
-- Tras **8** ciclos de sanación un test sigue en FAIL → ese test queda FAIL (su `.spec.ts` se conserva) y el bucle continúa con el resto.
+- El índice **no tiene ningún test `[x]`** → **ERROR** e informa: no hay nada verificado que materializar.
+- La app no responde `200` en `http://localhost:8080` tras arrancarla → **ERROR**: indica revisar `src/test/e2e/.app.log` y detente (sin la app no se puede generar nada).
+- El **validador de auth** (§9.0) devuelve `BLOQUEADO` → **ERROR**: el helper de auth afecta a **todos** los tests; detente e indica el motivo (sin auth válida, todo fallaría).
+
+**Fallos por test** (autónomos, **NO** abortan; §2.7): el **generador** o el **sanador** devuelven `BLOQUEADO`, o se agotan los **8** ciclos de sanación → registrar en `fail_create_tests.log`, borrar el `.spec.ts` a medias, marcar FAIL y continuar con el resto. **MUST NOT** tocar código Java para forzar un test.
 
 ---
 
@@ -76,6 +78,7 @@ El skill **no asume su estructura interna**: la conoce el subagente leyendo el c
 
 - En `src/test/e2e/<iniciativa>/`: por cada test `[x]`, un par `t-NNN-<slug>.desc.md` (copia-snapshot con cabecera-banner) + `t-NNN-<slug>.spec.ts` (test Playwright verde).
 - En `src/test/e2e/_support/auth.ts`: el helper de login/logout compartido (creado si no existe; su contenido lo define el contrato).
+- En `src/test/e2e/<iniciativa>/fail_create_tests.log`: una entrada por cada test que **no** se pudo crear (autónomo, §2.7), separada por `--------------------`. Su `.spec.ts` a medias se borra.
 - En la conversación: el listado final SUCCESS/FAIL por test (§10).
 
 **MUST NOT** modificar `test-e2e-desc/` ni ningún artefacto de `.sdd/` (es la fuente; el destino en `src/test/e2e/` es una copia regenerable). **MUST NOT** modificar código Java: este skill solo crea tests; si un test no pasa por un fallo de la app, es una **regresión** que se reporta, no se oculta.
@@ -116,19 +119,20 @@ Reglas que el motor **MUST** cumplir:
 - **CRITICAL — limpiar el puerto de verdad antes de arrancar**: una instancia previa colgada hace que el connector falle el bind en silencio. Sigue el procedimiento de limpieza del README.
 - **Parar** siempre **por puerto**, nunca por handle de proceso. Parar la app al terminar (§10).
 - El arranque es **idempotente**: comprueba el `200` y arranca solo si no responde. **MUST NOT** levantar una segunda instancia.
+- **CRITICAL — higiene de sesiones de navegador entre subagentes**: una sesión MCP de Playwright o un Chromium headless **huérfano** (de un subagente cuyo contexto se cerró) bloquea al siguiente generador/sanador durante minutos. El motor **MUST** barrer esos procesos huérfanos **antes de lanzar cada generador**, siguiendo la sección «Gestión de la app» del README (**MUST NOT** matar el server MCP de Playwright). Los subagentes, por su parte, **MUST** cerrar su sesión de navegador al terminar (lo exige el contrato).
 
 ### 2.3 La causa por defecto de un fallo es el `.spec.ts`, no el código
 
 - **CRITICAL** — el test **ya pasó** al depurar con `/sdd-debug-with-test-e2e-desc` (por eso está `[x]` y este skill se ejecuta justo después). Por tanto, cuando un `.spec.ts` recién generado falla, la causa **por defecto es el propio `.spec.ts`** (locator, timing, equivalencia de textos, selectores de auth): **se arregla el test, NUNCA el código**. Por eso existe el bucle generar→ejecutar→verificar→sanar (§9).
 - **MUST NOT** modificar código Java (`src/main/...`) ni la carpeta `test-e2e-desc/` ni nada bajo `.sdd/` (es la fuente de verdad; el `.desc.md` de `src/test/e2e/` es una copia regenerable).
-- **Excepción** — solo si el fallo demostrablemente **no** es del `.spec.ts` sino de que la app se comporta distinto a lo que la descripción ya depurada espera, es una **regresión de la app**: el sanador devuelve `BLOQUEADO`, el motor **STOP** y avisa. **MUST NOT** ocultarla tocando código ni debilitando aserciones.
+- **Excepción** — solo si el fallo demostrablemente **no** es del `.spec.ts` sino de que la app se comporta distinto a lo que la descripción ya depurada espera, es una **regresión de la app**: el sanador devuelve `BLOQUEADO` y el motor lo trata como **fallo por test** (§2.7: registrar en `fail_create_tests.log`, borrar el `.spec.ts` y seguir). **MUST NOT** ocultarla tocando código ni debilitando aserciones.
 
 ### 2.4 Orquestación de subagentes
 
 - Los **generadores**, **verificadores** y **sanadores** corren **de uno en uno y en secuencia** (§9): comparten el puerto 8080 y se pisarían en paralelo. Para un mismo test van en contextos **distintos** (aislados), que es justo lo que evita las trampas.
 - **MUST NOT** lanzar subagentes en paralelo ni con `run_in_background` (salvo el arranque de la app, que sí es background tracked y lo hace el motor, no un subagente).
 - Cada rol responde con un **token literal** que el skill parsea (definidos en cada fase). El skill compara por literal exacto.
-- Los subagentes **MUST NOT** usar `AskUserQuestion`: ante un bloqueo lo reportan con el token de su rol y el motor lleva la decisión al usuario.
+- Los subagentes **MUST NOT** usar `AskUserQuestion`: ante un bloqueo lo reportan con el token de su rol y el **motor lo gestiona de forma autónoma** (§2.7).
 
 ### 2.5 Idempotencia y progreso por la presencia del `.spec.ts`
 
@@ -136,7 +140,31 @@ El **checkpoint** es el propio `.spec.ts`: un test materializado y verde es un `
 
 ### 2.6 Solo se materializa lo verificado
 
-**REQUIRED** — solo se procesan los tests marcados `[x]` en el índice de entrada. Los `[ ]` (no pasaron al depurar) **MUST NOT** materializarse: meterían tests rojos en la suite. Si el usuario pide un id concreto que está `[ ]`, **STOP** e indícalo.
+**REQUIRED** — solo se procesan los tests marcados `[x]` en el índice de entrada. Los `[ ]` (no pasaron al depurar) **MUST NOT** materializarse: meterían tests rojos en la suite. Si se pide un id concreto que está `[ ]`, se ignora y se anota en `fail_create_tests.log` (§2.7).
+
+### 2.7 Autonomía por defecto y registro de fallos
+
+**CRITICAL** — el skill funciona **sin intervención del usuario**, con **una única excepción**: en la **Fase 0** pregunta con `AskUserQuestion` sobre **qué iniciativa** trabajar (igual que el resto de `/sdd-*`). A partir de ahí el motor **MUST NOT** usar `AskUserQuestion` en ningún otro punto. Tras la Fase 0 solo hay dos desenlaces:
+
+1. **Aborto global** (§Outline): un fallo de setup que impide procesar **cualquier** test (sin input, app caída, auth no válida) → **ERROR** con mensaje y detente. No se pregunta.
+2. **Fallo por test**: un test que **no se puede crear** (el generador o el sanador devuelven `BLOQUEADO`, o se agotan los **8** ciclos de sanación). En ese caso el motor **MUST**, en este orden:
+   1. **Borrar** el `.spec.ts` a medias si existe: `rm -f {ruta del .spec.ts}` (no se deja un test roto en la suite). El `.desc.md` snapshot se **conserva** (es regenerable).
+   2. **Anexar** (append, nunca sobrescribir) una entrada al fichero **`src/test/e2e/<iniciativa>/fail_create_tests.log`** con **toda** la información del fallo, terminada por una línea separadora de 20 guiones.
+   3. Marcar el test como **FAIL** y **continuar con el siguiente** (no abortar la pasada).
+
+**Formato literal de cada entrada de `fail_create_tests.log`** (texto plano; el motor lo escribe, no un subagente):
+
+```
+T-NNN — <nombre del test>
+Fase: <generación | sanación (ciclo k/8)>
+Motivo: <el texto tras "BLOQUEADO:" del subagente, o "8 ciclos de sanación agotados">
+Detalle: <extracto de la salida del runner y/o del log de la app que explique qué pasó>
+.spec.ts borrado: <ruta del .spec.ts eliminado>
+--------------------
+```
+
+- ✅ CORRECTO: la entrada termina **siempre** con la línea `--------------------` (20 guiones), una entrada por test fallido, en **append**.
+- ❌ INCORRECTO: sobrescribir el log, omitir el separador, dejar el `.spec.ts` a medias en disco, o lanzar `AskUserQuestion`.
 
 ---
 
@@ -144,7 +172,7 @@ El **checkpoint** es el propio `.spec.ts`: un test materializado y verde es un `
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│  Fase 0  Localizar test-e2e-desc/ (ruta explícita | más nueva) + confirmar │
+│  Fase 0  Localizar test-e2e-desc/ (ruta explícita | más nueva, autónomo) │
 │  Fase 1  Cargar el contrato (README) + sección «Gestión de la app»   │
 │  Fase 2  Leer índice → filtrar [x] → descartar los que ya tienen     │
 │          .spec.ts → copiar .desc.md (banner) → asegurar _support/auth.ts │
@@ -156,12 +184,13 @@ El **checkpoint** es el propio `.spec.ts`: un test materializado y verde es un `
 │            ├─ GREEN → verificador(indep.) ─► OK | INFIEL             │
 │            │           OK → siguiente test                           │
 │            └─ RED | INFIEL → bucle (LIMIT 8): sanador → reejecutar    │
-│                 → volver a verificar; BLOQUEADO → STOP + pregunta   │
+│                 → volver a verificar; no se logra → FAIL autónomo:   │
+│                 log fail_create_tests.log + borrar .spec.ts + seguir │
 │  Fase 5  Parar la app + reporte final SUCCESS/FAIL                   │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-Las fases se ejecutan **en orden**. Salvo la confirmación inicial (Fase 0) y los `STOP` ante una excepción real, el flujo **no pide aprobación**: tras seleccionar, se genera automáticamente.
+Las fases se ejecutan **en orden** y **sin pedir aprobación** (skill autónomo, §2.7): un test que no se puede crear se registra y se salta; solo un fallo de setup global aborta la pasada con **ERROR**.
 
 ---
 
@@ -207,8 +236,8 @@ Cada prompt de subagente (§9) **MUST** pasar, además de su tarea específica:
 
 ## 7. Fase 2 — Seleccionar y copiar
 
-1. **Lee el índice** `tests-e2e-desc.md`. Por cada línea `- [x] [T-NNN — <nombre>](t-NNN-<slug>.desc.md)`, registra `(T-NNN, fichero)`. **Descarta** las `- [ ]` (§2.6). Si el usuario pasó ids concretos, filtra a esos (si alguno está `[ ]` → **STOP** e indícalo).
-2. Si tras filtrar **no queda ninguno** → **STOP** (no hay tests verificados que materializar).
+1. **Lee el índice** `tests-e2e-desc.md`. Por cada línea `- [x] [T-NNN — <nombre>](t-NNN-<slug>.desc.md)`, registra `(T-NNN, fichero)`. **Descarta** las `- [ ]` (§2.6). Si se pasaron ids concretos, filtra a esos (si alguno está `[ ]` se ignora y se anota en `fail_create_tests.log` con motivo "no `[x]` en el índice", §2.7).
+2. Si tras filtrar **no queda ninguno** → **ERROR** (aborto global: no hay tests verificados que materializar).
 3. **Descarta** (salvo `--fresh`) los tests cuyo `.spec.ts` destino ya exista en `src/test/e2e/<iniciativa>/` (§2.5). Indica cuántos se saltan y cuántos quedan.
 4. Por cada test seleccionado, **copia** su `t-NNN-<slug>.desc.md` desde `test-e2e-desc/` a `src/test/e2e/<iniciativa>/`, **anteponiendo la cabecera-banner de snapshot** (formato y contenido los define el contrato en el README; lleva el origen, `T-NNN`, `Origen ESC` y el aviso de "NO editar a mano"). **MUST NOT** alterar el resto del contenido del `.desc.md`.
 5. **Comprueba el helper de auth `src/test/e2e/_support/auth.ts`** (la parte de login/logout): si **no existe**, créalo con la plantilla literal que define el contrato (guía de generación); si **ya existe**, **MUST NOT** sobrescribirlo. Su login/logout se **valida** contra la app real en la Fase 4 (§9.0) antes de generar ningún test, porque sus selectores son best-effort.
@@ -217,7 +246,7 @@ Cada prompt de subagente (§9) **MUST** pasar, además de su tarea específica:
 
 ## 8. Fase 3 — Arrancar la app (la gestiona el motor)
 
-Antes de generar el primer test, el motor deja la app respondiendo `200` siguiendo la sección **«Gestión de la app»** del README (§2.2): limpia el puerto, arranca como tarea tracked en segundo plano con el log al fichero indicado, y sondea hasta `200`. Si tras el sondeo no responde `200` → **STOP** y `AskUserQuestion` (reintentar / ver el log / abortar). **MUST NOT** continuar a la Fase 4 sin la app en `200`.
+Antes de generar el primer test, el motor deja la app respondiendo `200` siguiendo la sección **«Gestión de la app»** del README (§2.2): limpia el puerto, arranca como tarea tracked en segundo plano con el log al fichero indicado, y sondea hasta `200`. Si tras el sondeo no responde `200` → **ERROR** (aborto global): indica revisar `src/test/e2e/.app.log` y detente. **MUST NOT** continuar a la Fase 4 sin la app en `200`.
 
 ---
 
@@ -237,11 +266,13 @@ Con la app ya en `200`, **valida que `_support/auth.ts` funciona contra la UI re
 > - **Comprueba** que `ensureLoggedOut` → `login(usuario, contraseña)` entra de verdad y que `logout` cierra sesión y deja el login. Si algún selector no casa con la UI real, **corrige `src/test/e2e/_support/auth.ts`** (es **test code**; **MUST NOT** tocar código Java ni la fuente en `.sdd/`).
 > - **MUST NOT** usar `AskUserQuestion`. Responde **exactamente** una línea: `AUTH-OK` o `BLOQUEADO: {motivo}`.
 
-El motor parsea: `AUTH-OK` → continúa al bucle por test; `BLOQUEADO: …` → **STOP** y `AskUserQuestion`. **MUST NOT** generar tests con un helper de auth no validado.
+El motor parsea: `AUTH-OK` → continúa al bucle por test; `BLOQUEADO: …` → **ERROR** (aborto global): el helper de auth afecta a **todos** los tests, así que sin él validado no se genera nada; detente indicando el motivo. **MUST NOT** generar tests con un helper de auth no validado.
 
 Recorre luego los tests seleccionados **en orden**. Para cada test:
 
 ### 9.1 Lanzar el generador
+
+**Antes** de lanzarlo, el motor **MUST** barrer las sesiones de navegador huérfanas (README, sección «Gestión de la app»): un Chromium/worker colgado del test anterior bloquearía a este generador. **MUST NOT** matar el server MCP.
 
 Lanza **un** subagente con `Agent` (`subagent_type: claude`, `run_in_background: false`). Recibe la ruta de **su** `.desc.md` (la copia en `src/test/e2e/<iniciativa>/`), la ruta destino del `.spec.ts` hermano, la ruta del helper `_support/auth.ts` y el contrato.
 
@@ -258,13 +289,13 @@ Lanza **un** subagente con `Agent` (`subagent_type: claude`, `run_in_background:
 >   - `ESCRITO: {ruta del .spec.ts}` — generado.
 >   - `BLOQUEADO: {T-NNN} — {motivo}` — no se puede generar (falta un recurso del entorno o la app no responde como la descripción).
 
-El skill parsea la primera línea: `ESCRITO:` → continúa al paso 9.2; `BLOQUEADO:` → **STOP** y `AskUserQuestion`. **CRITICAL** — el generador **MUST NOT** declarar si el test pasa: solo lo escribe. Quién decide si pasa son el runner mecánico y el **verificador independiente** (§9.2), nunca el que lo escribió.
+El skill parsea la primera línea: `ESCRITO:` → continúa al paso 9.2; `BLOQUEADO:` → **fallo por test** (§2.7): registra la entrada en `fail_create_tests.log` (Fase: generación; Motivo: el texto del `BLOQUEADO`), borra el `.spec.ts` si quedó a medias, marca FAIL y **pasa al siguiente test**. **CRITICAL** — el generador **MUST NOT** declarar si el test pasa: solo lo escribe. Quién decide si pasa son el runner mecánico y el **verificador independiente** (§9.2), nunca el que lo escribió.
 
 ### 9.2 Ejecutar (runner mecánico) y verificar (subagente independiente)
 
 **CRITICAL — separación de poderes anti-trampa**: el que **crea** el test no es el que **decide si vale**. El veredicto sale de (a) el runner real, imposible de falsear, y (b) un verificador en **contexto aislado** que no escribió el test.
 
-1. **El motor ejecuta el `.spec.ts`** con `Bash` (comando del README; típicamente `npx playwright test {ruta} --project=chromium`). El exit code es el **veredicto objetivo** rojo/verde (el motor no lo delega: un subagente podría mentir sobre el resultado).
+1. **El motor ejecuta el `.spec.ts`** con `Bash` (comando del README; típicamente `npx playwright test {ruta} --project=chromium --reporter=line` — `--reporter=line` evita que el reporter `html` cuelgue el comando abriendo el informe al fallar). El exit code es el **veredicto objetivo** rojo/verde (el motor no lo delega: un subagente podría mentir sobre el resultado).
    - **RED** (exit ≠ 0) → al **bucle de sanación** (§9.3) con la salida del runner.
    - **GREEN** (exit 0) → al **verificador** (paso 2): pasar verde no basta, hay que comprobar que el test **es fiel** a la descripción (un test verde pero con aserciones débiles o saltadas sería una trampa).
 2. **Lanza el subagente verificador** (`Agent`, `subagent_type: claude`, `run_in_background: false`) — **independiente del generador**. Audita la fidelidad del `.spec.ts` (verde) contra su `.desc.md`. **MUST NOT** escribir ni "arreglar" el test (lo escribió otro): solo dictamina.
@@ -303,13 +334,13 @@ Se entra desde un **RED** del runner o un **INFIEL** del verificador. **LIMIT**:
    > - Distingue el **origen**: si el `.spec.ts` está mal escrito (locator/timing/texto/aserción que falta) es **sanable** → arréglalo; si la app se comporta distinto a lo que la descripción ya depurada espera, es una **regresión de la app** → NO la ocultes.
    > - Al terminar, responde **exactamente** una de estas líneas:
    >   - `CORREGIDO: {T-NNN}` — ajustaste el `.spec.ts`.
-   >   - `BLOQUEADO: {T-NNN} — {motivo}` — el fallo no es del `.spec.ts` (posible regresión de la app o recurso del entorno); requiere decisión del usuario.
+   >   - `BLOQUEADO: {T-NNN} — {motivo}` — el fallo no es del `.spec.ts` (posible regresión de la app o recurso del entorno).
 
 3. Interpreta el token:
-   - `BLOQUEADO: …` → **STOP** y `AskUserQuestion` mostrando el motivo. **MUST NOT** seguir con este test por tu cuenta.
+   - `BLOQUEADO: …` → **fallo por test** (§2.7): registra en `fail_create_tests.log` (Fase: sanación; Motivo: el texto del `BLOQUEADO`; Detalle: el fallo del runner), **borra** el `.spec.ts` (`rm -f`), marca FAIL y **pasa al siguiente test**. **MUST NOT** preguntar al usuario ni tocar código Java.
    - `CORREGIDO: …` → **reejecuta** el `.spec.ts` (§9.2 paso 1); si vuelve a estar verde, **vuelve a verificar** (§9.2 paso 2). El ciclo solo termina con `OK` del verificador.
      - `OK` → sal del bucle (siguiente test).
-     - sigue `RED`/`INFIEL` → incrementa `ciclo`. Si `ciclo <= 8`, repite. Si `ciclo > 8`, el test queda **FAIL** (su `.spec.ts` se conserva); pasa al siguiente test.
+     - sigue `RED`/`INFIEL` → incrementa `ciclo`. Si `ciclo <= 8`, repite. Si `ciclo > 8` → **fallo por test** (§2.7): registra en `fail_create_tests.log` (Fase: sanación (ciclo 8/8); Motivo: "8 ciclos de sanación agotados"; Detalle: último fallo del runner), **borra** el `.spec.ts` (`rm -f`), marca FAIL y pasa al siguiente test.
 
 **MUST NOT** superar los **8** ciclos por test.
 
@@ -329,14 +360,14 @@ Se entra desde un **RED** del runner o un **INFIEL** del verificador. **LIMIT**:
 Tests E2E de regresión creados — src/test/e2e/{iniciativa}/
 
 SUCCESS  T-001 — Crear un grupo con sus alumnos        → t-001-crear-un-grupo-con-sus-alumnos.spec.ts
-FAIL     T-014 — El alumno consulta sus notas          → (8 ciclos agotados)
+FAIL     T-014 — El alumno consulta sus notas          → ver fail_create_tests.log (8 ciclos agotados)
 SUCCESS  T-016 — Crear un grupo sin curso              → t-016-crear-un-grupo-sin-curso.spec.ts
 ...
 
 Resumen: {P} SUCCESS / {F} FAIL  ({S} saltados por ya existir).
 ```
 
-Para cada `FAIL` indica el motivo (ciclos agotados / bloqueo). **MUST NOT** ocultar fallos ni declarar éxito si algún test quedó en FAIL. Indica el comando para ejecutar la suite: `npx playwright test src/test/e2e/{iniciativa}`.
+Para cada `FAIL` indica el motivo (ciclos agotados / bloqueo) y que el detalle está en `src/test/e2e/{iniciativa}/fail_create_tests.log` (§2.7). **MUST NOT** ocultar fallos ni declarar éxito si algún test quedó en FAIL. Recuerda que los `.spec.ts` de los FAIL **ya se borraron** (§2.7), así que la suite resultante es enteramente verde. Indica el comando para ejecutar la suite: `npx playwright test src/test/e2e/{iniciativa}`.
 
 ---
 
@@ -347,8 +378,9 @@ Para cada `FAIL` indica el motivo (ciclos agotados / bloqueo). **MUST NOT** ocul
 - **Localizar** (§4): ruta explícita, o auto-detectar la **última** iniciativa con `test-e2e-desc/tests-e2e-desc.md` y **confirmar**. **MUST NOT** usar `mtime`.
 - **Solo `[x]`** (§2.6): se materializan únicamente los tests que pasaron al depurar; los `[ ]` no.
 - **Snapshot** (§7): el `.desc.md` copiado lleva cabecera-banner ("NO editar a mano"); es regenerable desde `.sdd/`. Idempotente: salta los que ya tienen `.spec.ts` (salvo `--fresh`).
-- **App por el motor** (§2.2, §8): arrancar tracked bg, limpiar puerto, sondear `200`, parar por puerto al final. **MUST NOT** dejar que un subagente arranque la app.
-- **Helper de auth** (§7, §9.0): comprobar `_support/auth.ts` al lanzar (crearlo si no existe) y **validar login/logout contra la app real una vez** antes de generar nada (selectores best-effort); si está roto, corregir el helper. `BLOQUEADO` → **STOP**.
+- **App por el motor** (§2.2, §8): arrancar tracked bg, limpiar puerto, sondear `200`, parar por puerto al final. **MUST NOT** dejar que un subagente arranque la app. Barrer **sesiones de navegador huérfanas antes de cada generador** (sin matar el server MCP) y ejecutar el runner con `--reporter=line` para que no se cuelgue al fallar.
+- **Autónomo por defecto** (§2.7): la **única** pregunta al usuario es en Fase 0 (qué iniciativa, como todos los `/sdd-*`). Después, **MUST NOT** `AskUserQuestion`: un test que no se puede crear (generador/sanador `BLOQUEADO` o 8 ciclos agotados) → registrar en `src/test/e2e/<iniciativa>/fail_create_tests.log` (entrada + línea `--------------------`), **borrar su `.spec.ts`** y seguir. Solo un fallo de setup global (sin input, app caída, auth no válida) aborta con **ERROR**.
+- **Helper de auth** (§7, §9.0): comprobar `_support/auth.ts` al lanzar (crearlo si no existe) y **validar login/logout contra la app real una vez** antes de generar nada (selectores best-effort); si está roto, corregir el helper. `BLOQUEADO` → **ERROR** (aborto global: afecta a todos los tests).
 - **Separación de poderes anti-trampa** (§9): **tres subagentes en contextos aislados** por test — **generador** (crea, no juzga), **verificador** (independiente, audita fidelidad), **sanador** (independiente, arregla). El veredicto rojo/verde lo da el **runner mecánico** (`npx playwright test`), no un agente. El generador **MUST NOT** declarar si pasa; el verificador **MUST NOT** tocar el test; el sanador **MUST NOT** debilitar aserciones.
 - **Bucle por test** (§9): generador → runner; si RED → sanador; si GREEN → verificador; si `INFIEL` → sanador. Tras `CORREGIDO`, reejecutar **y** volver a verificar; solo cierra con `OK` del verificador (**LIMIT** 8). En secuencia, nunca en paralelo ni `run_in_background`.
 - **La causa por defecto del fallo es el test, no el código** (§2.3): como el test **ya pasó** en `/sdd-debug-with-test-e2e-desc`, un `.spec.ts` que falla se arregla **en el `.spec.ts`**. **MUST NOT** editar `.sdd/` ni `src/main/...`. Solo si demostrablemente es la app la que cambió, es una **regresión** → `BLOQUEADO`, reportar, no ocultar.

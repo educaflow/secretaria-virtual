@@ -11,6 +11,7 @@ Lo lee el **sanador** (§2.2 del `README.md`). Tarea: dado un `.spec.ts` que fal
 La descripción ya pasó al depurarse con `/sdd-debug-with-test-e2e-desc`: el comportamiento esperado es **correcto**. Por tanto, ante un fallo, distingue el **origen**:
 
 1. **Fallo del `.spec.ts`** (lo habitual) → **sanable**. Causas típicas:
+   - **No idempotente** (causa #1 de RED al reejecutar; la BD es compartida y no se resetea): el test usa **nombres fijos** que ya existen de runs previos, o **no libera** lo que crea, o una regla de negocio dejó un recurso "pegado" de un run abortado. **Arréglalo** con el patrón de idempotencia de `generation.md` §4 (nombre único `Date.now()`, teardown `try/finally`, **pre-limpieza defensiva** del recurso contendido). Verifica ejecutando **2 veces seguidas** en verde sin limpiar la BD.
    - **Locator** desactualizado o ambiguo (texto/rol que no casa, varios matches).
    - **Timing**: se asierta antes de que la UI actualice → usar `await expect(...).toBeVisible()` (espera por defecto), **nunca** `waitForTimeout`.
    - **Equivalencia semántica de textos**: el mensaje real dice lo mismo con otras palabras / otro idioma (es/ca) → ajustar el locator (regex con ambas variantes), **sin** debilitar la aserción.
@@ -24,6 +25,7 @@ La descripción ya pasó al depurarse con `/sdd-debug-with-test-e2e-desc`: el co
 - **MUST NOT** modificar código Java (`src/main/...`) ni la fuente en `.sdd/`.
 - **MUST NOT** borrar ni relajar aserciones del `## Resultado esperado` para que el test "pase" en falso.
 - **MUST NOT** añadir `waitForTimeout` como parche de timing.
+- **MUST** cerrar tu sesión de navegador (`browser_close`) al terminar (una sesión MCP huérfana bloquea al siguiente subagente).
 
 ---
 
@@ -41,7 +43,7 @@ La descripción ya pasó al depurarse con `/sdd-debug-with-test-e2e-desc`: el co
 Responde **exactamente** una de estas líneas (+ 1 línea de resumen opcional):
 
 - `CORREGIDO: {T-NNN}` — ajustaste el `.spec.ts` (o `_support/auth.ts`) y debería pasar.
-- `BLOQUEADO: {T-NNN} — {motivo}` — el fallo no es del `.spec.ts`: posible regresión de la app o recurso del entorno; requiere decisión del usuario.
+- `BLOQUEADO: {T-NNN} — {motivo}` — el fallo no es del `.spec.ts`: posible regresión de la app o recurso del entorno. El motor lo registrará y saltará el test de forma autónoma; tu trabajo es solo **reportarlo con precisión** (qué esperaba la descripción vs. qué hace la app).
 
 - ✅ CORRECTO: `CORREGIDO: T-005` — el botón era "Quitar", no "Eliminar"; ajustado el locator por rol.
 - ✅ CORRECTO: `BLOQUEADO: T-014 — la pantalla de notas del alumno no carga (500 en /ws/rest/...); posible regresión de la app`

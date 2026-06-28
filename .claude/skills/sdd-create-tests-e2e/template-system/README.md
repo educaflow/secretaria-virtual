@@ -32,6 +32,7 @@ Los tres roles:
 - **MUST NOT** usar `AskUserQuestion`: ante un bloqueo, devuelven su token.
 - **MUST NOT** pegar el contenido de los ficheros en la respuesta (ya está en disco): solo el token de estado.
 - El **generador MUST NOT** declarar si el test pasa; el **verificador MUST NOT** editar el test; el **sanador MUST NOT** debilitar ni borrar aserciones.
+- **CRITICAL** — al terminar, **MUST** cerrar su sesión de navegador con `browser_close`. Una sesión MCP de Playwright (o su Chromium headless) que queda viva al cerrarse el contexto del subagente **bloquea al siguiente subagente** durante minutos.
 
 ---
 
@@ -40,6 +41,7 @@ Los tres roles:
 - La app es una secretaría virtual sobre **Axelor 8.1**, servida en `http://localhost:8080/`; login en `http://localhost:8080/#/login`. El `baseURL` de `playwright.config.ts` ya es `http://localhost:8080`: **MUST** usar rutas relativas (`page.goto('/#/login')`).
 - Convenciones de tests, locators y estructura de carpetas: las define `/k-playwright` (cárgalo). En particular: pares `t-NNN-<slug>.desc.md` ↔ `t-NNN-<slug>.spec.ts`, **mismo nombre base y misma carpeta**; helper compartido `src/test/e2e/_support/auth.ts`.
 - La app es **multicentro y bilingüe (es/ca)**: los locators por texto asumen español salvo que el test diga lo contrario.
+- **CRITICAL — la BD es compartida y NO se resetea entre ejecuciones**: los tests acumulan datos de runs anteriores. Por eso cada `.spec.ts` **MUST** ser **idempotente** (nombres únicos por run + teardown + pre-limpieza defensiva); lo detalla `generation.md`. Un test que pasa una vez pero falla al reejecutarse está **roto**.
 
 ---
 
@@ -78,10 +80,12 @@ exec ./run.sh > src/test/e2e/.app.log 2>&1
 ### 4.4 Ejecutar un `.spec.ts` (lo hace el motor tras el generador / tras cada `CORREGIDO`)
 
 ```bash
-npx playwright test {ruta del .spec.ts} --project=chromium
+npx playwright test {ruta del .spec.ts} --project=chromium --reporter=line
 ```
 
 Exit code `0` = **PASS**; distinto de `0` = **FAIL** (pasa la salida al sanador). La app **MUST** estar en `200` antes de ejecutar.
+
+**CRITICAL — `--reporter=line` es obligatorio aquí**: el reporter `html` del `playwright.config.ts` tiene `open: 'on-failure'` por defecto, así que al fallar un test **arranca el servidor del informe y deja el comando colgado** (el motor esperaría indefinidamente). `--reporter=line` lo evita y nunca abre nada.
 
 ### 4.5 Parar (al terminar, §10 del skill)
 
@@ -92,6 +96,16 @@ fuser -k 8080/tcp 2>/dev/null || lsof -ti tcp:8080 | xargs -r kill
 ```
 
 > El log `src/test/e2e/.app.log` es del motor; no se commitea (añadir a `.gitignore` si hiciera falta) y los subagentes lo ignoran.
+
+### 4.6 Limpiar sesiones de navegador huérfanas (entre subagentes)
+
+**CRITICAL**: un Chromium headless o un worker de Playwright **huérfano** (de un subagente cuyo contexto ya se cerró) bloquea la sesión MCP del siguiente generador/sanador durante minutos — fue la causa de esperas de decenas de minutos. El motor **MUST** barrerlos **antes de lanzar cada generador** (los subagentes además cierran su sesión con `browser_close`, §2). **MUST NOT** matar el **server MCP** de Playwright (`run-test-mcp-server`), solo los procesos de navegador/worker de test:
+
+```bash
+pkill -9 -f 'workerProcessEntry|chrome-headless-shell' 2>/dev/null; true
+```
+
+> Los `<defunct>` (zombies) que queden no consumen recursos y los reapropia el server MCP; solo importan los procesos **vivos**.
 
 ---
 
