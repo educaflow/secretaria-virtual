@@ -51,5 +51,5 @@ cuenta el índice real del proyecto.
   arrancar/reiniciar la BD o resetearla, ver [`deploy.md`](deploy.md).
 - **Playwright** (`mcp__playwright-test__`) — Automatización de navegador para los tests E2E
   contra la app real. El criterio de cuándo usar el MCP vs el CLI y las convenciones de tests
-  los define el skill `/k-playwright`; la ejecución E2E del pipeline la orquesta `/sdd-test-e2e`.
+  los define el skill `/k-playwright`; la ejecución E2E del pipeline la orquesta `/sdd-debug-with-test-e2e-desc`.
 - **IDE** (`mcp__ide__getDiagnostics`) — Diagnósticos/errores del IDE para los ficheros abiertos.

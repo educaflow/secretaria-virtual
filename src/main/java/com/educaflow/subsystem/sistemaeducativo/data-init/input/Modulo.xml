@@ -9,5 +9,8 @@
         <modulo code="IPE1" name="Itinerario Personal para la Empleabilidad I"/>
         <modulo code="PRO" name="Programación"/>
         <modulo code="BD" name="Bases de datos"/>
+        <modulo code="MME" name="Montaje y Mantenimiento de Equipos"/>
+        <modulo code="SOM" name="Sistemas Operativos Monopuesto"/>
+        <modulo code="RL" name="Redes Locales"/>
     </modulos>
 </datos>

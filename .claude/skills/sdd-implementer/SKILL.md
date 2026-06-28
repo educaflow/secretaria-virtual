@@ -69,7 +69,7 @@ El **diseño** de la iniciativa, cuyo índice es `design.md` (único fichero de 
 
 Este skill produce salida en tres sitios:
 
-- En `.sdd/drafts/{iniciativa}/implementation/`: la lista de tareas y los ficheros de contrato hacia abajo (los consumen `/sdd-test-e2e` y `/sdd-close-spec`). **Su estructura interna la define la plantilla**, no este skill.
+- En `.sdd/drafts/{iniciativa}/implementation/`: la lista de tareas y los ficheros de contrato hacia abajo (los consumen `/sdd-debug-with-test-e2e-desc` y `/sdd-close-spec`). **Su estructura interna la define la plantilla**, no este skill.
 - En el **árbol del proyecto** (`src/main/...`, `src/test/...`): el código real (XML materializados colocados/fusionados, código Java y tests) que escriben los subagentes implementadores.
 - En la conversación: un mensaje final indicando que la implementación está completa y el siguiente paso (`/sdd-close-spec`).
 
@@ -378,7 +378,7 @@ Tareas generadas e implementadas: N.
 Build: {OK-COMPILA tras M iteración(es) | NO limpio tras 3 iteraciones — ver implementation/log_build.txt}.
 
 Los artefactos del draft se mantienen en .sdd/drafts/{carpeta-iniciativa}/ — no se ha archivado nada en .sdd/specs/.
-Si la plantilla propagó tests E2E a implementation/, puedes ejecutarlos contra la aplicación real con /sdd-test-e2e.
+Si la plantilla propagó tests E2E a implementation/, puedes ejecutarlos contra la aplicación real con /sdd-debug-with-test-e2e-desc.
 
 Para cerrar la iniciativa (archivar en .sdd/specs/ y actualizar los CLAUDE.md afectados) ejecuta:
   /sdd-close-spec

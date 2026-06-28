@@ -4,7 +4,7 @@ Tests concretos de prueba end-to-end materializados a partir de los escenarios (
 
 Cada test es **independiente** (no depende del estado dejado por otro test) y **trazable** (cada uno declara qué `ESC-NNN` materializa y qué V/R/U verifica).
 
-`/sdd-test-e2e` lee este fichero una vez implementado el código: trocea los tests en una carpeta `test-e2e/`, traduce cada escenario a comandos `playwright-cli` y ejecuta un **bucle de auto-corrección**: si un test falla, corrige el código y reintenta.
+`/sdd-debug-with-test-e2e-desc` lee este fichero una vez implementado el código: trocea los tests en una carpeta `test-e2e-desc/`, traduce cada escenario a comandos `playwright-cli` y ejecuta un **bucle de auto-corrección**: si un test falla, corrige el código y reintenta.
 
 ---
 
@@ -57,7 +57,7 @@ Cada test es **independiente** (no depende del estado dejado por otro test) y **
 ## Reglas de redacción
 
 - **Nombres**: pantallas, botones, campos y mensajes se citan **exactamente** como aparecen en `screen-*.md` / `entity-*.md`. Si una validación tiene mensaje `"El motivo es obligatorio"`, ese es el texto que va en el resultado esperado.
-- **Lenguaje**: usar `Dado` / `Cuando` / `Y` / `Entonces` (o `Given` / `When` / `And` / `Then`). No usar selectores CSS, refs `eN`, ni comandos `playwright-cli`. La traducción a comandos la hace `/sdd-test-e2e`.
+- **Lenguaje**: usar `Dado` / `Cuando` / `Y` / `Entonces` (o `Given` / `When` / `And` / `Then`). No usar selectores CSS, refs `eN`, ni comandos `playwright-cli`. La traducción a comandos la hace `/sdd-debug-with-test-e2e-desc`.
 - **Atomicidad**: cada test cubre **un** escenario completo. No mezclar varios casos en el mismo test (un happy y un error en el mismo `T-NNN` rompe el diagnóstico cuando falla).
 - **Independencia**: cada test prepara sus propias precondiciones desde un estado conocido. **No** asumir datos creados por un test anterior.
 - **Cobertura mínima**: cada `ESC-NNN` del spec aparece como `Origen ESC` en al menos un test. Los tests adicionales para V/R/U críticas son opcionales (criterio del analista).

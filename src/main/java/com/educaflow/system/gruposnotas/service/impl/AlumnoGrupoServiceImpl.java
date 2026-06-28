@@ -18,6 +18,7 @@ import com.educaflow.system.gruposnotas.db.Grupo;
 import com.educaflow.system.gruposnotas.db.ModuloGrupo;
 import com.educaflow.system.gruposnotas.db.Nota;
 import com.educaflow.system.gruposnotas.db.repo.AlumnoGrupoRepository;
+import com.educaflow.system.gruposnotas.db.repo.ModuloGrupoRepository;
 import com.educaflow.system.gruposnotas.service.AlumnoGrupoService;
 import com.educaflow.system.gruposnotas.service.NotaInsertDTO;
 import com.educaflow.system.gruposnotas.service.NotaService;
@@ -33,6 +34,9 @@ public class AlumnoGrupoServiceImpl extends DefaultModelService<AlumnoGrupo>
 
     @Inject
     private ModelServiceFactory modelServiceFactory;
+
+    @Inject
+    private ModuloGrupoRepository moduloGrupoRepository;
 
     public AlumnoGrupoServiceImpl(Class<AlumnoGrupo> model, Repository<AlumnoGrupo> repository) {
         super(model, repository);
@@ -172,10 +176,14 @@ public class AlumnoGrupoServiceImpl extends DefaultModelService<AlumnoGrupo>
     /**
      * R-AlumnoGrupo-001 (RN-005): por cada módulo del grupo, crea una nota NO_EVALUADO para el
      * alumno mediante {@link NotaService} (alta programática). Efecto colateral, después de save.
+     * Los módulos del grupo se leen de la BD mediante {@link ModuloGrupoRepository#findByGrupo}
+     * (no de la colección en memoria {@code grupo.getModulosGrupo()}, que en el flujo de alta
+     * anidada llega sin hidratar porque el bean Grupo gestionado se reconstruye desde el record
+     * filtrado por AllowProperties).
      */
     private void fireActionRule_CrearNotasNoEvaluado(AlumnoGrupo alumnoGrupo) {
         NotaService notaService = (NotaService) modelServiceFactory.resolve(Nota.class);
-        for (ModuloGrupo moduloGrupo : alumnoGrupo.getGrupo().getModulosGrupo()) {
+        for (ModuloGrupo moduloGrupo : moduloGrupoRepository.findByGrupo(alumnoGrupo.getGrupo())) {
             notaService.insert(new NotaInsertDTO(moduloGrupo, alumnoGrupo));
         }
     }

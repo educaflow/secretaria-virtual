@@ -146,7 +146,7 @@ La salida es una **carpeta** `design/` dentro de la carpeta de la iniciativa. El
     └── rules/R-<Entidad>-NNN.md          ← solo si hay reglas R complejas
 ```
 
-Esta estructura es la que consumen `/sdd-implementer`, `/sdd-test-e2e` y `/sdd-close-spec`: **MUST** producirse tal cual.
+Esta estructura es la que consumen `/sdd-implementer`, `/sdd-debug-with-test-e2e-desc` y `/sdd-close-spec`: **MUST** producirse tal cual.
 
 ---
 

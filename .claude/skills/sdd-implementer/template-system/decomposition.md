@@ -132,7 +132,7 @@ Reglas:
 - ✅ CORRECTO: `- [ ] [Tarea 01](task_01.md)`.
 - ❌ INCORRECTO: `- [Tarea 01](task_01.md)` (sin checkbox), `- [x] [Tarea 01](task_01.md)` (no se marca al crear el índice), `- [ ] [Tarea 1](tarea_01.md)` (número sin dos dígitos y nombre de fichero que no coincide con el real).
 
-2. Si existe `{iniciativa}/design/test-e2e-desc.md`, **cópialo literalmente** a `{iniciativa}/implementation/test-e2e-desc.md`. Es **contrato fijo hacia abajo**: **MUST NOT** modificarlo, resumirlo ni renumerarlo — es la entrada que `/sdd-test-e2e` ejecutará contra la aplicación real. Si no existe, no pasa nada.
+2. Si existe `{iniciativa}/design/test-e2e-desc.md`, **cópialo literalmente** a `{iniciativa}/implementation/test-e2e-desc.md`. Es **contrato fijo hacia abajo**: **MUST NOT** modificarlo, resumirlo ni renumerarlo — es la entrada que `/sdd-debug-with-test-e2e-desc` ejecutará contra la aplicación real. Si no existe, no pasa nada.
 
 ---
 

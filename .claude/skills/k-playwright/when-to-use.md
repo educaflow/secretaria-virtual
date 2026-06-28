@@ -45,19 +45,19 @@ La diferencia de fondo no es de capacidad, sino de **dónde actúa la IA**:
 
 ### "Crea tests para la pantalla de expedientes"
 
-1. **planner** → `specs/expedientes.plan.md`.
+1. **planner** → `src/test/e2e/expedientes/expedientes.desc.md`.
 2. Revisar el plan con el usuario.
-3. **generator** por cada escenario → `tests/expedientes/*.spec.ts`.
+3. **generator** por cada escenario → `src/test/e2e/expedientes/*.spec.ts`.
 
 ### "Los tests de login se han roto"
 
-1. `npx playwright test tests/login` para ver qué falla concretamente.
+1. `npx playwright test src/test/e2e/login` para ver qué falla concretamente.
 2. **healer** sobre los que fallan.
 3. Re-ejecutar para validar.
 
 ### "Cambié el formulario de registro, ¿sigue funcionando?"
 
-- Si **existe un test** que lo cubre → `npx playwright test tests/registro/`.
+- Si **existe un test** que lo cubre → `npx playwright test src/test/e2e/registro/`.
 - Si **no existe test** y solo quieres verificar una vez → Agent CLI:
   ```
   playwright-cli open http://localhost:8080/#/registro

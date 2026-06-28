@@ -2,7 +2,7 @@
 
 Tests concretos end-to-end materializados a partir de los escenarios (`ESC-NNN`) de las historias de usuario del `specification.md` y de las V/R/U del diseño.
 
-Cada test es **independiente** (no depende del estado dejado por otro) y **trazable** (declara qué `ESC-NNN` materializa y qué V/R/U verifica). `/sdd-test-e2e` lo ejecuta contra la aplicación real tras la implementación (bucle de auto-corrección).
+Cada test es **independiente** (no depende del estado dejado por otro) y **trazable** (declara qué `ESC-NNN` materializa y qué V/R/U verifica). `/sdd-debug-with-test-e2e-desc` lo ejecuta contra la aplicación real tras la implementación (bucle de auto-corrección).
 
 ---
 
@@ -21,7 +21,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
   - Un Profesor del centro «CIPFP Mislata» (tipo PROFESOR): «Director CIPFP Mislata».
   - Una alumna del centro «CIPFP Batoi» (tipo ALUMNO): «Alumno1 CIPFP Batoi».
 
-**Usuarios de acceso** (login y contraseña que `/sdd-test-e2e` usará para iniciar sesión):
+**Usuarios de acceso** (login y contraseña que `/sdd-debug-with-test-e2e-desc` usará para iniciar sesión):
 
 | Login | Contraseña | Rol / Tipo | Centro |
 |---|---|---|---|
@@ -34,7 +34,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 | director@mislata.es | demo1234 | Profesor | CIPFP Mislata |
 | alumno1@batoi.es | demo1234 | Alumno | CIPFP Batoi |
 
-> Convención adoptada por el diseño (el spec no fija credenciales): los logins son el `code`/email de cada usuario en `usuarios-demo.xml` y la contraseña común es `demo1234` (el administrador es `admin`/`admin`). Documentado aquí para que `/sdd-test-e2e` pueda iniciar sesión.
+> Convención adoptada por el diseño (el spec no fija credenciales): los logins son el `code`/email de cada usuario en `usuarios-demo.xml` y la contraseña común es `demo1234` (el administrador es `admin`/`admin`). Documentado aquí para que `/sdd-debug-with-test-e2e-desc` pueda iniciar sesión.
 
 ---
 

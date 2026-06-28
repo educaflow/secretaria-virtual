@@ -13,7 +13,7 @@ Este skill documenta cómo se hacen tests end-to-end de la aplicación con **Pla
 |---------|-----------|
 | `test-agents.md` | Los **Playwright Test Agents** (vía MCP): subagentes `planner`, `generator`, `healer` instalados en `.claude/agents/`. Flujo plan → test → heal. |
 | `agent-cli.md` | La **Playwright Agent CLI** (`playwright-cli`): comandos shell para pilotar el navegador desde Bash. Más barato en tokens, headless por defecto. |
-| `conventions.md` | Convenciones del proyecto: estructura `tests/<area>/*.spec.ts`, `seed.spec.ts`, `specs/*.plan.md`, baseURL, login común, fixtures. |
+| `conventions.md` | Convenciones del proyecto: estructura `src/test/e2e/<iniciativa>/` (pares descripción/test emparejados por nombre base, `AAAA.desc.md` ↔ `AAAA.spec.ts`; `.plan.md` deprecado), helper `_support/auth.ts`, `seed.spec.ts`, baseURL, login común. |
 | `when-to-use.md` | Criterio de decisión: cuándo usar Test Agents, cuándo Agent CLI, cuándo no testear con Playwright. |
 
 ## Contexto rápido

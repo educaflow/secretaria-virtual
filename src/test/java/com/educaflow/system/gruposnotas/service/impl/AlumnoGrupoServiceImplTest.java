@@ -17,6 +17,7 @@ import com.educaflow.system.gruposnotas.db.ModuloGrupo;
 import com.educaflow.system.gruposnotas.db.Nota;
 import com.educaflow.system.gruposnotas.db.ValorNota;
 import com.educaflow.system.gruposnotas.db.repo.AlumnoGrupoRepository;
+import com.educaflow.system.gruposnotas.db.repo.ModuloGrupoRepository;
 import com.educaflow.system.gruposnotas.service.NotaInsertDTO;
 import com.educaflow.system.gruposnotas.service.NotaService;
 import jakarta.validation.ValidationException;
@@ -30,7 +31,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,6 +49,7 @@ class AlumnoGrupoServiceImplTest {
 
     private AlumnoGrupoRepository repository;
     private ModelServiceFactory modelServiceFactory;
+    private ModuloGrupoRepository moduloGrupoRepository;
     private AlumnoGrupoServiceImpl service;
 
     private MockedStatic<SecurityUtil> securityUtilMock;
@@ -59,12 +60,18 @@ class AlumnoGrupoServiceImplTest {
     void setUp() throws Exception {
         repository = Mockito.mock(AlumnoGrupoRepository.class);
         modelServiceFactory = Mockito.mock(ModelServiceFactory.class);
+        moduloGrupoRepository = Mockito.mock(ModuloGrupoRepository.class);
 
         service = new AlumnoGrupoServiceImpl(AlumnoGrupo.class, repository);
 
         Field field = AlumnoGrupoServiceImpl.class.getDeclaredField("modelServiceFactory");
         field.setAccessible(true);
         field.set(service, modelServiceFactory);
+
+        Field moduloGrupoRepositoryField =
+                AlumnoGrupoServiceImpl.class.getDeclaredField("moduloGrupoRepository");
+        moduloGrupoRepositoryField.setAccessible(true);
+        moduloGrupoRepositoryField.set(service, moduloGrupoRepository);
 
         // lenient: los estáticos se programan en el setup pero no todos los tests recorren
         // las ramas que los consumen (happy paths que no producen mensaje, etc.).
@@ -108,6 +115,10 @@ class AlumnoGrupoServiceImplTest {
         when(query.filter(anyString())).thenReturn(query);
         when(query.bind(anyString(), any())).thenReturn(query);
         when(query.count()).thenReturn(count);
+    }
+
+    private void programarModulosDelGrupo(java.util.List<ModuloGrupo> modulos) {
+        when(moduloGrupoRepository.findByGrupo(any())).thenReturn(modulos);
     }
 
     @SuppressWarnings("unchecked")
@@ -266,7 +277,6 @@ class AlumnoGrupoServiceImplTest {
         programarFinderCursoAcademico(List.of());
 
         Grupo grupo = grupoAbierto(centroX, 2024);
-        grupo.setModulosGrupo(new ArrayList<>(List.of(new ModuloGrupo(), new ModuloGrupo())));
         AlumnoGrupo alumnoGrupo = new AlumnoGrupo();
         alumnoGrupo.setGrupo(grupo);
         alumnoGrupo.setAlumno(new User());
@@ -274,6 +284,8 @@ class AlumnoGrupoServiceImplTest {
         when(repository.save(alumnoGrupo)).thenReturn(alumnoGrupo);
         NotaService notaService = Mockito.mock(NotaService.class);
         when(modelServiceFactory.resolve(Nota.class)).thenReturn(notaService);
+
+        programarModulosDelGrupo(List.of(new ModuloGrupo(), new ModuloGrupo()));
 
         service.insert(alumnoGrupo);
 

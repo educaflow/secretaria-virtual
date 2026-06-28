@@ -9,5 +9,8 @@
         <cursoModulo curso="DAW2" modulo="OPTATIVA2DAW"/>
         <cursoModulo curso="DAM1" modulo="PRO"/>
         <cursoModulo curso="DAM1" modulo="BD"/>
+        <cursoModulo curso="SMR1" modulo="MME"/>
+        <cursoModulo curso="SMR1" modulo="SOM"/>
+        <cursoModulo curso="SMR1" modulo="RL"/>
     </cursoModulos>
 </datos>

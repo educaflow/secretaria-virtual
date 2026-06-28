@@ -6,7 +6,7 @@ El diseñador (`/sdd-designer`) **solo describe** los tests; aquí se **genera e
 
 - `design/test-unit-desc.md` → tests unitarios (JUnit 5 + Mockito).
 
-Los compila y ejecuta `./gradlew clean build` (ver `build.md`): si fallan, los arregla el bucle de build. Los tests **E2E** (`test-e2e-desc.md`) **NO** se generan aquí — los ejecuta `/sdd-test-e2e`.
+Los compila y ejecuta `./gradlew clean build` (ver `build.md`): si fallan, los arregla el bucle de build. Los tests **E2E** (`test-e2e-desc.md`) **NO** se generan aquí — los ejecuta `/sdd-debug-with-test-e2e-desc`.
 
 > Si el diseño **no** trae `test-unit-desc.md` (no hay clases Java), **no se crea ninguna tarea de test** (sin error).
 

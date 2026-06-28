@@ -10,10 +10,15 @@ import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.sistemaeducativo.db.Curso;
 import com.educaflow.subsystem.sistemaeducativo.db.CursoModulo;
 import com.educaflow.subsystem.sistemaeducativo.db.Modulo;
+import com.educaflow.system.gruposnotas.db.AlumnoGrupo;
 import com.educaflow.system.gruposnotas.db.EstadoGrupo;
 import com.educaflow.system.gruposnotas.db.Grupo;
 import com.educaflow.system.gruposnotas.db.ModuloGrupo;
+import com.educaflow.system.gruposnotas.db.repo.AlumnoGrupoRepository;
 import com.educaflow.system.gruposnotas.db.repo.GrupoRepository;
+import com.educaflow.system.gruposnotas.db.repo.ModuloGrupoRepository;
+import com.educaflow.system.gruposnotas.db.repo.NotaRepository;
+import com.educaflow.system.gruposnotas.service.AlumnoGrupoService;
 import com.educaflow.system.gruposnotas.service.ModuloGrupoInsertDTO;
 import com.educaflow.system.gruposnotas.service.ModuloGrupoService;
 import jakarta.validation.ValidationException;
@@ -60,9 +65,15 @@ class GrupoServiceImplTest {
 
         service = new GrupoServiceImpl(Grupo.class, repository);
 
-        Field field = GrupoServiceImpl.class.getDeclaredField("modelServiceFactory");
-        field.setAccessible(true);
-        field.set(service, modelServiceFactory);
+        inyectarCampo("modelServiceFactory", modelServiceFactory);
+
+        // La nueva lógica de generación de notas NO_EVALUADO (fireActionRule_GenerarNotasNoEvaluadoFaltantes)
+        // que corren insert/update consume estos tres repositorios. Se inyectan como mocks: sus finders
+        // findByGrupo devuelven List, por lo que Mockito retorna lista vacía por defecto y el barrido
+        // módulos×alumnos no se ejecuta (sin notas que generar) ni provoca NPE.
+        inyectarCampo("moduloGrupoRepository", Mockito.mock(ModuloGrupoRepository.class));
+        inyectarCampo("alumnoGrupoRepository", Mockito.mock(AlumnoGrupoRepository.class));
+        inyectarCampo("notaRepository", Mockito.mock(NotaRepository.class));
 
         // lenient: los estáticos se programan en el setup pero no todos los tests recorren
         // las ramas que los consumen (happy paths que no producen mensaje, etc.).
@@ -83,6 +94,12 @@ class GrupoServiceImplTest {
     /* ------------------------------------------------------------------ */
     /* Helpers                                                            */
     /* ------------------------------------------------------------------ */
+
+    private void inyectarCampo(String nombreCampo, Object valor) throws Exception {
+        Field field = GrupoServiceImpl.class.getDeclaredField(nombreCampo);
+        field.setAccessible(true);
+        field.set(service, valor);
+    }
 
     private String mensaje(Optional<BusinessMessages> optional) {
         assertTrue(optional.isPresent());
@@ -432,6 +449,60 @@ class GrupoServiceImplTest {
         verify(repository, never()).save(any());
     }
 
+    @Test
+    void insert_alumnoYaEnOtroGrupoDelCursoAcademico_lanzaExcepcionYNoPersiste() {
+        Centro centroX = centroConCurso(2024);
+        programarSupervisorConCentro(centroX);
+
+        Grupo grupo = new Grupo();
+        grupo.setNombre("1A");
+        grupo.setCurso(new Curso());
+        AlumnoGrupo ag = new AlumnoGrupo();
+        ag.setId(50L); // el framework ya le asignó id por auto-flush (cascade) antes de insert
+        ag.setAlumno(new User());
+        grupo.addAlumnosGrupo(ag);
+
+        when(repository.findByNombreAndCentroAndCursoAcademico(any(), any(), any())).thenReturn(null);
+        AlumnoGrupoService alumnoGrupoServiceMock = Mockito.mock(AlumnoGrupoService.class);
+        when(modelServiceFactory.resolve(AlumnoGrupo.class)).thenReturn(alumnoGrupoServiceMock);
+        when(alumnoGrupoServiceMock.validateInsert(any())).thenReturn(Optional.of(
+                BusinessMessages.single("El alumno ya pertenece a otro grupo de este curso académico")));
+
+        ValidationException ex = org.junit.jupiter.api.Assertions.assertThrows(
+                ValidationException.class, () -> service.insert(grupo));
+        assertEquals("El alumno ya pertenece a otro grupo de este curso académico", ex.getMessage());
+        verify(repository, never()).save(any());
+        assertSame(grupo, ag.getGrupo()); // el servidor fijó el padre antes de validar (k-secure-coding §3.6)
+    }
+
+    @Test
+    void insert_alumnoValido_validaYPersiste() {
+        Centro centroX = centroConCurso(2024);
+        programarSupervisorConCentro(centroX);
+
+        Grupo grupo = new Grupo();
+        grupo.setNombre("1A");
+        grupo.setCurso(crearCursoConModulos(List.of()));
+        AlumnoGrupo ag = new AlumnoGrupo();
+        ag.setId(50L); // id ya asignado por auto-flush (cascade) antes de insert
+        ag.setAlumno(new User());
+        grupo.addAlumnosGrupo(ag);
+
+        when(repository.findByNombreAndCentroAndCursoAcademico(any(), any(), any())).thenReturn(null);
+        when(repository.save(grupo)).thenReturn(grupo);
+        ModuloGrupoService moduloGrupoService = Mockito.mock(ModuloGrupoService.class);
+        when(modelServiceFactory.resolve(ModuloGrupo.class)).thenReturn(moduloGrupoService);
+        AlumnoGrupoService alumnoGrupoServiceMock = Mockito.mock(AlumnoGrupoService.class);
+        when(modelServiceFactory.resolve(AlumnoGrupo.class)).thenReturn(alumnoGrupoServiceMock);
+        when(alumnoGrupoServiceMock.validateInsert(any())).thenReturn(Optional.empty());
+
+        service.insert(grupo);
+
+        verify(repository).save(grupo);
+        verify(alumnoGrupoServiceMock).validateInsert(any());
+        assertSame(grupo, ag.getGrupo());
+    }
+
     /* ------------------------------------------------------------------ */
     /* update                                                             */
     /* ------------------------------------------------------------------ */
@@ -482,6 +553,57 @@ class GrupoServiceImplTest {
                 ValidationException.class, () -> service.update(grupo, original));
         assertEquals("No se puede modificar un grupo cerrado", ex.getMessage());
         verify(repository, never()).save(any());
+    }
+
+    @Test
+    void update_alumnoYaEnOtroGrupoDelCursoAcademico_lanzaExcepcionYNoPersiste() {
+        Grupo original = new Grupo();
+        original.setEstado(EstadoGrupo.ABIERTO);
+
+        Grupo grupo = new Grupo();
+        grupo.setNombre("1A");
+        grupo.setCentro(new Centro());
+        grupo.setCursoAcademico(2024);
+        AlumnoGrupo ag = new AlumnoGrupo();
+        ag.setAlumno(new User());
+        grupo.addAlumnosGrupo(ag);
+
+        when(repository.findByNombreAndCentroAndCursoAcademico(any(), any(), any())).thenReturn(null);
+        AlumnoGrupoService alumnoGrupoServiceMock = Mockito.mock(AlumnoGrupoService.class);
+        when(modelServiceFactory.resolve(AlumnoGrupo.class)).thenReturn(alumnoGrupoServiceMock);
+        when(alumnoGrupoServiceMock.validateInsert(any())).thenReturn(Optional.of(
+                BusinessMessages.single("El alumno ya pertenece a otro grupo de este curso académico")));
+
+        ValidationException ex = org.junit.jupiter.api.Assertions.assertThrows(
+                ValidationException.class, () -> service.update(grupo, original));
+        assertEquals("El alumno ya pertenece a otro grupo de este curso académico", ex.getMessage());
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void update_alumnoValido_validaYPersiste() {
+        Grupo original = new Grupo();
+        original.setEstado(EstadoGrupo.ABIERTO);
+
+        Grupo grupo = new Grupo();
+        grupo.setNombre("1A");
+        grupo.setCentro(new Centro());
+        grupo.setCursoAcademico(2024);
+        AlumnoGrupo ag = new AlumnoGrupo();
+        ag.setAlumno(new User());
+        grupo.addAlumnosGrupo(ag);
+
+        when(repository.findByNombreAndCentroAndCursoAcademico(any(), any(), any())).thenReturn(null);
+        when(repository.save(grupo)).thenReturn(grupo);
+        AlumnoGrupoService alumnoGrupoServiceMock = Mockito.mock(AlumnoGrupoService.class);
+        when(modelServiceFactory.resolve(AlumnoGrupo.class)).thenReturn(alumnoGrupoServiceMock);
+        when(alumnoGrupoServiceMock.validateInsert(any())).thenReturn(Optional.empty());
+
+        service.update(grupo, original);
+
+        verify(repository).save(grupo);
+        verify(alumnoGrupoServiceMock).validateInsert(any());
+        assertSame(grupo, ag.getGrupo());
     }
 
     /* ------------------------------------------------------------------ */
@@ -593,14 +715,14 @@ class GrupoServiceImplTest {
     /* ------------------------------------------------------------------ */
 
     @Test
-    void allowPropertiesInsert_incluyeSoloCamposClienteYExcluyeAlumnosGrupoYServidor() {
+    void allowPropertiesInsert_incluyeCamposClienteYAlumnosGrupoYExcluyeServidor() {
         AllowProperties allowProperties = service.allowPropertiesInsert();
 
         assertTrue(allowProperties.allowProperty("nombre"));
         assertTrue(allowProperties.allowProperty("curso"));
         assertTrue(allowProperties.allowProperty("centro"));
         assertTrue(allowProperties.allowProperty("cursoAcademico"));
-        assertFalse(allowProperties.allowProperty("alumnosGrupo"));
+        assertTrue(allowProperties.allowProperty("alumnosGrupo"));
         assertFalse(allowProperties.allowProperty("estado"));
         assertFalse(allowProperties.allowProperty("fechaCierre"));
         assertFalse(allowProperties.allowProperty("modulosGrupo"));

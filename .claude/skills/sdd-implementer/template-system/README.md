@@ -110,13 +110,13 @@ El descomponedor escribe `{iniciativa}/implementation/`; los implementadores esc
 └── implementation/
     ├── tasks.md                        ← índice de tareas con checkboxes de progreso (type: implementation-tasks)
     ├── task_01.md … task_NN.md          ← una tarea por fichero/componente (type: implementation-task)
-    └── test-e2e-desc.md                 ← copia literal de design/test-e2e-desc.md (si existe) — la consume /sdd-test-e2e
+    └── test-e2e-desc.md                 ← copia literal de design/test-e2e-desc.md (si existe) — la consume /sdd-debug-with-test-e2e-desc
 
 src/main/java/com/educaflow/…           ← XML materializados colocados/fusionados + código Java
 src/test/java/com/educaflow/…           ← tests unitarios (JUnit+Mockito)
 ```
 
-`implementation/test-e2e-desc.md` es **contrato fijo hacia abajo**: lo ejecuta `/sdd-test-e2e`. **MUST NOT** modificarlo, resumirlo ni renumerarlo (`decomposition.md`).
+`implementation/test-e2e-desc.md` es **contrato fijo hacia abajo**: lo ejecuta `/sdd-debug-with-test-e2e-desc`. **MUST NOT** modificarlo, resumirlo ni renumerarlo (`decomposition.md`).
 
 ---
 

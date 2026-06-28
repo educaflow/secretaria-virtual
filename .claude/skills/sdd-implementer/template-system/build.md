@@ -12,7 +12,7 @@ El verificador-build **MUST** compilar con:
 ./gradlew clean build --info
 ```
 
-`./gradlew clean build` **compila** todo el proyecto y **ejecuta los tests unitarios** (JUnit + Mockito) que las tareas de test materializaron en `src/test/...`. **NO** ejecuta los tests E2E (esos los corre `/sdd-test-e2e`).
+`./gradlew clean build` **compila** todo el proyecto y **ejecuta los tests unitarios** (JUnit + Mockito) que las tareas de test materializaron en `src/test/...`. **NO** ejecuta los tests E2E (esos los corre `/sdd-debug-with-test-e2e-desc`).
 
 - **MUST NOT** usar `gradlew run` ni `--debug-jvm`: aquí solo se compila/testea, no se arranca la app.
 - El verificador-build **ejecuta él mismo** este comando con `Bash`. El motor **NUNCA** lo ejecuta (`SKILL.md` §2.2).

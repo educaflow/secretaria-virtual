@@ -10,24 +10,44 @@ import com.axelor.i18n.I18n;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.sistemaeducativo.db.CursoModulo;
+import com.educaflow.system.gruposnotas.db.AlumnoGrupo;
 import com.educaflow.system.gruposnotas.db.EstadoGrupo;
 import com.educaflow.system.gruposnotas.db.Grupo;
 import com.educaflow.system.gruposnotas.db.ModuloGrupo;
+import com.educaflow.system.gruposnotas.db.Nota;
+import com.educaflow.system.gruposnotas.db.repo.AlumnoGrupoRepository;
 import com.educaflow.system.gruposnotas.db.repo.GrupoRepository;
+import com.educaflow.system.gruposnotas.db.repo.ModuloGrupoRepository;
+import com.educaflow.system.gruposnotas.db.repo.NotaRepository;
+import com.educaflow.system.gruposnotas.service.AlumnoGrupoService;
 import com.educaflow.system.gruposnotas.service.GrupoService;
 import com.educaflow.system.gruposnotas.service.ModuloGrupoInsertDTO;
 import com.educaflow.system.gruposnotas.service.ModuloGrupoService;
+import com.educaflow.system.gruposnotas.service.NotaInsertDTO;
+import com.educaflow.system.gruposnotas.service.NotaService;
 import com.google.inject.Inject;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 public class GrupoServiceImpl extends DefaultModelService<Grupo> implements GrupoService {
 
     @Inject
     private ModelServiceFactory modelServiceFactory;
+
+    @Inject
+    private ModuloGrupoRepository moduloGrupoRepository;
+
+    @Inject
+    private AlumnoGrupoRepository alumnoGrupoRepository;
+
+    @Inject
+    private NotaRepository notaRepository;
 
     public GrupoServiceImpl(Class<Grupo> model, Repository<Grupo> repository) {
         super(model, repository);
@@ -44,10 +64,18 @@ public class GrupoServiceImpl extends DefaultModelService<Grupo> implements Grup
         // R-Grupo-001 (estado): estado inicial ABIERTO.
         fireActionRule_AsignarEstadoInicial(grupo);
 
+        // V-AlumnoGrupo-002..008 (incl. V-AlumnoGrupo-005): valida y fija el padre de cada AlumnoGrupo
+        // nuevo del panel "Alumnos" antes de persistir. El framework ya los persistió por cascade con id
+        // ANTES de insert (auto-flush de JPA.manage); por eso se validan todos y la validación excluye el
+        // propio id. Si uno es inválido, la ValidationException aborta y revierte la cascade (coherencia).
+        validarAlumnosGrupo(grupo);
+
         grupo = repository.save(grupo);
 
         // R-Grupo-001 (módulos): genera los ModuloGrupo a partir del curso. Después de save.
         fireActionRule_GenerarModulosGrupo(grupo);
+
+        fireActionRule_GenerarNotasNoEvaluadoFaltantes(grupo);
 
         return grupo;
     }
@@ -60,8 +88,43 @@ public class GrupoServiceImpl extends DefaultModelService<Grupo> implements Grup
         // Restaura los campos inmutables desde original.
         fireActionRule_RestaurarCamposInmutables(grupo, original);
 
+        // Valida cada AlumnoGrupo de la colección con su propio servicio (V-AlumnoGrupo-002..008,
+        // incluida V-AlumnoGrupo-005) antes de persistir. El framework ya ha persistido por cascade
+        // los AlumnoGrupo nuevos del panel "Alumnos" y les ha asignado id ANTES de update, por lo que
+        // NO se distinguen de los existentes; por eso se validan TODOS. Si alguno es inválido, la
+        // ValidationException aborta la transacción y no se persiste ninguno (coherencia).
+        validarAlumnosGrupo(grupo);
+
         grupo = repository.save(grupo);
+
+        fireActionRule_GenerarNotasNoEvaluadoFaltantes(grupo);
+
         return grupo;
+    }
+
+    /**
+     * V-AlumnoGrupo-002..008 (incluida V-AlumnoGrupo-005): valida cada AlumnoGrupo de la colección del
+     * grupo —existentes y nuevos añadidos por el panel «Alumnos»— con su propio servicio antes de
+     * persistir, tanto en el alta del grupo (insert) como al añadir alumnos a un grupo existente
+     * (update). El framework (Resource.save -> JPA.manage, con auto-flush activo) ya ha persistido por
+     * cascade y asignado id a los AlumnoGrupo nuevos ANTES de update, por lo que no se pueden distinguir
+     * de los existentes por id; por eso se validan todos (para un AlumnoGrupo existente y válido la
+     * validación pasa: V-AlumnoGrupo-005 excluye su propio id). Si alguno es inválido, la
+     * ValidationException aborta la transacción y revierte el insert por cascade, de modo que no se
+     * persiste ninguno de los AlumnoGrupo del guardado (coherencia transaccional). El servidor fija el
+     * grupo padre de cada AlumnoGrupo (k-secure-coding §3.6: el cliente no dicta el padre; defensa IDOR).
+     */
+    private void validarAlumnosGrupo(Grupo grupo) {
+        if (grupo.getAlumnosGrupo() == null || grupo.getAlumnosGrupo().isEmpty()) {
+            return;
+        }
+        AlumnoGrupoService alumnoGrupoService =
+                (AlumnoGrupoService) modelServiceFactory.resolve(AlumnoGrupo.class);
+        for (AlumnoGrupo alumnoGrupo : grupo.getAlumnosGrupo()) {
+            alumnoGrupo.setGrupo(grupo);
+            alumnoGrupoService.validateInsert(alumnoGrupo)
+                    .ifPresent(BusinessMessages::throwIfInvalid);
+        }
     }
 
     @Override
@@ -113,6 +176,10 @@ public class GrupoServiceImpl extends DefaultModelService<Grupo> implements Grup
         // V-Grupo-003 (VAL-003, RES-001): nombre único por centro + curso académico.
         // Centro/curso académico EFECTIVOS calculados aquí (no dependemos del orden de fireActionRule):
         // supervisor -> los del centro activo del servidor; admin -> los del bean.
+        // En el alta Axelor (Resource.save -> JPA.manage) YA ha persistido el bean y le ha asignado id
+        // por secuencia ANTES de que corra validateInsert, así que grupo.getId() es NO nulo. Por eso se
+        // excluye con existeOtroGrupoConNombre(...): el auto-flush de Hibernate haría que el finder se
+        // encontrara a sí mismo (falso positivo de duplicado) si no se excluyera la propia fila.
         User usuario = SecurityUtil.getUser();
         Centro centroEfectivo;
         Integer cursoAcademicoEfectivo;
@@ -123,7 +190,7 @@ public class GrupoServiceImpl extends DefaultModelService<Grupo> implements Grup
             centroEfectivo = grupo.getCentro();
             cursoAcademicoEfectivo = grupo.getCursoAcademico();
         }
-        if (existeGrupoConNombre(grupo.getNombre(), centroEfectivo, cursoAcademicoEfectivo)) {
+        if (existeOtroGrupoConNombre(grupo.getNombre(), centroEfectivo, cursoAcademicoEfectivo, grupo.getId())) {
             return Optional.of(BusinessMessages.single(
                     I18n.get("Ya existe un grupo con ese nombre en este centro y curso académico")));
         }
@@ -186,17 +253,12 @@ public class GrupoServiceImpl extends DefaultModelService<Grupo> implements Grup
     }
 
     /**
-     * V-Grupo-003 (VAL-003, RES-001): ¿existe algún grupo con ese nombre en ese centro + curso
-     * académico? Usa el finder del repositorio (k-secure-coding §5, sin JPQL inline en el servicio).
-     */
-    private boolean existeGrupoConNombre(String nombre, Centro centro, Integer cursoAcademico) {
-        return existeOtroGrupoConNombre(nombre, centro, cursoAcademico, null);
-    }
-
-    /**
-     * V-Grupo-005 (VAL-005, RES-001): ¿existe OTRO grupo (id distinto) con ese nombre en ese centro +
-     * curso académico? Usa el finder del repositorio (devuelve un único Grupo o null) y excluye el
-     * propio id. En alta el id es null, así que cualquier match con id no nulo cuenta como duplicado.
+     * V-Grupo-003 / V-Grupo-005 (VAL-003/VAL-005, RES-001): ¿existe OTRO grupo (id distinto) con ese
+     * nombre en ese centro + curso académico? Usa el finder del repositorio (devuelve un único Grupo o
+     * null) y excluye el propio id. Tanto en alta como en modificación Axelor persiste el bean
+     * (Resource.save -> JPA.manage) ANTES de validar, así que su id ya es NO nulo cuando corre la
+     * validación; pasar ese id excluye la propia fila auto-volcada por el auto-flush de Hibernate y
+     * evita el falso positivo de duplicado.
      */
     private boolean existeOtroGrupoConNombre(String nombre, Centro centro, Integer cursoAcademico, Long id) {
         Grupo existente = ((GrupoRepository) repository)
@@ -214,13 +276,15 @@ public class GrupoServiceImpl extends DefaultModelService<Grupo> implements Grup
                 "nombre", Map.of(),
                 "curso", Map.of(),
                 "centro", Map.of(),
-                "cursoAcademico", Map.of()));
+                "cursoAcademico", Map.of(),
+                "alumnosGrupo", Map.of("alumno", Map.of())));
     }
 
     @Override
     public AllowProperties allowPropertiesUpdate() {
         return AllowProperties.createAllowProperties(Map.of(
-                "nombre", Map.of()));
+                "nombre", Map.of(),
+                "alumnosGrupo", Map.of("alumno", Map.of())));
     }
 
     @Override
@@ -267,6 +331,35 @@ public class GrupoServiceImpl extends DefaultModelService<Grupo> implements Grup
         for (CursoModulo cursoModulo : grupo.getCurso().getModulos()) {
             moduloGrupoService.insert(new ModuloGrupoInsertDTO(grupo, cursoModulo.getModulo()));
         }
+    }
+
+    /**
+     * R-AlumnoGrupo-001 / RN-005 (red de seguridad idempotente): tras persistir el grupo, crea la
+     * Nota NO_EVALUADO que falte para cada par (móduloGrupo, alumnoGrupo) del grupo. Se ejecuta en un
+     * punto en el que AMBAS colecciones (módulos y alumnos) ya están persistidas, por lo que cubre
+     * tanto el alta del grupo como el alta incremental de alumnos/módulos. Idempotente: no duplica las
+     * notas ya existentes (respeta la unique-constraint moduloGrupo+alumnoGrupo). El estado NO_EVALUADO
+     * y la fijación de móduloGrupo/alumnoGrupo los pone NotaServiceImpl.insert vía el DTO (whitelist).
+     */
+    private void fireActionRule_GenerarNotasNoEvaluadoFaltantes(Grupo grupo) {
+        NotaService notaService = (NotaService) modelServiceFactory.resolve(Nota.class);
+        List<ModuloGrupo> modulos = moduloGrupoRepository.findByGrupo(grupo);
+        List<AlumnoGrupo> alumnos = alumnoGrupoRepository.findByGrupo(grupo);
+        Set<String> pares = new HashSet<>();
+        for (Nota nota : notaRepository.findByGrupo(grupo)) {
+            pares.add(claveNota(nota.getModuloGrupo().getId(), nota.getAlumnoGrupo().getId()));
+        }
+        for (ModuloGrupo moduloGrupo : modulos) {
+            for (AlumnoGrupo alumnoGrupo : alumnos) {
+                if (!pares.contains(claveNota(moduloGrupo.getId(), alumnoGrupo.getId()))) {
+                    notaService.insert(new NotaInsertDTO(moduloGrupo, alumnoGrupo));
+                }
+            }
+        }
+    }
+
+    private String claveNota(Long moduloGrupoId, Long alumnoGrupoId) {
+        return moduloGrupoId + "-" + alumnoGrupoId;
     }
 
     /**

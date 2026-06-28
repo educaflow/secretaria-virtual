@@ -77,11 +77,11 @@
 
 
     <!-- Notas → Grupos (pantalla del supervisor): visible si el usuario es SUPERVISOR -->
-    <menuitem name="notas-menuitem" title="Notas" order="35" if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'SUPERVISOR' }"/>
-    <menuitem name="notas-grupos-menuitem" parent="notas-menuitem" title="Grupos" action="sysGruposNotas.Grupo@Supervisor-action" if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'SUPERVISOR' }" order="1"/>
+    <menuitem name="notas-menuitem" title="Notas" order="35" groups="users,admins" if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'SUPERVISOR' }"/>
+    <menuitem name="notas-grupos-menuitem" parent="notas-menuitem" title="Grupos" action="sysGruposNotas.Grupo@Supervisor-action" groups="users,admins" if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'SUPERVISOR' }" order="1"/>
 
     <!-- Mis notas (pantalla del alumno): visible si el usuario es ALUMNO -->
-    <menuitem name="misNotas-menuitem" title="Mis notas" order="36" action="sysGruposNotas.AlumnoGrupo@MisNotas-action" if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'ALUMNO' }"/>
+    <menuitem name="misNotas-menuitem" title="Mis notas" order="36" action="sysGruposNotas.AlumnoGrupo@MisNotas-action" groups="users,admins" if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'ALUMNO' }"/>
 
 
 </object-views>
