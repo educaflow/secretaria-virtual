@@ -1,6 +1,6 @@
 ---
 name: sdd-specification
-description: Crea, mejora o revisa de forma interactiva una especificación funcional en lenguaje de negocio del proyecto EducaFlow, conversando con el usuario en lenguaje natural (diálogo de ida y vuelta, sin formularios de respuesta fija). La historia de usuario va embebida dentro de la propia spec (no se lee de ningún fichero externo). Se puede invocar varias veces sobre la misma spec. Al invocarlo pregunta si crear una spec nueva, refinar la última o elegir otra existente; y sobre una spec ya creada pregunta SIEMPRE si además quieres que haga un review (validar formato, estructura, numeración y coherencia) aparte de seguir mejorando el contenido. La spec es multi-fichero: un índice más los ficheros secundarios que las plantillas definen. Su forma, apartados, identificadores y reglas de contenido los fija la guía `template-system/README.md` (configurable con `--template-dir`): es el único fichero de plantilla que el skill conoce por nombre y que declara el resto del conjunto, no este skill. Es el paso del pipeline SDD cuya salida consume `/sdd-designer`: los escenarios de la spec son la semilla de los tests E2E y los identificadores que define la plantilla permiten al diseño comprobar que están todos.
+description: Crea, mejora o revisa de forma interactiva una especificación funcional en lenguaje de negocio del proyecto EducaFlow, conversando con el usuario en lenguaje natural (diálogo de ida y vuelta, sin formularios de respuesta fija). La historia de usuario va embebida dentro de la propia spec (no se lee de ningún fichero externo). Se puede invocar varias veces sobre la misma spec. Al invocarlo pregunta si crear una spec nueva, refinar la última o elegir otra existente; y sobre una spec ya creada pregunta SIEMPRE si además quieres que haga un review (validar formato, estructura, numeración y coherencia) aparte de seguir mejorando el contenido. La spec es multi-fichero: un índice más los ficheros secundarios que las plantillas definen. Su forma, apartados, identificadores y reglas de contenido los fija la guía `template-system/README.md` (configurable con `--template-dir`): es el único fichero de plantilla que el skill conoce por nombre y que declara el resto del conjunto, no este skill. Es el paso del pipeline SDD cuya salida consume `/sdd-designer`: los escenarios de la spec son la semilla de los tests E2E y los identificadores que define la plantilla permiten al diseño comprobar que están todos. Opcionalmente, captura aparte en un fichero hermano `design-guidelines.md` (NO es la spec) las pistas técnicas/de diseño que surjan en la conversación, como input opcional de `/sdd-designer`.
 handoffs:
   - label: Generar el diseño a partir de la spec
     agent: sdd-designer
@@ -34,7 +34,7 @@ You **MUST** consider the user input before proceeding (if not empty). Interpret
 2. **Explorar** el contexto del proyecto (Fase 1) — `k-sistemas`, subsistemas reales, infraestructura.
 3. **Mejorar** (Fase 2) — preguntar al usuario en rondas, **sin límite**, y (re)generar el contenido.
 4. **Revisar** (Fase 3) — validar formato, estructura, prohibiciones y coherencia; corregir lo mecánico, preguntar lo ambiguo.
-5. **Guardar e informar** (Fase 4) — el fichero índice + los ficheros secundarios que define la plantilla, en `.sdd/drafts/{iniciativa}/` + informe de cambios.
+5. **Guardar e informar** (Fase 4) — el fichero índice + los ficheros secundarios que define la plantilla, en `.sdd/drafts/{iniciativa}/`, más (si surgieron) el fichero hermano opcional `design-guidelines.md` + informe de cambios.
 
 **STOP conditions**:
 
@@ -59,6 +59,8 @@ La especificación **no es un único fichero**: es un **conjunto de ficheros** e
 
 **Único contrato fijo (no lo cambia `--template-dir`):** el fichero índice se llama `specification.md` y lleva frontmatter `type: specification`. Es lo que el skill usa para **localizar y validar** una spec existente y lo que consume `/sdd-designer`; el README puede redefinir el resto de la estructura interna, pero **no** el nombre ni el frontmatter del índice.
 
+**Salida adicional OPCIONAL — `design-guidelines.md` (NO es la spec).** Además de los ficheros de la spec, el skill puede producir **un** fichero hermano `design-guidelines.md` (nombre fijo, frontmatter `type: design-guidelines`) en la **misma carpeta de la iniciativa**. **No forma parte de la especificación** y **no lo define `template-system/README.md`**: es un **segundo contrato fijo**, paralelo al índice, que captura las **pistas técnicas / de diseño** surgidas en la conversación (clases o subsistemas a reutilizar, mecanismos obligatorios, patrones a evitar, skills de calidad a aplicar, decisiones de iniciativas previas a respetar) para que las consuma `/sdd-designer` como input opcional. Es exactamente el **destino de todo lo que §2.3 prohíbe meter en la spec**: ahí el vocabulario técnico **SÍ** se admite. Su captura está en §6.3 y su escritura en §8 (paso 4). **Solo se crea si hay al menos una guía**; si no surge ninguna pista de diseño, no se escribe. El usuario puede además crearlo/editarlo a mano: en modo «refinar» el skill **MUST** respetar y conservar su contenido previo.
+
 > **Carpeta de plantillas (configurable).** El README y todo el material que referencia viven en la **carpeta de plantillas**, que por defecto es `template-system/` (dentro de la carpeta de este skill) pero puede redirigirse a cualquier otra con `--template-dir=<ruta>` (Apéndice A) — así el mismo skill sirve para otros conjuntos de plantilla sin tocar su código. **En todo el resto del skill, `template-system/README.md` se resuelve contra esa carpeta** (la de `--template-dir=` si se indicó, o `template-system/` si no), y las rutas que el README mencione se resuelven dentro de ella.
 
 > **Nota sobre plantillas externas.** `k-skill` §6.5 exige embeber las plantillas literalmente en el `SKILL.md`. Aquí se mantienen en la carpeta de plantillas (por defecto `template-system/`) por tamaño y para que este `SKILL.md` sea **independiente del contenido de la plantilla** (cambiarla, o apuntar a otra distinta, no obliga a tocar el skill). El skill lee el README con `Read`: el efecto sobre el modelo es equivalente al embebido directo.
@@ -70,7 +72,8 @@ La especificación **no es un único fichero**: es un **conjunto de ficheros** e
 └── drafts/
     └── YYYY-MM-DD_HH-MM_{resumen-kebab-case}/   ← carpeta de la iniciativa
         ├── specification.md                     ← índice; único con frontmatter (type: specification)
-        └── <ficheros secundarios>               ← nombres y cardinalidad: los declara template-system/README.md
+        ├── <ficheros secundarios>               ← nombres y cardinalidad: los declara template-system/README.md
+        └── design-guidelines.md                 ← OPCIONAL, NO es la spec (type: design-guidelines); solo si surgen guías
 ```
 
 ---
@@ -109,7 +112,8 @@ La especificación describe **QUÉ necesita el negocio**. Lo que va en cada apar
 - **Regla práctica:** ¿el negocio cambiaría su decisión si el framework subyacente fuera distinto? Si **no**, va al diseño, no a la spec.
 - **Frontera con el diseño:** la spec clasifica y numera sus elementos con los identificadores que define `template-system/README.md`, pero **MUST NOT** convertirlos a otra taxonomía de reglas, decidir tipos de campo ni ubicar reglas en clases concretas: eso es trabajo de `/sdd-designer`.
 - **Excepción de seguridad — `AllowProperties`:** el término `AllowProperties` SÍ se admite en la spec, allí donde la plantilla lo prevea (`template-system/README.md`). Es el único concepto técnico nombrado, porque expresa una defensa de negocio (anti mass-assignment) en lenguaje funcional: qué propiedades puede enviar la interfaz por acción.
-- **Prohibiciones — MUST NOT** aparecer en ningún apartado:
+- **Válvula de escape — `design-guidelines.md` (no se pierde, pero NO va en la spec):** si en la conversación surge una **restricción técnica o decisión de diseño** del usuario (reutilizar una clase/servicio/subsistema concreto, un mecanismo obligatorio, un patrón a evitar, aplicar un skill de calidad, respetar decisiones de una iniciativa previa), **MUST NOT** meterla en la spec —las prohibiciones de abajo siguen vigentes—, pero **MUST NOT** perderla: anótala en el fichero hermano `design-guidelines.md` (captura en §6.3, escritura en §8). Ahí **SÍ** se admite el vocabulario técnico, porque ese fichero es input del **diseño**, no de la spec.
+- **Prohibiciones — MUST NOT** aparecer en ningún apartado **de la spec** (índice ni ficheros secundarios; **NO** aplican a `design-guidelines.md`):
   - Tipos Java (`String`, `LocalDateTime`, `Integer`, `boolean`, `Long`).
   - FQN `com.educaflow.*` o nombres de clase (`*Service`, `*Controller`, `*Impl`).
   - Tipos del framework Axelor (`ActionRequest`, `ActionResponse`, `ModelService`, `@Inject`, `@CallMethod`).
@@ -151,7 +155,7 @@ Los prefijos, el formato y el ámbito de numeración de los IDs los define `temp
 │  Fase 1  Exploración del contexto del proyecto                      │
 │  Fase 2  Mejorar — preguntas iterativas + (re)generación            │
 │  Fase 3  Revisar — validación y corrección                          │
-│  Fase 4  Guardar e informar                                         │
+│  Fase 4  Guardar e informar (+ design-guidelines.md si hubo guías)  │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -252,11 +256,26 @@ Cuando cierres las dudas, escribe/actualiza la spec (todos sus ficheros):
 7. **Aplica §2.1–§2.3**: lenguaje de negocio y prohibiciones transversales en **todos** los ficheros (índice y secundarios).
 8. En modo "refinar", parte del contenido actual y aplica solo los cambios acordados, conservando lo demás. Un elemento nuevo añade su fichero secundario y su entrada en el índice; uno eliminado borra su fichero y su entrada. Los elementos nuevos toman el siguiente número libre de su prefijo; los borrados dejan hueco (§2.5).
 
+### 6.3 Capturar guías de diseño (`design-guidelines.md`)
+
+Mientras conversas, **MUST** vigilar las afirmaciones del usuario que **no son de negocio sino de diseño/implementación** y que ayudarían al diseñador. Son la **válvula de escape** de §2.3: en vez de meterlas en la spec (prohibido) o perderlas, se acumulan como **candidatas a guía de diseño** para el fichero hermano `design-guidelines.md`. Ejemplos de pista de diseño:
+
+- «esto reutiliza la clase / el servicio / el subsistema X», «debe integrarse con Y de esta forma».
+- «usad el mecanismo Z», «no uséis el patrón W», «aplicad el skill `k-code-quality`».
+- «respetad las decisiones de la iniciativa archivada `…`».
+
+Reglas:
+
+- **MUST NOT** meter esas pistas en la spec (§2.3); **acumúlalas** aparte para la Fase 4.
+- **CRITICAL — MUST NOT inventar guías técnicas por tu cuenta.** El fichero recoge **decisiones del usuario**, no diseño que tú decidas: no propongas clases, mecanismos ni patrones que el usuario no haya pedido. Si no surge ninguna pista, **no habrá** `design-guidelines.md`.
+- Cuando una pista sea ambigua o no sepas si es una decisión firme, **pregúntalo en prosa** (sin `AskUserQuestion`, una pregunta por mensaje como cualquier otra de la Fase 2): p. ej. *«Has dicho que esto reutiliza el importador existente; ¿lo dejo como guía de diseño para el diseñador?»*.
+- En modo «refinar», parte del `design-guidelines.md` existente (si lo hay, lo haya escrito el skill o el usuario a mano): **añade** las guías nuevas y **conserva** las anteriores salvo que el usuario pida quitar alguna.
+
 ---
 
 ## 7. Fase 3 — Revisar (validación y corrección)
 
-Se ejecuta siempre en spec nueva (puerta de calidad) y, en spec existente, si el usuario lo pidió en la Fase 0. Trabaja sobre la spec **en su estado actual** (la recién generada en Fase 2 o la existente), incluidos **todos** sus ficheros (índice y secundarios). **REQUIRED**: si no se leyó en la Fase 2, lee la guía `template-system/README.md` (y, siguiendo lo que indique, las plantillas y el ejemplo que referencie) antes de validar — todas las validaciones de abajo se contrastan contra `template-system/README.md` y las plantillas que él declare, **no** contra una estructura fija memorizada. **MUST** preservar la intención: corrige lo mecánico, pregunta lo ambiguo (principio 2.4).
+Se ejecuta siempre en spec nueva (puerta de calidad) y, en spec existente, si el usuario lo pidió en la Fase 0. Trabaja sobre la spec **en su estado actual** (la recién generada en Fase 2 o la existente), incluidos **todos** sus ficheros (índice y secundarios). **`design-guidelines.md` NO se valida aquí**: no es parte de la spec, así que las validaciones de abajo (estructura, prohibiciones §2.3, identificadores) **MUST NOT** aplicársele. **REQUIRED**: si no se leyó en la Fase 2, lee la guía `template-system/README.md` (y, siguiendo lo que indique, las plantillas y el ejemplo que referencie) antes de validar — todas las validaciones de abajo se contrastan contra `template-system/README.md` y las plantillas que él declare, **no** contra una estructura fija memorizada. **MUST** preservar la intención: corrige lo mecánico, pregunta lo ambiguo (principio 2.4).
 
 ### 7.1 Validaciones, en este orden
 
@@ -315,6 +334,20 @@ type: specification
 ```
 
 3. Los ficheros secundarios **MUST NOT** llevar frontmatter: empiezan directamente por su título, como indique `template-system/README.md`.
+4. **`design-guidelines.md` (OPCIONAL, fuera de la spec):** si en la Fase 2 (§6.3) se acumuló **al menos una** guía de diseño, escribe `design-guidelines.md` en la carpeta de la iniciativa con `Write`. Si **no** se acumuló ninguna, **MUST NOT** crear el fichero. Reglas:
+   - Empieza **siempre** con el frontmatter `type: design-guidelines` y, debajo, las guías como **lista de viñetas** en lenguaje libre — aquí **SÍ** se admite vocabulario técnico (clases, subsistemas, mecanismos, patrones, skills):
+
+     ```
+     ---
+     type: design-guidelines
+     ---
+
+     - <guía de diseño 1>
+     - <guía de diseño 2>
+     ```
+
+   - **MUST NOT** enlazarlo desde el índice ni numerar sus guías con IDs de la spec (`HU-`, `VAL-`, …): no es parte de la spec.
+   - En modo «refinar», si el fichero ya existía (lo escribiera el skill o el usuario a mano), reescríbelo **conservando** las guías previas y **añadiendo** las nuevas, sin duplicar. Si no hubo ninguna guía nueva ni cambio, **MUST NOT** reescribirlo.
 
 ### 8.1 Informe de cierre
 
@@ -324,6 +357,7 @@ Si hubo review, incluye el resumen de cambios:
 Especificación funcional guardada en .sdd/drafts/{carpeta-iniciativa}/
   - {índice}
   - {ficheros secundarios} (N)
+  - design-guidelines.md (N guías)   ← solo esta línea si se creó/actualizó
 
 Review:
   - Correcciones mecánicas aplicadas (N): <lista corta>
@@ -354,6 +388,7 @@ specification.md ya está conforme. No se ha modificado nada.
 - La spec es **multi-fichero**: un índice (`specification.md`, único con frontmatter) más los ficheros secundarios. **CRITICAL — toda la estructura la define `template-system/README.md`, no este skill**: número y nombres de fichero, apartados, prefijos y ámbito de los identificadores, clasificación de reglas, `AllowProperties` y el ejemplo se leen del README (y de lo que el README referencie); el skill lee **solo** el README por nombre y **MUST NOT** asumir ni dar por sabidos los demás ficheros, para servir con cualquier `--template-dir`. **MUST NOT** copiar al output la guía ni el ejemplo, ni inventar apartados.
 - **IDs estables** (§2.5): nunca se renumeran; los huecos se conservan; con `design/` hermana, prohibido renumerar.
 - **MUST NOT** incluir las prohibiciones de §2.3 (tipos, FQN, JPQL, XML, métodos, otra taxonomía de reglas — la conversión técnica es del diseño). Única excepción técnica admitida: `AllowProperties`, allí donde la plantilla lo prevea.
+- **`design-guidelines.md` (válvula de escape, §6.3 + §8 paso 4):** las pistas **técnicas/de diseño** que el usuario suelte en la conversación **no** van en la spec pero **no se pierden**: se acumulan y se escriben en el fichero hermano opcional `design-guidelines.md` (nombre fijo, `type: design-guidelines`, **no** es la spec, **no** se enlaza ni numera, vocabulario técnico admitido). Solo se crea **si hay al menos una guía**; **MUST NOT** inventar guías que el usuario no pidió; en «refinar» se conservan las previas. Lo consume `/sdd-designer` como input opcional.
 - **Generación por agente único**: el agente principal escribe la spec directamente, **sin subagentes**, y la guarda sin pedir aprobación.
 
 ---
