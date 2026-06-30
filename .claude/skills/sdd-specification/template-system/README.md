@@ -90,6 +90,14 @@ Cada historia tiene **al menos un escenario** y cada escenario pertenece a exact
 
 Entre medias puede haber más pasos y **ramas condicionales** (*"si \<condición\> el sistema hace X; si no, hace Y y no hace Z"*). Un escenario con ramas puede dar lugar a **más de un test** en el diseño (uno por rama).
 
+**CRITICAL — usuarios y centros reales de los datos de demo.** Cuando un escenario nombre un usuario (para iniciar sesión, como destinatario, etc.) o un centro, **MUST** usar siempre los que están en `src/main/resources/data-demo/input/` (`centros-demo.xml` y `usuarios-demo.xml`); **MUST NOT** inventar centros, cuentas, logins ni DNI. Léelos antes de redactar los escenarios. De ahí salen:
+
+- Los **centros**: `CIPFP Mislata` (código `46019660`) y `CIPFP Batoi` (código `03012165`). Cuando un escenario necesite un **segundo centro** (pruebas multicentro), usa esos dos.
+- Las **cuentas de cada tipo de usuario y cargo**, cuyo **login es su correo** (p. ej. `supervisor1@mislata.es`, `alumno1@mislata.es`, `secretario@batoi.es`), todas con contraseña **`demo1234`**.
+- Los **DNI** reales de cada cuenta (el atributo `documento` del usuario; p. ej. `86862719E` para `alumno1@mislata.es`). Cuando un escenario use el DNI de una persona, **MUST** ser el DNI real de una cuenta de demo, no uno inventado.
+
+La **única** identidad admitida que no está en esos ficheros es el **administrador global** `admin` / `admin` (login `admin`, contraseña `admin`) para el actor Administrador, porque en los datos de demo no hay un administrador por centro. Solo se admite inventar valores que **no identifican** a ningún usuario ni centro (p. ej. una dirección de correo deliberadamente inválida para forzar un error de envío).
+
 **Formato:**
 
 ```
