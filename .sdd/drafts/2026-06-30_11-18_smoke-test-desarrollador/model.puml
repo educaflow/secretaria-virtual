@@ -1,0 +1,9 @@
+@startuml
+
+class SmokeTest {
+  + texto
+  + fecha de creación
+  + fecha de última modificación
+}
+
+@enduml

@@ -229,6 +229,7 @@
     <permission name="ModuloGrupo.all"/>
     <permission name="AlumnoGrupo.all"/>
     <permission name="Nota.all"/>
+    <permission name="SmokeTest.all"/>
   </group>
 
   <group code="users">
@@ -264,7 +265,6 @@
     <permission name="SearchExpedientes.all"/>
     <permission name="TareaFirma.firmante"/>
     <permission name="DocumentoFirma.propio"/>
-    <permission name="PdfUtilities.all"/>
     <permission name="RegistroEntrada.all"/>
     <permission name="RegistroSalida.all"/>
     <permission name="RegistroPendiente.all"/>

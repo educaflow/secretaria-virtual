@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- ***************************************************************************** -->
+    <!-- ****************************** SmokeTest : Vistas **************************** -->
+    <!-- ***************************************************************************** -->
+
+    <action-view name="subsysSmokeTest.SmokeTest@Main-action" title="Smoke test" model="com.educaflow.subsystem.smoketest.db.SmokeTest">
+        <view type="grid" name="subsysSmokeTest.SmokeTest@Main-grid"/>
+        <view type="form" name="subsysSmokeTest.SmokeTest@Main-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="forceEdit" value="true"/>
+    </action-view>
+
+    <!-- Listado de smoke tests: orden por fecha de creación descendente (más recientes
+         primero), búsqueda por texto, alta con "Nuevo", borrado de fila con "Eliminar". -->
+    <grid name="subsysSmokeTest.SmokeTest@Main-grid" title="" model="com.educaflow.subsystem.smoketest.db.SmokeTest"
+          groups="admins"
+          orderBy="-fechaCreacion" newButtonTitle="Nuevo" allowSearchFields="true"
+          canAdvanceSearch="false" canRefresh="false"
+          canNew="true" canDelete="true" canEdit="false" editable="false" edit-icon="false"
+          canEditOnClick="true">
+        <field name="texto"/>
+        <field name="fechaCreacion"/>
+        <field name="fechaUltimaModificacion"/>
+    </grid>
+
+    <!-- Formulario de smoke test: editable en alta y modificación. RUI-001
+         (U-smoke-test-001): las dos fechas son readonly (las fija el servidor). -->
+    <form name="subsysSmokeTest.SmokeTest@Main-form" title="Smoke test" model="com.educaflow.subsystem.smoketest.db.SmokeTest"
+          groups="admins"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+        <panel name="smokeTest" title="Smoke test">
+            <field name="texto" colSpan="6"/>
+            <field name="fechaCreacion" colSpan="3" readonly="true"/>
+            <field name="fechaUltimaModificacion" colSpan="3" readonly="true"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnSave" title="Guardar" onClick="subsysSmokeTest.SmokeTest@Main-btnSave-action" colSpan="2" colOffset="10"/>
+        </panel>
+    </form>
+
+    <!-- *************** SmokeTest : Acciones de las tareas principales *************** -->
+    <action-group name="subsysSmokeTest.SmokeTest@Main-btnSave-action">
+        <action name="subsysSmokeTest.SmokeTest@Main-Remote-validateSave-action"/>
+        <action name="save"/>
+    </action-group>
+
+    <!-- *************** SmokeTest : Acciones de Validaciones en local *************** -->
+
+    <!-- *************** SmokeTest : Acciones básicas que cambian campos simples *************** -->
+
+    <!-- *************** SmokeTest : Acciones de llamadas Remotas al servidor *************** -->
+    <action-method name="subsysSmokeTest.SmokeTest@Main-Remote-validateSave-action" model="com.educaflow.subsystem.smoketest.db.SmokeTest">
+        <call class="com.educaflow.subsystem.smoketest.controller.SmokeTestController" method="validateSave"/>
+    </action-method>
+
+</object-views>

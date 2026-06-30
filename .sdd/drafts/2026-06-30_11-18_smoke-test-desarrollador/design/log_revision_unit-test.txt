@@ -1,0 +1,3 @@
+# Verificación tests unitarios — iteración 1
+OK-CORRECTO
+

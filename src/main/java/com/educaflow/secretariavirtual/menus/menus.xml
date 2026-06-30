@@ -70,10 +70,20 @@
         <menuitem name="firmarDocumentos-pendientes-menuitem"  parent="firmarDocumentos-menuitem" title="Pendientes"  action="subsysFirma.TareaFirma@Pendiente-action"  order="2"/>
         <menuitem name="firmarDocumentos-firmados-menuitem"    parent="firmarDocumentos-menuitem" title="Firmados"    action="subsysFirma.TareaFirma@Firmado-action"    order="3"/>
         <menuitem name="firmarDocumentos-rechazados-menuitem"  parent="firmarDocumentos-menuitem" title="Rechazados"  action="subsysFirma.TareaFirma@Rechazado-action"  order="4"/>
-    <menuitem name="utilidadesPdf-menuitem"           title="Utilidades de PDF"    order="80" icon="picture_as_pdf"/>
-        <menuitem name="utilidadesPdf-informacion-menuitem"      parent="utilidadesPdf-menuitem" title="Información"          action="subsysPdfUtilities.PdfUtilities@Info-action"        order="1"/>
-        <menuitem name="utilidadesPdf-posicionesFirma-menuitem"     parent="utilidadesPdf-menuitem" title="Posiciones Firma"     action="subsysPdfUtilities.PdfUtilities@Firma-action"       order="2"/>
-        <menuitem name="utilidadesPdf-posicionAutofirma-menuitem" parent="utilidadesPdf-menuitem" title="Posición Autofirma__!!" action="subsysPdfUtilities.PdfUtilities@AutoFirma-action"  order="3"/>
+    <menuitem name="desarrollador-menuitem" title="Desarrollador" order="90" groups="admins"/>
+
+        <menuitem name="desarrollador-smokeTest-menuitem" parent="desarrollador-menuitem"
+                  title="Smoke test" action="subsysSmokeTest.SmokeTest@Main-action"
+                  groups="admins" order="1"/>
+
+        <menuitem name="utilidadesPdf-menuitem" parent="desarrollador-menuitem"
+                  title="Utilidades de PDF" groups="admins" order="2" icon="picture_as_pdf"/>
+            <menuitem name="utilidadesPdf-informacion-menuitem" parent="utilidadesPdf-menuitem"
+                      title="Información" action="subsysPdfUtilities.PdfUtilities@Info-action" groups="admins" order="1"/>
+            <menuitem name="utilidadesPdf-posicionesFirma-menuitem" parent="utilidadesPdf-menuitem"
+                      title="Posiciones Firma" action="subsysPdfUtilities.PdfUtilities@Firma-action" groups="admins" order="2"/>
+            <menuitem name="utilidadesPdf-posicionAutofirma-menuitem" parent="utilidadesPdf-menuitem"
+                      title="Posición Autofirma__!!" action="subsysPdfUtilities.PdfUtilities@AutoFirma-action" groups="admins" order="3"/>
 
 
     <!-- Notas → Grupos (pantalla del supervisor): visible si el usuario es SUPERVISOR -->

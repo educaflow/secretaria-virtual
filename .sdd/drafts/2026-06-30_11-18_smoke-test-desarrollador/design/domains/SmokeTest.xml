@@ -1,0 +1,21 @@
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="smoketest" package="com.educaflow.subsystem.smoketest.db"/>
+
+    <entity name="SmokeTest">
+        <!-- texto: origen cliente. RES-001 (texto obligatorio) NO se declara con
+             required="true": se valida en el servidor (V-SmokeTest-001) para emitir el
+             mensaje exacto "El texto es obligatorio" y garantizar que el rechazo lo da
+             el servidor (ESC-005). Ver design.md §Notas y supuestos. -->
+        <string name="texto" title="Texto" namecolumn="true"/>
+
+        <!-- fechaCreacion / fechaUltimaModificacion: origen servidor (CC-001 / CC-002).
+             Campos rellenados por el sistema en insert/update → SIN required="true"
+             (ver k-validaciones/modelos.md "Campos rellenados por el sistema"). -->
+        <datetime name="fechaCreacion" title="Fecha de creación"/>
+        <datetime name="fechaUltimaModificacion" title="Fecha de última modificación"/>
+    </entity>
+
+</domain-models>
