@@ -3,8 +3,8 @@ name: sdd-create-tests-e2e
 description: Paso del pipeline SDD posterior a `/sdd-debug-with-test-e2e-desc`. Dada una iniciativa cuya carpeta `test-e2e-desc/` ya está descompuesta y depurada (un índice `tests-e2e-desc.md` con checkbox por test + un `t-NNN-<slug>.desc.md` autocontenido por test), persiste como tests de regresión Playwright **solo los tests que pasaron** (`[x]`): copia cada `t-NNN-<slug>.desc.md` a `src/test/e2e/<iniciativa>/` como snapshot "as-tested" y genera su `t-NNN-<slug>.spec.ts` hermano, ejecutándolo contra la app real hasta que pasa. El skill es un MOTOR genérico y agnóstico al artefacto: aporta solo el flujo (localizar la iniciativa, cargar el contrato, seleccionar+copiar, arrancar la app, y por cada test generar→ejecutar→sanar) y delega TODO lo específico (cómo se genera el `.spec.ts`, el ciclo de login/logout, cómo se sana un test roto) en la guía `template-system/README.md` (configurable con `--template-dir`), que los subagentes leen como contrato. La salida son los pares `.desc.md` + `.spec.ts` bajo `src/test/e2e/<iniciativa>/` y el helper `src/test/e2e/_support/auth.ts`.
 handoffs:
   - label: Cerrar la iniciativa
-    agent: sdd-close-spec
-    prompt: Cerrar la iniciativa en .sdd/drafts/{carpeta-iniciativa}/ tras crear los tests E2E de regresión — archivar en .sdd/specs/ y actualizar los CLAUDE.md afectados.
+    agent: sdd-close
+    prompt: Cerrar la iniciativa en .sdd/drafts/{carpeta-iniciativa}/ tras crear los tests E2E de regresión — regenerar desde el código el CLAUDE.md + modelo.puml/png de cada sistema afectado y archivar el draft verbatim en .sdd/archive/.
 allowed-tools: Bash, Read, Write, Edit, Skill, AskUserQuestion, Agent, Monitor
 ---
 

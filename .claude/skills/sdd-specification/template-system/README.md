@@ -389,11 +389,16 @@ SolicitudCertificado "many" --> "1" TipoCertificado : tipo
 
 `model.png` es la imagen de `model.puml` y **MUST** obtenerse **siempre** renderizando el `.puml` con PlantUML, **nunca** dibujarse a mano. Se (re)renderiza cada vez que `model.puml` se crea o cambia.
 
-- En la **carpeta de la iniciativa** (donde está `model.puml`), ejecuta:
+- En la **carpeta de la iniciativa** (donde está `model.puml`), resuelve la **última** versión del jar de PlantUML del repositorio Maven local (`~/.m2`, ya presente porque `EducaFlowBuildTools` lo usa) y renderiza:
   ```bash
-  java -jar "$(find ~/.m2 -name 'plantuml-*.jar' ! -name '*-sources.jar' | head -1)" -tpng model.puml
+  PLANTUML_JAR=$(find ~/.m2/repository/net/sourceforge/plantuml/plantuml \
+    -name 'plantuml-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | sort -V | tail -1)
+  java -Djava.awt.headless=true -Djava.io.tmpdir="${TMPDIR:-/tmp}" \
+    -jar "$PLANTUML_JAR" -tpng model.puml
   ```
-- Si PlantUML no está disponible (no se encuentra el jar), **MUST NOT** fallar en silencio: conserva `model.puml` y **avisa al usuario** de que falta `model.png`.
+  - **CRITICAL — `-Djava.awt.headless=true`** es obligatorio: sin él PlantUML aborta buscando un servidor X11 (`Can't connect to X11 window server`).
+  - **CRITICAL — `-Djava.io.tmpdir="${TMPDIR:-/tmp}"`** es obligatorio: ImageIO escribe caché temporal y `/tmp` puede estar en solo lectura (sandbox) → `Can't create cache file!`.
+- Si PlantUML no está disponible (`PLANTUML_JAR` vacío) o el render falla, **MUST NOT** fallar en silencio: conserva `model.puml` y **avisa al usuario** de que falta `model.png`.
 
 ---
 

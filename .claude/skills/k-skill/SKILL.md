@@ -117,7 +117,7 @@ description: <una frase que diga qué cubre y cuándo aplicar este skill>
 
 Ejecutan un **proceso multi-fase**: leen artefactos, hacen preguntas, generan ficheros, invocan subagentes, validan resultados.
 
-**Ejemplos**: `sdd-specification`, `sdd-analyst-system`, `sdd-designer`, `sdd-implementer`, `sdd-close-spec`, `code-implementer`, `code-reviewer`.
+**Ejemplos**: `sdd-specification`, `sdd-analyst-system`, `sdd-designer`, `sdd-implementer`, `sdd-close`, `code-implementer`, `code-reviewer`.
 
 **Estructura mínima OBLIGATORIA** (inspirada en `github/spec-kit`):
 
@@ -125,10 +125,6 @@ Ejecutan un **proceso multi-fase**: leen artefactos, hacen preguntas, generan fi
 ---
 name: <nombre-skill>
 description: <una frase larga que diga qué hace, entrada esperada, salida producida>
-handoffs:                                    # opcional pero RECOMENDADO
-  - label: <Acción siguiente legible>
-    agent: <nombre del skill siguiente>
-    prompt: <prompt sugerido para esa invocación>
 ---
 
 # <nombre-skill>
@@ -195,7 +191,6 @@ $ARGUMENTS
 
 | Campo | Cuándo se usa |
 |-------|---------------|
-| `handoffs` | En action-skills que tienen un "siguiente paso" claro en un pipeline. Cada handoff lleva `label`, `agent` y `prompt`. El `prompt` **MUST** incluir la ruta del artefacto de entrada (con placeholder `{carpeta-iniciativa}` si no se conoce de antemano) — un handoff sin ruta hace que el skill destino auto-detecte "la última carpeta", que puede no ser la iniciativa trabajada. |
 | `allowed-tools` | En action-skills que quieren restringir las herramientas disponibles. Lista **separada por comas** de tools, con scoping opcional: `Bash(xmllint:*)`, `Write(.sdd/**)`, `Edit(tests/**)`, `Read`, `Skill`, `Agent`. **MUST** incluir todas las herramientas que el cuerpo del skill ordena usar (si el cuerpo manda editar un fichero, `Edit(...)` debe estar en la lista). |
 
 ### 4.3 Ejemplos ✅/❌

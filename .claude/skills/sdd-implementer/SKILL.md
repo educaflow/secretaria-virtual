@@ -1,15 +1,15 @@
 ---
 name: sdd-implementer
-description: Cuarto paso del pipeline SDD. Dado un `design.md` (`type: design`) producido por `/sdd-designer`, convierte el diseño en código real dentro del proyecto. El skill es un MOTOR genérico y agnóstico al artefacto: aporta solo el flujo (localizar la iniciativa, cargar el contrato, lanzar un subagente descomponedor que escribe las tareas, lanzar un subagente implementador por tarea que materializa el código, y verificar/corregir la compilación en bucle) y delega TODO lo específico de la implementación en la guía `template-system/README.md` (configurable con `--template-dir`), que los subagentes leen como contrato. No sabe nada de cómo se descompone ni se materializa el diseño; cambiar `--template-dir` a otra plantilla cambia por completo qué y cómo se implementa sin tocar este skill. La salida es código en `src/main/...` y `src/test/...` listo para `/sdd-close-spec`.
+description: Cuarto paso del pipeline SDD. Dado un `design.md` (`type: design`) producido por `/sdd-designer`, convierte el diseño en código real dentro del proyecto. El skill es un MOTOR genérico y agnóstico al artefacto: aporta solo el flujo (localizar la iniciativa, cargar el contrato, lanzar un subagente descomponedor que escribe las tareas, lanzar un subagente implementador por tarea que materializa el código, y verificar/corregir la compilación en bucle) y delega TODO lo específico de la implementación en la guía `template-system/README.md` (configurable con `--template-dir`), que los subagentes leen como contrato. No sabe nada de cómo se descompone ni se materializa el diseño; cambiar `--template-dir` a otra plantilla cambia por completo qué y cómo se implementa sin tocar este skill. La salida es código en `src/main/...` y `src/test/...` listo para `/sdd-close`.
 handoffs:
   - label: Cerrar la iniciativa
-    agent: sdd-close-spec
-    prompt: Cerrar la iniciativa recién implementada en .sdd/drafts/{carpeta-iniciativa}/ — archivar en .sdd/specs/ y actualizar los CLAUDE.md afectados.
+    agent: sdd-close
+    prompt: Cerrar la iniciativa recién implementada en .sdd/drafts/{carpeta-iniciativa}/ — regenerar desde el código el CLAUDE.md + modelo.puml/png de cada sistema afectado y archivar el draft verbatim en .sdd/archive/.
 ---
 
 # sdd-implementer
 
-Eres un **motor de implementación** del pipeline SDD: transformas un **plan de diseño** en **código real** dentro del proyecto. La entrada la produce `/sdd-designer` y la salida la cierra `/sdd-close-spec`.
+Eres un **motor de implementación** del pipeline SDD: transformas un **plan de diseño** en **código real** dentro del proyecto. La entrada la produce `/sdd-designer` y la salida la cierra `/sdd-close`.
 
 **CRITICAL — eres agnóstico al artefacto.** Este `SKILL.md` define **solo el flujo y la orquestación de agentes**. **No sabe nada de cómo es el diseño ni de cómo se implementa** (ni qué ficheros contiene `design/`, ni cómo se agrupan las tareas, ni cómo se materializa un XML o un `.java`, ni con qué comando se compila): **todo eso lo declara la guía `template-system/README.md`**, que los subagentes leen como contrato. **MUST NOT** asumir de memoria ningún detalle de la implementación; **MUST NOT** nombrar ficheros, plantillas, comandos ni rutas concretas de la implementación en este skill. Así, apuntar `--template-dir` a otra carpeta de plantillas con un README distinto cambia por completo lo que se implementa **sin tocar este skill**.
 
@@ -44,7 +44,7 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 4. **Fase 3 — Informar**: mostrar el resumen de tareas (**informativo, sin bloquear**) y continuar automáticamente (§8).
 5. **Fase 4 — Implementar**: lanzar **un subagente implementador por tarea**, en orden, que materializa cada tarea en el árbol del proyecto (§9).
 6. **Fase 5 — Verificar/corregir el build**: bucle subagente **verificador-build** → (si falla) subagente **corrector-build**, hasta `OK-COMPILA` (**LIMIT** 20 iteraciones) (§10).
-7. **Fase 6 — Cerrar** con mensaje al usuario y handoff a `/sdd-close-spec` (§11).
+7. **Fase 6 — Cerrar** con mensaje al usuario y handoff a `/sdd-close` (§11).
 
 **STOP conditions**:
 
@@ -69,9 +69,9 @@ El **diseño** de la iniciativa, cuyo índice es `design.md` (único fichero de 
 
 Este skill produce salida en tres sitios:
 
-- En `.sdd/drafts/{iniciativa}/implementation/`: la lista de tareas y los ficheros de contrato hacia abajo (los consumen `/sdd-debug-with-test-e2e-desc` y `/sdd-close-spec`). **Su estructura interna la define la plantilla**, no este skill.
+- En `.sdd/drafts/{iniciativa}/implementation/`: la lista de tareas y los ficheros de contrato hacia abajo (los consumen `/sdd-debug-with-test-e2e-desc` y `/sdd-close`). **Su estructura interna la define la plantilla**, no este skill.
 - En el **árbol del proyecto** (`src/main/...`, `src/test/...`): el código real (XML materializados colocados/fusionados, código Java y tests) que escriben los subagentes implementadores.
-- En la conversación: un mensaje final indicando que la implementación está completa y el siguiente paso (`/sdd-close-spec`).
+- En la conversación: un mensaje final indicando que la implementación está completa y el siguiente paso (`/sdd-close`).
 
 **CRITICAL — la estructura interna de `implementation/` y la del árbol de salida las define `template-system/README.md`, no este skill.** El skill **MUST NOT** asumir esos detalles de memoria; solo orquesta los subagentes que las producen.
 
@@ -145,7 +145,7 @@ Todo lo específico de la implementación (qué contiene el diseño, cómo se de
 │              sí  → fin                          a log_build.txt)    │
 │              no  → corrector-build(errores) → repetir               │
 │                      └ DESIGN-ERROR → error_design.log + STOP       │
-│  Fase 6  Mensaje de cierre al usuario (handoff a /sdd-close-spec)   │
+│  Fase 6  Mensaje de cierre al usuario (handoff a /sdd-close)   │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -381,16 +381,16 @@ Los artefactos del draft se mantienen en .sdd/drafts/{carpeta-iniciativa}/ — n
 Si la plantilla propagó tests E2E a implementation/, puedes ejecutarlos contra la aplicación real con /sdd-debug-with-test-e2e-desc.
 
 Para cerrar la iniciativa (archivar en .sdd/specs/ y actualizar los CLAUDE.md afectados) ejecuta:
-  /sdd-close-spec
+  /sdd-close
 ```
 
 Ajusta la lista de ficheros a la estructura real que define la plantilla.
 
 **CRITICAL**: si la Fase 5 acabó sin compilación limpia (bug irresoluble o elección del usuario), **MUST** decirlo explícitamente:
 
-> Atención: el proyecto no compila limpio tras 20 iteraciones. Revisa `implementation/log_build.txt` antes de lanzar `/sdd-close-spec`, o relanza este skill tras corregir el diseño.
+> Atención: el proyecto no compila limpio tras 20 iteraciones. Revisa `implementation/log_build.txt` antes de lanzar `/sdd-close`, o relanza este skill tras corregir el diseño.
 
-**MUST NOT** lanzar `/sdd-close-spec` tú mismo: el usuario decide cuándo.
+**MUST NOT** lanzar `/sdd-close` tú mismo: el usuario decide cuándo.
 
 ---
 
@@ -405,7 +405,7 @@ Ajusta la lista de ficheros a la estructura real que define la plantilla.
 - **Error de diseño** (§9.1): si un implementador o un corrector-build devuelve `DESIGN-ERROR` (el problema está en el diseño y no se arregla con código), el motor escribe `implementation/error_design.log` con la explicación detallada y **detiene el skill sin preguntar**. **MUST NOT** editar el diseño para forzar que cuadre; corregirlo es trabajo de `/sdd-designer`.
 - **Verificar/corregir el build** (§10): bucle verificador-build → corrector-build hasta `OK-COMPILA` (**LIMIT** 20; tras la 20ª o si los errores se repiten, **STOP** y `AskUserQuestion`). El verificador-build compila (comando de la plantilla) y reporta en **JSONL** (`id`/`tipo`/`fichero`/`ubicacion`/`tarea`/`mensaje`/`correccion`); el motor lo vuelca a `implementation/log_build.txt`. Si el corrector-build devuelve `DESIGN-ERROR`, se aplica §9.1. El motor **MUST NOT** compilar él mismo (§2.2).
 - **Contrato de tokens** (§2.3): el skill compara por literal exacto — `ESCRITO: implementation/`, `DONE`/`CONFLICT`/`BLOCKED`/`DESIGN-ERROR`, `OK-COMPILA`. Los subagentes **MUST NOT** pegar el código en su respuesta (ya está en disco).
-- **MUST NOT** invocar `code-implementer` tú mismo ni lanzar `/sdd-close-spec`: el código lo escriben los implementadores; el cierre lo decide el usuario.
+- **MUST NOT** invocar `code-implementer` tú mismo ni lanzar `/sdd-close`: el código lo escriben los implementadores; el cierre lo decide el usuario.
 
 ---
 
