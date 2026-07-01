@@ -6,45 +6,51 @@ type: implementation-task
 
 ## Skills a usar
 Para hacer esta tarea vas a usar estos skills
-- k-sistemas
-- k-secure-coding
-- k-code-quality
+- k-vistas
 
-Esta tarea implementa el controlador `SmokeTestController`. Es código Java: se materializa a partir de las firmas y comentarios de este diseño.
+El fichero de vistas ya está materializado en la carpeta `design/`. **MUST NOT** modificarlo, reescribirlo ni regenerarlo: **cópialo verbatim** desde `design/views/SmokeTest.xml` a su ruta destino.
 
-Fila de la tabla "Ficheros a crear o modificar":
+---
+
+## Ficheros a crear o modificar
 
 | Fichero | Acción | Skill | Descripción |
 |---------|--------|-------|-------------|
-| `subsystem/smoketest/controller/SmokeTestController.java` | Crear | k-sistemas (controladores.md) | `validateSave` (pre-valida antes del `save`) |
+| `subsystem/smoketest/views/SmokeTest.xml` | Crear | k-vistas (grids.md, forms.md, actions.md) | Grid, formulario y acciones de SmokeTest |
 
-> Raíz de los ficheros del subsistema: `src/main/java/com/educaflow/subsystem/smoketest/`.
+Ruta destino completa: `src/main/java/com/educaflow/subsystem/smoketest/views/SmokeTest.xml`
 
-### Paso 4 — Controlador `SmokeTestController`
+---
 
-`com.educaflow.subsystem.smoketest.controller.SmokeTestController` (un controlador por entidad). Inyecta `@Inject private ModelServiceFactory modelServiceFactory;`.
+## Paso 3 — Vistas: SmokeTest.xml
 
-```java
-@CallMethod
-public void validateSave(ActionRequest actionRequest, ActionResponse actionResponse);
-//   Pre-validación del guardado para mostrar el error de negocio como modal ANTES de la acción `save`.
-//   - Resuelve el servicio: (SmokeTestService) modelServiceFactory.resolve(SmokeTest.class).
-//   - ActionRequestHelper<SmokeTest> sobre actionRequest; ActionResponseHelper sobre actionResponse.
-//   - original = actionRequestHelper.getOriginalModel().
-//   - Si actionRequestHelper.getId()==null  (alta):
-//       smokeTest = actionRequestHelper.getModel(smokeTestService.allowPropertiesInsert());
-//       validationResult = smokeTestService.validateInsert(smokeTest);
-//     Si no (modificación):
-//       smokeTest = actionRequestHelper.getModel(smokeTestService.allowPropertiesUpdate());
-//       validationResult = smokeTestService.validateUpdate(smokeTest, original);
-//   - Si validationResult.isPresent(): actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get()).
-//   Sin @Transactional (solo lee y valida; no persiste). Parámetros nombrados actionRequest/actionResponse.
-```
+Crear `src/main/java/com/educaflow/subsystem/smoketest/views/SmokeTest.xml`.
 
-> **MUST NOT** exponer `@CallMethod` para `insert`/`update`/`remove`: el guardado y el borrado usan las acciones de framework `save` y `delete` (controladores.md). `validateSave` es solo un hook de validación previo, igual que `LeyEducativaController.validateSave`. No se necesita `validateDelete` (el borrado no tiene reglas).
+El fichero materializado está en `design/views/SmokeTest.xml`. **Resumen estructural:**
 
-Verificar: la `<action-method>` de la vista referencia exactamente `com.educaflow.subsystem.smoketest.controller.SmokeTestController#validateSave`. `./run.sh` compila.
+- **`action-view` `subsysSmokeTest.SmokeTest@Main-action`** — abre el grid `@Main-grid` y el formulario `@Main-form`. Parámetros: `show-toolbar-form=false`, `forceEdit=true`.
 
-## Frontera de confianza — AllowProperties por acción
+- **Grid `subsysSmokeTest.SmokeTest@Main-grid`** — columnas: `texto`, `fechaCreacion`, `fechaUltimaModificacion`. Ordenación: `-fechaCreacion` (descendente, los más recientes primero, spec). `allowSearchFields="true"` para filtrar por texto. Los campos de fecha llevan `width="200px"` para acotar su columna al tamaño del formato datetime. Sin atributo `archived`.
 
-El único `@CallMethod` del diseño es `SmokeTestController.validateSave`, que pre-valida el guardado consumiendo `allowPropertiesInsert()` (rama alta) y `allowPropertiesUpdate()` (rama modificación) del servicio. Esas mismas whitelists son la defensa del flujo de guardado genérico (`save` / `POST /ws/rest/<FQN>`), que filtra el JSON entrante con ellas antes de llegar a `insert`/`update`. Reglas aplicadas: `k-secure-coding` §3.
+- **Form `subsysSmokeTest.SmokeTest@Main-form`** — atributos `canAttach/canBack/canDelete/canNew/canSave/canMore` todos `false`; `canBackOnSave="true"`. Contiene:
+  - Panel `SmokeTest`: `texto` (colSpan=12, editable), `fechaCreacion` (colSpan=6, `readonly="true"`, U-smoke-test-001), `fechaUltimaModificacion` (colSpan=6, `readonly="true"`, U-smoke-test-001).
+  - Panel `buttons-panel`: `btnDelete` (btn-danger, left, `showIf="(id!=null)||(cid!=null)"`), `btnCancel` (outline, colOffset=6), `btnSave`.
+
+- **Action-groups:**
+  - `subsysSmokeTest.SmokeTest@Main-btnDelete-action` → `<action name="delete"/>`.
+  - `subsysSmokeTest.SmokeTest@Main-btnCancel-action` → `<action name="back"/>`.
+  - `subsysSmokeTest.SmokeTest@Main-btnSave-action` → `<action name="subsysSmokeTest.SmokeTest@Main-btnSave-validate-action"/>` + `<action name="save"/>`.
+
+- **Action-validate `subsysSmokeTest.SmokeTest@Main-btnSave-validate-action`** — V-SmokeTest-001 (cliente), Origen spec: RES-001. `<error if="!texto" message="El texto es obligatorio"/>`.
+
+**Verificar:** `xmllint --noout --schema ../axelor-open-platform/axelor-core/src/main/resources/object-views.xsd src/main/java/com/educaflow/subsystem/smoketest/views/SmokeTest.xml`
+
+---
+
+## Trazabilidad Origen spec → U → ubicación
+
+### U — Reglas de UI
+
+| ID | Origen spec | Ubicación | Descripción |
+|----|-------------|-----------|-------------|
+| U-smoke-test-001 | RUI-001 | `views/SmokeTest.xml`, `subsysSmokeTest.SmokeTest@Main-form`, campos `fechaCreacion` y `fechaUltimaModificacion` con `readonly="true"` | Las fechas son siempre de solo lectura en el formulario (disparador: continuo, condición: siempre). |

@@ -8,40 +8,39 @@ type: implementation-task
 Para hacer esta tarea vas a usar estos skills
 - k-sistemas
 
-Esta tarea materializa el dominio `SmokeTest`. **El XML ya está materializado** en `design/domains/SmokeTest.xml`: **MUST** copiarlo **literalmente** (verbatim) a su ubicación final `src/main/java/com/educaflow/subsystem/smoketest/domains/SmokeTest.xml`. **MUST NOT** regenerarlo, reescribirlo ni modificarlo.
+El fichero de dominio ya está materializado en la carpeta `design/`. **MUST NOT** modificarlo, reescribirlo ni regenerarlo: **cópialo verbatim** desde `design/domains/SmokeTest.xml` a su ruta destino.
 
-Fila de la tabla "Ficheros a crear o modificar":
+---
+
+## Ficheros a crear o modificar
 
 | Fichero | Acción | Skill | Descripción |
 |---------|--------|-------|-------------|
-| `subsystem/smoketest/domains/SmokeTest.xml` | Crear | k-sistemas (modelos.md) | Entidad `SmokeTest` (texto + 2 fechas servidor) |
+| `subsystem/smoketest/domains/SmokeTest.xml` | Crear | k-sistemas (modelos.md) | Entidad SmokeTest |
 
-> Raíz de los ficheros del subsistema: `src/main/java/com/educaflow/subsystem/smoketest/`. Las clases Java generadas a partir de `domains/SmokeTest.xml` (entidad `SmokeTest`, `SmokeTestRepository`) las produce el build en `db/` — no se escriben a mano.
+Ruta destino completa: `src/main/java/com/educaflow/subsystem/smoketest/domains/SmokeTest.xml`
 
-> **Nota para `/sdd-implementer`:** los XML de `domains/`, `views/` y `menus.xml` ya están materializados en la carpeta `design/`. **MUST NOT** modificarlos, reescribirlos ni regenerarlos: se **copian verbatim** a su ubicación final (`menus.xml` se fusiona en el `menus.xml` único del proyecto, ver Paso 7). El código Java (servicio, impl, controlador) es lo único que se implementa a partir de las firmas y comentarios de este diseño. El contenido de `data-init` (Paso 8) está dado verbatim en este `design.md`.
+---
 
-### Paso 1 — Dominio `SmokeTest`
+## Paso 1 — Dominio: entidad SmokeTest
 
-Fichero materializado: `design/domains/SmokeTest.xml` → copiar a `subsystem/smoketest/domains/SmokeTest.xml`.
+Crear `src/main/java/com/educaflow/subsystem/smoketest/domains/SmokeTest.xml`.
 
-Resumen estructural:
-- `module name="smoketest" package="com.educaflow.subsystem.smoketest.db"`.
-- `entity SmokeTest` con tres campos:
-  - `texto` (`string`, `namecolumn="true"`) — **origen cliente**. RES-001 (texto obligatorio) **NO** se declara con `required="true"`: se valida en servidor (V-SmokeTest-001) para emitir el mensaje exacto y garantizar el rechazo del servidor (ver §Notas).
-  - `fechaCreacion` (`datetime`) — **origen servidor** (CC-001). Sin `required` (campo rellenado por el sistema, ver `k-validaciones/modelos.md`).
-  - `fechaUltimaModificacion` (`datetime`) — **origen servidor** (CC-002). Sin `required`.
-- Sin relaciones (modelo independiente, sin centro/usuario/expediente — Fuera de alcance del spec).
+El fichero materializado está en `design/domains/SmokeTest.xml`. **Resumen estructural:**
 
-Verificar: el build genera `com.educaflow.subsystem.smoketest.db.SmokeTest` y `SmokeTestRepository` sin errores (`./run.sh` compila).
+- Módulo `smoketest`, paquete `com.educaflow.subsystem.smoketest.db`.
+- Entidad `SmokeTest` con tres campos:
+  - `texto` (`<string large="true">`) — campo **cliente**. `large="true"` mapea la columna a tipo `TEXT` en la BD (sin límite de longitud). Sin `required="true"` en el dominio: la validación con el mensaje exacto del spec («El texto es obligatorio») vive en `validateInsert`/`validateUpdate` del servicio (V-SmokeTest-001). Esto evita que Bean Validation genere un mensaje genérico antes de que el servicio pueda producir el mensaje esperado por ESC-005.
+  - `fechaCreacion` (`<datetime>`) — campo **servidor** (CC-001). Sin `required="true"` porque lo asigna el servidor en `insert` vía `fireActionRule_AsignarFechaCreacion`.
+  - `fechaUltimaModificacion` (`<datetime>`) — campo **servidor** (CC-002). Sin `required="true"` porque lo asigna el servidor en `insert` y `update` vía `fireActionRule_ActualizarFechaUltimaModificacion`.
+- Sin relaciones, sin enumerados, sin finders personalizados.
 
-### Paso 3 — Repositorios
+**Clasificación de campos:**
 
-No aplica: `SmokeTest` no tiene queries propias ni finders; usa el repositorio generado por Axelor. **MUST NOT** poner `repository="abstract"` en el dominio.
+| Campo | Origen | AllowProperties insert | AllowProperties update |
+|-------|--------|------------------------|------------------------|
+| `texto` | cliente | sí | sí |
+| `fechaCreacion` | servidor | **NO** — asignado incondicionalmente en `fireActionRule_AsignarFechaCreacion` | **NO** — inmutable tras la creación; restaurado desde `original` en `update` |
+| `fechaUltimaModificacion` | servidor | **NO** — asignado incondicionalmente en `fireActionRule_ActualizarFechaUltimaModificacion` | **NO** — recalculado incondicionalmente en `fireActionRule_ActualizarFechaUltimaModificacion` |
 
-### Clasificación de campos (cliente/servidor)
-
-| Campo | Origen | Respaldo |
-|-------|--------|----------|
-| `texto` | cliente | En whitelist `insert`/`update`; validado por V-SmokeTest-001. |
-| `fechaCreacion` | servidor | CC-001 → R-SmokeTest-001 (Antes, alta). Fuera de whitelists. |
-| `fechaUltimaModificacion` | servidor | CC-002 → R-SmokeTest-002 (Antes, alta y modificación). Fuera de whitelists. |
+**Verificar:** `grep -r "SmokeTest" src/main/java/com/educaflow/subsystem/smoketest/domains/`

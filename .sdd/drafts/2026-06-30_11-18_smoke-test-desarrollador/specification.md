@@ -38,7 +38,7 @@ No tiene dependencias funcionales de otros subsistemas de negocio: la tabla de s
 - ESC-004 — Borrado de un registro:
   1. El administrador inicia sesión con usuario «admin» y contraseña «admin».
   2. Crea un registro con el texto «Prueba de humo 4» y pulsa «Guardar».
-  3. Selecciona ese registro en el listado, pulsa «Eliminar» y confirma el borrado.
+  3. Vuelve al listado, pulsa sobre la fila del registro «Prueba de humo 4» para abrir su formulario, pulsa «Borrar» y confirma el borrado.
   4. El sistema elimina el registro y deja de mostrarlo en el listado.
 - ESC-005 — Alta sin texto rechazada por el servidor:
   1. El administrador inicia sesión con usuario «admin» y contraseña «admin».

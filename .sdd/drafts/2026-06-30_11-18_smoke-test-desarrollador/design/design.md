@@ -2,333 +2,316 @@
 type: design
 ---
 
-# Diseño: Smoke test + menú «Desarrollador»
+# Diseño: Smoke Test
 
-**Objetivo:** subsistema CRUD de prueba (`SmokeTest`) accesible solo por el Administrador, con dos fechas selladas por el servidor, bajo un nuevo menú de primer nivel «Desarrollador» que también acoge «Utilidades de PDF».
+**Objetivo:** Crear el subsistema `smoketest` con una entidad `SmokeTest` y su pantalla CRUD para que el Administrador verifique rápidamente que la aplicación y el acceso al servidor funcionan; añadir el ítem «Smoke test» bajo el menú «Desarrollador» (ya existente).
+
 **Capa:** subsystem/smoketest
+
 **Especificación de origen:** .sdd/drafts/2026-06-30_11-18_smoke-test-desarrollador/specification.md
-**Skills necesarios para la implementación:** k-sistemas, k-code-quality, k-secure-coding, k-vistas, k-validaciones, k-datainit
+
+**Skills necesarios para la implementación:** k-sistemas, k-code-quality, k-secure-coding, k-vistas
+
+---
 
 ## Ficheros a crear o modificar
 
 | Fichero | Acción | Skill | Descripción |
 |---------|--------|-------|-------------|
-| `subsystem/smoketest/domains/SmokeTest.xml` | Crear | k-sistemas (modelos.md) | Entidad `SmokeTest` (texto + 2 fechas servidor) |
-| `subsystem/smoketest/service/SmokeTestService.java` | Crear | k-sistemas (servicios.md) | Interfaz `SmokeTestService extends ModelService<SmokeTest>` (sin métodos propios) |
-| `subsystem/smoketest/service/impl/SmokeTestServiceImpl.java` | Crear | k-sistemas (servicios.md), k-secure-coding, k-validaciones | Sella fechas servidor, valida texto, whitelists |
-| `subsystem/smoketest/controller/SmokeTestController.java` | Crear | k-sistemas (controladores.md) | `validateSave` (pre-valida antes del `save`) |
-| `subsystem/smoketest/views/SmokeTest.xml` | Crear | k-vistas (grids.md, forms.md, actions.md) | `<action-view>` Main: grid + form CRUD |
-| `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml` | Modificar | k-vistas (menus.md) | Añadir «Desarrollador» + «Smoke test»; reparentar y restringir «Utilidades de PDF» |
-| `subsystem/smoketest/data-init/input-config.xml` | Crear | k-datainit | Manifiesto de binding del permiso del subsistema |
-| `subsystem/smoketest/data-init/input/auth-smoketest.xml` | Crear | k-datainit | **Solo** la definición del permiso `SmokeTest.all` (el enlace grupo→permiso vive en el `auth.xml` global) |
-| `src/main/resources/data-init/input/auth.xml` | Modificar | k-datainit | Añadir `SmokeTest.all` al grupo `admins` **y** quitar `PdfUtilities.all` del grupo `users` (ver §Notas) |
+| `subsystem/smoketest/domains/SmokeTest.xml` | Crear | k-sistemas (modelos.md) | Entidad SmokeTest |
+| `subsystem/smoketest/service/SmokeTestService.java` | Crear | k-sistemas (servicios.md) | Interfaz del servicio |
+| `subsystem/smoketest/service/impl/SmokeTestServiceImpl.java` | Crear | k-sistemas (servicios.md) | Implementación con validate*, fireActionRule_*, allowProperties* |
+| `subsystem/smoketest/views/SmokeTest.xml` | Crear | k-vistas (grids.md, forms.md, actions.md) | Grid, formulario y acciones de SmokeTest |
+| `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml` | Modificar | k-vistas (menus.md) | Añadir ítem «Smoke test» bajo «Desarrollador» (order=1) |
+| `subsystem/smoketest/data-init/input-config.xml` | Crear | k-datainit | Manifiesto de carga del permiso del subsistema |
+| `subsystem/smoketest/data-init/input/auth-smoketest.xml` | Crear | k-datainit | Definición del permiso SmokeTest.all |
+| `src/main/resources/data-init/input/auth.xml` | Modificar | k-datainit | Añadir **únicamente** la **asignación** del permiso `SmokeTest.all` al grupo `admins` (solo la referencia `<permission name="SmokeTest.all"/>`; la definición completa vive únicamente en `auth-smoketest.xml`) |
 
-> Raíz de los ficheros del subsistema: `src/main/java/com/educaflow/subsystem/smoketest/`. Las clases Java generadas a partir de `domains/SmokeTest.xml` (entidad `SmokeTest`, `SmokeTestRepository`) las produce el build en `db/` — no se escriben a mano.
-
-> **Nota para `/sdd-implementer`:** los XML de `domains/`, `views/` y `menus.xml` ya están materializados en la carpeta `design/`. **MUST NOT** modificarlos, reescribirlos ni regenerarlos: se **copian verbatim** a su ubicación final (`menus.xml` se fusiona en el `menus.xml` único del proyecto, ver Paso 7). El código Java (servicio, impl, controlador) es lo único que se implementa a partir de las firmas y comentarios de este diseño. El contenido de `data-init` (Paso 8) está dado verbatim en este `design.md`.
+> **Nota para `/sdd-implementer`:** los XML de `domains/`, `views/` y `menus.xml` ya están materializados en la carpeta `design/`. **MUST NOT** modificarlos, reescribirlos ni regenerarlos: se **copian verbatim** a su ubicación final (`menus.xml` se fusiona en el `menus.xml` único del proyecto). El código Java es lo único que se implementa a partir de las firmas y comentarios del diseño.
 
 ---
 
 ## Pasos
 
-### Paso 1 — Dominio `SmokeTest`
+### Paso 1 — Dominio: entidad SmokeTest
 
-Fichero materializado: `design/domains/SmokeTest.xml` → copiar a `subsystem/smoketest/domains/SmokeTest.xml`.
+Crear `src/main/java/com/educaflow/subsystem/smoketest/domains/SmokeTest.xml`.
 
-Resumen estructural:
-- `module name="smoketest" package="com.educaflow.subsystem.smoketest.db"`.
-- `entity SmokeTest` con tres campos:
-  - `texto` (`string`, `namecolumn="true"`) — **origen cliente**. RES-001 (texto obligatorio) **NO** se declara con `required="true"`: se valida en servidor (V-SmokeTest-001) para emitir el mensaje exacto y garantizar el rechazo del servidor (ver §Notas).
-  - `fechaCreacion` (`datetime`) — **origen servidor** (CC-001). Sin `required` (campo rellenado por el sistema, ver `k-validaciones/modelos.md`).
-  - `fechaUltimaModificacion` (`datetime`) — **origen servidor** (CC-002). Sin `required`.
-- Sin relaciones (modelo independiente, sin centro/usuario/expediente — Fuera de alcance del spec).
+El fichero materializado está en `design/domains/SmokeTest.xml`. **Resumen estructural:**
 
-Verificar: el build genera `com.educaflow.subsystem.smoketest.db.SmokeTest` y `SmokeTestRepository` sin errores (`./run.sh` compila).
+- Módulo `smoketest`, paquete `com.educaflow.subsystem.smoketest.db`.
+- Entidad `SmokeTest` con tres campos:
+  - `texto` (`<string large="true">`) — campo **cliente**. `large="true"` mapea la columna a tipo `TEXT` en la BD (sin límite de longitud). Sin `required="true"` en el dominio: la validación con el mensaje exacto del spec («El texto es obligatorio») vive en `validateInsert`/`validateUpdate` del servicio (V-SmokeTest-001). Esto evita que Bean Validation genere un mensaje genérico antes de que el servicio pueda producir el mensaje esperado por ESC-005.
+  - `fechaCreacion` (`<datetime>`) — campo **servidor** (CC-001). Sin `required="true"` porque lo asigna el servidor en `insert` vía `fireActionRule_AsignarFechaCreacion`.
+  - `fechaUltimaModificacion` (`<datetime>`) — campo **servidor** (CC-002). Sin `required="true"` porque lo asigna el servidor en `insert` y `update` vía `fireActionRule_ActualizarFechaUltimaModificacion`.
+- Sin relaciones, sin enumerados, sin finders personalizados.
 
-### Paso 2 — Servicio `SmokeTestService` / `SmokeTestServiceImpl`
+**Clasificación de campos:**
 
-**Interfaz** `com.educaflow.subsystem.smoketest.service.SmokeTestService`:
+| Campo | Origen | AllowProperties insert | AllowProperties update |
+|-------|--------|------------------------|------------------------|
+| `texto` | cliente | sí | sí |
+| `fechaCreacion` | servidor | **NO** — asignado incondicionalmente en `fireActionRule_AsignarFechaCreacion` | **NO** — inmutable tras la creación; restaurado desde `original` en `update` |
+| `fechaUltimaModificacion` | servidor | **NO** — asignado incondicionalmente en `fireActionRule_ActualizarFechaUltimaModificacion` | **NO** — recalculado incondicionalmente en `fireActionRule_ActualizarFechaUltimaModificacion` |
 
-```java
-public interface SmokeTestService extends ModelService<SmokeTest> { }
+**Verificar:** `grep -r "SmokeTest" src/main/java/com/educaflow/subsystem/smoketest/domains/`
+
+---
+
+### Paso 2 — Servicio: SmokeTestService / SmokeTestServiceImpl
+
+Crear los dos ficheros Java:
+
+- `src/main/java/com/educaflow/subsystem/smoketest/service/SmokeTestService.java`
+- `src/main/java/com/educaflow/subsystem/smoketest/service/impl/SmokeTestServiceImpl.java`
+
+No se crea módulo Guice: `ModelServiceFactory` descubre `SmokeTestServiceImpl` automáticamente por convención de nombre y paquete.
+
+No se crea controlador: el CRUD es estándar (botones `save`/`delete`/`back` de Axelor) sin lógica de negocio adicional en `@CallMethod`.
+
+#### Interfaz: `SmokeTestService.java`
+
+FQN: `com.educaflow.subsystem.smoketest.service.SmokeTestService`
+
 ```
-- No declara métodos propios. `insert`/`update`/`remove`, sus `validateInsert/Update/Remove` y sus `allowPropertiesInsert/Update/Remove` se **heredan** de `ModelService<SmokeTest>` (defaults en `DefaultModelService`). **MUST NOT** re-declararlos (servicios.md).
+package com.educaflow.subsystem.smoketest.service;
 
-**Implementación** `com.educaflow.subsystem.smoketest.service.impl.SmokeTestServiceImpl extends DefaultModelService<SmokeTest> implements SmokeTestService`.
+import com.axelor.db.modelservice.ModelService;
+import com.educaflow.subsystem.smoketest.db.SmokeTest;
 
-Orden de bloques: (1) acciones, (2) Métodos de Validación, (3) AllowProperties, (4) Action Rules.
+public interface SmokeTestService extends ModelService<SmokeTest> {
+    // Sin acciones propias adicionales.
+    // El CRUD estándar (insert/update/remove) lo expone ModelService<T>.
+    // Las sobrescrituras de validate*/allowProperties*/insert/update viven en la impl.
+}
+```
+
+#### Implementación: `SmokeTestServiceImpl.java`
+
+FQN: `com.educaflow.subsystem.smoketest.service.impl.SmokeTestServiceImpl`
 
 ```java
-// Constructor obligatorio — lo invoca ModelServiceFactory por reflexión.
-public SmokeTestServiceImpl(Class<SmokeTest> model, Repository<SmokeTest> repository);
-//   super(model, repository);
+// Clase: com.educaflow.subsystem.smoketest.service.impl.SmokeTestServiceImpl
+// Extiende DefaultModelService<SmokeTest>, implementa SmokeTestService.
 
-// --- (1) Acciones ---
+@Inject
+public SmokeTestServiceImpl(AbstractSmokeTestRepository repository);
+//   Constructor obligatorio para inyección Guice.
+//   Pasa el repository a super(repository) y lo guarda como campo.
 
-public SmokeTest insert(SmokeTest smokeTest);
-//   Sobrescribe insert (genérico: lo invoca la acción `save`/endpoint REST /ws/rest/<FQN>).
-//   1ª línea: validateInsert(smokeTest).ifPresent(BusinessMessages::throwIfInvalid)  → V-SmokeTest-001.
-//   Aplica R-SmokeTest-001 vía fireActionRule_AsignarFechaCreacion(smokeTest) y
-//   R-SmokeTest-002 vía fireActionRule_AsignarFechaUltimaModificacion(smokeTest) ANTES de persistir.
-//   Persiste con repository.save(smokeTest). MUST NOT llamar a super.insert.
-
-public SmokeTest update(SmokeTest smokeTest, SmokeTest original);
-//   Sobrescribe update (genérico: lo invoca `save`/endpoint REST).
-//   1ª línea: validateUpdate(smokeTest, original).ifPresent(BusinessMessages::throwIfInvalid)  → V-SmokeTest-001.
-//   Aplica R-SmokeTest-002 + restauración del inmutable vía
-//   fireActionRule_RefrescarFechaModificacion(smokeTest, original) ANTES de persistir.
-//   Persiste con repository.save(smokeTest). MUST NOT llamar a super.update.
-
-// remove: NO se sobrescribe (sin regla de borrado). Lo hereda de DefaultModelService.
-
-// --- (2) Métodos de Validación ---
-
-public Optional<BusinessMessages> validateInsert(SmokeTest smokeTest);
-//   Aplica:
-//     - V-SmokeTest-001 (Origen spec: RES-001) texto obligatorio: comprueba que `texto` no sea
-//       null ni esté en blanco (trim). Mensaje debe transmitir: que el texto es obligatorio
-//       (campo `texto`). [Literal exacto lo fija /sdd-implementer; el spec/test usa "El texto es obligatorio".]
-//   Acumula en BusinessMessages y devuelve Optional.empty() si válido.
-
-public Optional<BusinessMessages> validateUpdate(SmokeTest smokeTest, SmokeTest original);
-//   Aplica:
-//     - V-SmokeTest-001 (Origen spec: RES-001) texto obligatorio: misma comprobación que en
-//       validateInsert (el texto sigue siendo obligatorio al modificar).
-
-// --- (3) AllowProperties (frontera de confianza; ver §Frontera de confianza) ---
-
+@Override
 public AllowProperties allowPropertiesInsert();
-//   Whitelist: createAllowProperties(Map.of("texto", Map.of())).
-//   `fechaCreacion` y `fechaUltimaModificacion` quedan FUERA (campos servidor, ver k-secure-coding §3.2).
+//   Forma elegida: createAllowProperties (whitelist).
+//   Campos cliente aceptados en insert: ["texto"].
+//   fechaCreacion y fechaUltimaModificacion EXCLUIDOS de la whitelist:
+//     son campos servidor asignados incondicionalmente por fireActionRule_*.
 
+@Override
 public AllowProperties allowPropertiesUpdate();
-//   Whitelist: createAllowProperties(Map.of("texto", Map.of())).
-//   Las dos fechas quedan FUERA: `fechaCreacion` es inmutable y `fechaUltimaModificacion` la
-//   recalcula el servidor; el cliente no puede dictarlas ni por Vía A ni por Vía B.
+//   Forma elegida: createAllowProperties (whitelist).
+//   Campos cliente aceptados en update: ["texto"].
+//   fechaCreacion EXCLUIDO: inmutable tras creación (restaurado desde original en update).
+//   fechaUltimaModificacion EXCLUIDO: recalculado incondicionalmente por fireActionRule_*.
 
-// --- (4) Action Rules ---
+@Override
+public Optional<BusinessMessages> validateInsert(SmokeTest entity);
+//   Aplica V-SmokeTest-001 (Origen spec: RES-001):
+//     Comprueba que entity.getTexto() no sea null ni cadena vacía/blank.
+//     Mensaje debe transmitir: que el texto es obligatorio (campo requerido).
+//   Devuelve Optional.empty() si la validación pasa; Optional.of(mensaje) si falla.
 
-private void fireActionRule_AsignarFechaCreacion(SmokeTest smokeTest);
-//   Aplica R-SmokeTest-001 (Origen spec: CC-001, campo `fechaCreacion` clasificado servidor) en el alta:
-//   asignación INCONDICIONAL `smokeTest.setFechaCreacion(LocalDateTime.now())`.
-//   MUST NOT añadir guarda `if (... == null)`: permitiría colar una fecha falsificada por el
-//   endpoint REST genérico (k-secure-coding §3.3). El cliente NO puede dictar este campo.
+@Override
+public Optional<BusinessMessages> validateUpdate(SmokeTest entity, SmokeTest original);
+//   Aplica V-SmokeTest-001 (Origen spec: RES-001):
+//     Misma comprobación que validateInsert: texto no nulo ni vacío.
+//     Mensaje debe transmitir: que el texto es obligatorio.
+//   Devuelve Optional.empty() si pasa; Optional.of(mensaje) si falla.
 
-private void fireActionRule_AsignarFechaUltimaModificacion(SmokeTest smokeTest);
-//   Aplica R-SmokeTest-002 (Origen spec: CC-002, campo `fechaUltimaModificacion` servidor) en el alta:
-//   asignación INCONDICIONAL `smokeTest.setFechaUltimaModificacion(LocalDateTime.now())`.
-//   MUST NOT añadir guarda `if (... == null)`: permitiría colar una fecha falsificada por el
-//   endpoint REST genérico (k-secure-coding §3.3). El cliente NO puede dictar este campo.
+@Override
+public SmokeTest insert(SmokeTest entity);
+//   1ª línea: validateInsert(entity).ifPresent(BusinessMessages::throwIfInvalid).
+//   Invoca fireActionRule_AsignarFechaCreacion(entity)            — R-SmokeTest-001 (Antes).
+//   Invoca fireActionRule_ActualizarFechaUltimaModificacion(entity)— R-SmokeTest-002 (Antes).
+//   Persiste con repository.save(entity).  MUST NOT llamar a super.insert.
+//   Devuelve la entidad guardada.
 
-private void fireActionRule_RefrescarFechaModificacion(SmokeTest smokeTest, SmokeTest original);
-//   Aplica R-SmokeTest-002 (Origen spec: CC-002) en la modificación:
-//   asignación INCONDICIONAL `smokeTest.setFechaUltimaModificacion(LocalDateTime.now())`.
-//   Restaura el inmutable `fechaCreacion`: `smokeTest.setFechaCreacion(original.getFechaCreacion())`
-//   (R-SmokeTest-001 fija la fecha de creación solo en el alta; en update NO se recalcula).
-//   Asignaciones INCONDICIONALES, sin `if`. El cliente NO puede dictar ninguna de las dos fechas.
+@Override
+public SmokeTest update(SmokeTest entity, SmokeTest original);
+//   1ª línea: validateUpdate(entity, original).ifPresent(BusinessMessages::throwIfInvalid).
+//   Restaura inmutable: entity.setFechaCreacion(original.getFechaCreacion()).
+//     Aunque el cliente envíe fechaCreacion, se restaura siempre desde original
+//     (defensa anti mass-assignment, k-secure-coding §3.3).
+//   Invoca fireActionRule_ActualizarFechaUltimaModificacion(entity)— R-SmokeTest-002 (Antes).
+//   Persiste con repository.save(entity).  MUST NOT llamar a super.update.
+//   Devuelve la entidad guardada.
+
+private void fireActionRule_AsignarFechaCreacion(SmokeTest entity);
+//   Aplica R-SmokeTest-001 (Origen spec: CC-001, campo `fechaCreacion` clasificado `servidor`).
+//   Asignación INCONDICIONAL: entity.setFechaCreacion(LocalDateTime.now()).
+//   MUST NOT añadir guarda `if (entity.getFechaCreacion() == null)`: permitiría que un
+//   atacante vía el endpoint REST genérico cuele una fecha falsificada (k-secure-coding §3.3).
+//   Momento: Antes (escribe en el mismo registro, antes de repository.save).
+
+private void fireActionRule_ActualizarFechaUltimaModificacion(SmokeTest entity);
+//   Aplica R-SmokeTest-002 (Origen spec: CC-002, campo `fechaUltimaModificacion` clasificado `servidor`).
+//   Asignación INCONDICIONAL: entity.setFechaUltimaModificacion(LocalDateTime.now()).
+//   MUST NOT añadir guarda `if (entity.getFechaUltimaModificacion() == null)`.
+//   Invocada tanto en insert como en update (el spec dice que se recalcula en cada modificación).
+//   Momento: Antes (escribe en el mismo registro, antes de repository.save).
 ```
 
-> **MUST NOT** crear módulo Guice: `SmokeTestServiceImpl` es un `ModelService` y `ModelServiceFactory` lo descubre por convención de nombre/paquete (servicios.md). No hay repositorio personalizado (sin queries propias) → sin `db/repo/`.
+**Verificar:** `./gradlew compileJava` sin errores.
 
-Verificar: `ModelServiceFactory.resolve(SmokeTest.class)` devuelve la impl (nombre exacto `SmokeTestServiceImpl` en `service.impl`). `./run.sh` compila.
+---
 
-### Paso 3 — Repositorios
+### Paso 3 — Vistas: SmokeTest.xml
 
-No aplica: `SmokeTest` no tiene queries propias ni finders; usa el repositorio generado por Axelor. **MUST NOT** poner `repository="abstract"` en el dominio.
+Crear `src/main/java/com/educaflow/subsystem/smoketest/views/SmokeTest.xml`.
 
-### Paso 4 — Controlador `SmokeTestController`
+El fichero materializado está en `design/views/SmokeTest.xml`. **Resumen estructural:**
 
-`com.educaflow.subsystem.smoketest.controller.SmokeTestController` (un controlador por entidad). Inyecta `@Inject private ModelServiceFactory modelServiceFactory;`.
+- **`action-view` `subsysSmokeTest.SmokeTest@Main-action`** — abre el grid `@Main-grid` y el formulario `@Main-form`. Parámetros: `show-toolbar-form=false`, `forceEdit=true`.
 
-```java
-@CallMethod
-public void validateSave(ActionRequest actionRequest, ActionResponse actionResponse);
-//   Pre-validación del guardado para mostrar el error de negocio como modal ANTES de la acción `save`.
-//   - Resuelve el servicio: (SmokeTestService) modelServiceFactory.resolve(SmokeTest.class).
-//   - ActionRequestHelper<SmokeTest> sobre actionRequest; ActionResponseHelper sobre actionResponse.
-//   - original = actionRequestHelper.getOriginalModel().
-//   - Si actionRequestHelper.getId()==null  (alta):
-//       smokeTest = actionRequestHelper.getModel(smokeTestService.allowPropertiesInsert());
-//       validationResult = smokeTestService.validateInsert(smokeTest);
-//     Si no (modificación):
-//       smokeTest = actionRequestHelper.getModel(smokeTestService.allowPropertiesUpdate());
-//       validationResult = smokeTestService.validateUpdate(smokeTest, original);
-//   - Si validationResult.isPresent(): actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get()).
-//   Sin @Transactional (solo lee y valida; no persiste). Parámetros nombrados actionRequest/actionResponse.
-```
+- **Grid `subsysSmokeTest.SmokeTest@Main-grid`** — columnas: `texto`, `fechaCreacion`, `fechaUltimaModificacion`. Ordenación: `-fechaCreacion` (descendente, los más recientes primero, spec). `allowSearchFields="true"` para filtrar por texto. Los campos de fecha llevan `width="200px"` para acotar su columna al tamaño del formato datetime. Sin atributo `archived`.
 
-> **MUST NOT** exponer `@CallMethod` para `insert`/`update`/`remove`: el guardado y el borrado usan las acciones de framework `save` y `delete` (controladores.md). `validateSave` es solo un hook de validación previo, igual que `LeyEducativaController.validateSave`. No se necesita `validateDelete` (el borrado no tiene reglas).
+- **Form `subsysSmokeTest.SmokeTest@Main-form`** — atributos `canAttach/canBack/canDelete/canNew/canSave/canMore` todos `false`; `canBackOnSave="true"`. Contiene:
+  - Panel `SmokeTest`: `texto` (colSpan=12, editable), `fechaCreacion` (colSpan=6, `readonly="true"`, U-smoke-test-001), `fechaUltimaModificacion` (colSpan=6, `readonly="true"`, U-smoke-test-001).
+  - Panel `buttons-panel`: `btnDelete` (btn-danger, left, `showIf="(id!=null)||(cid!=null)"`), `btnCancel` (outline, colOffset=6), `btnSave`.
 
-Verificar: la `<action-method>` de la vista referencia exactamente `com.educaflow.subsystem.smoketest.controller.SmokeTestController#validateSave`. `./run.sh` compila.
+- **Action-groups:**
+  - `subsysSmokeTest.SmokeTest@Main-btnDelete-action` → `<action name="delete"/>`.
+  - `subsysSmokeTest.SmokeTest@Main-btnCancel-action` → `<action name="back"/>`.
+  - `subsysSmokeTest.SmokeTest@Main-btnSave-action` → `<action name="subsysSmokeTest.SmokeTest@Main-btnSave-validate-action"/>` + `<action name="save"/>`.
 
-### Paso 5 — Módulos Guice
+- **Action-validate `subsysSmokeTest.SmokeTest@Main-btnSave-validate-action`** — V-SmokeTest-001 (cliente), Origen spec: RES-001. `<error if="!texto" message="El texto es obligatorio"/>`.
 
-No aplica (solo hay un `ModelService`, descubierto por la factoría). Sin `module/`.
+**Verificar:** `xmllint --noout --schema ../axelor-open-platform/axelor-core/src/main/resources/object-views.xsd src/main/java/com/educaflow/subsystem/smoketest/views/SmokeTest.xml`
 
-### Paso 6 — Vistas `SmokeTest.xml`
+---
 
-Fichero materializado: `design/views/SmokeTest.xml` → copiar a `subsystem/smoketest/views/SmokeTest.xml`. Un único `<action-view>` (`@Main`) → un fichero (regla "un action-view por fichero").
+### Paso 4 — Menú: añadir «Smoke test» bajo «Desarrollador»
 
-Resumen estructural:
-- `action-view subsysSmokeTest.SmokeTest@Main-action` (title "Smoke test", model `SmokeTest`): grid `@Main-grid` + form `@Main-form`; `view-param show-toolbar-form=false`, `forceEdit=true`.
-- `grid @Main-grid` (`groups="admins"`): columnas `texto`, `fechaCreacion`, `fechaUltimaModificacion`; `orderBy="-fechaCreacion"` (más recientes primero; **U-smoke-test-002**, Ordenación por defecto del spec); `allowSearchFields="true"` (búsqueda por texto); `canNew="true"` ("Nuevo"); `canDelete="true"` ("Eliminar" por fila/selección); `canEditOnClick="true"` (abre el form al pulsar fila).
-- `form @Main-form` (`groups="admins"`): panel "Smoke test" con `texto` editable y `fechaCreacion`/`fechaUltimaModificacion` con `readonly="true"` (**U-smoke-test-001 / RUI-001**). Botón "Guardar" → `@Main-btnSave-action`; `canBackOnSave="true"` (vuelve al listado tras guardar).
-- Acciones: `action-group @Main-btnSave-action` = `[@Main-Remote-validateSave-action, save]`; `action-method @Main-Remote-validateSave-action` → `SmokeTestController.validateSave`.
+Modificar `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`.
 
-> Las fechas en `readonly` son sólo UX (RUI-001). La **defensa** de que el cliente no las dicte es la whitelist + asignación incondicional del Paso 2 (k-secure-coding §1).
+El menuitem `desarrollador-menuitem` (`title="Desarrollador"`, `groups="admins"`, `order="90"`) **ya existe** en el fichero de menús (explorado en el análisis). El submenú «Utilidades de PDF» ya cuelga de él con `groups="admins"` y `order="2"`. Solo hay que fusionar el snippet de `design/menus.xml` (el nuevo `smoketest-menuitem` con `order="1"`):
 
-Verificar: el menú abre el grid; "Nuevo" abre el form; guardar con texto sella las fechas; borrar desde la fila elimina. `./run.sh` arranca sin errores de vista.
-
-### Paso 7 — Menús (modificar el `menus.xml` único del proyecto)
-
-Fichero materializado: `design/menus.xml` (porción a fusionar) → fusionar en `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`.
-
-Acciones de la fusión:
-1. **Añadir** el menú de primer nivel `desarrollador-menuitem` (title "Desarrollador", `order="90"`, `groups="admins"`) y su hijo `desarrollador-smokeTest-menuitem` (title "Smoke test", `action="subsysSmokeTest.SmokeTest@Main-action"`, `groups="admins"`, `order="1"`).
-2. **Sustituir** el bloque existente de "Utilidades de PDF" (hoy de primer nivel: `utilidadesPdf-menuitem order="80"` **sin** `groups`, con sus 3 hijos sin `groups`) por la versión del fichero: `utilidadesPdf-menuitem` pasa a `parent="desarrollador-menuitem"`, `order="2"`, `groups="admins"`; y sus 3 hijos (Información, Posiciones Firma, Posición Autofirma__!!) reciben `groups="admins"`. Sus `action` (`subsysPdfUtilities.PdfUtilities@*-action`) **no cambian** (las pantallas de PDF no se tocan, solo ubicación y acceso).
-
-Verificar: con el usuario `admin` aparece el menú "Desarrollador" con "Smoke test" y "Utilidades de PDF" colgando; "Utilidades de PDF" ya no está en primer nivel; un usuario del grupo `users` no ve ninguno de los dos.
-
-### Paso 8 — Seguridad (data-init del subsistema)
-
-El subsistema es dueño de su permiso (k-datainit). Crear `subsystem/smoketest/data-init/` con:
-
-`data-init/input-config.xml`:
 ```xml
-<?xml version="1.0"?>
-<xml-inputs priority="10" xmlns="http://axelor.com/xml/ns/data-import"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://axelor.com/xml/ns/data-import
-  https://axelor.com/xml/ns/data-import/data-import_8.0.xsd">
-
-    <input file="auth-smoketest.xml" root="auth">
-        <bind node="permission" type="com.axelor.auth.db.Permission" search="self.name = :name" create="true" update="true">
-            <bind node="@name" to="name"/>
-            <bind node="@object" to="object"/>
-            <bind node="can/@create" to="canCreate"/>
-            <bind node="can/@read" to="canRead"/>
-            <bind node="can/@write" to="canWrite"/>
-            <bind node="can/@remove" to="canRemove"/>
-            <bind node="can/@export" to="canExport"/>
-        </bind>
-    </input>
-</xml-inputs>
+<menuitem name="smoketest-menuitem"
+          parent="desarrollador-menuitem"
+          title="Smoke test"
+          action="subsysSmokeTest.SmokeTest@Main-action"
+          groups="admins"
+          order="1"/>
 ```
 
-`data-init/input/auth-smoketest.xml` (**solo** la definición del permiso; el enlace grupo→permiso NO va aquí — ver más abajo):
+**Verificar:** al arrancar, el menú «Desarrollador» → «Smoke test» es visible para `admin` y no visible para usuarios no-administradores.
+
+---
+
+### Paso 5 — Seguridad: permiso SmokeTest.all
+
+Crear los ficheros de data-init del subsistema:
+
+- `src/main/java/com/educaflow/subsystem/smoketest/data-init/input-config.xml` — manifiesto con `priority="20"` que carga `auth-smoketest.xml`.
+- `src/main/java/com/educaflow/subsystem/smoketest/data-init/input/auth-smoketest.xml` — define el permiso `SmokeTest.all` sobre `com.educaflow.subsystem.smoketest.db.SmokeTest` con `create/read/write/remove/export = true`.
+
+Además, modificar `src/main/resources/data-init/input/auth.xml` para añadir **únicamente** la **asignación** del permiso `SmokeTest.all` al grupo `admins`. La **definición** del permiso (bloque `<permission name="SmokeTest.all" object="...">...<can .../>...</permission>`) vive exclusivamente en `subsystem/smoketest/data-init/input/auth-smoketest.xml`; incluirla también en el auth.xml global sería redundante y viola k-datainit §2 (CRITICAL).
+
+Asignación al grupo `admins` (dentro del bloque `<group code="admins">` existente):
+
 ```xml
-<?xml version="1.0"?>
-<auth>
-  <permission name="SmokeTest.all" object="com.educaflow.subsystem.smoketest.db.SmokeTest">
-    <can create="true" read="true" write="true" remove="true" export="true"/>
-  </permission>
-</auth>
+<permission name="SmokeTest.all"/>
 ```
 
-> **Por qué el enlace grupo→permiso NO va en el `data-init` del subsistema** (k-datainit; orden de carga por `priority` descendente): este `input-config.xml` tiene `priority="10"`, pero los grupos `admins`/`users` se crean en el `auth.xml` **global** (`src/main/resources/data-init/input/auth.xml`), cuyo manifiesto tiene `priority="-1"` y por tanto se carga el **ÚLTIMO**. Si se intentara enlazar `SmokeTest.all` al grupo `admins` aquí (en `priority=10`), el grupo `admins` **aún no existiría** y un `group`-bind con `create="false"` no encontraría nada → el enlace nunca se crearía. Por eso el enlace se hace en el `auth.xml` global (en `priority=-1`, cuando el permiso `SmokeTest.all` ya está creado por este `data-init`). Esto respeta además la convención de k-datainit: el `auth-<sistema>.xml` del subsistema define **solo** permisos; el enlace grupo→permiso vive en el `auth.xml` global.
+Sin esta asignación, el grupo `admins` no tendrá acceso real a `SmokeTest` aunque el permiso quede definido en `auth-smoketest.xml`.
 
-**Enlazar `SmokeTest.all` al grupo `admins`** (Seguridad del spec: el Administrador tiene CRUD sobre `SmokeTest`): **modificar** `src/main/resources/data-init/input/auth.xml` para **añadir** la línea `<permission name="SmokeTest.all"/>` dentro del bloque `<group code="admins">`. El grupo `users` **no** recibe el permiso.
+**Descripción del permiso en lenguaje natural:**
+- `SmokeTest.all` → grupo `admins` → puede crear, leer, modificar y borrar cualquier registro de `SmokeTest`. Alcance global (sin filtro por centro).
 
-Regla de acceso (lenguaje natural): **solo el grupo `admins`** (Administrador, login `admin`) tiene CRUD completo sobre `SmokeTest`. El grupo `users` no recibe el permiso → no accede ni por menú ni por el endpoint REST genérico. No hay filtrado multicentro (el spec lo excluye: `SmokeTest` no tiene `centro`).
+**Verificar:** al arrancar, la tabla de permisos de Axelor tiene `SmokeTest.all` asignado al grupo `admins`.
 
-**Restricción de "Utilidades de PDF" al Administrador** (Seguridad del spec): además del menú `groups="admins"` (Paso 7), **modificar** `src/main/resources/data-init/input/auth.xml` para quitar `<permission name="PdfUtilities.all"/>` del bloque `<group code="users">` (el grupo `admins` lo mantiene). Ver §Notas sobre el alcance real de esta modificación.
+---
 
-Verificar: arrancar con `./run.sh`; `admin` accede a "Smoke test"; un usuario `users` no ve el permiso `SmokeTest.all`.
-
-### Paso 9 — Datos iniciales
-
-No aplica: la tabla `SmokeTest` arranca **vacía** (los propios escenarios crean y borran sus datos). No hay catálogos precargados.
-
-### Paso 10 — Verificación final
-
-Compilar, ejecutar tests y arrancar:
+### Paso 6 — Verificación final
 
 ```bash
 ./run.sh
 ```
 
-Comprobar: compila sin errores; el menú "Desarrollador" → "Smoke test" abre el listado; alta/consulta/modificación/borrado funcionan; las fechas las sella el servidor; el alta sin texto se rechaza con el mensaje del servidor.
-
----
-
-## Frontera de confianza — AllowProperties por acción
-
-El único `@CallMethod` del diseño es `SmokeTestController.validateSave`, que pre-valida el guardado consumiendo `allowPropertiesInsert()` (rama alta) y `allowPropertiesUpdate()` (rama modificación) del servicio. Esas mismas whitelists son la defensa del flujo de guardado genérico (`save` / `POST /ws/rest/<FQN>`), que filtra el JSON entrante con ellas antes de llegar a `insert`/`update`. Reglas aplicadas: `k-secure-coding` §3.
-
-### `SmokeTestServiceImpl.insert` (whitelist consumida por `SmokeTestController.validateSave`, rama alta)
-
-Entidad: `SmokeTest`. **Forma elegida**: `createAllowProperties` (whitelist).
-**Origen spec:** `Input AllowProperties` de la acción `Crear` de `entity-SmokeTest.md` → `texto`.
-
-| Campo | Origen | En whitelist | Justificación / Ubicación de la asignación |
-|-------|--------|--------------|---------------------------------------------|
-| `texto` | cliente | sí | Input directo del usuario (en `Input AllowProperties` de `Crear`). |
-| `fechaCreacion` | servidor | **NO** | CC-001. Asignada incondicionalmente en `insert` → `fireActionRule_AsignarFechaCreacion`. |
-| `fechaUltimaModificacion` | servidor | **NO** | CC-002. Asignada incondicionalmente en `insert` → `fireActionRule_AsignarFechaUltimaModificacion`. |
-
-### `SmokeTestServiceImpl.update` (whitelist consumida por `SmokeTestController.validateSave`, rama modificación)
-
-Entidad: `SmokeTest`. **Forma elegida**: `createAllowProperties` (whitelist).
-**Origen spec:** `Input AllowProperties` de la acción `Modificar` de `entity-SmokeTest.md` → `texto`.
-
-| Campo | Origen | En whitelist | Justificación / Ubicación de la asignación |
-|-------|--------|--------------|---------------------------------------------|
-| `texto` | cliente | sí | Input directo del usuario (en `Input AllowProperties` de `Modificar`). |
-| `fechaCreacion` | servidor | **NO** | Inmutable (no aparece en `Modificar`). Restaurada desde `original` en `update` → `fireActionRule_RefrescarFechaModificacion`. |
-| `fechaUltimaModificacion` | servidor | **NO** | CC-002. Recalculada incondicionalmente en `update` → `fireActionRule_RefrescarFechaModificacion`. |
+Verifica que:
+1. La aplicación compila y arranca sin errores.
+2. El menú «Desarrollador» → «Smoke test» aparece al iniciar sesión como `admin`/`admin`.
+3. Se puede crear un registro con texto, y las fechas de creación y última modificación se rellenan solas.
+4. Al modificar el texto de un registro existente, la fecha de última modificación se actualiza.
+5. Se puede borrar un registro y desaparece del listado.
+6. Si se intenta guardar con el campo «Texto» vacío, aparece el mensaje «El texto es obligatorio» y no se crea el registro.
 
 ---
 
 ## Trazabilidad Origen spec → V/R/U → ubicación
 
-### Validaciones (V)
+### V — Validaciones
 
-| V | Origen spec | Ubicación | Lógica / Mensaje |
-|---|-------------|-----------|------------------|
-| V-SmokeTest-001 | RES-001 | `SmokeTestServiceImpl.validateInsert` y `.validateUpdate` | `texto` no null ni en blanco; mensaje transmite que el texto es obligatorio (campo `texto`). Servidor = fuente de verdad (ESC-005). |
+| ID | Origen spec | Capa | Ubicación | Descripción |
+|----|-------------|------|-----------|-------------|
+| V-SmokeTest-001 | RES-001 | Servidor + Cliente | `SmokeTestServiceImpl.validateInsert` / `SmokeTestServiceImpl.validateUpdate`; `subsysSmokeTest.SmokeTest@Main-btnSave-validate-action` (XML views/SmokeTest.xml) | `texto` no puede ser null ni vacío/blank. Mensaje transmite: que el texto es obligatorio. |
 
-### Reglas de negocio / campos calculados (R)
+### R — Reglas de negocio
 
-| R | Origen spec | Ubicación | Momento / Efecto |
-|---|-------------|-----------|------------------|
-| R-SmokeTest-001 | CC-001 | `SmokeTestServiceImpl.fireActionRule_AsignarFechaCreacion` (desde `insert`) | Antes de `repository.save`. Asigna INCONDICIONALMENTE `fechaCreacion = now` solo en el alta; en `update` se restaura desde `original` (inmutable). Campo servidor. |
-| R-SmokeTest-002 | CC-002 | `SmokeTestServiceImpl.fireActionRule_AsignarFechaUltimaModificacion` (insert) y `fireActionRule_RefrescarFechaModificacion` (update) | Antes de `repository.save`. Asigna INCONDICIONALMENTE `fechaUltimaModificacion = now` en alta y en cada modificación. Campo servidor. |
+| ID | Origen spec | Momento | Ubicación | Descripción |
+|----|-------------|---------|-----------|-------------|
+| R-SmokeTest-001 | CC-001 | Antes (insert) | `SmokeTestServiceImpl.fireActionRule_AsignarFechaCreacion` — invocada desde `SmokeTestServiceImpl.insert` antes de `repository.save` | Asignación INCONDICIONAL de `fechaCreacion = LocalDateTime.now()`. Campo servidor; no condicionada con `if`. |
+| R-SmokeTest-002 | CC-002 | Antes (insert y update) | `SmokeTestServiceImpl.fireActionRule_ActualizarFechaUltimaModificacion` — invocada desde `SmokeTestServiceImpl.insert` y `SmokeTestServiceImpl.update` antes de `repository.save` | Asignación INCONDICIONAL de `fechaUltimaModificacion = LocalDateTime.now()`. Campo servidor; no condicionada con `if`. |
 
-### Reglas de UI (U)
+### U — Reglas de UI
 
-| U | Origen spec | Ubicación | Atributo |
-|---|-------------|-----------|----------|
-| U-smoke-test-001 | RUI-001 | `views/SmokeTest.xml` form `@Main-form`, campos `fechaCreacion` y `fechaUltimaModificacion` | `readonly="true"` (disparador continuo, condición Siempre). |
-| U-smoke-test-002 | Ordenación por defecto (screen-smoke-test.md) | `views/SmokeTest.xml` grid `@Main-grid` | `orderBy="-fechaCreacion"` (más recientes primero). |
+| ID | Origen spec | Ubicación | Descripción |
+|----|-------------|-----------|-------------|
+| U-smoke-test-001 | RUI-001 | `views/SmokeTest.xml`, `subsysSmokeTest.SmokeTest@Main-form`, campos `fechaCreacion` y `fechaUltimaModificacion` con `readonly="true"` | Las fechas son siempre de solo lectura en el formulario (disparador: continuo, condición: siempre). |
 
-### Clasificación de campos (cliente/servidor)
+---
 
-| Campo | Origen | Respaldo |
-|-------|--------|----------|
-| `texto` | cliente | En whitelist `insert`/`update`; validado por V-SmokeTest-001. |
-| `fechaCreacion` | servidor | CC-001 → R-SmokeTest-001 (Antes, alta). Fuera de whitelists. |
-| `fechaUltimaModificacion` | servidor | CC-002 → R-SmokeTest-002 (Antes, alta y modificación). Fuera de whitelists. |
+## Seguridad
+
+- **Rol con acceso:** solo el grupo `admins` (Administrador).
+- **Alcance:** global. La entidad `SmokeTest` no tiene campo `centro` ni filtrado multicentro (la spec lo indica explícitamente).
+- **Permisos:** `SmokeTest.all` — `create/read/write/remove/export=true` — asignado al grupo `admins`.
+- **Menú:** `smoketest-menuitem` con `groups="admins"` — no visible para usuarios no-administradores.
+- **Sin multi-centro:** no se aplica ningún filtro `centroActivo`. No se usa `AuthUtils.getUser().getCentroActivo()` en queries (la entidad no tiene campo `centro`).
+- **Sin `@CallMethod`:** no hay sección «Frontera de confianza — AllowProperties por acción» porque el diseño no declara ninguna acción invocada desde un `@CallMethod`. La defensa anti mass-assignment se implementa en `allowPropertiesInsert`/`allowPropertiesUpdate` del servicio (whitelists explícitas) y en la asignación incondicional de los campos servidor dentro de `fireActionRule_*`.
 
 ---
 
 ## Tests
 
-- **Tests E2E** (Given/When/Then): descritos en `test-e2e-desc.md` (este diseño), cubren ESC-001…ESC-005.
-- **Tests unitarios** (JUnit + Mockito): descritos en `test-unit-desc.md` (lo materializa una fase posterior del pipeline) — sobre `SmokeTestServiceImpl` (validación de texto, sellado incondicional de fechas en insert, refresco + restauración de inmutable en update, whitelists).
+- **Tests E2E** (Playwright): descritos en `test-e2e-desc.md`, materializados desde ESC-001…ESC-005.
+- **Tests unitarios** (JUnit + Mockito): descritos en `test-unit-desc.md` (lo materializa una fase posterior del pipeline).
 
 ---
 
 ## Reglas del spec descartadas
 
-Ninguna. Todas las reglas del spec están ubicadas: RES-001 → V-SmokeTest-001; CC-001 → R-SmokeTest-001 (campo `fechaCreacion` servidor); CC-002 → R-SmokeTest-002 (campo `fechaUltimaModificacion` servidor); RUI-001 → U-smoke-test-001; Ordenación por defecto → U-smoke-test-002.
+Ninguna. Todas las reglas del spec están ubicadas en el diseño:
+
+| ID spec | Tipo | Mapeo en el diseño |
+|---------|------|--------------------|
+| RES-001 | Restricción → V | V-SmokeTest-001 |
+| CC-001 | Campo calculado → R (Antes) + campo servidor | R-SmokeTest-001 + campo `fechaCreacion` (servidor) |
+| CC-002 | Campo calculado → R (Antes) + campo servidor | R-SmokeTest-002 + campo `fechaUltimaModificacion` (servidor) |
+| RUI-001 | Regla de UI → U | U-smoke-test-001 |
 
 ---
 
 ## Notas y supuestos
 
-1. **RES-001 implementada en servidor, no como `required="true"`.** El spec (ESC-005) exige que el alta sin texto sea **rechazada por el servidor** con el mensaje exacto «El texto es obligatorio». `required="true"` en el modelo produce el mensaje **estándar** de Axelor (no el literal) y actúa como validación de cliente. Para honrar el literal y la frase "rechazada por el servidor" se implementa como `V-SmokeTest-001` en `validateInsert`/`validateUpdate` (k-validaciones permite el camino `validate*` cuando la restricción no se puede declarar con el mensaje requerido). `validateSave` del controlador la muestra como modal antes del `save`, y además la valida el flujo genérico (Vía B) — defensa en profundidad (k-secure-coding §9).
-2. **«Administrador» = grupo `admins`.** El spec define un único usuario administrador global (login `admin`/`admin`, alcance global). Se mapea al grupo Axelor `admins` (igual que el resto de menús `groups="admins"`), no a un tipo de usuario `ADMINISTRADOR` por centro. Por eso menús, grid, form y permiso usan `groups="admins"` / grupo `admins`.
-3. **Restricción de «Utilidades de PDF» al Administrador.** Mecanismo inmediato y suficiente para la UI: el menú pasa a `groups="admins"` (Paso 7) → desaparece para `users`. Para revocar también el permiso de **objeto** `PdfUtilities.all` del grupo `users` se quita esa línea del `<group code="users">` en el `auth.xml` global (Paso 8). **Caveat data-import:** el data-import de Axelor sobre una colección (`to="permissions"`) **añade/actualiza**, no **elimina**; quitar la línea surte efecto en una **BD recreada** (`./run.sh` con reset), pero en una BD ya poblada el permiso ya concedido al grupo `users` debe retirarse manualmente (o por migración). Como `PdfUtilities` no expone datos de negocio reales y el spec marca "no se modifican las pantallas", la combinación menú `groups="admins"` + ausencia del permiso en `users` (en BD limpia) cumple el requisito.
-4. **`SmokeTest` sin centro.** Por mandato del spec (Fuera de alcance: sin asociación a centro ni filtrado multicentro), no se aplica el patrón multicentro de `k-secure-coding` §4: el Administrador tiene alcance global y ve todos los registros.
-5. **Borrado sin reglas.** ESC-004 es un borrado simple; no hay `validateRemove` ni `R-` de borrado. La fila del grid usa la acción de framework `delete` (`canDelete="true"`), sin controlador propio.
-6. **Sin reglas complejas ni módulo Guice.** El sellado de fechas son asignaciones triviales en el servicio (no cumplen criterios de `reglas-complejas.md`), por lo que no hay `rules/`. El único servicio es un `ModelService` → sin `module/`.
+1. **El menú «Desarrollador» ya existe.** La spec describe «Desarrollador» como un «menú de primer nivel nuevo»; sin embargo, inspeccionando `menus/menus.xml` del proyecto se comprueba que `desarrollador-menuitem` ya está declarado con `groups="admins"` y `order="90"`, y que el submenú «Utilidades de PDF» ya cuelga de él con `groups="admins"`. El diseño solo añade `smoketest-menuitem` en `order="1"`. No se crea ningún menuitem raíz nuevo.
+
+2. **Utilidades de PDF ya restringidas a admins.** El spec indica que las opciones de Utilidades de PDF deben quedar restringidas solo al Administrador al moverse bajo «Desarrollador». Inspeccionando `menus.xml`, ya tienen `groups="admins"`. No se requiere ninguna modificación de esos menuitems.
+
+3. **Sin `required="true"` en el dominio para `texto`.** Para garantizar que el mensaje de error sea exactamente «El texto es obligatorio» (spec ESC-005), la validación vive en `validateInsert`/`validateUpdate` del servicio en lugar de como `@NotBlank` generada por el dominio XML (que produciría un mensaje genérico de Bean Validation antes de que el servicio pudiera producir el mensaje del spec).
+
+4. **Sin filtrado multi-centro.** El spec indica explícitamente que SmokeTest no se asocia a ningún centro. No se implementa ningún filtro `centroActivo` ni se asigna el centro al crear.
+
+5. **Sin controlador.** No hay lógica de negocio adicional en botones que requiera `@CallMethod`. El CRUD completo se gestiona con las acciones predefinidas de Axelor (`save`, `delete`, `back`).
+
+6. **`SmokeTest.all` NO existe en auth.xml global (subsistema nuevo).** SmokeTest se crea de cero en este diseño. La **definición** del permiso `SmokeTest.all` vive ÚNICAMENTE en `subsystem/smoketest/data-init/input/auth-smoketest.xml` (k-datainit §2 CRITICAL: la definición de permisos de un subsistema NO va en el auth.xml global). El implementador DEBE añadir en `src/main/resources/data-init/input/auth.xml` ÚNICAMENTE la **asignación** (`<permission name="SmokeTest.all"/>` dentro del bloque `<group code="admins">`). Omitir la asignación dejaría el subsistema inaccesible aunque el permiso esté definido en `auth-smoketest.xml`.

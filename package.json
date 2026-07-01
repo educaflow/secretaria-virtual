@@ -16,7 +16,7 @@
   },
   "homepage": "https://github.com/educaflow/secretaria-virtual#readme",
   "devDependencies": {
-    "@playwright/test": "^1.60.0",
+    "@playwright/test": "^1.61.1",
     "@types/node": "^25.8.0"
   }
 }

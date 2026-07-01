@@ -1,3 +1,6 @@
 # Verificación tests unitarios — iteración 1
-OK-CORRECTO
+{"id": "P-001", "severidad": "IMPORTANT", "fichero": "design/test-unit-desc.md", "ubicacion": "Clase SmokeTestServiceImpl — test update_clienteManipulaFechaCreacion_seRestauraDesdeOriginal", "origen": "R-SmokeTest-001 solo aplica en insert", "problema": "El test declara Verifica: R-SmokeTest-001 pero esa regla solo aplica en insert, no en update.", "correccion": "Cambiar Verifica: R-SmokeTest-001 por Verifica: — en ese test."}
+{"id": "P-002", "severidad": "MINOR", "fichero": "design/test-unit-desc.md", "ubicacion": "Sección «Cobertura» — línea de R-SmokeTest-001", "origen": "R-SmokeTest-001 solo en insert", "problema": "La sección Cobertura lista update_clienteManipulaFechaCreacion_* como test que cubre R-SmokeTest-001, lo cual es inexacto.", "correccion": "Eliminar update_clienteManipulaFechaCreacion_* de la lista de tests que cubren R-SmokeTest-001."}
 
+# Verificación tests unitarios — iteración 2
+OK-CORRECTO

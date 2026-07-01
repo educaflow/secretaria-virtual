@@ -1,33 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <object-views xmlns="http://axelor.com/xml/ns/object-views"
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+              https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <!--
-        PORCIÓN A FUSIONAR en src/main/java/com/educaflow/secretariavirtual/menus/menus.xml
+        Porción a FUSIONAR en src/main/java/com/educaflow/secretariavirtual/menus/menus.xml.
 
-        1. AÑADIR el menú de primer nivel "Desarrollador" (groups="admins", solo Administrador)
-           y su hijo "Smoke test".
-        2. SUSTITUIR el bloque existente de "Utilidades de PDF" (actualmente de primer nivel,
-           name="utilidadesPdf-menuitem" order="80", SIN groups → visible a todos) por la versión
-           de abajo: ahora cuelga de "Desarrollador" (parent="desarrollador-menuitem") y queda
-           restringido a groups="admins" tanto el padre como sus 3 hijos. No se tocan las
-           action-view de PDF (Info/Firma/AutoFirma): solo cambia ubicación y acceso.
+        El menuitem raíz «Desarrollador» (name="desarrollador-menuitem", groups="admins", order="90")
+        YA EXISTE en el fichero de menús del proyecto (verificado en la exploración del código).
+        Solo se añade el ítem hijo «Smoke test» en order="1".
+
+        Las Utilidades de PDF ya cuelgan de «Desarrollador» con groups="admins" (order="2");
+        no requieren modificación.
     -->
-
-    <menuitem name="desarrollador-menuitem" title="Desarrollador" order="90" groups="admins"/>
-
-        <menuitem name="desarrollador-smokeTest-menuitem" parent="desarrollador-menuitem"
-                  title="Smoke test" action="subsysSmokeTest.SmokeTest@Main-action"
-                  groups="admins" order="1"/>
-
-        <menuitem name="utilidadesPdf-menuitem" parent="desarrollador-menuitem"
-                  title="Utilidades de PDF" groups="admins" order="2" icon="picture_as_pdf"/>
-            <menuitem name="utilidadesPdf-informacion-menuitem" parent="utilidadesPdf-menuitem"
-                      title="Información" action="subsysPdfUtilities.PdfUtilities@Info-action" groups="admins" order="1"/>
-            <menuitem name="utilidadesPdf-posicionesFirma-menuitem" parent="utilidadesPdf-menuitem"
-                      title="Posiciones Firma" action="subsysPdfUtilities.PdfUtilities@Firma-action" groups="admins" order="2"/>
-            <menuitem name="utilidadesPdf-posicionAutofirma-menuitem" parent="utilidadesPdf-menuitem"
-                      title="Posición Autofirma__!!" action="subsysPdfUtilities.PdfUtilities@AutoFirma-action" groups="admins" order="3"/>
+    <menuitem name="smoketest-menuitem"
+              parent="desarrollador-menuitem"
+              title="Smoke test"
+              action="subsysSmokeTest.SmokeTest@Main-action"
+              groups="admins"
+              order="1"/>
 
 </object-views>

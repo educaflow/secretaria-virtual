@@ -6,22 +6,52 @@ type: implementation-task
 
 ## Skills a usar
 Para hacer esta tarea vas a usar estos skills
-- k-vistas
+- k-datainit
 
-Esta tarea materializa los menús. **La porción de `<menuitem>` ya está materializada** en `design/menus.xml`: **MUST** **fusionarla** en el `menus.xml` único del proyecto `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`, siguiendo las acciones de fusión descritas abajo. **MUST NOT** regenerar el `menus.xml` global ni reescribir la porción del diseño: se fusiona verbatim.
+---
 
-Fila de la tabla "Ficheros a crear o modificar":
+## Ficheros a crear o modificar
 
 | Fichero | Acción | Skill | Descripción |
 |---------|--------|-------|-------------|
-| `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml` | Modificar | k-vistas (menus.md) | Añadir «Desarrollador» + «Smoke test»; reparentar y restringir «Utilidades de PDF» |
+| `subsystem/smoketest/data-init/input-config.xml` | Crear | k-datainit | Manifiesto de carga del permiso del subsistema |
+| `subsystem/smoketest/data-init/input/auth-smoketest.xml` | Crear | k-datainit | Definición del permiso SmokeTest.all |
+| `src/main/resources/data-init/input/auth.xml` | Modificar | k-datainit | Añadir **únicamente** la **asignación** del permiso `SmokeTest.all` al grupo `admins` (solo la referencia `<permission name="SmokeTest.all"/>`; la definición completa vive únicamente en `auth-smoketest.xml`) |
 
-### Paso 7 — Menús (modificar el `menus.xml` único del proyecto)
+Rutas destino completas:
+- `src/main/java/com/educaflow/subsystem/smoketest/data-init/input-config.xml`
+- `src/main/java/com/educaflow/subsystem/smoketest/data-init/input/auth-smoketest.xml`
+- `src/main/resources/data-init/input/auth.xml` (ya existe — solo añadir la asignación)
 
-Fichero materializado: `design/menus.xml` (porción a fusionar) → fusionar en `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`.
+---
 
-Acciones de la fusión:
-1. **Añadir** el menú de primer nivel `desarrollador-menuitem` (title "Desarrollador", `order="90"`, `groups="admins"`) y su hijo `desarrollador-smokeTest-menuitem` (title "Smoke test", `action="subsysSmokeTest.SmokeTest@Main-action"`, `groups="admins"`, `order="1"`).
-2. **Sustituir** el bloque existente de "Utilidades de PDF" (hoy de primer nivel: `utilidadesPdf-menuitem order="80"` **sin** `groups`, con sus 3 hijos sin `groups`) por la versión del fichero: `utilidadesPdf-menuitem` pasa a `parent="desarrollador-menuitem"`, `order="2"`, `groups="admins"`; y sus 3 hijos (Información, Posiciones Firma, Posición Autofirma__!!) reciben `groups="admins"`. Sus `action` (`subsysPdfUtilities.PdfUtilities@*-action`) **no cambian** (las pantallas de PDF no se tocan, solo ubicación y acceso).
+## Paso 5 — Seguridad: permiso SmokeTest.all
 
-Verificar: con el usuario `admin` aparece el menú "Desarrollador" con "Smoke test" y "Utilidades de PDF" colgando; "Utilidades de PDF" ya no está en primer nivel; un usuario del grupo `users` no ve ninguno de los dos.
+Crear los ficheros de data-init del subsistema:
+
+- `src/main/java/com/educaflow/subsystem/smoketest/data-init/input-config.xml` — manifiesto con `priority="20"` que carga `auth-smoketest.xml`.
+- `src/main/java/com/educaflow/subsystem/smoketest/data-init/input/auth-smoketest.xml` — define el permiso `SmokeTest.all` sobre `com.educaflow.subsystem.smoketest.db.SmokeTest` con `create/read/write/remove/export = true`.
+
+Además, modificar `src/main/resources/data-init/input/auth.xml` para añadir **únicamente** la **asignación** del permiso `SmokeTest.all` al grupo `admins`. La **definición** del permiso (bloque `<permission name="SmokeTest.all" object="...">...<can .../>...</permission>`) vive exclusivamente en `subsystem/smoketest/data-init/input/auth-smoketest.xml`; incluirla también en el auth.xml global sería redundante y viola k-datainit §2 (CRITICAL).
+
+Asignación al grupo `admins` (dentro del bloque `<group code="admins">` existente):
+
+```xml
+<permission name="SmokeTest.all"/>
+```
+
+Sin esta asignación, el grupo `admins` no tendrá acceso real a `SmokeTest` aunque el permiso quede definido en `auth-smoketest.xml`.
+
+**Descripción del permiso en lenguaje natural:**
+- `SmokeTest.all` → grupo `admins` → puede crear, leer, modificar y borrar cualquier registro de `SmokeTest`. Alcance global (sin filtro por centro).
+
+**Verificar:** al arrancar, la tabla de permisos de Axelor tiene `SmokeTest.all` asignado al grupo `admins`.
+
+---
+
+## Seguridad
+
+- **Rol con acceso:** solo el grupo `admins` (Administrador).
+- **Alcance:** global. La entidad `SmokeTest` no tiene campo `centro` ni filtrado multicentro (la spec lo indica explícitamente).
+- **Permisos:** `SmokeTest.all` — `create/read/write/remove/export=true` — asignado al grupo `admins`.
+- **`SmokeTest.all` NO existe en auth.xml global (subsistema nuevo).** SmokeTest se crea de cero en este diseño. La **definición** del permiso `SmokeTest.all` vive ÚNICAMENTE en `subsystem/smoketest/data-init/input/auth-smoketest.xml` (k-datainit §2 CRITICAL: la definición de permisos de un subsistema NO va en el auth.xml global). El implementador DEBE añadir en `src/main/resources/data-init/input/auth.xml` ÚNICAMENTE la **asignación** (`<permission name="SmokeTest.all"/>` dentro del bloque `<group code="admins">`). Omitir la asignación dejaría el subsistema inaccesible aunque el permiso esté definido en `auth-smoketest.xml`.

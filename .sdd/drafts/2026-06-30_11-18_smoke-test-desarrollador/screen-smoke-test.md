@@ -34,8 +34,7 @@ Listado de smoke tests
 
 ### Botones
 
-- **Nuevo** (barra superior) — Abre el formulario de alta de un registro de smoke test.
-- **Eliminar** (fila) — Borra el registro seleccionado, previa confirmación.
+- **Añadir un nuevo smoke test** (barra superior) — Abre el formulario de alta de un registro de smoke test.
 
 ## Vista: Formulario de smoke test
 
@@ -53,7 +52,7 @@ Listado de smoke tests
 
 ### Botones
 
-- **Guardar** — Guarda el registro (alta o modificación).
+*(solo los botones estándar: Guardar, Cancelar, Borrar)*
 
 ### Reglas de UI
 

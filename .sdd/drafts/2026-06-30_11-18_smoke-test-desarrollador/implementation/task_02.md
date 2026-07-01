@@ -8,152 +8,147 @@ type: implementation-task
 Para hacer esta tarea vas a usar estos skills
 - k-sistemas
 - k-secure-coding
-- k-validaciones
 - k-code-quality
 
-Esta tarea implementa el servicio del subsistema: la **interfaz** `SmokeTestService` y su **implementación** `SmokeTestServiceImpl` (fuertemente acoplados → una sola tarea). Es código Java: se materializa a partir de las firmas y comentarios de este diseño.
+---
 
-Filas de la tabla "Ficheros a crear o modificar":
+## Ficheros a crear o modificar
 
 | Fichero | Acción | Skill | Descripción |
 |---------|--------|-------|-------------|
-| `subsystem/smoketest/service/SmokeTestService.java` | Crear | k-sistemas (servicios.md) | Interfaz `SmokeTestService extends ModelService<SmokeTest>` (sin métodos propios) |
-| `subsystem/smoketest/service/impl/SmokeTestServiceImpl.java` | Crear | k-sistemas (servicios.md), k-secure-coding, k-validaciones | Sella fechas servidor, valida texto, whitelists |
+| `subsystem/smoketest/service/SmokeTestService.java` | Crear | k-sistemas (servicios.md) | Interfaz del servicio |
+| `subsystem/smoketest/service/impl/SmokeTestServiceImpl.java` | Crear | k-sistemas (servicios.md) | Implementación con validate*, fireActionRule_*, allowProperties* |
 
-> Raíz de los ficheros del subsistema: `src/main/java/com/educaflow/subsystem/smoketest/`.
+Rutas destino completas:
+- `src/main/java/com/educaflow/subsystem/smoketest/service/SmokeTestService.java`
+- `src/main/java/com/educaflow/subsystem/smoketest/service/impl/SmokeTestServiceImpl.java`
 
-### Paso 2 — Servicio `SmokeTestService` / `SmokeTestServiceImpl`
+---
 
-**Interfaz** `com.educaflow.subsystem.smoketest.service.SmokeTestService`:
+## Paso 2 — Servicio: SmokeTestService / SmokeTestServiceImpl
 
-```java
-public interface SmokeTestService extends ModelService<SmokeTest> { }
+Crear los dos ficheros Java:
+
+- `src/main/java/com/educaflow/subsystem/smoketest/service/SmokeTestService.java`
+- `src/main/java/com/educaflow/subsystem/smoketest/service/impl/SmokeTestServiceImpl.java`
+
+No se crea módulo Guice: `ModelServiceFactory` descubre `SmokeTestServiceImpl` automáticamente por convención de nombre y paquete.
+
+No se crea controlador: el CRUD es estándar (botones `save`/`delete`/`back` de Axelor) sin lógica de negocio adicional en `@CallMethod`.
+
+#### Interfaz: `SmokeTestService.java`
+
+FQN: `com.educaflow.subsystem.smoketest.service.SmokeTestService`
+
 ```
-- No declara métodos propios. `insert`/`update`/`remove`, sus `validateInsert/Update/Remove` y sus `allowPropertiesInsert/Update/Remove` se **heredan** de `ModelService<SmokeTest>` (defaults en `DefaultModelService`). **MUST NOT** re-declararlos (servicios.md).
+package com.educaflow.subsystem.smoketest.service;
 
-**Implementación** `com.educaflow.subsystem.smoketest.service.impl.SmokeTestServiceImpl extends DefaultModelService<SmokeTest> implements SmokeTestService`.
+import com.axelor.db.modelservice.ModelService;
+import com.educaflow.subsystem.smoketest.db.SmokeTest;
 
-Orden de bloques: (1) acciones, (2) Métodos de Validación, (3) AllowProperties, (4) Action Rules.
+public interface SmokeTestService extends ModelService<SmokeTest> {
+    // Sin acciones propias adicionales.
+    // El CRUD estándar (insert/update/remove) lo expone ModelService<T>.
+    // Las sobrescrituras de validate*/allowProperties*/insert/update viven en la impl.
+}
+```
+
+#### Implementación: `SmokeTestServiceImpl.java`
+
+FQN: `com.educaflow.subsystem.smoketest.service.impl.SmokeTestServiceImpl`
 
 ```java
-// Constructor obligatorio — lo invoca ModelServiceFactory por reflexión.
-public SmokeTestServiceImpl(Class<SmokeTest> model, Repository<SmokeTest> repository);
-//   super(model, repository);
+// Clase: com.educaflow.subsystem.smoketest.service.impl.SmokeTestServiceImpl
+// Extiende DefaultModelService<SmokeTest>, implementa SmokeTestService.
 
-// --- (1) Acciones ---
+@Inject
+public SmokeTestServiceImpl(AbstractSmokeTestRepository repository);
+//   Constructor obligatorio para inyección Guice.
+//   Pasa el repository a super(repository) y lo guarda como campo.
 
-public SmokeTest insert(SmokeTest smokeTest);
-//   Sobrescribe insert (genérico: lo invoca la acción `save`/endpoint REST /ws/rest/<FQN>).
-//   1ª línea: validateInsert(smokeTest).ifPresent(BusinessMessages::throwIfInvalid)  → V-SmokeTest-001.
-//   Aplica R-SmokeTest-001 vía fireActionRule_AsignarFechaCreacion(smokeTest) y
-//   R-SmokeTest-002 vía fireActionRule_AsignarFechaUltimaModificacion(smokeTest) ANTES de persistir.
-//   Persiste con repository.save(smokeTest). MUST NOT llamar a super.insert.
-
-public SmokeTest update(SmokeTest smokeTest, SmokeTest original);
-//   Sobrescribe update (genérico: lo invoca `save`/endpoint REST).
-//   1ª línea: validateUpdate(smokeTest, original).ifPresent(BusinessMessages::throwIfInvalid)  → V-SmokeTest-001.
-//   Aplica R-SmokeTest-002 + restauración del inmutable vía
-//   fireActionRule_RefrescarFechaModificacion(smokeTest, original) ANTES de persistir.
-//   Persiste con repository.save(smokeTest). MUST NOT llamar a super.update.
-
-// remove: NO se sobrescribe (sin regla de borrado). Lo hereda de DefaultModelService.
-
-// --- (2) Métodos de Validación ---
-
-public Optional<BusinessMessages> validateInsert(SmokeTest smokeTest);
-//   Aplica:
-//     - V-SmokeTest-001 (Origen spec: RES-001) texto obligatorio: comprueba que `texto` no sea
-//       null ni esté en blanco (trim). Mensaje debe transmitir: que el texto es obligatorio
-//       (campo `texto`). [Literal exacto lo fija /sdd-implementer; el spec/test usa "El texto es obligatorio".]
-//   Acumula en BusinessMessages y devuelve Optional.empty() si válido.
-
-public Optional<BusinessMessages> validateUpdate(SmokeTest smokeTest, SmokeTest original);
-//   Aplica:
-//     - V-SmokeTest-001 (Origen spec: RES-001) texto obligatorio: misma comprobación que en
-//       validateInsert (el texto sigue siendo obligatorio al modificar).
-
-// --- (3) AllowProperties (frontera de confianza; ver §Frontera de confianza) ---
-
+@Override
 public AllowProperties allowPropertiesInsert();
-//   Whitelist: createAllowProperties(Map.of("texto", Map.of())).
-//   `fechaCreacion` y `fechaUltimaModificacion` quedan FUERA (campos servidor, ver k-secure-coding §3.2).
+//   Forma elegida: createAllowProperties (whitelist).
+//   Campos cliente aceptados en insert: ["texto"].
+//   fechaCreacion y fechaUltimaModificacion EXCLUIDOS de la whitelist:
+//     son campos servidor asignados incondicionalmente por fireActionRule_*.
 
+@Override
 public AllowProperties allowPropertiesUpdate();
-//   Whitelist: createAllowProperties(Map.of("texto", Map.of())).
-//   Las dos fechas quedan FUERA: `fechaCreacion` es inmutable y `fechaUltimaModificacion` la
-//   recalcula el servidor; el cliente no puede dictarlas ni por Vía A ni por Vía B.
+//   Forma elegida: createAllowProperties (whitelist).
+//   Campos cliente aceptados en update: ["texto"].
+//   fechaCreacion EXCLUIDO: inmutable tras creación (restaurado desde original en update).
+//   fechaUltimaModificacion EXCLUIDO: recalculado incondicionalmente por fireActionRule_*.
 
-// --- (4) Action Rules ---
+@Override
+public Optional<BusinessMessages> validateInsert(SmokeTest entity);
+//   Aplica V-SmokeTest-001 (Origen spec: RES-001):
+//     Comprueba que entity.getTexto() no sea null ni cadena vacía/blank.
+//     Mensaje debe transmitir: que el texto es obligatorio (campo requerido).
+//   Devuelve Optional.empty() si la validación pasa; Optional.of(mensaje) si falla.
 
-private void fireActionRule_AsignarFechaCreacion(SmokeTest smokeTest);
-//   Aplica R-SmokeTest-001 (Origen spec: CC-001, campo `fechaCreacion` clasificado servidor) en el alta:
-//   asignación INCONDICIONAL `smokeTest.setFechaCreacion(LocalDateTime.now())`.
-//   MUST NOT añadir guarda `if (... == null)`: permitiría colar una fecha falsificada por el
-//   endpoint REST genérico (k-secure-coding §3.3). El cliente NO puede dictar este campo.
+@Override
+public Optional<BusinessMessages> validateUpdate(SmokeTest entity, SmokeTest original);
+//   Aplica V-SmokeTest-001 (Origen spec: RES-001):
+//     Misma comprobación que validateInsert: texto no nulo ni vacío.
+//     Mensaje debe transmitir: que el texto es obligatorio.
+//   Devuelve Optional.empty() si pasa; Optional.of(mensaje) si falla.
 
-private void fireActionRule_AsignarFechaUltimaModificacion(SmokeTest smokeTest);
-//   Aplica R-SmokeTest-002 (Origen spec: CC-002, campo `fechaUltimaModificacion` servidor) en el alta:
-//   asignación INCONDICIONAL `smokeTest.setFechaUltimaModificacion(LocalDateTime.now())`.
-//   MUST NOT añadir guarda `if (... == null)`: permitiría colar una fecha falsificada por el
-//   endpoint REST genérico (k-secure-coding §3.3). El cliente NO puede dictar este campo.
+@Override
+public SmokeTest insert(SmokeTest entity);
+//   1ª línea: validateInsert(entity).ifPresent(BusinessMessages::throwIfInvalid).
+//   Invoca fireActionRule_AsignarFechaCreacion(entity)            — R-SmokeTest-001 (Antes).
+//   Invoca fireActionRule_ActualizarFechaUltimaModificacion(entity)— R-SmokeTest-002 (Antes).
+//   Persiste con repository.save(entity).  MUST NOT llamar a super.insert.
+//   Devuelve la entidad guardada.
 
-private void fireActionRule_RefrescarFechaModificacion(SmokeTest smokeTest, SmokeTest original);
-//   Aplica R-SmokeTest-002 (Origen spec: CC-002) en la modificación:
-//   asignación INCONDICIONAL `smokeTest.setFechaUltimaModificacion(LocalDateTime.now())`.
-//   Restaura el inmutable `fechaCreacion`: `smokeTest.setFechaCreacion(original.getFechaCreacion())`
-//   (R-SmokeTest-001 fija la fecha de creación solo en el alta; en update NO se recalcula).
-//   Asignaciones INCONDICIONALES, sin `if`. El cliente NO puede dictar ninguna de las dos fechas.
+@Override
+public SmokeTest update(SmokeTest entity, SmokeTest original);
+//   1ª línea: validateUpdate(entity, original).ifPresent(BusinessMessages::throwIfInvalid).
+//   Restaura inmutable: entity.setFechaCreacion(original.getFechaCreacion()).
+//     Aunque el cliente envíe fechaCreacion, se restaura siempre desde original
+//     (defensa anti mass-assignment, k-secure-coding §3.3).
+//   Invoca fireActionRule_ActualizarFechaUltimaModificacion(entity)— R-SmokeTest-002 (Antes).
+//   Persiste con repository.save(entity).  MUST NOT llamar a super.update.
+//   Devuelve la entidad guardada.
+
+private void fireActionRule_AsignarFechaCreacion(SmokeTest entity);
+//   Aplica R-SmokeTest-001 (Origen spec: CC-001, campo `fechaCreacion` clasificado `servidor`).
+//   Asignación INCONDICIONAL: entity.setFechaCreacion(LocalDateTime.now()).
+//   MUST NOT añadir guarda `if (entity.getFechaCreacion() == null)`: permitiría que un
+//   atacante vía el endpoint REST genérico cuele una fecha falsificada (k-secure-coding §3.3).
+//   Momento: Antes (escribe en el mismo registro, antes de repository.save).
+
+private void fireActionRule_ActualizarFechaUltimaModificacion(SmokeTest entity);
+//   Aplica R-SmokeTest-002 (Origen spec: CC-002, campo `fechaUltimaModificacion` clasificado `servidor`).
+//   Asignación INCONDICIONAL: entity.setFechaUltimaModificacion(LocalDateTime.now()).
+//   MUST NOT añadir guarda `if (entity.getFechaUltimaModificacion() == null)`.
+//   Invocada tanto en insert como en update (el spec dice que se recalcula en cada modificación).
+//   Momento: Antes (escribe en el mismo registro, antes de repository.save).
 ```
 
-> **MUST NOT** crear módulo Guice: `SmokeTestServiceImpl` es un `ModelService` y `ModelServiceFactory` lo descubre por convención de nombre/paquete (servicios.md). No hay repositorio personalizado (sin queries propias) → sin `db/repo/`.
+**Verificar:** `./gradlew compileJava` sin errores.
 
-Verificar: `ModelServiceFactory.resolve(SmokeTest.class)` devuelve la impl (nombre exacto `SmokeTestServiceImpl` en `service.impl`). `./run.sh` compila.
+---
 
-### Paso 5 — Módulos Guice
+## Trazabilidad Origen spec → V/R/U → ubicación
 
-No aplica (solo hay un `ModelService`, descubierto por la factoría). Sin `module/`.
+### V — Validaciones
 
-## Frontera de confianza — AllowProperties por acción
+| ID | Origen spec | Capa | Ubicación | Descripción |
+|----|-------------|------|-----------|-------------|
+| V-SmokeTest-001 | RES-001 | Servidor + Cliente | `SmokeTestServiceImpl.validateInsert` / `SmokeTestServiceImpl.validateUpdate`; `subsysSmokeTest.SmokeTest@Main-btnSave-validate-action` (XML views/SmokeTest.xml) | `texto` no puede ser null ni vacío/blank. Mensaje transmite: que el texto es obligatorio. |
 
-El único `@CallMethod` del diseño es `SmokeTestController.validateSave`, que pre-valida el guardado consumiendo `allowPropertiesInsert()` (rama alta) y `allowPropertiesUpdate()` (rama modificación) del servicio. Esas mismas whitelists son la defensa del flujo de guardado genérico (`save` / `POST /ws/rest/<FQN>`), que filtra el JSON entrante con ellas antes de llegar a `insert`/`update`. Reglas aplicadas: `k-secure-coding` §3.
+### R — Reglas de negocio
 
-### `SmokeTestServiceImpl.insert` (whitelist consumida por `SmokeTestController.validateSave`, rama alta)
+| ID | Origen spec | Momento | Ubicación | Descripción |
+|----|-------------|---------|-----------|-------------|
+| R-SmokeTest-001 | CC-001 | Antes (insert) | `SmokeTestServiceImpl.fireActionRule_AsignarFechaCreacion` — invocada desde `SmokeTestServiceImpl.insert` antes de `repository.save` | Asignación INCONDICIONAL de `fechaCreacion = LocalDateTime.now()`. Campo servidor; no condicionada con `if`. |
+| R-SmokeTest-002 | CC-002 | Antes (insert y update) | `SmokeTestServiceImpl.fireActionRule_ActualizarFechaUltimaModificacion` — invocada desde `SmokeTestServiceImpl.insert` y `SmokeTestServiceImpl.update` antes de `repository.save` | Asignación INCONDICIONAL de `fechaUltimaModificacion = LocalDateTime.now()`. Campo servidor; no condicionada con `if`. |
 
-Entidad: `SmokeTest`. **Forma elegida**: `createAllowProperties` (whitelist).
-**Origen spec:** `Input AllowProperties` de la acción `Crear` de `entity-SmokeTest.md` → `texto`.
+---
 
-| Campo | Origen | En whitelist | Justificación / Ubicación de la asignación |
-|-------|--------|--------------|---------------------------------------------|
-| `texto` | cliente | sí | Input directo del usuario (en `Input AllowProperties` de `Crear`). |
-| `fechaCreacion` | servidor | **NO** | CC-001. Asignada incondicionalmente en `insert` → `fireActionRule_AsignarFechaCreacion`. |
-| `fechaUltimaModificacion` | servidor | **NO** | CC-002. Asignada incondicionalmente en `insert` → `fireActionRule_AsignarFechaUltimaModificacion`. |
+## Seguridad
 
-### `SmokeTestServiceImpl.update` (whitelist consumida por `SmokeTestController.validateSave`, rama modificación)
-
-Entidad: `SmokeTest`. **Forma elegida**: `createAllowProperties` (whitelist).
-**Origen spec:** `Input AllowProperties` de la acción `Modificar` de `entity-SmokeTest.md` → `texto`.
-
-| Campo | Origen | En whitelist | Justificación / Ubicación de la asignación |
-|-------|--------|--------------|---------------------------------------------|
-| `texto` | cliente | sí | Input directo del usuario (en `Input AllowProperties` de `Modificar`). |
-| `fechaCreacion` | servidor | **NO** | Inmutable (no aparece en `Modificar`). Restaurada desde `original` en `update` → `fireActionRule_RefrescarFechaModificacion`. |
-| `fechaUltimaModificacion` | servidor | **NO** | CC-002. Recalculada incondicionalmente en `update` → `fireActionRule_RefrescarFechaModificacion`. |
-
-## Trazabilidad Origen spec → V/R que implementa esta tarea
-
-### Validaciones (V)
-
-| V | Origen spec | Ubicación | Lógica / Mensaje |
-|---|-------------|-----------|------------------|
-| V-SmokeTest-001 | RES-001 | `SmokeTestServiceImpl.validateInsert` y `.validateUpdate` | `texto` no null ni en blanco; mensaje transmite que el texto es obligatorio (campo `texto`). Servidor = fuente de verdad (ESC-005). |
-
-### Reglas de negocio / campos calculados (R)
-
-| R | Origen spec | Ubicación | Momento / Efecto |
-|---|-------------|-----------|------------------|
-| R-SmokeTest-001 | CC-001 | `SmokeTestServiceImpl.fireActionRule_AsignarFechaCreacion` (desde `insert`) | Antes de `repository.save`. Asigna INCONDICIONALMENTE `fechaCreacion = now` solo en el alta; en `update` se restaura desde `original` (inmutable). Campo servidor. |
-| R-SmokeTest-002 | CC-002 | `SmokeTestServiceImpl.fireActionRule_AsignarFechaUltimaModificacion` (insert) y `fireActionRule_RefrescarFechaModificacion` (update) | Antes de `repository.save`. Asigna INCONDICIONALMENTE `fechaUltimaModificacion = now` en alta y en cada modificación. Campo servidor. |
-
-## Notas relevantes (del diseño)
-
-1. **RES-001 implementada en servidor, no como `required="true"`.** El spec (ESC-005) exige que el alta sin texto sea **rechazada por el servidor** con el mensaje exacto «El texto es obligatorio». `required="true"` en el modelo produce el mensaje **estándar** de Axelor (no el literal) y actúa como validación de cliente. Para honrar el literal y la frase "rechazada por el servidor" se implementa como `V-SmokeTest-001` en `validateInsert`/`validateUpdate` (k-validaciones permite el camino `validate*` cuando la restricción no se puede declarar con el mensaje requerido). `validateSave` del controlador la muestra como modal antes del `save`, y además la valida el flujo genérico (Vía B) — defensa en profundidad (k-secure-coding §9).
+- **Sin `@CallMethod`:** no hay sección «Frontera de confianza — AllowProperties por acción» porque el diseño no declara ninguna acción invocada desde un `@CallMethod`. La defensa anti mass-assignment se implementa en `allowPropertiesInsert`/`allowPropertiesUpdate` del servicio (whitelists explícitas) y en la asignación incondicional de los campos servidor dentro de `fireActionRule_*`.
+- **Sin multi-centro:** no se aplica ningún filtro `centroActivo`. No se usa `AuthUtils.getUser().getCentroActivo()` en queries (la entidad no tiene campo `centro`).

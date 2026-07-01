@@ -22,10 +22,13 @@ export default defineConfig({
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* Retries: 2 en CI, 1 en local (los tests comparten una única instancia de app
+     y BD, así que un flake ocasional por contención debe autocorregirse). */
+  retries: process.env.CI ? 2 : 1,
+  /* Un solo worker siempre: el suite no es paralelo-seguro contra una sola
+     instancia de app + BD compartida (varios workers se solapan y provocan
+     timeouts en los tests más lentos, p.ej. el de borrado). */
+  workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters
      'list' da el ✓/✘ por test en el terminal; 'html' genera el informe navegable
      en playwright-report/ (ábrelo con `npx playwright show-report`). */

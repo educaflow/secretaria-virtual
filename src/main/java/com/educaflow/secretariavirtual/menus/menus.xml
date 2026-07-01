@@ -72,9 +72,7 @@
         <menuitem name="firmarDocumentos-rechazados-menuitem"  parent="firmarDocumentos-menuitem" title="Rechazados"  action="subsysFirma.TareaFirma@Rechazado-action"  order="4"/>
     <menuitem name="desarrollador-menuitem" title="Desarrollador" order="90" groups="admins"/>
 
-        <menuitem name="desarrollador-smokeTest-menuitem" parent="desarrollador-menuitem"
-                  title="Smoke test" action="subsysSmokeTest.SmokeTest@Main-action"
-                  groups="admins" order="1"/>
+
 
         <menuitem name="utilidadesPdf-menuitem" parent="desarrollador-menuitem"
                   title="Utilidades de PDF" groups="admins" order="2" icon="picture_as_pdf"/>
@@ -93,5 +91,12 @@
     <!-- Mis notas (pantalla del alumno): visible si el usuario es ALUMNO -->
     <menuitem name="misNotas-menuitem" title="Mis notas" order="36" action="sysGruposNotas.AlumnoGrupo@MisNotas-action" groups="users,admins" if="__user__?.tiposUsuarioActivos?.any { it.codigo == 'ALUMNO' }"/>
 
+
+    <menuitem name="smoketest-menuitem"
+              parent="desarrollador-menuitem"
+              title="Smoke test"
+              action="subsysSmokeTest.SmokeTest@Main-action"
+              groups="admins"
+              order="1"/>
 
 </object-views>

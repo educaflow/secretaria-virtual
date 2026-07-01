@@ -1,91 +1,110 @@
-### Comparación 1: design_1 vs design_2 → gana design_2
+### Comparación 1: design_1 vs design_2 → gana design_1
+
 === VENTAJAS design_1 ===
-- Materializa el literal exacto «El texto es obligatorio» en la capa cliente con un <action-validate> (@Main-validarTexto-action) encadenado antes de save, garantizando que ESC-005 muestre el mensaje del spec en el flujo de UI.
-- Cobertura completa de las 4 reglas (RES-001, CC-001, CC-002, RUI-001) con matriz de trazabilidad, clasificación cliente/servidor correcta y whitelists allowPropertiesInsert/Update reducidas a texto.
-- Documenta la asignación INCONDICIONAL de fechas con referencia a k-secure-coding §3.3 y excluye fechaCreacion de la whitelist de update por inmutable.
-- Menú «Desarrollador» + reubicación/restricción de «Utilidades de PDF» y seguridad (permiso en data-init del subsistema dueño + enlace en auth.xml global, quitar PdfUtilities.all de users) bien resueltos conforme a k-datainit.
+- No crea un controller innecesario: el CRUD puro pasa por el endpoint REST estándar; la validación ocurre en `validateInsert`/`validateUpdate`, que es la capa correcta para este caso simple.
+- Incluye `data-init/input/auth-smoketest.xml` con permisos CRUD explícitos del grupo `admins` sobre `SmokeTest`, siguiendo el patrón exigido por CLAUDE.md (`k-datainit`) y el paso 10 del orden obligatorio del design-contract.
+- Ambos `allowPropertiesInsert()` y `allowPropertiesUpdate()` se sobrescriben con whitelist explícita (`createAllowProperties`), defensa más robusta que `createAllowAllProperties`.
+- Omite correctamente la sección "Frontera de confianza — AllowProperties por acción" al no haber ningún `@CallMethod` (conforme con design-contract §8.3).
+- Trazabilidad limpia: R-SmokeTest-001 agrupa el sellado de ambas fechas al insertar, coherente con la semántica de CC-001 y CC-002 en el alta.
+
 === DEFECTOS design_1 ===
-- Omite deliberadamente la validación de servidor (validateInsert/validateUpdate) con una justificación técnicamente FALSA («la validación Jakarta salta antes de modelService.insert»): en el patrón ModelService, validateInsert se ejecuta ANTES de repository.save, así que no sería código muerto. Consecuencia: por la Vía B /ws/rest el rechazo lo da el @NotNull con un mensaje genérico, NO «El texto es obligatorio», contradiciendo ESC-005 («rechazada por el servidor» con ese literal) y dejando la única producción del mensaje en la capa cliente, que k-secure-coding declara que NO es defensa.
-- Mapea CC-002 a la vez a R-SmokeTest-001 y R-SmokeTest-002 y sella ambas fechas en un único fireActionRule_SellarFechasAlCrear, mezclando responsabilidades (CC→R menos limpio que un método por campo).
-- T-001 declara Verifica: R-SmokeTest-001 solo, sin reflejar el sellado de fechaUltimaModificacion ni U-001 (trazabilidad de tests más pobre).
+- El `btnSave-action-group` no encadena ninguna `action-condition` de validación local antes de `save`; el feedback de ESC-005 depende únicamente del `required="true"` declarativo y de `validateInsert` en servidor, sin capa cliente explícita en el action-group.
+
 === VENTAJAS design_2 ===
-- Implementa V-SmokeTest-001 en el servidor (validateInsert/validateUpdate) produciendo el literal «El texto es obligatorio», cumpliendo ESC-005 («rechazada por el servidor») y defendiendo la Vía B /ws/rest con un BusinessMessage limpio (defensa en profundidad, k-secure-coding), además del required declarativo.
-- Separa cada CC en su propia fireActionRule_Asignar* (FechaCreacion / FechaUltimaModificacion) con mapeo limpio CC-001→R-001 y CC-002→R-002 y responsabilidad única (k-code-quality), frente al método mezclado de design_1.
-- Sigue fielmente el orden obligatorio de pasos del design-contract §8: pasos explícitos para Repositorios, Controladores y Módulos Guice resueltos como «Ninguno», más fácil de implementar y verificar.
-- Trazabilidad de tests más completa (T-001 verifica R-001, R-002 y U-001), namecolumn="true" en texto, y groups="admins" también en grid/form (coherencia admin-only); whitelists, asignación incondicional y seguridad data-init resueltos igual de bien que design_1.
+- Añade validación cliente-lado explícita (`action-condition Local-validateSave-action` con `!texto`) en el `btnSave-action-group`, mejorando la UX con feedback inmediato sin viaje al servidor.
+- Los dos `fireActionRule_*` tienen nombres semánticos de un solo propósito: `AsignarFechaCreacion` solo en insert; `ActualizarFechaUltimaModificacion` en insert y en update, lo que hace el contrato de cada método más claro.
+
 === DEFECTOS design_2 ===
-- No añade un <action-validate> cliente con el literal: con texto required="true" el cliente Axelor puede bloquear el save con un mensaje genérico antes de alcanzar el servidor, por lo que en el flujo de UI puro el literal «El texto es obligatorio» podría no mostrarse (riesgo para T-005 vía pantalla), quedando garantizado solo en la Vía B /ws/rest.
-- Incluye la sección «Frontera de confianza» pese a no haber ningún @CallMethod (design-contract §8.3 indica omitirla en ese caso) — defecto compartido con design_1 y defendible por su valor de seguridad.
-- Detalle menor: nombre de panel SmokeTest en PascalCase (la convención es camelCase, p.ej. smokeTest).
+- No crea `data-init`: omite `data-init/input/auth-smoketest.xml` con los permisos del grupo `admins` sobre `SmokeTest`. El CLAUDE.md y el design-contract (paso 10 del orden obligatorio) exigen que cada subsistema cree su propio `data-init` con permisos explícitos.
+- Crea un `SmokeTestController` innecesario: la spec no exige validación pre-save mediante `@CallMethod`; con `validateInsert`/`validateUpdate` en el servicio y el `required="true"` declarativo es suficiente.
+- `allowPropertiesInsert()` no se sobrescribe y usa `createAllowAllProperties()` — menos explícito y defensivo que una whitelist.
+- La sección "Frontera de confianza" declara que `insert` y `update` son «invocado desde `SmokeTestController.validateSave`», lo cual es factualmente incorrecto.
+
 === JUSTIFICACION design_1 vs design_2 ===
-El punto decisivo es RES-001/ESC-005: el spec titula explícitamente el escenario «Alta sin texto rechazada por el servidor» y exige el mensaje «El texto es obligatorio». design_2 lo cumple poniendo la validación en validateInsert/validateUpdate del servicio, que produce ese BusinessMessage tanto desde el formulario como desde el endpoint genérico /ws/rest, en línea con k-secure-coding (la validación cliente no es defensa). design_1 renuncia a esa validación de servidor apoyándose en una afirmación técnicamente incorrecta (cree que validateInsert sería código muerto), de modo que en la Vía B solo queda el @NotNull, que rechaza pero con un mensaje genérico, no el literal del spec — incumpliendo el efecto exacto que pedía ESC-005. A esto se suma que design_2 descompone mejor los campos calculados (un fireActionRule_* por fecha, mapeo CC→R 1:1), respeta más fielmente el orden de pasos §8 y tiene mejor trazabilidad de tests. La única ventaja real de design_1 (mensaje exacto garantizado en UI vía action-validate) no compensa su carencia central de validación de servidor; lo ideal sería sumar ambas capas, pero ante la elección, la cobertura server-side de design_2 es la que respeta el spec y las guías de seguridad.
 
-### Comparación 2: design_2 vs design_3 → gana design_3
-=== VENTAJAS design_2 ===
-- Diseño más simple y con menos piezas: sin controlador, el CRUD se apoya solo en insert/update/validate* heredados; menos superficie de código a implementar.
-- Documenta la sección "Frontera de confianza — AllowProperties" aunque no tenga @CallMethod, dejando explícito el contrato anti mass-assignment (whitelists texto, fechas fuera).
-- Sellado de fechas correcto y bien separado en dos fireActionRule_* (creación solo en alta, modificación en alta y update), con asignación incondicional y referencia a k-secure-coding §3.3.
-- Clasificación cliente/servidor de los tres campos coherente y trazabilidad RES-001/CC-001/CC-002/RUI-001 completa.
-=== DEFECTOS design_2 ===
-- Declara required="true" en texto: dispara la validación cliente de Axelor con su mensaje estándar y bloquea ANTES de llegar al servidor, contradiciendo ESC-005, que exige el rechazo "por el servidor" con el literal exacto «El texto es obligatorio».
-- No incluye ningún hook validateSave ni doResponseBusinessMessagesAsError: sin él no hay mecanismo del proyecto para mostrar el BusinessMessages de validateInsert en la UI; se desvía del patrón establecido (LeyEducativaController.validateSave), por lo que el mensaje exacto de ESC-005 no se garantiza.
-- Reparte la asignación del permiso al grupo admins en el auth.xml GLOBAL en lugar de mantenerla en la data-init propia del subsistema (menos autocontenido que la regla de propiedad de k-datainit).
-- No advierte de la limitación del data-import de Axelor al quitar PdfUtilities.all del grupo users (sobre colecciones añade/actualiza pero no elimina).
-=== VENTAJAS design_3 ===
-- Implementa RES-001 con validateInsert/validateUpdate en servidor y un controlador validateSave (@CallMethod) encadenado antes de save, exactamente el patrón real del proyecto (verificado en LeyEducativaController + LeyEducativa.xml): el rechazo lo da el servidor y muestra el literal «El texto es obligatorio» como modal, cumpliendo ESC-005 al pie de la letra.
-- Omite deliberadamente required="true" y justifica por qué (para emitir el mensaje exacto y que el rechazo sea de servidor), evitando que el mensaje estándar de Axelor enmascare al literal del spec.
-- data-init autocontenido: define el permiso SmokeTest.all y su enlace al grupo admins en la propia auth-smoketest.xml del subsistema, alineado con la regla de propiedad de k-datainit; input-config.xml completo y materializado verbatim.
-- Surfacea un caveat real y correcto: el data-import de Axelor sobre colecciones no elimina, por lo que quitar PdfUtilities.all del grupo users solo surte efecto en BD recreada (advertencia ausente en design_2).
-- Sección "Frontera de confianza" obligatoria (tiene @CallMethod) presente y correcta, con whitelist texto y restauración del inmutable fechaCreacion desde original en update.
-=== DEFECTOS design_3 ===
-- fireActionRule_SellarFechasCreacion agrupa la asignación de fechaCreacion y fechaUltimaModificacion bajo un nombre que solo alude a "creación", lo que mezcla dos reglas (R-001 y R-002) en un método de nombre poco preciso.
-- El grid lleva title="Smoke test" (título redundante en un grid embebido en el action-view), detalle cosmético frente al title="" de design_2.
-- La restauración del inmutable fechaCreacion desde original en update es correcta pero algo redundante dado que el campo ya está fuera de allowPropertiesUpdate; no es un error, solo defensa duplicada poco comentada.
-=== JUSTIFICACION design_2 vs design_3 ===
-La diferencia decisiva es el cumplimiento de ESC-005, que exige que el alta sin texto sea rechazada "por el servidor" mostrando el literal exacto «El texto es obligatorio». Design_3 lo logra con el patrón real del proyecto —controlador validateSave + doResponseBusinessMessagesAsError, idéntico a LeyEducativaController que se verificó en el código— y omitiendo required="true" para no dejar que la validación cliente de Axelor muestre su mensaje estándar antes de llegar al servidor. Design_2, en cambio, declara required="true" (bloqueo en cliente con mensaje estándar, contradiciendo "rechazada por el servidor" y el literal) y no aporta ningún hook para surfacear el BusinessMessages de servidor en la UI, desviándose de la convención establecida; su mensaje exacto no queda garantizado. A esto se suma que design_3 mantiene el permiso y su asignación dentro de la data-init propia del subsistema (regla de propiedad de k-datainit) y advierte de la limitación del data-import al retirar PdfUtilities.all del grupo users, ambos puntos que design_2 trata peor. Los defectos de design_3 son menores y cosméticos, sanables por el enriquecedor, mientras que los de design_2 afectan al cumplimiento del escenario central del spec.
+La omisión de `data-init` en design_2 es el defecto más grave: sin `auth-smoketest.xml`, los permisos del grupo `admins` sobre `SmokeTest` no están garantizados de forma declarativa y versionable, algo que el patrón del proyecto exige para todos los subsistemas.
+El controller en design_2 añade complejidad no requerida: el design-contract indica que los controladores se crean solo cuando hay lógica de botones necesaria, y la validación del texto obligatorio está cubierta por `validateInsert` y el `required="true"` declarativo en Axelor.
+La única ventaja real de design_2 (la `action-condition` local antes del `save`) es un plus de UX que la spec no exige explícitamente y que el `required="true"` del dominio ya proporciona de forma declarativa en Axelor.
+El error en la sección "Frontera de confianza" de design_2 introduce una incoherencia conceptual que confundiría al implementador.
+design_1 cubre correctamente seguridad, permisos, trazabilidad y simplicidad, con el único coste de no tener validación local explícita en el action-group, que queda compensada por el mecanismo declarativo.
 
-### Comparación 3: design_3 vs design_4 → gana design_3
+### Comparación 2: design_1 vs design_3 → gana design_1
+
+=== VENTAJAS design_1 ===
+- Incluye explícitamente los ficheros `data-init/input-config.xml` y `data-init/input/auth-smoketest.xml` para los permisos del grupo `admins` sobre `SmokeTest`, siguiendo la convención del CLAUDE.md y el orden obligatorio del design-contract §8 paso 10.
+- Tiene una subsección "Cobertura inversa" explícita que mapea cada regla del spec (`RES-001`, `CC-001`, `CC-002`, `RUI-001`) a su V/R/U, facilitando la auditoría de cobertura total.
+- El código de servicio usa solo firmas + comentario descriptivo, fiel al contrato del design-contract §1.1.
+- El paso de seguridad describe el permiso de forma concreta y determinista, eliminando ambigüedad para el implementador.
+
+=== DEFECTOS design_1 ===
+- El comando de verificación final es `./gradlew clean build` en vez de `./run.sh` (exigido por CLAUDE.md y design-contract §8 paso 12).
+- La tabla de trazabilidad no incluye columna o tabla explícita de clasificación `cliente`/`servidor`; la clasificación está en los comentarios del servicio pero no en la sección de trazabilidad.
+
 === VENTAJAS design_3 ===
-- Cierra la frontera de seguridad real: crea data-init/input-config.xml + auth-smoketest.xml con el permiso de objeto SmokeTest.all concedido SOLO al grupo admins, protegiendo el endpoint REST genérico /ws/rest/<FQN> que groups= NO cubre (k-secure-coding §1). Es lo que honra el requisito del spec "único rol con acceso al subsistema".
-- Revoca de verdad el acceso de PDF: además del menú groups="admins", modifica el auth.xml global para quitar PdfUtilities.all del grupo users, cumpliendo "perdiendo el acceso que tuvieran otros perfiles"; y documenta honestamente el caveat de data-import.
-- Aplica correctamente k-datainit/CLAUDE.md: cada subsistema dueño de su tabla crea su propia data-init con sus permisos auth-<sistema>.xml.
-- validateSave (@CallMethod) muestra el mensaje de RES-001 como modal antes del save, alineado con ESC-005 ("muestra el mensaje") y con el patrón real del proyecto (LeyEducativaController.validateSave); por ello su sección "Frontera de confianza" es obligatoria y está completa.
-- Cobertura total de reglas con trazabilidad y clasificación cliente/servidor correctas; sellado incondicional de fechas con restauración del inmutable fechaCreacion en update.
+- Usa el comando correcto `./run.sh` en la verificación final.
+- Incluye una tabla de "Clasificación de campos" en la sección de trazabilidad, haciendo visible directamente qué campos son `cliente`/`servidor`.
+- El grid especifica `width="200px"` para los campos de fecha.
+- La R-SmokeTest-002 queda ubicada tanto en `insert` como en `update` de forma explícita en la tabla.
+
 === DEFECTOS design_3 ===
-- No traza la "Ordenación por defecto" (orderBy="-fechaCreacion") como una U con Origen spec —: la implementa en el grid pero no la registra en la matriz de trazabilidad (sí lo hace design_4).
-- Añade un controlador validateSave que la spec no exige estrictamente (no pide botón especial), aumentando algo la superficie; aceptable porque sigue patrón del proyecto y mejora UX.
-- La modificación del auth.xml global para revocar PdfUtilities.all solo surte efecto pleno en BD recreada; en BD poblada requiere acción manual (defecto inherente a Axelor, no del diseño, y queda documentado).
+- No crea los ficheros `data-init` de permisos: delega en una suposición ("el grupo `admins` dispone de permisos CRUD globales"), incumpliendo design-contract §8 paso 10 y la convención del CLAUDE.md.
+- Los bloques de código del servicio incluyen declaraciones reales de `package` e `import` de Java, yendo más allá de las "firmas + comentario descriptivo".
+- No hay sección de "Cobertura inversa" explícita.
+
+=== JUSTIFICACION design_1 vs design_3 ===
+Ambos diseños son funcionalmente equivalentes y cubren correctamente las V/R/U del spec, el patrón `buttons-panel`, la clasificación `cliente`/`servidor` y los tests E2E. La diferencia decisiva es la gestión de permisos: design_1 materializa explícitamente los ficheros `data-init` exigidos por CLAUDE.md y el design-contract §8 paso 10, mientras que design_3 los sustituye por una suposición condicional que puede dejar la entidad `SmokeTest` sin acceso real en producción. Este es un defecto de seguridad/arquitectura más grave que el uso del comando incorrecto (`./gradlew clean build`) que presenta design_1 en la verificación final. La ventaja de la tabla de clasificación de campos de design_3 puede añadirse al ganador en la fase de enriquecimiento. design_1 sigue más estrictamente el contrato del diseño en los puntos de mayor impacto (seguridad y cobertura explícita).
+
+### Comparación 3:
+ design_1 vs design_4 → gana design_4
+
+=== VENTAJAS design_1 ===
+- El campo `texto` usa `large="true"` en el dominio XML, alineado con la naturaleza de "texto libre" del spec.
+- El método `fireActionRule_AsignarFechasAlCrear` agrupa CC-001 y CC-002 en un solo disparo en insert.
+- La sección "Notas y supuestos" explica claramente por qué no hay controlador ni módulo Guice.
+
+=== DEFECTOS design_1 ===
+- Falta la capa cliente de V-SmokeTest-001: no existe ningún `<action-validate>` en `views/SmokeTest.xml`. Con `required="true"` en el dominio, Axelor mostraría un mensaje genérico del framework, NO el «El texto es obligatorio» que exige ESC-005.
+- La V-SmokeTest-001 en la matriz de trazabilidad no incluye la ubicación cliente (fichero de vistas + nombre de acción).
+- No existe sección `## Seguridad` en `design.md`; el contrato §7.1 paso 3 exige que los permisos, roles y grupos consten explícitamente ahí.
+
 === VENTAJAS design_4 ===
-- Más simple y minimalista (sin controlador, sin data-init), coherente con la naturaleza de "smoke test".
-- Trazabilidad más completa de la pantalla: registra U-smoke-test-002 (Origen spec —) para materializar la "Ordenación por defecto" del screen-smoke-test.md.
-- Añade un botón "Cancelar" (back) razonable y lo documenta en "Notas y supuestos".
-- Misma cobertura de RES-001/CC-001/CC-002/RUI-001 con sellado incondicional de fechas y whitelist texto correctas.
-=== DEFECTOS design_4 ===
-- Deja ABIERTO el endpoint REST genérico para no-admins sobre SmokeTest: no crea ningún permiso de objeto, confiando solo en groups= de vistas/menús, que k-secure-coding §1 declara que NO es defensa; incumple el requisito explícito del spec de que el Administrador es el único rol con acceso.
-- Restringe "Utilidades de PDF" SOLO ocultando el menú (groups="admins"); no revoca el permiso de objeto PdfUtilities.all de users, por lo que esos perfiles no "pierden el acceso" a nivel de autorización como pide el spec.
-- Justifica omitir el data-init de permisos malinterpretando "Recursos y datos iniciales: (no aplica)" del spec, que se refiere a datos semilla de la tabla (arranca vacía), no a los permisos de acceso (auth), que k-datainit trata como concern separado y obligatorio del subsistema dueño.
-=== JUSTIFICACION design_3 vs design_4 ===
-El contrato de diseño carga k-secure-coding como Siempre/CRITICAL y advierte que groups=/readonly/hidden en XML no son defensa porque el endpoint REST /ws/rest/<FQN> es automático. El spec, en su sección de Seguridad, fija que el Administrador es "el único rol con acceso al subsistema" y que PDF "queda restringido también solo al Administrador, perdiendo el acceso que tuvieran otros perfiles". design_3 cumple ambos puntos con autorización a nivel de objeto (permiso SmokeTest.all solo a admins vía data-init, y retirada de PdfUtilities.all del grupo users), mientras design_4 deja deliberadamente sin proteger la invocación REST y solo oculta menús, lo que un no-admin podría saltarse. Además, design_4 fundamenta esa omisión en una lectura errónea del "(no aplica)" del spec (que hablaba de datos semilla, no de permisos), contradiciendo k-datainit, que obliga a cada subsistema a crear su propia data-init con auth-<sistema>.xml. Las ventajas de design_4 (la U de ordenación y el botón Cancelar) son menores y fácilmente incorporables al ganador, frente a una carencia de seguridad de design_4 que es el eje más ponderado del contrato. Por tanto, design_3 cumple mejor la especificación, las guías y las reglas.
+- Implementa correctamente las tres capas de V-SmokeTest-001: sin `required="true"` en el dominio, `<action-validate>` en views con el literal exacto «El texto es obligatorio» (ESC-005), y `validateInsert`/`validateUpdate` en servidor.
+- La trazabilidad de V-SmokeTest-001 incluye ambas ubicaciones (servidor + cliente con `action-validate`).
+- Dos `fireActionRule_*` separados, uno por regla, en línea con el principio de responsabilidad única.
+- Incluye sección `## Seguridad` explícita en `design.md` con roles, alcance y permisos.
+- Los comentarios en el XML de vistas trazan cada decisión.
 
-### Comparación 4: design_3 vs design_5 → gana design_3
-=== VENTAJAS design_3 ===
-- Cumple el requisito de seguridad del spec sobre Utilidades de PDF a nivel de objeto: además del menú groups="admins", modifica src/main/resources/data-init/input/auth.xml para quitar PdfUtilities.all del grupo users (que hoy lo tiene concedido, línea 261), retirando el acceso real por el endpoint REST, no solo en la UI.
-- Define el permiso de objeto SmokeTest.all y lo concede solo al grupo admins vía data-init/ propio del subsistema (input-config.xml + auth-smoketest.xml), siguiendo el patrón consistente del proyecto (cada entidad tiene su <permission>.all) y respetando que el subsistema es dueño de su permiso (k-datainit).
-- Añade el hook SmokeTestController.validateSave (@CallMethod) que es el patrón idiomático del proyecto (LeyEducativaController, CertificadoDigitalController), mostrando el mensaje exacto «El texto es obligatorio» como modal antes del save para ESC-005.
-- Documenta honestamente el caveat del data-import de Axelor (quitar una línea de una colección solo surte efecto en BD recreada), avisando del límite real en BD ya poblada.
-- Trazabilidad y frontera de confianza completas y coherentes; nombre de campo fechaUltimaModificacion fiel al spec.
-=== DEFECTOS design_3 ===
-- La revocación de PdfUtilities.all del grupo users por data-import solo se materializa en una BD recreada; en una BD ya poblada el permiso concedido persiste y hay que retirarlo manualmente (el propio diseño lo reconoce, pero queda como limitación).
-- Diseño algo más pesado (controlador + carpeta data-init + modificación de auth.xml global) para un subsistema declarado «sin valor de negocio».
+=== DEFECTOS design_4 ===
+- Omite `large="true"` en el campo `texto` del dominio XML.
+- En la tabla de "Ficheros a crear o modificar" incluye `src/main/resources/data-init/input/auth.xml` como **Modificar** basándose en una asunción sobre el código real que podría ser errónea.
+
+=== JUSTIFICACION design_1 vs design_4 ===
+La diferencia decisiva es la capa de validación cliente. El spec ESC-005 exige que el sistema muestre exactamente «El texto es obligatorio» al intentar guardar sin texto. design_1 confía en el `required="true"` del dominio XML para producir este mensaje, pero Axelor genera en esa capa un mensaje genérico del framework; el `validateInsert` del servicio (que sí produce el mensaje correcto) nunca llegaría a ejecutarse porque el framework ya rechazó el request con otro texto. Esto hace que T-005 falle en la implementación real. design_4 resuelve esto correctamente eliminando `required="true"` del dominio y añadiendo un `<action-validate>` con el literal exacto del spec. Además, design_4 es más completo estructuralmente: tiene sección `## Seguridad`, trazabilidad con ubicación cliente+servidor, y `fireActionRule_*` separados por regla. Los defectos de design_4 (ausencia de `large` y la asunción sobre `auth.xml`) son subsanables sin cambiar ninguna decisión de diseño. Los defectos de design_1 (ausencia de `action-validate` y mensaje incorrecto en ESC-005) son defectos funcionales que el test E2E T-005 detectaría.
+
+### Comparación 4: design_4 vs design_5 → gana design_4
+
+=== VENTAJAS design_4 ===
+- Omite correctamente `required="true"` en el dominio para `texto`, garantizando que el mensaje exacto del spec («El texto es obligatorio») sea el que emite `validateInsert`/`validateUpdate` sin riesgo de que Bean Validation dispare primero un mensaje genérico.
+- Declara explícitamente `validateUpdate` con la misma comprobación de texto que `validateInsert`, cubriendo RES-001 tanto en alta como en modificación.
+- No crea un controlador innecesario: la validación cliente se resuelve con `action-validate`.
+- Omite correctamente la sección «Frontera de confianza — AllowProperties por acción» al no haber ningún `@CallMethod`.
+- Crea los ficheros `data-init` del subsistema (`input-config.xml` + `auth-smoketest.xml`).
+
+=== DEFECTOS design_4 ===
+- La Nota 6 afirma que `SmokeTest.all` ya existe en la línea 232 de `auth.xml` global tras explorar el repositorio, pero al ser un subsistema nuevo es probable que esa asignación no exista aún; es un supuesto arriesgado que puede inducir al implementador a no añadirla.
+
 === VENTAJAS design_5 ===
-- Más simple y con menos superficie de código: sin controlador ni data-init, aprovechando solo el CRUD genérico del endpoint REST y las sobrescrituras de servicio.
-- Documenta bien por qué incluye la sección «Frontera de confianza» pese a no tener @CallMethod (la entrada es por /ws/rest/<FQN>, Vía B de k-secure-coding) y razona el orden del menú.
-- Dominio, vista, menús, whitelists allowProperties y trazabilidad V/R/U correctos y válidos contra los XSD; sellado incondicional de fechas bien documentado anti mass-assignment.
+- Presenta una sección «Frontera de confianza — AllowProperties por acción» con tablas completas para `insert` y `update`.
+- El diseño del controlador (`validateSave`) documenta con precisión el flujo alta/modificación y el uso de `ActionRequestHelper`/`ActionResponseHelper`.
+
 === DEFECTOS design_5 ===
-- NO revoca el permiso de objeto PdfUtilities.all del grupo users: solo pone groups="admins" en el menú, que es defensa de UI (k-secure-coding: menú/hidden/readonly NO son defensa). Incumple el requisito explícito del spec «perdiendo el acceso que tuvieran otros perfiles», ya que users conserva acceso CRUD por REST.
-- NO define permiso de objeto para SmokeTest (Paso 5 rechaza crear data-init): confía el control de acceso al groups de grid/form, que es UI; rompe el patrón per-objeto del proyecto y arriesga que un usuario no admin alcance SmokeTest por el endpoint REST genérico, contra «es el único rol con acceso al subsistema».
-- Su argumento de seguridad («conceder permisos abriría el acceso a otros perfiles») es inverso al modelo real de auth del proyecto, donde el acceso se concede por permiso explícito por grupo.
-- Sin hook validateSave: ESC-005 se resuelve solo server-side, con presentación de error menos alineada con el patrón establecido.
-=== JUSTIFICACION design_3 vs design_5 ===
-La diferencia decisiva es la seguridad a nivel de servidor, que es justo lo que el spec pone en el centro de esta iniciativa («acceso correcto al servidor», Administrador como único rol, y PDF perdiendo acceso para otros perfiles). En el código real, el grupo users tiene concedido PdfUtilities.all (auth.xml línea 261): design_3 lo retira en el auth.xml global, mientras design_5 se limita a ocultar el menú con groups="admins", que según k-secure-coding NO es defensa, dejando intacto el acceso REST de users a PDF — incumplimiento directo del apartado «Seguridad» del spec. Lo mismo ocurre con SmokeTest: design_3 crea un permiso de objeto concedido solo a admins (coherente con el patrón de que cada entidad lleva su .all), mientras design_5 omite todo permiso de objeto y delega el control en el groups de la vista (capa UI), arriesgando acceso no autorizado por el endpoint genérico y razonando el modelo de auth al revés. Añadido a ello, design_3 usa el hook validateSave idiomático del proyecto para ESC-005 y documenta con rigor el caveat del data-import. La mayor simplicidad de design_5 no compensa que falle dos veces la frontera de confianza servidor que el spec y k-secure-coding exigen.
+- Incluye `required="true"` en `domains/SmokeTest.xml` para `texto`, lo que puede provocar que Bean Validation emita un mensaje genérico antes de que `validateInsert` produzca el literal exacto «El texto es obligatorio» del ESC-005.
+- No declara ninguna firma `validateUpdate` en la implementación del servicio, dejando la validación de `texto` en modificaciones sin cobertura real (RES-001 no cubierto en update).
+- Crea un `SmokeTestController` con `validateSave` que añade una llamada remota innecesaria para una comprobación trivial ya cubierta.
+- La sección «Frontera de confianza» describe `SmokeTestServiceImpl.insert` como «invocado desde `SmokeTestController.validateSave`», lo cual es incorrecto.
+- No crea `data-init` para el subsistema.
+
+=== JUSTIFICACION design_4 vs design_5 ===
+La diferencia decisiva entre ambos diseños está en tres puntos que afectan directamente a la corrección funcional y a la seguridad. Primero, design_4 evita el conflicto entre Bean Validation y `validateInsert` prescindiendo de `required="true"` en el dominio, garantizando el mensaje exacto de ESC-005; design_5 introduce esa tensión y no la resuelve. Segundo, design_4 declara explícitamente `validateUpdate`, cerrando la cobertura de RES-001 en modificaciones; design_5 la deja implícita y posiblemente heredada como no-op. Tercero, design_4 es más simple y correcto: descarta el controlador porque el CRUD estándar no lo necesita, mientras que design_5 añade complejidad arquitectónica injustificada. Los defectos de design_5 no son cosméticos: el `validateUpdate` ausente y el riesgo con Bean Validation son errores que llevarían directamente a comportamiento incorrecto en producción.
+
 

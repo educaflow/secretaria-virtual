@@ -12,30 +12,26 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 
-public class SmokeTestServiceImpl extends DefaultModelService<SmokeTest>
-        implements SmokeTestService {
+public class SmokeTestServiceImpl extends DefaultModelService<SmokeTest> implements SmokeTestService {
 
     public SmokeTestServiceImpl(Class<SmokeTest> model, Repository<SmokeTest> repository) {
         super(model, repository);
     }
 
     @Override
-    public SmokeTest insert(SmokeTest smokeTest) {
-        validateInsert(smokeTest).ifPresent(BusinessMessages::throwIfInvalid);
-
-        fireActionRule_AsignarFechaCreacion(smokeTest);
-        fireActionRule_AsignarFechaUltimaModificacion(smokeTest);
-
-        return repository.save(smokeTest);
+    public SmokeTest insert(SmokeTest entity) {
+        validateInsert(entity).ifPresent(BusinessMessages::throwIfInvalid);
+        fireActionRule_AsignarFechaCreacion(entity);
+        fireActionRule_ActualizarFechaUltimaModificacion(entity);
+        return repository.save(entity);
     }
 
     @Override
-    public SmokeTest update(SmokeTest smokeTest, SmokeTest original) {
-        validateUpdate(smokeTest, original).ifPresent(BusinessMessages::throwIfInvalid);
-
-        fireActionRule_RefrescarFechaModificacion(smokeTest, original);
-
-        return repository.save(smokeTest);
+    public SmokeTest update(SmokeTest entity, SmokeTest original) {
+        validateUpdate(entity, original).ifPresent(BusinessMessages::throwIfInvalid);
+        entity.setFechaCreacion(original.getFechaCreacion());
+        fireActionRule_ActualizarFechaUltimaModificacion(entity);
+        return repository.save(entity);
     }
 
     /****************************************************************************************/
@@ -43,18 +39,16 @@ public class SmokeTestServiceImpl extends DefaultModelService<SmokeTest>
     /****************************************************************************************/
 
     @Override
-    public Optional<BusinessMessages> validateInsert(SmokeTest smokeTest) {
-        // V-SmokeTest-001 (RES-001): texto obligatorio.
-        if (smokeTest.getTexto() == null || smokeTest.getTexto().isBlank()) {
+    public Optional<BusinessMessages> validateInsert(SmokeTest entity) {
+        if (entity.getTexto() == null || entity.getTexto().isBlank()) {
             return Optional.of(BusinessMessages.single(I18n.get("El texto es obligatorio")));
         }
         return Optional.empty();
     }
 
     @Override
-    public Optional<BusinessMessages> validateUpdate(SmokeTest smokeTest, SmokeTest original) {
-        // V-SmokeTest-001 (RES-001): texto obligatorio.
-        if (smokeTest.getTexto() == null || smokeTest.getTexto().isBlank()) {
+    public Optional<BusinessMessages> validateUpdate(SmokeTest entity, SmokeTest original) {
+        if (entity.getTexto() == null || entity.getTexto().isBlank()) {
             return Optional.of(BusinessMessages.single(I18n.get("El texto es obligatorio")));
         }
         return Optional.empty();
@@ -78,19 +72,19 @@ public class SmokeTestServiceImpl extends DefaultModelService<SmokeTest>
     /********************************    Action Rules    *********************************/
     /*************************************************************************************/
 
-    private void fireActionRule_AsignarFechaCreacion(SmokeTest smokeTest) {
-        // CC-001 (momento escritura): la fecha de creación la dicta el servidor.
-        smokeTest.setFechaCreacion(LocalDateTime.now());
+    /**
+     * R-SmokeTest-001: asigna la fecha de creación en el momento del insert.
+     * Asignación INCONDICIONAL: siempre se sobreescribe independientemente del valor previo.
+     */
+    private void fireActionRule_AsignarFechaCreacion(SmokeTest entity) {
+        entity.setFechaCreacion(LocalDateTime.now());
     }
 
-    private void fireActionRule_AsignarFechaUltimaModificacion(SmokeTest smokeTest) {
-        // CC-002 (momento escritura): la fecha de última modificación la dicta el servidor.
-        smokeTest.setFechaUltimaModificacion(LocalDateTime.now());
-    }
-
-    private void fireActionRule_RefrescarFechaModificacion(SmokeTest smokeTest, SmokeTest original) {
-        // CC-002: refresca la fecha de modificación; fechaCreacion es inmutable (se restaura del original).
-        smokeTest.setFechaUltimaModificacion(LocalDateTime.now());
-        smokeTest.setFechaCreacion(original.getFechaCreacion());
+    /**
+     * R-SmokeTest-002: actualiza la fecha de última modificación en cada insert/update.
+     * Asignación INCONDICIONAL: siempre se sobreescribe independientemente del valor previo.
+     */
+    private void fireActionRule_ActualizarFechaUltimaModificacion(SmokeTest entity) {
+        entity.setFechaUltimaModificacion(LocalDateTime.now());
     }
 }
