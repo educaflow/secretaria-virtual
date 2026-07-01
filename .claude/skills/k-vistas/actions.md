@@ -324,11 +324,16 @@ Además de las acciones definidas por el desarrollador, el framework de Axelor t
 - `back`: navega a la vista anterior.
 - `force-back`: navega a la vista anterior sin ejecutar las validaciones.
 - `delete`: elimina el registro actual sin mostrar un modal de confirmación.
-- `delete-modal`: elimina el registro actual mostrando un modal de confirmación.
-- `save-modal`: guarda el registro actual mostrando un modal de confirmación.
+- `delete-modal`: en el form modal de un `<panel-related>`, pide confirmación y quita el registro de la colección en memoria del form padre (solo en cliente; el borrado en BD llega al guardar el maestro).
+- `save-modal`: en el form modal de un `<panel-related>`, confirma el registro en la colección en memoria del form padre y cierra el modal (solo en cliente; no llama al servidor).
 - `new`: crea un nuevo registro.
 
-`save`/`delete` (form principal) y `save-modal`/`delete-modal` (form modal de entidades hijas en `<panel-related>`) son las únicas formas correctas de persistir y borrar registros desde el cliente. Estas acciones disparan el endpoint REST automático `/ws/rest/<FQN>` que entra al servicio aplicando `validate → super` y `AllowProperties`. **MUST NOT** sustituirlas por un `<action-method>` (`Remote-…-action`) que llame a un controlador propio para guardar o borrar. Ver `[[controladores.md]]` del skill `k-sistemas`.
+`save`/`delete` (form principal) y `save-modal`/`delete-modal` (form modal de entidades hijas en `<panel-related>`) son las únicas formas correctas de persistir y borrar registros desde el cliente, pero funcionan de forma distinta:
+
+- `save`/`delete` disparan el endpoint REST automático `/ws/rest/<FQN>` del modelo del form, que entra al `ModelService` de esa entidad aplicando `validate` y `AllowProperties`.
+- `save-modal`/`delete-modal` son acciones **solo de cliente**: confirman o quitan el registro en la colección en memoria del form padre y cierran el modal, sin llamar al servidor. La persistencia real de los detalles ocurre cuando el `save` del form raíz envía el árbol completo al endpoint REST **del maestro**: entra únicamente al `ModelService` del maestro (el del detalle no se invoca por esta vía), los detalles se persisten por cascada JPA y el filtrado `AllowProperties` que cubre el árbol anidado es el del maestro.
+
+**MUST NOT** sustituirlas por un `<action-method>` (`Remote-…-action`) que llame a un controlador propio para guardar o borrar. Ver `[[controladores.md]]` del skill `k-sistemas`.
 
 
 ## Orden de las acciones en el código:

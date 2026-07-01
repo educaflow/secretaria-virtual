@@ -46,9 +46,13 @@
 
 ### Botones
 
-<!-- En un listado hay acciones de la BARRA SUPERIOR (Nuevo, Añadir…) y acciones de FILA/COLUMNA (Descargar, Ver…). Marca de qué clase es cada una. Si no hay, *(sin botones)*. -->
+<!-- El ÚNICO botón estándar de un listado es «Nuevo» (o «Añadir» en un hijo maestro-detalle) en la barra superior: crea un registro. Nada más es estándar.
+     REGLA CRUD (fija en /k-vistas — no la contradigas): el listado NO borra ni edita en línea. Al pulsar una fila se abre el FORMULARIO, y el BORRADO y la EDICIÓN son botones del formulario, nunca del listado. MUST NOT poner un botón de fila «Eliminar», «Borrar» o «Editar» — ese borrado va en el formulario (ver la sección «Botones» del formulario y el «Modelo CRUD» del README).
+     EXCEPCIONAL: cualquier OTRO botón del listado —un botón de barra superior distinto de «Nuevo», o cualquier botón de FILA/COLUMNA (Descargar, Imprimir, Ver un documento…)— NO se inventa. Solo se incluye si el usuario lo pide explícitamente, o si se le pregunta explícitamente y lo acepta.
+     Si el listado solo permite crear, lista solo «Nuevo». Si tampoco permite crear, *(sin botones)*. -->
 
-- **<Etiqueta>** (barra superior | acción de fila) — <qué hace y cuándo/para quién es visible>
+- **Nuevo** (barra superior) — <abre el formulario de alta; para quién es visible>
+- **<Etiqueta>** (acción de fila) — <SOLO acción de dominio extra (nunca borrar/editar) y SOLO si el usuario la pidió o la aceptó al preguntársela>
 
 <!-- ───────── Si «Tipo: formulario» ───────── -->
 
@@ -67,7 +71,11 @@
 
 ### Botones
 
-- **<Etiqueta>** — <qué acción dispara y cuándo es visible>
+<!-- Guardar + Cancelar + Borrar es el panel de botones ESTÁNDAR que el diseño añade SIEMPRE por /k-vistas. Por eso NO se enumeran aquí. El BORRADO vive en el formulario, nunca en el listado.
+     Enumera solo: (a) botones de DOMINIO (Enviar, Emitir, Rechazar, Aprobar…) con cuándo son visibles; y (b) DESVIACIONES del estándar: «no se puede borrar» (sin Borrar), o formulario de solo lectura (sin Guardar/Borrar) — una desviación de solo lectura se refleja además en «Modo» de ### Propiedades.
+     Si el formulario solo lleva el panel estándar, indícalo con: *(solo los botones estándar: Guardar, Cancelar, Borrar)*. -->
+
+- **<Etiqueta>** — <acción de DOMINIO o DESVIACIÓN del estándar; qué dispara y cuándo es visible>
 
 <!-- ───────── Si «Tipo: gráfica» u otra vista no-formulario ───────── -->
 

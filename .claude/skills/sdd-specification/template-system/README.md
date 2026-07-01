@@ -433,6 +433,24 @@ Todas las vistas alcanzables **en línea** desde un mismo punto de entrada se de
 
 Por eso un `screen-*.md` describe **siempre** sus vistas de la misma forma, haya una o varias: tras `Identidad` y `Menú`, una sección `## Estructura jerárquica de las vistas` con el árbol y luego una sección `## Vista: <Nombre>` por cada vista, cada una con su ficha breve y sus `### Paneles`, `### Botones` y `### Reglas de UI` (ver los ejemplos `screen-mis-solicitudes.md` y `screen-solicitudes-centro.md`). **No hay un formato aparte para el caso de una sola vista:** si la pantalla es un único formulario (un asistente, un formulario de configuración) o un grid suelto, el árbol es un único nodo y hay una sola sección `## Vista` — exactamente la misma estructura.
 
+## Modelo CRUD de una pantalla de mantenimiento
+
+**CRITICAL — la spec MUST NOT describir botones que contradigan el modelo CRUD de `/k-vistas`.** El par listado + formulario de una pantalla de mantenimiento reparte las operaciones CRUD de forma **fija**: cada operación tiene un hogar y **no se coloca en otro sitio**. Describe las pantallas respetando esta tabla:
+
+| Operación | Dónde vive (fijo en `/k-vistas`) | Cómo se describe en la spec |
+|---|---|---|
+| **Crear (alta)** | Botón **«Nuevo»** de la barra superior del listado (en un hijo maestro-detalle, **«Añadir»**) | Un botón de barra superior en `### Botones` del listado |
+| **Consultar (lista)** | El propio listado | La ficha y las `### Propiedades` del listado |
+| **Consultar (detalle) / Modificar** | El **formulario**, que se abre al pulsar una fila del listado | `Al pulsar una fila abre` (listado) + `Modo` (formulario) |
+| **Borrar** | Botón **«Borrar» del formulario** — **nunca** del listado | Estándar implícito; solo se menciona la **desviación** (que NO se pueda borrar) |
+| **Cancelar** / **Guardar** | Botones **del formulario** | Estándar implícito |
+
+**Reglas duras que se derivan de la tabla:**
+
+- **El borrado y la edición son SIEMPRE acciones del formulario, NUNCA del listado.** El listado no borra ni edita en línea: abrir la fila lleva al formulario, y ahí están «Borrar» y el guardado. **MUST NOT** describir un botón de fila «Eliminar», «Borrar» o «Editar» en un listado.
+- **El panel «Guardar + Cancelar + Borrar» es el estándar** que el diseño añade siempre al formulario. Por eso **no se enumera**; solo se enumeran los botones de **dominio** (Enviar, Emitir, Rechazar…) y las **desviaciones** del estándar (que no se pueda borrar, o que el formulario sea de solo lectura).
+- **Los botones de grid son EXCEPCIONALES.** El único botón normal del listado es «Nuevo». Cualquier **otro** botón de la barra superior y **cualquier** botón de fila/columna (Descargar, Imprimir, Ver un documento…) **solo** se incluye si el usuario lo **pide explícitamente**, o si se le **pregunta explícitamente y lo acepta**. **MUST NOT** inventarlos.
+
 ## Identidad
 
 - **Quién la usa:** los roles que ven o usan la pantalla y en qué modo cada uno.
@@ -480,12 +498,12 @@ Un listado **no tiene paneles**. Lleva una subsección `### Propiedades` con, un
 - **Al pulsar una fila abre:** qué formulario abre el listado (o «no abre detalle»). Es la arista del árbol que sale de este listado.
 - **Mensaje de ayuda (opcional):** un texto de ayuda que el listado muestra al usuario (p. ej. «Aquí se listan todos los ciclos que hay en el sistema»). Solo si lo hay; si no, se omite la viñeta.
 
-Y una subsección `### Botones` con **dos clases** de acción, marcando entre paréntesis cuál es cada una:
+Y una subsección `### Botones`. El **único botón normal** de un listado es **«Nuevo»** (o **«Añadir»** en un hijo maestro-detalle) en la **barra superior**: crea un registro. Todo lo demás es excepcional (ver «Modelo CRUD de una pantalla de mantenimiento»):
 
-- las de la **barra superior** (`Nuevo`, `Añadir…`): crean o añaden registros a la lista;
-- las de **fila/columna** (`Descargar`, `Ver…`): actúan sobre la fila seleccionada.
+- **MUST NOT** un botón de fila «Eliminar», «Borrar» o «Editar»: el borrado y la edición son acciones del **formulario**, nunca del listado.
+- Cualquier **otro** botón —de barra superior distinto de «Nuevo», o de **fila/columna** (`Descargar`, `Imprimir`, `Ver…`)— es **EXCEPCIONAL**: solo se incluye si el usuario lo **pide explícitamente** o si se le **pregunta y lo acepta**; nunca se inventa. Márcalo entre paréntesis como `(barra superior)` o `(acción de fila)`.
 
-Si no hay botones, `*(sin botones)*`.
+Si el listado solo permite crear, lista solo «Nuevo». Si tampoco permite crear, `*(sin botones)*`.
 
 ### Subsecciones de un formulario
 
@@ -504,7 +522,7 @@ Un formulario lleva `### Propiedades`, `### Paneles` y `### Botones`.
 
 Un campo que **referencia otra entidad** (el usuario elige un registro existente con un selector) se lista como **un campo más** del panel, no como una vista. Por defecto basta con el nombre del campo: el diseño ya sabe con qué vista se elige. **Solo si** hace falta una vista distinta de la por defecto, anótalo entre paréntesis en lenguaje de negocio (p. ej. `nivel (se elige del catálogo de niveles de grado superior)`).
 
-`### Botones` — las acciones del formulario, una por viñeta: la etiqueta en negrita y, tras un `—`, qué acción de negocio dispara y cuándo es visible. Si no hay, `*(sin botones)*`.
+`### Botones` — las acciones del formulario, una por viñeta: la etiqueta en negrita y, tras un `—`, qué acción de negocio dispara y cuándo es visible. El panel **«Guardar + Cancelar + Borrar» es el estándar** que el diseño añade siempre (por `/k-vistas`) y aquí el **borrado** tiene su hogar (nunca en el listado). Por eso **no se enumera** ese trío; solo se enumeran: (a) los botones de **dominio** (Enviar, Emitir, Rechazar, Aprobar…), y (b) las **desviaciones** del estándar (p. ej. «no se puede borrar» → sin Borrar; formulario de solo lectura → sin Guardar/Borrar, reflejado también en `Modo`). Si el formulario solo lleva el panel estándar, indícalo con `*(solo los botones estándar: Guardar, Cancelar, Borrar)*`.
 
 ### Subsecciones de una gráfica u otra vista no-formulario
 
@@ -598,7 +616,7 @@ Listado de ciclos
 - **Ciclo** (normal) — código, nombre, familia profesional, grado, nivel
 - **Cursos** (maestro-detalle → «Listado de cursos») — los cursos del ciclo
 ### Botones
-- **Guardar** — Guarda el ciclo.
+*(solo los botones estándar: Guardar, Cancelar, Borrar)*
 
 ## Vista: Listado de cursos
 - **Tipo:** listado
@@ -622,7 +640,7 @@ Listado de ciclos
 - **Curso** (normal) — código, nombre, ley educativa
 - **Módulos** (maestro-detalle → «Listado de módulos») — los módulos del curso
 ### Botones
-- **Guardar** — Guarda el curso.
+*(solo los botones estándar: Guardar, Cancelar, Borrar)*
 
 ## Vista: Listado de módulos
 - **Tipo:** listado
@@ -645,7 +663,7 @@ Listado de ciclos
 ### Paneles
 - **Módulo** (normal) — módulo
 ### Botones
-- **Guardar** — Guarda el módulo.
+*(solo los botones estándar: Guardar, Cancelar, Borrar)*
 ````
 
 (Los `RUI-NNN`, si los hubiera, se reparten entre los `### Reglas de UI` de cada vista pero comparten la numeración global de la spec.)

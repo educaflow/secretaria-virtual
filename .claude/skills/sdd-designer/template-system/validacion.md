@@ -38,7 +38,11 @@ Cada punto que no se cumpla es un **fallo** a reportar (con su ubicación). Las 
   grep -nE "if\s*\(.*==\s*null\s*\).*set[A-Z]" .sdd/drafts/{iniciativa}/design/design.md
   ```
   Cualquier coincidencia sobre un campo `servidor` es un fallo (la corrección es eliminar el `if`).
-- **e) Reglas arquitectónicas** (`design-contract.md` §6). Un `<action-view>` por fichero; FQN coherentes (`com.educaflow.subsystem.X.…` / `com.educaflow.system.X.…`); ningún cuerpo Java de implementación en los comentarios de `design.md`; cada V/R/U en su capa correcta (`design-contract.md` §5).
+- **e) Reglas arquitectónicas** (`design-contract.md` §6). Un `<action-view>` por fichero; FQN coherentes (`com.educaflow.subsystem.X.…` / `com.educaflow.system.X.…`); ningún cuerpo Java de implementación en los comentarios de `design.md`; cada V/R/U en su capa correcta (`design-contract.md` §5). **Botones de formulario:** cada `<form>` de `views/*.xml` tiene `canAttach`/`canBack`/`canDelete`/`canNew`/`canSave`/`canMore` a `false` y un `<panel name="buttons-panel">` con `btnDelete`/`btnCancel`/`btnSave` (patrón `k-vistas/forms.md`) — un `<form>` con algún `can(Back|Delete|Save)="true"` o con `onSave` en vez de validación en el `action-group` de `btnSave` es un **fallo bloqueante**, aunque funcione (usa la toolbar nativa de Axelor en vez del patrón del proyecto). Detector rápido:
+  ```bash
+  grep -nE '<form .*can(Back|Delete|Save)="true"' .sdd/drafts/{iniciativa}/design/views/*.xml
+  ```
+  Cualquier coincidencia es un fallo a reportar.
 - **f) Reglas R complejas** (`reglas-complejas.md`). Cada `R-` que cumple los criterios tiene su `rules/R-<Entidad>-NNN.md` (y viceversa); ningún `rules/R-*.md` con cuerpos Java.
 - **g) Prohibiciones en `design.md`** (`design-contract.md` §1.1). Sin cuerpos de método Java, sin JPQL real, sin acoplamiento a `expedientes`/`tiposexpedientes`/`tramites`.
 - **h) Tests E2E** (`design/test-e2e-desc.md`, ver `tests-e2e.md`). Si el spec tiene escenarios, `test-e2e-desc.md` **MUST** existir y cada escenario del spec aparece como `Origen ESC` en al menos un test; cada `Verifica` y `Pantalla principal` referencia algo que existe. Si el spec no tiene escenarios, no se exige `test-e2e-desc.md`.

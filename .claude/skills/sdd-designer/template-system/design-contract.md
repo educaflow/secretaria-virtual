@@ -118,6 +118,13 @@ Cada categoría de regla tiene su capa de implementación:
 - **MUST NOT** crear módulos Guice para `ModelService` — `ModelServiceFactory` los descubre automáticamente.
 - **Cableado Guice no trivial**: para un objeto que NO es `ModelService` y cuya construcción no es trivial (necesita un `Provider`, binding explícito, o dependencias de configuración/runtime y no de otros beans inyectables), el diseño **MUST** describir su módulo `module/<Subsistema>Module.java` siguiendo `[[k-guice]]` (forma de binding y, si procede, `Provider`). El caso `ModelService` sigue sin módulo.
 - **MUST NOT** crear listeners JPA para lógica de negocio — esa lógica va en el servicio como `fireActionRule_*`.
+- **Botones de formulario = patrón `buttons-panel` de `k-vistas/forms.md`, nunca la toolbar nativa de Axelor.** Cuando la spec dice "los botones estándar" (o `*(solo los botones estándar: Guardar, Cancelar, Borrar)*`) se refiere a un término de **negocio**: el trío de acciones que todo formulario de mantenimiento tiene por defecto. Su traducción **técnica** en este proyecto es **siempre** el patrón fijo de `k-vistas/forms.md` — **nunca** los atributos nativos del `<form>` de Axelor. En concreto:
+  - Los atributos `canAttach`/`canBack`/`canDelete`/`canNew`/`canSave`/`canMore` del `<form>` **MUST** ir a `false` (la toolbar nativa **MUST NOT** usarse para guardar/cancelar/borrar).
+  - El formulario **MUST** llevar un `<panel name="buttons-panel">` con `<button name="btnDelete">`, `<button name="btnCancel">`, `<button name="btnSave">`, cada uno con su `<action-group>` propio que termina en la acción real del framework (`delete`/`back`/`save` en el form principal; `delete-modal`/`close`/`save-modal` en un form modal).
+  - Cualquier validación de servidor antes de guardar se engancha en el `<action-group>` del **botón** `btnSave` (antes de `<action name="save"/>`), **no** en el atributo `onSave` del `<form>`.
+
+  - ✅ CORRECTO: `<form ... canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">` + `<panel name="buttons-panel">` con los tres `<button>` (ver `k-vistas/forms.md`).
+  - ❌ INCORRECTO: `<form ... canBack="true" canDelete="true" canSave="true" onSave="...">` sin `buttons-panel` — usa la toolbar nativa de Axelor en vez del patrón del proyecto, aunque "funcione".
 - **Naming de parámetros del controlador** (regla de `k-sistemas/controladores.md`): cuando una firma del controlador recibe `ActionRequest`/`ActionResponse`, los parámetros **MUST** llamarse `actionRequest` y `actionResponse` (camelCase completo).
 
   - ✅ CORRECTO: `public void miAccion(ActionRequest actionRequest, ActionResponse actionResponse)`
@@ -322,6 +329,7 @@ El diseñador revisa su diseño contra esta lista y corrige antes de terminar. S
 - [ ] ¿La matriz de trazabilidad tiene una entrada por cada V/R/U y cada entrada apunta a una clase + método o fichero XML + nombre de acción/atributo y declara su `Origen spec`?
 - [ ] ¿Ningún paso crea un módulo Guice para un `ModelService`? (si lo crea, eliminarlo — §6)
 - [ ] ¿Ningún paso crea un listener JPA para lógica de negocio? (si lo crea, moverlo al servicio como `fireActionRule_*`)
+- [ ] ¿Cada `<form>` de `views/*.xml` tiene `canAttach`/`canBack`/`canDelete`/`canNew`/`canSave`/`canMore` a `false` y un `<panel name="buttons-panel">` con `btnDelete`/`btnCancel`/`btnSave` (patrón de `k-vistas/forms.md`), en vez de la toolbar nativa de Axelor? ¿Ninguna validación de servidor cuelga de un `onSave` del `<form>` en vez del `action-group` de `btnSave`?
 - [ ] ¿Cada paso es lo suficientemente pequeño para implementarse y verificarse en ≤ 30 minutos?
 - [ ] ¿Los pasos respetan el orden obligatorio de §8?
 - [ ] ¿El diseño referencia el `specification.md` en la cabecera?
