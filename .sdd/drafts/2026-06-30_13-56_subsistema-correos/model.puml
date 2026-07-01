@@ -1,0 +1,43 @@
+@startuml
+
+class Correo {
+  + dni del destinatario
+  + nombre
+  + apellidos
+  + para
+  + en copia
+  + en copia oculta
+  + asunto
+  + cuerpo
+  + estado
+  + fecha de creación
+  + fecha del primer intento de envío
+  + fecha del último intento de envío
+  + fecha de envío
+  + número de reintentos
+  + descripción del último fallo
+  + nombre del expediente
+}
+
+enum EstadoEnvio {
+  PENDIENTE
+  SUCCESS
+  FAIL
+}
+
+class Adjunto {
+  + nombre del fichero
+  + contenido
+}
+
+class Centro <<externo>> {
+}
+
+class HistorialEstado <<externo>> {
+}
+
+Correo --> EstadoEnvio
+Correo "1" *-- "0..*" Adjunto : adjuntos
+Correo "many" --> "1" Centro : centro
+Correo "many" --> "0..1" HistorialEstado : historial de estado
+@enduml
