@@ -107,6 +107,15 @@ del host estaba ocupado por otra app). La BD la resuelve por `educaflow-db` grac
 variables `AXELOR_CONFIG_DB_*` del `docker-compose.yml` (no hay que tocar
 `axelor-config.properties`).
 
+`build/` y `.gradle/` **no** se comparten con el host: son volúmenes Docker propios que
+tapan esos dos subdirectorios del bind-mount del repo, así que puedes tener la app
+arrancada a la vez fuera y dentro del sandbox sobre el mismo checkout sin que Gradle pelee
+por los mismos locks de build. El resto del código (incluido `node_modules/`, que aquí solo
+trae dependencias de Playwright y no se toca al arrancar) sigue compartido. La primera
+compilación dentro del sandbox parte de cero (sin caché de Gradle reutilizada del host);
+usa `--keep-db` si quieres conservar esos dos volúmenes entre sesiones (pese al nombre,
+conserva todos los volúmenes con nombre, no solo la BD).
+
 ### Playwright
 
 Chromium ya está instalado en la imagen (`PLAYWRIGHT_BROWSERS_PATH=/ms-playwright`).

@@ -89,8 +89,14 @@ RUN groupadd -g ${HOST_GID} developer 2>/dev/null || true \
     && useradd -m -u ${HOST_UID} -g ${HOST_GID} -s /bin/bash developer \
     && echo "developer ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/developer \
     && chmod 0440 /etc/sudoers.d/developer \
-    && mkdir -p /workspace /home/developer/.m2 \
+    && mkdir -p /workspace /home/developer/.m2 /home/developer/.gradle/init.d \
     && chown -R developer:developer /workspace /home/developer
+
+# Init script de Gradle propio del sandbox (ver sandbox-clean-mountpoint.gradle):
+# build/ es un punto de montaje Docker aquí dentro, así que "clean" no puede
+# borrar el directorio en sí, solo su contenido. Se aplica solo dentro del
+# contenedor (GRADLE_USER_HOME/init.d); build.gradle no se toca.
+COPY --chown=developer:developer sandbox-clean-mountpoint.gradle /home/developer/.gradle/init.d/sandbox-clean-mountpoint.gradle
 
 # Directorios de datos en runtime que la app espera de axelor-config.properties:
 #   data.upload.dir      = /opt/secretariavirtual/data/attachments

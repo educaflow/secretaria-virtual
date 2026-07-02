@@ -74,6 +74,15 @@ services:
       - ../../axelor-open-platform:/workspace/axelor-open-platform
       - ../../EducaFlowBuildTools:/workspace/EducaFlowBuildTools
       - ../../secretaria-virtual-private:/workspace/secretaria-virtual-private
+      # --- Artefactos de build propios del contenedor: "tapan" esos subdirectorios
+      #     del bind-mount de arriba con volúmenes Docker aparte, para poder tener
+      #     ./run.sh arrancado a la vez en el host y en el sandbox sin que Gradle
+      #     pelee por los mismos locks de build/.gradle. El código fuente sigue
+      #     compartido; solo los artefactos generados quedan aislados. (node_modules
+      #     NO hace falta aislarlo: aquí solo trae devDependencies de Playwright, sin
+      #     scripts de build enganchados a ./gradlew, y no se toca al arrancar.) ---
+      - sandbox_build:/workspace/secretaria-virtual/build
+      - sandbox_gradle_cache:/workspace/secretaria-virtual/.gradle
       # --- Auth de Claude Code: reutiliza la sesión del host ---
       - ${HOME}/.claude:/home/developer/.claude
       - ${HOME}/.claude.json:/home/developer/.claude.json
@@ -86,6 +95,8 @@ services:
 
 volumes:
   postgres_data:
+  sandbox_build:
+  sandbox_gradle_cache:
 
 networks:
   # Red interna privada: la app llega a la BD por el hostname "educaflow-db".

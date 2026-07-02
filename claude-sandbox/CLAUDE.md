@@ -37,6 +37,34 @@ recoge lo que un agente necesita saber para trabajar aquí sin romper nada.
    así que **Playwright interno usa `localhost:8080`** (sin cambios); solo el host ve
    8081 (`http://localhost:8081`).
 
+   **`build/` y `.gradle/` NO son bind-mount**, aunque cuelguen del mismo
+   `secretaria-virtual` que sí lo es: son volúmenes Docker propios (`sandbox_build`,
+   `sandbox_gradle_cache`) montados por encima de esos dos subdirectorios, "tapando"
+   los del host. Así puedes tener `./run.sh` arrancado a la vez en el host y dentro
+   del sandbox sobre el mismo checkout sin que Gradle pelee por los mismos locks de
+   build (el código fuente sí sigue compartido). `node_modules/` en cambio SÍ sigue
+   siendo bind-mount normal: aquí solo trae `devDependencies` de Playwright, no hay
+   ningún script de build enganchado a `./gradlew` que escriba en él, así que
+   compartirlo no tiene riesgo. Contrapartida de los dos que sí se aíslan: la primera
+   compilación dentro del sandbox parte de cero (sin caché de Gradle reutilizada del
+   host) y, como `claude-sandbox.sh` por defecto hace `down -v` en cada sesión, estos
+   volúmenes se resetean junto con `postgres_data` (mismo mecanismo, no es un caso
+   especial). Usa `--keep-db` si quieres conservarlos entre sesiones — pese al nombre, al saltarse
+   `down -v` conserva **todos** los volúmenes con nombre, no solo la BD.
+
+   ⚠️ **`build/` como punto de montaje rompe la tarea `clean`.** `clean` borra
+   `buildDir` recursivamente **incluido el propio directorio** (como `rm -rf build`),
+   y un punto de montaje no se puede `rmdir` desde dentro — solo vaciar su contenido
+   (síntoma real: `clean` falla con "Device or resource busy" / "no se puede borrar
+   el propio directorio, solo su contenido"). Se soluciona con
+   [`sandbox-clean-mountpoint.gradle`](sandbox-clean-mountpoint.gradle), un init
+   script que se instala en `GRADLE_USER_HOME/init.d` **solo dentro del contenedor**
+   (vía `Dockerfile`) y redefine `clean` para que borre el contenido de `buildDir` en
+   vez del directorio en sí. No toca `build.gradle` (compartido con el host) ni mueve
+   `buildDir` de sitio (las rutas `build/test-results/...`, `build/reports/...` que
+   usa `run.sh` siguen siendo las mismas). Si algún día tocas `sandbox-clean-mountpoint.gradle`,
+   hace falta `docker compose up -d --build` para que se reaplique (va horneado en la imagen).
+
 4. **Repos montados por separado**, no un padre común: `../../secretaria-virtual`,
    `../../axelor-ui`, `../../axelor-open-platform`, `../../EducaFlowBuildTools`,
    `../../secretaria-virtual-private` → `/workspace/<repo>`. Que `secretaria-virtual`
