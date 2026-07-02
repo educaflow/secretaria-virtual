@@ -127,6 +127,13 @@ public class ActionRequestHelper<T extends Model> {
         return clonedModel;
     }
 
+    public T findById(Long id) {
+        Class<T> clazz = getConcreteClass();
+        JpaRepository<T> jpaRepository = JpaRepository.of(clazz);
+
+        return jpaRepository.find(id);
+    }
+
     public T getModel(AllowProperties allowProperties) {
         T model;
 
