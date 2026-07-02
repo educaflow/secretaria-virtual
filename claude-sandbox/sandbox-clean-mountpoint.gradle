@@ -1,0 +1,27 @@
+// Init script SOLO del sandbox (se instala en GRADLE_USER_HOME/init.d dentro del
+// contenedor; el host y build.gradle no se tocan).
+//
+// Dentro del sandbox, build/ es un punto de montaje Docker (volumen "sandbox_build"
+// tapando ese subdirectorio del repo montado — ver docker-compose.yml) para poder
+// tener ./run.sh arrancado a la vez en el host y en el sandbox sin que Gradle pelee
+// por los mismos locks. Un punto de montaje no se puede borrar desde dentro (solo
+// vaciar su contenido): la tarea "clean" por defecto intenta borrar buildDir entero
+// (equivalente a "rm -rf build"), lo que falla con "Device or resource busy" al
+// intentar borrar el propio directorio.
+//
+// `task.setDelete(...)` NO sirve (probado en Gradle 8.14): un delete spec que
+// resuelve a lista vacía hace que el Delete task caiga igualmente al borrado por
+// defecto de buildDir. Por eso aquí se sustituyen directamente las acciones del
+// task por un borrado manual del CONTENIDO de buildDir, dejando el punto de
+// montaje intacto.
+allprojects {
+    tasks.matching { it.name == 'clean' }.configureEach { Task task ->
+        task.actions.clear()
+        task.doLast {
+            File dir = layout.buildDirectory.get().asFile
+            if (dir.exists()) {
+                dir.listFiles().each { f -> project.delete(f) }
+            }
+        }
+    }
+}
