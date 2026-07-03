@@ -1,6 +1,0 @@
-# Verificación tests unitarios — iteración 1
-{"id":"P-001","severidad":"IMPORTANT","fichero":"design/test-unit-desc.md","ubicacion":"Clase NotaServiceImpl, método insert(NotaInsertDTO), test insert_creaNotaNoEvaluadoSinFechas","origen":"R-AlumnoGrupo-001","problema":"El test declara Verifica: R-AlumnoGrupo-001, pero esa regla está mapeada en el diseño a AlumnoGrupoServiceImpl.fireActionRule_CrearNotasNoEvaluado, no a NotaServiceImpl.insert. Regla mal asignada.","correccion":"Cambiar el Verifica de insert_creaNotaNoEvaluadoSinFechas a — (alta programática NO_EVALUADO, integridad del DTO), o reformular para que no atribuya R-AlumnoGrupo-001 a un método de NotaServiceImpl."}
-
-# Verificación tests unitarios — iteración 2
-OK-CORRECTO
-
