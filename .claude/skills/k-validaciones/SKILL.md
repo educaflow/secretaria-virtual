@@ -21,7 +21,7 @@ Cada categoría de la spec se materializa en una capa concreta:
 | **Validación** `VAL-` | `validateInsert`/`validateUpdate`/`validateRemove` del `*ServiceImpl` (servidor = fuente de verdad) + cliente XML opcional (solo UX). | [`validaciones.md`](validaciones.md) |
 | **Regla de negocio** `RN-` | Método `fireActionRule_<Nombre>` en el `*ServiceImpl`, `Antes` o `Después` de `repository.save/remove`. | [`reglas-negocio.md`](reglas-negocio.md) |
 | **Regla de UI** `RUI-` | Atributos `showIf`/`hideIf`/`readonlyIf`/`requiredIf`, `<action-attrs>`, `<action-record>` en la vista. | [`reglas-ui.md`](reglas-ui.md) |
-| **Campo calculado** `CC-` | `momento: escritura` → `fireActionRule_*` `Antes` que calcula y asigna el campo. `momento: lectura` → campo derivado/`formula` en el modelo. | [`reglas-negocio.md`](reglas-negocio.md) §3, [`restricciones.md`](restricciones.md) |
+| **Campo calculado** `CC-` | `momento: escritura` → `fireActionRule_*` `Antes` que calcula y asigna el campo. `momento: lectura` → campo derivado (cuerpo Java o `formula="true"`) en el modelo XML. | [`reglas-negocio.md`](reglas-negocio.md) §2 |
 
 Patrones XML cliente listos para copiar: [`examples/ejemplos-validaciones.md`](examples/ejemplos-validaciones.md) (P1–P17).
 
