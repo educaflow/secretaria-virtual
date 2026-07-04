@@ -2,23 +2,27 @@
 name: create-arch-tests
 description: >-
   Dado el catálogo de reglas de arquitectura `agent_docs/architecture-rules.md`
-  (reglas `C-NNN` con su snippet `@ArchTest` ya escrito para este proyecto),
-  genera las clases de test JUnit 5 + ArchUnit que verifican esas reglas,
-  organizadas en sub-paquetes por categoría bajo un único paquete raíz
+  (decisiones estilo ADR: cada regla `C-N` con Decisión, Verificación —sujeto,
+  condición, exenciones, mensaje— y Cumplimiento, SIN código ArchUnit), genera las
+  clases de test JUnit 5 + ArchUnit que verifican esas reglas escribiendo el código
+  ArchUnit a partir del bloque Verificación de cada regla, organizadas en
+  sub-paquetes por categoría bajo un único paquete raíz
   `com.educaflow.architecture` en `src/test/java`. El paquete generado es una
-  PROYECCIÓN PURA del markdown: para cambiar un test se edita
-  `architecture-rules.md` y se vuelve a ejecutar este skill, nunca se editan los
-  `.java` a mano. Carga `/k-archunit` como referencia de ArchUnit.
+  PROYECCIÓN del markdown: para cambiar un test se edita `architecture-rules.md` y
+  se vuelve a ejecutar este skill, nunca se editan los `.java` a mano. Carga
+  `/k-archunit` como referencia de ArchUnit.
 allowed-tools: Read, Write, Edit, Bash, Skill
 ---
 
 # create-arch-tests
 
 Asumes el rol de **generador de tests de arquitectura**: transformas el catálogo
-de reglas `agent_docs/architecture-rules.md` en clases de test JUnit 5 + ArchUnit
+declarativo `agent_docs/architecture-rules.md` en clases de test JUnit 5 + ArchUnit
 dentro de `src/test/java`, organizadas en sub-paquetes por categoría bajo un único
-paquete raíz. No inventas reglas: copias literalmente los snippets `@ArchTest` del
-catálogo y los repartes en clases. El catálogo es la **única fuente de verdad**.
+paquete raíz. El catálogo **no trae código**: tú escribes cada `@ArchTest` traduciendo
+**fielmente** el bloque *Verificación* de cada regla a la API de ArchUnit
+(`/k-archunit`). El catálogo es la **única fuente de verdad** sobre *qué* se verifica;
+este skill solo decide *cómo* expresarlo en la API. No inventas reglas.
 
 ---
 
@@ -40,15 +44,16 @@ posibles (todos opcionales; en uso normal no se pasa ninguno):
 ## Outline
 
 1. **Cargar** el contrato (`/k-archunit`) y leer el catálogo de entrada. (Fase 0)
-2. **Parsear** el catálogo: imports, `PAQUETES_EXENTOS`, categorías y reglas. (Fase 1)
+2. **Parsear** el catálogo: convenciones globales, categorías y reglas. (Fase 1)
 3. **Resolver** la estructura de paquetes y clases (un sub-paquete por categoría). (Fase 2)
-4. **Generar** las clases de test (proyección pura del catálogo). (Fase 3)
+4. **Generar** las clases de test traduciendo cada *Verificación* a ArchUnit. (Fase 3)
 5. **Verificar** que compila y reportar al usuario. (Fase 4)
 
 **STOP conditions**:
 
 - No existe el fichero de entrada → **ERROR** y detente.
-- El catálogo no contiene **ningún** bloque ```java con `@ArchTest` bajo un encabezado `# Categoría` → **ERROR** (entrada no válida).
+- El catálogo no contiene **ninguna** regla `### C-N — …` con bloque `**Verificación.**`
+  bajo un encabezado `# Categoría` → **ERROR** (entrada no válida).
 - El paquete raíz ya contiene ficheros **sin** la cabecera `GENERADO` (editados a mano) → **STOP** y pregunta antes de sobrescribir.
 - La dependencia `archunit-junit5` no está en `build.gradle` y el usuario no autoriza añadirla → **STOP**.
 
@@ -58,10 +63,14 @@ posibles (todos opcionales; en uso normal no se pasa ninguno):
 
 ### 1.1 Entrada
 
-- `agent_docs/architecture-rules.md` — catálogo de reglas. Cada regla `C-NNN` trae,
-  bajo un encabezado `# Categoría N — <título>`, un bloque ```java con uno o más
-  campos `@ArchTest static final ArchRule …` listos, su `Origen` y un bloque
-  `> **Estado actual:**` con `✅` / `⚠️` / `❌ INCUMPLE`.
+- `agent_docs/architecture-rules.md` — catálogo declarativo estilo ADR, sin código.
+  Aporta:
+  - Una sección global `## Convenciones de verificación` con el **ámbito de análisis**,
+    los **paquetes exentos** y el significado de las marcas de cumplimiento.
+  - Reglas `### C-N — <título>` agrupadas bajo encabezados `# Categoría N — <título>`.
+    Cada regla trae `**Decisión.**`, `**Verificación.**` (sujeto, condición,
+    exenciones, mensaje y notas como la vacuidad) y `**Cumplimiento.**`
+    (`✅` / `⚠️` / `❌ INCUMPLE`).
 - `/k-archunit` — referencia de ArchUnit (API, freezing, JUnit 5). Se carga con `Skill`.
 
 ### 1.2 Salida
@@ -79,17 +88,18 @@ src/test/java/com/educaflow/architecture/
 
 - **Raíz única**: `com.educaflow.architecture` (configurable con `--root-package`).
 - **Un sub-paquete + una clase por categoría** del catálogo.
-- Cada clase es **autocontenida**: declara sus propios imports y su propia
-  constante `PAQUETES_EXENTOS` (copiados del catálogo), sin clases base compartidas.
+- Cada clase es **autocontenida**: declara sus propios imports y su propia constante
+  `PAQUETES_EXENTOS` (derivada de las convenciones del catálogo), sin clases base
+  compartidas.
 
 ---
 
 ## 2. Principios
 
-### 2.1 Proyección pura del catálogo
+### 2.1 Proyección del catálogo
 
 - El paquete raíz generado **MUST** ser una proyección exacta de `architecture-rules.md`:
-  una regla del catálogo ⇒ un `@ArchTest` generado; una regla borrada del catálogo ⇒
+  una regla del catálogo ⇒ sus `@ArchTest` generados; una regla borrada del catálogo ⇒
   el `@ArchTest` desaparece al regenerar.
 - **MUST NOT** editar a mano los `.java` generados. Para cambiar un test: edita el
   catálogo y vuelve a ejecutar `/create-arch-tests`.
@@ -97,13 +107,24 @@ src/test/java/com/educaflow/architecture/
 - Antes de generar, **MUST** vaciar el paquete raíz (borrar los `.java` con cabecera
   `GENERADO`) para que el resultado sea solo lo que dice el catálogo hoy.
 
-### 2.2 Copia literal de los snippets
+### 2.2 Traducción fiel de la Verificación
 
-- Los campos `@ArchTest static final ArchRule …` se copian **literalmente** del catálogo.
-- **MUST NOT** reescribir, "mejorar" ni renombrar la lógica de una regla: si está mal,
-  se arregla en el catálogo, no aquí.
-- La única transformación permitida sobre el cuerpo de una regla es **envolverla en
-  `FreezingArchRule.freeze(...)`** cuando su estado es `❌ INCUMPLE` (§6.3).
+- Cada regla produce un campo `@ArchTest static final ArchRule c<N>_<resumenCamelCase>`
+  — o varios, si la propia regla define sub-comprobaciones (p.ej. `C15a`/`C15b` ⇒ dos
+  campos).
+- **MUST** implementar exactamente el sujeto, la condición y las exenciones del bloque
+  *Verificación*. **MUST NOT** debilitar, reforzar ni "mejorar" una regla: si parece
+  mal, se corrige en el catálogo, no aquí.
+- **CRITICAL — estabilidad del freezing**: el *Mensaje* de la regla se usa **literal**
+  (como `.because(...)`, o como descripción con `.as(...)` cuando la regla lo indica).
+  La descripción resultante es la clave de la violation store
+  (`src/test/resources/archunit_store`); cambiar la lógica o el texto re-baseliza las
+  violaciones de esa regla.
+- Si la *Verificación* indica que la regla se cumple en vacío (sujeto sin elementos),
+  **MUST** generar la regla de forma que no falle por vacuidad (`allowEmptyShould`).
+- Las exenciones "como origen y destino" de las reglas de slices/ciclos **MUST**
+  ignorar la dependencia cuando el paquete exento aparece en **cualquiera** de los dos
+  lados.
 
 ---
 
@@ -122,22 +143,20 @@ src/test/java/com/educaflow/architecture/
 
 **Contrato de parseo** — solo se generan tests de lo que cumple TODAS estas condiciones:
 
-1. **MUST** procesar únicamente bloques ```java que contengan `@ArchTest` y estén bajo
-   un encabezado `# Categoría N — <título>`.
+1. **MUST** procesar únicamente las reglas `### C-N — <título>` que estén bajo un
+   encabezado `# Categoría N — <título>` y tengan bloque `**Verificación.**`.
 2. **MUST** ignorar por completo las secciones `# Reglas genéricas deliberadamente NO
    incluidas` y `# Fuera del alcance de ArchUnit`.
-3. **MUST** excluir las reglas marcadas como redundantes en su propio texto —las que
-   dicen `(alternativa a …)` o `Sustituye conceptualmente a …`— para no duplicar
-   verificación. Anótalas en el reporte como "excluida por redundancia".
-   - ✅ Incluir `C1`–`C5` (mensajes de fallo específicos).
-   - ❌ Excluir `C6` (consolidada, marcada "alternativa a C1–C5").
-4. Extrae una sola vez, del preámbulo del catálogo:
-   - El **bloque de imports** (`### Imports usados por el catálogo`).
-   - La constante **`PAQUETES_EXENTOS`** (`## Cómo se usan estas reglas`).
+3. **MUST** ignorar los identificadores marcados como **retirados** en el catálogo
+   (p.ej. una nota "el identificador `C6` está retirado"): no generan test ni cuentan
+   como hueco de numeración.
+4. Extrae una sola vez, de `## Convenciones de verificación`:
+   - El **ámbito de análisis** (paquete base, exclusión de tests) → `@AnalyzeClasses`.
+   - Los **paquetes exentos** → constante `PAQUETES_EXENTOS`.
 
-Por cada regla incluida, registra: `id` (del encabezado `### C-NNN — …`), el/los
-campos `@ArchTest` del bloque (puede haber 2, p.ej. `C15a`/`C15b` en una misma regla),
-la categoría a la que pertenece, y su **Estado actual** (`✅` / `⚠️` / `❌ INCUMPLE`).
+Por cada regla incluida, registra: `id` (del encabezado `### C-N — …`), el título, el
+bloque *Verificación* completo (sujeto, condición, exenciones, mensaje, notas), la
+categoría a la que pertenece y su **Cumplimiento** (`✅` / `⚠️` / `❌ INCUMPLE`).
 
 ---
 
@@ -164,8 +183,9 @@ la categoría a la que pertenece, y su **Estado actual** (`✅` / `⚠️` / `�
 1. **Vacía** el paquete raíz: borra los `.java` que lleven la cabecera `GENERADO`
    (§2.1). Si hay `.java` **sin** esa cabecera → **STOP** (§Outline).
 2. Por cada categoría, **escribe una clase** con la plantilla §6.1.
-3. Copia en la clase, **literalmente**, los campos `@ArchTest` de sus reglas (§2.2),
-   en el orden del catálogo, envolviendo en `freeze(...)` las `❌ INCUMPLE` (§6.3).
+3. Escribe en la clase los campos `@ArchTest` de sus reglas traduciendo cada
+   *Verificación* (§2.2), en el orden del catálogo, envolviendo en `freeze(...)` las
+   `❌ INCUMPLE` (§6.3).
 
 ### 6.1 Plantilla de clase generada
 
@@ -177,9 +197,7 @@ la categoría a la que pertenece, y su **Estado actual** (`✅` / `⚠️` / `�
 // =====================================================================
 package com.educaflow.architecture.<subpaquete>;
 
-<bloque de imports del catálogo, literal>
-<+ si la clase tiene alguna regla frozen:>
-import com.tngtech.archunit.library.freeze.FreezingArchRule;
+<imports que necesite el código generado de esta clase>
 
 @AnalyzeClasses(
     packages = "com.educaflow",
@@ -187,32 +205,32 @@ import com.tngtech.archunit.library.freeze.FreezingArchRule;
 class <Titulo>Test {
 
     private static final String[] PAQUETES_EXENTOS = {
-        "..expedientes..", "..tiposexpedientes..", "..tramites.."
+        <paquetes exentos de las Convenciones de verificación>
     };
 
-    <campos @ArchTest de las reglas de esta categoría, literales del catálogo>
+    <campos @ArchTest de las reglas de esta categoría>
 }
 ````
 
-**MUST**: clase y campos en visibilidad de paquete (sin `public`), igual que el
-catálogo — JUnit 5 + ArchUnit no requieren `public`.
+**MUST**: clase y campos en visibilidad de paquete (sin `public`) — JUnit 5 + ArchUnit
+no requieren `public`.
 
-### 6.2 Estado actual: qué hacer con cada marca
+### 6.2 Cumplimiento: qué hacer con cada marca
 
-| Estado en el catálogo | Acción al generar |
-|-----------------------|-------------------|
-| `✅` CUMPLE           | Generar la regla tal cual. |
-| `⚠️` (dudoso/parcial) | Generar tal cual **y** listarla en el reporte como "puede fallar al ejecutar". |
-| `❌ INCUMPLE`         | Envolver en `FreezingArchRule.freeze(...)` (§6.3) para que el build siga verde. |
+| Cumplimiento en el catálogo | Acción al generar |
+|-----------------------------|-------------------|
+| `✅` CUMPLE                 | Generar la regla tal cual. |
+| `⚠️` (dudoso/parcial)       | Generar tal cual **y** listarla en el reporte como "puede fallar al ejecutar". |
+| `❌ INCUMPLE`               | Envolver en `FreezingArchRule.freeze(...)` (§6.3) para que el build siga verde. |
 
 ### 6.3 Envolver una regla en `freeze`
 
-Para una regla `❌ INCUMPLE`, transforma la asignación envolviendo la expresión de la
-regla en `FreezingArchRule.freeze(...)` y añade un comentario:
+Para una regla `❌ INCUMPLE`, envuelve la expresión de la regla en
+`FreezingArchRule.freeze(...)` y añade un comentario:
 
 - ✅ CORRECTO:
   ```java
-  // frozen: incumplimiento conocido (ver "Estado actual" en architecture-rules.md)
+  // frozen: incumplimiento conocido (ver "Cumplimiento" en architecture-rules.md)
   @ArchTest
   static final ArchRule c9_controladorNoAccedeARepositorio =
       FreezingArchRule.freeze(
@@ -223,11 +241,11 @@ regla en `FreezingArchRule.freeze(...)` y añade un comentario:
               .because("…"));
   ```
 - ❌ INCORRECTO: dejar la regla `❌ INCUMPLE` sin `freeze` (rompe el build en la 1ª ejecución).
-- ❌ INCORRECTO: editar la lógica de la regla para que "pase" (falsea la arquitectura; el incumplimiento es un bug del código, no de la regla).
+- ❌ INCORRECTO: cambiar la lógica de la regla para que "pase" (falsea la arquitectura; el incumplimiento es un bug del código, no de la regla).
 
-> El freezing guarda las violaciones conocidas en un store la primera vez (ver
-> `/k-archunit` → `reference.md` §Freezing). El build queda verde y solo falla ante
-> **nuevas** violaciones.
+> El freezing guarda las violaciones conocidas en la store versionada
+> `src/test/resources/archunit_store` (ver `/k-archunit` → freezing). El build queda
+> verde y solo falla ante **nuevas** violaciones.
 
 ---
 
@@ -239,8 +257,11 @@ regla en `FreezingArchRule.freeze(...)` y añade un comentario:
 3. Aplica el checklist §8. **MUST NOT** dar por terminado si queda algún punto sin cumplir.
 4. Reporta al usuario, escueto:
    - Clases generadas (ruta) y nº de reglas por clase.
-   - Reglas excluidas por redundancia.
+   - Reglas ignoradas (retiradas / sin Verificación).
    - Reglas `❌` envueltas en `freeze` y reglas `⚠️` que pueden fallar al ejecutar.
+   - Si cambiaste la lógica o el mensaje de alguna regla frozen respecto a la
+     generación anterior: avisa de que su entrada en la violation store se re-baseliza
+     (pueden quedar entradas huérfanas en `archunit_store`).
 
 > Compilar (`compileTestJava`) verifica que el código generado es válido. **Ejecutar**
 > las reglas es `./gradlew test` (lo hace el build normal del proyecto, ver CLAUDE.md).
@@ -249,11 +270,11 @@ regla en `FreezingArchRule.freeze(...)` y añade un comentario:
 
 ## 8. Checklist final
 
-- [ ] ¿Cada categoría del catálogo (salvo las excluidas por redundancia) tiene su clase bajo el paquete raíz único?
-- [ ] ¿Todos los campos `@ArchTest` se copiaron **literalmente** del catálogo (salvo el `freeze` de las `❌`)?
+- [ ] ¿Cada categoría del catálogo tiene su clase bajo el paquete raíz único?
+- [ ] ¿Cada `@ArchTest` implementa **exactamente** el sujeto, la condición y las exenciones de la *Verificación* de su regla, con el *Mensaje* literal?
 - [ ] ¿Cada fichero generado lleva la cabecera `GENERADO`?
 - [ ] ¿Las reglas `❌ INCUMPLE` están envueltas en `FreezingArchRule.freeze(...)` y solo esas?
-- [ ] ¿Se excluyeron las secciones `NO incluidas` / `Fuera del alcance` y las reglas marcadas "alternativa a …"?
+- [ ] ¿Se excluyeron las secciones `NO incluidas` / `Fuera del alcance` y los identificadores retirados?
 - [ ] ¿Los nombres de sub-paquete son `[a-z0-9]` y las clases PascalCase + `Test`?
 - [ ] ¿`./gradlew compileTestJava` pasa?
 
@@ -264,11 +285,11 @@ siguen fallando ítems, documenta lo que queda y avisa al usuario.
 
 ## Quick Guidelines
 
-- El catálogo `agent_docs/architecture-rules.md` es la **única fuente de verdad**: para cambiar un test, edita el markdown y re-ejecuta; **MUST NOT** editar los `.java`.
-- Copia los `@ArchTest` **literalmente**; la única transformación es `freeze(...)` para las `❌ INCUMPLE`.
+- El catálogo `agent_docs/architecture-rules.md` es la **única fuente de verdad** y **no trae código**: tú traduces cada bloque *Verificación* a la API de ArchUnit; para cambiar un test, edita el markdown y re-ejecuta; **MUST NOT** editar los `.java`.
+- Traducción **fiel**: mismo sujeto, condición y exenciones; *Mensaje* literal (es la clave de la violation store del freezing); la única transformación extra es `freeze(...)` para las `❌ INCUMPLE`.
 - Un único paquete raíz (`com.educaflow.architecture`), un sub-paquete + una clase por categoría; clases autocontenidas (imports + `PAQUETES_EXENTOS` propios).
 - Vacía el paquete raíz antes de regenerar; **STOP** si encuentras `.java` editados a mano (sin cabecera `GENERADO`).
-- Excluye las secciones `NO incluidas` / `Fuera del alcance` y las reglas marcadas "alternativa a …".
+- Excluye las secciones `NO incluidas` / `Fuera del alcance` y los identificadores retirados.
 - Carga `/k-archunit` como referencia; verifica con `./gradlew compileTestJava` (**LIMIT** 3 iteraciones).
 
 ---

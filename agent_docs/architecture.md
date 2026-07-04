@@ -5,9 +5,11 @@ casos especiales. Es documentación de **orientación** (el *qué es* y *qué ha
 parte*), no de reglas verificables.
 
 > **Mantener coherencia con [`architecture-rules.md`](architecture-rules.md).** Este
-> fichero **describe** la arquitectura; `architecture-rules.md` **codifica como reglas
-> ArchUnit** las invariantes verificables de esa misma arquitectura (dependencias entre
-> capas, Controller→Service→Repository, nomenclatura/ubicación). Si cambias algo aquí,
+> fichero **describe** la arquitectura; `architecture-rules.md` **cataloga como reglas
+> verificables** (decisiones estilo ADR, sin código) las invariantes de esa misma
+> arquitectura (dependencias entre capas, Controller→Service→Repository,
+> nomenclatura/ubicación), de las que `/create-arch-tests` genera los tests ArchUnit.
+> Si cambias algo aquí,
 > **MUST** comprobar si hay que actualizar `architecture-rules.md`, y viceversa. Los dos
 > ficheros describen la misma arquitectura desde ángulos distintos y no deben divergir.
 

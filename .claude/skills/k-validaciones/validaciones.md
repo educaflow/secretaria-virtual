@@ -68,12 +68,12 @@ Solo UX. Duplica validaciones del servidor para que el usuario vea el error sin 
 
 **Cuándo duplicar en cliente local:**
 
-| Tipo de validación | Servidor (obligatorio) | Duplicar en cliente local |
-|---|---|---|
-| Campo obligatorio o de formato (sin BD) | Sí | Recomendado |
-| Comparación entre campos del mismo registro | Sí | Recomendado |
-| Unicidad / integridad referencial (requiere BD) | Sí | No es posible |
-| Reglas de negocio con consulta a BD | Sí | No es posible |
+| Tipo de validación                              | Servidor (obligatorio) | Duplicar en cliente local |
+|-------------------------------------------------|------------------------|---------------------------|
+| Campo obligatorio o de formato (sin BD)         | Sí                     | Recomendado               |
+| Comparación entre campos del mismo registro     | Sí                     | Recomendado               |
+| Unicidad / integridad referencial (requiere BD) | Sí                     | No es posible             |
+| Reglas de negocio con consulta a BD             | Sí                     | No es posible             |
 
 **Mecanismos disponibles en cliente:**
 
