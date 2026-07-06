@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- Porción a fusionar en src/main/java/com/educaflow/secretariavirtual/menus/menus.xml (fichero único) -->
+
+    <menuitem name="misCorreos-menuitem" title="Mis correos" order="15"/>
+        <menuitem name="misCorreos-verMisCorreos-menuitem" parent="misCorreos-menuitem" title="Mis correos" action="subsysCorreos.Correo@Mis-action" order="1"/>
+
+    <menuitem name="correos-menuitem" title="Correos" groups="admins,users" order="45"/>
+        <menuitem name="correos-administracion-menuitem" parent="correos-menuitem" title="Administración de correos" action="subsysCorreos.Correo@Main-action" groups="admins" order="1"/>
+        <menuitem name="correos-centro-menuitem" parent="correos-menuitem" title="Correos de mi centro" action="subsysCorreos.Correo@Centro-action" groups="users" order="2"/>
+
+</object-views>

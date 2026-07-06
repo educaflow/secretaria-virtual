@@ -1,0 +1,111 @@
+### Comparación 1: design_1 vs design_2 → gana design_1
+
+=== VENTAJAS design_1 ===
+- Evita deliberadamente `required="true"` en los campos `cliente` con mensaje de negocio propio (`dniDestinatario`, `nombre`, `apellidos`, `para`, `asunto`, `cuerpo`, `centro`): documenta explícitamente en `domains/Correo.xml` que si llevaran `required="true"` el "INSERT interno" de Axelor dispararía la `ConstraintViolation` genérica de Bean Validation antes de que corra `validateInsert`, ocultando el mensaje literal del spec (p. ej. "El DNI del destinatario es obligatorio"). Todas esas `VAL-` se implementan como Java explícito en `CorreoServiceImpl.validateInsert` con el mensaje exacto del spec.
+- Añade además la capa cliente opcional (`Local-validateSave-action` con `<action-condition>`) que duplica, con el mismo literal exacto del spec, las validaciones evaluables sin BD — cumpliendo `design-contract.md` §5 al pie de la letra (UX sin ser la única defensa).
+- Trazabilidad 1:1 muy limpia: las 18 `V-Correo-NNN` y todas las `V-Adjunto-NNN` están ancladas a métodos Java concretos con su mensaje descrito, sin mezclar capas declarativa/imperativa para el mismo tipo de regla.
+- Mantiene el nombre de entidad `Adjunto` tal cual lo llama el spec (`entity-Adjunto.md`), sin renombrarlo.
+
+=== DEFECTOS design_1 ===
+- El motor asíncrono (`fireActionRule_EnviarAsincronamente` → `correoEnviador.enviarAsincronamente`) encola la tarea en el `ExecutorService` inmediatamente tras `repository.save`, sin esperar a que la transacción HTTP que crea/actualiza el `Correo` haga commit; no hay ninguna sincronización (`Synchronization`/`afterCompletion`) que garantice que el hilo en segundo plano vea el registro ya confirmado antes de leerlo por id — riesgo de condición de carrera lectura-antes-de-commit no mitigado ni documentado.
+- Ningún defecto adicional relevante detectado.
+
+=== VENTAJAS design_2 ===
+- Identifica y resuelve explícitamente la condición de carrera lectura-antes-de-commit: registra un `Synchronization` de Hibernate sobre la transacción activa y solo encola la tarea en el `ExecutorService` cuando `afterCompletion(STATUS_COMMITTED)`, evitando que el envío asíncrono lea un `Correo` aún no visible para otra conexión — análisis más profundo del mecanismo que pide `design-guidelines.md`.
+- "Notas y supuestos" muy exhaustivas, documentando de forma consciente varias decisiones de diseño (renombrado de la entidad, modelado de `contenido` como `MetaFile`, ausencia de botón Borrar, estructura del menú "Mis correos") con justificación explícita.
+
+=== DEFECTOS design_2 ===
+- Mapea varias `VAL-` con mensaje de negocio propio (`VAL-Correo-001/002/003/004/005/006/007`, `VAL-Correo-016`) únicamente como atributos declarativos (`required="true"`, `max="255"`) en `domains/Correo.xml`, y afirma sin ninguna evidencia que "el mensaje que produce Axelor a partir del title del campo es equivalente al literal del spec" — una asunción no verificada y muy probablemente falsa (Axelor genera un mensaje genérico de Bean Validation, no el literal exacto "El DNI del destinatario es obligatorio"/"El asunto no puede superar 255 caracteres"), lo que arriesga romper el mensaje esperado en ~8 de sus propios tests E2E (T-003, T-010 a T-015, T-023 en su numeración).
+- No incluye ninguna capa cliente (`Local-validateSave-action`) que duplique las validaciones obvias, perdiendo el feedback de UX sin roundtrip que sí ofrece `design-contract.md` §5 como práctica recomendada.
+- Renombra la entidad del spec "Adjunto" a "AdjuntoCorreo" sin que el spec lo pida, una desviación menor aunque justificada.
+
+=== JUSTIFICACION design_1 vs design_2 ===
+La diferencia decisiva es funcional, no estética: design_2 apoya la mayoría de sus validaciones obligatorias (7-8 de las 25 escenarios de error del spec) en la validación declarativa `required="true"` del dominio, asumiendo sin comprobación que el mensaje genérico de Axelor coincidirá con el literal exacto que el spec exige palabra por palabra («El DNI del destinatario es obligatorio», etc.); si esa asunción es incorrecta —lo más probable dado que Axelor no soporta mensajes personalizados por campo en el propio XML—, buena parte de sus propios tests E2E (que él mismo redactó esperando esos literales) fallarían al implementarse. Design_1 identificó exactamente este riesgo y lo neutralizó de raíz, evitando `required="true"` en los campos con mensaje propio y moviendo esas validaciones a Java con el mensaje exacto, además de duplicarlas en cliente. El único punto donde design_2 es objetivamente mejor —la sincronización con el commit de la transacción antes de lanzar el envío asíncrono— es una mejora real pero más local y menos determinante para la conformidad global con el spec que el problema de mensajes de design_2, que afecta a un tercio de los escenarios de la especificación.
+
+### Comparación 2: design_1 vs design_3 → gana design_1
+
+=== VENTAJAS design_1 ===
+- Implementa de forma **concreta y completa** el soporte de "en copia"/"en copia oculta" en el envío real: el Paso 1 modifica `base/infrastructure/mail/Mail.java` y `JavaMailHelper.java` con código real (constructor de compatibilidad incluido) y lo lista en la tabla "Ficheros a crear o modificar". `VAL-Correo-012`/`013` quedan así respaldadas por una entrega real, no solo por su validación de formato.
+- Mantiene el nombre de entidad `Adjunto` idéntico al de `entity-Adjunto.md`, sin desviarse de la nomenclatura del spec.
+- Extrae un único fichero `views/Adjunto.xml` (grid+form) reutilizado, sin duplicación, por las tres pantallas (Administración/Centro/Mis), aprovechando `readonlyIf`/`canNew` dinámico para cubrir los tres contextos con una sola fuente de verdad.
+- El `menus.xml` fija `groups` de forma explícita y consistente en **todos** los `<menuitem>`, incluida la raíz y la hoja de "Mis correos".
+- Separa con claridad los colaboradores de infraestructura (`CorreoEnviador`/`CorreoEnviadorImpl`, `Provider`s dedicados para `MailSender` y `ExecutorService`, clase de ciclo de vida propia), siguiendo `k-guice` con bindings explícitos y justificados uno a uno.
+- Razona con precisión la clasificación `cliente` (no `servidor`) del campo `centro`, apoyándose en el matiz literal del spec ("no puede crear/reenviar... que no es suyo" = rechazo, no corrección).
+
+=== DEFECTOS design_1 ===
+- Modifica un fichero de infraestructura compartida fuera de `subsystem/correos/` (`base/infrastructure/mail/Mail.java`), ampliando el alcance declarado ("Capa: subsystem/correos"), aunque de forma retrocompatible y justificada.
+- Crea `rules/R-Correo-002.md` como fichero separado pese a que la propia regla (según los criterios de `reglas-complejas.md`) se reduce a reutilizar el motor de R-Correo-001 sin lógica propia — redundancia menor en la estructura de reglas.
+- El `views/Adjunto.xml` compartido no tiene `<action-view>` propio y se referencia desde tres ficheros de pantalla distintos, una interpretación laxa de la regla "cada `<action-view>` vive en su propio fichero junto con el grid/form que solo usa él" (aunque bien justificada en el propio diseño).
+
+=== VENTAJAS design_3 ===
+- Adopta una convención de numeración V/R/U que conserva el mismo sufijo `NNN` que la regla `VAL-`/`RN-`/`RUI-` de origen, facilitando la trazabilidad cruzada frente a la renumeración secuencial de design_1.
+- Ubica el análisis de alternativas ("por qué un `ExecutorService` y no Quartz/hilo manual/`CompletableFuture`") dentro del propio `rules/R-Correo-001.md`, co-localizado con la regla que justifica, en vez de en una sección genérica de notas.
+- Documenta con detalle el mismo nivel de rigor en el ACL de Supervisor (comprobación de centro **y** rol real, no solo pertenencia al centro) que design_1, evitando que un Alumno del mismo centro herede visibilidad de Supervisor.
+- Señala explícitamente una trampa de nomenclatura real del proyecto (el campo de `TipoUsuario` se llama `codigo`, no `code`), mostrando atención al detalle técnico.
+
+=== DEFECTOS design_3 ===
+- No compromete una solución concreta para el soporte de cc/bcc en el envío real: en "Notas y supuestos" deja como alternativa abierta ("si `/sdd-implementer` prefiere no tocar esa clase...") sin incluir el cambio en la tabla de ficheros ni como Paso — una ambigüedad tipo "según convenga" que el contrato de diseño prohíbe, dejando sin resolver cómo se entregan de verdad `VAL-Correo-012`/`013`.
+- Representa `para`/`enCopia`/`enCopiaOculta` como `String` en el dominio pero como `List<String>` en `CorreoInsertDTO`, obligando a una conversión de unión con "; " no necesaria y potencialmente confusa para el implementador.
+- Duplica tres veces (una por pantalla: Main/Centro/Propios) la definición completa del grid+form de `AdjuntoCorreo`, en vez de compartir una única vista, multiplicando el mantenimiento y el riesgo de divergencia entre las tres copias.
+- El `menuitem` raíz y hoja de "Mis correos" no llevan atributo `groups`, a diferencia de todos los demás `<menuitem>` del propio fichero (incluidos los de design_1), una inconsistencia sin justificar.
+- Renombra la entidad `Adjunto` del spec a `AdjuntoCorreo` — una desviación de nomenclatura frente a `entity-Adjunto.md`, documentada pero no exigida por ninguna regla.
+
+=== JUSTIFICACION design_1 vs design_3 ===
+La diferencia decisiva es la completitud funcional: design_1 resuelve de forma concreta y verificable el soporte real de "en copia"/"en copia oculta" (Paso 1, con código de `Mail.java`/`JavaMailHelper.java` y su entrada en la tabla de ficheros), mientras que design_3 dejó esa misma necesidad como una alternativa abierta sin decidir, lo que el contrato de diseño (`design-contract.md` §9, checklist "sin placeholders tipo... según convenga") penaliza explícitamente. A eso se suma que design_1 evita duplicación (una sola vista de Adjunto reutilizada en las tres pantallas) frente a la triple duplicación de design_3, y mantiene una representación de datos consistente (`String` en dominio y DTO) frente a la mezcla `String`/`List<String>` de design_3. Las ventajas de design_3 (convención de numeración, ubicación del análisis de alternativas, aviso sobre `codigo` vs `code`) son mejoras de forma y trazabilidad, valiosas pero no compensan una carencia funcional real sobre una validación explícita del spec. Por eso el diseño ganador es design_1.
+
+### Comparación 3: design_1 vs design_4 → gana design_4
+
+=== VENTAJAS design_1 ===
+- Aplica de forma consistente y correcta la convención real del proyecto `(id != null) || (cid != null)` (documentada en `k-vistas/forms.md` y usada en más de 10 vistas existentes) en todos los `showIf`/`readonlyIf` de `Correo.xml` y `Adjunto.xml`, mientras que design_4 la sustituye sistemáticamente por `id != null`, desviándose de la convención documentada del proyecto.
+- Extiende de verdad la infraestructura reutilizada (`Mail`/`JavaMailHelper`) para soportar `cc`/`bcc` como cabeceras reales y separadas (con constructor de compatibilidad para `RegistroSalidaServiceImpl`), preservando la semántica de "en copia oculta" (los destinatarios en BCC no deben verse entre sí).
+- Ofrece una API programática fuerte (`CorreoInsertDTO`/`AdjuntoInsertDTO`, records) que reutiliza exactamente el mismo `validateInsert`/`fireActionRule_*` que el alta por UI, sin duplicar reglas — satisface con más rigor "el subsistema debe poder invocarse programáticamente" de `design-guidelines.md`.
+- Coloca la comprobación de unicidad de adjuntos (RES-Adjunto-001) en el propio `AdjuntoServiceImpl.validateInsert` (la entidad dueña de la restricción), en vez de en el servicio del maestro.
+
+=== DEFECTOS design_1 ===
+- **Race condition real en el envío asíncrono**: `fireActionRule_EnviarAsincronamente` encola la tarea en el `ExecutorService` dentro de la misma transacción que aún no ha hecho commit (usa `ContextAware.withTransaction(true)` pero no difiere el `submit` hasta después del commit); el hilo del executor puede intentar `correoRepository.find(correoId)` antes de que la fila sea visible para otra conexión JDBC, y el diseño trata ese caso como "no debería ocurrir nunca" con un simple `log.warn`, sin abordar la causa. Esto contradice justo el punto que `design-guidelines.md` pedía analizar con más cuidado ("Debes dedicarle un tiempo a pensar la mejor opción para esto") y puede dejar correos permanentemente en PENDIENTE.
+- Omite el botón `btnDelete` del `buttons-panel` de `Correo.xml` (aunque oculto tendría sentido), incumpliendo el `MUST` de §6/checklist que exige el trío `btnDelete`/`btnCancel`/`btnSave` siempre presente.
+- El campo calculado `nombreExpediente` (CDATA) lleva `transient="true"`, un atributo que ningún campo CDATA-calculado del proyecto usa (la convención real, confirmada en `Persona.xml` y `k-sistemas/references/models.md`, es no llevarlo).
+
+=== VENTAJAS design_4 ===
+- **Resuelve correctamente el problema de visibilidad transaccional del envío asíncrono**: identifica explícitamente la condición de carrera (el hilo en background no puede ver la fila hasta que la transacción HTTP haga commit) y la soluciona con `PostCommitRunner.runAfterCommit` (una `jakarta.transaction.Synchronization` que solo dispara tras `STATUS_COMMITTED`), exactamente el análisis en profundidad que `design-guidelines.md` pedía sobre el mecanismo asíncrono.
+- Incluye guarda de idempotencia explícita (`if (correo.getEstado() == SUCCESS) return`) y maneja el caso de rollback (la tarea no se ejecuta si la transacción no llega a comprometerse).
+- Cumple la regla de `buttons-panel` completo (mantiene `btnDelete` con `showIf="false"` en vez de omitirlo).
+- Documenta honestamente sus limitaciones/decisiones en "Notas y supuestos" (p. ej. la fusión de `to`/`cc`/`bcc`, la interpretación del menú raíz) de forma más explícita y trazable que design_1.
+
+=== DEFECTOS design_4 ===
+- **Fusiona `para`+`enCopia`+`enCopiaOculta` en la única lista `Mail.to()`** en vez de extender `Mail`/`JavaMailHelper` para admitir cc/bcc reales: esto rompe la semántica de "en copia oculta" (todo destinatario bcc queda expuesto a los demás en la cabecera "To" de cada correo entregado), un defecto funcional/de privacidad determinista y documentado pero no corregido.
+- Omite sistemáticamente `cid` en `showIf`/`readonlyIf` (solo usa `id != null`), desviándose de la convención real y repetida del proyecto (`k-vistas/forms.md` + 10+ vistas existentes) para distinguir un registro recién creado en cliente de uno inexistente.
+- Nombra el fichero de vistas de solo lectura de Adjunto `Correo.Adjunto-ref.xml`, incumpliendo la convención de nombres `<NombreEntidad>-ref.xml` (§6) — debería llamarse `Adjunto-ref.xml`.
+- Ubica la comprobación de unicidad de adjuntos (RES-Adjunto-001) en `CorreoServiceImpl.validateInsert` en vez de en `AdjuntoServiceImpl` (la entidad propietaria de la restricción).
+
+=== JUSTIFICACION design_1 vs design_4 ===
+El punto decisivo es el mecanismo de envío asíncrono, que `design-guidelines.md` señala explícitamente como el que más análisis merece. design_1 encola la tarea de envío dentro de la misma transacción de alta sin garantizar que el commit ya se haya producido, lo que es una condición de carrera real capaz de dejar correos permanentemente en PENDIENTE cada vez que el hilo del executor gane la carrera al commit — y el diseño ni siquiera reconoce el problema (lo trata como un caso imposible). design_4 identifica exactamente ese riesgo y lo resuelve con un `PostCommitRunner` basado en `Synchronization`/`STATUS_COMMITTED`, que es la solución técnicamente correcta y la que demuestra el análisis en profundidad que la guía pedía. Este fallo de design_1 amenaza el comportamiento central de las 25 escenarios del spec (crear y enviar un correo), mientras que el defecto equivalente de design_4 (fusionar bcc en "to") queda acotado a la confidencialidad de un campo concreto que ningún escenario del spec verifica explícitamente. Los demás defectos (omisión de `cid` en design_4, `btnDelete` ausente en design_1, nombrado de fichero) son de menor calado y no compensan la diferencia de robustez en el mecanismo asíncrono. Por eso me quedo con design_4.
+
+### Comparación 4: design_4 vs design_5 → gana design_4
+
+=== VENTAJAS design_4 ===
+- Resuelve correctamente la condición de carrera transaccional del envío asíncrono: `fireActionRule_ProgramarEnvioAsincrono` encola el envío vía `PostCommitRunner.runAfterCommit` (`design_4/rules/R-Correo-001.md`), garantizando que el hilo del pool no intente `repository.find(correoId)` antes de que la transacción HTTP que creó el correo haya hecho commit. `design_5` somete la tarea al executor inmediatamente tras `repository.save`, sin ninguna sincronización de commit.
+- Respeta al pie de la letra la convención documentada del proyecto de no usar `required="true"` para validaciones de negocio con mensaje literal (`k-sistemas/modelos.md`, `k-validaciones/restricciones.md`): todos los `VAL-` con mensaje exacto se implementan en `validateInsert`, nunca dejando que el genérico de JPA sustituya al mensaje de la especificación.
+- Modelo de vistas de `Adjunto` más preciso: separa `panel-related "adjuntos"` (editable, alta) de `"adjuntosConsulta"` (solo lectura, con su propio `@View-form` en `Correo.Adjunto-ref.xml`) en vez de reutilizar el mismo form para ambos casos.
+- Documenta y aplica una guarda de idempotencia explícita ("SUCCESS es terminal") en `enviarCorreo`, cubriendo el doble disparo del envío.
+- Añade `correos.envio.from`/`correos.envio.pool-size` como propiedades de configuración explícitas en `axelor-config.properties`, en vez de fijar el tamaño del pool en código.
+
+=== DEFECTOS design_4 ===
+- El menú «Mis correos» (`misCorreos-menuitem`) se declara como `menuitem` raíz (sin `parent`) pero con `action` directo, violando la regla explícita de `k-vistas/menus.md` ("el menuitem raíz no lleva `action` ni `parent`"); no hay precedente de este patrón en el `menus.xml` real del proyecto.
+- `construirMail` combina `para`+`enCopia`+`enCopiaOculta` en la única lista `Mail.to()` (no se amplía `Mail`): los destinatarios "en copia oculta" dejan de ser ocultos, ya que todos verían las direcciones de los demás en la cabecera «To» — rompe la confidencialidad que el campo implica.
+- La guarda condicional sobre `fechaPrimerIntentoEnvio` dentro de una asignación de campo "servidor", aunque justificada, podría marcarse como sospechosa en una lectura superficial del checklist anti-mass-assignment (mismo patrón existe también en `design_5`).
+
+=== VENTAJAS design_5 ===
+- Extiende correctamente la infraestructura compartida `Mail`/`JavaMailHelper` con `cc`/`bcc` reales, preservando la semántica y confidencialidad de "en copia oculta" que exige `entity-Correo.md`, en vez de fusionar todo en un único "to".
+- Resuelve la ambigüedad del menú raíz sin violar `k-vistas/menus.md`: anida «Mis correos» como hoja (`parent="correos-menuitem"`) bajo «Correos», evitando el patrón "raíz con action" inexistente en el proyecto.
+- Due diligence más profunda del impacto en infraestructura compartida: localiza y actualiza el único llamador real (`RegistroSalidaServiceImpl`) y detecta explícitamente una segunda llamada comentada que no requiere cambio.
+- Condiciona la visibilidad del menú «Correos de mi centro» al `TipoUsuario` `SUPERVISOR` (`if="...codigo == 'SUPERVISOR'"`), acercando la UI al rol real, aunque la defensa efectiva siga estando en el permiso ACL.
+
+=== DEFECTOS design_5 ===
+- No aborda la condición de carrera transaccional del envío asíncrono: `fireActionRule_IniciarEnvioAsincrono` somete la tarea al executor justo tras `repository.save`, sin ningún mecanismo de "ejecutar tras el commit" de la transacción HTTP en curso; el hilo del pool podría no encontrar la fila todavía visible, dejando el correo en `PENDIENTE` sin que el diseño analice ni mitigue este riesgo — precisamente lo que `design-guidelines.md` pedía "dedicar tiempo a pensar".
+- Usa `required="true"` declarativo en `domains/Correo.xml`/`domains/Adjunto.xml` para campos cuyo `VAL-` exige un mensaje de negocio literal exacto, contradiciendo la convención documentada del proyecto; el propio diseño admite la desviación ("el texto... es el mensaje estándar de Axelor, no necesariamente el literal del spec"), debilitando la garantía de "servidor como fuente de verdad" de una V- frente a un acceso directo a la API REST.
+- Modifica ficheros de infraestructura compartida fuera de `correos/` (`Mail.java`, `JavaMailHelper.java`) y de otro subsistema (`RegistroSalidaServiceImpl.java`), ampliando el radio de impacto/regresión frente al enfoque autocontenido de `design_4`.
+
+=== JUSTIFICACION design_4 vs design_5 ===
+Ambos diseños son completos: cubren los 25 escenarios en `test-e2e-desc.md`, construyen bien la Frontera de confianza y la trazabilidad V/R/U, y respetan el patrón `buttons-panel`/`remote-validation`. La diferencia decisiva está en dos puntos técnicos verificables. Primero, `design-guidelines.md` pide explícitamente "dedicar tiempo a pensar" el mecanismo de envío asíncrono en el ciclo de vida de Tomcat; `design_4` identifica y resuelve con `PostCommitRunner.runAfterCommit` la condición de carrera entre el commit de la transacción HTTP y la ejecución del hilo del pool, mientras que `design_5` ni siquiera la menciona, dejando abierto el riesgo de que el primer envío de cada correo falle por no encontrar la fila todavía comprometida. Segundo, `design_4` sigue al pie de la letra la convención del proyecto de no usar `required="true"` para validaciones con mensaje literal, mientras que `design_5` sí lo hace y lo admite como desviación intencional. Frente a esto, las ventajas de `design_5` (cc/bcc reales y menú correctamente anidado) son reales pero de menor calado: son mejoras de fidelidad/estilo, corregibles en la fase de enriquecimiento posterior sin rediseñar nada, mientras que la condición de carrera del envío asíncrono es un defecto de fondo en la pieza más compleja y crítica del subsistema, exactamente el aspecto que las guías de diseño pedían resolver con cuidado. Por eso me quedo con `design_4`.
+

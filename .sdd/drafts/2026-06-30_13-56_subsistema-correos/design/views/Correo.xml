@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- ******************************************************************************* -->
+    <!-- ****************************** Correo : Vistas (Administración) *************** -->
+    <!-- ******************************************************************************* -->
+
+    <action-view name="subsysCorreos.Correo@Main-action" title="Administración de correos" model="com.educaflow.subsystem.correos.db.Correo">
+        <view type="grid" name="subsysCorreos.Correo@Main-grid"/>
+        <view type="form" name="subsysCorreos.Correo@Main-form"/>
+        <view-param name="show-toolbar-grid" value="false"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="forceEdit" value="true"/>
+    </action-view>
+
+    <grid name="subsysCorreos.Correo@Main-grid" title="Correos" model="com.educaflow.subsystem.correos.db.Correo"
+          canNew="true" newButtonTitle="Nuevo correo" allowSearchFields="true" orderBy="-fechaCreacion"
+          canAdvanceSearch="true" canRefresh="false" editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false" canEditOnClick="true">
+        <field name="estado" width="120px"/>
+        <field name="dniDestinatario" width="120px" title="DNI"/>
+        <field name="nombre" width="150px"/>
+        <field name="apellidos" width="180px"/>
+        <field name="asunto"/>
+        <field name="para" width="200px"/>
+        <field name="centro" width="180px"/>
+        <field name="nombreExpediente" width="180px" title="Expediente"/>
+        <field name="fechaCreacion" width="160px"/>
+        <field name="fechaEnvio" width="160px"/>
+    </grid>
+
+    <form name="subsysCorreos.Correo@Main-form" title="Correo" model="com.educaflow.subsystem.correos.db.Correo"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+
+        <panel name="Correo" title="Datos del correo">
+            <field name="dniDestinatario" colSpan="3" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="nombre" colSpan="4" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="apellidos" colSpan="5" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="para" colSpan="12" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="enCopia" colSpan="6" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="enCopiaOculta" colSpan="6" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="asunto" colSpan="9" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="centro" colSpan="3" readonlyIf="(id != null) || (cid != null)"
+                   grid-view="subsysCommon.Centro@Main-grid" form-view="subsysCommon.Centro@Main-form"/>
+            <field name="cuerpo" colSpan="12" widget="Text" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="historialEstado" colSpan="6" readonlyIf="(id != null) || (cid != null)"/>
+        </panel>
+
+        <panel-related name="adjuntos" field="adjuntos" title="Adjuntos"
+            grid-view="subsysCorreos.Correo.Adjunto@Main-grid" form-view="subsysCorreos.Correo.Adjunto@Main-form"
+            colSpan="12" newButtonTitle="Añadir adjunto" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
+            showIf="(id == null) &amp;&amp; (cid == null)"/>
+
+        <panel-related name="adjuntosConsulta" field="adjuntos" title="Adjuntos"
+            grid-view="subsysCorreos.Adjunto@Search-grid" form-view="subsysCorreos.Adjunto@View-form"
+            colSpan="12" newButtonTitle="" canNew="false" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
+            showIf="(id != null) || (cid != null)"/>
+
+        <panel name="Envio" title="Datos del envío" showIf="(id != null) || (cid != null)" colSpan="12">
+            <field name="estado" colSpan="3"/>
+            <field name="numeroReintentos" colSpan="3" title="Nº reintentos"/>
+            <field name="fechaCreacion" colSpan="3"/>
+            <field name="fechaEnvio" colSpan="3" showIf="estado == 'SUCCESS'"/>
+            <field name="fechaPrimerIntentoEnvio" colSpan="4"/>
+            <field name="fechaUltimoIntentoEnvio" colSpan="4"/>
+            <field name="descripcionUltimoFallo" colSpan="12" widget="Text" showIf="estado == 'FAIL'"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnReenviar" title="Reenviar" onClick="subsysCorreos.Correo@Main-btnReenviar-action"
+                    colSpan="2" showIf="estado == 'FAIL'"/>
+            <button name="btnDelete" title="Borrar" onClick="subsysCorreos.Correo@Main-btnDelete-action"
+                    css="btn-danger" colSpan="2" outline="true" showIf="false"/>
+            <button name="btnCancelAlta" title="Cancelar" onClick="subsysCorreos.Correo@Main-btnCancel-action"
+                    colSpan="2" colOffset="6" outline="true" showIf="(id == null) &amp;&amp; (cid == null)"/>
+            <button name="btnCancelSalir" title="Salir" onClick="subsysCorreos.Correo@Main-btnCancel-action"
+                    colSpan="2" colOffset="6" outline="true" showIf="(id != null) || (cid != null)"/>
+            <button name="btnSave" title="Guardar" onClick="subsysCorreos.Correo@Main-btnSave-action"
+                    colSpan="2" showIf="(id == null) &amp;&amp; (cid == null)"/>
+        </panel>
+
+    </form>
+
+    <!-- *************** Correo : Acciones de las tareas principales *************** -->
+
+    <action-group name="subsysCorreos.Correo@Main-btnDelete-action">
+        <action name="remote-validationDelete-action"/>
+        <action name="delete"/>
+    </action-group>
+
+    <action-group name="subsysCorreos.Correo@Main-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+
+    <action-group name="subsysCorreos.Correo@Main-btnSave-action">
+        <action name="subsysCorreos.Correo@Main-Local-validateSave-action"/>
+        <action name="remote-validationSave-action"/>
+        <action name="save"/>
+    </action-group>
+
+    <action-group name="subsysCorreos.Correo@Main-btnReenviar-action">
+        <action name="subsysCorreos.Correo@Main-Remote-validateReenviar-action"/>
+        <action name="subsysCorreos.Correo@Main-Remote-reenviar-action"/>
+    </action-group>
+
+    <!-- *************** Correo : Acciones de Validaciones en local *************** -->
+
+    <action-condition name="subsysCorreos.Correo@Main-Local-validateSave-action">
+        <check field="dniDestinatario" if="dniDestinatario == null || dniDestinatario.isEmpty()"
+               error="El DNI del destinatario es obligatorio"/>
+        <check field="nombre" if="nombre == null || nombre.isEmpty()"
+               error="El nombre es obligatorio"/>
+        <check field="apellidos" if="apellidos == null || apellidos.isEmpty()"
+               error="Los apellidos son obligatorios"/>
+        <check field="para" if="para == null || para.isEmpty()"
+               error="Debe indicar al menos un destinatario en el «para»"/>
+        <check field="asunto" if="asunto == null || asunto.isEmpty()"
+               error="El asunto es obligatorio"/>
+        <check field="cuerpo" if="cuerpo == null || cuerpo.isEmpty()"
+               error="El cuerpo es obligatorio"/>
+        <check field="centro" if="centro == null"
+               error="El centro es obligatorio"/>
+    </action-condition>
+
+    <!-- *************** Correo : Acciones básicas que cambian campos simples *************** -->
+
+    <!-- *************** Correo : Acciones de llamadas Remotas al servidor *************** -->
+
+    <action-method name="subsysCorreos.Correo@Main-Remote-validateReenviar-action" model="com.educaflow.subsystem.correos.db.Correo">
+        <call class="com.educaflow.subsystem.correos.controller.CorreoController" method="validarAntesDeReenviar"/>
+    </action-method>
+
+    <action-method name="subsysCorreos.Correo@Main-Remote-reenviar-action" model="com.educaflow.subsystem.correos.db.Correo">
+        <call class="com.educaflow.subsystem.correos.controller.CorreoController" method="reenviar"/>
+    </action-method>
+
+    <!-- *************** Correo.Adjunto : Vistas (embebidas en el alta) *************** -->
+
+    <grid name="subsysCorreos.Correo.Adjunto@Main-grid" title="" model="com.educaflow.subsystem.correos.db.Adjunto"
+          canNew="true" newButtonTitle="Añadir adjunto" allowSearchFields="false" orderBy="nombreFichero"
+          canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false" canEditOnClick="true">
+        <field name="nombreFichero" title="Nombre del fichero"/>
+    </grid>
+
+    <form name="subsysCorreos.Correo.Adjunto@Main-form" title="Adjunto" model="com.educaflow.subsystem.correos.db.Adjunto"
+          width="large" onNew="subsysCorreos.Correo.Adjunto@Main-onNew-action"
+          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="Adjunto" title="">
+            <field name="correo" showIf="false"/>
+            <field name="nombreFichero" colSpan="6" required="true"/>
+            <field name="contenido" colSpan="6" widget="binary-link" required="true"/>
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnDelete" title="Borrar" onClick="subsysCorreos.Correo.Adjunto@Main-btnDelete-action"
+                    css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancelAlta" title="Cancelar" onClick="subsysCorreos.Correo.Adjunto@Main-btnCancel-action"
+                    colSpan="2" colOffset="6" outline="true" showIf="id == null"/>
+            <button name="btnCancelSalir" title="Salir" onClick="subsysCorreos.Correo.Adjunto@Main-btnCancel-action"
+                    colSpan="2" colOffset="6" outline="true" showIf="id != null"/>
+            <button name="btnSave" title="Guardar" onClick="subsysCorreos.Correo.Adjunto@Main-btnSave-action"
+                    colSpan="2" showIf="id == null"/>
+        </panel>
+    </form>
+
+    <!-- *************** Correo.Adjunto : Acciones de las tareas principales *************** -->
+
+    <action-group name="subsysCorreos.Correo.Adjunto@Main-onNew-action">
+        <action name="subsysCorreos.Correo.Adjunto@Main-set-correo-parent-action"/>
+    </action-group>
+
+    <action-group name="subsysCorreos.Correo.Adjunto@Main-btnDelete-action">
+        <action name="delete-modal"/>
+    </action-group>
+
+    <action-group name="subsysCorreos.Correo.Adjunto@Main-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+
+    <action-group name="subsysCorreos.Correo.Adjunto@Main-btnSave-action">
+        <action name="subsysCorreos.Correo.Adjunto@Main-Local-validateSave-action"/>
+        <action name="save-modal"/>
+    </action-group>
+
+    <!-- *************** Correo.Adjunto : Acciones de Validaciones en local *************** -->
+
+    <action-condition name="subsysCorreos.Correo.Adjunto@Main-Local-validateSave-action">
+        <check field="nombreFichero" if="nombreFichero == null || nombreFichero.isEmpty()"
+               error="El nombre del fichero es obligatorio"/>
+        <check field="contenido" if="contenido == null"
+               error="Debe adjuntar el fichero"/>
+    </action-condition>
+
+    <!-- *************** Correo.Adjunto : Acciones básicas que cambian campos simples *************** -->
+
+    <action-record name="subsysCorreos.Correo.Adjunto@Main-set-correo-parent-action" model="com.educaflow.subsystem.correos.db.Adjunto">
+        <field name="correo" expr="eval: __parent__"/>
+    </action-record>
+
+</object-views>

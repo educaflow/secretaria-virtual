@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="correos" package="com.educaflow.subsystem.correos.db"/>
+
+    <entity name="Correo">
+
+        <!-- Datos del destinatario (texto libre, no enlaza con ninguna ficha de persona) -->
+        <string name="dniDestinatario" title="DNI del destinatario"/>
+        <string name="nombre" title="Nombre"/>
+        <string name="apellidos" title="Apellidos"/>
+
+        <!-- Direcciones de correo. "large" evita que la base de datos trunque el valor antes de
+             que el VAL- correspondiente pueda dar su mensaje amigable (ver design.md, Notas y supuestos) -->
+        <string name="para" title="Para" large="true" help="Direcciones de correo del destinatario principal (el «to»), separadas por comas"/>
+        <string name="enCopia" title="En copia" large="true" help="Direcciones de correo en copia (el «cc»), separadas por comas"/>
+        <string name="enCopiaOculta" title="En copia oculta" large="true" help="Direcciones de correo en copia oculta (el «bcc»), separadas por comas"/>
+
+        <string name="asunto" title="Asunto" large="true"/>
+        <string name="cuerpo" title="Cuerpo" large="true" multiline="true"/>
+
+        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro"/>
+
+        <many-to-one name="historialEstado" ref="com.educaflow.subsystem.expedientes.db.HistorialEstado" title="Historial de estado"
+                     help="Estado del expediente en el que se encontraba el correo cuando se envió (opcional)"/>
+
+        <one-to-many name="adjuntos" ref="Adjunto" mappedBy="correo" title="Adjuntos"/>
+
+        <!-- Datos del envío: los rellena siempre el servidor (ver design.md, Frontera de confianza) -->
+        <enum name="estado" ref="EstadoCorreo" title="Estado"/>
+        <datetime name="fechaCreacion" title="Fecha de creación"/>
+        <datetime name="fechaPrimerIntentoEnvio" title="Fecha del primer intento de envío"/>
+        <datetime name="fechaUltimoIntentoEnvio" title="Fecha del último intento de envío"/>
+        <datetime name="fechaEnvio" title="Fecha de envío"/>
+        <integer name="numeroReintentos" title="Número de reintentos"/>
+        <string name="descripcionUltimoFallo" title="Descripción del último fallo" large="true" multiline="true"
+                help="Traza de la excepción Java del último intento de envío fallido"/>
+
+        <!-- CC-Correo-007 (momento: lectura) — se deriva de historialEstado.expediente.name navegando dos
+             relaciones a otras tablas; por eso se implementa como formula="true" (SQL), no como cuerpo Java
+             (k-validaciones/reglas-negocio.md §2.2: el cálculo necesita otras tablas y se usa como columna
+             de grid, lo que además evita N+1 al no cargar cada `historialEstado`/`expediente` en Java para
+             cada fila). Subselect correlacionado: si `historialEstado` es null, o su `expediente` es null,
+             no hay fila que empareje y el resultado es null (mismo comportamiento que el cuerpo Java previo) -->
+        <string name="nombreExpediente" title="Nombre del expediente" formula="true">
+            <![CDATA[
+                (SELECT ex.name
+                 FROM expedientes_historial_estado he
+                 INNER JOIN expedientes_expediente ex ON ex.id = he.expediente
+                 WHERE he.id = historial_estado)
+            ]]>
+        </string>
+
+        <finder-method name="findByEstado" using="EstadoCorreo:estado" filter="self.estado = :estado" all="true"/>
+
+    </entity>
+
+    <enum name="EstadoCorreo">
+        <item name="PENDIENTE" title="Pendiente"/>
+        <item name="SUCCESS" title="Enviado"/>
+        <item name="FAIL" title="Fallido"/>
+    </enum>
+
+</domain-models>

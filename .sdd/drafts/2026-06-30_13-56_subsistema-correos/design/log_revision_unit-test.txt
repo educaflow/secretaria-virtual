@@ -1,0 +1,6 @@
+# Verificación tests unitarios — iteración 1
+{"id":"P-001","severidad":"IMPORTANT","fichero":"design/test-unit-desc.md","ubicacion":"test insert_correoValido_asignaValoresInicialesYPersiste (línea ~65)","origen":"RES-Correo-001 / V-Correo-019 (design.md, sección Cobertura, línea ~469)","problema":"El test marca 'Verifica: R-Correo-003, RES-Correo-001 (implícita)', pero la sección Cobertura de design.md clasifica RES-Correo-001/V-Correo-019 como regla puramente declarativa (clave foránea JPA), sin código Java que la implemente, excluida de JUnit. Como el repositorio está mockeado en ese test, ninguna aserción ejerce de verdad la integridad referencial — la anotación '(implícita)' contradice la propia clasificación del fichero.","correccion":"Quitar la referencia a RES-Correo-001 de la lista 'Verifica' de ese test (dejar solo R-Correo-003), ya que esa restricción no es verificable con un repositorio mockeado y el propio design.md la excluye de cobertura JUnit."}
+# Verificación tests unitarios — iteración 2
+OK-CORRECTO
+# Verificación tests unitarios — iteración 3 (revisión post-cierre)
+OK-CORRECTO
