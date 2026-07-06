@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!--
+        Acciones GLOBALES de validación remota, definidas una única vez para toda la
+        aplicación. No llevan atributo model: DefaultModelController resuelve la entidad
+        por el _model del contexto del request, así que sirven para cualquier form.
+
+        Uso en los action-group del form PRINCIPAL:
+          btnSave   = <validación local> → remote-validationSave-action   → save
+          btnDelete = remote-validationDelete-action → delete
+
+        NO usar en el form modal de un detalle (save-modal/delete-modal): el maestro puede no
+        existir aún en BD y el validate* del detalle fallaría espuriamente. En el modal la
+        validación previa al cierre es solo la local de cliente (por eso debe ser lo más
+        completa posible); la de servidor del detalle la ejecuta ModelServiceValidationWalker
+        al guardar el maestro.
+
+        No crear action-methods de validación por vista ni métodos validateSave/validateDelete
+        en los controladores de cada entidad: estas dos acciones los sustituyen.
+    -->
+
+    <!-- Valida antes de guardar: validateInsert si el registro es nuevo (sin id) o validateUpdate si ya existe -->
+    <action-method name="remote-validationSave-action">
+        <call class="com.educaflow.base.infrastructure.controller.DefaultModelController" method="validateSave"/>
+    </action-method>
+
+    <!-- Valida antes de borrar: validateRemove. Al ir antes del delete, el error llega antes de la confirmación de borrado -->
+    <action-method name="remote-validationDelete-action">
+        <call class="com.educaflow.base.infrastructure.controller.DefaultModelController" method="validateDelete"/>
+    </action-method>
+
+</object-views>
