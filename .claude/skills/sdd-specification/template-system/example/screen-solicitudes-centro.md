@@ -20,6 +20,7 @@ Listado de solicitudes del centro
 
 ## Vista: Listado de solicitudes del centro
 
+- **Slug:** listado
 - **Tipo:** listado
 - **Qué muestra:** las solicitudes del centro del usuario conectado, filtrables por estado, en lectura.
 - **Se abre desde:** es la vista de entrada de la pantalla.
@@ -41,6 +42,7 @@ Listado de solicitudes del centro
 
 ## Vista: Formulario de resolución
 
+- **Slug:** formulario
 - **Tipo:** formulario
 - **Qué muestra:** el detalle de una solicitud con sus datos y las acciones Emitir y Rechazar.
 - **Se abre desde:** el listado de solicitudes del centro, al entrar en una solicitud.
@@ -63,6 +65,6 @@ Listado de solicitudes del centro
 
 ### Reglas de UI
 
-- RUI-002 — El campo motivo de rechazo solo se muestra cuando el estado es RECHAZADA
+- RUI-solicitudes-centro-formulario-001 — El campo motivo de rechazo solo se muestra cuando el estado es RECHAZADA
   - disparador: continuo
   - condición: estado == RECHAZADA

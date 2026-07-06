@@ -23,7 +23,7 @@ Como parte del diseño, **el subagente `test-unitarios`** escribe `design/test-u
 - Cada test se describe con estos campos:
   - **Nombre** — descriptivo, estilo `metodo_condicion_resultadoEsperado` (p.ej. `validateInsert_cursoNulo_lanzaValidationException`).
   - **Tipo** — `happy` | `error` | `borde`.
-  - **Verifica** — la(s) regla(s) `V-`/`R-`/`CC-NNN` del diseño que ejerce, o `—`.
+  - **Verifica** — la(s) regla(s) `V-`/`R-`/`CC-` del diseño que ejerce, o `—`.
   - **Arrange** — los objetos de entrada y **qué colaboradores se mockean y qué devuelve cada stub**.
   - **Act** — el método que se invoca.
   - **Assert** — el resultado esperado: valor de retorno, **excepción esperada + mensaje exacto** (tal cual lo define la regla del spec) y/o **interacciones a verificar** (`verify(...)`).

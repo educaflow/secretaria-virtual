@@ -1,8 +1,10 @@
-# Catálogo de tipos de validación
+# Catálogo de tipos de validación y restricción
 
-Catálogo de referencia para identificar, al rellenar las **Validaciones** (`VAL-`) y las **Restricciones** (`RES-`) de un `entity-*.md`, qué comprobaciones aplican a cada campo. Recorre las cuatro tablas por ámbito y comprueba, campo a campo, cuáles aplican. Las columnas "Mensaje al usuario" y "Ejemplo de mensaje" sirven de guía para redactar el `mensaje` de cada validación en lenguaje de negocio.
+Catálogo de referencia **único** para las **Validaciones** (`VAL-`) y las **Restricciones** (`RES-`) de un `entity-*.md`: los tipos de comprobación son los mismos y lo que las distingue es el ámbito — si debe cumplirse **siempre**, en toda acción, es una `RES-`; si se ancla a **una acción concreta**, es una `VAL-`. Recorre las cuatro tablas por ámbito y comprueba, campo a campo y acción a acción, cuáles aplican. Las columnas "Mensaje al usuario" y "Ejemplo de mensaje" sirven de guía para redactar el `mensaje` en lenguaje de negocio.
 
 Es una ayuda **no exhaustiva**: cubre los tipos más habituales, pero si el negocio necesita una validación o una restricción que no figura aquí, decláralo igualmente.
+
+> **REQUIRED — empieza por la obligatoriedad.** Antes de bajar a los tipos concretos, recorre **campo a campo** las propiedades que el usuario rellena (las de cada línea `AllowProperties`) y comprueba la primera fila de la tabla de abajo: *«El campo A es obligatorio»*. Es la validación más trivial y por eso la más olvidada. Solo después pasa al resto de tipos.
 
 ## Validaciones sobre el propio campo
 

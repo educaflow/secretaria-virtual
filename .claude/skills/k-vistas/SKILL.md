@@ -262,13 +262,17 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     </form>
 
     <!-- *************** Ciclo : Acciones de las tareas principales *************** -->
+    <!-- Form PRINCIPAL: validación remota global (DefaultModelController) antes de delete/save.
+         Si hay validación local, va como primera acción del grupo (Local-validateSave-action). -->
     <action-group name="subsysSistemaEducativo.Ciclo@Main-btnDelete-action">
+        <action name="remote-validationDelete-action"/>
         <action name="delete"/>
     </action-group>
     <action-group name="subsysSistemaEducativo.Ciclo@Main-btnCancel-action">
         <action name="back"/>
     </action-group>
     <action-group name="subsysSistemaEducativo.Ciclo@Main-btnSave-action">
+        <action name="remote-validationSave-action"/>
         <action name="save"/>
     </action-group>
 
@@ -314,6 +318,9 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     </form>
 
     <!-- *************** Ciclo.Curso : Acciones de las tareas principales *************** -->
+    <!-- Form MODAL de un detalle: MUST NOT usar remote-validation* (el maestro puede no existir
+         aún en BD). La validación previa al cierre es SOLO la local de cliente, que debe ser lo
+         más completa posible (aquí Curso no declara ninguna). Ver forms.md §Form modal. -->
     <action-group name="subsysSistemaEducativo.Ciclo.Curso@Main-btnDelete-action">
         <action name="delete-modal"/>
     </action-group>

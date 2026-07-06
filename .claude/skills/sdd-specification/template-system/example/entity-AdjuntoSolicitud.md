@@ -9,7 +9,9 @@ Documento que el alumno aporta junto a una solicitud de certificado (por ejemplo
 
 ## Restricciones
 
-- RES-003 — Dentro de una misma solicitud no puede haber dos adjuntos con el mismo nombre de fichero
+- RES-AdjuntoSolicitud-001 — Dentro de una misma solicitud no puede haber dos adjuntos con el mismo nombre de fichero
+- RES-AdjuntoSolicitud-002 — El nombre de fichero es obligatorio
+- RES-AdjuntoSolicitud-003 — El contenido es obligatorio
 
 ## Acción: Crear
 

@@ -21,13 +21,13 @@
 
 <!-- Restricciones de la entidad: deben cumplirse SIEMPRE, en todas las acciones. Si solo aplican a una acción concreta, van como validación de esa acción. Si no hay, elimina esta sección. -->
 
-- RES-NNN — <condición que siempre debe cumplirse>
+- RES-<Entidad>-NNN — <condición que siempre debe cumplirse>
 
 ## Campos calculados
 
 <!-- Valores que calcula el servidor, nunca el cliente. Si no hay, elimina esta sección. -->
 
-- CC-NNN — <nombre_campo>
+- CC-<Entidad>-NNN — <nombre_campo>
   - momento: lectura | escritura
   - sobreescribible: nunca | [ROL1, ROL2]
   - cálculo: <descripción>
@@ -42,14 +42,14 @@
 
 **Validaciones:**
 
-- VAL-NNN — <aserción que debe cumplirse; si no se da, bloquea la acción>
+- VAL-<Entidad>-NNN — <aserción que debe cumplirse; si no se da, bloquea la acción>
   - condición: <opcional: cuándo aplica la validación (estado u otra circunstancia)>
   - actor: <opcional>
   - mensaje: <opcional>
 
 **Reglas de negocio:**
 
-- RN-NNN — <operación automática que el sistema ejecuta tras confirmarse la acción>
+- RN-<Entidad>-NNN — <operación automática que el sistema ejecuta tras confirmarse la acción>
   - fase: antes_de_commit | después_de_commit
   - estado: <opcional: el estado de la entidad para que la regla aplique>
   - condición: <opcional>

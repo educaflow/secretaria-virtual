@@ -22,6 +22,7 @@ Listado de mis solicitudes
 
 ## Vista: Listado de mis solicitudes
 
+- **Slug:** listado
 - **Tipo:** listado
 - **Qué muestra:** las solicitudes del alumno conectado con su estado, en lectura.
 - **Se abre desde:** es la vista de entrada de la pantalla.
@@ -44,6 +45,7 @@ Listado de mis solicitudes
 
 ## Vista: Formulario de solicitud
 
+- **Slug:** formulario
 - **Tipo:** formulario
 - **Qué muestra:** el alta de una solicitud eligiendo el tipo de certificado y aportando documentos adjuntos. Tras enviarla, queda en solo lectura.
 - **Se abre desde:** el listado de mis solicitudes, al pulsar «Nueva solicitud» (alta) o al pulsar una fila (solo lectura).
@@ -65,10 +67,10 @@ Listado de mis solicitudes
 
 ### Reglas de UI
 
-- RUI-001 — Al crear una solicitud, el alumno se rellena con el usuario actual
+- RUI-mis-solicitudes-formulario-001 — Al crear una solicitud, el alumno se rellena con el usuario actual
   - disparador: al crear
   - condición: Siempre
-- RUI-003 — Con la solicitud ya enviada, el panel «Documentos adjuntos» se muestra en solo lectura (los documentos solo se aportan durante el alta)
+- RUI-mis-solicitudes-formulario-002 — Con la solicitud ya enviada, el panel «Documentos adjuntos» se muestra en solo lectura (los documentos solo se aportan durante el alta)
   - disparador: al cargar
   - condición: la solicitud ya está creada (no es un alta en curso)
 
@@ -76,6 +78,7 @@ Listado de mis solicitudes
 
 ## Vista: Listado de documentos adjuntos
 
+- **Slug:** listado-adjuntos
 - **Tipo:** listado
 - **Qué muestra:** los ficheros aportados a la solicitud, en lectura.
 - **Se abre desde:** embebido como panel «Documentos adjuntos» en el formulario de solicitud.
@@ -95,6 +98,7 @@ Listado de mis solicitudes
 
 ## Vista: Formulario de documento adjunto
 
+- **Slug:** formulario-adjunto
 - **Tipo:** formulario
 - **Qué muestra:** un documento aportado a la solicitud (nombre de fichero y contenido). En el alta de la solicitud es editable; con la solicitud ya enviada, en solo lectura para descargarlo.
 - **Se abre desde:** el listado de documentos adjuntos, al pulsar una fila o «Añadir».
@@ -110,3 +114,14 @@ Listado de mis solicitudes
 ### Botones
 
 *(sin botones)*
+
+### Reglas de UI
+
+- RUI-mis-solicitudes-formulario-adjunto-001 — Al añadir un adjunto, el nombre de fichero se marca como obligatorio
+  - disparador: continuo
+  - condición: Siempre
+- RUI-mis-solicitudes-formulario-adjunto-002 — Al añadir un adjunto, el contenido se marca como obligatorio
+  - disparador: continuo
+  - condición: Siempre
+
+(Estas reglas reflejan en el propio alta del adjunto las restricciones de obligatoriedad RES-AdjuntoSolicitud-002 y RES-AdjuntoSolicitud-003 para dar feedback inmediato; el bloqueo real salta al guardar la solicitud (padre), no al confirmar el formulario del adjunto. La unicidad del nombre (RES-AdjuntoSolicitud-001) **no** se refleja como regla de UI: es una comprobación entre registros, no factible en el cliente.)

@@ -32,7 +32,7 @@ Esos `RES-` se implementan en el servidor, en `validate*` del `*ServiceImpl`, pe
 - Una restricción de estado del registro → `validateInsert` **y** `validateUpdate`.
 - Una restricción que también deba protegerse al borrar → además `validateRemove`.
 
-La mecánica de `validate*` (firma, `BusinessMessages`, salvaguarda de `DefaultModelService`) es la misma que la de las validaciones: ver [`validaciones.md`](validaciones.md) §3.
+La mecánica de `validate*` (firma, `BusinessMessages`, salvaguarda de `DefaultModelService`) es la misma que la de las validaciones: ver [`validaciones.md`](validaciones.md) §2.
 
 > Diferencia con una `VAL-`: la `VAL-` se ancla a **una** acción; el `RES-` se replica en **todas** porque debe cumplirse siempre.
 

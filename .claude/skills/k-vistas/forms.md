@@ -34,7 +34,7 @@ IMPORTANTE:
  - En <form> deben estar todos los atributos que se han indicado en la plantilla (width, canAttach, canBack, canDelete, canNew, canSave, canMore, canBackOnSave) con los valores indicados. `canBackOnSave="true"` solo aplica al form principal (no al modal de entidad hija). El form modal **no lleva `canBackOnSave`** y **sí lleva `onNew`** para inyectar la referencia al padre.
  - En <panel-related> deben estar todos los atributos que se han indicado en la plantilla (newButtonTitle, colSpan, showFooter, canEdit, canRemove, forceEdit) con los valores indicados.
  - El botón Borrar debe tener `showIf="(id!=null) || (cid!=null)"` — `id` es el ID del registro ya guardado; `cid` es el ID temporal de un registro nuevo todavía no guardado.
- - El `<action-group>` del botón `btnSave` **MUST** terminar con `<action name="save"/>` y el del botón `btnDelete` **MUST** terminar con `<action name="delete"/>` (acciones predefinidas del framework de Axelor). **MUST NOT** llamar a un `<action-method>` propio (`Remote-…-action`) para persistir o borrar: Axelor ya expone el endpoint REST `/ws/rest/<FQN>` que aplica `validate → super` con `AllowProperties`. Ver `[[controladores.md]]` del skill `k-sistemas` y `[[k-secure-coding]]`.
+ - El `<action-group>` del botón `btnSave` **MUST** incluir la acción global `remote-validationSave-action` y terminar con `<action name="save"/>`; el del botón `btnDelete` **MUST** incluir la acción global `remote-validationDelete-action` y terminar con `<action name="delete"/>` (`save`/`delete` son acciones predefinidas del framework de Axelor; las `remote-validation*` son las acciones globales de validación remota de `DefaultModelController` — ver `k-validaciones/validaciones.md` §4-§5 y `[[actions.md]]`). **MUST NOT** llamar a un `<action-method>` propio (`Remote-…-action`) para validar, persistir o borrar en save/delete: Axelor ya expone el endpoint REST `/ws/rest/<FQN>` que aplica `validate*` con `AllowProperties`. Ver `[[controladores.md]]` del skill `k-sistemas` y `[[k-secure-coding]]`.
  - Los nombres de los `onClick` de los botones siguen el patrón `{Prefijo}.{EntidadJerárquica}@Main-{btnXxx}-action`, donde `{EntidadJerárquica}` puede incluir la jerarquía de entidades separadas por punto (p.ej. `Ciclo.Curso`). Por ejemplo: `subsysSistemaEducativo.Ciclo@Main-btnDelete-action` para la entidad raíz, o `subsysSistemaEducativo.Ciclo.Curso@Main-btnDelete-action` para la entidad hija.
  - Los nombres de los paneles siguen el patrón del nombre de la entidad (p.ej. `name="Ciclo"`), no nombres genéricos como `nombrePanel1`.
  - En campos relacionales: `form-view` apunta al `@View-form` de la entidad (p.ej. `subsysCentro.Centro@View-form`) y `grid-view` apunta al `@Search-grid` (p.ej. `subsysCentro.Centro@Search-grid`).
@@ -70,11 +70,18 @@ Diferencias respecto al form principal:
 - **Con `onNew`** — inyecta la referencia al padre cuando se crea un registro nuevo.
 - **Campo padre con `showIf="false"`** — está en el modelo pero no es visible al usuario.
 
-Los action-groups de los botones del form modal usan acciones específicas del framework (predefinidas por Axelor). El `<action-group>` del botón `btnSave` **MUST** terminar con `<action name="save-modal"/>` y el del botón `btnDelete` con `<action name="delete-modal"/>`. **MUST NOT** llamar a un `<action-method>` propio para persistir o borrar — igual que en el form principal, ver `[[controladores.md]]` del skill `k-sistemas`:
+Los action-groups de los botones del form modal usan acciones específicas del framework (predefinidas por Axelor). El `<action-group>` del botón `btnSave` es `Local-validateSave-action` (solo si el detalle tiene validaciones evaluables en cliente) → `<action name="save-modal"/>`; el del botón `btnDelete` termina con `<action name="delete-modal"/>`. **MUST NOT** llamar a un `<action-method>` propio para persistir o borrar — igual que en el form principal, ver `[[controladores.md]]` del skill `k-sistemas`:
 
 - Botón Borrar: `<action name="delete-modal"/>` (no `delete`)
 - Botón Cancelar: `<action name="close"/>` (no `back`)
 - Botón Guardar: `<action name="save-modal"/>` (no `save`)
+
+**CRITICAL — en el form modal de un detalle, la validación cliente es la ÚNICA antes de cerrar (y por eso MUST ser lo más completa posible):**
+
+- `save-modal`/`delete-modal` **no llaman al servidor**: solo confirman/quitan el registro en la colección en memoria del form padre. No se ejecuta ninguna validación de servidor al cerrar el modal.
+- **MUST NOT** incluir `remote-validationSave-action`/`remote-validationDelete-action` en los action-groups del form modal: el maestro puede no existir todavía en BD y la validación de servidor del detalle fallaría espuriamente.
+- Las validaciones reales de servidor del detalle se ejecutan **cuando se guarda el maestro** (`ModelServiceValidationWalker` recorre los detalles al hacer `save` del form raíz).
+- Por ello el `Local-validateSave-action` del form modal **MUST** duplicar **todas** las validaciones del detalle evaluables en cliente (obligatorios, formatos, comparaciones entre campos, comparaciones con el padre vía `__parent__`), aunque repitan las del servidor: es la única forma de avisar al usuario **antes** de cerrar la ventana, en vez de con un error del maestro al guardar al final. Patrones listos en `k-validaciones/examples/ejemplos-validaciones.md` (P1–P6; P4 para comparar con el padre).
 
 ### Tabla comparativa: form principal vs form modal
 
@@ -87,6 +94,8 @@ Los action-groups de los botones del form modal usan acciones específicas del f
 | Botón Borrar acción    | `delete`       | `delete-modal`                            |
 | Botón Cancelar acción  | `back`         | `close`                                   |
 | Botón Guardar acción   | `save`         | `save-modal`                              |
+| Validación remota (`remote-validation*`) | sí, antes de `save`/`delete` | **no** (el maestro puede no existir en BD) |
+| Validación cliente (`Local-validate*`)   | opcional (solo UX)           | **MUST, lo más completa posible** (única validación antes de cerrar el modal) |
 
 ## Botones principales y secundarios
 - Los botones principales (guardar, cancelar, etc) están a la derecha del todo

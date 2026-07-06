@@ -1,6 +1,6 @@
 ---
 name: sdd-specification
-description: Crea, mejora o revisa de forma interactiva una especificación funcional en lenguaje de negocio del proyecto EducaFlow, conversando con el usuario en lenguaje natural (diálogo de ida y vuelta, sin formularios de respuesta fija). La historia de usuario va embebida dentro de la propia spec (no se lee de ningún fichero externo). Se puede invocar varias veces sobre la misma spec. Al invocarlo pregunta si crear una spec nueva, refinar la última o elegir otra existente; y sobre una spec ya creada pregunta SIEMPRE si además quieres que haga un review (validar formato, estructura, numeración y coherencia) aparte de seguir mejorando el contenido. La spec es multi-fichero: un índice más los ficheros secundarios que las plantillas definen. Su forma, apartados, identificadores y reglas de contenido los fija la guía `template-system/README.md` (configurable con `--template-dir`): es el único fichero de plantilla que el skill conoce por nombre y que declara el resto del conjunto, no este skill. Es el paso del pipeline SDD cuya salida consume `/sdd-designer`: los escenarios de la spec son la semilla de los tests E2E y los identificadores que define la plantilla permiten al diseño comprobar que están todos. Opcionalmente, captura aparte en un fichero hermano `design-guidelines.md` (NO es la spec) las pistas técnicas/de diseño que surjan en la conversación, como input opcional de `/sdd-designer`.
+description: Crea, mejora o revisa de forma interactiva una especificación funcional en lenguaje de negocio del proyecto EducaFlow, conversando con el usuario en lenguaje natural (diálogo de ida y vuelta, sin formularios de respuesta fija). La historia de usuario va embebida dentro de la propia spec (no se lee de ningún fichero externo). Se puede invocar varias veces sobre la misma spec. Al invocarlo pregunta si crear una spec nueva, refinar la última o elegir otra existente; y sobre una spec ya creada pregunta SIEMPRE si además quieres que haga un review (validar formato, estructura, numeración y coherencia) aparte de seguir mejorando el contenido. La spec es multi-fichero: un índice más los ficheros secundarios que las plantillas definen. Su forma, apartados, identificadores y reglas de contenido los fija la guía `template-system/README.md` (configurable con `--template-dir`): es el único fichero de plantilla que el skill conoce por nombre y que declara el resto del conjunto, no este skill. Tras (re)generar el borrador lanza por etapas los subagentes de barrido de completitud que declare la plantilla (cada uno con su catálogo de referencia: cobertura de historias/escenarios, calidad y autosuficiencia de los pasos de cada escenario, validaciones/restricciones, reglas de negocio, campos calculados, reglas de UI), que proponen candidatas que falten y que el usuario acepta o descarta conversando. Es el paso del pipeline SDD cuya salida consume `/sdd-designer`: los escenarios de la spec son la semilla de los tests E2E y los identificadores que define la plantilla permiten al diseño comprobar que están todos. Opcionalmente, captura aparte en un fichero hermano `design-guidelines.md` (NO es la spec) las pistas técnicas/de diseño que surjan en la conversación, como input opcional de `/sdd-designer`.
 handoffs:
   - label: Generar el diseño a partir de la spec
     agent: sdd-designer
@@ -32,7 +32,7 @@ You **MUST** consider the user input before proceeding (if not empty). Interpret
 
 1. **Elegir modo y acción** (Fase 0) — crear nueva / refinar la última / elegir otra; y sobre una spec existente preguntar **SIEMPRE** si además hacer un review (validar) aparte de mejorar (preguntar y cambiar contenido).
 2. **Explorar** el contexto del proyecto (Fase 1) — `k-sistemas`, subsistemas reales, infraestructura.
-3. **Mejorar** (Fase 2) — preguntar al usuario en rondas, **sin límite**, y (re)generar el contenido.
+3. **Mejorar** (Fase 2) — preguntar al usuario en rondas, **sin límite**, (re)generar el contenido y lanzar el **barrido de completitud** con subagentes por etapas (§6.4): proponen candidatas que falten (historias, escenarios, pasos y reglas) y el usuario decide cuáles entran.
 4. **Revisar** (Fase 3) — validar formato, estructura, prohibiciones y coherencia; corregir lo mecánico, preguntar lo ambiguo.
 5. **Guardar e informar** (Fase 4) — el fichero índice + los ficheros secundarios que define la plantilla, en `.sdd/drafts/{iniciativa}/`, más (si surgieron) el fichero hermano opcional `design-guidelines.md` + informe de cambios.
 
@@ -154,12 +154,13 @@ Los prefijos, el formato y el ámbito de numeración de los IDs los define `temp
 │            mejorar?                                                  │
 │  Fase 1  Exploración del contexto del proyecto                      │
 │  Fase 2  Mejorar — preguntas iterativas + (re)generación            │
+│            + barrido de completitud (subagentes por etapas, §6.4)    │
 │  Fase 3  Revisar — validación y corrección                          │
 │  Fase 4  Guardar e informar (+ design-guidelines.md si hubo guías)  │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-Todas las fases las ejecuta el **agente principal**. Este skill **MUST NOT** lanzar subagentes.
+Todas las fases las ejecuta el **agente principal**, con una única excepción: los **subagentes de barrido de completitud** de §6.4, que **declara la plantilla** (su README) y que solo **proponen** candidatas — nunca escriben la spec. Fuera de ese barrido, **MUST NOT** lanzar subagentes.
 
 ---
 
@@ -250,7 +251,7 @@ Cuando cierres las dudas, escribe/actualiza la spec (todos sus ficheros):
 1. **Genera el fichero índice `specification.md` reproduciendo, en su orden exacto, los apartados de la plantilla que el README le asigne**, sustituyendo cada placeholder por contenido real conforme a `template-system/README.md`. Rellena cada tabla y apartado según la guía, con su enlace al fichero correspondiente. **MUST NOT** inventar apartados ni omitir ninguno.
 2. **Instancia cada plantilla de fichero secundario** que el README defina, tantas veces como elementos indique `template-system/README.md`, con el **nombre de fichero** que la guía señale. Cada fichero secundario **MUST** corresponder a una entrada del índice, y al revés.
 3. Los marcadores de las plantillas son **guía de autoría que MUST NOT sobrevivir en el output**: sustituye los placeholders `<…>` por contenido real y **elimina** los comentarios `<!-- … -->`. Las secciones que una plantilla marca como **opcionales** se **eliminan** si el elemento no las necesita. Toda estructura que una plantilla muestre **una sola vez** (un evento, un elemento) se **repite e instancia** tantas veces como haga falta.
-4. **Asigna a cada elemento su ID** según las reglas de numeración de `template-system/README.md` (§2.5). **CRITICAL** — la numeración es **global a toda la spec, no por fichero** (salvo que la guía diga otra cosa): el siguiente identificador de un prefijo continúa la cuenta aunque esté en otro fichero secundario.
+4. **Asigna a cada elemento su ID** según las reglas de numeración de `template-system/README.md` (§2.5). **CRITICAL** — cada prefijo tiene el **formato y el ámbito de numeración** que la guía le defina (global a la spec, por fichero, por vista…): el siguiente identificador es el siguiente número libre **dentro de ese ámbito**, no de toda la spec.
 5. **Rellena el apartado de propiedades editables por acción** (`AllowProperties`) allí donde la plantilla lo prevea, conforme a `template-system/README.md`. **MUST** seguir las reglas de redacción que la guía fije para ese apartado (qué acciones se declaran siempre, qué propiedades pueden listarse, qué campos quedan fuera).
 6. El ejemplo que el README referencie es solo **referencia de forma**. **MUST NOT** copiar al output bloques explicativos de la guía ni contenido del ejemplo.
 7. **Aplica §2.1–§2.3**: lenguaje de negocio y prohibiciones transversales en **todos** los ficheros (índice y secundarios).
@@ -271,6 +272,67 @@ Reglas:
 - Cuando una pista sea ambigua o no sepas si es una decisión firme, **pregúntalo en prosa** (sin `AskUserQuestion`, una pregunta por mensaje como cualquier otra de la Fase 2): p. ej. *«Has dicho que esto reutiliza el importador existente; ¿lo dejo como guía de diseño para el diseñador?»*.
 - En modo «refinar», parte del `design-guidelines.md` existente (si lo hay, lo haya escrito el skill o el usuario a mano): **añade** las guías nuevas y **conserva** las anteriores salvo que el usuario pida quitar alguna.
 
+### 6.4 Barrido de completitud (subagentes en paralelo)
+
+Tras (re)generar los ficheros (§6.2), lanza el **barrido de completitud**: subagentes que releen la spec con un catálogo en la mano y **proponen candidatas que falten** (historias, escenarios, pasos y reglas). Solo en la acción "mejorar" (también en «refinar», sobre el estado actual de la spec). **LIMIT**: una sola ronda de barrido (todas sus etapas) por invocación del skill.
+
+1. **Lee en `template-system/README.md` su sección de barridos** (la tabla que declara cada barrido: **etapa**, ámbito, iteración interna y catálogo). Si el README no declara ninguna → salta esta fase sin error (el barrido es de la plantilla, no del skill).
+2. **CRITICAL — ejecuta las etapas en el orden que declare la tabla** (las candidatas aceptadas de una etapa modifican la spec que leen las siguientes). Por cada etapa:
+   1. **Enumera las instancias de la etapa**: por cada barrido de la etapa, una instancia por cada elemento de su ámbito — un fichero que cumpla el patrón (`entity-*.md`, `screen-*.md`), una historia de usuario (`HU-NNN`) del índice, o la spec entera (instancia única), según diga su columna.
+   2. **CRITICAL — lanza TODOS los subagentes de la etapa en una única respuesta** con N invocaciones a `Agent` simultáneas. **MUST NOT** lanzarlos secuencialmente. **MUST NOT** usar `run_in_background`. Los subagentes **MUST NOT** usar `AskUserQuestion`.
+   3. **Parsea cada respuesta** (contratos de abajo). Si una respuesta no es parseable, **reintenta ese subagente 1 vez**; si vuelve a fallar, descártalo y avísalo al usuario. **MUST NOT** bloquear la fase por ello.
+   4. **Deduplica** las candidatas: entre subagentes y contra lo que la spec ya declara (mismo efecto sobre el mismo campo/acción/vista/escenario, aunque la redacción difiera → se descarta).
+   5. **Presenta las candidatas al usuario agrupadas** (por entidad, pantalla o historia), en el chat y en prosa — es una decisión de **contenido de negocio**, así que **MUST NOT** usar `AskUserQuestion` (§2.2). Por cada grupo, un mensaje con la lista compacta y **una** pregunta abierta: cuáles incorporar. El usuario puede aceptar, descartar o reformular cada una.
+   6. **Incorpora solo las aceptadas** antes de pasar a la etapa siguiente: las reglas y las HU/ESC nuevas toman el **siguiente ID libre de su prefijo en su ámbito de numeración** (§2.5) y se escriben conforme a §6.2; las correcciones de pasos reescriben los pasos del escenario en su sitio (renumerando solo los pasos, nunca los IDs). Las descartadas no dejan rastro.
+3. Si **todos** los subagentes de todas las etapas respondieron sin candidatas, dilo en una línea y continúa con la Fase 3.
+
+**Prompt de cada subagente** (mismo para todos salvo barrido, elemento y contrato):
+
+> Eres un analista funcional del proyecto EducaFlow. Una especificación funcional ya redactada puede estar incompleta; tu tarea es **detectar candidatas y proponerlas** — sin modificar nada.
+>
+> - **Guía de la plantilla**: lee `{ruta de template-system/README.md}` — tu barrido es **`{nombre-barrido}`** (tabla «Barridos de completitud»: ahí están tu iteración interna y tus reglas) — y las secciones de la guía sobre lo que revisas (qué es, formato, atributos, fronteras).
+> - **Catálogo**: lee `{ruta del catálogo del barrido}`. Es **solo una guía no exhaustiva**: propone también candidatas que no figuren en él si el negocio de la spec las sugiere (con `"origen_catalogo": "(fuera de catálogo)"`).
+> - **Tu elemento asignado**: `{ruta del fichero, "la historia HU-NNN del índice", o "toda la spec"}`.
+> - **Contexto**: la spec completa está en `{carpeta de la iniciativa}` (índice y demás ficheros). **MUST** leer lo ya declarado en toda la spec para no proponer duplicados.
+> - **MUST NOT**: modificar ningún fichero; usar `AskUserQuestion`; proponer algo ya declarado; inventar funcionalidad que la spec no tiene (solo cubrir lo declarado); usar vocabulario técnico ni usuarios/centros inventados (los pasos usan los datos de demo).
+> - **Formato de salida (REQUIRED)**: si no encuentras ninguna candidata, responde **exactamente** y solo `OK-SIN-CANDIDATAS`. Si encuentras, responde **únicamente** líneas **JSONL** (una candidata por línea, sin texto antes ni después), cada una un objeto JSON con **exactamente** los campos del contrato de tu barrido: `{contrato del barrido, de los tres de abajo}`.
+
+**Contrato de los barridos de reglas** (validaciones-restricciones, reglas-negocio, campos-calculados, reglas-ui) — campos en este orden:
+
+- `id` — correlativo `C-NNN` (`C-001`, `C-002`, …; local a tu respuesta).
+- `tipo` — `RES` | `VAL` | `RN` | `CC` | `RUI` (según el barrido y el efecto real de la regla).
+- `elemento` — el campo, acción o vista sobre el que aplica (p.ej. `campo: fecha de fin`, `acción: Rechazar`, `vista: Formulario de curso`).
+- `regla` — el texto de la regla en lenguaje de negocio, redactado como pide la guía para su familia.
+- `atributos` — objeto con los atributos de su familia que apliquen (`condición`, `mensaje`, `actor`, `fase`, `estado`, `momento`, `sobreescribible`, `cálculo`, `disparador`); `{}` si ninguno.
+- `origen_catalogo` — la fila del catálogo de la que procede, o `(fuera de catálogo)`.
+- `motivo` — por qué esta spec la necesita (qué campo/estado/escenario/pantalla la sugiere).
+
+**Contrato del barrido historias-escenarios** — campos en este orden:
+
+- `id` — correlativo `C-NNN`, local a tu respuesta.
+- `tipo` — `HU` | `ESC`.
+- `pertenece_a` — para un `ESC`: el `HU-NNN` existente al que pertenece, o el `id` (`C-NNN`) de una `HU` propuesta en esta misma respuesta; para una `HU`: `null`.
+- `titulo` — para una `HU`: la frase `Como [Actor] quiero [feature] para [motivo]`; para un `ESC`: su nombre corto.
+- `pasos` — para un `ESC`: array con los pasos completos (uno por acción, conforme a las reglas de «Historias de usuario» de la guía); para una `HU`: `null` (sus escenarios van como líneas `ESC` aparte — **REQUIRED**: toda `HU` propuesta lleva al menos un `ESC` en la misma respuesta).
+- `origen_catalogo` — la fila del catálogo, o `(fuera de catálogo)`.
+- `motivo` — qué elemento declarado de la spec queda sin cubrir sin esta HU/ESC.
+
+**Contrato del barrido pasos-escenarios** — campos en este orden:
+
+- `id` — correlativo `C-NNN`, local a tu respuesta.
+- `escenario` — el `ESC-NNN` afectado.
+- `problema` — `paso_generico` (un paso agrupa varias acciones o deja datos sin concretar) | `falta_paso` (falta una acción necesaria) | `depende_del_estado` (presupone datos en BD que el escenario no crea).
+- `ubicacion` — `paso N` (el paso a sustituir) o `entre el paso N y el N+1` (dónde insertar).
+- `propuesta` — array con los pasos concretos que **sustituyen** al paso señalado o que **se insertan** en la ubicación.
+- `origen_catalogo` — la fila del catálogo, o `(fuera de catálogo)`.
+- `motivo` — por qué el escenario no es reproducible o autosuficiente sin este cambio.
+
+- ✅ CORRECTO (sin candidatas): `OK-SIN-CANDIDATAS`
+- ✅ CORRECTO (regla): `{"id":"C-001","tipo":"VAL","elemento":"acción: Crear — campo: para","regla":"La dirección del «para» tiene formato de correo válido","atributos":{"mensaje":"El «para» debe tener el formato usuario@dominio.com"},"origen_catalogo":"El campo A debe cumplir el formato F","motivo":"El campo «para» es una dirección de correo y ningún VAL- valida su formato"}`
+- ✅ CORRECTO (escenario que falta): `{"id":"C-001","tipo":"ESC","pertenece_a":"HU-003","titulo":"El supervisor no ve los correos de otro centro","pasos":["El administrador inicia sesión con usuario «admin» y contraseña «admin» y crea un correo en el centro «CIPFP Batoi» con asunto «Aviso Batoi».","El administrador cierra sesión.","El supervisor «supervisor1@mislata.es» inicia sesión con contraseña «demo1234» y abre la pantalla de correos de su centro.","El sistema no muestra el correo «Aviso Batoi»."],"origen_catalogo":"Alcance multicentro","motivo":"Seguridad declara alcance por centro para el Supervisor pero ningún escenario lo prueba"}`
+- ✅ CORRECTO (paso genérico a descomponer): `{"id":"C-001","escenario":"ESC-004","problema":"depende_del_estado","ubicacion":"paso 2","propuesta":["El administrador abre la pantalla de administración de correos y pulsa «Nuevo correo».","Rellena el «para» con «destino-invalido@example.com», el asunto «Aviso» y el cuerpo «texto», y elige el centro «CIPFP Mislata».","Pulsa «Guardar» y el envío falla, quedando el correo en estado FAIL."],"origen_catalogo":"Dependencias del estado de la base de datos","motivo":"El paso 2 abre un correo en FAIL que nadie ha creado dentro del escenario"}`
+- ❌ INCORRECTO: `No he encontrado nada ✅` (token no exacto), `{"tipo":"VAL","regla":"validar en validateInsert…"}` (vocabulario técnico), `{"tipo":"HU","titulo":"Como Profesor quiero publicar notas…"}` en una spec sin nada de notas (inventa funcionalidad), `{"propuesta":["Prepara los datos necesarios"]}` (el paso propuesto sigue siendo genérico), pasos con el usuario `pepe@test.com` (cuenta inventada, no es de los datos de demo), prosa alrededor de las líneas JSONL (no parseable).
+
 ---
 
 ## 7. Fase 3 — Revisar (validación y corrección)
@@ -285,7 +347,7 @@ Se ejecuta siempre en spec nueva (puerta de calidad) y, en spec existente, si el
    - Un elemento que **presupone datos o estado** que la guía exige preparar o declarar → **MUST NOT** inventar lo que falta: pregunta al usuario y complétalo con su respuesta.
    - Un elemento **huérfano** o una **agrupación vacía** (un elemento sin el padre que la guía exige, o un padre sin elementos) → pregunta al usuario.
    - **`AllowProperties`** (si la plantilla lo prevé): el apartado de propiedades editables por acción cumple las reglas de redacción que fije `template-system/README.md` (acciones que se declaran siempre, propiedades que deben existir donde la guía indique, campos que quedan fuera). Si falta el apartado o una acción modificadora sin declarar → pregunta antes de completar.
-3. **Identificadores**: conformes a las reglas de numeración de `template-system/README.md`. La comprobación es **global a toda la spec**, mirando todos los ficheros a la vez (la numeración no se reinicia por fichero).
+3. **Identificadores**: conformes a las reglas de numeración de `template-system/README.md` (formato y **ámbito de numeración** de cada prefijo). La comprobación abarca **toda la spec a la vez** (todos los ficheros), aunque cada ID se valide contra su propio ámbito: así se detectan duplicados entre ficheros y ámbitos mal aplicados.
    - **IDs malformados**: corrígelos al formato canónico (mecánico).
    - **Duplicados** (dos elementos con el mismo ID, aunque estén en ficheros distintos): pregunta si son el mismo (fusionar) o distintos (renumerar el segundo al siguiente libre).
    - **Huecos**: pregunta si son intencionados (elemento borrado, se conserva) o errata. Si existe la carpeta `design/` hermana, **MUST NOT** renumerar — los huecos se conservan y se documentan.
@@ -389,7 +451,8 @@ specification.md ya está conforme. No se ha modificado nada.
 - **IDs estables** (§2.5): nunca se renumeran; los huecos se conservan; con `design/` hermana, prohibido renumerar.
 - **MUST NOT** incluir las prohibiciones de §2.3 (tipos, FQN, JPQL, XML, métodos, otra taxonomía de reglas — la conversión técnica es del diseño). Única excepción técnica admitida: `AllowProperties`, allí donde la plantilla lo prevea.
 - **`design-guidelines.md` (válvula de escape, §6.3 + §8 paso 4):** las pistas **técnicas/de diseño** que el usuario suelte en la conversación **no** van en la spec pero **no se pierden**: se acumulan y se escriben en el fichero hermano opcional `design-guidelines.md` (nombre fijo, `type: design-guidelines`, **no** es la spec, **no** se enlaza ni numera, vocabulario técnico admitido). Solo se crea **si hay al menos una guía**; **MUST NOT** inventar guías que el usuario no pidió; en «refinar» se conservan las previas. Lo consume `/sdd-designer` como input opcional.
-- **Generación por agente único**: el agente principal escribe la spec directamente, **sin subagentes**, y la guarda sin pedir aprobación.
+- **Barrido de completitud (§6.4)**: tras (re)generar, ejecuta los barridos que declare el README de la plantilla **por etapas en orden** (lo aceptado en una etapa cambia la spec que lee la siguiente; p.ej. primero cobertura de HU/ESC, después pasos y reglas); dentro de cada etapa, **todos los subagentes en paralelo y en una única respuesta** (uno por barrido × elemento de su ámbito — fichero, historia o spec entera — cada uno con su catálogo, que es solo guía no exhaustiva). Responden `OK-SIN-CANDIDATAS` o JSONL de candidatas (contrato por barrido); el usuario acepta o descarta cada una en el chat y solo las aceptadas entran en la spec (IDs nuevos con el siguiente libre; los pasos corregidos se reescriben en su sitio). Los subagentes **nunca** escriben la spec ni usan `AskUserQuestion`. **LIMIT**: una ronda por invocación.
+- **Fuera del barrido, generación por agente único**: el agente principal escribe la spec directamente, sin otros subagentes, y la guarda sin pedir aprobación.
 
 ---
 

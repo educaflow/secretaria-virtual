@@ -18,14 +18,14 @@ Referencias:
 
 ## Regla fundamental: NO exponer insert/update/remove desde el controlador
 
-**MUST NOT** crear `@CallMethod` para `insert`, `update` o `remove` en el controlador propio. Esas tres acciones ya las expone Axelor automáticamente por su endpoint REST `/ws/rest/<FQN>`, que entra directamente al servicio (`DefaultModelService.insert/update/remove`) y ya aplica el patrón `validate → super` y la `allowProperties*` correspondiente.
+**MUST NOT** crear `@CallMethod` para `insert`, `update` o `remove` en el controlador propio. Esas tres acciones ya las expone Axelor automáticamente por su endpoint REST `/ws/rest/<FQN>`, que entra directamente al servicio (`DefaultModelService.insert/update/remove`) y ya aplica el patrón `validate*` → `repository.save/remove` y la `allowProperties*` correspondiente. Tampoco hay que crear `@CallMethod` de validación `validateSave`/`validateDelete`: son las acciones globales `remote-validationSave-action`/`remote-validationDelete-action` de `DefaultModelController` (ver `k-validaciones/validaciones.md` §5).
 
 Tener `@CallMethod` propios para insert/update/remove introduciría un segundo camino paralelo al endpoint REST automático, divergente y confuso. El controlador propio **solo** expone `@CallMethod` para acciones de negocio **propias del subsistema** (las que tienen `validateXxx`/`allowPropertiesXxx` declarados en el interface del servicio).
 
 Desde el cliente (XML de vistas), las operaciones de guardar y borrar se hacen siempre con las acciones predefinidas del framework de Axelor: `save` y `delete` para el form principal, y `save-modal` y `delete-modal` para el form modal de entidades hijas dentro de un `<panel-related>`. Funcionan de forma distinta:
 
 - `save`/`delete` disparan el endpoint REST `/ws/rest/<FQN>` del modelo del form, que entra al `ModelService` de esa entidad aplicando `validate` y `AllowProperties`.
-- `save-modal`/`delete-modal` son acciones **solo de cliente**: confirman o quitan el registro en la colección en memoria del form padre, sin llamar al servidor. Los detalles se persisten después, cuando el `save` del form raíz envía el árbol completo al endpoint REST **del maestro**: entra únicamente al `ModelService` del maestro (el del detalle no se invoca por esta vía), los detalles se guardan por cascada JPA y la whitelist `AllowProperties` que cubre el árbol anidado es la del maestro.
+- `save-modal`/`delete-modal` son acciones **solo de cliente**: confirman o quitan el registro en la colección en memoria del form padre, sin llamar al servidor. Los detalles se persisten después, cuando el `save` del form raíz envía el árbol completo al endpoint REST **del maestro**: la persistencia y las reglas de negocio son las del `ModelService` del maestro (los `insert`/`update` y `fireActionRule_*` del detalle no se invocan por esta vía; los `validate*` del detalle **SÍ** — `ModelServiceValidationWalker` los ejecuta recursivamente al guardar el maestro), los detalles se guardan por cascada JPA y la whitelist `AllowProperties` que cubre el árbol anidado es la del maestro.
 
 **MUST NOT** sustituirlas por un `<action-method>` (`Remote-…-action`) que llame a un controlador propio para guardar o borrar. Ver `[[forms.md]]` y `[[actions.md]]` del skill `k-vistas`.
 

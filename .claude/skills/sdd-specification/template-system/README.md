@@ -12,7 +12,7 @@ Es **el único fichero de esta carpeta de plantillas que el skill `sdd-specifica
 | `specification.md` | **La plantilla del índice.** | Se reproduce **literalmente**, sustituyendo los placeholders por contenido real. Produce **un** fichero índice (el único con frontmatter `type: specification`). |
 | `entity.md` | **La plantilla de los ficheros de modelo.** | Se instancia tantas veces como modelos defina la spec, una por `entity-<Nombre>.md`. |
 | `screen.md` | **La plantilla de los ficheros de pantalla.** | Se instancia tantas veces como pantallas defina la spec, una por `screen-<slug>.md`. |
-| `catalogo-validaciones.md` | **Catálogo de referencia** de tipos de validación por ámbito (campo propio, entre campos, entre registros, de negocio). | Se consulta al rellenar Restricciones y Validaciones. **MUST NOT** copiarse al output. |
+| `catalogos/` | **Carpeta de catálogos de referencia**, uno por barrido: `catalogo-historias-escenarios.md` (cobertura de `HU-`/`ESC-`), `catalogo-pasos-escenario.md` (granularidad y autosuficiencia de los pasos), `catalogo-validaciones.md` (`VAL-` + `RES-`, catálogo único), `catalogo-reglas-negocio.md` (`RN-`), `catalogo-campos-calculados.md` (`CC-`), `catalogo-reglas-ui.md` (`RUI-`). | Se consultan al rellenar cada apartado y son la referencia de los **barridos de completitud** (ver esa sección al final). **MUST NOT** copiarse al output. |
 | `example/` | **Carpeta con un ejemplo completo** de spec terminada e instanciada (índice + un `entity-*.md` por modelo + un `screen-*.md` por pantalla). | Referencia del aspecto final. **MUST NOT** copiarse su contenido al output. |
 
 ## Ficheros que produce la especificación
@@ -38,26 +38,38 @@ La especificación **no es un único fichero**: es un conjunto de ficheros dentr
 
 Historias, escenarios y reglas llevan IDs estables para que el diseño pueda comprobar que **ninguno se pierde**: cada regla del diseño declara de qué IDs de la spec proviene, y cada test E2E de qué escenario.
 
-| Elemento | Prefijo | Ámbito de numeración | Dónde vive |
+| Elemento | Formato | Ámbito de numeración | Dónde vive |
 |---|---|---|---|
 | Historias de usuario | `HU-NNN` | Global a la spec | `specification.md` |
 | Escenarios | `ESC-NNN` | Global a la spec (no por historia) | `specification.md` |
-| Restricciones | `RES-NNN` | Global a la spec (no por entidad) | `entity-*.md` |
-| Validaciones | `VAL-NNN` | Global a la spec (no por evento) | `entity-*.md` |
-| Reglas de negocio | `RN-NNN` | Global a la spec | `entity-*.md` |
-| Reglas de UI | `RUI-NNN` | Global a la spec | `screen-*.md` |
-| Campos calculados | `CC-NNN` | Global a la spec | `entity-*.md` |
+| Restricciones | `RES-<Entidad>-NNN` | Por entidad | `entity-<Entidad>.md` |
+| Validaciones | `VAL-<Entidad>-NNN` | Por entidad (no por acción: la cuenta continúa entre acciones) | `entity-<Entidad>.md` |
+| Reglas de negocio | `RN-<Entidad>-NNN` | Por entidad | `entity-<Entidad>.md` |
+| Reglas de UI | `RUI-<pantalla>-<vista>-NNN` | **Por vista** (cada vista arranca su cuenta en `001`) | `screen-<pantalla>.md` |
+| Campos calculados | `CC-<Entidad>-NNN` | Por entidad | `entity-<Entidad>.md` |
 
-- La numeración es **global a toda la spec**, no por fichero: el primer `VAL-` del proyecto es `VAL-001` esté en el modelo que esté, y el siguiente `VAL-` (aunque sea en otro `entity-*.md`) es `VAL-002`.
+- El ámbito de numeración es **local**: para añadir un elemento nuevo basta mirar su propio ámbito (el fichero de la entidad, o la sección `### Reglas de UI` de la vista) y tomar el siguiente número libre — **MUST NOT** hacer falta rastrear el resto de ficheros.
+- `<Entidad>` es el nombre del modelo en **PascalCase**, exactamente el del fichero `entity-<Entidad>.md`.
+- `<pantalla>` es el slug **kebab-case** del fichero `screen-<pantalla>.md`; `<vista>` es el **Slug** que declara la ficha de cada vista (ver «Vista: `<Nombre>`»).
+- `HU-`/`ESC-` no llevan ámbito: viven solo en el índice y su numeración sí es global a la spec.
 - Numeración desde `001`, **tres dígitos**, sin huecos al crear.
-- **Los IDs no se renumeran nunca.** Al borrar un elemento su número se conserva como hueco (no se reutiliza), para no romper la trazabilidad con un diseño ya generado.
+- **Los IDs no se renumeran nunca.** Al borrar un elemento su número se conserva como hueco (no se reutiliza), para no romper la trazabilidad con un diseño ya generado. Si se renombra una entidad, una pantalla o el slug de una vista, sus IDs cambian con ella — el renombrado **MUST** propagarse a toda la spec y al diseño si existe.
 - **MUST NOT** usar otra taxonomía de reglas ni otros prefijos que los de esta tabla: la conversión a la taxonomía técnica de reglas es trabajo del diseño.
-- ✅ CORRECTO: `HU-002`, `ESC-001`, `VAL-007`, `RN-012`
-- ❌ INCORRECTO: `VAL-1` (sin tres dígitos), `VALIDACION-001` (prefijo inventado, no es uno de la tabla), `VAL-Pedido-001` (la numeración es global, sin entidad), `ESC_001` (guión bajo), `HU-001-ESC-001` (el escenario no anida el ID de la historia; la pertenencia se expresa agrupándolo bajo ella).
+- ✅ CORRECTO: `HU-002`, `ESC-001`, `VAL-Adjunto-007`, `RN-Correo-012`, `RUI-correos-centro-formulario-001`
+- ❌ INCORRECTO: `VAL-007` (sin entidad; la numeración por spec global ya no se usa), `VAL-adjunto-001` (entidad no en PascalCase), `VAL-Adjunto-1` (sin tres dígitos), `RUI-correos-centro-001` (falta el slug de la vista), `RUI-Correos-Centro-formulario-001` (pantalla no en kebab-case), `HU-Correo-001` (HU/ESC no llevan ámbito), `VALIDACION-Adjunto-001` (prefijo inventado, no es uno de la tabla), `ESC_001` (guión bajo), `HU-001-ESC-001` (el escenario no anida el ID de la historia; la pertenencia se expresa agrupándolo bajo ella).
 
 ### Lenguaje de negocio
 
 ¿Lo entendería un supervisor del centro sin formación técnica? Si **no**, no va en la spec. Cada apartado de esta guía indica qué SÍ y qué NO admite. Esto aplica **a los tres tipos de fichero**: ni el índice ni los ficheros de modelo ni los de pantalla llevan tipos de dato, FQN, JPQL, atributos XML ni nombres de método. La única excepción es el término `AllowProperties` (dentro de las acciones de cada modelo), que se nombra explícitamente como concepto de seguridad. Qué propiedad puede enviar la interfaz se expresa en lenguaje de negocio en ese apartado; el detalle técnico de cada campo es trabajo del diseño.
+
+### Lo obvio pesa tanto como lo complicado
+
+**CRITICAL — al redactar y al revisar, presta a lo trivial la MISMA atención que a lo sutil.** El mayor riesgo de una spec no son las reglas difíciles —esas reciben atención de sobra— sino las **obvias**: se dan por sobreentendidas y nadie las escribe. Un campo que no puede quedar vacío, un borrado en cascada evidente, un estado inicial, un filtro «solo veo lo mío», el escenario del camino feliz, el mensaje de error de lo que ya sabemos que falla. La spec vale por lo que **no deja implícito**, no por lo ingeniosa que es.
+
+- **MUST** declarar una regla aunque sea evidente: si «no hace falta decirla» porque se sobreentiende, es justo la que más se olvida.
+- **MUST NOT** saltarte una candidata trivial por obvia mientras resuelves con detalle las complejas — lo fácil se omite precisamente por fácil, y es tan necesario como lo difícil.
+- ✅ CORRECTO: junto a las validaciones sofisticadas de permiso del padre de un adjunto, declarar también que su nombre y su contenido son obligatorios.
+- ❌ INCORRECTO: resolver con brillantez las reglas de seguridad del padre y dejar sin escribir que el nombre del fichero no puede quedar vacío «porque es evidente».
 
 ---
 
@@ -193,7 +205,7 @@ Los campos **funcionalmente relevantes**, uno por viñeta, con su nombre concept
 
 **Un campo NO declara “obligatorio” ni “inmutable”** — esos no son atributos del campo, son reglas, y duplicarlos aquí entra en conflicto con su sección propia:
 
-- **Obligatorio** es una regla: si debe cumplirse en todo evento es una **restricción** (`RES-NNN`); si solo en un evento concreto es una **validación** (`VAL-NNN`). No se marca en el campo.
+- **Obligatorio** es una regla: si debe cumplirse en todo evento es una **restricción** (`RES-`); si solo en un evento concreto es una **validación** (`VAL-`). No se marca en el campo.
 - **Inmutable / no editable** lo gobierna **AllowProperties**: un campo que no aparezca en la línea `AllowProperties` de la acción `Modificar` no lo puede cambiar el cliente. No se marca en el campo.
 - **Valores** de un campo de estado van en «Estados y transiciones»; los de otro enum sin ciclo de vida, en la propia descripción.
 
@@ -211,18 +223,20 @@ Solo si el modelo tiene ciclo de vida: su estado inicial, las transiciones (qué
 
 **Regla de clasificación:** si la condición debe cumplirse en todas las acciones de la entidad, es una restricción. Si solo aplica a una acción concreta, es una validación.
 
-**REQUIRED — identificación:** para no olvidar ninguna restricción, recorre el catálogo `catalogo-validaciones.md` (sobre todo las tablas "entre registros" y "de negocio": unicidad, cardinalidad de hijos, inmutabilidad por estado) y comprueba, campo a campo, cuáles aplican siempre (→ restricción) y cuáles solo en una acción (→ validación). El catálogo es una ayuda **no exhaustiva**: si el negocio necesita una restricción que no aparece en él, decláralo igualmente.
+**REQUIRED — identificación:** para no olvidar ninguna restricción, recorre el catálogo `catalogos/catalogo-validaciones.md` (sobre todo las tablas "entre registros" y "de negocio": unicidad, cardinalidad de hijos, inmutabilidad por estado) y comprueba, campo a campo, cuáles aplican siempre (→ restricción) y cuáles solo en una acción (→ validación). El catálogo es una ayuda **no exhaustiva**: si el negocio necesita una restricción que no aparece en él, decláralo igualmente.
 
 **Ejemplo:**
 
 **Restricciones:**
 
-- RES-001 — El número de expediente es único en el sistema
-- RES-002 — La fecha de cierre no puede ser anterior a la fecha de apertura
+- RES-Expediente-001 — El número de expediente es único en el sistema
+- RES-Expediente-002 — La fecha de cierre no puede ser anterior a la fecha de apertura
 
 ## Campos calculados
 
 **Qué son:** valores de la entidad que el sistema calcula automáticamente. Nunca los proporciona el cliente; siempre los calcula el servidor.
+
+**REQUIRED — identificación:** para no olvidar ningún campo calculado, recorre el catálogo `catalogos/catalogo-campos-calculados.md` y comprueba, campo a campo, cuáles no los aporta el usuario sino el servidor. El catálogo es **solo una guía no exhaustiva**: se pueden declarar campos calculados que no aparezcan en él.
 
 **Atributos obligatorios:**
 
@@ -241,11 +255,11 @@ Solo si el modelo tiene ciclo de vida: su estado inicial, las transiciones (qué
 
 **Campos calculados:**
 
-- CC-001 — total
+- CC-Pedido-001 — total
   - momento: escritura
   - sobreescribible: nunca
   - cálculo: suma de (cantidad × precio_unitario) de todas las líneas
-- CC-002 — descuento_especial
+- CC-Pedido-002 — descuento_especial
   - momento: escritura
   - sobreescribible: [ADMIN]
   - cálculo: 0 por defecto; el administrador puede indicar un valor distinto
@@ -278,9 +292,15 @@ Un encabezado `## Acción: <Nombre>` por cada acción de la entidad (Crear, Modi
 
 **Cómo se asocian:** a una acción de una entidad.
 
-**REQUIRED — identificación:** para identificar qué validaciones aplican a cada campo, recorre el catálogo de tipos de validación `catalogo-validaciones.md` (campo propio, entre campos del mismo registro, entre registros, de negocio); sus columnas de mensaje sirven de guía para redactar el `mensaje` en lenguaje de negocio. El catálogo es una ayuda **no exhaustiva**: si el negocio necesita una validación que no aparece en él, declárala igualmente.
+**REQUIRED — identificación:** para identificar qué validaciones aplican a cada campo, recorre el catálogo de tipos de validación `catalogos/catalogo-validaciones.md` (campo propio, entre campos del mismo registro, entre registros, de negocio); sus columnas de mensaje sirven de guía para redactar el `mensaje` en lenguaje de negocio. El catálogo es una ayuda **no exhaustiva**: si el negocio necesita una validación que no aparece en él, declárala igualmente.
+
+**CRITICAL — empieza SIEMPRE por la obligatoriedad, campo a campo.** La obligatoriedad es la validación que más se olvida, precisamente por obvia. Antes que nada, recorre **una por una** las propiedades de la línea `AllowProperties` de cada acción (los campos que el usuario rellena) y pregúntate de forma explícita: *«¿puede quedar vacío este campo?»*. Si la respuesta es no, declara su obligatoriedad (`RES-` si debe cumplirse siempre, `VAL-` si solo en esa acción). **MUST NOT** darla por sobreentendida ni saltártela por trivial.
+- ✅ CORRECTO: un adjunto se rellena con nombre de fichero y contenido → declara ambos obligatorios, no solo las validaciones «interesantes» del padre.
+- ❌ INCORRECTO: declarar las validaciones de permiso/estado del padre y omitir que el nombre y el contenido no pueden quedar vacíos.
 
 **REQUIRED — referencia al padre recibida del cliente:** si una propiedad que **referencia al padre** llega del cliente porque el alta ocurre dentro de un formulario hijo maestro-detalle (está en la línea `AllowProperties` de Crear por la regla anterior), declara validaciones que comprueben ese padre: que **está indicado**, que el usuario **tiene permiso sobre él** (su centro o su alcance), y que el **estado del padre admite** la operación. Sin estas validaciones, un cliente manipulado podría apuntar a un padre ajeno (de otro centro, o ya cerrado) saltándose la regla de UI que lo rellena — el padre es un dato del cliente, no una verdad del servidor.
+
+**REQUIRED — reflejo en la UI del hijo maestro-detalle:** las validaciones de una entidad que **se da de alta dentro del formulario de su padre** (un hijo maestro-detalle) no saltan al confirmar el formulario del hijo, sino al **guardar el padre**. Por eso, las que sean **factibles en el cliente** (obligatoriedad, formato, longitud, rango) **MUST** reflejarse **además** como reglas de UI en la vista del hijo (ver «Reglas de UI»), para dar feedback en el propio alta. La validación sigue siendo la defensa; la regla de UI solo adelanta el aviso. Las validaciones que necesitan mirar otros registros (unicidad, cardinalidad) **no** se reflejan como regla de UI.
 
 **El texto es la aserción; `condición` es la guardia.** El **texto** de la validación es *lo que debe cumplirse* (la aserción que, si no se da, bloquea). El atributo `condición` es la **guardia**: *cuándo* se evalúa la validación. Son cosas distintas — si la guardia repite lo que ya afirma el texto, la validación nunca falla y sobra. Por eso una precondición de estado pura ("la solicitud está en estado PENDIENTE") va como **texto**, no como `condición`.
 
@@ -293,6 +313,8 @@ Un encabezado `## Acción: <Nombre>` por cada acción de la entidad (Crear, Modi
 ### Reglas de negocio
 
 **Qué son:** operaciones que el sistema ejecuta automáticamente como reacción a una acción ya confirmada. No bloquean. No deciden si la acción ocurre. Solo actúan.
+
+**REQUIRED — identificación:** para no olvidar ninguna regla de negocio, recorre el catálogo `catalogos/catalogo-reglas-negocio.md` acción a acción y transición a transición. El catálogo es **solo una guía no exhaustiva**: se pueden declarar reglas que no aparezcan en él.
 
 **Atributo obligatorio** — `fase`:
 
@@ -313,14 +335,14 @@ Un encabezado `## Acción: <Nombre>` por cada acción de la entidad (Crear, Modi
 
 **Validaciones:**
 
-- VAL-004 — La solicitud está en estado PENDIENTE
+- VAL-SolicitudCertificado-004 — La solicitud está en estado PENDIENTE
   - mensaje: "Solo se pueden rechazar solicitudes pendientes"
-- VAL-005 — El motivo de rechazo está indicado
+- VAL-SolicitudCertificado-005 — El motivo de rechazo está indicado
   - mensaje: "El motivo es obligatorio"
 
 **Reglas de negocio:**
 
-- RN-005 — Enviar al alumno un correo con el motivo del rechazo
+- RN-SolicitudCertificado-005 — Enviar al alumno un correo con el motivo del rechazo
   - fase: después_de_commit
 ```
 
@@ -479,6 +501,7 @@ Listado de ciclos
 
 Una sección `## Vista: <Nombre>` por cada vista del árbol, en el mismo orden (al menos una). Toda vista empieza por la **misma ficha** y luego trae **solo las subsecciones propias de su tipo**: un **listado** (grid) y un **formulario** no se describen igual — un listado no tiene paneles, y un formulario no tiene columnas. La ficha común:
 
+- **Slug:** identificador corto de la vista en **kebab-case**, **único dentro de la pantalla** (convención: `listado`, `formulario` para las vistas principales; `listado-<hijos>`, `formulario-<hijo>` para las de un maestro-detalle). Forma parte del ID de sus reglas de UI: `RUI-<pantalla>-<slug>-NNN`.
 - **Tipo:** `listado` | `formulario` | `gráfica` | …
 - **Qué muestra:** sobre qué modelo, con qué filtro en lenguaje natural y en qué modo (lectura/edición).
 - **Se abre desde:** cómo se llega a esta vista:
@@ -534,7 +557,9 @@ Lleva solo `### Propiedades` describiendo sus **parámetros de entrada** y qué 
 
 **Qué son:** condiciones que cambian el aspecto o el estado de un formulario en función del valor de uno o varios campos, del usuario actual, del registro padre o de un evento (al crear, al cargar, al cambiar un campo). Solo afectan a lo que **ve** y puede editar el usuario en pantalla — **no bloquean operaciones ni modifican el estado del sistema**.
 
-**Cómo se asocian:** a una **vista** (un formulario), **no** a una entidad — por eso viven en el `screen-*.md`, no en el `entity-*.md`, en el `### Reglas de UI` de la vista a la que afectan. Si una misma conducta se necesita en otra vista, es otra regla de UI con su propio ID. La numeración `RUI-NNN` es **global a toda la spec** (no por vista ni por pantalla): el siguiente `RUI-` continúa la cuenta esté en la vista que esté.
+**Cómo se asocian:** a una **vista** (un formulario), **no** a una entidad — por eso viven en el `screen-*.md`, no en el `entity-*.md`, en el `### Reglas de UI` de la vista a la que afectan. Si una misma conducta se necesita en otra vista, es otra regla de UI con su propio ID. El ID es `RUI-<pantalla>-<vista>-NNN` (pantalla = slug del fichero, vista = el `Slug` de su ficha) y la numeración es **por vista**: cada vista arranca su cuenta en `001`, así que para añadir una regla basta mirar el `### Reglas de UI` de esa vista.
+
+**REQUIRED — identificación:** para no olvidar ninguna regla de UI, recorre el catálogo `catalogos/catalogo-reglas-ui.md` vista a vista (campos, paneles y botones, considerando roles y estados). El catálogo es **solo una guía no exhaustiva**: se pueden declarar reglas de UI que no aparezcan en él.
 
 **Regla mnemotécnica para distinguirlas:**
 
@@ -554,17 +579,24 @@ Lleva solo `### Propiedades` describiendo sus **parámetros de entrada** y qué 
 
 **CRITICAL — fijar el padre en el alta de un formulario hijo maestro-detalle.** Cuando un formulario es el **alta de un hijo embebido en el formulario de su padre** (un panel maestro-detalle), declara **siempre** una regla de UI que **fije la referencia al padre** con el registro padre desde el que se abre el formulario (un valor por defecto al crear). Es el origen del dato que viaja en la línea `AllowProperties` de Crear del hijo (ver «Input AllowProperties»). Recuerda que esta regla de UI **no es una defensa**: solo rellena el campo en pantalla; que ese padre sea legítimo lo garantiza la **validación** del hijo (ver «Validaciones»), no la regla de UI. Si el hijo cuelga de varios niveles (padre, abuelo…), declara una regla de UI por cada referencia que el formulario deba fijar.
 
-**Ejemplo** (en `screen-formulario-expediente.md`):
+**CRITICAL — reflejar como reglas de UI las validaciones factibles del alta de un hijo maestro-detalle.** El formulario de un hijo maestro-detalle se rellena **embebido** en el formulario de su padre y no se guarda solo: sus validaciones (`VAL-`/`RES-` del `entity-*.md` del hijo) **no se comprueban al confirmar el formulario del hijo, sino al guardar el padre** — el error llega tarde y referido al padre. Por eso, las validaciones del hijo que sean **factibles en el cliente** (obligatoriedad, formato, longitud, rango… lo comprobable sin mirar otros registros) **MUST** declararse **además** como reglas de UI en la vista del formulario del hijo (marcar el campo obligatorio, avisar del formato…), para que el usuario tenga feedback **en el propio alta** del hijo. Reglas:
+
+- La regla de UI **no es la defensa**: solo adelanta el aviso en pantalla. La defensa real es la `VAL-`/`RES-` del hijo, que sigue saltando al guardar el padre. Toda regla de UI espejo **MUST** tener detrás su `VAL-`/`RES-` en el `entity-*.md` del hijo.
+- Solo se reflejan las **factibles en el cliente**. Las que necesitan mirar otros registros (unicidad, cardinalidad de hijos, existencia de un registro) **MUST NOT** declararse como regla de UI: se quedan solo como `VAL-`/`RES-` y saltan al guardar el padre.
+- ✅ CORRECTO: el adjunto exige nombre de fichero (`RES-`) → en el formulario del adjunto, una regla de UI que lo marca obligatorio al añadirlo.
+- ❌ INCORRECTO: reflejar «no puede haber dos adjuntos con el mismo nombre» como regla de UI (unicidad entre registros: no es factible en el cliente; se queda solo como `RES-`).
+
+**Ejemplo** (en `screen-expedientes.md`, dentro de la vista con `Slug: formulario`):
 
 **Reglas de UI:**
 
-- RUI-001 — El campo motivo de rechazo solo se muestra cuando el estado es RECHAZADO
+- RUI-expedientes-formulario-001 — El campo motivo de rechazo solo se muestra cuando el estado es RECHAZADO
   - disparador: continuo
   - condición: estado == RECHAZADO
-- RUI-002 — Al crear un expediente, el centro se rellena con el centro del usuario actual
+- RUI-expedientes-formulario-002 — Al crear un expediente, el centro se rellena con el centro del usuario actual
   - disparador: al crear
   - condición: Siempre
-- RUI-003 — El botón Publicar solo lo ve el administrador
+- RUI-expedientes-formulario-003 — El botón Publicar solo lo ve el administrador
   - disparador: al cargar
   - condición: Siempre
   - actor: [ADMIN]
@@ -594,6 +626,7 @@ Listado de ciclos
                 └── Formulario de módulo   (se abre al pulsar una fila del listado de módulos o con «Añadir»)
 
 ## Vista: Listado de ciclos
+- **Slug:** listado
 - **Tipo:** listado
 - **Qué muestra:** los ciclos formativos, en lectura.
 - **Se abre desde:** es la vista de entrada de la pantalla.
@@ -607,6 +640,7 @@ Listado de ciclos
 - **Nuevo ciclo** (barra superior) — Abre el formulario de alta de un ciclo.
 
 ## Vista: Formulario de ciclo
+- **Slug:** formulario
 - **Tipo:** formulario
 - **Qué muestra:** los datos del ciclo, en edición.
 - **Se abre desde:** el listado de ciclos, al pulsar una fila o «Nuevo».
@@ -619,6 +653,7 @@ Listado de ciclos
 *(solo los botones estándar: Guardar, Cancelar, Borrar)*
 
 ## Vista: Listado de cursos
+- **Slug:** listado-cursos
 - **Tipo:** listado
 - **Qué muestra:** los cursos del ciclo, en lectura.
 - **Se abre desde:** embebido como panel «Cursos» en el formulario de ciclo.
@@ -631,6 +666,7 @@ Listado de ciclos
 - **Añadir un nuevo curso** (barra superior) — Abre el formulario de alta de un curso.
 
 ## Vista: Formulario de curso
+- **Slug:** formulario-curso
 - **Tipo:** formulario
 - **Qué muestra:** los datos de un curso del ciclo, en edición.
 - **Se abre desde:** el listado de cursos, al pulsar una fila o «Añadir un nuevo curso».
@@ -643,6 +679,7 @@ Listado de ciclos
 *(solo los botones estándar: Guardar, Cancelar, Borrar)*
 
 ## Vista: Listado de módulos
+- **Slug:** listado-modulos
 - **Tipo:** listado
 - **Qué muestra:** los módulos del curso, en lectura.
 - **Se abre desde:** embebido como panel «Módulos» en el formulario de curso.
@@ -655,6 +692,7 @@ Listado de ciclos
 - **Añadir un nuevo módulo** (barra superior) — Abre el formulario de alta de un módulo.
 
 ## Vista: Formulario de módulo
+- **Slug:** formulario-modulo
 - **Tipo:** formulario
 - **Qué muestra:** el módulo asociado al curso, en edición.
 - **Se abre desde:** el listado de módulos, al pulsar una fila o «Añadir un nuevo módulo».
@@ -666,4 +704,35 @@ Listado de ciclos
 *(solo los botones estándar: Guardar, Cancelar, Borrar)*
 ````
 
-(Los `RUI-NNN`, si los hubiera, se reparten entre los `### Reglas de UI` de cada vista pero comparten la numeración global de la spec.)
+(Las reglas de UI, si las hubiera, van en el `### Reglas de UI` de cada vista, y **cada vista numera las suyas desde 001** con su propio slug: `RUI-ciclo-formulario-curso-001`, `RUI-ciclo-formulario-curso-002`, `RUI-ciclo-listado-001`, …)
+
+---
+
+# Barridos de completitud (subagentes)
+
+Tras (re)generar el borrador de la spec, el skill lanza **subagentes de barrido** que buscan **candidatas que falten** (historias, escenarios, pasos y reglas), cada uno con su catálogo. Esta tabla **declara** los barridos de esta plantilla; el skill es agnóstico y lanza los que aquí figuren (otra plantilla puede declarar otros, o ninguno).
+
+Los barridos se ejecutan por **etapas en orden** (las candidatas aceptadas de una etapa modifican la spec que leen las etapas siguientes); dentro de una misma etapa, todos en paralelo:
+
+- **Etapa A — cobertura**: primero, porque una HU o un ESC aceptados dan material nuevo al resto de barridos.
+- **Etapa B — calidad y reglas**: sobre la spec ya completada con lo aceptado en A.
+
+| Etapa | Barrido | Una instancia por cada… | Sobre qué piensa (iteración interna del subagente) | Catálogo |
+|---|---|---|---|---|
+| A | **historias-escenarios** | toda la spec (**instancia única**) | Cruza Actores, Pantallas, acciones y estados de los `entity-*.md`, Seguridad y `VAL-`/`RUI-` contra las HU/ESC existentes: qué declarado no lo ejercita ningún escenario. Propone la HU o el ESC que falta **con sus pasos redactados** (conforme a las reglas de «Historias de usuario»: numerados, concretos, autosuficientes, con usuarios/centros de demo). | `catalogos/catalogo-historias-escenarios.md` |
+| B | **pasos-escenarios** | historia de usuario (`HU-NNN`) del índice | ESC a ESC de su historia y, dentro de cada uno, paso a paso: (1) **granularidad** — ningún paso agrupa varias acciones consecutivas ni deja datos sin concretar; (2) **pasos que faltan** — inicio de sesión, preparación, valores concretos, pulsación, respuesta literal; (3) **autosuficiencia** — nada presupone estado previo de la BD fuera de «Recursos y datos iniciales» y los datos de demo. Propone los pasos concretos que sustituyen o se insertan. | `catalogos/catalogo-pasos-escenario.md` |
+| B | **validaciones-restricciones** | fichero `entity-*.md` | **Primero** recorre campo a campo las propiedades de cada `AllowProperties` y comprueba la **obligatoriedad** (¿puede quedar vacío? si no → candidata), la validación más olvidada. **Después**, campo a campo × acción a acción, recorre las cuatro tablas del catálogo. Clasifica cada candidata: si debe cumplirse siempre → `RES-`; si se ancla a una acción → `VAL-`. Propone `condición`/`mensaje`/`actor` cuando apliquen. | `catalogos/catalogo-validaciones.md` |
+| B | **reglas-negocio** | fichero `entity-*.md` | Acción a acción y transición a transición (sección «Estados y transiciones»): qué hace el sistema automáticamente al confirmarse cada una. Propone la `fase` y, si aplican, `estado`/`condición`. | `catalogos/catalogo-reglas-negocio.md` |
+| B | **campos-calculados** | fichero `entity-*.md` | Campo a campo: cuáles dicta el servidor y no el usuario (cruza con las líneas `Input AllowProperties`: un campo que nadie envía pero que aparece en pantallas/escenarios es candidato). Propone `momento`/`sobreescribible`/`cálculo`. | `catalogos/catalogo-campos-calculados.md` |
+| B | **reglas-ui** | fichero `screen-*.md` | Vista a vista del árbol y, dentro de cada una, sus campos, paneles y botones, considerando los roles que usan la pantalla y los estados del registro. Propone el `disparador` y, si aplican, `condición`/`actor`. | `catalogos/catalogo-reglas-ui.md` |
+
+Reglas de los barridos:
+
+- Cada subagente **propone candidatas, no escribe la spec**: las candidatas solo entran en la spec cuando el usuario las acepta en la conversación (el skill las presenta y pregunta).
+- Cada subagente recibe su **elemento asignado** (un fichero, una historia de usuario o la spec entera, según su ámbito), su catálogo y la carpeta completa de la spec (para el contexto: índice, resto de entidades/pantallas). **MUST** leer lo ya declarado en toda la spec y **MUST NOT** proponer una candidata que duplique algo existente (mismo efecto sobre el mismo campo/acción/vista/escenario, aunque esté redactado distinto).
+- El catálogo es **solo una guía no exhaustiva**: el subagente **puede y debe** proponer también candidatas que no figuren en el catálogo si el negocio de la spec las sugiere (indicando `(fuera de catálogo)` como fila de origen).
+- **CRITICAL — lo obvio cuenta igual que lo complejo.** Un subagente tiende a proponer lo llamativo y a saltarse lo trivial por evidente. **MUST** proponer también las candidatas **obvias** (un campo obligatorio, un borrado en cascada, un estado inicial, el escenario del camino feliz, un filtro «solo veo lo mío»): lo fácil se olvida precisamente por fácil y es tan necesario como lo difícil (ver «Lo obvio pesa tanto como lo complicado»).
+- Toda candidata va en **lenguaje de negocio** (aplican las prohibiciones de la sección «Lenguaje de negocio»): nada de tipos, clases, capas ni XML. Los pasos de escenario propuestos cumplen las reglas de «Historias de usuario», incluidos los **usuarios y centros de demo** (**MUST NOT** inventar cuentas, logins ni DNI).
+- Una candidata **debe deducirse de lo que la spec ya cuenta** (sus actores, campos, estados, escenarios, pantallas, seguridad) — el subagente **MUST NOT** inventar funcionalidad nueva (campos, acciones o pantallas que la spec no tiene). El barrido **historias-escenarios** propone HU/ESC nuevos, pero solo los que **cubren lo ya declarado** (una pantalla sin escenario, un actor con acceso sin historia, una validación sin escenario de error…), no funcionalidades nuevas.
+- Respetar la frontera entre familias: si una candidata bloquea → es del barrido validaciones-restricciones; si actúa/escribe → reglas-negocio; si solo cambia lo que se ve → reglas-ui; si es un valor que fija el servidor → campos-calculados. Ante la duda, proponerla una sola vez en la familia de su **efecto real**.
+- El formato exacto de respuesta de cada subagente (token de "sin candidatas" y líneas JSONL, distinto por barrido) lo fija el skill `sdd-specification` en su fase de barrido, no esta guía.

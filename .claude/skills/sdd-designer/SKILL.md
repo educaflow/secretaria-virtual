@@ -369,7 +369,7 @@ Tras esto solo queda `design/` (más `--out=` si se indicó: en ese caso, el des
 > - Si hay mejoras, responde **únicamente** con líneas **JSONL**: **una mejora por línea**, sin texto antes ni después, sin envoltorio de array. Cada línea **MUST** ser un objeto JSON con **exactamente** estos campos, en este orden:
 >   - `id` — identificador correlativo, formato `M-NNN` (`M-001`, `M-002`, …).
 >   - `tipo` — `VENTAJA` (ventaja de un descartado que se incorpora) o `DEFECTO-GANADOR` (defecto del propio ganador que se sanea).
->   - `origen` — de qué diseño/ventaja/defecto del `log_best.txt` procede (p.ej. `design_3: validación de cliente para VAL-001/002/010`, o `design_2 (ganador): falta validación de servidor para VAL-005`).
+>   - `origen` — de qué diseño/ventaja/defecto del `log_best.txt` procede (p.ej. `design_3: validación de cliente para VAL-Grupo-001/002/010`, o `design_2 (ganador): falta validación de servidor para VAL-Grupo-005`).
 >   - `fichero` — fichero del diseño donde aplicarla relativo a la iniciativa (p.ej. `design/views/Grupo-Supervisor.xml`), o `null`.
 >   - `ubicacion` — sección, tabla, clase/método o vista concreta; `null` si no aplica.
 >   - `mejora` — qué ventaja falta en el ganador y se quiere incorporar, o qué defecto del ganador hay que corregir.
@@ -380,8 +380,8 @@ Tras esto solo queda `design/` (más `--out=` si se indicó: en ese caso, el des
 > Ejemplo de salida con mejoras:
 >
 > ```jsonl
-> {"id":"M-001","tipo":"VENTAJA","origen":"design_3: validación de cliente para VAL-001/002/010","fichero":"design/views/Grupo-Supervisor.xml","ubicacion":"action-validate al guardar","mejora":"Añadir validación de cliente (UX) además de la de servidor para nombre/curso/alumno.","justificacion":"El ganador solo valida en servidor; design-contract §5 recomienda también la capa cliente para VAL de campo. No contradice ninguna decisión del ganador.","correccion":"Añadir <action-validate>/<action-condition> en la vista para VAL-001/002/010, manteniendo la validación de servidor."}
-> {"id":"M-002","tipo":"DEFECTO-GANADOR","origen":"design_2 (ganador): RN-004 sin asignación de capa servidor","fichero":"design/design.md","ubicacion":"Tabla de reglas de negocio, fila R-004","mejora":"Corregir el defecto que el juez detectó: RN-004 quedó sin método de servidor que la aplique.","justificacion":"El juez marcó este defecto en design_2 y sigue presente en design/: la fila R-004 no referencia ningún validate*; el spec exige aplicar RN-004 en servidor.","correccion":"Asignar RN-004 al método de servidor correspondiente y reflejarlo en la tabla y en la clase del diseño."}
+> {"id":"M-001","tipo":"VENTAJA","origen":"design_3: validación de cliente para VAL-Grupo-001/002/010","fichero":"design/views/Grupo-Supervisor.xml","ubicacion":"action-validate al guardar","mejora":"Añadir validación de cliente (UX) además de la de servidor para nombre/curso/alumno.","justificacion":"El ganador solo valida en servidor; design-contract §5 recomienda también la capa cliente para VAL de campo. No contradice ninguna decisión del ganador.","correccion":"Añadir <action-validate>/<action-condition> en la vista para VAL-Grupo-001/002/010, manteniendo la validación de servidor."}
+> {"id":"M-002","tipo":"DEFECTO-GANADOR","origen":"design_2 (ganador): RN-Grupo-004 sin asignación de capa servidor","fichero":"design/design.md","ubicacion":"Tabla de reglas de negocio, fila R-Grupo-004","mejora":"Corregir el defecto que el juez detectó: RN-Grupo-004 quedó sin método de servidor que la aplique.","justificacion":"El juez marcó este defecto en design_2 y sigue presente en design/: la fila R-Grupo-004 no referencia ningún validate*; el spec exige aplicar RN-Grupo-004 en servidor.","correccion":"Asignar RN-Grupo-004 al método de servidor correspondiente y reflejarlo en la tabla y en la clase del diseño."}
 > ```
 
 **Prompt del subagente corrector** (para aplicar las mejoras del enriquecedor):
@@ -428,7 +428,7 @@ Si tras la 10ª iteración el verificador sigue sin responder `OK-CORRECTO` → 
 >   - `severidad` — uno de `BLOCKING` | `IMPORTANT` | `MINOR`.
 >   - `fichero` — ruta del fichero del diseño afectado relativa a la iniciativa (p.ej. `design/design.md`), o `null` si es transversal.
 >   - `ubicacion` — sección, tabla, clase/método o línea concreta dentro de ese fichero; `null` si no aplica.
->   - `origen` — el identificador del spec/guía/regla que se incumple (p.ej. `VAL-003`, `RUI-002`, `ESC-009`, o el nombre de la regla de la plantilla), o `null`.
+>   - `origen` — el identificador del spec/guía/regla que se incumple (p.ej. `VAL-Grupo-003`, `RUI-mis-grupos-formulario-002`, `ESC-009`, o el nombre de la regla de la plantilla), o `null`.
 >   - `problema` — descripción clara y concreta del fallo/error/inconsistencia.
 >   - `correccion` — qué hay que cambiar para resolverlo.
 > - Cada línea **MUST** ser JSON válido en una sola línea (sin saltos de línea internos; escapa los que necesites como `\n`). **MUST NOT** añadir comentarios, numeración ni explicaciones fuera de las líneas JSONL.
@@ -436,7 +436,7 @@ Si tras la 10ª iteración el verificador sigue sin responder `OK-CORRECTO` → 
 > Ejemplo de salida con problemas:
 >
 > ```jsonl
-> {"id":"P-001","severidad":"BLOCKING","fichero":"design/design.md","ubicacion":"Tabla de validaciones, fila V-003","origen":"VAL-003","problema":"La validación VAL-003 del spec no está mapeada a ninguna regla V-/R-/U- en el diseño.","correccion":"Añadir la fila V-003 en la tabla de validaciones con su clasificación y método validate*."}
+> {"id":"P-001","severidad":"BLOCKING","fichero":"design/design.md","ubicacion":"Tabla de validaciones, fila V-Grupo-003","origen":"VAL-Grupo-003","problema":"La validación VAL-Grupo-003 del spec no está mapeada a ninguna regla V-/R-/U- en el diseño.","correccion":"Añadir la fila V-Grupo-003 en la tabla de validaciones con su clasificación y método validate*."}
 > {"id":"P-002","severidad":"IMPORTANT","fichero":"design/test-e2e-desc.md","ubicacion":"Test T-009","origen":"ESC-009","problema":"El escenario ESC-009 del spec no tiene ningún test E2E que lo materialice.","correccion":"Crear un test Given/When/Then que cubra ESC-009 con su trazabilidad Origen ESC."}
 > ```
 
@@ -451,7 +451,7 @@ Si tras la 10ª iteración el verificador sigue sin responder `OK-CORRECTO` → 
 > - **Problemas a corregir** (los reportó el verificador, en formato JSONL, un problema por línea): `{líneas JSONL literales del verificador}`. Resuelve cada línea (`id`/`severidad`/`fichero`/`ubicacion`/`origen`/`problema`/`correccion`); aplica la `correccion` en el `fichero`/`ubicacion` indicados.
 
 - ✅ CORRECTO (respuesta del verificador sin problemas): `OK-CORRECTO`
-- ✅ CON PROBLEMAS (una línea JSONL por problema, sin texto alrededor): `{"id":"P-001","severidad":"BLOCKING","fichero":"design/design.md","ubicacion":"…","origen":"VAL-003","problema":"…","correccion":"…"}`
+- ✅ CON PROBLEMAS (una línea JSONL por problema, sin texto alrededor): `{"id":"P-001","severidad":"BLOCKING","fichero":"design/design.md","ubicacion":"…","origen":"VAL-Grupo-003","problema":"…","correccion":"…"}`
 - ❌ INCORRECTO: `Todo correcto ✅` (token no exacto; el skill compara por literal), o devolver los problemas como prosa/array JSON en vez de una línea JSONL por problema.
 
 ---

@@ -2,6 +2,8 @@
 
 Define **qué produce el diseño de un sistema y cómo**: la conversión de las reglas del spec a la taxonomía técnica, la clasificación de campos, las reglas arquitectónicas y de seguridad, la estructura del diseño, el orden de los pasos y el checklist. Lo lee, según su rol (`README.md` §2): el **diseñador** para producir el diseño completo en su carpeta `design_<n>/`; el **juez** como criterios para comparar dos diseños; el **verificador** para saber qué *debería* existir; y el **corrector** para conocer la regla a la que debe ajustar cada corrección. Las partes condicionales y las reglas de verificación viven en ficheros aparte (ver `reglas-complejas.md`, `tests-e2e.md`, `validacion.md`), referenciados desde `README.md`.
 
+> **REQUIRED — coherencia con los skills técnicos.** Los §2, §3 y §5 **resumen** reglas cuya fuente de verdad son `k-validaciones`, `k-sistemas` y `k-secure-coding` (solo el diseñador carga esos skills; el juez, el verificador y el corrector solo ven este contrato). Si se modifica algo de validaciones/reglas/capas aquí o en esos skills, **MUST** mantenerse sincronizados — como exige `CLAUDE.md` para `architecture.md` ↔ `architecture-rules.md`.
+
 ---
 
 ## 1. Qué produce el diseño (estructura de salida)
@@ -50,20 +52,20 @@ El spec ya trae sus reglas **clasificadas y numeradas** en categorías de negoci
 
 **Mapeo spec → V/R/U** (correlación natural; la decisión final depende del **efecto real**: bloquea → V, actúa → R, cambia formulario → U):
 
-- `RES-NNN` (restricción, invariante de entidad) → **V**, típicamente declarativa en el modelo (única, obligatoria, comparación de fechas), aplicable a todas las acciones.
-- `VAL-NNN` (validación de una acción) → **V**, anclada a la operación correspondiente.
-- `RN-NNN` (regla de negocio) → **R**. El atributo `fase` del spec (`antes_de_commit`/`después_de_commit`) orienta el momento `Antes`/`Después` de la R.
-- `RUI-NNN` (regla de UI) → **U**, anclada a la(s) pantalla(s) donde aplica. Si una `RUI-NNN` aplica a varias pantallas, se materializa como una U en cada vista afectada, todas con el mismo Origen spec.
-- `CC-NNN` (campo calculado) → campo con **origen `servidor`** + una **R** con momento `Antes` que lo asigna/recalcula (si `momento: escritura`), o campo derivado de solo lectura (si `momento: lectura`). Si `sobreescribible` lista roles, documentarlo en la R.
+- `RES-<Entidad>-NNN` (restricción, invariante de entidad) → **V** aplicable a todas las acciones: declarativa en el modelo si un atributo la cubre (única, obligatoria, min/max); si no es declarable (p.ej. comparación entre campos), en `validate*` de **todas** las operaciones aplicables (ver `k-validaciones/restricciones.md`).
+- `VAL-<Entidad>-NNN` (validación de una acción) → **V**, anclada a la operación correspondiente.
+- `RN-<Entidad>-NNN` (regla de negocio) → **R**. El atributo `fase` del spec (`antes_de_commit`/`después_de_commit`) orienta el momento `Antes`/`Después` de la R.
+- `RUI-<pantalla>-<vista>-NNN` (regla de UI) → **U**, anclada a la vista de la pantalla que su propio ID indica (en el spec cada regla de UI pertenece a **una** vista; si la misma conducta existe en varias vistas, el spec trae una `RUI-` por vista y cada una se materializa como su propia U).
+- `CC-<Entidad>-NNN` (campo calculado) → campo con **origen `servidor`** + una **R** con momento `Antes` que lo asigna/recalcula (si `momento: escritura`), o campo derivado de solo lectura (si `momento: lectura`). Si `sobreescribible` lista roles, documentarlo en la R.
 
 **Trazabilidad obligatoria — columna/atributo `Origen spec`:**
 
-- Cada V/R/U del diseño declara su `Origen spec`: la lista de IDs `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` que la originaron (`VAL-001` o `RN-002, RES-001`), o `—` si el diseño la añadió por necesidad técnica (no provenía de ninguna regla del spec — señal de "repásala").
-- **Cobertura inversa**: cada `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` del spec **MUST** aparecer como Origen de al menos una V/R/U (o, para `CC-NNN` de lectura, de un campo del modelo); en otro caso **MUST** listarse en la sección **"Reglas del spec descartadas"** del `design.md` con justificación.
-- Si el efecto real de una regla contradice su categoría en el spec (p.ej. una `RUI-NNN` que en realidad bloquea), mapéala según su efecto real y documenta el motivo.
+- Cada V/R/U del diseño declara su `Origen spec`: la lista de IDs `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-` que la originaron (`VAL-SolicitudCertificado-001` o `RN-SolicitudCertificado-002, RES-SolicitudCertificado-001`), o `—` si el diseño la añadió por necesidad técnica (no provenía de ninguna regla del spec — señal de "repásala").
+- **Cobertura inversa**: cada `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-` del spec **MUST** aparecer como Origen de al menos una V/R/U (o, para un `CC-` de lectura, de un campo del modelo); en otro caso **MUST** listarse en la sección **"Reglas del spec descartadas"** del `design.md` con justificación.
+- Si el efecto real de una regla contradice su categoría en el spec (p.ej. una `RUI-` que en realidad bloquea), mapéala según su efecto real y documenta el motivo.
 
-- ✅ CORRECTO: `V-SolicitudCertificado-002` con Origen spec `VAL-004, RES-002`
-- ❌ INCORRECTO: `V-001` (sin entidad), `V-solicitudCertificado-001` (entidad no en PascalCase), `U-MisSolicitudes-001` (slug de pantalla debe ir en kebab-case), Origen spec `VAL-4` (sin 3 dígitos), celda vacía (debe ir `—` si fue añadida por el diseño)
+- ✅ CORRECTO: `V-SolicitudCertificado-002` con Origen spec `VAL-SolicitudCertificado-004, RES-SolicitudCertificado-002`
+- ❌ INCORRECTO: `V-001` (sin entidad), `V-solicitudCertificado-001` (entidad no en PascalCase), `U-MisSolicitudes-001` (slug de pantalla debe ir en kebab-case), Origen spec `VAL-004` (ID del spec sin entidad: formato global antiguo), Origen spec `VAL-SolicitudCertificado-4` (sin 3 dígitos), celda vacía (debe ir `—` si fue añadida por el diseño)
 
 ---
 
@@ -74,17 +76,17 @@ El diseño clasifica el **origen del valor** de cada campo en `cliente` (lo apor
 La clasificación **no se inventa**: se deriva del spec, que ya da la información de negocio:
 
 - Un campo listado en alguna línea `**Input AllowProperties:**` de una acción → `cliente` para esa acción.
-- Un `CC-NNN` (campo calculado) → siempre `servidor`.
+- Un `CC-` (campo calculado) → siempre `servidor`.
 - Un campo que **nunca** aparece en ninguna línea `Input AllowProperties` y que el servidor fija (estado, auditoría, snapshots) → `servidor`.
 - Un campo **inmutable** (aparece en `Crear` pero no en `Modificar`) → `cliente` en alta, excluido de la whitelist de `update`.
 
-**Coherencia obligatoria:** cada campo `servidor` **DEBE** estar respaldado por al menos una `R-<Entidad>-NNN` con momento `Antes` que lo asigna — salvo los derivados de solo lectura (`CC-NNN` con `momento: lectura`), que no se persisten (documentar el cálculo en notas). Un campo `cliente` **NO** debe aparecer asignado por una R-Antes-de-Crear (eso lo convertiría implícitamente en `servidor`).
+**Coherencia obligatoria:** cada campo `servidor` **DEBE** estar respaldado por al menos una `R-<Entidad>-NNN` con momento `Antes` que lo asigna — salvo los derivados de solo lectura (`CC-` con `momento: lectura`), que no se persisten (documentar el cálculo en notas). Un campo `cliente` **NO** debe aparecer asignado por una R-Antes-de-Crear (eso lo convertiría implícitamente en `servidor`).
 
 ---
 
 ## 4. Cobertura total de las reglas del spec
 
-**REQUIRED**: **todas** las reglas del spec — `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` — deben quedar **ubicadas** en el diseño (convertidas a una V/R/U con una entrada en la matriz de trazabilidad apuntando a un método o acción concreta, con un comentario que describa su lógica) **o** listadas en "Reglas del spec descartadas" con justificación. Si alguna regla no tiene ni ubicación ni justificación, el diseño está incompleto.
+**REQUIRED**: **todas** las reglas del spec — `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-` — deben quedar **ubicadas** en el diseño (convertidas a una V/R/U con una entrada en la matriz de trazabilidad apuntando a un método o acción concreta, con un comentario que describa su lógica) **o** listadas en "Reglas del spec descartadas" con justificación. Si alguna regla no tiene ni ubicación ni justificación, el diseño está incompleto.
 
 ---
 
@@ -92,11 +94,11 @@ La clasificación **no se inventa**: se deriva del spec, que ya da la informaci�
 
 Cada categoría de regla tiene su capa de implementación:
 
-- **`V-<Entidad>-NNN`** (validación):
-  - Validaciones declarativas simples → atributos del modelo XML (`required`, `unique`, `min`, `max`).
-  - Validaciones de campo individual y entre campos del mismo registro → cliente (`<action-validate>`/`<action-condition>`).
-  - Integridad entre registros y ciclo de vida → servidor (`validateInsert`/`validateUpdate`/`validateRemove` del `*ServiceImpl`).
-- **`R-<Entidad>-NNN`** (regla de negocio): servidor, como método `fireActionRule_*` del `*ServiceImpl` invocado desde `insert`/`update`/`remove`/operación custom, **Antes** de `super.*` si escribe en el mismo registro o **Después** si tiene efectos colaterales.
+- **`V-<Entidad>-NNN`** (validación) — **el servidor es siempre la fuente de verdad** (`k-validaciones`): una V que solo exista en cliente no existe (la siguiente llamada por API la salta).
+  - Capa servidor (**obligatoria** para toda V): atributo declarativo del modelo XML (`required`, `unique`, `min`, `max`) si lo cubre; en otro caso `validateInsert`/`validateUpdate`/`validateRemove` del `*ServiceImpl`. Las vistas la invocan antes de guardar/borrar vía las acciones globales `remote-validationSave-action`/`remote-validationDelete-action` de `DefaultModelController`.
+  - Capa cliente (**opcional**, solo UX): duplicar en `<action-validate>`/`<action-condition>` las V de campo individual o entre campos del mismo registro, para feedback sin roundtrip. **MUST NOT** ser la única capa de una V.
+  - **Excepción — entidad detalle editada en form modal (`panel-related`): la capa cliente es REQUIRED y lo más completa posible.** `save-modal`/`delete-modal` no llaman al servidor y el modal **MUST NOT** llevar `remote-validation*` (el maestro puede no existir en BD); la validación de servidor del detalle solo corre al guardar el **maestro** (`ModelServiceValidationWalker`). Por eso el `Local-validate*` del modal **MUST** duplicar **todas** las V del detalle evaluables en cliente (obligatorios, formatos, comparaciones entre campos y con `__parent__`) — es el único aviso al usuario antes de cerrar el modal. La capa servidor del detalle sigue existiendo (en el `validate*` del servicio del detalle); solo cambia cuándo corre. Ver `k-vistas/forms.md` §"Form modal" y `k-validaciones/validaciones.md` §3.
+- **`R-<Entidad>-NNN`** (regla de negocio): servidor, como método `fireActionRule_*` del `*ServiceImpl` invocado desde `insert`/`update`/`remove`/operación custom, **Antes** de `repository.save/remove` si escribe en el mismo registro o **Después** si tiene efectos colaterales. La persistencia es siempre `repository.save/remove` — **MUST NOT** `super.insert/update/remove` (ver `k-sistemas/servicios.md`).
 - **`U-<slug-pantalla>-NNN`** (regla de UI): vista, como atributo `showIf`/`hideIf`/`readonlyIf`/`requiredIf` en `<field>`/`<panel>`, o `<action-attrs>`/`<action-record>` referenciado desde `onNew`/`onLoad`/`onChange`.
 
 ---
@@ -122,6 +124,10 @@ Cada categoría de regla tiene su capa de implementación:
   - Los atributos `canAttach`/`canBack`/`canDelete`/`canNew`/`canSave`/`canMore` del `<form>` **MUST** ir a `false` (la toolbar nativa **MUST NOT** usarse para guardar/cancelar/borrar).
   - El formulario **MUST** llevar un `<panel name="buttons-panel">` con `<button name="btnDelete">`, `<button name="btnCancel">`, `<button name="btnSave">`, cada uno con su `<action-group>` propio que termina en la acción real del framework (`delete`/`back`/`save` en el form principal; `delete-modal`/`close`/`save-modal` en un form modal).
   - Cualquier validación de servidor antes de guardar se engancha en el `<action-group>` del **botón** `btnSave` (antes de `<action name="save"/>`), **no** en el atributo `onSave` del `<form>`.
+- **Validación remota de save/delete = acciones globales, nunca por entidad.** En el **form principal**, el `<action-group>` de `btnSave` incluye la acción global `remote-validationSave-action` antes de `save`, y el de `btnDelete` la acción global `remote-validationDelete-action` antes de `delete` (las define una única vez `DefaultModelController` — ver `k-validaciones/validaciones.md` §5). **MUST NOT** declarar en `views/*.xml` un `<action-method>` de validación por entidad (`…-Remote-validateSave-action`) ni métodos `validateSave`/`validateDelete` en el controlador de la entidad. Solo las **operaciones custom** (`aprobar`, `rechazar`…) llevan su `Remote-validate<Operacion>-action` y su `@CallMethod` propios. En el form **modal** de un detalle (`save-modal`/`delete-modal`) **MUST NOT** usarse `remote-validation*`: allí la validación previa al cierre es la cliente, lo más completa posible (§5).
+
+  - ✅ CORRECTO: `<action-group name="….btnSave-action">` con `Local-validateSave-action` (opcional) → `remote-validationSave-action` → `save`.
+  - ❌ INCORRECTO: `<action-method name="subsysFoo.Bar@Main-Remote-validateSave-action">` llamando a `BarController.validateSave` (patrón sustituido por la acción global).
 
   - ✅ CORRECTO: `<form ... canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">` + `<panel name="buttons-panel">` con los tres `<button>` (ver `k-vistas/forms.md`).
   - ❌ INCORRECTO: `<form ... canBack="true" canDelete="true" canSave="true" onSave="...">` sin `buttons-panel` — usa la toolbar nativa de Axelor en vez del patrón del proyecto, aunque "funcione".
@@ -179,7 +185,7 @@ El diseñador escribe en su carpeta `design_<n>/` el diseño completo. El **índ
 
 ### 7.1 Tareas internas del diseñador (en orden)
 
-1. **Leer la especificación dos veces.** 1.ª pasada: enmarcar el alcance (entidades, pantallas). 2.ª pasada: **convertir cada regla del spec** (`RES`/`VAL`/`RN`/`RUI`/`CC-NNN`) a su V/R/U (§2) y **clasificar cada campo** `cliente`/`servidor` (§3, apoyándose en las líneas `Input AllowProperties` y los `CC-NNN` del spec).
+1. **Leer la especificación dos veces.** 1.ª pasada: enmarcar el alcance (entidades, pantallas). 2.ª pasada: **convertir cada regla del spec** (`RES-`/`VAL-`/`RN-`/`RUI-`/`CC-`) a su V/R/U (§2) y **clasificar cada campo** `cliente`/`servidor` (§3, apoyándose en las líneas `Input AllowProperties` y los `CC-` del spec).
 2. **Escribir el `design.md`**: cabecera (Objetivo, Capa, Especificación de origen, Skills necesarios), tabla de ficheros a crear o modificar, y lista de pasos respetando el orden obligatorio (§8).
 3. **Escribir los ficheros reales del diseño** en `design_<n>/`:
    - **Dominios** — un fichero `design_<n>/domains/<Entidad>.xml` por entidad, XML completo, válido contra `domain-models.xsd`. En el `design.md`, un resumen estructural corto de cada uno.
@@ -187,7 +193,7 @@ El diseñador escribe en su carpeta `design_<n>/` el diseño completo. El **índ
    - **Vistas** — un fichero `design_<n>/views/<Fichero>.xml` por `<action-view>`, XML completo válido contra `object-views.xsd`. En el `design.md`, un resumen estructural corto.
    - **Menús** — `design_<n>/menus.xml`, válido contra `object-views.xsd`.
    - **Seguridad** — en el `design.md`, permisos, roles, grupos por nombre y la regla de acceso en lenguaje natural.
-   - **Trazabilidad** — matriz con tres bloques (`V-<Entidad>-NNN`, `R-<Entidad>-NNN`, `U-<slug>-NNN`), cada fila con su **`Origen spec`** (IDs `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` o `—`) y su **ubicación** (clase.método o fichero XML + nombre de acción), demostrando que **toda regla del spec está ubicada** según el mapeo de capas de §5. Las reglas del spec que no se mapeen van a "Reglas del spec descartadas" con justificación.
+   - **Trazabilidad** — matriz con tres bloques (`V-<Entidad>-NNN`, `R-<Entidad>-NNN`, `U-<slug>-NNN`), cada fila con su **`Origen spec`** (IDs `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-` o `—`) y su **ubicación** (clase.método o fichero XML + nombre de acción), demostrando que **toda regla del spec está ubicada** según el mapeo de capas de §5. Las reglas del spec que no se mapeen van a "Reglas del spec descartadas" con justificación.
    - **Partes condicionales** — `rules/R-*.md` (ver `reglas-complejas.md`) y `test-e2e-desc.md` (ver `tests-e2e.md`), cuando apliquen.
 4. **Aplicar el checklist (§9) y corregir antes de terminar.** El diseñador NO debe dar el diseño por terminado hasta que todos los puntos del checklist estén satisfechos.
 
@@ -226,10 +232,10 @@ Cada paso del `design.md` debe:
 
 Cada firma de `validateInsert`/`validateUpdate`/`validateRemove` (para V-) y de `fireActionRule_*` (para R-) lleva un comentario que describe, **para cada regla ubicada en ese método**:
 
-1. **Identificador** (`V-<Entidad>-NNN` o `R-<Entidad>-NNN`) y su **`Origen spec`** (IDs `RES-`/`VAL-`/`RN-`/`CC-NNN` o `—`).
+1. **Identificador** (`V-<Entidad>-NNN` o `R-<Entidad>-NNN`) y su **`Origen spec`** (IDs `RES-`/`VAL-`/`RN-`/`CC-` o `—`).
 2. **Lógica resumida** — qué se comprueba (V) o qué hace el sistema (R).
 3. Para V: **contenido del mensaje de error** descrito por lo que debe transmitir (valor recibido + dominio válido). **No el literal.**
-4. Para R: **momento** (Antes/Después de `super.*`) y **efectos colaterales** previstos.
+4. Para R: **momento** (Antes/Después de `repository.save/remove` — nunca `super.*`) y **efectos colaterales** previstos.
 5. Si los valores válidos o las dependencias vienen de BD, indicar la fuente (catálogo, repositorio, etc.).
 
 Ejemplo:
@@ -239,11 +245,11 @@ Ejemplo:
 // Método:
 public Optional<BusinessMessages> validateInsert(Bar entidad);
 //   Aplica:
-//     - V-Bar-001 (Origen spec: VAL-007) alias del HSM: comprueba que el alias exista en el
+//     - V-Bar-001 (Origen spec: VAL-Bar-007) alias del HSM: comprueba que el alias exista en el
 //       slot indicado. Mensaje debe transmitir: alias recibido + slot recibido + lista de
 //       aliases disponibles (del repositorio de aliases del slot, en try/catch para que un
 //       fallo de conectividad no bloquee otras validaciones).
-//     - V-Bar-002 (Origen spec: RES-003) longitud del nombre: comprueba 3..50 caracteres.
+//     - V-Bar-002 (Origen spec: RES-Bar-003) longitud del nombre: comprueba 3..50 caracteres.
 //       Mensaje debe transmitir: nombre recibido + longitud actual + rango.
 ```
 
@@ -259,7 +265,7 @@ Para cada R-<Entidad>-NNN con momento `Antes` que asigna un campo clasificado co
 
 ```java
 private void fireActionRule_AsignarFechaCreacion(Bar bar);
-//   Aplica R-Bar-001 (Origen spec: CC-002, campo `fechaCreacion` clasificado `servidor`):
+//   Aplica R-Bar-001 (Origen spec: CC-Bar-002, campo `fechaCreacion` clasificado `servidor`):
 //   asignación INCONDICIONAL `bar.setFechaCreacion(LocalDateTime.now())`.
 //   MUST NOT añadir guarda `if (bar.getFechaCreacion() == null)`: permitiría que un
 //   atacante por el endpoint REST genérico cuele una fecha falsificada (ver k-secure-coding §3.3).
@@ -316,20 +322,22 @@ El diseñador revisa su diseño contra esta lista y corrige antes de terminar. S
 - [ ] ¿Cada `<action-view>` está en su propio fichero (§6)? Excepción: `@Search-grid`+`@View-form` van juntos en `<NombreEntidad>-ref.xml`.
 - [ ] ¿La tabla "Ficheros a crear o modificar" lista los menús como "Modificar `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`", no como un fichero nuevo `menus-<subsistema>.xml`?
 - [ ] ¿Los parámetros de los métodos del controlador se llaman `actionRequest` y `actionResponse`?
-- [ ] ¿Cada V/R/U tiene su columna **`Origen spec`** con los IDs `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` que la originaron (que existen realmente en el spec), o `—` si la añadió el diseño?
-- [ ] ¿Cada campo de cada dominio está clasificado `cliente` o `servidor` de forma coherente con las líneas `Input AllowProperties` y los `CC-NNN` del spec? ¿Cada `servidor` está respaldado por una R-Antes (salvo derivados de solo lectura) y ningún `cliente` aparece asignado por una R-Antes-de-Crear?
-- [ ] ¿Cada `CC-NNN` del spec está reflejado como campo `servidor` + R-Antes (escritura) o campo derivado de solo lectura (lectura)?
+- [ ] ¿Cada V/R/U tiene su columna **`Origen spec`** con los IDs `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-` que la originaron (que existen realmente en el spec), o `—` si la añadió el diseño?
+- [ ] ¿Cada campo de cada dominio está clasificado `cliente` o `servidor` de forma coherente con las líneas `Input AllowProperties` y los `CC-` del spec? ¿Cada `servidor` está respaldado por una R-Antes (salvo derivados de solo lectura) y ningún `cliente` aparece asignado por una R-Antes-de-Crear?
+- [ ] ¿Cada `CC-` del spec está reflejado como campo `servidor` + R-Antes (escritura) o campo derivado de solo lectura (lectura)?
 - [ ] ¿Cada método en el paso de servicios tiene un comentario que indica qué reglas `V-`/`R-` aplica (con su `Origen spec`), qué lógica ejecuta y qué transmiten los mensajes de error?
 - [ ] ¿Cada acción de vista declarada tiene un comentario de su propósito y los campos/condiciones que intervienen?
 - [ ] ¿Las reglas están mapeadas a la capa correcta según §5?
 - [ ] ¿El diseño tiene la sección `## Frontera de confianza — AllowProperties por acción` con una tabla por cada acción del servicio invocada desde un `@CallMethod`, en el formato de §8.3, y pasando las reglas de `[[k-secure-coding]]` §3?
 - [ ] ¿Cada R-<Entidad>-NNN con momento `Antes` que asigna un campo `servidor` documenta asignación **incondicional** (sin `if (campo == null)`) y referencia `[[k-secure-coding]]` §3.3?
 - [ ] ¿Ningún cuerpo de método del diseño contiene el anti-patrón `if (campo == null) setCampo(...)` para campos `servidor`?
-- [ ] ¿TODAS las reglas `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` del spec están mapeadas a una V/R/U ubicada (o a un campo del modelo, para `CC-` de lectura), **o** listadas en "Reglas del spec descartadas" con justificación?
+- [ ] ¿TODAS las reglas `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-` del spec están mapeadas a una V/R/U ubicada (o a un campo del modelo, para `CC-` de lectura), **o** listadas en "Reglas del spec descartadas" con justificación?
 - [ ] ¿La matriz de trazabilidad tiene una entrada por cada V/R/U y cada entrada apunta a una clase + método o fichero XML + nombre de acción/atributo y declara su `Origen spec`?
 - [ ] ¿Ningún paso crea un módulo Guice para un `ModelService`? (si lo crea, eliminarlo — §6)
 - [ ] ¿Ningún paso crea un listener JPA para lógica de negocio? (si lo crea, moverlo al servicio como `fireActionRule_*`)
 - [ ] ¿Cada `<form>` de `views/*.xml` tiene `canAttach`/`canBack`/`canDelete`/`canNew`/`canSave`/`canMore` a `false` y un `<panel name="buttons-panel">` con `btnDelete`/`btnCancel`/`btnSave` (patrón de `k-vistas/forms.md`), en vez de la toolbar nativa de Axelor? ¿Ninguna validación de servidor cuelga de un `onSave` del `<form>` en vez del `action-group` de `btnSave`?
+- [ ] ¿Los `action-group` de `btnSave`/`btnDelete` del form **principal** usan las acciones globales `remote-validationSave-action`/`remote-validationDelete-action` (§6), sin ningún `<action-method>` de validación por entidad para save/delete ni métodos `validateSave`/`validateDelete` en el controlador?
+- [ ] ¿En cada form **modal** de detalle (`save-modal`/`delete-modal`): (a) ningún `action-group` del modal incluye `remote-validation*`, y (b) el `Local-validate*` del modal duplica **todas** las V del detalle evaluables en cliente (§5)? Las V del detalle no evaluables en cliente quedan en el `validate*` del servicio del detalle (corren al guardar el maestro).
 - [ ] ¿Cada paso es lo suficientemente pequeño para implementarse y verificarse en ≤ 30 minutos?
 - [ ] ¿Los pasos respetan el orden obligatorio de §8?
 - [ ] ¿El diseño referencia el `specification.md` en la cabecera?

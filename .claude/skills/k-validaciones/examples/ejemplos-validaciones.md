@@ -2,13 +2,13 @@
 
 Este fichero recopila patrones concretos de validación cliente (`<action-condition>` y `<action-validate>`) extraídos de las vistas de **axelor-open-suite** (Invoice, SaleOrder, Move, Employee, StockMove, Company, etc.) y reformulados a las convenciones del proyecto.
 
-Se usa en la fase de diseño: identificar el patrón aplicable, adaptarlo al campo concreto y redactar el mensaje siguiendo las guías de redacción de `validaciones.md` § 2.3.
+Se usa en la fase de diseño: identificar el patrón aplicable, adaptarlo al campo concreto y redactar el mensaje siguiendo las guías de redacción de `validaciones.md` §6.
 
 > **Recordatorio:** todos estos ejemplos son **duplicación opcional** de validaciones que ya existen en el servidor (`validateInsert`/`validateUpdate`/`validateRemove` o constraints declarativos en el dominio XML). Aquí solo se replican las que son evaluables sin BD para feedback inmediato.
 
 ## `<action-condition>` — error pegado a un campo
 
-Se usa cuando el mensaje pertenece a un campo concreto y debe aparecer justo bajo él. Va dentro del `action-group` Local → Remote → save (ver `validaciones.md` § 3.6).
+Se usa cuando el mensaje pertenece a un campo concreto y debe aparecer justo bajo él. Va dentro del `action-group` Local → Remote → save (ver `validaciones.md` §4).
 
 **P1. Campo obligatorio (referencia o select)**
 
@@ -220,4 +220,4 @@ El atributo `action` ejecuta una acción adicional cuando se dispara el error. P
 
 ---
 
-→ Ver **`validaciones.md`** § 3.5 ("Cómo elegir el patrón" y "Combinar varios patrones a la vez").
+→ Ver **`validaciones.md`** §3 ("Cómo elegir el patrón" y "Combinar varios patrones a la vez").

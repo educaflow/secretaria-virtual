@@ -17,6 +17,15 @@ Una regla de UI (`RUI-`) cambia el aspecto o el estado de un formulario según e
 
 Regla práctica: si la condición es **una expresión booleana corta sobre el propio registro**, prefiere el atributo inline (`showIf`, `readonlyIf`, `requiredIf`). Si requiere **lógica condicional, varias asignaciones o filtros dinámicos**, usa `<action-attrs>` o `<action-record>` desde un evento.
 
+El atributo `disparador` que la spec declara en cada `RUI-` determina el punto de enganche:
+
+| `disparador` (spec) | Punto de enganche |
+|---|---|
+| `continuo` | Atributo inline `showIf`/`hideIf`/`readonlyIf`/`requiredIf` (se reevalúa solo, sin evento) |
+| `al crear` | `<action-record>`/`<action-attrs>` desde el `onNew` del formulario |
+| `al cargar` | `<action-attrs>` desde el `onLoad` del formulario |
+| `al cambiar <campo>` | `<action-attrs>`/`<action-record>` desde el `onChange` del campo disparador |
+
 ---
 
 ## 2. Atributos inline (`showIf`, `hideIf`, `readonlyIf`, `requiredIf`)

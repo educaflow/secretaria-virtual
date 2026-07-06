@@ -58,11 +58,15 @@ public void remove(T entity) {
 
 Si una validación detecta un problema, `throwIfInvalid` lanza una `ValidationException` y la operación se aborta. **En condiciones normales esta salvaguarda nunca debería dispararse**, porque las vistas ya han llamado a los mismos `validate*` antes de pedir el `save`/`delete`. Solo actúa si algo evita el flujo normal (script externo, llamada por API directa, integración batch).
 
+> Una `VAL-` con `actor:` en la spec (la operación requiere un rol) también se comprueba en `validate*`, consultando el usuario/rol actual: ocultar el botón en la vista es solo UX, no autorización.
+
+> **Maestro-detalle**: los `validate*` de un **detalle** de composición también los ejecuta la plataforma al guardar el **maestro** — `ModelServiceValidationWalker` (clase de `com.axelor.db.modelservice` en la versión propia de AOP, invocada desde `Resource.save`/`remove`) recorre los detalles recursivamente y llama a su `validateInsert`/`validateUpdate`/`validateRemove`. Las validaciones del detalle se escriben una vez, en el servicio del detalle. Si un `validate*` del detalle depende de campos que fija el maestro al guardarse, protégelo con `if (padre.getId() == null) return Optional.empty();`.
+
 > **Importante** — esta salvaguarda automática **solo** existe mientras **no** sobrescribas `insert`/`update`/`remove`. En cuanto los sobrescribes (para añadir reglas de negocio…), **MUST NOT** llamar a `super.insert/update/remove`: persistes con `repository.save/remove` y **eres tú** quien pone `validateXxx(...).ifPresent(throwIfInvalid)` como primera línea. Ver `[[k-sistemas]]` §"Persistir: siempre `repository`, nunca `super.*`".
 
 ---
 
-## 3. Capa cliente (opcional)
+## 3. Capa cliente (opcional — salvo en el form modal de un detalle)
 
 Solo UX. Duplica validaciones del servidor para que el usuario vea el error sin esperar al roundtrip.
 
@@ -74,6 +78,8 @@ Solo UX. Duplica validaciones del servidor para que el usuario vea el error sin 
 | Comparación entre campos del mismo registro     | Sí                     | Recomendado               |
 | Unicidad / integridad referencial (requiere BD) | Sí                     | No es posible             |
 | Reglas de negocio con consulta a BD             | Sí                     | No es posible             |
+
+**Excepción — form modal de un detalle (maestro-detalle): la capa cliente deja de ser opcional.** `save-modal`/`delete-modal` no llaman al servidor y **MUST NOT** usarse `remote-validation*` en el modal (el maestro puede no existir en BD y el `validate*` del detalle fallaría espuriamente); las validaciones de servidor del detalle solo corren al guardar el maestro (`ModelServiceValidationWalker`). Por tanto en el form modal el `Local-validate*` **MUST** duplicar **todas** las validaciones del detalle evaluables en cliente — es la única forma de avisar al usuario antes de cerrar el modal, en vez de con un error del maestro al guardar al final. Ver `k-vistas/forms.md` §"Form modal".
 
 **Mecanismos disponibles en cliente:**
 
@@ -115,31 +121,30 @@ El detalle de cuándo aplicar este patrón compuesto está en `k-vistas/actions.
 
 ## 4. Flujo completo: el patrón `action-group` Local → Remote → save
 
-El botón Guardar (o el `onSave` del formulario) dispara un `<action-group>` que encadena las tres etapas en este orden fijo:
+El botón Guardar dispara un `<action-group>` que encadena las tres etapas en este orden fijo:
 
 ```xml
 <action-group name="subsysXxx.MiEntidad@Main-btnSave-action">
-    <action name="subsysXxx.MiEntidad@Main-Local-validateSave-action"/>    <!-- 1. cliente XML -->
-    <action name="subsysXxx.MiEntidad@Main-Remote-validateSave-action"/>   <!-- 2. servidor por controlador -->
-    <action name="save"/>                                                   <!-- 3. persiste -->
+    <action name="subsysXxx.MiEntidad@Main-Local-validateSave-action"/>    <!-- 1. cliente XML (opcional) -->
+    <action name="remote-validationSave-action"/>                          <!-- 2. servidor (acción GLOBAL) -->
+    <action name="save"/>                                                  <!-- 3. persiste -->
 </action-group>
 ```
 
 Si la etapa 1 emite un `error`, la 2 y la 3 no se ejecutan. Si la 2 emite un error, la 3 no se ejecuta. La etapa 3 (`save`) volverá a pasar por la salvaguarda de `DefaultModelService`, así que **no se puede colar nada que la validación no apruebe**.
 
-El paso 2 (validación remota) **siempre está presente**: invoca `validateInsert`/`validateUpdate` del servicio sin guardar todavía y permite mostrar errores que dependen de la BD antes de pulsar `save`. La única decisión opcional es la del paso 1: ¿duplico la validación también en cliente local para no esperar al roundtrip?
+El paso 2 (validación remota) **siempre está presente en el form principal** y es la acción **global** `remote-validationSave-action` (§5): invoca `validateInsert`/`validateUpdate` del servicio sin guardar todavía y permite mostrar errores que dependen de la BD antes de pulsar `save`. La única decisión opcional es la del paso 1: ¿duplico la validación también en cliente local para no esperar al roundtrip? En el form **modal** de un detalle el paso 2 **no existe** y el paso 1 pasa a ser obligatorio y lo más completo posible (§3, §5).
 
-Para el botón Borrar el patrón es análogo:
+Para el botón Borrar el patrón es análogo, con la acción global `remote-validationDelete-action`:
 
 ```xml
 <action-group name="subsysXxx.MiEntidad@Main-btnDelete-action">
-    <action name="subsysXxx.MiEntidad@Main-Local-validateDelete-action"/>
-    <action name="subsysXxx.MiEntidad@Main-Remote-validateDelete-action"/>
+    <action name="remote-validationDelete-action"/>
     <action name="delete"/>
 </action-group>
 ```
 
-Y para operaciones custom (`btnAprobar`, `btnRechazar`…) la etapa 3 también es remota porque el método del servicio no es `save`/`delete` genérico:
+Solo para operaciones custom (`btnAprobar`, `btnRechazar`…) hay acciones remotas **por entidad**, porque el método del servicio no es `save`/`delete` genérico:
 
 ```xml
 <action-group name="subsysXxx.MiEntidad@Main-btnAprobar-action">
@@ -151,40 +156,24 @@ Y para operaciones custom (`btnAprobar`, `btnRechazar`…) la etapa 3 también e
 
 ---
 
-## 5. El controlador: puente entre la vista y el servicio
+## 5. La validación remota: acciones globales de `DefaultModelController`
 
-El `<action-method>` llama a un método `@CallMethod` del controlador, cuyo único trabajo es **decidir si es insert o update y delegar al servicio**. No contiene lógica de validación:
+La validación remota de `save`/`delete` **no se crea por entidad**: existen dos acciones **globales**, definidas una única vez en `src/main/java/com/educaflow/base/infrastructure/controller/DefaultModelController.xml`, válidas para cualquier formulario:
 
-```java
-@CallMethod
-public void validateSave(ActionRequest actionRequest, ActionResponse actionResponse) {
-    final MiEntidadService service = (MiEntidadService) modelServiceFactory.resolve(MiEntidad.class);
+| Acción global | Qué invoca | Se usa antes de |
+|---|---|---|
+| `remote-validationSave-action` | `validateInsert` (registro sin `id`) o `validateUpdate` (con `id`) | `save` (form principal) |
+| `remote-validationDelete-action` | `validateRemove` | `delete` (form principal) |
 
-    ActionRequestHelper<MiEntidad> requestHelper = new ActionRequestHelper(actionRequest, MiEntidad.class);
-    ActionResponseHelper responseHelper = new ActionResponseHelper(actionResponse);
+> **MUST NOT** usarse en el form **modal** de un detalle (`save-modal`/`delete-modal`): el maestro puede no existir todavía en BD. Allí la validación previa al cierre es solo cliente (§3) y la de servidor llega al guardar el maestro (`ModelServiceValidationWalker`).
 
-    Optional<BusinessMessages> result;
-    if (requestHelper.getId() == null) {
-        MiEntidad entidad = requestHelper.getModel(service.allowPropertiesInsert());
-        result = service.validateInsert(entidad);
-    } else {
-        MiEntidad entidad = requestHelper.getModel(service.allowPropertiesUpdate());
-        MiEntidad original = requestHelper.getOriginalModel();
-        result = service.validateUpdate(entidad, original);
-    }
-    if (result.isPresent()) {
-        responseHelper.doResponseBusinessMessagesAsError(result.get());
-    }
-}
-```
+Funcionan para cualquier entidad porque `DefaultModelController` resuelve la clase del modelo por el `_model` del contexto del request (por eso las acciones no llevan atributo `model`), obtiene su `ModelService` vía `ModelServiceFactory`, construye el bean con el `allowProperties*` de la operación y llama al `validate*` correspondiente — sin persistir nada.
 
-El `action-method` correspondiente en XML:
+- **MUST NOT** crear métodos `validateSave`/`validateDelete` en el controlador de una entidad ni `<action-method>` de validación por vista para `save`/`delete`: las dos acciones globales los sustituyen.
+- Las **operaciones custom** (`aprobar`, `rechazar`…) sí llevan su `@CallMethod` en el controlador propio de la entidad (`Remote-validate<Operacion>-action` + `Remote-<operacion>-action`), siguiendo `k-sistemas/controladores.md`: resolver el servicio, construir el bean con el `allowProperties` de esa acción y delegar en el `validate<Operacion>`/`<operacion>` del servicio.
 
-```xml
-<action-method name="subsysXxx.MiEntidad@Main-Remote-validateSave-action" model="com.educaflow.subsystem.xxx.db.MiEntidad">
-    <call class="com.educaflow.subsystem.xxx.controller.MiEntidadController" method="validateSave"/>
-</action-method>
-```
+- ✅ CORRECTO: `<action name="remote-validationSave-action"/>` en el `action-group` de `btnSave` de cualquier entidad.
+- ❌ INCORRECTO: `<action-method name="subsysXxx.MiEntidad@Main-Remote-validateSave-action">` que llama a `MiEntidadController.validateSave` (patrón sustituido por la acción global; duplica `DefaultModelController`).
 
 ---
 

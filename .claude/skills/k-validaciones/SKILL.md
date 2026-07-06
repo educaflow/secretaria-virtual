@@ -7,7 +7,7 @@ description: Cómo se IMPLEMENTAN en código Java y XML las restricciones (`RES-
 
 Las restricciones, validaciones, reglas de negocio, reglas de UI y campos calculados de una entidad se **definen y clasifican en la especificación** (`/sdd-specification`), cada una con su identificador estable (`RES-`/`VAL-`/`RN-`/`RUI-`/`CC-`). Este skill describe **únicamente cómo se materializan en código y XML**: en qué capa vive cada tipo y con qué mecanismo. Lo cargan los skills `sdd-*` y `code-*` al implementar.
 
-**MUST NOT** reabrir aquí qué es cada tipo, cómo se distinguen ni cómo se documentan: para eso, la spec y su guía `sdd-specification/template/README.md`.
+**MUST NOT** reabrir aquí qué es cada tipo, cómo se distinguen ni cómo se documentan: para eso, la spec y su guía `sdd-specification/template-system/README.md`.
 
 ---
 
@@ -61,7 +61,7 @@ public T insert(T entidad) {
 ## 4. Dónde está cada cosa
 
 - [`restricciones.md`](restricciones.md) — `RES-`: restricciones declarativas en el modelo XML del dominio; restricciones no declarables en `validate*`.
-- [`validaciones.md`](validaciones.md) — `VAL-`: capa servidor (`validate*`), salvaguarda de `DefaultModelService`, patrón `action-group` Local → Remote → save, controlador puente, capa cliente.
+- [`validaciones.md`](validaciones.md) — `VAL-`: capa servidor (`validate*`), salvaguarda de `DefaultModelService`, patrón `action-group` Local → Remote → save, acciones globales `remote-validation*` de `DefaultModelController`, capa cliente.
 - [`reglas-negocio.md`](reglas-negocio.md) — `RN-` y `CC-`: métodos `fireActionRule_*`, momento `Antes`/`Después`.
 - [`reglas-ui.md`](reglas-ui.md) — `RUI-`: mecanismos de vista (`*If`, `<action-attrs>`, `<action-record>`).
 - [`examples/ejemplos-validaciones.md`](examples/ejemplos-validaciones.md) — 17 patrones XML cliente (P1–P17) para copiar y adaptar.

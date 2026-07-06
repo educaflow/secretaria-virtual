@@ -46,9 +46,11 @@ Se pueden añadir parámetros para mostrar u ocultar toolbars, forzar edición, 
 
 Llamada a controlador en Java
 
+> **Validación remota de save/delete**: **MUST NOT** crear un `<action-method>` de validación por entidad para guardar/borrar — existen las acciones **globales** `remote-validationSave-action` y `remote-validationDelete-action`, definidas una única vez en `DefaultModelController.xml` (`base/infrastructure/controller`); no llevan atributo `model` porque resuelven la entidad por el `_model` del contexto. Los `<action-method>` propios de una entidad son para **operaciones custom**. Ver `k-validaciones/validaciones.md` §5.
+
 ```xml
-<action-method name="subsysSistemaEducativo.LeyEducativa@Main-Remote-validateSave-action" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa">
-    <call class="com.educaflow.subsystem.sistemaeducativo.controller.LeyEducativaController" method="validateSave" />
+<action-method name="subsysFirma.TareaFirma@Pendiente-Remote-marcarComoFirmada-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
+    <call class="com.educaflow.subsystem.firmas.controller.TareaFirmaController" method="marcarComoFirmada" />
 </action-method>
 ```
 
@@ -58,13 +60,13 @@ Llamada a controlador en Java
 
 ```java
    @CallMethod
-   public void validateSave(ActionRequest actionRequest, ActionResponse actionResponse) {
+   public void marcarComoFirmada(ActionRequest actionRequest, ActionResponse actionResponse) {
   
    }
 ```
 
 ```xml
-<action-method name="subsysSistemaEducativo.LeyEducativa@Main-Remote-validateSave-action" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa">
+<action-method name="subsysSistemaEducativo.LeyEducativa@Main-Remote-enviarCorreo-action" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa">
     <call class="com.educaflow.subsystem.sistemaeducativo.controller.LeyEducativaController" method="enviarCorreo(id,nombre)" />
 </action-method>
 ```
@@ -117,12 +119,12 @@ Asignar un valor a un campo
 ```xml
 <action-group name="subsysSistemaEducativo.LeyEducativa@Main-btnSave-action">
     <action name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action"/>
-    <action name="subsysSistemaEducativo.LeyEducativa@Main-Remote-validateSave-action"/>
+    <action name="remote-validationSave-action"/>
     <action name="save"/>
 </action-group>
 ```
 
-- Simplemente se listan las acciones a ejecutar en orden. En este caso, primero se ejecuta la acción de validación local (`subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action`) y si pasa sin errores, se ejecuta la acción de validación remota (`subsysSistemaEducativo.LeyEducativa@Main-Remote-validateSave-action`), finalmente se ejecuta la accion `save`.
+- Simplemente se listan las acciones a ejecutar en orden. En este caso, primero se ejecuta la acción de validación local (`subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action`) y si pasa sin errores, se ejecuta la validación remota con la acción global `remote-validationSave-action` (los `validate*` del servicio, vía `DefaultModelController`), finalmente se ejecuta la accion `save`. En el `btnDelete` la acción global equivalente es `remote-validationDelete-action` antes de `delete`. Esto aplica al form **principal**: en el form **modal** de un detalle (`save-modal`/`delete-modal`) **MUST NOT** usarse las acciones `remote-validation*` y la validación local debe ser lo más completa posible — ver `[[forms.md]]` §"Form modal".
 
 Se usan estas acciones desde eventos como `onClick` de botones, `onSave` de formularios, `onChange` de campos, etc. para ejecutar una secuencia de acciones en un solo evento.
 
@@ -211,7 +213,7 @@ El botón Guardar no cambia entre el Caso 1 y el Caso 2:
 ```xml
 <action-group name="subsysSistemaEducativo.LeyEducativa@Main-btnSave-action">
     <action name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action"/>
-    <action name="subsysSistemaEducativo.LeyEducativa@Main-Remote-validateSave-action"/>
+    <action name="remote-validationSave-action"/>
     <action name="save"/>
 </action-group>
 ```
@@ -296,7 +298,7 @@ Permite ejecutar acciones complejas mediante un script en `js` o `groovy`. Se ut
 - **`action-validate` o `action-condition`** — siempre con prefijo `Local-` ya que son validaciones que se hacen en el cliente sin llamada al servidor
   `subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action`
 - **`action-method`** — siempre con prefijo `Remote-` ya que son llamadas a métodos Java en el servidor
-  `subsysSistemaEducativo.LeyEducativa@Main-Remote-validateSave-action`
+  `subsysFirma.TareaFirma@Pendiente-Remote-marcarComoFirmada-action`
 - **`action-script`** — siempre con prefijo `Remote-` ya que son scripts Groovy ejecutados en el servidor
   `subsysSistemaEducativo.LeyEducativa@Main-Remote-insertarFactura-action`
 - **`action-record`** — describe campo y valor con `set-{campo}-{valor}`:
@@ -305,6 +307,8 @@ Permite ejecutar acciones complejas mediante un script en `js` o `groovy`. Se ut
   `subsysFirma.TareaFirma@Pendiente-set-nombre.readonly-true-action`
 
 **IMPORTANTE: Es obligatorio seguir esta convención de nombres para facilitar la trazabilidad, la lectura y el mantenimiento del código.**
+
+> Excepción: las acciones **globales** de la plataforma (`remote-validationSave-action`, `remote-validationDelete-action`) no siguen esta convención porque no pertenecen a ninguna entidad — se definen una única vez en `DefaultModelController.xml` y se referencian tal cual.
 
 
 ## Eventos habituales donde se usan
@@ -331,7 +335,7 @@ Además de las acciones definidas por el desarrollador, el framework de Axelor t
 `save`/`delete` (form principal) y `save-modal`/`delete-modal` (form modal de entidades hijas en `<panel-related>`) son las únicas formas correctas de persistir y borrar registros desde el cliente, pero funcionan de forma distinta:
 
 - `save`/`delete` disparan el endpoint REST automático `/ws/rest/<FQN>` del modelo del form, que entra al `ModelService` de esa entidad aplicando `validate` y `AllowProperties`.
-- `save-modal`/`delete-modal` son acciones **solo de cliente**: confirman o quitan el registro en la colección en memoria del form padre y cierran el modal, sin llamar al servidor. La persistencia real de los detalles ocurre cuando el `save` del form raíz envía el árbol completo al endpoint REST **del maestro**: entra únicamente al `ModelService` del maestro (el del detalle no se invoca por esta vía), los detalles se persisten por cascada JPA y el filtrado `AllowProperties` que cubre el árbol anidado es el del maestro.
+- `save-modal`/`delete-modal` son acciones **solo de cliente**: confirman o quitan el registro en la colección en memoria del form padre y cierran el modal, sin llamar al servidor. La persistencia real de los detalles ocurre cuando el `save` del form raíz envía el árbol completo al endpoint REST **del maestro**: la persistencia y las reglas de negocio son las del `ModelService` del maestro (los `insert`/`update` y `fireActionRule_*` del detalle no se invocan por esta vía; los `validate*` del detalle **SÍ** — `ModelServiceValidationWalker` los ejecuta recursivamente al guardar el maestro), los detalles se persisten por cascada JPA y el filtrado `AllowProperties` que cubre el árbol anidado es el del maestro.
 
 **MUST NOT** sustituirlas por un `<action-method>` (`Remote-…-action`) que llame a un controlador propio para guardar o borrar. Ver `[[controladores.md]]` del skill `k-sistemas`.
 

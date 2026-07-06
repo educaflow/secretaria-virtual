@@ -199,7 +199,7 @@ $ARGUMENTS
   ```yaml
   ---
   name: sdd-analyst-system
-  description: Dado un fichero `specification.md`, genera los artefactos de análisis (analysis.md + entity-*.md + screen-*.md + tests.md) con trazabilidad `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` → V/R/U. La entrada la produce `/sdd-specification` y la salida la consume `/sdd-designer`.
+  description: Dado un fichero `specification.md`, genera los artefactos de análisis (analysis.md + entity-*.md + screen-*.md + tests.md) con trazabilidad `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-` → V/R/U. La entrada la produce `/sdd-specification` y la salida la consume `/sdd-designer`.
   ---
   ```
 

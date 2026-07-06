@@ -30,6 +30,7 @@
 
 <!-- Una sección «## Vista» por cada vista del árbol, en el mismo orden. La ficha (Tipo / Qué muestra / Se abre desde) es igual para todas; las subsecciones de abajo DEPENDEN del «Tipo»: un LISTADO trae «Propiedades» de grid (columnas, orden, búsqueda…) y NO trae «Paneles»; un FORMULARIO trae «Propiedades» (modo) y «Paneles»; una GRÁFICA describe sus parámetros. Usa SOLO el bloque que corresponda al tipo, y borra los demás. «Reglas de UI» es común y va siempre la última. -->
 
+- **Slug:** <identificador corto de la vista en kebab-case, único dentro de la pantalla: listado | formulario | listado-<hijos> | formulario-<hijo> | …>
 - **Tipo:** <listado | formulario | gráfica | …>
 - **Qué muestra:** <sobre qué modelo, con qué filtro en lenguaje natural y en qué modo (lectura / edición)>
 - **Se abre desde:** <la vista padre y la acción que la abre, o «es la vista de entrada de la pantalla»>
@@ -88,9 +89,9 @@
 
 ### Reglas de UI
 
-<!-- Condiciones que cambian lo que VE o puede editar el usuario en esta vista (no bloquean operaciones ni escriben en el sistema). Si no hay, elimina esta sección. La numeración RUI es global a toda la spec, no por vista. -->
+<!-- Condiciones que cambian lo que VE o puede editar el usuario en esta vista (no bloquean operaciones ni escriben en el sistema). Si no hay, elimina esta sección. El ID es RUI-<pantalla>-<slug de esta vista>-NNN y la numeración es POR VISTA: cada vista arranca en 001. -->
 
-- RUI-NNN — <qué ve el usuario en esta vista>
+- RUI-<pantalla>-<vista>-NNN — <qué ve el usuario en esta vista>
   - disparador: continuo | al crear | al cargar | al cambiar <campo>
   - condición: <opcional>
   - actor: <opcional>

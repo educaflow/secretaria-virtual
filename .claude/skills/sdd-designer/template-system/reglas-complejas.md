@@ -41,9 +41,9 @@ El diseñador escribe en `design_<n>/rules/R-<Entidad>-NNN.md` un fichero con es
 # R-<Entidad>-NNN — <título corto de la regla>
 
 **Entidad:** <Entidad>
-**Origen spec:** <RN-NNN, …>
+**Origen spec:** <RN-<Entidad>-NNN, …>
 **Operación:** insert | update | remove | <operación custom>
-**Momento:** Antes | Después de super.*
+**Momento:** Antes | Después de repository.save/remove
 **Servicio host:** com.educaflow.subsystem.<x>.service.impl.<Entidad>ServiceImpl
 **Método host:** fireActionRule_<nombreLegible>(<firma>)
 
@@ -79,7 +79,7 @@ fireActionRule_<x>
 ```java
 // Firma:
 <firma completa>
-//   Implementa R-<Entidad>-NNN (Origen spec: RN-NNN). Diseño detallado en design/rules/R-<Entidad>-NNN.md.
+//   Implementa R-<Entidad>-NNN (Origen spec: RN-<Entidad>-NNN). Diseño detallado en design/rules/R-<Entidad>-NNN.md.
 //   Secuencia:
 //     1. <llamada 1>
 //     2. <llamada 2>
@@ -90,5 +90,5 @@ fireActionRule_<x>
 En el `design.md`, el comentario del método `fireActionRule_*` correspondiente referencia este fichero (`Diseño detallado en design/rules/R-<Entidad>-NNN.md`), y la matriz de trazabilidad marca la regla con un puntero al fichero detallado, p.ej.:
 
 ```
-| R-Bar-003 | RN-008 | BarServiceImpl.fireActionRule_publicar (Después de repository.save) | Detalle: design/rules/R-Bar-003.md |
+| R-Bar-003 | RN-Bar-008 | BarServiceImpl.fireActionRule_publicar (Después de repository.save) | Detalle: design/rules/R-Bar-003.md |
 ```

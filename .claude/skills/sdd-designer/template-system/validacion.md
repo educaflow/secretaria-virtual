@@ -32,8 +32,8 @@ Cada punto que no se cumpla es un **fallo** a reportar (con su ubicación). Las 
 
 - **a) Estructura.** `design.md` con frontmatter `type: design` y las secciones canónicas (cabecera + metadatos, `## Ficheros a crear o modificar`, `## Pasos` en el orden obligatorio, la matriz de trazabilidad — ver `design-contract.md` §7, §8, §10). Un `domains/<Entidad>.xml` por entidad del spec; un `views/<Fichero>.xml` por `<action-view>`; `menus.xml`. Cada `rules/R-*.md` referenciado desde `design.md` y viceversa.
 - **b) XML válido** (§1). El verificador **MUST** ejecutar `validate.sh` (no validar a ojo); cualquier `FAIL: <fichero>` o código de salida `≠0` es un fallo bloqueante.
-- **c) Cobertura spec → V/R/U → ubicación.** Cada `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-NNN` del spec aparece como `Origen spec` de al menos una V/R/U en la matriz (o, para `CC-` de lectura, en un campo del modelo), **o** está en "Reglas del spec descartadas" con justificación. Cada ubicación referenciada en la matriz existe en un fichero real del diseño. Reportar: reglas del spec sin cubrir y entradas con referencia rota.
-- **d) Frontera de confianza — AllowProperties y campos `servidor`** (`design-contract.md` §8.3 + `[[k-secure-coding]]` §3). Si hay acciones invocadas desde `@CallMethod`, la sección **MUST** existir. Las columnas `Origen` coherentes con las líneas `Input AllowProperties` y los `CC-NNN` del spec (`design-contract.md` §3). Cualquier incumplimiento de `[[k-secure-coding]]` §3 es vulnerabilidad de mass-assignment. Detector mecánico del anti-patrón para campos `servidor`:
+- **c) Cobertura spec → V/R/U → ubicación.** Cada `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-` del spec aparece como `Origen spec` de al menos una V/R/U en la matriz (o, para `CC-` de lectura, en un campo del modelo), **o** está en "Reglas del spec descartadas" con justificación. Cada ubicación referenciada en la matriz existe en un fichero real del diseño. Reportar: reglas del spec sin cubrir y entradas con referencia rota.
+- **d) Frontera de confianza — AllowProperties y campos `servidor`** (`design-contract.md` §8.3 + `[[k-secure-coding]]` §3). Si hay acciones invocadas desde `@CallMethod`, la sección **MUST** existir. Las columnas `Origen` coherentes con las líneas `Input AllowProperties` y los `CC-` del spec (`design-contract.md` §3). Cualquier incumplimiento de `[[k-secure-coding]]` §3 es vulnerabilidad de mass-assignment. Detector mecánico del anti-patrón para campos `servidor`:
   ```bash
   grep -nE "if\s*\(.*==\s*null\s*\).*set[A-Z]" .sdd/drafts/{iniciativa}/design/design.md
   ```
@@ -42,7 +42,11 @@ Cada punto que no se cumpla es un **fallo** a reportar (con su ubicación). Las 
   ```bash
   grep -nE '<form .*can(Back|Delete|Save)="true"' .sdd/drafts/{iniciativa}/design/views/*.xml
   ```
-  Cualquier coincidencia es un fallo a reportar.
+  Cualquier coincidencia es un fallo a reportar. **Validación remota por entidad:** la validación remota de save/delete son las acciones globales `remote-validationSave-action`/`remote-validationDelete-action` (`design-contract.md` §6); un `<action-method>` de validación por entidad para save/delete es un fallo. Detector:
+  ```bash
+  grep -nE 'Remote-validate(Save|Delete)-action' .sdd/drafts/{iniciativa}/design/views/*.xml
+  ```
+  Cualquier coincidencia es un fallo a reportar (la corrección es sustituirla por la acción global). **Forms modales de detalle** (`design-contract.md` §5-§6): en cada `<action-group>` que termine en `save-modal`/`delete-modal`, (a) la presencia de `remote-validation*` es un fallo (el maestro puede no existir en BD), y (b) la **ausencia** de un `Local-validate*` que cubra todas las V del detalle evaluables en cliente es un fallo (es la única validación antes de cerrar el modal).
 - **f) Reglas R complejas** (`reglas-complejas.md`). Cada `R-` que cumple los criterios tiene su `rules/R-<Entidad>-NNN.md` (y viceversa); ningún `rules/R-*.md` con cuerpos Java.
 - **g) Prohibiciones en `design.md`** (`design-contract.md` §1.1). Sin cuerpos de método Java, sin JPQL real, sin acoplamiento a `expedientes`/`tiposexpedientes`/`tramites`.
 - **h) Tests E2E** (`design/test-e2e-desc.md`, ver `tests-e2e.md`). Si el spec tiene escenarios, `test-e2e-desc.md` **MUST** existir y cada escenario del spec aparece como `Origen ESC` en al menos un test; cada `Verifica` y `Pantalla principal` referencia algo que existe. Si el spec no tiene escenarios, no se exige `test-e2e-desc.md`.
