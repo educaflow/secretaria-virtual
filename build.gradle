@@ -1,3 +1,8 @@
+buildscript {
+    // PlantUML para la tarea GenerateDocs (renderizado de diagramas *.plantuml/*.puml).
+    repositories { mavenCentral() }
+    dependencies { classpath 'net.sourceforge.plantuml:plantuml:1.2025.4' }
+}
 plugins {
     id 'com.axelor.app' version '8.1.1-SNAPSHOT'
     id 'idea'
@@ -148,51 +153,58 @@ tasks.register('managei18nfiles', JavaExec) {
 tasks.named('processResources') {
     finalizedBy 'managei18nfiles'
 }
-tasks.register('copyDataInit', JavaExec) {
-    description = 'Ejecuta una clase Java desde un JAR externo para copiar las carpetas "data-init" de cada expediente.'
+tasks.register('copyDataInit') {
+    description = 'Copia las carpetas "data-init" (las que contienen input-config.xml) y su subcarpeta input de cada expediente.'
     group = 'build'
 
-    mainClass = 'com.educaflow.common.buildtools.copyinitdata.Main'
-
-    classpath = configurations.educaFlowBuildToolsDependency
-
-
-    args './src/main/java', './build/resources/main/java-data-init'
-
-    workingDir = layout.projectDirectory.dir('.')
+    doLast {
+        def srcRoot = file('src/main/java')
+        def destRoot = file('build/resources/main/java-data-init')
+        srcRoot.traverse(type: groovy.io.FileType.DIRECTORIES, nameFilter: 'data-init') { dir ->
+            if (new File(dir, 'input-config.xml').isFile()) {
+                def rel = srcRoot.toPath().relativize(dir.toPath()).toString()
+                copy {
+                    from(dir) {
+                        include 'input-config.xml'
+                        include 'input/**'
+                    }
+                    into new File(destRoot, rel)
+                }
+            }
+        }
+    }
 }
 tasks.named('build') {
     finalizedBy 'copyDataInit'
 }
-tasks.register('copyDomain', JavaExec) {
-    description = 'Ejecuta una clase Java desde un JAR externo para copiar las los ficheros de dominio'
+tasks.register('copyDomain', Copy) {
+    description = 'Copia los ficheros de dominio de Axelor (root <domain-models> en el namespace axelor) a java-domain.'
     group = 'build'
 
-    mainClass = 'com.educaflow.common.buildtools.copydomain.Main'
+    from('src/main/java') { include '**/*.xml' }
+    into 'build/resources/main/java-domain'
+    includeEmptyDirs = false
 
-    classpath = configurations.educaFlowBuildToolsDependency
-
-
-    args './src/main/java', './build/resources/main/java-domain'
-
-    workingDir = layout.projectDirectory.dir('.')
+    // Solo se copian los XML cuyo elemento raíz es <domain-models> en el namespace de Axelor.
+    eachFile { fcd ->
+        def root = new XmlSlurper(false, true).parse(fcd.file)
+        if (root.name() != 'domain-models' ||
+            root.namespaceURI() != 'http://axelor.com/xml/ns/domain-models') {
+            fcd.exclude()
+        }
+    }
 }
 tasks.named('build') {
     finalizedBy 'copyDomain'
 }
 
-tasks.register('copySQL', JavaExec) {
-    description = 'Ejecuta una clase Java desde un JAR externo para copiar las los ficheros SQL'
+tasks.register('copySQL', Copy) {
+    description = 'Copia los ficheros SQL de src/main/java a resources, preservando la estructura.'
     group = 'build'
 
-    mainClass = 'com.educaflow.common.buildtools.copysql.Main'
-
-    classpath = configurations.educaFlowBuildToolsDependency
-
-
-    args './src/main/java', './build/resources/main'
-
-    workingDir = layout.projectDirectory.dir('.')
+    from('src/main/java') { include '**/*.sql' }
+    into 'build/resources/main'
+    includeEmptyDirs = false
 }
 tasks.named('build') {
     finalizedBy 'copySQL'
@@ -215,22 +227,30 @@ tasks.register('generateDataInitTiposExpedientes', JavaExec) {
 tasks.named('build') {
     finalizedBy 'generateDataInitTiposExpedientes'
 }
-tasks.register('copiarPdf', JavaExec) {
-    description = 'Ejecuta una clase Java desde un JAR externo para copia los PDF en resource.'
+tasks.register('copiarPdf', Copy) {
+    description = 'Copia los ficheros PDF de src/main/java a resources, preservando la estructura.'
     group = 'build'
 
-    mainClass = 'com.educaflow.common.buildtools.documentopdf.Main'
-
-    classpath = configurations.educaFlowBuildToolsDependency
-
-
-    args './src/main/java', './build/resources/main'
-
-    workingDir = layout.projectDirectory.dir('.')
+    from('src/main/java') { include '**/*.pdf' }
+    into 'build/resources/main'
+    includeEmptyDirs = false
 }
 tasks.named('build') {
     finalizedBy 'copiarPdf'
 }
+
+tasks.register('copiarXsd', Copy) {
+    description = 'Copia los ficheros XSD de src/main/java a resources, preservando la estructura.'
+    group = 'build'
+
+    from('src/main/java') { include '**/*.xsd' }
+    into 'build/resources/main'
+    includeEmptyDirs = false
+}
+tasks.named('build') {
+    finalizedBy 'copiarXsd'
+}
+
 tasks.register('RichDomainClassTask', JavaExec) {
     description = 'Ejecuta una clase Java desde un JAR externo para añadir código al modelo con los enumerados de estados, eventos y profiles.'
     group = 'build'
@@ -286,18 +306,25 @@ tasks.register('CreateFilesTask', JavaExec) {
 tasks.named('generateCode') {
     dependsOn tasks.CreateFilesTask
 }
-tasks.register('GenerateDocs', JavaExec) {
-    description = 'Ejecuta una clase Java desde un JAR externo para Generar documentación.'
+tasks.register('GenerateDocs') {
+    description = 'Genera diagramas PNG a partir de los ficheros PlantUML (*.plantuml, *.puml) bajo src.'
     group = 'build'
 
-    mainClass = 'com.educaflow.common.buildtools.generatedocs.Main'
-
-    classpath = configurations.educaFlowBuildToolsDependency
-
-
-    args './src'
-
-    workingDir = layout.projectDirectory.dir('.')
+    doLast {
+        file('src').traverse(type: groovy.io.FileType.FILES) { f ->
+            def name = f.name
+            if (name.endsWith('.plantuml') || name.endsWith('.puml')) {
+                def source = f.getText('UTF-8')
+                if (!source.contains('@startuml')) source = '@startuml\n' + source
+                if (!source.contains('@enduml'))   source = source + '\n\n@enduml'
+                def png = new File(f.parentFile, name.replaceFirst(/\.(plantuml|puml)$/, '.png'))
+                println "Generando UML Diagram en:${png}"
+                png.withOutputStream { os ->
+                    new net.sourceforge.plantuml.SourceStringReader(source).outputImage(os)
+                }
+            }
+        }
+    }
 }
 tasks.named('build') {
     finalizedBy 'GenerateDocs'
