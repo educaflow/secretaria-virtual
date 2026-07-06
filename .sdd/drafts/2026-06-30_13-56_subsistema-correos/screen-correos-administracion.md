@@ -20,6 +20,7 @@ Listado de correos
 
 ## Vista: Listado de correos
 
+- **Slug:** listado
 - **Tipo:** listado
 - **Qué muestra:** todos los correos de todos los centros, en lectura.
 - **Se abre desde:** es la vista de entrada de la pantalla.
@@ -37,6 +38,7 @@ Listado de correos
 
 ## Vista: Formulario de correo
 
+- **Slug:** formulario
 - **Tipo:** formulario
 - **Qué muestra:** los datos de un correo, sus adjuntos y el resultado de su envío.
 - **Se abre desde:** el listado de correos, al pulsar una fila o «Nuevo correo».
@@ -54,20 +56,39 @@ Listado de correos
 ### Botones
 
 - **Reenviar** — Vuelve a intentar el envío del correo; visible solo cuando el correo está en estado FAIL.
-
-*(el administrador solo puede crear correos, no modificarlos: durante el alta lleva los botones estándar Guardar y Cancelar para crear y guardar el correo nuevo, pero al reabrir un correo ya creado el formulario es de solo lectura, sin Guardar. El correo no se puede borrar nunca, para preservar el historial de envíos: sin botón Borrar)*
+- **Cancelar/Salir** — Sale de la pantalla.
+- **Guardar** — Guardar el correo.
 
 ### Reglas de UI
 
-- RUI-001 — El botón «Reenviar» solo se muestra cuando el estado del correo es FAIL
+- RUI-correos-administracion-formulario-001 — El botón «Reenviar» solo se muestra cuando el estado del correo es FAIL
   - disparador: continuo
   - condición: estado == FAIL
-- RUI-002 — El panel «Datos del envío» solo se muestra al consultar un correo ya creado, no durante el alta
+- RUI-correos-administracion-formulario-002 — El panel «Datos del envío» solo se muestra al consultar un correo ya creado, no durante el alta
   - disparador: continuo
   - condición: el correo ya existe
+- RUI-correos-administracion-formulario-003 — El label del botón «Cancelar/Salir» es "Cancelar" si es una alta.
+  - disparador: continuo
+  - condición: el correo aún no existe 
+- RUI-correos-administracion-formulario-004 — El label del botón «Cancelar/Salir» es "Salir" si NO es una alta.
+  - disparador: continuo
+  - condición: el correo existe
+- RUI-correos-administracion-formulario-005 — El botón «Guardar» solo se muestra si es un Alta.
+  - disparador: continuo
+  - condición: el correo aún no existe
+- RUI-correos-administracion-formulario-006 — Al consultar un correo ya creado, el formulario y sus datos (dni, nombre, apellidos, para, en copia, en copia oculta, asunto, cuerpo, centro, historial de estado) se muestran en solo lectura; solo son editables durante el alta.
+  - disparador: continuo
+  - condición: el correo ya existe
+- RUI-correos-administracion-formulario-007 — La «descripción del último fallo» solo se muestra cuando el correo está en estado FAIL.
+  - disparador: continuo
+  - condición: estado == FAIL
+- RUI-correos-administracion-formulario-008 — La «fecha de envío» solo se muestra cuando el correo está en estado SUCCESS.
+  - disparador: continuo
+  - condición: estado == SUCCESS
 
 ## Vista: Listado de adjuntos
 
+- **Slug:** listado-adjuntos
 - **Tipo:** listado
 - **Qué muestra:** los adjuntos del correo, en lectura.
 - **Se abre desde:** embebido como panel «Adjuntos» en el formulario de correo.
@@ -83,8 +104,15 @@ Listado de correos
 
 - **Añadir adjunto** (barra superior) — Abre el formulario de alta de un adjunto; visible solo durante el alta del correo.
 
+### Reglas de UI
+
+- RUI-correos-administracion-listado-adjuntos-001 — El botón «Añadir adjunto» solo se muestra durante el alta del correo, no al consultar un correo ya creado
+  - disparador: continuo
+  - condición: el correo aún no existe
+
 ## Vista: Formulario de adjunto
 
+- **Slug:** formulario-adjunto
 - **Tipo:** formulario
 - **Qué muestra:** los datos de un adjunto del correo, en edición durante el alta.
 - **Se abre desde:** el listado de adjuntos, al pulsar una fila o «Añadir adjunto».
@@ -99,10 +127,29 @@ Listado de correos
 
 ### Botones
 
-*(el adjunto solo se puede añadir durante el alta del correo, no modificar: mientras se da de alta lleva los botones estándar Guardar y Cancelar, pero al reabrir un correo ya creado es de solo lectura, sin Guardar. El adjunto no se puede borrar, igual que el correo al que pertenece, para preservar el historial de envíos: sin botón Borrar)*
+- **Cancelar/Salir** — Sale de la pantalla.
+- **Guardar** — Guardar el correo.
 
 ### Reglas de UI
 
-- RUI-003 — Al añadir un adjunto, su correo se fija con el correo desde el que se abre el formulario
+- RUI-correos-administracion-formulario-adjunto-001 — Al añadir un adjunto, su correo se fija con el correo desde el que se abre el formulario
   - disparador: al crear
   - condición: Siempre
+- RUI-correos-administracion-formulario-adjunto-002 — El label del botón «Cancelar/Salir» es "Cancelar" si es una alta.
+  - disparador: continuo
+  - condición: el adjunto aún no existe
+- RUI-correos-administracion-formulario-adjunto-003 — El label del botón «Cancelar/Salir» es "Salir" si NO es una alta.
+  - disparador: continuo
+  - condición: el adjunto existe
+- RUI-correos-administracion-formulario-adjunto-004 — El botón «Guardar» solo se muestra si es un Alta.
+  - disparador: continuo
+  - condición: el adjunto aún no existe
+- RUI-correos-administracion-formulario-adjunto-005 — Al añadir un adjunto, el nombre del fichero se marca como obligatorio
+  - disparador: continuo
+  - condición: Siempre
+- RUI-correos-administracion-formulario-adjunto-006 — Al añadir un adjunto, el contenido se marca como obligatorio
+  - disparador: continuo
+  - condición: Siempre
+- RUI-correos-administracion-formulario-adjunto-007 — Al consultar un adjunto de un correo ya creado, sus campos (nombre del fichero y contenido) se muestran en solo lectura; solo son editables durante el alta del correo.
+  - disparador: continuo
+  - condición: el correo ya existe

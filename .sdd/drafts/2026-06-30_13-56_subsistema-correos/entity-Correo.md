@@ -28,36 +28,37 @@ Representa un correo electrónico dirigido a una persona, junto con el resultado
 
 ## Restricciones
 
-- RES-001 — El centro de un correo siempre referencia a un centro existente.
-- RES-002 — La fecha de envío solo tiene valor cuando el estado es SUCCESS; en PENDIENTE y FAIL está vacía.
+- RES-Correo-001 — El centro de un correo siempre referencia a un centro existente.
+- RES-Correo-002 — La fecha de envío solo tiene valor cuando el estado es SUCCESS; en PENDIENTE y FAIL está vacía.
+- RES-Correo-003 — Un correo nunca se puede borrar.
 
 ## Campos calculados
 
-- CC-001 — fecha de creación
+- CC-Correo-001 — fecha de creación
   - momento: escritura
   - sobreescribible: nunca
   - cálculo: el instante en que se crea el correo en la base de datos.
-- CC-002 — fecha del primer intento de envío
+- CC-Correo-002 — fecha del primer intento de envío
   - momento: escritura
   - sobreescribible: nunca
   - cálculo: el instante del primer intento de envío; se fija una sola vez, en el primer intento.
-- CC-003 — fecha del último intento de envío
+- CC-Correo-003 — fecha del último intento de envío
   - momento: escritura
   - sobreescribible: nunca
   - cálculo: el instante del último intento de envío; se actualiza en cada intento (incluidos los reintentos).
-- CC-004 — fecha de envío
+- CC-Correo-004 — fecha de envío
   - momento: escritura
   - sobreescribible: nunca
   - cálculo: el instante en que el correo se consigue enviar y pasa a SUCCESS; vacía mientras no se haya enviado.
-- CC-005 — número de reintentos
+- CC-Correo-005 — número de reintentos
   - momento: escritura
   - sobreescribible: nunca
   - cálculo: empieza en 0; se incrementa en 1 con cada intento de envío.
-- CC-006 — descripción del último fallo
+- CC-Correo-006 — descripción del último fallo
   - momento: escritura
   - sobreescribible: nunca
-  - cálculo: el detalle del error (la traza de la excepción) del último intento de envío que falló; vacía si nunca ha fallado.
-- CC-007 — nombre del expediente
+  - cálculo: el detalle del error del último intento de envío que falló; vacía si nunca ha fallado.
+- CC-Correo-007 — nombre del expediente
   - momento: lectura
   - sobreescribible: nunca
   - cálculo: el nombre del expediente al que pertenece el historial de estado referenciado por el correo; vacío si el correo no tiene historial de estado.
@@ -68,27 +69,42 @@ Representa un correo electrónico dirigido a una persona, junto con el resultado
 
 **Validaciones:**
 
-- VAL-001 — El DNI del destinatario está indicado
+- VAL-Correo-001 — El DNI del destinatario está indicado
   - mensaje: "El DNI del destinatario es obligatorio"
-- VAL-002 — Hay al menos una dirección en el «para»
+- VAL-Correo-002 — Hay al menos una dirección en el «para»
   - mensaje: "Debe indicar al menos un destinatario en el «para»"
-- VAL-003 — El asunto está indicado
+- VAL-Correo-003 — El asunto está indicado
   - mensaje: "El asunto es obligatorio"
-- VAL-004 — El cuerpo está indicado
+- VAL-Correo-004 — El cuerpo está indicado
   - mensaje: "El cuerpo es obligatorio"
-- VAL-005 — El centro está indicado
+- VAL-Correo-005 — El centro está indicado
   - mensaje: "El centro es obligatorio"
-- VAL-011 — El nombre está indicado
+- VAL-Correo-006 — El nombre está indicado
   - mensaje: "El nombre es obligatorio"
-- VAL-012 — Los apellidos están indicados
+- VAL-Correo-007 — Los apellidos están indicados
   - mensaje: "Los apellidos son obligatorios"
-- VAL-006 — El centro indicado es uno de los centros a los que pertenece el usuario
+- VAL-Correo-008 — El centro indicado es uno de los centros a los que pertenece el usuario
   - actor: cualquier rol distinto de Administrador (el Administrador puede elegir cualquier centro)
   - mensaje: "No puede crear correos para un centro que no es suyo"
+- VAL-Correo-011 — Cada dirección indicada en el «para» tiene formato de correo electrónico válido
+  - mensaje: "El «para» debe contener direcciones de correo válidas (por ejemplo, usuario@dominio.com)"
+- VAL-Correo-012 — Si se indica «en copia», cada dirección tiene formato de correo electrónico válido
+  - condición: cuando «en copia» tiene valor
+  - mensaje: "El «en copia» debe contener direcciones de correo válidas"
+- VAL-Correo-013 — Si se indica «en copia oculta», cada dirección tiene formato de correo electrónico válido
+  - condición: cuando «en copia oculta» tiene valor
+  - mensaje: "El «en copia oculta» debe contener direcciones de correo válidas"
+- VAL-Correo-014 — Si se indica el historial de estado, referencia un historial de estado de expediente existente
+  - condición: cuando «historial de estado» tiene valor
+  - mensaje: "El historial de estado indicado no existe"
+- VAL-Correo-015 — El DNI del destinatario tiene formato válido y dígito de control correcto (DNI o NIE)
+  - mensaje: "El DNI del destinatario no es válido; compruebe la letra"
+- VAL-Correo-016 — El asunto no supera los 255 caracteres
+  - mensaje: "El asunto no puede superar 255 caracteres"
 
 **Reglas de negocio:**
 
-- RN-001 — Tras crear el correo (estado PENDIENTE), intentar enviarlo de forma asíncrona y, según el resultado, pasarlo a SUCCESS (registrando la fecha de envío) o a FAIL (guardando la descripción del fallo), actualizando la fecha del primer y del último intento y el número de reintentos.
+- RN-Correo-001 — Tras crear el correo (estado PENDIENTE), intentar enviarlo de forma asíncrona y, según el resultado, pasarlo a SUCCESS (registrando la fecha de envío) o a FAIL (guardando la descripción del fallo), actualizando la fecha del primer y del último intento y el número de reintentos.
   - fase: después_de_commit
 
 ## Acción: Modificar
@@ -99,14 +115,14 @@ Representa un correo electrónico dirigido a una persona, junto con el resultado
 
 **Validaciones:**
 
-- VAL-007 — El correo está en estado FAIL
+- VAL-Correo-009 — El correo está en estado FAIL
   - mensaje: "Solo se pueden reenviar correos que han fallado"
-- VAL-008 — El usuario tiene permiso sobre el centro del correo
+- VAL-Correo-010 — El usuario tiene permiso sobre el centro del correo
   - actor: cualquier rol distinto de Administrador (el Administrador puede reenviar correos de cualquier centro)
   - mensaje: "No puede reenviar correos de un centro que no es suyo"
 
 **Reglas de negocio:**
 
-- RN-002 — Volver a intentar el envío del correo de forma asíncrona y, según el resultado, pasarlo a SUCCESS (registrando la fecha de envío) o dejarlo en FAIL (actualizando la descripción del fallo), actualizando en todo caso la fecha del último intento e incrementando el número de reintentos.
+- RN-Correo-002 — Volver a intentar el envío del correo de forma asíncrona y, según el resultado, pasarlo a SUCCESS (registrando la fecha de envío) o dejarlo en FAIL (actualizando la descripción del fallo), actualizando en todo caso la fecha del último intento e incrementando el número de reintentos.
   - fase: después_de_commit
   - estado: FAIL

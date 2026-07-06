@@ -20,6 +20,7 @@ Listado de mis correos
 
 ## Vista: Listado de mis correos
 
+- **Slug:** listado
 - **Tipo:** listado
 - **Qué muestra:** los correos cuyo DNI de destinatario es el del usuario actual y cuyo estado es SUCCESS, en lectura.
 - **Se abre desde:** es la vista de entrada de la pantalla.
@@ -37,6 +38,7 @@ Listado de mis correos
 
 ## Vista: Formulario de mi correo
 
+- **Slug:** formulario
 - **Tipo:** formulario
 - **Qué muestra:** el contenido de un correo enviado con éxito al usuario y sus adjuntos, en solo lectura.
 - **Se abre desde:** el listado de mis correos, al pulsar una fila.
@@ -56,6 +58,7 @@ Listado de mis correos
 
 ## Vista: Listado de adjuntos
 
+- **Slug:** listado-adjuntos
 - **Tipo:** listado
 - **Qué muestra:** los adjuntos del correo, en lectura.
 - **Se abre desde:** embebido como panel «Adjuntos» en el formulario de mi correo.
@@ -73,6 +76,7 @@ Listado de mis correos
 
 ## Vista: Formulario de adjunto
 
+- **Slug:** formulario-adjunto
 - **Tipo:** formulario
 - **Qué muestra:** los datos de un adjunto del correo, en solo lectura.
 - **Se abre desde:** el listado de adjuntos, al pulsar una fila.
@@ -87,4 +91,4 @@ Listado de mis correos
 
 ### Botones
 
-*(formulario de solo lectura: sin botones)*
+- **Salir**: Cierra la ventana

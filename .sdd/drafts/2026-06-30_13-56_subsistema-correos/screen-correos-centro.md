@@ -20,6 +20,7 @@ Listado de correos del centro
 
 ## Vista: Listado de correos del centro
 
+- **Slug:** listado
 - **Tipo:** listado
 - **Qué muestra:** los correos cuyo centro es el centro del supervisor, en cualquier estado, en lectura.
 - **Se abre desde:** es la vista de entrada de la pantalla.
@@ -37,6 +38,7 @@ Listado de correos del centro
 
 ## Vista: Formulario de correo del centro
 
+- **Slug:** formulario
 - **Tipo:** formulario
 - **Qué muestra:** los datos de un correo del centro, sus adjuntos y el resultado de su envío, en solo lectura.
 - **Se abre desde:** el listado de correos del centro, al pulsar una fila.
@@ -55,14 +57,25 @@ Listado de correos del centro
 
 - **Reenviar** — Vuelve a intentar el envío del correo; visible solo cuando el correo está en estado FAIL.
 
+
 ### Reglas de UI
 
-- RUI-004 — El botón «Reenviar» solo se muestra cuando el estado del correo es FAIL
+- RUI-correos-centro-formulario-001 — El botón «Reenviar» solo se muestra cuando el estado del correo es FAIL
   - disparador: continuo
   - condición: estado == FAIL
+- RUI-correos-centro-formulario-002 — La «descripción del último fallo» solo se muestra cuando el correo está en estado FAIL
+  - disparador: continuo
+  - condición: estado == FAIL
+- RUI-correos-centro-formulario-003 — La «fecha de envío» solo se muestra cuando el correo está en estado SUCCESS
+  - disparador: continuo
+  - condición: estado == SUCCESS
+- RUI-correos-centro-formulario-004 — Tras pulsar «Reenviar» se muestra un aviso breve de que el reenvío está en curso
+  - disparador: al terminar la acción (tras pulsar Reenviar)
+  - condición: Siempre
 
 ## Vista: Listado de adjuntos
 
+- **Slug:** listado-adjuntos
 - **Tipo:** listado
 - **Qué muestra:** los adjuntos del correo, en lectura.
 - **Se abre desde:** embebido como panel «Adjuntos» en el formulario de correo del centro.
@@ -80,6 +93,7 @@ Listado de correos del centro
 
 ## Vista: Formulario de adjunto
 
+- **Slug:** formulario-adjunto
 - **Tipo:** formulario
 - **Qué muestra:** los datos de un adjunto del correo, en solo lectura.
 - **Se abre desde:** el listado de adjuntos, al pulsar una fila.
@@ -94,4 +108,4 @@ Listado de correos del centro
 
 ### Botones
 
-*(formulario de solo lectura: sin botones)*
+- **Salir**: Cierra la ventana
