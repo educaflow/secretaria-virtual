@@ -132,6 +132,17 @@ Todo lo específico del diseño (qué se produce, cómo se convierte el spec, qu
 - **MUST NOT** usar `run_in_background`: el skill necesita el resultado de cada subagente para continuar.
 - Cada rol responde con un **token literal** que el skill parsea (definidos en cada fase). El skill compara por literal exacto.
 
+### 2.4 Confinamiento de escritura — nunca fuera de la carpeta de la iniciativa
+
+El diseño es un **plan**, no una implementación. Ni el motor ni ningún subagente tocan el árbol real del proyecto.
+
+- **CRITICAL — el motor y los 8 subagentes MUST NOT escribir, crear, editar, mover ni borrar NINGÚN fichero fuera de la carpeta de la iniciativa** (`{iniciativa}/design_<n>/` o `{iniciativa}/design/`, según la fase; con `--out=`, la carpeta de salida indicada). En particular **MUST NOT** tocar código fuente (`src/**`), ficheros de configuración (p.ej. `axelor-config.properties`, `build.gradle`, cualquier `*.properties`/`*.yml` o `*.xml` del proyecto real), datos iniciales, ni cualquier otro artefacto del árbol del proyecto.
+- **REQUIRED — todo cambio fuera de la carpeta se DOCUMENTA, no se aplica.** Si el diseño **requiere** un cambio fuera de la carpeta de la iniciativa (una propiedad de configuración nueva, una clase existente que modificar, una dependencia, un script), ese cambio **MUST** quedar **descrito dentro del diseño** (en el fichero de `design/` que prescriba la plantilla) para que lo aplique `/sdd-implementer`. **MUST NOT** aplicarlo aquí.
+- El único acceso de escritura del motor fuera del contenido de diseño son sus propios **logs de orquestación** dentro de la carpeta de la iniciativa (`log_best.txt`, `log_revision.txt`, `log_revision_unit-test.txt`) y las operaciones `mv`/`rm` sobre las carpetas `design_<n>/`/`design/` (§8). Nada más.
+
+- ✅ CORRECTO: el diseño necesita `correos.reintentos.max=3` → se documenta como propiedad de configuración a añadir en el fichero de diseño que la plantilla destine a configuración; `/sdd-implementer` la escribirá en `axelor-config.properties`.
+- ❌ INCORRECTO: un subagente edita `src/main/resources/axelor-config.properties` para añadir la propiedad (escritura fuera de la carpeta de la iniciativa; es trabajo de `/sdd-implementer`)
+
 ---
 
 ## 3. Flujo general
@@ -257,6 +268,7 @@ No hay más preparación: el skill no carga skills técnicos ni explora el códi
 > - **Especificación**: lee `{ruta de specification.md}` y todos los ficheros que enlace.
 > - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(esta línea solo si el fichero existe)*.
 > - **Salida**: escribe el **diseño completo y autosuficiente** en la carpeta `{iniciativa}/design_<n>/`, con la estructura exacta que define el README (incluido su índice `design.md` con frontmatter `type: design`).
+> - **CRITICAL — confinamiento de escritura**: **MUST NOT** escribir, crear, editar ni borrar ningún fichero fuera de `{iniciativa}/design_<n>/`: nada de código fuente (`src/**`), configuración (`axelor-config.properties`, `build.gradle`, …) ni otros artefactos del proyecto. El diseño es un **plan**. Si el diseño exige un cambio fuera de esa carpeta (p.ej. una propiedad de configuración nueva o una clase existente que modificar), **documéntalo dentro del diseño** para que lo aplique `/sdd-implementer`; **MUST NOT** aplicarlo tú.
 > - **MUST NOT** usar `AskUserQuestion`. Ante una ambigüedad, toma la decisión más razonable y documéntala dentro del propio diseño.
 > - Al terminar, responde **exactamente** `ESCRITO: design_<n>` y, opcionalmente, 1-2 líneas de notas. **MUST NOT** pegar el contenido del diseño en la respuesta (ya está en disco).
 
@@ -392,6 +404,7 @@ Tras esto solo queda `design/` (más `--out=` si se indicó: en ese caso, el des
 > - **Especificación**: lee `{ruta de specification.md}` y los ficheros que enlace.
 > - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
 > - **Diseño a enriquecer y sanear**: la carpeta `{iniciativa}/design` — aplica las mejoras **en sitio** (`Edit`/`Write`), sin renombrar ni mover la carpeta, sin regenerar el diseño ni romper las decisiones del ganador que no estén en falta. Tras editar cualquier XML, asegúrate de que sigue validando contra su XSD.
+> - **CRITICAL — confinamiento de escritura**: **MUST NOT** escribir, editar ni borrar ningún fichero fuera de `{iniciativa}/design/` (nada de `src/**`, `axelor-config.properties`, `build.gradle`, ni otros artefactos del proyecto). Si una mejora exige un cambio fuera de esa carpeta, **documéntalo dentro del diseño** para `/sdd-implementer`; **MUST NOT** aplicarlo tú.
 > - **Mejoras a incorporar** (las reportó el enriquecedor, en formato JSONL, una por línea; el campo `tipo` indica si es una `VENTAJA` que incorporar o un `DEFECTO-GANADOR` que corregir): `{líneas JSONL literales del enriquecedor}`. Aplica cada `correccion` en el `fichero`/`ubicacion` indicados; mantén la trazabilidad y la coherencia (matriz, frontera de confianza, tests) que la plantilla exige.
 
 - ✅ CORRECTO (respuesta del enriquecedor sin mejoras): `OK-SIN-MEJORAS`
@@ -448,6 +461,7 @@ Si tras la 10ª iteración el verificador sigue sin responder `OK-CORRECTO` → 
 > - **Especificación**: lee `{ruta de specification.md}` y los ficheros que enlace.
 > - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
 > - **Diseño a corregir**: la carpeta `{iniciativa}/design` — corrige **en sitio** (`Edit`/`Write` sobre sus ficheros), sin renombrar ni mover la carpeta.
+> - **CRITICAL — confinamiento de escritura**: **MUST NOT** escribir, editar ni borrar ningún fichero fuera de `{iniciativa}/design/` (nada de `src/**`, `axelor-config.properties`, `build.gradle`, ni otros artefactos del proyecto). Si una corrección exige un cambio fuera de esa carpeta, **documéntalo dentro del diseño** para `/sdd-implementer`; **MUST NOT** aplicarlo tú.
 > - **Problemas a corregir** (los reportó el verificador, en formato JSONL, un problema por línea): `{líneas JSONL literales del verificador}`. Resuelve cada línea (`id`/`severidad`/`fichero`/`ubicacion`/`origen`/`problema`/`correccion`); aplica la `correccion` en el `fichero`/`ubicacion` indicados.
 
 - ✅ CORRECTO (respuesta del verificador sin problemas): `OK-CORRECTO`
@@ -597,6 +611,7 @@ Ruta alternativa desde la Fase 0 (§4.4) cuando el `design/` ya existe y el usua
 - **Verificar/corregir el diseño** (§10): bucle verificador → corrector hasta `OK-CORRECTO` (**LIMIT** 10; tras la 10ª, **STOP**). El verificador valida los artefactos como prescriba la plantilla (incluido ejecutar los scripts de validación que ella indique). El motor **MUST NOT** ejecutar esas validaciones él mismo (§2.2). El verificador reporta los problemas en **JSONL** (un problema por línea, campos `id`/`severidad`/`fichero`/`ubicacion`/`origen`/`problema`/`correccion`); el motor **MUST** mostrárselos al usuario en cada iteración con problemas y **MUST** volcar la respuesta literal de cada verificador a `design/log_revision.txt` (una sección por iteración).
 - **Tests unitarios** (§11, ambos modos): un subagente **test-unitarios** describe en `design/test-unit-desc.md` los tests unitarios (JUnit 5 + Mockito) de las clases Java del diseño — **solo descripción, sin código** (lo implementa `/sdd-implementer`). Enumera las clases **desde el diseño** (aún no hay `.java`); responde `ESCRITO: test-unit-desc.md`.
 - **Verificar/corregir tests unitarios** (§12, ambos modos): bucle `verificador-test-unitarios` → `corrector-test-unitarios` hasta `OK-CORRECTO` (**LIMIT** 10; tras la 10ª, **STOP**). Comprueba que `test-unit-desc.md` es **coherente con el diseño** (clases/métodos/reglas existentes, cobertura cuadra, nada inventado); JSONL con los campos `id`/`severidad`/`fichero`/`ubicacion`/`origen`/`problema`/`correccion`; vuelca el JSONL a `design/log_revision_unit-test.txt`.
+- **CRITICAL — confinamiento de escritura** (§2.4): el diseño es un **plan**. Ni el motor ni ningún subagente escriben/editan/borran fuera de la carpeta de la iniciativa (`design_<n>/`, `design/`, más los logs de orquestación); **MUST NOT** tocar `src/**`, `axelor-config.properties`, `build.gradle` ni ningún artefacto del proyecto real. Todo cambio fuera de la carpeta se **documenta dentro del diseño** para que lo aplique `/sdd-implementer`, nunca se aplica aquí.
 - **Contrato de tokens** (§2.3): el skill compara por literal exacto — `ESCRITO: design_<n>`, `GANADOR: design_<n>`, `OK-CORRECTO`. Los subagentes **MUST NOT** pegar el diseño en su respuesta (ya está en disco).
 - **MUST NOT** lanzar `/sdd-implementer` tú mismo: indica el comando y **STOP**.
 
