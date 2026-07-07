@@ -314,10 +314,14 @@ tasks.register('GenerateDocs') {
         file('src').traverse(type: groovy.io.FileType.FILES) { f ->
             def name = f.name
             if (name.endsWith('.plantuml') || name.endsWith('.puml')) {
+                def png = new File(f.parentFile, name.replaceFirst(/\.(plantuml|puml)$/, '.png'))
+                if (png.exists() && png.lastModified() >= f.lastModified()) {
+                    println "UML Diagram actualizado, se omite:${png}"
+                    return
+                }
                 def source = f.getText('UTF-8')
                 if (!source.contains('@startuml')) source = '@startuml\n' + source
                 if (!source.contains('@enduml'))   source = source + '\n\n@enduml'
-                def png = new File(f.parentFile, name.replaceFirst(/\.(plantuml|puml)$/, '.png'))
                 println "Generando UML Diagram en:${png}"
                 png.withOutputStream { os ->
                     new net.sourceforge.plantuml.SourceStringReader(source).outputImage(os)
