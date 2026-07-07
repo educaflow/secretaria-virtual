@@ -6,10 +6,16 @@
     <module name="criptografia" package="com.educaflow.subsystem.criptografia.db"/>
 
     <entity name="DispositivoCriptografico" repository="abstract">
-        <string name="nombre" required="true" title="Nombre" max="255"/>
+        <string name="name" required="true" title="Nombre" max="255" namecolumn="true"/>
         <string name="pkcs11LibraryPath" required="true" title="Ruta librería PKCS#11" default="/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so"/>
-        <integer name="slot" required="true" title="Slot__!!" default="0"/>
+        <integer name="slot" required="true" title="Slot__!!" default="0" min="0"  help="Es el número donde está pinchado el dispositivo. Empiezan por cero y son valores consecutivos." />
         <string name="pin" required="true" title="PIN"/>
+        <one-to-many name="alias" ref="com.educaflow.subsystem.criptografia.db.Alias" mappedBy="dispositivoCriptografico" title="Alias"/>
+        <string name="info" title="Información del dispositivo" large="true">
+            <![CDATA[
+                return com.educaflow.subsystem.criptografia.util.DispositivoCriptograficoInfoBuilder.build(getPkcs11LibraryPath(), getSlot(), getPin());
+            ]]>
+        </string>
     </entity>
 
 </domain-models>

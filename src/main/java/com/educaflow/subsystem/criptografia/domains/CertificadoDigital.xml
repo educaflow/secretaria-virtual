@@ -10,18 +10,18 @@
         <enum name="tipoCertificado" ref="TipoUbicacionCertificado" required="true" title="Tipo de certificado"/>
         <many-to-one name="fichero" ref="com.axelor.meta.db.MetaFile" title="Fichero"/>
         <string name="password" title="Contraseña"/>
-        <integer name="slot" title="Slot__!!"/>
-        <string name="alias" title="Alias"/>
+        <many-to-one name="dispositivoCriptografico" ref="com.educaflow.subsystem.criptografia.db.DispositivoCriptografico" title="Dispositivo criptográfico"/>
+        <many-to-one name="alias" ref="com.educaflow.subsystem.criptografia.db.Alias" title="Alias" help="Es el 'nombre' que tiene el certificado dentro del dispositivo criptográfico"/>
         <string name="rutaClasspath" title="Ruta classpath__!!"/>
         <string name="rutaSistemaArchivos" title="Ruta sistema de archivos"/>
         <finder-method name="findByDni" using="String:dni" filter="self.dni = :dni" />
     </entity>
 
     <enum name="TipoUbicacionCertificado">
-        <item name="FICHERO_BD" title="Fichero en base de datos"/>
-        <item name="DISPOSITIVO_PKCS11" title="Dispositivo PKCS#11"/>
-        <item name="CLASSPATH" title="Dentro del WAR__!! classpath__!!"/>
-        <item name="SISTEMA_ARCHIVOS" title="Ruta del sistema de archivos"/>
+        <item name="FICHERO_BD" title="Subir un fichero con el certificado para guardar permanentemente en la secretaría virtual"/>
+        <item name="DISPOSITIVO_PKCS11" title="Usar un dispositivo criptográfico donde ya está el certificado"/>
+        <item name="CLASSPATH" title="Usar un fichero con el certificado que ya está dentro del del WAR__!!"/>
+        <item name="SISTEMA_ARCHIVOS" title="Usar un certificado que ya está en una ruta absoluta en el sistema de archivos"/>
     </enum>
 
 </domain-models>

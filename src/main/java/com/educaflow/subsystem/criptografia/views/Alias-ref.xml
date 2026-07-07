@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <grid name="subsysCriptografia.Alias@Search-grid" model="com.educaflow.subsystem.criptografia.db.Alias"
+          title="" orderBy="name"
+          editable="false" edit-icon="false" x-selector="none"
+          canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true"
+    >
+        <field name="name"/>
+    </grid>
+
+    <form name="subsysCriptografia.Alias@View-form" title="Alias" model="com.educaflow.subsystem.criptografia.db.Alias"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="Alias" title="">
+            <field name="name" colSpan="6" readonly="true"/>
+            <field name="info" colSpan="12" widget="Text" height="12" readonly="true" />
+        </panel>
+    </form>
+
+</object-views>

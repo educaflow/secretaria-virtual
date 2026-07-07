@@ -6,7 +6,7 @@ import java.util.List;
 
 public class DispositivoCriptograficoRepository extends AbstractDispositivoCriptograficoRepository {
 
-    public List<DispositivoCriptografico> findAll() {
-        return all().fetch();
+    public List<DispositivoCriptografico> findBySlot(int slot) {
+        return all().filter("self.slot = :slot").bind("slot", slot).fetch();
     }
 }

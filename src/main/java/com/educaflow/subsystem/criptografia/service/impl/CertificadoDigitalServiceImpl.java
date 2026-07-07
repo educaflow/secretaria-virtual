@@ -9,6 +9,7 @@ import com.educaflow.base.infrastructure.criptografia.DispositivoCriptografico;
 import com.educaflow.base.infrastructure.criptografia.EntornoCriptografico;
 import com.axelor.db.modelservice.BusinessMessage;
 import com.axelor.db.modelservice.BusinessMessages;
+import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.util.DniUtil;
 import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
@@ -46,7 +47,7 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
                 byte[] bytes = MetaFileUtil.downloadContent(certificado.getFichero());
                 yield new AlmacenClaveFichero(new ByteArrayInputStream(bytes), certificado.getPassword());
             }
-            case DISPOSITIVO_PKCS11 -> new AlmacenClaveDispositivo(certificado.getSlot(), certificado.getAlias());
+            case DISPOSITIVO_PKCS11 -> new AlmacenClaveDispositivo(certificado.getDispositivoCriptografico().getSlot(), certificado.getAlias().getName());
             case CLASSPATH -> new AlmacenClaveFichero(
                     CertificadoDigitalServiceImpl.class.getClassLoader().getResourceAsStream(certificado.getRutaClasspath()),
                     certificado.getPassword()
@@ -62,6 +63,19 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
                 }
             }
         };
+    }
+
+    @Override
+    public void remove(CertificadoDigital certificado) {
+        validateRemove(certificado).ifPresent(BusinessMessages::throwIfInvalid);
+
+        MetaFile fichero = (certificado.getTipoCertificado() == TipoUbicacionCertificado.FICHERO_BD) ? certificado.getFichero() : null;
+
+        repository.remove(certificado);
+
+        if (fichero != null) {
+            MetaFileUtil.delete(fichero);
+        }
     }
 
     /****************************************************************************************/
@@ -92,6 +106,11 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
 
         if (!DniUtil.isValid(certificado.getDni())) {
             messages.add(new BusinessMessage("dni", "El DNI no es válido"));
+        } else {
+            CertificadoDigital existente = ((CertificadoDigitalRepository) repository).findByDni(certificado.getDni());
+            if (existente != null && !existente.getId().equals(certificado.getId())) {
+                messages.add(new BusinessMessage("dni", "Ya existe un certificado digital con el DNI '" + certificado.getDni() + "'"));
+            }
         }
 
         TipoUbicacionCertificado tipo = certificado.getTipoCertificado();
@@ -107,22 +126,26 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
                 }
             }
             case DISPOSITIVO_PKCS11 -> {
-                if (certificado.getSlot() == null) {
-                    messages.add(new BusinessMessage("slot", "El slot es obligatorio para certificados de tipo Dispositivo PKCS#11"));
+                if (certificado.getDispositivoCriptografico() == null) {
+                    messages.add(new BusinessMessage("dispositivoCriptografico", "El dispositivo criptográfico es obligatorio para certificados de tipo Dispositivo PKCS#11"));
                 }
-                if (certificado.getAlias() == null || certificado.getAlias().isBlank()) {
+                if (certificado.getAlias() == null) {
                     messages.add(new BusinessMessage("alias", "El alias es obligatorio para certificados de tipo Dispositivo PKCS#11"));
                 }
 
-                if (certificado.getSlot() != null && certificado.getAlias() != null && !certificado.getAlias().isBlank()) {
-                    try {
-                        DispositivoCriptografico dispositivo = EntornoCriptografico.getDispositivoCriptografico(certificado.getSlot());
-                        List<String> aliasesDisponibles = dispositivo.getAliases();
-                        if (!aliasesDisponibles.contains(certificado.getAlias())) {
-                            messages.add(new BusinessMessage("alias", "El alias '" + certificado.getAlias() + "' no existe en el slot " + certificado.getSlot() + ". Los alias disponibles son: " + String.join(", ", aliasesDisponibles)));
+                if (certificado.getDispositivoCriptografico() != null && certificado.getAlias() != null) {
+                    if (!certificado.getAlias().getDispositivoCriptografico().getId().equals(certificado.getDispositivoCriptografico().getId())) {
+                        messages.add(new BusinessMessage("alias", "El alias seleccionado no pertenece al dispositivo criptográfico '" + certificado.getDispositivoCriptografico().getName() + "'"));
+                    } else {
+                        try {
+                            DispositivoCriptografico dispositivo = EntornoCriptografico.getDispositivoCriptografico(certificado.getDispositivoCriptografico().getSlot());
+                            List<String> aliasesDisponibles = dispositivo.getAliases();
+                            if (!aliasesDisponibles.contains(certificado.getAlias().getName())) {
+                                messages.add(new BusinessMessage("alias", "El alias '" + certificado.getAlias().getName() + "' no existe en el dispositivo '" + certificado.getDispositivoCriptografico().getName() + "'. Los alias disponibles son: " + String.join(", ", aliasesDisponibles)));
+                            }
+                        } catch (RuntimeException e) {
+                            // Si el dispositivo no está configurado aún, no se puede validar el alias
                         }
-                    } catch (RuntimeException e) {
-                        // Si el dispositivo no está configurado aún, no se puede validar el alias
                     }
                 }
             }

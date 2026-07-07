@@ -29,15 +29,21 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
         <panel name="CertificadoDigital" title="Certificado digital">
             <field name="dni" colSpan="2"/>
-            <field name="tipoCertificado" colSpan="4"/>
+            <field name="tipoCertificado" colSpan="6"/>
 
             <panel name="panelFicheroBD" colSpan="12" showIf="tipoCertificado == 'FICHERO_BD'" showFrame="false">
                 <field name="password" colSpan="2"/>
                 <field name="fichero" colSpan="10" widget="binary-link"/>
             </panel>
             <panel name="panelPkcs11" colSpan="12" showIf="tipoCertificado == 'DISPOSITIVO_PKCS11'" showFrame="false">
-                <field name="slot" colSpan="2"/>
-                <field name="alias" colSpan="10"/>
+                <field name="dispositivoCriptografico" colSpan="4"
+                       grid-view="subsysCriptografia.DispositivoCriptografico@Search-grid"
+                       form-view="subsysCriptografia.DispositivoCriptografico@View-form"
+                       onChange="subsysCriptografia.CertificadoDigital@Main-onChange-dispositivoCriptografico-action"/>
+                <field name="alias" colSpan="8"
+                       domain="self.dispositivoCriptografico = :dispositivoCriptografico"
+                       grid-view="subsysCriptografia.Alias@Search-grid"
+                       form-view="subsysCriptografia.Alias@View-form"/>
             </panel>
             <panel name="panelClasspath" colSpan="12" showIf="tipoCertificado == 'CLASSPATH'" showFrame="false">
                 <field name="password" colSpan="2"/>
@@ -50,12 +56,9 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         </panel>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnDelete" title="Borrar" onClick="subsysCriptografia.CertificadoDigital@Main-btnDelete-action"
-                    css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
-            <button name="btnCancel" title="Cancelar" onClick="subsysCriptografia.CertificadoDigital@Main-btnCancel-action"
-                    colSpan="2" colOffset="6" outline="true"/>
-            <button name="btnSave" title="Guardar" onClick="subsysCriptografia.CertificadoDigital@Main-btnSave-action"
-                    colSpan="2"/>
+            <button name="btnDelete" title="Borrar" onClick="subsysCriptografia.CertificadoDigital@Main-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysCriptografia.CertificadoDigital@Main-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="subsysCriptografia.CertificadoDigital@Main-btnSave-action" colSpan="2"/>
         </panel>
     </form>
 
@@ -69,11 +72,15 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     <action-group name="subsysCriptografia.CertificadoDigital@Main-btnSave-action">
         <action name="subsysCriptografia.CertificadoDigital@Main-Remote-validateSave-action"/>
         <action name="save"/>
+        <action name="back"/>
     </action-group>
 
     <!-- *************** CertificadoDigital : Acciones de Validaciones en local *************** -->
 
     <!-- *************** CertificadoDigital : Acciones básicas que cambian campos simples *************** -->
+    <action-record name="subsysCriptografia.CertificadoDigital@Main-onChange-dispositivoCriptografico-action" model="com.educaflow.subsystem.criptografia.db.CertificadoDigital">
+        <field name="alias" expr="eval: null"/>
+    </action-record>
 
     <!-- *************** CertificadoDigital : Acciones de llamadas Remotas al servidor *************** -->
     <action-method name="subsysCriptografia.CertificadoDigital@Main-Remote-validateSave-action" model="com.educaflow.subsystem.criptografia.db.CertificadoDigital">

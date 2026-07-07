@@ -10,6 +10,5 @@ import java.util.Optional;
 public interface CertificadoDigitalService extends ModelService<CertificadoDigital> {
 
     AlmacenClave getAlmacenClaveByDni(String dni);
-
     Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni);
 }

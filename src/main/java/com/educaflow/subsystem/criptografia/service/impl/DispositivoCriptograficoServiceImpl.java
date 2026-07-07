@@ -8,9 +8,11 @@ import com.educaflow.base.infrastructure.criptografia.slot.SlotInfo;
 import com.educaflow.base.infrastructure.criptografia.slot.SlotInfoFactory;
 import com.axelor.db.modelservice.BusinessMessage;
 import com.axelor.db.modelservice.BusinessMessages;
+import com.educaflow.subsystem.criptografia.db.Alias;
 import com.educaflow.subsystem.criptografia.db.DispositivoCriptografico;
 import com.educaflow.subsystem.criptografia.db.repo.DispositivoCriptograficoRepository;
 import com.educaflow.subsystem.criptografia.service.DispositivoCriptograficoService;
+import com.educaflow.subsystem.criptografia.util.DispositivoCriptograficoInfoBuilder;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,6 +28,11 @@ public class DispositivoCriptograficoServiceImpl extends DefaultModelService<Dis
     @Override
     public DispositivoCriptografico insert(DispositivoCriptografico dispositivo) {
         validateInsert(dispositivo).ifPresent(BusinessMessages::throwIfInvalid);
+        for (String nombreAlias : DispositivoCriptograficoInfoBuilder.listarAlias(dispositivo.getPkcs11LibraryPath(), dispositivo.getSlot(), dispositivo.getPin())) {
+            Alias alias = new Alias();
+            alias.setName(nombreAlias);
+            dispositivo.addAlias(alias);
+        }
         DispositivoCriptografico resultado = repository.save(dispositivo);
         fireActionRule_RecargarDispositivos();
         return resultado;
@@ -46,12 +53,6 @@ public class DispositivoCriptograficoServiceImpl extends DefaultModelService<Dis
         fireActionRule_RecargarDispositivos();
     }
 
-    @Override
-    public void recargarDispositivosEnEntornoCriptografico() {
-        validateRecargarDispositivosEnEntornoCriptografico().ifPresent(BusinessMessages::throwIfInvalid);
-        fireActionRule_RecargarDispositivos();
-    }
-
     /****************************************************************************************/
     /******************************** Métodos de Validación *********************************/
     /****************************************************************************************/
@@ -66,17 +67,12 @@ public class DispositivoCriptograficoServiceImpl extends DefaultModelService<Dis
         return validateDispositivo(dispositivo);
     }
 
-    @Override
-    public Optional<BusinessMessages> validateRecargarDispositivosEnEntornoCriptografico() {
-        return Optional.empty();
-    }
-
     /****************************************************************************/
     /******************************* Action Rules *******************************/
     /****************************************************************************/
 
     private void fireActionRule_RecargarDispositivos() {
-        List<DispositivoCriptografico> todos = ((DispositivoCriptograficoRepository) repository).findAll();
+        List<DispositivoCriptografico> todos = ((DispositivoCriptograficoRepository) repository).all().fetch();
         List<DispositivoCriptograficoConfig> configs = todos.stream()
                 .map(d -> new DispositivoCriptograficoConfig(
                         Path.of(d.getPkcs11LibraryPath()),
@@ -117,6 +113,12 @@ public class DispositivoCriptograficoServiceImpl extends DefaultModelService<Dis
         boolean slotValido = slotsInfo.stream().anyMatch(s -> s.index == slotSolicitado);
         if (!slotValido) {
             messages.add(new BusinessMessage("slot", "El slot " + slotSolicitado + " no existe en la librería PKCS#11. Slots disponibles: " + slotsInfo.size()));
+        }
+
+        Long id = dispositivo.getId();
+        boolean slotOcupado = ((DispositivoCriptograficoRepository) repository).findBySlot(slotSolicitado).stream().anyMatch(otro -> !otro.getId().equals(id));
+        if (slotOcupado) {
+            messages.add(new BusinessMessage("slot", "Ya existe un dispositivo criptográfico configurado en el slot " + slotSolicitado + ". Cada slot solo puede tener un dispositivo."));
         }
 
         if (messages.isValid()) {
