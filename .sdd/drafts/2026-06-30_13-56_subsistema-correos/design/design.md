@@ -61,14 +61,12 @@ public record Mail(java.util.List<String> to, java.util.List<String> cc, java.ut
                     String from, String subject, String htmlBody, String textBody,
                     java.util.List<Attach> attachs) {
 
+    public Mail(java.util.List<String> to, String from, String subject, String htmlBody,
+                String textBody, java.util.List<Attach> attachs);
     // Constructor de compatibilidad (firma de 6 argumentos, sin cc/bcc) — delega en el canónico
     // con cc=List.of() y bcc=List.of(). Preserva sin cambios el único llamador real existente
     // (com.educaflow.subsystem.registroentradasalida.service.impl.RegistroSalidaServiceImpl,
     // que sigue construyendo Mail con new Mail(to, from, subject, body, body, attachs)).
-    public Mail(java.util.List<String> to, String from, String subject, String htmlBody,
-                String textBody, java.util.List<Attach> attachs) {
-        this(to, java.util.List.of(), java.util.List.of(), from, subject, htmlBody, textBody, attachs);
-    }
 }
 ```
 
@@ -217,23 +215,29 @@ public class CorreoServiceImpl extends com.axelor.db.modelservice.DefaultModelSe
     //       Mensaje debe transmitir: "el DNI del destinatario es obligatorio" (sin valor recibido,
     //       no hay nada que mostrar).
     //     - V-Correo-002 (Origen spec: VAL-Correo-015) dniDestinatario válido: solo si el anterior
-    //       pasó, comprobar com.educaflow.base.util.DniUtil.isValid(dniDestinatario). Mensaje debe
-    //       transmitir: el DNI recibido y que la letra de control no es correcta.
+    //       pasó, comprobar com.educaflow.base.util.DniUtil.isValid(dniDestinatario). Mensaje
+    //       literal exacto: "El DNI del destinatario no es válido; compruebe la letra" (sin
+    //       interpolar el DNI recibido — ver test-unit-desc.md).
     //     - V-Correo-003 (Origen spec: VAL-Correo-006) nombre obligatorio.
     //     - V-Correo-004 (Origen spec: VAL-Correo-007) apellidos obligatorios.
     //     - V-Correo-005 (Origen spec: VAL-Correo-002) para: al menos una dirección tras separar
     //       por comas (ver "Otras funciones", separarDirecciones). Mensaje: debe indicar al menos
     //       un destinatario en el «para».
     //     - V-Correo-006 (Origen spec: VAL-Correo-011) cada dirección de "para" tiene formato válido
-    //       (com.educaflow.base.util.EMailUtil.isValid por cada dirección separada). Mensaje debe
-    //       transmitir la primera dirección inválida encontrada + el formato esperado.
+    //       (com.educaflow.base.util.EMailUtil.isValid por cada dirección separada). Mensaje literal
+    //       exacto: "El «para» debe contener direcciones de correo válidas (por ejemplo,
+    //       usuario@dominio.com)" (sin interpolar la dirección recibida — ver test-unit-desc.md).
     //     - V-Correo-007 (Origen spec: VAL-Correo-012) si "enCopia" tiene valor, cada dirección
-    //       válida (mismo mecanismo que V-Correo-006).
+    //       válida (mismo mecanismo que V-Correo-006). Mensaje literal exacto: "El «en copia» debe
+    //       contener direcciones de correo válidas" (sin interpolar la dirección recibida — ver
+    //       test-unit-desc.md).
     //     - V-Correo-008 (Origen spec: VAL-Correo-013) si "enCopiaOculta" tiene valor, cada dirección
-    //       válida.
+    //       válida. Mensaje literal exacto: "El «en copia oculta» debe contener direcciones de correo
+    //       válidas" (sin interpolar la dirección recibida — ver test-unit-desc.md).
     //     - V-Correo-009 (Origen spec: VAL-Correo-003) asunto obligatorio.
-    //     - V-Correo-010 (Origen spec: VAL-Correo-016) asunto <= 255 caracteres. Mensaje debe
-    //       transmitir la longitud recibida y el máximo (255).
+    //     - V-Correo-010 (Origen spec: VAL-Correo-016) asunto <= 255 caracteres. Mensaje literal
+    //       exacto: "El asunto no puede superar 255 caracteres" (sin interpolar la longitud
+    //       recibida — ver test-unit-desc.md).
     //     - V-Correo-011 (Origen spec: VAL-Correo-004) cuerpo obligatorio.
     //     - V-Correo-012 (Origen spec: VAL-Correo-005) centro obligatorio.
     //     - V-Correo-013 (Origen spec: VAL-Correo-008) si el usuario actual NO es Administrador

@@ -53,7 +53,7 @@
             ]]>
         </string>
 
-        <finder-method name="findByEstado" using="EstadoCorreo:estado" filter="self.estado = :estado" all="true"/>
+        <finder-method name="findByEstado" using="estado" filter="self.estado = :estado" all="true"/>
 
     </entity>
 

@@ -13,6 +13,7 @@ Descripción de los tests unitarios (JUnit 5 + Mockito) por clase y método para
 - **`DniUtil.isValid(String)`** y **`EMailUtil.isValid(String)`** (`com.educaflow.base.util`, utilidades puras y deterministas): **no se mockean**; se usan valores reales conocidos (un DNI/NIE y una dirección de correo concretos, válidos o inválidos) para ejercer la rama deseada.
 - **`I18n.get(...)`**: se mockea con `Mockito.mockStatic(I18n.class, withSettings().strictness(Strictness.LENIENT))` devolviendo el propio argumento (`invocation -> invocation.getArgument(0)`), igual que el resto de tests del proyecto.
 - **Repositorios**: se mockean con `Mockito.mock(...)`; el mock de `com.educaflow.subsystem.correos.db.repo.CorreoRepository` (subtipo autogenerado de `Repository<Correo>`) se pasa directamente al constructor de `CorreoServiceImpl` (acepta `Repository<Correo>`), y se referencia como `CorreoRepository` en los tests que necesitan `findByEstado(...)`.
+- **`AppSettings`** (`com.axelor.app.AppSettings`, estático): `construirMail` lee `correos.envio.from` mediante `AppSettings.get().get("correos.envio.from")`. En los tests de `enviarCorreo` que llegan a `construirMail` (todos salvo `enviarCorreo_correoYaEnSuccess_noHaceNadaIdempotente` y `enviarCorreo_correoIdInexistente_noHaceNada`, que retornan antes), se mockea con `Mockito.mockStatic(AppSettings.class)` + `AppSettings settingsMock = Mockito.mock(AppSettings.class)`; `AppSettings.get()` → `settingsMock`; `settingsMock.get("correos.envio.from")` → `"noreply@educaflow.test"` (mismo valor en todos, salvo que un test indique otro explícitamente).
 
 ---
 
@@ -57,7 +58,7 @@ Descripción de los tests unitarios (JUnit 5 + Mockito) por clase y método para
 ## Clase: `com.educaflow.subsystem.correos.service.impl.CorreoServiceImpl`  —  servicio
 
 **Responsabilidad:** alta/consulta/reenvío de `Correo`, validaciones de negocio, asignación de campos servidor y orquestación del envío síncrono/asíncrono.
-**Colaboradores a mockear:** `com.educaflow.subsystem.correos.db.repo.CorreoRepository` (repositorio, vía el parámetro `Repository<Correo>` del constructor); `com.educaflow.base.infrastructure.mail.MailSender` (campo `@Inject`); `com.educaflow.subsystem.correos.infrastructure.CorreoAsyncExecutor` (campo `@Inject`); estáticos `com.educaflow.base.util.SecurityUtil`, `com.axelor.db.JpaRepository` (para `HistorialEstado`), `com.educaflow.subsystem.correos.infrastructure.PostCommitRunner`, `com.axelor.db.JPA` (`runInTransaction`), `com.educaflow.base.util.MetaFileUtil`, `com.axelor.i18n.I18n`.
+**Colaboradores a mockear:** `com.educaflow.subsystem.correos.db.repo.CorreoRepository` (repositorio, vía el parámetro `Repository<Correo>` del constructor); `com.educaflow.base.infrastructure.mail.MailSender` (campo `@Inject`); `com.educaflow.subsystem.correos.infrastructure.CorreoAsyncExecutor` (campo `@Inject`); estáticos `com.educaflow.base.util.SecurityUtil`, `com.axelor.db.JpaRepository` (para `HistorialEstado`), `com.educaflow.subsystem.correos.infrastructure.PostCommitRunner`, `com.axelor.db.JPA` (`runInTransaction`), `com.educaflow.base.util.MetaFileUtil`, `com.axelor.i18n.I18n`, `com.axelor.app.AppSettings` (para `correos.envio.from` en `construirMail`, ver Convenciones).
 **Origen diseño:** `design.md` Paso 3 (servicios), `design/rules/R-Correo-001.md`, `design/rules/R-Correo-002.md`.
 
 ### Método: `Correo insert(Correo correo)`
@@ -107,19 +108,19 @@ Descripción de los tests unitarios (JUnit 5 + Mockito) por clase y método para
 ### Método: `void enviarCorreo(Long correoId)`
 
 - **`enviarCorreo_envioExitoso_marcaSuccessYRegistraFechaEnvio`** — Tipo: happy. Verifica: R-Correo-001/R-Correo-004, RES-Correo-002.
-  - **Arrange:** mock estático `JPA.runInTransaction(Runnable)` para que ejecute inmediatamente el runnable recibido (`invocation -> { ((Runnable) invocation.getArgument(0)).run(); return null; }`); mock `repository.find(correoId)` → un `Correo` en `PENDIENTE`, con `para="a@x.com"`, `enCopia=null`, `enCopiaOculta=null`, `adjuntos=List.of()`, `fechaPrimerIntentoEnvio=null`, `numeroReintentos=0`; mock `mailSender.send(any())` sin lanzar excepción.
+  - **Arrange:** mock estático `JPA.runInTransaction(Runnable)` para que ejecute inmediatamente el runnable recibido (`invocation -> { ((Runnable) invocation.getArgument(0)).run(); return null; }`); mock `repository.find(correoId)` → un `Correo` en `PENDIENTE`, con `para="a@x.com"`, `enCopia=null`, `enCopiaOculta=null`, `adjuntos=List.of()`, `fechaPrimerIntentoEnvio=null`, `numeroReintentos=0`; mock `mailSender.send(any())` sin lanzar excepción; mock estático `AppSettings` (ver Convenciones) → `correos.envio.from` = `"noreply@educaflow.test"`.
   - **Act:** `service.enviarCorreo(correoId)`.
   - **Assert:** tras la llamada, el `Correo` mockeado/capturado tiene `estado == SUCCESS`, `fechaEnvio != null`, `descripcionUltimoFallo == null`; `verify(repository).save(correo)`.
 - **`enviarCorreo_envioFalla_marcaFailYGuardaTrazaCompleta`** — Tipo: error. Verifica: R-Correo-001/R-Correo-004, RES-Correo-002.
-  - **Arrange:** igual que el anterior, pero `mailSender.send(any())` lanza `new RuntimeException("SMTP caído")`.
+  - **Arrange:** igual que el anterior, pero `mailSender.send(any())` lanza `new RuntimeException("SMTP caído")`; mock estático `AppSettings` (ver Convenciones) → `correos.envio.from` = `"noreply@educaflow.test"`.
   - **Act:** `service.enviarCorreo(correoId)`.
   - **Assert:** el correo queda `estado == FAIL`, `fechaEnvio == null` (RES-Correo-002), `descripcionUltimoFallo` contiene el texto `"SMTP caído"` (la traza de la excepción); `verify(repository).save(correo)`; el método **no** propaga la excepción (no hay `assertThrows`).
 - **`enviarCorreo_envioExitoso_sobrescribeIncondicionalmenteDescripcionDeFalloPrevia`** — Tipo: borde. Verifica: R-Correo-004 (CC-Correo-004/CC-Correo-006; defensa de asignación incondicional de campos servidor, k-secure-coding §3.3 — `fireActionRule_MarcarEnvioCorrecto` MUST NOT llevar guarda condicional).
-  - **Arrange:** `Correo` procedente de un intento anterior fallido: `estado = FAIL`, `descripcionUltimoFallo = "fallo anterior"` ya fijado; en este intento `mailSender.send(any())` no lanza.
+  - **Arrange:** `Correo` procedente de un intento anterior fallido: `estado = FAIL`, `descripcionUltimoFallo = "fallo anterior"` ya fijado; en este intento `mailSender.send(any())` no lanza; mock estático `AppSettings` (ver Convenciones) → `correos.envio.from` = `"noreply@educaflow.test"`.
   - **Act:** `service.enviarCorreo(correoId)`.
   - **Assert:** el correo queda `estado == SUCCESS`, `descripcionUltimoFallo == null` (se sobrescribe sin comprobar su valor anterior) y `fechaEnvio != null`.
 - **`enviarCorreo_envioFalla_sobrescribeIncondicionalmenteFechaEnvioPrevia`** — Tipo: borde. Verifica: R-Correo-004 (RES-Correo-002; defensa de asignación incondicional de campos servidor, k-secure-coding §3.3 — `fireActionRule_MarcarEnvioFallido` MUST NOT llevar guarda condicional).
-  - **Arrange:** `Correo` con `fechaEnvio` ya fijada a una fecha anterior (dato anómalo/heredado, para comprobar que la asignación no depende de ninguna comprobación previa); `mailSender.send(any())` lanza `new RuntimeException("SMTP caído")`.
+  - **Arrange:** `Correo` con `fechaEnvio` ya fijada a una fecha anterior (dato anómalo/heredado, para comprobar que la asignación no depende de ninguna comprobación previa); `mailSender.send(any())` lanza `new RuntimeException("SMTP caído")`; mock estático `AppSettings` (ver Convenciones) → `correos.envio.from` = `"noreply@educaflow.test"`.
   - **Act:** `service.enviarCorreo(correoId)`.
   - **Assert:** el correo queda `estado == FAIL` y `fechaEnvio == null` (se sobrescribe incondicionalmente aunque ya tuviera valor — RES-Correo-002 garantizado por construcción, no por un `if`).
 - **`enviarCorreo_correoYaEnSuccess_noHaceNadaIdempotente`** — Tipo: borde. Verifica: R-Correo-001 (idempotencia, "Notas de esta regla").
@@ -131,19 +132,19 @@ Descripción de los tests unitarios (JUnit 5 + Mockito) por clase y método para
   - **Act:** `service.enviarCorreo(correoId)`.
   - **Assert:** `verify(mailSender, never()).send(any())`; no se lanza ninguna excepción.
 - **`enviarCorreo_primerIntento_fijaFechaPrimerIntentoEnvio`** — Tipo: borde. Verifica: R-Correo-004 (CC-Correo-002).
-  - **Arrange:** `Correo` con `fechaPrimerIntentoEnvio == null`, `numeroReintentos == 0`; `mailSender.send` no lanza.
+  - **Arrange:** `Correo` con `fechaPrimerIntentoEnvio == null`, `numeroReintentos == 0`; `mailSender.send` no lanza; mock estático `AppSettings` (ver Convenciones) → `correos.envio.from` = `"noreply@educaflow.test"`.
   - **Act:** `service.enviarCorreo(correoId)`.
   - **Assert:** tras la llamada, `fechaPrimerIntentoEnvio != null`; `numeroReintentos == 1`; `fechaUltimoIntentoEnvio != null`.
 - **`enviarCorreo_reintento_noSobrescribeFechaPrimerIntentoEnvio`** — Tipo: borde. Verifica: R-Correo-004 (CC-Correo-002, "se fija una sola vez").
-  - **Arrange:** `Correo` con `fechaPrimerIntentoEnvio` ya fijado a una fecha `T0` conocida, `estado == FAIL`, `numeroReintentos == 1`.
+  - **Arrange:** `Correo` con `fechaPrimerIntentoEnvio` ya fijado a una fecha `T0` conocida, `estado == FAIL`, `numeroReintentos == 1`; `mailSender.send` no lanza; mock estático `AppSettings` (ver Convenciones) → `correos.envio.from` = `"noreply@educaflow.test"`.
   - **Act:** `service.enviarCorreo(correoId)`.
   - **Assert:** `fechaPrimerIntentoEnvio` sigue siendo exactamente `T0` (no cambia); `numeroReintentos == 2` (se incrementa); `fechaUltimoIntentoEnvio` sí se actualiza a un instante posterior a `T0`.
 - **`enviarCorreo_separaDireccionesDeParaCcYBccPorComas`** — Tipo: happy. Verifica: `—` (soporte de `construirMail`/`separarDirecciones`, base de V-Correo-005/006/007/008).
-  - **Arrange:** `Correo` con `para = "a@x.com, b@x.com"`, `enCopia = "c@x.com"`, `enCopiaOculta = " d@x.com , e@x.com "` (espacios extra), `adjuntos = List.of()`; `mailSender.send` no lanza; capturar el argumento con `ArgumentCaptor<Mail>`.
+  - **Arrange:** `Correo` con `para = "a@x.com, b@x.com"`, `enCopia = "c@x.com"`, `enCopiaOculta = " d@x.com , e@x.com "` (espacios extra), `adjuntos = List.of()`; `mailSender.send` no lanza; capturar el argumento con `ArgumentCaptor<Mail>`; mock estático `AppSettings` (ver Convenciones) → `correos.envio.from` = `"noreply@educaflow.test"`.
   - **Act:** `service.enviarCorreo(correoId)`.
-  - **Assert:** el `Mail` capturado tiene `to = ["a@x.com", "b@x.com"]`, `cc = ["c@x.com"]`, `bcc = ["d@x.com", "e@x.com"]` (recortado, sin vacíos), `from` igual a la propiedad `correos.envio.from`, `subject` == `correo.getAsunto()`, `htmlBody`/`textBody` == `correo.getCuerpo()`.
+  - **Assert:** el `Mail` capturado tiene `to = ["a@x.com", "b@x.com"]`, `cc = ["c@x.com"]`, `bcc = ["d@x.com", "e@x.com"]` (recortado, sin vacíos), `from == "noreply@educaflow.test"` (el valor stubado de `correos.envio.from`), `subject` == `correo.getAsunto()`, `htmlBody`/`textBody` == `correo.getCuerpo()`.
 - **`enviarCorreo_correoConAdjuntos_construyeAttachsDesdeMetaFile`** — Tipo: happy. Verifica: `—` (soporte de `construirMail`).
-  - **Arrange:** `Correo` con un `Adjunto` (`nombreFichero="doc.pdf"`, `contenido` un `MetaFile` mock con `getFileType()` → `"application/pdf"`); mock estático `MetaFileUtil.downloadContent(metaFile)` → un `byte[]` conocido; `mailSender.send` no lanza.
+  - **Arrange:** `Correo` con un `Adjunto` (`nombreFichero="doc.pdf"`, `contenido` un `MetaFile` mock con `getFileType()` → `"application/pdf"`); mock estático `MetaFileUtil.downloadContent(metaFile)` → un `byte[]` conocido; `mailSender.send` no lanza; mock estático `AppSettings` (ver Convenciones) → `correos.envio.from` = `"noreply@educaflow.test"`.
   - **Act:** `service.enviarCorreo(correoId)`.
   - **Assert:** el `Mail` capturado tiene `attachs()` con un único `Attach` cuyo `fileName() == "doc.pdf"`, `data()` == el `byte[]` devuelto por el mock, `mimeType() == "application/pdf"`.
 
@@ -217,7 +218,7 @@ Cada test siguiente construye un `Correo` **válido salvo en el campo que se pru
   - **Act/Assert:** `Optional.isEmpty()`.
 - **`validateInsert_historialEstadoIndicadoNoExiste_devuelveMensajeNoExiste`** — Tipo: error. Verifica: V-Correo-014.
   - **Arrange:** `historialEstado` con un `id` cualquiera; mock estático `JpaRepository.of(HistorialEstado.class)` → repo mock; `repoMock.find(id)` → `null`.
-  - **Act/Assert:** mensaje `"El historial de estado indicado no existe"`.
+  - **Act/Assert:** mensaje `"El historial de estado indicado no existe"` (mensaje inferido por el `test-unitarios`: `design.md` no fija un texto literal para esta validación — ver Notas de este fichero al final).
 - **`validateInsert_historialEstadoIndicadoExiste_esValido`** — Tipo: borde. Verifica: V-Correo-014 (rama OK).
   - **Arrange:** igual que el anterior pero `repoMock.find(id)` → una `HistorialEstado` no nula.
   - **Act/Assert:** `Optional.isEmpty()`.
@@ -346,7 +347,11 @@ Cada test construye un `Adjunto` **válido salvo en el campo probado** (ver Conv
 **Colaboradores a mockear:** ninguno — se usa un `ExecutorService` real (tamaño de pool pequeño, p.ej. 1) para observar el comportamiento real de los hilos.
 **Origen diseño:** `design.md` Paso 6, `design/rules/R-Correo-001.md` "Diseño detallado".
 
-### Método: `CorreoAsyncExecutor(int tamanoPool)` + `void submit(Runnable tarea)`
+### Método: `CorreoAsyncExecutor(int tamanoPool)` (constructor)
+
+Sin test propio: el constructor no tiene lógica condicional que verificar de forma aislada (solo crea el `ExecutorService` interno con el tamaño de pool indicado); se ejercita como parte del `Arrange` (`new CorreoAsyncExecutor(1)`) de los tests de `submit(Runnable tarea)` y `detener()` siguientes.
+
+### Método: `void submit(Runnable tarea)`
 
 - **`submit_tareaValida_seEjecutaEnUnHiloDaemonConNombreCorreoEnvio`** — Tipo: happy. Verifica: `—` (design-guidelines: evitar leaks de hilos).
   - **Arrange:** `new CorreoAsyncExecutor(1)`; una tarea que captura `Thread.currentThread()` en un `AtomicReference` y libera un `CountDownLatch`.
@@ -482,3 +487,4 @@ Cada test construye un `Adjunto` **válido salvo en el campo probado** (ver Conv
 
 1. **Mensajes de `AdjuntoServiceImpl.update()`/`validateUpdate()` y `remove()`/`validateRemove()`.** `entity-Adjunto.md` y `design.md` fijan que estas cuatro operaciones "SIEMPRE rechazan" pero, a diferencia de las equivalentes de `Correo`, no citan un texto literal de mensaje. Se ha decidido un texto coherente con el estilo del resto de mensajes del subsistema y con la intro de `entity-Adjunto.md` ("Como un correo nunca se borra, sus adjuntos tampoco"): `"Los adjuntos son inmutables tras su creación."` y `"Los adjuntos no se pueden borrar."`. Si al implementar se elige otro texto, basta ajustar el literal esperado en estos cuatro tests (`update_siempre_lanzaUnsupportedOperationException`, `validateUpdate_siempre_devuelveMensajeInmutabilidad`, `remove_siempre_lanzaUnsupportedOperationException`, `validateRemove_siempre_devuelveMensajeNoSePuedenBorrar`), sin cambiar nada más de este fichero.
 2. **Convención de testeo de controladores.** Se ha comprobado explícitamente que ningún controlador existente del proyecto que use `ActionRequestHelper` (patrón que también usa `CorreoController`) tiene test unitario, así que excluir `CorreoController` de este fichero mantiene la coherencia con el resto del código base en vez de introducir un patrón de test nuevo y aislado.
+3. **Mensaje de `CorreoServiceImpl.validateInsert` para V-Correo-014.** `design.md` fija que "el historial de estado indicado" (si se informa) debe existir, pero no cita un texto literal de mensaje para esta validación. Se ha decidido el texto `"El historial de estado indicado no existe"`, coherente con el estilo del resto de mensajes `V-Correo-0xx` de obligatoriedad/existencia. Si al implementar se elige otro texto, basta ajustar el literal esperado en `validateInsert_historialEstadoIndicadoNoExiste_devuelveMensajeNoExiste`, sin cambiar nada más de este fichero.
