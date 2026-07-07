@@ -35,7 +35,6 @@
         <menuitem name="administracionSv-usuarios-menuitem" parent="administracionSv-menuitem" title="Usuarios" action="subsysCommon.Usuario@Main-action" groups="admins" order="3"/>
         <menuitem name="administracionSv-dispositivosCriptograficos-menuitem" parent="administracionSv-menuitem" title="Dispositivos criptográficos" action="subsysCriptografia.DispositivoCriptografico@Main-action" groups="admins" order="10"/>
         <menuitem name="administracionSv-certificadosDigitales-menuitem" parent="administracionSv-menuitem" title="Certificados digitales" action="subsysCriptografia.CertificadoDigital@Main-action" groups="admins" order="11"/>
-        <menuitem name="administracionSv-grupos-menuitem" parent="administracionSv-menuitem" title="Grupos (administración)" action="sysGruposNotas.Grupo@Administracion-action" groups="admins" order="20"/>
 
     <menuitem name="registro-menuitem" title="Registro" order="60"/>
         <menuitem name="registro-entrada-menuitem" parent="registro-menuitem" title="Entrada" action="subsysRegistroEntradaSalida.RegistroEntrada@Main-action" order="1"/>
