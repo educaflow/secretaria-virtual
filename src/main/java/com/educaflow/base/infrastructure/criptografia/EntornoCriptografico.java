@@ -18,14 +18,15 @@ import java.util.*;
 
 
 public class EntornoCriptografico {
-    private static boolean almacenConfigurado = false;
-    private static boolean dispositivosConfigurado = false;
-    private static AlmacenCertificadosConfiables almacenCertificadosConfiables;
-    private static Map<Integer, DispositivoCriptografico> dispositivosCriptograficos = new HashMap<>();
+    // volatile: los threads de peticiones leen estos campos mientras otro thread los reemplaza al reconfigurar
+    private static volatile boolean almacenConfigurado = false;
+    private static volatile boolean dispositivosConfigurado = false;
+    private static volatile AlmacenCertificadosConfiables almacenCertificadosConfiables;
+    private static volatile Map<Integer, DispositivoCriptografico> dispositivosCriptograficos = new HashMap<>();
     private static List<Provider> proveedoresPkcs11Registrados = new ArrayList<>();
 
 
-    public static void configureAlmacenCertificadosConfiables(AlmacenCertificadosConfiablesConfig almacenCertificadosConfiablesConfig) {
+    public static synchronized void configureAlmacenCertificadosConfiables(AlmacenCertificadosConfiablesConfig almacenCertificadosConfiablesConfig) {
         if (almacenConfigurado) {
             throw new RuntimeException("El almacén de certificados confiables ya ha sido configurado");
         }
@@ -41,7 +42,8 @@ public class EntornoCriptografico {
         almacenConfigurado = true;
     }
 
-    public static void configureDispositivosCriptograficos(List<DispositivoCriptograficoConfig> dispositivoCritograficoConfigs) {
+    // synchronized: dos recargas concurrentes harían remove/add de providers PKCS#11 cruzados en el registro global de la JVM
+    public static synchronized void configureDispositivosCriptograficos(List<DispositivoCriptograficoConfig> dispositivoCritograficoConfigs) {
         for (Provider provider : proveedoresPkcs11Registrados) {
             Security.removeProvider(provider.getName());
         }
@@ -68,11 +70,14 @@ public class EntornoCriptografico {
         if (!dispositivosConfigurado) {
             throw new RuntimeException("Los dispositivos criptográficos no han sido configurados");
         }
-        if (!dispositivosCriptograficos.containsKey(slot)) {
+        // una única lectura del campo: una recarga concurrente podría cambiar el mapa entre dos lecturas
+        Map<Integer, DispositivoCriptografico> dispositivos = dispositivosCriptograficos;
+        DispositivoCriptografico dispositivoCriptografico = dispositivos.get(slot);
+        if (dispositivoCriptografico == null) {
             throw new RuntimeException("No se ha configurado ningún proveedor PKCS#11 para el slot: " + slot);
         }
 
-        return dispositivosCriptograficos.get(slot);
+        return dispositivoCriptografico;
     }
 
 

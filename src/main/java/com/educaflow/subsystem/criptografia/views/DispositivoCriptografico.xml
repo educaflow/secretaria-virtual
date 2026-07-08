@@ -22,6 +22,11 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
           canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
     >
         <help>Permite añadir a la aplicación un dispositivo criptográfico que se conecta por un USB</help>
+        <toolbar>
+            <button name="btnRecargarDispositivos" icon="arrow-clockwise" title="Recargar dispositivos"
+                    onClick="subsysCriptografia.DispositivoCriptografico@Main-btnRecargarDispositivos-action"
+                    help="Vuelve a conectar desde cero con todos los dispositivos criptográficos por si han dejado de responder"/>
+        </toolbar>
         <field name="name"/>
         <field name="pkcs11LibraryPath"/>
         <field name="slot" width="100px"/>
@@ -55,6 +60,9 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     </form>
 
     <!-- *************** DispositivoCriptografico : Acciones de las tareas principales *************** -->
+    <action-group name="subsysCriptografia.DispositivoCriptografico@Main-btnRecargarDispositivos-action">
+        <action name="subsysCriptografia.DispositivoCriptografico@Main-Remote-recargarDispositivosEnEntornoCriptografico-action"/>
+    </action-group>
     <action-group name="subsysCriptografia.DispositivoCriptografico@Main-btnDelete-action">
         <action name="delete"/>
     </action-group>
@@ -72,5 +80,8 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     <!-- *************** DispositivoCriptografico : Acciones básicas que cambian campos simples *************** -->
 
     <!-- *************** DispositivoCriptografico : Acciones de llamadas Remotas al servidor *************** -->
+    <action-method name="subsysCriptografia.DispositivoCriptografico@Main-Remote-recargarDispositivosEnEntornoCriptografico-action" model="com.educaflow.subsystem.criptografia.db.DispositivoCriptografico">
+        <call class="com.educaflow.subsystem.criptografia.controller.DispositivoCriptograficoController" method="recargarDispositivosEnEntornoCriptografico"/>
+    </action-method>
 
 </object-views>

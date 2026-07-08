@@ -53,6 +53,12 @@ public class DispositivoCriptograficoServiceImpl extends DefaultModelService<Dis
         fireActionRule_RecargarDispositivos();
     }
 
+    @Override
+    public void recargarDispositivosEnEntornoCriptografico() {
+        validateRecargarDispositivosEnEntornoCriptografico().ifPresent(BusinessMessages::throwIfInvalid);
+        fireActionRule_RecargarDispositivos();
+    }
+
     /****************************************************************************************/
     /******************************** Métodos de Validación *********************************/
     /****************************************************************************************/
@@ -65,6 +71,11 @@ public class DispositivoCriptograficoServiceImpl extends DefaultModelService<Dis
     @Override
     public Optional<BusinessMessages> validateUpdate(DispositivoCriptografico dispositivo, DispositivoCriptografico dispositivoOriginal) {
         return validateDispositivo(dispositivo);
+    }
+
+    @Override
+    public Optional<BusinessMessages> validateRecargarDispositivosEnEntornoCriptografico() {
+        return Optional.empty();
     }
 
     /****************************************************************************/
