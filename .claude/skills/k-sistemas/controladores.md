@@ -307,30 +307,38 @@ public class MiEntidadController {
         actionResponse.setSignal("back", null);
     }
 
+    // Validación remota de la operación custom `hacerAlgoEspecial`. La invoca la acción
+    // `...-Remote-validateHacerAlgoEspecial-action` de la vista, ANTES de la acción que
+    // llama a `hacerAlgoEspecial` (ver k-validaciones/validaciones.md §4-§5).
     @CallMethod
-    public void validarAntesDeBorrar(ActionRequest actionRequest, ActionResponse actionResponse) {
+    public void validateHacerAlgoEspecial(ActionRequest actionRequest, ActionResponse actionResponse) {
         final MiEntidadService miEntidadService = (MiEntidadService) modelServiceFactory.resolve(MiEntidad.class);
 
         ActionRequestHelper<MiEntidad> actionRequestHelper = new ActionRequestHelper(actionRequest, MiEntidad.class);
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
 
-        // Para `validateRemove` se usa la `allowPropertiesRemove()` heredada de
-        // DefaultModelService (devuelve un default razonable). NO se construye
-        // `AllowProperties` inline en el controlador.
-        //
-        // Si en una acción puntual hace falta una whitelist distinta de la canónica del
-        // servicio (caso raro y normalmente síntoma de mal diseño), exponer un
+        // La whitelist es la MISMA que usa la operación (`allowPropertiesHacerAlgoEspecial()`
+        // del servicio). Si en una acción puntual hace falta una whitelist distinta de la
+        // canónica del servicio (caso raro y normalmente síntoma de mal diseño), exponer un
         // `allowPropertiesXxx()` específico en el servicio y llamarlo desde aquí —
         // nunca definir el `Map.of(...)` en el controlador.
-        MiEntidad entidad = actionRequestHelper.getModel(miEntidadService.allowPropertiesRemove());
+        MiEntidad entidad = actionRequestHelper.getModel(miEntidadService.allowPropertiesHacerAlgoEspecial());
 
-        Optional<BusinessMessages> validationResult = miEntidadService.validateRemove(entidad);
+        Optional<BusinessMessages> validationResult = miEntidadService.validateHacerAlgoEspecial(entidad);
         if (validationResult.isPresent()) {
             actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());
         }
     }
 }
 ```
+
+> **REGLA DE NAMING — método de validación de una operación custom:**
+> El `@CallMethod` que valida una operación custom `<operacion>` **MUST** llamarse `validate<Operacion>` (mismo nombre que el `validate<Operacion>` del servicio en el que delega), porque el nombre de la acción de la vista es `…-Remote-{nombreFuncionJava}-action` (ver `k-vistas/actions.md` §"Convención de nombres") y la acción se llama `…-Remote-validate<Operacion>-action`.
+>
+> - ✅ CORRECTO: acción `subsysCorreos.Correo@Main-Remote-validateReenviar-action` → `CorreoController.validateReenviar` → delega en `CorreoService.validateReenviar`.
+> - ❌ INCORRECTO: acción `…-Remote-validateReenviar-action` → `CorreoController.validarAntesDeReenviar` (el nombre del método no coincide con el `{nombreFuncionJava}` embebido en el nombre de la acción).
+>
+> **MUST NOT** crear un `@CallMethod` de validación para `save`/`delete` (ni con nombre `validateSave`/`validateDelete` ni disfrazado como `validarAntesDeGuardar`/`validarAntesDeBorrar`): esa validación la dan las acciones globales `remote-validationSave-action`/`remote-validationDelete-action` de `DefaultModelController` (ver `k-validaciones/validaciones.md` §5).
 
 ### Reglas del controlador
 
@@ -380,6 +388,7 @@ Checklist única para desarrollar y revisar `*Controller`. Cada ítem es un tipo
 - [ ] **NO** llama manualmente a `validateInsert/Update/Remove` del servicio antes de `insert/update/remove`: lo hace Axelor automáticamente.
 - [ ] Los métodos del controlador llaman al servicio para la lógica de negocio. **NO** contienen lógica de negocio (lectura de ficheros, parsing de fechas, cálculos, queries JPA).
 - [ ] **NO** valida inline con `throw new BusinessException` ni con `actionResponse.addError(...)` reglas que pertenecen al servicio. La validación se delega a `validateMiAccion(...)` del servicio.
+- [ ] El `@CallMethod` de validación de cada operación custom se llama `validate<Operacion>` (nunca `validarAntesDe<Operacion>` ni similar), coincidiendo con el `{nombreFuncionJava}` embebido en el nombre de la acción `…-Remote-validate<Operacion>-action` y con el `validate<Operacion>` del servicio.
 - [ ] **NO** hace comprobaciones de autorización por rol en el controlador (`if (!isAdmin(...)) ...`). La autorización vive en el servicio para que también proteja al endpoint REST automático. Ver `[[k-secure-coding]]` §4.
 - [ ] **NO** hace `if (entidad.getCampoServidor() != null) actionResponse.setError(...)` para impedir asignaciones desde la UI. La defensa correcta es no incluir el campo en `allowPropertiesXxx()` + asignación incondicional en `*ServiceImpl.insert/update`. Ver `[[k-secure-coding]]` §1-§2.
 - [ ] **NO** lee entidades con `JpaRepository.of(X.class).find(id)` desde el controlador. Cargar la entidad es responsabilidad del servicio.
