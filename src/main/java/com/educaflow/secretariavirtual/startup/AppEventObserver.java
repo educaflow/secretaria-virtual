@@ -1,14 +1,12 @@
 package com.educaflow.secretariavirtual.startup;
 
-import com.axelor.app.AppSettings;
 import com.axelor.event.Observes;
 import com.axelor.events.ShutdownEvent;
 import com.axelor.events.StartupEvent;
 import com.educaflow.base.infrastructure.mail.MailSender;
-import com.educaflow.base.infrastructure.mail.impl.MailSenderImpl;
-import com.educaflow.base.infrastructure.mail.impl.SmtpCredentialSimplePassword;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
+import com.educaflow.base.infrastructure.mail.MailSenderFactory;
+import com.educaflow.subsystem.correos.service.CorreoService;
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +17,13 @@ public class AppEventObserver {
         logger.info("Iniciando Secretaria Virtual...");
 
         DataBaseStartup.startup();
-        CriptografiaStartup.startup();
+
+
+        try {
+            CriptografiaStartup.startup();
+        } catch (Exception ex) {
+            logger.error("Falló al inicializar la criptografía",ex);
+        }
 
     }
 
