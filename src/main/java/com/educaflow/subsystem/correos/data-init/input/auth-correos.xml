@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<auth>
+
+  <permission name="Correo.propio-destinatario"
+              object="com.educaflow.subsystem.correos.db.Correo"
+              condition="self.dniDestinatario = ? and self.estado = 'SUCCESS'"
+              conditionParams="__user__.dni"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Correo.propio-centro-supervisor"
+              object="com.educaflow.subsystem.correos.db.Correo"
+              condition="self.centro IN (SELECT cu.centro FROM com.educaflow.subsystem.common.db.CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario cut JOIN cut.tipoUsuario tu WHERE cu.usuario = ? AND tu.codigo = 'SUPERVISOR')"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Adjunto.propio-destinatario"
+              object="com.educaflow.subsystem.correos.db.Adjunto"
+              condition="self.correo.dniDestinatario = ? and self.correo.estado = 'SUCCESS'"
+              conditionParams="__user__.dni"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Adjunto.propio-centro-supervisor"
+              object="com.educaflow.subsystem.correos.db.Adjunto"
+              condition="self.correo.centro IN (SELECT cu.centro FROM com.educaflow.subsystem.common.db.CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario cut JOIN cut.tipoUsuario tu WHERE cu.usuario = ? AND tu.codigo = 'SUPERVISOR')"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+</auth>

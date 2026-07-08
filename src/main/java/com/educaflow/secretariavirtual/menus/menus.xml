@@ -53,4 +53,13 @@
             <menuitem name="utilidadesPdf-posicionesFirma-menuitem" parent="utilidadesPdf-menuitem" title="Posiciones Firma" action="subsysPdfUtilities.PdfUtilities@Firma-action" groups="admins" order="2"/>
             <menuitem name="utilidadesPdf-posicionAutofirma-menuitem" parent="utilidadesPdf-menuitem" title="Posición Autofirma__!!" action="subsysPdfUtilities.PdfUtilities@AutoFirma-action" groups="admins" order="3"/>
 
+    <menuitem name="misCorreos-menuitem" title="Mis correos" groups="admins,users" order="15"/>
+        <menuitem name="misCorreos-verMisCorreos-menuitem" parent="misCorreos-menuitem" title="Mis correos" action="subsysCorreos.Correo@Mis-action" groups="admins,users" order="1"/>
+
+    <menuitem name="correos-menuitem" title="Correos" groups="admins,users" order="45"/>
+        <menuitem name="correos-administracion-menuitem" parent="correos-menuitem" title="Administración de correos" action="subsysCorreos.Correo@Main-action" groups="admins" order="1"/>
+        <menuitem name="correos-centro-menuitem" parent="correos-menuitem" title="Correos de mi centro" action="subsysCorreos.Correo@Centro-action" groups="users" order="2"/>
+
+
+
 </object-views>

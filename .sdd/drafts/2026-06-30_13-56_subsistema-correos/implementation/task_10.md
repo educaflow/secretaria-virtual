@@ -14,7 +14,7 @@ Para hacer esta tarea vas a usar estos skills
 |---------|--------|-------|-------------|
 | `src/main/java/com/educaflow/subsystem/correos/module/CorreosModule.java` | Crear | k-guice | Módulo Guice: bindings de `MailSender`, `CorreoAsyncExecutor`, `CorreoEventObserver` |
 | `src/main/java/com/educaflow/subsystem/correos/module/MailSenderProvider.java` | Crear | k-guice | `Provider<MailSender>` que lee la configuración SMTP |
-| `src/main/java/com/educaflow/subsystem/correos/module/CorreoAsyncExecutorProvider.java` | Crear | k-guice | `Provider<CorreoAsyncExecutor>` que lee `correos.envio.pool-size` |
+| `src/main/java/com/educaflow/subsystem/correos/module/CorreoAsyncExecutorProvider.java` | Crear | k-guice | `Provider<CorreoAsyncExecutor>` que lee `mail.send.pool-size` |
 
 ## Texto del diseño (verbatim, `design.md`, Paso 6 — Módulo Guice)
 
@@ -50,7 +50,7 @@ package com.educaflow.subsystem.correos.module;
 public class CorreoAsyncExecutorProvider implements jakarta.inject.Provider<CorreoAsyncExecutor> {
     @Override
     public CorreoAsyncExecutor get();
-    //   int tamanoPool = com.axelor.app.AppSettings.get().getInt("correos.envio.pool-size", 2);
+    //   int tamanoPool = com.axelor.app.AppSettings.get().getInt("mail.send.pool-size", 2);
     //   return new CorreoAsyncExecutor(tamanoPool);
 }
 ```

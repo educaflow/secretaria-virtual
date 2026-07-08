@@ -12,10 +12,10 @@ import jakarta.mail.PasswordAuthentication;
 import jakarta.mail.Session;
 import jakarta.mail.Transport;
 
-public class MailSenderImpl implements MailSender {
+public class MailSenderImplSmtp implements MailSender {
     final SmtpCredentialSimplePassword smtpCredentialImplSimplePassword;
 
-    public MailSenderImpl(@Nonnull SmtpCredentialSimplePassword smtpCredentialImplSimplePassword) {
+    public MailSenderImplSmtp(@Nonnull SmtpCredentialSimplePassword smtpCredentialImplSimplePassword) {
         if (smtpCredentialImplSimplePassword==null) {
             throw new IllegalArgumentException("smtpCredentialImplSimplePassword no puede ser null");
         }
@@ -57,7 +57,7 @@ public class MailSenderImpl implements MailSender {
 
             try (Transport transport = session.getTransport("smtp")) {
                 transport.connect();
-                transport.sendMessage(message,message.getRecipients(jakarta.mail.Message.RecipientType.TO));
+                transport.sendMessage(message, message.getAllRecipients());
             }
 
         } catch (Exception ex) {

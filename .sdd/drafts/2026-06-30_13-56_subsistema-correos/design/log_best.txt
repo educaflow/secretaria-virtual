@@ -88,7 +88,7 @@ El punto decisivo es el mecanismo de envío asíncrono, que `design-guidelines.m
 - Respeta al pie de la letra la convención documentada del proyecto de no usar `required="true"` para validaciones de negocio con mensaje literal (`k-sistemas/modelos.md`, `k-validaciones/restricciones.md`): todos los `VAL-` con mensaje exacto se implementan en `validateInsert`, nunca dejando que el genérico de JPA sustituya al mensaje de la especificación.
 - Modelo de vistas de `Adjunto` más preciso: separa `panel-related "adjuntos"` (editable, alta) de `"adjuntosConsulta"` (solo lectura, con su propio `@View-form` en `Correo.Adjunto-ref.xml`) en vez de reutilizar el mismo form para ambos casos.
 - Documenta y aplica una guarda de idempotencia explícita ("SUCCESS es terminal") en `enviarCorreo`, cubriendo el doble disparo del envío.
-- Añade `correos.envio.from`/`correos.envio.pool-size` como propiedades de configuración explícitas en `axelor-config.properties`, en vez de fijar el tamaño del pool en código.
+- Añade `mail.address.from`/`mail.send.pool-size` como propiedades de configuración explícitas en `axelor-config.properties`, en vez de fijar el tamaño del pool en código.
 
 === DEFECTOS design_4 ===
 - El menú «Mis correos» (`misCorreos-menuitem`) se declara como `menuitem` raíz (sin `parent`) pero con `action` directo, violando la regla explícita de `k-vistas/menus.md` ("el menuitem raíz no lleva `action` ni `parent`"); no hay precedente de este patrón en el `menus.xml` real del proyecto.

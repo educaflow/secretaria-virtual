@@ -36,6 +36,12 @@ public class JavaMailHelper {
             message.setSubject(mail.subject(), "UTF-8");
             message.setFrom(new InternetAddress(mail.from()));
             message.setRecipients(jakarta.mail.Message.RecipientType.TO, getAddresses(mail.to()));
+            if (mail.cc() != null && !mail.cc().isEmpty()) {
+                message.setRecipients(jakarta.mail.Message.RecipientType.CC, getAddresses(mail.cc()));
+            }
+            if (mail.bcc() != null && !mail.bcc().isEmpty()) {
+                message.setRecipients(jakarta.mail.Message.RecipientType.BCC, getAddresses(mail.bcc()));
+            }
 
             MimeMultipart mimeMultiPart = new MimeMultipart("alternative");
 

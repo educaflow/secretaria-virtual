@@ -128,7 +128,7 @@ para la clase `com.educaflow.subsystem.correos.service.impl.CorreoServiceImpl`.
 - **`enviarCorreo_separaDireccionesDeParaCcYBccPorComas`** — Tipo: happy. Verifica: `—` (soporte de `construirMail`/`separarDirecciones`, base de V-Correo-005/006/007/008).
   - **Arrange:** `Correo` con `para = "a@x.com, b@x.com"`, `enCopia = "c@x.com"`, `enCopiaOculta = " d@x.com , e@x.com "` (espacios extra), `adjuntos = List.of()`; `mailSender.send` no lanza; capturar el argumento con `ArgumentCaptor<Mail>`.
   - **Act:** `service.enviarCorreo(correoId)`.
-  - **Assert:** el `Mail` capturado tiene `to = ["a@x.com", "b@x.com"]`, `cc = ["c@x.com"]`, `bcc = ["d@x.com", "e@x.com"]` (recortado, sin vacíos), `from` igual a la propiedad `correos.envio.from`, `subject` == `correo.getAsunto()`, `htmlBody`/`textBody` == `correo.getCuerpo()`.
+  - **Assert:** el `Mail` capturado tiene `to = ["a@x.com", "b@x.com"]`, `cc = ["c@x.com"]`, `bcc = ["d@x.com", "e@x.com"]` (recortado, sin vacíos), `from` igual a la propiedad `mail.address.from`, `subject` == `correo.getAsunto()`, `htmlBody`/`textBody` == `correo.getCuerpo()`.
 - **`enviarCorreo_correoConAdjuntos_construyeAttachsDesdeMetaFile`** — Tipo: happy. Verifica: `—` (soporte de `construirMail`).
   - **Arrange:** `Correo` con un `Adjunto` (`nombreFichero="doc.pdf"`, `contenido` un `MetaFile` mock con `getFileType()` → `"application/pdf"`); mock estático `MetaFileUtil.downloadContent(metaFile)` → un `byte[]` conocido; `mailSender.send` no lanza.
   - **Act:** `service.enviarCorreo(correoId)`.

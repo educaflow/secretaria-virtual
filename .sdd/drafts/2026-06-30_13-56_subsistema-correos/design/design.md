@@ -13,7 +13,7 @@ type: design
 
 | Fichero | Acción | Skill | Descripción |
 |---------|--------|-------|-------------|
-| `src/main/resources/axelor-config.properties` | Modificar | — | Añadir `correos.envio.from` y `correos.envio.pool-size` (ver Notas y supuestos). `correos.envio.cron` ya existía y **no** se usa en este diseño (fuera de alcance el job periódico). |
+| `src/main/resources/axelor-config.properties` | Modificar | — | Añadir `mail.address.from` y `mail.send.pool-size` (ver Notas y supuestos). `correos.envio.cron` ya existía y **no** se usa en este diseño (fuera de alcance el job periódico). |
 | `src/main/java/com/educaflow/base/infrastructure/mail/Mail.java` | Modificar | k-code-quality | Ampliar el record con `cc`/`bcc` reales (constructor de compatibilidad de 6 argumentos) — ver Paso 1 y `design/rules/R-Correo-001.md` |
 | `src/main/java/com/educaflow/base/infrastructure/mail/impl/JavaMailHelper.java` | Modificar | k-code-quality | Añadir las cabeceras MIME `Message.RecipientType.CC`/`BCC` cuando `mail.cc()`/`mail.bcc()` no vienen vacías — ver Paso 1 |
 | `src/main/java/com/educaflow/base/infrastructure/mail/impl/MailSenderImpl.java` | Modificar | k-code-quality | Enviar a `message.getAllRecipients()` en vez de solo `RecipientType.TO`, para que CC/BCC se entreguen de verdad por SMTP — ver Paso 1 |
@@ -29,7 +29,7 @@ type: design
 | `src/main/java/com/educaflow/subsystem/correos/infrastructure/CorreoEventObserver.java` | Crear | k-guice | Observador de arranque/parada de la aplicación (ciclo de vida del executor) |
 | `src/main/java/com/educaflow/subsystem/correos/module/CorreosModule.java` | Crear | k-guice | Módulo Guice: bindings de `MailSender`, `CorreoAsyncExecutor`, `CorreoEventObserver` |
 | `src/main/java/com/educaflow/subsystem/correos/module/MailSenderProvider.java` | Crear | k-guice | `Provider<MailSender>` que lee la configuración SMTP |
-| `src/main/java/com/educaflow/subsystem/correos/module/CorreoAsyncExecutorProvider.java` | Crear | k-guice | `Provider<CorreoAsyncExecutor>` que lee `correos.envio.pool-size` |
+| `src/main/java/com/educaflow/subsystem/correos/module/CorreoAsyncExecutorProvider.java` | Crear | k-guice | `Provider<CorreoAsyncExecutor>` que lee `mail.send.pool-size` |
 | `src/main/java/com/educaflow/subsystem/correos/views/Correo.xml` | Crear | k-vistas (forms.md, grids.md) | Pantalla «Administración de correos» (`@Main`) + vistas embebidas de `Adjunto` en alta (`@Main`) |
 | `src/main/java/com/educaflow/subsystem/correos/views/Correo-Centro.xml` | Crear | k-vistas (forms.md, grids.md) | Pantalla «Correos de mi centro» (`@Centro`) |
 | `src/main/java/com/educaflow/subsystem/correos/views/Correo-Mis.xml` | Crear | k-vistas (forms.md, grids.md) | Pantalla «Mis correos» (`@Mis`) |
@@ -47,8 +47,8 @@ type: design
 Añadir a `axelor-config.properties` (junto a `correos.envio.cron`, ya existente):
 
 ```properties
-correos.envio.from = secretariavirtual@fpmislata.com
-correos.envio.pool-size = 2
+mail.address.from = secretariavirtual@fpmislata.com
+mail.send.pool-size = 2
 ```
 
 **Ampliar `base/infrastructure/mail` para soportar `cc`/`bcc` reales** (en vez de fusionar `para`+`enCopia`+`enCopiaOculta` en la única lista `Mail.to()`, que expondría cada destinatario "en copia oculta" a todos los demás en la cabecera `To` — ver `design/rules/R-Correo-001.md`, sección "Notas de esta regla", para el análisis completo). Cambios:
@@ -359,7 +359,7 @@ public class CorreoServiceImpl extends com.axelor.db.modelservice.DefaultModelSe
     //   bcc = separarDirecciones(correo.getEnCopiaOculta()) — cada campo del Correo va a su propia
     //   cabecera MIME real (Mail.cc()/Mail.bcc(), ampliado en Paso 1); ya NO se fusionan en una
     //   única lista "to" (ver design/rules/R-Correo-001.md, "Notas de esta regla").
-    //   from = AppSettings.get().get("correos.envio.from"); subject = correo.getAsunto();
+    //   from = AppSettings.get().get("mail.address.from"); subject = correo.getAsunto();
     //   textBody = htmlBody = correo.getCuerpo(); attachs = correo.getAdjuntos().stream()
     //     .map(a -> new Attach(a.getNombreFichero(),
     //                           MetaFileUtil.downloadContent(a.getContenido()),
@@ -598,7 +598,7 @@ package com.educaflow.subsystem.correos.module;
 public class CorreoAsyncExecutorProvider implements jakarta.inject.Provider<CorreoAsyncExecutor> {
     @Override
     public CorreoAsyncExecutor get();
-    //   int tamanoPool = com.axelor.app.AppSettings.get().getInt("correos.envio.pool-size", 2);
+    //   int tamanoPool = com.axelor.app.AppSettings.get().getInt("mail.send.pool-size", 2);
     //   return new CorreoAsyncExecutor(tamanoPool);
 }
 ```

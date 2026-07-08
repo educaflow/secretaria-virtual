@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="correos" package="com.educaflow.subsystem.correos.db"/>
+
+    <entity name="Adjunto">
+
+        <string name="nombreFichero" title="Nombre del fichero"/>
+
+        <!-- Copia independiente del fichero original; se reutiliza el patrón MetaFile del proyecto
+             (ver k-sistemas/modelos.md, campo binario) en vez de un <binary> embebido -->
+        <many-to-one name="contenido" ref="com.axelor.meta.db.MetaFile" title="Contenido"/>
+
+        <many-to-one name="correo" ref="Correo" title="Correo"/>
+
+        <!-- RES-Adjunto-001 (declarativo, defensa en profundidad): el nombre del fichero es único
+             dentro de un mismo correo. El mensaje amigable de ESC-022 lo da además
+             AdjuntoServiceImpl.validateInsert, la entidad dueña de la restricción
+             (ver design.md, V-Adjunto-006) -->
+        <unique-constraint columns="correo,nombreFichero"/>
+
+    </entity>
+
+</domain-models>

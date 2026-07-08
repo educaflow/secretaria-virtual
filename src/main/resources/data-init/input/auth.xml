@@ -281,6 +281,10 @@
     <permission name="Nivel.all"/>
     <permission name="ViewGestionCentroImport.all"/>
     <permission name="ViewGestionCentroCambioCurso.all"/>
+    <permission name="Correo.propio-destinatario"/>
+    <permission name="Correo.propio-centro-supervisor"/>
+    <permission name="Adjunto.propio-destinatario"/>
+    <permission name="Adjunto.propio-centro-supervisor"/>
     <permission name="Grupo.all"/>
     <permission name="ModuloGrupo.all"/>
     <permission name="AlumnoGrupo.all"/>

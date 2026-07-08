@@ -37,11 +37,11 @@ para la clase `com.educaflow.subsystem.correos.module.CorreoAsyncExecutorProvide
 ### Método: `CorreoAsyncExecutor get()`
 
 - **`get_conPropiedadConfigurada_usaElTamanoIndicado`** — Tipo: happy. Verifica: `—`.
-  - **Arrange:** `Mockito.mockStatic(AppSettings.class)`; `AppSettings settingsMock = Mockito.mock(AppSettings.class)`; `AppSettings.get()` → `settingsMock`; `settingsMock.getInt("correos.envio.pool-size", 2)` → `4`.
+  - **Arrange:** `Mockito.mockStatic(AppSettings.class)`; `AppSettings settingsMock = Mockito.mock(AppSettings.class)`; `AppSettings.get()` → `settingsMock`; `settingsMock.getInt("mail.send.pool-size", 2)` → `4`.
   - **Act:** `CorreoAsyncExecutor result = provider.get()`.
-  - **Assert:** `result` no es `null` (instancia de `CorreoAsyncExecutor`); `verify(settingsMock).getInt("correos.envio.pool-size", 2)` (se pasa el valor por defecto correcto junto con la clave).
+  - **Assert:** `result` no es `null` (instancia de `CorreoAsyncExecutor`); `verify(settingsMock).getInt("mail.send.pool-size", 2)` (se pasa el valor por defecto correcto junto con la clave).
 - **`get_sinPropiedadConfigurada_usaDosComoValorPorDefecto`** — Tipo: borde. Verifica: `—`.
-  - **Arrange:** igual, pero `settingsMock.getInt("correos.envio.pool-size", 2)` → `2` (simula que `AppSettings` real aplicaría el valor por defecto pasado si la propiedad no existe).
+  - **Arrange:** igual, pero `settingsMock.getInt("mail.send.pool-size", 2)` → `2` (simula que `AppSettings` real aplicaría el valor por defecto pasado si la propiedad no existe).
   - **Act:** `provider.get()`.
   - **Assert:** `result` no es `null`; se confirma que el `Provider` invoca `getInt` con el literal `2` como valor por defecto (no otro número), que es lo único verificable desde fuera sin un getter de tamaño de pool en `CorreoAsyncExecutor`.
 

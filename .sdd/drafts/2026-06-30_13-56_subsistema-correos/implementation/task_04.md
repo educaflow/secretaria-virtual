@@ -272,7 +272,7 @@ public class CorreoServiceImpl extends com.axelor.db.modelservice.DefaultModelSe
     //   bcc = separarDirecciones(correo.getEnCopiaOculta()) — cada campo del Correo va a su propia
     //   cabecera MIME real (Mail.cc()/Mail.bcc(), ampliado en Paso 1); ya NO se fusionan en una
     //   única lista "to" (ver design/rules/R-Correo-001.md, "Notas de esta regla").
-    //   from = AppSettings.get().get("correos.envio.from"); subject = correo.getAsunto();
+    //   from = AppSettings.get().get("mail.address.from"); subject = correo.getAsunto();
     //   textBody = htmlBody = correo.getCuerpo(); attachs = correo.getAdjuntos().stream()
     //     .map(a -> new Attach(a.getNombreFichero(),
     //                           MetaFileUtil.downloadContent(a.getContenido()),
