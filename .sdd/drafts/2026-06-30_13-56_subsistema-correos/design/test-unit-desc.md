@@ -424,7 +424,7 @@ Sin test propio: el constructor no tiene lógica condicional que verificar de fo
 - **`get_leeCredencialesDeAppSettingsYDevuelveMailSenderImpl`** — Tipo: happy. Verifica: `—`.
   - **Arrange:** `Mockito.mockStatic(AppSettings.class)`; `AppSettings settingsMock = Mockito.mock(AppSettings.class)`; `AppSettings.get()` → `settingsMock`; `settingsMock.get("mail.smtp.host")` → `"smtp.test.com"`; `settingsMock.get("mail.smtp.user")` → `"user@test.com"`; `settingsMock.get("mail.smtp.password")` → `"secret"`.
   - **Act:** `MailSender result = provider.get()`.
-  - **Assert:** `result` es instancia de `com.educaflow.base.infrastructure.mail.impl.MailSenderImpl`; `verify(settingsMock).get("mail.smtp.host")`, `verify(settingsMock).get("mail.smtp.user")`, `verify(settingsMock).get("mail.smtp.password")` (las tres claves exactas se leen).
+  - **Assert:** `result` es instancia de `com.educaflow.base.infrastructure.mail.impl.MailSenderImplSmtp`; `verify(settingsMock).get("mail.smtp.host")`, `verify(settingsMock).get("mail.smtp.user")`, `verify(settingsMock).get("mail.smtp.password")` (las tres claves exactas se leen).
 
 ---
 
@@ -448,7 +448,7 @@ Sin test propio: el constructor no tiene lógica condicional que verificar de fo
 ---
 
 ## Clase: `com.educaflow.subsystem.correos.controller.CorreoController` — sin lógica testable
-**Motivo:** ambos métodos (`validarAntesDeReenviar`, `reenviar`) son delegación pura — resuelven `CorreoService` vía `ModelServiceFactory`, construyen un `ActionRequestHelper` con `new` (no inyectado) y delegan toda la lógica de negocio en `CorreoService.validateReenviar`/`reenviar` (ya cubiertos arriba). `ActionRequestHelper.getOriginalModel()`/`getModel(...)` invocan internamente `JpaRepository.of(...)` y `BeanMapperModel` reales, lo que exige una infraestructura JPA viva para ejercer el controlador de extremo a extremo; **ningún controlador del proyecto que use `ActionRequestHelper` tiene hoy test unitario** (`CertificadoDigitalController`, `TareaFirmaController`, `ExpedienteController`, etc. — todos sin test JUnit), por lo que se sigue la misma convención ya establecida. El comportamiento de `CorreoController` se verifica mediante los tests E2E de `test-e2e-desc.md` (flujo real de "Reenviar" desde la pantalla de administración/centro).
+**Motivo:** ambos métodos (`validateReenviar`, `reenviar`) son delegación pura — resuelven `CorreoService` vía `ModelServiceFactory`, construyen un `ActionRequestHelper` con `new` (no inyectado) y delegan toda la lógica de negocio en `CorreoService.validateReenviar`/`reenviar` (ya cubiertos arriba). `ActionRequestHelper.getOriginalModel()`/`getModel(...)` invocan internamente `JpaRepository.of(...)` y `BeanMapperModel` reales, lo que exige una infraestructura JPA viva para ejercer el controlador de extremo a extremo; **ningún controlador del proyecto que use `ActionRequestHelper` tiene hoy test unitario** (`CertificadoDigitalController`, `TareaFirmaController`, `ExpedienteController`, etc. — todos sin test JUnit), por lo que se sigue la misma convención ya establecida. El comportamiento de `CorreoController` se verifica mediante los tests E2E de `test-e2e-desc.md` (flujo real de "Reenviar" desde la pantalla de administración/centro).
 
 ---
 
@@ -457,7 +457,7 @@ Sin test propio: el constructor no tiene lógica condicional que verificar de fo
 
 ---
 
-## Clase: `com.educaflow.base.infrastructure.mail.impl.MailSenderImpl` — sin lógica testable para este cambio
+## Clase: `com.educaflow.base.infrastructure.mail.impl.MailSenderImplSmtp` — sin lógica testable para este cambio
 **Motivo:** el único cambio de este diseño es una línea (`transport.sendMessage(message, message.getRecipients(RecipientType.TO))` → `transport.sendMessage(message, message.getAllRecipients())`), dentro de un método que construye una `jakarta.mail.Session` real y abre un `Transport` SMTP (`session.getTransport("smtp")`), lo que en tiempo de ejecución instancia una clase concreta del proveedor de correo por reflexión (fuera del control directo de Mockito sin introducir infraestructura de test adicional no prevista en este diseño, p. ej. un servidor SMTP de pruebas). La clase no tiene ningún test unitario hoy pese a llevar tiempo en producción. La corrección del cambio se verifica con el `grep` ya indicado en `design.md` Paso 1 ("Verificar") y con el envío real de correos con CC/BCC en los tests E2E que ejercen el alta de un `Correo` con "en copia"/"en copia oculta" rellenos.
 
 ---

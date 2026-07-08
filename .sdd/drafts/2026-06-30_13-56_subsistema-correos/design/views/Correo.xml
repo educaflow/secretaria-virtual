@@ -129,7 +129,7 @@
     <!-- *************** Correo : Acciones de llamadas Remotas al servidor *************** -->
 
     <action-method name="subsysCorreos.Correo@Main-Remote-validateReenviar-action" model="com.educaflow.subsystem.correos.db.Correo">
-        <call class="com.educaflow.subsystem.correos.controller.CorreoController" method="validarAntesDeReenviar"/>
+        <call class="com.educaflow.subsystem.correos.controller.CorreoController" method="validateReenviar"/>
     </action-method>
 
     <action-method name="subsysCorreos.Correo@Main-Remote-reenviar-action" model="com.educaflow.subsystem.correos.db.Correo">

@@ -476,7 +476,7 @@ public class CorreoController {
     private com.axelor.db.modelservice.ModelServiceFactory modelServiceFactory;
 
     @com.axelor.meta.CallMethod
-    public void validarAntesDeReenviar(ActionRequest actionRequest, ActionResponse actionResponse);
+    public void validateReenviar(ActionRequest actionRequest, ActionResponse actionResponse);
     //   Resuelve CorreoService; ActionRequestHelper<Correo> con getOriginalModel(); llama a
     //   correoService.validateReenviar(entidadOriginal, entidadOriginal) [se compara consigo misma:
     //   no hay "nuevo" distinto de "original" en esta acción, ver k-sistemas/controladores.md patrón
