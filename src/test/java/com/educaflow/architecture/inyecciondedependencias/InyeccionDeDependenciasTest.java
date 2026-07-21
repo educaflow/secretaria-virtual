@@ -21,6 +21,11 @@ import com.axelor.db.modelservice.ModelService;
     importOptions = ImportOption.DoNotIncludeTests.class)
 class InyeccionDeDependenciasTest {
 
+    // [C21] Verificación:
+    //   - Sujeto: **campos** (no clases) cuyo tipo es asignable a `com.axelor.db.modelservice.ModelService`.
+    //   - Condición: ninguno está anotado con `@Inject` (ni `com.google.inject.Inject` ni `jakarta.inject.Inject`).
+    //   - Vacuidad: si no existe ningún campo de ese tipo, la regla se considera **cumplida** (no debe fallar por sujeto vacío).
+    //   - Mensaje (descripción de la regla, literal): «Ningún campo de tipo ModelService debe llevar @Inject (se usa ModelServiceFactory)».
     @ArchTest
     static final ArchRule c21_modelServiceNoSeInyecta =
         noFields()

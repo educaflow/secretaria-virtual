@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+
+    <?sv-view?>
+    <action-view name="subsysPdfUtilities.AutoFirma@PdfUtilities-action"  title="Posición Autofirma__!!" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities"  >
+        <view type="form" name="subsysPdfUtilities.AutoFirma@PdfUtilities-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+    </action-view>
+
+    <form name="subsysPdfUtilities.AutoFirma@PdfUtilities-form" title="Utilidades para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities" width="large">
+
+        <panel name="main" title="PDF">
+            <field name="pdf"  colSpan="12" widget="binary-link" />
+            <field name="numeroPagina" colSpan="2" />
+            <field name="x" colSpan="2" />
+            <field name="y" colSpan="2" />
+            <field name="width" colSpan="2" />
+            <field name="height" colSpan="2" />
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnfirmarAutoFirma" colOffset="2" title="Firmar en posición indicada" icon="fa-plus" onClick="subsysPdfUtilities.AutoFirma@PdfUtilities-btnfirmarAutoFirma-action"/>
+        </panel>
+
+
+        <panel name="tabPdfFirmado" title="PDF Firmado">
+            <field name="pdfFirmado-view" showTitle="false" readonly="true" colSpan="9">
+                <viewer depends="pdfFirmado" ><![CDATA[
+                    <>
+                    <Box as="iframe" height="1000px" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfFirmado.id}/content/download?inline=true&name=${pdfFirmado.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+
+    </form>
+
+    <?sv-primary-actions?>
+    <action-group name="subsysPdfUtilities.AutoFirma@PdfUtilities-btnfirmarAutoFirma-action">
+        <action name="subsysPdfUtilities.AutoFirma@PdfUtilities-Local-pdfAutoFirma-action"/>
+        <action name="subsysPdfUtilities.AutoFirma@PdfUtilities-Remote-pdfAutoFirma-action"/>
+    </action-group>
+
+    <?sv-validations?>
+    <action-condition name="subsysPdfUtilities.AutoFirma@PdfUtilities-Local-pdfAutoFirma-action">
+        <check field="pdf"/>
+        <check field="numeroPagina"/>
+        <check field="x"/>
+        <check field="y"/>
+        <check field="width"/>
+        <check field="height"/>
+    </action-condition>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+    <action-method name="subsysPdfUtilities.AutoFirma@PdfUtilities-Remote-pdfAutoFirma-action">
+        <call class="com.educaflow.subsystem.pdfutilities.controller.PdfUtilitiesController" method="pdfAutoFirma"/>
+    </action-method>
+
+
+
+</object-views>

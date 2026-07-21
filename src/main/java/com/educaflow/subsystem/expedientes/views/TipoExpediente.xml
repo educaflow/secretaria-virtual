@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+
+
+
+
+    <action-view name="subsysExpedientes.TipoExpediente@Main-action" title="tipos de expedientes" model="com.educaflow.subsystem.expedientes.db.TipoExpediente">
+        <view type="grid" name="subsysExpedientes.TipoExpediente@Main-grid"/>
+        <view type="form" name="subsysExpedientes.TipoExpediente@Main-form"/>
+            <view-param name="show-toolbar-form" value="false"/>
+</action-view>
+    <grid name="subsysExpedientes.TipoExpediente@Main-grid" title="Listado tipos expediente" model="com.educaflow.subsystem.expedientes.db.TipoExpediente"
+          editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true">
+        <field name="code"  />
+        <field name="name"  />
+        <field name="fqcnEventManager" />
+    </grid>
+    <form name="subsysExpedientes.TipoExpediente@Main-form" title="Mantenimiento de Tipos Expedientes" model="com.educaflow.subsystem.expedientes.db.TipoExpediente" width="large">
+        <panel title="Datos" >
+            <field name="code"  />
+            <field name="name"  />
+            <field name="versionExpediente" />
+            <field name="openDate" />
+            <field name="closeDate" />
+            <field name="fqcnEventManager" />
+            <field name="tramite"
+                   type="many-to-one"
+                   target="com.educaflow.subsystem.expedientes.db.Tramite"
+            />
+        </panel>
+    </form>
+
+</object-views>

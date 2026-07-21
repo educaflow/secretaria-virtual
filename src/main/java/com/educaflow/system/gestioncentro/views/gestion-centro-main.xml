@@ -3,15 +3,15 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="sysGestion.CentroAdmin@Main-action" title="Mi Centro" model="com.educaflow.subsystem.common.db.Centro">
-        <view type="form" name="sysGestionCentro.Centro@Main-form"/>
+    <action-view name="sysGestion.Main@CentroAdmin-action" title="Mi Centro" model="com.educaflow.subsystem.common.db.Centro">
+        <view type="form" name="sysGestionCentro.Main@Centro-form"/>
         <view-param name="forceEdit" value="true"/>
         <view-param name="show-toolbar-form" value="false"/>
         <context name="_showRecord" expr="eval: __user__?.centroActivo?.id"/>
     </action-view>
 
-    <form name="sysGestionCentro.Centro@Main-form" title="Centro" model="com.educaflow.subsystem.common.db.Centro"
-          onNew="sysGestionCentro.Centro@DatosOnNew-action"
+    <form name="sysGestionCentro.Main@Centro-form" title="Centro" model="com.educaflow.subsystem.common.db.Centro"
+          onNew="sysGestionCentro.DatosOnNew@Centro-action"
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel-tabs>
             <panel name="datosCentroPanel" title="Datos">
@@ -21,10 +21,10 @@
                 <field name="direccion"    colSpan="9"/>
                 <field name="codigoPostal" colSpan="3"/>
                 <field name="comunidadAutonoma" colSpan="4"
-                       onChange="sysGestionCentro.Centro@OnChangeComunidadAutonoma-action"/>
+                       onChange="sysGestionCentro.OnChangeComunidadAutonoma@Centro-action"/>
                 <field name="provincia" colSpan="4"
                        domain="self.comunidadAutonoma = :comunidadAutonoma"
-                       onChange="sysGestionCentro.Centro@OnChangeProvincia-action"/>
+                       onChange="sysGestionCentro.OnChangeProvincia@Centro-action"/>
                 <field name="municipio"   colSpan="4" domain="self.provincia = :provincia"/>
                 <field name="conselleria" colSpan="6"/>
             </panel>
@@ -53,17 +53,17 @@
                 </panel-related>
             </panel>
             <panel-related name="profesores" title="Profesores" field="usuarios" colSpan="12"
-                           grid-view="sysGestionCentro.CentroUsuario@Main-grid"
-                           form-view="sysGestionCentro.CentroUsuario@Edit-form"
+                           grid-view="sysGestionCentro.Main@CentroUsuario-grid"
+                           form-view="sysGestionCentro.Edit@CentroUsuario-form"
                            domain="self.id IN (SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t WHERE t.tipoUsuario.codigo = 'PROFESOR')"
                            showFooter="false" canEdit="false" canRemove="false" forceEdit="true" canSearch="true"/>
             <panel-related name="alumnos" title="Alumnos" field="usuarios" colSpan="12"
-                           grid-view="sysGestionCentro.CentroUsuario@Main-grid"
-                           form-view="sysGestionCentro.CentroUsuario@Edit-form"
+                           grid-view="sysGestionCentro.Main@CentroUsuario-grid"
+                           form-view="sysGestionCentro.Edit@CentroUsuario-form"
                            domain="self.id IN (SELECT t.centroUsuario.id FROM CentroUsuarioTipoUsuario t WHERE t.tipoUsuario.codigo = 'ALUMNO')"
                            showFooter="false" canEdit="false" canRemove="false" forceEdit="true" canSearch="true"/>
             <panel name="cambioCursoPanel" title="Cambio de curso" showTitle="false" colSpan="12">
-                <panel-dashlet action="sysGestionCentro.ViewGestionCentroCambioCurso@Main-action" colSpan="12"/>
+                <panel-dashlet action="sysGestionCentro.Main@ViewGestionCentroCambioCurso-action" colSpan="12"/>
             </panel>
         </panel-tabs>
 
@@ -74,7 +74,7 @@
     </form>
 
 
-    <grid name="sysGestionCentro.TareaImportacion@Main-grid" title="Tareas de importación"
+    <grid name="sysGestionCentro.Main@TareaImportacion-grid" title="Tareas de importación"
           model="com.educaflow.subsystem.importacion.db.TareaImportacion"
           canNew="true" newButtonTitle="Importar nuevos datos"
           orderBy="-createdOn"
@@ -87,7 +87,7 @@
         <field name="createdOn" title="Fecha de importación" width="160px"/>
     </grid>
 
-    <form name="sysGestionCentro.TareaImportacion@Main-form" title="Importar fichero"
+    <form name="sysGestionCentro.Main@TareaImportacion-form" title="Importar fichero"
           model="com.educaflow.subsystem.importacion.db.TareaImportacion"
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="importacionDatosPanel" title="" colSpan="12">
@@ -101,18 +101,18 @@
         </panel>
     </form>
 
-    <action-view name="sysGestion.Importacion@Main-action" title="Ficheros de importación"
+    <action-view name="sysGestion.Main@Importacion-action" title="Ficheros de importación"
                  model="com.educaflow.subsystem.importacion.db.TareaImportacion">
-        <view type="grid" name="sysGestionCentro.TareaImportacion@Main-grid"/>
-        <view type="form" name="sysGestion.TareaImportacion@Menu-form"/>
+        <view type="grid" name="sysGestionCentro.Main@TareaImportacion-grid"/>
+        <view type="form" name="sysGestion.Menu@TareaImportacion-form"/>
         <view-param name="show-toolbar-form" value="false"/>
         <domain>self.centro = :centroActivo</domain>
         <context name="centroActivo" expr="eval: __user__?.centroActivo"/>
     </action-view>
 
-    <form name="sysGestion.TareaImportacion@Menu-form" title="Importar fichero"
+    <form name="sysGestion.Menu@TareaImportacion-form" title="Importar fichero"
           model="com.educaflow.subsystem.importacion.db.TareaImportacion"
-          onNew="sysGestion.TareaImportacion@OnNew-action"
+          onNew="sysGestion.OnNew@TareaImportacion-action"
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="importacionMenuDatosPanel" title="" colSpan="12">
             <field name="tipoFichero" colSpan="6" widget="SwitchSelect" required="true"
@@ -125,7 +125,7 @@
         </panel>
     </form>
 
-    <action-record name="sysGestion.TareaImportacion@OnNew-action"
+    <action-record name="sysGestion.OnNew@TareaImportacion-action"
                    model="com.educaflow.subsystem.importacion.db.TareaImportacion">
         <field name="centro" expr="eval: __user__?.centroActivo"/>
     </action-record>

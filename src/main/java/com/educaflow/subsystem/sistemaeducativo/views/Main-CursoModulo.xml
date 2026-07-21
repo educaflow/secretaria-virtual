@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+
+    <action-view name="subsysSistemaEducativo.Main@CursoModulo-action" title="Cursos-Módulos" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo">
+        <view type="grid" name="subsysSistemaEducativo.Main@CursoModulo-grid"/>
+        <view type="form" name="subsysSistemaEducativo.Main@CursoModulo-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="forceEdit" value="true"/>
+    </action-view>
+
+    <grid name="subsysSistemaEducativo.Main@CursoModulo-grid" title="" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+          groups="admins"
+          orderBy="modulo.name" canNew="true" newButtonTitle="Añadir un nuevo curso-módulo"
+          canRefresh="false" canAdvanceSearch="false" allowSearchFields="true"
+          editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"
+          canEditOnClick="true">
+        <hilite color="danger" if="archived"/>
+        <field name="curso"  />
+        <field name="modulo" />
+        <field name="archived" width="100px" />
+    </grid>
+
+    <form name="subsysSistemaEducativo.Main@CursoModulo-form" title="Curso-Módulo" model="com.educaflow.subsystem.sistemaeducativo.db.CursoModulo"
+          groups="admins"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+        <panel name="CursoModulo" title="">
+            <field name="curso"  colSpan="6"  grid-view="subsysSistemaEducativo.Ref@Curso-grid"  form-view="subsysSistemaEducativo.Ref@Curso-form" />
+            <field name="modulo" colSpan="6" colOffset="6" grid-view="subsysSistemaEducativo.Ref@Modulo-grid" form-view="subsysSistemaEducativo.Ref@Modulo-form" />
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@CursoModulo-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Main@CursoModulo-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Main@CursoModulo-btnSave-action" colSpan="2"/>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+    <action-group name="subsysSistemaEducativo.Main@CursoModulo-btnDelete-action">
+        <action name="delete"/>
+    </action-group>
+    <action-group name="subsysSistemaEducativo.Main@CursoModulo-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+    <action-group name="subsysSistemaEducativo.Main@CursoModulo-btnSave-action">
+        <action name="remote-validationSave-action"/>
+        <action name="save"/>
+        <action name="back"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+</object-views>

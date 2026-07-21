@@ -3,16 +3,16 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="sysGestion.UsuarioRegistrado@Main-action" title="Usuarios registrados"
+    <action-view name="sysGestion.Main@UsuarioRegistrado-action" title="Usuarios registrados"
                  model="com.educaflow.subsystem.common.db.CentroUsuario">
-        <view type="grid" name="sysGestion.UsuarioRegistrado@Main-grid"/>
+        <view type="grid" name="sysGestion.Main@UsuarioRegistrado-grid"/>
         <domain>self.centro = :centroActivo</domain>
         <context name="centroActivo" expr="eval: __user__?.centroActivo"/>
     </action-view>
 
-    <grid name="sysGestionCentro.CentroUsuario@Main-grid" title=""
+    <grid name="sysGestionCentro.Main@CentroUsuario-grid" title=""
           model="com.educaflow.subsystem.common.db.CentroUsuario"
-          canNew="true" canDelete="false" canEdit="false" canSave="false"
+          canNew="true" newButtonTitle="Añadir usuario" canDelete="false" canEdit="false" canSave="false"
           allowSearchFields="true"
           canViewOnClick="true" canAdvanceSearch="false" canRefresh="false"
           editable="false" edit-icon="false" x-selector="none">
@@ -21,14 +21,14 @@
         <field name="usuario.apellidos" title="Apellidos"/>
     </grid>
 
-    <grid name="sysGestionCentro.CentroUsuario.CentroUsuarioTipoUsuario@Main-grid" title=""
+    <grid name="sysGestionCentro.Main@CentroUsuario.CentroUsuarioTipoUsuario-grid" title=""
           model="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario"
           canNew="false" canDelete="true" canEdit="false" canSave="false"
           editable="false" edit-icon="false" x-selector="none">
         <field name="tipoUsuario" title="Tipo de usuario"/>
     </grid>
 
-    <grid name="sysGestion.UsuarioRegistrado@Main-grid" title="Usuarios registrados"
+    <grid name="sysGestion.Main@UsuarioRegistrado-grid" title="Usuarios registrados"
           model="com.educaflow.subsystem.common.db.CentroUsuario"
           editable="false" edit-icon="false" x-selector="none"
           canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="false">
@@ -38,7 +38,7 @@
         <field name="usuario.email"     title="Correo electrónico"/>
     </grid>
 
-    <form name="sysGestionCentro.CentroUsuario@Edit-form" title="Usuario"
+    <form name="sysGestionCentro.Edit@CentroUsuario-form" title="Usuario"
           model="com.educaflow.subsystem.common.db.CentroUsuario"
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="centroUsuarioDatosPanel" title="">
@@ -47,8 +47,8 @@
         </panel>
         <panel-related name="centroUsuarioTipoUsuario" field="centroUsuarioTipoUsuario" title="Tipos de usuario" colSpan="12"
                        newButtonTitle="Añadir nuevo tipo de usuario"
-                       grid-view="sysGestionCentro.CentroUsuario.CentroUsuarioTipoUsuario@Main-grid"
-                       form-view="sysGestionCentro.CentroUsuarioTipoUsuario@Edit-form"
+                       grid-view="sysGestionCentro.Main@CentroUsuario.CentroUsuarioTipoUsuario-grid"
+                       form-view="sysGestionCentro.Edit@CentroUsuarioTipoUsuario-form"
                        showFooter="false" canEdit="false" canRemove="true" forceEdit="true"
                        canNew="true" canDelete="true"/>
         <panel name="centroUsuarioButtonsPanel" title="" colSpan="12" showFrame="false">
@@ -57,9 +57,9 @@
         </panel>
     </form>
 
-    <form name="sysGestionCentro.CentroUsuarioTipoUsuario@Edit-form" title="Tipo de usuario"
+    <form name="sysGestionCentro.Edit@CentroUsuarioTipoUsuario-form" title="Tipo de usuario"
           model="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario"
-          onNew="sysGestionCentro.CentroUsuarioTipoUsuario-onNew-action"
+          onNew="sysGestionCentro.Edit@CentroUsuarioTipoUsuario-onNew-action"
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="tipoUsuarioDatosPanel" title="">
             <field name="centroUsuario" showIf="false"/>
@@ -67,7 +67,7 @@
         </panel>
         <panel name="tipoUsuarioButtonsPanel" title="" colSpan="12" showFrame="false">
             <button name="btnCancel" title="Cancelar" onClick="close"                                                  colSpan="2" colOffset="8" outline="true"/>
-            <button name="btnSave"   title="Guardar"  onClick="sysGestionCentro.CentroUsuarioTipoUsuario@Edit-btnSave-action" colSpan="2"/>
+            <button name="btnSave"   title="Guardar"  onClick="sysGestionCentro.Edit@CentroUsuarioTipoUsuario-btnSave-action" colSpan="2"/>
         </panel>
     </form>
 
@@ -76,8 +76,8 @@
     <!-- ***************************** Acciones de las tareas principales ****************************  -->
     <!-- *********************************************************************************************  -->
 
-    <action-group name="sysGestionCentro.CentroUsuarioTipoUsuario@Edit-btnSave-action">
-        <action name="sysGestionCentro.CentroUsuarioTipoUsuario@Edit-Local-validateSave-action"/>
+    <action-group name="sysGestionCentro.Edit@CentroUsuarioTipoUsuario-btnSave-action">
+        <action name="sysGestionCentro.Edit@CentroUsuarioTipoUsuario-Local-validateSave-action"/>
         <action name="save"/>
         <action name="close"/>
     </action-group>
@@ -87,7 +87,7 @@
     <!-- ***************************** Acciones de Validaciones en local  ****************************  -->
     <!-- *********************************************************************************************  -->
 
-    <action-validate name="sysGestionCentro.CentroUsuarioTipoUsuario@Edit-Local-validateSave-action">
+    <action-validate name="sysGestionCentro.Edit@CentroUsuarioTipoUsuario-Local-validateSave-action">
         <error message="Este tipo de usuario ya está asignado a este usuario en este centro"
                if="__parent__?.centroUsuarioTipoUsuario?.any { t -> t.tipoUsuario?.id == tipoUsuario?.id &amp;&amp; t.id != id }"/>
     </action-validate>
@@ -97,7 +97,7 @@
     <!-- ************************ Acciones básicas que cambian campos simples ************************  -->
     <!-- *********************************************************************************************  -->
 
-    <action-record name="sysGestionCentro.CentroUsuarioTipoUsuario-onNew-action"
+    <action-record name="sysGestionCentro.Edit@CentroUsuarioTipoUsuario-onNew-action"
                    model="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario">
         <field name="centroUsuario" expr="eval: __parent__"/>
     </action-record>

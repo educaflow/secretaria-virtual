@@ -133,13 +133,13 @@ Ficheros XML de vistas Axelor (namespace `object-views`). Cada fichero contiene 
 >
 > Cuántos `<action-view>` se necesitan en una entidad es decisión del diseño o análisis y puede haber uno por estado de la máquina (PENDIENTE/FIRMADO/RECHAZADO), uno por tipo de usuario (firmante/administrador), uno por caso de uso (alta/búsqueda/auditoría) o cualquier combinación. La regla arquitectónica es independiente: **sea cual sea el número, cada uno va en su propio fichero**.
 >
-> Convención de nombre de fichero: `<NombreEntidad>-<discriminador>.xml`, donde el discriminador identifica el `<action-view>` (estado, perfil, caso de uso). Si un fichero es `<NombreEntidad>-<discriminador>.xml` es porque la acción tendrá el sufijo `@Discriminador` excepto con  `@Main` que va simplemente en el fichero  `<NombreEntidad>.xml`.
+> Convención de nombre de fichero: `<NombreEntidad>-<discriminador>.xml`, donde el discriminador identifica el `<action-view>` (estado, perfil, caso de uso). Si un fichero es `<NombreEntidad>-<discriminador>.xml` es porque la acción llevará el prefijo de variante `{Discriminador}@…` (p.ej. `Pendiente@…`) excepto con  `Main@…` que va simplemente en el fichero  `<NombreEntidad>.xml`.
 >
-> Las vistas de búsqueda/referencia (`@Search-grid` + `@View-form`) son la excepción: viven juntas en un único fichero `<NombreEntidad>-ref.xml` (ver `k-vistas`), porque su función es ser referenciadas desde otros formularios y no abren un `<action-view>` propio.
+> Las vistas de búsqueda/referencia (`Ref@…-grid` + `Ref@…-form`) son la excepción: viven juntas en un único fichero `<NombreEntidad>-ref.xml` (ver `k-vistas`), porque su función es ser referenciadas desde otros formularios y no abren un `<action-view>` propio.
 
 También contiene `i18n_es.csv` e `i18n_ca.csv` (generados automáticamente por el build — **no se crean a mano**).
 
-**Cuándo consultar el skill `k-vistas`:** al crear o modificar cualquier fichero XML de esta carpeta — grids (`@Main-grid`, `@Search-grid`), formularios (`@Main-form`, `@View-form`), paneles, `panel-related`, `panel-tabs`, acciones (`action-group`, `action-method`, `action-record`, `action-attrs`), menús y árbol. `k-vistas` es la referencia completa para todo lo relacionado con vistas.
+**Cuándo consultar el skill `k-vistas`:** al crear o modificar cualquier fichero XML de esta carpeta — grids (`Main@…-grid`, `Ref@…-grid`), formularios (`Main@…-form`, `Ref@…-form`), paneles, `panel-related`, `panel-tabs`, acciones (`action-group`, `action-method`, `action-record`, `action-attrs`), menús y árbol. `k-vistas` es la referencia completa para todo lo relacionado con vistas.
 
 ### `documentospdf/` (opcional)
 
@@ -268,18 +268,18 @@ Cuando se crea o modifica un sistema/subsistema, seguir este orden:
 Cuando una entidad tiene una relación `one-to-many` que se edita inline, usa `<panel-related>`:
 
 - El form padre incluye `<panel-related field="coleccion" form-view="..." grid-view="..."/>` — **siempre con los dos atributos**.
-- El form hijo lleva `onNew="subsys{X}.{Padre}.{Hijo}-onNew-action"` para inicializar la referencia al padre.
+- El form hijo lleva `onNew="subsys{X}.Main@{Padre}.{Hijo}-onNew-action"` para inicializar la referencia al padre.
 - La `action-record` del `onNew` asigna `__parent__` al campo de relación inversa:
   ```xml
-  <action-record name="subsysActas.Acta.CalificacionAlumno-onNew-action"
+  <action-record name="subsysActas.Main@Acta.CalificacionAlumno-onNew-action"
                  model="...CalificacionAlumno">
       <field name="acta" expr="eval: __parent__"/>
   </action-record>
   ```
 - Si hay varias colecciones, agrúpalas dentro de `<panel-tabs>`.
-- El patrón aplica en cualquier profundidad: cada nivel tiene su `panel-related`, su form hijo con `onNew` y su `action-record` que asigna `__parent__`. El nombre de la vista refleja todos los niveles: `subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-grid`.
+- El patrón aplica en cualquier profundidad: cada nivel tiene su `panel-related`, su form hijo con `onNew` y su `action-record` que asigna `__parent__`. El nombre de la vista refleja todos los niveles: `subsysSistemaEducativo.Main@Ciclo.Curso.CursoModulo-grid`.
 
-Para los comentarios que separan las vistas y los grupos de acciones, consultar el skill `k-vistas` (secciones "Comentarios de cabecera de sección" y "Comentarios de grupos de acciones").
+Para los marcadores (Processing Instructions) que separan las vistas y las secciones de acciones, consultar el skill `k-vistas` (sección "Marcadores de bloque y sección (Processing Instructions)").
 
 ### Patrón 2 — Fichero de menú
 
@@ -293,29 +293,29 @@ Para los comentarios que separan las vistas y los grupos de acciones, consultar 
 ```xml
 <!-- Abre un grid de búsqueda específico al seleccionar -->
 <field name="familiaProfesional"
-       grid-view="subsysSistemaEducativo.FamiliaProfesional@Search-grid" />
+       grid-view="subsysSistemaEducativo.Ref@FamiliaProfesional-grid" />
 
 <!-- Con filtro adicional sobre los valores elegibles -->
 <field name="grado"
-       grid-view="subsysSistemaEducativo.Grado@Search-grid"
+       grid-view="subsysSistemaEducativo.Ref@Grado-grid"
        domain="(self.code='D' OR self.code='E')" />
 
 <!-- Con vista readonly al abrir el registro seleccionado -->
 <field name="ciclo"
-       grid-view="subsysSistemaEducativo.Ciclo@Search-grid"
-       form-view="subsysSistemaEducativo.Ciclo@View-form" />
+       grid-view="subsysSistemaEducativo.Ref@Ciclo-grid"
+       form-view="subsysSistemaEducativo.Ref@Ciclo-form" />
 ```
 
-- `grid-view` → abre el grid `@Search-grid` en lugar del por defecto al pulsar la lupa.
+- `grid-view` → abre el grid `Ref@…-grid` en lugar del por defecto al pulsar la lupa.
 - `domain` → filtra los registros elegibles (SQL WHERE sobre `self`).
-- `form-view` → al hacer clic sobre el registro ya seleccionado, abre esa vista. Usa `@View-form` cuando el campo debe ser solo lectura al navegar.
+- `form-view` → al hacer clic sobre el registro ya seleccionado, abre esa vista. Usa `Ref@…-form` cuando el campo debe ser solo lectura al navegar.
 
 ### Patrón 4 — Máquina de estados en un form
 
 - El form tiene un campo `<field name="pasoActual" showIf="false" />` que define el estado actual.
 - Se crean paneles con `showIf="pasoActual=='paso1Inicio'"` para mostrar/ocultar según el estado.
 - Se crean `action-record` que asignan `pasoActual` al nuevo estado (van en la sección de acciones básicas).
-- El form tiene `onLoad="subsys{X}.{Entidad}@{Estado}-set-pasoActual-{pasoInicial}-action"` para inicializar al primer paso al abrir el formulario.
+- El form tiene `onLoad="subsys{X}.{Estado}@{Entidad}-set-pasoActual-{pasoInicial}-action"` para inicializar al primer paso al abrir el formulario.
 
 ## Cuándo crear un subsistema vs un sistema
 

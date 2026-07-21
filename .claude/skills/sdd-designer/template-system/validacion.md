@@ -53,7 +53,18 @@ Cada punto que no se cumpla es un **fallo** a reportar (con su ubicación). Las 
     | awk -v f="$f" '$1=="A"{e=$2} $1=="M"{if(e!="" && $2!=e) print f": la accion Remote-"e"-action llama al metodo "$2; e=""}'
   done
   ```
-  Cualquier línea impresa es un fallo a reportar (la corrección es renombrar el método del controlador —en `design.md` y en el `<call>` si también estuviera mal— para que coincida con el `{nombreFuncionJava}` embebido en el nombre de la acción). **Forms modales de detalle** (`design-contract.md` §5-§6): en cada `<action-group>` que termine en `save-modal`/`delete-modal`, (a) la presencia de `remote-validation*` es un fallo (el maestro puede no existir en BD), y (b) la **ausencia** de un `Local-validate*` que cubra todas las V del detalle evaluables en cliente es un fallo (es la única validación antes de cerrar el modal).
+  Cualquier línea impresa es un fallo a reportar (la corrección es renombrar el método del controlador —en `design.md` y en el `<call>` si también estuviera mal— para que coincida con el `{nombreFuncionJava}` embebido en el nombre de la acción). **Cierre tras guardar (`save` → `back`):** en el form **principal**, el `<action-group>` de `btnSave` **MUST** terminar con `<action name="back"/>` (o `force-back`) justo después de `<action name="save"/>` — si no, al guardar sin cambios la ventana no se cierra (`k-vistas/forms.md`). Detector (marca los grupos cuyo `save` no va seguido de `back`/`force-back`):
+  ```bash
+  for f in .sdd/drafts/{iniciativa}/design/views/*.xml; do
+    awk -v f="$f" '
+      /<action-group name="[^"]*-btnSave-action"/{inbtn=1; save=0; next}
+      inbtn && /<action name="save"\/>/{save=1; next}
+      inbtn && /name="(back|force-back)"/{save=0}
+      inbtn && /<\/action-group>/{ if(save==1) print f": btnSave termina en save sin back/force-back"; inbtn=0; save=0 }
+    ' "$f"
+  done
+  ```
+  Cualquier línea impresa es un fallo a reportar (la corrección es añadir `<action name="back"/>` tras `save`). **Forms modales de detalle** (`design-contract.md` §5-§6): en cada `<action-group>` que termine en `save-modal`/`delete-modal`, (a) la presencia de `remote-validation*` es un fallo (el maestro puede no existir en BD), y (b) la **ausencia** de un `Local-validate*` que cubra todas las V del detalle evaluables en cliente es un fallo (es la única validación antes de cerrar el modal).
 - **f) Reglas R complejas** (`reglas-complejas.md`). Cada `R-` que cumple los criterios tiene su `rules/R-<Entidad>-NNN.md` (y viceversa); ningún `rules/R-*.md` con cuerpos Java.
 - **g) Prohibiciones en `design.md`** (`design-contract.md` §1.1). Sin cuerpos de método Java, sin JPQL real, sin acoplamiento a `expedientes`/`tiposexpedientes`/`tramites`.
 - **h) Tests E2E** (`design/test-e2e-desc.md`, ver `tests-e2e.md`). Si el spec tiene escenarios, `test-e2e-desc.md` **MUST** existir y cada escenario del spec aparece como `Origen ESC` en al menos un test; cada `Verifica` y `Pantalla principal` referencia algo que existe. Si el spec no tiene escenarios, no se exige `test-e2e-desc.md`.

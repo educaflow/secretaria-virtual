@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+
+    <action-view name="subsysSistemaEducativo.Main@FamiliaProfesional-action" title="Familias profesionales"  model="com.educaflow.subsystem.sistemaeducativo.db.FamiliaProfesional">
+        <view type="grid" name="subsysSistemaEducativo.Main@FamiliaProfesional-grid"/>
+        <view type="form" name="subsysSistemaEducativo.Main@FamiliaProfesional-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="forceEdit" value="true"/>
+    </action-view>
+
+    <grid name="subsysSistemaEducativo.Main@FamiliaProfesional-grid" title="" model="com.educaflow.subsystem.sistemaeducativo.db.FamiliaProfesional"
+          groups="admins"
+          orderBy="name" canNew="true" newButtonTitle="Añadir una nueva familia profesional"
+          canRefresh="false" canAdvanceSearch="false" allowSearchFields="true"
+          editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"
+          canEditOnClick="true"
+    >
+        <hilite color="danger" if="archived"/>
+        <field name="code" width="200px" />
+        <field name="name" />
+    </grid>
+
+    <form name="subsysSistemaEducativo.Main@FamiliaProfesional-form" title="Familia Profesional"  model="com.educaflow.subsystem.sistemaeducativo.db.FamiliaProfesional"
+          groups="admins"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+        <panel name="FamiliaProfesional" title="Familia Profesional">
+            <field name="code" colSpan="3" />
+            <field name="name" colOffset="3" colSpan="6" />
+        </panel>
+
+        <panel-related name="ciclos" field="ciclos" title="Ciclos"
+            grid-view="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-grid" form-view="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-form"
+            colSpan="12" newButtonTitle="Añadir un nuevo ciclo" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
+        />
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@FamiliaProfesional-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Main@FamiliaProfesional-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Main@FamiliaProfesional-btnSave-action" colSpan="2"/>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+    <action-group name="subsysSistemaEducativo.Main@FamiliaProfesional-btnDelete-action">
+        <action name="delete"/>
+    </action-group>
+    <action-group name="subsysSistemaEducativo.Main@FamiliaProfesional-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+    <action-group name="subsysSistemaEducativo.Main@FamiliaProfesional-btnSave-action">
+        <action name="remote-validationSave-action"/>
+        <action name="save"/>
+        <action name="back"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+
+    <?sv-view?>
+
+    <grid name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" allowSearchFields="true" orderBy="name"
+          canAdvanceSearch="false" canRefresh="false" canNew="true" newButtonTitle="Añadir un nuevo ciclo" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true" title=""
+    >
+        <field name="code" width="200px" />
+        <field name="name" />
+    </grid>
+
+    <form name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
+          width="large"
+          onNew="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-onNew-action"
+          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="Ciclo" title="">
+            <field name="familiaProfesional" showIf="false"/>
+            <field name="code" colSpan="3" />
+            <field name="name" colOffset="3" colSpan="6" />
+            <field name="grado" colOffset="6" colSpan="3" grid-view="subsysSistemaEducativo.Ref@Grado-grid" form-view="subsysSistemaEducativo.Ref@Grado-form" domain="(self.code='D' OR self.code='E')" />
+            <field name="nivel" colSpan="3" grid-view="subsysSistemaEducativo.Ref@Nivel-grid" form-view="subsysSistemaEducativo.Ref@Nivel-form" showIf="grado.code=='D'" requiredIf="grado.code=='D'" domain="(self.code='D' OR self.code='E')"/>
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-btnSave-action" colSpan="2"/>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+    <action-group name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-btnDelete-action">
+        <action name="delete-modal"/>
+    </action-group>
+    <action-group name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+    <action-group name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-btnSave-action">
+        <action name="save-modal"/>
+    </action-group>
+
+    <action-group name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-onNew-action">
+        <action name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-set-familiaProfesional-parent-action"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+    <action-record name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-set-familiaProfesional-parent-action" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo">
+        <field name="familiaProfesional" expr="eval: __parent__"/>
+    </action-record>
+
+    <?sv-remotes?>
+
+</object-views>

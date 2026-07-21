@@ -105,11 +105,11 @@ Cada categoría de regla tiene su capa de implementación:
 
 ## 6. Reglas arquitectónicas obligatorias
 
-- **Un `<action-view>` por fichero** (regla de `k-sistemas`): cada `<action-view>` vive en su propio fichero `<NombreEntidad>[-<discriminador>].xml` junto con el grid, el form y las acciones que solo usa él. Excepción: las vistas de búsqueda/referencia (`@Search-grid` + `@View-form`) van juntas en `<NombreEntidad>-ref.xml`. Si la entidad tiene un único `<action-view>` principal, el fichero es `<NombreEntidad>.xml`.
+- **Un `<action-view>` por fichero** (regla de `k-sistemas`): cada `<action-view>` vive en su propio fichero `<NombreEntidad>[-<discriminador>].xml` junto con el grid, el form y las acciones que solo usa él. Excepción: las vistas de búsqueda/referencia (`Ref@…-grid` + `Ref@…-form`) van juntas en `<NombreEntidad>-ref.xml`. Si la entidad tiene un único `<action-view>` principal, el fichero es `<NombreEntidad>.xml`.
 
   - ✅ CORRECTO: `Bar.xml` (entidad con un solo `<action-view>` principal).
   - ✅ CORRECTO: `Bar-Pendiente.xml` (un `<action-view>` discriminado por estado).
-  - ✅ CORRECTO: `Bar-ref.xml` (`@Search-grid` + `@View-form` juntos).
+  - ✅ CORRECTO: `Bar-ref.xml` (`Ref@…-grid` + `Ref@…-form` juntos).
   - ❌ INCORRECTO: `BarGridPendiente.xml` (sin guion-discriminador; concatena entidad y rol)
   - ❌ INCORRECTO: `Bar.xml` con dos `<action-view>` dentro (regla "uno por fichero" violada)
 
@@ -123,11 +123,12 @@ Cada categoría de regla tiene su capa de implementación:
 - **Botones de formulario = patrón `buttons-panel` de `k-vistas/forms.md`, nunca la toolbar nativa de Axelor.** Cuando la spec dice "los botones estándar" (o `*(solo los botones estándar: Guardar, Cancelar, Borrar)*`) se refiere a un término de **negocio**: el trío de acciones que todo formulario de mantenimiento tiene por defecto. Su traducción **técnica** en este proyecto es **siempre** el patrón fijo de `k-vistas/forms.md` — **nunca** los atributos nativos del `<form>` de Axelor. En concreto:
   - Los atributos `canAttach`/`canBack`/`canDelete`/`canNew`/`canSave`/`canMore` del `<form>` **MUST** ir a `false` (la toolbar nativa **MUST NOT** usarse para guardar/cancelar/borrar).
   - El formulario **MUST** llevar un `<panel name="buttons-panel">` con `<button name="btnDelete">`, `<button name="btnCancel">`, `<button name="btnSave">`, cada uno con su `<action-group>` propio que termina en la acción real del framework (`delete`/`back`/`save` en el form principal; `delete-modal`/`close`/`save-modal` en un form modal).
+  - En el form **principal**, el `<action-group>` de `btnSave` **MUST** terminar con `<action name="back"/>` (o `force-back`) **después** de `<action name="save"/>`: cierra la ventana aunque `save` sea un no-op (nada cambiado) y `canBackOnSave` no dispare. Ver `k-vistas/forms.md`.
   - Cualquier validación de servidor antes de guardar se engancha en el `<action-group>` del **botón** `btnSave` (antes de `<action name="save"/>`), **no** en el atributo `onSave` del `<form>`.
 - **Validación remota de save/delete = acciones globales, nunca por entidad.** En el **form principal**, el `<action-group>` de `btnSave` incluye la acción global `remote-validationSave-action` antes de `save`, y el de `btnDelete` la acción global `remote-validationDelete-action` antes de `delete` (las define una única vez `DefaultModelController` — ver `k-validaciones/validaciones.md` §5). **MUST NOT** declarar en `views/*.xml` un `<action-method>` de validación por entidad (`…-Remote-validateSave-action`) ni métodos `validateSave`/`validateDelete` en el controlador de la entidad. Solo las **operaciones custom** (`aprobar`, `rechazar`…) llevan su `Remote-validate<Operacion>-action` y su `@CallMethod` propios. En el form **modal** de un detalle (`save-modal`/`delete-modal`) **MUST NOT** usarse `remote-validation*`: allí la validación previa al cierre es la cliente, lo más completa posible (§5).
 
-  - ✅ CORRECTO: `<action-group name="….btnSave-action">` con `Local-validateSave-action` (opcional) → `remote-validationSave-action` → `save`.
-  - ❌ INCORRECTO: `<action-method name="subsysFoo.Bar@Main-Remote-validateSave-action">` llamando a `BarController.validateSave` (patrón sustituido por la acción global).
+  - ✅ CORRECTO: `<action-group name="….btnSave-action">` con `Local-validateSave-action` (opcional) → `remote-validationSave-action` → `save` → `back` (o `force-back`).
+  - ❌ INCORRECTO: `<action-method name="subsysFoo.Main@Bar-Remote-validateSave-action">` llamando a `BarController.validateSave` (patrón sustituido por la acción global).
 
   - ✅ CORRECTO: `<form ... canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">` + `<panel name="buttons-panel">` con los tres `<button>` (ver `k-vistas/forms.md`).
   - ❌ INCORRECTO: `<form ... canBack="true" canDelete="true" canSave="true" onSave="...">` sin `buttons-panel` — usa la toolbar nativa de Axelor en vez del patrón del proyecto, aunque "funcione".
@@ -319,7 +320,7 @@ El diseñador revisa su diseño contra esta lista y corrige antes de terminar. S
 - [ ] ¿El paso de servicios contiene SOLO firmas de método con comentarios descriptivos del cuerpo, y NO cuerpos implementados? Si hay código Java real (lógica, `if`, `for`, `messages.add(...)` con literales), eliminarlo y dejarlo como comentario.
 - [ ] ¿Existe un fichero `design_<n>/views/<Fichero>.xml` por `<action-view>`, con XML completo y válido contra `object-views.xsd`, y su resumen estructural en el `design.md`?
 - [ ] ¿Existe `design_<n>/menus.xml`, válido contra `object-views.xsd`?
-- [ ] ¿Cada `<action-view>` está en su propio fichero (§6)? Excepción: `@Search-grid`+`@View-form` van juntos en `<NombreEntidad>-ref.xml`.
+- [ ] ¿Cada `<action-view>` está en su propio fichero (§6)? Excepción: `Ref@…-grid`+`Ref@…-form` van juntos en `<NombreEntidad>-ref.xml`.
 - [ ] ¿La tabla "Ficheros a crear o modificar" lista los menús como "Modificar `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`", no como un fichero nuevo `menus-<subsistema>.xml`?
 - [ ] ¿Los parámetros de los métodos del controlador se llaman `actionRequest` y `actionResponse`?
 - [ ] ¿Cada V/R/U tiene su columna **`Origen spec`** con los IDs `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-` que la originaron (que existen realmente en el spec), o `—` si la añadió el diseño?
@@ -336,7 +337,7 @@ El diseñador revisa su diseño contra esta lista y corrige antes de terminar. S
 - [ ] ¿Ningún paso crea un módulo Guice para un `ModelService`? (si lo crea, eliminarlo — §6)
 - [ ] ¿Ningún paso crea un listener JPA para lógica de negocio? (si lo crea, moverlo al servicio como `fireActionRule_*`)
 - [ ] ¿Cada `<form>` de `views/*.xml` tiene `canAttach`/`canBack`/`canDelete`/`canNew`/`canSave`/`canMore` a `false` y un `<panel name="buttons-panel">` con `btnDelete`/`btnCancel`/`btnSave` (patrón de `k-vistas/forms.md`), en vez de la toolbar nativa de Axelor? ¿Ninguna validación de servidor cuelga de un `onSave` del `<form>` en vez del `action-group` de `btnSave`?
-- [ ] ¿Los `action-group` de `btnSave`/`btnDelete` del form **principal** usan las acciones globales `remote-validationSave-action`/`remote-validationDelete-action` (§6), sin ningún `<action-method>` de validación por entidad para save/delete ni métodos `validateSave`/`validateDelete` en el controlador?
+- [ ] ¿Los `action-group` de `btnSave`/`btnDelete` del form **principal** usan las acciones globales `remote-validationSave-action`/`remote-validationDelete-action` (§6), sin ningún `<action-method>` de validación por entidad para save/delete ni métodos `validateSave`/`validateDelete` en el controlador? ¿El de `btnSave` termina con `<action name="back"/>` (o `force-back`) después de `save` para cerrar la ventana?
 - [ ] ¿En cada form **modal** de detalle (`save-modal`/`delete-modal`): (a) ningún `action-group` del modal incluye `remote-validation*`, y (b) el `Local-validate*` del modal duplica **todas** las V del detalle evaluables en cliente (§5)? Las V del detalle no evaluables en cliente quedan en el `validate*` del servicio del detalle (corren al guardar el maestro).
 - [ ] ¿Cada paso es lo suficientemente pequeño para implementarse y verificarse en ≤ 30 minutos?
 - [ ] ¿Los pasos respetan el orden obligatorio de §8?

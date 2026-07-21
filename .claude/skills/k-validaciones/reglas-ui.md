@@ -64,13 +64,13 @@ Atributos de `<attribute>`: `for` (campo destino), `name` (atributo a cambiar), 
 
 ```xml
 <!-- Filtrar dinámicamente el dominio de plantilla según el tipoDocumento elegido -->
-<action-attrs name="subsysXxx.MiEntidad@Main-set-plantilla.domain-tipoDocumento-action">
+<action-attrs name="subsysXxx.Main@MiEntidad-set-plantilla.domain-tipoDocumento-action">
     <attribute for="plantilla" name="domain"
                expr="eval: &quot;self.tipoDocumento.id = ${tipoDocumento?.id}&quot;"/>
 </action-attrs>
 
 <!-- Restringir las opciones de estado según un flag, con if= -->
-<action-attrs name="subsysXxx.MiEntidad@Main-set-estado.selection-in-action">
+<action-attrs name="subsysXxx.Main@MiEntidad-set-estado.selection-in-action">
     <attribute for="estado" name="selection-in" expr="eval: ['BORRADOR', 'ENVIADO']" if="!esAdmin"/>
     <attribute for="estado" name="selection-in" expr="eval: ['BORRADOR', 'ENVIADO', 'APROBADO']" if="esAdmin"/>
 </action-attrs>
@@ -79,7 +79,7 @@ Atributos de `<attribute>`: `for` (campo destino), `name` (atributo a cambiar), 
 Y desde la vista se referencia en el evento adecuado:
 
 ```xml
-<field name="tipoDocumento" onChange="subsysXxx.MiEntidad@Main-set-plantilla.domain-tipoDocumento-action"/>
+<field name="tipoDocumento" onChange="subsysXxx.Main@MiEntidad-set-plantilla.domain-tipoDocumento-action"/>
 ```
 
 ---
@@ -89,7 +89,7 @@ Y desde la vista se referencia en el evento adecuado:
 Para asignar valores iniciales (`onNew`) o derivados al cambiar otro campo (`onChange`):
 
 ```xml
-<action-record name="subsysXxx.MiEntidad@Main-set-centro-currentUser-action" model="com.educaflow.subsystem.xxx.db.MiEntidad">
+<action-record name="subsysXxx.Main@MiEntidad-set-centro-currentUser-action" model="com.educaflow.subsystem.xxx.db.MiEntidad">
     <field name="centro" expr="eval: __user__.centro"/>
 </action-record>
 ```

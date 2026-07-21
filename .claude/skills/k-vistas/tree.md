@@ -7,7 +7,7 @@ La vista `<tree>` muestra registros en estructura jerárquica de árbol con múl
 ## Estructura básica
 
 ```xml
-<tree name="{prefijo}.{Entidad}@{Nombre}-tree" title="Título" showHeader="true|false">
+<tree name="{prefijo}.{Nombre}@{Entidad}-tree" title="Título" showHeader="true|false">
 
     <column name="name" />
     <column name="campo1" width="200px" title="Columna 1"/>
@@ -25,11 +25,11 @@ La vista `<tree>` muestra registros en estructura jerárquica de árbol con múl
           domain="filtroJPQL"
           parent="campoPadre"
           draggable="false"
-          onClick="prefijo.Entidad@Nombre-event-action">
+          onClick="prefijo.Nombre@Entidad-event-action">
         <field name="name"/>
         <field name="campo1"/>
         <field name="campo2"/>
-        <button name="btnAccion" onClick="prefijo.Entidad@Nombre-btn-action" icon="help" help="Descripción"/>
+        <button name="btnAccion" onClick="prefijo.Nombre@Entidad-btn-action" icon="help" help="Descripción"/>
     </node>
 
 </tree>
@@ -275,10 +275,13 @@ Cuando el tree se usa dentro de un dashlet con `<search-fields>`, los parámetro
 
 Las vistas tree siguen la misma convención general del proyecto:
 
-- `{Prefijo}.{Entidad}@{Nombre}-tree` para trees de mantenimiento o funcionales
+- `{Prefijo}.{Nombre}@{Entidad}-tree` para trees de mantenimiento o funcionales — **variante antes** de la `@`, **entidad después**.
+- Ejemplo en formato nuevo: para la variante `Esperando` de la entidad `Solicitud` en un subsistema `X` → `subsysX.Esperando@Solicitud-tree`.
 - Ejemplos:
   - `subsysExpedientes.Expediente@Esperando-tree`
   - `subsysExpedientes.Expediente@PruebaSearch-buscar-tree`
   - `sysTramites-nuevo-tree` (tree de sistema sin jerarquía de entidad)
 
-La action-view que abre el tree sigue la convención normal: `{Prefijo}.{Entidad}@{Nombre}-action`.
+> **Nota:** los ejemplos `subsysExpedientes.*` de este fichero conservan **a propósito** el formato legado `{Entidad}@{Variante}` (entidad antes de la `@`), porque el framework de expedientes no se ha migrado. **No los tomes como plantilla**: en un módulo NO-expedientes se aplica el formato nuevo `{Prefijo}.{Variante}@{Entidad}-tree` de arriba.
+
+La action-view que abre el tree sigue la convención normal: `{Prefijo}.{Nombre}@{Entidad}-action`.

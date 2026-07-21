@@ -105,7 +105,7 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
 
     @Override
     public List<Correo> listarCorreosEnFail() {
-        // El finder-method se declaró con all="true" en Correo.xml, así que el repositorio
+        // El finder-method se declaró con all="true" en Main-Correo.xml, así que el repositorio
         // autogenerado devuelve Query<Correo> (para permitir encadenar order/cacheable), no
         // List<Correo> directamente — de ahí el .fetch() final.
         return ((CorreoRepository) repository).findByEstado(EstadoCorreo.FAIL).fetch();

@@ -26,6 +26,11 @@ class DependenciasEntreCapasTest {
         "..expedientes..", "..tiposexpedientes..", "..tramites.."
     };
 
+    // [C1] Verificación:
+    //   - Sujeto: clases de `com.educaflow.base.util..`.
+    //   - Condición: ninguna depende de clases de `com.educaflow..` que estén **fuera** de `com.educaflow.base.util..`.
+    //   - Exenciones: no aplican.
+    //   - Mensaje: «base/util es la capa más baja: no puede depender de ningún otro paquete com.educaflow».
     @ArchTest
     static final ArchRule c1_baseUtilNoDependeDeOtrosPaquetesEducaflow =
         noClasses()
@@ -35,6 +40,11 @@ class DependenciasEntreCapasTest {
                     .and(DescribedPredicate.not(resideInAPackage("com.educaflow.base.util.."))))
             .because("base/util es la capa más baja: no puede depender de ningún otro paquete com.educaflow");
 
+    // [C2] Verificación:
+    //   - Sujeto: clases de `com.educaflow.base.infrastructure..`.
+    //   - Condición: ninguna depende de clases de `com.educaflow.subsystem..`, `com.educaflow.system..` ni `com.educaflow.secretariavirtual..`.
+    //   - Exenciones: no aplican.
+    //   - Mensaje: «base/infrastructure solo puede depender, dentro de com.educaflow, de base/util».
     @ArchTest
     static final ArchRule c2_baseInfrastructureSoloDependeDeBaseUtil =
         noClasses()
@@ -46,6 +56,10 @@ class DependenciasEntreCapasTest {
                     "com.educaflow.secretariavirtual..")
             .because("base/infrastructure solo puede depender, dentro de com.educaflow, de base/util");
 
+    // [C3] Verificación:
+    //   - Sujeto: clases de `com.educaflow.subsystem..`, excluidos los paquetes exentos.
+    //   - Condición: ninguna depende de clases de `com.educaflow.system..` ni `com.educaflow.secretariavirtual..`.
+    //   - Mensaje: «un subsystem nunca depende de un system ni del ensamblaje secretariavirtual».
     @ArchTest
     static final ArchRule c3_subsystemNoDependeDeSystemNiSecretariaVirtual =
         noClasses()
@@ -57,6 +71,10 @@ class DependenciasEntreCapasTest {
                     "com.educaflow.secretariavirtual..")
             .because("un subsystem nunca depende de un system ni del ensamblaje secretariavirtual");
 
+    // [C4] Verificación:
+    //   - Sujeto: clases de `com.educaflow.system..`, excluidos los paquetes exentos.
+    //   - Condición: ninguna depende de clases de `com.educaflow.secretariavirtual..`.
+    //   - Mensaje: «un system nunca depende del ensamblaje secretariavirtual (capa más alta)».
     @ArchTest
     static final ArchRule c4_systemNoDependeDeSecretariaVirtual =
         noClasses()
@@ -66,6 +84,10 @@ class DependenciasEntreCapasTest {
                 .resideInAPackage("com.educaflow.secretariavirtual..")
             .because("un system nunca depende del ensamblaje secretariavirtual (capa más alta)");
 
+    // [C5] Verificación:
+    //   - Sujeto: clases de `com.educaflow.base..`, `com.educaflow.subsystem..` y `com.educaflow.system..`, excluidos los paquetes exentos.
+    //   - Condición: ninguna depende de clases de `com.educaflow.secretariavirtual..`.
+    //   - Mensaje: «secretariavirtual es la capa más alta: ninguna otra capa puede depender de ella».
     @ArchTest
     static final ArchRule c5_secretariaVirtualNoEsAccedidaPorNadie =
         noClasses()
@@ -78,6 +100,11 @@ class DependenciasEntreCapasTest {
                 .resideInAPackage("com.educaflow.secretariavirtual..")
             .because("secretariavirtual es la capa más alta: ninguna otra capa puede depender de ella");
 
+    // [C7] Verificación:
+    //   - Sujeto: los subsistemas, entendidos como *slices* = subpaquetes de **primer nivel** de `com.educaflow.subsystem`.
+    //   - Condición: el grafo de dependencias entre slices está libre de ciclos.
+    //   - Exenciones: `..expedientes..` queda fuera del análisis (como origen y como destino).
+    //   - Mensaje: el generado por defecto (sin mensaje propio).
     // frozen: incumplimiento conocido (ver "Cumplimiento" en architecture-rules.md)
     @ArchTest
     static final ArchRule c7_subsistemasSinCiclos =
@@ -88,6 +115,11 @@ class DependenciasEntreCapasTest {
                 .ignoreDependency(resideInAPackage("..expedientes.."), DescribedPredicate.alwaysTrue())
                 .ignoreDependency(DescribedPredicate.alwaysTrue(), resideInAPackage("..expedientes..")));
 
+    // [C8] Verificación:
+    //   - Sujeto: los sistemas, entendidos como *slices* = subpaquetes de **primer nivel** de `com.educaflow.system`.
+    //   - Condición: los slices no dependen unos de otros.
+    //   - Exenciones: `..tiposexpedientes..` y `..tramites..` quedan fuera del análisis (como origen y como destino).
+    //   - Mensaje: el generado por defecto (sin mensaje propio).
     @ArchTest
     static final ArchRule c8_sistemasIndependientesEntreSi =
         slices().matching("com.educaflow.system.(*)..")

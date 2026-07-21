@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+
+    <action-view name="subsysCommon.Main@Centro-action" title="Centros" model="com.educaflow.subsystem.common.db.Centro">
+        <view type="grid" name="subsysCommon.Main@Centro-grid"/>
+        <view type="form" name="subsysCommon.Main@Centro-form"/>
+        <view-param name="forceEdit" value="true"/>
+        <view-param name="show-toolbar-form" value="false"/>
+    </action-view>
+
+    <grid name="subsysCommon.Main@Centro-grid" title="" model="com.educaflow.subsystem.common.db.Centro"
+          orderBy="name" canNew="true" newButtonTitle="Nuevo centro"
+          canRefresh="false" canAdvanceSearch="false" allowSearchFields="true"
+          editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"
+          canEditOnClick="true"          >
+        <field name="code" width="200px"/>
+        <field name="name"/>
+        <field name="curso"/>
+    </grid>
+
+    <form name="subsysCommon.Main@Centro-form" title="Datos" model="com.educaflow.subsystem.common.db.Centro"
+          width="large"
+          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+        <panel-tabs>
+            <panel name="man-Centro-datos-panel" title="Datos">
+                <field name="code"         colSpan="3" required="true"/>
+                <field name="name"         colSpan="6" required="true"/>
+                <field name="curso"        colSpan="3" readonly="true"/>
+                <field name="direccion"    colSpan="9"/>
+                <field name="codigoPostal" colSpan="3"/>
+                <field name="comunidadAutonoma" colSpan="4"
+                       onChange="subsysCommon.Main@Centro-onChange-comunidadAutonoma-action"/>
+                <field name="provincia" colSpan="4"
+                       domain="self.comunidadAutonoma = :comunidadAutonoma"
+                       onChange="subsysCommon.Main@Centro-onChange-provincia-action"/>
+                <field name="municipio"   colSpan="4" domain="self.provincia = :provincia"/>
+                <field name="conselleria" colSpan="6"/>
+            </panel>
+            <panel-dashlet name="usuarios" title="Usuarios"
+                           canNew="true" newButtonTitle="Nuevo usuario"
+                           action="subsysCommon.Main@CentroUsuario-action"
+                           colSpan="12" height="350" canSearch="true"/>
+        </panel-tabs>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
+
+            <button name="btnDelete" title="Borrar" onClick="subsysCommon.Main@Centro-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id != null) || (cid != null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysCommon.Main@Centro-btnCancel-action"  colSpan="2" colOffset="6" outline="true"   />
+            <button name="btnSave" title="Guardar" onClick="subsysCommon.Main@Centro-btnSave-action"  colSpan="2" />
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+
+    <action-group name="subsysCommon.Main@Centro-btnDelete-action">
+        <action name="delete"/>
+    </action-group>
+
+    <action-group name="subsysCommon.Main@Centro-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+
+    <action-group name="subsysCommon.Main@Centro-btnSave-action">
+        <action name="remote-validationSave-action"/>
+        <action name="save"/>
+        <action name="force-back"/>
+    </action-group>
+
+    <action-group name="subsysCommon.Main@Centro-onChange-comunidadAutonoma-action">
+        <action name="subsysCommon.Main@Centro-set-provincia-null-action"/>
+    </action-group>
+
+    <action-group name="subsysCommon.Main@Centro-onChange-provincia-action">
+        <action name="subsysCommon.Main@Centro-set-municipio-null-action"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <action-record name="subsysCommon.Main@Centro-set-provincia-null-action" model="com.educaflow.subsystem.common.db.Centro">
+        <field name="provincia" expr="eval: null"/>
+        <field name="municipio" expr="eval: null"/>
+    </action-record>
+
+    <action-record name="subsysCommon.Main@Centro-set-municipio-null-action" model="com.educaflow.subsystem.common.db.Centro">
+        <field name="municipio" expr="eval: null"/>
+    </action-record>
+
+    <?sv-remotes?>
+
+</object-views>

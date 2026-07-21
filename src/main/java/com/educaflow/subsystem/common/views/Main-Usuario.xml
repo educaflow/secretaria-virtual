@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+    <action-view name="subsysCommon.Main@Usuario-action" title="Usuarios" model="com.axelor.auth.db.User">
+        <view type="grid" name="subsysCommon.Main@Usuario-grid"/>
+        <view type="form" name="subsysCommon.Main@Usuario-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="show-toolbar-grid" value="false"/>
+        <view-param name="forceEdit" value="true"/>
+    </action-view>
+
+
+    <grid name="subsysCommon.Main@Usuario-grid" title="" model="com.axelor.auth.db.User"
+          groups="admins"
+          allowSearchFields="true" orderBy="code"
+          editable="false" edit-icon="false" x-selector="none"
+          canNew="false"
+          canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
+          canAdvanceSearch="false" canRefresh="false">
+        <field name="code" width="200px"/>
+        <field name="dni"/>
+        <field name="nombre"/>
+        <field name="apellidos"/>
+        <field name="email"/>
+        <field name="language"/>
+        <field name="active"/>
+    </grid>
+
+    <form name="subsysCommon.Main@Usuario-form" title="Usuario" model="com.axelor.auth.db.User"
+          width="large"
+          canAttach="false" canBack="false" canBackOnSave="true" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="usuario" title="">
+            <field name="code"         colSpan="6" required="true"/>
+            <field name="dni"          colSpan="6" required="true"/>
+            <field name="language"     colSpan="6"/>
+            <field name="centroActivo" colSpan="6"
+                   grid-view="subsysCommon.Ref@Centro-grid"
+                   form-view="subsysCommon.Ref@Centro-form"/>
+            <field name="nombre"       colSpan="6" required="true"/>
+            <field name="apellidos"    colSpan="6" required="true"/>
+            <field name="name"         colSpan="6" readonly="true"/>
+            <field name="email"        colSpan="6"/>
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnDelete" title="Borrar" onClick="subsysCommon.Main@Usuario-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id != null) || (cid != null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysCommon.Main@Usuario-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="subsysCommon.Main@Usuario-btnSave-action" colSpan="2"/>
+        </panel>
+    </form>
+    
+    <?sv-primary-actions?>
+
+    <action-group name="subsysCommon.Main@Usuario-btnDelete-action">
+        <action name="delete"/>
+    </action-group>
+
+    <action-group name="subsysCommon.Main@Usuario-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+
+    <action-group name="subsysCommon.Main@Usuario-btnSave-action">
+        <action name="remote-validationSave-action"/>
+        <action name="save"/>
+        <action name="force-back"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+</object-views>

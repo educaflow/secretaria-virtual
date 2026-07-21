@@ -38,7 +38,7 @@
 <menuitem name="subsysFirma-pendiente-menuitem"
           parent="subsysFirma-menuitem"
           title="Pendientes"
-          action="subsysFirma.TareaFirma@Pendiente-action"
+          action="subsysFirma.Pendiente@TareaFirma-action"
           groups="admins"
           order="1"/>
 
@@ -46,7 +46,7 @@
 <menuitem name="subsysFirma-pendiente-menuitem"
           parent="subsysFirma-menuitem"
           title="Pendientes"
-          action="subsysFirma.TareaFirma@Pendiente-action"
+          action="subsysFirma.Pendiente@TareaFirma-action"
           tag-count="true"
           tag-style="warning"
           order="1"/>

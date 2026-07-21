@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+
+    <action-view name="subsysCorreos.Mis@Correo-action" title="Mis correos" model="com.educaflow.subsystem.correos.db.Correo">
+        <view type="grid" name="subsysCorreos.Mis@Correo-grid"/>
+        <view type="form" name="subsysCorreos.Mis@Correo-form"/>
+        <view-param name="show-toolbar-grid" value="false"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <domain>self.dniDestinatario = :dniUsuarioActual and self.estado = :estadoExitoso</domain>
+        <context name="dniUsuarioActual" expr="eval: __user__?.dni"/>
+        <context name="estadoExitoso" expr="SUCCESS"/>
+    </action-view>
+
+    <grid name="subsysCorreos.Mis@Correo-grid" title="" model="com.educaflow.subsystem.correos.db.Correo"
+          canNew="false" allowSearchFields="true" orderBy="-fechaEnvio"
+          canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="asunto"/>
+        <field name="para" width="220px"/>
+        <field name="nombreExpediente" width="180px" title="Expediente"/>
+        <field name="fechaEnvio" width="160px"/>
+    </grid>
+
+    <form name="subsysCorreos.Mis@Correo-form" title="Correo" model="com.educaflow.subsystem.correos.db.Correo"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+
+        <panel name="Correo" title="Datos del correo">
+            <field name="asunto" colSpan="9" readonly="true"/>
+            <field name="fechaEnvio" colSpan="3" readonly="true"/>
+            <field name="cuerpo" colSpan="12" widget="Text" readonly="true"/>
+            <field name="para" colSpan="6" readonly="true"/>
+            <field name="enCopia" colSpan="6" readonly="true"/>
+        </panel>
+
+        <panel-related name="adjuntos" field="adjuntos" title="Adjuntos"
+            grid-view="subsysCorreos.Ref@Adjunto-grid" form-view="subsysCorreos.Ref@Adjunto-form"
+            colSpan="12" newButtonTitle="" canNew="false" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"/>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Salir" onClick="subsysCorreos.Mis@Correo-btnCancel-action"
+                    colSpan="2" colOffset="8" outline="true"/>
+        </panel>
+
+    </form>
+
+    <?sv-primary-actions?>
+
+    <action-group name="subsysCorreos.Mis@Correo-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+</object-views>

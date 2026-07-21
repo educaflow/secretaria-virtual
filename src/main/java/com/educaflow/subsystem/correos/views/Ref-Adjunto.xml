@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- Grid y form de solo lectura de Adjunto, compartidos por Correo-Centro y Correo-Mis. -->
+    <?sv-view?>
+    <grid name="subsysCorreos.Ref@Adjunto-grid" title="" model="com.educaflow.subsystem.correos.db.Adjunto"
+          canNew="false" allowSearchFields="false" orderBy="nombreFichero"
+          canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="nombreFichero" title="Nombre del fichero"/>
+    </grid>
+
+    <form name="subsysCorreos.Ref@Adjunto-form" title="Adjunto" model="com.educaflow.subsystem.correos.db.Adjunto"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="Adjunto" title="">
+            <field name="nombreFichero" colSpan="6" readonly="true"/>
+            <field name="contenido" colSpan="6" widget="binary-link" readonly="true"/>
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Salir" onClick="subsysCorreos.Ref@Adjunto-btnCancel-action"
+                    colSpan="2" colOffset="8" outline="true"/>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+
+    <action-group name="subsysCorreos.Ref@Adjunto-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+
+    <?sv-validations?>
+    <?sv-rules?>
+    <?sv-remotes?>
+
+</object-views>

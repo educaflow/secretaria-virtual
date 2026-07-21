@@ -26,6 +26,11 @@ class NomenclaturaYUbicacionTest {
         "..expedientes..", "..tiposexpedientes..", "..tramites.."
     };
 
+    // [C15] Verificación:
+    //   Dos comprobaciones (a/b), una por dirección:
+    //   - **C15a** — Sujeto: clases de `..controller..`, excluidos los paquetes exentos. Condición: su nombre simple termina en `Controller`.
+    //   - **C15b** — Sujeto: clases cuyo nombre simple termina en `Controller`, excluidos los paquetes exentos. Condición: residen en `..controller..`.
+    //   - Mensaje: el generado por defecto (sin mensaje propio).
     @ArchTest
     static final ArchRule c15a_clasesEnControllerTerminanEnController =
         classes()
@@ -33,6 +38,7 @@ class NomenclaturaYUbicacionTest {
                 .and().resideOutsideOfPackages(PAQUETES_EXENTOS)
             .should().haveSimpleNameEndingWith("Controller");
 
+    // [C15] (continuación)
     @ArchTest
     static final ArchRule c15b_controllersResidenEnPaqueteController =
         classes()
@@ -40,6 +46,10 @@ class NomenclaturaYUbicacionTest {
                 .and().resideOutsideOfPackages(PAQUETES_EXENTOS)
             .should().resideInAPackage("..controller..");
 
+    // [C16] Verificación:
+    //   - Sujeto: clases asignables a `com.axelor.db.modelservice.DefaultModelService` (excluida la propia clase base y los paquetes exentos).
+    //   - Condición: su nombre simple termina en `ServiceImpl` **y** residen en `..service.impl..`.
+    //   - Mensaje: «ModelServiceFactory descubre la impl por el nombre <Entidad>ServiceImpl en service.impl».
     @ArchTest
     static final ArchRule c16_implServicioNombreYUbicacion =
         classes()
@@ -50,6 +60,11 @@ class NomenclaturaYUbicacionTest {
             .andShould().resideInAPackage("..service.impl..")
             .because("ModelServiceFactory descubre la impl por el nombre <Entidad>ServiceImpl en service.impl");
 
+    // [C17] Verificación:
+    //   - Sujeto: interfaces asignables a `com.axelor.db.modelservice.ModelService` (excluida la propia interfaz base y los paquetes exentos).
+    //   - Condición: su nombre simple termina en `Service` **y** residen en `..service..`.
+    //   - Mensaje: «la interfaz de servicio se llama <Entidad>Service y vive en service».
+    //   - Nota: `..service.impl..` es subpaquete de `..service..`, así que la ubicación también es válida para una interfaz auxiliar allí; la impl. la cubre C16.
     @ArchTest
     static final ArchRule c17_interfazServicioNombreYUbicacion =
         classes()
@@ -61,6 +76,10 @@ class NomenclaturaYUbicacionTest {
             .andShould().resideInAPackage("..service..")
             .because("la interfaz de servicio se llama <Entidad>Service y vive en service");
 
+    // [C18] Verificación:
+    //   - Sujeto: clases de `..db.repo..`, excluidos los paquetes exentos.
+    //   - Condición: su nombre simple termina en `Repository` **o** en `Listener`.
+    //   - Mensaje: «en db/repo solo hay repositorios (*Repository) y, excepcionalmente, listeners (*Listener)».
     @ArchTest
     static final ArchRule c18_repositoriosNombre =
         classes()
@@ -70,6 +89,10 @@ class NomenclaturaYUbicacionTest {
             .orShould().haveSimpleNameEndingWith("Listener")
             .because("en db/repo solo hay repositorios (*Repository) y, excepcionalmente, listeners (*Listener)");
 
+    // [C19] Verificación:
+    //   - Sujeto: clases asignables a `com.axelor.app.AxelorModule` (excluida la propia clase base y los paquetes exentos).
+    //   - Condición: su nombre simple termina en `Module` **y** residen en `..module..`.
+    //   - Mensaje: «los módulos Guice se llaman <Subsistema>Module y viven en module/».
     @ArchTest
     static final ArchRule c19_modulosGuiceNombreYUbicacion =
         classes()
@@ -80,6 +103,10 @@ class NomenclaturaYUbicacionTest {
             .andShould().resideInAPackage("..module..")
             .because("los módulos Guice se llaman <Subsistema>Module y viven en module/");
 
+    // [C20] Verificación:
+    //   - Sujeto: clases cuyo nombre simple termina en `DTO`, excluidos los paquetes exentos.
+    //   - Condición: son records de Java (comprobable por asignabilidad a `java.lang.Record`) **y** residen en `..service..`.
+    //   - Mensaje: «los DTOs del proyecto son records de Java y viven junto a la interfaz del servicio».
     @ArchTest
     static final ArchRule c20_dtosSonRecordsEnService =
         classes()

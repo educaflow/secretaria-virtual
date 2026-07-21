@@ -9,13 +9,13 @@ La referencia técnica completa de todos los atributos está en `references/char
 ## Estructura básica
 
 ```xml
-<action-view name="{prefijo}.{Entidad}@{Nombre}-action"
+<action-view name="{prefijo}.{Nombre}@{Entidad}-action"
              title="Título de la pantalla">
-    <view type="chart" name="{prefijo}.{Entidad}@{Nombre}-chart"/>
+    <view type="chart" name="{prefijo}.{Nombre}@{Entidad}-chart"/>
 </action-view>
 
 <!-- Patrón por defecto: dataset type="rpc" → action-method → servicio -->
-<chart name="{prefijo}.{Entidad}@{Nombre}-chart" title="Título de la gráfica">
+<chart name="{prefijo}.{Nombre}@{Entidad}-chart" title="Título de la gráfica">
     <dataset type="rpc">action-{entidad}-{nombre}</dataset>
     <category key="_eje_x" type="text" title="Etiqueta eje X"/>
     <series   key="_valor" type="bar"  title="Etiqueta eje Y"/>
@@ -119,7 +119,7 @@ La acción debe devolver una `List<Map<String,Object>>` cuyas claves coincidan *
 **1. Vista del chart** — el `<dataset>` apunta a la acción por su nombre:
 
 ```xml
-<chart name="subsysCorreos.Correo@GraficaDia-chart" title="Correos por estado (por día)" stacked="true">
+<chart name="subsysCorreos.GraficaDia@Correo-chart" title="Correos por estado (por día)" stacked="true">
     <search-fields>
         <field type="date" name="fechaInicial" title="Fecha inicial"/>
         <field type="date" name="fechaFinal"   title="Fecha final"/>
@@ -345,9 +345,9 @@ La acción `onInit` recibe el contexto de los `<search-fields>` y puede rellenar
 
 Las gráficas no tienen modelo de dominio, pero siguen la misma convención del proyecto adaptada:
 
-- **Chart:** `{prefijo}.{Entidad}@{Nombre}-chart`
-  - Ejemplos: `subsysNotificaciones.Correo@EnviadosPorDia-chart`, `subsysRegistroEntradaSalida.Registro@PorTipo-chart`
-- **Action-view:** `{prefijo}.{Entidad}@{Nombre}-action` (igual que siempre)
+- **Chart:** `{prefijo}.{Nombre}@{Entidad}-chart`
+  - Ejemplos: `subsysNotificaciones.EnviadosPorDia@Correo-chart`, `subsysRegistroEntradaSalida.PorTipo@Registro-chart`
+- **Action-view:** `{prefijo}.{Nombre}@{Entidad}-action` (igual que siempre)
 
 Cuando la gráfica es un dashlet sin entidad clara, puede usarse solo el prefijo:
 - `subsysNotificaciones@EstadisticasCorreos-chart`
@@ -359,12 +359,12 @@ Cuando la gráfica es un dashlet sin entidad clara, puede usarse solo el prefijo
 > Este ejemplo ilustra la variante `type="sql"`. Recuerda que el **patrón por defecto del proyecto es `type="rpc"`** (`chart → <action-method> → servicio`, ver la subsección *type="rpc"*); usa SQL solo si se pide explícitamente.
 
 ```xml
-<action-view name="subsysNotificaciones.Correo@EnviadosPorDia-action"
+<action-view name="subsysNotificaciones.EnviadosPorDia@Correo-action"
              title="Correos enviados por día">
-    <view type="chart" name="subsysNotificaciones.Correo@EnviadosPorDia-chart"/>
+    <view type="chart" name="subsysNotificaciones.EnviadosPorDia@Correo-chart"/>
 </action-view>
 
-<chart name="subsysNotificaciones.Correo@EnviadosPorDia-chart"
+<chart name="subsysNotificaciones.EnviadosPorDia@Correo-chart"
        title="Correos enviados por día">
     <search-fields>
         <field type="date" name="fromDate" title="Desde"/>
@@ -398,9 +398,9 @@ Cuando la gráfica es un dashlet sin entidad clara, puede usarse solo el prefijo
 ## Integración con `<action-view>`
 
 ```xml
-<action-view name="subsysNotificaciones.Correo@EnviadosPorDia-action"
+<action-view name="subsysNotificaciones.EnviadosPorDia@Correo-action"
              title="Correos enviados">
-    <view type="chart" name="subsysNotificaciones.Correo@EnviadosPorDia-chart"/>
+    <view type="chart" name="subsysNotificaciones.EnviadosPorDia@Correo-chart"/>
 </action-view>
 ```
 

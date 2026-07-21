@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <domain-models xmlns="http://axelor.com/xml/ns/domain-models"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_7.4.xsd">
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
 
 
 
@@ -11,11 +11,11 @@
         <many-to-one name="pdf" title="PDF a gestionar" ref="com.axelor.meta.db.MetaFile"  transient="true" />
         <many-to-one name="pdfFirmado" title="PDF a gestionar" ref="com.axelor.meta.db.MetaFile"  transient="true" />
         <string name="info"  large="true" title="información PDF" multiline="true" transient="true" default="Sin datos"  />
-        <int name="numeroPagina" title="Número de página"  transient="true" default="1"  />
-        <int name="x" title="Posición X"  transient="true"  />
-        <int name="y" title="Posición Y"  transient="true" />
-        <int name="width" title="Ancho"  transient="true"  />
-        <int name="height" title="Alto"  transient="true"  />
+        <integer name="numeroPagina" title="Número de página"  transient="true" default="1"  />
+        <integer name="x" title="Posición X"  transient="true"  />
+        <integer name="y" title="Posición Y"  transient="true" />
+        <integer name="width" title="Ancho"  transient="true"  />
+        <integer name="height" title="Alto"  transient="true"  />
     </entity>
 
 

@@ -3,8 +3,8 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <form name="sysGestionCentro.Centro@Datos-form" title="Datos" model="com.educaflow.subsystem.common.db.Centro"
-          onNew="sysGestionCentro.Centro@DatosOnNew-action">
+    <form name="sysGestionCentro.Datos@Centro-form" title="Datos" model="com.educaflow.subsystem.common.db.Centro"
+          onNew="sysGestionCentro.DatosOnNew@Centro-action">
         <panel name="man-Centro-datos-panel" title="Datos">
             <field name="code"    colSpan="3" required="true"/>
             <field name="name"    colSpan="6" required="true"/>
@@ -14,10 +14,10 @@
             <field name="codigoPostal" colSpan="3"/>
 
             <field name="comunidadAutonoma" colSpan="4"
-                   onChange="sysGestionCentro.Centro@OnChangeComunidadAutonoma-action"/>
+                   onChange="sysGestionCentro.OnChangeComunidadAutonoma@Centro-action"/>
             <field name="provincia" colSpan="4"
                    domain="self.comunidadAutonoma = :comunidadAutonoma"
-                   onChange="sysGestionCentro.Centro@OnChangeProvincia-action"/>
+                   onChange="sysGestionCentro.OnChangeProvincia@Centro-action"/>
             <field name="municipio" colSpan="4"
                    domain="self.provincia = :provincia"/>
 
@@ -25,16 +25,16 @@
         </panel>
     </form>
 
-    <action-record name="sysGestionCentro.Centro@OnChangeComunidadAutonoma-action" model="com.educaflow.subsystem.common.db.Centro">
+    <action-record name="sysGestionCentro.OnChangeComunidadAutonoma@Centro-action" model="com.educaflow.subsystem.common.db.Centro">
         <field name="provincia" expr="null"/>
         <field name="municipio" expr="null"/>
     </action-record>
 
-    <action-record name="sysGestionCentro.Centro@OnChangeProvincia-action" model="com.educaflow.subsystem.common.db.Centro">
+    <action-record name="sysGestionCentro.OnChangeProvincia@Centro-action" model="com.educaflow.subsystem.common.db.Centro">
         <field name="municipio" expr="null"/>
     </action-record>
 
-    <action-record name="sysGestionCentro.Centro@DatosOnNew-action" model="com.educaflow.subsystem.common.db.Centro">
+    <action-record name="sysGestionCentro.DatosOnNew@Centro-action" model="com.educaflow.subsystem.common.db.Centro">
         <field name="curso" expr="eval: java.time.LocalDate.now().getYear()"/>
     </action-record>
 

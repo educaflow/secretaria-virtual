@@ -18,6 +18,11 @@ import com.tngtech.archunit.library.freeze.FreezingArchRule;
     importOptions = ImportOption.DoNotIncludeTests.class)
 class ReglasGenericasDeHigieneTest {
 
+    // [C22] Verificación:
+    //   - Sujeto: todas las clases del ámbito de análisis.
+    //   - Condición: ninguna accede a los streams estándar (`System.out`, `System.err`, `Throwable.printStackTrace`). Usar la regla predefinida de higiene de ArchUnit para streams estándar.
+    //   - Exenciones: no se aplican en esta regla (es global; la regla predefinida no admite recortar el sujeto).
+    //   - Mensaje: el de la regla predefinida.
     // frozen: incumplimiento conocido (ver "Cumplimiento" en architecture-rules.md)
     @ArchTest
     static final ArchRule c22_noStreamsEstandar =

@@ -11,7 +11,7 @@ Un grid es la vista tabular de Axelor para listar registros (filas) de un modelo
 ## Ejemplo de grid
 
 ```xml
-<grid name="subsysSistemaEducativo.Ciclo.Curso@Main-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Curso" canNew="true" newButtonTitle="Añadir un nuevo ciclo" allowSearchFields="true" orderBy="name" canEditOnClick="true"
+<grid name="subsysSistemaEducativo.Main@Ciclo.Curso-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Curso" canNew="true" newButtonTitle="Añadir un nuevo ciclo" allowSearchFields="true" orderBy="name" canEditOnClick="true"
       canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"  title=""
 >
     <field name="code" width="150px" />
@@ -35,7 +35,7 @@ Un grid es la vista tabular de Axelor para listar registros (filas) de un modelo
 Un grid admite opcionalmente un hijo `<help>` con un mensaje de ayuda que se muestra al usuario sobre el listado. Es una **etiqueta hija**, no un atributo del `<grid>`, y debe ir la **primera**, antes de los `<field>`.
 
 ```xml
-<grid name="subsysSistemaEducativo.Ciclo@Main-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" ...>
+<grid name="subsysSistemaEducativo.Main@Ciclo-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" ...>
     <help>Aquí se listan todos los ciclos que hay en el sistema</help>
     <field name="code" width="200px" />
     <field name="name" />
@@ -47,25 +47,27 @@ Un grid admite opcionalmente un hijo `<help>` con un mensaje de ayuda que se mue
 
 ## Nombre de los grids
 
-El nombre de las vistas de grids es:       `{Prefijo}.{Entidad}[.{EntidadHija}]*@[Main|Search|otro nombre]-grid`
+El nombre de las vistas de grids es:       `{marcadorMódulo}.[Main|Ref|otra variante]@{Entidad}[.{EntidadHija}]*-grid`
 
-### Prefijos
+### Marcador de módulo
+
+El **marcador de módulo** es la cabecera del prefijo (todo lo anterior al `@`): el marcador de capa (`subsys`/`sys`) pegado al nombre del módulo/carpeta.
 
 - Subsistemas: `subsys{Subsistema}` (PascalCase sin separador), p.ej. `subsysFirma`, `subsysRegistroEntradaSalida`
 - Sistemas: `sys{Sistema}` (PascalCase sin separador), p.ej. `sysImportar`
-- Excepción: el prefijo `exp-` se reserva exclusivamente para las vistas del framework de tipos de expediente
+- Excepción: el marcador `exp-` se reserva exclusivamente para las vistas del framework de tipos de expediente
 
-Las entidades se separan con `.` (punto) y los nombres de ese formulario o grid con `@`
+Las entidades de la ruta de entidad se separan con `.` (punto), y el prefijo se separa del sufijo con `@`
 
 #### Ejemplos
 
 | Caso                       | Patrón                                                          | Ejemplo                                                |
 |----------------------------|-----------------------------------------------------------------|--------------------------------------------------------|
-| Grid principal             | `subsys{Subsistema}.{Entidad}@Main-grid`                        | `subsysSistemaEducativo.Ciclo@Main-grid`               |
-| Grid de busqueda           | `subsys{Subsistema}.{Entidad}@Search-grid`                      | `subsysSistemaEducativo.Ciclo@Search-grid`             |
-| Grid con nombre            | `subsys{Subsistema}.{Entidad}@{Nombre}-grid`                    | `subsysSistemaEducativo.Ciclo@Pendiente-grid`          |
-| Entidad anidada            | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}@Main-grid`     | `subsysSistemaEducativo.Ciclo.Curso@Main-grid`         |
-| Entidad anidada con estado | `subsys{Subsistema}.{EntidadPadre}.{EntidadHija}@{Nombre}-grid` | `subsysSistemaEducativo.Ciclo.Curso@Pendiente-grid`    |
+| Grid principal             | `subsys{Subsistema}.Main@{Entidad}-grid`                        | `subsysSistemaEducativo.Main@Ciclo-grid`               |
+| Grid de busqueda           | `subsys{Subsistema}.Ref@{Entidad}-grid`                      | `subsysSistemaEducativo.Ref@Ciclo-grid`             |
+| Grid con nombre            | `subsys{Subsistema}.{Variante}@{Entidad}-grid`                    | `subsysSistemaEducativo.Pendiente@Ciclo-grid`          |
+| Entidad anidada            | `subsys{Subsistema}.Main@{EntidadPadre}.{EntidadHija}-grid`     | `subsysSistemaEducativo.Main@Ciclo.Curso-grid`         |
+| Entidad anidada con estado | `subsys{Subsistema}.{Variante}@{EntidadPadre}.{EntidadHija}-grid` | `subsysSistemaEducativo.Pendiente@Ciclo.Curso-grid`    |
 
 **IMPORTANTE: Es obligatorio seguir esta convención de nombres para facilitar la trazabilidad, la lectura y el mantenimiento del código.**
 

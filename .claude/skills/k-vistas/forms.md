@@ -3,7 +3,7 @@
 ## Plantilla básica de un formulario
 
 ```xml
-<form name="subsysSistemaEducativo.Ciclo@Main-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
+<form name="subsysSistemaEducativo.Main@Ciclo-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
       width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
     <panel name="Ciclo" title="Ciclo">
         <field name="code"/>
@@ -11,20 +11,20 @@
     </panel>
 
    <panel name="otroPanel" title="Otro panel">
-      <field name="centro" form-view="subsysCentro.Centro@View-form" grid-view="subsysCentro.Centro@Search-grid"  />
-      <field name="grado" colOffset="6" colSpan="4"              grid-view="subsysSistemaEducativo.Grado@Search-grid"  domain="(self.code='D' OR self.code='E')" />
-      <field name="nivel" colSpan="4"                            grid-view="subsysSistemaEducativo.Nivel@Search-grid"  showIf="grado.code=='D'" requiredIf="grado.code=='D'" domain="(self.code='D' OR self.code='E')"/>       
+      <field name="centro" form-view="subsysCentro.Ref@Centro-form" grid-view="subsysCentro.Ref@Centro-grid"  />
+      <field name="grado" colOffset="6" colSpan="4"              grid-view="subsysSistemaEducativo.Ref@Grado-grid"  domain="(self.code='D' OR self.code='E')" />
+      <field name="nivel" colSpan="4"                            grid-view="subsysSistemaEducativo.Ref@Nivel-grid"  showIf="grado.code=='D'" requiredIf="grado.code=='D'" domain="(self.code='D' OR self.code='E')"/>       
    </panel>
 
     <panel-related name="modulos" field="modulos" title="Módulos" newButtonTitle="Añadir un nuevo módulo"
-        grid-view="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-grid" form-view="subsysSistemaEducativo.Ciclo.Curso.CursoModulo@Main-form"
+        grid-view="subsysSistemaEducativo.Main@Ciclo.Curso.CursoModulo-grid" form-view="subsysSistemaEducativo.Main@Ciclo.Curso.CursoModulo-form"
         colSpan="12" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
     />
    
     <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
-        <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Ciclo@Main-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid!=null)"/>
-        <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Ciclo@Main-btnCancel-action"  colSpan="2" colOffset="6" outline="true"   />
-        <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Ciclo@Main-btnSave-action"  colSpan="2"  />
+        <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@Ciclo-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid!=null)"/>
+        <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Main@Ciclo-btnCancel-action"  colSpan="2" colOffset="6" outline="true"   />
+        <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Main@Ciclo-btnSave-action"  colSpan="2"  />
     </panel>
     
 </form>
@@ -34,19 +34,21 @@ IMPORTANTE:
  - En <form> deben estar todos los atributos que se han indicado en la plantilla (width, canAttach, canBack, canDelete, canNew, canSave, canMore, canBackOnSave) con los valores indicados. `canBackOnSave="true"` solo aplica al form principal (no al modal de entidad hija). El form modal **no lleva `canBackOnSave`** y **sí lleva `onNew`** para inyectar la referencia al padre.
  - En <panel-related> deben estar todos los atributos que se han indicado en la plantilla (newButtonTitle, colSpan, showFooter, canEdit, canRemove, forceEdit) con los valores indicados.
  - El botón Borrar debe tener `showIf="(id!=null) || (cid!=null)"` — `id` es el ID del registro ya guardado; `cid` es el ID temporal de un registro nuevo todavía no guardado.
- - El `<action-group>` del botón `btnSave` **MUST** incluir la acción global `remote-validationSave-action` y terminar con `<action name="save"/>`; el del botón `btnDelete` **MUST** incluir la acción global `remote-validationDelete-action` y terminar con `<action name="delete"/>` (`save`/`delete` son acciones predefinidas del framework de Axelor; las `remote-validation*` son las acciones globales de validación remota de `DefaultModelController` — ver `k-validaciones/validaciones.md` §4-§5 y `[[actions.md]]`). **MUST NOT** llamar a un `<action-method>` propio (`Remote-…-action`) para validar, persistir o borrar en save/delete: Axelor ya expone el endpoint REST `/ws/rest/<FQN>` que aplica `validate*` con `AllowProperties`. Ver `[[controladores.md]]` del skill `k-sistemas` y `[[k-secure-coding]]`.
- - Los nombres de los `onClick` de los botones siguen el patrón `{Prefijo}.{EntidadJerárquica}@Main-{btnXxx}-action`, donde `{EntidadJerárquica}` puede incluir la jerarquía de entidades separadas por punto (p.ej. `Ciclo.Curso`). Por ejemplo: `subsysSistemaEducativo.Ciclo@Main-btnDelete-action` para la entidad raíz, o `subsysSistemaEducativo.Ciclo.Curso@Main-btnDelete-action` para la entidad hija.
+ - El `<action-group>` del botón `btnSave` **MUST** incluir la acción global `remote-validationSave-action`, después `<action name="save"/>` y **terminar con `<action name="back"/>`** (o `force-back`); el del botón `btnDelete` **MUST** incluir la acción global `remote-validationDelete-action` y terminar con `<action name="delete"/>` (`save`/`delete`/`back` son acciones predefinidas del framework de Axelor; las `remote-validation*` son las acciones globales de validación remota de `DefaultModelController` — ver `k-validaciones/validaciones.md` §4-§5 y `[[actions.md]]`). **MUST NOT** llamar a un `<action-method>` propio (`Remote-…-action`) para validar, persistir o borrar en save/delete: Axelor ya expone el endpoint REST `/ws/rest/<FQN>` que aplica `validate*` con `AllowProperties`. Ver `[[controladores.md]]` del skill `k-sistemas` y `[[k-secure-coding]]`.
+ - **El `back` tras `save` es OBLIGATORIO** aunque el form lleve `canBackOnSave="true"`: si el usuario pulsa Guardar sin cambiar nada, `save` es un no-op y `canBackOnSave` NO cierra la ventana; el `<action name="back"/>` explícito la cierra siempre. (`force-back` fuerza el cierre descartando cambios pendientes de un sub-form.)
+ - Los nombres de los `onClick` de los botones siguen el patrón `{marcadorMódulo}.Main@{EntidadJerárquica}-{btnXxx}-action`, donde `{EntidadJerárquica}` puede incluir la jerarquía de entidades separadas por punto (p.ej. `Ciclo.Curso`). Por ejemplo: `subsysSistemaEducativo.Main@Ciclo-btnDelete-action` para la entidad raíz, o `subsysSistemaEducativo.Main@Ciclo.Curso-btnDelete-action` para la entidad hija.
+ - **Botones gemelos**: dos botones con `showIf` excluyentes pueden compartir el mismo `action-group`; el `name` de cada botón **MUST** empezar por el `{btnXxx}` del `onClick`. Ejemplo: `btnCancelAlta` (`showIf="(id == null) && (cid == null)"`, título "Cancelar") y `btnCancelSalir` (`showIf="(id != null) || (cid != null)"`, título "Salir") comparten `…-btnCancel-action`.
  - Los nombres de los paneles siguen el patrón del nombre de la entidad (p.ej. `name="Ciclo"`), no nombres genéricos como `nombrePanel1`.
- - En campos relacionales: `form-view` apunta al `@View-form` de la entidad (p.ej. `subsysCentro.Centro@View-form`) y `grid-view` apunta al `@Search-grid` (p.ej. `subsysCentro.Centro@Search-grid`).
+ - En campos relacionales: `form-view` apunta al `Ref@…-form` de la entidad (p.ej. `subsysCentro.Ref@Centro-form`) y `grid-view` apunta al `Ref@…-grid` (p.ej. `subsysCentro.Ref@Centro-grid`).
 
 ## Form modal (entidad hija en `panel-related`)
 
 Cuando una entidad hija se edita desde un `<panel-related>`, su formulario es un **modal** con diferencias importantes respecto al form principal:
 
 ```xml
-<form name="subsysSistemaEducativo.Ciclo.Curso@Main-form" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
+<form name="subsysSistemaEducativo.Main@Ciclo.Curso-form" title="Curso" model="com.educaflow.subsystem.sistemaeducativo.db.Curso"
       width="large"
-      onNew="subsysSistemaEducativo.Ciclo.Curso@Main-onNew-action"
+      onNew="subsysSistemaEducativo.Main@Ciclo.Curso-onNew-action"
       canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
     <panel name="Curso" title="">
         <field name="ciclo" showIf="false"/>   <!-- campo padre, oculto pero presente en el modelo -->
@@ -55,11 +57,11 @@ Cuando una entidad hija se edita desde un `<panel-related>`, su formulario es un
     </panel>
 
     <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-        <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Ciclo.Curso@Main-btnDelete-action"
+        <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@Ciclo.Curso-btnDelete-action"
                 css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
-        <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Ciclo.Curso@Main-btnCancel-action"
+        <button name="btnCancel" title="Cancelar" onClick="subsysSistemaEducativo.Main@Ciclo.Curso-btnCancel-action"
                 colSpan="2" colOffset="6" outline="true"/>
-        <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Ciclo.Curso@Main-btnSave-action"
+        <button name="btnSave" title="Guardar" onClick="subsysSistemaEducativo.Main@Ciclo.Curso-btnSave-action"
                 colSpan="2"/>
     </panel>
 </form>
@@ -93,7 +95,7 @@ Los action-groups de los botones del form modal usan acciones específicas del f
 | `<action-view>` propio | sí             | no (lo abre el `panel-related` del padre) |
 | Botón Borrar acción    | `delete`       | `delete-modal`                            |
 | Botón Cancelar acción  | `back`         | `close`                                   |
-| Botón Guardar acción   | `save`         | `save-modal`                              |
+| Botón Guardar acción   | `save` → `back`/`force-back` | `save-modal`                |
 | Validación remota (`remote-validation*`) | sí, antes de `save`/`delete` | **no** (el maestro puede no existir en BD) |
 | Validación cliente (`Local-validate*`)   | opcional (solo UX)           | **MUST, lo más completa posible** (única validación antes de cerrar el modal) |
 
@@ -104,26 +106,29 @@ Los action-groups de los botones del form modal usan acciones específicas del f
 - El panel de botones siempre debe incluir Borrar, Cancelar y Guardar salvo que se indique lo contrario o haya algo en el negocio que te haga pensar que no es necesario.
 
 ## Nombre de los formularios
-El nombre de las vistas de formularios es: `{Prefijo}.{Entidad}[.{EntidadHija}]*@[Main|View|otro nombre]-form`
+El nombre de las vistas de formularios es: `{marcadorMódulo}.[Main|Ref|otra variante]@{Entidad}[.{EntidadHija}]*-form`
 
-Una excepción a esta convención es el caso de las vistas del framework de tipos de expediente, expedientes o trámites. En ese caso aun no se ha definido una convención de nombres específica, pero se ha decidido reservar el prefijo `exp-` para todas las vistas relacionadas con ese framework, de esa forma se pueden identificar fácilmente y no se solapan con las vistas de los subsistemas o sistemas funcionales. Por ejemplo, una vista de formulario para un tipo de expediente podría llamarse `exp-TipoExpediente@Main-form`.
+Una excepción a esta convención es el caso de las vistas del framework de tipos de expediente, expedientes o trámites. En ese caso aun no se ha definido una convención de nombres específica, pero se ha decidido reservar el marcador `exp-` para todas las vistas relacionadas con ese framework, de esa forma se pueden identificar fácilmente y no se solapan con las vistas de los subsistemas o sistemas funcionales. Por ejemplo, una vista de formulario para un tipo de expediente podría llamarse `exp-TipoExpediente@Main-form`.
 Otra excepción es el caso de formularios del propio Axelor que se modifican para adecuarlos a las necesidades del proyecto, en ese caso se pueden mantener los nombres originales de Axelor. Un ejemplo es el formulario 'user-preferences-form'
 
 
-### {Prefijos}
+### Marcador de módulo
+
+El **marcador de módulo** es la cabecera del prefijo (todo lo anterior al `@`): el marcador de capa (`subsys`/`sys`) pegado al nombre del módulo/carpeta.
+
 - Subsistemas: `subsys{Subsistema}` (PascalCase sin separador), p.ej. `subsysFirma`, `subsysRegistroEntradaSalida`
 - Sistemas: `sys{Sistema}` (PascalCase sin separador), p.ej. `sysImportar`
-- Excepción: el prefijo `exp-` se reserva exclusivamente para las vistas del framework de tipos de expediente
-- Las entidades se separan con `.` (punto) y los nombres de ese formulario o grid con `@`
+- Excepción: el marcador `exp-` se reserva exclusivamente para las vistas del framework de tipos de expediente
+- Las entidades de la ruta de entidad se separan con `.` (punto), y el prefijo se separa del sufijo con `@`
 
 
 | Caso                             | Patrón                                                 | Ejemplo                                             |
 |----------------------------------|--------------------------------------------------------|-----------------------------------------------------|
-| Pantalla principal               | `{Prefijo}.{Entidad}@Main-form`                        | `subsysSistemaEducativo.Ciclo@Main-form`            |
-| Pantalla de Solo lectura         | `{Prefijo}.{Entidad}@View-form`                        | `subsysSistemaEducativo.Ciclo@View-form`             |
-| Otra pantalla distinta           | `{Prefijo}.{Entidad}@{Nombre}-form`                    | `subsysSistemaEducativo.Ciclo@Pendiente-form`       |
-| Entidad anidada                  | `{Prefijo}.{EntidadPadre}.{EntidadHija}@Main-form`     | `subsysSistemaEducativo.Ciclo.Curso@Main-form`      |
-| Entidad anidada de otra pantalla | `{Prefijo}.{EntidadPadre}.{EntidadHija}@{Nombre}-form` | `subsysSistemaEducativo.Ciclo.Curso@Pendiente-form` |
+| Pantalla principal               | `{marcadorMódulo}.Main@{Entidad}-form`                        | `subsysSistemaEducativo.Main@Ciclo-form`            |
+| Pantalla de Solo lectura         | `{marcadorMódulo}.Ref@{Entidad}-form`                        | `subsysSistemaEducativo.Ref@Ciclo-form`             |
+| Otra pantalla distinta           | `{marcadorMódulo}.{Variante}@{Entidad}-form`                    | `subsysSistemaEducativo.Pendiente@Ciclo-form`       |
+| Entidad anidada                  | `{marcadorMódulo}.Main@{EntidadPadre}.{EntidadHija}-form`     | `subsysSistemaEducativo.Main@Ciclo.Curso-form`      |
+| Entidad anidada de otra pantalla | `{marcadorMódulo}.{Variante}@{EntidadPadre}.{EntidadHija}-form` | `subsysSistemaEducativo.Pendiente@Ciclo.Curso-form` |
 
 **IMPORTANTE: Es obligatorio seguir esta convención de nombres para facilitar la trazabilidad, la lectura y el mantenimiento del código.**
 

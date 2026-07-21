@@ -3,31 +3,32 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <form name="sysGestionCentro.Centro@UsuariosAutorizados-form" title="Usuarios autorizados" model="com.educaflow.subsystem.common.db.Centro">
+    <form name="sysGestionCentro.UsuariosAutorizados@Centro-form" title="Usuarios autorizados" model="com.educaflow.subsystem.common.db.Centro">
         <panel title="Usuarios autorizados" colSpan="12" showTitle="false">
-            <panel-dashlet action="sysGestionCentro.UsuarioAutorizado@Main-action" colSpan="12" canSearch="true"/>
+            <panel-dashlet action="sysGestionCentro.Main@UsuarioAutorizado-action" colSpan="12" canSearch="true"/>
         </panel>
     </form>
 
-    <action-view name="sysGestionCentro.UsuarioAutorizado@Main-action" title="Usuarios autorizados"
+    <action-view name="sysGestionCentro.Main@UsuarioAutorizado-action" title="Usuarios autorizados"
                  model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado">
-        <view type="grid" name="sysGestionCentro.UsuarioAutorizado@Main-grid"/>
-        <view type="form" name="sysGestionCentro.UsuarioAutorizado@Main-form"/>
+        <view type="grid" name="sysGestionCentro.Main@UsuarioAutorizado-grid"/>
+        <view type="form" name="sysGestionCentro.Main@UsuarioAutorizado-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
         <domain>self.centro.id = :centroId AND self.curso = :curso</domain>
         <context name="centroId" expr="eval: id"/>
         <context name="curso"    expr="eval: curso"/>
     </action-view>
 
-    <grid name="sysGestionCentro.UsuarioAutorizado@Main-grid" title=""
+    <grid name="sysGestionCentro.Main@UsuarioAutorizado-grid" title=""
           model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado"
-          editable="false" edit-icon="true" x-selector="none" canNew="true" canEdit="true" canDelete="true" canViewOnClick="true">
+          editable="false" edit-icon="true" x-selector="none" canNew="true" newButtonTitle="Añadir usuario autorizado" canEdit="true" canDelete="true" canViewOnClick="true">
         <field name="dni"         title="DNI"/>
         <field name="tipoUsuario" title="Tipo"/>
     </grid>
 
-    <form name="sysGestionCentro.UsuarioAutorizado@Main-form" title="Usuario autorizado"
+    <form name="sysGestionCentro.Main@UsuarioAutorizado-form" title="Usuario autorizado"
           model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado"
-          onNew="sysGestionCentro.UsuarioAutorizado@OnNew-action"
+          onNew="sysGestionCentro.OnNew@UsuarioAutorizado-action"
           canAttach="false" canDelete="true">
         <panel title="">
             <field name="centro"      showIf="false"/>
@@ -37,31 +38,32 @@
         </panel>
     </form>
 
-    <action-record name="sysGestionCentro.UsuarioAutorizado@OnNew-action"
+    <action-record name="sysGestionCentro.OnNew@UsuarioAutorizado-action"
                    model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado">
         <field name="centro" expr="eval: __parent__"/>
         <field name="curso"  expr="eval: __parent__?.curso"/>
     </action-record>
 
-    <action-view name="sysGestion.UsuarioAutorizado@Main-action" title="Usuarios autorizados"
+    <action-view name="sysGestion.Main@UsuarioAutorizado-action" title="Usuarios autorizados"
                  model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado">
-        <view type="grid" name="sysGestion.UsuarioAutorizado@Main-grid"/>
-        <view type="form" name="sysGestion.UsuarioAutorizado@Main-form"/>
+        <view type="grid" name="sysGestion.Main@UsuarioAutorizado-grid"/>
+        <view type="form" name="sysGestion.Main@UsuarioAutorizado-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
         <domain>self.centro = :centroActivo AND self.curso = :curso</domain>
         <context name="centroActivo" expr="eval: __user__?.centroActivo"/>
         <context name="curso"        expr="eval: __user__?.centroActivo?.curso"/>
     </action-view>
 
-    <grid name="sysGestion.UsuarioAutorizado@Main-grid" title=""
+    <grid name="sysGestion.Main@UsuarioAutorizado-grid" title=""
           model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado"
-          editable="false" edit-icon="true" x-selector="none" canNew="true" canEdit="true" canDelete="true" canViewOnClick="true">
+          editable="false" edit-icon="true" x-selector="none" canNew="true" newButtonTitle="Añadir usuario autorizado" canEdit="true" canDelete="true" canViewOnClick="true">
         <field name="dni"         title="DNI"/>
         <field name="tipoUsuario" title="Tipo"/>
     </grid>
 
-    <form name="sysGestion.UsuarioAutorizado@Main-form" title="Usuario autorizado"
+    <form name="sysGestion.Main@UsuarioAutorizado-form" title="Usuario autorizado"
           model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado"
-          onNew="sysGestion.UsuarioAutorizado@OnNew-action"
+          onNew="sysGestion.OnNew@UsuarioAutorizado-action"
           canAttach="false" canDelete="true">
         <panel title="">
             <field name="centro" showIf="false"/>
@@ -71,7 +73,7 @@
         </panel>
     </form>
 
-    <action-record name="sysGestion.UsuarioAutorizado@OnNew-action"
+    <action-record name="sysGestion.OnNew@UsuarioAutorizado-action"
                    model="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado">
         <field name="centro" expr="eval: __user__?.centroActivo"/>
         <field name="curso"  expr="eval: __user__?.centroActivo?.curso"/>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+    <grid name="subsysRegistroEntradaSalida.Ref@Anexos-grid" title="" model="com.axelor.meta.db.MetaFile"
+          allowSearchFields="true" orderBy="fileName" canViewOnClick="true"
+          canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
+    >
+        <field name="fileName" width="300px"/>
+    </grid>
+
+    <form name="subsysRegistroEntradaSalida.Ref@Anexos-form" title="Anexo"   model="com.axelor.meta.db.MetaFile"
+          width="large" canAttach="false" canEdit="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false"
+    >
+        <panel name="anexo" title="Anexo" colSpan="12">
+            <field name="fileName" colSpan="9" readonly="true"/>
+            <field name="sizeText" colSpan="1" readonly="true"/>
+            <field name="content" widget="binary" title="Descargar" colSpan="2" readonly="true"/>
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Salir" onClick="subsysRegistroEntradaSalida.Ref@Anexos-btnCancel-action"
+                    colSpan="2" colOffset="8" outline="true"/>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+    <action-group name="subsysRegistroEntradaSalida.Ref@Anexos-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+</object-views>

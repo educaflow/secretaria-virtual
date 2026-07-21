@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+    <action-view name="subsysPdfUtilities.Firma@PdfUtilities-action" title="Posiciones de firma" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities">
+        <view type="form" name="subsysPdfUtilities.Firma@PdfUtilities-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+    </action-view>
+
+    <form name="subsysPdfUtilities.Firma@PdfUtilities-form" title="Utilidades para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities" width="large">
+
+        <panel name="main" title="PDF">
+            <field name="pdf" colSpan="10" widget="binary-link"/>
+            <field name="numeroPagina" colSpan="2"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnVerPosicionesFirma" title="Ver posiciones de firma" icon="fa-plus" onClick="subsysPdfUtilities.Firma@PdfUtilities-btnVerPosicionesFirma-action"/>
+        </panel>
+        <panel name="info-panel" title="Información del PDF">
+            <field name="pdf-view" showTitle="false" readonly="true" colSpan="9">
+                <viewer depends="pdfFirmado"><![CDATA[
+                    <>
+                    <Box as="iframe" height="1000px" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfFirmado.id}/content/download?inline=true&name=${pdfFirmado.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+    <action-group name="subsysPdfUtilities.Firma@PdfUtilities-btnVerPosicionesFirma-action">
+        <action name="subsysPdfUtilities.Firma@PdfUtilities-Local-getPdfTodasPosicionesFirma-action"/>
+        <action name="subsysPdfUtilities.Firma@PdfUtilities-Remote-getPdfTodasPosicionesFirma-action"/>
+    </action-group>
+
+    <?sv-validations?>
+    <action-condition name="subsysPdfUtilities.Firma@PdfUtilities-Local-getPdfTodasPosicionesFirma-action">
+        <check field="pdf"/>
+        <check field="numeroPagina"/>
+    </action-condition>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+    <action-method name="subsysPdfUtilities.Firma@PdfUtilities-Remote-getPdfTodasPosicionesFirma-action">
+        <call class="com.educaflow.subsystem.pdfutilities.controller.PdfUtilitiesController" method="getPdfTodasPosicionesFirma"/>
+    </action-method>
+
+</object-views>

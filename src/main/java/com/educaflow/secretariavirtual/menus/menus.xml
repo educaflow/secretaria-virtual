@@ -3,63 +3,61 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <menuitem name="expedientes-menuitem" title="Expedientes" groups="users,admins" order="20"/>
-        <menuitem name="expedientes-tramites-menuitem" parent="expedientes-menuitem" title="Trámites" action="sysTramites-nuevo-action" icon="list_alt_add" groups="users,admins" order="1"/>
-        <menuitem name="expedientes-expedientesPendientes-menuitem" parent="expedientes-menuitem" title="Expedientes Pendientes" action="subsysExpedientes.Expediente@Pendiente-action" groups="users,admins" order="2"/>
-        <menuitem name="expedientes-expedientesEsperando-menuitem" parent="expedientes-menuitem" title="Expedientes Esperando" action="subsysExpedientes.Expediente@Esperando-action" groups="users,admins" order="3"/>
-        <menuitem name="expedientes-expedientesCerrados-menuitem" parent="expedientes-menuitem" title="Expedientes Cerrados" action="subsysExpedientes.Expediente@Cerrados-action" groups="users,admins" order="4"/>
-        <menuitem name="expedientes-tiposExpedientes-menuitem" parent="expedientes-menuitem" title="Tipos Expedientes" action="subsysExpedientes.TipoExpediente@Main-action" groups="users,admins" order="5"/>
-        <menuitem name="expedientes-pruebaBusqueda-menuitem" parent="expedientes-menuitem" title="Prueba Búsqueda" action="subsysExpedientes.Expediente@PruebaSearch-action" groups="users,admins" order="6"/>
+<menuitem name="expedientes-menuitem" title="Expedientes" groups="admins,users" order="20"/>
+    <menuitem name="expedientes-tramites-menuitem" parent="expedientes-menuitem" title="Trámites" action="sysTramites-nuevo-action" icon="list_alt_add" groups="admins,users" order="1"/>
+    <menuitem name="expedientes-expedientesPendientes-menuitem" parent="expedientes-menuitem" title="Expedientes Pendientes" action="subsysExpedientes.Expediente@Pendiente-action" groups="admins,users" order="2"/>
+    <menuitem name="expedientes-expedientesEsperando-menuitem" parent="expedientes-menuitem" title="Expedientes Esperando" action="subsysExpedientes.Expediente@Esperando-action" groups="admins,users" order="3"/>
+    <menuitem name="expedientes-expedientesCerrados-menuitem" parent="expedientes-menuitem" title="Expedientes Cerrados" action="subsysExpedientes.Expediente@Cerrados-action" groups="admins,users" order="4"/>
+    <menuitem name="expedientes-tiposExpedientes-menuitem" parent="expedientes-menuitem" title="Tipos Expedientes" action="subsysExpedientes.TipoExpediente@Main-action" groups="admins,users" order="5"/>
+    <menuitem name="expedientes-pruebaBusqueda-menuitem" parent="expedientes-menuitem" title="Prueba Búsqueda" action="subsysExpedientes.Expediente@PruebaSearch-action" groups="admins,users" order="6"/>
 
-    <menuitem name="sistemaEducativo-menuitem" title="Sistema educativo" order="30"/>
-        <menuitem name="sistemaEducativo-familiaProfesional-menuitem" parent="sistemaEducativo-menuitem" title="Familia profesional" action="subsysSistemaEducativo.FamiliaProfesional@Main-action" order="1"/>
-        <menuitem name="sistemaEducativo-ciclos-menuitem" parent="sistemaEducativo-menuitem" title="Ciclos" action="subsysSistemaEducativo.Ciclo@Main-action" order="2"/>
-        <menuitem name="sistemaEducativo-cursos-menuitem" parent="sistemaEducativo-menuitem" title="Cursos" action="subsysSistemaEducativo.Curso@Main-action" order="3"/>
-        <menuitem name="sistemaEducativo-modulos-menuitem" parent="sistemaEducativo-menuitem" title="Módulos" action="subsysSistemaEducativo.Modulo@Main-action" order="4"/>
-        <menuitem name="sistemaEducativo-cursosModulos-menuitem" parent="sistemaEducativo-menuitem" title="Cursos-Módulos" action="subsysSistemaEducativo.CursoModulo@Main-action" order="5"/>
-        <menuitem name="sistemaEducativo-leyesEducativas-menuitem" parent="sistemaEducativo-menuitem" title="Leyes Educativas" action="subsysSistemaEducativo.LeyEducativa@Main-action" order="6"/>
-        <menuitem name="sistemaEducativo-grados-menuitem" parent="sistemaEducativo-menuitem" title="Grados" action="subsysSistemaEducativo.Grado@Main-action" order="7"/>
-        <menuitem name="sistemaEducativo-niveles-menuitem" parent="sistemaEducativo-menuitem" title="Niveles" action="subsysSistemaEducativo.Nivel@Main-action" order="8"/>
+<menuitem name="sistemaEducativo-menuitem" title="Sistema educativo" groups="admins" order="30"/>
+    <menuitem name="sistemaEducativo-familiaProfesional-menuitem" parent="sistemaEducativo-menuitem" title="Familia profesional" action="subsysSistemaEducativo.Main@FamiliaProfesional-action" groups="admins" order="1"/>
+    <menuitem name="sistemaEducativo-ciclos-menuitem" parent="sistemaEducativo-menuitem" title="Ciclos" action="subsysSistemaEducativo.Main@Ciclo-action" groups="admins" order="2"/>
+    <menuitem name="sistemaEducativo-cursos-menuitem" parent="sistemaEducativo-menuitem" title="Cursos" action="subsysSistemaEducativo.Main@Curso-action" groups="admins" order="3"/>
+    <menuitem name="sistemaEducativo-modulos-menuitem" parent="sistemaEducativo-menuitem" title="Módulos" action="subsysSistemaEducativo.Main@Modulo-action" groups="admins" order="4"/>
+    <menuitem name="sistemaEducativo-cursosModulos-menuitem" parent="sistemaEducativo-menuitem" title="Cursos-Módulos" action="subsysSistemaEducativo.Main@CursoModulo-action" groups="admins" order="5"/>
+    <menuitem name="sistemaEducativo-leyesEducativas-menuitem" parent="sistemaEducativo-menuitem" title="Leyes Educativas" action="subsysSistemaEducativo.Main@LeyEducativa-action" groups="admins" order="6"/>
+    <menuitem name="sistemaEducativo-grados-menuitem" parent="sistemaEducativo-menuitem" title="Grados" action="subsysSistemaEducativo.Main@Grado-action" groups="admins" order="7"/>
+    <menuitem name="sistemaEducativo-niveles-menuitem" parent="sistemaEducativo-menuitem" title="Niveles" action="subsysSistemaEducativo.Main@Nivel-action" groups="admins" order="8"/>
 
-    <!--<menuitem name="sysGestion-menuitem" title="Gestión" groups="admins,users" order="40"/>
-        <menuitem name="sysGestion.Centro@CriptografiaModule-menuitem" parent="sysGestion-menuitem" title="Centros" action="sysGestion.Centro@CriptografiaModule-action" groups="admins" order="1"/>
-        <menuitem name="sysGestion.CentroAdmin@CriptografiaModule-menuitem" parent="sysGestion-menuitem" title="Mi Centro" action="sysGestion.CentroAdmin@CriptografiaModule-action" groups="users" if="__user__?.tiposUsuarioActivos?.any { it.code == 'ADMINISTRADOR' }" order="1"/>
-        <menuitem name="sysGestion.Importacion@CriptografiaModule-menuitem" parent="sysGestion-menuitem" title="Ficheros de importación" action="sysGestion.Importacion@CriptografiaModule-action" groups="users" order="2"/>
-        <menuitem name="sysGestion.Usuarios-menuitem" parent="sysGestion-menuitem" title="Usuarios" groups="users" order="3"/>
-            <menuitem name="sysGestion.UsuarioAutorizado@CriptografiaModule-menuitem" parent="sysGestion.Usuarios-menuitem" title="Autorizados" action="sysGestion.UsuarioAutorizado@CriptografiaModule-action" groups="users" order="1"/>
-            <menuitem name="sysGestion.UsuarioRegistrado@CriptografiaModule-menuitem" parent="sysGestion.Usuarios-menuitem" title="Registrados" action="sysGestion.UsuarioRegistrado@CriptografiaModule-action" groups="users" order="2"/>-->
+<!--<menuitem name="sysGestion-menuitem" title="Gestión" groups="admins,users" order="40"/>
+    <menuitem name="sysGestion.CriptografiaModule@Centro-menuitem" parent="sysGestion-menuitem" title="Centros" action="sysGestion.CriptografiaModule@Centro-action" groups="admins" order="1"/>
+    <menuitem name="sysGestion.CriptografiaModule@CentroAdmin-menuitem" parent="sysGestion-menuitem" title="Mi Centro" action="sysGestion.CriptografiaModule@CentroAdmin-action" groups="users" if="__user__?.tiposUsuarioActivos?.any { it.code == 'ADMINISTRADOR' }" order="1"/>
+    <menuitem name="sysGestion.CriptografiaModule@Importacion-menuitem" parent="sysGestion-menuitem" title="Ficheros de importación" action="sysGestion.CriptografiaModule@Importacion-action" groups="users" order="2"/>
+    <menuitem name="sysGestion.Usuarios-menuitem" parent="sysGestion-menuitem" title="Usuarios" groups="users" order="3"/>
+        <menuitem name="sysGestion.CriptografiaModule@UsuarioAutorizado-menuitem" parent="sysGestion.Usuarios-menuitem" title="Autorizados" action="sysGestion.CriptografiaModule@UsuarioAutorizado-action" groups="users" order="1"/>
+        <menuitem name="sysGestion.CriptografiaModule@UsuarioRegistrado-menuitem" parent="sysGestion.Usuarios-menuitem" title="Registrados" action="sysGestion.CriptografiaModule@UsuarioRegistrado-action" groups="users" order="2"/>-->
 
-    <menuitem name="administracionSv-menuitem" title="Administración SV" groups="admins" order="50"/>
-        <menuitem name="administracionSv-centro-menuitem" parent="administracionSv-menuitem" title="Centro" action="subsysCommon.Centro@Main-action" groups="admins" order="1"/>
-        <menuitem name="administracionSv-importacion-menuitem" parent="administracionSv-menuitem" title="Ficheros importación" action="subsysImportacion.TareaImportacion@Main-action" groups="admins" order="2"/>
-        <menuitem name="administracionSv-usuarios-menuitem" parent="administracionSv-menuitem" title="Usuarios" action="subsysCommon.Usuario@Main-action" groups="admins" order="3"/>
-        <menuitem name="administracionSv-dispositivosCriptograficos-menuitem" parent="administracionSv-menuitem" title="Dispositivos criptográficos" action="subsysCriptografia.DispositivoCriptografico@Main-action" groups="admins" order="10"/>
-        <menuitem name="administracionSv-certificadosDigitales-menuitem" parent="administracionSv-menuitem" title="Certificados digitales" action="subsysCriptografia.CertificadoDigital@Main-action" groups="admins" order="11"/>
+<menuitem name="administracionSv-menuitem" title="Administración SV" groups="admins" order="50"/>
+    <menuitem name="administracionSv-centro-menuitem" parent="administracionSv-menuitem" title="Centro" action="subsysCommon.Main@Centro-action" groups="admins" order="1"/>
+    <menuitem name="administracionSv-importacion-menuitem" parent="administracionSv-menuitem" title="Ficheros importación" action="subsysImportacion.Main@TareaImportacion-action" groups="admins" order="2"/>
+    <menuitem name="administracionSv-usuarios-menuitem" parent="administracionSv-menuitem" title="Usuarios" action="subsysCommon.Main@Usuario-action" groups="admins" order="3"/>
+    <menuitem name="administracionSv-dispositivosCriptograficos-menuitem" parent="administracionSv-menuitem" title="Dispositivos criptográficos" action="subsysCriptografia.Main@DispositivoCriptografico-action" groups="admins" order="10"/>
+    <menuitem name="administracionSv-certificadosDigitales-menuitem" parent="administracionSv-menuitem" title="Certificados digitales" action="subsysCriptografia.Main@CertificadoDigital-action" groups="admins" order="11"/>
 
-    <menuitem name="registro-menuitem" title="Registro" order="60"/>
-        <menuitem name="registro-entrada-menuitem" parent="registro-menuitem" title="Entrada" action="subsysRegistroEntradaSalida.RegistroEntrada@Main-action" order="1"/>
-        <menuitem name="registro-salida-menuitem" parent="registro-menuitem" title="Salida" action="subsysRegistroEntradaSalida.RegistroSalida@Main-action" order="2"/>
+<menuitem name="registro-menuitem" title="Registro" groups="admins,users" order="60"/>
+    <menuitem name="registro-entrada-menuitem" parent="registro-menuitem" title="Entrada" action="subsysRegistroEntradaSalida.Main@RegistroEntrada-action" groups="admins,users" order="1"/>
+    <menuitem name="registro-salida-menuitem" parent="registro-menuitem" title="Salida" action="subsysRegistroEntradaSalida.Main@RegistroSalida-action" groups="admins,users" order="2"/>
 
-    <menuitem name="firmarDocumentos-menuitem" title="Firmar documentos" order="70"/>
-        <menuitem name="firmarDocumentos-todos-menuitem" parent="firmarDocumentos-menuitem" title="Todos" action="subsysFirma.TareaFirma@Todos-action" order="1"/>
-        <menuitem name="firmarDocumentos-pendientes-menuitem" parent="firmarDocumentos-menuitem" title="Pendientes" action="subsysFirma.TareaFirma@Pendiente-action" order="2"/>
-        <menuitem name="firmarDocumentos-firmados-menuitem" parent="firmarDocumentos-menuitem" title="Firmados" action="subsysFirma.TareaFirma@Firmado-action" order="3"/>
-        <menuitem name="firmarDocumentos-rechazados-menuitem" parent="firmarDocumentos-menuitem" title="Rechazados" action="subsysFirma.TareaFirma@Rechazado-action" order="4"/>
+<menuitem name="firmarDocumentos-menuitem" title="Firmar documentos" groups="admins,users" order="70"/>
+    <menuitem name="firmarDocumentos-todos-menuitem" parent="firmarDocumentos-menuitem" title="Todos" action="subsysFirmas.Todos@TareaFirma-action" groups="admins,users" order="1"/>
+    <menuitem name="firmarDocumentos-pendientes-menuitem" parent="firmarDocumentos-menuitem" title="Pendientes" action="subsysFirmas.Pendiente@TareaFirma-action" groups="admins,users" order="2"/>
+    <menuitem name="firmarDocumentos-firmados-menuitem" parent="firmarDocumentos-menuitem" title="Firmados" action="subsysFirmas.Firmado@TareaFirma-action" groups="admins,users" order="3"/>
+    <menuitem name="firmarDocumentos-rechazados-menuitem" parent="firmarDocumentos-menuitem" title="Rechazados" action="subsysFirmas.Rechazado@TareaFirma-action" groups="admins,users" order="4"/>
 
-    <menuitem name="desarrollador-menuitem" title="Desarrollador" groups="admins" order="90"/>
-        <menuitem name="smoketest-menuitem" parent="desarrollador-menuitem" title="Smoke test" action="subsysSmokeTest.SmokeTest@Main-action" groups="admins" order="1"/>
-        <menuitem name="utilidadesPdf-menuitem" parent="desarrollador-menuitem" title="Utilidades de PDF" icon="picture_as_pdf" groups="admins" order="2"/>
-            <menuitem name="utilidadesPdf-informacion-menuitem" parent="utilidadesPdf-menuitem" title="Información" action="subsysPdfUtilities.PdfUtilities@Info-action" groups="admins" order="1"/>
-            <menuitem name="utilidadesPdf-posicionesFirma-menuitem" parent="utilidadesPdf-menuitem" title="Posiciones Firma" action="subsysPdfUtilities.PdfUtilities@Firma-action" groups="admins" order="2"/>
-            <menuitem name="utilidadesPdf-posicionAutofirma-menuitem" parent="utilidadesPdf-menuitem" title="Posición Autofirma__!!" action="subsysPdfUtilities.PdfUtilities@AutoFirma-action" groups="admins" order="3"/>
+<menuitem name="desarrollador-menuitem" title="Desarrollador" groups="admins" order="90"/>
+    <menuitem name="desarrollador-smoketest-menuitem" parent="desarrollador-menuitem" title="Smoke test" action="subsysSmokeTest.Main@SmokeTest-action" groups="admins" order="1"/>
+    <menuitem name="desarrollador-utilidadesPdf-menuitem" parent="desarrollador-menuitem" title="Utilidades de PDF" icon="picture_as_pdf" groups="admins" order="2"/>
+        <menuitem name="desarrollador-utilidadesPdf-informacion-menuitem" parent="desarrollador-utilidadesPdf-menuitem" title="Información" action="subsysPdfUtilities.Info@PdfUtilities-action" groups="admins" order="1"/>
+        <menuitem name="desarrollador-utilidadesPdf-posicionesFirma-menuitem" parent="desarrollador-utilidadesPdf-menuitem" title="Posiciones Firma" action="subsysPdfUtilities.Firma@PdfUtilities-action" groups="admins" order="2"/>
+        <menuitem name="desarrollador-utilidadesPdf-posicionAutofirma-menuitem" parent="desarrollador-utilidadesPdf-menuitem" title="Posición Autofirma__!!" action="subsysPdfUtilities.AutoFirma@PdfUtilities-action" groups="admins" order="3"/>
 
-    <menuitem name="misCorreos-menuitem" title="Mis correos" groups="admins,users" order="15"/>
-        <menuitem name="misCorreos-verMisCorreos-menuitem" parent="misCorreos-menuitem" title="Mis correos" action="subsysCorreos.Correo@Mis-action" groups="admins,users" order="1"/>
+<menuitem name="misCorreos-menuitem" title="Mis correos" groups="admins,users" order="15"/>
+    <menuitem name="misCorreos-verMisCorreos-menuitem" parent="misCorreos-menuitem" title="Mis correos" action="subsysCorreos.Mis@Correo-action" groups="admins,users" order="1"/>
 
-    <menuitem name="correos-menuitem" title="Correos" groups="admins,users" order="45"/>
-        <menuitem name="correos-administracion-menuitem" parent="correos-menuitem" title="Administración de correos" action="subsysCorreos.Correo@Main-action" groups="admins" order="1"/>
-        <menuitem name="correos-centro-menuitem" parent="correos-menuitem" title="Correos de mi centro" action="subsysCorreos.Correo@Centro-action" groups="users" order="2"/>
-
-
+<menuitem name="correos-menuitem" title="Correos" groups="admins,users" order="45"/>
+    <menuitem name="correos-administracion-menuitem" parent="correos-menuitem" title="Administración de correos" action="subsysCorreos.Main@Correo-action" groups="admins" order="1"/>
+    <menuitem name="correos-centro-menuitem" parent="correos-menuitem" title="Correos de mi centro" action="subsysCorreos.Centro@Correo-action" groups="users" order="2"/>
 
 </object-views>

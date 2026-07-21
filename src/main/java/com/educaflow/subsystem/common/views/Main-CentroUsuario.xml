@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+
+    <action-view name="subsysCommon.Main@CentroUsuario-action"
+                 title="Usuarios"
+                 model="com.educaflow.subsystem.common.db.CentroUsuario">
+        <view type="grid" name="subsysCommon.Main@CentroUsuario-grid"/>
+        <view type="form" name="subsysCommon.Main@CentroUsuario-form"/>
+        <view-param name="forceEdit" value="true"/>
+        <view-param name="limit" value="15"/>
+        <view-param name="popup" value="true"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <domain>self.centro.id = :centroId</domain>
+        <context name="centroId" expr="eval: id"/>
+    </action-view>
+
+    <grid name="subsysCommon.Main@CentroUsuario-grid" title="" model="com.educaflow.subsystem.common.db.CentroUsuario"
+          allowSearchFields="true"
+          canAdvanceSearch="false" canRefresh="false"
+          canNew="true" newButtonTitle="Nuevo usuario" editable="false"
+          edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
+          orderBy="usuario.apellidos"
+    >
+        <field name="usuario.dni" />
+        <field name="usuario.nombre" />
+        <field name="usuario.apellidos" />
+        <!--<field name="usuario" width="400px"/>-->
+    </grid>
+
+    <form name="subsysCommon.Main@CentroUsuario-form" title="Usuario" model="com.educaflow.subsystem.common.db.CentroUsuario"
+          groups="admins,users"
+          onNew="subsysCommon.Main@CentroUsuario-onNew-action"
+          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+        <panel name="Usuario" title="">
+            <field name="centro"  colSpan="6" showIf="false"/>
+            <field name="usuario" colSpan="12"
+                   readonlyIf="id != null"
+                   grid-view="subsysCommon.Ref@Usuario-grid"
+            />
+        </panel>
+        <panel-related name="centroUsuarioTipoUsuario" title="Tipos de usuario" field="centroUsuarioTipoUsuario" colSpan="12"
+                       grid-view="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-grid"
+                       form-view="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-form"
+                       showFooter="false"
+                       newButtonTitle="Nuevo tipo de usuario"
+                       canEdit="false"
+                       canRemove="false"
+                       forceEdit="true"
+        />
+        <panel-related name="centroUsuarioCargo" title="Cargos" field="centroUsuarioCargo" colSpan="12"
+                       grid-view="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-grid"
+                       form-view="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-form"
+                       showFooter="false"
+                       newButtonTitle="Nuevo cargo"
+                       canEdit="false"
+                       canRemove="false"
+                       forceEdit="true"
+        />
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnDelete" title="Borrar" onClick="subsysCommon.Main@CentroUsuario-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id != null) || (cid != null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysCommon.Main@CentroUsuario-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="subsysCommon.Main@CentroUsuario-btnSave-action" colSpan="2"/>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+
+    <action-group name="subsysCommon.Main@CentroUsuario-btnDelete-action">
+        <action name="delete"/>
+    </action-group>
+
+    <action-group name="subsysCommon.Main@CentroUsuario-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+
+    <action-group name="subsysCommon.Main@CentroUsuario-btnSave-action">
+        <action name="remote-validationSave-action"/>
+        <action name="save"/>
+        <action name="force-back"/>
+    </action-group>
+
+    <action-group name="subsysCommon.Main@CentroUsuario-onNew-action">
+        <action name="subsysCommon.Main@CentroUsuario-set-centro-parent-action"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <action-record name="subsysCommon.Main@CentroUsuario-set-centro-parent-action" model="com.educaflow.subsystem.common.db.CentroUsuario">
+        <field name="centro" expr="eval: __parent__"/>
+    </action-record>
+
+    <?sv-remotes?>
+
+    <?sv-view?>
+
+    <grid name="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-grid" title="" model="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario"
+          groups="admins,users"
+          orderBy="tipoUsuario" canNew="true" newButtonTitle="Añadir tipo de usuario"
+          canRefresh="false" canAdvanceSearch="false" allowSearchFields="false"
+          editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"
+          canEditOnClick="true"
+    >
+        <field name="tipoUsuario"/>
+    </grid>
+
+    <form name="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-form" title="Tipo de usuario" model="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario"
+          groups="admins,users"
+          onNew="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-onNew-action"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="centroUsuarioTipoUsuario-datos-panel" title="">
+            <field name="centroUsuario" showIf="false"/>
+            <field name="tipoUsuario" colSpan="12"/>
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
+            <button name="btnDelete" title="Borrar" onClick="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-btnCancel-action"  colSpan="2" colOffset="6" outline="true"   />
+            <button name="btnSave" title="Guardar" onClick="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-btnSave-action"  colSpan="2"  />
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+
+    <action-group name="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-btnDelete-action">
+        <action name="delete-modal"/>
+    </action-group>
+    <action-group name="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+    <action-group name="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-btnSave-action">
+        <action name="save-modal"/>
+    </action-group>
+
+    <action-group name="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-onNew-action">
+        <action name="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-set-centroUsuario-parent-action"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <action-record name="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-set-centroUsuario-parent-action" model="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario">
+        <field name="centroUsuario" expr="eval: __parent__"/>
+    </action-record>
+
+    <?sv-remotes?>
+
+    <?sv-view?>
+
+    <grid name="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-grid" title="" model="com.educaflow.subsystem.common.db.CentroUsuarioCargo"
+          groups="admins,users"
+          orderBy="cargo" canNew="true" newButtonTitle="Añadir cargo"
+          canRefresh="false" canAdvanceSearch="false" allowSearchFields="false"
+          editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false"
+          canEditOnClick="true"
+    >
+        <field name="cargo"/>
+    </grid>
+
+    <form name="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-form" title="Cargo" model="com.educaflow.subsystem.common.db.CentroUsuarioCargo"
+          groups="admins,users"
+          onNew="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-onNew-action"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="centroUsuarioCargo-datos-panel" title="">
+            <field name="centroUsuario" showIf="false"/>
+            <field name="cargo" colSpan="12"
+                   domain="self.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = :centroUsuario)"/>
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
+            <button name="btnDelete" title="Borrar" onClick="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-btnCancel-action"  colSpan="2" colOffset="6" outline="true"   />
+            <button name="btnSave" title="Guardar" onClick="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-btnSave-action"  colSpan="2"  />
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+
+    <action-group name="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-btnDelete-action">
+        <action name="delete-modal"/>
+    </action-group>
+    <action-group name="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+    <action-group name="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-btnSave-action">
+        <action name="save-modal"/>
+    </action-group>
+
+    <action-group name="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-onNew-action">
+        <action name="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-set-centroUsuario-parent-action"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <action-record name="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-set-centroUsuario-parent-action" model="com.educaflow.subsystem.common.db.CentroUsuarioCargo">
+        <field name="centroUsuario" expr="eval: __parent__"/>
+    </action-record>
+
+    <?sv-remotes?>
+
+</object-views>

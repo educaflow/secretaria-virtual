@@ -21,9 +21,9 @@ Acción para ser llamada desde los menús. Permite hacer un mantenimiento mostra
 Se pueden añadir parámetros para mostrar u ocultar toolbars, forzar edición, recargar el grid al guardar, etc.
 
 ```xml
-<action-view name="subsysFirma.TareaFirma@Pendiente-action" title="Documentos pendientes de firma" model="com.educaflow.subsystem.firmas.db.TareaFirma">
-    <view type="grid" name="subsysFirma.TareaFirma@Pendiente-grid"/>
-    <view type="form" name="subsysFirma.TareaFirma@Pendiente-form"/>
+<action-view name="subsysFirma.Pendiente@TareaFirma-action" title="Documentos pendientes de firma" model="com.educaflow.subsystem.firmas.db.TareaFirma">
+    <view type="grid" name="subsysFirma.Pendiente@TareaFirma-grid"/>
+    <view type="form" name="subsysFirma.Pendiente@TareaFirma-form"/>
     <view-param name="show-toolbar-grid" value="false"/>
     <view-param name="show-toolbar-form" value="false"/>
     <view-param name="forceEdit" value="true"/>
@@ -49,7 +49,7 @@ Llamada a controlador en Java
 > **Validación remota de save/delete**: **MUST NOT** crear un `<action-method>` de validación por entidad para guardar/borrar — existen las acciones **globales** `remote-validationSave-action` y `remote-validationDelete-action`, definidas una única vez en `DefaultModelController.xml` (`base/infrastructure/controller`); no llevan atributo `model` porque resuelven la entidad por el `_model` del contexto. Los `<action-method>` propios de una entidad son para **operaciones custom**. Ver `k-validaciones/validaciones.md` §5.
 
 ```xml
-<action-method name="subsysFirma.TareaFirma@Pendiente-Remote-marcarComoFirmada-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
+<action-method name="subsysFirma.Pendiente@TareaFirma-Remote-marcarComoFirmada-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
     <call class="com.educaflow.subsystem.firmas.controller.TareaFirmaController" method="marcarComoFirmada" />
 </action-method>
 ```
@@ -66,7 +66,7 @@ Llamada a controlador en Java
 ```
 
 ```xml
-<action-method name="subsysSistemaEducativo.LeyEducativa@Main-Remote-enviarCorreo-action" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa">
+<action-method name="subsysSistemaEducativo.Main@LeyEducativa-Remote-enviarCorreo-action" model="com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa">
     <call class="com.educaflow.subsystem.sistemaeducativo.controller.LeyEducativaController" method="enviarCorreo(id,nombre)" />
 </action-method>
 ```
@@ -84,7 +84,7 @@ Llamada a controlador en Java
 Asignar valores a atributos de campos en función de expresiones. Por ejemplo, para hacer un campo de solo lectura cuando el registro esté confirmado:
 
 ```xml
-<action-attrs name="subsysSistemaEducativo.LeyEducativa@Main-set-orderDate.readonly-confirmed-action">
+<action-attrs name="subsysSistemaEducativo.Main@LeyEducativa-set-orderDate.readonly-confirmed-action">
   <attribute for="orderDate" name="readonly" expr="true" />
 </action-attrs>
 ```
@@ -98,7 +98,7 @@ Asignar valores a atributos de campos en función de expresiones. Por ejemplo, p
 Asignar un valor a un campo
 
 ```xml
-<action-record name="subsysFirma.TareaFirma@Pendiente-set-pasoActual-paso1Inicio-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
+<action-record name="subsysFirma.Pendiente@TareaFirma-set-pasoActual-paso1Inicio-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
     <field name="pasoActual" expr="paso1Inicio" />
 </action-record>
 ```
@@ -107,7 +107,7 @@ Asignar un valor a un campo
 - El atributo `expr` del `field` es el valor que se le va a asignar al campo, en este caso el valor literal `paso1Inicio`.
 
 ```xml
-<action-record name="subsysSistemaEducativo.Ciclo.Curso@Main-set-ciclo-parent-action" model="com.educaflow.subsystem.sistemaeducativo.db.Curso">
+<action-record name="subsysSistemaEducativo.Main@Ciclo.Curso-set-ciclo-parent-action" model="com.educaflow.subsystem.sistemaeducativo.db.Curso">
     <field name="ciclo" expr="eval: __parent__"/>
 </action-record>
 
@@ -117,23 +117,33 @@ Asignar un valor a un campo
 ### `<action-group>` — secuencia de acciones principales
 
 ```xml
-<action-group name="subsysSistemaEducativo.LeyEducativa@Main-btnSave-action">
-    <action name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action"/>
+<action-group name="subsysSistemaEducativo.Main@LeyEducativa-btnSave-action">
+    <action name="subsysSistemaEducativo.Main@LeyEducativa-Local-validateSave-action"/>
     <action name="remote-validationSave-action"/>
     <action name="save"/>
+    <action name="back"/>
 </action-group>
 ```
 
-- Simplemente se listan las acciones a ejecutar en orden. En este caso, primero se ejecuta la acción de validación local (`subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action`) y si pasa sin errores, se ejecuta la validación remota con la acción global `remote-validationSave-action` (los `validate*` del servicio, vía `DefaultModelController`), finalmente se ejecuta la accion `save`. En el `btnDelete` la acción global equivalente es `remote-validationDelete-action` antes de `delete`. Esto aplica al form **principal**: en el form **modal** de un detalle (`save-modal`/`delete-modal`) **MUST NOT** usarse las acciones `remote-validation*` y la validación local debe ser lo más completa posible — ver `[[forms.md]]` §"Form modal".
+- Simplemente se listan las acciones a ejecutar en orden. En este caso, primero se ejecuta la acción de validación local (`subsysSistemaEducativo.Main@LeyEducativa-Local-validateSave-action`) y si pasa sin errores, se ejecuta la validación remota con la acción global `remote-validationSave-action` (los `validate*` del servicio, vía `DefaultModelController`), se ejecuta la accion `save` y finalmente `back` para cerrar la ventana (**obligatorio** tras `save`: si no hubo cambios, `save` es un no-op y `canBackOnSave` no cierra; el `back` explícito sí — puede ser `force-back`). En el `btnDelete` la acción global equivalente es `remote-validationDelete-action` antes de `delete`. Esto aplica al form **principal**: en el form **modal** de un detalle (`save-modal`/`delete-modal`) **MUST NOT** usarse las acciones `remote-validation*` y la validación local debe ser lo más completa posible — ver `[[forms.md]]` §"Form modal".
 
 Se usan estas acciones desde eventos como `onClick` de botones, `onSave` de formularios, `onChange` de campos, etc. para ejecutar una secuencia de acciones en un solo evento.
+
+Para las **operaciones custom**: si el grupo invoca una acción `Remote-{Op}-action` y existe su validación `Remote-validate{Op}-action` (mismo contexto), esta **MUST** ir **inmediatamente antes** de la operación, sin acciones intercaladas:
+
+```xml
+<action-group name="subsysCorreos.Main@Correo-btnReenviar-action">
+    <action name="subsysCorreos.Main@Correo-Remote-validateReenviar-action"/>
+    <action name="subsysCorreos.Main@Correo-Remote-reenviar-action"/>
+</action-group>
+```
 
 ### `<action-validate>`
 
 Validaciones locales a nivel de todo el formulario, que no dependen de un campo concreto. Por ejemplo, para validar que el nombre y el código no sean "dd":
 
 ```xml
-<action-validate name="subsysVentas.Producto@Main-Local-validateSave-action">
+<action-validate name="subsysVentas.Main@Producto-Local-validateSave-action">
     <error message="Ni el nombre ni el código pueden ser dd" if="name=='dd' || code=='dd'"/>
     <error message="Si el estado está cancelado no es posible que el precio sea mayor que cero" if="state='CANCELADO' && precio>0"/>
 </action-validate>
@@ -146,7 +156,7 @@ Mira en `references/actions.md` para sintaxis completa de validaciones porque ha
 Validaciones a nivel de campo concreto, que muestran el mensaje de error justo debajo del campo. Por ejemplo, Validar el campo `createDate` de forma que si `orderDate > createDate` se muestre el error "Order creation date is in the future."
 
 ```xml
-<action-condition name="subsysFirma.TareaFirma@Pendiente-Local-validateMarcarComoRechazada-action">
+<action-condition name="subsysFirma.Pendiente@TareaFirma-Local-validateMarcarComoRechazada-action">
   <check field="createDate" if="orderDate > createDate" error="Order creation date is in the future."/>
 </action-condition>
 ```
@@ -163,7 +173,7 @@ Validaciones a nivel de campo concreto, que muestran el mensaje de error justo d
 - `<action-validate>` solo admite hijos `<error>`/`<alert>`/`<info>`/`<notify>` — mensajes a nivel de formulario.
 - `<action-condition>` solo admite hijos `<check>` — errores pegados a un campo concreto.
 
-Por eso, un nombre como `subsysXxx.MiEntidad@Main-Local-validateSave-action` se materializa de tres formas distintas según qué tipos de validación cliente necesite la entidad para ese evento:
+Por eso, un nombre como `subsysXxx.Main@MiEntidad-Local-validateSave-action` se materializa de tres formas distintas según qué tipos de validación cliente necesite la entidad para ese evento:
 
 | Tipos de validación que se necesitan         | Forma de `Local-validateSave-action`                                      |
 |----------------------------------------------|---------------------------------------------------------------------------|
@@ -176,7 +186,7 @@ El `<action-group>` del botón (`Main-btnSave-action`) referencia siempre el mis
 **Caso 1 — Solo un tipo (un único elemento):**
 
 ```xml
-<action-condition name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action">
+<action-condition name="subsysSistemaEducativo.Main@LeyEducativa-Local-validateSave-action">
     <check field="name" if="name == null" error="El nombre es obligatorio"/>
     <check field="code" if="code == null" error="El código es obligatorio"/>
 </action-condition>
@@ -188,19 +198,19 @@ El `<action-group>` del botón (`Main-btnSave-action`) referencia siempre el mis
 
 ```xml
 <!-- El nombre genérico ahora es un action-group -->
-<action-group name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action">
-    <action name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-requiredFields-action"/>
-    <action name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-codeFormat-action"/>
+<action-group name="subsysSistemaEducativo.Main@LeyEducativa-Local-validateSave-action">
+    <action name="subsysSistemaEducativo.Main@LeyEducativa-Local-validateSave-requiredFields-action"/>
+    <action name="subsysSistemaEducativo.Main@LeyEducativa-Local-validateSave-codeFormat-action"/>
 </action-group>
 
 <!-- Errores pegados a cada campo -->
-<action-condition name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-requiredFields-action">
+<action-condition name="subsysSistemaEducativo.Main@LeyEducativa-Local-validateSave-requiredFields-action">
     <check field="name" if="name == null" error="El nombre es obligatorio"/>
     <check field="code" if="code == null" error="El código es obligatorio"/>
 </action-condition>
 
 <!-- Errores generales del formulario -->
-<action-validate name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-codeFormat-action">
+<action-validate name="subsysSistemaEducativo.Main@LeyEducativa-Local-validateSave-codeFormat-action">
     <error message="El código no puede empezar por número"
            if="code != null &amp;&amp; code ==~ /^[0-9].*/"/>
     <alert message="El código contiene caracteres especiales. ¿Continuar?"
@@ -211,10 +221,11 @@ El `<action-group>` del botón (`Main-btnSave-action`) referencia siempre el mis
 El botón Guardar no cambia entre el Caso 1 y el Caso 2:
 
 ```xml
-<action-group name="subsysSistemaEducativo.LeyEducativa@Main-btnSave-action">
-    <action name="subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action"/>
+<action-group name="subsysSistemaEducativo.Main@LeyEducativa-btnSave-action">
+    <action name="subsysSistemaEducativo.Main@LeyEducativa-Local-validateSave-action"/>
     <action name="remote-validationSave-action"/>
     <action name="save"/>
+    <action name="back"/>
 </action-group>
 ```
 
@@ -235,7 +246,7 @@ Evitar sub-nombres que repitan el tipo XML (`-condition`, `-validate`) — no ap
 Permite ejecutar acciones complejas mediante un script en `js` o `groovy`. Se utilizan en vez de crear un controlador en Java.
 
 ```xml
-<action-script name="subsysVentas.Factura@Pendiente-Remote-guardarFactura-action" model="com.axelor.sale.db.Order" >
+<action-script name="subsysVentas.Pendiente@Factura-Remote-guardarFactura-action" model="com.axelor.sale.db.Order" >
   <script
           language="js"
           transactional="true"
@@ -269,42 +280,42 @@ Permite ejecutar acciones complejas mediante un script en `js` o `groovy`. Se ut
 ## Convenciones de nombres para las acciones
 
 ```
-{Prefijo}.{Entidad}[.{Entidad}]*@{Vista}-[{evento}|Local-{nombreValidacion}|Remote-{nombreFuncionJava}|set-{asignacion}]-action
+{marcadorMódulo}.{Variante}@{Entidad}[.{Entidad}]*-[{evento}|Local-{nombreValidacion}|Remote-{nombreFuncionJava}|set-{asignacion}]-action
 ```
 
 
 | Parte                            | Descripción                                                                     | Ejemplo                                         |
 |----------------------------------|---------------------------------------------------------------------------------|-------------------------------------------------|
-| `{Prefijo}`                      | `subsys{Subsistema}` para subsistemas, `sys{Sistema}` para sistemas             | `subsysSistemaEducativo`, `subsysFirma`         |
+| `{marcadorMódulo}`                      | `subsys{Subsistema}` para subsistemas, `sys{Sistema}` para sistemas             | `subsysSistemaEducativo`, `subsysFirma`         |
 | `{Entidad}`                      | Nombre exacto de la clase Java                                                  | `LeyEducativa`, `TareaFirma`                    |
-| `@{Vista}`                       | Identificador del contexto de vista                                             | `@Main`, `@Pendiente`, `@Firmado`               |
-| `{evento}`                       | Sin prefijo: evento o botón para `action-group` (`on{Evento}` o `btn{Nombre}`)  | `onLoad`, `btnSave`                             |
+| `{Variante}@`                       | Variante: para qué sirve el bloque                                             | `Main@…`, `Pendiente@…`, `Firmado@…`               |
+| `{evento}`                       | Sin marcador: evento o botón para `action-group` (`on{Evento}` o `btn{Nombre}`)  | `onLoad`, `btnSave`                             |
 | `Local-{nombreValidacion}`       | Validación cliente: `action-validate`, `action-condition` o `action-group`      | `Local-validateSave`                            |
 | `Remote-{nombreFuncionJava}`     | Llamada a función Java en el servidor (`action-method` o `action-script`)       | `Remote-marcarComoFirmada`                      |
 | `set-{campo}-{valor}`            | Asigna un valor a un campo (`<action-record>`)                                  | `set-centro-null`                               |
 | `set-{campo}.{atributo}-{valor}` | Modifica un atributo de un campo (`<action-attrs>`)                             | `set-apellidos.readonly-true`                   |
-| `-action`                        | Sufijo fijo siempre al final                                                    |                                                 |
+| `-action`                        | Terminación fija siempre al final                                               |                                                 |
 
 ### Ejemplos de nombres
 
 - **`action-view`**
-  `subsysSistemaEducativo.LeyEducativa@Main-action`
-  `subsysFirma.TareaFirma.DocumentoFirmado@Pendiente-action`
+  `subsysSistemaEducativo.Main@LeyEducativa-action`
+  `subsysFirma.Pendiente@TareaFirma.DocumentoFirmado-action`
 - **`action-group`** — orquestador público, tiene el nombre del evento que ocurre (onSave, onNew, onLoad, etc.) o del botón que lo dispara (btnSave, btnCancel, etc.):
-  `subsysSistemaEducativo.LeyEducativa@Main-btnSave-action`
-  `subsysSistemaEducativo.LeyEducativa@Main-onNew-action`
-  `subsysSistemaEducativo.LeyEducativa@Main-btnCancel-action`
-  `subsysSistemaEducativo.LeyEducativa@Main-onLoad-action`
-- **`action-validate` o `action-condition`** — siempre con prefijo `Local-` ya que son validaciones que se hacen en el cliente sin llamada al servidor
-  `subsysSistemaEducativo.LeyEducativa@Main-Local-validateSave-action`
-- **`action-method`** — siempre con prefijo `Remote-` ya que son llamadas a métodos Java en el servidor
-  `subsysFirma.TareaFirma@Pendiente-Remote-marcarComoFirmada-action`
-- **`action-script`** — siempre con prefijo `Remote-` ya que son scripts Groovy ejecutados en el servidor
-  `subsysSistemaEducativo.LeyEducativa@Main-Remote-insertarFactura-action`
+  `subsysSistemaEducativo.Main@LeyEducativa-btnSave-action`
+  `subsysSistemaEducativo.Main@LeyEducativa-onNew-action`
+  `subsysSistemaEducativo.Main@LeyEducativa-btnCancel-action`
+  `subsysSistemaEducativo.Main@LeyEducativa-onLoad-action`
+- **`action-validate` o `action-condition`** — siempre con marcador `Local-` ya que son validaciones que se hacen en el cliente sin llamada al servidor
+  `subsysSistemaEducativo.Main@LeyEducativa-Local-validateSave-action`
+- **`action-method`** — siempre con marcador `Remote-` ya que son llamadas a métodos Java en el servidor
+  `subsysFirma.Pendiente@TareaFirma-Remote-marcarComoFirmada-action`
+- **`action-script`** — siempre con marcador `Remote-` ya que son scripts Groovy ejecutados en el servidor
+  `subsysSistemaEducativo.Main@LeyEducativa-Remote-insertarFactura-action`
 - **`action-record`** — describe campo y valor con `set-{campo}-{valor}`:
-  `subsysFirma.TareaFirma@Pendiente-set-nombre-Juan-action`
+  `subsysFirma.Pendiente@TareaFirma-set-nombre-Juan-action`
 - **`action-attrs`** — describe campo y valor con `set-{campo}.{atributo}-{valor}`:
-  `subsysFirma.TareaFirma@Pendiente-set-nombre.readonly-true-action`
+  `subsysFirma.Pendiente@TareaFirma-set-nombre.readonly-true-action`
 
 **IMPORTANTE: Es obligatorio seguir esta convención de nombres para facilitar la trazabilidad, la lectura y el mantenimiento del código.**
 
@@ -342,46 +353,30 @@ Además de las acciones definidas por el desarrollador, el framework de Axelor t
 
 ## Orden de las acciones en el código:
 
-El orden de las acciones en el código es importante para facilitar la lectura y el mantenimiento y es el siguiente:
+El orden de los elementos dentro de cada bloque es importante para facilitar la lectura y el mantenimiento y es el siguiente (el `<menuitem>` que abre el `<action-view>` **no** va aquí: vive en el fichero único `menus.xml`, ver `menus.md`):
 
-1. El `<menu-item>` que llama al `<action-view>` que hay definido justo debajo
-2. La acción de tipo `<action-view>` que abren vistas
-3. El grid `<grid>`
-4. El formulario `<form>`
-5. Las acciones de las tareas principales (`<action-group>`) que suelen ser las tareas principales que se disparan desde botones o eventos importantes como `onSave`
-6. Las acciones de validación en local (`<action-validate>` y `<action-condition>`)
-7. Las acciones básicas que cambian campos simples (`<action-record>` y `<action-attrs>`)
-8. Las acciones de llamadas remotas al servidor (`<action-method>` y `<action-script>`)
+1. La acción de tipo `<action-view>` que abre las vistas
+2. El grid `<grid>`
+3. El formulario `<form>`
+4. Las acciones de las tareas principales (`<action-group>`) que suelen ser las tareas principales que se disparan desde botones o eventos importantes como `onNew`
+5. Las acciones de validación en local (`<action-validate>` y `<action-condition>`)
+6. Las acciones básicas que cambian campos simples (`<action-record>` y `<action-attrs>`)
+7. Las acciones de llamadas remotas al servidor (`<action-method>` y `<action-script>`)
 
 
 Es obligatorio respetar este orden para facilitar la lectura y el mantenimiento del código, ya que las acciones suelen estar relacionadas entre sí y es importante que estén agrupadas de forma lógica.
 
-### Comentarios para separar cada sección de acciones
-Por último, es **obligatorio** añadir estos comentarios antes de ciertas sección de acciones para indicar qué tipo de acciones se encuentran a continuación
+### Marcadores para separar cada sección de acciones
+Es **obligatorio** delimitar cada sección de acciones con su **Processing Instruction** (PI), no con comentarios. Formato completo y reglas en `SKILL.md` § *Marcadores de bloque y sección (Processing Instructions)*.
 
-```
-    <!-- *********************************************************************************************  -->
-    <!-- ***************************** Acciones de las tareas principales ****************************  -->
-    <!-- *********************************************************************************************  -->
-```
+- ✅ CORRECTO: `<?sv-primary-actions?>` (antes de los `action-group` de botón/evento)
+- ❌ INCORRECTO: `<!-- *************** Ciclo : Acciones de las tareas principales *************** -->` (banner de comentario: prohibido)
 
-```
-    <!-- *********************************************************************************************  -->
-    <!-- ***************************** Acciones de Validaciones en local  ****************************  -->
-    <!-- *********************************************************************************************  -->
-```
-
-```
-    <!-- *********************************************************************************************  -->
-    <!-- ************************ Acciones básicas que cambian campos simples ************************  -->
-    <!-- *********************************************************************************************  -->
-```
-
-```
-    <!-- *********************************************************************************************  -->
-    <!-- ************************** Acciones de llamadas Remotas al servidor *************************  -->
-    <!-- *********************************************************************************************  -->
-```
+Las cuatro PI de sección aparecen en **todo bloque** (también en los `Ref` y los de solo lectura), **siempre en este orden** y aunque alguna sección quede vacía:
+1. `<?sv-primary-actions?>` — acciones principales (`action-group` de botón/evento)
+2. `<?sv-validations?>` — validaciones en local (`action-validate`/`action-condition`)
+3. `<?sv-rules?>` — reglas que cambian campos simples (`action-record`/`action-attrs`)
+4. `<?sv-remotes?>` — llamadas remotas al servidor (`action-method`/`action-script`)
 
 ## Referencia
 Para detalle completo de atributos, sintaxis y ejemplos avanzados:

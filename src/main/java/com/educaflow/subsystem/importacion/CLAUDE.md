@@ -12,10 +12,11 @@ Permite cargar masivamente usuarios (profesores, alumnos, familiares y profesore
 
 ## Controladores y métodos
 
-### `TareaImportacionController`
-| Método | Qué hace en una línea |
-|---|---|
-| `validateSave(ActionRequest, ActionResponse)` | Valida `tipoFichero` y `fichero` antes del save; distingue insert vs update y devuelve errores de negocio al cliente |
+No hay controlador propio: la validación previa a guardar la hace la acción **global**
+`remote-validationSave-action` (de `DefaultModelController`), que resuelve el servicio por el
+`_model` del contexto y llama a `validateInsert`/`validateUpdate`. La lógica de validación real
+vive en `TareaImportacionService` (abajo). El botón "Importar" encadena
+`Local-validateImportar-action` → `remote-validationSave-action` → `save`.
 
 ## Servicios y métodos públicos
 

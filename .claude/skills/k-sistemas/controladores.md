@@ -335,7 +335,7 @@ public class MiEntidadController {
 > **REGLA DE NAMING — método de validación de una operación custom:**
 > El `@CallMethod` que valida una operación custom `<operacion>` **MUST** llamarse `validate<Operacion>` (mismo nombre que el `validate<Operacion>` del servicio en el que delega), porque el nombre de la acción de la vista es `…-Remote-{nombreFuncionJava}-action` (ver `k-vistas/actions.md` §"Convención de nombres") y la acción se llama `…-Remote-validate<Operacion>-action`.
 >
-> - ✅ CORRECTO: acción `subsysCorreos.Correo@Main-Remote-validateReenviar-action` → `CorreoController.validateReenviar` → delega en `CorreoService.validateReenviar`.
+> - ✅ CORRECTO: acción `subsysCorreos.Main@Correo-Remote-validateReenviar-action` → `CorreoController.validateReenviar` → delega en `CorreoService.validateReenviar`.
 > - ❌ INCORRECTO: acción `…-Remote-validateReenviar-action` → `CorreoController.validarAntesDeReenviar` (el nombre del método no coincide con el `{nombreFuncionJava}` embebido en el nombre de la acción).
 >
 > **MUST NOT** crear un `@CallMethod` de validación para `save`/`delete` (ni con nombre `validateSave`/`validateDelete` ni disfrazado como `validarAntesDeGuardar`/`validarAntesDeBorrar`): esa validación la dan las acciones globales `remote-validationSave-action`/`remote-validationDelete-action` de `DefaultModelController` (ver `k-validaciones/validaciones.md` §5).

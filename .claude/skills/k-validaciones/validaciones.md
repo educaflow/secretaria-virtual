@@ -109,9 +109,9 @@ Solo UX. Duplica validaciones del servidor para que el usuario vea el error sin 
 **Combinar varios patrones a la vez** — si una entidad necesita a la vez errores pegados a campos (P1–P6) y errores generales del formulario (P7–P11), no se pueden meter en el mismo elemento (gramáticas distintas). En ese caso `Local-validateSave-action` pasa a ser un `<action-group>` que encadena un `<action-condition>` y un `<action-validate>`:
 
 ```xml
-<action-group name="subsysXxx.MiEntidad@Main-Local-validateSave-action">
-    <action name="subsysXxx.MiEntidad@Main-Local-validateSave-requiredFields-action"/>
-    <action name="subsysXxx.MiEntidad@Main-Local-validateSave-dateRange-action"/>
+<action-group name="subsysXxx.Main@MiEntidad-Local-validateSave-action">
+    <action name="subsysXxx.Main@MiEntidad-Local-validateSave-requiredFields-action"/>
+    <action name="subsysXxx.Main@MiEntidad-Local-validateSave-dateRange-action"/>
 </action-group>
 ```
 
@@ -124,8 +124,8 @@ El detalle de cuándo aplicar este patrón compuesto está en `k-vistas/actions.
 El botón Guardar dispara un `<action-group>` que encadena las tres etapas en este orden fijo:
 
 ```xml
-<action-group name="subsysXxx.MiEntidad@Main-btnSave-action">
-    <action name="subsysXxx.MiEntidad@Main-Local-validateSave-action"/>    <!-- 1. cliente XML (opcional) -->
+<action-group name="subsysXxx.Main@MiEntidad-btnSave-action">
+    <action name="subsysXxx.Main@MiEntidad-Local-validateSave-action"/>    <!-- 1. cliente XML (opcional) -->
     <action name="remote-validationSave-action"/>                          <!-- 2. servidor (acción GLOBAL) -->
     <action name="save"/>                                                  <!-- 3. persiste -->
 </action-group>
@@ -138,7 +138,7 @@ El paso 2 (validación remota) **siempre está presente en el form principal** y
 Para el botón Borrar el patrón es análogo, con la acción global `remote-validationDelete-action`:
 
 ```xml
-<action-group name="subsysXxx.MiEntidad@Main-btnDelete-action">
+<action-group name="subsysXxx.Main@MiEntidad-btnDelete-action">
     <action name="remote-validationDelete-action"/>
     <action name="delete"/>
 </action-group>
@@ -147,10 +147,10 @@ Para el botón Borrar el patrón es análogo, con la acción global `remote-vali
 Solo para operaciones custom (`btnAprobar`, `btnRechazar`…) hay acciones remotas **por entidad**, porque el método del servicio no es `save`/`delete` genérico:
 
 ```xml
-<action-group name="subsysXxx.MiEntidad@Main-btnAprobar-action">
-    <action name="subsysXxx.MiEntidad@Main-Local-validateAprobar-action"/>
-    <action name="subsysXxx.MiEntidad@Main-Remote-validateAprobar-action"/>
-    <action name="subsysXxx.MiEntidad@Main-Remote-aprobar-action"/>
+<action-group name="subsysXxx.Main@MiEntidad-btnAprobar-action">
+    <action name="subsysXxx.Main@MiEntidad-Local-validateAprobar-action"/>
+    <action name="subsysXxx.Main@MiEntidad-Remote-validateAprobar-action"/>
+    <action name="subsysXxx.Main@MiEntidad-Remote-aprobar-action"/>
 </action-group>
 ```
 
@@ -173,7 +173,7 @@ Funcionan para cualquier entidad porque `DefaultModelController` resuelve la cla
 - Las **operaciones custom** (`aprobar`, `rechazar`…) sí llevan su `@CallMethod` en el controlador propio de la entidad (`Remote-validate<Operacion>-action` + `Remote-<operacion>-action`), siguiendo `k-sistemas/controladores.md`: resolver el servicio, construir el bean con el `allowProperties` de esa acción y delegar en el `validate<Operacion>`/`<operacion>` del servicio.
 
 - ✅ CORRECTO: `<action name="remote-validationSave-action"/>` en el `action-group` de `btnSave` de cualquier entidad.
-- ❌ INCORRECTO: `<action-method name="subsysXxx.MiEntidad@Main-Remote-validateSave-action">` que llama a `MiEntidadController.validateSave` (patrón sustituido por la acción global; duplica `DefaultModelController`).
+- ❌ INCORRECTO: `<action-method name="subsysXxx.Main@MiEntidad-Remote-validateSave-action">` que llama a `MiEntidadController.validateSave` (patrón sustituido por la acción global; duplica `DefaultModelController`).
 
 ---
 

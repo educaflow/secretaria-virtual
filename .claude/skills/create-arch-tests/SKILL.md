@@ -9,8 +9,10 @@ description: >-
   sub-paquetes por categoría bajo un único paquete raíz
   `com.educaflow.architecture` en `src/test/java`. El paquete generado es una
   PROYECCIÓN del markdown: para cambiar un test se edita `architecture-rules.md` y
-  se vuelve a ejecutar este skill, nunca se editan los `.java` a mano. Carga
-  `/k-archunit` como referencia de ArchUnit.
+  se vuelve a ejecutar este skill, nunca se editan los `.java` a mano.
+  La regeneración es INCREMENTAL: cada test lleva citada literal la Verificación de su regla
+  y el skill empareja regla↔test por ese contenido (no por el ID, que se renumera),
+  tocando solo lo que cambió. Carga `/k-archunit` como referencia de ArchUnit.
 allowed-tools: Read, Write, Edit, Bash, Skill
 ---
 
@@ -46,7 +48,7 @@ posibles (todos opcionales; en uso normal no se pasa ninguno):
 1. **Cargar** el contrato (`/k-archunit`) y leer el catálogo de entrada. (Fase 0)
 2. **Parsear** el catálogo: convenciones globales, categorías y reglas. (Fase 1)
 3. **Resolver** la estructura de paquetes y clases (un sub-paquete por categoría). (Fase 2)
-4. **Generar** las clases de test traduciendo cada *Verificación* a ArchUnit. (Fase 3)
+4. **Reconciliar y generar**: emparejar reglas↔tests existentes por contenido y tocar solo lo que cambió, traduciendo a ArchUnit lo nuevo o modificado. (Fase 3)
 5. **Verificar** que compila y reportar al usuario. (Fase 4)
 
 **STOP conditions**:
@@ -100,12 +102,18 @@ src/test/java/com/educaflow/architecture/
 
 - El paquete raíz generado **MUST** ser una proyección exacta de `architecture-rules.md`:
   una regla del catálogo ⇒ sus `@ArchTest` generados; una regla borrada del catálogo ⇒
-  el `@ArchTest` desaparece al regenerar.
+  su `@ArchTest` se borra al reconciliar.
 - **MUST NOT** editar a mano los `.java` generados. Para cambiar un test: edita el
   catálogo y vuelve a ejecutar `/create-arch-tests`.
 - Cada fichero generado **MUST** llevar la cabecera `GENERADO` (§6.1).
-- Antes de generar, **MUST** vaciar el paquete raíz (borrar los `.java` con cabecera
-  `GENERADO`) para que el resultado sea solo lo que dice el catálogo hoy.
+- La regeneración es **INCREMENTAL** (§6.4):
+  **MUST NOT** vaciar el paquete ni re-traducir reglas que no cambiaron;
+  un test cuya regla sigue igual queda **byte a byte idéntico**.
+  Las clases existentes se modifican con `Edit` quirúrgico (solo los campos afectados), nunca reescribiéndolas enteras.
+- **CRITICAL — la identidad de una regla es su contenido, NO su ID**:
+  el catálogo renumera sin huecos al borrar o mover reglas,
+  así que el emparejamiento regla↔test se hace por el bloque *Verificación* (citado literal encima de cada test, §6.1)
+  y el ID es solo una etiqueta a sincronizar.
 
 ### 2.2 Traducción fiel de la Verificación
 
@@ -178,14 +186,18 @@ categoría a la que pertenece y su **Cumplimiento** (`✅` / `⚠️` / `❌ INC
 
 ---
 
-## 6. Fase 3 — Generar las clases de test
+## 6. Fase 3 — Reconciliar y generar las clases de test
 
-1. **Vacía** el paquete raíz: borra los `.java` que lleven la cabecera `GENERADO`
-   (§2.1). Si hay `.java` **sin** esa cabecera → **STOP** (§Outline).
-2. Por cada categoría, **escribe una clase** con la plantilla §6.1.
-3. Escribe en la clase los campos `@ArchTest` de sus reglas traduciendo cada
-   *Verificación* (§2.2), en el orden del catálogo, envolviendo en `freeze(...)` las
-   `❌ INCUMPLE` (§6.3).
+1. Si hay `.java` **sin** cabecera `GENERADO` bajo el paquete raíz → **STOP** (§Outline).
+2. **Reconcilia** el catálogo con los tests existentes (§6.4):
+   clasifica cada regla/test en INTACTO, RENOMBRAR, REGENERAR, NUEVO o BORRAR.
+3. Aplica el plan:
+   crea las clases de categorías nuevas con la plantilla §6.1;
+   modifica las existentes con `Edit` quirúrgico (solo los campos afectados);
+   borra las clases cuya categoría desapareció del catálogo.
+4. Todo campo `@ArchTest` nuevo o regenerado traduce su *Verificación* (§2.2),
+   lleva su cita literal (§6.1), respeta el orden del catálogo
+   y se envuelve en `freeze(...)` si su regla es `❌ INCUMPLE` (§6.3).
 
 ### 6.1 Plantilla de clase generada
 
@@ -214,6 +226,15 @@ class <Titulo>Test {
 
 **MUST**: clase y campos en visibilidad de paquete (sin `public`) — JUnit 5 + ArchUnit
 no requieren `public`.
+
+**REQUIRED — cita literal de la Verificación**: encima de cada campo `@ArchTest` va el bloque *Verificación.* de su regla citado **literal** del catálogo, línea a línea, con el marcador exacto `// [C-N] Verificación:` y prefijo `//   `. Esta cita es la clave del emparejamiento incremental (§6.4).
+
+```java
+// [C-9] Verificación:
+//   <líneas del bloque Verificación de C-9, copiadas literales del catálogo>
+@ArchTest
+static final ArchRule c9_controladorNoAccedeARepositorio = …;
+```
 
 ### 6.2 Cumplimiento: qué hacer con cada marca
 
@@ -247,6 +268,35 @@ Para una regla `❌ INCUMPLE`, envuelve la expresión de la regla en
 > `src/test/resources/archunit_store` (ver `/k-archunit` → freezing). El build queda
 > verde y solo falla ante **nuevas** violaciones.
 
+### 6.4 Reconciliación incremental
+
+Empareja las reglas del catálogo con los tests existentes en **tres pasadas ordenadas** (cada elemento emparejado sale del juego):
+
+1. **Por contenido** — la cita `// [C-N] Verificación:` de un test coincide con el bloque *Verificación* de una regla
+   (comparación literal línea a línea, ignorando espacios finales y las apariciones del propio ID, que cambian al renumerar).
+   Si varias reglas/tests coinciden entre sí, prioriza el emparejamiento de mismo ID.
+   - Mismo ID → **INTACTO**: **MUST NOT** tocar el campo.
+   - Distinto ID o distinta categoría (regla renumerada o movida) → **RENOMBRAR**:
+     cambio mecánico del nombre del campo, del ID de la cita y del *Mensaje* si contiene el ID;
+     mover de clase si cambió de categoría. **MUST NOT** re-traducir la expresión ArchUnit.
+2. **Por ID** — regla y test aún sin pareja con el mismo `C-N`: la *Verificación* cambió →
+   **REGENERAR** solo ese campo (nueva traducción §2.2 + nueva cita).
+3. **Resto** — regla sin pareja → **NUEVO**; test sin pareja → **BORRAR**.
+
+Casos especiales:
+
+- **Test sin cita (legacy)**: generado por una versión anterior del skill.
+  Compara su código con la regla de su ID:
+  si implementa fielmente la *Verificación* → añade la cita y **MUST NOT** tocar el cuerpo; si no → REGENERAR.
+- **Primera generación** (no existe el paquete raíz) → todo es NUEVO.
+- **Cambio en `## Convenciones de verificación`** (ámbito de análisis o paquetes exentos):
+  invalida la traducción de **todos** los tests →
+  actualiza `PAQUETES_EXENTOS`/`@AnalyzeClasses` en todas las clases y
+  re-evalúa cada test contra su regla (el que siga siendo traducción fiel queda INTACTO).
+- **Freezing**: RENOMBRAR o REGENERAR una regla frozen cambia su descripción →
+  su entrada en la violation store se re-baseliza y pueden quedar entradas huérfanas en `archunit_store`.
+  **MUST** listarlas en el reporte (§7).
+
 ---
 
 ## 7. Fase 4 — Verificar y reportar
@@ -256,12 +306,12 @@ Para una regla `❌ INCUMPLE`, envuelve la expresión de la regla en
    tras la 3ª sigue sin compilar, **STOP** y muestra el error al usuario.
 3. Aplica el checklist §8. **MUST NOT** dar por terminado si queda algún punto sin cumplir.
 4. Reporta al usuario, escueto:
-   - Clases generadas (ruta) y nº de reglas por clase.
+   - Resumen de la reconciliación: nº de reglas INTACTAS / RENOMBRADAS / REGENERADAS / NUEVAS / BORRADAS (§6.4).
+   - Clases generadas o modificadas (ruta) y nº de reglas por clase.
    - Reglas ignoradas (retiradas / sin Verificación).
    - Reglas `❌` envueltas en `freeze` y reglas `⚠️` que pueden fallar al ejecutar.
-   - Si cambiaste la lógica o el mensaje de alguna regla frozen respecto a la
-     generación anterior: avisa de que su entrada en la violation store se re-baseliza
-     (pueden quedar entradas huérfanas en `archunit_store`).
+   - Reglas frozen RENOMBRADAS o REGENERADAS: avisa de que su entrada en la violation
+     store se re-baseliza (pueden quedar entradas huérfanas en `archunit_store`).
 
 > Compilar (`compileTestJava`) verifica que el código generado es válido. **Ejecutar**
 > las reglas es `./gradlew test` (lo hace el build normal del proyecto, ver CLAUDE.md).
@@ -273,6 +323,8 @@ Para una regla `❌ INCUMPLE`, envuelve la expresión de la regla en
 - [ ] ¿Cada categoría del catálogo tiene su clase bajo el paquete raíz único?
 - [ ] ¿Cada `@ArchTest` implementa **exactamente** el sujeto, la condición y las exenciones de la *Verificación* de su regla, con el *Mensaje* literal?
 - [ ] ¿Cada fichero generado lleva la cabecera `GENERADO`?
+- [ ] ¿Cada `@ArchTest` lleva su cita `// [C-N] Verificación:` idéntica al catálogo actual?
+- [ ] ¿Los tests INTACTOS quedaron byte a byte iguales (el diff solo toca lo reconciliado)?
 - [ ] ¿Las reglas `❌ INCUMPLE` están envueltas en `FreezingArchRule.freeze(...)` y solo esas?
 - [ ] ¿Se excluyeron las secciones `NO incluidas` / `Fuera del alcance` y los identificadores retirados?
 - [ ] ¿Los nombres de sub-paquete son `[a-z0-9]` y las clases PascalCase + `Test`?
@@ -288,7 +340,7 @@ siguen fallando ítems, documenta lo que queda y avisa al usuario.
 - El catálogo `agent_docs/architecture-rules.md` es la **única fuente de verdad** y **no trae código**: tú traduces cada bloque *Verificación* a la API de ArchUnit; para cambiar un test, edita el markdown y re-ejecuta; **MUST NOT** editar los `.java`.
 - Traducción **fiel**: mismo sujeto, condición y exenciones; *Mensaje* literal (es la clave de la violation store del freezing); la única transformación extra es `freeze(...)` para las `❌ INCUMPLE`.
 - Un único paquete raíz (`com.educaflow.architecture`), un sub-paquete + una clase por categoría; clases autocontenidas (imports + `PAQUETES_EXENTOS` propios).
-- Vacía el paquete raíz antes de regenerar; **STOP** si encuentras `.java` editados a mano (sin cabecera `GENERADO`).
+- Regeneración **INCREMENTAL** (§6.4): empareja regla↔test por la cita literal de la *Verificación* (el ID solo es una etiqueta: el catálogo renumera sin huecos) y clasifica en INTACTO / RENOMBRAR / REGENERAR / NUEVO / BORRAR; **MUST NOT** tocar los tests cuya regla no cambió. **STOP** si encuentras `.java` editados a mano (sin cabecera `GENERADO`).
 - Excluye las secciones `NO incluidas` / `Fuera del alcance` y los identificadores retirados.
 - Carga `/k-archunit` como referencia; verifica con `./gradlew compileTestJava` (**LIMIT** 3 iteraciones).
 

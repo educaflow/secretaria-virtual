@@ -3,16 +3,17 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="sysGestionCentro.ViewGestionCentroCambioCurso@Main-action" title="Cambio de curso"
+    <action-view name="sysGestionCentro.Main@ViewGestionCentroCambioCurso-action" title="Cambio de curso"
                  model="com.educaflow.system.gestioncentro.db.ViewGestionCentroCambioCurso">
-        <view type="form" name="sysGestionCentro.ViewGestionCentroCambioCurso@Main-form"/>
+        <view type="form" name="sysGestionCentro.Main@ViewGestionCentroCambioCurso-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
         <context name="centroId" expr="eval: id"/>
     </action-view>
 
-    <form name="sysGestionCentro.ViewGestionCentroCambioCurso@Main-form" title="Cambio de curso"
+    <form name="sysGestionCentro.Main@ViewGestionCentroCambioCurso-form" title="Cambio de curso"
           model="com.educaflow.system.gestioncentro.db.ViewGestionCentroCambioCurso"
           canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false"
-          onNew="sysGestionCentro.ViewGestionCentroCambioCurso@Main-Remote-cargarCursosDisponibles-action">
+          onNew="sysGestionCentro.Main@ViewGestionCentroCambioCurso-Remote-cargarCursosDisponibles-action">
         <panel colSpan="12" hidden="true">
             <field name="centroId" showIf="false"/>
         </panel>
@@ -26,7 +27,7 @@
         <panel colSpan="12">
             <field name="nuevoCurso" colSpan="4"/>
             <button name="btnCambiarCurso" title="Iniciar cambio de curso"
-                    onClick="sysGestionCentro.ViewGestionCentroCambioCurso@Main-Remote-cambiarCurso-action"
+                    onClick="sysGestionCentro.Main@ViewGestionCentroCambioCurso-Remote-cambiarCurso-action"
                     readonlyIf="nuevoCurso == null"
                     prompt="Se recalcularán los tipos de usuario de todos los usuarios registrados en el centro (profesor, exprofesor, alumno y exalumno). ¿Desea continuar?"
                     colSpan="4"/>
@@ -36,11 +37,11 @@
         </panel>
     </form>
 
-    <action-method name="sysGestionCentro.ViewGestionCentroCambioCurso@Main-Remote-cargarCursosDisponibles-action">
+    <action-method name="sysGestionCentro.Main@ViewGestionCentroCambioCurso-Remote-cargarCursosDisponibles-action">
         <call class="com.educaflow.system.gestioncentro.controller.GestionCentroController" method="cargarCursosDisponibles"/>
     </action-method>
 
-    <action-method name="sysGestionCentro.ViewGestionCentroCambioCurso@Main-Remote-cambiarCurso-action">
+    <action-method name="sysGestionCentro.Main@ViewGestionCentroCambioCurso-Remote-cambiarCurso-action">
         <call class="com.educaflow.system.gestioncentro.controller.GestionCentroController" method="cambiarCurso"/>
     </action-method>
 

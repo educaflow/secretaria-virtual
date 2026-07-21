@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+    <action-view name="subsysFirmas.Rechazado@TareaFirma-action" title="Documentos que se han rechazado firmar" model="com.educaflow.subsystem.firmas.db.TareaFirma">
+        <view type="grid" name="subsysFirmas.Rechazado@TareaFirma-grid"/>
+        <view type="form" name="subsysFirmas.Rechazado@TareaFirma-form"/>
+        <view-param name="show-toolbar-grid" value="false"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="reload-grid" value="true"/>
+        <domain>self.estadoTareaFirma= :estadoTareaFirma and firmante.id= :firmanteId</domain>
+        <context name="estadoTareaFirma" expr="RECHAZADO"/>
+        <context name="firmanteId" expr="eval:__user__.id"/>
+    </action-view>
+
+    <grid name="subsysFirmas.Rechazado@TareaFirma-grid" title="" model="com.educaflow.subsystem.firmas.db.TareaFirma"
+          groups="admins,users"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
+          orderBy="fechaSolicitud" canViewOnClick="true">
+        <field name="fechaSolicitud"/>
+        <field name="fechaResolucion"/>
+        <field name="firmante"/>
+        <field name="motivoFirma"/>
+        <field name="estadoTareaFirma"/>
+    </grid>
+
+    <form name="subsysFirmas.Rechazado@TareaFirma-form" title="Firma de documento" model="com.educaflow.subsystem.firmas.db.TareaFirma"
+          canEdit="false" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canCancel="false" canMore="false"
+          related='{"documentosFirma":["documentoOriginal"]}'>
+
+        <panel name="tareaFirma" title="Estado de la tarea de firma rechazara" colSpan="12" readonly="true">
+            <field name="motivoFirma"   colSpan="8"/>
+            <field name="fechaSolicitud"   colSpan="4"/>
+            <field name="estadoTareaFirma"   colSpan="4"/>
+            <field name="fechaResolucion"   colSpan="4" colOffset="4" />
+            <field name="motivoRechazo"    colSpan="12"  />
+        </panel>
+
+        <panel-related name="documentosFirma" title="Documentos" field="documentosFirma" colSpan="12"
+                       grid-view="subsysFirmas.Rechazado@TareaFirma.DocumentoFirma-grid" form-view="subsysFirmas.Rechazado@TareaFirma.DocumentoFirma-form" readonly="true"
+                       canNew="false" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"/>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnVolver" title="Salir" onClick="subsysFirmas.Rechazado@TareaFirma-btnVolver-action" css="btn-secondary" colSpan="3" colOffset="9" outline="true"/>
+        </panel>
+
+    </form>
+
+    <?sv-primary-actions?>
+    <action-group name="subsysFirmas.Rechazado@TareaFirma-btnVolver-action">
+        <action name="back"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+    <?sv-view?>
+    <grid name="subsysFirmas.Rechazado@TareaFirma.DocumentoFirma-grid" title="" model="com.educaflow.subsystem.firmas.db.DocumentoFirma"
+          editable="false" edit-icon="false" x-selector="none" orderBy="documentoOriginal.fileName"
+          canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="documentoOriginal.fileName"/>
+    </grid>
+
+    <form name="subsysFirmas.Rechazado@TareaFirma.DocumentoFirma-form" title="Documento" model="com.educaflow.subsystem.firmas.db.DocumentoFirma"
+          canAttach="false" canEdit="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel-tabs>
+            <panel name="tabDocumentoOriginal" title="Documento original" colSpan="12">
+                <field name="new" showTitle="false" readonly="true" colSpan="12">
+                    <viewer depends="documentoOriginal"><![CDATA[
+                        <>
+                        <Box as="iframe" height="500" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${documentoOriginal.id}/content/download?inline=true&name=${documentoOriginal.fileName}`}></Box>
+                        </>
+                    ]]></viewer>
+                </field>
+            </panel>
+        </panel-tabs>
+    </form>
+
+    <?sv-primary-actions?>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+</object-views>

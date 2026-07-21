@@ -13,7 +13,7 @@ Se usa cuando el mensaje pertenece a un campo concreto y debe aparecer justo baj
 **P1. Campo obligatorio (referencia o select)**
 
 ```xml
-<action-condition name="subsysXxx.MiEntidad@Main-Local-validateSave-action">
+<action-condition name="subsysXxx.Main@MiEntidad-Local-validateSave-action">
     <check field="motivoRechazo"
            if="motivoRechazo == null"
            error="Debe indicar un motivo de rechazo"/>
@@ -30,7 +30,7 @@ Para selects o enums numéricos también puede ser `== 0`:
 **P2. Comparación entre dos fechas del mismo registro**
 
 ```xml
-<action-condition name="subsysXxx.MiEntidad@Main-Local-validateSave-action">
+<action-condition name="subsysXxx.Main@MiEntidad-Local-validateSave-action">
     <check field="fechaFin"
            if="fechaInicio != null &amp;&amp; fechaFin != null &amp;&amp; fechaFin &lt; fechaInicio"
            error="La fecha de fin debe ser posterior a la de inicio"/>
@@ -42,7 +42,7 @@ Para selects o enums numéricos también puede ser `== 0`:
 Patrón "height/width": si uno tiene valor, el otro también. Se hace con **dos `<check>`**, cada uno apuntando a su propio campo, para que el mensaje aparezca en el campo que falta:
 
 ```xml
-<action-condition name="subsysXxx.MiEntidad@Main-Local-validateSave-action">
+<action-condition name="subsysXxx.Main@MiEntidad-Local-validateSave-action">
     <check field="alto"  if="ancho &gt; 0 &amp;&amp; alto == 0"
            error="Si indica el ancho debe indicar también el alto"/>
     <check field="ancho" if="alto &gt; 0 &amp;&amp; ancho == 0"
@@ -55,7 +55,7 @@ Patrón "height/width": si uno tiene valor, el otro también. Se hace con **dos 
 Útil en formularios `panel-related` donde el hijo se valida contra un campo del padre (p.ej. un importe que no puede superar el total del padre):
 
 ```xml
-<action-condition name="subsysXxx.MiEntidad.Linea@Main-Local-validateSave-action">
+<action-condition name="subsysXxx.Main@MiEntidad.Linea-Local-validateSave-action">
     <check field="importe"
            if="__parent__.totalSinImpuestos == null || importe &gt; __parent__.totalSinImpuestos"
            error="El importe de la línea no puede superar el total del pedido"/>
@@ -67,7 +67,7 @@ Patrón "height/width": si uno tiene valor, el otro también. Se hace con **dos 
 `__config__.date` es la fecha actual del servidor:
 
 ```xml
-<action-condition name="subsysXxx.MiEntidad@Main-Local-validateSave-action">
+<action-condition name="subsysXxx.Main@MiEntidad-Local-validateSave-action">
     <check field="fechaNacimiento"
            if="fechaNacimiento?.isAfter(__config__.date)"
            error="La fecha de nacimiento no puede estar en el futuro"/>
@@ -79,7 +79,7 @@ Patrón "height/width": si uno tiene valor, el otro también. Se hace con **dos 
 Es habitual encadenar varios `<check>` con `field` distinto en un mismo `<action-condition>`. Cada uno marca su propio campo si falla:
 
 ```xml
-<action-condition name="subsysXxx.MiEntidad@Main-Local-validateSave-action">
+<action-condition name="subsysXxx.Main@MiEntidad-Local-validateSave-action">
     <check field="nombre"   if="nombre == null || nombre.isEmpty()"
            error="El nombre es obligatorio"/>
     <check field="email"    if="email == null || email.isEmpty()"
@@ -102,7 +102,7 @@ Se usa cuando el mensaje no pertenece a un campo concreto, o cuando hace falta u
 Se evalúan los `if` independientemente. Útil para validar varios prerrequisitos antes de una acción:
 
 ```xml
-<action-validate name="subsysXxx.MiEntidad@Main-Local-validateSave-action">
+<action-validate name="subsysXxx.Main@MiEntidad-Local-validateSave-action">
     <error message="Debe rellenar los datos bancarios de la empresa."
            if="datosBancariosEmpresa == null"/>
     <error message="Debe rellenar la fecha de pago."
@@ -113,7 +113,7 @@ Se evalúan los `if` independientemente. Útil para validar varios prerrequisito
 **P8. Cantidad fuera de rango**
 
 ```xml
-<action-validate name="subsysXxx.MiEntidad@Main-Local-validateSave-action">
+<action-validate name="subsysXxx.Main@MiEntidad-Local-validateSave-action">
     <error message="La cantidad no puede ser negativa."
            if="cantidad &lt; 0"/>
     <error message="La cantidad no puede superar la cantidad real."
@@ -124,7 +124,7 @@ Se evalúan los `if` independientemente. Útil para validar varios prerrequisito
 **P9. Lista o colección vacía (al menos uno)**
 
 ```xml
-<action-validate name="subsysXxx.MiEntidad@Main-Local-validateSave-action">
+<action-validate name="subsysXxx.Main@MiEntidad-Local-validateSave-action">
     <error message="Debe seleccionar al menos una factura"
            if="facturasParaFusionar == null || facturasParaFusionar.size() == 0"/>
 </action-validate>
@@ -135,7 +135,7 @@ Se evalúan los `if` independientemente. Útil para validar varios prerrequisito
 Bloquea acciones según el estado actual:
 
 ```xml
-<action-validate name="subsysXxx.MiEntidad@Main-Local-validateAprobar-action">
+<action-validate name="subsysXxx.Main@MiEntidad-Local-validateAprobar-action">
     <error message="No es posible volver al estado VALIDADO desde una factura contabilizada."
            if="estado == 'CONTABILIZADA'"/>
 </action-validate>
@@ -146,7 +146,7 @@ Bloquea acciones según el estado actual:
 `__user__.group` da acceso al grupo del usuario actual. Útil para bloquear acciones en cliente sin ir al servidor (aunque la autorización real va en el servidor):
 
 ```xml
-<action-validate name="subsysXxx.MiEntidad@Main-Local-validateEnviar-action">
+<action-validate name="subsysXxx.Main@MiEntidad-Local-validateEnviar-action">
     <error message="No está autorizado a realizar esta acción"
            if="__user__.group?.code == 'cliente_externo'"/>
 </action-validate>
@@ -157,7 +157,7 @@ Bloquea acciones según el estado actual:
 Se usa cuando técnicamente la operación es válida pero el usuario debería confirmarla antes:
 
 ```xml
-<action-validate name="subsysXxx.MiEntidad@Main-Local-confirmar-action">
+<action-validate name="subsysXxx.Main@MiEntidad-Local-confirmar-action">
     <alert message="Esta factura no tiene impuestos. ¿Desea continuar?"
            if="lineasImpuestos == null || lineasImpuestos.isEmpty()"/>
 </action-validate>
@@ -168,7 +168,7 @@ Se usa cuando técnicamente la operación es válida pero el usuario debería co
 Útil para operaciones potencialmente destructivas:
 
 ```xml
-<action-validate name="subsysXxx.MiEntidad@Main-Local-confirmRegenerar-action">
+<action-validate name="subsysXxx.Main@MiEntidad-Local-confirmRegenerar-action">
     <alert message="Regenerar el documento puede generar copias en conflicto. ¿Desea continuar?"/>
 </action-validate>
 ```
@@ -178,7 +178,7 @@ Se usa cuando técnicamente la operación es válida pero el usuario debería co
 `${campo}` interpola el valor actual del registro en el mensaje:
 
 ```xml
-<action-validate name="subsysXxx.MiEntidad@Main-Local-validateGuardar-action">
+<action-validate name="subsysXxx.Main@MiEntidad-Local-validateGuardar-action">
     <alert message="Ya existe una factura con el número ${numeroFactura} y año para el proveedor ${proveedor.nombreCompleto}. ¿Desea continuar?"
            if="duplicadoMismoAnio"/>
 </action-validate>
@@ -189,7 +189,7 @@ Se usa cuando técnicamente la operación es válida pero el usuario debería co
 Muestra un diálogo de información que el usuario solo acepta para continuar (no decide nada). Apropiado para explicar un cambio que se acaba de hacer o un estado del registro. Suele invocarse desde `onLoad` a través de un `action-group`:
 
 ```xml
-<action-validate name="subsysXxx.MiEntidad@Main-Local-showArchivedInfo-action">
+<action-validate name="subsysXxx.Main@MiEntidad-Local-showArchivedInfo-action">
     <info message="Este expediente está archivado. No se puede modificar."
           if="estado == 'ARCHIVADO'"/>
 </action-validate>
@@ -200,7 +200,7 @@ Muestra un diálogo de información que el usuario solo acepta para continuar (n
 Aparece en una esquina sin interrumpir el flujo. Apropiado para feedback de éxito o avisos secundarios:
 
 ```xml
-<action-validate name="subsysXxx.MiEntidad@Main-Local-checkEmpresaActiva-action">
+<action-validate name="subsysXxx.Main@MiEntidad-Local-checkEmpresaActiva-action">
     <notify message="Seleccione la empresa activa"
             if="__repo__(Empresa).all().count() != 1"/>
 </action-validate>
@@ -211,10 +211,10 @@ Aparece en una esquina sin interrumpir el flujo. Apropiado para feedback de éxi
 El atributo `action` ejecuta una acción adicional cuando se dispara el error. Patrón habitual: limpiar el campo inválido para que el usuario lo vuelva a introducir:
 
 ```xml
-<action-validate name="subsysXxx.MiEntidad@Main-Local-validateFechaHasta-action">
+<action-validate name="subsysXxx.Main@MiEntidad-Local-validateFechaHasta-action">
     <error message="La fecha hasta no puede ser anterior a la fecha desde"
            if="fechaHasta != null &amp;&amp; fechaHasta &lt; fechaDesde"
-           action="subsysXxx.MiEntidad@Main-set-fechaHasta-null-action"/>
+           action="subsysXxx.Main@MiEntidad-set-fechaHasta-null-action"/>
 </action-validate>
 ```
 
