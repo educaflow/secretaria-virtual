@@ -135,6 +135,7 @@ A `panel` can have the following attributes:
 | **`title`** | title of the panel |
 | `name` | name of the panel |
 | `colSpan` | number of columns taken by the widget |
+| `colOffset` | number of empty columns left before the widget |
 | `itemSpan` | default span for child items |
 | `hidden` | whether to hide the widget |
 | `hideIf` | boolean expression to hide the panel |
@@ -250,6 +251,7 @@ A `panel-dashlet` can have following attributes:
 | `canSearch` | enable search header (for grid views) or search box (for card views) |
 | `height` | height taken by the widget |
 | `colSpan` | number of columns taken by the widget |
+| `colOffset` | number of empty columns left before the widget |
 | `hidden` | whether to hide the widget |
 | `hideIf` | boolean expression to hide the panel |
 | `readonly` | whether the widget should be considered readonly |

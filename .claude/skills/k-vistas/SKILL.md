@@ -10,7 +10,7 @@ description: Referencia completa de vistas Axelor — namespace, estructura de f
 | Fichero | Contenido |
 |---------|-----------|
 | `grids.md` | Cómo definir grids: atributos, columnas, botones, convención de nombres `Main@…-grid` y `Ref@…-grid` |
-| `forms.md` | Cómo definir formularios: layout de paneles, campos, widgets, `panel-related`, `panel-tabs` y convención `Main@…-form` y `Ref@…-form` |
+| `forms.md` | Cómo definir formularios: layout de paneles, campos, widgets, `panel-related`, `panel-tabs` y convención `Main@…-form` y `Ref@…-form`. **Incluye el procedimiento OBLIGATORIO de maquetación «ASCII Layout»** (dibujar el ASCII Layout y pasar su checklist antes de escribir `colSpan`/`colOffset`) |
 | `actions.md` | Cómo definir acciones: `action-group`, `action-method`, `action-record`, `action-attrs`, `action-validate`, `action-condition` y `action-script` |
 | `menus.md` | Cómo definir menús: `menuitem`, atributos, orden y convención de nombres |
 | `tree.md` | Cómo definir vistas de árbol: `<tree>`, `<node>`, `<column>`, `<button>` y patrones de uso |
@@ -91,6 +91,8 @@ Para las convenciones de nombre detalladas de cada tipo de vista, ver `grids.md`
 Para cada tabla del modelo de dominio siempre hay (salvo indicación contraria) un `<action-view>`, un `<grid>` y un `<form>` de mantenimiento, todos en `views/Main-{Entidad}.xml`.
 
 Ver `actions.md` para el `<action-view>`, `grids.md` para el `Main@…-grid` y `forms.md` para el `Main@…-form` y las pantallas modales.
+
+**CRITICAL — al crear o editar cualquier `<form>` MUST seguir el «Procedimiento de maquetación (ASCII Layout)» de `forms.md`:** dibujar el ASCII Layout de cada panel y pasar su checklist (filas que suman 12, agrupación semántica, `colSpan` proporcional, bordes alineados, botones bien colocados) **antes** de escribir los `colSpan`/`colOffset` del XML. **MUST NOT** poner `colSpan` a ojo saltándote el ASCII Layout.
 
 **Nota sobre grids:** No poner nunca el atributo `archived` en los grid. Borrarlo si existe excepto si se dice explícitamente que tiene que estar.
 

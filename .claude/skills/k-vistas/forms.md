@@ -173,6 +173,40 @@ Un panel oculto no ocupa espacio vertical (es un bloque que desaparece). Los cam
 
 El mismo campo puede aparecer en varios paneles mutuamente excluyentes (p.ej. `campoB` en panelModoX y panelModoY). Al ser excluyentes, Axelor siempre ve solo uno activo y el binding de datos funciona correctamente.
 
+## Maquetación de un formulario: dibuja el ASCII Layout ANTES del XML (OBLIGATORIO)
+
+> **Nomenclatura:** llamamos **ASCII Layout** al dibujo del layout de un panel en ASCII (una letra por campo repetida `colSpan` veces, puntos para las columnas vacías del `colOffset`). Es el nombre único de este artefacto en todo el proyecto — úsalo siempre así, no "boceto ASCII" ni "notación ASCII".
+
+**CRITICAL — MUST** diseñar el layout de cada panel de un `<form>` como **ASCII Layout** **antes** del XML y **MUST NOT** saltar directamente a poner `colSpan`/`colOffset` en los `<field>`. El **ASCII Layout** es el **paso de diseño**; el XML es solo su traducción mecánica. Saltarse este paso es la causa de los layouts lamentables: campos sueltos en filas medio vacías, `colSpan` inflados y bordes desalineados.
+
+Por **cada panel** del formulario, en este orden:
+
+1. **Lista los campos del panel y agrúpalos por semántica** (§Agrupación semántica): los relacionados van en la **misma fila** (fecha inicio + fecha fin, slot + PIN, fichero + contraseña…).
+2. **Dimensiona cada campo** con la tabla de proporcionalidad (§Proporcionalidad): el `colSpan` refleja **label + valor típico**, no el espacio libre. Un código o número corto son **2–3** columnas, **no** 6 ni 12.
+3. **Dibuja cada fila del ASCII Layout en la rejilla de 12 columnas** (una letra por campo repetida `colSpan` veces; `.` = columna vacía por `colOffset`). Cada fila **MUST** sumar **exactamente 12**.
+4. **Alinea los bordes de columna entre filas** (§Alineación vertical), en especial con los paneles condicionales anidados.
+5. **Coloca los botones** en su `buttons-panel`: los **secundarios** (Borrar) a la izquierda, los **principales** (Cancelar, Guardar) a la derecha, con el `colOffset` que los empuje (§Botones principales y secundarios, §Representar `colOffset`).
+6. **Pasa el checklist de abajo.** Solo cuando el ASCII Layout lo cumple **todo**, tradúcelo a `<field colSpan="…" colOffset="…">`.
+
+**REQUIRED — muestra el ASCII Layout** (en el chat, o en el diseño si estás en el pipeline SDD) para poder revisar el layout de un vistazo **antes** de que exista el XML.
+
+**Ejemplo** (entidad con código, nombre, dos fechas relacionadas y un motivo largo):
+```
+aaa...bbbbbb   ← code(3) + colOffset(3) + name(6)     [identificación]
+ccccccdddddd   ← fechaInicio(6) + fechaFin(6)         [relacionadas → misma fila]
+eeeeeeeeeeee   ← motivo(12)                            [texto libre multilinea → fila propia]
+```
+
+### Checklist de maquetación (por panel, antes de escribir el XML)
+
+- [ ] ¿Cada fila suma **exactamente 12** columnas (campos + `colOffset`)?
+- [ ] ¿Los campos semánticamente relacionados están en la **misma fila**?
+- [ ] ¿Ningún `colSpan` está **inflado** respecto a su label + valor típico (tabla de proporcionalidad)?
+- [ ] ¿Ningún campo queda **solo en una fila** con mucho hueco a la derecha sin un motivo real (§alerta)?
+- [ ] ¿Los **bordes de columna se alinean** entre filas y con los paneles condicionales anidados?
+- [ ] ¿Los botones **secundarios a la izquierda** y los **principales a la derecha**, con el `colOffset` correcto?
+- [ ] ¿Dibujaste el ASCII Layout **antes** del XML y los `colSpan`/`colOffset` finales **coinciden** con él?
+
 ## Principios de diseño visual de formularios
 
 ### Agrupación semántica de campos
@@ -203,22 +237,40 @@ aaaabbbbbbbb   ← campoCorto(4) + selector(8)
 ccccccdddddd   ← campoCorto(6) + contenido(6) [border en col 6|7 ≠ 4|5]
 ```
 
+### Representar `colOffset` en el ASCII Layout
+
+En el ASCII Layout cada campo es **una letra repetida tantas veces como su `colSpan`** (el cambio de letra marca el borde entre campos), y el punto `.` representa una **columna vacía**. El `colOffset` son columnas vacías **antes** del campo: se dibujan como puntos delante de su letra. Tiene dos usos, y el ASCII Layout deja ver cuál está ocurriendo.
+
+**1. Dejar hueco a la izquierda del campo (misma fila).** Si `colOffset` + `colSpan` **caben** en las columnas que quedan libres en la fila, el campo se queda en ella y el offset aparece como puntos por delante:
+```
+aaa...bbbbbb   ← code(3) + colOffset(3) + name(6)                              [3+3+6 = 12]
+aa......bbcc   ← btnBorrar(2) + colOffset(6) + btnCancelar(2) + btnGuardar(2)  [2+6+2+2 = 12]
+```
+El segundo es el patrón del panel de botones: el `colOffset` empuja Cancelar+Guardar a la derecha y deja Borrar solo a la izquierda, sin ningún campo intermedio.
+
+**2. Empujar el campo a la fila siguiente.** Si `colOffset` + `colSpan` **no caben** en las columnas libres que quedan en la fila, el campo entero **baja a la fila siguiente**, y allí el offset se vuelve a aplicar desde el principio de la fila:
+```
+aaaaaa......   ← centro(6); en las 6 cols libres no cabe grado(4) con su colOffset(6)
+......bbbb..   ← colOffset(6) + grado(4) → baja de fila; sobran 2 cols al final    [6+4+2 = 12]
+```
+Este es el `colOffset` de la fila `grado` en la plantilla del Ciclo (arriba): un `colOffset` grande sirve a la vez para **saltar de fila** y para **alinear** el campo con la columna deseada de la fila anterior.
+
 ### Proporcionalidad al contenido: label + tipo de dato
 
 El `colSpan` debe reflejar el espacio que ocupan **tanto el título del campo como el valor** que el usuario va a introducir o ver. Un label corto + un valor corto = pocas columnas, aunque el formulario tenga espacio libre.
 
-| Tipo de campo | Ejemplos de título | Ejemplos de valor | colSpan orientativo |
-|---|---|---|---|
-| Número/código muy corto | "Slot", "Nº" | 0, 1, 2 | **2** |
-| PIN / código corto | "PIN", "CVV" | 1234, AB12 | **3** |
-| DNI / código identificador | "DNI", "Código" | 12345678Z | **3** |
-| Fecha | "Fecha inicio" | 01/01/2025 | **3** |
-| Nombre corto / identificador | "Nombre", "Alias" | "DNIe", "HSM prod" | **6–8** |
-| Nombre o descripción media | "Descripción", "Asunto" | texto moderado | **8–10** |
-| Ruta de fichero / path | "Ruta librería", "Ruta classpath" | /usr/lib/.../opensc.so | **9–10** |
-| Selector enum largo | "Tipo", "Estado" | "Opción con texto largo" | **4–6** |
-| Widget compacto (binary-link) | "Fichero" | [botón subir] | **3–4** |
-| Campo de texto libre / multiline | "Motivo", "Observaciones" | texto largo | **12** |
+| Tipo de campo                    | Ejemplos de título                | Ejemplos de valor        | colSpan orientativo |
+|----------------------------------|-----------------------------------|--------------------------|---------------------|
+| Número/código muy corto          | "Slot", "Nº"                      | 0, 1, 2                  | **2**               |
+| PIN / código corto               | "PIN", "CVV"                      | 1234, AB12               | **3**               |
+| DNI / código identificador       | "DNI", "Código"                   | 12345678Z                | **3**               |
+| Fecha                            | "Fecha inicio"                    | 01/01/2025               | **3**               |
+| Nombre corto / identificador     | "Nombre", "Alias"                 | "DNIe", "HSM prod"       | **6–8**             |
+| Nombre o descripción media       | "Descripción", "Asunto"           | texto moderado           | **8–10**            |
+| Ruta de fichero / path           | "Ruta librería", "Ruta classpath" | /usr/lib/.../opensc.so   | **9–10**            |
+| Selector enum largo              | "Tipo", "Estado"                  | "Opción con texto largo" | **4–6**             |
+| Widget compacto (binary-link)    | "Fichero"                         | [botón subir]            | **3–4**             |
+| Campo de texto libre / multiline | "Motivo", "Observaciones"         | texto largo              | **12**              |
 
 **Regla clave:** no asignar 12 columnas a un campo solo porque "puede ser largo". Pensar en el valor típico real. Un nombre corto rara vez supera 20 caracteres → 6-8 cols es generoso. Una ruta de fichero puede tener 40 caracteres → 9–10 cols. Un selector enum muestra el texto con scroll interno → no necesita tantas cols como su opción más larga. Un número o código muy corto → 2 cols.
 
@@ -343,11 +395,11 @@ Una mejor forma de hacerlo sería:
 ```
 En este ejemplo, "campo1" está alineado con "campo4", "campo2" está alineado con "campo5" y "campo3" está alineado con "campo6". Esto hace que el formulario se vea más organizado y facilita la lectura.
 
-## Herramienta: análisis ASCII del layout — obligatorio antes de escribir el XML
+## Herramienta: análisis del ASCII Layout — obligatorio antes de escribir el XML
 
 Antes de escribir (o revisar) el XML de un formulario, **siempre** hay que hacer este análisis en dos pasos:
 
-### Paso 1: dibujar el ASCII
+### Paso 1: dibujar el ASCII Layout
 
 Representa cada campo con una letra repetida `colSpan` veces y los `colOffset` con espacios. Usa `·` para columnas vacías al final de una fila. Los paneles condicionales se dibujan en bloques separados.
 
@@ -361,7 +413,7 @@ cceeeeeeeeee   ← campoCorto(2) + otroCampoLargo(10) = 12
 
 ### Paso 2: analizar si tiene sentido
 
-Con el ASCII delante, razonar explícitamente sobre cada decisión:
+Con el ASCII Layout delante, razonar explícitamente sobre cada decisión:
 
 - **¿El tamaño de cada campo refleja su dato y su título?**  
   Un código corto (2-3 chars) no necesita más de 2-3 cols. Un selector enum no necesita tantas cols como su opción más larga — el dropdown ya gestiona el ancho internamente. Una ruta de fichero o un texto descriptivo largo sí justifican 8-10 cols.
@@ -373,11 +425,11 @@ Con el ASCII delante, razonar explícitamente sobre cada decisión:
   Si un campo queda solo con muchas `·` a la derecha y hay otro campo relacionado que podría acompañarlo → reagrupar en la misma fila.  
   Si un campo ocupa 10 cols pero su valor típico es de 5 chars → reducir.
 
-- **¿El resultado visual es agradable?** Imaginarlo renderizado en el navegador. Si algo "no encaja" en el ASCII, tampoco va a encajar en la UI.
+- **¿El resultado visual es agradable?** Imaginarlo renderizado en el navegador. Si algo "no encaja" en el ASCII Layout, tampoco va a encajar en la UI.
 
 ### Paso 3: si el análisis no convence → ajustar y redibujar
 
-No pasar al XML hasta que el ASCII y el razonamiento tengan sentido. Es mucho más rápido iterar en texto que en XML.
+No pasar al XML hasta que el ASCII Layout y el razonamiento tengan sentido. Es mucho más rápido iterar en texto que en XML.
 
 ## Referencias
 Para una referencia completa de todo lo relacionado con formularios , puedes consultar los siguientes documentos:
