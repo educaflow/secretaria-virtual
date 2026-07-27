@@ -4,7 +4,7 @@ Catálogo de las **convenciones verificables de las vistas Axelor** del proyecto
 Este fichero **NO contiene código**: describe **qué** debe verificarse; el código lo escriben a mano los tests JUnit 5 planos de `src/test/java/com/educaflow/views` (una clase por categoría), que leen cada XML con JAXP (DOM + XPath) y comprueban cada regla.
 Es el equivalente para vistas de [`architecture-rules.md`](architecture-rules.md), que hace lo propio para el código Java con ArchUnit — con una diferencia técnica: **ArchUnit analiza bytecode y no sirve para XML**, así que las vistas se verifican con tests JUnit normales, no con `@ArchTest`.
 
-> **Mantener coherencia con los skills `k-vistas`.** Este fichero **cataloga como reglas verificables** las convenciones que los skills `k-vistas` (`SKILL.md`, `forms.md`, `grids.md`, `actions.md`, `menus.md`) y el verificador de `/sdd-designer` (`sdd-designer/template-system/{design-contract,validacion}.md`) describen en prosa. Si cambias una regla aquí, **MUST** comprobar si hay que actualizar los skills, y viceversa. No deben divergir.
+> **Mantener coherencia con los skills `k-vistas`.** Este fichero **cataloga como reglas verificables** las convenciones que los skills `k-vistas` (`SKILL.md`, `forms.md`, `grids.md`, `actions.md`, `menus.md`) y el verificador de `/sdd-designer` (`sdd-designer/template-system/{design-contract,vistas,validacion}.md`) describen en prosa. Si cambias una regla aquí, **MUST** comprobar si hay que actualizar los skills, y viceversa. No deben divergir.
 
 ## Fuente de verdad
 
@@ -741,6 +741,50 @@ Las secuencias de los botones estándar (`btnSave`/`btnDelete`/`btnCancel`) depe
 </action-group>
 ```
 **Incorrecto** ❌ — el grupo invoca `…-Remote-reenviar-action` sin su `…-Remote-validateReenviar-action` declarado antes, o con otra acción intercalada entre ambas.
+
+## VAR-7.5 — Botones condicionales en paneles de estado, no gemelos en panel plano
+**Decisión.**
+  Un `<button>` oculto con `showIf` **reserva sus columnas** en el grid igual que un campo oculto:
+    los gemelos con `colOffset` en un `buttons-panel` plano dejan huecos en medio de la fila,
+    y si el total de columnas declarado por todos los botones supera 12, los visibles saltan de fila.
+  Por eso los botones condicionales van en **paneles de estado anidados** dentro del `buttons-panel`
+    (el `showIf` en el panel, que sí colapsa del todo; los botones dentro sin `showIf`),
+    y en un panel plano solo se tolera el tramo inicial de botones condicionales pegado al borde izquierdo
+    (p.ej. el `btnDelete` canónico), cuyo hueco al ocultarse no desplaza a nadie.
+**Verificación.**
+  Sujeto: cada `<panel name="buttons-panel">` y sus `<button>` **hijos directos**
+    (los botones dentro de paneles anidados del `buttons-panel` quedan fuera del sujeto).
+  Condición:
+    (a) la suma de `colOffset` + `colSpan` de **todos** los botones hijos directos es ≤ 12
+      (ocultos incluidos, porque reservan su sitio; `colSpan` ausente cuenta como 6 —el valor por defecto de Axelor— y `colOffset` ausente como 0);
+    (b) todo botón hijo directo con `showIf` cumple:
+      no tiene `colOffset`,
+      y todos sus hermanos `<button>` anteriores del panel llevan también `showIf` sin `colOffset`
+      (los condicionales solo pueden ser el tramo inicial pegado al borde izquierdo).
+  El `showIf` canónico de `btnDelete*` (`VAR-5.1`) no está exento: si convive con gemelos u offsets condicionales, va dentro de su panel de estado (donde deja de ser hijo directo).
+
+**Correcto** ✅
+```xml
+<!-- plano: el único condicional es el tramo inicial (btnDelete); 2+6+2+2 = 12 -->
+<panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+    <button name="btnDelete" title="Borrar" colSpan="2" showIf="(id!=null) || (cid!=null)" css="btn-danger" outline="true" onClick="…"/>
+    <button name="btnCancel" title="Cancelar" colSpan="2" colOffset="6" outline="true" onClick="…"/>
+    <button name="btnSave" title="Guardar" colSpan="2" onClick="…"/>
+</panel>
+<!-- estados: cada combinación visible vive en su panel anidado y suma 12 por sí sola -->
+<panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+    <panel name="buttonsAlta" title="" colSpan="12" showFrame="false" showIf="(id == null) &amp;&amp; (cid == null)">
+        <button name="btnCancelAlta" title="Cancelar" colSpan="2" colOffset="8" outline="true" onClick="…"/>
+        <button name="btnSaveAlta" title="Guardar" colSpan="2" onClick="…"/>
+    </panel>
+    <panel name="buttonsEdicion" title="" colSpan="12" showFrame="false" showIf="(id != null) || (cid != null)">
+        <button name="btnDelete" title="Borrar" colSpan="2" showIf="(id!=null) || (cid!=null)" css="btn-danger" outline="true" onClick="…"/>
+        <button name="btnCancelSalir" title="Salir" colSpan="2" colOffset="6" outline="true" onClick="…"/>
+        <button name="btnSaveEdicion" title="Guardar" colSpan="2" onClick="…"/>
+    </panel>
+</panel>
+```
+**Incorrecto** ❌ — gemelos condicionales en panel plano: `btnCancelAlta` (`colSpan="2" colOffset="6" showIf="id == null"`) y `btnCancelSalir` (`colSpan="2" colOffset="6" showIf="id != null"`) junto a `btnSave` (`colSpan="2" showIf="id == null"`) suman 2+6+2+6+2+2 = 20 > 12 (a) y ambos gemelos llevan `colOffset` siendo condicionales (b): el gemelo oculto reserva offset+span y empuja a `btnSave` a una segunda fila.
 
 ---
 
