@@ -27,6 +27,12 @@ El otro fichero de configuración que se pasa al arrancar (`--config ../secretar
 ## Skills
 Debido a que toda la aplicación está fuertemente acoplada al framework Axelor y que debes tener pocos conocimientos de Axelor se ha creado un sistema de skills para gestionar toda la parte de axelor.
 
+Los skills se agrupan en **cuatro familias por prefijo** (las reglas de autoría de cada una están en `/k-skill`):
+- `k-*` → **knowledge**: conocimiento de dominio reutilizable (convenciones, patrones, vocabulario). No hacen cosas, las describen; otros skills los cargan como referencia.
+- `sdd-*` → **action**: los pasos del pipeline SDD (ver [`agent_docs/sdd-workflow.md`](agent_docs/sdd-workflow.md)).
+- `code-*` → **action**: procesos que producen o revisan código real en el árbol del proyecto (p.ej. `code-implementer`, `code-reviewer`, `code-create-arch-tests`, `code-create-view-tests`).
+- `skill-*` → **action (meta)**: skills que evalúan o mejoran **otros** skills (p.ej. `skill-eval`, `skill-reviewer`). El conocimiento de cómo se escribe un skill vive en `k-skill`.
+
 Para cada parte de Axelor se han creado conjuntos de Skills:
 - menus (`k-vistas`, fichero `menus.md`) → para todo lo relacionado con menús
 - vistas (`k-vistas`) → para todo lo relacionado con vistas
@@ -51,11 +57,11 @@ El desarrollo de cualquier funcionalidad nueva se hace siguiendo el pipeline de 
 
 ## Arquitectura
 
-La descripción de la arquitectura (paquetes de `com.educaflow`, sistemas vs subsistemas y la arquitectura especial de expedientes) está en [`agent_docs/architecture.md`](agent_docs/architecture.md). Las invariantes **verificables** de esa arquitectura (dependencias entre capas, Controller→Service→Repository, nomenclatura/ubicación) están catalogadas como reglas verificables (formato ADR, sin código) en [`agent_docs/architecture-rules.md`](agent_docs/architecture-rules.md), de las que `/create-arch-tests` genera los tests ArchUnit. **Ambos ficheros deben mantenerse coherentes entre sí.** Cárgalos solo cuando trabajes con la arquitectura.
+La descripción de la arquitectura (paquetes de `com.educaflow`, sistemas vs subsistemas y la arquitectura especial de expedientes) está en [`agent_docs/architecture.md`](agent_docs/architecture.md). Las invariantes **verificables** de esa arquitectura (dependencias entre capas, Controller→Service→Repository, nomenclatura/ubicación) están catalogadas como reglas verificables (formato ADR, sin código) en [`agent_docs/architecture-rules.md`](agent_docs/architecture-rules.md), de las que `/code-create-arch-tests` genera los tests ArchUnit. **Ambos ficheros deben mantenerse coherentes entre sí.** Cárgalos solo cuando trabajes con la arquitectura.
 
 ## Vistas
 
-Las **convenciones verificables de las vistas Axelor** (los XML bajo `**/views/*.xml` y `menus.xml`: nomenclatura, botones, action-groups, forms/grids, referencias, modales, menús) están catalogadas como reglas verificables (formato ADR `VAR-<categoría>.<n>`, sin código) en [`agent_docs/view-rules.md`](agent_docs/view-rules.md) — el equivalente para vistas de [`architecture-rules.md`](agent_docs/architecture-rules.md) —, de las que `/create-view-test` genera los tests (JUnit 5 planos en `src/test/java/com/educaflow/views`, una clase por categoría, que leen los XML con JAXP/XPath; **no** usan ArchUnit porque este analiza bytecode, no XML). `view-rules.md` es la **fuente de verdad** de esos tests: para cambiar un test se edita el markdown y se re-ejecuta `/create-view-test`, nunca se editan los `.java` a mano. **`view-rules.md` debe mantenerse coherente con los skills `k-vistas`** (que describen esas convenciones en prosa). Cárgalo solo cuando trabajes con las vistas o sus tests.
+Las **convenciones verificables de las vistas Axelor** (los XML bajo `**/views/*.xml` y `menus.xml`: nomenclatura, botones, action-groups, forms/grids, referencias, modales, menús) están catalogadas como reglas verificables (formato ADR `VAR-<categoría>.<n>`, sin código) en [`agent_docs/view-rules.md`](agent_docs/view-rules.md) — el equivalente para vistas de [`architecture-rules.md`](agent_docs/architecture-rules.md) —, de las que `/code-create-view-tests` genera los tests (JUnit 5 planos en `src/test/java/com/educaflow/views`, una clase por categoría, que leen los XML con JAXP/XPath; **no** usan ArchUnit porque este analiza bytecode, no XML). `view-rules.md` es la **fuente de verdad** de esos tests: para cambiar un test se edita el markdown y se re-ejecuta `/code-create-view-tests`, nunca se editan los `.java` a mano. **`view-rules.md` debe mantenerse coherente con los skills `k-vistas`** (que describen esas convenciones en prosa). Cárgalo solo cuando trabajes con las vistas o sus tests.
 
 
 
