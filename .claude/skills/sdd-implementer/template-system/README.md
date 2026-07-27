@@ -23,8 +23,8 @@ El skill abre `README.md` y, a través de él, usa los demás. Cada uno se trans
 |---|---|---|
 | `README.md` | **Esta guía/índice**: contrato fijo, estructura de entrada/salida, contexto del proyecto, y los principios comunes a todos los roles. | Todos los subagentes (es el contrato que el skill nombra). **MUST NOT** copiarse al output. |
 | `decomposition.md` | **Cómo descomponer el diseño en tareas**: qué tareas crear de cada parte del diseño (XML, Java, tests unitarios), cómo agrupar los ficheros acoplados, el orden de implementación, cómo determinar los skills de cada tarea, el texto del diseño a copiar verbatim, la propagación de los ficheros de contrato hacia abajo, las **plantillas exactas** de `task_NN.md` / `tasks.md` (índice con checkboxes de progreso) y el checklist. | El **descomponedor** (§2.1). |
-| `implementation.md` | **Cómo materializar una tarea** en el árbol del proyecto: copiar literalmente los XML ya materializados, fusionar `menus.xml` y validarlo, y delegar el código Java en `code-implementer` (cargando antes los skills). Define los principios de no-regenerar-XML, no-escribir-Java-a-mano y el manejo de conflictos/bloqueos. | El **implementador** (§2.2); el **corrector-build** (§2.4) lo consulta para saber qué puede tocar al corregir. |
-| `tests-code.md` | **Cómo generar el código de los tests** a partir de las descripciones del diseño: tests unitarios (JUnit 5 + Mockito) desde `design/test-unit-desc.md`, dónde se ubican (`src/test/...`), qué skills cargar y cómo delegarlos en `code-implementer`. | El **descomponedor** (§2.1, para crear las tareas de test); el **implementador** (§2.2, para materializarlas). |
+| `implementation.md` | **Cómo materializar una tarea** en el árbol del proyecto: copiar literalmente los XML ya materializados, fusionar `menus.xml` y validarlo, y delegar el código Java en `developer-code-implementer` (cargando antes los skills). Define los principios de no-regenerar-XML, no-escribir-Java-a-mano y el manejo de conflictos/bloqueos. | El **implementador** (§2.2); el **corrector-build** (§2.4) lo consulta para saber qué puede tocar al corregir. |
+| `tests-code.md` | **Cómo generar el código de los tests** a partir de las descripciones del diseño: tests unitarios (JUnit 5 + Mockito) desde `design/test-unit-desc.md`, dónde se ubican (`src/test/...`), qué skills cargar y cómo delegarlos en `developer-code-implementer`. | El **descomponedor** (§2.1, para crear las tareas de test); el **implementador** (§2.2, para materializarlas). |
 | `build.md` | **Cómo verificar y corregir el build**: el comando de compilación (`./gradlew clean build`), qué cuenta como éxito, cómo reportar los errores en JSONL, la detección de fallos persistentes y qué puede/no puede tocar el corrector. | El **verificador-build** (§2.3); el **corrector-build** (§2.4). |
 
 ---
@@ -56,11 +56,11 @@ Solo el **descomponedor** lee el diseño íntegro para planificar; el **implemen
 
 ### 2.2 implementador — materializa una tarea
 
-**Tarea:** dada **una** tarea de `{iniciativa}/implementation/`, **materializarla en el árbol del proyecto** según el contrato (colocar los XML ya materializados / fusionar menús / delegar el Java y los tests en `code-implementer`).
+**Tarea:** dada **una** tarea de `{iniciativa}/implementation/`, **materializarla en el árbol del proyecto** según el contrato (colocar los XML ya materializados / fusionar menús / delegar el Java y los tests en `developer-code-implementer`).
 
-- **Lee de esta plantilla:** `implementation.md` (cómo colocar los XML literalmente, cómo fusionar y validar `menus.xml`, cómo delegar el Java en `code-implementer` cargando antes los skills, y el manejo de conflictos/bloqueos); y `tests-code.md` **solo si** la tarea es de tests (cómo generar el código JUnit desde la descripción).
+- **Lee de esta plantilla:** `implementation.md` (cómo colocar los XML literalmente, cómo fusionar y validar `menus.xml`, cómo delegar el Java en `developer-code-implementer` cargando antes los skills, y el manejo de conflictos/bloqueos); y `tests-code.md` **solo si** la tarea es de tests (cómo generar el código JUnit desde la descripción).
 - **Entrada propia:** la ruta de **su** tarea (`task_NN.md`) y la carpeta `{iniciativa}/design` (los XML materializados de los que dependa son **contrato fijo**).
-- **OBLIGATORIO:** carga primero, con la herramienta `Skill`, los skills que la tarea lista, y luego —si el contrato lo indica— invoca `code-implementer` con el texto de la tarea **verbatim**.
+- **OBLIGATORIO:** carga primero, con la herramienta `Skill`, los skills que la tarea lista, y luego —si el contrato lo indica— invoca `developer-code-implementer` con el texto de la tarea **verbatim**.
 - **MUST NOT** regenerar los XML del diseño. **MUST NOT** adivinar ante un bloqueo: lo reporta con su token (`CONFLICT`/`BLOCKED`).
 
 ### 2.3 verificador-build — compila y reporta
@@ -75,7 +75,7 @@ Solo el **descomponedor** lee el diseño íntegro para planificar; el **implemen
 
 **Tarea:** dada la lista de errores del verificador-build (§2.3), **corregirlos en sitio** sobre el código del árbol del proyecto, sin tocar lo que el contrato prohíbe.
 
-- **Lee de esta plantilla:** `build.md` (qué errores hay que resolver y qué puede/no puede tocar al corregir) e `implementation.md` (los XML del diseño son contrato fijo; el Java se corrige delegando en `code-implementer`).
+- **Lee de esta plantilla:** `build.md` (qué errores hay que resolver y qué puede/no puede tocar al corregir) e `implementation.md` (los XML del diseño son contrato fijo; el Java se corrige delegando en `developer-code-implementer`).
 - **Fuente de verdad:** los XML materializados del diseño. **MUST NOT** editarlos para que cuadre el Java: corrige el Java para que cuadre con ellos. Si un XML del diseño está mal, **detente y repórtalo**.
 - **Aplica** exactamente los errores reportados, sin reescribir lo que ya funciona.
 

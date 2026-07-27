@@ -1,5 +1,5 @@
 ---
-name: code-create-arch-tests
+name: developer-create-arch-tests
 description: >-
   Dado el catálogo de reglas de arquitectura `agent_docs/architecture-rules.md`
   (decisiones estilo ADR: cada regla `C-N` con Decisión, Verificación —sujeto,
@@ -16,7 +16,7 @@ description: >-
 allowed-tools: Read, Write, Edit, Bash, Skill
 ---
 
-# code-create-arch-tests
+# developer-create-arch-tests
 
 Asumes el rol de **generador de tests de arquitectura**: transformas el catálogo
 declarativo `agent_docs/architecture-rules.md` en clases de test JUnit 5 + ArchUnit
@@ -104,7 +104,7 @@ src/test/java/com/educaflow/architecture/
   una regla del catálogo ⇒ sus `@ArchTest` generados; una regla borrada del catálogo ⇒
   su `@ArchTest` se borra al reconciliar.
 - **MUST NOT** editar a mano los `.java` generados. Para cambiar un test: edita el
-  catálogo y vuelve a ejecutar `/code-create-arch-tests`.
+  catálogo y vuelve a ejecutar `/developer-create-arch-tests`.
 - Cada fichero generado **MUST** llevar la cabecera `GENERADO` (§6.1).
 - La regeneración es **INCREMENTAL** (§6.4):
   **MUST NOT** vaciar el paquete ni re-traducir reglas que no cambiaron;
@@ -203,9 +203,9 @@ categoría a la que pertenece y su **Cumplimiento** (`✅` / `⚠️` / `❌ INC
 
 ````
 // =====================================================================
-// GENERADO por /code-create-arch-tests desde agent_docs/architecture-rules.md
+// GENERADO por /developer-create-arch-tests desde agent_docs/architecture-rules.md
 // NO EDITAR A MANO. Para cambiar un test, edita architecture-rules.md y
-// vuelve a ejecutar /code-create-arch-tests.
+// vuelve a ejecutar /developer-create-arch-tests.
 // =====================================================================
 package com.educaflow.architecture.<subpaquete>;
 

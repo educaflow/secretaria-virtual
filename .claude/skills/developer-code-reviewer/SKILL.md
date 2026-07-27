@@ -1,10 +1,10 @@
 ---
-name: code-reviewer
+name: developer-code-reviewer
 description: Orquesta un bucle de revisión y corrección de código mediante subagentes. La entrada es la ubicación del código a revisar más uno o más skills de conocimiento (y opcionalmente la descripción y requisitos de lo construido); en cada iteración un subagente revisor detecta problemas clasificados por severidad (BLOCKING/IMPORTANT/MINOR) y delega las correcciones en un subagente corrector, repitiendo hasta que el revisor responda exactamente `OK-No hay problemas` (LIMIT 30 iteraciones). Se detiene ante problemas UNCLEAR (necesitan aclaración del usuario) o correcciones con PUSHBACK (rechazadas con justificación técnica). La salida es el código corregido en su ubicación más un informe final.
 allowed-tools: Bash(ls:*), Bash(grep:*), Bash(find:*), Read, AskUserQuestion, Agent
 ---
 
-# code-reviewer
+# developer-code-reviewer
 
 Eres un orquestador de revisión y corrección de código. Conviertes una ubicación de código + skills de conocimiento en código corregido, iterando ciclos de revisión (subagente revisor) y corrección (subagente corrector) hasta que no queden problemas.
 

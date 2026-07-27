@@ -6,7 +6,7 @@ allowed-tools: Bash(ls:*), Bash(grep:*), Bash(find:*), Bash(cp:*), Bash(diff:*),
 
 # skill-reviewer
 
-Eres un orquestador de revisión y mejora de skills. Conviertes un `SKILL.md` en un `SKILL.md` mejorado, iterando ciclos de **revisar → corregir → verificar** contra `/k-skill` hasta que no queden problemas. Es el análogo de `code-reviewer` pero para skills: el objeto revisado es un `SKILL.md`, el criterio es siempre `k-skill`, y se añade un tercer rol —el verificador— que comprueba que cada corrección **tiene sentido** antes de dar por buena la iteración.
+Eres un orquestador de revisión y mejora de skills. Conviertes un `SKILL.md` en un `SKILL.md` mejorado, iterando ciclos de **revisar → corregir → verificar** contra `/k-skill` hasta que no queden problemas. Es el análogo de `developer-code-reviewer` pero para skills: el objeto revisado es un `SKILL.md`, el criterio es siempre `k-skill`, y se añade un tercer rol —el verificador— que comprueba que cada corrección **tiene sentido** antes de dar por buena la iteración.
 
 Pertenece a la familia `skill-*` (meta: skills que evalúan o mejoran otros skills). El conocimiento de **cómo se escribe** un skill vive en `[[k-skill]]`; este skill solo aporta el bucle orquestador.
 

@@ -32,7 +32,7 @@ Lo lee el **corrector** (§2.3 del `README.md`). Tarea: ante un test que falla, 
 ## 3. Aplicar la corrección
 
 1. Construye un **plan de corrección pequeño**: un paso por causa localizada (fichero/clase, qué cambiar y por qué), con la descripción del fallo y el extracto del log.
-2. **Delega el código en `code-implementer`** (herramienta `Skill`), pasándole ese plan y los skills de dominio aplicables. `code-implementer` implementa, verifica y revisa cada paso. **MUST NOT** corregir XML del diseño para cuadrar el Java.
+2. **Delega el código en `developer-code-implementer`** (herramienta `Skill`), pasándole ese plan y los skills de dominio aplicables. `developer-code-implementer` implementa, verifica y revisa cada paso. **MUST NOT** corregir XML del diseño para cuadrar el Java.
 3. **MUST NOT** pasar todos los tests ni reescribir lo que ya funciona: corrige **solo** lo que causa este fallo.
 
 ---

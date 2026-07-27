@@ -50,7 +50,7 @@ Cada línea **MUST** ser JSON válido en una sola línea (escapa los saltos como
 
 El corrector-build resuelve cada línea JSONL. Reglas duras:
 
-- **MUST** corregir **solo código Java** (producción o tests). Si el contrato de dominio lo aconseja, delega en `code-implementer` cargando antes los skills de la tarea de origen (`tarea`).
+- **MUST** corregir **solo código Java** (producción o tests). Si el contrato de dominio lo aconseja, delega en `developer-code-implementer` cargando antes los skills de la tarea de origen (`tarea`).
 - **MUST NOT** editar los XML del diseño ya colocados (dominios, vistas, `menus.xml`): son **contrato fijo** (`implementation.md` §1/§4). Si un error apunta a que un XML está mal, **detente y repórtalo** en tu respuesta (no lo edites) — hay que volver a `/sdd-designer`.
 - Ante un error de **test** (`tipo: TEST`): decide si el fallo es del **código de producción** (corrige la producción) o del **test mal generado** (corrige el test para que refleje la descripción de `design/test-unit-desc.md`). **MUST NOT** debilitar un test para que pase si el fallo real está en la producción.
 - **CRITICAL — no legitimar superficie no diseñada**: ante un error tipo *"method does not override or implement a method from a supertype"* (o un `@Override`/firma que no cuadra con su interfaz/supertipo), **MUST NOT** ampliar la interfaz/supertipo ni crear el método para que el `@Override` compile **sin antes comprobar el origen del método**. Comprueba si figura en la `task` de origen del error o en `design.md`:

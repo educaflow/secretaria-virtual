@@ -19,16 +19,16 @@ Re-generarlos pierde correcciones manuales aplicadas al diseño, rompe la valida
 
 ---
 
-## 2. Principio: no escribir Java a mano — delegar en `code-implementer`
+## 2. Principio: no escribir Java a mano — delegar en `developer-code-implementer`
 
-El implementador **MUST NOT** escribir código Java directamente. Toda la implementación Java (servicios, controladores, repositorios, DTOs, jobs, datos iniciales, seguridad, **y el código de los tests** — ver `tests-code.md`) se delega en `code-implementer`, pasándole **el texto de la tarea tal cual** y sus skills de dominio.
+El implementador **MUST NOT** escribir código Java directamente. Toda la implementación Java (servicios, controladores, repositorios, DTOs, jobs, datos iniciales, seguridad, **y el código de los tests** — ver `tests-code.md`) se delega en `developer-code-implementer`, pasándole **el texto de la tarea tal cual** y sus skills de dominio.
 
 **OBLIGATORIO**, en este orden:
 
 1. Lee la sección `## Skills a usar` de la tarea y **carga cada skill listado con la herramienta `Skill`** **antes** de implementar nada.
-2. Una vez cargados, **invoca `code-implementer`** pasándole el `<texto del prompt>` de la tarea **verbatim**.
+2. Una vez cargados, **invoca `developer-code-implementer`** pasándole el `<texto del prompt>` de la tarea **verbatim**.
 
-Al invocar `code-implementer`, inclúyele además:
+Al invocar `developer-code-implementer`, inclúyele además:
 
 - Una **nota** de que los XML de dominios/vistas/menús de los que dependa **ya están colocados** en `src/main/...` y son **contrato fijo**: **NO** debe regenerarlos ni editarlos; las firmas Java deben coincidir con las acciones de las vistas (`<action-method method="action-..." class="..."/>` ↔ controlador.método) y las entidades JPA con los dominios. Si detecta un XML mal, **detenerse y notificar**, no editarlo.
 - La restricción de **superficie cerrada** (§2.1): **MUST** crear solo los ficheros y métodos/clases públicos que la tarea lista; **MUST NOT** inventar clases/controladores/métodos de más ni clonar el patrón de otra entidad. Si "haría falta" algo no listado, **parar y reportar**, no inventarlo.
@@ -36,7 +36,7 @@ Al invocar `code-implementer`, inclúyele además:
 
 ### 2.1 Superficie cerrada — implementar solo lo que la tarea lista
 
-**CRITICAL**: la tarea define la **superficie exacta** a crear. El implementador (y `code-implementer`) **MUST** materializar **únicamente** los ficheros y los métodos/clases públicos que la tarea enumera (su tabla de ficheros y los bloques de firma del diseño verbatim).
+**CRITICAL**: la tarea define la **superficie exacta** a crear. El implementador (y `developer-code-implementer`) **MUST** materializar **únicamente** los ficheros y los métodos/clases públicos que la tarea enumera (su tabla de ficheros y los bloques de firma del diseño verbatim).
 
 - **MUST NOT** crear clases, controladores, métodos públicos, acciones ni endpoints que la tarea **no** liste.
 - **MUST NOT** renombrar un método de la tarea (p.ej. `insert` → `guardarX`) ni cambiar su firma.
@@ -59,10 +59,10 @@ Según los ficheros que la tarea cubre:
     src/main/java/com/educaflow/secretariavirtual/menus/menus.xml
   ```
   Si falla, responde `BLOCKED: {tarea} — xmllint no valida el menus.xml fusionado: {detalle}`.
-- **Tarea de Java** (servicios, controladores, repositorios, DTOs, jobs, datos iniciales, seguridad): aplica §2 (cargar skills → invocar `code-implementer`).
-- **Tarea de tests** unitarios: ver `tests-code.md` (también delega en `code-implementer`).
+- **Tarea de Java** (servicios, controladores, repositorios, DTOs, jobs, datos iniciales, seguridad): aplica §2 (cargar skills → invocar `developer-code-implementer`).
+- **Tarea de tests** unitarios: ver `tests-code.md` (también delega en `developer-code-implementer`).
 
-**MUST NOT** que `code-implementer` lea otros `design.md`/`analysis.md` de otras iniciativas como referencia: implementa **únicamente** la tarea recibida.
+**MUST NOT** que `developer-code-implementer` lea otros `design.md`/`analysis.md` de otras iniciativas como referencia: implementa **únicamente** la tarea recibida.
 
 ---
 

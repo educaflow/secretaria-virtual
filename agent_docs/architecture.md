@@ -8,7 +8,7 @@ parte*), no de reglas verificables.
 > fichero **describe** la arquitectura; `architecture-rules.md` **cataloga como reglas
 > verificables** (decisiones estilo ADR, sin código) las invariantes de esa misma
 > arquitectura (dependencias entre capas, Controller→Service→Repository,
-> nomenclatura/ubicación), de las que `/code-create-arch-tests` genera los tests ArchUnit.
+> nomenclatura/ubicación), de las que `/developer-create-arch-tests` genera los tests ArchUnit.
 > Si cambias algo aquí,
 > **MUST** comprobar si hay que actualizar `architecture-rules.md`, y viceversa. Los dos
 > ficheros describen la misma arquitectura desde ángulos distintos y no deben divergir.

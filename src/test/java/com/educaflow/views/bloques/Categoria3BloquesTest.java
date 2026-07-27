@@ -1,7 +1,7 @@
 // =====================================================================
-// GENERADO por /code-create-view-tests desde agent_docs/view-rules.md
+// GENERADO por /developer-create-view-tests desde agent_docs/view-rules.md
 // NO EDITAR A MANO. Para cambiar un test, edita view-rules.md (o corrige
-// la traducción en el skill /code-create-view-tests) y vuelve a ejecutarlo.
+// la traducción en el skill /developer-create-view-tests) y vuelve a ejecutarlo.
 // =====================================================================
 package com.educaflow.views.bloques;
 

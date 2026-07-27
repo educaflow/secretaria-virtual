@@ -269,17 +269,17 @@ El skill parsea la primera línea:
 Cada **ciclo**:
 
 1. **Reúne el contexto del fallo**: la descripción `=== FALLO ===` del ejecutor + el **extracto relevante del log de la app** (`Read` sobre `test-e2e-desc/app.log`, normalmente el final; busca trazas/excepciones del momento del fallo). El motor las pasa al corrector.
-2. **Lanza el subagente corrector** (`Agent`, `subagent_type: claude`, `run_in_background: false`). Su tarea: analizar la causa, **decidir qué skills necesita y cargarlos**, y corregir el código Java según el contrato (delegando en `code-implementer` si el contrato lo indica). **MUST NOT** tocar el contrato (§2.3).
+2. **Lanza el subagente corrector** (`Agent`, `subagent_type: claude`, `run_in_background: false`). Su tarea: analizar la causa, **decidir qué skills necesita y cargarlos**, y corregir el código Java según el contrato (delegando en `developer-code-implementer` si el contrato lo indica). **MUST NOT** tocar el contrato (§2.3).
 
    **Prompt del subagente corrector**:
 
    > Eres un experto arquitecto en Java y el framework Axelor que tiene que **corregir el código para que un test E2E pase**.
    >
-   > - **Reglas para la corrección**: lee `{ruta de template-system/README.md}` y los ficheros que referencie —en particular el contrato de **corrección** (cómo localizar la causa, cómo decidir y cargar los skills de dominio necesarios, cómo delegar el código en `code-implementer`, y qué **MUST NOT** tocarse)—. Síguelo.
+   > - **Reglas para la corrección**: lee `{ruta de template-system/README.md}` y los ficheros que referencie —en particular el contrato de **corrección** (cómo localizar la causa, cómo decidir y cargar los skills de dominio necesarios, cómo delegar el código en `developer-code-implementer`, y qué **MUST NOT** tocarse)—. Síguelo.
    > - **Test que falla**: lee `{ruta del t-NNN-<slug>.desc.md}` (autocontenido).
    > - **Problema observado** (lo reportó el ejecutor): `{bloque === FALLO ===}`.
    > - **Log de la app** (extracto relevante): `{extracto de test-e2e-desc/app.log}`.
-   > - **OBLIGATORIO**: analiza qué skills de dominio necesitas para el arreglo (p.ej. `k-secure-coding` + `k-code-quality` si tocas entidades/servicios/controladores; además `k-sistemas`, `k-scheduler`, `k-validaciones`, `k-i18n`… según el fallo), **cárgalos con la herramienta `Skill` antes de corregir** y, si el contrato lo indica, delega el código en `code-implementer`.
+   > - **OBLIGATORIO**: analiza qué skills de dominio necesitas para el arreglo (p.ej. `k-secure-coding` + `k-code-quality` si tocas entidades/servicios/controladores; además `k-sistemas`, `k-scheduler`, `k-validaciones`, `k-i18n`… según el fallo), **cárgalos con la herramienta `Skill` antes de corregir** y, si el contrato lo indica, delega el código en `developer-code-implementer`.
    > - **MUST NOT** usar `AskUserQuestion`. **MUST NOT** modificar `test-e2e-desc.md` ni los ficheros de `test-e2e-desc/`, ni editar XML de dominios/vistas materializados o el contrato del diseño para cuadrar el test.
    > - Distingue el **origen** del bloqueo: si la corrección **solo** se puede lograr cambiando el diseño (`test-e2e-desc.md`, un XML de dominio/vista materializado, una firma declarada por el diseño, reglas contradictorias) es un `DESIGN-ERROR`; si lo que falta es un recurso del **entorno** ajeno al diseño es un `BLOQUEADO`. **MUST NOT** editar el diseño para forzar que cuadre.
    > - Al terminar, responde con **exactamente uno** de estos tokens en la primera línea + 1-2 líneas de resumen:
@@ -361,7 +361,7 @@ Para cada `FAIL` incluye en una línea sangrada la última descripción del fall
 - **Descomponer** (§7): **un** descomponedor escribe `test-e2e-desc/` (un fichero **autocontenido** por test + índice con checkbox); responde `ESCRITO: test-e2e-desc/` + bloque `=== TESTS ===`. Cada `t-NNN-<slug>.desc.md` incluye la cabecera común (estado inicial + credenciales) para que el ejecutor no dependa de otros ficheros (§2.5).
 - **App por el motor** (§2.2, §8): arrancar como **tarea tracked en segundo plano**, limpiar el puerto de verdad antes, sondear hasta `200`, parar por puerto. **MUST NOT** dejar que un subagente arranque la app. Idempotente: no levantar dos instancias.
 - **Ejecutar** (§9.1): **un ejecutor por test, en secuencia** (nunca en paralelo ni `run_in_background`). Responde `SUCCESS {id}` / `FAIL {id}` + `=== FALLO ===`. **MUST NOT** modificar código.
-- **Corregir** (§9.2): ante `FAIL`, **un corrector** que **analiza qué skills necesita, los carga** y arregla el código Java (delegando en `code-implementer` si el contrato lo dice), con el problema + el log de la app. Tras `CORREGIDO`, el motor rearranca la app y reejecuta. **LIMIT** 10 ciclos por test; al agotar, `FAIL` y siguiente. `BLOQUEADO` → **STOP** y `AskUserQuestion`.
+- **Corregir** (§9.2): ante `FAIL`, **un corrector** que **analiza qué skills necesita, los carga** y arregla el código Java (delegando en `developer-code-implementer` si el contrato lo dice), con el problema + el log de la app. Tras `CORREGIDO`, el motor rearranca la app y reejecuta. **LIMIT** 10 ciclos por test; al agotar, `FAIL` y siguiente. `BLOQUEADO` → **STOP** y `AskUserQuestion`.
 - **Error de diseño** (§9.3): si el corrector devuelve `DESIGN-ERROR` (el test no se puede hacer pasar sin tocar el diseño), el motor escribe `test-e2e-desc/error_design.log` con la explicación detallada y **detiene el skill sin preguntar**. Corregir el diseño es trabajo de `/sdd-designer`.
 - **No tocar el contrato** (§2.3): **MUST NOT** modificar `test-e2e-desc.md`, los ficheros de `test-e2e-desc/`, ni el XML/contrato del diseño para que un test pase; si hace falta, es un `DESIGN-ERROR` → `error_design.log` y vuelve a `/sdd-designer`.
 - **Progreso reanudable** (§2.6): al pasar un test, el motor marca `[x]` en el índice; al (re)invocar, salta los `[x]`. `--fresh` reinicia todos a `[ ]`.

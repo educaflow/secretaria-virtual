@@ -124,7 +124,7 @@ Todo lo específico de la implementación (qué contiene el diseño, cómo se de
 - El **descomponedor** corre **una vez** (§7). Los **implementadores** corren **de uno en uno y en orden** (§9): cada tarea puede depender del código de las anteriores. El **verificador-build** y el **corrector-build** corren **de uno en uno** dentro del bucle (§10).
 - **MUST NOT** lanzar subagentes en paralelo: la implementación es secuencial (las firmas Java dependen de los XML ya colocados; las tareas posteriores dependen de las previas).
 - **MUST NOT** usar `run_in_background`: el skill necesita el resultado de cada subagente para continuar.
-- **MUST NOT** invocar `code-implementer` tú mismo: el motor solo lanza los subagentes de §2.3 con `Agent`; es el **implementador** (o el corrector-build) quien, dentro de su contexto, invoca `code-implementer` si el contrato se lo indica.
+- **MUST NOT** invocar `developer-code-implementer` tú mismo: el motor solo lanza los subagentes de §2.3 con `Agent`; es el **implementador** (o el corrector-build) quien, dentro de su contexto, invoca `developer-code-implementer` si el contrato se lo indica.
 - Cada rol responde con un **token literal** que el skill parsea (definidos en cada fase). El skill compara por literal exacto.
 
 ---
@@ -254,10 +254,10 @@ Recorre la lista ordenada de tareas (la que devolvió el descomponedor en `=== T
 
 > Eres un experto arquitecto en Java y el framework Axelor, que tienes que **materializar una tarea de implementación** en el árbol del proyecto siguiendo unas reglas.
 >
-> - **Reglas para la implementación**: lee `{ruta de template-system/README.md}` y **todos los ficheros que referencie** —en particular el contrato de **materialización** (cómo colocar los XML ya materializados, cómo fusionar/validar, y cómo delegar el código Java y los tests en `code-implementer` cargando antes los skills de la tarea)—. Síguelo al pie de la letra.
+> - **Reglas para la implementación**: lee `{ruta de template-system/README.md}` y **todos los ficheros que referencie** —en particular el contrato de **materialización** (cómo colocar los XML ya materializados, cómo fusionar/validar, y cómo delegar el código Java y los tests en `developer-code-implementer` cargando antes los skills de la tarea)—. Síguelo al pie de la letra.
 > - **Diseño**: la carpeta `{iniciativa}/design` (los XML materializados de los que dependa esta tarea son **contrato fijo**: si el contrato manda colocarlos, se copian/fusionan **tal cual**, **NO** se regeneran).
 > - **Tarea a implementar**: `{ruta de la tarea, p.ej. {iniciativa}/implementation/task_03.md}`. Léela entera (skills a usar + texto del diseño verbatim) y materialízala según el contrato.
-> - **OBLIGATORIO**: si la tarea lista skills en su sección de skills, **cárgalos con la herramienta `Skill` antes de implementar nada** y, si el contrato lo indica, **invoca `code-implementer`** pasándole el texto de la tarea **verbatim**. **MUST NOT** empezar a implementar sin haber cargado esos skills.
+> - **OBLIGATORIO**: si la tarea lista skills en su sección de skills, **cárgalos con la herramienta `Skill` antes de implementar nada** y, si el contrato lo indica, **invoca `developer-code-implementer`** pasándole el texto de la tarea **verbatim**. **MUST NOT** empezar a implementar sin haber cargado esos skills.
 > - **MUST NOT** usar `AskUserQuestion`. Ante un bloqueo **MUST NOT** adivinar: repórtalo con el token que corresponda según su **origen**. Si el problema está en el **diseño** —un XML materializado del diseño mal formado o inconsistente, el diseño referencia una entidad/campo/acción que él mismo no define, dos reglas del diseño se contradicen, o falta información imprescindible que el diseño debería aportar— es un `DESIGN-ERROR`: **MUST NOT** editar el diseño para forzar que cuadre. Si el problema es del **entorno** —dependencia externa inexistente, recurso no disponible, instrucción ambigua que no es culpa del diseño— es un `BLOCKED`.
 > - Al terminar, responde con **exactamente uno** de estos tokens en la primera línea, y 1-2 líneas de resumen:
 >   - `DONE: {ruta de la tarea}` — la tarea quedó materializada en el árbol del proyecto.
@@ -356,7 +356,7 @@ Tras materializar todas las tareas, verifica que el proyecto compila (y que sus 
 >
 > - **Reglas para el build y la implementación**: lee `{ruta de template-system/README.md}` y los ficheros que referencie (en particular qué puedes y qué **no** puedes tocar al corregir).
 > - **Diseño**: la carpeta `{iniciativa}/design` —los XML materializados son **contrato fijo**: **MUST NOT** editarlos para que cuadre el Java; corrige el Java para que cuadre con ellos. Si el error **solo** se puede resolver cambiando el diseño (un XML del diseño está mal o es inconsistente, el diseño referencia algo que él mismo no define, reglas contradictorias…), **MUST NOT** editar el diseño ni adivinar: responde en la **primera línea** con `DESIGN-ERROR: {motivo detallado}` (qué fichero del diseño, qué es inconsistente y por qué no se puede arreglar con código) y termina (§9.1).
-> - **Errores a corregir** (los reportó el verificador-build, en JSONL, un error por línea): `{líneas JSONL literales del verificador-build}`. Resuelve cada línea; si el contrato lo indica, delega la corrección del código Java en `code-implementer` cargando antes los skills de dominio aplicables.
+> - **Errores a corregir** (los reportó el verificador-build, en JSONL, un error por línea): `{líneas JSONL literales del verificador-build}`. Resuelve cada línea; si el contrato lo indica, delega la corrección del código Java en `developer-code-implementer` cargando antes los skills de dominio aplicables.
 > - **MUST NOT** usar `AskUserQuestion`: ante un bloqueo del entorno, descríbelo en tu respuesta y termina; ante un error del diseño, usa el token `DESIGN-ERROR` (arriba).
 
 - ✅ CORRECTO (respuesta del verificador-build cuando compila): `OK-COMPILA`
@@ -401,11 +401,11 @@ Ajusta la lista de ficheros a la estructura real que define la plantilla.
 - **Cargar y validar** (§5): lee solo `template-system/README.md`; valida `type: design` en el frontmatter (si no → **ERROR**).
 - **Descomponer** (§7): **un** subagente descomponedor escribe `implementation/`; responde `ESCRITO: implementation/` + bloque `=== TAREAS ===` (una línea por tarea, en orden). **MUST NOT** materializar código.
 - **Informar** (§8): muestra el resumen de tareas y **continúa automáticamente**; si todo va bien **MUST NOT** pedir aprobación. Solo se interrumpe ante excepciones (`CONFLICT`/`BLOCKED`, build que no compila).
-- **Implementar** (§9): **un subagente implementador por tarea, en orden** (nunca en paralelo ni `run_in_background`). Cada uno carga los skills de su tarea y, si el contrato lo dice, invoca `code-implementer`. Responde `DONE` / `CONFLICT` / `BLOCKED` / `DESIGN-ERROR`; el motor lleva `CONFLICT`/`BLOCKED` al usuario.
+- **Implementar** (§9): **un subagente implementador por tarea, en orden** (nunca en paralelo ni `run_in_background`). Cada uno carga los skills de su tarea y, si el contrato lo dice, invoca `developer-code-implementer`. Responde `DONE` / `CONFLICT` / `BLOCKED` / `DESIGN-ERROR`; el motor lleva `CONFLICT`/`BLOCKED` al usuario.
 - **Error de diseño** (§9.1): si un implementador o un corrector-build devuelve `DESIGN-ERROR` (el problema está en el diseño y no se arregla con código), el motor escribe `implementation/error_design.log` con la explicación detallada y **detiene el skill sin preguntar**. **MUST NOT** editar el diseño para forzar que cuadre; corregirlo es trabajo de `/sdd-designer`.
 - **Verificar/corregir el build** (§10): bucle verificador-build → corrector-build hasta `OK-COMPILA` (**LIMIT** 20; tras la 20ª o si los errores se repiten, **STOP** y `AskUserQuestion`). El verificador-build compila (comando de la plantilla) y reporta en **JSONL** (`id`/`tipo`/`fichero`/`ubicacion`/`tarea`/`mensaje`/`correccion`); el motor lo vuelca a `implementation/log_build.txt`. Si el corrector-build devuelve `DESIGN-ERROR`, se aplica §9.1. El motor **MUST NOT** compilar él mismo (§2.2).
 - **Contrato de tokens** (§2.3): el skill compara por literal exacto — `ESCRITO: implementation/`, `DONE`/`CONFLICT`/`BLOCKED`/`DESIGN-ERROR`, `OK-COMPILA`. Los subagentes **MUST NOT** pegar el código en su respuesta (ya está en disco).
-- **MUST NOT** invocar `code-implementer` tú mismo ni lanzar `/sdd-close`: el código lo escriben los implementadores; el cierre lo decide el usuario.
+- **MUST NOT** invocar `developer-code-implementer` tú mismo ni lanzar `/sdd-close`: el código lo escriben los implementadores; el cierre lo decide el usuario.
 
 ---
 

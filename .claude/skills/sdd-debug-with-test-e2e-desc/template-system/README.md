@@ -23,7 +23,7 @@ A través de este README cada subagente descubre y lee **solo los ficheros de es
 | `README.md` | **Esta guía/índice**: contrato fijo, estructura de entrada/salida, gestión de la app y principios comunes a todos los roles. | Todos los subagentes (es el contrato que el skill nombra) y el **motor** (la sección «Gestión de la app»). **MUST NOT** copiarse al output. |
 | `decomposition.md` | **Cómo descomponer `test-e2e-desc.md`** en un fichero por test: qué cabecera común copiar en cada uno para que sea autocontenido, las plantillas exactas de `t-NNN-<slug>.desc.md` y del índice `tests-e2e-desc.md` (con checkbox por test), la numeración y el checklist. | El **descomponedor** (§2.1). |
 | `execution.md` | **Cómo ejecutar un test** contra la app: qué skill cargar para pilotar el navegador, la URL base, cómo interpretar Given/When/Then, los **errores recurrentes a evitar** (esperas, caché de la SPA, editores), el criterio de **equivalencia semántica** de los mensajes, qué recoger de la UI al fallar y el formato de salida `SUCCESS`/`FAIL`. | El **ejecutor** (§2.2). |
-| `correction.md` | **Cómo corregir el código** para que un test pase: cómo localizar la causa (MCP de IntelliJ + log de la app), cómo decidir y cargar los skills de dominio necesarios, cómo delegar el código en `code-implementer`, qué **MUST NOT** tocarse, y el formato de salida `CORREGIDO`/`BLOQUEADO`. | El **corrector** (§2.3). |
+| `correction.md` | **Cómo corregir el código** para que un test pase: cómo localizar la causa (MCP de IntelliJ + log de la app), cómo decidir y cargar los skills de dominio necesarios, cómo delegar el código en `developer-code-implementer`, qué **MUST NOT** tocarse, y el formato de salida `CORREGIDO`/`BLOQUEADO`. | El **corrector** (§2.3). |
 
 ---
 
@@ -59,9 +59,9 @@ El skill `sdd-debug-with-test-e2e-desc` lanza estos tres roles. Todos reciben es
 
 **Tarea:** dado un test que falla, su problema observado y el log de la app, **analizar la causa, cargar los skills necesarios y corregir el código Java** para que el test pase.
 
-- **Lee de esta plantilla:** `correction.md` (cómo localizar la causa, cómo decidir y cargar los skills de dominio, cómo delegar en `code-implementer`, qué no tocar y el formato de salida).
+- **Lee de esta plantilla:** `correction.md` (cómo localizar la causa, cómo decidir y cargar los skills de dominio, cómo delegar en `developer-code-implementer`, qué no tocar y el formato de salida).
 - **Entrada propia:** la ruta del `t-NNN-<slug>.desc.md`, el bloque `=== FALLO ===` del ejecutor y el extracto del log de la app.
-- **OBLIGATORIO:** decide qué skills de dominio necesitas y **cárgalos con `Skill` antes de corregir**; delega el código en `code-implementer` si `correction.md` lo indica.
+- **OBLIGATORIO:** decide qué skills de dominio necesitas y **cárgalos con `Skill` antes de corregir**; delega el código en `developer-code-implementer` si `correction.md` lo indica.
 - **MUST NOT** tocar el contrato: ni `test-e2e-desc.md`, ni los ficheros de `test-e2e-desc/`, ni el XML/contrato del diseño. Si la corrección lo exigiera → `BLOQUEADO`.
 
 ---
@@ -99,7 +99,7 @@ La sección `## Estado inicial de la base de datos` (incluida la tabla de creden
     ├── t-001-<slug>.desc.md … t-NNN-<slug>.desc.md  ← un fichero autocontenido por test (type: test-e2e)
     └── app.log                   ← log de la app (lo escribe el MOTOR; los subagentes lo ignoran)
 
-src/main/java/com/educaflow/…     ← correcciones de código Java (las escribe el corrector vía code-implementer)
+src/main/java/com/educaflow/…     ← correcciones de código Java (las escribe el corrector vía developer-code-implementer)
 ```
 
 El índice es la fuente del **progreso reanudable**: un test que pasa se marca `[x]`.

@@ -1,5 +1,5 @@
 ---
-name: code-create-view-tests
+name: developer-create-view-tests
 description: >-
   Dado el catálogo de reglas de vistas `agent_docs/view-rules.md` (decisiones
   estilo ADR: cada regla `VAR-<categoría>.<n>` con Decisión y Verificación
@@ -15,11 +15,11 @@ description: >-
 allowed-tools: Read, Write, Edit, Bash, Skill
 ---
 
-# code-create-view-tests
+# developer-create-view-tests
 
 Asumes el rol de **generador de tests de vistas**: transformas el catálogo declarativo `agent_docs/view-rules.md` en clases de test **JUnit 5 planas** dentro de `src/test/java/com/educaflow/views`, una por categoría, sobre la librería compartida `support/`. El catálogo **no trae código**: tú escribes cada `@Test` traduciendo **fielmente** el bloque *Verificación* de cada regla a JAXP (DOM + XPath). El catálogo es la **única fuente de verdad** sobre *qué* se verifica; este skill solo decide *cómo* expresarlo en código. No inventas reglas ni tolerancias.
 
-**CRITICAL — por qué NO es `/code-create-arch-tests`.** ArchUnit analiza **bytecode**, así que **no sirve para XML**. Las vistas son ficheros XML: se verifican con tests JUnit normales que parsean el DOM con JAXP. Por eso este skill es independiente y no genera `@ArchTest` ni usa freezing ni violation-store.
+**CRITICAL — por qué NO es `/developer-create-arch-tests`.** ArchUnit analiza **bytecode**, así que **no sirve para XML**. Las vistas son ficheros XML: se verifican con tests JUnit normales que parsean el DOM con JAXP. Por eso este skill es independiente y no genera `@ArchTest` ni usa freezing ni violation-store.
 
 ---
 
@@ -89,7 +89,7 @@ src/test/java/com/educaflow/views/
 ### 2.1 Proyección del catálogo
 
 - Las clases de categoría generadas **MUST** ser una proyección exacta de `view-rules.md`: una regla del catálogo ⇒ sus `@Test` generados; una regla borrada ⇒ su `@Test` se borra al reconciliar.
-- **MUST NOT** editar a mano las clases generadas. Para cambiar un test: edita el catálogo (o, si el fallo es de traducción, corrige este skill) y vuelve a ejecutar `/code-create-view-tests`.
+- **MUST NOT** editar a mano las clases generadas. Para cambiar un test: edita el catálogo (o, si el fallo es de traducción, corrige este skill) y vuelve a ejecutar `/developer-create-view-tests`.
 - Cada clase de categoría generada **MUST** llevar la cabecera `GENERADO` (§6.1).
 - La regeneración es **INCREMENTAL** (§6.3):
   **MUST NOT** vaciar los paquetes ni re-traducir reglas que no cambiaron;
@@ -182,9 +182,9 @@ Por cada regla incluida, registra: `id` (`VAR-N.M`), el título, el bloque *Veri
 
 ````
 // =====================================================================
-// GENERADO por /code-create-view-tests desde agent_docs/view-rules.md
+// GENERADO por /developer-create-view-tests desde agent_docs/view-rules.md
 // NO EDITAR A MANO. Para cambiar un test, edita view-rules.md (o corrige
-// la traducción en el skill /code-create-view-tests) y vuelve a ejecutarlo.
+// la traducción en el skill /developer-create-view-tests) y vuelve a ejecutarlo.
 // =====================================================================
 package com.educaflow.views.<subpaquete>;
 

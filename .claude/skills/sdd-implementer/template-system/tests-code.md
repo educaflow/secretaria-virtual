@@ -56,7 +56,7 @@ para la clase <FQN>.
 
 ## 3. Materialización (implementador)
 
-Una tarea de test es **código Java** → aplica `implementation.md` §2: carga primero los skills de la tarea (`Skill`) y delega en `code-implementer` con el texto de la tarea **verbatim**. La descripción (`test-unit-desc.md`) es el contrato del **qué** testear; `code-implementer` escribe el **cómo** (el código JUnit real).
+Una tarea de test es **código Java** → aplica `implementation.md` §2: carga primero los skills de la tarea (`Skill`) y delega en `developer-code-implementer` con el texto de la tarea **verbatim**. La descripción (`test-unit-desc.md`) es el contrato del **qué** testear; `developer-code-implementer` escribe el **cómo** (el código JUnit real).
 
 **MUST NOT**:
 

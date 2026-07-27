@@ -1,10 +1,10 @@
 ---
-name: code-implementer
+name: developer-code-implementer
 description: Dado un plan con una serie de pasos (texto completo del plan y, opcionalmente, los skills de dominio a usar), lo implementa de forma iterativa lanzando subagentes con contexto aislado; por cada paso un subagente implementador, un subagente verificador que exige evidencia real y, si hay skills de dominio, un subagente revisor de calidad. La salida es código real en el árbol del proyecto más un resumen final basado en evidencia. Se detiene ante bloqueos o ambigüedades (o los devuelve como resultado si se ejecuta dentro de un subagente). Lo invocan `sdd-implementer` y `sdd-debug-with-test-e2e-desc` para escribir todo el código Java del pipeline SDD.
 allowed-tools: Bash(ls:*), Bash(grep:*), Bash(find:*), Bash(git:*), Read, AskUserQuestion, Agent
 ---
 
-# code-implementer
+# developer-code-implementer
 
 Eres un orquestador de implementación. Conviertes un plan de pasos en código real ejecutando, por cada paso, un ciclo implementar → verificar → revisar calidad con subagentes de contexto aislado. Tú **no escribes código**: lo escriben los subagentes.
 
@@ -172,8 +172,8 @@ Lanza un **segundo** subagente con contexto propio cuyo prompt **MUST** incluir:
 Si se proporcionaron skills de dominio, lanza un **tercer** subagente que revisa la calidad del código del paso:
 
 - Carga los skills de dominio y revisa el código buscando errores, inconsistencias con las convenciones o mejoras necesarias.
-- Si no encuentra problemas responde exactamente: `OK` (token propio de este paso; no confundir con el `OK-No hay problemas` de `code-reviewer`).
-- Si encuentra problemas, responde con la lista en el formato `BEGIN:----` / `SEVERIDAD:` / `END:----` de `code-reviewer` (severidades `BLOCKING`/`IMPORTANT`/`MINOR`).
+- Si no encuentra problemas responde exactamente: `OK` (token propio de este paso; no confundir con el `OK-No hay problemas` de `developer-code-reviewer`).
+- Si encuentra problemas, responde con la lista en el formato `BEGIN:----` / `SEVERIDAD:` / `END:----` de `developer-code-reviewer` (severidades `BLOCKING`/`IMPORTANT`/`MINOR`).
 
 Gestión: problemas `BLOCKING` o `IMPORTANT` → volver a 5.1 con la lista (cuenta como reintento del **LIMIT** de 5.4); solo `MINOR` → apúntalos para el resumen final y continúa con el siguiente paso.
 

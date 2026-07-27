@@ -121,7 +121,7 @@ Ejecutan un **proceso multi-fase**: leen artefactos, hacen preguntas, generan fi
 - `code-*` → producen o revisan código real en el árbol del proyecto.
 - `skill-*` → **meta**: evalúan o mejoran **otros** skills (el conocimiento de cómo se escribe un skill vive en este propio `k-skill`).
 
-**Ejemplos**: `sdd-specification`, `sdd-designer`, `sdd-implementer`, `sdd-close`, `code-implementer`, `code-reviewer`, `skill-eval`, `skill-reviewer`.
+**Ejemplos**: `sdd-specification`, `sdd-designer`, `sdd-implementer`, `sdd-close`, `developer-code-implementer`, `developer-code-reviewer`, `skill-eval`, `skill-reviewer`.
 
 **Estructura mínima OBLIGATORIA** (inspirada en `github/spec-kit`):
 

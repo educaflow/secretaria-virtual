@@ -1,11 +1,11 @@
 ---
 name: k-code-quality
-description: Reglas de calidad técnica para código Java/Kotlin del proyecto — métodos, clases, idiomas Java modernos y convenciones específicas del stack (Axelor, Guice, JPA). Referenciado por code-reviewer para guiar auditorías y correcciones.
+description: Reglas de calidad técnica para código Java/Kotlin del proyecto — métodos, clases, idiomas Java modernos y convenciones específicas del stack (Axelor, Guice, JPA). Referenciado por developer-code-reviewer para guiar auditorías y correcciones.
 ---
 
 # k-code-quality
 
-Este skill documenta las reglas de calidad que aplican al código Java/Kotlin implementado. No es un skill activo — es una referencia que cargan otros skills como `code-reviewer`.
+Este skill documenta las reglas de calidad que aplican al código Java/Kotlin implementado. No es un skill activo — es una referencia que cargan otros skills como `developer-code-reviewer`.
 
 ## Ficheros
 
@@ -18,10 +18,10 @@ Este skill documenta las reglas de calidad que aplican al código Java/Kotlin im
 
 ## Cómo usarlo
 
-Este skill se pasa como argumento de conocimiento a `code-reviewer`:
+Este skill se pasa como argumento de conocimiento a `developer-code-reviewer`:
 
 ```
-/code-reviewer <ruta-del-código-o-diseño> k-code-quality
+/developer-code-reviewer <ruta-del-código-o-diseño> k-code-quality
 ```
 
-`code-reviewer` carga este skill y aplica las reglas de los cuatro ficheros como criterio de revisión y corrección.
+`developer-code-reviewer` carga este skill y aplica las reglas de los cuatro ficheros como criterio de revisión y corrección.
