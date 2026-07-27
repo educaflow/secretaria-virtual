@@ -2,6 +2,8 @@
 
 La secretaría virtual es un proyecto de gestión de expedientes administrativos con tramitación electrónica, firmado digital y gestión documental. Está construido sobre el framework Axelor, que proporciona una base sólida de JPA/ORM, vistas XML, seguridad y DI.
 
+El framework Axelor se llama **AOP (Axelor Open Platform)** y su código fuente está disponible en la carpeta hermana `../axelor-open-platform` (fuera de este repositorio). Consúltalo cuando necesites entender el comportamiento interno del framework (backend Java en `axelor-core`/`axelor-web`, frontend en `axelor-front`).
+
 ## Documentación bajo demanda (progressive disclosure)
 
 Este proyecto usa un **progressive disclosure pattern to respect LLM instruction capacity limits**: el `CLAUDE.md` mantiene solo lo imprescindible y el resto de la documentación general vive en [`agent_docs/`](agent_docs/README.md), que se **carga solo cuando se necesita** para la tarea concreta — no todo de golpe. Consulta el índice [`agent_docs/README.md`](agent_docs/README.md) y carga únicamente el documento que aplique. Por ejemplo, el stack tecnológico (Java, Kotlin, Axelor, PostgreSQL, Guice, iText, JPA) está en [`agent_docs/tech-stack.md`](agent_docs/tech-stack.md).
