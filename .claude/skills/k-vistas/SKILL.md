@@ -10,7 +10,7 @@ description: Referencia completa de vistas Axelor — namespace, estructura de f
 | Fichero | Contenido |
 |---------|-----------|
 | `grids.md` | Cómo definir grids: atributos, columnas, botones, convención de nombres `Main@…-grid` y `Ref@…-grid` |
-| `forms.md` | Cómo definir formularios: layout de paneles, campos, widgets, `panel-related`, `panel-tabs` y convención `Main@…-form` y `Ref@…-form`. **Incluye el procedimiento OBLIGATORIO de maquetación «ASCII Layout»** (dibujar el ASCII Layout y pasar su checklist antes de escribir `colSpan`/`colOffset`) |
+| `forms.md` | Cómo definir formularios: layout de paneles, campos, widgets, `panel-related`, `panel-tabs` y convención `Main@…-form` y `Ref@…-form`. **Incluye el procedimiento OBLIGATORIO de maquetación «ASCII Layout»** (dibujar el ASCII Layout —uno por estado si hay `showIf`— y pasar su checklist antes de escribir `colSpan`/`colOffset`) **y su dirección de auditoría** (reconstruir el ASCII Layout de un `<form>` existente desde sus `colSpan`/`colOffset` para diagnosticarlo contra el mismo checklist) |
 | `actions.md` | Cómo definir acciones: `action-group`, `action-method`, `action-record`, `action-attrs`, `action-validate`, `action-condition` y `action-script` |
 | `menus.md` | Cómo definir menús: `menuitem`, atributos, orden y convención de nombres |
 | `tree.md` | Cómo definir vistas de árbol: `<tree>`, `<node>`, `<column>`, `<button>` y patrones de uso |
@@ -92,7 +92,7 @@ Para cada tabla del modelo de dominio siempre hay (salvo indicación contraria) 
 
 Ver `actions.md` para el `<action-view>`, `grids.md` para el `Main@…-grid` y `forms.md` para el `Main@…-form` y las pantallas modales.
 
-**CRITICAL — al crear o editar cualquier `<form>` MUST seguir el «Procedimiento de maquetación (ASCII Layout)» de `forms.md`:** dibujar el ASCII Layout de cada panel y pasar su checklist (filas que suman 12, agrupación semántica, `colSpan` proporcional, bordes alineados, botones bien colocados) **antes** de escribir los `colSpan`/`colOffset` del XML. **MUST NOT** poner `colSpan` a ojo saltándote el ASCII Layout.
+**CRITICAL — al crear o editar cualquier `<form>` MUST seguir el «Procedimiento de maquetación (ASCII Layout)» de `forms.md`:** dibujar el ASCII Layout de cada panel —**uno por estado** si hay `showIf`, con los grupos condicionales en paneles anidados— y pasar su checklist (filas que suman 12, agrupación semántica, `colSpan` proporcional, bordes alineados, botones bien colocados) **antes** de escribir los `colSpan`/`colOffset` del XML. **MUST NOT** poner `colSpan` a ojo saltándote el ASCII Layout.
 
 **Nota sobre grids:** No poner nunca el atributo `archived` en los grid. Borrarlo si existe excepto si se dice explícitamente que tiene que estar.
 
@@ -131,7 +131,7 @@ Diferencias respecto al `Main@…-grid`:
     </panel>
     <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
         <button name="btnCancel" title="Salir" onClick="subsysSistemaEducativo.Ref@Ciclo-btnCancel-action"
-                colSpan="2" colOffset="8" outline="true"/>
+                colSpan="2" colOffset="10" outline="true"/>
     </panel>
 </form>
 
@@ -148,7 +148,7 @@ Un `Ref@…-form` es un bloque de **solo lectura**, pero su bloque lleva igualme
 
 - Sin `canBackOnSave` — no es un form de edición.
 - Todos los campos tienen `readonly="true"`.
-- **MUST** llevar un `buttons-panel` con un único botón **Salir** (`btnCancel`, `outline="true"`, `colSpan="2" colOffset="8"`) que dispare un `action-group` con `<action name="close"/>`.
+- **MUST** llevar un `buttons-panel` con un único botón **Salir** (`btnCancel`, `outline="true"`, `colSpan="2" colOffset="10"`, pegado al borde derecho: `colOffset + colSpan = 12`) que dispare un `action-group` con `<action name="close"/>`.
 
 ### Uso en campos relacionales
 
@@ -370,7 +370,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
             <button name="btnCancel" title="Salir" onClick="subsysSistemaEducativo.Ref@Ciclo-btnCancel-action"
-                    colSpan="2" colOffset="8" outline="true"/>
+                    colSpan="2" colOffset="10" outline="true"/>
         </panel>
     </form>
 

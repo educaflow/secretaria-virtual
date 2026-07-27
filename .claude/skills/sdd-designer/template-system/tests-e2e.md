@@ -4,7 +4,7 @@ Como parte del diseño, **el diseñador** escribe `design_<n>/test-e2e-desc.md` 
 
 **Cuándo se incluye:** solo si `specification.md` contiene al menos un escenario `ESC-NNN`. Si el spec no tiene escenarios, **no se crea** `test-e2e-desc.md` (y `/sdd-debug-with-test-e2e-desc` no tendrá tests que ejecutar).
 
-**Quién más lo usa** (`README.md` §2): el **verificador** comprueba que `test-e2e-desc.md` existe cuando el spec tiene escenarios y que cubre cada `ESC-NNN` (`validacion.md` §2.h); el **corrector** solo consulta este fichero si un fallo reportado afecta a `test-e2e-desc.md`.
+**Quién más lo usa** (`README.md` §2): el **verificador** comprueba que `test-e2e-desc.md` existe cuando el spec tiene escenarios y que cubre cada `ESC-NNN` (`validacion.md` §2.i); el **corrector** solo consulta este fichero si un fallo reportado afecta a `test-e2e-desc.md`.
 
 `test-e2e-desc.md` se materializa a partir de los escenarios `ESC-NNN` embebidos bajo cada historia de usuario `HU-NNN` de `specification.md`, usando el propio diseño (las V/R/U y su `Origen spec`) y los `screen-*.md` / `entity-*.md` del spec como referencia de nombres reales (pantallas, botones, campos, mensajes). Cada `ESC-NNN` se convierte en uno o más tests `T-NNN` Given/When/Then en lenguaje de negocio. **MUST**: cada `ESC-NNN` tiene al menos un test asociado. **MUST NOT** incluir comandos `playwright-cli` ni selectores CSS — la traducción la hace `/sdd-debug-with-test-e2e-desc` al ejecutarlos.
 

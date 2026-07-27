@@ -34,7 +34,7 @@ You **MUST** consider the user input before proceeding (if not empty). Los argum
 
 - No se indica ningún skill de conocimiento → **ERROR** y detente indicando que falta el skill a usar.
 - No se indica la ubicación del código → **ERROR** y detente indicando que falta el código a revisar.
-- El revisor reporta problemas `UNCLEAR` → **STOP** y pregunta al usuario exactamente qué hay que aclarar (en modo subagente: devuélvelos como resultado, §2.4).
+- El revisor reporta problemas `UNCLEAR` → **STOP** y pregunta al usuario exactamente qué hay que aclarar (en modo subagente: devuélvelos como resultado, §2.5).
 - El corrector reporta `PUSHBACK` → **STOP** y reporta al usuario qué correcciones se rechazaron y por qué, para que decida.
 - `**LIMIT**: 30` iteraciones sin `OK-No hay problemas` → **STOP** y reporta que no has podido seguir corrigiendo.
 
@@ -60,20 +60,27 @@ Skills de conocimiento + ubicación del código + descripción/requisitos opcion
 
 **REQUIRED**: si la revisión toca entidades, servicios, controladores, vistas con `<form>` que escribe en BD o cualquier endpoint nuevo, **MUST** añadir `k-secure-coding` a la lista de skills aunque la invocación no lo liste. Sus defensas (mass-assignment, `AllowProperties`, asignación incondicional de campos `servidor`, multi-centro/IDOR, JPQL, log injection, adjuntos) son **BLOCKING** si se violan. Solo se omite si la revisión es estrictamente sobre código sin frontera de confianza (utilidad pura sin acceso a entidades, refactor de tests, etc.).
 
-### 2.2 El orquestador no revisa ni corrige
+### 2.2 `k-vistas` se añade solo
+
+**REQUIRED**: si la ubicación a revisar contiene XML de vistas (`**/views/*.xml`), **MUST** añadir `k-vistas` a la lista de skills aunque la invocación no lo liste. Además del resto de convenciones de `k-vistas`, el revisor **MUST** aplicar a cada `<form>` la «Dirección de auditoría» ASCII Layout de `k-vistas/forms.md`: reconstruir el ASCII Layout de cada panel desde los `colSpan`/`colOffset` reales y pasarle el checklist de maquetación.
+
+- Cuando el corrector modifique un XML de vistas, **MUST** validar el fichero corregido contra `object-views.xsd` (`xmllint`, XSD en `../axelor-open-platform/axelor-core/src/main/resources/`) antes de darlo por bueno; un XML que no valida es un fallo **BLOCKING**.
+- Los tests de vistas de Gradle **MUST NOT** ejecutarse dentro del bucle.
+
+### 2.3 El orquestador no revisa ni corrige
 
 Revisar y corregir lo hacen subagentes con contexto propio. Tu trabajo es lanzarlos en secuencia, interpretar el token de respuesta y decidir si iterar o parar. **MUST NOT** editar ficheros tú mismo.
 
-### 2.3 Verificar antes de reportar y antes de corregir
+### 2.4 Verificar antes de reportar y antes de corregir
 
 - El revisor **MUST** verificar que cada problema existe realmente en el código (no problemas hipotéticos ni ya resueltos) y, antes de reportar que "falta añadir algo", comprobar con grep que de verdad no existe (YAGNI: lo que no se usa en ningún sitio no se reporta como mejora).
 - El corrector **MUST** re-verificar cada problema antes de corregirlo; si la corrección sugerida es técnicamente incorrecta para este código concreto, **MUST NOT** aplicarla → la reporta como `PUSHBACK` con justificación técnica.
 
-### 2.4 Modo subagente
+### 2.5 Modo subagente
 
 Si este skill se ejecuta **dentro de un subagente** (otro skill lo invoca vía `Agent`), no hay usuario al que preguntar: ante `UNCLEAR` o `PUSHBACK`, **devuelve la lista como resultado final** en vez de `AskUserQuestion`/esperar — el orquestador padre decide.
 
-### 2.5 Contexto mínimo de vuelta
+### 2.6 Contexto mínimo de vuelta
 
 El subagente revisor coordina la corrección internamente y devuelve al orquestador solo el token de resultado y los contadores — **MUST NOT** devolver el detalle de cada corrección aplicada (no aumenta el contexto principal).
 
@@ -114,7 +121,7 @@ Lanza **un** subagente (`Agent`, contexto propio, secuencial — **MUST NOT** pa
 
 1. Carga los skills indicados y revisa el código comparándolo con ese conocimiento, buscando errores, inconsistencias o mejoras.
 2. **MUST NOT** modificar ningún fichero durante la revisión.
-3. Verifica cada hallazgo antes de reportarlo (principio 2.3).
+3. Verifica cada hallazgo antes de reportarlo (principio 2.4).
 4. Clasifica cada problema: `BLOCKING` (rompe funcionalidad o seguridad), `IMPORTANT` (incumple convenciones o requisitos), `MINOR` (mejora menor). Si un problema es ambiguo o no permite una corrección concreta, márcalo `UNCLEAR` en lugar de una severidad y **MUST NOT** pasarlo al corrector.
 5. Redacta la lista de problemas (solo los de severidad clara) con **exactamente** este formato:
 
@@ -135,7 +142,7 @@ Lanza **un** subagente (`Agent`, contexto propio, secuencial — **MUST NOT** pa
 6. Si hay problemas con severidad clara, **lanza él mismo el subagente corrector** (5.2) y espera a que termine.
 7. Devuelve al orquestador **solo** una de estas respuestas:
    - `OK-No hay problemas` (exactamente ese token) — si no encontró nada.
-   - `CORREGIDO — BLOCKING: <n>, IMPORTANT: <n>, MINOR: <n>` + la lista de `UNCLEAR` (si los hay) + la lista de `PUSHBACK` que reportó el corrector (si los hay). **MUST NOT** pegar el detalle de las correcciones aplicadas (principio 2.5).
+   - `CORREGIDO — BLOCKING: <n>, IMPORTANT: <n>, MINOR: <n>` + la lista de `UNCLEAR` (si los hay) + la lista de `PUSHBACK` que reportó el corrector (si los hay). **MUST NOT** pegar el detalle de las correcciones aplicadas (principio 2.6).
 
 ### 5.2 Subagente corrector (lo lanza el revisor)
 
@@ -143,7 +150,7 @@ El prompt del corrector **MUST** incluir: la lista de skills a cargar, la ubicac
 
 1. Carga los skills indicados.
 2. Corrige los problemas en orden de severidad: primero `BLOCKING`, luego `IMPORTANT`, luego `MINOR`.
-3. Para cada problema, re-verifica que existe tal como fue descrito antes de tocarlo. Si la corrección sugerida es técnicamente incorrecta para este código → **MUST NOT** aplicarla; repórtala como `PUSHBACK` con justificación técnica (principio 2.3).
+3. Para cada problema, re-verifica que existe tal como fue descrito antes de tocarlo. Si la corrección sugerida es técnicamente incorrecta para este código → **MUST NOT** aplicarla; repórtala como `PUSHBACK` con justificación técnica (principio 2.4).
 4. Aplica y verifica cada corrección **individualmente** antes de pasar a la siguiente.
 5. Devuelve al revisor solo los contadores de correcciones aplicadas y la lista de `PUSHBACK`.
 
@@ -171,9 +178,9 @@ Presenta al usuario:
 ## Quick Guidelines
 
 - Eres un **orquestador**: el revisor detecta (sin modificar nada) y el corrector arregla; tú interpretas tokens y decides iterar o parar. **MUST NOT** editar ficheros tú mismo.
-- Sin skills o sin ubicación → **ERROR**. `k-secure-coding` se añade solo si la revisión toca la frontera de confianza (§2.1).
+- Sin skills o sin ubicación → **ERROR**. `k-secure-coding` se añade solo si la revisión toca la frontera de confianza (§2.1); `k-vistas` se añade solo si la ubicación contiene XML de vistas (`**/views/*.xml`) — con auditoría ASCII Layout de cada `<form>` y validación XSD (`object-views.xsd`) de todo XML corregido (§2.2).
 - Tokens literales: `OK-No hay problemas` termina el bucle; `CORREGIDO — BLOCKING: n, IMPORTANT: n, MINOR: n` itera; bloques `BEGIN:----`/`SEVERIDAD:`/`END:----` para los problemas.
 - Verificar antes de reportar (nada hipotético, YAGNI con grep) y antes de corregir (`PUSHBACK` si la corrección es técnicamente incorrecta).
-- `UNCLEAR` y `PUSHBACK` paran el bucle y van al usuario (o se devuelven como resultado en modo subagente, §2.4).
+- `UNCLEAR` y `PUSHBACK` paran el bucle y van al usuario (o se devuelven como resultado en modo subagente, §2.5).
 - Subagentes secuenciales, sin `run_in_background`; contexto mínimo de vuelta (tokens y contadores, no el detalle de las correcciones).
 - **LIMIT**: 30 iteraciones del bucle; corrección en orden BLOCKING → IMPORTANT → MINOR, verificada individualmente.

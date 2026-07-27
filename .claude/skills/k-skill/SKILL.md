@@ -1,6 +1,6 @@
 ---
 name: k-skill
-description: Reglas y plantilla para escribir skills del proyecto EducaFlow en `.claude/skills/`. Define los dos tipos de skill (knowledge `k-*` y action `sdd-*`/`code-*`), el frontmatter obligatorio, la estructura mínima de un action-skill al estilo `github/spec-kit` (User Input, Outline, Phases, Quick Guidelines), las convenciones de redacción (cuerpo en español, palabras-clave imperativas en inglés MUST/REQUIRED/CRITICAL/MUST NOT/STOP/ERROR/LIMIT), el uso de ejemplos ✅/❌ inline, límites numéricos duros, plantillas embebidas literales y checklists con bucles de auto-validación. Usa este skill como referencia siempre que diseñes, revises o refactorices un SKILL.md.
+description: Reglas y plantilla para escribir skills del proyecto EducaFlow en `.claude/skills/`. Define los dos tipos de skill (knowledge `k-*` y action `sdd-*`/`code-*`/`skill-*`), el frontmatter obligatorio, la estructura mínima de un action-skill al estilo `github/spec-kit` (User Input, Outline, Phases, Quick Guidelines), las convenciones de redacción (cuerpo en español, palabras-clave imperativas en inglés MUST/REQUIRED/CRITICAL/MUST NOT/STOP/ERROR/LIMIT), el uso de ejemplos ✅/❌ inline, límites numéricos duros, plantillas embebidas literales y checklists con bucles de auto-validación. Usa este skill como referencia siempre que diseñes, revises o refactorices un SKILL.md.
 ---
 
 # k-skill
@@ -27,7 +27,7 @@ Si los argumentos están vacíos, asume que el usuario pide la **referencia comp
 
 ## Outline
 
-1. **Decidir el tipo de skill** (§3) — knowledge (`k-*`) o action (`sdd-*`/`code-*`/imperativo).
+1. **Decidir el tipo de skill** (§3) — knowledge (`k-*`) o action (`sdd-*`/`code-*`/`skill-*`/imperativo).
 2. **Escribir el frontmatter** (§4) — `name`, `description`, `allowed-tools` (opcional).
 3. **Escribir el cuerpo** (§5) — H1 + intro + estructura según tipo.
 4. **Aplicar las convenciones de estilo** (§6) — idioma, marcadores, ejemplos, límites, plantillas, checklists.
@@ -79,7 +79,7 @@ El proyecto distingue **dos tipos**. Cada uno tiene una estructura mínima disti
 
 ### 3.1 Knowledge skills (`k-*`)
 
-Encapsulan **conocimiento de dominio reutilizable**: convenciones, patrones, vocabulario, decisiones arquitectónicas. Otros skills (sobre todo los `sdd-*` y `code-*`) los cargan como referencia.
+Encapsulan **conocimiento de dominio reutilizable**: convenciones, patrones, vocabulario, decisiones arquitectónicas. Otros skills (sobre todo los `sdd-*`, `code-*` y `skill-*`) los cargan como referencia.
 
 **Ejemplos**: `k-sistemas`, `k-vistas`, `k-validaciones`, `k-i18n`, `k-scheduler`, `k-code-quality`, `k-playwright`.
 
@@ -113,11 +113,15 @@ description: <una frase que diga qué cubre y cuándo aplicar este skill>
 <Qué NUNCA hacer y por qué.>
 ```
 
-### 3.2 Action skills (`sdd-*`, `code-*`, imperativos)
+### 3.2 Action skills (`sdd-*`, `code-*`, `skill-*`, imperativos)
 
-Ejecutan un **proceso multi-fase**: leen artefactos, hacen preguntas, generan ficheros, invocan subagentes, validan resultados.
+Ejecutan un **proceso multi-fase**: leen artefactos, hacen preguntas, generan ficheros, invocan subagentes, validan resultados. Tres familias de prefijo según su propósito:
 
-**Ejemplos**: `sdd-specification`, `sdd-analyst-system`, `sdd-designer`, `sdd-implementer`, `sdd-close`, `code-implementer`, `code-reviewer`.
+- `sdd-*` → pasos del pipeline SDD (ver `agent_docs/sdd-workflow.md`).
+- `code-*` → producen o revisan código real en el árbol del proyecto.
+- `skill-*` → **meta**: evalúan o mejoran **otros** skills (el conocimiento de cómo se escribe un skill vive en este propio `k-skill`).
+
+**Ejemplos**: `sdd-specification`, `sdd-designer`, `sdd-implementer`, `sdd-close`, `code-implementer`, `code-reviewer`, `skill-eval`, `skill-reviewer`.
 
 **Estructura mínima OBLIGATORIA** (inspirada en `github/spec-kit`):
 
@@ -382,7 +386,7 @@ El `## Outline` **MUST** terminar con una subsección **STOP conditions** que en
 
 ### 6.8 Subagentes: paralelos vs secuenciales
 
-Si el skill lanza subagentes en paralelo (patrón usado en `sdd-analyst-system`, `sdd-designer`, `sdd-eval`, …):
+Si el skill lanza subagentes en paralelo (patrón usado en `sdd-designer`, `skill-eval`, …):
 
 - **MUST** indicar el número exacto (`**REQUIRED**: exactamente N subagentes`).
 - **MUST** decir explícitamente que se lancen en **una única respuesta** con N invocaciones a `Agent`.
@@ -436,7 +440,7 @@ Cuando un action-skill lanza subagentes y necesita interpretar su resultado, el 
 - Cuerpo en español, palabras-clave en inglés (`MUST`, `MUST NOT`, `REQUIRED`, `CRITICAL`, `STOP`, `ERROR`, `LIMIT`).
 - **Formato receta sobre prosa** (§6.1): todo lo enumerable va como lista numerada, guiones o fases —no como párrafo—; la estructura concreta es libre.
 - Frontmatter mínimo: `name` + `description` larga. `handoffs` si hay siguiente paso en el pipeline.
-- Tipo knowledge (`k-*`): documenta convenciones y patrones. Tipo action (`sdd-*`, `code-*`): ejecuta proceso con fases numeradas.
+- Tipo knowledge (`k-*`): documenta convenciones y patrones. Tipo action (`sdd-*`, `code-*`, `skill-*`): ejecuta proceso con fases numeradas.
 - Estructura mínima de action-skill: `User Input` → `Outline` (con `STOP conditions`) → fases numeradas → `Quick Guidelines`.
 - Plantillas literales embebidas para todo fichero de salida. **MUST NOT** describirlas en prosa.
 - Ejemplos ✅/❌ inline con razón corta entre paréntesis para cada ❌.

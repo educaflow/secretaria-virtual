@@ -1,6 +1,6 @@
 # Reglas de verificación del diseño de un sistema
 
-Define **qué cuenta como fallo en un diseño**: la validación de los artefactos (XML contra su XSD) y las comprobaciones de cobertura, coherencia y seguridad. Lo aplica el **subagente verificador** sobre la carpeta `design/`; el **corrector** lo usa para saber qué arreglar.
+Define **qué cuenta como fallo en un diseño**: la validación de los artefactos (XML contra su XSD) y las comprobaciones de cobertura, coherencia y seguridad; las comprobaciones específicas de las vistas (convenciones y **auditoría de layout**) están delegadas en `vistas.md` §3 (invocado desde §2.f). Lo aplica el **subagente verificador** sobre la carpeta `design/`; el **corrector** lo usa para saber qué arreglar.
 
 **Contrato de salida del verificador:** si encuentra **cualquier** fallo, lo reporta de la forma más clara posible (qué falla, en qué fichero, por qué). Si **no** encuentra nada que corregir, responde **exactamente** `OK-CORRECTO`.
 
@@ -38,35 +38,10 @@ Cada punto que no se cumpla es un **fallo** a reportar (con su ubicación). Las 
   grep -nE "if\s*\(.*==\s*null\s*\).*set[A-Z]" .sdd/drafts/{iniciativa}/design/design.md
   ```
   Cualquier coincidencia sobre un campo `servidor` es un fallo (la corrección es eliminar el `if`).
-- **e) Reglas arquitectónicas** (`design-contract.md` §6). Un `<action-view>` por fichero; FQN coherentes (`com.educaflow.subsystem.X.…` / `com.educaflow.system.X.…`); ningún cuerpo Java de implementación en los comentarios de `design.md`; cada V/R/U en su capa correcta (`design-contract.md` §5). **Botones de formulario:** cada `<form>` de `views/*.xml` tiene `canAttach`/`canBack`/`canDelete`/`canNew`/`canSave`/`canMore` a `false` y un `<panel name="buttons-panel">` con `btnDelete`/`btnCancel`/`btnSave` (patrón `k-vistas/forms.md`) — un `<form>` con algún `can(Back|Delete|Save)="true"` o con `onSave` en vez de validación en el `action-group` de `btnSave` es un **fallo bloqueante**, aunque funcione (usa la toolbar nativa de Axelor en vez del patrón del proyecto). Detector rápido:
-  ```bash
-  grep -nE '<form .*can(Back|Delete|Save)="true"' .sdd/drafts/{iniciativa}/design/views/*.xml
-  ```
-  Cualquier coincidencia es un fallo a reportar. **Validación remota por entidad:** la validación remota de save/delete son las acciones globales `remote-validationSave-action`/`remote-validationDelete-action` (`design-contract.md` §6); un `<action-method>` de validación por entidad para save/delete es un fallo. Detector:
-  ```bash
-  grep -nE 'Remote-validate(Save|Delete)-action' .sdd/drafts/{iniciativa}/design/views/*.xml
-  ```
-  Cualquier coincidencia es un fallo a reportar (la corrección es sustituirla por la acción global). **Coherencia acción ↔ método** (`k-vistas/actions.md` §"Convención de nombres", patrón `Remote-{nombreFuncionJava}`): en cada `<action-method>` el segmento `Remote-{X}` del atributo `name` **MUST** coincidir con el `method="X"` del `<call>`; para la validación de una operación custom eso implica que el método se llame `validate<Operacion>` (nunca `validarAntesDe<Operacion>` ni variantes). Detector:
-  ```bash
-  for f in .sdd/drafts/{iniciativa}/design/views/*.xml; do
-    sed -n 's/.*-Remote-\([A-Za-z0-9_]*\)-action".*/A \1/p; s/.*<call [^>]*method="\([A-Za-z0-9_]*\).*/M \1/p' "$f" \
-    | awk -v f="$f" '$1=="A"{e=$2} $1=="M"{if(e!="" && $2!=e) print f": la accion Remote-"e"-action llama al metodo "$2; e=""}'
-  done
-  ```
-  Cualquier línea impresa es un fallo a reportar (la corrección es renombrar el método del controlador —en `design.md` y en el `<call>` si también estuviera mal— para que coincida con el `{nombreFuncionJava}` embebido en el nombre de la acción). **Cierre tras guardar (`save` → `back`):** en el form **principal**, el `<action-group>` de `btnSave` **MUST** terminar con `<action name="back"/>` (o `force-back`) justo después de `<action name="save"/>` — si no, al guardar sin cambios la ventana no se cierra (`k-vistas/forms.md`). Detector (marca los grupos cuyo `save` no va seguido de `back`/`force-back`):
-  ```bash
-  for f in .sdd/drafts/{iniciativa}/design/views/*.xml; do
-    awk -v f="$f" '
-      /<action-group name="[^"]*-btnSave-action"/{inbtn=1; save=0; next}
-      inbtn && /<action name="save"\/>/{save=1; next}
-      inbtn && /name="(back|force-back)"/{save=0}
-      inbtn && /<\/action-group>/{ if(save==1) print f": btnSave termina en save sin back/force-back"; inbtn=0; save=0 }
-    ' "$f"
-  done
-  ```
-  Cualquier línea impresa es un fallo a reportar (la corrección es añadir `<action name="back"/>` tras `save`). **Forms modales de detalle** (`design-contract.md` §5-§6): en cada `<action-group>` que termine en `save-modal`/`delete-modal`, (a) la presencia de `remote-validation*` es un fallo (el maestro puede no existir en BD), y (b) la **ausencia** de un `Local-validate*` que cubra todas las V del detalle evaluables en cliente es un fallo (es la única validación antes de cerrar el modal).
-- **f) Reglas R complejas** (`reglas-complejas.md`). Cada `R-` que cumple los criterios tiene su `rules/R-<Entidad>-NNN.md` (y viceversa); ningún `rules/R-*.md` con cuerpos Java.
-- **g) Prohibiciones en `design.md`** (`design-contract.md` §1.1). Sin cuerpos de método Java, sin JPQL real, sin acoplamiento a `expedientes`/`tiposexpedientes`/`tramites`.
-- **h) Tests E2E** (`design/test-e2e-desc.md`, ver `tests-e2e.md`). Si el spec tiene escenarios, `test-e2e-desc.md` **MUST** existir y cada escenario del spec aparece como `Origen ESC` en al menos un test; cada `Verifica` y `Pantalla principal` referencia algo que existe. Si el spec no tiene escenarios, no se exige `test-e2e-desc.md`.
-- **i) Coherencia diseño ↔ spec.** Los campos de cada `domains/<Entidad>.xml` coinciden con su `entity-*.md` (mismos nombres, mismos enums); las columnas/paneles de `views/*.xml` coinciden con su `screen-*.md`; los `<menuitem>` coinciden con los menús del spec.
-- **j) Coherencia con las guías de diseño.** Si existe `design-guidelines.md`, el diseño **MUST** respetar lo que pide (encapsulaciones, nombres de clase/paquete/método prescritos, mecanismos obligatorios, patrones a evitar). Reportar cada guía incumplida con la ubicación de la fuga.
+- **e) Reglas arquitectónicas** (`design-contract.md` §6). FQN coherentes (`com.educaflow.subsystem.X.…` / `com.educaflow.system.X.…`); ningún cuerpo Java de implementación en los comentarios de `design.md`; cada V/R/U en su capa correcta (`design-contract.md` §5); ningún módulo Guice para `ModelService`; ningún listener JPA para lógica de negocio; parámetros del controlador llamados `actionRequest`/`actionResponse`.
+- **f) Vistas** (`vistas.md` §3). Aplica **todas** las comprobaciones y detectores de `vistas.md` §3 sobre `views/*.xml`, `menus.xml` y los resúmenes estructurales del `design.md`: estructura de ficheros y PI `sv-*`, patrón `buttons-panel`, validación remota global, coherencia acción ↔ método, cierre `save` → `back`, forms modales de detalle y la **auditoría de layout (ASCII Layout)** — reconstruir el ASCII Layout de cada `<form>` desde los `colSpan`/`colOffset` reales, pasarle el «Checklist de maquetación» de `k-vistas/forms.md` y comprobar que coincide con los ASCII Layout declarados en el `design.md`. Cada incumplimiento es un fallo a reportar (los de `buttons-panel` son **bloqueantes**).
+- **g) Reglas R complejas** (`reglas-complejas.md`). Cada `R-` que cumple los criterios tiene su `rules/R-<Entidad>-NNN.md` (y viceversa); ningún `rules/R-*.md` con cuerpos Java.
+- **h) Prohibiciones en `design.md`** (`design-contract.md` §1.1). Sin cuerpos de método Java, sin JPQL real, sin acoplamiento a `expedientes`/`tiposexpedientes`/`tramites`.
+- **i) Tests E2E** (`design/test-e2e-desc.md`, ver `tests-e2e.md`). Si el spec tiene escenarios, `test-e2e-desc.md` **MUST** existir y cada escenario del spec aparece como `Origen ESC` en al menos un test; cada `Verifica` y `Pantalla principal` referencia algo que existe. Si el spec no tiene escenarios, no se exige `test-e2e-desc.md`.
+- **j) Coherencia diseño ↔ spec.** Los campos de cada `domains/<Entidad>.xml` coinciden con su `entity-*.md` (mismos nombres, mismos enums); las columnas/paneles de `views/*.xml` coinciden con su `screen-*.md`; los `<menuitem>` coinciden con los menús del spec.
+- **k) Coherencia con las guías de diseño.** Si existe `design-guidelines.md`, el diseño **MUST** respetar lo que pide (encapsulaciones, nombres de clase/paquete/método prescritos, mecanismos obligatorios, patrones a evitar). Reportar cada guía incumplida con la ubicación de la fuga.

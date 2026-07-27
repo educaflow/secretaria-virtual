@@ -101,9 +101,58 @@ Los action-groups de los botones del form modal usan acciones específicas del f
 
 ## Botones principales y secundarios
 - Los botones principales (guardar, cancelar, etc) están a la derecha del todo
+- **MUST** — un botón principal queda pegado al borde derecho: su `colOffset + colSpan` **suma exactamente 12**. Cuando el panel tiene un único botón principal (p.ej. **Salir** en un `Ref@…-form` de solo lectura) con `colSpan="2"`, el `colOffset` **MUST** ser `10` (10+2=12), no 8.
 - Las acciones secundarias (borrar, imprimir, etc.) están a la izquierda del todo
 - Realmente no es necesario que estén exactamente estos botones sino que podría haber otros botones con otras acciones. Pero hay que distingir claramente las acciones principales de las secundarias y para eso se siguen estas pautas de colocación.
 - El panel de botones siempre debe incluir Borrar, Cancelar y Guardar salvo que se indique lo contrario o haya algo en el negocio que te haga pensar que no es necesario.
+
+## Botones condicionales por estado (showIf en botones)
+
+Un `<button>` oculto con `showIf` **reserva sus columnas igual que un campo** (§huecos en el grid). Dos gemelos con `colOffset` en un panel plano nunca renderizan bien: el oculto reserva su sitio y el visible salta de fila.
+
+Reglas:
+
+- **MUST**: si el `buttons-panel` tiene botones con `showIf` (salvo la excepción de abajo), agrupa los botones de cada estado en un **panel anidado por estado** dentro del `buttons-panel`, con el `showIf` **en el panel** (un panel oculto sí colapsa del todo) y los botones **sin** `showIf`.
+- Los `showIf` de los paneles de estado **MUST** ser expresiones booleanas **mutuamente excluyentes** entre sí (y entre todas cubrir todos los estados del form): si dos pueden ser verdaderas a la vez, se renderizan dos filas de botones simultáneas.
+  - ✅ CORRECTO: `(id == null) && (cid == null)` / `(id != null) || (cid != null)` (una es la negación exacta de la otra)
+  - ✅ CORRECTO: `((id != null) || (cid != null)) && (estado == 'FAIL')` / `((id != null) || (cid != null)) && (estado != 'FAIL')` (partición del mismo estado por el mismo campo)
+  - ❌ INCORRECTO: `id == null` / `estado == 'FAIL'` (un registro nuevo cuyo estado sea FAIL cumple ambas → dos filas de botones a la vez)
+- Cada panel de estado cumple por sí solo las reglas de colocación: secundarios a la izquierda, principales pegados al borde derecho (`colOffset + colSpan = 12`), fila que suma 12.
+- **Excepción** (no hace falta panel): un botón condicional situado al **principio del panel y sin `colOffset`** (p.ej. el `btnDelete` canónico o un `btnReenviar` en primera posición): al ocultarse su hueco queda pegado al borde izquierdo y no desplaza a los demás.
+- `btnDelete*` conserva **siempre** su `showIf="(id!=null) || (cid!=null)"` canónico aunque viva dentro de un panel de estado (lo exige `VAR-5.1` de `view-rules.md`); dentro de su panel es siempre verdadero y no crea hueco.
+- Si el mismo botón lógico aparece en varios paneles de estado, cada `name` **MUST** ser único y empezar por el `{btnXxx}` del `onClick` (regla de gemelos): `btnSaveAlta`/`btnSaveEdicion`, `btnDelete`/`btnDeleteFail`.
+
+- ✅ CORRECTO (form modal de detalle con dos estados):
+  ```xml
+  <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+      <panel name="buttonsAlta" title="" colSpan="12" showFrame="false"
+             showIf="(id == null) &amp;&amp; (cid == null)">
+          <button name="btnCancelAlta" title="Cancelar" onClick="…-btnCancel-action" colSpan="2" colOffset="8" outline="true"/>
+          <button name="btnSaveAlta" title="Guardar" onClick="…-btnSave-action" colSpan="2"/>
+      </panel>
+      <panel name="buttonsEdicion" title="" colSpan="12" showFrame="false"
+             showIf="(id != null) || (cid != null)">
+          <button name="btnDelete" title="Borrar" onClick="…-btnDelete-action"
+                  css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+          <button name="btnCancelSalir" title="Salir" onClick="…-btnCancel-action" colSpan="2" colOffset="6" outline="true"/>
+          <button name="btnSaveEdicion" title="Guardar" onClick="…-btnSave-action" colSpan="2"/>
+      </panel>
+  </panel>
+  ```
+  ASCII Layout por estado:
+  ```
+  Alta:    ........ccgg   ← Cancelar(2, offset8) + Guardar(2)
+  Edición: bb......ssgg   ← Borrar(2) + offset(6) + Salir(2) + Guardar(2)
+  ```
+- ❌ INCORRECTO (gemelos con offset en panel plano):
+  ```xml
+  <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+      <button name="btnCancelAlta"  title="Cancelar" colSpan="2" colOffset="6" showIf="id == null"/>
+      <button name="btnCancelSalir" title="Salir"    colSpan="2" colOffset="6" showIf="id != null"/>
+      <button name="btnSave"        title="Guardar"  colSpan="2" showIf="id == null"/>
+  </panel>
+  ```
+  (el gemelo oculto reserva offset+span y empuja a `btnSave` a una segunda fila)
 
 ## Nombre de los formularios
 El nombre de las vistas de formularios es: `{marcadorMódulo}.[Main|Ref|otra variante]@{Entidad}[.{EntidadHija}]*-form`
@@ -144,7 +193,7 @@ El **marcador de módulo** es la cabecera del prefijo (todo lo anterior al `@`):
 
 ## CRÍTICO: Campos condicionales y el problema de los huecos en el grid
 
-Los campos ocultos con `showIf` en Axelor siguen ocupando espacio en el grid CSS porque tienen asignación explícita de columnas. Esto genera **huecos visuales** cuando un campo está oculto.
+Los elementos ocultos con `showIf` en Axelor —**campos Y botones**— siguen ocupando espacio en el grid CSS porque tienen asignación explícita de columnas. Esto genera **huecos visuales** cuando un elemento está oculto y, si lo que viene después ya no cabe en la fila, **desplaza el resto a la fila siguiente**. Para los botones del `buttons-panel`, ver §Botones condicionales por estado.
 
 **Ejemplo del problema:**
 ```xml
@@ -186,7 +235,8 @@ Por **cada panel** del formulario, en este orden:
 3. **Dibuja cada fila del ASCII Layout en la rejilla de 12 columnas** (una letra por campo repetida `colSpan` veces; `.` = columna vacía por `colOffset`). Cada fila **MUST** sumar **exactamente 12**.
 4. **Alinea los bordes de columna entre filas** (§Alineación vertical), en especial con los paneles condicionales anidados.
 5. **Coloca los botones** en su `buttons-panel`: los **secundarios** (Borrar) a la izquierda, los **principales** (Cancelar, Guardar) a la derecha, con el `colOffset` que los empuje (§Botones principales y secundarios, §Representar `colOffset`).
-6. **Pasa el checklist de abajo.** Solo cuando el ASCII Layout lo cumple **todo**, tradúcelo a `<field colSpan="…" colOffset="…">`.
+6. **Si el panel tiene elementos con `showIf`** (campos o botones), dibuja **un ASCII Layout por estado** — nunca uno solo mezclando estados. Recuerda que lo oculto **reserva sus columnas**: los grupos condicionales van en paneles anidados con el `showIf` en el panel (§huecos en el grid, §Botones condicionales por estado).
+7. **Pasa el checklist de abajo.** Solo cuando el ASCII Layout lo cumple **todo**, tradúcelo a `<field colSpan="…" colOffset="…">`.
 
 **REQUIRED — muestra el ASCII Layout** (en el chat, o en el diseño si estás en el pipeline SDD) para poder revisar el layout de un vistazo **antes** de que exista el XML.
 
@@ -205,6 +255,7 @@ eeeeeeeeeeee   ← motivo(12)                            [texto libre multilinea
 - [ ] ¿Ningún campo queda **solo en una fila** con mucho hueco a la derecha sin un motivo real (§alerta)?
 - [ ] ¿Los **bordes de columna se alinean** entre filas y con los paneles condicionales anidados?
 - [ ] ¿Los botones **secundarios a la izquierda** y los **principales a la derecha**, con el `colOffset` correcto?
+- [ ] Si hay `showIf`: ¿dibujaste un ASCII Layout **por cada estado**, cada estado cumple todo lo anterior, y los elementos condicionales están en **paneles anidados por estado** (o son la excepción del borde izquierdo)?
 - [ ] ¿Dibujaste el ASCII Layout **antes** del XML y los `colSpan`/`colOffset` finales **coinciden** con él?
 
 ## Principios de diseño visual de formularios
@@ -239,7 +290,7 @@ ccccccdddddd   ← campoCorto(6) + contenido(6) [border en col 6|7 ≠ 4|5]
 
 ### Representar `colOffset` en el ASCII Layout
 
-En el ASCII Layout cada campo es **una letra repetida tantas veces como su `colSpan`** (el cambio de letra marca el borde entre campos), y el punto `.` representa una **columna vacía**. El `colOffset` son columnas vacías **antes** del campo: se dibujan como puntos delante de su letra. Tiene dos usos, y el ASCII Layout deja ver cuál está ocurriendo.
+En el ASCII Layout cada campo es **una letra repetida tantas veces como su `colSpan`** (el cambio de letra marca el borde entre campos), y el punto `.` representa una **columna vacía**. El `colOffset` son columnas vacías **antes** del campo: celdas que **fluyen como cualquier celda**, consumiéndose desde la posición actual. Se dibujan como puntos delante de su letra. Tiene tres usos, y el ASCII Layout deja ver cuál está ocurriendo.
 
 **1. Dejar hueco a la izquierda del campo (misma fila).** Si `colOffset` + `colSpan` **caben** en las columnas que quedan libres en la fila, el campo se queda en ella y el offset aparece como puntos por delante:
 ```
@@ -248,12 +299,20 @@ aa......bbcc   ← btnBorrar(2) + colOffset(6) + btnCancelar(2) + btnGuardar(2) 
 ```
 El segundo es el patrón del panel de botones: el `colOffset` empuja Cancelar+Guardar a la derecha y deja Borrar solo a la izquierda, sin ningún campo intermedio.
 
-**2. Empujar el campo a la fila siguiente.** Si `colOffset` + `colSpan` **no caben** en las columnas libres que quedan en la fila, el campo entero **baja a la fila siguiente**, y allí el offset se vuelve a aplicar desde el principio de la fila:
+**2. Saltar a la fila siguiente.** Las celdas vacías del `colOffset` se consumen desde la posición actual y, si completan la fila, el campo cae al **principio** de la fila siguiente. Con un `colOffset` igual a las columnas libres, el campo abre la fila nueva en la columna 1:
 ```
-aaaaaa......   ← centro(6); en las 6 cols libres no cabe grado(4) con su colOffset(6)
-......bbbb..   ← colOffset(6) + grado(4) → baja de fila; sobran 2 cols al final    [6+4+2 = 12]
+aaaaaa······   ← centro(6); el colOffset(6) de grado consume las 6 columnas libres y completa la fila
+bbbbcccc····   ← grado(4) arranca la fila siguiente en la columna 1; nivel(4) le sigue
 ```
-Este es el `colOffset` de la fila `grado` en la plantilla del Ciclo (arriba): un `colOffset` grande sirve a la vez para **saltar de fila** y para **alinear** el campo con la columna deseada de la fila anterior.
+Este es el `colOffset` de la fila `grado` en la plantilla del Ciclo (arriba). El offset **NO se re-aplica** en la fila nueva: **MUST NOT** usarlo esperando alinear el campo a la derecha de la fila siguiente — para dejar hueco a la izquierda de un campo, el offset se pone en la misma fila donde se quiere el hueco (uso 1).
+
+**3. Dejar un campo solo en su fila (el offset del campo SIGUIENTE completa la fila).** Para que un campo quede solo en su fila **sin inflar su `colSpan`**, el campo **siguiente** lleva un `colOffset` igual a las columnas libres que quedan en la fila: el offset consume esas columnas, la fila queda completa y el campo empieza la fila siguiente desde la izquierda.
+```
+ccc·········   ← centro(3) queda solo: las 9 columnas libres las consume el colOffset(9) del siguiente
+dddnnnnaaaaa   ← dniDestinatario(3, colOffset=9) + nombre(4) + apellidos(5) → arranca la fila nueva en la columna 1
+```
+- ✅ CORRECTO: `<field name="centro" colSpan="3"/>` seguido de `<field name="dniDestinatario" colSpan="3" colOffset="9"/>` (3 usadas + 9 de offset = fila completa; dni abre la fila siguiente)
+- ❌ INCORRECTO: `<field name="centro" colSpan="12"/>` para dejarlo solo (infla el campo a 12 columnas cuando su contenido pide 3; el hueco se logra con el offset del siguiente, no engordando el campo)
 
 ### Proporcionalidad al contenido: label + tipo de dato
 
@@ -430,6 +489,16 @@ Con el ASCII Layout delante, razonar explícitamente sobre cada decisión:
 ### Paso 3: si el análisis no convence → ajustar y redibujar
 
 No pasar al XML hasta que el ASCII Layout y el razonamiento tengan sentido. Es mucho más rápido iterar en texto que en XML.
+
+### Dirección de auditoría: reconstruir el ASCII Layout de un XML existente
+
+La misma herramienta sirve para **auditar** un `<form>` ya escrito (revisión de código, verificación de un diseño del pipeline SDD, auditoría de layout de las vistas existentes). El procedimiento es el inverso al de maquetación:
+
+1. Por cada `<panel>`, `<panel-related>` y `buttons-panel` del form, **reconstruye el ASCII Layout** a partir de los `colSpan`/`colOffset` reales del XML, con la notación de este fichero (una letra por campo repetida `colSpan` veces, `.` por columna vacía de `colOffset`, recordando que el flujo de celdas puede hacer saltar un campo a la fila siguiente — §Representar `colOffset`). Si hay elementos con `showIf`, dibuja **un ASCII Layout por estado**, con los paneles condicionales en bloques separados.
+2. **Pasa sobre el dibujo reconstruido el «Checklist de maquetación»** (§Checklist), igual que si el form fuera nuevo.
+3. Reporta cada incumplimiento **citando la regla del checklist** e incluyendo el **ASCII Layout reconstruido** como evidencia — el dibujo es lo que permite ver el problema sin renderizar la vista.
+
+**MUST NOT** auditar un layout "a ojo" leyendo los `colSpan` sueltos: sin reconstruir el dibujo no se ven los huecos, los bordes desalineados ni las filas que no suman 12.
 
 ## Referencias
 Para una referencia completa de todo lo relacionado con formularios , puedes consultar los siguientes documentos:

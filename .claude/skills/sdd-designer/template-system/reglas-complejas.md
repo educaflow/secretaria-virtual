@@ -4,7 +4,7 @@ Mientras produce el diseño, **el diseñador** detecta las reglas de negocio `R-
 
 **Cuándo se incluye:** solo si **alguna** regla `R-<Entidad>-NNN` cumple al menos uno de los criterios de §1. Si ninguna los cumple, **no se crea** la carpeta `design_<n>/rules/` ni referencias a ella (esperable en subsistemas CRUD sencillos).
 
-**Quién más lo usa** (`README.md` §2): el **verificador** comprueba que cada `R-` compleja tiene su `rules/R-*.md` con este formato y sin cuerpos Java (`validacion.md` §2.f); el **corrector** solo consulta este fichero si un fallo reportado afecta a un `rules/R-*.md`.
+**Quién más lo usa** (`README.md` §2): el **verificador** comprueba que cada `R-` compleja tiene su `rules/R-*.md` con este formato y sin cuerpos Java (`validacion.md` §2.g); el **corrector** solo consulta este fichero si un fallo reportado afecta a un `rules/R-*.md`.
 
 ---
 
