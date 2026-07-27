@@ -33,14 +33,14 @@
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
 
         <panel name="Correo" title="Datos del correo">
-            <field name="dniDestinatario" colSpan="3" readonly="true"/>
+            <field name="centro" colSpan="3" readonly="true"/>
+            <field name="dniDestinatario" colSpan="3" colOffset="9" readonly="true"/>
             <field name="nombre" colSpan="4" readonly="true"/>
             <field name="apellidos" colSpan="5" readonly="true"/>
-            <field name="para" colSpan="12" readonly="true"/>
-            <field name="enCopia" colSpan="6" readonly="true"/>
-            <field name="enCopiaOculta" colSpan="6" readonly="true"/>
-            <field name="asunto" colSpan="9" readonly="true"/>
-            <field name="centro" colSpan="3" readonly="true"/>
+            <field name="para" colSpan="4" widget="String" readonly="true"/>
+            <field name="enCopia" colSpan="4" widget="String" readonly="true"/>
+            <field name="enCopiaOculta" colSpan="4" widget="String" readonly="true"/>
+            <field name="asunto" colSpan="12" widget="String" readonly="true"/>
             <field name="cuerpo" colSpan="12" widget="Text" readonly="true"/>
             <field name="historialEstado" colSpan="6" readonly="true"/>
         </panel>
@@ -54,8 +54,8 @@
             <field name="numeroReintentos" colSpan="3" title="Nº reintentos__!!" readonly="true"/>
             <field name="fechaCreacion" colSpan="3" readonly="true"/>
             <field name="fechaEnvio" colSpan="3" readonly="true" showIf="estado == 'SUCCESS'"/>
-            <field name="fechaPrimerIntentoEnvio" colSpan="4" readonly="true"/>
-            <field name="fechaUltimoIntentoEnvio" colSpan="4" readonly="true"/>
+            <field name="fechaPrimerIntentoEnvio" colSpan="3" readonly="true"/>
+            <field name="fechaUltimoIntentoEnvio" colSpan="3" readonly="true"/>
             <field name="descripcionUltimoFallo" colSpan="12" widget="Text" readonly="true" showIf="estado == 'FAIL'"/>
         </panel>
 

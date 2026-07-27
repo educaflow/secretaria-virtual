@@ -32,15 +32,15 @@
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
 
         <panel name="Correo" title="Datos del correo">
-            <field name="dniDestinatario" colSpan="3" readonlyIf="(id != null) || (cid != null)"/>
-            <field name="nombre" colSpan="4" readonlyIf="(id != null) || (cid != null)"/>
-            <field name="apellidos" colSpan="5" readonlyIf="(id != null) || (cid != null)"/>
-            <field name="para" colSpan="12" readonlyIf="(id != null) || (cid != null)"/>
-            <field name="enCopia" colSpan="6" readonlyIf="(id != null) || (cid != null)"/>
-            <field name="enCopiaOculta" colSpan="6" readonlyIf="(id != null) || (cid != null)"/>
-            <field name="asunto" colSpan="9" readonlyIf="(id != null) || (cid != null)"/>
             <field name="centro" colSpan="3" readonlyIf="(id != null) || (cid != null)"
                    grid-view="subsysCommon.Ref@Centro-grid" form-view="subsysCommon.Ref@Centro-form"/>
+            <field name="dniDestinatario" colSpan="3" colOffset="9" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="nombre" colSpan="4" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="apellidos" colSpan="5" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="para" colSpan="4" widget="String" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="enCopia" colSpan="4" widget="String" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="enCopiaOculta" colSpan="4" widget="String" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="asunto" colSpan="12" widget="String" readonlyIf="(id != null) || (cid != null)"/>
             <field name="cuerpo" colSpan="12" widget="Text" readonlyIf="(id != null) || (cid != null)"/>
             <field name="historialEstado" colSpan="6" readonlyIf="(id != null) || (cid != null)"/>
         </panel>
@@ -60,22 +60,35 @@
             <field name="numeroReintentos" colSpan="3" title="Nº reintentos__!!"/>
             <field name="fechaCreacion" colSpan="3"/>
             <field name="fechaEnvio" colSpan="3" showIf="estado == 'SUCCESS'"/>
-            <field name="fechaPrimerIntentoEnvio" colSpan="4"/>
-            <field name="fechaUltimoIntentoEnvio" colSpan="4"/>
+            <field name="fechaPrimerIntentoEnvio" colSpan="3"/>
+            <field name="fechaUltimoIntentoEnvio" colSpan="3"/>
             <field name="descripcionUltimoFallo" colSpan="12" widget="Text" showIf="estado == 'FAIL'"/>
         </panel>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnReenviar" title="Reenviar" onClick="subsysCorreos.Main@Correo-btnReenviar-action"
-                    colSpan="2" showIf="estado == 'FAIL'"/>
-            <button name="btnDelete" title="Borrar" onClick="subsysCorreos.Main@Correo-btnDelete-action"
-                    css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
-            <button name="btnCancelAlta" title="Cancelar" onClick="subsysCorreos.Main@Correo-btnCancel-action"
-                    colSpan="2" colOffset="6" outline="true" showIf="(id == null) &amp;&amp; (cid == null)"/>
-            <button name="btnCancelSalir" title="Salir" onClick="subsysCorreos.Main@Correo-btnCancel-action"
-                    colSpan="2" colOffset="6" outline="true" showIf="(id != null) || (cid != null)"/>
-            <button name="btnSave" title="Guardar" onClick="subsysCorreos.Main@Correo-btnSave-action"
-                    colSpan="2" showIf="(id == null) &amp;&amp; (cid == null)"/>
+            <panel name="buttonsAlta" title="" colSpan="12" showFrame="false"
+                   showIf="(id == null) &amp;&amp; (cid == null)">
+                <button name="btnCancelAlta" title="Cancelar" onClick="subsysCorreos.Main@Correo-btnCancel-action"
+                        colSpan="2" colOffset="8" outline="true"/>
+                <button name="btnSave" title="Guardar" onClick="subsysCorreos.Main@Correo-btnSave-action"
+                        colSpan="2"/>
+            </panel>
+            <panel name="buttonsFail" title="" colSpan="12" showFrame="false"
+                   showIf="((id != null) || (cid != null)) &amp;&amp; (estado == 'FAIL')">
+                <button name="btnReenviar" title="Reenviar" onClick="subsysCorreos.Main@Correo-btnReenviar-action"
+                        colSpan="2"/>
+                <button name="btnDeleteFail" title="Borrar" onClick="subsysCorreos.Main@Correo-btnDelete-action"
+                        css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+                <button name="btnCancelSalirFail" title="Salir" onClick="subsysCorreos.Main@Correo-btnCancel-action"
+                        colSpan="2" colOffset="6" outline="true"/>
+            </panel>
+            <panel name="buttonsSalir" title="" colSpan="12" showFrame="false"
+                   showIf="((id != null) || (cid != null)) &amp;&amp; (estado != 'FAIL')">
+                <button name="btnDelete" title="Borrar" onClick="subsysCorreos.Main@Correo-btnDelete-action"
+                        css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+                <button name="btnCancelSalir" title="Salir" onClick="subsysCorreos.Main@Correo-btnCancel-action"
+                        colSpan="2" colOffset="8" outline="true"/>
+            </panel>
         </panel>
 
     </form>
@@ -148,18 +161,26 @@
           canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="Adjunto" title="">
             <field name="correo" showIf="false"/>
-            <field name="nombreFichero" colSpan="6" required="true"/>
-            <field name="contenido" colSpan="6" widget="binary-link" required="true"/>
+            <field name="nombreFichero" colSpan="8" required="true"/>
+            <field name="contenido" colSpan="4" widget="binary-link" required="true"/>
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnDelete" title="Borrar" onClick="subsysCorreos.Main@Correo.Adjunto-btnDelete-action"
-                    css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
-            <button name="btnCancelAlta" title="Cancelar" onClick="subsysCorreos.Main@Correo.Adjunto-btnCancel-action"
-                    colSpan="2" colOffset="6" outline="true" showIf="id == null"/>
-            <button name="btnCancelSalir" title="Salir" onClick="subsysCorreos.Main@Correo.Adjunto-btnCancel-action"
-                    colSpan="2" colOffset="6" outline="true" showIf="id != null"/>
-            <button name="btnSave" title="Guardar" onClick="subsysCorreos.Main@Correo.Adjunto-btnSave-action"
-                    colSpan="2" showIf="id == null"/>
+            <panel name="buttonsAlta" title="" colSpan="12" showFrame="false"
+                   showIf="(id == null) &amp;&amp; (cid == null)">
+                <button name="btnCancelAlta" title="Cancelar" onClick="subsysCorreos.Main@Correo.Adjunto-btnCancel-action"
+                        colSpan="2" colOffset="8" outline="true"/>
+                <button name="btnSaveAlta" title="Guardar" onClick="subsysCorreos.Main@Correo.Adjunto-btnSave-action"
+                        colSpan="2"/>
+            </panel>
+            <panel name="buttonsEdicion" title="" colSpan="12" showFrame="false"
+                   showIf="(id != null) || (cid != null)">
+                <button name="btnDelete" title="Borrar" onClick="subsysCorreos.Main@Correo.Adjunto-btnDelete-action"
+                        css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+                <button name="btnCancelSalir" title="Salir" onClick="subsysCorreos.Main@Correo.Adjunto-btnCancel-action"
+                        colSpan="2" colOffset="6" outline="true"/>
+                <button name="btnSaveEdicion" title="Guardar" onClick="subsysCorreos.Main@Correo.Adjunto-btnSave-action"
+                        colSpan="2"/>
+            </panel>
         </panel>
     </form>
 

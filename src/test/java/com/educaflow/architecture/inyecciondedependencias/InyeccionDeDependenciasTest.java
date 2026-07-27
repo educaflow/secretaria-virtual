@@ -1,7 +1,7 @@
 // =====================================================================
-// GENERADO por /create-arch-tests desde agent_docs/architecture-rules.md
+// GENERADO por /code-create-arch-tests desde agent_docs/architecture-rules.md
 // NO EDITAR A MANO. Para cambiar un test, edita architecture-rules.md y
-// vuelve a ejecutar /create-arch-tests.
+// vuelve a ejecutar /code-create-arch-tests.
 // =====================================================================
 package com.educaflow.architecture.inyecciondedependencias;
 

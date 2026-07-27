@@ -93,7 +93,7 @@
         <panel name="importacionDatosPanel" title="" colSpan="12">
             <field name="tipoFichero" colSpan="6" widget="SwitchSelect" required="true"
                    selection-in="['PROFESORES', 'ALUMNOS', 'FAMILIARES']"/>
-            <field name="fichero" colSpan="6" required="true" widget="binary-link"/>
+            <field name="fichero" colSpan="4" required="true" widget="binary-link"/>
         </panel>
         <panel name="importacionButtonsPanel" title="" colSpan="12" showFrame="false">
             <button name="btnCancel" title="Cancelar" onClick="back"       colSpan="2" colOffset="8" outline="true"/>
@@ -117,7 +117,7 @@
         <panel name="importacionMenuDatosPanel" title="" colSpan="12">
             <field name="tipoFichero" colSpan="6" widget="SwitchSelect" required="true"
                    selection-in="['PROFESORES', 'ALUMNOS', 'FAMILIARES']"/>
-            <field name="fichero" colSpan="6" required="true" widget="binary-link"/>
+            <field name="fichero" colSpan="4" required="true" widget="binary-link"/>
         </panel>
         <panel name="importacionMenuButtonsPanel" title="" colSpan="12" showFrame="false">
             <button name="btnCancel" title="Cancelar" onClick="back"       colSpan="2" colOffset="8" outline="true"/>

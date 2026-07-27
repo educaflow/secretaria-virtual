@@ -15,13 +15,13 @@
           width="large" canAttach="false" canEdit="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false"
     >
         <panel name="anexo" title="Anexo" colSpan="12">
-            <field name="fileName" colSpan="9" readonly="true"/>
-            <field name="sizeText" colSpan="1" readonly="true"/>
+            <field name="fileName" colSpan="8" readonly="true"/>
+            <field name="sizeText" colSpan="2" readonly="true"/>
             <field name="content" widget="binary" title="Descargar" colSpan="2" readonly="true"/>
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
             <button name="btnCancel" title="Salir" onClick="subsysRegistroEntradaSalida.Ref@Anexos-btnCancel-action"
-                    colSpan="2" colOffset="8" outline="true"/>
+                    colSpan="2" colOffset="10" outline="true"/>
         </panel>
     </form>
 

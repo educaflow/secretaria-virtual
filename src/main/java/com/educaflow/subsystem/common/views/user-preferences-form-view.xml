@@ -35,14 +35,14 @@
                        widget="suggest"
                        domain="self.id IN (SELECT cu.centro.id FROM CentroUsuario cu WHERE cu.usuario.id = :__user__)"
                        colSpan="4"
-                       colOffset="8"
+                       colOffset="0"
                 />
             </insert>
         </extend>
 
         <extend target="//field[@name='language']">
             <attribute name="colSpan" value="4" />
-            <attribute name="colOffset" value="8" />
+            <attribute name="colOffset" value="0" />
         </extend>
 
         <extend target="//field[@name='image']">

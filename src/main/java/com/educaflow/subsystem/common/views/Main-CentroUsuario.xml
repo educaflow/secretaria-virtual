@@ -36,7 +36,7 @@
           onNew="subsysCommon.Main@CentroUsuario-onNew-action"
           canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
         <panel name="Usuario" title="">
-            <field name="centro"  colSpan="6" showIf="false"/>
+            <field name="centro"  showIf="false"/>
             <field name="usuario" colSpan="12"
                    readonlyIf="id != null"
                    grid-view="subsysCommon.Ref@Usuario-grid"

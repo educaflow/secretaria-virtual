@@ -29,11 +29,11 @@
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
 
         <panel name="Correo" title="Datos del correo">
-            <field name="asunto" colSpan="9" readonly="true"/>
+            <field name="asunto" colSpan="9" widget="String" readonly="true"/>
             <field name="fechaEnvio" colSpan="3" readonly="true"/>
             <field name="cuerpo" colSpan="12" widget="Text" readonly="true"/>
-            <field name="para" colSpan="6" readonly="true"/>
-            <field name="enCopia" colSpan="6" readonly="true"/>
+            <field name="para" colSpan="6" widget="String" readonly="true"/>
+            <field name="enCopia" colSpan="6" widget="String" readonly="true"/>
         </panel>
 
         <panel-related name="adjuntos" field="adjuntos" title="Adjuntos"
@@ -42,7 +42,7 @@
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
             <button name="btnCancel" title="Salir" onClick="subsysCorreos.Mis@Correo-btnCancel-action"
-                    colSpan="2" colOffset="8" outline="true"/>
+                    colSpan="2" colOffset="10" outline="true"/>
         </panel>
 
     </form>

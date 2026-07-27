@@ -30,7 +30,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
         <panel name="CursoModulo" title="">
             <field name="curso"  colSpan="6"  grid-view="subsysSistemaEducativo.Ref@Curso-grid"  form-view="subsysSistemaEducativo.Ref@Curso-form" />
-            <field name="modulo" colSpan="6" colOffset="6" grid-view="subsysSistemaEducativo.Ref@Modulo-grid" form-view="subsysSistemaEducativo.Ref@Modulo-form" />
+            <field name="modulo" colSpan="6" grid-view="subsysSistemaEducativo.Ref@Modulo-grid" form-view="subsysSistemaEducativo.Ref@Modulo-form" />
         </panel>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">

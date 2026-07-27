@@ -63,7 +63,7 @@
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="tipoUsuarioDatosPanel" title="">
             <field name="centroUsuario" showIf="false"/>
-            <field name="tipoUsuario"   colSpan="12" required="true"/>
+            <field name="tipoUsuario"   colSpan="6" required="true"/>
         </panel>
         <panel name="tipoUsuarioButtonsPanel" title="" colSpan="12" showFrame="false">
             <button name="btnCancel" title="Cancelar" onClick="close"                                                  colSpan="2" colOffset="8" outline="true"/>

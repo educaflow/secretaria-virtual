@@ -1,7 +1,7 @@
 // =====================================================================
-// GENERADO por /create-view-test desde agent_docs/view-rules.md
+// GENERADO por /code-create-view-tests desde agent_docs/view-rules.md
 // NO EDITAR A MANO. Para cambiar un test, edita view-rules.md (o corrige
-// la traducción en el skill /create-view-test) y vuelve a ejecutarlo.
+// la traducción en el skill /code-create-view-tests) y vuelve a ejecutarlo.
 // =====================================================================
 package com.educaflow.views.botones;
 
@@ -22,6 +22,8 @@ import java.util.regex.Pattern;
 
 import static com.educaflow.views.support.ViewFiles.attr;
 import static com.educaflow.views.support.ViewFiles.byTag;
+import static com.educaflow.views.support.ViewFiles.childrenByTag;
+import static com.educaflow.views.support.ViewFiles.hasAttr;
 
 /**
  * Categoría 7 — Botones y secuencias de acciones (agent_docs/view-rules.md).
@@ -354,5 +356,102 @@ class Categoria7BotonesTest {
         }
         Violacion.assertNone("VAR-7.4 — Remote-validate{Op} inmediatamente antes de Remote-{Op} "
                 + "(toda operación custom valida en servidor justo antes de ejecutarse)", v);
+    }
+
+    // ---------------------------------------------------------------- VAR-7.5
+
+    // [VAR-7.5] Verificación:
+    //   Sujeto: cada `<panel name="buttons-panel">` y sus `<button>` **hijos directos**
+    //     (los botones dentro de paneles anidados del `buttons-panel` quedan fuera del sujeto).
+    //   Condición:
+    //     (a) la suma de `colOffset` + `colSpan` de **todos** los botones hijos directos es ≤ 12
+    //       (ocultos incluidos, porque reservan su sitio; `colSpan` ausente cuenta como 6 —el valor por defecto de Axelor— y `colOffset` ausente como 0);
+    //     (b) todo botón hijo directo con `showIf` cumple:
+    //       no tiene `colOffset`,
+    //       y todos sus hermanos `<button>` anteriores del panel llevan también `showIf` sin `colOffset`
+    //       (los condicionales solo pueden ser el tramo inicial pegado al borde izquierdo).
+    //   El `showIf` canónico de `btnDelete*` (`VAR-5.1`) no está exento: si convive con gemelos u offsets condicionales, va dentro de su panel de estado (donde deja de ser hijo directo).
+    @Test
+    void var7_5_sumaDeColumnasDelPanelPlanoNoSupera12() {
+        List<Violacion> v = new ArrayList<>();
+        for (ViewFile vf : ViewFiles.all()) {
+            for (Element form : vf.forms()) {
+                String formName = attr(form, "name");
+                for (Element panel : byTag(form, "panel")) {
+                    if (!"buttons-panel".equals(attr(panel, "name"))) {
+                        continue;
+                    }
+                    // (a) todos los hijos directos, ocultos incluidos: reservan su sitio en la fila
+                    int total = 0;
+                    for (Element btn : childrenByTag(panel, "button")) {
+                        total += intAttr(btn, "colOffset", 0) + intAttr(btn, "colSpan", 6);
+                    }
+                    if (total > 12) {
+                        v.add(new Violacion(vf.rel(), formName + " > buttons-panel",
+                                "(a) los botones hijos directos declaran " + total + " columnas (> 12): "
+                                        + "los ocultos reservan su sitio y los visibles saltan de fila; "
+                                        + "agrupa los botones de cada estado en paneles anidados con el showIf en el panel"));
+                    }
+                }
+            }
+        }
+        Violacion.assertNone("VAR-7.5 — botones condicionales en paneles de estado, no gemelos en panel "
+                + "plano (la suma de colOffset+colSpan de los botones hijos directos del buttons-panel "
+                + "no supera 12)", v);
+    }
+
+    // [VAR-7.5] (continuación)
+    @Test
+    void var7_5_condicionalesSoloComoTramoInicialSinColOffset() {
+        List<Violacion> v = new ArrayList<>();
+        for (ViewFile vf : ViewFiles.all()) {
+            for (Element form : vf.forms()) {
+                String formName = attr(form, "name");
+                for (Element panel : byTag(form, "panel")) {
+                    if (!"buttons-panel".equals(attr(panel, "name"))) {
+                        continue;
+                    }
+                    List<Element> botones = childrenByTag(panel, "button");
+                    for (int i = 0; i < botones.size(); i++) {
+                        Element btn = botones.get(i);
+                        if (!hasAttr(btn, "showIf")) {
+                            continue; // sujeto de (b): solo botones hijos directos con showIf
+                        }
+                        String ubicacion = formName + " > " + attr(btn, "name");
+                        if (hasAttr(btn, "colOffset")) {
+                            v.add(new Violacion(vf.rel(), ubicacion,
+                                    "(b) botón condicional (showIf) con colOffset: oculto deja un hueco "
+                                            + "en medio de la fila; muévelo a un panel de estado anidado"));
+                        }
+                        for (int j = 0; j < i; j++) {
+                            Element previo = botones.get(j);
+                            if (!hasAttr(previo, "showIf") || hasAttr(previo, "colOffset")) {
+                                v.add(new Violacion(vf.rel(), ubicacion,
+                                        "(b) botón condicional (showIf) que no es tramo inicial del panel: "
+                                                + "su hermano anterior \"" + attr(previo, "name")
+                                                + "\" no lleva showIf sin colOffset; al ocultarse dejaría "
+                                                + "un hueco en medio; muévelo a un panel de estado anidado"));
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Violacion.assertNone("VAR-7.5 — botones condicionales en paneles de estado, no gemelos en panel "
+                + "plano (los condicionales solo pueden ser el tramo inicial sin colOffset del "
+                + "buttons-panel)", v);
+    }
+
+    private static int intAttr(Element e, String name, int def) {
+        String s = attr(e, name);
+        if (s.isEmpty()) {
+            return def;
+        }
+        try {
+            return Integer.parseInt(s.trim());
+        } catch (NumberFormatException ex) {
+            return def;
+        }
     }
 }

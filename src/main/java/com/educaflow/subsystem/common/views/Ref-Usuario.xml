@@ -23,7 +23,7 @@
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
             <button name="btnCancel" title="Salir" onClick="subsysCommon.Ref@Usuario-btnCancel-action"
-                    colSpan="2" colOffset="8" outline="true"/>
+                    colSpan="2" colOffset="10" outline="true"/>
         </panel>
     </form>
 

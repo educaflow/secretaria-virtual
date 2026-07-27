@@ -30,8 +30,8 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
             <field name="tipoCertificado" colSpan="6"/>
 
             <panel name="panelFicheroBD" colSpan="12" showIf="tipoCertificado == 'FICHERO_BD'" showFrame="false">
-                <field name="password" colSpan="2"/>
-                <field name="fichero" colSpan="10" widget="binary-link"/>
+                <field name="password" colSpan="4"/>
+                <field name="fichero" colSpan="4" widget="binary-link"/>
             </panel>
             <panel name="panelPkcs11" colSpan="12" showIf="tipoCertificado == 'DISPOSITIVO_PKCS11'" showFrame="false">
                 <field name="dispositivoCriptografico" colSpan="4"
@@ -44,12 +44,12 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
                        form-view="subsysCriptografia.Ref@Alias-form"/>
             </panel>
             <panel name="panelClasspath" colSpan="12" showIf="tipoCertificado == 'CLASSPATH'" showFrame="false">
-                <field name="password" colSpan="2"/>
-                <field name="rutaClasspath" colSpan="10"/>
+                <field name="password" colSpan="4"/>
+                <field name="rutaClasspath" colSpan="8"/>
             </panel>
             <panel name="panelSistemaArchivos" colSpan="12" showIf="tipoCertificado == 'SISTEMA_ARCHIVOS'" showFrame="false">
-                <field name="password" colSpan="2"/>
-                <field name="rutaSistemaArchivos" colSpan="10"/>
+                <field name="password" colSpan="4"/>
+                <field name="rutaSistemaArchivos" colSpan="8"/>
             </panel>
         </panel>
 

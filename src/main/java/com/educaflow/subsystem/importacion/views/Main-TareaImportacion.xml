@@ -50,12 +50,12 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <panel name="panelResultado" title="Resultado" showIf="id != null" readonlyIf="true">
             <panel name="panelDatosResultado" title="" showFrame="false">
                 <field name="usuario"          colSpan="6"/>
-                <field name="fechaImportacion" colSpan="6"/>
-                <field name="tipoFichero"      colSpan="6"/>
+                <field name="fechaImportacion" colSpan="3"/>
+                <field name="tipoFichero"      colSpan="3"/>
                 <field name="centro"           colSpan="6"/>
-                <field name="curso"            colSpan="6"/>
-                <field name="fechaExportacion" colSpan="6"/>
-                <field name="fichero"          widget="binary-link" colSpan="12"/>
+                <field name="curso"            colSpan="3"/>
+                <field name="fechaExportacion" colSpan="3"/>
+                <field name="fichero"          widget="binary-link" colSpan="4"/>
             </panel>
             <panel name="panelEstadoLog" title="" showFrame="false">
                 <field name="estado" x-true-text="Correcta" x-false-text="Fallida"/>
@@ -64,15 +64,19 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         </panel>
 
         <panel name="buttons-panel" title="" showFrame="false" colSpan="12">
-            <button name="btnCancelar" title="Cancelar"
-                    onClick="subsysImportacion.Main@TareaImportacion-btnCancelar-action"
-                    outline="true" colSpan="2" colOffset="6" showIf="id == null"/>
-            <button name="btnImportar" title="Importar"
-                    onClick="subsysImportacion.Main@TareaImportacion-btnImportar-action"
-                    colSpan="2" showIf="id == null"/>
-            <button name="btnAceptar" title="Aceptar"
-                    onClick="subsysImportacion.Main@TareaImportacion-btnAceptar-action"
-                    colSpan="2" colOffset="8" showIf="id != null"/>
+            <panel name="buttonsNueva" title="" colSpan="12" showFrame="false" showIf="id == null">
+                <button name="btnCancelar" title="Cancelar"
+                        onClick="subsysImportacion.Main@TareaImportacion-btnCancelar-action"
+                        outline="true" colSpan="2" colOffset="8"/>
+                <button name="btnImportar" title="Importar"
+                        onClick="subsysImportacion.Main@TareaImportacion-btnImportar-action"
+                        colSpan="2"/>
+            </panel>
+            <panel name="buttonsResultado" title="" colSpan="12" showFrame="false" showIf="id != null">
+                <button name="btnAceptar" title="Aceptar"
+                        onClick="subsysImportacion.Main@TareaImportacion-btnAceptar-action"
+                        colSpan="2" colOffset="10"/>
+            </panel>
         </panel>
 
     </form>

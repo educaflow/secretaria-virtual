@@ -18,12 +18,12 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <panel name="Ciclo" title="">
             <field name="name"               colSpan="6"  readonly="true" />
             <field name="familiaProfesional" colSpan="6"  readonly="true"  />
-            <field name="grado"              colSpan="4"  readonly="true"      />
-            <field name="nivel"              colSpan="4"  readonly="true"      />
+            <field name="grado"              colSpan="6"  readonly="true"      />
+            <field name="nivel"              colSpan="6"  readonly="true"      />
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
             <button name="btnCancel" title="Salir" onClick="subsysSistemaEducativo.Ref@Ciclo-btnCancel-action"
-                    colSpan="2" colOffset="8" outline="true"/>
+                    colSpan="2" colOffset="10" outline="true"/>
         </panel>
     </form>
 

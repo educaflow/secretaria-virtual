@@ -33,9 +33,9 @@
     >
         <panel name="tareaFirmaInsertDTO" title="Estado de la tarea a firmar" colSpan="12" readonly="true">
             <field name="motivoFirma"   colSpan="8"/>
-            <field name="fechaSolicitud"   colSpan="4"/>
             <field name="estadoTareaFirma"   colSpan="4"/>
-            <field name="fechaResolucion"   colSpan="4" colOffset="4" showIf="fechaResolucion!=null"/>
+            <field name="fechaSolicitud"   colSpan="4"/>
+            <field name="fechaResolucion"   colSpan="4" showIf="fechaResolucion!=null"/>
             <field name="pasoActual" showIf="false"/>
         </panel>
 
@@ -57,12 +57,18 @@
         </panel>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnPaso1InicioRechazar"   showIf="pasoActual=='paso1Inicio'"    onClick="subsysFirmas.Pendiente@TareaFirma-btnPaso1InicioRechazar-action" title="Rechazar firmar"           css="btn-secondary"  colSpan="3" outline="true" />
-            <button name="btnPaso1InicioFirmar"     showIf="pasoActual=='paso1Inicio'"    onClick="subsysFirmas.Pendiente@TareaFirma-btnPaso1InicioFirmar-action"   title="Firmar todos los documentos"      colSpan="3" colOffset="6"  />
-            <button name="btnPaso2RechazadoAtras"   showIf="pasoActual=='paso2Rechazado'" onClick="subsysFirmas.Pendiente@TareaFirma-btnPaso2RechazadoAtras-action"   title="Atrás"                      css="btn-secondary" colSpan="3" outline="true" />
-            <button name="btnPaso2RechazadoGuardar" showIf="pasoActual=='paso2Rechazado'" onClick="subsysFirmas.Pendiente@TareaFirma-btnPaso2RechazadoGuardar-action" title="Finalizar"                     colSpan="3" colOffset="6"  />
-            <button name="btnPaso2FirmarAtras"      showIf="pasoActual=='paso2Firmar'"    onClick="subsysFirmas.Pendiente@TareaFirma-btnPaso2FirmarAtras-action"  title="Atrás"   css="btn-secondary" colSpan="3" outline="true" />
-            <button name="btnPaso2FirmarGuardar"    showIf="pasoActual=='paso2Firmar'"    onClick="serial:subsysFirmas.Pendiente@TareaFirma-btnPaso2FirmarGuardar-firmarConAutoFirma-action,subsysFirmas.Pendiente@TareaFirma-btnPaso2FirmarGuardar-action" title="Firmar todos los documentos con AutoFirma__!! y finalizar"      colSpan="5" colOffset="4"  />
+            <panel name="buttonsPaso1Inicio" title="" colSpan="12" showFrame="false" showIf="pasoActual=='paso1Inicio'">
+                <button name="btnPaso1InicioRechazar"   onClick="subsysFirmas.Pendiente@TareaFirma-btnPaso1InicioRechazar-action" title="Rechazar firmar"           css="btn-secondary"  colSpan="3" outline="true" />
+                <button name="btnPaso1InicioFirmar"     onClick="subsysFirmas.Pendiente@TareaFirma-btnPaso1InicioFirmar-action"   title="Firmar todos los documentos"      colSpan="3" colOffset="6"  />
+            </panel>
+            <panel name="buttonsPaso2Rechazado" title="" colSpan="12" showFrame="false" showIf="pasoActual=='paso2Rechazado'">
+                <button name="btnPaso2RechazadoAtras"   onClick="subsysFirmas.Pendiente@TareaFirma-btnPaso2RechazadoAtras-action"   title="Atrás"                      css="btn-secondary" colSpan="3" outline="true" />
+                <button name="btnPaso2RechazadoGuardar" onClick="subsysFirmas.Pendiente@TareaFirma-btnPaso2RechazadoGuardar-action" title="Finalizar"                     colSpan="3" colOffset="6"  />
+            </panel>
+            <panel name="buttonsPaso2Firmar" title="" colSpan="12" showFrame="false" showIf="pasoActual=='paso2Firmar'">
+                <button name="btnPaso2FirmarAtras"      onClick="subsysFirmas.Pendiente@TareaFirma-btnPaso2FirmarAtras-action"  title="Atrás"   css="btn-secondary" colSpan="3" outline="true" />
+                <button name="btnPaso2FirmarGuardar"    onClick="serial:subsysFirmas.Pendiente@TareaFirma-btnPaso2FirmarGuardar-firmarConAutoFirma-action,subsysFirmas.Pendiente@TareaFirma-btnPaso2FirmarGuardar-action" title="Firmar todos los documentos con AutoFirma__!! y finalizar"      colSpan="5" colOffset="4"  />
+            </panel>
         </panel>
     </form>
 

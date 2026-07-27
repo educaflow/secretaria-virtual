@@ -12,15 +12,15 @@
     <form name="subsysPdfUtilities.Firma@PdfUtilities-form" title="Utilidades para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities" width="large">
 
         <panel name="main" title="PDF">
-            <field name="pdf" colSpan="10" widget="binary-link"/>
+            <field name="pdf" colSpan="4" widget="binary-link"/>
             <field name="numeroPagina" colSpan="2"/>
         </panel>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnVerPosicionesFirma" title="Ver posiciones de firma" icon="fa-plus" onClick="subsysPdfUtilities.Firma@PdfUtilities-btnVerPosicionesFirma-action"/>
+            <button name="btnVerPosicionesFirma" title="Ver posiciones de firma" icon="fa-plus" colSpan="4" colOffset="8" onClick="subsysPdfUtilities.Firma@PdfUtilities-btnVerPosicionesFirma-action"/>
         </panel>
         <panel name="info-panel" title="Información del PDF">
-            <field name="pdf-view" showTitle="false" readonly="true" colSpan="9">
+            <field name="pdf-view" showTitle="false" readonly="true" colSpan="12">
                 <viewer depends="pdfFirmado"><![CDATA[
                     <>
                     <Box as="iframe" height="1000px" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfFirmado.id}/content/download?inline=true&name=${pdfFirmado.fileName}`} ></Box>

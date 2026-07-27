@@ -12,11 +12,11 @@
     <form name="subsysPdfUtilities.Info@PdfUtilities-form" title="Utilidades para PDF" model="com.educaflow.subsystem.pdfutilities.db.PdfUtilities" width="large">
 
         <panel name="main" title="PDF">
-            <field name="pdf" colSpan="12" widget="binary-link"/>
+            <field name="pdf" colSpan="4" widget="binary-link"/>
         </panel>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnVerInfo" title="Ver información" icon="fa-info-circle" onClick="subsysPdfUtilities.Info@PdfUtilities-btnVerInfo-action"/>
+            <button name="btnVerInfo" title="Ver información" icon="fa-info-circle" colSpan="4" colOffset="8" onClick="subsysPdfUtilities.Info@PdfUtilities-btnVerInfo-action"/>
         </panel>
 
         <panel name="info-panel" title="Información del PDF">
