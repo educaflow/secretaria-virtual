@@ -12,13 +12,13 @@
         <string name="nombre" title="Nombre"/>
         <string name="apellidos" title="Apellidos"/>
 
-        <!-- Direcciones de correo. "large" evita que la base de datos trunque el valor antes de
-             que el VAL- correspondiente pueda dar su mensaje amigable (ver design.md, Notas y supuestos) -->
-        <string name="para" title="Para" large="true" help="Direcciones de correo del destinatario principal (el «to»), separadas por comas"/>
-        <string name="enCopia" title="En copia" large="true" help="Direcciones de correo en copia (el «cc»), separadas por comas"/>
-        <string name="enCopiaOculta" title="En copia oculta" large="true" help="Direcciones de correo en copia oculta (el «bcc»), separadas por comas"/>
+        <string name="para" title="Para" help="Direcciones de correo del destinatario principal (el «to»), separadas por comas"/>
+        <string name="enCopia" title="En copia" help="Direcciones de correo en copia (el «cc»), separadas por comas"/>
+        <string name="enCopiaOculta" title="En copia oculta" help="Direcciones de correo en copia oculta (el «bcc»), separadas por comas"/>
 
-        <string name="asunto" title="Asunto" large="true"/>
+        <!-- VAL-Correo-016 limita el asunto a 255 y da el mensaje de negocio desde
+             CorreoServiceImpl.validarAsuntoYCuerpo; el default de varchar(255) ya lo respalda -->
+        <string name="asunto" title="Asunto"/>
         <string name="cuerpo" title="Cuerpo" large="true" multiline="true"/>
 
         <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro"/>

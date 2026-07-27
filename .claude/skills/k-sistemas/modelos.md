@@ -122,6 +122,73 @@ private void fireActionRule_AsignarValoresIniciales(TareaCorreo entidad) {
 - [ ] ¿Quién rellena el valor? El **usuario** (formulario) → `required="true"` si la regla de negocio lo exige. El **sistema** (servicio/job/scheduler) → **sin** `required="true"`.
 - [ ] Si es del sistema, ¿el servicio (`insert`/`update` o un método de transición) lo rellena en algún camino? Si no, es un bug: el campo se quedará null permanentemente.
 - [ ] No usar `<action-record>` en `onNew` como sustituto de la inicialización en el servicio.
+- [ ] ¿El **tipo** del elemento corresponde a la naturaleza del dato (§Tipo del campo)?
+- [ ] Si es `<string large="true">`, ¿el contenido es de verdad un texto largo (§`large`)?
+
+## REGLA — El tipo del campo corresponde a la naturaleza del dato
+
+`<string>` acepta cualquier cosa, así que es el sumidero al que van a parar los campos mal tipados. Un tipo incorrecto no da error: da comparaciones alfabéticas (`"10" < "9"`), sumas imposibles, filtros que no filtran por rango y validación nula.
+
+**MUST** elegir el tipo por lo que el dato **es**, no por cómo se teclea:
+
+| El dato es… | Tipo | **MUST NOT** |
+|---|---|---|
+| Una cantidad contable (unidades, intentos, página) | `<integer>` / `<long>` | `<string>` |
+| Un importe o una medida con decimales | `<decimal>` con `precision`/`scale` | `<string>`, `<integer>` |
+| Un sí/no | `<boolean>` | `<string>` con `"S"`/`"N"`, `<integer>` con `0`/`1` |
+| Una fecha, o una fecha con hora | `<date>` / `<datetime>` | `<string>` con la fecha formateada |
+| Un valor de una lista cerrada y conocida | `<enum>` | `<string>` con constantes sueltas |
+| Una referencia a otra entidad | `<many-to-one>` | `<string>`/`<integer>` con el id o el nombre copiado |
+
+- ✅ CORRECTO: `<integer name="page" title="Página" required="true"/>`
+- ✅ CORRECTO: `<decimal name="importe" precision="8" scale="2"/>`
+- ❌ INCORRECTO: `<string name="numeroIntentos"/>` (una cantidad como texto: no se puede comparar ni incrementar)
+- ❌ INCORRECTO: `<string name="fechaEnvio"/>` (una fecha como texto: se ordena mal y no admite filtro por rango)
+- ❌ INCORRECTO: `<string name="estado"/>` con valores fijos (es una lista cerrada → `<enum>`)
+
+**Excepción**: los identificadores que solo parecen números y nunca se operan (DNI, NIF, código postal, teléfono, número de cuenta) **MUST** ser `<string>`: llevan letras, ceros a la izquierda o separadores, y no tiene sentido sumarlos.
+
+## REGLA — Tamaño de un `<string>`: o nada, o `large="true"`
+
+Un `<string>` sin atributos de tamaño ya mapea a `varchar(255)`. Por eso **solo hay dos decisiones**, y son excluyentes:
+
+1. El contenido cabe holgadamente en **255 caracteres** → **MUST NOT** poner nada: ni `max` ni `large`. El default ya es correcto.
+2. El contenido puede **pasar de 255** → `large="true"`, normalmente con `multiline="true"`.
+
+**MUST NOT** escribir un `max="N"` inventado. `max` solo se pone cuando **N sale de una regla de negocio escrita** (una `VAL-` que fija ese número y da su mensaje), y aun así, si ese N es ≤ 255 no aporta nada sobre el default: déjalo fuera y que la `VAL-` haga su trabajo.
+
+### Cómo decidir de qué lado cae
+
+**CRITICAL**: estima el **contenido real esperado**, no el máximo teórico que permite el formato. Es el error que produce números absurdos.
+
+1. Escribe mentalmente **tres valores típicos** del campo y cuenta sus caracteres.
+2. Piensa en el **peor caso realista** — el usuario más pesado, no el límite del estándar.
+3. Si el peor caso realista queda cómodamente por debajo de 255 → caso 1 (nada).
+4. Si lo supera, o si el campo es texto redactado por una persona sin final previsible (una descripción, un motivo, unas observaciones), o un volcado técnico (una traza, un JSON, una plantilla) → caso 2 (`large`).
+5. Si el campo es una **lista** (direcciones separadas por comas, códigos concatenados), la longitud depende de **cuántos elementos** admite. Ese número es una **regla de negocio**: si nadie la ha decidido, **MUST NOT** inventártela — asume el caso 1.
+
+- ✅ CORRECTO: `<string name="motivoRechazo" large="true" multiline="true" title="Motivo del rechazo"/>` (texto redactado, sin final previsible)
+- ✅ CORRECTO: `<string name="para" title="Para"/>` (lista de direcciones: las reales miden ~25-35 caracteres y nadie ha fijado un máximo de destinatarios)
+- ❌ INCORRECTO: `<string name="para" title="Para" max="2000"/>` (número inventado: ninguna `VAL-` dice 2000)
+- ❌ INCORRECTO: `<string name="dni" title="DNI" large="true"/>` (un DNI son 9 caracteres)
+- ❌ INCORRECTO: `<string name="observaciones" title="Observaciones" max="255"/>` (si de verdad caben en 255, sobra el atributo; si no caben, es `large`)
+- ❌ INCORRECTO: `<string name="nombre" title="Nombre" large="true"/>` (Nadie tiene un nombre de más de 255 caracteres)
+
+### Anti-patrón — el número derivado de un máximo teórico
+
+**MUST NOT** calcular el tamaño de un campo a partir del límite que permite un estándar o un formato. Produce números que no describen nada real y que nadie ha decidido.
+
+Caso real de este proyecto: a los campos de direcciones de `Correo` se les puso `max="2000"` razonando «la RFC 5321 permite direcciones de 254 caracteres × unos 8 destinatarios ≈ 2000». Los dos factores eran inventados —nadie había fijado un máximo de destinatarios, y las direcciones reales de la base de datos medían **26 caracteres**—. La respuesta correcta era no poner nada.
+
+**Regla práctica de duda**: si te ves multiplicando para justificar un número, para. Ese número no existe: aplica el caso 1.
+
+### Anti-patrón — `large="true"` "para que la `VAL-` de longitud pueda dar su mensaje"
+
+**MUST NOT** justificar un `large="true"` diciendo que sin él la base de datos truncaría o rechazaría el valor antes de que la validación de negocio pudiera dar su mensaje amigable. Es falso en esta aplicación, y el razonamiento se refuta solo: si fuera cierto, **todo** `<string>` con una validación de longitud tendría que ser `large`, lo que vacía la regla de contenido.
+
+Por qué es falso: el `<action-group>` del botón de guardar ejecuta `remote-validationSave-action` (`DefaultModelController.validateSave`) **antes** del `save`. Esa acción llama a `validateInsert`/`validateUpdate` en una petición propia, así que el `BusinessMessage` con el literal de la `VAL-` se devuelve al usuario **sin que la entidad llegue nunca a la BD**. La longitud se valida en el servicio y la columna puede seguir acotada.
+
+Si encuentras un dominio con este comentario, el `large` sobra: la corrección es quitarlo y dejar el campo con el default (§Tamaño de un `<string>`). Ten en cuenta que hacerlo sobre una entidad ya desplegada **es un cambio destructivo de esquema** (ver `[[k-secure-coding]]` y el contrato de `/developer-model-reviewer`): lo decide el usuario, no el corrector.
 
 ---
 

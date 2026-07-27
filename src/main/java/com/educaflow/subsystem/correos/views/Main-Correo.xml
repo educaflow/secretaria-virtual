@@ -37,10 +37,10 @@
             <field name="dniDestinatario" colSpan="3" colOffset="9" readonlyIf="(id != null) || (cid != null)"/>
             <field name="nombre" colSpan="4" readonlyIf="(id != null) || (cid != null)"/>
             <field name="apellidos" colSpan="5" readonlyIf="(id != null) || (cid != null)"/>
-            <field name="para" colSpan="4" widget="String" readonlyIf="(id != null) || (cid != null)"/>
-            <field name="enCopia" colSpan="4" widget="String" readonlyIf="(id != null) || (cid != null)"/>
-            <field name="enCopiaOculta" colSpan="4" widget="String" readonlyIf="(id != null) || (cid != null)"/>
-            <field name="asunto" colSpan="12" widget="String" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="para" colSpan="4" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="enCopia" colSpan="4" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="enCopiaOculta" colSpan="4" readonlyIf="(id != null) || (cid != null)"/>
+            <field name="asunto" colSpan="12" readonlyIf="(id != null) || (cid != null)"/>
             <field name="cuerpo" colSpan="12" widget="Text" readonlyIf="(id != null) || (cid != null)"/>
             <field name="historialEstado" colSpan="6" readonlyIf="(id != null) || (cid != null)"/>
         </panel>

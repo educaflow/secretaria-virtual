@@ -1,12 +1,12 @@
 ---
 name: developer-code-reviewer
-description: Orquesta un bucle de revisión y corrección de código mediante subagentes. La entrada es la ubicación del código a revisar más uno o más skills de conocimiento (y opcionalmente la descripción y requisitos de lo construido); en cada iteración un subagente revisor detecta problemas clasificados por severidad (BLOCKING/IMPORTANT/MINOR) y delega las correcciones en un subagente corrector, repitiendo hasta que el revisor responda exactamente `OK-No hay problemas` (LIMIT 30 iteraciones). Se detiene ante problemas UNCLEAR (necesitan aclaración del usuario) o correcciones con PUSHBACK (rechazadas con justificación técnica). La salida es el código corregido en su ubicación más un informe final.
-allowed-tools: Bash(ls:*), Bash(grep:*), Bash(find:*), Read, AskUserQuestion, Agent
+description: Revisa y corrige código Java/Kotlin del proyecto iterando ciclos revisor → corrector con subagentes. La entrada es la ubicación del código más uno o más skills de conocimiento (y opcionalmente la descripción y requisitos de lo construido); la salida es el código corregido en su ubicación más un informe final. El flujo (bucle, tokens, severidades BLOCKING/IMPORTANT/MINOR, STOP ante UNCLEAR y PUSHBACK, LIMIT 30 iteraciones) lo aporta el motor `/skill-orquestador-reviewer`; qué se revisa exactamente lo declara `review-contract.md`, en esta misma carpeta. Para vistas XML usa `/developer-view-reviewer`; para modelos de dominio, `/developer-model-reviewer`.
+allowed-tools: Bash(ls:*), Bash(grep:*), Bash(find:*), Read, Skill, AskUserQuestion, Agent
 ---
 
 # developer-code-reviewer
 
-Eres un orquestador de revisión y corrección de código. Conviertes una ubicación de código + skills de conocimiento en código corregido, iterando ciclos de revisión (subagente revisor) y corrección (subagente corrector) hasta que no queden problemas.
+Eres el skill de revisión de **código Java/Kotlin**. No implementas el bucle de revisión: lo aporta el motor `/skill-orquestador-reviewer`. Tu trabajo es comprobar el alcance, delegar en el motor con el contrato de esta carpeta y presentar su informe.
 
 ---
 
@@ -18,25 +18,24 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty). Los argumentos esperables son:
 
-- **Skills de conocimiento** (REQUIRED): uno o más nombres de skills (`k-code-quality`, `k-sistemas`, `k-secure-coding`, …) que los subagentes cargarán como criterio de revisión y corrección.
-- **Ubicación del código** (REQUIRED): rutas o paquetes del código a revisar.
+- **Skills de conocimiento** (REQUIRED): uno o más nombres de skills (`k-code-quality`, `k-sistemas`, `k-guice`, …) que los subagentes cargarán como criterio. A diferencia de sus skills hermanos, aquí el criterio principal lo aporta el usuario: sin skills no hay revisión posible.
+- **Ubicación del código** (REQUIRED): rutas o paquetes del código Java/Kotlin a revisar.
 - **Descripción y requisitos** (opcional): qué se ha construido y qué debe cumplir. Si se proporciona, es el criterio principal de revisión.
 
 ---
 
 ## Outline
 
-1. **Validar** los argumentos y completar los skills (Fase 0).
-2. **Iterar** el bucle revisar → corregir hasta `OK-No hay problemas` (Fase 1 — **LIMIT**: 30 iteraciones).
-3. **Cerrar** con el informe final (Fase 2).
+1. **Validar** los argumentos y el alcance (Fase 0).
+2. **Delegar** en `/skill-orquestador-reviewer` con `review-contract.md` (Fase 1).
+3. **Presentar** el informe que devuelve el motor (Fase 2).
 
 **STOP conditions**:
 
 - No se indica ningún skill de conocimiento → **ERROR** y detente indicando que falta el skill a usar.
 - No se indica la ubicación del código → **ERROR** y detente indicando que falta el código a revisar.
-- El revisor reporta problemas `UNCLEAR` → **STOP** y pregunta al usuario exactamente qué hay que aclarar (en modo subagente: devuélvelos como resultado, §2.5).
-- El corrector reporta `PUSHBACK` → **STOP** y reporta al usuario qué correcciones se rechazaron y por qué, para que decida.
-- `**LIMIT**: 30` iteraciones sin `OK-No hay problemas` → **STOP** y reporta que no has podido seguir corrigiendo.
+- La ubicación no encaja en el `## Alcance` de `review-contract.md` → **STOP** y remite **al destino que esa sección indique para ese caso concreto**, aplicando la exclusión **más específica** que case. **MUST NOT** deducir el destino por tu cuenta ni tomarlo de las menciones orientativas del `description`: el `## Alcance` es la única fuente.
+- El motor se detiene por `UNCLEAR`, `PUSHBACK` o **LIMIT** → traslada su parada tal cual al usuario; **MUST NOT** continuar por tu cuenta.
 
 ---
 
@@ -48,139 +47,50 @@ Skills de conocimiento + ubicación del código + descripción/requisitos opcion
 
 ### 1.2 Salida
 
-- El código corregido en su ubicación (lo escriben los subagentes correctores).
-- Un **informe final** en la conversación (Fase 2): iteraciones realizadas, problemas corregidos por severidad, `UNCLEAR`/`PUSHBACK` pendientes si los hubo.
+- El código corregido en su ubicación (lo escriben los subagentes correctores del motor).
+- El **informe final** del motor, más lo que añada la sección `## Informe` del contrato.
 - Este skill **no escribe artefactos propios** en disco.
 
----
-
-## 2. Principios (aplican a todas las fases)
-
-### 2.1 `k-secure-coding` se añade solo
-
-**REQUIRED**: si la revisión toca entidades, servicios, controladores, vistas con `<form>` que escribe en BD o cualquier endpoint nuevo, **MUST** añadir `k-secure-coding` a la lista de skills aunque la invocación no lo liste. Sus defensas (mass-assignment, `AllowProperties`, asignación incondicional de campos `servidor`, multi-centro/IDOR, JPQL, log injection, adjuntos) son **BLOCKING** si se violan. Solo se omite si la revisión es estrictamente sobre código sin frontera de confianza (utilidad pura sin acceso a entidades, refactor de tests, etc.).
-
-### 2.2 `k-vistas` se añade solo
-
-**REQUIRED**: si la ubicación a revisar contiene XML de vistas (`**/views/*.xml`), **MUST** añadir `k-vistas` a la lista de skills aunque la invocación no lo liste. Además del resto de convenciones de `k-vistas`, el revisor **MUST** aplicar a cada `<form>` la «Dirección de auditoría» ASCII Layout de `k-vistas/forms.md`: reconstruir el ASCII Layout de cada panel desde los `colSpan`/`colOffset` reales y pasarle el checklist de maquetación.
-
-- Cuando el corrector modifique un XML de vistas, **MUST** validar el fichero corregido contra `object-views.xsd` (`xmllint`, XSD en `../axelor-open-platform/axelor-core/src/main/resources/`) antes de darlo por bueno; un XML que no valida es un fallo **BLOCKING**.
-- Los tests de vistas de Gradle **MUST NOT** ejecutarse dentro del bucle.
-
-### 2.3 El orquestador no revisa ni corrige
-
-Revisar y corregir lo hacen subagentes con contexto propio. Tu trabajo es lanzarlos en secuencia, interpretar el token de respuesta y decidir si iterar o parar. **MUST NOT** editar ficheros tú mismo.
-
-### 2.4 Verificar antes de reportar y antes de corregir
-
-- El revisor **MUST** verificar que cada problema existe realmente en el código (no problemas hipotéticos ni ya resueltos) y, antes de reportar que "falta añadir algo", comprobar con grep que de verdad no existe (YAGNI: lo que no se usa en ningún sitio no se reporta como mejora).
-- El corrector **MUST** re-verificar cada problema antes de corregirlo; si la corrección sugerida es técnicamente incorrecta para este código concreto, **MUST NOT** aplicarla → la reporta como `PUSHBACK` con justificación técnica.
-
-### 2.5 Modo subagente
-
-Si este skill se ejecuta **dentro de un subagente** (otro skill lo invoca vía `Agent`), no hay usuario al que preguntar: ante `UNCLEAR` o `PUSHBACK`, **devuelve la lista como resultado final** en vez de `AskUserQuestion`/esperar — el orquestador padre decide.
-
-### 2.6 Contexto mínimo de vuelta
-
-El subagente revisor coordina la corrección internamente y devuelve al orquestador solo el token de resultado y los contadores — **MUST NOT** devolver el detalle de cada corrección aplicada (no aumenta el contexto principal).
-
----
-
-## 3. Flujo general
+### 1.3 Estructura de carpetas
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  Fase 0   Validar argumentos + completar skills (k-secure-…)    │
-│  Fase 1   Bucle (LIMIT 30):                                     │
-│             ├── 5.1  Subagente revisor (no modifica nada)       │
-│             │         └── si hay problemas: lanza él mismo el   │
-│             │             subagente corrector (5.2)             │
-│             └── 5.3  Interpretar el token → iterar o parar      │
-│  Fase 2   Informe final                                         │
-└─────────────────────────────────────────────────────────────────┘
+.claude/skills/developer-code-reviewer/
+├── SKILL.md            ← este fichero: alcance y delegación
+└── review-contract.md  ← qué se revisa exactamente (lo consume el motor)
 ```
 
 ---
 
-## 4. Fase 0 — Validar argumentos
+## 2. Fase 0 — Validar argumentos y alcance
 
 1. Si falta la lista de skills → **ERROR** (STOP condition).
 2. Si falta la ubicación del código → **ERROR** (STOP condition).
-3. Aplica el principio 2.1: decide si añadir `k-secure-coding` y deja constancia en una línea.
-4. Pasa a la Fase 1 con: skills definitivos, ubicación, y descripción/requisitos si los hay.
+3. Comprueba la ubicación contra el `## Alcance` de `review-contract.md`. Si no encaja → **STOP** con el destino que indique esa sección (STOP condition). **MUST** aplicar la exclusión **más específica** que case, no la primera.
 
 ---
 
-## 5. Fase 1 — Bucle de revisión y corrección
+## 3. Fase 1 — Delegar en el motor
 
-**Variables**: `**LIMIT**: max_iter = 30`, `iter = 1`.
-
-### 5.1 Subagente revisor
-
-Lanza **un** subagente (`Agent`, contexto propio, secuencial — **MUST NOT** paralelo ni `run_in_background`) cuyo prompt **MUST** incluir: la lista de skills a cargar con `Skill`, la ubicación del código, la descripción/requisitos (si los hay, como criterio principal de revisión), y estas instrucciones:
-
-1. Carga los skills indicados y revisa el código comparándolo con ese conocimiento, buscando errores, inconsistencias o mejoras.
-2. **MUST NOT** modificar ningún fichero durante la revisión.
-3. Verifica cada hallazgo antes de reportarlo (principio 2.4).
-4. Clasifica cada problema: `BLOCKING` (rompe funcionalidad o seguridad), `IMPORTANT` (incumple convenciones o requisitos), `MINOR` (mejora menor). Si un problema es ambiguo o no permite una corrección concreta, márcalo `UNCLEAR` en lugar de una severidad y **MUST NOT** pasarlo al corrector.
-5. Redacta la lista de problemas (solo los de severidad clara) con **exactamente** este formato:
-
-   ```text
-   BEGIN:----
-   SEVERIDAD: BLOCKING|IMPORTANT|MINOR
-   Descripción del error, inconsistencia o mejora encontrada 1
-   END:----
-
-   BEGIN:----
-   SEVERIDAD: BLOCKING|IMPORTANT|MINOR
-   Descripción del error, inconsistencia o mejora encontrada 2
-   END:----
-   ```
-
-   - ✅ CORRECTO: `BEGIN:----` / `SEVERIDAD: BLOCKING` / descripción / `END:----`
-   - ❌ INCORRECTO: `Problema 1 (grave): …` (sin marcadores parseables ni severidad de la lista cerrada)
-6. Si hay problemas con severidad clara, **lanza él mismo el subagente corrector** (5.2) y espera a que termine.
-7. Devuelve al orquestador **solo** una de estas respuestas:
-   - `OK-No hay problemas` (exactamente ese token) — si no encontró nada.
-   - `CORREGIDO — BLOCKING: <n>, IMPORTANT: <n>, MINOR: <n>` + la lista de `UNCLEAR` (si los hay) + la lista de `PUSHBACK` que reportó el corrector (si los hay). **MUST NOT** pegar el detalle de las correcciones aplicadas (principio 2.6).
-
-### 5.2 Subagente corrector (lo lanza el revisor)
-
-El prompt del corrector **MUST** incluir: la lista de skills a cargar, la ubicación del código y la lista de problemas del revisor. Instrucciones:
-
-1. Carga los skills indicados.
-2. Corrige los problemas en orden de severidad: primero `BLOCKING`, luego `IMPORTANT`, luego `MINOR`.
-3. Para cada problema, re-verifica que existe tal como fue descrito antes de tocarlo. Si la corrección sugerida es técnicamente incorrecta para este código → **MUST NOT** aplicarla; repórtala como `PUSHBACK` con justificación técnica (principio 2.4).
-4. Aplica y verifica cada corrección **individualmente** antes de pasar a la siguiente.
-5. Devuelve al revisor solo los contadores de correcciones aplicadas y la lista de `PUSHBACK`.
-
-### 5.3 Control del bucle (orquestador)
-
-1. `OK-No hay problemas` → sal del bucle y pasa a la Fase 2.
-2. Hay `UNCLEAR` → **STOP**: pregunta al usuario exactamente qué hay que aclarar (modo subagente: devuélvelos como resultado). No se itera con ambigüedades abiertas.
-3. Hay `PUSHBACK` → **STOP**: reporta al usuario qué correcciones se rechazaron y por qué, para que decida.
-4. `CORREGIDO …` sin `UNCLEAR` ni `PUSHBACK` → `iter = iter + 1`; si `iter <= max_iter`, vuelve a 5.1 (la nueva revisión parte del código ya corregido); si `iter > max_iter`, **STOP** y reporta que no has podido seguir corrigiendo (STOP condition).
+1. Carga `/skill-orquestador-reviewer` con `Skill`.
+2. Ejecuta su flujo con estos argumentos:
+   - `--contract=.claude/skills/developer-code-reviewer/review-contract.md`
+   - la ubicación del código,
+   - los skills de conocimiento que indicó el usuario (el motor añadirá los obligatorios del contrato),
+   - la descripción/requisitos, si los hay.
+3. **MUST NOT** revisar, corregir ni editar ficheros tú mismo: todo lo hacen los subagentes del motor.
+4. **MUST NOT** alterar el flujo del motor (fases, tokens, límites): lo específico de este skill vive en el contrato, no aquí.
 
 ---
 
-## 6. Fase 2 — Informe final
+## 4. Fase 2 — Informe final
 
-Presenta al usuario:
-
-- Iteraciones realizadas y resultado (`OK-No hay problemas` o motivo de la parada).
-- Total de problemas corregidos por severidad (suma de los contadores `CORREGIDO`).
-- `UNCLEAR` / `PUSHBACK` pendientes de decisión, si la parada fue por ellos.
-
-**MUST NOT** afirmar que el código está perfecto si la salida del bucle no fue `OK-No hay problemas`.
+Presenta el informe que devuelve el motor sin reinterpretarlo. **MUST NOT** afirmar que el código está correcto si el motor no terminó con `OK-No hay problemas`.
 
 ---
 
 ## Quick Guidelines
 
-- Eres un **orquestador**: el revisor detecta (sin modificar nada) y el corrector arregla; tú interpretas tokens y decides iterar o parar. **MUST NOT** editar ficheros tú mismo.
-- Sin skills o sin ubicación → **ERROR**. `k-secure-coding` se añade solo si la revisión toca la frontera de confianza (§2.1); `k-vistas` se añade solo si la ubicación contiene XML de vistas (`**/views/*.xml`) — con auditoría ASCII Layout de cada `<form>` y validación XSD (`object-views.xsd`) de todo XML corregido (§2.2).
-- Tokens literales: `OK-No hay problemas` termina el bucle; `CORREGIDO — BLOCKING: n, IMPORTANT: n, MINOR: n` itera; bloques `BEGIN:----`/`SEVERIDAD:`/`END:----` para los problemas.
-- Verificar antes de reportar (nada hipotético, YAGNI con grep) y antes de corregir (`PUSHBACK` si la corrección es técnicamente incorrecta).
-- `UNCLEAR` y `PUSHBACK` paran el bucle y van al usuario (o se devuelven como resultado en modo subagente, §2.5).
-- Subagentes secuenciales, sin `run_in_background`; contexto mínimo de vuelta (tokens y contadores, no el detalle de las correcciones).
-- **LIMIT**: 30 iteraciones del bucle; corrección en orden BLOCKING → IMPORTANT → MINOR, verificada individualmente.
+- Alcance: **código Java/Kotlin**. Qué queda fuera y a dónde remitir cada caso lo dice el `## Alcance` de `review-contract.md`, que es la única fuente.
+- El bucle no vive aquí: lo aporta `/skill-orquestador-reviewer`. Lo que se revisa vive en `review-contract.md`. **MUST NOT** duplicar ninguno de los dos en este fichero.
+- Sin skills de conocimiento o sin ubicación → **ERROR**. Aquí el criterio lo aporta el usuario, no una lista fija.
+- **MUST NOT** editar ficheros tú mismo ni continuar cuando el motor para por `UNCLEAR`, `PUSHBACK` o **LIMIT**.

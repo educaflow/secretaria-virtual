@@ -250,7 +250,7 @@ eeeeeeeeeeee   ← motivo(12)                            [texto libre multilinea
 ### Checklist de maquetación (por panel, antes de escribir el XML)
 
 - [ ] ¿Cada fila suma **exactamente 12** columnas (campos + `colOffset`)?
-- [ ] ¿Los campos semánticamente relacionados están en la **misma fila**?
+- [ ] ¿Los campos semánticamente relacionados están en la **misma fila** y en su **orden natural**?
 - [ ] ¿Ningún `colSpan` está **inflado** respecto a su label + valor típico (tabla de proporcionalidad)?
 - [ ] ¿Ningún campo queda **solo en una fila** con mucho hueco a la derecha sin un motivo real (§alerta)?
 - [ ] ¿Los **bordes de columna se alinean** entre filas y con los paneles condicionales anidados?
@@ -262,11 +262,24 @@ eeeeeeeeeeee   ← motivo(12)                            [texto libre multilinea
 
 ### Agrupación semántica de campos
 Campos relacionados semánticamente deben ir en la misma fila:
+- Nombre + Apellidos → misma fila
 - Fecha de inicio + Fecha de fin → misma fila
 - Slot + PIN (acceso a dispositivo) → misma fila
 - Slot + Alias (identificación de certificado en dispositivo) → misma fila
 - Fichero (subida) + Contraseña (para abrirlo) → misma fila
 - Ruta de un fichero + Contraseña → misma fila o filas contiguas en el mismo panel
+- Para + En copia + En copia oculta (destinatarios de un correo) → misma fila, o filas contiguas en el mismo panel si no caben en 12 columnas
+
+**El orden dentro del grupo también es parte de la regla**, no solo la vecindad. Un grupo bien agrupado pero desordenado se lee mal igual. El orden lo fija, por este orden de prioridad:
+
+1. **La convención del dominio**, cuando existe: Nombre antes que Apellidos; Para, luego En copia, luego En copia oculta; Provincia antes que Municipio.
+2. **La secuencia temporal o lógica**: Fecha de inicio antes que Fecha de fin; Slot antes que PIN (primero eliges el dispositivo, luego te autenticas).
+3. **De lo general a lo particular**: País → Provincia → Municipio → Código postal.
+
+- ✅ CORRECTO: `nombre(4) + apellidos(8)` — convención del dominio.
+- ❌ INCORRECTO: `apellidos(8) + nombre(4)` (mismo grupo y misma fila, pero invertido respecto a cómo se nombra a una persona en castellano).
+- ❌ INCORRECTO: `fechaFin(6) + fechaInicio(6)` (invierte la secuencia temporal).
+- ❌ INCORRECTO: `para(12)` / `enCopiaOculta(6) + enCopia(6)` (rompe el orden convencional de los destinatarios y separa a uno de los tres).
 
 ### Alineación vertical entre filas
 

@@ -30,8 +30,9 @@ Debido a que toda la aplicación está fuertemente acoplada al framework Axelor 
 Los skills se agrupan en **cuatro familias por prefijo** (las reglas de autoría de cada una están en `/k-skill`):
 - `k-*` → **knowledge**: conocimiento de dominio reutilizable (convenciones, patrones, vocabulario). No hacen cosas, las describen; otros skills los cargan como referencia.
 - `sdd-*` → **action**: los pasos del pipeline SDD (ver [`agent_docs/sdd-workflow.md`](agent_docs/sdd-workflow.md)).
-- `developer-*` → **action**: procesos que producen o revisan código real en el árbol del proyecto (p.ej. `developer-code-implementer`, `developer-code-reviewer`, `developer-create-arch-tests`, `developer-create-view-tests`).
-- `skill-*` → **action (meta)**: skills que evalúan o mejoran **otros** skills (p.ej. `skill-eval`, `skill-reviewer`). El conocimiento de cómo se escribe un skill vive en `k-skill`.
+- `developer-*` → **action**: procesos que producen o revisan código real en el árbol del proyecto (p.ej. `developer-code-implementer`, `developer-create-arch-tests`, `developer-create-view-tests`).
+  La revisión está separada por tipo de artefacto, un skill por artefacto: `developer-code-reviewer` (código Java/Kotlin), `developer-view-reviewer` (vistas XML) y `developer-model-reviewer` (modelos de dominio XML). Los tres son wrappers finos: el bucle de revisión lo aporta el motor `skill-orquestador-reviewer` y **qué** revisa cada uno lo declara su `review-contract.md`. Para cambiar el criterio de una revisión se edita ese contrato, no el `SKILL.md`.
+- `skill-*` → **action (meta)**: skills que ayudan a otros skills de forma **abstracta**, sin conocimiento del dominio ni del problema. Dos usos: motores de proceso reutilizables que otros skills invocan con su propio contrato (`skill-orquestador-reviewer`) y skills que evalúan o mejoran otros skills (`skill-eval`, `skill-reviewer`). El conocimiento de cómo se escribe un skill vive en `k-skill`.
 
 Para cada parte de Axelor se han creado conjuntos de Skills:
 - menus (`k-vistas`, fichero `menus.md`) → para todo lo relacionado con menús

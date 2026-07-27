@@ -5,7 +5,7 @@ description: Cómo se IMPLEMENTAN en código Java y XML las restricciones (`RES-
 
 # k-validaciones
 
-Las restricciones, validaciones, reglas de negocio, reglas de UI y campos calculados de una entidad se **definen y clasifican en la especificación** (`/sdd-specification`), cada una con su identificador estable (`RES-`/`VAL-`/`RN-`/`RUI-`/`CC-`). Este skill describe **únicamente cómo se materializan en código y XML**: en qué capa vive cada tipo y con qué mecanismo. Lo cargan los skills `sdd-*` y `code-*` al implementar.
+Las restricciones, validaciones, reglas de negocio, reglas de UI y campos calculados de una entidad se **definen y clasifican en la especificación** (`/sdd-specification`), cada una con su identificador estable (`RES-`/`VAL-`/`RN-`/`RUI-`/`CC-`). Este skill describe **únicamente cómo se materializan en código y XML**: en qué capa vive cada tipo y con qué mecanismo. Lo cargan los skills `sdd-*` y `developer-*` al implementar.
 
 **MUST NOT** reabrir aquí qué es cada tipo, cómo se distinguen ni cómo se documentan: para eso, la spec y su guía `sdd-specification/template-system/README.md`.
 
