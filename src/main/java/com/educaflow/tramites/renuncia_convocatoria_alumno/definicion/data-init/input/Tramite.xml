@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<datos>
+    <tramites>
+        <tramite code="RenunciaConvocatoriaAlumno" name="Renuncia a la convocatoria"  publico="true" privado="true" tipoTramite="ALUMNO"  ><![CDATA[
+            Este trámite es de prueba<br>
+            Es solo para cualquiera<br>
+            Y puedo poner algo en <span style="color:red">rojo</span>.<br>
+            Y esta es una tercera línea de texto.
+        ]]></tramite>
+    </tramites>
+</datos>

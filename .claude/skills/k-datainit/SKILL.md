@@ -17,9 +17,9 @@ Eres responsable de los **datos iniciales** de la aplicación: los registros que
   - `input-config.xml` — el **manifiesto de binding** (`<xml-inputs>`): por cada fichero de datos declara a qué entidad/atributo se mapea cada nodo XML.
   - `input/` — la subcarpeta con los **ficheros de datos** reales (`*.xml`) y, si aplica, los `i18n_*.csv`.
 - **Nombres obligatorios** (son constantes hardcodeadas en `DataLoader`: `DATA_DIR_NAME="data-init"`, `INPUT_CONFIG_NAME="input-config.xml"`, `INPUT_DIR_NAME="input"`, **no** son configurables): la carpeta **MUST** llamarse `data-init`, el manifiesto **MUST** llamarse `input-config.xml`, y los datos **MUST** colgar de `input/`. Si el fichero `data-init/input-config.xml` no existe, esa carpeta se ignora por completo. El tipo (XML vs CSV) se detecta por el **contenido** de la primera línea (`<xml-inputs` o `<csv-inputs`), no por nada del nombre.
-- **Dos ubicaciones posibles**:
-  1. **Junto al código de un sistema/subsistema**: `src/main/java/com/educaflow/<layer>/<nombre>/data-init/`. El build (`copyDataInit` en `build.gradle`) copia estas carpetas a `build/resources/main/java-data-init` automáticamente — basta con crearlas.
-  2. **Global del proyecto**: `src/main/resources/data-init/`. Reservada **solo** para datos verdaderamente transversales que no pertenecen a ningún sistema/subsistema concreto.
+- **Ubicación — junto al código Java, NUNCA en resources**:
+  - Las carpetas `data-init` van **junto al código** bajo `src/main/java` (p.ej. `src/main/java/com/educaflow/<layer>/<nombre>/data-init/`), a **cualquier profundidad**: el build (`copyDataInit` en `build.gradle`) recorre `src/main/java` buscando directorios `data-init` con `input-config.xml` y los copia a `build/resources/main/java-data-init` — basta con crearlas.
+  - **MUST NOT** crear carpetas `data-init` bajo `src/main/resources`. Única excepción ya existente (no ampliar): la global `src/main/resources/data-init/` con el `auth.xml` transversal (roles, grupos y usuarios), que no pertenece a ningún sistema concreto.
 - **`priority`** (atributo de `<xml-inputs>`) ordena la carga **entre** los distintos `input-config.xml` del proyecto. `DataLoader.sortDataInitByPriority()` lee el atributo `priority` del elemento raíz (default `0`) y ordena **descendente**: **mayor `priority` se carga antes** (p.ej. el `data-init` que crea `TipoTramite` tiene `priority="10"` y carga antes que el que crea `Tramite`, que lo referencia, con `priority="1"`). Úsalo para que las dependencias de datos existan antes de ser referenciadas.
   - **Matiz**: ese orden solo aplica entre manifiestos **XML** (`<xml-inputs>`). Todos los manifiestos XML se cargan **antes** que cualquier `<csv-inputs>`, sea cual sea su `priority`. Como en este proyecto todos los `input-config.xml` son XML, el orden lo gobierna `priority` sin más.
 
@@ -129,7 +129,7 @@ Un `<permission>` por objeto del sistema/subsistema. El nombre del permiso por c
 
 ## 5. Anti-patrones
 
-- **MUST NOT** acumular en `src/main/resources/data-init/input/` los datos y permisos de todos los sistemas/subsistemas: cada uno lleva su propio `data-init`. La global solo guarda lo verdaderamente transversal.
+- **MUST NOT** crear nuevas carpetas `data-init` bajo `src/main/resources` ni acumular ahí datos o permisos de sistemas/subsistemas: cada uno lleva su propio `data-init` junto a su código Java. La global existente (`auth.xml` transversal) es la única excepción y no se amplía.
 - **MUST NOT** renombrar la carpeta (`data-init`) ni el manifiesto (`input-config.xml`): el descubrimiento es por convención de nombre.
 - **MUST NOT** poner registros con `search`/`create`/`update` que dupliquen al recargar (sin clave natural en `search`).
 - **MUST NOT** referenciar con `create="true"` entidades que deben existir ya; usa `create="false"` y ordena con `priority`.

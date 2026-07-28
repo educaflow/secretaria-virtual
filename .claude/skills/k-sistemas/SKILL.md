@@ -20,7 +20,7 @@ description: Este Skill permite diseñar y generar la estructura de carpetas, fi
 Un sistema y un subsistema son técnicamente idénticos en estructura. La diferencia es conceptual:
 
 - **Subsistema** — capacidad reutilizable que usan otros subsistemas o sistemas. No desaparecería si se eliminara un sistema concreto. Ejemplos: `firmas`, `registroentradasalida`, `sistemaeducativo`, `common`.
-- **Sistema** — funcionalidad concreta ofrecida al usuario. No necesita ser reutilizada por nadie. Se eliminaría sin afectar al resto. Ejemplos: `actas`, `importar`, `tiposexpedientes/comision_servicio`.
+- **Sistema** — funcionalidad concreta ofrecida al usuario. No necesita ser reutilizada por nadie. Se eliminaría sin afectar al resto. Ejemplos: `actas`, `gestioncentro`.
 
 ## Reglas de dependencia
 
@@ -246,7 +246,7 @@ sistemaeducativo/
 
 ## Advertencia importante
 
-**NUNCA uses como referencia el código de `expedientes`, `tiposexpedientes` ni `tramites`** — siguen una arquitectura completamente distinta al resto del proyecto y tomarlos como ejemplo llevaría a implementaciones incorrectas.
+**NUNCA uses como referencia el código de `expedientes`  — siguen una arquitectura ligeramente distinta al resto del proyecto y tomarlo como ejemplo llevaría a implementaciones incorrectas.
 
 ## Workflow para crear un sistema o subsistema
 
@@ -321,7 +321,7 @@ Para los marcadores (Processing Instructions) que separan las vistas y las secci
 
 Crear un **subsistema** cuando la capacidad es reutilizable (no necesariamente) por múltiples sistemas o por otros subsistemas (ej: firmas, registro de entrada/salida, certificados digitales).
 
-Crear un **sistema** es similar a un subsistema solo que no necesita ser reutilizada por nadie (Se podría eliminar sin problemas si se deja de usar). Un sistema no depende de otros sistemas pero sí de otros subsistemas. Ejemplos: `tiposexpedientes/comision_servicio`, `importar`, `actas`.
+Crear un **sistema** es similar a un subsistema solo que no necesita ser reutilizada por nadie (Se podría eliminar sin problemas si se deja de usar). Un sistema no depende de otros sistemas pero sí de otros subsistemas. Ejemplos: `tramites/prueba/tiposexpedientes/comision_servicio`, `importar`, `actas`.
 
 La diferencia principal entre un sistema y un subsistema es que el sistema suele representar una funcionalidad que se ofrece a los usuarios y que ellos han solicitado. Es decir, es una diferencia desde el punto de vista del negocio. Por ejemplo, el registro de entrada/salida no es algo que los usuarios solicitan sino que es una necesidad que usan los expedientes. Mientras que el subsistema es una parte más genérica y reutilizable que puede ser usada por varios sistemas. Por ejemplo, el subsistema de `firmas` puede ser usado por múltiples sistemas para gestionar la firma de documentos, mientras que el sistema `comision_servicio` es una funcionalidad concreta que utiliza el subsistema de firmas para gestionar los expedientes de comisión de servicio.
 

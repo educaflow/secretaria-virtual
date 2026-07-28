@@ -9,7 +9,7 @@ Entran: **todo** XML bajo `src/main/java/com/educaflow/**` cuyo elemento raíz s
 Formas que adopta hoy en el proyecto, a título orientativo:
 
 - un fichero por entidad en una carpeta `domains/`: `**/domains/<Entidad>.xml` — p.ej. `subsystem/<subsistema>/domains/`, `base/infrastructure/<módulo>/domains/`
-- un único `domains.xml` en la raíz del tipo de expediente: `system/tiposexpedientes/<tipo>/domains.xml`
+- un único `domains.xml` en la raíz del tipo de expediente: `tramites/<tramite>/tiposexpedientes/<tipo>/domains.xml`
 - modelos auxiliares de pantalla fuera de `domains/`: `system/gestioncentro/views-models/*.xml`, `subsystem/expedientes/view_models/*.xml` — pese al nombre de la carpeta **no son vistas**, su raíz es `<domain-models>`
 
 **MUST NOT** restringir el alcance por ruta ni por nombre de carpeta: cualquier paquete puede declarar dominios, y una carpeta llamada `views-models` puede contener modelos. Ante la duda, mira el elemento raíz del fichero.

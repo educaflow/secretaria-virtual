@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<datos>
+    <tramites>
+        <tramite code="CertificadoTutor"   defaultTipoExpediente="CertificadoTutor"  />
+    </tramites>
+</datos>
