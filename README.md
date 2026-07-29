@@ -106,3 +106,7 @@ playwright-cli --help
 playwright-cli install-browser --with-deps
 playwright-cli install --skills
 ```
+
+
+# Fuente
+Instalar la fuente Roboto que está en ./disenyo-grafico/fonts , para ello ejecutar `./install-fonts.sh` 
