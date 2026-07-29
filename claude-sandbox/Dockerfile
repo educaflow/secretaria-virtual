@@ -43,6 +43,9 @@ RUN apt-get update && apt-get install -y \
     socat \
     && rm -rf /var/lib/apt/lists/*
 
+# Herramientas para crear documentos en libre office
+RUN  apt install -y libreoffice python3-odf python3-lxml python3-uno pandoc poppler-utils
+
 # ── Node.js 24 ────────────────────────────────────────────────────────────────
 # Ambos package.json exigen node >= 24.13.0; axelor-front descarga node+pnpm
 # internamente, pero el resto del tooling necesita node/npm/npx del sistema.

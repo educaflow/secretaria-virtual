@@ -110,3 +110,11 @@ playwright-cli install --skills
 
 # Fuente
 Instalar la fuente Roboto que está en ./disenyo-grafico/fonts , para ello ejecutar `./install-fonts.sh` 
+
+# Documentos de libre office
+Instalar en linux los paquetes de python para que claude pueda crear documentos de libre office:
+
+```
+sudo apt install -y libreoffice python3-odf python3-lxml python3-uno pandoc poppler-utils
+```
+
