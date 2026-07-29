@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<documento>
+
+    <titulo valenciano="SOL·LICITUD GENERAL ÚNICA" castellano="SOLICITUD GENERAL ÚNICA"  />
+    <seccion valenciano="DADES DE LA PERSONA SOL·LICITANT" castellano="DATOS DE LA PERSONA SOLICITANTE">
+        <fila>
+            <campo nombreCampo="self.solicitanteApellidos" valenciano="COGNOMS O RAÓ SOCIAL" castellano="APELLIDOS O RAZÓN SOCIAL" colspan="5"  />
+            <campo nombreCampo="self.solicitanteNombre" valenciano="NOM" castellano="NOMBRE" colspan="5"  />
+            <campo nombreCampo="self.solicitanteDni" valenciano="NIF/NIE" castellano="" colspan="2"  />
+        </fila>
+        <fila>
+            <campo nombreCampo="self.solicitanteTelefono"  valenciano="TELÈFON" castellano="TELÉFONO" colspan="5"  />
+            <campo nombreCampo="self.solicitanteEmail"  valenciano="ADREÇA ELECTRÒNICA" castellano="CORREO ELECTRÓNICO" colspan="7"  />
+        </fila>
+        <fila>
+            <texto valenciano="Si ens facilita el seu número de telèfon i correu electrònic podrem comunicar-nos amb vosté, si fora convenient, per a gestionar millor la seua sol·licitud" castellano="Si nos facilita su número de teléfono y correo electrónico podremos comunicarnos con usted, si fuera conveniente, para gestionar mejor su solicitud" colspan="12"  />
+        </fila>
+        <fila>
+            <check nombreCampo="self.comprobarDatos"  valenciano="Comprobar les dades" castellano="Comprobar los datos" colspan="5"  />
+            <campo nombreCampo="self.solicitanteLocalidad"  valenciano="localitat" castellano="localitat" colspan="4"  />
+            <check nombreCampo="self.personaFisica"  valenciano="Persona física" castellano="Persona física" colspan="3"  />
+        </fila>
+    </seccion>
+    <seccion valenciano="DADES DE LA PERSONA REPRESENTANT (EN SU CASO)" castellano="DATOS DE LA PERSONA REPRESENTANTE (EN SU CASO)">
+        <fila>
+            <campo nombreCampo="self.personaFisica" valenciano="COGNOMS O RAÓ SOCIAL" castellano="APELLIDOS O RAZÓN SOCIAL" colspan="5"  />
+            <campo nombreCampo="self.representanteNombre" valenciano="NOM" castellano="NOMBRE" colspan="3"  />
+            <campo nombreCampo="self.representanteDni" valenciano="NIF/NIE" castellano="" colspan="2"  />
+        </fila>
+        <fila>
+            <campo nombreCampo="self.representanteDomicilio"  valenciano="Domicili" castellano="Domicilio" colspan="12"  />
+        </fila>
+        <fila>
+            <texto valenciano="Si ens facilita el seu número de telèfon i correu electrònic podrem comunicar-nos amb vosté, si fora convenient, per a gestionar millor la seua sol·licitud" castellano="Si nos facilita su número de teléfono y correo electrónico podremos comunicarnos con usted, si fuera conveniente, para gestionar mejor su solicitud" colspan="12"  />
+        </fila>
+        <fila>
+            <check nombreCampo="self.notificarEmail"  valenciano="Desitge ser notificat/per mitjans electrònics (les persones jurídiques estan obligades a relacionar-se per estos mitjans)" castellano="Deseo ser notificado/a por medios electrónicos (las personas jurídicas están obligadas a relacionarse por estos medios)" colspan="12"  />
+        </fila>
+    </seccion>
+</documento>
