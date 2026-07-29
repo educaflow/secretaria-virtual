@@ -30,8 +30,8 @@
         <![CDATA[
 
             public enum TipoDocumentoPdf {
-                SOLICITUD("/com/educaflow/tramites/justificacion_falta_profesorado/tiposexpedientes/justificacion_falta_profesorado/documentospdf/solicitud.pdf"),
-                RESOLUCION("/com/educaflow/tramites/justificacion_falta_profesorado/tiposexpedientes/justificacion_falta_profesorado/documentospdf/resolucion.pdf");
+                SOLICITUD("/com/educaflow/tramites/justificacion_falta_profesorado/justificacion_falta_profesorado/documentospdf/solicitud.pdf"),
+                RESOLUCION("/com/educaflow/tramites/justificacion_falta_profesorado/justificacion_falta_profesorado/documentospdf/resolucion.pdf");
 
                 private final String fileName;
 

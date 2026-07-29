@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tramite>
+
+    <code>FirmarActas</code>
+    <name>Firmar actas</name>
+    <tipoTramite>ADMINISTRATIVO</tipoTramite>
+    <publico>false</publico>
+    <privado>true</privado>
+    <help><![CDATA[
+            Este trámite es de prueba<br>
+        ]]></help>
+</Tramite>

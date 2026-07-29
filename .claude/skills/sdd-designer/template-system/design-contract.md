@@ -36,7 +36,7 @@ Un diseño describe **la estructura** del software (qué ficheros existen, qué 
 - **MUST NOT** incluir cuerpos de métodos Java implementados. Nada de `validateInsert` con su lógica, nada de `for`/`if` reales, nada de `messages.add(...)` con strings literales dentro de un método. Solo firmas + comentario descriptivo.
 - **MUST NOT** incluir mensajes de error literales para validaciones Java — se describe el contenido que debe transmitir (valor recibido, dominio válido), no el literal. (Los literales de `<action-validate>` XML sí se escriben porque el XML va completo; y los mensajes que cita `test-e2e-desc.md` se toman tal cual del spec/vista.)
 - **MUST NOT** inventar elementos que no estén en la especificación. Si el spec no menciona una pantalla, un campo o una regla, **MUST NOT** añadirse.
-- **MUST NOT** usar como referencia el código de `expedientes`/`tiposexpedientes`/`tramites` ni JPQL real.
+- **MUST NOT** usar como referencia el código de `expedientes`/`tramites` ni JPQL real.
 
 ### 1.2 XML real vs descripción markdown
 

@@ -234,7 +234,7 @@ Antes de preguntar o revisar:
 
 **MUST NOT**:
 
-- **MUST NOT** leer ni tomar como referencia `expedientes`, `tiposexpedientes` ni `tramites` — siguen otra arquitectura.
+- **MUST NOT** leer ni tomar como referencia `expedientes` ni `tramites` — siguen otra arquitectura.
 - **MUST NOT** leer otras `specification.md` ajenas a esta iniciativa como referencia.
 
 ---

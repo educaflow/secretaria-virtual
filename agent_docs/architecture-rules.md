@@ -18,7 +18,7 @@ Las reglas se derivan de la **arquitectura documentada**, NO de lo que el códig
 ## Convenciones de verificación (aplican a todas las reglas)
 
 - **Ámbito de análisis:** las clases de producción del paquete `com.educaflow` (los tests quedan fuera del análisis).
-- **Paquetes exentos:** `..expedientes..`, `..tiposexpedientes..` y `..tramites..` tienen **arquitectura propia** (EventManager, view_models, carpetas en plural) y quedan fuera de todas las reglas: se excluyen del **sujeto** de cada regla y, en las reglas de dependencias/ciclos, también como **origen y destino** de las dependencias analizadas.
+- **Paquetes exentos:** `..expedientes..` y `..tramites..` tienen **arquitectura propia** (EventManager, view_models, carpetas en plural) y quedan fuera de todas las reglas: se excluyen del **sujeto** de cada regla y, en las reglas de dependencias/ciclos, también como **origen y destino** de las dependencias analizadas.
 - **Marcas de cumplimiento** (apartado *Cumplimiento* de cada regla):
   - ✅ CUMPLE — el código la cumple hoy; el test se genera tal cual.
   - ⚠️ — cumplimiento previsible pero no verificado; el test se genera tal cual y puede fallar al ejecutar.
@@ -142,7 +142,7 @@ Modelo en capas con dependencia **solo ascendente**: una capa solo puede ser usa
 **Verificación.**
 - Sujeto: los sistemas, entendidos como *slices* = subpaquetes de **primer nivel** de `com.educaflow.system`.
 - Condición: los slices no dependen unos de otros.
-- Exenciones: `..tiposexpedientes..` y `..tramites..` quedan fuera del análisis (como origen y como destino).
+- Exenciones: `..tramites..` queda fuera del análisis (como origen y como destino).
 - Mensaje: el generado por defecto (sin mensaje propio).
 
 **Cumplimiento.** ✅ CUMPLE.

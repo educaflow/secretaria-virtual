@@ -74,13 +74,13 @@
   <permission name="TipoTramite.all" object="com.educaflow.subsystem.expedientes.db.TipoTramite">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
-  <permission name="CertificadoTutor.all" object="com.educaflow.subsystem.expedientes.db.CertificadoTutor">
+  <permission name="CertificadoTutorV1.all" object="com.educaflow.subsystem.expedientes.db.CertificadoTutorV1">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
   <permission name="ValoresAmbito.all" object="com.educaflow.subsystem.expedientes.db.ValoresAmbito">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
-  <permission name="Prueba.all" object="com.educaflow.subsystem.expedientes.db.Prueba">
+  <permission name="PruebaV1.all" object="com.educaflow.subsystem.expedientes.db.PruebaV1">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
   <permission name="FormacionCentroTrabajo.all" object="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo">
@@ -201,9 +201,9 @@
     <permission name="HistorialEstado.all"/>
     <permission name="PerfilExpediente.all"/>
     <permission name="TipoTramite.all"/>
-    <permission name="CertificadoTutor.all"/>
+    <permission name="CertificadoTutorV1.all"/>
     <permission name="ValoresAmbito.all"/>
-    <permission name="Prueba.all"/>
+    <permission name="PruebaV1.all"/>
     <permission name="FormacionCentroTrabajo.all"/>
     <permission name="SearchExpedientes.all"/>
     <permission name="TareaFirma.all"/>
@@ -258,9 +258,9 @@
     <permission name="HistorialEstado.all"/>
     <permission name="PerfilExpediente.all"/>
     <permission name="TipoTramite.leer"/>
-    <permission name="CertificadoTutor.all"/>
+    <permission name="CertificadoTutorV1.all"/>
     <permission name="ValoresAmbito.all"/>
-    <permission name="Prueba.all"/>
+    <permission name="PruebaV1.all"/>
     <permission name="FormacionCentroTrabajo.all"/>
     <permission name="SearchExpedientes.all"/>
     <permission name="TareaFirma.firmante"/>

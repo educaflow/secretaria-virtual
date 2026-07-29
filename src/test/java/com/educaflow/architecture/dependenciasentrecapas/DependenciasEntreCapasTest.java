@@ -23,7 +23,7 @@ import com.tngtech.archunit.library.freeze.FreezingArchRule;
 class DependenciasEntreCapasTest {
 
     private static final String[] PAQUETES_EXENTOS = {
-        "..expedientes..", "..tiposexpedientes..", "..tramites.."
+        "..expedientes..", "..tramites.."
     };
 
     // [C1] Verificación:
@@ -118,15 +118,13 @@ class DependenciasEntreCapasTest {
     // [C8] Verificación:
     //   - Sujeto: los sistemas, entendidos como *slices* = subpaquetes de **primer nivel** de `com.educaflow.system`.
     //   - Condición: los slices no dependen unos de otros.
-    //   - Exenciones: `..tiposexpedientes..` y `..tramites..` quedan fuera del análisis (como origen y como destino).
+    //   - Exenciones: `..tramites..` queda fuera del análisis (como origen y como destino).
     //   - Mensaje: el generado por defecto (sin mensaje propio).
     @ArchTest
     static final ArchRule c8_sistemasIndependientesEntreSi =
         slices().matching("com.educaflow.system.(*)..")
             .should().notDependOnEachOther()
-            // 'tiposexpedientes' y 'tramites' tienen arquitectura propia: se excluyen (origen y destino).
-            .ignoreDependency(resideInAPackage("..tiposexpedientes.."), DescribedPredicate.alwaysTrue())
-            .ignoreDependency(DescribedPredicate.alwaysTrue(), resideInAPackage("..tiposexpedientes.."))
+            // 'tramites' tiene arquitectura propia: se excluye (origen y destino).
             .ignoreDependency(resideInAPackage("..tramites.."), DescribedPredicate.alwaysTrue())
             .ignoreDependency(DescribedPredicate.alwaysTrue(), resideInAPackage("..tramites.."));
 }

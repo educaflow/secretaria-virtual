@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tramite>
+
+    <code>RenunciaConvocatoriaTutor</code>
+    <name>Renuncia a la convocatoria</name>
+    <tipoTramite>TUTOR</tipoTramite>
+    <publico>true</publico>
+    <privado>false</privado>
+    <help><![CDATA[
+            Este trámite es de prueba<br>
+            Es solo para cualquiera<br>
+            Y puedo poner algo en <span style="color:red">rojo</span>.<br>
+            Y esta es una tercera línea de texto.
+        ]]></help>
+</Tramite>

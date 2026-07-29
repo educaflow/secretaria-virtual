@@ -173,7 +173,7 @@ Los skills son la fuente de verdad sobre **qué piezas existen y cómo se llaman
 - `CLAUDE.md` del proyecto — capas, convenciones, tipos de usuario, árbol de subsistemas existentes.
 - `src/main/java/com/educaflow/subsystem/` y `src/main/java/com/educaflow/system/` — qué reutilizar (FQN, dependencias) y dependencias potenciales.
 - `src/main/java/com/educaflow/base/infrastructure/` — utilidades reutilizables (PDF, mail, evaluator, etc.).
-- **MUST NOT** usar como referencia el código de `expedientes`/`tiposexpedientes`/`tramites` (siguen otra arquitectura) ni `design.md`/XML de diseños previos como plantilla.
+- **MUST NOT** usar como referencia el código de `expedientes`/`tramites` (siguen otra arquitectura) ni `design.md`/XML de diseños previos como plantilla.
 
 Cada subagente que necesite este contexto (sobre todo el diseñador) lo **carga él mismo** leyendo estos skills y explorando el código real; no se le copia código, se le indica dónde mirar.
 

@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<datos>
-    <tramites>
-        <tramite code="JustificacionFaltaProfesorado"   defaultTipoExpediente="JustificacionFaltaProfesorado"  />
-    </tramites>
-</datos>

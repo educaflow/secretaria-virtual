@@ -164,4 +164,4 @@ Tras un `CORREGIDO` del corrector, el motor **para** (§4.4) y **arranca de nuev
 
 - Ningún rol carga skills "por defecto": el **ejecutor** carga el skill de pilotaje del navegador que indique `execution.md`; el **corrector** decide y carga **en runtime** los skills de dominio que el fallo requiera (`correction.md`).
 - Referencia de arquitectura, tipos de usuario y subsistemas: el `CLAUDE.md` del proyecto y los de cada carpeta. Los subagentes los consultan cuando el contrato lo pide.
-- **MUST NOT** usar como referencia el código de `expedientes`/`tiposexpedientes`/`tramites` (otra arquitectura).
+- **MUST NOT** usar como referencia el código de `expedientes`/`tramites` (otra arquitectura).

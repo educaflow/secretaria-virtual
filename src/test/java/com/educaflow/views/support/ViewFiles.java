@@ -22,22 +22,22 @@ import java.util.stream.Stream;
  *
  * <p>El discriminador de fichero de vista es la carpeta {@code views/} bajo
  * {@code src/main/java/com/educaflow}, NO el elemento raíz (object-views aparece también en
- * menus.xml, DefaultModelController.xml y las views.xml de tiposexpedientes).
+ * menus.xml, DefaultModelController.xml y las views.xml de los tipos de expediente).
  *
  * <p>Se excluyen los paquetes exentos ({@code gestioncentro}, {@code expedientes},
- * {@code tiposexpedientes}, {@code tramites}), con la misma política que
+ * {@code tramites}), con la misma política que
  * agent_docs/view-rules.md (§ Paquetes exentos).
  */
 public final class ViewFiles {
 
     /**
      * Segmentos de ruta exentos. Las reglas de vistas aplican a TODOS los sistemas y subsistemas
-     * EXCEPTO {@code gestioncentro}, {@code expedientes}, {@code tiposexpedientes} y {@code tramites}
+     * EXCEPTO {@code gestioncentro}, {@code expedientes} y {@code tramites}
      * (framework propio de expediente/tramitación y pantallas de gestión de centro), que quedan fuera
      * del sujeto de todas las reglas. Debe coincidir con la lista de agent_docs/view-rules.md.
      */
     private static final List<String> PAQUETES_EXENTOS =
-            List.of("gestioncentro", "expedientes", "tiposexpedientes", "tramites");
+            List.of("gestioncentro", "expedientes", "tramites");
 
     private static List<ViewFile> cache;
     private static Document menusCache;

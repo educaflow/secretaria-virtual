@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tramite>
+
+    <code>JustificacionFaltaProfesorado</code>
+    <name>Justificación de falta del profesorado</name>
+    <tipoTramite>PROFESOR</tipoTramite>
+    <defaultTipoExpediente>v2Nueva</defaultTipoExpediente>
+    <help><![CDATA[
+            Este trámite permite a justificar la falta del profesorado.<br>
+            Es solo para profesores<br>
+            Y puedo poner algo en <strong>negrita</strong>.
+        ]]></help>
+</Tramite>

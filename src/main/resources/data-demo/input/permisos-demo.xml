@@ -21,7 +21,7 @@
 
     <!-- AccessAssignment con actor = Cargo sobre TipoExpediente concreto -->
     <asignacionesCargoTipoExpediente>
-        <asignacion cargoCode="JEFE_ESTUDIOS" perfilName="RESPONSABLE" tipoExpedienteCode="JustificacionFaltaProfesorado"/>
+        <asignacion cargoCode="JEFE_ESTUDIOS" perfilName="RESPONSABLE" tipoExpedienteCode="JustificacionFaltaProfesoradoV1"/>
     </asignacionesCargoTipoExpediente>
 
     <!-- AccessAssignment con actor = CentroUsuario (usuario concreto en un centro) -->

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tramite>
+
+    <code>Prueba</code>
+    <name>Trámite de prueba</name>
+    <tipoTramite>PROFESOR</tipoTramite>
+    <publico>true</publico>
+    <privado>true</privado>
+    <defaultTipoExpediente>v1</defaultTipoExpediente>
+    <help><![CDATA[
+            Este trámite es de prueba<br>
+            Es solo para cualquiera<br>
+
+        ]]></help>
+</Tramite>

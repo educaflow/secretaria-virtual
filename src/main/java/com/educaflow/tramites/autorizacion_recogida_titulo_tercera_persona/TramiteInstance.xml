@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tramite>
+
+    <code>AutorizacionRecogidaTituloTerceraPersona</code>
+    <name>Autorización para la recogida del título por tercera persona</name>
+    <tipoTramite>CONSERJE</tipoTramite>
+    <publico>false</publico>
+    <privado>true</privado>
+    <help><![CDATA[
+            Este trámite es de prueba<br>
+            Es solo para cualquiera<br>
+            Y puedo poner algo en <span style="color:red">rojo</span>.<br>
+            Y esta es una tercera línea de texto.<br>
+            hola<br>
+        ]]></help>
+</Tramite>

@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<datos>
-    <tramites>
-        <tramite code="FirmarActas" name="Firmar actas"  publico="false" privado="true" tipoTramite="ADMINISTRATIVO"   ><![CDATA[
-            Este trámite es de prueba<br>
-        ]]></tramite>
-    </tramites>
-</datos>

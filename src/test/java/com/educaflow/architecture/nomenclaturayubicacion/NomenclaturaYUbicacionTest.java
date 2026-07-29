@@ -23,7 +23,7 @@ import com.axelor.db.modelservice.ModelService;
 class NomenclaturaYUbicacionTest {
 
     private static final String[] PAQUETES_EXENTOS = {
-        "..expedientes..", "..tiposexpedientes..", "..tramites.."
+        "..expedientes..", "..tramites.."
     };
 
     // [C15] Verificación:

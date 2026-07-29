@@ -20,7 +20,7 @@ import com.tngtech.archunit.library.freeze.FreezingArchRule;
 class EstructuraInternaTest {
 
     private static final String[] PAQUETES_EXENTOS = {
-        "..expedientes..", "..tiposexpedientes..", "..tramites.."
+        "..expedientes..", "..tramites.."
     };
 
     // [C9] Verificación:

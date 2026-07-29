@@ -125,4 +125,4 @@ src/test/java/com/educaflow/…           ← tests unitarios (JUnit+Mockito)
 Ningún rol carga skills "por defecto" desde aquí: los skills técnicos que necesita el **implementador** van **por tarea**, listados dentro de cada `task_NN.md` (los puso el descomponedor según `decomposition.md`). El implementador los carga con `Skill` antes de implementar. El verificador-build y el corrector-build no necesitan skills de dominio salvo los que la tarea afectada implique.
 
 - Referencia de arquitectura, capas, tipos de usuario y árbol de subsistemas: el `CLAUDE.md` del proyecto y los `CLAUDE.md` de cada carpeta. Los subagentes los consultan cuando el contrato lo pide.
-- **MUST NOT** usar como referencia el código de `expedientes`/`tiposexpedientes`/`tramites` (siguen otra arquitectura) ni `design.md`/XML de diseños previos de otras iniciativas como plantilla.
+- **MUST NOT** usar como referencia el código de `expedientes`/`tramites` (siguen otra arquitectura) ni `design.md`/XML de diseños previos de otras iniciativas como plantilla.

@@ -288,7 +288,7 @@ Construye un fichero **autocontenido** en `$TMPDIR/skill_eval_subagent_prompt.md
    - "**MUST NOT** leer otros artefactos del workspace de evaluación que no sean el input que se te indica."
    - Si el gold proviene de código real existente: "**MUST NOT** leer el directorio `{ruta-código-fuente-del-gold}`. Para este ejercicio, ese código NO existe todavía y debes producir el output desde cero a partir del input."
    - "**MUST NOT** leer otros artefactos análogos al gold dentro del proyecto. Solo el input explícito que se te ha pasado."
-   - "**MUST NOT** usar como referencia código que el proyecto explícitamente declara como excluido (ej. en CLAUDE.md). Para EducaFlow: jamás `expedientes`, `tiposexpedientes`, `tramites`."
+   - "**MUST NOT** usar como referencia código que el proyecto explícitamente declara como excluido (ej. en CLAUDE.md). Para EducaFlow: jamás `expedientes`, `tramites`."
    - "**MUST NOT** invocar `AskUserQuestion`. Si te falta información, asúmela razonablemente y documenta la asunción donde el contrato del skill objetivo lo prevea."
 
 2. **El input completo (literal)**: contenido del input principal embebido tal cual en el prompt.

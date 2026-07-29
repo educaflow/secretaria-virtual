@@ -109,7 +109,7 @@
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
 
-  <permission name="CertificadoTutor.all" object="com.educaflow.subsystem.expedientes.db.CertificadoTutor">
+  <permission name="CertificadoTutorV1.all" object="com.educaflow.subsystem.expedientes.db.CertificadoTutorV1">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
 
@@ -117,7 +117,7 @@
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
 
-  <permission name="Prueba.all" object="com.educaflow.subsystem.expedientes.db.Prueba">
+  <permission name="PruebaV1.all" object="com.educaflow.subsystem.expedientes.db.PruebaV1">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
 
