@@ -153,6 +153,24 @@ tasks.register('managei18nfiles', JavaExec) {
 tasks.named('processResources') {
     finalizedBy 'managei18nfiles'
 }
+tasks.register('generatePdfDocuments', JavaExec) {
+    description = 'Genera los PDF de los documentos de los trámites (XML con raíz <documento> en carpetas documentospdf/documentos, sin prefijo "_") en build/src-gen/main/resources.'
+    group = 'build'
+
+    mainClass = 'com.educaflow.common.buildtools.xml2pdf.Main'
+
+    classpath = configurations.educaFlowBuildToolsDependency
+
+    args './src/main/java', './build/src-gen/main/resources'
+
+    workingDir = layout.projectDirectory.dir('.')
+}
+// dependsOn (no finalizedBy): build/src-gen/main/resources es un srcDir de
+// recursos, así que los PDF deben existir ANTES de que processResources los
+// copie a build/resources/main.
+tasks.named('processResources') {
+    dependsOn 'generatePdfDocuments'
+}
 tasks.register('copyDataInit') {
     description = 'Copia las carpetas "data-init" (las que contienen input-config.xml) y su subcarpeta input de cada expediente.'
     group = 'build'

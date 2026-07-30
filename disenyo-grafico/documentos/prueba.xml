@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <documento xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:noNamespaceSchemaLocation="../../.claude/skills/k-formulario-odt/formulario-odt.xsd">
+           xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documento.xsd">
 
     <titulo>
         <valenciano>Sol·licitud de permís de llicència per cursos I accions formatives</valenciano>
