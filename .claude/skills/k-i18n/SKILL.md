@@ -18,12 +18,9 @@ El idioma efectivo de cada usuario lo gestiona Axelor: lo determina la configura
 
 ## Ficheros de traducciones
 
-Las traducciones viven en ficheros CSV bajo `src/main/resources/i18n/`:
+Los pares `i18n_es.csv` / `i18n_ca.csv` viven **junto al fuente, por directorio**: cada carpeta con fuentes traducibles (dominios, vistas, la raíz de cada trámite, cada carpeta de tipo de expediente…) tiene su propio par, mantenido por el build (tarea `managei18nfiles`, ver la sección de la maquinaria). No confundirlos con los `messages_*.csv` de `src/main/resources/i18n/`, que son el catálogo general de la aplicación (los mensajes de `I18n.get(...)`).
 
-- `i18n_es.csv` — traducciones al español.
-- `i18n_ca.csv` — traducciones al catalán.
-
-> **IMPORTANTE — no editar a mano.** Estos CSV se **generan automáticamente** mediante un script del proyecto. Nunca crees ni edites `i18n_es.csv` ni `i18n_ca.csv` manualmente: cualquier cambio se perderá en la siguiente regeneración. Lo que tienes que hacer es escribir los textos en castellano en su sitio (`title`/`help` del XML del dominio, literales en las vistas, mensajes pasados a `I18n.get(...)` en el código), y el script se encarga de extraer las claves y rellenar los CSV.
+> **IMPORTANTE — qué se puede tocar a mano y qué no.** **MUST NOT** crear los `i18n_es.csv`/`i18n_ca.csv` a mano, ni añadir o quitar filas, ni editar las claves: los mantiene el build. Lo **único** previsto editar a mano es la columna `message` de una traducción automática mala (normalmente en `i18n_ca.csv`) — esa corrección **se conserva** porque la tarea nunca retraduce un mensaje ya relleno. Los textos en castellano se escriben en su sitio (`title`/`help` del XML, `I18n.get(...)` en código) y el build extrae las claves y rellena los CSV.
 
 ## El sufijo `__!!` — palabras que no se traducen
 
@@ -38,6 +35,32 @@ Este sufijo indica al script de generación de i18n que esa palabra **no debe tr
 - En el XML / código fuente escribes `AutoFirma__!!`.
 - En la UI el usuario ve `AutoFirma`.
 - Si necesitas usar esa palabra en código (p.ej. en `camelCase`), primero **quita el `__!!`** y después transforma: `AutoFirma__!!` → `AutoFirma` → `autoFirma`.
+
+## La maquinaria de generación y traducción automática (build)
+
+La tarea `managei18nfiles` (finalizer de `processResources`, implementada en EducaFlowBuildTools) recorre los fuentes y mantiene los CSV. Reglas que hay que conocer:
+
+### Qué genera claves
+
+- Los atributos `title`/`help` de las vistas y los títulos de los dominios.
+- Del `TipoExpedienteInstance.xml`: el `name` del tipo y los títulos de estado (se registran con prefijo `value:`, que se quita antes de traducir); un estado **sin** `title` genera clave con su name humanizado (`ENTRADA_DATOS` → "Entrada datos").
+- El `<name>` de cada `TramiteInstance.xml` (su CSV queda en la raíz de la carpeta del trámite).
+- Los campos de dominio y los `<item>` de los `<enum>` **sin** `title` también generan clave (humanizados con el mismo algoritmo que usa Axelor).
+- Las claves `Code`/`Name` se traducen hardcoded a "Código"/"Codi" y "Nombre"/"Nom", sin pasar por el traductor.
+
+### La traducción automática castellano→valenciano
+
+- La hace el proceso externo `apertium`, que **MUST** estar instalado en el PATH con el par `spa-cat_valencia` (el ejecutable es un argumento de la tarea en `build.gradle`); sin él, el build falla.
+- Heurística de "traducción fiable": apertium marca con `*` las palabras que no conoce; una palabra marcada se acepta igualmente si va seguida de punto, si termina en `__!!` o si está toda en mayúsculas (siglas). Después se eliminan los `*` y los sufijos `__!!` del resultado.
+- Si la traducción de un texto nuevo **no** es fiable, el build falla con "Fallo al traducir estos campos (debe modificar o añadir el atributo title correspondiente)". Arreglos: marcar la palabra con `__!!`, o reformular el texto en castellano.
+
+### Ciclo de vida de los CSV
+
+- La tarea **añade** claves nuevas y **rellena** los mensajes vacíos, pero **nunca borra una clave obsoleta** (persiste hasta que se limpie a mano) y **nunca retraduce un mensaje ya relleno** — por eso las correcciones manuales de la columna `message` se conservan.
+- Los CSV se reescriben siempre con las 4 columnas `key,message,comment,context`; los comentarios añadidos a mano se pierden.
+- Se procesan **por directorio y sin recursión**: cada carpeta con fuentes traducibles tiene su propio par es/ca.
+- Si las listas es/ca descuadran (p.ej. una fila añadida a mano en solo uno) → **ERROR** "El tamaño de las listas no coincide".
+- En la copia al build solo se aceptan los nombres exactos `i18n_es.csv`/`i18n_ca.csv` (se copian renombrados a `custom_es.csv`/`custom_ca.csv`); otro nombre → "El nombre del fichero no es válido".
 
 ## `I18n.get(...)` — traducir desde Java
 
@@ -119,7 +142,7 @@ No hay que envolver estos atributos en nada — Axelor los traduce solo en tiemp
 ## Resumen — reglas operativas
 
 1. **Escribe los textos en castellano** allí donde corresponda: `title`/`help` en XML, primer argumento de `I18n.get(...)` en Java.
-2. **Nunca edites manualmente** `i18n_es.csv` ni `i18n_ca.csv`: se generan con un script.
+2. **Nunca crees los CSV ni toques su estructura** (filas, claves): los mantiene el build. La única edición manual prevista es corregir la columna `message` de una traducción mala, que se conserva.
 3. **Usa `__!!`** para marcar palabras intraducibles (nombres propios, marcas); recuerda quitar el sufijo al usarlas en código.
 4. **Para el label de un campo**, usa siempre `I18n.get(Mapper.of(Entidad.class).getProperty("campo").getTitle())` en lugar de literales.
 5. **Para mensajes de usuario** (validaciones, errores, correos, PDFs) usa `I18n.get("Texto en castellano")`.

@@ -1,17 +1,6 @@
----
-name: k-documentos
-description: Documentos PDF de los trámites de la secretaría virtual — los PDF que los usuarios presentan al centro (p.ej. solicitudes) y los que la aplicación emite para los usuarios (p.ej. resoluciones), pieza central de la tramitación. Qué contiene la carpeta `documentospdf/` (o los XML de definición de los que EducaFlowBuildTools genera los PDF en el build, o directamente los PDF), el formato XML de definición de los formularios oficiales (GVA) (documento/seccion/fila/campo/check/texto con hijos valenciano/castellano, siendo el valenciano opcional porque se calcula traduciendo el castellano y el titulo opcional porque por omisión es el name del TramiteInstance.xml del trámite padre, rejilla de 12 columnas, campos inline ${...}, rowSpan, nombreCampo como expresión Groovy con self, fragmentos reutilizables _*.xml con raíz fragmento incluidos con include href, XSD documento.xsd en EducaFlowBuildTools). Úsalo siempre que haya que crear o modificar uno de estos XML o trabajar con una carpeta documentospdf. La generación del PDF desde el XML NO es de este skill - la hace EducaFlowBuildTools en el build de secretaria-virtual (tarea generatePdfDocuments).
-allowed-tools: Read, Write, Edit, Bash(xmllint:*)
----
+# Los documentos PDF (`documentospdf/`)
 
-# k-documentos
-
-Los documentos son una pieza central de la aplicación: son los PDF con los que se materializa la tramitación administrativa. Son de dos clases según quién los aporta:
-
-- Los que los usuarios **presentan** al centro (p.ej. una solicitud), que entran por el registro de entrada.
-- Los que la aplicación **emite** para los usuarios (p.ej. una resolución), que salen por el registro de salida.
-
-Cada trámite tiene una carpeta `documentospdf/` con sus documentos: para cada documento contiene **o** el XML de definición del que `EducaFlowBuildTools` genera el PDF rellenable en el build, **o** directamente el PDF ya hecho. Este skill documenta **el formato de ese XML** (para escribirlo o modificarlo). Cómo se implementa la generación del PDF **no** es responsabilidad de este skill: la hace `EducaFlowBuildTools`. Ejemplos reales: los `*.xml` de las carpetas `documentospdf/` de los trámites (`src/main/java/com/educaflow/tramites/**`) y `disenyo-grafico/documentos/`.
+Los documentos son los PDF con los que se materializa la tramitación: los que los usuarios **presentan** al centro (p.ej. una solicitud, entran por registro de entrada) y los que la aplicación **emite** (p.ej. una resolución, salen por registro de salida). Cada tipo de expediente tiene una carpeta `documentospdf/` con sus documentos: para cada uno contiene **o** el XML de definición del que EducaFlowBuildTools genera el PDF rellenable en el build (tarea `generatePdfDocuments`), **o** directamente el PDF ya hecho. Este fichero documenta **el formato de ese XML**; la generación del PDF no es responsabilidad de este skill (la hace EducaFlowBuildTools, herramienta `xml2pdf`). Ejemplos reales: los `*.xml` de las carpetas `documentospdf/` de los trámites (`src/main/java/com/educaflow/tramites/**`) y `disenyo-grafico/documentos/`.
 
 ---
 
@@ -22,8 +11,9 @@ Cada trámite tiene una carpeta `documentospdf/` con sus documentos: para cada d
 - El **`<titulo>` es opcional**: si el documento no lleva ninguno, se titula con el `<name>` del `TramiteInstance.xml` del trámite padre (§2.7).
 - El **`<valenciano>` es opcional**: si se omite, el generador lo calcula **traduciendo el `<castellano>`** con el traductor `apertium` (§2.6). Un `<castellano>` omitido o vacío omite el castellano; un `<valenciano>` **vacío** (`<valenciano></valenciano>`) omite el valenciano — omitirlo y ponerlo vacío **no** es lo mismo.
 - El formato está descrito por el XSD `documento.xsd`, que vive en `EducaFlowBuildTools` (`src/main/resources/com/educaflow/common/buildtools/xml2pdf/documento.xsd`). Todo XML de definición **MUST** referenciarlo en la raíz con `xsi:noNamespaceSchemaLocation` usando su URL de GitHub en la rama master (la del ejemplo de §2.1, idéntica en todos los XML). El generador valida cada XML contra ese XSD al cargarlo y aborta con ERROR si no valida (usa el XSD incluido en su jar, sin acceso a red; la URL es solo la referencia declarativa).
-- Cada `<campo>`/`<check>` produce un **campo rellenable** del formulario cuyo nombre es el `nombreCampo` **literal**. **CRITICAL**: `nombreCampo` no es realmente un nombre — es una **expresión Groovy** que el motor de relleno evalúa para obtener el valor del campo, y `self` referencia el **modelo del tipo de expediente** en cuya carpeta está el XML. Por eso son válidos `self.dni`, `String.valueOf(self.anyo)`, `self.tipo==com.educaflow...Enum.VALOR` (checks) o `true` (casilla siempre marcada).
-- Carpeta `documentospdf/` (o `documentos/`): cada documento del trámite está **o** como XML de definición —el build de `secretaria-virtual` genera su PDF (tarea `generatePdfDocuments` → `EducaFlowBuildTools`)— **o** directamente como PDF versionado. Los `_*.xml` son **fragmentos** reutilizables (raíz `<fragmento>`) que los documentos incluyen con `<include href="..."/>` (§2.5) y no generan PDF propio. **MUST NOT** convivir en la misma carpeta un `aa.xml` (raíz `<documento>`) con un `aa.pdf` versionado: el build aborta por ambigüedad.
+- Cada `<campo>`/`<check>` produce un **campo rellenable** del formulario cuyo nombre es el `nombreCampo` **literal**. **CRITICAL**: `nombreCampo` no es realmente un nombre — es una **expresión Groovy** que se evalúa en runtime para obtener el valor del campo, donde `self` es **el objeto del tipo de expediente** (la instancia de la entidad del expediente concreto en cuya carpeta está el XML). Todo el detalle del contexto, la potencia de las expresiones y la conversión de valores: §2.8.
+- Carpeta `documentospdf/` (o `documentos/`): cada documento del trámite está **o** como XML de definición **o** directamente como PDF versionado. Los `_*.xml` son **fragmentos** reutilizables (raíz `<fragmento>`) que los documentos incluyen con `<include href="..."/>` (§2.5) y no generan PDF propio. **MUST NOT** convivir en la misma carpeta un `aa.xml` (raíz `<documento>`) con un `aa.pdf` versionado: el build aborta por ambigüedad.
+- Cada `.pdf` resultante (generado o versionado) produce una constante del enum `TipoDocumentoPdf` de la entidad (`modelo.md` §5) con la que el EventManager lo obtiene y rellena (`eventmanager.md` §6.1). Nombres de fichero en camelCase sin espacios ni guiones y extensión `.pdf` en minúsculas (`solicitudFirmada.pdf` → `SOLICITUD_FIRMADA`; un nombre inválido rompe la compilación después, sin aviso del build).
 
 ---
 
@@ -117,6 +107,7 @@ Para compartir partes comunes entre documentos (del mismo trámite o de varios):
 - El generador sustituye cada `<include>` por **los hijos de la raíz** del fragmento, recursivamente (un fragmento puede incluir otros fragmentos). El `href` se resuelve relativo al fichero que lo incluye. Un ciclo de includes aborta con ERROR.
 - Se valida contra el XSD cada fichero por separado **y** el documento ya expandido. Las letras de sección (A, B, C…) se asignan sobre el documento expandido.
 - Cambiar un fragmento regenera en el build los PDF de todos los documentos que lo incluyen, directa o transitivamente.
+- **CRITICAL para el versionado**: si un fragmento contiene expresiones Groovy con FQCN de enums versionados (`...TipoJornadaFaltaJustificacionFaltaProfesoradoV1.TODA_LA_JORNADA`), esas referencias cambian en cada versión nueva (`versionado.md`).
 
 ```xml
 <documento ...>
@@ -145,7 +136,7 @@ Si un elemento no lleva `<valenciano>`, el generador lo calcula traduciendo su `
 
 Si el documento no lleva `<titulo>` (ni propio ni aportado por un fragmento), el generador le añade uno **al principio del todo** con el `<name>` del `TramiteInstance.xml` del **trámite padre**, y lo traduce al valenciano (§2.6). O sea: por omisión, un documento se titula como su trámite.
 
-- El `TramiteInstance.xml` se busca **subiendo por las carpetas padre** desde la del XML: los documentos están en `<tramite>/<tipoExpediente>/documentospdf/` y el `TramiteInstance.xml` en `<tramite>/`. **MUST** existir y tener `<name>`, o el build falla.
+- El `TramiteInstance.xml` se busca **subiendo por las carpetas padre** desde la del XML: los documentos están en `<tramite>/<vN>/documentospdf/` y el `TramiteInstance.xml` en `<tramite>/`. **MUST** existir y tener `<name>`, o el build falla.
 - Cambiar el `<name>` del `TramiteInstance.xml` regenera en el build los PDF de los documentos de ese trámite.
 - Pon un `<titulo>` explícito solo cuando el documento **deba** titularse distinto del trámite.
 
@@ -155,6 +146,39 @@ Si el documento no lleva `<titulo>` (ni propio ni aportado por un fragmento), el
     <seccion>...</seccion>
 </documento>
 ```
+
+### 2.8 Las expresiones Groovy (`nombreCampo` y `${...}`)
+
+**Cuándo se evalúan**: NO en el build — el build solo genera el PDF con el formulario vacío. Las expresiones se evalúan **en runtime**, cada vez que el EventManager pide el documento (`expediente.getDocumentoPdf(...)` → `DocumentoPdfUtil.generate`); después el formulario se **aplana** (el PDF resultante ya no es editable).
+
+**Contexto disponible** (variables del binding):
+
+| Variable | Valor |
+|---|---|
+| `self` | El **objeto del tipo de expediente**: la instancia de la entidad (`extends Expediente`) del expediente concreto. Da acceso a todos sus campos propios y heredados (`self.personaInteresada.nombre`, `self.numeroExpediente`, `self.centro.name`…) |
+| `now` | `java.time.LocalDateTime.now()` (fecha/hora de generación) |
+
+**Potencia**: se evalúan con `GroovyShell`, así que vale cualquier expresión Groovy:
+
+- Navegación de propiedades: `self.personaInteresada.dni`, `self.centro.municipio.name`.
+- Navegación segura y elvis: `self.otroMotivo?.toUpperCase()`, `self.otroMotivo ?: ""`.
+- Llamadas a métodos: `String.valueOf(self.anyo)`, `now.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))`.
+- Clases por FQCN (no hay imports): `com.educaflow.base.util.MetaFileUtil.sha256(self.justificante)`.
+- Comparaciones para los `<check>`: `self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFalta<Entidad>.TODA_LA_JORNADA`, o el literal `true` (casilla siempre marcada).
+- Concatenación: `'"    " + com...sha256(self.justificante)'` (atributo con comillas simples, §2.3).
+
+**Conversión del resultado a texto** (lo que se estampa en el campo):
+
+| Resultado | Se estampa |
+|---|---|
+| `Boolean` | `Yes`/`Off` — marca o desmarca la casilla de un `<check>` (en un campo de texto saldría literalmente "Yes") |
+| `null` | vacío |
+| Enteros / decimales | formateados con locale español (decimales: máximo 2) |
+| `LocalDate` / `LocalTime` / `LocalDateTime` | `dd/MM/yyyy` / `HH:mm` / `dd/MM/yyyy HH:mm` |
+| Enum de Axelor | su `title` del `<item>` del dominio (o el `name` humanizado si no tiene `title`); también vale acceder explícitamente: `self.tipoResolucion.title` |
+| Resto | `toString()` |
+
+**CRITICAL — los fallos son silenciosos**: una expresión que revienta al evaluarse (propiedad inexistente, NPE en la cadena…) **no hace fallar ni el build ni el evento** — el error solo se escribe en el log del servidor y el campo queda **vacío**. Tras cambiar expresiones, **MUST** revisar el PDF generado en runtime (y el log si falta algún valor). Una expresión vacía se salta sin evaluar.
 
 ---
 
@@ -175,6 +199,6 @@ Si el documento no lleva `<titulo>` (ni propio ni aportado por un fragmento), el
 - Todo XML referencia el XSD `documento.xsd` de `EducaFlowBuildTools` con `xsi:noNamespaceSchemaLocation` = su URL de GitHub en master; el generador lo valida al cargarlo (y puedes adelantarte con `xmllint --schema` contra la copia local de `../EducaFlowBuildTools`).
 - `colspan` y `rowSpan` admiten decimales; la casilla de un `<check>` ocupa siempre 1 columna.
 - `${expresion;n}` = campo inline de `n` columnas dentro de cualquier texto bilingüe.
-- `nombreCampo` no es un nombre: es una **expresión Groovy** que obtiene el valor del campo; `self` = modelo del tipo de expediente donde está el XML. Con comillas dobles dentro, atributo con comillas simples.
-- En `documentospdf/` cada documento está **o** como XML de definición **o** directamente como PDF versionado (nunca ambos). Este skill solo define el **formato del XML**; el PDF lo genera el build (`generatePdfDocuments` / `EducaFlowBuildTools`).
+- `nombreCampo` no es un nombre: es una **expresión Groovy** que obtiene el valor del campo, evaluada **en runtime** con `self` (el objeto del tipo de expediente) y `now`; los fallos de evaluación son silenciosos (log + campo vacío) — revisa el PDF generado (§2.8). Con comillas dobles dentro, atributo con comillas simples.
+- En `documentospdf/` cada documento está **o** como XML de definición **o** directamente como PDF versionado (nunca ambos). Este fichero solo define el **formato del XML**; el PDF lo genera el build (`generatePdfDocuments` / EducaFlowBuildTools).
 - Partes comunes: fragmentos `_*.xml` (raíz `<fragmento>`) incluidos con `<include href="..."/>` solo a nivel de documento/fragmento, recursivos, validados también tras expandir (§2.5).

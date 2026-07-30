@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<documento xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documento.xsd">
+
+    <include href="_template.xml"/>
+
+    <seccion>
+        <valenciano>Declaració responsable</valenciano>
+        <castellano>Declaración responsable</castellano>
+        <fila>
+            <check nombreCampo="true" colspan="12">
+                <valenciano>La persona que signatura declara, sota la seua responsabilitat, que les dades ressenyades en la present sol·licitud i en la documentació que s'adjunta són exactes i conformes amb el que s'estableix en la legislació, i que es troba en possessió de la documentació que així ho acredita, quedant a la disposició de la Generalitat per a la seua presentació, comprovació, control i inspecció posterior que s'estimen oportuns.</valenciano>
+                <castellano>La persona que firma declara, bajo su responsabilidad, que los datos reseñados en la presente solicitud y en la documentación que se adjunta son exactos y conformes con lo establecido en la legislación, y que se encuentra en posesión de la documentación que así lo acredita, quedando a disposición de la Generalitat para su presentación, comprobación, control e inspección posterior que se estimen oportunos.</castellano>
+            </check>
+        </fila>
+    </seccion>
+
+    <seccion>
+        <valenciano>Protecció de dades</valenciano>
+        <castellano>Protección de datos</castellano>
+        <fila>
+            <texto colspan="12">
+                <valenciano>De conformitat amb el Reglament General de Protecció de Dades i la Llei orgànica 3/2018, de 5 de desembre, de Protecció de Dades Personals i garantia dels drets digitals, les dades de caràcter personal que ens proporcione seran tractats per la Generalitat per a procedir a la tramitació de la seua sol·licitud a l'empara de la normativa d'aplicació.</valenciano>
+                <castellano>De conformidad con el Reglamento General de Protección de Datos y la Ley Orgánica 3/2018, de 5 de diciembre, de Protección de Datos Personales y garantía de los derechos digitales, los datos de carácter personal que nos proporcione serán tratados por la Generalitat para proceder a la tramitación de su solicitud al amparo de la normativa de aplicación.</castellano>
+            </texto>
+            <texto colspan="12">
+                <valenciano>Podrà exercir els drets d'accés, rectificació, supressió i portabilitat de les seues dades personals, limitació i oposició de tractament i no ser objecte de decisions individuals automatitzades respecte a les seues dades personals registrades en la Generalitat, davant la conselleria responsable del tractament de les seues dades personals. Així mateix, podrà reclamar, si és el cas, davant l'autoritat de control en matèria de protecció de dades, especialment quan no haja obtingut resposta o la resposta no haja sigut satisfactòria en l'exercici dels seus drets</valenciano>
+                <castellano>Podrá ejercer los derechos de acceso, rectificación, supresión y portabilidad de sus datos personales, limitación y oposición de tratamiento y no ser objeto de decisiones individuales automatizadas respecto a sus datos personales registrados en la Generalitat, ante la conselleria responsable del tratamiento de sus datos personales. Así mismo, podrá reclamar, en su caso, ante la autoridad de control en materia de protección de datos, especialmente cuando no haya obtenido respuesta o la respuesta no haya sido satisfactoria en el ejercicio de sus derechos: https://www.gva.es/es/inicio/procedimientos?id_proc=19970</castellano>
+            </texto>
+            <texto colspan="12">
+                <valenciano>Més informació en l'índex de registres de les activitats de tractament (RATs) per conselleria:</valenciano>
+                <castellano>Más información en el índice de registros de las actividades de tratamiento (RATs) por conselleria: https://gvaoberta.gva.es/es/registre-activitats-de-tractament</castellano>
+            </texto>
+            <texto colspan="12">
+                <valenciano>Informació addicional i detallada sobre protecció de dades:</valenciano>
+                <castellano>Información adicional y detallada sobre protección de datos: https://gvaoberta.gva.es/documents/7843050/172663653/20240530_Informacion+protección+de+datos_castellano</castellano>
+            </texto>
+            <texto colspan="12">
+                <valenciano>Delegació de Protecció de Dades de la GVA:</valenciano>
+                <castellano>Delegación de Protección de Datos de la GVA: https://cjusticia.gva.es/es/web/delegacion-de-proteccion-de-datos-gva</castellano>
+            </texto>
+        </fila>
+    </seccion>
+
+    <seccion>
+        <valenciano>Signat</valenciano>
+        <castellano>Firmado</castellano>
+        <fila>
+            <texto colspan="12" rowSpan="4">
+                <valenciano>Signatura</valenciano>
+                <castellano>Firma</castellano>
+            </texto>
+        </fila>
+    </seccion>
+
+</documento>

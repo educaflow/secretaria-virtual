@@ -4,7 +4,7 @@
     <code>JustificacionFaltaProfesorado</code>
     <name>Justificación de falta del profesorado</name>
     <tipoTramite>PROFESOR</tipoTramite>
-    <defaultTipoExpediente>v1</defaultTipoExpediente>
+    <defaultTipoExpediente>v2</defaultTipoExpediente>
     <help><![CDATA[
             Este trámite permite a justificar la falta del profesorado.<br>
             Es solo para profesores<br>
