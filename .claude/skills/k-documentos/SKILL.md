@@ -1,7 +1,7 @@
 ---
 name: k-documentos
-description: Documentos PDF de los trámites de la secretaría virtual — los PDF que los usuarios presentan al centro (p.ej. solicitudes) y los que la aplicación emite para los usuarios (p.ej. resoluciones), pieza central de la tramitación. Qué contiene la carpeta `documentospdf/` (o los XML de definición de los que EducaFlowBuildTools genera los PDF en el build, o directamente los PDF), el formato XML de definición de los formularios oficiales (GVA) (documento/seccion/fila/campo/check/texto con hijos valenciano/castellano, siendo el valenciano opcional porque se calcula traduciendo el castellano y el titulo opcional porque por omisión es el name del TramiteInstance.xml del trámite padre, rejilla de 12 columnas, campos inline ${...}, rowSpan, nombreCampo como expresión Groovy con self, fragmentos reutilizables _*.xml con raíz fragmento incluidos con include href, XSD documento.xsd en EducaFlowBuildTools) y cómo transcribir un .odt antiguo GVA a este XML. Úsalo siempre que haya que crear, modificar o transcribir uno de estos XML o trabajar con una carpeta documentospdf. La generación del PDF desde el XML NO es de este skill - la hace EducaFlowBuildTools en el build de secretaria-virtual (tarea generatePdfDocuments).
-allowed-tools: Read, Write, Edit, Bash(python3 .claude/skills/libreoffice-writer/scripts/odt_verify.py:*), Bash(unzip:*), Bash(xmllint:*), Bash(grep:*)
+description: Documentos PDF de los trámites de la secretaría virtual — los PDF que los usuarios presentan al centro (p.ej. solicitudes) y los que la aplicación emite para los usuarios (p.ej. resoluciones), pieza central de la tramitación. Qué contiene la carpeta `documentospdf/` (o los XML de definición de los que EducaFlowBuildTools genera los PDF en el build, o directamente los PDF), el formato XML de definición de los formularios oficiales (GVA) (documento/seccion/fila/campo/check/texto con hijos valenciano/castellano, siendo el valenciano opcional porque se calcula traduciendo el castellano y el titulo opcional porque por omisión es el name del TramiteInstance.xml del trámite padre, rejilla de 12 columnas, campos inline ${...}, rowSpan, nombreCampo como expresión Groovy con self, fragmentos reutilizables _*.xml con raíz fragmento incluidos con include href, XSD documento.xsd en EducaFlowBuildTools). Úsalo siempre que haya que crear o modificar uno de estos XML o trabajar con una carpeta documentospdf. La generación del PDF desde el XML NO es de este skill - la hace EducaFlowBuildTools en el build de secretaria-virtual (tarea generatePdfDocuments).
+allowed-tools: Read, Write, Edit, Bash(xmllint:*)
 ---
 
 # k-documentos
@@ -11,7 +11,7 @@ Los documentos son una pieza central de la aplicación: son los PDF con los que 
 - Los que los usuarios **presentan** al centro (p.ej. una solicitud), que entran por el registro de entrada.
 - Los que la aplicación **emite** para los usuarios (p.ej. una resolución), que salen por el registro de salida.
 
-Cada trámite tiene una carpeta `documentospdf/` con sus documentos: para cada documento contiene **o** el XML de definición del que `EducaFlowBuildTools` genera el PDF rellenable en el build, **o** directamente el PDF ya hecho. Este skill documenta **el formato de ese XML** (para escribirlo o modificarlo) y cómo **transcribir** un `.odt` antiguo GVA a este XML. Cómo se implementa la generación del PDF **no** es responsabilidad de este skill: la hace `EducaFlowBuildTools`. Ejemplos reales: los `*.xml` de las carpetas `documentospdf/` de los trámites (`src/main/java/com/educaflow/tramites/**`) y `disenyo-grafico/documentos/`.
+Cada trámite tiene una carpeta `documentospdf/` con sus documentos: para cada documento contiene **o** el XML de definición del que `EducaFlowBuildTools` genera el PDF rellenable en el build, **o** directamente el PDF ya hecho. Este skill documenta **el formato de ese XML** (para escribirlo o modificarlo). Cómo se implementa la generación del PDF **no** es responsabilidad de este skill: la hace `EducaFlowBuildTools`. Ejemplos reales: los `*.xml` de las carpetas `documentospdf/` de los trámites (`src/main/java/com/educaflow/tramites/**`) y `disenyo-grafico/documentos/`.
 
 ---
 
@@ -147,7 +147,7 @@ Si el documento no lleva `<titulo>` (ni propio ni aportado por un fragmento), el
 
 - El `TramiteInstance.xml` se busca **subiendo por las carpetas padre** desde la del XML: los documentos están en `<tramite>/<tipoExpediente>/documentospdf/` y el `TramiteInstance.xml` en `<tramite>/`. **MUST** existir y tener `<name>`, o el build falla.
 - Cambiar el `<name>` del `TramiteInstance.xml` regenera en el build los PDF de los documentos de ese trámite.
-- Pon un `<titulo>` explícito solo cuando el documento **deba** titularse distinto del trámite (o cuando el título oficial del `.odt` original sea otro, §3).
+- Pon un `<titulo>` explícito solo cuando el documento **deba** titularse distinto del trámite.
 
 ```xml
 <documento ...>
@@ -158,42 +158,9 @@ Si el documento no lleva `<titulo>` (ni propio ni aportado por un fragmento), el
 
 ---
 
-## 3. Transcribir un .odt antiguo al XML
-
-Receta para convertir un formulario `.odt` de formato antiguo (hecho a mano en la GVA) en el XML:
-
-1. Renderiza el `.odt` a imagen y estudia su estructura visual (usa el skill `libreoffice-writer`):
-   ```bash
-   python3 .claude/skills/libreoffice-writer/scripts/odt_verify.py <doc>.odt -r 120
-   ```
-2. Extrae y formatea su contenido:
-   ```bash
-   unzip -p <doc>.odt content.xml > /tmp/content.xml   # formatea con xml.dom.minidom para leerlo
-   ```
-3. Lista los controles (`grep -o 'form:name="[^"]*"' `): el orden de declaración da `control1..N`; anota tipo (`form:text`/`form:checkbox`) y nombre. **MUST** copiar los nombres **literales** al `nombreCampo`, aunque sean expresiones (`String.valueOf(...)`, `==Enum.X`, `true`).
-4. Convierte los anchos: con las `style:rel-column-width` de las columnas, cada celda ocupa `suma_rel_celda * 12 / suma_rel_total` columnas → ese es su `colspan`. Redondea a enteros o a un decimal limpio (2.1, 3.9) según lo que claramente quiso el autor.
-5. Mapea cada fila de la tabla:
-   - Fila de título con logo → `<titulo>` (si el título del original coincide con el `<name>` del trámite, puedes omitirlo y dejar que lo ponga el generador, §2.7).
-   - Fila-cabecera de bloque (fondo/negrita, texto "Val / Cast") → `<seccion>` separando los dos idiomas en sus hijos `<valenciano>`/`<castellano>`.
-   - Celda con etiqueta + control → `<campo>`; celda con casilla + texto → `<check>`; celda solo texto → `<texto>`; los idiomas van siempre en los hijos `<valenciano>`/`<castellano>`.
-   - Varios bloques apilados en una misma celda o celdas sin borde entre sí → misma `<fila>` con varias líneas de 12 (campos extra sin etiqueta si no la tienen).
-   - Control incrustado en medio de una frase → `${expresion;n}` con `n = ancho_cm * 12 / 19` (12 / ancho de tabla; en los `.odt` antiguos, de márgenes más anchos, la tabla solía medir 17).
-   - Celda notablemente alta (campo multilínea, recuadro de firma) → `rowSpan` (≈ alto_cm / 0.6 unidades extra).
-6. Detalles de equivalencia: los enlaces van como texto plano (no hay hipervínculos en el XML); si una URL aparece una sola vez compartida, ponla solo en `castellano`. Texto que en el original solo está en castellano → `<valenciano>` **vacío** (omitirlo lo traduciría, §2.6). Texto que solo está en valenciano → omite el `<castellano>`. Al transcribir, el valenciano del original **MUST** copiarse literalmente: **MUST NOT** borrarlo para que lo traduzca el build.
-7. Valida el XML contra el XSD (el build lo hace igualmente al cargarlo, pero así el fallo aparece antes):
-   ```bash
-   xmllint --noout --schema ../EducaFlowBuildTools/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documento.xsd <definicion>.xml
-   ```
-   Las sumas de `colspan` **no** las valida el XSD: las comprueba el generador de `EducaFlowBuildTools` al compilar (aborta con ERROR si no suman múltiplo de 12).
-8. Avisa al usuario de lo que **no** se conserva al regenerar: el estándar nuevo añade letras de sección y cabeceras bilingües en dos líneas, y unifica tipografías; el documento puede quedar más alto y repaginar.
-
----
-
-## 4. Anti-patrones
+## 3. Anti-patrones
 
 - **MUST NOT** editar el PDF generado para "arreglar" el documento: cambia el XML de definición — el PDF se regenera al compilar.
-- **MUST NOT** "mejorar" los textos al transcribir: la transcripción es literal (incluidos errores del original; señálalos al usuario aparte).
-- **MUST NOT** inventar `nombreCampo`: si el control del documento original se llama `true` o es una expresión, se copia tal cual.
 - **MUST NOT** quitar un `<valenciano>` ya escrito para dejar que lo traduzca el build: la traducción automática (§2.6) es para textos **nuevos**, no para sustituir el valenciano oficial de un documento existente.
 - **MUST NOT** documentar ni reimplementar aquí la generación del PDF: esa implementación vive en `EducaFlowBuildTools` (herramienta `xml2pdf`).
 
@@ -211,4 +178,3 @@ Receta para convertir un formulario `.odt` de formato antiguo (hecho a mano en l
 - `nombreCampo` no es un nombre: es una **expresión Groovy** que obtiene el valor del campo; `self` = modelo del tipo de expediente donde está el XML. Con comillas dobles dentro, atributo con comillas simples.
 - En `documentospdf/` cada documento está **o** como XML de definición **o** directamente como PDF versionado (nunca ambos). Este skill solo define el **formato del XML**; el PDF lo genera el build (`generatePdfDocuments` / `EducaFlowBuildTools`).
 - Partes comunes: fragmentos `_*.xml` (raíz `<fragmento>`) incluidos con `<include href="..."/>` solo a nivel de documento/fragmento, recursivos, validados también tras expandir (§2.5).
-- Transcribir ODT→XML: render + `content.xml` + `form:name` literales + anchos relativos → colspans; validar con `xmllint`.
