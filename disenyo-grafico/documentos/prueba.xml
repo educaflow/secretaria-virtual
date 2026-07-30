@@ -1,40 +1,94 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<documento>
+<documento xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="../../.claude/skills/k-formulario-odt/formulario-odt.xsd">
 
-    <titulo valenciano="SOL·LICITUD GENERAL ÚNICA" castellano="SOLICITUD GENERAL ÚNICA"  />
-    <seccion valenciano="DADES DE LA PERSONA SOL·LICITANT" castellano="DATOS DE LA PERSONA SOLICITANTE">
+    <titulo>
+        <valenciano>Sol·licitud de permís de llicència per cursos I accions formatives</valenciano>
+        <castellano>Solicitud de permiso de licencia para cursos y acciones formativas</castellano>
+    </titulo>
+
+    <seccion>
+        <valenciano>DADES DE LA PERSONA SOL·LICITANT</valenciano>
+        <castellano>DATOS DE LA PERSONA SOLICITANTE</castellano>
         <fila>
-            <campo nombreCampo="self.solicitanteApellidos" valenciano="COGNOMS O RAÓ SOCIAL" castellano="APELLIDOS O RAZÓN SOCIAL" colspan="5"  />
-            <campo nombreCampo="self.solicitanteNombre" valenciano="NOM" castellano="NOMBRE" colspan="5"  />
-            <campo nombreCampo="self.solicitanteDni" valenciano="NIF/NIE" castellano="" colspan="2"  />
+            <campo nombreCampo="self.solicitanteApellidos" colspan="5">
+                <valenciano>COGNOMS O RAÓ SOCIAL</valenciano>
+                <castellano>APELLIDOS O RAZÓN SOCIAL</castellano>
+            </campo>
+            <campo nombreCampo="self.solicitanteNombre" colspan="5">
+                <valenciano>NOM</valenciano>
+                <castellano>NOMBRE</castellano>
+            </campo>
+            <campo nombreCampo="self.solicitanteDni" colspan="2">
+                <valenciano>NIF/NIE</valenciano>
+            </campo>
         </fila>
         <fila>
-            <campo nombreCampo="self.solicitanteTelefono"  valenciano="TELÈFON" castellano="TELÉFONO" colspan="5"  />
-            <campo nombreCampo="self.solicitanteEmail"  valenciano="ADREÇA ELECTRÒNICA" castellano="CORREO ELECTRÓNICO" colspan="7"  />
+            <campo nombreCampo="self.solicitanteTelefono" colspan="5">
+                <valenciano>TELÈFON</valenciano>
+                <castellano>TELÉFONO</castellano>
+            </campo>
+            <campo nombreCampo="self.solicitanteEmail" colspan="7">
+                <valenciano>ADREÇA ELECTRÒNICA</valenciano>
+                <castellano>CORREO ELECTRÓNICO</castellano>
+            </campo>
         </fila>
         <fila>
-            <texto valenciano="Si ens facilita el seu número de telèfon i correu electrònic podrem comunicar-nos amb vosté, si fora convenient, per a gestionar millor la seua sol·licitud" castellano="Si nos facilita su número de teléfono y correo electrónico podremos comunicarnos con usted, si fuera conveniente, para gestionar mejor su solicitud" colspan="12"  />
+            <texto colspan="12">
+                <valenciano>Si ens facilita el seu número de telèfon i correu electrònic podrem comunicar-nos amb vosté, si fora convenient, per a gestionar millor la seua sol·licitud</valenciano>
+                <castellano>Si nos facilita su número de teléfono y correo electrónico podremos comunicarnos con usted, si fuera conveniente, para gestionar mejor su solicitud</castellano>
+            </texto>
         </fila>
         <fila>
-            <check nombreCampo="self.comprobarDatos"  valenciano="Comprobar les dades" castellano="Comprobar los datos" colspan="5"  />
-            <campo nombreCampo="self.solicitanteLocalidad"  valenciano="localitat" castellano="localitat" colspan="4"  />
-            <check nombreCampo="self.personaFisica"  valenciano="Persona física" castellano="Persona física" colspan="3"  />
+            <check nombreCampo="self.comprobarDatos" colspan="5">
+                <valenciano>Comprobar les dades</valenciano>
+                <castellano>Comprobar los datos</castellano>
+            </check>
+            <campo nombreCampo="self.solicitanteLocalidad" colspan="4">
+                <valenciano>localitat</valenciano>
+                <castellano>localidad</castellano>
+            </campo>
+            <check nombreCampo="self.personaFisica" colspan="3">
+                <valenciano>Persona física</valenciano>
+                <castellano>Persona física</castellano>
+            </check>
         </fila>
     </seccion>
-    <seccion valenciano="DADES DE LA PERSONA REPRESENTANT (EN SU CASO)" castellano="DATOS DE LA PERSONA REPRESENTANTE (EN SU CASO)">
+
+    <seccion>
+        <valenciano>DADES DE LA PERSONA REPRESENTANT (EN SU CASO)</valenciano>
+        <castellano>DATOS DE LA PERSONA REPRESENTANTE (EN SU CASO)</castellano>
         <fila>
-            <campo nombreCampo="self.personaFisica" valenciano="COGNOMS O RAÓ SOCIAL" castellano="APELLIDOS O RAZÓN SOCIAL" colspan="5"  />
-            <campo nombreCampo="self.representanteNombre" valenciano="NOM" castellano="NOMBRE" colspan="3"  />
-            <campo nombreCampo="self.representanteDni" valenciano="NIF/NIE" castellano="" colspan="2"  />
+            <campo nombreCampo="self.representanteApellidos" colspan="5">
+                <valenciano>COGNOMS O RAÓ SOCIAL</valenciano>
+                <castellano>APELLIDOS O RAZÓN SOCIAL</castellano>
+            </campo>
+            <campo nombreCampo="self.representanteNombre" colspan="5">
+                <valenciano>NOM</valenciano>
+                <castellano>NOMBRE</castellano>
+            </campo>
+            <campo nombreCampo="self.representanteDni" colspan="2">
+                <valenciano>NIF/NIE</valenciano>
+            </campo>
         </fila>
         <fila>
-            <campo nombreCampo="self.representanteDomicilio"  valenciano="Domicili" castellano="Domicilio" colspan="12"  />
+            <campo nombreCampo="self.representanteDomicilio" colspan="12">
+                <valenciano>Domicili</valenciano>
+                <castellano>Domicilio</castellano>
+            </campo>
         </fila>
         <fila>
-            <texto valenciano="Si ens facilita el seu número de telèfon i correu electrònic podrem comunicar-nos amb vosté, si fora convenient, per a gestionar millor la seua sol·licitud" castellano="Si nos facilita su número de teléfono y correo electrónico podremos comunicarnos con usted, si fuera conveniente, para gestionar mejor su solicitud" colspan="12"  />
+            <texto colspan="12">
+                <valenciano>Si ens facilita el seu número de telèfon i correu electrònic podrem comunicar-nos amb vosté, si fora convenient, per a gestionar millor la seua sol·licitud</valenciano>
+                <castellano>Si nos facilita su número de teléfono y correo electrónico podremos comunicarnos con usted, si fuera conveniente, para gestionar mejor su solicitud</castellano>
+            </texto>
         </fila>
         <fila>
-            <check nombreCampo="self.notificarEmail"  valenciano="Desitge ser notificat/per mitjans electrònics (les persones jurídiques estan obligades a relacionar-se per estos mitjans)" castellano="Deseo ser notificado/a por medios electrónicos (las personas jurídicas están obligadas a relacionarse por estos medios)" colspan="12"  />
+            <check nombreCampo="self.notificarEmail" colspan="12">
+                <valenciano>Desitge ser notificat/per mitjans electrònics (les persones jurídiques estan obligades a relacionar-se per estos mitjans)</valenciano>
+                <castellano>Deseo ser notificado/a por medios electrónicos (las personas jurídicas están obligadas a relacionarse por estos medios)</castellano>
+            </check>
         </fila>
     </seccion>
+
 </documento>

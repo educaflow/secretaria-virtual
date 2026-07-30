@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Esquema del XML de definición de formularios ODT de la secretaría virtual.
+     Fuente de verdad: .claude/skills/k-formulario-odt (SKILL.md + scripts/xml2odt.py). -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+    <!-- colspan: número de columnas de la rejilla de 12; positivo, admite decimales. -->
+    <xs:simpleType name="colspanType">
+        <xs:restriction base="xs:decimal">
+            <xs:minExclusive value="0"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- rowSpan: multiplicador de alto de fila; >= 1, admite decimales. -->
+    <xs:simpleType name="rowSpanType">
+        <xs:restriction base="xs:decimal">
+            <xs:minInclusive value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- nombreCampo: expresión literal no vacía (self.x, String.valueOf(...), true, ...). -->
+    <xs:simpleType name="nombreCampoType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Textos bilingües como elementos hijos. Un hijo omitido o vacío omite
+         ese idioma. Admiten campos inline ${nombre;n}. -->
+    <xs:group name="textosBilingues">
+        <xs:sequence>
+            <xs:element name="valenciano" type="xs:string" minOccurs="0"/>
+            <xs:element name="castellano" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:group>
+
+    <xs:complexType name="campoType">
+        <xs:group ref="textosBilingues"/>
+        <xs:attribute name="nombreCampo" type="nombreCampoType" use="required"/>
+        <xs:attribute name="colspan" type="colspanType" use="required"/>
+        <xs:attribute name="rowSpan" type="rowSpanType"/>
+    </xs:complexType>
+
+    <xs:complexType name="textoType">
+        <xs:group ref="textosBilingues"/>
+        <xs:attribute name="colspan" type="colspanType" use="required"/>
+        <xs:attribute name="rowSpan" type="rowSpanType"/>
+    </xs:complexType>
+
+    <xs:element name="documento">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+
+                <xs:element name="titulo">
+                    <xs:complexType>
+                        <xs:group ref="textosBilingues"/>
+                    </xs:complexType>
+                </xs:element>
+
+                <xs:element name="seccion">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:group ref="textosBilingues"/>
+                            <xs:element name="fila" minOccurs="0" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:choice minOccurs="1" maxOccurs="unbounded">
+                                        <xs:element name="campo" type="campoType"/>
+                                        <xs:element name="check" type="campoType"/>
+                                        <xs:element name="texto" type="textoType"/>
+                                    </xs:choice>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

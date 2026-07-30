@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<documento xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="../../.claude/skills/k-formulario-odt/formulario-odt.xsd">
+
+    <titulo>
+        <valenciano>Sol·licitud de permís de llicència per cursos I accions formatives</valenciano>
+        <castellano>Solicitud de permiso de licencia para cursos y acciones formativas</castellano>
+    </titulo>
+
+    <seccion>
+        <valenciano>Centre docent on es presenta</valenciano>
+        <castellano>Centro docente donde se presenta</castellano>
+        <fila>
+            <campo nombreCampo="self.nombreCentro" colspan="6">
+                <valenciano>Nom</valenciano>
+                <castellano>Nombre</castellano>
+            </campo>
+            <campo nombreCampo="self.codigoCentro" colspan="2.1">
+                <valenciano>Codi</valenciano>
+                <castellano>Código</castellano>
+            </campo>
+            <campo nombreCampo="self.municipioCentro" colspan="3.9">
+                <valenciano>Municipi</valenciano>
+                <castellano>Municipio</castellano>
+            </campo>
+        </fila>
+    </seccion>
+
+    <seccion>
+        <valenciano>Dades de la persona sol·licitant</valenciano>
+        <castellano>Datos de la persona solicitante</castellano>
+        <fila>
+            <campo nombreCampo="self.dni" colspan="4">
+                <valenciano>DNI</valenciano>
+            </campo>
+            <campo nombreCampo="self.apellidos" colspan="4">
+                <valenciano>Cognoms</valenciano>
+                <castellano>Apellidos</castellano>
+            </campo>
+            <campo nombreCampo="self.nombre" colspan="4">
+                <valenciano>Nom</valenciano>
+                <castellano>Nombre</castellano>
+            </campo>
+        </fila>
+        <fila>
+            <campo nombreCampo="self.especialidad" colspan="12">
+                <valenciano>Especialitat</valenciano>
+                <castellano>Especialidad</castellano>
+            </campo>
+        </fila>
+    </seccion>
+
+    <seccion>
+        <valenciano>Dades de la persona representant</valenciano>
+        <castellano>Datos de la persona representante</castellano>
+        <fila>
+            <campo nombreCampo="self.dniRepresentante" colspan="4">
+                <valenciano>DNI</valenciano>
+            </campo>
+            <campo nombreCampo="self.apellidosRepresentante" colspan="4">
+                <valenciano>Cognoms</valenciano>
+                <castellano>Apellidos</castellano>
+            </campo>
+            <campo nombreCampo="self.nombreRepresentante" colspan="4">
+                <valenciano>Nom</valenciano>
+                <castellano>Nombre</castellano>
+            </campo>
+        </fila>
+    </seccion>
+
+    <seccion>
+        <valenciano>Sol·licita permís</valenciano>
+        <castellano>Solicita permiso</castellano>
+        <fila>
+            <campo nombreCampo="self.nombreCurso" colspan="12" rowSpan="2">
+                <valenciano>Curs, conferència, seminari, congrés, jornada o similar</valenciano>
+                <castellano>Curso, conferencia, seminario, congreso, jornada o similar</castellano>
+            </campo>
+        </fila>
+        <fila>
+            <campo nombreCampo="self.dias" colspan="12">
+                <valenciano>Durant els dies</valenciano>
+                <castellano>Durante los días</castellano>
+            </campo>
+        </fila>
+        <fila>
+            <campo nombreCampo="self.numeroDiasSolicitados" colspan="6">
+                <valenciano>Nº dies sol·licitats</valenciano>
+                <castellano>Nº días solicitados</castellano>
+            </campo>
+            <campo nombreCampo="self.numeroDiasConsumidos" colspan="6">
+                <valenciano>Dies ja consumits</valenciano>
+                <castellano>Días ya consumidos</castellano>
+            </campo>
+        </fila>
+        <fila>
+            <check nombreCampo="self.garantizadoPrestacionServicio" colspan="12">
+                <valenciano>Està garantit la prestació del servei</valenciano>
+                <castellano>Están garantizada la prestación del servicio</castellano>
+            </check>
+        </fila>
+        <fila>
+            <texto colspan="12">
+                <valenciano>En base al que disposa l’article 25 del Decret 234/2022, de 30 de desembre del Consell</valenciano>
+                <castellano>Con base en lo dispuesto en el artículo 25 del Decreto 234/2022, de 30 de diciembre, del Consell</castellano>
+            </texto>
+        </fila>
+    </seccion>
+
+    <seccion>
+        <valenciano>Declaració responsable</valenciano>
+        <castellano>Declaración responsable</castellano>
+        <fila>
+            <check nombreCampo="self.declaracionResponsable" colspan="12">
+                <valenciano>La persona que signatura declara, sota la seua responsabilitat, que les dades ressenyades en la present sol·licitud i en la documentació que s'adjunta són exactes i conformes amb el que s'estableix en la legislació, i que es troba en possessió de la documentació que així ho acredita, quedant a la disposició de la Generalitat per a la seua presentació, comprovació, control i inspecció posterior que s'estimen oportuns.</valenciano>
+                <castellano>La persona que firma declara, bajo su responsabilidad, que los datos reseñados en la presente solicitud y en la documentación que se adjunta son exactos y conformes con lo establecido en la legislación, y que se encuentra en posesión de la documentación que así lo acredita, quedando a disposición de la Generalitat para su presentación, comprobación, control e inspección posterior que se estimen oportunos.</castellano>
+            </check>
+        </fila>
+    </seccion>
+
+    <seccion>
+        <valenciano>Protecció de dades</valenciano>
+        <castellano>Protección de datos</castellano>
+        <fila>
+            <texto colspan="12">
+                <castellano>De conformidad con el Reglamento General de Protección de Datos y la Ley Orgánica 3/2018, de 5 de diciembre, de Protección de Datos Personales y garantía de los derechos digitales, los datos de carácter personal que nos proporcione serán tratados por la Generalitat para proceder a la tramitación de su solicitud al amparo de la normativa de aplicación.</castellano>
+            </texto>
+            <texto colspan="12">
+                <castellano>Podrá ejercer los derechos de acceso, rectificación, supresión y portabilidad de sus datos personales, limitación y oposición de tratamiento y no ser objeto de decisiones individuales automatizadas respecto a sus datos personales registrados en la Generalitat, ante la conselleria responsable del tratamiento de sus datos personales. Así mismo, podrá reclamar, en su caso, ante la autoridad de control en materia de protección de datos, especialmente cuando no haya obtenido respuesta o la respuesta no haya sido satisfactoria en el ejercicio de sus derechos: https://www.gva.es/es/inicio/procedimientos?id_proc=19970</castellano>
+            </texto>
+            <texto colspan="12">
+                <castellano>Más información en el índice de registros de las actividades de tratamiento (RATs) por conselleria: https://gvaoberta.gva.es/es/registre-activitats-de-tractament. Información adicional y detallada sobre protección de datos: https://gvaoberta.gva.es/documents/7843050/172663653/20240530_Informacion+protección+de+datos_castellano</castellano>
+            </texto>
+            <texto colspan="12">
+                <castellano>Delegación de Protección de Datos de la GVA: https://cjusticia.gva.es/es/web/delegacion-de-proteccion-de-datos-gva</castellano>
+            </texto>
+        </fila>
+    </seccion>
+
+    <seccion>
+        <valenciano>Signat</valenciano>
+        <castellano>Firmado</castellano>
+        <fila>
+            <texto colspan="12" rowSpan="4">
+                <valenciano>Signatura</valenciano>
+                <castellano>Firma</castellano>
+            </texto>
+        </fila>
+    </seccion>
+
+</documento>
