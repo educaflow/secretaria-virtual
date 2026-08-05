@@ -134,7 +134,7 @@ DocumentoPdf resolucionFirmada = resolucion.firmar(almacenClaveResolver.getDirec
 Tres piezas, una por fichero:
 
 1. **Modelo**: par de campos `MetaFile` original/firmado (`modelo.md` §4).
-2. **Vista**: `<action-method>` que llama a `FirmaController.firmarDocumentoEntrada(...)`, encadenada con `serial:` antes del evento en el botón (`vistas.md` §8) — exige firmar con el `dniFirmaDocumentoEntrada` del expediente.
+2. **Vista**: `<action-method>` que llama a `FirmaController.firmarDocumentoEntrada(...)`, encadenada con `serial:` antes del evento en el botón (`vistas.md` §10) — exige firmar con el `dniFirmaDocumentoEntrada` del expediente.
 3. **Validator**: regla `FirmaPdf(original, dniGetter)` en el evento que presenta (`validator.md` §4) — verifica en servidor que lo subido es el original firmado por ese DNI.
 
 En el EventManager no hay código de AutoFirma: el trigger del evento ya recibe el campo firmado validado.
