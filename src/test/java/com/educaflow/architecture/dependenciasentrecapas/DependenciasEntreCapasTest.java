@@ -19,7 +19,7 @@ import com.tngtech.archunit.library.freeze.FreezingArchRule;
 
 @AnalyzeClasses(
     packages = "com.educaflow",
-    importOptions = ImportOption.DoNotIncludeTests.class)
+    importOptions = {ImportOption.DoNotIncludeTests.class, ImportOption.DoNotIncludeJars.class})
 class DependenciasEntreCapasTest {
 
     private static final String[] PAQUETES_EXENTOS = {

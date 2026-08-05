@@ -16,6 +16,11 @@ Este proyecto usa un **progressive disclosure pattern to respect LLM instruction
 
 Compila **y arranca** siempre con `./run.sh` (hace `./gradlew clean build` —compila y ejecuta los tests— y arranca en el 8080 con la config privada). **NO** uses `gradlew run` a mano ni `--debug-jvm`. Cómo probar tests, compilar sin arrancar, arrancar/reiniciar/resetear la BD y acceder con `psql`: ver [`agent_docs/deploy.md`](agent_docs/deploy.md).
 
+Para generar los esqueletos que le falten a un tipo de expediente (`domains.xml`, `views.xml`, `EventManagerImpl.java`, `StateEventValidatorImpl.kt`) está la tarea `./gradlew -q CreateFilesTask -Ptipo=<carpeta del tipo>` (sin `-Ptipo` procesa todos los trámites).
+Es **la** forma de generarlos: el build **no** los genera, a propósito, para que compilar no escriba en `src/main/java`.
+Es idempotente (nunca pisa lo ya escrito), imprime una línea `CREADO <ruta>` por fichero creado y falla con un mensaje explícito si la ruta no corresponde a ningún tipo de expediente.
+Detalle en el skill `k-tipo-expediente`.
+
 
 ## Configuración
 
@@ -65,6 +70,14 @@ La descripción de la arquitectura (paquetes de `com.educaflow`, sistemas vs sub
 ## Vistas
 
 Las **convenciones verificables de las vistas Axelor** (los XML bajo `**/views/*.xml` y `menus.xml`: nomenclatura, botones, action-groups, forms/grids, referencias, modales, menús) están catalogadas como reglas verificables (formato ADR `VAR-<categoría>.<n>`, sin código) en [`agent_docs/view-rules.md`](agent_docs/view-rules.md) — el equivalente para vistas de [`architecture-rules.md`](agent_docs/architecture-rules.md) —, de las que `/developer-create-view-tests` genera los tests (JUnit 5 planos en `src/test/java/com/educaflow/views`, una clase por categoría, que leen los XML con JAXP/XPath; **no** usan ArchUnit porque este analiza bytecode, no XML). `view-rules.md` es la **fuente de verdad** de esos tests: para cambiar un test se edita el markdown y se re-ejecuta `/developer-create-view-tests`, nunca se editan los `.java` a mano. **`view-rules.md` debe mantenerse coherente con los skills `k-vistas`** (que describen esas convenciones en prosa). Cárgalo solo cuando trabajes con las vistas o sus tests.
+
+## Tipos de expediente
+
+Los tests de `src/test/java/com/educaflow/tiposexpedientes` comprueban que el `EventManagerImpl.java` y el `StateEventValidatorImpl.kt` de cada tipo de expediente concuerdan con la máquina de estados de su `TipoExpedienteInstance.xml` (un método por evento, por estado y por pareja estado-evento; ni faltar ni sobrar).
+**A diferencia de las dos familias anteriores, estos tests se escriben A MANO**: los `.java` son la fuente de verdad y se editan directamente.
+**MUST NOT** crear un `agent_docs/*-rules.md` ni un skill generador para ellos.
+Leen bytecode con el `ClassFileImporter` de ArchUnit (no su DSL de reglas) y el XML con las mismas clases de `EducaFlowBuildTools` que usa el generador de esqueletos, de forma que el código del método que el test dice que falta es literalmente el que ese generador habría escrito.
+Las reglas concretas están en el skill `k-tipo-expediente` (`SKILL.md` §3.3, `eventmanager.md` §7, `validator.md` §5), que **debe mantenerse coherente con estos tests**.
 
 
 

@@ -1,6 +1,6 @@
 # El modelo del tipo de expediente (`domains.xml`)
 
-Entidad JPA del expediente de esta versión. El esqueleto lo genera el build; tú añades los campos. Para los tipos de campo y relaciones generales de Axelor, ver `k-sistemas` (`modelos.md`); aquí solo lo específico de los tipos de expediente.
+Entidad JPA del expediente de esta versión. El esqueleto lo genera `./gradlew CreateFilesTask` (`SKILL.md` §3.1), no el build; tú añades los campos. Para los tipos de campo y relaciones generales de Axelor, ver `k-sistemas` (`modelos.md`); aquí solo lo específico de los tipos de expediente.
 
 ## 1. Estructura fija
 

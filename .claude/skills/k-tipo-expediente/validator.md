@@ -75,11 +75,17 @@ field(model::getPdfSolicitudFirmado) {
 
 Comprueba: exactamente una firma nueva, certificado en la lista de confiables, que no es sello de tiempo, texto plano del PDF idéntico al original, y DNI del certificado coincidente. Es la tercera pieza del patrón AutoFirma (`eventmanager.md` §6.5).
 
-## 5. Mantenimiento manual — el build NO lo comprueba
+## 5. Los tests que comprueban el validator
 
-- El check de build del validator está **vacío**: un método que falte (o con nombre mal escrito) solo se detecta en **runtime** al disparar el evento ("No se ha encontrado el método: getForState<Estado>InEvent<Evento>…").
-- Al añadir/quitar/renombrar estados o eventos en el `TipoExpedienteInstance.xml`, **MUST** actualizar los métodos a mano y probar los eventos en runtime.
-- El esqueleto genera un método por **cada** evento declarado, incluido `DELETE`; el runtime nunca invoca el de `DELETE` (sobra pero es inofensivo).
+Lo comprueban los tests `src/test/java/com/educaflow/tiposexpedientes/stateeventvalidator/StateEventValidatorTest.java` (`./gradlew test`). Antes **no lo comprobaba nada**: el check del build estaba vacío porque Spoon solo parsea Java y este fichero es Kotlin, y un método que faltara solo se descubría en **runtime** al disparar el evento ("No se ha encontrado el método: getForState<Estado>InEvent<Evento>…"). Los tests leen bytecode, así que sí alcanzan a Kotlin.
+
+1. **V0**: la clase `<fqcnStateEventValidator>` existe compilada e implementa `StateEventValidator`.
+2. **V1**: por cada pareja (estado, evento) del `TipoExpedienteInstance.xml`, **salvo las del evento `DELETE`**, exactamente un `@BeanValidationRulesForStateAndEvent getForState<Estado>InEvent<Evento>(): BeanValidationRules` sin parámetros. El mensaje de fallo trae el **código del método listo para pegar**.
+3. **V2**: no puede sobrar ningún método anotado cuya pareja no esté declarada en el XML.
+
+- Ojo al recuento: se cuenta por **pareja**, no por evento. Un mismo evento declarado en tres estados son **tres** métodos del validator, aunque en el EventManager sea un único `trigger`.
+- **`DELETE` es la excepción**: `Tramitador` se salta la validación cuando el evento es `DELETE` y borra sin copiar campos, así que ese método nunca se invoca y solo podría contener un `rules { }` vacío. **MUST NOT** escribirlo: el esqueleto ya no lo genera y ningún tipo lo tiene. V1 no lo exige; V2 tampoco lo da por sobrante si aparece, porque su pareja sí está declarada en el XML.
+- Al añadir/quitar/renombrar estados o eventos en el `TipoExpedienteInstance.xml`, **MUST** actualizar los métodos a mano; los tests dicen exactamente cuáles y con qué código.
 
 ## 6. Anti-patrones
 

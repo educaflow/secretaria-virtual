@@ -43,10 +43,10 @@ Todos son **defaults**: se pueden sobrescribir con tags opcionales del `TipoExpe
 |---|---|---|
 | `TipoExpedienteInstance.xml` | tú | §2 (este fichero) |
 | `estados.puml` / `estados.png` | tú / build (renderiza el `.puml`) | §2.3 |
-| `domains.xml` | tú (esqueleto generado por el build) | `modelo.md` |
-| `EventManagerImpl.java` | tú (esqueleto generado) | `eventmanager.md` |
-| `StateEventValidatorImpl.kt` | tú (esqueleto generado) | `validator.md` |
-| `views.xml` | tú (esqueleto generado) | `vistas.md` |
+| `domains.xml` | tú (esqueleto generado, §3.1) | `modelo.md` |
+| `EventManagerImpl.java` | tú (esqueleto generado, §3.1) | `eventmanager.md` |
+| `StateEventValidatorImpl.kt` | tú (esqueleto generado, §3.1) | `validator.md` |
+| `views.xml` | tú (esqueleto generado, §3.1) | `vistas.md` |
 | `documentospdf/` | tú | `documentos.md` |
 | `i18n_es.csv` / `i18n_ca.csv` | build — **MUST NOT** crearlos a mano | `CLAUDE.md` (i18n) |
 
@@ -110,27 +110,46 @@ Dibuja la máquina antes de escribir el XML. Convenciones: `[*] --> <INICIAL>`; 
 
 ## 3. Qué genera y comprueba el build
 
-### 3.1 Esqueletos (`CreateFilesTask`, solo si no existen)
+### 3.1 Esqueletos — se generan a mano, NO al compilar
 
-`domains.xml`, `views.xml`, `EventManagerImpl.java` y `StateEventValidatorImpl.kt` se generan con **todos los métodos/forms requeridos** ya presentes y vacíos. Flujo normal: escribir primero el `TipoExpedienteInstance.xml`, compilar para generar los esqueletos, y rellenarlos.
+```bash
+./gradlew -q CreateFilesTask -Ptipo=src/main/java/com/educaflow/tramites/<tramite>/<vN>
+```
+
+Crea `domains.xml`, `views.xml`, `EventManagerImpl.java` y `StateEventValidatorImpl.kt` con **todos los métodos/forms requeridos** ya presentes y vacíos, e imprime una línea `CREADO <ruta>` por cada uno. Es idempotente: **MUST NOT** temer relanzarla, nunca pisa lo ya escrito.
+
+- `-Ptipo=` admite la carpeta del tipo o la ruta de su `TipoExpedienteInstance.xml`. Si no casa con ningún tipo, falla con `ERROR: No hay ningún tipo de expediente en: …` en vez de callarse.
+- Sin `-Ptipo` recorre **todos** los trámites.
+- El `-q` quita el ruido de Gradle; los mensajes de la herramienta (incluidos los de error) se ven igual.
+
+**CRITICAL**: compilar **NO** genera los esqueletos. `CreateFilesTask` no cuelga de `generateCode`, de forma que el build no escribe en `src/main/java`. Flujo: escribir el `TipoExpedienteInstance.xml` → **lanzar la tarea** → rellenar lo generado → compilar.
+
+Si compilas sin haberla lanzado, el build falla en `RichDomainXmlTask` con `ERROR: No se encontró el fichero en el directorio: …/<vN>/domains.xml`. Los cuatro ficheros se versionan en git, así que solo puede pasar con un tipo recién creado (un clon nuevo o la CI no necesitan generarlos).
 
 ### 3.2 Comprobaciones que hacen fallar el build
 
 1. `TipoExpedienteInstance.xml` parseable, exactamente un `initial`, `events` presente en cada estado.
-2. EventManager (check con Spoon): **exactamente un** método `@WhenEvent trigger<Evento>(<Entidad>, <Entidad>, EventContext)` por evento y **exactamente un** `@OnEnterState onEnter<Estado>(<Entidad>, EventContext)` por estado; ni faltar ni sobrar (detalle y trampas en `eventmanager.md` §7).
-3. `domains.xml` con `<module>` único y `<entity name="<code>">` (el nombre de la entidad = code derivado).
-4. `views.xml` parseable, con exactamente un form plantilla `exp-<Code>-Templates`, y todos los paneles de `<include-panels>` existentes (detalle en `vistas.md`).
-5. i18n: si apertium no logra una traducción fiable de un texto nuevo, el build falla (se arregla con `__!!` o escribiendo el valenciano a mano).
-6. Documentos: los XML de `documentospdf/` se validan contra XSD y sus filas deben sumar múltiplos de 12 (detalle en `documentos.md`).
+2. `domains.xml` con `<module>` único y `<entity name="<code>">` (el nombre de la entidad = code derivado).
+3. `views.xml` parseable, con exactamente un form plantilla `exp-<Code>-Templates`, y todos los paneles de `<include-panels>` existentes (detalle en `vistas.md`).
+4. i18n: si apertium no logra una traducción fiable de un texto nuevo, el build falla (se arregla con `__!!` o escribiendo el valenciano a mano).
+5. Documentos: los XML de `documentospdf/` se validan contra XSD y sus filas deben sumar múltiplos de 12 (detalle en `documentos.md`).
 
-### 3.3 Lo que el build NO comprueba (falla en runtime)
+### 3.3 Comprobaciones que hacen fallar los **tests** (`./gradlew test`, y por tanto `./run.sh`)
 
-- El **validator**: su check de build está vacío. Un método que falte para un (estado, evento) solo se detecta al disparar el evento ("No se ha encontrado el método: getForState…"). Mantenerlo a mano al tocar eventos.
+`src/test/java/com/educaflow/tiposexpedientes` comprueba, leyendo el bytecode compilado, que el código escrito a mano concuerda con la máquina de estados del XML. El mensaje de fallo dice qué tipo de expediente, qué estado o evento, y trae el **código del método que falta listo para pegar**.
+
+- **EventManager**: **exactamente un** `@WhenEvent trigger<Evento>(<Entidad>, <Entidad>, EventContext)` por evento y **exactamente un** `@OnEnterState onEnter<Estado>(<Entidad>, EventContext)` por estado; ni faltar ni sobrar (detalle en `eventmanager.md` §7).
+- **Validator**: **exactamente un** `@BeanValidationRulesForStateAndEvent getForState<Estado>InEvent<Evento>()` por cada **pareja** (estado, evento), **salvo las de `DELETE`**, que no se exigen porque el runtime nunca las invoca; y ninguno cuya pareja no esté declarada (detalle en `validator.md` §5).
+
+Estas comprobaciones eran hasta hace poco una barrera del build (un check con Spoon dentro de `createfiles`); se movieron a tests para separar la generación de esqueletos de su validación, y de paso el validator pasó a estar cubierto (Spoon no parsea Kotlin).
+
+### 3.4 Lo que NO comprueba nada (falla en runtime)
+
 - Las **vistas por estado**: para cada (estado, perfil) alcanzable debe existir `exp-<Code>-<STATE>-<PROFILE>-form` o la genérica `exp-<Code>-<STATE>-form`; si no, excepción al navegar.
 - `triggerInitialEvent` **MUST** dejar rellenos `dniFirmaDocumentoEntrada` (DNI válido) y `personaSolicitante` (ver `eventmanager.md` §2).
 - Los `profile` de los estados **MUST** existir como perfiles en BD: los carga el data-init `subsystem/expedientes/data-init/input/PerfilesExpedientes.xml` (hoy `CREADOR` y `RESPONSABLE`). Si un estado usa un perfil nuevo, añádelo ahí; si no existe, la resolución del perfil falla en silencio al cargar el tipo.
 
-### 3.4 Qué genera en BD el data-init del tipo
+### 3.5 Qué genera en BD el data-init del tipo
 
 `generateDataInitTiposExpedientes` genera por cada tipo un data-init (en `build/`, nunca en `src`) que hace bind del `TipoExpediente` por `code` con `create`+`update` — por eso la fila **se refresca en cada arranque**. Persiste:
 
@@ -147,7 +166,7 @@ Dibuja la máquina antes de escribir el XML. Convenciones: `[*] --> <INICIAL>`; 
 
 1. **Trámite**: asegúrate de que existe `tramites/<tramite>/TramiteInstance.xml` (`/k-tramite`); si es la primera versión, sin `<defaultTipoExpediente>` aún.
 2. **Carpeta**: crea `tramites/<tramite>/v1/` con solo `estados.puml` (dibuja la máquina) y `TipoExpedienteInstance.xml` (§2).
-3. **Compila** (`./gradlew clean build`): se generan los cuatro esqueletos.
+3. **Genera los cuatro esqueletos**: `./gradlew -q CreateFilesTask -Ptipo=src/main/java/com/educaflow/tramites/<tramite>/v1` (§3.1). Compilar **no** los genera.
 4. **Modelo**: añade los campos a `domains.xml` → `modelo.md`.
 5. **Documentos**: crea `documentospdf/` con los XML de definición → `documentos.md`.
 6. **EventManager**: rellena `triggerInitialEvent`, cada `trigger<Evento>` y `onEnter<Estado>` → `eventmanager.md`.
@@ -155,7 +174,7 @@ Dibuja la máquina antes de escribir el XML. Convenciones: `[*] --> <INICIAL>`; 
 8. **Vistas**: monta los paneles del form plantilla y compón cada `<form state=...>` → `vistas.md`.
 9. **Permisos**: verifica que el perfil de cada estado (`CREADOR`, `RESPONSABLE`…) está asignado a alguien (`/k-tramite` §6).
 10. **Activa** la versión en el `TramiteInstance.xml` (`<defaultTipoExpediente>v1</defaultTipoExpediente>`), compila y arranca.
-11. **Prueba en runtime** navegando por **todos** los estados con usuarios de los perfiles adecuados (menú Expedientes → Trámites): el validator y las vistas por estado solo fallan en runtime (§3.3).
+11. **Prueba en runtime** navegando por **todos** los estados con usuarios de los perfiles adecuados (menú Expedientes → Trámites): las vistas por estado solo fallan en runtime (§3.4).
 
 Para crear una **versión nueva de un tipo existente** → `versionado.md`.
 
@@ -165,8 +184,8 @@ Para crear una **versión nueva de un tipo existente** → `versionado.md`.
 
 - Todo se deriva de la carpeta `tramites/<tramite>/<vN>/`: code = code del trámite + `VN`, entidad = code, paquete = ruta. No declares lo que el default ya resuelve.
 - `TipoExpedienteInstance.xml` mínimo = solo `<states>`. `events` obligatorio aunque vacío; exactamente un `initial`; nombres `UPPER_SNAKE`.
-- Flujo: XML de estados → compilar (esqueletos) → rellenar modelo, EventManager, validator, vistas y documentos → activar versión → probar todos los estados en runtime.
+- Flujo: XML de estados → `./gradlew -q CreateFilesTask -Ptipo=<carpeta del tipo>` (compilar **no** genera los esqueletos) → rellenar modelo, EventManager, validator, vistas y documentos → activar versión → probar todos los estados en runtime.
 - La máquina de estados en runtime vive en el enum `State` del EventManager, no en BD.
-- El build comprueba EventManager, modelo, vistas-plantilla, i18n y documentos; el validator y las vistas por estado solo fallan en runtime.
+- El build comprueba modelo, vistas-plantilla, i18n y documentos; los **tests** comprueban EventManager y validator (con el código del método que falta listo para pegar); solo las vistas por estado fallan en runtime.
 - `EXIT` y `DELETE` son eventos comunes gratis; `BACK` no — se declara e implementa como uno más.
 - **MUST NOT** crear `i18n_*.csv` a mano; **MUST NOT** editar el `<extra-code-model>` ni el `estados.png` (los regenera el build).

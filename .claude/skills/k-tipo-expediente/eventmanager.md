@@ -1,6 +1,6 @@
 # El `EventManager` — la máquina de estados en Java
 
-Clase Java que decide qué pasa en cada evento y a qué estado se transita. El esqueleto lo genera el build con todos los métodos requeridos vacíos y los tres enums ya codificados. Ejemplo real completo: `tramites/justificacion_falta_profesorado/v1/EventManagerImpl.java`.
+Clase Java que decide qué pasa en cada evento y a qué estado se transita. El esqueleto lo genera `./gradlew CreateFilesTask` (`SKILL.md` §3.1) con todos los métodos requeridos vacíos y los tres enums ya codificados; compilar **no** lo genera. Ejemplo real completo: `tramites/justificacion_falta_profesorado/v1/EventManagerImpl.java`.
 
 ## 1. Anatomía
 
@@ -25,7 +25,7 @@ public class EventManagerImpl
 ```
 
 - Se instancia por **reflexión + Guice** (el FQCN viene de la tabla `TipoExpediente`), así que admite inyección normal: repositorio por constructor y `@Inject` de campo para lo demás.
-- Los enums `State`/`Event`/`Profile` los genera el build desde el `TipoExpedienteInstance.xml`. El `State` es "rico" (perfil dueño, `initial`, `closed`, eventos permitidos) y es **la única fuente de la máquina de estados en runtime**. Si cambias estados/eventos en el XML, recompila para regenerarlos — pero los enums están en TU fichero: el build no los reescribe, los errores del check (§7) te dan el código a copiar.
+- Los enums `State`/`Event`/`Profile` salen del `TipoExpedienteInstance.xml`, pero **solo la primera vez**, al generar el esqueleto. El `State` es "rico" (perfil dueño, `initial`, `closed`, eventos permitidos) y es **la única fuente de la máquina de estados en runtime**. Si cambias estados/eventos en el XML **NO se regeneran**: los enums están en TU fichero y el generador nunca lo pisa, así que hay que actualizarlos a mano — los errores de los tests (§7) te dan el código a copiar.
 
 ## 2. Los tres tipos de método (convención de nombres)
 
@@ -59,7 +59,7 @@ Los registros toman solicitante/interesado, número y asunto del propio expedien
 ## 4. Eventos comunes
 
 - `EXIT` (cerrar pestaña): lo intercepta `ExpedienteController`, **no llega al EventManager**.
-- `DELETE`: no valida ni copia campos, hace `repository.remove` directamente — pero **MUST** existir su `@WhenEvent triggerDelete` (vacío) si el XML lo declara, porque el check de build lo exige.
+- `DELETE`: no valida ni copia campos, hace `repository.remove` directamente — pero **MUST** existir su `@WhenEvent triggerDelete` (vacío) si el XML lo declara, porque el test E1 lo exige. Su método en el validator, en cambio, **no** hace falta (`validator.md` §5).
 - `BACK` **no es común**: se declara en `events="..."`, se implementa (§5) y se le da método en el validator.
 
 ## 5. Patrones de transición
@@ -183,14 +183,17 @@ El correo es inmutable tras crearse y no se puede borrar; los reintentos de env�
 
 `modelServiceFactory.resolve(<Entidad>.class)` devuelve el `ModelService` del subsistema dueño (es el mecanismo usado en §6.6 y §6.7). Para dependencias que no son ModelService, inyección Guice normal (`@Inject` de campo o constructor; ver `k-guice` si la construcción no es trivial).
 
-## 7. El check de build (Spoon) y sus trampas
+## 7. Los tests que comprueban el EventManager
 
-1. Por cada evento: **exactamente un** `@WhenEvent trigger<Evento>` con la firma exacta de §2 → si no, "Faltan métodos para los eventos" (el error incluye el código a copiar). Por cada estado: ídem con `@OnEnterState onEnter<Estado>`.
-2. **No puede sobrar** ningún `@WhenEvent`/`@OnEnterState` que no corresponda a un evento/estado declarado: si quitas un evento del XML, quita su método (y el del validator).
-3. Trampas:
-   - Un método con nombre correcto pero **firma equivocada** sale como "Faltan métodos" (no como "Sobran") aunque el método "exista".
-   - Solo se parsea **tu fichero**: métodos heredados de una superclase cuentan como que faltan.
-   - `triggerInitialEvent` no lo comprueba el check (lo fuerza el compilador por ser abstract).
+Lo comprueban los tests `src/test/java/com/educaflow/tiposexpedientes/eventmanager/EventManagerTest.java` (`./gradlew test`), **no** el build de `generateCode`: hasta hace poco era un check con Spoon dentro de `createfiles`, y se movió a tests para separar la generación de esqueletos de su validación. Leen **bytecode**, así que el fallo aparece al ejecutar los tests, no al compilar.
+
+1. **E0**: la clase `<fqcnEventManager>` existe compilada y extiende `EventManager`.
+2. **E1**: por cada evento, **exactamente un** `@WhenEvent trigger<Evento>` con la firma exacta de §2. **E3**: ídem por cada estado con `@OnEnterState onEnter<Estado>`. El mensaje de fallo trae el **código del método listo para pegar**, renderizado con la misma plantilla que usa el generador.
+3. **E2 / E4**: **no puede sobrar** ningún `@WhenEvent`/`@OnEnterState` que no corresponda a un evento/estado declarado: si quitas un evento del XML, quita su método (y el del validator).
+4. Detalles:
+   - Un método con nombre correcto pero **firma equivocada** se reporta **una sola vez**, en E1/E3, mostrando la firma declarada frente a la esperada (el antiguo check lo contaba a la vez como que faltaba y como que sobraba).
+   - Se lee la clase compilada, así que los **métodos heredados** de una superclase también cuentan; el check antiguo, que parseaba solo tu fichero, los daba por ausentes.
+   - `triggerInitialEvent` no entra en ninguna regla (no lleva anotación; lo fuerza el compilador por ser abstract).
    - El FQCN de la entidad está hardcodeado como `com.educaflow.subsystem.expedientes.db.<code>` — otra razón para no tocar el `<module>` del `domains.xml`.
 
 ## 8. Anti-patrones

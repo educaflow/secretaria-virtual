@@ -17,7 +17,8 @@ Las reglas se derivan de la **arquitectura documentada**, NO de lo que el códig
 
 ## Convenciones de verificación (aplican a todas las reglas)
 
-- **Ámbito de análisis:** las clases de producción del paquete `com.educaflow` (los tests quedan fuera del análisis).
+- **Ámbito de análisis:** las clases de producción del paquete `com.educaflow` **compiladas por este proyecto**.
+  Quedan fuera del análisis los tests y todo lo que llegue empaquetado en un JAR de dependencia: el JAR `com.educaflow:EducaFlowBuildTools` comparte el paquete raíz `com.educaflow` y está en el classpath de test (lo usan los tests de `com.educaflow.tiposexpedientes`), pero son herramientas de tiempo de compilación, no código de la aplicación, y no se les aplica ninguna de estas reglas.
 - **Paquetes exentos:** `..expedientes..` y `..tramites..` tienen **arquitectura propia** (EventManager, view_models, carpetas en plural) y quedan fuera de todas las reglas: se excluyen del **sujeto** de cada regla y, en las reglas de dependencias/ciclos, también como **origen y destino** de las dependencias analizadas.
 - **Marcas de cumplimiento** (apartado *Cumplimiento* de cada regla):
   - ✅ CUMPLE — el código la cumple hoy; el test se genera tal cual.

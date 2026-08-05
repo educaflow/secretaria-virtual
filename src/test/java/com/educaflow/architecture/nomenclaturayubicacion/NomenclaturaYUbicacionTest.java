@@ -19,7 +19,7 @@ import com.axelor.db.modelservice.ModelService;
 
 @AnalyzeClasses(
     packages = "com.educaflow",
-    importOptions = ImportOption.DoNotIncludeTests.class)
+    importOptions = {ImportOption.DoNotIncludeTests.class, ImportOption.DoNotIncludeJars.class})
 class NomenclaturaYUbicacionTest {
 
     private static final String[] PAQUETES_EXENTOS = {

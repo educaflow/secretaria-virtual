@@ -14,13 +14,6 @@ import com.educaflow.subsystem.expedientes.db.AbstractSimpleSolicitudResolucion 
 class StateEventValidatorImpl: StateEventValidator {
 
     @BeanValidationRulesForStateAndEvent
-    public fun getForStateEntradaDatosInEventDelete(): BeanValidationRules {
-        return rules {
-
-        }
-    }
-
-    @BeanValidationRulesForStateAndEvent
     public fun getForStateEntradaDatosInEventGuardarDatos(): BeanValidationRules {
         return rules {
 

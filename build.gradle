@@ -75,6 +75,17 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:5.11.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.2'
+    // Los tests de com.educaflow.tiposexpedientes leen los TipoExpedienteInstance.xml con el MISMO
+    // código que usa el generador (TramitesLayout, TipoExpedienteInstanceFileFinder) y renderizan
+    // el snippet del método que falta con sus MISMAS plantillas: así test y generador no pueden
+    // discrepar sobre cómo se deriva el code, los eventos o el nombre de cada método.
+    // Sin transitivas: de todo lo que declara ese JAR (fop, verapdf, opencsv, postgresql…) los tests
+    // solo necesitan JAXB para leer el XML y Pebble para renderizar el snippet; arrastrar el resto
+    // engorda el classpath de compilación de los tests hasta hacer reventar de memoria al compilador.
+    testImplementation('com.educaflow:EducaFlowBuildTools:1.0-SNAPSHOT') { transitive = false }
+    testImplementation 'io.pebbletemplates:pebble:3.2.4'
+    testImplementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.0'
+    testRuntimeOnly 'org.glassfish.jaxb:jaxb-runtime:4.0.0'
 }
 
 //Test
@@ -330,8 +341,17 @@ tasks.named('generateCode') {
     dependsOn tasks.RichDomainXmlTask
 }
 
+// Generador de los esqueletos de un tipo de expediente (domains.xml, views.xml, EventManagerImpl.java,
+// StateEventValidatorImpl.kt). Se invoca a mano al crear un tipo de expediente:
+//
+//   ./gradlew -q CreateFilesTask -Ptipo=src/main/java/com/educaflow/tramites/<tramite>/<vN>
+//
+// NO cuelga de generateCode a propósito, para que compilar no escriba en src/main/java. Los cuatro
+// ficheros se versionan en git, así que el build solo los echaría de menos en la ventana entre
+// escribir el TipoExpedienteInstance.xml y generarlos; si eso pasa, RichDomainXmlTask falla diciendo
+// qué domains.xml falta.
 tasks.register('CreateFilesTask', JavaExec) {
-    description = 'Ejecuta una clase Java desde un JAR externo para generar o validar los ficheros de un tipo de expediente.'
+    description = 'Ejecuta una clase Java desde un JAR externo para generar los ficheros de un tipo de expediente.'
     group = 'build'
 
     mainClass = 'com.educaflow.common.buildtools.createfiles.Main'
@@ -341,10 +361,13 @@ tasks.register('CreateFilesTask', JavaExec) {
 
     args './src/main/java', paqueteRaizTramites
 
+    // -Ptipo=<ruta> acota la generación a un único tipo de expediente (la ruta de su
+    // TipoExpedienteInstance.xml o la de la carpeta que lo contiene). Sin él se procesan todos.
+    if (project.hasProperty('tipo')) {
+        args "--tipo=${project.property('tipo')}"
+    }
+
     workingDir = layout.projectDirectory.dir('.')
-}
-tasks.named('generateCode') {
-    dependsOn tasks.CreateFilesTask
 }
 tasks.register('GenerateDocs') {
     description = 'Genera diagramas PNG a partir de los ficheros PlantUML (*.plantuml, *.puml) bajo src.'

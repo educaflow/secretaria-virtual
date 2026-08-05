@@ -10,13 +10,6 @@ import com.educaflow.base.infrastructure.validation.engine.BeanValidationRules
 class StateEventValidatorImpl: StateEventValidator {
 
     @BeanValidationRulesForStateAndEvent
-    public fun getForStateEntradaDatosInEventDelete(): BeanValidationRules {
-        return rules {
-
-        }
-    }
-
-    @BeanValidationRulesForStateAndEvent
     public fun getForStateEntradaDatosInEventPresentar(): BeanValidationRules {
         return rules {
 
