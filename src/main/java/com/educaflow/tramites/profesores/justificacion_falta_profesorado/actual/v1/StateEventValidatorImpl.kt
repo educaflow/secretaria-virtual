@@ -1,10 +1,10 @@
-package com.educaflow.tramites.justificacion_falta_profesorado.v2
+package com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1
 
 import com.educaflow.subsystem.expedientes.services.validation.StateEventValidator
 import com.educaflow.subsystem.expedientes.services.validation.BeanValidationRulesForStateAndEvent
-import com.educaflow.subsystem.expedientes.db.MotivoFaltaJustificacionFaltaProfesoradoV2
-import com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV2
-import com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV2
+import com.educaflow.subsystem.expedientes.db.MotivoFaltaJustificacionFaltaProfesoradoV1
+import com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1
+import com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1
 import com.educaflow.base.infrastructure.validation.dsl.ifValueIn
 import com.educaflow.base.infrastructure.validation.dsl.rules
 import com.educaflow.base.infrastructure.validation.engine.BeanValidationRules
@@ -21,7 +21,7 @@ import com.educaflow.base.infrastructure.validation.rules.Required
 import com.educaflow.base.infrastructure.validation.rules.Pattern
 import com.educaflow.base.infrastructure.validation.rules.SizeUnit
 import java.time.LocalDate
-import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV2 as model
+import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1 as model
 
 class StateEventValidatorImpl: StateEventValidator {
 
@@ -44,12 +44,12 @@ class StateEventValidatorImpl: StateEventValidator {
                 +Required()
             }
             field(model::getHoraInicio) {
-                +ifValueIn(model::getTipoJornadaFalta, listOf(TipoJornadaFaltaJustificacionFaltaProfesoradoV2.JORNADA_PARCIAL)) {
+                +ifValueIn(model::getTipoJornadaFalta, listOf(TipoJornadaFaltaJustificacionFaltaProfesoradoV1.JORNADA_PARCIAL)) {
                     +Required()
                 }
             }
             field(model::getHoraFin) {
-                +ifValueIn(model::getTipoJornadaFalta, listOf(TipoJornadaFaltaJustificacionFaltaProfesoradoV2.JORNADA_PARCIAL)) {
+                +ifValueIn(model::getTipoJornadaFalta, listOf(TipoJornadaFaltaJustificacionFaltaProfesoradoV1.JORNADA_PARCIAL)) {
                     +Required()
                     +GreaterThan(model::getHoraInicio)
                 }
@@ -58,7 +58,7 @@ class StateEventValidatorImpl: StateEventValidator {
                 +Required()
             }
             field(model::getOtroMotivo) {
-                +ifValueIn(model::getMotivoFalta, listOf(MotivoFaltaJustificacionFaltaProfesoradoV2.OTROS)) {
+                +ifValueIn(model::getMotivoFalta, listOf(MotivoFaltaJustificacionFaltaProfesoradoV1.OTROS)) {
                     +Required()
                     +NoAllUpperCase()
                     +MinLength(5)
@@ -96,12 +96,12 @@ class StateEventValidatorImpl: StateEventValidator {
                 +Required()
             }
             field(model::getDisconformidad) {
-                +ifValueIn(model::getTipoResolucion, listOf(TipoResolucionJustificacionFaltaProfesoradoV2.SUBSANAR_DATOS)) {
+                +ifValueIn(model::getTipoResolucion, listOf(TipoResolucionJustificacionFaltaProfesoradoV1.SUBSANAR_DATOS)) {
                     +Required()
                 }
             }
             field(model::getResolucion) {
-                +ifValueIn(model::getTipoResolucion, listOf(TipoResolucionJustificacionFaltaProfesoradoV2.RECHAZAR)) {
+                +ifValueIn(model::getTipoResolucion, listOf(TipoResolucionJustificacionFaltaProfesoradoV1.RECHAZAR)) {
                     +Required()
                 }
             }

@@ -22,6 +22,12 @@ axelor {
 
 def isProduccion = project.hasProperty('environment') && project.environment == 'produccion'
 
+// Paquete raíz de los trámites: los TramiteInstance.xml y los TipoExpedienteInstance.xml
+// se descubren a cualquier profundidad por debajo de él (las carpetas intermedias son
+// solo de agrupación). Va como último argumento de las herramientas de
+// EducaFlowBuildTools que descubren trámites o tipos de expediente.
+def paqueteRaizTramites = 'com.educaflow.tramites'
+
 
 //Java
 java {
@@ -146,7 +152,7 @@ tasks.register('managei18nfiles', JavaExec) {
     classpath = configurations.educaFlowBuildToolsDependency
 
 
-    args './src/main/java', './build/resources/main/i18n', 'apertium'
+    args './src/main/java', './build/resources/main/i18n', 'apertium', paqueteRaizTramites
 
     workingDir = layout.projectDirectory.dir('.')
 }
@@ -161,7 +167,7 @@ tasks.register('generatePdfDocuments', JavaExec) {
 
     classpath = configurations.educaFlowBuildToolsDependency
 
-    args './src/main/java', './build/src-gen/main/resources'
+    args './src/main/java', './build/src-gen/main/resources', 'apertium', paqueteRaizTramites
 
     workingDir = layout.projectDirectory.dir('.')
 }
@@ -238,123 +244,25 @@ tasks.register('generateDataInitTiposExpedientes', JavaExec) {
     classpath = configurations.educaFlowBuildToolsDependency
 
 
-    args './src/main/java', './build/resources/main'
+    args './src/main/java', './build/resources/main', paqueteRaizTramites
 
     workingDir = layout.projectDirectory.dir('.')
 }
 tasks.named('build') {
     finalizedBy 'generateDataInitTiposExpedientes'
 }
-tasks.register('generateDataInitTramites') {
-    description = 'Genera los data-init de cada trámite (definición con priority="1" y tipo de expediente activo con priority="-1") a partir de su TramiteInstance.xml.'
+tasks.register('generateDataInitTramites', JavaExec) {
+    description = 'Ejecuta una clase Java desde un JAR externo para generar los ficheros de "data-init" de los trámites (definición con priority="1" y tipo de expediente activo con priority="-1").'
     group = 'build'
 
-    doLast {
-        def srcRoot = file('src/main/java')
-        def destRoot = file('build/resources/main/tramites')
-        destRoot.deleteDir()
+    mainClass = 'com.educaflow.common.buildtools.createdatainittramite.Main'
 
-        def esc = { String s -> s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;') }
+    classpath = configurations.educaFlowBuildToolsDependency
 
-        srcRoot.traverse(type: groovy.io.FileType.FILES, nameFilter: 'TramiteInstance.xml') { xmlFile ->
-            def tramite = new XmlSlurper().parse(xmlFile)
-            def code = tramite['code'].text().trim()
-            def name = tramite['name'].text().trim()
-            def tipoTramite = tramite['tipoTramite'].text().trim()
-            def defaultTipoExpediente = tramite['defaultTipoExpediente'].text().trim()
-            def help = tramite['help'].text()
 
-            if (!code || !name || !tipoTramite) {
-                throw new GradleException("TramiteInstance.xml sin code/name/tipoTramite: ${xmlFile}")
-            }
-            if (help.contains(']]>')) {
-                throw new GradleException("El <help> no puede contener ']]>': ${xmlFile}")
-            }
-            println "Encontrado Tramite instancia:${name} en ${xmlFile}"
+    args './src/main/java', './build/resources/main', paqueteRaizTramites
 
-            // publico/privado solo se emiten si el TramiteInstance.xml los declara
-            def atributosOpcionales = ''
-            ['publico', 'privado'].each { attr ->
-                if (tramite[attr].size() > 0) {
-                    atributosOpcionales += "${attr}=\"${esc(tramite[attr].text().trim())}\" "
-                }
-            }
-
-            def definicionDataInit = new File(destRoot, "${code}/definicion/data-init")
-            new File(definicionDataInit, 'input').mkdirs()
-            new File(definicionDataInit, 'input-config.xml').setText('''\
-<?xml version="1.0"?>
-<xml-inputs priority="1" xmlns="http://axelor.com/xml/ns/data-import"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://axelor.com/xml/ns/data-import
-  https://axelor.com/xml/ns/data-import/data-import_8.0.xsd">
-
-    <input file="Tramite.xml" root="datos">
-
-        <bind node="tramites/tramite" type="com.educaflow.subsystem.expedientes.db.Tramite" search="self.code = :code" create="true" update="true">
-            <bind node="@code" to="code" />
-            <bind node="@name" to="name" />
-            <bind node="@publico" to="publico" />
-            <bind node="@privado" to="privado" />
-            <bind node="@tipoTramite" to="tipoTramite" alias="tipoTramite" search="self.code = :tipoTramite"  create="false" update="true" />
-            <bind node="text()" to="help" />
-        </bind>
-
-    </input>
-
-</xml-inputs>
-''', 'UTF-8')
-            new File(definicionDataInit, 'input/Tramite.xml').setText("""\
-<?xml version="1.0"?>
-<datos>
-    <tramites>
-        <tramite code="${esc(code)}" name="${esc(name)}" ${atributosOpcionales}tipoTramite="${esc(tipoTramite)}"><![CDATA[${help}]]></tramite>
-    </tramites>
-</datos>
-""", 'UTF-8')
-
-            // defaultTipoExpediente puede ser el nombre de la carpeta del tipo (v1, v2...): se resuelve
-            // a su code con la misma regla que EducaFlowBuildTools (el <code> declarado en su
-            // TipoExpedienteInstance.xml o, si falta, code del trámite + carpeta en mayúsculas)
-            if (defaultTipoExpediente) {
-                def tipoExpedienteXml = new File(xmlFile.parentFile, "${defaultTipoExpediente}/TipoExpedienteInstance.xml")
-                if (tipoExpedienteXml.exists()) {
-                    def codeDeclarado = new XmlSlurper().parse(tipoExpedienteXml)['code'].text().trim()
-                    defaultTipoExpediente = codeDeclarado ?: code + defaultTipoExpediente.toUpperCase()
-                }
-            }
-
-            if (defaultTipoExpediente) {
-                def activoDataInit = new File(destRoot, "${code}/tipo_expediente_activo/data-init")
-                new File(activoDataInit, 'input').mkdirs()
-                new File(activoDataInit, 'input-config.xml').setText('''\
-<?xml version="1.0"?>
-<xml-inputs priority="-1" xmlns="http://axelor.com/xml/ns/data-import"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://axelor.com/xml/ns/data-import
-  https://axelor.com/xml/ns/data-import/data-import_8.0.xsd">
-
-    <input file="TipoExpedienteActivo.xml" root="datos">
-
-        <bind node="tramites/tramite" type="com.educaflow.subsystem.expedientes.db.Tramite" search="self.code = :code" update="true" create="false" >
-            <bind node="@code" to="code" />
-            <bind node="@defaultTipoExpediente" to="defaultTipoExpediente" alias="tipoExpediente" search="self.code = :tipoExpediente"  create="false" update="true" />
-        </bind>
-    </input>
-
-</xml-inputs>
-''', 'UTF-8')
-                new File(activoDataInit, 'input/TipoExpedienteActivo.xml').setText("""\
-<?xml version="1.0"?>
-<datos>
-    <tramites>
-        <tramite code="${esc(code)}" defaultTipoExpediente="${esc(defaultTipoExpediente)}" />
-    </tramites>
-</datos>
-""", 'UTF-8')
-            }
-        }
-    }
+    workingDir = layout.projectDirectory.dir('.')
 }
 tasks.named('build') {
     finalizedBy 'generateDataInitTramites'
@@ -392,7 +300,7 @@ tasks.register('RichDomainClassTask', JavaExec) {
     classpath = configurations.educaFlowBuildToolsDependency
 
 
-    args './src/main/java', './build/src-gen/main/java'
+    args './src/main/java', './build/src-gen/main/java', paqueteRaizTramites
 
     workingDir = layout.projectDirectory.dir('.')
 
@@ -411,7 +319,7 @@ tasks.register('RichDomainXmlTask', JavaExec) {
     classpath = configurations.educaFlowBuildToolsDependency
 
 
-    args './src/main/java', './build/src-gen/main/java'
+    args './src/main/java', './build/src-gen/main/java', paqueteRaizTramites
 
     workingDir = layout.projectDirectory.dir('.')
 
@@ -431,7 +339,7 @@ tasks.register('CreateFilesTask', JavaExec) {
     classpath = configurations.educaFlowBuildToolsDependency
 
 
-    args './src/main/java'
+    args './src/main/java', paqueteRaizTramites
 
     workingDir = layout.projectDirectory.dir('.')
 }

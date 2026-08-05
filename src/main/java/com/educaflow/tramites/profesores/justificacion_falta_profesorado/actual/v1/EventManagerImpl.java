@@ -1,4 +1,4 @@
-package com.educaflow.tramites.justificacion_falta_profesorado.v1;
+package com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1;
 
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.db.MetaFile;
@@ -145,7 +145,7 @@ public class EventManagerImpl extends com.educaflow.subsystem.expedientes.servic
 
     @Override
     public void notify(TareaFirma tareaFirma, Object callBackData) {
-        System.out.println("Notificado!!!!!!:"+callBackData+ " en firma.id="+tareaFirma.getId());
+        //System.out.println("Notificado!!!!!!:"+callBackData+ " en firma.id="+tareaFirma.getId());
     }
 
 /***************************************************************************************/

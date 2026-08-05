@@ -58,10 +58,10 @@ Plantilla (ejemplo real: `tramites/justificacion_falta_profesorado/TramiteInstan
 
 ## 4. Qué genera el build (y qué queda en BD)
 
-La tarea gradle `generateDataInitTramites` busca cada `TramiteInstance.xml` bajo `src/main/java` y genera en `build/resources/main/tramites/<Code>/` (**nunca en `src`**):
+La tarea gradle `generateDataInitTramites` es un `JavaExec` que solo invoca la herramienta `createdatainittramite.Main` de `EducaFlowBuildTools` (toda la lógica está ahí, nada en el `build.gradle`). Busca cada `TramiteInstance.xml` **a cualquier profundidad bajo el paquete raíz de los trámites** (`com.educaflow.tramites`, el último argumento de la tarea; las carpetas intermedias son solo de agrupación y un trámite **MUST NOT** estar dentro de otro) y genera en `build/resources/main/tramites/<Code>/` (**nunca en `src`**), borrando antes esa carpeta entera:
 
 1. `definicion/data-init/` (`priority="1"`) — crea/actualiza la fila `Tramite` en BD (bind por `code`, se refresca en cada arranque) con `name`, `tipoTramite` (resuelto por `code` contra la tabla `TipoTramite`), `help` y `publico`/`privado` **solo si están declarados**.
-2. `tipo_expediente_activo/data-init/` (`priority="-1"`, `update` sin `create`) — solo si hay `<defaultTipoExpediente>`; resuelve `v1` → code del tipo (el `<code>` declarado en su `TipoExpedienteInstance.xml` o, por defecto, `code del trámite + V1`).
+2. `tipo_expediente_activo/data-init/` (`priority="-1"`, `update` sin `create`) — solo si hay `<defaultTipoExpediente>` y no está en blanco; resuelve `v1` → code del tipo (el `<code>` declarado en su `TipoExpedienteInstance.xml` o, por defecto, `code del trámite + V1`) buscando la carpeta `v1` **recursivamente** bajo la del trámite; si hay más de una carpeta con ese nombre, falla por ambigüedad.
 
 El orden de carga lo gobierna la `priority`: primero el trámite (`1`), luego los `TipoExpediente` (`0`) y por último la asignación del activo (`-1`), que ya encuentra ambos en BD.
 

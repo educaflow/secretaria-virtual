@@ -30,5 +30,3 @@ Method <com.educaflow.base.util.XMLUtil.printNode(org.w3c.dom.Node)> gets field 
 Method <com.educaflow.base.util.XMLUtil.printNode(org.w3c.dom.Node)> gets field <java.lang.System.out> in (XMLUtil.java:379)
 Method <com.educaflow.base.util.XMLUtil.printNode(org.w3c.dom.Node)> gets field <java.lang.System.out> in (XMLUtil.java:392)
 Method <com.educaflow.base.util.XMLUtil.printNode(org.w3c.dom.Node)> gets field <java.lang.System.out> in (XMLUtil.java:396)
-Method <com.educaflow.tramites.justificacion_falta_profesorado.v1.EventManagerImpl.notify(com.educaflow.subsystem.firmas.db.TareaFirma, java.lang.Object)> gets field <java.lang.System.out> in (EventManagerImpl.java:148)
-Method <com.educaflow.tramites.justificacion_falta_profesorado.v2.EventManagerImpl.notify(com.educaflow.subsystem.firmas.db.TareaFirma, java.lang.Object)> gets field <java.lang.System.out> in (EventManagerImpl.java:148)

@@ -5,20 +5,20 @@
 
 
     <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
-    <entity name="JustificacionFaltaProfesoradoV1" extends="Expediente" >
+    <entity name="JustificacionFaltaProfesoradoV2" extends="Expediente" >
         <string name="dias"  />
-        <enum name="mes" ref="com.educaflow.subsystem.expedientes.db.MesJustificacionFaltaProfesoradoV1" />
+        <enum name="mes" ref="com.educaflow.subsystem.expedientes.db.MesJustificacionFaltaProfesoradoV2" />
         <integer name="anyo" title="Año" />
 
 
-        <enum name="tipoJornadaFalta" ref="TipoJornadaFaltaJustificacionFaltaProfesoradoV1" />
+        <enum name="tipoJornadaFalta" ref="TipoJornadaFaltaJustificacionFaltaProfesoradoV2" />
         <time name="horaInicio"  />
         <time name="horaFin"  />
-        <enum name="motivoFalta" ref="MotivoFaltaJustificacionFaltaProfesoradoV1" />
+        <enum name="motivoFalta" ref="MotivoFaltaJustificacionFaltaProfesoradoV2" />
         <string name="otroMotivo"  />
         <string name="disconformidad" title="Explicar los datos a subsanar"  />
         <string name="resolucion"  title="Motivo del rechazo" />
-        <enum name="tipoResolucion" title="Tipo resolución" ref="TipoResolucionJustificacionFaltaProfesoradoV1" />
+        <enum name="tipoResolucion" title="Tipo resolución" ref="TipoResolucionJustificacionFaltaProfesoradoV2" />
 
         <many-to-one name="justificante" title="Foto o PDF del justificante" ref="com.axelor.meta.db.MetaFile" />
 
@@ -30,8 +30,8 @@
         <![CDATA[
 
             public enum TipoDocumentoPdf {
-                SOLICITUD("/com/educaflow/tramites/justificacion_falta_profesorado/v1/documentospdf/solicitud.pdf"),
-                RESOLUCION("/com/educaflow/tramites/justificacion_falta_profesorado/v1/documentospdf/resolucion.pdf");
+                SOLICITUD("/com/educaflow/tramites/profesores/justificacion_falta_profesorado/futuro/v2/documentospdf/solicitud.pdf"),
+                RESOLUCION("/com/educaflow/tramites/profesores/justificacion_falta_profesorado/futuro/v2/documentospdf/resolucion.pdf");
 
                 private final String fileName;
 
@@ -55,12 +55,12 @@
         </extra-code-model>
     </entity>
 
-    <enum name="TipoJornadaFaltaJustificacionFaltaProfesoradoV1">
+    <enum name="TipoJornadaFaltaJustificacionFaltaProfesoradoV2">
         <item name="TODA_LA_JORNADA" title="Toda la jornada"/>
         <item name="JORNADA_PARCIAL" title="Jornada parcial"/>
     </enum>
 
-    <enum name="MotivoFaltaJustificacionFaltaProfesoradoV1">
+    <enum name="MotivoFaltaJustificacionFaltaProfesoradoV2">
         <item name="ENFERMEDAD_COMUN" title="Enfermedad común"/>
         <item name="PERMISO_MEDICO_EDUCATIVO_ASISTENCIAL" title="Permiso médico, educativo o asistencial"/>
         <item name="TRASLADO_DOMICILIO" title="Traslado de domicilio"/>
@@ -71,7 +71,7 @@
         <item name="FUNCIONES_REPRESENTATIVAS" title="Funciones representativas"/>
         <item name="OTROS" title="Otros"/>
     </enum>
-    <enum name="MesJustificacionFaltaProfesoradoV1"  numeric="true">
+    <enum name="MesJustificacionFaltaProfesoradoV2"  numeric="true">
         <item name="SEPTIEMBRE" title="Septiembre" value="9"/>
         <item name="OCTUBRE" title="Octubre" value="10"/>
         <item name="NOVIEMBRE" title="Noviembre" value="11"/>
@@ -84,7 +84,7 @@
         <item name="JUNIO" title="Junio" value="6"/>
     </enum>
 
-    <enum name="TipoResolucionJustificacionFaltaProfesoradoV1">
+    <enum name="TipoResolucionJustificacionFaltaProfesoradoV2">
         <item name="ACEPTAR" title="Resolver positivamente"/>
         <item name="RECHAZAR" title="Resolver negativamente(Rechazar)"/>
         <item name="SUBSANAR_DATOS" title="Solicitar subsanación de datos"/>
