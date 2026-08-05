@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+
+    <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
+    <entity name="SolicitudExencionFctFeV1" extends="Expediente" >
+
+        <!-- Datos del alumno/a: el alumno es personaSolicitante y el centro es centro, ambos heredados de Expediente -->
+        <many-to-one name="curso" title="Estudios asociados" ref="com.educaflow.subsystem.sistemaeducativo.db.Curso" help="Ciclo, curso o curso de especialización en el que está matriculado el alumno" />
+        <many-to-one name="tutor" title="Tutor/a" ref="com.axelor.auth.db.User" />
+
+        <!-- Solicito -->
+        <enum name="tipoExencion" title="Exención solicitada" ref="TipoExencionSolicitudExencionFctFeV1" />
+
+        <!-- Documentación que se adjunta: trabajadores asalariados -->
+        <many-to-one name="certificadoSeguridadSocialAsalariado" title="Certificación de la Seguridad Social" ref="com.axelor.meta.db.MetaFile" help="Certificación de la Tesorería General de la Seguridad Social, del Instituto Social de la Marina o de la mutualidad a la cual estén afiliados, donde conste la empresa, la categoría laboral (grupo de cotización) y el periodo de contratación" />
+        <many-to-one name="contratoOCertificadoEmpresa" title="Contrato de trabajo o certificación de la empresa" ref="com.axelor.meta.db.MetaFile" help="Contrato de trabajo o certificación de la empresa donde hayan adquirido la experiencia laboral, en que se especifique la duración de los periodos de prestación del contrato, la actividad ejercida y el intervalo de tiempo en que se ha realizado dicha actividad" />
+
+        <!-- Documentación que se adjunta: trabajadores autónomos o por cuenta propia -->
+        <many-to-one name="certificadoAltaSeguridadSocialAutonomo" title="Certificación de los periodos de alta en la Seguridad Social" ref="com.axelor.meta.db.MetaFile" help="Certificación de la Tesorería General de la Seguridad Social o del Instituto Social de la Marina de los periodos de alta en la Seguridad Social en el régimen especial correspondiente" />
+        <many-to-one name="certificadoAltaCensoObligadosTributarios" title="Certificación de alta en el censo de obligados tributarios" ref="com.axelor.meta.db.MetaFile" />
+        <many-to-one name="descripcionActividadAutonomo" title="Descripción de la actividad ejercida" ref="com.axelor.meta.db.MetaFile" help="Descripción de la actividad ejercida e intervalo de tiempo en que se ha realizado esta" />
+
+        <!-- Documentación que se adjunta: trabajadores voluntarios o becarios -->
+        <many-to-one name="certificadoOrganizacionVoluntarioBecario" title="Certificación de la organización" ref="com.axelor.meta.db.MetaFile" help="Certificación de la organización donde se haya prestado la asistencia, en que se especificarán las actividades y funciones realizadas, el año en que se realizaron y el número total de horas dedicadas a estas" />
+
+        <!-- Documentación que se adjunta: empresas o entidades que han cesado su actividad -->
+        <many-to-one name="documentacionCeseActividad" title="Documentación acreditativa del cese de la actividad" ref="com.axelor.meta.db.MetaFile" />
+        <many-to-one name="declaracionJuradaActividades" title="Declaración jurada de las actividades ejercidas" ref="com.axelor.meta.db.MetaFile" help="Declaración jurada donde se describan las actividades ejercidas en la empresa o entidad" />
+
+        <!-- Documentación que se adjunta: documentación procedente de fuera del territorio español -->
+        <many-to-one name="traduccionJurada" title="Traducción jurada de la documentación" ref="com.axelor.meta.db.MetaFile" help="Traducción jurada de la documentación, en caso de estar en una lengua que no sea oficial de nuestro territorio" />
+
+        <!-- Observaciones -->
+        <string name="observaciones" title="Observaciones" large="true" />
+
+        <!-- Tramitación -->
+        <string name="disconformidad" title="Explicar los datos a subsanar" />
+
+        <many-to-one name="pdfSolicitud" title="PDF de la solicitud" ref="com.axelor.meta.db.MetaFile" />
+        <many-to-one name="pdfSolicitudFirmado" title="PDF de la solicitud" ref="com.axelor.meta.db.MetaFile" />
+        <many-to-one name="pdfJustificanteRegistroEntrada" title="Justificante del registro de entrada" ref="com.axelor.meta.db.MetaFile" />
+        <many-to-one name="pdfResolucion" title="Resolución" ref="com.axelor.meta.db.MetaFile" />
+        <extra-code-model>
+        <![CDATA[
+
+        ]]>
+        </extra-code-model>
+    </entity>
+
+    <enum name="TipoExencionSolicitudExencionFctFeV1">
+        <item name="TOTAL" title="Total"/>
+        <item name="PARCIAL" title="Parcial"/>
+    </enum>
+
+
+</domain-models>

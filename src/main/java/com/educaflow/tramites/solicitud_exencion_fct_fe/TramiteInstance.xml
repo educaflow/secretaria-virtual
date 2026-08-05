@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tramite>
+
+    <code>SolicitudExencionFctFe</code>
+    <name>Solicitud de exención de FCT/FE</name>
+    <tipoTramite>ALUMNO</tipoTramite>
+    <help><![CDATA[
+            Este trámite permite solicitar la exención total o parcial del módulo de
+            Formación en Centros de Trabajo (FCT) o de Formación en Empresa (FE).<br>
+            Es solo para alumnado matriculado en un ciclo formativo.<br>
+            Deberás <strong>adjuntar la documentación que acredite la experiencia laboral</strong>
+            que alegas (vida laboral, contratos, certificado de empresa, etc.).
+        ]]></help>
+</Tramite>
