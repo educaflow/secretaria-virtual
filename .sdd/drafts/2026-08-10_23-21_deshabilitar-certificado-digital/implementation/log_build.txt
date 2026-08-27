@@ -1,0 +1,3 @@
+# Build — iteración 1
+OK-COMPILA
+(BUILD SUCCESSFUL con ./gradlew clean build --info; 6 tests de la iniciativa en verde; conformidad §5 por delta: sin superficie no declarada — los métodos preexistentes de CertificadoDigitalServiceImpl no computan)

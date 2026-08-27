@@ -18,7 +18,7 @@ Tres subagentes especializados que cooperan para construir y mantener una suite 
 ```
 planner  →  generator  →  healer
    ↓            ↓            ↓
-src/test/e2e/X/X.desc.md  src/test/e2e/X/X.spec.ts  src/test/e2e/X/X.spec.ts (arreglado)
+<capa>/<sistema>/X.desc.md   <capa>/<sistema>/X.spec.ts   X.spec.ts (arreglado)
 ```
 
 ### 1. Planner — diseñar el plan de tests
@@ -27,7 +27,7 @@ src/test/e2e/X/X.desc.md  src/test/e2e/X/X.spec.ts  src/test/e2e/X/X.spec.ts (ar
 
 **Cómo invocar:**
 
-> "Usa el subagente `playwright-test-planner` para explorar la pantalla de login en http://localhost:8080/#/login y guardar el plan en `src/test/e2e/login/login.desc.md`."
+> "Usa el subagente `playwright-test-planner` para explorar la pantalla de login en http://localhost:8080/#/login y guardar el plan en `src/test/e2e/subsystem/criptografia/certificados.desc.md`."
 
 **Qué hace internamente:**
 1. Llama a `planner_setup_page` (una sola vez).
@@ -36,7 +36,7 @@ src/test/e2e/X/X.desc.md  src/test/e2e/X/X.spec.ts  src/test/e2e/X/X.spec.ts (ar
 4. Diseña escenarios (happy path, errores, edge cases, accesibilidad).
 5. Llama a `planner_save_plan` para escribir el `.desc.md`.
 
-**Output:** un fichero `src/test/e2e/<iniciativa>/<nombre>.desc.md` (nombre base libre y descriptivo del flujo; en el pipeline SDD es `t-NNN-<slug>`) con escenarios agrupados, cada uno con pasos en lenguaje natural.
+**Output:** un fichero `src/test/e2e/<capa>/<sistema>/<nombre>.desc.md` (la carpeta replica la del código, ver `conventions.md`) (nombre base libre y descriptivo del flujo; en el pipeline SDD es `t-NNN-<slug>`) con escenarios agrupados, cada uno con pasos en lenguaje natural.
 
 ### 2. Generator — escribir el test
 
@@ -44,7 +44,7 @@ src/test/e2e/X/X.desc.md  src/test/e2e/X/X.spec.ts  src/test/e2e/X/X.spec.ts (ar
 
 **Cómo invocar:**
 
-> "Usa el subagente `playwright-test-generator` para generar el test del plan `src/test/e2e/login/login.desc.md`. Guárdalo en `src/test/e2e/login/login.spec.ts` (mismo nombre base que el plan, misma carpeta) usando `src/test/e2e/seed.spec.ts` como semilla."
+> "Usa el subagente `playwright-test-generator` para generar el test del plan `src/test/e2e/subsystem/criptografia/certificados.desc.md`. Guárdalo en `src/test/e2e/subsystem/criptografia/certificados.spec.ts` (mismo nombre base que el plan, misma carpeta) usando `src/test/e2e/seed.spec.ts` como semilla."
 
 **Qué hace internamente:**
 1. Llama a `generator_setup_page` con la semilla.
@@ -65,7 +65,7 @@ src/test/e2e/X/X.desc.md  src/test/e2e/X/X.spec.ts  src/test/e2e/X/X.spec.ts (ar
 
 **Cómo invocar:**
 
-> "Usa el subagente `playwright-test-healer` para arreglar todos los tests que fallan en `src/test/e2e/login/`."
+> "Usa el subagente `playwright-test-healer` para arreglar todos los tests que fallan en `src/test/e2e/subsystem/criptografia/`."
 
 **Qué hace internamente:**
 1. `test_run` para identificar fallos.
@@ -102,7 +102,7 @@ Los tests generados son `@playwright/test` estándar. Se ejecutan con la CLI cl�
 
 ```bash
 npx playwright test                          # toda la suite
-npx playwright test src/test/e2e/login       # solo un grupo
+npx playwright test src/test/e2e/subsystem/criptografia   # solo un sistema
 npx playwright test --debug                  # modo debug
 npx playwright show-report                   # informe HTML
 ```

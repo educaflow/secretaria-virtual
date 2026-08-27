@@ -21,7 +21,7 @@ Esta carpeta es el **contrato** que leen los subagentes de `/sdd-create-tests-e2
 
 | Rol | Qué hace | Entrada propia | Lee de esta plantilla | Resultado |
 |---|---|---|---|---|
-| **generador** (§2.1) | **Genera** un `.spec.ts` desde su descripción, pilotando la app real. **No** declara si pasa | la ruta de **un** `t-NNN-<slug>.desc.md` (la copia en `src/test/e2e/<iniciativa>/`) + la ruta destino del `.spec.ts` | `generation.md` (+ contexto §3) | el fichero `t-NNN-<slug>.spec.ts` hermano + token `ESCRITO:` |
+| **generador** (§2.1) | **Genera** un `.spec.ts` desde su descripción, pilotando la app real. **No** declara si pasa | la ruta de **un** `t-NNN-<slug>.desc.md` (la copia en `src/test/e2e/<capa>/<sistema>/`) + la ruta destino del `.spec.ts` | `generation.md` (+ contexto §3) | el fichero `t-NNN-<slug>.spec.ts` hermano + token `ESCRITO:` |
 | **verificador** (§2.2) | **Audita** de forma adversarial que un `.spec.ts` ya verde es **fiel** a su descripción. NO modifica el test | la ruta del `.spec.ts` (verde) y su `.desc.md` | `verification.md` (+ contexto §3) | token `OK:` (fiel) o `INFIEL: — {motivo}` |
 | **sanador** (§2.3) | **Arregla** un `.spec.ts` rojo o declarado `INFIEL` | la ruta del `.spec.ts`, su `.desc.md` y el fallo (salida del runner o motivo `INFIEL`) | `healing.md` (+ contexto §3) | el `.spec.ts` corregido **en sitio** + token `CORREGIDO:`/`BLOQUEADO:` |
 
@@ -40,6 +40,7 @@ Los tres roles:
 
 - La app es una secretaría virtual sobre **Axelor 8.1**, servida en `http://localhost:8080/`; login en `http://localhost:8080/#/login`. El `baseURL` de `playwright.config.ts` ya es `http://localhost:8080`: **MUST** usar rutas relativas (`page.goto('/#/login')`).
 - Convenciones de tests, locators y estructura de carpetas: las define `/k-playwright` (cárgalo). En particular: pares `t-NNN-<slug>.desc.md` ↔ `t-NNN-<slug>.spec.ts`, **mismo nombre base y misma carpeta**; helper compartido `src/test/e2e/_support/auth.ts`.
+- **Los tests replican la ruta del código que prueban**: `src/test/e2e/<capa>/<sistema>/` es espejo de `src/main/java/com/educaflow/<capa>/<sistema>/`, con `<capa>` = `system` o `subsystem` (p.ej. `src/test/e2e/subsystem/criptografia/`). La carpeta la resuelve el motor; el generador la recibe ya resuelta y **MUST NOT** crear otra. Como varias iniciativas comparten carpeta, los hermanos que veas ahí pueden ser de otra iniciativa: reutiliza sus helpers, pero **MUST NOT** modificarlos.
 - La app es **multicentro y bilingüe (es/ca)**: los locators por texto asumen español salvo que el test diga lo contrario.
 - **CRITICAL — la BD es compartida y NO se resetea entre ejecuciones**: los tests acumulan datos de runs anteriores. Por eso cada `.spec.ts` **MUST** ser **idempotente** (nombres únicos por run + teardown + pre-limpieza defensiva); lo detalla `generation.md`. Un test que pasa una vez pero falla al reejecutarse está **roto**.
 
@@ -111,7 +112,7 @@ pkill -9 -f 'workerProcessEntry|chrome-headless-shell' 2>/dev/null; true
 
 ## 5. Cabecera-banner del snapshot (la escribe el MOTOR en la Fase 2)
 
-Al copiar un `t-NNN-<slug>.desc.md` de `test-e2e-desc/` a `src/test/e2e/<iniciativa>/`, el motor **antepone** este bloque **justo después del frontmatter** (para no romper `type:`/`id:`), dejando el resto del contenido **verbatim**:
+Al copiar un `t-NNN-<slug>.desc.md` de `test-e2e-desc/` a `src/test/e2e/<capa>/<sistema>/`, el motor **antepone** este bloque **justo después del frontmatter** (para no romper `type:`/`id:`), dejando el resto del contenido **verbatim**:
 
 ```markdown
 <!-- ARTEFACTO GENERADO por /sdd-create-tests-e2e — NO editar a mano.
@@ -123,3 +124,25 @@ Al copiar un `t-NNN-<slug>.desc.md` de `test-e2e-desc/` a `src/test/e2e/<iniciat
 
 - ✅ CORRECTO: el banner va entre el `---` de cierre del frontmatter y el `# T-NNN — …`.
 - ❌ INCORRECTO: ponerlo **antes** del frontmatter (rompería el parseo de `type:`/`id:`), o reescribir el cuerpo del test.
+
+---
+
+## 6. Puerta de regresión (la ejecuta el MOTOR, tras persistir los tests nuevos)
+
+Tras dejar verdes y verificados todos los tests de la iniciativa (y **antes** de parar la app, §4.5), el motor **MUST** ejecutar **toda** la suite E2E persistida — la de esta iniciativa y las de las anteriores:
+
+```bash
+npx playwright test src/test/e2e --project=chromium --reporter=line
+```
+
+Con el resultado, para cada test **de una iniciativa anterior** que salga rojo:
+
+- Si su ruta figura en la sección `## Tests E2E supersedidos` del `design.md` de **esta** iniciativa → el delta lo invalidó **a propósito**: el motor **retira** el par (`git rm` del `.desc.md` y del `.spec.ts`) y lo lista en el informe final como "supersedido por {ID de spec}".
+- Si **NO** figura → es una **REGRESIÓN**: la iniciativa rompió comportamiento que ya funcionaba. El motor **MUST** reportarlo al usuario y **parar** (sin retirar el test ni tocar código). Las salidas son `/sdd-debug-with-test-e2e-desc` (si el arreglo es de código Java) o declarar el superseding en el diseño (si el cambio de comportamiento era intencionado y se olvidó declarar).
+
+Un test rojo **de esta misma iniciativa** en este punto no debería existir (todos pasaron ya el bucle generar→verificar→sanar); si ocurre, trátalo como FAIL normal del bucle (§4.4).
+
+Si **no hay `design.md`** (modo `--out=`, sin draft completo), no existe la sección de supersedidos: **MUST** tratar **cualquier** rojo ajeno como REGRESIÓN y **MUST NOT** retirar ningún par.
+
+- ✅ CORRECTO: `t-002-crear-correo.spec.ts` (iniciativa anterior) rojo y listado en `## Tests E2E supersedidos` → retirar el par y reportar "supersedido por VAL-Correo-003".
+- ❌ INCORRECTO: retirar un test rojo de una iniciativa anterior que NO está declarado como supersedido (eso oculta una regresión), o dar el skill por terminado sin ejecutar la suite completa.

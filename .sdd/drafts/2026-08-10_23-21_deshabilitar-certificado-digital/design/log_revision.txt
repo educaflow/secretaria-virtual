@@ -1,0 +1,3 @@
+# Verificación — iteración 1
+OK-CORRECTO
+(validate.sh: VALIDACION-XML: OK; comprobaciones §2.a–§2.l aplicadas incluido el modo modificación §2.j/§2.l contra los ficheros reales del subsistema criptografia)

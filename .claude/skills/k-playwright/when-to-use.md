@@ -45,9 +45,9 @@ La diferencia de fondo no es de capacidad, sino de **dónde actúa la IA**:
 
 ### "Crea tests para la pantalla de expedientes"
 
-1. **planner** → `src/test/e2e/expedientes/expedientes.desc.md`.
+1. **planner** → `src/test/e2e/subsystem/expedientes/expedientes.desc.md`.
 2. Revisar el plan con el usuario.
-3. **generator** por cada escenario → `src/test/e2e/expedientes/*.spec.ts`.
+3. **generator** → el `.spec.ts` hermano de cada descripción, en `src/test/e2e/subsystem/expedientes/`.
 
 ### "Los tests de login se han roto"
 
@@ -57,7 +57,7 @@ La diferencia de fondo no es de capacidad, sino de **dónde actúa la IA**:
 
 ### "Cambié el formulario de registro, ¿sigue funcionando?"
 
-- Si **existe un test** que lo cubre → `npx playwright test src/test/e2e/registro/`.
+- Si **existe un test** que lo cubre → `npx playwright test src/test/e2e/subsystem/registroentradasalida/`.
 - Si **no existe test** y solo quieres verificar una vez → Agent CLI:
   ```
   playwright-cli open http://localhost:8080/#/registro
@@ -85,12 +85,12 @@ La diferencia de fondo no es de capacidad, sino de **dónde actúa la IA**:
 | Editar `.spec.ts` a mano tras el generator | Pierdes la reproducibilidad y el log estructurado | Volver a invocar al generator con un escenario corregido |
 | Usar Agent CLI para escribir tests | Sus comandos no producen ficheros `.spec.ts` | Test Agents (generator) |
 | Healer arregla la app | El healer edita tests, no código de producción | Si el bug es de la app, fíjalo aparte y luego corre el test |
-| Lanzar tests sin la app arrancada | Falla todo con timeouts | Arrancar Gradle primero, o configurar `webServer` en config |
+| Lanzar tests sin la app arrancada | Falla todo con timeouts | Arrancar con `./run.sh` primero, o configurar `webServer` en config |
 | Commitear `.playwright-mcp/` | Son trazas temporales | Añadir a `.gitignore` |
 
 ## Reglas duras
 
-1. **Un test = un fichero = un escenario.** No agrupar varios `test()` en un `.spec.ts`.
+1. **Un fichero = una descripción.** Cada `<base>.desc.md` se materializa en un único `<base>.spec.ts` de la misma carpeta, con un `test()` por escenario de esa descripción (`conventions.md`). En el pipeline SDD cada `.desc.md` es un solo test → un solo `test()`.
 2. **El plan se revisa antes del generator.** No saltarse el paso del planner para escenarios complejos.
 3. **El healer no oculta bugs.** Si un test falla por un bug real de la app, pararse y reportar.
 4. **No mezclar herramientas en una sola tarea.** Si has decidido usar Test Agents, no te pases a Agent CLI a mitad.

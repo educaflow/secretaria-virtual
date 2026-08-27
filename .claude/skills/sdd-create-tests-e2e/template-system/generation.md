@@ -6,7 +6,7 @@ Lo lee el **generador** (§2.1 del `README.md`). Tarea: convertir **una** descri
 
 **CRITICAL — disciplina de tiempo** (redescubrir toda la UI en cada test es el mayor coste de tiempo del flujo):
 
-1. **Reutiliza los `.spec.ts` hermanos ya verdes** de la misma carpeta `src/test/e2e/<iniciativa>/` **antes** de pilotar nada: ya tienen resueltos el login, la navegación a las pantallas, los locators de Axelor y el patrón de idempotencia (§4). Cópialos como base y usa el navegador **solo** para lo específico de **este** test.
+1. **Reutiliza los `.spec.ts` hermanos ya verdes** de la misma carpeta `src/test/e2e/<capa>/<sistema>/` **antes** de pilotar nada: ya tienen resueltos el login, la navegación a las pantallas, los locators de Axelor y el patrón de idempotencia (§4). Cópialos como base y usa el navegador **solo** para lo específico de **este** test.
 2. **MUST NOT** explorar la UI de forma exhaustiva si un spec hermano ya muestra el camino.
 3. **MUST** cerrar tu sesión de navegador con `browser_close` al terminar: una sesión MCP huérfana bloquea al siguiente subagente durante minutos.
 
@@ -61,9 +61,11 @@ Cada test **MUST** gestionar su propio ciclo de sesión con el helper `src/test/
 
 ## 5. Plantilla literal del `.spec.ts`
 
+**CRITICAL — profundidad del import**: el test vive en `src/test/e2e/<capa>/<sistema>/`, así que `_support/` está **dos** niveles arriba. **MUST** usar `'../../_support/auth'`; `'../_support/auth'` no resuelve y deja el test rojo.
+
 ```ts
 import { test, expect } from '@playwright/test';
-import { ensureLoggedOut, login, logout } from '../_support/auth';
+import { ensureLoggedOut, login, logout } from '../../_support/auth';
 
 // T-NNN — <nombre del test>
 // origen: ESC-NNN  |  verifica: <contenido de la línea "Verifica:" del .desc.md>

@@ -1,0 +1,13 @@
+@startuml
+
+class CertificadoDigital {
+  + habilitado
+}
+
+note right of CertificadoDigital
+  Modelo existente: solo se muestra
+  el campo nuevo (delta); el resto
+  del modelo real no cambia.
+end note
+
+@enduml

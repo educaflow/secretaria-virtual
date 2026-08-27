@@ -45,7 +45,7 @@ Lo lee el **corrector** (§2.3 del `README.md`). Tarea: ante un test que falla, 
 - editar XML de dominios o vistas materializados por el diseño, ni cambiar firmas/contratos declarados por el diseño;
 - introducir mass-assignment, saltarse `AllowProperties` o la asignación incondicional de campos `servidor`.
 
-Si para que el test pase haría falta **cambiar el contrato/diseño** (un XML materializado, una firma declarada, una regla del spec), o falta un **recurso** (dependencia inexistente, dato maestro ausente), **NO** lo fuerces: devuelve `BLOQUEADO` con el motivo. Eso vuelve a `/sdd-designer`.
+Si para que el test pase haría falta **cambiar el contrato/diseño** (un XML materializado, una firma declarada, una regla del spec), o falta un **recurso** (dependencia inexistente, dato maestro ausente), **NO** lo fuerces: devuelve `BLOQUEADO` con el motivo **y la ruta de salida**: `/sdd-designer` en modo **Revisar/Modificar** sobre esta iniciativa con el cambio concreto que hace falta, y después re-invocar `/sdd-implementer` para rematerializar el fichero afectado.
 
 ---
 

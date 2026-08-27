@@ -36,7 +36,7 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         validateGetAlmacenClaveByDni(dni).ifPresent(BusinessMessages::throwIfInvalid);
         CertificadoDigital certificado = ((CertificadoDigitalRepository) repository).findByDni(dni);
 
-        if (certificado == null) {
+        if ((certificado == null) || (certificado.getEnabled() == false)) {
             throw new RuntimeException("No existe certificado para el DNI: " + dni);
         }
 

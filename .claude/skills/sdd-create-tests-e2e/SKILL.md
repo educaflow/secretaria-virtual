@@ -1,6 +1,6 @@
 ---
 name: sdd-create-tests-e2e
-description: Paso del pipeline SDD posterior a `/sdd-debug-with-test-e2e-desc`. Dada una iniciativa cuya carpeta `test-e2e-desc/` ya está descompuesta y depurada (un índice `tests-e2e-desc.md` con checkbox por test + un `t-NNN-<slug>.desc.md` autocontenido por test), persiste como tests de regresión Playwright **solo los tests que pasaron** (`[x]`): copia cada `t-NNN-<slug>.desc.md` a `src/test/e2e/<iniciativa>/` como snapshot "as-tested" y genera su `t-NNN-<slug>.spec.ts` hermano, ejecutándolo contra la app real hasta que pasa. El skill es un MOTOR genérico y agnóstico al artefacto: aporta solo el flujo (localizar la iniciativa, cargar el contrato, seleccionar+copiar, arrancar la app, y por cada test generar→ejecutar→sanar) y delega TODO lo específico (cómo se genera el `.spec.ts`, el ciclo de login/logout, cómo se sana un test roto) en la guía `template-system/README.md` (configurable con `--template-dir`), que los subagentes leen como contrato. La salida son los pares `.desc.md` + `.spec.ts` bajo `src/test/e2e/<iniciativa>/` y el helper `src/test/e2e/_support/auth.ts`.
+description: Paso del pipeline SDD posterior a `/sdd-debug-with-test-e2e-desc`. Dada una iniciativa cuya carpeta `test-e2e-desc/` ya está descompuesta y depurada (un índice `tests-e2e-desc.md` con checkbox por test + un `t-NNN-<slug>.desc.md` autocontenido por test), persiste como tests de regresión Playwright **solo los tests que pasaron** (`[x]`): copia cada `t-NNN-<slug>.desc.md` a `src/test/e2e/<capa>/<sistema>/` como snapshot "as-tested" y genera su `t-NNN-<slug>.spec.ts` hermano, ejecutándolo contra la app real hasta que pasa. El skill es un MOTOR genérico y agnóstico al artefacto: aporta solo el flujo (localizar la iniciativa, cargar el contrato, seleccionar+copiar, arrancar la app, y por cada test generar→ejecutar→sanar) y delega TODO lo específico (cómo se genera el `.spec.ts`, el ciclo de login/logout, cómo se sana un test roto) en la guía `template-system/README.md` (configurable con `--template-dir`), que los subagentes leen como contrato. La salida son los pares `.desc.md` + `.spec.ts` bajo `src/test/e2e/<capa>/<sistema>/` y el helper `src/test/e2e/_support/auth.ts`.
 handoffs:
   - label: Cerrar la iniciativa
     agent: sdd-close
@@ -10,7 +10,7 @@ allowed-tools: Bash, Read, Write, Edit, Skill, AskUserQuestion, Agent, Monitor
 
 # sdd-create-tests-e2e
 
-Eres un **motor de creación de tests E2E de regresión** del pipeline SDD: tomas la descomposición ya **depurada** de una iniciativa (`test-e2e-desc/`, producida por `/sdd-debug-with-test-e2e-desc`), seleccionas **solo los tests que pasaron** (`[x]` en el índice) y, por cada uno, **copias su descripción** a `src/test/e2e/<iniciativa>/` y **generas su `.spec.ts`** pilotando la app real, dejándolo verde. La salida son tests Playwright versionados que reproducen la cobertura ya verificada.
+Eres un **motor de creación de tests E2E de regresión** del pipeline SDD: tomas la descomposición ya **depurada** de una iniciativa (`test-e2e-desc/`, producida por `/sdd-debug-with-test-e2e-desc`), seleccionas **solo los tests que pasaron** (`[x]` en el índice) y, por cada uno, **copias su descripción** a `src/test/e2e/<capa>/<sistema>/` y **generas su `.spec.ts`** pilotando la app real, dejándolo verde. La salida son tests Playwright versionados que reproducen la cobertura ya verificada.
 
 **CRITICAL — eres agnóstico al artefacto.** Este `SKILL.md` define **solo el flujo y la orquestación de agentes**. **No sabe** cómo se genera un `.spec.ts`, cuál es el ciclo de autenticación, qué hace fiel a un test, ni cómo se sana uno roto: todo eso lo declara `template-system/README.md`, que los subagentes leen como contrato. **MUST NOT** asumir de memoria ningún detalle específico; **MUST NOT** nombrar plantillas ni comandos concretos de generación/verificación/sanación en este skill, salvo el contrato fijo de entrada/salida y la gestión de la app (§2.2). Apuntar `--template-dir` a otra carpeta con un README distinto cambia por completo cómo se generan los tests, **sin tocar este skill**.
 
@@ -33,21 +33,21 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 - **Ruta explícita** a la carpeta `test-e2e-desc/` de una iniciativa (o a la carpeta de la iniciativa). El skill valida que contiene `tests-e2e-desc.md` y procede.
 - **Identificador de test concreto** (`T-007`) o una lista (`T-001 T-007`) para materializar solo esos (si están `[x]`). Sin esto, se materializan **todos** los `[x]` pendientes.
 - **Sin argumentos** → auto-detección de la **última** iniciativa de `.sdd/drafts/` que contenga `test-e2e-desc/tests-e2e-desc.md` (§4.2).
-- Flags de override `--template-dir=`, `--in=`, `--root=`, `--fresh` (Apéndice A).
+- Flags de override `--template-dir=`, `--in=`, `--out=`, `--root=`, `--fresh` (Apéndice A).
 
 ---
 
 ## Outline
 
 1. **Fase 0 — Localizar** la iniciativa y su `test-e2e-desc/`, y **confirmar** la ruta detectada (§4).
-2. **Fase 1 — Cargar** el contrato (`template-system/README.md`), resolver `<iniciativa>` y las rutas, y leer la sección «Gestión de la app» (§5).
-3. **Fase 2 — Seleccionar y copiar** (§7): leer el índice, quedarse con los tests `[x]`, descartar los que ya tienen `.spec.ts` (salvo `--fresh`), copiar cada `.desc.md` a `src/test/e2e/<iniciativa>/` con la cabecera-banner de snapshot, y **comprobar el helper `_support/auth.ts` (crearlo si no existe)**.
+2. **Fase 1 — Cargar** el contrato (`template-system/README.md`), resolver la **carpeta destino** desde el campo `Capa:` del `design.md` (§1.4) y las demás rutas, y leer sus secciones «Gestión de la app» y «Puerta de regresión» (§5).
+3. **Fase 2 — Seleccionar y copiar** (§7): leer el índice, quedarse con los tests `[x]`, resolver por **identidad** (`id:` + `Origen ESC`) los destinos ya ocupados —saltar los ya materializados (salvo `--fresh`), registrar las colisiones con otra iniciativa—, copiar cada `.desc.md` a `src/test/e2e/<capa>/<sistema>/` con la cabecera-banner de snapshot, y **comprobar el helper `_support/auth.ts` (crearlo si no existe)**.
 4. **Fase 3 — Arrancar la app** (la gestiona el motor, §2.2): dejarla respondiendo `200` antes de generar el primer test (§8).
 5. **Fase 4 — Generar, verificar y sanar** (§9), tres subagentes aislados por test:
    - **§9.0 — validar el helper de auth** (login/logout) contra la app real **una vez**; si está roto, corregirlo antes de generar nada.
    - Por cada test, en orden: **generador** escribe `t-NNN-<slug>.spec.ts` (no juzga) → el motor lo **ejecuta** con el runner real → si **verde**, el **verificador** independiente audita que es fiel (`OK`/`INFIEL`).
    - si **RED** o **INFIEL** → bucle **sanador** → reejecutar y volver a verificar (**LIMIT** 8 ciclos). Como el test ya pasó al depurar, la causa por defecto es el `.spec.ts`, no el código (§2.3). Si no se logra, se trata como **fallo por test** (§2.7): registrar, borrar el `.spec.ts` y seguir.
-6. **Fase 5 — Reportar** el listado final SUCCESS/FAIL y **parar la app** (§10).
+6. **Fase 5 — Puerta de regresión** sobre **toda** la suite `src/test/e2e` (§10.1, la define el README en su sección «Puerta de regresión»), **reportar** el listado final SUCCESS/FAIL y **parar la app** (§10). **CRITICAL**: la puerta corre **con la app aún viva**, antes de pararla.
 
 **CRITICAL — el skill es AUTÓNOMO por defecto** (§2.7): la **única** pregunta al usuario es en la **Fase 0** (qué iniciativa trabajar, como todos los `/sdd-*`); a partir de ahí **MUST NOT** usar `AskUserQuestion`. Un test que no se puede crear se **registra** en `fail_create_tests.log`, se **borra** su `.spec.ts` a medias y se **salta al siguiente**.
 
@@ -55,6 +55,7 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 
 - `--template-dir=` apunta a una carpeta que **no contiene `README.md`** → **ERROR** y detente.
 - No se encuentra ninguna carpeta `test-e2e-desc/` con `tests-e2e-desc.md` → **ERROR**: indica que hay que ejecutar antes `/sdd-debug-with-test-e2e-desc` y detente.
+- La carpeta destino no se puede resolver (§1.4): falta `design/design.md`, no tiene `**Capa:**`, su valor no casa `^(system|subsystem)/[a-z][a-z0-9_-]*$`, el sistema no existe en `src/main/java/com/educaflow/`, o declara más de un sistema → **ERROR** con el motivo y detente. **MUST NOT** caer al nombre del draft. **Excepción**: con `--out=` (Apéndice A) el destino viene dado y esta resolución no se ejecuta.
 - El índice **no tiene ningún test `[x]`** → **ERROR** e informa: no hay nada verificado que materializar.
 - La app no responde `200` en `http://localhost:8080` tras arrancarla → **ERROR**: indica revisar `src/test/e2e/.app.log` y detente (sin la app no se puede generar nada).
 - El **validador de auth** (§9.0) devuelve `BLOQUEADO` → **ERROR**: el helper de auth afecta a **todos** los tests; detente e indica el motivo (sin auth válida, todo fallaría).
@@ -74,11 +75,13 @@ La carpeta `test-e2e-desc/` de una iniciativa, **ya descompuesta y depurada** po
 
 El skill **no asume su estructura interna**: la conoce el subagente leyendo el contrato. Solo necesita el índice para saber **qué tests están `[x]`** y a qué fichero apunta cada uno.
 
+**REQUIRED — segunda entrada obligatoria**: el `design/design.md` de la misma iniciativa, del que el motor lee **solo dos campos**: `Capa:` (resuelve la carpeta destino, §1.4) y la sección `## Tests E2E supersedidos` (la usa la puerta de regresión, §10.1). Su ausencia es **ERROR** (aborto global), salvo con `--out=` (Apéndice A): ese modo fija el destino a mano y, al no haber sección de supersedidos, la puerta de regresión (§10.1) trata **cualquier** rojo ajeno como REGRESIÓN.
+
 ### 1.2 Salida
 
-- En `src/test/e2e/<iniciativa>/`: por cada test `[x]`, un par `t-NNN-<slug>.desc.md` (copia-snapshot con cabecera-banner) + `t-NNN-<slug>.spec.ts` (test Playwright verde).
+- En `src/test/e2e/<capa>/<sistema>/`: por cada test `[x]`, un par `t-NNN-<slug>.desc.md` (copia-snapshot con cabecera-banner) + `t-NNN-<slug>.spec.ts` (test Playwright verde).
 - En `src/test/e2e/_support/auth.ts`: el helper de login/logout compartido (creado si no existe; su contenido lo define el contrato).
-- En `src/test/e2e/<iniciativa>/fail_create_tests.log`: una entrada por cada test que **no** se pudo crear (autónomo, §2.7), separada por `--------------------`. Su `.spec.ts` a medias se borra.
+- En `src/test/e2e/<capa>/<sistema>/fail_create_tests.log`: una entrada por cada test que **no** se pudo crear (autónomo, §2.7), separada por `--------------------`. Su `.spec.ts` a medias se borra.
 - En la conversación: el listado final SUCCESS/FAIL por test (§10).
 
 **MUST NOT** modificar `test-e2e-desc/` ni ningún artefacto de `.sdd/` (es la fuente; el destino en `src/test/e2e/` es una copia regenerable). **MUST NOT** modificar código Java: este skill solo crea tests; si un test no pasa por un fallo de la app, es una **regresión** que se reporta, no se oculta.
@@ -87,6 +90,8 @@ El skill **no asume su estructura interna**: la conoce el subagente leyendo el c
 
 ```
 .sdd/drafts/YYYY-MM-DD_HH-MM_{resumen}/
+├── design/
+│   └── design.md                        ← ENTRADA: campo `Capa:` (§1.4) + `## Tests E2E supersedidos` (§10.1)
 └── test-e2e-desc/                       ← ENTRADA (la dejó /sdd-debug-with-test-e2e-desc)
     ├── tests-e2e-desc.md            ← índice con checkbox por test
     └── t-001-<slug>.desc.md … t-NNN-<slug>.desc.md
@@ -94,10 +99,33 @@ El skill **no asume su estructura interna**: la conoce el subagente leyendo el c
 src/test/e2e/                            ← SALIDA
 ├── _support/
 │   └── auth.ts                          ← helper login/logout (creado si falta)
-└── {resumen}/                           ← <iniciativa> = el {resumen} del nombre del draft
+└── <capa>/<sistema>/                    ← REPLICA la ruta del código que se prueba (§1.4)
     ├── t-001-<slug>.desc.md         ← snapshot "as-tested" (con cabecera-banner)
     └── t-001-<slug>.spec.ts         ← test Playwright generado
 ```
+
+### 1.4 CRITICAL — la carpeta destino replica la del código
+
+La carpeta de salida **MUST** ser `src/test/e2e/<capa>/<sistema>/`, espejo de `src/main/java/com/educaflow/<capa>/<sistema>/`, donde `<capa>` es `system` o `subsystem`. **MUST NOT** derivarla del nombre del draft: dos iniciativas sobre el mismo sistema comparten carpeta de tests, igual que comparten carpeta de código.
+
+Resolución (la hace el motor en la Fase 1, §5):
+
+1. Lee el campo **`**Capa:**`** del `design/design.md` de la iniciativa (el campo que `sdd-designer` obliga a poner en el diseño: `template-system/design-contract.md`). Su valor es literalmente `<capa>/<sistema>`.
+2. **MUST** validar que declara **un solo** sistema y casa con `^(system|subsystem)/[a-z][a-z0-9_-]*$`. Un valor con varios sistemas (`subsystem/a, subsystem/b`) falla aquí: el destino sería ambiguo.
+3. **MUST** validar que existe la carpeta `src/main/java/com/educaflow/<capa>/<sistema>/`. Si no existe, el diseño declara un sistema que no está en el código.
+4. Si el `design/design.md` no existe o no tiene `Capa:` → **ERROR** y detente. **MUST NOT** inventar la carpeta ni caer al nombre del draft.
+
+- ✅ CORRECTO: `**Capa:** subsystem/criptografia` → `src/test/e2e/subsystem/criptografia/`
+- ✅ CORRECTO: `**Capa:** system/gestioncentro` → `src/test/e2e/system/gestioncentro/`
+- ❌ INCORRECTO: `src/test/e2e/deshabilitar-certificado-digital/` (nombre del draft, no replica el código)
+- ❌ INCORRECTO: `src/test/e2e/criptografia/` (falta la capa; no distingue `system` de `subsystem`)
+
+**Carpetas fuera del espejo**: en `src/test/e2e/` conviven tests que no pertenecen a ningún sistema (p.ej. `login/`, `seed.spec.ts`) o anteriores a esta convención. **MUST NOT** tocarlas ni migrarlas: este skill solo escribe en el destino que resuelve. La puerta de regresión (§10.1) sí las ejecuta, porque corre la suite entera.
+
+**Colisión de nombres entre iniciativas**: como la numeración `t-NNN` es local a cada iniciativa y ahora varias comparten carpeta, un `t-NNN-<slug>` de esta iniciativa puede chocar con uno ya persistido por otra. La **identidad** de un test persistido es la pareja (`id:`, `Origen ESC`) de su `.desc.md`, no su nombre de fichero. Al copiar (§7), comparando el `.desc.md` de origen con el que ya haya en el destino:
+
+- **Misma identidad** → es el mismo test ya materializado: aplica la idempotencia de §2.5 (saltar, salvo `--fresh`).
+- **Distinta identidad** → es una colisión real entre iniciativas: **MUST NOT** sobrescribir ni renumerar (renumerar desincronizaría el nombre del fichero con el `id:` del frontmatter, que §7 paso 4 prohíbe tocar y del que dependen la trazabilidad de `generation.md`, el informe §10 y `fail_create_tests.log`). Trátalo como **fallo por test** (§2.7) con motivo `colisión de nombre con {ruta} (identidad distinta)` y sigue con el siguiente.
 
 ---
 
@@ -107,7 +135,7 @@ src/test/e2e/                            ← SALIDA
 
 Todo lo específico (cómo generar el `.spec.ts`, el ciclo de autenticación, la plantilla del test y del helper, cómo sanar un test roto y qué **MUST NOT** tocarse) lo define `template-system/README.md` y los ficheros que él referencie. Los subagentes los **leen de disco**; el skill **MUST NOT** asumirlos ni hardcodearlos. El skill solo pasa a cada subagente **las rutas** de los ficheros de entrada y su rol.
 
-**CRITICAL — `README.md` es el ÚNICO fichero de la plantilla que el motor conoce por nombre.** Los demás los descubren los subagentes leyéndolo. Único acoplamiento por nombre: `README.md` (contrato), la entrada (`test-e2e-desc/`) y la salida (`src/test/e2e/<iniciativa>/`).
+**CRITICAL — `README.md` es el ÚNICO fichero de la plantilla que el motor conoce por nombre.** Los demás los descubren los subagentes leyéndolo. Único acoplamiento por nombre: `README.md` (contrato), la entrada (`test-e2e-desc/`) y la salida (`src/test/e2e/<capa>/<sistema>/`).
 
 ### 2.2 La app la gestiona el MOTOR (única excepción al agnosticismo)
 
@@ -136,7 +164,9 @@ Reglas que el motor **MUST** cumplir:
 
 ### 2.5 Idempotencia y progreso por la presencia del `.spec.ts`
 
-El **checkpoint** es el propio `.spec.ts`: un test materializado y verde es un `.spec.ts` que existe y pasa. Al (re)invocar el skill, los tests cuyo `.spec.ts` ya existe se **descartan** (salvo `--fresh`, que regenera todos los seleccionados). Esto hace el skill reanudable sin un índice propio.
+El **checkpoint** es el propio `.spec.ts`: un test materializado y verde es un `.spec.ts` que existe y pasa. Al (re)invocar el skill, los tests cuyo `.spec.ts` ya existe **y corresponde al mismo test** se **descartan** (salvo `--fresh`, que regenera todos los seleccionados). Esto hace el skill reanudable sin un índice propio.
+
+**CRITICAL — descartar exige identidad, no solo nombre de fichero**: como la carpeta destino la comparten varias iniciativas (§1.4), un `.spec.ts` con el mismo nombre puede ser **otro** test. **MUST** comparar la pareja (`id:`, `Origen ESC`) del `.desc.md` de origen con la del `.desc.md` hermano ya persistido: misma identidad → saltar; distinta → colisión, que se trata como fallo por test (§1.4, §2.7).
 
 ### 2.6 Solo se materializa lo verificado
 
@@ -144,19 +174,19 @@ El **checkpoint** es el propio `.spec.ts`: un test materializado y verde es un `
 
 ### 2.7 Autonomía por defecto y registro de fallos
 
-**CRITICAL** — el skill funciona **sin intervención del usuario**, con **una única excepción**: en la **Fase 0** pregunta con `AskUserQuestion` sobre **qué iniciativa** trabajar (igual que el resto de `/sdd-*`). A partir de ahí el motor **MUST NOT** usar `AskUserQuestion` en ningún otro punto. Tras la Fase 0 solo hay dos desenlaces:
+**CRITICAL** — el skill funciona **sin intervención del usuario**, con **una única excepción**: en la **Fase 0** pregunta con `AskUserQuestion` sobre **qué iniciativa** trabajar (igual que el resto de `/sdd-*`). A partir de ahí el motor **MUST NOT** usar `AskUserQuestion` en ningún otro punto. Tras la Fase 0 hay tres desenlaces — los dos siguientes más la **REGRESIÓN** de la puerta final (§10.1: un test de otra iniciativa se pone rojo sin estar declarado supersedido → reportar y parar, **sin** retirar el test ni tocar código; la app se para igual, §10.2 paso 3):
 
 1. **Aborto global** (§Outline): un fallo de setup que impide procesar **cualquier** test (sin input, app caída, auth no válida) → **ERROR** con mensaje y detente. No se pregunta.
 2. **Fallo por test**: un test que **no se puede crear** (el generador o el sanador devuelven `BLOQUEADO`, o se agotan los **8** ciclos de sanación). En ese caso el motor **MUST**, en este orden:
    1. **Borrar** el `.spec.ts` a medias si existe: `rm -f {ruta del .spec.ts}` (no se deja un test roto en la suite). El `.desc.md` snapshot se **conserva** (es regenerable).
-   2. **Anexar** (append, nunca sobrescribir) una entrada al fichero **`src/test/e2e/<iniciativa>/fail_create_tests.log`** con **toda** la información del fallo, terminada por una línea separadora de 20 guiones.
+   2. **Anexar** (append, nunca sobrescribir) una entrada al fichero **`src/test/e2e/<capa>/<sistema>/fail_create_tests.log`** con **toda** la información del fallo, terminada por una línea separadora de 20 guiones.
    3. Marcar el test como **FAIL** y **continuar con el siguiente** (no abortar la pasada).
 
 **Formato literal de cada entrada de `fail_create_tests.log`** (texto plano; el motor lo escribe, no un subagente):
 
 ```
 T-NNN — <nombre del test>
-Fase: <generación | sanación (ciclo k/8)>
+Fase: <selección | generación | sanación (ciclo k/8)>
 Motivo: <el texto tras "BLOQUEADO:" del subagente, o "8 ciclos de sanación agotados">
 Detalle: <extracto de la salida del runner y/o del log de la app que explique qué pasó>
 .spec.ts borrado: <ruta del .spec.ts eliminado>
@@ -172,10 +202,12 @@ Detalle: <extracto de la salida del runner y/o del log de la app que explique qu
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│  Fase 0  Localizar test-e2e-desc/ (ruta explícita | más nueva, autónomo) │
-│  Fase 1  Cargar el contrato (README) + sección «Gestión de la app»   │
-│  Fase 2  Leer índice → filtrar [x] → descartar los que ya tienen     │
-│          .spec.ts → copiar .desc.md (banner) → asegurar _support/auth.ts │
+│  Fase 0  Localizar test-e2e-desc/ (ruta explícita | más nueva)        │
+│            auto-detección → confirmar con AskUserQuestion (§4.2)    │
+│  Fase 1  Cargar contrato (README: «Gestión de la app» + «Puerta de   │
+│          regresión») → destino = Capa: del design.md (§1.4)          │
+│  Fase 2  Leer índice → filtrar [x] → por identidad (id, Origen ESC): │
+│          saltar / colisión → copiar .desc.md (banner) → _support/auth.ts │
 │  Fase 3  Motor: arrancar la app (tracked bg) hasta 200               │
 │  Fase 4  §9.0 validar _support/auth.ts (login/logout) una vez        │
 │          Por cada test seleccionado (en secuencia, 3 contextos):     │
@@ -186,11 +218,13 @@ Detalle: <extracto de la salida del runner y/o del log de la app que explique qu
 │            └─ RED | INFIEL → bucle (LIMIT 8): sanador → reejecutar    │
 │                 → volver a verificar; no se logra → FAIL autónomo:   │
 │                 log fail_create_tests.log + borrar .spec.ts + seguir │
-│  Fase 5  Parar la app + reporte final SUCCESS/FAIL                   │
+│  Fase 5  Puerta de regresión: suite COMPLETA con la app viva (§10.1) │
+│            rojo de otra iniciativa → supersedido? retirar : REGRESIÓN │
+│          → reporte final SUCCESS/FAIL → parar la app                 │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-Las fases se ejecutan **en orden** y **sin pedir aprobación** (skill autónomo, §2.7): un test que no se puede crear se registra y se salta; solo un fallo de setup global aborta la pasada con **ERROR**.
+Las fases se ejecutan **en orden**; salvo la confirmación de iniciativa de la Fase 0, no se pide aprobación (skill autónomo, §2.7): un test que no se puede crear se registra y se salta; solo un fallo de setup global aborta la pasada con **ERROR**, y una **REGRESIÓN** en la puerta final se reporta y para (§10.1).
 
 ---
 
@@ -198,7 +232,7 @@ Las fases se ejecutan **en orden** y **sin pedir aprobación** (skill autónomo,
 
 ### 4.1 Caso 1 — Ruta explícita
 
-Si el usuario invoca con una ruta a `test-e2e-desc/` (o a la carpeta de la iniciativa): comprueba que existe `test-e2e-desc/tests-e2e-desc.md`. La **carpeta de la iniciativa** es la que contiene `test-e2e-desc/`; `<iniciativa>` es el `{resumen}` de su nombre (`YYYY-MM-DD_HH-MM_{resumen}` → `{resumen}`). Pasa a la Fase 1.
+Si el usuario invoca con una ruta a `test-e2e-desc/` (o a la carpeta de la iniciativa): comprueba que existe `test-e2e-desc/tests-e2e-desc.md`. La **carpeta de la iniciativa** es la que contiene `test-e2e-desc/`. Pasa a la Fase 1, que es quien resuelve la carpeta destino a partir del `design.md` (§1.4).
 
 ### 4.2 Caso 2 — Sin ruta (auto-detección)
 
@@ -216,12 +250,16 @@ Si el usuario invoca con una ruta a `test-e2e-desc/` (o a la carpeta de la inici
 
 ## 5. Fase 1 — Cargar el contrato y resolver rutas
 
-1. **REQUIRED — lee con `Read` la guía `template-system/README.md`** (resuelta contra `--template-dir`): confirma que existe (si no → **ERROR**), entiende a alto nivel qué pide a cada rol, y **lee su sección «Gestión de la app»** (los comandos que el motor ejecutará en la Fase 3/4). El resto del contrato lo leen los subagentes de disco.
-2. **Resuelve** `<iniciativa>` (el `{resumen}` del nombre del draft) y las rutas que se pasarán a los subagentes (no su contenido):
+1. **REQUIRED — lee con `Read` la guía `template-system/README.md`** (resuelta contra `--template-dir`): confirma que existe (si no → **ERROR**), entiende a alto nivel qué pide a cada rol, y **lee las dos secciones que ejecuta el propio motor**: «Gestión de la app» (comandos de las Fases 3/4) y «Puerta de regresión» (comando y criterio de la Fase 5, §10.1). El resto del contrato lo leen los subagentes de disco.
+2. **REQUIRED — resuelve la carpeta destino** aplicando §1.4: lee `**Capa:**` del `design/design.md` de la iniciativa, valida el formato y que el sistema exista en el código, y compón `src/test/e2e/<capa>/<sistema>/`. Ante campo ausente, formato inválido, sistema inexistente o más de un sistema → **ERROR** y detente. Con `--out=` (Apéndice A) sáltate este paso entero: el destino ya viene dado.
+   ```bash
+   grep -m1 '^\*\*Capa:\*\*' {carpeta-iniciativa}/design/design.md
+   ```
+3. **Resuelve** las demás rutas que se pasarán a los subagentes (no su contenido):
    - la ruta de `template-system/README.md` (las reglas),
-   - la carpeta de entrada `{iniciativa}/test-e2e-desc/` y su índice,
-   - la carpeta de salida `src/test/e2e/<iniciativa>/` y el helper `src/test/e2e/_support/auth.ts`.
-3. **Valida** que el índice `tests-e2e-desc.md` existe y tiene al menos una línea de test. Si no, **ERROR** y detente.
+   - la carpeta de entrada `{carpeta-iniciativa}/test-e2e-desc/` y su índice,
+   - la carpeta de salida del paso 2 y el helper `src/test/e2e/_support/auth.ts`.
+4. **Valida** que el índice `tests-e2e-desc.md` existe y tiene al menos una línea de test. Si no, **ERROR** y detente.
 
 ---
 
@@ -238,8 +276,13 @@ Cada prompt de subagente (§9) **MUST** pasar, además de su tarea específica:
 
 1. **Lee el índice** `tests-e2e-desc.md`. Por cada línea `- [x] [T-NNN — <nombre>](t-NNN-<slug>.desc.md)`, registra `(T-NNN, fichero)`. **Descarta** las `- [ ]` (§2.6). Si se pasaron ids concretos, filtra a esos (si alguno está `[ ]` se ignora y se anota en `fail_create_tests.log` con motivo "no `[x]` en el índice", §2.7).
 2. Si tras filtrar **no queda ninguno** → **ERROR** (aborto global: no hay tests verificados que materializar).
-3. **Descarta** (salvo `--fresh`) los tests cuyo `.spec.ts` destino ya exista en `src/test/e2e/<iniciativa>/` (§2.5). Indica cuántos se saltan y cuántos quedan.
-4. Por cada test seleccionado, **copia** su `t-NNN-<slug>.desc.md` desde `test-e2e-desc/` a `src/test/e2e/<iniciativa>/`, **anteponiendo la cabecera-banner de snapshot** (formato y contenido los define el contrato en el README; lleva el origen, `T-NNN`, `Origen ESC` y el aviso de "NO editar a mano"). **MUST NOT** alterar el resto del contenido del `.desc.md`.
+3. **Resuelve cada destino ya ocupado** en `src/test/e2e/<capa>/<sistema>/`. **CRITICAL — el disparador es el `.desc.md` destino, NO el `.spec.ts`**: un test fallido deja su `.desc.md` y borra su `.spec.ts` (§2.7), así que mirar solo el `.spec.ts` dejaría pasar una copia que pisaría el snapshot de otra iniciativa. Si existe el `.desc.md` destino, lee su (`id:`, `Origen ESC`) y compáralos con los del origen (§2.5):
+   - **Distinta identidad** → **colisión** (§1.4): regístrala como fallo por test (§2.7) con motivo `colisión de nombre con {ruta} (identidad distinta)`. **MUST NOT** copiar ni sobrescribir un `.desc.md` ajeno.
+   - **Misma identidad y su `.spec.ts` existe** → **descarta** el test (salvo `--fresh`).
+   - **Misma identidad y su `.spec.ts` NO existe** (pasada anterior fallida) → **reprocesa**: sobrescribir su propio `.desc.md` es inocuo porque es el mismo test.
+
+   Indica cuántos se saltan, cuántos colisionan y cuántos quedan.
+4. Por cada test seleccionado, **copia** su `t-NNN-<slug>.desc.md` desde `test-e2e-desc/` a `src/test/e2e/<capa>/<sistema>/`, **anteponiendo la cabecera-banner de snapshot** (formato y contenido los define el contrato en el README; lleva el origen, `T-NNN`, `Origen ESC` y el aviso de "NO editar a mano"). **MUST NOT** alterar el resto del contenido del `.desc.md`.
 5. **Comprueba el helper de auth `src/test/e2e/_support/auth.ts`** (la parte de login/logout): si **no existe**, créalo con la plantilla literal que define el contrato (guía de generación); si **ya existe**, **MUST NOT** sobrescribirlo. Su login/logout se **valida** contra la app real en la Fase 4 (§9.0) antes de generar ningún test, porque sus selectores son best-effort.
 
 ---
@@ -274,7 +317,7 @@ Recorre luego los tests seleccionados **en orden**. Para cada test:
 
 **Antes** de lanzarlo, el motor **MUST** barrer las sesiones de navegador huérfanas (README, sección «Gestión de la app»): un Chromium/worker colgado del test anterior bloquearía a este generador. **MUST NOT** matar el server MCP.
 
-Lanza **un** subagente con `Agent` (`subagent_type: claude`, `run_in_background: false`). Recibe la ruta de **su** `.desc.md` (la copia en `src/test/e2e/<iniciativa>/`), la ruta destino del `.spec.ts` hermano, la ruta del helper `_support/auth.ts` y el contrato.
+Lanza **un** subagente con `Agent` (`subagent_type: claude`, `run_in_background: false`). Recibe la ruta de **su** `.desc.md` (la copia en `src/test/e2e/<capa>/<sistema>/`), la ruta destino del `.spec.ts` hermano, la ruta del helper `_support/auth.ts` y el contrato.
 
 **Prompt del subagente generador**:
 
@@ -344,42 +387,54 @@ Se entra desde un **RED** del runner o un **INFIEL** del verificador. **LIMIT**:
 
 **MUST NOT** superar los **8** ciclos por test.
 
-- ✅ CORRECTO (generador): `ESCRITO: src/test/e2e/grupos-y-notas/t-001-crear-un-grupo-con-sus-alumnos.spec.ts`
+- ✅ CORRECTO (generador): `ESCRITO: src/test/e2e/subsystem/sistemaeducativo/t-001-crear-un-grupo-con-sus-alumnos.spec.ts`
 - ✅ CORRECTO (verificador): `OK: T-001` / `INFIEL: T-007 — no asierta que la matrícula de honor cuenta como 10 en la media`
 - ✅ CORRECTO (sanador): `CORREGIDO: T-001` / `BLOQUEADO: T-014 — el botón "Reabrir" no aparece para el alumno; posible regresión`
 - ❌ INCORRECTO: que el **generador** diga si pasa, que el **verificador** edite el test, que el **sanador** borre aserciones para que pase, o pegar el contenido del `.spec.ts` en la respuesta.
 
 ---
 
-## 10. Fase 5 — Parar la app y reporte final
+## 10. Fase 5 — Puerta de regresión, reporte final y parar la app
 
-1. **Parar la app** por puerto (§2.2).
-2. **MUST** mostrar en la conversación el listado final de los tests procesados en esta pasada:
+### 10.1 Puerta de regresión (con la app aún viva)
+
+**CRITICAL** — con todos los tests de la iniciativa verdes y verificados, y **antes** de parar la app, el motor **MUST** ejecutar la **suite completa** siguiendo la sección **«Puerta de regresión»** del `README.md` del contrato (que el motor **MUST** haber leído en la Fase 1, §5 paso 1, junto con «Gestión de la app»). Esa sección define el comando y qué hacer con cada test rojo de una iniciativa anterior (retirarlo solo si el `design.md` lo declara supersedido; si no, es **REGRESIÓN**: reportar y **parar**, sin tocar código).
+
+Es la salvaguarda que hace viable compartir carpeta entre iniciativas (§1.4): sin ella, una iniciativa puede romper los tests de otra sin que nadie se entere.
+
+### 10.2 Reporte final y parada
+
+1. **MUST** mostrar en la conversación el listado final de los tests procesados en esta pasada:
 
 ```
-Tests E2E de regresión creados — src/test/e2e/{iniciativa}/
+Tests E2E de regresión creados — src/test/e2e/<capa>/<sistema>/
 
 SUCCESS  T-001 — Crear un grupo con sus alumnos        → t-001-crear-un-grupo-con-sus-alumnos.spec.ts
 FAIL     T-014 — El alumno consulta sus notas          → ver fail_create_tests.log (8 ciclos agotados)
 SUCCESS  T-016 — Crear un grupo sin curso              → t-016-crear-un-grupo-sin-curso.spec.ts
 ...
 
-Resumen: {P} SUCCESS / {F} FAIL  ({S} saltados por ya existir).
+Resumen: {P} SUCCESS / {F} FAIL  ({S} saltados por ya existir, {C} colisiones).
+Puerta de regresión (suite completa): {R} passed / {X} failed.
+  SUPERSEDIDO  t-0NN-<slug>.spec.ts (iniciativa {otra}) → retirado, por {ID de spec}
+  REGRESIÓN    t-0NN-<slug>.spec.ts (iniciativa {otra}) → NO retirado, requiere revisión
 ```
 
-Para cada `FAIL` indica el motivo (ciclos agotados / bloqueo) y que el detalle está en `src/test/e2e/{iniciativa}/fail_create_tests.log` (§2.7). **MUST NOT** ocultar fallos ni declarar éxito si algún test quedó en FAIL. Recuerda que los `.spec.ts` de los FAIL **ya se borraron** (§2.7), así que la suite resultante es enteramente verde. Indica el comando para ejecutar la suite: `npx playwright test src/test/e2e/{iniciativa}`.
+2. Para cada `FAIL` indica el motivo (ciclos agotados / bloqueo / colisión) y que el detalle está en `src/test/e2e/<capa>/<sistema>/fail_create_tests.log` (§2.7). **MUST NOT** ocultar fallos ni declarar éxito si algún test quedó en FAIL. Los `.spec.ts` de los FAIL **ya se borraron** (§2.7), así que los tests **de esta iniciativa** quedan todos verdes; el estado de la suite completa lo dice la puerta de regresión (§10.1), que **MUST** reportarse aunque sea roja. Indica los comandos: `npx playwright test src/test/e2e/<capa>/<sistema>` (esta iniciativa) y `npx playwright test src/test/e2e` (suite completa).
+3. **Parar la app** por puerto (§2.2).
 
 ---
 
 ## Quick Guidelines
 
-- **CRITICAL — agnosticismo**: este SKILL es un **motor de flujo**; **no sabe** cómo se genera ni se sana un `.spec.ts`. Todo lo específico lo define `template-system/README.md` (configurable con `--template-dir`), que **leen los subagentes**. Único contrato fijo: entrada `test-e2e-desc/`, salida en `src/test/e2e/<iniciativa>/`. Única parte específica del motor: la **gestión de la app** (§2.2).
+- **CRITICAL — agnosticismo**: este SKILL es un **motor de flujo**; **no sabe** cómo se genera ni se sana un `.spec.ts`. Todo lo específico lo define `template-system/README.md` (configurable con `--template-dir`), que **leen los subagentes**. Único contrato fijo: entrada `test-e2e-desc/`, salida en `src/test/e2e/<capa>/<sistema>/`. Única parte específica del motor: la **gestión de la app** (§2.2).
 - **Requiere `/sdd-debug-with-test-e2e-desc`** ejecutado: la entrada es su carpeta `test-e2e-desc/` ya depurada. Si no existe → **ERROR**.
 - **Localizar** (§4): ruta explícita, o auto-detectar la **última** iniciativa con `test-e2e-desc/tests-e2e-desc.md` y **confirmar**. **MUST NOT** usar `mtime`.
+- **Destino = espejo del código** (§1.4): `src/test/e2e/<capa>/<sistema>/`, resuelto desde el `**Capa:**` del `design.md` (`subsystem/criptografia` → `src/test/e2e/subsystem/criptografia/`). Varias iniciativas sobre el mismo sistema comparten carpeta. **MUST NOT** derivarla del nombre del draft; si no se puede resolver → **ERROR**.
 - **Solo `[x]`** (§2.6): se materializan únicamente los tests que pasaron al depurar; los `[ ]` no.
 - **Snapshot** (§7): el `.desc.md` copiado lleva cabecera-banner ("NO editar a mano"); es regenerable desde `.sdd/`. Idempotente: salta los que ya tienen `.spec.ts` (salvo `--fresh`).
 - **App por el motor** (§2.2, §8): arrancar tracked bg, limpiar puerto, sondear `200`, parar por puerto al final. **MUST NOT** dejar que un subagente arranque la app. Barrer **sesiones de navegador huérfanas antes de cada generador** (sin matar el server MCP) y ejecutar el runner con `--reporter=line` para que no se cuelgue al fallar.
-- **Autónomo por defecto** (§2.7): la **única** pregunta al usuario es en Fase 0 (qué iniciativa, como todos los `/sdd-*`). Después, **MUST NOT** `AskUserQuestion`: un test que no se puede crear (generador/sanador `BLOQUEADO` o 8 ciclos agotados) → registrar en `src/test/e2e/<iniciativa>/fail_create_tests.log` (entrada + línea `--------------------`), **borrar su `.spec.ts`** y seguir. Solo un fallo de setup global (sin input, app caída, auth no válida) aborta con **ERROR**.
+- **Autónomo por defecto** (§2.7): la **única** pregunta al usuario es en Fase 0 (qué iniciativa, como todos los `/sdd-*`). Después, **MUST NOT** `AskUserQuestion`: un test que no se puede crear (generador/sanador `BLOQUEADO` o 8 ciclos agotados) → registrar en `src/test/e2e/<capa>/<sistema>/fail_create_tests.log` (entrada + línea `--------------------`), **borrar su `.spec.ts`** y seguir. Solo un fallo de setup global (sin input, app caída, auth no válida) aborta con **ERROR**.
 - **Helper de auth** (§7, §9.0): comprobar `_support/auth.ts` al lanzar (crearlo si no existe) y **validar login/logout contra la app real una vez** antes de generar nada (selectores best-effort); si está roto, corregir el helper. `BLOQUEADO` → **ERROR** (aborto global: afecta a todos los tests).
 - **Separación de poderes anti-trampa** (§9): **tres subagentes en contextos aislados** por test — **generador** (crea, no juzga), **verificador** (independiente, audita fidelidad), **sanador** (independiente, arregla). El veredicto rojo/verde lo da el **runner mecánico** (`npx playwright test`), no un agente. El generador **MUST NOT** declarar si pasa; el verificador **MUST NOT** tocar el test; el sanador **MUST NOT** debilitar aserciones.
 - **Bucle por test** (§9): generador → runner; si RED → sanador; si GREEN → verificador; si `INFIEL` → sanador. Tras `CORREGIDO`, reejecutar **y** volver a verificar; solo cierra con `OK` del verificador (**LIMIT** 8). En secuencia, nunca en paralelo ni `run_in_background`.
@@ -390,9 +445,10 @@ Para cada `FAIL` indica el motivo (ciclos agotados / bloqueo) y que el detalle e
 
 ## Apéndice A — Override de rutas (para testing y versatilidad)
 
-- `--template-dir=<ruta>` — **carpeta de plantillas** alternativa a `template-system/`. **MUST** contener un `README.md` redactado para los **tres roles** (generador, verificador, sanador) y con una sección «Gestión de la app»; si falta → **ERROR**.
-- `--in=<ruta>` — carpeta `test-e2e-desc/` de entrada explícita. **Desactiva la auto-detección** de la Fase 0 caso 2.
+- `--template-dir=<ruta>` — **carpeta de plantillas** alternativa a `template-system/`. **MUST** contener un `README.md` redactado para los **tres roles** (generador, verificador, sanador) y con las secciones «Gestión de la app» y «Puerta de regresión»; si falta → **ERROR**.
+- `--in=<ruta>` — carpeta `test-e2e-desc/` de entrada explícita. **Desactiva la auto-detección** de la Fase 0 caso 2. Si su iniciativa no tiene `design/design.md`, **MUST** acompañarse de `--out=` (sin uno de los dos no hay carpeta destino y es **ERROR**, §1.4).
+- `--out=<ruta>` — carpeta destino explícita, **salta la resolución de §1.4** (no lee `Capa:` ni valida el sistema). Es el único modo de ejercitar el skill en un sandbox sin un draft completo.
 - `--root=<ruta>` — raíz alternativa a `.sdd/drafts/`.
 - `--fresh` — regenera **todos** los tests `[x]` seleccionados aunque su `.spec.ts` ya exista (en uso normal no se especifica: se saltan los existentes).
 
-En uso normal no se especifican: se usa la carpeta `template-system/`, la última iniciativa y `.sdd/drafts/`.
+En uso normal no se especifican: se usa la carpeta `template-system/`, la última iniciativa, `.sdd/drafts/` y el destino resuelto por §1.4.
