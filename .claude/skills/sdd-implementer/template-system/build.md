@@ -56,6 +56,7 @@ El corrector-build resuelve cada línea JSONL. Reglas duras:
 - **CRITICAL — no legitimar superficie no diseñada**: ante un error tipo *"method does not override or implement a method from a supertype"* (o un `@Override`/firma que no cuadra con su interfaz/supertipo), **MUST NOT** ampliar la interfaz/supertipo ni crear el método para que el `@Override` compile **sin antes comprobar el origen del método**. Comprueba si figura en la `task` de origen del error o en `design.md`:
   - Si **sí** figura → alinéalo con la firma del diseño.
   - Si **NO** figura (es superficie inventada por una tarea previa — método, controlador o clase de más) → **elimínalo del impl** y de cualquier llamador (controlador/acción) que lo use, en vez de añadirlo a la interfaz. La vía barata —ampliar la API para que el `@Override` compile— **consolida el invento**; **MUST NOT** tomarla.
+  - **CRITICAL — guarda anti-borrado**: antes de eliminar cualquier superficie "inventada", **MUST** comprobar con `git diff`/`git log` del fichero si el método/clase **preexistía a la iniciativa**. Si preexistía → **MUST NOT** eliminarlo (no es un invento: es código de producción que la iniciativa no debía tocar); **detente y repórtalo** en tu respuesta. Solo es eliminable la superficie que el diff de **esta** iniciativa añadió.
   - Si no puedes determinar el origen → **detente y repórtalo** en tu respuesta (no adivines).
 - **MUST NOT** usar `AskUserQuestion`: ante un bloqueo, descríbelo en tu respuesta y termina (el motor lo lleva al usuario).
 
@@ -70,10 +71,14 @@ Compilar y pasar los tests **no** detecta que el implementador haya creado **sup
 Pasos:
 
 1. Reúne la **superficie declarada**: la unión de las **tablas de ficheros** de todas las `implementation/task_NN.md` (columna `Fichero`) más los métodos/clases públicos que sus bloques de firma describen.
-2. Reúne la **superficie real producida**: los ficheros Java creados/modificados bajo `src/main/...` y `src/test/...` por esta iniciativa (p.ej. los que aparecen en `git status`/`git diff --name-only` respecto al punto de partida) y sus clases/métodos públicos.
+2. Reúne la **superficie real producida** por esta iniciativa, distinguiendo por origen del fichero (p.ej. con `git status`/`git diff --name-only` respecto al punto de partida):
+   - Fichero Java **nuevo** bajo `src/main/...` o `src/test/...` → cuenta **toda** su superficie pública (clases y métodos).
+   - Fichero Java **preexistente modificado** → cuentan **solo** las clases/métodos públicos **añadidos o con firma cambiada según su `git diff`** respecto al punto de partida. **MUST NOT** reportar como superficie no declarada un método público **preexistente** (presente en la versión base del fichero, no añadido por el diff de esta iniciativa): es código de producción anterior a la iniciativa, no un invento del implementador.
 3. Compara. **MUST** reportar como error de conformidad cualquier elemento de la superficie real que **no** esté en la declarada:
    - una **clase/fichero** nuevo no listado en ninguna tabla de tareas (p.ej. un `XxxController` no pedido), o
    - un **método público** no descrito por ninguna tarea, o un método de la tarea **renombrado / con firma distinta** de la declarada.
+   - ✅ CORRECTO: `MailSenderImpl.java` (fila `Modificar`) gana el método `sendWithAttachment(...)` no declarado por ninguna tarea → `CONFORMANCE`.
+   - ❌ INCORRECTO: reportar `MailSenderImpl.send(...)` como superficie no declarada cuando ese método ya existía antes de la iniciativa (está en la versión base, no en el diff).
 4. Los XML de dominios/vistas/menús y el código generado por Axelor (`build/`) **NO** cuentan: solo Java escrito a mano bajo `src/main/...` y `src/test/...`.
 
 Cada hallazgo se reporta como una línea JSONL de §3 con `tipo: CONFORMANCE`, `tarea` = la tarea más cercana (o `null`), y `correccion` apuntando a eliminar la superficie no declarada (§4) o, si de verdad falta en el diseño, a volver a `/sdd-designer`.

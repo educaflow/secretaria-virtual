@@ -1,5 +1,8 @@
 # Pantalla: <Nombre>
 
+<!-- SOLO si la pantalla ya existe en el código (iniciativa con línea `**Modifica:**`), añadir la línea siguiente. Con ella, este fichero declara SOLO el delta: los paneles, campos, botones y RUI NUEVOS o CAMBIADOS. Todo lo no mencionado de la pantalla real MUST conservarse tal cual. MUST NOT copiar aquí lo existente que no cambia — el código es la fuente de verdad del estado actual. -->
+**Pantalla existente:** sí
+
 ## Identidad
 
 - **Quién la usa:** <roles que ven o usan la pantalla, y en qué modo cada uno>

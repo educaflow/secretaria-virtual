@@ -45,7 +45,10 @@ para la clase <FQN>.
     - una clase/método que la descripción cita **no existe** en el código, o
     - el código expone una **firma o nombre distinto** del que la descripción cita (p.ej. la descripción dice
       `insert(X)` y el código tiene `guardarX(X, Long)`), o
-    - el código expone **clases/métodos públicos que la descripción no lista** (superficie de más).
+    - el código expone **clases/métodos públicos que la descripción no lista** (superficie de más). En una clase
+      que el diseño **modifica** (fila `Acción: Modificar` — ya existía antes de la iniciativa), este criterio se
+      acota a la superficie **nueva/cambiada**: los métodos públicos **preexistentes** de la clase NO son motivo
+      de BLOCKED (puedes leer el fichero real, o su `git diff`, para distinguirlos).
   **MUST NOT** "adaptar" los tests al código divergente (ni reinterpretar a qué método apuntan): esa divergencia
   es un fallo previo del implementador que decide el motor/usuario, no algo que el generador de tests deba tapar.
 ```

@@ -91,11 +91,11 @@ Reglas de relleno:
 - `NN` es el número de dos dígitos de la tarea (`01`, `02`, …).
 - La lista de skills es la determinada en §3.
 - **`<texto del prompt>`**: todo lo relevante del `design.md` para los ficheros de esta tarea, copiado **verbatim**. **MUST** incluir, cuando apliquen:
-  - La(s) fila(s) de la tabla "Ficheros a crear o modificar" de esos ficheros (con su ruta destino).
+  - La(s) fila(s) de la tabla "Ficheros a crear o modificar" de esos ficheros (con su ruta destino). **MUST** conservar la columna `Acción` (`Crear`/`Modificar`): el implementador la usa para decidir cómo materializar (ver `implementation.md` §3).
   - La(s) sección(es) "Paso N" que describen esos ficheros (firmas, comentarios, estructura).
   - Las secciones transversales que apliquen: "Frontera de confianza — AllowProperties por acción" y las filas de "Trazabilidad V/R/U → ubicación" que les correspondan.
   - Las referencias a `rules/R-*.md` citadas para esos ficheros (cita la ruta; **MUST NOT** copiar su contenido entero si es extenso).
-- Para una tarea de **XML ya materializado** (dominio, vista, `menus.xml`), el `<texto del prompt>` **MUST** indicar explícitamente que el fichero está en `design/...` y que se debe **copiar literalmente** (o fusionar, para `menus.xml`) a su ruta destino, **sin regenerarlo** (ver `implementation.md` §1).
+- Para una tarea de **XML ya materializado** (dominio, vista, `menus.xml`), el `<texto del prompt>` **MUST** indicar explícitamente que el fichero está en `design/...` y que se debe **copiar literalmente** (o fusionar, para `menus.xml`) a su ruta destino, **sin regenerarlo** (ver `implementation.md` §1). Si la fila es `Acción: Modificar`, el texto **MUST** indicar además que el destino **ya existe** y que antes de sobrescribir aplica la **comprobación de conservación** de `implementation.md` §3.
 - Para una tarea de **test**, el `<texto del prompt>` lo fija `tests-code.md` (referencia a `design/test-unit-desc.md` y la ubicación destino en `src/test/...`).
 
 **MUST NOT**:

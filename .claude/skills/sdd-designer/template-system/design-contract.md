@@ -35,7 +35,7 @@ Un diseño describe **la estructura** del software (qué ficheros existen, qué 
 
 - **MUST NOT** incluir cuerpos de métodos Java implementados. Nada de `validateInsert` con su lógica, nada de `for`/`if` reales, nada de `messages.add(...)` con strings literales dentro de un método. Solo firmas + comentario descriptivo.
 - **MUST NOT** incluir mensajes de error literales para validaciones Java — se describe el contenido que debe transmitir (valor recibido, dominio válido), no el literal. (Los literales de `<action-validate>` XML sí se escriben porque el XML va completo; y los mensajes que cita `test-e2e-desc.md` se toman tal cual del spec/vista.)
-- **MUST NOT** inventar elementos que no estén en la especificación. Si el spec no menciona una pantalla, un campo o una regla, **MUST NOT** añadirse.
+- **MUST NOT** inventar elementos que no estén en la especificación. Si el spec no menciona una pantalla, un campo o una regla, **MUST NOT** añadirse. **Excepción**: los elementos preexistentes tomados del fichero real base de una fila `Modificar` (§1.3) NO son invención — conservarlos es obligatorio.
 - **MUST NOT** usar como referencia el código de `expedientes`/`tramites` ni JPQL real.
 
 ### 1.2 XML real vs descripción markdown
@@ -43,6 +43,20 @@ Un diseño describe **la estructura** del software (qué ficheros existen, qué 
 Los XML son **ficheros reales** dentro de `design_<n>/` (p.ej. `design_<n>/domains/Bar.xml`), escritos directamente por el diseñador. El `design.md` **no** los lleva inline: contiene, por cada fichero XML, un **resumen estructural** corto (qué vistas declara, qué acciones, propósito); el XML completo vive en su fichero.
 
 Para el código Java es al revés: **no** se generan ficheros `.java` — solo firmas y comentarios dentro del `design.md`.
+
+### 1.3 Ficheros existentes — Acción `Modificar`
+
+Cuando la spec declara que la iniciativa modifica un sistema existente (línea `**Modifica:**` bajo `# Objetivo`, o cualquier `entity-*.md`/`screen-*.md` marcado como existente), los ficheros del proyecto que el diseño cambia van en la tabla con `Acción: Modificar` y siguen estas reglas:
+
+- **XML (dominio o vista) existente**: el diseñador **MUST** leer el fichero real de `src/main/...` como **base** y producir en `design_<n>/` el **fichero completo resultante** (base + delta de la spec). NO es una porción a fusionar: `/sdd-implementer` lo sobrescribirá verbatim, así que el fichero del diseño debe llevar **todo** lo que debe quedar en el destino.
+- **Conservación por defecto**: **MUST NOT** eliminar ni alterar elementos preexistentes (campos, enums, finders, paneles, botones, acciones) que el delta de la spec no mencione, salvo que figuren en la sección `## Eliminaciones declaradas` del `design.md`.
+- **`## Eliminaciones declaradas`** (sección opcional del `design.md`): lista cada elemento preexistente que el diseño elimina, con la ruta del fichero, el nombre del elemento y el ID de spec que justifica la eliminación. Sección ausente = nada se elimina. `/sdd-implementer` la usa en su comprobación de conservación antes de sobrescribir.
+- **Resumen estructural**: en el `design.md`, el resumen de un XML modificado **MUST** separar "preexistente (se conserva)" de "nuevo/cambiado (delta)" — sin volcar el detalle campo a campo de lo preexistente (el fichero XML del diseño ya lo lleva; el código real es la fuente del as-is).
+- **Mínima intrusión**: en una iniciativa que modifica, el diseño **MUST** preferir ampliar clases/vistas/servicios existentes frente a crear piezas paralelas; a igual cobertura del spec, es mejor el diseño con **menor superficie de cambio** sobre el sistema existente. (El juez del torneo y el enriquecedor usan este criterio al comparar diseños.)
+- **`## Tests E2E supersedidos`** (sección opcional del `design.md`): rutas de `src/test/e2e/**/t-NNN-*.spec.ts` de iniciativas anteriores cuyo comportamiento el delta cambia **intencionadamente**, cada una con el ID de spec que lo justifica. Sección ausente = ninguno. `/sdd-create-tests-e2e` la usa en su puerta de regresión para distinguir un test invalidado a propósito de una regresión real.
+
+- ✅ CORRECTO: la spec añade el campo `observaciones` a `Correo`; el `design_<n>/domains/Correo.xml` es el fichero real actual + el campo nuevo, y su resumen dice "preexistente (se conserva): 9 campos; delta: + observaciones".
+- ❌ INCORRECTO: `design_<n>/domains/Correo.xml` con solo los 3 campos que la spec del delta menciona (perdería los preexistentes al sobrescribir).
 
 ---
 
@@ -140,6 +154,11 @@ El diseñador escribe en su carpeta `design_<n>/` el diseño completo. El **índ
 
 > **Nota para `/sdd-implementer`:** los XML de `domains/`, `views/` y `menus.xml` ya están materializados en la carpeta `design/`. **MUST NOT** modificarlos, reescribirlos ni regenerarlos: se **copian verbatim** a su ubicación final (`menus.xml` se fusiona en el `menus.xml` único del proyecto). El código Java es lo único que se implementa a partir de las firmas y comentarios del diseño.
 
+Reglas de la columna `Acción`:
+
+- Una fila `Crear` cuyo destino **ya exista** en el árbol real es un diseño **erróneo**: debe ser `Modificar` (y seguir §1.3).
+- Para una **clase Java** con `Acción: Modificar`, el paso correspondiente declara **solo las firmas nuevas o cambiadas** (el delta) más la nota explícita "el resto de la clase se conserva". **MUST NOT** re-documentar los métodos preexistentes que no cambian.
+
 ## Pasos
 
 ### Paso N — <Título>
@@ -156,6 +175,12 @@ El diseñador escribe en su carpeta `design_<n>/` el diseño completo. El **índ
 
 ## Reglas del spec descartadas
 ...
+
+## Eliminaciones declaradas
+<solo en iniciativas que modifican (§1.3): elemento preexistente eliminado + fichero + ID de spec que lo justifica; omitir la sección si no se elimina nada>
+
+## Tests E2E supersedidos
+<solo en iniciativas que modifican (§1.3): ruta de cada `.spec.ts` previo invalidado a propósito + ID de spec; omitir la sección si no hay ninguno>
 
 ## Notas y supuestos
 <decisiones tomadas ante ambigüedades del spec, para que el juez y el verificador las vean>
@@ -317,6 +342,9 @@ El diseñador revisa su diseño contra esta lista y corrige antes de terminar. S
 - [ ] ¿El diseño referencia el `specification.md` en la cabecera?
 - [ ] ¿El `design.md` tiene la sección `## Tests` que referencia `test-unit-desc.md` (tests unitarios)?
 - [ ] ¿El diseño respeta todas las guías de `design-guidelines.md` (si existe)? Si alguna no se ha podido respetar por incompatibilidad con el spec, ¿está documentada en "Notas y supuestos"?
+- [ ] (Solo si la iniciativa modifica un sistema existente, §1.3) ¿Cada XML de una fila `Modificar` parte del fichero real como base y conserva todo lo no cubierto por el delta o por "Eliminaciones declaradas"?
+- [ ] ¿Ninguna fila `Crear` colisiona con un fichero ya existente en el árbol real? (si colisiona, cambiarla a `Modificar` y aplicar §1.3)
+- [ ] (Solo si la iniciativa modifica) ¿El diseño minimiza la superficie de cambio sobre el sistema existente — amplía piezas existentes en vez de crear paralelas (§1.3, mínima intrusión)?
 
 ---
 
@@ -332,4 +360,4 @@ type: design
 {contenido del diseño, con resumen estructural por cada XML — no el XML inline}
 ```
 
-El `design.md` **no contiene** los XML completos inline (esos viven en sus ficheros); en su lugar contiene, por cada fichero XML generado, una entrada con su ruta y el resumen estructural (vistas, acciones, propósito), más la matriz de trazabilidad `Origen spec → V/R/U → ubicación`, la sección "Frontera de confianza — AllowProperties por acción" (§8.3) y, si aplica, "Reglas del spec descartadas". Incluye además una sección "Tests" que referencia `test-unit-desc.md` (tests unitarios), materializado en una fase posterior del pipeline. Las decisiones tomadas ante ambigüedades van en "Notas y supuestos".
+El `design.md` **no contiene** los XML completos inline (esos viven en sus ficheros); en su lugar contiene, por cada fichero XML generado, una entrada con su ruta y el resumen estructural (vistas, acciones, propósito), más la matriz de trazabilidad `Origen spec → V/R/U → ubicación`, la sección "Frontera de confianza — AllowProperties por acción" (§8.3) y, si aplican, "Reglas del spec descartadas", "Eliminaciones declaradas" y "Tests E2E supersedidos" (§1.3). Incluye además una sección "Tests" que referencia `test-unit-desc.md` (tests unitarios), materializado en una fase posterior del pipeline. Las decisiones tomadas ante ambigüedades van en "Notas y supuestos".

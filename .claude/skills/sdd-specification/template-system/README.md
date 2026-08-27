@@ -71,13 +71,24 @@ Historias, escenarios y reglas llevan IDs estables para que el diseño pueda com
 - ✅ CORRECTO: junto a las validaciones sofisticadas de permiso del padre de un adjunto, declarar también que su nombre y su contenido son obligatorios.
 - ❌ INCORRECTO: resolver con brillantez las reglas de seguridad del padre y dejar sin escribir que el nombre del fichero no puede quedar vacío «porque es evidente».
 
+### Especificar una modificación de un sistema existente
+
+Una iniciativa puede **modificar** un sistema/subsistema ya implementado en vez de crear uno nuevo. Se declara con la línea opcional `**Modifica:** <subsystem|system>/<nombre>` bajo `# Objetivo` (el nombre **MUST** existir en `src/main/java/com/educaflow/{subsystem,system}/`). Sin esa línea, la iniciativa es greenfield y nada de este apartado aplica.
+
+Reglas cuando la línea está presente:
+
+- **Delta + conservación por defecto.** Un `entity-*.md` marcado `**Modelo existente:** sí` (o un `screen-*.md` marcado `**Pantalla existente:** sí`) declara **SOLO** lo nuevo o cambiado; todo lo no mencionado del modelo/pantalla real **MUST** conservarse tal cual. **MUST NOT** copiar en la spec el estado actual que no cambia — el código es la fuente de verdad del as-is (el diseñador lo lee de `src/main/...`).
+- **Excepción — `Input AllowProperties`.** En cada `## Acción:` de una entidad existente que el delta toque, la línea `Input AllowProperties` declara la lista **resultante completa** (es una whitelist cerrada de seguridad y no admite semántica aditiva). Las acciones no declaradas se conservan. Las propiedades **preexistentes** de esa lista no se re-declaran en «Campos» (el código es su fuente): la regla «las propiedades listadas deben existir en Campos» aplica solo a las propiedades **nuevas** del delta.
+- **IDs locales a la iniciativa.** La numeración (`HU-`, `ESC-`, `RES-`, `VAL-`, `RN-`, `RUI-`, `CC-`) empieza en `001` como siempre y es **local** a esta spec: **MUST NOT** referenciar IDs de iniciativas archivadas.
+- Los modelos y pantallas **nuevos** de la misma iniciativa se especifican completos, como en greenfield.
+
 ---
 
 # El índice — `specification.md`
 
 ## Objetivo
 
-**Qué va:** una frase con lo que tiene que hacer; si es un **sistema** o un **subsistema**; las dependencias funcionales de subsistemas existentes, en lenguaje de negocio.
+**Qué va:** una frase con lo que tiene que hacer; si es un **sistema** o un **subsistema**; las dependencias funcionales de subsistemas existentes, en lenguaje de negocio. Si la iniciativa modifica un sistema ya implementado, la línea `**Modifica:** <subsystem|system>/<nombre>` (ver «Especificar una modificación de un sistema existente»).
 
 **Qué NO va:** rutas de código, nombres de paquete.
 
@@ -735,4 +746,5 @@ Reglas de los barridos:
 - Toda candidata va en **lenguaje de negocio** (aplican las prohibiciones de la sección «Lenguaje de negocio»): nada de tipos, clases, capas ni XML. Los pasos de escenario propuestos cumplen las reglas de «Historias de usuario», incluidos los **usuarios y centros de demo** (**MUST NOT** inventar cuentas, logins ni DNI).
 - Una candidata **debe deducirse de lo que la spec ya cuenta** (sus actores, campos, estados, escenarios, pantallas, seguridad) — el subagente **MUST NOT** inventar funcionalidad nueva (campos, acciones o pantallas que la spec no tiene). El barrido **historias-escenarios** propone HU/ESC nuevos, pero solo los que **cubren lo ya declarado** (una pantalla sin escenario, un actor con acceso sin historia, una validación sin escenario de error…), no funcionalidades nuevas.
 - Respetar la frontera entre familias: si una candidata bloquea → es del barrido validaciones-restricciones; si actúa/escribe → reglas-negocio; si solo cambia lo que se ve → reglas-ui; si es un valor que fija el servidor → campos-calculados. Ante la duda, proponerla una sola vez en la familia de su **efecto real**.
+- **Iniciativas que modifican** (línea `**Modifica:**` en el índice): sobre un fichero marcado `**Modelo existente:** sí` / `**Pantalla existente:** sí`, los barridos proponen candidatas **solo del delta declarado** — **MUST NOT** re-especificar comportamiento preexistente que la spec no toca. Excepción dirigida: el barrido **historias-escenarios** SÍ **MUST** proponer al menos un `ESC-` de **no-regresión** por cada pantalla/flujo existente que el delta roce (p.ej. «el flujo principal de la pantalla modificada sigue funcionando con el campo nuevo vacío»), para que lo que ya funcionaba quede ejercitado por los tests de la iniciativa.
 - El formato exacto de respuesta de cada subagente (token de "sin candidatas" y líneas JSONL, distinto por barrido) lo fija el skill `sdd-specification` en su fase de barrido, no esta guía.

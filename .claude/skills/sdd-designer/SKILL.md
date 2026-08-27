@@ -111,7 +111,7 @@ Una **carpeta** `design/` dentro de la carpeta de la iniciativa.
 
 ### 2.1 La especificación es la fuente de verdad
 
-La especificación es la fuente de verdad — **MUST NOT** interpretar ni ampliar más allá de lo que dice. Los subagentes leen `specification.md` y todos los ficheros que enlace. **MUST NOT** usar otros `design.md` o diseños previos de `.sdd/` como plantilla.
+La especificación es la fuente de verdad — **MUST NOT** interpretar ni ampliar más allá de lo que dice. Los subagentes leen `specification.md` y todos los ficheros que enlace. **MUST NOT** usar otros `design.md` o diseños previos de `.sdd/` como plantilla — **salvo lectura** de las iniciativas archivadas que `design-guidelines.md` cite explícitamente (solo para respetar sus decisiones, nunca como plantilla de estructura).
 
 ### 2.2 El README es el contrato único
 

@@ -6,6 +6,9 @@ type: specification
 
 <Una frase con lo que tiene que hacer; si es un **sistema** o un **subsistema**; dependencias funcionales de subsistemas existentes.>
 
+<!-- SOLO si la iniciativa modifica un sistema/subsistema ya implementado, añadir la línea siguiente (el nombre debe existir en `src/main/java/com/educaflow/{subsystem,system}/`). Ausente = iniciativa greenfield. -->
+**Modifica:** <subsystem|system>/<nombre>
+
 # Actores
 
 - **<Actor>**: <quién es y qué papel juega>

@@ -69,6 +69,10 @@ Antes de escribir cada `<form>`, el diseñador **MUST** maquetar cada panel sigu
 - ✅ CORRECTO: en el `design.md`, junto al resumen de `Main-Bar.xml`, un bloque ` ```aaa...bbbbbb ← code(3)+colOffset(3)+name(6)``` ` y el `<form>` con `colSpan`/`colOffset` que coinciden con él.
 - ❌ INCORRECTO: un `<form>` con todos los `<field>` a `colSpan="6"` o sin `colSpan`, sin ASCII Layout y con campos cortos ocupando media fila.
 
+### 1.8 Vistas existentes que se modifican
+
+Una vista existente que el diseño cambia (fila `Acción: Modificar`) sigue la regla del **fichero completo resultante** de `design-contract.md` §1.3: el fichero de `design_<n>/views/` es el real de `src/main/...` como base más el delta, conservando todo lo no cubierto por el delta o por "Eliminaciones declaradas". La auditoría **ASCII Layout** (§1.7 y §3.g) se aplica al `<form>` **resultante** — los campos preexistentes también se dibujan; recolocarlos sin causa en el delta es un fallo de mínima intrusión.
+
 ---
 
 ## 2. Checklist de vistas

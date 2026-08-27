@@ -32,11 +32,12 @@ Al invocar `developer-code-implementer`, inclúyele además:
 
 - Una **nota** de que los XML de dominios/vistas/menús de los que dependa **ya están colocados** en `src/main/...` y son **contrato fijo**: **NO** debe regenerarlos ni editarlos; las firmas Java deben coincidir con las acciones de las vistas (`<action-method method="action-..." class="..."/>` ↔ controlador.método) y las entidades JPA con los dominios. Si detecta un XML mal, **detenerse y notificar**, no editarlo.
 - La restricción de **superficie cerrada** (§2.1): **MUST** crear solo los ficheros y métodos/clases públicos que la tarea lista; **MUST NOT** inventar clases/controladores/métodos de más ni clonar el patrón de otra entidad. Si "haría falta" algo no listado, **parar y reportar**, no inventarlo.
+- Si la tarea lleva ficheros con `Acción: Modificar` (clases Java existentes): la instrucción de **editar la clase existente** añadiendo/cambiando **solo** lo que la tarea declara y **conservando** todo lo demás (métodos, campos, imports preexistentes). La superficie cerrada aplica al **delta** que la tarea declara, no a la clase entera: los miembros preexistentes no son "superficie de más" y **MUST NOT** eliminarse ni renombrarse.
 - La instrucción de **parar y reportar** ante cualquier bloqueo. **MUST NOT** adivinar.
 
 ### 2.1 Superficie cerrada — implementar solo lo que la tarea lista
 
-**CRITICAL**: la tarea define la **superficie exacta** a crear. El implementador (y `developer-code-implementer`) **MUST** materializar **únicamente** los ficheros y los métodos/clases públicos que la tarea enumera (su tabla de ficheros y los bloques de firma del diseño verbatim).
+**CRITICAL**: la tarea define la **superficie exacta** a crear. El implementador (y `developer-code-implementer`) **MUST** materializar **únicamente** los ficheros y los métodos/clases públicos que la tarea enumera (su tabla de ficheros y los bloques de firma del diseño verbatim). En un fichero con `Acción: Modificar`, esa superficie exacta es el **delta** que la tarea declara: lo preexistente de la clase se conserva tal cual y no cuenta como superficie de más.
 
 - **MUST NOT** crear clases, controladores, métodos públicos, acciones ni endpoints que la tarea **no** liste.
 - **MUST NOT** renombrar un método de la tarea (p.ej. `insert` → `guardarX`) ni cambiar su firma.
@@ -52,7 +53,11 @@ Al invocar `developer-code-implementer`, inclúyele además:
 
 Según los ficheros que la tarea cubre:
 
-- **Tarea de XML ya materializado** (dominio, vista): localiza el XML en `design/...`, crea la carpeta destino con `mkdir -p` si no existe y **copia el fichero literalmente** (`cp`) a su ruta destino (§1). Si el destino **ya existe**, responde `CONFLICT: {tarea} — ya existe {ruta destino}` (el motor preguntará al usuario).
+- **Tarea de XML ya materializado** (dominio, vista): localiza el XML en `design/...`, crea la carpeta destino con `mkdir -p` si no existe y **copia el fichero literalmente** (`cp`) a su ruta destino (§1). Qué hacer si el destino existe depende de la columna `Acción` de la fila de la tabla que la tarea trae:
+  - `Crear` + destino no existe → copiar.
+  - `Crear` + destino ya existe → responde `CONFLICT: {tarea} — ya existe {ruta destino}` (el motor preguntará al usuario).
+  - `Modificar` + destino existe → **comprobación de conservación** antes de sobrescribir: todo elemento con nombre del fichero real actual (campo, enum, finder, panel, botón, acción) **MUST** estar presente en el XML del diseño, salvo los listados en la sección `## Eliminaciones declaradas` del `design.md` (ausente = nada se elimina). Si pasa → sobrescribe con el fichero del diseño (es el comportamiento esperado, **no** es CONFLICT). Si falla → responde `CONFLICT: {tarea} — el XML del diseño perdería elementos preexistentes no declarados: {lista}` (cubre tanto un diseño destructivo como un diseño obsoleto porque el fichero real cambió después de diseñar; la salida es `/sdd-designer` en modo Revisar/Modificar). **MUST NOT** fusionar los dos ficheros a mano: o el XML del diseño conserva todo, o se reporta.
+  - `Modificar` + destino no existe → responde `BLOCKED: {tarea} — la base que el diseño asume no existe: {ruta destino}`.
 - **Tarea de `menus.xml`**: lee `design/menus.xml`, extrae sus `<menuitem>` e **insértalos** en `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml` justo antes de `</object-views>`. Si ya existe un `<menuitem name="...">` con el mismo `name`, responde `CONFLICT: {tarea} — <menuitem name="..."> ya existe`. Tras fusionar, **MUST** validar con `xmllint`:
   ```bash
   xmllint --noout --schema ../axelor-open-platform/axelor-core/src/main/resources/object-views.xsd \

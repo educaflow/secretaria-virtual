@@ -1,6 +1,9 @@
 # Modelo: <Nombre>
 
-<Descripción en lenguaje de negocio: qué representa este modelo, qué papel juega, su ciclo de vida resumido y si extiende o reutiliza algo existente.>
+<!-- SOLO si el modelo ya existe en el código (iniciativa con línea `**Modifica:**`), añadir la línea siguiente. Con ella, este fichero declara SOLO el delta: los campos, estados, restricciones, campos calculados y reglas NUEVOS o CAMBIADOS. Todo lo no mencionado del modelo real MUST conservarse tal cual. MUST NOT copiar aquí los campos/reglas existentes que no cambian — el código es la fuente de verdad del estado actual. Excepción: la línea `Input AllowProperties` de cada acción que el delta toque declara la lista RESULTANTE COMPLETA (es una whitelist cerrada de seguridad, no admite semántica aditiva); las acciones no declaradas se conservan, y las propiedades preexistentes de la lista no se re-declaran en «Campos». -->
+**Modelo existente:** sí
+
+<Descripción en lenguaje de negocio: qué representa este modelo, qué papel juega, su ciclo de vida resumido y si extiende o reutiliza algo existente. Si es un modelo existente: qué cambia y por qué.>
 
 ## Campos
 

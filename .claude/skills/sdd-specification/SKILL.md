@@ -40,6 +40,7 @@ You **MUST** consider the user input before proceeding (if not empty). Interpret
 
 - El usuario elige "refinar/elegir otra/solo review" pero no hay ninguna spec en `.sdd/drafts/` → **STOP** e indica que cree una nueva.
 - Una ruta de `specification.md` pasada como argumento no existe o su frontmatter no es `type: specification` → **ERROR** y detente.
+- Una ruta de `specification.md` pasada como argumento está bajo `.sdd/archive/` → **ERROR** y detente: las iniciativas archivadas son inmutables; para modificar el sistema hay que crear una iniciativa nueva.
 - `--template-dir=` apunta a una carpeta que no contiene un `README.md` (la guía de la plantilla, que declara el resto del conjunto) → **ERROR** y detente.
 - Quedan dudas de **negocio** que bloquean la spec → **MUST NOT** generar; sigue preguntando en Fase 2.
 
@@ -176,7 +177,7 @@ Todas las fases las ejecuta el **agente principal**, con una única excepción: 
 
 ## 4. Fase 0 — Elegir modo y acción
 
-Si el usuario pasó una **ruta a un `specification.md`**, trabaja sobre ese fichero (validando frontmatter) y salta a la pregunta de acción del paso 4.3. En caso contrario, **MUST** preguntar al usuario con `AskUserQuestion` (es una pregunta de administración del skill, opciones cerradas; ver §2.2) cuál de estos tres modos quiere:
+Si el usuario pasó una **ruta a un `specification.md`**, trabaja sobre ese fichero y salta al paso 1 de §4.3 (que valida archive y frontmatter). En caso contrario, **MUST** preguntar al usuario con `AskUserQuestion` (es una pregunta de administración del skill, opciones cerradas; ver §2.2) cuál de estos tres modos quiere:
 
 1. **Crear una spec nueva**.
 2. **Refinar la última spec** (la carpeta más reciente de `.sdd/drafts/` con `specification.md`).
@@ -206,7 +207,8 @@ ls -d .sdd/drafts/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9]-[0-9][0-
 
 ### 4.3 Modo "Refinar última" / "Elegir otra" / ruta explícita
 
-1. Lee el `specification.md` elegido.
+1. Lee el `specification.md` elegido. Si su ruta está bajo `.sdd/archive/` → **ERROR** y detente (STOP condition del Outline):
+   > Error: `{ruta}` es una iniciativa archivada e inmutable. Para modificar ese sistema crea una iniciativa nueva.
 2. **REQUIRED — valida el frontmatter**: debe contener `type: specification`. Si falla → **ERROR**:
    > Error: el fichero `{ruta}` no es una especificación válida (falta `type: specification` en el frontmatter).
 3. Muestra un resumen de dos líneas y confirma que es la spec correcta.
