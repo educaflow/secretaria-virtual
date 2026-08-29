@@ -4,6 +4,7 @@ import com.axelor.common.Inflector;
 
 import java.text.Normalizer;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class TextUtil {
     public static String humanize(String screamingSnakeCase) {
@@ -48,6 +49,25 @@ public class TextUtil {
 
         return result.length() > 255 ? result.substring(0, 255) : result;
     }
+
+    /**
+     * Un identificador: empieza por letra y solo lleva letras sin acentos, dígitos y guiones bajos.
+     *
+     * <p>Es a propósito <b>más estricta</b> que {@code Character.isJavaIdentifierStart/Part}, que
+     * admiten el {@code $}, empezar por {@code _} y letras Unicode acentuadas. Se usa para los
+     * nombres que llegan del cliente y que el servidor resuelve como constante de un enum o
+     * concatena para formar el nombre de una vista.
+     *
+     * @return {@code false} si es {@code null}.
+     */
+    public static boolean isIdentifier(String s) {
+        if (s == null) {
+            return false;
+        }
+
+        return IDENTIFIER.matcher(s).matches();
+    }
+    private static final Pattern IDENTIFIER = Pattern.compile("[A-Za-z][A-Za-z0-9_]*");
 
     public static boolean isNullOrBlank(String s) {
         if (s==null) {

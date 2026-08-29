@@ -6,6 +6,7 @@ import com.axelor.rpc.ActionRequest;
 import com.educaflow.base.infrastructure.mapper.BeanMapperModel;
 import com.axelor.db.modelservice.AllowProperties;
 import com.educaflow.base.util.Convert;
+import com.educaflow.base.util.TextUtil;
 
 import java.util.Map;
 
@@ -70,6 +71,9 @@ public class ActionRequestHelper<T extends Model> {
         if (eventName == null) {
             throw new RuntimeException("eventName is null");
         }
+        if (TextUtil.isIdentifier(eventName) == false) {
+            throw new RuntimeException("_signal no es un nombre válido: debe empezar por letra y llevar solo letras sin acentos, dígitos y guiones bajos.");
+        }
 
         return eventName;
     }
@@ -81,6 +85,9 @@ public class ActionRequestHelper<T extends Model> {
         }
         if (profileName.isBlank()) {
             throw new RuntimeException("_profile is blank");
+        }
+        if (TextUtil.isIdentifier(profileName) == false) {
+            throw new RuntimeException("_profile no es un nombre válido: debe empezar por letra y llevar solo letras sin acentos, dígitos y guiones bajos.");
         }
 
         return profileName;

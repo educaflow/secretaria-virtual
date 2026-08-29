@@ -72,6 +72,7 @@ Clases de utilidad de **bajo nivel** del proyecto. Su objetivo es no repetir peq
 - `humanize` — convierte `SCREAMING_SNAKE_CASE` a texto humano.
 - `toFirstsLetterToUpperCase` — capitaliza la primera letra.
 - `sanitizeFileName` — sanea un nombre de fichero (quita acentos, caracteres peligrosos, reservados de Windows, trunca a 255).
+- `isIdentifier` — `true` si el `String` empieza por letra y solo lleva letras sin acentos, dígitos y `_` (más estricta que `Character.isJavaIdentifierStart/Part`). Para los nombres que llegan del cliente y se resuelven como constante de enum o se concatenan en un nombre de vista.
 - `isNullOrBlank` — `true` si el `String` es `null` o solo espacios.
 
 ### `TokenUtil` — tokens
