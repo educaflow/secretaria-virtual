@@ -1,9 +1,9 @@
 package com.educaflow.subsystem.correos.module;
 
 import com.axelor.app.AppSettings;
+import com.educaflow.base.infrastructure.mail.GMailApiCredential;
 import com.educaflow.base.infrastructure.mail.MailSender;
 import com.educaflow.base.infrastructure.mail.MailSenderFactory;
-import com.educaflow.base.infrastructure.mail.impl.SmtpCredentialSimplePassword;
 import jakarta.inject.Provider;
 
 public class MailSenderProvider implements Provider<MailSender> {
@@ -11,11 +11,12 @@ public class MailSenderProvider implements Provider<MailSender> {
     @Override
     public MailSender get() {
         AppSettings settings = AppSettings.get();
-        SmtpCredentialSimplePassword credencial = new SmtpCredentialSimplePassword(
-                settings.get("mail.smtp.host"),
-                settings.get("mail.smtp.user"),
-                settings.get("mail.smtp.password"));
-        return MailSenderFactory.getSmtpMailSender(credencial);
+        GMailApiCredential credencial = new GMailApiCredential(
+                settings.get("mail.credentials.gmail.api.clientId"),
+                settings.get("mail.credentials.gmail.api.projectId"),
+                settings.get("mail.credentials.gmail.api.clientSecret"),
+                settings.get("mail.credentials.gmail.api.refreshToken"));
+        return MailSenderFactory.getGMailApiMailSender(credencial);
     }
 
 }
