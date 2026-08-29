@@ -43,8 +43,17 @@ RUN apt-get update && apt-get install -y \
     socat \
     && rm -rf /var/lib/apt/lists/*
 
-# Herramientas para crear documentos en libre office
-RUN  apt install -y libreoffice python3-odf python3-lxml python3-uno pandoc poppler-utils
+# ── Herramientas para crear documentos de LibreOffice ─────────────────────────
+# apt-get update es OBLIGATORIO aquí: el RUN anterior borra /var/lib/apt/lists/*,
+# así que sin él apt no encuentra ningún paquete ("Unable to locate package").
+RUN apt-get update && apt-get install -y \
+    libreoffice \
+    python3-odf \
+    python3-lxml \
+    python3-uno \
+    pandoc \
+    poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
 
 # ── Node.js 24 ────────────────────────────────────────────────────────────────
 # Ambos package.json exigen node >= 24.13.0; axelor-front descarga node+pnpm
