@@ -1,9 +1,9 @@
-package com.educaflow.base.infrastructure.mail.impl;
+package com.educaflow.base.infrastructure.mail;
 
 
-public record SmtpCredentialSimplePassword(String host,String userName,String password) {
+public record UserPasswordCredential(String host, String userName, String password) {
 
-    public SmtpCredentialSimplePassword {
+    public UserPasswordCredential {
         if (host == null || host.isBlank()) {
             throw new IllegalArgumentException("host no puede ser null ni blank");
         }

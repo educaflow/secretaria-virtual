@@ -5,6 +5,7 @@ import com.educaflow.base.infrastructure.mail.MailSender;
 
 import java.util.Properties;
 
+import com.educaflow.base.infrastructure.mail.UserPasswordCredential;
 import jakarta.annotation.Nonnull;
 import jakarta.mail.Authenticator;
 import jakarta.mail.Message;
@@ -13,14 +14,14 @@ import jakarta.mail.Session;
 import jakarta.mail.Transport;
 
 public class MailSenderImplSmtp implements MailSender {
-    final SmtpCredentialSimplePassword smtpCredentialImplSimplePassword;
+    final UserPasswordCredential userPasswordCredential;
 
-    public MailSenderImplSmtp(@Nonnull SmtpCredentialSimplePassword smtpCredentialImplSimplePassword) {
-        if (smtpCredentialImplSimplePassword==null) {
+    public MailSenderImplSmtp(@Nonnull UserPasswordCredential userPasswordCredential) {
+        if (userPasswordCredential ==null) {
             throw new IllegalArgumentException("smtpCredentialImplSimplePassword no puede ser null");
         }
 
-        this.smtpCredentialImplSimplePassword=smtpCredentialImplSimplePassword;
+        this.userPasswordCredential = userPasswordCredential;
     }
 
 
@@ -31,9 +32,9 @@ public class MailSenderImplSmtp implements MailSender {
                 throw new IllegalArgumentException("Mail cannot be null");
             }
 
-            String smtpHost = smtpCredentialImplSimplePassword.host();
-            String smtpUserName = smtpCredentialImplSimplePassword.userName();
-            String smtpPassword = smtpCredentialImplSimplePassword.password();
+            String smtpHost = userPasswordCredential.host();
+            String smtpUserName = userPasswordCredential.userName();
+            String smtpPassword = userPasswordCredential.password();
 
             Properties properties = new Properties();
             properties.put("mail.transport.protocol", "smtp");
