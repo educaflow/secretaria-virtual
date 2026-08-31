@@ -15,7 +15,7 @@ Un servicio de negocio en EducaFlow se compone de dos ficheros Java:
 3. `com.pkg.service.impl.MiEntidadService`
 4. `com.pkg.service.impl.MiEntidadServiceImpl`
 
-**CRITICAL** — el nombre de la clase de implementación **MUST** ser `<Entidad>ServiceImpl`. La factoría construye los FQN candidatos concatenando el nombre simple de la entidad + el sufijo `Service`/`ServiceImpl`; si la clase se llama de otra forma, la factoría **NO** la encuentra, `resolve(...)` devuelve `null` y el subsistema falla en runtime **sin error de compilación**.
+**CRITICAL** — el nombre de la clase de implementación **MUST** ser `<Entidad>ServiceImpl`. La factoría construye los FQN candidatos concatenando el nombre simple de la entidad + el sufijo `Service`/`ServiceImpl`; si la clase se llama de otra forma, la factoría **NO** la encuentra y la entidad cae **silenciosamente** en `DefaultModelService` (`resolve(...)` nunca devuelve `null`): sin error de compilación ni de arranque, el servicio propio simplemente no se ejecuta — ni sus validaciones ni su `allowPropertiesXxx` (ver el CRITICAL de abajo).
 
 El prefijo `Default` pertenece **solo** a la clase padre (`DefaultModelService<T>`). **MUST NOT** anteponerlo al nombre de la implementación concreta.
 
@@ -25,6 +25,11 @@ El prefijo `Default` pertenece **solo** a la clase padre (`DefaultModelService<T
 - ❌ INCORRECTO: `CorreoSvcImpl` (sufijo abreviado no contemplado por la factoría)
 
 **No hace falta ningún fichero de módulo ni binding explícito.** La implementación **MUST** estar en uno de esos cuatro paquetes con **ese nombre exacto** y tener el constructor obligatorio (ver abajo).
+
+**CRITICAL** — la búsqueda es por el **nombre exacto** de la entidad y **no** recorre la jerarquía de herencia.
+Una subclase sin ninguna de esas cuatro clases cae en `DefaultModelService`: **no** hereda el servicio de su clase base, ni sus validaciones ni su `allowPropertiesXxx`.
+Cada entidad que necesite servicio propio **MUST** declararlo, aunque su clase base ya tenga uno.
+Lo mismo vale para los permisos: `AuthSecurity` tampoco recorre superclases, así que una subclase necesita sus propias entradas en `auth-<sistema>.xml`.
 
 ## Estructura de la interfaz
 

@@ -96,6 +96,12 @@ Cada campo de la entidad está clasificado en `entity-*.md` (columna "Origen del
 
 ### 3.2 Elegir la forma del `allowPropertiesXxx`
 
+**CRITICAL — el caso sin servicio.** Una entidad que no resuelve a ningún `ModelService` cae en `DefaultModelService`, cuyos `allowPropertiesInsert/Update` son `createAllowAllProperties()`: el endpoint REST automático acepta **cualquier** campo, incluidos todos los `servidor`.
+Es un fallo **fail-open y silencioso** — no hay error de compilación ni de arranque.
+La factoría busca el servicio por el **nombre exacto** de la entidad y **no** recorre la jerarquía de herencia (ver `k-sistemas`/`servicios.md`): una subclase **no** hereda el `allowPropertiesXxx` de su clase base.
+**MUST** comprobarlo en **cada** entidad nueva, incluidas las subclases de una entidad ya protegida.
+
+
 | Forma | Cuándo |
 |---|---|
 | `createAllowProperties(Map.of(...))` (**whitelist**) | Enumera solo los `cliente` que esta acción acepta. **Obligatorio** si hay algún `servidor` que la acción no asigna. |

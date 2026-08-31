@@ -79,7 +79,7 @@ Los fallos se leen en `build/test-results/test/*.xml` (cada `<testcase>` con `<f
 
 - Motivo: la defensa real vive en `*ServiceImpl.insert/update` y en `validate*`, que están **fuera del `## Alcance`** de este skill. Clasificarlos con severidad se los pasaría al corrector, que no puede tocar Java y acabaría devolviendo un `PUSHBACK` — un ciclo perdido y una etiqueta engañosa ("corrección rechazada por incorrecta"), cuando lo que ocurre es que el arreglo es de otro skill.
 - El texto del bloque **MUST** nombrar el elemento de servidor a verificar y el siguiente paso concreto, no quedarse en el diagnóstico.
-  - ✅ CORRECTO: «`readonly` en `estado` no es defensa. Verifica que `ExpedienteServiceImpl.update` sobrescribe ese campo incondicionalmente; si no, ejecuta `/developer-code-reviewer <ruta del servicio> k-secure-coding`.»
+  - ✅ CORRECTO: «`readonly` en `estado` no es defensa. Verifica que `<Entidad>ServiceImpl.update` sobrescribe ese campo incondicionalmente; si no, ejecuta `/developer-code-reviewer <ruta del servicio> k-secure-coding`.»
   - ❌ INCORRECTO: «El campo `estado` es inseguro.» (sin el elemento de servidor ni el siguiente paso: quien lea el informe no sabe qué hacer)
 - Si además la vista tiene un defecto propio y corregible en el XML (p. ej. expone un campo que no pinta nada en ese formulario), eso **sí** va aparte con su severidad normal: son dos hallazgos distintos.
 
