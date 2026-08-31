@@ -5,6 +5,8 @@
 
     <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
     <entity name="HistorialEstado">
+        <string name="codePhase" title="Código de la fase"/>
+        <string name="namePhase" title="Fase" translatable="true"/>
         <string name="codeState" title="Código estado"/>
         <string name="nameState" title="Estado" translatable="true"/>
         <string name="codeEvent" title="Código Evento" />

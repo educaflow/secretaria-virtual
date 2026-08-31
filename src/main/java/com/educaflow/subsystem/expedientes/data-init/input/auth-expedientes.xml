@@ -101,19 +101,17 @@
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
+  <!-- Solo lectura: el historial lo escribe el Tramitador por cascada con JpaRepository.save desde un
+       @CallMethod, camino que no pasa por la capa Resource y por tanto no comprueba estos permisos.
+       Con create/write/remove abiertos, cualquier usuario podía falsificar el historial por
+       POST /ws/rest/...HistorialEstado. La UI del historial es de solo lectura.
+       Pendiente aparte: el read sigue sin condition, así que el historial de cualquier centro es
+       legible; acotarlo reutilizando las condiciones de Expediente.porExpediente/porTramite. -->
   <permission name="HistorialEstado.all" object="com.educaflow.subsystem.expedientes.db.HistorialEstado">
-    <can create="true" read="true" write="true" remove="true" export="true"/>
+    <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
   <permission name="MetaFile.all" object="com.axelor.meta.db.MetaFile">
-    <can create="true" read="true" write="true" remove="true" export="true"/>
-  </permission>
-
-  <permission name="CertificadoTutorV1.all" object="com.educaflow.subsystem.expedientes.db.CertificadoTutorV1">
-    <can create="true" read="true" write="true" remove="true" export="true"/>
-  </permission>
-
-  <permission name="ValoresAmbito.all" object="com.educaflow.subsystem.expedientes.db.ValoresAmbito">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
 

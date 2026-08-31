@@ -17,6 +17,7 @@
     >
         <field name="tipoExpediente.tramite.name" />
         <field name="numeroExpediente" width="110px"/>
+        <field name="namePhase" width="150px"/>
         <field name="nameState" width="200px"/>
         <field name="fechaUltimoEstado" width="150px" />
     </grid>

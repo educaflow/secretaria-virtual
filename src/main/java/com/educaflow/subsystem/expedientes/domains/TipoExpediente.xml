@@ -10,15 +10,41 @@
         <!--<enum name="ambitoCreador" ref="AmbitoTipoExpediente" title="Ámbito creador" />
         <enum name="ambitoResponsable" ref="AmbitoTipoExpediente" title="Ámbito responsable"  />
         <enum name="ambitoAuditor" ref="AmbitoTipoExpediente" title="Ámbito auditor"  />-->
-        <string name="fqcnEventManager"  title="Clase que maneja los eventos" />
-        <string name="fqcnStateEventValidator"  title="Clase que maneja las validaciones" />
+        <!--
+            El paquete de la carpeta de versión del tipo de expediente. De él cuelga un paquete por
+            fase, así que ExpedienteLocator compone el FQCN del PhaseEventManager y del
+            StateEventValidator con el codePhase del expediente; y de él cuelga también la clase
+            States que el build genera. Lo reescribe el data-init en cada arranque, de modo que
+            mover la carpeta del tipo se corrige solo.
+        -->
+        <string name="basePackageName"  title="Paquete base de las clases del tipo de expediente" />
         <many-to-one name="tramite" ref="Tramite" />
-        <one-to-many name="estados" ref="EstadoTipoExpediente" mappedBy="tipoExpediente" />
-    </entity>
-    <entity name="EstadoTipoExpediente">
-        <string name="codeState" title="Código del estado" />
-        <enum name="profile" ref="Profile" title="Perfil" />
-        <many-to-one name="tipoExpediente" ref="TipoExpediente" />
+
+        <!--
+            El puente a la máquina de estados tipada del tipo de expediente (la clase States que el
+            build genera desde su TipoExpedienteInstance.xml). La entidad es un objeto por tipo
+            recuperado de la base de datos, así que hace de singleton polimórfico y es el punto de
+            entrada cuando el tipo concreto no se conoce en compilación.
+
+            ExpedienteLocator es un bean inyectable, pero aquí se pide con Beans.get porque una
+            entidad JPA no la construye Guice: no hay dónde inyectarlo. Es el único punto del
+            subsistema donde ese service-locator es inevitable.
+
+            El cuerpo del método va en una sola línea a propósito: es Java embebido en XML, sin
+            ayuda del IDE, y se inyecta sin control de imports (de ahí los FQCN). Los cinco métodos
+            de búsqueda viven una sola vez, en la clase generada, y se llega a ellos por la interfaz.
+
+            Es <extra-code-model> y no <extra-code> porque en AOP el primero inyecta en la clase de
+            la ENTIDAD y el segundo en la del Repository (Entity.toJavaClass()/toRepoClass() de
+            axelor-tools). Es el mismo tag que usa el getDocumentoPdf de las entidades de expediente.
+        -->
+        <extra-code-model><![CDATA[
+
+            public com.educaflow.subsystem.expedientes.services.eventmanager.TipoExpedienteStates getTipoExpedienteStates() {
+                return com.axelor.inject.Beans.get(com.educaflow.subsystem.expedientes.services.internal.ExpedienteLocator.class).getTipoExpedienteStates(this);
+            }
+
+        ]]></extra-code-model>
     </entity>
 
     <enum name="Profile">

@@ -1,11 +1,13 @@
 package com.educaflow.tiposexpedientes.support;
 
+import com.educaflow.common.buildtools.files.tipoexpediente.Fase;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFileFinder;
 import com.educaflow.common.buildtools.files.tramite.TramitesLayout;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,8 +35,18 @@ public final class TiposExpediente {
         return cache;
     }
 
+    /** La raíz de las fuentes Java, desde la que se relativizan los paquetes. */
+    public static Path origen() {
+        return projectRoot().resolve("src/main/java");
+    }
+
+    /** La carpeta que cuelga de {@link #origen()} y contiene todos los trámites. */
+    public static Path raizDeTramites() {
+        return origen().resolve(TramitesLayout.PAQUETE_RAIZ_POR_DEFECTO.replace('.', '/'));
+    }
+
     private static List<TipoExpedienteInstanceFile> load() {
-        Path origen = projectRoot().resolve("src/main/java");
+        Path origen = origen();
         TramitesLayout tramitesLayout =
                 new TramitesLayout(origen, TramitesLayout.PAQUETE_RAIZ_POR_DEFECTO);
 
@@ -59,15 +71,38 @@ public final class TiposExpediente {
         return dir;
     }
 
-    /** Ruta relativa legible del fichero, p.ej. "tramites/prueba/v1/EventManagerImpl.java". */
+    /** Ruta relativa legible del fichero, p.ej. "tramites/prueba/v1/recepcion/PhaseEventManagerImpl.java". */
     public static String rel(Path path) {
         String s = path.toAbsolutePath().normalize().toString().replace('\\', '/');
         int i = s.indexOf("/com/educaflow/");
         return i >= 0 ? s.substring(i + "/com/educaflow/".length()) : s;
     }
 
-    /** La carpeta del tipo de expediente, que es donde viven todos sus ficheros hermanos. */
+    /** La carpeta de versión del tipo de expediente, donde están el XML maestro y el modelo. */
     public static Path carpeta(TipoExpedienteInstanceFile tipo) {
         return tipo.getPath().getParent();
+    }
+
+    /**
+     * Todas las fases de todos los tipos de expediente. Es la unidad sobre la que van los tests:
+     * el {@code PhaseEventManagerImpl} y el {@code StateEventValidatorImpl} son <b>uno por fase</b>, cada
+     * uno en el paquete de su fase, y cada uno atiende solo los estados de esa fase.
+     */
+    public static List<Fase> todasLasFases() {
+        List<Fase> fases = new ArrayList<>();
+        for (TipoExpedienteInstanceFile tipo : all()) {
+            fases.addAll(tipo.getFases());
+        }
+        return fases;
+    }
+
+    /** La subcarpeta de la fase, que es donde viven sus tres ficheros. */
+    public static Path carpeta(Fase fase) {
+        return carpeta(fase.getTipoExpediente()).resolve(fase.getPackageSimpleName());
+    }
+
+    /** Cómo se identifica una fase en los mensajes de error: {@code PruebaV1/RECEPCION}. */
+    public static String nombre(Fase fase) {
+        return fase.getTipoExpediente().getCode() + "/" + fase.getName();
     }
 }

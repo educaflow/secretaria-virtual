@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://axelor.com/xml/ns/object-views"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- **********************************************************************************************  -->
+    <!-- ************************************ PENDIENTE_RESOLUCION ************************************  -->
+    <!-- **********************************************************************************************  -->
+    <form state="PENDIENTE_RESOLUCION" profile="RESPONSABLE" >
+        <include-panels>
+            -datos-profesor
+            -datos-falta-view
+            -pdfSolicitudFirmado
+            resolucion
+        </include-panels>
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="RESOLVER" colSpan="3" colOffset="9" title="Resolver el expediente" onClick="subsysExpedientes-event-action" prompt="¿Esta seguro que desea resolver el expediente?&lt;br&gt;No podrá deshacer esta acción"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <form state="PENDIENTE_RESOLUCION">
+        <include-panels>
+            -datos-profesor
+            -datos-falta-view
+            -pdfJustificanteRegistroEntrada
+        </include-panels>
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+
+    <!-- **********************************************************************  -->
+    <!-- ****************************** ACEPTADO ******************************  -->
+    <!-- **********************************************************************  -->
+    <form state="ACEPTADO">
+        <include-panels>
+            -datos-profesor
+            -datos-falta-view
+            -pdfResolucion
+            -resolucion-view
+        </include-panels>
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+
+    <!-- **********************************************************************  -->
+    <!-- ****************************** RECHAZADO ******************************  -->
+    <!-- **********************************************************************  -->
+    <form  state="RECHAZADO">
+        <include-panels>
+            -datos-profesor
+            -datos-falta-view
+            -pdfResolucion
+            -resolucion-view
+        </include-panels>
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+</object-views>

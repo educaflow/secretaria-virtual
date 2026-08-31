@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://axelor.com/xml/ns/object-views"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- ****************************************************************************************  -->
+    <!-- *************************************** REVISION ***************************************  -->
+    <!-- ****************************************************************************************  -->
+    <form state="REVISION" profile="RESPONSABLE" >
+        <include-panels>
+            -datos-solicitante
+            fcts-panel
+            datos-resolucion
+        </include-panels>
+        <footer>
+            <buttons-left>
+                <button name="RECHAZAR" title="Rechazar" css="btn-danger" outline="true" onClick="subsysExpedientes-event-action" prompt="¿Esta seguro que desea recharlo?"/>
+            </buttons-left>
+            <buttons-right>
+                <button name="SUBSANAR" title="Subsanar información" outline="true" onClick="subsysExpedientes-event-action"/>
+                <button name="ACEPTAR" title="Aceptar" onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+    <form state="REVISION"   >
+        <include-panels>
+            -datos-solicitante
+            -fcts-panel
+        </include-panels>
+        <footer>
+            <buttons-left>
+            </buttons-left>
+            <buttons-right>
+                <button name="EXIT" colSpan="2"  title="Salir" onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+
+
+    <!-- ****************************************************************************************  -->
+    <!-- *************************************** ACEPTADO ***************************************  -->
+    <!-- ****************************************************************************************  -->
+    <form state="ACEPTADO" >
+        <include-panels>
+            -datos-solicitante
+            -fcts-panel
+        </include-panels>
+        <footer>
+            <buttons-left>
+
+            </buttons-left>
+            <buttons-right>
+                <button name="EXIT" colSpan="2"  title="Salir" onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+
+    <!-- *****************************************************************************************  -->
+    <!-- *************************************** RECHAZADO ***************************************  -->
+    <!-- *****************************************************************************************  -->
+    <form state="RECHAZADO" >
+        <include-panels>
+            -datos-solicitante
+            -fcts-panel
+            -datos-resolucion
+        </include-panels>
+        <footer>
+            <buttons-left>
+
+            </buttons-left>
+            <buttons-right>
+                <button name="EXIT" colSpan="2"  title="Salir" onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+</object-views>

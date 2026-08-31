@@ -5,7 +5,7 @@
 
     <module name="security" package="com.educaflow.subsystem.security.db"/>
 
-    <entity name="Ace">
+    <entity name="Ace" repository="abstract">
         <many-to-one name="perfil"         ref="com.educaflow.subsystem.security.db.Perfil"               required="true" title="Perfil"/>
         <many-to-one name="centroUsuario"  ref="com.educaflow.subsystem.common.db.CentroUsuario"           title="Usuario centro"/>
         <many-to-one name="tipoUsuario"    ref="com.educaflow.subsystem.common.db.TipoUsuario"            title="Tipo usuario"/>

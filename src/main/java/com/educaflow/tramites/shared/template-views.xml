@@ -6,11 +6,22 @@
     <form name="subsysExpedientes-templates-form" title="Expediente" model="com.educaflow.subsystem.expedientes.db.Expediente">
 
         <panel name="subsysExpedientes-template-header-panel" colSpan="12" title="Información general" >
+            <!--
+                Dos filas de 12. Al añadir la fase, meter los cinco elementos en una sola fila
+                obligaba a recortar "Creado por" (3->2) y "Estado" (4->3), y los campos readonly se
+                pintan con white-space: nowrap y overflow: hidden, sin elipsis: los nombres reales
+                (nombre + apellidos) se cortaban en seco. La fecha (un datetime que pinta
+                dd/MM/yyyy HH:mm) y el botón (título de 27 caracteres) ya estaban al límite, así que
+                el recorte no se podía trasladar a ellos.
+            -->
             <panel colSpan="12">
-                <field name="createdBy" title="Creado por" readonly="true" colSpan="3"/>
+                <field name="createdBy" title="Creado por" readonly="true" colSpan="4"/>
+                <field name="namePhase" readonly="true" colSpan="4" title="Fase"/>
                 <field name="nameState" readonly="true" colSpan="4" title="Estado"/>
-                <field name="fechaUltimoEstado" readonly="true" colSpan="2"/>
-                <button name="mostrar-historial-estados"  title="Ver el historial de estados" outline="true" onClick="subsysExpedientes.Expediente-verHistorialEstados-action" colSpan="3"/>
+            </panel>
+            <panel colSpan="12">
+                <field name="fechaUltimoEstado" readonly="true" colSpan="3"/>
+                <button name="mostrar-historial-estados"  title="Ver el historial de estados" outline="true" onClick="subsysExpedientes.Expediente-verHistorialEstados-action" colSpan="3" colOffset="6"/>
             </panel>
         </panel>
 
@@ -66,6 +77,7 @@
     >
         <field name="createdBy"/>
         <field name="nameEvent"/>
+        <field name="namePhase"/>
         <field name="nameState"/>
         <field name="fecha"/>
         <field name="registroEntrada"/>

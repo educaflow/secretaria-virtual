@@ -23,8 +23,9 @@ public class DataBaseStartup {
     private static String dbPassword() { return AppSettings.get().get(AvailableAppSettings.DB_DEFAULT_PASSWORD); }
 
     private static void truncateTables(String dataBaseDriver, String dataBaseURL, String dataBaseUser, String dataBasePassword, String schemaName) {
+
         Set<String> tablasExcluidas = Set.of("meta_file", "meta_sequence", "auth_user", "auth_group", "meta_filter");
-        Set<String> tablasIncluidas = Set.of("expedientes_estado_tipo_expediente");
+        Set<String> tablasIncluidas = Set.of();
 
         BulkTables bulkTables = new BulkTables();
         bulkTables.truncateTables(dataBaseDriver,dataBaseURL,dataBaseUser,dataBasePassword,schemaName,tablasExcluidas,tablasIncluidas);

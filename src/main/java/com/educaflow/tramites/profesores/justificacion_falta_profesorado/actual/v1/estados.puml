@@ -1,15 +1,35 @@
 @startuml
 
-[*] --> ENTRADA_DATOS
-ENTRADA_DATOS -> [*] : DELETE
-ENTRADA_DATOS --> PENDIENTE_PRESENTACION : GUARDAR_DATOS
-PENDIENTE_PRESENTACION --> ENTRADA_DATOS : BACK
-PENDIENTE_PRESENTACION --> PENDIENTE_RESOLUCION : PRESENTAR
-PENDIENTE_RESOLUCION --> ENTRADA_DATOS : RESOLVER[tipoResolucion=SUBSANAR_DATOS]
-PENDIENTE_RESOLUCION --> ACEPTADO : RESOLVER[tipoResolucion=ACEPTAR]
-PENDIENTE_RESOLUCION --> RECHAZADO : RESOLVER[tipoResolucion=RECHAZAR]
+' Las fases agrupan ficheros y no son una entidad del dominio, pero sí existen en ejecución
+' (columna codePhase). Aquí se dibujan como estados compuestos para que se vea de un vistazo
+' qué estados van juntos.
+'
+' Un estado se identifica por la pareja (fase, estado), así que su nombre solo es único dentro de su
+' fase. El identificador de un estado en PlantUML, en cambio, es global: dos estados con el mismo
+' nombre en fases distintas se fundirían en un único nodo. Por eso cada estado se declara con el
+' alias <FASE>_<ESTADO> y su nombre corto como etiqueta: el dibujo es el mismo de siempre y cada
+' extremo de una transición dice de qué fase es.
+state RECEPCION {
+    state "ENTRADA_DATOS" as RECEPCION_ENTRADA_DATOS
+    state "PENDIENTE_PRESENTACION" as RECEPCION_PENDIENTE_PRESENTACION
+}
 
-ACEPTADO : closed
-RECHAZADO : closed
+state TRAMITACION {
+    state "PENDIENTE_RESOLUCION" as TRAMITACION_PENDIENTE_RESOLUCION
+    state "ACEPTADO" as TRAMITACION_ACEPTADO
+    state "RECHAZADO" as TRAMITACION_RECHAZADO
+}
+
+[*] --> RECEPCION_ENTRADA_DATOS
+RECEPCION_ENTRADA_DATOS -> [*] : DELETE
+RECEPCION_ENTRADA_DATOS --> RECEPCION_PENDIENTE_PRESENTACION : GUARDAR_DATOS
+RECEPCION_PENDIENTE_PRESENTACION --> RECEPCION_ENTRADA_DATOS : BACK
+RECEPCION_PENDIENTE_PRESENTACION --> TRAMITACION_PENDIENTE_RESOLUCION : PRESENTAR
+TRAMITACION_PENDIENTE_RESOLUCION --> RECEPCION_ENTRADA_DATOS : RESOLVER[tipoResolucion=SUBSANAR_DATOS]
+TRAMITACION_PENDIENTE_RESOLUCION --> TRAMITACION_ACEPTADO : RESOLVER[tipoResolucion=ACEPTAR]
+TRAMITACION_PENDIENTE_RESOLUCION --> TRAMITACION_RECHAZADO : RESOLVER[tipoResolucion=RECHAZAR]
+
+TRAMITACION_ACEPTADO : closed
+TRAMITACION_RECHAZADO : closed
 
 @enduml

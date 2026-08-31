@@ -1,7 +1,9 @@
 package com.educaflow.subsystem.expedientes.controllers;
 
 import com.axelor.auth.db.User;
+import org.apache.shiro.authz.UnauthorizedException;
 import com.axelor.db.JpaRepository;
+import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.db.Model;
 import com.axelor.i18n.I18n;
 import com.axelor.meta.CallMethod;
@@ -9,12 +11,14 @@ import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil;
-import com.educaflow.subsystem.expedientes.services.internal.TipoExpedienteUtil;
+import com.educaflow.subsystem.expedientes.services.internal.ExpedienteLocator;
 import com.educaflow.subsystem.expedientes.services.tramitacion.CommonEvent;
 import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
-import com.educaflow.subsystem.expedientes.services.eventmanager.EventManager;
+import com.educaflow.subsystem.expedientes.services.eventmanager.PhaseEventManager;
+import com.educaflow.subsystem.expedientes.services.eventmanager.State;
 import com.educaflow.subsystem.expedientes.services.tramitacion.Tramitador;
 import com.educaflow.subsystem.expedientes.db.Expediente;
+import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.TipoExpediente;
 import com.educaflow.subsystem.expedientes.db.Tramite;
 import com.educaflow.subsystem.expedientes.db.repo.TramiteRepository;
@@ -40,6 +44,12 @@ public class ExpedienteController {
     @Inject
     Tramitador tramitador;
 
+    @Inject
+    ExpedienteLocator expedienteLocator;
+
+    @Inject
+    ModelServiceFactory modelServiceFactory;
+
 
     public ExpedienteController() {
 
@@ -52,18 +62,22 @@ public class ExpedienteController {
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(response);
         try {
             TipoExpediente tipoExpediente = getTipoExpedienteFromIdTramite(actionRequestHelper.getId());
-            EventManager eventManager = TipoExpedienteUtil.getEventManager(tipoExpediente);
             String profileName = actionRequestHelper.getProfileName();
-            EventContext eventContext = getEventContext(null,eventManager,profileName);
+            EventContext eventContext = getEventContext(null,tipoExpediente,profileName);
 
             Expediente expediente = tramitador.triggerInitialEvent(tipoExpediente, eventContext);
 
-            String viewName = eventManager.getViewName(expediente, eventContext);
-            actionResponseHelper.doResponseViewForm(viewName, eventManager.getModelClass(), expediente, getTabName(expediente), eventContext.getProfile().name());
+            PhaseEventManager phaseEventManager = expedienteLocator.getPhaseEventManager(tipoExpediente, expediente.getCodePhase());
+            String viewName = phaseEventManager.getViewName(expediente, eventContext);
+            actionResponseHelper.doResponseViewForm(viewName, phaseEventManager.getModelClass(), expediente, getTabName(expediente), eventContext.getProfile().name());
 
         } catch (BusinessException ex) {
             actionResponseHelper.doResponseBusinessMessagesAsError("No es posible crear el expediente", ex.getBusinessMessages());
             return;
+        } catch (UnauthorizedException ex) {
+            // MUST NOT envolverla: sin envolver, ResponseInterceptor la reconoce como
+            // AuthorizationException y responde un error de acceso (403) en vez de un 500 genérico.
+            throw ex;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -79,9 +93,9 @@ public class ExpedienteController {
             Expediente expediente = ExpedienteUtil.getExpedienteFromIdExpediente(actionRequestHelper.getId());
             String eventName = actionRequestHelper.getEventName();
             Map<String, Object> requestData = actionRequestHelper.getRequestData();
-            EventManager eventManager = TipoExpedienteUtil.getEventManager(expediente.getTipoExpediente());
+            PhaseEventManager phaseEventManager = expedienteLocator.getPhaseEventManager(expediente.getTipoExpediente(), expediente.getCodePhase());
             String profileName = actionRequestHelper.getProfileName();
-            EventContext eventContext = getEventContext(expediente,eventManager,profileName);
+            EventContext eventContext = getEventContext(expediente,expediente.getTipoExpediente(),profileName);
 
             if (eventName.equals(CommonEvent.EXIT.name())) {
                 response.setSignal("refresh-app", null);
@@ -93,12 +107,16 @@ public class ExpedienteController {
             if (eventName.equals(CommonEvent.DELETE.name())) {
                 response.setSignal("refresh-app", null);
             } else {
-                String viewName = eventManager.getViewName(expediente, eventContext);
-                actionResponseHelper.doResponseViewForm(viewName, eventManager.getModelClass(), expediente, getTabName(expediente), eventContext.getProfile().name());
+                String viewName = phaseEventManager.getViewName(expediente, eventContext);
+                actionResponseHelper.doResponseViewForm(viewName, phaseEventManager.getModelClass(), expediente, getTabName(expediente), eventContext.getProfile().name());
             }
 
         } catch (BusinessException ex) {
             actionResponseHelper.doResponseBusinessMessages(ex.getBusinessMessages());
+        } catch (UnauthorizedException ex) {
+            // MUST NOT envolverla: sin envolver, ResponseInterceptor la reconoce como
+            // AuthorizationException y responde un error de acceso (403) en vez de un 500 genérico.
+            throw ex;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -110,13 +128,17 @@ public class ExpedienteController {
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(response);
         try {
             Expediente expediente = ExpedienteUtil.getExpedienteFromIdExpediente(actionRequestHelper.getId());
-            EventManager eventManager = TipoExpedienteUtil.getEventManager(expediente.getTipoExpediente());
+            PhaseEventManager phaseEventManager = expedienteLocator.getPhaseEventManager(expediente.getTipoExpediente(), expediente.getCodePhase());
             String profileName = actionRequestHelper.getProfileName();
-            EventContext eventContext = getEventContext(expediente,eventManager,profileName);
+            EventContext eventContext = getEventContext(expediente,expediente.getTipoExpediente(),profileName);
 
-            String viewName = eventManager.getViewName(expediente, eventContext);
-            actionResponseHelper.doResponseViewForm(viewName, eventManager.getModelClass(), expediente, getTabName(expediente), eventContext.getProfile().name());
+            String viewName = phaseEventManager.getViewName(expediente, eventContext);
+            actionResponseHelper.doResponseViewForm(viewName, phaseEventManager.getModelClass(), expediente, getTabName(expediente), eventContext.getProfile().name());
 
+        } catch (UnauthorizedException ex) {
+            // MUST NOT envolverla: sin envolver, ResponseInterceptor la reconoce como
+            // AuthorizationException y responde un error de acceso (403) en vez de un 500 genérico.
+            throw ex;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -138,6 +160,10 @@ public class ExpedienteController {
 
             actionResponseHelper.doResponseBusinessMessages(businessMessages);
 
+        } catch (UnauthorizedException ex) {
+            // MUST NOT envolverla: sin envolver, ResponseInterceptor la reconoce como
+            // AuthorizationException y responde un error de acceso (403) en vez de un 500 genérico.
+            throw ex;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -194,14 +220,37 @@ public class ExpedienteController {
     /********************** Funciones de Utilidad **********************/
     /*******************************************************************/
 
-    public <Profile extends Enum<Profile>, State extends Enum<State>> EventContext<Profile,State> getEventContext(Expediente expediente,EventManager eventManager, String profileName) {
+    /**
+     * El contexto del evento. El perfil viene de la petición del cliente, así que además de parsearlo
+     * contra el enum global hay que comprobar que es uno de los perfiles que USA este tipo de
+     * expediente: el enum global acepta perfiles que el tipo no tiene, y getViewName tiene fallback a
+     * la vista sin perfil, de modo que sin esta comprobación una petición con un perfil ajeno podría
+     * llegar a renderizar una vista en vez de fallar. Es la detección que hasta ahora daba el
+     * Enum.valueOf sobre el enum Profile por tipo.
+     */
+    private EventContext getEventContext(Expediente expediente, TipoExpediente tipoExpediente, String profileName) {
+        Profile profile;
         try {
-            Enum profile = Enum.valueOf(eventManager.getProfileClass(), profileName);
-            Centro centro = getCentroFromCurrentUser();
-            return new EventContext<>(expediente, profile, centro);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            profile = Profile.valueOf(profileName);
+        } catch (IllegalArgumentException ex) {
+            throw new RuntimeException("El perfil '" + profileName + "' no existe.", ex);
         }
+
+        checkProfileDelTipoExpediente(profile, tipoExpediente);
+
+        Centro centro = getCentroFromCurrentUser();
+
+        return new EventContext(expediente, profile, centro, modelServiceFactory);
+    }
+
+    private static void checkProfileDelTipoExpediente(Profile profile, TipoExpediente tipoExpediente) {
+        for (State state : tipoExpediente.getTipoExpedienteStates().getStates()) {
+            if (profile.equals(state.getProfile())) {
+                return;
+            }
+        }
+
+        throw new RuntimeException("El perfil '" + profile.name() + "' no lo usa ningún estado del tipo de expediente " + tipoExpediente.getCode() + ".");
     }
 
 

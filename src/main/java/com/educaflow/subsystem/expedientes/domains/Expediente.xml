@@ -9,7 +9,9 @@
         <many-to-one name="tipoExpediente" title="Tipo de Expediente" ref="com.educaflow.subsystem.expedientes.db.TipoExpediente" required="true"/>
         <string name="name" namecolumn="true" />
         <string name="numeroExpediente"  title="Num.__!! Exped.__!!"  />
-        <string name="codeState" title="Código del estado" />
+        <string name="codePhase" title="Código de la fase" required="true" />
+        <string name="namePhase" title="Fase" translatable="true" />
+        <string name="codeState" title="Código del estado" required="true" />
         <string name="nameState" title="Estado" translatable="true" />
         <datetime name="fechaUltimoEstado" title="Fecha último estado" />
         <boolean name="abierto" title="Abierto" />

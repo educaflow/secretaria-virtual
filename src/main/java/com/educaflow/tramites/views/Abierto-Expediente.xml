@@ -20,6 +20,7 @@
         <field name="numeroExpediente"/>
         <field name="tipoExpediente.name"/>
         <field name="createdBy"/>
+        <field name="namePhase"/>
         <field name="nameState"/>
         <field name="fechaUltimoEstado"/>
     </grid>
@@ -30,6 +31,7 @@
         <column name="name" />
         <column name="numeroExpediente" width="100px" title="Número Expediente" />
         <column name="createdBy" width="200px" title="Creado por"/>
+        <column name="namePhase" width="15%" title="Fase"/>
         <column name="nameState" width="30%" title="Estado"/>
         <column name="fechaUltimoEstado" type="date" width="100px" title="Fecha"/>
 
@@ -42,6 +44,7 @@
             <field name="name" />
             <field name="numeroExpediente"/>
             <field name="createdBy"/>
+            <field name="namePhase"/>
             <field name="nameState"/>
             <field name="fechaUltimoEstado"/>
         </node>

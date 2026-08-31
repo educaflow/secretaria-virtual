@@ -4,10 +4,13 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaParameterizedType;
+import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +27,7 @@ import java.util.stream.Collectors;
  * entidades de Axelor ni de {@code NoClassDefFoundError}) y da los tipos de parámetro como FQCN en
  * texto, que es exactamente lo que se compara.
  *
- * <p>Cubre a la vez el {@code EventManagerImpl} (Java) y el {@code StateEventValidatorImpl}
+ * <p>Cubre a la vez el {@code PhaseEventManagerImpl} (Java) y el {@code StateEventValidatorImpl}
  * (Kotlin), porque el build compila ambos al mismo directorio de clases
  * ({@code compileKotlin.destinationDirectory} apunta a {@code build/classes/java/main}).
  */
@@ -61,6 +64,30 @@ public final class Bytecode {
                 .filter(m -> m.isAnnotatedWith(anotacion))
                 .sorted(Comparator.comparing(JavaMethod::getName))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * El FQCN del parámetro de tipo con el que la clase extiende esa clase genérica o implementa esa
+     * interfaz genérica ({@code implements InitialEventManager<PruebaV1>} -> {@code ...db.PruebaV1}).
+     * Vacío si no la extiende ni la implementa, o si lo hace en crudo, sin parámetro de tipo.
+     *
+     * <p>El importador conserva la firma genérica, así que esto se lee del bytecode igual que todo
+     * lo demás de aquí, sin cargar la clase.
+     */
+    public static Optional<String> parametroDeTipo(JavaClass clase, String fqcnGenerico) {
+        List<JavaType> ascendientes = new ArrayList<>(clase.getInterfaces());
+        clase.getSuperclass().ifPresent(ascendientes::add);
+
+        for (JavaType ascendiente : ascendientes) {
+            if (ascendiente instanceof JavaParameterizedType parametrizado
+                    && parametrizado.toErasure().getFullName().equals(fqcnGenerico)
+                    && parametrizado.getActualTypeArguments().size() == 1) {
+
+                return Optional.of(parametrizado.getActualTypeArguments().get(0).toErasure().getFullName());
+            }
+        }
+
+        return Optional.empty();
     }
 
     /** Los métodos declarados con ese nombre, con independencia de anotación y firma. */

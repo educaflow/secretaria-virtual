@@ -16,9 +16,12 @@ Este proyecto usa un **progressive disclosure pattern to respect LLM instruction
 
 Compila **y arranca** siempre con `./run.sh` (hace `./gradlew clean build` —compila y ejecuta los tests— y arranca en el 8080 con la config privada). **NO** uses `gradlew run` a mano ni `--debug-jvm`. Cómo probar tests, compilar sin arrancar, arrancar/reiniciar/resetear la BD y acceder con `psql`: ver [`agent_docs/deploy.md`](agent_docs/deploy.md).
 
-Para generar los esqueletos que le falten a un tipo de expediente (`domains.xml`, `views.xml`, `EventManagerImpl.java`, `StateEventValidatorImpl.kt`) está la tarea `./gradlew -q CreateFilesTask -Ptipo=<carpeta del tipo>` (sin `-Ptipo` procesa todos los trámites).
+Para generar los esqueletos que le falten a un tipo de expediente está la tarea `./gradlew -q CreateFilesTask -Ptipo=<carpeta del tipo>` (sin `-Ptipo` procesa todos los trámites).
+Genera en la raíz de la versión `domains.xml`, el `views.xml` de plantilla y el `InitialEventManagerImpl.java` (el evento inicial es del tipo de expediente, no de una fase: hay exactamente uno por tipo), y por **cada fase** su subcarpeta con `PhaseEventManagerImpl.java`, `StateEventValidatorImpl.kt` y `views.xml`.
+Con `-Pfase=<FASE>` se acota a una sola fase (y entonces no genera los ficheros de la raíz de la versión, que no son de ninguna fase); **solo tiene sentido junto con `-Ptipo`**, porque si no aborta a medias en el primer tipo de expediente que no tenga esa fase.
+No hace falta para añadir una fase nueva sin tocar las demás: al ser idempotente, lanzarla sin `-Pfase` ya crea solo los ficheros de la fase nueva.
 Es **la** forma de generarlos: el build **no** los genera, a propósito, para que compilar no escriba en `src/main/java`.
-Es idempotente (nunca pisa lo ya escrito), imprime una línea `CREADO <ruta>` por fichero creado y falla con un mensaje explícito si la ruta no corresponde a ningún tipo de expediente.
+Es idempotente (nunca pisa lo ya escrito), imprime una línea `CREADO <ruta>` por fichero creado y falla con un mensaje explícito si la ruta no corresponde a ningún tipo de expediente o si la fase no existe.
 Detalle en el skill `k-tipo-expediente`.
 
 
@@ -51,7 +54,9 @@ Para cada parte de Axelor se han creado conjuntos de Skills:
 - secure-coding (`k-secure-coding`) → reglas de codificación segura: mass-assignment, `AllowProperties` por acción, asignación incondicional de campos `servidor` en `*ServiceImpl.insert/update`, multi-centro/IDOR, JPQL, log injection, adjuntos, secretos (**cómo** se escribe el código para que la seguridad del negocio no se pueda saltar). **CRITICAL**: aplicación obligatoria en cualquier modificación de código que toque entidades, servicios o controladores.
 - acciones (`k-vistas`, fichero `actions.md`, y `k-sistemas`, fichero `controladores.md`) → para todo lo relacionado con acciones (action-views, controllers, etc.)
 - trámites (`k-tramite`) → alta y mantenimiento de un trámite: la carpeta `tramites/<tramite>/`, el fichero maestro `TramiteInstance.xml`, i18n del nombre y permisos.
-- tipos de expediente (`k-tipo-expediente`) → todo lo que hay dentro de una carpeta de versión `tramites/<tramite>/<vN>/`: `TipoExpedienteInstance.xml` y máquina de estados, modelo (`modelo.md`), `EventManager` (`eventmanager.md`), `StateEventValidator` (`validator.md`), vistas preprocesadas (`vistas.md`), documentos PDF de `documentospdf/` (`documentos.md`) y cómo duplicar un tipo para crear una versión nueva (`versionado.md`). Consúltalo siempre que toques cualquier fichero bajo una carpeta de versión.
+- tipos de expediente (`k-tipo-expediente`) → todo lo que hay dentro de una carpeta de versión `tramites/<tramite>/<vN>/`: `TipoExpedienteInstance.xml` con sus **fases** y la máquina de estados, modelo (`modelo.md`), `PhaseEventManager` (`phaseeventmanager.md`), `StateEventValidator` (`validator.md`), vistas preprocesadas (`vistas.md`), documentos PDF de `documentospdf/` (`documentos.md`) y cómo duplicar un tipo para crear una versión nueva (`versionado.md`). Consúltalo siempre que toques cualquier fichero bajo una carpeta de versión.
+  Los estados se agrupan en **fases** (solo una agrupación de ficheros, no una entidad del dominio), cada una con su subcarpeta `<vN>/<fase en minúsculas>/`.
+  Un estado se identifica por la pareja `(codePhase, codeState)`, que son dos columnas del expediente; no existe ningún nombre compuesto. La máquina de estados de cada tipo es la clase `States` que la tarea `GenerateStatesTask` proyecta de su `TipoExpedienteInstance.xml` en `build/src-gen-states/main/java`: es **generada**, no se versiona ni se edita, y en código un estado se nombra por su constante en el enum de la fase, con la fase en UpperCamelCase: `States.Recepcion.ENTRADA_DATOS`.
 
 Es imperativo que siempre uses los skills correspondientes para cualquier acción relacionada con Axelor, ya que siguen una arquitectura propia de la secretaría virtual y del framework Axelor.
 
@@ -73,13 +78,31 @@ Las **convenciones verificables de las vistas Axelor** (los XML bajo `**/views/*
 
 ## Tipos de expediente
 
-Los tests de `src/test/java/com/educaflow/tiposexpedientes` comprueban que el `EventManagerImpl.java` y el `StateEventValidatorImpl.kt` de cada tipo de expediente concuerdan con la máquina de estados de su `TipoExpedienteInstance.xml` (un método por evento, por estado y por pareja estado-evento; ni faltar ni sobrar).
+Los tests de `src/test/java/com/educaflow/tiposexpedientes` comprueban que lo que se escribe a mano en un tipo de expediente y en cada una de sus fases concuerda con su `TipoExpedienteInstance.xml` y con su `domains.xml`.
 **A diferencia de las dos familias anteriores, estos tests se escriben A MANO**: los `.java` son la fuente de verdad y se editan directamente.
 **MUST NOT** crear un `agent_docs/*-rules.md` ni un skill generador para ellos.
-Leen bytecode con el `ClassFileImporter` de ArchUnit (no su DSL de reglas) y el XML con las mismas clases de `EducaFlowBuildTools` que usa el generador de esqueletos, de forma que el código del método que el test dice que falta es literalmente el que ese generador habría escrito.
-Las reglas concretas están en el skill `k-tipo-expediente` (`SKILL.md` §3.3, `eventmanager.md` §7, `validator.md` §5), que **debe mantenerse coherente con estos tests**.
+Qué comprueba cada regla, y cómo están construidos, está en el skill `k-tipo-expediente` (`SKILL.md` §3.3, `phaseeventmanager.md` §7, `validator.md` §5), que **debe mantenerse coherente con estos tests**.
 
 
+
+## PENDIENTE (importante) — el endpoint REST automático se salta el tramitador
+
+Axelor publica `POST /ws/rest/<FQN>` para **toda** entidad sin que haya que registrar nada (`RestService`, `@Path("/rest/{model}")`).
+Esa ruta es `Resource.save` → `ModelService.validate` → `AllowProperties.filter` → `JPA.edit` → `ModelService.insert/update`, y **no pasa por `Tramitador` en ningún punto**.
+Consecuencia: la whitelist por pareja (estado, evento) que `Tramitador` construye a partir de `@BeanValidationRulesForStateAndEvent` **no defiende esta puerta** — ahí lo único que filtra es el `allowPropertiesInsert/Update` del `ModelService` de la entidad, y sin `ModelService` propio eso es `createAllowAllProperties()`.
+**Ahora mismo no hay NADA tapando esa puerta**, y es deliberado.
+Hubo un parche (un `ModelService` de expedientes que devolvía `createDenyAllProperties()`) y **se retiró a propósito**: tapaba solo una parte del problema y se prefirió no dar la sensación de que el asunto estaba resuelto mientras no se decida la solución de verdad.
+**MUST NOT** volver a introducirlo como arreglo puntual sin haber tomado esa decisión.
+
+**MUST NOT** dar por protegida una entidad de expediente porque su tramitación valide por evento: son dos puertas distintas y la validación por evento solo ve una.
+
+Puntos concretos que siguen abiertos:
+- Cualquier usuario con permiso de escritura sobre una subclase de `Expediente` puede dictar por REST el valor de cualquier campo, incluidos `codePhase`/`codeState`/`abierto`, `centro` y `usuarioRegistrador`, saltándose la máquina de estados.
+  `auth-expedientes.xml` concede `create`/`read`/`write`/`remove` sin `condition` sobre `PruebaV1`.
+- `AllowProperties.filter` conserva siempre `id`, `version` y las claves `_`.
+  Con deny-all un update queda en no-op, pero un alta sin `id` llega a `JPA.edit` con el mapa vacío: **sin comprobar** si crea una fila vacía o revienta contra los `NOT NULL`.
+- `FormacionCentroTrabajo` no tiene `ModelService` ni hereda de `Expediente`, y `auth-expedientes.xml` le concede `create`/`write`/`remove` sin `condition`: sigue en allow-all.
+- Los permisos de las subclases se conceden sin `condition` (p. ej. `PruebaV1.all`) y `AuthSecurity` **no recorre superclases**, así que no heredan las condiciones de los permisos de `Expediente`.
 
 ## i18n
 Nunca jamás, crear los ficheros `i18n_ca.csv` ni `i18n_es.csv` ya que hay un script que los genera automáticamente, así que es totalmente innecesario.

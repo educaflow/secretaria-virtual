@@ -2,11 +2,11 @@ package com.educaflow.subsystem.expedientes.services.eventmanager;
 
 
 import com.axelor.db.modelservice.ModelServiceFactory;
-import com.axelor.inject.Beans;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.expedientes.db.Expediente;
+import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroSalida;
@@ -16,20 +16,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class EventContext<Profile extends Enum<Profile>, State extends Enum<State>> {
+public class EventContext {
 
     final private Expediente expediente;
     final private Profile profile;
     final private Centro centro;
     private RegistroEntrada registroEntrada=null;
     private RegistroSalida registroSalida=null;
-    ModelServiceFactory modelServiceFactory;
+    final private ModelServiceFactory modelServiceFactory;
 
-    public EventContext(Expediente expediente,Profile profile, Centro centro) {
+    /**
+     * El {@code ModelServiceFactory} llega por parámetro y no de {@code Beans.get} porque un
+     * EventContext se construye a mano por cada evento (no lo crea Guice): así la dependencia es
+     * explícita y la clase se puede instanciar sin contenedor. Lo pasa quien sí es un bean, el
+     * {@code ExpedienteController}, que lo tiene inyectado.
+     */
+    public EventContext(Expediente expediente,Profile profile, Centro centro, ModelServiceFactory modelServiceFactory) {
         this.expediente = expediente;
         this.profile = profile;
         this.centro = centro;
-        this.modelServiceFactory=Beans.get(ModelServiceFactory.class);
+        this.modelServiceFactory=Objects.requireNonNull(modelServiceFactory, "modelServiceFactory no puede ser null");
     }
 
     public Profile getProfile() {

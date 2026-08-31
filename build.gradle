@@ -108,6 +108,14 @@ afterEvaluate {
         beforeTest { descriptor ->
             logger.lifecycle('Running: ' + descriptor)
         }
+        testLogging {
+            // Sin esto la consola solo dice "AssertionFailedError at XxxTest.java:NN" y se traga el
+            // mensaje del assert, que es donde estos tests ponen el diagnóstico (qué falta, en qué
+            // fichero y el código listo para pegar). Sin stacktrace: aquí no aporta nada.
+            events 'failed'
+            exceptionFormat = 'full'
+            showStackTraces = false
+        }
     }
 }
 
@@ -128,7 +136,7 @@ tasks.register('injectBuildInfo') {
         def newFooter = "application.sign-in.footer = Esta aplicaci\\u00F3n est\\u00E1 en pruebas. | Rama: ${gitBranch} | Fecha: ${buildDate} | Commit: ${gitHash}"
 
         layout.buildDirectory.file('resources/main/axelor-config.properties').get().asFile.text =
-            sourceContent.replaceAll(/(?m)^application\.sign-in\.footer\s*=.*$/) { newFooter }
+                sourceContent.replaceAll(/(?m)^application\.sign-in\.footer\s*=.*$/) { newFooter }
     }
 }
 
@@ -153,7 +161,7 @@ tasks.register('viewProcessorTask', JavaExec) {
     classpath = configurations.educaFlowBuildToolsDependency
 
 
-    args './src/main/java', './build/resources/main/views'
+    args './src/main/java', './build/resources/main/views', paqueteRaizTramites
 
     workingDir = layout.projectDirectory.dir('.')
 }
@@ -230,7 +238,7 @@ tasks.register('copyDomain', Copy) {
     eachFile { fcd ->
         def root = new XmlSlurper(false, true).parse(fcd.file)
         if (root.name() != 'domain-models' ||
-            root.namespaceURI() != 'http://axelor.com/xml/ns/domain-models') {
+                root.namespaceURI() != 'http://axelor.com/xml/ns/domain-models') {
             fcd.exclude()
         }
     }
@@ -347,7 +355,38 @@ tasks.named('generateCode') {
     dependsOn tasks.RichDomainXmlTask
 }
 
-// Generador de los esqueletos de un tipo de expediente (domains.xml, views.xml, EventManagerImpl.java,
+// Genera la clase States de cada tipo de expediente (la proyección tipada de su
+// TipoExpedienteInstance.xml). NO es un esqueleto: se reemite entera en cada build, así que no se
+// versiona ni vive en src/main/java.
+tasks.register('GenerateStatesTask', JavaExec) {
+    description = 'Genera la clase States de cada tipo de expediente a partir de su TipoExpedienteInstance.xml.'
+    group = 'build'
+
+    mainClass = 'com.educaflow.common.buildtools.createstates.Main'
+    classpath = configurations.educaFlowBuildToolsDependency
+
+    args './src/main/java', './build/src-gen-states/main/java', paqueteRaizTramites, './src/main/java/com/educaflow/subsystem/expedientes/domains/TipoExpediente.xml'
+
+    workingDir = layout.projectDirectory.dir('.')
+
+    // La raíz de salida se vacía antes de emitir: un States.java huérfano (tipo borrado, carpeta
+    // renombrada) es puro y seguiría compilando en silencio en un build incremental.
+    doFirst { delete(layout.buildDirectory.dir('src-gen-states')) }
+
+    // Inputs acotados a lo que la tarea lee: los TipoExpedienteInstance.xml y el
+    // domains/TipoExpediente.xml del que sale el enum global Profile (sin él, renombrar un perfil
+    // dejaría la tarea up-to-date y esa validación sin re-ejecutar). Los outputs van a una raíz
+    // PROPIA (no build/src-gen) para no solapar con lo que escriben generateCode y
+    // RichDomainClassTask, que confundiría los up-to-date checks de Gradle.
+    inputs.files(fileTree(layout.projectDirectory.dir('src/main/java/' + paqueteRaizTramites.replace('.', '/'))) { include '**/TipoExpedienteInstance.xml' })
+    inputs.file('src/main/java/com/educaflow/subsystem/expedientes/domains/TipoExpediente.xml')
+    outputs.dir(layout.buildDirectory.dir('src-gen-states/main/java'))
+}
+sourceSets.main.java.srcDir(layout.buildDirectory.dir('src-gen-states/main/java'))
+tasks.named('compileJava')   { dependsOn tasks.GenerateStatesTask }
+tasks.named('compileKotlin') { dependsOn tasks.GenerateStatesTask }
+
+// Generador de los esqueletos de un tipo de expediente (domains.xml, views.xml, PhaseEventManagerImpl.java,
 // StateEventValidatorImpl.kt). Se invoca a mano al crear un tipo de expediente:
 //
 //   ./gradlew -q CreateFilesTask -Ptipo=src/main/java/com/educaflow/tramites/<tramite>/<vN>
@@ -371,6 +410,15 @@ tasks.register('CreateFilesTask', JavaExec) {
     // TipoExpedienteInstance.xml o la de la carpeta que lo contiene). Sin él se procesan todos.
     if (project.hasProperty('tipo')) {
         args "--tipo=${project.property('tipo')}"
+    }
+
+    // -Pfase=<FASE> acota además la generación a una sola fase. Con -Pfase no se generan los
+    // ficheros de la raíz de la versión (domains.xml y views.xml), porque no son de ninguna fase en
+    // concreto. Solo tiene sentido junto con -Ptipo: sin él se aplica a todos los tipos y aborta a
+    // medias en el primero que no tenga esa fase. NO hace falta para añadir una fase nueva sin tocar
+    // las que ya están: el generador es idempotente y sin -Pfase crea igualmente solo lo que falta.
+    if (project.hasProperty('fase')) {
+        args "--fase=${project.property('fase')}"
     }
 
     workingDir = layout.projectDirectory.dir('.')

@@ -16,6 +16,7 @@
     >
         <field name="numeroExpediente"/>
         <field name="tipoExpediente.name"/>
+        <field name="namePhase"/>
         <field name="nameState"/>
         <field name="fechaUltimoEstado"/>
     </grid>

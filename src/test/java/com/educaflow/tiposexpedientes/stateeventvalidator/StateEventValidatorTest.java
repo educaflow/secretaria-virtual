@@ -2,8 +2,8 @@ package com.educaflow.tiposexpedientes.stateeventvalidator;
 
 import com.educaflow.common.buildtools.common.TextUtil;
 import com.educaflow.common.buildtools.files.stateeventvalidator.StateEventValidatorFile;
+import com.educaflow.common.buildtools.files.tipoexpediente.Fase;
 import com.educaflow.common.buildtools.files.tipoexpediente.State;
-import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
 import com.educaflow.subsystem.expedientes.services.tramitacion.CommonEvent;
 import com.educaflow.subsystem.expedientes.services.validation.BeanValidationRulesForStateAndEvent;
 import com.educaflow.tiposexpedientes.support.Bytecode;
@@ -23,8 +23,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * El {@code StateEventValidator} de cada tipo de expediente tiene un método de reglas por cada
- * pareja (estado, evento) declarada en su {@code TipoExpedienteInstance.xml}, ni más ni menos.
+ * El {@code StateEventValidator} de cada <b>fase</b> tiene un método de reglas por cada pareja
+ * (estado, evento) de esa fase declarada en el {@code TipoExpedienteInstance.xml}, ni más ni menos.
+ *
+ * <p>Como el {@code PhaseEventManager}, el validator es uno por fase y atiende solo los estados de su
+ * propia fase, y el nombre del método lleva el código del estado <b>dentro de su fase</b>:
+ * {@code Tramitador.getBeansValidationRules} lo compone directamente con el {@code codeState}
+ * guardado, que ya es ese código. No hay nada que descomponer — la fase viaja aparte, en la
+ * columna {@code codePhase}, y es lo que decide en qué clase se busca el método.
  *
  * <p>Esto <b>nunca se llegó a comprobar</b>: el {@code check()} de {@code createfiles} estaba
  * íntegramente comentado porque Spoon solo parsea Java y este fichero es Kotlin. Al leer bytecode
@@ -61,25 +67,26 @@ class StateEventValidatorTest {
     // -----------------------------------------------------------------------------------------
 
     @Test
-    @DisplayName("V0: cada tipo de expediente tiene compilada la clase de su StateEventValidator, que implementa StateEventValidator")
+    @DisplayName("V0: cada fase tiene compilada la clase de su StateEventValidator, que implementa StateEventValidator")
     void v0_existeLaClaseDelValidator() {
         List<Violacion> violaciones = new ArrayList<>();
 
-        for (TipoExpedienteInstanceFile tipo : TiposExpediente.all()) {
-            String fqcn = tipo.getFqcnStateEventValidator();
+        for (Fase fase : TiposExpediente.todasLasFases()) {
+            String fqcn = fase.getFqcnStateEventValidator();
             Optional<JavaClass> clase = Bytecode.clase(fqcn);
 
             if (clase.isEmpty()) {
-                violaciones.add(new Violacion(tipo.getCode(), ficheroValidator(tipo),
-                        "no existe la clase " + fqcn + " (¿falta compilar, o el fqcnStateEventValidator del XML apunta a otro sitio?)"));
+                violaciones.add(new Violacion(TiposExpediente.nombre(fase), ficheroValidator(fase),
+                        "no existe la clase " + fqcn + " (¿falta compilar, o la carpeta de la fase no se llama"
+                        + " como la fase en minúsculas?)"));
             } else if (!clase.get().isAssignableTo(FQCN_STATE_EVENT_VALIDATOR)) {
-                violaciones.add(new Violacion(tipo.getCode(), ficheroValidator(tipo),
+                violaciones.add(new Violacion(TiposExpediente.nombre(fase), ficheroValidator(fase),
                         "la clase " + fqcn + " no implementa " + FQCN_STATE_EVENT_VALIDATOR));
             }
         }
 
-        Violacion.assertNone("[V0] La clase del StateEventValidator de cada tipo de expediente debe existir e"
-                + " implementar " + FQCN_STATE_EVENT_VALIDATOR + ".", violaciones);
+        Violacion.assertNone("[V0] La clase del StateEventValidator de cada fase de cada tipo de expediente debe"
+                + " existir e implementar " + FQCN_STATE_EVENT_VALIDATOR + ".", violaciones);
     }
 
     // -----------------------------------------------------------------------------------------
@@ -87,18 +94,18 @@ class StateEventValidatorTest {
     // -----------------------------------------------------------------------------------------
 
     @Test
-    @DisplayName("V1: por cada pareja (estado, evento) salvo las de DELETE hay un método getForState<Estado>InEvent<Evento> con @BeanValidationRulesForStateAndEvent")
+    @DisplayName("V1: por cada pareja (estado, evento) de la fase salvo las de DELETE hay un método getForState<Estado>InEvent<Evento> con @BeanValidationRulesForStateAndEvent")
     void v1_existeUnMetodoPorParejaEstadoEvento() {
         List<Violacion> violaciones = new ArrayList<>();
 
-        for (TipoExpedienteInstanceFile tipo : TiposExpediente.all()) {
-            Optional<JavaClass> clase = Bytecode.clase(tipo.getFqcnStateEventValidator());
+        for (Fase fase : TiposExpediente.todasLasFases()) {
+            Optional<JavaClass> clase = Bytecode.clase(fase.getFqcnStateEventValidator());
             if (clase.isEmpty()) {
                 continue; // ya lo reporta V0
             }
-            StateEventValidatorFile validatorFile = validatorFile(tipo);
+            StateEventValidatorFile validatorFile = validatorFile(fase);
 
-            for (Map.Entry<String, Pareja> entrada : parejasObligatorias(tipo).entrySet()) {
+            for (Map.Entry<String, Pareja> entrada : parejasObligatorias(fase).entrySet()) {
                 String nombreMetodo = entrada.getKey();
                 Pareja pareja = entrada.getValue();
                 String esperada = Bytecode.firmaEsperada(nombreMetodo, FQCN_BEAN_VALIDATION_RULES);
@@ -135,44 +142,45 @@ class StateEventValidatorTest {
                             + pareja + "; debe haber exactamente uno";
                 }
 
-                violaciones.add(new Violacion(tipo.getCode(), ficheroValidator(tipo),
+                violaciones.add(new Violacion(TiposExpediente.nombre(fase), ficheroValidator(fase),
                         detalle + ".\n    Código esperado:\n"
                         + validatorFile.getSourceCodeBeanValidationRulesMethod(pareja.estado(), pareja.evento())));
             }
         }
 
-        Violacion.assertNone("[V1] Por cada pareja (estado, evento) del TipoExpedienteInstance.xml, salvo las del"
-                + " evento " + CommonEvent.DELETE.name() + " (que el runtime nunca valida), debe haber exactamente"
-                + " un método getForState<Estado>InEvent<Evento> anotado @BeanValidationRulesForStateAndEvent,"
-                + " sin parámetros y que devuelva BeanValidationRules.",
+        Violacion.assertNone("[V1] Por cada pareja (estado, evento) de la fase, salvo las del evento "
+                + CommonEvent.DELETE.name() + " (que el runtime nunca valida), debe haber exactamente un método"
+                + " getForState<Estado>InEvent<Evento> anotado @BeanValidationRulesForStateAndEvent, sin parámetros"
+                + " y que devuelva BeanValidationRules. El nombre lleva el nombre corto del estado, sin la fase.",
                 violaciones);
     }
 
     @Test
-    @DisplayName("V2: no sobra ningún método @BeanValidationRulesForStateAndEvent cuya pareja no esté declarada")
+    @DisplayName("V2: no sobra ningún método @BeanValidationRulesForStateAndEvent cuya pareja no sea de la fase")
     void v2_noSobraNingunMetodoDeReglas() {
         List<Violacion> violaciones = new ArrayList<>();
 
-        for (TipoExpedienteInstanceFile tipo : TiposExpediente.all()) {
-            Optional<JavaClass> clase = Bytecode.clase(tipo.getFqcnStateEventValidator());
+        for (Fase fase : TiposExpediente.todasLasFases()) {
+            Optional<JavaClass> clase = Bytecode.clase(fase.getFqcnStateEventValidator());
             if (clase.isEmpty()) {
                 continue;
             }
 
-            Map<String, Pareja> esperadas = parejasDeclaradas(tipo);
+            Map<String, Pareja> esperadas = parejasDeclaradas(fase);
 
             for (JavaMethod metodo : Bytecode.metodosAnotados(clase.get(), BeanValidationRulesForStateAndEvent.class)) {
                 if (!esperadas.containsKey(metodo.getName())) {
-                    violaciones.add(new Violacion(tipo.getCode(), ficheroValidator(tipo),
-                            "sobra el método " + metodo.getName() + "(): su pareja (estado, evento) no está"
-                            + " declarada en el TipoExpedienteInstance.xml. Parejas declaradas: "
-                            + esperadas.values().stream().map(Pareja::toString).collect(Collectors.joining(", "))));
+                    violaciones.add(new Violacion(TiposExpediente.nombre(fase), ficheroValidator(fase),
+                            "sobra el método " + metodo.getName() + "(): su pareja (estado, evento) no es de la fase "
+                            + fase.getName() + ". Parejas de la fase: "
+                            + esperadas.values().stream().map(Pareja::toString).collect(Collectors.joining(", "))
+                            + " (si esa pareja es de otra fase, su método va en el validator de esa otra fase)"));
                 }
             }
         }
 
         Violacion.assertNone("[V2] Todo método anotado @BeanValidationRulesForStateAndEvent debe corresponder a una"
-                + " pareja (estado, evento) declarada en el TipoExpedienteInstance.xml (las de " + CommonEvent.DELETE.name()
+                + " pareja (estado, evento) de la propia fase (las de " + CommonEvent.DELETE.name()
                 + " no son obligatorias, pero si están declaradas en el XML se toleran).", violaciones);
     }
 
@@ -185,11 +193,11 @@ class StateEventValidatorTest {
      * los nombres ya en UpperCamelCase (que es como se forman los nombres de método).
      *
      * <p>Se recorre estado a estado, no la lista global de eventos: un mismo evento en tres estados
-     * son tres métodos distintos del validator, aunque en el EventManager sea un único trigger.
+     * son tres métodos distintos del validator, aunque en el PhaseEventManager sea un único trigger.
      */
-    private static Map<String, Pareja> parejasDeclaradas(TipoExpedienteInstanceFile tipo) {
+    private static Map<String, Pareja> parejasDeclaradas(Fase fase) {
         Map<String, Pareja> parejas = new LinkedHashMap<>();
-        for (State state : tipo.getStates()) {
+        for (State state : fase.getStates()) {
             String estado = state.getNameUpperCamelCase();
             for (String evento : state.getEventsUpperCamelCase()) {
                 parejas.put(StateEventValidatorFile.getMethodNameBeanValidationRules(estado, evento),
@@ -206,8 +214,8 @@ class StateEventValidatorTest {
      * campos, así que ese método nunca se invoca y no hay nada que pueda contener. Exigirlo solo
      * produciría un `rules { }` vacío en cada tipo de expediente.
      */
-    private static Map<String, Pareja> parejasObligatorias(TipoExpedienteInstanceFile tipo) {
-        Map<String, Pareja> parejas = new LinkedHashMap<>(parejasDeclaradas(tipo));
+    private static Map<String, Pareja> parejasObligatorias(Fase fase) {
+        Map<String, Pareja> parejas = new LinkedHashMap<>(parejasDeclaradas(fase));
         parejas.values().removeIf(pareja -> pareja.evento().equals(EVENTO_DELETE_UPPER_CAMEL));
         return parejas;
     }
@@ -221,12 +229,16 @@ class StateEventValidatorTest {
         }
     }
 
-    private static StateEventValidatorFile validatorFile(TipoExpedienteInstanceFile tipo) {
-        Path path = TiposExpediente.carpeta(tipo).resolve(tipo.getStateEventValidatorClassName() + ".kt");
-        return new StateEventValidatorFile(path, tipo);
+    private static StateEventValidatorFile validatorFile(Fase fase) {
+        return new StateEventValidatorFile(pathValidator(fase), fase);
     }
 
-    private static String ficheroValidator(TipoExpedienteInstanceFile tipo) {
-        return TiposExpediente.rel(TiposExpediente.carpeta(tipo).resolve(tipo.getStateEventValidatorClassName() + ".kt"));
+    private static Path pathValidator(Fase fase) {
+        return TiposExpediente.carpeta(fase)
+                .resolve(fase.getTipoExpediente().getStateEventValidatorClassName() + ".kt");
+    }
+
+    private static String ficheroValidator(Fase fase) {
+        return TiposExpediente.rel(pathValidator(fase));
     }
 }

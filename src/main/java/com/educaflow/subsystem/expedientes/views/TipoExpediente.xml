@@ -16,7 +16,7 @@
           editable="false" edit-icon="false" x-selector="none" canEdit="false" canDelete="false" canSave="false" canEditOnClick="true">
         <field name="code"  />
         <field name="name"  />
-        <field name="fqcnEventManager" />
+        <field name="basePackageName" />
     </grid>
     <form name="subsysExpedientes.TipoExpediente@Main-form" title="Mantenimiento de Tipos Expedientes" model="com.educaflow.subsystem.expedientes.db.TipoExpediente" width="large">
         <panel title="Datos" >
@@ -25,7 +25,7 @@
             <field name="versionExpediente" />
             <field name="openDate" />
             <field name="closeDate" />
-            <field name="fqcnEventManager" />
+            <field name="basePackageName" />
             <field name="tramite"
                    type="many-to-one"
                    target="com.educaflow.subsystem.expedientes.db.Tramite"
