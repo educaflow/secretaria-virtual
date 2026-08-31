@@ -5,20 +5,20 @@
 
 
     <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
-    <entity name="JustificacionFaltaProfesorado" extends="Expediente" >
+    <entity name="MiTramiteV1" extends="Expediente" >
         <string name="dias"  />
-        <enum name="mes" ref="com.educaflow.subsystem.expedientes.db.MesJustificacionFaltaProfesorado" />
+        <enum name="mes" ref="com.educaflow.subsystem.expedientes.db.MesMiTramiteV1" />
         <integer name="anyo" title="Año" />
 
 
-        <enum name="tipoJornadaFalta" ref="TipoJornadaFaltaJustificacionFaltaProfesorado" />
+        <enum name="tipoPeriodo" ref="TipoPeriodoMiTramiteV1" />
         <time name="horaInicio"  />
         <time name="horaFin"  />
-        <enum name="motivoFalta" ref="MotivoFaltaJustificacionFaltaProfesorado" />
+        <enum name="motivo" ref="MotivoMiTramiteV1" />
         <string name="otroMotivo"  />
         <string name="disconformidad" title="Explicar los datos a subsanar"  />
         <string name="resolucion"  title="Motivo del rechazo" />
-        <enum name="tipoResolucion" title="Tipo resolución" ref="TipoResolucionJustificacionFaltaProfesorado" />
+        <enum name="tipoResolucion" title="Tipo resolución" ref="TipoResolucionMiTramiteV1" />
 
         <many-to-one name="justificante" title="Foto o PDF del justificante" ref="com.axelor.meta.db.MetaFile" />
 
@@ -30,8 +30,8 @@
         <![CDATA[
 
             public enum TipoDocumentoPdf {
-                SOLICITUD("/com/educaflow/tramites/justificacion_falta_profesorado/justificacion_falta_profesorado/documentospdf/solicitud.pdf"),
-                RESOLUCION("/com/educaflow/tramites/justificacion_falta_profesorado/justificacion_falta_profesorado/documentospdf/resolucion.pdf");
+                SOLICITUD("/com/educaflow/tramites/mi_tramite/v1/documentospdf/solicitud.pdf"),
+                RESOLUCION("/com/educaflow/tramites/mi_tramite/v1/documentospdf/resolucion.pdf");
 
                 private final String fileName;
 
@@ -55,12 +55,12 @@
         </extra-code-model>
     </entity>
 
-    <enum name="TipoJornadaFaltaJustificacionFaltaProfesorado">
-        <item name="TODA_LA_JORNADA" title="Toda la jornada"/>
-        <item name="JORNADA_PARCIAL" title="Jornada parcial"/>
+    <enum name="TipoPeriodoMiTramiteV1">
+        <item name="PERIODO_COMPLETO" title="Periodo completo"/>
+        <item name="PERIODO_PARCIAL" title="Periodo parcial"/>
     </enum>
 
-    <enum name="MotivoFaltaJustificacionFaltaProfesorado">
+    <enum name="MotivoMiTramiteV1">
         <item name="ENFERMEDAD_COMUN" title="Enfermedad común"/>
         <item name="PERMISO_MEDICO_EDUCATIVO_ASISTENCIAL" title="Permiso médico, educativo o asistencial"/>
         <item name="TRASLADO_DOMICILIO" title="Traslado de domicilio"/>
@@ -71,7 +71,7 @@
         <item name="FUNCIONES_REPRESENTATIVAS" title="Funciones representativas"/>
         <item name="OTROS" title="Otros"/>
     </enum>
-    <enum name="MesJustificacionFaltaProfesorado"  numeric="true">
+    <enum name="MesMiTramiteV1"  numeric="true">
         <item name="SEPTIEMBRE" title="Septiembre" value="9"/>
         <item name="OCTUBRE" title="Octubre" value="10"/>
         <item name="NOVIEMBRE" title="Noviembre" value="11"/>
@@ -84,7 +84,7 @@
         <item name="JUNIO" title="Junio" value="6"/>
     </enum>
 
-    <enum name="TipoResolucionJustificacionFaltaProfesorado">
+    <enum name="TipoResolucionMiTramiteV1">
         <item name="ACEPTAR" title="Resolver positivamente"/>
         <item name="RECHAZAR" title="Resolver negativamente(Rechazar)"/>
         <item name="SUBSANAR_DATOS" title="Solicitar subsanación de datos"/>

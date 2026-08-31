@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * los eventos de cada estado, pero <b>no a dónde lleva cada evento</b> —eso lo decide el
  * {@code updateState} del {@code PhaseEventManagerImpl} correspondiente—, así que el único sitio
  * donde el recorrido entero se ve de una vez es el {@code .puml}. Por eso es el primer fichero que
- * se escribe al crear un tipo ({@code k-tipo-expediente} §5, paso 2) y el que el build renderiza a
+ * se escribe al crear un tipo ({@code k-tipo-expediente} §4, paso 2) y el que el build renderiza a
  * {@code estados.png}.
  *
  * <p>Y por eso mismo es un documento peligroso: es lo que se mira para entender el trámite, y nada

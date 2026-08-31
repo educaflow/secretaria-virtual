@@ -12,8 +12,10 @@ Los documentos son los PDF con los que se materializa la tramitación: los que l
 - El **`<valenciano>` es opcional**: si se omite, el generador lo calcula **traduciendo el `<castellano>`** con el traductor `apertium` (§2.6). Un `<castellano>` omitido o vacío omite el castellano; un `<valenciano>` **vacío** (`<valenciano></valenciano>`) omite el valenciano — omitirlo y ponerlo vacío **no** es lo mismo.
 - El formato está descrito por el XSD `documento.xsd`, que vive en `EducaFlowBuildTools` (`src/main/resources/com/educaflow/common/buildtools/xml2pdf/documento.xsd`). Todo XML de definición **MUST** referenciarlo en la raíz con `xsi:noNamespaceSchemaLocation` usando su URL de GitHub en la rama master (la del ejemplo de §2.1, idéntica en todos los XML). El generador valida cada XML contra ese XSD al cargarlo y aborta con ERROR si no valida (usa el XSD incluido en su jar, sin acceso a red; la URL es solo la referencia declarativa).
 - Cada `<campo>`/`<check>` produce un **campo rellenable** del formulario cuyo nombre es el `nombreCampo` **literal**. **CRITICAL**: `nombreCampo` no es realmente un nombre — es una **expresión Groovy** que se evalúa en runtime para obtener el valor del campo, donde `self` es **el objeto del tipo de expediente** (la instancia de la entidad del expediente concreto en cuya carpeta está el XML). Todo el detalle del contexto, la potencia de las expresiones y la conversión de valores: §2.8.
-- Carpeta `documentospdf/` (o `documentos/`): cada documento del trámite está **o** como XML de definición **o** directamente como PDF versionado. La disyuntiva es **por documento, no por carpeta**: es lícito y normal que en la misma carpeta convivan el XML de un documento con el PDF de otro. El caso típico: si el trámite tiene **impreso oficial** (de la administración), **se usa ese PDF tal cual** — se deja versionado en la carpeta y no se redefine por XML; el XML es para los documentos propios del centro que no tienen impreso oficial. Los `_*.xml` son **fragmentos** reutilizables (raíz `<fragmento>`) que los documentos incluyen con `<include href="..."/>` (§2.5) y no generan PDF propio. **MUST NOT** convivir en la misma carpeta un `aa.xml` (raíz `<documento>`) con un `aa.pdf` versionado: el build aborta por ambigüedad.
-- Cada `.pdf` resultante (generado o versionado) produce una constante del enum `TipoDocumentoPdf` de la entidad (`modelo.md` §5) con la que el EventManager lo obtiene y rellena (`eventmanager.md` §6.1). Nombres de fichero en camelCase sin espacios ni guiones y extensión `.pdf` en minúsculas (`solicitudFirmada.pdf` → `SOLICITUD_FIRMADA`; un nombre inválido rompe la compilación después, sin aviso del build).
+- Carpeta `documentospdf/`: cada documento del trámite está **o** como XML de definición **o** directamente como PDF versionado. La disyuntiva es **por documento, no por carpeta**: es lícito y normal que en la misma carpeta convivan el XML de un documento con el PDF de otro. El caso típico: si el trámite tiene **impreso oficial** (de la administración), **se usa ese PDF tal cual** — se deja versionado en la carpeta y no se redefine por XML; el XML es para los documentos propios del centro que no tienen impreso oficial. Los `_*.xml` son **fragmentos** reutilizables (raíz `<fragmento>`) que los documentos incluyen con `<include href="..."/>` (§2.5) y no generan PDF propio. **MUST NOT** convivir en la misma carpeta un `aa.xml` (raíz `<documento>`) con un `aa.pdf` versionado: el build aborta por ambigüedad.
+- Cada `.pdf` resultante (generado o versionado) produce una constante del enum `TipoDocumentoPdf` de la entidad (`modelo.md` §5) con la que el PhaseEventManager lo obtiene y rellena (`phaseeventmanager.md` §6.1). Nombres de fichero en camelCase sin espacios ni guiones y extensión `.pdf` en minúsculas (`solicitudFirmada.pdf` → `SOLICITUD_FIRMADA`; un nombre inválido rompe la compilación después, sin aviso del build).
+- **CRITICAL — la carpeta MUST llamarse `documentospdf`**. La tarea `generatePdfDocuments` acepta además el nombre `documentos` al buscar los XML que renderizar, pero el escaneo que construye el enum `TipoDocumentoPdf` mira **solo** `documentospdf`. Un documento puesto en `documentos/` genera su PDF y **no** tiene constante en el enum, así que no hay forma de pedirlo desde el PhaseEventManager: queda muerto, sin ningún aviso del build. `documentos/` es una compatibilidad histórica; **MUST NOT** usarse.
+- Al enum de **cada** tipo se añaden, además de los suyos, los documentos de la carpeta compartida `tramites/shared/documentospdf/`. Hoy esa carpeta no existe, así que no hay ningún efecto visible, pero el mecanismo está activo: un documento puesto ahí aparecería en el `TipoDocumentoPdf` de **todos** los tipos de expediente.
 
 ---
 
@@ -90,7 +92,7 @@ Los `<valenciano>` pueden omitirse; entonces se calculan traduciendo el `<castel
 - ✅ CORRECTO: `<fila>` con `colspan` 5 + 5 + 2 (suma 12).
 - ✅ CORRECTO: `<fila>` con cuatro `<texto colspan="12">` (suma 48 = 4 líneas apiladas en un rectángulo).
 - ✅ CORRECTO: `<fila>` con 6 + 2.1 + 3.9 (decimales, suma 12).
-- ✅ CORRECTO: `<valenciano>Jornada parcial. De ${self.horaInicio;1.1} hores a ${self.horaFin;1.1} hores</valenciano>`.
+- ✅ CORRECTO: `<valenciano>Periodo parcial. De ${self.horaInicio;1.1} hores a ${self.horaFin;1.1} hores</valenciano>`.
 - ✅ CORRECTO: `<campo nombreCampo="self.x" colspan="4"><castellano>Nombre</castellano></campo>` (sin `<valenciano>`: se traduce a "Nom" en el build).
 - ✅ CORRECTO: `<valenciano></valenciano>` + `<castellano>...</castellano>` (etiqueta **solo** en castellano, sin traducir).
 - ❌ INCORRECTO: `<fila>` con 5 + 3 + 2 (suma 10; el generador aborta con ERROR).
@@ -107,7 +109,7 @@ Para compartir partes comunes entre documentos (del mismo trámite o de varios):
 - El generador sustituye cada `<include>` por **los hijos de la raíz** del fragmento, recursivamente (un fragmento puede incluir otros fragmentos). El `href` se resuelve relativo al fichero que lo incluye. Un ciclo de includes aborta con ERROR.
 - Se valida contra el XSD cada fichero por separado **y** el documento ya expandido. Las letras de sección (A, B, C…) se asignan sobre el documento expandido.
 - Cambiar un fragmento regenera en el build los PDF de todos los documentos que lo incluyen, directa o transitivamente.
-- **CRITICAL para el versionado**: si un fragmento contiene expresiones Groovy con FQCN de enums versionados (`...TipoJornadaFaltaJustificacionFaltaProfesoradoV1.TODA_LA_JORNADA`), esas referencias cambian en cada versión nueva (`versionado.md`).
+- **CRITICAL para el versionado**: si un fragmento contiene expresiones Groovy con FQCN de enums versionados (`...TipoPeriodoMiTramiteV1.PERIODO_COMPLETO`), esas referencias cambian en cada versión nueva (`versionado.md`).
 
 ```xml
 <documento ...>
@@ -149,7 +151,7 @@ Si el documento no lleva `<titulo>` (ni propio ni aportado por un fragmento), el
 
 ### 2.8 Las expresiones Groovy (`nombreCampo` y `${...}`)
 
-**Cuándo se evalúan**: NO en el build — el build solo genera el PDF con el formulario vacío. Las expresiones se evalúan **en runtime**, cada vez que el EventManager pide el documento (`expediente.getDocumentoPdf(...)` → `DocumentoPdfUtil.generate`); después el formulario se **aplana** (el PDF resultante ya no es editable).
+**Cuándo se evalúan**: NO en el build — el build solo genera el PDF con el formulario vacío. Las expresiones se evalúan **en runtime**, cada vez que el PhaseEventManager pide el documento (`expediente.getDocumentoPdf(...)` → `DocumentoPdfUtil.generate`); después el formulario se **aplana** (el PDF resultante ya no es editable).
 
 **Contexto disponible** (variables del binding):
 
@@ -164,7 +166,7 @@ Si el documento no lleva `<titulo>` (ni propio ni aportado por un fragmento), el
 - Navegación segura y elvis: `self.otroMotivo?.toUpperCase()`, `self.otroMotivo ?: ""`.
 - Llamadas a métodos: `String.valueOf(self.anyo)`, `now.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))`.
 - Clases por FQCN (no hay imports): `com.educaflow.base.util.MetaFileUtil.sha256(self.justificante)`.
-- Comparaciones para los `<check>`: `self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFalta<Entidad>.TODA_LA_JORNADA`, o el literal `true` (casilla siempre marcada).
+- Comparaciones para los `<check>`: `self.tipoPeriodo==com.educaflow.subsystem.expedientes.db.TipoPeriodo<Entidad>.PERIODO_COMPLETO`, o el literal `true` (casilla siempre marcada).
 - Concatenación: `'"    " + com...sha256(self.justificante)'` (atributo con comillas simples, §2.3).
 
 **Conversión del resultado a texto** (lo que se estampa en el campo):

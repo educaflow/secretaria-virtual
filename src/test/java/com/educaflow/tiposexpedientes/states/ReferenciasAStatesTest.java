@@ -23,12 +23,14 @@ import java.util.Map;
  * ({@code versionado.md})— un {@code import} que se quede apuntando a la versión vieja <b>compila
  * sin rechistar</b>: los nombres existen todos en el otro tipo.
  *
- * <p>Lo que pasa en runtime es peor que un error: {@code ExpedienteUtil.updateState} escribe en el
- * expediente el {@code codePhase} y el {@code codeState} del estado que le pasan, sin comprobar de
- * qué tipo es. El expediente de la v2 queda entonces en un estado de la v1 y, como los nombres
- * coinciden, todo parece funcionar hasta que los dos tipos divergen: en ese momento el expediente
- * está en un estado que su propia máquina no tiene, y ni el PhaseEventManager ni las vistas de su
- * fase saben qué hacer con él.
+ * <p>En runtime hay una segunda red: {@code ExpedienteUtil.updateState} compara el {@code State}
+ * recibido con el de ese mismo {@code (codePhase, codeState)} en la máquina del tipo del expediente
+ * —son singletons, así que tienen que ser el mismo objeto— y lanza
+ * {@code IllegalArgumentException("El estado … no es del tipo de expediente …")} si no lo es. Pero
+ * es una red tardía y parcial: solo salta si alguien llega a ejecutar esa transición concreta, con
+ * un expediente ya creado, y no ve las demás formas de referenciar el {@code States} ajeno (un
+ * {@code getState} para consultar, un tipo de parámetro, un alias de fase). Esta regla lo caza
+ * antes, al compilar, y lo señala en el fichero y la línea que hay que editar.
  *
  * <p>La regla mira <b>todas</b> las dependencias, no solo las lecturas de constante: así entran
  * también los {@code States.INSTANCE}, los alias de fase y los tipos de parámetro, y el mensaje sale

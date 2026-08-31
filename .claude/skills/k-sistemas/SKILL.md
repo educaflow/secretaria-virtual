@@ -348,5 +348,5 @@ La diferencia principal entre un sistema y un subsistema es que el sistema suele
 - `references/ActionResponse.md` — métodos públicos de `ActionResponse`
 - `references/action-method.md` — sintaxis de `<action-method>` para llamar controladores desde vistas
 - `references/controller.md` — estructura de controladores Axelor (referencia oficial)
-- `examples/domains.xml` — ejemplo real de modelo de dominio con entidad que extiende `Expediente`
+- `examples/domains.xml` — ejemplo (con un trámite inventado, `MiTramite`) de modelo de dominio con entidad que extiende `Expediente`
 - `examples/Expediente.xml` — modelo base `Expediente` con herencia `JOINED`

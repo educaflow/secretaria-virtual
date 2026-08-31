@@ -29,7 +29,7 @@ AccessAssignment — actor + accessProfile + centro? + recurso?
 
 ## EducaFlowAuthResolver — herencia JPA
 
-Axelor compara el campo `object` de un permiso por igualdad exacta de clase. Un permiso sobre `Expediente` **no se aplica automáticamente** a `JustificacionFaltaProfesorado` aunque herede de ella.
+Axelor compara el campo `object` de un permiso por igualdad exacta de clase. Un permiso sobre `Expediente` **no se aplica automáticamente** a `MiTramiteV1` aunque herede de ella.
 
 El resolver `EducaFlowAuthResolver` intercepta cualquier subclase de `Expediente` y devuelve los permisos de `Expediente`:
 
@@ -80,11 +80,11 @@ XML de datos (`data-demo/input/permisos-demo.xml`):
   </perfiles>
   <asignacionesTipoUsuario>
     <!-- actor = TipoUsuario, recurso = tramite -->
-    <asignacion tipoUsuarioCode="PROFESOR" perfilName="CREADOR" tramiteCode="JustificacionFaltaProfesorado"/>
+    <asignacion tipoUsuarioCode="PROFESOR" perfilName="CREADOR" tramiteCode="MiTramite"/>
   </asignacionesTipoUsuario>
   <asignacionesTipoUsuarioTipoExpediente>
     <!-- actor = TipoUsuario, recurso = tipoExpediente -->
-    <asignacion tipoUsuarioCode="JEFE_ESTUDIOS" perfilName="RESPONSABLE" tipoExpedienteCode="JustificacionFaltaProfesorado"/>
+    <asignacion tipoUsuarioCode="JEFE_ESTUDIOS" perfilName="RESPONSABLE" tipoExpedienteCode="MiTramiteV1"/>
   </asignacionesTipoUsuarioTipoExpediente>
   <asignacionesCentroUsuario>
     <!-- actor = CentroUsuario (usuario concreto), recurso = tramite -->
