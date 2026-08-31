@@ -73,6 +73,12 @@ Siempre que crees o modifiques un skill (cualquier `SKILL.md` en `.claude/skills
 
 El desarrollo de cualquier funcionalidad nueva se hace siguiendo el pipeline de skills `/sdd-*`. La descripción de cada skill, su orden de ejecución y los skills auxiliares está en [`agent_docs/sdd-workflow.md`](agent_docs/sdd-workflow.md). Consúltalo siempre que vayas a trabajar con el pipeline SDD.
 
+La carpeta `.sdd/` (specs, diseños, tareas, drafts y archive) es **material de trabajo del pipeline**, NO documentación del proyecto.
+**MUST NOT** leerla ni citarla como fuente para entender qué hace el código, ni para responder preguntas, ni para diseñar o implementar cambios fuera del pipeline.
+Solo la usan los skills `/sdd-*` mientras ejecutan su propio paso.
+Motivo: después de programar con los `/sdd-*` se cambian cosas a mano, así que lo que hay en `.sdd/` puede no corresponderse con el código real y se queda desactualizado sin avisar.
+La fuente de verdad es siempre el código, y para lo normativo `CLAUDE.md`, `agent_docs/` y los skills.
+
 ## Arquitectura
 
 La descripción de la arquitectura (paquetes de `com.educaflow`, sistemas vs subsistemas y la arquitectura especial de expedientes) está en [`agent_docs/architecture.md`](agent_docs/architecture.md). Las invariantes **verificables** de esa arquitectura (dependencias entre capas, Controller→Service→Repository, nomenclatura/ubicación) están catalogadas como reglas verificables (formato ADR, sin código) en [`agent_docs/architecture-rules.md`](agent_docs/architecture-rules.md), de las que `/developer-create-arch-tests` genera los tests ArchUnit. **Ambos ficheros deben mantenerse coherentes entre sí.** Cárgalos solo cuando trabajes con la arquitectura.
