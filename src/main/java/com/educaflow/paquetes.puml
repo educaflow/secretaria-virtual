@@ -1,22 +1,22 @@
 @startuml
-package secretariavirtual <<La aplicación>>
-package subsystems <<Cada una de las funcionalidades de la aplicación que ve el usuario final, no los adm>>
-package shared <<Lo comparten entre varios subsistemas>>
+package secretariavirtual <<Menús y tareas de inicialización: ensambla la aplicación>>
+package tramites <<Trámites y tipos de expediente. Arquitectura propia: exento de las reglas>>
+package system <<Función completa de la aplicación de la que no depende nadie>>
+package subsystem <<Función completa de la aplicación de la que sí depende alguien>>
 
 package base {
-    package domain <<Dominios de Axelor>>
     package infrastructure <<Microarquitecturas independiente de la aplicación  >>
     package util <<Funciona básicas y pequeñas, restrigidas a una sola clase por funcionalidad>>
 }
 
-secretariavirtual -> subsystems
+secretariavirtual --> system
 
-subsystems --> base
-shared -> base
+system --> subsystem
 
-subsystems --> shared
+tramites --> subsystem
+tramites --> base
 
-domain --> util
+subsystem --> base
+
 infrastructure --> util
-infrastructure -> domain
 @enduml

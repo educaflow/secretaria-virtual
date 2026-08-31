@@ -24,6 +24,11 @@ Es **la** forma de generarlos: el build **no** los genera, a propósito, para qu
 Es idempotente (nunca pisa lo ya escrito), imprime una línea `CREADO <ruta>` por fichero creado y falla con un mensaje explícito si la ruta no corresponde a ningún tipo de expediente o si la fase no existe.
 Detalle en el skill `k-tipo-expediente`.
 
+Los diagramas PlantUML los renderiza la tarea `./gradlew -q GenerateDocs`, que recorre `src/` y genera un `<nombre>.png` junto a cada `<nombre>.puml` / `<nombre>.plantuml`.
+No hace falta invocar el jar de PlantUML a mano: la dependencia `net.sourceforge.plantuml:plantuml` está en el `buildscript` y la tarea la usa embebida.
+Va enganchada a `build` con `finalizedBy`, así que **`./run.sh` ya la ejecuta**; lánzala suelta solo cuando toques un `.puml` y no quieras compilar entero.
+Es incremental por fecha: omite el PNG que sea más reciente que su fuente, así que **si editas un `.puml` MUST regenerar el PNG** (queda desincronizado si no).
+
 
 ## Configuración
 

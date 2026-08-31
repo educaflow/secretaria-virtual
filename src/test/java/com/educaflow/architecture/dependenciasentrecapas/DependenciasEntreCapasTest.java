@@ -42,8 +42,8 @@ class DependenciasEntreCapasTest {
 
     // [C2] Verificación:
     //   - Sujeto: clases de `com.educaflow.base.infrastructure..`.
-    //   - Condición: ninguna depende de clases de `com.educaflow.subsystem..`, `com.educaflow.system..` ni `com.educaflow.secretariavirtual..`.
-    //   - Exenciones: no aplican.
+    //   - Condición: ninguna depende de clases de `com.educaflow.subsystem..`, `com.educaflow.system..`, `com.educaflow.tramites..` ni `com.educaflow.secretariavirtual..`.
+    //   - Exenciones: no aplican. **CRITICAL**: esta regla declara expresamente que no se le aplica la exención global, así que `com.educaflow.tramites..` **MUST** figurar como destino prohibido; si no, una capa baja podría depender de los trámites sin que nadie lo detecte.
     //   - Mensaje: «base/infrastructure solo puede depender, dentro de com.educaflow, de base/util».
     @ArchTest
     static final ArchRule c2_baseInfrastructureSoloDependeDeBaseUtil =
@@ -53,6 +53,7 @@ class DependenciasEntreCapasTest {
                 .resideInAnyPackage(
                     "com.educaflow.subsystem..",
                     "com.educaflow.system..",
+                    "com.educaflow.tramites..",
                     "com.educaflow.secretariavirtual..")
             .because("base/infrastructure solo puede depender, dentro de com.educaflow, de base/util");
 
@@ -118,13 +119,10 @@ class DependenciasEntreCapasTest {
     // [C8] Verificación:
     //   - Sujeto: los sistemas, entendidos como *slices* = subpaquetes de **primer nivel** de `com.educaflow.system`.
     //   - Condición: los slices no dependen unos de otros.
-    //   - Exenciones: `..tramites..` queda fuera del análisis (como origen y como destino).
+    //   - Exenciones: no aplican. `com.educaflow.tramites` **no** es un subpaquete de `com.educaflow.system`, así que nunca puede ser slice ni aparecer como origen o destino de este análisis: excluirlo aquí sería ruido.
     //   - Mensaje: el generado por defecto (sin mensaje propio).
     @ArchTest
     static final ArchRule c8_sistemasIndependientesEntreSi =
         slices().matching("com.educaflow.system.(*)..")
-            .should().notDependOnEachOther()
-            // 'tramites' tiene arquitectura propia: se excluye (origen y destino).
-            .ignoreDependency(resideInAPackage("..tramites.."), DescribedPredicate.alwaysTrue())
-            .ignoreDependency(DescribedPredicate.alwaysTrue(), resideInAPackage("..tramites.."));
+            .should().notDependOnEachOther();
 }
