@@ -19,7 +19,7 @@ Las reglas se derivan de la **arquitectura documentada**, NO de lo que el códig
 
 - **Ámbito de análisis:** las clases de producción del paquete `com.educaflow` **compiladas por este proyecto**.
   Quedan fuera del análisis los tests y todo lo que llegue empaquetado en un JAR de dependencia: el JAR `com.educaflow:EducaFlowBuildTools` comparte el paquete raíz `com.educaflow` y está en el classpath de test (lo usan los tests de `com.educaflow.tiposexpedientes`), pero son herramientas de tiempo de compilación, no código de la aplicación, y no se les aplica ninguna de estas reglas.
-- **Paquetes exentos:** `..expedientes..` y `..tramites..` tienen **arquitectura propia** (EventManager, view_models, carpetas en plural) y quedan fuera de todas las reglas: se excluyen del **sujeto** de cada regla y, en las reglas de dependencias/ciclos, también como **origen y destino** de las dependencias analizadas.
+- **Paquetes exentos:** `..expedientes..` y `..tramites..` tienen **arquitectura propia** (PhaseEventManager, view_models, carpetas en plural) y quedan fuera de todas las reglas: se excluyen del **sujeto** de cada regla y, en las reglas de dependencias/ciclos, también como **origen y destino** de las dependencias analizadas.
 - **Marcas de cumplimiento** (apartado *Cumplimiento* de cada regla):
   - ✅ CUMPLE — el código la cumple hoy; el test se genera tal cual.
   - ⚠️ — cumplimiento previsible pero no verificado; el test se genera tal cual y puede fallar al ejecutar.
@@ -40,6 +40,8 @@ base/util  ←  base/infrastructure  ←  subsystem  ←  system  ←  secretari
 | subsystem           | `com.educaflow.subsystem.*`          |
 | system              | `com.educaflow.system.*`             |
 | secretariavirtual   | `com.educaflow.secretariavirtual.*`  |
+
+`com.educaflow.tramites.*` **no aparece en el mapa**: es paquete exento (arquitectura propia) y la estratificación no se le aplica.
 
 Estructura interna de cada sistema/subsistema:
 
@@ -77,12 +79,12 @@ Modelo en capas con dependencia **solo ascendente**: una capa solo puede ser usa
 
 ### C2 — `base.infrastructure` solo depende (dentro de educaflow) de `base.util`
 
-**Decisión.** `base/infrastructure` puede usar `base/util` y a sí misma, nunca `subsystem`, `system` ni `secretariavirtual`.
+**Decisión.** `base/infrastructure` puede usar `base/util` y a sí misma, nunca `subsystem`, `system`, `tramites` ni `secretariavirtual`.
 
 **Verificación.**
 - Sujeto: clases de `com.educaflow.base.infrastructure..`.
-- Condición: ninguna depende de clases de `com.educaflow.subsystem..`, `com.educaflow.system..` ni `com.educaflow.secretariavirtual..`.
-- Exenciones: no aplican.
+- Condición: ninguna depende de clases de `com.educaflow.subsystem..`, `com.educaflow.system..`, `com.educaflow.tramites..` ni `com.educaflow.secretariavirtual..`.
+- Exenciones: no aplican. **CRITICAL**: esta regla declara expresamente que no se le aplica la exención global, así que `com.educaflow.tramites..` **MUST** figurar como destino prohibido; si no, una capa baja podría depender de los trámites sin que nadie lo detecte.
 - Mensaje: «base/infrastructure solo puede depender, dentro de com.educaflow, de base/util».
 
 **Cumplimiento.** ✅ CUMPLE.
@@ -143,7 +145,7 @@ Modelo en capas con dependencia **solo ascendente**: una capa solo puede ser usa
 **Verificación.**
 - Sujeto: los sistemas, entendidos como *slices* = subpaquetes de **primer nivel** de `com.educaflow.system`.
 - Condición: los slices no dependen unos de otros.
-- Exenciones: `..tramites..` queda fuera del análisis (como origen y como destino).
+- Exenciones: no aplican. `com.educaflow.tramites` **no** es un subpaquete de `com.educaflow.system`, así que nunca puede ser slice ni aparecer como origen o destino de este análisis: excluirlo aquí sería ruido.
 - Mensaje: el generado por defecto (sin mensaje propio).
 
 **Cumplimiento.** ✅ CUMPLE.
@@ -211,7 +213,10 @@ Dentro de un sistema/subsistema la dependencia fluye Controller → Service → 
 - Condición: ninguna depende de clases de `..service..` ni `..controller..`.
 - Mensaje: «las entidades de dominio son POJOs; la lógica de negocio vive en el servicio».
 
-**Cumplimiento.** ⚠️ Previsiblemente CUMPLE (las entidades las genera Axelor desde los XML de `domains/`); si alguna entidad con `extra-code` referencia un servicio, pasar a ❌.
+**Cumplimiento.** ✅ CUMPLE.
+Nota: hay `<extra-code-model>` que acoplan entidades generadas a `expedientes.services.internal`: el `getTipoExpedienteStates()` de `TipoExpediente` → `ExpedienteLocator`, y el `getDocumentoPdf(...)` de las entidades de expediente que generan PDF → `ExpedienteUtil`.
+  Todas esas clases se generan en `com.educaflow.subsystem.expedientes.db`, así que quedan **fuera del sujeto** por la exención global de `..expedientes..` de las Convenciones de verificación; no es un incumplimiento.
+  Aunque se levantara la exención, la condición tampoco casaría: el destino es `…expedientes.services.internal` y `..service..` exige un segmento de paquete llamado exactamente `service`.
 
 ### C14 — `Beans.get(...)` prohibido en controladores y `*ServiceImpl`
 
@@ -335,7 +340,7 @@ Solo se incluyen reglas genéricas **seguras** para este proyecto (ver la lista 
 - Exenciones: no se aplican en esta regla (es global; la regla predefinida no admite recortar el sujeto).
 - Mensaje: el de la regla predefinida.
 
-**Cumplimiento.** ❌ INCUMPLE (test congelado): usos de `System.out`/`System.err`/ `printStackTrace()` repartidos por `base/infrastructure` y algún `EventManager`. Limpiar progresivamente.
+**Cumplimiento.** ❌ INCUMPLE (test congelado): usos de `System.out`/`System.err`/`printStackTrace()` repartidos por `base/infrastructure` y `base/util`. Limpiar progresivamente.
 
 ---
 

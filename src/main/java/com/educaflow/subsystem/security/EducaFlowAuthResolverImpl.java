@@ -1,6 +1,6 @@
 package com.educaflow.subsystem.security;
 
-import com.axelor.auth.EduFlowAuthResolver;
+import com.axelor.auth.EducaFlowAuthResolver;
 import com.axelor.auth.db.Permission;
 import com.axelor.auth.db.User;
 import com.axelor.db.JpaSecurity.AccessType;
@@ -9,7 +9,7 @@ import com.educaflow.subsystem.expedientes.db.Expediente;
 import java.util.Optional;
 import java.util.Set;
 
-public class EducaFlowAuthResolverImpl implements EduFlowAuthResolver {
+public class EducaFlowAuthResolverImpl implements EducaFlowAuthResolver {
 
     private static final String PKG_EXPEDIENTE = "com.educaflow.subsystem.expedientes.db.Expediente";
 

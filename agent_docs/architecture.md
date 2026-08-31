@@ -15,7 +15,7 @@ parte*), no de reglas verificables.
 
 ## Paquetes principales
 
-Todo el proyecto cuelga del paquete `com.educaflow`. Bajo él existen 5 grandes paquetes:
+Todo el proyecto cuelga del paquete `com.educaflow`. Bajo él existen 6 grandes paquetes:
 
 - `base.util` — Utilidades de bajo nivel para no repetir pequeños trozos de código.
   Ejemplos: `JsonUtil`, `MetaFileUtil`, `ActionRequestHelper`, `AllowProperties`,
@@ -25,16 +25,16 @@ Todo el proyecto cuelga del paquete `com.educaflow`. Bajo él existen 5 grandes 
 - `base.infrastructure` — Clases completas y reutilizables en cualquier proyecto (PDF,
   validación, criptografía, autofirma, mail, mapper, etc.). El catálogo de paquetes está
   en [`src/main/java/com/educaflow/base/infrastructure/CLAUDE.md`](../src/main/java/com/educaflow/base/infrastructure/CLAUDE.md).
-- `subsystem` — Subsistemas con una función completa dentro de la aplicación: `firmas`,
-  `expedientes`, `registroentradasalida`, `pdfutilities`, `common`, `certificados`,
-  `importer`, `sistemaeducativo`, `security`.
+- `subsystem` — Subsistemas con una función completa dentro de la aplicación.
 - `system` — Sistemas completos con una función completa dentro de la aplicación.
+- `tramites` — Los trámites y sus tipos de expediente, con **arquitectura propia** (ver [Expedientes](#expedientes)).
 - `secretariavirtual` — Donde están los menús y las tareas de inicialización.
 
 El mapa de capas (`base/util ← base/infrastructure ← subsystem ← system ← secretariavirtual`)
 y la convención de nombres por elemento (Controller/Service/Repository/Module/DTO) son la
 base de las reglas verificables: el detalle canónico vive en
 [`architecture-rules.md`](architecture-rules.md).
+`tramites` **no aparece en ese mapa**: al ser paquete exento no se le aplica la estratificación (ver [Expedientes](#expedientes)).
 
 ## Sistemas y subsistemas
 
@@ -50,7 +50,17 @@ diferencia es de **dependencias**:
 Los expedientes son la parte más importante de la secretaría virtual y la más compleja;
 por ello siguen una **arquitectura diferente** al resto de la aplicación.
 
-> **Pendiente de documentar.** Esta sección está aún por hacer: cuando se defina/implemente
-> la arquitectura de expedientes, desarrolla aquí su estructura propia (modelos, trámites,
-> tipos de expediente, gestor de eventos, etc.) y revisa si introduce invariantes nuevas que
-> deban reflejarse en [`architecture-rules.md`](architecture-rules.md).
+> **Deuda documental reconocida.** La arquitectura de expedientes **no** se describe en este fichero.
+> Su fuente de verdad son los skills `k-tramite` (el trámite) y `k-tipo-expediente` (todo lo que hay
+> bajo una carpeta de versión `tramites/<tramite>/<vN>/`: máquina de estados por fases, `PhaseEventManager`,
+> `StateEventValidator`, modelo, vistas preprocesadas y documentos PDF); consúltalos antes de tocar
+> `subsystem/expedientes` o `tramites/**`.
+>
+> Esta arquitectura propia es exactamente el motivo por el que [`architecture-rules.md`](architecture-rules.md)
+> declara `..expedientes..` y `..tramites..` **paquetes exentos** de todas sus reglas; ninguna invariante
+> suya está catalogada hoy como regla verificable.
+>
+> **Deuda pendiente**: la estructura interna del subsistema `subsystem/expedientes` no la cubre ningún
+> skill. Al documentarla, **MUST NOT** enumerar clases ni paquetes concretos —eso se deriva del código—:
+> descríbela solo si aporta invariantes normativas, y en ese caso valora catalogarlas en
+> `architecture-rules.md` levantando la exención.
