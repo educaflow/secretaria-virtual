@@ -34,7 +34,9 @@ Cómo compilar, probar, arrancar la app y gestionar la base de datos en el entor
 
 - PostgreSQL **12.22**. Conexión por defecto (en `src/main/resources/axelor-config.properties`,
   `db.default.*`): `jdbc:postgresql://localhost:5432/educaflow`, usuario `educaflow`, contraseña `educaflow`.
-- El esquema lo gestiona Axelor automáticamente (`db.default.ddl = update`): no hay migraciones manuales.
+- El esquema lo gestiona Axelor automáticamente (`db.default.ddl = update`), pero **además** `DataBaseStartup.startup()`
+  ejecuta **Flyway** en cada arranque, sobre `classpath:com/educaflow/secretariavirtual/startup/database`. Hoy esa
+  carpeta está vacía, así que no hay ninguna migración que aplicar; si necesitas una, ése es su sitio.
 
 ### Arrancar / reiniciar la BD (Docker)
 
