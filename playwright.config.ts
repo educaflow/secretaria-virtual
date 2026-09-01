@@ -18,6 +18,16 @@ export default defineConfig({
   timeout: 90_000,
   /* Timeout de las aserciones `expect(...).toBeVisible()` etc. */
   expect: { timeout: 20_000 },
+  /* Tests que NECESITAN A UNA PERSONA. Llevan el tag `@manual` porque alguno de
+     sus pasos no lo puede ejecutar ninguna automatización (hoy: firmar con
+     AutoFirma, que exige la aplicación de escritorio y el certificado en la
+     máquina de quien firma). Se EXCLUYEN por defecto —y por tanto también en
+     CI/CD, sin depender de que nadie recuerde pasar un flag—; para lanzarlos
+     hay que pedirlo expresamente:
+         E2E_MANUAL=1 npx playwright test --grep @manual --headed
+     Esos tests fijan su propio `test.setTimeout(...)`: la espera de la
+     intervención humana no cabe en el `timeout` global de arriba. */
+  grepInvert: process.env.E2E_MANUAL ? undefined : /@manual/,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
