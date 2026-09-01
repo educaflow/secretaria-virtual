@@ -92,6 +92,7 @@ dependencies {
     testImplementation 'io.pebbletemplates:pebble:3.2.4'
     testImplementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.0'
     testRuntimeOnly 'org.glassfish.jaxb:jaxb-runtime:4.0.0'
+    testImplementation 'ch.qos.logback:logback-classic:1.5.32'
 }
 
 //Test
