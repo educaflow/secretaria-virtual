@@ -82,6 +82,8 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
 
     @Override
     public void enviarCorreo(Long correoId) {
+        validateEnviarCorreo(correoId).ifPresent(BusinessMessages::throwIfInvalid);
+
         JPA.runInTransaction(() -> {
             Correo correo = repository.find(correoId);
             if (correo == null || correo.getEstado() == EstadoCorreo.SUCCESS) {
@@ -105,6 +107,8 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
 
     @Override
     public List<Correo> listarCorreosEnFail() {
+        validateListarCorreosEnFail().ifPresent(BusinessMessages::throwIfInvalid);
+
         // El finder-method se declaró con all="true" en Main-Correo.xml, así que el repositorio
         // autogenerado devuelve Query<Correo> (para permitir encadenar order/cacheable), no
         // List<Correo> directamente — de ahí el .fetch() final.
@@ -221,6 +225,20 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
     public Optional<BusinessMessages> validateRemove(Correo correo) {
         // V-Correo-016 (RES-Correo-003): siempre se rechaza.
         return Optional.of(BusinessMessages.single(I18n.get("Los correos no se pueden borrar.")));
+    }
+
+    @Override
+    public Optional<BusinessMessages> validateEnviarCorreo(Long correoId) {
+        // No hay ninguna condición que validar: enviarCorreo no recibe datos del cliente (solo un
+        // id) y las comprobaciones sobre el correo (inexistente / ya en SUCCESS) son idempotencia
+        // del propio envío, no validaciones de negocio corregibles por el usuario.
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<BusinessMessages> validateListarCorreosEnFail() {
+        // No hay ninguna condición que validar: la consulta no recibe parámetros.
+        return Optional.empty();
     }
 
     @Override

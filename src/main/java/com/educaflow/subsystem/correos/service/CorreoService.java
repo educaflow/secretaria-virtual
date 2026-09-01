@@ -15,8 +15,12 @@ public interface CorreoService extends ModelService<Correo> {
     // Invocable también de forma programática desde otros subsistemas (design-guidelines).
     void enviarCorreo(Long correoId);
 
+    Optional<BusinessMessages> validateEnviarCorreo(Long correoId);
+
     // Devuelve todos los correos en estado FAIL (para un futuro reenvío en bloque; design-guidelines).
     List<Correo> listarCorreosEnFail();
+
+    Optional<BusinessMessages> validateListarCorreosEnFail();
 
     // Acción propia: reintenta el envío de un correo en FAIL. Invocada desde CorreoController.reenviar.
     Correo reenviar(Correo entidad, Correo entidadOriginal);
