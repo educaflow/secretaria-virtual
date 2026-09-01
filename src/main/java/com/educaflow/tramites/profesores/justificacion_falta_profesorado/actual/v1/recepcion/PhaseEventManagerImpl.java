@@ -1,8 +1,10 @@
 package com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.recepcion;
 
+import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
+import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
 import com.educaflow.subsystem.expedientes.services.eventmanager.OnEnterState;
 import com.educaflow.subsystem.expedientes.services.eventmanager.State;
@@ -10,6 +12,8 @@ import com.educaflow.subsystem.expedientes.services.eventmanager.WhenEvent;
 import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1;
 import com.educaflow.subsystem.expedientes.db.repo.JustificacionFaltaProfesoradoV1Repository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
+import com.educaflow.subsystem.firmas.service.TareaFirmaInsertDTO;
+import com.educaflow.subsystem.firmas.service.TareaFirmaService;
 import com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.States;
 
 import com.educaflow.subsystem.firmas.db.TareaFirma;
@@ -32,6 +36,9 @@ public class PhaseEventManagerImpl extends com.educaflow.subsystem.expedientes.s
     RegistroEntradaRepository registroEntradaRepository;
 
     @Inject
+    ModelServiceFactory modelServiceFactory;
+
+    @Inject
     public PhaseEventManagerImpl(JustificacionFaltaProfesoradoV1Repository repository) {
         super(JustificacionFaltaProfesoradoV1.class);
         this.repository = repository;
@@ -48,6 +55,22 @@ public class PhaseEventManagerImpl extends com.educaflow.subsystem.expedientes.s
         DocumentoPdf solicitudPdf = justificacionFaltaProfesorado.getDocumentoPdf(JustificacionFaltaProfesoradoV1.TipoDocumentoPdf.SOLICITUD);
         MetaFile pdfSolicitud = MetaFileHelper.createMetaFile(solicitudPdf);
         justificacionFaltaProfesorado.setPdfSolicitud(pdfSolicitud);
+
+
+
+        //Este código no debería estar aqui. Pero está para crear Tareas de Firma para probarlo
+        //Habrá que eliminar esto en el futuro.
+        TareaFirmaInsertDTO tareaFirmaInsertDTO = new TareaFirmaInsertDTO(
+                justificacionFaltaProfesorado.getUsuarioRegistrador(),
+                List.of(justificacionFaltaProfesorado.getPdfSolicitud()),
+                "Firma de solicitud de justificación de falta de profesorado",
+                new Rectangulo(50, 50, 200, 100),
+                1,
+                this.getClass(),
+                "DATO_CALLBACK");
+        TareaFirmaService tareaFirmaService=(TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
+        tareaFirmaService.insert(tareaFirmaInsertDTO);
+
 
         eventContext.updateState(States.Recepcion.PENDIENTE_PRESENTACION);
     }
