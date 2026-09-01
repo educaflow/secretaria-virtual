@@ -16,6 +16,7 @@ import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
 import com.educaflow.subsystem.criptografia.db.TipoUbicacionCertificado;
 import com.educaflow.subsystem.criptografia.db.repo.CertificadoDigitalRepository;
 import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
+import com.educaflow.subsystem.criptografia.service.TipoAlmacenClave;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -78,13 +79,55 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         }
     }
 
+
+    @Override
+    public TipoAlmacenClave getTipoAlmacenClaveByDni(String dni) {
+        validateGetTipoAlmacenClaveByDni(dni).ifPresent(BusinessMessages::throwIfInvalid);
+        CertificadoDigital certificado = ((CertificadoDigitalRepository) repository).findByDni(dni);
+
+        if ((certificado == null) || (certificado.getEnabled() == false)) {
+            return null;
+        }
+
+        TipoUbicacionCertificado tipo = certificado.getTipoCertificado();
+
+        return switch (tipo) {
+            case DISPOSITIVO_PKCS11 -> {
+                String pin = certificado.getDispositivoCriptografico().getPin();
+                yield (pin == null || pin.isBlank()) ? TipoAlmacenClave.DISPOSITIVO_SIN_PIN : TipoAlmacenClave.DISPOSITIVO_CON_PIN;
+            }
+            case FICHERO_BD, CLASSPATH, SISTEMA_ARCHIVOS -> {
+                String password = certificado.getPassword();
+                yield (password == null || password.isBlank()) ? TipoAlmacenClave.FICHERO_SIN_CLAVE : TipoAlmacenClave.FICHERO_CON_CLAVE;
+            }
+        };
+    }
+
+
     /****************************************************************************************/
     /******************************** Métodos de Validación *********************************/
     /****************************************************************************************/
 
     @Override
     public Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni) {
-        return Optional.empty();
+        BusinessMessages messages = new BusinessMessages();
+
+        if (!DniUtil.isValid(dni)) {
+            messages.add(new BusinessMessage("dni", "El DNI no es válido"));
+        }
+
+        return messages.isValid() ? Optional.empty() : Optional.of(messages);
+    }
+
+    @Override
+    public Optional<BusinessMessages> validateGetTipoAlmacenClaveByDni(String dni) {
+        BusinessMessages messages = new BusinessMessages();
+
+        if (!DniUtil.isValid(dni)) {
+            messages.add(new BusinessMessage("dni", "El DNI no es válido"));
+        }
+
+        return messages.isValid() ? Optional.empty() : Optional.of(messages);
     }
 
     @Override
