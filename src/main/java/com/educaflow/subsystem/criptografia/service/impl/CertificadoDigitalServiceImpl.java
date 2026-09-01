@@ -34,7 +34,12 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
 
     @Override
     public AlmacenClave getAlmacenClaveByDni(String dni) {
-        validateGetAlmacenClaveByDni(dni).ifPresent(BusinessMessages::throwIfInvalid);
+        return getAlmacenClaveByDni(dni, null);
+    }
+
+    @Override
+    public AlmacenClave getAlmacenClaveByDni(String dni, String claveAcceso) {
+        validateGetAlmacenClaveByDni(dni, claveAcceso).ifPresent(BusinessMessages::throwIfInvalid);
         CertificadoDigital certificado = ((CertificadoDigitalRepository) repository).findByDni(dni);
 
         if ((certificado == null) || (certificado.getEnabled() == false)) {
@@ -44,25 +49,12 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         TipoUbicacionCertificado tipo = certificado.getTipoCertificado();
 
         return switch (tipo) {
-            case FICHERO_BD -> {
-                byte[] bytes = MetaFileUtil.downloadContent(certificado.getFichero());
-                yield new AlmacenClaveFichero(new ByteArrayInputStream(bytes), certificado.getPassword());
+            case FICHERO_BD, CLASSPATH, SISTEMA_ARCHIVOS -> {
+                String passwordGuardada = certificado.getPassword();
+                String clave = (passwordGuardada == null || passwordGuardada.isBlank()) ? claveAcceso : passwordGuardada;
+                yield new AlmacenClaveFichero(getInputStreamCertificado(certificado), clave);
             }
             case DISPOSITIVO_PKCS11 -> new AlmacenClaveDispositivo(certificado.getDispositivoCriptografico().getSlot(), certificado.getAlias().getName());
-            case CLASSPATH -> new AlmacenClaveFichero(
-                    CertificadoDigitalServiceImpl.class.getClassLoader().getResourceAsStream(certificado.getRutaClasspath()),
-                    certificado.getPassword()
-            );
-            case SISTEMA_ARCHIVOS -> {
-                try {
-                    yield new AlmacenClaveFichero(
-                            Files.newInputStream(Path.of(certificado.getRutaSistemaArchivos())),
-                            certificado.getPassword()
-                    );
-                } catch (IOException e) {
-                    throw new RuntimeException("No se puede leer el certificado desde el sistema de archivos: " + certificado.getRutaSistemaArchivos(), e);
-                }
-            }
         };
     }
 
@@ -120,6 +112,11 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
     }
 
     @Override
+    public Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni, String claveAcceso) {
+        return validateGetAlmacenClaveByDni(dni);
+    }
+
+    @Override
     public Optional<BusinessMessages> validateGetTipoAlmacenClaveByDni(String dni) {
         BusinessMessages messages = new BusinessMessages();
 
@@ -143,6 +140,21 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
     /**************************************************************************************/
     /********************************    Otras funciones    *******************************/
     /**************************************************************************************/
+
+    private InputStream getInputStreamCertificado(CertificadoDigital certificado) {
+        return switch (certificado.getTipoCertificado()) {
+            case FICHERO_BD -> new ByteArrayInputStream(MetaFileUtil.downloadContent(certificado.getFichero()));
+            case CLASSPATH -> CertificadoDigitalServiceImpl.class.getClassLoader().getResourceAsStream(certificado.getRutaClasspath());
+            case SISTEMA_ARCHIVOS -> {
+                try {
+                    yield Files.newInputStream(Path.of(certificado.getRutaSistemaArchivos()));
+                } catch (IOException e) {
+                    throw new RuntimeException("No se puede leer el certificado desde el sistema de archivos: " + certificado.getRutaSistemaArchivos(), e);
+                }
+            }
+            case DISPOSITIVO_PKCS11 -> throw new RuntimeException("Un certificado en dispositivo PKCS#11 no tiene fichero de certificado");
+        };
+    }
 
     private Optional<BusinessMessages> validateCertificado(CertificadoDigital certificado) {
         BusinessMessages messages = new BusinessMessages();

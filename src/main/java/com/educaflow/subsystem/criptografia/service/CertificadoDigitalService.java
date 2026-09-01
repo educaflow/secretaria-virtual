@@ -11,6 +11,8 @@ public interface CertificadoDigitalService extends ModelService<CertificadoDigit
 
     AlmacenClave getAlmacenClaveByDni(String dni);
     Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni);
+    AlmacenClave getAlmacenClaveByDni(String dni, String claveAcceso);
+    Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni, String claveAcceso);
     TipoAlmacenClave getTipoAlmacenClaveByDni(String dni);
     Optional<BusinessMessages> validateGetTipoAlmacenClaveByDni(String dni);
 }
