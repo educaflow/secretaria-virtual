@@ -53,19 +53,23 @@ public interface MiEntidadService extends ModelService<MiEntidad> {
     // implementa por defecto (Optional.empty()).
     Optional<BusinessMessages> validateHacerAlgoEspecial(MiEntidad entidad, MiEntidad original);
 
-    // AllowProperties — UNA por cada acción del subsistema que sea invocada
-    // desde un @CallMethod del controlador propio. NO se declara para
-    // insert/update/remove: el endpoint REST automático de Axelor no pasa
-    // por el controlador propio, y DefaultModelService ya trae sus defaults.
+    // AllowProperties — UNA por cada acción que reciba la ENTIDAD construida
+    // desde el request (el controlador la obtiene con getModel(...)). Una acción
+    // de parámetros escalares (String dni, Long centroId) NO lo declara: no hay
+    // mapa del cliente que filtrar. NO se declara para insert/update/remove:
+    // el endpoint REST automático de Axelor no pasa por el controlador propio,
+    // y DefaultModelService ya trae sus defaults.
     AllowProperties allowPropertiesHacerAlgoEspecial();
 }
 ```
 
-> ⚠️ **Regla obligatoria**: la interfaz **MUST** declarar cada acción propia del subsistema `miAccion(...)` **junto con su validador** `validateMiAccion(...)` y, si esa acción se invoca desde el controlador propio, también **junto con su** `allowPropertiesMiAccion()`. La tripleta `acción + validador + allowProperties` es el contrato público de la acción.
+> ⚠️ **Regla obligatoria**: la interfaz **MUST** declarar cada acción propia del subsistema `miAccion(...)` **junto con su validador** `validateMiAccion(...)`, **sin excepciones** — también las acciones de solo lectura. El par `acción + validador` es el contrato público mínimo de toda acción.
+>
+> El `allowPropertiesMiAccion()` se añade **solo si la acción recibe la entidad construida desde el request**; el criterio exacto está en §"`allowPropertiesXxx` y campos `servidor`".
 >
 > **¿Y para `insert` / `update` / `remove`?** **MUST NOT** re-declararlas, ni a ellas ni a sus `validateInsert/Update/Remove` ni a sus `allowPropertiesInsert/Update/Remove`. Estas acciones se invocan **siempre** desde el endpoint REST automático de Axelor (`/ws/rest/<FQN>`), nunca desde un `@CallMethod` del controlador propio. `ModelService<T>` ya declara las firmas y `DefaultModelService<T>` provee implementaciones por defecto (`Optional.empty()` para los `validate*`, defaults razonables para los `allowProperties*`, y el patrón `validate → repository.save/remove` dentro de `insert/update/remove`). Solo se sobrescribe en la `*Impl` lo que **realmente** se quiera cambiar.
 >
-> **MUST NOT** olvidar declarar el `validateMiAccion(...)` ni el `allowPropertiesMiAccion()` correspondientes a una acción nueva del subsistema invocada desde el controlador propio. Sin ellos el contrato queda incompleto y el controlador no puede aplicar la whitelist.
+> **MUST NOT** olvidar el `validateMiAccion(...)` de una acción nueva: sin él quien la implemente acabará validando inline o reutilizando el validador de **otra** acción, y el controlador no tiene a qué llamar en su `Remote-validateMiAccion-action`. **MUST NOT** olvidar el `allowPropertiesMiAccion()` cuando la acción sí recibe la entidad del request: sin él el controlador no puede aplicar la whitelist.
 
 > **Nota sobre `BusinessMessage` / `BusinessMessages`**: son clases del framework Axelor (`com.axelor.db.modelservice.*`), no del proyecto. Siempre se importan desde ese paquete.
 
@@ -121,7 +125,7 @@ public MiEntidad miAccion(MiEntidad entidad, MiEntidad entidadOriginal) {
 
 **Motivo 1 — coherencia y no duplicar la validación.** `super.insert/update/remove` **no** son un "persistir" neutro: en `DefaultModelService` su cuerpo es `validateXxx(...).ifPresent(throwIfInvalid)` **+** `repository.save/remove`. Si sobrescribes el método, tú ya ejecutas el `validateXxx` en la primera línea; llamar después a `super.*` **repetiría** esa misma validación. Persistiendo siempre con `repository` queda **una sola forma** de escribir cualquier acción: validas y llamas al repositorio.
 
-**Motivo 2 — cada acción tiene su propio validador.** Una acción propia tiene su **propia tripleta** `acción + validador + allowProperties`. `marcarComoFirmada` ya valida con `validateMarcarComoFirmada` (primera línea) y restringe el mass-assignment con `allowPropertiesMarcarComoFirmada`. Si llamara a `super.update(...)`, le impondría además `validateUpdate` — la validación de **otra** acción (la genérica `update`), diseñada para un contrato distinto. Aplicar la validación de otra acción no tiene sentido y puede bloquear el flujo legítimo o validar campos que esta acción nunca toca.
+**Motivo 2 — cada acción tiene su propio validador.** Una acción propia tiene su **propio validador** (y su propio `allowProperties` si recibe la entidad del request). `marcarComoFirmada` ya valida con `validateMarcarComoFirmada` (primera línea) y restringe el mass-assignment con `allowPropertiesMarcarComoFirmada`. Si llamara a `super.update(...)`, le impondría además `validateUpdate` — la validación de **otra** acción (la genérica `update`), diseñada para un contrato distinto. Aplicar la validación de otra acción no tiene sentido y puede bloquear el flujo legítimo o validar campos que esta acción nunca toca.
 
 > **CRITICAL — responsabilidad del autor**: como ya **no** llamas a `super.*`, la "salvaguarda" automática de `DefaultModelService` (validar antes de persistir) **solo** existe para los métodos que **no** sobrescribes. En cuanto sobrescribes `insert`/`update`/`remove`, **MUST** poner tú el `validateXxx(...).ifPresent(throwIfInvalid)` como primera línea: si lo olvidas, persistes sin validar.
 
@@ -140,7 +144,7 @@ La implementación **MUST** ordenar sus métodos en estos cinco bloques, en este
 
 1. **Acciones** (sin header) — métodos `public` que ejecutan la lógica de negocio: las acciones propias del subsistema y, **solo si se quieren sobrescribir**, `insert` / `update` / `remove`. **Toda** acción —propia o sobrescritura de `insert/update/remove`— **MUST** empezar con el patrón validate + throw (ver §"Patrón validate + throw") y persistir con `repository.save/remove`, **nunca** con `super.insert/update/remove` (ver §"Persistir: siempre `repository`, nunca `super.*`").
 2. **Métodos de Validación** (con header) — métodos `public` que devuelven `Optional<BusinessMessages>`. Uno por cada acción propia del subsistema declarada en el interface. **NO** se sobrescriben `validateInsert/Update/Remove` salvo que se quieran añadir reglas: el default `Optional.empty()` ya viene de `DefaultModelService`.
-3. **AllowProperties** (con header) — métodos `public` que devuelven `AllowProperties`. Uno por cada acción propia del subsistema **invocada desde un `@CallMethod` del controlador propio**. **NO** se sobrescriben `allowPropertiesInsert/Update/Remove` salvo que se quieran restringir: los defaults vienen de `DefaultModelService`. Las reglas de qué forma usar (`createAllowProperties` vs `createAllowAllProperties`) y de cómo tratar los campos `servidor` en la acción están en `[[k-secure-coding]]` §3 — **CRITICAL**.
+3. **AllowProperties** (con header) — métodos `public` que devuelven `AllowProperties`. Uno por cada acción propia del subsistema que **recibe la entidad construida desde el request** (ver §"`allowPropertiesXxx` y campos `servidor`"). **NO** se sobrescriben `allowPropertiesInsert/Update/Remove` salvo que se quieran restringir: los defaults vienen de `DefaultModelService`. Las reglas de qué forma usar (`createAllowProperties` vs `createAllowAllProperties`) y de cómo tratar los campos `servidor` en la acción están en `[[k-secure-coding]]` §3 — **CRITICAL**.
 4. **Action Rules** (con header) — métodos `private` cuyo nombre empieza por `fireActionRule_`. Encapsulan las reglas de negocio que ejecuta cada acción.
 5. **Otras funciones** (con header) — helpers `private` que no son ni validaciones, ni allow-properties, ni action rules: utilidades internas, conversiones, builders, métodos compartidos.
 
@@ -439,9 +443,18 @@ Con su binding correspondiente en `module/<Subsistema>Module.java` — sin neces
 
 > **CRITICAL** → la decisión sobre qué forma usar (`createAllowProperties` vs `createAllowAllProperties`) y cómo asignar incondicionalmente los campos `servidor` en la acción está descrita en `[[k-secure-coding]]` §3. Es lectura **obligatoria** al implementar o revisar cualquier `allowPropertiesXxx` o cualquier acción que toque campos `servidor`.
 
+**Cuándo hace falta.** `AllowProperties` es la whitelist del bind **cliente→entidad**: filtra el mapa JSON del request antes de copiarlo sobre el bean. El criterio es **qué recibe la acción**, no quién la llama:
+
+- **MUST** declararlo la acción que recibe la **entidad construida desde el request** (el controlador la obtiene con `actionRequestHelper.getModel(...)`).
+- **MUST NOT** declararlo la acción de **parámetros escalares**: no hay mapa del cliente que filtrar, así que la whitelist no protegería nada.
+
+- ✅ CORRECTO: `reenviar(Correo entidad, Correo original)` declara `allowPropertiesReenviar()` (el controlador construye el `Correo` con `getModel(...)`).
+- ✅ CORRECTO: `getTipoAlmacenClaveByDni(String dni)` **sin** `allowProperties` (recibe un escalar; el `@CallMethod` es de tipo 2/3 y no toca ninguna entidad).
+- ❌ INCORRECTO: `allowPropertiesGetTipoAlmacenClaveByDni()` (no hay entidad que filtrar; el método no protege nada).
+
 Estructuralmente:
 
-- El interface declara `AllowProperties allowPropertiesMiAccion()` para cada acción invocada desde un `@CallMethod`.
+- El interface declara `AllowProperties allowPropertiesMiAccion()` para cada acción que recibe la entidad del request.
 - La `*Impl` ubica su implementación en el bloque (3) `AllowProperties` (ver §"Estructura de la implementación").
 - El controlador la consume con `service.allowPropertiesMiAccion()` (nunca construye el `AllowProperties` inline con `Map.of(...)`).
 
@@ -459,7 +472,7 @@ Checklist única para desarrollar y revisar `*Service` / `*ServiceImpl`. Cada í
 ### Interface (`*Service`)
 
 - [ ] Por cada acción propia del subsistema `miAccion(...)` está declarado su `validateMiAccion(...)` con la **misma firma de parámetros** y retorno `Optional<BusinessMessages>`.
-- [ ] Por cada acción propia invocada desde un `@CallMethod` del controlador propio está declarado su `allowPropertiesMiAccion()` (retorno `AllowProperties`).
+- [ ] Por cada acción propia que recibe la **entidad construida desde el request** está declarado su `allowPropertiesMiAccion()` (retorno `AllowProperties`). Las acciones de parámetros escalares (`String dni`, `Long centroId`) **NO** lo declaran.
 - [ ] **NO** re-declara `validateInsert/Update/Remove` ni `allowPropertiesInsert/Update/Remove`: vienen de `ModelService<T>` con defaults en `DefaultModelService<T>`.
 - [ ] **NO** declara `validateXxx` / `allowPropertiesXxx` cuyo cuerpo en la `*Impl` será un stub vacío (`Optional.empty()` / default). Esos casos se quedan con el heredado.
 - [ ] **NO** tiene acciones cuyo retorno `Optional<BusinessMessages>` las haga "validadores disfrazados" duplicando el `validate*` del par. O es acción, o es validador.

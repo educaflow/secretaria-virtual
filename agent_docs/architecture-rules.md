@@ -231,6 +231,22 @@ Nota: hay `<extra-code-model>` que acoplan entidades generadas a `expedientes.se
 
 **Cumplimiento.** ❌ INCUMPLE (test congelado): `firmas.service.impl.TareaFirmaServiceImpl` usa `Beans.get(...)` (instanciación dinámica de un `TareaFirmaNotifier`).
 
+### C23 — Toda acción de un `*Service` declara su validador `validate<Accion>`
+
+**Contexto.** Toda acción propia de un subsistema necesita su validador declarado junto a ella (`k-sistemas/servicios.md` §"Estructura de la interfaz"). Sin el `validate<Accion>`, quien implementa la acción acaba validando inline, reutilizando el validador de **otra** acción, o no validando nada, y el controlador no tiene a qué llamar en su `Remote-validate<Accion>-action`.
+El `allowProperties<Accion>` queda **fuera** de esta regla: es la whitelist del bind cliente→entidad y solo aplica a las acciones que reciben la entidad construida desde el request (`ActionRequestHelper.getModel(...)`). Una acción de parámetros escalares (`String dni`, `Long centroId`) no tiene mapa que filtrar y no lo declara.
+
+**Decisión.** Por cada acción propia declarada en una interfaz de servicio existe, en esa misma interfaz, un `validate<Accion>` con los mismos tipos de parámetros.
+
+**Verificación.**
+- Sujeto: métodos **declarados** (no heredados) en interfaces asignables a `com.axelor.db.modelservice.ModelService`, excluidos los paquetes exentos y excluidos los propios métodos de infraestructura del contrato: los que empiezan por `validate` o por `allowProperties`.
+- Condición: para cada método `m` del sujeto existe en la misma interfaz un método llamado `validate` + el nombre de `m` con la inicial en mayúscula, con **la misma lista de tipos de parámetros en el mismo orden** y con tipo de retorno `java.util.Optional`.
+- Vacuidad: una interfaz sin acciones propias cumple la regla (no debe fallar por sujeto vacío).
+- Nota: el argumento genérico de `Optional<BusinessMessages>` se borra en bytecode, así que la condición de retorno solo puede comprobar `Optional`. Es suficiente: ningún otro método del contrato devuelve `Optional`.
+- Mensaje: «cada acción propia de un *Service declara su validador validate<Accion> con la misma firma de parámetros».
+
+**Cumplimiento.** ❌ INCUMPLE (test congelado): `correos.service.CorreoService` declara `enviarCorreo(Long)` y `listarCorreosEnFail()` sin validador. Las otras 9 interfaces `ModelService` del proyecto cumplen.
+
 ---
 
 # Categoría 3 — Nomenclatura y ubicación

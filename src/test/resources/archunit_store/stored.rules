@@ -1,5 +1,6 @@
 #
-#Thu Jun 25 16:17:45 CEST 2026
+#Tue Sep 01 10:31:05 CEST 2026
+methods\ that\ are\ declared\ in\ classes\ that\ are\ interfaces\ and\ are\ declared\ in\ classes\ that\ are\ assignable\ to\ com.axelor.db.modelservice.ModelService\ and\ are\ declared\ in\ classes\ that\ reside\ outside\ of\ packages\ ['..expedientes..',\ '..tramites..']\ and\ have\ name\ not\ starting\ with\ 'validate'\ and\ have\ name\ not\ starting\ with\ 'allowProperties'\ should\ declarar\ su\ validador\ validate<Accion>\ con\ la\ misma\ firma\ de\ par\u00E1metros,\ because\ cada\ acci\u00F3n\ propia\ de\ un\ *Service\ declara\ su\ validador\ validate<Accion>\ con\ la\ misma\ firma\ de\ par\u00E1metros=87360356-333d-4745-9b02-233b3a030f95
 no\ classes\ should\ access\ standard\ streams=0f36d1bb-19e3-4dce-8759-c8f192095e3b
 no\ classes\ that\ reside\ in\ a\ package\ '..controller..'\ and\ reside\ outside\ of\ packages\ ['..expedientes..',\ '..tramites..']\ should\ depend\ on\ classes\ that\ have\ fully\ qualified\ name\ 'com.axelor.db.JpaRepository',\ because\ cargar\ entidades\ es\ del\ servicio;\ el\ controlador\ no\ usa\ JpaRepository=06612b64-9dd6-42d6-a30d-eb5d40c36f66
 no\ classes\ that\ reside\ in\ a\ package\ '..controller..'\ and\ reside\ outside\ of\ packages\ ['..expedientes..',\ '..tramites..']\ should\ depend\ on\ classes\ that\ reside\ in\ a\ package\ '..db.repo..',\ because\ el\ controlador\ delega\ el\ acceso\ a\ datos\ en\ el\ servicio,\ nunca\ usa\ el\ repositorio\ directamente=d227fcd4-6000-46b1-9d0d-9bbe8aba7dcb
