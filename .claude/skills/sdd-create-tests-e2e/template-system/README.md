@@ -8,7 +8,7 @@ Esta carpeta es el **contrato** que leen los subagentes de `/sdd-create-tests-e2
 
 | Fichero | Lo lee | Para qué |
 |---------|--------|----------|
-| `README.md` (este) | los tres roles + el motor | índice del contrato, contexto del proyecto y **«Gestión de la app»** (§4, la ejecuta el motor) |
+| `README.md` (este) | los tres roles + el motor | índice del contrato, contexto del proyecto y las tres secciones que ejecuta el motor: **«Carpeta destino»** (§3.1), **«Gestión de la app»** (§4) y **«Puerta de regresión»** (§6) |
 | `generation.md` | **generador** | cómo convertir un `t-NNN-<slug>.desc.md` en su `.spec.ts`: ciclo de login/logout, plantilla del test, plantilla de `_support/auth.ts`, trazabilidad, checklist |
 | `verification.md` | **verificador** | qué hace **fiel** a un test ya verde: cubrir todo el `Resultado esperado` con aserciones reales, auth correcta, sin debilitar ni saltar; cómo auditarlo sin tocarlo |
 | `healing.md` | **sanador** | cómo diagnosticar y arreglar un `.spec.ts` rojo o declarado `INFIEL`, sin tocar el código Java |
@@ -36,13 +36,31 @@ Los tres roles:
 
 ---
 
-## 3. Contexto del proyecto
+## 3. Contexto del proyecto y carpeta destino
 
 - La app es una secretaría virtual sobre **Axelor 8.1**, servida en `http://localhost:8080/`; login en `http://localhost:8080/#/login`. El `baseURL` de `playwright.config.ts` ya es `http://localhost:8080`: **MUST** usar rutas relativas (`page.goto('/#/login')`).
 - Convenciones de tests, locators y estructura de carpetas: las define `/k-playwright` (cárgalo). En particular: pares `t-NNN-<slug>.desc.md` ↔ `t-NNN-<slug>.spec.ts`, **mismo nombre base y misma carpeta**; helper compartido `src/test/e2e/_support/auth.ts`.
 - **Los tests replican la ruta del código que prueban**: `src/test/e2e/<capa>/<sistema>/` es espejo de `src/main/java/com/educaflow/<capa>/<sistema>/`, con `<capa>` = `system` o `subsystem` (p.ej. `src/test/e2e/subsystem/criptografia/`). La carpeta la resuelve el motor; el generador la recibe ya resuelta y **MUST NOT** crear otra. Como varias iniciativas comparten carpeta, los hermanos que veas ahí pueden ser de otra iniciativa: reutiliza sus helpers, pero **MUST NOT** modificarlos.
 - La app es **multicentro y bilingüe (es/ca)**: los locators por texto asumen español salvo que el test diga lo contrario.
 - **CRITICAL — la BD es compartida y NO se resetea entre ejecuciones**: los tests acumulan datos de runs anteriores. Por eso cada `.spec.ts` **MUST** ser **idempotente** (nombres únicos por run + teardown + pre-limpieza defensiva); lo detalla `generation.md`. Un test que pasa una vez pero falla al reejecutarse está **roto**.
+
+### 3.1 Carpeta destino (la resuelve el MOTOR en la Fase 1)
+
+El destino de los tests de un **sistema o subsistema** es `src/test/e2e/<capa>/<sistema>/`, espejo de `src/main/java/com/educaflow/<capa>/<sistema>/`, donde `<capa>` es `system` o `subsystem`. Procedimiento:
+
+1. Lee el campo **`**Capa:**`** del `design/design.md` de la iniciativa (el campo que `/sdd-designer` obliga a poner en el diseño de un sistema: `sdd-designer/template-system/design-contract.md`). Su valor es literalmente `<capa>/<sistema>`.
+   ```bash
+   grep -m1 '^\*\*Capa:\*\*' {carpeta-iniciativa}/design/design.md
+   ```
+2. **MUST** validar que declara **un solo** sistema y casa con `^(system|subsystem)/[a-z][a-z0-9_-]*$`. Un valor con varios sistemas (`subsystem/a, subsystem/b`) falla aquí: el destino sería ambiguo.
+3. **MUST** validar que existe la carpeta `src/main/java/com/educaflow/<capa>/<sistema>/`. Si no existe, el diseño declara un sistema que no está en el código.
+4. Compón `src/test/e2e/<capa>/<sistema>/`.
+5. Si el `design/design.md` no existe, no tiene `Capa:`, su valor no valida o el sistema no existe → **ERROR** y detente. **MUST NOT** inventar la carpeta ni caer al nombre del draft.
+
+- ✅ CORRECTO: `**Capa:** subsystem/criptografia` → `src/test/e2e/subsystem/criptografia/`
+- ✅ CORRECTO: `**Capa:** system/gestioncentro` → `src/test/e2e/system/gestioncentro/`
+- ❌ INCORRECTO: `src/test/e2e/deshabilitar-certificado-digital/` (nombre del draft, no replica el código)
+- ❌ INCORRECTO: `src/test/e2e/criptografia/` (falta la capa; no distingue `system` de `subsystem`)
 
 ---
 

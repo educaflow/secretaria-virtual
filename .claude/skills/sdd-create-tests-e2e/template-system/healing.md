@@ -1,6 +1,6 @@
 # Sanación: arreglar un `.spec.ts` que falla
 
-Lo lee el **sanador** (§2.2 del `README.md`). Tarea: dado un `.spec.ts` que falla al ejecutarse, **arreglar el `.spec.ts`** (o el helper `_support/auth.ts`) para que pase, **sin tocar el código Java**.
+Lo lee el **sanador** (§2.3 del `README.md`). Tarea: dado un `.spec.ts` que falla al ejecutarse, **arreglar el `.spec.ts`** (o el helper `_support/auth.ts`) para que pase, **sin tocar el código Java**.
 
 **MUST** cargar `/k-playwright` si necesitas refrescar convenciones de locators.
 
