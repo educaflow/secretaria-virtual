@@ -193,7 +193,7 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
                 InputStream fileCertificate = almacenClaveFichero.getFileCertificate();
                 String password = almacenClaveFichero.getPassword();
 
-                KeyStore userKeyStore = CriptografiaUtil.getKeyStore(fileCertificate, password, CriptografiaUtil.KeyStoreType.PKCS12);
+                KeyStore userKeyStore = CriptografiaUtil.getKeyStore(fileCertificate, password);
                 alias = userKeyStore.aliases().nextElement();
                 privateKey = (PrivateKey) userKeyStore.getKey(alias, password.toCharArray());
                 chain = userKeyStore.getCertificateChain(alias);

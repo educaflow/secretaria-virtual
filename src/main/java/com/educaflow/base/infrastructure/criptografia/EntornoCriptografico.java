@@ -97,7 +97,7 @@ public class EntornoCriptografico {
             InputStream inputStream = almacenCertificadosConfiablesConfig.getInputStream();
             String password = almacenCertificadosConfiablesConfig.getPassword();
 
-            KeyStore trustedKeyStore = CriptografiaUtil.getKeyStore(inputStream, password, CriptografiaUtil.KeyStoreType.PKCS12);
+            KeyStore trustedKeyStore = CriptografiaUtil.getKeyStore(inputStream, password);
             List<InputStream> certificateRevocationListsInputStream = almacenCertificadosConfiablesConfig.getCertificateRevocationListsInputStream();
 
             List<CRL> certificateRevocationLists;

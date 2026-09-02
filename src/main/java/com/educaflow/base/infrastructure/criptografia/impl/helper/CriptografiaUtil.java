@@ -1,18 +1,22 @@
 package com.educaflow.base.infrastructure.criptografia.impl.helper;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.Provider;
 import java.security.Security;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CRL;
 import java.security.cert.CertStore;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CollectionCertStoreParameters;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.List;
 
 public class CriptografiaUtil {
@@ -42,9 +46,13 @@ public class CriptografiaUtil {
 
     }
 
-    public static KeyStore getKeyStore(InputStream inputStreamKeyStore, String keyStorePassword,KeyStoreType type) {
+    /**
+     * Abre un almacén de claves en fichero, que siempre es un PKCS#12: el tipo no es un parámetro porque un
+     * almacén PKCS#11 no se carga desde un InputStream, sino desde su Provider con la otra sobrecarga.
+     */
+    public static KeyStore getKeyStore(InputStream inputStreamKeyStore, String keyStorePassword) {
         try {
-            KeyStore keyStore = KeyStore.getInstance(type.name());
+            KeyStore keyStore = KeyStore.getInstance(KeyStoreType.PKCS12.name());
             keyStore.load(inputStreamKeyStore, keyStorePassword.toCharArray());
 
             return keyStore;
@@ -64,6 +72,51 @@ public class CriptografiaUtil {
         }
     }
 
+    /**
+     * Comprueba si el password abre el almacén de claves y permite recuperar sus claves privadas.
+     *
+     * <p>Solo vale para almacenes en fichero (PKCS#12): el PIN de un dispositivo PKCS#11 no se comprueba por
+     * adelantado porque los intentos fallidos bloquean la tarjeta.
+     *
+     * @param inputStreamKeyStore contenido del almacén de claves
+     * @param keyStorePassword password a comprobar
+     * @return true si el password es correcto, false si no lo es
+     * @throws RuntimeException si el almacén está corrupto o no es un PKCS#12
+     */
+    public static boolean isPasswordValid(InputStream inputStreamKeyStore, String keyStorePassword) {
+        try {
+            KeyStore keyStore = KeyStore.getInstance(KeyStoreType.PKCS12.name());
+            keyStore.load(inputStreamKeyStore, keyStorePassword.toCharArray());
+
+            // Abrir el almacén no basta: al firmar se recupera la clave privada, que puede tener su propio password.
+            Enumeration<String> aliases = keyStore.aliases();
+            while (aliases.hasMoreElements()) {
+                String alias = aliases.nextElement();
+                if (keyStore.isKeyEntry(alias)) {
+                    keyStore.getKey(alias, keyStorePassword.toCharArray());
+                }
+            }
+
+            return true;
+        } catch (IOException ex) {
+            // El PKCS#12 envuelve en un IOException el fallo de MAC que provoca un password incorrecto.
+            // Cualquier otra causa es un fichero corrupto o que no es un PKCS#12, no un password erróneo.
+            if (ex.getCause() instanceof UnrecoverableKeyException) {
+                return false;
+            }
+            throw new RuntimeException(ex);
+        } catch (UnrecoverableKeyException ex) {
+            // El password abre el almacén pero no recupera la clave privada.
+            return false;
+        } catch (GeneralSecurityException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    /**
+     * Tipos de almacén de claves. Solo lo recibe la sobrecarga de {@code getKeyStore} que trabaja sobre un
+     * {@code Provider}, que es la única en la que el tipo no está determinado por la forma de abrir el almacén.
+     */
     public enum KeyStoreType {
         PKCS12,
         PKCS11
