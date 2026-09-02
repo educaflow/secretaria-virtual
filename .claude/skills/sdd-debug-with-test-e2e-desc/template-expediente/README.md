@@ -178,7 +178,7 @@ El expediente se abre desde una de las **bandejas** del menú «Expedientes», y
 
 Qué hace cada rol cuando aun así se topa con uno (el diseño olvidó la marca):
 
-- **ejecutor** — reporta `FAIL {T-NNN}` con el motivo **literal** «paso no automatizable (AutoFirma)» (`execution.md` §8). **MUST NOT** declarar `SUCCESS`.
+- **ejecutor** — reporta `FAIL {T-NNN}` con el motivo **literal** «paso no automatizable (AutoFirma)» (`execution.md` §5, punto 8). **MUST NOT** declarar `SUCCESS`.
 - **corrector** — devuelve el token `MANUAL: {T-NNN} — {motivo}` (`correction.md` §5), **no** `BLOQUEADO`: no falta ningún recurso del entorno ni hay nada que corregir en el código.
   El motor lo pasa a `[-]` en el índice y **sigue con los demás tests** de forma autónoma.
 

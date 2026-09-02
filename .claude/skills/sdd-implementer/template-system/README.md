@@ -61,7 +61,7 @@ Solo el **descomponedor** lee el diseño íntegro para planificar; el **implemen
 - **Lee de esta plantilla:** `implementation.md` (cómo colocar los XML literalmente, cómo fusionar y validar `menus.xml`, cómo delegar el Java en `developer-code-implementer` cargando antes los skills, y el manejo de conflictos/bloqueos); y `tests-code.md` **solo si** la tarea es de tests (cómo generar el código JUnit desde la descripción).
 - **Entrada propia:** la ruta de **su** tarea (`task_NN.md`) y la carpeta `{iniciativa}/design` (los XML materializados de los que dependa son **contrato fijo**).
 - **OBLIGATORIO:** carga primero, con la herramienta `Skill`, los skills que la tarea lista, y luego —si el contrato lo indica— invoca `developer-code-implementer` con el texto de la tarea **verbatim**.
-- **MUST NOT** regenerar los XML del diseño. **MUST NOT** adivinar ante un bloqueo: lo reporta con su token (`CONFLICT`/`BLOCKED`).
+- **MUST NOT** regenerar los XML del diseño. **MUST NOT** adivinar ante un bloqueo: lo reporta con su token (`CONFLICT` / `BLOCKED` / `DESIGN-ERROR`), según el criterio del apartado «Detenerse y reportar ante un bloqueo» de `implementation.md`.
 
 ### 2.3 verificador-build — compila y reporta
 

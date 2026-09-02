@@ -10,7 +10,7 @@ Define **qué produce el diseño de un sistema y cómo**: la conversión de las 
 
 El diseñador escribe, dentro de su carpeta `design_<n>/`, un diseño completo y autosuficiente:
 
-- `design.md` — índice del diseño, con frontmatter `type: design`. Contiene firmas Java, comentarios descriptivos, matriz de trazabilidad `Origen spec` → V/R/U → ubicación y un **resumen estructural** de cada fichero XML. **No** duplica el XML completo: cada XML vive en su fichero.
+- `design.md` — índice del diseño, con frontmatter `type: design` más la clave `template:` copiada de la spec (§10). Contiene firmas Java, comentarios descriptivos, matriz de trazabilidad `Origen spec` → V/R/U → ubicación y un **resumen estructural** de cada fichero XML. **No** duplica el XML completo: cada XML vive en su fichero.
 - `domains/<Entidad>.xml` — uno por entidad. XML completo, válido contra `domain-models.xsd` (ver `validacion.md`).
 - `views/<Fichero>.xml` — uno por `<action-view>` (regla de `vistas.md` §1.1). XML completo, válido contra `object-views.xsd`.
 - `menus.xml` — XML con los `<menuitem>` a añadir al fichero único del proyecto. Válido contra `object-views.xsd`.
@@ -136,6 +136,11 @@ Cada categoría de regla tiene su capa de implementación:
 El diseñador escribe en su carpeta `design_<n>/` el diseño completo. El **índice** `design.md` tiene esta estructura:
 
 ```markdown
+---
+type: design
+template: <valor copiado del specification.md>
+---
+
 # Diseño: <Nombre>
 
 **Objetivo:** <Una frase>
@@ -339,6 +344,7 @@ El diseñador revisa su diseño contra esta lista y corrige antes de terminar. S
 - [ ] ¿Ningún paso crea un listener JPA para lógica de negocio? (si lo crea, moverlo al servicio como `fireActionRule_*`)
 - [ ] ¿Cada paso es lo suficientemente pequeño para implementarse y verificarse en ≤ 30 minutos?
 - [ ] ¿Los pasos respetan el orden obligatorio de §8?
+- [ ] ¿El `design.md` lleva frontmatter `type: design` con la clave `template:` copiada **verbatim** del `specification.md` (incluido el valor `external`), tal como exige §10?
 - [ ] ¿El diseño referencia el `specification.md` en la cabecera?
 - [ ] ¿El `design.md` tiene la sección `## Tests` que referencia `test-unit-desc.md` (tests unitarios)?
 - [ ] ¿El diseño respeta todas las guías de `design-guidelines.md` (si existe)? Si alguna no se ha podido respetar por incompatibilidad con el spec, ¿está documentada en "Notas y supuestos"?
@@ -350,14 +356,17 @@ El diseñador revisa su diseño contra esta lista y corrige antes de terminar. S
 
 ## 10. El `design.md`: estructura y secciones obligatorias
 
-El `design.md` es el índice del diseño, con frontmatter `type: design`:
+El `design.md` es el índice del diseño, con frontmatter `type: design` más la clave `template:` copiada del frontmatter del `specification.md` de la iniciativa:
 
 ```
 ---
 type: design
+template: <valor copiado del specification.md>
 ---
 
 {contenido del diseño, con resumen estructural por cada XML — no el XML inline}
 ```
+
+- `template:` se **copia verbatim** del frontmatter del `specification.md` de la iniciativa, incluido el valor `external`. **MUST NOT** escribirse de memoria el nombre de esta carpeta de plantillas: con un `--template-dir` externo sería un dato falso, y `/sdd-implementer` lo heredaría tal cual.
 
 El `design.md` **no contiene** los XML completos inline (esos viven en sus ficheros); en su lugar contiene, por cada fichero XML generado, una entrada con su ruta y el resumen estructural (vistas, acciones, propósito), más la matriz de trazabilidad `Origen spec → V/R/U → ubicación`, la sección "Frontera de confianza — AllowProperties por acción" (§8.3) y, si aplican, "Reglas del spec descartadas", "Eliminaciones declaradas" y "Tests E2E supersedidos" (§1.3). Incluye además una sección "Tests" que referencia `test-unit-desc.md` (tests unitarios), materializado en una fase posterior del pipeline. Las decisiones tomadas ante ambigüedades van en "Notas y supuestos".

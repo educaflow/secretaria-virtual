@@ -1,5 +1,6 @@
 ---
 type: specification
+template: <nombre de la carpeta de la plantilla activa sin el prefijo `template-`, o el valor reservado `external` si esa carpeta es externa; lo fija §8 del skill>
 ---
 
 # Objetivo

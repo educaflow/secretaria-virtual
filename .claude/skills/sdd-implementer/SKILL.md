@@ -1,17 +1,17 @@
 ---
 name: sdd-implementer
-description: Cuarto paso del pipeline SDD. Dado un `design.md` (`type: design`) producido por `/sdd-designer`, convierte el diseño en código real dentro del proyecto. El skill es un MOTOR genérico y agnóstico al artefacto: aporta solo el flujo (localizar la iniciativa, cargar el contrato, lanzar un subagente descomponedor que escribe las tareas, lanzar un subagente implementador por tarea que materializa el código, y verificar/corregir la compilación en bucle) y delega TODO lo específico de la implementación en la guía `template-system/README.md` (configurable con `--template-dir`), que los subagentes leen como contrato. No sabe nada de cómo se descompone ni se materializa el diseño; cambiar `--template-dir` a otra plantilla cambia por completo qué y cómo se implementa sin tocar este skill. La salida es código en `src/main/...` y `src/test/...` listo para `/sdd-close`.
+description: Cuarto paso del pipeline SDD. Dado un `design.md` (`type: design`) producido por `/sdd-designer`, convierte el diseño en código real dentro del proyecto. El skill es un MOTOR genérico y agnóstico al artefacto: aporta solo el flujo (localizar la iniciativa, cargar el contrato, lanzar un subagente descomponedor que escribe las tareas, lanzar un subagente implementador por tarea que materializa el código, y verificar/corregir la compilación en bucle) y delega TODO lo específico de la implementación en el `README.md` de la carpeta de plantillas activa, que los subagentes leen como contrato. El skill trae una carpeta `template-<nombre>/` por tipo de artefacto (no conoce sus nombres) y usa la que declare el frontmatter `template:` del `design.md` de entrada (heredado de la spec; configurable con `--template-dir`); no sabe nada de cómo se descompone ni se materializa el diseño, así que cambiar de plantilla cambia por completo qué y cómo se implementa sin tocar este skill. La salida es el código real en el árbol del proyecto —lo que declare la plantilla activa—, listo para `/sdd-close`.
 handoffs:
   - label: Cerrar la iniciativa
     agent: sdd-close
-    prompt: Cerrar la iniciativa recién implementada en .sdd/drafts/{carpeta-iniciativa}/ — regenerar desde el código el CLAUDE.md + modelo.puml/png de cada sistema afectado y archivar el draft verbatim en .sdd/archive/.
+    prompt: Cerrar la iniciativa recién implementada en .sdd/drafts/{carpeta-iniciativa}/ — archivar el draft verbatim en .sdd/archive/.
 ---
 
 # sdd-implementer
 
 Eres un **motor de implementación** del pipeline SDD: transformas un **plan de diseño** en **código real** dentro del proyecto. La entrada la produce `/sdd-designer` y la salida la cierra `/sdd-close`.
 
-**CRITICAL — eres agnóstico al artefacto.** Este `SKILL.md` define **solo el flujo y la orquestación de agentes**. **No sabe nada de cómo es el diseño ni de cómo se implementa** (ni qué ficheros contiene `design/`, ni cómo se agrupan las tareas, ni cómo se materializa un XML o un `.java`, ni con qué comando se compila): **todo eso lo declara la guía `template-system/README.md`**, que los subagentes leen como contrato. **MUST NOT** asumir de memoria ningún detalle de la implementación; **MUST NOT** nombrar ficheros, plantillas, comandos ni rutas concretas de la implementación en este skill. Así, apuntar `--template-dir` a otra carpeta de plantillas con un README distinto cambia por completo lo que se implementa **sin tocar este skill**.
+**CRITICAL — eres agnóstico al artefacto.** Este `SKILL.md` define **solo el flujo y la orquestación de agentes**. **No sabe nada de cómo es el diseño ni de cómo se implementa** (ni qué ficheros contiene `design/`, ni cómo se agrupan las tareas, ni cómo se materializa un XML o un `.java`, ni con qué comando se compila): **todo eso lo declara la guía `<plantilla-activa>/README.md`**, que los subagentes leen como contrato. **MUST NOT** asumir de memoria ningún detalle de la implementación; **MUST NOT** nombrar ficheros, plantillas, comandos ni rutas concretas de la implementación en este skill. Así, apuntar `--template-dir` a otra carpeta de plantillas con un README distinto cambia por completo lo que se implementa **sin tocar este skill**.
 
 El skill lanza **cuatro roles** de subagente (todos leen el mismo `README.md`, cada uno hace una tarea distinta):
 
@@ -39,7 +39,7 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 ## Outline
 
 1. **Fase 0 — Localizar** la iniciativa y su `design.md`, y **confirmar** la ruta detectada (§4).
-2. **Fase 1 — Cargar** el contrato (`template-system/README.md`), resolver las rutas de entrada y **validar** el frontmatter `type: design` (§5).
+2. **Fase 1 — Cargar** el contrato (`<plantilla-activa>/README.md`), resolver las rutas de entrada y **validar** el frontmatter `type: design` (§5).
 3. **Fase 2 — Descomponer**: lanzar el subagente **descomponedor**, que escribe las tareas en `implementation/` (§7).
 4. **Fase 3 — Informar**: mostrar el resumen de tareas (**informativo, sin bloquear**) y continuar automáticamente (§8).
 5. **Fase 4 — Implementar**: lanzar **un subagente implementador por tarea**, en orden, que materializa cada tarea en el árbol del proyecto (§9).
@@ -49,6 +49,8 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 **STOP conditions**:
 
 - `--template-dir=` apunta a una carpeta que **no contiene `README.md`** (la guía que declara todo lo específico) → **ERROR** y detente.
+- `--template-dir=` apunta a otra carpeta `template-*/` de este skill **distinta** de la que declara el frontmatter `template:` de la iniciativa, o ese `template:` no resuelve a ninguna carpeta de plantillas (§2.2) → **ERROR** y detente: **MUST NOT** mezclarse plantillas — sus arquitecturas no son compatibles.
+- El frontmatter `template:` de la iniciativa vale `external` (se especificó con una plantilla externa) y **no** se pasa `--template-dir=` (§2.2) → **ERROR** y detente pidiéndolo. **MUST NOT** preguntar la plantilla ni caer a una carpeta interna.
 - Frontmatter de `design.md` no contiene `type: design` → **ERROR** y detente sin escribir nada.
 - El usuario no confirma la ruta auto-detectada (Fase 0 caso 2) → **STOP** y pide la ruta.
 - El **descomponedor** no devuelve el token `ESCRITO: implementation/` con su lista de tareas tras 1 reintento → **STOP** y muestra el problema.
@@ -70,10 +72,10 @@ El **diseño** de la iniciativa, cuyo índice es `design.md` (único fichero de 
 Este skill produce salida en tres sitios:
 
 - En `.sdd/drafts/{iniciativa}/implementation/`: la lista de tareas y los ficheros de contrato hacia abajo (los consumen `/sdd-debug-with-test-e2e-desc` y `/sdd-close`). **Su estructura interna la define la plantilla**, no este skill.
-- En el **árbol del proyecto** (`src/main/...`, `src/test/...`): el código real (XML materializados colocados/fusionados, código Java y tests) que escriben los subagentes implementadores.
+- En el **árbol del proyecto**: el código real que la plantilla activa declare (bajo `src/main/...` y, si esa plantilla lo prevé, `src/test/...`), que escriben los subagentes implementadores.
 - En la conversación: un mensaje final indicando que la implementación está completa y el siguiente paso (`/sdd-close`).
 
-**CRITICAL — la estructura interna de `implementation/` y la del árbol de salida las define `template-system/README.md`, no este skill.** El skill **MUST NOT** asumir esos detalles de memoria; solo orquesta los subagentes que las producen.
+**CRITICAL — la estructura interna de `implementation/` y la del árbol de salida las define `<plantilla-activa>/README.md`, no este skill.** El skill **MUST NOT** asumir esos detalles de memoria; solo orquesta los subagentes que las producen.
 
 **Contrato fijo (no lo cambia `--template-dir`):** la entrada es `design.md` (`type: design`) y la salida vive en `implementation/` (dentro de la iniciativa) y en el árbol del proyecto. Es lo que el skill usa para **localizar y validar** el diseño de entrada.
 
@@ -92,11 +94,11 @@ Este skill produce salida en tres sitios:
         │   ├── design.md                        ← índice de entrada (type: design)
         │   └── …                                ← resto del diseño (lo define la plantilla del designer)
         └── implementation/                      ← salida del descomponedor (Fase 2)
-            ├── …                                ← tareas e índice (los define template-system/README.md)
+            ├── …                                ← tareas e índice (los define <plantilla-activa>/README.md)
             ├── log_build.txt                    ← log del motor: JSONL de cada verificador-build (§10)
             └── error_design.log                 ← log del motor: solo si hay un error de diseño irresoluble (§9.1)
 
-src/main/…  y  src/test/…                        ← código real (lo escriben los implementadores)
+src/main/…  (y src/test/… si la plantilla lo prevé)   ← código real (lo escriben los implementadores)
 ```
 
 ---
@@ -109,7 +111,15 @@ El diseño es la fuente de verdad — **MUST NOT** interpretar ni ampliar más a
 
 ### 2.2 El README es el contrato único
 
-Todo lo específico de la implementación (qué contiene el diseño, cómo se descompone en tareas, cómo se materializa cada tarea, cómo se compila y se corrige) lo define `template-system/README.md` y los ficheros que él referencie. Los subagentes los **leen de disco**; el skill **MUST NOT** asumirlos, restatarlos ni hardcodearlos aquí. El skill solo pasa a cada subagente **las rutas** de los ficheros de entrada y su rol.
+**Carpeta de plantillas activa (por frontmatter `template:`).** Este skill trae una carpeta `template-<nombre>/` por cada tipo de artefacto implementable; **no conoce sus nombres** (crear un tipo nuevo = crear su carpeta, sin tocar este skill). Cada plantilla define una arquitectura distinta y **MUST NOT** mezclarse. La activa se resuelve así, **antes** de cargar el contrato (Fase 1):
+
+1. `--template-dir=<ruta>` explícito → esa carpeta (válvula de testing). **ERROR** si apunta a otra carpeta `template-*/` de este skill **distinta** de la que declara la iniciativa (mezcla de arquitecturas, STOP condition).
+2. Sin flag → lee la clave `template:` del frontmatter del **`design.md` de entrada** (el diseño la hereda de la spec) y usa `template-<valor>/`; si el `design.md` no la trae (diseño anterior a este contrato), léela del `specification.md` de la carpeta de la iniciativa; si tampoco → pregúntala con `AskUserQuestion` (una opción por carpeta `template-*/` del skill). Si `template-<valor>/` no existe en este skill → **ERROR** indicando las disponibles o que se pase `--template-dir=`.
+3. **Valor reservado `template: external`** (la iniciativa se especificó con un `--template-dir` externo): la plantilla activa **solo** puede venir de `--template-dir=`, apuntando a la carpeta externa que corresponda a **este** skill. Si el flag no viene → **ERROR** y detente pidiéndolo; **MUST NOT** preguntar la plantilla, **MUST NOT** caer a una carpeta interna (mezclaría arquitecturas en silencio) y **MUST NOT** buscarse `template-external/`. `external` no es una ruta ni una clave ausente: cada skill tiene su propia carpeta de plantillas, así que la ruta externa de un skill no designa nada en otro.
+
+**En todo el resto del skill, `<plantilla-activa>/README.md` denota «el `README.md` de la carpeta de plantillas activa» resuelta aquí.**
+
+Todo lo específico de la implementación (qué contiene el diseño, cómo se descompone en tareas, cómo se materializa cada tarea, cómo se compila y se corrige) lo define `<plantilla-activa>/README.md` y los ficheros que él referencie. Los subagentes los **leen de disco**; el skill **MUST NOT** asumirlos, restatarlos ni hardcodearlos aquí. El skill solo pasa a cada subagente **las rutas** de los ficheros de entrada y su rol.
 
 **CRITICAL — `README.md` es el ÚNICO fichero de la plantilla que el motor conoce por nombre.** El skill **MUST NOT** nombrar, leer, resolver ni **ejecutar** ningún otro fichero de la plantilla (ni los documentos que el README referencie, ni ningún comando de compilación o validación que la plantilla traiga). Esos los descubren y usan **los subagentes** leyendo el `README.md`. En particular:
 
@@ -117,7 +127,7 @@ Todo lo específico de la implementación (qué contiene el diseño, cómo se de
 - **MUST NOT** añadir "pasos de `Bash`" en este skill que compilen, copien XML al árbol o corran herramientas específicas de la implementación. El motor solo usa `Bash`/`Write` para orquestación **agnóstica** (listar `.sdd/drafts/`, comprobar que existe `design/design.md`, y escribir su propio **log** `log_build.txt` — §10), nunca para materializar ni compilar el código.
 - Único acoplamiento permitido por nombre: `README.md` (contrato de la plantilla) y el contrato fijo de entrada `design.md` (`type: design`).
 
-**REQUIRED — el README de la plantilla es leído por los cuatro roles.** Este skill lanza **cuatro** subagentes con tareas distintas: **descomponedor** (escribe las tareas), **implementador** (materializa una tarea), **verificador-build** (compila y reporta) y **corrector-build** (corrige errores de compilación) — ver §2.3, §7, §9, §10. Los cuatro reciben las mismas rutas de entrada y **leen el mismo `README.md`**, pero cada uno hace una cosa distinta y necesita un subconjunto distinto de sus ficheros. Por tanto, **cualquier `README.md` de plantilla** (la `template-system/` actual o una futura apuntada con `--template-dir=`) **MUST** estar redactado teniendo en cuenta esos cuatro roles: debe delimitar, por rol, qué tarea hace y qué ficheros de la plantilla le aplican. Un README que solo contemple al descomponedor es **incompleto** para este skill.
+**REQUIRED — el README de la plantilla es leído por los cuatro roles.** Este skill lanza **cuatro** subagentes con tareas distintas: **descomponedor** (escribe las tareas), **implementador** (materializa una tarea), **verificador-build** (compila y reporta) y **corrector-build** (corrige errores de compilación) — ver §2.3, §7, §9, §10. Los cuatro reciben las mismas rutas de entrada y **leen el mismo `README.md`**, pero cada uno hace una cosa distinta y necesita un subconjunto distinto de sus ficheros. Por tanto, **cualquier `README.md` de plantilla** (cualquier `template-<nombre>/` del skill o una externa apuntada con `--template-dir=`) **MUST** estar redactado teniendo en cuenta esos cuatro roles: debe delimitar, por rol, qué tarea hace y qué ficheros de la plantilla le aplican. Un README que solo contemple al descomponedor es **incompleto** para este skill.
 
 ### 2.3 Orquestación de subagentes
 
@@ -185,9 +195,9 @@ Si el usuario invoca con una ruta a un `design.md`:
 
 ## 5. Fase 1 — Cargar el contrato y validar el diseño
 
-1. **REQUIRED — lee con `Read` la guía `template-system/README.md`** (resuelta contra `--template-dir`): confirma que existe (si no → **ERROR**, STOP condition) y entiende, a alto nivel, qué rol pide a cada subagente. **No** necesitas memorizar su contenido: los subagentes la leerán de disco. Es el **único fichero que el skill conoce por nombre**; el README referencia los demás ficheros de la plantilla, que los subagentes seguirán.
+1. **REQUIRED — lee con `Read` la guía `<plantilla-activa>/README.md`** (resuelta según §2.2: el frontmatter `template:` del `design.md` de entrada, o `--template-dir`): confirma que existe (si no → **ERROR**, STOP condition) y entiende, a alto nivel, qué rol pide a cada subagente. **No** necesitas memorizar su contenido: los subagentes la leerán de disco. Es el **único fichero que el skill conoce por nombre**; el README referencia los demás ficheros de la plantilla, que los subagentes seguirán.
 2. **Resolver las rutas de entrada** que se pasarán a los subagentes (no su contenido):
-   - la ruta de la guía `template-system/README.md` (las **reglas para la implementación**),
+   - la ruta de la guía `<plantilla-activa>/README.md` (las **reglas para la implementación**),
    - la ruta de `design.md` (el **diseño**) y, por extensión, su carpeta `design/`.
 3. **Validar el frontmatter del diseño.** Lee el `design.md`. Debe comenzar con un bloque `---` … `---` que contenga la línea `type: design` (puede haber más campos). Si no lo contiene, **STOP** y muestra este **ERROR**, sin continuar:
 
@@ -207,7 +217,7 @@ No hay más preparación: el skill no carga skills técnicos ni explora el códi
 
 Cada prompt de subagente (§7, §9, §10) **MUST** pasar, además de su tarea específica:
 
-- **Reglas para la implementación**: `lee {ruta de template-system/README.md} y todos los ficheros que referencie. Es el contrato: define qué hacer, cómo y con qué estructura. Síguelo al pie de la letra.`
+- **Reglas para la implementación**: `lee {ruta de <plantilla-activa>/README.md} y todos los ficheros que referencie. Es el contrato: define qué hacer, cómo y con qué estructura. Síguelo al pie de la letra.`
 - **Diseño**: `lee la carpeta {iniciativa}/design (sobre todo design.md) y los ficheros que el contrato indique.`
 - **MUST NOT** usar `AskUserQuestion`: ante una duda que no puedan resolver, lo reportan con el token de bloqueo de su rol (el motor lleva la decisión al usuario).
 
@@ -221,7 +231,7 @@ Cada prompt de subagente (§7, §9, §10) **MUST** pasar, además de su tarea es
 
 > Eres un experto arquitecto en Java y el framework Axelor, que tienes que **descomponer un diseño en una lista de tareas de implementación** siguiendo unas reglas.
 >
-> - **Reglas para la descomposición**: lee `{ruta de template-system/README.md}` y **todos los ficheros que referencie** —en particular el contrato de **descomposición**—. Define qué tareas crear, cómo agrupar los ficheros, qué skills lleva cada tarea, qué texto del diseño copiar **verbatim** en cada una, la propagación de los ficheros de contrato hacia abajo, las plantillas exactas de cada fichero a escribir y el checklist. Síguelo al pie de la letra.
+> - **Reglas para la descomposición**: lee `{ruta de <plantilla-activa>/README.md}` y **todos los ficheros que referencie** —en particular el contrato de **descomposición**—. Define qué tareas crear, cómo agrupar los ficheros, qué skills lleva cada tarea, qué texto del diseño copiar **verbatim** en cada una, la propagación de los ficheros de contrato hacia abajo, las plantillas exactas de cada fichero a escribir y el checklist. Síguelo al pie de la letra.
 > - **Diseño**: lee la carpeta `{iniciativa}/design` —sobre todo `design.md` y los ficheros que el contrato indique (XML materializados, descripciones de tests, reglas complejas, tests E2E)—.
 > - **Salida**: escribe en `{iniciativa}/implementation/` la lista de tareas, su índice y los ficheros propagados, con la estructura exacta que define el contrato. **MUST NOT** materializar código en `src/...` (eso es de los implementadores).
 > - **MUST NOT** usar `AskUserQuestion`. Ante una ambigüedad, toma la decisión más razonable y documéntala dentro de la propia tarea.
@@ -254,7 +264,7 @@ Recorre la lista ordenada de tareas (la que devolvió el descomponedor en `=== T
 
 > Eres un experto arquitecto en Java y el framework Axelor, que tienes que **materializar una tarea de implementación** en el árbol del proyecto siguiendo unas reglas.
 >
-> - **Reglas para la implementación**: lee `{ruta de template-system/README.md}` y **todos los ficheros que referencie** —en particular el contrato de **materialización** (cómo colocar los XML ya materializados, cómo fusionar/validar, y cómo delegar el código Java y los tests en `developer-code-implementer` cargando antes los skills de la tarea)—. Síguelo al pie de la letra.
+> - **Reglas para la implementación**: lee `{ruta de <plantilla-activa>/README.md}` y **todos los ficheros que referencie** —en particular el contrato de **materialización** (cómo colocar los XML ya materializados, cómo fusionar/validar, y cómo delegar el código Java y, si la plantilla lo prevé, sus tests en `developer-code-implementer` cargando antes los skills de la tarea)—. Síguelo al pie de la letra.
 > - **Diseño**: la carpeta `{iniciativa}/design` (los XML materializados de los que dependa esta tarea son **contrato fijo**: si el contrato manda colocarlos, se copian/fusionan **tal cual**, **NO** se regeneran).
 > - **Tarea a implementar**: `{ruta de la tarea, p.ej. {iniciativa}/implementation/task_03.md}`. Léela entera (skills a usar + texto del diseño verbatim) y materialízala según el contrato.
 > - **OBLIGATORIO**: si la tarea lista skills en su sección de skills, **cárgalos con la herramienta `Skill` antes de implementar nada** y, si el contrato lo indica, **invoca `developer-code-implementer`** pasándole el texto de la tarea **verbatim**. **MUST NOT** empezar a implementar sin haber cargado esos skills.
@@ -329,7 +339,7 @@ Tras materializar todas las tareas, verifica que el proyecto compila (y que sus 
 
 > Eres un experto en build de proyectos Java/Gradle sobre el framework Axelor, que tienes que **compilar el proyecto y reportar el resultado**.
 >
-> - **Reglas para el build**: lee `{ruta de template-system/README.md}` y **los ficheros que referencie** —en particular el contrato de **build**: con qué comando se compila, qué cuenta como éxito y cómo reportar los errores—. **Ejecuta tú mismo** el comando de compilación que la plantilla prescriba.
+> - **Reglas para el build**: lee `{ruta de <plantilla-activa>/README.md}` y **los ficheros que referencie** —en particular el contrato de **build**: con qué comando se compila, qué cuenta como éxito y cómo reportar los errores—. **Ejecuta tú mismo** el comando de compilación que la plantilla prescriba.
 > - **MUST NOT** corregir nada: solo **compilas y reportas**.
 >
 > **Formato de salida (REQUIRED)**:
@@ -354,7 +364,7 @@ Tras materializar todas las tareas, verifica que el proyecto compila (y que sus 
 
 > Eres un experto arquitecto en Java y el framework Axelor, que tienes que **corregir los errores de compilación** reportados. Deberás indicar de la forma más clara posible los errores que has corregido.
 >
-> - **Reglas para el build y la implementación**: lee `{ruta de template-system/README.md}` y los ficheros que referencie (en particular qué puedes y qué **no** puedes tocar al corregir).
+> - **Reglas para el build y la implementación**: lee `{ruta de <plantilla-activa>/README.md}` y los ficheros que referencie (en particular qué puedes y qué **no** puedes tocar al corregir).
 > - **Diseño**: la carpeta `{iniciativa}/design` —los XML materializados son **contrato fijo**: **MUST NOT** editarlos para que cuadre el Java; corrige el Java para que cuadre con ellos. Si el error **solo** se puede resolver cambiando el diseño (un XML del diseño está mal o es inconsistente, el diseño referencia algo que él mismo no define, reglas contradictorias…), **MUST NOT** editar el diseño ni adivinar: responde en la **primera línea** con `DESIGN-ERROR: {motivo detallado}` (qué fichero del diseño, qué es inconsistente y por qué no se puede arreglar con código) y termina (§9.1).
 > - **Errores a corregir** (los reportó el verificador-build, en JSONL, un error por línea): `{líneas JSONL literales del verificador-build}`. Resuelve cada línea; si el contrato lo indica, delega la corrección del código Java en `developer-code-implementer` cargando antes los skills de dominio aplicables.
 > - **MUST NOT** usar `AskUserQuestion`: ante un bloqueo del entorno, descríbelo en tu respuesta y termina; ante un error del diseño, usa el token `DESIGN-ERROR` (arriba).
@@ -372,15 +382,15 @@ Tras materializar todas las tareas, verifica que el proyecto compila (y que sus 
 Implementación completada en .sdd/drafts/{carpeta-iniciativa}/
 
   - implementation/ : tareas e índice (+ ficheros de contrato propagados según la plantilla)
-  - código real escrito en src/main/... y src/test/...
+  - código real escrito en el árbol del proyecto (src/main/... y, si la plantilla lo prevé, src/test/...)
 
 Tareas generadas e implementadas: N.
-Build: {OK-COMPILA tras M iteración(es) | NO limpio tras 3 iteraciones — ver implementation/log_build.txt}.
+Build: {OK-COMPILA tras M iteración(es) | NO limpio tras 20 iteraciones — ver implementation/log_build.txt}.
 
-Los artefactos del draft se mantienen en .sdd/drafts/{carpeta-iniciativa}/ — no se ha archivado nada en .sdd/specs/.
+Los artefactos del draft se mantienen en .sdd/drafts/{carpeta-iniciativa}/ — no se ha archivado nada en .sdd/archive/.
 Si la plantilla propagó tests E2E a implementation/, puedes ejecutarlos contra la aplicación real con /sdd-debug-with-test-e2e-desc.
 
-Para cerrar la iniciativa (archivar en .sdd/specs/ y actualizar los CLAUDE.md afectados) ejecuta:
+Para cerrar la iniciativa (archivar el draft verbatim en .sdd/archive/) ejecuta:
   /sdd-close
 ```
 
@@ -396,9 +406,9 @@ Ajusta la lista de ficheros a la estructura real que define la plantilla.
 
 ## Quick Guidelines
 
-- **CRITICAL — agnosticismo**: este SKILL es un **motor de flujo**; **no sabe nada de cómo se descompone ni se materializa el diseño**. Todo lo específico lo define `template-system/README.md` (configurable con `--template-dir`), que **leen los subagentes** de disco. **MUST NOT** nombrar aquí ficheros, plantillas, comandos ni rutas de la implementación. Único contrato fijo: entrada `design.md` (`type: design`); salida en `implementation/` y en el árbol del proyecto.
+- **CRITICAL — agnosticismo**: este SKILL es un **motor de flujo**; **no sabe nada de cómo se descompone ni se materializa el diseño**. Todo lo específico lo define `<plantilla-activa>/README.md` (configurable con `--template-dir`), que **leen los subagentes** de disco. **MUST NOT** nombrar aquí ficheros, plantillas, comandos ni rutas de la implementación. Único contrato fijo: entrada `design.md` (`type: design`); salida en `implementation/` y en el árbol del proyecto.
 - **Localizar** (§4): ruta explícita, o auto-detectar la **última** iniciativa de `.sdd/drafts/` con `design/design.md` y **confirmar** con `AskUserQuestion`. **MUST NOT** usar `mtime`.
-- **Cargar y validar** (§5): lee solo `template-system/README.md`; valida `type: design` en el frontmatter (si no → **ERROR**).
+- **Cargar y validar** (§5): lee solo `<plantilla-activa>/README.md`; valida `type: design` en el frontmatter (si no → **ERROR**).
 - **Descomponer** (§7): **un** subagente descomponedor escribe `implementation/`; responde `ESCRITO: implementation/` + bloque `=== TAREAS ===` (una línea por tarea, en orden). **MUST NOT** materializar código.
 - **Informar** (§8): muestra el resumen de tareas y **continúa automáticamente**; si todo va bien **MUST NOT** pedir aprobación. Solo se interrumpe ante excepciones (`CONFLICT`/`BLOCKED`, build que no compila).
 - **Implementar** (§9): **un subagente implementador por tarea, en orden** (nunca en paralelo ni `run_in_background`). Cada uno carga los skills de su tarea y, si el contrato lo dice, invoca `developer-code-implementer`. Responde `DONE` / `CONFLICT` / `BLOCKED` / `DESIGN-ERROR`; el motor lleva `CONFLICT`/`BLOCKED` al usuario.
@@ -411,8 +421,8 @@ Ajusta la lista de ficheros a la estructura real que define la plantilla.
 
 ## Apéndice A — Override de rutas (para testing y versatilidad)
 
-- `--template-dir=<ruta>` — **carpeta de plantillas** alternativa a `template-system/`. **MUST** contener un `README.md` (la guía, que declara todo lo específico y referencia los demás ficheros); si falta → **ERROR** y detente. El skill resuelve `README.md` contra esta carpeta y pasa esa ruta a los subagentes; **MUST NOT** resolver ni ejecutar ningún otro fichero de la carpeta (cualquier comando de build/validación lo descubre y ejecuta el subagente vía el README — §2.2). Ese `README.md` **MUST** estar redactado para los **cuatro roles** (descomponedor, implementador, verificador-build, corrector-build). Permite usar el mismo flujo con otro tipo de artefacto sin tocar el código del skill.
+- `--template-dir=<ruta>` — **carpeta de plantillas** alternativa a la resuelta en §2.2. Tiene prioridad, salvo la mezcla de plantillas prohibida (§2.2 → **ERROR**). Es además **obligatorio** cuando la iniciativa declara `template: external` (§2.2): sin él → **ERROR**. **MUST** contener un `README.md` (la guía, que declara todo lo específico y referencia los demás ficheros); si falta → **ERROR** y detente. El skill resuelve `README.md` contra esta carpeta y pasa esa ruta a los subagentes; **MUST NOT** resolver ni ejecutar ningún otro fichero de la carpeta (cualquier comando de build/validación lo descubre y ejecuta el subagente vía el README — §2.2). Ese `README.md` **MUST** estar redactado para los **cuatro roles** (descomponedor, implementador, verificador-build, corrector-build). Permite usar el mismo flujo con otro tipo de artefacto sin tocar el código del skill.
 - `--in=<ruta>` — fichero `design.md` de entrada explícito. **Desactiva la auto-detección** de la Fase 0 caso 2. La "carpeta de la iniciativa" es la que contiene la subcarpeta `design/` de ese fichero.
 - `--root=<ruta>` — raíz alternativa a `.sdd/drafts/`. Las rutas relativas se resuelven contra esta raíz.
 
-En uso normal no se especifican: se usa la carpeta `template-system/` del skill, la carpeta de la iniciativa y `.sdd/drafts/`.
+En uso normal no se especifican: se usa la carpeta de plantillas resuelta por el frontmatter `template:`, la carpeta de la iniciativa y `.sdd/drafts/`.

@@ -7,7 +7,8 @@ description: Cómo se IMPLEMENTAN en código Java y XML las restricciones (`RES-
 
 Las restricciones, validaciones, reglas de negocio, reglas de UI y campos calculados de una entidad se **definen y clasifican en la especificación** (`/sdd-specification`), cada una con su identificador estable (`RES-`/`VAL-`/`RN-`/`RUI-`/`CC-`). Este skill describe **únicamente cómo se materializan en código y XML**: en qué capa vive cada tipo y con qué mecanismo. Lo cargan los skills `sdd-*` y `developer-*` al implementar.
 
-**MUST NOT** reabrir aquí qué es cada tipo, cómo se distinguen ni cómo se documentan: para eso, la spec y su guía `sdd-specification/template-system/README.md`.
+**MUST NOT** reabrir aquí qué es cada tipo, cómo se distinguen ni cómo se documentan: para eso, la spec y el `README.md` de la carpeta de plantillas con la que se escribió (la que declare su frontmatter `template:` — `sdd-specification/template-<nombre>/README.md`).
+Cada plantilla usa su propio subconjunto de prefijos: la de **expediente**, por ejemplo, no usa `RES-`.
 
 ---
 

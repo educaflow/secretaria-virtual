@@ -104,6 +104,11 @@ src/main/java/com/educaflow/…     ← correcciones de código Java (las escrib
 
 El índice es la fuente del **progreso reanudable**: un test que pasa se marca `[x]`.
 
+> **En esta familia NO hay tests manuales.**
+> El motor admite un tercer estado `- [-]` («no automatizable»: requiere una persona) y delega en el contrato decidir qué test lo merece; **esta plantilla no declara ninguno**: todo test de un sistema/subsistema se pilota entero desde el navegador, así que el índice solo usa `- [ ]` y `- [x]`.
+> - El **descomponedor** **MUST NOT** escribir nunca una línea `- [-]`: todas nacen `- [ ]` (`decomposition.md` §3).
+> - El **corrector** **MUST NOT** devolver el token `MANUAL` (`correction.md` §4); un locator que no se encuentra, un timing o un mensaje que no coincide son fallos a **corregir**, no tests manuales.
+
 ---
 
 ## 4. Gestión de la app — la ejecuta el MOTOR

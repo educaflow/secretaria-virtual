@@ -51,16 +51,19 @@ Cada línea **MUST** ser JSON válido en una sola línea (escapa los saltos como
 El corrector-build resuelve cada línea JSONL. Reglas duras:
 
 - **MUST** corregir **solo código Java** (producción o tests). Si el contrato de dominio lo aconseja, delega en `developer-code-implementer` cargando antes los skills de la tarea de origen (`tarea`).
-- **MUST NOT** editar los XML del diseño ya colocados (dominios, vistas, `menus.xml`): son **contrato fijo** (`implementation.md` §1/§4). Si un error apunta a que un XML está mal, **detente y repórtalo** en tu respuesta (no lo edites) — hay que volver a `/sdd-designer`.
+- **CRITICAL — los XML del diseño ya colocados son contrato fijo** (dominios, vistas, `menus.xml`; `implementation.md` §1/§4).
+  **MUST NOT** editarlos para que cuadre el Java: se corrige el Java para que cuadre con ellos.
+  Si un error **solo** se puede resolver cambiando el diseño (un XML del diseño está mal o es inconsistente, el diseño referencia algo que él mismo no define, dos reglas se contradicen), **MUST NOT** editarlo ni adivinar: responde en la **primera línea** `DESIGN-ERROR: {motivo detallado}` —qué fichero del diseño, qué es inconsistente y por qué no se puede arreglar con código— y termina.
+  El motor detecta esa primera línea, escribe `implementation/error_design.log` y **detiene el skill** (`SKILL.md` §9.1): corregirlo es trabajo de `/sdd-designer`.
 - Ante un error de **test** (`tipo: TEST`): decide si el fallo es del **código de producción** (corrige la producción) o del **test mal generado** (corrige el test para que refleje la descripción de `design/test-unit-desc.md`). **MUST NOT** debilitar un test para que pase si el fallo real está en la producción.
 - **CRITICAL — no legitimar superficie no diseñada**: ante un error tipo *"method does not override or implement a method from a supertype"* (o un `@Override`/firma que no cuadra con su interfaz/supertipo), **MUST NOT** ampliar la interfaz/supertipo ni crear el método para que el `@Override` compile **sin antes comprobar el origen del método**. Comprueba si figura en la `task` de origen del error o en `design.md`:
   - Si **sí** figura → alinéalo con la firma del diseño.
   - Si **NO** figura (es superficie inventada por una tarea previa — método, controlador o clase de más) → **elimínalo del impl** y de cualquier llamador (controlador/acción) que lo use, en vez de añadirlo a la interfaz. La vía barata —ampliar la API para que el `@Override` compile— **consolida el invento**; **MUST NOT** tomarla.
   - **CRITICAL — guarda anti-borrado**: antes de eliminar cualquier superficie "inventada", **MUST** comprobar con `git diff`/`git log` del fichero si el método/clase **preexistía a la iniciativa**. Si preexistía → **MUST NOT** eliminarlo (no es un invento: es código de producción que la iniciativa no debía tocar); **detente y repórtalo** en tu respuesta. Solo es eliminable la superficie que el diff de **esta** iniciativa añadió.
   - Si no puedes determinar el origen → **detente y repórtalo** en tu respuesta (no adivines).
-- **MUST NOT** usar `AskUserQuestion`: ante un bloqueo, descríbelo en tu respuesta y termina (el motor lo lleva al usuario).
+- **MUST NOT** usar `AskUserQuestion`: ante un bloqueo **del entorno**, descríbelo en tu respuesta y termina (el motor lo lleva al usuario); ante un error **del diseño**, usa el token `DESIGN-ERROR` de la primera línea (arriba).
 
-Tras corregir, el motor relanza el verificador-build (§1). El bucle tiene **LIMIT 3** iteraciones (lo controla `SKILL.md` §10); si los mismos errores se repiten entre iteraciones, el motor para y pregunta al usuario.
+Tras corregir, el motor relanza el verificador-build (§1). El bucle tiene **LIMIT 20** iteraciones (lo controla `SKILL.md` §10); si los mismos errores se repiten entre iteraciones, el motor para y pregunta al usuario.
 
 ---
 

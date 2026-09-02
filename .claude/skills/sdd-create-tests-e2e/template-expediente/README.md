@@ -189,9 +189,12 @@ Al copiar un `t-NNN-<slug>.desc.md` de `test-e2e-desc/` al destino, el motor **a
 <!-- ARTEFACTO GENERADO por /sdd-create-tests-e2e — NO editar a mano.
      Snapshot "as-tested": copia de la descripción que pasó al depurar con /sdd-debug-with-test-e2e-desc.
      Fuente: .sdd/drafts/{carpeta-iniciativa}/test-e2e-desc/{fichero}.desc.md
+     Iniciativa: {carpeta-iniciativa}
      Test: {T-NNN}  |  Origen ESC: {ESC-NNN, leído de la línea "Origen ESC:" del propio fichero}
      Para regenerar: /sdd-create-tests-e2e (sobrescribe desde la fuente). -->
 ```
+
+**CRITICAL — `Iniciativa:` es parte de la identidad del test, no decoración.** Varias iniciativas comparten esta carpeta (una modificación de la versión escribe donde ya hay tests de quien la creó), y `T-NNN` y `ESC-NNN` son **locales a cada iniciativa**: sin este campo, dos tests distintos con el mismo `T-001`/`ESC-001` se confundirían y el nuevo se descartaría como "ya materializado". Su valor es el **nombre de la carpeta** de la iniciativa, sin `.sdd/drafts/` ni barra final. **MUST NOT** omitirse ni abreviarse.
 
 **Variante para un test MANUAL** (el que venía `- [-]` en el índice, §3.4). El banner de arriba afirma que la descripción **pasó** al depurar, y en un test manual eso es **falso**: nadie lo ha ejecutado. Para esos, el motor sustituye la segunda línea por estas dos:
 
@@ -214,13 +217,20 @@ Tras dejar verdes y verificados todos los tests de la iniciativa (y **antes** de
 npx playwright test src/test/e2e --project=chromium --reporter=line
 ```
 
-**CRITICAL — en un tipo de expediente NO hay tests supersedidos.** El `design.md` de un expediente **no declara** ninguna sección de supersedidos, y no la necesita: una versión nueva (`<vN+1>`) vive en **su propia carpeta** de código y de tests, así que **no invalida** los tests de la anterior. Por tanto:
+**CRITICAL — una versión NUEVA nunca superseda; una MODIFICACIÓN in situ sí puede.** Son los dos únicos casos, y se distinguen por el `design.md`:
 
-- **Todo** test de otra iniciativa que salga rojo es una **REGRESIÓN**: el motor **MUST** reportarlo al usuario y **parar**, sin retirar ningún test y sin tocar código.
-- **MUST NOT** retirar (`git rm`) ningún par `.desc.md` + `.spec.ts` bajo ninguna interpretación: en esta plantilla el motor **nunca** retira tests.
-- Salidas ante una regresión: `/sdd-debug-with-test-e2e-desc` si el arreglo es de código, o `/sdd-designer` en modo Revisar si el fallo es del diseño. Si el cambio de comportamiento era **intencionado** y el test viejo ya no aplica, retirarlo es una **decisión del usuario fuera de este pipeline**.
+- Una versión nueva (`<vN+1>`) vive en **su propia carpeta** de código y de tests, así que **no invalida** los tests de la anterior. Su `design.md` **no** lleva subsección de supersedidos.
+- Una **modificación in situ** de una versión existente (el `design.md` trae la fila «Modificación de» en su sección «Identidad del trámite y del tipo») cambia la versión **bajo los tests que ya existen de ella**, así que puede invalidar alguno **a propósito**. Esos —y solo esos— los declara su `design.md` en la subsección `### Tests E2E supersedidos` de `## 13. Tests` (`sdd-designer/template-expediente/design-contract.md` §15.3), cada línea con la ruta del `.spec.ts`, el ID de spec que lo invalida y el motivo.
+
+Por cada test **de otra iniciativa** que salga rojo:
+
+- Si su ruta figura en `### Tests E2E supersedidos` del `design.md` de **esta** iniciativa → el delta lo invalidó a propósito: el motor **retira** el par (`git rm` del `.desc.md` y del `.spec.ts`) y lo lista en el informe final como "supersedido por {ID de spec}".
+- Si **no** figura → es una **REGRESIÓN**: el motor **MUST** reportarlo al usuario y **parar**, sin retirar el test y sin tocar código. Salidas: `/sdd-debug-with-test-e2e-desc` si el arreglo es de código, `/sdd-designer` en modo Revisar si el fallo es del diseño, o declarar el superseding en el diseño si el cambio de comportamiento era intencionado y se olvidó declarar.
+
+**MUST NOT** retirar un par que no esté declarado, ni siquiera "porque ya hay una versión nueva": es exactamente lo que oculta una regresión. Si no hay `design.md` (modo `--out=`, sin draft completo) no existe la subsección: **MUST** tratar **cualquier** rojo ajeno como REGRESIÓN y **MUST NOT** retirar nada.
 
 Un test rojo **de esta misma iniciativa** en este punto no debería existir (todos pasaron el bucle generar→verificar→sanar); si ocurre, trátalo como FAIL normal del bucle (§4.4).
 
-- ✅ CORRECTO: un `t-0NN-*.spec.ts` de la `v1` sale rojo tras implementar la `v2` → **REGRESIÓN**: reportar y parar (la `v2` no debería haber tocado la `v1`).
-- ❌ INCORRECTO: retirar ese test porque "ya hay una versión nueva" (oculta que la `v2` rompió la `v1`), o dar el skill por terminado sin ejecutar la suite completa.
+- ✅ CORRECTO: un `t-0NN-*.spec.ts` de la `v1` sale rojo tras implementar la `v2` → **REGRESIÓN**: reportar y parar (la `v2` no debería haber tocado la `v1`; su `design.md` no puede supersedir tests de otra versión).
+- ✅ CORRECTO: `t-004-rechazo-sin-motivo.spec.ts` de la `v1` sale rojo tras una **modificación** de la `v1` que hace obligatorio el motivo, y está listado como supersedido por `VAL-012` → retirar el par y reportarlo.
+- ❌ INCORRECTO: retirar un rojo ajeno que **no** está declarado como supersedido, o dar el skill por terminado sin ejecutar la suite completa.

@@ -60,6 +60,8 @@ Un `CONFLICT` **sí** procede cuando el destino existía **antes de esta iniciat
 
 Para una fila con `Acción: Modificar` cuyo destino **no exista**, responde `BLOCKED: {tarea} — la base que el diseño asume no existe: {ruta destino}`.
 
+**Iniciativa de MODIFICACIÓN de una versión existente** (el diseño la declara con la fila «Modificación de» de su sección «Identidad del trámite y del tipo»): sobrescribir con una fila `Modificar` un fichero real con contenido propio **es lo esperado y no es un `CONFLICT`** — el diseño materializó ese XML completo tomando el fichero real como base más el delta. **MUST NOT** tocarse ningún fichero de la carpeta de versión que no tenga fila en la tabla del diseño.
+
 ---
 
 ## 3. La tarea de `CreateFilesTask`
@@ -140,7 +142,7 @@ Procedimiento:
 - **MUST NOT** escribirse a mano el data-init de trámites ni de tipos de expediente: lo generan `generateDataInitTramites` y `generateDataInitTiposExpedientes` en `build/`, y se recargan en cada arranque.
 - **MUST NOT** crearse una carpeta `documentospdf/originales/` ni añadirse `.pdf` binarios: un impreso oficial de partida es material aportado a mano, no producto de la implementación.
 - **MUST NOT** añadirse una `<permission name="<Entidad>.all">` a `auth-expedientes.xml` si el diseño no lo pide; y si lo pide, **MUST NOT** copiarse el patrón `create/read/write/remove` **sin `condition`**: es un agujero conocido documentado en `CLAUDE.md`.
-- **MUST NOT** escribirse nada bajo `src/test/...` (`tests-code.md`).
+- **MUST NOT** escribirse nada bajo `src/test/...`, **salvo la excepción de `tests-code.md` §4** (el test de una clase auxiliar de lógica de negocio pura y aislable, cuando la tarea lo pide explícitamente); esa tarea se materializa como cualquier otra tarea de código (§4).
 - **MUST NOT** aplicarse a los `views.xml` de un tipo de expediente las reglas `VAR-` de `agent_docs/view-rules.md` ni las convenciones de `k-vistas`: estas vistas son **preprocesadas** y están excluidas.
 
 ### 6.1 `GenerateDocs` tras tocar un `.puml`

@@ -15,7 +15,7 @@ Este `README.md` es **el único fichero que el skill conoce por nombre**. **Lo l
 
 A través de este README cada subagente descubre y lee **solo los ficheros de esta carpeta que su tarea necesita** (§2). **MUST NOT** copiarse ningún bloque explicativo de esta plantilla al `design.md` de salida.
 
-> **Contrato fijo (lo garantiza el skill, no lo cambia esta plantilla):** la entrada es `specification.md` (`type: specification`) y la salida es una **carpeta `design/`** dentro de la carpeta de la iniciativa, cuyo índice es `design.md` con frontmatter `type: design`. Todo lo demás (el resto de la estructura de `design/`, la conversión técnica, las pasadas, la validación) lo define esta plantilla.
+> **Contrato fijo (lo garantiza el skill, no lo cambia esta plantilla):** la entrada es `specification.md` (`type: specification`) y la salida es una **carpeta `design/`** dentro de la carpeta de la iniciativa, cuyo índice es `design.md` con frontmatter `type: design` más la clave `template:` copiada del `specification.md` de la iniciativa. Todo lo demás (el resto de la estructura de `design/`, la conversión técnica, las pasadas, la validación) lo define esta plantilla.
 
 ---
 
@@ -174,6 +174,7 @@ Los skills son la fuente de verdad sobre **qué piezas existen y cómo se llaman
 - `src/main/java/com/educaflow/subsystem/` y `src/main/java/com/educaflow/system/` — qué reutilizar (FQN, dependencias) y dependencias potenciales.
 - `src/main/java/com/educaflow/base/infrastructure/` — utilidades reutilizables (PDF, mail, evaluator, etc.).
 - Si la spec declara `**Modifica:** <capa>/<nombre>`, el diseñador **MUST** explorar a fondo ese sistema real (sus `domains/`, `views/`, servicios, controladores y menús): es la **base** de todas las filas `Modificar` (`design-contract.md` §1.3).
+- `src/test/e2e/<capa>/<sistema>/` — los tests E2E que iniciativas anteriores persistieron de ese mismo sistema. El diseñador **MUST** leerlos (nunca escribirlos) para numerar sus `T-NNN` desde el primer libre (`tests-e2e.md` §1) y para declarar en `## Tests E2E supersedidos` los que el delta invalida a propósito (`design-contract.md` §1.3).
 - **MUST NOT** usar como referencia el código de `expedientes`/`tramites` (siguen otra arquitectura) ni `design.md`/XML de diseños previos como plantilla — **salvo lectura** de las iniciativas archivadas que `design-guidelines.md` cite explícitamente (solo para respetar sus decisiones, nunca como plantilla de estructura).
 
 Cada subagente que necesite este contexto (sobre todo el diseñador) lo **carga él mismo** leyendo estos skills y explorando el código real; no se le copia código, se le indica dónde mirar.

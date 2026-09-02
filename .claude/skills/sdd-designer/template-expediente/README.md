@@ -15,7 +15,7 @@ Este `README.md` es **el único fichero que el motor conoce por nombre**. **Lo l
 
 A través de este README cada subagente descubre y lee **solo los ficheros de esta carpeta que su tarea necesita** (§1, §2). **MUST NOT** copiarse ningún bloque explicativo de esta plantilla al `design.md` de salida.
 
-> **Contrato fijo (lo garantiza el motor, no lo cambia esta plantilla):** la entrada es `specification.md` (frontmatter `type: specification`) y la salida es una **carpeta `design/`** dentro de la carpeta de la iniciativa, cuyo índice es `design.md` con frontmatter `type: design`. Todo lo demás (el resto de la estructura de `design/`, la conversión spec→diseño, la validación, los tests) lo define esta plantilla.
+> **Contrato fijo (lo garantiza el motor, no lo cambia esta plantilla):** la entrada es `specification.md` (frontmatter `type: specification`) y la salida es una **carpeta `design/`** dentro de la carpeta de la iniciativa, cuyo índice es `design.md` con frontmatter `type: design` más la clave `template:` copiada del `specification.md` de la iniciativa. Todo lo demás (el resto de la estructura de `design/`, la conversión spec→diseño, la validación, los tests) lo define esta plantilla.
 
 ---
 
@@ -143,7 +143,7 @@ La salida es una **carpeta** `design/` dentro de la carpeta de la iniciativa. **
 
 Lo único que este README fija, porque es contrato con el motor y con los skills de aguas abajo:
 
-- El **índice** se llama `design.md` y lleva frontmatter `type: design`. Es lo que el motor usa para localizar y validar el diseño, y lo que consume `/sdd-implementer`.
+- El **índice** se llama `design.md` y lleva frontmatter `type: design` más la clave `template:` copiada de la spec. Es lo que el motor usa para localizar y validar el diseño, y lo que consume `/sdd-implementer`.
 - `test-e2e-desc.md` lo escribe el **diseñador**; `test-unit-desc.md` lo escribe el rol **test-unitarios** en una fase posterior. **MUST NOT** escribir el diseñador el segundo.
 - Los ficheros `log_best.txt`, `log_revision.txt` y `log_revision_unit-test.txt` son **logs de orquestación del motor**: no son contenido de diseño, no los declara esta plantilla y el verificador **MUST** ignorarlos.
 
@@ -157,7 +157,7 @@ Lo carga el **diseñador** (§2.1) antes de generar. Es el único rol que lo nec
 
 - **Siempre** `k-tipo-expediente` — **el skill central**: la carpeta de versión, el `TipoExpedienteInstance.xml` con sus fases y la máquina de estados, y **todos sus ficheros**: `modelo.md` (el `domains.xml`), `phaseeventmanager.md` (los `trigger*`/`onEnter*` y el `InitialEventManager`), `validator.md` (el DSL del `StateEventValidatorImpl`), `vistas.md` (el formato preprocesado), `documentos.md` (los `documentospdf/`) y `versionado.md` (duplicar un tipo para crear una versión nueva).
 - **Siempre** `k-tramite` — el alta del trámite: la carpeta `tramites/<tramite>/`, el `TramiteInstance.xml`, la i18n del nombre y los permisos necesarios para poder crear expedientes.
-- **Siempre** `k-validaciones` — en qué capa vive cada tipo de regla (`RES-`, `VAL-`, `RN-`, `RUI-`, `CC-`) que la spec ya clasificó. Es la referencia del **reparto de reglas** (`design-contract.md` §13).
+- **Siempre** `k-validaciones` — en qué capa vive cada tipo de regla (`VAL-`, `RN-`, `RUI-`, `CC-`) que la spec ya clasificó. Es la referencia del **reparto de reglas** (`design-contract.md` §13). En un tipo de expediente **no existe** el prefijo `RES-`: el expediente vive guardado desde que nace y cada dato se exige **solo** en la pareja (estado, acción) en que se pide, así que toda obligatoriedad llega de la spec como `VAL-`. **MUST NOT** buscarse ni inventarse restricciones de entidad.
 - **Siempre** `k-secure-coding` — el modelo de confianza cliente↔servidor. **Determina** la columna «quién lo rellena» de la tabla de campos y, con ella, qué campos pueden aparecer en un `field(...)` del validador (`design-contract.md` §6.1 y §12.3). Incluye la advertencia sobre el endpoint REST automático `POST /ws/rest/<FQN>`, que **no** pasa por el `Tramitador`.
 - **Siempre** `k-datainit` — cómo se cargan los datos maestros y de permisos (`input-config.xml` + `input/`), para entender qué es `permisos-demo.xml` y qué es una fusión.
 - **Siempre** `k-i18n` — cómo se traducen `title`, `help` y `name`, el marcador `__!!` y por qué **MUST NOT** escribirse ningún `i18n_*.csv`.
@@ -171,6 +171,8 @@ Los skills son la fuente de verdad sobre **qué piezas existen y cómo se llaman
 
 - `CLAUDE.md` del proyecto — convenciones, tipos de usuario y cargos, multicentro, y el apartado **PENDIENTE** sobre el endpoint REST automático.
 - **CRITICAL — a diferencia de otros artefactos del pipeline, aquí el código real de `src/main/java/com/educaflow/tramites/` SÍ es referencia legítima.** Los trámites ya existentes en el árbol siguen **exactamente esta misma arquitectura**, así que el diseñador **SHOULD** leer uno o varios como referencia de forma (cómo se escribe un `TipoExpedienteInstance.xml`, cómo se reparten los `trigger*`, cómo se materializa un `views.xml` de fase, cómo se define un `documentospdf/<doc>.xml`). **MUST NOT**, en cambio, copiar sus nombres, sus estados, sus campos ni sus documentos: el diseño lo dicta la especificación.
+- **CRITICAL — iniciativa de MODIFICACIÓN de una versión existente** (la línea «Versión» de la spec declara una modificación; la spec es un **delta**): la carpeta de versión modificada es el **as-is** y **MUST** leerse entera. El diseño es «as-is + delta»: cada fichero tocado se materializa **completo** en `design/` partiendo del fichero real, y los ficheros **no afectados** por el delta **MUST NOT** regenerarse ni aparecer en el diseño. **MUST NOT** crearse una versión nueva ni duplicarse la carpeta de versión: se modifica en su sitio.
+- **Iniciativa de MODIFICACIÓN — los tests E2E ya persistidos de esa versión.** La carpeta espejo `src/test/e2e/tramites/…/<vN>/` (misma ruta que la carpeta de versión, con `src/main/java/com/educaflow/` sustituido por `src/test/e2e/`) contiene los `.desc.md` y `.spec.ts` que iniciativas anteriores dejaron sobre esta misma versión. El diseñador **MUST** leerlos (nunca escribirlos) para dos cosas: numerar sus `T-NNN` desde el primer libre (`tests-e2e.md` §2) y declarar los que el delta invalida a propósito (`design-contract.md` §15.3). En una iniciativa que **no** es de modificación esa carpeta no existe o es de otra versión: no se toca.
 - `src/main/java/com/educaflow/subsystem/expedientes/` — el subsistema que tramita: `Tramitador`, `EventContext`, `ExpedienteLocator`, `ExpedienteController`, `FirmaController`, `ExpedienteUtil`, las acciones globales de `controllers/actions-expedientes.xml` y los paneles globales de `tramites/shared/`. Es donde se comprueba qué API existe realmente.
 - `src/main/java/com/educaflow/base/infrastructure/` — `DocumentoPdf`, `MetaFileHelper`, `AlmacenClaveResolver`, `CampoFirma`, `Rectangulo` y las reglas del DSL de validación (`validation/rules/`).
 - `src/main/resources/data-demo/input/permisos-demo.xml` — **MUST** leerse para saber qué `<perfil>` ya existen y **no duplicarlos** en `design/permisos.xml`.
@@ -192,6 +194,9 @@ El **verificador** puede leer (nunca escribir) los ficheros reales que `validaci
 ## 5. Partes del diseño: siempre vs. condicionales
 
 El detalle de cada fichero está en `design-contract.md` §1. Aquí se fija **cuándo** existe cada parte. El verificador comprueba las dos direcciones: que lo obligatorio está, y que lo condicional está **si y solo si** su condición se cumple.
+
+**Iniciativa de MODIFICACIÓN de una versión existente** (§4.2): la tabla §5.1 **NO aplica tal cual**. Lo obligatorio pasa a ser: `design.md` (con sus 15 secciones, escribiendo `*(sin cambios)*` donde el delta no toque — **salvo «Identidad del trámite y del tipo», «Ficheros a crear o modificar» y «Pasos», que van SIEMPRE completas**, `design-contract.md` §8), `test-e2e-desc.md`, `test-unit-desc.md`, y **exactamente** los ficheros que el delta toca (los de la tabla §6 del `design.md`); `permisos.xml` solo si hay perfiles o asignaciones nuevas. Un fichero de §5.1 ausente porque el delta no lo toca **no es un fallo**.
+Dentro del `design.md`, este modo añade además la subsección `### Tests E2E supersedidos` de `## 13. Tests`, presente **si y solo si** el delta invalida a propósito algún test E2E ya persistido de esa versión (`design-contract.md` §15.3).
 
 ### 5.1 Siempre
 

@@ -1,5 +1,6 @@
 ---
 type: specification
+template: system
 ---
 
 # Objetivo

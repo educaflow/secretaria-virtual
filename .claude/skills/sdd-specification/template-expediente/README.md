@@ -27,6 +27,19 @@ Es **el único fichero de esta carpeta de plantillas que el skill `sdd-specifica
 | `catalogos/` | **Carpeta de catálogos de referencia**, uno por barrido: `catalogo-cobertura-estados.md`, `catalogo-historias-escenarios.md`, `catalogo-pasos-escenario.md`, `catalogo-validaciones.md`, `catalogo-reglas-negocio.md`, `catalogo-datos-calculados.md` y `catalogo-reglas-ui.md`. | Se consultan al rellenar cada apartado y son la referencia de los **barridos de completitud** (§9). **MUST NOT** copiarse al output. |
 | `example/` | **Carpeta con un ejemplo completo** de spec terminada e instanciada, de un trámite **inventado**. | Referencia del aspecto final. **MUST NOT** copiarse su contenido al output ni tomarse sus nombres, sus fases o su número de documentos por norma. |
 
+## Exploración del contexto
+
+**Esta sección la ejecuta el propio skill `sdd-specification` en su Fase 1** (no los subagentes), antes de preguntar o revisar:
+
+1. **Lista los trámites reales** (no de memoria):
+   ```bash
+   ls src/main/java/com/educaflow/tramites/
+   ```
+   Si la iniciativa versiona o modifica un trámite existente, lee su `TramiteInstance.xml` y la carpeta de la versión afectada antes de preguntar.
+2. **Lista los subsistemas** (`ls src/main/java/com/educaflow/subsystem/`) solo para conocer las dependencias funcionales que la spec pueda nombrar en lenguaje de negocio (registro de entrada/salida, notificaciones, firmas…). **MUST NOT** cargar skills técnicos (`k-tipo-expediente`, `k-tramite`, `k-vistas`…): lo que la spec necesita saber del patrón lo declara esta plantilla.
+3. **Comprueba si la solicitud es divisible**: si mezcla más de un trámite, propón una spec por trámite.
+4. **MUST NOT** tomar `subsystem/` ni `system/` como referencia arquitectónica — siguen otra arquitectura (otra plantilla); citarlos como dependencia de negocio sí se puede.
+
 ## 2. Ficheros que produce la especificación
 
 La especificación **no es un único fichero**: es un conjunto de ficheros dentro de la carpeta de la iniciativa.
@@ -34,9 +47,9 @@ La especificación **no es un único fichero**: es un conjunto de ficheros dentr
 | Fichero | Plantilla | Cardinalidad | Qué contiene |
 |---|---|---|---|
 | `specification.md` | `specification.md` | **exactamente 1** | El **índice**: objetivo, el trámite, actores y perfiles, historias de usuario con sus escenarios, resumen de fases y estados, tablas de enlaces, registros y avisos, seguridad, datos iniciales y fuera de alcance. Es el único con frontmatter `type: specification`. |
-| `estados.md` | `estados.md` | **exactamente 1** | El **ciclo de vida completo**: qué pasa al crear el expediente, las fases con sus estados, y por cada estado sus acciones con sus comprobaciones (`VAL-`), sus efectos (`RN-`) y sus transiciones; la tabla de transiciones y los datos que rellena el sistema (`CC-`). |
-| `pantallas-<fase>.md` | `pantallas.md` | **una por fase** | Las **pantallas** de los estados de esa fase: una por cada pareja (estado, perfil), más la de solo consulta para el resto de perfiles, con sus bloques, sus botones y sus reglas de pantalla (`RUI-`). |
-| `documentos.md` | `documentos.md` | **0 o 1** | Los **documentos** que el trámite genera: cuándo, quién los firma y dónde, si se registran y qué datos del expediente aparecen en ellos. **No se crea** si el trámite no genera ninguno. |
+| `estados.md` | `estados.md` | **exactamente 1** (en una **modificación**, §3.8: solo si cambia el ciclo de vida) | El **ciclo de vida completo**: qué pasa al crear el expediente, las fases con sus estados, y por cada estado sus acciones con sus comprobaciones (`VAL-`), sus efectos (`RN-`) y sus transiciones; la tabla de transiciones y los datos que rellena el sistema (`CC-`). |
+| `pantallas-<fase>.md` | `pantallas.md` | **una por fase** (en una **modificación**, §3.8: solo las fases con alguna pantalla nueva o cambiada) | Las **pantallas** de los estados de esa fase: una por cada pareja (estado, perfil), más la de solo consulta para el resto de perfiles, con sus bloques, sus botones y sus reglas de pantalla (`RUI-`). |
+| `documentos.md` | `documentos.md` | **0 o 1** (en una **modificación**, §3.8: solo si cambian los documentos) | Los **documentos** que el trámite genera: cuándo, quién los firma y dónde, si se registran y qué datos del expediente aparecen en ellos. **No se crea** si el trámite no genera ninguno. |
 
 - `<fase>` es el nombre de la fase **en minúsculas**, con `_` sustituido por `-`. `specification.md`, `estados.md` y `documentos.md` son **nombres fijos**.
 - Solo `specification.md` lleva frontmatter. Los demás empiezan directamente por su `# …`.
@@ -169,6 +182,18 @@ Una iniciativa puede especificar una **versión nueva** de un trámite ya implem
 - **MUST** declararse explícitamente qué **no** cambia respecto a la versión anterior, en el apartado «Fuera de alcance».
 - La numeración de los identificadores empieza en `001` y es **local** a esta spec: **MUST NOT** referenciarse identificadores de iniciativas anteriores.
 
+### 3.8 Una modificación de una versión que ya existe
+
+Una iniciativa puede **modificar en su sitio** una versión ya implementada de un trámite, en vez de crear un trámite o una versión nueva. Se declara en la línea **Versión** del apartado «El trámite», diciendo qué trámite y qué versión se modifican y **qué cambia**.
+
+- **Cuándo modificar y cuándo versionar:** modificar solo vale si el cambio es **compatible con los expedientes ya abiertos** de esa versión (no elimina ni renombra fases, estados ni datos por los que un expediente pueda estar pasando, ni reinterpreta datos ya guardados). Si no lo es → es una **versión nueva** (§3.7). Ante la duda, el skill lo pregunta al usuario. Es el mismo criterio que el anti-patrón de `k-tipo-expediente` (`versionado.md` §4).
+- **Delta + conservación por defecto.** La spec declara **SOLO** lo nuevo o cambiado; todo lo no mencionado de la versión real **MUST** conservarse tal cual. **MUST NOT** copiarse en la spec el estado actual que no cambia — el código de la carpeta de versión es la fuente de verdad del as-is (el diseñador lo lee de `src/main/java/com/educaflow/tramites/…`).
+- **Ficheros de la spec:** las cardinalidades de §2 se relajan — solo se crean los ficheros con algo cambiado. `estados.md` solo si cambia el ciclo de vida; `pantallas-<fase>.md` solo para las fases con alguna pantalla nueva o cambiada; `documentos.md` solo si cambian los documentos. En las tablas del índice, la fila de una fase o apartado sin cambios dice `*(sin cambios)*` en vez de enlazar un fichero.
+- **Dentro de un fichero del delta**, cada estado, pantalla, acción o documento que se toque se describe **completo en lo que cambia** y marca el resto como conservado; los elementos **nuevos** se especifican completos, como en greenfield.
+- **Historias y escenarios:** cubren **lo cambiado** (camino feliz y errores del cambio); **MUST NOT** re-especificarse escenarios del comportamiento que no se toca.
+- **MUST** declararse explícitamente qué **no** cambia, en el apartado «Fuera de alcance».
+- La numeración de los identificadores empieza en `001` y es **local** a esta spec: **MUST NOT** referenciarse identificadores de iniciativas anteriores.
+
 ---
 
 ## 4. El índice — `specification.md`
@@ -176,7 +201,7 @@ Una iniciativa puede especificar una **versión nueva** de un trámite ya implem
 Los apartados van en el orden de la plantilla, sin inventar ninguno ni omitir ninguno.
 
 - **`# Objetivo`** — una frase con lo que permite hacer el trámite y a quién. **Qué NO va:** rutas, paquetes, nombres de carpeta.
-- **`# El trámite`** — el nombre visible, el colectivo al que va dirigido, quién puede iniciarlo, para qué sirve, el **texto de ayuda literal** que el usuario lee antes de empezar, y si es la primera versión o una nueva de un trámite existente. El texto de ayuda se escribe **tal cual lo verá el usuario**: es contenido, no una nota para el desarrollador.
+- **`# El trámite`** — el nombre visible, el colectivo al que va dirigido, quién puede iniciarlo, para qué sirve, el **texto de ayuda literal** que el usuario lee antes de empezar, y si es la primera versión, una versión nueva de un trámite existente (§3.7) o una modificación de una versión existente (§3.8). El texto de ayuda se escribe **tal cual lo verá el usuario**: es contenido, no una nota para el desarrollador.
 - **`# Actores y perfiles`** — una fila por cada perfil que use algún estado, con qué papel juega **en este trámite** y **quién lo ostenta** (un tipo de usuario o un cargo del centro). **MUST** quedar asignado todo perfil que use algún estado: un perfil sin nadie que lo ostente deja su estado inalcanzable. **MUST NOT** declararse un perfil que ningún estado use.
 - **`# Historias de usuario`** — una sección `## HU-NNN — Como [Actor] quiero [feature] para [motivo]` y, **debajo de cada una**, sus escenarios `ESC-NNN`. No hay apartado de escenarios aparte. Reglas en §4.1.
 - **`# Fases y estados`** — el resumen (estado en que nace, estados que cierran, desde dónde se borra) y la tabla de fases con enlace a su fichero de pantallas. El detalle vive en `estados.md`.
@@ -409,6 +434,13 @@ Reglas de los barridos:
 - Una candidata **debe deducirse de lo que la spec ya cuenta**: el subagente **MUST NOT** inventar fases, estados, acciones, datos ni documentos que la spec no tiene.
 - Respetar la frontera entre familias: si **bloquea** → `validaciones` (`VAL`); si **produce o escribe** → `reglas-negocio` (`RN`); si es un **valor que pone el sistema** → `datos-calculados` (`CC`); si solo cambia **lo que se ve** → `reglas-ui` (`RUI`). Ante la duda, se propone una sola vez, en la familia de su efecto real.
 - **MUST NOT** proponerse ninguna candidata de tipo `RES`: esta plantilla no usa ese prefijo (§3.4).
+- **CRITICAL — iniciativa de MODIFICACIÓN de una versión existente** (la línea **Versión** del apartado «El trámite» declara una modificación, §3.8): los barridos proponen candidatas **solo del delta declarado**. La spec es un delta y lo no mencionado se conserva tal cual, así que proponer sobre el comportamiento intacto es re-especificarlo — justo lo que §3.8 prohíbe.
+  - El **universo a barrer** son los estados, acciones, pantallas, datos y documentos que la spec **toca**, más lo que el delta rompería si estuviera mal (los estados de origen y destino de una transición cambiada, las pantallas modificadas).
+  - **MUST NOT** proponerse una candidata cuyo anclaje (la pareja estado/acción, la pantalla o el dato) no aparezca en los ficheros de esta spec: si no está, es as-is y no se toca.
+  - **MUST NOT** proponerse una candidata "que falta" por comparación con el **código real** de la versión modificada: los barridos leen la spec, no el árbol.
+  - Sí **MUST** proponerse lo que el delta deja a medias: un dato nuevo sin obligatoriedad declarada, una acción nueva sin pantalla, un estado nuevo sin su pantalla de solo consulta, un escenario que no ejercita el cambio.
+- **Ficheros ausentes:** en una modificación las cardinalidades de §2 se relajan y `estados.md` o `documentos.md` pueden no existir. Un barrido cuyo ámbito sea un fichero que **no** está en la carpeta de la spec **MUST NOT** lanzarse (cero instancias); no es un fallo ni algo que reportar.
+- La columna **«Contrato de salida»** dice cuál de los contratos JSONL del skill usa cada barrido (`reglas`, `historias-escenarios` o `pasos-escenarios`). El motor **MUST** leerla en vez de deducir el contrato del nombre del barrido, que lo pone esta plantilla: aquí los barridos de reglas se llaman `validaciones` y `datos-calculados`, y `cobertura-estados` entrega el contrato `historias-escenarios`.
 - En el contrato de reglas, el campo `elemento` se escribe como `estado: <FASE>/<ESTADO> — acción: <ACCION> — dato: <dato>` para una `VAL` o una `RN`, como `dato: <dato>` para un `CC` y como `pantalla: <ESTADO>/<PERFIL> — dato: <dato>` para una `RUI`. Los atributos que aplican son `mensaje`, `condición` y `actor` (`VAL`); `condición` (`RN`); `momento`, `sobreescribible` y `cálculo` (`CC`); `disparador` y `condición` (`RUI`).
 
 ---

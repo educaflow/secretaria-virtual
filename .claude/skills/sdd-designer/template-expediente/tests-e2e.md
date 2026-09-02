@@ -43,11 +43,39 @@ Reglas:
 > |---|---|---|---|---|---|
 > | `ejemplo1@centro-x.es` | `clave-demo` | tipo de usuario `EJEMPLO_TIPO` | `CENTRO-X` | `CREADOR` | `tramiteCode` |
 
+### 2.1 Numeración de los `T-NNN` — desde el primer número libre del destino
+
+Los `T-NNN` son de **tres dígitos**, **globales al fichero** y **sin huecos**. De dónde arrancan depende de si la carpeta de tests de esta versión ya tiene tests persistidos:
+
+- **Carpeta vacía o inexistente** (trámite nuevo, versión nueva): empiezan en `001`.
+- **Carpeta con tests ya persistidos** (el caso de una **iniciativa de MODIFICACIÓN**, §3): empiezan en el **primer `T-NNN` libre** de esa carpeta.
+
+**CRITICAL — por qué, y por qué no vale renumerar después.** Los `T-NNN` viajan intactos hasta el nombre de fichero de los tests persistidos (`t-NNN-<slug>.desc.md` / `.spec.ts`), que varias iniciativas comparten cuando trabajan sobre la misma versión. Ni `/sdd-debug-with-test-e2e-desc` ni `/sdd-create-tests-e2e` pueden reasignarlos —el primero es un troceador que copia verbatim, y el segundo tiene prohibido renumerar porque desincronizaría el nombre del fichero con el `id:` del frontmatter—, así que **el único punto del pipeline donde se puede evitar el choque es aquí**. Arrancar en `001` sobre una carpeta poblada produce ficheros con el nombre de otros ya existentes.
+
+La carpeta de tests de la versión es su **espejo**: la ruta de la fila `Carpeta de la versión` del `design.md`, con el prefijo `src/main/java/com/educaflow/` sustituido por `src/test/e2e/`. El diseñador **MUST** listarla antes de numerar:
+
+```bash
+ls src/test/e2e/tramites/…/<vN>/t-*.desc.md 2>/dev/null
+```
+
+El primer libre es el siguiente al mayor `NNN` que aparezca; si no hay ninguno, `001`. **MUST NOT** rellenarse un hueco dejado por un test retirado: el bloque de esta iniciativa arranca por encima de **todos** los existentes y es contiguo.
+
+- ✅ CORRECTO: la carpeta tiene `t-001…t-012`; el delta describe 3 tests → `T-013`, `T-014`, `T-015`.
+- ❌ INCORRECTO: la carpeta tiene `t-001…t-012` y el delta numera `T-001`, `T-002`, `T-003` (choca con tres ficheros ya persistidos de otra iniciativa).
+
 ---
 
 ## 3. Cobertura obligatoria
 
 La cobertura se mide contra **dos** fuentes: la especificación (los `ESC-NNN`) y el propio diseño (la tabla de transiciones y las tablas de estados). Ambas son obligatorias.
+
+**CRITICAL — iniciativa de MODIFICACIÓN de una versión existente** (el `design.md` lleva la fila «Modificación de» de su sección «Identidad del trámite y del tipo»; ver README §4.2 y §5): la cobertura de §3.1, §3.2 y §3.3 se mide **solo sobre el delta**, no sobre la máquina de estados entera.
+
+- El **universo a cubrir** son las transiciones, estados, perfiles y parejas (estado, evento) que el delta **añade o cambia**, más los que el delta **rompería si estuvieran mal**: los estados de origen y destino de cada transición tocada y las pantallas que se hayan modificado.
+- Cuando la sección «Máquina de estados» del `design.md` diga `*(sin cambios)*`, la tabla de transiciones de referencia es la del **as-is**: se lee del `TipoExpedienteInstance.xml` real de la carpeta de versión modificada, y de ella **solo** se cubre lo que el delta toca.
+- **MUST NOT** describirse tests de transiciones, estados o validaciones que el delta no toca: re-probar el comportamiento intacto es lo mismo que re-especificarlo, y la spec ya lo excluyó.
+- **REQUIRED — no-regresión.** Sí **MUST** haber al menos un test por cada **camino existente que el delta atraviesa** (el flujo principal que pasa por un estado o una pantalla modificados, ejercitado como antes del cambio), para que lo que ya funcionaba quede comprobado.
+- §3.4 (trazabilidad con los `ESC-NNN`) se aplica **igual**: la spec de una modificación ya es un delta, así que cubrir todos sus escenarios es cubrir el delta.
 
 ### 3.1 Un test por **transición** y por **perfil**
 
@@ -147,7 +175,7 @@ Tests **manuales** (no automatizables, §4.1): <lista de T-NNN, o «ninguno»>.
 
 Reglas de forma:
 
-- Numeración `T-001`, `T-002`, … **global al fichero, con tres dígitos, sin huecos y empezando en `001`**. Es lo que `/sdd-debug-with-test-e2e-desc` usa para nombrar cada `t-NNN-<slug>.desc.md`.
+- Numeración `T-NNN` **global al fichero, con tres dígitos, sin huecos y empezando en el primer `T-NNN` libre de la carpeta espejo de la versión** (§2.1); `001` solo si esa carpeta está vacía o no existe. Es lo que `/sdd-debug-with-test-e2e-desc` usa para nombrar cada `t-NNN-<slug>.desc.md`.
 - El bloque de cabecera de cada test lleva **los siete campos** (`Origen ESC`, `Perfil`, `Desde`, `Evento`, `Hasta`, `Tipo`, `Manual`), cada uno en su línea, siempre en ese orden. Un campo que no aplica se escribe `—`; **MUST NOT** omitirse la línea. `Manual` nunca es `—`: es `no` o `sí — <motivo>`.
 - Los pasos van en `Given` / `When` / `Then` / `And` (o `Dado` / `Cuando` / `Entonces` / `Y`, pero **uno de los dos idiomas en todo el fichero**, sin mezclarlos).
 - Cada test es **autosuficiente**: su `Given` describe entero el punto de partida y cómo se llega a él, sin depender de que otro test se haya ejecutado antes.
@@ -188,6 +216,7 @@ El diseñador lo aplica antes de dar el diseño por terminado; el verificador lo
 
 **Cobertura**
 
+- [ ] **Iniciativa de MODIFICACIÓN:** ¿los ítems siguientes, desde el de la tabla de transiciones hasta el de validación fallida (ambos incluidos), se han medido **solo sobre el delta** (§3), sin tests de lo que el delta no toca, y hay un test de **no-regresión** por cada camino existente que el delta atraviesa?
 - [ ] ¿Hay al menos un test por **cada fila** de la tabla de transiciones, incluidos el arranque y los `DELETE`?
 - [ ] ¿Cada rama de un evento ramificado tiene su propio test, con su guarda?
 - [ ] ¿Cada transición que pueden disparar **varios perfiles** tiene un test **por perfil**?
@@ -199,7 +228,7 @@ El diseñador lo aplica antes de dar el diseño por terminado; el verificador lo
 
 **Forma**
 
-- [ ] ¿La numeración es `T-NNN` de tres dígitos, global, sin huecos y empezando en `001`?
+- [ ] ¿La numeración es `T-NNN` de tres dígitos, global y sin huecos, empezando en el **primer libre de la carpeta espejo** de la versión —`001` solo si esa carpeta no tiene ningún `t-*.desc.md` (§2.1)?
 - [ ] ¿Cada test lleva los **siete** campos de cabecera, en orden, sin omitir ninguna línea?
 - [ ] ¿El campo `Manual` es `no` o `sí — <motivo>` (nunca `—`), y está en `sí` **exactamente** en los tests con un paso no automatizable (§4.1), con su motivo concreto?
 - [ ] ¿Los tests marcados `Manual: sí` figuran en la línea «Tests manuales» de la tabla de cobertura, y esa lista cuadra con las cabeceras?
@@ -208,4 +237,4 @@ El diseñador lo aplica antes de dar el diseño por terminado; el verificador lo
 - [ ] ¿Cada `Then` de un test de validación fallida comprueba el mensaje **y** que el expediente **no** ha transicionado?
 - [ ] ¿Los títulos de botones, paneles y campos coinciden literalmente con los del diseño?
 - [ ] ¿No hay **ningún** selector, comando de navegador, nombre de vista generado, clase Java ni regla del DSL?
-- [ ] ¿La tabla «Cobertura de transiciones» cuadra fila a fila con la tabla de transiciones del `design.md`, y cada fila referencia un `T-NNN` que existe?
+- [ ] ¿La tabla «Cobertura de transiciones» cuadra fila a fila con la tabla de transiciones del `design.md`, y cada fila referencia un `T-NNN` que existe? (En una **iniciativa de modificación**: fila a fila con las transiciones del delta, tomando el as-is como referencia donde el `design.md` diga `*(sin cambios)*` — §3.)

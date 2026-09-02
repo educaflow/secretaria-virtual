@@ -70,6 +70,11 @@ id: T-NNN
 
 Una línea por test, en orden, con un **checkbox sin marcar** `- [ ]`. El motor lo marca `- [x]` cuando el test pasa (es el progreso reanudable). **MUST** escribir todos sin marcar.
 
+**En esta familia NO hay tests manuales.**
+  El motor admite un tercer estado `- [-]` («no automatizable»: requiere una persona) y delega en el contrato decidir qué test lo merece; **esta plantilla no declara ninguno**: todo test de un sistema/subsistema se pilota entero desde el navegador, así que el índice solo usa `- [ ]` y `- [x]`.
+  **MUST NOT** escribir nunca una línea `- [-]`: todas nacen `- [ ]`.
+  Un locator que no se encuentra, un timing o un mensaje que no coincide son fallos a **corregir**, no tests manuales.
+
 ```markdown
 ---
 type: test-e2e-index
@@ -86,7 +91,7 @@ type: test-e2e-index
 
 - Un enlace por cada `t-NNN-<slug>.desc.md` creado, en orden, **precedido de `- [ ]`**, con el `T-NNN — <nombre>` como texto del enlace y el nombre real del fichero como destino.
 - ✅ CORRECTO: `- [ ] [T-001 — Crear un grupo](t-001-crear-un-grupo.desc.md)`
-- ❌ INCORRECTO: `- [x] [T-001 …]` (no se marca al crear), `- [T-001 …]` (sin checkbox), `- [ ] [T-001 …](test-e2e-desc_01.md)` (patrón viejo / fichero que no coincide).
+- ❌ INCORRECTO: `- [x] [T-001 …]` (no se marca al crear), `- [-] [T-001 …]` (esta plantilla no contempla tests manuales), `- [T-001 …]` (sin checkbox), `- [ ] [T-001 …](test-e2e-desc_01.md)` (patrón viejo / fichero que no coincide).
 
 ---
 
@@ -99,5 +104,5 @@ type: test-e2e-index
 - [ ] ¿Cada `t-NNN-<slug>.desc.md` tiene frontmatter `type: test-e2e` + `id: T-NNN`?
 - [ ] ¿Cada `t-NNN-<slug>.desc.md` incluye la sección `## Estado inicial de la base de datos` completa y verbatim (con la tabla de credenciales)?
 - [ ] ¿El bloque del test (cabeceras `Origen ESC`/`Verifica`/`Pantalla principal`/`Tipo` + `Precondiciones`/`Pasos`/`Resultado esperado`) se copió **verbatim**, sin reescribir?
-- [ ] ¿Existe `tests-e2e-desc.md` con `type: test-e2e-index` y una línea `- [ ] [T-NNN — …](t-NNN-<slug>.desc.md)` por test, en orden, todas sin marcar?
+- [ ] ¿Existe `tests-e2e-desc.md` con `type: test-e2e-index` y una línea `- [ ] [T-NNN — …](t-NNN-<slug>.desc.md)` por test, en orden, todas sin marcar y **ninguna** escrita como `- [-]`?
 - [ ] ¿La respuesta lleva `ESCRITO: test-e2e-desc/` + el bloque `=== TESTS ===` con una línea por test?

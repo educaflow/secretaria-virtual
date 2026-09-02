@@ -113,7 +113,9 @@ El build regenera para las carpetas nuevas (la raíz y **cada fase**): `i18n_*.c
 ## 4. Anti-patrones
 
 - **MUST NOT** dejar el `import <…>.v1.States` sin actualizar en un `PhaseEventManagerImpl` de la versión nueva: **compila** (las dos versiones tienen una clase llamada `States`) pero `updateState` reventaría en runtime con "no es del tipo de expediente …", que es justo la barrera que `ExpedienteUtil.updateState` pone para atajarlo. El `grep` de §2.4 lo caza.
-- **MUST NOT** "reutilizar" el sufijo: la versión nueva **MUST** tener carpeta y sufijo propios; modificar `vN` en caliente rompe los expedientes existentes de esa versión.
+- **MUST NOT** "reutilizar" el sufijo: la versión nueva **MUST** tener carpeta y sufijo propios.
+  Cambiar `vN` en su sitio **no** es hacer una versión nueva, y es legítimo **solo** si el cambio es **compatible con los expedientes ya abiertos** de esa versión: no elimina ni renombra fases, estados ni datos por los que un expediente pueda estar pasando, y no reinterpreta datos ya guardados.
+  Si no lo es, romperá esos expedientes y **MUST** crearse `v(N+1)` con esta receta.
 - **MUST NOT** copiar los CSV de i18n de la versión anterior (regla de `CLAUDE.md`: nunca crearlos a mano; se regeneran).
 - **MUST NOT** borrar la versión anterior mientras existan expedientes suyos en BD.
 - **MUST NOT** asumir que `v(N+1)` es hermana de `vN` ni que comparte segmento intermedio: `sed` no da error cuando un patrón no casa nunca, así que un `cp` corregido a mano más el `sed` original deja la copia con los paquetes de la versión anterior **y compila**; el `grep` de §2.4 es lo que lo caza.

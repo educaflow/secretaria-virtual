@@ -4,20 +4,20 @@ Lo leen el **descomponedor** (`README.md` §3.1) y el **implementador** (`README
 
 ---
 
-## 1. CRITICAL — este artefacto no genera NINGÚN test propio
+## 1. CRITICAL — este artefacto no genera tests propios, salvo la excepción de §4
 
 La conformidad de un tipo de expediente la dan **tests genéricos que ya existen** en `src/test/java/com/educaflow/tiposexpedientes/`, **escritos a mano**, que recorren automáticamente **todos** los tipos de expediente del árbol y comprueban que lo escrito a mano en cada tipo y en cada una de sus fases concuerda con su `TipoExpedienteInstance.xml` y con su `domains.xml`. Un tipo nuevo queda cubierto por ellos **por el mero hecho de existir**: no hay nada que registrar ni que añadir.
 
 Por tanto:
 
-- **MUST NOT** generarse ningún test para este artefacto, ni bajo `src/test/java/com/educaflow/tiposexpedientes/` ni en ninguna otra ubicación.
+- **MUST NOT** generarse ningún test para este artefacto, ni bajo `src/test/java/com/educaflow/tiposexpedientes/` ni en ninguna otra ubicación, **salvo la excepción de §4** (una clase auxiliar propia con lógica de negocio aislable, habilitada por `sdd-designer/template-expediente/tests-unitarios.md` §2).
 - **MUST NOT** editarse, ampliarse, debilitarse, exonerarse ni excluirse ninguno de los tests existentes. Los `.java` son la **fuente de verdad** y solo se editan a mano, fuera de este pipeline. Si uno falla, **el fallo está en el trámite generado**.
 - **MUST NOT** crearse un `agent_docs/*-rules.md` ni un skill generador para ellos: **no** son una proyección de markdown, a diferencia de `architecture-rules.md` y `view-rules.md`.
 - **MUST NOT** regenerarse con `/developer-create-arch-tests` ni con `/developer-create-view-tests`. Las vistas de los tipos de expediente están **excluidas** de `agent_docs/view-rules.md` y de los tests de `com.educaflow.views`, porque tienen formato propio preprocesado.
 - **MUST NOT** proponerse tests unitarios de los `PhaseEventManagerImpl`, `StateEventValidatorImpl` o `InitialEventManagerImpl`: sus dependencias son el `Tramitador`, la base de datos y la generación de PDF. Su verificación real es el build más el recorrido en runtime.
-- **MUST NOT** crearse, por tanto, **ninguna tarea de tests** en la descomposición, ni escribirse **ningún** fichero bajo `src/test/...`.
+- **MUST NOT** crearse, por tanto, **ninguna tarea de tests** en la descomposición, ni escribirse **ningún** fichero bajo `src/test/...`, **salvo la excepción de §4**: es el **único** caso en que este artefacto crea una tarea de test y escribe bajo `src/test/java/...`.
 
-El **descomponedor** no crea tareas de test; el **implementador** no materializa ninguna. No es un error ni una omisión: es lo que este artefacto prescribe.
+En el caso normal el **descomponedor** no crea tareas de test y el **implementador** no materializa ninguna. No es un error ni una omisión: es lo que este artefacto prescribe. La única desviación posible es la de §4, y **MUST** cumplir sus condiciones para aplicarse.
 
 ---
 
@@ -115,5 +115,5 @@ Esta es la lista de lo que se le va a exigir al tipo de expediente generado. El 
 Ese fichero contiene, para este artefacto, una **declaración de cobertura**: qué comprueba de este tipo cada familia de tests ya existentes (§2), y la constatación explícita de que **no se añade ningún test nuevo**, con su motivo.
 
 - Cuando declara que el tipo de expediente **no lleva tests unitarios de clases**, **no hay nada que implementar**: **MUST NOT** crearse ninguna tarea ni ningún fichero, y **no es un error ni una omisión**.
-- Si —excepcionalmente— describiera el test de una pieza de **lógica de negocio pura y aislable** que **no** vive en el `PhaseEventManagerImpl`, el `StateEventValidatorImpl` ni el `InitialEventManagerImpl`, entonces sí se crea una tarea de test para esa clase, ubicada en el **mismo paquete** de la clase bajo `src/test/java/...`, con `k-code-quality` entre sus skills, y se materializa delegando en `developer-code-implementer` con el texto de la tarea verbatim.
+- **Única excepción a §1.** Si —excepcionalmente— describiera el test de una pieza de **lógica de negocio pura y aislable** que **no** vive en el `PhaseEventManagerImpl`, el `StateEventValidatorImpl` ni el `InitialEventManagerImpl`, entonces sí se crea una tarea de test para esa clase, ubicada en el **mismo paquete** de la clase bajo `src/test/java/...`, con `k-code-quality` entre sus skills, y se materializa delegando en `developer-code-implementer` con el texto de la tarea verbatim.
 - **MUST NOT** convertirse en tests las reglas de UI: se verifican como E2E en `test-e2e-desc.md`.

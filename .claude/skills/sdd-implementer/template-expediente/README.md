@@ -53,7 +53,7 @@ El skill abre `README.md` y, a través de él, cada subagente usa los demás.
 | `decomposition.md` | **Cómo descomponer el diseño en tareas**: el **orden obligatorio** de las tareas, qué texto del `design.md` se copia verbatim en cada una y de qué secciones sale, los skills por tarea, la propagación de `test-e2e-desc.md`, las **plantillas exactas** de `task_NN.md` / `tasks.md` y el checklist. | El **descomponedor** (§3.1). |
 | `implementation.md` | **Cómo materializar una tarea**: qué XML se copian verbatim y a qué ruta destino, cómo se rellenan los `.java`/`.kt` **sobre el esqueleto** que dejó `CreateFilesTask`, cómo se fusiona `permisos-demo.xml`, las prohibiciones duras y el manejo de `CONFLICT`/`BLOCKED`/`DESIGN-ERROR`. | El **implementador** (§3.2); el **corrector-build** (§3.4) lo consulta para saber qué puede tocar. |
 | `build.md` | **Cómo verificar y corregir el build**: el comando, la nota de entorno del *sandbox*, el criterio de éxito, el formato JSONL, el chequeo de conformidad de superficie, qué puede y qué **NO** puede tocar el corrector y el catálogo de errores típicos de este artefacto. | El **verificador-build** (§3.3); el **corrector-build** (§3.4). |
-| `tests-code.md` | **Qué tests se generan**: **ninguno propio**. La conformidad la dan los tests ya existentes y escritos a mano de `src/test/java/com/educaflow/tiposexpedientes/`; aquí se enumera **qué exigen**, y cómo se tratan `test-e2e-desc.md` y `test-unit-desc.md`. | El **descomponedor** (§3.1) y el **implementador** (§3.2). |
+| `tests-code.md` | **Qué tests se generan**: **ninguno propio**, salvo la excepción de su §4. La conformidad la dan los tests ya existentes y escritos a mano de `src/test/java/com/educaflow/tiposexpedientes/`; aquí se enumera **qué exigen**, y cómo se tratan `test-e2e-desc.md` y `test-unit-desc.md`. | El **descomponedor** (§3.1) y el **implementador** (§3.2). |
 
 ---
 
@@ -66,13 +66,13 @@ El diseñador (`/sdd-designer`) dejó en `{iniciativa}/design/` **exactamente** 
 ```
 .sdd/drafts/YYYY-MM-DD_HH-MM_{resumen}/
 └── design/
-    ├── design.md                          ← índice (frontmatter type: design)
+    ├── design.md                          ← índice (frontmatter type: design + template: heredada de la spec)
     ├── TramiteInstance.xml                ← XML materializado, listo para copiar
     ├── TipoExpedienteInstance.xml         ← XML materializado
     ├── domains.xml                        ← XML materializado
     ├── views.xml                          ← XML materializado (form plantilla de la raíz de la versión)
     ├── estados.puml                       ← materializado
-    ├── fases/<fase>/views.xml             ← XML materializado, uno por cada fase CON forms de estado (0..F)
+    ├── fases/<fase>/views.xml             ← XML materializado, uno por CADA fase declarada
     ├── documentospdf/<doc>.xml            ← XML materializado, uno por documento (0..N)
     ├── documentospdf/_<fragmento>.xml     ← XML materializado, 0..N fragmentos reutilizables
     ├── permisos.xml                       ← fragmento a FUSIONAR en permisos-demo.xml
@@ -80,7 +80,9 @@ El diseñador (`/sdd-designer`) dejó en `{iniciativa}/design/` **exactamente** 
     └── test-unit-desc.md                  ← declaración de cobertura de los tests ya existentes
 ```
 
-- Una fase **sin** forms de estado **MUST NOT** traer su `fases/<fase>/views.xml`: el fichero se omite entero, porque un `<object-views>` vacío tumba el arranque (`build.md` §6). El resto de la estructura es fija.
+- **MUST** haber un `fases/<fase>/views.xml` por **cada** fase declarada en el `TipoExpedienteInstance.xml`, con la carpeta en **minúsculas**, y **ninguno** vacío.
+  El diseño lo garantiza: toda fase tiene al menos un estado y todo estado lleva su form genérico, así que el fichero de toda fase existe y tiene contenido.
+  Que falte el de una fase, o que llegue con el `<object-views>` sin ningún hijo, es un **DESIGN-ERROR** (un `<object-views>` vacío tumba el arranque y el build no lo detecta: `build.md` §6). El resto de la estructura es fija.
 - **MUST NOT** existir ningún `.java` ni `.kt` en `design/`: el código Java/Kotlin **no** se materializa en el diseño, se **describe** en `design.md` §8, §9 y §10, y se escribe aquí.
 - Los ficheros `log_best.txt`, `log_revision.txt` y `log_revision_unit-test.txt` son **logs del motor del designer**: **MUST NOT** tratarse como contenido de diseño ni generar tareas.
 
@@ -132,7 +134,7 @@ src/main/java/com/educaflow/tramites/<tramite>/
 src/main/resources/data-demo/input/permisos-demo.xml   ← se FUSIONA (no se sobrescribe)
 ```
 
-- **MUST NOT** escribirse ningún fichero bajo `src/test/...`: este artefacto **no genera tests propios** (`tests-code.md`).
+- **MUST NOT** escribirse ningún fichero bajo `src/test/...`, **salvo la excepción de `tests-code.md` §4** (una clase auxiliar propia con lógica de negocio aislable): este artefacto **no genera tests propios** (`tests-code.md`).
 - **MUST NOT** crearse **jamás** un `i18n_es.csv` ni un `i18n_ca.csv`. Los genera el build; escribirlos a mano está **prohibido** y es un fallo bloqueante.
 - **MUST NOT** escribirse `States.java`, `estados.png`, el data-init de trámites/tipos ni nada bajo `build/`: todos son **generados**.
 - `implementation/test-e2e-desc.md` es **contrato fijo hacia abajo**: lo ejecuta `/sdd-debug-with-test-e2e-desc`. **MUST NOT** modificarlo, resumirlo ni renumerarlo.
@@ -158,7 +160,7 @@ Todos reciben las **mismas rutas de entrada** (este `README.md` y la carpeta `{i
 
 **Tarea:** leer **entera** la carpeta `{iniciativa}/design` y escribir la lista de tareas de implementación en `{iniciativa}/implementation/`, en el **orden obligatorio** que fija `decomposition.md` §2, cada una con sus skills y con el texto del `design.md` que la especifica copiado **verbatim**; más el índice `tasks.md` y la copia literal de `test-e2e-desc.md`.
 
-- **Lee de esta plantilla:** `decomposition.md` (el orden obligatorio, el reparto del texto verbatim por secciones del `design.md`, los skills por tarea, las plantillas de `task_NN.md` / `tasks.md`, el token de salida y el **checklist**); y `tests-code.md` (por qué **no** se crea ninguna tarea de tests y cómo se propaga `test-e2e-desc.md`).
+- **Lee de esta plantilla:** `decomposition.md` (el orden obligatorio, el reparto del texto verbatim por secciones del `design.md`, los skills por tarea, las plantillas de `task_NN.md` / `tasks.md`, el token de salida y el **checklist**); y `tests-code.md` (por qué **no** se crea ninguna tarea de tests —salvo la excepción de su §4— y cómo se propaga `test-e2e-desc.md`).
 - **Entrada propia:** la carpeta `{iniciativa}/design` — el `design.md` **íntegro** (la tabla de §6, los pasos de §7 y, sobre todo, las especificaciones de §8, §9 y §10) y los ficheros materializados.
 - **CRITICAL** — el número de tareas **depende del número de fases y de documentos del tipo**: hay **una tarea por fase**. **MUST NOT** fijarse un número de tareas a priori.
 - **MUST NOT** materializar código en `src/...`: solo escribe los ficheros de `implementation/`. **MUST NOT** dar la descomposición por terminada sin pasar el checklist de `decomposition.md` §7.
@@ -176,7 +178,7 @@ Todos reciben las **mismas rutas de entrada** (este `README.md` y la carpeta `{i
 
 **Tarea:** **compilar el proyecto** con el comando que prescribe `build.md` y **reportar** si pasa o los errores, sin corregir nada.
 
-- **Lee de esta plantilla:** `build.md` — el comando, la **nota de entorno del sandbox** (§2, CRITICAL), el criterio de éxito (incluye que pasen los tests de `com/educaflow/tiposexpedientes` y de `com/educaflow/views`), el **formato JSONL** y el **chequeo de conformidad de superficie**.
+- **Lee de esta plantilla:** `build.md` — el comando, la **nota de entorno del sandbox** (§1.1, CRITICAL), el criterio de éxito (incluye que pasen los tests de `com/educaflow/tiposexpedientes` y de `com/educaflow/views`), el **formato JSONL** y el **chequeo de conformidad de superficie**.
 - **Ejecuta tú mismo** (con `Bash`) el comando de compilación. El motor **NUNCA** lo ejecuta.
 - **MUST NOT** corregir nada: solo compila, aplica el chequeo de conformidad y reporta.
 
@@ -218,7 +220,7 @@ A diferencia de otros artefactos del proyecto, donde el código de `expedientes`
 - **Es legítimo** leer los trámites ya escritos bajo `src/main/java/com/educaflow/tramites/` para ver cómo se resuelve en la práctica un patrón: la forma de un `PhaseEventManagerImpl`, la sintaxis real del DSL de un `StateEventValidatorImpl`, la estructura de un `views.xml` de fase, el formato de un documento de `documentospdf/`, o el bloque `<extra-code-model>` de un `domains.xml`.
 - **SHOULD** consultarse cuando el diseño describe una acción cuya sintaxis exacta no está en la propia especificación (una firma en servidor, un visor de PDF embebido, un maestro-detalle).
 - **CRITICAL — la fuente de verdad sigue siendo el diseño, no otro trámite.** Otro trámite enseña **cómo se escribe**, nunca **qué hay que escribir**. **MUST NOT** copiarse de él un campo, un estado, un evento, un panel, un botón, un documento ni una regla de validación que el `design.md` de esta iniciativa no declare: eso es superficie inventada y el chequeo de conformidad de `build.md` §5 la reporta.
-- **MUST NOT** usarse como referencia el `design.md`, el `analysis.md` ni los XML de **otras iniciativas** de `.sdd/`.
+- **MUST NOT** usarse como referencia el `design.md` ni los XML de **otras iniciativas** de `.sdd/`.
 - **MUST NOT** leerse la carpeta `.sdd/` (specs, designs, drafts, archive) de otras iniciativas para entender qué hace el código: es material de trabajo del pipeline y puede estar desactualizado.
 
 - ✅ CORRECTO: mirar un `PhaseEventManagerImpl` existente para ver cómo se escribe una llamada a `almacenClaveResolver` y replicar **la forma**, con el cargo, el rectángulo y el documento que dice **este** diseño.

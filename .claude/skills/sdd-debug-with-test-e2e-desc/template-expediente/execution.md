@@ -28,7 +28,7 @@ Los siete campos dicen **qué camino recorrer**, antes incluso de leer los pasos
 | `Evento` | qué **botón del footer** pulsar (el campo trae el `<EVENTO>` **y** el título del botón) |
 | `Hasta` | qué **fase/estado** comprobar al final; `[*]` = el expediente deja de existir (`DELETE`) |
 | `Tipo` | `happy` (transiciona), `error` (NO transiciona y sale mensaje), `solo-lectura` (no hay botones de evento) |
-| `Manual` | `no` = pilotable entero. `sí — <motivo>` = **no deberías estar ejecutando este test**: el motor los salta (`README.md` §4.4). Si te llega uno, ejecútalo hasta el paso imposible y reporta `FAIL` con el motivo literal de §8 |
+| `Manual` | `no` = pilotable entero. `sí — <motivo>` = **no deberías estar ejecutando este test**: el motor los salta (`README.md` §4.4). Si te llega uno, ejecútalo hasta el paso imposible y reporta `FAIL` con el motivo literal de §5, punto 8 |
 
 **CRITICAL** — `Tipo: error` invierte el criterio de éxito: el test pasa **si y solo si** la aplicación **rechaza** la operación y el expediente **sigue** en el estado de `Desde`. Que el expediente avance en un test de tipo `error` es `FAIL`, aunque no salga ninguna excepción.
 

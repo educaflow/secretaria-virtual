@@ -60,7 +60,7 @@ Si los argumentos están vacíos, asume cierre del último draft.
 ├── drafts/
 │   └── 2026-06-28_10-00_firmas-bulk/     ← se MUEVE entera en la Fase 1
 │       ├── specification.md
-│       ├── analysis/ · design/ · implementation/ · test-e2e-desc/   (lo que haya)
+│       ├── design/ · implementation/ · test-e2e-desc/   (lo que haya)
 └── archive/
     └── 2026-06-28_10-00_firmas-bulk/     ← destino del draft (verbatim, mismo nombre)
 ```

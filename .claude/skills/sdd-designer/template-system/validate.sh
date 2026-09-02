@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Validación mecánica de los artefactos XML de un diseño contra los XSD de Axelor (AOP).
-# Es el hook de validación determinista de esta plantilla: lo ejecuta el propio skill
-# sdd-designer en la Fase 5 (con `Bash`), ANTES del subagente verificador. No lo ejecuta
-# ningún subagente. Es la fuente de verdad de la validación XML; `validacion.md` §1
+# Es el hook de validación determinista de esta plantilla: lo ejecuta el **subagente
+# verificador** con `Bash` en la fase de verificación (`sdd-designer` SKILL.md §10),
+# tal como prescribe `validacion.md` §1. El motor `sdd-designer` **NUNCA** lo ejecuta:
+# solo conoce el `README.md` de la plantilla, y son los subagentes quienes descubren
+# este script leyéndolo. Es la fuente de verdad de la validación XML; `validacion.md` §1
 # documenta los mismos comandos como referencia.
 #
 # Uso:   bash validate.sh <ruta-carpeta-design> [<ruta-resources-AOP>]

@@ -81,7 +81,7 @@ El rol **test-unitarios** escribe un fichero con **esta estructura exacta**, sus
 
 ## No aplican tests unitarios de clases
 
-Para este artefacto **no se describe ningún test unitario** de las clases del tipo de expediente, y **no se añade ningún test nuevo** al proyecto. No es una omisión: es una decisión de contrato, por dos motivos.
+Para este artefacto **no se describe ningún test unitario** de las clases del tipo de expediente, y <cláusula de tests nuevos: una de las dos literales de las «Reglas de forma»>. No es una omisión: es una decisión de contrato, por dos motivos.
 
 **1. La conformidad ya la cubren tests existentes, escritos a mano.** Los tests genéricos de `src/test/java/com/educaflow/tiposexpedientes/` recorren automáticamente todos los tipos de expediente del árbol, así que cubren este tipo por construcción, sin tocar nada. Para este diseño comprueban:
 
@@ -142,6 +142,10 @@ Reglas de forma:
 
 - El fichero **MUST** empezar por el apartado `## No aplican tests unitarios de clases`. Es lo primero que lee el verificador.
 - El apartado `## Tests nuevos a crear` **MUST** existir siempre, y decir `**Ninguno.**` cuando la excepción de §2 no aplica.
+- El marcador `<cláusula de tests nuevos: …>` del primer párrafo **MUST** sustituirse por **una** de estas dos frases, literal:
+  - `**no se añade ningún test nuevo** al proyecto` — cuando la excepción de §2 **NO** aplica;
+  - `los únicos tests nuevos son los de las clases auxiliares descritas en «Clases auxiliares con lógica propia»` — cuando **sí** aplica.
+  **MUST NOT** quedarse la primera en un fichero que lleve el apartado «Clases auxiliares con lógica propia» o cuyo `## Tests nuevos a crear` no diga `**Ninguno.**`: sería una contradicción dentro del propio fichero.
 - La tabla de exclusiones **MUST** listar el `InitialEventManagerImpl` y, **por cada fase del diseño**, su `PhaseEventManagerImpl` y su `StateEventValidatorImpl`. Los nombres se toman del `design.md`.
 - **MUST NOT** contener el fichero ningún bloque de código Java: ni `@Test`, ni `import`, ni cuerpo de método, ni aserción en código.
 - **MUST NOT** superar lo necesario: el objetivo es una declaración **breve y explícita**, no un documento largo.
@@ -179,7 +183,7 @@ Esta sección es la referencia del **verificador-test-unitarios**. La **fuente d
 Se aplica antes de responder `ESCRITO: test-unit-desc.md` (**LIMIT**: 3 pasadas de autocorrección). El objetivo es que el bucle de coherencia del motor pase **a la primera**.
 
 - [ ] ¿El fichero existe y empieza por `## No aplican tests unitarios de clases`?
-- [ ] ¿Declara explícitamente que **no se añade ningún test nuevo**, con los **dos** motivos?
+- [ ] ¿Lleva la cláusula de tests nuevos que le corresponde (la de «**no se añade ningún test nuevo**» si la excepción de §2 no aplica; la de las clases auxiliares si sí aplica), con los **dos** motivos?
 - [ ] ¿Remite a los tests existentes de `src/test/java/com/educaflow/tiposexpedientes/` y a `design/test-e2e-desc.md`?
 - [ ] ¿La tabla de exclusiones lista el `InitialEventManagerImpl` y, **por cada fase del diseño**, su `PhaseEventManagerImpl` y su `StateEventValidatorImpl`, con los nombres del `design.md`?
 - [ ] ¿El apartado `## Tests nuevos a crear` existe y dice `**Ninguno.**` (salvo que la excepción de §2 aplique)?

@@ -1,5 +1,6 @@
 ---
 type: specification
+template: <nombre de la carpeta de la plantilla activa sin el prefijo `template-`, o el valor reservado `external` si esa carpeta es externa; lo fija §8 del skill>
 ---
 
 <!-- Plantilla del ÍNDICE de la especificación de un trámite y su tipo de expediente.
@@ -23,7 +24,7 @@ type: specification
 
   > <El texto literal, redactado de cara al usuario, que se le muestra al consultar la ayuda del trámite antes de crear un expediente. Explica qué va a necesitar, qué documentación debe tener a mano y qué pasará después. Escríbelo tal cual lo verá; nada de notas para el desarrollador.>
 
-- **Versión:** <la primera versión del trámite | una versión nueva de un trámite que ya existe (indicar cuál y qué cambia respecto a la anterior)>
+- **Versión:** <la primera versión del trámite | una versión nueva de un trámite que ya existe (indicar cuál y qué cambia respecto a la anterior) | una modificación de una versión que ya existe (indicar trámite, versión y qué cambia; la spec es un delta — ver §3.8 de la guía)>
 
 # Actores y perfiles
 

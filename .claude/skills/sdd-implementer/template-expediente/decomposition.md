@@ -2,7 +2,7 @@
 
 Lo lee el **descomponedor** (`README.md` §3.1). Define **cómo convertir el diseño de un tipo de expediente en una lista ordenada de tareas atómicas** escritas en `{iniciativa}/implementation/`, sin implementar nada todavía: solo escribir los ficheros de tarea, su índice y la copia de `test-e2e-desc.md`.
 
-> Este artefacto **no genera tests propios**: lee `tests-code.md` antes de terminar para confirmarlo y para saber qué se propaga.
+> Este artefacto **no genera tests propios** salvo la excepción que contempla `tests-code.md` §4: lee `tests-code.md` antes de terminar para saber si esa excepción aplica y qué se propaga.
 
 Los placeholders (`<tramite>`, `<vN>`, `<Entidad>`, `<FASE>`, `<fase>`, `<doc>`, `<carpeta de versión>`…) son los de `README.md` §0.1.
 
@@ -16,7 +16,7 @@ Los placeholders (`<tramite>`, `<vN>`, `<Entidad>`, `<FASE>`, `<fase>`, `<doc>`,
    | Fichero | Acción | Skill | Descripción |
    |---------|--------|-------|-------------|
 
-   Las rutas son **relativas a la raíz del proyecto**. Si esa tabla no existe, o no lista los ficheros obligatorios del inventario (§2.1), **MUST NOT** inventarla: indica el problema en tu respuesta (el motor lo trata como STOP).
+   Las rutas son **relativas a la raíz del proyecto**. Si esa tabla no existe, o no lista los ficheros obligatorios del inventario (§2.1) —salvo en una **iniciativa de modificación**, donde el inventario no aplica y la tabla lista solo los ficheros tocados (ver Reglas de instanciación)—, **MUST NOT** inventarla: indica el problema en tu respuesta (el motor lo trata como STOP).
 3. Lee también los ficheros materializados de `design/` **solo para saber cuáles existen** (cuántas fases hay en `design/fases/`, cuántos documentos en `design/documentospdf/`). **MUST NOT** volcar su contenido dentro de las tareas: los XML se copian, no se transcriben.
 4. Deriva de la sección `## 2. Identidad del trámite y del tipo` los valores concretos de `<tramite>`, `<vN>`, `<carpeta de versión>`, `<Entidad>` y `<basePackageName>`, y úsalos **resueltos** en las rutas de las tareas.
 
@@ -25,6 +25,12 @@ Los placeholders (`<tramite>`, `<vN>`, `<Entidad>`, `<FASE>`, `<fase>`, `<doc>`,
 ## 2. Orden obligatorio de las tareas
 
 **CRITICAL — este orden es normativo y MUST NOT alterarse.** No es una preferencia de estilo: cada bloque **lee** lo que produjo el anterior. En particular, `CreateFilesTask` **lee** el `TipoExpedienteInstance.xml` para saber qué fases existen, y los `views.xml` de fase solo pueden incluir paneles que ya existan en el form plantilla de la raíz.
+
+**Este orden es el de las TAREAS DE IMPLEMENTACIÓN, no el de los pasos del diseño.**
+`design-contract.md` §9 numera los `### Paso N` en los que el diseño **se describe**; esta tabla numera las tareas en las que el código **se escribe**.
+Son dos ordenaciones **independientes** y **MUST NOT** confundirse: no tienen por qué coincidir, y no coinciden.
+El caso visible es `estados.puml`, que en el diseño es el paso 10 y aquí va en la tarea 2, junto al `TipoExpedienteInstance.xml` del que es proyección: se copia con él porque describe la misma máquina de estados y ningún otro fichero depende de él.
+Por eso una tarea localiza el `### Paso N` del diseño **por su fichero**, nunca por su número (§4.1): el `N` del diseño y el `NN` de la tarea son numeraciones distintas.
 
 | # | Tarea | Ficheros que cubre | Por qué va aquí |
 |---|---|---|---|
@@ -40,11 +46,15 @@ Los placeholders (`<tramite>`, `<vN>`, `<Entidad>`, `<FASE>`, `<fase>`, `<doc>`,
 
 Reglas de instanciación:
 
-- El bloque **7 se instancia una vez por CADA fase** declarada en el `TipoExpedienteInstance.xml`, en el **orden en que las fases se declaran**. Con `F` fases hay `F` tareas de fase. **MUST NOT** fijarse un número a priori ni agrupar dos fases en una tarea. Cada tarea de fase cubre **los ficheros que §6 declare para esa fase**, ni uno más: siempre `PhaseEventManagerImpl.java` y `StateEventValidatorImpl.kt`, y el `views.xml` **solo si** la fase tiene forms de estado (una fase sin ellos **MUST** omitir el fichero entero, porque un `<object-views>` vacío tumba el arranque — `build.md` §6).
+- El bloque **7 se instancia una vez por CADA fase** declarada en el `TipoExpedienteInstance.xml`, en el **orden en que las fases se declaran**. Con `F` fases hay `F` tareas de fase. **MUST NOT** fijarse un número a priori ni agrupar dos fases en una tarea. Cada tarea de fase cubre **los ficheros que §6 declare para esa fase**, ni uno más: en una fase completa, `PhaseEventManagerImpl.java`, `StateEventValidatorImpl.kt` y `views.xml`; en una **iniciativa de MODIFICACIÓN**, solo los que el delta toque.
+  El `views.xml` de una fase **MUST NOT** faltar en el diseño ni llegar vacío: si falta el de una fase declarada, o su `<object-views>` no tiene ningún hijo, es un **DESIGN-ERROR** (tumba el arranque — `build.md` §6).
 - El bloque **8 es una sola tarea** que cubre **todos** los documentos y fragmentos. Si el tipo no genera ningún PDF, **la tarea no existe** (sin error).
 - Los bloques **2, 3, 4, 5 y 6 son exactamente una tarea cada uno**: existen siempre.
 - Los bloques **1 y 9 son condicionales**, con el mismo criterio que el 8: existen **si y solo si** la tabla §6 del `design.md` lista su fichero, y entonces son **exactamente una tarea cada uno**. El `TramiteInstance.xml` (bloque 1) solo aparece cuando el trámite es **nuevo**; una versión posterior de un trámite ya dado de alta no lo trae. Las asignaciones de perfil (bloque 9) solo aparecen cuando el diseño declara alguna que **no** esté ya concedida por una asignación por `tramiteCode` preexistente. **MUST NOT** fabricarse una tarea vacía para un bloque cuyo fichero §6 no liste, ni omitirse la tarea de un bloque cuyo fichero §6 sí liste.
+- **Tarea de test — excepcional.** No hay ningún bloque de tests en esta tabla, y **MUST NOT** fabricarse uno, salvo en el único caso que contempla `tests-code.md` §4: que `design/test-unit-desc.md` describa una **clase auxiliar propia con lógica de negocio aislable**.
+  Solo entonces se crea **una** tarea de test para esa clase, **al final de todo**, después del bloque 9, numerada correlativamente como una tarea más.
 - Numera `01`, `02`, … de forma correlativa siguiendo esta tabla. El número final depende de `F` y de si hay documentos.
+- **Iniciativa de MODIFICACIÓN de una versión existente** (el `design.md` lo declara con la fila «Modificación de» de su sección «Identidad del trámite y del tipo», y su tabla §6 lista solo los ficheros tocados por el delta): **TODOS los bloques pasan a ser condicionales** con el criterio de los bloques 1 y 9 — la tarea de un bloque existe **si y solo si** la tabla §6 lista alguno de sus ficheros —, manteniendo el orden relativo de la tabla. El bloque 3 (`CreateFilesTask`) existe **solo si** el delta añade fases nuevas (la tarea es idempotente: generará únicamente los esqueletos de las fases nuevas y dejará intacto todo lo demás).
 
 > **Ejemplo** (ilustrativo, NO normativo): un tipo de un **trámite nuevo** con **3 fases**, documentos PDF y asignaciones de perfil propias genera 11 tareas (1 trámite + 1 maestro/puml + 1 CreateFilesTask + 1 domains + 1 views raíz + 1 initial + 3 de fase + 1 documentospdf + 1 permisos). Un tipo con **1 fase** y sin PDF genera 8.
 
@@ -102,6 +112,7 @@ Por cada tarea, escribe `{iniciativa}/implementation/task_NN.md` con **exactamen
 ```
 ---
 type: implementation-task
+template: <valor copiado del design.md>
 ---
 
 # Tarea NN a implementar
@@ -115,6 +126,10 @@ Para hacer esta tarea vas a usar estos skills
 ```
 
 - `NN` es el número de **dos dígitos** (`01`, `02`, …).
+- `template:` se **copia verbatim** del frontmatter del `design.md` de entrada (que la heredó de la spec), incluido el valor `external`.
+  Aquí es **solo trazabilidad**: los skills que van detrás (`/sdd-debug-with-test-e2e-desc`, `/sdd-create-tests-e2e`) resuelven su plantilla leyendo la clave del `design/design.md`, nunca la de una tarea. Aun así **MUST NOT** escribirse de memoria el nombre de esta carpeta de plantillas — con un `--template-dir` externo sería un dato falso, y una tarea que se contradiga con el `design.md` despista a quien la audite.
+  - ✅ CORRECTO: el `design.md` dice `template: expediente` → la tarea dice `template: expediente`.
+  - ❌ INCORRECTO: el `design.md` dice `template: external` y la tarea dice `template: expediente` (inventa una plantilla interna que no se usó).
 - La lista de skills es la determinada en §3.
 - ✅ CORRECTO: `# Tarea 03 a implementar` con `type: implementation-task` a ras de margen.
 - ❌ INCORRECTO: `# Tarea 3` (sin dos dígitos), o frontmatter `type: design`.
@@ -131,7 +146,7 @@ Para hacer esta tarea vas a usar estos skills
 | 4 — `domains.xml` | Su fila de §6; su `### Paso N`; **§4 Modelo completa** (tabla de campos con la columna «quién lo rellena», tabla de enums, bloque `<extra-code-model>`); **§5 Documentos PDF** (para saber qué constantes lleva el enum `TipoDocumentoPdf`); las filas de **§11 Reparto de reglas** que ubiquen una regla en el modelo |
 | 5 — `views.xml` de la raíz | Su fila de §6; su `### Paso N` **con el resumen estructural de paneles** que el diseño incluye ahí |
 | 6 — `InitialEventManagerImpl.java` | Su fila de §6; su `### Paso N`; **§8 Especificación del InitialEventManagerImpl, ÍNTEGRA** (la tabla ordenada de asignaciones, las dependencias a inyectar y las reglas explícitas que §8 declare: la de lo que el `Tramitador` ya rellena y, **cuando apliquen**, la de `dniFirmaDocumentoEntrada` —solo si el tipo firma algún documento **en cliente**— y la de `personaSolicitante`/`personaInteresada` —solo si algún `trigger*` crea registro de entrada—; si el tipo no hace ninguna de las dos cosas, §8 lo dice explícitamente y esa ausencia **MUST NOT** leerse como diseño incompleto); las filas de §11 que ubiquen una regla en el `triggerInitialEvent` |
-| 7 — cada fase `<FASE>` | **Todas** las filas de §6 de esa fase, sean las que sean (dos si la fase no tiene `views.xml`, tres si lo tiene); los `### Paso N` de **cada uno** de esos ficheros; la subsección **`### Fase <FASE>` de §9 (Especificación de los PhaseEventManagerImpl), ÍNTEGRA** —cabecera, lista de `trigger<Evento>` con sus **listas numeradas de acciones en orden**, lista de `onEnter<Estado>` y **lista de cobertura**—; la subsección **`### Fase <FASE>` de §10 (Especificación de los StateEventValidatorImpl), ÍNTEGRA** —tabla de cobertura y el contenido de cada método con sus `field(...)` y **argumentos literales**—; el resumen estructural `(estado, perfil) → paneles → botones` de esa fase; la **tabla de transiciones de §3** filtrada a las filas cuyo origen sea un estado de esa fase; las filas de §11 que apliquen |
+| 7 — cada fase `<FASE>` | **Todas** las filas de §6 de esa fase, sean las que sean (las tres de una fase completa; menos en una **iniciativa de MODIFICACIÓN**, donde §6 lista solo los ficheros que el delta toca); los `### Paso N` de **cada uno** de esos ficheros; la subsección **`### Fase <FASE>` de §9 (Especificación de los PhaseEventManagerImpl), ÍNTEGRA** —cabecera, lista de `trigger<Evento>` con sus **listas numeradas de acciones en orden**, lista de `onEnter<Estado>` y **lista de cobertura**—; la subsección **`### Fase <FASE>` de §10 (Especificación de los StateEventValidatorImpl), ÍNTEGRA** —tabla de cobertura y el contenido de cada método con sus `field(...)` y **argumentos literales**—; el resumen estructural `(estado, perfil) → paneles → botones` de esa fase; la **tabla de transiciones de §3** filtrada a las filas cuyo origen sea un estado de esa fase; las filas de §11 que apliquen |
 | 8 — `documentospdf/` | Sus filas de §6; su `### Paso N`; **§5 Documentos PDF completa** |
 | 9 — `permisos-demo.xml` | Su fila de §6 (con `Acción: Modificar`); su `### Paso N`; **§12 Asignación de perfiles completa** |
 
@@ -158,6 +173,7 @@ Reglas de relleno del `<texto del prompt>`:
 ```
 ---
 type: implementation-tasks
+template: <valor copiado del design.md>
 ---
 
 # Lista de tareas a implementar
@@ -167,13 +183,16 @@ type: implementation-tasks
 
 - Un enlace por cada `task_NN.md` creado, en orden, precedido de `- [ ]`.
 - El texto del enlace es `Tarea NN`; el destino es `task_NN.md`.
+- `template:` se copia verbatim del `design.md`, igual que en `task_NN.md` (§4).
 - Todos los checkboxes se escriben **sin marcar**: marcarlos es responsabilidad del implementador al completar cada tarea (`implementation.md` §8). **MUST NOT** marcarlos al crear el índice.
 - ✅ CORRECTO: `- [ ] [Tarea 01](task_01.md)`.
 - ❌ INCORRECTO: `- [Tarea 01](task_01.md)` (sin checkbox), `- [x] [Tarea 01](task_01.md)` (marcado al crear), `- [ ] [Tarea 1](tarea_01.md)` (número sin dos dígitos y fichero que no existe).
 
 2. **Copia literalmente** `{iniciativa}/design/test-e2e-desc.md` a `{iniciativa}/implementation/test-e2e-desc.md`. Es **contrato fijo hacia abajo**: lo ejecuta `/sdd-debug-with-test-e2e-desc` contra la aplicación real. **MUST NOT** modificarlo, resumirlo, renumerarlo ni ejecutarlo aquí. Si no existe, no pasa nada.
 
-3. **MUST NOT** crearse ninguna tarea de tests. La conformidad de un tipo de expediente la dan los tests **ya existentes y escritos a mano** de `src/test/java/com/educaflow/tiposexpedientes/`, que recorren automáticamente todos los tipos del árbol. Lee `tests-code.md` para el detalle y para el tratamiento de `design/test-unit-desc.md`.
+3. **MUST NOT** crearse ninguna tarea de tests, **salvo** la excepción de `tests-code.md` §4: que `design/test-unit-desc.md` describa una clase auxiliar propia con lógica de negocio aislable, en cuyo caso —y solo en ese— se crea una tarea de test para esa clase (§2, reglas de instanciación).
+   La conformidad de un tipo de expediente la dan, por lo demás, los tests **ya existentes y escritos a mano** de `src/test/java/com/educaflow/tiposexpedientes/`, que recorren automáticamente todos los tipos del árbol.
+   Lee `tests-code.md` para el detalle y para el tratamiento de `design/test-unit-desc.md`.
 
 ---
 
@@ -212,7 +231,7 @@ Antes de devolver el token, **MUST** recorrer este checklist. Si algo falla, cor
 
 - [ ] ¿El orden de las tareas es exactamente el de §2: trámite → maestro+puml → **CreateFilesTask** → domains → views raíz → initial → una por fase → documentospdf → permisos?
 - [ ] ¿`CreateFilesTask` es una **tarea propia** en la posición 3, con su comando exacto y la ruta resuelta, y **no** un paso escondido dentro de otra?
-- [ ] ¿Hay **una tarea por cada fase** declarada, en el orden de declaración, agrupando **todos los ficheros que §6 declare para ella** (y solo esos: el `views.xml` de fase únicamente si la fase tiene forms de estado)?
+- [ ] ¿Hay **una tarea por cada fase** declarada, en el orden de declaración, agrupando **todos los ficheros que §6 declare para ella** (en una fase completa: `PhaseEventManagerImpl.java`, `StateEventValidatorImpl.kt` y `views.xml`; en una iniciativa de MODIFICACIÓN, solo los que el delta toque)?
 - [ ] ¿La tarea de `documentospdf/` existe si y solo si el tipo genera algún documento?
 
 **Contenido de las tareas**
@@ -235,6 +254,6 @@ Antes de devolver el token, **MUST** recorrer este checklist. Si algo falla, cor
 
 - [ ] ¿Existe `implementation/tasks.md` con `type: implementation-tasks` y, por tarea, un checkbox **sin marcar** + enlace correcto, en orden?
 - [ ] ¿Se copió `design/test-e2e-desc.md` a `implementation/test-e2e-desc.md` **sin modificarlo**?
-- [ ] ¿**No** se creó ninguna tarea de tests ni ningún fichero bajo `src/test/...`?
+- [ ] ¿**No** se creó ninguna tarea de tests ni ningún fichero bajo `src/test/...`, salvo la excepción de `tests-code.md` §4 si `design/test-unit-desc.md` describe una clase auxiliar aislable?
 - [ ] ¿**No** se creó ninguna tarea para un `i18n_*.csv`, un `estados.png`, un `States.java`, un data-init generado ni nada bajo `build/`?
 - [ ] ¿La respuesta lleva `ESCRITO: implementation/` + el bloque `=== TAREAS ===` con una línea por tarea?

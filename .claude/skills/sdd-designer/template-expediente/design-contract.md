@@ -43,7 +43,7 @@ El diseñador escribe, dentro de su carpeta `design_<n>/` (que al ganar el torne
 
 ```
 design/
-├── design.md                          ← índice (frontmatter type: design)
+├── design.md                          ← índice (frontmatter type: design + template: copiada de la spec)
 ├── TramiteInstance.xml                ← XML materializado, listo para copiar
 ├── TipoExpedienteInstance.xml         ← XML materializado
 ├── domains.xml                        ← XML materializado
@@ -63,7 +63,7 @@ design/
 | Tipo de artefacto | Qué hace el diseño | Qué hace `/sdd-implementer` |
 |---|---|---|
 | **XML y `.puml`** | Los **materializa verbatim**: el fichero de `design/` es el artefacto final, ya escrito y completo | Lo **copia literalmente** a su ruta destino |
-| **Java (`.java`) y Kotlin (`.kt`)** | **MUST NOT** materializarlos. Se **describen con precisión quirúrgica** en `design.md` (§9, §10, §11) | Escribe el código a partir de esa descripción |
+| **Java (`.java`) y Kotlin (`.kt`)** | **MUST NOT** materializarlos. Se **describen con precisión quirúrgica** en `design.md` (§8, §9, §10) | Escribe el código a partir de esa descripción |
 
 - **MUST NOT** existir ningún `.java` ni `.kt` dentro de `design/`.
 - **MUST NOT** existir en `design/` ningún `i18n_es.csv` ni `i18n_ca.csv` (los genera el build; escribirlos a mano está **prohibido** y es un fallo bloqueante), ningún `estados.png` (lo genera `GenerateDocs`), ningún `States.java` (lo genera `GenerateStatesTask`) ni ningún fichero de data-init de trámites/tipos (los genera el build).
@@ -72,8 +72,8 @@ design/
 
 ### 1.2 Qué NO va en el diseño
 
-- **MUST NOT** incluir cuerpos de método Java/Kotlin implementados (nada de `if`/`for`/`switch` reales dentro de un método). La especificación de §10 y §11 es **declarativa**: listas ordenadas de acciones y de reglas, no código.
-- **EXCEPCIÓN — el DSL del validador (§11) SÍ se escribe con su sintaxis literal.** Es declarativo, y su literalidad (nombres de reglas y **argumentos exactos**) es justo lo que se implementa sin margen de interpretación.
+- **MUST NOT** incluir cuerpos de método Java/Kotlin implementados (nada de `if`/`for`/`switch` reales dentro de un método). La especificación de §9 y §10 del `design.md` es **declarativa**: listas ordenadas de acciones y de reglas, no código.
+- **EXCEPCIÓN — el DSL del validador (§10 del `design.md`) SÍ se escribe con su sintaxis literal.** Es declarativo, y su literalidad (nombres de reglas y **argumentos exactos**) es justo lo que se implementa sin margen de interpretación.
 - **MUST NOT** inventar fases, estados, eventos, campos ni documentos que la especificación no pida.
 - **MUST NOT** escribir nada fuera de la carpeta de la iniciativa. Todo cambio en el árbol real (incluido `permisos-demo.xml`) se **describe**; lo aplica `/sdd-implementer`.
 
@@ -86,6 +86,7 @@ design/
 ```markdown
 ---
 type: design
+template: <valor copiado del specification.md>
 ---
 
 # Diseño: <nombre del trámite>
@@ -106,6 +107,8 @@ type: design
 ## 14. Notas y supuestos
 ## 15. Checklist del diseñador
 ```
+
+- `template:` se **copia verbatim** del frontmatter del `specification.md` de la iniciativa, incluido el valor `external`. **MUST NOT** escribirse de memoria el nombre de esta carpeta de plantillas: con un `--template-dir` externo sería un dato falso, y `/sdd-implementer` lo heredaría tal cual.
 
 Los apartados §3–§15 de **este contrato** definen el contenido exigido a cada una de esas secciones. La numeración de las secciones del `design.md` es la de arriba; las referencias cruzadas de este contrato usan los nombres de sección, no el número.
 
@@ -140,6 +143,7 @@ Reglas:
 - **MUST NOT** llevar el `<Code>` guiones, underscores ni espacios: es el prefijo del nombre de la entidad y del patrón de nombres de vista. El `snake_case` es para la **carpeta**, no para el `code`.
 - **MUST NOT** anidar un trámite dentro de otro.
 - La carpeta de versión se descubre **a cualquier profundidad**; los segmentos intermedios son solo agrupación. Su **nombre** MUST ser único bajo su trámite.
+- **Iniciativa de MODIFICACIÓN de una versión existente** (la spec lo declara en su línea «Versión»): la tabla lleva una fila adicional `| Modificación de | <carpeta de versión existente> |` con los valores del trámite **real** (es lo que el descomponedor de `/sdd-implementer` usa para detectar la modificación — §8 y §9). La tabla **MUST** ir completa aunque el delta no cambie ninguno de sus valores; **MUST NOT** sustituirse por `*(sin cambios)*` (§8).
 
 ---
 
@@ -271,11 +275,11 @@ Reglas:
 
 **CRITICAL — la columna «quién lo rellena» es normativa y decide la frontera de confianza.**
 
-- `usuario` = el valor lo aporta la persona desde el formulario en algún evento. **Solo estos campos pueden aparecer en un `field(...)` del validador** (§11).
+- `usuario` = el valor lo aporta la persona desde el formulario en algún evento. **Solo estos campos pueden aparecer en un `field(...)` del validador** (§12.3 **de este contrato**).
 - `servidor` = lo dicta el servidor (PDFs generados por un `trigger*`, resguardos de registro, campos calculados, snapshots). **MUST NOT** aparecer en ningún `field(...)`.
 - **Motivo (CRITICAL):** el `Tramitador` construye el `AllowProperties` de cada evento **a partir de las reglas del validador**. Un campo que no está en ningún `field(...)` de esa pareja (estado, evento) **no se copia** desde la petición; darle entrada lo hace **escribible por el cliente**. Declarar los campos es exactamente lo que los hace editables, así que la columna no es documentación: es la lista de permisos.
 - **MUST NOT** confiarse en `readonly`, `showIf` o `hidden` de la vista como defensa: no lo son.
-- **MUST NOT** listar en esta tabla los campos heredados de `Expediente`: `tipoExpediente`, `name`, `numeroExpediente`, `codePhase`, `namePhase`, `codeState`, `nameState`, `fechaUltimoEstado`, `abierto`, `historialEstados`, `centro`, `usuarioRegistrador`, `personaSolicitante`, `personaInteresada`, `dniFirmaDocumentoEntrada`. Redeclararlos en el `domains.xml` está prohibido. (Sí pueden **referenciarse** desde §8, §9, §11 y las vistas.)
+- **MUST NOT** listar en esta tabla los campos heredados de `Expediente`: `tipoExpediente`, `name`, `numeroExpediente`, `codePhase`, `namePhase`, `codeState`, `nameState`, `fechaUltimoEstado`, `abierto`, `historialEstados`, `centro`, `usuarioRegistrador`, `personaSolicitante`, `personaInteresada`, `dniFirmaDocumentoEntrada`. Redeclararlos en el `domains.xml` está prohibido. (Sí pueden **referenciarse** desde §8, §9 y §11 **del `design.md`** y desde las vistas.)
 - Todo campo `servidor` **MUST** estar respaldado por al menos una acción de las secciones «Especificación del InitialEventManagerImpl» o «Especificación de los PhaseEventManagerImpl» del `design.md` que lo asigne; si ninguna lo asigna, o sobra el campo o falta la acción.
 
 > **Ejemplo** (ilustrativo, NO normativo): un campo `many-to-one` a `com.axelor.meta.db.MetaFile` que un `trigger*` rellena con el PDF que acaba de generar es `servidor`; el `MetaFile` que la persona sube desde el formulario es `usuario`.
@@ -301,7 +305,7 @@ Una fila por ítem:
 - Los enums van como `<enum>` hermanos de la entidad, con el sufijo de §6.2.
 - **MUST** ser `<extra-code-model>` y no `<extra-code>`: el primero inyecta en la entidad, el segundo en el `Repository`.
 
-**Regla de obligatoriedad (CRITICAL, específica de expedientes).** **MUST NOT** usarse `required="true"` en el `domains.xml` de un tipo de expediente para un campo que la persona rellena durante la tramitación: el expediente existe en BD desde el estado inicial, con todos esos campos vacíos, y un `NOT NULL` lo haría inguardable. La obligatoriedad de un campo es **por pareja (estado, evento)** y vive en el DSL del validador (`+Required()`), nunca en el modelo. Ver §11.
+**Regla de obligatoriedad (CRITICAL, específica de expedientes).** **MUST NOT** usarse `required="true"` en el `domains.xml` de un tipo de expediente para un campo que la persona rellena durante la tramitación: el expediente existe en BD desde el estado inicial, con todos esos campos vacíos, y un `NOT NULL` lo haría inguardable. La obligatoriedad de un campo es **por pareja (estado, evento)** y vive en el DSL del validador (`+Required()`), nunca en el modelo. Ver §12 y §13 **de este contrato**.
 
 - ✅ CORRECTO: `<string name="<campo>"/>` en el modelo + `field(model::get<Campo>) { +Required() }` en la pareja (estado, evento) donde se pide.
 - ❌ INCORRECTO: `<string name="<campo>" required="true"/>` (rompe el alta del expediente y los estados intermedios).
@@ -419,6 +423,17 @@ Inventario mínimo (rutas relativas a `src/main/java/com/educaflow/tramites/`, s
 
 Las tres filas de fase se repiten **por cada fase**; la de `documentospdf` **por cada documento y fragmento**. Si el tipo no genera PDFs, esas filas no existen.
 
+**Iniciativa de MODIFICACIÓN de una versión existente** (la spec lo declara en su línea «Versión»; es un delta):
+
+- El inventario mínimo de arriba **NO aplica**: la tabla lista **SOLO** los ficheros realmente tocados por el delta, normalmente con acción `Modificar` (con `Crear` solo lo genuinamente nuevo: una fase nueva, un documento nuevo…).
+- Cada XML con `Modificar` se materializa en `design/` **completo**, con el fichero real del árbol como base **más** el delta (se copiará verbatim y sobrescribirá).
+- La fila de `permisos-demo.xml` solo existe si el delta añade perfiles o asignaciones nuevas.
+- **MUST NOT** listarse ni regenerarse ningún fichero que el delta no toque, y **MUST NOT** aparecer ninguna fila que cree una carpeta de versión nueva.
+- En las secciones de `design.md` cuyo contenido no cambie con el delta, se escribe `*(sin cambios)*` en vez de re-derivar el as-is.
+- **CRITICAL — tres secciones quedan FUERA de esa regla y van SIEMPRE completas: «Identidad del trámite y del tipo», «Ficheros a crear o modificar» y «Pasos». MUST NOT** escribirse `*(sin cambios)*` en ninguna de las tres. Las dos últimas **son** el delta; la primera no es contenido de diseño sino la **identidad** de la que viven los skills de aguas abajo: el descomponedor de `/sdd-implementer` deriva de ella `<tramite>`, `<vN>`, `<Entidad>` y `<basePackageName>` (`sdd-implementer/template-expediente/decomposition.md` §1), y `/sdd-create-tests-e2e` resuelve de su fila `Carpeta de la versión` la carpeta de tests destino. Sin ellas ambos abortan.
+  - ✅ CORRECTO: «Máquina de estados» → `*(sin cambios)*`, y «Identidad del trámite y del tipo» → la tabla entera con valores reales, incluida su fila `| Modificación de | … |`.
+  - ❌ INCORRECTO: «Identidad del trámite y del tipo» → `*(sin cambios)*` (el delta no la cambia, pero borrarla deja al implementador sin `<Entidad>` y al generador de tests sin carpeta destino).
+
 ---
 
 ## 9. Sección «Pasos»
@@ -431,8 +446,8 @@ Una subsección `### Paso N — <fichero o grupo>` por cada fila (o grupo homog�
 | 2 | `TipoExpedienteInstance.xml` **completo** (todas las fases, todos los estados, todos los `events`) |
 | 3 | **Ejecutar `CreateFilesTask`** (§9.1) |
 | 4 | `domains.xml` |
-| 5 | `InitialEventManagerImpl.java` |
-| 6 | `views.xml` de la raíz de la versión |
+| 5 | `views.xml` de la raíz de la versión |
+| 6 | `InitialEventManagerImpl.java` |
 | 7 | `<fase>/PhaseEventManagerImpl.java` — uno por fase |
 | 8 | `<fase>/StateEventValidatorImpl.kt` — uno por fase |
 | 9 | `<fase>/views.xml` — uno por fase |
@@ -443,9 +458,17 @@ Una subsección `### Paso N — <fichero o grupo>` por cada fila (o grupo homog�
 
 **MUST NOT** alterarse ese orden. Los pasos 7, 8 y 9 se instancian **una vez por fase**; el 11, una vez por documento (o uno solo que los agrupe).
 
+**Iniciativa de MODIFICACIÓN de una versión existente** (§8): la tabla de arriba deja de ser un inventario obligatorio y pasa a ser **solo un orden relativo**. Los pasos de fichero salen, como siempre, de las filas de la tabla §6 —que en este modo lista solo lo que el delta toca—, así que hay **exactamente un paso por fila**, renumerados `1..N` de forma contigua y **respetando el orden relativo** de la tabla. Un paso de fichero cuya fila no esté en §6 **es un fallo**, no una omisión permitida. Los dos únicos pasos que no son de fichero (`CreateFilesTask` y la verificación final) se rigen por las reglas de abajo.
+
+- El paso de `CreateFilesTask` existe **si y solo si** el delta **añade fases nuevas** (§9.1). Si no las añade, no hay nada que esqueletar y el paso **MUST NOT** aparecer: `/sdd-implementer` tampoco genera su tarea (`sdd-implementer/template-expediente/decomposition.md`, reglas de instanciación).
+- El paso de `permisos-demo.xml` existe **si y solo si** su fila está en la tabla §6 (es decir, si el delta añade perfiles o asignaciones).
+- El **paso final de verificación** (`./run.sh`) existe **siempre**, también aquí, y es siempre el último.
+- ✅ CORRECTO: un delta que solo cambia el `views.xml` de una fase y su `StateEventValidatorImpl.kt` → 3 pasos: el `.kt`, el `views.xml` y `./run.sh`.
+- ❌ INCORRECTO: reproducir los 13 pasos de la tabla poniendo «sin cambios» en los que el delta no toca, o meter `CreateFilesTask` en un delta que no añade fases.
+
 ### 9.1 Paso 3 — CreateFilesTask (CRITICAL)
 
-**MUST** existir un paso dedicado, **exactamente** en esa posición (después del `TipoExpedienteInstance.xml`, antes de rellenar nada), cuyo cuerpo es:
+**MUST** existir un paso dedicado, **exactamente** en esa posición (después del `TipoExpedienteInstance.xml`, antes de rellenar nada) —**salvo** en una iniciativa de **modificación que no añade ninguna fase nueva**, donde el paso **MUST NOT** existir (§9)—, cuyo cuerpo es:
 
 ```
 ./gradlew -q CreateFilesTask -Ptipo=src/main/java/com/educaflow/tramites/<tramite>/<…>/<vN>
@@ -475,7 +498,7 @@ El cuerpo del paso **MUST**:
 1. Nombrar el fichero destino y el FQCN de la clase.
 2. Apuntar, con el título exacto de la sección, a su especificación quirúrgica: `## 8. Especificación del InitialEventManagerImpl`, `## 9. …` o `## 10. …`.
 3. Declarar el supertipo/interfaz y el parámetro de tipo.
-4. Declarar la verificación (compila; existe un método por cada elemento de la lista de cobertura de §10/§11).
+4. Declarar la verificación (compila; existe un método por cada elemento de la lista de cobertura de la fase de §11.4 **de este contrato** y de la tabla de cobertura de §12.1 **de este contrato**; y, para el `InitialEventManagerImpl`, cada asignación de la tabla de §10 **de este contrato**).
 
 **MUST NOT** duplicar la especificación en el paso: una sola fuente de verdad, en §8/§9/§10 del `design.md`. Dos copias divergen.
 
@@ -841,7 +864,35 @@ Por tanto, para esta plantilla:
 
 El contenido de `test-unit-desc.md` **MUST** ser, entonces, la **declaración de cobertura**: qué comprueba de este tipo cada familia de tests ya existente (la correspondencia de fases/estados/eventos con `PhaseEventManagerImpl`, `StateEventValidatorImpl` y los `views.xml`, y la del `.puml` con el XML maestro), y la constatación explícita de que **no se añade ningún test nuevo**, con el motivo. Si la especificación exige lógica de negocio pura y aislable que **no** viva en esas tres clases, sí se describe su test unitario.
 
-La sección `## 13. Tests` del `design.md` **MUST** referenciar ambos ficheros.
+### 15.3 Tests E2E supersedidos — **solo** en una iniciativa de MODIFICACIÓN
+
+**CRITICAL — este apartado solo aplica a una iniciativa de MODIFICACIÓN de una versión existente** (la fila «Modificación de» de la sección «Identidad del trámite y del tipo»).
+Una versión **nueva** vive en su propia carpeta de código y de tests, así que **nunca** invalida los de la anterior; una modificación **in situ**, en cambio, sí puede: si el delta cambia el título de un botón, el texto de un mensaje, los datos que pide una pantalla o el estado al que lleva un evento, el `.spec.ts` que una iniciativa anterior persistió **de esa misma versión** deja de pasar aunque el código sea correcto.
+
+Cuando eso ocurra, el `design.md` **MUST** llevar, dentro de `## 13. Tests`, una subsección `### Tests E2E supersedidos` con **una línea por test invalidado**, cada una con:
+
+- La **ruta** del `.spec.ts`, bajo la carpeta de tests **espejo de la versión que se modifica** (`src/test/e2e/tramites/…/<vN>/`).
+- El **identificador de la especificación** (`ESC-NNN`, `VAL-NNN`, `RUI-NNN`…) del delta que lo invalida.
+- Una frase con **qué** del test dejó de ser cierto.
+
+Reglas:
+
+- La subsección existe **si y solo si** hay al menos un test invalidado. **MUST NOT** escribirse vacía, ni en una iniciativa que no sea de modificación.
+- **MUST NOT** listarse un test que el delta **no** invalida: retirarlo ocultaría una regresión real. Ante la duda, **no** se lista — el coste de equivocarse por defecto es un rojo que se investiga; el de equivocarse por exceso es un fallo que nadie ve.
+- **MUST NOT** listarse un test de otra versión ni de otro trámite: un delta solo puede invalidar tests de la versión que modifica.
+- El diseñador **puede leer** (nunca escribir) los `.desc.md` y `.spec.ts` ya persistidos en esa carpeta espejo para decidir cuáles caen.
+
+`/sdd-create-tests-e2e` lee esta subsección en su **puerta de regresión** para distinguir un test invalidado a propósito de una regresión real: lo que no esté aquí y salga rojo **para** el pipeline.
+
+Ejemplo del bloque:
+
+```markdown
+### Tests E2E supersedidos
+
+- `src/test/e2e/tramites/mi_tramite/v1/t-004-rechazo-sin-motivo.spec.ts` — invalidado por `VAL-012`: el motivo del rechazo pasa a ser obligatorio, así que el test ya no puede rechazar sin motivo.
+```
+
+La sección `## 13. Tests` del `design.md` **MUST** referenciar ambos ficheros y, en una iniciativa de modificación que invalide tests, llevar además la subsección de §15.3.
 
 ---
 
@@ -863,7 +914,9 @@ La sección `## 15. Checklist del diseñador` del `design.md` **MUST** reproduci
 - [ ] ¿Hay un `design/fases/<fase>/views.xml` por **cada** fase declarada, con la fase en minúsculas?
 - [ ] ¿Hay un `design/documentospdf/<doc>.xml` por cada documento y un `_<fragmento>.xml` por cada fragmento, y ninguno de más?
 - [ ] ¿Todos los XML materializados están **completos**, sin `TODO`, sin `...`, sin `<button name="">`?
-- [ ] ¿El `design.md` tiene el frontmatter `type: design` y las 15 secciones de §2, con esos títulos y en ese orden?
+- [ ] ¿El `design.md` tiene el frontmatter `type: design` con la clave `template:` copiada de la spec, y las 15 secciones de §2, con esos títulos y en ese orden?
+- [ ] **Iniciativa de MODIFICACIÓN:** ¿«Identidad del trámite y del tipo», «Ficheros a crear o modificar» y «Pasos» van **completas**, sin `*(sin cambios)*` (§8)?
+- [ ] ¿La fila `| Modificación de | … |` está **si y solo si** la línea **Versión** de la spec declara una modificación de una versión existente, y nombra una carpeta de versión que **existe** en el árbol (§4)? Es el interruptor de todo el modo delta: si falta, el diseño se comporta como greenfield y regenera encima de una versión con expedientes vivos.
 
 **Máquina de estados**
 
@@ -922,11 +975,14 @@ La sección `## 15. Checklist del diseñador` del `design.md` **MUST** reproduci
 - [ ] ¿El perfil del estado inicial se asigna por `tramiteCode`?
 - [ ] ¿Todo perfil usado por algún estado tiene actor?
 - [ ] ¿`design/permisos.xml` es un fragmento con solo lo nuevo, sin duplicar `<perfil>` preexistentes?
-- [ ] ¿La tabla «Ficheros a crear o modificar» lista **todos** los ficheros reales, con `permisos-demo.xml` como `Modificar`, y ninguno generado?
+- [ ] ¿La tabla «Ficheros a crear o modificar» lista **todos** los ficheros reales, con `permisos-demo.xml` como `Modificar`, y ninguno generado? (En una iniciativa de modificación: ¿solo los ficheros tocados por el delta, y `permisos-demo.xml` solo si hay permisos nuevos? — §8)
 - [ ] ¿Los pasos siguen el orden obligatorio de §9, con el paso de **`CreateFilesTask` en la posición 3** y su comando exacto?
+- [ ] **Iniciativa de MODIFICACIÓN:** ¿hay **exactamente un paso de fichero por fila** de la tabla §6, en su orden relativo y renumerados sin huecos, sin `CreateFilesTask` salvo que el delta añada fases nuevas, y con `./run.sh` como último paso (§9)?
 - [ ] ¿Cada paso de un XML dice «cópialo literalmente» con origen y destino, y cada paso de un `.java`/`.kt` apunta a su sección de especificación sin duplicarla?
 - [ ] ¿El paso final lleva `./run.sh` y la comprobación en runtime de los agujeros que el build no ve?
 
 **Tests**
 
 - [ ] ¿`design/test-e2e-desc.md` existe, menciona **cada estado** y **cada transición**, y no lleva código ni selectores?
+- [ ] **Iniciativa de MODIFICACIÓN:** ¿los `T-NNN` de `test-e2e-desc.md` empiezan en el **primer número libre** de la carpeta espejo de la versión, no en `001` (`tests-e2e.md` §2)?
+- [ ] **Iniciativa de MODIFICACIÓN:** ¿está la subsección `### Tests E2E supersedidos` dentro de `## 13. Tests` con **cada** test que el delta invalida a propósito —y **solo** esos, todos de la carpeta espejo de esta misma versión, cada uno con su ID de spec y su motivo— o ausente porque no invalida ninguno (§15.3)?

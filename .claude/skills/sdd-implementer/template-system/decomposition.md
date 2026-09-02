@@ -74,6 +74,7 @@ Por cada tarea, escribe `{iniciativa}/implementation/task_NN.md` con **exactamen
 ```
 ---
 type: implementation-task
+template: <valor copiado del design.md>
 ---
 
 # Tarea NN a implementar
@@ -89,6 +90,10 @@ Para hacer esta tarea vas a usar estos skills
 Reglas de relleno:
 
 - `NN` es el número de dos dígitos de la tarea (`01`, `02`, …).
+- `template:` se **copia verbatim** del frontmatter del `design.md` de entrada (que la heredó de la spec), incluido el valor `external`.
+  Aquí es **solo trazabilidad**: los skills que van detrás (`/sdd-debug-with-test-e2e-desc`, `/sdd-create-tests-e2e`) resuelven su plantilla leyendo la clave del `design/design.md`, nunca la de una tarea. Aun así **MUST NOT** escribirse de memoria el nombre de esta carpeta de plantillas — con un `--template-dir` externo sería un dato falso, y una tarea que se contradiga con el `design.md` despista a quien la audite.
+  - ✅ CORRECTO: el `design.md` dice `template: system` → la tarea dice `template: system`.
+  - ❌ INCORRECTO: el `design.md` dice `template: external` y la tarea dice `template: system` (inventa una plantilla interna que no se usó).
 - La lista de skills es la determinada en §3.
 - **`<texto del prompt>`**: todo lo relevante del `design.md` para los ficheros de esta tarea, copiado **verbatim**. **MUST** incluir, cuando apliquen:
   - La(s) fila(s) de la tabla "Ficheros a crear o modificar" de esos ficheros (con su ruta destino). **MUST** conservar la columna `Acción` (`Crear`/`Modificar`): el implementador la usa para decidir cómo materializar (ver `implementation.md` §3).
@@ -117,6 +122,7 @@ Ejemplos ✅/❌ de cabecera de tarea:
 ```
 ---
 type: implementation-tasks
+template: <valor copiado del design.md>
 ---
 
 # Lista de tareas a implementar
@@ -128,6 +134,7 @@ Reglas:
 
 - Un enlace por cada `task_NN.md` creado, en orden, **precedido de un checkbox sin marcar** `- [ ]`.
 - El texto del enlace es `Tarea NN`; el destino es `task_NN.md`.
+- `template:` se copia verbatim del `design.md`, igual que en `task_NN.md` (§4).
 - Todos los checkboxes se escriben **sin marcar** (`- [ ]`): marcarlos es responsabilidad del implementador al completar cada tarea, **MUST NOT** marcarlos al crear el índice.
 - ✅ CORRECTO: `- [ ] [Tarea 01](task_01.md)`.
 - ❌ INCORRECTO: `- [Tarea 01](task_01.md)` (sin checkbox), `- [x] [Tarea 01](task_01.md)` (no se marca al crear el índice), `- [ ] [Tarea 1](tarea_01.md)` (número sin dos dígitos y nombre de fichero que no coincide con el real).

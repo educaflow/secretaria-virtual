@@ -12,7 +12,20 @@ Como parte del diseño, **el diseñador** escribe `design_<n>/test-e2e-desc.md` 
 
 ## 1. Reglas de materialización
 
-- Numeración `T-001`, `T-002`… global al fichero, sin huecos, empezando en `001`.
+- Numeración `T-NNN` de tres dígitos, global al fichero y sin huecos. **Arranca en el primer número libre de la carpeta de tests del sistema**, no siempre en `001`:
+  - Carpeta vacía o inexistente (sistema nuevo) → `T-001`.
+  - Carpeta con tests ya persistidos (el caso de una iniciativa que **modifica** un sistema existente) → el siguiente al mayor `NNN` que ya haya.
+
+  **CRITICAL — es el único punto del pipeline donde se puede evitar el choque.** El `T-NNN` viaja intacto hasta el nombre del fichero persistido (`t-NNN-<slug>.desc.md` / `.spec.ts`), en una carpeta que **comparten varias iniciativas**: `/sdd-debug-with-test-e2e-desc` es un troceador que copia verbatim y `/sdd-create-tests-e2e` tiene prohibido renumerar (desincronizaría el nombre del fichero con el `id:` del frontmatter). La carpeta es `src/test/e2e/<capa>/<sistema>/`, con el `<capa>/<sistema>` del campo `**Capa:**` del `design.md`:
+
+  ```bash
+  ls src/test/e2e/<capa>/<sistema>/t-*.desc.md 2>/dev/null
+  ```
+
+  **MUST NOT** rellenarse un hueco dejado por un test retirado: el bloque de esta iniciativa arranca por encima de **todos** los existentes y es contiguo.
+
+  - ✅ CORRECTO: la carpeta tiene `t-001…t-026`; la iniciativa describe 4 tests → `T-027`…`T-030`.
+  - ❌ INCORRECTO: numerar `T-001`… sobre una carpeta poblada (chocaría con ficheros ya persistidos de otra iniciativa).
 - Cada test declara en su cabecera: `Origen ESC` (lista de `ESC-NNN` que materializa, **mínimo 1**), `Verifica` (lista de `V-`/`R-`/`U-` que ejerce, o `—`), `Pantalla principal` (un `screen-*.md`) y `Tipo` (`happy` | `error` | `UI`).
 - **Cobertura mínima obligatoria**: cada `ESC-NNN` del spec aparece como `Origen ESC` en **al menos un test**. Un escenario con ramas condicionales puede dar lugar a **más de un test** (uno por rama).
 - Pasos en lenguaje de negocio con `Dado`/`Cuando`/`Y`/`Entonces` (o `Given`/`When`/`And`/`Then`), usando nombres reales de pantallas (entrecomillados), botones, campos y mensajes. **MUST NOT** selectores CSS ni comandos `playwright-cli`.
@@ -112,4 +125,4 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 - [ ] ¿Cada campo, botón o mensaje de los pasos existe en el `screen-*.md` / `entity-*.md` correspondiente (no inventado)?
 - [ ] ¿Los pasos están en `Dado`/`Cuando`/`Y`/`Entonces`, sin selectores CSS ni comandos `playwright-cli`?
 - [ ] ¿Cada test es independiente y prepara sus propias precondiciones desde el login (sin presuponer estado salvo "Recursos y datos iniciales")?
-- [ ] ¿La numeración `T-NNN` es global al fichero, empieza en `001` y no tiene huecos?
+- [ ] ¿La numeración `T-NNN` es global al fichero, sin huecos, y empieza en el **primer libre de `src/test/e2e/<capa>/<sistema>/`** —`001` solo si esa carpeta no tiene ningún `t-*.desc.md` (§1)?

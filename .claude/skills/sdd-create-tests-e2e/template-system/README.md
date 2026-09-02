@@ -43,6 +43,9 @@ Los tres roles:
 - **Los tests replican la ruta del código que prueban**: `src/test/e2e/<capa>/<sistema>/` es espejo de `src/main/java/com/educaflow/<capa>/<sistema>/`, con `<capa>` = `system` o `subsystem` (p.ej. `src/test/e2e/subsystem/criptografia/`). La carpeta la resuelve el motor; el generador la recibe ya resuelta y **MUST NOT** crear otra. Como varias iniciativas comparten carpeta, los hermanos que veas ahí pueden ser de otra iniciativa: reutiliza sus helpers, pero **MUST NOT** modificarlos.
 - La app es **multicentro y bilingüe (es/ca)**: los locators por texto asumen español salvo que el test diga lo contrario.
 - **CRITICAL — la BD es compartida y NO se resetea entre ejecuciones**: los tests acumulan datos de runs anteriores. Por eso cada `.spec.ts` **MUST** ser **idempotente** (nombres únicos por run + teardown + pre-limpieza defensiva); lo detalla `generation.md`. Un test que pasa una vez pero falla al reejecutarse está **roto**.
+- **En esta familia NO hay tests manuales**: la plantilla `system` de `/sdd-debug-with-test-e2e-desc` no declara ningún test como no automatizable (su `correction.md` prohíbe incluso devolver el token `MANUAL`), así que ningún test llega marcado `- [-]` en el índice de entrada.
+  Por eso este contrato **no** define vía manual: no hay marca ni tag de exclusión que poner en un `.spec.ts`, ni forma de anotar el snapshot como no verificado.
+  Si aun así apareciera una línea `- [-]`, es una incoherencia del artefacto de entrada: **MUST NOT** inventarse un tag, un `test.skip`/`test.fixme` ni un camino manual — el rol devuelve `BLOQUEADO: {T-NNN} — la plantilla system no contempla tests manuales` y el motor lo trata como fallo por test.
 
 ### 3.1 Carpeta destino (la resuelve el MOTOR en la Fase 1)
 
@@ -136,9 +139,12 @@ Al copiar un `t-NNN-<slug>.desc.md` de `test-e2e-desc/` a `src/test/e2e/<capa>/<
 <!-- ARTEFACTO GENERADO por /sdd-create-tests-e2e — NO editar a mano.
      Snapshot "as-tested": copia de la descripción que pasó al depurar con /sdd-debug-with-test-e2e-desc.
      Fuente: .sdd/drafts/{carpeta-iniciativa}/test-e2e-desc/{fichero}.desc.md
+     Iniciativa: {carpeta-iniciativa}
      Test: {T-NNN}  |  Origen ESC: {ESC-NNN, leído de la línea "Origen ESC:" del propio fichero}
      Para regenerar: /sdd-create-tests-e2e (sobrescribe desde la fuente). -->
 ```
+
+**CRITICAL — `Iniciativa:` es parte de la identidad del test, no decoración.** Varias iniciativas comparten esta carpeta (una que modifica el sistema escribe donde ya hay tests de la que lo creó), y `T-NNN` y `ESC-NNN` son **locales a cada iniciativa**: sin este campo, dos tests distintos con el mismo `T-001`/`ESC-001` se confundirían y el nuevo se descartaría como "ya materializado". Su valor es el **nombre de la carpeta** de la iniciativa, sin `.sdd/drafts/` ni barra final. **MUST NOT** omitirse ni abreviarse.
 
 - ✅ CORRECTO: el banner va entre el `---` de cierre del frontmatter y el `# T-NNN — …`.
 - ❌ INCORRECTO: ponerlo **antes** del frontmatter (rompería el parseo de `type:`/`id:`), o reescribir el cuerpo del test.

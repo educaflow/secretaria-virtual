@@ -1,6 +1,6 @@
-# Guía de los ficheros de la especificación
+# Guía de los ficheros de la especificación de un sistema o subsistema
 
-Explica qué debe contener cada fichero de la especificación, cómo clasificar sus elementos y cómo numerarlos. Esta guía dirige la redacción y la revisión de la spec; **MUST NOT** copiarse ninguno de sus bloques explicativos al output.
+Explica qué debe contener cada fichero de la especificación de un **sistema o subsistema** del proyecto (entidades, servicios, controladores y pantallas Axelor estándar), cómo clasificar sus elementos y cómo numerarlos. Esta guía dirige la redacción y la revisión de la spec; **MUST NOT** copiarse ninguno de sus bloques explicativos al output.
 
 Es **el único fichero de esta carpeta de plantillas que el skill `sdd-specification` conoce por nombre**: el skill lee este `README.md` y, a través de él, descubre y usa el resto. Por eso aquí se declara qué hay en la carpeta y cómo se usa cada cosa.
 
@@ -14,6 +14,20 @@ Es **el único fichero de esta carpeta de plantillas que el skill `sdd-specifica
 | `screen.md`        | **La plantilla de los ficheros de pantalla.**                                                                                                                                                                                                                                                                                                                                        | Se instancia tantas veces como pantallas defina la spec, una por `screen-<slug>.md`.                                                                             |
 | `catalogos/`       | **Carpeta de catálogos de referencia**, uno por barrido: `catalogo-historias-escenarios.md` (cobertura de `HU-`/`ESC-`), `catalogo-pasos-escenario.md` (granularidad y autosuficiencia de los pasos), `catalogo-validaciones.md` (`VAL-` + `RES-`, catálogo único), `catalogo-reglas-negocio.md` (`RN-`), `catalogo-campos-calculados.md` (`CC-`), `catalogo-reglas-ui.md` (`RUI-`). | Se consultan al rellenar cada apartado y son la referencia de los **barridos de completitud** (ver esa sección al final). **MUST NOT** copiarse al output.       |
 | `example/`         | **Carpeta con un ejemplo completo** de spec terminada e instanciada (índice + un `entity-*.md` por modelo + un `screen-*.md` por pantalla).                                                                                                                                                                                                                                          | Referencia del aspecto final. **MUST NOT** copiarse su contenido al output.                                                                                      |
+
+## Exploración del contexto
+
+**Esta sección la ejecuta el propio skill `sdd-specification` en su Fase 1** (no los subagentes), antes de preguntar o revisar:
+
+1. **Carga `k-sistemas`** para entender qué sistemas/subsistemas existen y cómo se relacionan. **MUST NOT** cargar `k-vistas`, `k-validaciones` ni otros skills técnicos.
+2. **Lista los subsistemas y sistemas reales** (no de memoria):
+   ```bash
+   ls src/main/java/com/educaflow/subsystem/ src/main/java/com/educaflow/system/
+   ```
+   Si la idea/spec menciona algo concreto, lee ese subsistema antes de preguntar.
+3. **Revisa `src/main/java/com/educaflow/base/infrastructure/`** para identificar utilidades reutilizables (PDF, mail, criptografía, integración externa…).
+4. **Comprueba si la solicitud es divisible**: si cubre varios subsistemas/sistemas independientes (desplegables por separado), propón dividirla en specs separadas. Cada spec debe producir software funcional por sí solo.
+5. **MUST NOT** leer ni tomar como referencia `expedientes` ni `tramites` — siguen otra arquitectura (otra plantilla).
 
 ## Ficheros que produce la especificación
 
@@ -29,6 +43,9 @@ La especificación **no es un único fichero**: es un conjunto de ficheros dentr
 
 - `<Nombre>` del modelo va en **PascalCase** (p. ej. `entity-SolicitudCertificado.md`); `<slug>` de la pantalla en **kebab-case** (p. ej. `screen-mis-certificados.md`). `model.puml` y `model.png` son **nombres fijos** (uno por spec), sin sufijo variable.
 - Solo `specification.md` lleva frontmatter. Los `entity-*.md` y `screen-*.md` empiezan directamente por su `# Modelo: …` / `# Pantalla: …`. `model.puml` empieza por `@startuml` y termina por `@enduml`.
+- **CRITICAL — `model.puml` y `model.png` son la única excepción a la correspondencia índice ↔ fichero.** No se enlazan desde ninguna tabla del índice y el `example/` de esta carpeta **no** los incluye: las dos cosas son **deliberadas**, porque no son un elemento de la spec (una historia, un modelo, una pantalla) sino una vista de conjunto derivada de los `entity-*.md`.
+  Por eso la revisión **MUST NOT** contarlos como ficheros huérfanos ni reclamar su entrada en el índice, y **MUST NOT** añadirles una fila en las tablas de «Modelos» ni de «Pantallas».
+  El resto de ficheros secundarios (`entity-*.md`, `screen-*.md`) sí cumplen la correspondencia sin excepción.
 
 ---
 
@@ -728,14 +745,14 @@ Los barridos se ejecutan por **etapas en orden** (las candidatas aceptadas de un
 - **Etapa A — cobertura**: primero, porque una HU o un ESC aceptados dan material nuevo al resto de barridos.
 - **Etapa B — calidad y reglas**: sobre la spec ya completada con lo aceptado en A.
 
-| Etapa | Barrido | Una instancia por cada… | Sobre qué piensa (iteración interna del subagente) | Catálogo |
-|---|---|---|---|---|
-| A | **historias-escenarios** | toda la spec (**instancia única**) | Cruza Actores, Pantallas, acciones y estados de los `entity-*.md`, Seguridad y `VAL-`/`RUI-` contra las HU/ESC existentes: qué declarado no lo ejercita ningún escenario. Propone la HU o el ESC que falta **con sus pasos redactados** (conforme a las reglas de «Historias de usuario»: numerados, concretos, autosuficientes, con usuarios/centros de demo). | `catalogos/catalogo-historias-escenarios.md` |
-| B | **pasos-escenarios** | historia de usuario (`HU-NNN`) del índice | ESC a ESC de su historia y, dentro de cada uno, paso a paso: (1) **granularidad** — ningún paso agrupa varias acciones consecutivas ni deja datos sin concretar; (2) **pasos que faltan** — inicio de sesión, preparación, valores concretos, pulsación, respuesta literal; (3) **autosuficiencia** — nada presupone estado previo de la BD fuera de «Recursos y datos iniciales» y los datos de demo. Propone los pasos concretos que sustituyen o se insertan. | `catalogos/catalogo-pasos-escenario.md` |
-| B | **validaciones-restricciones** | fichero `entity-*.md` | **Primero** recorre campo a campo las propiedades de cada `AllowProperties` y comprueba la **obligatoriedad** (¿puede quedar vacío? si no → candidata), la validación más olvidada. **Después**, campo a campo × acción a acción, recorre las cuatro tablas del catálogo. Clasifica cada candidata: si debe cumplirse siempre → `RES-`; si se ancla a una acción → `VAL-`. Propone `condición`/`mensaje`/`actor` cuando apliquen. | `catalogos/catalogo-validaciones.md` |
-| B | **reglas-negocio** | fichero `entity-*.md` | Acción a acción y transición a transición (sección «Estados y transiciones»): qué hace el sistema automáticamente al confirmarse cada una. Propone la `fase` y, si aplican, `estado`/`condición`. | `catalogos/catalogo-reglas-negocio.md` |
-| B | **campos-calculados** | fichero `entity-*.md` | Campo a campo: cuáles dicta el servidor y no el usuario (cruza con las líneas `Input AllowProperties`: un campo que nadie envía pero que aparece en pantallas/escenarios es candidato). Propone `momento`/`sobreescribible`/`cálculo`. | `catalogos/catalogo-campos-calculados.md` |
-| B | **reglas-ui** | fichero `screen-*.md` | Vista a vista del árbol y, dentro de cada una, sus campos, paneles y botones, considerando los roles que usan la pantalla y los estados del registro. Propone el `disparador` y, si aplican, `condición`/`actor`. | `catalogos/catalogo-reglas-ui.md` |
+| Etapa | Barrido | Una instancia por cada… | Sobre qué piensa (iteración interna del subagente) | Catálogo | Contrato de salida |
+|---|---|---|---|---|---|
+| A | **historias-escenarios** | toda la spec (**instancia única**) | Cruza Actores, Pantallas, acciones y estados de los `entity-*.md`, Seguridad y `VAL-`/`RUI-` contra las HU/ESC existentes: qué declarado no lo ejercita ningún escenario. Propone la HU o el ESC que falta **con sus pasos redactados** (conforme a las reglas de «Historias de usuario»: numerados, concretos, autosuficientes, con usuarios/centros de demo). | `catalogos/catalogo-historias-escenarios.md` | historias-escenarios |
+| B | **pasos-escenarios** | historia de usuario (`HU-NNN`) del índice | ESC a ESC de su historia y, dentro de cada uno, paso a paso: (1) **granularidad** — ningún paso agrupa varias acciones consecutivas ni deja datos sin concretar; (2) **pasos que faltan** — inicio de sesión, preparación, valores concretos, pulsación, respuesta literal; (3) **autosuficiencia** — nada presupone estado previo de la BD fuera de «Recursos y datos iniciales» y los datos de demo. Propone los pasos concretos que sustituyen o se insertan. | `catalogos/catalogo-pasos-escenario.md` | pasos-escenarios |
+| B | **validaciones-restricciones** | fichero `entity-*.md` | **Primero** recorre campo a campo las propiedades de cada `AllowProperties` y comprueba la **obligatoriedad** (¿puede quedar vacío? si no → candidata), la validación más olvidada. **Después**, campo a campo × acción a acción, recorre las cuatro tablas del catálogo. Clasifica cada candidata: si debe cumplirse siempre → `RES-`; si se ancla a una acción → `VAL-`. Propone `condición`/`mensaje`/`actor` cuando apliquen. | `catalogos/catalogo-validaciones.md` | reglas |
+| B | **reglas-negocio** | fichero `entity-*.md` | Acción a acción y transición a transición (sección «Estados y transiciones»): qué hace el sistema automáticamente al confirmarse cada una. Propone la `fase` y, si aplican, `estado`/`condición`. | `catalogos/catalogo-reglas-negocio.md` | reglas |
+| B | **campos-calculados** | fichero `entity-*.md` | Campo a campo: cuáles dicta el servidor y no el usuario (cruza con las líneas `Input AllowProperties`: un campo que nadie envía pero que aparece en pantallas/escenarios es candidato). Propone `momento`/`sobreescribible`/`cálculo`. | `catalogos/catalogo-campos-calculados.md` | reglas |
+| B | **reglas-ui** | fichero `screen-*.md` | Vista a vista del árbol y, dentro de cada una, sus campos, paneles y botones, considerando los roles que usan la pantalla y los estados del registro. Propone el `disparador` y, si aplican, `condición`/`actor`. | `catalogos/catalogo-reglas-ui.md` | reglas |
 
 Reglas de los barridos:
 
@@ -747,4 +764,4 @@ Reglas de los barridos:
 - Una candidata **debe deducirse de lo que la spec ya cuenta** (sus actores, campos, estados, escenarios, pantallas, seguridad) — el subagente **MUST NOT** inventar funcionalidad nueva (campos, acciones o pantallas que la spec no tiene). El barrido **historias-escenarios** propone HU/ESC nuevos, pero solo los que **cubren lo ya declarado** (una pantalla sin escenario, un actor con acceso sin historia, una validación sin escenario de error…), no funcionalidades nuevas.
 - Respetar la frontera entre familias: si una candidata bloquea → es del barrido validaciones-restricciones; si actúa/escribe → reglas-negocio; si solo cambia lo que se ve → reglas-ui; si es un valor que fija el servidor → campos-calculados. Ante la duda, proponerla una sola vez en la familia de su **efecto real**.
 - **Iniciativas que modifican** (línea `**Modifica:**` en el índice): sobre un fichero marcado `**Modelo existente:** sí` / `**Pantalla existente:** sí`, los barridos proponen candidatas **solo del delta declarado** — **MUST NOT** re-especificar comportamiento preexistente que la spec no toca. Excepción dirigida: el barrido **historias-escenarios** SÍ **MUST** proponer al menos un `ESC-` de **no-regresión** por cada pantalla/flujo existente que el delta roce (p.ej. «el flujo principal de la pantalla modificada sigue funcionando con el campo nuevo vacío»), para que lo que ya funcionaba quede ejercitado por los tests de la iniciativa.
-- El formato exacto de respuesta de cada subagente (token de "sin candidatas" y líneas JSONL, distinto por barrido) lo fija el skill `sdd-specification` en su fase de barrido, no esta guía.
+- La columna **«Contrato de salida»** dice cuál de los contratos JSONL del skill usa cada barrido (`reglas`, `historias-escenarios` o `pasos-escenarios`). El motor **MUST** leerla en vez de deducir el contrato del nombre del barrido, que lo pone esta plantilla. Los campos de cada contrato y el token de "sin candidatas" los fija el skill `sdd-specification` en su fase de barrido, no esta guía.
