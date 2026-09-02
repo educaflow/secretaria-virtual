@@ -4,7 +4,8 @@ Catálogo de las **convenciones verificables de las vistas Axelor** del proyecto
 Este fichero **NO contiene código**: describe **qué** debe verificarse; el código lo escriben a mano los tests JUnit 5 planos de `src/test/java/com/educaflow/views` (una clase por categoría), que leen cada XML con JAXP (DOM + XPath) y comprueban cada regla.
 Es el equivalente para vistas de [`architecture-rules.md`](architecture-rules.md), que hace lo propio para el código Java con ArchUnit — con una diferencia técnica: **ArchUnit analiza bytecode y no sirve para XML**, así que las vistas se verifican con tests JUnit normales, no con `@ArchTest`.
 
-> **Mantener coherencia con los skills `k-vistas`.** Este fichero **cataloga como reglas verificables** las convenciones que los skills `k-vistas` (`SKILL.md`, `forms.md`, `grids.md`, `actions.md`, `menus.md`) y el verificador de `/sdd-designer` (`sdd-designer/template-system/{design-contract,vistas,validacion}.md`) describen en prosa. Si cambias una regla aquí, **MUST** comprobar si hay que actualizar los skills, y viceversa. No deben divergir.
+> **Mantener coherencia con los skills `k-vistas`.** Este fichero **cataloga como reglas verificables** las convenciones que los skills `k-vistas` (`SKILL.md`, `forms.md`, `grids.md`, `actions.md`, `menus.md`) y el verificador de `/sdd-designer` (`sdd-designer/template-system/{design-contract,vistas,validacion}.md`) describen en prosa.
+> La familia `template-expediente/` de ese mismo skill queda **fuera**: las vistas de `expedientes`/`tramites` están exentas del sujeto de estas reglas (ver «Ámbito de análisis»), y su contrato de vistas no debe alinearse con este fichero. Si cambias una regla aquí, **MUST** comprobar si hay que actualizar los skills, y viceversa. No deben divergir.
 
 ## Fuente de verdad
 
