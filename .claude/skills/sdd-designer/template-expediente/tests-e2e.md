@@ -34,6 +34,7 @@ Reglas:
 - Todos los actores **MUST** pertenecer al mismo centro que el expediente bajo prueba, salvo el test de aislamiento anterior y el usuario `admin`, que ve cualquier centro.
 - **REQUIRED — juego de datos válido.** Tras la tabla de actores, el fichero **MUST** declarar, **por fase**, un **juego de datos válido** (campo → valor) que los tests del camino feliz reutilizan en vez de repetirlo. Los valores **MUST** ser concretos y coherentes con el modelo y con las reglas del validador.
 - Si el tipo **firma en cliente** (AutoFirma), los tests que lo ejerzan **MUST** declarar como precondición que hay un certificado válido cuyo DNI coincide con el que el `triggerInitialEvent` deja en el expediente, y **MUST** advertir de que la firma se hace en la máquina del usuario.
+  **REQUIRED** — esos tests **MUST** llevar además `**Manual:** sí — <motivo>` en su cabecera (§4): un paso que exige una aplicación de escritorio y un certificado del usuario **no se puede pilotar en el navegador**, y la marca es lo que evita que atasquen el pipeline aguas abajo (§4.1).
 - Si el tipo requiere **ficheros adjuntos**, el juego de datos **MUST** describir el fichero (tipo y tamaño aproximado) sin dar ninguna ruta del sistema de ficheros.
 
 > **Ejemplo** (ilustrativo, NO normativo) de fila de la tabla de actores, con nombres inventados:
@@ -60,7 +61,11 @@ La cobertura se mide contra **dos** fuentes: la especificación (los `ESC-NNN`) 
 
 - **MUST** mencionarse **todos** los estados del tipo. Un estado al que no llega ninguna transición probada es un estado sin cobertura.
 - Cada estado `closed` **MUST** tener su test de llegada **y** la comprobación de que su **vista genérica** se abre en **solo lectura**, con el único botón de salida y sin ningún evento disponible.
-- **MUST** haber al menos un test de la **vista genérica de solo lectura** de los estados **abiertos** que tienen `profile`: los abre un usuario **sin** el perfil que tiene el turno, ve todo en solo lectura, solo el botón de salir, y el expediente no cambia de estado. Es la red de seguridad que exige `X1` (`vistas.md` §4).
+- **MUST** haber al menos un test de la **vista genérica de solo lectura** de los estados **abiertos** que tienen `profile`: el expediente se abre por una **bandeja cuyo perfil no es el del estado** (y por tanto no hay form para ese perfil), se ve todo en solo lectura, solo el botón de salir, y el expediente no cambia de estado. Es la red de seguridad que exige `X1` (`vistas.md` §4).
+  **CRITICAL — este test se describe por BANDEJA, no por usuario.** La vista la elige el perfil que fija el `action-view` de la bandeja por la que se entra, **no** los perfiles que tenga quien mira: el servidor solo comprueba que ese perfil lo use algún estado del tipo, y cae a la vista genérica cuando no existe form para él.
+  El perfil **real** del usuario se comprueba después, al **disparar** el evento.
+  Por eso el `Given` de este test **MUST** decir **por qué bandeja se entra**.
+  Describirlo como «un usuario sin el perfil abre el expediente» da un test que no comprueba lo que dice: ese mismo usuario, entrando por la bandeja del perfil del estado, vería la vista completa **con** sus botones.
 
 ### 3.3 Validaciones fallidas
 
@@ -114,6 +119,7 @@ Estado previo del que parten **todos** los tests: la carga de demo (`data.import
 
 Tests de validación fallida: <lista de T-NNN>.
 Tests de vistas genéricas de solo lectura: <lista de T-NNN>.
+Tests **manuales** (no automatizables, §4.1): <lista de T-NNN, o «ninguno»>.
 
 ---
 
@@ -125,6 +131,7 @@ Tests de vistas genéricas de solo lectura: <lista de T-NNN>.
 **Evento:** `<EVENTO>` — botón «<título del botón>» (o `—` en el arranque)
 **Hasta:** `<FASE>` / `<ESTADO>` (o `[*]` en un `DELETE`)
 **Tipo:** happy | error | solo-lectura
+**Manual:** no (o `sí — <motivo>` si algún paso no es automatizable, §4.1)
 
 - **Given** <situación de partida: quién es el usuario, qué perfil tiene, dónde está el expediente y qué ve>.
 - **When** <la acción concreta: qué datos introduce y qué botón pulsa>.
@@ -141,10 +148,30 @@ Tests de vistas genéricas de solo lectura: <lista de T-NNN>.
 Reglas de forma:
 
 - Numeración `T-001`, `T-002`, … **global al fichero, con tres dígitos, sin huecos y empezando en `001`**. Es lo que `/sdd-debug-with-test-e2e-desc` usa para nombrar cada `t-NNN-<slug>.desc.md`.
-- El bloque de cabecera de cada test lleva **los seis campos** (`Origen ESC`, `Perfil`, `Desde`, `Evento`, `Hasta`, `Tipo`), cada uno en su línea, siempre en ese orden. Un campo que no aplica se escribe `—`; **MUST NOT** omitirse la línea.
+- El bloque de cabecera de cada test lleva **los siete campos** (`Origen ESC`, `Perfil`, `Desde`, `Evento`, `Hasta`, `Tipo`, `Manual`), cada uno en su línea, siempre en ese orden. Un campo que no aplica se escribe `—`; **MUST NOT** omitirse la línea. `Manual` nunca es `—`: es `no` o `sí — <motivo>`.
 - Los pasos van en `Given` / `When` / `Then` / `And` (o `Dado` / `Cuando` / `Entonces` / `Y`, pero **uno de los dos idiomas en todo el fichero**, sin mezclarlos).
 - Cada test es **autosuficiente**: su `Given` describe entero el punto de partida y cómo se llega a él, sin depender de que otro test se haya ejecutado antes.
 - Los títulos de botones, paneles y campos van **entre comillas angulares** y **MUST** coincidir literalmente con los `title` que el diseño pone en los `views.xml` y en el `domains.xml`.
+
+### 4.1 El campo `Manual` — tests que necesitan una persona
+
+Declara si el test se puede ejecutar **entero** sin intervención humana. Es el campo que decide qué pasa con el test en todo el pipeline aguas abajo, así que **MUST** escribirse siempre y con criterio.
+
+- `Manual: no` — el caso normal: todo el test es pilotable en el navegador.
+- `Manual: sí — <motivo>` — algún paso exige **algo que no vive en el navegador**: hoy, en la práctica, la **firma en cliente con AutoFirma** (aplicación de escritorio + certificado en la máquina de quien firma).
+
+Reglas:
+
+- **MUST NOT** marcarse `sí` porque el test sea largo, tenga muchos tramos o su locator sea difícil: eso es trabajo del ejecutor, no una imposibilidad.
+  La marca es para lo que **ninguna** automatización puede hacer.
+- El `<motivo>` **MUST** ser concreto y nombrar el paso: sirve de instrucción a la persona que luego ejecute el test a mano.
+- Un test manual **cuenta igual** para la cobertura obligatoria de §3: marcarlo no exime de escribirlo ni de que su `Then` compruebe la fase y el estado de llegada.
+- **MUST** acotarse el alcance: si la transición **anterior** a la firma se puede probar sin firmar, va en su propio test `Manual: no`, y el test manual cubre solo el tramo que de verdad necesita el certificado.
+
+Qué provoca la marca aguas abajo (el diseñador no lo gestiona, pero lo declara):
+`/sdd-debug-with-test-e2e-desc` escribe esos tests como `- [-]` en su índice y **los salta** en vez de atascarse en ellos, y `/sdd-create-tests-e2e` los persiste como `.spec.ts` con el tag `@manual`, que la suite **excluye por defecto** (también en CI/CD) y solo se lanza pidiéndolo expresamente.
+
+> **Ejemplo** (ilustrativo, NO normativo): `**Manual:** sí — el paso «Firmar» abre AutoFirma__!! y exige el certificado del interesado en su máquina.`
 
 ---
 
@@ -166,14 +193,16 @@ El diseñador lo aplica antes de dar el diseño por terminado; el verificador lo
 - [ ] ¿Cada transición que pueden disparar **varios perfiles** tiene un test **por perfil**?
 - [ ] ¿Se mencionan **todos** los estados del tipo, incluidos los `closed` y los que no tienen eventos?
 - [ ] ¿Cada estado `closed` tiene su test de vista genérica en solo lectura, con el único botón de salir?
-- [ ] ¿Hay al menos un test de vista genérica de solo lectura para los estados abiertos con `profile`, abiertos por un usuario sin el turno?
+- [ ] ¿Hay al menos un test de vista genérica de solo lectura para los estados abiertos con `profile`, y su `Given` dice **por qué bandeja** se entra (no «un usuario sin el perfil», §3.2)?
 - [ ] ¿Hay al menos un test de **validación fallida** por cada pareja (estado, evento) con reglas, y **ninguno** para las parejas con `rules { }` vacío ni para `DELETE`?
 - [ ] ¿Cada `ESC-NNN` de la especificación aparece en el `Origen ESC` de al menos un test?
 
 **Forma**
 
 - [ ] ¿La numeración es `T-NNN` de tres dígitos, global, sin huecos y empezando en `001`?
-- [ ] ¿Cada test lleva los **seis** campos de cabecera, en orden, sin omitir ninguna línea?
+- [ ] ¿Cada test lleva los **siete** campos de cabecera, en orden, sin omitir ninguna línea?
+- [ ] ¿El campo `Manual` es `no` o `sí — <motivo>` (nunca `—`), y está en `sí` **exactamente** en los tests con un paso no automatizable (§4.1), con su motivo concreto?
+- [ ] ¿Los tests marcados `Manual: sí` figuran en la línea «Tests manuales» de la tabla de cobertura, y esa lista cuadra con las cabeceras?
 - [ ] ¿Cada test es autosuficiente y su `Given` describe entero el punto de partida?
 - [ ] ¿Cada `Then` de un test de camino feliz comprueba la **fase y el estado de llegada**?
 - [ ] ¿Cada `Then` de un test de validación fallida comprueba el mensaje **y** que el expediente **no** ha transicionado?

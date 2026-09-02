@@ -13,7 +13,7 @@ que necesites para la tarea concreta, **no** todos.
 | Entender la arquitectura de **expedientes** y trámites                                                    | skills `k-tramite` y `k-tipo-expediente`         |
 | Reglas de arquitectura que se verifican con ArchUnit (capas, Controller→Service→Repository, nomenclatura) | [`architecture-rules.md`](architecture-rules.md) |
 | Reglas de las vistas Axelor que se verifican con JUnit sobre los XML (nombres, botones, action-groups, modales, grids) | [`view-rules.md`](view-rules.md) |
-| Trabajar con el pipeline SDD (`/sdd-*`): qué hace cada skill y en qué orden                               | [`sdd-workflow.md`](sdd-workflow.md)             |
+| Trabajar con el pipeline SDD (`/sdd-*`): qué hace cada skill, en qué orden y con qué familia de plantillas (sistema / expediente) | [`sdd-workflow.md`](sdd-workflow.md) |
 | Usar los MCP del proyecto (IntelliJ, PostgreSQL, Playwright, IDE)                                         | [`mcp.md`](mcp.md)                               |
 | Compilar, probar tests, arrancar la app, reiniciar/acceder a la BD (`psql`)                               | [`deploy.md`](deploy.md)                         |
 
