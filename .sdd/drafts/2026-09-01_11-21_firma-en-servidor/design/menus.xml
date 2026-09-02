@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+<!--
+    SIN CAMBIOS EN LOS MENÚS.
+
+    Esta iniciativa no añade, quita ni modifica ningún `<menuitem>`: el menú
+    «Firmar documentos → Pendientes» ya existe y sigue apuntando a la misma
+    `subsysFirmas.Pendiente@TareaFirma-action` (lo dice screen-documentos-pendientes-de-firma.md
+    §Menú: «No cambia»).
+
+    Se reproduce aquí VERBATIM la rama «Firmar documentos» del fichero único
+    `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml` únicamente para que este
+    fichero valide contra `object-views.xsd` y para dejar constancia del estado esperado.
+
+    MUST NOT duplicar estos `<menuitem>` al fusionar: ya existen con esos mismos `name` en el
+    fichero único del proyecto. La fusión es idempotente por `name`: si el `name` ya está, no
+    se toca nada.
+-->
+
+<menuitem name="firmarDocumentos-menuitem" title="Firmar documentos" groups="admins,users" order="70"/>
+    <menuitem name="firmarDocumentos-todos-menuitem" parent="firmarDocumentos-menuitem" title="Todos" action="subsysFirmas.Todos@TareaFirma-action" groups="admins,users" order="1"/>
+    <menuitem name="firmarDocumentos-pendientes-menuitem" parent="firmarDocumentos-menuitem" title="Pendientes" action="subsysFirmas.Pendiente@TareaFirma-action" groups="admins,users" order="2"/>
+    <menuitem name="firmarDocumentos-firmados-menuitem" parent="firmarDocumentos-menuitem" title="Firmados" action="subsysFirmas.Firmado@TareaFirma-action" groups="admins,users" order="3"/>
+    <menuitem name="firmarDocumentos-rechazados-menuitem" parent="firmarDocumentos-menuitem" title="Rechazados" action="subsysFirmas.Rechazado@TareaFirma-action" groups="admins,users" order="4"/>
+
+</object-views>

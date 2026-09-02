@@ -1,0 +1,17 @@
+@startuml
+
+class TareaFirma {
+  + clave de firma
+  + situación de firma del firmante
+}
+
+note right of TareaFirma
+  Modelo existente. Solo se dibujan
+  los datos que añade esta iniciativa:
+  la clave de firma que el firmante
+  teclea (nunca se guarda) y la
+  situación de firma que decide qué
+  panel se le muestra.
+end note
+
+@enduml

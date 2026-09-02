@@ -39,3 +39,6 @@ key,message,comment,context
 "Documentos pendientes de firma","Documentos pendientes de firma","",""
 "Todos","Todos","",""
 "Todos los documentos firmados","Todos los documentos firmados","",""
+"PIN","PIN","",""
+"Contraseña","Contraseña","",""
+"Firmar todos los documentos y finalizar","Firmar todos los documentos y finalizar","",""

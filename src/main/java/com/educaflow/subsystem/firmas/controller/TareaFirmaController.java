@@ -91,4 +91,37 @@ public class  TareaFirmaController {
 
 
 
+    @CallMethod
+    @Transactional
+    public void firmarEnServidor(ActionRequest actionRequest, ActionResponse actionResponse) {
+        final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
+
+        ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
+
+        TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
+        TareaFirma tareaFirma = actionRequestHelper.getModel(tareaFirmaService.allowPropertiesFirmarEnServidor());
+
+        tareaFirmaService.firmarEnServidor(tareaFirma, tareaFirmaOriginal);
+
+    }
+
+    @CallMethod
+    public void validateFirmarEnServidor(ActionRequest actionRequest, ActionResponse actionResponse) {
+        final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
+
+        ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
+
+        TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
+        TareaFirma tareaFirma = actionRequestHelper.getModel(tareaFirmaService.allowPropertiesFirmarEnServidor());
+
+        Optional<BusinessMessages> validationResult = tareaFirmaService.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginal);
+
+        if (validationResult.isPresent()) {
+            actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());
+        }
+
+    }
+
+
 }
