@@ -47,7 +47,7 @@
     <menuitem name="firmarDocumentos-rechazados-menuitem" parent="firmarDocumentos-menuitem" title="Rechazados" action="subsysFirmas.Rechazado@TareaFirma-action" groups="admins,users" order="4"/>
 
 <menuitem name="desarrollador-menuitem" title="Desarrollador" groups="admins" order="90"/>
-    <menuitem name="desarrollador-smoketest-menuitem" parent="desarrollador-menuitem" title="Smoke test" action="subsysSmokeTest.Main@SmokeTest-action" groups="admins" order="1"/>
+    <menuitem name="desarrollador-smoketest-menuitem" parent="desarrollador-menuitem" title="Smoke__!! test__!!" action="subsysSmokeTest.Main@SmokeTest-action" groups="admins" order="1"/>
     <menuitem name="desarrollador-utilidadesPdf-menuitem" parent="desarrollador-menuitem" title="Utilidades de PDF" icon="picture_as_pdf" groups="admins" order="2"/>
         <menuitem name="desarrollador-utilidadesPdf-informacion-menuitem" parent="desarrollador-utilidadesPdf-menuitem" title="Información" action="subsysPdfUtilities.Info@PdfUtilities-action" groups="admins" order="1"/>
         <menuitem name="desarrollador-utilidadesPdf-posicionesFirma-menuitem" parent="desarrollador-utilidadesPdf-menuitem" title="Posiciones Firma" action="subsysPdfUtilities.Firma@PdfUtilities-action" groups="admins" order="2"/>
