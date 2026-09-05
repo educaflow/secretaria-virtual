@@ -7,7 +7,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     <?sv-view?>
 
     <!-- action-view de entrada desde el menuitem «Smoke test» -->
-    <action-view name="subsysSmokeTest.Main@SmokeTest-action" title="Smoke tests"
+    <action-view name="subsysSmokeTest.Main@SmokeTest-action" title="Smoke__!! tests__!!"
                  model="com.educaflow.subsystem.smoketest.db.SmokeTest">
         <view type="grid" name="subsysSmokeTest.Main@SmokeTest-grid"/>
         <view type="form" name="subsysSmokeTest.Main@SmokeTest-form"/>
@@ -43,13 +43,13 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         - Validación de servidor (V-SmokeTest-001) anclada al action-group del btnSave
           (antes de <action name="save"/>), no en onSave del form.
     -->
-    <form name="subsysSmokeTest.Main@SmokeTest-form" title="Smoke test"
+    <form name="subsysSmokeTest.Main@SmokeTest-form" title="Smoke__!! test__!!"
           model="com.educaflow.subsystem.smoketest.db.SmokeTest"
           width="large"
           canAttach="false" canBack="false" canDelete="false" canNew="false"
           canSave="false" canMore="false" canBackOnSave="true">
 
-        <panel name="SmokeTest" title="Smoke test">
+        <panel name="SmokeTest" title="Smoke__!! test">
             <field name="texto" colSpan="12"/>
             <field name="fechaCreacion"           colSpan="6" readonly="true"/>
             <field name="fechaUltimaModificacion" colSpan="6" readonly="true"/>
