@@ -809,7 +809,7 @@ La sección **MUST** listar, además, cada regla funcional de la especificación
 - **MUST** quedar asignado a alguien **todo** perfil que use algún estado del tipo: un perfil sin actor deja ese estado inalcanzable.
 - Un `<perfil name="…">` **MUST** existir en `<perfiles>` antes de referenciarse; pero **MUST NOT** duplicarse uno que ya esté declarado en el `permisos-demo.xml` real.
 - `auth-expedientes.xml` ya concede lectura sobre `Expediente`/`Tramite`/`TipoExpediente` **condicionada por `Ace`**: sin fila `Ace` el usuario no ve nada aunque el trámite exista.
-- Sobre añadir una `<permission name="<Entidad>.all">` a `auth-expedientes.xml`: **no está verificado** que haga falta, y el diseño **MUST NOT** añadirla por defecto. Si la especificación la exige, **MUST NOT** copiarse el patrón `create/read/write/remove` **sin `condition`**: es un agujero conocido documentado en `CLAUDE.md`.
+- La `<permission name="<Entidad>.all">` del tipo la genera el build en el `auth-<Code>.xml` de su data-init, enganchada a los grupos `admins` y `users`, así que el diseño **MUST NOT** escribirla en ningún `auth-*.xml`: sería un duplicado. Se genera con `create/read/write/remove` **sin `condition`**, agujero conocido documentado en `CLAUDE.md`, y el diseño **MUST NOT** intentar taparlo por su cuenta.
 
 ### 14.3 `design/permisos.xml` — el fragmento
 

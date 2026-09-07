@@ -175,6 +175,7 @@ Los skills son la fuente de verdad sobre **qué piezas existen y cómo se llaman
 - `src/main/java/com/educaflow/base/infrastructure/` — utilidades reutilizables (PDF, mail, evaluator, etc.).
 - Si la spec declara `**Modifica:** <capa>/<nombre>`, el diseñador **MUST** explorar a fondo ese sistema real (sus `domains/`, `views/`, servicios, controladores y menús): es la **base** de todas las filas `Modificar` (`design-contract.md` §1.3).
 - `src/test/e2e/<capa>/<sistema>/` — los tests E2E que iniciativas anteriores persistieron de ese mismo sistema. El diseñador **MUST** leerlos (nunca escribirlos) para numerar sus `T-NNN` desde el primer libre (`tests-e2e.md` §1) y para declarar en `## Tests E2E supersedidos` los que el delta invalida a propósito (`design-contract.md` §1.3).
+- **MUST NOT** proponer crear ni modificar nada dentro de `subsystem/expedientes`: es el motor de tramitación y **MUST** mantenerse lo más pequeño posible (ver su `CLAUDE.md`). Un sistema o subsistema nuevo nunca se implementa ampliando el motor.
 - **MUST NOT** usar como referencia el código de `expedientes`/`tramites` (siguen otra arquitectura) ni `design.md`/XML de diseños previos como plantilla — **salvo lectura** de las iniciativas archivadas que `design-guidelines.md` cite explícitamente (solo para respetar sus decisiones, nunca como plantilla de estructura).
 
 Cada subagente que necesite este contexto (sobre todo el diseñador) lo **carga él mismo** leyendo estos skills y explorando el código real; no se le copia código, se le indica dónde mirar.

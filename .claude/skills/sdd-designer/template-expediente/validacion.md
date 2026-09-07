@@ -309,7 +309,7 @@ Este bloque se aplica **solo si** el tipo genera al menos un documento. Si no ge
 | **C-J05** | El alcance | Contiene asignaciones a otros trámites o a otras versiones | Quitarlas |
 | **C-J06** | El `tipoExpedienteCode` | Se usa el `code` del **trámite** donde va el del **tipo** (`<Entidad>` = `<Code><VN>`) | Corregirlo |
 | **C-J07** | Los perfiles posteriores | Se usa `tipoExpedienteCode` sin motivo donde valdría `tramiteCode` | **SHOULD** preferirse `tramiteCode`: las asignaciones por `tipoExpedienteCode` hay que duplicarlas en cada versión nueva. Severidad **MINOR** |
-| **C-J08 (CRITICAL)** | `auth-expedientes.xml` | El diseño añade una `<permission name="<Entidad>.all">` sin que la especificación la exija, o la añade copiando `create/read/write/remove` **sin `condition`** | Quitarla, o añadir la `condition`. Es un agujero conocido documentado en `CLAUDE.md`; **MUST NOT** introducirse tampoco un `ModelService` deny-all de expedientes como parche |
+| **C-J08 (CRITICAL)** | El permiso de la entidad | El diseño escribe a mano una `<permission name="<Entidad>.all">`, en `auth-expedientes.xml` o en cualquier otro `auth-*.xml` | Quitarla: la genera el build en el `auth-<Code>.xml` del data-init del tipo, enganchada a `admins` y `users`. Se concede sin `condition`, agujero conocido documentado en `CLAUDE.md`, que **MUST NOT** taparse aquí; **MUST NOT** introducirse tampoco un `ModelService` deny-all de expedientes como parche |
 
 ### Bloque K — Ficheros y pasos
 

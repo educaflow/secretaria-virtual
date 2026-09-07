@@ -26,6 +26,23 @@ Mezclar en un mismo método "valida el fichero", "persiste la tarea" y "actualiz
 
 ---
 
+## Cálculo puro y efectos secundarios
+
+Separa el cálculo puro de los efectos secundarios: un método que calcula no debe además leer o escribir fuera.
+
+- **Puro:** cálculos, transformaciones, validaciones de formato y reglas de negocio. Recibe como parámetros todo lo que necesita y devuelve el resultado sin modificar estado externo.
+- **Impuro:** repositorios y base de datos, ficheros, red y correo, logging y métricas.
+
+La fecha/hora actual queda **fuera** de esta regla: llamar a `LocalDateTime.now()` allí donde se necesita es correcto y **MUST NOT** marcarse como violación. No hay que inyectar un reloj ni pasar la hora como parámetro.
+
+**Violación:** un método que en el mismo cuerpo calcula el resultado y además lo persiste, envía el correo o escribe el fichero, de forma que el cálculo no se puede ejercitar por separado.
+
+**Corrección:** extraer el cálculo a un método privado —o a una clase colaboradora— que recibe los datos ya leídos y devuelve el resultado; el método llamante hace la E/S antes y después. Al refactorizar, inclínate por hacer más puro el núcleo y empujar los efectos secundarios hacia fuera.
+
+Las integraciones externas (firma, correo, PDF, importación de ficheros) viven en clases frontera pequeñas y con nombre explícito, situadas en el borde del subsistema, no repartidas por la lógica de negocio.
+
+---
+
 ## Nombrado de métodos
 
 Los métodos deben tener nombres que describan **qué hacen** en el dominio del problema, no cómo están organizados internamente ni cuál es su posición en el flujo.

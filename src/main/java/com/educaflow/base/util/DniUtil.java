@@ -48,6 +48,41 @@ public class DniUtil {
     }
 
 
+    /**
+     * Devuelve el DNI enmascarado para poder trazarlo en un log o en un mensaje sin escribirlo completo:
+     * solo se conservan los tres últimos caracteres alfanuméricos y el resto se sustituye por asteriscos.
+     *
+     * <p>Sustituir por {@code *} todo lo que no sea alfanumérico no es cosmética: el DNI sale de un campo
+     * editable por el usuario, así que un salto de línea o un carácter de control colado ahí falsearía
+     * líneas enteras del log (<em>log injection</em>) si se copiara tal cual.
+     *
+     * <p>Una cadena de tres caracteres o menos se enmascara <strong>entera</strong>: dejar visible lo que
+     * cabe en el margen de los tres últimos sería devolverla tal cual, y no enmascarar nada.
+     *
+     * @param dni DNI a enmascarar; puede ser {@code null}
+     * @return el DNI enmascarado, o {@code null} si no hay DNI
+     */
+    public static String enmascarar(String dni) {
+        if (dni == null) {
+            return null;
+        }
+
+        int visibles = 3;
+        boolean cabeEnteroEnElMargen = dni.length() <= visibles;
+
+        StringBuilder enmascarado = new StringBuilder(dni.length());
+        for (int i = 0; i < dni.length(); i++) {
+            char caracter = dni.charAt(i);
+            if (cabeEnteroEnElMargen || i < dni.length() - visibles || Character.isLetterOrDigit(caracter) == false) {
+                enmascarado.append('*');
+            } else {
+                enmascarado.append(caracter);
+            }
+        }
+        return enmascarado.toString();
+    }
+
+
     public static boolean isValid(String dni) {
 
         if (dni == null) {

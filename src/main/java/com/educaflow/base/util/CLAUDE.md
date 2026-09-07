@@ -41,6 +41,7 @@ Clases de utilidad de **bajo nivel** del proyecto. Su objetivo es no repetir peq
 ### `DniUtil` — validación de documentos de identidad españoles
 - `clean` — normaliza un DNI/NIE quitando ceros de relleno (`0XXXXXXXXL`, `0YXXXXXXXL`, `Y0XXXXXXXL`).
 - `isValid` — valida DNI, NIE, NIF especial (K/L/M) y CIF (con DC numérico o letra).
+- `enmascarar` — deja visibles solo los 3 últimos caracteres alfanuméricos y sustituye el resto por `*`. Úsalo **siempre** que un DNI vaya a un log o a un mensaje de error: además de no volcar el dato personal completo, sustituir lo no alfanumérico evita *log injection* desde un campo editable. Enmascara entera cualquier cadena de 3 caracteres o menos, y devuelve `null` si recibe `null`.
 
 ### `EMailUtil` — validación de email
 - `isValid` — valida una dirección de email con el validador de Hibernate.
