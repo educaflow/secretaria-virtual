@@ -7,6 +7,9 @@ import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
+import com.educaflow.base.util.SecurityUtil;
+import com.educaflow.subsystem.criptografia.service.SituacionFirma;
+import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper;
 import com.educaflow.subsystem.firmas.db.EstadoTareaFirma;
 import com.educaflow.subsystem.firmas.db.TareaFirma;
 import com.educaflow.subsystem.firmas.service.TareaFirmaService;
@@ -28,11 +31,13 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -43,6 +48,7 @@ import static org.mockito.Mockito.when;
 class TareaFirmaControllerTest {
 
     private static final Long ID_TAREA = 1L;
+    private static final String DNI = "12345678Z";
     private static final String CLAVE = "nadanada";
     private static final String MENSAJE_CONTRASENA_OBLIGATORIA = "La contraseña es obligatoria";
     private static final String MENSAJE_NO_SE_HAN_PODIDO_FIRMAR =
@@ -79,9 +85,7 @@ class TareaFirmaControllerTest {
         actionResponse = Mockito.mock(ActionResponse.class);
         tareaFirmaJpaRepository = Mockito.mock(JpaRepository.class);
 
-        // El firmante no lleva DNI a propósito: así el getter del campo derivado `situacionFirma`
-        // (que Axelor invoca al clonar la entidad para obtener el original) resuelve a SIN_DNI sin
-        // tocar el subsistema de criptografía, que en un test unitario no está cableado.
+        // Firmante mínimo: el controlador no consulta nada de él, solo comprueba que el cliente no lo pisa.
         firmanteEnBaseDeDatos = new User();
         firmanteEnBaseDeDatos.setId(7L);
         firmanteEnBaseDeDatos.setCode("firmante");
@@ -94,19 +98,25 @@ class TareaFirmaControllerTest {
         context = new HashMap<>();
         context.put("_model", TareaFirma.class.getName());
         context.put("id", ID_TAREA);
+        // claveFirma es un campo de vista, no de la entidad: viaja en el contexto como cualquier otro campo del
+        // formulario y el controlador lo lee de ahí.
         context.put("claveFirma", CLAVE);
 
+        // El fixture se monta entero para las acciones que reciben la tarea desde el request. Va en lenient
+        // porque `getSituacionFirma` no toca ni el request ni el servicio (no recibe nada del formulario:
+        // resuelve la situación del usuario autenticado), y con strict stubs esos tests fallarían por
+        // stubbings no usados.
         Map<String, Object> data = new HashMap<>();
         data.put("context", context);
-        when(actionRequest.getData()).thenReturn(data);
+        Mockito.lenient().when(actionRequest.getData()).thenReturn(data);
 
         jpaRepositoryMock = Mockito.mockStatic(JpaRepository.class);
         jpaRepositoryMock.when(() -> JpaRepository.of(TareaFirma.class)).thenReturn(tareaFirmaJpaRepository);
-        when(tareaFirmaJpaRepository.find(ID_TAREA)).thenReturn(tareaFirmaEnBaseDeDatos);
+        Mockito.lenient().when(tareaFirmaJpaRepository.find(ID_TAREA)).thenReturn(tareaFirmaEnBaseDeDatos);
 
-        when(modelServiceFactory.resolve(TareaFirma.class)).thenReturn(tareaFirmaService);
-        when(tareaFirmaService.allowPropertiesFirmarEnServidor())
-                .thenReturn(AllowProperties.createAllowProperties(Map.of("claveFirma", Map.of())));
+        Mockito.lenient().when(modelServiceFactory.resolve(TareaFirma.class)).thenReturn(tareaFirmaService);
+        Mockito.lenient().when(tareaFirmaService.allowPropertiesFirmarEnServidor())
+                .thenReturn(AllowProperties.createDenyAllProperties());
     }
 
     @AfterEach
@@ -129,8 +139,45 @@ class TareaFirmaControllerTest {
     private ArgumentCaptor<TareaFirma> capturarLlamadaAFirmarEnServidor() {
         ArgumentCaptor<TareaFirma> captorEntidad = ArgumentCaptor.forClass(TareaFirma.class);
         ArgumentCaptor<TareaFirma> captorOriginal = ArgumentCaptor.forClass(TareaFirma.class);
-        verify(tareaFirmaService, times(1)).firmarEnServidor(captorEntidad.capture(), captorOriginal.capture());
+        ArgumentCaptor<String> captorClave = ArgumentCaptor.forClass(String.class);
+        verify(tareaFirmaService, times(1)).firmarEnServidor(captorEntidad.capture(), captorOriginal.capture(), captorClave.capture());
         return captorEntidad;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* getSituacionFirma                                                  */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void getSituacionFirma_usuarioAutenticadoConDni_devuelveElNombreDeSuSituacion() {
+        User usuarioAutenticado = new User();
+        usuarioAutenticado.setDni(DNI);
+
+        try (MockedStatic<SecurityUtil> securityUtilMock = Mockito.mockStatic(SecurityUtil.class);
+             MockedStatic<CertificadoDigitalHelper> certificadoDigitalHelperMock =
+                     Mockito.mockStatic(CertificadoDigitalHelper.class)) {
+
+            securityUtilMock.when(SecurityUtil::getUser).thenReturn(usuarioAutenticado);
+            certificadoDigitalHelperMock.when(() -> CertificadoDigitalHelper.getSituacionFirmaByDni(DNI))
+                    .thenReturn(SituacionFirma.DISPOSITIVO_CON_PIN);
+
+            // Devuelve el name() y no el enum: la vista compara la situación como texto en sus showIf.
+            assertEquals(SituacionFirma.DISPOSITIVO_CON_PIN.name(), controller.getSituacionFirma());
+        }
+    }
+
+    @Test
+    void getSituacionFirma_sinUsuarioAutenticado_preguntaLaSituacionConElDniNulo() {
+        try (MockedStatic<SecurityUtil> securityUtilMock = Mockito.mockStatic(SecurityUtil.class);
+             MockedStatic<CertificadoDigitalHelper> certificadoDigitalHelperMock =
+                     Mockito.mockStatic(CertificadoDigitalHelper.class)) {
+
+            securityUtilMock.when(SecurityUtil::getUser).thenReturn(null);
+            certificadoDigitalHelperMock.when(() -> CertificadoDigitalHelper.getSituacionFirmaByDni(null))
+                    .thenReturn(SituacionFirma.SIN_DNI);
+
+            assertEquals(SituacionFirma.SIN_DNI.name(), controller.getSituacionFirma());
+        }
     }
 
     /* ------------------------------------------------------------------ */
@@ -139,7 +186,7 @@ class TareaFirmaControllerTest {
 
     @Test
     void validateFirmarEnServidor_servicioSinMensajes_noDevuelveNingunError() {
-        when(tareaFirmaService.validateFirmarEnServidor(any(), any())).thenReturn(Optional.empty());
+        when(tareaFirmaService.validateFirmarEnServidor(any(), any(), any())).thenReturn(Optional.empty());
 
         controller.validateFirmarEnServidor(actionRequest, actionResponse);
 
@@ -149,7 +196,7 @@ class TareaFirmaControllerTest {
 
     @Test
     void validateFirmarEnServidor_servicioConMensajes_entregaLosMensajesComoError() {
-        when(tareaFirmaService.validateFirmarEnServidor(any(), any()))
+        when(tareaFirmaService.validateFirmarEnServidor(any(), any(), any()))
                 .thenReturn(Optional.of(BusinessMessages.single(MENSAJE_CONTRASENA_OBLIGATORIA)));
 
         controller.validateFirmarEnServidor(actionRequest, actionResponse);
@@ -162,7 +209,7 @@ class TareaFirmaControllerTest {
 
     @Test
     void validateFirmarEnServidor_siempre_usaLaWhitelistDeLaAccion() {
-        when(tareaFirmaService.validateFirmarEnServidor(any(), any())).thenReturn(Optional.empty());
+        when(tareaFirmaService.validateFirmarEnServidor(any(), any(), any())).thenReturn(Optional.empty());
 
         controller.validateFirmarEnServidor(actionRequest, actionResponse);
 
@@ -173,12 +220,21 @@ class TareaFirmaControllerTest {
     }
 
     @Test
-    void validateFirmarEnServidor_siempre_noEjecutaLaFirma() {
-        when(tareaFirmaService.validateFirmarEnServidor(any(), any())).thenReturn(Optional.empty());
+    void validateFirmarEnServidor_peticionValida_pasaAlServicioLaClaveTecleadaEnElFormulario() {
+        when(tareaFirmaService.validateFirmarEnServidor(any(), any(), any())).thenReturn(Optional.empty());
 
         controller.validateFirmarEnServidor(actionRequest, actionResponse);
 
-        verify(tareaFirmaService, never()).firmarEnServidor(any(), any());
+        verify(tareaFirmaService).validateFirmarEnServidor(any(), any(), eq(CLAVE));
+    }
+
+    @Test
+    void validateFirmarEnServidor_siempre_noEjecutaLaFirma() {
+        when(tareaFirmaService.validateFirmarEnServidor(any(), any(), any())).thenReturn(Optional.empty());
+
+        controller.validateFirmarEnServidor(actionRequest, actionResponse);
+
+        verify(tareaFirmaService, never()).firmarEnServidor(any(), any(), any());
     }
 
     /* ------------------------------------------------------------------ */
@@ -186,17 +242,20 @@ class TareaFirmaControllerTest {
     /* ------------------------------------------------------------------ */
 
     @Test
-    void firmarEnServidor_peticionValida_delegaEnElServicioConLaEntidadYElOriginal() {
-        when(tareaFirmaService.firmarEnServidor(any(), any())).thenReturn(tareaFirmaEnBaseDeDatos);
+    void firmarEnServidor_peticionValida_delegaEnElServicioConLaEntidadElOriginalYLaClave() {
+        when(tareaFirmaService.firmarEnServidor(any(), any(), any())).thenReturn(tareaFirmaEnBaseDeDatos);
 
         controller.firmarEnServidor(actionRequest, actionResponse);
 
         ArgumentCaptor<TareaFirma> captorEntidad = ArgumentCaptor.forClass(TareaFirma.class);
         ArgumentCaptor<TareaFirma> captorOriginal = ArgumentCaptor.forClass(TareaFirma.class);
-        verify(tareaFirmaService, times(1)).firmarEnServidor(captorEntidad.capture(), captorOriginal.capture());
+        ArgumentCaptor<String> captorClave = ArgumentCaptor.forClass(String.class);
+        verify(tareaFirmaService, times(1)).firmarEnServidor(captorEntidad.capture(), captorOriginal.capture(), captorClave.capture());
 
-        assertEquals(CLAVE, captorEntidad.getValue().getClaveFirma(),
-                "La clave tecleada tiene que llegar al servicio: es el único campo de la whitelist");
+        assertEquals(CLAVE, captorClave.getValue(),
+                "La clave tecleada tiene que llegar al servicio como argumento: se lee del contexto, no de la entidad");
+        assertSame(tareaFirmaEnBaseDeDatos, captorEntidad.getValue(),
+                "La entidad es la de base de datos: la whitelist está cerrada y la clave no es un campo suyo");
 
         TareaFirma original = captorOriginal.getValue();
         assertNotNull(original, "El original se obtiene de base de datos y no puede ser nulo");
@@ -205,10 +264,23 @@ class TareaFirmaControllerTest {
     }
 
     @Test
+    void firmarEnServidor_sinClaveEnElContexto_pasaNullAlServicio() {
+        context.remove("claveFirma");
+        when(tareaFirmaService.firmarEnServidor(any(), any(), any())).thenReturn(tareaFirmaEnBaseDeDatos);
+
+        controller.firmarEnServidor(actionRequest, actionResponse);
+
+        ArgumentCaptor<String> captorClave = ArgumentCaptor.forClass(String.class);
+        verify(tareaFirmaService).firmarEnServidor(any(), any(), captorClave.capture());
+        assertNull(captorClave.getValue(),
+                "Sin clave tecleada (certificado con clave custodiada) el servicio recibe null, no una cadena vacía");
+    }
+
+    @Test
     void firmarEnServidor_peticionValida_usaLaWhitelistAllowPropertiesFirmarEnServidor() {
         context.put("estadoTareaFirma", "FIRMADO");
         context.put("firmante", Map.of("id", 99L));
-        when(tareaFirmaService.firmarEnServidor(any(), any())).thenReturn(tareaFirmaEnBaseDeDatos);
+        when(tareaFirmaService.firmarEnServidor(any(), any(), any())).thenReturn(tareaFirmaEnBaseDeDatos);
 
         controller.firmarEnServidor(actionRequest, actionResponse);
 
@@ -223,7 +295,7 @@ class TareaFirmaControllerTest {
 
     @Test
     void firmarEnServidor_elServicioLanzaValidationException_laPropagaSinCapturarla() {
-        when(tareaFirmaService.firmarEnServidor(any(), any()))
+        when(tareaFirmaService.firmarEnServidor(any(), any(), any()))
                 .thenThrow(new ValidationException(MENSAJE_NO_SE_HAN_PODIDO_FIRMAR));
 
         ValidationException excepcion = assertThrows(ValidationException.class,
@@ -235,7 +307,7 @@ class TareaFirmaControllerTest {
 
     @Test
     void firmarEnServidor_peticionValida_noMontaNingunaRespuestaEnElActionResponse() {
-        when(tareaFirmaService.firmarEnServidor(any(), any())).thenReturn(tareaFirmaEnBaseDeDatos);
+        when(tareaFirmaService.firmarEnServidor(any(), any(), any())).thenReturn(tareaFirmaEnBaseDeDatos);
 
         controller.firmarEnServidor(actionRequest, actionResponse);
 

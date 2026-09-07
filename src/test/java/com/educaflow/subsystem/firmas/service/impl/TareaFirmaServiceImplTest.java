@@ -10,19 +10,21 @@ import com.axelor.i18n.I18n;
 import com.axelor.inject.Beans;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
+import com.educaflow.base.infrastructure.criptografia.AlmacenClaveDispositivo;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClaveFichero;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
+import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
 import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
+import com.educaflow.subsystem.criptografia.service.FirmaEnServidorService;
 import com.educaflow.subsystem.firmas.db.DocumentoFirma;
 import com.educaflow.subsystem.firmas.db.EstadoTareaFirma;
-import com.educaflow.subsystem.firmas.db.SituacionFirma;
+import com.educaflow.subsystem.criptografia.service.SituacionFirma;
 import com.educaflow.subsystem.firmas.db.TareaFirma;
 import com.educaflow.subsystem.firmas.db.repo.TareaFirmaRepository;
 import com.educaflow.subsystem.firmas.service.TareaFirmaNotifier;
-import com.educaflow.subsystem.firmas.util.SituacionFirmaBuilder;
 import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -82,8 +84,11 @@ class TareaFirmaServiceImplTest {
     private static final String MENSAJE_PIN_OBLIGATORIO = "El PIN es obligatorio";
     private static final String MENSAJE_CONTRASENA_OBLIGATORIA = "La contraseña es obligatoria";
     private static final String MENSAJE_SIN_DOCUMENTOS = "La tarea de firma no tiene ningún documento que firmar";
-    private static final String MENSAJE_CONTRASENA_INCORRECTA = "La contraseña indicada no es correcta";
-    private static final String MENSAJE_CLAVE_GUARDADA_INCORRECTA = "La clave guardada de su certificado digital no es correcta. Póngase en contacto con el administrador";
+    // El mensaje lo compone el servicio: el vocabulario de la bandeja de firmas más el motivo que redacta
+    // CertificadoDigitalHelper.motivoClaveErronea, que es quien distingue quién puede corregir la clave.
+    private static final String MENSAJE_NO_ES_POSIBLE_FIRMAR = "No es posible firmar los documentos: ";
+    private static final String MENSAJE_CONTRASENA_INCORRECTA = MENSAJE_NO_ES_POSIBLE_FIRMAR + "la contraseña indicada no es correcta";
+    private static final String MENSAJE_CLAVE_GUARDADA_INCORRECTA = MENSAJE_NO_ES_POSIBLE_FIRMAR + "la clave guardada de su certificado digital no es correcta. Póngase en contacto con el administrador";
     private static final String MENSAJE_NO_SE_HAN_PODIDO_FIRMAR = "No se han podido firmar los documentos: ";
     private static final String MOTIVO_CLAVE_INCORRECTA = "clave incorrecta";
     private static final String MOTIVO_TECNICO_DEL_JDK = "keystore password was incorrect";
@@ -96,12 +101,17 @@ class TareaFirmaServiceImplTest {
 
     private User firmante;
 
+    /**
+     * La clave que «teclea» el firmante en el caso. No es un campo de la tarea: el servicio la recibe como
+     * argumento escalar, así que el arrange la deja aquí y las llamadas al servicio la pasan tal cual.
+     */
+    private String claveFirmaTecleada;
+
     /** Mock del PDF original de cada documento de la tarea, en el mismo orden que sus {@code DocumentoFirma}. */
     private List<DocumentoPdf> documentosPdfOriginales;
 
     private MockedStatic<I18n> i18nMock;
     private MockedStatic<AuthUtils> authUtilsMock;
-    private MockedStatic<SituacionFirmaBuilder> situacionFirmaBuilderMock;
     private MockedStatic<MetaFileHelper> metaFileHelperMock;
     private MockedStatic<Beans> beansMock;
 
@@ -113,23 +123,31 @@ class TareaFirmaServiceImplTest {
         modelServiceFactory = Mockito.mock(ModelServiceFactory.class);
         certificadoDigitalService = Mockito.mock(CertificadoDigitalService.class);
         tareaFirmaNotifier = Mockito.mock(TareaFirmaNotifier.class);
-        setField(service, "modelServiceFactory", modelServiceFactory);
+
+        // La firma en el servidor la hace el subsistema de criptografía. Aquí se cablea su cadena REAL
+        // (FirmaEnServidorService -> AlmacenClaveResolver) contra el mismo ModelServiceFactory mockeado que
+        // usa el resto de la clase, en vez de mockear el servicio: así estos tests siguen ejerciendo el
+        // camino completo hasta getAlmacenClaveByDni y DocumentoPdf.firmar, que es lo que comprueban.
+        AlmacenClaveResolver almacenClaveResolver = new AlmacenClaveResolver();
+        setField(almacenClaveResolver, AlmacenClaveResolver.class, "modelServiceFactory", modelServiceFactory);
+        FirmaEnServidorService firmaEnServidorService = new FirmaEnServidorService();
+        setField(firmaEnServidorService, FirmaEnServidorService.class, "almacenClaveResolver", almacenClaveResolver);
+        setField(service, "firmaEnServidorService", firmaEnServidorService);
 
         firmante = new User();
         firmante.setId(1L);
         firmante.setDni(DNI);
 
-        // Los cinco estáticos se crean con la estrictez por defecto: ninguno necesita marcarse LENIENT.
-        // Los stubs de AuthUtils y SituacionFirmaBuilder los programa el arrange de cada caso y los consume
-        // siempre la ruta que ese caso ejerce. Los únicos que se quedan a veces sin consumir son I18n (los
-        // tests de AllowProperties no traducen ningún mensaje), Beans.get (solo se usa cuando la tarea llega
-        // a notificarse) y MetaFileHelper.createMetaFile (las rutas de error no publican ningún fichero), y
-        // ninguno de ellos hace fallar la clase.
+        // Los cuatro estáticos se crean con la estrictez por defecto: ninguno necesita marcarse LENIENT.
+        // Los stubs de AuthUtils los programa el arrange de cada caso y los consume siempre la ruta que ese
+        // caso ejerce. Los únicos que se quedan a veces sin consumir son I18n (los tests de AllowProperties
+        // no traducen ningún mensaje), Beans.get (solo se usa cuando la tarea llega a notificarse o a
+        // consultar el certificado del firmante) y MetaFileHelper.createMetaFile (las rutas de error no
+        // publican ningún fichero), y ninguno de ellos hace fallar la clase.
         i18nMock = Mockito.mockStatic(I18n.class);
         i18nMock.when(() -> I18n.get(any(String.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         authUtilsMock = Mockito.mockStatic(AuthUtils.class);
-        situacionFirmaBuilderMock = Mockito.mockStatic(SituacionFirmaBuilder.class);
         metaFileHelperMock = Mockito.mockStatic(MetaFileHelper.class);
         beansMock = Mockito.mockStatic(Beans.class);
     }
@@ -140,7 +158,6 @@ class TareaFirmaServiceImplTest {
         // la causa real del fallo con una NullPointerException.
         cerrarSiNoEsNulo(beansMock);
         cerrarSiNoEsNulo(metaFileHelperMock);
-        cerrarSiNoEsNulo(situacionFirmaBuilderMock);
         cerrarSiNoEsNulo(authUtilsMock);
         cerrarSiNoEsNulo(i18nMock);
     }
@@ -150,7 +167,15 @@ class TareaFirmaServiceImplTest {
     /* ------------------------------------------------------------------ */
 
     private static void setField(Object target, String fieldName, Object value) throws Exception {
-        Field field = TareaFirmaServiceImpl.class.getDeclaredField(fieldName);
+        setField(target, TareaFirmaServiceImpl.class, fieldName, value);
+    }
+
+    /**
+     * Variante para cablear a mano un colaborador que no es el servicio bajo prueba: la clase donde está
+     * declarado el campo llega como parámetro en vez de darse por supuesta.
+     */
+    private static void setField(Object target, Class<?> claseDeclarante, String fieldName, Object value) throws Exception {
+        Field field = claseDeclarante.getDeclaredField(fieldName);
         field.setAccessible(true);
         field.set(target, value);
     }
@@ -170,8 +195,29 @@ class TareaFirmaServiceImplTest {
         authUtilsMock.when(AuthUtils::getUser).thenReturn(usuario);
     }
 
+    /**
+     * Deja al firmante en la situación de firma del caso. No se mockea {@code CertificadoDigitalHelper}: se
+     * monta la misma respuesta que le daría el subsistema de criptografía, para que estos tests sigan
+     * ejerciendo el camino real por el que el servicio averigua la situación —el certificado dado de alta
+     * para el DNI del firmante— y no una versión de mentira de ese camino.
+     *
+     * <p>{@code SIN_DNI} se monta quitándole el DNI de la ficha al firmante, que es lo que lo provoca: es un
+     * estado del propio firmante y no del certificado. La respuesta del servicio se monta igual que en los
+     * demás casos, porque {@code getSituacionFirmaByDni} es quien lo dice también sin DNI.
+     */
     private void stubSituacionFirma(SituacionFirma situacionFirma) {
-        situacionFirmaBuilderMock.when(() -> SituacionFirmaBuilder.build(any())).thenReturn(situacionFirma);
+        String dniDelFirmante = DNI;
+        if (situacionFirma == SituacionFirma.SIN_DNI) {
+            firmante.setDni(null);
+            dniDelFirmante = null;
+        }
+
+        beansMock.when(() -> Beans.get(ModelServiceFactory.class)).thenReturn(modelServiceFactory);
+        Mockito.lenient().when(modelServiceFactory.resolve(CertificadoDigital.class)).thenReturn(certificadoDigitalService);
+        // El servicio de criptografía nunca devuelve null: dice cada caso con su valor del enum, incluidos
+        // SIN_DNI y SIN_CERTIFICADO.
+        Mockito.lenient().when(certificadoDigitalService.getSituacionFirmaByDni(dniDelFirmante))
+                .thenReturn(situacionFirma);
     }
 
     /**
@@ -194,6 +240,18 @@ class TareaFirmaServiceImplTest {
         Mockito.lenient().when(almacenClaveFichero.isPasswordValid()).thenReturn(claveValida);
         stubAlmacenClave(almacenClaveFichero);
         return almacenClaveFichero;
+    }
+
+    /**
+     * Certificado en un dispositivo criptográfico. Es lo que devuelve el subsistema de criptografía para un
+     * {@code DISPOSITIVO_PKCS11}: un {@code AlmacenClaveDispositivo} que solo lleva el slot y el alias y que
+     * <strong>no</strong> abre el dispositivo al construirse. Se devuelve para poder comprobar que nadie lo
+     * toca, que es la garantía que de verdad protege la tarjeta de quedarse bloqueada por intentos fallidos.
+     */
+    private AlmacenClaveDispositivo stubAlmacenClaveDispositivo() {
+        AlmacenClaveDispositivo almacenClaveDispositivo = Mockito.mock(AlmacenClaveDispositivo.class);
+        stubAlmacenClave(almacenClaveDispositivo);
+        return almacenClaveDispositivo;
     }
 
     /**
@@ -259,7 +317,7 @@ class TareaFirmaServiceImplTest {
      */
     private TareaFirma arrangeTarea(int numeroDocumentos, SituacionFirma situacionFirma, String claveFirma, User usuarioAutenticado) {
         TareaFirma tareaFirma = tareaFirmaPendiente(numeroDocumentos);
-        tareaFirma.setClaveFirma(claveFirma);
+        claveFirmaTecleada = claveFirma;
         stubUsuarioAutenticado(usuarioAutenticado);
         stubSituacionFirma(situacionFirma);
         return tareaFirma;
@@ -347,7 +405,7 @@ class TareaFirmaServiceImplTest {
     void validateFirmarEnServidor_tareaPendienteDelUsuarioConCertificadoConClaveGuardada_devuelveOptionalVacio() {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.FICHERO_CON_CLAVE, null);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(resultado.isEmpty());
     }
@@ -357,7 +415,7 @@ class TareaFirmaServiceImplTest {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.FICHERO_CON_CLAVE, null);
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(mensajes(resultado).contains(MENSAJE_SOLO_PENDIENTES));
     }
@@ -367,7 +425,7 @@ class TareaFirmaServiceImplTest {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.FICHERO_CON_CLAVE, null);
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.RECHAZADO);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(mensajes(resultado).contains(MENSAJE_SOLO_PENDIENTES));
     }
@@ -378,7 +436,7 @@ class TareaFirmaServiceImplTest {
         tareaFirma.setEstadoTareaFirma(null);
 
         Optional<BusinessMessages> resultado =
-                assertDoesNotThrow(() -> service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante()));
+                assertDoesNotThrow(() -> service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada));
 
         assertTrue(mensajes(resultado).contains(MENSAJE_SOLO_PENDIENTES));
     }
@@ -387,7 +445,7 @@ class TareaFirmaServiceImplTest {
     void validateFirmarEnServidor_firmanteDistintoDelUsuarioAutenticado_devuelveMensajeSoloPuedeFirmarLaPersonaEncargada() {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.FICHERO_CON_CLAVE, null, otroUsuario());
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(mensajes(resultado).contains(MENSAJE_SOLO_EL_ENCARGADO));
     }
@@ -397,7 +455,7 @@ class TareaFirmaServiceImplTest {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.FICHERO_CON_CLAVE, null, null);
 
         Optional<BusinessMessages> resultado =
-                assertDoesNotThrow(() -> service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante()));
+                assertDoesNotThrow(() -> service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada));
 
         assertTrue(mensajes(resultado).contains(MENSAJE_SOLO_EL_ENCARGADO));
     }
@@ -406,7 +464,7 @@ class TareaFirmaServiceImplTest {
     void validateFirmarEnServidor_situacionSinDni_devuelveMensajeSuUsuarioNoTieneDni() {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.SIN_DNI, null);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(mensajes(resultado).contains(MENSAJE_SIN_DNI));
     }
@@ -415,7 +473,7 @@ class TareaFirmaServiceImplTest {
     void validateFirmarEnServidor_situacionSinCertificado_devuelveMensajeNoTieneCertificadoDadoDeAlta() {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.SIN_CERTIFICADO, null);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(mensajes(resultado).contains(MENSAJE_SIN_CERTIFICADO));
     }
@@ -424,7 +482,7 @@ class TareaFirmaServiceImplTest {
     void validateFirmarEnServidor_dispositivoSinPinYSinClaveTecleada_devuelveMensajeElPinEsObligatorio() {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.DISPOSITIVO_SIN_PIN, null);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(mensajes(resultado).contains(MENSAJE_PIN_OBLIGATORIO));
     }
@@ -433,7 +491,7 @@ class TareaFirmaServiceImplTest {
     void validateFirmarEnServidor_dispositivoSinPinYClaveEnBlanco_devuelveMensajeElPinEsObligatorio() {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.DISPOSITIVO_SIN_PIN, CLAVE_EN_BLANCO);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(mensajes(resultado).contains(MENSAJE_PIN_OBLIGATORIO));
     }
@@ -442,7 +500,7 @@ class TareaFirmaServiceImplTest {
     void validateFirmarEnServidor_dispositivoSinPinConPinTecleado_devuelveOptionalVacio() {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.DISPOSITIVO_SIN_PIN, PIN);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(resultado.isEmpty());
     }
@@ -451,7 +509,7 @@ class TareaFirmaServiceImplTest {
     void validateFirmarEnServidor_ficheroSinClaveYSinClaveTecleada_devuelveMensajeLaContrasenaEsObligatoria() {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.FICHERO_SIN_CLAVE, null);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(mensajes(resultado).contains(MENSAJE_CONTRASENA_OBLIGATORIA));
     }
@@ -460,7 +518,7 @@ class TareaFirmaServiceImplTest {
     void validateFirmarEnServidor_ficheroSinClaveYClaveEnBlanco_devuelveMensajeLaContrasenaEsObligatoria() {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.FICHERO_SIN_CLAVE, "");
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(mensajes(resultado).contains(MENSAJE_CONTRASENA_OBLIGATORIA));
     }
@@ -469,7 +527,7 @@ class TareaFirmaServiceImplTest {
     void validateFirmarEnServidor_ficheroSinClaveConClaveTecleada_devuelveOptionalVacio() {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.FICHERO_SIN_CLAVE, CLAVE);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(resultado.isEmpty());
     }
@@ -478,7 +536,7 @@ class TareaFirmaServiceImplTest {
     void validateFirmarEnServidor_ficheroConClaveGuardadaYSinClaveTecleada_devuelveOptionalVacio() {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.FICHERO_CON_CLAVE, null);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(resultado.isEmpty());
     }
@@ -487,7 +545,7 @@ class TareaFirmaServiceImplTest {
     void validateFirmarEnServidor_dispositivoConPinYSinClaveTecleada_devuelveOptionalVacio() {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.DISPOSITIVO_CON_PIN, null);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(resultado.isEmpty());
     }
@@ -497,7 +555,7 @@ class TareaFirmaServiceImplTest {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.FICHERO_SIN_CLAVE, CLAVE);
         stubAlmacenClaveFichero(false);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(mensajes(resultado).contains(MENSAJE_CONTRASENA_INCORRECTA));
     }
@@ -507,7 +565,7 @@ class TareaFirmaServiceImplTest {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.FICHERO_SIN_CLAVE, CLAVE);
         stubAlmacenClaveFichero(true);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(resultado.isEmpty());
     }
@@ -517,7 +575,7 @@ class TareaFirmaServiceImplTest {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.FICHERO_CON_CLAVE, null);
         stubAlmacenClaveFichero(false);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(mensajes(resultado).contains(MENSAJE_CLAVE_GUARDADA_INCORRECTA));
     }
@@ -527,42 +585,47 @@ class TareaFirmaServiceImplTest {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.FICHERO_SIN_CLAVE, CLAVE);
         stubAlmacenClaveFichero(false);
 
-        service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         verify(certificadoDigitalService).getAlmacenClaveByDni(DNI, CLAVE);
     }
 
     @Test
     void validateFirmarEnServidor_dispositivoConPin_noAbreElCertificadoParaComprobarElPin() {
+        AlmacenClaveDispositivo dispositivo = stubAlmacenClaveDispositivo();
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.DISPOSITIVO_CON_PIN, null);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         // Los intentos fallidos bloquean la tarjeta: el PIN no se comprueba nunca por adelantado.
         assertTrue(resultado.isEmpty());
-        verifyNoInteractions(certificadoDigitalService);
+        verifyNoInteractions(dispositivo);
     }
 
     @Test
     void validateFirmarEnServidor_dispositivoSinPinConPinTecleado_noAbreElCertificadoParaComprobarElPin() {
+        AlmacenClaveDispositivo dispositivo = stubAlmacenClaveDispositivo();
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.DISPOSITIVO_SIN_PIN, PIN);
 
-        service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
-        verifyNoInteractions(certificadoDigitalService);
+        verifyNoInteractions(dispositivo);
     }
 
     @Test
-    void validateFirmarEnServidor_certificadoIlegible_noAcusaAlFirmanteDeClaveIncorrecta() {
+    void validateFirmarEnServidor_certificadoIlegible_propagaElErrorDeLaAplicacion() {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.FICHERO_SIN_CLAVE, CLAVE);
         when(modelServiceFactory.resolve(CertificadoDigital.class)).thenReturn(certificadoDigitalService);
-        when(certificadoDigitalService.getAlmacenClaveByDni(anyString(), any()))
-                .thenThrow(new RuntimeException("El fichero del certificado no se puede leer"));
+        RuntimeException errorDeLaAplicacion = new RuntimeException("El fichero del certificado no se puede leer");
+        when(certificadoDigitalService.getAlmacenClaveByDni(anyString(), any())).thenThrow(errorDeLaAplicacion);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        // No poder leer el certificado es un error de la aplicación, no una validación que el firmante pueda
+        // corregir: no se convierte en mensaje de negocio ni se traga, se propaga tal cual y falla todo.
+        RuntimeException excepcion = assertThrows(RuntimeException.class,
+                () -> service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada));
 
-        // Es un problema del certificado, no de la clave: lo trata la fase de firma con su motivo genérico.
-        assertTrue(resultado.isEmpty());
+        assertSame(errorDeLaAplicacion, excepcion);
+        assertFalse(excepcion instanceof ValidationException);
     }
 
     @Test
@@ -570,9 +633,11 @@ class TareaFirmaServiceImplTest {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.FICHERO_CON_CLAVE, null);
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
 
-        service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
-        verifyNoInteractions(certificadoDigitalService);
+        // Abrir el certificado es getAlmacenClaveByDni: consultar de qué tipo es para saber la situación
+        // de firma no lo abre, y por eso se acota la comprobación a esa llamada y no al mock entero.
+        verify(certificadoDigitalService, never()).getAlmacenClaveByDni(anyString(), any());
     }
 
     @Test
@@ -580,7 +645,7 @@ class TareaFirmaServiceImplTest {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.FICHERO_CON_CLAVE, null);
         tareaFirma.setDocumentosFirma(new ArrayList<>());
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(mensajes(resultado).contains(MENSAJE_SIN_DOCUMENTOS));
     }
@@ -591,7 +656,7 @@ class TareaFirmaServiceImplTest {
         tareaFirma.setDocumentosFirma(null);
 
         Optional<BusinessMessages> resultado =
-                assertDoesNotThrow(() -> service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante()));
+                assertDoesNotThrow(() -> service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada));
 
         assertTrue(mensajes(resultado).contains(MENSAJE_SIN_DOCUMENTOS));
     }
@@ -602,7 +667,7 @@ class TareaFirmaServiceImplTest {
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
         tareaFirma.setDocumentosFirma(new ArrayList<>());
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         List<String> mensajes = mensajes(resultado);
         assertTrue(mensajes.contains(MENSAJE_SOLO_PENDIENTES));
@@ -615,7 +680,7 @@ class TareaFirmaServiceImplTest {
     void validateFirmarEnServidor_claveTecleada_nuncaApareceEnLosMensajes() {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.SIN_CERTIFICADO, CLAVE_SECRETA);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(resultado.isPresent());
         // Se comprueba la clave completa y no sus prefijos: "clave" es también el principio del literal de
@@ -627,10 +692,12 @@ class TareaFirmaServiceImplTest {
     void validateFirmarEnServidor_siempre_recalculaLaSituacionDeFirmaEnElServidor() {
         TareaFirma tareaFirma = arrangeValidacion(SituacionFirma.SIN_CERTIFICADO, null);
 
-        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertTrue(mensajes(resultado).contains(MENSAJE_SIN_CERTIFICADO));
-        situacionFirmaBuilderMock.verify(() -> SituacionFirmaBuilder.build(firmante), atLeastOnce());
+        // La situación no se toma de lo que trajera la pantalla: se consulta el certificado dado de alta
+        // para el DNI del firmante que trae la tarea cargada de base de datos.
+        verify(certificadoDigitalService, atLeastOnce()).getSituacionFirmaByDni(DNI);
     }
 
     /* ------------------------------------------------------------------ */
@@ -641,7 +708,7 @@ class TareaFirmaServiceImplTest {
     void firmarEnServidor_tareaValidaConUnDocumento_firmaGuardaYDejaLaTareaFirmada() {
         TareaFirma tareaFirma = arrangeFirmaEnServidor(1, SituacionFirma.FICHERO_CON_CLAVE);
 
-        service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertNotNull(tareaFirma.getDocumentosFirma().get(0).getDocumentoFirmado());
         assertEquals(EstadoTareaFirma.FIRMADO, tareaFirma.getEstadoTareaFirma());
@@ -655,7 +722,7 @@ class TareaFirmaServiceImplTest {
         ArgumentCaptor<AlmacenClave> almacenDelPrimero = ArgumentCaptor.forClass(AlmacenClave.class);
         ArgumentCaptor<AlmacenClave> almacenDelSegundo = ArgumentCaptor.forClass(AlmacenClave.class);
 
-        service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         // Se comprueba sobre el almacén que recibe cada documento, no contando las llamadas al servicio de
         // criptografía: la validación previa también le pide uno para comprobar la clave (V-TareaFirma-008).
@@ -668,7 +735,7 @@ class TareaFirmaServiceImplTest {
     void firmarEnServidor_tareaConDosDocumentos_asignaUnMetaFileFirmadoDistintoACadaDocumento() {
         TareaFirma tareaFirma = arrangeFirmaEnServidor(2, SituacionFirma.FICHERO_CON_CLAVE);
 
-        service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         MetaFile primero = tareaFirma.getDocumentosFirma().get(0).getDocumentoFirmado();
         MetaFile segundo = tareaFirma.getDocumentosFirma().get(1).getDocumentoFirmado();
@@ -683,7 +750,7 @@ class TareaFirmaServiceImplTest {
         TareaFirma tareaFirma = arrangeFirmaEnServidor(1, SituacionFirma.FICHERO_CON_CLAVE);
         ArgumentCaptor<CampoFirma> captor = ArgumentCaptor.forClass(CampoFirma.class);
 
-        service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         verify(documentosPdfOriginales.get(0)).firmar(any(), captor.capture());
         CampoFirma campoFirma = captor.getValue();
@@ -698,7 +765,7 @@ class TareaFirmaServiceImplTest {
     void firmarEnServidor_tareaValida_pasaAlServicioDeCriptografiaElDniDelFirmanteYLaClaveTecleada() {
         TareaFirma tareaFirma = arrangeFirmaEnServidor(1, SituacionFirma.FICHERO_CON_CLAVE);
 
-        service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         // atLeastOnce: la validación previa pide otro almacén para comprobar la clave (V-TareaFirma-008).
         verify(certificadoDigitalService, atLeastOnce()).getAlmacenClaveByDni(DNI, CLAVE);
@@ -710,7 +777,7 @@ class TareaFirmaServiceImplTest {
         when(documentosPdfOriginales.get(1).firmar(any(), any()))
                 .thenThrow(new RuntimeException(MOTIVO_CLAVE_INCORRECTA));
 
-        assertThrows(ValidationException.class, () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante()));
+        assertThrows(ValidationException.class, () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada));
 
         assertNull(tareaFirma.getDocumentosFirma().get(0).getDocumentoFirmado());
         assertNull(tareaFirma.getDocumentosFirma().get(1).getDocumentoFirmado());
@@ -725,7 +792,7 @@ class TareaFirmaServiceImplTest {
                 .thenThrow(new RuntimeException(MOTIVO_CLAVE_INCORRECTA));
 
         ValidationException excepcion = assertThrows(ValidationException.class,
-                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante()));
+                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada));
 
         assertTrue(excepcion.getMessage().contains(MENSAJE_NO_SE_HAN_PODIDO_FIRMAR));
     }
@@ -737,7 +804,7 @@ class TareaFirmaServiceImplTest {
                 .thenThrow(new RuntimeException(new IOException(MOTIVO_TECNICO_DEL_JDK)));
 
         ValidationException excepcion = assertThrows(ValidationException.class,
-                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante()));
+                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada));
 
         assertTrue(excepcion.getMessage().startsWith(MENSAJE_NO_SE_HAN_PODIDO_FIRMAR));
         assertFalse(excepcion.getMessage().contains(MOTIVO_TECNICO_DEL_JDK));
@@ -748,12 +815,12 @@ class TareaFirmaServiceImplTest {
     @Test
     void firmarEnServidor_ficheroSinClaveYContrasenaIncorrecta_avisaDeQueLaContrasenaNoEsCorrecta() {
         TareaFirma tareaFirma = arrangeFirmaEnServidor(1, SituacionFirma.FICHERO_SIN_CLAVE);
-        tareaFirma.setClaveFirma(CLAVE_SECRETA);
+        claveFirmaTecleada = CLAVE_SECRETA;
         when(documentosPdfOriginales.get(0).firmar(any(), any()))
                 .thenThrow(claveIncorrectaComoLaLanzaElJdk());
 
         ValidationException excepcion = assertThrows(ValidationException.class,
-                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante()));
+                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada));
 
         assertEquals(MENSAJE_NO_SE_HAN_PODIDO_FIRMAR + "la contraseña indicada no es correcta",
                 excepcion.getMessage());
@@ -763,12 +830,12 @@ class TareaFirmaServiceImplTest {
     @Test
     void firmarEnServidor_dispositivoSinPinYPinIncorrecto_avisaDeQueElPinNoEsCorrecto() {
         TareaFirma tareaFirma = arrangeFirmaEnServidor(1, SituacionFirma.DISPOSITIVO_SIN_PIN);
-        tareaFirma.setClaveFirma(CLAVE_SECRETA);
+        claveFirmaTecleada = CLAVE_SECRETA;
         when(documentosPdfOriginales.get(0).firmar(any(), any()))
                 .thenThrow(new RuntimeException(new IOException(new LoginException("failed login"))));
 
         ValidationException excepcion = assertThrows(ValidationException.class,
-                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante()));
+                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada));
 
         assertEquals(MENSAJE_NO_SE_HAN_PODIDO_FIRMAR + "el PIN indicado no es correcto",
                 excepcion.getMessage());
@@ -782,7 +849,7 @@ class TareaFirmaServiceImplTest {
                 .thenThrow(claveIncorrectaComoLaLanzaElJdk());
 
         ValidationException excepcion = assertThrows(ValidationException.class,
-                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante()));
+                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada));
 
         assertEquals(MENSAJE_NO_SE_HAN_PODIDO_FIRMAR
                         + "la clave guardada de su certificado digital no es correcta. Póngase en contacto con el administrador",
@@ -801,17 +868,22 @@ class TareaFirmaServiceImplTest {
     }
 
     @Test
-    void firmarEnServidor_laObtencionDelAlmacenClaveFalla_lanzaElMismoErrorDeNegocio() {
+    void firmarEnServidor_laObtencionDelAlmacenClaveFalla_propagaElErrorDeLaAplicacionSinFirmarNada() {
         TareaFirma tareaFirma = arrangeFirmaEnServidor(1, SituacionFirma.FICHERO_CON_CLAVE);
-        when(certificadoDigitalService.getAlmacenClaveByDni(any(), any()))
-                .thenThrow(new RuntimeException("No existe certificado para el DNI: " + DNI));
+        RuntimeException errorDeLaAplicacion =
+                new RuntimeException("No se puede leer el certificado desde el sistema de archivos: /certificados/firmante.p12");
+        when(certificadoDigitalService.getAlmacenClaveByDni(any(), any())).thenThrow(errorDeLaAplicacion);
 
-        ValidationException excepcion = assertThrows(ValidationException.class,
-                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante()));
+        // Un certificado que no se puede leer es un error de la aplicación, no un fallo de firma que se
+        // traduzca al motivo de negocio de RN-TareaFirma-007: la excepción sale tal cual y la acción falla entera.
+        RuntimeException excepcion = assertThrows(RuntimeException.class,
+                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada));
 
-        assertTrue(excepcion.getMessage().startsWith(MENSAJE_NO_SE_HAN_PODIDO_FIRMAR));
+        assertSame(errorDeLaAplicacion, excepcion);
         assertNull(tareaFirma.getDocumentosFirma().get(0).getDocumentoFirmado());
+        assertEquals(EstadoTareaFirma.PENDIENTE, tareaFirma.getEstadoTareaFirma());
         verify(repository, never()).save(any());
+        verifyNoInteractions(tareaFirmaNotifier);
     }
 
     @Test
@@ -821,7 +893,7 @@ class TareaFirmaServiceImplTest {
                 .thenThrow(new RuntimeException("El MetaFile no es de tipo PDF"));
 
         ValidationException excepcion = assertThrows(ValidationException.class,
-                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante()));
+                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada));
 
         assertTrue(excepcion.getMessage().startsWith(MENSAJE_NO_SE_HAN_PODIDO_FIRMAR));
     }
@@ -832,7 +904,7 @@ class TareaFirmaServiceImplTest {
         when(documentosPdfOriginales.get(0).firmar(any(), any()))
                 .thenThrow(new RuntimeException(MOTIVO_CLAVE_INCORRECTA));
 
-        assertThrows(ValidationException.class, () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante()));
+        assertThrows(ValidationException.class, () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada));
 
         assertEquals(EstadoTareaFirma.PENDIENTE, tareaFirma.getEstadoTareaFirma());
         assertNull(tareaFirma.getFechaResolucion());
@@ -844,39 +916,10 @@ class TareaFirmaServiceImplTest {
         LocalDateTime fechaAntigua = LocalDateTime.of(2000, 1, 1, 0, 0);
         tareaFirma.setFechaResolucion(fechaAntigua);
 
-        service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertNotEquals(fechaAntigua, tareaFirma.getFechaResolucion());
         assertEquals(EstadoTareaFirma.FIRMADO, tareaFirma.getEstadoTareaFirma());
-    }
-
-    @Test
-    void firmarEnServidor_firmaCompletada_descartaLaClaveDeFirma() {
-        TareaFirma tareaFirma = arrangeFirmaEnServidor(1, SituacionFirma.FICHERO_CON_CLAVE);
-
-        service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
-
-        assertNull(tareaFirma.getClaveFirma());
-    }
-
-    @Test
-    void firmarEnServidor_laFirmaFalla_descartaLaClaveDeFirmaIgualmente() {
-        TareaFirma tareaFirma = arrangeFirmaEnServidor(1, SituacionFirma.FICHERO_CON_CLAVE);
-        when(documentosPdfOriginales.get(0).firmar(any(), any()))
-                .thenThrow(new RuntimeException(MOTIVO_CLAVE_INCORRECTA));
-
-        assertThrows(ValidationException.class, () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante()));
-
-        assertNull(tareaFirma.getClaveFirma());
-    }
-
-    @Test
-    void firmarEnServidor_validacionRechazada_descartaLaClaveDeFirmaIgualmente() {
-        TareaFirma tareaFirma = arrangeFirmaEnServidor(1, SituacionFirma.SIN_CERTIFICADO);
-
-        assertThrows(ValidationException.class, () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante()));
-
-        assertNull(tareaFirma.getClaveFirma());
     }
 
     @Test
@@ -885,7 +928,7 @@ class TareaFirmaServiceImplTest {
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
 
         ValidationException excepcion = assertThrows(ValidationException.class,
-                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante()));
+                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada));
 
         assertTrue(excepcion.getMessage().contains(MENSAJE_SOLO_PENDIENTES));
         verify(repository, never()).save(any());
@@ -897,7 +940,7 @@ class TareaFirmaServiceImplTest {
     void firmarEnServidor_firmaCompletada_notificaAlProcesoQueEncargoLaFirma() {
         TareaFirma tareaFirma = arrangeFirmaEnServidor(1, SituacionFirma.FICHERO_CON_CLAVE);
 
-        service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         InOrder inOrder = Mockito.inOrder(repository, tareaFirmaNotifier);
         inOrder.verify(repository).save(tareaFirma);
@@ -911,7 +954,7 @@ class TareaFirmaServiceImplTest {
         when(documentosPdfOriginales.get(0).firmar(any(), any()))
                 .thenThrow(new RuntimeException(MOTIVO_CLAVE_INCORRECTA));
 
-        assertThrows(ValidationException.class, () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante()));
+        assertThrows(ValidationException.class, () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada));
 
         verifyNoInteractions(tareaFirmaNotifier);
     }
@@ -922,7 +965,7 @@ class TareaFirmaServiceImplTest {
         TareaFirma tareaFirmaGuardada = tareaFirmaPendiente(1);
         when(repository.save(any())).thenReturn(tareaFirmaGuardada);
 
-        TareaFirma resultado = service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante());
+        TareaFirma resultado = service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada);
 
         assertSame(tareaFirmaGuardada, resultado);
     }
@@ -930,12 +973,12 @@ class TareaFirmaServiceImplTest {
     @Test
     void firmarEnServidor_laFirmaFalla_noIncluyeLaClaveDeFirmaEnElMensajeDeError() {
         TareaFirma tareaFirma = arrangeFirmaEnServidor(1, SituacionFirma.FICHERO_CON_CLAVE);
-        tareaFirma.setClaveFirma(CLAVE_SECRETA);
+        claveFirmaTecleada = CLAVE_SECRETA;
         when(documentosPdfOriginales.get(0).firmar(any(), any()))
                 .thenThrow(new RuntimeException(MOTIVO_CLAVE_INCORRECTA));
 
         ValidationException excepcion = assertThrows(ValidationException.class,
-                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante()));
+                () -> service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveFirmaTecleada));
 
         // Se comprueba la clave completa y no sus prefijos: "clave" es también el principio del literal de
         // negocio "clave incorrecta", así que una comprobación por fragmentos daría un falso positivo.
@@ -982,10 +1025,11 @@ class TareaFirmaServiceImplTest {
     /* ------------------------------------------------------------------ */
 
     @Test
-    void allowPropertiesFirmarEnServidor_soloPermiteLaClaveDeFirma() {
+    void allowPropertiesFirmarEnServidor_noPermiteNingunCampo() {
         AllowProperties allowProperties = service.allowPropertiesFirmarEnServidor();
 
-        assertTrue(allowProperties.allowProperty("claveFirma"));
+        // La clave de firma no es un campo de la entidad: llega al servicio como argumento, no por la whitelist.
+        assertFalse(allowProperties.allowProperty("claveFirma"));
         assertFalse(allowProperties.allowProperty("situacionFirma"));
         assertFalse(allowProperties.allowProperty("estadoTareaFirma"));
         assertFalse(allowProperties.allowProperty("fechaResolucion"));
@@ -1010,7 +1054,6 @@ class TareaFirmaServiceImplTest {
         assertFalse(allowProperties.allowProperty("firmante"));
         assertFalse(allowProperties.allowProperty("estadoTareaFirma"));
         assertFalse(allowProperties.allowProperty("documentosFirma"));
-        assertFalse(allowProperties.allowProperty("claveFirma"));
         assertFalse(allowProperties.allowProperty("fqcnFirmaNotifier"));
     }
 
@@ -1022,6 +1065,5 @@ class TareaFirmaServiceImplTest {
         assertFalse(allowProperties.allowProperty("fechaResolucion"));
         assertFalse(allowProperties.allowProperty("firmante"));
         assertFalse(allowProperties.allowProperty("documentosFirma"));
-        assertFalse(allowProperties.allowProperty("claveFirma"));
     }
 }
