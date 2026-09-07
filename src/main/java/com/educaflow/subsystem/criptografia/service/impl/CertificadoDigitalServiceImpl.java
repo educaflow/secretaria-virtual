@@ -16,7 +16,7 @@ import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
 import com.educaflow.subsystem.criptografia.db.TipoUbicacionCertificado;
 import com.educaflow.subsystem.criptografia.db.repo.CertificadoDigitalRepository;
 import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
-import com.educaflow.subsystem.criptografia.service.TipoAlmacenClave;
+import com.educaflow.subsystem.criptografia.service.SituacionFirma;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -43,7 +43,7 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         CertificadoDigital certificado = ((CertificadoDigitalRepository) repository).findByDni(dni);
 
         if ((certificado == null) || (certificado.getEnabled() == false)) {
-            throw new RuntimeException("No existe certificado para el DNI: " + dni);
+            return null;
         }
 
         TipoUbicacionCertificado tipo = certificado.getTipoCertificado();
@@ -73,12 +73,20 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
 
 
     @Override
-    public TipoAlmacenClave getTipoAlmacenClaveByDni(String dni) {
-        validateGetTipoAlmacenClaveByDni(dni).ifPresent(BusinessMessages::throwIfInvalid);
+    public SituacionFirma getSituacionFirmaByDni(String dni) {
+        if ((dni==null) || (dni.isBlank())) {
+            return SituacionFirma.SIN_DNI;
+        }
+
+        if (!DniUtil.isValid(dni)) {
+            // El DNI va enmascarado: esta excepción acaba en un log, y ahí no se escribe nunca completo.
+            throw new IllegalArgumentException("El DNI no es válido: " + DniUtil.enmascarar(dni));
+        }
+
         CertificadoDigital certificado = ((CertificadoDigitalRepository) repository).findByDni(dni);
 
         if ((certificado == null) || (certificado.getEnabled() == false)) {
-            return null;
+            return SituacionFirma.SIN_CERTIFICADO;
         }
 
         TipoUbicacionCertificado tipo = certificado.getTipoCertificado();
@@ -86,11 +94,11 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         return switch (tipo) {
             case DISPOSITIVO_PKCS11 -> {
                 String pin = certificado.getDispositivoCriptografico().getPin();
-                yield (pin == null || pin.isBlank()) ? TipoAlmacenClave.DISPOSITIVO_SIN_PIN : TipoAlmacenClave.DISPOSITIVO_CON_PIN;
+                yield (pin == null || pin.isBlank()) ? SituacionFirma.DISPOSITIVO_SIN_PIN : SituacionFirma.DISPOSITIVO_CON_PIN;
             }
             case FICHERO_BD, CLASSPATH, SISTEMA_ARCHIVOS -> {
                 String password = certificado.getPassword();
-                yield (password == null || password.isBlank()) ? TipoAlmacenClave.FICHERO_SIN_CLAVE : TipoAlmacenClave.FICHERO_CON_CLAVE;
+                yield (password == null || password.isBlank()) ? SituacionFirma.FICHERO_SIN_CLAVE : SituacionFirma.FICHERO_CON_CLAVE;
             }
         };
     }
@@ -117,7 +125,7 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
     }
 
     @Override
-    public Optional<BusinessMessages> validateGetTipoAlmacenClaveByDni(String dni) {
+    public Optional<BusinessMessages> validateGetSituacionFirmaByDni(String dni) {
         BusinessMessages messages = new BusinessMessages();
 
         if (!DniUtil.isValid(dni)) {

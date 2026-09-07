@@ -19,7 +19,7 @@
     </entity>
 
     <enum name="TipoUbicacionCertificado">
-        <item name="FICHERO_BD" title="Subir un fichero con el certificado para guardar permanentemente en la secretaría virtual"/>
+        <item name="FICHERO_BD" title="Subir un fichero con el certificado para guardarlo en la base de datos"/>
         <item name="DISPOSITIVO_PKCS11" title="Usar un dispositivo criptográfico donde ya está el certificado"/>
         <item name="CLASSPATH" title="Usar un fichero con el certificado que ya está dentro del del WAR__!!"/>
         <item name="SISTEMA_ARCHIVOS" title="Usar un certificado que ya está en una ruta absoluta en el sistema de archivos"/>

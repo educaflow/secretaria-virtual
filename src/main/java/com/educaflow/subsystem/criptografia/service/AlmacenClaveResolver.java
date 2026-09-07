@@ -33,6 +33,11 @@ public class AlmacenClaveResolver {
         return certificadoDigitalService.getAlmacenClaveByDni(dni);
     }
 
+    public AlmacenClave getByDNI(String dni, String claveAcceso) {
+        CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);
+        return certificadoDigitalService.getAlmacenClaveByDni(dni, claveAcceso);
+    }
+
     public AlmacenClave getDummy() {
         return new AlmacenClaveFichero(AlmacenClaveResolver.class.getClassLoader().getResourceAsStream("/firma/mi_certificado.p12"),"nadanada");
     }

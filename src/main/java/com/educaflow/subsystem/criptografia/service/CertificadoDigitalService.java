@@ -13,6 +13,6 @@ public interface CertificadoDigitalService extends ModelService<CertificadoDigit
     Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni);
     AlmacenClave getAlmacenClaveByDni(String dni, String claveAcceso);
     Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni, String claveAcceso);
-    TipoAlmacenClave getTipoAlmacenClaveByDni(String dni);
-    Optional<BusinessMessages> validateGetTipoAlmacenClaveByDni(String dni);
+    SituacionFirma getSituacionFirmaByDni(String dni);
+    Optional<BusinessMessages> validateGetSituacionFirmaByDni(String dni);
 }
