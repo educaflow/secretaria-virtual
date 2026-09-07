@@ -114,6 +114,21 @@ Asignar un valor a un campo
 ```
 - En este otro ejemplo, el campo `ciclo` del curso se le asigna el valor del ciclo padre usando la expresión `eval: __parent__` que hace referencia al registro padre en la vista anidada.
 
+```xml
+<action-record name="subsysFirmas.Pendiente@TareaFirma-set-situacionFirma-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
+    <field name="situacionFirma" expr="call:com.educaflow.subsystem.firmas.controller.TareaFirmaController:getSituacionFirma()"/>
+</action-record>
+```
+
+- En este tercero, el valor se lo pide al servidor: `expr="call:{FQCN}:{metodo}(args)"` llama a un método del controlador y asigna al campo **lo que ese método devuelve**.
+  Es la forma de usar desde la vista un método **type3** del controlador (parámetros normales de Java y retorno de un valor concreto — ver `[[k-sistemas]]`, `controladores.md` §"Estructura del controlador").
+- Reglas del `call:`:
+  - El método **MUST** llevar `@CallMethod`, igual que los de un `<action-method>`.
+  - Los **paréntesis son obligatorios** aunque no haya argumentos (`…:getSituacionFirma()`): sin ellos Axelor busca la firma `(ActionRequest, ActionResponse)` y no el método type3.
+  - Los argumentos se resuelven contra el **contexto del formulario** (`id`, el valor de un campo…): `…:getSituacionFirmaDocumentoEntrada(id)`.
+  - Sirve tanto para campos del modelo como para **campos dummy de vista** (los que no existen en el `domains.xml` y solo alimentan `showIf`).
+- **Cuándo usarlo en vez de un `<action-method>`**: cuando lo único que hace el servidor es **calcular un valor para un campo**. Así el nombre del campo se queda en la vista, que es de quien es, y el controlador no monta ningún `ActionResponse` ni conoce el formulario. Si además hay que mostrar mensajes, cerrar la ventana o tocar varios campos, entonces sí toca un `<action-method>` con su método type1.
+
 ### `<action-group>` — secuencia de acciones principales
 
 ```xml

@@ -449,8 +449,8 @@ Con su binding correspondiente en `module/<Subsistema>Module.java` — sin neces
 - **MUST NOT** declararlo la acción de **parámetros escalares**: no hay mapa del cliente que filtrar, así que la whitelist no protegería nada.
 
 - ✅ CORRECTO: `reenviar(Correo entidad, Correo original)` declara `allowPropertiesReenviar()` (el controlador construye el `Correo` con `getModel(...)`).
-- ✅ CORRECTO: `getTipoAlmacenClaveByDni(String dni)` **sin** `allowProperties` (recibe un escalar; el `@CallMethod` es de tipo 2/3 y no toca ninguna entidad).
-- ❌ INCORRECTO: `allowPropertiesGetTipoAlmacenClaveByDni()` (no hay entidad que filtrar; el método no protege nada).
+- ✅ CORRECTO: `getSituacionFirmaByDni(String dni)` **sin** `allowProperties` (recibe un escalar; el `@CallMethod` es de tipo 2/3 y no toca ninguna entidad).
+- ❌ INCORRECTO: `allowPropertiesGetSituacionFirmaByDni()` (no hay entidad que filtrar; el método no protege nada).
 
 Estructuralmente:
 

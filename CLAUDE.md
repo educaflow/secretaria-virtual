@@ -83,6 +83,10 @@ La fuente de verdad es siempre el código, y para lo normativo `CLAUDE.md`, `age
 
 La descripción de la arquitectura (paquetes de `com.educaflow`, sistemas vs subsistemas y la arquitectura especial de expedientes) está en [`agent_docs/architecture.md`](agent_docs/architecture.md). Las invariantes **verificables** de esa arquitectura (dependencias entre capas, Controller→Service→Repository, nomenclatura/ubicación) están catalogadas como reglas verificables (formato ADR, sin código) en [`agent_docs/architecture-rules.md`](agent_docs/architecture-rules.md), de las que `/developer-create-arch-tests` genera los tests ArchUnit. **Ambos ficheros deben mantenerse coherentes entre sí.** Cárgalos solo cuando trabajes con la arquitectura.
 
+**`subsystem/expedientes` es solo el motor de tramitación y MUST mantenerse lo más pequeño posible**, porque todo lo que se le añade lo heredan todos los tipos de expediente.
+Lo que un expediente concreto necesita para implementarse **MUST NOT** ir ahí: va a `tramites/util/<propósito>/` si lo comparten varios tipos, o a su carpeta de versión si es de uno solo.
+Esta decisión se toma **al diseñar**, no al implementar: antes de colocar cualquier pieza nueva en el motor lee [`src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md`](src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md) (dónde va cada cosa) y [`src/main/java/com/educaflow/tramites/util/CLAUDE.md`](src/main/java/com/educaflow/tramites/util/CLAUDE.md) (qué puede entrar en el común de trámites).
+
 ## Vistas
 
 Las **convenciones verificables de las vistas Axelor** (los XML bajo `**/views/*.xml` y `menus.xml`: nomenclatura, botones, action-groups, forms/grids, referencias, modales, menús) están catalogadas como reglas verificables (formato ADR `VAR-<categoría>.<n>`, sin código) en [`agent_docs/view-rules.md`](agent_docs/view-rules.md) — el equivalente para vistas de [`architecture-rules.md`](agent_docs/architecture-rules.md) —, de las que `/developer-create-view-tests` genera los tests (JUnit 5 planos en `src/test/java/com/educaflow/views`, una clase por categoría, que leen los XML con JAXP/XPath; **no** usan ArchUnit porque este analiza bytecode, no XML). `view-rules.md` es la **fuente de verdad** de esos tests: para cambiar un test se edita el markdown y se re-ejecuta `/developer-create-view-tests`, nunca se editan los `.java` a mano. **`view-rules.md` debe mantenerse coherente con los skills `k-vistas`** (que describen esas convenciones en prosa). Cárgalo solo cuando trabajes con las vistas o sus tests.
@@ -109,11 +113,12 @@ Hubo un parche (un `ModelService` de expedientes que devolvía `createDenyAllPro
 
 Puntos concretos que siguen abiertos:
 - Cualquier usuario con permiso de escritura sobre una subclase de `Expediente` puede dictar por REST el valor de cualquier campo, incluidos `codePhase`/`codeState`/`abierto`, `centro` y `usuarioRegistrador`, saltándose la máquina de estados.
-  `auth-expedientes.xml` concede `create`/`read`/`write`/`remove` sin `condition` sobre `PruebaV1`.
+  Ese permiso lo concede el `auth-<Code>.xml` que el build genera con el data-init de cada tipo de expediente, con `create`/`read`/`write`/`remove` y sin `condition`.
 - `AllowProperties.filter` conserva siempre `id`, `version` y las claves `_`.
   Con deny-all un update queda en no-op, pero un alta sin `id` llega a `JPA.edit` con el mapa vacío: **sin comprobar** si crea una fila vacía o revienta contra los `NOT NULL`.
 - `FormacionCentroTrabajo` no tiene `ModelService` ni hereda de `Expediente`, y `auth-expedientes.xml` le concede `create`/`write`/`remove` sin `condition`: sigue en allow-all.
 - Los permisos de las subclases se conceden sin `condition` (p. ej. `PruebaV1.all`) y `AuthSecurity` **no recorre superclases**, así que no heredan las condiciones de los permisos de `Expediente`.
+  Y como los genera el build por cada tipo de expediente, un trámite nuevo nace con el agujero abierto sin que nadie tenga que escribir nada: la solución **MUST** decidirse en el generador (`createdatainittipoexpediente`), no tipo a tipo.
 
 ## i18n
 Nunca jamás, crear los ficheros `i18n_ca.csv` ni `i18n_es.csv` ya que hay un script que los genera automáticamente, así que es totalmente innecesario.
