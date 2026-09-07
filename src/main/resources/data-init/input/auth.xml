@@ -76,9 +76,6 @@
   <permission name="TipoTramite.all" object="com.educaflow.subsystem.expedientes.db.TipoTramite">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
-  <permission name="PruebaV1.all" object="com.educaflow.subsystem.expedientes.db.PruebaV1">
-    <can create="true" read="true" write="true" remove="true" export="true"/>
-  </permission>
   <permission name="FormacionCentroTrabajo.all" object="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
@@ -197,7 +194,6 @@
     <permission name="HistorialEstado.all"/>
     <permission name="PerfilExpediente.all"/>
     <permission name="TipoTramite.all"/>
-    <permission name="PruebaV1.all"/>
     <permission name="FormacionCentroTrabajo.all"/>
     <permission name="SearchExpedientes.all"/>
     <permission name="TareaFirma.all"/>
@@ -252,7 +248,6 @@
     <permission name="HistorialEstado.all"/>
     <permission name="PerfilExpediente.all"/>
     <permission name="TipoTramite.leer"/>
-    <permission name="PruebaV1.all"/>
     <permission name="FormacionCentroTrabajo.all"/>
     <permission name="SearchExpedientes.all"/>
     <permission name="TareaFirma.firmante"/>
