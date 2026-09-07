@@ -266,7 +266,7 @@ public Optional<BusinessMessages> validateInsert(Bar entidad);
 Para cada R-<Entidad>-NNN con momento `Antes` que asigna un campo clasificado como `servidor` (§3), el comentario del `fireActionRule_*` correspondiente **MUST** documentar explícitamente:
 
 1. Que la asignación es **incondicional** (sin `if (campo == null)`). Ver `[[k-secure-coding]]` §3.3.
-2. El origen del valor (`LocalDateTime.now()`, `AuthUtils.getUser().getCentro()`, constante del enum, etc.).
+2. El origen del valor (`LocalDateTime.now()`, `SecurityUtil.getUser().getCentro()`, constante del enum, etc.).
 3. Que el cliente NO puede dictar este campo aunque venga relleno en el JSON del endpoint REST genérico.
 
 ✅ CORRECTO (comentario en `design.md`):

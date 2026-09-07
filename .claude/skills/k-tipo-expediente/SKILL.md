@@ -319,7 +319,7 @@ Dos reglas **no** leen el bytecode, cada una por su motivo, y se señalan en su 
 
 ### 3.4 Lo que NO comprueba nada (falla en runtime)
 
-- Lo que el `triggerInitialEvent` del `InitialEventManagerImpl` deja **sin** rellenar. `Tramitador` no exige ningún campo, así que el expediente se crea igual y el fallo llega después y en otro sitio: `dniFirmaDocumentoEntrada` revienta al **firmar** (en `FirmaController.firmarDocumentoEntrada`) y `personaSolicitante` con un NPE al crear el **registro de entrada** (ver `phaseeventmanager.md` §2.1).
+- Lo que el `triggerInitialEvent` del `InitialEventManagerImpl` deja **sin** rellenar. `Tramitador` no exige ningún campo, así que el expediente se crea igual y el fallo llega después y en otro sitio: `personaSolicitante` a `null` revienta con un NPE al crear el **registro de entrada** (ver `phaseeventmanager.md` §2.1).
 
 ### 3.5 Qué genera en BD el data-init del tipo
 

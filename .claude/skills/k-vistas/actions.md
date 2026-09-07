@@ -125,7 +125,7 @@ Asignar un valor a un campo
 - Reglas del `call:`:
   - El método **MUST** llevar `@CallMethod`, igual que los de un `<action-method>`.
   - Los **paréntesis son obligatorios** aunque no haya argumentos (`…:getSituacionFirma()`): sin ellos Axelor busca la firma `(ActionRequest, ActionResponse)` y no el método type3.
-  - Los argumentos se resuelven contra el **contexto del formulario** (`id`, el valor de un campo…): `…:getSituacionFirmaDocumentoEntrada(id)`.
+  - Los argumentos se resuelven contra el **contexto del formulario** (`id`, el valor de un campo…): `…:calcularAlgo(id)`.
   - Sirve tanto para campos del modelo como para **campos dummy de vista** (los que no existen en el `domains.xml` y solo alimentan `showIf`).
 - **Cuándo usarlo en vez de un `<action-method>`**: cuando lo único que hace el servidor es **calcular un valor para un campo**. Así el nombre del campo se queda en la vista, que es de quien es, y el controlador no monta ningún `ActionResponse` ni conoce el formulario. Si además hay que mostrar mensajes, cerrar la ventana o tocar varios campos, entonces sí toca un `<action-method>` con su método type1.
 

@@ -69,18 +69,18 @@ Las reglas (`ValidationRule`) están en `com.educaflow.base.infrastructure.valid
 | `FileMaxSize(n, SizeUnit.MB)` | Tamaño máximo de un `MetaFile` |
 | `FileName("^...$")` | Regex sobre el nombre de fichero de un `MetaFile` |
 | `ifValueIn(model::getCampo, listOf(...)) { +... }` *(DSL, paquete `...validation.dsl`)* | Reglas condicionales según el valor de otro campo; su negación es `ifValueNotIn` |
-| `FirmaPdf(model::getOriginal, model::getDniFirma)` | §4 |
+| `FirmaPdf(model::getOriginal)` | §4 |
 
 La tabla es un resumen de uso, no un inventario cerrado: la **fuente de verdad** es el contenido del paquete `...validation.rules` (un fichero `*Rules.kt` por familia). Antes de inventarte una regla, mira si ya existe ahí.
 
 ## 4. `FirmaPdf` — validar la firma de AutoFirma en servidor
 
-`FirmaPdf(original, dniGetter)` sobre el campo del PDF firmado valida que lo subido es el original firmado con AutoFirma por el DNI exigido:
+`FirmaPdf(original)` sobre el campo del PDF firmado valida que lo subido es el original firmado con AutoFirma por el **usuario autenticado**, que es siempre quien firma (el DNI se lee de él, nunca del bean):
 
 ```kotlin
 field(model::getPdfSolicitudFirmado) {
     +Required()
-    +FirmaPdf(model::getPdfSolicitud, model::getDniFirmaDocumentoEntrada)
+    +FirmaPdf(model::getPdfSolicitud)
 }
 ```
 

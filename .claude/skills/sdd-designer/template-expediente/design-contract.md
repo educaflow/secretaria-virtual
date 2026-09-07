@@ -279,7 +279,7 @@ Reglas:
 - `servidor` = lo dicta el servidor (PDFs generados por un `trigger*`, resguardos de registro, campos calculados, snapshots). **MUST NOT** aparecer en ningún `field(...)`.
 - **Motivo (CRITICAL):** el `Tramitador` construye el `AllowProperties` de cada evento **a partir de las reglas del validador**. Un campo que no está en ningún `field(...)` de esa pareja (estado, evento) **no se copia** desde la petición; darle entrada lo hace **escribible por el cliente**. Declarar los campos es exactamente lo que los hace editables, así que la columna no es documentación: es la lista de permisos.
 - **MUST NOT** confiarse en `readonly`, `showIf` o `hidden` de la vista como defensa: no lo son.
-- **MUST NOT** listar en esta tabla los campos heredados de `Expediente`: `tipoExpediente`, `name`, `numeroExpediente`, `codePhase`, `namePhase`, `codeState`, `nameState`, `fechaUltimoEstado`, `abierto`, `historialEstados`, `centro`, `usuarioRegistrador`, `personaSolicitante`, `personaInteresada`, `dniFirmaDocumentoEntrada`. Redeclararlos en el `domains.xml` está prohibido. (Sí pueden **referenciarse** desde §8, §9 y §11 **del `design.md`** y desde las vistas.)
+- **MUST NOT** listar en esta tabla los campos heredados de `Expediente`: `tipoExpediente`, `name`, `numeroExpediente`, `codePhase`, `namePhase`, `codeState`, `nameState`, `fechaUltimoEstado`, `abierto`, `historialEstados`, `centro`, `usuarioRegistrador`, `personaSolicitante`, `personaInteresada`. Redeclararlos en el `domains.xml` está prohibido. (Sí pueden **referenciarse** desde §8, §9 y §11 **del `design.md`** y desde las vistas.)
 - Todo campo `servidor` **MUST** estar respaldado por al menos una acción de las secciones «Especificación del InitialEventManagerImpl» o «Especificación de los PhaseEventManagerImpl» del `design.md` que lo asigne; si ninguna lo asigna, o sobra el campo o falta la acción.
 
 > **Ejemplo** (ilustrativo, NO normativo): un campo `many-to-one` a `com.axelor.meta.db.MetaFile` que un `trigger*` rellena con el PDF que acaba de generar es `servidor`; el `MetaFile` que la persona sube desde el formulario es `usuario`.
@@ -514,7 +514,7 @@ El paso **MUST** decir que es una **fusión**, no una copia: se añaden a `src/m
 
 - `BUILD SUCCESSFUL`, con los tests de `com/educaflow/tiposexpedientes` y `com/educaflow/views` en verde (los ejecuta ese mismo build).
 - Que se regeneró `estados.png` (`GenerateDocs` va enganchada a `build` con `finalizedBy`).
-- **REQUIRED — comprobación en runtime**: navegar por **todos** los estados con usuarios de los perfiles adecuados. Los tests cubren la forma, no el comportamiento. En particular, lo que **nada** comprueba en build: el `dniFirmaDocumentoEntrada` (revienta al firmar en cliente), `personaSolicitante`/`personaInteresada` (NPE al crear el registro de entrada), las **transiciones** del `.puml`, y las expresiones Groovy de `documentospdf/` (fallo silencioso: log + campo vacío).
+- **REQUIRED — comprobación en runtime**: navegar por **todos** los estados con usuarios de los perfiles adecuados. Los tests cubren la forma, no el comportamiento. En particular, lo que **nada** comprueba en build: `personaSolicitante`/`personaInteresada` (NPE al crear el registro de entrada), las **transiciones** del `.puml`, y las expresiones Groovy de `documentospdf/` (fallo silencioso: log + campo vacío).
 
 ---
 
@@ -549,9 +549,8 @@ Reglas que la sección **MUST** hacer explícitas:
 
 - Lo que el `Tramitador` ya rellena **antes** de llamar al `triggerInitialEvent` y que **MUST NOT** reasignarse: `tipoExpediente`, `centro`, `usuarioRegistrador`, `name`, `numeroExpediente`.
 - Lo que hace **después** y que tampoco es cosa de este método: fijar el estado inicial, crear el `HistorialEstado` y llamar al `onEnterState`.
-- **CRITICAL** — si el tipo firma algún documento **en cliente** (AutoFirma), el método **MUST** dejar `dniFirmaDocumentoEntrada` con un DNI válido: es lo que comprueba `FirmaController.firmarDocumentoEntrada`, y **nada lo verifica en build**.
 - **CRITICAL** — si algún `trigger*` llama a `createRegistroEntrada`, el método **MUST** dejar `personaSolicitante` y `personaInteresada` no nulos: `createRegistroEntrada` lanza **NPE** si son `null`, y **nada lo verifica en build**.
-- Si el tipo no firma en cliente ni crea registros de entrada, esas dos reglas no aplican y la sección **MUST** decirlo explícitamente.
+- Si el tipo no crea registros de entrada, esa regla no aplica y la sección **MUST** decirlo explícitamente.
 - **MUST NOT** llamar a `eventContext.updateState(...)`: el estado inicial lo fija el `Tramitador`.
 
 Dependencias a inyectar (`@Inject`), si las hay: lista con tipo y para qué se usa. Si no hay ninguna, decirlo.
@@ -735,7 +734,7 @@ Catálogo de reglas disponibles (paquete `com.educaflow.base.infrastructure.vali
 | Comparables | `GreaterThan(model::get<Campo>)` y equivalentes |
 | Fecha/hora, listas, edad | las de `DateTimeRules`, `ListRules`, `AgeRules` |
 | Ficheros | `FileType(listOf("<mime>", …))`, `FileMaxSize(<n>, SizeUnit.<UNIDAD>)` |
-| PDF / firma | `FirmaPdf(model::get<CampoOriginal>, model::getDniFirmaDocumentoEntrada)` |
+| PDF / firma | `FirmaPdf(model::get<CampoOriginal>)` |
 | Condicional | `ifValueIn(model::get<Campo>, listOf(<VALORES>)) { … }` |
 
 - Los argumentos **MUST** ir literales, resueltos: nada de `«el rango del año»`, sino la expresión exacta.
@@ -758,7 +757,7 @@ Si un documento se firma en cliente (AutoFirma), el par de campos `MetaFile` (`<
 ```kotlin
 field(model::get<CampoDestino>) {
     +Required()
-    +FirmaPdf(model::get<CampoOrigen>, model::getDniFirmaDocumentoEntrada)
+    +FirmaPdf(model::get<CampoOrigen>)
 }
 ```
 
@@ -948,7 +947,6 @@ La sección `## 15. Checklist del diseñador` del `design.md` **MUST** reproduci
 **Clases**
 
 - [ ] ¿El `InitialEventManagerImpl` está en la **raíz** de la versión, parametrizado con la entidad, con exactamente un `triggerInitialEvent`, y sin reasignar lo que ya rellena el `Tramitador`?
-- [ ] Si hay firma en cliente, ¿el `triggerInitialEvent` deja `dniFirmaDocumentoEntrada` con un DNI válido?
 - [ ] Si hay `createRegistroEntrada`, ¿deja `personaSolicitante` y `personaInteresada` no nulos?
 - [ ] Por cada fase: ¿un `trigger<Evento>` por cada evento de la **unión** de los `events` de sus estados, y ninguno de más?
 - [ ] Por cada fase: ¿un `onEnter<Estado>` por **cada** estado, incluidos los sin eventos y los `closed`, y ninguno de más?

@@ -252,13 +252,13 @@ Como `getRelated()`, suele llegar serializado desde el cliente.
 
 ### `getUser()`
 
-Devuelve el usuario de la sesión actual. Es equivalente a `AuthUtils.getUser()`.
+Devuelve el usuario de la sesión actual. Es equivalente a `SecurityUtil.getUser()` (el wrapper del proyecto; **MUST NOT** usar `AuthUtils.getUser()` directamente).
 
 ```java
 User user = request.getUser();
 ```
 
-No se encontraron llamadas directas a `request.getUser()` en el repo: el patrón habitual es inyectar `AuthUtils` directamente. Se incluye por completitud de la API.
+No se encontraron llamadas directas a `request.getUser()` en el repo: el patrón habitual es llamar a `SecurityUtil.getUser()`. Se incluye por completitud de la API.
 
 ---
 

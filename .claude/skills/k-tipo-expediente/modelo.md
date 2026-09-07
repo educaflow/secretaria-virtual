@@ -24,7 +24,7 @@ Entidad JPA del expediente de esta versión. Va en la **raíz de la carpeta de v
 
 ## 2. Campos heredados de `Expediente`
 
-No los redeclares (fuente de verdad: `subsystem/expedientes/domains/Expediente.xml`): `tipoExpediente`, `name`, `numeroExpediente`, `codePhase`/`namePhase`/`codeState`/`nameState`, `fechaUltimoEstado`, `abierto`, `historialEstados`, `centro`, `usuarioRegistrador`, `personaSolicitante`, `personaInteresada` (ambas `Persona`) y `dniFirmaDocumentoEntrada`.
+No los redeclares (fuente de verdad: `subsystem/expedientes/domains/Expediente.xml`): `tipoExpediente`, `name`, `numeroExpediente`, `codePhase`/`namePhase`/`codeState`/`nameState`, `fechaUltimoEstado`, `abierto`, `historialEstados`, `centro`, `usuarioRegistrador`, `personaSolicitante` y `personaInteresada` (ambas `Persona`).
 
 `codePhase` y `codeState` guardan la pareja que identifica al estado (`SKILL.md` §1.5); `namePhase` y `nameState` guardan sus textos visibles (el `title` de la fase y el del estado, o sus `name` humanizados), que son los que ve el usuario en los listados.
 

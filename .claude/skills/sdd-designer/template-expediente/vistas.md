@@ -264,14 +264,14 @@ Es la firma **del ciudadano**, con su certificado, en su máquina. Se reparte en
 |---|---|---|
 | 1. Modelo | `domains.xml` | El **par** de campos `MetaFile`: `<campoOrigen>` y `<campoDestino>` |
 | 2. Vista | `views.xml` de **la fase** | Una `<action-method>` al `FirmaController` + el botón encadenado con `serial:` |
-| 3. Validación | `StateEventValidatorImpl.kt` | `+Required()` y `+FirmaPdf(model::get<CampoOrigen>, model::getDniFirmaDocumentoEntrada)` sobre el campo **destino** |
+| 3. Validación | `StateEventValidatorImpl.kt` | `+Required()` y `+FirmaPdf(model::get<CampoOrigen>)` sobre el campo **destino** |
 
 La pieza 2:
 
 ```xml
 <action-method name="exp-<Entidad>-<accion>-action">
     <call class="com.educaflow.subsystem.expedientes.controllers.FirmaController"
-          method='firmarDocumentoEntrada(id,"<campoOrigen>","<campoDestino>",<x>,<y>,<ancho>,<alto>,<pagina>)'/>
+          method='firmarDocumento(id,"<campoOrigen>","<campoDestino>",<x>,<y>,<ancho>,<alto>,<pagina>)'/>
 </action-method>
 
 <button name="<EVENTO>" title="…"
@@ -296,7 +296,7 @@ Reglas:
 - El atributo `method` **MUST** ir entre **comillas simples**, porque su contenido lleva comillas dobles.
 - La `<action-method>` **MUST** declararse en el `views.xml` de **la fase** que la usa, no en la raíz.
 - El `onClick` **MUST** ser `serial:<action-method propia>,subsysExpedientes-event-action` — la lista **MUST** terminar **siempre** en `subsysExpedientes-event-action` (Y3).
-- **CRITICAL** — el controlador lanza `RuntimeException` si `dniFirmaDocumentoEntrada` es `null`, está en blanco o no pasa `DniUtil.isValid`. **MUST** haberlo rellenado el `triggerInitialEvent`. **Nada lo verifica en build.**
+- Quien firma es siempre el **usuario autenticado**: el controlador lee su DNI de él (no del expediente) y lanza `RuntimeException` si es `null`, está en blanco o no pasa `DniUtil.isValid`. El `triggerInitialEvent` no tiene que rellenar nada para la firma.
 - El **campo destino** es `servidor` a efectos del modelo pero **sí** aparece en el validador, porque es el único sitio donde se comprueba la firma: lleva `+Required()` + `+FirmaPdf(...)`. Es la única excepción a la regla de «solo campos `usuario` en el validador», y **MUST** documentarse como tal en el `design.md`.
 - El mismo mecanismo `serial:` sirve para encadenar **cualquier** acción propia antes del evento; la firma en cliente es solo su uso más común.
 - La firma **en servidor** por cargo **no toca la vista**: vive entera en el `trigger*` (ver `design-contract.md`, sección «Especificación de los PhaseEventManagerImpl»).

@@ -73,11 +73,8 @@ Sus obligaciones (antes de llamarlo, `Tramitador` ya rellenó tipo, centro, `usu
 **`Tramitador` no impone ninguna**: un `triggerInitialEvent` con el cuerpo vacío es un tipo de expediente perfectamente válido y pasa todos los tests.
 Qué hay que rellenar lo decide **lo que el tipo use después**, y el fallo aparece más tarde, en el sitio que lo usa:
 
-1. **Si los documentos de entrada del tipo se firman**: **MUST** dejar relleno `dniFirmaDocumentoEntrada` con un DNI válido.
-   No lo exige `Tramitador` al crear el expediente, sino `FirmaController.firmarDocumentoEntrada` **en el momento de firmar**, con tres `RuntimeException` planas (null / en blanco / `DniUtil.isValid` falso).
-   Es decir: el expediente se crea sin problema y revienta después, al pulsar el botón de firmar.
-2. **Si el tipo crea registro de entrada** (`eventContext.createRegistroEntrada`, §3): **MUST** dejar rellenos `personaSolicitante` y `personaInteresada` (si `personaSolicitante` es null, `createRegistroEntrada` revienta con NPE). Patrón habitual: construir la `Persona` desde `getUsuarioRegistrador()`.
-3. Inicializar el resto de campos con valor por defecto (año, etc.).
+1. **Si el tipo crea registro de entrada** (`eventContext.createRegistroEntrada`, §3): **MUST** dejar rellenos `personaSolicitante` y `personaInteresada` (si `personaSolicitante` es null, `createRegistroEntrada` revienta con NPE). Patrón habitual: construir la `Persona` desde `getUsuarioRegistrador()`.
+2. Inicializar el resto de campos con valor por defecto (año, etc.).
 
 **MUST NOT** dar por hecho que estos campos son obligatorios siempre: un tipo que ni firma ni registra no necesita ninguno.
 
@@ -188,8 +185,8 @@ DocumentoPdf resolucionFirmada = resolucion.firmar(almacenClaveResolver.getDirec
 Tres piezas, una por fichero:
 
 1. **Modelo**: par de campos `MetaFile` original/firmado (`modelo.md` §4).
-2. **Vista**: `<action-method>` que llama a `FirmaController.firmarDocumentoEntrada(...)`, encadenada con `serial:` antes del evento en el botón (`vistas.md` §10) — exige firmar con el `dniFirmaDocumentoEntrada` del expediente.
-3. **Validator**: regla `FirmaPdf(original, dniGetter)` en el evento que presenta (`validator.md` §4) — verifica en servidor que lo subido es el original firmado por ese DNI.
+2. **Vista**: `<action-method>` que llama a `FirmaController.firmarDocumento(...)`, encadenada con `serial:` antes del evento en el botón (`vistas.md` §10) — firma con el DNI del **usuario autenticado**, que es siempre quien firma.
+3. **Validator**: regla `FirmaPdf(original)` en el evento que presenta (`validator.md` §4) — verifica en servidor que lo subido es el original firmado por el DNI del usuario autenticado.
 
 En el PhaseEventManager no hay código de AutoFirma: el trigger del evento ya recibe el campo firmado validado.
 

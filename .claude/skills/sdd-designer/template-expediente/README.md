@@ -221,7 +221,7 @@ Dentro del `design.md`, este modo añade además la subsección `### Tests E2E s
 | `documentospdf/<doc>.xml` | el trámite **genera** al menos un documento PDF | no existe la carpeta `documentospdf/`, y la sección «Documentos PDF» del `design.md` lo dice en una frase, sin tabla |
 | `documentospdf/_<fragmento>.xml` | hay un **fragmento compartido** entre dos o más documentos | no se declara ningún fichero con prefijo `_` |
 | El bloque `<extra-code-model>` del `domains.xml` | **si y solo si** hay al menos un documento PDF | **MUST NOT** aparecer el bloque |
-| La pieza de **firma en cliente** (par de campos + `<action-method>` con botón `serial:` + `FirmaPdf` en el validador) | algún documento se firma con AutoFirma | las tres piezas no existen; el `triggerInitialEvent` **MUST** declarar explícitamente que no hace falta `dniFirmaDocumentoEntrada` |
+| La pieza de **firma en cliente** (par de campos + `<action-method>` con botón `serial:` + `FirmaPdf` en el validador) | algún documento se firma con AutoFirma | las tres piezas no existen |
 | Las acciones `FIRMAR_SERVIDOR` y sus constantes `Rectangulo` | algún documento se firma en servidor por cargo | no se declaran |
 | Las acciones `REGISTRO_ENTRADA` / `REGISTRO_SALIDA` | el trámite registra entrada o salida | el `triggerInitialEvent` **MUST** declarar explícitamente que no hace falta rellenar `personaSolicitante`/`personaInteresada` |
 | Paneles gemelos `<panel>-view` | la vista de lectura necesita **otro layout**; con el prefijo `-` basta en el caso normal | se usa solo el prefijo `-` |

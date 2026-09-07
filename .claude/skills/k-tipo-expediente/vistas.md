@@ -139,14 +139,14 @@ Para mostrar un campo `many-to-one` a `MetaFile`, panel con un field *dummy* cuy
 ```xml
 <action-method name="exp-<Code>-firmarDocumentacionParaPresentar-action">
     <call class="com.educaflow.subsystem.expedientes.controllers.FirmaController"
-          method='firmarDocumentoEntrada(id,"pdfSolicitud","pdfSolicitudFirmado",100,20,600,100,1)'/>
+          method='firmarDocumento(id,"pdfSolicitud","pdfSolicitudFirmado",100,20,600,100,1)'/>
 </action-method>
 ...
 <button name="PRESENTAR" title="Firmar con AutoFirma__!! y Presentar la solicitud"
         onClick="serial:exp-<Code>-firmarDocumentacionParaPresentar-action,subsysExpedientes-event-action"/>
 ```
 
-`firmarDocumentoEntrada(id, campoOrigen, campoDestino, x, y, ancho, alto, página)` lanza AutoFirma sobre el MetaFile del campo origen, deja el firmado en el destino y exige firmar con el `dniFirmaDocumentoEntrada` del expediente. Las otras dos piezas del patrón: `modelo.md` §4 y `validator.md` §4.
+`firmarDocumento(id, campoOrigen, campoDestino, x, y, ancho, alto, página)` lanza AutoFirma sobre el MetaFile del campo origen, deja el firmado en el destino y exige firmar con el DNI del **usuario autenticado** (revienta con `RuntimeException` si ese usuario no tiene DNI válido). Las otras dos piezas del patrón: `modelo.md` §4 y `validator.md` §4.
 
 ## 11. Comprobaciones del build y trampas
 

@@ -72,7 +72,7 @@ El skill asume estos términos. Si alguno no te resulta familiar, refresca el sk
 | `@CallMethod`                            | Anotación de Axelor en métodos de un controller que se invocan desde una `<action-method>` de la UI.                                                                                     | Solo cuando la petición llega por la Vía A (botón de UI).                    |
 | `AllowProperties`                        | Clase de proyecto (`base/util/AllowProperties.java`) que filtra qué campos del JSON entrante llegan al bean. Se usa **dentro** de los `@CallMethod`.                                     | Solo dentro del controller, nunca en el endpoint REST genérico.              |
 | `ActionRequest` / `ActionResponse`       | Objetos que Axelor pasa al `@CallMethod` con los datos del cliente. `actionRequest.getContext()` y los DTOs de `AllowProperties` se extraen de aquí.                                     | Solo en la Vía A.                                                            |
-| `AuthUtils.getUser()`                    | API de Axelor para obtener el usuario autenticado del servidor. **Nunca** del JSON.                                                                                                      | Siempre disponible en código del servidor.                                   |
+| `SecurityUtil.getUser()`                 | Wrapper del proyecto (`base/util/SecurityUtil.java`) para obtener el usuario autenticado del servidor. **Nunca** del JSON. **MUST NOT** llamar a `AuthUtils.getUser()` directamente. | Siempre disponible en código del servidor.                                   |
 | `centroActivo`                           | Campo del `User` extendido (`subsystem/common/domains/User.xml`) con el centro actualmente seleccionado por el usuario. Helpers: `getCentroUsuarioActivo()`, `getTiposUsuarioActivos()`. | Es el dato que se usa para filtrar multi-centro.                             |
 | `JPA.all(X.class).filter(...).bind(...)` | API de consulta JPQL de Axelor. **MUST** usar `:param` con `bind`, nunca concatenar.                                                                                                     | En repositorios y servicios.                                                 |
 | `BusinessMessages`                       | Estructura de mensajes de error de negocio devueltos por `validate*`. Definido en `base/infrastructure/validation`.                                                                      | Carga útil de cualquier validación que rechaza.                              |
@@ -138,7 +138,7 @@ Asignación **incondicional**, sin guardas, dentro del cuerpo de la acción:
 ```java
 correo.setFechaCreacion(LocalDateTime.now());
 correo.setEstado(EstadoCorreo.PENDIENTE);
-correo.setCentro(AuthUtils.getUser().getCentroActivo());
+correo.setCentro(SecurityUtil.getUser().getCentroActivo());
 ```
 
 **MUST NOT** envolver en `if (campo == null)`: respeta el valor del cliente y rompe la defensa incluso si la whitelist está bien.
@@ -174,7 +174,7 @@ La aplicación es multicentro. Un usuario pertenece a uno o varios centros y en 
 **MUST** obtener el centro del servidor:
 
 ```java
-AuthUtils.getUser().getCentroActivo()    // Java (servicio/repositorio)
+SecurityUtil.getUser().getCentroActivo()    // Java (servicio/repositorio)
 ```
 
 En un `<domain>` de XML **MUST NOT** usar `:__user__.centroActivo` (parámetro **con punto**): Hibernate **no admite puntos en nombres de parámetro**, así que el filtro no se resuelve y el listado sale **vacío** (o lanza `no viable alternative at input '.'`). `:__user__` solo se admite **sin punto** (objeto `User` completo); para acceder a un campo del usuario define un `<context>` y referéncialo como `:nombrePlano` (ver ejemplo ✅ abajo).
@@ -186,7 +186,7 @@ En un `<domain>` de XML **MUST NOT** usar `:__user__.centroActivo` (parámetro *
 ```java
 JPA.all(Correo.class)
    .filter("self.centro = :centro AND self.id = :id")
-   .bind("centro", AuthUtils.getUser().getCentroActivo())
+   .bind("centro", SecurityUtil.getUser().getCentroActivo())
    .bind("id", id)
    .fetchOne();
 ```
@@ -207,14 +207,14 @@ JPA.all(Correo.class).filter("self.id = :id").bind("id", id).fetchOne();
 ❌ INCORRECTO (API inventada / parámetro con punto que no resuelve):
 
 ```java
-AuthUtils.getUser().getCentro()                       // no existe, es getCentroActivo()
+SecurityUtil.getUser().getCentro()                       // no existe, es getCentroActivo()
 <domain>self.centro = :__user__.centro</domain>       // el campo del User es centroActivo
 <domain>self.centro = :__user__.centroActivo</domain> // punto en el parámetro: Hibernate no lo resuelve → listado vacío. Usar <context>
 ```
 
 > Nota: `self.centro` se refiere al campo `centro` **de la entidad consultada** (p.ej. `Correo.centro`), que sí se llama así. El que se llama `centroActivo` es el del `User`.
 
-**Asignación del centro al crear**: si el centro lo dicta el servidor (caso normal de no-administradores), tratar como campo `servidor` y sobrescribir incondicionalmente en `insert` desde `AuthUtils.getUser().getCentroActivo()` (§3.3). Si lo dicta un Administrador desde un dropdown, tratar como `cliente` con la validación correspondiente.
+**Asignación del centro al crear**: si el centro lo dicta el servidor (caso normal de no-administradores), tratar como campo `servidor` y sobrescribir incondicionalmente en `insert` desde `SecurityUtil.getUser().getCentroActivo()` (§3.3). Si lo dicta un Administrador desde un dropdown, tratar como `cliente` con la validación correspondiente.
 
 **Administradores**: el rol Administrador puede ver/operar sobre varios centros. Se modela con una rama explícita (`if (esAdministrador(user)) { ... } else { filtrar por centroActivo }`), nunca eliminando el filtro indiscriminadamente.
 
@@ -382,8 +382,8 @@ Aplicar a cada PR o cambio que toque `*ServiceImpl`, `*Controller`, vistas XML c
 - [ ] **Asignación incondicional de campos `servidor`** (§3.3): ¿hay algún `if (campo == null) setCampo(...)` en una acción del `*ServiceImpl` para un campo clasificado `servidor` en `entity-*.md`? → quitar el `if`, asignación incondicional.
 - [ ] **Campos `servidor` que la acción NO toca** (§3.2 regla 1): ¿están **excluidos** de la whitelist? Si la acción no los asigna, el cliente no puede enviarlos.
 - [ ] **Referencia al padre de un alta anidada** (§3.6): si la entidad se crea dentro del formulario de su padre, ¿el campo del padre está en la whitelist de `insert` (clasificado `cliente`) Y `validateInsert` valida que el padre está indicado, autorizado para el usuario (centro/alcance) y en un estado que admite la operación? ¿Está **fuera** de la whitelist de `update`?
-- [ ] **Multi-centro**: ¿toda consulta de detalle/listado filtra por el centro del usuario — en Java `AuthUtils.getUser().getCentroActivo()`, en XML un `<context>` referenciado como `:nombrePlano` en el `<domain>` (NUNCA `:__user__.centroActivo` con punto)? ¿`<action-view>` de centro lleva `<domain>`?
-- [ ] **Asignación de centro al crear**: si el centro lo dicta el servidor, ¿se asigna incondicionalmente en `*ServiceImpl.insert` desde `AuthUtils.getUser().getCentroActivo()`?
+- [ ] **Multi-centro**: ¿toda consulta de detalle/listado filtra por el centro del usuario — en Java `SecurityUtil.getUser().getCentroActivo()`, en XML un `<context>` referenciado como `:nombrePlano` en el `<domain>` (NUNCA `:__user__.centroActivo` con punto)? ¿`<action-view>` de centro lleva `<domain>`?
+- [ ] **Asignación de centro al crear**: si el centro lo dicta el servidor, ¿se asigna incondicionalmente en `*ServiceImpl.insert` desde `SecurityUtil.getUser().getCentroActivo()`?
 - [ ] **JPQL/SQL**: ¿todos los filtros usan `:param` con `bind(...)`? ¿Ninguna query concatena strings con input del usuario?
 - [ ] **Logs**: ¿se loguea algún password/token/clave/DNI completo/bytes de adjunto? ¿Se sanitizan CRLF en valores libres del cliente?
 - [ ] **Adjuntos**: ¿se valida tipo por contenido (no solo por extensión)? ¿Hay límite de tamaño? ¿Se sanitiza el `filename`?
@@ -402,9 +402,10 @@ Aplicar a cada PR o cambio que toque `*ServiceImpl`, `*Controller`, vistas XML c
 | `if (bean.getCampo() == null) bean.setCampo(valorInicial)` para campo `servidor`                    | Postman envía el campo relleno y la guarda lo respeta                  | Asignación incondicional `bean.setCampo(valorInicial)`                                                    |
 | `createAllowAllProperties()` en una acción que **no** sobrescribe en una R-… todos los no-`cliente` | El cliente puede mandar cualquier campo y el servicio no lo neutraliza | Pasar a whitelist (`createAllowProperties(...)`) o añadir/extender la R-…                                 |
 | `update` que no restaura campos inmutables ni lanza `UnsupportedOperationException`                 | El cliente pisa `fechaCreacion`/`numeroSecuencial`/etc.                | Restaurar desde `original` o lanzar `UnsupportedOperationException`                                       |
-| `filter("self.id = :id")` sin centro                                                                | IDOR cross-tenant                                                      | `filter("self.centro = :centro AND self.id = :id").bind("centro", AuthUtils.getUser().getCentroActivo())` |
+| `filter("self.id = :id")` sin centro                                                                | IDOR cross-tenant                                                      | `filter("self.centro = :centro AND self.id = :id").bind("centro", SecurityUtil.getUser().getCentroActivo())` |
 | Confiar en que el panel maestro-detalle "ya fija el padre" y no validar la referencia al padre en `validateInsert` | Vía B (`/ws/rest`) manda un padre de otro centro o cerrado → IDOR | Padre `cliente` en la whitelist de `insert` + validación en `validateInsert` (indicado, autorizado por centro/alcance, estado del padre admite) — §3.6 |
-| `AuthUtils.getUser().getCentro()`                                                                   | API inexistente — no compila                                           | `AuthUtils.getUser().getCentroActivo()`                                                                   |
+| `SecurityUtil.getUser().getCentro()`                                                                   | API inexistente — no compila                                           | `SecurityUtil.getUser().getCentroActivo()`                                                                   |
+| `AuthUtils.getUser()` (API de Axelor llamada directamente)                                          | Salta el wrapper del proyecto; no se puede mockear con `SecurityUtil`  | `SecurityUtil.getUser()` (`com.educaflow.base.util.SecurityUtil`)                                         |
 | `<domain>self.centro = :__user__.centro</domain>`                                                   | Campo incorrecto en el `User` (es `centroActivo`)                      | `<context name="c" expr="eval: __user__?.centroActivo"/>` + `<domain>self.centro = :c</domain>`           |
 | `<domain>self.centro = :__user__.centroActivo</domain>` (parámetro con punto)                       | Hibernate no admite puntos en el nombre del parámetro → listado vacío  | `<context name="c" expr="eval: __user__?.centroActivo"/>` + `<domain>self.centro = :c</domain>` (domain antes que context, lo exige el XSD) |
 | `"WHERE x = '" + valor + "'"` en JPQL                                                               | Inyección                                                              | `filter("self.x = :v").bind("v", valor)`                                                                  |
@@ -419,7 +420,7 @@ Aplicar a cada PR o cambio que toque `*ServiceImpl`, `*Controller`, vistas XML c
 - **Dos vías de entrada**: el botón de la UI (pasa por controller → `AllowProperties`) y el REST genérico `/ws/rest/<FQN>` (NO pasa por el controller). La única capa universal es `*ServiceImpl`.
 - **Control de campos = una pregunta**: ¿quién dicta este campo, cliente o servidor? Dos defensas combinables: A) `allowPropertiesXxx` filtra en entrada (whitelist explícita, o abierto solo si todos los `servidor` se asignan en la acción); B) el `*ServiceImpl` asigna **sin `if`** todo campo `servidor` que la acción tenga que tocar; los campos `servidor` que la acción no toque quedan **fuera de la whitelist**.
 - **`AllowProperties` por acción**: whitelist por defecto; allow-all solo si una R-… sobrescribe todos los no-`cliente`. Declarar modo en `design.md`.
-- **Multi-centro**: filtrar siempre por `AuthUtils.getUser().getCentroActivo()` (Java) o, en XML, un `<context>` referenciado como `:nombrePlano` en el `<domain>` (NUNCA `:__user__.campo` con punto: no resuelve); asignar el centro al crear desde el servidor, no desde el bean.
+- **Multi-centro**: filtrar siempre por `SecurityUtil.getUser().getCentroActivo()` (Java) o, en XML, un `<context>` referenciado como `:nombrePlano` en el `<domain>` (NUNCA `:__user__.campo` con punto: no resuelve); asignar el centro al crear desde el servidor, no desde el bean.
 - **JPQL/SQL**: solo `:param` con `bind`; cero concatenación.
 - **Adjuntos**: validar tipo por contenido, limitar tamaño, sanear `filename`.
 - **Logs**: nada de secretos; sanear CRLF.

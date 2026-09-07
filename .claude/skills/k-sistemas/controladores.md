@@ -39,7 +39,7 @@ Cada uno de los siguientes patrones es un fallo de arquitectura o de seguridad. 
 // ❌ MAL
 @CallMethod
 public void btnReenviar(ActionRequest actionRequest, ActionResponse actionResponse) {
-    if (!isUsuarioAdministrador(AuthUtils.getUser())) {
+    if (!isUsuarioAdministrador(SecurityUtil.getUser())) {
         actionResponse.setError(I18n.get("Solo el Administrador puede reenviar correos."));
         return;
     }
