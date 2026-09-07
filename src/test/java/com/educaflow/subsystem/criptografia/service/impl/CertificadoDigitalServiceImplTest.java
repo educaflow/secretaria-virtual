@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -47,7 +48,6 @@ class CertificadoDigitalServiceImplTest {
     private static final String CLAVE_TECLEADA_DISTINTA = "claveTecleadaDistinta";
     private static final String CLAVE_EN_BLANCO = "   ";
     private static final String CLAVE_SECRETA = "claveSecretaDePrueba";
-    private static final String MENSAJE_NO_EXISTE_CERTIFICADO = "No existe certificado para el DNI: " + DNI;
     private static final String MENSAJE_PASSWORD_NULL = "El password no puede ser null";
     private static final String MENSAJE_DNI_NO_VALIDO = "El DNI no es válido";
 
@@ -127,25 +127,19 @@ class CertificadoDigitalServiceImplTest {
     /* ------------------------------------------------------------------ */
 
     @Test
-    void getAlmacenClaveByDni_entradaDeshabilitada_lanzaMismaExcepcionQueInexistente() {
+    void getAlmacenClaveByDni_entradaDeshabilitada_devuelveNullIgualQueSiNoExistiera() {
         CertificadoDigital certificado = certificadoDispositivoPkcs11();
         certificado.setEnabled(Boolean.FALSE);
         when(repository.findByDni(DNI)).thenReturn(certificado);
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> service.getAlmacenClaveByDni(DNI));
-
-        assertEquals(MENSAJE_NO_EXISTE_CERTIFICADO, ex.getMessage());
+        assertNull(service.getAlmacenClaveByDni(DNI));
     }
 
     @Test
-    void getAlmacenClaveByDni_entradaInexistente_lanzaExcepcionNoExisteCertificado() {
+    void getAlmacenClaveByDni_entradaInexistente_devuelveNull() {
         when(repository.findByDni(DNI)).thenReturn(null);
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> service.getAlmacenClaveByDni(DNI));
-
-        assertEquals(MENSAJE_NO_EXISTE_CERTIFICADO, ex.getMessage());
+        assertNull(service.getAlmacenClaveByDni(DNI));
     }
 
     @Test
@@ -251,25 +245,19 @@ class CertificadoDigitalServiceImplTest {
     }
 
     @Test
-    void getAlmacenClaveByDni_sinCertificadoParaElDni_lanzaExcepcionNoExisteCertificado() {
+    void getAlmacenClaveByDni_sinCertificadoParaElDni_devuelveNull() {
         when(repository.findByDni(DNI)).thenReturn(null);
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> service.getAlmacenClaveByDni(DNI, CLAVE));
-
-        assertEquals(MENSAJE_NO_EXISTE_CERTIFICADO, ex.getMessage());
+        assertNull(service.getAlmacenClaveByDni(DNI, CLAVE));
     }
 
     @Test
-    void getAlmacenClaveByDni_certificadoDeshabilitado_lanzaExcepcionNoExisteCertificado() {
+    void getAlmacenClaveByDni_certificadoDeshabilitado_devuelveNull() {
         CertificadoDigital certificado = certificadoClasspath(CLAVE);
         certificado.setEnabled(Boolean.FALSE);
         when(repository.findByDni(DNI)).thenReturn(certificado);
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> service.getAlmacenClaveByDni(DNI, CLAVE));
-
-        assertEquals(MENSAJE_NO_EXISTE_CERTIFICADO, ex.getMessage());
+        assertNull(service.getAlmacenClaveByDni(DNI, CLAVE));
     }
 
     @Test
