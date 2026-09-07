@@ -15,8 +15,6 @@ import org.slf4j.LoggerFactory;
 
 public final class CertificadoDigitalHelper {
 
-    private static final Logger log = LoggerFactory.getLogger(CertificadoDigitalHelper.class);
-
     private CertificadoDigitalHelper() {
     }
 
@@ -26,15 +24,10 @@ public final class CertificadoDigitalHelper {
             return SituacionFirma.SIN_DNI;
         }
 
-        try {
-            CertificadoDigitalService certificadoDigitalService = getCertificadoDigitalService();
-            SituacionFirma situacionFirma = certificadoDigitalService.getSituacionFirmaByDni(dni);
+        CertificadoDigitalService certificadoDigitalService = getCertificadoDigitalService();
+        SituacionFirma situacionFirma = certificadoDigitalService.getSituacionFirmaByDni(dni);
 
-            return (situacionFirma == null) ? SituacionFirma.SIN_CERTIFICADO : situacionFirma;
-        } catch (Exception ex) {
-            log.error("No se pudo determinar la situación de firma del firmante con dni={}", DniUtil.enmascarar(dni), ex);
-            return SituacionFirma.SIN_CERTIFICADO;
-        }
+        return (situacionFirma == null) ? SituacionFirma.SIN_CERTIFICADO : situacionFirma;
     }
 
     public static boolean isClaveCertificadoCorrecta(String dni, String clave) {
