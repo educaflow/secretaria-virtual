@@ -120,6 +120,12 @@ Puntos concretos que siguen abiertos:
 - Los permisos de las subclases se conceden sin `condition` (p. ej. `PruebaV1.all`) y `AuthSecurity` **no recorre superclases**, así que no heredan las condiciones de los permisos de `Expediente`.
   Y como los genera el build por cada tipo de expediente, un trámite nuevo nace con el agujero abierto sin que nadie tenga que escribir nada: la solución **MUST** decidirse en el generador (`createdatainittipoexpediente`), no tipo a tipo.
 
+## Usuario autenticado
+Para obtener el usuario autenticado **MUST** usarse siempre `SecurityUtil.getUser()` (`com.educaflow.base.util.SecurityUtil`).
+**NUNCA** se usa `AuthUtils.getUser()` de Axelor directamente, ni en código Java/Kotlin ni en los ejemplos de los skills.
+Motivo: `SecurityUtil` es el único punto del proyecto que envuelve la API de Axelor, lo que permite mockearlo en los tests unitarios (`Mockito.mockStatic`) y cambiar la implementación sin tocar el resto del código.
+La única llamada permitida a `AuthUtils.getUser()` es la que hay dentro de la propia `SecurityUtil`.
+
 ## i18n
 Nunca jamás, crear los ficheros `i18n_ca.csv` ni `i18n_es.csv` ya que hay un script que los genera automáticamente, así que es totalmente innecesario.
 A veces hay palabras que acaban con `__!!` como en `AutoFirma__!!` esto es para indicar que esa palabra no se debe traducir, ya que el script de generación de i18n las deja tal cual pero sin el `__!!`  al final, así que no hay que preocuparse por eso. Pero cuando se use la palabra por ejemplo para ponerla en formato camelCase primero hay que quitar el `__!!` y ponerla en formato camelCase, por ejemplo `AutoFirma__!!` se convierte en "autoFirma".

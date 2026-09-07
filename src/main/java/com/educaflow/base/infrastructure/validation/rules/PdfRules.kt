@@ -5,9 +5,15 @@ import com.educaflow.base.infrastructure.metafile.MetaFileHelper
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil
 import com.educaflow.base.infrastructure.validation.engine.ValidationRule
 import com.axelor.db.modelservice.BusinessMessages
+import com.educaflow.base.util.DniUtil
+import com.educaflow.base.util.SecurityUtil
 import kotlin.reflect.KCallable
 
-data class FirmaPdf(val documentoOriginalField: KCallable<*>, val dniField: KCallable<*>) : ValidationRule {
+/**
+ * Valida que el PDF firmado que llega en `value` es el original firmado por el **usuario autenticado**,
+ * que es siempre quien firma: el DNI se lee de él, nunca del bean ni del formulario.
+ */
+data class FirmaPdf(val documentoOriginalField: KCallable<*>) : ValidationRule {
 
     override fun validate(value: Any?, bean: Any): BusinessMessages? {
         if (value == null) {
@@ -23,9 +29,13 @@ data class FirmaPdf(val documentoOriginalField: KCallable<*>, val dniField: KCal
             return null
         }
 
-        val dni = dniField.call(bean)
-        if (dni !is String) {
+        val dni = SecurityUtil.getUser()?.dni
+        if (dni.isNullOrBlank()) {
             return null
+        }
+
+        if (DniUtil.isValid(dni)==false) {
+            return BusinessMessages.single("El DNI no es válido")
         }
 
         val documentoOriginal = MetaFileHelper.getDocumentoPdf(metaFileOriginal)

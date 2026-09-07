@@ -1,6 +1,6 @@
 package com.educaflow.subsystem.firmas.service.impl;
 
-import com.axelor.auth.AuthUtils;
+import com.educaflow.base.util.SecurityUtil;
 import com.axelor.auth.db.User;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
@@ -394,7 +394,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
 
     private boolean isFirmanteElUsuarioAutenticado(TareaFirma tareaFirma) {
         User firmante = tareaFirma.getFirmante();
-        User usuarioAutenticado = AuthUtils.getUser();
+        User usuarioAutenticado = SecurityUtil.getUser();
 
         if (firmante == null || firmante.getId() == null || usuarioAutenticado == null) {
             return false;

@@ -36,3 +36,4 @@ key,message,comment,context
 "Paquete base de las clases del tipo de expediente","Paquete base de las clases del tipo de expediente","",""
 "Código de la fase","Código de la fase","",""
 "Fase","Fase","",""
+"DNI de la persona que firma los documentos del expediente","DNI de la persona que firma los documentos del expediente","",""

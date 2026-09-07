@@ -1,6 +1,6 @@
 package com.educaflow.subsystem.importacion.service.impl;
 
-import com.axelor.auth.AuthUtils;
+import com.educaflow.base.util.SecurityUtil;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.db.modelservice.BusinessMessage;
@@ -85,7 +85,7 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
     /*************************************************************************************/
 
     private void fireActionRule_asignarCamposSistema(TareaImportacion tareaImportacion) {
-        tareaImportacion.setUsuario(AuthUtils.getUser());
+        tareaImportacion.setUsuario(SecurityUtil.getUser());
         tareaImportacion.setFechaImportacion(LocalDateTime.now());
         tareaImportacion.setFechaExportacion(null);
         tareaImportacion.setEstado(false);

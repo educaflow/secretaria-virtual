@@ -1,6 +1,6 @@
 package com.educaflow.subsystem.firmas.service.impl;
 
-import com.axelor.auth.AuthUtils;
+import com.educaflow.base.util.SecurityUtil;
 import com.axelor.auth.db.User;
 import com.axelor.db.modelservice.AllowProperties;
 import com.axelor.db.modelservice.BusinessMessage;
@@ -111,7 +111,7 @@ class TareaFirmaServiceImplTest {
     private List<DocumentoPdf> documentosPdfOriginales;
 
     private MockedStatic<I18n> i18nMock;
-    private MockedStatic<AuthUtils> authUtilsMock;
+    private MockedStatic<SecurityUtil> securityUtilMock;
     private MockedStatic<MetaFileHelper> metaFileHelperMock;
     private MockedStatic<Beans> beansMock;
 
@@ -139,7 +139,7 @@ class TareaFirmaServiceImplTest {
         firmante.setDni(DNI);
 
         // Los cuatro estáticos se crean con la estrictez por defecto: ninguno necesita marcarse LENIENT.
-        // Los stubs de AuthUtils los programa el arrange de cada caso y los consume siempre la ruta que ese
+        // Los stubs de SecurityUtil los programa el arrange de cada caso y los consume siempre la ruta que ese
         // caso ejerce. Los únicos que se quedan a veces sin consumir son I18n (los tests de AllowProperties
         // no traducen ningún mensaje), Beans.get (solo se usa cuando la tarea llega a notificarse o a
         // consultar el certificado del firmante) y MetaFileHelper.createMetaFile (las rutas de error no
@@ -147,7 +147,7 @@ class TareaFirmaServiceImplTest {
         i18nMock = Mockito.mockStatic(I18n.class);
         i18nMock.when(() -> I18n.get(any(String.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        authUtilsMock = Mockito.mockStatic(AuthUtils.class);
+        securityUtilMock = Mockito.mockStatic(SecurityUtil.class);
         metaFileHelperMock = Mockito.mockStatic(MetaFileHelper.class);
         beansMock = Mockito.mockStatic(Beans.class);
     }
@@ -158,7 +158,7 @@ class TareaFirmaServiceImplTest {
         // la causa real del fallo con una NullPointerException.
         cerrarSiNoEsNulo(beansMock);
         cerrarSiNoEsNulo(metaFileHelperMock);
-        cerrarSiNoEsNulo(authUtilsMock);
+        cerrarSiNoEsNulo(securityUtilMock);
         cerrarSiNoEsNulo(i18nMock);
     }
 
@@ -192,7 +192,7 @@ class TareaFirmaServiceImplTest {
     }
 
     private void stubUsuarioAutenticado(User usuario) {
-        authUtilsMock.when(AuthUtils::getUser).thenReturn(usuario);
+        securityUtilMock.when(SecurityUtil::getUser).thenReturn(usuario);
     }
 
     /**
