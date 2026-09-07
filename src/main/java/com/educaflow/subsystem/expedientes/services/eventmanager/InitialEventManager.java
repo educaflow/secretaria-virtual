@@ -12,11 +12,6 @@ import com.educaflow.subsystem.expedientes.db.Expediente;
  * exactamente una por tipo de expediente, en el paquete base de la versión, junto al
  * {@code TipoExpedienteInstance.xml}.
  *
- * <p>Antes esto era un método concreto de {@code PhaseEventManager} que lanzaba
- * {@code UnsupportedOperationException} en las fases que no contenían el estado inicial: una
- * comprobación en runtime de algo que el tipo puede expresar. Ahora la fase que no participa en la
- * creación del expediente simplemente no tiene el método.
- *
  * <p>{@code ExpedienteLocator} resuelve la implementación por convención de nombre
  * ({@code <basePackageName>.InitialEventManagerImpl}), igual que hace con las clases de cada fase.
  *
@@ -28,9 +23,7 @@ public interface InitialEventManager<T extends Expediente> {
      * Rellena los datos iniciales del expediente recién creado.
      *
      * <p>Qué campos hay que rellenar depende del tipo de expediente: {@code Tramitador} no impone
-     * ninguno. En particular, los tipos cuyos documentos de entrada se firman <b>MUST</b> dejar
-     * {@code dniFirmaDocumentoEntrada} con un DNI válido, porque es el que usa
-     * {@code FirmaController.firmarDocumentoEntrada}, que lo comprueba en el momento de firmar.
+     * ninguno.
      */
     void triggerInitialEvent(T expediente, EventContext eventContext) throws BusinessException;
 
