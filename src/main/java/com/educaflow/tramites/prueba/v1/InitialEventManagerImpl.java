@@ -14,8 +14,7 @@ import com.educaflow.base.infrastructure.validation.messages.BusinessException;
  * versión, y no uno por fase.
  *
  * <p>Qué campos hay que rellenar depende del tipo de expediente: {@code Tramitador} no impone
- * ninguno. Si los documentos de entrada de este tipo se firman, MUST dejar
- * {@code dniFirmaDocumentoEntrada} con un DNI válido.
+ * ninguno.
  */
 public class InitialEventManagerImpl implements InitialEventManager<PruebaV1> {
 
