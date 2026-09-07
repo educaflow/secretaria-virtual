@@ -37,7 +37,7 @@
             <field name="fechaSolicitud"   colSpan="4"/>
             <field name="fechaResolucion"   colSpan="4" showIf="fechaResolucion!=null"/>
             <field name="pasoActual" showIf="false"/>
-            <field name="situacionFirma" showIf="false"/>
+            <field name="situacionFirma" type="string" showIf="false"/>
         </panel>
 
 
@@ -66,7 +66,7 @@
         <panel name="paso2FirmarDispositivoSinPin" title="Firmar el documento" colSpan="12"
                showIf="pasoActual=='paso2Firmar' &amp;&amp; situacionFirma=='DISPOSITIVO_SIN_PIN'">
             <help variant="info" colSpan="12" colOffset="0" ><![CDATA[Los documentos se firmarán en el servidor con su certificado digital. Introduzca el PIN de su dispositivo criptográfico.]]></help>
-            <field name="claveFirma" title="PIN" widget="password" required="true" colSpan="4"/>
+            <field name="claveFirma" type="string" title="PIN" widget="password" required="true" colSpan="4"/>
         </panel>
 
         <panel name="paso2FirmarFicheroConClave" title="Firmar el documento" colSpan="12"
@@ -77,7 +77,7 @@
         <panel name="paso2FirmarFicheroSinClave" title="Firmar el documento" colSpan="12"
                showIf="pasoActual=='paso2Firmar' &amp;&amp; situacionFirma=='FICHERO_SIN_CLAVE'">
             <help variant="info" colSpan="12" colOffset="0" ><![CDATA[Los documentos se firmarán en el servidor con su certificado digital. Introduzca la contraseña de su certificado.]]></help>
-            <field name="claveFirma" title="Contraseña" widget="password" required="true" colSpan="4"/>
+            <field name="claveFirma" type="string" title="Contraseña" widget="password" required="true" colSpan="4"/>
         </panel>
 
         <panel name="paso2FirmarSinDni" title="Firmar el documento" colSpan="12"
@@ -148,6 +148,7 @@
     </action-group>
 
     <action-group name="subsysFirmas.Pendiente@TareaFirma-onLoad-action">
+        <action name="subsysFirmas.Pendiente@TareaFirma-set-situacionFirma-action"/>
         <action name="subsysFirmas.Pendiente@TareaFirma-set-claveFirma-null-action"/>
         <action name="subsysFirmas.Pendiente@TareaFirma-set-pasoActual-paso1Inicio-action"/>
     </action-group>
@@ -177,6 +178,9 @@
     </action-record>
     <action-record name="subsysFirmas.Pendiente@TareaFirma-set-claveFirma-null-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
         <field name="claveFirma" expr="eval: null" />
+    </action-record>
+    <action-record name="subsysFirmas.Pendiente@TareaFirma-set-situacionFirma-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
+        <field name="situacionFirma" expr="call:com.educaflow.subsystem.firmas.controller.TareaFirmaController:getSituacionFirma()" />
     </action-record>
 
 

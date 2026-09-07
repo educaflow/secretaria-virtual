@@ -20,16 +20,6 @@
         <decimal name="width" precision="8" scale="2" title="Ancho" required="true"/>
         <decimal name="height" precision="8" scale="2" title="Alto" required="true"/>
         <integer name="page" title="Página" required="true"/>
-
-        <string name="claveFirma" title="Clave de firma" transient="true" password="true"
-                help="PIN del dispositivo criptográfico o contraseña del fichero del certificado que el firmante teclea en el momento de firmar. Nunca se persiste ni se devuelve al cliente."/>
-
-        <enum name="situacionFirma" ref="SituacionFirma" title="Situación de firma" transient="true"
-              help="Situación en la que está el firmante para firmar en el servidor. Se deduce de su DNI y del certificado digital habilitado dado de alta para ese DNI. Es un campo derivado de solo lectura: se recalcula en cada lectura y no se persiste.">
-            <![CDATA[
-                return com.educaflow.subsystem.firmas.util.SituacionFirmaBuilder.build(getFirmante());
-            ]]>
-        </enum>
     </entity>
 
 
@@ -37,15 +27,6 @@
         <item name="PENDIENTE" title="Pendiente de firmar" help="Está pendiente la firma de los documentos"/>
         <item name="FIRMADO" title="Firmado" help="Están firmados los documentos"/>
         <item name="RECHAZADO" title="Rechazada la firma" help="Se ha rechazado la firma de los documentos"/>
-    </enum>
-
-    <enum name="SituacionFirma">
-        <item name="SIN_DNI" title="Sin DNI" help="El firmante no tiene un DNI válido en su ficha, así que no se puede saber qué certificado le corresponde"/>
-        <item name="SIN_CERTIFICADO" title="Sin certificado digital" help="El firmante tiene DNI pero no hay ningún certificado digital habilitado dado de alta para él"/>
-        <item name="DISPOSITIVO_CON_PIN" title="Dispositivo criptográfico con PIN guardado" help="El certificado del firmante está en un dispositivo criptográfico cuyo PIN ya está guardado"/>
-        <item name="DISPOSITIVO_SIN_PIN" title="Dispositivo criptográfico sin PIN guardado" help="El certificado del firmante está en un dispositivo criptográfico cuyo PIN no está guardado y hay que pedírselo"/>
-        <item name="FICHERO_CON_CLAVE" title="Fichero con contraseña guardada" help="El certificado del firmante está en un fichero cuya contraseña ya está guardada"/>
-        <item name="FICHERO_SIN_CLAVE" title="Fichero sin contraseña guardada" help="El certificado del firmante está en un fichero cuya contraseña no está guardada y hay que pedírsela"/>
     </enum>
 
 

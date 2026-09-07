@@ -13,7 +13,7 @@ public interface TareaFirmaService extends ModelService<TareaFirma> {
     TareaFirma marcarComoFirmada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal);
     TareaFirma marcarComoRechazada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal);
     Optional<BusinessMessages> validarDocumentosFirmados(TareaFirma tareaFirma);
-    TareaFirma firmarEnServidor(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal);
+    TareaFirma firmarEnServidor(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal, String claveFirma);
 
 
 
@@ -21,7 +21,7 @@ public interface TareaFirmaService extends ModelService<TareaFirma> {
     Optional<BusinessMessages> validateMarcarComoFirmada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal);
     Optional<BusinessMessages> validateMarcarComoRechazada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal);
     Optional<BusinessMessages> validateValidarDocumentosFirmados(TareaFirma tareaFirma);
-    Optional<BusinessMessages> validateFirmarEnServidor(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal);
+    Optional<BusinessMessages> validateFirmarEnServidor(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal, String claveFirma);
 
 
     AllowProperties allowPropertiesMarcarComoFirmada();

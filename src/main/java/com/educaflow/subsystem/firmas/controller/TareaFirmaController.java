@@ -1,5 +1,6 @@
 package com.educaflow.subsystem.firmas.controller;
 
+import com.axelor.auth.db.User;
 import com.axelor.db.JpaRepository;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.CallMethod;
@@ -10,6 +11,9 @@ import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
+import com.educaflow.base.util.SecurityUtil;
+import com.educaflow.subsystem.criptografia.service.SituacionFirma;
+import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper;
 import com.educaflow.subsystem.firmas.db.DocumentoFirma;
 import com.educaflow.subsystem.firmas.db.TareaFirma;
 import com.educaflow.subsystem.firmas.service.TareaFirmaService;
@@ -21,8 +25,19 @@ import java.util.Optional;
 
 public class  TareaFirmaController {
 
+    /** Nombre del campo de vista en el que el firmante teclea la clave (ver views/Pendiente-TareaFirma.xml). */
+    private static final String CAMPO_VISTA_CLAVE_FIRMA = "claveFirma";
+
     @Inject
     private ModelServiceFactory modelServiceFactory;
+
+    @CallMethod
+    public String getSituacionFirma() {
+        User usuarioAutenticado = SecurityUtil.getUser();
+        SituacionFirma situacionFirma = CertificadoDigitalHelper.getSituacionFirmaByDni(usuarioAutenticado == null ? null : usuarioAutenticado.getDni());
+
+        return situacionFirma.name();
+    }
 
     @CallMethod
     public void firmarDocumentosConAutoFirma(ActionRequest actionRequest, ActionResponse actionResponse) {
@@ -88,9 +103,6 @@ public class  TareaFirmaController {
 
     }
 
-
-
-
     @CallMethod
     @Transactional
     public void firmarEnServidor(ActionRequest actionRequest, ActionResponse actionResponse) {
@@ -100,8 +112,9 @@ public class  TareaFirmaController {
 
         TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
         TareaFirma tareaFirma = actionRequestHelper.getModel(tareaFirmaService.allowPropertiesFirmarEnServidor());
+        String claveFirma = getClaveFirma(actionRequestHelper);
 
-        tareaFirmaService.firmarEnServidor(tareaFirma, tareaFirmaOriginal);
+        tareaFirmaService.firmarEnServidor(tareaFirma, tareaFirmaOriginal, claveFirma);
 
     }
 
@@ -114,8 +127,9 @@ public class  TareaFirmaController {
 
         TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
         TareaFirma tareaFirma = actionRequestHelper.getModel(tareaFirmaService.allowPropertiesFirmarEnServidor());
+        String claveFirma = getClaveFirma(actionRequestHelper);
 
-        Optional<BusinessMessages> validationResult = tareaFirmaService.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginal);
+        Optional<BusinessMessages> validationResult = tareaFirmaService.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginal, claveFirma);
 
         if (validationResult.isPresent()) {
             actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());
@@ -123,5 +137,18 @@ public class  TareaFirmaController {
 
     }
 
+    /**
+     * La clave de firma tecleada en el formulario (PIN del dispositivo o contraseña del fichero del
+     * certificado), o {@code null} si no se ha tecleado ninguna.
+     *
+     * <p>Es el único sitio del servidor que conoce el nombre del campo de vista {@code claveFirma}: no existe en
+     * el modelo, así que no lo trae {@code getModel(...)} y se lee directamente del contexto de la petición, que
+     * lleva todos los campos del formulario, sean o no de la entidad.
+     */
+    private static String getClaveFirma(ActionRequestHelper<TareaFirma> actionRequestHelper) {
+        Object claveFirma = actionRequestHelper.getRequestData().get(CAMPO_VISTA_CLAVE_FIRMA);
+
+        return claveFirma == null ? null : claveFirma.toString();
+    }
 
 }
