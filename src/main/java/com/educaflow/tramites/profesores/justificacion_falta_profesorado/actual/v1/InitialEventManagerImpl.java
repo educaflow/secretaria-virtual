@@ -17,8 +17,7 @@ import java.time.LocalDate;
  * versión, y no uno por fase.
  *
  * <p>Qué campos hay que rellenar depende del tipo de expediente: {@code Tramitador} no impone
- * ninguno. Si los documentos de entrada de este tipo se firman, MUST dejar
- * {@code dniFirmaDocumentoEntrada} con un DNI válido.
+ * ninguno.
  */
 public class InitialEventManagerImpl implements InitialEventManager<JustificacionFaltaProfesoradoV1> {
 
@@ -31,7 +30,6 @@ public class InitialEventManagerImpl implements InitialEventManager<Justificacio
         persona.setDni(justificacionFaltaProfesorado.getUsuarioRegistrador().getDni());
         justificacionFaltaProfesorado.setPersonaInteresada(persona);
         justificacionFaltaProfesorado.setPersonaSolicitante(persona);
-        justificacionFaltaProfesorado.setDniFirmaDocumentoEntrada(persona.getDni());
     }
 
 }
