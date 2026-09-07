@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://axelor.com/xml/ns/object-views"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- *********************************************************************************************  -->
+    <!-- *************************************** ENTRADA_DATOS ***************************************  -->
+    <!-- *********************************************************************************************  -->
+    <form state="ENTRADA_DATOS" profile="CREADOR" >
+        <include-panels>
+            -datos-profesor
+            -disconformidad-view
+            datos-falta
+            justificante-upload
+        </include-panels>
+        <footer>
+            <buttons-left>
+                <button name="DELETE" colSpan="2" css="btn-danger" outline="true" title="Borrar el expediente"  icon="trash"  onClick="subsysExpedientes-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
+            </buttons-left>
+            <buttons-right>
+                <button name="GUARDAR_DATOS" colSpan="2" title="Siguiente" onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+    <form state="ENTRADA_DATOS">
+        <include-panels>
+            -datos-profesor
+            -disconformidad-view
+            -datos-falta
+            -justificante-view
+        </include-panels>
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <!-- **********************************************************************************************  -->
+    <!-- *********************************** PENDIENTE_PRESENTACION ***********************************  -->
+    <!-- **********************************************************************************************  -->
+    <form state="PENDIENTE_PRESENTACION" profile="CREADOR">
+        <include-panels>
+            -pdfSolicitud
+        </include-panels>
+
+        <!-- Bloque «Firma de la solicitud»: UN PANEL POR SITUACIÓN DE FIRMA, con su showIf en el <panel> y
+             dentro su <help> y, si esa situación lo pide, su <field> de la clave. Es el mismo patrón que el
+             precedente en producción del subsistema de firmas (subsystem/firmas/views/Pendiente-TareaFirma.xml),
+             donde cada situación tiene su propio panel; MUST NOT volver a mezclarse en un solo panel ni repetirse
+             dos <field> con el mismo name.
+             Solo existe en el form del CREADOR: quien mira el expediente sin tener el turno cae en el form
+             genérico, que no lo lleva (RUI-PENDIENTE_PRESENTACION-GENERICA-001).
+             El campo situacionFirmaDocumentoEntrada va oculto, en un panel propio sin showIf, porque su único
+             papel es alimentar los showIf de los demás paneles: es un campo derivado que el servidor recalcula
+             en cada lectura. Ni estos showIf ni el readonly son una defensa: lo que impide firmar mal son las
+             reglas del StateEventValidatorImpl. -->
+        <panel name="firmaSolicitudSituacion" title="" colSpan="12" showFrame="false" readonly="true">
+            <field name="situacionFirmaDocumentoEntrada" showIf="false" readonly="true"/>
+        </panel>
+
+        <panel name="firmaSolicitudSinCertificado" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirmaDocumentoEntrada=='SIN_CERTIFICADO'">
+            <help variant="info" colSpan="12" colOffset="0"><![CDATA[Para presentar la solicitud debe tener la aplicación de <a href="https://sede.serviciosmin.gob.es/es-es/firmaelectronica/paginas/autofirma.aspx" target="_blank">AutoFirma</a> instalada y un certificado digital válido]]></help>
+        </panel>
+
+        <panel name="firmaSolicitudDispositivoConPin" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirmaDocumentoEntrada=='DISPOSITIVO_CON_PIN'">
+            <help variant="info" colSpan="12" colOffset="0"><![CDATA[La solicitud se firmará en el servidor con su certificado digital.]]></help>
+        </panel>
+
+        <panel name="firmaSolicitudDispositivoSinPin" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirmaDocumentoEntrada=='DISPOSITIVO_SIN_PIN'">
+            <help variant="info" colSpan="12" colOffset="0"><![CDATA[La solicitud se firmará en el servidor con su certificado digital. Introduzca el PIN de su dispositivo criptográfico.]]></help>
+            <field name="claveFirmaDocumentoEntrada" title="PIN" widget="password" required="true" colSpan="4"/>
+        </panel>
+
+        <panel name="firmaSolicitudFicheroConClave" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirmaDocumentoEntrada=='FICHERO_CON_CLAVE'">
+            <help variant="info" colSpan="12" colOffset="0"><![CDATA[La solicitud se firmará en el servidor con su certificado digital.]]></help>
+        </panel>
+
+        <panel name="firmaSolicitudFicheroSinClave" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirmaDocumentoEntrada=='FICHERO_SIN_CLAVE'">
+            <help variant="info" colSpan="12" colOffset="0"><![CDATA[La solicitud se firmará en el servidor con su certificado digital. Introduzca la contraseña de su certificado.]]></help>
+            <field name="claveFirmaDocumentoEntrada" title="Contraseña" widget="password" required="true" colSpan="4"/>
+        </panel>
+
+        <panel name="firmaSolicitudSinDni" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirmaDocumentoEntrada=='SIN_DNI'">
+            <help variant="warning" colSpan="12" colOffset="0"><![CDATA[No es posible firmar la solicitud porque su usuario no tiene un documento de identidad. Póngase en contacto con el administrador.]]></help>
+        </panel>
+
+        <footer>
+            <buttons-left>
+                <button name="BACK" colSpan="2" outline="true" title="Atrás" onClick="subsysExpedientes-event-action"/>
+            </buttons-left>
+            <buttons-right>
+                <button name="PRESENTAR" colSpan="4" title="Firmar con AutoFirma__!! y Presentar la solicitud"
+                        showIf="situacionFirmaDocumentoEntrada=='SIN_CERTIFICADO'"
+                        onClick="serial:exp-JustificacionFaltaProfesoradoV1-firmarDocumentacionParaPresentar-action,subsysExpedientes-event-action"
+                        prompt="¿Esta seguro que desea presentar la documentación?&lt;br&gt;No podrá deshacer esta acción"/>
+                <button name="PRESENTAR" colSpan="4" title="Firmar y Presentar la solicitud"
+                        showIf="situacionFirmaDocumentoEntrada=='DISPOSITIVO_CON_PIN' || situacionFirmaDocumentoEntrada=='DISPOSITIVO_SIN_PIN' || situacionFirmaDocumentoEntrada=='FICHERO_CON_CLAVE' || situacionFirmaDocumentoEntrada=='FICHERO_SIN_CLAVE'"
+                        onClick="subsysExpedientes-event-action"
+                        prompt="¿Esta seguro que desea presentar la documentación?&lt;br&gt;No podrá deshacer esta acción"/>
+            </buttons-right>
+        </footer>
+    </form>
+    <form state="PENDIENTE_PRESENTACION">
+        <include-panels>
+            -pdfSolicitud
+        </include-panels>
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <action-method name="exp-JustificacionFaltaProfesoradoV1-firmarDocumentacionParaPresentar-action"  >
+        <call
+                class="com.educaflow.subsystem.expedientes.controllers.FirmaController"
+                method='firmarDocumentoEntrada(id,"pdfSolicitud","pdfSolicitudFirmado",100,20,600,100,1)'
+        />
+    </action-method>
+</object-views>

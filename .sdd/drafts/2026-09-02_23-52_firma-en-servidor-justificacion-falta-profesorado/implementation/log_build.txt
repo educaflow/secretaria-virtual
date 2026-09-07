@@ -1,0 +1,14 @@
+# Build — iteración 1
+{"id":"E-001","tipo":"TEST","fichero":"src/main/java/com/educaflow/subsystem/firmas/util/FirmaEnServidorHelper.java","ubicacion":"TareaFirmaServiceImplTest:502","tarea":"task_03.md","mensaje":"AssertionFailedError: expected <true> but was <false>","correccion":"isClaveCertificadoIncorrecta resuelve el ModelServiceFactory con Beans.get en vez de usar el inyectado en TareaFirmaServiceImpl; el NPE lo traga el catch y devuelve false. Pasar el ModelServiceFactory (o el CertificadoDigitalService) como parámetro. MUST NOT tocarse el test."}
+{"id":"E-002","tipo":"TEST","fichero":"src/main/java/com/educaflow/subsystem/firmas/util/FirmaEnServidorHelper.java","ubicacion":"TareaFirmaServiceImplTest:522","tarea":"task_03.md","mensaje":"AssertionFailedError: expected <true> but was <false>","correccion":"Misma causa que E-001, con FICHERO_CON_CLAVE."}
+{"id":"E-003","tipo":"TEST","fichero":"src/main/java/com/educaflow/subsystem/firmas/util/FirmaEnServidorHelper.java","ubicacion":"TareaFirmaServiceImplTest:532","tarea":"task_03.md","mensaje":"Wanted but not invoked: certificadoDigitalService.getAlmacenClaveByDni(85432016B, nadanada); zero interactions with this mock","correccion":"Confirma la causa: el servicio obtenido por Beans.get no es el que inyecta el test."}
+{"id":"E-004","tipo":"TEST","fichero":"src/main/java/com/educaflow/subsystem/firmas/util/FirmaEnServidorHelper.java","ubicacion":"TareaFirmaServiceImplTest:558-559","tarea":"task_03.md","mensaje":"UnnecessaryStubbingException","correccion":"Efecto colateral; se resuelve con E-001. MUST NOT relajarse a lenient ni borrar los stubs."}
+
+# Build — iteración 2
+{"id":"E-001","tipo":"CONFORMANCE","fichero":"src/main/java/com/educaflow/subsystem/firmas/util/FirmaEnServidorHelper.java","ubicacion":"isClaveCertificadoIncorrecta(ModelServiceFactory, String, String, SituacionFirma)","tarea":"task_03.md","mensaje":"Método público añadido que design.md §9.1 no declara: el apartado enumera exactamente cuatro métodos públicos y esta sobrecarga es una quinta.","correccion":"No se puede resolver eliminando la sobrecarga: el test preexistente TareaFirmaServiceImplTest (commit cf94aa6) inyecta un mock en el campo modelServiceFactory y mockea Beans estáticamente sin stubbear Beans.get(ModelServiceFactory.class), así que la variante de tres argumentos que declara el diseño devuelve null y rompe 4 tests; build.md §4 prohíbe tocar o debilitar los tests. Volver a /sdd-designer para declarar la sobrecarga."}
+
+# Build — iteración 2 (comprobación independiente del motor)
+COMPILE: OK — `./gradlew clean build` => BUILD SUCCESSFUL in 29s, 28 tareas, 0 fallos.
+TEST: OK — sin fallos de test.
+CONFORMANCE: pendiente (E-001), no bloqueante para el build.
+

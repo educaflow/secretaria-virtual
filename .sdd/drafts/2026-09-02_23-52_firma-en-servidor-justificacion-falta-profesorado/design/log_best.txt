@@ -1,0 +1,149 @@
+### Comparación 1: design_1 vs design_2 → gana design_1
+
+=== VENTAJAS design_1 ===
+- Condiciona VAL-006/VAL-007 con ifValueIn(situacionFirmaDocumentoEntrada, [SIN_CERTIFICADO]) exactamente como exige estados.md, de modo que FirmaPdf sigue defendiendo el camino AutoFirma y no se aplica al PDF que firma el servidor.
+- Cumple RN-001/CC-002 de verdad: triggerPresentar restaura pdfSolicitudFirmado desde original (valor de BD) y descarta lo que envíe el formulario (k-secure-coding).
+- El PDF firmado nunca viaja por el cliente: el controlador lo persiste en el expediente y devuelve una respuesta sin valores.
+- Defensa en dos puertas para VAL-001 y VAL-008 (controlador antes del evento + ERROR_NEGOCIO en el trigger).
+- No toca ActionResponseHelper (clase base compartida): usa directamente setError(mensaje, titulo, boton, accion).
+- Trazabilidad completa regla->capa (VAL/RN/CC/RUI) y verificación en runtime que incluye comprobar que la clave no aparece en logs.
+
+=== DEFECTOS design_1 ===
+- Mete la especificación quirúrgica de SituacionFirmaBuilder y FirmaController dentro de "## 9. Especificación de los PhaseEventManagerImpl", sección que el contrato (§11) reserva a los managers de fase.
+- Firma y persiste en una transacción anterior a la del evento: si el evento falla después (p. ej. VAL-008 en el trigger), el expediente queda con la solicitud firmada y sin presentar.
+- Duplica los mensajes literales de VAL-001 y VAL-008 en controlador y trigger, con riesgo de divergencia.
+- build(String dni) como sobrecarga de build(User) es más frágil que un nombre propio.
+- No concreta cómo se compone el texto de setError cuando el BusinessMessages acumula varios mensajes.
+
+=== VENTAJAS design_2 ===
+- Delta mínimo en el trámite: no toca PhaseEventManagerImpl ni StateEventValidatorImpl; firma en servidor simétrica al camino de AutoFirma.
+- buildFromDni(String) con nombre propio en vez de sobrecarga.
+- La sobrecarga de ActionResponseHelper con acción de continuación está justificada con evidencia del front (executor.ts).
+- El controlador no escribe en la entidad, así que un fallo posterior del evento no deja el expediente medio-modificado.
+- Notas y supuestos muy cuidadas (títulos reales de campo, guarda SIN_CERTIFICADO análoga a V-TareaFirma-004, MetaFile huérfano documentado).
+
+=== DEFECTOS design_2 ===
+- Rompe el camino feliz: deja +Required()+FirmaPdf(...) sin guarda también en el camino de servidor; el certificado de los escenarios es autofirmado (CN=Juan Garcia NIF:1234567Z), así que ESC-001/002/003/008 fallarían.
+- Contradice explícitamente VAL-...-006 y VAL-...-007 de estados.md.
+- Incumple RN-001 y CC-002 y k-secure-coding: el documento firmado se devuelve al cliente con setValue y es el cliente quien lo reenvía; no hay descarte en servidor.
+- Modifica ActionResponseHelper (infraestructura base compartida) refactorizando sus dos sobrecargas existentes.
+- La sección "## 10" va marcada *(sin cambios)* mientras el diseño depende de reinterpretar esa regla.
+- Detalles menores: <panel title=""> vacío y especificación quirúrgica repartida dentro de los Pasos.
+
+=== JUSTIFICACION design_1 vs design_2 ===
+La diferencia decisiva es qué hace cada diseño con FirmaPdf en el camino de firma en servidor. design_2 la deja sin guarda; DocumentoPdfUtil.validateFirmaPdf comprueba lista de certificados confiables y coincidencia de DNI, y el certificado que la propia especificación usa en todos los escenarios (firma/mi_certificado.p12) es autofirmado y sin NIF coincidente, así que el evento PRESENTAR sería rechazado siempre: ESC-001, ESC-002, ESC-003 y ESC-008 no pasarían. design_1 la condiciona con ifValueIn(..., [SIN_CERTIFICADO]), que es literalmente lo que exige estados.md.
+El segundo punto decisivo es la frontera de confianza: design_1 restaura pdfSolicitudFirmado desde original en triggerPresentar (RN-001, CC-002); design_2 solo hace setValue en la respuesta, que un cliente puede ignorar.
+Las ventajas reales de design_2 no compensan un diseño que no funcionaría en runtime y que viola dos reglas explícitas; los defectos de design_1 son de forma o riesgos acotados y corregibles sin cambiar su arquitectura.
+
+### Comparación 2: design_1 vs design_3 → gana design_1
+
+=== VENTAJAS design_1 ===
+- Reutiliza fielmente el mecanismo de la iniciativa 2026-09-01_11-21_firma-en-servidor: instanceof AlmacenClaveFichero + isPasswordValid(), log.warn sin acusar cuando el certificado no se puede abrir, y el mapeo de motivo de firma fallida recorriendo la cadena de causas (UnrecoverableKeyException/LoginException con límite de niveles) con los cuatro mensajes literales.
+- Cumple literalmente estados.md: VAL-006 (Required) y VAL-007 (FirmaPdf) van ambas dentro de ifValueIn(situacionFirmaDocumentoEntrada, [SIN_CERTIFICADO]).
+- Cierra la segunda puerta: triggerPresentar repite VAL-008 y VAL-001 y añade ERROR_NEGOCIO(pdfSolicitudFirmado == null).
+- Implementa RN-007 explícitamente (ASIGNAR(claveFirmaDocumentoEntrada = null) en triggerBack) y RN-006 en cuatro puntos.
+- Es el más estricto con k-secure-coding: el controlador no devuelve el MetaFile firmado al cliente.
+- Respeta §9.3 del contrato: los pasos de .java apuntan a la sección de especificación sin duplicarla.
+
+=== DEFECTOS design_1 ===
+- Declara los seis paneles del bloque «Firma de la solicitud» DESPUÉS del <footer>; Footer.doFooter sustituye el <footer> en su sitio, así que el aviso y el campo Contraseña/PIN se pintan DEBAJO de los botones, al revés del orden bloque-a-bloque de pantallas-recepcion.md.
+- Mete la especificación de dos clases que no son del tipo (SituacionFirmaBuilder, FirmaController) dentro de "## 9. Especificación de los PhaseEventManagerImpl".
+- Añade build(String dni) como sobrecarga de build(User), más confuso que un nombre propio.
+- Deja abierta una decisión de diseño en el paso 3 (@Inject o Beans.get) y cita ActionResponseHelper.doResponseBusinessMessages cuando el método real es doResponseBusinessMessagesAsError.
+- Materializa el modelo como design/domains-Expediente.xml, nombre que no es el del fichero destino (Expediente.xml), y titula el campo title="Contraseña" aunque también sirve de PIN.
+
+=== VENTAJAS design_3 ===
+- Coloca el bloque «Firma de la solicitud» ANTES del <footer>, que es el orden de pantallas-recepcion.md.
+- SituacionFirmaBuilder.buildByDni(String) con nombre propio, constante ACCION_LIMPIAR_CLAVE, @Inject ModelServiceFactory y prohibición explícita de Beans en el controlador.
+- Su Expediente.xml calca verbatim el patrón de TareaFirma y se materializa con el nombre real del fichero destino.
+- La cobertura de transiciones del test-e2e-desc.md incluye la fila de arranque y enumera qué estados quedan cubiertos.
+- Declara que el delta no empeora el agujero del endpoint REST automático (los dos campos nuevos son transient).
+
+=== DEFECTOS design_3 ===
+- Contradice estados.md: deja +Required() sobre pdfSolicitudFirmado sin la guarda de VAL-006, y el controlador devuelve el MetaFile firmado al cliente (setValue).
+- VAL-008 vive únicamente en firmarDocumentoEntradaEnServidor: no se comprueba en el camino de AutoFirma ni al disparar el evento a pelo.
+- RN-002 queda sin especificar en su parte más delicada («el mensaje que corresponda»); no reutiliza motivoFirmaFallida/isClaveIncorrecta.
+- Casteo duro ((AlmacenClaveFichero) ...).isPasswordValid() sin instanceof y sin tratar el certificado ilegible.
+- RN-007 se resuelve declarando que MUST NOT escribirse ninguna línea, y no hay red si pdfSolicitudFirmado queda nulo.
+- Duplica claveFirmaDocumentoEntrada en el mismo form y mete la especificación quirúrgica dentro de los Pasos, contra §9.3.
+
+=== JUSTIFICACION design_1 vs design_3 ===
+Los dos coinciden en lo estructural y en la arquitectura. Lo que los separa es la fidelidad a la especificación y a las guías. design_1 aplica las guardas de VAL-006 y VAL-007 tal y como estados.md las declara, mientras design_3 quita a propósito la de VAL-006 y hace depender el evento de que el cliente devuelva el documento que el servidor firmó. design_1 repite VAL-008 y VAL-001 en el triggerPresentar, cubriendo también el camino de AutoFirma y el disparo directo del evento. Y las guías exigen reutilizar el mecanismo de la iniciativa anterior: design_1 lo reproduce; design_3 lo sustituye por un casteo duro y un «el mensaje que corresponda» que deja RN-002 sin cerrar en el caso de dispositivo criptográfico. El defecto principal de design_1 (los paneles de firma tras el <footer>) es cosmético y se corrige moviendo el bloque delante del <footer>, como lo tiene design_3.
+
+### Comparación 3: design_1 vs design_4 → gana design_4
+
+=== VENTAJAS design_1 ===
+- Declara los dos campos transitorios en Expediente, así que cualquier tipo de expediente hereda el mecanismo sin tocar su propio domains.xml.
+- Su mecanismo de error está verificado en la plataforma: ActionResponse.setError(mensaje, titulo, boton, accion) existe y axelor-front/executor.ts ejecuta la acción asociada y hace Promise.reject(), abortando la cadena serial:.
+- Detecta el agujero real del whitelist: pdfSolicitudFirmado sigue en el AllowProperties aunque su regla esté bajo ifValueIn, y lo tapa restaurándolo desde original.
+- La clave viaja solo como argumento de la <action-method> y nunca entra en el AllowProperties.
+- Mantiene la colocación as-is del panel de aviso y no toca ExpedienteController.
+
+=== DEFECTOS design_1 ===
+- Rompe el reparto de reglas del contrato: VAL-001..005 y VAL-008 se implementan en un controlador (capa que design-contract §13 no contempla) y VAL-001/VAL-008 se duplican como ERROR_NEGOCIO en triggerPresentar, cuando §11.2 prohíbe validar datos del usuario en un trigger.
+- Saca la firma del trigger*: no declara ninguna acción FIRMAR_SERVIDOR ni constantes Rectangulo, y la firma se persiste en una transacción ANTERIOR al evento; un fallo posterior deja el expediente firmado y sin presentar, contra RN-002.
+- firmarDocumentoEntradaEnServidor es un @CallMethod invocable directamente que no comprueba fase/estado ni perfil: el CREADOR puede re-firmar y sobrescribir pdfSolicitudFirmado en cualquier estado, saltándose la máquina de estados (k-secure-coding).
+- Pone el getter derivado en Expediente, así que todo expediente de todo tipo consultará CertificadoDigital en cada lectura y en cada getEntityCloned; no analiza ese coste global.
+- RUI-011 solo se cubre cuando el error lo produce el controlador de firma; si la acción se cancela después, el campo de la clave no se vacía.
+- La <action-record model="...db.Expediente"> aplicada sobre un form cuyo modelo es la subclase es especulativa; el propio diseño la marca como riesgo con plan B.
+
+=== VENTAJAS design_4 ===
+- Coloca cada regla donde el contrato manda: las ocho VAL- en el DSL del validador y los efectos en triggerPresentar con la notación FIRMAR_SERVIDOR(...) y sus constantes Rectangulo (design-contract §11.2, README §5.2).
+- Una sola transacción: la firma ocurre dentro del evento, detrás del checkPerfilDelEstado, de la comprobación estado/evento y del AllowProperties del Tramitador; un fallo lanza BusinessException -> detach -> no se persiste nada. Es RN-002 literal.
+- Justifica la ubicación de los campos con el código real: FieldValidationRules.getLabel usa clazz.getDeclaredField, que no recorre superclases, así que un field(...) sobre un campo heredado de Expediente reventaría.
+- Resuelve RUI-011 de forma genérica (doResponseBusinessMessages ya responde con setValue), cubriendo toda cancelación por BusinessException.
+- Reproduce el precedente de TareaFirmaServiceImpl: isPasswordValid solo con certificados en fichero, no acusar de clave incorrecta un certificado ilegible, y mensajes distintos para clave tecleada vs custodiada.
+- El bloque de firma va delante del <footer>, de modo que el aviso y el campo Contraseña quedan por encima de los botones.
+
+=== DEFECTOS design_4 ===
+- Inyecta FirmaController (paquete controllers) en el PhaseEventManagerImpl y lo llama desde el dominio: inversión de capas respecto a k-sistemas.
+- Obliga a que cada tipo de expediente que quiera firma en servidor redeclare los dos campos transitorios en su domains.xml.
+- Cuelga VAL-001 y VAL-008 (que no hablan de la clave) del field(model::getClaveFirmaDocumentoEntrada), así que el footer antepone la etiqueta del campo al mensaje literal de la spec.
+- Los mensajes de las reglas «compartidas» llevan la palabra «solicitud», pegando vocabulario de este trámite a reglas reutilizables.
+- Mete en ExpedienteController un setValue("claveFirmaDocumentoEntrada", null) con el nombre de campo hardcodeado.
+- Numera como «acción 7» un finally que en realidad envuelve a las acciones 2-6.
+
+=== JUSTIFICACION design_1 vs design_4 ===
+La diferencia decisiva es dónde vive cada cosa. estados.md clasifica VAL-001..008 como comprobaciones y RN-001/RN-002 como efectos; design-contract §13 y §11.2 mapean lo primero al DSL del validador y lo segundo al trigger*, con la acción FIRMAR_SERVIDOR prevista expresamente. design_4 hace exactamente eso; design_1 inventa una capa de validación en el controlador, duplica dos VAL como ERROR_NEGOCIO en el trigger (prohibido por §11.2) y no declara ninguna acción FIRMAR_SERVIDOR.
+Esa elección arrastra consecuencias reales: al firmar en una acción serial: previa y transaccional propia, design_1 escribe pdfSolicitudFirmado en BD antes de que el Tramitador compruebe perfil, estado y evento, con dos efectos que design_4 no tiene: un expediente puede quedar firmado y sin presentar (contra RN-002) y el nuevo @CallMethod permite re-firmar desde cualquier estado.
+design_1 gana en reutilización y en el detalle del setError, pero paga esa reutilización con una consulta de CertificadoDigital en cada lectura y clonado de todo expediente del sistema, y deja sin resolver la <action-record> de modelo Expediente y una cobertura parcial de RUI-011.
+Los defectos de design_4 son menores, están declarados en Notas y supuestos y ninguno abre un camino para saltarse la tramitación.
+
+### Comparación 4: design_4 vs design_5 → gana design_4
+
+=== VENTAJAS design_4 ===
+- Cumple literalmente RN-001/CC-002: el PDF firmado lo produce el propio triggerPresentar y pisa en el servidor lo que el formulario enviara. Es el único de los dos donde «lo que envíe el formulario se descarta» es cierto.
+- Coloca las ocho comprobaciones VAL-001..008 en el DSL del validador (design-contract §13), y con ello la frontera de confianza: claveFirmaDocumentoEntrada entra en el AllowProperties del evento por su field(...), y VAL-006/007 llevan la guarda ifValueIn(SIN_CERTIFICADO).
+- Sus afirmaciones técnicas están verificadas contra el código real: FieldValidationRules.getLabel usa getDeclaredField; ActionResponseHelper.doResponseBusinessMessages hace setValue y no setError, así que su response.setValue("claveFirmaDocumentoEntrada", null) sí se aplica (RUI-011).
+- El diseño vive dentro de las secciones §8/§9/§10 del contrato con la notación de acciones numerada y la tabla de cobertura de la fase.
+- test-e2e-desc.md cubre todas las transiciones, incluida la rama de AutoFirma del PRESENTAR (T-013).
+- design/domains.xml es un as-is + delta exacto.
+
+=== DEFECTOS design_4 ===
+- Incumple la guía «MUST reutilizarse ese mecanismo»: re-implementa el recorrido de la cadena de causas (UnrecoverableKeyException/LoginException, LIMITE_CAUSAS_A_RECORRER) y los mensajes de clave incorrecta dos veces más (FirmaController §9.1 y la regla Kotlin ClaveFirmaDocumentoEntradaCorrecta), dejando tres copias de lo que ya está en TareaFirmaServiceImpl, que no extrae.
+- Contradicción interna de reutilización: argumenta que los campos no pueden vivir en Expediente, pero incrusta el literal "claveFirmaDocumentoEntrada" en el ExpedienteController genérico.
+- El PhaseEventManagerImpl del trámite pasa a depender de una clase del paquete controllers.
+- required="true" sobre el campo de la clave puede bloquear el envío en el cliente y romper ESC-004; riesgo abierto.
+- Declara dos <field name="claveFirmaDocumentoEntrada"> (Contraseña y PIN) dentro del mismo panel del mismo form.
+
+=== VENTAJAS design_5 ===
+- Mecanismo genuinamente reutilizable: los dos campos van a Expediente y FirmaController.firmarDocumentoEntradaEnServidor es @CallMethod, así que otro tipo lo usa con una <action-method> + botón serial: y cero Java.
+- Extrae FirmaEnServidorHelper y refactoriza TareaFirmaServiceImpl para delegar en él: única fuente de verdad de la detección de clave incorrecta y de sus mensajes.
+- No toca ni un .java/.kt del trámite: superficie de regresión mínima.
+- Detecta que cuando la respuesta lleva error los values no se aplican, y resuelve RUI-011 con response.setError(msg, null, null, action) más una <action-record> global.
+- Declara sus riesgos con plan B concreto.
+
+=== DEFECTOS design_5 ===
+- Saca VAL-001..005 y VAL-008 del validador y las mete en el controlador, inventando una capa que design-contract §13 no contempla, y lo justifica con una premisa falsa (dice que un método @BeanValidationRulesForStateAndEvent no puede ver la situación de firma, cuando ValidationRule.validate(value, bean) recibe el bean).
+- Incumple design-contract §12.3 y el checklist de vistas.md: claveFirmaDocumentoEntrada es editable en la vista y no aparece en ningún field(...).
+- Contradice RN-001/CC-002: el PDF firmado por el servidor sale al cliente con setValue y vuelve en el evento; no hay descarte servidor-side.
+- Renuncia a la guarda de VAL-006/007 que estados.md fija, y deja VAL-008 solo en la rama de firma en servidor.
+- Cuelga de Expediente un enum derivado cuyo getter consulta CertificadoDigital: se ejecuta en cada lectura de cualquier expediente de cualquier tipo, sin declarar el coste.
+- test-e2e-desc.md deja la rama de AutoFirma de PRESENTAR sin ningún test y marca los 12 tests como Manual: sí; además mete la especificación quirúrgica de cuatro clases dentro de «Pasos».
+
+=== JUSTIFICACION design_4 vs design_5 ===
+Los dos resuelven el problema y verifican bien la API real. La diferencia decisiva es que design_5 gana en reutilización y DRY pero paga por ello con fidelidad a la especificación y al contrato de la plantilla, y design_4 paga su duplicación con fidelidad total.
+Contra la spec: estados.md RN-001 y CC-002 exigen que al firmar en servidor «lo que envíe el formulario se descarta»; solo design_4 lo hace. Las guardas nuevas de VAL-006/007 y la ubicación de VAL-008 como comprobación de la acción son requisitos escritos que design_5 declara no cumplir.
+Contra las reglas: design-contract §13 y §12.3 sitúan las validaciones y la lista de campos dictables por el cliente en el DSL del validador; design_4 cumple los dos, design_5 abandona esa capa apoyándose en una afirmación técnica errónea y deja un campo editable fuera de todo field(...).
+Los defectos de design_4 (la triple copia de la lógica de clave incorrecta y el nombre de campo incrustado en ExpedienteController) son reales y hay que sanearlos —extraer un helper compartido al estilo del FirmaEnServidorHelper de design_5 es la mejora obvia a incorporar—, pero son refactors locales sobre un diseño correcto.
+
