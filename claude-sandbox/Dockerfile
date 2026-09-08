@@ -25,7 +25,15 @@ RUN apt-get update && apt-get install -y tzdata \
 
 # ── Herramientas del sistema ──────────────────────────────────────────────────
 # Las mismas que usa el devops (git, maven, curl, gnupg, graphviz, apertium +
-# apertium-es-ca) más utilidades cómodas dentro del sandbox (sudo, psql, less...).
+# apertium-spa-cat + cg3 + apertium-lex-tools) más utilidades cómodas dentro del
+# sandbox (sudo, psql, less...).
+# apertium-spa-cat es el par es→ca/valenciano (apertium-es-ca es solo un paquete
+# transicional vacío que lo arrastra).
+# cg3 (cg-proc) y apertium-lex-tools (lrx-proc) NO son dependencias del paquete
+# apertium, pero el modo spa-cat_valencia los invoca en su pipeline: sin ellos
+# apertium no traduce NADA y escribe "cg-proc: command not found", que la build
+# tool toma por traducción válida (no lleva '*') y acaba colándose en los PDF, o
+# haciendo fallar :generatePdfDocuments al perder los campos inline ${...}.
 RUN apt-get update && apt-get install -y \
     git \
     maven \
@@ -33,7 +41,9 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     graphviz \
     apertium \
-    apertium-es-ca \
+    apertium-spa-cat \
+    cg3 \
+    apertium-lex-tools \
     ca-certificates \
     sudo \
     bash \

@@ -14,8 +14,9 @@ recoge lo que un agente necesita saber para trabajar aquí sin romper nada.
   `postgres_data`.
 - `claude-sandbox` — imagen construida del `Dockerfile`. Trae Java 21 (Temurin), Node 24
   + corepack/pnpm, Maven, Claude Code, Playwright + Chromium, y el tooling del devops
-  (git, curl, gnupg, graphviz, apertium, apertium-es-ca). Usuario `developer` con
-  uid/gid del host (args `HOST_UID`/`HOST_GID`, default 1000). Publica **`8081→8080`**.
+  (git, curl, gnupg, graphviz, apertium + apertium-spa-cat/cg3/apertium-lex-tools).
+  Usuario `developer` con uid/gid del host (args `HOST_UID`/`HOST_GID`, default 1000).
+  Publica **`8081→8080`**.
 
 ## Decisiones de diseño (NO deshacer sin querer)
 

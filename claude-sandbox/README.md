@@ -22,7 +22,8 @@ hostname `educaflow-db`.
 - **Claude Code** (`@anthropic-ai/claude-code`, global)
 - **Playwright** + Chromium con sus libs de sistema (en `/ms-playwright`)
 - Herramientas del sistema del devops: `git`, `curl`, `gnupg`, `graphviz`,
-  `apertium`, `apertium-es-ca`, además de `psql`, `sudo`, `less`, `procps`
+  `apertium` (con `apertium-spa-cat`, `cg3` y `apertium-lex-tools`), además de
+  `psql`, `sudo`, `less`, `procps`
 - Zona horaria `Europe/Madrid`
 
 ## Cómo entra el código (volúmenes)
