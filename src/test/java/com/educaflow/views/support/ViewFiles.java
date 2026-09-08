@@ -11,8 +11,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -41,6 +43,8 @@ public final class ViewFiles {
 
     private static List<ViewFile> cache;
     private static Document menusCache;
+    private static Document hideMenusCache;
+    private static final Map<Path, Document> docCache = new HashMap<>();
 
     private ViewFiles() {}
 
@@ -126,11 +130,73 @@ public final class ViewFiles {
 
     /** Líneas de texto crudo de menus.xml (para las reglas de formato de la Categoría 10). */
     public static List<String> menusLineas() {
-        try {
-            return Files.readAllLines(menusPath());
-        } catch (IOException e) {
-            throw new IllegalStateException("No se pudo leer " + menusPath(), e);
+        return lineas(menusPath());
+    }
+
+    /**
+     * Ruta del fichero de ocultaciones de menús de Axelor (también forma parte del ámbito de
+     * análisis). Junto con {@link #menusPath()} son los dos únicos ficheros con {@code <menuitem>}.
+     */
+    public static Path hideMenusPath() {
+        return projectRoot().resolve("src/main/java/com/educaflow/secretariavirtual/menus/hide-menus.xml");
+    }
+
+    /** Documento parseado de hide-menus.xml. */
+    public static synchronized Document hideMenusDoc() {
+        if (hideMenusCache == null) {
+            hideMenusCache = parse(hideMenusPath());
         }
+        return hideMenusCache;
+    }
+
+    /** Líneas de texto crudo de hide-menus.xml (para las reglas de formato de la Categoría 10). */
+    public static List<String> hideMenusLineas() {
+        return lineas(hideMenusPath());
+    }
+
+    private static List<String> lineas(Path p) {
+        try {
+            return Files.readAllLines(p);
+        } catch (IOException e) {
+            throw new IllegalStateException("No se pudo leer " + p, e);
+        }
+    }
+
+    /**
+     * Todos los XML de {@code src/main/java/com/educaflow} cuyo elemento raíz es {@code object-views},
+     * SIN aplicar la exención de paquetes y SIN exigir que estén bajo {@code views/}.
+     *
+     * <p>El build copia todo XML de {@code src/main/java} bajo {@code build/resources/main/views/},
+     * así que Axelor carga cualquiera de ellos viva donde viva: para VAR-1.3 el ámbito es el árbol
+     * entero, no solo las carpetas {@code views/}. Los XML que no son object-views (dominios,
+     * data-init, documentos PDF…) se descartan sin parsear a fondo.
+     */
+    public static List<Path> todosLosObjectViews() {
+        Path base = projectRoot().resolve("src/main/java/com/educaflow");
+        try (Stream<Path> walk = Files.walk(base)) {
+            return walk
+                    .filter(Files::isRegularFile)
+                    .filter(p -> p.getFileName().toString().endsWith(".xml"))
+                    .filter(ViewFiles::esObjectViews)
+                    .sorted()
+                    .toList();
+        } catch (IOException e) {
+            throw new IllegalStateException("No se pudieron listar los XML bajo " + base, e);
+        }
+    }
+
+    /** true si el XML parsea y su elemento raíz es {@code object-views}. */
+    private static boolean esObjectViews(Path p) {
+        try {
+            return "object-views".equals(parseDoc(p).getDocumentElement().getNodeName());
+        } catch (RuntimeException e) {
+            return false; // no parsea: no es un fichero de vistas, no es sujeto de estas reglas
+        }
+    }
+
+    /** Documento parseado de un XML cualquiera del árbol, cacheado por ruta. */
+    public static synchronized Document parseDoc(Path p) {
+        return docCache.computeIfAbsent(p, ViewFiles::parse);
     }
 
     /**

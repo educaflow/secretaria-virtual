@@ -369,7 +369,7 @@ Además de las acciones definidas por el desarrollador, el framework de Axelor t
 
 ## Orden de las acciones en el código:
 
-El orden de los elementos dentro de cada bloque es importante para facilitar la lectura y el mantenimiento y es el siguiente (el `<menuitem>` que abre el `<action-view>` **no** va aquí: vive en el fichero único `menus.xml`, ver `menus.md`):
+El orden de los elementos dentro de cada bloque es importante para facilitar la lectura y el mantenimiento y es el siguiente (el `<menuitem>` que abre el `<action-view>` **no** va aquí: vive en `menus.xml`, ver `menus.md`):
 
 1. La acción de tipo `<action-view>` que abre las vistas
 2. El grid `<grid>`

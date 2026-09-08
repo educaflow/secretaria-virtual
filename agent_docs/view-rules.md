@@ -146,20 +146,26 @@ Vocabulario común para leer las reglas, del fichero a la PI:
 **Correcto** ✅ — `Main-Correo.xml`, `Mis-Correo.xml`, `Pendiente-DocumentoFirma.xml`, `Ref-FamiliaProfesional.xml`
 **Incorrecto** ❌ — `CicloForm.xml`, `correo-admin.xml`, `vistasCiclo.xml`, `CORREO-admin.xml`, `vistas-Ciclo.xml`
 
-## VAR-1.3 — Todos los `<menuitem>` viven solo en `menus.xml`
+## VAR-1.3 — Todos los `<menuitem>` viven solo en `secretariavirtual/menus/`
 **Decisión.**
-  Para que todo el árbol de menús viva en un único sitio y no quede disperso por las vistas.
+  Para que todo el árbol de menús viva en un único sitio y no quede disperso por las vistas,
+  y para separar lo que la secretaría virtual **declara** (su propio árbol de menús) de lo que solo **oculta** (menús que trae Axelor y aquí no se usan):
+  son dos cosas distintas, con reglas distintas, y mezclarlas en un mismo fichero obliga a exceptuar caso por caso.
+  El build copia **todo** XML de `src/main/java` bajo `build/resources/main/views/`, así que un `<menuitem>` en cualquier carpeta acaba cargándose: la regla necesita mirar todo el árbol, no solo `views/`.
 **Verificación.**
-  Sujeto: cada fichero del ámbito de análisis.
-  Condición: ningún fichero de `views/` contiene un `<menuitem>`;
-    el único fichero con `<menuitem>` es `secretariavirtual/menus/menus.xml`.
+  Sujeto: cada XML de `src/main/java/com/educaflow` cuyo elemento raíz sea `object-views` (**sin** aplicar la exención de paquetes: un `<menuitem>` en un paquete exento también se carga).
+  Condición: los únicos ficheros que contienen `<menuitem>` son
+    `secretariavirtual/menus/menus.xml` (el árbol de menús de la aplicación) y
+    `secretariavirtual/menus/hide-menus.xml` (las ocultaciones de menús de Axelor, ver `VAR-10.5`);
+    en particular, ningún fichero de `views/` contiene un `<menuitem>`.
 
-**Correcto** ✅ — `views/Main-Ciclo.xml` sin `<menuitem>`; el menú se declara en `menus.xml`.
+**Correcto** ✅ — `views/Main-Ciclo.xml` sin `<menuitem>`; el menú se declara en `menus.xml` y la ocultación de `menu-dms` en `hide-menus.xml`.
 **Incorrecto** ❌
 ```xml
 <!-- dentro de views/Main-Ciclo.xml -->
 <menuitem name="sistemaEducativo-ciclos-menuitem" title="Ciclos" action="Main@…-action"/>
 ```
+o un tercer fichero de menús (`menus-sistemaEducativo.xml`, `secretariavirtual/menus/otros.xml`…)
 
 ---
 
@@ -882,9 +888,14 @@ Los atributos canónicos de todo grid los fija `VAR-5.1` (y los de la clase refe
 
 ---
 
-# Categoría 10 — Menús (`menus.xml`)
+# Categoría 10 — Menús (`secretariavirtual/menus/`)
 
-Sujeto de toda la categoría: el fichero único `secretariavirtual/menus/menus.xml` (que sea el único con `<menuitem>` lo verifica `VAR-1.3`; que el `action` de cada hoja resuelva a un `<action-view>`, `VAR-4.1`).
+Sujeto de toda la categoría: los dos ficheros de menús de `secretariavirtual/menus/` — `menus.xml` (el árbol de menús de la aplicación) y `hide-menus.xml` (las ocultaciones de menús de Axelor). Que sean los únicos con `<menuitem>` lo verifica `VAR-1.3`; que el `action` de cada hoja resuelva a un `<action-view>`, `VAR-4.1`.
+
+**Exención de categoría — los `<menuitem>` de `hide-menus.xml`.**
+Un `<menuitem>` de `hide-menus.xml` no declara un menú de la secretaría virtual: **redefine** uno que trae Axelor (`menu-team`, `menu-dms`, `menu-admin`…) con más prioridad para que no se muestre.
+Por eso su `name` es el que le dio Axelor (no lo elegimos nosotros) y no tiene ni posición ni público, porque nunca llega a pintarse.
+Quedan **exentos de `VAR-10.1`, `VAR-10.2` y `VAR-10.4`**, que son las reglas del árbol de la aplicación; a cambio cumplen `VAR-10.5`, que es su regla propia. `VAR-10.3` (formato) aplica a los dos ficheros.
 
 ## VAR-10.1 — Atributos obligatorios: `name`/`title`/`order`/`groups` (con valores canónicos)
 **Decisión.**
@@ -896,6 +907,7 @@ Sujeto de toda la categoría: el fichero único `secretariavirtual/menus/menus.x
   Condición:
     (a) tiene los atributos `name`, `title`, `order` y `groups`;
     (b) el valor de `groups` es **exactamente** uno de `admins`, `admins,users` o `users` — no se admite ningún otro valor ni la variante desordenada `users,admins`.
+  Exenciones: los `<menuitem>` de `hide-menus.xml`, que no tienen ni `order` ni `groups` (ver la exención de categoría y `VAR-10.5`).
 
 **Correcto** ✅ — `<menuitem name="correos-menuitem" title="Correos" groups="admins,users" order="45"/>`
 **Incorrecto** ❌ — `<menuitem title="Sistema educativo" groups="admins"/>` (sin `name` ni `order`), `<menuitem name="registro-menuitem" title="Registro" order="60"/>` (sin `groups`), `groups="users,admins"` (orden no canónico), `groups="secretario"` (rol no permitido)
@@ -906,6 +918,7 @@ Sujeto de toda la categoría: el fichero único `secretariavirtual/menus/menus.x
 **Verificación.**
   Sujeto: los `<menuitem>` con el mismo `parent`.
   Condición: sus `order` son enteros distintos.
+  Exenciones: los `<menuitem>` de `hide-menus.xml`, que no llevan `order` (ver la exención de categoría y `VAR-10.5`).
 
 **Correcto** ✅ — hijos de `sistemaEducativo-menuitem` con `order="1"`, `order="2"`, `order="3"`…
 **Incorrecto** ❌ — dos hijos del mismo `parent` con `order="1"`
@@ -915,7 +928,7 @@ Sujeto de toda la categoría: el fichero único `secretariavirtual/menus/menus.x
   Para diffs limpios y una lectura uniforme de todos los `<menuitem>` (un menú por línea completa, sin alineaciones en columnas que haya que remaquetar al tocar cualquier atributo),
   y para que la sangría refleje visualmente la jerarquía del árbol de menús.
 **Verificación.**
-  Sujeto: cada `<menuitem>` (y el texto del fichero).
+  Sujeto: cada `<menuitem>` de los dos ficheros de menús (y el texto de cada fichero).
   Condición:
     (a) no hay dos `<menuitem>` en la misma línea ni un `<menuitem>` partido en varias líneas;
     (b) los atributos presentes respetan el orden relativo `name, parent, title, action, icon, groups, if, order` y se separan con un único espacio (sin espacios extra de alineación);
@@ -936,9 +949,24 @@ Sujeto de toda la categoría: el fichero único `secretariavirtual/menus/menus.x
   Sujeto: cada `<menuitem>`.
   Condición: `name` termina en `-menuitem`;
     las hojas prefijan el nombre del padre (sin su sufijo `-menuitem`).
+  Exenciones: los `<menuitem>` de `hide-menus.xml`, cuyo `name` es el del menú de Axelor que ocultan (ver la exención de categoría y `VAR-10.5`).
 
 **Correcto** ✅ — raíz `sistemaEducativo-menuitem`; hoja `sistemaEducativo-ciclos-menuitem`
 **Incorrecto** ❌ — `menu1`, `ciclos` (sin sufijo `-menuitem`); una hoja `ciclos-menuitem` colgando de `sistemaEducativo-menuitem` (sin el prefijo del padre)
+
+## VAR-10.5 — `hide-menus.xml` solo oculta: `hidden="true"` e `id` propio
+**Decisión.**
+  Para que el fichero de ocultaciones **solo pueda ocultar**: al quedar exento de `VAR-10.1`, `VAR-10.2` y `VAR-10.4`, sin esta regla sería la puerta por la que colar un menú real sin `order`, sin `groups` y con cualquier `name`.
+  El `id` propio, además de identificar la redefinición como nuestra, es lo que **hace que la ocultación funcione**:
+  `ViewLoader.importMenu` solo sube la prioridad sobre el menú de Axelor si los dos `xmlId` difieren, y el de Axelor es nulo, así que un `<menuitem>` sin `id` crearía una fila con la misma prioridad que la original y **no ocultaría nada**.
+**Verificación.**
+  Sujeto: cada `<menuitem>` de los dos ficheros de menús.
+  Condición:
+    (a) si está en `hide-menus.xml` ⇒ tiene `hidden="true"` y un `id` que empieza por `secretariaVirtual-`;
+    (b) si tiene `hidden="true"` ⇒ está en `hide-menus.xml` (no se ocultan menús desde `menus.xml`).
+
+**Correcto** ✅ — en `hide-menus.xml`: `<menuitem id="secretariaVirtual-hide-menu-dms" name="menu-dms" title="Documents__!!" hidden="true"/>`
+**Incorrecto** ❌ — en `hide-menus.xml`, `<menuitem name="menu-dms" title="Documents__!!" hidden="true"/>` (sin `id`: no llega a ocultar nada), `<menuitem id="hide-menu-dms" …/>` (el `id` no empieza por `secretariaVirtual-`) o un menú normal con `action` y sin `hidden`; y en `menus.xml`, cualquier `<menuitem>` con `hidden="true"`
 
 ---
 

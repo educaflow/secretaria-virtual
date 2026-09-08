@@ -13,6 +13,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -113,24 +114,39 @@ class Categoria1FicheroTest {
     }
 
     // [VAR-1.3] Verificación:
-    //   Sujeto: cada fichero del ámbito de análisis.
-    //   Condición: ningún fichero de `views/` contiene un `<menuitem>`;
-    //     el único fichero con `<menuitem>` es `secretariavirtual/menus/menus.xml`.
+    //   Sujeto: cada XML de `src/main/java/com/educaflow` cuyo elemento raíz sea `object-views` (**sin** aplicar la exención de paquetes: un `<menuitem>` en un paquete exento también se carga).
+    //   Condición: los únicos ficheros que contienen `<menuitem>` son
+    //     `secretariavirtual/menus/menus.xml` (el árbol de menús de la aplicación) y
+    //     `secretariavirtual/menus/hide-menus.xml` (las ocultaciones de menús de Axelor, ver `VAR-10.5`);
+    //     en particular, ningún fichero de `views/` contiene un `<menuitem>`.
     @Test
-    void var1_3_menuitemsSoloEnMenusXml() {
+    void var1_3_menuitemsSoloEnLaCarpetaMenus() {
         List<Violacion> v = new ArrayList<>();
-        // El único fichero del ámbito autorizado a contener <menuitem> es ViewFiles.menusPath()
-        // (secretariavirtual/menus/menus.xml), que NO está bajo views/ y por tanto no forma parte
-        // de ViewFiles.all(): basta con exigir que ningún fichero de views/ contenga <menuitem>.
-        for (ViewFile vf : ViewFiles.all()) {
-            for (Element mi : vf.byTag("menuitem")) {
-                v.add(new Violacion(vf.rel(), "<menuitem name=\"" + ViewFiles.attr(mi, "name") + "\">",
-                        "los <menuitem> no pueden vivir en un fichero de views/: todo el árbol de "
-                                + "menús se declara en " + ViewFiles.menusPath()));
+        // Los dos únicos ficheros autorizados a contener <menuitem>. Se recorre el árbol entero
+        // (no solo views/) porque el build copia todo XML de src/main/java bajo
+        // build/resources/main/views/, así que Axelor carga un <menuitem> viva donde viva.
+        Set<Path> autorizados = Set.of(ViewFiles.menusPath(), ViewFiles.hideMenusPath());
+        for (Path xml : ViewFiles.todosLosObjectViews()) {
+            if (autorizados.contains(xml)) {
+                continue;
+            }
+            for (Element mi : ViewFiles.byTag(ViewFiles.parseDoc(xml), "menuitem")) {
+                v.add(new Violacion(rutaLegible(xml), "<menuitem name=\"" + ViewFiles.attr(mi, "name") + "\">",
+                        "los <menuitem> solo pueden vivir en " + ViewFiles.menusPath().getFileName()
+                                + " (árbol de menús de la aplicación) o en "
+                                + ViewFiles.hideMenusPath().getFileName()
+                                + " (ocultaciones de menús de Axelor), dentro de secretariavirtual/menus/"));
             }
         }
-        Violacion.assertNone("VAR-1.3 — Ningún fichero de views/ contiene <menuitem>; "
-                + "todos los menús viven solo en secretariavirtual/menus/menus.xml", v);
+        Violacion.assertNone("VAR-1.3 — Los únicos ficheros con <menuitem> son "
+                + "secretariavirtual/menus/menus.xml y secretariavirtual/menus/hide-menus.xml", v);
+    }
+
+    /** Ruta legible desde com/educaflow, para el informe de violaciones. */
+    private static String rutaLegible(Path xml) {
+        String s = xml.toString().replace('\\', '/');
+        int i = s.indexOf("com/educaflow/");
+        return i < 0 ? s : s.substring(i + "com/educaflow/".length());
     }
 
     // ---- helpers privados ----

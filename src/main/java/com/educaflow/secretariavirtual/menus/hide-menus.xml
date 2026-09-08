@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+
+<!-- Menús propios de Axelor que no se usan en la secretaría virtual.
+     Se ocultan redefiniéndolos aquí con el mismo `name` y `hidden="true"`: el
+     ViewLoader crea una MetaMenu de este módulo con prioridad mayor que la de
+     axelor-core y MenuUtils.fetchMetaMenu se queda con la de más prioridad,
+     así que esta sustituye a la original (y con ella oculta todo su submenú).
+     El atributo `id` es imprescindible: sin él ambas filas tendrían el mismo
+     xmlId (null) y el ViewLoader no subiría la prioridad. -->
+
+<menuitem id="secretariaVirtual-hide-menu-team" name="menu-team" title="Teamwork__!!" hidden="true"/>
+<menuitem id="secretariaVirtual-hide-menu-dms" name="menu-dms" title="Documents__!!" hidden="true"/>
+<menuitem id="secretariaVirtual-hide-menu-admin" name="menu-admin" title="Administration__!!" hidden="true"/>
+
+</object-views>

@@ -5,14 +5,34 @@ Los menús de Axelor se definen con la etiqueta `<menuitem>` dentro de ficheros 
 El formato del fichero XML (namespace, schema) es el estándar de las vistas de Axelor. Ver skill `/k-vistas` para más detalles.
 
 ## Tipos de menuitems
-Existen 2 tipos de menuitems: 
+Existen 3 tipos de menuitems:
 - raiz: son secciones principales del menú, no llevan `action` ni `parent`, solo `title` y `order`.
 - hoja: son entradas finales que abren una vista, llevan `action` apuntando a una `action-view` y `parent` apuntando al menuitem raíz o subsección al que pertenecen.
+- de ocultación: NO declaran ningún menú de la secretaría virtual — **redefinen** uno que trae Axelor (`menu-team`, `menu-dms`, `menu-admin`…) para que no se muestre. Ver "Ocultar un menú de Axelor" más abajo.
 
 ## Ubicación de los menuitems
-- **REGLA OBLIGATORIA — fichero único:** TODOS los `<menuitem>` del proyecto se colocan en el ÚNICO fichero `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`. Esto aplica también a los menús de subsistemas y sistemas nuevos: sus entradas se AÑADEN a ese fichero existente.
+- **REGLA OBLIGATORIA — dos ficheros, y solo dos:** TODOS los `<menuitem>` del proyecto viven en la carpeta `src/main/java/com/educaflow/secretariavirtual/menus/`, repartidos según su tipo:
+  - `menus.xml` — el árbol de menús de la aplicación (menuitems raíz y hoja). Los menús de subsistemas y sistemas nuevos se AÑADEN a este fichero existente.
+  - `hide-menus.xml` — SOLO los menuitems de ocultación.
 - **MUST NOT** crear ficheros nuevos como `menus-<subsistema>.xml`, `menus-<sistema>.xml` o cualquier otro fichero adicional para menuitems, ni en `secretariavirtual/views/` ni en cualquier otra carpeta. Si un diseño los lista como ficheros a crear, es un error del diseño que debe corregirse antes de implementar.
+- **MUST NOT** declarar un menú normal en `hide-menus.xml` ni ocultar un menú desde `menus.xml`: cada fichero tiene su tipo de menuitem y no se mezclan.
 - Los `<menuitem>` hoja se colocará justo debajo del `<menuitem>` raíz al que pertenece.
+
+## Ocultar un menú de Axelor
+Axelor trae menús propios que la secretaría virtual no usa (`menu-team` "Trabajo en equipo", `menu-dms` "Documentos", `menu-admin` "Administración"). Para quitarlos **NO se toca el código de AOP**: se redefinen desde este módulo en `hide-menus.xml`.
+
+```xml
+<menuitem id="secretariaVirtual-hide-menu-dms" name="menu-dms" title="Documents__!!" hidden="true"/>
+```
+
+Reglas de un menuitem de ocultación (**MUST**, las tres):
+- `name` = el nombre EXACTO del menú de Axelor que se oculta (`menu-team`, `menu-dms`, `menu-admin`…). No lleva sufijo `-menuitem` porque el nombre lo eligió Axelor, no nosotros.
+- `hidden="true"`.
+- `id` que empieza por `secretariaVirtual-`. **CRITICAL**: sin `id` la ocultación NO funciona — `ViewLoader.importMenu` solo sube la prioridad sobre el menú de Axelor cuando los dos `xmlId` difieren, y el de Axelor es nulo; sin `id` se crea una fila con la MISMA prioridad y el menú sigue viéndose.
+
+No lleva `order` ni `groups` (nunca se pinta, así que no tiene ni posición ni público), y el `title` es irrelevante: se pone el de Axelor con `__!!` para que el generador de i18n no pida traducirlo.
+
+Cómo funciona: `ViewLoader.importMenu` busca la `MetaMenu` por `(name, module)`; como el módulo es distinto crea una fila nueva con `priority = la de axelor-core + 1`, y `MenuUtils.fetchMetaMenu` ordena por prioridad descendente y se queda con la primera de cada `name`. `MenuChecker.canShow` devuelve `false` si `hidden`, y `MenuNode` empareja padres **por nombre**, así que al ocultar el padre desaparece también todo su submenú.
 
 
 ## Etiqueta `<menuitem>`
