@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- Porción de menús de esta iniciativa: NINGÚN cambio.
+         El menú «Administración SV» → «Certificados digitales» ya existe en el fichero único
+         src/main/java/com/educaflow/secretariavirtual/menus/menus.xml y se reproduce aquí
+         VERBATIM para dejar constancia de que el delta no lo toca.
+         /sdd-implementer MUST NOT duplicarlo: el <menuitem> ya está en el destino con
+         exactamente estos atributos, así que la fusión es un no-op. -->
+    <menuitem name="administracionSv-certificadosDigitales-menuitem" parent="administracionSv-menuitem" title="Certificados digitales" action="subsysCriptografia.Main@CertificadoDigital-action" groups="admins" order="11"/>
+
+</object-views>

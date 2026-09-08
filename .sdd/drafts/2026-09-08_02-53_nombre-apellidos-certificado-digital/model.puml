@@ -1,0 +1,16 @@
+@startuml
+
+class CertificadoDigital {
+  + DNI
+  + nombre
+  + apellidos
+  + nombre tomado del usuario
+  + habilitado
+}
+
+note right of CertificadoDigital
+  Varios certificados pueden compartir el DNI;
+  solo uno de ellos puede estar habilitado a la vez.
+end note
+
+@enduml
