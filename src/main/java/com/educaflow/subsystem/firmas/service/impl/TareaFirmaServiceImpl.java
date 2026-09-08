@@ -124,10 +124,10 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     }
 
     @Override
-    public TareaFirma firmarEnServidor(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal, String claveFirma) {
-        validateFirmarEnServidor(tareaFirma, tareaFirmaOriginal, claveFirma).ifPresent(BusinessMessages::throwIfInvalid);
+    public TareaFirma firmarEnServidor(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal, String claveCertificado) {
+        validateFirmarEnServidor(tareaFirma, tareaFirmaOriginal, claveCertificado).ifPresent(BusinessMessages::throwIfInvalid);
 
-        fireActionRule_FirmarDocumentosEnServidor(tareaFirma, claveFirma);
+        fireActionRule_FirmarDocumentosEnServidor(tareaFirma, claveCertificado);
         fireActionRule_ResolverComoFirmada(tareaFirma);
 
         tareaFirma = repository.save(tareaFirma);
@@ -177,7 +177,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     public Optional<BusinessMessages> validateValidarDocumentosFirmados(TareaFirma tareaFirma) { return Optional.empty();}
 
     @Override
-    public Optional<BusinessMessages> validateFirmarEnServidor(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal, String claveFirma) {
+    public Optional<BusinessMessages> validateFirmarEnServidor(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal, String claveCertificado) {
         BusinessMessages businessMessages = new BusinessMessages();
 
         // V-TareaFirma-001 — estado de la tarea.
@@ -203,12 +203,12 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
         }
 
         // V-TareaFirma-005 — PIN obligatorio.
-        if (situacionFirma == SituacionFirma.DISPOSITIVO_SIN_PIN && TextUtil.isNullOrBlank(claveFirma)) {
+        if (situacionFirma == SituacionFirma.DISPOSITIVO_SIN_PIN && TextUtil.isNullOrBlank(claveCertificado)) {
             businessMessages.add(new BusinessMessage(I18n.get("El PIN es obligatorio")));
         }
 
         // V-TareaFirma-006 — contraseña obligatoria.
-        if (situacionFirma == SituacionFirma.FICHERO_SIN_CLAVE && TextUtil.isNullOrBlank(claveFirma)) {
+        if (situacionFirma == SituacionFirma.FICHERO_SIN_CLAVE && TextUtil.isNullOrBlank(claveCertificado)) {
             businessMessages.add(new BusinessMessage(I18n.get("La contraseña es obligatoria")));
         }
 
@@ -220,7 +220,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
         // V-TareaFirma-008 — clave correcta del certificado en fichero. Va la última y solo si todo lo demás
         // ha pasado: es la única comprobación que abre el certificado, y sin firmante, sin certificado o sin
         // clave no hay nada que comprobar.
-        if (businessMessages.isValid() && isClaveCertificadoCorrecta(tareaFirma, claveFirma)==false) {
+        if (businessMessages.isValid() && isClaveCertificadoCorrecta(tareaFirma, claveCertificado)==false) {
             businessMessages.add(new BusinessMessage(I18n.get("No es posible firmar los documentos: %s")
                     .formatted(CertificadoDigitalHelper.motivoClaveErronea(situacionFirma))));
         }
@@ -281,7 +281,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
      * se ha creado ningún fichero ni se ha tocado ningún {@code DocumentoFirma}, así que la tarea sigue
      * pendiente y el firmante puede reintentar.
      */
-    private void fireActionRule_FirmarDocumentosEnServidor(TareaFirma tareaFirma, String claveFirma) {
+    private void fireActionRule_FirmarDocumentosEnServidor(TareaFirma tareaFirma, String claveCertificado) {
         // Un solo CampoFirma para todos los documentos: no tiene estado consumible. El recuadro es BigDecimal
         // en la entidad y float en Rectangulo, de ahí los floatValue().
         CampoFirma campoFirma = new CampoFirma(new Rectangulo(
@@ -290,7 +290,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
                         tareaFirma.getWidth().floatValue(),
                         tareaFirma.getHeight().floatValue()))
                 .setNumeroPagina(tareaFirma.getPage());
-        List<DocumentoFirmado> documentosFirmados = firmarDocumentosEnMemoria(tareaFirma, claveFirma, campoFirma);
+        List<DocumentoFirmado> documentosFirmados = firmarDocumentosEnMemoria(tareaFirma, claveCertificado, campoFirma);
 
         publicarDocumentosFirmados(documentosFirmados);
     }
@@ -348,7 +348,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
      * lanza el error de negocio de RN-TareaFirma-007. Como la publicación solo trabaja sobre lo que este método
      * devuelve, un fallo no puede acabar publicando una lista parcial.
      */
-    private List<DocumentoFirmado> firmarDocumentosEnMemoria(TareaFirma tareaFirma, String claveFirma, CampoFirma campoFirma) {
+    private List<DocumentoFirmado> firmarDocumentosEnMemoria(TareaFirma tareaFirma, String claveCertificado, CampoFirma campoFirma) {
         String dni = tareaFirma.getFirmante().getDni();
         SituacionFirma situacionFirma = getSituacionFirma(tareaFirma);
 
@@ -359,7 +359,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
                 DocumentoPdf documentoPdfOriginal = MetaFileHelper.getDocumentoPdf(documentoFirma.getDocumentoOriginal());
 
                 documentosFirmados.add(new DocumentoFirmado(documentoFirma, firmaEnServidorService.firmar(
-                        dni, claveFirma, documentoPdfOriginal, campoFirma)));
+                        dni, claveCertificado, documentoPdfOriginal, campoFirma)));
             } catch (RuntimeException ex) {
                 String motivo;
                 if (ex instanceof CredentialsFailureException) {
@@ -403,10 +403,10 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
         return firmante.getId().equals(usuarioAutenticado.getId());
     }
 
-    private boolean isClaveCertificadoCorrecta(TareaFirma tareaFirma, String claveFirma) {
+    private boolean isClaveCertificadoCorrecta(TareaFirma tareaFirma, String claveCertificado) {
         String dni = tareaFirma.getFirmante().getDni();
 
-        return CertificadoDigitalHelper.isClaveCertificadoCorrecta(dni, claveFirma);
+        return CertificadoDigitalHelper.isClaveCertificadoCorrecta(dni, claveCertificado);
 
     }
 

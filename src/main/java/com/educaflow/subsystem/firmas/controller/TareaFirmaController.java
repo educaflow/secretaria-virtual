@@ -26,7 +26,7 @@ import java.util.Optional;
 public class  TareaFirmaController {
 
     /** Nombre del campo de vista en el que el firmante teclea la clave (ver views/Pendiente-TareaFirma.xml). */
-    private static final String CAMPO_VISTA_CLAVE_FIRMA = "claveFirma";
+    private static final String CAMPO_VISTA_CLAVE_CERTIFICADO = "claveCertificado";
 
     @Inject
     private ModelServiceFactory modelServiceFactory;
@@ -112,9 +112,9 @@ public class  TareaFirmaController {
 
         TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
         TareaFirma tareaFirma = actionRequestHelper.getModel(tareaFirmaService.allowPropertiesFirmarEnServidor());
-        String claveFirma = getClaveFirma(actionRequestHelper);
+        String claveCertificado = getClaveCertificado(actionRequestHelper);
 
-        tareaFirmaService.firmarEnServidor(tareaFirma, tareaFirmaOriginal, claveFirma);
+        tareaFirmaService.firmarEnServidor(tareaFirma, tareaFirmaOriginal, claveCertificado);
 
     }
 
@@ -127,9 +127,9 @@ public class  TareaFirmaController {
 
         TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
         TareaFirma tareaFirma = actionRequestHelper.getModel(tareaFirmaService.allowPropertiesFirmarEnServidor());
-        String claveFirma = getClaveFirma(actionRequestHelper);
+        String claveCertificado = getClaveCertificado(actionRequestHelper);
 
-        Optional<BusinessMessages> validationResult = tareaFirmaService.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginal, claveFirma);
+        Optional<BusinessMessages> validationResult = tareaFirmaService.validateFirmarEnServidor(tareaFirma, tareaFirmaOriginal, claveCertificado);
 
         if (validationResult.isPresent()) {
             actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());
@@ -141,14 +141,14 @@ public class  TareaFirmaController {
      * La clave de firma tecleada en el formulario (PIN del dispositivo o contraseña del fichero del
      * certificado), o {@code null} si no se ha tecleado ninguna.
      *
-     * <p>Es el único sitio del servidor que conoce el nombre del campo de vista {@code claveFirma}: no existe en
+     * <p>Es el único sitio del servidor que conoce el nombre del campo de vista {@code claveCertificado}: no existe en
      * el modelo, así que no lo trae {@code getModel(...)} y se lee directamente del contexto de la petición, que
      * lleva todos los campos del formulario, sean o no de la entidad.
      */
-    private static String getClaveFirma(ActionRequestHelper<TareaFirma> actionRequestHelper) {
-        Object claveFirma = actionRequestHelper.getRequestData().get(CAMPO_VISTA_CLAVE_FIRMA);
+    private static String getClaveCertificado(ActionRequestHelper<TareaFirma> actionRequestHelper) {
+        Object claveCertificado = actionRequestHelper.getRequestData().get(CAMPO_VISTA_CLAVE_CERTIFICADO);
 
-        return claveFirma == null ? null : claveFirma.toString();
+        return claveCertificado == null ? null : claveCertificado.toString();
     }
 
 }

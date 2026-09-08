@@ -98,9 +98,9 @@ class TareaFirmaControllerTest {
         context = new HashMap<>();
         context.put("_model", TareaFirma.class.getName());
         context.put("id", ID_TAREA);
-        // claveFirma es un campo de vista, no de la entidad: viaja en el contexto como cualquier otro campo del
+        // claveCertificado es un campo de vista, no de la entidad: viaja en el contexto como cualquier otro campo del
         // formulario y el controlador lo lee de ahí.
-        context.put("claveFirma", CLAVE);
+        context.put("claveCertificado", CLAVE);
 
         // El fixture se monta entero para las acciones que reciben la tarea desde el request. Va en lenient
         // porque `getSituacionFirma` no toca ni el request ni el servicio (no recibe nada del formulario:
@@ -265,7 +265,7 @@ class TareaFirmaControllerTest {
 
     @Test
     void firmarEnServidor_sinClaveEnElContexto_pasaNullAlServicio() {
-        context.remove("claveFirma");
+        context.remove("claveCertificado");
         when(tareaFirmaService.firmarEnServidor(any(), any(), any())).thenReturn(tareaFirmaEnBaseDeDatos);
 
         controller.firmarEnServidor(actionRequest, actionResponse);
