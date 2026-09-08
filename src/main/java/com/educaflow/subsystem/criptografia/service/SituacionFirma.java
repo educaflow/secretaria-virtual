@@ -70,4 +70,17 @@ public enum SituacionFirma {
     public boolean isNecesitaClaveOPin() {
         return necesitaClaveOPin;
     }
+
+    /**
+     * Indica si con esta situación se puede hacer una firma rápida: el certificado está custodiado en el
+     * servidor y su PIN o contraseña ya está guardado, así que se puede firmar sin pedirle nada al firmante.
+     *
+     * <p>Se deduce de {@link #isFirmaEnServidor()} y {@link #isNecesitaClaveOPin()}, no es un dato aparte,
+     * para que no pueda quedar incoherente con ellos.
+     *
+     * @return {@code true} si se puede firmar en el servidor sin pedir el PIN ni la contraseña
+     */
+    public boolean isAllowFirmaRapida() {
+        return firmaEnServidor && !necesitaClaveOPin;
+    }
 }
