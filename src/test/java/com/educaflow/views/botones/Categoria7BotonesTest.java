@@ -135,9 +135,9 @@ class Categoria7BotonesTest {
     //
     //   | Botón | maestro | detalle | referencia |
     //   |---|---|---|---|
-    //   | `btnSave` | [`Local-…`]* → `remote-validationSave-action` → `save` → `back`\|`force-back` (inmediatamente tras `save`) | [`Local-…`]* → `save-modal`; **sin** ninguna `remote-validation*` | no existe |
+    //   | `btnSave` | [`Local-…`]* → `remote-validationSave-action` → `save` → `force-back` (inmediatamente tras `save`; **nunca** `back`) | [`Local-…`]* → `save-modal`; **sin** ninguna `remote-validation*` | no existe |
     //   | `btnDelete` | [`remote-validationDelete-action`] → `delete` (termina en `delete`) | termina en `delete-modal`; **sin** ninguna `remote-validation*` | no existe |
-    //   | `btnCancel` | contiene `back` (o `force-back`) | contiene `close` | contiene `close` |
+    //   | `btnCancel` | contiene `back` | contiene `close` | contiene `close` |
     @Test
     void var7_2_secuenciaDeBotonesEstandarSegunClase() {
         List<Violacion> v = new ArrayList<>();
@@ -184,7 +184,7 @@ class Categoria7BotonesTest {
             }
         }
         Violacion.assertNone("VAR-7.2 — secuencia de los botones estándar según la clase del form "
-                + "(maestro: validaciones→save→back; detalle: acciones -modal sin remote-validation*; "
+                + "(maestro: validaciones→save→force-back; detalle: acciones -modal sin remote-validation*; "
                 + "referencia: solo close)", v);
     }
 
@@ -193,16 +193,16 @@ class Categoria7BotonesTest {
         switch (estandar) {
             case "btnSave" -> {
                 // [Local-… del mismo contexto]* → remote-validationSave-action → save
-                //   → back|force-back (inmediatamente tras save)
+                //   → force-back (inmediatamente tras save; nunca back)
                 List<String> resto = sinLocalesIniciales(seq, ctx);
                 boolean ok = resto.size() == 3
                         && "remote-validationSave-action".equals(resto.get(0))
                         && "save".equals(resto.get(1))
-                        && ("back".equals(resto.get(2)) || "force-back".equals(resto.get(2)));
+                        && "force-back".equals(resto.get(2));
                 if (!ok) {
                     v.add(new Violacion(vf.rel(), ubicacion,
                             "el btnSave maestro debe ser [Local-…]* → remote-validationSave-action → "
-                                    + "save → back|force-back; secuencia: " + seq));
+                                    + "save → force-back (nunca back); secuencia: " + seq));
                 }
             }
             case "btnDelete" -> {
@@ -213,10 +213,9 @@ class Categoria7BotonesTest {
                 }
             }
             case "btnCancel" -> {
-                if (!seq.contains("back") && !seq.contains("force-back")) {
+                if (!seq.contains("back")) {
                     v.add(new Violacion(vf.rel(), ubicacion,
-                            "el btnCancel maestro debe contener \"back\" o \"force-back\"; "
-                                    + "secuencia: " + seq));
+                            "el btnCancel maestro debe contener \"back\"; secuencia: " + seq));
                 }
             }
             default -> throw new IllegalStateException(estandar);

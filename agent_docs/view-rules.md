@@ -489,7 +489,7 @@ Las categorías siguientes contienen las reglas **estructurales** de cada tipo d
   - `<form>`: toda interacción pasa por los botones controlados del `buttons-panel` y sus `action-group` (secuencias de `VAR-7.2`);
     con la toolbar nativa viva, o el guardado colgado del `onSave`, el usuario podría guardar o borrar saltándose las validaciones y el cierre controlado.
     Se conserva solo `canBackOnSave`, y únicamente donde aporta (por eso depende de la clase):
-      en el maestro hace que al guardar con éxito la vista vuelva sola al grid (el cierre lo remata el `back` explícito del `btnSave`, ver `VAR-7.2`);
+      en el maestro hace que al guardar con éxito la vista vuelva sola al grid (el cierre lo remata el `force-back` explícito del `btnSave`, ver `VAR-7.2`);
       en un detalle el cierre lo gestiona `save-modal` y en una referencia no se guarda nada, así que en ambos sobra.
   - `<grid>`: todo listado es de solo consulta/navegación uniforme (no editable en línea, sin selector ni búsqueda avanzada/refresco, ordenado, sin título redundante) y sin el concepto de archivado (confuso para el usuario final y no usado en el proyecto).
   - `<panel-related>`: la rejilla embebida de un detalle se comporta igual en todas las pantallas (ancho completo, sin edición en línea ni borrado directo desde la rejilla — todo pasa por el modal — y abriendo en edición).
@@ -675,7 +675,8 @@ Las secuencias de los botones estándar (`btnSave`/`btnDelete`/`btnCancel`) depe
 ## VAR-7.2 — Secuencia de los botones estándar según la clase del form
 **Decisión.**
   Para guardar, borrar y cancelar de forma segura y uniforme:
-    en el **maestro**, primero las validaciones (local y remota), luego la acción predefinida, y tras `save` un cierre explícito (si el usuario pulsa Guardar sin cambiar nada `save` es un no-op y `canBackOnSave` no cierra la ventana — `back`/`force-back` sí);
+    en el **maestro**, primero las validaciones (local y remota), luego la acción predefinida, y tras `save` un cierre explícito con `force-back` (si el usuario pulsa Guardar sin cambiar nada `save` es un no-op y `canBackOnSave` no cierra la ventana — `force-back` sí).
+    El cierre **MUST** ser `force-back` y **MUST NOT** ser `back`: tras un `save` correcto no queda nada por guardar, pero el flag *dirty* de la vista todavía no está limpio cuando se ejecuta la acción siguiente, así que `back` saca el diálogo «Current changes will be lost» sobre un registro ya guardado. `back` es el cierre del `btnCancel`, donde preguntar sí es lo correcto;
     en el **detalle**, las variantes `-modal` operan sobre la colección en memoria del padre y la validación remota no aplica (ver preámbulo de la categoría);
     en la **referencia** solo se puede salir, sin tocar el registro.
 **Verificación.**
@@ -683,9 +684,9 @@ Las secuencias de los botones estándar (`btnSave`/`btnDelete`/`btnCancel`) depe
 
   | Botón | maestro | detalle | referencia |
   |---|---|---|---|
-  | `btnSave` | [`Local-…`]* → `remote-validationSave-action` → `save` → `back`\|`force-back` (inmediatamente tras `save`) | [`Local-…`]* → `save-modal`; **sin** ninguna `remote-validation*` | no existe |
+  | `btnSave` | [`Local-…`]* → `remote-validationSave-action` → `save` → `force-back` (inmediatamente tras `save`; **nunca** `back`) | [`Local-…`]* → `save-modal`; **sin** ninguna `remote-validation*` | no existe |
   | `btnDelete` | [`remote-validationDelete-action`] → `delete` (termina en `delete`) | termina en `delete-modal`; **sin** ninguna `remote-validation*` | no existe |
-  | `btnCancel` | contiene `back` (o `force-back`) | contiene `close` | contiene `close` |
+  | `btnCancel` | contiene `back` | contiene `close` | contiene `close` |
 
 **Correcto** ✅
 ```xml
@@ -694,7 +695,7 @@ Las secuencias de los botones estándar (`btnSave`/`btnDelete`/`btnCancel`) depe
     <action name="subsysCorreos.Main@Correo-Local-validateSave-action"/>
     <action name="remote-validationSave-action"/>
     <action name="save"/>
-    <action name="back"/>
+    <action name="force-back"/>
 </action-group>
 <action-group name="subsysCorreos.Main@Correo-btnDelete-action">
     <action name="remote-validationDelete-action"/>
@@ -709,7 +710,7 @@ Las secuencias de los botones estándar (`btnSave`/`btnDelete`/`btnCancel`) depe
     <action name="save-modal"/>
 </action-group>
 ```
-**Incorrecto** ❌ — en el maestro, `save` sin `back`/`force-back` después, `save` antes de la validación, o un `btnCancel` con `close`; en el detalle, `save`+`back` o `delete` (secuencias de maestro), una `remote-validation*` antes de `save-modal`/`delete-modal`, o un `btnCancel` con `back`.
+**Incorrecto** ❌ — en el maestro, `save` sin cierre después, `save` → `back` (pregunta «Current changes will be lost» sobre un registro ya guardado), `save` antes de la validación, o un `btnCancel` con `close`; en el detalle, `save`+`force-back` (o `save`+`back`) o `delete` (secuencias de maestro), una `remote-validation*` antes de `save-modal`/`delete-modal`, o un `btnCancel` con `back`.
 
 ## VAR-7.3 — Los grupos de save/delete no llaman a controladores propios
 **Decisión.**

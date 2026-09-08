@@ -136,11 +136,11 @@ Asignar un valor a un campo
     <action name="subsysSistemaEducativo.Main@LeyEducativa-Local-validateSave-action"/>
     <action name="remote-validationSave-action"/>
     <action name="save"/>
-    <action name="back"/>
+    <action name="force-back"/>
 </action-group>
 ```
 
-- Simplemente se listan las acciones a ejecutar en orden. En este caso, primero se ejecuta la acción de validación local (`subsysSistemaEducativo.Main@LeyEducativa-Local-validateSave-action`) y si pasa sin errores, se ejecuta la validación remota con la acción global `remote-validationSave-action` (los `validate*` del servicio, vía `DefaultModelController`), se ejecuta la accion `save` y finalmente `back` para cerrar la ventana (**obligatorio** tras `save`: si no hubo cambios, `save` es un no-op y `canBackOnSave` no cierra; el `back` explícito sí — puede ser `force-back`). En el `btnDelete` la acción global equivalente es `remote-validationDelete-action` antes de `delete`. Esto aplica al form **principal**: en el form **modal** de un detalle (`save-modal`/`delete-modal`) **MUST NOT** usarse las acciones `remote-validation*` y la validación local debe ser lo más completa posible — ver `[[forms.md]]` §"Form modal".
+- Simplemente se listan las acciones a ejecutar en orden. En este caso, primero se ejecuta la acción de validación local (`subsysSistemaEducativo.Main@LeyEducativa-Local-validateSave-action`) y si pasa sin errores, se ejecuta la validación remota con la acción global `remote-validationSave-action` (los `validate*` del servicio, vía `DefaultModelController`), se ejecuta la accion `save` y finalmente `force-back` para cerrar la ventana (**obligatorio** tras `save`: si no hubo cambios, `save` es un no-op y `canBackOnSave` no cierra; el cierre explícito sí). **MUST** ser `force-back` y **MUST NOT** ser `back`: `back` pregunta si la vista está *dirty*, y ese flag aún no está limpio justo después del `save`, así que saca el diálogo de cambios perdidos sobre un registro ya guardado. En el `btnDelete` la acción global equivalente es `remote-validationDelete-action` antes de `delete`. Esto aplica al form **principal**: en el form **modal** de un detalle (`save-modal`/`delete-modal`) **MUST NOT** usarse las acciones `remote-validation*` y la validación local debe ser lo más completa posible — ver `[[forms.md]]` §"Form modal".
 
 Se usan estas acciones desde eventos como `onClick` de botones, `onSave` de formularios, `onChange` de campos, etc. para ejecutar una secuencia de acciones en un solo evento.
 
@@ -240,7 +240,7 @@ El botón Guardar no cambia entre el Caso 1 y el Caso 2:
     <action name="subsysSistemaEducativo.Main@LeyEducativa-Local-validateSave-action"/>
     <action name="remote-validationSave-action"/>
     <action name="save"/>
-    <action name="back"/>
+    <action name="force-back"/>
 </action-group>
 ```
 
@@ -351,8 +351,9 @@ Además de las acciones definidas por el desarrollador, el framework de Axelor t
 - `save`: guarda el registro actual.
 - `validate`: ejecuta las validaciones definidas en el formulario.
 - `close`: cierra la vista actual.
-- `back`: navega a la vista anterior.
-- `force-back`: navega a la vista anterior sin ejecutar las validaciones.
+- `back`: navega a la vista anterior; si el formulario está marcado como *dirty* pregunta antes («Current changes will be lost»). Es el cierre del `btnCancel` del form **principal**.
+- `force-back`: navega a la vista anterior sin preguntar, haya o no cambios pendientes. Es el cierre del `btnSave` del form **principal**, tras `save`.
+- Ninguna de las dos se usa en el form **modal** de un `<panel-related>`: ahí el cierre es `save-modal` (Guardar) o `close` (Cancelar).
 - `delete`: elimina el registro actual sin mostrar un modal de confirmación.
 - `delete-modal`: en el form modal de un `<panel-related>`, pide confirmación y quita el registro de la colección en memoria del form padre (solo en cliente; el borrado en BD llega al guardar el maestro).
 - `save-modal`: en el form modal de un `<panel-related>`, confirma el registro en la colección en memoria del form padre y cierra el modal (solo en cliente; no llama al servidor).

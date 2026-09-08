@@ -304,7 +304,7 @@ public class MiEntidadController {
 
         miEntidadService.hacerAlgoEspecial(entidad, entidadOriginal);
 
-        actionResponse.setSignal("back", null);
+        actionResponse.setSignal("force-back", null);
     }
 
     // Validación remota de la operación custom `hacerAlgoEspecial`. La invoca la acción
@@ -351,7 +351,7 @@ public class MiEntidadController {
 - `miEntidadService.allowPropertiesMiAccion()` — fuente canónica del `AllowProperties` para la acción. **MUST** llamarlo desde el controlador en lugar de construir el `AllowProperties` inline con `createAllowProperties(Map.of(...))`. La whitelist vive en el servicio (ver `servicios.md` §"Estructura de la implementación", bloque AllowProperties; reglas de elección en `[[k-secure-coding]]` §3).
 - `actionResponseHelper.doResponseBusinessMessagesAsError(businessMessages)` — muestra los errores de negocio como diálogo de error modal en la vista.
 - `actionResponseHelper.doResponseBusinessMessages(businessMessages)` — almacena los mensajes de negocio en la respuesta para mostrarlos inline en el formulario.
-- `actionResponse.setSignal("back", null)` — cierra el formulario y vuelve al grid tras guardar con éxito.
+- `actionResponse.setSignal("force-back", null)` — cierra el formulario y vuelve al grid tras persistir con éxito. **MUST** ser `force-back` y **MUST NOT** ser `back`: el front trata la señal igual que la acción del mismo nombre, y `back` pregunta «Current changes will be lost» si el form está *dirty*. Tras una operación custom el form sigue *dirty* (el cliente no ha ejecutado ningún `save` ni ha recargado el registro) aunque el servidor ya haya guardado, así que `back` sacaría el diálogo sobre datos ya persistidos. Mismo criterio que el `save` → `force-back` del `btnSave` (ver `k-vistas/forms.md`).
 - Errores no esperados se relanzán como `RuntimeException` — Axelor los mostrará como error genérico.
 
 ### Retorno de valores
@@ -404,6 +404,6 @@ Checklist única para desarrollar y revisar `*Controller`. Cada ítem es un tipo
 - [ ] **NO** accede al contexto con casts crudos del estilo `(Map<String, Object>) actionRequest.getData().get("context")`. Para el modelo se usa `ActionRequestHelper.getModel(allowProperties)` / `getOriginalModel()` / `getId()`.
 - [ ] **NO** obtiene servicios con `com.axelor.inject.Beans.get(...)`. Si el servicio hereda de `ModelService`, se resuelve con `modelServiceFactory.resolve(Entidad.class)`; si no, se inyecta con `@Inject`.
 - [ ] **NO** define helpers privados (`sanitizeFileName`, `toLocalDate`, conversiones, parseo, hashes…) que duplican lo que ya hay en `com.educaflow.base.util` (`TextUtil`, `Convert`, `JsonUtil`, `CryptoUtil`, `MetaFileUtil`, …). Ver el `CLAUDE.md` raíz §"Utilidades de `base.util`".
-- [ ] Usa `actionResponse.setSignal("{señal}", null)` cuando es necesario (`back` para cerrar el formulario, `refresh-tab` para recargar la pestaña, etc.).
+- [ ] Usa `actionResponse.setSignal("{señal}", null)` cuando es necesario (`force-back` para cerrar el formulario tras persistir —nunca `back`, que pregunta por cambios perdidos sobre un form aún *dirty*—, `refresh-tab` para recargar la pestaña, etc.).
 - [ ] Usa los métodos adecuados de `actionResponse` para configurar la respuesta (`setValue` para actualizar campos, `setFlash` para mensajes, etc.).
 - [ ] Probado con casos de éxito y de error.

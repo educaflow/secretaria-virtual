@@ -50,7 +50,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     <action-group name="subsysSistemaEducativo.Main@Nivel-btnSave-action">
         <action name="remote-validationSave-action"/>
         <action name="save"/>
-        <action name="back"/>
+        <action name="force-back"/>
     </action-group>
 
     <?sv-validations?>

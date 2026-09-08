@@ -36,21 +36,23 @@ Cada bloque de un fichero de vistas lleva las **cinco PI** una vez cada una y en
 Cuando la spec dice "los botones estándar" (o `*(solo los botones estándar: Guardar, Cancelar, Borrar)*`) se refiere a un término de **negocio**: el trío de acciones que todo formulario de mantenimiento tiene por defecto. Su traducción **técnica** en este proyecto es **siempre** el patrón fijo de `k-vistas/forms.md` — **nunca** los atributos nativos del `<form>` de Axelor:
 
 - Los atributos `canAttach`/`canBack`/`canDelete`/`canNew`/`canSave`/`canMore` del `<form>` **MUST** ir a `false` (la toolbar nativa **MUST NOT** usarse para guardar/cancelar/borrar).
-- El formulario **MUST** llevar un `<panel name="buttons-panel">` con `<button name="btnDelete">`, `<button name="btnCancel">`, `<button name="btnSave">`, cada uno con su `<action-group>` propio que termina en la acción real del framework (`delete`/`back`/`save` en el form principal; `delete-modal`/`close`/`save-modal` en un form modal).
+- El formulario **MUST** llevar un `<panel name="buttons-panel">` con `<button name="btnDelete">`, `<button name="btnCancel">`, `<button name="btnSave">`, cada uno con su `<action-group>` propio que termina en la acción real del framework (`delete` / `back` / `save` → `force-back` en el form principal; `delete-modal` / `close` / `save-modal` en un form modal).
 - Cualquier validación de servidor antes de guardar se engancha en el `<action-group>` del **botón** `btnSave` (antes de `<action name="save"/>`), **no** en el atributo `onSave` del `<form>`.
 
 - ✅ CORRECTO: `<form ... canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">` + `<panel name="buttons-panel">` con los tres `<button>` (ver `k-vistas/forms.md`).
 - ❌ INCORRECTO: `<form ... canBack="true" canDelete="true" canSave="true" onSave="...">` sin `buttons-panel` (usa la toolbar nativa de Axelor en vez del patrón del proyecto, aunque "funcione")
 
-### 1.5 Validación remota global y cierre `save` → `back` (form principal)
+### 1.5 Validación remota global y cierre `save` → `force-back` (form principal)
 
 La validación remota de save/delete son las **acciones globales** `remote-validationSave-action`/`remote-validationDelete-action` (las define una única vez `DefaultModelController` — ver `k-validaciones/validaciones.md` §5), **nunca** un `<action-method>` de validación por entidad:
 
 - En el form **principal**, el `<action-group>` de `btnSave` incluye `remote-validationSave-action` antes de `save`, y el de `btnDelete` incluye `remote-validationDelete-action` antes de `delete`.
 - **MUST NOT** declarar en `views/*.xml` un `<action-method>` de validación por entidad (`…-Remote-validateSave-action`) ni métodos `validateSave`/`validateDelete` en el controlador de la entidad. Solo las **operaciones custom** (`aprobar`, `rechazar`…) llevan su `Remote-validate<Operacion>-action` y su `@CallMethod` propios.
-- El `<action-group>` de `btnSave` **MUST** terminar con `<action name="back"/>` (o `force-back`) **después** de `<action name="save"/>`: cierra la ventana aunque `save` sea un no-op (nada cambiado) y `canBackOnSave` no dispare (ver `k-vistas/forms.md`).
+- El `<action-group>` de `btnSave` **MUST** terminar con `<action name="force-back"/>` **después** de `<action name="save"/>`: cierra la ventana aunque `save` sea un no-op (nada cambiado) y `canBackOnSave` no dispare (ver `k-vistas/forms.md`).
+- **MUST NOT** cerrar con `back`: `back` pregunta «Current changes will be lost» cuando la vista está *dirty*, y ese flag aún no está limpio justo después del `save`, así que el diálogo sale sobre un registro ya guardado. `back` es el cierre del `btnCancel`.
 
-- ✅ CORRECTO: `<action-group name="….btnSave-action">` con `Local-validateSave-action` (opcional) → `remote-validationSave-action` → `save` → `back` (o `force-back`).
+- ✅ CORRECTO: `<action-group name="….btnSave-action">` con `Local-validateSave-action` (opcional) → `remote-validationSave-action` → `save` → `force-back`.
+- ❌ INCORRECTO: `<action-group name="….btnSave-action">` que termina en `save` → `back` (diálogo de cambios perdidos tras guardar)
 - ❌ INCORRECTO: `<action-method name="subsysFoo.Main@Bar-Remote-validateSave-action">` llamando a `BarController.validateSave` (patrón sustituido por la acción global)
 
 ### 1.6 Forms modales de detalle (`save-modal`/`delete-modal`)
@@ -83,7 +85,7 @@ El diseñador lo aplica antes de dar el diseño por terminado (**MUST NOT** term
 - [ ] ¿La tabla "Ficheros a crear o modificar" del `design.md` lista los menús como "Modificar `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`", no como un fichero nuevo `menus-<subsistema>.xml` (§1.2)?
 - [ ] ¿Cada bloque de cada fichero de vistas lleva las cinco PI `sv-*` una vez y en orden, con cada acción tras la PI de su sección (§1.3)?
 - [ ] ¿Cada `<form>` tiene `canAttach`/`canBack`/`canDelete`/`canNew`/`canSave`/`canMore` a `false` y un `<panel name="buttons-panel">` con `btnDelete`/`btnCancel`/`btnSave` (§1.4)? ¿Ninguna validación de servidor cuelga de un `onSave` del `<form>`?
-- [ ] ¿Los `action-group` de `btnSave`/`btnDelete` del form **principal** usan las acciones globales `remote-validation*` (§1.5), sin ningún `<action-method>` de validación por entidad para save/delete? ¿El de `btnSave` termina con `back`/`force-back` después de `save`?
+- [ ] ¿Los `action-group` de `btnSave`/`btnDelete` del form **principal** usan las acciones globales `remote-validation*` (§1.5), sin ningún `<action-method>` de validación por entidad para save/delete? ¿El de `btnSave` termina con `force-back` (nunca `back`) después de `save`?
 - [ ] ¿En cada form **modal** de detalle: (a) ningún `action-group` incluye `remote-validation*`, y (b) el `Local-validate*` duplica todas las V del detalle evaluables en cliente (§1.6)?
 - [ ] ¿Cada `<form>` está maquetado según el **ASCII Layout** de `k-vistas/forms.md` (§1.7) — dibujado **antes** del XML, campos agrupados por semántica, `colSpan` proporcional y no inflado, cada fila suma 12, bordes alineados, botones bien colocados, un dibujo por estado `showIf` — y el `design.md` incluye el ASCII Layout de los paneles no triviales, coherente con los `colSpan`/`colOffset` del XML?
 
@@ -112,18 +114,19 @@ Lo aplica el **verificador** sobre `design/views/*.xml`, `design/menus.xml` y lo
   done
   ```
   Cualquier línea impresa es un fallo a reportar (la corrección es renombrar el método del controlador —en `design.md` y en el `<call>` si también estuviera mal— para que coincida con el `{nombreFuncionJava}` embebido en el nombre de la acción).
-- **e) Cierre tras guardar (`save` → `back`)** (§1.5). En el form **principal**, el `<action-group>` de `btnSave` **MUST** terminar con `back`/`force-back` justo después de `save`. Detector (marca los grupos cuyo `save` no va seguido de `back`/`force-back`):
+- **e) Cierre tras guardar (`save` → `force-back`)** (§1.5). En el form **principal**, el `<action-group>` de `btnSave` **MUST** terminar con `force-back` justo después de `save`, y **MUST NOT** terminar con `back`. Detector (marca los grupos cuyo `save` no va seguido de `force-back`, incluidos los que lo siguen con `back`):
   ```bash
   for f in .sdd/drafts/{iniciativa}/design/views/*.xml; do
     awk -v f="$f" '
       /<action-group name="[^"]*-btnSave-action"/{inbtn=1; save=0; next}
       inbtn && /<action name="save"\/>/{save=1; next}
-      inbtn && /name="(back|force-back)"/{save=0}
-      inbtn && /<\/action-group>/{ if(save==1) print f": btnSave termina en save sin back/force-back"; inbtn=0; save=0 }
+      inbtn && save==1 && /<action name="force-back"\/>/{save=0; next}
+      inbtn && save==1 && /<action name="back"\/>/{print f": btnSave cierra con back en vez de force-back"; save=0; next}
+      inbtn && /<\/action-group>/{ if(save==1) print f": btnSave termina en save sin force-back"; inbtn=0; save=0 }
     ' "$f"
   done
   ```
-  Cualquier línea impresa es un fallo a reportar (la corrección es añadir `<action name="back"/>` tras `save`).
+  Cualquier línea impresa es un fallo a reportar (la corrección es poner `<action name="force-back"/>` tras `save`).
 - **f) Forms modales de detalle** (§1.6). En cada `<action-group>` que termine en `save-modal`/`delete-modal`: (a) la presencia de `remote-validation*` es un fallo (el maestro puede no existir en BD), y (b) la **ausencia** de un `Local-validate*` que cubra todas las V del detalle evaluables en cliente es un fallo (es la única validación antes de cerrar el modal).
 - **g) Auditoría de layout (ASCII Layout)** (§1.7). **MUST** aplicarla a **cada `<form>`** (incluidos los modales de detalle y los `Ref@…-form`), siguiendo la «Dirección de auditoría» de `k-vistas/forms.md` (léelo antes: `.claude/skills/k-vistas/forms.md`):
   1. Por cada `<panel>`, `<panel-related>` y `buttons-panel` del form, **reconstruye el ASCII Layout** a partir de los `colSpan`/`colOffset` reales del XML, con la notación de `forms.md` (una letra por campo repetida `colSpan` veces, `.` por columna vacía de `colOffset`; si hay `showIf`, **un dibujo por estado**, con los paneles condicionales en bloques separados).

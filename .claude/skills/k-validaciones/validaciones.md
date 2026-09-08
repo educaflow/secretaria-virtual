@@ -124,10 +124,12 @@ El detalle de cuándo aplicar este patrón compuesto está en `k-vistas/actions.
 El botón Guardar dispara un `<action-group>` que encadena las tres etapas en este orden fijo:
 
 ```xml
+<!-- form PRINCIPAL. En el form modal de un detalle el grupo es [Local-…] → save-modal (ver abajo). -->
 <action-group name="subsysXxx.Main@MiEntidad-btnSave-action">
     <action name="subsysXxx.Main@MiEntidad-Local-validateSave-action"/>    <!-- 1. cliente XML (opcional) -->
     <action name="remote-validationSave-action"/>                          <!-- 2. servidor (acción GLOBAL) -->
     <action name="save"/>                                                  <!-- 3. persiste -->
+    <action name="force-back"/>                                            <!-- 4. cierre: MUST ser force-back, nunca back -->
 </action-group>
 ```
 

@@ -108,7 +108,7 @@
         <action name="subsysCorreos.Main@Correo-Local-validateSave-action"/>
         <action name="remote-validationSave-action"/>
         <action name="save"/>
-        <action name="back"/>
+        <action name="force-back"/>
     </action-group>
 
     <action-group name="subsysCorreos.Main@Correo-btnReenviar-action">
