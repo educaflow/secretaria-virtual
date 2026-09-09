@@ -8,6 +8,7 @@ plugins {
     id 'idea'
     id "org.jetbrains.kotlin.jvm" version "2.2.21"
     id 'info.solidsoft.pitest' version '1.15.0'
+    id 'net.ltgt.errorprone' version '5.1.1'
 }
 configurations { educaFlowBuildToolsDependency }
 dependencies   { educaFlowBuildToolsDependency 'com.educaflow:EducaFlowBuildTools:1.0-SNAPSHOT' }
@@ -52,6 +53,21 @@ tasks.withType(JavaCompile) {
     options.compilerArgs << "-Xlint:deprecation"
 }
 
+// Error Prone (https://errorprone.info/): análisis estático dentro de javac que detecta errores
+// de programación habituales. El plugin lo engancha a compileJava y compileTestJava (solo Java;
+// el código Kotlin no pasa por él) y, al compilar con JDK 16+, fuerza por sí solo el fork del
+// compilador con los --add-exports/--add-opens que Error Prone necesita. Los checks de severidad
+// ERROR rompen la compilación; los WARNING solo avisan.
+tasks.withType(JavaCompile).configureEach {
+    options.errorprone {
+        // Código GENERADO (no se escribe a mano, no tiene sentido revisarlo): las entidades y
+        // repositorios de Axelor (build/src-gen) y los States de cada tipo de expediente
+        // (build/src-gen-states).
+        excludedPaths = '.*/build/src-gen(-states)?/.*'
+        disableWarningsInGeneratedCode = true
+    }
+}
+
 
 
 dependencies {
@@ -94,6 +110,10 @@ dependencies {
     testImplementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.0'
     testRuntimeOnly 'org.glassfish.jaxb:jaxb-runtime:4.0.0'
     testImplementation 'ch.qos.logback:logback-classic:1.5.32'
+
+    // Error Prone (ver el bloque tasks.withType(JavaCompile) de arriba). Versión fija a propósito:
+    // una versión nueva puede añadir checks que rompan la compilación.
+    errorprone 'com.google.errorprone:error_prone_core:2.50.0'
 }
 
 //Test

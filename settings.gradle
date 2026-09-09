@@ -6,6 +6,13 @@ pluginManagement {
                 excludeGroup 'com.axelor'
             }
         }
+        // El plugin de Error Prone (net.ltgt.errorprone) solo se publica en el Gradle Plugin Portal
+        // (en Maven Central únicamente hay versiones antiquísimas), así que se añade acotado a él.
+        gradlePluginPortal() {
+            content {
+                includeGroupByRegex 'net\\.ltgt\\..*'
+            }
+        }
     }
     resolutionStrategy {
         eachPlugin {

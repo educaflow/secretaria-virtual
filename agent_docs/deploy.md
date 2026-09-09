@@ -44,6 +44,19 @@ Cómo compilar, probar, arrancar la app y gestionar la base de datos en el entor
 - Las métricas que importan: **Test strength** (mutantes matados entre los que algún test cubre: lo bueno que
   es el test que hay) y **Mutations with no coverage** (código sin ningún test unitario que lo toque).
 
+### Análisis estático (Error Prone)
+
+- [Error Prone](https://errorprone.info/) detecta errores de programación habituales **dentro de javac**, en cada compilación.
+  Va enganchado a `compileJava` y `compileTestJava`, así que `./gradlew build` y `./run.sh` ya lo pasan: no hay ninguna tarea aparte que lanzar.
+- Cada aviso lleva el nombre del check entre corchetes (`warning: [JavaTimeDefaultTimeZone] ...`) y un enlace a su documentación.
+  Si una compilación falla con un mensaje de esa forma, el fallo viene de Error Prone, no de javac.
+- Los checks de severidad **ERROR rompen la compilación**; los **WARNING solo avisan** por consola.
+  No genera informe: los avisos salen en la salida de la compilación.
+  Como Gradle no recompila lo que está al día, para volver a verlos todos hay que forzar la recompilación (`./gradlew compileJava compileTestJava --rerun-tasks`).
+- Solo analiza **Java**: el código Kotlin no pasa por él, y el código generado (`build/src-gen`, `build/src-gen-states`) está excluido a propósito.
+- Un falso positivo se silencia **en el sitio concreto** con `@SuppressWarnings("NombreDelCheck")`, nunca desactivando el check para todo el proyecto.
+  La configuración (plugin `net.ltgt.errorprone`, versión fija de `error_prone_core`, exclusiones) está en `build.gradle`.
+
 ## Base de datos
 
 - PostgreSQL **12.22**. Conexión por defecto (en `src/main/resources/axelor-config.properties`,
