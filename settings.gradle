@@ -7,6 +7,16 @@ pluginManagement {
             }
         }
     }
+    resolutionStrategy {
+        eachPlugin {
+            // El plugin de PIT (mutation testing) solo publica su "plugin marker" en el Gradle Plugin
+            // Portal, que no está entre los repositorios; el artefacto real sí está en Maven Central,
+            // así que se mapea aquí el id del plugin a su módulo.
+            if (requested.id.id == 'info.solidsoft.pitest') {
+                useModule("info.solidsoft.gradle.pitest:gradle-pitest-plugin:${requested.version}")
+            }
+        }
+    }
 }
 
 dependencyResolutionManagement {

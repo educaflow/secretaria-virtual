@@ -30,6 +30,20 @@ Cómo compilar, probar, arrancar la app y gestionar la base de datos en el entor
   - Informe HTML: `build/reports/tests/test/index.html`.
   - XML por test: `build/test-results/test/*.xml` (cada `<testcase>` con `<failure>`/`<error>` es un fallo).
 
+### Mutation testing (PIT)
+
+- Mide la **calidad** de los tests unitarios con [PIT](https://pitest.org/): introduce cambios pequeños
+  en el bytecode (mutantes: invertir un `if`, devolver `null`, quitar una llamada…) y comprueba si algún
+  test falla. Un mutante que sobrevive es código cuyo comportamiento ningún test está comprobando.
+- **No** forma parte de `build` ni de `./run.sh` (es lento): se lanza a mano con `./gradlew pitest`.
+- Informe HTML: `build/reports/pitest/index.html` (XML en `build/reports/pitest/mutations.xml`).
+- Solo muta el código escrito a mano (excluye lo generado: `*.db.*`, `States`, numeradores) y solo ejecuta
+  los tests unitarios de `base`, `system` y `subsystem`; los de `architecture`, `views` y
+  `tiposexpedientes` comprueban estructura/XML y no matan mutantes. La configuración está en el bloque
+  `pitest { }` de `build.gradle`.
+- Las métricas que importan: **Test strength** (mutantes matados entre los que algún test cubre: lo bueno que
+  es el test que hay) y **Mutations with no coverage** (código sin ningún test unitario que lo toque).
+
 ## Base de datos
 
 - PostgreSQL **12.22**. Conexión por defecto (en `src/main/resources/axelor-config.properties`,

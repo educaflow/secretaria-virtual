@@ -7,6 +7,7 @@ plugins {
     id 'com.axelor.app' version '8.1.1-SNAPSHOT'
     id 'idea'
     id "org.jetbrains.kotlin.jvm" version "2.2.21"
+    id 'info.solidsoft.pitest' version '1.15.0'
 }
 configurations { educaFlowBuildToolsDependency }
 dependencies   { educaFlowBuildToolsDependency 'com.educaflow:EducaFlowBuildTools:1.0-SNAPSHOT' }
@@ -120,6 +121,50 @@ afterEvaluate {
     }
 }
 
+
+// Mutation testing con PIT (https://pitest.org/). NO cuelga de build/test a propósito: es lento
+// (ejecuta la suite una vez por mutante) y se lanza a mano cuando se quiere medir la calidad de
+// los tests:
+//
+//   ./gradlew pitest
+//
+// Informe HTML en build/reports/pitest/index.html (y XML en la misma carpeta).
+pitest {
+    pitestVersion = '1.30.0'
+    junit5PluginVersion = '1.2.3'
+
+    // Código que se muta: todo el proyecto salvo lo GENERADO (no se escribe a mano, no tiene
+    // sentido medir si los tests lo cubren): las entidades y repositorios de Axelor (*.db.*,
+    // build/src-gen), los States de cada tipo de expediente (build/src-gen-states) y los
+    // numeradores generados.
+    targetClasses = ['com.educaflow.*']
+    excludedClasses = [
+            'com.educaflow.*.db.*',
+            'com.educaflow.tramites.*.States*',
+            'com.educaflow.base.infrastructure.numeradores.db.*',
+    ]
+
+    // Tests que se ejecutan contra cada mutante: SOLO los unitarios. Los de architecture (ArchUnit),
+    // views (XML) y tiposexpedientes (estructura vs TipoExpedienteInstance.xml) no ejercitan el
+    // comportamiento del código, así que nunca matarían un mutante y solo añadirían tiempo.
+    targetTests = [
+            'com.educaflow.base.*',
+            'com.educaflow.system.*',
+            'com.educaflow.subsystem.*',
+    ]
+
+    // El código Kotlin compila comprobaciones de nulidad en cada parámetro (Intrinsics.checkNotNull*):
+    // mutarlas genera mutantes "equivalentes" que ningún test razonable puede matar.
+    avoidCallsTo = ['kotlin.jvm.internal.Intrinsics']
+
+    mutators = ['DEFAULTS']
+    threads = Math.max(1, Runtime.runtime.availableProcessors().intdiv(2))
+    jvmArgs = ['-Xmx1g']
+    outputFormats = ['HTML', 'XML']
+    timestampedReports = false
+    failWhenNoMutations = true
+    verbosity = 'DEFAULT'
+}
 
 tasks.register('injectBuildInfo') {
     description = 'Inyecta rama, fecha y hash de git en axelor-config.properties del build.'
