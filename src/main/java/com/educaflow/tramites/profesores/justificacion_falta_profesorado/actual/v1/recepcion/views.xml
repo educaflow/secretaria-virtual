@@ -40,21 +40,63 @@
     <!-- **********************************************************************************************  -->
     <!-- *********************************** PENDIENTE_PRESENTACION ***********************************  -->
     <!-- **********************************************************************************************  -->
-    <form state="PENDIENTE_PRESENTACION" profile="CREADOR">
+    <form state="PENDIENTE_PRESENTACION" profile="CREADOR" onLoad="exp-JustificacionFaltaProfesoradoV1-PENDIENTE_PRESENTACION-onLoad-action">
         <include-panels>
             -pdfSolicitud
         </include-panels>
+
+        <panel name="firmaSolicitudSituacion" title="" colSpan="12" showFrame="false" readonly="true">
+            <field name="situacionFirma" type="string" showIf="false" readonly="true"/>
+            <field name="firmaEnServidor" type="boolean" showIf="false" readonly="true"/>
+        </panel>
+
+        <panel name="firmaSolicitudSinCertificado" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirma=='SIN_CERTIFICADO'">
+            <help variant="info" colSpan="12" colOffset="0"><![CDATA[Para presentar la solicitud debe tener la aplicación de <a href="https://sede.serviciosmin.gob.es/es-es/firmaelectronica/paginas/autofirma.aspx" target="_blank">AutoFirma</a> instalada y un certificado digital válido]]></help>
+        </panel>
+
+        <panel name="firmaSolicitudDispositivoConPin" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirma=='DISPOSITIVO_CON_PIN'">
+            <help variant="info" colSpan="12" colOffset="0"><![CDATA[La solicitud se firmará en el servidor con su certificado digital.]]></help>
+        </panel>
+
+        <panel name="firmaSolicitudDispositivoSinPin" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirma=='DISPOSITIVO_SIN_PIN'">
+            <help variant="info" colSpan="12" colOffset="0"><![CDATA[La solicitud se firmará en el servidor con su certificado digital. Introduzca el PIN de su dispositivo criptográfico.]]></help>
+            <field name="claveCertificado" title="PIN" widget="password" required="true" colSpan="4"/>
+        </panel>
+
+        <panel name="firmaSolicitudFicheroConClave" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirma=='FICHERO_CON_CLAVE'">
+            <help variant="info" colSpan="12" colOffset="0"><![CDATA[La solicitud se firmará en el servidor con su certificado digital.]]></help>
+        </panel>
+
+        <panel name="firmaSolicitudFicheroSinClave" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirma=='FICHERO_SIN_CLAVE'">
+            <help variant="info" colSpan="12" colOffset="0"><![CDATA[La solicitud se firmará en el servidor con su certificado digital. Introduzca la contraseña de su certificado.]]></help>
+            <field name="claveCertificado" title="Contraseña" widget="password" required="true" colSpan="4"/>
+        </panel>
+
+        <panel name="firmaSolicitudSinDni" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirma=='SIN_DNI'">
+            <help variant="warning" colSpan="12" colOffset="0"><![CDATA[No es posible firmar la solicitud porque su usuario no tiene un documento de identidad. Póngase en contacto con el administrador.]]></help>
+        </panel>
+
         <footer>
             <buttons-left>
                 <button name="BACK" colSpan="2" outline="true" title="Atrás" onClick="subsysExpedientes-event-action"/>
             </buttons-left>
             <buttons-right>
-                <button name="PRESENTAR" colSpan="4" title="Firmar con AutoFirma__!! y Presentar la solicitud" onClick="serial:exp-JustificacionFaltaProfesoradoV1-firmarDocumentacionParaPresentar-action,subsysExpedientes-event-action" prompt="¿Esta seguro que desea presentar la documentación?&lt;br&gt;No podrá deshacer esta acción"/>
+                <button name="PRESENTAR" colSpan="4" title="Firmar con AutoFirma__!! y Presentar la solicitud"
+                        showIf="situacionFirma=='SIN_CERTIFICADO'"
+                        onClick="serial:exp-JustificacionFaltaProfesoradoV1-firmarDocumentacionParaPresentar-action,subsysExpedientes-event-action"
+                        prompt="¿Esta seguro que desea presentar la documentación?&lt;br&gt;No podrá deshacer esta acción"/>
+                <button name="PRESENTAR" colSpan="4" title="Firmar y Presentar la solicitud"
+                        showIf="firmaEnServidor"
+                        onClick="serial:subsysExpedientes-event-action,exp-JustificacionFaltaProfesoradoV1-set-claveCertificado-null-action"
+                        prompt="¿Esta seguro que desea presentar la documentación?&lt;br&gt;No podrá deshacer esta acción"/>
             </buttons-right>
         </footer>
-        <panel title="ayuda" showFrame="false" >
-            <help variant="info" colSpan="12" colOffset="0" >Para presentar la solicitud debe tener la aplicación de AutoFirma instalada y un certificado digital válido</help>
-        </panel>
     </form>
     <form state="PENDIENTE_PRESENTACION">
         <include-panels>
@@ -68,10 +110,27 @@
         </footer>
     </form>
 
+    <action-group name="exp-JustificacionFaltaProfesoradoV1-PENDIENTE_PRESENTACION-onLoad-action">
+        <action name="exp-JustificacionFaltaProfesoradoV1-set-situacionFirma-action"/>
+    </action-group>
+
+    <action-record name="exp-JustificacionFaltaProfesoradoV1-set-situacionFirma-action"
+                   model="com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1">
+        <field name="situacionFirma"
+               expr="call:com.educaflow.tramites.util.firma.FirmaServidorController:getSituacionFirma()"/>
+        <field name="firmaEnServidor"
+               expr="call:com.educaflow.tramites.util.firma.FirmaServidorController:isFirmaEnServidor()"/>
+    </action-record>
+
     <action-method name="exp-JustificacionFaltaProfesoradoV1-firmarDocumentacionParaPresentar-action"  >
         <call
                 class="com.educaflow.subsystem.expedientes.controllers.FirmaController"
-                method='firmarDocumentoEntrada(id,"pdfSolicitud","pdfSolicitudFirmado",100,20,600,100,1)'
+                method='firmarDocumento(id,"pdfSolicitud","pdfSolicitudFirmado",100,20,600,100,1)'
         />
     </action-method>
+
+    <action-record name="exp-JustificacionFaltaProfesoradoV1-set-claveCertificado-null-action"
+                   model="com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1">
+        <field name="claveCertificado" expr="eval: null"/>
+    </action-record>
 </object-views>

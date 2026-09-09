@@ -4,7 +4,7 @@ Define **el formato de las vistas de un tipo de expediente y las reglas que el d
 
 Lo lee, según su rol: el **diseñador** (aplica §1–§7 al escribir cada `views.xml` y pasa §8), el **juez** y el **enriquecedor** (criterios sobre vistas al comparar diseños), el **verificador** (reaplica §4 y §8), el **corrector** (ajusta cada corrección a la regla incumplida), y los roles de tests (para saber por qué botón se dispara cada evento).
 
-> **REQUIRED — coherencia con `k-tipo-expediente`.** Este fichero **resume** reglas cuya fuente de verdad es el skill `k-tipo-expediente` (`vistas.md` y `SKILL.md` §3.3). Si se cambia algo aquí o allí, **MUST** mantenerse sincronizados.
+> **REQUIRED — coherencia con `k-tipo-expediente`.** Este fichero **resume** reglas cuya fuente de verdad es el skill `k-tipo-expediente`. Si se cambia algo aquí o allí, **MUST** mantenerse sincronizados.
 
 ---
 

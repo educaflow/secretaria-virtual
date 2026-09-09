@@ -59,7 +59,7 @@ Para cada parte de Axelor se han creado conjuntos de Skills:
 - secure-coding (`k-secure-coding`) → reglas de codificación segura: mass-assignment, `AllowProperties` por acción, asignación incondicional de campos `servidor` en `*ServiceImpl.insert/update`, multi-centro/IDOR, JPQL, log injection, adjuntos, secretos (**cómo** se escribe el código para que la seguridad del negocio no se pueda saltar). **CRITICAL**: aplicación obligatoria en cualquier modificación de código que toque entidades, servicios o controladores.
 - acciones (`k-vistas`, fichero `actions.md`, y `k-sistemas`, fichero `controladores.md`) → para todo lo relacionado con acciones (action-views, controllers, etc.)
 - trámites (`k-tramite`) → alta y mantenimiento de un trámite: la carpeta `tramites/<tramite>/`, el fichero maestro `TramiteInstance.xml`, i18n del nombre y permisos.
-- tipos de expediente (`k-tipo-expediente`) → todo lo que hay dentro de una carpeta de versión `tramites/<tramite>/<vN>/`: `TipoExpedienteInstance.xml` con sus **fases** y la máquina de estados, modelo (`modelo.md`), `PhaseEventManager` (`phaseeventmanager.md`), `StateEventValidator` (`validator.md`), vistas preprocesadas (`vistas.md`), documentos PDF de `documentospdf/` (`documentos.md`) y cómo duplicar un tipo para crear una versión nueva (`versionado.md`). Consúltalo siempre que toques cualquier fichero bajo una carpeta de versión.
+- tipos de expediente (`k-tipo-expediente`) → todo lo que hay dentro de una carpeta de versión `tramites/<tramite>/<vN>/`: el `TipoExpedienteInstance.xml` con sus **fases** y la máquina de estados, el modelo, el `PhaseEventManager`, el `StateEventValidator`, las vistas preprocesadas, los documentos PDF de `documentospdf/` y las recetas (firmar, presentar por registro de entrada, versionar). Su `SKILL.md` indexa sus ficheros. Consúltalo siempre que toques cualquier fichero bajo una carpeta de versión.
   Los estados se agrupan en **fases** (solo una agrupación de ficheros, no una entidad del dominio), cada una con su subcarpeta `<vN>/<fase en minúsculas>/`.
   Un estado se identifica por la pareja `(codePhase, codeState)`, que son dos columnas del expediente; no existe ningún nombre compuesto. La máquina de estados de cada tipo es la clase `States` que la tarea `GenerateStatesTask` proyecta de su `TipoExpedienteInstance.xml` en `build/src-gen-states/main/java`: es **generada**, no se versiona ni se edita, y en código un estado se nombra por su constante en el enum de la fase, con la fase en UpperCamelCase: `States.Recepcion.ENTRADA_DATOS`.
 
@@ -96,7 +96,7 @@ Las **convenciones verificables de las vistas Axelor** (los XML bajo `**/views/*
 Los tests de `src/test/java/com/educaflow/tiposexpedientes` comprueban que lo que se escribe a mano en un tipo de expediente y en cada una de sus fases concuerda con su `TipoExpedienteInstance.xml` y con su `domains.xml`.
 **A diferencia de las dos familias anteriores, estos tests se escriben A MANO**: los `.java` son la fuente de verdad y se editan directamente.
 **MUST NOT** crear un `agent_docs/*-rules.md` ni un skill generador para ellos.
-Qué comprueba cada regla, y cómo están construidos, está en el skill `k-tipo-expediente` (`SKILL.md` §3.3, `phaseeventmanager.md` §7, `validator.md` §5), que **debe mantenerse coherente con estos tests**.
+Qué comprueba cada regla, y cómo están construidos, está en el skill `k-tipo-expediente`, que **debe mantenerse coherente con estos tests**.
 
 
 

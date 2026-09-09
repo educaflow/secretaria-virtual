@@ -76,21 +76,34 @@ data class FieldValidationRules(val methodField:KFunction<*>, val validationRule
 
 
 private fun getLabel(clazz: Class<*>, nombreCampo: String): String {
-    try {
-        var label:String;
-        val field: Field = clazz.getDeclaredField(nombreCampo)
-        if (field.isAnnotationPresent(Widget::class.java)) {
-            val widget: Widget = field.getAnnotation(Widget::class.java)
-            label=widget.title ?: TextUtil.humanize(nombreCampo)
-        } else {
-            label=TextUtil.humanize(nombreCampo)
-        }
+    val field: Field = findField(clazz, nombreCampo)
+        ?: throw IllegalArgumentException("El campo '$nombreCampo' no existe en la clase ${clazz.simpleName} ni en sus superclases")
 
-        return I18n.get(label)
-
-    } catch (e: NoSuchFieldException) {
-        throw IllegalArgumentException("El campo '$nombreCampo' no existe en la clase ${clazz.simpleName}", e)
+    val label: String = if (field.isAnnotationPresent(Widget::class.java)) {
+        val widget: Widget = field.getAnnotation(Widget::class.java)
+        widget.title ?: TextUtil.humanize(nombreCampo)
+    } else {
+        TextUtil.humanize(nombreCampo)
     }
+
+    return I18n.get(label)
+}
+
+/**
+ * Busca el campo en la clase y, si no está declarado en ella, en sus superclases.
+ * `Class.getDeclaredField` solo ve los campos declarados directamente en la clase,
+ * así que un campo heredado (p. ej. uno de `Expediente` validado desde un tipo de expediente) no se encontraría.
+ */
+private fun findField(clazz: Class<*>, nombreCampo: String): Field? {
+    var currentClass: Class<*>? = clazz
+    while (currentClass != null && currentClass != Any::class.java) {
+        try {
+            return currentClass.getDeclaredField(nombreCampo)
+        } catch (e: NoSuchFieldException) {
+            currentClass = currentClass.superclass
+        }
+    }
+    return null
 }
 
 

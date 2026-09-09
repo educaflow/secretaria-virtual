@@ -26,16 +26,6 @@
         <many-to-one name="pdfSolicitudFirmado" title="PDF de la solicitud" ref="com.axelor.meta.db.MetaFile" />
         <many-to-one name="pdfJustificanteRegistroEntrada" title="Justificante del registro de entrada" ref="com.axelor.meta.db.MetaFile" />
         <many-to-one name="pdfResolucion" title="Resolución" ref="com.axelor.meta.db.MetaFile" />
-
-        <!-- La clave sí es un campo del modelo: es un valor que viaja del cliente al servidor, y la
-             whitelist del evento (AllowProperties, que sale de los field(...) del StateEventValidatorImpl)
-             solo puede dejar entrar propiedades que existan.
-             La situación de firma, en cambio, NO está aquí: solo viaja del servidor al cliente para decidir
-             qué panel se pinta, así que es un campo de vista que rellena en el onLoad el controlador
-             FirmaServidorController. El servidor no la lee nunca del formulario: la recalcula del
-             DNI cada vez que la necesita. -->
-        <string name="claveFirma" title="Firma de la solicitud" transient="true" password="true"
-                help="Contraseña del fichero del certificado o PIN del dispositivo criptográfico que teclea quien firma la solicitud, en el momento de presentarla. Nunca se persiste ni se devuelve al cliente."/>
         <extra-code-model>
         <![CDATA[
 

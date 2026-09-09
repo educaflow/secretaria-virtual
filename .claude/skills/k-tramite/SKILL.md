@@ -22,7 +22,7 @@ src/main/java/com/educaflow/tramites/[<agrupacion>/…]<nombre_tramite>/   ← s
 ├── TramiteInstance.xml          ← fichero maestro (lo escribes tú)
 ├── i18n_es.csv / i18n_ca.csv    ← i18n del nombre del trámite (los genera el build, MUST NOT crearlos a mano)
 ├── [<agrupacion>/…]v1/          ← primera versión (tipo de expediente) → k-tipo-expediente
-└── [<agrupacion>/…]v2/          ← versiones siguientes → k-tipo-expediente (versionado.md)
+└── [<agrupacion>/…]v2/          ← versiones siguientes → k-tipo-expediente (receta de versionado)
 ```
 
 Los dos `[<agrupacion>/…]` son opcionales y de profundidad libre: son **solo carpetas de agrupación**, sin significado para el generador, que busca los `TramiteInstance.xml` y las carpetas de versión **recursivamente** (§4).

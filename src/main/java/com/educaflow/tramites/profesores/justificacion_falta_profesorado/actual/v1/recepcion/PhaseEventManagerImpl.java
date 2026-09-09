@@ -5,6 +5,8 @@ import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
+import com.educaflow.base.util.SecurityUtil;
+import com.educaflow.tramites.util.firma.FirmaServidorHelper;
 import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
 import com.educaflow.subsystem.expedientes.services.eventmanager.OnEnterState;
 import com.educaflow.subsystem.expedientes.services.eventmanager.State;
@@ -16,6 +18,8 @@ import com.educaflow.subsystem.firmas.service.TareaFirmaInsertDTO;
 import com.educaflow.subsystem.firmas.service.TareaFirmaService;
 import com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.States;
 
+import com.educaflow.subsystem.criptografia.service.SituacionFirma;
+import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper;
 import com.educaflow.subsystem.firmas.db.TareaFirma;
 import com.educaflow.subsystem.firmas.service.TareaFirmaNotifier;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada;
@@ -29,6 +33,16 @@ import java.util.List;
 
 public class PhaseEventManagerImpl extends com.educaflow.subsystem.expedientes.services.eventmanager.PhaseEventManager<JustificacionFaltaProfesoradoV1> implements TareaFirmaNotifier {
 
+    /**
+     * Recuadro en el que se estampa la firma de la solicitud. Es exactamente el que la {@code <action-method>}
+     * de AutoFirma pasa a {@code firmarDocumento}, para que la firma caiga en el mismo sitio se firme
+     * en el equipo del profesor o en el servidor.
+     */
+    private static final Rectangulo POSICION_FIRMA_SOLICITUD = new Rectangulo(100, 20, 600, 100);
+
+    /** Página en la que se estampa la firma de la solicitud; la misma que usa AutoFirma. */
+    private static final int PAGINA_FIRMA_SOLICITUD = 1;
+
     private final JustificacionFaltaProfesoradoV1Repository repository;
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -37,6 +51,9 @@ public class PhaseEventManagerImpl extends com.educaflow.subsystem.expedientes.s
 
     @Inject
     ModelServiceFactory modelServiceFactory;
+
+    @Inject
+    FirmaServidorHelper firmaServidorHelper;
 
     @Inject
     public PhaseEventManagerImpl(JustificacionFaltaProfesoradoV1Repository repository) {
@@ -76,16 +93,13 @@ public class PhaseEventManagerImpl extends com.educaflow.subsystem.expedientes.s
     }
     @WhenEvent
     public void triggerBack(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, JustificacionFaltaProfesoradoV1 original, EventContext eventContext) throws BusinessException {
-        //El codeState ya no lleva la fase, así que el estado se resuelve con la pareja de columnas.
-        //Como aquí el tipo de expediente se conoce en compilación, se pregunta directamente a su
-        //States.INSTANCE en vez de pasar por la entidad.
+        justificacionFaltaProfesorado.setClaveCertificado(null);
+
         State state = States.INSTANCE
                 .getState(justificacionFaltaProfesorado.getCodePhase(), justificacionFaltaProfesorado.getCodeState())
                 .orElseThrow(() -> new IllegalArgumentException("State no reconocido: "
                         + justificacionFaltaProfesorado.getCodePhase() + "/" + justificacionFaltaProfesorado.getCodeState()));
 
-        //Solo los estados de esta fase: el evento lo atiende el PhaseEventManager de la fase en la que
-        //está el expediente, así que aquí nunca llega un estado de TRAMITACION.
         switch (state) {
             case States.Recepcion.PENDIENTE_PRESENTACION:
                 eventContext.updateState( States.Recepcion.ENTRADA_DATOS);
@@ -97,11 +111,28 @@ public class PhaseEventManagerImpl extends com.educaflow.subsystem.expedientes.s
     }
     @WhenEvent
     public void triggerPresentar(JustificacionFaltaProfesoradoV1 exp, JustificacionFaltaProfesoradoV1 original, EventContext eventContext) throws BusinessException {
-        RegistroEntrada registroEntrada = eventContext.createRegistroEntrada(exp.getPdfSolicitudFirmado(), List.of(exp.getJustificante()));
-        exp.setPdfJustificanteRegistroEntrada(registroEntrada.getDocumentoResguardoPresentacion());
-        eventContext.updateState(States.Tramitacion.PENDIENTE_RESOLUCION);
-        exp.setDisconformidad(null);
-        exp.setResolucion(null);
+        String dniFirmante = SecurityUtil.getUser().getDni();
+        SituacionFirma situacionFirma = CertificadoDigitalHelper.getSituacionFirmaByDni(dniFirmante);
+
+        try {
+            if (situacionFirma.isFirmaEnServidor()) {
+                exp.setPdfSolicitudFirmado(firmaServidorHelper.firmarEnServidor(
+                        dniFirmante,
+                        situacionFirma,
+                        exp.getClaveCertificado(),
+                        exp.getPdfSolicitud(),
+                        POSICION_FIRMA_SOLICITUD,
+                        PAGINA_FIRMA_SOLICITUD));
+            }
+
+            RegistroEntrada registroEntrada = eventContext.createRegistroEntrada(exp.getPdfSolicitudFirmado(), List.of(exp.getJustificante()));
+            exp.setPdfJustificanteRegistroEntrada(registroEntrada.getDocumentoResguardoPresentacion());
+            eventContext.updateState(States.Tramitacion.PENDIENTE_RESOLUCION);
+            exp.setDisconformidad(null);
+            exp.setResolucion(null);
+        } finally {
+            exp.setClaveCertificado(null);
+        }
     }
 
 

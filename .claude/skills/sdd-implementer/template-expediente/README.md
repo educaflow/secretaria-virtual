@@ -200,13 +200,7 @@ Los skills técnicos que necesita el **implementador** van **por tarea**, listad
 | Skill | Qué aporta | Cuándo |
 |---|---|---|
 | `k-tramite` | La carpeta `<tramite>/`, el `TramiteInstance.xml`, la i18n del nombre y los permisos para poder crear expedientes del trámite | Tarea del `TramiteInstance.xml` |
-| `k-tipo-expediente` (`SKILL.md`) | Todo lo que hay dentro de una carpeta de versión: el `TipoExpedienteInstance.xml`, las fases, la máquina de estados, `CreateFilesTask` y la clase `States` generada | **Todas** las tareas bajo la carpeta de versión |
-| `k-tipo-expediente` → `modelo.md` | El `domains.xml`: entidad, `extends="Expediente"`, enums sufijados, `<extra-code-model>` | Tarea del `domains.xml` |
-| `k-tipo-expediente` → `phaseeventmanager.md` | `InitialEventManagerImpl` y `PhaseEventManagerImpl`: `@WhenEvent`, `@OnEnterState`, `EventContext`, PDFs, firmas, registros | Tareas de `.java` |
-| `k-tipo-expediente` → `validator.md` | `StateEventValidatorImpl`: `@BeanValidationRulesForStateAndEvent`, el DSL `rules { }` y la frontera de confianza | Tareas de `.kt` |
-| `k-tipo-expediente` → `vistas.md` | El `views.xml` de la raíz (form plantilla) y los `views.xml` de fase (`<include-panels>`, `<footer>`) | Tareas de vistas |
-| `k-tipo-expediente` → `documentos.md` | El formato XML de `documentospdf/`, fragmentos, `colspan`, castellano/valenciano | Tarea de `documentospdf/` |
-| `k-tipo-expediente` → `versionado.md` | Cómo duplicar un tipo para crear una versión nueva y las trampas del `import` de `States` | Tarea de una versión `<vN>` con `N > 1` |
+| `k-tipo-expediente` | Todo lo que hay dentro de una carpeta de versión: el `TipoExpedienteInstance.xml`, las fases, la máquina de estados, `CreateFilesTask` y la clase `States` generada; el `domains.xml`; `InitialEventManagerImpl` y `PhaseEventManagerImpl`; `StateEventValidatorImpl` y la frontera de confianza; el `views.xml` de la raíz y los de fase; el formato XML de `documentospdf/`; y las recetas (firmar, presentar por registro de entrada, versionar). Su `SKILL.md` indexa el fichero que toca en cada caso | **Todas** las tareas bajo la carpeta de versión |
 | `k-validaciones` | En qué capa vive cada `RES-`/`VAL-`/`RN-`/`RUI-`/`CC-` | Tareas de `domains.xml` y de `.kt` |
 | `k-secure-coding` | Mass-assignment, `AllowProperties` por evento, campos que solo dicta el servidor, multi-centro/IDOR | **CRITICAL** — toda tarea de `.java`, `.kt` o `domains.xml` |
 | `k-i18n` | `I18n.get(...)`, el sufijo `__!!`, cómo se traducen títulos y mensajes | Tareas con mensajes visibles al usuario |

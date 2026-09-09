@@ -49,7 +49,7 @@ En el atributo `state` va el **nombre del estado** tal cual, igual que en el `Ti
 - El esqueleto genera dos **cáscaras idénticas y vacías** por estado (`<include-panels>` sin paneles y un único `<button name="">` sin rellenar en cada una): no distingue cuál es cuál, eso lo escribes tú — la del perfil dueño editable y la genérica de solo lectura. Es justo ese esqueleto sin rellenar el que caza el test Y1 (`SKILL.md` §3.3).
   Además, la del perfil **solo se genera si el estado declara `profile`**; en un estado sin `profile` el esqueleto trae solo la genérica.
 - **MUST** ser un estado **de la propia fase**: si pones el `state` de un estado de otra fase, el build falla diciéndolo. Los formularios de un estado van siempre en el `views.xml` de su fase.
-- El `profile` del form es el del **actor que mira la vista**, no necesariamente el del estado: un `<form state="X" profile="Y">` con `Y` distinto del `profile` de `X` es legítimo y el build lo admite (hay listados que abren con perfil `RESPONSABLE` expedientes en estados de perfil `CREADOR`). Lo que **MUST** cumplir es estar en la **unión de perfiles del tipo** — los que usa algún estado del `TipoExpedienteInstance.xml` —; si no, el build falla ("El perfil '…' no lo usa ningún estado de …"), porque esa vista no se pintaría nunca (§11).
+- El `profile` del form es el del **actor que mira la vista**, no necesariamente el del estado: un `<form state="X" profile="Y">` con `Y` distinto del `profile` de `X` es legítimo y el build lo admite (hay listados que abren con perfil `RESPONSABLE` expedientes en estados de perfil `CREADOR`). Lo que **MUST** cumplir es estar en la **unión de perfiles del tipo** — los que usa algún estado del `TipoExpedienteInstance.xml` —; si no, el build falla ("El perfil '…' no lo usa ningún estado de …"), porque esa vista no se pintaría nunca (§10).
 - **MUST NOT** haber dos forms de la misma fase con el mismo `(state, profile)`: producen el mismo `name` de vista y el segundo tapa al primero en silencio. Lo caza el test Y3 (`SKILL.md` §3.3).
 
 ## 3. `<include-panels>`
@@ -97,6 +97,8 @@ Los forms de estado heredan los atributos del form plantilla. Declarar un atribu
 
 Un form de estado puede llevar además paneles Axelor normales (fuera de `<include-panels>`): el expediente real añade tras el footer un `<panel showFrame="false">` con un `<help variant="info">` de ayuda.
 
+La pantalla del estado en que el usuario firma y presenta un documento (campos de vista rellenados en el `onLoad`, un panel por situación de firma y los dos botones `PRESENTAR`) está en la receta `recetas/firma.md` §1.3.
+
 Dentro de los paneles de la plantilla, los `<field>` admiten los atributos Axelor normales; los que se ven en los trámites reales: `widget="SwitchSelect"` (con `x-direction="vertical"`), `showIf`/`hideIf` por valor de otro campo, `widget="binary-link"` con `x-accept=".pdf"` para restringir el tipo de fichero subido, `<help variant="info">` condicionales con `showIf`, y en campos de referencia `grid-view`/`form-view`/`domain`/`onChange` (las `action-record`/`action-method` propias se declaran en el mismo `views.xml`).
 
 ## 7. Paneles gemelos `-view` para el modo lectura
@@ -132,26 +134,10 @@ Para mostrar un campo `many-to-one` a `MetaFile`, panel con un field *dummy* cuy
 </panel>
 ```
 
-## 10. Patrón: botón de firma con AutoFirma
-
-`<action-method>` declarada en el `views.xml` de la fase que la usa (los nombres de acción también son globales, y ponerla junto a su botón es lo que hace que copiar la fase se lleve todo) que llama al controlador genérico de firmas, encadenada con `serial:` **antes** del evento:
-
-```xml
-<action-method name="exp-<Code>-firmarDocumentacionParaPresentar-action">
-    <call class="com.educaflow.subsystem.expedientes.controllers.FirmaController"
-          method='firmarDocumento(id,"pdfSolicitud","pdfSolicitudFirmado",100,20,600,100,1)'/>
-</action-method>
-...
-<button name="PRESENTAR" title="Firmar con AutoFirma__!! y Presentar la solicitud"
-        onClick="serial:exp-<Code>-firmarDocumentacionParaPresentar-action,subsysExpedientes-event-action"/>
-```
-
-`firmarDocumento(id, campoOrigen, campoDestino, x, y, ancho, alto, página)` lanza AutoFirma sobre el MetaFile del campo origen, deja el firmado en el destino y exige firmar con el DNI del **usuario autenticado** (revienta con `RuntimeException` si ese usuario no tiene DNI válido). Las otras dos piezas del patrón: `modelo.md` §4 y `validator.md` §4.
-
-## 11. Comprobaciones del build y trampas
+## 10. Comprobaciones del build y trampas
 
 - **MUST** haber exactamente un form plantilla que case con `exp-<Code>-Templates` en el `views.xml` de la raíz de la versión. Dos o más → error claro; **cero** → error explícito al preprocesar el `views.xml` de cualquier fase. El patrón se evalúa como substring y el `<Code>` no puede llevar guiones ni underscores.
-- El `<Code>` de ese form plantilla **MUST** ser el del **propio tipo**, no el de otro. Es la comprobación que caza el `<Code>` que se queda sin actualizar al duplicar una versión (`versionado.md`), que si no seguiría casando el patrón y compilando.
+- El `<Code>` de ese form plantilla **MUST** ser el del **propio tipo**, no el de otro. Es la comprobación que caza el `<Code>` que se queda sin actualizar al duplicar una versión (`recetas/versionado.md`), que si no seguiría casando el patrón y compilando.
 - El `profile` de cualquier `<form>` **MUST** estar en la **unión de perfiles del tipo** (los que usa algún estado de su `TipoExpedienteInstance.xml`); si no, el build falla porque esa vista no se pintaría nunca. Ojo: se valida contra la unión del tipo, **no** contra el `profile` del estado del propio form (§2).
 - La carpeta de un `views.xml` con `<form state=...>` **MUST** corresponder a una fase declarada en el `TipoExpedienteInstance.xml` (el nombre de la fase en minúsculas). Si no, el build dice qué fases hay.
 - Un `views.xml` con `<form state=...>` **MUST NOT** estar en la raíz de la versión: ahí solo va el form plantilla.
@@ -159,7 +145,7 @@ Para mostrar un campo `many-to-one` a `MetaFile`, panel con un field *dummy* cuy
 - El preprocesador re-escribe **todas** las vistas en la copia al build (re-indentado); no afecta al fuente.
 - **CRITICAL — un `<object-views>` sin ningún elemento hijo tumba el arranque de la aplicación**, y el build **no lo detecta**: la validación contra el XSD la hace el `ViewLoader` de Axelor al arrancar, no `./gradlew build`. El síntoma es "The content of element 'object-views' is not complete" y, como aborta `AppStartup`, la aplicación queda en pie pero **sin vistas, sin menús y sin data-init** — parece que "no se ha cargado nada" en lugar de señalar el fichero. Los comentarios XML no cuentan como contenido: si dejas un `views.xml` de fase con todos sus forms comentados, está vacío a efectos del XSD. En ese caso, o le dejas al menos un elemento válido, o borras el fichero.
 
-## 12. Anti-patrones
+## 11. Anti-patrones
 
 - **MUST NOT** aplicar aquí las reglas VAR de `view-rules.md` ni los tests de vistas: este formato está excluido.
 - **MUST NOT** usar `includeHeader` (se ignora): el atributo real es `header`.

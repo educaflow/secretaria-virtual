@@ -24,9 +24,13 @@ Entidad JPA del expediente de esta versión. Va en la **raíz de la carpeta de v
 
 ## 2. Campos heredados de `Expediente`
 
-No los redeclares (fuente de verdad: `subsystem/expedientes/domains/Expediente.xml`): `tipoExpediente`, `name`, `numeroExpediente`, `codePhase`/`namePhase`/`codeState`/`nameState`, `fechaUltimoEstado`, `abierto`, `historialEstados`, `centro`, `usuarioRegistrador`, `personaSolicitante` y `personaInteresada` (ambas `Persona`).
+No los redeclares (fuente de verdad: `subsystem/expedientes/domains/Expediente.xml`): `tipoExpediente`, `name`, `numeroExpediente`, `codePhase`/`namePhase`/`codeState`/`nameState`, `fechaUltimoEstado`, `abierto`, `historialEstados`, `centro`, `usuarioRegistrador`, `personaSolicitante` y `personaInteresada` (ambas `Persona`) y `claveCertificado`.
 
 `codePhase` y `codeState` guardan la pareja que identifica al estado (`SKILL.md` §1.5); `namePhase` y `nameState` guardan sus textos visibles (el `title` de la fase y el del estado, o sus `name` humanizados), que son los que ve el usuario en los listados.
+
+`claveCertificado` es el campo **transient** (`password="true"`) para las firmas: en él teclea quien firma la clave de su certificado (contraseña del fichero o PIN del dispositivo criptográfico) cuando el documento se firma en el servidor. Nunca se persiste ni se devuelve al cliente.
+
+- Cómo se usa (vista, validator y trigger) está en la receta `recetas/firma.md` §1. Lo único que importa aquí: **MUST NOT** redeclararlo en el `domains.xml` del tipo, y la **situación de firma** (qué panel se pinta) **MUST NOT** ser un campo de la entidad, es un campo de vista.
 
 ## 3. Enums propios
 
@@ -50,7 +54,7 @@ Cada PDF que el expediente guarde es un `many-to-one` a `com.axelor.meta.db.Meta
 <many-to-one name="pdfResolucion" title="Resolución" ref="com.axelor.meta.db.MetaFile" />
 ```
 
-- Para la firma del usuario con AutoFirma se necesita el **par** original/firmado (`pdfSolicitud`/`pdfSolicitudFirmado`) — ver `phaseeventmanager.md` §6.5.
+- Para que el usuario firme un documento se necesita el **par** original/firmado (`pdfSolicitud`/`pdfSolicitudFirmado`): receta `recetas/firma.md` §1.2.
 - Guardar los documentos sellados que devuelven los registros de entrada/salida también requiere su campo (`pdfJustificanteRegistroEntrada`, `pdfResolucion`).
 
 ## 5. `<extra-code-model>` — generado, no editar

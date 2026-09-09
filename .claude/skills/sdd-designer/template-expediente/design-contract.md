@@ -6,7 +6,7 @@ Lo lee, según su rol: el **diseñador** (produce el diseño completo en su carp
 
 El contrato de las vistas vive aparte, en `vistas.md`.
 
-> **REQUIRED — coherencia con los skills técnicos.** Este contrato **resume** reglas cuya fuente de verdad son `k-tramite`, `k-tipo-expediente` (`SKILL.md`, `modelo.md`, `phaseeventmanager.md`, `validator.md`, `vistas.md`, `documentos.md`, `versionado.md`), `k-validaciones`, `k-datainit` y `k-secure-coding`. Solo el diseñador carga esos skills; los demás roles solo ven este contrato. Si se cambia algo aquí o allí, **MUST** mantenerse sincronizados.
+> **REQUIRED — coherencia con los skills técnicos.** Este contrato **resume** reglas cuya fuente de verdad son `k-tramite`, `k-tipo-expediente` (entero, con todos los ficheros que indexa su `SKILL.md`), `k-validaciones`, `k-datainit` y `k-secure-coding`. Solo el diseñador carga esos skills; los demás roles solo ven este contrato. Si se cambia algo aquí o allí, **MUST** mantenerse sincronizados.
 
 ---
 
@@ -411,14 +411,14 @@ Inventario mínimo (rutas relativas a `src/main/java/com/educaflow/tramites/`, s
 |---|---|---|
 | `<tramite>/TramiteInstance.xml` | Crear | `k-tramite` |
 | `<tramite>/…/<vN>/TipoExpedienteInstance.xml` | Crear | `k-tipo-expediente` |
-| `<tramite>/…/<vN>/domains.xml` | Crear | `k-tipo-expediente` (`modelo.md`) |
-| `<tramite>/…/<vN>/InitialEventManagerImpl.java` | Crear | `k-tipo-expediente` (`phaseeventmanager.md`) |
-| `<tramite>/…/<vN>/views.xml` | Crear | `k-tipo-expediente` (`vistas.md`) |
+| `<tramite>/…/<vN>/domains.xml` | Crear | `k-tipo-expediente` |
+| `<tramite>/…/<vN>/InitialEventManagerImpl.java` | Crear | `k-tipo-expediente` |
+| `<tramite>/…/<vN>/views.xml` | Crear | `k-tipo-expediente` |
 | `<tramite>/…/<vN>/estados.puml` | Crear | `k-tipo-expediente` |
-| `<tramite>/…/<vN>/<fase>/PhaseEventManagerImpl.java` | Crear | `k-tipo-expediente` (`phaseeventmanager.md`) |
-| `<tramite>/…/<vN>/<fase>/StateEventValidatorImpl.kt` | Crear | `k-tipo-expediente` (`validator.md`), `k-secure-coding` |
-| `<tramite>/…/<vN>/<fase>/views.xml` | Crear | `k-tipo-expediente` (`vistas.md`) |
-| `<tramite>/…/<vN>/documentospdf/<doc>.xml` | Crear | `k-tipo-expediente` (`documentos.md`) |
+| `<tramite>/…/<vN>/<fase>/PhaseEventManagerImpl.java` | Crear | `k-tipo-expediente` |
+| `<tramite>/…/<vN>/<fase>/StateEventValidatorImpl.kt` | Crear | `k-tipo-expediente`, `k-secure-coding` |
+| `<tramite>/…/<vN>/<fase>/views.xml` | Crear | `k-tipo-expediente` |
+| `<tramite>/…/<vN>/documentospdf/<doc>.xml` | Crear | `k-tipo-expediente` |
 | `src/main/resources/data-demo/input/permisos-demo.xml` | **Modificar** | `k-datainit` |
 
 Las tres filas de fase se repiten **por cada fase**; la de `documentospdf` **por cada documento y fragmento**. Si el tipo no genera PDFs, esas filas no existen.

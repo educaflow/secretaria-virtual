@@ -18,7 +18,7 @@ La lista de campos con reglas define **qué propiedades puede enviar el cliente 
 package com.educaflow.tramites.mi_tramite.v1.recepcion
 
 import com.educaflow.subsystem.expedientes.db.MiTramiteV1 as model
-// Recomendado: alias también para los enums — minimiza el diff entre versiones (versionado.md)
+// Recomendado: alias también para los enums — minimiza el diff entre versiones (recetas/versionado.md)
 import com.educaflow.subsystem.expedientes.db.TipoPeriodoMiTramiteV1 as TipoPeriodo
 
 class StateEventValidatorImpl : StateEventValidator {
@@ -69,22 +69,13 @@ Las reglas (`ValidationRule`) están en `com.educaflow.base.infrastructure.valid
 | `FileMaxSize(n, SizeUnit.MB)` | Tamaño máximo de un `MetaFile` |
 | `FileName("^...$")` | Regex sobre el nombre de fichero de un `MetaFile` |
 | `ifValueIn(model::getCampo, listOf(...)) { +... }` *(DSL, paquete `...validation.dsl`)* | Reglas condicionales según el valor de otro campo; su negación es `ifValueNotIn` |
-| `FirmaPdf(model::getOriginal)` | §4 |
+| `ifSituacionFirma(...) { +... }`, `ClaveCertificadoValida()`, `FirmaPdf(model::getOriginal)` | Firma de un documento por el usuario; §4 → `recetas/firma.md` §1.4 |
 
 La tabla es un resumen de uso, no un inventario cerrado: la **fuente de verdad** es el contenido del paquete `...validation.rules` (un fichero `*Rules.kt` por familia). Antes de inventarte una regla, mira si ya existe ahí.
 
-## 4. `FirmaPdf` — validar la firma de AutoFirma en servidor
+## 4. Firma de un documento por el usuario
 
-`FirmaPdf(original)` sobre el campo del PDF firmado valida que lo subido es el original firmado con AutoFirma por el **usuario autenticado**, que es siempre quien firma (el DNI se lee de él, nunca del bean):
-
-```kotlin
-field(model::getPdfSolicitudFirmado) {
-    +Required()
-    +FirmaPdf(model::getPdfSolicitud)
-}
-```
-
-Comprueba: exactamente una firma nueva, certificado en la lista de confiables, que no es sello de tiempo, texto plano del PDF idéntico al original, y DNI del certificado coincidente. Es la tercera pieza del patrón AutoFirma (`phaseeventmanager.md` §6.5).
+Las reglas del evento que presenta un documento firmado por el usuario (`ifSituacionFirma`, `ClaveCertificadoValida`, `FirmaPdf`) están en la receta `recetas/firma.md` §1.4, junto con el resto de piezas del patrón. **MUST** seguirla entera: son dos `field(...)` con dos ramas complementarias, no una regla suelta.
 
 ## 5. Los tests que comprueban el validator
 

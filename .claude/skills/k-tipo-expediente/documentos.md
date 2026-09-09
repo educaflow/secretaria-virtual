@@ -109,7 +109,7 @@ Para compartir partes comunes entre documentos (del mismo trámite o de varios):
 - El generador sustituye cada `<include>` por **los hijos de la raíz** del fragmento, recursivamente (un fragmento puede incluir otros fragmentos). El `href` se resuelve relativo al fichero que lo incluye. Un ciclo de includes aborta con ERROR.
 - Se valida contra el XSD cada fichero por separado **y** el documento ya expandido. Las letras de sección (A, B, C…) se asignan sobre el documento expandido.
 - Cambiar un fragmento regenera en el build los PDF de todos los documentos que lo incluyen, directa o transitivamente.
-- **CRITICAL para el versionado**: si un fragmento contiene expresiones Groovy con FQCN de enums versionados (`...TipoPeriodoMiTramiteV1.PERIODO_COMPLETO`), esas referencias cambian en cada versión nueva (`versionado.md`).
+- **CRITICAL para el versionado**: si un fragmento contiene expresiones Groovy con FQCN de enums versionados (`...TipoPeriodoMiTramiteV1.PERIODO_COMPLETO`), esas referencias cambian en cada versión nueva (`recetas/versionado.md`).
 
 ```xml
 <documento ...>

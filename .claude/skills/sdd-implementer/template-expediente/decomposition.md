@@ -82,7 +82,7 @@ El `<texto del prompt>` de esa tarea **MUST** declarar, además del texto verbat
 
 ## 3. Determinar los skills de cada tarea
 
-Los skills salen de la columna `Skill` de la tabla `## 6` del `design.md` para los ficheros de esa tarea, **normalizados al nombre real del skill** (ignora las anotaciones entre paréntesis tipo `(modelo.md)`, pero **conserva** la referencia al fichero concreto dentro del texto de la tarea, porque le dice al implementador qué leer).
+Los skills salen de la columna `Skill` de la tabla `## 6` del `design.md` para los ficheros de esa tarea, **normalizados al nombre real del skill**.
 
 Mínimos obligatorios por tipo de tarea (añádelos aunque la tabla no los liste):
 
@@ -100,8 +100,8 @@ Mínimos obligatorios por tipo de tarea (añádelos aunque la tabla no los liste
 
 - **CRITICAL** — `k-secure-coding` va en **toda** tarea que toque la entidad, un `trigger*` o el validador: el `StateEventValidatorImpl` no es solo un validador, es la **lista de campos que el cliente puede dictar** en ese evento.
 - Añade `k-i18n` a cualquier tarea cuyo texto del diseño incluya mensajes, títulos o textos visibles al usuario.
-- Añade `k-tipo-expediente` (`versionado.md`) a las tareas de una versión `<vN>` con `N > 1`.
-- **MUST NOT** añadirse `k-vistas` a las tareas de vistas de un tipo de expediente: sus vistas son **preprocesadas** y están **excluidas** de `k-vistas` y de `agent_docs/view-rules.md`. La referencia correcta es `k-tipo-expediente` (`vistas.md`).
+- Las tareas de una versión `<vN>` con `N > 1` siguen la receta de versionado de `k-tipo-expediente`.
+- **MUST NOT** añadirse `k-vistas` a las tareas de vistas de un tipo de expediente: sus vistas son **preprocesadas** y están **excluidas** de `k-vistas` y de `agent_docs/view-rules.md`. La referencia correcta es `k-tipo-expediente`.
 
 ---
 

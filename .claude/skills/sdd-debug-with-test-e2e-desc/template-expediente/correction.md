@@ -37,7 +37,7 @@ Lo lee el **corrector** (§3.3 del `README.md`). Tarea: ante un test que falla, 
 
 **Carga con `Skill` los skills aplicables ANTES de corregir.** Guía:
 
-- **Siempre** `k-tipo-expediente` — y dentro de él, el fichero que toque: `phaseeventmanager.md` (los `trigger*`/`onEnter*` y el `InitialEventManager`), `validator.md` (el DSL de reglas y la whitelist de campos), `modelo.md` (el `domains.xml`), `vistas.md` (el formato preprocesado), `documentos.md` (los PDF de `documentospdf/`).
+- **Siempre** `k-tipo-expediente` — y dentro de él, el fichero que toque según lo que corrijas (`PhaseEventManager`/`InitialEventManager`, validator y whitelist, `domains.xml`, vistas preprocesadas, `documentospdf/`); su `SKILL.md` los indexa.
 - Tocas la whitelist de campos, un campo `servidor` o un acceso a datos de otro centro → **MUST** cargar `k-secure-coding`: lo que no está en el `rules { }` no lo dicta el cliente, y **MUST NOT** darse entrada en `rules` a un campo que rellena el servidor.
 - Escribes o reescribes lógica Java/Kotlin → `k-code-quality`.
 - Reglas de negocio, validaciones, campos calculados → `k-validaciones`.

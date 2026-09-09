@@ -1,6 +1,6 @@
 ---
 name: k-tipo-expediente
-description: Cómo crear un tipo de expediente (una versión `v1`/`v2`… de un trámite) en `tramites/<tramite>/<vN>/`: el fichero maestro `TipoExpedienteInstance.xml` con sus **fases** y la máquina de estados, el modelo (`domains.xml`), y por cada fase su `PhaseEventManager`, su `StateEventValidator` y sus vistas preprocesadas; los documentos PDF (`documentospdf/`, formato XML de definición) y la receta para duplicar un tipo y crear la versión siguiente. Cárgalo siempre que crees o modifiques cualquier fichero bajo una carpeta de versión de un trámite.
+description: Cómo crear un tipo de expediente (una versión `v1`/`v2`… de un trámite) en `tramites/<tramite>/<vN>/`: el fichero maestro `TipoExpedienteInstance.xml` con sus **fases** y la máquina de estados, el modelo (`domains.xml`), y por cada fase su `PhaseEventManager`, su `StateEventValidator` y sus vistas preprocesadas; los documentos PDF (`documentospdf/`, formato XML de definición) y las recetas de `recetas/`: presentar un documento que acaba en el registro de entrada (de la entrada de datos al resguardo), firmar documentos (el usuario al presentar, el certificado del centro, poner a firmar a otro) y duplicar un tipo para crear la versión siguiente. Cárgalo siempre que crees o modifiques cualquier fichero bajo una carpeta de versión de un trámite.
 ---
 
 # k-tipo-expediente
@@ -9,7 +9,7 @@ Un tipo de expediente es la implementación **versionada** de un trámite: la ca
 
 **Convención de los ejemplos de este skill**: todos usan un trámite **inventado** —code `MiTramite`, carpeta `tramites/mi_tramite/`, versión `v1/`, entidad `MiTramiteV1`— con las fases `RECEPCION` y `TRAMITACION`.
   Es deliberado que no apunten a ningún trámite del árbol: los trámites van y vienen, y un ejemplo que nombra una carpeta concreta se queda mintiendo en cuanto esa carpeta se renombra o se borra.
-  Sustituye `MiTramite` por el code de tu trámite y `mi_tramite/v1` por su ruta real, que **no** tiene por qué colgar directamente del trámite ni ser plana (`versionado.md` §1).
+  Sustituye `MiTramite` por el code de tu trámite y `mi_tramite/v1` por su ruta real, que **no** tiene por qué colgar directamente del trámite ni ser plana (`recetas/versionado.md` §1).
 
 Los estados se agrupan en **fases**, y cada fase tiene su propia subcarpeta con su `PhaseEventManagerImpl`, su `StateEventValidatorImpl` y su `views.xml` (§1.4).
 
@@ -20,9 +20,11 @@ Los estados se agrupan en **fases**, y cada fase tiene su propia subcarpeta con 
 | `modelo.md` | El `domains.xml` del tipo (en la raíz de la versión, uno para todas las fases): entidad `extends="Expediente"`, enums versionados, campos `MetaFile` para los PDF, `extra-code-model` |
 | `phaseeventmanager.md` | La máquina de estados en Java: el `PhaseEventManagerImpl` de cada fase, métodos `trigger*`/`onEnter*`, API de `EventContext` y el **catálogo de acciones** (generar PDF, registros de entrada/salida, firmas, correos…) |
 | `validator.md` | El `StateEventValidatorImpl` de cada fase, en Kotlin: DSL de reglas por estado+evento y su doble función de whitelist de campos |
-| `vistas.md` | Las vistas en formato **preprocesado** (NO sigue `k-vistas`): el form plantilla en la raíz, los `<form state=...>` repartidos por fase, `include-panels`, `footer`, visores de PDF, AutoFirma |
+| `vistas.md` | Las vistas en formato **preprocesado** (NO sigue `k-vistas`): el form plantilla en la raíz, los `<form state=...>` repartidos por fase, `include-panels`, `footer`, visores de PDF |
 | `documentos.md` | El formato XML de los documentos de `documentospdf/` de los que el build genera los PDF rellenables |
-| `versionado.md` | Receta para duplicar un tipo de expediente y crear la versión siguiente (`vN` → `v(N+1)`, con rutas completas: las dos carpetas no tienen por qué ser hermanas) |
+| `recetas/presentacion.md` | Receta: el usuario presenta un documento que acaba en el **registro de entrada** — los dos estados `CREADOR`, el modelo, el evento inicial, generar el PDF, firmarlo (delega en `recetas/firma.md` §1), `createRegistroEntrada` y el resguardo |
+| `recetas/firma.md` | Receta: las tres formas de firmar un documento (el usuario al presentar, en servidor o con AutoFirma; el certificado del centro; poner a firmar a otro con `TareaFirma`), con todas sus piezas en orden |
+| `recetas/versionado.md` | Receta para duplicar un tipo de expediente y crear la versión siguiente (`vN` → `v(N+1)`, con rutas completas: las dos carpetas no tienen por qué ser hermanas) |
 
 ---
 
@@ -311,7 +313,7 @@ Dos reglas **no** leen el bytecode, cada una por su motivo, y se señalan en su 
 - **Validator**: **exactamente un** `@BeanValidationRulesForStateAndEvent getForState<Estado>InEvent<Evento>()` por cada **pareja** (estado, evento) **de la fase**, **salvo las de `DELETE`**, que no se exigen porque el runtime nunca las invoca; y ninguno cuya pareja no sea de la fase (detalle en `validator.md` §5).
 - **`States`** (`StatesTest`): la clase generada de cada tipo concuerda con su XML — fases, estados de cada fase, y por cada estado su nombre, perfil, eventos, `initial` y `closed`, más el estado inicial y `CODE`/`NAME`. Comprueba también el **orden de declaración** de fases, estados y eventos, no solo el conjunto. Es la regla que se lee con reflexión y no con el `ClassFileImporter`.
 - **API base reservada** (`ApiBaseReservadaTest`): ningún nombre de método compuesto a partir de un estado o un evento pisa un método público de `PhaseEventManager` o `StateEventValidator` (un estado llamado `STATE` sobrescribiría el dispatcher `onEnterState` en silencio).
-- **Referencias a `States`** (`ReferenciasAStatesTest`): ninguna clase de un tipo de expediente referencia la clase `States` de **otro** tipo. Como todos los tipos tienen estados que se llaman igual, el `import` que se queda apuntando a la versión vieja al duplicar una carpeta compila sin error (`versionado.md`).
+- **Referencias a `States`** (`ReferenciasAStatesTest`): ninguna clase de un tipo de expediente referencia la clase `States` de **otro** tipo. Como todos los tipos tienen estados que se llaman igual, el `import` que se queda apuntando a la versión vieja al duplicar una carpeta compila sin error (`recetas/versionado.md`).
 - **Clases de fase huérfanas** (`ClasesDeFaseHuerfanasTest`): no hay ningún `PhaseEventManagerImpl` ni `StateEventValidatorImpl` en una carpeta que no sea la de una fase declarada — ni bajo un tipo de expediente, ni suelto bajo `tramites/` sin pertenecer a ningún tipo. Es la dirección contraria a **E0** (existe el `PhaseEventManagerImpl` de cada fase declarada) y **V0** (existe su `StateEventValidatorImpl`): aquellas van de la fase al fichero y esta del fichero a la fase, así que caza la carpeta que se queda atrás al renombrar o quitar una fase, y que sigue compilando aunque `ExpedienteLocator` ya no llegue a ella. Esta regla mira el **árbol de fuentes**, no el bytecode, para no denunciar restos de una compilación sin `clean`.
 - **Vistas por estado** (`VistasPorEstadoTest`): cada estado tiene en el `views.xml` de su fase su `<form state="…">` **genérico** —el de reserva al que cae el runtime cuando el perfil actuante no tiene el suyo— y, si tiene `profile` y al menos un evento, también el `<form state="…" profile="…">` de su perfil, sin el cual su dueño cae en la vista de solo lectura y el expediente se queda atascado sin ningún error. Y no hay dos forms de la misma fase con el mismo `(state, profile)`, que producirían el mismo nombre de vista.
 - **Botones del footer** (`BotonesDelFooterTest`): el `name` de cada botón del `<footer>` es un evento declarado en ese estado o uno de los comunes; cada evento declarado tiene botón en alguno de los forms de su estado (si no, es un evento que existe en el código y no se puede disparar); y el `onClick` de todos incluye `subsysExpedientes-event-action`.
@@ -354,7 +356,7 @@ Para **añadir una fase** a un tipo que ya existe:
 
 **CRITICAL**: mover un estado de fase le cambia el `codePhase`, así que los expedientes ya guardados en ese estado quedan huérfanos.
 
-Para crear una **versión nueva de un tipo existente** → `versionado.md`.
+Para crear una **versión nueva de un tipo existente** → `recetas/versionado.md`.
 
 ---
 

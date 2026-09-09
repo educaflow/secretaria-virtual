@@ -19,6 +19,8 @@ import com.educaflow.base.infrastructure.validation.rules.NoAllUpperCase
 import com.educaflow.base.infrastructure.validation.rules.Required
 import com.educaflow.base.infrastructure.validation.rules.Pattern
 import com.educaflow.base.infrastructure.validation.rules.SizeUnit
+import com.educaflow.tramites.util.firma.ClaveCertificadoValida
+import com.educaflow.tramites.util.firma.ifSituacionFirma
 import java.time.LocalDate
 import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1 as model
 
@@ -81,9 +83,16 @@ class StateEventValidatorImpl: StateEventValidator {
     @BeanValidationRulesForStateAndEvent
     fun getForStatePendientePresentacionInEventPresentar():BeanValidationRules {
         return rules {
+            field(model::getClaveCertificado) {
+                +ifSituacionFirma({ it.isFirmaEnServidor() }) {
+                    +ClaveCertificadoValida()
+                }
+            }
             field(model::getPdfSolicitudFirmado) {
-                +Required()
-                +FirmaPdf(model::getPdfSolicitud, model::getDniFirmaDocumentoEntrada)
+                +ifSituacionFirma({ !it.isFirmaEnServidor() }) {
+                    +Required()
+                    +FirmaPdf(model::getPdfSolicitud)
+                }
             }
         }
     }

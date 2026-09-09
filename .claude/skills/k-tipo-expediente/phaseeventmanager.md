@@ -20,9 +20,9 @@ public class PhaseEventManagerImpl extends PhaseEventManager<MiTramiteV1> {
     private final MiTramiteV1Repository repository;
 
     @Inject
-    AlmacenClaveResolver almacenClaveResolver;      // firma en servidor (§6.4)
+    AlmacenClaveResolver almacenClaveResolver;      // firma con el certificado del centro (§6.4)
     @Inject
-    private ModelServiceFactory modelServiceFactory; // servicios de otros subsistemas (§6.8)
+    private ModelServiceFactory modelServiceFactory; // servicios de otros subsistemas (§6.6)
 
     @Inject
     public PhaseEventManagerImpl(MiTramiteV1Repository repository) {
@@ -158,7 +158,7 @@ RegistroEntrada registroEntrada = eventContext.createRegistroEntrada(exp.getPdfS
 exp.setPdfJustificanteRegistroEntrada(registroEntrada.getDocumentoResguardoPresentacion());
 ```
 
-El registro devuelve el **resguardo de presentación** sellado (`getDocumentoResguardoPresentacion()`, ya `MetaFile`), que se guarda en un campo de la entidad para mostrarlo (visor de PDF, `vistas.md`).
+El registro devuelve el **resguardo de presentación** sellado (`getDocumentoResguardoPresentacion()`, ya `MetaFile`), que se guarda en un campo de la entidad para mostrarlo (visor de PDF, `vistas.md`). El camino entero, desde que el usuario teclea los datos hasta que ve el resguardo, con sus dos estados y la firma en medio, está en la receta `recetas/presentacion.md`.
 
 ### 6.3 Registro de salida (la administración emite un documento)
 
@@ -169,57 +169,11 @@ exp.setPdfResolucion(registroSalida.getDocumento());
 
 El registro devuelve el **documento registrado** (`getDocumento()`), que es el que se guarda y se muestra al usuario.
 
-### 6.4 Firma en servidor (sello del centro: director, secretario…)
+### 6.4 Firmar documentos
 
-```java
-private static final Rectangulo posicionFirma = new Rectangulo(75, 280, 400, 20);
-...
-DocumentoPdf resolucionFirmada = resolucion.firmar(almacenClaveResolver.getDirector(expediente.getCentro()), new CampoFirma(posicionFirma));
-```
+Todo lo de firmas está en la receta `recetas/firma.md`: el usuario firma al presentar (en servidor o con AutoFirma, §1), el centro firma un documento que emite con su certificado (`AlmacenClaveResolver`, §2) y poner un documento a firmar a otro usuario con `TareaFirma` (§3). En el trigger solo hay código para las dos últimas y para la rama de servidor de la primera.
 
-- `AlmacenClaveResolver` (inyectado): `getDirector(centro)`, `getSecretario(centro)`, `getByDNI(dni)`, `getDummy()` (pruebas).
-- `CampoFirma` es un builder: `setMensaje/setMotivo/setFontSize/setNumeroPagina/setImage/setFechaFirma`.
-
-### 6.5 Firma del usuario con AutoFirma
-
-Tres piezas, una por fichero:
-
-1. **Modelo**: par de campos `MetaFile` original/firmado (`modelo.md` §4).
-2. **Vista**: `<action-method>` que llama a `FirmaController.firmarDocumento(...)`, encadenada con `serial:` antes del evento en el botón (`vistas.md` §10) — firma con el DNI del **usuario autenticado**, que es siempre quien firma.
-3. **Validator**: regla `FirmaPdf(original)` en el evento que presenta (`validator.md` §4) — verifica en servidor que lo subido es el original firmado por el DNI del usuario autenticado.
-
-En el PhaseEventManager no hay código de AutoFirma: el trigger del evento ya recibe el campo firmado validado.
-
-### 6.6 Poner documentos a firmar a otros usuarios (subsistema Firmas)
-
-Estilo "portafirmas": crear una `TareaFirma` para que otro usuario firme, con callback cuando lo haga.
-
-```java
-public class PhaseEventManagerImpl extends PhaseEventManager<...> implements TareaFirmaNotifier {
-    ...
-    TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
-    tareaFirmaService.insert(new TareaFirmaInsertDTO(
-            firmante,                 // User que debe firmar
-            List.of(pdf1, pdf2),      // PDFs a firmar (MUST ser PDFs, lista no vacía)
-            "Firma Expediente:" + expediente.getNumeroExpediente(),  // motivo
-            new Rectangulo(100, 100, 400, 50), 1,                    // área y página de la firma visible
-            this.getClass(),          // clase TareaFirmaNotifier del callback
-            "datos de callback"));    // callBackData que se te devuelve
-
-    @Override
-    public void notify(TareaFirma tareaFirma, Object callBackData) { /* qué hacer al completarse la firma */ }
-}
-```
-
-Nota: es un patrón **sin llamantes vivos** — el único que hubo era un `insert` de prueba, ya borrado. El patrón es este, pero confirma el caso de uso antes de copiarlo.
-
-> **CRITICAL — la `TareaFirma` congela el FQCN del notifier.** El `this.getClass()` que se pasa se guarda tal cual en la columna `fqcnFirmaNotifier` de la fila (y el tipo del callback en `fqcnCallBackData`), así que la fila apunta a una clase que vive **bajo `tramites/**`**, justo el árbol que mueven las recetas de fase y de versionado.
->
-> A diferencia del `PhaseEventManager` y del `StateEventValidator` —que se resuelven por `basePackageName` + `codePhase` y por eso mover la carpeta de un tipo se autocorrige (`SKILL.md` §1.6)—, aquí **no hay autocuración**: mover o renombrar la carpeta de la versión, o mover el `PhaseEventManagerImpl` de una fase a otra, deja las `TareaFirma` **pendientes** apuntando a un FQCN que ya no existe, y su callback revienta al completarse la firma.
->
-> Mientras el notifier siga resolviéndose por FQCN: **MUST** comprobar, antes de mover una carpeta de versión o de fase que tenga firmas en marcha, si hay filas de `TareaFirma` pendientes con ese `fqcnFirmaNotifier`, y actualizarlas a mano.
-
-### 6.7 Enviar correos (subsistema Correos)
+### 6.5 Enviar correos (subsistema Correos)
 
 Patrón previsto (aún sin uso real en ningún trámite): insertar un `Correo` vía su servicio — el alta ya programa el envío asíncrono, no hay que llamar a nada más.
 
@@ -236,9 +190,9 @@ correoService.insert(correo);
 
 El correo es inmutable tras crearse y no se puede borrar; los reintentos de envío los gestiona el propio subsistema (cron `correos.envio.cron`).
 
-### 6.8 Acceder a servicios de otros subsistemas
+### 6.6 Acceder a servicios de otros subsistemas
 
-`modelServiceFactory.resolve(<Entidad>.class)` devuelve el `ModelService` del subsistema dueño (es el mecanismo usado en §6.6 y §6.7). Para dependencias que no son ModelService, inyección Guice normal (`@Inject` de campo o constructor; ver `k-guice` si la construcción no es trivial).
+`modelServiceFactory.resolve(<Entidad>.class)` devuelve el `ModelService` del subsistema dueño (es el mecanismo usado en §6.5 y en `recetas/firma.md` §3). Para dependencias que no son ModelService, inyección Guice normal (`@Inject` de campo o constructor; ver `k-guice` si la construcción no es trivial).
 
 ## 7. Los tests que comprueban el PhaseEventManager
 
