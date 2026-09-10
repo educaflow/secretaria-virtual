@@ -56,6 +56,9 @@ Cómo compilar, probar, arrancar la app y gestionar la base de datos en el entor
 - Solo analiza **Java**: el código Kotlin no pasa por él, y el código generado (`build/src-gen`, `build/src-gen-states`) está excluido a propósito.
 - Un falso positivo se silencia **en el sitio concreto** con `@SuppressWarnings("NombreDelCheck")`, nunca desactivando el check para todo el proyecto.
   La configuración (plugin `net.ltgt.errorprone`, versión fija de `error_prone_core`, exclusiones) está en `build.gradle`.
+- Excepción deliberada: `UnusedVariable` está **desactivado** para todo el proyecto.
+  Hay muchos campos declarados y sin usar todavía (`logger`, `repository` inyectado, servicios) que están ahí a propósito como plantilla del idioma con que se obtienen, y el check no permite distinguir campos de locales o parámetros.
+  **MUST NOT** borrar esos campos como limpieza.
 
 ## Base de datos
 
