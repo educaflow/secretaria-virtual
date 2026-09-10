@@ -27,7 +27,7 @@ public class CorreoAsyncExecutor {
     }
 
     public void submit(Runnable tarea) {
-        executorService.submit(
+        executorService.execute(
                 () -> {
                     try {
                         tarea.run();
