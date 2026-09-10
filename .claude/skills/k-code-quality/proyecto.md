@@ -23,11 +23,11 @@ Cualquier acceso a entidades de otro subsistema — lectura, escritura o elimina
 
 ## Capa de servicio
 
-**JPQL en el repositorio, nunca en el servicio.** Todo código con `.all().filter().bind().fetch*()` pertenece al repositorio. En el servicio solo se llaman métodos nombrados del repositorio: `repository.findByDni(dni)`, nunca `repository.all().filter("self.dni = :dni").bind(...)`. Y siempre con parámetros nombrados (`:param`); **MUST NOT** concatenar input del usuario en filtros JPQL — ver `[[k-secure-coding]]` §4.
+**JPQL en el repositorio, nunca en el servicio.** Todo código con `.all().filter().bind().fetch*()` pertenece al repositorio. En el servicio solo se llaman métodos nombrados del repositorio: `repository.findByDni(dni)`, nunca `repository.all().filter("self.dni = :dni").bind(...)`. Y siempre con parámetros nombrados (`:param`); **MUST NOT** concatenar input del usuario en filtros JPQL — ver `[[k-secure-coding]]` §5.
 
 **Lógica de negocio en el servicio, nunca en listeners JPA.** Los listeners JPA se reservan para auditoría externa o sincronización con sistemas de terceros. La lógica de negocio va siempre en métodos `fireActionRule_*` dentro del `*ServiceImpl`, llamados desde `insert()`/`update()`/`remove()`.
 
-**Asignación de campos `servidor` en `*ServiceImpl.insert/update`.** **MUST** ser incondicional (`entidad.setCampo(valor)` sin `if (campo == null)`). El anti-patrón `if (campo == null) setCampo(...)` permite mass-assignment vía el endpoint REST genérico `/ws/rest/<FQN>`. Ver `[[k-secure-coding]]` §2.
+**Asignación de campos `servidor` en `*ServiceImpl.insert/update`.** **MUST** ser incondicional (`entidad.setCampo(valor)` sin `if (campo == null)`). El anti-patrón `if (campo == null) setCampo(...)` permite mass-assignment vía el endpoint REST genérico `/ws/rest/<FQN>`. Ver `[[k-secure-coding]]` §3.3.
 
 **`@Transactional` de Guice.** Importar siempre de `com.google.inject.persist`, nunca de `jakarta.transaction`.
 

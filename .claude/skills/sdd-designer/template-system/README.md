@@ -139,6 +139,7 @@ La salida es una **carpeta** `design/` dentro de la carpeta de la iniciativa. El
 ├── design-guidelines.md                  ← opcional (input)
 └── design/                               ← salida del skill
     ├── design.md                         ← índice (type: design)
+    ├── decisiones.md                     ← decisiones difíciles del diseñador, con alternativas — lo declara el motor (`sdd-designer` §2.5), no esta plantilla
     ├── domains/<Entidad>.xml             ← un fichero por entidad
     ├── views/<Fichero>.xml               ← un fichero por <action-view>
     ├── menus.xml                         ← <menuitem> del subsistema
@@ -147,7 +148,7 @@ La salida es una **carpeta** `design/` dentro de la carpeta de la iniciativa. El
     └── rules/R-<Entidad>-NNN.md          ← solo si hay reglas R complejas
 ```
 
-Esta estructura es la que consumen `/sdd-implementer`, `/sdd-debug-with-test-e2e-desc` y `/sdd-close`: **MUST** producirse tal cual.
+Esta estructura es la que consumen `/sdd-implementer`, `/sdd-debug-with-test-e2e-desc` y `/sdd-close`: **MUST** producirse tal cual. `decisiones.md` y los logs `log_*.txt` los pone el motor: el verificador **MUST NOT** reportarlos como ficheros sobrantes.
 
 ---
 

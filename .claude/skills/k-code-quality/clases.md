@@ -82,7 +82,7 @@ Si un servicio tiene un método que describe un algoritmo cohesivo y autoconteni
 
 **Criterio:** si el algoritmo es claramente autocontenido y podría reutilizarse en otro contexto, sí merece clase colaboradora. Si es lógica puntual y específica del servicio, no.
 
-**Cuando aplica:** mover el algoritmo a una nueva clase y que el servicio original delegue en ella. Aplicar también R-13 (ver "Utilidades sin estado") si la clase colaboradora no necesita inyección.
+**Cuando aplica:** mover el algoritmo a una nueva clase y que el servicio original delegue en ella. Aplicar también la regla «Utilidades sin estado» si la clase colaboradora no necesita inyección.
 
 ---
 
@@ -117,9 +117,9 @@ Una clase cuyas operaciones cumplen **todas** estas condiciones no debe ser un s
 
 **Violación:** el diseño prescribe un servicio inyectable para una clase que solo hace transformaciones sobre sus argumentos (parseo, validación de formato, construcción de strings, cálculos…).
 
-**Correcto:** convertir la clase en una utilidad con métodos `static`, siguiendo el patrón de `DniUtil`, `XmlUtil`, `TextUtil` del paquete `base/util/`. Eliminar la interfaz si existe. Sustituir las referencias `@Inject` por llamadas estáticas en las clases que la usaban.
+**Correcto:** convertir la clase en una utilidad con métodos `static`, siguiendo el patrón de `DniUtil`, `XMLUtil`, `TextUtil` del paquete `base/util/`. Eliminar la interfaz si existe. Sustituir las referencias `@Inject` por llamadas estáticas en las clases que la usaban.
 
-Las utilidades se agrupan por propósito cohesivo, una clase por propósito (`DniUtil`, `XmlUtil`, `TextUtil`). **MUST NOT** crear clases `Utils` cajón de sastre donde acabe cualquier método suelto sin relación con los demás.
+Las utilidades se agrupan por propósito cohesivo, una clase por propósito (`DniUtil`, `XMLUtil`, `TextUtil`). **MUST NOT** crear clases `Utils` cajón de sastre donde acabe cualquier método suelto sin relación con los demás.
 
 ---
 

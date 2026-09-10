@@ -145,7 +145,7 @@ Lo único que este README fija, porque es contrato con el motor y con los skills
 
 - El **índice** se llama `design.md` y lleva frontmatter `type: design` más la clave `template:` copiada de la spec. Es lo que el motor usa para localizar y validar el diseño, y lo que consume `/sdd-implementer`.
 - `test-e2e-desc.md` lo escribe el **diseñador**; `test-unit-desc.md` lo escribe el rol **test-unitarios** en una fase posterior. **MUST NOT** escribir el diseñador el segundo.
-- Los ficheros `log_best.txt`, `log_revision.txt` y `log_revision_unit-test.txt` son **logs de orquestación del motor**: no son contenido de diseño, no los declara esta plantilla y el verificador **MUST** ignorarlos.
+- El fichero `decisiones.md` (las decisiones difíciles del diseñador, con alternativas) lo declara el **motor** (`sdd-designer` §2.5), no esta plantilla: el verificador **MUST NOT** reportarlo como fichero sobrante. Los ficheros `log_best.txt`, `log_revision.txt` y `log_revision_unit-test.txt` son **logs de orquestación del motor**: no son contenido de diseño, no los declara esta plantilla y el verificador **MUST** ignorarlos.
 
 ---
 
