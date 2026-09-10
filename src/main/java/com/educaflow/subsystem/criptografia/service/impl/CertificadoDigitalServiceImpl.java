@@ -114,7 +114,7 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
 
     @Override
     public SituacionFirma getSituacionFirmaByDni(String dni) {
-        if ((dni==null) || (dni.isBlank())) {
+        if ((dni==null) || dni.isBlank()) {
             return SituacionFirma.SIN_DNI;
         }
 
@@ -448,7 +448,7 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
      * DNI es nulo o está en blanco (en cuyo caso ni siquiera se consulta).
      */
     private User findUsuarioTitular(String dni) {
-        if ((dni == null) || (dni.isBlank())) {
+        if ((dni == null) || dni.isBlank()) {
             return null;
         }
 

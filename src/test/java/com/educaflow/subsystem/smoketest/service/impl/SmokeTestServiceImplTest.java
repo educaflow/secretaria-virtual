@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.educaflow.base.util.Convert;
 
 @ExtendWith(MockitoExtension.class)
 class SmokeTestServiceImplTest {
@@ -152,7 +153,7 @@ class SmokeTestServiceImplTest {
         SmokeTest smokeTest = smokeTest("Prueba de humo 1");
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        LocalDateTime antes = LocalDateTime.now();
+        LocalDateTime antes = LocalDateTime.now(Convert.defaultZoneId);
         service.insert(smokeTest);
 
         assertNotNull(smokeTest.getFechaCreacion());
@@ -170,7 +171,7 @@ class SmokeTestServiceImplTest {
         smokeTest.setFechaUltimaModificacion(falsa);
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        LocalDateTime antes = LocalDateTime.now();
+        LocalDateTime antes = LocalDateTime.now(Convert.defaultZoneId);
         service.insert(smokeTest);
 
         assertNotEquals(falsa, smokeTest.getFechaCreacion());
@@ -203,7 +204,7 @@ class SmokeTestServiceImplTest {
         SmokeTest smokeTest = smokeTest("Prueba de humo 3 editada");
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        LocalDateTime antes = LocalDateTime.now();
+        LocalDateTime antes = LocalDateTime.now(Convert.defaultZoneId);
         service.update(smokeTest, original);
 
         assertEquals(fechaPrevia, smokeTest.getFechaCreacion());

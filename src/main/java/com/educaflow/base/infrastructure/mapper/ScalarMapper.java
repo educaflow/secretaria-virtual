@@ -68,8 +68,8 @@ public class ScalarMapper{
         if (obj == null) {
             return null;
         }
-        if (obj instanceof String) {
-            return (String) obj;
+        if (obj instanceof String string) {
+            return string;
         }
         return obj.toString();
     }
@@ -77,14 +77,14 @@ public class ScalarMapper{
         if (obj == null) {
             return null;
         }
-        if (obj instanceof Boolean) {
-            return (Boolean) obj;
+        if (obj instanceof Boolean b) {
+            return b;
         }
-        if (obj instanceof Number) {
-            return ((Number) obj).intValue() != 0;
+        if (obj instanceof Number number) {
+            return number.intValue() != 0;
         }
-        if (obj instanceof String) {
-            return "true".equalsIgnoreCase((String) obj);
+        if (obj instanceof String string) {
+            return "true".equalsIgnoreCase(string);
         }
         throw new IllegalArgumentException("Cannot convert " + obj + " to boolean:" + obj.getClass());
 
@@ -93,15 +93,15 @@ public class ScalarMapper{
         if (obj == null) {
             return null;
         }
-        if (obj instanceof Integer) {
-            return (Integer) obj;
+        if (obj instanceof Integer i) {
+            return i;
         }
-        if (obj instanceof Long) {
-            return ((Long) obj).intValue();
+        if (obj instanceof Long l) {
+            return l.intValue();
         }
-        if (obj instanceof String) {
+        if (obj instanceof String string) {
             try {
-                return Integer.parseInt((String) obj);
+                return Integer.parseInt(string);
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException("Cannot convert " + obj + " to int");
             }
@@ -112,15 +112,15 @@ public class ScalarMapper{
         if (obj == null) {
             return null;
         }
-        if (obj instanceof Long) {
-            return (Long) obj;
+        if (obj instanceof Long l) {
+            return l;
         }
-        if (obj instanceof Integer) {
-            return ((Integer) obj).longValue();
+        if (obj instanceof Integer i) {
+            return i.longValue();
         }
-        if (obj instanceof String) {
+        if (obj instanceof String string) {
             try {
-                return Long.parseLong((String) obj);
+                return Long.parseLong(string);
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException("Cannot convert " + obj + " to long");
             }
@@ -131,28 +131,28 @@ public class ScalarMapper{
         if (obj == null) {
             return null;
         }
-        if (obj instanceof BigDecimal) {
-            return (BigDecimal) obj;
+        if (obj instanceof BigDecimal bigDecimal) {
+            return bigDecimal;
         }
-        if (obj instanceof String) {
+        if (obj instanceof String string) {
             try {
-                return new BigDecimal((String) obj);
+                return new BigDecimal(string);
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException("Cannot convert " + obj + " to BigDecimal");
             }
         }
-        if (obj instanceof Integer) {
-            return BigDecimal.valueOf((Integer) obj);
+        if (obj instanceof Integer i) {
+            return BigDecimal.valueOf(i);
         }
-        if (obj instanceof Long) {
-            return BigDecimal.valueOf((Long) obj);
+        if (obj instanceof Long l) {
+            return BigDecimal.valueOf(l);
         }
 
-        if (obj instanceof Double) {
-            return BigDecimal.valueOf((Double) obj);
+        if (obj instanceof Double d) {
+            return BigDecimal.valueOf(d);
         }
-        if (obj instanceof Float) {
-            return BigDecimal.valueOf((Float) obj);
+        if (obj instanceof Float f) {
+            return BigDecimal.valueOf(f);
         }
         throw new IllegalArgumentException("Cannot convert " + obj + " to BigDecimal:" + obj.getClass());
     }
@@ -161,16 +161,16 @@ public class ScalarMapper{
         if (obj == null) {
             return null;
         }
-        if (obj instanceof LocalDate) {
-            return (LocalDate) obj;
+        if (obj instanceof LocalDate localDate) {
+            return localDate;
         }
-        if (obj instanceof String) {
+        if (obj instanceof String string) {
             try {
-                OffsetDateTime offsetDateTime = OffsetDateTime.parse((String) obj);
+                OffsetDateTime offsetDateTime = OffsetDateTime.parse(string);
                 return offsetDateTime.toLocalDate();
             } catch (DateTimeParseException e) {
                 try {
-                    return LocalDate.parse((String) obj);
+                    return LocalDate.parse(string);
                 } catch (DateTimeParseException ex) {
                     throw new IllegalArgumentException("Cannot convert " + obj + " to LocalDate");
                 }
@@ -183,12 +183,12 @@ public class ScalarMapper{
         if (obj == null) {
             return null;
         }
-        if (obj instanceof LocalTime) {
-            return (LocalTime) obj;
+        if (obj instanceof LocalTime localTime) {
+            return localTime;
         }
-        if (obj instanceof String) {
+        if (obj instanceof String string) {
             try {
-                return LocalTime.parse((String) obj);
+                return LocalTime.parse(string);
             } catch (DateTimeParseException e) {
                 throw new IllegalArgumentException("Cannot convert " + obj + " to LocalTime");
             }
@@ -200,17 +200,17 @@ public class ScalarMapper{
         if (obj == null) {
             return null;
         }
-        if (obj instanceof LocalDateTime) {
-            return (LocalDateTime) obj;
+        if (obj instanceof LocalDateTime localDateTime) {
+            return localDateTime;
         }
-        if (obj instanceof String) {
+        if (obj instanceof String string) {
             try {
                 // Primero intentamos parsear como OffsetDateTime para manejar la zona horaria.
-                OffsetDateTime offsetDateTime = OffsetDateTime.parse((String) obj);
+                OffsetDateTime offsetDateTime = OffsetDateTime.parse(string);
                 return offsetDateTime.toLocalDateTime();
             } catch (DateTimeParseException e) {
                 try {
-                    return LocalDateTime.parse((String) obj);
+                    return LocalDateTime.parse(string);
                 } catch (DateTimeParseException ex) {
                     throw new IllegalArgumentException("Cannot convert " + obj + " to LocalDateTime");
                 }
@@ -218,27 +218,16 @@ public class ScalarMapper{
         }
         throw new IllegalArgumentException("Cannot convert " + obj + " to LocalDateTime:" + obj.getClass());
     }
-
-    private static <E extends Enum<E> & ValueEnum<?>> E getEnumFromObject(Class<E> enumType, Object obj) {
-        if (obj == null) {
-            return null;
-        }
-        try {
-            return ValueEnum.of(enumType, obj);
-        } catch (IllegalArgumentException | NullPointerException e) {
-            throw new IllegalArgumentException("Cannot convert " + obj + " to Enum:"+obj.getClass()+"  "+enumType.getName(),e);
-        }
-    }
     private static byte[] getBinaryFromObject(Object obj) {
         if (obj == null) {
             return null;
         }
-        if (obj instanceof byte[]) {
-            return (byte[]) obj;
+        if (obj instanceof byte[] array) {
+            return array;
         }
-        if (obj instanceof String) {
+        if (obj instanceof String string) {
             try {
-                return Base64.getDecoder().decode((String) obj);
+                return Base64.getDecoder().decode(string);
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("Cannot convert " + obj + " to byte[]");
             }

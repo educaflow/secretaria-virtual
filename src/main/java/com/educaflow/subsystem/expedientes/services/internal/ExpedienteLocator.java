@@ -203,7 +203,7 @@ public class ExpedienteLocator {
         // "paquete..PhaseEventManagerImpl", que revienta con un ClassNotFoundException igual de
         // desconcertante. Es diagnóstico de despliegue, no mensaje de usuario: sin I18n.get, como
         // los demás mensajes de esta clase.
-        if ((phaseCode == null) || (phaseCode.isBlank())) {
+        if ((phaseCode == null) || phaseCode.isBlank()) {
             throw new RuntimeException("El expediente no tiene fase (codePhase) para el tipo de"
                     + " expediente " + tipoExpediente.getCode() + ". La pareja (codePhase, codeState)"
                     + " la escribe ExpedienteUtil.updateState; si está vacía, la fila se ha creado o"
@@ -219,7 +219,7 @@ public class ExpedienteLocator {
     private static String getBasePackageName(TipoExpediente tipoExpediente) {
         String basePackageName = tipoExpediente.getBasePackageName();
 
-        if ((basePackageName == null) || (basePackageName.isBlank())) {
+        if ((basePackageName == null) || basePackageName.isBlank()) {
             throw new RuntimeException("No existe el basePackageName para el tipo de expediente: "
                     + tipoExpediente.getName() + ". Lo rellena el data-init de los tipos de expediente"
                     + " en cada arranque; si está vacío es que ese data-init no se ha cargado.");

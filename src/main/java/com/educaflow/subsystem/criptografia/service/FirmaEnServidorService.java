@@ -40,7 +40,7 @@ public class FirmaEnServidorService {
                 throw new IllegalStateException("El firmante con dni=" + DniUtil.enmascarar(dni) + " no tiene certificado digital con el que firmar en el servidor");
             }
             if (situacionFirma.isNecesitaClaveOPin()) {
-                if ((clave==null) || (clave.isBlank())) {
+                if ((clave==null) || clave.isBlank()) {
                     throw new IllegalStateException("El firmante con dni=" + DniUtil.enmascarar(dni) + " necesita una clave para firmar en el servidor");
                 }
             }

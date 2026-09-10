@@ -61,7 +61,7 @@ class ReferenciasAStatesTest {
             for (Dependency dependencia : clase.getDirectDependenciesFromSelf()) {
                 TipoExpedienteInstanceFile ajeno = tipoPorStates.get(claseExterna(dependencia.getTargetClass()));
 
-                if ((ajeno == null) || (ajeno == propio)) {
+                if ((ajeno == null) || ajeno.equals(propio)) {
                     continue;
                 }
 

@@ -32,12 +32,11 @@ public class CertificateParser {
     public static Map<String, String> findOidsWithLocation(Certificate cert, String targetOid) {
         try {
             Map<String, String> results = new LinkedHashMap<>();
-            if (!(cert instanceof X509Certificate)) {
+            if (!(cert instanceof X509Certificate x509Certificate)) {
                 return results;
             }
 
-            X509Certificate x509Cert = (X509Certificate) cert;
-            X509CertificateHolder holder = new JcaX509CertificateHolder(x509Cert);
+            X509CertificateHolder holder = new JcaX509CertificateHolder(x509Certificate);
 
             // 1. Buscar en el Sujeto del certificado
             recursiveFindWithLocation(holder.getSubject().toASN1Primitive(), targetOid, "Subject", results);
@@ -64,30 +63,26 @@ public class CertificateParser {
      * coincidencias a un mapa con su ubicación.
      */
     private static void recursiveFindWithLocation(ASN1Encodable obj, String targetOid, String location, Map<String, String> results) {
-        if (obj instanceof ASN1Sequence) {
-            ASN1Sequence sequence = (ASN1Sequence) obj;
+        if (obj instanceof ASN1Sequence sequence) {
             for (int i = 0; i < sequence.size(); i++) {
                 ASN1Encodable item = sequence.getObjectAt(i);
 
-                if (item instanceof ASN1ObjectIdentifier) {
-                    ASN1ObjectIdentifier oid = (ASN1ObjectIdentifier) item;
+                if (item instanceof ASN1ObjectIdentifier oid) {
                     if (oid.getId().equals(targetOid) && (i + 1) < sequence.size()) {
                         ASN1Encodable nextItem = sequence.getObjectAt(i + 1);
-                        if (nextItem instanceof DERUTF8String) {
-                            results.put(location, ((DERUTF8String) nextItem).getString());
+                        if (nextItem instanceof DERUTF8String utf8String) {
+                            results.put(location, utf8String.getString());
                         }
                     }
                 } else {
                     recursiveFindWithLocation(item, targetOid, location, results);
                 }
             }
-        } else if (obj instanceof ASN1Set) {
-            ASN1Set set = (ASN1Set) obj;
+        } else if (obj instanceof ASN1Set set) {
             for (ASN1Encodable item : set) {
                 recursiveFindWithLocation(item, targetOid, location, results);
             }
-        } else if (obj instanceof ASN1TaggedObject) {
-            ASN1TaggedObject tagged = (ASN1TaggedObject) obj;
+        } else if (obj instanceof ASN1TaggedObject tagged) {
             recursiveFindWithLocation(tagged.getBaseObject(), targetOid, location, results);
         }
     }

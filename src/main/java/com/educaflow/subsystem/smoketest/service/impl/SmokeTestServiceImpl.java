@@ -11,6 +11,7 @@ import com.educaflow.subsystem.smoketest.service.SmokeTestService;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
+import com.educaflow.base.util.Convert;
 
 public class SmokeTestServiceImpl extends DefaultModelService<SmokeTest> implements SmokeTestService {
 
@@ -77,7 +78,7 @@ public class SmokeTestServiceImpl extends DefaultModelService<SmokeTest> impleme
      * Asignación INCONDICIONAL: siempre se sobreescribe independientemente del valor previo.
      */
     private void fireActionRule_AsignarFechaCreacion(SmokeTest entity) {
-        entity.setFechaCreacion(LocalDateTime.now());
+        entity.setFechaCreacion(LocalDateTime.now(Convert.defaultZoneId));
     }
 
     /**
@@ -85,6 +86,6 @@ public class SmokeTestServiceImpl extends DefaultModelService<SmokeTest> impleme
      * Asignación INCONDICIONAL: siempre se sobreescribe independientemente del valor previo.
      */
     private void fireActionRule_ActualizarFechaUltimaModificacion(SmokeTest entity) {
-        entity.setFechaUltimaModificacion(LocalDateTime.now());
+        entity.setFechaUltimaModificacion(LocalDateTime.now(Convert.defaultZoneId));
     }
 }

@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Map;
+import com.educaflow.base.util.Convert;
 
 public class ExpedienteUtil {
 
@@ -30,7 +31,7 @@ public class ExpedienteUtil {
                 }
                 DocumentoPdf documentoPdfVacio= DocumentoPdfFactory.getDocumentoPdf(in.readAllBytes(), pathFileName.getFileName().toString());
 
-                Map<String, Object> contexto = Map.of("self", expediente,"now", java.time.LocalDateTime.now());
+                Map<String, Object> contexto = Map.of("self", expediente,"now", java.time.LocalDateTime.now(Convert.defaultZoneId));
 
                 DocumentoPdf documentoPdfRelleno = DocumentoPdfUtil.generate(documentoPdfVacio, contexto);
 
@@ -46,6 +47,8 @@ public class ExpedienteUtil {
      * Lleva el expediente a un estado. Es el <b>único</b> sitio que escribe la pareja
      * {@code (codePhase, codeState)} y el único que decide si el estado no ha cambiado.
      */
+    // Los State son singletons (enums) y la barrera de abajo es por identidad A PROPÓSITO.
+    @SuppressWarnings("ReferenceEquality")
     public static void updateState(Expediente expediente, State state) {
         if (state == null) {
             throw new IllegalArgumentException("El state no puede ser nulo.");
@@ -76,7 +79,7 @@ public class ExpedienteUtil {
         expediente.setNamePhase(state.getPhase().getName());
         expediente.setCodeState(stateCode);
         expediente.setNameState(state.getName());
-        expediente.setFechaUltimoEstado(LocalDateTime.now());
+        expediente.setFechaUltimoEstado(LocalDateTime.now(Convert.defaultZoneId));
         expediente.setAbierto(state.isFinal() == false);
     }
 

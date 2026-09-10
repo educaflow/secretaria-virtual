@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import com.educaflow.base.util.Convert;
 
 public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> implements TareaFirmaService {
 
@@ -55,7 +56,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
 
         TareaFirma tareaFirma=new TareaFirma();
         tareaFirma.setFirmante(tareaFirmaInsertDTO.firmante());
-        tareaFirma.setFechaSolicitud(LocalDateTime.now());
+        tareaFirma.setFechaSolicitud(LocalDateTime.now(Convert.defaultZoneId));
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.PENDIENTE);
         tareaFirma.setMotivoFirma(tareaFirmaInsertDTO.motivoFirma());
         tareaFirma.setMotivoRechazo(null);
@@ -114,7 +115,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
         validateMarcarComoRechazada(tareaFirma, tareaFirmaOriginal).ifPresent(BusinessMessages::throwIfInvalid);
 
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.RECHAZADO);
-        tareaFirma.setFechaResolucion(LocalDateTime.now());
+        tareaFirma.setFechaResolucion(LocalDateTime.now(Convert.defaultZoneId));
 
         tareaFirma = repository.save(tareaFirma);
 
@@ -165,15 +166,19 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     /******************************** Métodos de Validación *********************************/
     /****************************************************************************************/
 
+    @Override
     public Optional<BusinessMessages> validateInsert(TareaFirmaInsertDTO tareaFirmaInsertDTO) {
         return Optional.empty();
     }
+    @Override
     public Optional<BusinessMessages> validateMarcarComoFirmada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) {
         return Optional.empty();
     }
+    @Override
     public Optional<BusinessMessages> validateMarcarComoRechazada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) {
         return Optional.empty();
     }
+    @Override
     public Optional<BusinessMessages> validateValidarDocumentosFirmados(TareaFirma tareaFirma) { return Optional.empty();}
 
     @Override
@@ -233,12 +238,15 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     /********************************   AllowProperties   *********************************/
     /**************************************************************************************/
 
+    @Override
     public AllowProperties allowPropertiesMarcarComoFirmada() {
         return AllowProperties.createAllowProperties(Map.of("documentosFirma", Map.of("documentoFirmado", Map.of())));
     };
+    @Override
     public AllowProperties allowPropertiesMarcarComoRechazada() {
         return AllowProperties.createAllowProperties(Map.of("motivoRechazo", Map.of()));
     };
+    @Override
     public AllowProperties allowPropertiesValidarDocumentosFirmados(){
         return AllowProperties.createAllowAllProperties();
     };
@@ -304,7 +312,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
      */
     private void fireActionRule_ResolverComoFirmada(TareaFirma tareaFirma) {
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
-        tareaFirma.setFechaResolucion(LocalDateTime.now());
+        tareaFirma.setFechaResolucion(LocalDateTime.now(Convert.defaultZoneId));
     }
 
     @SuppressWarnings("unchecked")

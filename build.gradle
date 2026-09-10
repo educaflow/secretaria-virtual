@@ -65,6 +65,8 @@ tasks.withType(JavaCompile).configureEach {
         // (build/src-gen-states).
         excludedPaths = '.*/build/src-gen(-states)?/.*'
         disableWarningsInGeneratedCode = true
+        // Checks de estilo de Javadoc: solo afectan a los comentarios, nunca al código, y no se quieren.
+        disable('MissingSummary', 'NotJavadoc', 'EmptyBlockTag', 'UnrecognisedJavadocTag')
     }
 }
 

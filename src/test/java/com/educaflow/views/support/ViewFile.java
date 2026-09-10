@@ -1,5 +1,6 @@
 package com.educaflow.views.support;
 
+import com.google.common.base.Splitter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -54,8 +55,8 @@ public final class ViewFile {
 
     /** Nombre del (sub)sistema dueño, p.ej. "sistemaeducativo". */
     public String ownerModule() {
-        String[] parts = rel().split("/");
-        return parts.length >= 2 ? parts[1] : "";
+        List<String> parts = Splitter.on('/').splitToList(rel());
+        return parts.size() >= 2 ? parts.get(1) : "";
     }
 
     public List<Element> byTag(String tag) {

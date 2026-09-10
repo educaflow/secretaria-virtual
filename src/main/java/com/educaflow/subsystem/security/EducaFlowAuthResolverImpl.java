@@ -38,21 +38,14 @@ public class EducaFlowAuthResolverImpl implements EducaFlowAuthResolver {
         if (accessType == null) {
             return true;
         }
-        switch (accessType) {
-            case READ:
-                return Boolean.TRUE.equals(permission.getCanRead());
-            case WRITE:
-                return Boolean.TRUE.equals(permission.getCanWrite());
-            case CREATE:
-                return Boolean.TRUE.equals(permission.getCanCreate());
-            case REMOVE:
-                return Boolean.TRUE.equals(permission.getCanRemove());
-            case IMPORT:
-                return Boolean.TRUE.equals(permission.getCanImport());
-            case EXPORT:
-                return Boolean.TRUE.equals(permission.getCanExport());
-            default:
-                return false;
-        }
+        return switch (accessType) {
+            case READ -> Boolean.TRUE.equals(permission.getCanRead());
+            case WRITE -> Boolean.TRUE.equals(permission.getCanWrite());
+            case CREATE -> Boolean.TRUE.equals(permission.getCanCreate());
+            case REMOVE -> Boolean.TRUE.equals(permission.getCanRemove());
+            case IMPORT -> Boolean.TRUE.equals(permission.getCanImport());
+            case EXPORT -> Boolean.TRUE.equals(permission.getCanExport());
+            default -> false;
+        };
     }
 }

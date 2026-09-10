@@ -15,10 +15,10 @@ public class GestionCentroDniAdapter extends Adapter {
         }
 
         String strValue;
-        if (value instanceof Node) {
-            strValue = ((Node) value).getTextContent();
-        } else if (value instanceof String) {
-            strValue = (String) value;
+        if (value instanceof Node node) {
+            strValue = node.getTextContent();
+        } else if (value instanceof String string) {
+            strValue = string;
         } else {
             throw new IllegalArgumentException("Value must be a String or an XML Node (DNI)");
         }

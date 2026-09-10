@@ -535,7 +535,7 @@ class BeanMapperModelTest {
         }
     }
 
-    private static class UnsupportedHolderModel extends Model {
+    public static class UnsupportedHolderModel extends Model {
         private Long id;
         private RefModel ref;
 

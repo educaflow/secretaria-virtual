@@ -101,11 +101,8 @@ public class PhaseEventManagerImpl extends com.educaflow.subsystem.expedientes.s
                         + justificacionFaltaProfesorado.getCodePhase() + "/" + justificacionFaltaProfesorado.getCodeState()));
 
         switch (state) {
-            case States.Recepcion.PENDIENTE_PRESENTACION:
-                eventContext.updateState( States.Recepcion.ENTRADA_DATOS);
-                break;
-            default:
-                throw new IllegalArgumentException("State no reconocido: " + state);
+            case States.Recepcion.PENDIENTE_PRESENTACION -> eventContext.updateState(States.Recepcion.ENTRADA_DATOS);
+            default -> throw new IllegalArgumentException("State no reconocido: " + state);
         }
 
     }

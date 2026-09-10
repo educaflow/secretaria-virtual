@@ -88,8 +88,8 @@ public class MetaFileUtil {
     public static MetaFile getMetaFile(Object obj) {
         if (obj == null) return null;
 
-        if (obj instanceof MetaFile) {
-            return (MetaFile) obj;
+        if (obj instanceof MetaFile metaFile) {
+            return metaFile;
         }
 
         if (obj instanceof Map) {

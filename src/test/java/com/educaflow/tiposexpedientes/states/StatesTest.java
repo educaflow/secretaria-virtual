@@ -246,10 +246,10 @@ class StatesTest {
             String code = constante(clase, "CODE", tipo, violaciones);
             String name = constante(clase, "NAME", tipo, violaciones);
 
-            if ((code != null) && (!tipo.getCode().equals(code))) {
+            if ((code != null) && !tipo.getCode().equals(code)) {
                 violaciones.add(violacion(tipo, "States.CODE es '" + code + "' y el code del tipo '" + tipo.getCode() + "'"));
             }
-            if ((name != null) && (!tipo.getName().equals(name))) {
+            if ((name != null) && !tipo.getName().equals(name)) {
                 violaciones.add(violacion(tipo, "States.NAME es '" + name + "' y el name del tipo '" + tipo.getName() + "'"));
             }
         }
@@ -295,7 +295,7 @@ class StatesTest {
     private static String perfilDelXml(com.educaflow.common.buildtools.files.tipoexpediente.State state) {
         String profile = state.getProfile();
 
-        return ((profile == null) || (profile.isBlank())) ? "(ninguno)" : profile;
+        return ((profile == null) || profile.isBlank()) ? "(ninguno)" : profile;
     }
 
     private static String perfilDeStates(State state) {

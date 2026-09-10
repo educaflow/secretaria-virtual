@@ -52,17 +52,10 @@ public class PhaseEventManagerImpl extends com.educaflow.subsystem.expedientes.s
         RegistroSalida registroSalida=eventContext.createRegistroSalida(pdfResolucion, List.of(justificacionFaltaProfesorado.getJustificante()));
         justificacionFaltaProfesorado.setPdfResolucion(registroSalida.getDocumento());
         switch (tipoResolucion) {
-            case ACEPTAR:
-                eventContext.updateState(States.Tramitacion.ACEPTADO);
-                break;
-            case RECHAZAR:
-                eventContext.updateState(States.Tramitacion.RECHAZADO);
-                break;
-            case SUBSANAR_DATOS:
-                eventContext.updateState(States.Recepcion.ENTRADA_DATOS);
-                break;
-            default:
-                throw new IllegalArgumentException("Tipo de resolución no reconocido: " + tipoResolucion);
+            case ACEPTAR -> eventContext.updateState(States.Tramitacion.ACEPTADO);
+            case RECHAZAR -> eventContext.updateState(States.Tramitacion.RECHAZADO);
+            case SUBSANAR_DATOS -> eventContext.updateState(States.Recepcion.ENTRADA_DATOS);
+            default -> throw new IllegalArgumentException("Tipo de resolución no reconocido: " + tipoResolucion);
         }
     }
 

@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import com.educaflow.base.util.Convert;
 
 public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalida> implements RegistroSalidaService {
 
@@ -69,7 +70,7 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
             throw new IllegalArgumentException("El fichero proporcionado no es un PDF válido.");
         }
 
-        LocalDateTime ahora=LocalDateTime.now();
+        LocalDateTime ahora=LocalDateTime.now(Convert.defaultZoneId);
         String asunto= registroSalidaInsertDTO.asunto();
         Centro centro= registroSalidaInsertDTO.centro();
         String numeroRegistro=getNumeroRegistro(centro,ahora);

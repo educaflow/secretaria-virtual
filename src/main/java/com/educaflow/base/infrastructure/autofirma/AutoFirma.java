@@ -2,6 +2,7 @@ package com.educaflow.base.infrastructure.autofirma;
 
 import com.axelor.db.Model;
 import com.axelor.rpc.ActionResponse;
+import com.google.common.base.Splitter;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.util.ReflectionUtil;
@@ -138,11 +139,11 @@ public class AutoFirma {
 
 
     private void checkFieldExists(String fieldName) {
-        String[] parts = fieldName.split("\\.");
+        List<String> parts = Splitter.on('.').splitToList(fieldName);
         Class<? extends Model> currentClass = clazz;
 
-        for (int i = 0; i < parts.length; i++) {
-            String part = parts[i];
+        for (int i = 0; i < parts.size(); i++) {
+            String part = parts.get(i);
 
             boolean isList = part.contains("[");
             String cleanPart = isList ? part.substring(0, part.indexOf('[')) : part;
@@ -155,7 +156,7 @@ public class AutoFirma {
                 throw new RuntimeException("El getter " + getMethodName + " no existe en " + currentClass.getName()+ " en " + fieldName);
             }
 
-            if (i == parts.length - 1) {
+            if (i == parts.size() - 1) {
                 if (!ReflectionUtil.hasMethod(currentClass, setMethodName, null, null, null)) {
                     throw new RuntimeException("El setter " + setMethodName + " no existe en " + currentClass.getName()+ " en " + fieldName);
                 }
@@ -187,11 +188,11 @@ public class AutoFirma {
                 }
 
                 Type genericReturnType = getMethod.getGenericReturnType();
-                if (!(genericReturnType instanceof ParameterizedType)) {
+                if (!(genericReturnType instanceof ParameterizedType parameterizedType)) {
                     throw new RuntimeException("La List del campo '" + cleanPart + "' en " + currentClass.getName() + " no tiene tipo genérico definido"+ " en " + fieldName);
                 }
 
-                Type typeArgument = ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];
+                Type typeArgument = parameterizedType.getActualTypeArguments()[0];
                 if (!(typeArgument instanceof Class)) {
                     throw new RuntimeException("El tipo genérico de la List del campo '" + cleanPart + "' en " + currentClass.getName() + " no es una clase concreta"+ " en " + fieldName);
                 }
@@ -204,6 +205,6 @@ public class AutoFirma {
     }
 
 
-    private record SourceTargetField(String sourceField, String targetField){};
+    public record SourceTargetField(String sourceField, String targetField) {}
 
 }

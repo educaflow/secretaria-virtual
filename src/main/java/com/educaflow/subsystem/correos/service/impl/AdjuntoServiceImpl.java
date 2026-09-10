@@ -10,9 +10,9 @@ import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.correos.db.Adjunto;
 import com.educaflow.subsystem.correos.service.AdjuntoService;
-
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public class AdjuntoServiceImpl extends DefaultModelService<Adjunto> implements AdjuntoService {
@@ -112,7 +112,7 @@ public class AdjuntoServiceImpl extends DefaultModelService<Adjunto> implements 
         String nombre = adjunto.getNombreFichero().trim();
 
         boolean existeDuplicado = hermanos.stream()
-                .anyMatch(otro -> otro != adjunto
+                .anyMatch(otro -> !Objects.equals(otro, adjunto)
                         && otro.getNombreFichero() != null
                         && nombre.equals(otro.getNombreFichero().trim()));
 

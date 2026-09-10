@@ -44,7 +44,7 @@ public class  TareaFirmaController {
         ActionRequestHelper actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
         TareaFirma tareaFirma = JpaRepository.of(TareaFirma.class).find(actionRequestHelper.getId());
 
-        AutoFirma autofirma = (new AutoFirma(TareaFirma.class))
+        AutoFirma autofirma = new AutoFirma(TareaFirma.class)
                 .setRectangulo(new Rectangulo(tareaFirma.getX().floatValue(),tareaFirma.getY().floatValue(),tareaFirma.getWidth().floatValue(),tareaFirma.getHeight().floatValue()))
                 .setPageNumber(tareaFirma.getPage())
                 .setDni(tareaFirma.getFirmante().getDni());

@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import com.educaflow.base.util.Convert;
 
 
 public class Tramitador {
@@ -120,7 +121,7 @@ public class Tramitador {
                     + codePhaseOrigen + "/" + expediente.getCodeState() + "'");
         }
 
-        if (((eventName.equals(CommonEvent.DELETE.name())) == false)) {
+        if (!eventName.equals(CommonEvent.DELETE.name())) {
             BeanValidationRules beanValidationRules = getBeansValidationRules(stateEventValidator, expediente.getCodeState(), eventName);
             AllowProperties allowProperties = AllowProperties.createAllowProperties(AllowPropertiesFactory.getAllowProperties(beanValidationRules.getFieldValidationRules()));
             beanMapperModel.copyMapToEntity(expediente.getClass(), requestData, expediente, allowProperties);
@@ -194,7 +195,7 @@ public class Tramitador {
         historialEstado.setNameState(expediente.getNameState());
         historialEstado.setCodeEvent((eventName != null) ? eventName : "");
         historialEstado.setNameEvent((eventName != null) ? TextUtil.humanize(eventName) : "");
-        historialEstado.setFecha(LocalDateTime.now());
+        historialEstado.setFecha(LocalDateTime.now(Convert.defaultZoneId));
 
 
         if (eventContext.getRegistroEntrada()!=null) {
@@ -245,7 +246,7 @@ public class Tramitador {
     }
 
     private void updateNumeroExpediente(Expediente expediente) {
-        int anyoActual = LocalDate.now().getYear();
+        int anyoActual = LocalDate.now(Convert.defaultZoneId).getYear();
         String codigoCentro = expediente.getCentro().getCode();
         long numeroExpedienteSinAnyo = numeradorRepository.getSiguienteNumeroExpediente(codigoCentro, String.valueOf(anyoActual));
         String numeroExpediente = String.format("%05d", numeroExpedienteSinAnyo) + "/" + anyoActual;
@@ -329,8 +330,8 @@ public class Tramitador {
             for(FieldValidationRules fieldValidationRules:rules.getFieldValidationRules()) {
                 if (fieldValidationRules.getMethodField().getName().equals(methodName)) {
                     for(ValidationRule validationRule:fieldValidationRules.getValidationRules()) {
-                        if ((validationRule instanceof FieldValidationRules)) {
-                            fieldsValidationRules.add((FieldValidationRules)validationRule);
+                        if (validationRule instanceof FieldValidationRules subFieldValidationRules) {
+                            fieldsValidationRules.add(subFieldValidationRules);
                         }
                     }
                 }

@@ -72,8 +72,8 @@ public class Convert {
 
             if (obj == null) {
                 userString = "";
-            } else if (obj instanceof Boolean) {
-                userString = ((Boolean) obj) ? "Sí" : "No";
+            } else if (obj instanceof Boolean b) {
+                userString = b ? "Sí" : "No";
             } else if ((obj instanceof Long) || (obj instanceof Integer) || (obj instanceof Byte) || (obj instanceof Short)) {
                 NumberFormat integerFormat = NumberFormat.getIntegerInstance(defaultLocale);
                 userString = integerFormat.format(obj);
@@ -82,20 +82,20 @@ public class Convert {
                 nf.setGroupingUsed(true);
                 nf.setMaximumFractionDigits(2);
                 userString = nf.format(obj);
-            } else if (obj instanceof LocalDate) {
-                userString = DateTimeFormatter.ofPattern("dd/MM/yyyy").format((LocalDate) obj);
-            } else if (obj instanceof LocalTime) {
-                userString = DateTimeFormatter.ofPattern("HH:mm").format((LocalTime) obj);
-            } else if (obj instanceof LocalDateTime) {
-                userString = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format((LocalDateTime) obj);
-            } else if (obj instanceof Instant) {
-                userString = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(((Instant) obj).atZone(defaultZoneId));
-            } else if (obj instanceof Date) {
-                userString = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(((Date) obj).toInstant().atZone(defaultZoneId));
-            } else if (obj instanceof ZonedDateTime) {
-                userString = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(((ZonedDateTime) obj).withZoneSameInstant(defaultZoneId));
-            } else if (obj instanceof OffsetDateTime) {
-                userString = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(((OffsetDateTime) obj).atZoneSameInstant(defaultZoneId));
+            } else if (obj instanceof LocalDate localDate) {
+                userString = DateTimeFormatter.ofPattern("dd/MM/yyyy").format(localDate);
+            } else if (obj instanceof LocalTime localTime) {
+                userString = DateTimeFormatter.ofPattern("HH:mm").format(localTime);
+            } else if (obj instanceof LocalDateTime localDateTime) {
+                userString = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(localDateTime);
+            } else if (obj instanceof Instant instant) {
+                userString = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(instant.atZone(defaultZoneId));
+            } else if (obj instanceof Date date) {
+                userString = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(date.toInstant().atZone(defaultZoneId));
+            } else if (obj instanceof ZonedDateTime zonedDateTime) {
+                userString = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(zonedDateTime.withZoneSameInstant(defaultZoneId));
+            } else if (obj instanceof OffsetDateTime offsetDateTime) {
+                userString = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(offsetDateTime.atZoneSameInstant(defaultZoneId));
             } else if (obj instanceof ValueEnum) {
                 Class<?> clazz = obj.getClass();
 

@@ -305,7 +305,7 @@ class DocumentoPdfImplITextTest {
 
 
         AlmacenClaveFichero almacenClaveSistemaArchivos = new AlmacenClaveFichero(this.getClass().getResourceAsStream(ficheroCertificado),passwordCertificado);
-        CampoFirma campoFirma=(new CampoFirma(new Rectangulo(100,150,130,100))).setFontSize(8).setNumeroPagina(1).setFechaFirma(LocalDateTime.of(2025, 8, 1, 14, 30, 45)).setMensaje("Firmado para pruebas").setMotivo("Motivo Pruebas unitarias");
+        CampoFirma campoFirma= new CampoFirma(new Rectangulo(100,150,130,100)).setFontSize(8).setNumeroPagina(1).setFechaFirma(LocalDateTime.of(2025, 8, 1, 14, 30, 45)).setMensaje("Firmado para pruebas").setMotivo("Motivo Pruebas unitarias");
         DocumentoPdf documentoPdfFirmado= documentoPdf.firmar(almacenClaveSistemaArchivos,campoFirma);
 
 

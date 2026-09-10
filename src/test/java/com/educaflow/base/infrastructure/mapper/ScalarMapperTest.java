@@ -42,11 +42,11 @@ class ScalarMapperTest {
     void getScalarFromObject_shouldConvertPrimitivesAndNumbers() {
         assertEquals("123", ScalarMapper.getScalarFromObject(123, String.class));
 
-        assertEquals(Boolean.TRUE, ScalarMapper.getScalarFromObject(true, Boolean.class));
-        assertEquals(Boolean.TRUE, ScalarMapper.getScalarFromObject(1, Boolean.class));
-        assertEquals(Boolean.FALSE, ScalarMapper.getScalarFromObject(0, Boolean.class));
-        assertEquals(Boolean.TRUE, ScalarMapper.getScalarFromObject("TRUE", Boolean.class));
-        assertEquals(Boolean.FALSE, ScalarMapper.getScalarFromObject("no", Boolean.class));
+        assertEquals(true, ScalarMapper.getScalarFromObject(true, Boolean.class));
+        assertEquals(true, ScalarMapper.getScalarFromObject(1, Boolean.class));
+        assertEquals(false, ScalarMapper.getScalarFromObject(0, Boolean.class));
+        assertEquals(true, ScalarMapper.getScalarFromObject("TRUE", Boolean.class));
+        assertEquals(false, ScalarMapper.getScalarFromObject("no", Boolean.class));
 
         assertEquals(42, ScalarMapper.getScalarFromObject(42L, Integer.class));
         assertEquals(42, ScalarMapper.getScalarFromObject("42", Integer.class));

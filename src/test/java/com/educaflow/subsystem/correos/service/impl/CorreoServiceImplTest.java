@@ -52,6 +52,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.educaflow.base.util.Convert;
 
 @ExtendWith(MockitoExtension.class)
 class CorreoServiceImplTest {
@@ -391,7 +392,7 @@ class CorreoServiceImplTest {
         Long correoId = 1L;
         Correo correo = correoParaEnvio();
         correo.setId(correoId);
-        correo.setFechaEnvio(LocalDateTime.now().minusDays(1));
+        correo.setFechaEnvio(LocalDateTime.now(Convert.defaultZoneId).minusDays(1));
         when(repository.find(correoId)).thenReturn(correo);
         doThrow(new RuntimeException("SMTP caído")).when(mailSender).send(any());
 

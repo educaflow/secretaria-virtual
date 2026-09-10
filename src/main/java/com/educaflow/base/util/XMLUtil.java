@@ -284,7 +284,7 @@ public class XMLUtil {
             return defaultValue;
         } else {
             String rawValue=element.getAttribute(attributeName);
-            if ((rawValue==null) || (rawValue.trim().isEmpty())) {
+            if ((rawValue==null) || rawValue.trim().isEmpty()) {
                 return defaultValue;
             } else if ("true".equalsIgnoreCase(rawValue)) {
                 return true;
@@ -303,7 +303,7 @@ public class XMLUtil {
             return defaultValue;
         } else {
             String rawValue=element.getAttribute(attributeName);
-            if ((rawValue==null) || (rawValue.trim().isEmpty())) {
+            if ((rawValue==null) || rawValue.trim().isEmpty()) {
                 return defaultValue;
             } else {
                 return Integer.parseInt(element.getAttribute(attributeName));
@@ -316,7 +316,7 @@ public class XMLUtil {
             return defaultValue;
         } else {
             String rawValue=element.getAttribute(attributeName);
-            if ((rawValue==null) || (rawValue.trim().isEmpty())) {
+            if ((rawValue==null) || rawValue.trim().isEmpty()) {
                 return defaultValue;
             } else {
                 return element.getAttribute(attributeName);
@@ -359,8 +359,8 @@ public class XMLUtil {
 
         Node clonedNode = originalDocument.cloneNode(true);
 
-        if (clonedNode instanceof Document) {
-            return (Document) clonedNode;
+        if (clonedNode instanceof Document document) {
+            return document;
         } else {
             throw new IllegalStateException("Failed to clone Document. Cloned node is not a Document type.");
         }

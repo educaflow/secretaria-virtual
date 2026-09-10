@@ -52,30 +52,14 @@ public class CertificateViewer {
     }
 
     private static String getExtensionName(String oid) {
-        String extensionName;
-
-        switch (oid) {
-            case "2.5.29.17" :
-                extensionName="Subject Alternative Name (SAN)";
-                break;
-            case "2.5.29.14" :
-                extensionName="Subject Key Identifier";
-                break;
-            case "2.5.29.15" :
-                extensionName="Key Usage";
-                break;
-            case "2.5.29.19" :
-                extensionName="Basic Constraints";
-                break;
-            case "2.5.29.37" :
-                extensionName="Extended Key Usage";
-                break;
-            case "1.3.6.1.4.1.5734.1.4" :
-                extensionName="DNI (OID de ejemplo)";
-                break;
-            default :
-                extensionName="OID Desconocido";
-                break;
+        String extensionName = switch (oid) {
+            case "2.5.29.17" -> "Subject Alternative Name (SAN)";
+            case "2.5.29.14" -> "Subject Key Identifier";
+            case "2.5.29.15" -> "Key Usage";
+            case "2.5.29.19" -> "Basic Constraints";
+            case "2.5.29.37" -> "Extended Key Usage";
+            case "1.3.6.1.4.1.5734.1.4" -> "DNI (OID de ejemplo)";
+            default -> "OID Desconocido";
         };
 
         return extensionName;
@@ -89,16 +73,15 @@ public class CertificateViewer {
 
         System.out.println(indent + obj.getClass().getSimpleName() + ": ");
 
-        if (obj instanceof org.bouncycastle.asn1.ASN1Sequence) {
-            for (ASN1Encodable item : (org.bouncycastle.asn1.ASN1Sequence) obj) {
+        if (obj instanceof org.bouncycastle.asn1.ASN1Sequence sequence) {
+            for (ASN1Encodable item : sequence) {
                 printAsn1Structure(item, indent + "  ");
             }
-        } else if (obj instanceof org.bouncycastle.asn1.ASN1Set) {
-            for (ASN1Encodable item : (org.bouncycastle.asn1.ASN1Set) obj) {
+        } else if (obj instanceof org.bouncycastle.asn1.ASN1Set set) {
+            for (ASN1Encodable item : set) {
                 printAsn1Structure(item, indent + "  ");
             }
-        } else if (obj instanceof org.bouncycastle.asn1.ASN1TaggedObject) {
-            org.bouncycastle.asn1.ASN1TaggedObject tagged = (org.bouncycastle.asn1.ASN1TaggedObject) obj;
+        } else if (obj instanceof org.bouncycastle.asn1.ASN1TaggedObject tagged) {
             System.out.println(indent + "  Etiqueta: " + tagged.getTagNo());
             printAsn1Structure(tagged.getBaseObject(), indent + "  ");
         } else {

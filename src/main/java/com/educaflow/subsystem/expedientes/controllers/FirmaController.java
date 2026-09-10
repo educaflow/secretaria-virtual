@@ -32,7 +32,7 @@ public class FirmaController {
             }
 
 
-            AutoFirma autofirma = (new AutoFirma(clazz))
+            AutoFirma autofirma = new AutoFirma(clazz)
                     .setRectangulo(rectanguloPosicionFirmaPDF)
                     .setPageNumber(pageNumber)
                     .addSourceTargetField(sourceField, targetField)

@@ -82,6 +82,24 @@ class ConvertTest {
         assertThrows(NumberFormatException.class, () -> Convert.coerceToInt("abc"));
     }
 
+    /**
+     * Axelor usa la zona por defecto de la JVM sin que se pueda configurar: sus propios
+     * {@code LocalDateTime.now()} (auditoría, tokens...) y el serializador JSON que interpreta
+     * TODO {@code LocalDateTime} en {@code ZoneId.systemDefault()} para mandarlo al navegador.
+     * El proyecto en cambio fecha todo con {@code Convert.defaultZoneId}. Si las dos zonas no
+     * coinciden, las fechas del proyecto y las de Axelor quedan desfasadas entre sí y el
+     * navegador las muestra mal, así que la JVM MUST arrancar en la zona del proyecto
+     * (por ejemplo con {@code TZ=Europe/Madrid} o {@code -Duser.timezone=Europe/Madrid}).
+     */
+    @Test
+    void defaultZoneId_coincideConLaZonaDeLaJVM() {
+        assertEquals(Convert.defaultZoneId, ZoneId.systemDefault(),
+                "La JVM corre en la zona '" + ZoneId.systemDefault() + "' y el proyecto usa '"
+                        + Convert.defaultZoneId + "': Axelor fecha con la de la JVM y el proyecto con la suya, "
+                        + "y quedarían desfasadas. Arranca la JVM en " + Convert.defaultZoneId
+                        + " (TZ=" + Convert.defaultZoneId + " o -Duser.timezone=" + Convert.defaultZoneId + ")");
+    }
+
     @Test
     void objectToUserString() {
         // Strings y null
@@ -139,7 +157,7 @@ class ConvertTest {
     }
 
     enum MotivoFaltaJustificacionFaltaProfesorado implements ValueEnum<String> {
-        @EnumWidget()
+        @EnumWidget
         ENFERMEDAD_COMUN,
 
         @EnumWidget(

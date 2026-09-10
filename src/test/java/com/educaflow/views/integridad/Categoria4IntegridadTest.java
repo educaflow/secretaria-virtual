@@ -9,6 +9,7 @@ import com.educaflow.views.support.Index;
 import com.educaflow.views.support.ViewFile;
 import com.educaflow.views.support.ViewFiles;
 import com.educaflow.views.support.Violacion;
+import com.google.common.base.Splitter;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -201,8 +202,8 @@ class Categoria4IntegridadTest {
                                 continue;
                             }
                             if (valor.startsWith("serial:")) {
-                                for (String parte : valor.substring("serial:".length()).split(",")) {
-                                    anhadirNoVacio(r, parte.trim());
+                                for (String parte : Splitter.on(',').trimResults().split(valor.substring("serial:".length()))) {
+                                    anhadirNoVacio(r, parte);
                                 }
                             } else {
                                 r.add(valor);

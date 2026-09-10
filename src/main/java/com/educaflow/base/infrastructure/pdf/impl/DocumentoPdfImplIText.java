@@ -188,8 +188,7 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
             PrivateKey privateKey = null;
             int slot = 0;
 
-            if (almacenClave instanceof AlmacenClaveFichero) {
-                AlmacenClaveFichero almacenClaveFichero = (AlmacenClaveFichero) almacenClave;
+            if (almacenClave instanceof AlmacenClaveFichero almacenClaveFichero) {
                 InputStream fileCertificate = almacenClaveFichero.getFileCertificate();
                 String password = almacenClaveFichero.getPassword();
 
@@ -197,8 +196,7 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
                 alias = userKeyStore.aliases().nextElement();
                 privateKey = (PrivateKey) userKeyStore.getKey(alias, password.toCharArray());
                 chain = userKeyStore.getCertificateChain(alias);
-            } else if (almacenClave instanceof AlmacenClaveDispositivo) {
-                AlmacenClaveDispositivo almacenClaveDispositivo = (AlmacenClaveDispositivo) almacenClave;
+            } else if (almacenClave instanceof AlmacenClaveDispositivo almacenClaveDispositivo) {
                 slot = almacenClaveDispositivo.getSlot();
                 alias = almacenClaveDispositivo.getAlias();
 

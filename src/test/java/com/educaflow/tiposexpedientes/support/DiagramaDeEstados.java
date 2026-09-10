@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Locale;
 
 /**
  * Lectura del {@code estados.puml} de un tipo de expediente: los estados que el diagrama nombra.
@@ -223,7 +224,7 @@ public final class DiagramaDeEstados {
         if (linea.isEmpty() || linea.startsWith("'") || linea.startsWith("@") || linea.startsWith("!")) {
             return true;
         }
-        String primera = linea.split("[\\s:]", 2)[0].toLowerCase();
+        String primera = linea.split("[\\s:]", 2)[0].toLowerCase(Locale.ROOT);
 
         return PALABRAS_IGNORADAS.contains(primera) || linea.equals("}");
     }

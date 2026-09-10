@@ -93,7 +93,7 @@ class VistasPorEstadoTest {
 
                 // Sin perfil no hay dueño del turno: la vista de todos es la genérica (X1).
                 // Sin eventos no hay nada que disparar: el estado solo se mira.
-                if ((profile == null) || (profile.isBlank()) || (state.getEvents().isEmpty())) {
+                if ((profile == null) || profile.isBlank() || state.getEvents().isEmpty()) {
                     continue;
                 }
                 if (tieneForm(fase, state.getName(), profile)) {

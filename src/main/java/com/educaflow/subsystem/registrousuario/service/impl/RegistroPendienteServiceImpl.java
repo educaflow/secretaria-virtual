@@ -55,32 +55,6 @@ public class RegistroPendienteServiceImpl extends DefaultModelService<RegistroPe
         return Optional.empty();
     }
 
-    private Optional<BusinessMessages> validarEmailDni(RegistroPendiente registroPendiente) {
-        /*BusinessMessages businessMessages=new BusinessMessages();
-        UsuarioAutorizadoRepository usuarioAutorizadoRepository = (UsuarioAutorizadoRepository) JpaRepository.of(UsuarioAutorizado.class);
-        UserRepository userRepository = (UserRepository) JpaRepository.of(User.class);
-
-        if (registroPendiente.getEmail().isBlank()) {
-            businessMessages.add(new BusinessMessage(registroPendiente.getEmail(), "El email es obligatorio."));
-        } else if (!registroPendiente.getEmail().matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
-            businessMessages.add(new BusinessMessage(registroPendiente.getEmail(), "El formato del email no es válido."));
-        }
-        if (registroPendiente.getDni().isBlank()) {
-            businessMessages.add(new BusinessMessage(registroPendiente.getDni(), "El DNI/NIE es obligatorio."));
-        }
-        if (!DniUtil.isValid(registroPendiente.getDni())) {
-            businessMessages.add(new BusinessMessage(registroPendiente.getDni(), "El número de DNI/NIE no es válido."));
-        } else if (!usuarioAutorizadoRepository.isAuthorized(registroPendiente.getDni())) {
-            businessMessages.add(new BusinessMessage(registroPendiente.getDni(), "El documento no está autorizado para registrarse. Contacte con secretaría."));
-        }
-        if (userRepository.findByEmail(registroPendiente.getEmail()) != null) {
-            businessMessages.add(new BusinessMessage("email", "El email ya está registrado."));
-        }
-
-        return Optional.of(businessMessages);*/
-        return Optional.empty();
-    }
-
     @Override
     @Transactional
     public void validarCodigo(String codigo, String token) throws BusinessException{
@@ -99,30 +73,5 @@ public class RegistroPendienteServiceImpl extends DefaultModelService<RegistroPe
         }
         pendiente.setVerificado(true);
         super.update(pendiente, null);*/
-    }
-
-    private void enviarCodigoPorEmail(String email, String codigo) {
-        /*String asunto = "Código de verificación - Secretaría Virtual CIPFP Mislata";
-        String htmlBody = "<p>Su código de verificación es:</p>"
-                + "<h2 style='letter-spacing:4px;font-family:monospace'>" + codigo + "</h2>"
-                + "<p>Válido durante " + EXPIRACION_MINUTOS + " minutos.</p>";
-        String textBody = "Su código de verificación es: " + codigo
-                + "\nVálido durante " + EXPIRACION_MINUTOS + " minutos.";
-
-        logger.info("[REGISTRO] Código de verificación para {}: {}", email, codigo);*/
-
-        /*Mail mail = new Mail(
-                List.of(email),
-                "secretaria@mislata.es",
-                asunto,
-                htmlBody,
-                textBody,
-                List.of()
-        );
-        try {
-            mailSender.send(mail);
-        } catch (Exception e) {
-            logger.warn("[REGISTRO] No se pudo enviar el email a {}: {}", email, e.getMessage());
-        }*/
     }
 }

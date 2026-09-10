@@ -97,7 +97,7 @@ public final class DispositivoCriptograficoInfoBuilder {
             while (enumeration.hasMoreElements()) {
                 String alias = enumeration.nextElement();
                 Certificate certificate = keyStore.getCertificate(alias);
-                certificados.put(alias, certificate instanceof X509Certificate ? (X509Certificate) certificate : null);
+                certificados.put(alias, certificate instanceof X509Certificate x509Certificate ? x509Certificate : null);
             }
             return certificados;
         } catch (KeyStoreException ex) {

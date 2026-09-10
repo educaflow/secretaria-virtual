@@ -43,6 +43,7 @@ public class EventContext {
     }
     public Centro getCentro() { return centro; }
 
+    @Override
     public String toString() {
         return "EventContext [profile=" + profile + ", centro=" + centro + "]";
     }

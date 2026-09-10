@@ -73,7 +73,7 @@ public class VeraPdfHelper {
     }
 
     private static List<PDFAFlavour> getFlavoursPdfAPdfUA(List<PDFAFlavour> detectedFlavours) {
-        List<PDFAFlavour> flavours = new LinkedList<>();
+        List<PDFAFlavour> flavours = new ArrayList<>();
         for (PDFAFlavour flavour : detectedFlavours) {
             if (PDFFlavours.isFlavourFamily(flavour, PDFAFlavour.SpecificationFamily.PDF_A) || PDFFlavours.isFlavourFamily(flavour, PDFAFlavour.SpecificationFamily.PDF_UA)) {
                 flavours.add(flavour);

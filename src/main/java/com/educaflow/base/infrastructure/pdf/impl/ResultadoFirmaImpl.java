@@ -38,9 +38,7 @@ public class ResultadoFirmaImpl implements ResultadoFirma {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-
-        ResultadoFirmaImpl that = (ResultadoFirmaImpl) obj;
+        if (!(obj instanceof ResultadoFirmaImpl that)) return false;
 
         return correcta == that.correcta
                 && Objects.equals(fechaFirma, that.fechaFirma)
@@ -75,6 +73,7 @@ public class ResultadoFirmaImpl implements ResultadoFirma {
         return datosCertificado;
     }
 
+    @Override
     public String getNombreCampo() {
         return nombreCampo;
     }

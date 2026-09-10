@@ -24,7 +24,7 @@ public class FirmaServidorHelper {
 
     public MetaFile firmarEnServidor(String dni, SituacionFirma situacionFirma, String clave, MetaFile documentoOriginal, Rectangulo posicion, int pagina) throws BusinessException {
 
-        if ((dni==null) || (dni.isBlank())) {
+        if ((dni==null) || dni.isBlank()) {
             throw new IllegalArgumentException("No hay DNI para el firmante");
         }
         if (DniUtil.isValid(dni) == false) {

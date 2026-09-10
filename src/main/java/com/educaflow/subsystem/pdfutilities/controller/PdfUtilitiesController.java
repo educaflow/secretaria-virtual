@@ -94,7 +94,7 @@ public class PdfUtilitiesController {
             numeroPagina = 1;
         }
 
-        AutoFirma autofirma = (new AutoFirma(PdfUtilities.class))
+        AutoFirma autofirma = new AutoFirma(PdfUtilities.class)
                 .setRectangulo(new Rectangulo(x,y,width,height))
                 .setPageNumber(numeroPagina)
                 .addSourceTargetField("pdf","pdfFirmado")

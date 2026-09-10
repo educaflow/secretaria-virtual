@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import com.educaflow.base.util.Convert;
 
 public class CorreoServiceImpl extends DefaultModelService<Correo> implements CorreoService {
 
@@ -301,7 +302,7 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
         // R-Correo-003 — asignación INCONDICIONAL de campos servidor (k-secure-coding §3.3): el
         // cliente NO puede dictar estos campos aunque vengan rellenos en el JSON de entrada.
         correo.setEstado(EstadoCorreo.PENDIENTE);
-        correo.setFechaCreacion(LocalDateTime.now());
+        correo.setFechaCreacion(LocalDateTime.now(Convert.defaultZoneId));
         correo.setNumeroReintentos(0);
         correo.setFechaPrimerIntentoEnvio(null);
         correo.setFechaUltimoIntentoEnvio(null);
@@ -327,11 +328,11 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
 
     private void fireActionRule_RegistrarIntentoEnvio(Correo correo) {
         // R-Correo-004 (CC-Correo-002/003/005) — asignación INCONDICIONAL.
-        correo.setFechaUltimoIntentoEnvio(LocalDateTime.now());
+        correo.setFechaUltimoIntentoEnvio(LocalDateTime.now(Convert.defaultZoneId));
         if (correo.getFechaPrimerIntentoEnvio() == null) {
             // No es el antipatrón de mass-assignment: no depende de lo que mande el cliente
             // (correoId es el único parámetro externo), sino de si YA existe un primer intento en BD.
-            correo.setFechaPrimerIntentoEnvio(LocalDateTime.now());
+            correo.setFechaPrimerIntentoEnvio(LocalDateTime.now(Convert.defaultZoneId));
         }
         correo.setNumeroReintentos(correo.getNumeroReintentos() + 1);
     }
@@ -339,7 +340,7 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
     private void fireActionRule_MarcarEnvioCorrecto(Correo correo) {
         // R-Correo-004 (RES-Correo-002: fechaEnvio solo con SUCCESS) — asignación INCONDICIONAL.
         correo.setEstado(EstadoCorreo.SUCCESS);
-        correo.setFechaEnvio(LocalDateTime.now());
+        correo.setFechaEnvio(LocalDateTime.now(Convert.defaultZoneId));
         correo.setDescripcionUltimoFallo(null);
     }
 

@@ -16,6 +16,7 @@ import com.educaflow.subsystem.importacion.service.TareaImportacionService;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
+import com.educaflow.base.util.Convert;
 
 public class TareaImportacionServiceImpl extends DefaultModelService<TareaImportacion> implements TareaImportacionService {
 
@@ -86,7 +87,7 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
 
     private void fireActionRule_asignarCamposSistema(TareaImportacion tareaImportacion) {
         tareaImportacion.setUsuario(SecurityUtil.getUser());
-        tareaImportacion.setFechaImportacion(LocalDateTime.now());
+        tareaImportacion.setFechaImportacion(LocalDateTime.now(Convert.defaultZoneId));
         tareaImportacion.setFechaExportacion(null);
         tareaImportacion.setEstado(false);
         tareaImportacion.setLog(null);
@@ -101,7 +102,7 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
             tareaImportacion.setCentro(resultado.centro());
             tareaImportacion.setCurso(resultado.curso());
             tareaImportacion.setLog("Importación finalizada. " + resultado.log());
-            tareaImportacion.setFechaExportacion(LocalDateTime.now());
+            tareaImportacion.setFechaExportacion(LocalDateTime.now(Convert.defaultZoneId));
         } catch (ImportadorException ex) {
             tareaImportacion.setEstado(false);
             tareaImportacion.setLog(ex.getMessage());

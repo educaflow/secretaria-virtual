@@ -5,6 +5,7 @@ import com.axelor.common.Inflector;
 import java.text.Normalizer;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.Locale;
 
 public class TextUtil {
     public static String humanize(String screamingSnakeCase) {
@@ -20,7 +21,7 @@ public class TextUtil {
         if (str == null || str.isEmpty()) {
             return str;
         }
-        return str.substring(0, 1).toUpperCase() + str.substring(1);
+        return str.substring(0, 1).toUpperCase(Convert.defaultLocale) + str.substring(1);
     }
 
 
@@ -43,7 +44,7 @@ public class TextUtil {
             result = "file";
         }
 
-        if (WINDOWS_RESERVED.contains(result.toUpperCase())) {
+        if (WINDOWS_RESERVED.contains(result.toUpperCase(Locale.ROOT))) {
             result = "_" + result;
         }
 

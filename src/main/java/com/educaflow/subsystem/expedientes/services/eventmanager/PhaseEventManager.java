@@ -87,7 +87,7 @@ public abstract class PhaseEventManager<T extends Expediente> {
 
         //Hueco simétrico al guard de codePhase de ExpedienteLocator: una fila con la fase puesta y el
         //estado nulo lo pasaría y reventaría aquí con un NPE pelado al interpolar el nombre de vista.
-        if ((expediente.getCodeState() == null) || (expediente.getCodeState().isBlank())) {
+        if ((expediente.getCodeState() == null) || expediente.getCodeState().isBlank()) {
             throw new RuntimeException("El expediente no tiene estado (codeState) para el tipo de"
                     + " expediente " + tipoExpedienteCode + ". La pareja (codePhase, codeState) la"
                     + " escribe ExpedienteUtil.updateState; si está vacía, la fila se ha creado o"

@@ -67,11 +67,11 @@ public class MailSenderImplSmtp implements MailSender {
     }
 
 
-    private class SMTPAuthenticator extends jakarta.mail.Authenticator {
+    private static class SMTPAuthenticator extends jakarta.mail.Authenticator {
         private final String userName;
         private final String password;
 
-        public SMTPAuthenticator(String userName, String password) {
+        SMTPAuthenticator(String userName, String password) {
             this.userName = userName;
             this.password = password;
         }

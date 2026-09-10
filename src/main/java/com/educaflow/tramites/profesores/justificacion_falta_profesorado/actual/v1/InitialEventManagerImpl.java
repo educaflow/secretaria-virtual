@@ -7,6 +7,7 @@ import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 
 import java.time.LocalDate;
+import com.educaflow.base.util.Convert;
 
 
 /**
@@ -23,7 +24,7 @@ public class InitialEventManagerImpl implements InitialEventManager<Justificacio
 
     @Override
     public void triggerInitialEvent(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, EventContext eventContext) throws BusinessException {
-        justificacionFaltaProfesorado.setAnyo(LocalDate.now().getYear());
+        justificacionFaltaProfesorado.setAnyo(LocalDate.now(Convert.defaultZoneId).getYear());
         Persona persona=new Persona();
         persona.setNombre(justificacionFaltaProfesorado.getUsuarioRegistrador().getNombre());
         persona.setApellidos(justificacionFaltaProfesorado.getUsuarioRegistrador().getApellidos());

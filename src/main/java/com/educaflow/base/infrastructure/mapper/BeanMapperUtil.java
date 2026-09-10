@@ -110,10 +110,10 @@ public class BeanMapperUtil {
             throw  new IllegalArgumentException("Object is null");
         }
 
-        if (object instanceof Model) {
-            id = ((Model) object).getId();
-        } else if (object instanceof Map) {
-            id=ScalarMapper.getScalarFromObject(((Map)object).get("id"),Long.class);
+        if (object instanceof Model model) {
+            id = model.getId();
+        } else if (object instanceof Map<?,?> map) {
+            id=ScalarMapper.getScalarFromObject(map.get("id"),Long.class);
         } else {
             throw  new IllegalArgumentException("Object no es Model ni es Map");
         }

@@ -104,24 +104,28 @@ public class JavaMailHelper {
         private final String name;
         private final byte[] data;
 
-        public InputStreamDataSource(String contentType, String name, byte[] data) {
+        InputStreamDataSource(String contentType, String name, byte[] data) {
             this.contentType = contentType;
             this.name = name;
             this.data = data;
         }
 
+        @Override
         public String getContentType() {
             return contentType;
         }
 
+        @Override
         public String getName() {
             return name;
         }
 
+        @Override
         public InputStream getInputStream() throws IOException {
             return new ByteArrayInputStream(data);
         }
 
+        @Override
         public OutputStream getOutputStream() throws IOException {
             throw new UnsupportedOperationException("Not implemented");
         }

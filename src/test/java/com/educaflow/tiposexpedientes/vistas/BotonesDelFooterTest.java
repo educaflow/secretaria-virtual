@@ -7,6 +7,7 @@ import com.educaflow.tiposexpedientes.support.FormDeEstado;
 import com.educaflow.tiposexpedientes.support.TiposExpediente;
 import com.educaflow.tiposexpedientes.support.Violacion;
 import com.educaflow.tiposexpedientes.support.ViewsDeFase;
+import com.google.common.base.Splitter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -204,19 +205,14 @@ class BotonesDelFooterTest {
     private static List<String> acciones(String onClick) {
         String valor = onClick.startsWith(PREFIJO_SERIAL) ? onClick.substring(PREFIJO_SERIAL.length()) : onClick;
 
-        List<String> acciones = new ArrayList<>();
-        for (String accion : valor.split(",")) {
-            acciones.add(accion.trim());
-        }
-
-        return acciones;
+        return Splitter.on(',').trimResults().omitEmptyStrings().splitToList(valor);
     }
 
     /** En qué form se espera el botón, para que el mensaje diga dónde pegarlo. */
     private static String dondeVaElBoton(State state) {
         String profile = state.getProfile();
 
-        return ((profile == null) || (profile.isBlank()))
+        return ((profile == null) || profile.isBlank())
                 ? "genérico del estado (no tiene perfil dueño)"
                 : ("<form state=\"" + state.getName() + "\" profile=\"" + profile + "\">");
     }

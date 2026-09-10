@@ -45,7 +45,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -66,6 +65,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import com.educaflow.base.util.Convert;
 
 @ExtendWith(MockitoExtension.class)
 class TareaFirmaServiceImplTest {
@@ -289,7 +289,7 @@ class TareaFirmaServiceImplTest {
         tareaFirma.setId(7L);
         tareaFirma.setFirmante(firmante);
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.PENDIENTE);
-        tareaFirma.setFechaSolicitud(LocalDateTime.now());
+        tareaFirma.setFechaSolicitud(LocalDateTime.now(Convert.defaultZoneId));
         tareaFirma.setMotivoFirma("Firma de los documentos");
         tareaFirma.setDocumentosFirma(documentosFirma(numeroDocumentos, tareaFirma));
         tareaFirma.setX(new BigDecimal("75"));
@@ -358,7 +358,7 @@ class TareaFirmaServiceImplTest {
         // El PDF original se responde POR ARGUMENTO, nunca por orden de llamada: así la correspondencia
         // documento <-> PDF es explícita y no depende de cómo recorra producción la lista de documentos.
         // El mapa es de identidad porque dos MetaFile sin id nunca son iguales entre sí.
-        Map<MetaFile, DocumentoPdf> pdfsPorDocumentoOriginal = new IdentityHashMap<>();
+        IdentityHashMap<MetaFile, DocumentoPdf> pdfsPorDocumentoOriginal = new IdentityHashMap<>();
         documentosPdfOriginales = new ArrayList<>();
         for (DocumentoFirma documentoFirma : tareaFirma.getDocumentosFirma()) {
             DocumentoPdf documentoPdfOriginal = Mockito.mock(DocumentoPdf.class);

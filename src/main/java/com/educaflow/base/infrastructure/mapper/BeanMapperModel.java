@@ -275,14 +275,11 @@ public class BeanMapperModel {
                         } else if ((listSource == null) && (listTarget != null)) {
                             PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), null);
                         } else if ((listSource != null) && (listTarget == null)) {
-                            List<Model> listValues = null;
-                            if (listSource!=null) {
-                                listValues = new ArrayList<>();
-                                for (Object rawValue : listSource) {
-                                    Model itemValue = getInitialModelFromMap((Map<String, Object>) rawValue, tipoListaClass);
-                                    copyValueToEntityAndNoChangeId(tipoListaClass, rawValue, itemValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList);
-                                    listValues.add(itemValue);
-                                }
+                            List<Model> listValues = new ArrayList<>();
+                            for (Object rawValue : listSource) {
+                                Model itemValue = getInitialModelFromMap((Map<String, Object>) rawValue, tipoListaClass);
+                                copyValueToEntityAndNoChangeId(tipoListaClass, rawValue, itemValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList);
+                                listValues.add(itemValue);
                             }
                             PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), listValues);
                         } else if ((listSource != null) && (listTarget != null)) {
@@ -319,14 +316,11 @@ public class BeanMapperModel {
                         } else if ((collectionSetSource == null) && (collectionSetTarget != null)) {
                             PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), null);
                         } else if ((collectionSetSource != null) && (collectionSetTarget == null)) {
-                            Set<Model> setValues = null;
-                            if (collectionSetSource!=null) {
-                                setValues = new LinkedHashSet<>();
-                                for (Object rawValue : collectionSetSource) {
-                                    Model itemValue = getInitialModelFromMap((Map<String, Object>) rawValue, tipoSetClass);
-                                    copyValueToEntityAndNoChangeId(tipoSetClass, rawValue, itemValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList);
-                                    setValues.add(itemValue);
-                                }
+                            Set<Model> setValues = new LinkedHashSet<>();
+                            for (Object rawValue : collectionSetSource) {
+                                Model itemValue = getInitialModelFromMap((Map<String, Object>) rawValue, tipoSetClass);
+                                copyValueToEntityAndNoChangeId(tipoSetClass, rawValue, itemValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList);
+                                setValues.add(itemValue);
                             }
                             PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), setValues);
                         } else if ((collectionSetSource != null) && (collectionSetTarget != null)) {
@@ -370,8 +364,7 @@ public class BeanMapperModel {
     private void copyValueToEntityAndNoChangeId(Class<? extends Model> clazz, Object rawValue, Model valueDest, AllowProperties allowProperties, String mappedBy, Model mappedByModel, InstanceModelList instanceModelList) {
         Long originalId = valueDest.getId();
 
-        if (rawValue instanceof Model) {
-            Model rawValueModel = (Model) rawValue;
+        if (rawValue instanceof Model rawValueModel) {
             copyEntityToEntity(clazz, rawValueModel, valueDest, allowProperties, mappedBy, mappedByModel, instanceModelList);
             } else if (rawValue instanceof Map) {
                 Map<String, Object> rawValueMap = (Map<String, Object>) rawValue;

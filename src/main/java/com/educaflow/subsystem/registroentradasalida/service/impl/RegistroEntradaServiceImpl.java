@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import com.educaflow.base.util.Convert;
 
 
 public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntrada> implements RegistroEntradaService {
@@ -52,7 +53,7 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
             throw new IllegalArgumentException("El fichero proporcionado no es un PDF válido.");
         }
 
-        LocalDateTime ahora=LocalDateTime.now();
+        LocalDateTime ahora=LocalDateTime.now(Convert.defaultZoneId);
         RegistroEntrada registroEntrada=new RegistroEntrada();
 
         String numeroRegistro=getNumeroRegistro(registroEntradaInsertDTO.centro(),ahora);
@@ -147,7 +148,7 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
 
     private String getNombreDocumentoOriginalFirmado(DatosRegistroEntradaPdf datosRegistroEntradaPdf) {
         String nombreDocumento;
-        if ((datosRegistroEntradaPdf.numeroExpediente!=null) && (!datosRegistroEntradaPdf.numeroExpediente.isBlank())) {
+        if ((datosRegistroEntradaPdf.numeroExpediente!=null) && !datosRegistroEntradaPdf.numeroExpediente.isBlank()) {
             nombreDocumento="solicitud_expediente_" + datosRegistroEntradaPdf.numeroExpediente + ".pdf";
         } else {
             nombreDocumento="registro_entrada_" + datosRegistroEntradaPdf.numeroRegistro + ".pdf";
@@ -158,7 +159,7 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
 
     private String getNombreDocumentoResguardoPresentacion(DatosRegistroEntradaPdf datosRegistroEntradaPdf) {
         String nombreDocumento;
-        if ((datosRegistroEntradaPdf.numeroExpediente!=null) && (!datosRegistroEntradaPdf.numeroExpediente.isBlank())) {
+        if ((datosRegistroEntradaPdf.numeroExpediente!=null) && !datosRegistroEntradaPdf.numeroExpediente.isBlank()) {
             nombreDocumento="resguardo_solicitud_expediente_" + datosRegistroEntradaPdf.numeroExpediente + ".pdf";
         } else {
             nombreDocumento="resguardo_registro_entrada_" + datosRegistroEntradaPdf.numeroRegistro + ".pdf";

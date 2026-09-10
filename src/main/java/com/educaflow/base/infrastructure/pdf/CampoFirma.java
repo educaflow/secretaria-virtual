@@ -1,6 +1,7 @@
 package com.educaflow.base.infrastructure.pdf;
 
 import java.time.LocalDateTime;
+import com.educaflow.base.util.Convert;
 
 /**
  *
@@ -17,7 +18,7 @@ public class CampoFirma {
     private int fontSize=DEFAULT_FONT_SIZE;
     private int numeroPagina=DEFAULT_NUMERO_PAGINA;
     private byte[] image=null;
-    private LocalDateTime fechaFirma= LocalDateTime.now();
+    private LocalDateTime fechaFirma= LocalDateTime.now(Convert.defaultZoneId);
 
     public CampoFirma(Rectangulo rectanguloMensaje) {
         this.rectanguloMensaje=rectanguloMensaje;

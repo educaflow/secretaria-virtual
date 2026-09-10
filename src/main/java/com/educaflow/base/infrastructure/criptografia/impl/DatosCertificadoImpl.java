@@ -7,6 +7,8 @@ import com.educaflow.base.infrastructure.criptografia.TipoEmisorCertificado;
 import com.educaflow.base.infrastructure.criptografia.impl.helper.CertificateParser;
 import com.educaflow.base.infrastructure.criptografia.impl.helper.CriptografiaUtil;
 
+import com.google.common.base.Splitter;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.cert.*;
 import java.util.*;
@@ -137,7 +139,7 @@ public class DatosCertificadoImpl implements DatosCertificado {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
+        if (!(obj instanceof DatosCertificadoImpl)) return false;
         DatosCertificado that = (DatosCertificado) obj;
         return validoEnListaCertificadosConfiables == that.isValidoEnListaCertificadosConfiables()
                 && selloTiempo == that.isSelloTiempo()
@@ -149,8 +151,8 @@ public class DatosCertificadoImpl implements DatosCertificado {
                 && Objects.equals(cnIssuer, that.getCnIssuer())
                 && Objects.equals(tipoEmisorCertificado, that.getTipoEmisorCertificado())
                 && Objects.equals(tipoCertificado, that.getTipoCertificado())
-                && Objects.equals(validoNoAntesDe, that.getValidoNoAntesDe())
-                && Objects.equals(validoNoDespuesDe, that.getValidoNoDespuesDe())
+                && mismoInstante(validoNoAntesDe, that.getValidoNoAntesDe())
+                && mismoInstante(validoNoDespuesDe, that.getValidoNoDespuesDe())
                 && Objects.equals(certificate, that.getCertificate());
     }
     @Override
@@ -166,10 +168,24 @@ public class DatosCertificadoImpl implements DatosCertificado {
                 cnIssuer,
                 tipoEmisorCertificado,
                 tipoCertificado,
-                validoNoAntesDe,
-                validoNoDespuesDe,
+                validoNoAntesDe == null ? null : validoNoAntesDe.toInstant(),
+                validoNoDespuesDe == null ? null : validoNoDespuesDe.toInstant(),
                 certificate
         );
+    }
+
+    /**
+     * Compara dos fechas por el instante que representan, no con {@code Date.equals}, que exige que
+     * ambas sean exactamente de la misma clase y no es simétrico entre {@code Date} y {@code java.sql.Timestamp}.
+     */
+    private static boolean mismoInstante(Date a, Date b) {
+        if (a == null) {
+            return b == null;
+        }
+        if (b == null) {
+            return false;
+        }
+        return a.toInstant().equals(b.toInstant());
     }
     
     private boolean isValidoEnListaCertificadosConfiables(X509Certificate certificate, KeyStore trustStore) {
@@ -239,7 +255,7 @@ public class DatosCertificadoImpl implements DatosCertificado {
             TipoCertificado tipoCertificado;
 
             if (basicConstraints == -1) {
-                if (organizacionIssuer.contains("FNMT") && (cnIssuer.contains("Representación"))) {
+                if (organizacionIssuer.contains("FNMT") && cnIssuer.contains("Representación")) {
                     tipoCertificado= TipoCertificado.REPRESENTACION;
                 } else {
                     tipoCertificado= TipoCertificado.USUARIO_FINAL;
@@ -267,7 +283,7 @@ public class DatosCertificadoImpl implements DatosCertificado {
                 return false;
             }
 
-            boolean critical = (x509Certificate.getCriticalExtensionOIDs() != null) && (x509Certificate.getCriticalExtensionOIDs().contains(OID_EXTENDED_KEY_USAGE));
+            boolean critical = (x509Certificate.getCriticalExtensionOIDs() != null) && x509Certificate.getCriticalExtensionOIDs().contains(OID_EXTENDED_KEY_USAGE);
             if (critical==false) {
                 return false;
             }
@@ -293,7 +309,7 @@ public class DatosCertificadoImpl implements DatosCertificado {
 
         if (tipoEmisorCertificado != null) {
             switch (tipoEmisorCertificado) {
-                case FNMT:
+                case FNMT -> {
                     if (tipoCertificado==TipoCertificado.USUARIO_FINAL) {
                         populateDatosComunesCertificadoUsuarioFNMT();
                     } else if (tipoCertificado==TipoCertificado.REPRESENTACION) {
@@ -301,15 +317,10 @@ public class DatosCertificadoImpl implements DatosCertificado {
                     } else {
                         throw new RuntimeException("El tipo de certificado no es válido:" + this.tipoCertificado);
                     }
-                    break;
-                case ACCV:
-                    populateDatosComunesCertificadoACCV();
-                    break;
-                case DNI:
-                    populateDatosComunesCertificadoDNI();
-                    break;
-                default:
-                    throw new RuntimeException("El tipo de emisor es desconocido:" + this.tipoEmisorCertificado);
+                }
+                case ACCV -> populateDatosComunesCertificadoACCV();
+                case DNI -> populateDatosComunesCertificadoDNI();
+                default -> throw new RuntimeException("El tipo de emisor es desconocido:" + this.tipoEmisorCertificado);
             }
         } else {
             populateDatosComunesCertificadoEmpy();
@@ -372,10 +383,10 @@ public class DatosCertificadoImpl implements DatosCertificado {
 
         try {
             String nombreApellidos = CertificateParser.findOidsWithLocation(certificate, OID_NOMBRE_APELLIDOS_ACCV).get(OID_NOMBRE_APELLIDOS_ACCV_LOCATION);
-            if ((nombreApellidos!=null) && (nombreApellidos.contains("|"))) {
-                String[] arrNombreApellidos = nombreApellidos.split("\\|");
-                nombre = arrNombreApellidos[0];
-                apellidos = String.join(" ", Arrays.copyOfRange(arrNombreApellidos, 1, arrNombreApellidos.length));
+            if ((nombreApellidos!=null) && nombreApellidos.contains("|")) {
+                List<String> partesNombreApellidos = Splitter.on('|').omitEmptyStrings().splitToList(nombreApellidos);
+                nombre = partesNombreApellidos.get(0);
+                apellidos = String.join(" ", partesNombreApellidos.subList(1, partesNombreApellidos.size()));
             }
         } catch (Exception ex) {
             //Si falla algo se quedan los datos sin cargar
@@ -397,7 +408,7 @@ public class DatosCertificadoImpl implements DatosCertificado {
             //Si falla algo se quedan los datos sin cargar
         }
         try {
-            apellidos = data.get("CN").split(",")[0].trim();
+            apellidos = Splitter.on(',').trimResults().splitToList(data.get("CN")).get(0);
         } catch (Exception ex) {
             //Si falla algo se quedan los datos sin cargar
         }
@@ -439,8 +450,8 @@ public class DatosCertificadoImpl implements DatosCertificado {
                 String strValue;
 
                 // convertir byte[] a String si es necesario
-                if (value instanceof byte[]) {
-                    strValue = new String((byte[]) value).trim();
+                if (value instanceof byte[] array) {
+                    strValue = new String(array, StandardCharsets.UTF_8).trim();
                 } else if (value == null) {
                     strValue = "";
                 } else {

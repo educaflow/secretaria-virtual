@@ -1,6 +1,7 @@
 package com.educaflow.base.util;
 
 import java.util.regex.Pattern;
+import java.util.Locale;
 
 public class DniUtil {
 
@@ -27,7 +28,7 @@ public class DniUtil {
 
 
     public static String clean(String dni) {
-        String val = ((String) dni).toUpperCase().trim();
+        String val = dni.toUpperCase(Locale.ROOT).trim();
 
         // Caso: 0XXXXXXXXL -> XXXXXXXXL
         if (PATTERN_DNI_PREFIXED.matcher(val).matches()) {
