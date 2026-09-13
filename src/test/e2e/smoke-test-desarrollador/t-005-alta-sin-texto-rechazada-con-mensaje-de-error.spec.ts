@@ -7,34 +7,38 @@ import { ensureLoggedOut, login, logout } from '../_support/auth';
 
 // Abre el menú «Desarrollador» → «Smoke test» y espera la lista.
 async function abrirSmokeTest(page: Page): Promise<void> {
-  await page.getByText('Desarrollador', { exact: true }).click();
-  await page.getByText('Smoke test', { exact: true }).click();
+  // Por data-testid y no por texto: el ítem se rotula literalmente
+  // «Smoke__!! test__!!» porque la traducción del CSV de menús no está aplicada en
+  // runtime, así que un locator por texto es frágil ante ese detalle de i18n.
+  await page.getByTestId('item:desarrollador-menuitem').click();
+  await page.getByTestId('item:desarrollador-smoketest-menuitem').click();
   await expect(page.getByRole('button', { name: 'Añadir un nuevo smoke test' })).toBeVisible();
 }
 
 // Espera a que la grid haya TERMINADO de cargar antes de leer el paginador.
 //
 // CRITICAL — evitar la carrera de carga: al entrar en la lista, Axelor pinta un
-// paginador transitorio "0 to 0 of 0" ANTES de que llegue la query de datos, así que
+// paginador transitorio "0 a 0 de 0" ANTES de que llegue la query de datos, así que
 // leer de inmediato daría un total falso. La grid ha terminado de cargar cuando aparece
-// una fila con una fecha DD/MM/YYYY (hay datos) O el mensaje "No records" (lista vacía).
+// una fila con una fecha DD/MM/YYYY (hay datos) O el mensaje "No se encontraron
+// registros." (lista vacía).
 // MUST esperar a cualquiera de los dos: la tabla `smoke_test` PUEDE estar vacía (BD
 // compartida que se resetea, o cuando el resto de tests han limpiado sus registros), y
 // esperar solo la fila-con-fecha colgaría el test 20s en ese caso.
 async function esperarGridCargada(page: Page): Promise<void> {
   const filaConFecha = page.getByRole('row').filter({ hasText: /\d{2}\/\d{2}\/\d{4}/ }).first();
-  const sinRegistros = page.getByText(/No records/i);
+  const sinRegistros = page.getByText(/No se encontraron registros/i);
   await expect(filaConFecha.or(sinRegistros).first()).toBeVisible();
 }
 
-// Nº total de registros según el paginador de la lista ("1 to N of N", o "0 to 0 of 0"
-// si está vacía; el texto del paginador de Axelor aparece en inglés incluso con el admin
-// en español). Sirve para comprobar que un alta rechazada NO incrementa el total.
+// Nº total de registros según el paginador de la lista ("1 a N de N", o "0 a 0 de 0"
+// si está vacía; sale traducido al español, que es el locale de la aplicación).
+// Sirve para comprobar que un alta rechazada NO incrementa el total.
 async function contarRegistros(page: Page): Promise<number> {
   await esperarGridCargada(page);
-  const paginador = page.getByText(/\d+\s+to\s+\d+\s+of\s+\d+/);
+  const paginador = page.getByText(/\d+\s+a\s+\d+\s+de\s+\d+/);
   const txt = await paginador.first().innerText();
-  const m = txt.match(/of\s+(\d+)/);
+  const m = txt.match(/de\s+(\d+)/);
   if (!m) throw new Error(`Paginador no parseable: "${txt}"`);
   return Number(m[1]);
 }
@@ -67,13 +71,13 @@ test.describe('Smoke test (Desarrollador)', () => {
     await page.getByRole('button', { name: 'Guardar' }).click();
 
     // Resultado esperado 1: el sistema muestra el mensaje «El texto es obligatorio».
-    // Axelor lo presenta en un diálogo de "Validation Error"; el guardado queda bloqueado
+    // Axelor lo presenta en un diálogo de error de validación; el guardado queda bloqueado
     // (la vista permanece en el formulario de edición, no vuelve a la lista).
     await expect(page.getByText('El texto es obligatorio')).toBeVisible();
     await expect(page).toHaveURL(/\/edit$/);
 
-    // Cerrar el diálogo (OK) y salir del formulario (Cancelar) para volver al listado.
-    await page.getByRole('button', { name: 'OK' }).click();
+    // Cerrar el diálogo (Aceptar) y salir del formulario (Cancelar) para volver al listado.
+    await page.getByRole('button', { name: 'Aceptar' }).click();
     await page.getByRole('button', { name: 'Cancelar' }).click();
     await expect(page.getByRole('button', { name: 'Añadir un nuevo smoke test' })).toBeVisible();
 

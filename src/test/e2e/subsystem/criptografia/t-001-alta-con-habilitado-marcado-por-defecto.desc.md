@@ -35,7 +35,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Pasos
 
-1. **Dado** que el administrador está en la pantalla «Certificados digitales» (menú «Administración SV» → «Certificados digitales»).
+1. **Dado** que el administrador está en la pantalla «Certificados digitales» (menú «Criptografía» → «Certificados digitales»).
 2. **Cuando** pulsa «Añadir certificado digital».
 3. **Entonces** el formulario de alta muestra la casilla «Habilitado» marcada.
 4. **Cuando** rellena el campo «DNI» con «85432016B».

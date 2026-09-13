@@ -48,7 +48,7 @@ test.describe('Administración de correos', () => {
     // listado y comprobar de forma directa que no se ha creado ninguna fila con
     // este asunto único.
     await page.getByRole('button', { name: 'Cancelar' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'OK' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Aceptar' }).click();
     await expect(page.getByRole('row', { name: asunto })).toHaveCount(0);
 
     await logout(page);

@@ -41,7 +41,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 - No existe ningún certificado digital con DNI «29050788V» (si quedaran de una ejecución anterior, se borran desde el listado como describe el «Estado inicial de la base de datos»).
 
 ## Pasos
-1. **Dado** que el administrador está en la pantalla «Certificados digitales» (menú «Administración SV» → «Certificados digitales»).
+1. **Dado** que el administrador está en la pantalla «Certificados digitales» (menú «Criptografía» → «Certificados digitales»).
 2. **Cuando** pulsa «Añadir certificado digital».
 3. **Y** escribe en el campo «DNI» el valor «29050788V».
 4. **Entonces** el campo «Nombre» muestra «Secretario» y el campo «Apellidos» muestra «CIPFP Mislata», y los dos están de solo lectura.

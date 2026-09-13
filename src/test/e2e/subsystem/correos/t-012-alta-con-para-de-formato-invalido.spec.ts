@@ -38,11 +38,11 @@ test.describe('Administración de correos', () => {
     // Resultado esperado: el sistema muestra el mensaje "El «para» debe contener
     // direcciones de correo válidas (por ejemplo, usuario@dominio.com)" (diálogo
     // modal de "Validation Error") y no crea el correo.
-    await expect(page.getByRole('heading', { name: 'Validation Error' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'La acción no se completó por los siguientes motivos' })).toBeVisible();
     await expect(
       page.getByText('El «para» debe contener direcciones de correo válidas (por ejemplo, usuario@dominio.com)')
     ).toBeVisible();
-    await page.getByRole('dialog').getByRole('button', { name: 'OK' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Aceptar' }).click();
 
     // La pestaña conserva el asterisco de "sin guardar" y la URL sigue en el
     // formulario de alta (no ha navegado a .../edit/<id>), confirmando que el
@@ -54,7 +54,7 @@ test.describe('Administración de correos', () => {
     // listado y comprobar de forma directa que no se ha creado ninguna fila con
     // este asunto único.
     await page.getByRole('button', { name: 'Cancelar' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'OK' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Aceptar' }).click();
     await expect(page.getByRole('row', { name: asunto })).toHaveCount(0);
 
     await logout(page);

@@ -56,7 +56,7 @@ test.describe('Administración de correos', () => {
       const dialogoAdjunto = page.getByRole('dialog');
       await dialogoAdjunto.getByLabel('Nombre del fichero').fill('documento.pdf');
       const fileChooserPromise = page.waitForEvent('filechooser');
-      await dialogoAdjunto.getByRole('button', { name: 'Upload' }).click();
+      await dialogoAdjunto.getByRole('button', { name: 'Subir' }).click();
       const fileChooser = await fileChooserPromise;
       await fileChooser.setFiles(adjuntoPath);
       await expect(dialogoAdjunto.getByRole('button', { name: 'documento.pdf' })).toBeVisible();

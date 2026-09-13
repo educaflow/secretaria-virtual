@@ -59,7 +59,7 @@ test.describe('Administración de correos', () => {
     // Descarta el diálogo de adjunto (confirmando la pérdida de cambios) para
     // volver al formulario del correo.
     await dialogoAdjunto.getByRole('button', { name: 'Cancelar' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'OK' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Aceptar' }).click();
 
     // El panel de adjuntos del correo queda vacío: el adjunto sin contenido nunca
     // llegó a añadirse.
@@ -76,7 +76,7 @@ test.describe('Administración de correos', () => {
     // diálogo de adjunto ya descartado deja en el DOM un botón "Cancelar" residual
     // (oculto) que, si no se acota, provoca un choque de selector (strict mode).
     await page.getByRole('tabpanel', { name: 'Correo*' }).getByRole('button', { name: 'Cancelar' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'OK' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Aceptar' }).click();
 
     // Resultado esperado (parte 2): el sistema no crea el correo.
     await expect(page.getByRole('row', { name: asunto })).toHaveCount(0);

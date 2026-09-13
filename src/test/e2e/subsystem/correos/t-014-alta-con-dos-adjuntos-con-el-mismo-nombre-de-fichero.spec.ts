@@ -55,7 +55,7 @@ test.describe('Administración de correos', () => {
       let dialogoAdjunto = page.getByRole('dialog');
       await dialogoAdjunto.getByLabel('Nombre del fichero').fill('documento.pdf');
       let fileChooserPromise = page.waitForEvent('filechooser');
-      await dialogoAdjunto.getByRole('button', { name: 'Upload' }).click();
+      await dialogoAdjunto.getByRole('button', { name: 'Subir' }).click();
       let fileChooser = await fileChooserPromise;
       await fileChooser.setFiles(adjuntoPath);
       await expect(dialogoAdjunto.getByRole('button', { name: 'documento.pdf' })).toBeVisible();
@@ -76,7 +76,7 @@ test.describe('Administración de correos', () => {
       dialogoAdjunto = page.getByRole('dialog');
       await dialogoAdjunto.getByLabel('Nombre del fichero').fill('documento.pdf');
       fileChooserPromise = page.waitForEvent('filechooser');
-      await dialogoAdjunto.getByRole('button', { name: 'Upload' }).click();
+      await dialogoAdjunto.getByRole('button', { name: 'Subir' }).click();
       fileChooser = await fileChooserPromise;
       await fileChooser.setFiles(adjuntoPath);
       await expect(dialogoAdjunto.getByRole('button', { name: 'documento.pdf' })).toBeVisible();
@@ -99,11 +99,11 @@ test.describe('Administración de correos', () => {
       // de otras validaciones, pero el mismo mecanismo de fondo): al comparar cada
       // adjunto contra sus hermanos, el mensaje aparece una vez por cada uno de los
       // dos adjuntos duplicados, de ahí el .first().
-      await expect(page.getByRole('heading', { name: 'Internal Server Error' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Error interno del servidor' })).toBeVisible();
       await expect(
         page.getByText('Ya existe un adjunto con ese nombre en el correo').first()
       ).toBeVisible();
-      await page.getByRole('dialog').getByRole('button', { name: 'OK' }).click();
+      await page.getByRole('dialog').getByRole('button', { name: 'Aceptar' }).click();
 
       // La pestaña conserva el asterisco de "sin guardar" y la URL sigue en el
       // formulario de alta (no ha navegado a .../edit/<id>), confirmando que el
@@ -115,7 +115,7 @@ test.describe('Administración de correos', () => {
       // listado y comprobar de forma directa que no se ha creado ninguna fila con
       // este asunto único.
       await page.getByRole('button', { name: 'Cancelar' }).click();
-      await page.getByRole('dialog').getByRole('button', { name: 'OK' }).click();
+      await page.getByRole('dialog').getByRole('button', { name: 'Aceptar' }).click();
       await expect(page.getByRole('row', { name: asunto })).toHaveCount(0);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });

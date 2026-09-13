@@ -18,10 +18,10 @@ test.describe('Administración de correos', () => {
     // buscar por nombre—. En su lugar se compara el total de filas del listado
     // antes y después del intento de alta: si el correo nunca llega a crearse, el
     // total no cambia. Al no crearse nada, tampoco hace falta teardown.
-    const contador = page.getByText(/^\d+ to \d+ of \d+$/);
+    const contador = page.getByText(/^\d+ a \d+ de \d+$/);
     // El contador tarda un instante en cargar el total real tras la navegación
-    // (arranca en "0 to 0 of 0"); se espera a que se estabilice antes de leerlo.
-    await expect(contador).not.toHaveText('0 to 0 of 0');
+    // (arranca en "0 a 0 de 0"); se espera a que se estabilice antes de leerlo.
+    await expect(contador).not.toHaveText('0 a 0 de 0');
     const totalAntes = await contador.textContent();
 
     // Paso 1: Dado que el administrador pulsa "Nuevo correo"
@@ -48,9 +48,9 @@ test.describe('Administración de correos', () => {
     // 255 caracteres" (diálogo modal de "Validation Error", ya que esta validación
     // solo existe en el servicio de servidor, no como check inline del XML) y no
     // crea el correo.
-    await expect(page.getByRole('heading', { name: 'Validation Error' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'La acción no se completó por los siguientes motivos' })).toBeVisible();
     await expect(page.getByText('El asunto no puede superar 255 caracteres')).toBeVisible();
-    await page.getByRole('dialog').getByRole('button', { name: 'OK' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Aceptar' }).click();
 
     // La pestaña conserva el asterisco de "sin guardar" y la URL sigue en el
     // formulario de alta (no ha navegado a .../edit/<id>), confirmando que el
@@ -62,8 +62,8 @@ test.describe('Administración de correos', () => {
     // listado y comprobar de forma directa que el total de filas no ha cambiado
     // (no se ha creado ningún correo nuevo).
     await page.getByRole('button', { name: 'Cancelar' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'OK' }).click();
-    await expect(contador).toHaveText(totalAntes ?? /^\d+ to \d+ of \d+$/);
+    await page.getByRole('dialog').getByRole('button', { name: 'Aceptar' }).click();
+    await expect(contador).toHaveText(totalAntes ?? /^\d+ a \d+ de \d+$/);
 
     await logout(page);
   });

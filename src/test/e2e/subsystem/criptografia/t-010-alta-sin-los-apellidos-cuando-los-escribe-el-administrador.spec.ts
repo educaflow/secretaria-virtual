@@ -42,7 +42,7 @@ const botonAnhadir = (page: Page) => page.getByRole('button', { name: 'Añadir c
 const filaDelDni = (page: Page) => page.getByRole('row', { name: DNI });
 
 // La fila que la rejilla pinta cuando no hay ningún registro.
-const filaSinRegistros = (page: Page) => page.getByRole('row', { name: 'No records found.' });
+const filaSinRegistros = (page: Page) => page.getByRole('row', { name: 'No se encontraron registros.' });
 
 // Diálogo de aviso de Axelor con un único botón de aceptar («Validation Error»
 // de un alta que falló, o el «Current changes will be lost» que salta al
@@ -71,11 +71,11 @@ async function esperarListadoCargado(page: Page): Promise<void> {
   await expect(filaDelDni(page).or(filaSinRegistros(page)).first()).toBeVisible();
 }
 
-// Abre el listado «Certificados digitales» desde el menú «Administración SV».
+// Abre el listado «Certificados digitales» desde el menú «Criptografía».
 // MUST llamarse solo con la pestaña aún cerrada: una vez abierta, el título de la
 // pestaña repite el texto del ítem de menú y el locator por texto sería ambiguo.
 async function abrirCertificadosDigitales(page: Page): Promise<void> {
-  await page.getByText('Administración SV', { exact: true }).click();
+  await page.getByText('Criptografía', { exact: true }).click();
   await page.getByText('Certificados digitales', { exact: true }).click();
   await esperarListadoCargado(page);
 }
@@ -156,7 +156,7 @@ test.describe('Certificados digitales', () => {
 
     try {
       // Paso 1: Dado que el administrador está en la pantalla «Certificados
-      //         digitales» (menú «Administración SV» → «Certificados digitales»).
+      //         digitales» (menú «Criptografía» → «Certificados digitales»).
       await abrirCertificadosDigitales(page);
 
       // Precondición: no existe ningún certificado digital con DNI «12345678Z»
@@ -205,7 +205,7 @@ test.describe('Certificados digitales', () => {
       // ítem por campo rechazado, «<campo>: <mensaje>».
       const dialogoError = page.getByRole('dialog');
       await expect(dialogoError).toBeVisible();
-      await expect(dialogoError.getByRole('heading', { name: 'Validation Error' })).toBeVisible();
+      await expect(dialogoError.getByRole('heading', { name: 'La acción no se completó por los siguientes motivos' })).toBeVisible();
       await expect(dialogoError.getByRole('listitem').filter({ hasText: MENSAJE_ERROR })).toContainText(CAMPO_EN_ERROR);
       await expect(dialogoError).toContainText(MENSAJE_ERROR);
       // El «Nombre» sí se rellenó, así que el rechazo MUST venir solo de los

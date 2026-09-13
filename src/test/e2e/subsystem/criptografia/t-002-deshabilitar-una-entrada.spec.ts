@@ -27,7 +27,7 @@ const botonAnhadir = (page: Page) => page.getByRole('button', { name: 'Añadir c
 const filaDelDni = (page: Page) => page.getByRole('row', { name: DNI });
 
 // La fila que la rejilla pinta cuando no hay ningún registro.
-const filaSinRegistros = (page: Page) => page.getByRole('row', { name: 'No records found.' });
+const filaSinRegistros = (page: Page) => page.getByRole('row', { name: 'No se encontraron registros.' });
 
 // La casilla «Habilitado» del formulario. (El nombre accesible real es
 // «Habilitado ?» por el icono de ayuda; el match por subcadena lo cubre.)
@@ -44,19 +44,25 @@ const okCambiosPerdidos = (page: Page) =>
     .getByRole('button', { name: /^(OK|Aceptar)$/ });
 
 // Pulsa «Guardar» y deja la aplicación de vuelta en el listado, utilizable.
-// CRITICAL: al guardar, la aplicación graba el registro y navega al listado, pero
-// el formulario que abandona sigue marcado como «sucio» (el servidor normaliza el
-// registro al grabarlo), así que Axelor superpone el diálogo modal «Current changes
-// will be lost». El registro YA está guardado — el diálogo solo pregunta por el
-// formulario que se abandona—, pero su capa modal intercepta cualquier clic sobre
-// la rejilla: sin confirmarlo, el clic sobre la fila del DNI se queda esperando
-// hasta el timeout. Aparece tras CADA guardado (alta y edición), así que el
-// `click()` sobre el «OK» —que auto-espera— también sirve de aserción de que el
-// guardado ha llegado a su fin.
+// El guardado navega directamente al listado. Históricamente Axelor superponía
+// además el diálogo modal «Current changes will be lost» (el formulario que se
+// abandonaba quedaba marcado como «sucio» al normalizar el servidor el registro),
+// cuya capa modal interceptaba los clics posteriores sobre la rejilla. Ese diálogo
+// ya no aparece en el flujo normal —los tests t-007 en adelante guardan sin él—,
+// así que se confirma solo si surge y el fin del guardado se asierta contra la
+// vuelta al listado, que es el efecto observable de verdad.
 async function guardarYVolverAlListado(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Guardar' }).click();
-  await okCambiosPerdidos(page).click();
-  await expect(okCambiosPerdidos(page)).toBeHidden();
+  // El diálogo ya no aparece en el flujo normal de guardado (ver comentario arriba),
+  // pero se confirma si apareciera: su capa modal interceptaría los clics siguientes.
+  if (await okCambiosPerdidos(page).isVisible().catch(() => false)) {
+    await okCambiosPerdidos(page).click();
+    await expect(okCambiosPerdidos(page)).toBeHidden();
+  }
+  // Aserción real del fin del guardado: la vista pasa de /edit a /list y reaparece
+  // el botón de alta, que solo existe en la lista.
+  await expect(page).toHaveURL(/CertificadoDigital-action\/list/);
+  await expect(botonAnhadir(page)).toBeVisible();
 }
 
 // Barrera de carga del listado.
@@ -74,11 +80,11 @@ async function esperarListadoCargado(page: Page): Promise<void> {
   await expect(filaDelDni(page).or(filaSinRegistros(page)).first()).toBeVisible();
 }
 
-// Abre el listado «Certificados digitales» desde el menú «Administración SV».
+// Abre el listado «Certificados digitales» desde el menú «Criptografía».
 // MUST llamarse solo con la pestaña aún cerrada: una vez abierta, el título de la
 // pestaña repite el texto del ítem de menú y el locator por texto sería ambiguo.
 async function abrirCertificadosDigitales(page: Page): Promise<void> {
-  await page.getByText('Administración SV', { exact: true }).click();
+  await page.getByText('Criptografía', { exact: true }).click();
   await page.getByText('Certificados digitales', { exact: true }).click();
   await esperarListadoCargado(page);
 }
@@ -128,7 +134,7 @@ test.describe('Certificados digitales', () => {
 
     try {
       // Paso 1: Dado que el administrador está en la pantalla «Certificados
-      //         digitales» (menú «Administración SV» → «Certificados digitales»).
+      //         digitales» (menú «Criptografía» → «Certificados digitales»).
       await abrirCertificadosDigitales(page);
 
       // Precondición: no existe ninguna entrada con el DNI «85432016B» (si la dejó

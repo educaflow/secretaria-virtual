@@ -60,7 +60,7 @@ test.describe('Correos de mi centro', () => {
       const dialogoAdjunto = page.getByRole('dialog');
       await dialogoAdjunto.getByLabel('Nombre del fichero').fill('circular.pdf');
       const fileChooserPromise = page.waitForEvent('filechooser');
-      await dialogoAdjunto.getByRole('button', { name: 'Upload' }).click();
+      await dialogoAdjunto.getByRole('button', { name: 'Subir' }).click();
       const fileChooser = await fileChooserPromise;
       await fileChooser.setFiles(adjuntoPath);
       await expect(dialogoAdjunto.getByRole('button', { name: 'circular.pdf' })).toBeVisible();
@@ -88,7 +88,7 @@ test.describe('Correos de mi centro', () => {
       // ANTES de entrar en el bucle de recarga; si se recargara demasiado
       // pronto, el reload() volvería a la home (hash todavía sin actualizar) y
       // la fila no aparecería nunca.
-      await page.waitForURL(/Correo%40Centro/);
+      await page.waitForURL(/Centro%40Correo/);
 
       // Paso 5: Y recarga el listado hasta ver el correo «Circular con adjunto» en
       // estado "Enviado" y abre su detalle; en el panel de adjuntos aparece

@@ -41,7 +41,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 - No existe ningún certificado digital con DNI «12345678Z».
 
 ## Pasos
-1. **Dado** que el administrador está en la pantalla «Certificados digitales» (menú «Administración SV» → «Certificados digitales»).
+1. **Dado** que el administrador está en la pantalla «Certificados digitales» (menú «Criptografía» → «Certificados digitales»).
 2. **Cuando** pulsa «Añadir certificado digital».
 3. **Y** escribe en el campo «DNI» el valor «12345678Z».
 4. **Y** elige en «Tipo de certificado» la opción «Usar un fichero con el certificado que ya está dentro del del WAR».

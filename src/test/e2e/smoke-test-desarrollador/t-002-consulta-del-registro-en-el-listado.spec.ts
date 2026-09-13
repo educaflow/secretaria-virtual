@@ -11,8 +11,11 @@ const FECHA_RE = /^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/;
 
 // Abre el menú «Desarrollador» → «Smoke test» y espera la lista.
 async function abrirSmokeTest(page: Page): Promise<void> {
-  await page.getByText('Desarrollador', { exact: true }).click();
-  await page.getByText('Smoke test', { exact: true }).click();
+  // Por data-testid y no por texto: el ítem se rotula literalmente
+  // «Smoke__!! test__!!» porque la traducción del CSV de menús no está aplicada en
+  // runtime, así que un locator por texto es frágil ante ese detalle de i18n.
+  await page.getByTestId('item:desarrollador-menuitem').click();
+  await page.getByTestId('item:desarrollador-smoketest-menuitem').click();
   await expect(page.getByRole('button', { name: 'Añadir un nuevo smoke test' })).toBeVisible();
 }
 

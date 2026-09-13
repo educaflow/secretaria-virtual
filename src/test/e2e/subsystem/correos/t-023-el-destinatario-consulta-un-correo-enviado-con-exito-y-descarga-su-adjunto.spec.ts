@@ -58,7 +58,7 @@ test.describe('Mis correos', () => {
       const dialogoAdjunto = page.getByRole('dialog');
       await dialogoAdjunto.getByLabel('Nombre del fichero').fill('certificado.pdf');
       const fileChooserPromise = page.waitForEvent('filechooser');
-      await dialogoAdjunto.getByRole('button', { name: 'Upload' }).click();
+      await dialogoAdjunto.getByRole('button', { name: 'Subir' }).click();
       const fileChooser = await fileChooserPromise;
       await fileChooser.setFiles(adjuntoPath);
       await expect(dialogoAdjunto.getByRole('button', { name: 'certificado.pdf' })).toBeVisible();
@@ -85,7 +85,7 @@ test.describe('Mis correos', () => {
       // elemento de menú superior del submenú.
       await page.getByText('Mis correos', { exact: true }).nth(0).click();
       await page.getByText('Mis correos', { exact: true }).nth(1).click();
-      await page.waitForURL(/Correo%40Mis/);
+      await page.waitForURL(/Mis%40Correo/);
 
       // La pantalla "Mis correos" solo muestra los correos ya enviados con éxito
       // (estado SUCCESS): el envío es asíncrono, así que se reintenta la recarga
@@ -102,8 +102,12 @@ test.describe('Mis correos', () => {
 
       // Resultado esperado: el sistema muestra el correo «Tu certificado» en solo
       // lectura, con su asunto, cuerpo y fecha de envío.
-      await expect(page.getByText(asunto, { exact: true })).toBeVisible();
-      await expect(page.getByText('Adjunto tu certificado', { exact: true })).toBeVisible();
+      // «Asunto» es un campo readonly (textbox deshabilitado con valor), así que se
+      // comprueba con toHaveValue igual que «Fecha de envío». «Cuerpo» usa el widget
+      // Text y en solo lectura se pinta como texto suelto, sin control etiquetado: de
+      // ahí el getByText no exacto (el nodo de texto arrastra las etiquetas vecinas).
+      await expect(page.getByLabel('Asunto')).toHaveValue(asunto);
+      await expect(page.getByText('Adjunto tu certificado')).toBeVisible();
       await expect(page.getByLabel('Fecha de envío')).not.toHaveValue('');
       // El formulario de "Mi correo" es de solo lectura: no ofrece más botón que "Salir".
       await expect(page.getByRole('button', { name: 'Salir' })).toBeVisible();

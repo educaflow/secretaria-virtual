@@ -64,7 +64,7 @@ test.describe('Mis correos', () => {
     // menú superior del submenú.
     await page.getByText('Mis correos', { exact: true }).nth(0).click();
     await page.getByText('Mis correos', { exact: true }).nth(1).click();
-    await page.waitForURL(/Correo%40Mis/);
+    await page.waitForURL(/Mis%40Correo/);
 
     // Resultado esperado: el sistema no muestra el correo «Aviso para Alumno2»,
     // porque su DNI de destinatario no coincide con el del usuario. El envío ya se
