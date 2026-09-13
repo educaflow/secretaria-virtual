@@ -1,7 +1,6 @@
 package com.educaflow.base.infrastructure.mapper;
 
 import com.axelor.db.Model;
-import com.axelor.meta.db.MetaFile;
 import com.axelor.db.modelservice.AllowProperties;
 import org.apache.commons.beanutils.PropertyUtils;
 
@@ -253,8 +252,9 @@ public class BeanMapperModel {
                             PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), valueDest);
                         } else if ((rawValue != null) && (valueDest != null)) {
                             Long rawValueId = rawValue.get("id") != null ? ((Number) rawValue.get("id")).longValue() : null;
-                            if (MetaFile.class.isAssignableFrom(propertyDescriptor.getPropertyType()) && rawValueId != null && !rawValueId.equals(valueDest.getId())) {
-                                // El usuario reemplazó el fichero: cargar el nuevo MetaFile y reemplazar la referencia
+                            if (rawValueId != null && !rawValueId.equals(valueDest.getId())) {
+                                // El usuario eligió otra entidad: cargarla por su id y reemplazar la referencia,
+                                // en vez de copiar los campos del mapa dentro de la entidad actualmente referenciada
                                 valueDest = getInitialModelFromMap(rawValue, (Class<? extends Model>) propertyDescriptor.getPropertyType());
                                 PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), valueDest);
                             } else {
