@@ -999,38 +999,38 @@ class BeanMapperModelTest2 {
             }
         }
 
-        // ---- Preservación del ID (copyValueToEntityAndNoChangeId) ---------
+        // ---- Identidad de la referencia y preservación del ID en ítems de lista ---------
 
         @Nested
-        @DisplayName("Preservación del ID original (copyValueToEntityAndNoChangeId)")
+        @DisplayName("Identidad de la referencia y preservación del ID en ítems de lista")
         class PreserveIdTests {
 
             @Test
-            @DisplayName("El ID original del modelo destino se preserva aunque el mapa contenga un id diferente")
-            void originalId_isPreservedAfterUpdate() {
+            @DisplayName("Cuando el mapa trae un id distinto, la referencia se sustituye y la entidad anterior queda intacta")
+            void idDistintoEnElMapa_sustituyeLaReferenciaYLaAnteriorQuedaIntacta() {
+                AddressModel existingAddress = new AddressModel();
+                existingAddress.setId(100L); // la entidad que el destino solo REFERENCIA
+                existingAddress.setStreet("Antigua");
+
+                AddressModel loadedAddress = new AddressModel();
+                loadedAddress.setId(999L);
+                loadedAddress.setStreet("De BD");
+
+                when(mockLoader.getModel(AddressModel.class, 999L)).thenReturn(loadedAddress);
+
                 try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
                      MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
 
-                    sm.when(() -> ScalarMapper.isScalarType(String.class)).thenReturn(true);
-                    sm.when(() -> ScalarMapper.isScalarType(Long.class)).thenReturn(true);
                     sm.when(() -> ScalarMapper.isScalarType(AddressModel.class)).thenReturn(false);
-                    sm.when(() -> ScalarMapper.getScalarFromObject(any(), eq(String.class)))
-                            .thenReturn("Actualizada");
-                    sm.when(() -> ScalarMapper.getScalarFromObject(any(), eq(Long.class)))
-                            .thenReturn(999L);
                     bu.when(() -> BeanMapperUtil.isOneToOne(any(), eq("address"))).thenReturn(true);
                     bu.when(() -> BeanMapperUtil.isManyToOne(any(), any())).thenReturn(false);
-
-                    AddressModel existingAddress = new AddressModel();
-                    existingAddress.setId(100L); // ID original
-                    existingAddress.setStreet("Antigua");
 
                     PersonWithAddressModel dest = new PersonWithAddressModel();
                     dest.setAddress(existingAddress);
 
-                    // El mapa de la dirección viene con un id diferente e intenta sobreescribirlo
+                    // El mapa de la dirección viene con un id diferente: el usuario elige OTRA dirección
                     Map<String, Object> addressMap = new HashMap<>();
-                    addressMap.put("id", 999L);      // DIFERENTE al original
+                    addressMap.put("id", 999L);      // DIFERENTE al de la referencia actual
                     addressMap.put("street", "Actualizada");
 
                     Map<String, Object> entityMap = new HashMap<>();
@@ -1038,14 +1038,23 @@ class BeanMapperModelTest2 {
 
                     Map<String, Object> addressAllow = new HashMap<>();
                     addressAllow.put("street", null);
-                    addressAllow.put("id", null); // incluso si id está en allowProperties...
+                    // Incluso con el id permitido en allowProperties, la entidad anteriormente referenciada
+                    // no se edita: la rama de sustitución no llega a mirar la whitelist interna.
+                    addressAllow.put("id", null);
 
                     mapper.copyMapToEntity(PersonWithAddressModel.class, entityMap, dest,
                             allowWithNested("address", addressAllow));
 
-                    // copyValueToEntityAndNoChangeId guarda y restaura el id original
-                    assertEquals(100L, dest.getAddress().getId(),
-                            "El ID original (100L) debe preservarse, no sobreescribirse con 999L del mapa");
+                    assertNotSame(existingAddress, dest.getAddress(),
+                            "La referencia debe sustituirse por la entidad que el cliente eligió, no actualizarse in-place");
+                    assertEquals(999L, dest.getAddress().getId(),
+                            "La referencia debe apuntar a la entidad con el id entrante (999L)");
+                    assertEquals("Antigua", existingAddress.getStreet(),
+                            "La entidad anteriormente referenciada NO debe editarse con el mapa del cliente "
+                                    + "(mass-assignment de rebote: el cliente solo la referencia)");
+                    assertEquals("De BD", dest.getAddress().getStreet(),
+                            "La rama de sustitución no copia campos: la entidad cargada conserva sus datos de BD");
+                    verify(mockLoader).getModel(AddressModel.class, 999L);
                 }
             }
 

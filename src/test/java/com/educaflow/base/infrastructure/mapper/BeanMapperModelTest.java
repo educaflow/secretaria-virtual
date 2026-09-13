@@ -3,6 +3,7 @@ package com.educaflow.base.infrastructure.mapper;
 import com.axelor.db.Model;
 import com.educaflow.base.infrastructure.junit.JUnitHelper;
 import com.axelor.db.modelservice.AllowProperties;
+import com.axelor.meta.db.MetaFile;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
@@ -12,6 +13,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -373,6 +376,258 @@ class BeanMapperModelTest {
         assertTrue(ex.getMessage().contains(ParentModel.class.getName()));
     }
 
+    @Test
+    void copyMapToEntity_manyToOneConIdDistinto_sustituyeLaReferencia() {
+        RefModel anterior = ref(1L, "actual");
+        RefModel cargado = ref(2L, "from-db");
+        FakeModelLoader loader = new FakeModelLoader();
+        loader.register(RefModel.class, 2L, cargado);
+
+        BeanMapperModel mapper = new BeanMapperModel(loader);
+        MtoHolderModel target = new MtoHolderModel();
+        target.setRef(anterior);
+
+        Map<String, Object> source = mapOf(
+                "ref", mapOf("id", 2L, "code", "from-map")
+        );
+        Map<String, Object> allowProperties = mapOf(
+                "ref", mapOf("code", true)
+        );
+
+        mapper.copyMapToEntity(MtoHolderModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertSame(cargado, target.getRef());
+        assertEquals(2L, target.getRef().getId());
+        assertEquals("actual", anterior.getCode(),
+                "La entidad que solo estaba referenciada no debe recibir los valores del mapa del cliente");
+        assertEquals(1, loader.callCount(RefModel.class, 2L));
+    }
+
+    @Test
+    void copyMapToEntity_manyToOneConMismoId_conservaLaReferenciaYCopiaCamposPermitidos() {
+        RefModel referenciaActual = ref(1L, "actual");
+        FakeModelLoader loader = new FakeModelLoader();
+
+        BeanMapperModel mapper = new BeanMapperModel(loader);
+        MtoHolderModel target = new MtoHolderModel();
+        target.setRef(referenciaActual);
+
+        Map<String, Object> source = mapOf(
+                "ref", mapOf("id", 1L, "code", "from-map")
+        );
+        Map<String, Object> allowProperties = mapOf(
+                "ref", mapOf("code", true)
+        );
+
+        mapper.copyMapToEntity(MtoHolderModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertSame(referenciaActual, target.getRef());
+        assertEquals("from-map", target.getRef().getCode());
+        assertEquals(1L, target.getRef().getId());
+        assertEquals(0, loader.callCount(RefModel.class, 1L),
+                "Con el mismo id no hace falta consultar la base de datos");
+    }
+
+    @Test
+    void copyMapToEntity_manyToOneConIdDistintoYMapaInternoVacio_sustituyeIgualmente() {
+        RefModel anterior = ref(1L, "actual");
+        RefModel cargado = ref(2L, "from-db");
+        FakeModelLoader loader = new FakeModelLoader();
+        loader.register(RefModel.class, 2L, cargado);
+
+        BeanMapperModel mapper = new BeanMapperModel(loader);
+        MtoHolderModel target = new MtoHolderModel();
+        target.setRef(anterior);
+
+        Map<String, Object> source = mapOf(
+                "ref", mapOf("id", 2L, "code", "from-map")
+        );
+        Map<String, Object> allowProperties = mapOf(
+                "ref", Map.of()
+        );
+
+        mapper.copyMapToEntity(MtoHolderModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertSame(cargado, target.getRef(),
+                "Quien autoriza la propiedad es la entrada externa de la whitelist, no su mapa interno");
+        assertEquals(2L, target.getRef().getId());
+        assertEquals("from-db", target.getRef().getCode());
+        assertEquals("actual", anterior.getCode());
+    }
+
+    @Test
+    void copyMapToEntity_rawValueSinId_conservaLaReferenciaActual() {
+        RefModel referenciaActual = ref(1L, "actual");
+        FakeModelLoader loader = new FakeModelLoader();
+
+        BeanMapperModel mapper = new BeanMapperModel(loader);
+        MtoHolderModel target = new MtoHolderModel();
+        target.setRef(referenciaActual);
+
+        Map<String, Object> source = mapOf(
+                "ref", mapOf("code", "from-map")
+        );
+        Map<String, Object> allowProperties = mapOf(
+                "ref", mapOf("code", true)
+        );
+
+        mapper.copyMapToEntity(MtoHolderModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertSame(referenciaActual, target.getRef());
+        assertEquals("from-map", target.getRef().getCode());
+        assertEquals(1L, target.getRef().getId());
+        assertEquals(0, loader.callCount(RefModel.class, 1L));
+    }
+
+    @Test
+    void copyMapToEntity_metaFileConIdDistinto_sigueSustituyendoLaReferencia() {
+        MetaFile anterior = new MetaFile();
+        anterior.setId(10L);
+        anterior.setFileName("anterior.pdf");
+
+        MetaFile cargado = new MetaFile();
+        cargado.setId(11L);
+        cargado.setFileName("cargado.pdf");
+
+        FakeModelLoader loader = new FakeModelLoader();
+        loader.register(MetaFile.class, 11L, cargado);
+
+        BeanMapperModel mapper = new BeanMapperModel(loader);
+        MtoHolderModel target = new MtoHolderModel();
+        target.setFichero(anterior);
+
+        Map<String, Object> source = mapOf(
+                "fichero", mapOf("id", 11L)
+        );
+        Map<String, Object> allowProperties = mapOf(
+                "fichero", Map.of()
+        );
+
+        mapper.copyMapToEntity(MtoHolderModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertSame(cargado, target.getFichero());
+        assertEquals(11L, target.getFichero().getId());
+        assertEquals(10L, anterior.getId());
+        assertEquals("anterior.pdf", anterior.getFileName());
+    }
+
+    @Test
+    void copyMapToEntity_valueDestNulo_cargaLaReferenciaPorIdYCopiaCamposPermitidos() {
+        RefModel cargado = ref(77L, "from-db");
+        FakeModelLoader loader = new FakeModelLoader();
+        loader.register(RefModel.class, 77L, cargado);
+
+        BeanMapperModel mapper = new BeanMapperModel(loader);
+        MtoHolderModel target = new MtoHolderModel();
+        target.setRef(null);
+
+        Map<String, Object> source = mapOf(
+                "ref", mapOf("id", 77L, "code", "from-map")
+        );
+        Map<String, Object> allowProperties = mapOf(
+                "ref", mapOf("code", true)
+        );
+
+        mapper.copyMapToEntity(MtoHolderModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertSame(cargado, target.getRef());
+        assertEquals(77L, target.getRef().getId());
+        assertEquals("from-map", target.getRef().getCode());
+        assertEquals(1, loader.callCount(RefModel.class, 77L));
+    }
+
+    @Test
+    void copyMapToEntity_manyToOneConIdDistintoYWhitelistAllowAll_sustituyeYNoMutaLaReferenciaAnterior() {
+        RefModel anterior = ref(1L, "actual");
+        RefModel cargado = ref(2L, "from-db");
+        FakeModelLoader loader = new FakeModelLoader();
+        loader.register(RefModel.class, 2L, cargado);
+
+        BeanMapperModel mapper = new BeanMapperModel(loader);
+        MtoHolderModel target = new MtoHolderModel();
+        target.setRef(anterior);
+
+        Map<String, Object> source = mapOf(
+                "ref", mapOf("id", 2L, "code", "from-map")
+        );
+
+        mapper.copyMapToEntity(MtoHolderModel.class, source, target, AllowProperties.createAllowAllProperties());
+
+        assertSame(cargado, target.getRef());
+        assertEquals(2L, target.getRef().getId());
+        assertEquals("actual", anterior.getCode(),
+                "Ni con la whitelist abierta el mapa del cliente edita la entidad que solo se referencia");
+        assertEquals("from-db", target.getRef().getCode(),
+                "La rama de sustitución no copia campos sobre la entidad cargada");
+    }
+
+    @Test
+    void copyMapToEntity_idEntranteInexistente_lanzaRuntimeException() {
+        RefModel referenciaActual = ref(1L, "actual");
+        FakeModelLoader loader = new FakeModelLoader();
+
+        BeanMapperModel mapper = new BeanMapperModel(loader);
+        MtoHolderModel target = new MtoHolderModel();
+        target.setRef(referenciaActual);
+
+        Map<String, Object> source = mapOf(
+                "ref", mapOf("id", 999L, "code", "x")
+        );
+        Map<String, Object> allowProperties = mapOf(
+                "ref", mapOf("code", true)
+        );
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> mapper.copyMapToEntity(MtoHolderModel.class, source, target, AllowProperties.createAllowProperties(allowProperties)));
+
+        assertTrue(ex.getMessage().contains(MtoHolderModel.class.getName()));
+
+        assertTrue(algunaCausaContiene(ex, "999"), "Alguna causa encadenada debe mencionar el id 999 que no se encontró");
+
+        assertSame(referenciaActual, target.getRef(), "El destino no debe quedar con una referencia a medias");
+        assertEquals("actual", referenciaActual.getCode());
+    }
+
+    @Test
+    void copyMapToEntity_oneToOneRealConIdDistinto_sustituyeLaReferenciaYNoMutaLaAnterior() {
+        RefModel anterior = ref(1L, "actual");
+        RefModel cargado = ref(2L, "from-db");
+        FakeModelLoader loader = new FakeModelLoader();
+        loader.register(RefModel.class, 2L, cargado);
+
+        BeanMapperModel mapper = new BeanMapperModel(loader);
+        ParentModel target = new ParentModel();
+        target.setRef(anterior);
+
+        Map<String, Object> source = mapOf(
+                "ref", mapOf("id", 2L, "code", "from-map")
+        );
+        Map<String, Object> allowProperties = mapOf(
+                "ref", mapOf("code", true)
+        );
+
+        mapper.copyMapToEntity(ParentModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertSame(cargado, target.getRef());
+        assertNotSame(anterior, target.getRef());
+        assertEquals(2L, target.getRef().getId());
+        assertEquals("from-db", target.getRef().getCode());
+        assertEquals("actual", anterior.getCode());
+        assertEquals(1, loader.callCount(RefModel.class, 2L));
+    }
+
+    private static RefModel ref(Long id, String code) {
+        RefModel ref = new RefModel();
+        ref.setId(id);
+        ref.setCode(code);
+        return ref;
+    }
+
+    private static boolean algunaCausaContiene(Throwable ex, String texto) {
+        return Stream.iterate(ex.getCause(), Objects::nonNull, Throwable::getCause)
+                .anyMatch(causa -> causa.getMessage() != null && causa.getMessage().contains(texto));
+    }
+
     private static ChildModel child(Long id, String name, ParentModel parent) {
         ChildModel child = new ChildModel();
         child.setId(id);
@@ -555,6 +810,42 @@ class BeanMapperModelTest {
 
         public void setRef(RefModel ref) {
             this.ref = ref;
+        }
+    }
+
+    public static class MtoHolderModel extends Model {
+        private Long id;
+
+        @ManyToOne
+        private RefModel ref;
+
+        @ManyToOne
+        private MetaFile fichero;
+
+        @Override
+        public Long getId() {
+            return id;
+        }
+
+        @Override
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public RefModel getRef() {
+            return ref;
+        }
+
+        public void setRef(RefModel ref) {
+            this.ref = ref;
+        }
+
+        public MetaFile getFichero() {
+            return fichero;
+        }
+
+        public void setFichero(MetaFile fichero) {
+            this.fichero = fichero;
         }
     }
 }
