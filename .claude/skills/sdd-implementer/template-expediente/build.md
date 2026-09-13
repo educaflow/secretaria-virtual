@@ -53,10 +53,20 @@ Failed to create parent directory '…/build/…'
 
 ## 2. Criterio de éxito
 
-- **Éxito** = `./gradlew clean build` termina con **`BUILD SUCCESSFUL`** —lo que **incluye** que pasen los tests de `src/test/java/com/educaflow/tiposexpedientes/` y los de `src/test/java/com/educaflow/views/`, que ese mismo build ejecuta— **Y** el chequeo de conformidad de superficie (§5) no encuentra nada. → responde **exactamente** `OK-COMPILA`.
-- **Fallo** = cualquier error de compilación, cualquier test que falle, **o** cualquier hallazgo de §5. → responde con el JSONL de §3.
+- **Éxito** = `./gradlew clean build` termina con **`BUILD SUCCESSFUL`** —lo que **incluye** que pasen los tests de `src/test/java/com/educaflow/tiposexpedientes/` y los de `src/test/java/com/educaflow/views/`, que ese mismo build ejecuta—, **sin ningún warning de Error Prone** en ficheros de `src/` (§2.1) **Y** el chequeo de conformidad de superficie (§5) no encuentra nada. → responde **exactamente** `OK-COMPILA`.
+- **Fallo** = cualquier error de compilación, cualquier warning de Error Prone en `src/`, cualquier test que falle, **o** cualquier hallazgo de §5. → responde con el JSONL de §3.
 
 **CRITICAL** — los tests de `com/educaflow/tiposexpedientes` son la **verificación de forma** de este artefacto: comprueban que lo escrito a mano en el tipo y en cada una de sus fases concuerda con su `TipoExpedienteInstance.xml` y con su `domains.xml`. Un fallo suyo **es** un fallo del trámite generado. **MUST NOT** darse el build por bueno si alguno falla. Qué exige cada uno está en `tests-code.md`.
+
+### 2.1 Warnings de Error Prone
+
+Error Prone corre dentro de `javac` en `compileJava` y `compileTestJava` (`agent_docs/deploy.md`, «Análisis estático»). Sus avisos **no** rompen el build: salen en la salida de la compilación como `warning: [NombreDelCheck] …`, precedidos de la ruta y la línea del fichero. Solo analiza Java: el `StateEventValidatorImpl.kt` no pasa por él.
+
+- **MUST** guardar la salida completa del build y buscar en ella las líneas `warning: [` cuyo fichero esté bajo `src/` (el código generado bajo `build/`, `States.java` incluido, está excluido del análisis).
+- El comando es `clean build`, así que se recompila todo y la salida es completa. **MUST NOT** deducir «sin warnings» de un build incremental, que no recompila lo que está al día.
+- Cada warning es una línea JSONL de §3 con `tipo: WARNING`. **MUST NOT** responder `OK-COMPILA` mientras quede alguno.
+- ✅ CORRECTO: `BUILD SUCCESSFUL` con un `warning: [MissingOverride]` en un `PhaseEventManagerImpl.java` → una línea JSONL `tipo: WARNING`, no `OK-COMPILA`.
+- ❌ INCORRECTO: responder `OK-COMPILA` porque el build dice `BUILD SUCCESSFUL` sin haber buscado `warning: [` en la salida (el warning no rompe el build, pero es un fallo del criterio de éxito).
 
 ---
 
@@ -65,7 +75,7 @@ Failed to create parent directory '…/build/…'
 Si el build falla, responde **únicamente** con líneas **JSONL**: **un error por línea**, sin texto antes ni después, sin envoltorio de array. Cada línea **MUST** ser un objeto JSON con **exactamente** estos campos, en este orden:
 
 - `id` — correlativo `E-NNN` (`E-001`, `E-002`, …).
-- `tipo` — `COMPILE` (error del compilador o de una tarea de generación del build) | `TEST` (test que falla) | `CONFORMANCE` (superficie o inventario no declarados, §5).
+- `tipo` — `COMPILE` (error del compilador o de una tarea de generación del build) | `WARNING` (aviso de Error Prone, §2.1) | `TEST` (test que falla) | `CONFORMANCE` (superficie o inventario no declarados, §5).
 - `fichero` — ruta del fichero afectado, o `null`.
 - `ubicacion` — línea / método / nombre del test; `null` si no aplica.
 - `tarea` — la `task_NN.md` de `implementation/` de la que probablemente proviene (le dice al corrector qué skills aplican), o `null`.
@@ -90,6 +100,7 @@ El corrector-build resuelve cada línea JSONL. Reglas duras:
 
 - **MUST** corregir el **código Java y Kotlin** del trámite (`InitialEventManagerImpl.java`, `PhaseEventManagerImpl.java`, `StateEventValidatorImpl.kt`). Si el contrato de dominio lo aconseja, delega en `developer-code-implementer` cargando antes los skills de la tarea de origen (`tarea`).
 - **CRITICAL — los XML del diseño ya colocados son contrato fijo.** `TramiteInstance.xml`, `TipoExpedienteInstance.xml`, `domains.xml`, los `views.xml` (raíz y fases), los `documentospdf/*.xml` y `estados.puml` son copias verbatim de `design/`. **MUST NOT** editarse para que cuadre el Java: se corrige el Java para que cuadre con ellos. Si un error apunta a que un XML del diseño está mal, responde en la **primera línea** `DESIGN-ERROR: {motivo detallado}` y termina.
+- Ante un aviso de **Error Prone** (`tipo: WARNING`): corrige el código como indica el check (el mensaje suele traer un `Did you mean …`). `@SuppressWarnings("NombreDelCheck")` en el sitio concreto **solo** si es un falso positivo, con el motivo en un comentario al lado. **MUST NOT** desactivar el check en `build.gradle`.
 - **CRITICAL — MUST NOT editarse ni «arreglarse» los tests de `src/test/java/com/educaflow/tiposexpedientes/` ni los de `src/test/java/com/educaflow/views/`.** Se escriben **a mano** y son la **fuente de verdad** de la conformidad; no son una proyección de ningún markdown y no se regeneran con ningún skill. Si uno falla, **el fallo está en el trámite generado**, nunca en el test. Debilitar, exonerar o excluir un test para que el build pase está **prohibido**.
 - **MUST NOT** crearse `i18n_es.csv` ni `i18n_ca.csv` para «arreglar» nada: los genera el build y escribirlos a mano es un fallo bloqueante.
 - **MUST NOT** editarse `States.java`, `estados.png`, el `<extra-code-model>` de un `domains.xml` ni ningún fichero bajo `build/`: son generados y se reescriben en cada compilación.

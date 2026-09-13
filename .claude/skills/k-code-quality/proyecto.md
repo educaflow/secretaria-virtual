@@ -40,3 +40,11 @@ Cualquier acceso a entidades de otro subsistema — lectura, escritura o elimina
 Solo crear un módulo (`AxelorModule`) cuando hay bindings que genuinamente no pueden descubrirse por convención: interfaces no relacionadas con `ModelService`, decoradores, servicios de infraestructura.
 
 Los `AxelorModule` los descubre y carga Axelor automáticamente al arrancar. Nunca instalarlos manualmente en `SecretariaVirtualModule` ni en ningún otro módulo.    
+
+---
+
+## Análisis estático (Error Prone)
+
+- El código Java compila **sin warnings de Error Prone**: cada `warning: [Check]` que sale al compilar un fichero de `src/` es un defecto del cambio que lo produjo y se corrige en ese mismo cambio, no un aviso ignorable.
+- Se corrige el código siguiendo la sugerencia del check. `@SuppressWarnings("Check")` va en el sitio concreto y solo para un falso positivo justificado; nunca se desactiva un check para todo el proyecto (la única excepción, `UnusedVariable`, ya está decidida en `build.gradle`).
+- Qué es Error Prone, cómo se ve su salida y cómo forzar la recompilación para ver todos los avisos: `agent_docs/deploy.md`, «Análisis estático».

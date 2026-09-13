@@ -92,7 +92,7 @@ Para cada tabla del modelo de dominio siempre hay (salvo indicación contraria) 
 
 Ver `actions.md` para el `<action-view>`, `grids.md` para el `Main@…-grid` y `forms.md` para el `Main@…-form` y las pantallas modales.
 
-**CRITICAL — al crear o editar cualquier `<form>` MUST seguir el «Procedimiento de maquetación (ASCII Layout)» de `forms.md`:** dibujar el ASCII Layout de cada panel —**uno por estado** si hay `showIf`, con los grupos condicionales en paneles anidados— y pasar su checklist (filas que suman 12, agrupación semántica, `colSpan` proporcional, bordes alineados, botones bien colocados) **antes** de escribir los `colSpan`/`colOffset` del XML. **MUST NOT** poner `colSpan` a ojo saltándote el ASCII Layout.
+**CRITICAL — al crear o editar cualquier `<form>` MUST seguir el «Procedimiento de maquetación (ASCII Layout)» de `forms.md`:** dibujar el ASCII Layout de cada panel —**uno por estado** si hay `showIf`, con los grupos condicionales en paneles anidados y los condicionales sueltos **al borde de su fila** con el `showIf` en el propio campo (nunca un panel para un solo campo)— y pasar su checklist (filas que suman 12, agrupación semántica, `colSpan` proporcional, bordes alineados, botones bien colocados) **antes** de escribir los `colSpan`/`colOffset` del XML. **MUST NOT** poner `colSpan` a ojo saltándote el ASCII Layout.
 
 **Nota sobre grids:** No poner nunca el atributo `archived` en los grid. Borrarlo si existe excepto si se dice explícitamente que tiene que estar.
 

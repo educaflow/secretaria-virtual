@@ -225,7 +225,34 @@ Un panel oculto no ocupa espacio vertical (es un bloque que desaparece). Los cam
 </panel>
 ```
 
-**Regla:** Siempre que varios campos se muestren/oculten de forma exclusiva según el valor de otro campo, agrúpalos en paneles anidados con `showIf` en el panel. Nunca uses `showIf` directo en campos de la misma fila cuando alguno puede quedar oculto dejando el otro desplazado.
+**Cuándo hace falta el panel y cuándo NO.** El daño de un widget oculto es **desplazar lo que viene detrás en su misma fila** (o dejar un hueco en medio de ella). Por tanto:
+
+- **MUST** panel anidado con el `showIf` en el panel cuando **detrás** del elemento condicional viene otro elemento en la misma fila, o cuando varios campos se muestran/ocultan de forma **exclusiva** según otro campo (un panel por estado, como en el ejemplo de arriba).
+- **MUST NOT** panel anidado cuando el condicional es el **último elemento de su fila** (borde derecho) o el **primero y sin `colOffset`** (borde izquierdo): al ocultarse, su hueco queda pegado al borde y no desplaza nada. Ahí el `showIf` (y el `requiredIf`, si es obligatorio solo en ese caso) va **directo en el campo**. Es el caso normal de **un solo campo opcional**: se coloca **al final de la fila** de los campos con los que se relaciona.
+- **Un `<panel>` anidado abre siempre fila nueva**: es un bloque y nunca comparte fila con los `<field>` del panel padre. Envolver **un solo campo** en un panel para «alinearlo bajo» otro con `colOffset` produce justo lo que se quería evitar: un campo solo, a mitad de pantalla, en una fila propia con hueco a los dos lados, y la fila anterior sin completar. Es un fallo del checklist («campo solo con hueco injustificado» y «fila que no suma 12»).
+
+- ✅ CORRECTO (un solo campo opcional, al final de la fila de sus relacionados; oculto deja un hueco inofensivo al borde derecho):
+  ```xml
+  <field name="categoria" colSpan="6"/>
+  <field name="tipo"      colSpan="3" onChange="…-onChange-tipo-action"/>
+  <field name="subtipo"   colSpan="3" showIf="tipo.admiteSubtipo" requiredIf="tipo.admiteSubtipo" domain="self.tipo = :tipo"/>
+  ```
+  ```
+  cccccctttsss   ← categoria(6) + tipo(3) + subtipo(3)      [subtipo visible]
+  ccccccttt...   ← categoria(6) + tipo(3) + hueco al borde  [subtipo oculto: nada se desplaza]
+  ```
+- ❌ INCORRECTO (el mismo campo envuelto en un panel «para alinearlo bajo `tipo`»: fila nueva, campo solo a mitad de pantalla y la fila anterior en 9):
+  ```xml
+  <field name="categoria" colSpan="6"/>
+  <field name="tipo"      colSpan="3"/>
+  <panel name="subtipoPanel" title="" colSpan="12" showFrame="false" showIf="tipo.admiteSubtipo">
+      <field name="subtipo" colOffset="6" colSpan="3" required="true"/>
+  </panel>
+  ```
+  ```
+  ccccccttt...   ← suma 9
+  ......sss...   ← campo solo a mitad de pantalla, en fila propia
+  ```
 
 El mismo campo puede aparecer en varios paneles mutuamente excluyentes (p.ej. `campoB` en panelModoX y panelModoY). Al ser excluyentes, Axelor siempre ve solo uno activo y el binding de datos funciona correctamente.
 
@@ -242,7 +269,7 @@ Por **cada panel** del formulario, en este orden:
 3. **Dibuja cada fila del ASCII Layout en la rejilla de 12 columnas** (una letra por campo repetida `colSpan` veces; `.` = columna vacía por `colOffset`). Cada fila **MUST** sumar **exactamente 12**.
 4. **Alinea los bordes de columna entre filas** (§Alineación vertical), en especial con los paneles condicionales anidados.
 5. **Coloca los botones** en su `buttons-panel`: los **secundarios** (Borrar) a la izquierda, los **principales** (Cancelar, Guardar) a la derecha, con el `colOffset` que los empuje (§Botones principales y secundarios, §Representar `colOffset`).
-6. **Si el panel tiene elementos con `showIf`** (campos o botones), dibuja **un ASCII Layout por estado** — nunca uno solo mezclando estados. Recuerda que lo oculto **reserva sus columnas**: los grupos condicionales van en paneles anidados con el `showIf` en el panel (§huecos en el grid, §Botones condicionales por estado).
+6. **Si el panel tiene elementos con `showIf`** (campos o botones), dibuja **un ASCII Layout por estado** — nunca uno solo mezclando estados. Recuerda que lo oculto **reserva sus columnas**: un condicional suelto va **al borde de su fila** (al final, o al principio sin `colOffset`) con el `showIf` en el propio campo; solo los **grupos** condicionales, o un condicional con algo detrás en su fila, van en paneles anidados con el `showIf` en el panel (§huecos en el grid, §Botones condicionales por estado). Un panel anidado abre fila nueva: **MUST NOT** usarse para envolver un solo campo.
 7. **Pasa el checklist de abajo.** Solo cuando el ASCII Layout lo cumple **todo**, tradúcelo a `<field colSpan="…" colOffset="…">`.
 
 **REQUIRED — muestra el ASCII Layout** (en el chat, o en el diseño si estás en el pipeline SDD) para poder revisar el layout de un vistazo **antes** de que exista el XML.
@@ -262,7 +289,7 @@ eeeeeeeeeeee   ← motivo(12)                            [texto libre multilinea
 - [ ] ¿Ningún campo queda **solo en una fila** con mucho hueco a la derecha sin un motivo real (§alerta)?
 - [ ] ¿Los **bordes de columna se alinean** entre filas y con los paneles condicionales anidados?
 - [ ] ¿Los botones **secundarios a la izquierda** y los **principales a la derecha**, con el `colOffset` correcto?
-- [ ] Si hay `showIf`: ¿dibujaste un ASCII Layout **por cada estado**, cada estado cumple todo lo anterior, y los elementos condicionales están en **paneles anidados por estado** (o son la excepción del borde izquierdo)?
+- [ ] Si hay `showIf`: ¿dibujaste un ASCII Layout **por cada estado** y cada estado cumple todo lo anterior? ¿Cada elemento condicional está **al borde de su fila** (derecho, o izquierdo sin `colOffset`) con el `showIf` en el propio elemento, o bien en un **panel anidado por estado** porque tiene algo detrás en la fila o forma grupo? ¿**Ningún** panel anidado envuelve un solo campo?
 - [ ] ¿Dibujaste el ASCII Layout **antes** del XML y los `colSpan`/`colOffset` finales **coinciden** con él?
 
 ## Principios de diseño visual de formularios
@@ -293,6 +320,8 @@ Campos relacionados semánticamente deben ir en la misma fila:
 Siempre que sea posible, los bordes de columna deben repetirse entre filas. Si la primera fila usa un split 4+8, las filas siguientes —especialmente los paneles anidados condicionales— deberían usar ese mismo split. No es una regla rígida: a veces el contenido justifica un split diferente. Pero cuando se puede mantener la alineación, el resultado visual es notablemente mejor.
 
 Si cambias el split de la primera fila, revisa si los paneles condicionales siguen alineados o hay que actualizarlos también.
+
+Esta regla es para paneles anidados **con varios campos** (los de los ejemplos). **MUST NOT** usarse para justificar un panel de **un solo campo** con `colOffset` «para que caiga debajo de» otro: ese campo va al **final de la fila** de sus relacionados con el `showIf` en el propio campo (§huecos en el grid). Alinear bordes nunca vale una fila extra con un campo solo.
 
 **Ejemplo con alineación:**
 ```
@@ -357,9 +386,10 @@ El `colSpan` debe reflejar el espacio que ocupan **tanto el título del campo co
 Si un campo queda solo en una fila con mucho espacio vacío a su derecha, es probable que:
 1. Deba agruparse con otro campo relacionado en la misma fila, o
 2. Su `colSpan` sea demasiado pequeño para el espacio disponible, o
-3. Sea el resultado de un campo oculto que crea un hueco (usar paneles anidados)
+3. Sea el resultado de un campo oculto que crea un hueco (usar paneles anidados), o
+4. Sea un campo condicional **envuelto en un panel anidado propio** (quitar el panel y ponerlo al final de la fila de sus relacionados, con el `showIf` en el campo — §huecos en el grid)
 
-Un campo corto (slot, PIN) que queda solo en una fila con 9 columnas vacías **sigue siendo correcto** si no hay ningún campo semánticamente relacionado con el que agruparlo. No hay que rellenar el espacio a la fuerza.
+Un campo corto (slot, PIN) que queda solo en una fila con 9 columnas vacías **sigue siendo correcto** si no hay ningún campo semánticamente relacionado con el que agruparlo. No hay que rellenar el espacio a la fuerza. Pero si **sí** hay un campo relacionado en la fila de arriba (un `subtipo` bajo su `tipo`), la excepción **no** aplica: van en la misma fila.
 
 
 
@@ -516,7 +546,9 @@ La misma herramienta sirve para **auditar** un `<form>` ya escrito (revisión de
 
 1. Por cada `<panel>`, `<panel-related>` y `buttons-panel` del form, **reconstruye el ASCII Layout** a partir de los `colSpan`/`colOffset` reales del XML, con la notación de este fichero (una letra por campo repetida `colSpan` veces, `.` por columna vacía de `colOffset`, recordando que el flujo de celdas puede hacer saltar un campo a la fila siguiente — §Representar `colOffset`). Si hay elementos con `showIf`, dibuja **un ASCII Layout por estado**, con los paneles condicionales en bloques separados.
 2. **Pasa sobre el dibujo reconstruido el «Checklist de maquetación»** (§Checklist), igual que si el form fuera nuevo.
-3. Reporta cada incumplimiento **citando la regla del checklist** e incluyendo el **ASCII Layout reconstruido** como evidencia — el dibujo es lo que permite ver el problema sin renderizar la vista.
+3. **Imagina el render** de cada estado tal como lo vería el usuario (§Paso 2: «¿el resultado visual es agradable?»). Un campo solo a mitad de pantalla, una fila que se queda en 9 teniendo un campo relacionado en la fila siguiente, o un panel anidado que envuelve **un solo campo**, son fallos aunque el dibujo declarado coincida con el XML: **coincidir no es cumplir**.
+4. Una nota en prosa que «explique» un hueco, una fila que no suma 12 o un campo solo (*«las tres últimas columnas quedan libres»*) **no exime**: el dibujo manda y la nota es la prueba de que el diseñador vio el problema y no lo arregló.
+5. Reporta cada incumplimiento **citando la regla del checklist** e incluyendo el **ASCII Layout reconstruido** como evidencia — el dibujo es lo que permite ver el problema sin renderizar la vista.
 
 **MUST NOT** auditar un layout "a ojo" leyendo los `colSpan` sueltos: sin reconstruir el dibujo no se ven los huecos, los bordes desalineados ni las filas que no suman 12.
 

@@ -28,6 +28,7 @@ Por tanto:
 - **MUST NOT** aplicarse los tests de `com.educaflow.views`: no cubren estos ficheros.
 - **MUST NOT** usarse aquí el patrón `buttons-panel` / `btnSave` / `btnDelete` / `remote-validation*` / PI `sv-*` de las vistas de mantenimiento: en un expediente los botones **son eventos** y el guardado y la validación los conduce el `Tramitador`.
 - Las reglas que **sí** aplican son las de §4, verificadas por los tests escritos a mano de `src/test/java/com/educaflow/tiposexpedientes/`.
+- **La única pieza de `k-vistas` que SÍ aplica** es el «Procedimiento de maquetación (ASCII Layout)» de `k-vistas/forms.md` sobre los **paneles** (§2.7): un `<panel>` del form plantilla es un panel Axelor normal y se maqueta como tal. No aplica a los `<footer>`, cuyos `colOffset` los calcula el preprocesador (§3.4).
 
 Las vistas se escriben en **dos sitios**:
 
@@ -111,6 +112,21 @@ Si el `domains.xml` declara entidades hija (`one-to-many` del expediente):
 4. Validación al confirmar el popup del hijo: `onValidate="subsysExpedientes-validate-on-save-child-action"`.
 5. Puede haber **varios `form-view` del mismo hijo**: se declara un `panel-related` con `name` distinto por cada combinación y cada estado incluye el suyo.
 6. **CRITICAL** — el prefijo `-` **no hace nada** sobre un `panel-related` (no tiene `<field>` propios). Un maestro-detalle de solo lectura **MUST** controlarse con los `canNew`/`canEdit`/`canDelete` del grid del hijo.
+
+### 2.7 Maquetación de los paneles: ASCII Layout
+
+Antes de escribir cada `<panel>` del form plantilla (y cada panel de los forms de las entidades hija, §2.6), el diseñador **MUST** maquetarlo siguiendo el «Procedimiento de maquetación (ASCII Layout)» de `k-vistas/forms.md` (léelo antes: `.claude/skills/k-vistas/forms.md`): agrupar los campos por semántica (relacionados en la misma fila), dimensionar cada `colSpan` con la tabla de proporcionalidad (**no** inflarlo: un código o número corto son 2–3 columnas, no 6 ni 12), dibujar cada fila en la rejilla de 12 columnas (**cada fila suma 12**), alinear los bordes de columna entre filas y, si hay `showIf`, dibujar **un ASCII Layout por estado**. Un condicional suelto va **al borde de su fila** con el `showIf` en el propio campo; **MUST NOT** envolverse un solo campo en un panel anidado (§huecos en el grid de `forms.md`).
+
+Particularidades de un tipo de expediente:
+
+- Un **gemelo `<panel>-view`** (§2.4) es otro layout: lleva su propio ASCII Layout. Un panel incluido con el prefijo `-` no: es el mismo dibujo con los campos a `readonly`.
+- El **`<footer>`** queda **fuera**: sus botones no se maquetan (el preprocesador asigna el `colOffset` del primer botón de `<buttons-right>`, §3.4); lo único que se comprueba es que la suma de `colSpan` no pase de 12 (§4).
+- Un `<panel-related>` ocupa su fila completa; no hay nada que dibujar dentro.
+
+**MUST** incluir el **ASCII Layout** de los paneles no triviales en el resumen estructural de la plantilla dentro del `design.md` (§7), para poder revisar el layout sin abrir el XML. **MUST NOT** poner `colSpan="6"`/`"12"` por defecto ni dejar campos cortos solos en una fila con hueco injustificado.
+
+- ✅ CORRECTO: en el `design.md`, junto al resumen del form plantilla, un bloque ` ```aaa...bbbbbb ← codigo(3)+colOffset(3)+nombre(6)``` ` por panel no trivial, y el `<panel>` con `colSpan`/`colOffset` que coinciden con él.
+- ❌ INCORRECTO: un panel con todos los `<field>` a `colSpan="6"` o sin `colSpan`, sin ASCII Layout, con campos cortos ocupando media fila; o un campo condicional envuelto en un `<panel showIf=…>` propio con `colOffset` «para alinearlo» (campo solo a mitad de pantalla y fila anterior sin completar).
 
 ---
 
@@ -308,7 +324,7 @@ Reglas:
 - `design/views.xml` → se copia verbatim a `<vN>/views.xml`.
 - `design/fases/<fase>/views.xml` → se copia verbatim a `<vN>/<fase>/views.xml`. **MUST** haber uno por **cada** fase declarada, con la carpeta en **minúsculas**.
 - Ambos **sobrescriben** la cáscara que dejó `CreateFilesTask`.
-- El `design.md` **MUST** llevar, en el paso correspondiente, un **resumen estructural** corto de cada `views.xml`: qué paneles declara la plantilla y, por fase, la lista de `(estado, perfil)` con sus paneles incluidos y sus botones. **MUST NOT** volcar el XML inline: el XML vive en su fichero.
+- El `design.md` **MUST** llevar, en el paso correspondiente, un **resumen estructural** corto de cada `views.xml`: qué paneles declara la plantilla —con el **ASCII Layout** de cada panel no trivial y de cada gemelo `-view` (§2.7)— y, por fase, la lista de `(estado, perfil)` con sus paneles incluidos y sus botones. **MUST NOT** volcar el XML inline: el XML vive en su fichero.
 - **MUST NOT** materializarse ningún `menus.xml`: un tipo de expediente **no** declara menús propios; se llega a él por el árbol de trámites del subsistema de expedientes.
 
 > **Ejemplo** (ilustrativo, NO normativo) de resumen estructural de una fase en el `design.md`:
@@ -331,6 +347,7 @@ El diseñador lo aplica antes de dar el diseño por terminado (**MUST NOT** term
 - [ ] ¿Contiene **todos** los paneles que alguna fase incluye, cada uno con `name` y como **hijo directo**?
 - [ ] ¿Ningún panel del almacén queda sin incluir por ninguna fase (código muerto)?
 - [ ] ¿Cada gemelo `-view` existe solo porque el layout de lectura es distinto, y no donde bastaba el prefijo `-`?
+- [ ] ¿Cada `<panel>` de la plantilla (y de los forms de hijos) está maquetado según el **ASCII Layout** de `k-vistas/forms.md` (§2.7) — dibujado **antes** del XML, campos agrupados por semántica, `colSpan` proporcional y no inflado, cada fila suma 12, bordes alineados, un dibujo por estado `showIf`, ningún panel anidado envolviendo un solo campo — y el `design.md` incluye el ASCII Layout de los paneles no triviales, coherente con los `colSpan`/`colOffset` del XML?
 - [ ] ¿Los `<panel-related>` de maestro-detalle tienen `name`, y los grids/forms del hijo están en la **raíz** con la convención `exp-<Entidad>-<EntidadHija>-grid` / `-form`?
 - [ ] ¿No hay ningún `<form state=…>` en el `views.xml` de la raíz?
 

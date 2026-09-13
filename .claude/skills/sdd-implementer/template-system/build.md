@@ -21,8 +21,18 @@ El verificador-build **MUST** compilar con:
 
 ## 2. Criterio de éxito
 
-- **Éxito** = `./gradlew clean build` termina con **BUILD SUCCESSFUL** (compila y todos los tests unitarios pasan) **Y** el chequeo de conformidad de superficie (§5) no encuentra superficie no declarada. → responde **exactamente** `OK-COMPILA`.
-- **Fallo** = cualquier error de compilación, cualquier test unitario que falle, **o** cualquier superficie no declarada que detecte §5. → responde con el JSONL de §3.
+- **Éxito** = `./gradlew clean build` termina con **BUILD SUCCESSFUL** (compila y todos los tests unitarios pasan), **sin ningún warning de Error Prone** en ficheros de `src/` (§2.1) **Y** el chequeo de conformidad de superficie (§5) no encuentra superficie no declarada. → responde **exactamente** `OK-COMPILA`.
+- **Fallo** = cualquier error de compilación, cualquier warning de Error Prone en `src/`, cualquier test unitario que falle, **o** cualquier superficie no declarada que detecte §5. → responde con el JSONL de §3.
+
+### 2.1 Warnings de Error Prone
+
+Error Prone corre dentro de `javac` en `compileJava` y `compileTestJava` (`agent_docs/deploy.md`, «Análisis estático»). Sus avisos **no** rompen el build: salen en la salida de la compilación como `warning: [NombreDelCheck] …`, precedidos de la ruta y la línea del fichero.
+
+- **MUST** guardar la salida completa del build y buscar en ella las líneas `warning: [` cuyo fichero esté bajo `src/` (el código generado bajo `build/` está excluido del análisis).
+- El comando es `clean build`, así que se recompila todo y la salida es completa. **MUST NOT** deducir «sin warnings» de un build incremental, que no recompila lo que está al día.
+- Cada warning es una línea JSONL de §3 con `tipo: WARNING`. **MUST NOT** responder `OK-COMPILA` mientras quede alguno.
+- ✅ CORRECTO: `BUILD SUCCESSFUL` con dos `warning: [BooleanLiteral]` en un test de `src/test/java` → dos líneas JSONL `tipo: WARNING`, no `OK-COMPILA`.
+- ❌ INCORRECTO: responder `OK-COMPILA` porque el build dice `BUILD SUCCESSFUL` sin haber buscado `warning: [` en la salida (el warning no rompe el build, pero es un fallo del criterio de éxito).
 
 ---
 
@@ -31,7 +41,7 @@ El verificador-build **MUST** compilar con:
 Si el build falla, responde **únicamente** con líneas **JSONL**: **un error por línea**, sin texto antes ni después, sin envoltorio de array. Cada línea **MUST** ser un objeto JSON con **exactamente** estos campos, en este orden:
 
 - `id` — correlativo `E-NNN` (`E-001`, `E-002`, …).
-- `tipo` — `COMPILE` (error del compilador) | `TEST` (test que falla) | `CONFORMANCE` (superficie no declarada, §5).
+- `tipo` — `COMPILE` (error del compilador) | `WARNING` (aviso de Error Prone, §2.1) | `TEST` (test que falla) | `CONFORMANCE` (superficie no declarada, §5).
 - `fichero` — ruta del fichero afectado, o `null`.
 - `ubicacion` — línea / método / nombre del test; `null` si no aplica.
 - `tarea` — la `task_NN.md` de `implementation/` de la que probablemente proviene (úsala para que el corrector sepa qué skills aplican), o `null`.
@@ -42,6 +52,7 @@ Cada línea **MUST** ser JSON válido en una sola línea (escapa los saltos como
 
 - ✅ CORRECTO: `{"id":"E-001","tipo":"COMPILE","fichero":"src/main/java/com/educaflow/system/bar/service/BarServiceImpl.java","ubicacion":"línea 42","tarea":"task_03.md","mensaje":"cannot find symbol: method getNombre()","correccion":"Usar getName() según Bar.xml."}`
 - ✅ CORRECTO (test que falla): `{"id":"E-002","tipo":"TEST","fichero":"src/test/java/com/educaflow/system/bar/service/BarServiceImplTest.java","ubicacion":"validateInsert_nombreVacio","tarea":"task_08.md","mensaje":"expected exception ValidationException but none was thrown","correccion":"Implementar la validación VAL-Bar-001 en BarServiceImpl.validateInsert."}`
+- ✅ CORRECTO (warning de Error Prone): `{"id":"E-003","tipo":"WARNING","fichero":"src/test/java/com/educaflow/system/bar/db/BarTest.java","ubicacion":"línea 45","tarea":"task_08.md","mensaje":"[BooleanLiteral] This expression can be written more clearly with a boolean literal.","correccion":"assertEquals(false, bar.getActivo()) en vez de assertEquals(Boolean.FALSE, …)."}`
 - ❌ INCORRECTO: `BUILD FAILED, hay 3 errores` (prosa, no JSONL), o devolver `OK` cuando un test falla.
 
 ---
@@ -55,6 +66,7 @@ El corrector-build resuelve cada línea JSONL. Reglas duras:
   **MUST NOT** editarlos para que cuadre el Java: se corrige el Java para que cuadre con ellos.
   Si un error **solo** se puede resolver cambiando el diseño (un XML del diseño está mal o es inconsistente, el diseño referencia algo que él mismo no define, dos reglas se contradicen), **MUST NOT** editarlo ni adivinar: responde en la **primera línea** `DESIGN-ERROR: {motivo detallado}` —qué fichero del diseño, qué es inconsistente y por qué no se puede arreglar con código— y termina.
   El motor detecta esa primera línea, escribe `implementation/error_design.log` y **detiene el skill** (`SKILL.md` §9.1): corregirlo es trabajo de `/sdd-designer`.
+- Ante un aviso de **Error Prone** (`tipo: WARNING`): corrige el código como indica el check (el mensaje suele traer un `Did you mean …`). `@SuppressWarnings("NombreDelCheck")` en el sitio concreto **solo** si es un falso positivo, con el motivo en un comentario al lado. **MUST NOT** desactivar el check en `build.gradle`.
 - Ante un error de **test** (`tipo: TEST`): decide si el fallo es del **código de producción** (corrige la producción) o del **test mal generado** (corrige el test para que refleje la descripción de `design/test-unit-desc.md`). **MUST NOT** debilitar un test para que pase si el fallo real está en la producción.
 - **CRITICAL — no legitimar superficie no diseñada**: ante un error tipo *"method does not override or implement a method from a supertype"* (o un `@Override`/firma que no cuadra con su interfaz/supertipo), **MUST NOT** ampliar la interfaz/supertipo ni crear el método para que el `@Override` compile **sin antes comprobar el origen del método**. Comprueba si figura en la `task` de origen del error o en `design.md`:
   - Si **sí** figura → alinéalo con la firma del diseño.
