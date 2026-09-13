@@ -1,0 +1,34 @@
+# Verificación — iteración 1
+P-001 IMPORTANT design/design.md Paso 1 — llamadores mal enumerados: CertificadoDigitalServiceImpl.allowPropertiesUpdate() incluye dispositivoCriptografico y alias (m2o a entidades del proyecto, no MetaFile) y GestionCentroController.java:152 usa createAllowAllProperties() sobre Centro. La afirmacion de que PruebaV1.ciclo es el unico caso no-MetaFile es falsa.
+P-002 IMPORTANT design/design.md Frontera de confianza — el modal del panel Ciclos de Main-FamiliaProfesional.xml guarda por el maestro; FamiliaProfesional no tiene ModelService propio -> DefaultModelService -> createAllowAllProperties(), y AllowProperties.filter propaga allow-all al subarbol ciclos, puenteando la whitelist de Ciclo.
+P-003 IMPORTANT design/views/Main-FamiliaProfesional.xml — el tercer check del action-condition no lleva la guarda grado.admiteNivel: con grado que no admite nivel y nivel presente disparan a la vez los checks 2 y 3; el servidor da un solo mensaje. Misma decision con dos duenos y dos formas.
+P-004 IMPORTANT design/test-e2e-desc.md T-016 — incumple tests-e2e.md: Origen ESC falso, Pantalla principal falsa, usa pantallas/campos que no estan en el spec y presupone estado previo no declarado.
+P-005 MINOR design/design.md Paso 7 — el ASCII Layout del panel Curso del modal Ciclo.Curso ignora el colOffset=3 de name; contradice la reconstruccion correcta del Paso 9.
+P-006 MINOR design/decisiones.md D4 — la justificacion de por que V-Ciclo-003 no se evalua en la rama «el grado NO admite nivel» deja de ser cierta con D7 (niveles archivados).
+P-007 MINOR design/views/Main-Ciclo.xml — el delta ensancha grado y nivel de colSpan 3 a 6 sin necesidad; el modal logra la misma alineacion conservando colSpan=3 con colOffset=6. Dos formularios de la misma entidad con anchuras distintas.
+
+## Resolucion de P-002 por debate arbitrado (3 adjudicaciones)
+Posicion A (crear FamiliaProfesionalService) vs posicion B (documentar).
+Ronda 1: A verifica el agujero pero concede que el walker si ejecuta las tres RES; B aporta que Ciclo no tiene campos servidor y que users ya tiene .all sin condition.
+Ronda 2: se cruzan las posiciones (A acepta B; B acepta A tras hallar que archived si es filtrado por la whitelist en la via directa y que existe precedente en CorreoServiceImpl:283).
+JUEZ -> DECISION: DOCUMENTAR. Hecho decisivo nuevo: Resource.checkRelationalPermissions (Resource.java:1296 y :1346-1387) autoriza el subarbol entidad por entidad con el JpaSecurity real; con Ciclo/Curso/CursoModulo.all sin condition para users, el rebote concede cero capacidad nueva. El precedente CorreoServiceImpl no aplica (Correo tiene servidor propios, permisos con condition y dos mapas distintos). Frontera con D5: se crea GradoServiceImpl porque el diseno amplia la superficie de Grado; no se crea FamiliaProfesionalService porque no le anade ni un campo.
+Efecto colateral: el juez detecta ademas un error de hecho en el Paso 11 (Seguridad) sobre la asignacion de permisos a grupos -> P-002e.
+
+# Verificación — iteración 2
+validate.sh: VALIDACION-XML: OK. Detectores de vistas.md 3: limpios. Las 7 correcciones anteriores estan bien aplicadas. Quedan 3:
+P-001 IMPORTANT design.md (## Tests) — T-006 NO ejercita el delta del Paso 1: en ESC-012 el unico m2o que cambia sobre registro existente es Nivel.grado, y V-Nivel-001 solo comprueba grado != null; en el paso 17 el ciclo se guarda con el mismo id de grado y nivel, asi que la rama modificada no se activa. La red E2E real es solo T-004.
+P-002 IMPORTANT design.md (Paso 2 «CRITICAL — el esquema no se actualiza solo» y Paso 13) — el diseno enumera dos vias (resetear BD / migracion Flyway) y delega la eleccion en quien implemente, dejando el Paso 13 condicionado a una decision no tomada. Incumple design-contract.md 9 (nada de «segun convenga») y la prueba del segundo desarrollador.
+P-003 MINOR design.md (Paso 2, salida 2) — la carpeta src/main/resources/com/educaflow/secretariavirtual/startup/database NO existe en el arbol; lo que existe es la location de Flyway declarada en DataBaseStartup.executeMigrate.
+
+# Verificación — iteración 3
+P-001 IMPORTANT design.md (Paso 1, tabla «Alcance revisado») — cita Centro.director/vicedirector/secretario/vicesecretario, que estan INTEGRAMENTE COMENTADOS en Centro.xml (lineas 21-54). Los m2o reales de Centro son comunidadAutonoma, provincia, municipio, conselleria (Centro.xml:11-15).
+P-002 MINOR design.md (Paso 1) — «17 ficheros de vistas lo usan» es erroneo: uno de los 17 es DefaultModelController.xml, donde la accion se DEFINE. Son 16 vistas.
+P-003 MINOR decisiones.md (D3) — LeyEducativa y DispositivoCriptografico SI tienen ModelService propio; la razon que da la vineta es falsa para ellas (LeyEducativaServiceImpl define validate*).
+P-004 MINOR design.md (## Eliminaciones declaradas) — el delta suprime el colOffset=6 preexistente de familiaProfesional y de grado en Main@Ciclo-form sin declararlo, aunque si declara las supresiones de atributos domain/showIf/requiredIf de esos mismos campos.
+
+# Verificación — iteración 4
+P-001 IMPORTANT design.md (Paso 1, tabla «Alcance revisado») — falta TareaFirmaController.validarDocumentosFirmados (:97) -> allowPropertiesValidarDocumentosFirmados() = createAllowAllProperties() (TareaFirmaServiceImpl:250-252); TareaFirma declara el m2o firmante y validarDocumentosFirmados (:142-154) lee tareaFirma.getFirmante().getDni(), lo que contradice la generalizacion de la segunda fila.
+P-002 MINOR design.md (Paso 1, tabla) — falta TareaImportacionServiceImpl, que solo sobrescribe allowPropertiesInsert (:77-82) y hereda allow-all en modificacion; su vista usa remote-validationSave-action y la entidad declara los m2o usuario/centro/fichero.
+
+# Verificación — iteración 5
+OK-CORRECTO

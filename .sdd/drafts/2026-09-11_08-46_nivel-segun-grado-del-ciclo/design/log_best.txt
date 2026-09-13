@@ -1,0 +1,148 @@
+### Comparación 1: design_1 vs design_2 → gana design_2
+
+=== VENTAJAS design_1 ===
+- Alinea los `btnDelete` de los tres formularios principales que reescribe (`Ciclo`, `Nivel`, `FamiliaProfesional`) con `vistas.md` §1.5, anteponiendo `remote-validationDelete-action` a `delete`, y declara que es conformidad sin efecto funcional; design_2 deja esos `action-group` como están y su fichero resultante sigue incumpliendo ese punto del checklist de vistas.
+- Declara explícitamente el campo calculado de lectura (`transient="true"` + CDATA) como **patrón nuevo** del proyecto y dice dónde debería documentarse (`k-sistemas/modelos.md`), que es justo lo que exige el olor «Inventar un patrón sin declararlo» de `disenyo.md`.
+- Documenta las consecuencias operativas del campo `transient` que el implementador no puede deducir: no es columna de grid, ni `orderBy`, ni filtrable en JPQL (`Query.Selector` lo excluye), y por eso no aparece en ningún <grid>.
+- Audita y dibuja el ASCII Layout de **todos** los formularios de los ficheros que copia, incluidos los que no toca, señalando sus defectos preexistentes y explicando por qué no los corrige (mínima intrusión).
+- Su `decisiones.md` identifica dos decisiones reales que design_2 no eleva a decisión: D3 (un validador con ramas complementarias frente a tres comprobaciones independientes, con el argumento del solapamiento 002/003) y D6 (`required="true"` en el dominio *además* del validador, con el coste de recrear la BD).
+
+=== DEFECTOS design_1 ===
+- **Hueco en la única validación del modal**: su `Local-validateSave-action` de `Main@FamiliaProfesional.Ciclo` solo duplica `V-Ciclo-001` y `V-Ciclo-002`. `vistas.md` §1.6 exige duplicar **todas** las V evaluables en cliente, y su justificación («V-Ciclo-003 no se puede violar desde este formulario») es falsa al **editar** un ciclo ya guardado cuyo nivel cambió de grado — exactamente el caso que el spec dramatiza en `ESC-012`.
+- **Ignora la guía de diseño #5** («al introducir una lista cerrada de propiedades editables en `Ciclo`…»): se queda con el `createAllowAllProperties()` heredado y ni siquiera registra la desviación en `## Notas y supuestos`, como obliga el checklist del contrato; además su alegato contra la whitelist ataca solo la variante plana (`"cursos", Map.of()`), no el árbol anidado que sí funciona.
+- Con allow-all y la colección inversa `niveles` recién añadida, un `POST /ws/rest/…Ciclo` con `grado: {id, name:…}` reescribe el catálogo de grados; lo reconoce y lo deja abierto apelando al PENDIENTE de `CLAUDE.md`, que se refiere al parche deny-all de *expedientes*, no a la whitelist normal de un subsistema.
+- Recoloca campos preexistentes sin causa (quita `colOffset="6"` a `familiaProfesional` y `grado` en `Main@Ciclo-form` y a `grado` en el modal) contra `vistas.md` §1.8, y con una premisa **falsa**: las filas actuales ya suman 12 (3+3+6 / 6+6 / 6+3+3) y ese patrón es el ejemplo canónico del propio `k-vistas/forms.md`.
+- `Main@Nivel-form`: `grado` con `colSpan="6"` sin `colOffset` deja el campo solo con 6 columnas de hueco **a la derecha**, que es precisamente lo que penaliza el «Checklist de maquetación» de `forms.md`; el resto del subsistema alinea ese borde en la columna 7.
+- Las cuatro `U-familias-profesionales-*` declaran `Origen spec: RES-Ciclo-001/002/003`, cuando el contrato §2 mapea `RES-` → `V-` y reserva `—` para lo que añade el diseño por necesidad técnica.
+
+=== VENTAJAS design_2 ===
+- Cumple la guía #5 con la **whitelist cerrada correcta**: `createAllowProperties` con el árbol anidado `cursos → {code, name, ciclo, leyEducativa, modulos → {curso, modulo}}`, que es la única forma compatible con `AllowProperties.filter` (verificado en `AllowProperties.java`: el mapa interno se aplica a cada elemento de la colección), y así `ESC-011`/`ESC-015` siguen guardando; de paso `"grado", Map.of()` cierra la escritura anidada sobre el catálogo de grados que design_1 deja abierta.
+- Su `Local-validateSave-action` del modal cubre las **tres** `V-Ciclo-*` con <action-condition><check field="nivel" …>, que es la forma anclada a campo del precedente más cercano del proyecto (`Main@Correo.Adjunto-Local-validateSave-action`) y equivale al `BusinessMessage(field, mensaje)` del servidor.
+- Respeta la mínima intrusión en el layout: conserva los `colOffset` preexistentes y su ASCII Layout de `Main@Ciclo-form` coincide exactamente con el XML, sin recolocar nada que el delta no pida.
+- Aporta dos anclajes técnicos verificables que el implementador no puede deducir: que el CDATA **debe** leer el campo `niveles` y no `getNiveles()` (confirmado: `Mapper.findComputeDependencies` busca `GETFIELD` y `ContextHandler` usa esas dependencias para rellenar el proxy de `Context`), y el precedente real del par `domain="self.grado = :grado"` + `onChange` que vacía el dependiente (`Main-Centro.xml`, comunidad→provincia→municipio).
+- Marca con `—` el `Origen spec` de las `U-` de la pantalla no especificada, que es lo que el contrato reserva para lo añadido por necesidad técnica, y explica en «Notas y supuestos» que ninguna otra vista edita `Ciclo` ni `Nivel`.
+- Añade una decisión que design_1 no ve como tal: D5, cómo se filtra el selector de Nivel (`domain` continuo frente a `action-attrs` desde `onChange`), con el argumento de que la alternativa deja sin filtro el camino en que no se toca el grado (`ESC-012` paso 20).
+
+=== DEFECTOS design_2 ===
+- No corrige los `action-group` de `btnDelete` de los formularios principales que reescribe: el fichero resultante sigue sin `remote-validationDelete-action` antes de `delete`, incumpliendo `vistas.md` §1.5 y el punto correspondiente del checklist de vistas.
+- Su ASCII Layout de `Main@FamiliaProfesional.Ciclo-form` (y el de `Main@Ciclo.Curso-form`) supone que el campo padre con `showIf="false"` **no** reserva columnas; `forms.md` §«huecos en el grid» y el paso 6 del procedimiento dicen lo contrario («lo oculto reserva sus columnas»), y bajo esa lectura `grado`/`nivel` caerían a una tercera fila y el dibujo no coincidiría con el XML.
+- La whitelist anidada introduce una carga de memoria con fallo **silencioso**: cada campo nuevo de `Curso` o `CursoModulo` hay que añadirlo también a la de `Ciclo` o dejará de guardarse sin error.
+- Numera las reglas de UI como `U-ciclos-formulario-001`, con el slug de la **vista** incluido, cuando el contrato §2 fija `U-<slug-pantalla>-NNN`.
+- No declara el campo calculado de lectura como patrón nuevo del proyecto ni advierte de sus límites (`transient` no filtrable/ordenable ni usable como columna de grid), información que design_1 sí deja por escrito.
+
+=== JUSTIFICACION design_1 vs design_2 ===
+Los dos diseños comparten el núcleo correcto —`Grado.admiteNivel` como dueño único, consultado por `CicloServiceImpl.validate*` y por `showIf/requiredIf` con `depends`— así que el desempate cae en cobertura y en olores concretos. En cumplimiento, design_1 llega con dos agujeros reales: su validación del modal deja fuera `V-Ciclo-003` con una razón que se rompe justo en el caso que el spec narra en `ESC-012`, y renuncia a la lista cerrada de `Ciclo` que la guía de diseño anticipa, sin registrar la desviación donde el contrato la exige; design_2 cubre las tres reglas en el modal y materializa la whitelist anidada que de verdad funciona (confirmado contra `AllowProperties.filter`), cerrando además la escritura anidada sobre `Grado` que design_1 deja abierta.
+En la prueba del segundo desarrollador, design_1 obliga a recordar tres cosas tácitas —«en el modal solo se validan dos de las tres reglas», «allow-all vale solo mientras no haya campo servidor» y «el layout de Ciclo se recolocó»— y una de ellas falla en silencio; design_2 obliga a recordar una sola —«un campo nuevo de Curso o CursoModulo va también en la whitelist de Ciclo»— y la deja escrita junto a la tabla que hay que tocar.
+A eso se suma que design_1 toca layout preexistente con una justificación factualmente errónea y deja `grado` solo con hueco a la derecha en el formulario de Nivel, los dos casos que el checklist de maquetación penaliza, mientras design_2 no mueve nada y su dibujo coincide con el XML.
+Las ventajas de design_1 que sí son reales —el `remote-validationDelete-action` en los `btnDelete`, la declaración del patrón nuevo y los límites del campo `transient`— son incorporables al ganador en una línea cada una, cosa que no ocurre al revés: reparar el agujero del modal y la frontera de confianza de design_1 supone rehacer sus dos decisiones centrales. Por eso me quedo con design_2.
+
+### Comparación 2: design_2 vs design_3 → gana design_3
+
+=== VENTAJAS design_2 ===
+- Mínima intrusión sobre las vistas: conserva el layout preexistente (`grado`+`nivel` en una fila de 12, `familiaProfesional` sin recolocar) y no elimina ninguna vista ni ninguna capacidad de la aplicación.
+- `CC-Grado-001` como campo virtual `transient` + colección `niveles`: no depende de ningún nombre físico de tabla/columna, a diferencia de la fórmula SQL del rival.
+- Frontera de confianza más fina: whitelist con el árbol anidado completo `cursos → modulos` (protege `ESC-011`/`ESC-015`) **y** mapas internos vacíos en `familiaProfesional`/`grado`/`nivel`, de modo que se pueden referenciar pero no mutar desde el JSON del ciclo.
+- Documentación operativa superior: reset de BD por la columna `NOT NULL` nueva, `GenerateDocs` con comprobación de fechas del PNG, y verificaciones ejecutables por paso (`grep`, `psql`, rutas exactas de `ModelServiceFactory`).
+- Justifica el mecanismo `depends="grado.admiteNivel"` (real: `useFieldRelated` recoge tanto los ítems punteados como los `depends`) sin meter un campo fantasma en el panel.
+
+=== DEFECTOS design_2 ===
+- **Premisa falsa decisiva**: afirma que al guardar la familia profesional `ModelServiceValidationWalker` ejecuta los `validate*` de cada ciclo detalle. El walker solo desciende por colecciones de composición (`ONE_TO_MANY` con `orphanRemoval`) y `FamiliaProfesional.ciclos` no lo lleva, así que los ciclos creados/editados en ese modal se persisten **sin pasar por `CicloServiceImpl`** → incumple «estas tres condiciones valen para cualquier vía de entrada» (`entity-Ciclo.md`).
+- Como consecuencia, en esa vía la única defensa real es el `<action-condition>` de cliente: olor **«defensa solo en la vista»**, con los tres mensajes literales duplicados y su propio texto admitiendo «si se toca una, hay que tocar la otra» (**dos piezas que se conocen entre sí**).
+- Deja **dos** formularios editables de ciclo: cuatro reglas U con `Origen spec: —` y la obligación permanente de recordar tocar las dos vistas ante cualquier regla nueva del ciclo.
+- Conocimiento tácito marcado por él mismo como CRITICAL: el CDATA **debe** leer el campo `niveles` y no `getNiveles()`, porque `Mapper.findComputeDependencies` busca `GETFIELD` en el bytecode; un getter rompe el campo en silencio.
+- El campo `transient` carga la colección entera para responder un booleano y no es proyectable en JPQL; además D1 **no consideró** la alternativa `formula="true"`, que es la que elimina esa fragilidad.
+- `showIf` directo sobre el campo `nivel` en lugar del panel anidado que exige `forms.md` §huecos (mitigado por ser el último del panel, pero fuera de la excepción literal).
+
+=== VENTAJAS design_3 ===
+- Diagnostica correctamente (y verificado contra el código de AOP y el `FamiliaProfesional.xml` real) que el modal de ciclo de Familias profesionales **no** pasa por el servicio, y es el único de los dos que hace que `RES-Ciclo-001/002/003` valgan en todas las vías, dejando **un solo formulario editable de ciclo**.
+- `CC-Grado-001` como `@Formula`: propiedad **mapeada** de solo lectura, disponible en el getter, en cualquier camino de lectura y en proyecciones JPQL, sin añadir colección ni depender del análisis de bytecode del `compute*`.
+- D2 (niveles archivados) es una decisión difícil que design_2 no vio: mantiene la equivalencia «el grado admite nivel» <=> «hay un nivel elegible» y evita el estado sin salida de un grado con todos sus niveles archivados.
+- Cumple literalmente la regla de `forms.md` (campo condicional en panel anidado con el `showIf` en el panel) y dibuja ASCII Layout por estado en los tres formularios.
+- Trazabilidad algo más completa (U para el orden de columnas de los dos grids) y alternativas reales y bien costeadas en D1/D5, incluida la de `orphanRemoval` que rechaza por el borrado en cascada que la spec prohíbe.
+
+=== DEFECTOS design_3 ===
+- Elimina una capacidad preexistente que la spec no pide: el alta/edición de ciclos desde «Familias profesionales» (pantalla que la spec ni siquiera enumera). Está declarada en «Eliminaciones declaradas», pero sigue siendo una regresión funcional decidida por el diseño.
+- La fórmula SQL depende de nombres físicos (`sistemaeducativo_nivel`, columna `grado`): único punto del diseño que no se puede dar por bueno sin comprobarlo (lo mitiga con una consulta a `information_schema`).
+- Excluir los niveles archivados se aparta del cálculo literal de `CC-Grado-001` («al menos un nivel en el catálogo») sin listarlo como regla ajustada; solo queda en «Notas y supuestos».
+- Layout peor en `Ref@Ciclo-form`: parte la fila `grado`+`nivel` (12) en dos filas de 6 con hueco, y en `Main@Ciclo-form` recoloca `familiaProfesional`/`grado` preexistentes (churn sobre la vista actual).
+- Reutiliza `Ref@Ciclo-grid` dentro del formulario de familia profesional, con lo que el panel muestra la columna `familiaProfesional`, redundante en ese contexto.
+- La tabla de «Frontera de confianza» no documenta el mapa interno de las referencias (`grado`, `nivel`, `familiaProfesional`), menos preciso que el rival.
+
+=== JUSTIFICACION design_2 vs design_3 ===
+El nivel 1 ya decide: `entity-Ciclo.md` exige que las tres restricciones valgan «para cualquier vía de entrada», y design_2 da por cubierta esa vía con una afirmación falsa —`ModelServiceValidationWalker` solo desciende por `one-to-many` con `orphanRemoval`, y `FamiliaProfesional.ciclos` no lo tiene—, de modo que los ciclos guardados desde ese modal se persisten sin validar y su única defensa queda en el `action-condition` de la vista, que es un olor con nombre de `disenyo.md`. design_3 diagnostica ese agujero correctamente y lo cierra dejando un único formulario editable; su coste (quitar el alta en línea desde Familias profesionales) es una eliminación declarada según §1.3, no un incumplimiento.
+La prueba del segundo desarrollador confirma el orden: en design_2 hay que recordar cuatro cosas —el CDATA debe leer el campo y no el getter por `findComputeDependencies`, el `depends` en cada vista, que existen **dos** formularios de ciclo y que el `action-condition` duplica los tres mensajes del servidor—; en design_3 quedan dos —comprobar los nombres físicos de la fórmula y declarar el campo punteado cuando una condición mire `grado.<algo>`—.
+En decisiones, design_3 vio una que design_2 no vio (niveles archivados) y evaluó la alternativa `formula="true"` que design_2 ni listó, mientras que la D3 de design_2 se apoya en la premisa equivocada. Las ventajas de design_2 (layout intacto, whitelist más fina, mejores comandos de verificación) son reales pero incorporables sobre el ganador sin arrastrar ningún olor; el agujero de validación de design_2, no.
+
+### Comparación 3: design_3 vs design_4 → gana design_4
+
+=== VENTAJAS design_3 ===
+- Materializa el campo condicional `nivel` en un **panel anidado con el `showIf` en el panel** (`Main-Ciclo.xml`, `Ref-Ciclo.xml`), que es el mecanismo que `k-vistas/forms.md` §huecos exige para un campo que aparece y desaparece: en el estado B el bloque colapsa entero, sin reservar columnas ni desplazar nada, y el `design.md` trae el ASCII Layout por estado coherente con el XML.
+- Único dueño de la clasificación (`Grado.admiteNivel`, `formula="true"`) consultado por validador, formulario y ficha; `validarNivelSegunGrado` con ramas complementarias y el caso `grado == null` decidido y documentado (no defensivo).
+- Es el único que **de-riesga el punto físico del diseño**: el paso 2 incluye el `psql` contra `information_schema` para confirmar `sistemaeducativo_nivel.grado` antes de dar la fórmula por buena.
+- `domains/Ciclo.xml` se copia idéntico al real: delta de modelo cero en la entidad que no cambia.
+- D2 (niveles archivados) está elevada a decisión propia con alternativas reales y con el argumento de complementariedad «admite nivel <=> hay nivel elegible».
+
+=== DEFECTOS design_3 ===
+- **Su decisión central (D5) parte de un hecho falso.** Afirma que `ModelServiceValidationWalker` no desciende por `FamiliaProfesional.ciclos` «porque no es composición». Verificado en AOP: `axelor-tools` `Property.getOrphanRemoval()` devuelve `true` por defecto en toda O2M **bidireccional** (`mappedBy`), y `Resource.save` llama a `validateSaveTree` → los ciclos creados desde ese modal **sí** pasan por `CicloServiceImpl.validate*`.
+- Sobre esa premisa **elimina funcionalidad viva y no pedida**: borra 56 líneas de `Main-FamiliaProfesional.xml` (grid + form modal + 4 `action-group` + `action-record`) y deja el panel «Ciclos» en solo consulta. Es la mayor superficie de cambio de los dos diseños, contra «mínima intrusión» (`design-contract.md` §1.3), y no compra nada: la validación ya se aplicaba ahí.
+- Segundo error de hecho en la misma decisión: «marcar `orphanRemoval` arrastraría borrado en cascada, que la spec rechaza». La relación **ya** es `orphanRemoval`, así que esa alternativa no cambia nada — el descarte es de paja.
+- El hecho falso queda **escrito como comentario en el XML que se copia verbatim al árbol**: propaga conocimiento erróneo del framework al siguiente desarrollador.
+- `U-niveles-001` se ubica en `domains/Nivel.xml` en vez de en la vista, contra el mapeo de capas de `design-contract.md` §5 (una U vive en la vista).
+- Reutiliza `Ref@Ciclo-form` como `form-view` del `panel-related`, arrastrando su botón «Salir»/`close` a un contexto de detalle, sin ningún test E2E que cubra la pantalla que modifica.
+
+=== VENTAJAS design_4 ===
+- **Modela bien el framework**: mantiene el segundo formulario de ciclo y se apoya en el walker, que efectivamente ejecuta `CicloServiceImpl.validate*` al guardar la familia profesional (comprobado en `Resource.java`/`ModelServiceValidationWalker`), cumpliendo «valen para cualquier vía de entrada» **sin perder funcionalidad**.
+- Delta mínimo sobre el sistema existente: atributos de dos campos, un `action-group`, un `action-record` y el `action-condition` `Local-validateSave` que `vistas.md` §1.6 exige a todo form modal de detalle y que hoy **no existía** — cierra un agujero real de UX sin tocar la estructura.
+- Un solo dueño de la clasificación (`grado.admiteNivel`) leído por el validador, los **dos** formularios de ciclo y la ficha de consulta; la fórmula sigue la convención ya escrita en el proyecto (CDATA + paréntesis, como `Correo.nombreExpediente`).
+- Mapeo de capas fiel al contrato: `U-niveles-001` como `required` en la vista, `V-Nivel-001` en modelo **y** servicio (mensaje del spec) según `k-validaciones/restricciones.md` §1.
+- `decisiones.md` plantea una decisión que design_3 ni siquiera ve: **D3 — `RES-Ciclo-002` ¿validar o limpiar?**, resuelta manteniendo `nivel` como campo `cliente` en vez de dejar que el servidor lo sobrescriba.
+- La tabla de frontera de confianza enumera explícitamente `archived` y los campos de auditoría y **admite la puerta que no cierra** (`Grado` sin `ModelService`), en vez de darla por resuelta.
+
+=== DEFECTOS design_4 ===
+- Pone el `showIf` **directamente en el `<field name="nivel">`** en los tres formularios en vez de envolverlo en un panel anidado: `forms.md` (§huecos en el grid y checklist de maquetación) solo admite como excepción el elemento condicional **al principio del panel**, no al final de fila; en el estado B el campo oculto reserva sus columnas y deja hueco.
+- `Main-Nivel.xml`: `grado` a `colSpan="3"` para valores largos («Curso de especialización») y eliminación del `colOffset="3"` preexistente de `name` — recolocación de una fila que el delta no obligaba a rehacer.
+- Añade `title="Grado"`/`title="Nivel"` a `domains/Ciclo.xml`, un delta de modelo que la spec no pide (justificado por las etiquetas de los mensajes, pero es alcance añadido).
+- Deja **dos formularios de ciclo que hay que mantener sincronizados** y tres literales de mensaje duplicados en el `Local-validateSave` del modal (es el precio que impone el contrato de vistas, pero es una cosa más que recordar).
+- No advierte que en la vía «guardar la familia profesional» el `AllowProperties` que se aplica es el del **maestro** (`FamiliaProfesional`, allow-all), así que la whitelist de `Ciclo` no filtra ese árbol anidado.
+- Ninguno de sus 15 tests E2E ejercita el modal que modifica: todos entran por la pantalla Ciclos.
+
+=== JUSTIFICACION design_3 vs design_4 ===
+En cumplimiento (nivel 1) los dos cubren los 15 escenarios y las 13 reglas, pero design_3 **contradice el comportamiento real del framework**: verifiqué en AOP que `FamiliaProfesional.ciclos`, al ser O2M bidireccional, nace con `orphanRemoval=true` y que `Resource.save` invoca `validateSaveTree`, así que ese camino **sí** valida con `CicloServiceImpl`. Sobre esa premisa falsa —y una segunda igual de falsa, que marcar `orphanRemoval` traería cascada— design_3 borra una capacidad viva del producto que la spec no pide y deja el error escrito como comentario en el XML que se copia al árbol: incoherencia con el contrato (§1.3, mínima intrusión) y conocimiento erróneo propagado. design_4 llega al mismo invariante sin perder nada, con un delta de atributos más el `Local-validateSave` que `vistas.md` §1.6 ya exigía a ese modal.
+En la prueba del segundo desarrollador, design_3 promete «un único formulario de ciclo» (una frase), pero la explicación completa incluye «y acuérdate de que quitamos la alta desde familias profesionales por un motivo que no era cierto»; design_4 pide recordar «los dos formularios del ciclo se comportan igual, y el modal duplica las tres comprobaciones porque `save-modal` no llama al servidor» — una regla del contrato, no conocimiento tácito inventado.
+El defecto propio de design_4 —`showIf` en el campo en vez de panel anidado— es una desviación de convención de layout corregible con un `<panel>` por formulario, sin pérdida funcional; el de design_3 es estructural y destructivo. En decisiones (nivel 3) design_4 ve una decisión que design_3 no ve (validar vs. limpiar el nivel) y no apoya ninguna elección en hechos incorrectos.
+
+### Comparación 4: design_4 vs design_5 → gana design_5
+
+=== VENTAJAS design_4 ===
+- Es el único de los dos que ve el **segundo formulario de ciclo** (el modal `Main@FamiliaProfesional.Ciclo-form`, que existe de verdad y lleva hoy `showIf="grado.code=='D'"` y el `domain` roto) y lo alinea con el principal, añadiéndole el `Local-validateSave` que `vistas.md` §1.6 exige a todo modal de detalle con V.
+- `admiteNivel` como `formula="true"` no necesita la colección inversa `niveles` en `Grado`: no amplía la superficie de esa entidad, no obliga a crear un `GradoService` y el campo sí sería usable como columna de grid.
+- Superficie de cambio íntegramente dentro de `subsystem/sistemaeducativo`: no toca infraestructura compartida, en línea con la «mínima intrusión» de `design-contract.md` §1.3.
+- Trazabilidad, «Eliminaciones declaradas» y D3 (validar vs. limpiar el nivel) y D4 (dos capas para `RES-Nivel-001`) están razonados con alternativas reales y respetan la clasificación `cliente`/`servidor` del contrato.
+- El panel del formulario de niveles queda mejor aprovechado (`code`+`name`+`grado` en una fila que suma 12) que el de design_5, que deja media fila libre.
+
+=== DEFECTOS design_4 ===
+- **Rompe `ESC-004`** (defecto decisivo, verificado): `BeanMapperModel.copyMapToEntity` (líneas 254-262) solo sustituye una referencia many-to-one cuando el tipo es `MetaFile`; para `grado`, con mapa interno vacío en la whitelist, `copyValueToEntityAndNoChangeId` no copia nada y el bean que valida `DefaultModelController.validateSave` conserva el **grado antiguo**. Al cambiar a «Curso de especialización» saltaría `V-Ciclo-001` y no dejaría guardar. El diseño no lo ve ni lo menciona; afecta igual a `V-Ciclo-003` cuando se cambia el nivel.
+- **Sus ASCII Layout mienten** (`vistas.md` §3.g): afirma que el campo punteado oculto «no ocupa columnas», pero `computeLayout` (`form-layouts.tsx`) asigna `gridColumnStart/End` a **todos** los items con `colSpan` por defecto 6 y `GridItem` siempre renderiza el div. En `Main-Ciclo`, `Ref-Ciclo` y `Main-FamiliaProfesional` los campos quedan desplazados media fila o una fila entera respecto al dibujo declarado.
+- La fórmula SQL `EXISTS (SELECT 1 FROM sistemaeducativo_nivel n WHERE n.grado = id …)` usa `id` sin cualificar dentro de un subquery cuya tabla **también** tiene `id`: resuelve a `n.id`, no al del grado. `admiteNivel` saldría falso siempre.
+- Su D1 descarta la alternativa transitoria con una premisa **falsa** («el fetch de campos punteados no lo puede traer»): `Resource.fetch` usa `Mapper`, no `Query.Selector`, y devuelve los `@Transient @VirtualColumn`.
+- Deja `Grado` en `DefaultModelService`/allow-all pese a que `entity-Grado.md` declara `Input AllowProperties: código, nombre`; lo documenta como «puerta que esta iniciativa no cierra».
+
+=== VENTAJAS design_5 ===
+- Identifica y corrige la **causa real** por la que `ESC-004` no podría pasar (el mapeador), con el alcance de llamadores revisado; sin esa corrección queda como regla no escrita «no valides en servidor un many-to-one editable». Además mejora la seguridad: sustituir la referencia en vez de copiar campos dentro de la entidad referenciada gestionada.
+- Usa `depends="grado.admiteNivel"` en lugar del campo punteado oculto: mismo mecanismo de carga (`DottedValues`/`useFieldRelated` recogen tanto los dotted como los `depends`) **sin** consumir columnas de rejilla. Sus ASCII Layout coinciden columna a columna con el XML.
+- El panel condicional `nivelPanel` deja la condición escrita **una sola vez** y un `required` tonto dentro; `useGetErrors` (form.tsx) descarta los widgets cuyo padre está oculto, verificado, así que no bloquea el guardado — y el panel oculto colapsa sin dejar hueco. El mismo idioma sirve en el formulario de mantenimiento y en el de consulta.
+- El campo transitorio con cuerpo Java sobre `niveles` evita meter SQL acoplado a nombres físicos de tabla/columna en el dominio (precedente real en `Centro.xml`), y el generador lo soporta (`@VirtualColumn @Transient` + getter que recalcula).
+- Cierra la whitelist de `Grado` que la propia spec declara, dejando las tres entidades del delta con la misma forma, y documenta la vuelta atrás si el `required` dentro del panel oculto se comportara distinto.
+
+=== DEFECTOS design_5 ===
+- **Ignora el modal de ciclo de `Main-FamiliaProfesional.xml`**: sobrevive una segunda copia del criterio viejo (`showIf="grado.code=='D'"`) y el `domain` roto del nivel — el olor «una decisión con varios dueños» que su propia D1 dice eliminar. Peor: al crear ahora `CicloServiceImpl`, ese modal puede bloquear el guardado del maestro con un selector de nivel vacío y sin `Local-validate*` que avise (`vistas.md` §1.6).
+- Toca infraestructura compartida (`BeanMapperModel`), usada por `DefaultModelController` para **todas** las entidades: enumera los llamadores, pero la regresión potencial en firmas/correos/expedientes queda fuera del alcance de sus 15 tests E2E.
+- La colección inversa `niveles` (cascade `PERSIST`/`MERGE`) amplía la superficie de `Grado` y obliga a crear `GradoService`: coste autoinfligido por la alternativa elegida.
+- `admiteNivel` transitorio no sirve como columna de grid (la spec no lo pide, pero acota usos futuros) y carga la colección entera para responder un booleano.
+- En `Main-Nivel` deja el `grado` solo en su fila con 6 columnas libres; es defendible, pero peor aprovechado que la fila completa de design_4.
+
+=== JUSTIFICACION design_4 vs design_5 ===
+En el nivel 1 (cumplimiento) design_4 cae: `ESC-004` no puede pasar tal y como está diseñado, porque `BeanMapperModel` solo sustituye la referencia many-to-one para `MetaFile` y el `remote-validationSave-action` valida el grado antiguo — comprobado en `BeanMapperModel.java:254-262`, `ActionRequestHelper.getModel` y el `btnSave` real de `Main-Ciclo.xml`. A eso se suman dos errores factuales más: el campo punteado oculto **sí** reserva columnas (`computeLayout`), y su fórmula SQL referencia `id` sin cualificar dentro de un subquery sobre una tabla que también tiene `id`. Design_5 cumple los quince escenarios y sus tres apuestas técnicas quedan verificadas en el código de AOP.
+En el nivel 2 la prueba del segundo desarrollador también la gana design_5: reproducirlo cabe en «el nivel vive en su panel condicional bajo el grado y el grado responde `admiteNivel`; pon `depends` cuando un `showIf` mire al otro lado de un many-to-one». Design_4 exige recordar cuatro cosas y la última ni siquiera está escrita: se descubre como bug.
+En el nivel 3 design_5 ve tres decisiones difíciles que design_4 no ve, y design_4 descarta precisamente la alternativa ganadora con una premisa falsa. Su única ventaja real —el modal de Familias profesionales, que design_5 deja sin tocar— es un defecto acotado a una pantalla que la spec no describe y se corrige aplicando el mismo patrón.
+

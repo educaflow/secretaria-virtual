@@ -47,6 +47,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <?sv-primary-actions?>
     <action-group name="subsysSistemaEducativo.Main@FamiliaProfesional-btnDelete-action">
+        <action name="remote-validationDelete-action"/>
         <action name="delete"/>
     </action-group>
     <action-group name="subsysSistemaEducativo.Main@FamiliaProfesional-btnCancel-action">
@@ -82,8 +83,11 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
             <field name="familiaProfesional" showIf="false"/>
             <field name="code" colSpan="3" />
             <field name="name" colOffset="3" colSpan="6" />
-            <field name="grado" colOffset="6" colSpan="3" grid-view="subsysSistemaEducativo.Ref@Grado-grid" form-view="subsysSistemaEducativo.Ref@Grado-form" domain="(self.code='D' OR self.code='E')" />
-            <field name="nivel" colSpan="3" grid-view="subsysSistemaEducativo.Ref@Nivel-grid" form-view="subsysSistemaEducativo.Ref@Nivel-form" showIf="grado.code=='D'" requiredIf="grado.code=='D'" domain="(self.code='D' OR self.code='E')"/>
+            <field name="grado" colOffset="6" colSpan="3" grid-view="subsysSistemaEducativo.Ref@Grado-grid" form-view="subsysSistemaEducativo.Ref@Grado-form"
+                   onChange="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-onChange-grado-action" />
+            <field name="nivel" colSpan="3" showIf="grado.admiteNivel" requiredIf="grado.admiteNivel" depends="grado.admiteNivel,nivel.grado"
+                   grid-view="subsysSistemaEducativo.Ref@Nivel-grid" form-view="subsysSistemaEducativo.Ref@Nivel-form"
+                   domain="self.grado = :grado" />
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
             <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
@@ -100,6 +104,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <action name="close"/>
     </action-group>
     <action-group name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-btnSave-action">
+        <action name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-Local-validateSave-action"/>
         <action name="save-modal"/>
     </action-group>
 
@@ -107,11 +112,47 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <action name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-set-familiaProfesional-parent-action"/>
     </action-group>
 
+    <action-group name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-onChange-grado-action">
+        <action name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-set-nivel-null-action"/>
+    </action-group>
+
     <?sv-validations?>
+
+    <!--
+        Capa CLIENTE de las tres restricciones de Ciclo en el form MODAL de ciclo
+        (design-contract.md §5 «Excepción — entidad detalle editada en form modal» y vistas.md §1.6).
+        El modal guarda con save-modal, que NO llama al servidor, y MUST NOT llevar remote-validation*:
+        la validación de servidor del detalle solo corre al guardar la familia profesional (maestro),
+        vía ModelServiceValidationWalker. Este action-condition es, por tanto, el único aviso al
+        usuario antes de cerrar el modal. Los tres literales son los de RES-Ciclo-001/002/003 y MUST
+        copiarse tal cual (son los mismos que devuelve CicloServiceImpl.validateCoherenciaGradoNivel).
+        Los tres checks se anclan al campo `nivel` para que el error salga pegado al campo.
+
+        CRITICAL - la particion de los tres checks es la MISMA que la del servidor
+        (CicloServiceImpl.validateCoherenciaGradoNivel, decisiones.md D4): los checks 1 y 3 viven
+        dentro de la rama «el grado admite nivel» (por eso los dos llevan la guarda
+        grado.admiteNivel) y el check 2 dentro de la rama complementaria «el grado NO admite nivel».
+        Asi cada situacion produce UN solo mensaje, igual que en el servidor. Sin la guarda
+        grado.admiteNivel en el check 3, un grado que no admite nivel con un nivel puesto dispararia
+        a la vez el check 2 y el check 3 (un nivel de otro grado nunca cumple nivel.grado.id ==
+        grado.id), y el usuario veria dos mensajes donde el servidor da uno.
+    -->
+    <action-condition name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-Local-validateSave-action">
+        <check field="nivel" if="grado != null &amp;&amp; grado.admiteNivel &amp;&amp; nivel == null"
+               error="El nivel es obligatorio para el grado indicado"/>
+        <check field="nivel" if="grado != null &amp;&amp; !grado.admiteNivel &amp;&amp; nivel != null"
+               error="El grado indicado no admite nivel: el nivel debe quedar vacío"/>
+        <check field="nivel" if="grado != null &amp;&amp; grado.admiteNivel &amp;&amp; nivel != null &amp;&amp; nivel.grado != null &amp;&amp; nivel.grado.id != grado.id"
+               error="El nivel indicado no pertenece al grado del ciclo"/>
+    </action-condition>
 
     <?sv-rules?>
     <action-record name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-set-familiaProfesional-parent-action" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo">
         <field name="familiaProfesional" expr="eval: __parent__"/>
+    </action-record>
+
+    <action-record name="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-set-nivel-null-action" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo">
+        <field name="nivel" expr="eval: null"/>
     </action-record>
 
     <?sv-remotes?>

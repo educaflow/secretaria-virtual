@@ -20,6 +20,8 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <field name="code" width="200px" />
         <field name="name" />
         <field name="familiaProfesional" />
+        <field name="grado" />
+        <field name="nivel" />
     </grid>
 
     <form name="subsysSistemaEducativo.Main@Ciclo-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"
@@ -27,9 +29,12 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <panel name="Ciclo" title="Ciclo">
             <field name="code" colSpan="3" />
             <field name="name" colOffset="3" colSpan="6" />
-            <field name="familiaProfesional" colOffset="6" colSpan="6" grid-view="subsysSistemaEducativo.Ref@FamiliaProfesional-grid" form-view="subsysSistemaEducativo.Ref@FamiliaProfesional-form" />
-            <field name="grado" colOffset="6" colSpan="3"              grid-view="subsysSistemaEducativo.Ref@Grado-grid"  form-view="subsysSistemaEducativo.Ref@Grado-form"  domain="(self.code='D' OR self.code='E')" />
-            <field name="nivel" colSpan="3"                            grid-view="subsysSistemaEducativo.Ref@Nivel-grid"  form-view="subsysSistemaEducativo.Ref@Nivel-form"  showIf="grado.code=='D'" requiredIf="grado.code=='D'" domain="(self.code='D' OR self.code='E')"/>
+            <field name="familiaProfesional" colSpan="6" grid-view="subsysSistemaEducativo.Ref@FamiliaProfesional-grid" form-view="subsysSistemaEducativo.Ref@FamiliaProfesional-form" />
+            <field name="grado" colSpan="3" grid-view="subsysSistemaEducativo.Ref@Grado-grid" form-view="subsysSistemaEducativo.Ref@Grado-form"
+                   onChange="subsysSistemaEducativo.Main@Ciclo-onChange-grado-action" />
+            <field name="nivel" colSpan="3" showIf="grado.admiteNivel" requiredIf="grado.admiteNivel" depends="grado.admiteNivel"
+                   grid-view="subsysSistemaEducativo.Ref@Nivel-grid" form-view="subsysSistemaEducativo.Ref@Nivel-form"
+                   domain="self.grado = :grado" />
         </panel>
 
         <panel-related name="cursos" field="cursos"  title="Cursos"
@@ -49,6 +54,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <?sv-primary-actions?>
     <action-group name="subsysSistemaEducativo.Main@Ciclo-btnDelete-action">
+        <action name="remote-validationDelete-action"/>
         <action name="delete"/>
     </action-group>
     <action-group name="subsysSistemaEducativo.Main@Ciclo-btnCancel-action">
@@ -60,11 +66,17 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <action name="force-back"/>
     </action-group>
 
+    <action-group name="subsysSistemaEducativo.Main@Ciclo-onChange-grado-action">
+        <action name="subsysSistemaEducativo.Main@Ciclo-set-nivel-null-action"/>
+    </action-group>
+
     <?sv-validations?>
 
 
     <?sv-rules?>
-
+    <action-record name="subsysSistemaEducativo.Main@Ciclo-set-nivel-null-action" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo">
+        <field name="nivel" expr="eval: null"/>
+    </action-record>
 
     <?sv-remotes?>
 

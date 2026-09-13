@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!--
+      Porción del fichero único de menús del proyecto
+      (src/main/java/com/educaflow/secretariavirtual/menus/menus.xml) que cubre esta iniciativa.
+
+      SIN DELTA: las tres entradas que usan los escenarios (Ciclos, Grados, Niveles) ya existen
+      con este contenido exacto. Se reproduce el bloque «Sistema educativo» tal cual para que la
+      fusión de /sdd-implementer sea un no-op verificable y para dejar constancia de que el delta
+      no añade, quita ni reordena ningún menú.
+    -->
+
+    <menuitem name="sistemaEducativo-menuitem" title="Sistema educativo" groups="admins" order="80"/>
+    <menuitem name="sistemaEducativo-familiaProfesional-menuitem" parent="sistemaEducativo-menuitem" title="Familia profesional" action="subsysSistemaEducativo.Main@FamiliaProfesional-action" groups="admins" order="1"/>
+    <menuitem name="sistemaEducativo-ciclos-menuitem" parent="sistemaEducativo-menuitem" title="Ciclos" action="subsysSistemaEducativo.Main@Ciclo-action" groups="admins" order="2"/>
+    <menuitem name="sistemaEducativo-cursos-menuitem" parent="sistemaEducativo-menuitem" title="Cursos" action="subsysSistemaEducativo.Main@Curso-action" groups="admins" order="3"/>
+    <menuitem name="sistemaEducativo-modulos-menuitem" parent="sistemaEducativo-menuitem" title="Módulos" action="subsysSistemaEducativo.Main@Modulo-action" groups="admins" order="4"/>
+    <menuitem name="sistemaEducativo-cursosModulos-menuitem" parent="sistemaEducativo-menuitem" title="Cursos-Módulos" action="subsysSistemaEducativo.Main@CursoModulo-action" groups="admins" order="5"/>
+    <menuitem name="sistemaEducativo-leyesEducativas-menuitem" parent="sistemaEducativo-menuitem" title="Leyes Educativas" action="subsysSistemaEducativo.Main@LeyEducativa-action" groups="admins" order="6"/>
+    <menuitem name="sistemaEducativo-grados-menuitem" parent="sistemaEducativo-menuitem" title="Grados" action="subsysSistemaEducativo.Main@Grado-action" groups="admins" order="7"/>
+    <menuitem name="sistemaEducativo-niveles-menuitem" parent="sistemaEducativo-menuitem" title="Niveles" action="subsysSistemaEducativo.Main@Nivel-action" groups="admins" order="8"/>
+
+</object-views>

@@ -1,0 +1,11 @@
+# Build — iteración 1
+
+Compilacion: 0 errores. Tests: 533 ejecutados, 1 fallo. Chequeo de conformidad de superficie (build.md): sin superficie no declarada.
+
+{"id":"E-001","tipo":"TEST","fichero":"src/test/java/com/educaflow/tiposexpedientes/tramite/TipoExpedienteActivoTest.java","ubicacion":"t1_elDefaultTipoExpedienteNombraUnaCarpetaDeVersionQueExiste (linea 91)","tarea":null,"mensaje":"[T1] El <defaultTipoExpediente> de un TramiteInstance.xml debe ser el nombre de una carpeta de version que exista bajo ese tramite y que tenga dentro su TipoExpedienteInstance.xml. 1 violacion: [AnulacionMatriculaCicloFormativo] tramites/alumnos/anulacion_matricula_ciclo_formativo/TramiteInstance.xml declara <defaultTipoExpediente>v1</defaultTipoExpediente>, pero bajo el tramite no hay ninguna carpeta v1 con un TipoExpedienteInstance.xml dentro.","correccion":"AJENO A ESTA INICIATIVA: lo provoca el fichero apartado por el usuario (TipoExpedienteInstance.xml__), que deja su TramiteInstance.xml apuntando a una v1 inexistente. Se resuelve fuera de esta iniciativa. MUST NOT tocarse desde aqui."}
+
+CONCLUSION: el codigo de esta iniciativa compila limpio y no produce ningun test rojo. El unico fallo es un efecto colateral del fichero apartado del tramite anulacion_matricula_ciclo_formativo, ajeno al alcance.
+
+# Build — iteración 2
+OK-COMPILA
+(Tras apartar el usuario tambien el TramiteInstance.xml del tramite ajeno: 533 tests, 0 fallos, 0 errores.)

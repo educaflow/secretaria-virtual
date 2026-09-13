@@ -1,0 +1,18 @@
+@startuml
+
+class Grado {
+  + admite nivel
+}
+
+class Nivel {
+  + grado
+}
+
+class Ciclo {
+}
+
+Grado "1" --> "0..*" Nivel : niveles
+Ciclo "many" --> "1" Grado : grado
+Ciclo "many" --> "0..1" Nivel : nivel
+
+@enduml

@@ -2,6 +2,10 @@
 
 FamiliaProfesional "1" -- "*" Ciclo
 
+Grado "1" -- "*" Nivel
+Grado "1" -- "*" Ciclo
+Nivel "1" -- "*" Ciclo
+
 Ciclo "1" -- "*" Curso
 Curso "*" -- "*" Modulo
 (Curso, Modulo) . CursoModulo
@@ -9,4 +13,3 @@ Curso "*" -- "*" Modulo
 LeyEducativa "1" -- "*"  Curso
 
 @enduml
-

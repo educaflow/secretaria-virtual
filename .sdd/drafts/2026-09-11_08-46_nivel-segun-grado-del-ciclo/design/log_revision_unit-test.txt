@@ -1,0 +1,6 @@
+# Verificación tests unitarios — iteración 1
+P-001 MINOR design/test-unit-desc.md (CicloServiceImpl.allowPropertiesInsert, test allowPropertiesInsert_cursosPermiteElSubarbolDelPanelMaestroDetalle) — el Assert afirma que el interno de leyEducativa no permite ninguna propiedad, pero el Act nunca lo obtiene.
+P-002 MINOR design/test-unit-desc.md (BeanMapperModel, caso (e)) — errata en el nombre del test: «siguesSustituyendo» en vez de «sigueSustituyendo»; se materializa tal cual como nombre de metodo Java.
+
+# Verificación tests unitarios — iteración 2
+OK-CORRECTO

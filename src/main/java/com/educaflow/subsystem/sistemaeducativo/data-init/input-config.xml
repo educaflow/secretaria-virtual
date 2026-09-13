@@ -6,9 +6,10 @@
 
     <!-- Datos semilla del catálogo educativo (subsistema sistemaeducativo).
          Un fichero por entidad. El orden de los <input> = orden de dependencias de datos:
-         primero las entidades base (FamiliaProfesional, Grado, Nivel, LeyEducativa,
-         Modulo), luego Ciclo (refiere a FamiliaProfesional/Grado/Nivel), luego Curso
-         (refiere a Ciclo/LeyEducativa) y por último CursoModulo (refiere a Curso/Modulo). -->
+         primero las entidades base (FamiliaProfesional, Grado, LeyEducativa, Modulo),
+         luego Nivel (refiere a Grado), luego Ciclo (refiere a FamiliaProfesional/Grado/Nivel),
+         luego Curso (refiere a Ciclo/LeyEducativa) y por último CursoModulo
+         (refiere a Curso/Modulo). -->
 
     <!-- 1. Familias profesionales -->
     <input file="FamiliaProfesional.xml" root="datos">
@@ -30,13 +31,15 @@
         </bind>
     </input>
 
-    <!-- 3. Niveles -->
+    <!-- 3. Niveles (refiere a Grado) -->
     <input file="Nivel.xml" root="datos">
         <bind node="niveles/nivel"
               type="com.educaflow.subsystem.sistemaeducativo.db.Nivel"
               search="self.code = :code" create="true" update="true">
             <bind node="@code" to="code"/>
             <bind node="@name" to="name"/>
+            <bind node="@grado" to="grado"
+                  search="self.code = :grado" create="false" update="false"/>
         </bind>
     </input>
 
