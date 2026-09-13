@@ -53,6 +53,9 @@ Cómo compilar, probar, arrancar la app y gestionar la base de datos en el entor
 - Los checks de severidad **ERROR rompen la compilación**; los **WARNING solo avisan** por consola.
   No genera informe: los avisos salen en la salida de la compilación.
   Como Gradle no recompila lo que está al día, para volver a verlos todos hay que forzar la recompilación (`./gradlew compileJava compileTestJava --rerun-tasks`).
+- Que un WARNING no rompa la compilación no lo hace opcional: **un build limpio es un build sin warnings de Error Prone**.
+  Cada `warning: [Check]` en un fichero de `src/` **MUST** corregirse en el código, en el mismo cambio que lo produjo, siguiendo la sugerencia del check (suele traer un `Did you mean …`).
+  Solo se deja sin corregir un falso positivo justificado, y entonces se silencia como dice el punto siguiente.
 - Solo analiza **Java**: el código Kotlin no pasa por él, y el código generado (`build/src-gen`, `build/src-gen-states`) está excluido a propósito.
 - Un falso positivo se silencia **en el sitio concreto** con `@SuppressWarnings("NombreDelCheck")`, nunca desactivando el check para todo el proyecto.
   La configuración (plugin `net.ltgt.errorprone`, versión fija de `error_prone_core`, exclusiones) está en `build.gradle`.
