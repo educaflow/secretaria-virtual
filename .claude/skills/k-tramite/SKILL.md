@@ -87,7 +87,21 @@ El orden de carga lo gobierna la `priority`: primero el trámite (`1`), luego lo
 
 - Para que un usuario pueda **crear** expedientes del trámite necesita una asignación del perfil `CREADOR` **por `tramiteCode`**; las asignaciones de demo viven en `src/main/resources/data-demo/input/permisos-demo.xml`.
 - Prefiere asignar por `tramiteCode` y no por `tipoExpedienteCode` cuando el permiso sea conceptualmente del trámite: la asignación por trámite **sobrevive a las versiones**; la asignación por tipo hay que duplicarla en cada versión nueva.
-- El perfil `RESPONSABLE` de cada estado se asigna según convenga (por cargo, tipo de usuario o usuario concreto) — leer el modelo real en `subsystem/security/`.
+- El perfil de cada estado (`RESPONSABLE`, `SECRETARIO`, `DIRECTOR`…) se asigna según convenga (por cargo, tipo de usuario o usuario concreto) — leer el modelo real en `subsystem/security/`.
+
+Cómo se escribe `permisos-demo.xml` (la fuente de verdad del binding es `src/main/resources/data-demo/input-config.xml`, sus pasos 4 y 5):
+
+1. `<perfiles>`: un `<perfil name="…"/>` por cada perfil que se vaya a asignar. Crea la fila `Perfil` por nombre (idempotente). **MUST** declarar aquí el perfil antes de asignarlo: las asignaciones lo buscan por nombre y **no** lo crean. Los nombres válidos son los del enum `Profile` de `subsystem/expedientes/domains/TipoExpediente.xml` (los mismos que admite `<state profile="…">`, `/k-tipo-expediente` §2.2).
+2. Un bloque por tipo de actor; cada uno admite **solo** las claves que se indican:
+   - `<asignacionesTipoUsuario>` → `<asignacion tipoUsuarioCode perfilName tramiteCode/>` (tipo de usuario, **por trámite**).
+   - `<asignacionesTipoUsuarioTipoExpediente>` → `<asignacion tipoUsuarioCode perfilName tipoExpedienteCode/>` (tipo de usuario, por tipo de expediente).
+   - `<asignacionesCargoTipoExpediente>` → `<asignacion cargoCode perfilName tipoExpedienteCode/>` (cargo, **solo por tipo de expediente**: no hay bloque de cargo por trámite, así que hay que repetirla en cada versión).
+   - `<asignacionesCentroUsuario>` → `<asignacion usuarioCode centroCode perfilName tramiteCode/>` (usuario concreto en un centro, **solo por trámite**).
+3. Los códigos son los de las tablas maestras: `TipoUsuario.codigo`, `Cargo.code` (`subsystem/common/data-init/input/cargos.xml`), `Tramite.code` y `TipoExpediente.code` (`<code del trámite>V1`, `/k-tipo-expediente` §1.1). En la entidad `Ace` solo `perfil` es obligatorio: un perfil sin declarar rompe la carga, pero un actor, trámite o tipo de expediente que no case **no falla** — la asignación se crea a medias y el permiso no aparece.
+
+- ✅ CORRECTO: `<asignacion cargoCode="DIRECTOR" perfilName="DIRECTOR" tipoExpedienteCode="MiTramiteV1"/>` dentro de `<asignacionesCargoTipoExpediente>`, con `<perfil name="DIRECTOR"/>` en `<perfiles>`
+- ❌ INCORRECTO: `<asignacion cargoCode="DIRECTOR" perfilName="DIRECTOR" tramiteCode="MiTramite"/>` (un cargo no se asigna por trámite: ese bloque no existe y la clave se ignora)
+- ❌ INCORRECTO: asignar `perfilName="SECRETARIO"` sin haberlo declarado en `<perfiles>` (la asignación no encuentra el `Perfil`, que es obligatorio, y la carga de la demo falla)
 
 ## 7. Checklist de alta de un trámite
 

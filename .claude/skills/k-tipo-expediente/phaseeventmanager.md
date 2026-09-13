@@ -151,6 +151,21 @@ expediente.setPdfSolicitud(MetaFileHelper.createMetaFile(solicitudPdf));
 
 Operaciones útiles de `DocumentoPdf`: `firmar(...)` (§6.4), `anyadirDocumentoPdf` (concatenar), `estamparTextoConAppend`, `addNewPage`, `getPlainText`, `removePdfAConformance`.
 
+**Generar en un evento y firmar (o concatenar) en otro posterior.** El PDF que un evento dejó en un campo `MetaFile` se recupera con la conversión inversa, `MetaFileHelper.getDocumentoPdf(metaFile)`, y se vuelve a guardar con `createMetaFile`:
+
+```java
+// evento 1 (p.ej. ENVIAR_A_FIRMA): se genera sin firmar y se guarda para que el firmante lo revise
+expediente.setPdfResolucion(MetaFileHelper.createMetaFile(expediente.getDocumentoPdf(MiTramiteV1.TipoDocumentoPdf.RESOLUCION)));
+
+// evento 2 (p.ej. FIRMAR): se recupera, se firma con el certificado del centro (recetas/firma.md §2) y se registra de salida (§6.3)
+DocumentoPdf resolucion = MetaFileHelper.getDocumentoPdf(expediente.getPdfResolucion());
+DocumentoPdf resolucionFirmada = resolucion.firmar(almacenClaveResolver.getDirector(expediente.getCentro()), new CampoFirma(POSICION_FIRMA_RESOLUCION));
+MetaFile pdfResolucionFirmada = MetaFileHelper.createMetaFile(resolucionFirmada);
+```
+
+- Es el mismo par de conversiones que usa `FirmaServidorHelper.firmarEnServidor` por dentro (`recetas/firma.md` §1.5).
+- Si entre los dos eventos cambian datos que el documento estampa, en el evento 2 se **regenera** con `getDocumentoPdf(TipoDocumentoPdf...)` en vez de recuperarlo: lo guardado es una foto de los datos de entonces.
+
 ### 6.2 Registro de entrada (el usuario presenta documentación)
 
 ```java
