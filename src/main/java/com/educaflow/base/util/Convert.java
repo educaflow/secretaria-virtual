@@ -1,5 +1,7 @@
 package com.educaflow.base.util;
 
+import com.axelor.app.AppSettings;
+import com.axelor.app.AvailableAppSettings;
 import com.axelor.db.ValueEnum;
 import com.axelor.db.annotations.EnumWidget;
 
@@ -11,8 +13,7 @@ import java.util.Date;
 import java.util.Locale;
 
 public class Convert {
-
-    public static final Locale defaultLocale = new Locale.Builder().setLanguage("es").setRegion("ES").build();
+    public static final Locale defaultLocale = Locale.forLanguageTag(AppSettings.get().get(AvailableAppSettings.APPLICATION_LOCALE, "es-ES"));
     public static final ZoneId defaultZoneId = ZoneId.of("Europe/Madrid");
 
     public static Long objectToLong(Object obj) {

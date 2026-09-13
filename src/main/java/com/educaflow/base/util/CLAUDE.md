@@ -33,7 +33,7 @@ Clases de utilidad de **bajo nivel** del proyecto. Su objetivo es no repetir peq
 - `objectToLong` / `objectToInt` / `objectToBoolean` — convierte un `Object` numérico/booleano al tipo destino o lanza si no es compatible.
 - `coerceToLong` / `coerceToInt` — versión laxa que también acepta `String` y trata `null`/vacío como `0`.
 - `objectToUserString` — formatea cualquier valor (número, fecha, enum con `@EnumWidget`, booleano Sí/No…) al string visible para el usuario.
-- Constantes `defaultLocale` (es-ES) y `defaultZoneId` (Europe/Madrid).
+- Constantes `defaultLocale` (leída de `application.locale` en `axelor-config.properties`, la misma propiedad que usa Axelor; `es-ES` si falta) y `defaultZoneId` (Europe/Madrid).
 
 ### `CryptoUtil` — hashing
 - `sha256` — calcula el SHA-256 de un `byte[]` y lo devuelve como hex.
