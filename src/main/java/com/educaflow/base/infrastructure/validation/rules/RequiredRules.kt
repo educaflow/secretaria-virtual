@@ -12,12 +12,12 @@ class Required : ValidationRule {
             return BusinessMessages.single("Es requerido")
         }
 
-        if (value is String && value.trim().isEmpty()) {
+        if (value is String && value.isBlank()) {
             return BusinessMessages.single("Es requerido")
         }
 
         if (value is MetaFile) {
-            if (value.fileName.isEmpty()) {
+            if (value.fileName==null || value.fileName.isBlank()) {
                 return BusinessMessages.single("Es requerido")
             }
             if (value.fileSize <= 0) {
@@ -36,4 +36,3 @@ class Required : ValidationRule {
         return null
     }
 }
-
