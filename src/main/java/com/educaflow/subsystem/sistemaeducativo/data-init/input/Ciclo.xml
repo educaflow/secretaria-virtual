@@ -8,5 +8,6 @@
         <ciclo code="GAT" name="Gestión de Alojamientos Turísticos" familiaProfesional="039" grado="D" nivel="GS"/>
         <ciclo code="GIAT" name="Guía, Información y Asistencia Turística" familiaProfesional="039" grado="D" nivel="GS"/>
         <ciclo code="AVGA" name="Agencia de Viajes y Gestión de Eventos" familiaProfesional="039" grado="D" nivel="GS"/>
+        <ciclo code="IABD" name="Inteligencia Artificial y Big Data" familiaProfesional="190" grado="E"/>
     </ciclos>
 </datos>
