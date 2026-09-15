@@ -10,6 +10,13 @@
         <many-to-one name="familiaProfesional" ref="com.educaflow.subsystem.sistemaeducativo.db.FamiliaProfesional" required="true"  />
         <many-to-one name="grado" ref="com.educaflow.subsystem.sistemaeducativo.db.Grado" required="true"  />
         <many-to-one name="nivel" ref="com.educaflow.subsystem.sistemaeducativo.db.Nivel"    />
+        <string name="gradoNivel" formula="true" title="Grado y/o nivel">
+            SELECT CASE WHEN c.nivel IS NULL THEN g.name ELSE g.name || ' de Grado ' || n.name END
+            FROM sistemaeducativo_ciclo c
+            INNER JOIN sistemaeducativo_grado g ON g.id = c.grado
+            LEFT JOIN sistemaeducativo_nivel n ON n.id = c.nivel
+            WHERE c.id = id
+        </string>
     </entity>
 
 </domain-models>

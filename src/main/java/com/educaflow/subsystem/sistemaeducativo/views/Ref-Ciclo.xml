@@ -8,8 +8,9 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     <grid name="subsysSistemaEducativo.Ref@Ciclo-grid" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" orderBy="name"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false" canViewOnClick="true" title=""
     >
-        <field name="familiaProfesional" />
+        <field name="familiaProfesional" width="320" />
         <field name="name" />
+        <field name="gradoNivel" width="300" />
     </grid>
 
     <form name="subsysSistemaEducativo.Ref@Ciclo-form" title="Ciclo" model="com.educaflow.subsystem.sistemaeducativo.db.Ciclo"

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <datos>
     <niveles>
-        <nivel code="GB" name="Ciclos formativos de grado Básico" grado="D"/>
-        <nivel code="GM" name="Ciclos Formativos de Grado Medio" grado="D"/>
-        <nivel code="GS" name="Ciclos Formativos de Grado Superior" grado="D"/>
+        <nivel code="GB" name="Básico"  grado="D"/>
+        <nivel code="GM" name="Medio"  grado="D"/>
+        <nivel code="GS" name="Superior"  grado="D"/>
     </niveles>
 </datos>
