@@ -102,7 +102,9 @@ Los `<valenciano>` pueden omitirse; entonces se calculan traduciendo el `<castel
 
 ### 2.5 Fragmentos reutilizables (`_*.xml` + `<include>`)
 
-Para compartir partes comunes entre documentos (del mismo trámite o de varios):
+Para compartir partes comunes entre documentos (del mismo trámite o de varios).
+
+**Mecánica**:
 
 - Un **fragmento** es un fichero cuyo nombre **MUST** empezar por `_`, con raíz `<fragmento>`, la misma referencia al XSD y el mismo contenido posible que `<documento>`: `titulo`, `seccion` e `include`.
 - `<include href="..."/>` va **solo como hijo directo** de `<documento>` o `<fragmento>`, en cualquier posición y cuantas veces haga falta. **MUST NOT** ir dentro de una `<seccion>`: no se incluyen trozos de sección.
@@ -111,18 +113,34 @@ Para compartir partes comunes entre documentos (del mismo trámite o de varios):
 - Cambiar un fragmento regenera en el build los PDF de todos los documentos que lo incluyen, directa o transitivamente.
 - **CRITICAL para el versionado**: si un fragmento contiene expresiones Groovy con FQCN de enums versionados (`...TipoPeriodoMiTramiteV1.PERIODO_COMPLETO`), esas referencias cambian en cada versión nueva (`recetas/versionado.md`).
 
+**Cuándo MUST extraerse** (regla de autoría: el build **no** la comprueba):
+
+- **MUST**: toda `<seccion>` **literalmente idéntica** en dos o más documentos va a un fragmento que ambos incluyen. El umbral es **una sección y dos documentos** —la `<seccion>` es la unidad mínima que un `<include>` puede aportar (§2.2), así que por debajo la regla sería inaplicable—, y es **MUST** y no SHOULD porque el criterio es mecánico (idéntica o no) y el incumplimiento es silencioso: el texto se actualiza en un documento, el duplicado se queda viejo y nada avisa.
+- **MUST** extraer **al escribir los documentos**, no después: un tipo de expediente con varios documentos (p.ej. solicitud + resolución) se diseña ya con sus fragmentos.
+- **Literalmente idéntica** = mismo texto en **ambos** idiomas, mismos `nombreCampo`, mismos `colspan`/`rowSpan`.
+- **MUST**: **un fragmento por cada bloque común**, nunca uno solo con todos dentro. Dos secciones comunes que en los documentos no van seguidas, o no van en el mismo orden, son **dos** fragmentos: cada documento coloca sus `<include>` donde le toca, y ese orden es el que fija las letras A, B, C… de sus secciones.
+- **MUST NOT** unificar un bloque que **no** es literalmente idéntico cambiando el contenido de uno de los documentos: `<include>` no admite parámetros, así que eso no es factorizar sino **cambiar el PDF** — decisión funcional, no de autoría. Si el bloque se parece pero difiere (otra fecha, otros `colspan`, un campo de más), cada documento se queda con el suyo.
+- Que **no** haya nada literalmente idéntico es un resultado válido: **MUST NOT** inventar una factorización artificial para que haya fragmentos.
+
+**Nombres** — el fragmento se llama por **lo que contiene**, en camelCase tras el `_`:
+
+- ✅ CORRECTO: `_datosAlumno.xml`, `_proteccionDatos.xml`, `_pieFirma.xml`.
+- ❌ INCORRECTO: `_template1.xml`, `_fragmento2.xml`, `_comun.xml` (un correlativo o un genérico no dice qué hay dentro: obliga a abrir el fichero para entender el `<include>` que lo trae).
+
 ```xml
 <documento ...>
     <include href="_cabecera.xml"/>
     <seccion>... lo específico de este documento ...</seccion>
-    <include href="../../otra_carpeta/_proteccion_datos.xml"/>
+    <include href="../../otra_carpeta/_proteccionDatos.xml"/>
 </documento>
 ```
 
-- ✅ CORRECTO: `<include href="_template.xml"/>` como hijo de `<documento>`, antes o después de cualquier `<seccion>`.
+- ✅ CORRECTO: `<include href="_datosAlumno.xml"/>` como hijo de `<documento>`, antes o después de cualquier `<seccion>`.
 - ✅ CORRECTO: un fragmento con `<titulo>` (el documento que lo incluye ya no declara otro).
+- ✅ CORRECTO: dos documentos que comparten dos secciones no contiguas → dos fragmentos, cada uno incluido donde le corresponde en cada documento.
 - ❌ INCORRECTO: `<include>` dentro de `<seccion>` (los includes solo van al nivel documento/fragmento; el XSD no valida).
 - ❌ INCORRECTO: `href="cabecera.xml"` (el nombre de fichero del fragmento debe empezar por `_`; el XSD no valida).
+- ❌ INCORRECTO: un `_comun.xml` con las tres secciones compartidas dentro (cajón de sastre: obliga a los dos documentos a llevarlas seguidas y en el mismo orden).
 
 ### 2.6 El `<valenciano>` que falta se traduce del `<castellano>`
 
@@ -188,6 +206,8 @@ Si el documento no lleva `<titulo>` (ni propio ni aportado por un fragmento), el
 
 - **MUST NOT** editar el PDF generado para "arreglar" el documento: cambia el XML de definición — el PDF se regenera al compilar.
 - **MUST NOT** quitar un `<valenciano>` ya escrito para dejar que lo traduzca el build: la traducción automática (§2.6) es para textos **nuevos**, no para sustituir el valenciano oficial de un documento existente.
+- **MUST NOT** copiar una `<seccion>` literalmente idéntica en dos documentos en vez de extraerla a un fragmento (§2.5): el duplicado se desincroniza en silencio en el primer cambio del texto.
+- **MUST NOT** meter todos los bloques comunes en un único fragmento cajón de sastre, ni nombrar un fragmento con un correlativo (`_template1.xml`): un fragmento por bloque, nombrado por su contenido (§2.5).
 - **MUST NOT** documentar ni reimplementar aquí la generación del PDF: esa implementación vive en `EducaFlowBuildTools` (herramienta `xml2pdf`).
 
 ---
@@ -204,3 +224,4 @@ Si el documento no lleva `<titulo>` (ni propio ni aportado por un fragmento), el
 - `nombreCampo` no es un nombre: es una **expresión Groovy** que obtiene el valor del campo, evaluada **en runtime** con `self` (el objeto del tipo de expediente) y `now`; los fallos de evaluación son silenciosos (log + campo vacío) — revisa el PDF generado (§2.8). Con comillas dobles dentro, atributo con comillas simples.
 - En `documentospdf/` cada documento está **o** como XML de definición **o** directamente como PDF versionado (nunca ambos para el mismo documento; mezclar XML de unos y PDF de otros en la carpeta es lo normal). Si existe **impreso oficial**, se versiona ese PDF tal cual en vez de definirlo por XML. Este fichero solo define el **formato del XML**; el PDF lo genera el build (`generatePdfDocuments` / EducaFlowBuildTools).
 - Partes comunes: fragmentos `_*.xml` (raíz `<fragmento>`) incluidos con `<include href="..."/>` solo a nivel de documento/fragmento, recursivos, validados también tras expandir (§2.5).
+- **MUST** extraer a fragmento, **desde que se escriben los documentos**, toda `<seccion>` literalmente idéntica en dos o más de ellos: **un fragmento por bloque común** (no un cajón de sastre) y nombrado por su contenido (`_datosAlumno.xml`, nunca `_template1.xml`). Lo que no sea literalmente idéntico **MUST NOT** unificarse cambiando el contenido de un documento: eso cambia el PDF (§2.5).

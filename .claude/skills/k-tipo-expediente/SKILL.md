@@ -340,7 +340,7 @@ Dos reglas **no** leen el bytecode, cada una por su motivo, y se señalan en su 
 2. **Carpeta**: crea `tramites/<tramite>/v1/` con solo `estados.puml` (dibuja la máquina, con las fases como estados compuestos) y `TipoExpedienteInstance.xml` con sus `<fases>` (§2).
 3. **Genera los esqueletos**: `./gradlew -q CreateFilesTask -Ptipo=src/main/java/com/educaflow/tramites/<tramite>/v1` (§3.1). Crea la raíz y una subcarpeta por fase. Compilar **no** los genera.
 4. **Modelo**: añade los campos a `domains.xml` → `modelo.md`.
-5. **Documentos**: crea `documentospdf/` con los XML de definición → `documentos.md`.
+5. **Documentos**: crea `documentospdf/` con los XML de definición → `documentos.md`. Si el tipo tiene **más de un** documento, **MUST** extraer desde el principio a un fragmento `_<contenido>.xml` cada sección literalmente idéntica en varios de ellos (uno por bloque común), en vez de duplicarla.
 6. **Evento inicial y PhaseEventManager de cada fase**: rellena el `triggerInitialEvent` del `InitialEventManagerImpl` de la raíz de la versión (uno por tipo) y, en cada fase, sus `trigger<Evento>` y `onEnter<Estado>` → `phaseeventmanager.md`.
 7. **Validator de cada fase**: rellena las `rules { }` de cada pareja estado+evento de la fase → `validator.md`.
 8. **Vistas**: monta los paneles del form plantilla en el `views.xml` de la raíz y compón cada `<form state=...>` en el `views.xml` de su fase → `vistas.md`.
