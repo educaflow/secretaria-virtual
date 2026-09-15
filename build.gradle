@@ -49,6 +49,10 @@ tasks.named("compileKotlin") {
     destinationDirectory.set(file("build/classes/java/main"))
 }
 
+tasks.named("compileTestKotlin") {
+    dependsOn(tasks.named("generateTestCode"))
+}
+
 tasks.withType(JavaCompile) {
     options.compilerArgs << "-Xlint:deprecation"
 }
