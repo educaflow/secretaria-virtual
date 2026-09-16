@@ -3,6 +3,7 @@ package com.educaflow.base.infrastructure.validation.dsl
 import com.educaflow.base.infrastructure.validation.engine.BeanValidationRules
 import com.educaflow.base.infrastructure.validation.engine.FieldValidationRules
 import com.educaflow.base.infrastructure.validation.engine.ValidationRule
+import com.educaflow.base.infrastructure.validation.rules.IfLambda
 import com.educaflow.base.infrastructure.validation.rules.IfValueNotIn
 import com.educaflow.base.infrastructure.validation.rules.IfValueIn
 import kotlin.reflect.KFunction
@@ -52,6 +53,29 @@ fun ifValueIn(dependField: KFunction<*>, dependValues: List<Any>, setup: IfValue
 @BeanValidationDSL
 fun ifValueNotIn(dependField: KFunction<*>, dependValues: List<Any>, setup: IfValueNotInBuilder.() -> Unit): IfValueNotIn {
     val builder = IfValueNotInBuilder(dependField, dependValues)
+    builder.setup()
+    return builder.build()
+}
+
+@BeanValidationDSL
+class IfLambdaBuilder<T : Any>(private val condicion: (T) -> Boolean) {
+    private val rules = mutableListOf<ValidationRule>()
+
+
+    fun build(): IfLambda<T> {
+        return IfLambda(condicion, rules)
+    }
+
+    @BeanValidationDSL
+    operator fun ValidationRule.unaryPlus() {
+        rules += this
+    }
+}
+
+
+@BeanValidationDSL
+fun <T : Any> ifLambda(condicion: (T) -> Boolean, setup: IfLambdaBuilder<T>.() -> Unit): IfLambda<T> {
+    val builder = IfLambdaBuilder(condicion)
     builder.setup()
     return builder.build()
 }
