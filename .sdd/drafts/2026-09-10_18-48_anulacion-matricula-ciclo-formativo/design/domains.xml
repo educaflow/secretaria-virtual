@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+
+    <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
+
+    <entity name="AnulacionMatriculaCicloFormativoV1" extends="Expediente">
+
+        <!-- Datos de contacto que rellena el alumno. Ninguno lleva required: el expediente existe en
+             BD desde el estado inicial con todos vacíos, y la obligatoriedad es por pareja
+             (estado, evento) en el StateEventValidatorImpl. -->
+        <string name="nia" title="NIA" />
+        <string name="direccion" title="Dirección" />
+        <string name="telefono" title="Teléfono" />
+        <string name="poblacion" title="Población" />
+        <string name="provincia" title="Provincia" />
+        <string name="codigoPostal" title="Código postal" />
+
+        <!-- La matrícula que se anula. El ciclo se REFERENCIA al catálogo común del sistema
+             educativo; su grado y su nivel no se copian aquí: los da el campo derivado
+             Ciclo.gradoNivel. Lo que queda congelado es el documento generado, no el campo. -->
+        <many-to-one name="ciclo" title="Ciclo formativo"
+                     ref="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" />
+
+        <!-- Datos del centro y del curso, congelados al crear el expediente. -->
+        <string name="cursoAcademico" title="Curso académico" />
+        <string name="nombreCentro" title="Centro" />
+        <string name="localidadCentro" title="Localidad del centro" />
+
+        <!-- Fecha que se estampa al pie de la solicitud; el lugar es localidadCentro. -->
+        <date name="fechaSolicitud" title="Fecha de la solicitud" />
+
+        <!-- Presentación -->
+        <datetime name="fechaHoraPresentacion" title="Fecha y hora de presentación" />
+
+        <!-- Revisión de la secretaría -->
+        <enum name="sentidoRevision" title="Sentido de la revisión"
+              ref="SentidoRevisionAnulacionMatriculaCicloFormativoV1" />
+        <string name="motivoRechazo" title="Motivo del rechazo" large="true" />
+        <string name="textoSubsanacion" title="Qué hay que subsanar" large="true" />
+        <date name="fechaRevision" title="Fecha de la revisión" />
+        <many-to-one name="revisadoPor" title="Revisado por" ref="com.axelor.auth.db.User" />
+
+        <!-- Devolución del director a secretaría -->
+        <string name="motivoDevolucion" title="Motivo de la devolución" large="true" />
+        <date name="fechaDevolucion" title="Fecha de la devolución" />
+        <many-to-one name="devueltoPor" title="Devuelto por" ref="com.axelor.auth.db.User" />
+
+        <!-- Resolución -->
+        <date name="fechaResolucion" title="Fecha de la resolución" />
+        <many-to-one name="firmadoPor" title="Firmado por" ref="com.axelor.auth.db.User" />
+
+        <!-- Documentos -->
+        <many-to-one name="pdfSolicitud" title="Solicitud de anulación"
+                     ref="com.axelor.meta.db.MetaFile" />
+        <many-to-one name="pdfSolicitudFirmada" title="Solicitud de anulación firmada"
+                     ref="com.axelor.meta.db.MetaFile" />
+        <many-to-one name="pdfJustificanteRegistroEntrada" title="Justificante de presentación"
+                     ref="com.axelor.meta.db.MetaFile" />
+        <many-to-one name="pdfResolucion" title="Resolución sin firmar"
+                     ref="com.axelor.meta.db.MetaFile" />
+        <many-to-one name="pdfResolucionFirmada" title="Resolución"
+                     ref="com.axelor.meta.db.MetaFile" />
+
+        <!-- CRITICAL — este bloque lo REESCRIBE ENTERO el build en cada compilación: la tarea
+             RichDomainXmlTask (MainModelXml -> DomainXmlFile.addExtraCodeToDomainXml) localiza la
+             entity con extends="Expediente", sustituye su <extra-code-model> por el que genera
+             extra-code-domain-xml.template y reescribe este fichero. Solo puede contener, por
+             tanto, lo que ese template emite: el enum TipoDocumentoPdf con una constante por
+             documento y el método getDocumentoPdf. MUST NOT escribirse aquí ningún código a mano
+             (se perdería en el primer build): el código propio del tipo vive en las clases de la
+             raíz de la versión (design.md §9.0 y §10.0). -->
+        <extra-code-model>
+        <![CDATA[
+
+            public enum TipoDocumentoPdf {
+                SOLICITUD("/com/educaflow/tramites/alumnos/anulacion_matricula_ciclo_formativo/v1/documentospdf/solicitud.pdf"),
+                RESOLUCION("/com/educaflow/tramites/alumnos/anulacion_matricula_ciclo_formativo/v1/documentospdf/resolucion.pdf");
+
+                private final String fileName;
+
+                // Constructor privado del enum
+                TipoDocumentoPdf(String fileName) {
+                    this.fileName = fileName;
+                }
+
+                // Getter
+                public String getFileName() {
+                    return fileName;
+                }
+            }
+
+
+            public com.educaflow.base.infrastructure.pdf.DocumentoPdf getDocumentoPdf(TipoDocumentoPdf tipoDocumentoPdf) {
+                return com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil.getDocumentoPdf(this, tipoDocumentoPdf.getFileName());
+            }
+
+        ]]>
+        </extra-code-model>
+    </entity>
+
+    <enum name="SentidoRevisionAnulacionMatriculaCicloFormativoV1">
+        <item name="ACEPTAR"  title="Aceptar la anulación"/>
+        <item name="RECHAZAR" title="Rechazar la anulación"/>
+        <item name="SUBSANAR" title="Pedir subsanación"/>
+    </enum>
+
+</domain-models>

@@ -1,0 +1,66 @@
+---
+type: test-e2e-index
+---
+
+# Tests E2E — Anulación de matrícula en ciclo formativo
+
+Índice de los tests E2E de esta iniciativa. Cada test vive en su propio fichero autocontenido. El checkbox se marca `[x]` cuando el test pasa contra la aplicación real (lo gestiona `/sdd-debug-with-test-e2e-desc`).
+
+Estados: `[ ]` pendiente · `[x]` pasado · `[-]` no automatizable (requiere atención manual; se salta por defecto).
+
+- [x] [T-001 — El alumno crea el expediente y el sistema rellena sus datos de identidad y de matrícula](t-001-el-alumno-crea-el-expediente-y-el-sistema-rellena-sus-datos-de-identidad-y-de-matricula.desc.md)
+- [x] [T-002 — El alumno completa los datos y el sistema genera la solicitud](t-002-el-alumno-completa-los-datos-y-el-sistema-genera-la-solicitud.desc.md)
+- [x] [T-003 — El alumno borra el expediente antes de presentarlo](t-003-el-alumno-borra-el-expediente-antes-de-presentarlo.desc.md)
+- [x] [T-004 — El alumno vuelve atrás desde la pantalla de firma y corrige el ciclo](t-004-el-alumno-vuelve-atras-desde-la-pantalla-de-firma-y-corrige-el-ciclo.desc.md)
+- [x] [T-005 — El alumno firma y presenta la solicitud](t-005-el-alumno-firma-y-presenta-la-solicitud.desc.md)
+- [x] [T-006 — La administrativa acepta la anulación y la envía a la firma del director](t-006-la-administrativa-acepta-la-anulacion-y-la-envia-a-la-firma-del-director.desc.md)
+- [x] [T-007 — La administrativa rechaza la anulación con motivo y la envía a la firma del director](t-007-la-administrativa-rechaza-la-anulacion-con-motivo-y-la-envia-a-la-firma-del-director.desc.md)
+- [x] [T-008 — La administrativa pide al alumno que subsane](t-008-la-administrativa-pide-al-alumno-que-subsane.desc.md)
+- [x] [T-009 — El director firma una resolución de aceptación y el expediente se cierra](t-009-el-director-firma-una-resolucion-de-aceptacion-y-el-expediente-se-cierra.desc.md)
+- [x] [T-010 — El director firma una resolución de rechazo y el expediente se cierra](t-010-el-director-firma-una-resolucion-de-rechazo-y-el-expediente-se-cierra.desc.md)
+- [x] [T-011 — El director devuelve la resolución a secretaría y secretaría decide de nuevo](t-011-el-director-devuelve-la-resolucion-a-secretaria-y-secretaria-decide-de-nuevo.desc.md)
+- [x] [T-012 — Se pulsa «Siguiente» sin rellenar el NIA](t-012-se-pulsa-siguiente-sin-rellenar-el-nia.desc.md)
+- [x] [T-013 — Se pulsa «Siguiente» con el teléfono y el código postal mal formados](t-013-se-pulsa-siguiente-con-el-telefono-y-el-codigo-postal-mal-formados.desc.md)
+- [x] [T-014 — Se pulsa «Siguiente» sin elegir el ciclo](t-014-se-pulsa-siguiente-sin-elegir-el-ciclo.desc.md)
+- [x] [T-015 — Se pulsa «Siguiente» con los datos de contacto vacíos](t-015-se-pulsa-siguiente-con-los-datos-de-contacto-vacios.desc.md)
+- [x] [T-016 — Se pulsa «Siguiente» con el NIA de 7 dígitos y la dirección demasiado corta](t-016-se-pulsa-siguiente-con-el-nia-de-7-digitos-y-la-direccion-demasiado-corta.desc.md)
+- [x] [T-017 — Se pulsa «Siguiente» con la población y la provincia demasiado cortas](t-017-se-pulsa-siguiente-con-la-poblacion-y-la-provincia-demasiado-cortas.desc.md)
+- [x] [T-018 — Se pulsa «Siguiente» teniendo ya otra solicitud en curso para el mismo ciclo](t-018-se-pulsa-siguiente-teniendo-ya-otra-solicitud-en-curso-para-el-mismo-ciclo.desc.md)
+- [-] [T-019 — Se intenta presentar la solicitud sin firmarla](t-019-se-intenta-presentar-la-solicitud-sin-firmarla.desc.md) — manual: el paso «Firmar y presentar la solicitud» abre la aplicación de firma del ciudadano en el equipo del alumno, y el test consiste precisamente en cancelarla ahí; exige además un alumno **sin** certificado custodiado.
+- [-] [T-020 — Se firma la solicitud con un certificado que no es el del alumno](t-020-se-firma-la-solicitud-con-un-certificado-que-no-es-el-del-alumno.desc.md) — manual: hay que firmar a mano, en el equipo, con un segundo certificado de pruebas que corresponde a otra persona.
+- [x] [T-021 — Se pulsa «Enviar a la firma del director» sin elegir el sentido](t-021-se-pulsa-enviar-a-la-firma-del-director-sin-elegir-el-sentido.desc.md)
+- [x] [T-022 — Se propone rechazar la anulación sin escribir el motivo](t-022-se-propone-rechazar-la-anulacion-sin-escribir-el-motivo.desc.md)
+- [x] [T-023 — Se propone rechazar con un motivo demasiado corto](t-023-se-propone-rechazar-con-un-motivo-demasiado-corto.desc.md)
+- [x] [T-024 — Se pulsa «Enviar a la firma del director» con el sentido «Pedir subsanación»](t-024-se-pulsa-enviar-a-la-firma-del-director-con-el-sentido-pedir-subsanacion.desc.md)
+- [x] [T-025 — Se pide subsanación sin indicar qué hay que subsanar](t-025-se-pide-subsanacion-sin-indicar-que-hay-que-subsanar.desc.md)
+- [x] [T-026 — Se pide subsanación con un texto demasiado corto](t-026-se-pide-subsanacion-con-un-texto-demasiado-corto.desc.md)
+- [x] [T-027 — Se pulsa «Pedir subsanación al alumno» con el sentido «Aceptar la anulación»](t-027-se-pulsa-pedir-subsanacion-al-alumno-con-el-sentido-aceptar-la-anulacion.desc.md)
+- [x] [T-028 — El director devuelve la resolución sin indicar el motivo](t-028-el-director-devuelve-la-resolucion-sin-indicar-el-motivo.desc.md)
+- [x] [T-029 — El director devuelve la resolución con un motivo demasiado corto](t-029-el-director-devuelve-la-resolucion-con-un-motivo-demasiado-corto.desc.md)
+- [x] [T-030 — El alumno consulta su expediente mientras está en revisión](t-030-el-alumno-consulta-su-expediente-mientras-esta-en-revision.desc.md)
+- [x] [T-031 — El alumno consulta su expediente pendiente de la firma del director y no ve la decisión de secretaría](t-031-el-alumno-consulta-su-expediente-pendiente-de-la-firma-del-director-y-no-ve-la-decision-de-secretaria.desc.md)
+- [x] [T-032 — El alumno consulta un expediente cerrado con la anulación aceptada](t-032-el-alumno-consulta-un-expediente-cerrado-con-la-anulacion-aceptada.desc.md)
+- [x] [T-033 — El alumno consulta un expediente cerrado con la anulación rechazada y lee el motivo](t-033-el-alumno-consulta-un-expediente-cerrado-con-la-anulacion-rechazada-y-lee-el-motivo.desc.md)
+- [x] [T-034 — El secretario del centro consulta un expediente en revisión](t-034-el-secretario-del-centro-consulta-un-expediente-en-revision.desc.md)
+- [x] [T-035 — El secretario del centro consulta un expediente que el alumno todavía no ha firmado](t-035-el-secretario-del-centro-consulta-un-expediente-que-el-alumno-todavia-no-ha-firmado.desc.md)
+- [x] [T-036 — El vicesecretario consulta un expediente de su centro en solo lectura](t-036-el-vicesecretario-consulta-un-expediente-de-su-centro-en-solo-lectura.desc.md)
+- [x] [T-037 — El supervisor consulta un expediente de su centro y el supervisor del otro centro no lo ve](t-037-el-supervisor-consulta-un-expediente-de-su-centro-y-el-supervisor-del-otro-centro-no-lo-ve.desc.md)
+- [x] [T-038 — El administrador ve los expedientes de los dos centros en solo lectura](t-038-el-administrador-ve-los-expedientes-de-los-dos-centros-en-solo-lectura.desc.md)
+- [x] [T-039 — La administrativa consulta en solo lectura un expediente devuelto al alumno para subsanar](t-039-la-administrativa-consulta-en-solo-lectura-un-expediente-devuelto-al-alumno-para-subsanar.desc.md)
+- [x] [T-040 — La administrativa de otro centro no ve el expediente](t-040-la-administrativa-de-otro-centro-no-ve-el-expediente.desc.md)
+- [x] [T-041 — Un familiar del alumno no puede iniciar el trámite ni ve el expediente](t-041-un-familiar-del-alumno-no-puede-iniciar-el-tramite-ni-ve-el-expediente.desc.md)
+- [x] [T-042 — Otro alumno del mismo centro no ve el expediente](t-042-otro-alumno-del-mismo-centro-no-ve-el-expediente.desc.md)
+- [x] [T-043 — El exalumno no puede iniciar el trámite pero conserva el acceso a los suyos](t-043-el-exalumno-no-puede-iniciar-el-tramite-pero-conserva-el-acceso-a-los-suyos.desc.md)
+- [x] [T-044 — El alumno subsana, vuelve a firmar y la solicitud corregida llega de nuevo a revisión](t-044-el-alumno-subsana-vuelve-a-firmar-y-la-solicitud-corregida-llega-de-nuevo-a-revision.desc.md)
+- [x] [T-045 — El alumno desiste tras la petición de subsanación y borra el expediente](t-045-el-alumno-desiste-tras-la-peticion-de-subsanacion-y-borra-el-expediente.desc.md)
+- [x] [T-046 — Tras la devolución del director, secretaría pide subsanación y no queda rastro de la decisión anterior](t-046-tras-la-devolucion-del-director-secretaria-pide-subsanacion-y-no-queda-rastro-de-la-decision-anterior.desc.md)
+- [x] [T-047 — Se elige un ciclo de grado Medio tecleando su nombre y los documentos llevan «Medio»](t-047-se-elige-un-ciclo-de-grado-medio-tecleando-su-nombre-y-los-documentos-llevan-medio.desc.md)
+- [x] [T-048 — Se elige un curso de especialización y la solicitud lleva «Curso de especialización»](t-048-se-elige-un-curso-de-especializacion-y-la-solicitud-lleva-curso-de-especializacion.desc.md)
+- [x] [T-049 — Se solicita de nuevo la anulación del mismo ciclo cuando la anterior ya está cerrada](t-049-se-solicita-de-nuevo-la-anulacion-del-mismo-ciclo-cuando-la-anterior-ya-esta-cerrada.desc.md)
+- [x] [T-050 — Otro alumno del mismo centro puede solicitar la anulación del mismo ciclo](t-050-otro-alumno-del-mismo-centro-puede-solicitar-la-anulacion-del-mismo-ciclo.desc.md)
+- [x] [T-051 — El alumno retoma en otra sesión un expediente al que había vuelto atrás](t-051-el-alumno-retoma-en-otra-sesion-un-expediente-al-que-habia-vuelto-atras.desc.md)
+- [x] [T-052 — En la pantalla de firma no se puede borrar el expediente](t-052-en-la-pantalla-de-firma-no-se-puede-borrar-el-expediente.desc.md)
+- [x] [T-053 — Tras un rechazo devuelto, secretaría pide subsanación y el motivo del rechazo no reaparece](t-053-tras-un-rechazo-devuelto-secretaria-pide-subsanacion-y-el-motivo-del-rechazo-no-reaparece.desc.md)
+- [x] [T-054 — El director devuelve un rechazo, secretaría lo cambia por la aceptación y el motivo desaparece de la resolución](t-054-el-director-devuelve-un-rechazo-secretaria-lo-cambia-por-la-aceptacion-y-el-motivo-desaparece-de-la-resolucion.desc.md)
+- [x] [T-055 — Se intenta presentar la solicitud con la contraseña del certificado incorrecta](t-055-se-intenta-presentar-la-solicitud-con-la-contrasena-del-certificado-incorrecta.desc.md)
+- [x] [T-056 — Las bandejas de secretaría y de firma no listan el expediente a quien no ostenta ese perfil](t-056-las-bandejas-de-secretaria-y-de-firma-no-listan-el-expediente-a-quien-no-ostenta-ese-perfil.desc.md)

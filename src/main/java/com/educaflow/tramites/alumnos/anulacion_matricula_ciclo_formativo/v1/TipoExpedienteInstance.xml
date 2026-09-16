@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<TipoExpediente>
+
+    <fases>
+        <fase name="SOLICITUD" title="Solicitud de anulación">
+            <state name="DATOS_SOLICITUD"          events="DELETE,CONTINUAR"        profile="CREADOR"     title="Datos de la solicitud"           initial="true" />
+            <state name="PENDIENTE_FIRMA"          events="VOLVER,PRESENTAR"        profile="CREADOR"     title="Pendiente de firma y presentación"               />
+        </fase>
+        <fase name="REVISION" title="Revisión de la secretaría">
+            <state name="PENDIENTE_REVISION"       events="CONTINUAR"               profile="SECRETARIO"  title="Pendiente de revisión"                           />
+        </fase>
+        <fase name="RESOLUCION" title="Resolución del centro">
+            <state name="PENDIENTE_FIRMA_DIRECTOR" events="FIRMAR,DEVOLVER"         profile="DIRECTOR"    title="Pendiente de la firma del director"              />
+            <state name="ACEPTADA"                 events=""                        profile="RESPONSABLE" title="Anulación aceptada"              closed="true" />
+            <state name="RECHAZADA"                events=""                        profile="RESPONSABLE" title="Anulación rechazada"             closed="true" />
+        </fase>
+    </fases>
+</TipoExpediente>

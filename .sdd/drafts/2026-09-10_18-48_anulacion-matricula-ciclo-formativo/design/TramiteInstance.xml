@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tramite>
+
+    <code>AnulacionMatriculaCicloFormativo</code>
+    <name>Anulación de matrícula en ciclo formativo</name>
+    <tipoTramite>ALUMNO</tipoTramite>
+    <defaultTipoExpediente>v1</defaultTipoExpediente>
+    <help><![CDATA[
+        Con este trámite puedes solicitar la anulación de tu matrícula en un ciclo formativo de este centro.
+        Tus datos personales aparecerán ya rellenos; comprueba que son correctos y completa los datos de
+        contacto y del ciclo en el que estás matriculado.<br>
+        Al terminar tendrás que firmar la solicitud con tu certificado digital desde tu propio ordenador,
+        así que necesitarás tenerlo instalado.<br>
+        El ciclo lo eliges de la lista de ciclos del sistema educativo: puedes buscarlo por su familia
+        profesional, su grado, su nivel o su nombre.<br>
+        La secretaría del centro revisará tu solicitud y, si hay algún error en los datos, te pedirá que
+        los corrijas en este mismo expediente. La resolución la firma el director del centro y la podrás
+        consultar y descargar aquí cuando esté firmada.<br>
+        Ten en cuenta que la anulación surte efecto desde la fecha en que presentas la solicitud.
+    ]]></help>
+</Tramite>

@@ -1,0 +1,39 @@
+@startuml
+
+' Las fases agrupan ficheros y no son una entidad del dominio, pero sí existen en ejecución
+' (columna codePhase). Aquí se dibujan como estados compuestos para que se vea de un vistazo
+' qué estados van juntos.
+'
+' Un estado se identifica por la pareja (fase, estado), así que su nombre solo es único dentro de su
+' fase. El identificador de un estado en PlantUML, en cambio, es global: por eso cada estado se
+' declara con el alias <FASE>_<ESTADO> y su nombre corto como etiqueta.
+state SOLICITUD {
+    state "DATOS_SOLICITUD" as SOLICITUD_DATOS_SOLICITUD
+    state "PENDIENTE_FIRMA" as SOLICITUD_PENDIENTE_FIRMA
+}
+
+state REVISION {
+    state "PENDIENTE_REVISION" as REVISION_PENDIENTE_REVISION
+}
+
+state RESOLUCION {
+    state "PENDIENTE_FIRMA_DIRECTOR" as RESOLUCION_PENDIENTE_FIRMA_DIRECTOR
+    state "ACEPTADA" as RESOLUCION_ACEPTADA
+    state "RECHAZADA" as RESOLUCION_RECHAZADA
+}
+
+[*] --> SOLICITUD_DATOS_SOLICITUD
+SOLICITUD_DATOS_SOLICITUD -> [*] : DELETE
+SOLICITUD_DATOS_SOLICITUD --> SOLICITUD_PENDIENTE_FIRMA : CONTINUAR
+SOLICITUD_PENDIENTE_FIRMA --> SOLICITUD_DATOS_SOLICITUD : VOLVER
+SOLICITUD_PENDIENTE_FIRMA --> REVISION_PENDIENTE_REVISION : PRESENTAR
+REVISION_PENDIENTE_REVISION --> RESOLUCION_PENDIENTE_FIRMA_DIRECTOR : ENVIAR_A_FIRMA
+REVISION_PENDIENTE_REVISION --> SOLICITUD_DATOS_SOLICITUD : SUBSANAR
+RESOLUCION_PENDIENTE_FIRMA_DIRECTOR --> RESOLUCION_ACEPTADA : FIRMAR[sentidoRevision=ACEPTAR]
+RESOLUCION_PENDIENTE_FIRMA_DIRECTOR --> RESOLUCION_RECHAZADA : FIRMAR[sentidoRevision=RECHAZAR]
+RESOLUCION_PENDIENTE_FIRMA_DIRECTOR --> REVISION_PENDIENTE_REVISION : DEVOLVER
+
+RESOLUCION_ACEPTADA : closed
+RESOLUCION_RECHAZADA : closed
+
+@enduml

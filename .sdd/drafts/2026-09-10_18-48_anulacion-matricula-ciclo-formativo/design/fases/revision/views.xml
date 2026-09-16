@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://axelor.com/xml/ns/object-views"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- *********************************************************************************************  -->
+    <!-- ************************************* PENDIENTE_REVISION ************************************  -->
+    <!-- *********************************************************************************************  -->
+    <form state="PENDIENTE_REVISION" profile="SECRETARIO">
+        <include-panels>
+            -devolucion-view
+            -datos-alumno
+            -matricula
+            -presentacion-descarga
+            -solicitud-firmada-visor
+            revision
+        </include-panels>
+
+        <panel name="avisoPendienteRevisionSecretario" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">Compruebe los datos de la solicitud. Si hay algún error, pida al alumno que los subsane; si no, decida si procede la anulación y envíe la resolución a la firma del director</help>
+        </panel>
+
+        <footer>
+            <buttons-left>
+                <button name="SUBSANAR" colSpan="4" outline="true" title="Pedir subsanación al alumno"
+                        onClick="subsysExpedientes-event-action"
+                        prompt="Va a devolver la solicitud al alumno para que la corrija"/>
+            </buttons-left>
+            <buttons-right>
+                <button name="ENVIAR_A_FIRMA" colSpan="4" title="Enviar a la firma del director"
+                        onClick="subsysExpedientes-event-action"
+                        prompt="Va a enviar la resolución a la firma del director"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <form state="PENDIENTE_REVISION">
+        <include-panels>
+            -datos-alumno
+            -matricula
+            -presentacion
+            -solicitud-firmada-descarga
+        </include-panels>
+
+        <panel name="avisoPendienteRevisionGenerica" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">La solicitud está pendiente de revisión por la secretaría del centro</help>
+        </panel>
+
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <!-- *********************************************************************************************  -->
+    <!-- ***************************** Acciones propias de la fase REVISION **************************  -->
+    <!-- *********************************************************************************************  -->
+    <!-- RUI-PENDIENTE_REVISION-SECRETARIO-009 y -010: al cambiar el sentido, se borra de la pantalla
+         el texto que ya no corresponde. Es solo comodidad: el borrado de verdad lo hacen los
+         trigger* (RN-009, RN-010, RN-014) en el servidor. -->
+    <action-record name="exp-AnulacionMatriculaCicloFormativoV1-limpiar-revision-action"
+                   model="com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1">
+        <field name="motivoRechazo"    expr="eval: null" if="sentidoRevision != 'RECHAZAR'"/>
+        <field name="textoSubsanacion" expr="eval: null" if="sentidoRevision != 'SUBSANAR'"/>
+    </action-record>
+
+</object-views>

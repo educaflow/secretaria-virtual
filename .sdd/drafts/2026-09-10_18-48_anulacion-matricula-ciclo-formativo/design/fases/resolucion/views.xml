@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://axelor.com/xml/ns/object-views"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- *********************************************************************************************  -->
+    <!-- ********************************* PENDIENTE_FIRMA_DIRECTOR **********************************  -->
+    <!-- *********************************************************************************************  -->
+    <form state="PENDIENTE_FIRMA_DIRECTOR" profile="DIRECTOR">
+        <include-panels>
+            -datos-alumno-resumen
+            -matricula-director
+            -decision-secretaria
+            -resolucion-a-firmar
+            -solicitud-firmada-descarga
+            -justificante-descarga
+            devolucion
+        </include-panels>
+
+        <panel name="avisoPendienteFirmaDirectorDirector" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">Revise la resolución antes de firmarla. Al firmarla se registrará de salida y el expediente quedará cerrado. Si no está conforme, devuélvala a secretaría indicando el motivo</help>
+        </panel>
+
+        <footer>
+            <buttons-left>
+                <button name="DEVOLVER" colSpan="4" outline="true" title="Devolver a secretaría"
+                        onClick="subsysExpedientes-event-action"
+                        prompt="Va a devolver la resolución a secretaría sin firmarla"/>
+            </buttons-left>
+            <buttons-right>
+                <button name="FIRMAR" colSpan="4" title="Firmar la resolución"
+                        onClick="subsysExpedientes-event-action"
+                        prompt="Va a firmar la resolución. Una vez firmada se registrará de salida y el expediente quedará cerrado"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <form state="PENDIENTE_FIRMA_DIRECTOR">
+        <include-panels>
+            -datos-alumno
+            -matricula
+            -presentacion
+            -solicitud-firmada-descarga
+        </include-panels>
+
+        <panel name="avisoPendienteFirmaDirectorGenerica" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">La resolución está pendiente de la firma del director</help>
+        </panel>
+
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <!-- *********************************************************************************************  -->
+    <!-- ****************************************** ACEPTADA *****************************************  -->
+    <!-- *********************************************************************************************  -->
+    <form state="ACEPTADA">
+        <include-panels>
+            -datos-alumno
+            -matricula
+            -presentacion-descarga-aceptada
+            -resolucion-firmada
+            -solicitud-firmada-descarga
+        </include-panels>
+
+        <!-- RUI-ACEPTADA-GENERICA-002 NO va aquí: su indicación acompaña a la fecha y la hora de
+             presentación, así que vive dentro del panel `presentacion-descarga-aceptada`. -->
+        <panel name="avisoAceptada" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">El expediente está cerrado</help>
+        </panel>
+
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <!-- *********************************************************************************************  -->
+    <!-- ***************************************** RECHAZADA *****************************************  -->
+    <!-- *********************************************************************************************  -->
+    <form state="RECHAZADA">
+        <include-panels>
+            -datos-alumno
+            -matricula
+            -presentacion-descarga
+            -resolucion-firmada
+            -solicitud-firmada-descarga
+        </include-panels>
+
+        <panel name="avisoRechazada" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">El expediente está cerrado</help>
+        </panel>
+
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+</object-views>

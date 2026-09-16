@@ -1,0 +1,309 @@
+package com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1;
+
+import com.axelor.auth.db.User;
+import com.axelor.db.modelservice.BusinessMessages;
+import com.axelor.i18n.I18n;
+import com.educaflow.base.infrastructure.validation.messages.BusinessException;
+import com.educaflow.base.util.SecurityUtil;
+import com.educaflow.subsystem.common.db.Centro;
+import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1;
+import com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.quality.Strictness;
+
+import java.time.LocalDate;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+
+@ExtendWith(MockitoExtension.class)
+class AnulacionMatriculaCicloFormativoV1UtilTest {
+
+    private static final String MENSAJE_MODIFICAR = "Solo puede modificar sus propias solicitudes";
+    private static final String MENSAJE_BORRAR = "Solo puede borrar sus propias solicitudes";
+    private static final String MENSAJE_REVISAR = "Solo puede revisar solicitudes de su propio centro";
+    private static final String MENSAJE_FIRMAR = "Solo puede firmar resoluciones de su propio centro";
+    private static final String MENSAJE_DEVOLVER = "Solo puede devolver resoluciones de su propio centro";
+
+    private static final long ID_USUARIO_IRRELEVANTE = 1L;
+
+    private static final String MOTIVO_DEVOLUCION = "Falta el NIA";
+    private static final LocalDate FECHA_DEVOLUCION = LocalDate.of(2026, 3, 4);
+
+    private static final String MOTIVO_RECHAZO = "Fuera de plazo";
+    private static final LocalDate FECHA_REVISION = LocalDate.of(2026, 2, 1);
+
+    private MockedStatic<I18n> i18nMock;
+    private MockedStatic<SecurityUtil> securityUtilMock;
+
+    @BeforeEach
+    void setUp() {
+        // lenient: I18n solo se consume en las ramas que lanzan, así que los happy paths no lo llaman.
+        i18nMock = Mockito.mockStatic(I18n.class,
+                Mockito.withSettings().strictness(Strictness.LENIENT));
+        i18nMock.when(() -> I18n.get(any(String.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        securityUtilMock = Mockito.mockStatic(SecurityUtil.class);
+    }
+
+    @AfterEach
+    void tearDown() {
+        // Defensivo: si setUp falla a mitad, @AfterEach se ejecuta igual y un close() sobre un nulo taparía
+        // la causa real del fallo con una NullPointerException.
+        // El try/finally garantiza que el segundo mock se cierra aunque el close() del primero lance:
+        // un MockedStatic que quedara registrado contaminaría las clases de test posteriores.
+        try {
+            cerrarSiNoEsNulo(securityUtilMock);
+        } finally {
+            cerrarSiNoEsNulo(i18nMock);
+        }
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Helpers                                                            */
+    /* ------------------------------------------------------------------ */
+
+    private static void cerrarSiNoEsNulo(MockedStatic<?> mockedStatic) {
+        if (mockedStatic != null) {
+            mockedStatic.close();
+        }
+    }
+
+    private static User usuario(long id) {
+        User usuario = new User();
+        usuario.setId(id);
+        return usuario;
+    }
+
+    private static Centro centro(long id) {
+        Centro centro = new Centro();
+        centro.setId(id);
+        return centro;
+    }
+
+    private static User usuarioConCentroActivo(long id, Centro centroActivo) {
+        User usuario = usuario(id);
+        usuario.setCentroActivo(centroActivo);
+        return usuario;
+    }
+
+    private static AnulacionMatriculaCicloFormativoV1 expedienteDe(User usuarioRegistrador) {
+        AnulacionMatriculaCicloFormativoV1 expediente = new AnulacionMatriculaCicloFormativoV1();
+        expediente.setUsuarioRegistrador(usuarioRegistrador);
+        return expediente;
+    }
+
+    private static AnulacionMatriculaCicloFormativoV1 expedienteEn(Centro centro) {
+        AnulacionMatriculaCicloFormativoV1 expediente = new AnulacionMatriculaCicloFormativoV1();
+        expediente.setCentro(centro);
+        return expediente;
+    }
+
+    private static AnulacionMatriculaCicloFormativoV1 expedienteDevuelto(User devueltoPor) {
+        AnulacionMatriculaCicloFormativoV1 expediente = new AnulacionMatriculaCicloFormativoV1();
+        expediente.setMotivoDevolucion(MOTIVO_DEVOLUCION);
+        expediente.setFechaDevolucion(FECHA_DEVOLUCION);
+        expediente.setDevueltoPor(devueltoPor);
+        return expediente;
+    }
+
+    private void usuarioAutenticado(User usuario) {
+        securityUtilMock.when(SecurityUtil::getUser).thenReturn(usuario);
+    }
+
+    private static String mensajeDe(BusinessException excepcion) {
+        // Una sola lectura: getBusinessMessages() devuelve una lista nueva en cada llamada,
+        // así que el aserto de cardinalidad debe caer sobre la misma instancia que se lee.
+        BusinessMessages mensajes = excepcion.getBusinessMessages();
+        assertEquals(1, mensajes.size());
+        return mensajes.get(0).getMessage();
+    }
+
+    // Esta lista es lo que fija qué campos son la devolución: un cuarto campo en el bloque
+    // «Devolución del director a secretaría» del domains.xml MUST añadirse aquí y en expedienteDevuelto.
+    private static void assertDevolucionVacia(AnulacionMatriculaCicloFormativoV1 expediente) {
+        assertAll(
+                () -> assertNull(expediente.getMotivoDevolucion()),
+                () -> assertNull(expediente.getFechaDevolucion()),
+                () -> assertNull(expediente.getDevueltoPor()));
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* exigeSerElCreador                                                  */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void exigeSerElCreador_usuarioAutenticadoEsElRegistrador_noLanza() {
+        AnulacionMatriculaCicloFormativoV1 expediente = expedienteDe(usuario(7L));
+        // Dos instancias de User distintas a propósito: la guarda mira el id, no la referencia al User.
+        // No prueba que el id se compare por valor: con ids en el rango de caché de Long (contrato del
+        // diseño) el autoboxing reutiliza el mismo Long, así que un == sobre los ids pasaría igual.
+        usuarioAutenticado(usuario(7L));
+
+        assertDoesNotThrow(() -> AnulacionMatriculaCicloFormativoV1Util.exigeSerElCreador(expediente, MENSAJE_MODIFICAR));
+    }
+
+    @Test
+    void exigeSerElCreador_usuarioAutenticadoDistintoDelRegistrador_lanzaConElMensajeRecibido() {
+        AnulacionMatriculaCicloFormativoV1 expediente = expedienteDe(usuario(7L));
+        usuarioAutenticado(usuario(8L));
+
+        BusinessException excepcion = assertThrows(BusinessException.class,
+                () -> AnulacionMatriculaCicloFormativoV1Util.exigeSerElCreador(expediente, MENSAJE_MODIFICAR));
+
+        assertEquals(MENSAJE_MODIFICAR, mensajeDe(excepcion));
+    }
+
+    @Test
+    void exigeSerElCreador_cadaLlamanteRecibeSuPropioMensaje() {
+        AnulacionMatriculaCicloFormativoV1 expediente = expedienteDe(usuario(7L));
+        usuarioAutenticado(usuario(8L));
+
+        // Dos llamantes distintos de la fase SOLICITUD (CONTINUAR y DELETE): el texto sale del
+        // parámetro, no de un literal interno de la clase de utilidad.
+        assertAll(
+                () -> assertEquals(MENSAJE_MODIFICAR, mensajeDe(assertThrows(BusinessException.class,
+                        () -> AnulacionMatriculaCicloFormativoV1Util.exigeSerElCreador(expediente, MENSAJE_MODIFICAR)))),
+                () -> assertEquals(MENSAJE_BORRAR, mensajeDe(assertThrows(BusinessException.class,
+                        () -> AnulacionMatriculaCicloFormativoV1Util.exigeSerElCreador(expediente, MENSAJE_BORRAR)))));
+    }
+
+    @Test
+    void exigeSerElCreador_expedienteSinUsuarioRegistrador_lanza() {
+        AnulacionMatriculaCicloFormativoV1 expediente = expedienteDe(null);
+        usuarioAutenticado(usuario(7L));
+
+        BusinessException excepcion = assertThrows(BusinessException.class,
+                () -> AnulacionMatriculaCicloFormativoV1Util.exigeSerElCreador(expediente, MENSAJE_MODIFICAR));
+
+        assertEquals(MENSAJE_MODIFICAR, mensajeDe(excepcion));
+    }
+
+    @Test
+    void exigeSerElCreador_sinUsuarioAutenticado_lanza() {
+        AnulacionMatriculaCicloFormativoV1 expediente = expedienteDe(usuario(7L));
+        usuarioAutenticado(null);
+
+        BusinessException excepcion = assertThrows(BusinessException.class,
+                () -> AnulacionMatriculaCicloFormativoV1Util.exigeSerElCreador(expediente, MENSAJE_MODIFICAR));
+
+        assertEquals(MENSAJE_MODIFICAR, mensajeDe(excepcion));
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* exigeMismoCentroQueElExpediente                                    */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void exigeMismoCentro_centroActivoIgualAlDelExpediente_noLanza() {
+        AnulacionMatriculaCicloFormativoV1 expediente = expedienteEn(centro(3L));
+        // Dos instancias de Centro distintas a propósito: la guarda mira el id, no la referencia al Centro.
+        // No prueba que el id se compare por valor: con ids en el rango de caché de Long (contrato del
+        // diseño) el autoboxing reutiliza el mismo Long, así que un == sobre los ids pasaría igual.
+        usuarioAutenticado(usuarioConCentroActivo(ID_USUARIO_IRRELEVANTE, centro(3L)));
+
+        assertDoesNotThrow(
+                () -> AnulacionMatriculaCicloFormativoV1Util.exigeMismoCentroQueElExpediente(expediente, MENSAJE_REVISAR));
+    }
+
+    @Test
+    void exigeMismoCentro_centroActivoDistinto_lanzaConElMensajeRecibido() {
+        AnulacionMatriculaCicloFormativoV1 expediente = expedienteEn(centro(3L));
+        usuarioAutenticado(usuarioConCentroActivo(ID_USUARIO_IRRELEVANTE, centro(4L)));
+
+        BusinessException excepcion = assertThrows(BusinessException.class,
+                () -> AnulacionMatriculaCicloFormativoV1Util.exigeMismoCentroQueElExpediente(expediente, MENSAJE_REVISAR));
+
+        assertEquals(MENSAJE_REVISAR, mensajeDe(excepcion));
+    }
+
+    @Test
+    void exigeMismoCentro_expedienteSinCentro_lanza() {
+        AnulacionMatriculaCicloFormativoV1 expediente = expedienteEn(null);
+        usuarioAutenticado(usuarioConCentroActivo(ID_USUARIO_IRRELEVANTE, centro(3L)));
+
+        BusinessException excepcion = assertThrows(BusinessException.class,
+                () -> AnulacionMatriculaCicloFormativoV1Util.exigeMismoCentroQueElExpediente(expediente, MENSAJE_FIRMAR));
+
+        assertEquals(MENSAJE_FIRMAR, mensajeDe(excepcion));
+    }
+
+    @Test
+    void exigeMismoCentro_usuarioSinCentroActivo_lanza() {
+        AnulacionMatriculaCicloFormativoV1 expediente = expedienteEn(centro(3L));
+        usuarioAutenticado(usuarioConCentroActivo(ID_USUARIO_IRRELEVANTE, null));
+
+        BusinessException excepcion = assertThrows(BusinessException.class,
+                () -> AnulacionMatriculaCicloFormativoV1Util.exigeMismoCentroQueElExpediente(expediente, MENSAJE_DEVOLVER));
+
+        assertEquals(MENSAJE_DEVOLVER, mensajeDe(excepcion));
+    }
+
+    @Test
+    void exigeMismoCentro_sinUsuarioAutenticado_lanza() {
+        AnulacionMatriculaCicloFormativoV1 expediente = expedienteEn(centro(3L));
+        usuarioAutenticado(null);
+
+        BusinessException excepcion = assertThrows(BusinessException.class,
+                () -> AnulacionMatriculaCicloFormativoV1Util.exigeMismoCentroQueElExpediente(expediente, MENSAJE_FIRMAR));
+
+        assertEquals(MENSAJE_FIRMAR, mensajeDe(excepcion));
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* borrarDevolucionDelDirector                                        */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void borrarDevolucionDelDirector_expedienteQueVieneDeUnaDevolucion_dejaLosTresCamposANull() {
+        AnulacionMatriculaCicloFormativoV1 expediente = expedienteDevuelto(usuario(11L));
+
+        AnulacionMatriculaCicloFormativoV1Util.borrarDevolucionDelDirector(expediente);
+
+        assertDevolucionVacia(expediente);
+    }
+
+    @Test
+    void borrarDevolucionDelDirector_expedienteSinDevolucionPrevia_esIdempotenteYNoLanza() {
+        AnulacionMatriculaCicloFormativoV1 expediente = new AnulacionMatriculaCicloFormativoV1();
+
+        assertDoesNotThrow(() -> {
+            AnulacionMatriculaCicloFormativoV1Util.borrarDevolucionDelDirector(expediente);
+            AnulacionMatriculaCicloFormativoV1Util.borrarDevolucionDelDirector(expediente);
+        });
+
+        assertDevolucionVacia(expediente);
+    }
+
+    @Test
+    void borrarDevolucionDelDirector_noTocaNingunOtroCampoDelExpediente() {
+        AnulacionMatriculaCicloFormativoV1 expediente = expedienteDevuelto(usuario(11L));
+        User revisadoPor = usuario(22L);
+        expediente.setSentidoRevision(SentidoRevisionAnulacionMatriculaCicloFormativoV1.SUBSANAR);
+        expediente.setMotivoRechazo(MOTIVO_RECHAZO);
+        expediente.setFechaRevision(FECHA_REVISION);
+        expediente.setRevisadoPor(revisadoPor);
+
+        AnulacionMatriculaCicloFormativoV1Util.borrarDevolucionDelDirector(expediente);
+
+        assertAll(
+                () -> assertEquals(SentidoRevisionAnulacionMatriculaCicloFormativoV1.SUBSANAR,
+                        expediente.getSentidoRevision()),
+                () -> assertEquals(MOTIVO_RECHAZO, expediente.getMotivoRechazo()),
+                () -> assertEquals(FECHA_REVISION, expediente.getFechaRevision()),
+                () -> assertSame(revisadoPor, expediente.getRevisadoPor()));
+    }
+
+}

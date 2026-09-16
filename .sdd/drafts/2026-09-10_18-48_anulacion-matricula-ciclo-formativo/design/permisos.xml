@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<datos>
+
+    <!-- Fragmento a FUSIONAR en src/main/resources/data-demo/input/permisos-demo.xml.
+         CREADOR y RESPONSABLE ya están declarados allí: MUST NOT duplicarlos. -->
+    <perfiles>
+        <perfil name="SECRETARIO"/>
+        <perfil name="DIRECTOR"/>
+    </perfiles>
+
+    <asignacionesTipoUsuario>
+        <!-- El alumno inicia el trámite: el perfil del estado inicial va SIEMPRE por tramiteCode. -->
+        <asignacion tipoUsuarioCode="ALUMNO"         perfilName="CREADOR"     tramiteCode="AnulacionMatriculaCicloFormativo"/>
+        <!-- El personal administrativo del centro revisa (no hay cargo de administrativo en cargos.xml). -->
+        <asignacion tipoUsuarioCode="ADMINISTRATIVO" perfilName="SECRETARIO"  tramiteCode="AnulacionMatriculaCicloFormativo"/>
+        <!-- El supervisor solo consulta: RESPONSABLE es el perfil de consulta con el que abren las
+             bandejas genéricas, y ningún estado abierto tiene formulario para él. -->
+        <asignacion tipoUsuarioCode="SUPERVISOR"     perfilName="RESPONSABLE" tramiteCode="AnulacionMatriculaCicloFormativo"/>
+    </asignacionesTipoUsuario>
+
+    <asignacionesCargoTipoExpediente>
+        <!-- Un cargo solo se puede asignar por tipo de expediente: hay que repetir estas filas en
+             cada versión nueva del trámite. -->
+        <asignacion cargoCode="DIRECTOR"       perfilName="DIRECTOR"    tipoExpedienteCode="AnulacionMatriculaCicloFormativoV1"/>
+        <asignacion cargoCode="SECRETARIO"     perfilName="RESPONSABLE" tipoExpedienteCode="AnulacionMatriculaCicloFormativoV1"/>
+        <asignacion cargoCode="VICESECRETARIO" perfilName="RESPONSABLE" tipoExpedienteCode="AnulacionMatriculaCicloFormativoV1"/>
+    </asignacionesCargoTipoExpediente>
+
+</datos>

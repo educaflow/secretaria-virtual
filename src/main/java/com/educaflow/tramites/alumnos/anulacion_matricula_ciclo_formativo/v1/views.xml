@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://axelor.com/xml/ns/object-views"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <form name="exp-AnulacionMatriculaCicloFormativoV1-Templates" width="large"
+          title="Anulación de matrícula en ciclo formativo"
+          model="com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1"
+          groups="admins,users">
+
+        <!-- ================================================================================== -->
+        <!-- Subsanación pedida por secretaría                                                  -->
+        <!-- ================================================================================== -->
+        <panel name="subsanacion" title="Qué hay que subsanar" colSpan="12"
+               showIf="(textoSubsanacion!=null) &amp;&amp; (textoSubsanacion!='')">
+            <field name="textoSubsanacion" showTitle="false" readonly="true" colSpan="12"/>
+        </panel>
+
+        <!-- ================================================================================== -->
+        <!-- Datos del alumno                                                                   -->
+        <!-- ================================================================================== -->
+        <panel name="datos-alumno" title="Datos de identificación del alumno" colSpan="12">
+            <field name="personaInteresada.apellidos" title="Apellidos" colSpan="5" readonly="true"/>
+            <field name="personaInteresada.nombre"    title="Nombre"    colSpan="4" readonly="true"/>
+            <field name="nia"                         colSpan="3" help="8 dígitos"/>
+
+            <field name="personaInteresada.dni"       title="DNI/NIE"   colSpan="3" readonly="true"/>
+            <field name="direccion"                   colSpan="6"/>
+            <field name="telefono"                    colSpan="3" help="9 dígitos, empezando por 6, 7, 8 o 9"/>
+
+            <field name="poblacion"                   colSpan="5"/>
+            <field name="provincia"                   colSpan="4"/>
+            <field name="codigoPostal"                colSpan="3" help="5 dígitos"/>
+        </panel>
+
+        <panel name="datos-alumno-resumen" title="Datos de identificación del alumno" colSpan="12">
+            <field name="personaInteresada.apellidos" title="Apellidos" colSpan="4" readonly="true"/>
+            <field name="personaInteresada.nombre"    title="Nombre"    colSpan="3" readonly="true"/>
+            <field name="nia"                         colSpan="2" readonly="true"/>
+            <field name="personaInteresada.dni"       title="DNI/NIE"   colSpan="3" readonly="true"/>
+        </panel>
+
+        <!-- ================================================================================== -->
+        <!-- Matrícula que se anula                                                             -->
+        <!-- ================================================================================== -->
+        <panel name="matricula" title="Matrícula que se anula" colSpan="12">
+            <field name="cursoAcademico" colSpan="3" readonly="true"/>
+            <field name="nombreCentro"   colSpan="9" readonly="true"/>
+
+            <field name="ciclo" colSpan="9"
+                   grid-view="subsysSistemaEducativo.Ref@Ciclo-grid"
+                   form-view="subsysSistemaEducativo.Ref@Ciclo-form"
+                   help="Elija el ciclo en el que está matriculado; puede buscarlo por familia profesional, grado, nivel o nombre"/>
+            <field name="ciclo.gradoNivel" title="Grado o nivel" colSpan="3" readonly="true" depends="ciclo"/>
+        </panel>
+
+        <panel name="matricula-director" title="Matrícula que se anula" colSpan="12">
+            <field name="cursoAcademico" colSpan="3" readonly="true"/>
+            <field name="nombreCentro"   colSpan="9" readonly="true"/>
+
+            <field name="ciclo" colSpan="9" readonly="true"
+                   grid-view="subsysSistemaEducativo.Ref@Ciclo-grid"
+                   form-view="subsysSistemaEducativo.Ref@Ciclo-form"/>
+            <field name="ciclo.gradoNivel" title="Grado o nivel" colSpan="3" readonly="true" depends="ciclo"/>
+
+            <field name="fechaHoraPresentacion" colSpan="4" readonly="true"/>
+            <!-- El preprocesador no recoge los campos nombrados dentro de un showIf: sin este
+                 <field> el cliente no recibe sentidoRevision y la condición evalúa undefined. -->
+            <field name="sentidoRevision" hidden="true"/>
+            <help variant="info" colSpan="8" showIf="sentidoRevision=='ACEPTAR'">Si firma la resolución, la anulación surtirá efecto desde esta fecha</help>
+        </panel>
+
+        <!-- ================================================================================== -->
+        <!-- Presentación                                                                       -->
+        <!-- ================================================================================== -->
+        <panel name="presentacion" title="Presentación" colSpan="12">
+            <field name="fechaHoraPresentacion" colSpan="4" readonly="true"/>
+            <field name="visorJustificante" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="pdfJustificanteRegistroEntrada"><![CDATA[
+                    <>
+                    <Box as="iframe" height="600" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfJustificanteRegistroEntrada.id}/content/download?inline=true&name=${pdfJustificanteRegistroEntrada.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+
+        <panel name="presentacion-descarga" title="Presentación" colSpan="12">
+            <field name="fechaHoraPresentacion"          colSpan="4" readonly="true"/>
+            <field name="pdfJustificanteRegistroEntrada" colSpan="8" widget="binary-link" readonly="true"/>
+        </panel>
+
+        <panel name="presentacion-descarga-aceptada" title="Presentación" colSpan="12">
+            <field name="fechaHoraPresentacion" colSpan="4" readonly="true"/>
+            <help variant="info" colSpan="8">La anulación de la matrícula surte efecto desde esta fecha</help>
+            <field name="pdfJustificanteRegistroEntrada" colSpan="12" widget="binary-link" readonly="true"/>
+        </panel>
+
+        <!-- ================================================================================== -->
+        <!-- Solicitud de anulación                                                             -->
+        <!-- ================================================================================== -->
+        <panel name="solicitud-visor" title="Solicitud a firmar" colSpan="12">
+            <field name="visorSolicitud" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="pdfSolicitud"><![CDATA[
+                    <>
+                    <Box as="iframe" height="900" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfSolicitud.id}/content/download?inline=true&name=${pdfSolicitud.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+
+        <panel name="solicitud-descarga" title="Solicitud generada" colSpan="12">
+            <field name="pdfSolicitud" colSpan="8" widget="binary-link" readonly="true"/>
+        </panel>
+
+        <panel name="solicitud-firmada-visor" title="Solicitud firmada" colSpan="12">
+            <field name="visorSolicitudFirmada" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="pdfSolicitudFirmada"><![CDATA[
+                    <>
+                    <Box as="iframe" height="900" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfSolicitudFirmada.id}/content/download?inline=true&name=${pdfSolicitudFirmada.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+
+        <panel name="solicitud-firmada-descarga" title="Solicitud firmada" colSpan="12">
+            <field name="pdfSolicitudFirmada" colSpan="8" widget="binary-link" readonly="true"/>
+        </panel>
+
+        <panel name="justificante-descarga" title="Justificante de presentación" colSpan="12">
+            <field name="pdfJustificanteRegistroEntrada" colSpan="8" widget="binary-link" readonly="true"/>
+        </panel>
+
+        <!-- ================================================================================== -->
+        <!-- Revisión de la secretaría                                                          -->
+        <!-- ================================================================================== -->
+        <panel name="revision" title="Revisión" colSpan="12">
+            <field name="sentidoRevision"  colSpan="8" widget="SwitchSelect" required="true"
+                   onChange="exp-AnulacionMatriculaCicloFormativoV1-limpiar-revision-action"/>
+            <field name="motivoRechazo"    colSpan="12" showIf="sentidoRevision=='RECHAZAR'"
+                   requiredIf="sentidoRevision=='RECHAZAR'"
+                   help="Este texto se imprimirá tal cual en la resolución que recibirá el alumno"/>
+            <field name="textoSubsanacion" colSpan="12" showIf="sentidoRevision=='SUBSANAR'"
+                   requiredIf="sentidoRevision=='SUBSANAR'"/>
+        </panel>
+
+        <panel name="devolucion-view" title="Devuelto por el director" colSpan="12"
+               showIf="(motivoDevolucion!=null) &amp;&amp; (motivoDevolucion!='')">
+            <field name="motivoDevolucion" colSpan="12" readonly="true"/>
+            <field name="fechaDevolucion"  colSpan="4"  readonly="true"/>
+            <field name="devueltoPor"      colSpan="8"  readonly="true"/>
+        </panel>
+
+        <!-- ================================================================================== -->
+        <!-- Resolución                                                                         -->
+        <!-- ================================================================================== -->
+        <panel name="decision-secretaria" title="Decisión de secretaría" colSpan="12">
+            <field name="sentidoRevision" colSpan="5" readonly="true"/>
+            <field name="fechaRevision"   colSpan="3" readonly="true"/>
+            <field name="revisadoPor"     colSpan="4" readonly="true"/>
+            <field name="motivoRechazo"   colSpan="12" readonly="true" showIf="sentidoRevision=='RECHAZAR'"/>
+        </panel>
+
+        <panel name="resolucion-a-firmar" title="Resolución a firmar" colSpan="12">
+            <help variant="info" colSpan="12">La fecha de la resolución que llevará el documento firmado será la del día en que lo firme</help>
+            <field name="visorResolucion" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="pdfResolucion"><![CDATA[
+                    <>
+                    <Box as="iframe" height="900" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfResolucion.id}/content/download?inline=true&name=${pdfResolucion.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+
+        <panel name="devolucion" title="Devolución" colSpan="12">
+            <field name="motivoDevolucion" colSpan="12"
+                   help="Rellene el motivo solo si va a devolver la resolución"/>
+        </panel>
+
+        <panel name="resolucion-firmada" title="Resolución" colSpan="12">
+            <!-- El preprocesador no recoge los campos nombrados dentro de un showIf: sin este
+                 <field> el cliente no recibe sentidoRevision y la condición evalúa undefined. -->
+            <field name="sentidoRevision"  hidden="true"/>
+            <field name="motivoRechazo"    colSpan="12" readonly="true" showIf="sentidoRevision=='RECHAZAR'"/>
+            <field name="fechaResolucion"  colSpan="4"  readonly="true"/>
+            <field name="firmadoPor"       colSpan="8"  readonly="true"/>
+            <field name="visorResolucionFirmada" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="pdfResolucionFirmada"><![CDATA[
+                    <>
+                    <Box as="iframe" height="900" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfResolucionFirmada.id}/content/download?inline=true&name=${pdfResolucionFirmada.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+
+    </form>
+</object-views>

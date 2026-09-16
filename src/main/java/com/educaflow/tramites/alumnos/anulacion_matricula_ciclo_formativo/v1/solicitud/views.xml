@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://axelor.com/xml/ns/object-views"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- *********************************************************************************************  -->
+    <!-- ************************************** DATOS_SOLICITUD **************************************  -->
+    <!-- *********************************************************************************************  -->
+    <form state="DATOS_SOLICITUD" profile="CREADOR"
+          onLoad="exp-AnulacionMatriculaCicloFormativoV1-DATOS_SOLICITUD-onLoad-action">
+        <include-panels>
+            -subsanacion
+            datos-alumno
+            matricula
+        </include-panels>
+
+        <panel name="avisoDatosSolicitudCreador" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">Para presentar la solicitud necesitará firmarla con su certificado digital desde este mismo ordenador</help>
+        </panel>
+
+        <footer>
+            <buttons-left>
+                <button name="DELETE" colSpan="3" css="btn-danger" outline="true" icon="trash"
+                        title="Borrar el expediente"
+                        onClick="subsysExpedientes-event-action"
+                        prompt="Se va a eliminar el expediente y no podrá recuperarlo"/>
+            </buttons-left>
+            <buttons-right>
+                <button name="CONTINUAR" colSpan="2" title="Siguiente"
+                        onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <form state="DATOS_SOLICITUD">
+        <include-panels>
+            -subsanacion
+            -datos-alumno
+            -matricula
+        </include-panels>
+
+        <panel name="avisoDatosSolicitudGenerica" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">La solicitud todavía no se ha presentado: está pendiente de que el alumno complete o corrija los datos</help>
+        </panel>
+
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <!-- *********************************************************************************************  -->
+    <!-- ************************************** PENDIENTE_FIRMA **************************************  -->
+    <!-- *********************************************************************************************  -->
+    <form state="PENDIENTE_FIRMA" profile="CREADOR"
+          onLoad="exp-AnulacionMatriculaCicloFormativoV1-PENDIENTE_FIRMA-onLoad-action">
+        <include-panels>
+            -subsanacion
+            -solicitud-visor
+        </include-panels>
+
+        <panel name="avisoPendienteFirmaCreador" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">Revise la solicitud antes de firmarla. Necesitará su certificado digital instalado en este ordenador y la aplicación de firma del ciudadano</help>
+        </panel>
+
+        <panel name="firmaSolicitudSituacion" title="" colSpan="12" showFrame="false" readonly="true">
+            <field name="situacionFirma" type="string" showIf="false" readonly="true"/>
+            <field name="firmaEnServidor" type="boolean" showIf="false" readonly="true"/>
+        </panel>
+
+        <panel name="firmaSolicitudSinCertificado" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirma=='SIN_CERTIFICADO'">
+            <help variant="info" colSpan="12"><![CDATA[Para presentar la solicitud debe tener la aplicación de <a href="https://sede.serviciosmin.gob.es/es-es/firmaelectronica/paginas/autofirma.aspx" target="_blank">AutoFirma</a> instalada y un certificado digital válido]]></help>
+        </panel>
+
+        <panel name="firmaSolicitudDispositivoConPin" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirma=='DISPOSITIVO_CON_PIN'">
+            <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital.]]></help>
+        </panel>
+
+        <panel name="firmaSolicitudDispositivoSinPin" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirma=='DISPOSITIVO_SIN_PIN'">
+            <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital. Introduzca el PIN de su dispositivo criptográfico.]]></help>
+            <field name="claveCertificado" title="PIN" widget="password" required="true" colSpan="4"/>
+        </panel>
+
+        <panel name="firmaSolicitudFicheroConClave" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirma=='FICHERO_CON_CLAVE'">
+            <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital.]]></help>
+        </panel>
+
+        <panel name="firmaSolicitudFicheroSinClave" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirma=='FICHERO_SIN_CLAVE'">
+            <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital. Introduzca la contraseña de su certificado.]]></help>
+            <field name="claveCertificado" title="Contraseña" widget="password" required="true" colSpan="4"/>
+        </panel>
+
+        <panel name="firmaSolicitudSinDni" title="Firma de la solicitud" colSpan="12"
+               showIf="situacionFirma=='SIN_DNI'">
+            <help variant="warning" colSpan="12"><![CDATA[No es posible firmar la solicitud porque su usuario no tiene un documento de identidad. Póngase en contacto con el administrador.]]></help>
+        </panel>
+
+        <footer>
+            <buttons-left>
+                <button name="VOLVER" colSpan="2" outline="true" title="Atrás"
+                        onClick="subsysExpedientes-event-action"/>
+            </buttons-left>
+            <buttons-right>
+                <button name="PRESENTAR" colSpan="4" title="Firmar y presentar la solicitud"
+                        showIf="situacionFirma=='SIN_CERTIFICADO'"
+                        onClick="serial:exp-AnulacionMatriculaCicloFormativoV1-firmarSolicitud-action,subsysExpedientes-event-action"
+                        prompt="Va a firmar y presentar la solicitud de anulación. Una vez presentada no podrá modificarla"/>
+                <button name="PRESENTAR" colSpan="4" title="Firmar y presentar la solicitud"
+                        showIf="firmaEnServidor"
+                        onClick="serial:subsysExpedientes-event-action,exp-AnulacionMatriculaCicloFormativoV1-set-claveCertificado-null-action"
+                        prompt="Va a firmar y presentar la solicitud de anulación. Una vez presentada no podrá modificarla"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <form state="PENDIENTE_FIRMA">
+        <include-panels>
+            -datos-alumno
+            -matricula
+            -solicitud-descarga
+        </include-panels>
+
+        <panel name="avisoPendienteFirmaGenerica" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">La solicitud todavía no se ha presentado: está pendiente de que el alumno la firme</help>
+        </panel>
+
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <!-- *********************************************************************************************  -->
+    <!-- ***************************** Acciones propias de la fase SOLICITUD *************************  -->
+    <!-- *********************************************************************************************  -->
+    <action-attrs name="exp-AnulacionMatriculaCicloFormativoV1-DATOS_SOLICITUD-onLoad-action">
+        <attribute for="nia"           name="required" expr="true"/>
+        <attribute for="direccion"     name="required" expr="true"/>
+        <attribute for="telefono"      name="required" expr="true"/>
+        <attribute for="poblacion"     name="required" expr="true"/>
+        <attribute for="provincia"     name="required" expr="true"/>
+        <attribute for="codigoPostal"  name="required" expr="true"/>
+        <attribute for="ciclo"         name="required" expr="true"/>
+    </action-attrs>
+
+    <action-group name="exp-AnulacionMatriculaCicloFormativoV1-PENDIENTE_FIRMA-onLoad-action">
+        <action name="exp-AnulacionMatriculaCicloFormativoV1-set-situacionFirma-action"/>
+    </action-group>
+
+    <action-record name="exp-AnulacionMatriculaCicloFormativoV1-set-situacionFirma-action"
+                   model="com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1">
+        <field name="situacionFirma"
+               expr="call:com.educaflow.tramites.util.firma.FirmaServidorController:getSituacionFirma()"/>
+        <field name="firmaEnServidor"
+               expr="call:com.educaflow.tramites.util.firma.FirmaServidorController:isFirmaEnServidor()"/>
+    </action-record>
+
+    <!-- Recuadro y página: los mismos que POSICION_FIRMA_SOLICITUD y PAGINA_FIRMA_SOLICITUD del
+         PhaseEventManagerImpl de esta fase. MUST NOT cambiarse aquí sin cambiarlos allí. -->
+    <action-method name="exp-AnulacionMatriculaCicloFormativoV1-firmarSolicitud-action">
+        <call class="com.educaflow.subsystem.expedientes.controllers.FirmaController"
+              method='firmarDocumento(id,"pdfSolicitud","pdfSolicitudFirmada",320,418,240,32,1)'/>
+    </action-method>
+
+    <action-record name="exp-AnulacionMatriculaCicloFormativoV1-set-claveCertificado-null-action"
+                   model="com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1">
+        <field name="claveCertificado" expr="eval: null"/>
+    </action-record>
+
+</object-views>
