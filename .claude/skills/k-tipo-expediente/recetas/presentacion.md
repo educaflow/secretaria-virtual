@@ -122,7 +122,7 @@ public void triggerInitialEvent(MiTramiteV1 exp, EventContext eventContext) thro
 </form>
 ```
 
-- El form del `CREADOR` incluye editables los paneles de datos y el de subida del anexo (`widget="binary-link"`, `vistas.md` §6); el genérico los incluye todos con `-` y solo `EXIT`.
+- El form del `CREADOR` incluye editables los paneles de datos y el de subida del anexo (`widget="binary-link"`, `vistas.md` §6); el genérico los incluye todos con `-`, solo `EXIT` y el panel `avisoEstadoExpediente` (`vistas.md` §6.1).
 - Los paneles viven en el form plantilla de la raíz (`vistas.md` §1).
 
 ### 4.2 Validator (`StateEventValidatorImpl.kt` de la fase)

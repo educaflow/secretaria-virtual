@@ -44,7 +44,7 @@ El form plantilla está en la raíz y no en cada fase porque los paneles se comp
 En el atributo `state` va el **nombre del estado** tal cual, igual que en el `TipoExpedienteInstance.xml`; la **fase la deduce el preprocesador del nombre de la carpeta** del fichero, y es él quien la añade como segmento del `name` de la vista generada (`SKILL.md` §1.5). Por eso las vistas no necesitan localizador aunque estén repartidas: sus nombres siguen siendo globales.
 
 - `<form state="X" profile="Y">` → `exp-<Code>-<FASE>-<X>-<PROFILE>-form` (la del perfil que "tiene el turno", editable).
-- `<form state="X">` (sin perfil) → `exp-<Code>-<FASE>-<X>-form` (la genérica, normalmente todo readonly + botón `EXIT`).
+- `<form state="X">` (sin perfil) → `exp-<Code>-<FASE>-<X>-form` (la genérica, normalmente todo readonly + botón `EXIT` + el panel `avisoEstadoExpediente` de §6.1).
 - El runtime busca primero la del perfil actuante y si no existe usa la genérica; si no hay ninguna → excepción "No existe la vista en el expediente". El build no lo comprueba, pero los **tests** sí (`SKILL.md` §3.3): la genérica es obligatoria en todo estado, y la del perfil en los estados que tienen `profile` y eventos.
 - El esqueleto genera dos **cáscaras idénticas y vacías** por estado (`<include-panels>` sin paneles y un único `<button name="">` sin rellenar en cada una): no distingue cuál es cuál, eso lo escribes tú — la del perfil dueño editable y la genérica de solo lectura. Es justo ese esqueleto sin rellenar el que caza el test Y1 (`SKILL.md` §3.3).
   Además, la del perfil **solo se genera si el estado declara `profile`**; en un estado sin `profile` el esqueleto trae solo la genérica.
@@ -95,7 +95,45 @@ Los forms de estado heredan los atributos del form plantilla. Declarar un atribu
 
 ## 6. Contenido Axelor adicional
 
-Un form de estado puede llevar además paneles Axelor normales (fuera de `<include-panels>`): el expediente real añade tras el footer un `<panel showFrame="false">` con un `<help variant="info">` de ayuda.
+Un form de estado puede llevar además paneles Axelor normales (fuera de `<include-panels>`), colocados entre `</include-panels>` y `<footer>`.
+El caso típico es un `<panel showFrame="false">` con un único `<help variant="info">`: en el form del perfil que actúa, instrucciones de lo que tiene que hacer (nombre libre); en el form de solo `EXIT`, el panel `avisoEstadoExpediente` de §6.1.
+
+### 6.1 Panel `avisoEstadoExpediente`: obligatorio en todo form de solo `EXIT`
+
+Un form cuyo único botón es `EXIT` es una pantalla en la que el usuario no puede hacer nada.
+Si no se le explica nada, no sabe si el expediente está atascado, si le toca a él o si ya ha terminado.
+
+- **MUST** llevar un `<panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">` con un único `<help variant="info">`, entre `</include-panels>` y `<footer>`.
+  Aplica a todos los forms de solo `EXIT`: los genéricos y también los de perfil (`profile="..."`) que no tengan más botón que `EXIT`.
+- El texto **MUST** decir **qué está pendiente y de quién** ("La solicitud está pendiente de revisión por la secretaría del centro", "La resolución está pendiente de la firma del director").
+  **MUST NOT** repetir el nombre de la fase o del estado: ya los pinta la cabecera (§3).
+- En un estado final el texto dice que el expediente está cerrado y con qué resultado ("El expediente está cerrado: la anulación ha sido aceptada").
+- El `name` es siempre `avisoEstadoExpediente`, igual en todos los forms del tipo: un panel declarado dentro de un `<form state=...>` es local a esa vista, no de la plantilla, así que no colisiona con el de los demás forms.
+  No se declara en el form plantilla ni se incluye por `<include-panels>`: el texto es distinto en cada estado.
+
+✅ Correcto:
+
+```xml
+<form state="PENDIENTE_REVISION">
+    <include-panels>
+        -datos-solicitud-view
+        -solicitud-firmada-descarga
+    </include-panels>
+
+    <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
+        <help variant="info" colSpan="12">La solicitud está pendiente de revisión por la secretaría del centro</help>
+    </panel>
+
+    <footer>
+        <buttons-left/>
+        <buttons-right>
+            <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+        </buttons-right>
+    </footer>
+</form>
+```
+
+❌ Incorrecto: el mismo form sin el panel (el usuario ve los datos y un botón "Salir" sin saber qué pasa con su solicitud), o con `name="avisoPendienteRevisionGenerica"` (nombre propio por estado en lugar del fijo), o con el texto "Estado: PENDIENTE_REVISION" (repite la cabecera).
 
 La pantalla del estado en que el usuario firma y presenta un documento (campos de vista rellenados en el `onLoad`, un panel por situación de firma y los dos botones `PRESENTAR`) está en la receta `recetas/firma.md` §1.3.
 
@@ -154,3 +192,4 @@ Para mostrar un campo `many-to-one` a `MetaFile`, panel con un field *dummy* cuy
 - **MUST NOT** confiar en `readonly`/`showIf` como seguridad: la defensa real es la whitelist del validator (`k-secure-coding`).
 - **MUST NOT** nombrar un panel local igual que uno global salvo que quieras sobreescribirlo a propósito.
 - **MUST NOT** confiar en el prefijo `-` para "desactivar" un panel con botones ni un `panel-related`: solo pone readonly los `<field>` (§3).
+- **MUST NOT** dejar un form de solo `EXIT` sin el panel `avisoEstadoExpediente` (§6.1): el usuario no sabría en qué situación está su expediente.
