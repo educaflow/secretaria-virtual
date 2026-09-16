@@ -1,6 +1,6 @@
 ---
 name: k-tipo-expediente
-description: Cómo crear un tipo de expediente (una versión `v1`/`v2`… de un trámite) en `tramites/<tramite>/<vN>/`: el fichero maestro `TipoExpedienteInstance.xml` con sus **fases** y la máquina de estados, el modelo (`domains.xml`), y por cada fase su `PhaseEventManager`, su `StateEventValidator` y sus vistas preprocesadas; los documentos PDF (`documentospdf/`, formato XML de definición) y las recetas de `recetas/`: presentar un documento que acaba en el registro de entrada (de la entrada de datos al resguardo), firmar documentos (el usuario al presentar, el certificado del centro, poner a firmar a otro) y duplicar un tipo para crear la versión siguiente. Cárgalo siempre que crees o modifiques cualquier fichero bajo una carpeta de versión de un trámite.
+description: Cómo crear un tipo de expediente (una versión `v1`/`v2`… de un trámite) en `tramites/<tramite>/<vN>/`: el fichero maestro `TipoExpedienteInstance.xml` con sus **fases** y la máquina de estados, el modelo (`domains.xml`), y por cada fase su `PhaseEventManager`, su `StateEventValidator` y sus vistas preprocesadas; las funciones propias del tipo en `<Code>Util` (predicados para `Lambda`/`ifLambda`, guardas y mutaciones); los documentos PDF (`documentospdf/`, formato XML de definición) y las recetas de `recetas/`: presentar un documento que acaba en el registro de entrada (de la entrada de datos al resguardo), firmar documentos (el usuario al presentar, el certificado del centro, poner a firmar a otro) y duplicar un tipo para crear la versión siguiente. Cárgalo siempre que crees o modifiques cualquier fichero bajo una carpeta de versión de un trámite.
 ---
 
 # k-tipo-expediente
@@ -19,7 +19,7 @@ Los estados se agrupan en **fases**, y cada fase tiene su propia subcarpeta con 
 |---------|-----------|
 | `modelo.md` | El `domains.xml` del tipo (en la raíz de la versión, uno para todas las fases): entidad `extends="Expediente"`, enums versionados, campos `MetaFile` para los PDF, `extra-code-model` |
 | `phaseeventmanager.md` | La máquina de estados en Java: el `PhaseEventManagerImpl` de cada fase, métodos `trigger*`/`onEnter*`, API de `EventContext` y el **catálogo de acciones** (generar PDF, registros de entrada/salida, firmas, correos…) |
-| `validator.md` | El `StateEventValidatorImpl` de cada fase, en Kotlin: DSL de reglas por estado+evento y su doble función de whitelist de campos |
+| `validator.md` | El `StateEventValidatorImpl` de cada fase, en Kotlin: DSL de reglas por estado+evento, su doble función de whitelist de campos y las comprobaciones propias del tipo con `Lambda`/`ifLambda` sobre `<Code>Util` |
 | `vistas.md` | Las vistas en formato **preprocesado** (NO sigue `k-vistas`): el form plantilla en la raíz, los `<form state=...>` repartidos por fase, `include-panels`, `footer`, visores de PDF |
 | `documentos.md` | El formato XML de los documentos de `documentospdf/` de los que el build genera los PDF rellenables |
 | `recetas/presentacion.md` | Receta: el usuario presenta un documento que acaba en el **registro de entrada** — los dos estados `CREADOR`, el modelo, el evento inicial, generar el PDF, firmarlo (delega en `recetas/firma.md` §1), `createRegistroEntrada` y el resguardo |
@@ -69,6 +69,7 @@ En la **raíz de la versión** va lo que es de todo el tipo:
 | `domains.xml` | tú (esqueleto generado, §3.1) | `modelo.md` |
 | `views.xml` | tú (esqueleto generado, §3.1) | `vistas.md` |
 | `InitialEventManagerImpl.java` | tú (esqueleto generado, §3.1) | `phaseeventmanager.md` §2.1 |
+| `<Code>Util.java` (`MiTramiteV1Util.java`) | tú, solo si el tipo necesita funciones propias; no hay esqueleto | §1.8 |
 | `documentospdf/` | tú | `documentos.md` |
 | `i18n_es.csv` / `i18n_ca.csv` | build — **MUST NOT** crearlos a mano | `CLAUDE.md` (i18n) |
 
@@ -157,6 +158,35 @@ Cuando el usuario pulsa un botón (= dispara un evento), `Tramitador.triggerEven
 8. Muestra la vista del nuevo estado (`vistas.md` §2 "Dos forms por estado y cómo elige el runtime").
 
 **Eventos comunes** (existen sin declararlos): `EXIT` (cerrar la pestaña; lo intercepta `ExpedienteController`, no llega al PhaseEventManager) y `DELETE` (borra sin validar ni copiar campos). **`BACK` NO es común**: si un estado necesita "volver atrás" hay que declararlo como evento normal.
+
+### 1.8 `<Code>Util` — las funciones propias del tipo
+
+Cuando el tipo necesita una función que no es un `trigger*`/`onEnter*`/`triggerInitialEvent` ni un `rules { }`, es una **función estática** de una única clase `<Code>Util.java` en la raíz de la versión (`MiTramiteV1Util`), `final` y con constructor privado. Se llama desde donde haga falta: los `PhaseEventManagerImpl` de cualquier fase, el `InitialEventManagerImpl` y los `StateEventValidatorImpl` (a través de `Lambda`/`ifLambda`, `validator.md` §3.1).
+
+Cuándo una función va a `<Code>Util` y cuándo no:
+
+- Va si la necesita el validador (el DSL solo admite referencias a función) o si el mismo código se llama desde **más de un sitio** (varios eventos, varias fases).
+- **MUST NOT** ir si se usa en un solo sitio y es una línea o un bloque corto: se queda inline en el `trigger*`. Una `<Code>Util` llena de funciones de una línea con un único llamante no aporta nada y esconde el código.
+
+Tres familias de función, y qué devuelve cada una:
+
+- **Predicado** para el validador: recibe el expediente y devuelve `boolean` (`true` = válido / la condición se cumple). No lanza `BusinessException` ni conoce mensajes: el mensaje lo pone la regla `Lambda` que la declara.
+- **Guarda de negocio** para un `trigger*`: recibe el expediente y el mensaje, es `void` y lanza `BusinessException(I18n.get(mensaje))` si no se cumple. El texto lo pone el llamante, porque cada evento tiene el suyo.
+- **Mutación** compartida por varios eventos o fases: recibe el expediente, `void`.
+
+Reglas:
+
+- **MUST NOT** crear una `ValidationRule` propia del tipo: una comprobación del tipo es una función `boolean` de `<Code>Util` declarada en el validador con `+Lambda(...)` o `+ifLambda(...)`. Una regla nueva solo está justificada si la comparten **varios** tipos, y entonces va a `tramites/util/<propósito>/` (`tramites/util/CLAUDE.md`) o al catálogo de `base/infrastructure/validation/rules`, nunca a la carpeta de la versión.
+- **MUST NOT** repartir las funciones en varias clases por tema: una sola `<Code>Util` por tipo, con bloques comentados si crece.
+- **Validación vs assert**: una función solo devuelve `false` o lanza `BusinessException` por algo que el usuario de la pantalla puede corregir. Un estado que nunca debería darse (falta un dato que fija el servidor, el estado no existe en `States`) es un `RuntimeException` (`IllegalStateException`) dentro de la función, sin mensaje i18n y sin devolver «válido» en silencio.
+
+Ejemplos:
+
+- ✅ CORRECTO: `public static boolean sinOtraSolicitudEnCurso(MiTramiteV1 expediente)` en `MiTramiteV1Util` + `+Lambda(util::sinOtraSolicitudEnCurso, "Ya tiene una solicitud en curso")` en el validador.
+- ✅ CORRECTO: `MiTramiteV1Util.exigeSerElCreador(expediente, "Solo puede modificar sus propias solicitudes")` como primera línea de un `trigger*`.
+- ❌ INCORRECTO: `class SinOtraSolicitudEnCurso : ValidationRule` en `mi_tramite/v1/` (regla de un solo tipo: es una función de `MiTramiteV1Util` + `Lambda`).
+- ❌ INCORRECTO: `ControlDeAcceso.java` + `DevolucionDelDirector.java` en la carpeta de la versión (varias clases de utilidad: todo va en `MiTramiteV1Util`).
+- ❌ INCORRECTO: `return false` o `BusinessMessages.single("Su centro no tiene curso académico")` cuando `cursoAcademico` es nulo (lo fija el servidor al crear el expediente: es un assert → `IllegalStateException`).
 
 ---
 
@@ -344,8 +374,8 @@ Tres reglas **no** leen el bytecode, cada una por su motivo, y se señalan en su
 3. **Genera los esqueletos**: `./gradlew -q CreateFilesTask -Ptipo=src/main/java/com/educaflow/tramites/<tramite>/v1` (§3.1). Crea la raíz y una subcarpeta por fase. Compilar **no** los genera.
 4. **Modelo**: añade los campos a `domains.xml` → `modelo.md`.
 5. **Documentos**: crea `documentospdf/` con los XML de definición → `documentos.md`. Si el tipo tiene **más de un** documento, **MUST** extraer desde el principio a un fragmento `_<contenido>.xml` cada sección literalmente idéntica en varios de ellos (uno por bloque común), en vez de duplicarla.
-6. **Evento inicial y PhaseEventManager de cada fase**: rellena el `triggerInitialEvent` del `InitialEventManagerImpl` de la raíz de la versión (uno por tipo) y, en cada fase, sus `trigger<Evento>` y `onEnter<Estado>` → `phaseeventmanager.md`.
-7. **Validator de cada fase**: rellena las `rules { }` de cada pareja estado+evento de la fase → `validator.md`.
+6. **Evento inicial y PhaseEventManager de cada fase**: rellena el `triggerInitialEvent` del `InitialEventManagerImpl` de la raíz de la versión (uno por tipo) y, en cada fase, sus `trigger<Evento>` y `onEnter<Estado>` → `phaseeventmanager.md`. Las guardas, predicados y mutaciones propios del tipo van como funciones estáticas de `<Code>Util` (§1.8).
+7. **Validator de cada fase**: rellena las `rules { }` de cada pareja estado+evento de la fase → `validator.md`. Las comprobaciones propias del tipo se declaran con `Lambda`/`ifLambda` sobre funciones de `<Code>Util`, no con reglas nuevas.
 8. **Vistas**: monta los paneles del form plantilla en el `views.xml` de la raíz y compón cada `<form state=...>` en el `views.xml` de su fase → `vistas.md`.
 9. **Permisos**: verifica que el perfil de cada estado (`CREADOR`, `RESPONSABLE`…) está asignado a alguien (`/k-tramite` §6).
 10. **Activa** la versión en el `TramiteInstance.xml` (`<defaultTipoExpediente>v1</defaultTipoExpediente>`), compila y arranca.
@@ -375,4 +405,5 @@ Para crear una **versión nueva de un tipo existente** → `recetas/versionado.m
 - La máquina de estados en runtime vive en la clase generada `States` (una por tipo, todas sus fases), no en BD. Un estado se referencia como `States.<Fase>.<ESTADO>`, con la fase en **UpperCamelCase** (`States.Recepcion.ENTRADA_DATOS`); `States.RECEPCION` es otra cosa: el alias de la fase, tipado `Phase`, y no lleva estados. Los eventos son strings.
 - El build comprueba modelo, vistas-plantilla, correspondencia carpeta↔fase, i18n, documentos y los identificadores que genera `States`; los **tests** comprueban PhaseEventManager y validator fase a fase (con el código del método que falta listo para pegar), el `InitialEventManagerImpl` por tipo, que `States` concuerda con el XML y que ningún tipo usa el `States` de otro, y que cada estado tiene sus forms y cada evento su botón.
 - `EXIT` y `DELETE` son eventos comunes gratis; `BACK` no — se declara e implementa como uno más.
+- Las funciones propias del tipo (predicados del validador, guardas de los `trigger*`, mutaciones compartidas) son estáticas en una única `<Code>Util` de la raíz de la versión; solo lo que usa el validador o se llama desde más de un sitio, no las líneas sueltas de un único `trigger*`. **MUST NOT** crear `ValidationRule` propias del tipo: función `boolean` + `Lambda`/`ifLambda`. Lo que nunca debería darse es `RuntimeException`, no validación.
 - **MUST NOT** crear `i18n_*.csv` a mano; **MUST NOT** editar el `<extra-code-model>` ni el `estados.png` (los regenera el build).

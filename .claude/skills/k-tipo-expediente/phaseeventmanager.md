@@ -84,6 +84,22 @@ El `onEnter<Estado>` del **primer estado** sí es de una fase, y se ejecuta just
 
 En cada `trigger<Evento>`: la lógica de negocio y **la decisión del estado destino** con `eventContext.updateState(States.<Fase>.<ESTADO>)` (puede depender de los datos, §5); el destino puede estar en **otra fase** con toda normalidad. Los `onEnter<Estado>` pueden quedarse vacíos pero **MUST** existir todos los de la fase.
 
+Lo que **se repite en varios `trigger*`** (del mismo o de distinto `PhaseEventManagerImpl`) sale a una función estática de `<Code>Util`, la clase de utilidad del tipo (`SKILL.md` §1.8). Lo que se hace en un solo evento se queda inline, aunque sean varias líneas: no se extrae por estética. Qué sale:
+
+- **Comprobar quién puede disparar el evento** (que el usuario autenticado es el creador, que actúa en el centro del expediente…): una función `exige<Condicion>(expediente, mensaje)` que lanza `BusinessException(I18n.get(mensaje))` si no se cumple. Se llama en la primera línea del `trigger*`, y cada evento pasa su propio mensaje.
+- **Cualquier otro código que aparezca igual en varios `trigger*`**: una función que recibe el expediente (y lo que necesite), para que ese código esté en un único sitio.
+
+```java
+@WhenEvent
+public void triggerPresentar(MiTramiteV1 expediente, MiTramiteV1 original, EventContext eventContext) throws BusinessException {
+    MiTramiteV1Util.exigeSerElCreador(expediente, "Solo puede presentar sus propias solicitudes");
+
+    MiTramiteV1Util.borrarDevolucion(expediente);   // también lo hacen otros dos eventos
+    ... // lo propio de este evento: generar el PDF, crear el registro de entrada
+    eventContext.updateState(States.Tramitacion.PENDIENTE_REVISION);
+}
+```
+
 ## 3. API de `EventContext`
 
 | Método | Qué hace |
@@ -238,4 +254,4 @@ Las reglas del `PhaseEventManager` se comprueban **fase a fase**: la unidad no e
 - **MUST NOT** editar ni versionar la clase `States`: la reemite el build en cada compilación (`SKILL.md` §2.3).
 - **MUST NOT** poner el `trigger`/`onEnter` de un estado en la clase de otra fase: el test lo detecta, pero además en runtime nunca se le llamaría.
 - **MUST NOT** escribir la inicialización del expediente en un `PhaseEventManagerImpl`: va en el `InitialEventManagerImpl` del tipo (§2.1). Un `triggerInitialEvent` en una fase no lo llama nadie.
-- **MUST NOT** factorizar los `trigger`/`onEnter` comunes a una superclase compartida entre fases o versiones: solo se ven los declarados en la clase de la fase (§7). Si hay lógica común, deja el método declarado en cada fase y que delegue en un helper o servicio.
+- **MUST NOT** factorizar los `trigger`/`onEnter` comunes a una superclase compartida entre fases o versiones: solo se ven los declarados en la clase de la fase (§7). Si hay lógica común, deja el método declarado en cada fase y que delegue en `<Code>Util` (`SKILL.md` §1.8) o en un servicio.

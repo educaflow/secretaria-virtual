@@ -69,9 +69,39 @@ Las reglas (`ValidationRule`) están en `com.educaflow.base.infrastructure.valid
 | `FileMaxSize(n, SizeUnit.MB)` | Tamaño máximo de un `MetaFile` |
 | `FileName("^...$")` | Regex sobre el nombre de fichero de un `MetaFile` |
 | `ifValueIn(model::getCampo, listOf(...)) { +... }` *(DSL, paquete `...validation.dsl`)* | Reglas condicionales según el valor de otro campo; su negación es `ifValueNotIn` |
+| `Lambda(util::funcion, "mensaje")` | Rechaza el campo con el mensaje si la función estática de `<Code>Util` devuelve `false`; §3.1 |
+| `ifLambda(util::funcion) { +... }` *(DSL)* | Reglas condicionales según una función estática de `<Code>Util`; §3.1 |
 | `ifSituacionFirma(...) { +... }`, `ClaveCertificadoValida()`, `FirmaPdf(model::getOriginal)` | Firma de un documento por el usuario; §4 → `recetas/firma.md` §1.4 |
 
 La tabla es un resumen de uso, no un inventario cerrado: la **fuente de verdad** es el contenido del paquete `...validation.rules` (un fichero `*Rules.kt` por familia). Antes de inventarte una regla, mira si ya existe ahí.
+
+### 3.1 Comprobaciones propias del tipo: `Lambda` e `ifLambda`
+
+Una comprobación que solo tiene sentido en este tipo (consulta a BD, cruce de varios campos, cálculo…) **no es una regla nueva**: es una función estática `boolean` de `<Code>Util` (`SKILL.md` §1.8) que el validador declara con una de estas dos:
+
+| | Qué hace | Cuándo |
+|---|---|---|
+| `+Lambda(util::funcion, "mensaje")` | Regla terminal: si la función devuelve `false`, rechaza el campo con el mensaje | La función **es** la comprobación |
+| `+ifLambda(util::funcion) { +... }` | Condicional: si la función devuelve `true`, aplica las reglas anidadas; si devuelve `false`, el campo se da por válido | La función decide **si** se aplican otras reglas (la versión de `ifValueIn` para condiciones que no son «este otro campo vale X») |
+
+Las dos pasan a la función el **expediente entero**, no el valor del campo. Kotlin infiere el tipo de la referencia al método estático Java: `import com.educaflow.tramites.mi_tramite.v1.MiTramiteV1Util as util` y `util::funcion`.
+
+```kotlin
+field(model::getCiclo) {
+    +Required()
+    +Lambda(util::sinOtraSolicitudEnCurso, "Ya tiene una solicitud en curso para este ciclo")
+}
+field(model::getMotivoRechazo) {
+    +ifLambda(util::esRechazo) {
+        +Required()
+        +MaxLength(500)
+    }
+}
+```
+
+- El validador se queda **declarativo**: **MUST NOT** contener JPQL, `JpaRepository`, `Beans.get` ni lambdas con cuerpo; solo referencias `util::funcion`.
+- El mensaje va en el validador, no en la función: la función devuelve `boolean` y no sabe de mensajes.
+- La función lanza `IllegalStateException` si le falta un dato que fija el servidor: **MUST NOT** devolver `true` en silencio cuando no puede decidir (`SKILL.md` §1.8).
 
 ## 4. Firma de un documento por el usuario
 
@@ -98,3 +128,4 @@ Las reglas se comprueban **fase a fase**: la unidad no es el tipo de expediente,
 - **MUST NOT** dar reglas a campos que rellena el servidor (§1).
 - **MUST NOT** confiar en `readonly`/`showIf`/`hidden` de la vista como defensa: la única frontera real es esta whitelist (`k-secure-coding`).
 - **MUST NOT** factorizar los `getForState<Estado>InEvent<Evento>` comunes a una superclase compartida entre fases o versiones: solo se ven los declarados en la clase de la fase (§5).
+- **MUST NOT** crear una `ValidationRule` en la carpeta de la versión: función `boolean` en `<Code>Util` + `Lambda`/`ifLambda` (§3.1). Solo si la comparten varios tipos es una regla, y entonces vive en `tramites/util/` o en el catálogo base.
