@@ -35,6 +35,16 @@
                     .orElse(null);
             }
 
+            public com.educaflow.subsystem.common.db.CentroUsuario getCentroUsuario(com.educaflow.subsystem.common.db.Centro centro) {
+                if (centro == null || centro.getId() == null || centroUsuarios == null) {
+                    return null;
+                }
+                return centroUsuarios.stream()
+                    .filter(cu -> cu.getCentro() != null && centro.getId().equals(cu.getCentro().getId()))
+                    .findFirst()
+                    .orElse(null);
+            }
+
             public List<TipoUsuario> getTiposUsuarioActivos() {
                 var cu = getCentroUsuarioActivo();
                 if (cu == null || cu.getCentroUsuarioTipoUsuario() == null) {
