@@ -33,6 +33,7 @@ Al invocar `developer-code-implementer`, inclúyele además:
 - Una **nota** de que los XML de dominios/vistas/menús de los que dependa **ya están colocados** en `src/main/...` y son **contrato fijo**: **NO** debe regenerarlos ni editarlos; las firmas Java deben coincidir con las acciones de las vistas (`<action-method method="action-..." class="..."/>` ↔ controlador.método) y las entidades JPA con los dominios. Si detecta un XML mal, **detenerse y notificar**, no editarlo.
 - La restricción de **superficie cerrada** (§2.1): **MUST** crear solo los ficheros y métodos/clases públicos que la tarea lista; **MUST NOT** inventar clases/controladores/métodos de más ni clonar el patrón de otra entidad. Si "haría falta" algo no listado, **parar y reportar**, no inventarlo.
 - Si la tarea lleva ficheros con `Acción: Modificar` (clases Java existentes): la instrucción de **editar la clase existente** añadiendo/cambiando **solo** lo que la tarea declara y **conservando** todo lo demás (métodos, campos, imports preexistentes). La superficie cerrada aplica al **delta** que la tarea declara, no a la clase entera: los miembros preexistentes no son "superficie de más" y **MUST NOT** eliminarse ni renombrarse.
+- **Comentarios**: **MUST** aplicarse `k-code-quality/comentarios.md` — el código va sin comentarios salvo el *por qué* que leerlo no revela, y los separadores de bloque se conservan.
 - La instrucción de **parar y reportar** ante cualquier bloqueo. **MUST NOT** adivinar.
 
 ### 2.1 Superficie cerrada — implementar solo lo que la tarea lista

@@ -110,6 +110,7 @@ Al invocarlo, inclúyele además estas notas:
 - **El `import` de `States` MUST ser el de la propia versión** (`<basePackageName>.States`). Referenciar el `States` de otro tipo o versión **compila** y revienta en runtime.
 - **MUST NOT** usarse `System.out`: logger slf4j.
 - Los errores de negocio se lanzan como `BusinessException`.
+- **Comentarios**: **MUST** aplicarse `k-code-quality/comentarios.md` — el código va sin comentarios salvo el *por qué* que leerlo no revela, y los separadores de bloque se conservan.
 - La instrucción de **parar y reportar** ante cualquier bloqueo, sin adivinar.
 
 ---

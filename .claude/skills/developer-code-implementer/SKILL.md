@@ -127,6 +127,7 @@ Para cada paso del plan, ejecuta este ciclo:
 Lanza un subagente (`Agent`, contexto propio, sin historial de la sesión principal) cuyo prompt **MUST** incluir:
 
 - La instrucción de **cargar primero los skills de dominio** indicados (herramienta `Skill`) antes de implementar nada.
+- **CRITICAL** — la instrucción de cargar **siempre** `k-code-quality` (herramienta `Skill`) y aplicar su `comentarios.md`, se hayan pasado skills de dominio o no: el código se escribe **sin comentarios** salvo el *por qué* que leerlo no revela, y los separadores de bloque se conservan.
 - El **texto completo del paso** a implementar (nunca una referencia al plan).
 - El contexto adicional recibido (ubicación del código, restricciones).
 - El contrato de respuesta: terminar con **uno** de estos estados como primera línea, seguido del detalle:
@@ -172,6 +173,7 @@ Lanza un **segundo** subagente con contexto propio cuyo prompt **MUST** incluir:
 Si se proporcionaron skills de dominio, lanza un **tercer** subagente que revisa la calidad del código del paso:
 
 - Carga los skills de dominio y revisa el código buscando errores, inconsistencias con las convenciones o mejoras necesarias.
+- Carga además `k-code-quality` y revisa el código contra su `comentarios.md`: un comentario que narre lo que el código ya dice es un problema `IMPORTANT`.
 - Si no encuentra problemas responde exactamente: `OK` (token propio de este paso; no confundir con el `OK-No hay problemas` de `developer-code-reviewer`).
 - Si encuentra problemas, responde con la lista en el formato `BEGIN:----` / `SEVERIDAD:` / `END:----` de `developer-code-reviewer` (severidades `BLOCKING`/`IMPORTANT`/`MINOR`).
 
