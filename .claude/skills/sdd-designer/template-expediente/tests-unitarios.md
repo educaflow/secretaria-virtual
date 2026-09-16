@@ -30,7 +30,7 @@ Lo escribe el rol **test-unitarios**; lo verifica el **verificador-test-unitario
 | **T1** | Que el `<defaultTipoExpediente>` apunta al **nombre de una carpeta** de versión que existe |
 | **X1–X3** | Que hay un `<form state>` genérico por estado, un `<form state profile>` en cada estado con perfil y eventos, y ningún `(state, profile)` duplicado |
 | **Y1–Y3** | Que todo botón del footer es un evento de su estado o uno común, que todo evento tiene botón, y que todo `onClick` incluye `subsysExpedientes-event-action` |
-| **P1–P2** | Que toda expresión Groovy de los `documentospdf/` (cada `nombreCampo` y cada `${expresion;n}`, leídas del PDF que genera el build) **compila** con `@TypeChecked` contra la entidad del tipo (`self`) y `now: LocalDateTime` —propiedades existentes, FQCN que resuelven, sintaxis válida— (P1), y que navega con `?.` por toda propiedad que no sea `required="true"` en el modelo y por todo lo que venga tras un `?.` (P2). No ven lo que depende de los valores (patrón de fecha, resultado de un método) |
+| **P1** | Que toda expresión Groovy de los `documentospdf/` (cada `nombreCampo` y cada `${expresion;n}`, leídas del PDF que genera el build) **compila** con `@TypeChecked` contra la entidad del tipo (`self`) y `now: LocalDateTime`: propiedades existentes, FQCN que resuelven, sintaxis válida. No ve lo que depende de los datos (relación a `null` en la cadena, patrón de fecha) |
 
 Esos tests **se escriben A MANO** y los `.java` son la **fuente de verdad**. Por tanto:
 
@@ -94,7 +94,7 @@ Para este artefacto **no se describe ningún test unitario** de las clases del t
 - que el `estados.puml` dibuja todos los estados con el alias `<FASE>_<ESTADO>` y sin alias fantasma;
 - que los `views.xml` de cada fase tienen el form genérico de cada estado, el form con perfil donde procede, sin duplicados, y que todo evento tiene su botón;
 - que no se referencia la clase `States` de otro tipo ni de otra versión, y que el `<defaultTipoExpediente>` apunta a una carpeta de versión que existe;
-- que toda expresión Groovy de los `documentospdf/` compila contra la entidad del tipo (propiedades existentes y FQCN que resuelven) y navega con `?.` por toda propiedad que no sea `required`.
+- que toda expresión Groovy de los `documentospdf/` compila contra la entidad del tipo (propiedades existentes y FQCN que resuelven).
 
 Esos tests **se escriben a mano** y los `.java` son su fuente de verdad: este diseño **no propone crearlos, modificarlos, ampliarlos ni regenerarlos**.
 
