@@ -10,7 +10,7 @@
         <string name="nia" title="NIA"   />
         <string name="nrp" title="Nº Registro Personal"   />
         <string name="email" title="Correo electrónico"   />
-        <string name="dirección" title="Dirección"   />
+        <string name="direccion" title="Dirección"   />
         <string name="telefono" title="Teléfono"   />
         <many-to-one name="municipio"   title="Municipio"   ref="Municipio" />
         <string name="cp" title="Código Postal"   />
