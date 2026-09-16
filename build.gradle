@@ -266,6 +266,17 @@ tasks.register('generatePdfDocuments', JavaExec) {
     args './src/main/java', './build/src-gen/main/resources', 'apertium', paqueteRaizTramites
 
     workingDir = layout.projectDirectory.dir('.')
+
+    // Entradas y salidas declaradas. Sin ellas Gradle no sabe que esta tarea escribe en
+    // build/src-gen/main/resources, y con la vigilancia del sistema de ficheros (activa por
+    // defecto) su caché sigue creyendo que los PDF no han cambiado: processResources sale
+    // UP-TO-DATE y el classpath se queda con el PDF viejo, que es el que leen los tests de
+    // tiposexpedientes (ExpresionesDeDocumentoTest). Las entradas son lo que lee xml2pdf: los
+    // XML y fragmentos de documentospdf/ y el TramiteInstance.xml (su <name> titula los
+    // documentos sin <titulo>).
+    inputs.files(fileTree('src/main/java') { include '**/documentospdf/**', '**/documentos/**', '**/TramiteInstance.xml' })
+          .withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.dir(layout.buildDirectory.dir('src-gen/main/resources/' + paqueteRaizTramites.replace('.', '/')))
 }
 // dependsOn (no finalizedBy): build/src-gen/main/resources es un srcDir de
 // recursos, así que los PDF deben existir ANTES de que processResources los

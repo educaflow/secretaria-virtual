@@ -366,7 +366,7 @@ Reglas:
 - `<include href="_<fragmento>.xml"/>` va **solo** como hijo directo de `<documento>`/`<fragmento>`, **nunca** dentro de una `<seccion>`.
 - Los `colspan` de cada `<fila>` **MUST** sumar 12 o un múltiplo de 12; un elemento **MUST NOT** cruzar el límite de 12.
 - `<valenciano>` y `<castellano>` **MUST** ir como **elementos hijos**, nunca como atributos. Omitir `<valenciano>` → lo traduce el build; ponerlo **vacío** → solo castellano. **MUST NOT** quitarse un `<valenciano>` ya escrito para que lo retraduzca el build.
-- **CRITICAL — los fallos de evaluación de las expresiones son SILENCIOSOS**: cada `nombreCampo` se evalúa como **Groovy** con el contexto `{ self = el expediente, now = LocalDateTime.now() }`; una expresión que revienta no rompe el build ni el evento, se escribe en el log y **el campo queda vacío**. El diseño **MUST** usar solo rutas `self.*` que existan en la entidad (o en `Expediente`), y el paso de verificación final **MUST** exigir revisar el PDF generado en runtime.
+- **CRITICAL — los fallos de evaluación de las expresiones en runtime son SILENCIOSOS**: cada `nombreCampo` se evalúa como **Groovy** con el contexto `{ self = el expediente, now = LocalDateTime.now() }`; una expresión que revienta no rompe el evento, se escribe en el log y **el campo queda vacío**. Los tests **P1** y **P2** (`ExpresionesDeDocumentoTest`, en el build) compilan cada expresión contra la entidad y cazan la propiedad inexistente, el FQCN que no resuelve y la navegación con `.` por una propiedad que no sea `required="true"` (o que venga tras un `?.`), pero **no** lo que depende de los valores (patrón de fecha, resultado de un método). El diseño **MUST** usar solo rutas `self.*` que existan en la entidad (o en `Expediente`), **MUST** escribir `?.` en todo paso por una propiedad no `required` (`self.personaInteresada?.nombre`, `self.centro?.municipio?.name`), y el paso de verificación final **MUST** exigir revisar el PDF generado en runtime.
 
 Raíces admitidas:
 
@@ -514,7 +514,7 @@ El paso **MUST** decir que es una **fusión**, no una copia: se añaden a `src/m
 
 - `BUILD SUCCESSFUL`, con los tests de `com/educaflow/tiposexpedientes` y `com/educaflow/views` en verde (los ejecuta ese mismo build).
 - Que se regeneró `estados.png` (`GenerateDocs` va enganchada a `build` con `finalizedBy`).
-- **REQUIRED — comprobación en runtime**: navegar por **todos** los estados con usuarios de los perfiles adecuados. Los tests cubren la forma, no el comportamiento. En particular, lo que **nada** comprueba en build: `personaSolicitante`/`personaInteresada` (NPE al crear el registro de entrada), las **transiciones** del `.puml`, y las expresiones Groovy de `documentospdf/` (fallo silencioso: log + campo vacío).
+- **REQUIRED — comprobación en runtime**: navegar por **todos** los estados con usuarios de los perfiles adecuados. Los tests cubren la forma, no el comportamiento. En particular, lo que **nada** comprueba en build: `personaSolicitante`/`personaInteresada` (NPE al crear el registro de entrada), las **transiciones** del `.puml`, y de las expresiones Groovy de `documentospdf/` lo que depende de los valores —patrón de fecha inválido, resultado de un método— (fallo silencioso: log + campo vacío; que las propiedades y los FQCN existan y que se navegue con `?.` por lo no `required` ya lo comprueban los tests P1 y P2 en el build).
 
 ---
 

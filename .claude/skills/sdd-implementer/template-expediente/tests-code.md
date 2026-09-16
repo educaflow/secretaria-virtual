@@ -99,6 +99,15 @@ Esta es la lista de lo que se le va a exigir al tipo de expediente generado. El 
 
 > **Lo que D1–D3 NO comprueban**: las **transiciones**. Su destino no está en el XML, así que **nadie verifica** que un evento lleve al estado dibujado. Mantenerlo fiel a la tabla de transiciones del diseño es responsabilidad del implementador.
 
+### 2.9 Documentos PDF
+
+| ID | Qué exige |
+|---|---|
+| **P1** | Toda expresión Groovy de los `documentospdf/` del tipo (cada `nombreCampo` y cada `${expresion;n}`) **MUST** compilar con `@TypeChecked` contra la entidad del `domains.xml` como `self` y `java.time.LocalDateTime` como `now`: cada propiedad existe en la entidad o en la relación navegada, cada FQCN resuelve (el enum es el de **esta** versión) y la sintaxis es válida. Las expresiones se leen del **PDF que genera el build**, con el mismo lector que el runtime, así que los fragmentos `_*.xml` ya van expandidos. El mensaje trae el tipo, el fichero, la expresión y el error del compilador de Groovy |
+| **P2** | En esas mismas expresiones, todo `.` (propiedad o método) cuyo receptor sea una propiedad que **puede ser `null`** **MUST** ser `?.`. Puede serlo toda propiedad que no sea `required="true"` en su modelo (Axelor lo compila a `@NotNull`) ni un primitivo, y siempre el resultado de un `?.` anterior: `self.personaInteresada?.nombre`, `self.centro?.municipio?.name` (no `self.centro?.municipio.name`). `self`, `now`, las clases y los literales nunca son `null`. El mensaje dice qué receptor puede ser `null`, por qué, y trae la expresión corregida |
+
+> **Lo que P1–P2 NO comprueban**: lo que depende de los **valores** y no de los tipos —un patrón de `DateTimeFormatter` mal escrito, el resultado de un método navegado sin `?.` (P2 solo juzga propiedades del modelo)—. Eso sigue fallando solo en runtime y **en silencio** (log + campo vacío).
+
 ---
 
 ## 3. `design/test-e2e-desc.md` — se propaga VERBATIM

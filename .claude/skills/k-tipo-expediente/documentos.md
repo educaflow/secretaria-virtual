@@ -57,7 +57,7 @@ Los documentos son los PDF con los que se materializa la tramitación: los que l
 Los `<valenciano>` pueden omitirse; entonces se calculan traduciendo el `<castellano>` (§2.6):
 
 ```xml
-    <campo nombreCampo="self.centro.name" colspan="4">
+    <campo nombreCampo="self.centro?.name" colspan="4">
         <castellano>Nombre</castellano>       <!-- valenciano: "Nom", traducido en el build -->
     </campo>
 ```
@@ -175,13 +175,13 @@ Si el documento no lleva `<titulo>` (ni propio ni aportado por un fragmento), el
 
 | Variable | Valor |
 |---|---|
-| `self` | El **objeto del tipo de expediente**: la instancia de la entidad (`extends Expediente`) del expediente concreto. Da acceso a todos sus campos propios y heredados (`self.personaInteresada.nombre`, `self.numeroExpediente`, `self.centro.name`…) |
+| `self` | El **objeto del tipo de expediente**: la instancia de la entidad (`extends Expediente`) del expediente concreto. Da acceso a todos sus campos propios y heredados (`self.personaInteresada?.nombre`, `self.numeroExpediente`, `self.centro?.name`…) |
 | `now` | `java.time.LocalDateTime.now()` (fecha/hora de generación) |
 
 **Potencia**: se evalúan con `GroovyShell`, así que vale cualquier expresión Groovy:
 
-- Navegación de propiedades: `self.personaInteresada.dni`, `self.centro.municipio.name`.
-- Navegación segura y elvis: `self.otroMotivo?.toUpperCase()`, `self.otroMotivo ?: ""`.
+- Navegación de propiedades, **siempre con `?.`** en todo paso que no sea `required="true"` en el modelo (regla P2, más abajo): `self.personaInteresada?.dni`, `self.centro?.municipio?.name`. Tras un `?.`, todos los pasos siguientes también lo llevan.
+- Elvis y métodos sobre un valor que puede faltar: `self.otroMotivo?.toUpperCase()`, `self.otroMotivo ?: ""`.
 - Llamadas a métodos: `String.valueOf(self.anyo)`, `now.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))`.
 - Clases por FQCN (no hay imports): `com.educaflow.base.util.MetaFileUtil.sha256(self.justificante)`.
 - Comparaciones para los `<check>`: `self.tipoPeriodo==com.educaflow.subsystem.expedientes.db.TipoPeriodo<Entidad>.PERIODO_COMPLETO`, o el literal `true` (casilla siempre marcada).
@@ -195,10 +195,24 @@ Si el documento no lleva `<titulo>` (ni propio ni aportado por un fragmento), el
 | `null` | vacío |
 | Enteros / decimales | formateados con locale español (decimales: máximo 2) |
 | `LocalDate` / `LocalTime` / `LocalDateTime` | `dd/MM/yyyy` / `HH:mm` / `dd/MM/yyyy HH:mm` |
-| Enum de Axelor | su `title` del `<item>` del dominio (o el `name` humanizado si no tiene `title`); también vale acceder explícitamente: `self.tipoResolucion.title` |
+| Enum de Axelor | su `title` del `<item>` del dominio (o el `name` humanizado si no tiene `title`); también vale acceder explícitamente: `self.tipoResolucion?.title` |
 | Resto | `toString()` |
 
-**CRITICAL — los fallos son silenciosos**: una expresión que revienta al evaluarse (propiedad inexistente, NPE en la cadena…) **no hace fallar ni el build ni el evento** — el error solo se escribe en el log del servidor y el campo queda **vacío**. Tras cambiar expresiones, **MUST** revisar el PDF generado en runtime (y el log si falta algún valor). Una expresión vacía se salta sin evaluar.
+**CRITICAL — los fallos en runtime son silenciosos**: una expresión que revienta al evaluarse **no hace fallar ni el evento** — `EvaluatorImplGroovy` captura la excepción, la escribe en el log del servidor y el campo queda **vacío**. Una expresión vacía se salta sin evaluar.
+
+**Cómo se testean** (`src/test/java/com/educaflow/tiposexpedientes/documentos/ExpresionesDeDocumentoTest.java`, reglas **P1** y **P2**; se escribe a mano, `SKILL.md` §3.3):
+
+- El test recorre todos los tipos de expediente, lee cada PDF de `documentospdf/` **del classpath** (el que generó el build, o el versionado) con el mismo `DocumentoPdfFactory` que el runtime, y toma como expresiones sus nombres de campo: exactamente lo que `DocumentoPdfUtil.generate` va a evaluar, con los fragmentos ya expandidos.
+- Cada expresión se **compila** (no se evalúa) envuelta en un método `@groovy.transform.TypeChecked` con parámetros `<Entidad> self` y `java.time.LocalDateTime now`, donde `<Entidad>` es la primera `<entity>` del `domains.xml`. El comprobador estático de Groovy rechaza la propiedad que no existe en la entidad ni en la relación navegada, el FQCN que no resuelve (el enum `...V1` que se queda en el XML al duplicar la versión) y el error de sintaxis. El mensaje trae el tipo, el fichero, la expresión y el error del compilador (**P1**).
+- Sobre el AST ya tipado se comprueba además la **nulabilidad**: todo `.` (propiedad o método) cuyo receptor sea una propiedad que **puede ser `null`** debe ser `?.` (**P2**). Puede ser `null` toda propiedad que no sea `required="true"` en su modelo (Axelor lo compila a `@NotNull`) ni un primitivo; y el resultado de un `?.` siempre, porque es `null` cuando lo es su receptor, así que `self.a?.b.c` también falla: ha de ser `self.a?.b?.c`. `self`, `now`, las clases (acceso estático) y los literales nunca son `null`. El mensaje dice qué receptor puede ser `null`, por qué, y la expresión corregida.
+- Corre con `./gradlew test` y por tanto con `./run.sh`: un fallo de P1 o P2 rompe el build. Para lanzarlo solo: `./gradlew test --tests 'com.educaflow.tiposexpedientes.documentos.*'`.
+- **Lo que P1 y P2 NO ven** es lo que depende de los valores y no de los tipos: un patrón de `DateTimeFormatter` inválido, o el resultado de un método (P2 solo juzga propiedades del modelo, que son las que tienen nulabilidad declarada). Eso sigue fallando solo en runtime, en silencio: tras cambiar expresiones de ese tipo, **MUST** revisar el PDF generado (y el log si falta algún valor).
+- ✅ CORRECTO: `self.tipoResolucion?.title` (`ValueEnum` de Axelor aporta `getTitle()` como método `default`, así que compila y devuelve el `title` del `<item>`; `?.` porque el enum no es required).
+- ✅ CORRECTO: `self.codeState.toUpperCase()` (`codeState` es `required="true"` en `Expediente`: no puede ser `null`, no hace falta `?.`).
+- ❌ INCORRECTO: `self.personaInteresada.nombre` (P2 falla: `personaInteresada` no es required; escribe `self.personaInteresada?.nombre`).
+- ❌ INCORRECTO: `self.centro?.municipio.name` (P2 falla: tras `?.` el valor puede ser `null` aunque `municipio` fuera required; escribe `self.centro?.municipio?.name`).
+- ❌ INCORRECTO: `self.personaInteresada.nombreCompleto` si `Persona` no tiene ese campo (P1 falla: `No such property: nombreCompleto for class: ...Persona`).
+- ❌ INCORRECTO: `...db.SentidoRevisionMiTramiteV1.RECHAZAR` en el XML de la `v2` (P1 falla: `The variable [com] is undeclared` — el enum de la `v2` es `...V2`).
 
 ---
 
@@ -208,6 +222,7 @@ Si el documento no lleva `<titulo>` (ni propio ni aportado por un fragmento), el
 - **MUST NOT** quitar un `<valenciano>` ya escrito para dejar que lo traduzca el build: la traducción automática (§2.6) es para textos **nuevos**, no para sustituir el valenciano oficial de un documento existente.
 - **MUST NOT** copiar una `<seccion>` literalmente idéntica en dos documentos en vez de extraerla a un fragmento (§2.5): el duplicado se desincroniza en silencio en el primer cambio del texto.
 - **MUST NOT** meter todos los bloques comunes en un único fragmento cajón de sastre, ni nombrar un fragmento con un correlativo (`_template1.xml`): un fragmento por bloque, nombrado por su contenido (§2.5).
+- **MUST NOT** navegar con `.` por una propiedad que no sea `required="true"` (`self.centro.name`): con la relación a `null` es un NPE que deja el campo vacío en silencio, y P2 lo rechaza en el build. Se escribe `self.centro?.name` (§2.8).
 - **MUST NOT** documentar ni reimplementar aquí la generación del PDF: esa implementación vive en `EducaFlowBuildTools` (herramienta `xml2pdf`).
 
 ---
@@ -221,7 +236,7 @@ Si el documento no lleva `<titulo>` (ni propio ni aportado por un fragmento), el
 - Todo XML referencia el XSD `documento.xsd` de `EducaFlowBuildTools` con `xsi:noNamespaceSchemaLocation` = su URL de GitHub en master; el generador lo valida al cargarlo (y puedes adelantarte con `xmllint --schema` contra la copia local de `../EducaFlowBuildTools`).
 - `colspan` y `rowSpan` admiten decimales; la casilla de un `<check>` ocupa siempre 1 columna.
 - `${expresion;n}` = campo inline de `n` columnas dentro de cualquier texto bilingüe.
-- `nombreCampo` no es un nombre: es una **expresión Groovy** que obtiene el valor del campo, evaluada **en runtime** con `self` (el objeto del tipo de expediente) y `now`; los fallos de evaluación son silenciosos (log + campo vacío) — revisa el PDF generado (§2.8). Con comillas dobles dentro, atributo con comillas simples.
+- `nombreCampo` no es un nombre: es una **expresión Groovy** que obtiene el valor del campo, evaluada **en runtime** con `self` (el objeto del tipo de expediente) y `now`. `ExpresionesDeDocumentoTest` compila cada expresión contra la entidad (P1) y exige `?.` en todo paso por una propiedad no `required` (P2) en `./gradlew test`; lo que depende de los valores (patrón de fecha, resultado de un método) sigue fallando en runtime en silencio (log + campo vacío) — revisa el PDF generado (§2.8). Con comillas dobles dentro, atributo con comillas simples.
 - En `documentospdf/` cada documento está **o** como XML de definición **o** directamente como PDF versionado (nunca ambos para el mismo documento; mezclar XML de unos y PDF de otros en la carpeta es lo normal). Si existe **impreso oficial**, se versiona ese PDF tal cual en vez de definirlo por XML. Este fichero solo define el **formato del XML**; el PDF lo genera el build (`generatePdfDocuments` / EducaFlowBuildTools).
 - Partes comunes: fragmentos `_*.xml` (raíz `<fragmento>`) incluidos con `<include href="..."/>` solo a nivel de documento/fragmento, recursivos, validados también tras expandir (§2.5).
 - **MUST** extraer a fragmento, **desde que se escriben los documentos**, toda `<seccion>` literalmente idéntica en dos o más de ellos: **un fragmento por bloque común** (no un cajón de sastre) y nombrado por su contenido (`_datosAlumno.xml`, nunca `_template1.xml`). Lo que no sea literalmente idéntico **MUST NOT** unificarse cambiando el contenido de un documento: eso cambia el PDF (§2.5).
