@@ -46,6 +46,9 @@ Clases de utilidad de **bajo nivel** del proyecto. Su objetivo es no repetir peq
 ### `EMailUtil` — validación de email
 - `isValid` — valida una dirección de email con el validador de Hibernate.
 
+### `IbanUtil` — validación de IBAN español
+- `isValid` — valida un IBAN español (`ES` + 22 dígitos) comprobando el checksum estándar mod-97.
+
 ### `JsonUtil` — JSON con Jackson
 - `toJson` — serializa un objeto a JSON.
 - `fromJson` — deserializa JSON a una clase concreta.
