@@ -8,13 +8,6 @@
 
     <entity name="AnulacionMatriculaCicloFormativoV1" extends="Expediente">
 
-        <string name="nia" title="NIA" />
-        <string name="direccion" title="Dirección" />
-        <string name="telefono" title="Teléfono" />
-        <string name="poblacion" title="Población" />
-        <string name="provincia" title="Provincia" />
-        <string name="codigoPostal" title="Código postal" />
-
         <many-to-one name="ciclo" title="Ciclo formativo"
                      ref="com.educaflow.subsystem.sistemaeducativo.db.Ciclo" />
 

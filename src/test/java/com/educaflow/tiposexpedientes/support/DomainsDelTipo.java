@@ -10,8 +10,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Lectura del {@code domains.xml} de un tipo de expediente: cuál es <b>su</b> entidad.
@@ -66,6 +68,39 @@ public final class DomainsDelTipo {
         }
 
         return fqcn;
+    }
+
+    /**
+     * Los {@code name} de los campos que declara la entidad del tipo (la primera {@code <entity>}).
+     * Vacío si el fichero no existe o no declara ninguna entidad.
+     */
+    public static Set<String> nombresCamposEntidad(TipoExpedienteInstanceFile tipo) {
+        Path path = path(tipo);
+
+        return Files.isRegularFile(path) ? nombresCampos(primero(doc(path), "entity")) : Set.of();
+    }
+
+    /** Los {@code name} de los campos de la entidad {@code Persona}, leídos de su propio dominio. */
+    public static Set<String> nombresCamposPersona() {
+        Path path = TiposExpediente.origen().resolve("com/educaflow/subsystem/common/domains/Persona.xml");
+
+        return nombresCampos(primero(doc(path), "entity"));
+    }
+
+    private static Set<String> nombresCampos(Element entidad) {
+        Set<String> nombres = new LinkedHashSet<>();
+        if (entidad == null) {
+            return nombres;
+        }
+
+        NodeList hijos = entidad.getChildNodes();
+        for (int i = 0; i < hijos.getLength(); i++) {
+            if ((hijos.item(i) instanceof Element campo) && campo.hasAttribute("name")) {
+                nombres.add(campo.getAttribute("name").trim());
+            }
+        }
+
+        return nombres;
     }
 
     private static Optional<String> parse(Path path) {

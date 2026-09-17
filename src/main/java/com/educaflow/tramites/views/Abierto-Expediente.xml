@@ -5,9 +5,19 @@
 
 
 
+    <!-- La bandeja «Expedientes Esperando» se pinta con un GRID y no con un tree a propósito: la vista
+         tree de Axelor pide los hijos de cada nodo con el tamaño de página por defecto (40) y SIN paginación
+         (axelor-front, views/tree/tree.tsx → onSearchNode llama a ds.search sin limit ni offset; la barra de
+         paginación del árbol solo gobierna el nodo raíz), así que en cuanto un trámite supera los 40
+         expedientes abiertos el resto queda INALCANZABLE desde la bandeja. El grid sí pagina y conserva la
+         agrupación por trámite con groupBy. MUST NOT volver a colgar aquí un tree de expedientes mientras
+         el framework no pagine los hijos. -->
     <action-view name="subsysExpedientes.Expediente@Esperando-action" title="Expedientes esperando a que otra persona realice una tarea"  model="com.educaflow.subsystem.expedientes.db.Expediente" >
-        <view type="tree" name="subsysExpedientes.Expediente@Esperando-tree"  />
+        <view type="grid" name="subsysExpedientes.Expediente@Esperando-grid"/>
+        <domain>self.abierto=true AND (self.centro.id IN (SELECT cu.centro.id FROM CentroUsuario cu WHERE cu.usuario.id = :usuarioId) OR :esAdministrador = true)</domain>
         <context name="_profile" expr="RESPONSABLE"/>
+        <context name="usuarioId" expr="eval: __user__?.id"/>
+        <context name="esAdministrador" expr="eval: __user__?.group?.code == 'admins'"/>
     </action-view>
 
     <grid name="subsysExpedientes.Expediente@Esperando-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
@@ -26,30 +36,6 @@
     </grid>
 
 
-    <tree name="subsysExpedientes.Expediente@Esperando-tree" title="Expedientes">
-
-        <column name="name" />
-        <column name="numeroExpediente" width="100px" title="Número Expediente" />
-        <column name="createdBy" width="200px" title="Creado por"/>
-        <column name="namePhase" width="15%" title="Fase"/>
-        <column name="nameState" width="30%" title="Estado"/>
-        <column name="fechaUltimoEstado" type="date" width="100px" title="Fecha"/>
-
-
-        <node model="com.educaflow.subsystem.expedientes.db.Tramite" domain="EXISTS (SELECT 1 FROM Expediente e WHERE e.abierto=true AND e.tipoExpediente.tramite=self)" >
-            <field name="name" as="name" />
-        </node>
-
-        <node model="com.educaflow.subsystem.expedientes.db.Expediente" domain="abierto=true" parent="tipoExpediente.tramite" draggable="false" onClick="subsysExpedientes-event-view-action">
-            <field name="name" />
-            <field name="numeroExpediente"/>
-            <field name="createdBy"/>
-            <field name="namePhase"/>
-            <field name="nameState"/>
-            <field name="fechaUltimoEstado"/>
-        </node>
-
-    </tree>
 
 
 </object-views>

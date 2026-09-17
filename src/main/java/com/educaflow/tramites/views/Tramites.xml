@@ -17,7 +17,7 @@
             <field name="name" as="name"  />
         </node>
 
-        <node model="com.educaflow.subsystem.expedientes.db.Tramite" parent="tipoTramite" draggable="false" onClick="subsysExpedientes-event-new-action">
+        <node model="com.educaflow.subsystem.expedientes.db.Tramite" parent="tipoTramite" draggable="false" onClick="subsysExpedientes.Main@ContextoTramitacion-action">
             <field name="name" as="name" />
             <button name="ayuda"  help="Descripción del trámite" onClick="sysTramites-mostrar-ayuda-action" icon="help"/>
         </node>
@@ -74,7 +74,7 @@
                         </div>
                         <div className="card-body" >
                             <Box mt={0} as="p" color="secondary" dangerouslySetInnerHTML={{ __html: help }} />
-                            <Button  outline="true" block="true" variant="primary" onClick={$action("subsysExpedientes-event-new-action")}>{_t("Nuevo Expediente")}</Button>
+                            <Button  outline="true" block="true" variant="primary" onClick={$action("subsysExpedientes.Main@ContextoTramitacion-action")}>{_t("Nuevo Expediente")}</Button>
                         </div>
                     </div>
                 </Box>

@@ -20,6 +20,8 @@
         <many-to-one name="usuarioRegistrador" ref="com.axelor.auth.db.User" help="Usuario que registra el expediente" />
         <one-to-one name="personaSolicitante" ref="com.educaflow.subsystem.common.db.Persona" help="Persona que solicita, por ejemplo el padre" />
         <one-to-one name="personaInteresada" ref="com.educaflow.subsystem.common.db.Persona" help="Persona sobre la que recae lo que se solicita, por ejemplo el alumno" />
+        <boolean name="presentadoEnRepresentacion" title="Presentado en representación" help="La persona solicitante presenta el expediente en nombre de la persona interesada" />
+        <boolean name="presentadoEnPapel" title="Presentado en papel" help="La persona solicitante entregó la solicitud en papel en el centro y la registró el personal del centro" />
 
         <!-- La clave sí es un campo del modelo: es un valor que viaja del cliente al servidor, y la
              whitelist del evento (AllowProperties, que sale de los field(...) del StateEventValidatorImpl)

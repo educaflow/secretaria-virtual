@@ -2,28 +2,17 @@ package com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1;
 
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.Municipio;
-import com.educaflow.subsystem.common.db.Persona;
-import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
+import com.educaflow.subsystem.expedientes.services.eventmanager.InitialEventContext;
 import com.educaflow.subsystem.expedientes.services.eventmanager.InitialEventManager;
 import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
-import com.axelor.auth.db.User;
 
 
 public class InitialEventManagerImpl implements InitialEventManager<AnulacionMatriculaCicloFormativoV1> {
 
     @Override
-    public void triggerInitialEvent(AnulacionMatriculaCicloFormativoV1 expediente, EventContext eventContext) throws BusinessException {
-        User usuarioRegistrador = expediente.getUsuarioRegistrador();
-        Persona persona = new Persona();
-        persona.setNombre(usuarioRegistrador.getNombre());
-        persona.setApellidos(usuarioRegistrador.getApellidos());
-        persona.setDni(usuarioRegistrador.getDni());
-
-        // createRegistroEntrada (al presentar) lee las dos personas y revienta con NPE si faltan.
-        expediente.setPersonaInteresada(persona);
-        expediente.setPersonaSolicitante(persona);
-
+    public void triggerInitialEvent(InitialEventContext<AnulacionMatriculaCicloFormativoV1> initialEventContext) throws BusinessException {
+        AnulacionMatriculaCicloFormativoV1 expediente = initialEventContext.getExpediente();
         Centro centro = expediente.getCentro();
         Integer curso = centro.getCurso();
         expediente.setCursoAcademico(curso == null ? null : curso + "/" + (curso + 1));
@@ -32,6 +21,13 @@ public class InitialEventManagerImpl implements InitialEventManager<AnulacionMat
 
         Municipio municipio = centro.getMunicipio();
         expediente.setLocalidadCentro(municipio == null ? null : municipio.getName());
+
+        // En papel se empieza adjuntando la solicitud escaneada y después se copian sus datos.
+        if (expediente.getPresentadoEnPapel()==true) {
+            initialEventContext.updateState(States.Solicitud.PENDIENTE_DOCUMENTO_ESCANEADO);
+        } else {
+            initialEventContext.updateState(States.Solicitud.DATOS_SOLICITUD);
+        }
     }
 
 }

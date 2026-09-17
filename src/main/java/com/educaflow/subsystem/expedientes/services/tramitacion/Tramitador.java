@@ -4,18 +4,22 @@ package com.educaflow.subsystem.expedientes.services.tramitacion;
 import com.axelor.db.JPA;
 import com.axelor.db.JpaRepository;
 import com.axelor.db.Model;
+import com.axelor.auth.db.User;
 import com.axelor.db.modelservice.AllowProperties;
+import com.axelor.db.modelservice.ModelServiceFactory;
 import com.educaflow.base.util.*;
+import com.educaflow.subsystem.common.db.Centro;
+import com.educaflow.subsystem.common.db.Persona;
 import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
+import com.educaflow.subsystem.expedientes.services.eventmanager.InitialEventContext;
 import com.educaflow.subsystem.expedientes.services.eventmanager.State;
-import com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil;
 import com.educaflow.subsystem.expedientes.services.internal.ExpedienteLocator;
+import com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil;
 import com.educaflow.subsystem.expedientes.services.validation.BeanValidationRulesForStateAndEvent;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.HistorialEstado;
-import com.educaflow.subsystem.expedientes.db.Profile;
+import com.educaflow.subsystem.expedientes.db.ContextoTramitacion;
 import com.educaflow.subsystem.expedientes.db.TipoExpediente;
-import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
 import org.apache.shiro.authz.UnauthorizedException;
 import com.educaflow.base.infrastructure.numeradores.db.repo.NumeradorRepository;
 import com.educaflow.base.infrastructure.mapper.BeanMapperModel;
@@ -34,7 +38,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
 import com.educaflow.base.util.Convert;
 
 
@@ -44,44 +48,48 @@ public class Tramitador {
     NumeradorRepository numeradorRepository;
 
     @Inject
-    PerfilesUsuarioService perfilesUsuarioService;
-
-    @Inject
     ExpedienteLocator expedienteLocator;
 
+    @Inject
+    ModelServiceFactory modelServiceFactory;
 
-    public Expediente triggerInitialEvent(TipoExpediente tipoExpediente,  EventContext eventContext) throws BusinessException {
+
+    public Expediente triggerInitialEvent(ContextoTramitacion contextoTramitacion) throws BusinessException {
         try {
+            TipoExpediente tipoExpediente = contextoTramitacion.getTramite().getDefaultTipoExpediente();
+            Centro centro = contextoTramitacion.getCentro();
+            boolean presentadoEnPapel = contextoTramitacion.getPresentadoEnPapel();
+            boolean presentadoEnRepresentacion = contextoTramitacion.getPresentadoEnRepresentacion();
+
             //El evento inicial es del tipo de expediente, no de una fase: cuando se dispara todavía
             //no hay estado del que partir. Lo atiende el InitialEventManager, que es uno solo por
             //tipo.
             InitialEventManager initialEventManager = expedienteLocator.getInitialEventManager(tipoExpediente);
             Class<? extends Expediente> modelClass = expedienteLocator.getModelClass(tipoExpediente);
-            State initialState = tipoExpediente.getTipoExpedienteStates().getInitialState();
-
-            //Todavía no hay expediente contra el que preguntar, así que el perfil del estado inicial
-            //se contrasta con los Ace que el usuario tiene sobre el trámite.
-            checkPerfilDelEstado(initialState, perfilesUsuarioService.getPerfilesSobreTramite(
-                    tipoExpediente.getTramite(), SecurityUtil.getUser()));
 
             Expediente expediente = modelClass.getDeclaredConstructor().newInstance();
             expediente.setTipoExpediente(tipoExpediente);
-            expediente.setCentro(eventContext.getCentro());
+            expediente.setCentro(centro);
             expediente.setUsuarioRegistrador(SecurityUtil.getUser());
+            expediente.setPresentadoEnRepresentacion(contextoTramitacion.getPresentadoEnRepresentacion());
+            expediente.setPresentadoEnPapel(contextoTramitacion.getPresentadoEnPapel());
+
+            updatePersonas(expediente, presentadoEnPapel, presentadoEnRepresentacion);
             updateName(expediente);
             updateNumeroExpediente(expediente);
 
-            initialEventManager.triggerInitialEvent(expediente, eventContext);
+            InitialEventContext initialEventContext = new InitialEventContext(expediente, contextoTramitacion);
+            initialEventManager.triggerInitialEvent(initialEventContext);
 
-            ExpedienteUtil.updateState(expediente, initialState);
+
+            EventContext eventContext = new EventContext(expediente, contextoTramitacion.getProfile(), modelServiceFactory);
+
             addHistorialEstado(expediente, null, eventContext);
 
             //El onEnter sí es de una fase: la del estado en el que acaba de entrar el expediente.
             expedienteLocator.getPhaseEventManager(tipoExpediente, expediente.getCodePhase())
                     .onEnterState(expediente, eventContext);
 
-            //JpaRepository.of(...).save(entidad) es literalmente esto (JpaRepository.save delega en
-            //JPA.save), y así el alta no necesita un repositorio tipado con la clase concreta.
             JPA.save(expediente);
 
             return expediente;
@@ -104,17 +112,7 @@ public class Tramitador {
         Expediente expedienteOriginal=(Expediente) beanMapperModel.getEntityCloned(expediente.getClass(), expediente);
         StateEventValidator stateEventValidator =expedienteLocator.getStateEventValidator(tipoExpediente, codePhaseOrigen);
         JpaRepository<Expediente> expedienteRepository = JpaRepository.of(phaseEventManager.getModelClass());
-        State state = tipoExpediente.getTipoExpedienteStates()
-                .getState(codePhaseOrigen, expediente.getCodeState())
-                .orElseThrow(() -> new RuntimeException("El estado '" + codePhaseOrigen + "/"
-                        + expediente.getCodeState() + "' no existe en el tipo de expediente "
-                        + tipoExpediente.getCode() + "."));
-
-        //Quién puede disparar el evento: el actor del estado actual. Sin esto, cualquiera con acceso
-        //de lectura al expediente podría disparar los eventos de cualquier perfil — por ejemplo, el
-        //creador autoaprobándose el expediente con el evento del RESPONSABLE.
-        checkPerfilDelEstado(state, perfilesUsuarioService.getPerfilesSobreExpediente(
-                expediente, SecurityUtil.getUser()));
+        State state = ExpedienteUtil.getState(expediente);
 
         if (state.getEvents().contains(eventName) == false) {
             throw new RuntimeException("El evento '" + eventName + "' no es válido para el estado '"
@@ -125,7 +123,7 @@ public class Tramitador {
             BeanValidationRules beanValidationRules = getBeansValidationRules(stateEventValidator, expediente.getCodeState(), eventName);
             AllowProperties allowProperties = AllowProperties.createAllowProperties(AllowPropertiesFactory.getAllowProperties(beanValidationRules.getFieldValidationRules()));
             beanMapperModel.copyMapToEntity(expediente.getClass(), requestData, expediente, allowProperties);
-
+            restaurarPersonas(expediente, expedienteOriginal);
 
             ValidatorEngine validatorEngine = new ValidatorEngine();
             BusinessMessages businessMessages = validatorEngine.validate(expediente, beanValidationRules);
@@ -213,33 +211,85 @@ public class Tramitador {
 
 
     /**
-     * Comprueba que el usuario tenga el perfil que el estado declara para su actor.
-     *
-     * <p>Es <b>pertenencia a un conjunto</b>, no derivación: un usuario puede tener varios perfiles a
-     * la vez sobre el mismo expediente. El {@code _profile} que envía el cliente no participa — solo
-     * elige qué vista se pinta.
-     *
-     * <p>Un estado <b>sin perfil</b> no exige ninguno: hay estados que no declaran actor (típicamente
-     * los finales) y ahí la única barrera es el acceso al propio expediente.
+     * Las personas nacen con los datos del usuario solo cuando es él quien presenta. En papel el usuario solo
+     * registra lo que ha entregado otra persona, de la que el sistema no sabe nada: las dos nacen vacías y se
+     * teclean (en papel y «para mí», solo la interesada, ver {@link #restaurarPersonas}).
      */
-    private static void checkPerfilDelEstado(State state, Set<String> perfilesDelUsuario) {
-        Profile profileDelEstado = state.getProfile();
-        if (profileDelEstado == null) {
-            return;
-        }
+    private static void updatePersonas(Expediente expediente, boolean presentadoEnPapel, boolean presentadoEnRepresentacion) {
+        expediente.setPresentadoEnPapel(presentadoEnPapel);
+        expediente.setPresentadoEnRepresentacion(presentadoEnRepresentacion);
 
-        //El administrador ve y tramita expedientes de cualquier centro y no tiene filas Ace.
-        if (SecurityUtil.isAdmin(SecurityUtil.getUser())) {
-            return;
-        }
-
-        if (perfilesDelUsuario.contains(profileDelEstado.name()) == false) {
-            throw new UnauthorizedException("El usuario no tiene el perfil '" + profileDelEstado.name()
-                    + "', que es el que atiende el estado '" + state.getPhase().getCode() + "/"
-                    + state.getCode() + "'.");
+        if (presentadoEnPapel) {
+            expediente.setPersonaSolicitante(new Persona());
+            expediente.setPersonaInteresada(new Persona());
+        } else {
+            User usuarioRegistrador = expediente.getUsuarioRegistrador();
+            expediente.setPersonaSolicitante(crearPersona(usuarioRegistrador));
+            expediente.setPersonaInteresada(presentadoEnRepresentacion ? new Persona() : crearPersona(usuarioRegistrador));
         }
     }
 
+    private static Persona crearPersona(User user) {
+        Persona persona = new Persona();
+        persona.setNombre(user.getNombre());
+        persona.setApellidos(user.getApellidos());
+        persona.setDni(user.getDni());
+        persona.setEmail(user.getEmail());
+
+        return persona;
+    }
+
+    /**
+     * Quién presenta y en nombre de quién lo fija el alta, no el cliente. Un tipo de expediente que
+     * whitelistea la identificación de una persona para el modo en que se teclea la deja abierta también
+     * en los demás modos, y el mapper admite además cambiar la referencia por otro id de Persona.
+     *
+     * <p>La identificación que se tecleó no se restaura:
+     * <ul>
+     *   <li>la del interesado, en representación o en papel;</li>
+     *   <li>la del solicitante, en papel. En papel y «para mí» solicitante e interesado son la misma
+     *       persona, así que solo se teclea el interesado y se copia en el solicitante.</li>
+     * </ul>
+     */
+    private static void restaurarPersonas(Expediente expediente, Expediente expedienteOriginal) {
+        exigeMismaPersona(expediente.getPersonaSolicitante(), expedienteOriginal.getPersonaSolicitante(), "personaSolicitante");
+        exigeMismaPersona(expediente.getPersonaInteresada(), expedienteOriginal.getPersonaInteresada(), "personaInteresada");
+
+        boolean presentadoEnPapel = Boolean.TRUE.equals(expedienteOriginal.getPresentadoEnPapel());
+        boolean presentadoEnRepresentacion = Boolean.TRUE.equals(expedienteOriginal.getPresentadoEnRepresentacion());
+
+        expediente.setPresentadoEnPapel(expedienteOriginal.getPresentadoEnPapel());
+        expediente.setPresentadoEnRepresentacion(expedienteOriginal.getPresentadoEnRepresentacion());
+
+        if (presentadoEnPapel == false) {
+            copiarIdentificacion(expediente.getPersonaSolicitante(), expedienteOriginal.getPersonaSolicitante());
+            if (presentadoEnRepresentacion == false) {
+                copiarIdentificacion(expediente.getPersonaInteresada(), expedienteOriginal.getPersonaInteresada());
+            }
+        } else if (presentadoEnRepresentacion == false) {
+            copiarIdentificacion(expediente.getPersonaSolicitante(), expediente.getPersonaInteresada());
+        }
+    }
+
+    private static void exigeMismaPersona(Persona persona, Persona personaOriginal, String nombreCampo) {
+        Long id = (persona == null) ? null : persona.getId();
+        Long idOriginal = (personaOriginal == null) ? null : personaOriginal.getId();
+
+        if (((persona == null) != (personaOriginal == null)) || (Objects.equals(id, idOriginal) == false)) {
+            throw new IllegalStateException("La petición intenta cambiar la persona del campo '" + nombreCampo
+                    + "' del expediente: de " + idOriginal + " a " + id + ".");
+        }
+    }
+
+    private static void copiarIdentificacion(Persona destino, Persona origen) {
+        if (destino == null) {
+            return;
+        }
+
+        destino.setNombre(origen.getNombre());
+        destino.setApellidos(origen.getApellidos());
+        destino.setDni(origen.getDni());
+    }
 
     private void updateName(Expediente expediente) {
         expediente.setName(expediente.getTipoExpediente().getName());

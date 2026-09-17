@@ -20,6 +20,10 @@
   Los familiares/exfamiliares se relacionan (por nombre, no hay FK en el modelo)
   con un alumno/exalumno existente del mismo centro.
 
+  Además hay dos usuarios que no siguen la regla anterior, para probar la pantalla de nuevo expediente:
+    alumnofamiliar@mislata.es   → ALUMNO y FAMILIAR en el mismo centro (elige para quién es el expediente)
+    alumnodoscentros@mislata.es → ALUMNO en CIPFP Mislata y en CIPFP Batoi (elige el centro)
+
   Todos los usuarios comparten la contraseña: demo1234
   Los DNI se generaron con letra de control válida (módulo 23).
 -->
@@ -135,6 +139,12 @@
         <usuario email="supervisor1@batoi.es"        documento="66648960C" name="Supervisor1 CIPFP Batoi"        nombre="Supervisor1"      apellidos="CIPFP Batoi" password="demo1234"/>
         <usuario email="supervisor2@batoi.es"        documento="07247872C" name="Supervisor2 CIPFP Batoi"        nombre="Supervisor2"      apellidos="CIPFP Batoi" password="demo1234"/>
 
+        <!-- ================================================================
+             Usuarios con varios tipos o varios centros
+             ================================================================ -->
+        <usuario email="alumnofamiliar@mislata.es"   documento="48213579J" name="AlumnoFamiliar CIPFP Mislata"   nombre="AlumnoFamiliar"   apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="alumnodoscentros@mislata.es" documento="71359246K" name="AlumnoDosCentros CIPFP Mislata y Batoi" nombre="AlumnoDosCentros" apellidos="CIPFP Mislata y Batoi" password="demo1234"/>
+
     </usuarios>
 
 
@@ -172,6 +182,7 @@
         <centroUsuario usuarioCode="alumnoexterno2@mislata.es"   centroCode="46019660"/>
         <centroUsuario usuarioCode="supervisor1@mislata.es"      centroCode="46019660"/>
         <centroUsuario usuarioCode="supervisor2@mislata.es"      centroCode="46019660"/>
+        <centroUsuario usuarioCode="admin"                       centroCode="46019660"/>
 
         <!-- == CIPFP Batoi (03012165) == -->
         <centroUsuario usuarioCode="director@batoi.es"          centroCode="03012165"/>
@@ -202,6 +213,10 @@
         <centroUsuario usuarioCode="alumnoexterno2@batoi.es"     centroCode="03012165"/>
         <centroUsuario usuarioCode="supervisor1@batoi.es"        centroCode="03012165"/>
         <centroUsuario usuarioCode="supervisor2@batoi.es"        centroCode="03012165"/>
+
+        <centroUsuario usuarioCode="alumnofamiliar@mislata.es"   centroCode="46019660"/>
+        <centroUsuario usuarioCode="alumnodoscentros@mislata.es" centroCode="46019660"/>
+        <centroUsuario usuarioCode="alumnodoscentros@mislata.es" centroCode="03012165"/>
 
     </centroUsuarios>
 
@@ -270,6 +285,11 @@
         <tipo usuarioCode="alumnoexterno2@batoi.es"     centroCode="03012165" tipoCode="ALUMNO_EXTERNO"/>
         <tipo usuarioCode="supervisor1@batoi.es"        centroCode="03012165" tipoCode="SUPERVISOR"/>
         <tipo usuarioCode="supervisor2@batoi.es"        centroCode="03012165" tipoCode="SUPERVISOR"/>
+
+        <tipo usuarioCode="alumnofamiliar@mislata.es"   centroCode="46019660" tipoCode="ALUMNO"/>
+        <tipo usuarioCode="alumnofamiliar@mislata.es"   centroCode="46019660" tipoCode="FAMILIAR"/>
+        <tipo usuarioCode="alumnodoscentros@mislata.es" centroCode="46019660" tipoCode="ALUMNO"/>
+        <tipo usuarioCode="alumnodoscentros@mislata.es" centroCode="03012165" tipoCode="ALUMNO"/>
 
     </tipos>
 

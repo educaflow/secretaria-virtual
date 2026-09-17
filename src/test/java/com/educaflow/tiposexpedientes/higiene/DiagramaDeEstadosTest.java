@@ -190,8 +190,8 @@ class DiagramaDeEstadosTest {
 
     /**
      * El esqueleto del diagrama derivado del XML: las fases como estados compuestos, cada estado con
-     * su alias, el inicial, los cerrados y una línea comentada por cada transición pendiente de
-     * destino.
+     * su alias, los cerrados y una línea comentada por el estado inicial y por cada transición
+     * pendiente de destino.
      */
     private static String plantilla(TipoExpedienteInstanceFile tipo) {
         StringBuilder plantilla = new StringBuilder();
@@ -207,10 +207,8 @@ class DiagramaDeEstadosTest {
             plantilla.append("\n");
         }
 
-        State inicial = tipo.getInitialState();
-        if (inicial != null) {
-            plantilla.append("\n    [*] --> ").append(DiagramaDeEstados.alias(inicial));
-        }
+        // El estado inicial no está en el XML (lo decide el InitialEventManager): se deja por dibujar.
+        plantilla.append("\n    ' [*] --> <FASE>_<ESTADO INICIAL>");
         for (Fase fase : tipo.getFases()) {
             for (State state : fase.getStates()) {
                 for (String evento : state.getEvents()) {

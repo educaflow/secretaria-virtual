@@ -58,8 +58,9 @@ package com.educaflow.tramites.mi_tramite.v1;
 public class InitialEventManagerImpl implements InitialEventManager<MiTramiteV1> {
 
     @Override
-    public void triggerInitialEvent(MiTramiteV1 miTramite, EventContext eventContext) throws BusinessException {
+    public void triggerInitialEvent(MiTramiteV1 miTramite, InitialEventContext initialEventContext) throws BusinessException {
         ...
+        initialEventContext.updateState(States.Recepcion.ENTRADA_DATOS);
     }
 }
 ```
@@ -68,17 +69,24 @@ public class InitialEventManagerImpl implements InitialEventManager<MiTramiteV1>
 - El nombre de la clase es fijo (`InitialEventManagerImpl`): lo resuelve `ExpedienteLocator.getInitialEventManager(tipoExpediente)` por reflexión sobre el `basePackageName` (`SKILL.md` §1.6), así que se instancia con Guice y admite inyección normal.
 - El esqueleto lo genera `CreateFilesTask` entre los ficheros de la raíz de la versión (`SKILL.md` §3.1).
 
-Sus obligaciones (antes de llamarlo, `Tramitador` ya rellenó tipo, centro, `usuarioRegistrador`, `name` y `numeroExpediente`):
+Sus obligaciones (antes de llamarlo, `Tramitador` ya rellenó tipo, centro, `usuarioRegistrador`, `personaSolicitante`, `personaInteresada`, `presentadoEnRepresentacion`, `name` y `numeroExpediente`):
 
-**`Tramitador` no impone ninguna**: un `triggerInitialEvent` con el cuerpo vacío es un tipo de expediente perfectamente válido y pasa todos los tests.
-Qué hay que rellenar lo decide **lo que el tipo use después**, y el fallo aparece más tarde, en el sitio que lo usa:
+**CRITICAL**: la única que impone `Tramitador` es fijar el estado inicial con `initialEventContext.updateState(States.<Fase>.<ESTADO>)`.
+El XML no declara estado inicial: lo decide este método y puede depender de cómo se crea el expediente (p.ej. `presentadoEnPapel`).
+Si no lo fija, `Tramitador` aborta el alta con `RuntimeException`; ningún test lo comprueba antes.
 
-1. **Si el tipo crea registro de entrada** (`eventContext.createRegistroEntrada`, §3): **MUST** dejar rellenos `personaSolicitante` y `personaInteresada` (si `personaSolicitante` es null, `createRegistroEntrada` revienta con NPE). Patrón habitual: construir la `Persona` desde `getUsuarioRegistrador()`.
-2. Inicializar el resto de campos con valor por defecto (año, etc.).
+- ✅ CORRECTO: `initialEventContext.updateState(Boolean.TRUE.equals(expediente.getPresentadoEnPapel()) ? States.Recepcion.PENDIENTE_ESCANEADO : States.Recepcion.ENTRADA_DATOS)`
+- ❌ INCORRECTO: un `triggerInitialEvent` con el cuerpo vacío (el alta falla en runtime: no hay estado inicial)
+
+`Tramitador` comprueba el perfil sobre el estado que fije este método (salvo al registrar en papel) y después crea el `HistorialEstado` y llama al `onEnter<Estado>`.
+El resto de campos lo decide **lo que el tipo use después**, y el fallo aparece más tarde, en el sitio que lo usa:
+
+1. Inicializar los campos propios del tipo con valor por defecto (año, datos del centro, etc.).
+2. **MUST NOT** crear ni reasignar `personaSolicitante` ni `personaInteresada`: las decide el alta a partir de la elección del usuario (`modelo.md` §2.1).
 
 **MUST NOT** dar por hecho que estos campos son obligatorios siempre: un tipo que ni firma ni registra no necesita ninguno.
 
-El `onEnter<Estado>` del **primer estado** sí es de una fase, y se ejecuta justo después: vive en el `PhaseEventManagerImpl` de la fase del estado inicial, como cualquier otro.
+El `onEnter<Estado>` del estado inicial sí es de una fase, y se ejecuta justo después: vive en el `PhaseEventManagerImpl` de la fase del estado que haya fijado el `triggerInitialEvent`, como cualquier otro.
 
 ### 2.2 En cada método de la fase
 
@@ -236,7 +244,7 @@ Las reglas del `PhaseEventManager` se comprueban **fase a fase**: la unidad no e
 3. **E2 / E4**: **no puede sobrar** ningún `@WhenEvent`/`@OnEnterState` que no corresponda a un evento/estado de la propia fase: si quitas un evento del XML, quita su método (y el del validator); si mueves un estado a otra fase, mueve también su `onEnter`.
 4. **A1** (`ApiBaseReservadaTest`): ningún nombre de método compuesto a partir de un estado o un evento puede coincidir con un método público de `PhaseEventManager`, de `StateEventValidator` o de `InitialEventManager`. Un estado llamado `STATE` produciría un `onEnterState(<Entidad>, EventContext)` con la firma exacta del dispatcher de la clase base y lo sobrescribiría en silencio; y un evento `INITIAL_EVENT` produciría un `triggerInitialEvent` en el `PhaseEventManagerImpl` de su fase, que es justo lo que E5 prohíbe — por eso `InitialEventManager` cuenta como clase base a estos efectos aunque el `PhaseEventManagerImpl` no la implemente.
 5. **E5**: **ningún** `PhaseEventManagerImpl` puede declarar un `triggerInitialEvent`. El evento inicial es del tipo de expediente, así que un método así no lo llama nadie: se quedaría ahí sin ejecutarse, y como la clase base ya no declara el método tampoco hay un `@Override` que falle al compilar. Es el fallo típico de un tipo a medio migrar.
-6. **I1 / I2** (`InitialEventManagerTest`): por cada **tipo de expediente**, la clase `<basePackageName>.InitialEventManagerImpl` existe compilada e implementa `InitialEventManager` (**I1**), y declara **exactamente un** `void triggerInitialEvent(<Entidad>, EventContext)` (**I2**). `Tramitador` la resuelve por reflexión, así que olvidarla no es un error de compilación sino una excepción al crear el primer expediente; el mensaje del test trae el comando de `CreateFilesTask` que la genera.
+6. **I1 / I2** (`InitialEventManagerTest`): por cada **tipo de expediente**, la clase `<basePackageName>.InitialEventManagerImpl` existe compilada e implementa `InitialEventManager` (**I1**), y declara **exactamente un** `void triggerInitialEvent(<Entidad>, InitialEventContext)` (**I2**). `Tramitador` la resuelve por reflexión, así que olvidarla no es un error de compilación sino una excepción al crear el primer expediente; el mensaje del test trae el comando de `CreateFilesTask` que la genera.
 7. **M1** (`modelo/ModeloDelTipoTest`): el `InitialEventManagerImpl` y el `PhaseEventManagerImpl` de **cada fase** declaran la **misma** entidad en su parámetro de tipo, y es la primera `<entity>` del `domains.xml` (`modelo.md` §1). Es lo que `ExpedienteLocator.getModelClass` lee en runtime para instanciar el expediente, así que una divergencia no la caza el compilador: se nota al tramitar.
 8. Detalles:
    - Un método con nombre correcto pero **firma equivocada** se reporta **una sola vez**, en E1/E3, mostrando la firma declarada frente a la esperada (el antiguo check lo contaba a la vez como que faltaba y como que sobraba).

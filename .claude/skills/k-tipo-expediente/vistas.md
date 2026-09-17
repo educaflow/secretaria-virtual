@@ -73,6 +73,37 @@ En el atributo `state` va el **nombre del estado** tal cual, igual que en el `Ti
 - Un panel repetido en la lista se incluye una vez (gana el flag readonly de la última aparición), sin aviso.
 - Los `<include-panels>` y `<footer>` se expanden **en cualquier punto del documento**, no solo dentro de forms con `state`.
 
+### 3.1 Paneles comunes de las personas
+
+`tramites/shared/template-views.xml` trae dos paneles incluibles desde cualquier tipo y una acción:
+
+- `persona-solicitante`: nombre, apellidos y DNI de quien presenta, de solo lectura; solo se ve si `presentadoEnRepresentacion`.
+- `persona-interesada`: un `<editor>` sobre `personaInteresada` con su identificación y sus datos de contacto (email, teléfono, dirección, municipio, CP).
+- `subsysExpedientes-persona-interesada-onLoad-action`: pone de solo lectura nombre, apellidos y DNI del interesado salvo en el modo representación.
+  **MUST** estar en el `onLoad` del form en el que se editan los datos del interesado (dentro de un `<action-group>` si el form ya tenía `onLoad`).
+
+Si el tipo necesita otro conjunto de datos (p. ej. el NIA), declara en su form plantilla **su propio** panel con el mismo patrón y usa la misma acción:
+
+```xml
+<panel name="datos-interesado" title="Datos del interesado" colSpan="12">
+    <field name="personaInteresada" showTitle="false" colSpan="12"
+           canNew="false" canSelect="false" canRemove="false">
+        <editor x-show-titles="true">
+            <field name="nombre" colSpan="6" required="true"/>
+            <field name="nia" colSpan="6" required="true"/>
+        </editor>
+    </field>
+    <field name="presentadoEnRepresentacion" hidden="true"/>
+</panel>
+```
+
+- **CRITICAL**: Axelor pinta **siempre** de solo lectura un campo con punto (`personaInteresada.nia`). Lo que el usuario edita de una persona **MUST** ir dentro de un `<editor>` sobre la relación.
+- **MUST NOT** poner en el mismo form un campo con punto `personaInteresada.<campo>` y un `<editor>` sobre `personaInteresada` con ese `<campo>`: el cliente le pasa al campo del editor los atributos (`hidden`, `readonly`) del campo con punto.
+- **MUST NOT** usar `_parent` en un `showIf`/`readonlyIf` de un campo del editor: no se evalúa. Lo que depende del expediente se hace desde el form con una `<action-attrs for="personaInteresada.<campo>">`.
+- **MUST** haber como máximo **un** `<editor>` sobre `personaInteresada` por form: incluye el panel común o el propio del tipo, no los dos.
+- **MUST** poner `canSelect="false"`, `canNew="false"` y `canRemove="false"` en el campo del editor: si no, ofrece buscar, crear o quitar la `Persona` (el servidor lo rechaza igualmente). **MUST NOT** poner `canEdit="false"` ni `canView="false"`: el editor deja de pintarse.
+- **MUST** incluir `<field name="presentadoEnRepresentacion" hidden="true"/>` **al final** del panel: sin él el cliente no recibe el campo, y un campo oculto al principio ocupa su hueco en la rejilla.
+
 ## 4. `<footer>`
 
 - Se sustituye por el panel global `subsysExpedientes-template-footer-panel` (que además pinta los mensajes de error de validación) con tus botones dentro de `<buttons-left>`/`<buttons-right>`.
@@ -87,7 +118,7 @@ Las acciones globales del subsistema (declaradas en `subsystem/expedientes/contr
 |---|---|---|
 | `subsysExpedientes-event-action` | `ExpedienteController.triggerEvent` | el `onClick` de **todos** los botones del footer |
 | `subsysExpedientes-validate-on-save-child-action` | `ExpedienteController.validateChild` | el `onValidate` del form de una entidad hija (§8) |
-| `subsysExpedientes-event-new-action` / `-event-view-action` | `triggerInitialEvent` / `viewExpediente` | las usa el subsistema (árbol de trámites y bandejas), no se referencian desde un `views.xml` |
+| `subsysExpedientes-event-view-action` | `viewExpediente` | la usan las bandejas, no se referencia desde un `views.xml` |
 
 ## 5. Herencia y des-herencia de atributos
 

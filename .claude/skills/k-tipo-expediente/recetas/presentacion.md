@@ -20,7 +20,7 @@ Dependencias: el registro lo crea `EventContext` contra `subsystem/registroentra
 
 ```xml
 <fase name="RECEPCION" title="Recepción">
-    <state name="ENTRADA_DATOS"          events="DELETE,GUARDAR_DATOS" profile="CREADOR" title="Entrada de datos"           initial="true"/>
+    <state name="ENTRADA_DATOS"          events="DELETE,GUARDAR_DATOS" profile="CREADOR" title="Entrada de datos"/>
     <state name="PENDIENTE_PRESENTACION" events="BACK,PRESENTAR"       profile="CREADOR" title="Pendiente de presentación"/>
 </fase>
 <fase name="TRAMITACION" title="Tramitación">
@@ -65,20 +65,8 @@ Dependencias: el registro lo crea `EventContext` contra `subsystem/registroentra
 
 ## 2. Evento inicial (`InitialEventManagerImpl`)
 
-```java
-@Override
-public void triggerInitialEvent(MiTramiteV1 exp, EventContext eventContext) throws BusinessException {
-    Persona persona = new Persona();
-    persona.setNombre(exp.getUsuarioRegistrador().getNombre());
-    persona.setApellidos(exp.getUsuarioRegistrador().getApellidos());
-    persona.setDni(exp.getUsuarioRegistrador().getDni());
-    exp.setPersonaSolicitante(persona);
-    exp.setPersonaInteresada(persona);
-}
-```
-
-- **MUST** dejar rellenos `personaSolicitante` y `personaInteresada`: `createRegistroEntrada` compone con ellos el solicitante y el interesado del asiento (`nombre + " " + apellidos` y `dni`) y con `personaSolicitante` a `null` revienta con NPE (`phaseeventmanager.md` §2.1). `Tramitador` no lo comprueba: el fallo aparece al presentar, no al crear.
-- Patrón habitual: los dos son el propio `usuarioRegistrador`. Si el interesado es otra persona (un familiar presenta por un alumno), rellena `personaInteresada` con sus datos en el estado que los pida y deja aquí solo el solicitante.
+- `createRegistroEntrada` compone el solicitante y el interesado del asiento (`nombre + " " + apellidos` y `dni`) con `personaSolicitante` y `personaInteresada`, que **ya** rellena `Tramitador` al crear el expediente (`modelo.md` §2.1). El `InitialEventManagerImpl` **MUST NOT** tocarlas.
+- En el modo representación `personaInteresada` nace vacía: el estado de entrada de datos **MUST** pedir y validar su nombre, apellidos y DNI (panel común `persona-interesada` y su acción de `onLoad`, `vistas.md` §3.1), o el asiento saldrá sin interesado.
 
 ## 3. El documento (`documentospdf/solicitud.xml`)
 

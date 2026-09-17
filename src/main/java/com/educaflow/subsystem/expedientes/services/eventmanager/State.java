@@ -27,8 +27,6 @@ public interface State {
     /** Los eventos disparables desde el estado, en orden de declaración. Conjunto inmutable. */
     Set<String> getEvents();
 
-    boolean isInitial();
-
     /** El {@code closed="true"} del XML: el expediente queda cerrado al entrar aquí. */
     boolean isFinal();
 }

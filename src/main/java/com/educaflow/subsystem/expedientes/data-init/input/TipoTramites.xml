@@ -1,11 +1,32 @@
 <?xml version="1.0"?>
 <datos>
     <tipostramites>
-        <tipotramite code="PROFESOR" name="Trámites si eres profesor" />
-        <tipotramite code="ALUMNO" name="Trámites si eres alumno" />
-        <tipotramite code="TUTOR" name="Trámites si eres madre/padre/tutor" />
-        <tipotramite code="DIRECCION" name="Trámites si eres de dirección" />
-        <tipotramite code="ADMINISTRATIVO" name="Trámites si eres administrativo" />
-        <tipotramite code="CONSERJE" name="Trámites si eres conserje" />
+        <!-- Los interesados son quienes presentan los trámites para sí mismos. En representación presenta quien tenga
+             el tipo de usuario FAMILIAR, si el tipo de trámite lo admite.
+             admitePresentacionEnPapel="true" obliga a que TODO tipo de expediente de sus trámites implemente
+             el camino en papel. Los de profesores todavía no lo implementan: sus registradores quedan
+             declarados pero sin efecto hasta que se active. -->
+        <tipotramite code="PROFESOR" name="Trámites si eres profesor" admiteRepresentacion="false" admitePresentacionEnPapel="false">
+            <tipoUsuarioInteresado codigo="PROFESOR" />
+            <tipoUsuarioInteresado codigo="PROFESOR_EXTERNO" />
+            <cargoRegistrador code="DIRECTOR" />
+            <cargoRegistrador code="JEFE_ESTUDIOS" />
+        </tipotramite>
+        <tipotramite code="ALUMNO" name="Trámites si eres alumno" admiteRepresentacion="true" admitePresentacionEnPapel="true">
+            <tipoUsuarioInteresado codigo="ALUMNO" />
+            <tipoUsuarioInteresado codigo="ALUMNO_EXTERNO" />
+            <tipoUsuarioRegistrador codigo="ADMINISTRATIVO" />
+            <cargoRegistrador code="SECRETARIO" />
+            <cargoRegistrador code="VICESECRETARIO" />
+        </tipotramite>
+        <tipotramite code="DIRECCION" name="Trámites si eres de dirección" admiteRepresentacion="false" admitePresentacionEnPapel="false">
+            <cargoInteresado code="DIRECTOR" />
+            <cargoInteresado code="VICEDIRECTOR" />
+            <cargoInteresado code="JEFE_ESTUDIOS" />
+        </tipotramite>
+        <tipotramite code="ADMINISTRATIVO" name="Trámites si eres administrativo" admiteRepresentacion="false" admitePresentacionEnPapel="false">
+            <tipoUsuarioInteresado codigo="ADMINISTRATIVO" />
+        </tipotramite>
+        <tipotramite code="CONSERJE" name="Trámites si eres conserje" admiteRepresentacion="false" admitePresentacionEnPapel="false" />
     </tipostramites>
 </datos>

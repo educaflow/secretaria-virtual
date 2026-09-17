@@ -29,10 +29,11 @@ import java.util.Optional;
  * <p>Es una regla que ninguna otra cubre y que nada más detecta a tiempo: {@code Tramitador}
  * resuelve la clase por reflexión, así que olvidarla no es un error de compilación sino una
  * excepción al crear el primer expediente. La mitad de "firma incorrecta" es la más traicionera: una
- * clase que implementa la interfaz siempre tiene el método —lo exige el compilador—, pero si el
- * parámetro no es la entidad del tipo, la clase no compila contra {@code InitialEventManager<T>} y
- * eso sí lo caza el compilador; lo que queda por vigilar aquí es que la clase <b>exista</b> y que
- * implemente la interfaz del tipo correcto.
+ * clase que implementa la interfaz siempre tiene el método —lo exige el compilador—, pero puede
+ * declarar además sobrecargas que no son la del contrato; lo que queda por vigilar aquí es que la
+ * clase <b>exista</b>, que implemente la interfaz y que tenga exactamente un
+ * {@code triggerInitialEvent(InitialEventContext)}. Que esa interfaz esté parametrizada con la
+ * entidad del tipo lo comprueba {@code ModeloDelTipoTest} (M1).
  *
  * <p>El fichero lo genera {@code ./gradlew -q CreateFilesTask -Ptipo=<carpeta del tipo>}, entre los
  * ficheros de la raíz de la versión.
@@ -43,8 +44,8 @@ import java.util.Optional;
  */
 class InitialEventManagerTest {
 
-    private static final String FQCN_EVENT_CONTEXT =
-            "com.educaflow.subsystem.expedientes.services.eventmanager.EventContext";
+    private static final String FQCN_INITIAL_EVENT_CONTEXT =
+            "com.educaflow.subsystem.expedientes.services.eventmanager.InitialEventContext";
     private static final String FQCN_INITIAL_EVENT_MANAGER = InitialEventManager.class.getName();
     private static final String VOID = "void";
 
@@ -73,7 +74,7 @@ class InitialEventManagerTest {
     }
 
     @Test
-    @DisplayName("I2: el InitialEventManagerImpl declara exactamente un triggerInitialEvent(<Entidad>, EventContext)")
+    @DisplayName("I2: el InitialEventManagerImpl declara exactamente un triggerInitialEvent(InitialEventContext)")
     void i2_declaraElTriggerInitialEventConLaFirmaCorrecta() {
         List<Violacion> violaciones = new ArrayList<>();
 
@@ -82,13 +83,12 @@ class InitialEventManagerTest {
             if (clase.isEmpty()) {
                 continue; // ya lo reporta I1; no repetimos el mismo fallo en cada regla
             }
-            String modelo = initialEventManagerFile(tipo).getModelFQCN();
             String nombreMetodo = InitialEventManagerFile.getMethodNameTriggerInitialEvent();
-            String esperada = Bytecode.firmaEsperada(nombreMetodo, VOID, modelo, FQCN_EVENT_CONTEXT);
+            String esperada = Bytecode.firmaEsperada(nombreMetodo, VOID, FQCN_INITIAL_EVENT_CONTEXT);
 
             List<JavaMethod> homonimos = Bytecode.metodosLlamados(clase.get(), nombreMetodo);
             List<JavaMethod> correctos = homonimos.stream()
-                    .filter(m -> Bytecode.tieneFirma(m, VOID, modelo, FQCN_EVENT_CONTEXT))
+                    .filter(m -> Bytecode.tieneFirma(m, VOID, FQCN_INITIAL_EVENT_CONTEXT))
                     .toList();
 
             if (correctos.size() == 1) {
@@ -104,8 +104,8 @@ class InitialEventManagerTest {
                     detalle.append("\n      declarado: ").append(Bytecode.firma(metodo));
                 }
                 detalle.append("\n      se esperaba: ").append(esperada)
-                       .append(" (el parámetro es la entidad del tipo de expediente, la misma que"
-                               + " parametriza InitialEventManager<T>)");
+                       .append(" (el único parámetro es el InitialEventContext, que ya trae el expediente"
+                               + " recién creado y el ContextoTramitacion con el que se crea)");
             } else {
                 detalle.append("hay ").append(correctos.size()).append(" métodos ").append(nombreMetodo)
                        .append(" válidos; debe haber exactamente uno");
@@ -116,11 +116,7 @@ class InitialEventManagerTest {
 
         Violacion.assertNone("[I2] El InitialEventManagerImpl de cada tipo de expediente debe declarar exactamente un"
                 + " " + InitialEventManagerFile.getMethodNameTriggerInitialEvent()
-                + "(<Entidad>, EventContext) void.", violaciones);
-    }
-
-    private static InitialEventManagerFile initialEventManagerFile(TipoExpedienteInstanceFile tipo) {
-        return new InitialEventManagerFile(path(tipo), tipo);
+                + "(InitialEventContext) void.", violaciones);
     }
 
     private static Path path(TipoExpedienteInstanceFile tipo) {

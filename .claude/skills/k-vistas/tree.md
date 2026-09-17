@@ -229,7 +229,7 @@ Se define una `<column type="button">` en el árbol y un `<button>` en el nodo h
     <node model="com.educaflow.subsystem.expedientes.db.Tramite"
           parent="tipoTramite"
           draggable="false"
-          onClick="subsysExpedientes-event-new-action">
+          onClick="subsysExpedientes.Main@ContextoTramitacion-action">
         <field name="name" as="name"/>
         <button name="ayuda" onClick="sysTramites-mostrar-ayuda-action" icon="help" help="Descripción del trámite"/>
     </node>

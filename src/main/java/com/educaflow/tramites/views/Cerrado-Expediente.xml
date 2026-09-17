@@ -5,8 +5,10 @@
 
     <action-view name="subsysExpedientes.Expediente@Cerrados-action"  title="Expedientes cerrados" model="com.educaflow.subsystem.expedientes.db.Expediente">
         <view type="grid" name="subsysExpedientes.Expediente@Cerrados-grid"/>
-        <domain>self.abierto=false </domain>
+        <domain>self.abierto=false AND (self.centro.id IN (SELECT cu.centro.id FROM CentroUsuario cu WHERE cu.usuario.id = :usuarioId) OR :esAdministrador = true)</domain>
         <context name="_profile" expr="RESPONSABLE"/>
+        <context name="usuarioId" expr="eval: __user__?.id"/>
+        <context name="esAdministrador" expr="eval: __user__?.group?.code == 'admins'"/>
     </action-view>
     <grid name="subsysExpedientes.Expediente@Cerrados-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
           groups="admins,users"

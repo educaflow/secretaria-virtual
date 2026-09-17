@@ -196,6 +196,7 @@
     <permission name="TipoTramite.all"/>
     <permission name="FormacionCentroTrabajo.all"/>
     <permission name="SearchExpedientes.all"/>
+    <permission name="ContextoTramitacion.all"/>
     <permission name="TareaFirma.all"/>
     <permission name="DocumentoFirma.all"/>
     <permission name="PdfUtilities.all"/>
@@ -241,6 +242,9 @@
     <permission name="TipoUsuario.all"/>
     <permission name="TipoExpediente.conAce"/>
     <permission name="Tramite.creador"/>
+    <permission name="Tramite.porTramite"/>
+    <permission name="Tramite.porTipoExpediente"/>
+    <permission name="Tramite.registrador"/>
     <permission name="Expediente.creador"/>
     <permission name="Expediente.porExpediente"/>
     <permission name="Expediente.porTipoExpediente"/>
@@ -250,6 +254,7 @@
     <permission name="TipoTramite.leer"/>
     <permission name="FormacionCentroTrabajo.all"/>
     <permission name="SearchExpedientes.all"/>
+    <permission name="ContextoTramitacion.all"/>
     <permission name="TareaFirma.firmante"/>
     <permission name="DocumentoFirma.propio"/>
     <permission name="RegistroEntrada.all"/>

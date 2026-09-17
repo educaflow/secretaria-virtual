@@ -21,6 +21,8 @@
     <action-view name="subsysExpedientes.Expediente@PruebaSearch-buscar-action" title="Buscando expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente">
         <view type="tree" name="subsysExpedientes.Expediente@PruebaSearch-buscar-tree"/>
         <context name="_profile" expr="RESPONSABLE"/>
+        <context name="usuarioId" expr="eval: __user__?.id"/>
+        <context name="esAdministrador" expr="eval: __user__?.group?.code == 'admins'"/>
     </action-view>
 
 
@@ -37,11 +39,11 @@
         <column name="fechaUltimoEstado" type="date" width="100px" title="Fecha"/>
 
 
-        <node model="com.educaflow.subsystem.expedientes.db.Tramite" domain="EXISTS (SELECT 1 FROM Expediente e WHERE e.abierto=:estado and ((:anyo is null) OR (:anyo=0) OR (YEAR(e.fechaUltimoEstado)=:anyo)) AND e.tipoExpediente.tramite=self)" >
+        <node model="com.educaflow.subsystem.expedientes.db.Tramite" domain="EXISTS (SELECT 1 FROM Expediente e WHERE e.abierto=:estado and ((:anyo is null) OR (:anyo=0) OR (YEAR(e.fechaUltimoEstado)=:anyo)) AND (e.centro.id IN (SELECT cu.centro.id FROM CentroUsuario cu WHERE cu.usuario.id = :usuarioId) OR :esAdministrador = true) AND e.tipoExpediente.tramite=self)" >
             <field name="name" as="name"/>
         </node>
 
-        <node model="com.educaflow.subsystem.expedientes.db.Expediente" domain="(self.abierto=:estado) and ((:anyo is null) OR (:anyo=0) OR (YEAR(self.fechaUltimoEstado)=:anyo))" parent="tipoExpediente.tramite" draggable="false" onClick="subsysExpedientes-event-view-action">
+        <node model="com.educaflow.subsystem.expedientes.db.Expediente" domain="(self.abierto=:estado) and ((:anyo is null) OR (:anyo=0) OR (YEAR(self.fechaUltimoEstado)=:anyo)) and (self.centro.id IN (SELECT cu.centro.id FROM CentroUsuario cu WHERE cu.usuario.id = :usuarioId) OR :esAdministrador = true)" parent="tipoExpediente.tramite" draggable="false" onClick="subsysExpedientes-event-view-action">
             <field name="name"/>
             <field name="numeroExpediente"/>
             <field name="createdBy"/>

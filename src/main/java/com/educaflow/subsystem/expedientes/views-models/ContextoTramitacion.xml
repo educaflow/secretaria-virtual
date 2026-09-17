@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
+
+    <entity name="ContextoTramitacion" persistable="false">
+        <many-to-one name="tramite" ref="Tramite" title="Trámite" />
+        <string name="nombreTramite" title="Trámite" />
+        <string name="ayudaTramite" large="true" title="Ayuda" />
+        <enum name="profile" ref="Profile" title="Perfil" />
+        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro" />
+        <boolean name="presentadoEnPapel" title="Registrar una solicitud entregada en papel en el centro" />
+        <boolean name="presentadoEnRepresentacion" title="¿Para quién es el expediente?" />
+    </entity>
+
+</domain-models>

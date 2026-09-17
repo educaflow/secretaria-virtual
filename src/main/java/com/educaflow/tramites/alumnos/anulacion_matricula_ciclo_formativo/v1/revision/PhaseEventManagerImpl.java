@@ -35,7 +35,7 @@ public class PhaseEventManagerImpl extends com.educaflow.subsystem.expedientes.s
 
     @WhenEvent
     public void triggerContinuar(AnulacionMatriculaCicloFormativoV1 expediente, AnulacionMatriculaCicloFormativoV1 original, EventContext eventContext) throws BusinessException {
-        AnulacionMatriculaCicloFormativoV1Util.exigeMismoCentroQueElExpediente(expediente, "Solo puede revisar solicitudes de su propio centro");
+        AnulacionMatriculaCicloFormativoV1Util.exigePertenecerAlCentroDelExpediente(expediente, "Solo puede revisar solicitudes de su propio centro");
         AnulacionMatriculaCicloFormativoV1Util.exigeOstentarElPerfilDelEstado(expediente, "Solo la secretaría del centro puede revisar esta solicitud");
 
         expediente.setFechaRevision(LocalDate.now(Convert.defaultZoneId));
@@ -67,7 +67,12 @@ public class PhaseEventManagerImpl extends com.educaflow.subsystem.expedientes.s
         AnulacionMatriculaCicloFormativoV1Util.borrarDevolucionDelDirector(expediente);
         expediente.setPdfResolucion(null);
 
-        eventContext.updateState(States.Solicitud.DATOS_SOLICITUD);
+        // En papel la persona entregará una solicitud nueva: se vuelve a empezar por el escaneado.
+        if (Boolean.TRUE.equals(expediente.getPresentadoEnPapel())) {
+            eventContext.updateState(States.Solicitud.PENDIENTE_DOCUMENTO_ESCANEADO);
+        } else {
+            eventContext.updateState(States.Solicitud.DATOS_SOLICITUD);
+        }
     }
 
 

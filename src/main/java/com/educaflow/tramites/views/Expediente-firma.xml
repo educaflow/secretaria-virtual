@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <action-view name="subsysExpedientes.Expediente@Firma-action" title="Anulaciones de matrícula pendientes de mi firma" model="com.educaflow.subsystem.expedientes.db.Expediente">
+        <view type="grid" name="subsysExpedientes.Expediente@Firma-grid"/>
+        <domain>self.id IN (:expedientesConPerfil) AND self.codeState = 'PENDIENTE_FIRMA_DIRECTOR'</domain>
+        <context name="_profile" expr="DIRECTOR"/>
+        <context name="expedientesConPerfil" expr="call:com.educaflow.tramites.util.bandeja.BandejaPorPerfilController:idsExpedientesConPerfil('DIRECTOR','AnulacionMatriculaCicloFormativo')"/>
+    </action-view>
+
+    <grid name="subsysExpedientes.Expediente@Firma-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
+          groups="admins,users"
+          editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
+          action="subsysExpedientes-event-view-action"
+    >
+        <field name="tipoExpediente.tramite.name" />
+        <field name="numeroExpediente" width="110px"/>
+        <field name="namePhase" width="150px"/>
+        <field name="nameState" width="200px"/>
+        <field name="fechaUltimoEstado" width="150px" />
+    </grid>
+
+</object-views>

@@ -20,7 +20,6 @@ public class EventContext {
 
     final private Expediente expediente;
     final private Profile profile;
-    final private Centro centro;
     private RegistroEntrada registroEntrada=null;
     private RegistroSalida registroSalida=null;
     final private ModelServiceFactory modelServiceFactory;
@@ -31,21 +30,20 @@ public class EventContext {
      * explícita y la clase se puede instanciar sin contenedor. Lo pasa quien sí es un bean, el
      * {@code ExpedienteController}, que lo tiene inyectado.
      */
-    public EventContext(Expediente expediente,Profile profile, Centro centro, ModelServiceFactory modelServiceFactory) {
+    public EventContext(Expediente expediente,Profile profile, ModelServiceFactory modelServiceFactory) {
         this.expediente = expediente;
         this.profile = profile;
-        this.centro = centro;
         this.modelServiceFactory=Objects.requireNonNull(modelServiceFactory, "modelServiceFactory no puede ser null");
     }
+
 
     public Profile getProfile() {
         return profile;
     }
-    public Centro getCentro() { return centro; }
 
     @Override
     public String toString() {
-        return "EventContext [profile=" + profile + ", centro=" + centro + "]";
+        return "EventContext [expediente=" + expediente + ", profile=" + profile + "]";
     }
 
     public void updateState(State state) {
@@ -63,7 +61,7 @@ public class EventContext {
         anexos=cloneAnexos(anexos);
 
         RegistroEntradaInsertDTO registroEntradaInsertDTO =new RegistroEntradaInsertDTO(
-                this.getCentro(),
+                this.expediente.getCentro(),
                 new PersonaRegistro(
                         this.expediente.getPersonaSolicitante().getNombre()+ " "+this.expediente.getPersonaSolicitante().getApellidos(),
                         this.expediente.getPersonaSolicitante().getDni()

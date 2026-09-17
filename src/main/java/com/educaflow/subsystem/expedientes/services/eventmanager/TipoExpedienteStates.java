@@ -26,7 +26,4 @@ public interface TipoExpedienteStates {
 
     /** TODOS los estados del tipo, de todas las fases, en orden de declaración. */
     List<State> getStates();
-
-    /** El estado inicial. Resuelto en generación: hay exactamente uno. */
-    State getInitialState();
 }

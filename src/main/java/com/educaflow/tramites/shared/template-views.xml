@@ -25,6 +25,54 @@
             </panel>
         </panel>
 
+        <panel name="persona-solicitante" title="Persona que presenta la solicitud" colSpan="12"
+               showIf="presentadoEnRepresentacion">
+            <field name="personaSolicitante.apellidos" title="Apellidos" colSpan="5" readonly="true"/>
+            <field name="personaSolicitante.nombre"    title="Nombre"    colSpan="4" readonly="true"/>
+            <field name="personaSolicitante.dni"       title="DNI/NIE"   colSpan="3" readonly="true"/>
+            <field name="presentadoEnRepresentacion" hidden="true"/>
+        </panel>
+
+        <!-- Versión editable de persona-solicitante, para el estado en el que se teclean los datos: en papel y en
+             representación nadie más rellena al solicitante. La identificación la bloquea
+             subsysExpedientes-persona-solicitante-onLoad-action en los demás modos, por lo mismo que se explica
+             en persona-interesada. -->
+        <panel name="persona-solicitante-editable" title="Persona que presenta la solicitud" colSpan="12"
+               showIf="presentadoEnRepresentacion">
+            <field name="personaSolicitante" showTitle="false" colSpan="12"
+                   canNew="false" canSelect="false" canRemove="false" x-show-icons="false">
+                <editor x-show-titles="true">
+                    <field name="apellidos" colSpan="5" required="true"/>
+                    <field name="nombre"    colSpan="4" required="true"/>
+                    <field name="dni" title="DNI/NIE" colSpan="3" required="true"/>
+                </editor>
+            </field>
+            <field name="presentadoEnRepresentacion" hidden="true"/>
+            <field name="presentadoEnPapel" hidden="true"/>
+        </panel>
+
+        <!-- Axelor pinta siempre de solo lectura un campo con punto, así que lo editable va en un <editor>.
+             Dentro del editor no se puede usar _parent en showIf/readonlyIf, y un campo con punto del form
+             (personaInteresada.nombre) le pasa sus atributos al campo nombre del editor: por eso la
+             identificación la bloquea subsysExpedientes-persona-interesada-onLoad-action. -->
+        <panel name="persona-interesada" title="Persona interesada" colSpan="12">
+            <field name="personaInteresada" showTitle="false" colSpan="12"
+                   canNew="false" canSelect="false" canRemove="false">
+                <editor x-show-titles="true">
+                    <field name="apellidos" colSpan="5"/>
+                    <field name="nombre"    colSpan="4"/>
+                    <field name="dni" title="DNI/NIE" colSpan="3"/>
+                    <field name="email"     colSpan="6"/>
+                    <field name="telefono"  colSpan="6"/>
+                    <field name="direccion" colSpan="12"/>
+                    <field name="municipio" colSpan="8" canNew="false" canEdit="false" canView="false"/>
+                    <field name="cp"        colSpan="4"/>
+                </editor>
+            </field>
+            <field name="presentadoEnRepresentacion" hidden="true"/>
+            <field name="presentadoEnPapel" hidden="true"/>
+        </panel>
+
         <panel name="subsysExpedientes-template-footer-panel" colSpan="12" itemSpan="2" showFrame="false">
             <field name="errorMessajesField" showTitle="false" readonly="true" colSpan="12">
                 <viewer depends="errorMensajes" ><![CDATA[
@@ -50,6 +98,19 @@
             </field>
         </panel>
     </form>
+
+
+    <action-attrs name="subsysExpedientes-persona-interesada-onLoad-action">
+        <attribute for="personaInteresada.apellidos" name="readonly" expr="eval: presentadoEnRepresentacion != true &amp;&amp; presentadoEnPapel != true"/>
+        <attribute for="personaInteresada.nombre"    name="readonly" expr="eval: presentadoEnRepresentacion != true &amp;&amp; presentadoEnPapel != true"/>
+        <attribute for="personaInteresada.dni"       name="readonly" expr="eval: presentadoEnRepresentacion != true &amp;&amp; presentadoEnPapel != true"/>
+    </action-attrs>
+
+    <action-attrs name="subsysExpedientes-persona-solicitante-onLoad-action">
+        <attribute for="personaSolicitante.apellidos" name="readonly" expr="eval: presentadoEnPapel != true"/>
+        <attribute for="personaSolicitante.nombre"    name="readonly" expr="eval: presentadoEnPapel != true"/>
+        <attribute for="personaSolicitante.dni"       name="readonly" expr="eval: presentadoEnPapel != true"/>
+    </action-attrs>
 
 
     <action-view name="subsysExpedientes.Expediente-verHistorialEstados-action" title="Historial estados" model="com.educaflow.subsystem.expedientes.db.Expediente">

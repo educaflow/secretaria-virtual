@@ -21,8 +21,9 @@ import java.util.Set;
 public class AceRepository extends AbstractAceRepository {
 
     /**
-     * El trozo de JPQL que acota los {@code Ace} al usuario. Réplica literal de la condición de los
-     * permisos {@code Expediente.*} de {@code auth-expedientes.xml}: si cambia allí, MUST cambiar aquí.
+     * El trozo de JPQL que acota los {@code Ace} al usuario en un centro. Es la misma condición que los
+     * permisos {@code Expediente.*} de {@code auth-expedientes.xml}, que allí toman el centro del
+     * expediente y el {@code CentroUsuario} del usuario en ese centro: si cambia allí, MUST cambiar aquí.
      */
     private static final String FILTRO_USUARIO = """
              AND (aa.centro IS NULL OR aa.centro = :centro)

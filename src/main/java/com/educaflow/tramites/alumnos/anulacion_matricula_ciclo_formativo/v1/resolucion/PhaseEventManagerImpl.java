@@ -50,7 +50,7 @@ public class PhaseEventManagerImpl extends com.educaflow.subsystem.expedientes.s
 
     @WhenEvent
     public void triggerFirmar(AnulacionMatriculaCicloFormativoV1 expediente, AnulacionMatriculaCicloFormativoV1 original, EventContext eventContext) throws BusinessException {
-        AnulacionMatriculaCicloFormativoV1Util.exigeMismoCentroQueElExpediente(expediente, "Solo puede firmar resoluciones de su propio centro");
+        AnulacionMatriculaCicloFormativoV1Util.exigePertenecerAlCentroDelExpediente(expediente, "Solo puede firmar resoluciones de su propio centro");
         AnulacionMatriculaCicloFormativoV1Util.exigeOstentarElPerfilDelEstado(expediente, "Solo el director del centro puede firmar la resolución");
 
         String mensajeSinCertificado = I18n.get("El centro no tiene configurada la firma del Director; avise al administrador");
@@ -92,7 +92,7 @@ public class PhaseEventManagerImpl extends com.educaflow.subsystem.expedientes.s
 
     @WhenEvent
     public void triggerDevolver(AnulacionMatriculaCicloFormativoV1 expediente, AnulacionMatriculaCicloFormativoV1 original, EventContext eventContext) throws BusinessException {
-        AnulacionMatriculaCicloFormativoV1Util.exigeMismoCentroQueElExpediente(expediente, "Solo puede devolver resoluciones de su propio centro");
+        AnulacionMatriculaCicloFormativoV1Util.exigePertenecerAlCentroDelExpediente(expediente, "Solo puede devolver resoluciones de su propio centro");
         AnulacionMatriculaCicloFormativoV1Util.exigeOstentarElPerfilDelEstado(expediente, "Solo el director del centro puede devolver la resolución a la secretaría");
 
         expediente.setFechaDevolucion(LocalDate.now(Convert.defaultZoneId));

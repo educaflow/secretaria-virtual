@@ -10,12 +10,19 @@
           onLoad="exp-AnulacionMatriculaCicloFormativoV1-DATOS_SOLICITUD-onLoad-action">
         <include-panels>
             -subsanacion
+            persona-solicitante-editable
             datos-alumno
             matricula
         </include-panels>
 
         <panel name="avisoDatosSolicitudCreador" colSpan="12" showFrame="false">
-            <help variant="info" colSpan="12">Para presentar la solicitud necesitará firmarla con su certificado digital desde este mismo ordenador</help>
+            <help variant="info" colSpan="12" showIf="!presentadoEnPapel">Para presentar la solicitud necesitará firmarla con su certificado digital desde este mismo ordenador</help>
+            <help variant="info" colSpan="12" showIf="presentadoEnPapel">Copie los datos de la solicitud entregada en papel que ha adjuntado escaneada. Al presentarla se registrará su entrada</help>
+            <field name="presentadoEnPapel" hidden="true"/>
+        </panel>
+
+        <panel name="solicitudEscaneadaDatosSolicitud" title="Solicitud entregada en papel" colSpan="12" showIf="presentadoEnPapel">
+            <field name="pdfSolicitudFirmada" title="Solicitud escaneada (PDF)" widget="binary-link" readonly="true" colSpan="8"/>
         </panel>
 
         <footer>
@@ -24,10 +31,18 @@
                         title="Borrar el expediente"
                         onClick="subsysExpedientes-event-action"
                         prompt="Se va a eliminar el expediente y no podrá recuperarlo"/>
+                <button name="VOLVER" colSpan="2" outline="true" title="Atrás"
+                        showIf="presentadoEnPapel"
+                        onClick="subsysExpedientes-event-action"/>
             </buttons-left>
             <buttons-right>
                 <button name="CONTINUAR" colSpan="2" title="Siguiente"
+                        showIf="!presentadoEnPapel"
                         onClick="subsysExpedientes-event-action"/>
+                <button name="CONTINUAR" colSpan="4" title="Presentar la solicitud"
+                        showIf="presentadoEnPapel"
+                        onClick="subsysExpedientes-event-action"
+                        prompt="Va a presentar la solicitud de anulación entregada en papel. Una vez presentada no podrá modificarla"/>
             </buttons-right>
         </footer>
     </form>
@@ -35,6 +50,7 @@
     <form state="DATOS_SOLICITUD">
         <include-panels>
             -subsanacion
+            -persona-solicitante
             -datos-alumno
             -matricula
         </include-panels>
@@ -140,15 +156,60 @@
     </form>
 
     <!-- *********************************************************************************************  -->
+    <!-- ******************************** PENDIENTE_DOCUMENTO_ESCANEADO ******************************  -->
+    <!-- *********************************************************************************************  -->
+    <form state="PENDIENTE_DOCUMENTO_ESCANEADO" profile="CREADOR">
+        <include-panels>
+            -subsanacion
+            solicitud-escaneada-upload
+        </include-panels>
+
+        <panel name="avisoPendienteDocumentoEscaneadoCreador" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">Adjunte escaneada en PDF la solicitud que ha entregado firmada la persona que la presenta. En el paso siguiente copiará sus datos</help>
+        </panel>
+
+        <footer>
+            <buttons-left>
+                <button name="DELETE" colSpan="3" css="btn-danger" outline="true" icon="trash"
+                        title="Borrar el expediente"
+                        onClick="subsysExpedientes-event-action"
+                        prompt="Se va a eliminar el expediente y no podrá recuperarlo"/>
+            </buttons-left>
+            <buttons-right>
+                <button name="CONTINUAR" colSpan="2" title="Siguiente"
+                        onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <form state="PENDIENTE_DOCUMENTO_ESCANEADO">
+        <include-panels>
+            -datos-alumno
+            -matricula
+        </include-panels>
+
+        <panel name="avisoPendienteDocumentoEscaneadoGenerica" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">La solicitud todavía no se ha presentado: está pendiente de que se adjunte escaneada la solicitud entregada en papel</help>
+        </panel>
+
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <!-- *********************************************************************************************  -->
     <!-- ***************************** Acciones propias de la fase SOLICITUD *************************  -->
     <!-- *********************************************************************************************  -->
-    <action-attrs name="exp-AnulacionMatriculaCicloFormativoV1-DATOS_SOLICITUD-onLoad-action">
-        <attribute for="nia"           name="required" expr="true"/>
-        <attribute for="direccion"     name="required" expr="true"/>
-        <attribute for="telefono"      name="required" expr="true"/>
-        <attribute for="poblacion"     name="required" expr="true"/>
-        <attribute for="provincia"     name="required" expr="true"/>
-        <attribute for="codigoPostal"  name="required" expr="true"/>
+    <action-group name="exp-AnulacionMatriculaCicloFormativoV1-DATOS_SOLICITUD-onLoad-action">
+        <action name="subsysExpedientes-persona-solicitante-onLoad-action"/>
+        <action name="subsysExpedientes-persona-interesada-onLoad-action"/>
+        <action name="exp-AnulacionMatriculaCicloFormativoV1-DATOS_SOLICITUD-required-action"/>
+    </action-group>
+
+    <action-attrs name="exp-AnulacionMatriculaCicloFormativoV1-DATOS_SOLICITUD-required-action">
         <attribute for="ciclo"         name="required" expr="true"/>
     </action-attrs>
 

@@ -25,7 +25,7 @@ Lo escribe el rol **test-unitarios**; lo verifica el **verificador-test-unitario
 | **E0–E5** | Que cada fase tiene su manager, con un `@WhenEvent trigger<Evento>` por evento y un `@OnEnterState onEnter<Estado>` por estado, ninguno de más, y sin `triggerInitialEvent` |
 | **A1** | Que ningún nombre de estado ni de evento produce un método que pise la API base |
 | **V0–V2** | Que cada fase tiene su validador, con un `@BeanValidationRulesForStateAndEvent getForState<Estado>InEvent<Evento>` por pareja (estado, evento) salvo `DELETE`, y ninguno de más |
-| **S1–S5** | Que el XML maestro está bien formado semánticamente: fases y estados en orden, `events` siempre escrito, `profile` del enum `Profile`, exactamente un `initial` |
+| **S1–S4** | Que el XML maestro está bien formado semánticamente: fases y estados en orden, `events` siempre escrito, `profile` del enum `Profile` |
 | **R1** | Que no se referencia la clase `States` de otro tipo o de otra versión |
 | **T1** | Que el `<defaultTipoExpediente>` apunta al **nombre de una carpeta** de versión que existe |
 | **X1–X3** | Que hay un `<form state>` genérico por estado, un `<form state profile>` en cada estado con perfil y eventos, y ningún `(state, profile)` duplicado |
@@ -90,7 +90,7 @@ Para este artefacto **no se describe ningún test unitario** de las clases del t
 - que hay exactamente un `InitialEventManagerImpl` en la raíz de la versión, con un único `triggerInitialEvent`, parametrizado con la entidad del `domains.xml`;
 - que en cada fase hay un `trigger<Evento>` por cada evento de la fase y un `onEnter<Estado>` por cada estado, ninguno de más;
 - que en cada fase hay un `getForState<Estado>InEvent<Evento>` por cada pareja (estado, evento) salvo las de `DELETE`, ninguno de más;
-- que el `TipoExpedienteInstance.xml` tiene exactamente un estado inicial, el `events` escrito en todos los estados y perfiles válidos;
+- que el `TipoExpedienteInstance.xml` tiene el `events` escrito en todos los estados y perfiles válidos;
 - que el `estados.puml` dibuja todos los estados con el alias `<FASE>_<ESTADO>` y sin alias fantasma;
 - que los `views.xml` de cada fase tienen el form genérico de cada estado, el form con perfil donde procede, sin duplicados, y que todo evento tiene su botón;
 - que no se referencia la clase `States` de otro tipo ni de otra versión, y que el `<defaultTipoExpediente>` apunta a una carpeta de versión que existe;

@@ -6,6 +6,7 @@ import com.axelor.i18n.I18n;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.Centro;
+import com.educaflow.subsystem.common.db.CentroUsuario;
 import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1;
 import com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1;
 import org.junit.jupiter.api.AfterEach;
@@ -18,6 +19,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.quality.Strictness;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -93,9 +96,16 @@ class AnulacionMatriculaCicloFormativoV1UtilTest {
         return centro;
     }
 
-    private static User usuarioConCentroActivo(long id, Centro centroActivo) {
+    private static User usuarioDeLosCentros(long id, Centro... centros) {
         User usuario = usuario(id);
-        usuario.setCentroActivo(centroActivo);
+        List<CentroUsuario> centroUsuarios = new ArrayList<>();
+        for (Centro centro : centros) {
+            CentroUsuario centroUsuario = new CentroUsuario();
+            centroUsuario.setCentro(centro);
+            centroUsuario.setUsuario(usuario);
+            centroUsuarios.add(centroUsuario);
+        }
+        usuario.setCentroUsuarios(centroUsuarios);
         return usuario;
     }
 
@@ -203,61 +213,68 @@ class AnulacionMatriculaCicloFormativoV1UtilTest {
     }
 
     /* ------------------------------------------------------------------ */
-    /* exigeMismoCentroQueElExpediente                                    */
+    /* exigePertenecerAlCentroDelExpediente                               */
     /* ------------------------------------------------------------------ */
 
     @Test
-    void exigeMismoCentro_centroActivoIgualAlDelExpediente_noLanza() {
+    void exigePertenecerAlCentro_usuarioDelCentroDelExpediente_noLanza() {
         AnulacionMatriculaCicloFormativoV1 expediente = expedienteEn(centro(3L));
         // Dos instancias de Centro distintas a propósito: la guarda mira el id, no la referencia al Centro.
-        // No prueba que el id se compare por valor: con ids en el rango de caché de Long (contrato del
-        // diseño) el autoboxing reutiliza el mismo Long, así que un == sobre los ids pasaría igual.
-        usuarioAutenticado(usuarioConCentroActivo(ID_USUARIO_IRRELEVANTE, centro(3L)));
+        usuarioAutenticado(usuarioDeLosCentros(ID_USUARIO_IRRELEVANTE, centro(3L)));
 
         assertDoesNotThrow(
-                () -> AnulacionMatriculaCicloFormativoV1Util.exigeMismoCentroQueElExpediente(expediente, MENSAJE_REVISAR));
+                () -> AnulacionMatriculaCicloFormativoV1Util.exigePertenecerAlCentroDelExpediente(expediente, MENSAJE_REVISAR));
     }
 
     @Test
-    void exigeMismoCentro_centroActivoDistinto_lanzaConElMensajeRecibido() {
+    void exigePertenecerAlCentro_usuarioDeVariosCentrosEntreEllosElDelExpediente_noLanza() {
         AnulacionMatriculaCicloFormativoV1 expediente = expedienteEn(centro(3L));
-        usuarioAutenticado(usuarioConCentroActivo(ID_USUARIO_IRRELEVANTE, centro(4L)));
+        usuarioAutenticado(usuarioDeLosCentros(ID_USUARIO_IRRELEVANTE, centro(4L), centro(3L)));
+
+        assertDoesNotThrow(
+                () -> AnulacionMatriculaCicloFormativoV1Util.exigePertenecerAlCentroDelExpediente(expediente, MENSAJE_FIRMAR));
+    }
+
+    @Test
+    void exigePertenecerAlCentro_usuarioDeOtroCentro_lanzaConElMensajeRecibido() {
+        AnulacionMatriculaCicloFormativoV1 expediente = expedienteEn(centro(3L));
+        usuarioAutenticado(usuarioDeLosCentros(ID_USUARIO_IRRELEVANTE, centro(4L)));
 
         BusinessException excepcion = assertThrows(BusinessException.class,
-                () -> AnulacionMatriculaCicloFormativoV1Util.exigeMismoCentroQueElExpediente(expediente, MENSAJE_REVISAR));
+                () -> AnulacionMatriculaCicloFormativoV1Util.exigePertenecerAlCentroDelExpediente(expediente, MENSAJE_REVISAR));
 
         assertEquals(MENSAJE_REVISAR, mensajeDe(excepcion));
     }
 
     @Test
-    void exigeMismoCentro_expedienteSinCentro_lanza() {
+    void exigePertenecerAlCentro_expedienteSinCentro_lanza() {
         AnulacionMatriculaCicloFormativoV1 expediente = expedienteEn(null);
-        usuarioAutenticado(usuarioConCentroActivo(ID_USUARIO_IRRELEVANTE, centro(3L)));
+        usuarioAutenticado(usuarioDeLosCentros(ID_USUARIO_IRRELEVANTE, centro(3L)));
 
         BusinessException excepcion = assertThrows(BusinessException.class,
-                () -> AnulacionMatriculaCicloFormativoV1Util.exigeMismoCentroQueElExpediente(expediente, MENSAJE_FIRMAR));
+                () -> AnulacionMatriculaCicloFormativoV1Util.exigePertenecerAlCentroDelExpediente(expediente, MENSAJE_FIRMAR));
 
         assertEquals(MENSAJE_FIRMAR, mensajeDe(excepcion));
     }
 
     @Test
-    void exigeMismoCentro_usuarioSinCentroActivo_lanza() {
+    void exigePertenecerAlCentro_usuarioSinCentros_lanza() {
         AnulacionMatriculaCicloFormativoV1 expediente = expedienteEn(centro(3L));
-        usuarioAutenticado(usuarioConCentroActivo(ID_USUARIO_IRRELEVANTE, null));
+        usuarioAutenticado(usuarioDeLosCentros(ID_USUARIO_IRRELEVANTE));
 
         BusinessException excepcion = assertThrows(BusinessException.class,
-                () -> AnulacionMatriculaCicloFormativoV1Util.exigeMismoCentroQueElExpediente(expediente, MENSAJE_DEVOLVER));
+                () -> AnulacionMatriculaCicloFormativoV1Util.exigePertenecerAlCentroDelExpediente(expediente, MENSAJE_DEVOLVER));
 
         assertEquals(MENSAJE_DEVOLVER, mensajeDe(excepcion));
     }
 
     @Test
-    void exigeMismoCentro_sinUsuarioAutenticado_lanza() {
+    void exigePertenecerAlCentro_sinUsuarioAutenticado_lanza() {
         AnulacionMatriculaCicloFormativoV1 expediente = expedienteEn(centro(3L));
         usuarioAutenticado(null);
 
         BusinessException excepcion = assertThrows(BusinessException.class,
-                () -> AnulacionMatriculaCicloFormativoV1Util.exigeMismoCentroQueElExpediente(expediente, MENSAJE_FIRMAR));
+                () -> AnulacionMatriculaCicloFormativoV1Util.exigePertenecerAlCentroDelExpediente(expediente, MENSAJE_FIRMAR));
 
         assertEquals(MENSAJE_FIRMAR, mensajeDe(excepcion));
     }

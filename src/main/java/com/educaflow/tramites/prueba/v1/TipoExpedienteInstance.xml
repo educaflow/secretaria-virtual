@@ -6,7 +6,7 @@
     <ambitoAuditor>DEPARTAMENTO</ambitoAuditor>
     <fases>
         <fase name="RECEPCION" title="Recepción">
-            <state initial="true" name="ENTRADA_DATOS" profile="CREADOR" events="DELETE,PRESENTAR" />
+            <state name="ENTRADA_DATOS" profile="CREADOR" events="DELETE,PRESENTAR" />
         </fase>
         <fase name="TRAMITACION" title="Tramitación">
             <state name="REVISION" title="Revisión" profile="RESPONSABLE" events="SUBSANAR,ACEPTAR,RECHAZAR" />

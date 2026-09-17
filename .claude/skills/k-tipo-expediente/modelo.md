@@ -26,6 +26,28 @@ Entidad JPA del expediente de esta versión. Va en la **raíz de la carpeta de v
 
 No los redeclares (fuente de verdad: `subsystem/expedientes/domains/Expediente.xml`): `tipoExpediente`, `name`, `numeroExpediente`, `codePhase`/`namePhase`/`codeState`/`nameState`, `fechaUltimoEstado`, `abierto`, `historialEstados`, `centro`, `usuarioRegistrador`, `personaSolicitante` y `personaInteresada` (ambas `Persona`) y `claveCertificado`.
 
+### 2.1 Las personas del expediente
+
+Los datos de una persona (nombre, apellidos, DNI, NIA, email, teléfono, dirección, municipio, CP) viven **solo** en `personaSolicitante` y `personaInteresada`.
+
+- **MUST NOT** declarar en el `domains.xml` del tipo un campo con el nombre de un campo de `Persona`: lo caza el test M2 (`SKILL.md` §3.3).
+- Las dos personas y `presentadoEnRepresentacion` las rellena `Tramitador` al crear el expediente, a partir de lo que el usuario elige en la pantalla «Nuevo expediente» (centro y «¿para quién es?»):
+  - «Para mí»: dos filas de `Persona` con los datos del usuario, `presentadoEnRepresentacion = false`.
+  - «Para otra persona a la que represento»: `personaSolicitante` con los datos del usuario, `personaInteresada` vacía, `presentadoEnRepresentacion = true`.
+- Si el tipo pide o completa datos de la persona, el validator los declara anidados sobre la relación, y así entran en la whitelist del evento:
+
+```kotlin
+field(model::getPersonaInteresada) {
+    field(Persona::getNombre) { +Required() }
+    field(Persona::getNia) { +Required(); +Pattern("^\\d{8}\$") }
+}
+```
+
+- Una `Lambda` dentro de un campo anidado recibe la `Persona`, no el expediente: la función de `<Code>Util` que se le pase **MUST** tomar una `Persona`.
+- **MUST** validar nombre, apellidos y DNI del interesado si el tipo admite el modo representación: en ese modo nadie más los rellena.
+- **MUST NOT** confiar en que la whitelist protege la identidad: en cada evento `Tramitador` restaura nombre, apellidos y DNI del solicitante (y del interesado si no hay representación), `presentadoEnRepresentacion`, y rechaza que la petición cambie la `Persona` referenciada por otra.
+- Qué trámites admiten el modo representación lo decide su tipo de trámite (`TipoTramite.admiteRepresentacion`, ver `k-tramite`).
+
 `codePhase` y `codeState` guardan la pareja que identifica al estado (`SKILL.md` §1.5); `namePhase` y `nameState` guardan sus textos visibles (el `title` de la fase y el del estado, o sus `name` humanizados), que son los que ve el usuario en los listados.
 
 `claveCertificado` es el campo **transient** (`password="true"`) para las firmas: en él teclea quien firma la clave de su certificado (contraseña del fichero o PIN del dispositivo criptográfico) cuando el documento se firma en el servidor. Nunca se persiste ni se devuelve al cliente.

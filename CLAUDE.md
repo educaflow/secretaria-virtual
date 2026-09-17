@@ -132,6 +132,7 @@ A veces hay palabras que acaban con `__!!` como en `AutoFirma__!!` esto es para 
 
 ## La aplicación
 La aplicación de secretaría virtual va a ser usada en centros educativos para informatizarlos. La app permite que haya más de un centro educativo. Es decir que es una aplicación "multicentro" y cada centro solo puede ver su propia información.
+En los expedientes el centro es el del propio expediente, que el usuario elige al crearlo entre sus centros: `subsystem/expedientes` y `tramites` **MUST NOT** usar `User.centroActivo`, que está en vías de eliminación y hoy solo usan gestión de centro, correos y Preferencias.
 
 ### Tipos de usuarios y cargos
 Existen varios tipos de usuarios en la aplicación:

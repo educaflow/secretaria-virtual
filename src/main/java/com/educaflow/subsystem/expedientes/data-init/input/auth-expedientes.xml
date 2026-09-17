@@ -7,14 +7,18 @@
         SELECT aa.tipoExpediente
         FROM com.educaflow.subsystem.security.db.Ace aa
         WHERE aa.tipoExpediente IS NOT NULL
-        AND (aa.centro IS NULL OR aa.centro = ?)
-        AND (
-            aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = ?)
-            OR aa.centroUsuario = ?
-            OR aa.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = ?)
+        AND EXISTS (
+            SELECT cu FROM com.educaflow.subsystem.common.db.CentroUsuario cu
+            WHERE cu.usuario = ?
+            AND (aa.centro IS NULL OR aa.centro = cu.centro)
+            AND (
+                aa.centroUsuario = cu
+                OR aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
+                OR aa.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)
+            )
         )
     )"
-              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
+              conditionParams="__user__"
   >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
@@ -26,14 +30,105 @@
         FROM com.educaflow.subsystem.security.db.Ace aa
         WHERE aa.perfil.name = 'CREADOR'
         AND aa.tramite IS NOT NULL
-        AND (aa.centro IS NULL OR aa.centro = ?)
-        AND (
-            aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = ?)
-            OR aa.centroUsuario = ?
-            OR aa.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = ?)
+        AND EXISTS (
+            SELECT cu FROM com.educaflow.subsystem.common.db.CentroUsuario cu
+            WHERE cu.usuario = ?
+            AND (aa.centro IS NULL OR aa.centro = cu.centro)
+            AND (
+                aa.centroUsuario = cu
+                OR aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
+                OR aa.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)
+            )
         )
     )"
-              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <!-- El árbol de la pantalla «Prueba Búsqueda» (subsysExpedientes.Expediente@PruebaSearch-buscar-tree, en
+       tramites/views/Expediente-search.xml) tiene como nodo RAÍZ Tramite: quien consulta los expedientes de
+       un trámite necesita poder LEER su fila de Tramite, o el filtro de permisos sobre el nodo raíz le deja
+       la pantalla vacía aunque sí vea los expedientes. Son de SOLO LECTURA y complementan a Tramite.creador
+       («puedo CREAR expedientes de este trámite»).
+       Son DOS y no uno porque Permission.condition está limitada a 1024 caracteres (@Size(max=1024)): con
+       esta formulación (dos `self IN (...)` unidos por OR) una sola condición mide 1126 y revienta la
+       importación del fichero entero y, en cascada, la de auth.xml —que es donde los permisos se enlazan a
+       los grupos—. Axelor combina con OR las condiciones de todos los permisos sobre el mismo objeto
+       (AuthSecurity.getFilter → Filter.or), así que dos permisos de una rama equivalen a uno de dos ramas.
+       Antes de fusionarlos en uno solo hay que medir la condición resultante: por debajo de 1024 es legítimo.
+       La tercera vía de Ace, la que apunta a un expediente concreto (ver Expediente.porExpediente), queda
+       fuera A PROPÓSITO, porque hoy no se asignan Aces por expediente; si algún día se hace, quien solo
+       tenga un Ace de esos seguirá viendo la bandeja vacía y habrá que añadir aquí el permiso simétrico.
+       Efecto colateral conocido y aceptado: el árbol de «Crear un nuevo expediente» (sysTramites-nuevo-tree,
+       en tramites/views/Tramites.xml) tiene su nodo Tramite SIN domain, así que pasa a ofrecer también los
+       trámites en los que el usuario solo tiene un Ace de consulta; NO es un agujero, porque el servidor
+       rechaza la creación con UnauthorizedException desde Tramitador.triggerInitialEvent
+       (checkPerfilDelEstado). Acotar ese árbol es decisión pendiente del dueño del producto, fuera del
+       alcance de este cambio. -->
+  <permission name="Tramite.porTramite"
+              object="com.educaflow.subsystem.expedientes.db.Tramite"
+              condition="self IN (
+        SELECT aa.tramite
+        FROM com.educaflow.subsystem.security.db.Ace aa
+        WHERE aa.tramite IS NOT NULL
+        AND aa.perfil.name != 'CREADOR'
+        AND EXISTS (
+            SELECT cu FROM com.educaflow.subsystem.common.db.CentroUsuario cu
+            WHERE cu.usuario = ?
+            AND (aa.centro IS NULL OR aa.centro = cu.centro)
+            AND (
+                aa.centroUsuario = cu
+                OR aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
+                OR aa.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)
+            )
+        )
+    )"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <!-- Quien puede registrar en papel las solicitudes de un tipo de trámite (TipoTramite.tiposUsuarioRegistradores
+       y cargosRegistradores) necesita LEER sus trámites para verlos en el árbol «Crear un nuevo expediente»,
+       aunque no tenga ningún Ace sobre ellos. Solo los que tienen una versión activa: un trámite sin
+       defaultTipoExpediente no se puede crear. Qué centros y qué opciones se le ofrecen al crear lo decide
+       ExpedienteSecurity, que es la misma regla. -->
+  <permission name="Tramite.registrador"
+              object="com.educaflow.subsystem.expedientes.db.Tramite"
+              condition="self.defaultTipoExpediente IS NOT NULL
+        AND self.tipoTramite.admitePresentacionEnPapel = true
+        AND EXISTS (
+            SELECT cu FROM com.educaflow.subsystem.common.db.CentroUsuario cu
+            WHERE cu.usuario = ?
+            AND (
+                EXISTS (SELECT cut FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu AND cut.tipoUsuario MEMBER OF self.tipoTramite.tiposUsuarioRegistradores)
+                OR EXISTS (SELECT cuc FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu AND cuc.cargo MEMBER OF self.tipoTramite.cargosRegistradores)
+            )
+        )"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Tramite.porTipoExpediente"
+              object="com.educaflow.subsystem.expedientes.db.Tramite"
+              condition="self IN (
+        SELECT aa.tipoExpediente.tramite
+        FROM com.educaflow.subsystem.security.db.Ace aa
+        WHERE aa.tipoExpediente IS NOT NULL
+        AND EXISTS (
+            SELECT cu FROM com.educaflow.subsystem.common.db.CentroUsuario cu
+            WHERE cu.usuario = ?
+            AND (aa.centro IS NULL OR aa.centro = cu.centro)
+            AND (
+                aa.centroUsuario = cu
+                OR aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
+                OR aa.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)
+            )
+        )
+    )"
+              conditionParams="__user__"
   >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
@@ -52,14 +147,19 @@
         SELECT aa.expediente
         FROM com.educaflow.subsystem.security.db.Ace aa
         WHERE aa.expediente IS NOT NULL
-        AND (aa.centro IS NULL OR aa.centro = ?)
-        AND (
-            aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = ?)
-            OR aa.centroUsuario = ?
-            OR aa.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = ?)
+        AND EXISTS (
+            SELECT cu FROM com.educaflow.subsystem.common.db.CentroUsuario cu
+            WHERE cu.usuario = ?
+            AND cu.centro = self.centro
+            AND (aa.centro IS NULL OR aa.centro = cu.centro)
+            AND (
+                aa.centroUsuario = cu
+                OR aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
+                OR aa.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)
+            )
         )
     )"
-              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
+              conditionParams="__user__"
   >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
@@ -70,14 +170,19 @@
         SELECT aa.tipoExpediente
         FROM com.educaflow.subsystem.security.db.Ace aa
         WHERE aa.tipoExpediente IS NOT NULL
-        AND (aa.centro IS NULL OR aa.centro = ?)
-        AND (
-            aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = ?)
-            OR aa.centroUsuario = ?
-            OR aa.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = ?)
+        AND EXISTS (
+            SELECT cu FROM com.educaflow.subsystem.common.db.CentroUsuario cu
+            WHERE cu.usuario = ?
+            AND cu.centro = self.centro
+            AND (aa.centro IS NULL OR aa.centro = cu.centro)
+            AND (
+                aa.centroUsuario = cu
+                OR aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
+                OR aa.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)
+            )
         )
     )"
-              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
+              conditionParams="__user__"
   >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
@@ -89,14 +194,19 @@
         FROM com.educaflow.subsystem.security.db.Ace aa
         WHERE aa.tramite IS NOT NULL
         AND aa.perfil.name != 'CREADOR'
-        AND (aa.centro IS NULL OR aa.centro = ?)
-        AND (
-            aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = ?)
-            OR aa.centroUsuario = ?
-            OR aa.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = ?)
+        AND EXISTS (
+            SELECT cu FROM com.educaflow.subsystem.common.db.CentroUsuario cu
+            WHERE cu.usuario = ?
+            AND cu.centro = self.centro
+            AND (aa.centro IS NULL OR aa.centro = cu.centro)
+            AND (
+                aa.centroUsuario = cu
+                OR aa.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
+                OR aa.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu)
+            )
         )
     )"
-              conditionParams="__user__.centroActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo, __user__.centroUsuarioActivo"
+              conditionParams="__user__"
   >
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
@@ -121,6 +231,12 @@
 
   <permission name="TipoTramite.leer" object="com.educaflow.subsystem.expedientes.db.TipoTramite">
     <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <!-- ContextoTramitacion es persistable="false": no hay filas que filtrar. Quién puede crear qué y dónde
+       lo decide ExpedienteSecurity en el servidor al crear (ExpedienteService.crear). -->
+  <permission name="ContextoTramitacion.all" object="com.educaflow.subsystem.expedientes.db.ContextoTramitacion">
+    <can create="true" read="true" write="true" remove="false" export="false"/>
   </permission>
 
   <permission name="SearchExpedientes.all" object="com.educaflow.subsystem.expedientes.db.SearchExpedientes">

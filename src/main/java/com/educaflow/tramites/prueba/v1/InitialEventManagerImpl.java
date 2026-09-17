@@ -1,6 +1,6 @@
 package com.educaflow.tramites.prueba.v1;
 
-import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
+import com.educaflow.subsystem.expedientes.services.eventmanager.InitialEventContext;
 import com.educaflow.subsystem.expedientes.services.eventmanager.InitialEventManager;
 import com.educaflow.subsystem.expedientes.db.PruebaV1;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
@@ -13,15 +13,18 @@ import com.educaflow.base.infrastructure.validation.messages.BusinessException;
  * no hay estado del que partir. Por eso hay exactamente uno por tipo, aquí en la raíz de la
  * versión, y no uno por fase.
  *
+ * <p>MUST fijar el estado en el que nace el expediente con {@code initialEventContext.updateState(...)}:
+ * el estado inicial no se declara en el {@code TipoExpedienteInstance.xml}, lo decide esta clase.
+ *
  * <p>Qué campos hay que rellenar depende del tipo de expediente: {@code Tramitador} no impone
  * ninguno.
  */
 public class InitialEventManagerImpl implements InitialEventManager<PruebaV1> {
 
     @Override
-    public void triggerInitialEvent(PruebaV1 pruebaV1, EventContext eventContext) throws BusinessException {
+    public void triggerInitialEvent(InitialEventContext initialEventContext) throws BusinessException {
 
-
+        initialEventContext.updateState(States.Recepcion.ENTRADA_DATOS);
     }
 
 }

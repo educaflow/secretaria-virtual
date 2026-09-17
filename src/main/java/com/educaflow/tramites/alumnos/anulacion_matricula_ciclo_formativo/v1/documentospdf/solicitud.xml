@@ -19,7 +19,7 @@
                 <valenciano>Nom</valenciano>
                 <castellano>Nombre</castellano>
             </campo>
-            <campo nombreCampo="self.nia" colspan="4">
+            <campo nombreCampo="self.personaInteresada.nia" colspan="4">
                 <valenciano>NIA__!! (1)</valenciano>
                 <castellano>NIA__!! (1)</castellano>
             </campo>
@@ -29,27 +29,33 @@
                 <valenciano>DNI__!! / NIE__!! (2)</valenciano>
                 <castellano>DNI__!! / NIE__!! (2)</castellano>
             </campo>
-            <campo nombreCampo="self.direccion" colspan="6">
+            <campo nombreCampo="self.personaInteresada.direccion" colspan="6">
                 <valenciano>Adreça</valenciano>
                 <castellano>Dirección</castellano>
             </campo>
-            <campo nombreCampo="self.telefono" colspan="3">
+            <campo nombreCampo="self.personaInteresada.telefono" colspan="3">
                 <valenciano>Telèfon</valenciano>
                 <castellano>Teléfono</castellano>
             </campo>
         </fila>
         <fila>
-            <campo nombreCampo="self.poblacion" colspan="5">
+            <campo nombreCampo="self.personaInteresada.municipio.name" colspan="5">
                 <valenciano>Població</valenciano>
                 <castellano>Población</castellano>
             </campo>
-            <campo nombreCampo="self.provincia" colspan="4">
+            <campo nombreCampo="self.personaInteresada.municipio.provincia.name" colspan="4">
                 <valenciano>Província</valenciano>
                 <castellano>Provincia</castellano>
             </campo>
-            <campo nombreCampo="self.codigoPostal" colspan="3">
+            <campo nombreCampo="self.personaInteresada.cp" colspan="3">
                 <valenciano>CP__!!</valenciano>
                 <castellano>CP__!!</castellano>
+            </campo>
+        </fila>
+        <fila>
+            <campo nombreCampo='self.presentadoEnRepresentacion ? self.personaSolicitante.nombre + " " + self.personaSolicitante.apellidos + " (" + self.personaSolicitante.dni + ")" : ""' colspan="12">
+                <valenciano>Presentada en el seu nom per (pare, mare o tutor/a legal)</valenciano>
+                <castellano>Presentada en su nombre por (padre, madre o tutor/a legal)</castellano>
             </campo>
         </fila>
     </seccion>

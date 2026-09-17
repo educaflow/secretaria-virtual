@@ -234,7 +234,7 @@ Reglas:
 <TipoExpediente>
     <fases>
         <fase name="<FASE>" title="<Título de la fase>">
-            <state name="<ESTADO>" events="<EVENTO>,<EVENTO>" profile="<PERFIL>" title="<Título>" initial="true"/>
+            <state name="<ESTADO>" events="<EVENTO>,<EVENTO>" profile="<PERFIL>" title="<Título>"/>
             <state name="<ESTADO>" events="" profile="<PERFIL>" title="<Título>" closed="true"/>
         </fase>
     </fases>
@@ -529,13 +529,13 @@ package <basePackageName>;
 
 public class InitialEventManagerImpl implements InitialEventManager<<Entidad>> {
     @Override
-    public void triggerInitialEvent(<Entidad> expediente, EventContext eventContext) throws BusinessException { … }
+    public void triggerInitialEvent(<Entidad> expediente, InitialEventContext initialEventContext) throws BusinessException { … }
 }
 ```
 
 - **MUST** existir **exactamente uno por tipo**, con FQCN `<basePackageName>.InitialEventManagerImpl`.
 - **MUST NOT** usarse `InitialEventManager` en crudo: el parámetro de tipo es el **único** sitio donde el tipo declara cuál es su entidad, y es lo que `ExpedienteLocator.getModelClass` lee en runtime.
-- **MUST** declarar **exactamente un** `triggerInitialEvent(<Entidad>, EventContext): void`. No lleva anotación.
+- **MUST** declarar **exactamente un** `triggerInitialEvent(<Entidad>, InitialEventContext): void`. No lleva anotación.
 
 **Contenido obligatorio de la sección**: una tabla de asignaciones **en orden**:
 
@@ -548,10 +548,10 @@ public class InitialEventManagerImpl implements InitialEventManager<<Entidad>> {
 Reglas que la sección **MUST** hacer explícitas:
 
 - Lo que el `Tramitador` ya rellena **antes** de llamar al `triggerInitialEvent` y que **MUST NOT** reasignarse: `tipoExpediente`, `centro`, `usuarioRegistrador`, `name`, `numeroExpediente`.
-- Lo que hace **después** y que tampoco es cosa de este método: fijar el estado inicial, crear el `HistorialEstado` y llamar al `onEnterState`.
+- Lo que hace **después** y que tampoco es cosa de este método: comprobar el perfil del estado inicial, crear el `HistorialEstado` y llamar al `onEnterState`.
 - **CRITICAL** — si algún `trigger*` llama a `createRegistroEntrada`, el método **MUST** dejar `personaSolicitante` y `personaInteresada` no nulos: `createRegistroEntrada` lanza **NPE** si son `null`, y **nada lo verifica en build**.
 - Si el tipo no crea registros de entrada, esa regla no aplica y la sección **MUST** decirlo explícitamente.
-- **MUST NOT** llamar a `eventContext.updateState(...)`: el estado inicial lo fija el `Tramitador`.
+- **MUST** fijar el estado inicial con `initialEventContext.updateState(States.<Fase>.<ESTADO>)`, como **última fila** de la tabla (con la guarda de cada rama si depende de algo, p.ej. `presentadoEnPapel`): el XML no declara estado inicial y, sin esta llamada, el `Tramitador` aborta el alta.
 
 Dependencias a inyectar (`@Inject`), si las hay: lista con tipo y para qué se usa. Si no hay ninguna, decirlo.
 
@@ -919,7 +919,7 @@ La sección `## 15. Checklist del diseñador` del `design.md` **MUST** reproduci
 
 **Máquina de estados**
 
-- [ ] ¿Exactamente un estado `initial` en todo el tipo?
+- [ ] ¿Ningún `<state>` lleva `initial`, y el `triggerInitialEvent` fija el estado inicial con `updateState` en todas sus ramas?
 - [ ] ¿Todo `<state>` lleva escrito su `events`, aunque sea `events=""`?
 - [ ] ¿`EXIT` **no** aparece en ningún `events`?
 - [ ] ¿Todo `profile` de un estado es un valor del enum `Profile`?

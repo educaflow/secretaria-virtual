@@ -5,8 +5,10 @@ import com.axelor.db.JpaRepository;
 import com.axelor.i18n.I18n;
 import com.axelor.inject.Beans;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
+import com.educaflow.base.util.DniUtil;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.Centro;
+import com.educaflow.subsystem.common.db.Persona;
 import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1;
 import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.services.eventmanager.State;
@@ -24,6 +26,29 @@ public final class AnulacionMatriculaCicloFormativoV1Util {
     /* Validaciones                                                       */
     /* ------------------------------------------------------------------ */
 
+    public static boolean tieneDniValido(Persona persona) {
+        return DniUtil.isValid(persona.getDni());
+    }
+
+    public static boolean esPresentadoEnPapelEnRepresentacion(AnulacionMatriculaCicloFormativoV1 expediente) {
+        return Boolean.TRUE.equals(expediente.getPresentadoEnPapel()) && Boolean.TRUE.equals(expediente.getPresentadoEnRepresentacion());
+    }
+
+    public static boolean tieneIdentificadoAlSolicitante(AnulacionMatriculaCicloFormativoV1 expediente) {
+        Persona solicitante = expediente.getPersonaSolicitante();
+        if (solicitante == null) {
+            throw new IllegalStateException("El expediente " + expediente.getNumeroExpediente() + " no tiene persona solicitante: la crea el Tramitador al dar de alta el expediente");
+        }
+
+        return (isBlank(solicitante.getApellidos()) == false)
+                && (isBlank(solicitante.getNombre()) == false)
+                && DniUtil.isValid(solicitante.getDni());
+    }
+
+    private static boolean isBlank(String texto) {
+        return (texto == null) || texto.isBlank();
+    }
+
     public static boolean sinOtraSolicitudEnCursoParaElMismoCiclo(AnulacionMatriculaCicloFormativoV1 expediente) {
         String cursoAcademico = expediente.getCursoAcademico();
         if (cursoAcademico == null || cursoAcademico.isBlank()) {
@@ -37,9 +62,10 @@ public final class AnulacionMatriculaCicloFormativoV1Util {
         // persistiría aunque la validación acabe fallando.
         long otrasSolicitudesEnCurso = JpaRepository.of(AnulacionMatriculaCicloFormativoV1.class).all()
                 .autoFlush(false)
-                .filter("self.abierto = true AND self.usuarioRegistrador = :usuario AND self.ciclo = :ciclo "
+                // Por el alumno y no por quien registra: quien registra solicitudes en papel lo hace para muchos alumnos.
+                .filter("self.abierto = true AND self.personaInteresada.dni = :dni AND self.ciclo = :ciclo "
                         + "AND self.cursoAcademico = :curso AND self.id <> :id")
-                .bind("usuario", expediente.getUsuarioRegistrador())
+                .bind("dni", expediente.getPersonaInteresada().getDni())
                 .bind("ciclo", expediente.getCiclo())
                 .bind("curso", cursoAcademico)
                 .bind("id", expediente.getId())
@@ -64,21 +90,17 @@ public final class AnulacionMatriculaCicloFormativoV1Util {
         }
     }
 
-    public static void exigeMismoCentroQueElExpediente(AnulacionMatriculaCicloFormativoV1 expediente, String mensaje) throws BusinessException {
+    public static void exigePertenecerAlCentroDelExpediente(AnulacionMatriculaCicloFormativoV1 expediente, String mensaje) throws BusinessException {
         Centro centroExpediente = expediente.getCentro();
         User usuarioAutenticado = SecurityUtil.getUser();
-        Centro centroUsuarioAutenticado = (usuarioAutenticado == null) ? null : usuarioAutenticado.getCentroActivo();
 
-        Long idCentroExpediente = (centroExpediente == null) ? null : centroExpediente.getId();
-        Long idCentroUsuarioAutenticado = (centroUsuarioAutenticado == null) ? null : centroUsuarioAutenticado.getId();
-
-        if (idCentroExpediente == null || idCentroUsuarioAutenticado == null
-                || idCentroExpediente.equals(idCentroUsuarioAutenticado) == false) {
+        if (centroExpediente == null || usuarioAutenticado == null
+                || usuarioAutenticado.getCentroUsuario(centroExpediente) == null) {
             throw new BusinessException(I18n.get(mensaje));
         }
     }
 
-    // Tramitador.checkPerfilDelEstado hace return para el administrador en cualquier estado: esta
+    // ExpedienteSecurity.checkPerfilDelEstado hace return para el administrador en cualquier estado: esta
     // guarda es la misma exigencia del motor, sin esa exención.
     public static void exigeOstentarElPerfilDelEstado(AnulacionMatriculaCicloFormativoV1 expediente, String mensaje) throws BusinessException {
         Optional<State> estado = States.INSTANCE.getState(expediente.getCodePhase(), expediente.getCodeState());

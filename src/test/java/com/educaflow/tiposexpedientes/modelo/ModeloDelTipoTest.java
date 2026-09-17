@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Todas las clases de un tipo de expediente hablan de la <b>misma</b> entidad, y es la que declara
@@ -80,6 +81,27 @@ class ModeloDelTipoTest {
         Violacion.assertNone("[M1] La entidad de un tipo de expediente es la primera <entity> de su "
                 + DomainsDelTipo.NOMBRE_FICHERO + ", y es la que deben llevar como parámetro de tipo tanto su"
                 + " InitialEventManagerImpl como el PhaseEventManagerImpl de cada una de sus fases.", violaciones);
+    }
+
+    @Test
+    @DisplayName("M2: la entidad del domains.xml no declara campos con el nombre de un campo de Persona")
+    void m2_laEntidadNoRedeclaraLosCamposDePersona() {
+        Set<String> camposPersona = DomainsDelTipo.nombresCamposPersona();
+        List<Violacion> violaciones = new ArrayList<>();
+
+        for (TipoExpedienteInstanceFile tipo : TiposExpediente.all()) {
+            for (String campo : DomainsDelTipo.nombresCamposEntidad(tipo)) {
+                if (camposPersona.contains(campo)) {
+                    violaciones.add(new Violacion(tipo.getCode(), DomainsDelTipo.fichero(tipo),
+                            "declara el campo '" + campo + "', que es un dato de la persona."
+                            + "\n      Se lee y se escribe en personaInteresada." + campo + " (o personaSolicitante." + campo + "),"
+                            + " que la entidad ya hereda de Expediente."));
+                }
+            }
+        }
+
+        Violacion.assertNone("[M2] Los datos de las personas del expediente viven en personaSolicitante y personaInteresada:"
+                + " la entidad de un tipo de expediente no los vuelve a declarar.", violaciones);
     }
 
     /**

@@ -199,7 +199,7 @@ Fichero mínimo real (todo lo demás se deriva, §1.1):
 <TipoExpediente>
     <fases>
         <fase name="RECEPCION" title="Recepción">
-            <state name="ENTRADA_DATOS"          events="DELETE,GUARDAR_DATOS" profile="CREADOR"      title="Entrada de datos"           initial="true"  />
+            <state name="ENTRADA_DATOS"          events="DELETE,GUARDAR_DATOS" profile="CREADOR"      title="Entrada de datos"                          />
             <state name="PENDIENTE_PRESENTACION" events="BACK,PRESENTAR"       profile="CREADOR"      title="Pendiente de presentación"                  />
         </fase>
         <fase name="TRAMITACION" title="Tramitación">
@@ -232,7 +232,7 @@ Tags opcionales (antes de `<fases>`): `name`, `code` y `tramite` (sobrescriben l
 
 - `events` es **obligatorio aunque esté vacío** (`events=""`). Omitirlo no da ningún error: equivale en silencio a `events=""`. Escríbelo siempre para que el estado declare de forma explícita que no dispara ningún evento.
 - `profile` es opcional (estado sin dueño → `getProfile()` devuelve `null`) y **MUST** ser una constante del enum global `Profile` de `subsystem/expedientes/domains/TipoExpediente.xml`; el generador lo valida.
-- **MUST** haber exactamente **un** estado `initial="true"` en todo el tipo (no uno por fase).
+- **MUST NOT** marcar ningún estado como inicial: el XML no tiene atributo `initial`. El estado en el que nace el expediente lo fija el `InitialEventManagerImpl` con `initialEventContext.updateState(...)` y puede depender de cómo se crea (`phaseeventmanager.md` §2.1). Un `initial="true"` que quede escrito **no** da error: JAXB lo ignora en silencio.
 - `closed="true"` marca los estados terminales (el expediente queda cerrado pero existe).
 - El `name` solo tiene que ser único **dentro de su fase**: lo que se persiste es la pareja (fase, estado) (§1.5). Dos fases pueden tener un estado que se llame igual — pero ten en cuenta que el `nameState` que ve el usuario sale de ese nombre, así que en los listados se verían idénticos salvo que les pongas `title` distinto.
 - Nombres de estados y eventos: `UPPER_SNAKE` y **MUST** ser identificadores Java válidos — van a las constantes de `States` y a los nombres de método (`GUARDAR_DATOS` → `triggerGuardarDatos`). Un evento **MUST NOT** repetirse dentro del mismo estado.
@@ -248,9 +248,9 @@ Tags opcionales (antes de `<fases>`): `name`, `code` y `tramite` (sobrescriben l
 
 Su forma:
 
-- Un **enum público por fase**, con el `name` de la fase en UpperCamelCase (`States.Recepcion`, `States.Tramitacion`), que implementa `State`. Cada constante lleva su nombre visible, su `Profile`, `initial`, `closed` y sus eventos.
+- Un **enum público por fase**, con el `name` de la fase en UpperCamelCase (`States.Recepcion`, `States.Tramitacion`), que implementa `State`. Cada constante lleva su nombre visible, su `Profile`, `closed` y sus eventos.
 - Un **alias de fase** por cada `<fase>` (`States.RECEPCION`), tipado como `Phase`.
-- `States.INSTANCE`, que implementa `TipoExpedienteStates`: `getPhase`, `getState(phaseCode, stateCode)`, `getPhases`, `getStates` y `getInitialState`.
+- `States.INSTANCE`, que implementa `TipoExpedienteStates`: `getPhase`, `getState(phaseCode, stateCode)`, `getPhases` y `getStates`.
 - `States.CODE` y `States.NAME`, el code y el name del tipo.
 
 **La máquina de estados vive únicamente en esa clase en runtime** — el data-init no persiste ni estados, ni eventos, ni flags. Como lleva **todas** las fases, una transición que cruza fases se escribe sin más: `eventContext.updateState(States.Tramitacion.PENDIENTE_RESOLUCION)`.
@@ -266,7 +266,7 @@ Convenciones:
 
 - Los estados de cada fase van **anidados dentro de un estado compuesto** que representa la fase (solo a efectos visuales).
 - **MUST** declarar cada estado con el alias `<FASE>_<ESTADO>` y su nombre corto como etiqueta, y usar ese alias en las transiciones: en PlantUML el identificador de un estado es **global**, así que dos estados que se llamen igual en fases distintas —cosa que el XML permite (§1.5)— se fundirían en un único nodo. El dibujo renderizado es el mismo, porque la etiqueta sigue siendo el nombre corto.
-- Estado inicial `[*] --> <FASE>_<INICIAL>`; transición `A --> B : EVENTO`; guardas para las condicionales (`RESOLVER[tipoResolucion=ACEPTAR]`).
+- Estado inicial `[*] --> <FASE>_<INICIAL>` (uno por cada estado en el que el `InitialEventManagerImpl` pueda crear el expediente, con guarda si depende de algo: `[*] --> <FASE>_<INICIAL> : [presentadoEnPapel=true]`); transición `A --> B : EVENTO`; guardas para las condicionales (`RESOLVER[tipoResolucion=ACEPTAR]`).
 - **MUST NOT** marcar los estados terminales con `--> [*]`: se anotan con `<alias> : closed`, porque en estos diagramas `[*]` como destino significa borrado físico (`DELETE`).
 
 ```plantuml
@@ -315,7 +315,7 @@ Si compilas sin haberla lanzado, el build falla en `RichDomainXmlTask` con `ERRO
 
 ### 3.2 Comprobaciones que hacen fallar el build
 
-1. `TipoExpedienteInstance.xml` parseable, con `<fases>` (no `<states>`), al menos una fase con al menos un estado, nombres de fase válidos y únicos, nombres de estado únicos dentro de su fase, exactamente un `initial` en todo el tipo, nombres de evento `UPPER_SNAKE` y sin repetir dentro de un estado, y cada `profile` no vacío existente en el enum global `Profile`.
+1. `TipoExpedienteInstance.xml` parseable, con `<fases>` (no `<states>`), al menos una fase con al menos un estado, nombres de fase válidos y únicos, nombres de estado únicos dentro de su fase, nombres de evento `UPPER_SNAKE` y sin repetir dentro de un estado, y cada `profile` no vacío existente en el enum global `Profile`.
    - `GenerateStatesTask` además rechaza los identificadores Java en conflicto: dos fases que produzcan el mismo enum anidado, una fase que pise un nombre reservado de `States`, o dos métodos generados de la misma fase que colisionen.
 2. `domains.xml` con `<module>` único y `<entity name="<code>">` (el nombre de la entidad = code derivado).
 3. Vistas (detalle en `vistas.md`) — las cuatro primeras reglas se comprueban **solo si el tipo tiene forms de estado**: el preprocesador ignora todo `views.xml` que no lleve ni un `<form state="…">` ni un form plantilla.
@@ -334,15 +334,16 @@ Si compilas sin haberla lanzado, el build falla en `RichDomainXmlTask` con `ERRO
 Cómo están construidos: el bytecode se lee con el `ClassFileImporter` de ArchUnit (como lector, **no** con su DSL de reglas: estas reglas están cuantificadas sobre un XML externo, y con el DSL una clase que faltara del todo haría que la regla se cumpliese en vacío), y el `TipoExpedienteInstance.xml` con las mismas clases de `EducaFlowBuildTools` que usa el generador de esqueletos (§3.1), de forma que el código del método que el test dice que falta es literalmente el que ese generador habría escrito. Los `domains.xml` y los `views.xml` se leen con JAXP.
 
 Tres reglas **no** leen el bytecode, cada una por su motivo, y se señalan en su bullet:
-- `StatesTest` carga las clases con **reflexión** normal (`Class.forName` + el campo `INSTANCE`): lo que compara —`initial`, `closed`, el perfil y los eventos de cada estado— se construye en el `<clinit>`, y ahí ArchUnit no llega.
+- `StatesTest` carga las clases con **reflexión** normal (`Class.forName` + el campo `INSTANCE`): lo que compara —`closed`, el perfil y los eventos de cada estado— se construye en el `<clinit>`, y ahí ArchUnit no llega.
 - `ClasesDeFaseHuerfanasTest` mira el **árbol de fuentes**, para no denunciar restos de una compilación sin `clean`.
 - `ExpresionesDeDocumentoTest` lee los **PDF del classpath** con el mismo lector que el runtime y **compila** cada expresión con el compilador de Groovy: lo que comprueba no está en ninguna clase, sino en los nombres de campo de un PDF.
 
 - **PhaseEventManager**: **exactamente un** `@WhenEvent trigger<Evento>(<Entidad>, <Entidad>, EventContext)` por evento **de la fase** y **exactamente un** `@OnEnterState onEnter<Estado>(<Entidad>, EventContext)` por estado **de la fase**; ni faltar ni sobrar. Y **ningún** `triggerInitialEvent` en ninguna fase (detalle en `phaseeventmanager.md` §7).
-- **InitialEventManager**: **exactamente un** `InitialEventManagerImpl` por tipo de expediente, en la raíz de la versión, que implementa `InitialEventManager<Entidad>` y declara `void triggerInitialEvent(<Entidad>, EventContext)` (detalle en `phaseeventmanager.md` §7).
+- **InitialEventManager**: **exactamente un** `InitialEventManagerImpl` por tipo de expediente, en la raíz de la versión, que implementa `InitialEventManager<Entidad>` y declara `void triggerInitialEvent(<Entidad>, InitialEventContext)`. Que ese método fije el estado inicial **no** lo comprueba ningún test: si no lo hace, el `Tramitador` aborta el alta en runtime (detalle en `phaseeventmanager.md` §7).
 - **Entidad del tipo** (`ModeloDelTipoTest`): el `InitialEventManagerImpl` y el `PhaseEventManagerImpl` de **cada fase** llevan en su parámetro de tipo la **misma** entidad, y es la **primera** `<entity>` del `domains.xml` de la versión (`modelo.md` §1). Son varias declaraciones de un mismo hecho, así que pueden divergir sin que el compilador diga nada; y la del `InitialEventManagerImpl` es además la que `ExpedienteLocator.getModelClass` lee en runtime para saber qué instanciar al crear un expediente (§1.6), de modo que la divergencia no falla al compilar sino al tramitar.
+- **Datos de las personas** (`ModeloDelTipoTest`, M2): la entidad del `domains.xml` no declara ningún campo que se llame como un campo de `Persona` (`nia`, `direccion`, `telefono`, `cp`…). Esos datos se leen y escriben en `personaSolicitante`/`personaInteresada`, que la entidad ya hereda (`modelo.md` §2.1).
 - **Validator**: **exactamente un** `@BeanValidationRulesForStateAndEvent getForState<Estado>InEvent<Evento>()` por cada **pareja** (estado, evento) **de la fase**, **salvo las de `DELETE`**, que no se exigen porque el runtime nunca las invoca; y ninguno cuya pareja no sea de la fase (detalle en `validator.md` §5).
-- **`States`** (`StatesTest`): la clase generada de cada tipo concuerda con su XML — fases, estados de cada fase, y por cada estado su nombre, perfil, eventos, `initial` y `closed`, más el estado inicial y `CODE`/`NAME`. Comprueba también el **orden de declaración** de fases, estados y eventos, no solo el conjunto. Es la regla que se lee con reflexión y no con el `ClassFileImporter`.
+- **`States`** (`StatesTest`): la clase generada de cada tipo concuerda con su XML — fases, estados de cada fase, y por cada estado su nombre, perfil, eventos y `closed`, más `CODE`/`NAME`. Comprueba también el **orden de declaración** de fases, estados y eventos, no solo el conjunto. Es la regla que se lee con reflexión y no con el `ClassFileImporter`.
 - **API base reservada** (`ApiBaseReservadaTest`): ningún nombre de método compuesto a partir de un estado o un evento pisa un método público de `PhaseEventManager` o `StateEventValidator` (un estado llamado `STATE` sobrescribiría el dispatcher `onEnterState` en silencio).
 - **Referencias a `States`** (`ReferenciasAStatesTest`): ninguna clase de un tipo de expediente referencia la clase `States` de **otro** tipo. Como todos los tipos tienen estados que se llaman igual, el `import` que se queda apuntando a la versión vieja al duplicar una carpeta compila sin error (`recetas/versionado.md`).
 - **Clases de fase huérfanas** (`ClasesDeFaseHuerfanasTest`): no hay ningún `PhaseEventManagerImpl` ni `StateEventValidatorImpl` en una carpeta que no sea la de una fase declarada — ni bajo un tipo de expediente, ni suelto bajo `tramites/` sin pertenecer a ningún tipo. Es la dirección contraria a **E0** (existe el `PhaseEventManagerImpl` de cada fase declarada) y **V0** (existe su `StateEventValidatorImpl`): aquellas van de la fase al fichero y esta del fichero a la fase, así que caza la carpeta que se queda atrás al renombrar o quitar una fase, y que sigue compilando aunque `ExpedienteLocator` ya no llegue a ella. Esta regla mira el **árbol de fuentes**, no el bytecode, para no denunciar restos de una compilación sin `clean`.
@@ -353,7 +354,8 @@ Tres reglas **no** leen el bytecode, cada una por su motivo, y se señalan en su
 
 ### 3.4 Lo que NO comprueba nada (falla en runtime)
 
-- Lo que el `triggerInitialEvent` del `InitialEventManagerImpl` deja **sin** rellenar. `Tramitador` no exige ningún campo, así que el expediente se crea igual y el fallo llega después y en otro sitio: `personaSolicitante` a `null` revienta con un NPE al crear el **registro de entrada** (ver `phaseeventmanager.md` §2.1).
+- Lo que el `triggerInitialEvent` del `InitialEventManagerImpl` deja **sin** rellenar de los campos propios del tipo. `Tramitador` no exige ninguno, así que el expediente se crea igual y el fallo llega después y en otro sitio (ver `phaseeventmanager.md` §2.1).
+- Los datos de la persona interesada que el tipo necesita y no valida: en el modo representación `personaInteresada` nace vacía, así que su nombre, apellidos y DNI **MUST** tener reglas en el validator del estado inicial o el registro de entrada saldrá sin interesado (`modelo.md` §2.1).
 - Lo que en una expresión Groovy de un documento PDF depende de los **datos** del expediente, que P1 no ve porque compila sin evaluar: una relación a `null` en mitad de una cadena (NPE), o un patrón de `DateTimeFormatter` mal escrito. En runtime el fallo es silencioso y el campo sale vacío (`documentos.md` §2.8).
 
 ### 3.5 Qué genera en BD el data-init del tipo
@@ -397,7 +399,7 @@ Para crear una **versión nueva de un tipo existente** → `recetas/versionado.m
 
 - Todo se deriva de la carpeta `tramites/<tramite>/<vN>/`: code = code del trámite + `VN`, entidad = code, paquete base = ruta. No declares lo que el default ya resuelve.
 - Los estados se agrupan en **fases**, obligatorias, una subcarpeta por fase con su `PhaseEventManagerImpl`, su `StateEventValidatorImpl` y su `views.xml`. La fase agrupa ficheros y **no es una entidad del dominio** (no se persiste como dato maestro), pero **sí existe en ejecución**: viaja en `codePhase` y da el paquete desde el que `ExpedienteLocator` resuelve las clases.
-- `TipoExpedienteInstance.xml` mínimo = solo `<fases>` con sus `<state>` dentro. `events` obligatorio aunque vacío; exactamente un `initial` en todo el tipo; nombres `UPPER_SNAKE`; el `name` de un estado solo tiene que ser único dentro de su fase.
+- `TipoExpedienteInstance.xml` mínimo = solo `<fases>` con sus `<state>` dentro. `events` obligatorio aunque vacío; sin `initial` (el estado inicial lo fija el `InitialEventManagerImpl`); nombres `UPPER_SNAKE`; el `name` de un estado solo tiene que ser único dentro de su fase.
 - Un estado se identifica por la **pareja** (fase, estado), que se persiste en `codePhase` + `codeState`. **MUST NOT** concatenarlos: no hay nombre compuesto.
 - El **evento inicial es del tipo**, no de una fase: lo atiende un único `InitialEventManagerImpl` en la raíz de la versión, que implementa `InitialEventManager<Entidad>`. Un `PhaseEventManagerImpl` **MUST NOT** declarar un `triggerInitialEvent`.
 - `ExpedienteLocator` resuelve las clases de la fase por convención: `basePackageName` (lo único que hay en BD) + el `codePhase` del expediente; y las del tipo entero directamente sobre el `basePackageName` (`.States`, `.InitialEventManagerImpl`).

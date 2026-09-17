@@ -1,6 +1,7 @@
 package com.educaflow.subsystem.security.service;
 
 import com.axelor.auth.db.User;
+import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.Tramite;
 
@@ -22,12 +23,16 @@ import java.util.Set;
 public interface PerfilesUsuarioService {
 
     /**
-     * Los nombres de perfil que el usuario tiene sobre el expediente. Incluye {@code CREADOR} cuando
-     * el usuario es quien registró el expediente, igual que hace el permiso {@code Expediente.creador}.
+     * Los nombres de perfil que el usuario tiene sobre el expediente, en el centro del expediente.
+     * Incluye {@code CREADOR} cuando el usuario es quien registró el expediente, igual que hace el
+     * permiso {@code Expediente.creador}.
      */
     Set<String> getPerfilesSobreExpediente(Expediente expediente, User user);
 
-    /** Los nombres de perfil que el usuario tiene sobre el trámite, antes de que exista el expediente. */
-    Set<String> getPerfilesSobreTramite(Tramite tramite, User user);
+    /**
+     * Los nombres de perfil que el usuario tiene sobre el trámite en un centro, antes de que exista el
+     * expediente: el centro lo elige quien crea el expediente, así que no se puede deducir del usuario.
+     */
+    Set<String> getPerfilesSobreTramite(Tramite tramite, User user, Centro centro);
 
 }

@@ -8,6 +8,7 @@ import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil;
 import com.educaflow.subsystem.expedientes.db.Expediente;
+import com.educaflow.subsystem.expedientes.db.TipoExpediente;
 import com.educaflow.subsystem.expedientes.services.eventmanager.State;
 
 import java.io.IOException;
@@ -81,6 +82,21 @@ public class ExpedienteUtil {
         expediente.setNameState(state.getName());
         expediente.setFechaUltimoEstado(LocalDateTime.now(Convert.defaultZoneId));
         expediente.setAbierto(state.isFinal() == false);
+    }
+
+    /**
+     * El estado en el que está el expediente ahora mismo, resuelto contra la máquina de estados de su
+     * tipo. Es el sitio único: lo piden tanto el servicio, para autorizar el evento, como el motor,
+     * para saber qué eventos admite el estado.
+     */
+    public static State getState(Expediente expediente) {
+        TipoExpediente tipoExpediente = expediente.getTipoExpediente();
+
+        return tipoExpediente.getTipoExpedienteStates()
+                .getState(expediente.getCodePhase(), expediente.getCodeState())
+                .orElseThrow(() -> new RuntimeException("El estado '" + expediente.getCodePhase() + "/"
+                        + expediente.getCodeState() + "' no existe en el tipo de expediente "
+                        + tipoExpediente.getCode() + "."));
     }
 
     public static Expediente getExpedienteFromIdExpediente(long idExpediente) {

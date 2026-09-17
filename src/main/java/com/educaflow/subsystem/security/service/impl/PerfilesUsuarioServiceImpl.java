@@ -2,7 +2,6 @@ package com.educaflow.subsystem.security.service.impl;
 
 import com.axelor.auth.db.User;
 import com.educaflow.subsystem.common.db.Centro;
-import com.educaflow.subsystem.common.db.CentroUsuario;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.Tramite;
 import com.educaflow.subsystem.security.db.repo.AceRepository;
@@ -26,8 +25,9 @@ public class PerfilesUsuarioServiceImpl implements PerfilesUsuarioService {
             return Set.of();
         }
 
+        Centro centro = expediente.getCentro();
         Set<String> perfiles = new LinkedHashSet<>(aceRepository.findNombresPerfilesByExpediente(
-                expediente, getCentroActivo(user), getCentroUsuarioActivo(user)));
+                expediente, centro, user.getCentroUsuario(centro)));
 
         // El creador no tiene fila Ace: lo es por haber registrado el expediente. Es la misma
         // condición que el permiso Expediente.creador de auth-expedientes.xml.
@@ -39,13 +39,12 @@ public class PerfilesUsuarioServiceImpl implements PerfilesUsuarioService {
     }
 
     @Override
-    public Set<String> getPerfilesSobreTramite(Tramite tramite, User user) {
-        if ((tramite == null) || (user == null)) {
+    public Set<String> getPerfilesSobreTramite(Tramite tramite, User user, Centro centro) {
+        if ((tramite == null) || (user == null) || (centro == null)) {
             return Set.of();
         }
 
-        return aceRepository.findNombresPerfilesByTramite(
-                tramite, getCentroActivo(user), getCentroUsuarioActivo(user));
+        return aceRepository.findNombresPerfilesByTramite(tramite, centro, user.getCentroUsuario(centro));
     }
 
     private static boolean esCreador(Expediente expediente, User user) {
@@ -54,14 +53,6 @@ public class PerfilesUsuarioServiceImpl implements PerfilesUsuarioService {
         return (usuarioRegistrador != null)
                 && (usuarioRegistrador.getId() != null)
                 && usuarioRegistrador.getId().equals(user.getId());
-    }
-
-    private static Centro getCentroActivo(User user) {
-        return user.getCentroActivo();
-    }
-
-    private static CentroUsuario getCentroUsuarioActivo(User user) {
-        return user.getCentroUsuarioActivo();
     }
 
 }

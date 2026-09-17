@@ -3,7 +3,7 @@
 
     <fases>
         <fase name="RECEPCION" title="Recepción">
-            <state name="ENTRADA_DATOS"          events="DELETE,GUARDAR_DATOS" profile="CREADOR"      title="Entrada de datos"           initial="true"  />
+            <state name="ENTRADA_DATOS"          events="DELETE,GUARDAR_DATOS" profile="CREADOR"      title="Entrada de datos"                          />
             <state name="PENDIENTE_PRESENTACION" events="BACK,PRESENTAR"       profile="CREADOR"      title="Pendiente de presentación"                  />
         </fase>
         <fase name="TRAMITACION" title="Tramitación">

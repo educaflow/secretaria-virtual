@@ -9,6 +9,7 @@
     <form state="PENDIENTE_REVISION" profile="SECRETARIO">
         <include-panels>
             -devolucion-view
+            -persona-solicitante
             -datos-alumno
             -matricula
             -presentacion-descarga

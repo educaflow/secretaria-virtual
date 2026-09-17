@@ -24,7 +24,7 @@
                 <valenciano>DNI__!! / NIE__!!</valenciano>
                 <castellano>DNI__!! / NIE__!!</castellano>
             </campo>
-            <campo nombreCampo="self.nia" colspan="2">
+            <campo nombreCampo="self.personaInteresada.nia" colspan="2">
                 <valenciano>NIA__!!</valenciano>
                 <castellano>NIA__!!</castellano>
             </campo>

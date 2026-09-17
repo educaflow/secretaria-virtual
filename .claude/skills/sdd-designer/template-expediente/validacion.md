@@ -166,13 +166,13 @@ En una **iniciativa de modificación** puede leer además la carpeta de tests **
 | **C-B07** | Que el trámite no anide a otro | La carpeta del trámite cuelga de otra carpeta de trámite | Reubicar la carpeta como hermana, bajo un segmento de agrupación si hace falta |
 | **C-B08 (CRITICAL)** | La fila `Modificación de` de la tabla «Identidad del trámite y del tipo» (`design-contract.md` §4), contra la línea **Versión** del `specification.md` | La spec declara una **modificación de una versión que ya existe** y la fila **falta**; o la fila está y la spec **no** declara una modificación (primera versión, o versión nueva); o la carpeta de versión que nombra **no existe** en el árbol real | Añadir la fila con la carpeta de versión real, o borrarla. **Es el interruptor de todo el modo delta**: sin ella el diseño se comporta como greenfield (el verificador exige el inventario completo de §5.1 del README y el diseño acaba regenerando encima una versión con expedientes vivos), y con ella de más se dan por conservados ficheros que nadie ha escrito |
 
-### Bloque C — Máquina de estados (S1–S5, A1)
+### Bloque C — Máquina de estados (S1–S4, A1)
 
 | ID | Qué se mira | Qué es fallo | Corrección esperada |
 |---|---|---|---|
 | **C-C01** | `TipoExpedienteInstance.xml`: raíz `<TipoExpediente>` con un **único** `<fases>` | Hay un `<states>` suelto en la raíz (formato anterior a las fases), o más de un `<fases>` | Reescribir con el formato de `design-contract.md` §5.4 |
 | **C-C02** | Que no se usen atributos inertes | Aparece `ambitoCreador`, `ambitoResponsable` o `ambitoAuditor` | Borrarlos: hoy no hacen nada y el data-init no los persiste |
-| **C-C03 (S4)** | El estado inicial | Hay **cero** o **más de uno** con `initial="true"` en **todo el tipo** (no uno por fase) | Dejar exactamente uno, en la fase que la spec indique como arranque |
+| **C-C03** | Que no se marque el estado inicial en el XML | Algún `<state>` lleva `initial` | Quitarlo y llevar la decisión al `triggerInitialEvent` (`updateState`). El XML no tiene ese atributo: JAXB lo ignora en silencio |
 | **C-C04** | El atributo `events` de cada `<state>` | Algún `<state>` **omite** `events` | Escribirlo siempre, aunque sea `events=""`: omitirlo equivale en silencio a vacío |
 | **C-C05** | `EXIT` | `EXIT` aparece en el `events` de algún estado | Quitarlo del `events`. `EXIT` es un botón puro de UI, interceptado antes del `Tramitador`; declararlo es código muerto |
 | **C-C06 (S3)** | El atributo `profile` de cada `<state>` | El valor no es uno de los del enum `Profile`: `CREADOR`, `RESPONSABLE`, `SECRETARIO`, `DIRECTOR`, `AUDITOR` | Sustituirlo por el valor correcto del enum |
@@ -219,8 +219,8 @@ En una **iniciativa de modificación** puede leer además la carpeta de tests **
 |---|---|---|---|
 | **C-F01 (I1)** | El `InitialEventManagerImpl` | No se describe, se describe más de uno, o se ubica en una **subcarpeta de fase** en vez de en la raíz de la versión | Describir exactamente uno, en `<basePackageName>.InitialEventManagerImpl` |
 | **C-F02 (I1, M1)** | Su parametrización | Se declara `InitialEventManager` **en crudo**, o parametrizado con otra entidad | Parametrizarlo con `<Entidad>`: es el **único** sitio donde el tipo declara cuál es su entidad, y lo lee `ExpedienteLocator.getModelClass` en runtime |
-| **C-F03 (I2)** | Su método | No hay exactamente un `triggerInitialEvent(<Entidad>, EventContext): void`, o se le pone anotación | Dejar exactamente ese método, sin anotación |
-| **C-F04** | Lo que el `Tramitador` ya rellena | El `triggerInitialEvent` reasigna `tipoExpediente`, `centro`, `usuarioRegistrador`, `name` o `numeroExpediente`, o llama a `updateState` | Quitar esas asignaciones: el `Tramitador` las hace antes, y el estado inicial lo fija él después |
+| **C-F03 (I2)** | Su método | No hay exactamente un `triggerInitialEvent(<Entidad>, InitialEventContext): void`, o se le pone anotación | Dejar exactamente ese método, sin anotación |
+| **C-F04** | Lo que el `Tramitador` ya rellena y el estado inicial | El `triggerInitialEvent` reasigna `tipoExpediente`, `centro`, `usuarioRegistrador`, `name` o `numeroExpediente`, o **no** fija el estado inicial con `updateState` (en todas sus ramas) | Quitar esas asignaciones (el `Tramitador` las hace antes) y fijar el estado inicial: lo decide este método, y sin él el alta aborta en runtime |
 | **C-F05 (CRITICAL)** | La precondición del registro de entrada | Algún `trigger*` llama a `REGISTRO_ENTRADA` y el `triggerInitialEvent` **no** deja `personaSolicitante` y `personaInteresada` no nulos | Añadir las asignaciones. `createRegistroEntrada` lanza **NPE**, y **nada lo verifica en build** |
 | **C-F06** | La declaración explícita cuando no aplica | El tipo no crea registros de entrada, y la sección **no lo dice** | Añadir la frase que declara que C-F05 no aplica |
 | **C-F07 (E0, H1)** | La ubicación de cada `PhaseEventManagerImpl` | El paquete no es `<basePackageName>.<fase>` con la fase **en minúsculas** | Corregirlo. En cualquier otra carpeta es código muerto que aparenta estar vivo |

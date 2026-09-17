@@ -214,7 +214,7 @@ Un form de estado puede llevar, **fuera** del `<include-panels>`, paneles Axelor
 |---|---|---|
 | `subsysExpedientes-event-action` | `ExpedienteController.triggerEvent` | el `onClick` de **todos** los botones del footer |
 | `subsysExpedientes-validate-on-save-child-action` | `ExpedienteController.validateChild` | el `onValidate` del form de una entidad hija |
-| `subsysExpedientes-event-new-action` / `-event-view-action` | `triggerInitialEvent` / `viewExpediente` | las usa el subsistema; **MUST NOT** referenciarse desde un `views.xml` de tipo |
+| `subsysExpedientes-event-view-action` | `viewExpediente` | la usan las bandejas; **MUST NOT** referenciarse desde un `views.xml` de tipo |
 
 Las `<action-method>` **propias** de una fase se declaran en el `views.xml` de **esa** fase, junto a su botón: los nombres de acción son globales, y tenerlas al lado es lo que hace que copiar la fase se lleve todo.
 

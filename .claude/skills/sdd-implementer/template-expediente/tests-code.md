@@ -38,9 +38,8 @@ Esta es la lista de lo que se le va a exigir al tipo de expediente generado. El 
 |---|---|
 | **S1** | `States` tiene **las fases del XML**, con su código y su nombre, **en orden de declaración** |
 | **S2** | Cada fase de `States` tiene **los estados de esa fase** en el XML, **en orden de declaración** |
-| **S3** | Cada estado lleva el `name`, el `profile`, los `events` (en su orden literal), el `initial` y el `closed` del XML. Un `state/@profile` **MUST** ser un valor del enum `Profile` |
-| **S4** | El estado inicial de `States` es el **único** que el XML marca con `initial="true"` — **exactamente uno en todo el tipo**, no uno por fase |
-| **S5** | Las constantes `CODE` y `NAME` de `States` son el `code` y el `name` del tipo de expediente |
+| **S3** | Cada estado lleva el `name`, el `profile`, los `events` (en su orden literal) y el `closed` del XML. Un `state/@profile` **MUST** ser un valor del enum `Profile` |
+| **S4** | Las constantes `CODE` y `NAME` de `States` son el `code` y el `name` del tipo de expediente |
 | **R1** | Ninguna clase del tipo **MUST** referenciar la clase `States` de **otro** tipo de expediente. Es lo que queda al duplicar una versión y no actualizar el `import`: **compila** y revienta en runtime |
 
 ### 2.3 Modelo
@@ -54,7 +53,7 @@ Esta es la lista de lo que se le va a exigir al tipo de expediente generado. El 
 | ID | Qué exige |
 |---|---|
 | **I1** | **MUST** existir **exactamente uno por tipo**, con FQCN `<basePackageName>.InitialEventManagerImpl`, **en la raíz de la carpeta de versión, NO en una subcarpeta de fase**, implementando `InitialEventManager<<Entidad>>` |
-| **I2** | **MUST** declarar **exactamente un** `triggerInitialEvent(<Entidad>, EventContext): void`. **No** lleva anotación |
+| **I2** | **MUST** declarar **exactamente un** `triggerInitialEvent(<Entidad>, InitialEventContext): void`. **No** lleva anotación |
 
 ### 2.5 `PhaseEventManagerImpl`
 

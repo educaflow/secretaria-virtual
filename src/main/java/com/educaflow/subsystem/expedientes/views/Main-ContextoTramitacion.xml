@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+    <action-view name="subsysExpedientes.Main@ContextoTramitacion-action" title="Nuevo expediente"
+                 model="com.educaflow.subsystem.expedientes.db.ContextoTramitacion">
+        <view type="form" name="subsysExpedientes.Main@ContextoTramitacion-form"/>
+        <view-param name="popup" value="true"/>
+        <view-param name="show-toolbar" value="false"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="popup-save" value="false"/>
+        <view-param name="show-confirm" value="false"/>
+        <context name="_tramiteId" expr="eval: id"/>
+        <context name="_profile" expr="CREADOR"/>
+    </action-view>
+
+    <form name="subsysExpedientes.Main@ContextoTramitacion-form" title="Nuevo expediente"
+          model="com.educaflow.subsystem.expedientes.db.ContextoTramitacion"
+          onNew="subsysExpedientes.Main@ContextoTramitacion-onNew-action"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="tramitePanel" title="" colSpan="12" showFrame="false">
+            <field name="tramite" hidden="true"/>
+            <field name="profile" hidden="true"/>
+            <field name="nombreTramite" hidden="true"/>
+            <field name="ayudaTramite" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="nombreTramite,ayudaTramite"><![CDATA[
+                    <>
+                    <Box>
+                        <div className="card" style={{ cursor: "default" }} >
+                            <div className="card-header" >
+                                <strong>{nombreTramite}</strong>
+                            </div>
+                            <div className="card-body" >
+                                <Box mt={0} as="p" color="secondary" dangerouslySetInnerHTML={{ __html: ayudaTramite }} />
+                            </div>
+                        </div>
+                    </Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+        <panel name="presentacionPanel" title="Presentación" colSpan="12">
+            <field name="centro" colSpan="12" required="true" canNew="false" canEdit="false" canView="false"
+                   onChange="subsysExpedientes.Main@ContextoTramitacion-onChangeCentro-action"/>
+            <field name="presentadoEnPapel" colSpan="12" widget="boolean-switch" hidden="true"
+                   onChange="subsysExpedientes.Main@ContextoTramitacion-onChangePresentadoEnPapel-action"/>
+            <field name="presentadoEnRepresentacion" colSpan="12" required="true" widget="boolean-radio"
+                   x-false-text="Para mí" x-true-text="Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)"/>
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Cancelar" colSpan="2" colOffset="7" outline="true"
+                    onClick="subsysExpedientes.Main@ContextoTramitacion-btnCancel-action"/>
+            <button name="btnCrear" title="Crear expediente" colSpan="3"
+                    onClick="subsysExpedientes.Main@ContextoTramitacion-btnCrear-action"/>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+    <action-group name="subsysExpedientes.Main@ContextoTramitacion-onNew-action">
+        <action name="subsysExpedientes.Main@ContextoTramitacion-Remote-prepararContextoTramitacion-action"/>
+    </action-group>
+
+    <action-group name="subsysExpedientes.Main@ContextoTramitacion-onChangeCentro-action">
+        <action name="subsysExpedientes.Main@ContextoTramitacion-Remote-cambiarCentroContextoTramitacion-action"/>
+    </action-group>
+
+    <action-group name="subsysExpedientes.Main@ContextoTramitacion-onChangePresentadoEnPapel-action">
+        <action name="subsysExpedientes.Main@ContextoTramitacion-Remote-cambiarPresentadoEnPapelContextoTramitacion-action"/>
+    </action-group>
+
+    <action-group name="subsysExpedientes.Main@ContextoTramitacion-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+
+    <action-group name="subsysExpedientes.Main@ContextoTramitacion-btnCrear-action">
+        <action name="validate"/>
+        <action name="subsysExpedientes.Main@ContextoTramitacion-Remote-triggerInitialEvent-action"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+    <action-method name="subsysExpedientes.Main@ContextoTramitacion-Remote-prepararContextoTramitacion-action">
+        <call class="com.educaflow.subsystem.expedientes.controllers.ContextoTramitacionController" method="prepararContextoTramitacion"/>
+    </action-method>
+
+    <action-method name="subsysExpedientes.Main@ContextoTramitacion-Remote-cambiarCentroContextoTramitacion-action">
+        <call class="com.educaflow.subsystem.expedientes.controllers.ContextoTramitacionController" method="cambiarCentroContextoTramitacion"/>
+    </action-method>
+
+    <action-method name="subsysExpedientes.Main@ContextoTramitacion-Remote-cambiarPresentadoEnPapelContextoTramitacion-action">
+        <call class="com.educaflow.subsystem.expedientes.controllers.ContextoTramitacionController" method="cambiarPresentadoEnPapelContextoTramitacion"/>
+    </action-method>
+
+    <action-method name="subsysExpedientes.Main@ContextoTramitacion-Remote-triggerInitialEvent-action">
+        <call class="com.educaflow.subsystem.expedientes.controllers.ExpedienteController" method="triggerInitialEvent"/>
+    </action-method>
+
+</object-views>

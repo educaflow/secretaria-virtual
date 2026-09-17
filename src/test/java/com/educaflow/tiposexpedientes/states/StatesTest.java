@@ -132,7 +132,7 @@ class StatesTest {
     // -----------------------------------------------------------------------------------------
 
     @Test
-    @DisplayName("S3: cada estado de States lleva el nombre, el perfil, los eventos, initial y closed del XML")
+    @DisplayName("S3: cada estado de States lleva el nombre, el perfil, los eventos y closed del XML")
     void s3_losMetadatosDeCadaEstadoConcuerdanConElXml() {
         List<Violacion> violaciones = new ArrayList<>();
 
@@ -166,10 +166,6 @@ class StatesTest {
                         violaciones.add(violacion(tipo, donde + " tiene el perfil " + perfilDeStates(state)
                                 + " y en el XML " + perfilDelXml(esperado)));
                     }
-                    if (esperado.isInitial() != state.isInitial()) {
-                        violaciones.add(violacion(tipo, donde + " tiene initial=" + state.isInitial()
-                                + " y en el XML initial=" + esperado.isInitial()));
-                    }
                     if (esperado.isClosed() != state.isFinal()) {
                         violaciones.add(violacion(tipo, donde + " tiene closed=" + state.isFinal()
                                 + " y en el XML closed=" + esperado.isClosed()));
@@ -186,52 +182,17 @@ class StatesTest {
         }
 
         Violacion.assertNone("[S3] Cada estado de la clase States generada debe llevar el nombre, el perfil, los"
-                + " eventos y los indicadores initial/closed que dice su estado del TipoExpedienteInstance.xml.",
+                + " eventos y el indicador closed que dice su estado del TipoExpedienteInstance.xml.",
                 violaciones);
     }
 
     // -----------------------------------------------------------------------------------------
-    // S4 — estado inicial
+    // S4 — CODE y NAME
     // -----------------------------------------------------------------------------------------
 
     @Test
-    @DisplayName("S4: el estado inicial de States es el que el XML marca con initial=\"true\"")
-    void s4_elEstadoInicialEsElDelXml() {
-        List<Violacion> violaciones = new ArrayList<>();
-
-        for (TipoExpedienteInstanceFile tipo : TiposExpediente.all()) {
-            Optional<TipoExpedienteStates> states = states(tipo, violaciones);
-            if (states.isEmpty()) {
-                continue;
-            }
-
-            com.educaflow.common.buildtools.files.tipoexpediente.State esperado = tipo.getInitialState();
-            State declarado = states.get().getInitialState();
-
-            String esperadoTexto = esperado.getFase().getName() + "/" + esperado.getName();
-            String declaradoTexto = declarado.getPhase().getCode() + "/" + declarado.getCode();
-
-            if (!esperadoTexto.equals(declaradoTexto)) {
-                violaciones.add(violacion(tipo, "el estado inicial de States es '" + declaradoTexto
-                        + "' y el del XML '" + esperadoTexto + "'"));
-            }
-            if (!declarado.isInitial()) {
-                violaciones.add(violacion(tipo, "el estado inicial de States ('" + declaradoTexto
-                        + "') no está marcado como initial"));
-            }
-        }
-
-        Violacion.assertNone("[S4] El getInitialState() de la clase States generada debe ser el único estado que el"
-                + " TipoExpedienteInstance.xml marca con initial=\"true\".", violaciones);
-    }
-
-    // -----------------------------------------------------------------------------------------
-    // S5 — CODE y NAME
-    // -----------------------------------------------------------------------------------------
-
-    @Test
-    @DisplayName("S5: las constantes CODE y NAME de States son el code y el name del tipo de expediente")
-    void s5_codeYNameSonLosDelTipoDeExpediente() {
+    @DisplayName("S4: las constantes CODE y NAME de States son el code y el name del tipo de expediente")
+    void s4_codeYNameSonLosDelTipoDeExpediente() {
         List<Violacion> violaciones = new ArrayList<>();
 
         for (TipoExpedienteInstanceFile tipo : TiposExpediente.all()) {
@@ -254,7 +215,7 @@ class StatesTest {
             }
         }
 
-        Violacion.assertNone("[S5] Las constantes CODE y NAME de la clase States generada deben ser el code y el name"
+        Violacion.assertNone("[S4] Las constantes CODE y NAME de la clase States generada deben ser el code y el name"
                 + " del tipo de expediente.", violaciones);
     }
 

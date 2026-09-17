@@ -6,8 +6,9 @@
 
     <action-view name="subsysExpedientes.Expediente@Pendiente-action" title="Listado de expedientes pendientes de que realices la tarea"  model="com.educaflow.subsystem.expedientes.db.Expediente">
         <view type="grid" name="subsysExpedientes.Expediente@Pendiente-grid"/>
-        <domain>self.abierto=true </domain>
+        <domain>self.abierto=true AND self.centro.id IN (SELECT cu.centro.id FROM CentroUsuario cu WHERE cu.usuario.id = :usuarioId)</domain>
         <context name="_profile" expr="CREADOR"/>
+        <context name="usuarioId" expr="eval: __user__?.id"/>
     </action-view>
 
     <grid name="subsysExpedientes.Expediente@Pendiente-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"

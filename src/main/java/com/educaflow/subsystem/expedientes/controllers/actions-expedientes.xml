@@ -7,9 +7,6 @@
     <action-method name="subsysExpedientes-event-action">
         <call class="com.educaflow.subsystem.expedientes.controllers.ExpedienteController" method="triggerEvent"/>
     </action-method>
-    <action-method name="subsysExpedientes-event-new-action">
-        <call class="com.educaflow.subsystem.expedientes.controllers.ExpedienteController" method="triggerInitialEvent"/>
-    </action-method>
     <action-method name="subsysExpedientes-event-view-action">
         <call class="com.educaflow.subsystem.expedientes.controllers.ExpedienteController" method="viewExpediente"/>
     </action-method>
