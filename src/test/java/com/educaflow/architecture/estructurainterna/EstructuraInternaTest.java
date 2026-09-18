@@ -135,6 +135,23 @@ class EstructuraInternaTest {
                 .because("cada acción propia de un *Service declara su validador validate<Accion> con la misma firma de parámetros")
                 .allowEmptyShould(true));
 
+    // [C24] Verificación:
+    //   - Sujeto: clases de `com.educaflow.subsystem.expedientes.tramitacion..`.
+    //     **CRITICAL**: esta regla declara expresamente que **NO** se le aplica la exención global de `..expedientes..` de las Convenciones de verificación (ni la de esta categoría); su sujeto es precisamente un paquete exento, y excluirlo dejaría la regla vacía.
+    //   - Condición: ninguna depende de clases de `com.educaflow.subsystem.expedientes.services..` ni de `com.educaflow.subsystem.expedientes.controllers..`.
+    //   - Nota: el paquete de los controladores del subsistema se llama `controllers`, en plural — es la arquitectura propia de expedientes, y no el `..controller..` singular del resto de sistemas.
+    //   - Exenciones: no aplican.
+    //   - Mensaje: «el motor de tramitación no depende de los servicios ni de los controladores de expedientes: la dependencia va de los servicios/controladores al motor, nunca al revés».
+    @ArchTest
+    static final ArchRule c24_motorDeTramitacionNoDependeDeServiciosNiControladores =
+        noClasses()
+            .that().resideInAPackage("com.educaflow.subsystem.expedientes.tramitacion..")
+            .should().dependOnClassesThat()
+                .resideInAnyPackage(
+                    "com.educaflow.subsystem.expedientes.services..",
+                    "com.educaflow.subsystem.expedientes.controllers..")
+            .because("el motor de tramitación no depende de los servicios ni de los controladores de expedientes: la dependencia va de los servicios/controladores al motor, nunca al revés");
+
     private static ArchCondition<JavaMethod> declararSuValidador() {
         return new ArchCondition<JavaMethod>(
                 "declarar su validador validate<Accion> con la misma firma de parámetros") {

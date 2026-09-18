@@ -2,7 +2,7 @@ package com.educaflow.tiposexpedientes.initialeventmanager;
 
 import com.educaflow.common.buildtools.files.initialeventmanagerfile.InitialEventManagerFile;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
-import com.educaflow.subsystem.expedientes.services.eventmanager.InitialEventManager;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.InitialEventManager;
 import com.educaflow.tiposexpedientes.support.Bytecode;
 import com.educaflow.tiposexpedientes.support.TiposExpediente;
 import com.educaflow.tiposexpedientes.support.Violacion;
@@ -45,7 +45,7 @@ import java.util.Optional;
 class InitialEventManagerTest {
 
     private static final String FQCN_INITIAL_EVENT_CONTEXT =
-            "com.educaflow.subsystem.expedientes.services.eventmanager.InitialEventContext";
+            "com.educaflow.subsystem.expedientes.tramitacion.eventmanager.InitialEventContext";
     private static final String FQCN_INITIAL_EVENT_MANAGER = InitialEventManager.class.getName();
     private static final String VOID = "void";
 

@@ -2,8 +2,8 @@ package com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1;
 
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.Municipio;
-import com.educaflow.subsystem.expedientes.services.eventmanager.InitialEventContext;
-import com.educaflow.subsystem.expedientes.services.eventmanager.InitialEventManager;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.InitialEventContext;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.InitialEventManager;
 import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 

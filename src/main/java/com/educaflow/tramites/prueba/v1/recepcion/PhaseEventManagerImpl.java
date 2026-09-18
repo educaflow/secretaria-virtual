@@ -1,20 +1,19 @@
 package com.educaflow.tramites.prueba.v1.recepcion;
 
-import com.axelor.inject.Beans;
-import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
-import com.educaflow.subsystem.expedientes.services.eventmanager.OnEnterState;
-import com.educaflow.subsystem.expedientes.services.eventmanager.WhenEvent;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.EventContext;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.OnEnterState;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.PhaseEventManager;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.WhenEvent;
 import com.educaflow.subsystem.expedientes.db.PruebaV1;
 import com.educaflow.subsystem.expedientes.db.repo.PruebaV1Repository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
-import com.educaflow.tramites.prueba.v1.States;
 
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class PhaseEventManagerImpl extends com.educaflow.subsystem.expedientes.services.eventmanager.PhaseEventManager<PruebaV1> {
+public class PhaseEventManagerImpl extends PhaseEventManager<PruebaV1> {
 
     private final PruebaV1Repository repository;
     protected final Logger log = LoggerFactory.getLogger(getClass());

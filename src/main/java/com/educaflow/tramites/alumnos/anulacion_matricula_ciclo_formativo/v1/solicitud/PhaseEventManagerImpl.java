@@ -10,9 +10,10 @@ import com.educaflow.subsystem.criptografia.service.SituacionFirma;
 import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper;
 import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1;
 import com.educaflow.subsystem.expedientes.db.repo.AnulacionMatriculaCicloFormativoV1Repository;
-import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
-import com.educaflow.subsystem.expedientes.services.eventmanager.OnEnterState;
-import com.educaflow.subsystem.expedientes.services.eventmanager.WhenEvent;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.EventContext;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.OnEnterState;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.PhaseEventManager;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.WhenEvent;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada;
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.AnulacionMatriculaCicloFormativoV1Util;
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.States;
@@ -27,7 +28,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 
-public class PhaseEventManagerImpl extends com.educaflow.subsystem.expedientes.services.eventmanager.PhaseEventManager<AnulacionMatriculaCicloFormativoV1> {
+public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaCicloFormativoV1> {
 
     // Hueco de la firma del alumno en la solicitud, medido sobre el PDF que genera el documento.
     private static final Rectangulo POSICION_FIRMA_SOLICITUD = new Rectangulo(320, 418, 240, 32);

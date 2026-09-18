@@ -57,8 +57,10 @@ por ello siguen una **arquitectura diferente** al resto de la aplicación.
 > `subsystem/expedientes` o `tramites/**`.
 >
 > Esta arquitectura propia es exactamente el motivo por el que [`architecture-rules.md`](architecture-rules.md)
-> declara `..expedientes..` y `..tramites..` **paquetes exentos** de todas sus reglas; ninguna invariante
-> suya está catalogada hoy como regla verificable.
+> declara `..expedientes..` y `..tramites..` **paquetes exentos** de sus reglas.
+> La única invariante suya catalogada hoy como regla verificable es **C24**, que levanta esa exención
+> para un caso concreto: el motor de tramitación (`subsystem/expedientes/tramitacion`) no depende de los
+> servicios ni de los controladores de expedientes; la dependencia va siempre de estos al motor.
 >
 > **Invariante normativa del motor.** `subsystem/expedientes` es **solo el motor de tramitación** y **MUST** mantenerse lo más pequeño posible: todo lo que se le añade lo heredan todos los tipos de expediente.
 > Lo que un expediente concreto necesita para implementarse **MUST NOT** ir ahí — va a `tramites/util/` si lo comparten varios tipos, o a su carpeta de versión si es de uno solo.

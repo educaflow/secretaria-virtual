@@ -11,7 +11,7 @@ import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.Persona;
 import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1;
 import com.educaflow.subsystem.expedientes.db.Profile;
-import com.educaflow.subsystem.expedientes.services.eventmanager.State;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.State;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
 
 import java.util.Optional;

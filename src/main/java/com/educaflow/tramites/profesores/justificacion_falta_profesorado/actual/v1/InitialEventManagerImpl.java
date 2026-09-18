@@ -1,7 +1,7 @@
 package com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1;
 
-import com.educaflow.subsystem.expedientes.services.eventmanager.InitialEventContext;
-import com.educaflow.subsystem.expedientes.services.eventmanager.InitialEventManager;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.InitialEventContext;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.InitialEventManager;
 import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 

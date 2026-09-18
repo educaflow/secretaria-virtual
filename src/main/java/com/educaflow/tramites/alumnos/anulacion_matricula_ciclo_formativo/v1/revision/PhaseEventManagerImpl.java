@@ -8,9 +8,10 @@ import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1;
 import com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1;
 import com.educaflow.subsystem.expedientes.db.repo.AnulacionMatriculaCicloFormativoV1Repository;
-import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
-import com.educaflow.subsystem.expedientes.services.eventmanager.OnEnterState;
-import com.educaflow.subsystem.expedientes.services.eventmanager.WhenEvent;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.EventContext;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.OnEnterState;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.PhaseEventManager;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.WhenEvent;
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.AnulacionMatriculaCicloFormativoV1Util;
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.States;
 
@@ -21,7 +22,7 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDate;
 
 
-public class PhaseEventManagerImpl extends com.educaflow.subsystem.expedientes.services.eventmanager.PhaseEventManager<AnulacionMatriculaCicloFormativoV1> {
+public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaCicloFormativoV1> {
 
     private final AnulacionMatriculaCicloFormativoV1Repository repository;
     protected final Logger log = LoggerFactory.getLogger(getClass());

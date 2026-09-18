@@ -1,7 +1,7 @@
 package com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.recepcion
 
-import com.educaflow.subsystem.expedientes.services.validation.StateEventValidator
-import com.educaflow.subsystem.expedientes.services.validation.BeanValidationRulesForStateAndEvent
+import com.educaflow.subsystem.expedientes.tramitacion.validation.StateEventValidator
+import com.educaflow.subsystem.expedientes.tramitacion.validation.BeanValidationRulesForStateAndEvent
 import com.educaflow.subsystem.expedientes.db.MotivoFaltaJustificacionFaltaProfesoradoV1
 import com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1
 import com.educaflow.base.infrastructure.validation.dsl.ifValueIn

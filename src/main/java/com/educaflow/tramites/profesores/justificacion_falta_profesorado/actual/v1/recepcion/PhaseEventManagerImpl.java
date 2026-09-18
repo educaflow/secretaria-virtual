@@ -6,11 +6,8 @@ import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.util.SecurityUtil;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.*;
 import com.educaflow.tramites.util.firma.FirmaServidorHelper;
-import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
-import com.educaflow.subsystem.expedientes.services.eventmanager.OnEnterState;
-import com.educaflow.subsystem.expedientes.services.eventmanager.State;
-import com.educaflow.subsystem.expedientes.services.eventmanager.WhenEvent;
 import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1;
 import com.educaflow.subsystem.expedientes.db.repo.JustificacionFaltaProfesoradoV1Repository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
@@ -31,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 
-public class PhaseEventManagerImpl extends com.educaflow.subsystem.expedientes.services.eventmanager.PhaseEventManager<JustificacionFaltaProfesoradoV1> implements TareaFirmaNotifier {
+public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaProfesoradoV1> implements TareaFirmaNotifier {
 
     /**
      * Recuadro en el que se estampa la firma de la solicitud. Es exactamente el que la {@code <action-method>}

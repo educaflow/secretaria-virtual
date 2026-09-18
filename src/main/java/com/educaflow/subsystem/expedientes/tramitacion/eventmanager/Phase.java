@@ -1,4 +1,4 @@
-package com.educaflow.subsystem.expedientes.services.eventmanager;
+package com.educaflow.subsystem.expedientes.tramitacion.eventmanager;
 
 import java.util.List;
 

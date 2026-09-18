@@ -11,7 +11,7 @@ import com.educaflow.subsystem.common.db.TipoUsuario;
 import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.TipoTramite;
 import com.educaflow.subsystem.expedientes.db.Tramite;
-import com.educaflow.subsystem.expedientes.services.eventmanager.State;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.State;
 import org.apache.shiro.authz.UnauthorizedException;
 
 import java.util.Collection;

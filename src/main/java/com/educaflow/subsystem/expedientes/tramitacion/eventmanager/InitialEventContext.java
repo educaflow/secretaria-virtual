@@ -1,10 +1,9 @@
-package com.educaflow.subsystem.expedientes.services.eventmanager;
+package com.educaflow.subsystem.expedientes.tramitacion.eventmanager;
 
 
 import com.educaflow.subsystem.expedientes.db.ContextoTramitacion;
 import com.educaflow.subsystem.expedientes.db.Expediente;
-import com.educaflow.subsystem.expedientes.db.TipoExpediente;
-import com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil;
+import com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteUtil;
 
 import java.util.Objects;
 

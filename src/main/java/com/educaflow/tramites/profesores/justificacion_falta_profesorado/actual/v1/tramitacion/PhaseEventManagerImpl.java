@@ -7,9 +7,10 @@ import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
 import com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1;
-import com.educaflow.subsystem.expedientes.services.eventmanager.EventContext;
-import com.educaflow.subsystem.expedientes.services.eventmanager.OnEnterState;
-import com.educaflow.subsystem.expedientes.services.eventmanager.WhenEvent;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.EventContext;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.OnEnterState;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.PhaseEventManager;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.WhenEvent;
 import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1;
 import com.educaflow.subsystem.expedientes.db.repo.JustificacionFaltaProfesoradoV1Repository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
@@ -23,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 
-public class PhaseEventManagerImpl extends com.educaflow.subsystem.expedientes.services.eventmanager.PhaseEventManager<JustificacionFaltaProfesoradoV1> {
+public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaProfesoradoV1> {
 
     private static final Rectangulo rectanguloPosicionFirmaPDFResolucion =new Rectangulo(75,280,400,20);
 

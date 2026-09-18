@@ -2,7 +2,7 @@ package com.educaflow.tiposexpedientes.vistas;
 
 import com.educaflow.common.buildtools.files.tipoexpediente.Fase;
 import com.educaflow.common.buildtools.files.tipoexpediente.State;
-import com.educaflow.subsystem.expedientes.services.tramitacion.CommonEvent;
+import com.educaflow.subsystem.expedientes.tramitacion.core.CommonEvent;
 import com.educaflow.tiposexpedientes.support.FormDeEstado;
 import com.educaflow.tiposexpedientes.support.TiposExpediente;
 import com.educaflow.tiposexpedientes.support.Violacion;

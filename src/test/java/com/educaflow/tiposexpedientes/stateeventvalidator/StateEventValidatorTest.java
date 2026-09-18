@@ -4,8 +4,8 @@ import com.educaflow.common.buildtools.common.TextUtil;
 import com.educaflow.common.buildtools.files.stateeventvalidator.StateEventValidatorFile;
 import com.educaflow.common.buildtools.files.tipoexpediente.Fase;
 import com.educaflow.common.buildtools.files.tipoexpediente.State;
-import com.educaflow.subsystem.expedientes.services.tramitacion.CommonEvent;
-import com.educaflow.subsystem.expedientes.services.validation.BeanValidationRulesForStateAndEvent;
+import com.educaflow.subsystem.expedientes.tramitacion.core.CommonEvent;
+import com.educaflow.subsystem.expedientes.tramitacion.validation.BeanValidationRulesForStateAndEvent;
 import com.educaflow.tiposexpedientes.support.Bytecode;
 import com.educaflow.tiposexpedientes.support.TiposExpediente;
 import com.educaflow.tiposexpedientes.support.Violacion;
@@ -52,7 +52,7 @@ class StateEventValidatorTest {
     private static final String FQCN_BEAN_VALIDATION_RULES =
             "com.educaflow.base.infrastructure.validation.engine.BeanValidationRules";
     private static final String FQCN_STATE_EVENT_VALIDATOR =
-            "com.educaflow.subsystem.expedientes.services.validation.StateEventValidator";
+            "com.educaflow.subsystem.expedientes.tramitacion.validation.StateEventValidator";
 
     /**
      * «Delete»: el evento {@code DELETE} en la forma en que aparece dentro de los nombres de método.

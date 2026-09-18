@@ -40,8 +40,8 @@
         -->
         <extra-code-model><![CDATA[
 
-            public com.educaflow.subsystem.expedientes.services.eventmanager.TipoExpedienteStates getTipoExpedienteStates() {
-                return com.axelor.inject.Beans.get(com.educaflow.subsystem.expedientes.services.internal.ExpedienteLocator.class).getTipoExpedienteStates(this);
+            public com.educaflow.subsystem.expedientes.tramitacion.eventmanager.TipoExpedienteStates getTipoExpedienteStates() {
+                return com.axelor.inject.Beans.get(com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteLocator.class).getTipoExpedienteStates(this);
             }
 
         ]]></extra-code-model>

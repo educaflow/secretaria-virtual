@@ -1,13 +1,12 @@
-package com.educaflow.subsystem.expedientes.services.eventmanager;
+package com.educaflow.subsystem.expedientes.tramitacion.eventmanager;
 
 
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.util.MetaFileUtil;
-import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.Profile;
-import com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil;
+import com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteUtil;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroSalida;
 import com.educaflow.subsystem.registroentradasalida.service.*;

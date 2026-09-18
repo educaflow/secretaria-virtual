@@ -1,4 +1,4 @@
-package com.educaflow.subsystem.expedientes.services.internal;
+package com.educaflow.subsystem.expedientes.tramitacion.internal;
 
 import com.axelor.db.JPA;
 import com.axelor.db.JpaRepository;
@@ -9,7 +9,7 @@ import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.TipoExpediente;
-import com.educaflow.subsystem.expedientes.services.eventmanager.State;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.State;
 
 import java.io.IOException;
 import java.io.InputStream;

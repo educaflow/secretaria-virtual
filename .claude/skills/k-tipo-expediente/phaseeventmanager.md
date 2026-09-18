@@ -65,7 +65,7 @@ public class InitialEventManagerImpl implements InitialEventManager<MiTramiteV1>
 }
 ```
 
-- La interfaz `InitialEventManager<T extends Expediente>` está en `subsystem/expedientes/services/eventmanager/` y tiene ese único método.
+- La interfaz `InitialEventManager<T extends Expediente>` está en `subsystem/expedientes/tramitacion/eventmanager/` y tiene ese único método.
 - El nombre de la clase es fijo (`InitialEventManagerImpl`): lo resuelve `ExpedienteLocator.getInitialEventManager(tipoExpediente)` por reflexión sobre el `basePackageName` (`SKILL.md` §1.6), así que se instancia con Guice y admite inyección normal.
 - El esqueleto lo genera `CreateFilesTask` entre los ficheros de la raíz de la versión (`SKILL.md` §3.1).
 

@@ -1,11 +1,11 @@
-package com.educaflow.subsystem.expedientes.services.internal;
+package com.educaflow.subsystem.expedientes.tramitacion.internal;
 
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.TipoExpediente;
-import com.educaflow.subsystem.expedientes.services.eventmanager.PhaseEventManager;
-import com.educaflow.subsystem.expedientes.services.eventmanager.InitialEventManager;
-import com.educaflow.subsystem.expedientes.services.eventmanager.TipoExpedienteStates;
-import com.educaflow.subsystem.expedientes.services.validation.StateEventValidator;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.PhaseEventManager;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.InitialEventManager;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.TipoExpedienteStates;
+import com.educaflow.subsystem.expedientes.tramitacion.validation.StateEventValidator;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;

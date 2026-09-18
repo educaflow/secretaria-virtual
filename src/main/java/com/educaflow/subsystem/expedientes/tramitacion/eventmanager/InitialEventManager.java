@@ -1,4 +1,4 @@
-package com.educaflow.subsystem.expedientes.services.eventmanager;
+package com.educaflow.subsystem.expedientes.tramitacion.eventmanager;
 
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.subsystem.expedientes.db.Expediente;

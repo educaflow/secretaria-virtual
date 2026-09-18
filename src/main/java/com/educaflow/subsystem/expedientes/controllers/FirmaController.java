@@ -1,6 +1,5 @@
 package com.educaflow.subsystem.expedientes.controllers;
 
-import com.axelor.auth.db.User;
 import com.axelor.meta.CallMethod;
 import com.axelor.rpc.ActionResponse;
 import com.axelor.rpc.Response;
@@ -9,7 +8,7 @@ import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.util.DniUtil;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.expedientes.db.Expediente;
-import com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil;
+import com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteUtil;
 
 public class FirmaController {
 

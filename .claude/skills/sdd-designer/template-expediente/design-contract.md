@@ -334,7 +334,7 @@ Una fila por ítem:
 
 
     public com.educaflow.base.infrastructure.pdf.DocumentoPdf getDocumentoPdf(TipoDocumentoPdf tipoDocumentoPdf) {
-        return com.educaflow.subsystem.expedientes.services.internal.ExpedienteUtil.getDocumentoPdf(this, tipoDocumentoPdf.getFileName());
+        return com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteUtil.getDocumentoPdf(this, tipoDocumentoPdf.getFileName());
     }
 
 ]]>

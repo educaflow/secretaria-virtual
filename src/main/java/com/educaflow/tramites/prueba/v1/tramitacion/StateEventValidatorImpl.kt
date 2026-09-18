@@ -1,10 +1,9 @@
 package com.educaflow.tramites.prueba.v1.tramitacion
 
-import com.educaflow.subsystem.expedientes.services.validation.StateEventValidator
-import com.educaflow.subsystem.expedientes.services.validation.BeanValidationRulesForStateAndEvent
+import com.educaflow.subsystem.expedientes.tramitacion.validation.StateEventValidator
+import com.educaflow.subsystem.expedientes.tramitacion.validation.BeanValidationRulesForStateAndEvent
 import com.educaflow.base.infrastructure.validation.dsl.rules
 import com.educaflow.base.infrastructure.validation.engine.BeanValidationRules
-import com.educaflow.subsystem.expedientes.db.PruebaV1 as model
 
 class StateEventValidatorImpl : StateEventValidator {
 
