@@ -10,8 +10,8 @@
         <string name="help" large="true"  title="Ayuda" />
         <many-to-one name="defaultTipoExpediente" ref="TipoExpediente" title="Tipo de expediente por defecto" />
         <many-to-one name="tipoTramite" ref="TipoTramite" title="Tipo de trámite" />
+        <boolean name="permitidoPresentarEnRepresentacion" title="Presentar en representación de otra persona" />
         <boolean name="publico"  />
-        <boolean name="privado"  />
     </entity>
 
 

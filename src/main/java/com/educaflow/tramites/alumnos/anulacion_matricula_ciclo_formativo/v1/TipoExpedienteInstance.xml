@@ -12,8 +12,8 @@
         </fase>
         <fase name="RESOLUCION" title="Resolución del centro">
             <state name="PENDIENTE_FIRMA_DIRECTOR" events="FIRMAR,DEVOLVER"         profile="DIRECTOR"    title="Pendiente de la firma del director"              />
-            <state name="ACEPTADA"                 events=""                        profile="RESPONSABLE" title="Anulación aceptada"              closed="true" />
-            <state name="RECHAZADA"                events=""                        profile="RESPONSABLE" title="Anulación rechazada"             closed="true" />
+            <state name="ACEPTADA"                 events=""                        profile="TRAMITADOR" title="Anulación aceptada"              closed="true" />
+            <state name="RECHAZADA"                events=""                        profile="TRAMITADOR" title="Anulación rechazada"             closed="true" />
         </fase>
     </fases>
 </TipoExpediente>

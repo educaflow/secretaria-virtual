@@ -163,7 +163,7 @@ Para abrir una vista tree desde un menú o acción se usa `type="tree"`:
              title="Expedientes esperando"
              model="com.educaflow.subsystem.expedientes.db.Expediente">
     <view type="tree" name="subsysExpedientes.Expediente@Esperando-tree"/>
-    <context name="_profile" expr="RESPONSABLE"/>
+    <context name="_profile" expr="TRAMITADOR"/>
 </action-view>
 ```
 

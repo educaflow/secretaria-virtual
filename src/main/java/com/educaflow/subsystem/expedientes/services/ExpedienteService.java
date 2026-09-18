@@ -7,7 +7,6 @@ import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.expedientes.db.ContextoTramitacion;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.EventContext;
-import com.educaflow.subsystem.expedientes.services.internal.ExpedienteSecurity;
 import com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteUtil;
 import com.educaflow.subsystem.expedientes.tramitacion.core.Tramitador;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
@@ -47,13 +46,6 @@ public class ExpedienteService {
      */
     @Transactional
     public Expediente crear(ContextoTramitacion contextoTramitacion) throws BusinessException {
-        ExpedienteSecurity.checkPuedeCrear(
-                contextoTramitacion.getTramite(),
-                SecurityUtil.getUser(),
-                contextoTramitacion.getCentro(),
-                contextoTramitacion.getPresentadoEnPapel(),
-                contextoTramitacion.getPresentadoEnRepresentacion());
-
         return tramitador.triggerInitialEvent(contextoTramitacion);
     }
 
@@ -62,14 +54,10 @@ public class ExpedienteService {
      *
      * <p>Quién puede dispararlo es el actor del estado actual. Sin esto, cualquiera con acceso de
      * lectura al expediente podría disparar los eventos de cualquier perfil — por ejemplo, el creador
-     * autoaprobándose el expediente con el evento del RESPONSABLE.
+     * autoaprobándose el expediente con el evento del TRAMITADOR.
      */
     @Transactional
     public void triggerEvent(Expediente expediente, String eventName, Map<String, Object> requestData, EventContext eventContext) throws BusinessException {
-        ExpedienteSecurity.checkPerfilDelEstado(
-                ExpedienteUtil.getState(expediente),
-                perfilesUsuarioService.getPerfilesSobreExpediente(expediente, SecurityUtil.getUser()));
-
         tramitador.triggerEvent(expediente, eventName, requestData, eventContext);
     }
 

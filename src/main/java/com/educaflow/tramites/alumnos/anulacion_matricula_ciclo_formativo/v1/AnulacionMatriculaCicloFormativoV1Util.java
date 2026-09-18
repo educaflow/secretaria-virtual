@@ -116,10 +116,10 @@ public final class AnulacionMatriculaCicloFormativoV1Util {
             return;
         }
 
-        Set<String> perfilesDelUsuario = Beans.get(PerfilesUsuarioService.class)
+        Set<Profile> perfilesDelUsuario = Beans.get(PerfilesUsuarioService.class)
                 .getPerfilesSobreExpediente(expediente, SecurityUtil.getUser());
 
-        if (perfilesDelUsuario.contains(perfilDelEstado.name()) == false) {
+        if (perfilesDelUsuario.contains(perfilDelEstado) == false) {
             throw new BusinessException(I18n.get(mensaje));
         }
     }

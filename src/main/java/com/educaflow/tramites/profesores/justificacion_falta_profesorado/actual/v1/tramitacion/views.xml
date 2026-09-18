@@ -6,7 +6,7 @@
     <!-- **********************************************************************************************  -->
     <!-- ************************************ PENDIENTE_RESOLUCION ************************************  -->
     <!-- **********************************************************************************************  -->
-    <form state="PENDIENTE_RESOLUCION" profile="RESPONSABLE" >
+    <form state="PENDIENTE_RESOLUCION" profile="TRAMITADOR" >
         <include-panels>
             -datos-profesor
             -datos-falta-view

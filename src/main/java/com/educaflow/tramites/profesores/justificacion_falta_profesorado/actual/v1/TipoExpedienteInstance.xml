@@ -7,9 +7,12 @@
             <state name="PENDIENTE_PRESENTACION" events="BACK,PRESENTAR"       profile="CREADOR"      title="Pendiente de presentación"                  />
         </fase>
         <fase name="TRAMITACION" title="Tramitación">
-            <state name="PENDIENTE_RESOLUCION"   events="RESOLVER"             profile="RESPONSABLE"  title="Pendiente de resolución"                    />
-            <state name="ACEPTADO"               events=""                     profile="RESPONSABLE"                                     closed="true"   />
-            <state name="RECHAZADO"              events=""                     profile="RESPONSABLE"                                     closed="true"   />
+            <state name="PENDIENTE_RESOLUCION"   events="RESOLVER"             profile="TRAMITADOR"  title="Pendiente de resolución"                    />
+            <state name="ACEPTADO"               events=""                     profile="TRAMITADOR"                                     closed="true"   />
+            <state name="RECHAZADO"              events=""                     profile="TRAMITADOR"                                     closed="true"   />
         </fase>
     </fases>
+    <aces>
+        <ace></ace>
+    </aces>
 </TipoExpediente>

@@ -54,7 +54,7 @@ El `.desc.md` es **autocontenido**. Extrae:
 
 ## 4. Ciclo de autenticación — uno por TRAMO, no uno por test
 
-Un test de expediente suele recorrer **varios perfiles** (el `CREADOR` lo presenta, el `RESPONSABLE` lo resuelve). Cada cambio de actor es un **tramo** con su propio ciclo:
+Un test de expediente suele recorrer **varios perfiles** (el `CREADOR` lo presenta, el `TRAMITADOR` lo resuelve). Cada cambio de actor es un **tramo** con su propio ciclo:
 
 ```ts
 await ensureLoggedOut(page);
@@ -69,8 +69,8 @@ Reglas:
 2. El `logout` **final** va en el `finally`, **después** del teardown (§5.2): el borrado del expediente necesita la sesión abierta, así que cerrarla antes lo condena a fallar en silencio.
 3. Entre tramos: `logout` del actor anterior y `login` del siguiente. **MUST NOT** encadenar dos `login` sin `logout` en medio.
 4. El actor del tramo **final** (el que dispara el evento del campo `Evento`) **MUST** ser el del campo `Perfil`. Los tramos previos usan los actores que digan los `Given`.
-5. **MUST** abrir el expediente por la **bandeja del perfil del tramo**: `CREADOR` → «Expedientes Pendientes»; `RESPONSABLE` → «Expedientes Esperando» (abiertos) o «Expedientes Cerrados» (cerrados). Entrar por la bandeja equivocada da la vista genérica de solo lectura y el test falla por un motivo falso.
-6. **Un tramo cuyo perfil no sea `CREADOR` ni `RESPONSABLE`** (`SECRETARIO`, `DIRECTOR`, `AUDITOR`) **no tiene bandeja**: se entra por la pantalla que declare el propio trámite (`README.md` §3.2). Si no hay ninguna, devuelve `BLOQUEADO` (§9); **MUST NOT** entrar por la bandeja más parecida.
+5. **MUST** abrir el expediente por la **bandeja del perfil del tramo**: `CREADOR` → «Expedientes Pendientes»; `TRAMITADOR` → «Expedientes Esperando» (abiertos) o «Expedientes Cerrados» (cerrados). Entrar por la bandeja equivocada da la vista genérica de solo lectura y el test falla por un motivo falso.
+6. **Un tramo cuyo perfil no sea `CREADOR` ni `TRAMITADOR`** (`SECRETARIO`, `DIRECTOR`, `AUDITOR`) **no tiene bandeja**: se entra por la pantalla que declare el propio trámite (`README.md` §3.2). Si no hay ninguna, devuelve `BLOQUEADO` (§9); **MUST NOT** entrar por la bandeja más parecida.
 
 **El helper `_support/auth.ts` es test code, no código de la app** (§7): si sus selectores no casan con la UI real, **MUST** ajustarlo. **MUST NOT** tocar `src/main/...`.
 

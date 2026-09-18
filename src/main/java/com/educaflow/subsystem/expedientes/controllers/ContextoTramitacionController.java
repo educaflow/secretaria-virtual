@@ -8,7 +8,6 @@ import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.expedientes.services.ContextoTramitacionService;
-import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.Tramite;
 import com.educaflow.subsystem.expedientes.db.repo.TramiteRepository;
 import com.educaflow.subsystem.common.db.Centro;
@@ -42,8 +41,6 @@ public class ContextoTramitacionController {
         Tramite tramite = getTramite(Convert.objectToLong(actionRequestHelper.getRequestData().get("_tramiteId")));
 
         response.setValue("tramite", Map.of("id", tramite.getId(), "name", tramite.getName()));
-        //El expediente lo abre su creador: el ContextoTramitacion viaja al alta y de él sale el EventContext.
-        response.setValue("profile", Profile.CREADOR);
         response.setValue("nombreTramite", I18n.get(tramite.getName()));
         response.setValue("ayudaTramite", tramite.getHelp());
 
@@ -92,6 +89,7 @@ public class ContextoTramitacionController {
         User user = SecurityUtil.getUser();
 
         response.setValue("presentadoEnRepresentacion", null);
+        responderProfile(presentadoEnPapel, response);
         responderOpcionesParaQuien(tramite, user, centro, presentadoEnPapel, response);
     }
 
@@ -133,18 +131,30 @@ public class ContextoTramitacionController {
     /*******************************************************************/
 
     /**
-     * Solo se pregunta si se registra una solicitud en papel cuando en el centro caben las dos cosas; si solo
-     * cabe una, se fija sin preguntar. Devuelve el valor que queda en el formulario.
+     * Cómo presenta el usuario. Solo se le pregunta a quien tiene los dos perfiles, porque es el único
+     * que puede actuar de las dos formas; al resto se le deduce de su único perfil y no se le pregunta
+     * nada. Devuelve el valor que queda en el formulario.
      */
     private boolean responderPresentadoEnPapel(Tramite tramite, User user, Centro centro, ActionResponse response) {
-        boolean puedePresentarElUsuario = contextoTramitacionService.puedePresentarElUsuario(tramite, user, centro);
-        boolean puedeRegistrarEnPapel = contextoTramitacionService.puedeRegistrarEnPapel(tramite, user, centro);
-        boolean presentadoEnPapel = puedeRegistrarEnPapel && (puedePresentarElUsuario == false);
+        boolean esNecesarioPresentadoEnPapel = contextoTramitacionService.esNecesarioPresentadoEnPapel(tramite, user, centro);
+        boolean presentadoEnPapel = esNecesarioPresentadoEnPapel
+                //Con las dos opciones se pregunta: el checkbox arranca sin marcar, presentando como creador.
+                ? false
+                : contextoTramitacionService.deducirPresentadoEnPapel(tramite, user, centro);
 
         response.setValue("presentadoEnPapel", presentadoEnPapel);
-        response.setAttr("presentadoEnPapel", "hidden", (puedePresentarElUsuario && puedeRegistrarEnPapel) == false);
+        response.setAttr("presentadoEnPapel", "hidden", esNecesarioPresentadoEnPapel == false);
+        responderProfile(presentadoEnPapel, response);
 
         return presentadoEnPapel;
+    }
+
+    /**
+     * El perfil con el que se abre el expediente: el ContextoTramitacion viaja al alta y de él sale el
+     * EventContext, así que MUST ir siempre en sintonía con presentadoEnPapel.
+     */
+    private void responderProfile(boolean presentadoEnPapel, ActionResponse response) {
+        response.setValue("profile", contextoTramitacionService.getProfile(presentadoEnPapel));
     }
 
     private void responderOpcionesParaQuien(Tramite tramite, User user, Centro centro, boolean presentadoEnPapel, ActionResponse response) {

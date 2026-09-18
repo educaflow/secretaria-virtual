@@ -20,7 +20,7 @@
 
     <action-view name="subsysExpedientes.Expediente@PruebaSearch-buscar-action" title="Buscando expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente">
         <view type="tree" name="subsysExpedientes.Expediente@PruebaSearch-buscar-tree"/>
-        <context name="_profile" expr="RESPONSABLE"/>
+        <context name="_profile" expr="TRAMITADOR"/>
         <context name="usuarioId" expr="eval: __user__?.id"/>
         <context name="esAdministrador" expr="eval: __user__?.group?.code == 'admins'"/>
     </action-view>

@@ -31,7 +31,7 @@ El contrato de las vistas vive aparte, en `vistas.md`.
 | `<FASE>` / `<fase>` | `name` de una fase / su carpeta | `UPPER_SNAKE_CASE` / `toLowerCase` |
 | `<ESTADO>` / `<Estado>` | `name` de un estado / en UpperCamel | `UPPER_SNAKE_CASE` / `UpperCamel` |
 | `<EVENTO>` / `<Evento>` | `name` de un evento / en UpperCamel | `UPPER_SNAKE_CASE` / `UpperCamel` |
-| `<PERFIL>` | valor del enum `Profile`: `CREADOR`, `RESPONSABLE`, `SECRETARIO`, `DIRECTOR`, `AUDITOR` | `UPPER_SNAKE_CASE` |
+| `<PERFIL>` | valor del enum `Profile`: `CREADOR`, `TRAMITADOR`, `COLABORADOR`, `AFECTADO`, `SECRETARIO`, `DIRECTOR`, `AUDITOR` | `UPPER_SNAKE_CASE` |
 | `<Campo>` | campo de la entidad, en UpperCamel para el getter | |
 | `<doc>` | nombre base de un documento de `documentospdf/` | `camelCase` |
 
@@ -163,7 +163,7 @@ Reglas:
 - La columna `eventos` **MUST** reflejar el atributo `events` en su **orden literal**.
 - **MUST NOT** aparecer `EXIT` en la columna `eventos`: `ExpedienteController` lo intercepta antes del `Tramitador` y sería código muerto. `EXIT` es un **botón puro de UI** (ver `vistas.md`).
 - `DELETE` **sí** se declara en `events` del estado desde el que se pueda borrar.
-- La columna `perfil` **MUST** contener un valor del enum `Profile` (`CREADOR`, `RESPONSABLE`, `SECRETARIO`, `DIRECTOR`, `AUDITOR`) o `—`.
+- La columna `perfil` **MUST** contener un valor del enum `Profile` (`CREADOR`, `TRAMITADOR`, `COLABORADOR`, `AFECTADO`, `SECRETARIO`, `DIRECTOR`, `AUDITOR`) o `—`.
 - **A1 — nombres reservados. MUST NOT** nombrar un estado o un evento de forma que el método derivado (`onEnter<Estado>`, `trigger<Evento>`, `getForState<Estado>InEvent<Evento>`) coincida con un método público de `PhaseEventManager`, `StateEventValidator` o `InitialEventManager` (se compara solo el nombre, sin firma). En particular **MUST NOT** llamarse un estado `STATE`, ni un evento `INITIAL_EVENT`.
 - El `title` de la fase **no es documental**: es el texto que el usuario ve en la cabecera de **todos** los formularios.
 
@@ -427,7 +427,7 @@ Las tres filas de fase se repiten **por cada fase**; la de `documentospdf` **por
 
 - El inventario mínimo de arriba **NO aplica**: la tabla lista **SOLO** los ficheros realmente tocados por el delta, normalmente con acción `Modificar` (con `Crear` solo lo genuinamente nuevo: una fase nueva, un documento nuevo…).
 - Cada XML con `Modificar` se materializa en `design/` **completo**, con el fichero real del árbol como base **más** el delta (se copiará verbatim y sobrescribirá).
-- La fila de `permisos-demo.xml` solo existe si el delta añade perfiles o asignaciones nuevas.
+- La fila de `permisos-demo.xml` solo existe si el delta añade asignaciones nuevas.
 - **MUST NOT** listarse ni regenerarse ningún fichero que el delta no toque, y **MUST NOT** aparecer ninguna fila que cree una carpeta de versión nueva.
 - En las secciones de `design.md` cuyo contenido no cambie con el delta, se escribe `*(sin cambios)*` en vez de re-derivar el as-is.
 - **CRITICAL — tres secciones quedan FUERA de esa regla y van SIEMPRE completas: «Identidad del trámite y del tipo», «Ficheros a crear o modificar» y «Pasos». MUST NOT** escribirse `*(sin cambios)*` en ninguna de las tres. Las dos últimas **son** el delta; la primera no es contenido de diseño sino la **identidad** de la que viven los skills de aguas abajo: el descomponedor de `/sdd-implementer` deriva de ella `<tramite>`, `<vN>`, `<Entidad>` y `<basePackageName>` (`sdd-implementer/template-expediente/decomposition.md` §1), y `/sdd-create-tests-e2e` resuelve de su fila `Carpeta de la versión` la carpeta de tests destino. Sin ellas ambos abortan.
@@ -461,7 +461,7 @@ Una subsección `### Paso N — <fichero o grupo>` por cada fila (o grupo homog�
 **Iniciativa de MODIFICACIÓN de una versión existente** (§8): la tabla de arriba deja de ser un inventario obligatorio y pasa a ser **solo un orden relativo**. Los pasos de fichero salen, como siempre, de las filas de la tabla §6 —que en este modo lista solo lo que el delta toca—, así que hay **exactamente un paso por fila**, renumerados `1..N` de forma contigua y **respetando el orden relativo** de la tabla. Un paso de fichero cuya fila no esté en §6 **es un fallo**, no una omisión permitida. Los dos únicos pasos que no son de fichero (`CreateFilesTask` y la verificación final) se rigen por las reglas de abajo.
 
 - El paso de `CreateFilesTask` existe **si y solo si** el delta **añade fases nuevas** (§9.1). Si no las añade, no hay nada que esqueletar y el paso **MUST NOT** aparecer: `/sdd-implementer` tampoco genera su tarea (`sdd-implementer/template-expediente/decomposition.md`, reglas de instanciación).
-- El paso de `permisos-demo.xml` existe **si y solo si** su fila está en la tabla §6 (es decir, si el delta añade perfiles o asignaciones).
+- El paso de `permisos-demo.xml` existe **si y solo si** su fila está en la tabla §6 (es decir, si el delta añade asignaciones).
 - El **paso final de verificación** (`./run.sh`) existe **siempre**, también aquí, y es siempre el último.
 - ✅ CORRECTO: un delta que solo cambia el `views.xml` de una fase y su `StateEventValidatorImpl.kt` → 3 pasos: el `.kt`, el `views.xml` y `./run.sh`.
 - ❌ INCORRECTO: reproducir los 13 pasos de la tabla poniendo «sin cambios» en los que el delta no toca, o meter `CreateFilesTask` en un delta que no añade fases.
@@ -806,7 +806,7 @@ La sección **MUST** listar, además, cada regla funcional de la especificación
 - Los perfiles de los estados **posteriores** pueden asignarse por `tramiteCode` o por `tipoExpedienteCode`. **SHOULD** preferirse `tramiteCode`: las asignaciones por `tipoExpedienteCode` hay que duplicarlas en cada versión nueva del trámite.
 - El `tipoExpedienteCode` es `<Entidad>` (`<Code><VN>`), **no** el code del trámite.
 - **MUST** quedar asignado a alguien **todo** perfil que use algún estado del tipo: un perfil sin actor deja ese estado inalcanzable.
-- Un `<perfil name="…">` **MUST** existir en `<perfiles>` antes de referenciarse; pero **MUST NOT** duplicarse uno que ya esté declarado en el `permisos-demo.xml` real.
+- Un `perfilName` **MUST** ser el nombre de una constante del enum `Profile` (`subsystem/expedientes/domains/Profile.xml`): el perfil es un enum, no una fila, así que no hay nada que declarar antes de referenciarlo.
 - `auth-expedientes.xml` ya concede lectura sobre `Expediente`/`Tramite`/`TipoExpediente` **condicionada por `Ace`**: sin fila `Ace` el usuario no ve nada aunque el trámite exista.
 - La `<permission name="<Entidad>.all">` del tipo la genera el build en el `auth-<Code>.xml` de su data-init, enganchada a los grupos `admins` y `users`, así que el diseño **MUST NOT** escribirla en ningún `auth-*.xml`: sería un duplicado. Se genera con `create/read/write/remove` **sin `condition`**, agujero conocido documentado en `CLAUDE.md`, y el diseño **MUST NOT** intentar taparlo por su cuenta.
 
@@ -817,11 +817,6 @@ La sección **MUST** listar, además, cada regla funcional de la especificación
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <datos>
-    <!-- Solo los perfiles que NO existan ya en permisos-demo.xml -->
-    <perfiles>
-        <perfil name="<PERFIL>"/>
-    </perfiles>
-
     <asignacionesTipoUsuario>
         <asignacion tipoUsuarioCode="<TIPO_USUARIO>" perfilName="<PERFIL>" tramiteCode="<Code>"/>
     </asignacionesTipoUsuario>

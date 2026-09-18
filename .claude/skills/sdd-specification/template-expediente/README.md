@@ -67,7 +67,7 @@ La especificación **no es un único fichero**: es un conjunto de ficheros dentr
 
 | Qué | Se nombra así | Por qué es negocio |
 |---|---|---|
-| Los **perfiles** | `CREADOR`, `RESPONSABLE`, `SECRETARIO`, `DIRECTOR`, `AUDITOR` | Son los papeles que juegan las personas en el trámite; el negocio decide quién ostenta cada uno. Es una lista cerrada: **MUST NOT** inventarse otros. |
+| Los **perfiles** | `CREADOR`, `TRAMITADOR`, `COLABORADOR`, `AFECTADO`, `SECRETARIO`, `DIRECTOR`, `AUDITOR` | Son los papeles que juegan las personas en el trámite; el negocio decide quién ostenta cada uno. Es una lista cerrada: **MUST NOT** inventarse otros. |
 | Las **fases** | `<FASE>` en MAYÚSCULAS con guiones bajos, más su **título**, que el usuario ve en la cabecera de todas las pantallas de sus estados | Una fase agrupa los estados de una etapa del trámite. Su título no es documentación: es texto que el usuario lee. |
 | Los **estados** | `<ESTADO>` en MAYÚSCULAS con guiones bajos, más su **título** | Un estado es «en qué punto está el expediente», que es exactamente lo que el negocio decide. |
 | Las **acciones** | `<ACCION>` en MAYÚSCULAS con guiones bajos, más el **texto del botón** que el usuario pulsa | Una acción es lo que una persona hace para que el expediente avance. |
@@ -75,7 +75,7 @@ La especificación **no es un único fichero**: es un conjunto de ficheros dentr
 
 Un estado se identifica **siempre** por la pareja `<FASE> / <ESTADO>`: dos estados de fases distintas pueden llamarse igual. **MUST** escribirse siempre la fase junto al estado cuando haya ambigüedad.
 
-> **Ejemplo** (ilustrativo, NO normativo): «En el estado `REVISION / PENDIENTE_INFORME`, el perfil `RESPONSABLE` puede lanzar la acción `INFORMAR` con el botón «Emitir el informe»». Los cuatro nombres son inventados para el ejemplo.
+> **Ejemplo** (ilustrativo, NO normativo): «En el estado `REVISION / PENDIENTE_INFORME`, el perfil `TRAMITADOR` puede lanzar la acción `INFORMAR` con el botón «Emitir el informe»». Los cuatro nombres son inventados para el ejemplo.
 
 Dos avisos sobre los perfiles, porque se confunden a menudo:
 

@@ -447,7 +447,7 @@ tasks.register('GenerateStatesTask', JavaExec) {
     mainClass = 'com.educaflow.common.buildtools.createstates.Main'
     classpath = configurations.educaFlowBuildToolsDependency
 
-    args './src/main/java', './build/src-gen-states/main/java', paqueteRaizTramites, './src/main/java/com/educaflow/subsystem/expedientes/domains/TipoExpediente.xml'
+    args './src/main/java', './build/src-gen-states/main/java', paqueteRaizTramites, './src/main/java/com/educaflow/subsystem/expedientes/domains/Profile.xml'
 
     workingDir = layout.projectDirectory.dir('.')
 
@@ -456,12 +456,12 @@ tasks.register('GenerateStatesTask', JavaExec) {
     doFirst { delete(layout.buildDirectory.dir('src-gen-states')) }
 
     // Inputs acotados a lo que la tarea lee: los TipoExpedienteInstance.xml y el
-    // domains/TipoExpediente.xml del que sale el enum global Profile (sin él, renombrar un perfil
+    // domains/Profile.xml del que sale el enum global Profile (sin él, renombrar un perfil
     // dejaría la tarea up-to-date y esa validación sin re-ejecutar). Los outputs van a una raíz
     // PROPIA (no build/src-gen) para no solapar con lo que escriben generateCode y
     // RichDomainClassTask, que confundiría los up-to-date checks de Gradle.
     inputs.files(fileTree(layout.projectDirectory.dir('src/main/java/' + paqueteRaizTramites.replace('.', '/'))) { include '**/TipoExpedienteInstance.xml' })
-    inputs.file('src/main/java/com/educaflow/subsystem/expedientes/domains/TipoExpediente.xml')
+    inputs.file('src/main/java/com/educaflow/subsystem/expedientes/domains/Profile.xml')
     outputs.dir(layout.buildDirectory.dir('src-gen-states/main/java'))
 }
 sourceSets.main.java.srcDir(layout.buildDirectory.dir('src-gen-states/main/java'))

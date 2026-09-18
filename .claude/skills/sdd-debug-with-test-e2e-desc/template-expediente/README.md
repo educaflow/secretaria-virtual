@@ -35,7 +35,7 @@ A través de este README cada subagente descubre y lee **solo los ficheros de es
 | `<Entidad>` | entidad JPA y code del tipo de expediente (`<Code><VN>`) |
 | `<FASE>` / `<fase>` | `name` de una fase / su carpeta y paquete (en minúsculas) |
 | `<ESTADO>` / `<EVENTO>` | `name` de un estado / de un evento (`UPPER_SNAKE_CASE`) |
-| `<PERFIL>` | valor del enum `Profile`: `CREADOR`, `RESPONSABLE`, `SECRETARIO`, `DIRECTOR`, `AUDITOR` |
+| `<PERFIL>` | valor del enum `Profile`: `CREADOR`, `TRAMITADOR`, `COLABORADOR`, `AFECTADO`, `SECRETARIO`, `DIRECTOR`, `AUDITOR` |
 
 ---
 
@@ -153,8 +153,8 @@ El expediente se abre desde una de las **bandejas** del menú «Expedientes», y
 | Menú | Qué lista | Perfil con el que abre |
 |---|---|---|
 | «Expedientes Pendientes» | grid de expedientes abiertos | `CREADOR` |
-| «Expedientes Esperando» | árbol de expedientes abiertos por trámite | `RESPONSABLE` |
-| «Expedientes Cerrados» | expedientes con `abierto=false` | `RESPONSABLE` |
+| «Expedientes Esperando» | árbol de expedientes abiertos por trámite | `TRAMITADOR` |
+| «Expedientes Cerrados» | expedientes con `abierto=false` | `TRAMITADOR` |
 
 - **CRITICAL**: el runtime elige la vista `exp-<Code>-<FASE>-<ESTADO>-<PERFIL>-form` si existe para el perfil de la bandeja, y si no, la **genérica** `exp-<Code>-<FASE>-<ESTADO>-form` (solo lectura). Por eso «he entrado y está todo en solo lectura» casi siempre significa **bandeja equivocada**, no un fallo del código.
 - **CRITICAL — ver los botones no es poder disparar el evento.** Lo que elige la vista es el perfil de la **bandeja**; los perfiles que tenga el usuario **no** intervienen ahí (el servidor solo comprueba que ese perfil lo use algún estado del tipo). El perfil **real** del usuario se comprueba al **disparar** el evento, y si no lo tiene la app responde un **error de acceso** y el expediente **no** transiciona.

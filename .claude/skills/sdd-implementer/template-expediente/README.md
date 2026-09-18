@@ -36,7 +36,7 @@ A través de este README cada subagente descubre y lee **solo los ficheros de es
 | `<FASE>` / `<fase>` | `name` de una fase / su carpeta y paquete | `UPPER_SNAKE_CASE` / `toLowerCase` |
 | `<ESTADO>` / `<Estado>` | `name` de un estado / en UpperCamel | `UPPER_SNAKE_CASE` / `UpperCamel` |
 | `<EVENTO>` / `<Evento>` | `name` de un evento / en UpperCamel | `UPPER_SNAKE_CASE` / `UpperCamel` |
-| `<PERFIL>` | valor del enum `Profile`: `CREADOR`, `RESPONSABLE`, `SECRETARIO`, `DIRECTOR`, `AUDITOR` | `UPPER_SNAKE_CASE` |
+| `<PERFIL>` | valor del enum `Profile`: `CREADOR`, `TRAMITADOR`, `COLABORADOR`, `AFECTADO`, `SECRETARIO`, `DIRECTOR`, `AUDITOR` | `UPPER_SNAKE_CASE` |
 | `<Campo>` | campo de la entidad, en UpperCamel para el getter | |
 | `<doc>` | nombre base de un documento de `documentospdf/` | `camelCase` |
 | `<carpeta de versión>` | `src/main/java/com/educaflow/tramites/<tramite>/<…segmentos…>/<vN>` | ruta desde la raíz del proyecto |

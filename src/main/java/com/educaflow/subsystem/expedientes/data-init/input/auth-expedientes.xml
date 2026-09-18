@@ -1,4 +1,10 @@
 <?xml version="1.0"?>
+<!-- El perfil de un Ace es el enum Profile, y aquí se compara SIEMPRE con la constante cualificada
+     (com.educaflow.subsystem.expedientes.db.Profile.CREADOR), nunca con el literal 'CREADOR'.
+     Motivo: Axelor mapea los enum con un UserType propio (ValueEnumType), no con @Enumerated, así que
+     al compilar el HQL Hibernate no tiene por qué saber convertir una cadena al tipo del atributo.
+     Un parámetro tipado, que es lo que se usa desde Java, aquí no cabe: el condition de un permiso
+     solo admite los posicionales '?' que rellena conditionParams. -->
 <auth>
 
   <permission name="TipoExpediente.conAce"
@@ -28,7 +34,7 @@
               condition="self IN (
         SELECT aa.tramite
         FROM com.educaflow.subsystem.security.db.Ace aa
-        WHERE aa.perfil.name = 'CREADOR'
+        WHERE aa.perfil = com.educaflow.subsystem.expedientes.db.Profile.CREADOR
         AND aa.tramite IS NOT NULL
         AND EXISTS (
             SELECT cu FROM com.educaflow.subsystem.common.db.CentroUsuario cu
@@ -72,7 +78,7 @@
         SELECT aa.tramite
         FROM com.educaflow.subsystem.security.db.Ace aa
         WHERE aa.tramite IS NOT NULL
-        AND aa.perfil.name != 'CREADOR'
+        AND aa.perfil != com.educaflow.subsystem.expedientes.db.Profile.CREADOR
         AND EXISTS (
             SELECT cu FROM com.educaflow.subsystem.common.db.CentroUsuario cu
             WHERE cu.usuario = ?
@@ -193,7 +199,7 @@
         SELECT aa.tramite
         FROM com.educaflow.subsystem.security.db.Ace aa
         WHERE aa.tramite IS NOT NULL
-        AND aa.perfil.name != 'CREADOR'
+        AND aa.perfil != com.educaflow.subsystem.expedientes.db.Profile.CREADOR
         AND EXISTS (
             SELECT cu FROM com.educaflow.subsystem.common.db.CentroUsuario cu
             WHERE cu.usuario = ?

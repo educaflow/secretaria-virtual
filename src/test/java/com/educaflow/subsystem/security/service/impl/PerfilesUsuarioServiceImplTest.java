@@ -4,6 +4,7 @@ import com.axelor.auth.db.User;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.CentroUsuario;
 import com.educaflow.subsystem.expedientes.db.Expediente;
+import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.Tramite;
 import com.educaflow.subsystem.security.db.repo.AceRepository;
 import org.junit.jupiter.api.Test;
@@ -60,10 +61,10 @@ class PerfilesUsuarioServiceImplTest {
         CentroUsuario centroUsuarioDelExpediente = enCentro(usuario, centroExpediente);
         Expediente expediente = new Expediente();
         expediente.setCentro(centroExpediente);
-        when(aceRepository.findNombresPerfilesByExpediente(expediente, centroExpediente, centroUsuarioDelExpediente))
-                .thenReturn(Set.of("SECRETARIO"));
+        when(aceRepository.findPerfilesByExpediente(expediente, centroExpediente, centroUsuarioDelExpediente))
+                .thenReturn(Set.of(Profile.SECRETARIO));
 
-        assertEquals(Set.of("SECRETARIO"), service.getPerfilesSobreExpediente(expediente, usuario));
+        assertEquals(Set.of(Profile.SECRETARIO), service.getPerfilesSobreExpediente(expediente, usuario));
     }
 
     @Test
@@ -73,7 +74,7 @@ class PerfilesUsuarioServiceImplTest {
         enCentro(usuario, centro(1L));
         Expediente expediente = new Expediente();
         expediente.setCentro(centroExpediente);
-        when(aceRepository.findNombresPerfilesByExpediente(expediente, centroExpediente, null)).thenReturn(Set.of());
+        when(aceRepository.findPerfilesByExpediente(expediente, centroExpediente, null)).thenReturn(Set.of());
 
         assertEquals(Set.of(), service.getPerfilesSobreExpediente(expediente, usuario));
     }
@@ -86,9 +87,9 @@ class PerfilesUsuarioServiceImplTest {
         Expediente expediente = new Expediente();
         expediente.setCentro(centroExpediente);
         expediente.setUsuarioRegistrador(usuario(5L));
-        when(aceRepository.findNombresPerfilesByExpediente(expediente, centroExpediente, centroUsuario)).thenReturn(Set.of());
+        when(aceRepository.findPerfilesByExpediente(expediente, centroExpediente, centroUsuario)).thenReturn(Set.of());
 
-        assertEquals(Set.of("CREADOR"), service.getPerfilesSobreExpediente(expediente, usuario));
+        assertEquals(Set.of(Profile.CREADOR), service.getPerfilesSobreExpediente(expediente, usuario));
     }
 
     @Test
@@ -98,15 +99,15 @@ class PerfilesUsuarioServiceImplTest {
         enCentro(usuario, centro(1L));
         CentroUsuario centroUsuario = enCentro(usuario, centroElegido);
         Tramite tramite = new Tramite();
-        when(aceRepository.findNombresPerfilesByTramite(tramite, centroElegido, centroUsuario)).thenReturn(Set.of("CREADOR"));
+        when(aceRepository.findPerfilesByTramite(tramite, centroElegido, centroUsuario)).thenReturn(Set.of(Profile.CREADOR));
 
-        assertEquals(Set.of("CREADOR"), service.getPerfilesSobreTramite(tramite, usuario, centroElegido));
+        assertEquals(Set.of(Profile.CREADOR), service.getPerfilesSobreTramite(tramite, usuario, centroElegido));
     }
 
     @Test
     void getPerfilesSobreTramite_sinCentro_ningunoYNoConsulta() {
         assertEquals(Set.of(), service.getPerfilesSobreTramite(new Tramite(), usuario(5L), null));
-        verify(aceRepository, never()).findNombresPerfilesByTramite(any(), any(), any());
+        verify(aceRepository, never()).findPerfilesByTramite(any(), any(), any());
     }
 
 }

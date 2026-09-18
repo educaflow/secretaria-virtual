@@ -9,9 +9,9 @@
             <state name="ENTRADA_DATOS" profile="CREADOR" events="DELETE,PRESENTAR" />
         </fase>
         <fase name="TRAMITACION" title="Tramitación">
-            <state name="REVISION" title="Revisión" profile="RESPONSABLE" events="SUBSANAR,ACEPTAR,RECHAZAR" />
-            <state closed="true" name="ACEPTADO" profile="RESPONSABLE" events=""/>
-            <state closed="true" name="RECHAZADO" profile="RESPONSABLE" events=""/>
+            <state name="REVISION" title="Revisión" profile="TRAMITADOR" events="SUBSANAR,ACEPTAR,RECHAZAR" />
+            <state closed="true" name="ACEPTADO" profile="TRAMITADOR" events=""/>
+            <state closed="true" name="RECHAZADO" profile="TRAMITADOR" events=""/>
         </fase>
     </fases>
 </TipoExpediente>

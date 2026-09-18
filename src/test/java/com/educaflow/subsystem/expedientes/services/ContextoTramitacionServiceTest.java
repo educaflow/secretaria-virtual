@@ -2,43 +2,56 @@ package com.educaflow.subsystem.expedientes.services;
 
 import com.axelor.auth.db.User;
 import com.educaflow.subsystem.common.db.Centro;
-import com.educaflow.subsystem.common.db.Cargo;
 import com.educaflow.subsystem.common.db.CentroUsuario;
-import com.educaflow.subsystem.common.db.CentroUsuarioCargo;
-import com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario;
-import com.educaflow.subsystem.common.db.TipoUsuario;
-import com.educaflow.subsystem.expedientes.db.TipoTramite;
+import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.Tramite;
-import com.educaflow.subsystem.expedientes.services.internal.ExpedienteSecurity;
-import org.apache.shiro.authz.UnauthorizedException;
+import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
- * Cubre a la vez el servicio de la pantalla y la regla de {@link ExpedienteSecurity} en la que
- * delega: son la misma decisión vista desde los dos lados.
+ * El servicio no decide por sí mismo qué perfiles tiene el usuario: eso lo contesta
+ * {@link PerfilesUsuarioService} contra las filas de {@code Ace}. Lo que aquí se comprueba es lo que
+ * el servicio sí decide: qué centros se ofrecen y qué combinaciones de «en papel» / «en
+ * representación» caben con los perfiles que tiene en cada centro.
  */
+@ExtendWith(MockitoExtension.class)
 class ContextoTramitacionServiceTest {
+
+    private final PerfilesUsuarioService perfilesUsuarioService = mock(PerfilesUsuarioService.class);
 
     private final ContextoTramitacionService servicio = new ContextoTramitacionService();
 
     private final Centro mislata = centro(1L, "CIPFP Mislata");
     private final Centro batoi = centro(2L, "CIPFP Batoi");
 
+    @BeforeEach
+    void inyectarDependencias() throws Exception {
+        setField(servicio, "perfilesUsuarioService", perfilesUsuarioService);
+    }
+
     /* ------------------------------------------------------------------ */
     /* Helpers                                                            */
     /* ------------------------------------------------------------------ */
+
+    private static void setField(Object target, String fieldName, Object value) throws Exception {
+        Field field = ContextoTramitacionService.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
+    }
 
     private static Centro centro(long id, String nombre) {
         Centro centro = new Centro();
@@ -48,46 +61,11 @@ class ContextoTramitacionServiceTest {
         return centro;
     }
 
-    /** Un trámite de alumnos: los interesados son los alumnos y el director (cargo). */
-    private static Tramite tramite(boolean admiteRepresentacion) {
-        TipoTramite tipoTramite = new TipoTramite();
-        tipoTramite.setAdmiteRepresentacion(admiteRepresentacion);
-        tipoTramite.setTiposUsuarioInteresados(tiposUsuario("ALUMNO"));
-        tipoTramite.setCargosInteresados(cargos("DIRECTOR"));
+    private static Tramite tramite(boolean permitidoPresentarEnRepresentacion) {
         Tramite tramite = new Tramite();
         tramite.setCode("MiTramite");
-        tramite.setTipoTramite(tipoTramite);
+        tramite.setPermitidoPresentarEnRepresentacion(permitidoPresentarEnRepresentacion);
         return tramite;
-    }
-
-    /** Un trámite cuyo tipo admite la presentación en papel, registrada por administrativos y secretarios. */
-    private static Tramite tramiteEnPapel(boolean admiteRepresentacion) {
-        Tramite tramite = tramite(admiteRepresentacion);
-        TipoTramite tipoTramite = tramite.getTipoTramite();
-        tipoTramite.setAdmitePresentacionEnPapel(true);
-        tipoTramite.setTiposUsuarioRegistradores(tiposUsuario("ADMINISTRATIVO"));
-        tipoTramite.setCargosRegistradores(cargos("SECRETARIO"));
-        return tramite;
-    }
-
-    private static Set<TipoUsuario> tiposUsuario(String... codigos) {
-        return Set.of(codigos).stream().map(ContextoTramitacionServiceTest::tipoUsuario).collect(Collectors.toSet());
-    }
-
-    private static Set<Cargo> cargos(String... codigos) {
-        return Set.of(codigos).stream().map(ContextoTramitacionServiceTest::cargo).collect(Collectors.toSet());
-    }
-
-    private static TipoUsuario tipoUsuario(String codigo) {
-        TipoUsuario tipoUsuario = new TipoUsuario();
-        tipoUsuario.setCodigo(codigo);
-        return tipoUsuario;
-    }
-
-    private static Cargo cargo(String codigo) {
-        Cargo cargo = new Cargo();
-        cargo.setCode(codigo);
-        return cargo;
     }
 
     private static User usuario() {
@@ -97,34 +75,17 @@ class ContextoTramitacionServiceTest {
         return usuario;
     }
 
-    private static void enCentro(User usuario, Centro centro, String... tiposUsuario) {
+    /** Da de alta al usuario en el centro, sin decir nada todavía de sus perfiles. */
+    private static void enCentro(User usuario, Centro centro) {
         CentroUsuario centroUsuario = new CentroUsuario();
         centroUsuario.setCentro(centro);
         centroUsuario.setUsuario(usuario);
-        List<CentroUsuarioTipoUsuario> tipos = new ArrayList<>();
-        for (String codigo : tiposUsuario) {
-            CentroUsuarioTipoUsuario centroUsuarioTipoUsuario = new CentroUsuarioTipoUsuario();
-            centroUsuarioTipoUsuario.setCentroUsuario(centroUsuario);
-            centroUsuarioTipoUsuario.setTipoUsuario(tipoUsuario(codigo));
-            tipos.add(centroUsuarioTipoUsuario);
-        }
-        centroUsuario.setCentroUsuarioTipoUsuario(tipos);
         usuario.getCentroUsuarios().add(centroUsuario);
     }
 
-    private static void conCargos(User usuario, Centro centro, String... cargos) {
-        CentroUsuario centroUsuario = usuario.getCentroUsuarios().stream()
-                .filter(cu -> Objects.equals(cu.getCentro(), centro))
-                .findFirst()
-                .orElseThrow();
-        List<CentroUsuarioCargo> centroUsuarioCargos = new ArrayList<>();
-        for (String codigo : cargos) {
-            CentroUsuarioCargo centroUsuarioCargo = new CentroUsuarioCargo();
-            centroUsuarioCargo.setCentroUsuario(centroUsuario);
-            centroUsuarioCargo.setCargo(cargo(codigo));
-            centroUsuarioCargos.add(centroUsuarioCargo);
-        }
-        centroUsuario.setCentroUsuarioCargo(centroUsuarioCargos);
+    /** Los perfiles que el usuario tiene sobre el trámite en ese centro. */
+    private void conPerfiles(Tramite tramite, User usuario, Centro centro, Profile... perfiles) {
+        when(perfilesUsuarioService.getPerfilesSobreTramite(tramite, usuario, centro)).thenReturn(Set.of(perfiles));
     }
 
     /** Las dos opciones de «¿para quién?» que quedan en ese centro presentando de esa forma. */
@@ -138,21 +99,35 @@ class ContextoTramitacionServiceTest {
     /* ------------------------------------------------------------------ */
 
     @Test
-    void getCentros_soloLosCentrosDondeEsInteresado() {
+    void getCentros_soloLosCentrosDondeTienePerfilParaCrear() {
         Tramite tramite = tramite(false);
         User usuario = usuario();
-        enCentro(usuario, mislata, "PROFESOR");
-        enCentro(usuario, batoi, "ALUMNO");
+        enCentro(usuario, mislata);
+        enCentro(usuario, batoi);
+        conPerfiles(tramite, usuario, mislata, Profile.AFECTADO);
+        conPerfiles(tramite, usuario, batoi, Profile.CREADOR);
 
         assertEquals(List.of(batoi), servicio.getCentros(tramite, usuario));
+    }
+
+    @Test
+    void getCentros_elTramitadorTambienCrea() {
+        Tramite tramite = tramite(false);
+        User usuario = usuario();
+        enCentro(usuario, mislata);
+        conPerfiles(tramite, usuario, mislata, Profile.TRAMITADOR);
+
+        assertEquals(List.of(mislata), servicio.getCentros(tramite, usuario));
     }
 
     @Test
     void getCentros_variosCentros_ordenadosPorNombre() {
         Tramite tramite = tramite(false);
         User usuario = usuario();
-        enCentro(usuario, mislata, "ALUMNO");
-        enCentro(usuario, batoi, "ALUMNO");
+        enCentro(usuario, mislata);
+        enCentro(usuario, batoi);
+        conPerfiles(tramite, usuario, mislata, Profile.CREADOR);
+        conPerfiles(tramite, usuario, batoi, Profile.CREADOR);
 
         assertEquals(List.of(batoi, mislata), servicio.getCentros(tramite, usuario));
     }
@@ -163,268 +138,164 @@ class ContextoTramitacionServiceTest {
     }
 
     @Test
-    void getCentros_familiarEnTramiteSinRepresentacion_noAparece() {
+    void getCentros_sinTramite_ninguno() {
+        User usuario = usuario();
+        enCentro(usuario, mislata);
+
+        assertEquals(List.of(), servicio.getCentros(null, usuario));
+    }
+
+    @Test
+    void getCentros_sinUsuario_ninguno() {
+        assertEquals(List.of(), servicio.getCentros(tramite(false), null));
+    }
+
+    @Test
+    void getCentros_sinPerfilEnNingunCentro_ninguno() {
         Tramite tramite = tramite(false);
         User usuario = usuario();
-        enCentro(usuario, mislata, "FAMILIAR");
-        enCentro(usuario, batoi, "ALUMNO");
+        enCentro(usuario, mislata);
+        conPerfiles(tramite, usuario, mislata);
 
-        assertEquals(List.of(batoi), servicio.getCentros(tramite, usuario));
+        assertEquals(List.of(), servicio.getCentros(tramite, usuario));
     }
 
     /* ------------------------------------------------------------------ */
-    /* Para quién, presentando el propio usuario                          */
+    /* Presentar en representación                                        */
     /* ------------------------------------------------------------------ */
 
     @Test
-    void paraQuien_alumno_soloParaMi() {
+    void permitidoPresentarEnRepresentacion_loDiceElTramite() {
+        assertTrue(servicio.permitidoPresentarEnRepresentacion(tramite(true)));
+        assertFalse(servicio.permitidoPresentarEnRepresentacion(tramite(false)));
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* El perfil con el que se actúa                                      */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void getProfile_enPapelTramitador_sinPapelCreador() {
+        assertEquals(Profile.TRAMITADOR, servicio.getProfile(true));
+        assertEquals(Profile.CREADOR, servicio.getProfile(false));
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Cuándo hay que preguntar cómo presenta                             */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void presentadoEnPapel_soloCreador_seDeduceFalseSinPreguntar() {
         Tramite tramite = tramite(true);
         User usuario = usuario();
-        enCentro(usuario, mislata, "ALUMNO");
+        conPerfiles(tramite, usuario, mislata, Profile.CREADOR);
 
-        assertOpciones(true, false, tramite, usuario, mislata, false);
+        assertFalse(servicio.esNecesarioPresentadoEnPapel(tramite, usuario, mislata));
+        assertFalse(servicio.deducirPresentadoEnPapel(tramite, usuario, mislata));
     }
 
     @Test
-    void paraQuien_familiarEnTramiteQueAdmiteRepresentacion_soloParaOtraPersona() {
+    void presentadoEnPapel_soloTramitador_seDeduceTrueSinPreguntar() {
         Tramite tramite = tramite(true);
         User usuario = usuario();
-        enCentro(usuario, mislata, "FAMILIAR");
+        conPerfiles(tramite, usuario, mislata, Profile.TRAMITADOR);
 
-        assertOpciones(false, true, tramite, usuario, mislata, false);
+        assertFalse(servicio.esNecesarioPresentadoEnPapel(tramite, usuario, mislata));
+        assertTrue(servicio.deducirPresentadoEnPapel(tramite, usuario, mislata));
     }
 
     @Test
-    void paraQuien_alumnoYFamiliarEnElMismoCentro_lasDosOpciones() {
+    void presentadoEnPapel_creadorYTramitador_hayQuePreguntar() {
         Tramite tramite = tramite(true);
         User usuario = usuario();
-        enCentro(usuario, mislata, "ALUMNO", "FAMILIAR");
+        conPerfiles(tramite, usuario, mislata, Profile.CREADOR, Profile.TRAMITADOR);
+
+        assertTrue(servicio.esNecesarioPresentadoEnPapel(tramite, usuario, mislata));
+    }
+
+    @Test
+    void presentadoEnPapel_sinNingunoDeLosDosPerfiles_noSePregunta() {
+        Tramite tramite = tramite(true);
+        User usuario = usuario();
+        conPerfiles(tramite, usuario, mislata, Profile.AFECTADO);
+
+        assertFalse(servicio.esNecesarioPresentadoEnPapel(tramite, usuario, mislata));
+        assertFalse(servicio.deducirPresentadoEnPapel(tramite, usuario, mislata));
+    }
+
+    @Test
+    void presentadoEnPapel_losPerfilesDeOtroCentroNoCuentan() {
+        Tramite tramite = tramite(true);
+        User usuario = usuario();
+        conPerfiles(tramite, usuario, mislata, Profile.CREADOR, Profile.TRAMITADOR);
+        conPerfiles(tramite, usuario, batoi, Profile.TRAMITADOR);
+
+        assertTrue(servicio.esNecesarioPresentadoEnPapel(tramite, usuario, mislata));
+        assertFalse(servicio.esNecesarioPresentadoEnPapel(tramite, usuario, batoi));
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* puedeCrear                                                         */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void puedeCrear_soloCreador_presentaTelematicamentePeroNoEnPapel() {
+        Tramite tramite = tramite(true);
+        User usuario = usuario();
+        conPerfiles(tramite, usuario, mislata, Profile.CREADOR);
 
         assertOpciones(true, true, tramite, usuario, mislata, false);
+        assertOpciones(false, false, tramite, usuario, mislata, true);
     }
 
     @Test
-    void paraQuien_familiarEnTramiteSinRepresentacion_ninguna() {
+    void puedeCrear_soloTramitador_registraEnPapelPeroNoPresentaTelematicamente() {
+        Tramite tramite = tramite(true);
+        User usuario = usuario();
+        conPerfiles(tramite, usuario, mislata, Profile.TRAMITADOR);
+
+        assertOpciones(false, false, tramite, usuario, mislata, false);
+        assertOpciones(true, true, tramite, usuario, mislata, true);
+    }
+
+    @Test
+    void puedeCrear_creadorYTramitador_lasDosFormas() {
+        Tramite tramite = tramite(true);
+        User usuario = usuario();
+        conPerfiles(tramite, usuario, mislata, Profile.CREADOR, Profile.TRAMITADOR);
+
+        assertOpciones(true, true, tramite, usuario, mislata, false);
+        assertOpciones(true, true, tramite, usuario, mislata, true);
+    }
+
+    @Test
+    void puedeCrear_tramiteSinRepresentacion_soloParaMi() {
         Tramite tramite = tramite(false);
         User usuario = usuario();
-        enCentro(usuario, mislata, "FAMILIAR");
-
-        assertOpciones(false, false, tramite, usuario, mislata, false);
-    }
-
-    @Test
-    void paraQuien_losTiposDeOtroCentroNoCuentan() {
-        Tramite tramite = tramite(true);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "ALUMNO");
-        enCentro(usuario, batoi, "FAMILIAR");
-
-        assertOpciones(false, true, tramite, usuario, batoi, false);
-    }
-
-    @Test
-    void paraQuien_cargoInteresado_paraMi() {
-        Tramite tramite = tramite(true);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "PROFESOR");
-        conCargos(usuario, mislata, "DIRECTOR");
+        conPerfiles(tramite, usuario, mislata, Profile.CREADOR, Profile.TRAMITADOR);
 
         assertOpciones(true, false, tramite, usuario, mislata, false);
-    }
-
-    @Test
-    void paraQuien_tipoDeUsuarioQueNoEsInteresado_ninguna() {
-        Tramite tramite = tramite(true);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "EXALUMNO", "EXFAMILIAR");
-
-        assertOpciones(false, false, tramite, usuario, mislata, false);
-    }
-
-    @Test
-    void paraQuien_sinCentro_ninguna() {
-        Tramite tramite = tramite(true);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "ALUMNO");
-
-        assertOpciones(false, false, tramite, usuario, null, false);
-        assertOpciones(false, false, tramite, usuario, null, true);
-    }
-
-    @Test
-    void paraQuien_tramiteSinTipoDeTramite_ninguna() {
-        Tramite tramite = tramite(true);
-        tramite.setTipoTramite(null);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "ALUMNO", "FAMILIAR");
-
-        assertOpciones(false, false, tramite, usuario, mislata, false);
-        assertOpciones(false, false, tramite, usuario, mislata, true);
-        assertEquals(List.of(), servicio.getCentros(tramite, usuario));
-    }
-
-    /* ------------------------------------------------------------------ */
-    /* checkPuedeCrear                                                    */
-    /* ------------------------------------------------------------------ */
-
-    @Test
-    void checkPuedeCrear_centroYOpcionPermitidos_noLanza() {
-        Tramite tramite = tramite(true);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "ALUMNO", "FAMILIAR");
-
-        assertDoesNotThrow(() -> ExpedienteSecurity.checkPuedeCrear(tramite, usuario, mislata, false, true));
-    }
-
-    @Test
-    void checkPuedeCrear_centroDondeNoEsInteresado_lanzaUnauthorized() {
-        Tramite tramite = tramite(true);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "ALUMNO");
-        enCentro(usuario, batoi, "PROFESOR");
-
-        assertThrows(UnauthorizedException.class,
-                () -> ExpedienteSecurity.checkPuedeCrear(tramite, usuario, batoi, false, false));
-    }
-
-    @Test
-    void checkPuedeCrear_centroAlQueNoPertenece_lanzaUnauthorized() {
-        Tramite tramite = tramite(true);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "ALUMNO");
-
-        assertThrows(UnauthorizedException.class,
-                () -> ExpedienteSecurity.checkPuedeCrear(tramite, usuario, batoi, false, false));
-    }
-
-    @Test
-    void checkPuedeCrear_opcionQueNoLeCorresponde_lanzaUnauthorized() {
-        Tramite tramite = tramite(true);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "ALUMNO");
-
-        assertThrows(UnauthorizedException.class,
-                () -> ExpedienteSecurity.checkPuedeCrear(tramite, usuario, mislata, false, true));
-    }
-
-    /* ------------------------------------------------------------------ */
-    /* Presentación en papel                                              */
-    /* ------------------------------------------------------------------ */
-
-    @Test
-    void enPapel_registradorQueNoEsInteresadoNiFamiliar_soloRegistraEnPapel() {
-        Tramite tramite = tramiteEnPapel(true);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "ADMINISTRATIVO");
-
-        assertEquals(List.of(mislata), servicio.getCentros(tramite, usuario));
-        assertFalse(servicio.puedePresentarElUsuario(tramite, usuario, mislata));
-        assertTrue(servicio.puedeRegistrarEnPapel(tramite, usuario, mislata));
-        assertOpciones(true, true, tramite, usuario, mislata, true);
-        assertOpciones(false, false, tramite, usuario, mislata, false);
-    }
-
-    @Test
-    void enPapel_cargoRegistrador_registraEnPapel() {
-        Tramite tramite = tramiteEnPapel(true);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "PROFESOR");
-        conCargos(usuario, mislata, "SECRETARIO");
-
-        assertTrue(servicio.puedeRegistrarEnPapel(tramite, usuario, mislata));
-    }
-
-    @Test
-    void enPapel_ni_tipoDeUsuario_ni_cargoRegistrador_noRegistra() {
-        Tramite tramite = tramiteEnPapel(true);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "PROFESOR");
-        conCargos(usuario, mislata, "JEFE_ESTUDIOS");
-
-        assertFalse(servicio.puedeRegistrarEnPapel(tramite, usuario, mislata));
-        assertEquals(List.of(), servicio.getCentros(tramite, usuario));
-    }
-
-    @Test
-    void enPapel_tipoDeTramiteQueNoLaAdmite_noRegistraAunqueSeaRegistrador() {
-        Tramite tramite = tramiteEnPapel(true);
-        tramite.getTipoTramite().setAdmitePresentacionEnPapel(false);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "ADMINISTRATIVO");
-
-        assertFalse(servicio.puedeRegistrarEnPapel(tramite, usuario, mislata));
-    }
-
-    @Test
-    void enPapel_losTiposYCargosDeOtroCentroNoCuentan() {
-        Tramite tramite = tramiteEnPapel(true);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "ADMINISTRATIVO");
-        enCentro(usuario, batoi, "PROFESOR");
-        conCargos(usuario, mislata, "SECRETARIO");
-
-        assertTrue(servicio.puedeRegistrarEnPapel(tramite, usuario, mislata));
-        assertFalse(servicio.puedeRegistrarEnPapel(tramite, usuario, batoi));
-    }
-
-    @Test
-    void enPapel_tipoDeTramiteSinRepresentacion_soloParaMi() {
-        Tramite tramite = tramiteEnPapel(false);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "ADMINISTRATIVO");
-
         assertOpciones(true, false, tramite, usuario, mislata, true);
     }
 
     @Test
-    void enPapel_administrativaQueEsAlumnaYMadre_puedeLasCuatroOpciones() {
-        Tramite tramite = tramiteEnPapel(true);
+    void puedeCrear_sinNingunoDeLosDosPerfiles_ninguna() {
+        Tramite tramite = tramite(true);
         User usuario = usuario();
-        enCentro(usuario, mislata, "ADMINISTRATIVO", "ALUMNO", "FAMILIAR");
+        conPerfiles(tramite, usuario, mislata, Profile.AFECTADO);
 
-        assertTrue(servicio.puedePresentarElUsuario(tramite, usuario, mislata));
-        assertTrue(servicio.puedeRegistrarEnPapel(tramite, usuario, mislata));
-        assertOpciones(true, true, tramite, usuario, mislata, false);
-        assertOpciones(true, true, tramite, usuario, mislata, true);
+        assertOpciones(false, false, tramite, usuario, mislata, false);
+        assertOpciones(false, false, tramite, usuario, mislata, true);
     }
 
     @Test
-    void enPapel_administrativaQueEsMadrePeroNoAlumna_sinPapelSoloEnRepresentacion() {
-        Tramite tramite = tramiteEnPapel(true);
+    void puedeCrear_sinCentro_ninguna() {
+        Tramite tramite = tramite(true);
         User usuario = usuario();
-        enCentro(usuario, mislata, "ADMINISTRATIVO", "FAMILIAR");
+        conPerfiles(tramite, usuario, null);
 
-        assertTrue(servicio.puedeRegistrarEnPapel(tramite, usuario, mislata));
-        assertOpciones(false, true, tramite, usuario, mislata, false);
-    }
-
-    @Test
-    void checkPuedeCrear_enPapelSiendoRegistrador_noLanza() {
-        Tramite tramite = tramiteEnPapel(true);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "ADMINISTRATIVO");
-
-        assertDoesNotThrow(() -> ExpedienteSecurity.checkPuedeCrear(tramite, usuario, mislata, true, true));
-    }
-
-    @Test
-    void checkPuedeCrear_enPapelSinSerRegistrador_lanzaUnauthorized() {
-        Tramite tramite = tramiteEnPapel(true);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "ALUMNO");
-
-        assertThrows(UnauthorizedException.class,
-                () -> ExpedienteSecurity.checkPuedeCrear(tramite, usuario, mislata, true, false));
-    }
-
-    @Test
-    void checkPuedeCrear_registradorQuePresentaPorSiMismo_lanzaUnauthorized() {
-        Tramite tramite = tramiteEnPapel(true);
-        User usuario = usuario();
-        enCentro(usuario, mislata, "ADMINISTRATIVO");
-
-        assertThrows(UnauthorizedException.class,
-                () -> ExpedienteSecurity.checkPuedeCrear(tramite, usuario, mislata, false, false));
+        assertOpciones(false, false, tramite, usuario, null, false);
+        assertOpciones(false, false, tramite, usuario, null, true);
     }
 
 }

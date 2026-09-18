@@ -11,8 +11,8 @@
         <string name="ayudaTramite" large="true" title="Ayuda" />
         <enum name="profile" ref="Profile" title="Perfil" />
         <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro" />
-        <boolean name="presentadoEnPapel" title="Registrar una solicitud entregada en papel en el centro" />
-        <boolean name="presentadoEnRepresentacion" title="¿Para quién es el expediente?" />
+        <boolean name="presentadoEnPapel" title="Presentado el expediente a partir de un documento en papel" />
+        <boolean name="presentadoEnRepresentacion" title="Presentado el expediente en representación de otra persona" />
     </entity>
 
 </domain-models>

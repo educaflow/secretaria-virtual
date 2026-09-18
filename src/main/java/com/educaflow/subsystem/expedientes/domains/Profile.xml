@@ -4,9 +4,15 @@
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
 
     <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
-    <entity name="PerfilExpediente">
-        <string name="code"  />
-        <string name="name" namecolumn="true" translatable="true" />
-        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" required="true" title="Centro"/>
-    </entity>
+
+    <enum name="Profile">
+        <item name="CREADOR" title="Creador"/>
+        <item name="TRAMITADOR" title="Tramitador__!!"/>
+        <item name="COLABORADOR" title="Colaborador"/>
+        <item name="AFECTADO" title="Afectado"/>
+        <item name="SECRETARIO" title="Secretario"/>
+        <item name="DIRECTOR" title="Director"/>
+        <item name="AUDITOR" title="Auditor" />
+    </enum>
+
 </domain-models>

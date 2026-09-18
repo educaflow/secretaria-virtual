@@ -127,7 +127,7 @@ Al crear el expediente, antes de mostrar la primera pantalla, el sistema rellena
 
 ### Estado PENDIENTE_VALORACION — Pendiente de valoración
 
-- **Quién actúa (tiene el turno):** RESPONSABLE
+- **Quién actúa (tiene el turno):** TRAMITADOR
 - **Cierra el expediente:** no
 - **Qué consulta el usuario en este estado:** los datos del alumno y de la petición, en solo lectura; la solicitud firmada, incrustada en la pantalla; y el documento acreditativo que el alumno aportó.
 - **Qué datos introduce el usuario en este estado:**
@@ -138,7 +138,7 @@ Al crear el expediente, antes de mostrar la primera pantalla, el sistema rellena
 
 #### Acción VALORAR — botón «Valorar la petición»
 
-- **Quién la lanza:** RESPONSABLE
+- **Quién la lanza:** TRAMITADOR
 - **Pide confirmación antes de ejecutarse:** sí, con el texto «Va a resolver la petición y no podrá deshacerlo»
 - **Datos que el usuario envía al lanzarla:**
   - sentido de la valoración

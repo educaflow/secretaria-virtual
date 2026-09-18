@@ -24,7 +24,7 @@ Dependencias: el registro lo crea `EventContext` contra `subsystem/registroentra
     <state name="PENDIENTE_PRESENTACION" events="BACK,PRESENTAR"       profile="CREADOR" title="Pendiente de presentación"/>
 </fase>
 <fase name="TRAMITACION" title="Tramitación">
-    <state name="PENDIENTE_RESOLUCION"   events="RESOLVER"             profile="RESPONSABLE" title="Pendiente de resolución"/>
+    <state name="PENDIENTE_RESOLUCION"   events="RESOLVER"             profile="TRAMITADOR" title="Pendiente de resolución"/>
     ...
 </fase>
 ```
@@ -272,7 +272,7 @@ En el estado destino, cada form incluye el PDF que le corresponde (los paneles-v
 
 ```xml
 <!-- <vN>/tramitacion/views.xml -->
-<form state="PENDIENTE_RESOLUCION" profile="RESPONSABLE">
+<form state="PENDIENTE_RESOLUCION" profile="TRAMITADOR">
     <include-panels>
         -datos-interesado
         -datos-solicitud-view
@@ -296,7 +296,7 @@ En el estado destino, cada form incluye el PDF que le corresponde (los paneles-v
 </form>
 ```
 
-- El **`RESPONSABLE`** ve `pdfSolicitudFirmado`: el documento tal cual lo firmó el usuario, que es sobre lo que resuelve.
+- El **`TRAMITADOR`** ve `pdfSolicitudFirmado`: el documento tal cual lo firmó el usuario, que es sobre lo que resuelve.
 - El **`CREADOR`** cae en el form genérico (el estado ya no es suyo) y ve `pdfJustificanteRegistroEntrada`: el resguardo con el número de registro, que es su prueba de haber presentado.
 - La cabecera global ya enseña gratis el historial de estados con los registros de entrada y salida de cada uno (`vistas.md` §3): no hace falta declarar nada más para que el asiento aparezca.
 
@@ -308,7 +308,7 @@ En el estado destino, cada form incluye el PDF que le corresponde (los paneles-v
 - [ ] Documento: XML (o impreso oficial) en `documentospdf/` con hueco para la firma; mismo `Rectangulo` y página en la `<action-method>` y en el trigger.
 - [ ] `ENTRADA_DATOS`: validator con **todos** los campos tecleados y **ninguno** de los PDF; trigger que genera `pdfSolicitud` y transita, sin registrar.
 - [ ] `PENDIENTE_PRESENTACION`: vista, validator y firma de `recetas/firma.md` §1; trigger que firma si toca, `createRegistroEntrada(firmado, anexos)`, guarda el resguardo, transita, y vacía la clave en `finally`; `triggerBack` vacía la clave.
-- [ ] Estado destino: el `RESPONSABLE` ve `-pdfSolicitudFirmado`; el genérico, `-pdfJustificanteRegistroEntrada`.
+- [ ] Estado destino: el `TRAMITADOR` ve `-pdfSolicitudFirmado`; el genérico, `-pdfJustificanteRegistroEntrada`.
 
 ## 8. Anti-patrones
 

@@ -44,7 +44,7 @@ Inicia sesión con las credenciales del actor del test (la fila de `### Actores`
 
 1. **`Desde: [*]`** → crea el expediente: menú **«Expedientes» → «Trámites»**, despliega el tipo de trámite y pulsa el nodo del trámite. El expediente se crea y se abre ya en el estado inicial. **MUST NOT** buscar un botón «Nuevo» de un grid: no existe.
 2. **`Desde: <FASE>/<ESTADO>`** → el `Given` describe cómo se llega. **MUST** recorrer las transiciones previas **por la UI** (con los usuarios y perfiles que correspondan a cada tramo), no atajar por REST ni por base de datos.
-3. **Abre el expediente por la bandeja del perfil del test** (`README.md` §4.2): `CREADOR` → «Expedientes Pendientes»; `RESPONSABLE` → «Expedientes Esperando» (abiertos) o «Expedientes Cerrados» (cerrados). Localízalo por su **número de expediente**, que la cabecera y los listados muestran.
+3. **Abre el expediente por la bandeja del perfil del test** (`README.md` §4.2): `CREADOR` → «Expedientes Pendientes»; `TRAMITADOR` → «Expedientes Esperando» (abiertos) o «Expedientes Cerrados» (cerrados). Localízalo por su **número de expediente**, que la cabecera y los listados muestran.
 
 - ❌ INCORRECTO: abrir el expediente por «Expedientes Esperando» en un test de perfil `CREADOR` y reportar `FAIL` porque "todo sale en solo lectura" (es la vista genérica: bandeja equivocada, no un fallo).
 

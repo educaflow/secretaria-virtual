@@ -4,6 +4,7 @@ import com.axelor.db.JPA;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.CentroUsuario;
 import com.educaflow.subsystem.expedientes.db.Expediente;
+import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.Tramite;
 
 import java.util.LinkedHashSet;
@@ -35,62 +36,63 @@ public class AceRepository extends AbstractAceRepository {
             """;
 
     /**
-     * Los nombres de perfil que el usuario tiene sobre un expediente concreto, por cualquiera de las
+     * Los perfiles que el usuario tiene sobre un expediente concreto, por cualquiera de las
      * tres vías de asignación: el propio expediente, su tipo de expediente o su trámite.
      *
      * <p>La vía del trámite excluye el perfil {@code CREADOR} igual que hace el permiso
      * {@code Expediente.porTramite}: ser creador de un trámite habilita a dar de alta expedientes,
      * no a tramitar los que ya existen.
      */
-    public Set<String> findNombresPerfilesByExpediente(Expediente expediente, Centro centro, CentroUsuario centroUsuario) {
+    public Set<Profile> findPerfilesByExpediente(Expediente expediente, Centro centro, CentroUsuario centroUsuario) {
         if ((expediente == null) || (centroUsuario == null)) {
             return Set.of();
         }
 
         String jpql = """
-                SELECT DISTINCT aa.perfil.name
+                SELECT DISTINCT aa.perfil
                 FROM com.educaflow.subsystem.security.db.Ace aa
                 WHERE (
                     aa.expediente = :expediente
                     OR aa.tipoExpediente = :tipoExpediente
-                    OR (aa.tramite = :tramite AND aa.perfil.name <> 'CREADOR')
+                    OR (aa.tramite = :tramite AND aa.perfil <> :perfilCreador)
                 )
                 """ + FILTRO_USUARIO;
 
-        List<String> nombres = JPA.em().createQuery(jpql, String.class)
+        List<Profile> perfiles = JPA.em().createQuery(jpql, Profile.class)
                 .setParameter("expediente", expediente)
                 .setParameter("tipoExpediente", expediente.getTipoExpediente())
                 .setParameter("tramite", (expediente.getTipoExpediente() != null)
                         ? expediente.getTipoExpediente().getTramite() : null)
+                .setParameter("perfilCreador", Profile.CREADOR)
                 .setParameter("centro", centro)
                 .setParameter("centroUsuario", centroUsuario)
                 .getResultList();
 
-        return new LinkedHashSet<>(nombres);
+        return new LinkedHashSet<>(perfiles);
     }
 
     /**
-     * Los nombres de perfil que el usuario tiene sobre un trámite. Es lo que decide si puede crear
+     * Los perfiles que el usuario tiene sobre un trámite. Es lo que decide si puede crear
      * un expediente de ese trámite, cuando todavía no hay expediente contra el que preguntar.
      */
-    public Set<String> findNombresPerfilesByTramite(Tramite tramite, Centro centro, CentroUsuario centroUsuario) {
+    public Set<Profile> findPerfilesByTramite(Tramite tramite, Centro centro, CentroUsuario centroUsuario) {
         if ((tramite == null) || (centroUsuario == null)) {
             return Set.of();
         }
 
         String jpql = """
-                SELECT DISTINCT aa.perfil.name
+                SELECT DISTINCT aa.perfil
                 FROM com.educaflow.subsystem.security.db.Ace aa
                 WHERE aa.tramite = :tramite
                 """ + FILTRO_USUARIO;
 
-        List<String> nombres = JPA.em().createQuery(jpql, String.class)
+        List<Profile> perfiles = JPA.em().createQuery(jpql, Profile.class)
                 .setParameter("tramite", tramite)
                 .setParameter("centro", centro)
                 .setParameter("centroUsuario", centroUsuario)
                 .getResultList();
 
-        return new LinkedHashSet<>(nombres);
+        return new LinkedHashSet<>(perfiles);
     }
 
 }

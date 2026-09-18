@@ -5,6 +5,7 @@ import com.axelor.db.JPA;
 import com.axelor.meta.CallMethod;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.expedientes.db.Expediente;
+import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
 import jakarta.inject.Inject;
 
@@ -62,12 +63,16 @@ public class BandejaPorPerfilController {
      * Los ids de los expedientes abiertos del trámite indicado, en los centros del usuario
      * autenticado, sobre los que ese usuario ostenta el perfil indicado.
      *
-     * @param nombrePerfil nombre del <b>perfil</b> (no de un cargo) que hay que ostentar
+     * @param nombrePerfil nombre de la constante de {@link Profile} (no de un cargo) que hay que
+     *                     ostentar; un nombre que no sea de ningún perfil es una errata de la vista
+     *                     que llama, así que revienta
      * @param tramiteCode  {@code code} del trámite cuyos expedientes se listan
      * @return los ids encontrados, o {@link #NINGUNO} si no hay ninguno
      */
     @CallMethod
     public List<Long> idsExpedientesConPerfil(String nombrePerfil, String tramiteCode) {
+        Profile perfil = Profile.valueOf(nombrePerfil);
+
         User user = SecurityUtil.getUser();
         if (user == null) {
             return NINGUNO;
@@ -82,7 +87,7 @@ public class BandejaPorPerfilController {
                 .stream()
                 .filter(expediente -> perfilesUsuarioService
                         .getPerfilesSobreExpediente(expediente, user)
-                        .contains(nombrePerfil))
+                        .contains(perfil))
                 .map(Expediente::getId)
                 .toList();
 

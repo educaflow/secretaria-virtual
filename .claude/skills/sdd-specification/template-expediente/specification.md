@@ -30,7 +30,7 @@ template: <nombre de la carpeta de la plantilla activa sin el prefijo `template-
 
 <!-- Quién interviene, con qué papel y quién ostenta cada papel. Los nombres de perfil SÍ se usan:
      son vocabulario de negocio. Se toman del catálogo CERRADO de la plataforma
-     (CREADOR, RESPONSABLE, SECRETARIO, DIRECTOR, AUDITOR) y MUST NOT inventarse otros.
+     (CREADOR, TRAMITADOR, SECRETARIO, DIRECTOR, AUDITOR) y MUST NOT inventarse otros.
      Un trámite puede usar UNO, DOS o VARIOS de ellos: declara SOLO los que este trámite use,
      uno por fila. El papel que juega cada perfil lo define ESTE trámite; no viene predefinido. -->
 

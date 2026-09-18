@@ -71,8 +71,8 @@ public class Tramitador {
             expediente.setTipoExpediente(tipoExpediente);
             expediente.setCentro(centro);
             expediente.setUsuarioRegistrador(SecurityUtil.getUser());
-            expediente.setPresentadoEnRepresentacion(contextoTramitacion.getPresentadoEnRepresentacion());
-            expediente.setPresentadoEnPapel(contextoTramitacion.getPresentadoEnPapel());
+            expediente.setPresentadoEnRepresentacion(presentadoEnRepresentacion);
+            expediente.setPresentadoEnPapel(presentadoEnPapel);
 
             updatePersonas(expediente, presentadoEnPapel, presentadoEnRepresentacion);
             updateName(expediente);

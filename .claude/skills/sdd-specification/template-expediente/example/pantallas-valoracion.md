@@ -2,7 +2,7 @@
 
 ## Estado PENDIENTE_VALORACION
 
-### Pantalla: PENDIENTE_VALORACION — perfil RESPONSABLE
+### Pantalla: PENDIENTE_VALORACION — perfil TRAMITADOR
 
 - **Quién la ve:** el jefe de estudios del centro del expediente, mientras el expediente está en VALORACION / PENDIENTE_VALORACION.
 - **Qué ve el usuario, bloque a bloque:**
@@ -19,28 +19,28 @@
 
 #### Reglas de pantalla
 
-- RUI-PENDIENTE_VALORACION-RESPONSABLE-001 — El motivo de la denegación solo se muestra cuando el sentido de la valoración es «Denegar el préstamo»
+- RUI-PENDIENTE_VALORACION-TRAMITADOR-001 — El motivo de la denegación solo se muestra cuando el sentido de la valoración es «Denegar el préstamo»
   - disparador: continuo
   - condición: el sentido de la valoración es «Denegar el préstamo»
-- RUI-PENDIENTE_VALORACION-RESPONSABLE-002 — El motivo de la denegación se marca como obligatorio cuando el sentido de la valoración es «Denegar el préstamo»
+- RUI-PENDIENTE_VALORACION-TRAMITADOR-002 — El motivo de la denegación se marca como obligatorio cuando el sentido de la valoración es «Denegar el préstamo»
   - disparador: continuo
   - condición: el sentido de la valoración es «Denegar el préstamo»
-- RUI-PENDIENTE_VALORACION-RESPONSABLE-003 — El texto de qué hay que corregir solo se muestra cuando el sentido de la valoración es «Pedir que se corrija»
+- RUI-PENDIENTE_VALORACION-TRAMITADOR-003 — El texto de qué hay que corregir solo se muestra cuando el sentido de la valoración es «Pedir que se corrija»
   - disparador: continuo
   - condición: el sentido de la valoración es «Pedir que se corrija»
-- RUI-PENDIENTE_VALORACION-RESPONSABLE-004 — El texto de qué hay que corregir se marca como obligatorio cuando el sentido de la valoración es «Pedir que se corrija»
+- RUI-PENDIENTE_VALORACION-TRAMITADOR-004 — El texto de qué hay que corregir se marca como obligatorio cuando el sentido de la valoración es «Pedir que se corrija»
   - disparador: continuo
   - condición: el sentido de la valoración es «Pedir que se corrija»
-- RUI-PENDIENTE_VALORACION-RESPONSABLE-005 — El sentido de la valoración se marca como obligatorio
+- RUI-PENDIENTE_VALORACION-TRAMITADOR-005 — El sentido de la valoración se marca como obligatorio
   - disparador: continuo
   - condición: Siempre
-- RUI-PENDIENTE_VALORACION-RESPONSABLE-006 — Al abrir la pantalla, el sentido de la valoración aparece sin ninguna opción elegida, para que la decisión sea siempre explícita
+- RUI-PENDIENTE_VALORACION-TRAMITADOR-006 — Al abrir la pantalla, el sentido de la valoración aparece sin ninguna opción elegida, para que la decisión sea siempre explícita
   - disparador: al abrir la pantalla
   - condición: Siempre
 
 ### Pantalla: PENDIENTE_VALORACION — resto de perfiles (solo consulta)
 
-- **Quién la ve:** cualquier perfil con acceso al expediente distinto del RESPONSABLE, incluido el alumno que presentó la petición, mientras el expediente está en VALORACION / PENDIENTE_VALORACION.
+- **Quién la ve:** cualquier perfil con acceso al expediente distinto del TRAMITADOR, incluido el alumno que presentó la petición, mientras el expediente está en VALORACION / PENDIENTE_VALORACION.
 - **Qué ve el usuario, bloque a bloque:**
   - **Solicitante** — nombre y apellidos, documento de identidad, curso académico
   - **Datos de la petición** — equipo solicitado, motivo de la petición, explicación del motivo, fecha prevista de devolución

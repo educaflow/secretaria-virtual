@@ -36,7 +36,7 @@ import java.util.Set;
  *
  * <p>De ahí X1: el perfil actuante puede ser <b>cualquiera</b> de los del tipo (el controlador solo
  * comprueba que el perfil de la petición lo use algún estado del tipo, no que sea el del estado
- * actual: hay listados que abren con perfil {@code RESPONSABLE} expedientes en estados de perfil
+ * actual: hay listados que abren con perfil {@code TRAMITADOR} expedientes en estados de perfil
  * {@code CREADOR}), así que la genérica es la red de seguridad y no puede faltar en ningún estado.
  *
  * <p>Y de ahí X2: si el estado tiene dueño y eventos pero no tiene la vista de su dueño, el dueño

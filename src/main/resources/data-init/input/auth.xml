@@ -70,9 +70,6 @@
        del grupo. MUST NOT volver a definirlo: este data-init global tiene priority="-1" y
        DataLoader.sortDataInitByPriority ordena descendente, así que se carga DESPUÉS del de
        expedientes (priority="10") y su <can> sobrescribiría al de allí, reabriendo el permiso. -->
-  <permission name="PerfilExpediente.all" object="com.educaflow.subsystem.expedientes.db.PerfilExpediente">
-    <can create="true" read="true" write="true" remove="true" export="true"/>
-  </permission>
   <permission name="TipoTramite.all" object="com.educaflow.subsystem.expedientes.db.TipoTramite">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
@@ -114,9 +111,6 @@
 
   <!-- Security -->
   <permission name="Ace.all" object="com.educaflow.subsystem.security.db.Ace">
-    <can create="true" read="true" write="true" remove="true" export="true"/>
-  </permission>
-  <permission name="Perfil.all" object="com.educaflow.subsystem.security.db.Perfil">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
 
@@ -192,7 +186,6 @@
     <permission name="Tramite.all"/>
     <permission name="Expediente.all"/>
     <permission name="HistorialEstado.all"/>
-    <permission name="PerfilExpediente.all"/>
     <permission name="TipoTramite.all"/>
     <permission name="FormacionCentroTrabajo.all"/>
     <permission name="SearchExpedientes.all"/>
@@ -205,7 +198,6 @@
     <permission name="RegistroPendiente.all"/>
     <permission name="UsuarioAutorizado.all"/>
     <permission name="Ace.all"/>
-    <permission name="Perfil.all"/>
     <permission name="Ciclo.all"/>
     <permission name="Curso.all"/>
     <permission name="CursoModulo.all"/>
@@ -250,7 +242,6 @@
     <permission name="Expediente.porTipoExpediente"/>
     <permission name="Expediente.porTramite"/>
     <permission name="HistorialEstado.all"/>
-    <permission name="PerfilExpediente.all"/>
     <permission name="TipoTramite.leer"/>
     <permission name="FormacionCentroTrabajo.all"/>
     <permission name="SearchExpedientes.all"/>
@@ -262,7 +253,6 @@
     <permission name="RegistroPendiente.all"/>
     <permission name="UsuarioAutorizado.all"/>
     <permission name="Ace.all"/>
-    <permission name="Perfil.all"/>
     <permission name="Ciclo.all"/>
     <permission name="Curso.all"/>
     <permission name="CursoModulo.all"/>

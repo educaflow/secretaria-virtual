@@ -122,11 +122,10 @@ Al invocarlo, inclúyele además estas notas:
 Procedimiento:
 
 1. Lee el `permisos-demo.xml` real y el fragmento `design/permisos.xml`.
-2. Por **cada** bloque del fragmento (`<perfiles>`, `<asignacionesTipoUsuario>`, `<asignacionesTipoUsuarioTipoExpediente>`, `<asignacionesCargoTipoExpediente>`, `<asignacionesCentroUsuario>`), **inserta sus hijos dentro del bloque del MISMO nombre** que ya existe en el fichero real, al final de ese bloque. Si el bloque no existe en el fichero real, créalo dentro de `<datos>`.
-3. **MUST NOT** duplicarse un `<perfil name="...">` que ya exista en `<perfiles>`: si ya está, se omite esa línea (no es un error).
-4. **MUST NOT** tocarse ninguna asignación de **otro trámite** ni de otra versión: se **añade**, nunca se reordena, se reescribe ni se borra nada preexistente.
-5. **MUST NOT** sobrescribirse el fichero entero con el fragmento.
-6. Verificación: el fichero resultante sigue siendo XML bien formado, contiene **todas** las líneas que tenía antes y **todas** las nuevas del fragmento.
+2. Por **cada** bloque del fragmento (`<asignacionesTipoUsuario>`, `<asignacionesTipoUsuarioTipoExpediente>`, `<asignacionesCargoTipoExpediente>`, `<asignacionesCentroUsuario>`), **inserta sus hijos dentro del bloque del MISMO nombre** que ya existe en el fichero real, al final de ese bloque. Si el bloque no existe en el fichero real, créalo dentro de `<datos>`.
+3. **MUST NOT** tocarse ninguna asignación de **otro trámite** ni de otra versión: se **añade**, nunca se reordena, se reescribe ni se borra nada preexistente.
+4. **MUST NOT** sobrescribirse el fichero entero con el fragmento.
+5. Verificación: el fichero resultante sigue siendo XML bien formado, contiene **todas** las líneas que tenía antes y **todas** las nuevas del fragmento.
 
 - ✅ CORRECTO: insertar un `<asignacion tipoUsuarioCode="…" perfilName="…" tramiteCode="…"/>` al final del `<asignacionesTipoUsuario>` existente, dejando intacto el resto.
 - ❌ INCORRECTO: `cp design/permisos.xml src/main/resources/data-demo/input/permisos-demo.xml` (borra las asignaciones de todos los demás trámites).

@@ -22,6 +22,7 @@ Los estados se agrupan en **fases**, y cada fase tiene su propia subcarpeta con 
 | `validator.md` | El `StateEventValidatorImpl` de cada fase, en Kotlin: DSL de reglas por estado+evento, su doble función de whitelist de campos y las comprobaciones propias del tipo con `Lambda`/`ifLambda` sobre `<Code>Util` |
 | `vistas.md` | Las vistas en formato **preprocesado** (NO sigue `k-vistas`): el form plantilla en la raíz, los `<form state=...>` repartidos por fase, `include-panels`, `footer`, visores de PDF |
 | `documentos.md` | El formato XML de los documentos de `documentospdf/` de los que el build genera los PDF rellenables |
+| `perfiles.md` | Los dos únicos perfiles especiales (`CREADOR` y `TRAMITADOR`), su equivalencia con `presentadoEnPapel` y cuándo se le pregunta al usuario cómo presenta |
 | `recetas/presentacion.md` | Receta: el usuario presenta un documento que acaba en el **registro de entrada** — los dos estados `CREADOR`, el modelo, el evento inicial, generar el PDF, firmarlo (delega en `recetas/firma.md` §1), `createRegistroEntrada` y el resguardo |
 | `recetas/firma.md` | Receta: las tres formas de firmar un documento (el usuario al presentar, en servidor o con AutoFirma; el certificado del centro; poner a firmar a otro con `TareaFirma`), con todas sus piezas en orden |
 | `recetas/versionado.md` | Receta para duplicar un tipo de expediente y crear la versión siguiente (`vN` → `v(N+1)`, con rutas completas: las dos carpetas no tienen por qué ser hermanas) |
@@ -203,9 +204,9 @@ Fichero mínimo real (todo lo demás se deriva, §1.1):
             <state name="PENDIENTE_PRESENTACION" events="BACK,PRESENTAR"       profile="CREADOR"      title="Pendiente de presentación"                  />
         </fase>
         <fase name="TRAMITACION" title="Tramitación">
-            <state name="PENDIENTE_RESOLUCION"   events="RESOLVER"             profile="RESPONSABLE"  title="Pendiente de resolución"                    />
-            <state name="ACEPTADO"               events=""                     profile="RESPONSABLE"                                     closed="true"   />
-            <state name="RECHAZADO"              events=""                     profile="RESPONSABLE"                                     closed="true"   />
+            <state name="PENDIENTE_RESOLUCION"   events="RESOLVER"             profile="TRAMITADOR"  title="Pendiente de resolución"                    />
+            <state name="ACEPTADO"               events=""                     profile="TRAMITADOR"                                     closed="true"   />
+            <state name="RECHAZADO"              events=""                     profile="TRAMITADOR"                                     closed="true"   />
         </fase>
     </fases>
 </TipoExpediente>
@@ -231,15 +232,17 @@ Tags opcionales (antes de `<fases>`): `name`, `code` y `tramite` (sobrescriben l
 ### 2.2 Reglas de `<state>`
 
 - `events` es **obligatorio aunque esté vacío** (`events=""`). Omitirlo no da ningún error: equivale en silencio a `events=""`. Escríbelo siempre para que el estado declare de forma explícita que no dispara ningún evento.
-- `profile` es opcional (estado sin dueño → `getProfile()` devuelve `null`) y **MUST** ser una constante del enum global `Profile` de `subsystem/expedientes/domains/TipoExpediente.xml`; el generador lo valida.
+- `profile` es opcional (estado sin dueño → `getProfile()` devuelve `null`) y **MUST** ser una constante del enum global `Profile` de `subsystem/expedientes/domains/Profile.xml`; el generador lo valida.
+  De ese enum **solo `CREADOR` y `TRAMITADOR` son especiales**: son las dos formas de presentar, equivalen a `presentadoEnPapel` (`false` → `CREADOR`, `true` → `TRAMITADOR`) y deciden con qué perfil nace el expediente.
+  Los demás son etiquetas corrientes que solo dan el turno en un estado y eligen vista → `perfiles.md`.
 - **MUST NOT** marcar ningún estado como inicial: el XML no tiene atributo `initial`. El estado en el que nace el expediente lo fija el `InitialEventManagerImpl` con `initialEventContext.updateState(...)` y puede depender de cómo se crea (`phaseeventmanager.md` §2.1). Un `initial="true"` que quede escrito **no** da error: JAXB lo ignora en silencio.
 - `closed="true"` marca los estados terminales (el expediente queda cerrado pero existe).
 - El `name` solo tiene que ser único **dentro de su fase**: lo que se persiste es la pareja (fase, estado) (§1.5). Dos fases pueden tener un estado que se llame igual — pero ten en cuenta que el `nameState` que ve el usuario sale de ese nombre, así que en los listados se verían idénticos salvo que les pongas `title` distinto.
 - Nombres de estados y eventos: `UPPER_SNAKE` y **MUST** ser identificadores Java válidos — van a las constantes de `States` y a los nombres de método (`GUARDAR_DATOS` → `triggerGuardarDatos`). Un evento **MUST NOT** repetirse dentro del mismo estado.
 - JAXB **ignora en silencio los tags desconocidos**: un typo en un tag opcional (p.ej. `<tramitee>`) no da error, simplemente aplica el default.
 
-- ✅ CORRECTO: `<state name="PENDIENTE_FIRMA" events="" profile="RESPONSABLE"/>`
-- ❌ INCORRECTO: `<state name="PENDIENTE_FIRMA" profile="RESPONSABLE"/>` (falta `events`, aunque sea vacío)
+- ✅ CORRECTO: `<state name="PENDIENTE_FIRMA" events="" profile="TRAMITADOR"/>`
+- ❌ INCORRECTO: `<state name="PENDIENTE_FIRMA" profile="TRAMITADOR"/>` (falta `events`, aunque sea vacío)
 - ❌ INCORRECTO: `<state name="PendienteFirma" .../>` (no es UPPER_SNAKE: produce métodos inesperados como `triggerPendientefirma`)
 
 ### 2.3 Del XML sale la clase `States`
@@ -379,7 +382,7 @@ Tres reglas **no** leen el bytecode, cada una por su motivo, y se señalan en su
 6. **Evento inicial y PhaseEventManager de cada fase**: rellena el `triggerInitialEvent` del `InitialEventManagerImpl` de la raíz de la versión (uno por tipo) y, en cada fase, sus `trigger<Evento>` y `onEnter<Estado>` → `phaseeventmanager.md`. Las guardas, predicados y mutaciones propios del tipo van como funciones estáticas de `<Code>Util` (§1.8).
 7. **Validator de cada fase**: rellena las `rules { }` de cada pareja estado+evento de la fase → `validator.md`. Las comprobaciones propias del tipo se declaran con `Lambda`/`ifLambda` sobre funciones de `<Code>Util`, no con reglas nuevas.
 8. **Vistas**: monta los paneles del form plantilla en el `views.xml` de la raíz y compón cada `<form state=...>` en el `views.xml` de su fase → `vistas.md`.
-9. **Permisos**: verifica que el perfil de cada estado (`CREADOR`, `RESPONSABLE`…) está asignado a alguien (`/k-tramite` §6).
+9. **Permisos**: verifica que el perfil de cada estado (`CREADOR`, `TRAMITADOR`…) está asignado a alguien (`/k-tramite` §6).
 10. **Activa** la versión en el `TramiteInstance.xml` (`<defaultTipoExpediente>v1</defaultTipoExpediente>`), compila y arranca.
 11. **Prueba en runtime** navegando por **todos** los estados con usuarios de los perfiles adecuados (menú Expedientes → Trámites): los tests comprueban que cada estado tiene sus forms y sus botones (§3.3), pero no que lo que pintan tenga sentido.
 

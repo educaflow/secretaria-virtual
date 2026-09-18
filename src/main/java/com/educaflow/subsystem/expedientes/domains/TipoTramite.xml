@@ -6,11 +6,5 @@
     <entity name="TipoTramite">
         <string name="code"  />
         <string name="name" namecolumn="true" translatable="true" />
-        <many-to-many name="tiposUsuarioInteresados" ref="com.educaflow.subsystem.common.db.TipoUsuario" title="Tipos de usuario interesados" help="Quien tenga en un centro alguno de estos tipos de usuario puede presentar en ese centro sus trámites para sí mismo" />
-        <many-to-many name="cargosInteresados" ref="com.educaflow.subsystem.common.db.Cargo" title="Cargos interesados" help="Quien tenga en un centro alguno de estos cargos puede presentar en ese centro sus trámites para sí mismo" />
-        <boolean name="admiteRepresentacion" title="Admite representación" help="Sus trámites se pueden presentar en nombre de otra persona, por ejemplo un familiar por un alumno menor de edad" />
-        <boolean name="admitePresentacionEnPapel" title="Admite presentación en papel" help="Personal del centro puede registrar en sus trámites una solicitud que se ha entregado en papel. Todo tipo de expediente de sus trámites debe implementar ese camino" />
-        <many-to-many name="tiposUsuarioRegistradores" ref="com.educaflow.subsystem.common.db.TipoUsuario" title="Tipos de usuario que registran en papel" help="Quien tenga en un centro alguno de estos tipos de usuario puede registrar en ese centro las solicitudes entregadas en papel" />
-        <many-to-many name="cargosRegistradores" ref="com.educaflow.subsystem.common.db.Cargo" title="Cargos que registran en papel" help="Quien tenga en un centro alguno de estos cargos puede registrar en ese centro las solicitudes entregadas en papel" />
     </entity>
 </domain-models>

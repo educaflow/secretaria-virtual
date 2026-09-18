@@ -3,33 +3,25 @@ package com.educaflow.subsystem.expedientes.services;
 import com.axelor.auth.db.User;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.CentroUsuario;
+import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.Tramite;
-import com.educaflow.subsystem.expedientes.services.internal.ExpedienteSecurity;
+import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
+import com.google.inject.Inject;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
-/**
- * Lo que la pantalla «Nuevo expediente» necesita saber para preguntar solo lo que tiene sentido: en
- * qué centros puede crear el usuario y, en cada uno, si presenta él o registra una solicitud
- * entregada en papel, y para quién.
- *
- * <p>No decide nada por su cuenta: todo sale de {@link ExpedienteSecurity#puedeCrear}, la misma regla
- * con la que {@code ExpedienteService} autoriza el alta de verdad. Así la pantalla no puede ofrecer
- * algo que el servidor luego rechace, ni al revés.
- *
- * <p><b>Ojo con el paquete:</b> vive en {@code …expedientes.services} (plural). {@code
- * ModelServiceFactory} de Axelor resuelve el {@code ModelService} de la entidad {@code
- * …expedientes.db.ContextoTramitacion} buscando {@code …expedientes.service.ContextoTramitacionService}
- * (singular), así que hoy no colisionan. Mover esta clase a un paquete {@code service} haría que
- * Axelor la tomara por el {@code ModelService} de la entidad y reventara por no implementarlo.
- */
+
 public class ContextoTramitacionService {
+
+    @Inject
+    PerfilesUsuarioService perfilesUsuarioService;
 
     /**
      * Los centros del usuario en los que puede crear algún expediente del trámite, ordenados por
-     * nombre. Un centro aparece si puede presentar él o si puede registrar en papel.
+     * nombre. Un centro aparece si en él tiene sobre el trámite el perfil de creador o el de tramitador.
      */
     public List<Centro> getCentros(Tramite tramite, User user) {
         if ((tramite == null) || (user == null) || (user.getCentroUsuarios() == null)) {
@@ -39,25 +31,67 @@ public class ContextoTramitacionService {
         return user.getCentroUsuarios().stream()
                 .map(CentroUsuario::getCentro)
                 .filter(Objects::nonNull)
-                .filter(centro -> puedePresentarElUsuario(tramite, user, centro) || puedeRegistrarEnPapel(tramite, user, centro))
+                .filter(centro -> tienePerfilParaCrear(tramite, user, centro))
                 .sorted(Comparator.comparing(Centro::getName, Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
     }
 
-    /** Si el usuario puede presentar el trámite por sí mismo, para él o en representación de otra persona. */
-    public boolean puedePresentarElUsuario(Tramite tramite, User user, Centro centro) {
-        return puedeCrear(tramite, user, centro, false, false)
-                || puedeCrear(tramite, user, centro, false, true);
+    public boolean permitidoPresentarEnRepresentacion(Tramite tramite) {
+        return tramite.getPermitidoPresentarEnRepresentacion();
     }
 
-    /** Si el usuario puede registrar en el centro una solicitud que le han entregado en papel. */
-    public boolean puedeRegistrarEnPapel(Tramite tramite, User user, Centro centro) {
-        return puedeCrear(tramite, user, centro, true, false)
-                || puedeCrear(tramite, user, centro, true, true);
+    /**
+     * El perfil con el que actúa quien presenta de esa forma: en papel lo registra el TRAMITADOR y sin
+     * papel lo presenta telemáticamente el CREADOR.
+     *
+     * <p>Es la equivalencia de la que sale todo lo demás de esta clase, y la que decide con qué perfil
+     * entra el expediente en la máquina de estados.
+     */
+    public Profile getProfile(boolean presentadoEnPapel) {
+        return presentadoEnPapel ? Profile.TRAMITADOR : Profile.CREADOR;
+    }
+
+    /**
+     * Si hay que preguntar al usuario cómo está presentando. Solo hace falta cuando tiene los dos
+     * perfiles: con uno solo el contexto se deduce de él y preguntar sobraría.
+     */
+    public boolean esNecesarioPresentadoEnPapel(Tramite tramite, User user, Centro centro) {
+        Set<Profile> perfiles = getPerfiles(tramite, user, centro);
+
+        return perfiles.contains(Profile.CREADOR) && perfiles.contains(Profile.TRAMITADOR);
+    }
+
+    /**
+     * El valor que se deduce cuando no hay que preguntar: el tramitador solo registra en papel y el
+     * creador solo presenta telemáticamente.
+     */
+    public boolean deducirPresentadoEnPapel(Tramite tramite, User user, Centro centro) {
+        return getPerfiles(tramite, user, centro).contains(Profile.TRAMITADOR);
     }
 
     public boolean puedeCrear(Tramite tramite, User user, Centro centro, boolean presentadoEnPapel, boolean presentadoEnRepresentacion) {
-        return ExpedienteSecurity.puedeCrear(tramite, user, centro, presentadoEnPapel, presentadoEnRepresentacion);
+        if (getPerfiles(tramite, user, centro).contains(getProfile(presentadoEnPapel))==false) {
+            return false;
+        }
+
+        if (permitidoPresentarEnRepresentacion(tramite)==false && presentadoEnRepresentacion==true) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Si el usuario da de alta expedientes del trámite en ese centro, sin mirar cómo se presentan: le
+     * vale cualquiera de los dos perfiles, porque cada uno habilita su forma de presentar.
+     */
+    private boolean tienePerfilParaCrear(Tramite tramite, User user, Centro centro) {
+        Set<Profile> perfiles = getPerfiles(tramite, user, centro);
+
+        return perfiles.contains(Profile.CREADOR) || perfiles.contains(Profile.TRAMITADOR);
+    }
+
+    private Set<Profile> getPerfiles(Tramite tramite, User user, Centro centro) {
+        return perfilesUsuarioService.getPerfilesSobreTramite(tramite, user, centro);
     }
 
 }

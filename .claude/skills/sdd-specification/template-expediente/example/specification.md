@@ -24,7 +24,7 @@ Permitir que un alumno pida prestado un equipo informático del centro, que la j
 | Perfil | Qué papel juega en este trámite | Quién lo ostenta |
 |---|---|---|
 | CREADOR | Pide el préstamo: rellena los datos, firma la petición y la presenta. | El tipo de usuario Alumno. |
-| RESPONSABLE | Valora la petición: la concede, la deniega o pide que se corrija. | El cargo Jefes de estudio. |
+| TRAMITADOR | Valora la petición: la concede, la deniega o pide que se corrija. | El cargo Jefes de estudio. |
 | SECRETARIO | Entrega el equipo y deja constancia de qué se entregó y en qué estado. | El cargo Administrativas. |
 
 El perfil SECRETARIO de este trámite lo ostenta el cargo Administrativas, no el cargo Secretario del centro: son cosas distintas.
@@ -186,7 +186,7 @@ El trámite genera 3 documentos. Su contenido, cuándo se genera cada uno, quié
 
 # Datos iniciales
 
-- **Asignación de perfiles:** el perfil CREADOR al tipo de usuario Alumno, para todo el trámite; el perfil RESPONSABLE al cargo Jefes de estudio, para todo el trámite; el perfil SECRETARIO al cargo Administrativas, para todo el trámite.
+- **Asignación de perfiles:** el perfil CREADOR al tipo de usuario Alumno, para todo el trámite; el perfil TRAMITADOR al cargo Jefes de estudio, para todo el trámite; el perfil SECRETARIO al cargo Administrativas, para todo el trámite.
 - **Categoría del trámite:** la categoría del alumnado, que ya existe.
 - **Otros datos maestros que el trámite necesita:** los certificados del centro para las firmas del Director y del Secretario, que ya existen.
 
