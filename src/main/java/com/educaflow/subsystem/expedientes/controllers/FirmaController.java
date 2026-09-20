@@ -8,7 +8,7 @@ import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.util.DniUtil;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.expedientes.db.Expediente;
-import com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteUtil;
+import com.educaflow.subsystem.expedientes.tramitacion.util.ExpedienteUtil;
 
 public class FirmaController {
 

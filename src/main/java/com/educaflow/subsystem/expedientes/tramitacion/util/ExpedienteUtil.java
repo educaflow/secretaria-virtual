@@ -1,4 +1,4 @@
-package com.educaflow.subsystem.expedientes.tramitacion.internal;
+package com.educaflow.subsystem.expedientes.tramitacion.util;
 
 import com.axelor.db.JPA;
 import com.axelor.db.JpaRepository;
@@ -17,6 +17,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Map;
 import com.educaflow.base.util.Convert;
+import com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteLocator;
 
 public class ExpedienteUtil {
 
@@ -108,7 +109,7 @@ public class ExpedienteUtil {
         // leer cualquier expediente por id.
         // La clase contra la que se comprueba sale de la BD, NUNCA del _model que envía el cliente,
         // que es precisamente el vector de bypass. Y MUST NOT filtrarse por self.centro: la
-        // autorización de Expediente es por Ace (auth-expedientes.xml), no por centro.
+        // autorización de Expediente es por perfiles AceProfile* (auth-expedientes.xml), no por centro.
         // El administrador no queda bloqueado: AuthSecurity.getUser() devuelve null para admin.
         Beans.get(JpaSecurity.class).check(JpaSecurity.CAN_READ, claseConcreta, idExpediente);
 

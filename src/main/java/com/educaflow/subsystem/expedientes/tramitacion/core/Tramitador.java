@@ -10,15 +10,12 @@ import com.axelor.db.modelservice.ModelServiceFactory;
 import com.educaflow.base.util.*;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.Persona;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.EventContext;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.InitialEventContext;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.State;
+import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.*;
 import com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteLocator;
-import com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteUtil;
+import com.educaflow.subsystem.expedientes.tramitacion.util.ExpedienteUtil;
 import com.educaflow.subsystem.expedientes.tramitacion.validation.BeanValidationRulesForStateAndEvent;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.HistorialEstado;
-import com.educaflow.subsystem.expedientes.db.ContextoTramitacion;
 import com.educaflow.subsystem.expedientes.db.TipoExpediente;
 import org.apache.shiro.authz.UnauthorizedException;
 import com.educaflow.base.infrastructure.numeradores.db.repo.NumeradorRepository;
@@ -26,8 +23,6 @@ import com.educaflow.base.infrastructure.mapper.BeanMapperModel;
 import com.educaflow.base.infrastructure.validation.engine.*;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.axelor.db.modelservice.BusinessMessages;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.PhaseEventManager;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.InitialEventManager;
 import com.educaflow.subsystem.expedientes.tramitacion.validation.StateEventValidator;
 import com.google.common.base.CaseFormat;
 import com.google.inject.Inject;
@@ -56,14 +51,12 @@ public class Tramitador {
 
     public Expediente triggerInitialEvent(ContextoTramitacion contextoTramitacion) throws BusinessException {
         try {
-            TipoExpediente tipoExpediente = contextoTramitacion.getTramite().getDefaultTipoExpediente();
-            Centro centro = contextoTramitacion.getCentro();
-            boolean presentadoEnPapel = contextoTramitacion.getPresentadoEnPapel();
-            boolean presentadoEnRepresentacion = contextoTramitacion.getPresentadoEnRepresentacion();
+            TipoExpediente tipoExpediente = contextoTramitacion.tramite().getDefaultTipoExpediente();
+            Centro centro = contextoTramitacion.centro();
+            boolean presentadoEnPapel = contextoTramitacion.presentadoEnPapel();
+            boolean presentadoEnRepresentacion = contextoTramitacion.presentadoEnRepresentacion();
 
-            //El evento inicial es del tipo de expediente, no de una fase: cuando se dispara todavía
-            //no hay estado del que partir. Lo atiende el InitialEventManager, que es uno solo por
-            //tipo.
+
             InitialEventManager initialEventManager = expedienteLocator.getInitialEventManager(tipoExpediente);
             Class<? extends Expediente> modelClass = expedienteLocator.getModelClass(tipoExpediente);
 
@@ -82,7 +75,7 @@ public class Tramitador {
             initialEventManager.triggerInitialEvent(initialEventContext);
 
 
-            EventContext eventContext = new EventContext(expediente, contextoTramitacion.getProfile(), modelServiceFactory);
+            EventContext eventContext = new EventContext(expediente, contextoTramitacion.profile(), modelServiceFactory);
 
             addHistorialEstado(expediente, null, eventContext);
 
@@ -394,6 +387,7 @@ public class Tramitador {
     /*******************************************************************/
     /********************** Funciones de Utilidad **********************/
     /*******************************************************************/
+
 
 
 

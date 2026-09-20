@@ -13,6 +13,14 @@
         <item name="SECRETARIO" title="Secretario"/>
         <item name="DIRECTOR" title="Director"/>
         <item name="AUDITOR" title="Auditor" />
+        <extra-code-model>
+            public boolean puedeCrearExpediente() {
+                return this == CREADOR || this == TRAMITADOR;
+            }
+            public boolean permitePresentacionEnPapel() {
+                return this == TRAMITADOR;
+            }
+        </extra-code-model>
     </enum>
 
 </domain-models>

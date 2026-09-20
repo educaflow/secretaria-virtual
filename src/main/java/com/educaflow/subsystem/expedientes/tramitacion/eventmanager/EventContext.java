@@ -6,7 +6,7 @@ import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.Profile;
-import com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteUtil;
+import com.educaflow.subsystem.expedientes.tramitacion.util.ExpedienteUtil;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroSalida;
 import com.educaflow.subsystem.registroentradasalida.service.*;

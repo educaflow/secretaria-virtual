@@ -1,18 +1,11 @@
 package com.educaflow.subsystem.expedientes.tramitacion.eventmanager;
 
 
-import com.educaflow.subsystem.expedientes.db.ContextoTramitacion;
 import com.educaflow.subsystem.expedientes.db.Expediente;
-import com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteUtil;
+import com.educaflow.subsystem.expedientes.tramitacion.util.ExpedienteUtil;
 
 import java.util.Objects;
 
-/**
- * El contexto del evento inicial, el equivalente para el alta de {@link EventContext}: el tipo de
- * expediente que se crea, el perfil con el que se crea y el {@link ContextoTramitacion}, que dice cómo
- * se crea (en qué centro, si se registra una solicitud entregada en papel o si se presenta en
- * representación).
- */
 public class InitialEventContext<T extends Expediente> {
     final private T expediente;
     final private ContextoTramitacion contextoTramitacion;
