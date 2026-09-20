@@ -1,6 +1,6 @@
 ---
 name: k-tramite
-description: Cómo dar de alta un trámite nuevo en la secretaría virtual: la carpeta `tramites/<tramite>/`, el fichero maestro `TramiteInstance.xml` (code, name, tipoTramite, publico/privado, defaultTipoExpediente, help), los data-init que genera el build, la i18n del nombre y los permisos necesarios para poder crear expedientes del trámite. Las versiones del trámite (los tipos de expediente `v1`, `v2`…) son de `k-tipo-expediente`.
+description: Cómo dar de alta un trámite nuevo en la secretaría virtual: la carpeta `tramites/<tramite>/`, el fichero maestro `TramiteInstance.xml` (code, name, tipoTramite, publico/privado, defaultTipoExpediente, help, aces), los data-init que genera el build, la i18n del nombre y los permisos necesarios para poder crear expedientes del trámite. Las versiones del trámite (los tipos de expediente `v1`, `v2`…) son de `k-tipo-expediente`.
 ---
 
 # k-tramite
@@ -44,6 +44,10 @@ Plantilla (con un trámite inventado, `MiTramite`; los ejemplos de este skill y 
         Descripción de para qué sirve el trámite.<br>
         Admite <strong>HTML</strong>.
     ]]></help>
+    <aces>
+        <ace perfil="CREADOR"    tipoUsuario="PROFESOR"/>
+        <ace perfil="TRAMITADOR" cargo="JEFE_ESTUDIOS"/>
+    </aces>
 </Tramite>
 ```
 
@@ -55,11 +59,15 @@ Plantilla (con un trámite inventado, `MiTramite`; los ejemplos de este skill y 
 | `publico` / `privado` | Opcionales | Flags booleanos del `Tramite` (ver `subsystem/expedientes/domains/Tramite.xml`). Solo se emiten al data-init si se declaran. |
 | `defaultTipoExpediente` | Opcional | La **versión activa**. **MUST** ser el **nombre de la carpeta** del tipo (`v1`, `v2`…), y esa carpeta **MUST** existir bajo el trámite con su `TipoExpedienteInstance.xml` dentro (lo vigila el test T1, §4). El generador admite además el `code` completo del tipo, pero **MUST NOT** usarse: un code escrito a mano no se distingue de una errata hasta que revienta en runtime. Sin este tag no se genera la asignación de tipo activo y no se pueden crear expedientes del trámite. |
 | `help` | Opcional (recomendado) | Ayuda que se muestra en el árbol "Crear un nuevo expediente", en CDATA, admite HTML. Si no se declara, el data-init se genera con un CDATA vacío. Su texto **MUST NOT** contener `]]>` (cerraría el CDATA): el generador lanza `RuntimeException` si lo encuentra. |
+| `aces` | Opcional | Perfiles que da **este** trámite en todos los centros; se cargan en la tabla `AceProfileTramite` (§4). Cada `<ace>` lleva `perfil` (constante del enum `Profile`) y **exactamente uno** de `tipoUsuario` (`TipoUsuario.codigo`) o `cargo` (`Cargo.code`); el trámite no se escribe, es el del propio fichero. El generador aborta el build si falta `perfil` o si no hay exactamente uno de los dos. |
 
 - ✅ CORRECTO: `<code>MiTramite</code>`
 - ❌ INCORRECTO: `<code>mi_tramite</code>` (los underscores rompen el patrón de vistas `exp-<Code>-Templates` y el nombre de la entidad; el snake_case es para la **carpeta**, no para el `code`)
 - ❌ INCORRECTO: `<defaultTipoExpediente>v2</defaultTipoExpediente>` cuando la única carpeta de versión es `v1` (nada casa en el data-init, la columna queda a `null` y el trámite revienta al abrirlo)
 - ❌ INCORRECTO: `<defaultTipoExpediente>MiTramiteV1</defaultTipoExpediente>` (es el `code` del tipo, no el nombre de su carpeta: el generador lo acepta, el test T1 lo rechaza)
+- ✅ CORRECTO: `<ace perfil="TRAMITADOR" cargo="JEFE_ESTUDIOS"/>`
+- ❌ INCORRECTO: `<ace perfil="TRAMITADOR" cargo="JEFE_ESTUDIOS" tipoUsuario="PROFESOR"/>` (dos sujetos: el generador aborta)
+- ❌ INCORRECTO: `<ace perfil="TRAMITADOR" cargo="JEFE_ESTUDIOS" tramite="MiTramite"/>` (el trámite es implícito, sobra)
 
 ## 4. Qué genera el build (y qué queda en BD)
 
@@ -68,6 +76,7 @@ Antes del bucle borra de una vez `build/resources/main/tramites/` **entera** (lo
 Por cada trámite genera:
 
 1. `definicion/data-init/` (`priority="1"`) — crea/actualiza la fila `Tramite` en BD (bind por `code`, se refresca en cada arranque) con `name`, `tipoTramite` (resuelto por `code` contra la tabla `TipoTramite`), `help` y `publico`/`privado` **solo si están declarados**.
+   Con un `<input>` detrás carga los `<aces>` en `AceProfileTramite` (los `<input>` de un `input-config.xml` se cargan en orden, así que el trámite ya existe). La tabla se vacía en cada arranque (`DataBaseStartup`), así que quitar un `<ace>` del XML lo quita de la BD.
 2. `tipo_expediente_activo/data-init/` (`priority="-1"`, `update` sin `create`) — solo si hay `<defaultTipoExpediente>` y no está en blanco; resuelve `v1` → code del tipo (el `<code>` declarado en su `TipoExpedienteInstance.xml` o, por defecto, `code del trámite + V1`) buscando la carpeta `v1` **recursivamente** bajo la del trámite.
    - Más de una carpeta con ese nombre → falla por ambigüedad.
    - **Ninguna** carpeta con ese nombre → **CRITICAL**: no falla. El generador asume que el valor ya es un `code` y lo emite tal cual; el bind del data-init es `search` + `create="false"`, así que el import tampoco falla y deja la columna `defaultTipoExpediente` a `null`. El error aparece solo en runtime, al abrir el trámite: `No existe el tipo de expediente para el tramite con idTramite: N`.
@@ -85,30 +94,32 @@ El orden de carga lo gobierna la `priority`: primero el trámite (`1`), luego lo
 
 ## 6. Permisos
 
-- Para que un usuario pueda **crear** expedientes del trámite necesita una asignación del perfil `CREADOR` **por `tramiteCode`**; las asignaciones de demo viven en `src/main/resources/data-demo/input/permisos-demo.xml`.
-- Prefiere asignar por `tramiteCode` y no por `tipoExpedienteCode` cuando el permiso sea conceptualmente del trámite: la asignación por trámite **sobrevive a las versiones**; la asignación por tipo hay que duplicarla en cada versión nueva.
-- El perfil de cada estado (`TRAMITADOR`, `SECRETARIO`, `DIRECTOR`…) se asigna según convenga (por cargo, tipo de usuario o usuario concreto) — leer el modelo real en `subsystem/security/`.
+Qué perfiles tiene un usuario lo calcula `subsystem/security` a partir de las tablas `AceProfile*`: leer su `CLAUDE.md` (qué tablas hay, cuáles alcanzan al crear y cuáles sobre un expediente).
+Desde un trámite solo se escriben dos:
 
-Cómo se escribe `permisos-demo.xml` (la fuente de verdad del binding es `src/main/resources/data-demo/input-config.xml`, su paso 4):
+- El `<aces>` del `TramiteInstance.xml` (§3) → vale para **todas** las versiones.
+- El `<aces>` del `TipoExpedienteInstance.xml` de una versión (`/k-tipo-expediente`) → vale **solo** para esa versión; hay que repetirlo en cada versión nueva.
 
-1. El `perfilName` de una asignación es el **nombre de una constante del enum `Profile`** (`subsystem/expedientes/domains/Profile.xml`), el mismo que admite `<state profile="…">` (`/k-tipo-expediente` §2.2). No hay nada que declarar antes: el perfil es un enum, no una fila.
-2. Un bloque por tipo de actor; cada uno admite **solo** las claves que se indican:
-   - `<asignacionesTipoUsuario>` → `<asignacion tipoUsuarioCode perfilName tramiteCode/>` (tipo de usuario, **por trámite**).
-   - `<asignacionesTipoUsuarioTipoExpediente>` → `<asignacion tipoUsuarioCode perfilName tipoExpedienteCode/>` (tipo de usuario, por tipo de expediente).
-   - `<asignacionesCargoTipoExpediente>` → `<asignacion cargoCode perfilName tipoExpedienteCode/>` (cargo, **solo por tipo de expediente**: no hay bloque de cargo por trámite, así que hay que repetirla en cada versión).
-   - `<asignacionesCentroUsuario>` → `<asignacion usuarioCode centroCode perfilName tramiteCode/>` (usuario concreto en un centro, **solo por trámite**).
-3. Los códigos son los de las tablas maestras: `TipoUsuario.codigo`, `Cargo.code` (`subsystem/common/data-init/input/cargos.xml`), `Tramite.code` y `TipoExpediente.code` (`<code del trámite>V1`, `/k-tipo-expediente` §1.1). En la entidad `Ace` solo `perfil` es obligatorio: un `perfilName` que no sea una constante de `Profile` rompe la carga, pero un actor, trámite o tipo de expediente que no case **no falla** — la asignación se crea a medias y el permiso no aparece.
+Reglas:
 
-- ✅ CORRECTO: `<asignacion cargoCode="DIRECTOR" perfilName="DIRECTOR" tipoExpedienteCode="MiTramiteV1"/>` dentro de `<asignacionesCargoTipoExpediente>`
-- ❌ INCORRECTO: `<asignacion cargoCode="DIRECTOR" perfilName="DIRECTOR" tramiteCode="MiTramite"/>` (un cargo no se asigna por trámite: ese bloque no existe y la clave se ignora)
-- ❌ INCORRECTO: asignar `perfilName="TRAMITADORA"` o cualquier nombre que no sea una constante de `Profile` (el perfil es obligatorio en `Ace`, así que la carga de la demo falla)
+1. Para que un usuario pueda **crear** expedientes necesita el perfil del estado inicial sobre el trámite. Al crear cuentan el `<aces>` del trámite y el de la versión **activa**; **SHOULD** ponerse en el del trámite, que sobrevive a las versiones.
+2. Antes de añadir un `<ace>`, lee `subsystem/security/data-init/input/AceProfileGlobal.xml` y `AceProfileTipoTramite.xml`: un perfil que ya se da globalmente o por el tipo de trámite **MUST NOT** repetirse en el trámite.
+3. **MUST NOT** tocar esos dos ficheros desde un trámite: son de `subsystem/security` y afectan a todos los trámites.
+4. Sin ningún perfil sobre el trámite el usuario **no lo ve** (las condiciones de lectura de `auth-expedientes.xml` consultan las mismas tablas).
+5. No hay forma de dar un perfil a un usuario concreto desde el fichero maestro: eso es `AceProfileCentro`, que se rellena en ejecución.
+6. Un `<ace perfil="CREADOR">` solo da derecho a **crear**: sobre un expediente ya creado es `CREADOR` únicamente quien lo registró, así que ese `<ace>` no deja ver ni tocar los expedientes de otros.
+
+- ✅ CORRECTO: `<ace perfil="CREADOR" tipoUsuario="PROFESOR"/>` en el `<aces>` del `TramiteInstance.xml`
+- ✅ CORRECTO: `<ace perfil="DIRECTOR" cargo="DIRECTOR"/>` en el `<aces>` del trámite (un cargo también se da por trámite)
+- ❌ INCORRECTO: `<ace perfil="TRAMITADORA" cargo="DIRECTOR"/>` (`perfil` no es una constante de `Profile`: la carga del data-init falla)
+- ❌ INCORRECTO: `<ace perfil="CREADOR" tipoUsuario="PROFESOR"/>` en un trámite de `tipoTramite` `PROFESOR` cuando `AceProfileTipoTramite.xml` ya lo da (duplicado)
 
 ## 7. Checklist de alta de un trámite
 
 1. Crea `src/main/java/com/educaflow/tramites/<nombre_tramite>/` (snake_case), opcionalmente bajo una o varias carpetas de agrupación (`tramites/<agrupacion>/<nombre_tramite>/`), pero nunca dentro de otro trámite.
 2. Escribe `TramiteInstance.xml` con `code`, `name`, `tipoTramite` y `help`. **Sin** `<defaultTipoExpediente>` todavía.
 3. Compila (`./gradlew clean build`): se genera el data-init y los CSV de i18n; al arrancar, el trámite aparece en el árbol.
-4. Añade los permisos de `CREADOR` por `tramiteCode` (§6).
+4. Añade al `<aces>` el perfil del estado inicial y los que no dependan de la versión (§6).
 5. Crea la primera versión en la carpeta `v1/` siguiendo `/k-tipo-expediente`.
 6. Activa la versión: `<defaultTipoExpediente>v1</defaultTipoExpediente>` — el **nombre de la carpeta**, no el `code` — y recompila.
 
@@ -127,4 +138,4 @@ Cómo se escribe `permisos-demo.xml` (la fuente de verdad del binding es `src/ma
 - `tipoTramite` = code de la entidad `TipoTramite` (fuente de verdad: su data-init en `subsystem/expedientes`).
 - `<defaultTipoExpediente>` = nombre de la carpeta de la versión activa (`v1`), nunca el `code`; sin él no se pueden crear expedientes del trámite, y si la carpeta no existe nadie avisa hasta runtime (lo caza el test T1).
 - Los data-init del trámite y los CSV de i18n los genera el build; **MUST NOT** escribirlos a mano.
-- Permisos de creación por `tramiteCode` (mejor que por `tipoExpedienteCode`: sobreviven a las versiones).
+- Perfiles en el `<aces>` del `TramiteInstance.xml` (mejor que en el de la versión: sobreviven a las versiones).

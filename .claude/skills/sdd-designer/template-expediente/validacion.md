@@ -21,7 +21,6 @@ Lo aplica el **verificador** sobre la carpeta `design/`; el **corrector** lo usa
 | `fases/<fase>/views.xml` | `<object-views>` | **Solo bien formado.** **MUST NOT** validarse contra `object-views.xsd` |
 | `TramiteInstance.xml` | `<Tramite>` | **Solo bien formado** (no hay XSD publicado) |
 | `TipoExpedienteInstance.xml` | `<TipoExpediente>` | **Solo bien formado** (no hay XSD publicado) |
-| `permisos.xml` | `<datos>` | **Solo bien formado** (no hay XSD publicado) |
 | `documentospdf/*.xml` | `<documento>` / `<fragmento>` | **Bien formado**, y **XSD remoto solo si hay red** |
 | `estados.puml` | — (no es XML) | Comprobación **sintáctica** de apertura y cierre |
 
@@ -64,9 +63,9 @@ Lo que sustituye a la validación XSD son las reglas estructurales de §2 (bloqu
 - ❌ INCORRECTO: `xmllint --noout --schema …/object-views.xsd design/fases/<fase>/views.xml` → produce decenas de errores espurios sobre `include-panels` y `footer`.
 - ✅ CORRECTO: `xmllint --noout design/fases/<fase>/views.xml` + aplicar §2 bloque H.
 
-### 1.4 `TramiteInstance.xml`, `TipoExpedienteInstance.xml` y `permisos.xml` — solo bien formado
+### 1.4 `TramiteInstance.xml` y `TipoExpedienteInstance.xml` — solo bien formado
 
-No existe XSD publicado para ninguno de los tres: los parsea JAXB (los dos primeros) y el data-init (el tercero). **MUST NOT** inventarse un esquema ni validarlos contra uno ajeno. Su corrección la dan las reglas estructurales de §2 (bloques **B**, **C** y **J**).
+No existe XSD publicado para ninguno de los dos: los parsea JAXB. **MUST NOT** inventarse un esquema ni validarlos contra uno ajeno. Su corrección la dan las reglas estructurales de §2 (bloques **B**, **C** y **J**).
 
 **CRITICAL** — para el `TipoExpedienteInstance.xml`, recuerda que **JAXB ignora en silencio cualquier tag o atributo desconocido**: un typo no da error, aplica el default. Por eso las comprobaciones del bloque **C** son la única red.
 
@@ -126,17 +125,16 @@ Severidad por defecto: **BLOCKING** para todo lo que impida arrancar, compilar o
 
 - **Ámbito reducido.** Una comprobación solo se aplica a los ficheros y a las secciones **presentes** en `design/`. Que falte un fichero de §5.1 del README, o que una sección diga `*(sin cambios)*`, **NO es fallo**: es lo que el contrato pide. El verificador **MUST NOT** reportar `no existe` / `falta` sobre nada que el delta no toque, y el corrector **MUST NOT** crearlo ni regenerarlo — hacerlo contradice el README §5 y reintroduce el as-is en el diseño.
 - **Coherencia contra el as-is.** Donde una comprobación cruza dos representaciones y solo una está en `design/` (p.ej. un `views.xml` tocado frente al `TipoExpedienteInstance.xml` que no lo está), el lado ausente se toma del **fichero real** de la carpeta de versión modificada, que el verificador **puede leer** para esto. Sigue siendo fallo la incoherencia real entre el delta y el as-is.
-- **Sí se aplican íntegras**, porque son sobre lo que el delta sí trae: C-A02 (artefactos prohibidos), C-A03 (frontmatter y las 15 secciones), C-A05 (XML completos, sin placeholders), el Bloque K sobre las filas de la tabla §6 y los pasos —**con las tres excepciones de abajo**—, C-L04 (lo inventado), C-L05 (guías) y el Bloque M (prohibiciones transversales).
+- **Sí se aplican íntegras**, porque son sobre lo que el delta sí trae: C-A02 (artefactos prohibidos), C-A03 (frontmatter y las 15 secciones), C-A05 (XML completos, sin placeholders), el Bloque K sobre las filas de la tabla §6 y los pasos —**con las dos excepciones de abajo**—, C-L04 (lo inventado), C-L05 (guías) y el Bloque M (prohibiciones transversales).
 - **Excepciones del Bloque K en este modo** (`design-contract.md` §8 y §9). Aplicarlas tal cual **antes** de reportar nada; exigir la forma greenfield aquí encadena un bucle verificador↔corrector que nunca converge, porque cada arreglo viola la regla contraria:
-  - **C-K03** (`permisos-demo.xml` con fila `Modificar`) solo se exige **si el delta añade asignaciones**. Su ausencia cuando no los añade **NO es fallo**; lo que sí es fallo es que la fila esté sin que el delta la necesite.
   - **C-K06** y **C-K08** (paso `CreateFilesTask` en la posición 3) solo se exigen **si el delta añade fases nuevas**. Sin fases nuevas, el paso **MUST NOT** existir y su presencia **es fallo** (`design-contract.md` §9.1): `/sdd-implementer` no genera esa tarea.
-  - **C-K09** (orden de los pasos) se comprueba como **orden relativo** sobre las filas de la tabla §6, no contra la tabla de 13 pasos de §9: hay exactamente un paso por fila, renumerados sin huecos, con `./run.sh` el último. Un paso sin fila en §6 es fallo.
+  - **C-K09** (orden de los pasos) se comprueba como **orden relativo** sobre las filas de la tabla §6, no contra la tabla de 12 pasos de §9: hay exactamente un paso por fila, renumerados sin huecos, con `./run.sh` el último. Un paso sin fila en §6 es fallo.
 - **Fallos específicos de este modo**, ambos **BLOCKING**:
   - Que `design/` contenga un fichero que la tabla §6 del `design.md` **no** lista, o que esa tabla liste un fichero que el delta no necesita. Corrección: borrar el fichero o la fila sobrante.
   - Que «Identidad del trámite y del tipo», «Ficheros a crear o modificar» o «Pasos» digan `*(sin cambios)*` en vez de ir completas (`design-contract.md` §8). Corrección: rellenarlas con los valores reales de la versión modificada (la identidad se lee de su `TipoExpedienteInstance.xml` y de su ruta). Sin ellas, `/sdd-implementer` se queda sin `<Entidad>` y `/sdd-create-tests-e2e` sin carpeta destino.
 
-> El verificador **puede leer** (nunca escribir) estos ficheros reales del árbol, y solo estos: `src/main/resources/data-demo/input/permisos-demo.xml`, `src/main/resources/data-demo/input/usuarios-demo.xml`, `src/main/resources/data-demo/input/centros-demo.xml`, el `TipoTramites.xml` del data-init de expedientes, los `template-views.xml` globales de `tramites/shared/` y el árbol `src/main/java/com/educaflow/tramites/` (para comprobar `Crear` vs `Modificar` y, en una **iniciativa de modificación**, para leer el as-is de la carpeta de versión modificada).
-En una **iniciativa de modificación** puede leer además la carpeta de tests **espejo** de esa versión (`src/test/e2e/tramites/…/<vN>/`), para comprobar C-A10 y la numeración de los `T-NNN`.
+> El verificador **puede leer** (nunca escribir) estos ficheros reales del árbol, y solo estos: `src/main/java/com/educaflow/subsystem/security/data-init/input/AceProfileGlobal.xml`, `src/main/java/com/educaflow/subsystem/security/data-init/input/AceProfileTipoTramite.xml`, `src/main/java/com/educaflow/subsystem/common/data-init/input/tiposUsuario.xml`, `src/main/java/com/educaflow/subsystem/common/data-init/input/cargos.xml`, `src/main/resources/data-demo/input/usuarios-demo.xml`, `src/main/resources/data-demo/input/centros-demo.xml`, el `TipoTramites.xml` del data-init de expedientes, los `template-views.xml` globales de `tramites/shared/` y el árbol `src/main/java/com/educaflow/tramites/` (para comprobar `Crear` vs `Modificar` y, en una **iniciativa de modificación**, para leer el as-is de la carpeta de versión modificada).
+En una **iniciativa de modificación** puede leer además la carpeta de tests **espejo** de esa versión (`src/test/e2e/tramites/…/<vN>/`), para comprobar C-A09 y la numeración de los `T-NNN`.
 
 ### Bloque A — Estructura de `design/`
 
@@ -147,11 +145,10 @@ En una **iniciativa de modificación** puede leer además la carpeta de tests **
 | **C-A03** | El frontmatter y las secciones del `design.md` | No lleva `type: design`, o su clave `template:` falta o no coincide con la del `specification.md`, o falta alguna de las 15 secciones de `design-contract.md` §2, o están en otro orden o con otro título | Añadir/corregir el frontmatter; añadir/renombrar/reordenar las secciones exactamente como §2 |
 | **C-A04** | Un `fases/<fase>/views.xml` por **cada** fase declarada en el `TipoExpedienteInstance.xml` | Falta el de alguna fase, sobra el de una fase inexistente, o el nombre de la carpeta no es la fase **en minúsculas** | Crear/borrar/renombrar la carpeta y su `views.xml` |
 | **C-A05** | Que los XML materializados estén **completos** | Contienen `TODO`, `...`, `FIXME`, un placeholder sin resolver (`<FASE>`, `<Entidad>`…) o un atributo de esqueleto vacío (`<button name="">`) | Resolver el valor real. Un `<button name="">` es además violación de `Y1` |
-| **C-A06** | Que `permisos.xml` exista **siempre** (en una **iniciativa de modificación**, solo si el delta añade asignaciones) | No existe | Crearlo con el fragmento de `design-contract.md` §14.3 |
-| **C-A07** | Que `test-e2e-desc.md` exista y lo haya escrito el diseñador | No existe | Crearlo según `tests-e2e.md` |
-| **C-A08** | Que el diseñador **no** haya escrito `test-unit-desc.md` | Existe `test-unit-desc.md` en un diseño que aún no ha pasado por el rol `test-unitarios` | Borrarlo: lo produce el rol `test-unitarios` en una fase posterior |
-| **C-A09** | Que los ficheros del motor se ignoren en el inventario | Se reporta como sobrante o se cuestiona `decisiones.md`, `log_best.txt`, `log_revision.txt` o `log_revision_unit-test.txt` | No reportarlos: `decisiones.md` lo declara el motor (`sdd-designer` §2.5) y los `log_*.txt` son artefactos de orquestación, no contenido de la plantilla |
-| **C-A10** | La subsección `### Tests E2E supersedidos` de `## 13. Tests` (**solo** en una iniciativa de modificación; en cualquier otra, que **no** exista) | Existe fuera de una iniciativa de modificación; existe vacía; lista un `.spec.ts` que no está en la carpeta espejo de **esta** versión o que no existe; lista uno sin ID de spec o sin motivo; o el delta invalida un test persistido de esa carpeta que **no** está listado | Borrar la subsección o la línea sobrante; añadir la línea que falta con su ruta, su ID de spec y su motivo (`design-contract.md` §15.3). Ante la duda de si un test cae, **no** listarlo |
+| **C-A06** | Que `test-e2e-desc.md` exista y lo haya escrito el diseñador | No existe | Crearlo según `tests-e2e.md` |
+| **C-A07** | Que el diseñador **no** haya escrito `test-unit-desc.md` | Existe `test-unit-desc.md` en un diseño que aún no ha pasado por el rol `test-unitarios` | Borrarlo: lo produce el rol `test-unitarios` en una fase posterior |
+| **C-A08** | Que los ficheros del motor se ignoren en el inventario | Se reporta como sobrante o se cuestiona `decisiones.md`, `log_best.txt`, `log_revision.txt` o `log_revision_unit-test.txt` | No reportarlos: `decisiones.md` lo declara el motor (`sdd-designer` §2.5) y los `log_*.txt` son artefactos de orquestación, no contenido de la plantilla |
+| **C-A09** | La subsección `### Tests E2E supersedidos` de `## 13. Tests` (**solo** en una iniciativa de modificación; en cualquier otra, que **no** exista) | Existe fuera de una iniciativa de modificación; existe vacía; lista un `.spec.ts` que no está en la carpeta espejo de **esta** versión o que no existe; lista uno sin ID de spec o sin motivo; o el delta invalida un test persistido de esa carpeta que **no** está listado | Borrar la subsección o la línea sobrante; añadir la línea que falta con su ruta, su ID de spec y su motivo (`design-contract.md` §15.3). Ante la duda de si un test cae, **no** listarlo |
 
 ### Bloque B — Identidad del trámite y del tipo (T1)
 
@@ -302,12 +299,12 @@ Este bloque se aplica **solo si** el tipo genera al menos un documento. Si no ge
 
 | ID | Qué se mira | Qué es fallo | Corrección esperada |
 |---|---|---|---|
-| **C-J01 (REQUIRED)** | El perfil del **estado inicial** | Se asigna por `tipoExpedienteCode` en vez de por `tramiteCode` | Asignarlo por `tramiteCode`. En la creación todavía no hay expediente y el `Tramitador` contrasta el perfil contra los `Ace` **sobre el trámite**: por `tipoExpedienteCode` no se podría crear nada |
-| **C-J02** | La cobertura de perfiles | Un perfil que usa algún estado del tipo **no** tiene ningún actor asignado | Asignarlo: un perfil sin actor deja ese estado inalcanzable |
-| **C-J03** | El formato del fragmento | `permisos.xml` no tiene raíz `<datos>`, o es una copia del `permisos-demo.xml` completo en vez de solo lo nuevo | Reescribirlo como fragmento a **fusionar** |
-| **C-J04** | El alcance | Contiene asignaciones a otros trámites o a otras versiones | Quitarlas |
-| **C-J05** | El `tipoExpedienteCode` | Se usa el `code` del **trámite** donde va el del **tipo** (`<Entidad>` = `<Code><VN>`) | Corregirlo |
-| **C-J06** | Los perfiles posteriores | Se usa `tipoExpedienteCode` sin motivo donde valdría `tramiteCode` | **SHOULD** preferirse `tramiteCode`: las asignaciones por `tipoExpedienteCode` hay que duplicarlas en cada versión nueva. Severidad **MINOR** |
+| **C-J01 (REQUIRED)** | El perfil del **estado inicial** | Ningún origen de los que cuentan al **crear** lo da: ni el `<aces>` del `TramiteInstance.xml`, ni el del `TipoExpedienteInstance.xml` de la versión **activa** (`defaultTipoExpediente`), ni `AceProfileGlobal.xml`/`AceProfileTipoTramite.xml` de security para el `tipoTramite` del trámite | Añadir el `<ace>`, preferentemente en el `<aces>` del trámite. Sin él no se puede crear ningún expediente |
+| **C-J02** | La cobertura de perfiles | Un perfil que usa algún estado del tipo **no** tiene actor en ningún origen de `design-contract.md` §14.1 (contar con `AceProfileCentro` o `AceProfileExpediente` no vale) | Asignarlo: un perfil sin actor deja ese estado inalcanzable |
+| **C-J03** | El formato del `<ace>` | Falta `perfil` o no es una constante del enum `Profile`; no lleva **exactamente uno** de `tipoUsuario`/`cargo`; el valor no existe en `tiposUsuario.xml`/`cargos.xml`; o lleva el trámite o el tipo como atributo | Corregirlo según `design-contract.md` §14.3. Con dos actores o ninguno el build aborta |
+| **C-J04** | Dónde se declaran los perfiles | Hay perfiles fuera del `<aces>` de `design/TramiteInstance.xml` o de `design/TipoExpedienteInstance.xml` (otro fichero del diseño, un data-init, o un cambio en `AceProfileGlobal.xml`/`AceProfileTipoTramite.xml` de security) | Moverlos al `<aces>` del fichero maestro. Los ficheros de security son compartidos y **MUST NOT** tocarse desde un trámite |
+| **C-J05** | Los duplicados | Un `<ace>` repite un perfil que el mismo actor ya tiene por `AceProfileGlobal.xml` o por `AceProfileTipoTramite.xml` para el `tipoTramite` del trámite | Quitarlo. Severidad **MINOR** |
+| **C-J06** | Los perfiles posteriores | Van en el `<aces>` del tipo sin motivo donde valdría el del trámite | **SHOULD** preferirse el del trámite: el del tipo hay que repetirlo en cada versión nueva. Severidad **MINOR** |
 | **C-J07 (CRITICAL)** | El permiso de la entidad | El diseño escribe a mano una `<permission name="<Entidad>.all">`, en `auth-expedientes.xml` o en cualquier otro `auth-*.xml` | Quitarla: la genera el build en el `auth-<Code>.xml` del data-init del tipo, enganchada a `admins` y `users`. Se concede sin `condition`, agujero conocido documentado en `CLAUDE.md`, que **MUST NOT** taparse aquí; **MUST NOT** introducirse tampoco un `ModelService` deny-all de expedientes como parche |
 
 ### Bloque K — Ficheros y pasos
@@ -316,7 +313,7 @@ Este bloque se aplica **solo si** el tipo genera al menos un documento. Si no ge
 |---|---|---|---|
 | **C-K01** | La tabla «Ficheros a crear o modificar» | Falta la fila de algún fichero real que la implementación crea o modifica, o sobra una | Añadir/quitar la fila. Una fila por fichero real, ni una de más ni una de menos |
 | **C-K02** | Ficheros generados en la tabla | Aparece un `i18n_*.csv`, un `estados.png`, un `States.java`, un data-init generado o algo bajo `build/` | Quitar la fila: los produce el build |
-| **C-K03** | `permisos-demo.xml` (en una **iniciativa de modificación**, solo si el delta añade asignaciones) | Falta su fila, o su acción no es **`Modificar`** | Añadirla como `Modificar`: es una **fusión**, no una copia |
+| **C-K03** | El fichero maestro de los perfiles | El diseño añade o cambia `<ace>` y el `TramiteInstance.xml`/`TipoExpedienteInstance.xml` que los lleva no tiene fila en la tabla, o su `design/` no es el fichero completo (en un fichero que ya existe: el real como base **más** los `<ace>` nuevos) | Añadir la fila (`Modificar` si el fichero ya existe) y materializar el fichero completo |
 | **C-K04** | `Crear` vs `Modificar` | Una fila `Crear` cuyo destino **ya existe** en el árbol real, o una `Modificar` cuyo destino **no existe** (el verificador **MUST** comprobarlo) | Cambiar la acción. Si pasa a `Modificar`, el XML del diseño **MUST** ser el fichero real como base **más** el delta |
 | **C-K05** | Las columnas `Skill` y `Descripción` | Vacías, o la `Descripción` de un XML no dice de qué fichero de `design/` se copia, o la de un `.java`/`.kt` no apunta a su sección de especificación | Rellenarlas |
 | **C-K06 (CRITICAL)** | El paso de `CreateFilesTask` (en una **iniciativa de modificación**, solo si el delta añade fases nuevas; si no, que **no** exista) | No existe, no está **exactamente** en la posición 3 (después del `TipoExpedienteInstance.xml` completo, antes de rellenar nada), o su comando no es el exacto con `-Ptipo=<ruta de la carpeta de versión>`. En una modificación sin fases nuevas: que el paso exista | Colocarlo en su sitio con el comando exacto; o borrarlo si el delta no añade fases |
@@ -325,8 +322,7 @@ Este bloque se aplica **solo si** el tipo genera al menos un documento. Si no ge
 | **C-K09** | El orden de los pasos (en una **iniciativa de modificación**, el orden **relativo** de las filas de la tabla §6: un paso por fila, renumerados sin huecos, `./run.sh` el último) | No sigue el orden obligatorio de `design-contract.md` §9, o hay un paso sin fila en la tabla §6 | Reordenar; borrar el paso sobrante |
 | **C-K10** | Los pasos de XML | No dicen «cópialo literalmente» con origen (`design/<x>`) y destino, o no declaran su verificación | Reescribir el paso con esa forma |
 | **C-K11** | Los pasos de Java/Kotlin | Duplican la especificación en vez de apuntar a la sección (`## 8. …`, `## 9. …`, `## 10. …`) por su título exacto | Sustituir la copia por la referencia: dos copias divergen |
-| **C-K12** | El paso 12 | No dice que `permisos-demo.xml` es una **fusión** que conserva todo lo preexistente | Corregirlo |
-| **C-K13** | El paso final | No es el último, no lleva el comando exacto `./run.sh`, o no declara la **comprobación en runtime** de lo que el build no ve (`personaSolicitante`/`personaInteresada`, las transiciones del `.puml`, las expresiones Groovy de los PDFs) | Completarlo |
+| **C-K12** | El paso final | No es el último, no lleva el comando exacto `./run.sh`, o no declara la **comprobación en runtime** de lo que el build no ve (`personaSolicitante`/`personaInteresada`, las transiciones del `.puml`, las expresiones Groovy de los PDFs) | Completarlo |
 
 ### Bloque L — Cobertura de la especificación
 

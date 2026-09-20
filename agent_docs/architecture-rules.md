@@ -214,9 +214,9 @@ Dentro de un sistema/subsistema la dependencia fluye Controller → Service → 
 - Mensaje: «las entidades de dominio son POJOs; la lógica de negocio vive en el servicio».
 
 **Cumplimiento.** ✅ CUMPLE.
-Nota: hay `<extra-code-model>` que acoplan entidades generadas a `expedientes.tramitacion.internal`: el `getTipoExpedienteStates()` de `TipoExpediente` → `ExpedienteLocator`, y el `getDocumentoPdf(...)` de las entidades de expediente que generan PDF → `ExpedienteUtil`.
+Nota: hay `<extra-code-model>` que acoplan entidades generadas a paquetes internos del motor de tramitación: el `getTipoExpedienteStates()` de `TipoExpediente` → `expedientes.tramitacion.internal.ExpedienteLocator`, y el `getDocumentoPdf(...)` de las entidades de expediente que generan PDF → `expedientes.tramitacion.util.ExpedienteUtil`.
   Todas esas clases se generan en `com.educaflow.subsystem.expedientes.db`, así que quedan **fuera del sujeto** por la exención global de `..expedientes..` de las Convenciones de verificación; no es un incumplimiento.
-  Aunque se levantara la exención, la condición tampoco casaría: el destino es `…expedientes.tramitacion.internal` y `..service..` exige un segmento de paquete llamado exactamente `service`.
+  Aunque se levantara la exención, la condición tampoco casaría: los destinos son `…expedientes.tramitacion.internal` y `…expedientes.tramitacion.util`, y `..service..` exige un segmento de paquete llamado exactamente `service`.
 
 ### C14 — `Beans.get(...)` prohibido en controladores y `*ServiceImpl`
 

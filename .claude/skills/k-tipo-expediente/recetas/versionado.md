@@ -79,9 +79,8 @@ Después: añadir la `<fase>` con sus `<state>` al `TipoExpedienteInstance.xml` 
 
 ### 2.3 Ficheros EXTERNOS a la carpeta — fáciles de olvidar
 
-1. **Permisos por `tipoExpedienteCode`**: toda asignación ligada al tipo (no al trámite) hay que duplicarla para `<Code>V2` (buscar `<Code>V1` en `data-demo/` y en los `data-init`). Las asignaciones por `tramiteCode` no necesitan cambio.
-2. **`TareaFirma` pendientes**: si el tipo pone documentos a firmar en el portafirmas, sus filas guardan el **FQCN** del notifier (`fqcnFirmaNotifier`), que apunta a una clase de la carpeta que estás copiando o moviendo. Eso **no** se autocorrige como el `basePackageName` (`recetas/firma.md` §3): crear una versión nueva no rompe nada —las filas viejas siguen apuntando a la clase vieja, que sigue existiendo—, pero **mover o renombrar** la carpeta de una versión que tenga firmas en marcha sí. Compruébalo antes.
-3. **`archunit_store`** (`src/test/resources/archunit_store/`): si el código copiado contiene violaciones congeladas (buscar el paquete `.v1` en el store), la copia introduce la misma violación con el paquete `.v2` — añade la línea homóloga (mismo número de línea si la copia es línea a línea) o, mejor, elimina el código problemático en ambas versiones.
+1. **`TareaFirma` pendientes**: si el tipo pone documentos a firmar en el portafirmas, sus filas guardan el **FQCN** del notifier (`fqcnFirmaNotifier`), que apunta a una clase de la carpeta que estás copiando o moviendo. Eso **no** se autocorrige como el `basePackageName` (`recetas/firma.md` §3): crear una versión nueva no rompe nada —las filas viejas siguen apuntando a la clase vieja, que sigue existiendo—, pero **mover o renombrar** la carpeta de una versión que tenga firmas en marcha sí. Compruébalo antes.
+2. **`archunit_store`** (`src/test/resources/archunit_store/`): si el código copiado contiene violaciones congeladas (buscar el paquete `.v1` en el store), la copia introduce la misma violación con el paquete `.v2` — añade la línea homóloga (mismo número de línea si la copia es línea a línea) o, mejor, elimina el código problemático en ambas versiones.
 
 ### 2.4 Verificar y compilar
 
@@ -105,7 +104,6 @@ El build regenera para las carpetas nuevas (la raíz y **cada fase**): `i18n_*.c
 - [ ] ¿Copiados solo los fuentes (sin `i18n_*.csv` — tampoco los de las carpetas de fase —, `estados.png`, locks)?
 - [ ] ¿Está la subcarpeta de **todas** las fases, con sus tres ficheros?
 - [ ] ¿`grep` de `V1`/`.v1`/`/v1/` en la carpeta nueva devuelve 0 resultados?
-- [ ] ¿Duplicadas las asignaciones de permisos por `tipoExpedienteCode`?
 - [ ] ¿Revisado `archunit_store` si el código copiado tenía violaciones congeladas?
 - [ ] ¿`./gradlew clean build` en verde?
 - [ ] ¿`defaultTipoExpediente` — decidido conscientemente si se activa ya o no?

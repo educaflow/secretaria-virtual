@@ -74,7 +74,7 @@ Solo el **diseñador** carga el contexto del proyecto de §4; los otros siete tr
 
 - **Lee de esta plantilla:** `design-contract.md` (**siempre y entero**: qué producir, la estructura de `design/`, las 15 secciones del `design.md`, la notación de acciones, el DSL del validador, el orden de los pasos y el **checklist §17**); `vistas.md` (**siempre**: todo tipo de expediente tiene vistas, incluido su checklist §8); `tests-e2e.md` (**siempre**: `test-e2e-desc.md` lo escribe él).
 - **Carga además** el contexto del proyecto de §4 (skills + código real). Es el único rol que lo necesita para producir.
-- **Produce:** todos los ficheros de `design-contract.md` §1 — el índice `design.md`, los XML materializados verbatim, el `estados.puml`, un `fases/<fase>/views.xml` por cada fase, `permisos.xml` y `test-e2e-desc.md` — más las partes condicionales de §5 cuando apliquen.
+- **Produce:** todos los ficheros de `design-contract.md` §1 — el índice `design.md`, los XML materializados verbatim, el `estados.puml`, un `fases/<fase>/views.xml` por cada fase y `test-e2e-desc.md` — más las partes condicionales de §5 cuando apliquen.
 - **MUST NOT** materializar ningún `.java` ni `.kt`: las clases se **describen** con precisión quirúrgica en el `design.md` (`design-contract.md` §10, §11, §12). La **única excepción** es el DSL del validador, que sí se escribe con su sintaxis literal.
 - **MUST NOT** escribir `design/test-unit-desc.md`: lo produce el rol **test-unitarios** en una fase posterior del motor.
 - **MUST NOT** inventar fases, estados, eventos, campos, perfiles ni documentos que la especificación no pida.
@@ -159,7 +159,7 @@ Lo carga el **diseñador** (§2.1) antes de generar. Es el único rol que lo nec
 - **Siempre** `k-tramite` — el alta del trámite: la carpeta `tramites/<tramite>/`, el `TramiteInstance.xml`, la i18n del nombre y los permisos necesarios para poder crear expedientes.
 - **Siempre** `k-validaciones` — en qué capa vive cada tipo de regla (`VAL-`, `RN-`, `RUI-`, `CC-`) que la spec ya clasificó. Es la referencia del **reparto de reglas** (`design-contract.md` §13). En un tipo de expediente **no existe** el prefijo `RES-`: el expediente vive guardado desde que nace y cada dato se exige **solo** en la pareja (estado, acción) en que se pide, así que toda obligatoriedad llega de la spec como `VAL-`. **MUST NOT** buscarse ni inventarse restricciones de entidad.
 - **Siempre** `k-secure-coding` — el modelo de confianza cliente↔servidor. **Determina** la columna «quién lo rellena» de la tabla de campos y, con ella, qué campos pueden aparecer en un `field(...)` del validador (`design-contract.md` §6.1 y §12.3). Incluye la advertencia sobre el endpoint REST automático `POST /ws/rest/<FQN>`, que **no** pasa por el `Tramitador`.
-- **Siempre** `k-datainit` — cómo se cargan los datos maestros y de permisos (`input-config.xml` + `input/`), para entender qué es `permisos-demo.xml` y qué es una fusión.
+- **Siempre** `k-datainit` — cómo se cargan los datos maestros y de permisos (`input-config.xml` + `input/`), para entender cómo se cargan los perfiles de security (`AceProfileGlobal.xml`, `AceProfileTipoTramite.xml`) y los que el build genera a partir de los `<aces>` de los ficheros maestros.
 - **Siempre** `k-i18n` — cómo se traducen `title`, `help` y `name`, el marcador `__!!` y por qué **MUST NOT** escribirse ningún `i18n_*.csv`.
 - **Siempre** `k-code-quality` — reglas de calidad del Java/Kotlin que el diseño especifica (descomposición, responsabilidad única, nombrado, idiomas modernos, convenciones Axelor/Guice/JPA).
 - **Condicional** `k-guice` — cargar **solo si** el diseño necesita cablear DI no trivial: un servicio nuevo del trámite cuya construcción no es un simple `@Inject` de otro bean (dependencias que vienen de configuración o de runtime, `Provider`, binding explícito). Para inyectar el `<Entidad>Repository`, el `AlmacenClaveResolver` o el `ModelServiceFactory` en un `PhaseEventManagerImpl` **NO** hace falta.
@@ -176,7 +176,8 @@ Los skills son la fuente de verdad sobre **qué piezas existen y cómo se llaman
 - `src/main/java/com/educaflow/subsystem/expedientes/` — el subsistema que tramita: `Tramitador`, `EventContext`, `ExpedienteLocator`, `ExpedienteController`, `FirmaController`, `ExpedienteUtil`, las acciones globales de `controllers/actions-expedientes.xml` y los paneles globales de `tramites/shared/`. Es donde se comprueba qué API existe realmente.
   **CRITICAL — para el diseño es de SOLO LECTURA.** El motor **MUST** mantenerse lo más pequeño posible, porque todo lo que se le añade lo heredan **todos** los tipos de expediente. El diseño **MUST NOT** proponer crear ni modificar nada dentro de `subsystem/expedientes` para sacar adelante este trámite: lo que el trámite necesita vive en su carpeta de versión, o en `tramites/util/<propósito>/` si lo comparten varios tipos. **MUST** leerse `subsystem/expedientes/CLAUDE.md` (dónde va cada cosa) y `tramites/util/CLAUDE.md` (las seis condiciones de entrada al común) antes de decidir dónde vive cada pieza nueva. Si el diseñador cree que ampliar el motor es inevitable, **MUST NOT** darlo por hecho: lo deja escrito de forma explícita y visible en el `design.md` como decisión de arquitectura pendiente de aprobar.
 - `src/main/java/com/educaflow/base/infrastructure/` — `DocumentoPdf`, `MetaFileHelper`, `AlmacenClaveResolver`, `CampoFirma`, `Rectangulo` y las reglas del DSL de validación (`validation/rules/`).
-- `src/main/resources/data-demo/input/permisos-demo.xml` — **MUST** leerse para saber qué `<perfil>` ya existen y **no duplicarlos** en `design/permisos.xml`.
+- `src/main/java/com/educaflow/subsystem/security/CLAUDE.md` — **MUST** leerse: es la fuente de verdad de cómo se calculan los perfiles a partir de las tablas `AceProfile*` (`design-contract.md` §14).
+- `src/main/java/com/educaflow/subsystem/security/data-init/input/AceProfileGlobal.xml` y `AceProfileTipoTramite.xml` — **MUST** leerse para saber qué perfiles ya se tienen por ahí y **no duplicarlos** en los `<aces>` del diseño. **MUST NOT** modificarse: son de security y compartidos por todos los trámites.
 - `src/main/resources/data-demo/input/usuarios-demo.xml` y `centros-demo.xml` — **MUST** leerse para los actores y credenciales de `test-e2e-desc.md` (ver `tests-e2e.md` §2).
 - `src/main/java/com/educaflow/subsystem/expedientes/data-init/input/TipoTramites.xml` — **MUST** leerse para comprobar que el `<tipoTramite>` elegido existe.
 - `src/test/java/com/educaflow/tiposexpedientes/` — los tests que verifican la forma de todo tipo de expediente. **MUST** leerse para saber qué se va a exigir; **MUST NOT** proponerse tocarlos ni ampliarlos (ver `tests-unitarios.md`).
@@ -188,7 +189,7 @@ Los skills son la fuente de verdad sobre **qué piezas existen y cómo se llaman
 - **MUST NOT** usarse `agent_docs/architecture-rules.md` ni `/developer-create-arch-tests` para este artefacto.
 - **MUST NOT** usarse ningún `design.md` ni XML de diseños previos de `.sdd/` como plantilla de estructura — **salvo lectura** de las iniciativas archivadas que `design-guidelines.md` cite explícitamente, y solo para respetar sus decisiones.
 
-El **verificador** puede leer (nunca escribir) los ficheros reales que `validacion.md` le indica expresamente: `permisos-demo.xml`, `TipoTramites.xml`, los paneles globales de `tramites/shared/` y el árbol de `tramites/` para comprobar las acciones `Crear`/`Modificar`.
+El **verificador** puede leer (nunca escribir) los ficheros reales que `validacion.md` le indica expresamente: `AceProfileGlobal.xml`, `AceProfileTipoTramite.xml`, `tiposUsuario.xml`, `cargos.xml`, `TipoTramites.xml`, los paneles globales de `tramites/shared/` y el árbol de `tramites/` para comprobar las acciones `Crear`/`Modificar`.
 
 ---
 
@@ -196,7 +197,7 @@ El **verificador** puede leer (nunca escribir) los ficheros reales que `validaci
 
 El detalle de cada fichero está en `design-contract.md` §1. Aquí se fija **cuándo** existe cada parte. El verificador comprueba las dos direcciones: que lo obligatorio está, y que lo condicional está **si y solo si** su condición se cumple.
 
-**Iniciativa de MODIFICACIÓN de una versión existente** (§4.2): la tabla §5.1 **NO aplica tal cual**. Lo obligatorio pasa a ser: `design.md` (con sus 15 secciones, escribiendo `*(sin cambios)*` donde el delta no toque — **salvo «Identidad del trámite y del tipo», «Ficheros a crear o modificar» y «Pasos», que van SIEMPRE completas**, `design-contract.md` §8), `test-e2e-desc.md`, `test-unit-desc.md`, y **exactamente** los ficheros que el delta toca (los de la tabla §6 del `design.md`); `permisos.xml` solo si hay asignaciones nuevas. Un fichero de §5.1 ausente porque el delta no lo toca **no es un fallo**.
+**Iniciativa de MODIFICACIÓN de una versión existente** (§4.2): la tabla §5.1 **NO aplica tal cual**. Lo obligatorio pasa a ser: `design.md` (con sus 15 secciones, escribiendo `*(sin cambios)*` donde el delta no toque — **salvo «Identidad del trámite y del tipo», «Ficheros a crear o modificar» y «Pasos», que van SIEMPRE completas**, `design-contract.md` §8), `test-e2e-desc.md`, `test-unit-desc.md`, y **exactamente** los ficheros que el delta toca (los de la tabla §6 del `design.md`); si el delta añade perfiles, entre ellos está el `TramiteInstance.xml` o el `TipoExpedienteInstance.xml` que lleva sus `<ace>`. Un fichero de §5.1 ausente porque el delta no lo toca **no es un fallo**.
 Dentro del `design.md`, este modo añade además la subsección `### Tests E2E supersedidos` de `## 13. Tests`, presente **si y solo si** el delta invalida a propósito algún test E2E ya persistido de esa versión (`design-contract.md` §15.3).
 
 ### 5.1 Siempre
@@ -204,13 +205,12 @@ Dentro del `design.md`, este modo añade además la subsección `### Tests E2E s
 | Parte | Nota |
 |---|---|
 | `design.md` | El índice, con las 15 secciones de `design-contract.md` §2 |
-| `TramiteInstance.xml` | Uno por trámite |
+| `TramiteInstance.xml` | Uno por trámite, con su `<aces>` (`design-contract.md` §14): un tipo de expediente sin perfiles asignados es inalcanzable |
 | `TipoExpedienteInstance.xml` | Uno por versión, con **todas** sus fases |
 | `domains.xml` | Con la entidad del tipo como **primera** `<entity>` |
 | `views.xml` (raíz de la versión) | El form plantilla `exp-<Entidad>-Templates` |
 | `estados.puml` | La proyección de la máquina de estados |
 | `fases/<fase>/views.xml` | **Uno por CADA fase declarada**, con la fase en minúsculas |
-| `permisos.xml` | **Siempre**: un tipo de expediente sin perfiles asignados es inalcanzable |
 | `test-e2e-desc.md` | Siempre; el contrato está en `tests-e2e.md` |
 | `test-unit-desc.md` | Siempre, pero lo escribe el rol **test-unitarios**, no el diseñador |
 

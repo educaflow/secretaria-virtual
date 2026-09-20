@@ -42,7 +42,6 @@ Por eso una tarea localiza el `### Paso N` del diseño **por su fichero**, nunca
 | 6 | **`InitialEventManagerImpl.java`** | `<carpeta de versión>/InitialEventManagerImpl.java` | Necesita la entidad (paso 4); su parámetro de tipo es el **único** sitio donde el tipo la declara |
 | 7 | **Una tarea POR FASE** | `<carpeta de versión>/<fase>/PhaseEventManagerImpl.java`, `<carpeta de versión>/<fase>/StateEventValidatorImpl.kt`, `<carpeta de versión>/<fase>/views.xml` | Necesitan la entidad y los paneles |
 | 8 | **`documentospdf/`** | `<carpeta de versión>/documentospdf/<doc>.xml` y `<carpeta de versión>/documentospdf/_<fragmento>.xml` | Sus rutas `self.*` son campos de la entidad |
-| 9 | **Asignaciones de perfil** | `src/main/resources/data-demo/input/permisos-demo.xml` (**Modificar**) | Referencian el `<Code>` del trámite y el `<Entidad>` del tipo |
 
 Reglas de instanciación:
 
@@ -50,13 +49,13 @@ Reglas de instanciación:
   El `views.xml` de una fase **MUST NOT** faltar en el diseño ni llegar vacío: si falta el de una fase declarada, o su `<object-views>` no tiene ningún hijo, es un **DESIGN-ERROR** (tumba el arranque — `build.md` §6).
 - El bloque **8 es una sola tarea** que cubre **todos** los documentos y fragmentos. Si el tipo no genera ningún PDF, **la tarea no existe** (sin error).
 - Los bloques **2, 3, 4, 5 y 6 son exactamente una tarea cada uno**: existen siempre.
-- Los bloques **1 y 9 son condicionales**, con el mismo criterio que el 8: existen **si y solo si** la tabla §6 del `design.md` lista su fichero, y entonces son **exactamente una tarea cada uno**. El `TramiteInstance.xml` (bloque 1) solo aparece cuando el trámite es **nuevo**; una versión posterior de un trámite ya dado de alta no lo trae. Las asignaciones de perfil (bloque 9) solo aparecen cuando el diseño declara alguna que **no** esté ya concedida por una asignación por `tramiteCode` preexistente. **MUST NOT** fabricarse una tarea vacía para un bloque cuyo fichero §6 no liste, ni omitirse la tarea de un bloque cuyo fichero §6 sí liste.
+- El bloque **1 es condicional**, con el mismo criterio que el 8: existe **si y solo si** la tabla §6 del `design.md` lista su fichero, y entonces es **exactamente una tarea**. El `TramiteInstance.xml` aparece cuando el trámite es **nuevo** o cuando el diseño cambia algo de un trámite ya dado de alta (típicamente, añadir un `<ace>` a su `<aces>`, como `Modificar`); una versión posterior que no toca el trámite no lo trae. Los perfiles no tienen bloque propio: viajan en el `<aces>` de los ficheros de los bloques 1 y 2. **MUST NOT** fabricarse una tarea vacía para un bloque cuyo fichero §6 no liste, ni omitirse la tarea de un bloque cuyo fichero §6 sí liste.
 - **Tarea de test — excepcional.** No hay ningún bloque de tests en esta tabla, y **MUST NOT** fabricarse uno, salvo en el único caso que contempla `tests-code.md` §4: que `design/test-unit-desc.md` describa una **clase auxiliar propia con lógica de negocio aislable**.
-  Solo entonces se crea **una** tarea de test para esa clase, **al final de todo**, después del bloque 9, numerada correlativamente como una tarea más.
+  Solo entonces se crea **una** tarea de test para esa clase, **al final de todo**, después del bloque 8, numerada correlativamente como una tarea más.
 - Numera `01`, `02`, … de forma correlativa siguiendo esta tabla. El número final depende de `F` y de si hay documentos.
-- **Iniciativa de MODIFICACIÓN de una versión existente** (el `design.md` lo declara con la fila «Modificación de» de su sección «Identidad del trámite y del tipo», y su tabla §6 lista solo los ficheros tocados por el delta): **TODOS los bloques pasan a ser condicionales** con el criterio de los bloques 1 y 9 — la tarea de un bloque existe **si y solo si** la tabla §6 lista alguno de sus ficheros —, manteniendo el orden relativo de la tabla. El bloque 3 (`CreateFilesTask`) existe **solo si** el delta añade fases nuevas (la tarea es idempotente: generará únicamente los esqueletos de las fases nuevas y dejará intacto todo lo demás).
+- **Iniciativa de MODIFICACIÓN de una versión existente** (el `design.md` lo declara con la fila «Modificación de» de su sección «Identidad del trámite y del tipo», y su tabla §6 lista solo los ficheros tocados por el delta): **TODOS los bloques pasan a ser condicionales** con el criterio del bloque 1 — la tarea de un bloque existe **si y solo si** la tabla §6 lista alguno de sus ficheros —, manteniendo el orden relativo de la tabla. El bloque 3 (`CreateFilesTask`) existe **solo si** el delta añade fases nuevas (la tarea es idempotente: generará únicamente los esqueletos de las fases nuevas y dejará intacto todo lo demás).
 
-> **Ejemplo** (ilustrativo, NO normativo): un tipo de un **trámite nuevo** con **3 fases**, documentos PDF y asignaciones de perfil propias genera 11 tareas (1 trámite + 1 maestro/puml + 1 CreateFilesTask + 1 domains + 1 views raíz + 1 initial + 3 de fase + 1 documentospdf + 1 permisos). Un tipo con **1 fase** y sin PDF genera 8.
+> **Ejemplo** (ilustrativo, NO normativo): un tipo de un **trámite nuevo** con **3 fases**, y documentos PDF genera 10 tareas (1 trámite + 1 maestro/puml + 1 CreateFilesTask + 1 domains + 1 views raíz + 1 initial + 3 de fase + 1 documentospdf). Un tipo con **1 fase** y sin PDF genera 7.
 
 ### 2.1 La tarea 3 es una tarea PROPIA — `CreateFilesTask`
 
@@ -96,7 +95,6 @@ Mínimos obligatorios por tipo de tarea (añádelos aunque la tabla no los liste
 | 6 — `InitialEventManagerImpl.java` | `k-tipo-expediente`, `k-secure-coding`, `k-code-quality` |
 | 7 — cada fase | `k-tipo-expediente`, `k-validaciones`, `k-secure-coding`, `k-code-quality` |
 | 8 — `documentospdf/` | `k-tipo-expediente` |
-| 9 — `permisos-demo.xml` | `k-datainit` |
 
 - **CRITICAL** — `k-secure-coding` va en **toda** tarea que toque la entidad, un `trigger*` o el validador: el `StateEventValidatorImpl` no es solo un validador, es la **lista de campos que el cliente puede dictar** en ese evento.
 - Añade `k-i18n` a cualquier tarea cuyo texto del diseño incluya mensajes, títulos o textos visibles al usuario.
@@ -140,15 +138,14 @@ Para hacer esta tarea vas a usar estos skills
 
 | Tarea | Secciones del `design.md` que se copian **verbatim** en su `<texto del prompt>` |
 |---|---|
-| 1 — `TramiteInstance.xml` | La(s) fila(s) de §6 de sus ficheros; el `### Paso N` correspondiente; la tabla entera de **§2 Identidad del trámite y del tipo** |
-| 2 — `TipoExpedienteInstance.xml` + `estados.puml` | Sus filas de §6; los `### Paso N` de ambos ficheros; **§3 Máquina de estados completa** (las tablas por fase **y** la tabla de transiciones) |
+| 1 — `TramiteInstance.xml` | La(s) fila(s) de §6 de sus ficheros; el `### Paso N` correspondiente; la tabla entera de **§2 Identidad del trámite y del tipo**; **§12 Asignación de perfiles** (su `<aces>` viaja en este fichero) |
+| 2 — `TipoExpedienteInstance.xml` + `estados.puml` | Sus filas de §6; los `### Paso N` de ambos ficheros; **§3 Máquina de estados completa** (las tablas por fase **y** la tabla de transiciones); **§12 Asignación de perfiles** si el fichero lleva `<aces>` |
 | 3 — `CreateFilesTask` | El `### Paso N` de `CreateFilesTask` **íntegro**, más lo que exige §2.1 de este contrato |
 | 4 — `domains.xml` | Su fila de §6; su `### Paso N`; **§4 Modelo completa** (tabla de campos con la columna «quién lo rellena», tabla de enums, bloque `<extra-code-model>`); **§5 Documentos PDF** (para saber qué constantes lleva el enum `TipoDocumentoPdf`); las filas de **§11 Reparto de reglas** que ubiquen una regla en el modelo |
 | 5 — `views.xml` de la raíz | Su fila de §6; su `### Paso N` **con el resumen estructural de paneles** que el diseño incluye ahí |
 | 6 — `InitialEventManagerImpl.java` | Su fila de §6; su `### Paso N`; **§8 Especificación del InitialEventManagerImpl, ÍNTEGRA** (la tabla ordenada de asignaciones, las dependencias a inyectar y las reglas explícitas que §8 declare: la de lo que el `Tramitador` ya rellena y, **cuando aplique**, la de `personaSolicitante`/`personaInteresada` —solo si algún `trigger*` crea registro de entrada—; si el tipo no crea registro de entrada, §8 lo dice explícitamente y esa ausencia **MUST NOT** leerse como diseño incompleto); las filas de §11 que ubiquen una regla en el `triggerInitialEvent` |
 | 7 — cada fase `<FASE>` | **Todas** las filas de §6 de esa fase, sean las que sean (las tres de una fase completa; menos en una **iniciativa de MODIFICACIÓN**, donde §6 lista solo los ficheros que el delta toca); los `### Paso N` de **cada uno** de esos ficheros; la subsección **`### Fase <FASE>` de §9 (Especificación de los PhaseEventManagerImpl), ÍNTEGRA** —cabecera, lista de `trigger<Evento>` con sus **listas numeradas de acciones en orden**, lista de `onEnter<Estado>` y **lista de cobertura**—; la subsección **`### Fase <FASE>` de §10 (Especificación de los StateEventValidatorImpl), ÍNTEGRA** —tabla de cobertura y el contenido de cada método con sus `field(...)` y **argumentos literales**—; el resumen estructural `(estado, perfil) → paneles → botones` de esa fase; la **tabla de transiciones de §3** filtrada a las filas cuyo origen sea un estado de esa fase; las filas de §11 que apliquen |
 | 8 — `documentospdf/` | Sus filas de §6; su `### Paso N`; **§5 Documentos PDF completa** |
-| 9 — `permisos-demo.xml` | Su fila de §6 (con `Acción: Modificar`); su `### Paso N`; **§12 Asignación de perfiles completa** |
 
 Reglas de relleno del `<texto del prompt>`:
 
@@ -157,7 +154,6 @@ Reglas de relleno del `<texto del prompt>`:
 - **MUST NOT** inventarse pasos, campos, estados, eventos, métodos, paneles, botones ni ficheros que el `design.md` no declare.
 - **MUST NOT** duplicarse una misma subsección `### Fase <FASE>` en dos tareas distintas: la de §9 y la de §10 de una fase van **solo** en la tarea de esa fase.
 - Para una tarea de **XML o `.puml` ya materializado**, el `<texto del prompt>` **MUST** indicar explícitamente el fichero de origen en `design/...`, la **ruta destino resuelta** y que se **copia literalmente**, **sobrescribiendo** el esqueleto que dejó `CreateFilesTask` si lo hay, **sin regenerarlo** (`implementation.md` §2).
-- Para la tarea de **`permisos-demo.xml`**, el texto **MUST** decir que es una **fusión**, no una copia, y remitir a `implementation.md` §5.
 - **MUST** incluirse en toda tarea de `.java` / `.kt` la frase de que la especificación del diseño es **contrato fijo** y la **superficie es cerrada**: **MUST NOT** crearse ningún método, clase, campo ni acción que la especificación no liste.
 
 - ✅ CORRECTO: la tarea de la fase `<FASE>` lleva pegada, palabra por palabra, la subsección `### Fase <FASE>` de §9 con sus listas numeradas de acciones y la de §10 con sus `field(...)`.
@@ -184,7 +180,7 @@ template: <valor copiado del design.md>
 - Un enlace por cada `task_NN.md` creado, en orden, precedido de `- [ ]`.
 - El texto del enlace es `Tarea NN`; el destino es `task_NN.md`.
 - `template:` se copia verbatim del `design.md`, igual que en `task_NN.md` (§4).
-- Todos los checkboxes se escriben **sin marcar**: marcarlos es responsabilidad del implementador al completar cada tarea (`implementation.md` §8). **MUST NOT** marcarlos al crear el índice.
+- Todos los checkboxes se escriben **sin marcar**: marcarlos es responsabilidad del implementador al completar cada tarea (`implementation.md` §7). **MUST NOT** marcarlos al crear el índice.
 - ✅ CORRECTO: `- [ ] [Tarea 01](task_01.md)`.
 - ❌ INCORRECTO: `- [Tarea 01](task_01.md)` (sin checkbox), `- [x] [Tarea 01](task_01.md)` (marcado al crear), `- [ ] [Tarea 1](tarea_01.md)` (número sin dos dígitos y fichero que no existe).
 
@@ -229,7 +225,7 @@ Antes de devolver el token, **MUST** recorrer este checklist. Si algo falla, cor
 
 **Orden**
 
-- [ ] ¿El orden de las tareas es exactamente el de §2: trámite → maestro+puml → **CreateFilesTask** → domains → views raíz → initial → una por fase → documentospdf → permisos?
+- [ ] ¿El orden de las tareas es exactamente el de §2: trámite → maestro+puml → **CreateFilesTask** → domains → views raíz → initial → una por fase → documentospdf?
 - [ ] ¿`CreateFilesTask` es una **tarea propia** en la posición 3, con su comando exacto y la ruta resuelta, y **no** un paso escondido dentro de otra?
 - [ ] ¿Hay **una tarea por cada fase** declarada, en el orden de declaración, agrupando **todos los ficheros que §6 declare para ella** (en una fase completa: `PhaseEventManagerImpl.java`, `StateEventValidatorImpl.kt` y `views.xml`; en una iniciativa de MODIFICACIÓN, solo los que el delta toque)?
 - [ ] ¿La tarea de `documentospdf/` existe si y solo si el tipo genera algún documento?
@@ -242,7 +238,6 @@ Antes de devolver el token, **MUST** recorrer este checklist. Si algo falla, cor
 - [ ] ¿La tarea del `domains.xml` lleva §4 completa con la columna «quién lo rellena»?
 - [ ] ¿Ninguna tarea transcribe el contenido de un XML de `design/` en vez de mandar copiarlo?
 - [ ] ¿Cada tarea de XML/`.puml` indica origen en `design/...`, **ruta destino resuelta** y «cópialo literalmente, sobrescribiendo el esqueleto»?
-- [ ] ¿La tarea de `permisos-demo.xml` dice **fusión**, no copia, y su fila lleva `Acción: Modificar`?
 
 **Skills**
 

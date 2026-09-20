@@ -216,6 +216,16 @@ Tags opcionales (antes de `<fases>`): `name`, `code` y `tramite` (sobrescriben l
 
 **MUST NOT** usar un `<states>` suelto en la raíz: es el formato anterior a las fases y el parseo aborta con un error que lo explica.
 
+Tag opcional `<aces>` (hermano de `<fases>`): los perfiles que da **este** tipo de expediente en todos los centros; se cargan en la tabla `AceProfileTipoExpediente` (§3.5). Mismo formato que `<aces>` de `TramiteInstance.xml` (`/k-tramite` §3), sin atributo del tipo: es el del propio fichero.
+
+```xml
+    <aces>
+        <ace perfil="TRAMITADOR" cargo="JEFE_ESTUDIOS"/>
+    </aces>
+```
+
+- Prefiere el `<aces>` del trámite cuando el perfil no dependa de la versión: el del tipo hay que repetirlo en cada versión nueva.
+
 ### 2.1 Reglas de `<fase>`
 
 - **MUST** haber al menos una fase, y todo `<state>` va dentro de una.
@@ -366,6 +376,7 @@ Tres reglas **no** leen el bytecode, cada una por su motivo, y se señalan en su
 `generateDataInitTiposExpedientes` genera por cada tipo un data-init (en `build/`, nunca en `src`) que hace bind del `TipoExpediente` por `code` con `create`+`update` — por eso la fila **se refresca en cada arranque**. Persiste:
 
 - `code`, `name`, el `tramite` (resuelto buscando su `code` en BD — de ahí que el trámite cargue antes, con `priority` mayor) y el `basePackageName`, que es lo que usa `ExpedienteLocator` para encontrar las clases de cada fase y la clase `States` (§1.6).
+- Los `<aces>` del tipo, en `AceProfileTipoExpediente`, con un `<input>` detrás del del tipo (los `<input>` de un `input-config.xml` se cargan en orden). La tabla se vacía en cada arranque (`DataBaseStartup`), así que quitar un `<ace>` del XML lo quita de la BD.
 - **Nada más**: ni fases, ni estados, ni eventos, ni flags. La máquina de estados no toca la base de datos; vive entera en la clase `States` (§2.3).
 
 (El data-init del **trámite** — qué persiste el `TramiteInstance.xml` — está en `/k-tramite` §4.)

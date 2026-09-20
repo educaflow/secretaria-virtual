@@ -51,7 +51,7 @@ El skill abre `README.md` y, a través de él, cada subagente usa los demás.
 |---|---|---|
 | `README.md` | **Esta guía/índice**: contrato fijo, estructura de entrada/salida, contexto del proyecto a cargar y los principios comunes a todos los roles. | Los **cuatro** subagentes (es el contrato que el skill nombra). **MUST NOT** copiarse al output. |
 | `decomposition.md` | **Cómo descomponer el diseño en tareas**: el **orden obligatorio** de las tareas, qué texto del `design.md` se copia verbatim en cada una y de qué secciones sale, los skills por tarea, la propagación de `test-e2e-desc.md`, las **plantillas exactas** de `task_NN.md` / `tasks.md` y el checklist. | El **descomponedor** (§3.1). |
-| `implementation.md` | **Cómo materializar una tarea**: qué XML se copian verbatim y a qué ruta destino, cómo se rellenan los `.java`/`.kt` **sobre el esqueleto** que dejó `CreateFilesTask`, cómo se fusiona `permisos-demo.xml`, las prohibiciones duras y el manejo de `CONFLICT`/`BLOCKED`/`DESIGN-ERROR`. | El **implementador** (§3.2); el **corrector-build** (§3.4) lo consulta para saber qué puede tocar. |
+| `implementation.md` | **Cómo materializar una tarea**: qué XML se copian verbatim y a qué ruta destino, cómo se rellenan los `.java`/`.kt` **sobre el esqueleto** que dejó `CreateFilesTask`, las prohibiciones duras y el manejo de `CONFLICT`/`BLOCKED`/`DESIGN-ERROR`. | El **implementador** (§3.2); el **corrector-build** (§3.4) lo consulta para saber qué puede tocar. |
 | `build.md` | **Cómo verificar y corregir el build**: el comando, la nota de entorno del *sandbox*, el criterio de éxito, el formato JSONL, el chequeo de conformidad de superficie, qué puede y qué **NO** puede tocar el corrector y el catálogo de errores típicos de este artefacto. | El **verificador-build** (§3.3); el **corrector-build** (§3.4). |
 | `tests-code.md` | **Qué tests se generan**: **ninguno propio**, salvo la excepción de su §4. La conformidad la dan los tests ya existentes y escritos a mano de `src/test/java/com/educaflow/tiposexpedientes/`; aquí se enumera **qué exigen**, y cómo se tratan `test-e2e-desc.md` y `test-unit-desc.md`. | El **descomponedor** (§3.1) y el **implementador** (§3.2). |
 
@@ -67,15 +67,14 @@ El diseñador (`/sdd-designer`) dejó en `{iniciativa}/design/` **exactamente** 
 .sdd/drafts/YYYY-MM-DD_HH-MM_{resumen}/
 └── design/
     ├── design.md                          ← índice (frontmatter type: design + template: heredada de la spec)
-    ├── TramiteInstance.xml                ← XML materializado, listo para copiar
-    ├── TipoExpedienteInstance.xml         ← XML materializado
+    ├── TramiteInstance.xml                ← XML materializado, listo para copiar (lleva los perfiles en su <aces>)
+    ├── TipoExpedienteInstance.xml         ← XML materializado (y su <aces>, si lo lleva)
     ├── domains.xml                        ← XML materializado
     ├── views.xml                          ← XML materializado (form plantilla de la raíz de la versión)
     ├── estados.puml                       ← materializado
     ├── fases/<fase>/views.xml             ← XML materializado, uno por CADA fase declarada
     ├── documentospdf/<doc>.xml            ← XML materializado, uno por documento (0..N)
     ├── documentospdf/_<fragmento>.xml     ← XML materializado, 0..N fragmentos reutilizables
-    ├── permisos.xml                       ← fragmento a FUSIONAR en permisos-demo.xml
     ├── test-e2e-desc.md                   ← tests E2E en Given/When/Then
     └── test-unit-desc.md                  ← declaración de cobertura de los tests ya existentes
 ```
@@ -130,8 +129,6 @@ src/main/java/com/educaflow/tramites/<tramite>/
     ├── <fase>/StateEventValidatorImpl.kt
     ├── <fase>/views.xml
     └── documentospdf/<doc>.xml, documentospdf/_<fragmento>.xml
-
-src/main/resources/data-demo/input/permisos-demo.xml   ← se FUSIONA (no se sobrescribe)
 ```
 
 - **MUST NOT** escribirse ningún fichero bajo `src/test/...`, **salvo la excepción de `tests-code.md` §4** (una clase auxiliar propia con lógica de negocio aislable): este artefacto **no genera tests propios** (`tests-code.md`).
@@ -167,12 +164,12 @@ Todos reciben las **mismas rutas de entrada** (este `README.md` y la carpeta `{i
 
 ### 3.2 implementador — materializa una tarea
 
-**Tarea:** dada **una** tarea de `{iniciativa}/implementation/`, **materializarla en el árbol del proyecto**: copiar verbatim el XML o el `.puml` que le toque, **ejecutar `CreateFilesTask`** si esa es su tarea, rellenar el `.java`/`.kt` **sobre el esqueleto** delegando en `developer-code-implementer`, o fusionar el fragmento de permisos.
+**Tarea:** dada **una** tarea de `{iniciativa}/implementation/`, **materializarla en el árbol del proyecto**: copiar verbatim el XML o el `.puml` que le toque, **ejecutar `CreateFilesTask`** si esa es su tarea, rellenar el `.java`/`.kt` **sobre el esqueleto** delegando en `developer-code-implementer`.
 
-- **Lee de esta plantilla:** `implementation.md` (el mapeo origen→destino de cada XML, la consecuencia práctica de que `CreateFilesTask` sea idempotente, cómo se rellena cada clase, la fusión de `permisos-demo.xml`, las prohibiciones duras y el manejo de bloqueos); y `tests-code.md` si la tarea lo referencia.
+- **Lee de esta plantilla:** `implementation.md` (el mapeo origen→destino de cada XML, la consecuencia práctica de que `CreateFilesTask` sea idempotente, cómo se rellena cada clase, las prohibiciones duras y el manejo de bloqueos); y `tests-code.md` si la tarea lo referencia.
 - **Entrada propia:** la ruta de **su** tarea (`task_NN.md`) y la carpeta `{iniciativa}/design` (los XML materializados son **contrato fijo**: se copian tal cual, **NO** se regeneran).
 - **OBLIGATORIO:** carga primero, con la herramienta `Skill`, los skills que la tarea lista; y solo entonces, si la tarea es de código, **invoca `developer-code-implementer`** pasándole el `<texto del prompt>` de la tarea **verbatim**.
-- **MUST NOT** adivinar ante un bloqueo: lo reporta con su token (`CONFLICT` / `BLOCKED` / `DESIGN-ERROR`), según el criterio de `implementation.md` §7.
+- **MUST NOT** adivinar ante un bloqueo: lo reporta con su token (`CONFLICT` / `BLOCKED` / `DESIGN-ERROR`), según el criterio de `implementation.md` §6.
 
 ### 3.3 verificador-build — compila y reporta
 
@@ -205,7 +202,6 @@ Los skills técnicos que necesita el **implementador** van **por tarea**, listad
 | `k-secure-coding` | Mass-assignment, `AllowProperties` por evento, campos que solo dicta el servidor, multi-centro/IDOR | **CRITICAL** — toda tarea de `.java`, `.kt` o `domains.xml` |
 | `k-i18n` | `I18n.get(...)`, el sufijo `__!!`, cómo se traducen títulos y mensajes | Tareas con mensajes visibles al usuario |
 | `k-code-quality` | Calidad técnica del Java/Kotlin del proyecto (métodos, clases, idiomas, logger slf4j) | Toda tarea de `.java` o `.kt` |
-| `k-datainit` | Las carpetas `data-init`, el formato de los ficheros de datos y de permisos | Tarea de `permisos-demo.xml` |
 
 ### 4.1 CRITICAL — aquí el código real de `tramites/` SÍ es referencia legítima
 

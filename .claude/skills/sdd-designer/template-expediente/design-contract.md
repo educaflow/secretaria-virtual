@@ -44,15 +44,14 @@ El diseñador escribe, dentro de su carpeta `design_<n>/` (que al ganar el torne
 ```
 design/
 ├── design.md                          ← índice (frontmatter type: design + template: copiada de la spec)
-├── TramiteInstance.xml                ← XML materializado, listo para copiar
-├── TipoExpedienteInstance.xml         ← XML materializado
+├── TramiteInstance.xml                ← XML materializado, listo para copiar (con su <aces>, §14)
+├── TipoExpedienteInstance.xml         ← XML materializado (con su <aces> si lo lleva, §14)
 ├── domains.xml                        ← XML materializado
 ├── views.xml                          ← XML materializado (form plantilla de la raíz de la versión)
 ├── estados.puml                       ← materializado
 ├── fases/<fase>/views.xml             ← XML materializado, uno por CADA fase
 ├── documentospdf/<doc>.xml            ← XML materializado, uno por documento (0..N)
 ├── documentospdf/_<fragmento>.xml     ← XML materializado, 0..N fragmentos reutilizables
-├── permisos.xml                       ← fragmento a fusionar en permisos-demo.xml
 └── test-e2e-desc.md                   ← tests E2E en Given/When/Then (§15.1)
 ```
 
@@ -75,7 +74,7 @@ design/
 - **MUST NOT** incluir cuerpos de método Java/Kotlin implementados (nada de `if`/`for`/`switch` reales dentro de un método). La especificación de §9 y §10 del `design.md` es **declarativa**: listas ordenadas de acciones y de reglas, no código.
 - **EXCEPCIÓN — el DSL del validador (§10 del `design.md`) SÍ se escribe con su sintaxis literal.** Es declarativo, y su literalidad (nombres de reglas y **argumentos exactos**) es justo lo que se implementa sin margen de interpretación.
 - **MUST NOT** inventar fases, estados, eventos, campos ni documentos que la especificación no pida.
-- **MUST NOT** escribir nada fuera de la carpeta de la iniciativa. Todo cambio en el árbol real (incluido `permisos-demo.xml`) se **describe**; lo aplica `/sdd-implementer`.
+- **MUST NOT** escribir nada fuera de la carpeta de la iniciativa. Todo cambio en el árbol real se **describe** o se materializa en `design/`; lo aplica `/sdd-implementer`.
 
 ---
 
@@ -238,12 +237,16 @@ Reglas:
             <state name="<ESTADO>" events="" profile="<PERFIL>" title="<Título>" closed="true"/>
         </fase>
     </fases>
+    <aces>
+        <ace perfil="<PERFIL>" cargo="<CARGO>"/>
+    </aces>
 </TipoExpediente>
 ```
 
 - **MUST** escribirse siempre `events`, aunque sea `events=""`: omitirlo equivale en silencio a vacío.
 - **MUST NOT** usarse un `<states>` suelto en la raíz: es el formato anterior a las fases y el parseo aborta.
 - **MUST NOT** usarse `ambitoCreador`/`ambitoResponsable`/`ambitoAuditor`: hoy son inertes.
+- `<aces>` es opcional y hermano de `<fases>`: los perfiles que da **solo esta versión** (§14).
 - Un tag desconocido lo **ignora JAXB en silencio**: cualquier typo aplica el default sin avisar.
 
 ### 5.5 `TramiteInstance.xml` materializado
@@ -258,10 +261,13 @@ Reglas:
     <tipoTramite><TIPO_TRAMITE></tipoTramite>
     <defaultTipoExpediente><vN></defaultTipoExpediente>
     <help><![CDATA[ ... HTML ... ]]></help>
+    <aces>
+        <ace perfil="<PERFIL>" tipoUsuario="<TIPO_USUARIO>"/>
+    </aces>
 </Tramite>
 ```
 
-`<publico>` y `<privado>` son opcionales. Si el `<help>` contiene `]]>`, el generador lanza `RuntimeException`.
+`<publico>` y `<privado>` son opcionales; `<aces>` también, y lleva los perfiles que da el trámite en todas sus versiones (§14). Si el `<help>` contiene `]]>`, el generador lanza `RuntimeException`.
 
 ---
 
@@ -334,7 +340,7 @@ Una fila por ítem:
 
 
     public com.educaflow.base.infrastructure.pdf.DocumentoPdf getDocumentoPdf(TipoDocumentoPdf tipoDocumentoPdf) {
-        return com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteUtil.getDocumentoPdf(this, tipoDocumentoPdf.getFileName());
+        return com.educaflow.subsystem.expedientes.tramitacion.util.ExpedienteUtil.getDocumentoPdf(this, tipoDocumentoPdf.getFileName());
     }
 
 ]]>
@@ -399,13 +405,12 @@ Una tabla con **exactamente** estas columnas y este título de sección (los usa
 Reglas:
 
 - **MUST** haber **una fila por cada fichero real del árbol** que la implementación crea o modifica; ni una de más ni una de menos. Las rutas son **relativas a la raíz del proyecto**.
-- **MUST** incluir la fila de `src/main/resources/data-demo/input/permisos-demo.xml` con acción **`Modificar`**.
 - **MUST NOT** aparecer ningún `i18n_*.csv`, `estados.png`, `States.java`, data-init generado, ni ningún fichero bajo `build/`.
 - La columna `Acción` es `Crear` o `Modificar`. Una fila `Crear` cuyo destino ya exista en el árbol real es un diseño **erróneo**: debe ser `Modificar`, y entonces el XML del diseño **MUST** ser el fichero real como base **más** el delta (se copia verbatim y sobrescribe).
 - La columna `Skill` nombra el skill que gobierna ese fichero.
 - La columna `Descripción` dice, para un XML, **de qué fichero de `design/` se copia**; para un `.java`/`.kt`, **qué sección de `design.md` lo especifica**.
 
-Inventario mínimo (rutas relativas a `src/main/java/com/educaflow/tramites/`, salvo las dos últimas filas):
+Inventario mínimo (rutas relativas a `src/main/java/com/educaflow/tramites/`):
 
 | Fichero | Acción | Skill |
 |---|---|---|
@@ -419,7 +424,6 @@ Inventario mínimo (rutas relativas a `src/main/java/com/educaflow/tramites/`, s
 | `<tramite>/…/<vN>/<fase>/StateEventValidatorImpl.kt` | Crear | `k-tipo-expediente`, `k-secure-coding` |
 | `<tramite>/…/<vN>/<fase>/views.xml` | Crear | `k-tipo-expediente` |
 | `<tramite>/…/<vN>/documentospdf/<doc>.xml` | Crear | `k-tipo-expediente` |
-| `src/main/resources/data-demo/input/permisos-demo.xml` | **Modificar** | `k-datainit` |
 
 Las tres filas de fase se repiten **por cada fase**; la de `documentospdf` **por cada documento y fragmento**. Si el tipo no genera PDFs, esas filas no existen.
 
@@ -427,7 +431,7 @@ Las tres filas de fase se repiten **por cada fase**; la de `documentospdf` **por
 
 - El inventario mínimo de arriba **NO aplica**: la tabla lista **SOLO** los ficheros realmente tocados por el delta, normalmente con acción `Modificar` (con `Crear` solo lo genuinamente nuevo: una fase nueva, un documento nuevo…).
 - Cada XML con `Modificar` se materializa en `design/` **completo**, con el fichero real del árbol como base **más** el delta (se copiará verbatim y sobrescribirá).
-- La fila de `permisos-demo.xml` solo existe si el delta añade asignaciones nuevas.
+- Si el delta añade o cambia perfiles (§14), el fichero maestro que los lleva (`TramiteInstance.xml` o `TipoExpedienteInstance.xml`) es una fila `Modificar` aunque el delta no toque nada más de él, materializado entero con sus `<ace>` nuevos.
 - **MUST NOT** listarse ni regenerarse ningún fichero que el delta no toque, y **MUST NOT** aparecer ninguna fila que cree una carpeta de versión nueva.
 - En las secciones de `design.md` cuyo contenido no cambie con el delta, se escribe `*(sin cambios)*` en vez de re-derivar el as-is.
 - **CRITICAL — tres secciones quedan FUERA de esa regla y van SIEMPRE completas: «Identidad del trámite y del tipo», «Ficheros a crear o modificar» y «Pasos». MUST NOT** escribirse `*(sin cambios)*` en ninguna de las tres. Las dos últimas **son** el delta; la primera no es contenido de diseño sino la **identidad** de la que viven los skills de aguas abajo: el descomponedor de `/sdd-implementer` deriva de ella `<tramite>`, `<vN>`, `<Entidad>` y `<basePackageName>` (`sdd-implementer/template-expediente/decomposition.md` §1), y `/sdd-create-tests-e2e` resuelve de su fila `Carpeta de la versión` la carpeta de tests destino. Sin ellas ambos abortan.
@@ -453,18 +457,16 @@ Una subsección `### Paso N — <fichero o grupo>` por cada fila (o grupo homog�
 | 9 | `<fase>/views.xml` — uno por fase |
 | 10 | `estados.puml` |
 | 11 | `documentospdf/*.xml` (si los hay) |
-| 12 | `permisos-demo.xml` |
-| 13 | Verificación final: `./run.sh` |
+| 12 | Verificación final: `./run.sh` |
 
 **MUST NOT** alterarse ese orden. Los pasos 7, 8 y 9 se instancian **una vez por fase**; el 11, una vez por documento (o uno solo que los agrupe).
 
 **Iniciativa de MODIFICACIÓN de una versión existente** (§8): la tabla de arriba deja de ser un inventario obligatorio y pasa a ser **solo un orden relativo**. Los pasos de fichero salen, como siempre, de las filas de la tabla §6 —que en este modo lista solo lo que el delta toca—, así que hay **exactamente un paso por fila**, renumerados `1..N` de forma contigua y **respetando el orden relativo** de la tabla. Un paso de fichero cuya fila no esté en §6 **es un fallo**, no una omisión permitida. Los dos únicos pasos que no son de fichero (`CreateFilesTask` y la verificación final) se rigen por las reglas de abajo.
 
 - El paso de `CreateFilesTask` existe **si y solo si** el delta **añade fases nuevas** (§9.1). Si no las añade, no hay nada que esqueletar y el paso **MUST NOT** aparecer: `/sdd-implementer` tampoco genera su tarea (`sdd-implementer/template-expediente/decomposition.md`, reglas de instanciación).
-- El paso de `permisos-demo.xml` existe **si y solo si** su fila está en la tabla §6 (es decir, si el delta añade asignaciones).
 - El **paso final de verificación** (`./run.sh`) existe **siempre**, también aquí, y es siempre el último.
 - ✅ CORRECTO: un delta que solo cambia el `views.xml` de una fase y su `StateEventValidatorImpl.kt` → 3 pasos: el `.kt`, el `views.xml` y `./run.sh`.
-- ❌ INCORRECTO: reproducir los 13 pasos de la tabla poniendo «sin cambios» en los que el delta no toca, o meter `CreateFilesTask` en un delta que no añade fases.
+- ❌ INCORRECTO: reproducir los 12 pasos de la tabla poniendo «sin cambios» en los que el delta no toca, o meter `CreateFilesTask` en un delta que no añade fases.
 
 ### 9.1 Paso 3 — CreateFilesTask (CRITICAL)
 
@@ -504,11 +506,7 @@ El cuerpo del paso **MUST**:
 
 > **REQUIRED para `/sdd-implementer`:** toda tarea que materialice un `.java` o un `.kt` **MUST** leer el `design.md` **entero** (secciones 8, 9 y 10 incluidas), no solo su `## Paso N`.
 
-### 9.4 Paso 12 — `permisos-demo.xml`
-
-El paso **MUST** decir que es una **fusión**, no una copia: se añaden a `src/main/resources/data-demo/input/permisos-demo.xml` los elementos de `design/permisos.xml`, **dentro del bloque que corresponda a cada uno**, **conservando todo lo preexistente**. Ver §13.
-
-### 9.5 Paso 13 — verificación final
+### 9.4 Paso 12 — verificación final
 
 **MUST** ser el último y **MUST** contener el comando exacto `./run.sh` y qué se comprueba:
 
@@ -794,42 +792,44 @@ La sección **MUST** listar, además, cada regla funcional de la especificación
 
 ## 14. Sección «Asignación de perfiles»
 
+Los perfiles de un usuario salen de las tablas `AceProfile*` (fuente de verdad: `src/main/java/com/educaflow/subsystem/security/CLAUDE.md`). El diseño solo escribe en dos de ellas, a través del `<aces>` de los ficheros maestros que ya materializa:
+
+| Origen | Tabla | Alcance | Quién lo escribe |
+|---|---|---|---|
+| `<aces>` de `TramiteInstance.xml` | `AceProfileTramite` | el trámite, **todas** sus versiones | el diseño |
+| `<aces>` de `TipoExpedienteInstance.xml` | `AceProfileTipoExpediente` | **solo** esa versión; hay que repetirlo en cada versión nueva | el diseño |
+| data-init de security: `AceProfileGlobal.xml` | `AceProfileGlobal` | todos los trámites | **nadie** desde un trámite (ya existe) |
+| data-init de security: `AceProfileTipoTramite.xml` | `AceProfileTipoTramite` | los trámites del mismo `tipoTramite` | **nadie** desde un trámite (ya existe) |
+
 ### 14.1 Tabla
 
-| perfil | actor | tipo de actor | vía | bloque de `permisos-demo.xml` |
-|---|---|---|---|---|
-| `<PERFIL>` | `<CODE>` | `TipoUsuario` \| `Cargo` \| `CentroUsuario` | `tramiteCode="<Code>"` \| `tipoExpedienteCode="<Entidad>"` | `<asignacionesTipoUsuario>` \| `<asignacionesTipoUsuarioTipoExpediente>` \| `<asignacionesCargoTipoExpediente>` \| `<asignacionesCentroUsuario>` |
+| perfil | actor | tipo de actor | origen |
+|---|---|---|---|
+| `<PERFIL>` | `<CODE>` | `TipoUsuario` \| `Cargo` | `<aces>` del trámite \| `<aces>` del tipo \| security `AceProfileGlobal` \| security `AceProfileTipoTramite` |
+
+Una fila por cada perfil que use algún estado del tipo, **incluidas** las que ya da security (con su origen), para que se vea quién alcanza cada estado.
 
 ### 14.2 Reglas
 
-- **REQUIRED — el perfil del estado INICIAL MUST asignarse por `tramiteCode`.** En la creación todavía no hay expediente, y el `Tramitador` contrasta el perfil contra los `Ace` **sobre el trámite**. Por `tipoExpedienteCode` no se podría crear nada.
-- Los perfiles de los estados **posteriores** pueden asignarse por `tramiteCode` o por `tipoExpedienteCode`. **SHOULD** preferirse `tramiteCode`: las asignaciones por `tipoExpedienteCode` hay que duplicarlas en cada versión nueva del trámite.
-- El `tipoExpedienteCode` es `<Entidad>` (`<Code><VN>`), **no** el code del trámite.
-- **MUST** quedar asignado a alguien **todo** perfil que use algún estado del tipo: un perfil sin actor deja ese estado inalcanzable.
-- Un `perfilName` **MUST** ser el nombre de una constante del enum `Profile` (`subsystem/expedientes/domains/Profile.xml`): el perfil es un enum, no una fila, así que no hay nada que declarar antes de referenciarlo.
-- `auth-expedientes.xml` ya concede lectura sobre `Expediente`/`Tramite`/`TipoExpediente` **condicionada por `Ace`**: sin fila `Ace` el usuario no ve nada aunque el trámite exista.
+- **Crear un expediente** exige el perfil del estado **inicial** sobre el trámite, que se calcula con Global + TipoTramite + `<aces>` del trámite + `AceProfileCentro` + `<aces>` de la versión **activa** (`defaultTipoExpediente`). Vale por tanto el `<aces>` del trámite o el de la versión activa; **SHOULD** preferirse el del trámite porque sobrevive a las versiones.
+- **Actuar sobre un expediente** usa Global + TipoTramite + `<aces>` del trámite + `AceProfileCentro` + `<aces>` del **tipo del propio expediente** + `AceProfileExpediente`, pero **sin** el `CREADOR` de esas tablas (salvo `AceProfileExpediente`): sobre un expediente solo es `CREADOR` quien lo registró. Un `<ace perfil="CREADOR">` da derecho a crear, nunca a actuar en los estados de `CREADOR` de expedientes ajenos.
+- Los perfiles de los estados **posteriores** **SHOULD** ir también en el `<aces>` del trámite; el del tipo solo cuando el perfil dependa de la versión.
+- **MUST** quedar asignado a alguien, desde un origen de §14.1, **todo** perfil que use algún estado del tipo: un perfil sin actor deja ese estado inalcanzable. **MUST NOT** contarse con `AceProfileCentro` ni `AceProfileExpediente`: se rellenan en tiempo de ejecución y el diseño no los controla.
+- El diseñador **MUST** leer `src/main/java/com/educaflow/subsystem/security/data-init/input/AceProfileGlobal.xml` y `AceProfileTipoTramite.xml` y **MUST NOT** repetir en un `<aces>` un perfil que el mismo actor ya tiene por ahí para el `tipoTramite` del trámite.
+- **MUST NOT** modificarse esos dos ficheros de security: son compartidos por todos los trámites.
+- `auth-expedientes.xml` ya concede lectura sobre `Expediente`/`Tramite`/`TipoExpediente` **condicionada por las tablas `AceProfile*`**: sin ningún perfil el usuario no ve el trámite ni sus expedientes aunque existan.
 - La `<permission name="<Entidad>.all">` del tipo la genera el build en el `auth-<Code>.xml` de su data-init, enganchada a los grupos `admins` y `users`, así que el diseño **MUST NOT** escribirla en ningún `auth-*.xml`: sería un duplicado. Se genera con `create/read/write/remove` **sin `condition`**, agujero conocido documentado en `CLAUDE.md`, y el diseño **MUST NOT** intentar taparlo por su cuenta.
 
-### 14.3 `design/permisos.xml` — el fragmento
+### 14.3 Formato del `<ace>`
 
-**MUST** existir. Contiene **solo lo que se añade**, con la raíz `<datos>` y únicamente los bloques que llevan contenido nuevo:
+Va en el `<aces>` de `design/TramiteInstance.xml` (§5.5) o de `design/TipoExpedienteInstance.xml` (§5.4); ningún otro fichero del diseño lleva perfiles.
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<datos>
-    <asignacionesTipoUsuario>
-        <asignacion tipoUsuarioCode="<TIPO_USUARIO>" perfilName="<PERFIL>" tramiteCode="<Code>"/>
-    </asignacionesTipoUsuario>
-
-    <asignacionesCargoTipoExpediente>
-        <asignacion cargoCode="<CARGO>" perfilName="<PERFIL>" tipoExpedienteCode="<Entidad>"/>
-    </asignacionesCargoTipoExpediente>
-</datos>
-```
-
-- **MUST NOT** ser una copia del `permisos-demo.xml` completo: es un **fragmento a fusionar**, no un fichero que sobrescriba.
-- **MUST NOT** contener asignaciones a otros trámites ni a otras versiones.
-- El diseñador **MUST** leer el `permisos-demo.xml` real para saber qué `<perfil>` ya existen y no duplicarlos.
+- **MUST** llevar `perfil` (nombre de una constante del enum `Profile`, `subsystem/expedientes/domains/Profile.xml`) y **exactamente uno** de `tipoUsuario` (`TipoUsuario.codigo`, de `subsystem/common/data-init/input/tiposUsuario.xml`) o `cargo` (`Cargo.code`, de `subsystem/common/data-init/input/cargos.xml`). Con los dos o con ninguno el build aborta.
+- **MUST NOT** llevar el trámite ni el tipo: son los del propio fichero.
+- Un cargo **sí** puede darse en el `<aces>` del trámite.
+- ✅ CORRECTO: `<ace perfil="<PERFIL>" cargo="<CARGO>"/>`
+- ❌ INCORRECTO: `<ace perfil="<PERFIL>" cargo="<CARGO>" tipoUsuario="<TIPO_USUARIO>"/>` (dos actores: el build aborta)
+- ❌ INCORRECTO: `<ace perfil="<PERFIL>" tipoUsuario="<TIPO_USUARIO>" tramite="<Code>"/>` (el trámite es implícito, sobra)
 
 ---
 
@@ -965,10 +965,10 @@ La sección `## 15. Checklist del diseñador` del `design.md` **MUST** reproduci
 
 **Permisos y pasos**
 
-- [ ] ¿El perfil del estado inicial se asigna por `tramiteCode`?
-- [ ] ¿Todo perfil usado por algún estado tiene actor?
-- [ ] ¿`design/permisos.xml` es un fragmento con solo lo nuevo, sin duplicar `<perfil>` preexistentes?
-- [ ] ¿La tabla «Ficheros a crear o modificar» lista **todos** los ficheros reales, con `permisos-demo.xml` como `Modificar`, y ninguno generado? (En una iniciativa de modificación: ¿solo los ficheros tocados por el delta, y `permisos-demo.xml` solo si hay permisos nuevos? — §8)
+- [ ] ¿El perfil del estado inicial lo da el `<aces>` del trámite, el de la versión activa o security (preferentemente el del trámite)?
+- [ ] ¿Todo perfil usado por algún estado tiene actor desde un origen de §14.1, sin contar con `AceProfileCentro` ni `AceProfileExpediente`?
+- [ ] ¿Cada `<ace>` lleva `perfil` y exactamente uno de `tipoUsuario`/`cargo`, sin repetir lo que ya dan `AceProfileGlobal.xml`/`AceProfileTipoTramite.xml` y sin tocar esos ficheros?
+- [ ] ¿La tabla «Ficheros a crear o modificar» lista **todos** los ficheros reales y ninguno generado? (En una iniciativa de modificación: ¿solo los ficheros tocados por el delta, con el fichero maestro como `Modificar` si el delta añade perfiles? — §8)
 - [ ] ¿Los pasos siguen el orden obligatorio de §9, con el paso de **`CreateFilesTask` en la posición 3** y su comando exacto?
 - [ ] **Iniciativa de MODIFICACIÓN:** ¿hay **exactamente un paso de fichero por fila** de la tabla §6, en su orden relativo y renumerados sin huecos, sin `CreateFilesTask` salvo que el delta añada fases nuevas, y con `./run.sh` como último paso (§9)?
 - [ ] ¿Cada paso de un XML dice «cópialo literalmente» con origen y destino, y cada paso de un `.java`/`.kt` apunta a su sección de especificación sin duplicarla?

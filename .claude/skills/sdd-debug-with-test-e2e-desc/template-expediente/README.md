@@ -60,7 +60,7 @@ Un único fichero, producido por `/sdd-designer` con la plantilla de expediente,
 # Tests E2E — <nombre visible del trámite> (`<Entidad>`)
 <intro>
 
-## Actores                                  ← tabla de credenciales (Login | Contraseña | Tipo/Cargo | Centro | Perfil | Vía)
+## Actores                                  ← tabla de credenciales (Login | Contraseña | Tipo/Cargo | Centro | Perfil | Origen del perfil)
 ## Datos de demo                            ← estado previo + un juego de datos válido por fase
 ## Cobertura de transiciones                ← tabla de control transición ↔ T-NNN
 
@@ -144,7 +144,7 @@ Lo leen el **ejecutor** y el **corrector**. Es lo que un trámite tiene y un sis
 
 Menú **«Expedientes» → «Trámites»**: un **árbol** de trámites disponibles agrupados por tipo de trámite. Pulsar el nodo del trámite (o su botón «Nuevo expediente») dispara `triggerInitialEvent` y **abre directamente el formulario del estado inicial**, con el expediente ya creado. No hay un botón «Nuevo» del grid ni un alta previa que guardar.
 
-- Un trámite que el usuario **no ve en el árbol** es un problema de **permisos** (asignación de perfil por `tramiteCode`), no de la máquina de estados.
+- Un trámite que el usuario **no ve en el árbol** es un problema de **permisos** (ningún perfil sobre el trámite: el `<aces>` del `TramiteInstance.xml` o de la versión activa, o los de security `AceProfileGlobal`/`AceProfileTipoTramite`), no de la máquina de estados.
 
 ### 4.2 Cómo se abre un expediente ya creado — y por qué importa el perfil
 

@@ -29,7 +29,7 @@ Lo lee el **corrector** (§3.3 del `README.md`). Tarea: ante un test que falla, 
 | «No existe la vista en el expediente» | falta el `<form state="<ESTADO>">` genérico en el `views.xml` de la fase → **es XML del diseño**: `DESIGN-ERROR` (§5) |
 | El botón del footer **no aparece** o no dispara nada | el `<footer>` del `views.xml` de la fase → **XML del diseño**: `DESIGN-ERROR` (§5) |
 | «El perfil '…' no lo usa ningún estado de …» | el `profile` de un `<form>` o de un estado → **XML del diseño**: `DESIGN-ERROR` (§5) |
-| Un usuario no ve el trámite en el árbol, o no ve su expediente en la bandeja | asignación de perfiles / permisos (`permisos-demo.xml`, data-init) |
+| Un usuario no ve el trámite en el árbol, o no ve su expediente en la bandeja | perfiles: el `<aces>` del `TramiteInstance.xml`/`TipoExpedienteInstance.xml` → **XML del diseño**: `DESIGN-ERROR` (§5); o el usuario de demo no tiene en ese centro el tipo de usuario o el cargo que el `<ace>` exige (tablas `AceProfile*`, `subsystem/security/CLAUDE.md`) |
 
 ---
 
@@ -65,7 +65,7 @@ Lo lee el **corrector** (§3.3 del `README.md`). Tarea: ante un test que falla, 
 **MUST NOT**:
 
 - modificar `test-e2e-desc.md` ni los ficheros de `test-e2e-desc/` para que el test pase (es trampa);
-- editar los **XML materializados por el diseño**: `TipoExpedienteInstance.xml` (fases, estados, eventos, perfiles), `domains.xml`, los `views.xml` (raíz y fases), los `documentospdf/*.xml`, el `TramiteInstance.xml`;
+- editar los **XML materializados por el diseño**: `TipoExpedienteInstance.xml` (fases, estados, eventos, perfiles, `<aces>`), `domains.xml`, los `views.xml` (raíz y fases), los `documentospdf/*.xml`, el `TramiteInstance.xml` (incluido su `<aces>`);
 - editar los tests de `src/test/java/com/educaflow/tiposexpedientes/`;
 - escribir un `i18n_es.csv` / `i18n_ca.csv`;
 - dar entrada en el `rules { }` a un campo que rellena el servidor para "que el test pase".

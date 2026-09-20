@@ -12,13 +12,12 @@ Los placeholders son los de `README.md` §0.1.
 |---|---|---|
 | **XML y `.puml`** | El fichero **final**, ya escrito y completo | Lo **copia literalmente** a su ruta destino |
 | **`.java` y `.kt`** | **Nada**: solo la especificación quirúrgica en `design.md` §8, §9 y §10 | **Escribe el código** a partir de esa especificación, sobre el esqueleto de `CreateFilesTask`, delegando en `developer-code-implementer` (§4) |
-| **`permisos.xml`** | Un **fragmento** con solo lo nuevo | Lo **fusiona** dentro de `permisos-demo.xml` (§5) |
 
 **MUST NOT**:
 
 - **MUST NOT** reescribir un XML del diseño desde el texto del `design.md`.
 - **MUST NOT** reformatearlo al vuelo (indentación, orden de atributos, saltos de línea).
-- **MUST NOT** «mejorarlo», completarlo ni corregirlo. Si un XML del diseño está mal, es un `DESIGN-ERROR` (§7), no algo que se arregle aquí.
+- **MUST NOT** «mejorarlo», completarlo ni corregirlo. Si un XML del diseño está mal, es un `DESIGN-ERROR` (§6), no algo que se arregle aquí.
 
 Regenerar o retocar un XML pierde las correcciones que el diseñador ya validó e introduce divergencias silenciosas entre el diseño y el árbol.
 
@@ -38,11 +37,11 @@ Copia **literalmente** (con `cp`, creando la carpeta destino con `mkdir -p` si n
 | `design/fases/<fase>/views.xml` | `<carpeta de versión>/<fase>/views.xml` |
 | `design/documentospdf/<doc>.xml` | `<carpeta de versión>/documentospdf/<doc>.xml` |
 | `design/documentospdf/_<fragmento>.xml` | `<carpeta de versión>/documentospdf/_<fragmento>.xml` |
-| `design/permisos.xml` | **NO se copia**: se **fusiona** en `src/main/resources/data-demo/input/permisos-demo.xml` (§5) |
 
 - **CRITICAL — el mapeo `design/fases/<fase>/views.xml` → `<carpeta de versión>/<fase>/views.xml` pierde el segmento `fases/`.** La carpeta destino es la de la fase **directamente bajo la carpeta de versión**, con el nombre de la fase **en minúsculas**. En cualquier otra ubicación el preprocesador no la encuentra y el `views.xml` queda muerto.
 - La carpeta destino de un documento **MUST** llamarse `documentospdf`. `documentos/` renderiza pero **no** se escanea para el enum `TipoDocumentoPdf`: el documento queda muerto sin aviso.
 - Verifica cada copia con un `diff` contra el fichero de origen: **MUST** ser vacío.
+- Los perfiles viajan en el `<aces>` de `TramiteInstance.xml` y de `TipoExpedienteInstance.xml`, así que se aplican con su copia. **MUST NOT** escribirse perfiles en ningún otro fichero (ni data-init de demo ni `AceProfileGlobal.xml`/`AceProfileTipoTramite.xml` de security).
 
 ### 2.1 CRITICAL — copiar ENCIMA del esqueleto es lo esperado, no es un CONFLICT
 
@@ -115,25 +114,7 @@ Al invocarlo, inclúyele además estas notas:
 
 ---
 
-## 5. Tarea de `permisos-demo.xml` — fusión, no copia
-
-`design/permisos.xml` es un **fragmento**, con raíz `<datos>` y únicamente los bloques que llevan contenido nuevo. Se **fusiona** en `src/main/resources/data-demo/input/permisos-demo.xml`.
-
-Procedimiento:
-
-1. Lee el `permisos-demo.xml` real y el fragmento `design/permisos.xml`.
-2. Por **cada** bloque del fragmento (`<asignacionesTipoUsuario>`, `<asignacionesTipoUsuarioTipoExpediente>`, `<asignacionesCargoTipoExpediente>`, `<asignacionesCentroUsuario>`), **inserta sus hijos dentro del bloque del MISMO nombre** que ya existe en el fichero real, al final de ese bloque. Si el bloque no existe en el fichero real, créalo dentro de `<datos>`.
-3. **MUST NOT** tocarse ninguna asignación de **otro trámite** ni de otra versión: se **añade**, nunca se reordena, se reescribe ni se borra nada preexistente.
-4. **MUST NOT** sobrescribirse el fichero entero con el fragmento.
-5. Verificación: el fichero resultante sigue siendo XML bien formado, contiene **todas** las líneas que tenía antes y **todas** las nuevas del fragmento.
-
-- ✅ CORRECTO: insertar un `<asignacion tipoUsuarioCode="…" perfilName="…" tramiteCode="…"/>` al final del `<asignacionesTipoUsuario>` existente, dejando intacto el resto.
-- ❌ INCORRECTO: `cp design/permisos.xml src/main/resources/data-demo/input/permisos-demo.xml` (borra las asignaciones de todos los demás trámites).
-- ❌ INCORRECTO: volver a declarar un `<perfil>` que ya estaba.
-
----
-
-## 6. Prohibiciones duras
+## 5. Prohibiciones duras
 
 - **CRITICAL — MUST NOT crearse JAMÁS `i18n_es.csv` ni `i18n_ca.csv`**, en ninguna carpeta (ni en la del trámite, ni en la de la versión, ni en las de fase). Los genera el build (`managei18nfiles`) a partir de los `title`/`help`/`name` del fuente. Escribirlos a mano está **prohibido** y es un fallo **bloqueante**. Tampoco se añaden ni se quitan filas a un CSV existente: lo único editable a mano es la columna `message` de una traducción automática mala, y eso no es trabajo de la implementación.
 - **MUST NOT** escribirse `States.java`: la emite `GenerateStatesTask` en `build/src-gen-states/main/java` en cada build. No se versiona ni se edita.
@@ -145,7 +126,7 @@ Procedimiento:
 - **MUST NOT** escribirse nada bajo `src/test/...`, **salvo la excepción de `tests-code.md` §4** (el test de una clase auxiliar de lógica de negocio pura y aislable, cuando la tarea lo pide explícitamente); esa tarea se materializa como cualquier otra tarea de código (§4).
 - **MUST NOT** aplicarse a los `views.xml` de un tipo de expediente las reglas `VAR-` de `agent_docs/view-rules.md` ni las convenciones de `k-vistas`: estas vistas son **preprocesadas** y están excluidas.
 
-### 6.1 `GenerateDocs` tras tocar un `.puml`
+### 5.1 `GenerateDocs` tras tocar un `.puml`
 
 Al colocar (o cambiar) `<carpeta de versión>/estados.puml`, la tarea **MUST** regenerar su PNG:
 
@@ -160,7 +141,7 @@ Al colocar (o cambiar) `<carpeta de versión>/estados.puml`, la tarea **MUST** r
 
 ---
 
-## 7. Detenerse y reportar — qué token usar
+## 6. Detenerse y reportar — qué token usar
 
 Reportar (no adivinar) es la respuesta correcta ante un bloqueo. El token depende del **origen** del problema:
 
@@ -169,11 +150,11 @@ Reportar (no adivinar) es la respuesta correcta ante un bloqueo. El token depend
 | `DONE: {tarea}` | La tarea quedó materializada correctamente | — |
 | `CONFLICT: {tarea} — {qué destino ya existe}` | El destino **preexistía a la iniciativa** con contenido propio y la fila dice `Crear`; lo decide el usuario | La carpeta del trámite ya existía con su `TramiteInstance.xml`; ya existe una carpeta de versión con el mismo nombre |
 | `BLOCKED: {tarea} — {motivo}` | Bloqueo del **entorno**, no culpa del diseño | `CreateFilesTask` falla porque Gradle no arranca; falta un esqueleto que la tarea 3 debía crear; una fila `Modificar` cuyo destino no existe; superficie insuficiente para implementar lo que la especificación pide |
-| `DESIGN-ERROR: {tarea} — {motivo detallado}` | El problema está **en el diseño** y no se resuelve escribiendo código | Ver §7.1 |
+| `DESIGN-ERROR: {tarea} — {motivo detallado}` | El problema está **en el diseño** y no se resuelve escribiendo código | Ver §6.1 |
 
 **MUST NOT** pegar el código ni el XML en la respuesta (ya está en disco): solo el token + 1-2 líneas de resumen.
 
-### 7.1 Qué es un `DESIGN-ERROR` en este artefacto
+### 6.1 Qué es un `DESIGN-ERROR` en este artefacto
 
 **MUST NOT** editarse el diseño para forzar que cuadre. Da el **máximo detalle**: qué fichero del diseño, qué es inconsistente o qué falta, y por qué no se puede resolver con código.
 
@@ -191,7 +172,7 @@ Casos típicos:
 
 ---
 
-## 8. Marcar la tarea como completada en el índice
+## 7. Marcar la tarea como completada en el índice
 
 **Solo al devolver `DONE`**: **antes** de responder, marca **esta** tarea como completada en `{iniciativa}/implementation/tasks.md`, cambiando su línea de `- [ ] [Tarea NN](task_NN.md)` a `- [x] [Tarea NN](task_NN.md)` (con `Edit`).
 
