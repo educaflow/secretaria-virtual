@@ -23,6 +23,7 @@
   Además hay dos usuarios que no siguen la regla anterior, para probar la pantalla de nuevo expediente:
     alumnofamiliar@mislata.es   → ALUMNO y FAMILIAR en el mismo centro (elige para quién es el expediente)
     alumnodoscentros@mislata.es → ALUMNO en CIPFP Mislata y en CIPFP Batoi (elige el centro)
+  Y los administrativo2@*.es son también ALUMNO en su centro.
 
   Todos los usuarios comparten la contraseña: demo1234
   Los DNI se generaron con letra de control válida (módulo 23).
@@ -243,6 +244,7 @@
         <tipo usuarioCode="familiar2@mislata.es"        centroCode="46019660" tipoCode="FAMILIAR"/>
         <tipo usuarioCode="administrativo1@mislata.es"  centroCode="46019660" tipoCode="ADMINISTRATIVO"/>
         <tipo usuarioCode="administrativo2@mislata.es"  centroCode="46019660" tipoCode="ADMINISTRATIVO"/>
+        <tipo usuarioCode="administrativo2@mislata.es"  centroCode="46019660" tipoCode="ALUMNO"/>
         <tipo usuarioCode="exprofesor1@mislata.es"      centroCode="46019660" tipoCode="EXPROFESOR"/>
         <tipo usuarioCode="exprofesor2@mislata.es"      centroCode="46019660" tipoCode="EXPROFESOR"/>
         <tipo usuarioCode="exalumno1@mislata.es"        centroCode="46019660" tipoCode="EXALUMNO"/>
@@ -273,6 +275,7 @@
         <tipo usuarioCode="familiar2@batoi.es"          centroCode="03012165" tipoCode="FAMILIAR"/>
         <tipo usuarioCode="administrativo1@batoi.es"    centroCode="03012165" tipoCode="ADMINISTRATIVO"/>
         <tipo usuarioCode="administrativo2@batoi.es"    centroCode="03012165" tipoCode="ADMINISTRATIVO"/>
+        <tipo usuarioCode="administrativo2@batoi.es"    centroCode="03012165" tipoCode="ALUMNO"/>
         <tipo usuarioCode="exprofesor1@batoi.es"        centroCode="03012165" tipoCode="EXPROFESOR"/>
         <tipo usuarioCode="exprofesor2@batoi.es"        centroCode="03012165" tipoCode="EXPROFESOR"/>
         <tipo usuarioCode="exalumno1@batoi.es"          centroCode="03012165" tipoCode="EXALUMNO"/>

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<datos>
+    <aces>
+        <ace perfil="DIRECTOR"   cargo="DIRECTOR"/>
+        <ace perfil="SECRETARIO" cargo="SECRETARIO"/>
+    </aces>
+</datos>

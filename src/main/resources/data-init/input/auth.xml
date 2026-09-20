@@ -79,6 +79,11 @@
   <permission name="SearchExpedientes.all" object="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
+  <!-- NuevoExpediente.all lo DEFINE system/expedientes/data-init/input/auth-expedientes.xml, que es
+       el data-init del sistema dueño. Aquí solo se referencia por nombre dentro de los grupos.
+       MUST NOT volver a definirlo: este data-init global tiene priority="-1" y
+       DataLoader.sortDataInitByPriority ordena descendente, así que se carga DESPUÉS del de
+       expedientes (priority="10") y su <can> sobrescribiría al de allí, reabriendo el permiso. -->
 
   <!-- Firmas -->
   <permission name="TareaFirma.all" object="com.educaflow.subsystem.firmas.db.TareaFirma">
@@ -106,11 +111,6 @@
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
   <permission name="UsuarioAutorizado.all" object="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado">
-    <can create="true" read="true" write="true" remove="true" export="true"/>
-  </permission>
-
-  <!-- Security -->
-  <permission name="Ace.all" object="com.educaflow.subsystem.security.db.Ace">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
 
@@ -189,7 +189,7 @@
     <permission name="TipoTramite.all"/>
     <permission name="FormacionCentroTrabajo.all"/>
     <permission name="SearchExpedientes.all"/>
-    <permission name="ContextoTramitacion.all"/>
+    <permission name="NuevoExpediente.all"/>
     <permission name="TareaFirma.all"/>
     <permission name="DocumentoFirma.all"/>
     <permission name="PdfUtilities.all"/>
@@ -197,7 +197,6 @@
     <permission name="RegistroSalida.all"/>
     <permission name="RegistroPendiente.all"/>
     <permission name="UsuarioAutorizado.all"/>
-    <permission name="Ace.all"/>
     <permission name="Ciclo.all"/>
     <permission name="Curso.all"/>
     <permission name="CursoModulo.all"/>
@@ -232,27 +231,31 @@
     <permission name="Persona.all"/>
     <permission name="Provincia.all"/>
     <permission name="TipoUsuario.all"/>
-    <permission name="TipoExpediente.conAce"/>
-    <permission name="Tramite.creador"/>
+    <permission name="TipoExpediente.porTipoExpediente"/>
+    <permission name="Tramite.porGlobal"/>
+    <permission name="Tramite.porTipoTramite"/>
     <permission name="Tramite.porTramite"/>
+    <permission name="Tramite.porCentro"/>
     <permission name="Tramite.porTipoExpediente"/>
-    <permission name="Tramite.registrador"/>
+    <permission name="Tramite.porExpediente"/>
     <permission name="Expediente.creador"/>
-    <permission name="Expediente.porExpediente"/>
-    <permission name="Expediente.porTipoExpediente"/>
+    <permission name="Expediente.porGlobal"/>
+    <permission name="Expediente.porTipoTramite"/>
     <permission name="Expediente.porTramite"/>
+    <permission name="Expediente.porCentro"/>
+    <permission name="Expediente.porTipoExpediente"/>
+    <permission name="Expediente.porExpediente"/>
     <permission name="HistorialEstado.all"/>
     <permission name="TipoTramite.leer"/>
     <permission name="FormacionCentroTrabajo.all"/>
     <permission name="SearchExpedientes.all"/>
-    <permission name="ContextoTramitacion.all"/>
+    <permission name="NuevoExpediente.all"/>
     <permission name="TareaFirma.firmante"/>
     <permission name="DocumentoFirma.propio"/>
     <permission name="RegistroEntrada.all"/>
     <permission name="RegistroSalida.all"/>
     <permission name="RegistroPendiente.all"/>
     <permission name="UsuarioAutorizado.all"/>
-    <permission name="Ace.all"/>
     <permission name="Ciclo.all"/>
     <permission name="Curso.all"/>
     <permission name="CursoModulo.all"/>

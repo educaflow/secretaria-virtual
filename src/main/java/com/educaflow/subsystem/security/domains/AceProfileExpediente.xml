@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="security" package="com.educaflow.subsystem.security.db"/>
+
+    <entity name="AceProfileExpediente" repository="abstract">
+        <enum name="perfil"                ref="com.educaflow.subsystem.expedientes.db.Profile"        required="true" title="Perfil"/>
+        <many-to-one name="usuario"        ref="com.axelor.auth.db.User"                             required="true" title="Usuario"/>
+        <many-to-one name="expediente"     ref="com.educaflow.subsystem.expedientes.db.Expediente"     required="true" title="Expediente"/>
+    </entity>
+
+</domain-models>

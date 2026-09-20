@@ -14,9 +14,10 @@ import java.util.Set;
  * atiende, y solo puede disparar sus eventos quien tenga ese perfil.
  *
  * <p>Devuelve un <b>conjunto</b> a propósito: un usuario puede tener legítimamente varios perfiles a
- * la vez sobre el mismo expediente (varias filas de {@code Ace}), así que la pregunta es de
+ * la vez sobre el mismo expediente (varias filas de {@code AceProfile*}), así que la pregunta es de
  * pertenencia, no de derivación de "el" perfil del usuario. El {@code _profile} que envía el cliente
  * sigue siendo solo una pista para elegir qué vista se pinta, nunca la fuente de autorización.
+ * El conjunto devuelto es siempre inmutable.
  *
  * <p>No es un {@code ModelService}: no gestiona el ciclo de vida de ninguna entidad, solo consulta.
  * Su binding está en {@code SecurityModule}.
@@ -24,9 +25,10 @@ import java.util.Set;
 public interface PerfilesUsuarioService {
 
     /**
-     * Los perfiles que el usuario tiene sobre el expediente, en el centro del expediente.
-     * Incluye {@code CREADOR} cuando el usuario es quien registró el expediente, igual que hace el
-     * permiso {@code Expediente.creador}.
+     * Los perfiles que el usuario tiene sobre el expediente, en el centro del expediente; ninguno si
+     * no pertenece a ese centro. {@code CREADOR} solo lo tiene quien registró el expediente (o una
+     * fila de {@code AceProfileExpediente}), igual que hace el permiso {@code Expediente.creador}: el
+     * {@code CREADOR} del resto de tablas solo sirve para crear.
      */
     Set<Profile> getPerfilesSobreExpediente(Expediente expediente, User user);
 
@@ -36,4 +38,11 @@ public interface PerfilesUsuarioService {
      */
     Set<Profile> getPerfilesSobreTramite(Tramite tramite, User user, Centro centro);
 
+    /**
+     * Los perfiles que el usuario tiene sobre el trámite en un centro, antes de que exista el
+     * expediente, y que permiten iniciar un expediente: {@code CREADOR} y {@code INICIADOR}.
+     */
+    Set<Profile> getPerfilesDeInicioSobreTramite(Tramite tramite, User user, Centro centro);
+
+    Profile getPerfil(Tramite tramite, User user, Centro centro, boolean presentadoEnPapel);
 }
