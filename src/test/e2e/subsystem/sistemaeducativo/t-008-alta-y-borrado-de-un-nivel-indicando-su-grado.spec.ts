@@ -25,11 +25,7 @@ const GRADO = 'Ciclo formativo';
  * el orden en que los pinta el grid (`orderBy="name"`). Es la lista que el resultado
  * esperado exige ver EXACTAMENTE al terminar, una vez borrado el nivel creado.
  */
-const NIVELES_DE_CICLO_FORMATIVO = [
-  'Ciclos formativos de grado Básico',
-  'Ciclos Formativos de Grado Medio',
-  'Ciclos Formativos de Grado Superior',
-];
+const NIVELES_DE_CICLO_FORMATIVO = ['Básico', 'Medio', 'Superior'];
 
 /** Entrada del menú lateral «Sistema educativo» que recorre este test. */
 const MENU_NIVELES = 'item:sistemaEducativo-niveles-menuitem';
@@ -65,8 +61,9 @@ function nombres(filas: ReturnType<typeof filasDeDatos>) {
 
 /**
  * La fila de un nivel localizada por su nombre EXACTO. El `exact` es obligatorio
- * aquí: "Ciclos Formativos de Grado Medio" es prefijo del nombre que este test crea,
- * así que una comparación por subcadena confundiría una fila con la otra.
+ * aquí: "Medio" es subcadena del nombre que este test crea ("Ciclos Formativos de
+ * Grado Medio Dual …"), así que una comparación por subcadena confundiría una fila
+ * con la otra.
  */
 function filaDelNivel(page: Page, nombre: string) {
   return filasDeDatos(page).filter({
@@ -218,9 +215,8 @@ test.describe('Sistema educativo — Niveles', () => {
       // Resultado esperado: el sistema borra el nivel.
       await expect(filaDelNivel(page, nombreNivel)).toHaveCount(0);
 
-      // Resultado esperado: el listado vuelve a mostrar solo "Ciclos formativos de
-      // grado Básico", "Ciclos Formativos de Grado Medio" y "Ciclos Formativos de
-      // Grado Superior", los tres con el grado "Ciclo formativo". `toHaveText` con un
+      // Resultado esperado: el listado vuelve a mostrar solo "Básico", "Medio" y
+      // "Superior", los tres con el grado "Ciclo formativo". `toHaveText` con un
       // array exige esa lista EXACTA (ni una fila de más ni de menos) sobre las filas
       // cuya columna "Grado" es "Ciclo formativo", con lo que las tres llevan ese
       // grado por construcción del filtro.

@@ -131,8 +131,8 @@ test.describe('Sistema educativo — Ciclos', () => {
       // Axelor marca el campo obligatorio con aria-required="true" en el control.
       await expect(campo(page, 'nivel').getByTestId('select')).toHaveAttribute('aria-required', 'true');
 
-      // Paso 7: elige el nivel "Ciclos Formativos de Grado Superior".
-      await elegirEnCombo(page, 'nivel', 'Ciclos Formativos de Grado Superior');
+      // Paso 7: elige el nivel "Superior".
+      await elegirEnCombo(page, 'nivel', 'Superior');
 
       // Paso 8: pulsa "Guardar".
       await page.getByRole('button', { name: 'Guardar', exact: true }).click();
@@ -142,13 +142,13 @@ test.describe('Sistema educativo — Ciclos', () => {
       await esperarListadoCargado(page);
 
       // Resultado esperado: la fila aparece con el grado "Ciclo formativo" y el nivel
-      // "Ciclos Formativos de Grado Superior".
+      // "Superior".
       const fila = page.getByRole('row').filter({ hasText: nombre });
       await expect(fila).toHaveCount(1);
       await expect(fila.getByRole('gridcell', { name: codigo, exact: true })).toBeVisible();
       await expect(fila.getByRole('gridcell', { name: 'Ciclo formativo', exact: true })).toBeVisible();
       await expect(
-        fila.getByRole('gridcell', { name: 'Ciclos Formativos de Grado Superior', exact: true }),
+        fila.getByRole('gridcell', { name: 'Superior', exact: true }),
       ).toBeVisible();
     } finally {
       // Teardown: borra el ciclo creado aunque una aserción haya fallado. El reload

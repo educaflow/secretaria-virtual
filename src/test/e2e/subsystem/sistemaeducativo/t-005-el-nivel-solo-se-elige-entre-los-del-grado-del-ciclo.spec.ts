@@ -22,11 +22,7 @@ const BTN_CONFIRMAR_BORRADO = /^(Delete|Borrar|Eliminar)$/;
  * en el orden en que los pinta el selector (`orderBy="name"`). Es la lista que el
  * resultado esperado exige ver EXACTAMENTE.
  */
-const NIVELES_DE_CICLO_FORMATIVO = [
-  'Ciclos formativos de grado Básico',
-  'Ciclos Formativos de Grado Medio',
-  'Ciclos Formativos de Grado Superior',
-];
+const NIVELES_DE_CICLO_FORMATIVO = ['Básico', 'Medio', 'Superior'];
 
 /** Entradas del menú lateral «Sistema educativo» que recorre este test. */
 const MENU_GRADOS = 'item:sistemaEducativo-grados-menuitem';
@@ -214,9 +210,8 @@ test.describe('Sistema educativo — Ciclos', () => {
       await combo(page, 'nivel').click();
       await expect(opcionesDelSelector(page).first()).toBeVisible();
 
-      // Resultado esperado: el selector ofrece exactamente "Ciclos formativos de
-      // grado Básico", "Ciclos Formativos de Grado Medio" y "Ciclos Formativos de
-      // Grado Superior". `toHaveText` con un array exige esa lista EXACTA: ni una
+      // Resultado esperado: el selector ofrece exactamente "Básico", "Medio" y
+      // "Superior". `toHaveText` con un array exige esa lista EXACTA: ni una
       // opción de más, ni de menos.
       await expect(opcionesDelSelector(page)).toHaveText(NIVELES_DE_CICLO_FORMATIVO);
 

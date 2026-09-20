@@ -41,7 +41,7 @@ const BTN_NUEVO_CURSO_LISTADO = 'Nuevo curso';
 const CODIGO_CICLO = 'DAW';
 const NOMBRE_CICLO = 'Desarrollo de Aplicaciones Web';
 const GRADO_CICLO = 'Ciclo formativo';
-const NIVEL_CICLO = 'Ciclos Formativos de Grado Superior';
+const NIVEL_CICLO = 'Superior';
 
 // Cursos del ciclo que ya vienen en los datos iniciales.
 const CURSO_1 = '1º DAW';
@@ -291,7 +291,7 @@ test.describe('Sistema educativo — Cursos de un ciclo', () => {
       ).toBeVisible();
 
       // Resultado esperado: el formulario del ciclo sigue mostrando el grado "Ciclo
-      // formativo" y el nivel "Ciclos Formativos de Grado Superior".
+      // formativo" y el nivel "Superior".
       await expect(combo(page, 'grado')).toHaveValue(GRADO_CICLO);
       await expect(campo(page, 'nivel')).toBeVisible();
       await expect(combo(page, 'nivel')).toHaveValue(NIVEL_CICLO);

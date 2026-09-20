@@ -28,7 +28,7 @@ const BTN_NUEVO_CURSO = 'Nuevo curso';
 
 const FAMILIA_INFORMATICA = 'Informática y Comunicaciones';
 const GRADO_ESPECIALIZACION = 'Curso de especialización';
-const NIVEL_SUPERIOR = 'Ciclos Formativos de Grado Superior';
+const NIVEL_SUPERIOR = 'Superior';
 const LEY_LOFP =
   'Ley Orgánica 3/2022, de 31 de marzo, de Ordenación e Integración de la Formación Profesional';
 
@@ -289,8 +289,8 @@ test.describe('Sistema educativo — Consulta de un ciclo desde un curso', () =>
       const consultaConNivel = await abrirConsultaDelCiclo(page);
 
       // Resultado esperado: el sistema abre la consulta del ciclo "Guía, Información y
-      // Asistencia Turística" y muestra además el campo "Nivel" con el valor "Ciclos
-      // Formativos de Grado Superior".
+      // Asistencia Turística" y muestra además el campo "Nivel" con el valor
+      // "Superior".
       await expect(consultaConNivel.getByRole('textbox', { name: CAMPO_NOMBRE })).toHaveValue(
         CICLO_CON_NIVEL,
       );

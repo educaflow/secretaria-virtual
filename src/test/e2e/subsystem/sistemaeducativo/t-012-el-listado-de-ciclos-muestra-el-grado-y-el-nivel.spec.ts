@@ -42,8 +42,8 @@ const COLUMNAS: ReadonlyArray<{ campo: string; titulo: string | RegExp }> = [
 ];
 
 const GRADO_CICLO_FORMATIVO = 'Ciclo formativo';
-const NIVEL_SUPERIOR = 'Ciclos Formativos de Grado Superior';
-const NIVEL_MEDIO = 'Ciclos Formativos de Grado Medio';
+const NIVEL_SUPERIOR = 'Superior';
+const NIVEL_MEDIO = 'Medio';
 
 const CICLO_DAW = 'Desarrollo de Aplicaciones Web';
 const CICLO_SMR = 'Sistemas Microinformáticos y Redes';
@@ -106,8 +106,8 @@ async function abrirListadoDeCiclos(page: Page): Promise<void> {
 /**
  * Comprueba que la fila del ciclo `nombre` existe una sola vez y muestra ese grado y
  * ese nivel. `toHaveText` compara el texto COMPLETO de la celda, así que distingue
- * «Ciclos Formativos de Grado Medio» de «…Grado Superior» (uno no es subcadena del
- * otro, pero una comparación por subcadena tampoco garantizaría que no sobra texto).
+ * «Medio» de «Superior» (uno no es subcadena del otro, pero una comparación por
+ * subcadena tampoco garantizaría que no sobra texto).
  */
 async function esperarFilaConGradoYNivel(
   page: Page,
@@ -150,11 +150,11 @@ test.describe('Sistema educativo — Ciclos', () => {
       }
 
       // Resultado esperado: la fila "Desarrollo de Aplicaciones Web" muestra el grado
-      // "Ciclo formativo" y el nivel "Ciclos Formativos de Grado Superior".
+      // "Ciclo formativo" y el nivel "Superior".
       await esperarFilaConGradoYNivel(page, CICLO_DAW, GRADO_CICLO_FORMATIVO, NIVEL_SUPERIOR);
 
       // Resultado esperado: la fila "Sistemas Microinformáticos y Redes" muestra el
-      // grado "Ciclo formativo" y el nivel "Ciclos Formativos de Grado Medio".
+      // grado "Ciclo formativo" y el nivel "Medio".
       await esperarFilaConGradoYNivel(page, CICLO_SMR, GRADO_CICLO_FORMATIVO, NIVEL_MEDIO);
     } finally {
       // No hay teardown de datos: el test es de solo lectura y no ha creado ni

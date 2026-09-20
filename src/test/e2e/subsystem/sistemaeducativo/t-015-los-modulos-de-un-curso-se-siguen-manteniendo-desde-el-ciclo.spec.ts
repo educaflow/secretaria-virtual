@@ -32,7 +32,7 @@ const BTN_NUEVO_MODULO_PANEL = 'Añadir un nuevo módulo';
 const CODIGO_CICLO = 'DAW';
 const NOMBRE_CICLO = 'Desarrollo de Aplicaciones Web';
 const GRADO_CICLO = 'Ciclo formativo';
-const NIVEL_CICLO = 'Ciclos Formativos de Grado Superior';
+const NIVEL_CICLO = 'Superior';
 
 // Curso del ciclo sobre el que trabaja el test, y los módulos en juego. `exact: true`
 // en todas las comparaciones: "1º DAW" es prefijo de nada, pero "1º DAM" comparte
@@ -298,7 +298,7 @@ test.describe('Sistema educativo — Módulos de un curso', () => {
       await expect(filaModuloNuevo).toHaveCount(1);
 
       // Resultado esperado: el formulario del ciclo sigue mostrando el grado "Ciclo
-      // formativo" y el nivel "Ciclos Formativos de Grado Superior". Se cierra antes
+      // formativo" y el nivel "Superior". Se cierra antes
       // el modal del curso ("Cancelar" ejecuta `close`, no toca nada) para leer los
       // campos del ciclo sin ningún diálogo por delante.
       await modalCurso(page).getByRole('button', { name: 'Cancelar', exact: true }).click();

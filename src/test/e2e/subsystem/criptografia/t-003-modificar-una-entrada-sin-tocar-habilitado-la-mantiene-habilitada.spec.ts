@@ -26,8 +26,13 @@ const botonAnhadir = (page: Page) => page.getByRole('button', { name: 'Añadir c
 // fila es «<dni> <tipo de certificado>», y el match por nombre es por subcadena).
 const filaDelDni = (page: Page) => page.getByRole('row', { name: DNI });
 
-// La fila que la rejilla pinta cuando no hay ningún registro.
-const filaSinRegistros = (page: Page) => page.getByRole('row', { name: 'No se encontraron registros.' });
+// Cualquier fila del CUERPO de la rejilla, sea del DNI del escenario, de datos
+// ajenos (residuos reales que puede haber en la BD compartida — la tabla NO es
+// exclusiva de estos tests) o la fila «No se encontraron registros.». El grid
+// de Axelor tiene exactamente dos <div role="rowgroup">: el primero es la
+// cabecera (títulos + fila de filtros «Buscar...»), el segundo es el cuerpo con
+// los datos. Da igual el contenido: basta con que exista alguna fila ahí.
+const filaCuerpoRejilla = (page: Page) => page.getByRole('grid').getByRole('rowgroup').nth(1).getByRole('row');
 
 // La casilla «Habilitado» del formulario. (El nombre accesible real es
 // «Habilitado ?» por el icono de ayuda; el match por subcadena lo cubre.)
@@ -74,14 +79,14 @@ async function guardarYVolverAlListado(page: Page): Promise<void> {
 // vista, así que contar filas nada más aparecer el botón de alta es una condición
 // de carrera — y esa carrera hacía que la pre-limpieza no viese la fila residual de
 // un run anterior y el alta muriera con «Ya existe un certificado digital con el
-// DNI '85432016B'». Esperar a que la rejilla se resuelva en uno de sus dos estados
-// posibles la elimina: o está la fila del DNI, o está la fila «No records found.»
-// (esta tabla solo la escriben los tests de esta iniciativa y el seed la deja
-// vacía, así que no hay más estados posibles; si apareciese otro, el test falla de
-// forma ruidosa en vez de saltarse la limpieza en silencio).
+// DNI '85432016B'». Esperar a que el CUERPO de la rejilla pinte al menos una fila
+// (cualquiera: del DNI del escenario, ajena, o el mensaje de vacío) certifica que
+// la petición de datos ya respondió, sin asumir qué filas va a haber — la tabla
+// puede llevar filas de otros DNIs (residuos reales, no del seed) en cualquier
+// momento y eso no debe bloquear ni fallar esta barrera.
 async function esperarListadoCargado(page: Page): Promise<void> {
   await expect(botonAnhadir(page)).toBeVisible();
-  await expect(filaDelDni(page).or(filaSinRegistros(page)).first()).toBeVisible();
+  await expect(filaCuerpoRejilla(page).first()).toBeVisible();
 }
 
 // Abre el listado «Certificados digitales» desde el menú «Criptografía».

@@ -21,7 +21,7 @@ const NOMBRE_ORIGINAL = 'Administración de Sistemas Informáticos en Red';
 const NOMBRE_MODIFICADO = `${NOMBRE_ORIGINAL} (LOFP)`;
 const FAMILIA_PROFESIONAL = 'Informática y Comunicaciones';
 const GRADO = 'Ciclo formativo';
-const NIVEL = 'Ciclos Formativos de Grado Superior';
+const NIVEL = 'Superior';
 
 // Los campos `code`/`name` del modelo Ciclo todavía no están traducidos, así que la
 // UI los rotula "Code"/"Name" donde la descripción dice "Código"/"Nombre". El regex
@@ -159,7 +159,7 @@ test.describe('Sistema educativo — Ciclos', () => {
 
       // Paso 3: el formulario muestra el código "ASIR", la familia profesional
       // "Informática y Comunicaciones", el grado "Ciclo formativo" y el nivel
-      // "Ciclos Formativos de Grado Superior".
+      // "Superior".
       await expect(page.getByRole('textbox', { name: CAMPO_CODIGO })).toHaveValue(CODIGO_CICLO);
       await expect(page.getByRole('textbox', { name: CAMPO_NOMBRE })).toHaveValue(NOMBRE_ORIGINAL);
       await expect(combo(page, 'familiaProfesional')).toHaveValue(FAMILIA_PROFESIONAL);
@@ -177,7 +177,7 @@ test.describe('Sistema educativo — Ciclos', () => {
 
       // Resultado esperado: la fila aparece con el nombre "Administración de Sistemas
       // Informáticos en Red (LOFP)" y conserva el grado "Ciclo formativo" y el nivel
-      // "Ciclos Formativos de Grado Superior". Las celdas se comprueban con
+      // "Superior". Las celdas se comprueban con
       // `exact: true` porque el nombre original es prefijo del modificado y una
       // comparación por subcadena no distinguiría uno de otro.
       const fila = filaDelCiclo(page);

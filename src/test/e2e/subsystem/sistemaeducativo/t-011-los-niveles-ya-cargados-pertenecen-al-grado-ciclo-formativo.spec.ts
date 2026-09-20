@@ -18,7 +18,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
  *     vería la lista exacta que exige.
  */
 const CODIGO_NIVEL = 'GM';
-const NOMBRE_ORIGINAL = 'Ciclos Formativos de Grado Medio';
+const NOMBRE_ORIGINAL = 'Medio';
 const NOMBRE_MODIFICADO = `${NOMBRE_ORIGINAL} (LOFP)`;
 
 /** El grado de los tres niveles del seed, el que este test comprueba que conservan. */
@@ -35,11 +35,7 @@ const CAMPO_NOMBRE = /^(Name|Nombre)$/;
  * el orden en que los pinta el grid (`orderBy="name"`). Es la lista EXACTA que el
  * paso 3 exige ver, y a la que el resultado esperado debe volver al final.
  */
-const NIVELES_DE_CICLO_FORMATIVO = [
-  'Ciclos formativos de grado Básico',
-  NOMBRE_ORIGINAL,
-  'Ciclos Formativos de Grado Superior',
-];
+const NIVELES_DE_CICLO_FORMATIVO = ['Básico', NOMBRE_ORIGINAL, 'Superior'];
 
 /** Entrada del menú lateral «Sistema educativo» que recorre este test. */
 const MENU_NIVELES = 'item:sistemaEducativo-niveles-menuitem';
@@ -185,31 +181,30 @@ test.describe('Sistema educativo — Niveles', () => {
       // Paso 2: abre el menú "Sistema educativo" → "Niveles".
       await abrirListadoDeNiveles(page);
 
-      // Paso 3: el listado muestra las filas "Ciclos formativos de grado Básico",
-      // "Ciclos Formativos de Grado Medio" y "Ciclos Formativos de Grado Superior",
+      // Paso 3: el listado muestra las filas "Básico", "Medio" y "Superior",
       // las tres con el grado "Ciclo formativo". `toHaveText` con un array exige esa
       // lista EXACTA (ni una fila de más ni de menos) sobre las filas cuya columna
       // "Grado" es "Ciclo formativo", con lo que las tres llevan ese grado por
       // construcción del filtro.
       await expect(nombres(filasDelGrado(page))).toHaveText(NIVELES_DE_CICLO_FORMATIVO);
 
-      // Paso 4: pulsa la fila "Ciclos Formativos de Grado Medio".
+      // Paso 4: pulsa la fila "Medio".
       await abrirFichaDelNivel(page);
 
-      // Paso 5: el formulario muestra el código "GM", el nombre "Ciclos Formativos
-      // de Grado Medio" y el grado "Ciclo formativo".
+      // Paso 5: el formulario muestra el código "GM", el nombre "Medio" y el
+      // grado "Ciclo formativo".
       await expect(page.getByRole('textbox', { name: CAMPO_CODIGO })).toHaveValue(CODIGO_NIVEL);
       await expect(page.getByRole('textbox', { name: CAMPO_NOMBRE })).toHaveValue(NOMBRE_ORIGINAL);
       await expect(combo(page, 'grado')).toHaveValue(GRADO);
 
-      // Paso 6: cambia el nombre a "Ciclos Formativos de Grado Medio (LOFP)" y pulsa
-      // "Guardar". NO se toca el grado: es lo que da sentido al "conserva" del paso 7.
+      // Paso 6: cambia el nombre a "Medio (LOFP)" y pulsa "Guardar". NO se toca el
+      // grado: es lo que da sentido al "conserva" del paso 7.
       // Paso 7: el sistema guarda el nivel y vuelve al listado (lo comprueba
       // `guardarConNombre` con la URL del listado).
       await guardarConNombre(page, NOMBRE_MODIFICADO);
 
-      // Paso 7: la fila aparece con el nombre "Ciclos Formativos de Grado Medio
-      // (LOFP)" y conserva el grado "Ciclo formativo". Las celdas se comparan con el
+      // Paso 7: la fila aparece con el nombre "Medio (LOFP)" y conserva el grado
+      // "Ciclo formativo". Las celdas se comparan con el
       // regex anclado porque el nombre original es prefijo del modificado y una
       // comparación por subcadena no distinguiría uno de otro.
       const fila = filaDelNivel(page);
@@ -224,13 +219,12 @@ test.describe('Sistema educativo — Niveles', () => {
         NIVELES_DE_CICLO_FORMATIVO[2],
       ]);
 
-      // Paso 8: pulsa de nuevo esa fila, cambia el nombre a "Ciclos Formativos de
-      // Grado Medio" y pulsa "Guardar".
+      // Paso 8: pulsa de nuevo esa fila, cambia el nombre a "Medio" y pulsa "Guardar".
       await abrirFichaDelNivel(page);
       await expect(page.getByRole('textbox', { name: CAMPO_NOMBRE })).toHaveValue(NOMBRE_MODIFICADO);
 
       // Resultado esperado: el sistema guarda el nivel y el listado vuelve a mostrar
-      // la fila "Ciclos Formativos de Grado Medio" con el grado "Ciclo formativo".
+      // la fila "Medio" con el grado "Ciclo formativo".
       await guardarConNombre(page, NOMBRE_ORIGINAL);
       const filaRestaurada = filaDelNivel(page);
       await expect(filaRestaurada).toHaveCount(1);

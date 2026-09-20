@@ -156,18 +156,16 @@ test.describe('Sistema educativo — Ciclos', () => {
       // Paso 4: elige la familia profesional "Instalación y Mantenimiento".
       await elegirEnCombo(page, 'familiaProfesional', 'Instalación y Mantenimiento');
 
-      // Paso 5: elige el grado "Ciclo formativo" y el nivel "Ciclos Formativos de
-      // Grado Superior" (el nivel solo se puede elegir una vez hay grado: antes el
-      // campo ni se pinta).
+      // Paso 5: elige el grado "Ciclo formativo" y el nivel "Superior" (el nivel solo
+      // se puede elegir una vez hay grado: antes el campo ni se pinta).
       await elegirEnCombo(page, 'grado', 'Ciclo formativo');
-      await elegirEnCombo(page, 'nivel', 'Ciclos Formativos de Grado Superior');
+      await elegirEnCombo(page, 'nivel', 'Superior');
 
       // Paso 6: pulsa "Guardar".
       await page.getByRole('button', { name: 'Guardar', exact: true }).click();
 
       // Paso 7: el sistema guarda el ciclo y vuelve al listado, donde "Mecatrónica
-      // Industrial" aparece con el grado "Ciclo formativo" y el nivel "Ciclos
-      // Formativos de Grado Superior".
+      // Industrial" aparece con el grado "Ciclo formativo" y el nivel "Superior".
       await expect(page).toHaveURL(/Ciclo-action\/list/);
       await esperarListadoCargado(page);
       const filaCreada = page.getByRole('row').filter({ hasText: nombre });
@@ -175,17 +173,17 @@ test.describe('Sistema educativo — Ciclos', () => {
       await expect(filaCreada.getByRole('gridcell', { name: codigo, exact: true })).toBeVisible();
       await expect(filaCreada.getByRole('gridcell', { name: 'Ciclo formativo', exact: true })).toBeVisible();
       await expect(
-        filaCreada.getByRole('gridcell', { name: 'Ciclos Formativos de Grado Superior', exact: true }),
+        filaCreada.getByRole('gridcell', { name: 'Superior', exact: true }),
       ).toBeVisible();
 
       // Paso 8: pulsa la fila "Mecatrónica Industrial".
       await abrirFichaDelCiclo(page, nombre);
 
       // Paso 9: el sistema abre el formulario del ciclo con el grado "Ciclo formativo"
-      // y el campo "Nivel" con el valor "Ciclos Formativos de Grado Superior".
+      // y el campo "Nivel" con el valor "Superior".
       await expect(combo(page, 'grado')).toHaveValue('Ciclo formativo');
       await expect(campo(page, 'nivel').getByTestId('label')).toHaveText('Nivel');
-      await expect(combo(page, 'nivel')).toHaveValue('Ciclos Formativos de Grado Superior');
+      await expect(combo(page, 'nivel')).toHaveValue('Superior');
 
       // Paso 10: cambia el grado a "Curso de especialización".
       await cambiarCombo(page, 'grado', 'Curso de especialización');
