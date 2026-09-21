@@ -5,7 +5,7 @@
     <name>Anulación de matrícula en ciclo formativo</name>
     <tipoTramite>ALUMNO</tipoTramite>
     <defaultTipoExpediente>v1</defaultTipoExpediente>
-    <permitidoPresentarEnRepresentacion>false</permitidoPresentarEnRepresentacion>
+    <permitidoPresentarEnRepresentacion>true</permitidoPresentarEnRepresentacion>
     <publico>false</publico>
     <help><![CDATA[
         Con este trámite puedes solicitar la anulación de tu matrícula en un ciclo formativo de este centro.

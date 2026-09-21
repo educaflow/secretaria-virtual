@@ -13,6 +13,6 @@
         </fase>
     </fases>
     <aces>
-        <ace></ace>
+        <ace perfil="AUDITOR" cargo="DIRECTOR"/> <!-- De prueba: solo para comprobar que funcionan los ACE y como ejemplo -->
     </aces>
 </TipoExpediente>

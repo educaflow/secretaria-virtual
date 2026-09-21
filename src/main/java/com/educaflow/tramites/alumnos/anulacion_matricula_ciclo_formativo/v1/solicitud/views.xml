@@ -47,6 +47,43 @@
         </footer>
     </form>
 
+    <!-- El estado lo comparten las dos formas de presentar, así que tiene un form por perfil: el de arriba para
+         quien presenta telemáticamente (CREADOR) y este para quien registra el papel (TRAMITADOR). Aquí
+         presentadoEnPapel es siempre true, por eso no se bifurca nada con showIf. -->
+    <form state="DATOS_SOLICITUD" profile="TRAMITADOR"
+          onLoad="exp-AnulacionMatriculaCicloFormativoV1-DATOS_SOLICITUD-onLoad-action">
+        <include-panels>
+            -subsanacion
+            persona-solicitante-editable
+            datos-alumno
+            matricula
+        </include-panels>
+
+        <panel name="avisoDatosSolicitudTramitador" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">Copie los datos de la solicitud entregada en papel que ha adjuntado escaneada. Al presentarla se registrará su entrada</help>
+        </panel>
+
+        <panel name="solicitudEscaneadaDatosSolicitudTramitador" title="Solicitud entregada en papel" colSpan="12">
+            <field name="pdfSolicitudFirmada" title="Solicitud escaneada (PDF)" widget="binary-link" readonly="true" colSpan="8"/>
+        </panel>
+
+        <footer>
+            <buttons-left>
+                <button name="DELETE" colSpan="3" css="btn-danger" outline="true" icon="trash"
+                        title="Borrar el expediente"
+                        onClick="subsysExpedientes-event-action"
+                        prompt="Se va a eliminar el expediente y no podrá recuperarlo"/>
+                <button name="VOLVER" colSpan="2" outline="true" title="Atrás"
+                        onClick="subsysExpedientes-event-action"/>
+            </buttons-left>
+            <buttons-right>
+                <button name="CONTINUAR" colSpan="4" title="Presentar la solicitud"
+                        onClick="subsysExpedientes-event-action"
+                        prompt="Va a presentar la solicitud de anulación entregada en papel. Una vez presentada no podrá modificarla"/>
+            </buttons-right>
+        </footer>
+    </form>
+
     <form state="DATOS_SOLICITUD">
         <include-panels>
             -subsanacion
@@ -158,13 +195,15 @@
     <!-- *********************************************************************************************  -->
     <!-- ******************************** PENDIENTE_DOCUMENTO_ESCANEADO ******************************  -->
     <!-- *********************************************************************************************  -->
-    <form state="PENDIENTE_DOCUMENTO_ESCANEADO" profile="CREADOR">
+    <!-- Solo se llega a este estado en papel (InitialEventManagerImpl), y el papel lo presenta siempre el
+         TRAMITADOR, así que es él quien adjunta la solicitud escaneada. -->
+    <form state="PENDIENTE_DOCUMENTO_ESCANEADO" profile="TRAMITADOR">
         <include-panels>
             -subsanacion
             solicitud-escaneada-upload
         </include-panels>
 
-        <panel name="avisoPendienteDocumentoEscaneadoCreador" colSpan="12" showFrame="false">
+        <panel name="avisoPendienteDocumentoEscaneadoTramitador" colSpan="12" showFrame="false">
             <help variant="info" colSpan="12">Adjunte escaneada en PDF la solicitud que ha entregado firmada la persona que la presenta. En el paso siguiente copiará sus datos</help>
         </panel>
 

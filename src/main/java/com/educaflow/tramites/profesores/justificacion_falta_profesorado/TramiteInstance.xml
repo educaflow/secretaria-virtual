@@ -12,4 +12,7 @@
             Es solo para profesores<br>
             Y puedo poner algo en <strong>negrita</strong>.
         ]]></help>
+    <aces>
+        <ace perfil="AUDITOR" cargo="DIRECTOR"/> <!-- De prueba: solo para comprobar que funcionan los ACE y como ejemplo -->
+    </aces>
 </Tramite>
