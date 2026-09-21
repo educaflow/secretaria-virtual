@@ -1,5 +1,20 @@
 <?xml version="1.0"?>
 <auth>
+
+  <permission name="TipoExpediente.porTipoExpediente"
+              object="com.educaflow.subsystem.expedientes.db.TipoExpediente"
+              condition="EXISTS (
+        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTipoExpediente a, com.educaflow.subsystem.common.db.CentroUsuario cu
+        WHERE cu.usuario = ?
+        AND a.tipoExpediente = self
+        AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
+            OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu))
+    )"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
   <permission name="Tramite.porGlobal"
               object="com.educaflow.subsystem.expedientes.db.Tramite"
               condition="EXISTS (
