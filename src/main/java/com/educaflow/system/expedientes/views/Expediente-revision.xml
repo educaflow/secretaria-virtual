@@ -7,7 +7,7 @@
         <view type="grid" name="subsysExpedientes.Expediente@Revision-grid"/>
         <domain>self.id IN (:expedientesConPerfil)</domain>
         <context name="_profile" expr="SECRETARIO"/>
-        <context name="expedientesConPerfil" expr="call:com.educaflow.tramites.util.bandeja.BandejaPorPerfilController:idsExpedientesConPerfil('SECRETARIO','AnulacionMatriculaCicloFormativo')"/>
+        <context name="expedientesConPerfil" expr="call:com.educaflow.system.expedientes.controller.BandejaPorPerfilController:idsExpedientesConPerfil('SECRETARIO','AnulacionMatriculaCicloFormativo')"/>
     </action-view>
 
     <grid name="subsysExpedientes.Expediente@Revision-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"

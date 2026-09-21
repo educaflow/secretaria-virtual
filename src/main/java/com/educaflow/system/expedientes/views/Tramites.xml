@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <action-view name="sysTramites-nuevo-action" home="true" title="Crear un nuevo expediente"   >
+        <view type="tree" name="sysTramites-nuevo-tree"/>
+        <context name="_profile" expr="CREADOR"/>
+    </action-view>
+
+    <tree name="sysTramites-nuevo-tree" title="Trámites disponibles" showHeader="false">
+        <column name="name"  />
+        <column name="nuevo" type="button" title="Nuevo expediente"  />
+        <column name="ayuda" type="button" title="Ayuda"  />
+
+        <node model="com.educaflow.subsystem.expedientes.db.TipoTramite" domain="EXISTS (SELECT 1 FROM Tramite t WHERE  t.tipoTramite=self)" >
+            <field name="name" as="name"  />
+        </node>
+
+        <node model="com.educaflow.subsystem.expedientes.db.Tramite" parent="tipoTramite" draggable="false" onClick="sysExpedientes.Main@NuevoExpediente-action">
+            <field name="name" as="name" />
+            <button name="ayuda"  help="Descripción del trámite" onClick="sysTramites-mostrar-ayuda-action" icon="help"/>
+        </node>
+
+
+    </tree>
+
+
+    <action-view name="sysTramites-mostrar-ayuda-action" title="Ayuda" model="com.educaflow.subsystem.expedientes.db.Tramite">
+        <view type="form" name="sysTramites-mostrar-ayuda-form"/>
+        <view-param name="popup" value="true"/>
+        <view-param name="show-toolbar" value="false"/>
+        <view-param name="popup-save" value="false"/>
+        <context name="_showRecord" expr="eval: id"/>
+    </action-view>
+
+    <form name="sysTramites-mostrar-ayuda-form" title="Ayuda" model="com.educaflow.subsystem.expedientes.db.Tramite">
+        <panel name="ayuda" colSpan="12" itemSpan="2" showFrame="false" >
+            <field name="ayuda" showTitle="false" readonly="true" colSpan="12" >
+                <viewer depends="name,help" ><![CDATA[
+                    <>
+                    <Box>
+                        <div className="card" style={{ cursor: "default" }} >
+                        <div className="card-header" >
+                            <strong>{_t("value:"+name)}</strong>
+                        </div>
+                        <div className="card-body" >
+                            <Box mt={0} as="p" color="secondary" dangerouslySetInnerHTML={{ __html: help }} />
+                        </div>
+                        </div>
+                    </Box>
+                    </>
+                    ]]>
+                </viewer>
+            </field>
+        </panel>
+    </form>
+
+
+
+
+
+
+    <cards name="expediente-nuevo-cards" title="Trámite" model="com.educaflow.subsystem.expedientes.db.Tramite" width="500px" customSearch="false" freeSearch="name,help" canEdit="false" canDelete="false" canNew="false">
+        <field name="code"/>
+        <field name="name"/>
+        <field name="help"/>
+        <template><![CDATA[
+			<>
+                <Box>
+                    <div className="card" style={{ cursor: "default" }} >
+                        <div className="card-header" >
+                            <strong>{_t("value:"+name)}</strong>
+                        </div>
+                        <div className="card-body" >
+                            <Box mt={0} as="p" color="secondary" dangerouslySetInnerHTML={{ __html: help }} />
+                            <Button  outline="true" block="true" variant="primary" onClick={$action("sysExpedientes.Main@NuevoExpediente-action")}>{_t("Nuevo Expediente")}</Button>
+                        </div>
+                    </div>
+                </Box>
+			</>
+			]]>
+        </template>
+    </cards>
+
+
+
+
+
+
+
+</object-views>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="sysexpedientes" package="com.educaflow.system.expedientes.db"/>
+
+    <entity name="NuevoExpediente" persistable="false">
+        <many-to-one name="tramite" ref="com.educaflow.subsystem.expedientes.db.Tramite" title="Trámite"/>
+        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro"/>
+        <boolean name="presentadoEnPapel" title="Presentado el expediente a partir de un documento en papel"/>
+        <boolean name="presentadoEnRepresentacion" nullable="true" title="¿Para quién es el expediente?"/>
+
+        <string name="nombreTramite" title="Trámite"/>
+        <string name="ayudaTramite" large="true" title="Ayuda"/>
+        <many-to-many name="centrosDisponibles" ref="com.educaflow.subsystem.common.db.Centro" title="Centros disponibles"/>
+        <boolean name="hayUnSoloCentroDisponible" title="Hay un solo centro disponible"/>
+        <boolean name="hayQuePreguntarPresentacion" title="Hay que preguntar cómo se presenta"/>
+        <boolean name="sePuedeCrearParaMi" title="Se puede crear para uno mismo"/>
+        <boolean name="sePuedeCrearEnRepresentacion" title="Se puede crear en representación"/>
+        <boolean name="hayQuePreguntarParaQuien" title="Hay que preguntar para quién es"/>
+        <boolean name="presentadoEnPapelDeducido" nullable="true" title="Forma de presentar deducida"/>
+        <boolean name="presentadoEnPapelVigente" title="Forma de presentar vigente"/>
+    </entity>
+
+</domain-models>

@@ -1,4 +1,4 @@
-package com.educaflow.tramites.util.bandeja;
+package com.educaflow.system.expedientes.controller;
 
 import com.axelor.auth.db.User;
 import com.axelor.db.JPA;
@@ -25,7 +25,7 @@ import java.util.List;
  * pregunta una vez por expediente candidato. El conjunto candidato está acotado por construcción
  * (los expedientes abiertos de un trámite en los centros del usuario), así que es el tamaño de la propia bandeja;
  * si ese coste llegara a molestar, el arreglo va en el dueño —un método masivo en el servicio o en
- * el repositorio de {@code Ace}—, nunca devolviendo el JPQL de perfiles a las vistas.
+ * los repositorios {@code AceProfile*}—, nunca devolviendo el JPQL de perfiles a las vistas.
  *
  * <p>El JPQL que acota los expedientes candidatos sí vive aquí, y no en un repositorio como el resto
  * del JPQL del proyecto: es una decisión declarada, no un descuido. Su dueño natural sería

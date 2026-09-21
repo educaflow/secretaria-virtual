@@ -7,7 +7,7 @@
         <view type="grid" name="subsysExpedientes.Expediente@Firma-grid"/>
         <domain>self.id IN (:expedientesConPerfil) AND self.codeState = 'PENDIENTE_FIRMA_DIRECTOR'</domain>
         <context name="_profile" expr="DIRECTOR"/>
-        <context name="expedientesConPerfil" expr="call:com.educaflow.tramites.util.bandeja.BandejaPorPerfilController:idsExpedientesConPerfil('DIRECTOR','AnulacionMatriculaCicloFormativo')"/>
+        <context name="expedientesConPerfil" expr="call:com.educaflow.system.expedientes.controller.BandejaPorPerfilController:idsExpedientesConPerfil('DIRECTOR','AnulacionMatriculaCicloFormativo')"/>
     </action-view>
 
     <grid name="subsysExpedientes.Expediente@Firma-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"

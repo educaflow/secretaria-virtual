@@ -8,7 +8,6 @@
     <menuitem name="expedientes-expedientesPendientes-menuitem" parent="expedientes-menuitem" title="Expedientes Pendientes" action="subsysExpedientes.Expediente@Pendiente-action" groups="admins,users" order="2"/>
     <menuitem name="expedientes-expedientesEsperando-menuitem" parent="expedientes-menuitem" title="Expedientes Esperando" action="subsysExpedientes.Expediente@Esperando-action" groups="admins,users" order="3"/>
     <menuitem name="expedientes-expedientesCerrados-menuitem" parent="expedientes-menuitem" title="Expedientes Cerrados" action="subsysExpedientes.Expediente@Cerrados-action" groups="admins,users" order="4"/>
-    <menuitem name="expedientes-tiposExpedientes-menuitem" parent="expedientes-menuitem" title="Tipos Expedientes" action="subsysExpedientes.TipoExpediente@Main-action" groups="admins,users" order="5"/>
     <menuitem name="expedientes-pruebaBusqueda-menuitem" parent="expedientes-menuitem" title="Prueba Búsqueda" action="subsysExpedientes.Expediente@PruebaSearch-action" groups="admins,users" order="6"/>
 
 <menuitem name="firmarDocumentos-menuitem" title="Firmar documentos" groups="admins,users" order="20"/>
