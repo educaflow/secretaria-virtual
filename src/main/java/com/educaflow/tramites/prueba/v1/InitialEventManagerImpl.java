@@ -1,7 +1,7 @@
 package com.educaflow.tramites.prueba.v1;
 
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.InitialEventContext;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.InitialEventManager;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.InitialEventContext;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.InitialEventManager;
 import com.educaflow.subsystem.expedientes.db.PruebaV1;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 

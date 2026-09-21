@@ -136,21 +136,33 @@ class EstructuraInternaTest {
                 .allowEmptyShould(true));
 
     // [C24] Verificación:
-    //   - Sujeto: clases de `com.educaflow.subsystem.expedientes.tramitacion..`.
-    //     **CRITICAL**: esta regla declara expresamente que **NO** se le aplica la exención global de `..expedientes..` de las Convenciones de verificación (ni la de esta categoría); su sujeto es precisamente un paquete exento, y excluirlo dejaría la regla vacía.
-    //   - Condición: ninguna depende de clases de `com.educaflow.subsystem.expedientes.services..` ni de `com.educaflow.subsystem.expedientes.controllers..`.
-    //   - Nota: el paquete de los controladores del subsistema se llama `controllers`, en plural — es la arquitectura propia de expedientes, y no el `..controller..` singular del resto de sistemas.
-    //   - Exenciones: no aplican.
-    //   - Mensaje: «el motor de tramitación no depende de los servicios ni de los controladores de expedientes: la dependencia va de los servicios/controladores al motor, nunca al revés».
+    //   - Sujeto: clases de `com.educaflow.subsystem.tramitador.tramitacion..`.
+    //   - Condición: ninguna depende de clases de `com.educaflow.subsystem.tramitador.service..` ni de `com.educaflow.subsystem.tramitador.controller..`.
+    //   - Exenciones: no aplican. `tramitador` **no** está entre los paquetes exentos de las Convenciones de verificación, así que esta regla —como el resto— se le aplica sin más.
+    //   - Mensaje: «el motor de tramitación no depende de los servicios ni de los controladores del tramitador: la dependencia va de los servicios/controladores al motor, nunca al revés».
     @ArchTest
     static final ArchRule c24_motorDeTramitacionNoDependeDeServiciosNiControladores =
         noClasses()
-            .that().resideInAPackage("com.educaflow.subsystem.expedientes.tramitacion..")
+            .that().resideInAPackage("com.educaflow.subsystem.tramitador.tramitacion..")
             .should().dependOnClassesThat()
                 .resideInAnyPackage(
-                    "com.educaflow.subsystem.expedientes.services..",
-                    "com.educaflow.subsystem.expedientes.controllers..")
-            .because("el motor de tramitación no depende de los servicios ni de los controladores de expedientes: la dependencia va de los servicios/controladores al motor, nunca al revés");
+                    "com.educaflow.subsystem.tramitador.service..",
+                    "com.educaflow.subsystem.tramitador.controller..")
+            .because("el motor de tramitación no depende de los servicios ni de los controladores del tramitador: la dependencia va de los servicios/controladores al motor, nunca al revés");
+
+    // [C25] Verificación:
+    //   - Sujeto: clases de `com.educaflow.subsystem.expedientes..`, **incluidas** las entidades generadas de `..db..` — que son justamente el punto por el que el ciclo entra.
+    //     **CRITICAL**: esta regla declara expresamente que **NO** se le aplica la exención global de `..expedientes..` de las Convenciones de verificación; su sujeto es precisamente ese paquete exento, y excluirlo dejaría la regla vacía.
+    //   - Condición: ninguna depende de clases de `com.educaflow.subsystem.tramitador..`.
+    //   - Exenciones: no aplican.
+    //   - Mensaje: «el dominio de expedientes no depende del tramitador: la dependencia va del tramitador al dominio, nunca al revés».
+    @ArchTest
+    static final ArchRule c25_dominioDeExpedientesNoDependeDelTramitador =
+        noClasses()
+            .that().resideInAPackage("com.educaflow.subsystem.expedientes..")
+            .should().dependOnClassesThat()
+                .resideInAPackage("com.educaflow.subsystem.tramitador..")
+            .because("el dominio de expedientes no depende del tramitador: la dependencia va del tramitador al dominio, nunca al revés");
 
     private static ArchCondition<JavaMethod> declararSuValidador() {
         return new ArchCondition<JavaMethod>(

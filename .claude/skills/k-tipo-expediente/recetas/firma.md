@@ -61,10 +61,10 @@ Todo va dentro del `<form state=...>` del perfil que presenta, tras su `<include
         <buttons-right>
             <button name="PRESENTAR" colSpan="4" title="Firmar con AutoFirma__!! y Presentar la solicitud"
                     showIf="situacionFirma=='SIN_CERTIFICADO'"
-                    onClick="serial:exp-MiTramiteV1-firmarDocumentacionParaPresentar-action,subsysExpedientes-event-action"/>
+                    onClick="serial:exp-MiTramiteV1-firmarDocumentacionParaPresentar-action,subsysTramitador-event-action"/>
             <button name="PRESENTAR" colSpan="4" title="Firmar y Presentar la solicitud"
                     showIf="firmaEnServidor"
-                    onClick="serial:subsysExpedientes-event-action,exp-MiTramiteV1-set-claveCertificado-null-action"/>
+                    onClick="serial:subsysTramitador-event-action,exp-MiTramiteV1-set-claveCertificado-null-action"/>
         </buttons-right>
     </footer>
 </form>
@@ -79,7 +79,7 @@ Todo va dentro del `<form state=...>` del perfil que presenta, tras su `<include
 </action-record>
 
 <action-method name="exp-MiTramiteV1-firmarDocumentacionParaPresentar-action">
-    <call class="com.educaflow.subsystem.expedientes.controllers.FirmaController"
+    <call class="com.educaflow.tramites.util.firma.FirmaClienteController"
           method='firmarDocumento(id,"pdfSolicitud","pdfSolicitudFirmado",100,20,600,100,1)'/>
 </action-method>
 
@@ -92,7 +92,7 @@ Todo va dentro del `<form state=...>` del perfil que presenta, tras su `<include
 2. **`onLoad` del form** → `action-group` → `action-record` que los rellena con `call:` a `FirmaServidorController`: `getSituacionFirma()` da el nombre del enum e `isFirmaEnServidor()` el boolean.
 3. **Paneles por situación** con `showIf="situacionFirma=='X'"`: aquí sí se compara con el valor concreto, porque el texto de ayuda y si se pide PIN o contraseña dependen de cada uno. El `<field name="claveCertificado" widget="password">` solo aparece en `DISPOSITIVO_SIN_PIN` (título "PIN") y `FICHERO_SIN_CLAVE` (título "Contraseña"). `SIN_DNI` lleva un `<help variant="warning">` y ningún botón.
 4. **Dos botones `PRESENTAR`**, mismo `name` (mismo evento) y `showIf` excluyentes:
-   - AutoFirma: `showIf="situacionFirma=='SIN_CERTIFICADO'"` y `serial:` con la `action-method` que llama a `FirmaController.firmarDocumento(...)` **antes** del evento.
+   - AutoFirma: `showIf="situacionFirma=='SIN_CERTIFICADO'"` y `serial:` con la `action-method` que llama a `FirmaClienteController.firmarDocumento(...)` **antes** del evento.
    - Servidor: `showIf="firmaEnServidor"` y `serial:` con el evento **y después** la `action-record` que pone `claveCertificado` a `null`, para que la clave no se quede en el formulario.
 5. `firmarDocumento(id, campoOrigen, campoDestino, x, y, ancho, alto, página)` lanza AutoFirma sobre el `MetaFile` del campo origen, deja el firmado en el destino y exige firmar con el DNI del usuario autenticado (revienta con `RuntimeException` si no tiene DNI válido). El recuadro y la página **MUST** ser los mismos que use el trigger (§1.5), para que la firma caiga en el mismo sitio se firme donde se firme.
 
@@ -100,7 +100,7 @@ Todo va dentro del `<form state=...>` del perfil que presenta, tras su `<include
 - ❌ INCORRECTO: `showIf="situacionFirma=='DISPOSITIVO_CON_PIN' || situacionFirma=='DISPOSITIVO_SIN_PIN' || ..."` (enumera la clasificación del enum; una situación nueva se quedaría sin botón)
 - ❌ INCORRECTO: `showIf="!firmaEnServidor"` en el botón de AutoFirma (se lo mostraría también a quien no tiene DNI)
 - ❌ INCORRECTO: `<string name="situacionFirma" .../>` en el `domains.xml` (es un campo de vista; el servidor lo recalcula del DNI)
-- ❌ INCORRECTO: botón de servidor con `onClick="subsysExpedientes-event-action"` a secas (la clave se queda en el formulario tras presentar)
+- ❌ INCORRECTO: botón de servidor con `onClick="subsysTramitador-event-action"` a secas (la clave se queda en el formulario tras presentar)
 
 ### 1.4 Validator (`StateEventValidatorImpl.kt` de la fase)
 

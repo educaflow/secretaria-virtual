@@ -182,7 +182,7 @@ class VistasPorEstadoTest {
         plantilla.append("\n            <buttons-right>");
         for (String evento : botonesSugeridos(state, profile)) {
             plantilla.append("\n                <button name=\"").append(evento).append("\" colSpan=\"2\" title=\"")
-                     .append(evento).append("\" onClick=\"subsysExpedientes-event-action\"/>");
+                     .append(evento).append("\" onClick=\"subsysTramitador-event-action\"/>");
         }
         plantilla.append("\n            </buttons-right>");
         plantilla.append("\n        </footer>");

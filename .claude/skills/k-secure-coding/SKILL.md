@@ -171,7 +171,7 @@ Cuando una entidad se da de alta **embebida en el formulario de su padre** (un p
 
 La aplicación es multicentro. Un usuario pertenece a uno o varios centros y en cada momento tiene **un centro activo** (`User.centroActivo`). Toda consulta que devuelve entidades de un centro **MUST** filtrar por el centro activo del usuario autenticado, obtenido del servidor.
 
-**Excepción — expedientes.** `subsystem/expedientes` y `tramites` **MUST NOT** usar `centroActivo`: el centro de un expediente es `expediente.centro`, elegido al crearlo, y el usuario puede actuar en cualquiera de sus centros.
+**Excepción — expedientes.** `subsystem/expedientes`, `subsystem/tramitador` y `tramites` **MUST NOT** usar `centroActivo`: el centro de un expediente es `expediente.centro`, elegido al crearlo, y el usuario puede actuar en cualquiera de sus centros.
 - El alcance del usuario son sus `CentroUsuario` (`user.getCentroUsuario(centro)` en Java; `self.centro.id IN (SELECT cu.centro.id FROM CentroUsuario cu WHERE cu.usuario.id = :usuarioId)` en un `<domain>`).
 - Los perfiles sobre un expediente se resuelven en `expediente.centro` (`PerfilesUsuarioService`).
 

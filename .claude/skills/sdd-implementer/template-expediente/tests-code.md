@@ -86,7 +86,7 @@ Esta es la lista de lo que se le va a exigir al tipo de expediente generado. El 
 | **X3** | **MUST NOT** haber dos forms de la misma fase con el mismo `(state, profile)`: producen el mismo nombre de vista y **Axelor se queda con la última** |
 | **Y1** | El `name` de **todo** `<button>` del `<footer>` **MUST** ser un evento declarado en **ese** estado, o uno de los comunes (`DELETE`, `EXIT`). Un `<button name="">` es **violación** |
 | **Y2** | **Todo** evento declarado en un `<state>` **MUST** tener un botón que lo dispare en **alguno** de los forms de ese estado (se mira la **unión** genérico + perfil, no form a form) |
-| **Y3** | El `onClick` de **todo** botón del footer **MUST** incluir `subsysExpedientes-event-action` (una cadena `serial:` **MUST** terminar en ella) |
+| **Y3** | El `onClick` de **todo** botón del footer **MUST** incluir `subsysTramitador-event-action` (una cadena `serial:` **MUST** terminar en ella) |
 
 ### 2.8 Diagrama de estados
 

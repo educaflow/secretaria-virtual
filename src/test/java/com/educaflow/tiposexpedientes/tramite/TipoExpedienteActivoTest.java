@@ -37,8 +37,8 @@ import java.util.stream.Stream;
  * {@code TipoExpediente} con ese code, el import no falla, simplemente deja la columna a
  * {@code null}.</li>
  * <li>El fallo aparece al final, en runtime y solo si alguien abre el trámite, como el
- * {@code RuntimeException("No existe el tipo de expediente para el tramite con idTramite: …")} de
- * {@code ExpedienteController.getTipoExpedienteFromIdTramite()}.</li>
+ * {@code NullPointerException("defaultTipoExpediente no puede ser nulo")} del
+ * {@code Objects.requireNonNull} de {@code PerfilesUsuarioServiceImpl.getPerfilesSobreTramite()}.</li>
  * </ol>
  *
  * <p>Por eso la regla se comprueba aquí, contra el árbol de fuentes: es el único punto de la cadena

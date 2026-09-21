@@ -44,9 +44,9 @@ import java.util.Set;
 class ModeloDelTipoTest {
 
     private static final String FQCN_INITIAL_EVENT_MANAGER =
-            "com.educaflow.subsystem.expedientes.tramitacion.eventmanager.InitialEventManager";
+            "com.educaflow.subsystem.tramitador.tramitacion.eventmanager.InitialEventManager";
     private static final String FQCN_PHASE_EVENT_MANAGER =
-            "com.educaflow.subsystem.expedientes.tramitacion.eventmanager.PhaseEventManager";
+            "com.educaflow.subsystem.tramitador.tramitacion.eventmanager.PhaseEventManager";
 
     @Test
     @DisplayName("M1: el InitialEventManagerImpl y todos los PhaseEventManagerImpl del tipo declaran como parámetro de tipo la entidad del domains.xml")

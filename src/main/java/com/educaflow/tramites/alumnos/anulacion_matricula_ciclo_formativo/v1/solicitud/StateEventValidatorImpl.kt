@@ -1,7 +1,7 @@
 package com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.solicitud
 
-import com.educaflow.subsystem.expedientes.tramitacion.validation.StateEventValidator
-import com.educaflow.subsystem.expedientes.tramitacion.validation.BeanValidationRulesForStateAndEvent
+import com.educaflow.subsystem.tramitador.tramitacion.validation.StateEventValidator
+import com.educaflow.subsystem.tramitador.tramitacion.validation.BeanValidationRulesForStateAndEvent
 import com.educaflow.base.infrastructure.validation.dsl.rules
 import com.educaflow.base.infrastructure.validation.engine.BeanValidationRules
 import com.educaflow.base.infrastructure.validation.rules.FileMaxSize

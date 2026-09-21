@@ -2,7 +2,7 @@ package com.educaflow.tiposexpedientes.vistas;
 
 import com.educaflow.common.buildtools.files.tipoexpediente.Fase;
 import com.educaflow.common.buildtools.files.tipoexpediente.State;
-import com.educaflow.subsystem.expedientes.tramitacion.core.CommonEvent;
+import com.educaflow.subsystem.tramitador.tramitacion.core.CommonEvent;
 import com.educaflow.tiposexpedientes.support.FormDeEstado;
 import com.educaflow.tiposexpedientes.support.TiposExpediente;
 import com.educaflow.tiposexpedientes.support.Violacion;
@@ -48,11 +48,11 @@ import java.util.Set;
 class BotonesDelFooterTest {
 
     /**
-     * La acción que lleva el evento al servidor ({@code ExpedienteController.triggerEvent}), en
-     * {@code subsystem/expedientes/controllers/actions-expedientes.xml}. Es la de <b>todos</b> los
+     * La acción que lleva el evento al servidor ({@code TramitadorController.triggerEvent}), en
+     * {@code subsystem/tramitador/controller/actions-tramitador.xml}. Es la de <b>todos</b> los
      * botones del footer.
      */
-    private static final String ACCION_EVENTO = "subsysExpedientes-event-action";
+    private static final String ACCION_EVENTO = "subsysTramitador-event-action";
 
     /** Prefijo de Axelor para encadenar acciones en un mismo onClick. */
     private static final String PREFIJO_SERIAL = "serial:";
@@ -165,7 +165,7 @@ class BotonesDelFooterTest {
         }
 
         Violacion.assertNone("[Y3] El onClick de todo botón del <footer> debe incluir " + ACCION_EVENTO
-                + ", que es lo que lleva el evento a ExpedienteController.triggerEvent.", violaciones);
+                + ", que es lo que lleva el evento a TramitadorController.triggerEvent.", violaciones);
     }
 
     // -----------------------------------------------------------------------------------------

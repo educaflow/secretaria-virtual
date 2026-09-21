@@ -6,7 +6,7 @@ import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.util.SecurityUtil;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.*;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.*;
 import com.educaflow.tramites.util.firma.FirmaServidorHelper;
 import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1;
 import com.educaflow.subsystem.expedientes.db.repo.JustificacionFaltaProfesoradoV1Repository;

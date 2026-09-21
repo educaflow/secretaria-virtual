@@ -14,11 +14,11 @@
         </include-panels>
         <footer>
             <buttons-left>
-                <button name="RECHAZAR" title="Rechazar" css="btn-danger" outline="true" onClick="subsysExpedientes-event-action" prompt="¿Esta seguro que desea recharlo?"/>
+                <button name="RECHAZAR" title="Rechazar" css="btn-danger" outline="true" onClick="subsysTramitador-event-action" prompt="¿Esta seguro que desea recharlo?"/>
             </buttons-left>
             <buttons-right>
-                <button name="SUBSANAR" title="Subsanar información" outline="true" onClick="subsysExpedientes-event-action"/>
-                <button name="ACEPTAR" title="Aceptar" onClick="subsysExpedientes-event-action"/>
+                <button name="SUBSANAR" title="Subsanar información" outline="true" onClick="subsysTramitador-event-action"/>
+                <button name="ACEPTAR" title="Aceptar" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -31,7 +31,7 @@
             <buttons-left>
             </buttons-left>
             <buttons-right>
-                <button name="EXIT" colSpan="2"  title="Salir" onClick="subsysExpedientes-event-action"/>
+                <button name="EXIT" colSpan="2"  title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -51,7 +51,7 @@
 
             </buttons-left>
             <buttons-right>
-                <button name="EXIT" colSpan="2"  title="Salir" onClick="subsysExpedientes-event-action"/>
+                <button name="EXIT" colSpan="2"  title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -71,7 +71,7 @@
 
             </buttons-left>
             <buttons-right>
-                <button name="EXIT" colSpan="2"  title="Salir" onClick="subsysExpedientes-event-action"/>
+                <button name="EXIT" colSpan="2"  title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>

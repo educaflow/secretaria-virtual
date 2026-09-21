@@ -25,7 +25,7 @@
             <buttons-left/>
             <buttons-right>
                 <button name="CONTINUAR" colSpan="2" title="Siguiente"
-                        onClick="subsysExpedientes-event-action"/>
+                        onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -45,7 +45,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>

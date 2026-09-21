@@ -54,19 +54,27 @@ por ello siguen una **arquitectura diferente** al resto de la aplicación.
 > Su fuente de verdad son los skills `k-tramite` (el trámite) y `k-tipo-expediente` (todo lo que hay
 > bajo una carpeta de versión `tramites/<tramite>/<vN>/`: máquina de estados por fases, `PhaseEventManager`,
 > `StateEventValidator`, modelo, vistas preprocesadas y documentos PDF); consúltalos antes de tocar
-> `subsystem/expedientes` o `tramites/**`.
+> `subsystem/expedientes`, `subsystem/tramitador` o `tramites/**`.
 >
 > Esta arquitectura propia es exactamente el motivo por el que [`architecture-rules.md`](architecture-rules.md)
 > declara `..expedientes..` y `..tramites..` **paquetes exentos** de sus reglas.
-> La única invariante suya catalogada hoy como regla verificable es **C24**, que levanta esa exención
-> para un caso concreto: el motor de tramitación (`subsystem/expedientes/tramitacion`) no depende de los
-> servicios ni de los controladores de expedientes; la dependencia va siempre de estos al motor.
+> `subsystem/tramitador` **no** es exento: se le aplican todas.
 >
-> **Invariante normativa del motor.** `subsystem/expedientes` es **solo el motor de tramitación** y **MUST** mantenerse lo más pequeño posible: todo lo que se le añade lo heredan todos los tipos de expediente.
+> **Dos subsistemas, no uno.** El dominio del expediente (`subsystem/expedientes`: entidades, persistencia y datos
+> iniciales) y el motor de tramitación (`subsystem/tramitador`: la máquina de estados y el servicio y los
+> controladores que la mueven) son subsistemas hermanos, y la dependencia tiene un solo sentido:
+> `tramites → subsystem/tramitador → subsystem/expedientes`.
+> Dos reglas lo verifican, las dos levantando la exención donde hace falta:
+> **C25**, que prohíbe que el dominio dependa del tramitador —con las entidades generadas de `..db..` dentro del
+> sujeto, porque es por ahí por donde el ciclo entra: las entidades de todos los tipos de expediente se generan en
+> `com.educaflow.subsystem.expedientes.db`, así que un `<extra-code-model>` que llame al motor acopla el dominio entero—,
+> y **C24**, que dentro del tramitador prohíbe que el motor dependa de su servicio o de sus controladores.
+>
+> **Invariante normativa del motor.** `subsystem/tramitador` es **solo el motor de tramitación** y **MUST** mantenerse lo más pequeño posible: todo lo que se le añade lo heredan todos los tipos de expediente.
 > Lo que un expediente concreto necesita para implementarse **MUST NOT** ir ahí — va a `tramites/util/` si lo comparten varios tipos, o a su carpeta de versión si es de uno solo.
-> La regla completa (dónde va cada cosa, las señales de que una pieza no es del motor, la dirección de dependencias y cuándo sí es legítimo ampliarlo) está en [`src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md`](../src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md), y el criterio de entrada al común de trámites en [`src/main/java/com/educaflow/tramites/util/CLAUDE.md`](../src/main/java/com/educaflow/tramites/util/CLAUDE.md).
+> La regla completa (dónde va cada cosa, las señales de que una pieza no es del motor, la dirección de dependencias y cuándo sí es legítimo ampliarlo) está en [`src/main/java/com/educaflow/subsystem/tramitador/CLAUDE.md`](../src/main/java/com/educaflow/subsystem/tramitador/CLAUDE.md), qué entra en el dominio en [`src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md`](../src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md), y el criterio de entrada al común de trámites en [`src/main/java/com/educaflow/tramites/util/CLAUDE.md`](../src/main/java/com/educaflow/tramites/util/CLAUDE.md).
 >
-> **Deuda pendiente**: el resto de la estructura interna de `subsystem/expedientes` no la cubre ningún
+> **Deuda pendiente**: el resto de la estructura interna de los dos subsistemas no la cubre ningún
 > skill. Al documentarla, **MUST NOT** enumerar clases ni paquetes concretos —eso se deriva del código—:
 > descríbela solo si aporta invariantes normativas, y en ese caso valora catalogarlas en
 > `architecture-rules.md` levantando la exención.

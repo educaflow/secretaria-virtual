@@ -109,7 +109,7 @@ Si el `domains.xml` declara entidades hija (`one-to-many` del expediente):
 1. En el form plantilla, un `<panel-related name="<panel>" field="<campo one-to-many>" grid-view="…" form-view="…"/>` **con `name`**, para poder incluirlo por estado.
 2. El **grid y el form del hijo** se declaran en el `views.xml` de la **raíz de la versión** (son de todo el tipo, no de una fase) como vistas Axelor normales, con la convención `exp-<Entidad>-<EntidadHija>-grid` / `exp-<Entidad>-<EntidadHija>-form`.
 3. El form del hijo puede usar `<include-panels header="false">` y un **`<footer/>` vacío**: los hijos no disparan eventos.
-4. Validación al confirmar el popup del hijo: `onValidate="subsysExpedientes-validate-on-save-child-action"`.
+4. Validación al confirmar el popup del hijo: `onValidate="subsysTramitador-validate-on-save-child-action"`.
 5. Puede haber **varios `form-view` del mismo hijo**: se declara un `panel-related` con `name` distinto por cada combinación y cada estado incluye el suyo.
 6. **CRITICAL** — el prefijo `-` **no hace nada** sobre un `panel-related` (no tiene `<field>` propios). Un maestro-detalle de solo lectura **MUST** controlarse con los `canNew`/`canEdit`/`canDelete` del grid del hijo.
 
@@ -145,10 +145,10 @@ Particularidades de un tipo de expediente:
         </include-panels>
         <footer>
             <buttons-left>
-                <button name="<EVENTO>" colSpan="2" title="…" onClick="subsysExpedientes-event-action"/>
+                <button name="<EVENTO>" colSpan="2" title="…" onClick="subsysTramitador-event-action"/>
             </buttons-left>
             <buttons-right>
-                <button name="<EVENTO>" colSpan="2" title="…" onClick="subsysExpedientes-event-action"/>
+                <button name="<EVENTO>" colSpan="2" title="…" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -160,7 +160,7 @@ Particularidades de un tipo de expediente:
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -212,9 +212,9 @@ Un form de estado puede llevar, **fuera** del `<include-panels>`, paneles Axelor
 
 | Acción | Llama a | Se usa en |
 |---|---|---|
-| `subsysExpedientes-event-action` | `ExpedienteController.triggerEvent` | el `onClick` de **todos** los botones del footer |
-| `subsysExpedientes-validate-on-save-child-action` | `ExpedienteController.validateChild` | el `onValidate` del form de una entidad hija |
-| `subsysExpedientes-event-view-action` | `viewExpediente` | la usan las bandejas; **MUST NOT** referenciarse desde un `views.xml` de tipo |
+| `subsysTramitador-event-action` | `TramitadorController.triggerEvent` | el `onClick` de **todos** los botones del footer |
+| `subsysTramitador-validate-on-save-child-action` | `TramitadorController.validateChild` | el `onValidate` del form de una entidad hija |
+| `subsysTramitador-event-view-action` | `viewExpediente` | la usan las bandejas; **MUST NOT** referenciarse desde un `views.xml` de tipo |
 
 Las `<action-method>` **propias** de una fase se declaran en el `views.xml` de **esa** fase, junto a su botón: los nombres de acción son globales, y tenerlas al lado es lo que hace que copiar la fase se lleve todo.
 
@@ -229,13 +229,13 @@ Las `<action-method>` **propias** de una fase se declaran en el `views.xml` de *
 | **X3** | **MUST NOT** haber dos forms de la misma fase con el mismo `(state, profile)`: producen el mismo nombre de vista y **Axelor se queda con la última**; las demás no se pintan nunca |
 | **Y1** | El `name` de **todo** `<button>` del `<footer>` **MUST** ser un evento declarado en **ese** estado, o uno de los comunes (`DELETE`, `EXIT`). Un `<button name="">` — el esqueleto sin rellenar — es **violación** |
 | **Y2** | **Todo** evento declarado en un `<state>` **MUST** tener un botón que lo dispare en **alguno** de los forms de ese estado (se mira la **unión** genérico + perfil, no form a form). Si no, el usuario no puede llegar a él aunque su `trigger*` exista |
-| **Y3** | El `onClick` de **todo** botón del footer **MUST** incluir `subsysExpedientes-event-action` |
+| **Y3** | El `onClick` de **todo** botón del footer **MUST** incluir `subsysTramitador-event-action` |
 
 **Exenciones**: X2 exime los estados **sin `profile`** y los estados **sin eventos**. Y2 exime los estados sin ningún form (eso ya lo reporta X1).
 
 Reglas adicionales que **no** tienen test pero rompen en runtime o en build:
 
-- **MUST NOT** declararse `EXIT` en el atributo `events` de un `<state>` — pero **MUST** ponerse el **botón** `EXIT` en la vista **genérica** de **cada** estado. Es el único modo de salir de un formulario que no tiene eventos, y `ExpedienteController` lo intercepta antes del `Tramitador`.
+- **MUST NOT** declararse `EXIT` en el atributo `events` de un `<state>` — pero **MUST** ponerse el **botón** `EXIT` en la vista **genérica** de **cada** estado. Es el único modo de salir de un formulario que no tiene eventos, y `TramitadorController` lo intercepta antes del `Tramitador`.
 - **MUST** declararse `DELETE` en `events` del estado desde el que se pueda borrar, poner su botón, y escribir su `triggerDelete`.
 - **CRITICAL — un `<object-views>` sin ningún elemento hijo tumba el arranque, y el build NO lo detecta.** La validación XSD la hace el `ViewLoader` al arrancar: el síntoma es `"The content of element 'object-views' is not complete"`, aborta `AppStartup` y la aplicación queda **sin vistas, sin menús y sin data-init**. Los comentarios XML **no** cuentan como contenido. **MUST NOT** dejarse un `views.xml` de fase vacío ni con todos sus forms comentados: o tiene al menos un elemento válido, o se omite el fichero entero.
   - En la práctica, como toda fase tiene al menos un estado y X1 exige su form genérico, **el `views.xml` de toda fase declarada existe y no está vacío**.
@@ -279,19 +279,19 @@ Es la firma **del ciudadano**, con su certificado, en su máquina. Se reparte en
 | Pieza | Fichero | Qué se escribe |
 |---|---|---|
 | 1. Modelo | `domains.xml` | El **par** de campos `MetaFile`: `<campoOrigen>` y `<campoDestino>` |
-| 2. Vista | `views.xml` de **la fase** | Una `<action-method>` al `FirmaController` + el botón encadenado con `serial:` |
+| 2. Vista | `views.xml` de **la fase** | Una `<action-method>` al `FirmaClienteController` + el botón encadenado con `serial:` |
 | 3. Validación | `StateEventValidatorImpl.kt` | `+Required()` y `+FirmaPdf(model::get<CampoOrigen>)` sobre el campo **destino** |
 
 La pieza 2:
 
 ```xml
 <action-method name="exp-<Entidad>-<accion>-action">
-    <call class="com.educaflow.subsystem.expedientes.controllers.FirmaController"
+    <call class="com.educaflow.tramites.util.firma.FirmaClienteController"
           method='firmarDocumento(id,"<campoOrigen>","<campoDestino>",<x>,<y>,<ancho>,<alto>,<pagina>)'/>
 </action-method>
 
 <button name="<EVENTO>" title="…"
-        onClick="serial:exp-<Entidad>-<accion>-action,subsysExpedientes-event-action"/>
+        onClick="serial:exp-<Entidad>-<accion>-action,subsysTramitador-event-action"/>
 ```
 
 Los **8 argumentos**, en orden:
@@ -311,7 +311,7 @@ Reglas:
 
 - El atributo `method` **MUST** ir entre **comillas simples**, porque su contenido lleva comillas dobles.
 - La `<action-method>` **MUST** declararse en el `views.xml` de **la fase** que la usa, no en la raíz.
-- El `onClick` **MUST** ser `serial:<action-method propia>,subsysExpedientes-event-action` — la lista **MUST** terminar **siempre** en `subsysExpedientes-event-action` (Y3).
+- El `onClick` **MUST** ser `serial:<action-method propia>,subsysTramitador-event-action` — la lista **MUST** terminar **siempre** en `subsysTramitador-event-action` (Y3).
 - Quien firma es siempre el **usuario autenticado**: el controlador lee su DNI de él (no del expediente) y lanza `RuntimeException` si es `null`, está en blanco o no pasa `DniUtil.isValid`. El `triggerInitialEvent` no tiene que rellenar nada para la firma.
 - El **campo destino** es `servidor` a efectos del modelo pero **sí** aparece en el validador, porque es el único sitio donde se comprueba la firma: lleva `+Required()` + `+FirmaPdf(...)`. Es la única excepción a la regla de «solo campos `usuario` en el validador», y **MUST** documentarse como tal en el `design.md`.
 - El mismo mecanismo `serial:` sirve para encadenar **cualquier** acción propia antes del evento; la firma en cliente es solo su uso más común.
@@ -361,7 +361,7 @@ El diseñador lo aplica antes de dar el diseño por terminado (**MUST NOT** term
 - [ ] ¿Todo `profile` de un `<form>` está en la **unión de perfiles del tipo**?
 - [ ] **Y1** — ¿el `name` de **todo** botón es un evento del propio estado, o `DELETE`, o `EXIT`? ¿Ningún `<button name="">`?
 - [ ] **Y2** — ¿**todo** evento declarado en un estado tiene botón en alguno de sus forms (unión genérico + perfil)?
-- [ ] **Y3** — ¿**todo** `onClick` incluye `subsysExpedientes-event-action` (y las cadenas `serial:` **terminan** en ella)?
+- [ ] **Y3** — ¿**todo** `onClick` incluye `subsysTramitador-event-action` (y las cadenas `serial:` **terminan** en ella)?
 - [ ] ¿La vista **genérica** de cada estado lleva botón `EXIT` y sus paneles en solo lectura?
 - [ ] ¿`EXIT` **no** aparece en ningún `events` del `TipoExpedienteInstance.xml`?
 - [ ] ¿La suma de los `colSpan` de los botones de cada footer **no** pasa de 12?

@@ -15,10 +15,10 @@
         </include-panels>
         <footer>
             <buttons-left>
-                <button name="DELETE" colSpan="2" css="btn-danger" outline="true" title="Borrar el expediente"  icon="trash"  onClick="subsysExpedientes-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
+                <button name="DELETE" colSpan="2" css="btn-danger" outline="true" title="Borrar el expediente"  icon="trash"  onClick="subsysTramitador-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
             </buttons-left>
             <buttons-right>
-                <button name="GUARDAR_DATOS" colSpan="2" title="Siguiente" onClick="subsysExpedientes-event-action"/>
+                <button name="GUARDAR_DATOS" colSpan="2" title="Siguiente" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -32,7 +32,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -84,16 +84,16 @@
 
         <footer>
             <buttons-left>
-                <button name="BACK" colSpan="2" outline="true" title="Atrás" onClick="subsysExpedientes-event-action"/>
+                <button name="BACK" colSpan="2" outline="true" title="Atrás" onClick="subsysTramitador-event-action"/>
             </buttons-left>
             <buttons-right>
                 <button name="PRESENTAR" colSpan="4" title="Firmar con AutoFirma__!! y Presentar la solicitud"
                         showIf="situacionFirma=='SIN_CERTIFICADO'"
-                        onClick="serial:exp-JustificacionFaltaProfesoradoV1-firmarDocumentacionParaPresentar-action,subsysExpedientes-event-action"
+                        onClick="serial:exp-JustificacionFaltaProfesoradoV1-firmarDocumentacionParaPresentar-action,subsysTramitador-event-action"
                         prompt="¿Esta seguro que desea presentar la documentación?&lt;br&gt;No podrá deshacer esta acción"/>
                 <button name="PRESENTAR" colSpan="4" title="Firmar y Presentar la solicitud"
                         showIf="firmaEnServidor"
-                        onClick="serial:subsysExpedientes-event-action,exp-JustificacionFaltaProfesoradoV1-set-claveCertificado-null-action"
+                        onClick="serial:subsysTramitador-event-action,exp-JustificacionFaltaProfesoradoV1-set-claveCertificado-null-action"
                         prompt="¿Esta seguro que desea presentar la documentación?&lt;br&gt;No podrá deshacer esta acción"/>
             </buttons-right>
         </footer>
@@ -105,7 +105,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -124,7 +124,7 @@
 
     <action-method name="exp-JustificacionFaltaProfesoradoV1-firmarDocumentacionParaPresentar-action"  >
         <call
-                class="com.educaflow.subsystem.expedientes.controllers.FirmaController"
+                class="com.educaflow.tramites.util.firma.FirmaClienteController"
                 method='firmarDocumento(id,"pdfSolicitud","pdfSolicitudFirmado",100,20,600,100,1)'
         />
     </action-method>

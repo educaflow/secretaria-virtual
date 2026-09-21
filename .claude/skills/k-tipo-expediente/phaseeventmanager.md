@@ -65,7 +65,7 @@ public class InitialEventManagerImpl implements InitialEventManager<MiTramiteV1>
 }
 ```
 
-- La interfaz `InitialEventManager<T extends Expediente>` está en `subsystem/expedientes/tramitacion/eventmanager/` y tiene ese único método.
+- La interfaz `InitialEventManager<T extends Expediente>` está en `subsystem/tramitador/tramitacion/eventmanager/` y tiene ese único método.
 - El nombre de la clase es fijo (`InitialEventManagerImpl`): lo resuelve `ExpedienteLocator.getInitialEventManager(tipoExpediente)` por reflexión sobre el `basePackageName` (`SKILL.md` §1.6), así que se instancia con Guice y admite inyección normal.
 - El esqueleto lo genera `CreateFilesTask` entre los ficheros de la raíz de la versión (`SKILL.md` §3.1).
 
@@ -123,7 +123,7 @@ El registro de **entrada** toma del expediente el solicitante, el interesado, el
 
 ## 4. Eventos comunes
 
-- `EXIT` (cerrar pestaña): lo intercepta `ExpedienteController`, **no llega al PhaseEventManager**.
+- `EXIT` (cerrar pestaña): lo intercepta `TramitadorController`, **no llega al PhaseEventManager**.
 - `DELETE`: no valida ni copia campos, hace `repository.remove` directamente — pero **MUST** existir su `@WhenEvent triggerDelete` (vacío) si el XML lo declara, porque el test E1 lo exige. Su método en el validator, en cambio, **no** hace falta (`validator.md` §5).
 - `BACK` **no es común**: se declara en `events="..."`, se implementa (§5) y se le da método en el validator.
 

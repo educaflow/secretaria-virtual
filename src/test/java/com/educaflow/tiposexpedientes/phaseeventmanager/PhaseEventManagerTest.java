@@ -3,8 +3,8 @@ package com.educaflow.tiposexpedientes.phaseeventmanager;
 import com.educaflow.common.buildtools.common.TextUtil;
 import com.educaflow.common.buildtools.files.phaseeventmanagerfile.PhaseEventManagerFile;
 import com.educaflow.common.buildtools.files.tipoexpediente.Fase;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.OnEnterState;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.WhenEvent;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.OnEnterState;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.WhenEvent;
 import com.educaflow.tiposexpedientes.support.Bytecode;
 import com.educaflow.tiposexpedientes.support.TiposExpediente;
 import com.educaflow.tiposexpedientes.support.Violacion;
@@ -50,9 +50,9 @@ import java.util.Set;
 class PhaseEventManagerTest {
 
     private static final String FQCN_EVENT_CONTEXT =
-            "com.educaflow.subsystem.expedientes.tramitacion.eventmanager.EventContext";
+            "com.educaflow.subsystem.tramitador.tramitacion.eventmanager.EventContext";
     private static final String FQCN_PHASE_EVENT_MANAGER =
-            "com.educaflow.subsystem.expedientes.tramitacion.eventmanager.PhaseEventManager";
+            "com.educaflow.subsystem.tramitador.tramitacion.eventmanager.PhaseEventManager";
     private static final String VOID = "void";
     private static final String METODO_TRIGGER_INITIAL_EVENT = "triggerInitialEvent";
 

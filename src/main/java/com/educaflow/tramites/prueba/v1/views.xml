@@ -53,7 +53,7 @@
     <grid name="exp-PruebaV1-FormacionCentroTrabajo-grid" title="FCT's__!!" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" canEdit="false" edit-icon="false" canSave="true">
         <field name="alumno" />
     </grid>
-    <form name="exp-PruebaV1-FormacionCentroTrabajo-form" title="Detalle FCT" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" onValidate="subsysExpedientes-validate-on-save-child-action" validateSignal="misenyal" canSave="true" >
+    <form name="exp-PruebaV1-FormacionCentroTrabajo-form" title="Detalle FCT" model="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo" groups="admins,users" onValidate="subsysTramitador-validate-on-save-child-action" validateSignal="misenyal" canSave="true" >
         <include-panels header="false">
             datos-fct
         </include-panels>

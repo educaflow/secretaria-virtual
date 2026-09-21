@@ -90,7 +90,7 @@ Dos avisos sobre los perfiles, porque se confunden a menudo:
 
 | Familia | ❌ Prohibido | ✅ En su lugar |
 |---|---|---|
-| Clases y componentes | `PhaseEventManagerImpl`, `StateEventValidatorImpl`, `InitialEventManagerImpl`, `Tramitador`, `ExpedienteController`, `FirmaController`, cualquier `*Service`/`*Impl` | «lo que hace el sistema al lanzar la acción», «las comprobaciones de la acción», «lo que se rellena al crear el expediente» |
+| Clases y componentes | `PhaseEventManagerImpl`, `StateEventValidatorImpl`, `InitialEventManagerImpl`, `Tramitador`, `TramitadorController`, `FirmaClienteController`, cualquier `*Service`/`*Impl` | «lo que hace el sistema al lanzar la acción», «las comprobaciones de la acción», «lo que se rellena al crear el expediente» |
 | Ficheros del árbol | `TramiteInstance.xml`, `TipoExpedienteInstance.xml`, `domains.xml`, `views.xml`, `AceProfile*.xml`, `estados.puml`, `documentospdf/<algo>.xml` | «el trámite», «el ciclo de vida», «la pantalla», «los permisos», «el documento» |
 | Atributos y etiquetas XML | `<state name=…>`, `events=""`, `closed="true"`, `profile="…"`, `<aces>`/`<ace>`, `<include-panels>`, `<footer>`, `showIf`, `hideIf`, `readonly`, `colSpan` | «el estado en el que nace el expediente», «el estado cierra el expediente», «quién tiene el turno», «los bloques que se ven», «solo consulta» |
 | Campos internos | `codePhase`, `codeState`, `abierto`, `usuarioRegistrador`, `personaSolicitante`, `numeroExpediente`, `MetaFile`, o un nombre de campo tal cual (`importeSolicitado`, `pdfAutorizacion`) | «la fase y el estado en que está», «quién creó el expediente», «el importe que se pide», «el documento de autorización» |
@@ -125,7 +125,7 @@ Dos avisos sobre los perfiles, porque se confunden a menudo:
 | «vive en `TramiteInstance.xml` (`<help>`) y se muestra en un popup» | «es el texto de ayuda que el usuario lee antes de crear el expediente» |
 | «el `InitialEventManagerImpl` copia nombre, apellidos y DNI del usuario registrador» | «al crear el expediente, el interesado es la persona que lo crea, con su nombre, sus apellidos y su documento de identidad» |
 | «`closed="true"`: sin eventos disponibles» | «el estado cierra el expediente: desde él ya no se puede lanzar ninguna acción» |
-| «`serial:` de dos pasos con `FirmaController.firmarDocumento`» | «al pulsar el botón, el usuario firma el documento en su equipo con su certificado digital y a continuación se presenta» |
+| «`serial:` de dos pasos con `FirmaClienteController.firmarDocumento`» | «al pulsar el botón, el usuario firma el documento en su equipo con su certificado digital y a continuación se presenta» |
 | «se genera el PDF `documentospdf/autorizacion.xml` en el campo `pdfAutorizacion`» | «se genera el documento de autorización y queda guardado en el expediente» |
 | «`showIf` sobre `numeroCuenta` cuando `formaCobro == "TRANSFERENCIA"`» | «el número de cuenta solo se muestra cuando se elige cobrar por transferencia» |
 | «regla `FirmaPdf`» | «el sistema comprueba que la firma es válida y que corresponde al documento de identidad de la persona esperada» |

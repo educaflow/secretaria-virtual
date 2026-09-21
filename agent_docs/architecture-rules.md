@@ -214,9 +214,6 @@ Dentro de un sistema/subsistema la dependencia fluye Controller → Service → 
 - Mensaje: «las entidades de dominio son POJOs; la lógica de negocio vive en el servicio».
 
 **Cumplimiento.** ✅ CUMPLE.
-Nota: hay `<extra-code-model>` que acoplan entidades generadas a paquetes internos del motor de tramitación: el `getTipoExpedienteStates()` de `TipoExpediente` → `expedientes.tramitacion.internal.ExpedienteLocator`, y el `getDocumentoPdf(...)` de las entidades de expediente que generan PDF → `expedientes.tramitacion.util.ExpedienteUtil`.
-  Todas esas clases se generan en `com.educaflow.subsystem.expedientes.db`, así que quedan **fuera del sujeto** por la exención global de `..expedientes..` de las Convenciones de verificación; no es un incumplimiento.
-  Aunque se levantara la exención, la condición tampoco casaría: los destinos son `…expedientes.tramitacion.internal` y `…expedientes.tramitacion.util`, y `..service..` exige un segmento de paquete llamado exactamente `service`.
 
 ### C14 — `Beans.get(...)` prohibido en controladores y `*ServiceImpl`
 
@@ -247,21 +244,35 @@ El `allowProperties<Accion>` queda **fuera** de esta regla: es la whitelist del 
 
 **Cumplimiento.** ❌ INCUMPLE (test congelado): `correos.service.CorreoService` declara `enviarCorreo(Long)` y `listarCorreosEnFail()` sin validador. Las otras 9 interfaces `ModelService` del proyecto cumplen.
 
-### C24 — El motor de tramitación no depende de los servicios ni de los controladores de expedientes
+### C24 — El motor de tramitación no depende de los servicios ni de los controladores del tramitador
 
-**Contexto.** `com.educaflow.subsystem.expedientes.tramitacion` es el **motor de tramitación** (la máquina de estados: `core`, `eventmanager`, `validation` y su `internal`).
-Es la pieza de la que cuelgan todos los tipos de expediente, y la dependencia solo puede ir en un sentido: los servicios y los controladores de `expedientes` usan el motor, nunca al revés.
-Si el motor pudiera llamar hacia arriba, cualquier cambio en un servicio o en un controlador de expedientes arrastraría a la tramitación entera y a todos los trámites que la heredan.
+**Contexto.** `com.educaflow.subsystem.tramitador.tramitacion` es el **motor de tramitación** (la máquina de estados: `core`, `eventmanager`, `validation` y su `internal`).
+Es la pieza de la que cuelgan todos los tipos de expediente, y la dependencia solo puede ir en un sentido: los servicios y los controladores del tramitador usan el motor, nunca al revés.
+Si el motor pudiera llamar hacia arriba, cualquier cambio en un servicio o en un controlador arrastraría a la tramitación entera y a todos los trámites que la heredan.
 
-**Decisión.** Ninguna clase del motor de tramitación depende de `com.educaflow.subsystem.expedientes.services` ni de `com.educaflow.subsystem.expedientes.controllers`.
+**Decisión.** Ninguna clase del motor de tramitación depende de `com.educaflow.subsystem.tramitador.service` ni de `com.educaflow.subsystem.tramitador.controller`.
 
 **Verificación.**
-- Sujeto: clases de `com.educaflow.subsystem.expedientes.tramitacion..`.
-  **CRITICAL**: esta regla declara expresamente que **NO** se le aplica la exención global de `..expedientes..` de las Convenciones de verificación (ni la de esta categoría); su sujeto es precisamente un paquete exento, y excluirlo dejaría la regla vacía.
-- Condición: ninguna depende de clases de `com.educaflow.subsystem.expedientes.services..` ni de `com.educaflow.subsystem.expedientes.controllers..`.
-- Nota: el paquete de los controladores del subsistema se llama `controllers`, en plural — es la arquitectura propia de expedientes, y no el `..controller..` singular del resto de sistemas.
+- Sujeto: clases de `com.educaflow.subsystem.tramitador.tramitacion..`.
+- Condición: ninguna depende de clases de `com.educaflow.subsystem.tramitador.service..` ni de `com.educaflow.subsystem.tramitador.controller..`.
+- Exenciones: no aplican. `tramitador` **no** está entre los paquetes exentos de las Convenciones de verificación, así que esta regla —como el resto— se le aplica sin más.
+- Mensaje: «el motor de tramitación no depende de los servicios ni de los controladores del tramitador: la dependencia va de los servicios/controladores al motor, nunca al revés».
+
+**Cumplimiento.** ✅ CUMPLE.
+
+### C25 — El dominio de expedientes no depende del tramitador
+
+**Contexto.** `subsystem/expedientes` (el dominio del expediente: entidades, persistencia y datos iniciales) y `subsystem/tramitador` (el motor de tramitación y su API) son subsistemas hermanos, y la dependencia solo tiene un sentido: el tramitador tramita expedientes, el expediente no sabe que existe el tramitador.
+La dirección contraria es fácil de introducir sin darse cuenta desde un `<extra-code-model>` de un `domains.xml`, porque las entidades de **todos** los tipos de expediente se generan en `com.educaflow.subsystem.expedientes.db`: basta que una llame al motor para que el dominio entero pase a depender de él.
+
+**Decisión.** Ninguna clase de `com.educaflow.subsystem.expedientes` depende de `com.educaflow.subsystem.tramitador`.
+
+**Verificación.**
+- Sujeto: clases de `com.educaflow.subsystem.expedientes..`, **incluidas** las entidades generadas de `..db..` — que son justamente el punto por el que el ciclo entra.
+  **CRITICAL**: esta regla declara expresamente que **NO** se le aplica la exención global de `..expedientes..` de las Convenciones de verificación; su sujeto es precisamente ese paquete exento, y excluirlo dejaría la regla vacía.
+- Condición: ninguna depende de clases de `com.educaflow.subsystem.tramitador..`.
 - Exenciones: no aplican.
-- Mensaje: «el motor de tramitación no depende de los servicios ni de los controladores de expedientes: la dependencia va de los servicios/controladores al motor, nunca al revés».
+- Mensaje: «el dominio de expedientes no depende del tramitador: la dependencia va del tramitador al dominio, nunca al revés».
 
 **Cumplimiento.** ✅ CUMPLE.
 

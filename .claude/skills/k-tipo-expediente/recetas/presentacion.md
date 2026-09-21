@@ -88,10 +88,10 @@ Dependencias: el registro lo crea `EventContext` contra `subsystem/registroentra
     <footer>
         <buttons-left>
             <button name="DELETE" colSpan="2" css="btn-danger" outline="true" icon="trash" title="Borrar el expediente"
-                    onClick="subsysExpedientes-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
+                    onClick="subsysTramitador-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
         </buttons-left>
         <buttons-right>
-            <button name="GUARDAR_DATOS" colSpan="2" title="Siguiente" onClick="subsysExpedientes-event-action"/>
+            <button name="GUARDAR_DATOS" colSpan="2" title="Siguiente" onClick="subsysTramitador-event-action"/>
         </buttons-right>
     </footer>
 </form>
@@ -104,7 +104,7 @@ Dependencias: el registro lo crea `EventContext` contra `subsystem/registroentra
     <footer>
         <buttons-left/>
         <buttons-right>
-            <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+            <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
         </buttons-right>
     </footer>
 </form>
@@ -290,7 +290,7 @@ En el estado destino, cada form incluye el PDF que le corresponde (los paneles-v
     <footer>
         <buttons-left/>
         <buttons-right>
-            <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+            <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
         </buttons-right>
     </footer>
 </form>

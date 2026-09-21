@@ -16,7 +16,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="RESOLVER" colSpan="3" colOffset="9" title="Resolver el expediente" onClick="subsysExpedientes-event-action" prompt="¿Esta seguro que desea resolver el expediente?&lt;br&gt;No podrá deshacer esta acción"/>
+                <button name="RESOLVER" colSpan="3" colOffset="9" title="Resolver el expediente" onClick="subsysTramitador-event-action" prompt="¿Esta seguro que desea resolver el expediente?&lt;br&gt;No podrá deshacer esta acción"/>
             </buttons-right>
         </footer>
     </form>
@@ -30,7 +30,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -51,7 +51,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -70,7 +70,7 @@
         <footer>
             <buttons-left/>
             <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>

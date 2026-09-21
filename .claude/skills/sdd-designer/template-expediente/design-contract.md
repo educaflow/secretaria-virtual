@@ -160,7 +160,7 @@ Reglas:
 
 - **MUST** haber **exactamente un** estado con `inicial = sí` en **todo el tipo** (no uno por fase).
 - La columna `eventos` **MUST** reflejar el atributo `events` en su **orden literal**.
-- **MUST NOT** aparecer `EXIT` en la columna `eventos`: `ExpedienteController` lo intercepta antes del `Tramitador` y sería código muerto. `EXIT` es un **botón puro de UI** (ver `vistas.md`).
+- **MUST NOT** aparecer `EXIT` en la columna `eventos`: `TramitadorController` lo intercepta antes del `Tramitador` y sería código muerto. `EXIT` es un **botón puro de UI** (ver `vistas.md`).
 - `DELETE` **sí** se declara en `events` del estado desde el que se pueda borrar.
 - La columna `perfil` **MUST** contener un valor del enum `Profile` (`CREADOR`, `TRAMITADOR`, `COLABORADOR`, `AFECTADO`, `SECRETARIO`, `DIRECTOR`, `AUDITOR`) o `—`.
 - **A1 — nombres reservados. MUST NOT** nombrar un estado o un evento de forma que el método derivado (`onEnter<Estado>`, `trigger<Evento>`, `getForState<Estado>InEvent<Evento>`) coincida con un método público de `PhaseEventManager`, `StateEventValidator` o `InitialEventManager` (se compara solo el nombre, sin firma). En particular **MUST NOT** llamarse un estado `STATE`, ni un evento `INITIAL_EVENT`.
@@ -340,7 +340,7 @@ Una fila por ítem:
 
 
     public com.educaflow.base.infrastructure.pdf.DocumentoPdf getDocumentoPdf(TipoDocumentoPdf tipoDocumentoPdf) {
-        return com.educaflow.subsystem.expedientes.tramitacion.util.ExpedienteUtil.getDocumentoPdf(this, tipoDocumentoPdf.getFileName());
+        return com.educaflow.subsystem.expedientes.util.ExpedienteDocumentoPdfUtil.getDocumentoPdf(this, tipoDocumentoPdf.getFileName());
     }
 
 ]]>

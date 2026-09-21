@@ -138,7 +138,7 @@ El índice es la fuente del **progreso reanudable**: un test que pasa se marca `
 
 Lo leen el **ejecutor** y el **corrector**. Es lo que un trámite tiene y un sistema no.
 
-**CRITICAL — a diferencia de `template-system/`, aquí el código real de `src/main/java/com/educaflow/tramites/` y de `src/main/java/com/educaflow/subsystem/expedientes/` SÍ es referencia legítima**: los trámites existentes siguen exactamente esta arquitectura. **MUST NOT**, en cambio, copiar sus nombres, estados ni campos: el test lo dicta su `.desc.md`.
+**CRITICAL — a diferencia de `template-system/`, aquí el código real de `src/main/java/com/educaflow/tramites/` y de `src/main/java/com/educaflow/subsystem/{tramitador,expedientes}/` SÍ es referencia legítima**: los trámites existentes siguen exactamente esta arquitectura. **MUST NOT**, en cambio, copiar sus nombres, estados ni campos: el test lo dicta su `.desc.md`.
 
 ### 4.1 Cómo se crea un expediente
 

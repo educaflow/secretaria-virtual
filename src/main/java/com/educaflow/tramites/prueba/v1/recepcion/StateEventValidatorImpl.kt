@@ -1,7 +1,7 @@
 package com.educaflow.tramites.prueba.v1.recepcion
 
-import com.educaflow.subsystem.expedientes.tramitacion.validation.StateEventValidator
-import com.educaflow.subsystem.expedientes.tramitacion.validation.BeanValidationRulesForStateAndEvent
+import com.educaflow.subsystem.tramitador.tramitacion.validation.StateEventValidator
+import com.educaflow.subsystem.tramitador.tramitacion.validation.BeanValidationRulesForStateAndEvent
 import com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo
 import com.educaflow.base.infrastructure.validation.dsl.rules
 import com.educaflow.base.infrastructure.validation.engine.BeanValidationRules

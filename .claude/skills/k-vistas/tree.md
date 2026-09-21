@@ -91,7 +91,7 @@ Define un nivel del árbol. Se declaran en orden de jerarquía: primero el nodo 
       domain="abierto=true"
       parent="tipoExpediente.tramite"
       draggable="false"
-      onClick="subsysExpedientes-event-view-action">
+      onClick="subsysTramitador-event-view-action">
     <field name="name"/>
     <field name="numeroExpediente"/>
     <field name="createdBy"/>
@@ -198,7 +198,7 @@ El patrón más común. El nodo raíz actúa como agrupador usando un `EXISTS` p
           domain="abierto=true"
           parent="tipoExpediente.tramite"
           draggable="false"
-          onClick="subsysExpedientes-event-view-action">
+          onClick="subsysTramitador-event-view-action">
         <field name="name"/>
         <field name="numeroExpediente"/>
         <field name="nameState"/>
@@ -260,7 +260,7 @@ Cuando el tree se usa dentro de un dashlet con `<search-fields>`, los parámetro
           domain="(self.abierto=:estado) AND ((:anyo is null) OR (:anyo=0) OR (YEAR(self.fechaUltimoEstado)=:anyo))"
           parent="tipoExpediente.tramite"
           draggable="false"
-          onClick="subsysExpedientes-event-view-action">
+          onClick="subsysTramitador-event-view-action">
         <field name="name"/>
         <field name="numeroExpediente"/>
         <field name="fechaUltimoEstado"/>

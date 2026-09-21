@@ -1,9 +1,9 @@
 package com.educaflow.tramites.prueba.v1.recepcion;
 
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.EventContext;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.OnEnterState;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.PhaseEventManager;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.WhenEvent;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.EventContext;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.OnEnterState;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.PhaseEventManager;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.WhenEvent;
 import com.educaflow.subsystem.expedientes.db.PruebaV1;
 import com.educaflow.subsystem.expedientes.db.repo.PruebaV1Repository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;

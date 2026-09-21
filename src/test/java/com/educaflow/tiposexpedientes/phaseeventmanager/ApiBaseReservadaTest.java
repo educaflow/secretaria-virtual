@@ -4,9 +4,9 @@ import com.educaflow.common.buildtools.files.phaseeventmanagerfile.PhaseEventMan
 import com.educaflow.common.buildtools.files.stateeventvalidator.StateEventValidatorFile;
 import com.educaflow.common.buildtools.files.tipoexpediente.Fase;
 import com.educaflow.common.buildtools.files.tipoexpediente.State;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.PhaseEventManager;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.InitialEventManager;
-import com.educaflow.subsystem.expedientes.tramitacion.validation.StateEventValidator;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.PhaseEventManager;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.InitialEventManager;
+import com.educaflow.subsystem.tramitador.tramitacion.validation.StateEventValidator;
 import com.educaflow.tiposexpedientes.support.TiposExpediente;
 import com.educaflow.tiposexpedientes.support.Violacion;
 import org.junit.jupiter.api.DisplayName;

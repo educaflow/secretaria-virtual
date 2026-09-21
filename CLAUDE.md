@@ -83,9 +83,13 @@ La fuente de verdad es siempre el código, y para lo normativo `CLAUDE.md`, `age
 
 La descripción de la arquitectura (paquetes de `com.educaflow`, sistemas vs subsistemas y la arquitectura especial de expedientes) está en [`agent_docs/architecture.md`](agent_docs/architecture.md). Las invariantes **verificables** de esa arquitectura (dependencias entre capas, Controller→Service→Repository, nomenclatura/ubicación) están catalogadas como reglas verificables (formato ADR, sin código) en [`agent_docs/architecture-rules.md`](agent_docs/architecture-rules.md), de las que `/developer-create-arch-tests` genera los tests ArchUnit. **Ambos ficheros deben mantenerse coherentes entre sí.** Cárgalos solo cuando trabajes con la arquitectura.
 
-**`subsystem/expedientes` es solo el motor de tramitación y MUST mantenerse lo más pequeño posible**, porque todo lo que se le añade lo heredan todos los tipos de expediente.
+Los expedientes son **dos subsistemas hermanos**, no uno: `subsystem/expedientes` es el **dominio** (entidades, persistencia y datos iniciales) y `subsystem/tramitador` es el **motor de tramitación** (la máquina de estados y el servicio y los controladores que la mueven).
+La dependencia va `tramites → subsystem/tramitador → subsystem/expedientes` y **MUST NOT** ir al revés; lo verifica la regla C25.
+Ojo con la puerta por la que ese ciclo entra sin avisar: las entidades de **todos** los tipos de expediente se generan en `subsystem.expedientes.db`, así que un `<extra-code-model>` de cualquier `domains.xml` que llame al motor acopla el dominio entero.
+
+**`subsystem/tramitador` MUST mantenerse lo más pequeño posible**, porque todo lo que se le añade lo heredan todos los tipos de expediente.
 Lo que un expediente concreto necesita para implementarse **MUST NOT** ir ahí: va a `tramites/util/<propósito>/` si lo comparten varios tipos, o a su carpeta de versión si es de uno solo.
-Esta decisión se toma **al diseñar**, no al implementar: antes de colocar cualquier pieza nueva en el motor lee [`src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md`](src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md) (dónde va cada cosa) y [`src/main/java/com/educaflow/tramites/util/CLAUDE.md`](src/main/java/com/educaflow/tramites/util/CLAUDE.md) (qué puede entrar en el común de trámites).
+Esta decisión se toma **al diseñar**, no al implementar: antes de colocar cualquier pieza nueva en el motor lee [`src/main/java/com/educaflow/subsystem/tramitador/CLAUDE.md`](src/main/java/com/educaflow/subsystem/tramitador/CLAUDE.md) (dónde va cada cosa), [`src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md`](src/main/java/com/educaflow/subsystem/expedientes/CLAUDE.md) (qué entra en el dominio) y [`src/main/java/com/educaflow/tramites/util/CLAUDE.md`](src/main/java/com/educaflow/tramites/util/CLAUDE.md) (qué puede entrar en el común de trámites).
 
 ## Vistas
 
@@ -132,7 +136,7 @@ A veces hay palabras que acaban con `__!!` como en `AutoFirma__!!` esto es para 
 
 ## La aplicación
 La aplicación de secretaría virtual va a ser usada en centros educativos para informatizarlos. La app permite que haya más de un centro educativo. Es decir que es una aplicación "multicentro" y cada centro solo puede ver su propia información.
-En los expedientes el centro es el del propio expediente, que el usuario elige al crearlo entre sus centros: `subsystem/expedientes` y `tramites` **MUST NOT** usar `User.centroActivo`, que está en vías de eliminación y hoy solo usan gestión de centro, correos y Preferencias.
+En los expedientes el centro es el del propio expediente, que el usuario elige al crearlo entre sus centros: `subsystem/expedientes`, `subsystem/tramitador` y `tramites` **MUST NOT** usar `User.centroActivo`, que está en vías de eliminación y hoy solo usan gestión de centro, correos y Preferencias.
 
 ### Tipos de usuarios y cargos
 Existen varios tipos de usuarios en la aplicación:

@@ -30,10 +30,10 @@ El form plantilla está en la raíz y no en cada fase porque los paneles se comp
     <footer>
         <buttons-left>
             <button name="DELETE" colSpan="2" css="btn-danger" outline="true" icon="trash" title="Borrar el expediente"
-                    onClick="subsysExpedientes-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
+                    onClick="subsysTramitador-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
         </buttons-left>
         <buttons-right>
-            <button name="GUARDAR_DATOS" colSpan="2" title="Siguiente" onClick="subsysExpedientes-event-action"/>
+            <button name="GUARDAR_DATOS" colSpan="2" title="Siguiente" onClick="subsysTramitador-event-action"/>
         </buttons-right>
     </footer>
 </form>
@@ -107,18 +107,19 @@ Si el tipo necesita otro conjunto de datos (p. ej. el NIA), declara en su form p
 ## 4. `<footer>`
 
 - Se sustituye por el panel global `subsysExpedientes-template-footer-panel` (que además pinta los mensajes de error de validación) con tus botones dentro de `<buttons-left>`/`<buttons-right>`.
-- **El `name` de cada botón es el evento que dispara**; todos usan `onClick="subsysExpedientes-event-action"`. Admiten atributos Axelor normales (`title`, `colSpan`, `prompt`, `css`, `outline`, `icon`).
+- **El `name` de cada botón es el evento que dispara**; todos usan `onClick="subsysTramitador-event-action"`. Admiten atributos Axelor normales (`title`, `colSpan`, `prompt`, `css`, `outline`, `icon`).
 - El `colSpan` por defecto de cada botón es el `itemSpan` del panel footer (default 1).
 - Al primer botón de la derecha se le asigna **siempre** (sobrescribiendo cualquier valor manual) `colOffset = 12 − suma de colSpan` de todos los botones, para alinearlo al margen derecho. Si la suma pasa de 12, el offset sale negativo sin aviso.
 - Los eventos comunes `EXIT` y `DELETE` responden al cliente con `refresh-app` (se recarga la aplicación entera, no se navega a otra vista).
 
-Las acciones globales del subsistema (declaradas en `subsystem/expedientes/controllers/actions-expedientes.xml`) que puede usar un `views.xml`:
+Las acciones globales del subsistema (declaradas en `subsystem/tramitador/controller/actions-tramitador.xml`) que puede usar un `views.xml`:
 
 | Acción | Llama a | Se usa en |
 |---|---|---|
-| `subsysExpedientes-event-action` | `ExpedienteController.triggerEvent` | el `onClick` de **todos** los botones del footer |
-| `subsysExpedientes-validate-on-save-child-action` | `ExpedienteController.validateChild` | el `onValidate` del form de una entidad hija (§8) |
-| `subsysExpedientes-event-view-action` | `viewExpediente` | la usan las bandejas, no se referencia desde un `views.xml` |
+| `subsysTramitador-event-action` | `TramitadorController.triggerEvent` | el `onClick` de **todos** los botones del footer |
+| `subsysTramitador-validate-on-save-child-action` | `TramitadorController.validateChild` | el `onValidate` del form de una entidad hija (§8) |
+| `subsysTramitador-event-view-action` | `viewExpediente` | la usan las bandejas, no se referencia desde un `views.xml` |
+| `subsysTramitador-trigger-initial-event-action` | `TramitadorController.triggerInitialEvent` | la usa el alta de «Nuevo expediente», no se referencia desde un `views.xml` |
 
 ## 5. Herencia y des-herencia de atributos
 
@@ -158,7 +159,7 @@ Si no se le explica nada, no sabe si el expediente está atascado, si le toca a 
     <footer>
         <buttons-left/>
         <buttons-right>
-            <button name="EXIT" colSpan="2" title="Salir" onClick="subsysExpedientes-event-action"/>
+            <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
         </buttons-right>
     </footer>
 </form>
@@ -184,7 +185,7 @@ El `domains.xml` del tipo puede declarar entidades hija (one-to-many del expedie
 1. En el form plantilla, un **`<panel-related name="..." field="<campo one-to-many>" grid-view="..." form-view="..."/>`** con nombre → incluible por estado como cualquier panel (con la trampa del `-` de §3: nunca queda readonly por el prefijo).
 2. El **grid y el form del hijo** se declaran en el `views.xml` de la **raíz de la versión** (junto al form plantilla, no en una fase: son de todo el tipo) como vistas Axelor normales, convención `exp-<Code>-<EntidadHija>-grid` / `-form`.
 3. El form del hijo puede usar también `<include-panels header="false">` (sin cabecera de expediente) y **`<footer/>` vacío**: los hijos no disparan eventos.
-4. Validación del hijo al confirmar su popup: `onValidate="subsysExpedientes-validate-on-save-child-action"` en el form del hijo (llama a `ExpedienteController.validateChild`).
+4. Validación del hijo al confirmar su popup: `onValidate="subsysTramitador-validate-on-save-child-action"` en el form del hijo (llama a `TramitadorController.validateChild`).
 5. Puede haber **varios form-view del mismo hijo** (p. ej. uno de edición y otro de firma/lectura): se declara un `panel-related` con nombre distinto por cada combinación y cada estado incluye el suyo.
 
 ## 9. Patrón: visor de PDF embebido

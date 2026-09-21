@@ -1,4 +1,4 @@
-package com.educaflow.subsystem.expedientes.controllers;
+package com.educaflow.tramites.util.firma;
 
 import com.axelor.meta.CallMethod;
 import com.axelor.rpc.ActionResponse;
@@ -8,9 +8,9 @@ import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.util.DniUtil;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.expedientes.db.Expediente;
-import com.educaflow.subsystem.expedientes.tramitacion.util.ExpedienteUtil;
+import com.educaflow.subsystem.tramitador.tramitacion.util.ExpedienteUtil;
 
-public class FirmaController {
+public class FirmaClienteController {
 
     @CallMethod
     public Response firmarDocumento(long idExpediente, String sourceField, String targetField, float x, float y, float width, float height, int pageNumber) {

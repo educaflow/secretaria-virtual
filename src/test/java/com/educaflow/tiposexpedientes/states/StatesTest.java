@@ -2,9 +2,9 @@ package com.educaflow.tiposexpedientes.states;
 
 import com.educaflow.common.buildtools.files.tipoexpediente.Fase;
 import com.educaflow.common.buildtools.files.tipoexpediente.TipoExpedienteInstanceFile;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.Phase;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.State;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.TipoExpedienteStates;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.Phase;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.State;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.TipoExpedienteStates;
 import com.educaflow.tiposexpedientes.support.TiposExpediente;
 import com.educaflow.tiposexpedientes.support.Violacion;
 import org.junit.jupiter.api.DisplayName;
