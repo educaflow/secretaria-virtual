@@ -1,0 +1,154 @@
+### Comparación 1: design_1 vs design_2 → gana design_1
+
+=== VENTAJAS design_1 ===
+- Encontró y resolvió un problema real de Axelor que design_2 no ve. Si una acción de un `action-group` asigna un campo relacional, el siguiente `Remote-` del mismo grupo recibe un bean. Lo he comprobado en el código de AOP: el setter de `ContextHandler` hace `values.put(fieldName, bean)` sobre el mapa del contexto, y `BeanMapperModel.copyMapToEntity` (línea 241) hace el cast `(Map<String,Object>)` de ese valor, así que falla. design_1 lo resuelve con etapas `serial:` y cada `Remote-` recibe el registro ya serializado por el cliente.
+- Declara ese uso de `serial:` como **patrón nuevo** (D4), con la regla en una frase («una remota por etapa, al principio»), dónde iría la receta (`k-vistas/actions.md`, `VAR-7.1`) y por qué no encaja en las existentes. Es lo que exige `disenyo.md` para un patrón que no está documentado.
+- La regla de alta tiene un solo dueño. Los CC-NuevoExpediente-005 y 006 se calculan como `expedienteService.validateTriggerInitialEvent(contexto).isEmpty()`, y CC-003/004/007 usan `getPerfilesDeInicio`/`getCentrosDeInicio` de la puerta. Una condición de alta nueva la hereda la ventana sin tocarla.
+- `ContextoTramitacion` pasa a ser un `record` inmutable del motor, junto a `InitialEventContext`. Sus cuatro componentes son la whitelist, lo que se valida es exactamente lo que se usa y `Boolean` distingue «sin contestar». Además quita el permiso `ContextoTramitacion.all`, que sobraba.
+- Materializa `views/Tramites.xml` completo (base más delta), como exigen el §1.3 del contrato y la guía de tocar solo la referencia a la acción.
+- En el listado de «Tipos de expediente» respeta «Búsqueda / filtros: no» (`allowSearchFields`/`canAdvanceSearch` a `false`, `show-toolbar-grid` a `false`). Justifica en «Notas y supuestos» `orderBy`, el botón Salir y `close` en lugar de `back`.
+
+=== DEFECTOS design_1 ===
+- Patrón `serial:` en `onNew`/`onChange` sin receta escrita. Contradice `k-vistas/actions.md`, que limita `serial:` a AutoFirma, y la receta queda pendiente (Nota 3). Hasta que se escriba, el siguiente desarrollador tiene que recordar «una remota por etapa», que no está en ningún skill. Además cuesta cuatro idas y vueltas al abrir la ventana.
+- Amplía la API pública del motor con `getPerfilesDeInicio` y `getCentrosDeInicio` en `ExpedienteService`, más `getVistaExpediente` y `validateTriggerInitialEvent`. `getCentrosDeInicio` solo le sirve a la ventana y choca con «el motor lo más pequeño posible».
+- Deja la resolución de vista duplicada: `ExpedienteController.viewExpediente`/`triggerEvent` conservan su copia además de `getVistaExpediente`. Es una decisión con varios dueños, reconocida como deuda (Nota 10).
+- Parte la acción «Recalcular» del spec en dos (`recalcularPresentacion` y `recalcularParaQuien`), cada una con su validador vacío. Son dos piezas que el spec no pide y que obliga el patrón `serial:`.
+- Cambia el FQN de `ContextoTramitacion` y borra `views-models/`, más superficie que conservar el modelo. Además, `readonlyIf="centrosDisponibles.length == 1"` no protege el caso nulo.
+
+=== VENTAJAS design_2 ===
+- Menos intrusión en el motor: conserva `ContextoTramitacion` como modelo Axelor con los cuatro campos, y ni `InitialEventContext` ni `InitialEventManager` cambian.
+- Unifica de verdad la apertura de un expediente: `getVistaExpediente` la usan también `ExpedienteController.triggerEvent`/`viewExpediente`, que pierden su copia, y desaparece `getTabName`.
+- Mantiene una sola acción «Recalcular», como en el spec, y compone los grupos (`onNew` ⊃ `onChangeCentro` ⊃ `onChangePresentadoEnPapel`) sin patrones nuevos.
+- La clasificación de perfiles de inicio y la equivalencia perfil ↔ papel viven en `ContextoTramitacion`, con `esPresentadoEnPapel()` total (`IllegalStateException` para cualquier otro perfil). D6 trata con cuidado el título traducible de RUI-010.
+
+=== DEFECTOS design_2 ===
+- Error de ejecución en la cadena de `onNew`: `set-centro-unicoDisponible` (`centro = centrosDisponibles[0]`, un bean) va seguido en el mismo grupo por `onChangeCentro` → `Remote-recalcular`. Por lo que he visto en el código de AOP, `ActionRequestHelper.getModel` recibe `centro` como bean y el cast a `Map` falla. Eso rompe justo el caso de un único centro (ESC-001, 005, 010, 011, 013). Su D4 no identifica esta dependencia.
+- Declara `tramites/views/Tramites.xml` como `Modificar` pero no incluye `design_2/views/Tramites.xml`. Incumple «fichero completo resultante / copia verbatim» (`design-contract.md` §1.3) y obliga al implementador a editar a mano.
+- La decisión de alta tiene dos dueños. `NuevoExpedienteServiceImpl.getPerfilesQueInician` repite la intersección de la puerta, y `fireActionRule_CalcularParaQuien` reimplementa las condiciones de VAL-003 y VAL-005 (perfil de la forma de presentar y trámite con representación) en lugar de preguntar a la puerta. Una condición de alta nueva hay que tocarla en dos sitios.
+- Lleva Java de negocio dentro de un CDATA `<extra-code-model>` (constante, estático y método con excepción). Es menos localizable que una clase y deja los setters mutables después de validar.
+- Incluye un `domains/TipoExpediente.xml` «Modificar (sin delta)» que no aporta nada. En el listado de tipos no desactiva la búsqueda, aunque el spec dice «Búsqueda / filtros: no».
+
+=== JUSTIFICACION design_1 vs design_2 ===
+Nivel 1 (cumplimiento): design_2 no cumple bien. Falta el `Tramites.xml` materializado que el contrato exige, y su cadena de `onNew` falla en el caso más común (un único centro): lo he comprobado en el código de AOP (`ContextHandler` escribe el bean en el mapa y `BeanMapperModel` hace el cast a `Map`). Con eso no conserva «el comportamiento exactamente igual que hoy».
+design_1 cubre todos los escenarios y reglas, materializa todos los XML y además explica y resuelve ese problema.
+Nivel 2 (segundo desarrollador): en design_1, «cualquier condición de alta nueva va en `validateTriggerInitialEvent` y la ventana la hereda» más «una remota por etapa en el `serial:`». Son dos cosas, y la segunda está declarada como patrón nuevo con la receta pendiente.
+En design_2 hay que acordarse de tocar la puerta y también `CalcularParaQuien`/`getPerfilesQueInician` (dos dueños). Hay otra condición tácita que nadie ha escrito: no poner un `Remote-` detrás de un `set-` relacional, que es justo lo que falla.
+design_2 gana en menor intrusión y en haber unificado la resolución de vista. Son ventajas que el enriquecedor puede llevar a design_1, pero no compensan un fallo de ejecución ni un fichero sin materializar.
+
+### Comparación 2: design_1 vs design_3 → gana design_1
+
+=== VENTAJAS design_1 ===
+- Encadenamiento de la ventana que funciona de verdad. En D4 detecta que Axelor ejecuta un `action-group` en el servidor dentro de una sola petición. Lo he comprobado en el código: `ActionGroup.updateContext` → `Context.put` → `ContextHandler` mete el bean en el mapa `context` del request, y `BeanMapperModel` hace `(Map) entityMap.get(campo)`. Por eso un valor relacional fijado por un `action-record` (tramite, centro) no puede llegar a un `Remote-` del mismo grupo. Lo resuelve con etapas `serial:`: `set-tramite` va solo en la primera etapa y cada remota abre una etapa nueva. `serial:` lo admite genéricamente `executor.ts`.
+- La regla de alta tiene un único dueño. CC-005 y CC-006 se calculan preguntando a la puerta del motor (`validateTriggerInitialEvent(contexto).isEmpty()` con «para mí» / «en representación»). Así la ventana no repite ninguna condición de VAL-ContextoTramitacion-002…005, ni siquiera la de «el trámite admite representación».
+- Declara de forma explícita el patrón nuevo (`serial:` en `onNew`/`onChange`). Dice dónde faltaría la receta (`k-vistas/actions.md`, `VAR-7.1`) y lo deja anotado en «Notas y supuestos», como pide `disenyo.md`.
+- `ContextoTramitacion` pasa a ser un `record` inmutable de cuatro componentes: es la whitelist por construcción (`k-secure-coding` §3.5). Además, `Boolean` distingue «sin contestar» (VAL-004), y lo que se valida es exactamente lo que se usa.
+- Cubre toda la trazabilidad: las 19 RUI, los 7 CC, las VAL, las RN y la RES. Tiene eliminaciones declaradas completas y `TipoExpedienteServiceImpl` protege también frente al Administrador. D5 y D6 están bien razonadas.
+
+=== DEFECTOS design_1 ===
+- Contradice la regla vigente de `k-vistas/actions.md` («`serial:` solo para AutoFirma») y `VAR-7.1`. Aunque lo declara, deja al siguiente desarrollador una regla nueva que recordar sin receta escrita («una remota por etapa, al principio»). Además cuesta 4 idas y vueltas al abrir la ventana.
+- Parte la acción «Recalcular» del spec en dos (`recalcularPresentacion` / `recalcularParaQuien`), con sus validadores vacíos y sus whitelists. Son más piezas que el spec no pide: 6 remotas frente a las 4 posibles.
+- Mete en el motor lógica propia de la ventana: `getCentrosDeInicio` (centros ordenados por nombre) y el record `VistaExpediente` en `services/`. Además pone métodos estáticos de política (`esPerfilDeInicio`, `getPerfilParaPresentar`, `esPresentadoEnPapel`) dentro de un DTO. Esto choca con «minimizar `subsystem/expedientes`», y un enum de formas de presentar sería un dueño más limpio.
+- Borrar el modelo `ContextoTramitacion` y cambiar su FQN aumenta la superficie de cambio más de lo que exige el spec, que solo dice «sus campos quedan reducidos a cuatro».
+- `NuevoExpedienteServiceImpl` no fija `allowPropertiesInsert/Update` a deny-all; se apoya solo en que el modelo es `persistable="false"`.
+- El `domain` del centro se compone como texto JPQL en un `action-attrs` que solo se ejecuta en `onNew`: es una regla por evento, no continua.
+
+=== VENTAJAS design_3 ===
+- El enum `FormaPresentacion` en `tramitacion/core` es un dueño limpio y total de la equivalencia perfil ↔ forma y de «qué perfiles inician». `getFormasPresentacion` es la única pregunta que usan la validación y la ventana (D1).
+- Tiene menor superficie de cambio en el modelo: `ContextoTramitacion` sigue siendo el mismo modelo con cuatro campos y el FQN no cambia. Respeta una sola acción «Recalcular» como en el spec, con su whitelist.
+- CC-003 es un `many-to-many` con `domain="self IN (:centrosDisponibles)"` declarativo y continuo, sin interpolar texto en JPQL (D4). Declara el riesgo y ordena parar si falla.
+- Una sola regla de vista (`opcionUnica`) cubre RUI-008/009/012/016 con ramas complementarias.
+- `allowPropertiesInsert/Update` deny-all en `NuevoExpediente` y `TipoExpediente`, más `TipoExpedienteServiceImpl` que rechaza siempre: la frontera de confianza es más completa.
+
+=== DEFECTOS design_3 ===
+- Defecto bloqueante: en `onNew`, `set-tramite-elegido` (un `Tramite` obtenido con `__repo__…find`) va seguido de `Remote-preparar` en el mismo `action-group`, y `set-centro-unicoDisponible` va seguido de `Remote-recalcular`. En el servidor el contexto queda con el bean, no con `{id:…}`, y `BeanMapperModel` hace un cast `(Map)` que falla. La ventana no puede ni abrirse, así que caen ESC-001…013. D3 incluso vende como ventaja «una sola petición HTTP».
+- La condición «el trámite admite representación» tiene dos dueños: CC-006 la recalcula en la ventana (`puedeCrearParaSiMismo && tramite.getPermitidoPresentarEnRepresentacion()`) y VAL-ContextoTramitacion-005 la vuelve a comprobar en el motor.
+- `ExpedienteFormResponder` es una pieza pública nueva en `controllers/` del motor, declarada como patrón nuevo. Deja tres copias de «abrir el formulario del expediente» (dos más el dueño).
+- `domains/TipoExpediente.xml` aparece como «Modificar» con el delta vacío: es ruido en la tabla de ficheros.
+- El `many-to-many` en un modelo no persistente, enlazado como parámetro `IN`, es la primera vez en el proyecto y no está comprobado. D4 depende de ello.
+
+=== JUSTIFICACION design_1 vs design_3 ===
+El primer nivel, el cumplimiento, decide: el encadenamiento de design_3 falla al abrir «Nuevo expediente» para cualquier usuario. Un `action-record` que fija un valor relacional seguido de un `Remote-` en el mismo grupo mete el bean en el mapa del request, y el cast `(Map)` de `BeanMapperModel` revienta. Así no se cumple ningún escenario y se rompe el mandato de conservar el comportamiento actual.
+design_1 identifica exactamente ese problema en D4, lo resuelve con etapas `serial:` y lo declara como patrón nuevo.
+Prueba del segundo desarrollador en design_1: tiene que recordar una regla de una frase («una remota por etapa, al principio; lo que dependa de ella, en la etapa siguiente del `serial:`»), y la regla de alta vive solo en `validateTriggerInitialEvent`.
+En design_3 la explicación sería más corta, pero es falsa: tendría que recordar que el grupo único solo funciona con booleanos. Además, la condición de representación está en dos sitios.
+design_3 tiene mejores piezas de dominio (el enum `FormaPresentacion`, el dominio declarativo, la menor intrusión en `ContextoTramitacion`). El enriquecedor puede incorporarlas a design_1, pero no compensan un flujo principal roto.
+Me quedo con design_1. Sus defectos se pueden sanear después: reunir los dos recálculos en uno, sacar `getCentrosDeInicio` del motor y considerar un enum de formas de presentar.
+
+### Comparación 3: design_1 vs design_4 → gana design_1
+
+=== VENTAJAS design_1 ===
+- Encadena bien la ventana (D4). Cada evento es una secuencia `serial:` de etapas con una sola llamada remota al principio de cada etapa. Así el trámite fijado en `onNew` (RUI-014) y el centro único (RUI-003) llegan a la llamada remota siguiente en una petición nueva. Lo he comprobado en AOP: `ContextHandler` escribe en el mapa de la petición el bean resuelto, y `BeanMapperModel` (línea 241) espera ahí un `Map` para las relaciones many-to-one. `serial:` existe en el front propio (`executor.ts`).
+- Las reglas de alta tienen un solo dueño. CC-005 y CC-006 se calculan como «¿la puerta aceptaría este contexto?» (`validateTriggerInitialEvent(...).isEmpty()`), así que la ventana no repite VAL-002/003/005. Una regla nueva de alta se añade solo en la puerta.
+- `ContextoTramitacion` pasa a ser un `record` inmutable. Sus cuatro componentes son la whitelist (k-secure-coding §3.5) y `Boolean` distingue «sin contestar» de «para mí» sin trucos de `nullable`. Lo que se valida es exactamente lo que se usa.
+- Materializa el `Tramites.xml` completo, como exige el §1.3 del contrato. No toca `triggerEvent` ni `viewExpediente` de `ExpedienteController`, lo que respeta «solo lo imprescindible» en el motor. La deuda queda anotada en la nota 10.
+- Declara `serial:` como patrón nuevo, con dónde iría la receta (`k-vistas/actions.md`, VAR-7.1), y avisa del paquete `service/` en singular dentro del motor.
+
+=== DEFECTOS design_1 ===
+- Hace crecer el motor más de lo necesario. `getCentrosDeInicio` (lista de centros de la ventana), `getPerfilesDeInicio` y `VistaExpediente` se añaden a `subsystem/expedientes`. La lista de centros podría vivir en el sistema, como hace design_4.
+- Parte la acción «Recalcular» del spec en dos (`recalcularPresentacion` y `recalcularParaQuien`), con dos validadores vacíos y dos whitelists más. Es una pieza más que recordar, impuesta por la mecánica de etapas.
+- No hay `domains/*.xml` para `ContextoTramitacion` ni para `TipoExpediente`, aunque el checklist §9 pide uno por entidad del spec. El paso a `record` borra un modelo «existente» y su permiso: es defendible (D1), pero se aleja de la mínima intrusión.
+- `centrosDisponibles` es un many-to-many en un modelo `persistable="false"` y la vista lo consume con Groovy (`collect{it.id}`, `iterator().next()`, `.length == 1`). No hay precedente en el proyecto y es frágil.
+- `TipoExpedienteServiceImpl` defiende dos veces lo mismo: `validate*` siempre rechaza y además `insert/update/remove` lanzan `UnsupportedOperationException`.
+
+=== VENTAJAS design_4 ===
+- Toca menos: `ContextoTramitacion` sigue siendo un modelo Axelor reducido, con eliminaciones declaradas campo a campo, y hay tres ficheros de dominio, uno por entidad del spec.
+- El enum `FormaPresentacion` es un dueño claro de la equivalencia perfil ↔ papel/telemático. `fromProfile` y `fromPresentadoEnPapel` son totales y las ramas son complementarias por construcción.
+- `getCentrosDisponibles` se queda en el sistema; el motor solo expone `getFormasPresentacion`.
+- «Recalcular» es una única acción pura, fiel al spec. Además `idsCentrosDisponibles` y `centroUnicoDisponible` son más simples de consumir en la vista que un many-to-many.
+- Pone `allowPropertiesInsert/Update` de `NuevoExpediente` en `createDenyAllProperties()`: deja explícito que el REST automático no acepta nada.
+
+=== DEFECTOS design_4 ===
+- Defecto que rompe la funcionalidad: dentro de un mismo `action-group` pone un `set-` de una relación y después un `Remote-`. En `onNew` fija `tramite` y llama a `Remote-validatePreparar`; en `onChangeCentro` fija el centro único y llama a `Remote-recalcular`. En AOP el setter del contexto deja el bean en el mapa de la petición y `ActionRequestHelper.getModel` → `BeanMapperModel` hace `(Map)` sobre él, así que la ventana no llega a abrirse (ESC-001 a ESC-013). design_1 describe este fallo en su D4 y design_4 no lo detecta.
+- Aunque no reventara, la segunda llamada a `Remote-recalcular` del mismo grupo lee `presentadoEnPapel` de la petición original, no el valor que acaba de fijar RUI-007. Entonces CC-005 y CC-006 se calculan con una forma de presentar desfasada.
+- La regla de representación tiene dos dueños: `fireActionRule_CalcularParaQuien` repite `tramite.getPermitidoPresentarEnRepresentacion()`, que ya comprueba VAL-005 en la puerta.
+- No materializa `Tramites.xml` («es una sustitución literal»), contra el §1.3 del contrato, que exige el fichero completo resultante de toda vista que se modifica.
+- Modifica `ExpedienteController.triggerEvent` y `viewExpediente` para usar `getVistaExpediente`. Eso excede el «solo lo imprescindible» de las guías, y la equivalencia que alega (resolver la vista con la fase de destino en vez de la de origen) es un supuesto no verificado.
+- Deja el permiso `ContextoTramitacion.all` vivo y enlazado a los grupos aunque ninguna vista use ya ese modelo.
+
+=== JUSTIFICACION design_1 vs design_4 ===
+Nivel 1 (cumplimiento): design_4 no cumple el comportamiento del spec. Su encadenamiento `set → Remote` en el mismo `action-group` revienta al abrir la ventana, y como mínimo calcula CC-005/006 con datos desfasados. «Nuevo expediente se comporta exactamente igual que hoy» queda incumplido en todos los escenarios. design_1 identificó exactamente ese riesgo y lo resolvió con etapas `serial:`, declarado como patrón nuevo.
+Además design_4 incumple el §1.3 (no materializa `Tramites.xml`) y la guía de tocar lo imprescindible (reescribe `triggerEvent` y `viewExpediente`).
+Nivel 2 (prueba del segundo desarrollador): en design_1 cabe en dos frases. «Toda regla de alta va en `validateTriggerInitialEvent` y la ventana le pregunta», y «en un evento, una remota por etapa; lo que dependa de su resultado va en la etapa siguiente del `serial:`». En design_4 hay que recordar que la condición de representación está en la puerta y también en `CalcularParaQuien`, y el conocimiento tácito de que `set → Remote` solo funciona con booleanos.
+design_4 tiene méritos reales que conviene incorporar al ganador: `FormaPresentacion` como enum, la lista de centros calculada en el sistema, `idsCentrosDisponibles`/`centroUnicoDisponible` y deny-all en el REST de `NuevoExpediente`. Pero no compensan que su ventana no funcione.
+Me quedo con design_1. El enriquecedor debería revisar sobre todo su crecimiento en el motor (`getCentrosDeInicio`) y el many-to-many en un modelo no persistente.
+
+### Comparación 4: design_1 vs design_5 → gana design_1
+
+=== VENTAJAS design_1 ===
+- La ventana encadena bien sus pasos. Ve el problema de fondo de Axelor en su D4: un `action-record` que fija una relación (trámite o centro) y va seguido de un `Remote-` en el mismo `action-group` deja un bean en el contexto de la petición. El proyecto construye el modelo con `ActionRequestHelper.getModel` → `BeanMapperModel.copyMapToEntity`, que hace `(Map<String,Object>) entityMap.get(...)` sobre las many-to-one (lo he comprobado en `base/infrastructure/mapper/BeanMapperModel.java`). Lo resuelve con etapas `serial:`, y así cada remota recibe el registro ya serializado por el cliente.
+- La regla de alta tiene un solo dueño. CC-005 y CC-006 se calculan preguntando a la puerta del motor (`validateTriggerInitialEvent(contexto).isEmpty()`), así que la ventana no repite ni VAL-003 ni VAL-005. Una condición de alta nueva la hereda la ventana sin tocarla.
+- `ContextoTramitacion` pasa a ser un `record` inmutable de cuatro componentes. Es la whitelist por construcción (k-secure-coding §3.5), lo que se valida es exactamente lo que se usa, y `Boolean` distingue «sin contestar» (VAL-004).
+- Declara el patrón nuevo (`serial:` en `onNew`/`onChange`) como exige `disenyo.md`: da la regla en una frase, dice dónde iría la receta (`k-vistas/actions.md`, `VAR-7.1`) y por qué no encaja en lo que ya existe.
+- No toca `triggerEvent` ni `viewExpediente` de `ExpedienteController` y explica por qué: la vista se resuelve con la fase de origen, que no es equivalente. Respeta así el «solo lo imprescindible». Materializa además `Tramites.xml` completo.
+
+=== DEFECTOS design_1 ===
+- El patrón `serial:` en eventos de formulario contradice la regla vigente de `k-vistas/actions.md` (serial solo para AutoFirma) y `VAR-7.1`. Aunque lo declara, deja sin receta escrita una regla tácita («una remota por etapa, al principio»), y abrir la ventana cuesta 4 idas y vueltas.
+- Parte la acción «Recalcular» del spec en dos (`recalcularPresentacion` / `recalcularParaQuien`), cada una con su validador vacío y su whitelist. Son piezas que el spec no pide y que impone la mecánica de etapas.
+- El `domain` del centro se construye interpolando ids en JPQL (`'self.id IN (' + ...join(',') + ')'`), cosa que k-secure-coding §5 prohíbe. Además solo se aplica en `onNew`, así que es una regla por evento y no continua.
+- Hace crecer el motor con piezas que solo usa la ventana: `getCentrosDeInicio` (centros ordenados por nombre) y `getPerfilesDeInicio`, más la política estática metida en el DTO. Choca con «minimizar `subsystem/expedientes`».
+- Deja la resolución de la vista del expediente en dos sitios (`getVistaExpediente` y la copia de `ExpedienteController`). La reconoce como deuda en la Nota 10.
+- `readonlyIf="centrosDisponibles.length == 1"` sobre un many-to-many en un modelo `persistable="false"` no cubre el caso nulo y no tiene precedente en el proyecto.
+
+=== VENTAJAS design_5 ===
+- Una sola acción `calcular`, total, con ramas complementarias (sin centro / con centro). La vista solo consume booleanos ya calculados (`hayQuePreguntarComoSePresenta`, `sePuedeCrear*`, `presentadoEnPapelDeducido`). Hay menos piezas que en design_1 y las RUI-007/008/012/016 se escriben una sola vez.
+- Toca menos el motor: `ContextoTramitacion` sigue siendo un modelo `persistable="false"` con el mismo FQN, e `InitialEventContext` no cambia para los trámites. Cierra el hueco de VAL-004 con `nullable="true"`, con un razonamiento explícito.
+- `getCentrosDisponibles` vive en el sistema. El motor solo expone `getPerfilesDeInicio`, `PERFILES_DE_INICIO` y la equivalencia perfil ↔ papel, con `presentaEnPapel` total (`IllegalStateException` para cualquier otro perfil).
+- El `domain` del centro es declarativo y continuo (`self IN (:centrosDisponibles)`), sin interpolar JPQL. Rechaza explícitamente la alternativa de interpolar (D3-C).
+- Unifica la apertura del expediente en `getVistaExpediente` y elimina `getTabName`. La defensa de `TipoExpediente` es completa (validate que siempre rechaza, deny-all y `UnsupportedOperationException`) y materializa `Tramites.xml`.
+
+=== DEFECTOS design_5 ===
+- Error de ejecución en el flujo principal: en `onNew`, `set-tramite-elegido` (un `Tramite` obtenido con `__repo__...find`) va seguido de `Remote-validateCalcular`/`Remote-calcular` en el mismo `action-group`. Lo mismo ocurre con `set-centro-unico` → `onChangeCentro` → `Remote-calcular`. El setter del contexto deja el bean en el mapa y `BeanMapperModel` hace el cast `(Map)` sobre la many-to-one, así que la ventana no llega a abrirse. Caen ESC-001, 002, 005, 009, 010, 011, 012 y 013, y se incumple «se comporta exactamente igual que hoy». Ninguna decisión detecta esta dependencia.
+- La condición «el trámite admite representación» tiene dos dueños. CC-006 hace `sePuedeCrearParaUnoMismo && tramite.getPermitidoPresentarEnRepresentacion()` en la ventana, y VAL-ContextoTramitacion-005 la vuelve a comprobar en la puerta. Una regla de alta nueva hay que tocarla en los dos sitios.
+- Reescribe `ExpedienteController.triggerEvent` y `viewExpediente` para usar `getVistaExpediente` (resuelto con la fase ACTUAL). Excede el «solo lo imprescindible» de las guías y da por equivalente algo que no se ha comprobado: `triggerEvent` usa hoy el `PhaseEventManager` de la fase de origen.
+- La política de negocio (constante, estáticos y un método con excepción) va en un CDATA `<extra-code-model>` de un modelo mutable. Es menos localizable que una clase, y lo validado se puede cambiar después con los setters.
+- El many-to-many en un modelo `persistable="false"` usado como parámetro de `domain` es la primera vez en el proyecto y no está comprobado. Lo reconoce en Notas como «MUST comprobarse al arrancar».
+- `NuevoExpedienteServiceImpl` no fija `allowPropertiesInsert/Update` a deny-all y se apoya solo en `persistable="false"`. design_1 hace lo mismo, así que en esto no se diferencian.
+
+=== JUSTIFICACION design_1 vs design_5 ===
+Nivel 1 (cumplimiento) decide: el encadenamiento de design_5 pone `set` de un valor relacional seguido de `Remote-` dentro del mismo `action-group`, tanto en el trámite de `onNew` como en el centro único. Con `ActionRequestHelper.getModel` → `BeanMapperModel`, el cast `(Map)` revienta al abrir la ventana, así que no se cumple ningún escenario de alta ni el mandato de conservar el comportamiento actual. Es el mismo fallo que ya descartó a design_2, design_3 y design_4.
+design_1 identifica exactamente ese riesgo (D4), lo resuelve con etapas `serial:` y lo declara como patrón nuevo.
+Nivel 2 (prueba del segundo desarrollador), en design_1 cabe en dos frases: «toda regla de alta va en `validateTriggerInitialEvent` y la ventana le pregunta» y «en un evento, una remota por etapa; lo que dependa de ella, en la etapa siguiente del `serial:`».
+En design_5 la explicación sería más corta, pero es falsa. Hay que recordar además que «admite representación» está en la puerta y en `CalcularOpcionesDePresentacion`, y la regla tácita, sin escribir, de que `set → Remote` solo funciona con escalares.
+design_5 tiene méritos reales que el enriquecedor debería llevar a design_1: una sola acción `calcular`, el `domain` declarativo en lugar de la interpolación JPQL, la lista de centros calculada en el sistema y la menor intrusión en `ContextoTramitacion`. Pero no compensan que la ventana no funcione.
+Me quedo con design_1. Sobre él conviene sanear después la interpolación JPQL del `domain`, `getCentrosDeInicio` en el motor y la partición de «Recalcular».
+

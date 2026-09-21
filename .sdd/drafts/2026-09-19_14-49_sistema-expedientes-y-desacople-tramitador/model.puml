@@ -1,0 +1,31 @@
+@startuml
+
+class NuevoExpediente {
+  + trámite
+  + centro
+  + presentado en papel
+  + presentado en representación
+  + nombre del trámite
+  + ayuda del trámite
+  + centros disponibles
+  + hay que preguntar cómo se presenta
+  + se puede crear para uno mismo
+  + se puede crear en representación
+  + forma de presentar deducida
+}
+
+class ContextoTramitacion {
+  + trámite
+  + centro
+  + perfil
+  + presentado en representación
+}
+
+class TipoExpediente {
+  + código
+  + nombre
+  + trámite
+}
+
+NuevoExpediente "1" --> "1" ContextoTramitacion : se convierte en, al crear
+@enduml

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+    <action-view name="sysExpedientes.Main@TipoExpediente-action" title="Tipos de expediente"
+                 model="com.educaflow.subsystem.expedientes.db.TipoExpediente">
+        <view type="grid" name="sysExpedientes.Main@TipoExpediente-grid"/>
+        <view type="form" name="sysExpedientes.Main@TipoExpediente-form"/>
+        <view-param name="show-toolbar-grid" value="false"/>
+        <view-param name="show-toolbar-form" value="false"/>
+    </action-view>
+
+    <grid name="sysExpedientes.Main@TipoExpediente-grid" model="com.educaflow.subsystem.expedientes.db.TipoExpediente"
+          title="" orderBy="code" allowSearchFields="false"
+          canAdvanceSearch="false" canRefresh="false" canNew="false"
+          editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false" canViewOnClick="true"
+    >
+        <field name="code"/>
+        <field name="name"/>
+        <field name="tramite"/>
+    </grid>
+
+    <form name="sysExpedientes.Main@TipoExpediente-form" title="Tipo de expediente"
+          model="com.educaflow.subsystem.expedientes.db.TipoExpediente"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="TipoExpediente" title="Datos">
+            <field name="code" colSpan="4" readonly="true"/>
+            <field name="name" colSpan="4" readonly="true"/>
+            <field name="tramite" colSpan="4" readonly="true" canNew="false" canEdit="false" canView="false"/>
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Salir" colSpan="2" colOffset="10" outline="true"
+                    onClick="sysExpedientes.Main@TipoExpediente-btnCancel-action"/>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+    <action-group name="sysExpedientes.Main@TipoExpediente-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+</object-views>

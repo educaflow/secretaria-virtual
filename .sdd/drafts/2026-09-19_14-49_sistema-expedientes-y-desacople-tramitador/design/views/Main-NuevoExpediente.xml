@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+    <action-view name="sysExpedientes.Main@NuevoExpediente-action" title="Nuevo expediente"
+                 model="com.educaflow.system.expedientes.db.NuevoExpediente">
+        <view type="form" name="sysExpedientes.Main@NuevoExpediente-form"/>
+        <view-param name="popup" value="true"/>
+        <view-param name="show-toolbar" value="false"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="popup-save" value="false"/>
+        <view-param name="show-confirm" value="false"/>
+        <context name="_tramiteId" expr="eval: id"/>
+    </action-view>
+
+    <form name="sysExpedientes.Main@NuevoExpediente-form" title="Nuevo expediente"
+          model="com.educaflow.system.expedientes.db.NuevoExpediente"
+          onNew="serial:sysExpedientes.Main@NuevoExpediente-onNew-action,sysExpedientes.Main@NuevoExpediente-onNew-preparar-action,sysExpedientes.Main@NuevoExpediente-onChangePresentadoEnPapel-action"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="tramitePanel" title="" colSpan="12" showFrame="false">
+            <field name="tramite" hidden="true"/>
+            <field name="nombreTramite" hidden="true"/>
+            <field name="centrosDisponibles" hidden="true"/>
+            <field name="hayUnSoloCentroDisponible" hidden="true"/>
+            <field name="hayQuePreguntarPresentacion" hidden="true"/>
+            <field name="presentadoEnPapelDeducido" hidden="true"/>
+            <field name="presentadoEnPapelVigente" hidden="true"/>
+            <field name="sePuedeCrearParaMi" hidden="true"/>
+            <field name="sePuedeCrearEnRepresentacion" hidden="true"/>
+            <field name="hayQuePreguntarParaQuien" hidden="true"/>
+            <field name="ayudaTramite" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="nombreTramite,ayudaTramite"><![CDATA[
+                    <>
+                    <Box>
+                        <div className="card" style={{ cursor: "default" }} >
+                            <div className="card-header" >
+                                <strong>{nombreTramite}</strong>
+                            </div>
+                            <div className="card-body" >
+                                <Box mt={0} as="p" color="secondary" dangerouslySetInnerHTML={{ __html: ayudaTramite }} />
+                            </div>
+                        </div>
+                    </Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+        <panel name="presentacionPanel" title="Presentación" colSpan="12">
+            <field name="centro" colSpan="12" required="true" canNew="false" canEdit="false" canView="false"
+                   domain="self IN (:centrosDisponibles)"
+                   readonlyIf="hayUnSoloCentroDisponible"
+                   onChange="serial:sysExpedientes.Main@NuevoExpediente-onChangeCentro-action,sysExpedientes.Main@NuevoExpediente-onChangePresentadoEnPapel-action"/>
+            <field name="presentadoEnPapel" colSpan="12" widget="boolean-switch"
+                   showIf="hayQuePreguntarPresentacion"
+                   onChange="sysExpedientes.Main@NuevoExpediente-onChangePresentadoEnPapel-action"/>
+            <field name="presentadoEnRepresentacion" colSpan="12" widget="boolean-radio"
+                   showIf="hayQuePreguntarParaQuien"
+                   requiredIf="hayQuePreguntarParaQuien"
+                   x-false-text="Para mí" x-true-text="Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)"/>
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Cancelar" colSpan="2" colOffset="7" outline="true"
+                    onClick="sysExpedientes.Main@NuevoExpediente-btnCancel-action"/>
+            <button name="btnCrear" title="Crear expediente" colSpan="3"
+                    onClick="sysExpedientes.Main@NuevoExpediente-btnCrear-action"/>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+    <action-group name="sysExpedientes.Main@NuevoExpediente-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+
+    <action-group name="sysExpedientes.Main@NuevoExpediente-btnCrear-action">
+        <action name="validate"/>
+        <action name="sysExpedientes.Main@NuevoExpediente-Remote-validateCrear-action"/>
+        <action name="sysExpedientes.Main@NuevoExpediente-Remote-crear-action"/>
+    </action-group>
+
+    <action-group name="sysExpedientes.Main@NuevoExpediente-onNew-action">
+        <action name="sysExpedientes.Main@NuevoExpediente-set-tramite-seleccionado-action"/>
+    </action-group>
+
+    <action-group name="sysExpedientes.Main@NuevoExpediente-onNew-preparar-action">
+        <action name="sysExpedientes.Main@NuevoExpediente-Remote-validatePreparar-action"/>
+        <action name="sysExpedientes.Main@NuevoExpediente-Remote-preparar-action"/>
+        <action name="sysExpedientes.Main@NuevoExpediente-set-centro-unicoDisponible-action"/>
+    </action-group>
+
+    <action-group name="sysExpedientes.Main@NuevoExpediente-onChangeCentro-action">
+        <action name="sysExpedientes.Main@NuevoExpediente-set-presentadoEnPapel-sinMarcar-action"/>
+    </action-group>
+
+    <action-group name="sysExpedientes.Main@NuevoExpediente-onChangePresentadoEnPapel-action">
+        <action name="sysExpedientes.Main@NuevoExpediente-Remote-recalcular-action"/>
+        <action name="sysExpedientes.Main@NuevoExpediente-set-presentadoEnPapel-vigente-action"/>
+        <action name="sysExpedientes.Main@NuevoExpediente-set-presentadoEnRepresentacion-segunOpciones-action"/>
+        <action name="sysExpedientes.Main@NuevoExpediente-set-presentadoEnRepresentacion.title-formaPresentar-action"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+    <action-record name="sysExpedientes.Main@NuevoExpediente-set-tramite-seleccionado-action"
+                   model="com.educaflow.system.expedientes.db.NuevoExpediente">
+        <field name="tramite" expr="eval: __repo__(com.educaflow.subsystem.expedientes.db.Tramite).find(_tramiteId)"/>
+    </action-record>
+
+    <action-record name="sysExpedientes.Main@NuevoExpediente-set-centro-unicoDisponible-action"
+                   model="com.educaflow.system.expedientes.db.NuevoExpediente">
+        <field name="centro" expr="eval: centrosDisponibles.iterator().next()" if="hayUnSoloCentroDisponible"/>
+    </action-record>
+
+    <action-record name="sysExpedientes.Main@NuevoExpediente-set-presentadoEnPapel-sinMarcar-action"
+                   model="com.educaflow.system.expedientes.db.NuevoExpediente">
+        <field name="presentadoEnPapel" expr="eval: false"/>
+    </action-record>
+
+    <action-record name="sysExpedientes.Main@NuevoExpediente-set-presentadoEnPapel-vigente-action"
+                   model="com.educaflow.system.expedientes.db.NuevoExpediente">
+        <field name="presentadoEnPapel" expr="eval: presentadoEnPapelVigente"/>
+    </action-record>
+
+    <action-record name="sysExpedientes.Main@NuevoExpediente-set-presentadoEnRepresentacion-segunOpciones-action"
+                   model="com.educaflow.system.expedientes.db.NuevoExpediente">
+        <field name="presentadoEnRepresentacion"
+               expr="eval: hayQuePreguntarParaQuien ? null : sePuedeCrearParaMi ? false : sePuedeCrearEnRepresentacion ? true : null"/>
+    </action-record>
+
+    <action-attrs name="sysExpedientes.Main@NuevoExpediente-set-presentadoEnRepresentacion.title-formaPresentar-action">
+        <attribute for="presentadoEnRepresentacion" name="title"
+                   expr="eval: com.axelor.i18n.I18n.get('¿Para quién es la solicitud? («Para mí» es para la persona que la ha entregado)')"
+                   if="presentadoEnPapel"/>
+        <attribute for="presentadoEnRepresentacion" name="title"
+                   expr="eval: com.axelor.i18n.I18n.get('¿Para quién es el expediente?')"
+                   if="!presentadoEnPapel"/>
+    </action-attrs>
+
+    <?sv-remotes?>
+    <action-method name="sysExpedientes.Main@NuevoExpediente-Remote-validatePreparar-action"
+                   model="com.educaflow.system.expedientes.db.NuevoExpediente">
+        <call class="com.educaflow.system.expedientes.controller.NuevoExpedienteController" method="validatePreparar"/>
+    </action-method>
+
+    <action-method name="sysExpedientes.Main@NuevoExpediente-Remote-preparar-action"
+                   model="com.educaflow.system.expedientes.db.NuevoExpediente">
+        <call class="com.educaflow.system.expedientes.controller.NuevoExpedienteController" method="preparar"/>
+    </action-method>
+
+    <action-method name="sysExpedientes.Main@NuevoExpediente-Remote-recalcular-action"
+                   model="com.educaflow.system.expedientes.db.NuevoExpediente">
+        <call class="com.educaflow.system.expedientes.controller.NuevoExpedienteController" method="recalcular"/>
+    </action-method>
+
+    <action-method name="sysExpedientes.Main@NuevoExpediente-Remote-validateCrear-action"
+                   model="com.educaflow.system.expedientes.db.NuevoExpediente">
+        <call class="com.educaflow.system.expedientes.controller.NuevoExpedienteController" method="validateCrear"/>
+    </action-method>
+
+    <action-method name="sysExpedientes.Main@NuevoExpediente-Remote-crear-action"
+                   model="com.educaflow.system.expedientes.db.NuevoExpediente">
+        <call class="com.educaflow.system.expedientes.controller.NuevoExpedienteController" method="crear"/>
+    </action-method>
+
+</object-views>
