@@ -19,15 +19,6 @@
         -->
         <string name="basePackageName"  title="Paquete base de las clases del tipo de expediente" />
         <many-to-one name="tramite" ref="Tramite" />
-
-
-        <extra-code-model><![CDATA[
-
-            public com.educaflow.subsystem.expedientes.tramitacion.eventmanager.TipoExpedienteStates getTipoExpedienteStates() {
-                return com.axelor.inject.Beans.get(com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteLocator.class).getTipoExpedienteStates(this);
-            }
-
-        ]]></extra-code-model>
     </entity>
 
     <!--<enum name="AmbitoTipoExpediente">

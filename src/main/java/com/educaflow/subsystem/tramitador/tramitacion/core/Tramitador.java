@@ -1,4 +1,4 @@
-package com.educaflow.subsystem.expedientes.tramitacion.core;
+package com.educaflow.subsystem.tramitador.tramitacion.core;
 
 
 import com.axelor.db.JPA;
@@ -10,20 +10,20 @@ import com.axelor.db.modelservice.ModelServiceFactory;
 import com.educaflow.base.util.*;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.Persona;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.*;
-import com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteLocator;
-import com.educaflow.subsystem.expedientes.tramitacion.util.ExpedienteUtil;
-import com.educaflow.subsystem.expedientes.tramitacion.validation.BeanValidationRulesForStateAndEvent;
+import com.educaflow.subsystem.tramitador.tramitacion.internal.ExpedienteLocator;
+import com.educaflow.subsystem.tramitador.tramitacion.util.ExpedienteUtil;
+import com.educaflow.subsystem.tramitador.tramitacion.validation.BeanValidationRulesForStateAndEvent;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.HistorialEstado;
 import com.educaflow.subsystem.expedientes.db.TipoExpediente;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.*;
 import org.apache.shiro.authz.UnauthorizedException;
 import com.educaflow.base.infrastructure.numeradores.db.repo.NumeradorRepository;
 import com.educaflow.base.infrastructure.mapper.BeanMapperModel;
 import com.educaflow.base.infrastructure.validation.engine.*;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.axelor.db.modelservice.BusinessMessages;
-import com.educaflow.subsystem.expedientes.tramitacion.validation.StateEventValidator;
+import com.educaflow.subsystem.tramitador.tramitacion.validation.StateEventValidator;
 import com.google.common.base.CaseFormat;
 import com.google.inject.Inject;
 

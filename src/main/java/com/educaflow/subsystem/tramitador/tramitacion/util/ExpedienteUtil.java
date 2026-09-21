@@ -1,48 +1,37 @@
-package com.educaflow.subsystem.expedientes.tramitacion.util;
+package com.educaflow.subsystem.tramitador.tramitacion.util;
 
 import com.axelor.db.JPA;
 import com.axelor.db.JpaRepository;
 import com.axelor.db.JpaSecurity;
 import com.axelor.inject.Beans;
-import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
-import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
-import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.TipoExpediente;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.State;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.State;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.TipoExpedienteStates;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.Map;
 import com.educaflow.base.util.Convert;
-import com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteLocator;
+import com.educaflow.subsystem.tramitador.tramitacion.internal.ExpedienteLocator;
 
 public class ExpedienteUtil {
 
-    public static DocumentoPdf getDocumentoPdf(Expediente expediente,String documentoPdfFileName ) {
-        try {
-            Class<?> callerClass = expediente.getClass();
-
-            Path pathFileName= Path.of(documentoPdfFileName);
-
-            try (InputStream in = callerClass.getResourceAsStream(documentoPdfFileName)) {
-                if (in == null) {
-                    throw new IOException("No se encontró el recurso: " + documentoPdfFileName);
-                }
-                DocumentoPdf documentoPdfVacio= DocumentoPdfFactory.getDocumentoPdf(in.readAllBytes(), pathFileName.getFileName().toString());
-
-                Map<String, Object> contexto = Map.of("self", expediente,"now", java.time.LocalDateTime.now(Convert.defaultZoneId));
-
-                DocumentoPdf documentoPdfRelleno = DocumentoPdfUtil.generate(documentoPdfVacio, contexto);
-
-                return documentoPdfRelleno;
-
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Error al cargar el documento PDF: " + documentoPdfFileName, e);
-        }
+    /**
+     * La máquina de estados del tipo de expediente.
+     *
+     * <p>Es el punto de entrada <b>polimórfico</b>: el que se usa cuando el tipo de expediente no se
+     * conoce en compilación. Cuando sí se conoce, se usa directamente el {@code States.INSTANCE} de
+     * su carpeta de versión.
+     *
+     * <p>Está aquí y no en un {@code <extra-code-model>} de la entidad {@code TipoExpediente} a
+     * propósito: la entidad se genera en {@code subsystem.expedientes.db} y llamar desde ella al
+     * localizador acoplaría el dominio al motor, que es justo la dirección prohibida.
+     *
+     * <p>{@link ExpedienteLocator} es un bean inyectable, pero esto es un método estático de utilidad
+     * al que se llega desde varios sitios, así que se pide con {@code Beans.get} igual que en
+     * {@code getClaseConcreta}.
+     */
+    public static TipoExpedienteStates getTipoExpedienteStates(TipoExpediente tipoExpediente) {
+        return Beans.get(ExpedienteLocator.class).getTipoExpedienteStates(tipoExpediente);
     }
 
     /**
@@ -63,7 +52,7 @@ public class ExpedienteUtil {
         // expediente con estos códigos debe ser el mismo objeto que el recibido. Sin genéricos en
         // EventContext, un State de otro tipo compila, y el caso es realista: crear una versión
         // nueva es duplicar la carpeta de la anterior, y las dos tienen una clase llamada States.
-        State propio = expediente.getTipoExpediente().getTipoExpedienteStates()
+        State propio = getTipoExpedienteStates(expediente.getTipoExpediente())
                 .getState(phaseCode, stateCode).orElse(null);
         if (propio != state) {
             throw new IllegalArgumentException("El estado " + phaseCode + "/" + stateCode
@@ -93,7 +82,7 @@ public class ExpedienteUtil {
     public static State getState(Expediente expediente) {
         TipoExpediente tipoExpediente = expediente.getTipoExpediente();
 
-        return tipoExpediente.getTipoExpedienteStates()
+        return getTipoExpedienteStates(tipoExpediente)
                 .getState(expediente.getCodePhase(), expediente.getCodeState())
                 .orElseThrow(() -> new RuntimeException("El estado '" + expediente.getCodePhase() + "/"
                         + expediente.getCodeState() + "' no existe en el tipo de expediente "
@@ -103,8 +92,8 @@ public class ExpedienteUtil {
     public static Expediente getExpedienteFromIdExpediente(long idExpediente) {
         Class<? extends Expediente> claseConcreta = getClaseConcreta(idExpediente);
 
-        // El idExpediente lo envía el cliente en el JSON (ExpedienteController.viewExpediente,
-        // triggerEvent y validateChild; FirmaController) y JpaRepository.find delega en em.find sin
+        // El idExpediente lo envía el cliente en el JSON (TramitadorController.viewExpediente,
+        // triggerEvent y validateChild; FirmaClienteController) y JpaRepository.find delega en em.find sin
         // ningún filtro de fila, así que sin esta comprobación cualquier usuario autenticado puede
         // leer cualquier expediente por id.
         // La clase contra la que se comprueba sale de la BD, NUNCA del _model que envía el cliente,

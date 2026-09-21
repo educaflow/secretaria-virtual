@@ -14,15 +14,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>
  **/
-package com.educaflow.subsystem.expedientes.tramitacion.validation;
+package com.educaflow.subsystem.tramitador.tramitacion.eventmanager;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface BeanValidationRulesForStateAndEvent {
+public @interface OnEnterState {
 }

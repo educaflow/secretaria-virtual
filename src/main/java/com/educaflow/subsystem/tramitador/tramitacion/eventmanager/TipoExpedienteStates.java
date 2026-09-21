@@ -1,4 +1,4 @@
-package com.educaflow.subsystem.expedientes.tramitacion.eventmanager;
+package com.educaflow.subsystem.tramitador.tramitacion.eventmanager;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,7 +11,7 @@ import java.util.Optional;
  * la clase generada por reflexión de <b>clase</b>, sin reflexión de <b>métodos</b>: quien recibe un
  * {@code TipoExpedienteStates} hace llamadas normales.
  *
- * <p>Se llega a ella desde la entidad: {@code expediente.getTipoExpediente().getTipoExpedienteStates()}.
+ * <p>Se llega a ella por {@code ExpedienteUtil.getTipoExpedienteStates(tipoExpediente)}.
  */
 public interface TipoExpedienteStates {
 

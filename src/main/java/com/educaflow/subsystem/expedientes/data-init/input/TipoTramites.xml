@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <datos>
     <tipostramites>
-        <tipotramite code="PROFESOR" name="Trámites si eres profesor"/>
-        <tipotramite code="ALUMNO" name="Trámites si eres alumno" />
+        <tipotramite code="PROFESOR" name="Trámites para el profesor" tipoUsuario="PROFESOR"/>
+        <tipotramite code="ALUMNO" name="Trámites para el alumno" tipoUsuario="ALUMNO"/>
     </tipostramites>
 </datos>

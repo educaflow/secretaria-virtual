@@ -1,10 +1,9 @@
-package com.educaflow.subsystem.expedientes.controllers;
+package com.educaflow.subsystem.tramitador.controller;
 
 import com.educaflow.base.util.SecurityUtil;
-import com.educaflow.subsystem.expedientes.tramitacion.util.ExpedienteUtil;
+import com.educaflow.subsystem.tramitador.tramitacion.util.ExpedienteUtil;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
 import org.apache.shiro.authz.UnauthorizedException;
-import com.axelor.db.JpaRepository;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.db.Model;
 import com.axelor.i18n.I18n;
@@ -14,12 +13,11 @@ import com.axelor.rpc.ActionResponse;
 import com.axelor.rpc.Context;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.expedientes.db.Tramite;
-import com.educaflow.subsystem.expedientes.services.ExpedienteService;
-import com.educaflow.subsystem.expedientes.services.VistaExpediente;
-import com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteLocator;
-import com.educaflow.subsystem.expedientes.tramitacion.core.CommonEvent;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.ContextoTramitacion;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.EventContext;
+import com.educaflow.subsystem.tramitador.service.TramitadorService;
+import com.educaflow.subsystem.tramitador.service.VistaExpediente;
+import com.educaflow.subsystem.tramitador.tramitacion.core.CommonEvent;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.ContextoTramitacion;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.EventContext;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
@@ -35,10 +33,10 @@ import java.util.*;
 
 
 
-public class ExpedienteController {
+public class TramitadorController {
 
     @Inject
-    ExpedienteService expedienteService;
+    TramitadorService tramitadorService;
 
     @Inject
     PerfilesUsuarioService perfilesUsuarioService;
@@ -47,7 +45,7 @@ public class ExpedienteController {
     ModelServiceFactory modelServiceFactory;
 
 
-    public ExpedienteController() {
+    public TramitadorController() {
 
     }
 
@@ -58,9 +56,9 @@ public class ExpedienteController {
         try {
             ContextoTramitacion contextoTramitacion = getContextoTramitacion(actionRequest.getContext());
 
-            Expediente expediente = expedienteService.triggerInitialEvent(contextoTramitacion);
+            Expediente expediente = tramitadorService.triggerInitialEvent(contextoTramitacion);
 
-            VistaExpediente vista = expedienteService.getVistaExpediente(expediente, contextoTramitacion.profile());
+            VistaExpediente vista = tramitadorService.getVistaExpediente(expediente, contextoTramitacion.profile());
             doResponseVistaExpediente(actionResponseHelper, vista);
             response.setCanClose(true);
 
@@ -90,12 +88,12 @@ public class ExpedienteController {
                 return;
             }
 
-            expedienteService.triggerEvent(expediente, eventName, requestData, eventContext);
+            tramitadorService.triggerEvent(expediente, eventName, requestData, eventContext);
 
             if (eventName.equals(CommonEvent.DELETE.name())) {
                 response.setSignal("refresh-app", null);
             } else {
-                VistaExpediente vista = expedienteService.getVistaExpediente(expediente, profile);
+                VistaExpediente vista = tramitadorService.getVistaExpediente(expediente, profile);
                 doResponseVistaExpediente(actionResponseHelper, vista);
             }
 
@@ -118,7 +116,7 @@ public class ExpedienteController {
             Expediente expediente = ExpedienteUtil.getExpedienteFromIdExpediente(actionRequestHelper.getId());
             Profile profile = Profile.valueOf(actionRequestHelper.getProfileName());
 
-            VistaExpediente vista = expedienteService.getVistaExpediente(expediente, profile);
+            VistaExpediente vista = tramitadorService.getVistaExpediente(expediente, profile);
             doResponseVistaExpediente(actionResponseHelper, vista);
         } catch (UnauthorizedException ex) {
             throw ex;
@@ -139,7 +137,7 @@ public class ExpedienteController {
             Model bean = findModel(beanClass, actionRequestHelper.getId());
             String validateProperty = actionRequestHelper.getParentSource();
 
-            BusinessMessages businessMessages = expedienteService.validateChild(expediente, bean, beanClass, validateProperty, requestData);
+            BusinessMessages businessMessages = tramitadorService.validateChild(expediente, bean, beanClass, validateProperty, requestData);
 
             actionResponseHelper.doResponseBusinessMessages(businessMessages);
 
@@ -172,10 +170,18 @@ public class ExpedienteController {
      * referencias se vuelven a buscar por id porque {@code Context} las devuelve desligadas de la
      * sesión.
      *
-     * <p>Una vista cualquiera dispara el alta así:
+     * <p>Lo normal es que una vista dispare el alta con la acción global del subsistema, declarada
+     * en {@code subsystem/tramitador/controller/actions-tramitador.xml}, y que los cuatro datos
+     * salgan de los campos del propio formulario. Así lo hace «Nuevo expediente»:
+     * <pre>{@code
+     * <action name="subsysTramitador-trigger-initial-event-action"/>
+     * }</pre>
+     *
+     * <p>Una vista cuyo formulario <b>no</b> tenga esos campos declara su propia acción y los pasa
+     * como contexto fijo:
      * <pre>{@code
      * <action-method name="...-Remote-triggerInitialEvent-action" model="...">
-     *     <call class="com.educaflow.subsystem.expedientes.controllers.ExpedienteController" method="triggerInitialEvent"/>
+     *     <call class="com.educaflow.subsystem.tramitador.controller.TramitadorController" method="triggerInitialEvent"/>
      *     <context name="codeTramite" expr="eval: 'MI_TRAMITE'"/>
      *     <context name="codeCentro" expr="eval: '46012345'"/>
      *     <context name="presentadoEnPapel" expr="eval: true"/>
@@ -199,13 +205,17 @@ public class ExpedienteController {
     private Tramite getTramite(Context context) {
         String code = getCode(context, "codeTramite");
 
-        return code != null ? getPorCode(Tramite.class, code) : getReferencia(context, "tramite", Tramite.class);
+        return code != null
+                ? modelServiceFactory.resolve(Tramite.class).getByCode(code)
+                : getReferencia(context, "tramite", Tramite.class);
     }
 
     private Centro getCentro(Context context) {
         String code = getCode(context, "codeCentro");
 
-        return code != null ? getPorCode(Centro.class, code) : getReferencia(context, "centro", Centro.class);
+        return code != null
+                ? modelServiceFactory.resolve(Centro.class).getByCode(code)
+                : getReferencia(context, "centro", Centro.class);
     }
 
     private String getCode(Context context, String fieldName) {
@@ -224,23 +234,6 @@ public class ExpedienteController {
     /*******************************************************************/
 
 
-    /**
-     * El código lo pone la vista que dispara el alta, no el usuario: que no exista es un error de
-     * programación de esa vista, no algo que el usuario de la pantalla pueda corregir.
-     */
-    private <T extends Model> T getPorCode(Class<T> modelClass, String code) {
-        T model = JpaRepository.of(modelClass).all()
-                .filter("self.code = :code")
-                .bind("code", code)
-                .fetchOne();
-
-        if (model == null) {
-            throw new IllegalArgumentException("No existe ningún " + modelClass.getSimpleName() + " con el código: " + code);
-        }
-
-        return model;
-    }
-
     private <T extends Model> T getReferencia(Context context, String fieldName, Class<T> modelClass) {
         Model referencia = (Model) context.get(fieldName);
 
@@ -248,20 +241,16 @@ public class ExpedienteController {
             return null;
         }
 
-        return JpaRepository.of(modelClass).find(referencia.getId());
+        return modelServiceFactory.resolve(modelClass).getById(referencia.getId());
     }
 
-    private Model findModel(Class<? extends Model> classModel, Long id) {
+    private <T extends Model> T findModel(Class<T> classModel, Long id) {
         try {
-            Model model;
             if (id == null) {
-                model = classModel.getConstructor().newInstance();
-            } else {
-                JpaRepository<? extends Model> repository = JpaRepository.of(classModel);
-                model = repository.find(Convert.objectToLong(id));
+                return classModel.getConstructor().newInstance();
             }
 
-            return model;
+            return modelServiceFactory.resolve(classModel).getById(Convert.objectToLong(id));
         } catch (Exception ex) {
             throw new RuntimeException("Error al encontrar el modelo: " + classModel.getName() + " con id: " + id, ex);
         }

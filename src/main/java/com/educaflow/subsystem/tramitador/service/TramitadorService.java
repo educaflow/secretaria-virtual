@@ -1,4 +1,4 @@
-package com.educaflow.subsystem.expedientes.services;
+package com.educaflow.subsystem.tramitador.service;
 
 import com.axelor.db.Model;
 import com.axelor.db.modelservice.BusinessMessage;
@@ -10,25 +10,22 @@ import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.Profile;
-import com.educaflow.subsystem.expedientes.db.Tramite;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.ContextoTramitacion;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.EventContext;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.PhaseEventManager;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.State;
-import com.educaflow.subsystem.expedientes.tramitacion.internal.ExpedienteLocator;
-import com.educaflow.subsystem.expedientes.tramitacion.core.Tramitador;
-import com.educaflow.subsystem.expedientes.tramitacion.util.ExpedienteUtil;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.ContextoTramitacion;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.EventContext;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.PhaseEventManager;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.State;
+import com.educaflow.subsystem.tramitador.tramitacion.internal.ExpedienteLocator;
+import com.educaflow.subsystem.tramitador.tramitacion.core.Tramitador;
+import com.educaflow.subsystem.tramitador.tramitacion.util.ExpedienteUtil;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-public class ExpedienteService {
+public class TramitadorService {
 
     @Inject
     Tramitador tramitador;

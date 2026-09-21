@@ -1,11 +1,11 @@
-package com.educaflow.subsystem.expedientes.tramitacion.internal;
+package com.educaflow.subsystem.tramitador.tramitacion.internal;
 
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.TipoExpediente;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.PhaseEventManager;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.InitialEventManager;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.TipoExpedienteStates;
-import com.educaflow.subsystem.expedientes.tramitacion.validation.StateEventValidator;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.PhaseEventManager;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.InitialEventManager;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.TipoExpedienteStates;
+import com.educaflow.subsystem.tramitador.tramitacion.validation.StateEventValidator;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
@@ -49,9 +49,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Es un <b>bean inyectable</b> ({@code @Singleton}), no una clase de estáticos: quien lo usa lo
  * declara como dependencia y en test se puede sustituir. Las clases que resuelve por reflexión se
  * instancian con el {@link Injector} inyectado, que es la dependencia que antes estaba escondida
- * detrás de {@code Beans.get}. La única excepción es la entidad {@code TipoExpediente}, que llega
- * aquí con {@code Beans.get(ExpedienteLocator.class)} desde su {@code <extra-code-model>} porque las
- * entidades JPA no las construye Guice.
+ * detrás de {@code Beans.get}. La única excepción es {@code ExpedienteUtil}, que es una clase de
+ * estáticos y llega aquí con {@code Beans.get(ExpedienteLocator.class)}.
  *
  * @author logongas
  */
@@ -78,8 +77,10 @@ public class ExpedienteLocator {
     }
 
     /**
-     * La máquina de estados tipada del tipo de expediente. Es a lo que delega el
-     * {@code getTipoExpedienteStates()} de la entidad.
+     * La máquina de estados tipada del tipo de expediente. Es a lo que delega
+     * {@code ExpedienteUtil.getTipoExpedienteStates(tipoExpediente)}, que es el punto de entrada
+     * público: la entidad {@code TipoExpediente} no lo expone, porque llamar desde ella acoplaría el
+     * dominio al motor.
      *
      * <p>La reflexión acaba aquí: quien recibe el {@link TipoExpedienteStates} hace llamadas
      * normales, sin {@code Method}.

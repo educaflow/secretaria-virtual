@@ -1,4 +1,4 @@
-package com.educaflow.subsystem.expedientes.services;
+package com.educaflow.subsystem.tramitador.service;
 
 import com.axelor.i18n.I18n;
 import com.educaflow.subsystem.expedientes.db.Expediente;

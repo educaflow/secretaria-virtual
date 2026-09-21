@@ -1,4 +1,4 @@
-package com.educaflow.subsystem.expedientes.tramitacion.eventmanager;
+package com.educaflow.subsystem.tramitador.tramitacion.eventmanager;
 
 
 import com.axelor.db.modelservice.ModelServiceFactory;
@@ -6,7 +6,7 @@ import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.Profile;
-import com.educaflow.subsystem.expedientes.tramitacion.util.ExpedienteUtil;
+import com.educaflow.subsystem.tramitador.tramitacion.util.ExpedienteUtil;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroSalida;
 import com.educaflow.subsystem.registroentradasalida.service.*;
@@ -27,7 +27,7 @@ public class EventContext {
      * El {@code ModelServiceFactory} llega por parámetro y no de {@code Beans.get} porque un
      * EventContext se construye a mano por cada evento (no lo crea Guice): así la dependencia es
      * explícita y la clase se puede instanciar sin contenedor. Lo pasa quien sí es un bean, el
-     * {@code ExpedienteController}, que lo tiene inyectado.
+     * {@code TramitadorController}, que lo tiene inyectado.
      */
     public EventContext(Expediente expediente,Profile profile, ModelServiceFactory modelServiceFactory) {
         this.expediente = expediente;
