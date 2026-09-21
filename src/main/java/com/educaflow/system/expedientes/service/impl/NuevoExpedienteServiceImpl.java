@@ -10,8 +10,8 @@ import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.CentroUsuario;
 import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.Tramite;
-import com.educaflow.subsystem.expedientes.services.ExpedienteService;
-import com.educaflow.subsystem.expedientes.tramitacion.eventmanager.ContextoTramitacion;
+import com.educaflow.subsystem.tramitador.service.TramitadorService;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.ContextoTramitacion;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
 import com.educaflow.system.expedientes.db.NuevoExpediente;
 import com.educaflow.system.expedientes.service.NuevoExpedienteService;
@@ -28,7 +28,7 @@ import java.util.Set;
 public class NuevoExpedienteServiceImpl extends DefaultModelService<NuevoExpediente> implements NuevoExpedienteService {
 
     @Inject
-    ExpedienteService expedienteService;
+    TramitadorService tramitadorService;
 
     @Inject
     PerfilesUsuarioService perfilesUsuarioService;
@@ -77,7 +77,7 @@ public class NuevoExpedienteServiceImpl extends DefaultModelService<NuevoExpedie
 
     @Override
     public Optional<BusinessMessages> validateCrear(NuevoExpediente nuevoExpediente) {
-        return expedienteService.validateTriggerInitialEvent(toContextoTramitacion(nuevoExpediente));
+        return tramitadorService.validateTriggerInitialEvent(toContextoTramitacion(nuevoExpediente));
     }
 
     /**************************************************************************************/
@@ -197,7 +197,7 @@ public class NuevoExpedienteServiceImpl extends DefaultModelService<NuevoExpedie
     }
 
     private boolean admiteElAlta(ContextoTramitacion contexto) {
-        return expedienteService.validateTriggerInitialEvent(contexto).isEmpty();
+        return tramitadorService.validateTriggerInitialEvent(contexto).isEmpty();
     }
 
     private boolean isPresentadoEnPapelVigente(NuevoExpediente nuevoExpediente) {

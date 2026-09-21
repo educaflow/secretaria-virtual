@@ -76,7 +76,7 @@
     <action-group name="sysExpedientes.Main@NuevoExpediente-btnCrear-action">
         <action name="validate"/>
         <action name="sysExpedientes.Main@NuevoExpediente-Remote-validateCrear-action"/>
-        <action name="sysExpedientes.Main@NuevoExpediente-Remote-triggerInitialEvent-action"/>
+        <action name="subsysTramitador-trigger-initial-event-action"/>
     </action-group>
 
     <action-group name="sysExpedientes.Main@NuevoExpediente-onNew-action">
@@ -157,11 +157,6 @@
     <action-method name="sysExpedientes.Main@NuevoExpediente-Remote-validateCrear-action"
                    model="com.educaflow.system.expedientes.db.NuevoExpediente">
         <call class="com.educaflow.system.expedientes.controller.NuevoExpedienteController" method="validateCrear"/>
-    </action-method>
-
-    <action-method name="sysExpedientes.Main@NuevoExpediente-Remote-triggerInitialEvent-action"
-                   model="com.educaflow.system.expedientes.db.NuevoExpediente">
-        <call class="com.educaflow.subsystem.expedientes.controllers.ExpedienteController" method="triggerInitialEvent"/>
     </action-method>
 
 </object-views>

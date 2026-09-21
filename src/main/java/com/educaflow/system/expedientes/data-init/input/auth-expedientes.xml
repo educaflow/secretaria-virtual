@@ -2,7 +2,7 @@
 <auth>
 
   <!-- NuevoExpediente es persistable="false": no tiene filas que filtrar.
-       Quién puede iniciar qué y dónde lo decide ExpedienteService.validateTriggerInitialEvent. -->
+       Quién puede iniciar qué y dónde lo decide TramitadorService.validateTriggerInitialEvent. -->
   <permission name="NuevoExpediente.all"
               object="com.educaflow.system.expedientes.db.NuevoExpediente"
   >

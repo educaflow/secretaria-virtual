@@ -14,7 +14,7 @@
           groups="admins,users"
           groupBy="tipoExpediente.tramite.name"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
-          action="subsysExpedientes-event-view-action"
+          action="subsysTramitador-event-view-action"
     >
         <field name="numeroExpediente"/>
         <field name="tipoExpediente.name"/>

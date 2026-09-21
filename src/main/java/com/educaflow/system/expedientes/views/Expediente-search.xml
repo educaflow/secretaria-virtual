@@ -43,7 +43,7 @@
             <field name="name" as="name"/>
         </node>
 
-        <node model="com.educaflow.subsystem.expedientes.db.Expediente" domain="(self.abierto=:estado) and ((:anyo is null) OR (:anyo=0) OR (YEAR(self.fechaUltimoEstado)=:anyo)) and (self.centro.id IN (SELECT cu.centro.id FROM CentroUsuario cu WHERE cu.usuario.id = :usuarioId) OR :esAdministrador = true)" parent="tipoExpediente.tramite" draggable="false" onClick="subsysExpedientes-event-view-action">
+        <node model="com.educaflow.subsystem.expedientes.db.Expediente" domain="(self.abierto=:estado) and ((:anyo is null) OR (:anyo=0) OR (YEAR(self.fechaUltimoEstado)=:anyo)) and (self.centro.id IN (SELECT cu.centro.id FROM CentroUsuario cu WHERE cu.usuario.id = :usuarioId) OR :esAdministrador = true)" parent="tipoExpediente.tramite" draggable="false" onClick="subsysTramitador-event-view-action">
             <field name="name"/>
             <field name="numeroExpediente"/>
             <field name="createdBy"/>
