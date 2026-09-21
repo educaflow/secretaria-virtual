@@ -1,47 +1,4 @@
 <?xml version="1.0"?>
-<!-- Lo que un usuario VE (estos permisos) MUST ser lo mismo que lo que PUEDE HACER (PerfilesUsuarioService, en
-     subsystem/security): se ve un trámite o un expediente si se tiene algún perfil sobre él en alguna de las tablas
-     AceProfile*. Cómo se calculan esos perfiles está en subsystem/security/CLAUDE.md; si cambia allí, MUST cambiar aquí.
-     - Hay UN permiso por tabla y no uno con todas unidas por OR, porque Permission.condition está limitada a 1024
-       caracteres (@Size(max=1024)) y pasarse revienta la importación del fichero entero y, en cascada, la de auth.xml
-       —que es donde los permisos se enlazan a los grupos—. Axelor combina con OR las condiciones de todos los permisos
-       sobre el mismo objeto (AuthSecurity.getFilter → Filter.or), así que es equivalente.
-     - Una fila por tipoUsuario o cargo alcanza al usuario si tiene ese tipo de usuario o ese cargo en el centro
-       (CentroUsuarioTipoUsuario / CentroUsuarioCargo). Sobre un expediente, en el centro del expediente; sobre un
-       trámite, que no tiene centro, en cualquiera de sus centros.
-     - Sobre un EXPEDIENTE, el perfil CREADOR de las tablas no cuenta: solo habilita a crear. Si contara, cualquier
-       alumno vería los expedientes de los demás alumnos. Es CREADOR quien lo registró (Expediente.creador), y solo
-       mientras pertenezca al centro del expediente.
-       El perfil se compara SIEMPRE con la constante cualificada (com.educaflow.subsystem.expedientes.db.Profile.CREADOR),
-       nunca con el literal 'CREADOR': Axelor mapea los enum con un UserType propio (ValueEnumType), no con @Enumerated,
-       así que al compilar el HQL Hibernate no tiene por qué saber convertir una cadena al tipo del atributo.
-     - Todos son de SOLO LECTURA: crear o tramitar lo decide el servidor (Tramitador, ExpedienteSecurity).
-     Efecto colateral conocido y aceptado: el árbol de «Crear un nuevo expediente» (sysTramites-nuevo-tree, en
-     tramites/views/Tramites.xml) tiene su nodo Tramite SIN domain, así que ofrece todos los trámites que el usuario ve,
-     aunque solo tenga perfiles de consulta; NO es un agujero, porque el servidor rechaza la creación con
-     UnauthorizedException desde Tramitador.triggerInitialEvent (checkPerfilDelEstado). Acotar ese árbol es decisión
-     pendiente del dueño del producto. -->
-<auth>
-
-  <permission name="TipoExpediente.porTipoExpediente"
-              object="com.educaflow.subsystem.expedientes.db.TipoExpediente"
-              condition="EXISTS (
-        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTipoExpediente a, com.educaflow.subsystem.common.db.CentroUsuario cu
-        WHERE cu.usuario = ?
-        AND a.tipoExpediente = self
-        AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
-            OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu))
-    )"
-              conditionParams="__user__"
-  >
-    <can create="false" read="true" write="false" remove="false" export="false"/>
-  </permission>
-
-  <!-- Tramite. El árbol de la pantalla «Prueba Búsqueda» (subsysExpedientes.Expediente@PruebaSearch-buscar-tree, en
-       tramites/views/Expediente-search.xml) tiene como nodo RAÍZ Tramite: quien consulta los expedientes de un trámite
-       necesita poder LEER su fila de Tramite, o el filtro de permisos sobre el nodo raíz le deja la pantalla vacía
-       aunque sí vea los expedientes. Por eso cuentan los perfiles sobre CUALQUIER versión del trámite
-       (porTipoExpediente) y sobre cualquiera de sus expedientes (porExpediente), no solo sobre la versión activa. -->
   <permission name="Tramite.porGlobal"
               object="com.educaflow.subsystem.expedientes.db.Tramite"
               condition="EXISTS (
