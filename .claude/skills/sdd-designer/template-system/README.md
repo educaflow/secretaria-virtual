@@ -1,8 +1,8 @@
 # Plantilla de diseño de un sistema — guía e índice
 
-Esta carpeta de plantillas define **todo lo específico de convertir una especificación funcional en un DISEÑO de un sistema/subsistema** del proyecto EducaFlow. El skill `sdd-designer` aporta solo el **flujo** (localizar la spec, decidir modo, lanzar diseñadores en paralelo, elegir el mejor con un juez, verificar/corregir, cerrar) y es **agnóstico**: no sabe nada de cómo es el diseño. Lo lee todo de aquí.
+Esta carpeta de plantillas define **todo lo específico de convertir una especificación funcional en un DISEÑO de un sistema/subsistema** del proyecto EducaFlow. El skill `sdd-designer` aporta solo el **flujo** (localizar la spec, decidir modo, lanzar diseñadores en paralelo, elegir el mejor con un juez, criticar/corregir, verificar/corregir, cerrar) y es **agnóstico**: no sabe nada de cómo es el diseño. Lo lee todo de aquí.
 
-Este `README.md` es **el único fichero que el skill conoce por nombre**. **Lo leen los ocho subagentes** y, según su rol, cada uno tiene una tarea distinta sobre el mismo diseño:
+Este `README.md` es **el único fichero que el skill conoce por nombre**. **Lo leen los nueve roles de subagente** y, según su rol, cada uno tiene una tarea distinta sobre el mismo diseño:
 
 - **diseñador** — **crea** un diseño desde cero (§2.1).
 - **juez** — **elige** entre dos diseños cuál es mejor, detallando las ventajas **y los defectos/errores** de cada uno (§2.2).
@@ -12,6 +12,7 @@ Este `README.md` es **el único fichero que el skill conoce por nombre**. **Lo l
 - **test-unitarios** — **describe** los tests unitarios (JUnit + Mockito) de las clases Java del diseño en `test-unit-desc.md` (§2.6).
 - **verificador-test-unitarios** — **comprueba** que `test-unit-desc.md` es coherente con el diseño y reporta las incoherencias (§2.7).
 - **corrector-test-unitarios** — **corrige** en `test-unit-desc.md` las incoherencias reportadas (§2.8).
+- **crítico** — **critica** la calidad del diseño ganador con **una sola lente**; hay un crítico por lente (§2.9).
 
 A través de este README cada subagente descubre y lee **solo los ficheros de esta carpeta que su tarea necesita** (§2). **MUST NOT** copiarse ningún bloque explicativo de esta plantilla al `design.md` de salida.
 
@@ -36,26 +37,27 @@ El skill abre `README.md` y, a través de él, usa los demás. Cada uno se trans
 
 ---
 
-## 2. Tareas de los ocho subagentes
+## 2. Tareas de los nueve roles
 
-El skill `sdd-designer` lanza estos ocho roles (diseñador, juez, enriquecedor, verificador, corrector, test-unitarios, verificador-test-unitarios, corrector-test-unitarios). Los ocho reciben las **mismas rutas de entrada** (este `README.md`, el `specification.md` y, si existe, `design-guidelines.md`; el **enriquecedor** recibe además el log `log_best.txt`), pero **cada rol hace una tarea distinta y lee un subconjunto distinto de los ficheros de esta carpeta**. Lo que sigue acota, por rol, **qué hace** y **qué ficheros de esta plantilla le aplican**. El contrato de tokens y la orquestación los fija el skill; aquí solo se delimita el trabajo de cada uno.
+El skill `sdd-designer` lanza estos nueve roles (diseñador, juez, enriquecedor, crítico, verificador, corrector, test-unitarios, verificador-test-unitarios, corrector-test-unitarios). Los nueve reciben las **mismas rutas de entrada** (este `README.md`, el `specification.md` y, si existe, `design-guidelines.md`; el **enriquecedor** recibe además el log `log_best.txt`), pero **cada rol hace una tarea distinta y lee un subconjunto distinto de los ficheros de esta carpeta**. Lo que sigue acota, por rol, **qué hace** y **qué ficheros de esta plantilla le aplican**. El contrato de tokens y la orquestación los fija el skill; aquí solo se delimita el trabajo de cada uno.
 
-> **Común a los ocho:** **MUST** leer este `README.md` y seguir desde él a los ficheros que su tarea necesite. **MUST NOT** copiar ningún bloque explicativo de la plantilla al `design.md`. **MUST NOT** usar `AskUserQuestion`.
+> **Común a los nueve:** **MUST** leer este `README.md` y seguir desde él a los ficheros que su tarea necesite. **MUST NOT** copiar ningún bloque explicativo de la plantilla al `design.md`. **MUST NOT** usar `AskUserQuestion`.
 
-**Resumen por rol** (el detalle de cada uno en §2.1–§2.8):
+**Resumen por rol** (el detalle de cada uno en §2.1–§2.9):
 
 | Rol | Escenario — qué hace | Entrada propia | Lee de esta plantilla | Resultado |
 |---|---|---|---|---|
 | **Diseñador** (§2.1) | **Crea** un diseño desde cero | spec (+ guías) + contexto del proyecto (§4) | `design-contract.md` + `vistas.md`; `reglas-complejas.md` / `tests-e2e.md` solo si aplican (§5) | la carpeta `design_<n>/` completa |
 | **Juez** (§2.2) | **Elige** entre dos diseños, detallando ventajas **y defectos** de cada uno | las dos carpetas `design_<n>/` a comparar | `design-contract.md` + `vistas.md` (como criterios) | el diseño ganador + ventajas/defectos de cada uno (no lo modifica) |
 | **Enriquecedor** (§2.5) | **Detecta** qué ventajas de los descartados incorporar al ganador **y qué defectos del propio ganador sanear** | la carpeta `design/` ganadora + `log_best.txt` | `design-contract.md` (+ `vistas.md` si la ventaja/defecto afecta a vistas) | la lista de mejoras a aplicar (no las aplica) |
+| **Crítico** (§2.9), uno por lente | **Critica** la calidad con una sola lente | la carpeta `design/` ganadora + el rasero de su lente (§2.9) | `design-contract.md` (+ `vistas.md` si la crítica toca una vista) | la lista de críticas (no las aplica) |
 | **Verificador** (§2.3) | **Busca problemas** en un diseño | la carpeta `design/` ganadora | `validacion.md` + `vistas.md` §3; consulta `design-contract.md` / `reglas-complejas.md` / `tests-e2e.md` para saber qué *debería* existir | la lista de fallos, o conforme (no corrige) |
-| **Corrector** (§2.4) | **Corrige** los problemas reportados e **incorpora** las mejoras del enriquecedor | la carpeta `design/` + la lista de fallos/mejoras | `validacion.md` + `design-contract.md`; `vistas.md` / `reglas-complejas.md` / `tests-e2e.md` solo si un fallo/mejora afecta a esa parte | la carpeta `design/` corregida/enriquecida en sitio |
+| **Corrector** (§2.4) | **Corrige** los problemas reportados, **incorpora** las mejoras del enriquecedor y **aplica** las críticas | la carpeta `design/` + la lista de fallos/mejoras/críticas | `validacion.md` + `design-contract.md`; `vistas.md` / `reglas-complejas.md` / `tests-e2e.md` solo si un fallo/mejora afecta a esa parte | la carpeta `design/` corregida/enriquecida en sitio |
 | **test-unitarios** (§2.6) | **Describe** los tests unitarios de las clases Java del diseño | la carpeta `design/` (sobre todo `design.md`) | `tests-unitarios.md` (qué testear, mocking, plantilla, cobertura) | `design/test-unit-desc.md` (solo descripción, sin código) |
 | **verificador-test-unitarios** (§2.7) | **Comprueba** que `test-unit-desc.md` es coherente con el diseño | `design/test-unit-desc.md` + `design.md` (fuente de verdad) | `tests-unitarios.md` §7 (comprobaciones de coherencia) | la lista de incoherencias, o conforme (no corrige) |
 | **corrector-test-unitarios** (§2.8) | **Corrige** las incoherencias de `test-unit-desc.md` | `design/test-unit-desc.md` + la lista de incoherencias | `tests-unitarios.md` (plantilla/contrato) | `design/test-unit-desc.md` corregido en sitio |
 
-Solo el **diseñador** carga el contexto del proyecto de §4; los otros siete trabajan sobre lo que ya está en disco (el **test-unitarios** y su verificador pueden consultar el código real: el **test-unitarios** para clases que el diseño *modifica* o utilidades a mockear).
+Solo el **diseñador** carga el contexto del proyecto de §4 y cada **crítico** el rasero de su lente (§2.9); los otros siete trabajan sobre lo que ya está en disco (el **test-unitarios** y su verificador pueden consultar el código real: el **test-unitarios** para clases que el diseño *modifica* o utilidades a mockear).
 
 ### 2.1 Diseñador — crea un diseño
 
@@ -72,7 +74,7 @@ Solo el **diseñador** carga el contexto del proyecto de §4; los otros siete tr
 
 - **Lee de esta plantilla:** `design-contract.md` y `vistas.md` — son los **criterios** que un buen diseño debe cumplir (cobertura, taxonomía, clasificación de campos, reglas arquitectónicas, frontera de confianza, contrato de vistas y calidad del layout **ASCII Layout**). Son el rasero tanto para las ventajas como para los defectos de cada diseño.
 - **Detalla los defectos de los DOS diseños, no solo del perdedor:** los defectos que reportes del diseño que acabe ganando se auditarán después (el enriquecedor, §2.5, los corrige sobre el ganador). Sé concreto: qué punto del spec/guías/reglas incumple o cubre peor, qué regla/escenario falta.
-- **NO** ejecuta la validación de `validacion.md` (eso es del verificador) ni carga el contexto del proyecto de §4: compara los dos diseños tal y como están en disco.
+- **NO** ejecuta la validación de `validacion.md` (eso es del verificador) ni carga el contexto del proyecto de §4 (el rasero de calidad de `k-code-quality` que el skill le indica no cuenta como tal): compara los dos diseños tal y como están en disco.
 - **MUST NOT** modificar, completar ni corregir ninguno de los dos diseños: su única salida es **elegir uno** y exponer ventajas/defectos de ambos. Si ambos son deficientes, elige el menos malo (el enriquecedor y el bucle de verificación posteriores corrigen el ganador).
 
 ### 2.3 Verificador — busca problemas en un diseño
@@ -81,14 +83,16 @@ Solo el **diseñador** carga el contexto del proyecto de §4; los otros siete tr
 
 - **Lee de esta plantilla:** `validacion.md` — es **la lista de qué cuenta como fallo**. **Ejecuta tú mismo** (con `Bash`) el script `validate.sh` que prescribe `validacion.md` §1 para la validación XML mecánica contra los XSD, y aplica además las **comprobaciones semánticas** de cobertura, coherencia y seguridad (`validacion.md` §2) — las de vistas están delegadas en `vistas.md` §3, incluida la **auditoría de layout (ASCII Layout)** de cada `<form>`. Para saber qué *debería* existir, consulta `design-contract.md` y `vistas.md`, y `reglas-complejas.md` / `tests-e2e.md` para las partes condicionales que el spec exija.
 - **Comprueba** que las partes que **deben** existir (§5) existen, y que cada artefacto valida.
+- **Solo cumplimiento:** **MUST NOT** reportar olores ni preferencias de diseño; la calidad es de los críticos (§2.9), que pasan antes.
 - **MUST NOT** corregir nada: solo **detecta y reporta**. Corregir es tarea del corrector (§2.4).
 
 ### 2.4 Corrector — corrige un diseño
 
-**Tarea:** dada la lista de fallos del verificador (§2.3) o la lista de mejoras del enriquecedor (§2.5), **aplicarla en sitio** sobre la carpeta `design/` (`Edit`/`Write` sobre sus ficheros), sin regenerar el diseño.
+**Tarea:** dada la lista de fallos del verificador (§2.3), la de mejoras del enriquecedor (§2.5) o la de críticas de los críticos (§2.9), **aplicarla en sitio** sobre la carpeta `design/` (`Edit`/`Write` sobre sus ficheros), sin regenerar el diseño.
 
 - **Lee de esta plantilla:** `validacion.md` (para entender por qué cada cosa es un fallo y cuál es la corrección esperada) y `design-contract.md` (las reglas a las que debe ajustar la corrección o la mejora); además `vistas.md`, `reglas-complejas.md` o `tests-e2e.md` **solo si** un fallo/mejora afecta a una vista, a una `rules/R-*.md` o a `test-e2e-desc.md` respectivamente (para conocer la regla o el formato correcto al que ajustar el cambio).
-- **Aplica** exactamente los fallos/mejoras reportados, manteniendo la estructura y las decisiones del diseño que no estén en falta.
+- **Aplica** exactamente los fallos/mejoras/críticas reportados, manteniendo la estructura y las decisiones del diseño que no estén en falta.
+- **Corrige sin complicar:** **MUST NOT** resolver un problema añadiendo entidades, clases, métodos, campos o acciones si se resuelve modificando lo que ya hay. Al aplicar críticas, si dos se contradicen aplica la que deja menos cosas que recordar.
 - **MUST NOT** renombrar ni mover la carpeta `design/`. **MUST NOT** regenerar el diseño entero ni reconstruirlo desde el spec: solo aplica los cambios puntuales.
 
 ### 2.5 Enriquecedor — incorpora ventajas de los descartados y sanea los defectos del ganador
@@ -126,6 +130,25 @@ Solo el **diseñador** carga el contexto del proyecto de §4; los otros siete tr
 - **Fuente de verdad:** `design.md`. **MUST NOT** modificar el diseño para que cuadre con los tests: corrige los tests para que cuadren con el diseño.
 - **Aplica** exactamente las incoherencias reportadas, manteniendo lo correcto. **MUST NOT** tocar otros ficheros del diseño.
 
+
+### 2.9 Crítico — critica el diseño con una sola lente
+
+**Tarea:** el skill lanza **un crítico por cada lente** de la tabla de abajo, en paralelo, antes del verificador. Cada crítico mira `design/` con **su lente y solo la suya**, carga **entero** el rasero de su fila y reporta lo que un revisor senior especializado en eso no dejaría pasar. El verificador comprueba que el diseño **cumple**; el crítico, que sea **bueno**.
+
+**Tabla de lentes** (contrato con el skill, que extrae de aquí los nombres; **MUST** conservar la primera columna `Lente`):
+
+| Lente | Rasero que carga | Qué busca |
+|---|---|---|
+| `solid` | El skill `k-code-quality` **entero** (su `SKILL.md` indexa los ficheros); el peso está en sus reglas de **clases (SOLID)**, de **métodos**, en las **convenciones del proyecto** y en los **olores de diseño**. | En las clases Java que el `design.md` describe (servicios, controladores, colaboradoras, módulos): un `*ServiceImpl` con algo más que el ciclo de vida de su entidad; un método con varios pasos sin descomponer o que mezcla cálculo puro y efectos; una rama por tipo o por valor de enum que habrá que reabrir en el siguiente caso parecido; una clasificación repetida en el servicio, en la vista y en una acción; una regla que decide por dentro si aplica; ramas no complementarias; un retorno defensivo que delega; dos piezas que se conocen entre sí; lógica de negocio en el controlador; una dependencia de un concreto donde cabía una abstracción, o una colaboradora que falta o que sobra. |
+| `simplicidad` | **El resto del proyecto**, no el encargo: el código real de §4.2 — los sistemas y subsistemas hermanos de `src/main/java/com/educaflow/system/` y `subsystem/`, `base/infrastructure/` — y, si la spec declara `**Modifica:**`, ese sistema real entero. Más el `CLAUDE.md` del proyecto y `agent_docs/architecture.md`. | Piezas que la especificación **no pide** (entidades, campos, servicios, acciones, pantallas, parámetros o configuración «por si acaso»); **reinvención** de algo que ya existe en `base`, en un subsistema o en el propio sistema que se modifica; **divergencia** — resolver de otra forma lo que los sistemas hermanos ya resuelven, sin declararlo patrón nuevo en `decisiones.md`; **indirección gratuita** (interfaz con una sola implementación que no es un `ModelService`, colaboradora de un solo uso, capas que solo delegan, `Provider` o módulo Guice innecesarios); **ubicación** — una pieza genérica enterrada en el sistema, o una del sistema propuesta para `base` o un subsistema ajeno; en `decisiones.md`, una alternativa más simple descartada por un motivo que no se sostiene. Pregunta final obligatoria: **¿se consigue lo mismo con la mitad de piezas?** Si sí, di cuáles sobran. |
+| `skills` | Los skills de §4.1 que apliquen al contenido del diseño, **enteros** (el `SKILL.md` de cada uno indexa sus ficheros): siempre `k-sistemas`, `k-validaciones`, `k-secure-coding` y `k-vistas`; `k-guice` o `k-scheduler` solo si el diseño cablea DI o programa un job; y, aunque §4.1 no lo liste, `k-datainit` si el diseño incluye una carpeta `data-init/`. Más el `CLAUDE.md` del proyecto. | Cada regla `MUST`/`MUST NOT`/`CRITICAL`/`REQUIRED` de esos skills contrastada contra el diseño: un patrón del skill seguido a medias o con pasos cambiados; un nombre, una ubicación o una firma que el skill fija y el diseño altera; un campo `servidor` que el cliente puede dictar o un `AllowProperties` que falta; el usuario autenticado, el multicentro o la i18n resueltos de una forma que `CLAUDE.md` prohíbe. El `origen` **MUST** citar `<skill>/<fichero> § <sección>`. |
+
+- **Lee de esta plantilla:** `design-contract.md` (para entender qué es cada pieza del diseño) y `vistas.md` solo si su crítica toca una vista. **MUST NOT** ejecutar `validacion.md` ni `validate.sh`: son del verificador.
+- **Carga el rasero de su fila aunque sea contexto de §4**: es la única excepción, junto al diseñador, a «trabajar sobre lo que hay en disco». El código real es de **solo lectura**.
+- **MUST NOT** reportar fallos de cobertura de la especificación ni de formato del contrato (son del verificador), ni el trabajo de otra lente.
+- **MUST NOT** proponer ampliar `subsystem/tramitador` ni `subsystem/expedientes` (§4.2), ni añadir piezas que la especificación no pide: una crítica quita, funde, mueve o sustituye.
+- **MUST NOT** modificar nada: solo **detecta y reporta** (las aplica el corrector, §2.4).
+
 ---
 
 ## 3. Estructura de salida `design/`
@@ -154,7 +177,7 @@ Esta estructura es la que consumen `/sdd-implementer`, `/sdd-debug-with-test-e2e
 
 ## 4. Contexto del proyecto a cargar (Fase 1)
 
-Lo carga el **diseñador** (§2.1) — es el único rol que lo necesita para producir. Antes de generar, carga el contexto que esta plantilla indica:
+Lo carga el **diseñador** (§2.1) — es el único rol que lo necesita para producir; cada **crítico** carga de aquí solo lo que declare la fila de su lente (§2.9). Antes de generar, el diseñador carga el contexto que esta plantilla indica:
 
 ### 4.1 Skills técnicos
 

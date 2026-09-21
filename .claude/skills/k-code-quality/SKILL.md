@@ -1,6 +1,6 @@
 ---
 name: k-code-quality
-description: Reglas de calidad técnica para código Java/Kotlin del proyecto — métodos, clases, idiomas Java modernos, convenciones específicas del stack (Axelor, Guice, JPA), cuándo se comenta y cuándo no, y los olores de DISEÑO que distinguen un diseño senior de una chapuza (decisiones con varios dueños, reglas que se autocondicionan, retornos defensivos, conocimiento tácito). Referenciado por developer-code-reviewer para guiar auditorías y correcciones, y por sdd-designer (diseñador, juez, enriquecedor y verificador) como rasero de calidad del diseño.
+description: Reglas de calidad técnica para código Java/Kotlin del proyecto — métodos, clases, idiomas Java modernos, convenciones específicas del stack (Axelor, Guice, JPA), cuándo se comenta y cuándo no, y los olores de DISEÑO que distinguen un diseño senior de una chapuza (decisiones con varios dueños, reglas que se autocondicionan, retornos defensivos, conocimiento tácito). Referenciado por developer-code-reviewer para guiar auditorías y correcciones, y por sdd-designer (diseñador, juez, enriquecedor y críticos) como rasero de calidad del diseño.
 ---
 
 # k-code-quality
@@ -37,4 +37,4 @@ Este skill se pasa como argumento de conocimiento a `developer-code-reviewer`:
 
 `developer-code-reviewer` carga este skill y aplica las reglas de los seis ficheros como criterio de revisión y corrección.
 
-`sdd-designer` lo usa como rasero de diseño: el diseñador carga el skill entero (lo ordena el `README.md` de su plantilla) y además `disenyo.md` para elegir entre alternativas antes de escribir; juez, enriquecedor y verificador cargan **solo `disenyo.md`**: el juez como rasero de calidad entre diseños que cubren la spec, el enriquecedor para descartar ventajas que añadan un olor, y el verificador para reportar cada olor como problema.
+`sdd-designer` lo usa como rasero de diseño: el diseñador carga el skill entero (lo ordena el `README.md` de su plantilla) y además `disenyo.md` para elegir entre alternativas antes de escribir; el juez carga `disenyo.md` más `clases.md` y `metodos.md` como rasero de calidad entre diseños que cubren la spec; el enriquecedor carga **solo `disenyo.md`**, para descartar ventajas que añadan un olor; y el crítico de la lente que la plantilla dedique a la calidad de clases carga el skill entero y reporta cada olor y cada violación de SOLID como crítica. El verificador ya **no** lo carga: solo comprueba cumplimiento.

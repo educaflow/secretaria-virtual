@@ -1,6 +1,6 @@
 ---
 name: sdd
-description: Ejecuta de forma autónoma un tramo **contiguo** del pipeline SDD —`/sdd-designer` → `/sdd-implementer` → `/sdd-debug-with-test-e2e-desc` → `/sdd-create-tests-e2e` → `/sdd-close`— sobre una iniciativa de `.sdd/drafts/` (ruta explícita o la última), sin hacer ninguna pregunta al usuario. Los pasos se indican como argumento en lenguaje natural (`/sdd diseño, implementacion, depurar con test e2e y crear test e2e`, `/sdd designer implementation`, `/sdd close`); deben ir seguidos y en orden, y puede empezarse en un paso intermedio si existe el artefacto que ese paso necesita. Cada skill se ejecuta tal cual es **en su propio contexto** (un subagente ejecutor por skill) y el ejecutor solo intercepta sus puntos de parada (`AskUserQuestion`, `STOP`, `CONFLICT`, `BLOCKED`, `BLOQUEADO`, agotamiento de un `LIMIT`) y los devuelve como `DECISION-REQUERIDA`. El orquestador resuelve cada una con un debate entre dos subagentes con posiciones enfrentadas (LIMIT 3 rondas) y, si no hay consenso, un subagente juez, o con una política fija declarada; reanuda el ejecutor con la decisión y se detiene solo ante paradas reales (build que no compila, app que no arranca, regresión de la suite E2E, tests que siguen en FAIL, decisión destructiva o fuera del alcance, ERROR de entrada). La salida es la del propio pipeline (`design/`, `implementation/`, `test-e2e-desc/`, los tests bajo `src/test/e2e/`, el código real y, si se pidió cerrar, el draft archivado) más `log_pipeline.md` con el informe final auditable de cada decisión tomada.
+description: Ejecuta de forma autónoma un tramo **contiguo** del pipeline SDD —`/sdd-designer` → `/sdd-implementer` → `/sdd-debug-with-test-e2e-desc` → `/sdd-create-tests-e2e` → `/sdd-close`— sobre una iniciativa de `.sdd/drafts/` (ruta explícita o la última), sin hacer ninguna pregunta al usuario durante la ejecución. Los pasos se indican como argumento en lenguaje natural (`/sdd diseño, implementacion, depurar con test e2e y crear test e2e`, `/sdd designer implementation`, `/sdd close`); si se invoca **sin pasos** (`/sdd` a secas, o solo con la ruta/flags), los pregunta **una única vez** con el TUI (`AskUserQuestion`) presentando los cinco pasos como casillas que el usuario marca. Deben ir seguidos y en orden, y puede empezarse en un paso intermedio si existe el artefacto que ese paso necesita. Cada skill se ejecuta tal cual es **en su propio contexto** (un subagente ejecutor por skill) y el ejecutor solo intercepta sus puntos de parada (`AskUserQuestion`, `STOP`, `CONFLICT`, `BLOCKED`, `BLOQUEADO`, agotamiento de un `LIMIT`) y los devuelve como `DECISION-REQUERIDA`. El orquestador resuelve cada una con un debate entre dos subagentes con posiciones enfrentadas (LIMIT 3 rondas) y, si no hay consenso, un subagente juez, o con una política fija declarada; reanuda el ejecutor con la decisión y se detiene solo ante paradas reales (build que no compila, app que no arranca, regresión de la suite E2E, tests que siguen en FAIL, decisión destructiva o fuera del alcance, ERROR de entrada). La salida es la del propio pipeline (`design/`, `implementation/`, `test-e2e-desc/`, los tests bajo `src/test/e2e/`, el código real y, si se pidió cerrar, el draft archivado) más `log_pipeline.md` con el informe final auditable de cada decisión tomada.
 handoffs:
   - label: Ejecutar los tests E2E contra la app real
     agent: sdd-debug-with-test-e2e-desc
@@ -15,7 +15,7 @@ handoffs:
 
 # sdd
 
-Eres un **orquestador autónomo** del pipeline SDD: haces ejecutar, uno detrás de otro, los pasos `/sdd-*` que el usuario pide sobre una iniciativa, **sin preguntar nada al usuario** y **sin cargar en tu contexto** ni los skills ni el trabajo de sus subagentes.
+Eres un **orquestador autónomo** del pipeline SDD: haces ejecutar, uno detrás de otro, los pasos `/sdd-*` que el usuario pide sobre una iniciativa, **sin preguntar nada al usuario** —salvo la selección inicial de pasos de §4.1 cuando se te invoca sin ellos— y **sin cargar en tu contexto** ni los skills ni el trabajo de sus subagentes.
 
 Tres roles de subagente:
 
@@ -33,8 +33,10 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding. Sintaxis: `[ruta] <pasos> [-- guías de diseño] [flags]`.
 
+0. **Input sin pasos** (`/sdd` a secas, o solo con ruta, flags y/o guías): **MUST NOT** dar **ERROR**; los pasos se preguntan **una sola vez** con el TUI (§4.1) y el resto del parseo sigue igual con la selección obtenida.
+
 1. **Ruta** (opcional): el primer token que contiene `/` o acaba en `.md` es la iniciativa (si es un fichero, su carpeta). Sin ruta se usa la **última** iniciativa de `.sdd/drafts/` que contenga el artefacto de entrada del **primer paso** pedido (§4), **sin confirmar**.
-2. **Pasos** (obligatorios): el texto restante hasta `--` o el primer flag. Normalízalo (minúsculas, sin tildes) y busca estas **raíces** por orden de aparición; toda palabra que no sea raíz se ignora (`con`, `test`, `e2e`, `los`, `y`, comas…):
+2. **Pasos** (obligatorios; del input o, si el input no trae ninguno, de la selección de §4.1): el texto restante hasta `--` o el primer flag. Normalízalo (minúsculas, sin tildes) y busca estas **raíces** por orden de aparición; toda palabra que no sea raíz se ignora (`con`, `test`, `e2e`, `los`, `y`, comas…):
 
    | Paso (id) | Skill | Raíces que lo activan |
    |---|---|---|
@@ -46,15 +48,17 @@ You **MUST** consider the user input before proceeding. Sintaxis: `[ruta] <pasos
 
    Ese es también el **orden del pipeline**. Los pasos pedidos **MUST** ser un tramo **contiguo y en ese orden**; **MUST NOT** reordenarlos ni rellenar huecos.
    - `spec` / `especific` → **ERROR**: `/sdd-specification` es interactivo y lo ejecuta el usuario.
-   - Ninguna raíz, una raíz repetida, orden distinto o tramo con hueco → **ERROR** mostrando la tabla anterior.
+   - Ninguna raíz **y** el input solo trae ruta, flags o guías → **MUST NOT** dar **ERROR**: selección interactiva (§4.1).
+   - Ninguna raíz con palabras no reconocidas, una raíz repetida, orden distinto o tramo con hueco → **ERROR** mostrando la tabla anterior.
    - ✅ CORRECTO: `diseño, implementacion, depurar con test e2e y crear test e2e` → `designer implementer debug tests`
    - ✅ CORRECTO: `designer implementation` → `designer implementer`
    - ✅ CORRECTO: `implementacion y depurar` (empieza en medio; exige que exista `design/design.md`)
    - ✅ CORRECTO: `close`
    - ❌ INCORRECTO: `diseño y crear test e2e` (hueco: faltan `implementer` y `debug`)
    - ❌ INCORRECTO: `implementacion, diseño` (orden invertido)
-   - ❌ INCORRECTO: `tests e2e` (`test` no es raíz: no distingue depurar de crear)
-   - ❌ INCORRECTO: `.sdd/drafts/2026-01-01_00-00_x/` (ruta sin pasos)
+   - ✅ CORRECTO: `` (vacío) → se preguntan los pasos con el TUI (§4.1)
+   - ✅ CORRECTO: `.sdd/drafts/2026-01-01_00-00_x/` (ruta sin pasos: esa iniciativa + pasos por TUI)
+   - ❌ INCORRECTO: `tests e2e` (`test` no es raíz: no distingue depurar de crear, y hay palabras no reconocidas)
 3. **Guías de diseño**: todo lo que sigue a un `--` suelto se pasa **verbatim** a `/sdd-designer` (§7.1). Guías sin `designer` entre los pasos → **ERROR**.
 4. **Flags**: `--template-dir=` y `--root=` (Apéndice A). `--manuales` → **ERROR** (necesita una persona). Cualquier otro flag → **ERROR**.
 
@@ -62,14 +66,14 @@ You **MUST** consider the user input before proceeding. Sintaxis: `[ruta] <pasos
 
 ## Outline
 
-1. **Fase 0 — Preparar** (§4): parsear los pasos, comprobar que existe cada skill, localizar la iniciativa y el artefacto de entrada del primer paso, tomar la línea base de `git status`, sondear que los subagentes comparten el árbol y abrir `log_pipeline.md`.
+1. **Fase 0 — Preparar** (§4): parsear los pasos (o preguntarlos con el TUI si el input no trae ninguno, §4.1), comprobar que existe cada skill, localizar la iniciativa y el artefacto de entrada del primer paso, tomar la línea base de `git status`, sondear que los subagentes comparten el árbol y abrir `log_pipeline.md`.
 2. **Bucle de pasos** (§6): por cada paso pedido, comprobar su entrada, lanzar un **ejecutor** de su skill (§5) con los argumentos del **catálogo** (§7) y atender sus `DECISION-REQUERIDA` hasta `FIN-*`; `FIN-OK` pasa al siguiente, `FIN-DESIGN-ERROR` reentra (§7.7), cualquier otro `FIN-*` para.
 3. **Protocolo de debate** (§8): cómo se resuelve cada `DECISION-REQUERIDA` que no tenga política fija.
 4. **Informe final** al usuario (§9).
 
 **STOP conditions** (las **únicas** paradas de este skill; todo lo demás se resuelve por debate o política fija):
 
-- Pasos inválidos (§User Input): sin pasos, raíz desconocida o repetida, orden distinto, hueco, `spec`, guías sin `designer`, `--manuales` u otro flag → **ERROR** y detente.
+- Pasos inválidos (§User Input): raíz desconocida o repetida, orden distinto, hueco, `spec`, guías sin `designer`, `--manuales` u otro flag → **ERROR** y detente. Un input **sin pasos** no es inválido: va a §4.1; solo es **ERROR** si la selección del TUI sigue siendo inválida tras su **LIMIT** 1 reintento.
 - Un paso pedido no tiene su `.claude/skills/sdd-<skill>/SKILL.md` → **ERROR** y detente.
 - No hay iniciativa con el artefacto de entrada del primer paso (sin ruta), o la ruta dada no lo contiene → **ERROR** y detente.
 - La sonda de §4 revela que los subagentes **no comparten el árbol de trabajo** (worktree aislado) → **ERROR** y detente: los ejecutores escribirían código en otro árbol.
@@ -142,7 +146,7 @@ La carpeta de una iniciativa de `.sdd/drafts/` con el artefacto que exige el pri
 |---|---|---|
 | Elección/confirmación de iniciativa o de ruta (`AskUserQuestion` de la Fase 0 de todos, incluido el «¿Continuamos?» de `/sdd-close`) | No se produce o se responde afirmativamente: recibe la ruta **explícita** y el paso ya lo pidió el usuario. | — |
 | `AskUserQuestion` con opciones cerradas (designer §4.4 Regenerar vs Revisar/Modificar; implementer `CONFLICT` Sobrescribir/Mantener/Abortar) | `DECISION-REQUERIDA` con las opciones del skill. | **Debate** (§8) entre las dos más plausibles. Excepción: `CONFLICT` sobre un fichero de esta misma ejecución → política fija (§7.6). |
-| `STOP` que espera una decisión sin opciones cerradas (implementer `BLOCKED`; corrector de debug `BLOQUEADO`; designer tras agotar el **LIMIT** 10 de verificar/corregir del diseño o de los tests unitarios) | `DECISION-REQUERIDA` con el motivo y los ficheros de contexto. | **Debate** (§8): el orquestador formula las dos alternativas más plausibles para **continuar**. |
+| `STOP` que espera una decisión sin opciones cerradas (implementer `BLOCKED`; corrector de debug `BLOQUEADO`; designer tras agotar el **LIMIT** 4 de criticar/corregir con una crítica `BLOCKING` residual, o el **LIMIT** 10 de verificar/corregir del diseño o de los tests unitarios) | `DECISION-REQUERIDA` con el motivo y los ficheros de contexto. | **Debate** (§8): el orquestador formula las dos alternativas más plausibles para **continuar**. |
 | La app no responde `200` en `http://localhost:8080` (debug: `AskUserQuestion` reintentar / ver log / abortar) | `DECISION-REQUERIDA` con `ORIGEN: APP`. | **Política fija** «reintentar», **LIMIT** 2 (§7.3); agotado, el ejecutor termina con `FIN-STOP-APP`. |
 | `DESIGN-ERROR` (el implementer escribe `implementation/error_design.log`, o el corrector de debug escribe `test-e2e-desc/error_design.log`, y el skill se detiene) | `FIN-DESIGN-ERROR`. | **Reentrada** designer → implementer (→ debug) (§7.7), LIMIT 2. |
 | `REGRESIÓN` en la puerta final de `/sdd-create-tests-e2e` | `FIN-STOP-REGRESION`. | **STOP** real. |
@@ -167,7 +171,7 @@ La carpeta de una iniciativa de `.sdd/drafts/` con el artefacto que exige el pri
 
 - **Ejecutor**: uno por paso (y uno por vuelta de reentrada), `model` al **más capaz disponible** (dentro corren el torneo, la implementación y los tests). **MUST NOT** usar `run_in_background`. **MUST NOT** pasar `isolation`.
 - **Defensores**: los dos de cada ronda corren **en paralelo**: **REQUIRED** exactamente 2 invocaciones a `Agent` en **una única respuesta**, `model` al más capaz. El **juez** corre solo, `model` al más capaz. **MUST NOT** usar `run_in_background` con defensores ni juez: sus tokens se necesitan en la fase siguiente (§8.3, §8.5).
-- **MUST NOT** usar `AskUserQuestion` en ningún rol, ni el orquestador.
+- **MUST NOT** usar `AskUserQuestion` en ningún rol. El orquestador solo la usa en la selección inicial de pasos (§4.1), **nunca** para resolver una `DECISION-REQUERIDA`, y **MUST NOT** delegarla en un subagente.
 - Cada rol responde con **tokens literales** (§5.2, §8): se comparan por literal exacto.
 - El debate se basa en **la spec, el diseño (si existe), los skills `k-*` que apliquen a la pregunta y el código real**, no en opiniones: cada argumento **MUST** citar de dónde sale.
 
@@ -198,7 +202,7 @@ La carpeta de una iniciativa de `.sdd/drafts/` con el artefacto que exige el pri
 
 ## 4. Fase 0 — Preparar
 
-1. **Parsear los pasos** (§User Input) → lista ordenada `{pasos}`. Cualquier fallo → **ERROR** (STOP condition).
+1. **Parsear los pasos** (§User Input) → lista ordenada `{pasos}`. Si el input no trae ninguno → **selección interactiva** (§4.1). Cualquier otro fallo → **ERROR** (STOP condition).
 2. **Comprobar los skills**: por cada paso, `.claude/skills/sdd-<skill>/SKILL.md` existe. Si falta alguno → **ERROR**.
 3. **Resolver `{iniciativa}`**:
    - Con ruta: la carpeta que contiene el artefacto de entrada del primer paso (§7). Si no lo contiene → **ERROR**.
@@ -215,7 +219,7 @@ La carpeta de una iniciativa de `.sdd/drafts/` con el artefacto que exige el pri
    **Iniciativa:** {iniciativa}
    **Inicio:** {fecha y hora}
    **Pasos pedidos:** {ids en orden, p.ej. designer implementer debug}
-   **Argumentos:** {argumentos literales recibidos}
+   **Argumentos:** {argumentos literales recibidos, o «(vacío)»}{ — pasos seleccionados en el TUI: {ids en orden}, solo si vinieron de §4.1}
 
    ## Línea base (git status --porcelain)
    ```
@@ -229,6 +233,40 @@ La carpeta de una iniciativa de `.sdd/drafts/` con el artefacto que exige el pri
    ## Decisiones
    ````
    Cada paso y cada decisión se añaden (append) bajo su sección a medida que ocurren.
+
+### 4.1 Selección interactiva de pasos (solo si el input no trae ninguno)
+
+**Único punto de todo el skill en que se pregunta al usuario.** Se activa **solo** cuando, tras normalizar el input, **no aparece ninguna raíz** de la tabla de §User Input **y** lo que hay (si hay algo) son únicamente ruta, flags y/o guías tras `--`.
+
+1. Lanza **una sola** llamada a `AskUserQuestion` con **REQUIRED** exactamente 2 preguntas, ambas `multiSelect: true` (los pasos son 5 y una pregunta admite **LIMIT** 4 opciones), con este contenido literal:
+
+   ```
+   Pregunta 1 — header: "Pasos 1-3"  · multiSelect: true
+     question: "¿Qué pasos del pipeline SDD ejecuto sobre {iniciativa, o «la última iniciativa»}? Marca los que quieras; deben ir seguidos y en este orden."
+     opciones:
+       - "designer — /sdd-designer"      · "Genera design/ a partir de specification.md"
+       - "implementer — /sdd-implementer" · "Convierte design/design.md en código real"
+       - "debug — /sdd-debug-with-test-e2e-desc" · "Ejecuta contra la app los tests E2E descritos y corrige el código"
+       - "Ninguno de estos"              · "Empiezo más adelante (marca los de la otra pregunta)"
+
+   Pregunta 2 — header: "Pasos 4-5"  · multiSelect: true
+     question: "¿Y de los dos últimos pasos?"
+     opciones:
+       - "tests — /sdd-create-tests-e2e" · "Persiste como regresión Playwright los tests que pasaron"
+       - "close — /sdd-close"            · "Archiva el draft en .sdd/archive/"
+       - "Ninguno de estos"              · "Parar después de los pasos marcados arriba"
+   ```
+
+2. Une las opciones marcadas en las dos preguntas ignorando los «Ninguno de estos» → `{pasos}`, **ordenados** por el orden del pipeline (`designer → implementer → debug → tests → close`).
+3. Valida `{pasos}` con las mismas reglas de §User Input (tramo contiguo, en orden, sin huecos).
+   - Selección vacía o con hueco → repite la misma llamada **LIMIT** 1 vez, añadiendo al `question` de la primera pregunta el motivo (`Selección inválida: {vacía | hueco entre {a} y {b}}`). Si la segunda selección vuelve a ser inválida → **ERROR** y detente (STOP condition).
+4. **MUST NOT** preguntar nada más: la ruta, las guías tras `--` y los flags salen del input tal cual (y su ausencia se resuelve como siempre, §4 paso 3).
+5. A partir de aquí el flujo es idéntico al de un input con pasos escritos: la selección se registra en la cabecera de `log_pipeline.md` (§4 paso 6) y en el informe final (§9).
+
+- ✅ CORRECTO: `/sdd` → TUI; el usuario marca `designer` + `implementer` en la 1ª y «Ninguno de estos» en la 2ª → `{pasos} = designer implementer`.
+- ✅ CORRECTO: `/sdd .sdd/drafts/2026-01-01_00-00_x/` → TUI; «Ninguno de estos» + `close` → `{pasos} = close` sobre esa iniciativa.
+- ❌ INCORRECTO: marcar `designer` y `tests` (hueco: faltan `implementer` y `debug`) → repetir la pregunta con el motivo.
+- ❌ INCORRECTO: usar el TUI para resolver una `DECISION-REQUERIDA` de un ejecutor (eso es siempre debate, §8) o para confirmar la iniciativa elegida (§4 paso 3: sin confirmar).
 
 ---
 
@@ -332,8 +370,8 @@ Por cada paso `p` de `{pasos}`, en orden:
 
 Formulación de las alternativas en los puntos previstos:
 
-- **§4.4** (`design/design.md` ya existe): A = «Regenerar desde la especificación», B = «Revisar/Modificar el diseño existente». Contexto extra para los defensores: `design/log_revision.txt` y `design/decisiones.md`, si existen. En una reentrada (§7.7) no hay debate: política fija B.
-- **Fase 6 / Fase 8 tras 10 iteraciones sin `OK-CORRECTO`**: A = «aceptar el diseño con los problemas residuales del último JSONL, documentándolos en `decisiones.md`», B = «relanzar el bucle 10 iteraciones más pasando al corrector el JSONL residual completo». Si el JSONL residual contiene un `BLOCKING`, A pasa a ser «regenerar (§4.4 opción Regenerar)». Cualquier resolución que deje un `BLOCKING` sin corregir es `ESCALAR` (§8.4).
+- **§4.4** (`design/design.md` ya existe): A = «Regenerar desde la especificación», B = «Revisar/Modificar el diseño existente». Contexto extra para los defensores: `design/log_critica.txt`, `design/log_revision.txt` y `design/decisiones.md`, si existen. En una reentrada (§7.7) no hay debate: política fija B.
+- **Fase 6 en la 4ª ronda con una crítica `BLOCKING`, o Fase 7 / Fase 9 tras 10 iteraciones sin `OK-CORRECTO`**: A = «aceptar el diseño con los problemas residuales del último JSONL, documentándolos en `decisiones.md`», B = «relanzar el bucle (4 rondas o 10 iteraciones más, según la fase) pasando al corrector el JSONL residual completo». Si el JSONL residual contiene un `BLOCKING`, A pasa a ser «regenerar (§4.4 opción Regenerar)». Cualquier resolución que deje un `BLOCKING` sin corregir es `ESCALAR` (§8.4).
 - **Cierre correcto** = `FIN-OK`. Si el resumen dice que `test-unit-desc.md` no se generó (caso que el designer tolera avisando), cuenta como correcto y se refleja en el informe.
 
 ### 7.2 `implementer`
@@ -504,7 +542,7 @@ Escribe el informe al usuario **a partir de `log_pipeline.md`** (no releas los d
 ```
 Pipeline sdd — {iniciativa}
 
-Pasos pedidos: {ids en orden}
+Pasos pedidos: {ids en orden}{ (seleccionados en el TUI), si vinieron de §4.1}
 Estado final: {COMPLETADO | DETENIDO — {motivo: pasos inválidos | skill inexistente | entrada ausente | build no compila | app no arranca | regresión E2E | tests en FAIL | ESCALAR en DEB-NNN | ERROR de entrada | worktree aislado | LIMIT de reentradas | ejecutor sin token}}
 
 1. /sdd-{skill}: {FIN-OK | FIN-OK-CON-FALLOS | FIN-ERROR | FIN-DESIGN-ERROR | FIN-STOP-BUILD | FIN-STOP-APP | FIN-STOP-REGRESION | STOP | no ejecutado} — {resumen del ejecutor}.
@@ -542,9 +580,9 @@ Siguiente paso: {/sdd-<skill que sigue al último paso completado> {ruta de su e
 
 ## Quick Guidelines
 
-- **Pasos = tramo contiguo del pipeline** `designer → implementer → debug → tests → close`, detectados por raíces en el texto del usuario; hueco, desorden, repetición, `spec` o `--manuales` → **ERROR** sin lanzar nada. Puede empezar en medio si existe la entrada del primer paso.
+- **Pasos = tramo contiguo del pipeline** `designer → implementer → debug → tests → close`, detectados por raíces en el texto del usuario; hueco, desorden, repetición, `spec` o `--manuales` → **ERROR** sin lanzar nada. Puede empezar en medio si existe la entrada del primer paso. Invocación **sin pasos** (o solo con ruta/flags) → se marcan en el TUI (§4.1), no es **ERROR**.
 - **CRITICAL — contexto aislado**: cada paso corre en su **propio subagente ejecutor**; el orquestador **MUST NOT** cargar los skills con `Skill` ni ejecutar sus fases ni arrancar la app. Al orquestador solo vuelven tokens y rutas; los debates se escriben a `log_pipeline/DEB-NNN/`.
-- **Sin preguntas**: ninguna `AskUserQuestion` en ningún rol. Toda decisión en nombre del usuario pasa por **debate** (§8) o por una política fija declarada (§7.3 app, §7.6 `CONFLICT`, §7.7 reentrada, confirmación de `close`) y queda en `log_pipeline.md`.
+- **Sin preguntas una vez arrancado**: la **única** `AskUserQuestion` del skill es la selección inicial de pasos (§4.1), y solo si el input no trae ninguno; ningún subagente la usa nunca. Toda decisión en nombre del usuario pasa por **debate** (§8) o por una política fija declarada (§7.3 app, §7.6 `CONFLICT`, §7.7 reentrada, confirmación de `close`) y queda en `log_pipeline.md`.
 - **Reanudar, no relanzar**: una `DECISION-REQUERIDA` se responde al **mismo** ejecutor con `SendMessage` (`DECISION: A|B — …`); relanzar desde cero es solo el fallback de §5.4.
 - **Los skills encadenados mandan** fuera de la tabla §2.3: el ejecutor sigue su flujo completo, tokens, logs, LIMITs y gestión de la app.
 - **Encadenado condicional**: un paso solo arranca si el anterior devolvió `FIN-OK` y su artefacto de entrada existe; `FIN-OK-CON-FALLOS` no encadena.

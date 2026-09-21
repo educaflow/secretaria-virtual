@@ -2,7 +2,7 @@
 
 Esta carpeta de plantillas define **todo lo específico de convertir una especificación funcional en el DISEÑO de un trámite y de su tipo de expediente** (la carpeta `tramites/<tramite>/` y su carpeta de versión `<vN>/`). El skill `sdd-designer` aporta solo el **flujo** (localizar la spec, decidir modo, lanzar los diseñadores en paralelo, elegir el mejor con un juez, enriquecer, verificar/corregir, describir y verificar los tests unitarios, cerrar) y es **agnóstico**: no sabe nada de qué se diseña. Lo lee todo de aquí.
 
-Este `README.md` es **el único fichero que el motor conoce por nombre**. **Lo leen los ocho subagentes**, y cada uno hace una tarea distinta sobre el mismo diseño:
+Este `README.md` es **el único fichero que el motor conoce por nombre**. **Lo leen los nueve roles de subagente**, y cada uno hace una tarea distinta sobre el mismo diseño:
 
 - **diseñador** — **crea** un diseño completo desde cero (§2.1).
 - **juez** — **elige** entre dos diseños, detallando las ventajas **y los defectos** de cada uno (§2.2).
@@ -12,6 +12,7 @@ Este `README.md` es **el único fichero que el motor conoce por nombre**. **Lo l
 - **test-unitarios** — **escribe** `design/test-unit-desc.md` (§2.6).
 - **verificador-test-unitarios** — **comprueba** que `test-unit-desc.md` es coherente con el diseño (§2.7).
 - **corrector-test-unitarios** — **corrige** `test-unit-desc.md` (§2.8).
+- **crítico** — **critica** la calidad del diseño ganador con **una sola lente**; hay un crítico por lente (§2.9).
 
 A través de este README cada subagente descubre y lee **solo los ficheros de esta carpeta que su tarea necesita** (§1, §2). **MUST NOT** copiarse ningún bloque explicativo de esta plantilla al `design.md` de salida.
 
@@ -36,7 +37,7 @@ El motor abre `README.md` y, a través de él, los subagentes usan los demás. *
 
 | Fichero | Qué define | Quién lo lee |
 |---|---|---|
-| `README.md` | **Esta guía/índice**: contrato fijo, reparto por rol, estructura de salida, contexto del proyecto a cargar y las partes condicionales del diseño. | Los **ocho** subagentes (es el contrato que el motor nombra). |
+| `README.md` | **Esta guía/índice**: contrato fijo, reparto por rol, estructura de salida, contexto del proyecto a cargar y las partes condicionales del diseño. | Los **nueve** roles (es el contrato que el motor nombra). |
 | `design-contract.md` | **Qué produce el diseño y cómo**: la estructura de `design/` (§1), las 15 secciones obligatorias del `design.md` (§2), qué se materializa verbatim y qué se describe, la máquina de estados y el `.puml`, el modelo, los documentos PDF, la tabla de ficheros, el orden de los pasos, la especificación quirúrgica del `InitialEventManagerImpl` y de los `PhaseEventManagerImpl` (con la **notación de acciones** de los `trigger*`), el **DSL del `StateEventValidatorImpl`**, el reparto de reglas por capa, la asignación de perfiles y el **checklist del diseñador**. | El **diseñador** (para producir); el **juez** y el **enriquecedor** (como criterios); el **verificador** (para saber qué *debería* existir); el **corrector** (la regla a la que ajustar cada corrección); los tres roles de tests unitarios (§15.2). |
 | `vistas.md` | **Parte del diseño — las vistas**: el formato **preprocesado** de las vistas de un tipo de expediente (form plantilla `exp-<Entidad>-Templates` de la raíz de la versión, `<form state= profile=>` por estado en cada fase, `<include-panels>` y el prefijo `-`, `<footer>` y botones, cabecera `header`), la maquetación de los paneles con **ASCII Layout** (§2.7, la única pieza de `k-vistas` que sí aplica), las reglas duras verificadas por test (X1–X3, Y1–Y3), los patrones (visor de PDF, firma en cliente) y su checklist (§8). | El **diseñador** (materializa cada `views.xml` y pasa §8); el **juez** y el **enriquecedor** (criterios sobre vistas); el **verificador** (reaplica §4 y §8); el **corrector** (si un fallo afecta a una vista); los roles de tests (por qué botón se dispara cada evento). |
 | `validacion.md` | **Reglas de verificación**: la validación **mecánica** de cada XML materializado (qué se valida contra XSD y qué solo se comprueba bien formado) y la lista numerada de **comprobaciones semánticas**, cada una con qué se mira, qué es fallo y cuál es la corrección esperada. | El **verificador** (la aplica entera, ejecutando él mismo los comandos con `Bash`); el **corrector** (para entender por qué cada cosa es un fallo y cuál es la corrección esperada). |
@@ -47,13 +48,13 @@ El motor abre `README.md` y, a través de él, los subagentes usan los demás. *
 
 ---
 
-## 2. Tareas de los ocho roles
+## 2. Tareas de los nueve roles
 
-El motor lanza ocho roles. Los ocho reciben las **mismas rutas de entrada** (este `README.md`, el `specification.md` y, si existe, `design-guidelines.md`), más su **entrada propia**; pero cada uno hace una tarea distinta y lee un subconjunto distinto de esta carpeta.
+El motor lanza nueve roles. Los nueve reciben las **mismas rutas de entrada** (este `README.md`, el `specification.md` y, si existe, `design-guidelines.md`), más su **entrada propia**; pero cada uno hace una tarea distinta y lee un subconjunto distinto de esta carpeta.
 
-> **Común a los ocho:** **MUST** leer este `README.md` y seguir desde él a los ficheros que su tarea necesite. **MUST NOT** usar `AskUserQuestion`. **MUST NOT** escribir, editar ni borrar nada fuera de su carpeta de trabajo (`design_<n>/` o `design/`): el diseño es un **plan**, y todo cambio en el árbol real se **describe**, nunca se aplica. En particular **MUST NOT** tocarse `src/**`, `build.gradle` ni `axelor-config.properties`.
+> **Común a los nueve:** **MUST** leer este `README.md` y seguir desde él a los ficheros que su tarea necesite. **MUST NOT** usar `AskUserQuestion`. **MUST NOT** escribir, editar ni borrar nada fuera de su carpeta de trabajo (`design_<n>/` o `design/`): el diseño es un **plan**, y todo cambio en el árbol real se **describe**, nunca se aplica. En particular **MUST NOT** tocarse `src/**`, `build.gradle` ni `axelor-config.properties`.
 
-**Resumen por rol** (detalle en §2.1–§2.8):
+**Resumen por rol** (detalle en §2.1–§2.9):
 
 | Rol | Qué hace | Entrada propia | Lee de esta plantilla | Produce | Token de salida |
 |---|---|---|---|---|---|
@@ -65,8 +66,9 @@ El motor lanza ocho roles. Los ocho reciben las **mismas rutas de entrada** (est
 | **test-unitarios** (§2.6) | **Escribe** la declaración de tests unitarios | `design/` (sobre todo `design.md`) | `tests-unitarios.md` | `design/test-unit-desc.md` | `ESCRITO: test-unit-desc.md` |
 | **verificador-test-unitarios** (§2.7) | **Comprueba** la coherencia de `test-unit-desc.md` | `design/test-unit-desc.md` + `design.md` | `tests-unitarios.md` §4 | la lista de incoherencias, o conforme | `OK-CORRECTO` o líneas JSONL `P-NNN` |
 | **corrector-test-unitarios** (§2.8) | **Corrige** `test-unit-desc.md` | `design/test-unit-desc.md` + las líneas JSONL | `tests-unitarios.md` (plantilla §3) | `test-unit-desc.md` corregido en sitio | informe de lo corregido |
+| **crítico** (§2.9), uno por lente | **Critica** la calidad con una sola lente | `design/` + el rasero de su lente (§2.9) | `design-contract.md` (+ `vistas.md` si la crítica toca una vista) | la lista de críticas (no las aplica) | `OK-SIN-CRITICAS` o líneas JSONL `C-<lente>-NNN` |
 
-Solo el **diseñador** carga el contexto del proyecto de §4; los otros siete trabajan sobre lo que ya está en disco, salvo las lecturas puntuales del **verificador** que §4.3 autoriza expresamente.
+Solo el **diseñador** carga el contexto del proyecto de §4 y cada **crítico** el rasero de su lente (§2.9); los otros siete trabajan sobre lo que ya está en disco, salvo las lecturas puntuales del **verificador** que §4.3 autoriza expresamente.
 
 ### 2.1 Diseñador — crea el diseño
 
@@ -86,7 +88,7 @@ Solo el **diseñador** carga el contexto del proyecto de §4; los otros siete tr
 
 - **Lee de esta plantilla:** `design-contract.md` y `vistas.md`. Son el **rasero**: cobertura de la máquina de estados, coherencia XML ↔ `.puml` ↔ vistas ↔ métodos descritos, clasificación `usuario`/`servidor` de los campos, frontera de confianza del validador, calidad de las vistas y de los pasos.
 - **Detalla los defectos de los DOS**, no solo del perdedor: los del diseño que acabe ganando se auditan después (§2.5). Sé concreto — qué punto del spec/guías/reglas incumple, qué estado o evento se queda sin método, qué transición no cuadra con el `.puml`.
-- **MUST NOT** modificar, completar ni corregir ninguno de los dos. **MUST NOT** ejecutar la validación de `validacion.md` (es del verificador) ni cargar el contexto de §4. Si ambos son deficientes, elige el menos malo: el enriquecedor y el bucle de verificación corrigen después al ganador.
+- **MUST NOT** modificar, completar ni corregir ninguno de los dos. **MUST NOT** ejecutar la validación de `validacion.md` (es del verificador) ni cargar el contexto de §4 (el rasero de calidad de `k-code-quality` que el motor le indica no cuenta como tal). Si ambos son deficientes, elige el menos malo: el enriquecedor y el bucle de verificación corrigen después al ganador.
 
 ### 2.3 Verificador — busca problemas en el diseño
 
@@ -95,14 +97,16 @@ Solo el **diseñador** carga el contexto del proyecto de §4; los otros siete tr
 - **Lee de esta plantilla:** `validacion.md` — es **la lista de qué cuenta como fallo**. **Ejecuta él mismo, con `Bash`**, los comandos de validación mecánica de `validacion.md` §1 (el motor **NUNCA** los ejecuta) y aplica después **todas** las comprobaciones semánticas de `validacion.md` §2. Las de vistas están delegadas en `vistas.md` §4 y §8. Para saber qué *debería* existir consulta `design-contract.md` y, para los tests E2E, `tests-e2e.md`.
 - **Comprueba** que las partes que **deben** existir (§5) existen y que las condicionales existen si y solo si su condición se cumple.
 - **Puede leer** (nunca escribir) los ficheros reales del árbol que `validacion.md` le indique expresamente (§4.3).
+- **Solo cumplimiento:** **MUST NOT** reportar olores ni preferencias de diseño; la calidad es de los críticos (§2.9), que pasan antes.
 - **MUST NOT** corregir nada: solo **detecta y reporta**. **MUST NOT** compilar ni arrancar la aplicación: el diseño es un plan, no hay código todavía.
 
 ### 2.4 Corrector — corrige el diseño
 
-**Tarea:** dada la lista JSONL de fallos del verificador (§2.3) o de mejoras del enriquecedor (§2.5), **aplicarla en sitio** sobre `design/` (`Edit`/`Write`), sin regenerar el diseño.
+**Tarea:** dada la lista JSONL de fallos del verificador (§2.3), de mejoras del enriquecedor (§2.5) o de críticas de los críticos (§2.9), **aplicarla en sitio** sobre `design/` (`Edit`/`Write`), sin regenerar el diseño.
 
 - **Lee de esta plantilla:** `validacion.md` (por qué cada cosa es un fallo y **cuál es la corrección esperada** — cada comprobación la declara) y `design-contract.md` (la regla a la que ajustar el cambio); además `vistas.md` o `tests-e2e.md` **solo si** el fallo afecta a un `views.xml` o a `test-e2e-desc.md`.
 - **Mantiene la coherencia transversal:** un cambio en la máquina de estados arrastra la tabla de transiciones, el `TipoExpedienteInstance.xml`, el `estados.puml`, los `trigger*`/`onEnter*` descritos, los métodos del validador, las vistas de la fase y `test-e2e-desc.md`. Corregir solo uno de esos sitios deja el diseño incoherente y el verificador lo volverá a reportar.
+- **Corrige sin complicar:** **MUST NOT** resolver un problema añadiendo clases, métodos, campos, estados o reglas si se resuelve modificando lo que ya hay. Al aplicar críticas, si dos se contradicen aplica la que deja menos cosas que recordar.
 - **MUST NOT** renombrar ni mover la carpeta `design/`. **MUST NOT** regenerar el diseño entero ni reconstruirlo desde el spec.
 
 ### 2.5 Enriquecedor — incorpora ventajas y sanea defectos del ganador
@@ -135,6 +139,24 @@ Solo el **diseñador** carga el contexto del proyecto de §4; los otros siete tr
 
 - **Fuente de verdad:** `design.md`. **MUST NOT** modificar el diseño para que cuadre con los tests: corrige los tests. **MUST NOT** tocar ningún otro fichero del diseño.
 
+### 2.9 Crítico — critica el diseño con una sola lente
+
+**Tarea:** el motor lanza **un crítico por cada lente** de la tabla de abajo, en paralelo, antes del verificador. Cada crítico mira `design/` con **su lente y solo la suya**, carga **entero** el rasero de su fila y reporta lo que un revisor senior especializado en eso no dejaría pasar. El verificador comprueba que el diseño **cumple**; el crítico, que sea **bueno**.
+
+**Tabla de lentes** (contrato con el motor, que extrae de aquí los nombres; **MUST** conservar la primera columna `Lente`):
+
+| Lente | Rasero que carga | Qué busca |
+|---|---|---|
+| `solid` | El skill `k-code-quality` **entero** (su `SKILL.md` indexa los ficheros); el peso está en sus reglas de **clases (SOLID)**, de **métodos** y en los **olores de diseño**. | En las clases que el `design.md` describe (el `InitialEventManagerImpl`, cada `PhaseEventManagerImpl`, el `<Code>Util`, el DSL de cada `StateEventValidatorImpl` y cualquier auxiliar): una clase con más de una razón para cambiar; un `trigger*`/`onEnter*` que valida, muta, firma y notifica en un solo método sin descomponer; una rama por tipo o por valor de enum que habrá que reabrir en el siguiente caso parecido; una clasificación repetida en el validador, en la vista y en un `trigger*`; una regla del DSL que decide por dentro si aplica; ramas no complementarias; un retorno defensivo que delega; dos piezas que se conocen entre sí; una dependencia de un concreto donde el proyecto ya ofrece la abstracción. |
+| `simplicidad` | **El resto del proyecto**, no el encargo: el código real de §4.2 — los trámites hermanos de `src/main/java/com/educaflow/tramites/`, el común `tramites/util/`, `base/infrastructure/`, la API de `subsystem/tramitador` — más los tres `CLAUDE.md` que §4.2 manda leer y el skill `k-tipo-expediente` (para saber qué recetas existen). | Piezas que la especificación **no pide** (campos, estados, eventos, clases, parámetros o configuración «por si acaso»); **reinvención** de algo que ya existe en el común, en `base`, en el motor o en una receta; **divergencia** — resolver de otra forma lo que los trámites hermanos ya resuelven, sin declararlo patrón nuevo en `decisiones.md`; **indirección gratuita** (interfaz con una sola implementación, auxiliar de un solo uso, métodos que solo delegan); **ubicación** — una pieza que compartirán varios tipos enterrada en la carpeta de versión, o una propia del trámite propuesta para el común o el motor; en `decisiones.md`, una alternativa más simple descartada por un motivo que no se sostiene. Pregunta final obligatoria: **¿se consigue lo mismo con la mitad de piezas?** Si sí, di cuáles sobran. |
+| `skills` | Los skills de §4.1 que apliquen al contenido del diseño, **enteros** (el `SKILL.md` de cada uno indexa sus ficheros): siempre `k-tipo-expediente`, `k-tramite`, `k-validaciones`, `k-secure-coding`, `k-datainit` y `k-i18n`; `k-guice` solo si el diseño cablea DI. Más el `CLAUDE.md` del proyecto. | Cada regla `MUST`/`MUST NOT`/`CRITICAL`/`REQUIRED` de esos skills contrastada contra el diseño: una receta seguida a medias o con pasos cambiados; un nombre, una ubicación o una firma que el skill fija y el diseño altera; un campo `servidor` que el cliente puede dictar; el usuario autenticado, el centro o la i18n resueltos de una forma que `CLAUDE.md` prohíbe. El `origen` **MUST** citar `<skill>/<fichero> § <sección>`. **MUST NOT** aplicar `k-vistas` ni ninguna regla `VAR-` (§4.3). |
+
+- **Lee de esta plantilla:** `design-contract.md` (para entender qué es cada pieza del diseño) y `vistas.md` solo si su crítica toca una vista. **MUST NOT** ejecutar `validacion.md`: es del verificador.
+- **Carga el rasero de su fila aunque sea contexto de §4**: es la única excepción, junto al diseñador, a «trabajar sobre lo que hay en disco». El código real es de **solo lectura**.
+- **MUST NOT** reportar fallos de cobertura de la especificación ni de formato del contrato (son del verificador), ni el trabajo de otra lente.
+- **MUST NOT** proponer ampliar `subsystem/tramitador` ni `subsystem/expedientes` (§4.2), ni añadir piezas que la especificación no pide: una crítica quita, funde, mueve o sustituye.
+- **MUST NOT** modificar nada: solo **detecta y reporta** (las aplica el corrector, §2.4).
+
 ---
 
 ## 3. Estructura de salida `design/`
@@ -145,13 +167,13 @@ Lo único que este README fija, porque es contrato con el motor y con los skills
 
 - El **índice** se llama `design.md` y lleva frontmatter `type: design` más la clave `template:` copiada de la spec. Es lo que el motor usa para localizar y validar el diseño, y lo que consume `/sdd-implementer`.
 - `test-e2e-desc.md` lo escribe el **diseñador**; `test-unit-desc.md` lo escribe el rol **test-unitarios** en una fase posterior. **MUST NOT** escribir el diseñador el segundo.
-- El fichero `decisiones.md` (las decisiones difíciles del diseñador, con alternativas) lo declara el **motor** (`sdd-designer` §2.5), no esta plantilla: el verificador **MUST NOT** reportarlo como fichero sobrante. Los ficheros `log_best.txt`, `log_revision.txt` y `log_revision_unit-test.txt` son **logs de orquestación del motor**: no son contenido de diseño, no los declara esta plantilla y el verificador **MUST** ignorarlos.
+- El fichero `decisiones.md` (las decisiones difíciles del diseñador, con alternativas) lo declara el **motor** (`sdd-designer` §2.5), no esta plantilla: el verificador **MUST NOT** reportarlo como fichero sobrante. Los ficheros `log_best.txt`, `log_critica.txt`, `log_revision.txt` y `log_revision_unit-test.txt` son **logs de orquestación del motor**: no son contenido de diseño, no los declara esta plantilla y el verificador **MUST** ignorarlos.
 
 ---
 
 ## 4. Contexto del proyecto a cargar
 
-Lo carga el **diseñador** (§2.1) antes de generar. Es el único rol que lo necesita para producir; los demás trabajan sobre lo que hay en disco.
+Lo carga el **diseñador** (§2.1) antes de generar: es el único rol que lo necesita para producir. Cada **crítico** carga de aquí solo lo que declare la fila de su lente (§2.9); los demás trabajan sobre lo que hay en disco.
 
 ### 4.1 Skills técnicos
 
