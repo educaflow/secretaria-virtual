@@ -5,16 +5,17 @@
 https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <?sv-view?>
-    <!-- Los campos del formulario anterior llegan bajo `_parent` (la fila pulsada es un `Tramite`,
-         que no tiene `centro`), así que el centro se lee con `__parent__`, no con `centro?.id`. -->
+    <!-- El nodo pulsado es un `Tramite` (no tiene `centro`), pero el `<tree>` del paso anterior
+         no está anidado en ningún form: `_centroId`/`_hayQueElegirCentro` se leen directamente
+         del contexto ambiente que ese tree recibió en su propio `action-view`, sin `__parent__`. -->
     <action-view name="sysVentanilla.Main@AsistenteNuevoExpediente-action"
                  title="Nuevo expediente"
                  model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
         <view type="form" name="sysVentanilla.Main@AsistenteNuevoExpediente-form"/>
         <view-param name="show-toolbar-form" value="false"/>
         <view-param name="show-confirm" value="false"/>
-        <context name="_centroId" expr="eval: __parent__?.centro?.id"/>
-        <context name="_hayQueElegirCentro" expr="eval: __parent__?.hayQueElegirCentro"/>
+        <context name="_centroId" expr="eval: _centroId"/>
+        <context name="_hayQueElegirCentro" expr="eval: _hayQueElegirCentro"/>
         <context name="_tramiteId" expr="eval: id"/>
     </action-view>
 
