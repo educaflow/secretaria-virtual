@@ -43,7 +43,7 @@ class Categoria4IntegridadTest {
 
     /** Elementos que pueden llevar esos eventos, según la tabla de VAR-4.1. */
     private static final List<String> TAGS_CON_EVENTOS =
-            List.of("form", "field", "button", "panel", "panel-related");
+            List.of("form", "field", "button", "panel", "panel-related", "node");
 
     /** Tipos de acción declarable con '@' — el sujeto de VAR-4.2. */
     private static final List<String> TAGS_ACCION = List.of("action-view", "action-group",
@@ -285,7 +285,7 @@ class Categoria4IntegridadTest {
     //   | `action` de un `<menuitem>`                        | `<action-view>` |
     //   | `action` de un `<panel-dashlet>`                   | `<action-view>` |
     //   | `action` de un `<grid>`                            | cualquier acción declarada |
-    //   | eventos `on*`/`onClick` de `form`/`field`/`button` | `<action-group>` (ver nota `serial:`) |
+    //   | eventos `on*`/`onClick` de `form`/`field`/`button`/`panel`/`panel-related`/`node` | `<action-group>` (ver nota `serial:`) |
     //   | `<action name="…">` dentro de un `action-group`    | cualquier acción declarada o global/predefinida |
     //   | `<dataset type="rpc">…</dataset>` de un `<chart>`  | `<action-method>` |
     //   | `expr="action:{name}"` de un `<field>`             | acción declarada (normalmente `<action-method>`) |
@@ -323,10 +323,12 @@ class Categoria4IntegridadTest {
                 }
             }
 
-            // eventos on* de form/field/button/panel/panel-related
+            // eventos on* de form/field/button/panel/panel-related/node
             for (String tag : TAGS_CON_EVENTOS) {
                 for (Element e : vf.byTag(tag)) {
-                    String ub = "<" + tag + " name=\"" + ViewFiles.attr(e, "name") + "\">";
+                    String ub = "node".equals(tag)
+                            ? "<node model=\"" + ViewFiles.attr(e, "model") + "\">"
+                            : "<" + tag + " name=\"" + ViewFiles.attr(e, "name") + "\">";
                     for (String evento : EVENTOS) {
                         String valor = ViewFiles.attr(e, evento);
                         if (!valor.isBlank()) {
