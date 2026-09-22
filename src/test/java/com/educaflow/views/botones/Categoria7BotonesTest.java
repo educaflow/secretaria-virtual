@@ -137,7 +137,7 @@ class Categoria7BotonesTest {
     //   |---|---|---|---|
     //   | `btnSave` | [`Local-…`]* → `remote-validationSave-action` → `save` → `force-back` (inmediatamente tras `save`; **nunca** `back`) | [`Local-…`]* → `save-modal`; **sin** ninguna `remote-validation*` | no existe |
     //   | `btnDelete` | [`remote-validationDelete-action`] → `delete` (termina en `delete`) | termina en `delete-modal`; **sin** ninguna `remote-validation*` | no existe |
-    //   | `btnCancel` | contiene `back` | contiene `close` | contiene `close` |
+    //   | `btnCancel` | contiene `back`; si el form maestro **no** declara `btnSave` **y** ningún `<action-view>` que lo abra (una `<view type="form">` con su `name`) declara una `<view type="grid">`, contiene `close` | contiene `close` | contiene `close` |
     @Test
     void var7_2_secuenciaDeBotonesEstandarSegunClase() {
         List<Violacion> v = new ArrayList<>();
@@ -149,6 +149,12 @@ class Categoria7BotonesTest {
                     continue; // sin clase de bloque: fuera del sujeto
                 }
                 String ctx = nv.contexto();
+                // Rama del asistente: el maestro no declara btnSave (no persiste) Y ningún
+                // action-view que lo abra declara un grid (no hay grid al que volver). Solo
+                // cuando se cumplen LAS DOS su btnCancel cierra con close; si falla una, back.
+                boolean tieneBtnSave = byTag(form, "button").stream()
+                        .anyMatch(b -> attr(b, "name").startsWith("btnSave"));
+                boolean ramaAsistente = !tieneBtnSave && !algunActionViewDeclaraGrid(formName);
                 for (Element btn : byTag(form, "button")) {
                     String btnName = attr(btn, "name");
                     String estandar = btnName.startsWith("btnSave") ? "btnSave"
@@ -169,7 +175,7 @@ class Categoria7BotonesTest {
 
                     List<String> seq = Index.accionesDeGrupo(vf, attr(btn, "onClick"));
                     switch (nv.clase()) {
-                        case MAESTRO -> verificarMaestro(v, vf, ubicacion, estandar, ctx, seq);
+                        case MAESTRO -> verificarMaestro(v, vf, ubicacion, estandar, ctx, seq, ramaAsistente);
                         case DETALLE -> verificarDetalle(v, vf, ubicacion, estandar, ctx, seq);
                         case REFERENCIA -> {
                             // solo llega btnCancel: contiene close
@@ -188,8 +194,27 @@ class Categoria7BotonesTest {
                 + "referencia: solo close)", v);
     }
 
+    /**
+     * ¿Algún {@code <action-view>} que abra este form (lo referencia con una
+     * {@code <view type="form">} con su {@code name}) declara una {@code <view type="grid">}?
+     */
+    private static boolean algunActionViewDeclaraGrid(String formName) {
+        for (ViewFile vf : ViewFiles.all()) {
+            for (Element av : vf.actionViews()) {
+                List<Element> views = childrenByTag(av, "view");
+                boolean abreEsteForm = views.stream()
+                        .anyMatch(w -> "form".equals(attr(w, "type")) && formName.equals(attr(w, "name")));
+                if (abreEsteForm && views.stream().anyMatch(w -> "grid".equals(attr(w, "type")))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private static void verificarMaestro(List<Violacion> v, ViewFile vf, String ubicacion,
-                                         String estandar, String ctx, List<String> seq) {
+                                         String estandar, String ctx, List<String> seq,
+                                         boolean ramaAsistente) {
         switch (estandar) {
             case "btnSave" -> {
                 // [Local-… del mismo contexto]* → remote-validationSave-action → save
@@ -213,7 +238,16 @@ class Categoria7BotonesTest {
                 }
             }
             case "btnCancel" -> {
-                if (!seq.contains("back")) {
+                // Un maestro que ni persiste (sin btnSave) ni tiene grid al que volver (su
+                // action-view solo declara form) no tiene nada que preguntar ni a donde volver:
+                // cierra con close. Si falla cualquiera de las dos condiciones, sigue rigiendo back.
+                if (ramaAsistente) {
+                    if (!seq.contains("close")) {
+                        v.add(new Violacion(vf.rel(), ubicacion,
+                                "el btnCancel de un maestro sin btnSave cuyo action-view no declara "
+                                        + "ningún grid debe contener \"close\"; secuencia: " + seq));
+                    }
+                } else if (!seq.contains("back")) {
                     v.add(new Violacion(vf.rel(), ubicacion,
                             "el btnCancel maestro debe contener \"back\"; secuencia: " + seq));
                 }

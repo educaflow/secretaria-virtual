@@ -458,6 +458,7 @@ action-record subsysSistemaEducativo.Main@Ciclo.Curso-set-ciclo-parent-action
   | `<view type="form" name="…">` de un `action-view`  | `<form>` |
   | `action` de un `<menuitem>`                        | `<action-view>` |
   | `action` de un `<panel-dashlet>`                   | `<action-view>` |
+  | `action` de un `<grid>`                            | cualquier acción declarada |
   | eventos `on*`/`onClick` de `form`/`field`/`button` | `<action-group>` (ver nota `serial:`) |
   | `<action name="…">` dentro de un `action-group`    | cualquier acción declarada o global/predefinida |
   | `<dataset type="rpc">…</dataset>` de un `<chart>`  | `<action-method>` |
@@ -479,7 +480,7 @@ action-record subsysSistemaEducativo.Main@Ciclo.Curso-set-ciclo-parent-action
   Condición: su `name` aparece referenciado en **al menos uno** de los sitios de la tabla de `VAR-4.1`.
   Exención: acciones globales/predefinidas (que no se declaran en los ficheros) y los `action-view` de utilidad que abre el servidor por código (controlador vía `openView`), no visibles en el XML.
 
-**Correcto** ✅ — el `action-view` `…Main@Ciclo-action` lo abre un `<menuitem action="…Main@Ciclo-action">`; el `action-group` `…-btnSave-action` lo abre `onClick="…-btnSave-action"`.
+**Correcto** ✅ — el `action-view` `…Main@Ciclo-action` lo abre un `<menuitem action="…Main@Ciclo-action">`; el `action-group` `…-btnSave-action` lo abre `onClick="…-btnSave-action"`; el `action-group` `…-filaSeleccionada-action` lo invoca un `<grid action="…-filaSeleccionada-action">` (el `action` de un `<grid>` es un sitio de referencia de la tabla de `VAR-4.1`, así que no queda huérfano).
 **Incorrecto** ❌ — un `<action-view name="…Ref@FamiliaProfesional-action">` en un `Ref-*.xml` que ningún `<menuitem>` abre; o una `action-method` que ningún `action-group`/evento/chart invoca.
 
 ---
@@ -682,7 +683,7 @@ Las secuencias de los botones estándar (`btnSave`/`btnDelete`/`btnCancel`) depe
 **Decisión.**
   Para guardar, borrar y cancelar de forma segura y uniforme:
     en el **maestro**, primero las validaciones (local y remota), luego la acción predefinida, y tras `save` un cierre explícito con `force-back` (si el usuario pulsa Guardar sin cambiar nada `save` es un no-op y `canBackOnSave` no cierra la ventana — `force-back` sí).
-    El cierre **MUST** ser `force-back` y **MUST NOT** ser `back`: tras un `save` correcto no queda nada por guardar, pero el flag *dirty* de la vista todavía no está limpio cuando se ejecuta la acción siguiente, así que `back` saca el diálogo «Current changes will be lost» sobre un registro ya guardado. `back` es el cierre del `btnCancel`, donde preguntar sí es lo correcto;
+    El cierre **MUST** ser `force-back` y **MUST NOT** ser `back`: tras un `save` correcto no queda nada por guardar, pero el flag *dirty* de la vista todavía no está limpio cuando se ejecuta la acción siguiente, así que `back` saca el diálogo «Current changes will be lost» sobre un registro ya guardado. `back` es el cierre del `btnCancel` de un maestro **que guarda**, donde preguntar por los cambios sí es lo correcto; un maestro **sin `save`** cuyo `<action-view>` **no** declara ninguna `<view type="grid">` (un asistente: ni persiste nada ni tiene `grid` al que volver) **MUST** contener `close` en su `btnCancel`; un maestro sin `save` cuyo `<action-view>` **sí** declara un `grid` sigue con `back`, porque el `grid` al que volver existe aunque no se guarde nada;
     en el **detalle**, las variantes `-modal` operan sobre la colección en memoria del padre y la validación remota no aplica (ver preámbulo de la categoría);
     en la **referencia** solo se puede salir, sin tocar el registro.
 **Verificación.**
@@ -692,7 +693,7 @@ Las secuencias de los botones estándar (`btnSave`/`btnDelete`/`btnCancel`) depe
   |---|---|---|---|
   | `btnSave` | [`Local-…`]* → `remote-validationSave-action` → `save` → `force-back` (inmediatamente tras `save`; **nunca** `back`) | [`Local-…`]* → `save-modal`; **sin** ninguna `remote-validation*` | no existe |
   | `btnDelete` | [`remote-validationDelete-action`] → `delete` (termina en `delete`) | termina en `delete-modal`; **sin** ninguna `remote-validation*` | no existe |
-  | `btnCancel` | contiene `back` | contiene `close` | contiene `close` |
+  | `btnCancel` | contiene `back`; si el form maestro **no** declara `btnSave` **y** ningún `<action-view>` que lo abra (una `<view type="form">` con su `name`) declara una `<view type="grid">`, contiene `close` | contiene `close` | contiene `close` |
 
 **Correcto** ✅
 ```xml
@@ -716,7 +717,7 @@ Las secuencias de los botones estándar (`btnSave`/`btnDelete`/`btnCancel`) depe
     <action name="save-modal"/>
 </action-group>
 ```
-**Incorrecto** ❌ — en el maestro, `save` sin cierre después, `save` → `back` (pregunta «Current changes will be lost» sobre un registro ya guardado), `save` antes de la validación, o un `btnCancel` con `close`; en el detalle, `save`+`force-back` (o `save`+`back`) o `delete` (secuencias de maestro), una `remote-validation*` antes de `save-modal`/`delete-modal`, o un `btnCancel` con `back`.
+**Incorrecto** ❌ — en el maestro, `save` sin cierre después, `save` → `back` (pregunta «Current changes will be lost» sobre un registro ya guardado), `save` antes de la validación, o un `btnCancel` con `close` en un maestro que no cumple las **dos** condiciones de la rama del asistente (tiene `btnSave`, o su `action-view` declara una `<view type="grid">`); o un `btnCancel` con `back` en un maestro sin `btnSave` cuyo `action-view` declara solo `<view type="form">`; en el detalle, `save`+`force-back` (o `save`+`back`) o `delete` (secuencias de maestro), una `remote-validation*` antes de `save-modal`/`delete-modal`, o un `btnCancel` con `back`.
 
 ## VAR-7.3 — Los grupos de save/delete no llaman a controladores propios
 **Decisión.**
@@ -802,14 +803,16 @@ Los atributos canónicos de todo grid los fija `VAR-5.1` (y los de la clase refe
 
 ## VAR-8.1 — Comportamiento de clic único
 **Decisión.**
-  Porque al pulsar una fila el grid o abre para editar o abre en solo lectura, nunca ambas (serían comportamientos contradictorios) y nunca ninguna (fila muerta).
+  Porque al pulsar una fila el grid o abre para editar o abre en solo lectura, nunca ambas (serían comportamientos contradictorios) y nunca ninguna (fila muerta), salvo que el grid declare `action`: entonces el clic ejecuta esa acción y la fila no está muerta.
 **Verificación.**
   Sujeto: cada `<grid>`.
   Condición: tiene **exactamente uno** de `canEditOnClick="true"` / `canViewOnClick="true"` (nunca ambos, nunca ninguno).
   (Que en la clase referencia el presente sea `canViewOnClick="true"` lo fija `VAR-5.2`.)
+  Exención: los **grids con `action`** (`<grid action="…">`), porque `handleCellClick` consulta `action` **antes** que `canViewOnClick`/`canEditOnClick`,
+  así que en ellos cualquiera de los dos sería una declaración muerta; un grid con `action` **MUST NOT** declarar ninguno de los dos.
 
-**Correcto** ✅ — `Main@…-grid` con `canEditOnClick="true"`; un grid de variante de consulta (p.ej. `Firmado@…-grid`) o un `Ref@…-grid` con `canViewOnClick="true"`
-**Incorrecto** ❌ — `<grid canEditOnClick="true" canViewOnClick="true">`; un grid sin ninguno de los dos
+**Correcto** ✅ — `Main@…-grid` con `canEditOnClick="true"`; un grid de variante de consulta (p.ej. `Firmado@…-grid`) o un `Ref@…-grid` con `canViewOnClick="true"`; un `<grid action="…">` sin ninguno de los dos (exento)
+**Incorrecto** ❌ — `<grid canEditOnClick="true" canViewOnClick="true">`; un grid **sin `action`** que no declara ninguno de los dos; un `<grid action="…">` que además declara `canEditOnClick`/`canViewOnClick` (declaración muerta)
 
 ## VAR-8.2 — Coherencia `canNew`/`newButtonTitle` (grids y `panel-related`)
 **Decisión.**

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="ventanilla" package="com.educaflow.system.ventanilla.db"/>
+
+    <entity name="AsistenteNuevoExpediente" persistable="false">
+
+        <!-- Elección del usuario -->
+        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro"/>
+        <many-to-one name="tramite" ref="com.educaflow.subsystem.expedientes.db.Tramite" title="Trámite"/>
+        <boolean name="presentadoEnPapel" nullable="true" title="¿Cómo se presenta?"/>
+        <boolean name="presentadoEnRepresentacion" nullable="true" title="¿Para quién es el expediente?"/>
+
+        <!-- Instantánea del trámite -->
+        <!-- El cuerpo MUST leer el CAMPO `tramite`, nunca `getTramite()`: Mapper.findComputeDependencies
+             solo registra como dependencia lo que ve como GETFIELD, y con el getter el campo llegaría
+             null sobre un bean que venga como proxy de Context, sin ningún error. -->
+        <string name="nombreTramite" transient="true" title="Trámite">
+            <![CDATA[
+                if (tramite == null) {
+                    return null;
+                }
+                return com.axelor.i18n.I18n.get("value:" + tramite.getName());
+            ]]>
+        </string>
+        <string name="ayudaTramite" large="true" transient="true" title="Ayuda">
+            <![CDATA[
+                if (tramite == null) {
+                    return null;
+                }
+                return tramite.getHelp();
+            ]]>
+        </string>
+
+        <!-- Candidatos que el servidor ofrece en cada paso -->
+        <many-to-many name="centrosDisponibles" ref="com.educaflow.subsystem.common.db.Centro" title="Centros"/>
+        <many-to-many name="tramitesDisponibles" ref="com.educaflow.subsystem.expedientes.db.Tramite" title="Trámites"/>
+        <boolean name="hayQueElegirCentro" title="Hay que elegir centro"/>
+
+        <!-- Qué preguntas se hacen en el último paso -->
+        <boolean name="hayQuePreguntarPresentacion" title="Hay que preguntar cómo se presenta"/>
+        <boolean name="hayQuePreguntarParaQuien" title="Hay que preguntar para quién es"/>
+
+    </entity>
+
+</domain-models>

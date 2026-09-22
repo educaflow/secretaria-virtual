@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+    <!-- Los campos del formulario anterior llegan bajo `_parent` (la fila pulsada es un `Tramite`,
+         que no tiene `centro`), así que el centro se lee con `__parent__`, no con `centro?.id`. -->
+    <action-view name="sysVentanilla.Main@AsistenteNuevoExpediente-action"
+                 title="Nuevo expediente"
+                 model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <view type="form" name="sysVentanilla.Main@AsistenteNuevoExpediente-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="show-confirm" value="false"/>
+        <context name="_centroId" expr="eval: __parent__?.centro?.id"/>
+        <context name="_hayQueElegirCentro" expr="eval: __parent__?.hayQueElegirCentro"/>
+        <context name="_tramiteId" expr="eval: id"/>
+    </action-view>
+
+    <form name="sysVentanilla.Main@AsistenteNuevoExpediente-form"
+          title="Nuevo expediente"
+          model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente"
+          onNew="sysVentanilla.Main@AsistenteNuevoExpediente-onNew-action"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+
+        <panel name="tramitePanel" title="Trámite" colSpan="12">
+            <field name="nombreTramite" colSpan="6" readonly="true"/>
+            <field name="centro" colSpan="6" readonly="true" canNew="false" canEdit="false" canView="false"/>
+            <field name="ayudaTramite" colSpan="12" readonly="true" showTitle="false" showIf="ayudaTramite">
+                <viewer depends="ayudaTramite"><![CDATA[
+                    <>
+                    <Box mt={0} as="p" color="secondary" dangerouslySetInnerHTML={{ __html: ayudaTramite }} />
+                    </>
+                    ]]></viewer>
+            </field>
+            <field name="tramite" hidden="true"/>
+            <field name="hayQuePreguntarPresentacion" hidden="true"/>
+            <field name="hayQuePreguntarParaQuien" hidden="true"/>
+            <field name="hayQueElegirCentro" hidden="true"/>
+        </panel>
+
+        <panel name="presentacionPanel" title="Presentación" colSpan="12"
+               showIf="hayQuePreguntarPresentacion || hayQuePreguntarParaQuien">
+            <field name="presentadoEnPapel" colSpan="12" widget="boolean-radio"
+                   x-false-text="Lo presento yo mismo"
+                   x-true-text="Estoy registrando un trámite recibido en papel"
+                   showIf="hayQuePreguntarPresentacion"
+                   onChange="sysVentanilla.Main@AsistenteNuevoExpediente-onChange-presentadoEnPapel-action"/>
+            <field name="presentadoEnRepresentacion" colSpan="12" widget="boolean-radio"
+                   x-false-text="Para mí"
+                   x-true-text="Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)"
+                   showIf="hayQuePreguntarParaQuien"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnAtras" title="Atrás" colSpan="2" colOffset="7" outline="true"
+                    onClick="sysVentanilla.Main@AsistenteNuevoExpediente-btnAtras-action"/>
+            <button name="btnCrear" title="Crear expediente" colSpan="3"
+                    onClick="sysVentanilla.Main@AsistenteNuevoExpediente-btnCrear-action"/>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+    <action-group name="sysVentanilla.Main@AsistenteNuevoExpediente-btnAtras-action">
+        <action name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-action"/>
+        <action name="close"/>
+    </action-group>
+
+    <action-group name="sysVentanilla.Main@AsistenteNuevoExpediente-btnCrear-action">
+        <action name="sysVentanilla.Main@AsistenteNuevoExpediente-Local-validateTriggerInitialEvent-action"/>
+        <action name="validate"/>
+        <action name="sysVentanilla.Main@AsistenteNuevoExpediente-Remote-validateTriggerInitialEvent-action"/>
+        <action name="sysVentanilla.Main@AsistenteNuevoExpediente-Remote-triggerInitialEvent-action"/>
+    </action-group>
+
+    <action-group name="sysVentanilla.Main@AsistenteNuevoExpediente-onNew-action">
+        <action name="sysVentanilla.Main@AsistenteNuevoExpediente-set-tramiteCentroYHayQueElegirCentro-recibidos-action"/>
+        <action name="sysVentanilla.Main@AsistenteNuevoExpediente-Remote-recalcular-action"/>
+    </action-group>
+
+    <action-group name="sysVentanilla.Main@AsistenteNuevoExpediente-onChange-presentadoEnPapel-action">
+        <action name="sysVentanilla.Main@AsistenteNuevoExpediente-Remote-recalcular-action"/>
+    </action-group>
+
+    <?sv-validations?>
+    <action-validate name="sysVentanilla.Main@AsistenteNuevoExpediente-Local-validateTriggerInitialEvent-action">
+        <error message="Debe indicar cómo se presenta el expediente"
+               if="presentadoEnPapel == null"/>
+        <error message="Debe indicar para quién es el expediente"
+               if="presentadoEnPapel != null &amp;&amp; presentadoEnRepresentacion == null"/>
+    </action-validate>
+
+    <?sv-rules?>
+    <action-record name="sysVentanilla.Main@AsistenteNuevoExpediente-set-tramiteCentroYHayQueElegirCentro-recibidos-action"
+                   model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <field name="tramite" expr="eval: __repo__(com.educaflow.subsystem.expedientes.db.Tramite).find(_tramiteId)"/>
+        <field name="centro" expr="eval: __repo__(com.educaflow.subsystem.common.db.Centro).find(_centroId)"/>
+        <field name="hayQueElegirCentro" expr="eval: _hayQueElegirCentro"/>
+    </action-record>
+
+    <?sv-remotes?>
+    <action-method name="sysVentanilla.Main@AsistenteNuevoExpediente-Remote-recalcular-action"
+                   model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <call class="com.educaflow.system.ventanilla.controller.AsistenteNuevoExpedienteController"
+              method="recalcular"/>
+    </action-method>
+
+    <action-method name="sysVentanilla.Main@AsistenteNuevoExpediente-Remote-validateTriggerInitialEvent-action"
+                   model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <call class="com.educaflow.system.ventanilla.controller.AsistenteNuevoExpedienteController"
+              method="validateTriggerInitialEvent"/>
+    </action-method>
+
+    <!-- `TramitadorController.triggerInitialEvent` lee del formulario `tramite`, `centro`,
+         `presentadoEnPapel` y `presentadoEnRepresentacion`. -->
+    <action-method name="sysVentanilla.Main@AsistenteNuevoExpediente-Remote-triggerInitialEvent-action"
+                   model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <call class="com.educaflow.subsystem.tramitador.controller.TramitadorController"
+              method="triggerInitialEvent"/>
+    </action-method>
+
+</object-views>

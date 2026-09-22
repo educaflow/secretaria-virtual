@@ -26,9 +26,39 @@ Un grid es la vista tabular de Axelor para listar registros (filas) de un modelo
   - Si no se pueden crear nuevas entidades desde el grid, añadir `canNew="false"` y no incluir el atributo `newButtonTitle`
   - Si se pueden editar las entidades desde el grid, añadir `canEditOnClick="true"` y no incluir el atributo `canViewOnClick`
   - Si SOLO pueden ver las entidades desde el grid, añadir `canViewOnClick="true"` y no incluir el atributo `canEditOnClick`
+  - Si el grid declara `action` (ver «Clic sobre la fila»), **MUST NOT** llevar ni `canEditOnClick` ni `canViewOnClick`
   - Normalmente el atributo `allowSearchFields` valdrá `true` pero se puede poner a `false`.
   - Normalmente el atributo `orderBy` valdrá `name` pero se puede valer otro campo relevante para ordenar los registros como alguna fecha.
 
+
+## Clic sobre la fila: `action` y `actionSignal`
+
+Extensión del fork de AOP: con `action`, un **clic simple** sobre una fila ejecuta esa acción con el **registro en el contexto**
+(`handleCellClick` consulta `action` **antes** que `canViewOnClick`/`canEditOnClick`, así que estos dos no llegan a evaluarse);
+`actionSignal` es el valor que viaja como `_signal` en ese contexto y, si se omite, vale el `name` del propio grid.
+Por eso **un grid con `action` no declara `canViewOnClick` ni `canEditOnClick`**: serían declaraciones muertas
+(excepción a la plantilla del `<grid>`; misma exención en `agent_docs/view-rules.md` → `VAR-8.1`).
+
+| Atributo | Para qué sirve |
+|---|---|
+| `action` | Acción a ejecutar al hacer clic en la fila. Recibe el registro en el contexto. Resuelve a cualquier acción declarada (`agent_docs/view-rules.md` → `VAR-4.1`) |
+| `actionSignal` | Valor de `_signal` que se envía en el contexto de esa acción. Si se omite, es el `name` del grid |
+
+```xml
+<grid name="sysVentanilla.Main@Tramite-grid" model="com.educaflow.subsystem.expedientes.db.Tramite"
+      title="" orderBy="name" allowSearchFields="true"
+      action="sysVentanilla.Main@Tramite-seleccionar-action"
+      canAdvanceSearch="false" canRefresh="false" canNew="false"
+      editable="false" edit-icon="false" x-selector="none"
+      canEdit="false" canDelete="false" canSave="false"
+>
+    <field name="name"/>
+</grid>
+```
+
+- ✅ CORRECTO: `<grid action="…-seleccionar-action">` **sin** `canEditOnClick` ni `canViewOnClick`.
+- ❌ INCORRECTO: `<grid action="…-seleccionar-action" canViewOnClick="true">` (el `action` gana, `canViewOnClick` nunca se evalúa: declaración muerta).
+- ❌ INCORRECTO: un grid **sin** `action` y sin `canEditOnClick`/`canViewOnClick` (fila muerta; la exención es solo para los grids con `action`).
 
 ## Mensaje de ayuda (`<help>`)
 

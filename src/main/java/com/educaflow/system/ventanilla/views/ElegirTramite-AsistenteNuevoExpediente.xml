@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+    <action-view name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-action"
+                 title="Nuevo expediente: elija el trámite"
+                 model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <view type="form" name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="show-confirm" value="false"/>
+        <context name="_centroId" expr="eval: centro?.id ?: id"/>
+        <context name="_hayQueElegirCentro"
+                 expr="eval: hayQueElegirCentro == null ? __parent__?.hayQueElegirCentro : hayQueElegirCentro"/>
+    </action-view>
+
+    <form name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-form"
+          title="Nuevo expediente: elija el trámite"
+          model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente"
+          onNew="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-onNew-action"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+
+        <panel name="centroPanel" title="" colSpan="12" showFrame="false">
+            <field name="centro" colSpan="6" readonly="true" canNew="false" canEdit="false" canView="false"/>
+            <field name="hayQueElegirCentro" hidden="true"/>
+        </panel>
+
+        <panel name="tramitesPanel" title="" colSpan="12" showFrame="false">
+            <panel-related name="tramitesDisponibles" field="tramitesDisponibles" title=""
+                           grid-view="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-grid"
+                           colSpan="12" showFooter="false" canNew="false" canEdit="false" canRemove="false"
+                           forceEdit="true"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <panel name="buttonsConEleccionDeCentro" title="" colSpan="12" showFrame="false"
+                   showIf="hayQueElegirCentro">
+                <button name="btnAtras" title="Atrás" colSpan="2" colOffset="10" outline="true"
+                        onClick="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-btnAtras-action"/>
+            </panel>
+            <panel name="buttonsSinEleccionDeCentro" title="" colSpan="12" showFrame="false"
+                   showIf="!hayQueElegirCentro">
+                <button name="btnCancelar" title="Cancelar" colSpan="2" colOffset="10" outline="true"
+                        onClick="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-btnCancelar-action"/>
+            </panel>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+    <action-group name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-btnAtras-action">
+        <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-action"/>
+        <action name="close"/>
+    </action-group>
+
+    <action-group name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-btnCancelar-action">
+        <action name="close"/>
+    </action-group>
+
+    <action-group name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-onNew-action">
+        <action name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-set-centroYHayQueElegirCentro-recibidos-action"/>
+        <action name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-Remote-prepararTramites-action"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+    <action-record name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-set-centroYHayQueElegirCentro-recibidos-action"
+                   model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <field name="centro" expr="eval: __repo__(com.educaflow.subsystem.common.db.Centro).find(_centroId)"/>
+        <field name="hayQueElegirCentro" expr="eval: _hayQueElegirCentro"/>
+    </action-record>
+
+    <?sv-remotes?>
+    <action-method name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-Remote-prepararTramites-action"
+                   model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <call class="com.educaflow.system.ventanilla.controller.AsistenteNuevoExpedienteController"
+              method="prepararTramites"/>
+    </action-method>
+
+
+    <?sv-view?>
+    <!-- `groupBy` MUST repetir la misma ruta punteada con la que empieza `orderBy`, y esa ruta MUST
+         estar además declarada como `<field>` del grid. -->
+    <grid name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-grid"
+          model="com.educaflow.subsystem.expedientes.db.Tramite"
+          title="" orderBy="tipoTramite.name,name" groupBy="tipoTramite.name"
+          allowSearchFields="false" canAdvanceSearch="false" canRefresh="false"
+          action="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-onClick-action"
+          editable="false" edit-icon="false" x-selector="none"
+          canNew="false" canEdit="false" canDelete="false" canSave="false">
+        <field name="name" title="Trámite"/>
+        <field name="tipoTramite.name" title="Tipo de trámite" hidden="true"/>
+    </grid>
+
+    <?sv-primary-actions?>
+    <action-group name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-onClick-action">
+        <action name="sysVentanilla.Main@AsistenteNuevoExpediente-action"/>
+        <action name="close"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+</object-views>

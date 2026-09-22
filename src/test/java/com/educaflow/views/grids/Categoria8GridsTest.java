@@ -31,11 +31,14 @@ class Categoria8GridsTest {
      * VAR-8.1 — Comportamiento de clic único.
      * Cada {@code <grid>} tiene EXACTAMENTE uno de {@code canEditOnClick="true"} /
      * {@code canViewOnClick="true"}: nunca ambos, nunca ninguno.
+     * Exentos los grids con {@code action}, que además NO deben declarar ninguno de los dos.
      */
     // [VAR-8.1] Verificación:
     //   Sujeto: cada `<grid>`.
     //   Condición: tiene **exactamente uno** de `canEditOnClick="true"` / `canViewOnClick="true"` (nunca ambos, nunca ninguno).
     //   (Que en la clase referencia el presente sea `canViewOnClick="true"` lo fija `VAR-5.2`.)
+    //   Exención: los **grids con `action`** (`<grid action="…">`), porque `handleCellClick` consulta `action` **antes** que `canViewOnClick`/`canEditOnClick`,
+    //   así que en ellos cualquiera de los dos sería una declaración muerta; un grid con `action` **MUST NOT** declarar ninguno de los dos.
     @Test
     void var8_1_comportamientoDeClicUnico() {
         List<Violacion> v = new ArrayList<>();
@@ -43,6 +46,17 @@ class Categoria8GridsTest {
             for (Element grid : vf.grids()) {
                 boolean edit = "true".equals(attr(grid, "canEditOnClick"));
                 boolean view = "true".equals(attr(grid, "canViewOnClick"));
+                if (!attr(grid, "action").isBlank()) {
+                    // Exención: en un grid con action, handleCellClick consulta action antes,
+                    // así que canEditOnClick/canViewOnClick serían declaraciones muertas.
+                    if (edit || view) {
+                        v.add(new Violacion(vf.rel(), attr(grid, "name"),
+                                "tiene action=\"" + attr(grid, "action") + "\" y además"
+                                        + " canEditOnClick/canViewOnClick (declaración muerta:"
+                                        + " el action se consulta antes)"));
+                    }
+                    continue;
+                }
                 if (edit && view) {
                     v.add(new Violacion(vf.rel(), attr(grid, "name"),
                             "tiene canEditOnClick=\"true\" Y canViewOnClick=\"true\" a la vez"

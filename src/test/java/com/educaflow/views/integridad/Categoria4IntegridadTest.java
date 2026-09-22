@@ -186,6 +186,10 @@ class Categoria4IntegridadTest {
                 for (Element pd : ViewFiles.byTag(doc, "panel-dashlet")) {
                     anhadirNoVacio(r, ViewFiles.attr(pd, "action"));
                 }
+                // action de <grid>
+                for (Element g : ViewFiles.byTag(doc, "grid")) {
+                    anhadirNoVacio(r, ViewFiles.attr(g, "action"));
+                }
                 // expr="action:{name}" de <field>
                 for (Element f : ViewFiles.byTag(doc, "field")) {
                     String expr = ViewFiles.attr(f, "expr");
@@ -262,7 +266,8 @@ class Categoria4IntegridadTest {
     /**
      * VAR-4.1 — Toda referencia de la tabla resuelve a un elemento declarado del tipo esperado:
      * {@code grid-view}/{@code form-view} → grid/form; {@code <view type="grid|form">} de un
-     * action-view → grid/form; {@code action} de un menuitem → action-view; eventos on* →
+     * action-view → grid/form; {@code action} de un menuitem → action-view; {@code action} de un
+     * grid → cualquier acción declarada; eventos on* →
      * action-group (con la nota {@code serial:}); {@code <action name>} de un action-group →
      * acción declarada o global/predefinida; {@code <dataset type="rpc">} → action-method.
      */
@@ -279,6 +284,7 @@ class Categoria4IntegridadTest {
     //   | `<view type="form" name="…">` de un `action-view`  | `<form>` |
     //   | `action` de un `<menuitem>`                        | `<action-view>` |
     //   | `action` de un `<panel-dashlet>`                   | `<action-view>` |
+    //   | `action` de un `<grid>`                            | cualquier acción declarada |
     //   | eventos `on*`/`onClick` de `form`/`field`/`button` | `<action-group>` (ver nota `serial:`) |
     //   | `<action name="…">` dentro de un `action-group`    | cualquier acción declarada o global/predefinida |
     //   | `<dataset type="rpc">…</dataset>` de un `<chart>`  | `<action-method>` |
@@ -342,6 +348,18 @@ class Categoria4IntegridadTest {
                             && !Index.PREDEFINIDAS.contains(name)) {
                         v.add(new Violacion(fich, ub, "<action name=\"" + name
                                 + "\"> no resuelve a ninguna acción declarada ni global/predefinida"));
+                    }
+                }
+            }
+
+            // action de <grid> → cualquier acción declarada
+            for (Element g : vf.grids()) {
+                String accion = ViewFiles.attr(g, "action");
+                if (!accion.isBlank()) {
+                    String ub = "<grid name=\"" + ViewFiles.attr(g, "name") + "\">";
+                    if (!d.acciones().contains(accion) && !d.actionViews().contains(accion)) {
+                        v.add(new Violacion(fich, ub, "action=\"" + accion
+                                + "\" no resuelve a ninguna acción declarada"));
                     }
                 }
             }

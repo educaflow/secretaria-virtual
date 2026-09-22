@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<auth>
+  <!-- AsistenteNuevoExpediente es persistable="false": no tiene filas que filtrar, así que el
+       permiso no lleva condition. Quién puede iniciar qué y en qué centro lo decide el servidor
+       (AsistenteNuevoExpedienteServiceImpl.validateTriggerInitialEvent y TramitadorService). -->
+  <permission name="AsistenteNuevoExpediente.all"
+              object="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+    <can create="true" read="true" write="true" remove="false" export="false"/>
+  </permission>
+</auth>

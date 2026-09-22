@@ -62,6 +62,7 @@
         <!-- Administrativos -->
         <usuario email="administrativo1@mislata.es"  documento="97879650E" name="Administrativo1 CIPFP Mislata"  nombre="Administrativo1"  apellidos="CIPFP Mislata" password="demo1234"/>
         <usuario email="administrativo2@mislata.es"  documento="16493254T" name="Administrativo2 CIPFP Mislata"  nombre="Administrativo2"  apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="administrativo3@mislata.es"  documento="48291053T" name="Administrativo3 CIPFP Mislata"  nombre="Administrativo3"  apellidos="CIPFP Mislata" password="demo1234"/>
 
         <!-- Exprofesores -->
         <usuario email="exprofesor1@mislata.es"      documento="51956370Z" name="Exprofesor1 CIPFP Mislata"      nombre="Exprofesor1"      apellidos="CIPFP Mislata" password="demo1234"/>
@@ -171,6 +172,7 @@
         <centroUsuario usuarioCode="familiar2@mislata.es"        centroCode="46019660"/>
         <centroUsuario usuarioCode="administrativo1@mislata.es"  centroCode="46019660"/>
         <centroUsuario usuarioCode="administrativo2@mislata.es"  centroCode="46019660"/>
+        <centroUsuario usuarioCode="administrativo3@mislata.es"  centroCode="46019660"/>
         <centroUsuario usuarioCode="exprofesor1@mislata.es"      centroCode="46019660"/>
         <centroUsuario usuarioCode="exprofesor2@mislata.es"      centroCode="46019660"/>
         <centroUsuario usuarioCode="exalumno1@mislata.es"        centroCode="46019660"/>
@@ -219,6 +221,8 @@
         <centroUsuario usuarioCode="alumnodoscentros@mislata.es" centroCode="46019660"/>
         <centroUsuario usuarioCode="alumnodoscentros@mislata.es" centroCode="03012165"/>
 
+        <centroUsuario usuarioCode="administrativo3@mislata.es"  centroCode="03012165"/>
+
     </centroUsuarios>
 
 
@@ -245,6 +249,9 @@
         <tipo usuarioCode="administrativo1@mislata.es"  centroCode="46019660" tipoCode="ADMINISTRATIVO"/>
         <tipo usuarioCode="administrativo2@mislata.es"  centroCode="46019660" tipoCode="ADMINISTRATIVO"/>
         <tipo usuarioCode="administrativo2@mislata.es"  centroCode="46019660" tipoCode="ALUMNO"/>
+        <tipo usuarioCode="administrativo3@mislata.es"  centroCode="46019660" tipoCode="ADMINISTRATIVO"/>
+        <tipo usuarioCode="administrativo3@mislata.es"  centroCode="46019660" tipoCode="ALUMNO"/>
+        <tipo usuarioCode="administrativo3@mislata.es"  centroCode="46019660" tipoCode="FAMILIAR"/>
         <tipo usuarioCode="exprofesor1@mislata.es"      centroCode="46019660" tipoCode="EXPROFESOR"/>
         <tipo usuarioCode="exprofesor2@mislata.es"      centroCode="46019660" tipoCode="EXPROFESOR"/>
         <tipo usuarioCode="exalumno1@mislata.es"        centroCode="46019660" tipoCode="EXALUMNO"/>
@@ -293,6 +300,11 @@
         <tipo usuarioCode="alumnofamiliar@mislata.es"   centroCode="46019660" tipoCode="FAMILIAR"/>
         <tipo usuarioCode="alumnodoscentros@mislata.es" centroCode="46019660" tipoCode="ALUMNO"/>
         <tipo usuarioCode="alumnodoscentros@mislata.es" centroCode="03012165" tipoCode="ALUMNO"/>
+
+
+        <tipo usuarioCode="administrativo3@mislata.es"  centroCode="03012165" tipoCode="ADMINISTRATIVO"/>
+        <tipo usuarioCode="administrativo3@mislata.es"  centroCode="03012165" tipoCode="ALUMNO"/>
+        <tipo usuarioCode="administrativo3@mislata.es"  centroCode="03012165" tipoCode="FAMILIAR"/>
 
     </tipos>
 

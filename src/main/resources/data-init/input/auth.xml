@@ -190,6 +190,7 @@
     <permission name="FormacionCentroTrabajo.all"/>
     <permission name="SearchExpedientes.all"/>
     <permission name="NuevoExpediente.all"/>
+    <permission name="AsistenteNuevoExpediente.all"/>
     <permission name="TareaFirma.all"/>
     <permission name="DocumentoFirma.all"/>
     <permission name="PdfUtilities.all"/>
@@ -250,6 +251,7 @@
     <permission name="FormacionCentroTrabajo.all"/>
     <permission name="SearchExpedientes.all"/>
     <permission name="NuevoExpediente.all"/>
+    <permission name="AsistenteNuevoExpediente.all"/>
     <permission name="TareaFirma.firmante"/>
     <permission name="DocumentoFirma.propio"/>
     <permission name="RegistroEntrada.all"/>

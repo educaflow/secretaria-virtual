@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+    <action-view name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-action"
+                 title="Nuevo expediente: elija el centro"
+                 model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <view type="form" name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="show-confirm" value="false"/>
+    </action-view>
+
+    <form name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-form"
+          title="Nuevo expediente: elija el centro"
+          model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente"
+          onNew="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-onNew-action"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+
+        <panel name="estadoPanel" title="" colSpan="12" showFrame="false">
+            <field name="centro" hidden="true"/>
+            <field name="hayQueElegirCentro" hidden="true"/>
+        </panel>
+
+        <panel name="centrosPanel" title="" colSpan="12" showFrame="false" showIf="hayQueElegirCentro">
+            <panel-related name="centrosDisponibles" field="centrosDisponibles" title=""
+                           grid-view="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente.Centro-grid"
+                           colSpan="12" showFooter="false" canNew="false" canEdit="false" canRemove="false"
+                           forceEdit="true"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false" showIf="hayQueElegirCentro">
+            <button name="btnCancelar" title="Cancelar" colSpan="2" colOffset="10" outline="true"
+                    onClick="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-btnCancelar-action"/>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+    <action-group name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-btnCancelar-action">
+        <action name="close"/>
+    </action-group>
+
+    <action-group name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-onNew-action">
+        <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-Remote-prepararCentros-action"/>
+        <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-Local-avisoSinCentros-action"
+                if="centrosDisponibles.isEmpty()"/>
+        <action name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-action" if="centro != null"/>
+        <action name="close" if="!hayQueElegirCentro"/>
+    </action-group>
+
+    <?sv-validations?>
+    <action-validate name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-Local-avisoSinCentros-action">
+        <info message="No puede crear expedientes en ninguno de sus centros"/>
+    </action-validate>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+    <action-method name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-Remote-prepararCentros-action"
+                   model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <call class="com.educaflow.system.ventanilla.controller.AsistenteNuevoExpedienteController"
+              method="prepararCentros"/>
+    </action-method>
+
+
+    <?sv-view?>
+    <grid name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente.Centro-grid"
+          model="com.educaflow.subsystem.common.db.Centro"
+          title="" orderBy="name" allowSearchFields="false" canAdvanceSearch="false" canRefresh="false"
+          action="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente.Centro-onClick-action"
+          editable="false" edit-icon="false" x-selector="none"
+          canNew="false" canEdit="false" canDelete="false" canSave="false">
+        <field name="name" title="Centro"/>
+    </grid>
+
+    <?sv-primary-actions?>
+    <action-group name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente.Centro-onClick-action">
+        <action name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-action"/>
+        <action name="close"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+</object-views>

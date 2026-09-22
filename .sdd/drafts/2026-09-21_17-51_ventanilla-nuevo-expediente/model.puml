@@ -1,0 +1,12 @@
+@startuml
+
+class AsistenteNuevoExpediente {
+  + centro
+  + trámite
+  + nombre del trámite
+  + ayuda del trámite
+  + cómo se presenta
+  + para quién es
+}
+
+@enduml

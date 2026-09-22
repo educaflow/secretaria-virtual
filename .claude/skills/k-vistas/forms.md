@@ -38,7 +38,7 @@ IMPORTANTE:
  - **El cierre tras `save` es OBLIGATORIO** aunque el form lleve `canBackOnSave="true"`: si el usuario pulsa Guardar sin cambiar nada, `save` es un no-op y `canBackOnSave` NO cierra la ventana; el cierre explícito la cierra siempre.
  - **Ese cierre MUST ser `force-back`, nunca `back`.** `back` pregunta «Current changes will be lost. Do you really want to proceed?» cuando la vista está marcada como *dirty*, y tras un `save` correcto ese flag todavía no está limpio: el registro ya se ha guardado y aun así el usuario ve el diálogo. `force-back` cierra sin preguntar, que es lo correcto cuando se acaba de guardar. `back` se reserva para el `btnCancel`, donde preguntar sí tiene sentido porque hay cambios que de verdad se van a perder.
  - **CRITICAL — `back`/`force-back` son SOLO del form principal.** En el form **modal** de un detalle no interviene ninguno de los dos: el `btnSave` cierra con `save-modal` y el `btnCancel` con `close` (§"Form modal"). Antes de elegir el cierre, mira de qué form se trata.
-   - ✅ CORRECTO (principal): `btnSave` = `remote-validationSave-action` → `save` → `force-back`; `btnCancel` = `back`
+   - ✅ CORRECTO (principal): `btnSave` = `remote-validationSave-action` → `save` → `force-back`; `btnCancel` = `back`, o `close` **solo** si el form principal no lleva `btnSave` **y** su `action-view` no declara ninguna `<view type="grid">` (un asistente: ni cambios que perder ni `grid` al que volver)
    - ✅ CORRECTO (modal): `btnSave` = [`Local-validateSave-action`] → `save-modal`; `btnCancel` = `close`
    - ❌ INCORRECTO (principal): `btnSave` = `remote-validationSave-action` → `save` → `back` (saca el diálogo de cambios perdidos sobre un registro ya guardado)
    - ❌ INCORRECTO (principal): `btnCancel` = `force-back` (se lleva por delante los cambios sin avisar)
@@ -101,7 +101,7 @@ Los action-groups de los botones del form modal usan acciones específicas del f
 | Campo padre            | no existe      | `showIf="false"`                          |
 | `<action-view>` propio | sí             | no (lo abre el `panel-related` del padre) |
 | Botón Borrar acción    | `delete`       | `delete-modal`                            |
-| Botón Cancelar acción  | `back`         | `close`                                   |
+| Botón Cancelar acción  | `back` (o `close` **solo** si el form principal no persiste —sin `btnSave`— **y** su `action-view` no declara ninguna `<view type="grid">`: un asistente, que tampoco tiene `grid` al que volver) | `close`                                   |
 | Botón Guardar acción   | `save` → `force-back` | `save-modal`                       |
 | Validación remota (`remote-validation*`) | sí, antes de `save`/`delete` | **no** (el maestro puede no existir en BD) |
 | Validación cliente (`Local-validate*`)   | opcional (solo UX)           | **MUST, lo más completa posible** (única validación antes de cerrar el modal) |
