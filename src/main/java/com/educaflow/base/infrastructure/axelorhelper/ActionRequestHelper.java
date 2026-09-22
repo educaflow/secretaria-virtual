@@ -2,13 +2,20 @@ package com.educaflow.base.infrastructure.axelorhelper;
 
 import com.axelor.db.Model;
 import com.axelor.db.JpaRepository;
+import com.axelor.db.mapper.Mapper;
 import com.axelor.rpc.ActionRequest;
+import com.axelor.rpc.Context;
 import com.educaflow.base.infrastructure.mapper.BeanMapperModel;
 import com.axelor.db.modelservice.AllowProperties;
 import com.educaflow.base.util.Convert;
 import com.educaflow.base.util.TextUtil;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class ActionRequestHelper<T extends Model> {
     private final ActionRequest request;
@@ -40,7 +47,65 @@ public class ActionRequestHelper<T extends Model> {
         if (requestcontext == null) {
             throw new RuntimeException("requestcontext es null");
         }
-        return requestcontext;
+
+        Context context = request.getContext();
+
+        if (context == null) {
+            return new HashMap<>(requestcontext);
+        }
+
+        // El mapa crudo es el JSON tal cual lo envió el cliente; lo que han escrito las acciones anteriores del mismo
+        // action-group solo está en el Context (ahí lo vuelca ActionGroup.evaluate), por eso se superpone encima
+        // recorriendo su entrySet(), que devuelve el valor guardado y no el bean del proxy que daría su get(nombre).
+        Map<String, Object> requestData = new HashMap<>(requestcontext);
+        requestData.putAll(getContextData(context));
+
+        return requestData;
+    }
+
+    private Map<String, Object> getContextData(Context context) {
+        Map<String, Object> contextData = new HashMap<>();
+        Mapper mapper = Mapper.of(context.getContextClass());
+
+        // El Context tambien lleva las variables <context> de un action-view y proxies sin id: lo que no es propiedad de la entidad se omite para que no dispare el fail-fast de toRequestValue.
+        for (Map.Entry<String, Object> entry : context.entrySet()) {
+            if (mapper.getProperty(entry.getKey()) == null) {
+                continue;
+            }
+            contextData.put(entry.getKey(), toRequestValue(entry.getKey(), entry.getValue()));
+        }
+
+        return contextData;
+    }
+
+    private Object toRequestValue(String key, Object value) {
+        if (value instanceof Model model) {
+            // Un Model llega aquí solo si una acción anterior del mismo action-group lo dejó en el Context con
+            // context.put(...) (ActionGroup.evaluate); si esa entidad es nueva y aún no tiene id no hay forma de
+            // representarla como {"id": ...}. Hoy ningún action-group del proyecto asigna una entidad sin guardar a
+            // un campo relacional antes de llegar aquí, así que esto no debería saltar; si empieza a saltar, es que
+            // se ha introducido ese patrón y hay que guardar la entidad antes o rediseñar la cadena de acciones.
+            if (model.getId() == null) {
+                throw new RuntimeException("No se puede representar como dato de la petición el valor del campo '" + key + "': es un " + model.getClass().getName() + " sin id");
+            }
+            return Map.of("id", model.getId());
+        }
+
+        if (value instanceof Collection<?> collection) {
+            return toRequestCollection(key, collection);
+        }
+
+        return value;
+    }
+
+    private Collection<Object> toRequestCollection(String key, Collection<?> collection) {
+        Collection<Object> requestCollection = (collection instanceof Set) ? new LinkedHashSet<>() : new ArrayList<>();
+
+        for (Object element : collection) {
+            requestCollection.add(toRequestValue(key, element));
+        }
+
+        return requestCollection;
     }
 
     public Long getId() {
