@@ -459,7 +459,7 @@ action-record subsysSistemaEducativo.Main@Ciclo.Curso-set-ciclo-parent-action
   | `action` de un `<menuitem>`                        | `<action-view>` |
   | `action` de un `<panel-dashlet>`                   | `<action-view>` |
   | `action` de un `<grid>`                            | cualquier acción declarada |
-  | eventos `on*`/`onClick` de `form`/`field`/`button` | `<action-group>` (ver nota `serial:`) |
+  | eventos `on*`/`onClick` de `form`/`field`/`button`/`panel`/`panel-related`/`node` | `<action-group>` (ver nota `serial:`) |
   | `<action name="…">` dentro de un `action-group`    | cualquier acción declarada o global/predefinida |
   | `<dataset type="rpc">…</dataset>` de un `<chart>`  | `<action-method>` |
   | `expr="action:{name}"` de un `<field>`             | acción declarada (normalmente `<action-method>`) |
