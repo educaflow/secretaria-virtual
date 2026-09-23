@@ -65,4 +65,4 @@ El justificante es un **PDF pequeño** (menos de 1 MB), llamado `justificante.pd
 
 - **Given** el profesor `director@mislata.es` (contraseña `demo1234`) ha iniciado sesión, ha creado un expediente nuevo de «Justificación de falta del profesorado» y lo tiene abierto en `RECEPCION` / `ENTRADA_DATOS`.
 - **When** elige el tipo de jornada faltada «Unas horas de un único día», rellena «Fecha» con 10/09/2026, «Hora de inicio» con 11:00, «Hora de fin» con 09:00 y «Motivo falta» con «Enfermedad común», adjunta `justificante.pdf` y pulsa «Siguiente».
-- **Then** el sistema muestra el error «La hora de fin debe ser posterior a la hora de inicio» y el expediente **sigue** en `RECEPCION` / `ENTRADA_DATOS`.
+- **Then** el sistema muestra el error «El valor debe ser mayor que…» y el expediente **sigue** en `RECEPCION` / `ENTRADA_DATOS`.

@@ -65,4 +65,4 @@ El justificante es un **PDF pequeño** (menos de 1 MB), llamado `justificante.pd
 
 - **Given** el profesor `director@mislata.es` (contraseña `demo1234`) ha iniciado sesión, ha creado un expediente nuevo de «Justificación de falta del profesorado» y lo tiene abierto en `RECEPCION` / `ENTRADA_DATOS`.
 - **When** elige el tipo de jornada faltada «Un día completo», rellena «Fecha» con 01/01/2030, «Motivo falta» con «Enfermedad común», adjunta `justificante.pdf` y pulsa «Siguiente».
-- **Then** el sistema muestra el error «La fecha no puede ser posterior a hoy» y el expediente **sigue** en `RECEPCION` / `ENTRADA_DATOS`.
+- **Then** el sistema muestra el error «La fecha debe ser hoy o en el pasado» y el expediente **sigue** en `RECEPCION` / `ENTRADA_DATOS`.

@@ -65,5 +65,5 @@ El justificante es un **PDF pequeño** (menos de 1 MB), llamado `justificante.pd
 
 - **Given** el profesor `director@mislata.es` (contraseña `demo1234`) ha iniciado sesión, ha creado un expediente nuevo de «Justificación de falta del profesorado» y lo tiene abierto en `RECEPCION` / `ENTRADA_DATOS`.
 - **When** sin elegir ningún tipo de jornada faltada, rellena «Motivo falta» con «Traslado de domicilio», adjunta `justificante.pdf` y pulsa «Siguiente».
-- **Then** el sistema muestra el error «Debe indicar el tipo de jornada faltada» y el expediente **sigue** en `RECEPCION` / `ENTRADA_DATOS`.
+- **Then** el sistema muestra el error «Es requerido» y el expediente **sigue** en `RECEPCION` / `ENTRADA_DATOS`.
 - **And** mientras no hay tipo de jornada faltada elegido, el panel «Datos de la falta» muestra el campo «Fecha de Inicio», vacío y marcado como obligatorio, y **no** muestra «Fecha de fin», ni «Hora de inicio», ni «Hora de fin».

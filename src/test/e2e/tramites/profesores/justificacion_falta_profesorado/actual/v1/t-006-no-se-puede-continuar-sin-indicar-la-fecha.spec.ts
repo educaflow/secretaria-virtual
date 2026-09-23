@@ -124,7 +124,7 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       // When (cont.): … y pulsa «Siguiente» (evento GUARDAR_DATOS, botón del footer).
       await page.getByTestId(FOOTER).getByRole('button', { name: 'Siguiente' }).click();
 
-      // Then: el sistema muestra el error «Debe indicar la fecha» …
+      // Then: el sistema muestra el error «Es requerido» …
       // Los mensajes de validación salen en el recuadro rojo del footer (`role="alert"`),
       // como una lista con el título del campo en negrita delante del mensaje. El título que
       // pinta en negrita es el del campo del dominio («Fecha de Inicio»), no el que la vista
@@ -132,7 +132,7 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       const recuadroErrores = page.getByTestId(FOOTER).getByRole('alert');
       await expect(recuadroErrores).toBeVisible();
       await expect(
-        recuadroErrores.getByRole('listitem').filter({ hasText: /Debe indicar la fecha/ }),
+        recuadroErrores.getByRole('listitem').filter({ hasText: /Fecha de Inicio.*Es requerido/ }),
       ).toBeVisible();
       await expect(recuadroErrores).toContainText(/Fecha de Inicio/);
 

@@ -129,7 +129,7 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       // When (cont.): … y pulsa «Siguiente» (evento GUARDAR_DATOS, botón del footer).
       await page.getByTestId(FOOTER).getByRole('button', { name: 'Siguiente' }).click();
 
-      // Then: el sistema muestra el error «La fecha de fin debe ser posterior a la fecha de inicio» …
+      // Then: el sistema muestra el error «El valor debe ser mayor que…» …
       // Los mensajes de validación salen en el recuadro rojo del footer (`role="alert"`),
       // como una lista con el título del campo en negrita delante del mensaje. La regla cuelga
       // del campo `fechaFin` del dominio, así que el título que pinta en negrita es «Fecha de fin».
@@ -138,7 +138,7 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       await expect(
         recuadroErrores
           .getByRole('listitem')
-          .filter({ hasText: /La fecha de fin debe ser posterior a la fecha de inicio/ }),
+          .filter({ hasText: /Fecha de fin.*El valor debe ser mayor que/ }),
       ).toBeVisible();
       await expect(recuadroErrores).toContainText(/Fecha de fin/);
 

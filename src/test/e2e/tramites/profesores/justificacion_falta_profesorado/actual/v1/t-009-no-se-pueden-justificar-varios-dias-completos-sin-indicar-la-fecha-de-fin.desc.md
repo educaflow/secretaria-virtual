@@ -65,4 +65,4 @@ El justificante es un **PDF pequeño** (menos de 1 MB), llamado `justificante.pd
 
 - **Given** el profesor `director@mislata.es` (contraseña `demo1234`) ha iniciado sesión, ha creado un expediente nuevo de «Justificación de falta del profesorado» y lo tiene abierto en `RECEPCION` / `ENTRADA_DATOS`.
 - **When** elige el tipo de jornada faltada «Varios días (todos ellos completos)», rellena «Fecha de Inicio» con 10/09/2026, deja «Fecha de fin» vacía, rellena «Motivo falta» con «Enfermedad común», adjunta `justificante.pdf` y pulsa «Siguiente».
-- **Then** el sistema muestra el error «Debe indicar la fecha de fin» y el expediente **sigue** en `RECEPCION` / `ENTRADA_DATOS`.
+- **Then** el sistema muestra el error «Es requerido» y el expediente **sigue** en `RECEPCION` / `ENTRADA_DATOS`.

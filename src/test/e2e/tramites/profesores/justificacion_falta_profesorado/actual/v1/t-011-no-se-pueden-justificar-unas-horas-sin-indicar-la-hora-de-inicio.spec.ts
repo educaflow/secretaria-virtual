@@ -133,7 +133,7 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       // When (cont.): … y pulsa «Siguiente» (evento GUARDAR_DATOS, botón del footer).
       await page.getByTestId(FOOTER).getByRole('button', { name: 'Siguiente' }).click();
 
-      // Then: el sistema muestra el error «Debe indicar la hora de inicio» …
+      // Then: el sistema muestra el error «Es requerido» …
       // Los mensajes de validación salen en el recuadro rojo del footer (`role="alert"`),
       // como una lista con el título del campo en negrita delante del mensaje. La regla cuelga
       // del campo `horaInicio` del dominio, así que el título que pinta en negrita es
@@ -141,7 +141,7 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       const recuadroErrores = page.getByTestId(FOOTER).getByRole('alert');
       await expect(recuadroErrores).toBeVisible();
       await expect(
-        recuadroErrores.getByRole('listitem').filter({ hasText: /Debe indicar la hora de inicio/ }),
+        recuadroErrores.getByRole('listitem').filter({ hasText: /Hora de inicio.*Es requerido/ }),
       ).toBeVisible();
       await expect(recuadroErrores).toContainText(/Hora de inicio/);
 

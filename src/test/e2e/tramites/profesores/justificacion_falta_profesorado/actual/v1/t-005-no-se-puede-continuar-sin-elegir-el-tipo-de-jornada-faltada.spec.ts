@@ -118,13 +118,13 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       // When (cont.): … y pulsa «Siguiente» (evento GUARDAR_DATOS, botón del footer).
       await page.getByTestId(FOOTER).getByRole('button', { name: 'Siguiente' }).click();
 
-      // Then: el sistema muestra el error «Debe indicar el tipo de jornada faltada» …
+      // Then: el sistema muestra el error «Es requerido» …
       // Los mensajes de validación salen en el recuadro rojo del footer (`role="alert"`),
       // como una lista con el título del campo en negrita delante del mensaje.
       const recuadroErrores = page.getByTestId(FOOTER).getByRole('alert');
       await expect(recuadroErrores).toBeVisible();
       await expect(
-        recuadroErrores.getByRole('listitem').filter({ hasText: /Debe indicar el tipo de jornada faltada/ }),
+        recuadroErrores.getByRole('listitem').filter({ hasText: /Tipo de jornada faltada.*Es requerido/ }),
       ).toBeVisible();
       await expect(recuadroErrores).toContainText(/Tipo de jornada faltada/);
 
