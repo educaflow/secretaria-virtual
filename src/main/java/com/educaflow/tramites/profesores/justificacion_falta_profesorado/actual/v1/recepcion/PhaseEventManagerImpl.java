@@ -13,6 +13,7 @@ import com.educaflow.subsystem.expedientes.db.repo.JustificacionFaltaProfesorado
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.subsystem.firmas.service.TareaFirmaInsertDTO;
 import com.educaflow.subsystem.firmas.service.TareaFirmaService;
+import com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.JustificacionFaltaProfesoradoV1Util;
 import com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.States;
 
 import com.educaflow.subsystem.criptografia.service.SituacionFirma;
@@ -66,6 +67,16 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
     }
     @WhenEvent
     public void triggerGuardarDatos(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, JustificacionFaltaProfesoradoV1 original, EventContext eventContext) throws BusinessException {
+        if (JustificacionFaltaProfesoradoV1Util.necesitaFechaFin(justificacionFaltaProfesorado) == false) {
+            justificacionFaltaProfesorado.setFechaFin(null);
+        }
+        if (JustificacionFaltaProfesoradoV1Util.necesitaHoraInicio(justificacionFaltaProfesorado) == false) {
+            justificacionFaltaProfesorado.setHoraInicio(null);
+        }
+        if (JustificacionFaltaProfesoradoV1Util.necesitaHoraFin(justificacionFaltaProfesorado) == false) {
+            justificacionFaltaProfesorado.setHoraFin(null);
+        }
+
         DocumentoPdf solicitudPdf = justificacionFaltaProfesorado.getDocumentoPdf(JustificacionFaltaProfesoradoV1.TipoDocumentoPdf.SOLICITUD);
         MetaFile pdfSolicitud = MetaFileHelper.createMetaFile(solicitudPdf);
         justificacionFaltaProfesorado.setPdfSolicitud(pdfSolicitud);

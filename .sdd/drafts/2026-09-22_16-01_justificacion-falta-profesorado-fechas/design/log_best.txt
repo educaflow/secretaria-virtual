@@ -1,0 +1,134 @@
+### Comparación 1: design_1 vs design_2 → gana design_2
+=== VENTAJAS design_1 ===
+- Delta mínimo y bien acotado: 7 ficheros. Demuestra con la tabla «Quién consume estos dos paneles» que, al vivir los paneles en el form plantilla e incluirse por nombre, las 6 pantallas recogen el cambio sin tocar `recepcion/views.xml` ni `tramitacion/views.xml` — lo verifiqué contra el árbol real y es cierto.
+- Cubre RUI-ENTRADA_DATOS-CREADOR-005…009 (marca visual de obligatorio) poniendo `required="true"` en los campos de cada panel anidado, usando la visibilidad del panel como condición: una sola condición por caso resuelve mostrar+titular+exigir.
+- Usa el catálogo de reglas donde la semántica ya existe (`Required`, `PastOrToday`, `GreaterThan`) y reserva `Lambda` para lo único que el catálogo no expresa (VAL-003, «últimos 12 meses»), que es exactamente lo que `k-tipo-expediente/validator.md` §3.1 prescribe: 4 métodos en `<Code>Util` frente a 14.
+- Un `switch` exhaustivo **sin `default`** sobre el enum en los tres predicados: añadir un quinto tipo de jornada rompe la compilación en el único sitio donde hay que decidir. Evita el olor «ramas que no cubren todos los casos».
+- El `RECEPCION`/`ENTRADA_DATOS` editable queda con cuatro paneles de una sola condición de igualdad cada uno, sin `showIf` por campo y sin ninguna acción de cliente: la clasificación en la vista es una lista plana, no una expresión compuesta.
+
+=== DEFECTOS design_1 ===
+- **Contradice la especificación en los mensajes (fallo de cumplimiento, nivel 1).** `estados.md` fija el texto de cada `VAL-` y ESC-005, 006, 007, 009, 010, 011, 012 y 013 lo dan por observable («El sistema muestra «Debe indicar la fecha»»). D3 decide que esos textos son «la intención, no la cadena literal» y se queda con los genéricos del catálogo («Es requerido», «El valor debe ser mayor que …», «La fecha debe ser hoy o en el pasado»). Verifiqué `RequiredRules.kt`, `DateTimeRules.kt` y `ComparableRules.kt`: los mensajes están quemados, así que esos ocho escenarios **no se pueden cumplir** con este diseño.
+- Agravante: reescribe la evidencia en vez del diseño — su `test-e2e-desc.md` (líneas 139, 156, 158, 174, 225, 243, 260, 277) afirma los mensajes genéricos en lugar de los de la spec, de modo que los tests de aguas abajo quedarían verdes contra un comportamiento que la spec no pidió.
+- Descarta RUI-ENTRADA_DATOS-CREADOR-010/011/012 (limpiar en pantalla al cambiar de tipo) y las declara «cubiertas por RN-001». No lo están: RN-001 actúa al guardar, en el servidor; lo que la spec pide es el efecto en el navegador al cambiar el desplegable. Es justo la pieza cuya ausencia le permite no tocar `recepcion/views.xml`.
+- Duplica la clasificación de 4 valores dentro del propio cliente: los mismos cuatro `showIf` y los mismos cuatro títulos aparecen en `datos-falta` y otra vez en el gemelo `datos-falta-view` (8 en total). Tras su propia reestructuración los dos paneles son estructuralmente idénticos, así que el gemelo deja de estar justificado por «la lectura pide otro layout» (`vistas.md` §2.4 y su checklist §8: «MUST NOT declararse un gemelo `-view` si el prefijo `-` basta»).
+- `fechaInicioEnLosUltimos12Meses` devuelve `true` cuando `fechaInicio` es `null`: es el «retorno defensivo que delega» de `disenyo.md` — se apoya en que otra regla mire lo mismo antes.
+- Asume y documenta que el `required="true"` del panel compartido se cuela como asterisco en la pantalla de solo consulta de `ENTRADA_DATOS`.
+
+=== VENTAJAS design_2 ===
+- **Cumple los 14 escenarios de la spec**, incluidos los ocho cuyo `Then` es un mensaje literal: cada `VAL-` con texto fijado se implementa como `+Lambda(util::predicado, "<mensaje literal>")`, que es el mecanismo que `k-tipo-expediente/validator.md` §3.1 documenta y el único que admite mensaje propio.
+- Identifica y resuelve la decisión que design_1 no vio: su D1 plantea las tres opciones reales (catálogo tal cual / `Lambda` / parametrizar el catálogo base) y descarta la tercera **por alcance**, dejándola escrita como deuda si un segundo trámite la necesita. Es la única de las dos que se da cuenta de que la opción «catálogo» deja escenarios incomprobables.
+- Implementa RUI-010/011/012 con una `action-record` colgada del `onChange`, cuyos `if` son la **negación literal** de las expresiones de mostrar: la complementariedad se ve en el XML sin razonarla, y por eso toca `recepcion/views.xml`, que es el fichero que ese trozo del delta exige.
+- Elimina el gemelo `datos-falta-view` (D4) y deja las cuatro pantallas de `TRAMITACION` incluyendo `-datos-falta`: una sola copia de la clasificación y del título dinámico en el cliente, alineado con `vistas.md` §2.4 («prefijo `-` PREFERENTE») y con el checklist §8.
+- Resuelve el título dinámico como **estructura** (dos paneles anidados complementarios) y no con `action-attrs`+`onLoad`, evitando tener que acordarse del `onLoad` en los seis formularios; su D3 compara las tres alternativas con ese coste explícito.
+- Declara sin adornos los efectos incómodos de sus decisiones (doble mensaje cuando falta un operando, la Resolución que también cambia, el `if` del `action-record` que nada del build comprueba) y los manda a la verificación en runtime del paso 10.
+
+=== DEFECTOS design_2 ===
+- **Descarta RUI-ENTRADA_DATOS-CREADOR-005…009 con una justificación técnicamente falsa**: afirma que «el asterisco que el usuario ve lo pinta Axelor a partir del propio modelo/mensajes». No hay tal cosa: el modelo tiene prohibido `required="true"` y la obligatoriedad del validador es de servidor, así que esas cinco reglas de pantalla quedan sin implementar y sin marca visible.
+- Condición duplicada y en parte **muerta** en la vista: `horaInicio` se declara en los dos paneles anidados con el mismo `showIf="… 'UNAS_HORAS_UN_DIA' || … 'VARIOS_DIAS_PRIMERO_PARCIAL'"`, cuando en el panel de «día único» el segundo valor es imposible y en el de «varios días» lo es el primero. La clasificación acaba escrita cuatro veces en el cliente (2 condiciones de panel + 3 `showIf` de campo + 3 `if` negados de la acción).
+- Reinventa el catálogo: diez predicados que solo hacen `!= null` o comparan dos campos reimplementan `Required`, `PastOrToday` y `GreaterThan` dentro del trámite (14 métodos estáticos). Está forzado por el requisito de mensaje literal y lo declara, pero es un coste real de simplicidad.
+- Ampliación de alcance en `tramitacion/views.xml`: al borrar el gemelo, las cuatro pantallas de solo consulta cambian de presentación (pasan a pintar `tipoJornadaFalta` y `motivoFalta` como `SwitchSelect` en readonly y cambian los `colSpan` del motivo), en pantallas cuyo resto la spec declara intacto.
+- Acoplamiento entre ficheros que su propia D3 usó como argumento para descartar la alternativa A: el `onChange` vive en el panel del `views.xml` de la **raíz**, mientras la `action-record` se declara en `recepcion/views.xml`, y ese panel lo incluyen ahora también los formularios de `TRAMITACION` — copiar una fase ya no se lleva todo lo suyo (`vistas.md` §3.6).
+- Los predicados de comparación devuelven `false` cuando les falta un operando, así que un campo vacío puede mostrar dos mensajes a la vez; asumido a propósito, pero es ruido para el usuario que la spec no pide.
+
+=== JUSTIFICACION design_1 vs design_2 ===
+El nivel 1 decide antes que el nivel 2, y ahí la diferencia es grande: design_1 deja ocho escenarios de la spec (ESC-005, 006, 007, 009, 010, 011, 012, 013) sin poder cumplirse, porque elige reglas del catálogo cuyos mensajes están quemados en `RequiredRules.kt`/`DateTimeRules.kt`/`ComparableRules.kt`, reinterpreta los textos que `estados.md` fija como «intención» y llega a reescribir su `test-e2e-desc.md` para afirmar el mensaje genérico en vez del de la especificación; design_2 los cumple los catorce. A eso design_1 suma RUI-010/011/012 declaradas «cubiertas por RN-001», que no lo están (RN-001 es servidor y al guardar, la RUI es navegador y al cambiar el desplegable) — y es precisamente esa renuncia la que le permite no tocar `fases/recepcion/views.xml`: su delta más pequeño lo es porque cubre menos, no porque resuelva lo mismo con menos piezas. design_2 deja fuera cinco RUI (la marca visual de obligatorio) con una razón además equivocada, pero son reglas de adorno frente a ocho escenarios de aceptación. En la prueba del segundo desarrollador design_1 obliga a recordar algo caro y silencioso —«en este trámite los mensajes de la spec no son los que se ven, y hay una tabla de equivalencias»— más los cuatro `showIf` y los cuatro títulos duplicados en el gemelo `datos-falta-view`, que tras su reestructuración ya no está justificado por `vistas.md` §2.4; design_2 obliga a recordar una regla uniforme y mecánica («si la spec fija el texto, `Lambda(util::predicado, "mensaje")`») más que la limpieza de cliente vive negada en la acción de `recepcion`, y deja un único panel de datos de la falta. Gana design_2 por cumplimiento, y sus defectos reales —los `showIf` duplicados con ramas muertas, los diez predicados que reimplementan el catálogo y el `required` ausente— son corregibles sin rehacer el diseño, mientras que el de design_1 obliga a cambiar la decisión estructural de qué reglas usa el validador.
+
+### Comparación 2: design_2 vs design_3 → gana design_3
+=== VENTAJAS design_2 ===
+- Mantiene el idioma del propio fichero para el PDF: las cuatro `<check>` usan `${self.fechaInicio;1.5}` / `${self.horaInicio;0.8}` igual que el `_template.xml` as-is, sin añadir helpers ni expresiones nuevas; el delta del documento es mínimo y legible.
+- Sus predicados de comparación son totales (devuelven `false` cuando falta un operando) y lo justifica explícitamente contra el olor «el retorno defensivo que delega» de `disenyo.md`, asumiendo y documentando el coste (dos mensajes a la vez).
+- El `action-record` de RUI-010/011/012 escribe cada `if` como la negación literal de la expresión que muestra el campo, así que mostrar y limpiar son ramas complementarias por construcción.
+- `decisiones.md` identifica D6: separa la limpieza de cliente (RUI) de la de servidor (RN-001) con alternativas reales.
+- Sus dos paneles anidados llevan `name` (estilo de la casa) y el `SwitchSelect` de `tipoJornadaFalta` conserva las 12 columnas.
+
+=== DEFECTOS design_2 ===
+- Incumplimiento de la spec: descarta RUI-ENTRADA_DATOS-CREADOR-005..009 sobre una premisa falsa (que `required` no se usa en estas vistas); el árbol real la desmiente.
+- Clasificación duplicada con ramas muertas en la vista: `horaInicio` lleva cláusulas `showIf` inalcanzables en ambos paneles.
+- Supuesto sin base en el PDF sobre el formato de `LocalDate`, contradicho por el precedente del árbol.
+- Hueco de cobertura E2E: sus 16 tests no tocan `TRAMITACION`/`RECHAZADO`, cuya pantalla el delta sí modifica.
+- El reparto de la pantalla en dos paneles hace que el panel signifique dos cosas a la vez.
+
+=== VENTAJAS design_3 ===
+- Cubre las reglas de pantalla completas sin una sola acción: un panel `showIf` por cada uno de los cuatro modos, con sus propios campos, título y `required` estático; sin ninguna condición inalcanzable.
+- Es la solución que `k-vistas/forms.md` declara MUST para campos exclusivos según otro campo.
+- La clasificación tiene una tabla-contrato explícita (§4.3) con sus dos implementaciones declaradas.
+- Cobertura E2E superior: 18 tests que incluyen ACEPTADO y RECHAZADO y sus pantallas de solo consulta.
+- `decisiones.md` apoya D1 en un precedente real del árbol.
+- El formateo del periodo en el PDF es determinista y trata a propósito el caso del campo que no aplica.
+
+=== DEFECTOS design_3 ===
+- `JustificacionFaltaProfesoradoV1Util` acumula tres responsabilidades: clasificación, validación y dos funciones de presentación que solo usa el PDF (SRP).
+- Expresiones del documento ilegibles: cada `<check>` repite el FQCN completo hasta tres veces, líneas de ~300 caracteres.
+- Sus cuatro paneles anidados no llevan `name`, a diferencia del estilo del árbol.
+- `fechaInicio` se declara cuatro veces en el mismo form y `horaInicio` dos.
+- Los predicados de comparación devuelven `true` cuando falta un operando (mismo olor «retorno defensivo que delega» que design_2 evitó).
+
+=== JUSTIFICACION design_2 vs design_3 ===
+El nivel 1 decide: design_2 deja fuera cinco reglas de la especificación (RUI-ENTRADA_DATOS-CREADOR-005..009) apoyándose en una afirmación que su propio `fases/recepcion/views.xml` y el trámite hermano desmienten, y además no prueba la pantalla de RECHAZADO, que su delta modifica; design_3 cubre las dos cosas. En el nivel 2 la diferencia decisiva es dónde vive la condición de la pantalla: design_3 la pone en el panel (una igualdad por modo, como `k-vistas/forms.md` exige para grupos exclusivos), mientras design_2 la reparte en `showIf` por campo con cláusulas inalcanzables. Prueba del segundo desarrollador: en design_3 «un tipo de jornada nuevo = una fila en la tabla, un panel y una rama en Util»; en design_2 hay que recordar que cinco reglas RUI están descartadas a propósito. design_2 gana en el PDF sin helpers y en predicados totales, pero no compensa la cobertura de spec perdida. Gana design_3.
+
+### Comparación 3: design_3 vs design_4 → gana design_3
+=== VENTAJAS design_3 ===
+- Cumple los mensajes literales que `estados.md` fija para las diez `VAL-`, verificados verbatim en `test-e2e-desc.md` (T-005…T-013).
+- Detecta y documenta que el motor compone el error como `label + mensaje`, previniendo un desajuste con el título dinámico (RUI-004).
+- Un solo dueño de la clasificación en cliente (cuatro `showIf` de igualdad, gemelo borrado) y en servidor (tabla 4.3 declarada como contrato).
+- Propaga el cambio de forma coherente en `tramitacion/views.xml` y verifica que no queda ninguna referencia al gemelo eliminado.
+- `decisiones.md` valora explícitamente el coste de tocar el catálogo compartido para una necesidad de un solo trámite.
+
+=== DEFECTOS design_3 ===
+- Dialecto de validación propio: reimplementa reglas del catálogo (`Required`, `GreaterThan`, `PastOrToday`) solo para cambiar el texto; `Util` llega a 16 métodos estáticos.
+- Funciones `fecha()`/`hora()` devuelven cadena vacía cuando el campo es null (retorno defensivo) y divergen del idioma as-is.
+- Al matar el gemelo, `required`/`SwitchSelect` viajan a pantallas de solo lectura donde RUI-005..009 no debería aplicar, y no lo documenta.
+- Maquetación: ninguna fila de los sub-paneles suma 12, sin declararlo como excepción consciente.
+- `import Pattern` muerto en el validador; `action-record` de RUI-010/011/012 mezcla idiomas positivo/negado.
+
+=== VENTAJAS design_4 ===
+- Delta mínimo: 8 ficheros, no toca `fases/tramitacion/views.xml` (herencia desde la raíz).
+- Usa el catálogo y reserva `Lambda` solo para VAL-003; `Util` queda en 3 constantes EnumSet + 5 métodos.
+- Las constantes `EnumSet` son la clasificación; la limpieza en cliente es la negación del conjunto (un valor nuevo se limpia por defecto).
+- Mejor maquetación (3 de 4 filas suman 12) con las excepciones declaradas a propósito.
+- Sección «Notas y supuestos» honesta y operativa.
+
+=== DEFECTOS design_4 ===
+- Incumple el contrato de mensajes en 8 de los 10 VAL-: los mensajes del catálogo son cadenas fijas y no se pueden sustituir por el texto de la spec.
+- Reescribe los escenarios E2E (T-006/008/009/010/011/012/013) para que encajen con el mensaje genérico, dejando 8 criterios de aceptación sin verificar.
+- Clasificación duplicada en cliente: los cuatro sub-paneles se escriben dos veces (gemelo `datos-falta-view`), 8 `showIf` a mantener a mano.
+- Cambia el texto fijo de cabecera del PDF que `documentos.md` declara sin cambios.
+- Mismo sub-panel de un solo campo (`UN_DIA_COMPLETO`), duplicado en el gemelo.
+
+=== JUSTIFICACION design_3 vs design_4 ===
+El primer criterio es el cumplimiento: `estados.md` fija el texto de cada VAL- y ocho escenarios lo comprueban como texto observable. design_3 los entrega literalmente; design_4 no puede (mensajes del catálogo son cadenas fijas) y resuelve el conflicto reescribiendo los escenarios, dejando ocho criterios de aceptación sin verificación. Contradecir el contrato descalifica aunque el resultado sea más elegante. En calidad, design_4 gana en catálogo/tamaño de Util/maquetación pero paga con la clasificación duplicada (8 showIf gemelos), justo el punto crítico de la iniciativa, mientras design_3 la reduce a un único dueño. Los defectos de design_3 son acotados y corregibles en el enriquecimiento; el de design_4 es estructural. Gana design_3.
+
+### Comparación 4: design_3 vs design_5 → gana design_3
+=== VENTAJAS design_3 ===
+- Cumple literalmente los diez mensajes que `estados.md` fija para VAL-001..010, que es lo que ESC-005..013 comprueban como texto observable.
+- Único que materializa `fases/tramitacion/views.xml` (pantallas-tramitacion.md cambia esa fase).
+- Cobertura E2E completa: T-017/T-018 prueban RESOLVER→ACEPTADO/RECHAZADO.
+- Un solo dueño de la clasificación en cada lado (servidor y cliente), con tabla §4.3 como contrato.
+- Borra el gemelo `datos-falta-view` aplicando `vistas.md` §2.4.
+- No toca ningún texto fijo del documento, como exige `documentos.md`.
+
+=== DEFECTOS design_3 ===
+- `JustificacionFaltaProfesoradoV1Util` acumula responsabilidades ajenas (clasificación + presentación fecha/hora para el PDF): violación SRP.
+- 16 métodos estáticos, 7 reimplementan el catálogo base (Required, GreaterThan, PastOrToday).
+- Retorno defensivo: predicados de comparación devuelven `true` cuando falta un operando.
+- Al borrar el gemelo, marcas `required` viajan a pantallas de solo lectura de TRAMITACION; desviación real aunque documentada.
+- El `_template.xml` repite el FQCN completo siete veces en expresiones Groovy.
+- No hay test E2E de RUI-010/011/012.
+
+=== VENTAJAS design_5 ===
+- Validador declarativo: usa el catálogo común, reserva Lambda solo para VAL-003; Util baja a 6 métodos.
+- Presentación del periodo en el PDF como una sola expresión total con excepción en caso imposible.
+- Conserva el gemelo `datos-falta-view` y no arrastra cambios cosméticos a TRAMITACION.
+- Aporta T-001 (expediente nace sin datos) y T-006 (limpieza al cambiar tipo).
+- Documenta el punto ciego de RUI-006.
+
+=== DEFECTOS design_5 ===
+- Incumple los mensajes literales de 8 de las 10 VAL-, a sabiendas, reescribiendo los Then de sus propios E2E.
+- No prueba ninguna pantalla de ACEPTADO ni RECHAZADO, pese a que el delta introduce sus RUI.
+- Clasificación duplicada en cliente: 8 paneles anidados (4 + 4 clonados en el gemelo).
+- Cambia un texto fijo del documento que `documentos.md` declara sin cambios.
+- Traslada las frases bilingües del documento a Java (SRP rota, i18n fuera de su capa) con un mecanismo de idioma inexistente en el árbol.
+
+=== JUSTIFICACION design_3 vs design_5 ===
+El nivel 1 decide: design_5 deja 8 de 14 escenarios sin cubrir tal y como los enuncia la spec y no prueba ACEPTADO/RECHAZADO; además cambia un texto fijo del documento. design_3 cubre los 14 escenarios con el texto exacto, materializa TRAMITACION y prueba las dos transiciones de cierre. En el nivel 2 design_5 gana en validador y documento pero duplica la clasificación en cliente y mete i18n en Java; design_3 deja un solo dueño a cambio de una Util inflada (defecto acotado, sin efecto observable). Gana design_3.
+

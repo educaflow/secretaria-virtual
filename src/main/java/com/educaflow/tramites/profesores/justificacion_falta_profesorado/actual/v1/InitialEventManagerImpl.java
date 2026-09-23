@@ -5,9 +5,6 @@ import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.InitialEventM
 import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 
-import java.time.LocalDate;
-import com.educaflow.base.util.Convert;
-
 
 /**
  * Rellena los datos iniciales de un expediente de JustificacionFaltaProfesoradoV1 recién creado.
@@ -26,8 +23,6 @@ public class InitialEventManagerImpl implements InitialEventManager<Justificacio
 
     @Override
     public void triggerInitialEvent(InitialEventContext<JustificacionFaltaProfesoradoV1> initialEventContext) throws BusinessException {
-        initialEventContext.getExpediente().setAnyo(LocalDate.now(Convert.defaultZoneId).getYear());
-
         initialEventContext.updateState(States.Recepcion.ENTRADA_DATOS);
     }
 

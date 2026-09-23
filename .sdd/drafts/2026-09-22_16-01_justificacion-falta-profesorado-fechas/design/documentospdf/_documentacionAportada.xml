@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fragmento xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documento.xsd">
+
+    <seccion>
+        <castellano>Documentación aportada</castellano>
+        <fila>
+            <campo nombreCampo="self.justificante.fileName" colspan="12" />
+            <campo nombreCampo='"    " + com.educaflow.base.util.MetaFileUtil.sha256(self.justificante)' colspan="12" />
+        </fila>
+    </seccion>
+
+</fragmento>
