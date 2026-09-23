@@ -47,6 +47,10 @@
         <usuario email="jefeestudios1@mislata.es"    documento="15519084H" name="JefeEstudios1 CIPFP Mislata"    nombre="JefeEstudios1"    apellidos="CIPFP Mislata" password="demo1234"/>
         <usuario email="jefeestudios2@mislata.es"    documento="38326881A" name="JefeEstudios2 CIPFP Mislata"    nombre="JefeEstudios2"    apellidos="CIPFP Mislata" password="demo1234"/>
 
+        <!-- Profesores (sin cargo) -->
+        <usuario email="profesor1@mislata.es"        documento="12345678Z" name="Profesor1 CIPFP Mislata"        nombre="Profesor1"        apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="profesor2@mislata.es"        documento="23456789D" name="Profesor2 CIPFP Mislata"        nombre="Profesor2"        apellidos="CIPFP Mislata" password="demo1234"/>
+
         <!-- Alumnos -->
         <usuario email="alumno1@mislata.es"          documento="86862719E" name="Alumno1 CIPFP Mislata"          nombre="Alumno1"          apellidos="CIPFP Mislata" password="demo1234"/>
         <usuario email="alumno2@mislata.es"          documento="03532821K" name="Alumno2 CIPFP Mislata"          nombre="Alumno2"          apellidos="CIPFP Mislata" password="demo1234"/>
@@ -101,6 +105,10 @@
         <usuario email="jefeestudios1@batoi.es"      documento="43901424J" name="JefeEstudios1 CIPFP Batoi"      nombre="JefeEstudios1"    apellidos="CIPFP Batoi" password="demo1234"/>
         <usuario email="jefeestudios2@batoi.es"      documento="16416170N" name="JefeEstudios2 CIPFP Batoi"      nombre="JefeEstudios2"    apellidos="CIPFP Batoi" password="demo1234"/>
 
+        <!-- Profesores (sin cargo) -->
+        <usuario email="profesor1@batoi.es"          documento="34567891L" name="Profesor1 CIPFP Batoi"          nombre="Profesor1"        apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="profesor2@batoi.es"          documento="45678912S" name="Profesor2 CIPFP Batoi"          nombre="Profesor2"        apellidos="CIPFP Batoi" password="demo1234"/>
+
         <!-- Alumnos -->
         <usuario email="alumno1@batoi.es"            documento="65399546N" name="Alumno1 CIPFP Batoi"            nombre="Alumno1"          apellidos="CIPFP Batoi" password="demo1234"/>
         <usuario email="alumno2@batoi.es"            documento="41092710J" name="Alumno2 CIPFP Batoi"            nombre="Alumno2"          apellidos="CIPFP Batoi" password="demo1234"/>
@@ -146,6 +154,7 @@
              ================================================================ -->
         <usuario email="alumnofamiliar@mislata.es"   documento="48213579J" name="AlumnoFamiliar CIPFP Mislata"   nombre="AlumnoFamiliar"   apellidos="CIPFP Mislata" password="demo1234"/>
         <usuario email="alumnodoscentros@mislata.es" documento="71359246K" name="AlumnoDosCentros CIPFP Mislata y Batoi" nombre="AlumnoDosCentros" apellidos="CIPFP Mislata y Batoi" password="demo1234"/>
+        <usuario email="mprofesor@m.com"             documento="56789123F" name="ProfesorDosCentros CIPFP Mislata y Batoi" nombre="ProfesorDosCentros" apellidos="CIPFP Mislata y Batoi" password="demo1234"/>
 
     </usuarios>
 
@@ -162,6 +171,8 @@
         <centroUsuario usuarioCode="vicesecretario@mislata.es"  centroCode="46019660"/>
         <centroUsuario usuarioCode="jefeestudios1@mislata.es"    centroCode="46019660"/>
         <centroUsuario usuarioCode="jefeestudios2@mislata.es"    centroCode="46019660"/>
+        <centroUsuario usuarioCode="profesor1@mislata.es"        centroCode="46019660"/>
+        <centroUsuario usuarioCode="profesor2@mislata.es"        centroCode="46019660"/>
         <centroUsuario usuarioCode="alumno1@mislata.es"          centroCode="46019660"/>
         <centroUsuario usuarioCode="alumno2@mislata.es"          centroCode="46019660"/>
         <centroUsuario usuarioCode="alumno3@mislata.es"          centroCode="46019660"/>
@@ -194,6 +205,8 @@
         <centroUsuario usuarioCode="vicesecretario@batoi.es"    centroCode="03012165"/>
         <centroUsuario usuarioCode="jefeestudios1@batoi.es"      centroCode="03012165"/>
         <centroUsuario usuarioCode="jefeestudios2@batoi.es"      centroCode="03012165"/>
+        <centroUsuario usuarioCode="profesor1@batoi.es"          centroCode="03012165"/>
+        <centroUsuario usuarioCode="profesor2@batoi.es"          centroCode="03012165"/>
         <centroUsuario usuarioCode="alumno1@batoi.es"            centroCode="03012165"/>
         <centroUsuario usuarioCode="alumno2@batoi.es"            centroCode="03012165"/>
         <centroUsuario usuarioCode="alumno3@batoi.es"            centroCode="03012165"/>
@@ -221,6 +234,9 @@
         <centroUsuario usuarioCode="alumnodoscentros@mislata.es" centroCode="46019660"/>
         <centroUsuario usuarioCode="alumnodoscentros@mislata.es" centroCode="03012165"/>
 
+        <centroUsuario usuarioCode="mprofesor@m.com"             centroCode="46019660"/>
+        <centroUsuario usuarioCode="mprofesor@m.com"             centroCode="03012165"/>
+
         <centroUsuario usuarioCode="administrativo3@mislata.es"  centroCode="03012165"/>
 
     </centroUsuarios>
@@ -238,6 +254,8 @@
         <tipo usuarioCode="vicesecretario@mislata.es"  centroCode="46019660" tipoCode="PROFESOR"/>
         <tipo usuarioCode="jefeestudios1@mislata.es"    centroCode="46019660" tipoCode="PROFESOR"/>
         <tipo usuarioCode="jefeestudios2@mislata.es"    centroCode="46019660" tipoCode="PROFESOR"/>
+        <tipo usuarioCode="profesor1@mislata.es"        centroCode="46019660" tipoCode="PROFESOR"/>
+        <tipo usuarioCode="profesor2@mislata.es"        centroCode="46019660" tipoCode="PROFESOR"/>
         <tipo usuarioCode="alumno1@mislata.es"          centroCode="46019660" tipoCode="ALUMNO"/>
         <tipo usuarioCode="alumno2@mislata.es"          centroCode="46019660" tipoCode="ALUMNO"/>
         <tipo usuarioCode="alumno3@mislata.es"          centroCode="46019660" tipoCode="ALUMNO"/>
@@ -272,6 +290,8 @@
         <tipo usuarioCode="vicesecretario@batoi.es"    centroCode="03012165" tipoCode="PROFESOR"/>
         <tipo usuarioCode="jefeestudios1@batoi.es"      centroCode="03012165" tipoCode="PROFESOR"/>
         <tipo usuarioCode="jefeestudios2@batoi.es"      centroCode="03012165" tipoCode="PROFESOR"/>
+        <tipo usuarioCode="profesor1@batoi.es"          centroCode="03012165" tipoCode="PROFESOR"/>
+        <tipo usuarioCode="profesor2@batoi.es"          centroCode="03012165" tipoCode="PROFESOR"/>
         <tipo usuarioCode="alumno1@batoi.es"            centroCode="03012165" tipoCode="ALUMNO"/>
         <tipo usuarioCode="alumno2@batoi.es"            centroCode="03012165" tipoCode="ALUMNO"/>
         <tipo usuarioCode="alumno3@batoi.es"            centroCode="03012165" tipoCode="ALUMNO"/>
@@ -300,6 +320,9 @@
         <tipo usuarioCode="alumnofamiliar@mislata.es"   centroCode="46019660" tipoCode="FAMILIAR"/>
         <tipo usuarioCode="alumnodoscentros@mislata.es" centroCode="46019660" tipoCode="ALUMNO"/>
         <tipo usuarioCode="alumnodoscentros@mislata.es" centroCode="03012165" tipoCode="ALUMNO"/>
+
+        <tipo usuarioCode="mprofesor@m.com"             centroCode="46019660" tipoCode="PROFESOR"/>
+        <tipo usuarioCode="mprofesor@m.com"             centroCode="03012165" tipoCode="PROFESOR"/>
 
 
         <tipo usuarioCode="administrativo3@mislata.es"  centroCode="03012165" tipoCode="ADMINISTRATIVO"/>
