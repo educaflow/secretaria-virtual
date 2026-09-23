@@ -10,12 +10,21 @@
 
 
 
+    <!-- Antes que TipoTramites.xml, que las referencia -->
+    <input file="UnidadesTramitadoras.xml" root="datos">
+        <bind node="unidadestramitadoras/unidadtramitadora" type="com.educaflow.subsystem.expedientes.db.UnidadTramitadora" search="self.code = :code" create="true" update="true">
+            <bind node="@code" to="code" />
+            <bind node="@name" to="name" />
+        </bind>
+    </input>
+
     <input file="TipoTramites.xml" root="datos">
 
         <bind node="tipostramites/tipotramite" type="com.educaflow.subsystem.expedientes.db.TipoTramite" search="self.code = :code" create="true" update="true">
             <bind node="@code" to="code" />
             <bind node="@name" to="name" />
             <bind node="@tipoUsuario" to="tipoUsuario" search="self.codigo = :tipoUsuario" create="false" update="false" />
+            <bind node="@unidadTramitadora" to="unidadTramitadora" search="self.code = :unidadTramitadora" create="false" update="false" />
         </bind>
 
 

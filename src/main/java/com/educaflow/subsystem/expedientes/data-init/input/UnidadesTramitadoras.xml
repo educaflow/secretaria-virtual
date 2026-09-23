@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<datos>
+    <unidadestramitadoras>
+        <unidadtramitadora code="JEFATURA_ESTUDIOS" name="Jefatura de estudios"/>
+        <unidadtramitadora code="SECRETARIA" name="Secretaría"/>
+    </unidadestramitadoras>
+</datos>
