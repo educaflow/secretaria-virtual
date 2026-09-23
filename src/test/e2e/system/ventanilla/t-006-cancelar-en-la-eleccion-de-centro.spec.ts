@@ -45,9 +45,14 @@ const PANTALLA_CONTEXTO = /^Nuevo expediente\*?$/;
 // Cancelar no debe abrir ninguna, sea del trámite que sea.
 const TITULO_EXPEDIENTE = /^\d+\/\d{4}-.+ V1\*?$/;
 
-/** Filas de datos del grid de centros (excluye la cabecera). */
+/**
+ * Filas de datos del grid de centros (excluye la cabecera). Ya no es un
+ * `panel-related field="centrosDisponibles"` (testid `field:centrosDisponibles`), sino
+ * un grid independiente embebido en un `panel-dashlet` (testid `panel:centrosPanel`),
+ * con los testids estándar de un grid embebido: sus filas siguen llevando `row:`.
+ */
 function filasDeCentros(page: Page) {
-  return page.getByTestId('field:centrosDisponibles').locator('[data-testid^="row:"]');
+  return page.getByTestId('panel:centrosPanel').locator('[data-testid^="row:"]');
 }
 
 /**

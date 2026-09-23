@@ -1,9 +1,39 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { ensureLoggedOut, login, logout } from '../../../../_support/auth';
 
 // T-001 — El alumno presenta su propia solicitud telemáticamente
 // origen: ESC —  |  CREADOR | [*] --(alta: botón «Crear expediente»)--> SOLICITUD/DATOS_SOLICITUD  |  tipo: happy
 // fuente: .sdd/drafts/2026-09-19_23-14_anulacion-matricula-arranque/test-e2e-desc/t-001-el-alumno-presenta-su-propia-solicitud-telematicamente.desc.md
+
+const TRAMITE = 'Anulación de matrícula en ciclo formativo';
+const TIPO_TRAMITE = 'Trámites para el alumno';
+// Título de la pestaña del último paso del asistente de ventanilla.
+const PANTALLA_ALTA = 'Nuevo expediente';
+
+/**
+ * Abre el asistente «Ventanilla» → «Nuevo expediente» y elige el trámite hasta llegar a su
+ * último paso, «Nuevo expediente». Cómo funciona el asistente (pantallas, testids y cuándo
+ * pregunta cada cosa) está en `system/ventanilla/views/nuevoexpediente/CLAUDE.md`.
+ * El usuario de estos tests es de un solo centro, así que el asistente se salta la elección
+ * de centro y abre directamente la de trámite.
+ */
+async function abrirAltaDelTramite(page: Page): Promise<void> {
+  // El grupo del menú se pliega al pulsarlo: solo se despliega si la entrada no se ve.
+  const entrada = page.getByTestId('item:ventanilla-nuevoExpediente-menuitem');
+  if (!(await entrada.isVisible())) {
+    await page.getByTestId('item:ventanilla-menuitem').getByTestId('title').first().click();
+  }
+  await entrada.click();
+
+  // Árbol de trámites: los tipos de trámite (nivel 1) nacen plegados y sus trámites (nivel 2)
+  // no existen en el DOM hasta desplegarlos.
+  const arbol = page.getByTestId('panel:tramitesPanel');
+  await arbol.locator('[role="row"][aria-level="1"]').filter({ hasText: TIPO_TRAMITE }).click();
+  await arbol.locator('[role="row"][aria-level="2"]').filter({ hasText: TRAMITE }).click();
+
+  await expect(page.getByRole('tab', { name: PANTALLA_ALTA, exact: true })).toBeVisible();
+}
+
 test.describe('Anulación de matrícula en ciclo formativo — SOLICITUD', () => {
   test('El alumno presenta su propia solicitud telemáticamente', async ({ page }) => {
     let numero = '';
@@ -14,51 +44,30 @@ test.describe('Anulación de matrícula en ciclo formativo — SOLICITUD', () =>
       await ensureLoggedOut(page);
       await login(page, 'alumno1@mislata.es', 'demo1234');
 
-      // When: inicia sesión, abre «Expedientes» → «Trámites», despliega «Trámites si eres alumno»
+      // When: inicia sesión, abre «Ventanilla» → «Nuevo expediente», despliega «Trámites para el alumno»
       // y pulsa sobre «Anulación de matrícula en ciclo formativo».
-      await page.getByText('Expedientes').click();
-      await page.getByText('Trámites', { exact: true }).click();
-      await page.getByRole('row', { name: 'Trámites si eres alumno' }).getByText('arrow_right').click();
-      await page
-        .getByRole('row', { name: 'Anulación de matrícula en ciclo formativo' })
-        .getByText('Anulación de matrícula en ciclo formativo')
-        .click();
+      await abrirAltaDelTramite(page);
 
-      // Then: se abre la ventana «Nuevo expediente» con la tarjeta de ayuda del trámite,
-      await expect(page.getByRole('heading', { name: 'Nuevo expediente' })).toBeVisible();
-      await expect(
-        page.getByText(/Con este trámite puedes solicitar la anulación de tu matrícula en un ciclo formativo/),
-      ).toBeVisible();
+      // Then: se abre la pantalla «Nuevo expediente» con la ayuda del trámite,
+      await expect(page.getByTestId('field:ayudaTramite')).toContainText(
+        /Con este trámite puedes solicitar la anulación de tu matrícula en un ciclo formativo/,
+      );
       // … el campo «Centro» ya relleno con «CIPFP Mislata» y de solo lectura,
-      await expect(page.getByLabel('Centro')).toHaveValue('CIPFP Mislata');
-      await expect(page.getByLabel('Centro')).toBeDisabled();
-      // … y SIN el interruptor de la forma de presentación (solo tiene el perfil CREADOR,
-      // así que no hay nada que elegir).
-      await expect(
-        page.getByText('Presentado el expediente a partir de un documento en papel'),
-      ).toHaveCount(0);
+      const campoCentro = page.getByTestId('field:centro').getByRole('textbox');
+      await expect(campoCentro).toHaveValue('CIPFP Mislata');
+      await expect(campoCentro).toBeDisabled();
+      // … SIN la pregunta «¿Cómo se presenta?» (solo tiene el perfil CREADOR, así que no hay nada
+      // que elegir) y SIN «¿Para quién es el expediente?» (es alumno y no familiar, así que el
+      // expediente solo puede ser para él mismo).
+      await expect(page.getByTestId('field:presentadoEnPapel')).toHaveCount(0);
+      await expect(page.getByTestId('field:presentadoEnRepresentacion')).toHaveCount(0);
 
-      // And: se muestra la pregunta «¿Para quién es el expediente?» con las opciones «Para mí» y
-      // «Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)», ninguna marcada.
-      await expect(page.getByText('¿Para quién es el expediente?').first()).toBeVisible();
-      const opcionParaMi = page.getByText('Para mí', { exact: true }).locator('..').getByRole('radio');
-      const opcionRepresentacion = page
-        .getByText('Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)')
-        .locator('..')
-        .getByRole('radio');
-      await expect(opcionParaMi).toBeVisible();
-      await expect(opcionRepresentacion).toBeVisible();
-      await expect(opcionParaMi).not.toBeChecked();
-      await expect(opcionRepresentacion).not.toBeChecked();
-
-      // When: marca «Para mí» y pulsa «Crear expediente».
-      await opcionParaMi.click();
-      await expect(opcionParaMi).toBeChecked();
+      // When: pulsa «Crear expediente».
       await page.getByRole('button', { name: 'Crear expediente' }).click();
 
-      // Then: se cierra la ventana y se abre el expediente en la fase SOLICITUD, estado DATOS_SOLICITUD,
+      // Then: se cierra la pantalla «Nuevo expediente» y se abre el expediente en la fase SOLICITUD, estado DATOS_SOLICITUD,
       // cuya cabecera muestra «Solicitud de anulación» y «Datos de la solicitud».
-      await expect(page.getByRole('heading', { name: 'Nuevo expediente' })).toHaveCount(0);
+      await expect(page.getByRole('tab', { name: PANTALLA_ALTA, exact: true })).toHaveCount(0);
       // Idempotencia (§5.1): el número de expediente lo asigna el servidor y es lo ÚNICO que
       // identifica a lo creado; la pestaña se titula «<número>-<nombre del tipo de expediente>».
       const pestana = page.getByRole('tab').last();
@@ -114,7 +123,7 @@ test.describe('Anulación de matrícula en ciclo formativo — SOLICITUD', () =>
       // Teardown (§5.2): el estado de llegada DATOS_SOLICITUD ofrece el evento DELETE
       // («Borrar el expediente»), así que el expediente se borra aquí. El borrado exige SESIÓN
       // ABIERTA y el perfil del estado final (CREADOR, el del único tramo), por eso va ANTES del
-      // logout. DELETE recarga la aplicación entera (refresh-app) y la deja en el árbol de trámites.
+      // logout. DELETE recarga la aplicación entera (refresh-app).
       // El `.catch(() => {})` es intencional: el teardown no debe enmascarar el fallo de una aserción.
       await page.getByRole('button', { name: 'Borrar el expediente' }).click().catch(() => {});
       await page.getByRole('button', { name: 'Aceptar' }).click().catch(() => {});

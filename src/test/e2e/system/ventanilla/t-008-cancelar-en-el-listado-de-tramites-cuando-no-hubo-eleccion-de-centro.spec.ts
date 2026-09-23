@@ -45,9 +45,15 @@ const PANTALLA_CONTEXTO = /^Nuevo expediente\*?$/;
 // Cancelar no debe abrir ninguna, sea del trámite que sea.
 const TITULO_EXPEDIENTE = /^\d+\/\d{4}-.+ V1\*?$/;
 
-/** Filas de datos del grid de trámites (excluye cabecera y filas de agrupación). */
+/**
+ * Filas de datos del árbol de trámites (excluye cabecera y filas de agrupación). El
+ * `panel-related` agrupado con testid `field:tramitesDisponibles` fue sustituido por un
+ * `<tree>` embebido en un `panel-dashlet` (commit `98755ea`): sus nodos no llevan
+ * `data-testid` propio, así que se localizan por rol ARIA de un `treegrid` —
+ * `aria-level="2"` son las filas hoja (los trámites).
+ */
 function filasDeTramites(page: Page) {
-  return page.getByTestId('field:tramitesDisponibles').locator('[data-testid^="row:"]');
+  return page.getByTestId('panel:tramitesPanel').locator('[role="row"][aria-level="2"]');
 }
 
 /**

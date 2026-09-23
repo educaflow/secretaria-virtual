@@ -175,14 +175,39 @@ async function contarExpedientesDelTramite(page: Page): Promise<number> {
   }, MODELO_EXPEDIENTE);
 }
 
-/** Filas de datos del grid de trámites (excluye cabecera y filas de agrupación). */
+/**
+ * Filas de datos del árbol de trámites (excluye cabecera y filas de agrupación). El
+ * `panel-related` agrupado con testids `field:tramitesDisponibles`/`row:`/`group-row:`
+ * fue sustituido por un `<tree>` embebido en un `panel-dashlet` (commit `98755ea`): sus
+ * nodos no llevan `data-testid` propio, así que se localizan por rol ARIA de un
+ * `treegrid` — `aria-level="2"` son las filas hoja (los trámites), `aria-level="1"` las
+ * de agrupación (el tipo de trámite).
+ */
 function filasDeTramites(page: Page): Locator {
-  return page.getByTestId('field:tramitesDisponibles').locator('[data-testid^="row:"]');
+  return page.getByTestId('panel:tramitesPanel').locator('[role="row"][aria-level="2"]');
 }
 
-/** Filas de agrupación por tipo de trámite del grid de trámites. */
+/** Filas de agrupación por tipo de trámite del árbol de trámites. */
 function gruposDeTipoTramite(page: Page): Locator {
-  return page.getByTestId('field:tramitesDisponibles').locator('[data-testid^="group-row:"]');
+  return page.getByTestId('panel:tramitesPanel').locator('[role="row"][aria-level="1"]');
+}
+
+/**
+ * Despliega todos los grupos de tipo de trámite del árbol. A diferencia del grid
+ * agrupado que sustituyó (que mostraba sus filas ya desplegadas), el `<tree>` nace con
+ * los grupos plegados (icono `arrow_right`, sin `aria-expanded`) y hay que pulsarlos
+ * para que sus filas de datos existan en el DOM.
+ */
+async function desplegarGruposDeTramites(page: Page): Promise<void> {
+  const grupos = gruposDeTipoTramite(page);
+  await grupos.first().waitFor();
+  const total = await grupos.count();
+  for (let i = 0; i < total; i++) {
+    const grupo = grupos.nth(i);
+    if ((await grupo.getAttribute('aria-expanded')) !== 'true') {
+      await grupo.click();
+    }
+  }
 }
 
 /**
@@ -284,6 +309,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // …y únicamente "Trámites para el profesor" con "Justificación de falta del
       // profesorado" y "Trámite de prueba" POR ORDEN ALFABÉTICO. `toHaveText` con un
       // array compara posición a posición: verifica contenido, número de filas y orden.
+      await desplegarGruposDeTramites(page);
       await expect(gruposDeTipoTramite(page)).toHaveCount(1);
       await expect(gruposDeTipoTramite(page).first()).toContainText(TIPO_TRAMITE_PROFESOR);
       await expect(filasDeTramites(page)).toHaveText(TRAMITES_DEL_PROFESOR);

@@ -62,19 +62,51 @@ const PANTALLA_CONTEXTO = /^Nuevo expediente\*?$/;
 // Retroceder con "Atrás" no debe abrir ninguna, sea del trámite que sea.
 const TITULO_EXPEDIENTE = /^\d+\/\d{4}-.+ V1\*?$/;
 
-/** Filas de datos del grid de centros (excluye la cabecera). */
+/**
+ * Filas de datos del grid de centros (excluye la cabecera). Ya no es un
+ * `panel-related field="centrosDisponibles"` (testid `field:centrosDisponibles`), sino
+ * un grid independiente embebido en un `panel-dashlet` (testid `panel:centrosPanel`),
+ * con los testids estándar de un grid embebido: sus filas siguen llevando `row:`.
+ */
 function filasDeCentros(page: Page) {
-  return page.getByTestId('field:centrosDisponibles').locator('[data-testid^="row:"]');
+  return page.getByTestId('panel:centrosPanel').locator('[data-testid^="row:"]');
 }
 
-/** Filas de datos del grid de trámites (excluye cabecera y filas de agrupación). */
+/**
+ * Filas de datos del árbol de trámites (excluye cabecera y filas de agrupación). El
+ * `panel-related` agrupado con testids `field:tramitesDisponibles`/`row:`/`group-row:`
+ * fue sustituido por un `<tree>` embebido en un `panel-dashlet` (commit `98755ea`): sus
+ * nodos no llevan `data-testid` propio, así que se localizan por rol ARIA de un
+ * `treegrid` — `aria-level="2"` son las filas hoja (los trámites), `aria-level="1"` las
+ * de agrupación (el tipo de trámite).
+ */
 function filasDeTramites(page: Page) {
-  return page.getByTestId('field:tramitesDisponibles').locator('[data-testid^="row:"]');
+  return page.getByTestId('panel:tramitesPanel').locator('[role="row"][aria-level="2"]');
 }
 
-/** Filas de agrupación por tipo de trámite del grid de trámites. */
+/** Filas de agrupación por tipo de trámite del árbol de trámites. */
 function gruposDeTipoTramite(page: Page) {
-  return page.getByTestId('field:tramitesDisponibles').locator('[data-testid^="group-row:"]');
+  return page.getByTestId('panel:tramitesPanel').locator('[role="row"][aria-level="1"]');
+}
+
+/**
+ * Despliega todos los grupos de tipo de trámite del árbol. A diferencia del grid
+ * agrupado que sustituyó (que mostraba sus filas ya desplegadas), el `<tree>` nace con
+ * los grupos plegados (icono `arrow_right`, sin `aria-expanded`) y hay que pulsarlos
+ * para que sus filas de datos existan en el DOM. Cada vez que la pantalla del listado
+ * de trámites se vuelve a montar (p. ej. al volver con "Atrás") el árbol nace plegado
+ * otra vez, así que hay que volver a llamar a esta función.
+ */
+async function desplegarGruposDeTramites(page: Page): Promise<void> {
+  const grupos = gruposDeTipoTramite(page);
+  await grupos.first().waitFor();
+  const total = await grupos.count();
+  for (let i = 0; i < total; i++) {
+    const grupo = grupos.nth(i);
+    if ((await grupo.getAttribute('aria-expanded')) !== 'true') {
+      await grupo.click();
+    }
+  }
 }
 
 /** Botonera del asistente: la comparten sus tres pantallas, cada una con sus botones. */
@@ -157,6 +189,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
 
       // …con únicamente "Trámites para el alumno" y, dentro, únicamente "Anulación de
       // matrícula en ciclo formativo"; no aparece "Trámites para el profesor".
+      await desplegarGruposDeTramites(page);
       await expect(gruposDeTipoTramite(page)).toHaveCount(1);
       await expect(gruposDeTipoTramite(page).first()).toContainText(TIPO_TRAMITE_ALUMNO);
       await expect(filasDeTramites(page)).toHaveText([TRAMITE]);
@@ -207,6 +240,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // Paso 9: Entonces vuelve a "Nuevo expediente: elija el trámite"…
       await expect(page.getByRole('tab', { name: PANTALLA_TRAMITE })).toBeVisible();
       await expect(page.getByTestId('panel:tramitesPanel')).toBeVisible();
+      await desplegarGruposDeTramites(page);
       await expect(filasDeTramites(page)).toHaveText([TRAMITE]);
       // …y el contexto del trámite queda cerrado (ni su pestaña ni su contenido siguen
       // ahí): se ha retrocedido de verdad, no se ha abierto una pantalla encima.

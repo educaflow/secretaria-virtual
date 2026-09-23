@@ -1,13 +1,16 @@
 import { test, expect, Page } from '@playwright/test';
 import { ensureLoggedOut, login, logout } from '../../_support/auth';
 
-// T-001 — Alumno de un solo centro crea un expediente sin que se le pregunte nada
-// origen: ESC-001  |  verifica: U-nuevo-expediente-001, U-nuevo-expediente-002, U-nuevo-expediente-003, U-nuevo-expediente-004, U-nuevo-expediente-005, U-nuevo-expediente-006, U-nuevo-expediente-008, U-nuevo-expediente-009, U-nuevo-expediente-011, U-nuevo-expediente-013, R-AsistenteNuevoExpediente-001, R-AsistenteNuevoExpediente-003, R-AsistenteNuevoExpediente-004
-// fuente: .sdd/drafts/2026-09-21_17-51_ventanilla-nuevo-expediente/test-e2e-desc/t-001-alumno-de-un-solo-centro-crea-un-expediente-sin-que-se-le-pregunte-nada.desc.md
+// T-018 — Profesor crea un expediente de un trámite que no admite representación sin
+// que se le pregunte nada
+// origen: ESC-017  |  verifica: U-nuevo-expediente-006, U-nuevo-expediente-008,
+// U-nuevo-expediente-009, U-nuevo-expediente-011, U-nuevo-expediente-013,
+// R-AsistenteNuevoExpediente-001
+// fuente: .sdd/drafts/2026-09-21_17-51_ventanilla-nuevo-expediente/test-e2e-desc/t-018-profesor-crea-un-expediente-de-un-tramite-que-no-admite-representacion-sin-que-se-le-pregunte-nada.desc.md
 
 /**
  * IDEMPOTENCIA (§4 del contrato de generación) — este test CREA un expediente, y su
- * identificador (`00016/2026`) lo asigna el servidor con un contador, así que NO se
+ * identificador (`0000N/2026`) lo asigna el servidor con un contador, así que NO se
  * puede aislar con un sufijo `Date.now()` en un nombre: no hay ningún nombre que el
  * test elija. La idempotencia se consigue de las otras dos formas:
  *   - el expediente creado se identifica por el título de SU pestaña, capturado en
@@ -15,25 +18,33 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
  *   - se BORRA en el `finally` con el botón "Borrar el expediente" que el propio
  *     estado inicial ofrece, de modo que la BD compartida queda como estaba.
  * No hace falta pre-limpieza defensiva: ninguna regla de negocio limita cuántos
- * expedientes de este trámite puede tener el alumno, así que un expediente residual
- * de un run que abortara no impide crear otro ni cambia ninguna aserción (el test no
- * cuenta expedientes, solo mira el que acaba de abrir).
+ * expedientes de "Justificación de falta del profesorado" puede tener el director, así
+ * que un expediente residual de un run que abortara no impide crear otro ni cambia
+ * ninguna aserción (el test no cuenta expedientes, solo mira el que acaba de abrir).
  */
 
-// Credenciales del usuario de la precondición (tabla «Usuarios de acceso» del .desc.md).
-const USUARIO = 'alumno1@mislata.es';
+// Credenciales del usuario de la precondición (tabla «Usuarios de acceso» del .desc.md):
+// un Profesor con cargo de Director en CIPFP Mislata, un solo centro.
+const USUARIO = 'director@mislata.es';
 const CONTRASENA = 'demo1234';
 
 // Datos del estado inicial de la BD que el test da por sentados.
 const CENTRO = 'CIPFP Mislata';
-const TRAMITE = 'Anulación de matrícula en ciclo formativo';
-const TIPO_TRAMITE_ALUMNO = 'Trámites para el alumno';
+const TRAMITE = 'Justificación de falta del profesorado';
 const TIPO_TRAMITE_PROFESOR = 'Trámites para el profesor';
-// Identidad del alumno tal y como la carga `data-demo/input/usuarios-demo.xml`.
-const ALUMNO_NOMBRE = 'Alumno1';
-const ALUMNO_APELLIDOS = 'CIPFP Mislata';
-const ALUMNO_DNI = '86862719E';
-const ALUMNO_NOMBRE_COMPLETO = 'Alumno1 CIPFP Mislata';
+const TIPO_TRAMITE_ALUMNO = 'Trámites para el alumno';
+// Los dos trámites del tipo «Trámites para el profesor», EN ORDEN ALFABÉTICO: el orden
+// del array es parte de la aserción (`toHaveText` compara posición a posición).
+const TRAMITES_DEL_PROFESOR = ['Justificación de falta del profesorado', 'Trámite de prueba'];
+
+// Identidad del director tal y como la carga `data-demo/input/usuarios-demo.xml`: es él
+// mismo quien presenta la solicitud (personaInteresada), así que sus propios datos
+// deben aparecer prerrellenados y en solo lectura en el panel "Datos del profesor
+// interesado" (comprobado pilotando la app real: `panel:datos-profesor`).
+const DIRECTOR_NOMBRE = 'Director';
+const DIRECTOR_APELLIDOS = 'CIPFP Mislata';
+const DIRECTOR_DNI = '85432016B';
+const DIRECTOR_NOMBRE_COMPLETO = 'Director CIPFP Mislata';
 
 // Títulos de las TRES pantallas del asistente (los fijan los `action-view` de
 // `system/ventanilla/views/`). Se usan para comprobar tanto que se abre la que toca
@@ -43,22 +54,24 @@ const PANTALLA_TRAMITE = 'Nuevo expediente: elija el trámite';
 const PANTALLA_CONTEXTO = 'Nuevo expediente';
 
 // Primer estado del tipo de expediente para quien lo presenta él mismo (perfil
-// CREADOR), según `TipoExpedienteInstance.xml`: fase SOLICITUD, estado DATOS_SOLICITUD.
-const FASE_INICIAL = 'Solicitud de anulación';
-const ESTADO_INICIAL = 'Datos de la solicitud';
+// CREADOR), según `TipoExpedienteInstance.xml`: fase RECEPCION, estado ENTRADA_DATOS.
+// Comprobado pilotando la app real (los rótulos son los de la vista, no las constantes
+// del enum): Fase "Recepción", Estado "Entrada de datos".
+const FASE_INICIAL = 'Recepción';
+const ESTADO_INICIAL = 'Entrada de datos';
 
-// Aviso que la vista del estado pinta con `showIf="!presentadoEnPapel"`: verlo es la
-// prueba en la UI de que el expediente NO quedó marcado como presentado en papel.
-const AVISO_PRESENTA_EL_MISMO =
-  'Para presentar la solicitud necesitará firmarla con su certificado digital desde este mismo ordenador';
-
-// Panel que la vista pinta con `showIf="presentadoEnPapel"`: su ausencia es la otra
-// cara de la misma comprobación.
-const PANEL_SOLICITUD_EN_PAPEL = 'panel:solicitudEscaneadaDatosSolicitud';
-
-// Panel que la plantilla común pinta con `showIf="presentadoEnRepresentacion"`: su
-// ausencia prueba que el expediente es para el propio alumno, no en representación.
+// Panel que la plantilla común pinta con `showIf="presentadoEnRepresentacion"`
+// (`persona-solicitante-editable` de `tramites/shared/template-views.xml`): su
+// ausencia es la prueba en la UI de que el expediente NO es en representación de otra
+// persona (este trámite, de hecho, ni siquiera lo permite: `permitidoPresentarEnRepresentacion=false`
+// en su `TramiteInstance.xml`).
 const PANEL_PERSONA_SOLICITANTE = 'panel:persona-solicitante-editable';
+
+// Panel propio del trámite ("Datos del profesor interesado", `datos-profesor` de
+// `tramites/profesores/.../v1/views.xml`) que identifica al interesado (el propio
+// profesor). Nace PRERRELLENO y EN SOLO LECTURA con la identidad de quien ha iniciado
+// sesión: es la prueba de que el expediente es "para él mismo".
+const PANEL_PROFESOR = 'panel:datos-profesor';
 
 // Título de la pestaña del expediente creado: <nº>/<año>-<trámite> V1.
 const TITULO_EXPEDIENTE = new RegExp(`^\\d+/\\d{4}-${TRAMITE} V1$`);
@@ -123,10 +136,12 @@ async function borrarExpediente(page: Page, titulo: string): Promise<void> {
 }
 
 test.describe('Ventanilla — Nuevo expediente', () => {
-  test('Alumno de un solo centro crea un expediente sin que se le pregunte nada', async ({ page }) => {
+  test('Profesor crea un expediente de un trámite que no admite representación sin que se le pregunte nada', async ({
+    page,
+  }) => {
     await ensureLoggedOut(page);
 
-    // Paso 1: Dado que el alumno `alumno1@mislata.es` ha iniciado sesión con la
+    // Paso 1: Dado que el director `director@mislata.es` ha iniciado sesión con la
     // contraseña `demo1234`.
     await login(page, USUARIO, CONTRASENA);
 
@@ -138,47 +153,43 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // Paso 2: Cuando abre el menú "Ventanilla" y pulsa "Nuevo expediente".
       await abrirNuevoExpediente(page);
 
-      // Paso 3: Entonces el sistema no muestra el listado de centros y abre "Nuevo
-      // expediente: elija el trámite"…
+      // Paso 3: Entonces se abre directamente "Nuevo expediente: elija el trámite"…
       await expect(page.getByRole('tab', { name: PANTALLA_TRAMITE, exact: true })).toBeVisible();
-      // …no muestra el listado de centros: ni se abre esa pantalla del asistente ni
-      // aparece su panel con el listado.
+      // …no se muestra el listado de centros: ni se abre esa pantalla del asistente
+      // ni aparece su panel con el listado.
       await expect(page.getByRole('tab', { name: PANTALLA_CENTRO, exact: true })).toHaveCount(0);
       await expect(page.getByTestId('panel:centrosPanel')).toHaveCount(0);
 
-      // …con el centro "CIPFP Mislata" encima del listado.
+      // …con el centro "CIPFP Mislata"…
       const campoCentro = page.getByTestId('field:centro').getByRole('textbox');
       await expect(campoCentro).toHaveValue(CENTRO);
       await expect(campoCentro).toBeDisabled();
-      // "Encima" es posición real en pantalla, no solo presencia: el panel del centro
-      // tiene que quedar por encima del grid de trámites.
       const cajaCentro = await page.getByTestId('panel:centroPanel').boundingBox();
       const cajaTramites = await page.getByTestId('panel:tramitesPanel').boundingBox();
       expect(cajaCentro).not.toBeNull();
       expect(cajaTramites).not.toBeNull();
       expect(cajaCentro!.y).toBeLessThan(cajaTramites!.y);
 
-      // …el listado muestra ÚNICAMENTE el tipo de trámite "Trámites para el alumno"
-      // y, dentro, únicamente "Anulación de matrícula en ciclo formativo".
+      // …únicamente "Trámites para el profesor" con "Justificación de falta del
+      // profesorado" y "Trámite de prueba" por orden alfabético.
       await desplegarGruposDeTramites(page);
-      await expect(filasDeTramites(page)).toHaveCount(1);
-      await expect(filasDeTramites(page).first()).toHaveText(TRAMITE);
       await expect(gruposDeTipoTramite(page)).toHaveCount(1);
-      await expect(gruposDeTipoTramite(page).first()).toContainText(TIPO_TRAMITE_ALUMNO);
-      // …no aparece "Trámites para el profesor".
-      await expect(page.getByText(TIPO_TRAMITE_PROFESOR)).toHaveCount(0);
+      await expect(gruposDeTipoTramite(page).first()).toContainText(TIPO_TRAMITE_PROFESOR);
+      await expect(filasDeTramites(page)).toHaveText(TRAMITES_DEL_PROFESOR);
+      // …no aparece "Trámites para el alumno".
+      await expect(page.getByText(TIPO_TRAMITE_ALUMNO)).toHaveCount(0);
 
-      // …debajo hay un único botón, "Cancelar", y no hay botón "Atrás".
+      // …y un único botón debajo, "Cancelar" (sin "Atrás").
       const botonera = page.getByTestId('panel:buttons-panel');
       await expect(botonera.getByRole('button')).toHaveCount(1);
       await expect(botonera.getByRole('button', { name: 'Cancelar' })).toBeVisible();
       await expect(botonera.getByRole('button', { name: 'Atrás' })).toHaveCount(0);
 
-      // Paso 4: Cuando pulsa la fila "Anulación de matrícula en ciclo formativo".
-      await filasDeTramites(page).first().click();
+      // Paso 4: Cuando pulsa la fila "Justificación de falta del profesorado".
+      await filasDeTramites(page).filter({ hasText: TRAMITE }).click();
 
-      // Paso 5: Entonces se abre "Nuevo expediente" con el nombre del trámite, su
-      // texto de ayuda y el centro "CIPFP Mislata" en solo lectura.
+      // Paso 5: Entonces se abre "Nuevo expediente" con ese trámite, su ayuda y el
+      // centro en solo lectura…
       await expect(page.getByRole('tab', { name: PANTALLA_CONTEXTO, exact: true })).toBeVisible();
       const campoTramite = page.getByTestId('field:nombreTramite').getByRole('textbox');
       await expect(campoTramite).toHaveValue(TRAMITE);
@@ -187,27 +198,29 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await expect(centroContexto).toHaveValue(CENTRO);
       await expect(centroContexto).toBeDisabled();
       await expect(page.getByTestId('field:ayudaTramite')).toContainText(
-        'Con este trámite puedes solicitar la anulación de tu matrícula en un ciclo formativo de este centro',
+        'Este trámite permite a justificar la falta del profesorado.',
       );
 
-      // …no se ve "¿Cómo se presenta?" ni "¿Para quién es el expediente?". Se
-      // comprueban por su etiqueta y también por el campo del modelo que las pinta
-      // (`presentadoEnPapel` / `presentadoEnRepresentacion`), para que el test siga
-      // cazando el fallo aunque cambie el rótulo.
+      // …sin "¿Cómo se presenta?" ni "¿Para quién es el expediente?" (no se le
+      // pregunta nada: el director solo puede presentarlo él mismo — no tiene permiso
+      // de registrarlo en papel, solo lo tiene el Jefe de estudios — y el trámite no
+      // admite representación). Se comprueban por su etiqueta y también por el campo
+      // del modelo que las pinta (`presentadoEnPapel` / `presentadoEnRepresentacion`),
+      // para que el test siga cazando el fallo aunque cambie el rótulo.
       await expect(page.getByText('¿Cómo se presenta?')).toHaveCount(0);
       await expect(page.getByText('¿Para quién es el expediente?')).toHaveCount(0);
       await expect(page.getByTestId('field:presentadoEnPapel')).toHaveCount(0);
       await expect(page.getByTestId('field:presentadoEnRepresentacion')).toHaveCount(0);
 
-      // …se ven los botones "Atrás" y "Crear expediente".
+      // …y con los botones "Atrás" y "Crear expediente".
       await expect(page.getByRole('button', { name: 'Atrás' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Crear expediente' })).toBeVisible();
 
       // Paso 6: Cuando pulsa "Crear expediente".
       await page.getByRole('button', { name: 'Crear expediente' }).click();
 
-      // Resultado esperado: se abre el expediente recién creado de "Anulación de
-      // matrícula en ciclo formativo" en su primer estado.
+      // Resultado esperado: el asistente se cierra y se abre el expediente recién
+      // creado de "Justificación de falta del profesorado" en su primer estado.
       const pestanaExpediente = page.getByRole('tab', { name: TITULO_EXPEDIENTE });
       await expect(pestanaExpediente).toBeVisible();
       tituloExpediente = (await pestanaExpediente.getByTestId('title').innerText()).trim();
@@ -220,8 +233,8 @@ test.describe('Ventanilla — Nuevo expediente', () => {
         ESTADO_INICIAL,
       );
 
-      // Resultado esperado: el asistente se cierra — no queda visible ninguna de sus
-      // TRES pantallas, ni por su pestaña ni por sus paneles y botones.
+      // El asistente se cierra: no queda visible ninguna de sus TRES pantallas, ni
+      // por su pestaña ni por sus paneles y botones.
       await expect(page.getByRole('tab', { name: PANTALLA_CENTRO, exact: true })).toHaveCount(0);
       await expect(page.getByRole('tab', { name: PANTALLA_TRAMITE, exact: true })).toHaveCount(0);
       await expect(page.getByRole('tab', { name: PANTALLA_CONTEXTO, exact: true })).toHaveCount(0);
@@ -231,39 +244,46 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await expect(page.getByRole('button', { name: 'Crear expediente' })).toHaveCount(0);
       await expect(page.getByRole('button', { name: 'Cancelar' })).toHaveCount(0);
 
-      // Resultado esperado: el expediente está en el centro "CIPFP Mislata".
-      await expect(page.getByTestId('field:nombreCentro').getByRole('textbox')).toHaveValue(
-        CENTRO,
-      );
+      // …en el centro "CIPFP Mislata". La vista de este trámite no repite un campo de
+      // centro en la pantalla del expediente creado (comprobado pilotando la app real:
+      // no hay ningún `field:`/`panel:` con "centro" en el DOM de este estado), así
+      // que el centro queda probado donde SÍ es observable: en las dos pantallas del
+      // asistente (Pasos 3 y 5, arriba) con el campo "Centro" en solo lectura fijado a
+      // "CIPFP Mislata" — valor que no puede cambiar entre elegir el trámite y crear
+      // el expediente porque el propio campo está deshabilitado.
 
-      // Resultado esperado: presentado por el propio alumno, NO registrado como
-      // presentado en papel. En la UI eso se ve en las tres bifurcaciones que la
-      // vista del estado hace sobre `presentadoEnPapel`: el aviso de firma con
-      // certificado, la ausencia del panel de la solicitud escaneada y la botonera
-      // del que aún tiene que rellenar y firmar ("Siguiente", sin "Presentar la
-      // solicitud" ni "Atrás").
-      await expect(page.getByText(AVISO_PRESENTA_EL_MISMO)).toBeVisible();
-      await expect(page.getByTestId(PANEL_SOLICITUD_EN_PAPEL)).toHaveCount(0);
+      // Resultado esperado: el expediente queda presentado por el propio director (NO
+      // registrado como presentado en papel). La prueba en la UI es que lo crea el
+      // propio director (si lo hubiera registrado en papel el Jefe de estudios, sería
+      // él quien figurase aquí, no el director) y que el estado inicial es el de
+      // autogestión (perfil CREADOR, "Entrada de datos") con la botonera de quien aún
+      // tiene que rellenar y firmar ("Siguiente", sin "Presentar la solicitud" ni
+      // "Atrás").
+      await expect(page.getByTestId('field:createdBy').getByRole('textbox')).toHaveValue(
+        DIRECTOR_NOMBRE_COMPLETO,
+      );
       await expect(page.getByRole('button', { name: 'Siguiente' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Presentar la solicitud' })).toHaveCount(0);
       await expect(page.getByRole('button', { name: 'Atrás' })).toHaveCount(0);
-      // Y lo crea el propio alumno, no el personal del centro.
-      await expect(page.getByTestId('field:createdBy').getByRole('textbox')).toHaveValue(
-        ALUMNO_NOMBRE_COMPLETO,
-      );
 
-      // Resultado esperado: y para él mismo, NO en representación de otra persona.
-      // El panel "Persona que presenta la solicitud" solo se pinta cuando hay
-      // representación, así que no debe existir; y la persona interesada es el propio
-      // alumno que ha iniciado sesión.
+      // Resultado esperado: y para él mismo (NO en representación de otra persona). El
+      // panel "Persona que presenta la solicitud" solo se pinta cuando hay
+      // representación, así que no debe existir; y el panel propio del trámite "Datos
+      // del profesor interesado" nace prerrelleno y en solo lectura con la identidad
+      // del propio director (el sistema ya sabe quién es: no hay que preguntárselo).
       await expect(page.getByTestId(PANEL_PERSONA_SOLICITANTE)).toHaveCount(0);
       await expect(page.getByText('Persona que presenta la solicitud')).toHaveCount(0);
-      const panelAlumno = page.getByTestId('panel:alumno');
-      await expect(panelAlumno.getByRole('textbox', { name: 'Apellidos' })).toHaveValue(
-        ALUMNO_APELLIDOS,
-      );
-      await expect(panelAlumno.getByRole('textbox', { name: 'Nombre' })).toHaveValue(ALUMNO_NOMBRE);
-      await expect(panelAlumno.getByRole('textbox', { name: 'DNI/NIE' })).toHaveValue(ALUMNO_DNI);
+      const panelProfesor = page.getByTestId(PANEL_PROFESOR);
+      await expect(panelProfesor).toBeVisible();
+      const campoApellidos = page.getByTestId('field:personaInteresada.apellidos').getByRole('textbox');
+      const campoNombre = page.getByTestId('field:personaInteresada.nombre').getByRole('textbox');
+      const campoDni = page.getByTestId('field:personaInteresada.dni').getByRole('textbox');
+      await expect(campoApellidos).toHaveValue(DIRECTOR_APELLIDOS);
+      await expect(campoNombre).toHaveValue(DIRECTOR_NOMBRE);
+      await expect(campoDni).toHaveValue(DIRECTOR_DNI);
+      await expect(campoApellidos).toBeDisabled();
+      await expect(campoNombre).toBeDisabled();
+      await expect(campoDni).toBeDisabled();
     } finally {
       // Teardown: borrar el expediente creado aunque una aserción haya fallado — la
       // BD es compartida y no se resetea, así que dejarlo lo acumularía run tras run.
