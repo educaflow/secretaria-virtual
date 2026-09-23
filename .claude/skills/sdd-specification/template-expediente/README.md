@@ -279,7 +279,7 @@ Una subsección `#### Acción <ACCION>` por cada acción disponible en el estado
 
 - Atributos: `mensaje` (el error literal que ve el usuario), `condición` (opcional), `actor` (opcional, si cambia según quién la lance).
 - **REQUIRED — empieza por la obligatoriedad**, dato a dato de la lista de la acción: *«¿puede quedar vacío?»*. Es la comprobación más olvidada.
-- El `mensaje` se redacta en lenguaje de negocio, diciendo cómo debe ser el dato, no cómo no debe ser, y sin jerga.
+- El `mensaje` se redacta en lenguaje de negocio, diciendo cómo debe ser el dato, no cómo no debe ser, y sin jerga. Es el texto **deseado**: si la comprobación la cubre una regla genérica del catálogo (obligatorio, fecha no futura, fin posterior a inicio, rango…), el usuario verá el mensaje fijo de esa regla y el diseño lo resuelve así.
 - Recorre `catalogos/catalogo-validaciones.md`.
 
 **Lo que produce (`RN-`).** Son efectos automáticos que ocurren una vez superadas las comprobaciones. **Nunca bloquean**: si algo debe impedir la acción, es una `VAL-`. Si solo cambia lo que se ve, es una `RUI-`.

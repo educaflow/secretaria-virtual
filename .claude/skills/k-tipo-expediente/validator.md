@@ -51,13 +51,26 @@ class StateEventValidatorImpl : StateEventValidator {
 
 ## 3. Catálogo de reglas del DSL
 
-Las reglas (`ValidationRule`) están en `com.educaflow.base.infrastructure.validation.rules`; los constructores del DSL (`rules`, `field`, `ifValueIn`, `ifValueNotIn`) están en `com.educaflow.base.infrastructure.validation.dsl`. El esqueleto generado ya trae ambos imports.
+Las reglas (`ValidationRule`) están en `com.educaflow.base.infrastructure.validation.rules`; los constructores del DSL (`rules`, `field`, `ifValueIn`, `ifValueNotIn`, `ifLambda`) están en `com.educaflow.base.infrastructure.validation.dsl`. El esqueleto generado ya trae ambos imports.
+
+**MUST** usar la regla del catálogo cuando una cubra la comprobación; `Lambda`/`ifLambda` (§3.1) solo cuando **ninguna** la cubra. Lo que suele tentar a escribir un predicado, y la genérica que ya lo hace:
+
+| Tentación | Genérica |
+|---|---|
+| «no puede estar vacío» (`tieneX`) | `Required()` |
+| «no posterior a hoy» / «no anterior a hoy» | `PastOrToday()` / `FutureOrToday()` |
+| «fin posterior a inicio» (fechas, horas, importes…) | `GreaterThan(model::getInicio)` |
+| «dentro de un rango», también de fechas | `MinValue(...)` / `MaxValue(...)` |
+| «solo si el enum vale X» (`necesitaX`) | `ifValueIn(model::getEnum, listOf(...))`, salvo que la función ya exista porque la usa también un `trigger*` (`SKILL.md` §1.8) |
+
+- El mensaje fijo de la genérica es el que ve el usuario. Querer otro texto **no** justifica una `Lambda`.
+- Las reglas de comparación (`GreaterThan`…), de fecha (`Past*`/`Future*`) y de rango (`MinValue`/`MaxValue`) dan por válido un valor nulo, y también un «otro campo» nulo: la obligatoriedad la pone `Required`. **MUST NOT** anidar `ifLambda(util::tieneX)` como guarda delante de ellas.
 
 | Regla | Uso |
 |---|---|
 | `Required()` | Campo obligatorio |
 | `Pattern("^...$")` | Regex sobre el valor |
-| `MinValue(n)` / `MaxValue(n)` | Rango numérico (admite expresiones: `MaxValue(LocalDate.now().year)`) |
+| `MinValue(v)` / `MaxValue(v)` | Rango sobre cualquier `Comparable` (enteros, decimales, fechas, horas); admite expresiones: `MaxValue(LocalDate.now().year)`, `MinValue(LocalDate.now(Convert.defaultZoneId).minusYears(1))` |
 | `MinLength(n)` / `MaxLength(n)` | Longitud de texto |
 | `GreaterThan(model::getOtroCampo)` / `GreaterThanOrEqual` / `LessThan` / `LessThanOrEqual` | Comparación con otro campo `Comparable` del modelo |
 | `EqualTo(model::getOtroCampo)` / `NotEqualTo(model::getOtroCampo)` | Igualdad con otro campo del modelo |
@@ -68,6 +81,8 @@ Las reglas (`ValidationRule`) están en `com.educaflow.base.infrastructure.valid
 | `FileType(listOf("application/pdf", ...))` | MIME types admitidos de un `MetaFile` |
 | `FileMaxSize(n, SizeUnit.MB)` | Tamaño máximo de un `MetaFile` |
 | `FileName("^...$")` | Regex sobre el nombre de fichero de un `MetaFile` |
+| `Dni()` / `Nia()` / `Nuss()` / `Phone()` / `PostalCode()` / `Iban()` | Formato de identificadores españoles, teléfono, código postal e IBAN |
+| `AlwaysFail("mensaje")` / `AlwaysPass()` | Dentro de una rama condicional: rechazar siempre con ese mensaje / aceptar siempre |
 | `ifValueIn(model::getCampo, listOf(...)) { +... }` *(DSL, paquete `...validation.dsl`)* | Reglas condicionales según el valor de otro campo; su negación es `ifValueNotIn` |
 | `Lambda(util::funcion, "mensaje")` | Rechaza el campo con el mensaje si la función estática de `<Code>Util` devuelve `false`; §3.1 |
 | `ifLambda(util::funcion) { +... }` *(DSL)* | Reglas condicionales según una función estática de `<Code>Util`; §3.1 |
@@ -77,7 +92,7 @@ La tabla es un resumen de uso, no un inventario cerrado: la **fuente de verdad**
 
 ### 3.1 Comprobaciones propias del tipo: `Lambda` e `ifLambda`
 
-Una comprobación que solo tiene sentido en este tipo (consulta a BD, cruce de varios campos, cálculo…) **no es una regla nueva**: es una función estática `boolean` de `<Code>Util` (`SKILL.md` §1.8) que el validador declara con una de estas dos:
+Una comprobación que solo tiene sentido en este tipo y que **ninguna regla del catálogo cubre** (consulta a BD, cálculo, cruce de campos que no sea una comparación simple —para esa ya están `GreaterThan`/`LessThan`/`EqualTo`—) **no es una regla nueva**: es una función estática `boolean` de `<Code>Util` (`SKILL.md` §1.8) que el validador declara con una de estas dos:
 
 | | Qué hace | Cuándo |
 |---|---|---|
@@ -100,6 +115,9 @@ field(model::getMotivoRechazo) {
 ```
 
 - El validador se queda **declarativo**: **MUST NOT** contener JPQL, `JpaRepository`, `Beans.get` ni lambdas con cuerpo; solo referencias `util::funcion`.
+- ✅ CORRECTO: `+Lambda(util::sinOtraSolicitudEnCurso, "...")` (consulta a BD: no hay genérica).
+- ❌ INCORRECTO: `+Lambda(util::tieneFechaInicio, "Debe indicar la fecha")` (es `Required()`; el mensaje distinto no lo justifica).
+- ❌ INCORRECTO: `+ifLambda(util::tieneFechaFin) { +ifLambda(util::tieneFechaInicio) { +Lambda(util::fechaFinPosteriorAFechaInicio, "...") } }` (es `+GreaterThan(model::getFechaInicio)`, que ya maneja los nulos).
 - El mensaje va en el validador, no en la función: la función devuelve `boolean` y no sabe de mensajes.
 - La función lanza `IllegalStateException` si le falta un dato que fija el servidor: **MUST NOT** devolver `true` en silencio cuando no puede decidir (`SKILL.md` §1.8).
 
@@ -129,3 +147,4 @@ Las reglas se comprueban **fase a fase**: la unidad no es el tipo de expediente,
 - **MUST NOT** confiar en `readonly`/`showIf`/`hidden` de la vista como defensa: la única frontera real es esta whitelist (`k-secure-coding`).
 - **MUST NOT** factorizar los `getForState<Estado>InEvent<Evento>` comunes a una superclase compartida entre fases o versiones: solo se ven los declarados en la clase de la fase (§5).
 - **MUST NOT** crear una `ValidationRule` en la carpeta de la versión: función `boolean` en `<Code>Util` + `Lambda`/`ifLambda` (§3.1). Solo si la comparten varios tipos es una regla, y entonces vive en `tramites/util/` o en el catálogo base.
+- **MUST NOT** usar `Lambda` para lo que ya hace una genérica (`Required`, `PastOrToday`, `GreaterThan`, `MinValue`…): ver la tabla de tentaciones de §3.

@@ -167,7 +167,7 @@ Cuando el tipo necesita una función que no es un `trigger*`/`onEnter*`/`trigger
 
 Cuándo una función va a `<Code>Util` y cuándo no:
 
-- Va si la necesita el validador (el DSL solo admite referencias a función) o si el mismo código se llama desde **más de un sitio** (varios eventos, varias fases).
+- Va si la necesita el validador (el DSL solo admite referencias a función) **y ninguna regla genérica del catálogo cubre la comprobación** (`validator.md` §3), o si el mismo código se llama desde **más de un sitio** (varios eventos, varias fases).
 - **MUST NOT** ir si se usa en un solo sitio y es una línea o un bloque corto: se queda inline en el `trigger*`. Una `<Code>Util` llena de funciones de una línea con un único llamante no aporta nada y esconde el código.
 
 Tres familias de función, y qué devuelve cada una:
@@ -392,7 +392,7 @@ Tres reglas **no** leen el bytecode, cada una por su motivo, y se señalan en su
 4. **Modelo**: añade los campos a `domains.xml` → `modelo.md`.
 5. **Documentos**: crea `documentospdf/` con los XML de definición → `documentos.md`. Si el tipo tiene **más de un** documento, **MUST** extraer desde el principio a un fragmento `_<contenido>.xml` cada sección literalmente idéntica en varios de ellos (uno por bloque común), en vez de duplicarla.
 6. **Evento inicial y PhaseEventManager de cada fase**: rellena el `triggerInitialEvent` del `InitialEventManagerImpl` de la raíz de la versión (uno por tipo) y, en cada fase, sus `trigger<Evento>` y `onEnter<Estado>` → `phaseeventmanager.md`. Las guardas, predicados y mutaciones propios del tipo van como funciones estáticas de `<Code>Util` (§1.8).
-7. **Validator de cada fase**: rellena las `rules { }` de cada pareja estado+evento de la fase → `validator.md`. Las comprobaciones propias del tipo se declaran con `Lambda`/`ifLambda` sobre funciones de `<Code>Util`, no con reglas nuevas.
+7. **Validator de cada fase**: rellena las `rules { }` de cada pareja estado+evento de la fase → `validator.md`. Primero las reglas genéricas del catálogo; solo la comprobación que ninguna cubra se declara con `Lambda`/`ifLambda` sobre una función de `<Code>Util`, nunca con reglas nuevas.
 8. **Vistas**: monta los paneles del form plantilla en el `views.xml` de la raíz y compón cada `<form state=...>` en el `views.xml` de su fase → `vistas.md`.
 9. **Permisos**: verifica que el perfil de cada estado (`CREADOR`, `TRAMITADOR`…) está asignado a alguien (`/k-tramite` §6).
 10. **Activa** la versión en el `TramiteInstance.xml` (`<defaultTipoExpediente>v1</defaultTipoExpediente>`), compila y arranca.

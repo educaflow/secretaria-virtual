@@ -728,14 +728,16 @@ Catálogo de reglas disponibles (paquete `com.educaflow.base.infrastructure.vali
 |---|---|
 | Obligatoriedad | `Required()` |
 | Texto | `Pattern("<regex>")`, `MinLength(<n>)`, `MaxLength(<n>)`, `NoAllUpperCase()` |
-| Numéricas | `MinValue(<expr>)`, `MaxValue(<expr>)` |
+| Rango (cualquier `Comparable`: enteros, fechas, horas) | `MinValue(<expr>)`, `MaxValue(<expr>)` |
 | Comparables | `GreaterThan(model::get<Campo>)` y equivalentes |
-| Fecha/hora, listas, edad | las de `DateTimeRules`, `ListRules`, `AgeRules` |
+| Fecha/hora, listas | las de `DateTimeRules` (`Past`, `PastOrToday`, `Future`, `FutureOrToday`), `ListRules` |
 | Ficheros | `FileType(listOf("<mime>", …))`, `FileMaxSize(<n>, SizeUnit.<UNIDAD>)` |
 | PDF / firma | `FirmaPdf(model::get<CampoOriginal>)` |
 | Condicional | `ifValueIn(model::get<Campo>, listOf(<VALORES>)) { … }` |
+| Propias del tipo | `Lambda(util::<f>, "<mensaje>")`, `ifLambda(util::<f>) { … }` — **solo** si ninguna genérica cubre la comprobación (`k-tipo-expediente/validator.md` §3) |
 
 - Los argumentos **MUST** ir literales, resueltos: nada de `«el rango del año»`, sino la expresión exacta.
+- **MUST** elegir la regla genérica cuando exista; el `mensaje` de la `VAL-` de la spec **no** justifica una `Lambda`. Si la `VAL-` se implementa con una genérica, el mensaje que ve el usuario es el fijo de esa regla («Es requerido», «La fecha debe ser hoy o en el pasado»…): el diseño lo anota junto a la regla y el `test-e2e-desc.md` espera **ese** mensaje, no el de la spec.
 - El diseño **MUST** declarar los `import` de los enums propios que aparezcan en un `ifValueIn`.
 
 ### 12.3 Frontera de confianza (CRITICAL)
