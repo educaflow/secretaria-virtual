@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+    <action-view name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-action"
+                 title="Nuevo expediente: elija el trámite"
+                 model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <view type="form" name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="show-confirm" value="false"/>
+        <!-- `id` (a diferencia de `centro`/`hayQueElegirCentro`) existe siempre en las dos formas
+             de contexto desde las que se abre esta action-view: la fila `Centro` pulsada en el
+             grid del paso anterior (su propio id) y el form `AsistenteNuevoExpediente` (siempre
+             null, al ser transient). Se usa como discriminador para que el `?:` nunca llegue a
+             leer el campo que no existe en esa forma y dispare el WARN
+             "No such field" de GroovyScriptHelper. -->
+        <context name="_centroId" expr="eval: id != null ? id : centro?.id"/>
+        <context name="_hayQueElegirCentro"
+                 expr="eval: id != null ? __parent__?.hayQueElegirCentro : hayQueElegirCentro"/>
+    </action-view>
+
+    <!-- Muestra el tree de trámites candidatos embebido vía panel-dashlet (un <tree> no admite
+         panel-related), con un buttons-panel real debajo: "Atrás" si hubo elección de centro
+         (paso 1 mostrado), "Cancelar" si no (paso 1 saltado). -->
+    <form name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-form"
+          title="Nuevo expediente: elija el trámite"
+          model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente"
+          onNew="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-onNew-action"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+
+        <panel name="estadoPanel" title="" colSpan="12" showFrame="false">
+            <field name="hayQueElegirCentro" hidden="true"/>
+            <field name="tramitesDisponibles" hidden="true"/>
+        </panel>
+
+        <panel name="centroPanel" title="" colSpan="12" showFrame="false">
+            <field name="centro" colSpan="6" readonly="true" canNew="false" canEdit="false" canView="false"/>
+        </panel>
+
+        <panel name="tramitesPanel" title="" colSpan="12" showFrame="false">
+            <panel-dashlet action="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-action"
+                           colSpan="12" canSearch="false" height="300"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <panel name="botonesAtras" title="" colSpan="12" showFrame="false" showIf="hayQueElegirCentro">
+                <button name="btnAtras" title="Atrás" colSpan="2" outline="true"
+                        onClick="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-btnAtras-action"/>
+            </panel>
+            <panel name="botonesCancelar" title="" colSpan="12" showFrame="false" showIf="!hayQueElegirCentro">
+                <button name="btnCancelar" title="Cancelar" colSpan="2" outline="true"
+                        onClick="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-btnCancelar-action"/>
+            </panel>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+    <action-group name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-btnAtras-action">
+        <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-action"/>
+        <action name="close"/>
+    </action-group>
+
+    <action-group name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-btnCancelar-action">
+        <action name="close"/>
+    </action-group>
+
+    <action-group name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-onNew-action">
+        <action name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-set-centroYHayQueElegirCentro-recibidos-action"/>
+        <action name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-Remote-prepararTramites-action"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+    <action-record name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-set-centroYHayQueElegirCentro-recibidos-action"
+                   model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <field name="centro" expr="eval: __repo__(com.educaflow.subsystem.common.db.Centro).find(_centroId)"/>
+        <field name="hayQueElegirCentro" expr="eval: _hayQueElegirCentro"/>
+    </action-record>
+
+    <?sv-remotes?>
+    <action-method name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-Remote-prepararTramites-action"
+                   model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <call class="com.educaflow.system.ventanilla.controller.AsistenteNuevoExpedienteController"
+              method="prepararTramites"/>
+    </action-method>
+
+
+    <?sv-view?>
+    <!-- Tree de trámites candidatos agrupados por tipo de trámite, embebido en el panel-dashlet
+         de arriba. Modelo AsistenteNuevoExpediente porque su <context> evalúa los campos que ya
+         tiene calculados el form contenedor (centro, hayQueElegirCentro, tramitesDisponibles);
+         los nodos del propio tree usan TipoTramite/Tramite. -->
+    <action-view name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-action"
+                 title="Trámite" model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <view type="tree" name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-tree"/>
+        <context name="_centroId" expr="eval: centro?.id"/>
+        <context name="_hayQueElegirCentro" expr="eval: hayQueElegirCentro"/>
+        <context name="_tramiteIds" expr="eval: tramitesDisponibles?.collect{it.id}"/>
+    </action-view>
+
+    <tree name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-tree"
+          title="Trámites disponibles" showHeader="false">
+
+        <column name="name"/>
+
+        <node model="com.educaflow.subsystem.expedientes.db.TipoTramite"
+              domain="EXISTS (SELECT 1 FROM Tramite t WHERE t.tipoTramite=self AND t.id IN :_tramiteIds)">
+            <field name="name" as="name"/>
+        </node>
+
+        <node model="com.educaflow.subsystem.expedientes.db.Tramite"
+              domain="self.id IN :_tramiteIds"
+              parent="tipoTramite" draggable="false"
+              onClick="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-onClick-action">
+            <field name="name" as="name"/>
+        </node>
+
+    </tree>
+
+    <?sv-primary-actions?>
+    <action-group name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-onClick-action">
+        <action name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-action"/>
+        <action name="close"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+</object-views>

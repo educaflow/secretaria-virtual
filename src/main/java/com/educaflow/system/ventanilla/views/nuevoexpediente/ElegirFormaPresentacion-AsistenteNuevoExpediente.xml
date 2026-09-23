@@ -5,13 +5,15 @@
 https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <?sv-view?>
-    <!-- El nodo pulsado es un `Tramite` (no tiene `centro`), pero el `<tree>` del paso anterior
-         no está anidado en ningún form: `_centroId`/`_hayQueElegirCentro` se leen directamente
-         del contexto ambiente que ese tree recibió en su propio `action-view`, sin `__parent__`. -->
-    <action-view name="sysVentanilla.Main@AsistenteNuevoExpediente-action"
+    <!-- El nodo pulsado es un `Tramite` (no tiene `centro`): aunque el tree del paso anterior ya
+         va embebido en un form (ver ElegirTramite-AsistenteNuevoExpediente.xml), esta pantalla
+         sigue siendo su propia pestaña, abierta desde el onClick del nodo con el contexto que
+         ese tree recibió en su propia action-view (`_centroId`/`_hayQueElegirCentro`), sin
+         `__parent__`. -->
+    <action-view name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-action"
                  title="Nuevo expediente"
                  model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
-        <view type="form" name="sysVentanilla.Main@AsistenteNuevoExpediente-form"/>
+        <view type="form" name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-form"/>
         <view-param name="show-toolbar-form" value="false"/>
         <view-param name="show-confirm" value="false"/>
         <context name="_centroId" expr="eval: _centroId"/>
@@ -19,10 +21,10 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <context name="_tramiteId" expr="eval: id"/>
     </action-view>
 
-    <form name="sysVentanilla.Main@AsistenteNuevoExpediente-form"
+    <form name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-form"
           title="Nuevo expediente"
           model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente"
-          onNew="sysVentanilla.Main@AsistenteNuevoExpediente-onNew-action"
+          onNew="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-onNew-action"
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
 
         <panel name="tramitePanel" title="Trámite" colSpan="12">
@@ -47,7 +49,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
                    x-false-text="Lo presento yo mismo"
                    x-true-text="Estoy registrando un trámite recibido en papel"
                    showIf="hayQuePreguntarPresentacion"
-                   onChange="sysVentanilla.Main@AsistenteNuevoExpediente-onChange-presentadoEnPapel-action"/>
+                   onChange="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-onChange-presentadoEnPapel-action"/>
             <field name="presentadoEnRepresentacion" colSpan="12" widget="boolean-radio"
                    x-false-text="Para mí"
                    x-true-text="Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)"
@@ -55,37 +57,37 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         </panel>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
-            <button name="btnAtras" title="Atrás" colSpan="2" colOffset="7" outline="true"
-                    onClick="sysVentanilla.Main@AsistenteNuevoExpediente-btnAtras-action"/>
-            <button name="btnCrear" title="Crear expediente" colSpan="3"
-                    onClick="sysVentanilla.Main@AsistenteNuevoExpediente-btnCrear-action"/>
+            <button name="btnAtras" title="Atrás" colSpan="2" outline="true"
+                    onClick="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-btnAtras-action"/>
+            <button name="btnCrear" title="Crear expediente" colSpan="3" colOffset="7"
+                    onClick="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-btnCrear-action"/>
         </panel>
     </form>
 
     <?sv-primary-actions?>
-    <action-group name="sysVentanilla.Main@AsistenteNuevoExpediente-btnAtras-action">
+    <action-group name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-btnAtras-action">
         <action name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-action"/>
         <action name="close"/>
     </action-group>
 
-    <action-group name="sysVentanilla.Main@AsistenteNuevoExpediente-btnCrear-action">
-        <action name="sysVentanilla.Main@AsistenteNuevoExpediente-Local-validateTriggerInitialEvent-action"/>
+    <action-group name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-btnCrear-action">
+        <action name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-Local-validateTriggerInitialEvent-action"/>
         <action name="validate"/>
-        <action name="sysVentanilla.Main@AsistenteNuevoExpediente-Remote-validateTriggerInitialEvent-action"/>
-        <action name="sysVentanilla.Main@AsistenteNuevoExpediente-Remote-triggerInitialEvent-action"/>
+        <action name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-Remote-validateTriggerInitialEvent-action"/>
+        <action name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-Remote-triggerInitialEvent-action"/>
     </action-group>
 
-    <action-group name="sysVentanilla.Main@AsistenteNuevoExpediente-onNew-action">
-        <action name="sysVentanilla.Main@AsistenteNuevoExpediente-set-tramiteCentroYHayQueElegirCentro-recibidos-action"/>
-        <action name="sysVentanilla.Main@AsistenteNuevoExpediente-Remote-recalcular-action"/>
+    <action-group name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-onNew-action">
+        <action name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-set-tramiteCentroYHayQueElegirCentro-recibidos-action"/>
+        <action name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-Remote-recalcular-action"/>
     </action-group>
 
-    <action-group name="sysVentanilla.Main@AsistenteNuevoExpediente-onChange-presentadoEnPapel-action">
-        <action name="sysVentanilla.Main@AsistenteNuevoExpediente-Remote-recalcular-action"/>
+    <action-group name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-onChange-presentadoEnPapel-action">
+        <action name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-Remote-recalcular-action"/>
     </action-group>
 
     <?sv-validations?>
-    <action-validate name="sysVentanilla.Main@AsistenteNuevoExpediente-Local-validateTriggerInitialEvent-action">
+    <action-validate name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-Local-validateTriggerInitialEvent-action">
         <error message="Debe indicar cómo se presenta el expediente"
                if="presentadoEnPapel == null"/>
         <error message="Debe indicar para quién es el expediente"
@@ -93,7 +95,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     </action-validate>
 
     <?sv-rules?>
-    <action-record name="sysVentanilla.Main@AsistenteNuevoExpediente-set-tramiteCentroYHayQueElegirCentro-recibidos-action"
+    <action-record name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-set-tramiteCentroYHayQueElegirCentro-recibidos-action"
                    model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
         <field name="tramite" expr="eval: __repo__(com.educaflow.subsystem.expedientes.db.Tramite).find(_tramiteId)"/>
         <field name="centro" expr="eval: __repo__(com.educaflow.subsystem.common.db.Centro).find(_centroId)"/>
@@ -101,13 +103,13 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     </action-record>
 
     <?sv-remotes?>
-    <action-method name="sysVentanilla.Main@AsistenteNuevoExpediente-Remote-recalcular-action"
+    <action-method name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-Remote-recalcular-action"
                    model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
         <call class="com.educaflow.system.ventanilla.controller.AsistenteNuevoExpedienteController"
               method="recalcular"/>
     </action-method>
 
-    <action-method name="sysVentanilla.Main@AsistenteNuevoExpediente-Remote-validateTriggerInitialEvent-action"
+    <action-method name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-Remote-validateTriggerInitialEvent-action"
                    model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
         <call class="com.educaflow.system.ventanilla.controller.AsistenteNuevoExpedienteController"
               method="validateTriggerInitialEvent"/>
@@ -115,7 +117,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <!-- `TramitadorController.triggerInitialEvent` lee del formulario `tramite`, `centro`,
          `presentadoEnPapel` y `presentadoEnRepresentacion`. -->
-    <action-method name="sysVentanilla.Main@AsistenteNuevoExpediente-Remote-triggerInitialEvent-action"
+    <action-method name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-Remote-triggerInitialEvent-action"
                    model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
         <call class="com.educaflow.subsystem.tramitador.controller.TramitadorController"
               method="triggerInitialEvent"/>

@@ -3,14 +3,15 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-    <action-view name="subsysExpedientes.Expediente@Firma-action" title="Anulaciones de matrícula pendientes de mi firma" model="com.educaflow.subsystem.expedientes.db.Expediente">
-        <view type="grid" name="subsysExpedientes.Expediente@Firma-grid"/>
-        <domain>self.id IN (:expedientesConPerfil) AND self.codeState = 'PENDIENTE_FIRMA_DIRECTOR'</domain>
-        <context name="_profile" expr="DIRECTOR"/>
-        <context name="expedientesConPerfil" expr="call:com.educaflow.system.expedientes.controller.BandejaPorPerfilController:idsExpedientesConPerfil('DIRECTOR','AnulacionMatriculaCicloFormativo')"/>
+    <?sv-view?>
+    <action-view name="sysVentanilla.Pendiente@Expediente-action" title="Listado de expedientes pendientes de que realices la tarea" model="com.educaflow.subsystem.expedientes.db.Expediente">
+        <view type="grid" name="sysVentanilla.Pendiente@Expediente-grid"/>
+        <domain>self.abierto=true AND self.centro.id IN (SELECT cu.centro.id FROM CentroUsuario cu WHERE cu.usuario.id = :usuarioId)</domain>
+        <context name="_profile" expr="CREADOR"/>
+        <context name="usuarioId" expr="eval: __user__?.id"/>
     </action-view>
 
-    <grid name="subsysExpedientes.Expediente@Firma-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
+    <grid name="sysVentanilla.Pendiente@Expediente-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
           groups="admins,users"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
           action="subsysTramitador-event-view-action"
@@ -21,5 +22,13 @@
         <field name="nameState" width="200px"/>
         <field name="fechaUltimoEstado" width="150px" />
     </grid>
+
+    <?sv-primary-actions?>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
 
 </object-views>

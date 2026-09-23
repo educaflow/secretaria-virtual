@@ -3,15 +3,15 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-
-    <action-view name="subsysExpedientes.Expediente@Pendiente-action" title="Listado de expedientes pendientes de que realices la tarea"  model="com.educaflow.subsystem.expedientes.db.Expediente">
-        <view type="grid" name="subsysExpedientes.Expediente@Pendiente-grid"/>
-        <domain>self.abierto=true AND self.centro.id IN (SELECT cu.centro.id FROM CentroUsuario cu WHERE cu.usuario.id = :usuarioId)</domain>
-        <context name="_profile" expr="CREADOR"/>
-        <context name="usuarioId" expr="eval: __user__?.id"/>
+    <?sv-view?>
+    <action-view name="sysVentanilla.Revision@Expediente-action" title="Anulaciones de matrícula de mi centro" model="com.educaflow.subsystem.expedientes.db.Expediente">
+        <view type="grid" name="sysVentanilla.Revision@Expediente-grid"/>
+        <domain>self.id IN (:expedientesConPerfil)</domain>
+        <context name="_profile" expr="SECRETARIO"/>
+        <context name="expedientesConPerfil" expr="call:com.educaflow.system.ventanilla.controller.BandejaPorPerfilController:idsExpedientesConPerfil('SECRETARIO','AnulacionMatriculaCicloFormativo')"/>
     </action-view>
 
-    <grid name="subsysExpedientes.Expediente@Pendiente-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
+    <grid name="sysVentanilla.Revision@Expediente-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
           groups="admins,users"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
           action="subsysTramitador-event-view-action"
@@ -23,11 +23,12 @@
         <field name="fechaUltimoEstado" width="150px" />
     </grid>
 
+    <?sv-primary-actions?>
 
+    <?sv-validations?>
 
+    <?sv-rules?>
 
-
-
-
+    <?sv-remotes?>
 
 </object-views>

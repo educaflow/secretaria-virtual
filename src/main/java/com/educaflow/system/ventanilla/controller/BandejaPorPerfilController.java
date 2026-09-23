@@ -1,4 +1,4 @@
-package com.educaflow.system.expedientes.controller;
+package com.educaflow.system.ventanilla.controller;
 
 import com.axelor.auth.db.User;
 import com.axelor.db.JPA;

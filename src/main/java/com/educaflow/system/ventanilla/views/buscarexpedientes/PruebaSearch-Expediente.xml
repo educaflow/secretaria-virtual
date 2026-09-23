@@ -3,33 +3,28 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
-
-    <action-view name="subsysExpedientes.Expediente@PruebaSearch-action" title="Prueba de Búsqueda">
-        <view type="dashboard" name="subsysExpedientes.Expediente@PruebaSearch-dashboard"/>
+    <?sv-view?>
+    <action-view name="sysVentanilla.PruebaSearch@Expediente-action" title="Prueba de Búsqueda">
+        <view type="dashboard" name="sysVentanilla.PruebaSearch@Expediente-dashboard"/>
     </action-view>
 
-    <dashboard name="subsysExpedientes.Expediente@PruebaSearch-dashboard" title="Expedientes" onInit="subsysExpedientes.Expediente@PruebaSearch-onInit-action"  searchModel="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
+    <dashboard name="sysVentanilla.PruebaSearch@Expediente-dashboard" title="Expedientes" onInit="sysVentanilla.PruebaSearch@Expediente-onInit-action" searchModel="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
         <search-fields>
             <field name="estado" widget="boolean-radio" x-true-text="Abierto" x-false-text="Cerrado" />
             <field name="anyo" type="integer" title="Año" />
         </search-fields>
 
-        <dashlet   action="subsysExpedientes.Expediente@PruebaSearch-buscar-action"/>
+        <dashlet action="sysVentanilla.PruebaSearch@Expediente-buscar-action"/>
     </dashboard>
 
-
-    <action-view name="subsysExpedientes.Expediente@PruebaSearch-buscar-action" title="Buscando expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente">
-        <view type="tree" name="subsysExpedientes.Expediente@PruebaSearch-buscar-tree"/>
+    <action-view name="sysVentanilla.PruebaSearch@Expediente-buscar-action" title="Buscando expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente">
+        <view type="tree" name="sysVentanilla.PruebaSearch@Expediente-buscar-tree"/>
         <context name="_profile" expr="TRAMITADOR"/>
         <context name="usuarioId" expr="eval: __user__?.id"/>
         <context name="esAdministrador" expr="eval: __user__?.group?.code == 'admins'"/>
     </action-view>
 
-
-
-
-
-    <tree name="subsysExpedientes.Expediente@PruebaSearch-buscar-tree" title="Expedientes">
+    <tree name="sysVentanilla.PruebaSearch@Expediente-buscar-tree" title="Expedientes">
 
         <column name="name"  title="Nombre"/>
         <column name="numeroExpediente" width="100px" title="Número Expediente"/>
@@ -37,7 +32,6 @@
         <column name="namePhase" width="15%" title="Fase"/>
         <column name="nameState" width="30%" title="Estado"/>
         <column name="fechaUltimoEstado" type="date" width="100px" title="Fecha"/>
-
 
         <node model="com.educaflow.subsystem.expedientes.db.Tramite" domain="EXISTS (SELECT 1 FROM Expediente e WHERE e.abierto=:estado and ((:anyo is null) OR (:anyo=0) OR (YEAR(e.fechaUltimoEstado)=:anyo)) AND (e.centro.id IN (SELECT cu.centro.id FROM CentroUsuario cu WHERE cu.usuario.id = :usuarioId) OR :esAdministrador = true) AND e.tipoExpediente.tramite=self)" >
             <field name="name" as="name"/>
@@ -54,20 +48,24 @@
 
     </tree>
 
-    <action-group name="subsysExpedientes.Expediente@PruebaSearch-onInit-action" model="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
-        <action name="subsysExpedientes.Expediente@PruebaSearch-estado-true-action"/>
-        <action name="subsysExpedientes.Expediente@PruebaSearch-anyo-ahora-action"/>
+    <?sv-primary-actions?>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+    <action-group name="sysVentanilla.PruebaSearch@Expediente-onInit-action" model="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
+        <action name="sysVentanilla.PruebaSearch@Expediente-estado-true-action"/>
+        <action name="sysVentanilla.PruebaSearch@Expediente-anyo-ahora-action"/>
     </action-group>
 
-    <action-record name="subsysExpedientes.Expediente@PruebaSearch-estado-true-action" model="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
+    <action-record name="sysVentanilla.PruebaSearch@Expediente-estado-true-action" model="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
         <field name="estado" expr="eval: true" />
     </action-record>
 
-    <action-record name="subsysExpedientes.Expediente@PruebaSearch-anyo-ahora-action" model="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
+    <action-record name="sysVentanilla.PruebaSearch@Expediente-anyo-ahora-action" model="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
         <field name="anyo" expr="eval: java.time.Year.now().value" />
     </action-record>
 
-
-
+    <?sv-remotes?>
 
 </object-views>

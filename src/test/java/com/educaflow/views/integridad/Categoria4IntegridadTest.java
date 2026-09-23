@@ -90,8 +90,7 @@ class Categoria4IntegridadTest {
             try (Stream<Path> walk = Files.walk(baseEducaflow())) {
                 for (Path p : walk.filter(Files::isRegularFile)
                         .filter(x -> x.getFileName().toString().endsWith(".xml"))
-                        .filter(x -> x.getParent() != null
-                                && "views".equals(x.getParent().getFileName().toString()))
+                        .filter(Categoria4IntegridadTest::underViewsFolder)
                         .sorted().toList()) {
                     if (!yaParseados.contains(p.toAbsolutePath().normalize())) {
                         docs.add(parse(p)); // fichero de un paquete exento
@@ -104,6 +103,26 @@ class Categoria4IntegridadTest {
             docsAmbitoCache = docs;
         }
         return docsAmbitoCache;
+    }
+
+    /**
+     * true si el fichero cuelga de una carpeta "views" en cualquier nivel de profundidad (no solo
+     * como hijo directo): Axelor descubre las vistas con {@code MetaScanner.findAll(module, "views",
+     * "(.*?)\\.xml")}, un patrón de classpath cuyo {@code .*?} también matchea subcarpetas
+     * (p.ej. {@code views/nuevoexpediente/X.xml}), así que el ámbito de resolución debe reconocer
+     * el mismo discriminador que {@code support/ViewFiles#underViewsFolder}.
+     */
+    private static boolean underViewsFolder(Path p) {
+        Path parent = p.getParent();
+        if (parent == null) {
+            return false;
+        }
+        for (Path segment : parent) {
+            if ("views".equals(segment.toString())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Parseo con la misma configuración segura y sin namespaces que el soporte. */

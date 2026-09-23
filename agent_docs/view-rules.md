@@ -27,7 +27,9 @@ Si un fichero real viola una regla, es un **bug del XML**, NO una excepción a l
 - **Ejemplos:** cada regla incluye un **Correcto** ✅ y un **Incorrecto** ❌, como fragmentos mínimos (solo lo relevante para la regla).
 - **Ámbito de análisis:** los ficheros `src/main/java/com/educaflow/system/<x>/views/*.xml`, `src/main/java/com/educaflow/subsystem/<x>/views/*.xml` y `src/main/java/com/educaflow/secretariavirtual/menus/menus.xml`.
 
-- **Paquetes exentos:** las reglas aplican a **todos los sistemas y subsistemas EXCEPTO `gestioncentro`, `expedientes` y `tramites`** (framework propio de expediente/tramitación), que quedan **fuera del sujeto** de todas las reglas.
+- **Paquetes exentos:** las reglas aplican a **todos los sistemas y subsistemas EXCEPTO `gestioncentro`, `expedientes`, `tramites` y `ventanilla`**, que quedan **fuera del sujeto** de todas las reglas.
+  `gestioncentro`, `expedientes` y `tramites` quedan exentos por ser framework propio de expediente/tramitación.
+  `ventanilla` queda exenta porque su asistente «Nuevo expediente» necesita un grid/tree embebido con escritura real hacia el form contenedor — el único mecanismo de Axelor que lo consigue es un `<action-view>` dentro de un `<panel-dashlet>`, que estas reglas no contemplan (p.ej. `VAR-3.2` prohíbe el `<action-view>` fuera del bloque maestro).
 
 ## Glosario de términos
 

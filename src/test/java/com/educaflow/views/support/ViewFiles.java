@@ -27,19 +27,21 @@ import java.util.stream.Stream;
  * menus.xml, DefaultModelController.xml y las views.xml de los tipos de expediente).
  *
  * <p>Se excluyen los paquetes exentos ({@code gestioncentro}, {@code expedientes},
- * {@code tramites}), con la misma política que
+ * {@code tramites}, {@code ventanilla}), con la misma política que
  * agent_docs/view-rules.md (§ Paquetes exentos).
  */
 public final class ViewFiles {
 
     /**
      * Segmentos de ruta exentos. Las reglas de vistas aplican a TODOS los sistemas y subsistemas
-     * EXCEPTO {@code gestioncentro}, {@code expedientes} y {@code tramites}
-     * (framework propio de expediente/tramitación y pantallas de gestión de centro), que quedan fuera
-     * del sujeto de todas las reglas. Debe coincidir con la lista de agent_docs/view-rules.md.
+     * EXCEPTO {@code gestioncentro}, {@code expedientes}, {@code tramites} y {@code ventanilla}
+     * (framework propio de expediente/tramitación, pantallas de gestión de centro, y el asistente
+     * de ventanilla que necesita un action-view en bloque de detalle para su grid/tree embebido),
+     * que quedan fuera del sujeto de todas las reglas. Debe coincidir con la lista de
+     * agent_docs/view-rules.md.
      */
     private static final List<String> PAQUETES_EXENTOS =
-            List.of("gestioncentro", "expedientes", "tramites");
+            List.of("gestioncentro", "expedientes", "tramites", "ventanilla");
 
     private static List<ViewFile> cache;
     private static Document menusCache;
@@ -63,7 +65,7 @@ public final class ViewFiles {
             List<Path> xmls = walk
                     .filter(Files::isRegularFile)
                     .filter(p -> p.getFileName().toString().endsWith(".xml"))
-                    .filter(p -> p.getParent() != null && p.getParent().getFileName().toString().equals("views"))
+                    .filter(ViewFiles::underViewsFolder)
                     .filter(ViewFiles::notExempt)
                     .sorted()
                     .toList();
@@ -78,6 +80,26 @@ public final class ViewFiles {
                     + " (¿directorio de trabajo incorrecto?)");
         }
         return result;
+    }
+
+    /**
+     * true si el fichero cuelga de una carpeta "views" en cualquier nivel de profundidad (no solo
+     * como hijo directo): Axelor descubre las vistas con {@code MetaScanner.findAll(module, "views",
+     * "(.*?)\\.xml")}, un patrón de classpath cuyo {@code .*?} también matchea subcarpetas
+     * (p.ej. {@code views/nuevoexpediente/X.xml}), así que el discriminador de test debe ser el
+     * mismo: "views" como ancestro, no como padre inmediato.
+     */
+    private static boolean underViewsFolder(Path p) {
+        Path parent = p.getParent();
+        if (parent == null) {
+            return false;
+        }
+        for (Path segment : parent) {
+            if ("views".equals(segment.toString())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean notExempt(Path p) {

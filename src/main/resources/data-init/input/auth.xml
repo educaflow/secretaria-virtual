@@ -79,12 +79,6 @@
   <permission name="SearchExpedientes.all" object="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
-  <!-- NuevoExpediente.all lo DEFINE system/expedientes/data-init/input/auth-expedientes.xml, que es
-       el data-init del sistema dueño. Aquí solo se referencia por nombre dentro de los grupos.
-       MUST NOT volver a definirlo: este data-init global tiene priority="-1" y
-       DataLoader.sortDataInitByPriority ordena descendente, así que se carga DESPUÉS del de
-       expedientes (priority="10") y su <can> sobrescribiría al de allí, reabriendo el permiso. -->
-
   <!-- Firmas -->
   <permission name="TareaFirma.all" object="com.educaflow.subsystem.firmas.db.TareaFirma">
     <can create="true" read="true" write="true" remove="true" export="true"/>
@@ -189,7 +183,6 @@
     <permission name="TipoTramite.all"/>
     <permission name="FormacionCentroTrabajo.all"/>
     <permission name="SearchExpedientes.all"/>
-    <permission name="NuevoExpediente.all"/>
     <permission name="AsistenteNuevoExpediente.all"/>
     <permission name="TareaFirma.all"/>
     <permission name="DocumentoFirma.all"/>
@@ -250,7 +243,6 @@
     <permission name="TipoTramite.leer"/>
     <permission name="FormacionCentroTrabajo.all"/>
     <permission name="SearchExpedientes.all"/>
-    <permission name="NuevoExpediente.all"/>
     <permission name="AsistenteNuevoExpediente.all"/>
     <permission name="TareaFirma.firmante"/>
     <permission name="DocumentoFirma.propio"/>
