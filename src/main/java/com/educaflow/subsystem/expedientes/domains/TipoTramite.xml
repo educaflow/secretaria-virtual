@@ -7,6 +7,6 @@
         <string name="code"  />
         <string name="name" namecolumn="true" translatable="true" />
         <many-to-one name="tipoUsuario" ref="com.educaflow.subsystem.common.db.TipoUsuario" title="Tipo de usuario" />
-        <many-to-one name="unidadTramitadora" ref="UnidadTramitadora" title="Unidad tramitadora" />
+        <many-to-one name="unidadTramitadora" ref="UnidadTramitadora" title="Unidad tramitadora__!!" />
     </entity>
 </domain-models>
