@@ -82,3 +82,48 @@ data class NotEqualTo<T>(val anotherField: KFunction<T?>) : ValidationRule {
         else BusinessMessages.single("El valor no debe ser igual a $anotherValue")
     }
 }
+
+/**
+ * El valor no puede ser menor que [min]. Vale para cualquier `Comparable` (enteros, decimales, fechas, horas…):
+ *
+ *     +MinValue(0)
+ *     +MinValue(LocalDate.now(Convert.defaultZoneId).minusYears(1))
+ *
+ * Un valor nulo se da por válido: la obligatoriedad la pone `Required`.
+ */
+data class MinValue<T : Comparable<T>>(val min: T) : ValidationRule {
+
+    override fun validate(value: Any?, bean: Any): BusinessMessages? {
+        if (value == null) {
+            return null
+        }
+        if (value is Comparable<*>) {
+            @Suppress("UNCHECKED_CAST")
+            val comparableValue = value as T
+            return if (comparableValue.compareTo(min) < 0) BusinessMessages.single("Debe tener como mínimo el valor de $min pero tiene el valor $value") else null
+        }
+        return null
+    }
+}
+
+/**
+ * El valor no puede ser mayor que [max]. Vale para cualquier `Comparable` (enteros, decimales, fechas, horas…):
+ *
+ *     +MaxValue(LocalDate.now().year)
+ *
+ * Un valor nulo se da por válido: la obligatoriedad la pone `Required`.
+ */
+data class MaxValue<T : Comparable<T>>(val max: T) : ValidationRule {
+
+    override fun validate(value: Any?, bean: Any): BusinessMessages? {
+        if (value == null) {
+            return null
+        }
+        if (value is Comparable<*>) {
+            @Suppress("UNCHECKED_CAST")
+            val comparableValue = value as T
+            return if (comparableValue.compareTo(max) > 0) BusinessMessages.single("Debe tener como máximo el valor de $max pero tiene el valor $value") else null
+        }
+        return null
+    }
+}
