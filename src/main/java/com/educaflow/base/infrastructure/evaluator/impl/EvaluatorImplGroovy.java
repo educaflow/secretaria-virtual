@@ -15,12 +15,7 @@ public class EvaluatorImplGroovy implements Evaluator {
         Map<String,Object> results = new HashMap<>();
         StringBuilder errores = new StringBuilder();
 
-        Binding binding = new Binding();
-        for(Map.Entry<String,Object> entry : context.entrySet()) {
-            binding.setVariable(entry.getKey(), entry.getValue());
-        }
-
-        GroovyShell shell = new GroovyShell(binding);
+        GroovyShell shell = createShell(context);
 
         for (String expression : expressions) {
 
@@ -45,6 +40,35 @@ public class EvaluatorImplGroovy implements Evaluator {
         }
 
         return results;
+    }
+
+    @Override
+    public Map<String, Object> evaluateStrict(List<String> expressions, Map<String, Object> context) {
+        Map<String, Object> results = new HashMap<>();
+
+        GroovyShell shell = createShell(context);
+
+        for (String expression : expressions) {
+            if (expression == null || expression.isBlank()) {
+                continue;
+            }
+            try {
+                results.put(expression, shell.evaluate(expression));
+            } catch (Exception e) {
+                throw new RuntimeException("Error evaluando la expresión '" + expression + "': " + e.getMessage(), e);
+            }
+        }
+
+        return results;
+    }
+
+    private GroovyShell createShell(Map<String, Object> context) {
+        Binding binding = new Binding();
+        for (Map.Entry<String, Object> entry : context.entrySet()) {
+            binding.setVariable(entry.getKey(), entry.getValue());
+        }
+
+        return new GroovyShell(binding);
     }
 
 }

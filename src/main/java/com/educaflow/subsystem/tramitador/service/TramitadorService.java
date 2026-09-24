@@ -24,6 +24,7 @@ import com.google.inject.persist.Transactional;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class TramitadorService {
 
@@ -165,19 +166,22 @@ public class TramitadorService {
             return;
         }
 
-        if (getPerfilesSobreExpediente(expediente).contains(profileDelEstado)) {
+        Set<Profile> perfilesSobreExpediente = getPerfilesSobreExpediente(expediente);
+        if (perfilesSobreExpediente.contains(profileDelEstado)) {
             return;
         }
 
-        businessMessages.add(new BusinessMessage(I18n.get("No puede actuar sobre el expediente en su estado actual")));
+        businessMessages.add(new BusinessMessage(I18n.get("No puede actuar sobre el expediente en su estado actual. Se necesita el perfil %s y sus perfiles en el expediente son: %s").formatted(profileDelEstado.name(), getNombresPerfiles(perfilesSobreExpediente))));
     }
 
     private void validatePerfilDelUsuario(Expediente expediente, Profile profile, BusinessMessages businessMessages) {
-        if (profile != null && getPerfilesSobreExpediente(expediente).contains(profile)) {
+        Set<Profile> perfilesSobreExpediente = getPerfilesSobreExpediente(expediente);
+        if (profile != null && perfilesSobreExpediente.contains(profile)) {
             return;
         }
 
-        businessMessages.add(new BusinessMessage(I18n.get("No puede ver el expediente con ese perfil")));
+        String nombrePerfil = profile == null ? "" : profile.name();
+        businessMessages.add(new BusinessMessage(I18n.get("Necsitas el  perfil %s y sus perfiles en el expediente son: %s").formatted(nombrePerfil, getNombresPerfiles(perfilesSobreExpediente))));
     }
 
     private Set<Profile> getPerfilesSobreExpediente(Expediente expediente) {
@@ -186,6 +190,14 @@ public class TramitadorService {
         }
 
         return perfilesUsuarioService.getPerfilesSobreExpediente(expediente, SecurityUtil.getUser());
+    }
+
+
+    private String getNombresPerfiles(Set<Profile> perfiles) {
+        return perfiles.stream()
+                .map(Profile::name)
+                .sorted()
+                .collect(Collectors.joining(", "));
     }
 
 

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<documento>
+    <seccion>
+        <castellano>Primera</castellano>
+        <fila>
+            <texto colspan="12"><castellano>Antes</castellano></texto>
+            <check nombreCampo="true" colspan="12" visible="self.mostrar" siOculto="reservar"><castellano>Oculto</castellano></check>
+            <texto colspan="12"><castellano>Despues</castellano></texto>
+        </fila>
+        <fila>
+            <campo nombreCampo="self.nombre" colspan="6" visible="self.mostrar" siOculto="reservar"><castellano>Escondido</castellano></campo>
+            <campo nombreCampo="self.nombre" colspan="6"><castellano>Vecino</castellano></campo>
+        </fila>
+    </seccion>
+    <seccion visible="self.mostrar" siOculto="reservar">
+        <castellano>Condicional</castellano>
+        <fila>
+            <texto colspan="12"><castellano>Contenido</castellano></texto>
+        </fila>
+    </seccion>
+    <seccion>
+        <castellano>Final</castellano>
+        <fila>
+            <texto colspan="12"><castellano>Cierre</castellano></texto>
+        </fila>
+    </seccion>
+</documento>

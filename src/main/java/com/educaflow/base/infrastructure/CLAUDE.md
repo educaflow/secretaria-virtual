@@ -13,7 +13,8 @@ Clases completas y reutilizables en cualquier proyecto (no dependen del dominio 
 - `mapper` — Mapeo entre DTOs y entidades Axelor (`BeanMapperModel`) y comparación de colecciones de modelos.
 - `metafile` — Helper de alto nivel sobre `MetaFile` de Axelor (`MetaFileHelper`).
 - `numeradores` — Generación de números/secuencias persistentes (entidad `Numerador` y su repositorio).
-- `pdf` — Operaciones sobre PDF con iText: generación, campos de firma y firma digital.
+- `pdf` — Operaciones sobre PDF con iText: relleno de formularios, campos de firma y firma digital.
+- `pdfgenerator` — Dibujo en runtime del PDF plano de un documento a partir de su XML resuelto (iText): evalúa las expresiones y la visibilidad condicional (`visible`/`siOculto`) con el `evaluator`.
 - `validation` — DSL de validación de negocio: `BusinessMessages`/`BusinessException`, motor de reglas y mensajes.
 
 > Las utilidades de **bajo nivel** (sin estado, `static`) viven en `base.util`, no aquí.

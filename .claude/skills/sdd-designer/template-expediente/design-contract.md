@@ -323,7 +323,7 @@ Una fila por ítem:
 <![CDATA[
 
     public enum TipoDocumentoPdf {
-        <DOC>("/com/educaflow/tramites/<tramite>/<…>/<vN>/documentospdf/<doc>.pdf");
+        <DOC>("/com/educaflow/tramites/<tramite>/<…>/<vN>/documentospdf/<doc>.xml");
 
         private final String fileName;
 
@@ -365,7 +365,7 @@ Y una lista aparte de los **fragmentos** `documentospdf/_<fragmento>.xml` con qu
 
 Reglas:
 
-- **CRITICAL — la carpeta MUST llamarse `documentospdf`.** `documentos/` renderiza pero **no** se escanea para el enum: el documento queda muerto sin aviso. **MUST NOT** usarse.
+- **CRITICAL — la carpeta MUST llamarse `documentospdf`.** `documentos/` se resuelve pero **no** se escanea para el enum: el documento queda muerto sin aviso. **MUST NOT** usarse.
 - Los nombres de fichero **MUST** ir en `camelCase`, sin espacios ni guiones. Se convierten en la constante del enum (`UPPER_SNAKE_CASE`).
 - **MUST NOT** convivir un `<doc>.xml` y un `<doc>.pdf` con el mismo nombre: el build aborta por ambigüedad.
 - Un fichero cuyo nombre empieza por `_` es un **fragmento**: raíz `<fragmento>`, **no** genera PDF propio y **no** tiene constante.
@@ -512,7 +512,7 @@ El cuerpo del paso **MUST**:
 
 - `BUILD SUCCESSFUL`, con los tests de `com/educaflow/tiposexpedientes` y `com/educaflow/views` en verde (los ejecuta ese mismo build).
 - Que se regeneró `estados.png` (`GenerateDocs` va enganchada a `build` con `finalizedBy`).
-- **REQUIRED — comprobación en runtime**: navegar por **todos** los estados con usuarios de los perfiles adecuados. Los tests cubren la forma, no el comportamiento. En particular, lo que **nada** comprueba en build: `personaSolicitante`/`personaInteresada` (NPE al crear el registro de entrada), las **transiciones** del `.puml`, y de las expresiones Groovy de `documentospdf/` lo que depende de los datos —una relación a `null` en mitad de la cadena, un patrón de fecha inválido— (fallo silencioso: log + campo vacío; que las propiedades y los FQCN existan ya lo comprueba el test P1 en el build).
+- **REQUIRED — comprobación en runtime**: navegar por **todos** los estados con usuarios de los perfiles adecuados. Los tests cubren la forma, no el comportamiento. En particular, lo que **nada** comprueba en build: `personaSolicitante`/`personaInteresada` (NPE al crear el registro de entrada), las **transiciones** del `.puml`, y de las expresiones Groovy de `documentospdf/` lo que depende de los datos —una relación a `null` en mitad de la cadena, un patrón de fecha inválido— (en runtime el generador aborta el evento; lo que depende de un dato opcional se protege con `visible`; que las propiedades y los FQCN existan ya lo comprueba el test P1 en el build).
 
 ---
 

@@ -284,7 +284,7 @@ Este bloque se aplica **solo si** el tipo genera al menos un documento. Si no ge
 
 | ID | Qué se mira | Qué es fallo | Corrección esperada |
 |---|---|---|---|
-| **C-I01 (CRITICAL)** | El nombre de la carpeta | Es `documentos/` en vez de `documentospdf/` | Renombrarla. `documentos/` renderiza pero **no** se escanea para el enum: el documento queda muerto sin aviso |
+| **C-I01 (CRITICAL)** | El nombre de la carpeta | Es `documentos/` en vez de `documentospdf/` | Renombrarla. `documentos/` se resuelve pero **no** se escanea para el enum: el documento queda muerto sin aviso |
 | **C-I02** | Los nombres de fichero | No están en `camelCase`, o llevan espacios o guiones | Renombrarlos: se convierten en la constante del enum (`UPPER_SNAKE_CASE`) |
 | **C-I03** | Ambigüedad | Conviven un `<doc>.xml` y un `<doc>.pdf` con el mismo nombre base | Dejar uno: el build aborta por ambigüedad |
 | **C-I04** | La biyección enum ↔ ficheros | Una constante de `TipoDocumentoPdf` sin fichero en `documentospdf/`, o un `<doc>.xml` sin constante | Añadir o quitar la constante / el fichero, hasta que la correspondencia sea **uno a uno** |

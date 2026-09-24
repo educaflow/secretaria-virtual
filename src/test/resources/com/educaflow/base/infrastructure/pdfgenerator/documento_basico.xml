@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<documento>
+    <titulo>
+        <valenciano>Document de prova</valenciano>
+        <castellano>Documento de prueba</castellano>
+    </titulo>
+    <seccion>
+        <valenciano>Dades</valenciano>
+        <castellano>Datos</castellano>
+        <fila>
+            <campo nombreCampo="self.nombre" colspan="6">
+                <valenciano>Nom</valenciano>
+                <castellano>Nombre</castellano>
+            </campo>
+            <check nombreCampo="self.acepta" colspan="6">
+                <valenciano>Accepta</valenciano>
+                <castellano>Acepta</castellano>
+            </check>
+        </fila>
+        <fila>
+            <texto colspan="12">
+                <valenciano>Signat per ${self.nombre;3} a ${self.ciudad;2}</valenciano>
+                <castellano>Firmado por ${self.nombre;3} en ${self.ciudad;2}</castellano>
+            </texto>
+        </fila>
+    </seccion>
+</documento>

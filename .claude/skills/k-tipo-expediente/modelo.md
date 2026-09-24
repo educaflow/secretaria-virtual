@@ -81,7 +81,7 @@ Cada PDF que el expediente guarde es un `many-to-one` a `com.axelor.meta.db.Meta
 
 ## 5. `<extra-code-model>` — generado, no editar
 
-- **MUST NOT** editar ese bloque: `RichDomainXmlTask` lo reescribe en cada build con el enum `TipoDocumentoPdf` (una constante por cada `.pdf` de `documentospdf/`, generado o versionado) y el método `getDocumentoPdf(...)`.
+- **MUST NOT** editar ese bloque: `RichDomainXmlTask` lo reescribe en cada build con el enum `TipoDocumentoPdf` (una constante por cada documento de `documentospdf/`: la ruta de classpath del `.xml` resuelto si se define por XML, o del `.pdf` si está versionado) y el método `getDocumentoPdf(...)`.
 - Si el tipo no tiene PDFs, el bloque se escribe igualmente vacío.
 - La inyección del extra-code va en un try/catch que **avisa pero no detiene el build**: si falta `extends="Expediente"` te quedas sin enum `TipoDocumentoPdf` en silencio (salvo el aviso en el log).
 

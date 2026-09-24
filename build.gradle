@@ -255,8 +255,8 @@ tasks.register('managei18nfiles', JavaExec) {
 tasks.named('processResources') {
     finalizedBy 'managei18nfiles'
 }
-tasks.register('generatePdfDocuments', JavaExec) {
-    description = 'Genera los PDF de los documentos de los trámites (XML con raíz <documento> en carpetas documentospdf/documentos, sin prefijo "_") en build/src-gen/main/resources.'
+tasks.register('resolvePdfDocuments', JavaExec) {
+    description = 'Resuelve los XML de los documentos PDF de los trámites (raíz <documento> en carpetas documentospdf/documentos, sin prefijo "_"): includes expandidos, título del trámite y valenciano traducido, en build/src-gen/main/resources. El PDF lo dibuja la aplicación en runtime (base.infrastructure.pdfgenerator).'
     group = 'build'
 
     mainClass = 'com.educaflow.common.buildtools.xml2pdf.Main'
@@ -269,8 +269,8 @@ tasks.register('generatePdfDocuments', JavaExec) {
 
     // Entradas y salidas declaradas. Sin ellas Gradle no sabe que esta tarea escribe en
     // build/src-gen/main/resources, y con la vigilancia del sistema de ficheros (activa por
-    // defecto) su caché sigue creyendo que los PDF no han cambiado: processResources sale
-    // UP-TO-DATE y el classpath se queda con el PDF viejo, que es el que leen los tests de
+    // defecto) su caché sigue creyendo que los XML resueltos no han cambiado: processResources
+    // sale UP-TO-DATE y el classpath se queda con el XML viejo, que es el que leen los tests de
     // tiposexpedientes (ExpresionesDeDocumentoTest). Las entradas son lo que lee xml2pdf: los
     // XML y fragmentos de documentospdf/ y el TramiteInstance.xml (su <name> titula los
     // documentos sin <titulo>).
@@ -279,10 +279,10 @@ tasks.register('generatePdfDocuments', JavaExec) {
     outputs.dir(layout.buildDirectory.dir('src-gen/main/resources/' + paqueteRaizTramites.replace('.', '/')))
 }
 // dependsOn (no finalizedBy): build/src-gen/main/resources es un srcDir de
-// recursos, así que los PDF deben existir ANTES de que processResources los
-// copie a build/resources/main.
+// recursos, así que los XML resueltos deben existir ANTES de que processResources
+// los copie a build/resources/main.
 tasks.named('processResources') {
-    dependsOn 'generatePdfDocuments'
+    dependsOn 'resolvePdfDocuments'
 }
 tasks.register('copyDataInit') {
     description = 'Copia las carpetas "data-init" (las que contienen input-config.xml) y su subcarpeta input de cada expediente.'
@@ -329,16 +329,16 @@ tasks.named('build') {
     finalizedBy 'copyDomain'
 }
 
-tasks.register('copySQL', Copy) {
-    description = 'Copia los ficheros SQL de src/main/java a resources, preservando la estructura.'
-    group = 'build'
-
-    from('src/main/java') { include '**/*.sql' }
-    into 'build/resources/main'
-    includeEmptyDirs = false
-}
-tasks.named('build') {
-    finalizedBy 'copySQL'
+// Recursos que viven en src/main/java junto al código que los usa: se copian al classpath
+// conservando su ruta. Es una lista blanca a propósito: los XML y CSV NO pueden entrar en bruto,
+// porque Axelor carga por coincidencia parcial de ruta cualquier .../views/*.xml, .../domains/*.xml,
+// .../i18n/*.csv o .../data-init/... del classpath (los cargaría sin preprocesar o dos veces), y los
+// XML de documentospdf/ chocarían con los resueltos por resolvePdfDocuments, que tienen la misma ruta.
+// Para que otro tipo de fichero acabe en el WAR basta con añadir su extensión aquí.
+tasks.named('processResources') {
+    from('src/main/java') {
+        include '**/*.ttf', '**/*.png', '**/*.pdf', '**/*.xsd', '**/*.sql'
+    }
 }
 
 
@@ -374,30 +374,6 @@ tasks.register('generateDataInitTramites', JavaExec) {
 tasks.named('build') {
     finalizedBy 'generateDataInitTramites'
 }
-tasks.register('copiarPdf', Copy) {
-    description = 'Copia los ficheros PDF de src/main/java a resources, preservando la estructura.'
-    group = 'build'
-
-    from('src/main/java') { include '**/*.pdf' }
-    into 'build/resources/main'
-    includeEmptyDirs = false
-}
-tasks.named('build') {
-    finalizedBy 'copiarPdf'
-}
-
-tasks.register('copiarXsd', Copy) {
-    description = 'Copia los ficheros XSD de src/main/java a resources, preservando la estructura.'
-    group = 'build'
-
-    from('src/main/java') { include '**/*.xsd' }
-    into 'build/resources/main'
-    includeEmptyDirs = false
-}
-tasks.named('build') {
-    finalizedBy 'copiarXsd'
-}
-
 tasks.register('RichDomainClassTask', JavaExec) {
     description = 'Ejecuta una clase Java desde un JAR externo para añadir código al modelo con los enumerados de estados, eventos y profiles.'
     group = 'build'

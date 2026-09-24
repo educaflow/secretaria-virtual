@@ -10,17 +10,17 @@
             <texto colspan="12">
                 <castellano>No ha podido impartir las siguientes horas</castellano>
             </texto>
-            <check nombreCampo="self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.UN_DIA_COMPLETO" colspan="12">
-                <castellano>El día ${self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.UN_DIA_COMPLETO ? self.fechaInicio : null;1.5}</castellano>
+            <check nombreCampo="true" colspan="12" visible="self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.UN_DIA_COMPLETO">
+                <castellano>El día ${self.fechaInicio;1.5}</castellano>
             </check>
-            <check nombreCampo="self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.VARIOS_DIAS_COMPLETOS" colspan="12">
-                <castellano>Desde el ${self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.VARIOS_DIAS_COMPLETOS ? self.fechaInicio : null;1.5} hasta el ${self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.VARIOS_DIAS_COMPLETOS ? self.fechaFin : null;1.5}</castellano>
+            <check nombreCampo="true" colspan="12" visible="self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.VARIOS_DIAS_COMPLETOS">
+                <castellano>Desde el ${self.fechaInicio;1.5} hasta el ${self.fechaFin;1.5}</castellano>
             </check>
-            <check nombreCampo="self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.UNAS_HORAS_UN_DIA" colspan="12">
-                <castellano>El día ${self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.UNAS_HORAS_UN_DIA ? self.fechaInicio : null;1.5}, de ${self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.UNAS_HORAS_UN_DIA ? self.horaInicio : null;0.6} a ${self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.UNAS_HORAS_UN_DIA ? self.horaFin : null;0.6} horas</castellano>
+            <check nombreCampo="true" colspan="12" visible="self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.UNAS_HORAS_UN_DIA">
+                <castellano>El día ${self.fechaInicio;1.5}, de ${self.horaInicio;0.6} a ${self.horaFin;0.6} horas</castellano>
             </check>
-            <check nombreCampo="self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.VARIOS_DIAS_PRIMERO_PARCIAL" colspan="12">
-                <castellano>El día ${self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.VARIOS_DIAS_PRIMERO_PARCIAL ? self.fechaInicio : null;1.5} desde las ${self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.VARIOS_DIAS_PRIMERO_PARCIAL ? self.horaInicio : null;0.6} horas, hasta el ${self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.VARIOS_DIAS_PRIMERO_PARCIAL ? self.fechaFin : null;1.5}</castellano>
+            <check nombreCampo="true" colspan="12" visible="self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.VARIOS_DIAS_PRIMERO_PARCIAL">
+                <castellano>El día ${self.fechaInicio;1.5} desde las ${self.horaInicio;0.6} horas, hasta el ${self.fechaFin;1.5}</castellano>
             </check>
         </fila>
         <fila>

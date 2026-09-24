@@ -55,8 +55,8 @@
         <![CDATA[
 
             public enum TipoDocumentoPdf {
-                SOLICITUD("/com/educaflow/tramites/alumnos/anulacion_matricula_ciclo_formativo/v1/documentospdf/solicitud.pdf"),
-                RESOLUCION("/com/educaflow/tramites/alumnos/anulacion_matricula_ciclo_formativo/v1/documentospdf/resolucion.pdf");
+                SOLICITUD("/com/educaflow/tramites/alumnos/anulacion_matricula_ciclo_formativo/v1/documentospdf/solicitud.xml"),
+                RESOLUCION("/com/educaflow/tramites/alumnos/anulacion_matricula_ciclo_formativo/v1/documentospdf/resolucion.xml");
 
                 private final String fileName;
 

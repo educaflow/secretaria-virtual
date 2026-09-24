@@ -33,7 +33,7 @@ RUN apt-get update && apt-get install -y tzdata \
 # apertium, pero el modo spa-cat_valencia los invoca en su pipeline: sin ellos
 # apertium no traduce NADA y escribe "cg-proc: command not found", que la build
 # tool toma por traducción válida (no lleva '*') y acaba colándose en los PDF, o
-# haciendo fallar :generatePdfDocuments al perder los campos inline ${...}.
+# haciendo fallar :resolvePdfDocuments al perder los campos inline ${...}.
 RUN apt-get update && apt-get install -y \
     git \
     maven \

@@ -62,7 +62,7 @@ sed -i -e "s/<Code>V1/<Code>V2/g" \
 
 | Sustitución | Dónde aparece |
 |---|---|
-| `<Code>V1` → `<Code>V2` | `domains.xml` (entity + **todos los enums** y sus `ref`), el `InitialEventManagerImpl.java` de la raíz (entidad, tanto en el `implements InitialEventManager<…>` como en el parámetro), el `PhaseEventManagerImpl.java` **de cada fase** (entidad, repositorio, imports de enums), el `StateEventValidatorImpl.kt` **de cada fase** (imports), el `views.xml` de la raíz (form plantilla, `model`, grids/forms de hijos) y los de cada fase (`action-method` y su referencia en el botón), `documentospdf/*.xml` (**expresiones Groovy de los checks con FQCN de enum**) |
+| `<Code>V1` → `<Code>V2` | `domains.xml` (entity + **todos los enums** y sus `ref`), el `InitialEventManagerImpl.java` de la raíz (entidad, tanto en el `implements InitialEventManager<…>` como en el parámetro), el `PhaseEventManagerImpl.java` **de cada fase** (entidad, repositorio, imports de enums), el `StateEventValidatorImpl.kt` **de cada fase** (imports), el `views.xml` de la raíz (form plantilla, `model`, grids/forms de hijos) y los de cada fase (`action-method` y su referencia en el botón), `documentospdf/*.xml` (**expresiones Groovy con FQCN de enum: `nombreCampo`, inline y `visible`**) |
 | paquete `$PKG_ORIGEN` → `$PKG_DESTINO` | línea `package` de cada `.java` y `.kt` (incluido el `InitialEventManagerImpl.java` de la raíz), y el **`import <…>.States`** de cada `PhaseEventManagerImpl` |
 | ruta `/$ORIGEN/` → `/$DESTINO/` | `<extra-code-model>` de `domains.xml` (se regeneraría igualmente, pero así queda coherente) |
 
