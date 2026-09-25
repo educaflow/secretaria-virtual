@@ -907,6 +907,7 @@ Quedan **exentos de `VAR-10.1`, `VAR-10.2` y `VAR-10.4`**, que son las reglas de
   Para que cada menú tenga identificador, texto visible y posición explícita (sin depender del orden de aparición),
   y esté siempre restringido explícitamente a un público (administradores, usuarios o ambos) sin quedar visible para cualquiera por olvido;
   los valores de `groups` se fijan a una forma canónica única para poder testearlos y compararlos.
+  La visibilidad por cargo o tipo de usuario **no** se expresa en `groups`: va en el atributo `if`, como llamada al bean de gorras `__config__.menu.<isGorra>()` (ver `k-vistas/menus.md` → «Visibilidad por gorra»); un contador de pendientes se declara con `tag-count="true"` en una hoja con `action`.
 **Verificación.**
   Sujeto: cada `<menuitem>`.
   Condición:
@@ -936,7 +937,7 @@ Quedan **exentos de `VAR-10.1`, `VAR-10.2` y `VAR-10.4`**, que son las reglas de
   Sujeto: cada `<menuitem>` de los dos ficheros de menús (y el texto de cada fichero).
   Condición:
     (a) no hay dos `<menuitem>` en la misma línea ni un `<menuitem>` partido en varias líneas;
-    (b) los atributos presentes respetan el orden relativo `name, parent, title, action, icon, groups, if, order` y se separan con un único espacio (sin espacios extra de alineación);
+    (b) los atributos presentes respetan el orden relativo `name, parent, title, action, tag-count, tag-count-hide-at-zero, icon, groups, if, order` y se separan con un único espacio (sin espacios extra de alineación);
     (c) sangría = 4 × (profundidad de `parent`).
 
 **Correcto** ✅
@@ -945,7 +946,7 @@ Quedan **exentos de `VAR-10.1`, `VAR-10.2` y `VAR-10.4`**, que son las reglas de
     <menuitem name="sistemaEducativo-ciclos-menuitem" parent="sistemaEducativo-menuitem" title="Ciclos" action="…" groups="admins" order="2"/>
     <menuitem name="sistemaEducativo-cursos-menuitem" parent="sistemaEducativo-menuitem" title="Cursos" action="…" groups="admins" order="3"/>
 ```
-**Incorrecto** ❌ — `<menuitem …/><menuitem …/>` en una sola línea; `<menuitem name="…" order="1" title="…" parent="…"/>` (order y title fuera de sitio); `<menuitem name="x-menuitem"    parent="y-menuitem"…` (alineado en columnas); o la hoja `sistemaEducativo-ciclos-menuitem` sin sangría, al mismo nivel que su raíz
+**Incorrecto** ❌ — `<menuitem …/><menuitem …/>` en una sola línea; `<menuitem name="…" order="1" title="…" parent="…"/>` (order y title fuera de sitio); `… tag-count-hide-at-zero="true" tag-count="true" …` o `… groups="…" tag-count="true" …` (contador fuera de sitio); `<menuitem name="x-menuitem"    parent="y-menuitem"…` (alineado en columnas); o la hoja `sistemaEducativo-ciclos-menuitem` sin sangría, al mismo nivel que su raíz
 
 ## VAR-10.4 — Naming `-menuitem`
 **Decisión.**
@@ -972,6 +973,19 @@ Quedan **exentos de `VAR-10.1`, `VAR-10.2` y `VAR-10.4`**, que son las reglas de
 
 **Correcto** ✅ — en `hide-menus.xml`: `<menuitem id="secretariaVirtual-hide-menu-dms" name="menu-dms" title="Documents__!!" hidden="true"/>`
 **Incorrecto** ❌ — en `hide-menus.xml`, `<menuitem name="menu-dms" title="Documents__!!" hidden="true"/>` (sin `id`: no llega a ocultar nada), `<menuitem id="hide-menu-dms" …/>` (el `id` no empieza por `secretariaVirtual-`) o un menú normal con `action` y sin `hidden`; y en `menus.xml`, cualquier `<menuitem>` con `hidden="true"`
+
+## VAR-10.6 — `tag-count` lleva siempre `tag-count-hide-at-zero` explícito
+**Decisión.**
+  Para que mostrar u ocultar el contador cuando vale 0 sea una decisión tomada en cada menú y no un olvido: sin el atributo, el fork de AOP muestra el 0.
+  `tag-count-hide-at-zero` solo tiene sentido si hay contador, así que tampoco puede aparecer sin `tag-count="true"`.
+**Verificación.**
+  Sujeto: cada `<menuitem>`.
+  Condición:
+    (a) si tiene `tag-count="true"` ⇒ tiene `tag-count-hide-at-zero` con valor **exactamente** `true` o `false`;
+    (b) si tiene `tag-count-hide-at-zero` ⇒ tiene `tag-count="true"`.
+
+**Correcto** ✅ — `<menuitem name="firmas-pendientes-menuitem" parent="firmas-menuitem" title="Pendientes" action="…" tag-count="true" tag-count-hide-at-zero="true" groups="admins,users" order="1"/>`, o lo mismo con `tag-count-hide-at-zero="false"`
+**Incorrecto** ❌ — `tag-count="true"` sin `tag-count-hide-at-zero`; `tag-count-hide-at-zero="si"` (valor no permitido); `tag-count-hide-at-zero="true"` sin `tag-count="true"`
 
 ---
 

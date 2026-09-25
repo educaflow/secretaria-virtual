@@ -48,7 +48,9 @@ Cómo funciona: `ViewLoader.importMenu` busca la `MetaMenu` por `(name, module)`
 | `action`  | Nombre de la `action-view` que se abre al pulsar                                                                                                          | No (solo menuitems hoja) |
 | `icon`    | Icono del menuitem                                                                                                                                        | No                       |
 | `groups`  | Grupos que ven el menuitem: **obligatorio** y **exactamente** `admins`, `admins,users` o `users` (no otros roles ni `users,admins`) | Sí |
-| `if`      | Expresión condicional de visibilidad                                                                                                                      | No                       |
+| `if`      | Condición de visibilidad por **gorra** del usuario (cargo, tipo de usuario, perfil): `__config__.menu.<isGorra>()`. Ver «Visibilidad por gorra» | No                       |
+| `tag-count` | `true` pinta junto al menú el número de filas que devuelve el `<domain>` de su `action-view` (contador de pendientes). Solo en hojas con `action` | No                       |
+| `tag-count-hide-at-zero` | `true` oculta el contador cuando vale 0; `false` lo muestra. Solo junto a `tag-count="true"` | Sí, si hay `tag-count="true"` |
 
 ### Reglas
 
@@ -59,7 +61,7 @@ Cómo funciona: `ViewLoader.importMenu` busca la `MetaMenu` por `(name, module)`
 ### Formato del XML
 
 - **MUST** escribir cada `<menuitem>` en **una única línea**, sin saltos de línea entre atributos.
-- **MUST** escribir los atributos siempre en este orden: `name`, `parent`, `title`, `action`, `icon`, `groups`, `if`, `order` — con `order` **SIEMPRE** al final. Los atributos que no apliquen se omiten sin alterar el orden del resto.
+- **MUST** escribir los atributos siempre en este orden: `name`, `parent`, `title`, `action`, `icon`, `groups`, `if`, `order` — con `order` **SIEMPRE** al final. Los atributos que no apliquen se omiten sin alterar el orden del resto. `tag-count` y `tag-count-hide-at-zero` no están en esa lista: van justo después de `action`, en ese orden.
 - **MUST** separar los atributos con un único espacio (sin alinear en columnas con espacios extra).
 - **MUST** indentar según la jerarquía: menuitems raíz SIN indentar (0 espacios), hijos a 4, nietos a 8 (4 espacios más por cada nivel de `parent`).
 
@@ -76,6 +78,31 @@ Cómo funciona: `ViewLoader.importMenu` busca la `MetaMenu` por `(name, module)`
             order="1"/>
   ```
   (atributos partidos en varias líneas)
+
+## Visibilidad por gorra (`if`)
+
+`groups` solo distingue `admins` de `users`. Que un menú sea «solo del secretario» o «solo del supervisor» depende de datos del `CentroUsuario` (cargos, tipos de usuario, perfiles `AceProfile*`), y eso se pregunta con el atributo `if`, que Axelor evalúa en el servidor (`MenuChecker`, es la `conditionToCheck`) con `__user__` y `__config__`.
+
+- `__config__.menu` es el bean `MenuVisibilidadService` (`secretariavirtual/menus/service/`), expuesto por la propiedad `context.menu` de `axelor-config.properties`. Sus métodos responden «¿lleva el usuario esta gorra en alguno de sus centros?»: `isTramitador()`, `isJefaturaEstudios()`, `isSecretaria()`, `isRegistro()`, `isSupervisor()`, `isAdministrativo()`.
+- **MUST** escribir la condición como llamada a método, `if="__config__.menu.isSecretaria()"`; se pueden combinar con `||` y `&&`.
+- Un `if` en un menú raíz o intermedio oculta también todo su submenú. Un raíz con hijos solo para `admins` (p. ej. «Tramitación → Todos los centros») **MUST** ser visible para el administrador: los métodos del bean ya devuelven `true` para `admins` donde hace falta (`isTramitador()`, `isRegistro()`).
+- **Una gorra nueva se añade al bean**, no se escribe JPQL ni Groovy en el `if`. Nunca `__user__.centroActivo`.
+- El bean **MUST** llevar `@com.axelor.script.ScriptAllowed` (en la interfaz basta): la política de scripts de Axelor (`ScriptPolicy`) solo deja invocar desde Groovy clases de su lista blanca o anotadas así; sin la anotación el `if` lanza `ScriptPolicyException` y el menú desaparece para todos (el error solo se ve en el log).
+- **Un `if` no autoriza nada**: un menú oculto no protege la vista que abre. Eso lo hacen los permisos de Axelor y el tramitador.
+
+✅ CORRECTO: `<menuitem name="registro-menuitem" title="Registro" groups="admins,users" if="__config__.menu.isRegistro()" order="40"/>`
+❌ INCORRECTO: `groups="secretario"` (VAR-10.1 no lo admite); `if="__user__.centroActivo != null"` (centro activo); `if="__user__.centroUsuarios.any { ... }"` (lógica de gorras fuera del bean).
+
+## Contadores (`tag-count`)
+
+`tag-count="true"` en una hoja pinta junto a su título el número de filas de su `action-view` (Axelor ejecuta la acción, aplica su `<domain>` y `<context>` —también los `call:`— y los permisos de lectura, y cuenta). Es lo que hace que «Pendientes de mí (3)» se vea sin abrir nada. Solo tiene sentido en bandejas de **pendientes**: no ponerlo en listados históricos (cerrados, finalizados, todos).
+
+`tag-count-hide-at-zero="true"` oculta el contador mientras vale 0, para no despistar al usuario con un cero; en cuanto hay algo pendiente vuelve a aparecer sin recargar la página. Si falta o no vale `true`, el 0 se ve. Es un atributo propio del fork de AOP de EducaFlow, no del Axelor original.
+En la secretaría virtual **MUST** acompañar siempre a `tag-count="true"` con valor explícito `true` o `false`, para que ocultar o no el cero sea una decisión tomada en cada menú y no un olvido.
+
+✅ CORRECTO: `<menuitem name="firmas-pendientes-menuitem" parent="firmas-menuitem" title="Pendientes" action="subsysFirmas.Pendiente@TareaFirma-action" tag-count="true" tag-count-hide-at-zero="true" groups="admins,users" order="1"/>`
+✅ CORRECTO: `... tag-count="true" tag-count-hide-at-zero="false" ...` (se quiere ver el 0).
+❌ INCORRECTO: `... tag-count="true" groups=...` (falta `tag-count-hide-at-zero`); `... tag-count-hide-at-zero="true" tag-count="true" ...` (orden invertido); `tag-count-hide-at-zero="true"` sin `tag-count="true"` (no hay contador que ocultar).
 
 ## Convención de nombres de menuitems raiz:
 

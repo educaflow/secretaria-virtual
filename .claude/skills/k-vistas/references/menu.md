@@ -17,6 +17,7 @@
 | hidden            | Si se oculta el menuitem                                                    |
 | tag               | Etiqueta estática a mostrar sobre el menuitem                               |
 | tag-count         | Si se usa el conteo de registros de la acción como etiqueta                 |
+| tag-count-hide-at-zero | Si vale `true`, oculta la etiqueta cuando su valor es 0 (por defecto `false`). Propio del fork de AOP de EducaFlow |
 | tag-get           | Método a llamar para obtener el valor de la etiqueta                        |
 | tag-style         | Estilo visual de la etiqueta: `default`, `important`, `success`, `warning`, `inverse`, `info` |
 
