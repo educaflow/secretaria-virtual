@@ -39,6 +39,30 @@ public class MetaFileHelper {
     }
 
 
+    /**
+     * Devuelve el MetaFile como PDF: si ya es un PDF tal cual, y si es una imagen que soporta iText, convertida
+     * a un PDF de una única página A4 (ver {@link DocumentoPdfFactory#getDocumentoPdfFromImagen}).
+     * Si no es ninguna de las dos cosas lanza una excepción.
+     */
+    public static DocumentoPdf getDocumentoPdfFromImagenOrPdf(MetaFile metaFile) {
+        if (metaFile == null) {
+            return null;
+        }
+
+        if (isPdf(metaFile)) {
+            return getDocumentoPdf(metaFile);
+        }
+
+        byte[] bytes = MetaFileUtil.downloadContent(metaFile);
+        if (DocumentoPdfFactory.isImagenSoportada(bytes)==false) {
+            throw new RuntimeException("El MetaFile con id " + metaFile.getId() + " no es ni un PDF ni una imagen soportada");
+        }
+        DocumentoPdf documentoPdf= DocumentoPdfFactory.getDocumentoPdfFromImagen(bytes, metaFile.getFileName());
+
+        return documentoPdf;
+    }
+
+
     public static boolean isPdf(MetaFile metaFile) {
         if (metaFile == null) {
             return false;
