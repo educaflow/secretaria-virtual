@@ -19,6 +19,13 @@
             <bind node="can/@remove" to="canRemove"/>
             <bind node="can/@export" to="canExport"/>
         </bind>
+
+        <bind node="group" type="com.axelor.auth.db.Group" search="self.code = :code" create="false" update="true">
+            <bind node="@code" to="code"/>
+            <bind node="permission" to="permissions" search="self.name = :name">
+                <bind node="@name" to="name"/>
+            </bind>
+        </bind>
     </input>
 
     <!-- AceProfileGlobal: perfiles en todos los trámites de todos los centros -->

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- «Mi centro → Perfiles de trámites»: el supervisor mantiene los perfiles de TODOS los centros en los
+         que tiene el tipo de usuario SUPERVISOR (nunca User.centroActivo).
+         El listado no lleva <domain>: qué filas ve lo decide el permiso AceProfileCentro.supervisor
+         (auth-security.xml), que es además quien le impide modificar o borrar filas de otros centros.
+         idsCentrosSupervisados lo calcula una única vez el servidor (AceProfileCentroService.getCentrosSupervisados)
+         y alimenta el selector de centro y el prellenado del alta. Es un filtro de interfaz, no un control de
+         acceso: el centro lo vuelve a comprobar el servicio al validar (V-AceProfileCentro-008). -->
+    <?sv-view?>
+    <action-view name="subsysSecurity.Centro@AceProfileCentro-action" title="Perfiles de trámites" model="com.educaflow.subsystem.security.db.AceProfileCentro">
+        <view type="grid" name="subsysSecurity.Centro@AceProfileCentro-grid"/>
+        <view type="form" name="subsysSecurity.Centro@AceProfileCentro-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="forceEdit" value="true"/>
+        <context name="idsCentrosSupervisados" expr="call:com.educaflow.subsystem.security.controller.AceProfileCentroController:idsCentrosSupervisados()"/>
+    </action-view>
+
+    <grid name="subsysSecurity.Centro@AceProfileCentro-grid" model="com.educaflow.subsystem.security.db.AceProfileCentro"
+          title="" orderBy="centro.name,tramite.name,perfil" newButtonTitle="Nuevo" allowSearchFields="true"
+          canAdvanceSearch="false" canRefresh="false" canNew="true"
+          editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
+    >
+        <field name="centro" width="180px"/>
+        <field name="tramite"/>
+        <field name="perfil" width="130px"/>
+        <field name="tipoUsuario" width="160px"/>
+        <field name="cargo" width="160px"/>
+        <field name="usuario" width="220px"/>
+    </grid>
+
+    <form name="subsysSecurity.Centro@AceProfileCentro-form" title="Perfil de trámite" model="com.educaflow.subsystem.security.db.AceProfileCentro"
+          onNew="subsysSecurity.Centro@AceProfileCentro-onNew-action"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+        <panel name="AceProfileCentro" title="Perfil">
+            <field name="centro" colSpan="3" readonlyIf="id != null"
+                   domain="self.id IN (:idsCentrosSupervisados)"
+                   grid-view="subsysCommon.Ref@Centro-grid" form-view="subsysCommon.Ref@Centro-form"/>
+            <field name="tramite" colSpan="6"/>
+            <field name="perfil" colSpan="3"/>
+        </panel>
+
+        <panel name="destinatario" title="A quién se da">
+            <field name="tipoUsuario" colSpan="3"/>
+            <field name="cargo" colSpan="3"/>
+            <field name="usuario" colSpan="6"
+                   domain="self.id IN (SELECT cu.usuario.id FROM CentroUsuario cu WHERE cu.centro = :centro)"
+                   form-view="subsysCommon.Ref@Usuario-form"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnDelete" title="Borrar" onClick="subsysSecurity.Centro@AceProfileCentro-btnDelete-action"
+                    css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysSecurity.Centro@AceProfileCentro-btnCancel-action"
+                    colSpan="2" colOffset="6" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="subsysSecurity.Centro@AceProfileCentro-btnSave-action"
+                    colSpan="2"/>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+    <action-group name="subsysSecurity.Centro@AceProfileCentro-btnDelete-action">
+        <action name="remote-validationDelete-action"/>
+        <action name="delete"/>
+    </action-group>
+    <action-group name="subsysSecurity.Centro@AceProfileCentro-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+    <action-group name="subsysSecurity.Centro@AceProfileCentro-btnSave-action">
+        <action name="remote-validationSave-action"/>
+        <action name="save"/>
+        <action name="force-back"/>
+    </action-group>
+
+    <!-- U-perfiles-tramites-mi-centro-005: si supervisa un único centro, el alta nace con ese centro.
+         La condición va en la rama, no dentro de la acción. -->
+    <action-group name="subsysSecurity.Centro@AceProfileCentro-onNew-action">
+        <action name="subsysSecurity.Centro@AceProfileCentro-set-centro-unicoSupervisado-action" if="idsCentrosSupervisados.size() == 1"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+    <action-record name="subsysSecurity.Centro@AceProfileCentro-set-centro-unicoSupervisado-action" model="com.educaflow.subsystem.security.db.AceProfileCentro">
+        <field name="centro" expr="eval: __repo__(com.educaflow.subsystem.common.db.Centro).find(idsCentrosSupervisados[0] as Long)"/>
+    </action-record>
+
+    <?sv-remotes?>
+
+</object-views>

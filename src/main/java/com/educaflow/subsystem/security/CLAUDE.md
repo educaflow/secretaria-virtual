@@ -16,7 +16,7 @@ Están partidas por **sobre qué** se da el perfil, porque cada una se rellena e
 | `AceProfileTipoTramite` | los trámites de un `tipoTramite`, en todos los centros | `tipoUsuario` o `cargo` | data-init de este subsistema |
 | `AceProfileTramite` | un `tramite`, en todos los centros | `tipoUsuario` o `cargo` | el `<aces>` del `TramiteInstance.xml` (`/k-tramite`) |
 | `AceProfileTipoExpediente` | un `tipoExpediente`, en todos los centros | `tipoUsuario` o `cargo` | el `<aces>` del `TipoExpedienteInstance.xml` (`/k-tipo-expediente`) |
-| `AceProfileCentro` | un `tramite` en un `centro` | `tipoUsuario`, `cargo` o `usuario` | una pantalla del centro, en tiempo de ejecución |
+| `AceProfileCentro` | un `tramite` en un `centro` | `tipoUsuario`, `cargo` o `usuario` | una pantalla del centro, en tiempo de ejecución: «Mi centro → Perfiles de trámites» (el supervisor, en los centros que supervisa) y «Administración → Perfiles de trámites por centro» (el administrador, en cualquier centro), las dos a través de `AceProfileCentroService`, que valida que haya un único destinatario |
 | `AceProfileExpediente` | un `expediente` | `usuario` | la tramitación, en tiempo de ejecución |
 
 - Las cuatro primeras se definen al compilar, sin saber qué centros ni qué usuarios hay.
@@ -61,3 +61,12 @@ Por eso las cuatro tablas que salen de XML se vacían en cada arranque (`tablasI
 Las condiciones de los permisos de lectura de `Tramite`, `TipoExpediente` y `Expediente` (`subsystem/expedientes/data-init/input/auth-expedientes.xml`) consultan las mismas tablas `AceProfile*` con las mismas reglas, para que lo que un usuario **ve** coincida con lo que **puede hacer**.
 - Hay un permiso por tabla, porque la `condition` de un permiso está limitada a 1024 caracteres.
 - Si cambia cómo se calculan los perfiles, **MUST** cambiar también allí.
+
+Los permisos propios de este subsistema se enlazan al grupo `users` desde su propio `data-init/input/auth-security.xml`, no desde el `auth.xml` global.
+- Lo hace el `<bind node="group">` del `<input>` de `auth-security.xml` en su `input-config.xml`.
+- Ese enlace suma permisos al grupo, no los reemplaza, así que no choca con el `auth.xml` global.
+
+Excepción `Tramite.supervisor`: el supervisor **lee** todos los trámites aunque no tenga ningún perfil sobre ellos.
+- Existe solo para que pueda elegirlos al asignarlos en «Mi centro → Perfiles de trámites».
+- Por eso, en `Tramite`, lo que el supervisor **ve** no coincide con lo que **puede hacer**.
+- No cambia qué trámites le ofrece «Nuevo trámite» (la ventanilla filtra por perfiles), qué expedientes ve ni cómo se calculan los perfiles.
