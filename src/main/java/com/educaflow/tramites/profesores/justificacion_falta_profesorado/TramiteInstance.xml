@@ -4,6 +4,8 @@
     <code>JustificacionFaltaProfesorado</code>
     <name>Justificación de falta del profesorado</name>
     <tipoTramite>PROFESOR</tipoTramite>
+    <tipoUsuario>PROFESOR</tipoUsuario>
+    <unidadTramitadora>JEFATURA_ESTUDIOS</unidadTramitadora>
     <defaultTipoExpediente>v1</defaultTipoExpediente>
     <permitidoPresentarEnRepresentacion>false</permitidoPresentarEnRepresentacion>
     <publico>false</publico>

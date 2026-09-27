@@ -4,6 +4,8 @@
     <code>AnulacionMatriculaCicloFormativo</code>
     <name>Anulación de matrícula en ciclo formativo</name>
     <tipoTramite>ALUMNO</tipoTramite>
+    <tipoUsuario>ALUMNO</tipoUsuario>
+    <unidadTramitadora>SECRETARIA</unidadTramitadora>
     <defaultTipoExpediente>v1</defaultTipoExpediente>
     <permitidoPresentarEnRepresentacion>true</permitidoPresentarEnRepresentacion>
     <publico>false</publico>
