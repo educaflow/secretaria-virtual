@@ -78,6 +78,10 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
         }
 
         DocumentoPdf solicitudPdf = justificacionFaltaProfesorado.getDocumentoPdf(JustificacionFaltaProfesoradoV1.TipoDocumentoPdf.SOLICITUD);
+        MetaFile justificante = justificacionFaltaProfesorado.getJustificante();
+        if (justificante != null) {
+            solicitudPdf = solicitudPdf.anyadirDocumentoPdf(MetaFileHelper.getDocumentoPdfFromImagenOrPdf(justificante));
+        }
         MetaFile pdfSolicitud = MetaFileHelper.createMetaFile(solicitudPdf);
         justificacionFaltaProfesorado.setPdfSolicitud(pdfSolicitud);
 
