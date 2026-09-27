@@ -21,7 +21,8 @@
             </panel>
             <panel colSpan="12">
                 <field name="fechaUltimoEstado" readonly="true" colSpan="3"/>
-                <button name="mostrar-historial-estados"  title="Ver el historial de estados" outline="true" onClick="subsysExpedientes.Expediente-verHistorialEstados-action" colSpan="3" colOffset="6"/>
+                <field name="perfilEstado" readonly="true" colSpan="3"/>
+                <button name="mostrar-historial-estados"  title="Ver el historial de estados" outline="true" onClick="subsysExpedientes.Expediente-verHistorialEstados-action" colSpan="3" colOffset="3"/>
             </panel>
         </panel>
 

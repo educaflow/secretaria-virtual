@@ -13,6 +13,11 @@
         <string name="namePhase" title="Fase" translatable="true" />
         <string name="codeState" title="Código del estado" required="true" />
         <string name="nameState" title="Estado" translatable="true" />
+        <!-- Desnormalizado del profile que declara el estado actual en TipoExpedienteInstance.xml, igual
+             que nameState lo es de su title: lo escribe ExpedienteUtil.updateState en cada cambio de estado.
+             Existe para poder LISTAR y FILTRAR por quién tiene que actuar («Mis trámites», «Tramitación»)
+             sin recorrer la máquina de estados expediente a expediente. Nulo si el estado no declara perfil. -->
+        <enum name="perfilEstado" ref="com.educaflow.subsystem.expedientes.db.Profile" title="Le toca a" help="Perfil que tiene que actuar en el estado actual del expediente" />
         <datetime name="fechaUltimoEstado" title="Fecha último estado" />
         <boolean name="abierto" title="Abierto" />
         <one-to-many name="historialEstados" ref="HistorialEstado" mappedBy="expediente" />

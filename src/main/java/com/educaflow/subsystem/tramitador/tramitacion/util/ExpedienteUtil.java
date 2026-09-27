@@ -70,6 +70,7 @@ public class ExpedienteUtil {
         expediente.setNamePhase(state.getPhase().getName());
         expediente.setCodeState(stateCode);
         expediente.setNameState(state.getName());
+        expediente.setPerfilEstado(state.getProfile());
         expediente.setFechaUltimoEstado(LocalDateTime.now(Convert.defaultZoneId));
         expediente.setAbierto(state.isFinal() == false);
     }
