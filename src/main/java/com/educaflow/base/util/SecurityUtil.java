@@ -2,7 +2,9 @@ package com.educaflow.base.util;
 
 import com.axelor.auth.AuthUtils;
 import com.axelor.auth.db.User;
+import com.axelor.script.ScriptAllowed;
 
+@ScriptAllowed
 public class SecurityUtil {
 
     public static User getUser() {

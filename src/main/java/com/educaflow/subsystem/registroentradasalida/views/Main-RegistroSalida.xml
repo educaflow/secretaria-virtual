@@ -5,11 +5,14 @@
 
 
     <?sv-view?>
-    <action-view name="subsysRegistroEntradaSalida.Main@RegistroSalida-action"  title="Información para PDF" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"  >
+    <action-view name="subsysRegistroEntradaSalida.Main@RegistroSalida-action"  title="Registro de salida" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"  >
         <view type="grid" name="subsysRegistroEntradaSalida.Main@RegistroSalida-grid"/>
         <view type="form" name="subsysRegistroEntradaSalida.Main@RegistroSalida-form"/>
-            <view-param name="show-toolbar-form" value="false"/>
-</action-view>
+        <view-param name="show-toolbar-form" value="false"/>
+        <domain>self.centro.id IN (SELECT cu.centro.id FROM CentroUsuario cu WHERE cu.usuario.id = :usuarioId) OR :esAdministrador = true</domain>
+        <context name="usuarioId" expr="eval: __user__?.id"/>
+        <context name="esAdministrador" expr="eval: com.educaflow.base.util.SecurityUtil.isAdmin(__user__)"/>
+    </action-view>
 
 
     <grid name="subsysRegistroEntradaSalida.Main@RegistroSalida-grid" title="" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"

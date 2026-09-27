@@ -7,8 +7,11 @@
     <action-view name="subsysRegistroEntradaSalida.Main@RegistroEntrada-action"  title="Registro de entrada" model="com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada"  >
         <view type="grid" name="subsysRegistroEntradaSalida.Main@RegistroEntrada-grid"/>
         <view type="form" name="subsysRegistroEntradaSalida.Main@RegistroEntrada-form"/>
-            <view-param name="show-toolbar-form" value="false"/>
-</action-view>
+        <view-param name="show-toolbar-form" value="false"/>
+        <domain>self.centro.id IN (SELECT cu.centro.id FROM CentroUsuario cu WHERE cu.usuario.id = :usuarioId) OR :esAdministrador = true</domain>
+        <context name="usuarioId" expr="eval: __user__?.id"/>
+        <context name="esAdministrador" expr="eval: com.educaflow.base.util.SecurityUtil.isAdmin(__user__)"/>
+    </action-view>
 
 
 
