@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://axelor.com/xml/ns/object-views
+https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- «Administración → Perfiles de trámites por centro»: el administrador mantiene los perfiles de
+         trámites de cualquier centro. Sin <domain> ni restricción del selector de centro: el administrador
+         se salta los permisos de Axelor y el servicio no le aplica V-AceProfileCentro-008. -->
+    <?sv-view?>
+    <action-view name="subsysSecurity.Main@AceProfileCentro-action" title="Perfiles de trámites por centro" model="com.educaflow.subsystem.security.db.AceProfileCentro">
+        <view type="grid" name="subsysSecurity.Main@AceProfileCentro-grid"/>
+        <view type="form" name="subsysSecurity.Main@AceProfileCentro-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="forceEdit" value="true"/>
+    </action-view>
+
+    <grid name="subsysSecurity.Main@AceProfileCentro-grid" model="com.educaflow.subsystem.security.db.AceProfileCentro"
+          title="" orderBy="centro.name,tramite.name,perfil" newButtonTitle="Nuevo" allowSearchFields="true"
+          canAdvanceSearch="false" canRefresh="false" canNew="true"
+          editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false" canEditOnClick="true"
+    >
+        <field name="centro" width="180px"/>
+        <field name="tramite"/>
+        <field name="perfil" width="130px"/>
+        <field name="tipoUsuario" width="160px"/>
+        <field name="cargo" width="160px"/>
+        <field name="usuario" width="220px"/>
+    </grid>
+
+    <form name="subsysSecurity.Main@AceProfileCentro-form" title="Perfil de trámite" model="com.educaflow.subsystem.security.db.AceProfileCentro"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+        <panel name="AceProfileCentro" title="Perfil">
+            <field name="centro" colSpan="3" readonlyIf="id != null"
+                   grid-view="subsysCommon.Ref@Centro-grid" form-view="subsysCommon.Ref@Centro-form"/>
+            <field name="tramite" colSpan="6"/>
+            <field name="perfil" colSpan="3"/>
+        </panel>
+
+        <panel name="destinatario" title="A quién se da">
+            <field name="tipoUsuario" colSpan="3"/>
+            <field name="cargo" colSpan="3"/>
+            <field name="usuario" colSpan="6"
+                   domain="self.id IN (SELECT cu.usuario.id FROM CentroUsuario cu WHERE cu.centro = :centro)"
+                   grid-view="subsysCommon.Ref@Usuario-grid" form-view="subsysCommon.Ref@Usuario-form"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnDelete" title="Borrar" onClick="subsysSecurity.Main@AceProfileCentro-btnDelete-action"
+                    css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
+            <button name="btnCancel" title="Cancelar" onClick="subsysSecurity.Main@AceProfileCentro-btnCancel-action"
+                    colSpan="2" colOffset="6" outline="true"/>
+            <button name="btnSave" title="Guardar" onClick="subsysSecurity.Main@AceProfileCentro-btnSave-action"
+                    colSpan="2"/>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+    <action-group name="subsysSecurity.Main@AceProfileCentro-btnDelete-action">
+        <action name="remote-validationDelete-action"/>
+        <action name="delete"/>
+    </action-group>
+    <action-group name="subsysSecurity.Main@AceProfileCentro-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+    <action-group name="subsysSecurity.Main@AceProfileCentro-btnSave-action">
+        <action name="remote-validationSave-action"/>
+        <action name="save"/>
+        <action name="force-back"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+</object-views>

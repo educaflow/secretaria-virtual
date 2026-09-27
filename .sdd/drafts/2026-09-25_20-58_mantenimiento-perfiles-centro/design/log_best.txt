@@ -1,0 +1,133 @@
+### Comparación 1: design_1 vs design_2 → gana design_1
+=== VENTAJAS design_1 ===
+- El criterio «centros de los que el usuario es supervisor» tiene un único dueño en Java (`AceProfileCentroRepository.findCentrosSupervisados` expuesto por `AceProfileCentroService.getCentrosSupervisados`) y la vista lo recibe ya calculado vía `call:` en el `<context>` (`_idsCentrosSupervisados`) y en el `action-record` del `onNew`; solo queda la copia JPQL del permiso, impuesta por Axelor y anotada con un comentario — 2 copias del criterio frente a 3 en design_2.
+- Cumple la regla C23 de `architecture-rules.md`: la acción pública `getCentrosSupervisados(User)` lleva su `validateGetCentrosSupervisados(User)`, así que los tests ArchUnit de `./run.sh` pasan.
+- RUI-002 / RUI-todos-centros-001 resueltas declarativamente con `readonlyIf="id != null"`, sin acción `onLoad` ni `action-attrs`; la defensa real (`centro` fuera de `allowPropertiesUpdate`) está documentada.
+- Layout 4+4+4 en los dos paneles, con los bordes alineados entre filas (`vistas.md` §1.7).
+- Sin piezas de más: no concede ningún permiso a `admins` (reconoce que `AuthSecurity` deja pasar al admin por `AuthUtils.isAdmin`).
+- Declara el patrón nuevo (enlace a grupo `users` desde el data-init de `security`) y explica por qué el `auth.xml` global no lo pisa (`addAll`).
+=== DEFECTOS design_1 ===
+- La vista del supervisor usa `grid-view="subsysCommon.Ref@Usuario-grid"`, que es `groups="admins"`: el selector de usuario del supervisor (ESC-008/ESC-002/ESC-022) puede quedar roto o caer al grid por defecto (design_2 sí lo detectó).
+- La decisión «exactamente un centro → ese centro; si no, null» (RUI-005) vive en `AceProfileCentroController.getCentroSupervisadoUnico`: lógica en el controlador en vez de en el servicio (`proyecto.md`/SRP del controlador).
+- `validateDestinatario` mezcla varias responsabilidades (cuenta los destinatarios y, en sus sub-ramas, comprueba la pertenencia al centro RES-006 y la unicidad RES-007); la rama de RES-007 depende de que V-001/002/003 «ya lo han dicho», rozando el olor «dos piezas que se conocen entre sí».
+- Más fontanería para el `domain` del centro: `@CallMethod getIdsCentrosSupervisados` + centinela `NINGUNO = List.of(-1L)` + `<context>`.
+=== VENTAJAS design_2 ===
+- Validaciones mejor estructuradas: `validarFila` es una única composición compartida por alta y modificación, con puerta explícita de obligatorios, seguida de reglas «tontas», una por concepto (`validarDestinatarioUnico`, `validarUsuarioDelCentro`, `validarAsignacionNoRepetida`, `validarCentroGestionable`), sin reglas que decidan por dentro si aplican.
+- La decisión de RUI-005 («exactamente uno → ese centro») vive en el servicio (`getCentroSupervisadoUnico`); el controlador solo delega.
+- Detecta que `Ref@Usuario-grid` es `groups="admins"` y no lo usa en la pantalla del supervisor.
+- `decisiones.md` más rico: D1 analiza las tres puertas (lista, REST, formulario) y lo que tapa cada mecanismo de Axelor; D6 separa la inmutabilidad del centro con alternativas reales. `allowPropertiesInsert` limita las relaciones a la referencia (`Map.of()`).
+- `validarCentroGestionable` es total: sin usuario → `IllegalStateException`, no un retorno defensivo.
+=== DEFECTOS design_2 ===
+- Incumple la regla de arquitectura C23: `AceProfileCentroService.getCentroSupervisadoUnico(User)` es una acción declarada en una interfaz `ModelService` sin su `validateGetCentroSupervisadoUnico`, así que el test ArchUnit rompe `./run.sh`; además justifica la excepción con un precedente falso (`CorreoService.listarCorreosEnFail` sí tiene `validateListarCorreosEnFail`).
+- «Una decisión con varios dueños» con 3 copias del criterio de supervisor: navegación Java en `getCentrosSupervisados`, JPQL en la condición del permiso y la misma JPQL en el `domain` del campo `centro`; el siguiente desarrollador tiene que recordar mantener sincronizadas las dos subconsultas literales (lo admite en D2).
+- Permiso `AceProfileCentro.all` enlazado al grupo `admins`: pieza que la especificación no pide y que nunca actúa (`AuthSecurity` deja pasar al admin por `AuthUtils.isAdmin`).
+- RUI-002 / RUI-todos-centros-001 resueltas con `onLoad` → `action-group` → `action-attrs` en las dos vistas (4 acciones) donde bastaba un `readonlyIf="id != null"`: más piezas para lo mismo.
+- Layout 4+5+3 en el panel «Perfil»: el segundo borde queda desalineado respecto al panel «A quién se da» (9|10 frente a 8|9), en contra de `vistas.md` §1.7 («alinear los bordes de columna entre filas»); la nota en prosa no lo exime (§3.g.3).
+=== JUSTIFICACION design_1 vs design_2 ===
+Los dos cubren todas las RES/VAL/RUI y los 22 escenarios, y comparten la estrategia de seguridad (permiso con `condition` más `validate*` para el alta, `centro` fuera de `allowPropertiesUpdate` y el mismo patrón nuevo de enlace a grupos).
+Pero design_2 contradice una regla verificable del proyecto: C23 exige `validate<Accion>` para `getCentroSupervisadoUnico`, así que su diseño no compila en `./run.sh` tal como está, y apoya la excepción en un precedente que en el código no existe.
+En calidad, design_1 pasa mejor la prueba del segundo desarrollador en el punto crítico: si cambia quién gestiona los perfiles de un centro, en design_1 hay 2 sitios que tocar (el repositorio y la condición del permiso, anotada) y en design_2 hay 3 (la navegación Java, el permiso y el `domain`), con dos JPQL literales que mantener iguales.
+design_1 además no añade piezas muertas (`AceProfileCentro.all` para `admins`) ni acciones `onLoad` donde basta un `readonlyIf`, y respeta la alineación del layout.
+design_2 es superior en la estructura interna de las validaciones (puerta de obligatorios, una regla por concepto) y en dejar RUI-005 en el servicio, y acierta con `Ref@Usuario`: son defectos corregibles en design_1 que el enriquecedor debe incorporar.
+Pesan más el incumplimiento de C23 y el tercer dueño del criterio en design_2, así que me quedo con design_1.
+
+### Comparación 2: design_1 vs design_3 → gana design_1
+=== VENTAJAS design_1 ===
+- Cumple la guía de diseño al pie de la letra: todo queda en `subsystem.security` + `menus.xml`. El permiso se enlaza al grupo `users` desde el propio data-init de `security` (`<bind node="group" create="false" update="true">`, D2), con una premisa correcta: verificado en `XMLBinder`, el binder hace `property.addAll(bean, collection)`, así que el `auth.xml` global no borra el enlace.
+- Un único dueño en Java de «centros del supervisor» (`AceProfileCentroRepository.findCentrosSupervisados` → `getCentrosSupervisados(User)`); la vista le pregunta tanto para el selector (`<context>`) como para el autorrelleno (`getCentroSupervisadoUnico` vía `call:`), y la única copia restante es la `condition` del permiso, que Axelor impone. La vista no reclasifica nada en Groovy.
+- El listado del supervisor no lleva `<domain>`: qué filas ve lo decide solo el permiso `AceProfileCentro.supervisor`, que es la defensa, así que el alcance de lectura no tiene dos dueños.
+- Validaciones con ramas explícitas y complementarias: `validateDestinatario` cuenta una sola vez y ramifica en 0 / 1 / >1, con RES-006 y RES-007 dentro de la rama «1»; `validateCentroGestionable` es el único dueño de VAL-001/002/003, con rama administrador / no administrador. Ninguna regla decide sola si aplica.
+- Cobertura completa con una V por regla del spec (V-001…010) bien trazada; `centro` fuera de `allowPropertiesUpdate` y validado contra `original.getCentro()`; incluye `domains/AceProfileCentro.xml`, como exige el checklist del contrato («un fichero por entidad»).
+- D2 declara honestamente como patrón nuevo el enlace de un grupo desde el data-init de un subsistema, con la receta de `k-datainit` como deuda.
+=== DEFECTOS design_1 ===
+- Patrón nuevo con deuda: el enlace de permisos a `users` fuera del `auth.xml` global solo lo explica un comentario XML; el siguiente desarrollador tiene que saber que esos dos permisos no aparecen en el global.
+- En la pantalla del supervisor, el campo `usuario` usa `subsysCommon.Ref@Usuario-grid`, que declara `groups="admins"`: riesgo de que el supervisor no vea esa vista de selección. El diseño lo justifica con un precedente (`gestion-centro-usuario`), pero no lo verifica.
+- Incoherencia leve de firmas: `getCentrosSupervisados(User)` recibe el usuario, mientras que `validateCentroGestionable` lo saca de `SecurityUtil.getUser()` por dentro: dos formas de obtener el mismo actor.
+- `Tramite.supervisor` amplía la lectura del catálogo de trámites, que el spec deja fuera de alcance («qué trámites… puede ver cada usuario»); se interpreta en las Notas, pero no se deja escrito en el `CLAUDE.md` de `security` que es una excepción deliberada.
+- Pieza extra en el controlador (`getCentroSupervisadoUnico`) solo para RUI-005, cuando la lista ya viaja en el `<context>`.
+=== VENTAJAS design_3 ===
+- El mismo dueño único en Java de «centros supervisados» (`getCentrosSupervisados()`), calculado en memoria sin añadir una JPQL; el controlador queda con un único `@CallMethod`.
+- Deja escrita en `subsystem/security/CLAUDE.md` la excepción deliberada de `Tramite.supervisor`, así que el conocimiento no queda tácito.
+- Detecta que `subsysCommon.Ref@Usuario-grid` es `groups="admins"` y no lo usa en el form del supervisor.
+- `decisiones.md` añade dos decisiones reales que design_1 no documenta como tales: una pantalla o dos (D5) y cómo se hace inmutable el centro, whitelist frente a restauración (D6).
+- Validaciones bien ramificadas (0 / 1 / >1 destinatarios; administrador / no administrador) y ya incluye la tabla de clasificación de campos.
+=== DEFECTOS design_3 ===
+- Incumple la guía de diseño: modifica `src/main/resources/data-init/input/auth.xml`, fuera del paquete autorizado. Lo justifica con una premisa falsa: su alternativa D1-C dice que el global «borra en silencio el enlace», pero `XMLBinder` hace `addAll`. Es una alternativa de paja que sirve para justificar precisamente la desviación.
+- Dos dueños del alcance de lectura: el `<domain>self.centro.id IN (:_centrosSupervisados)</domain>` del `action-view` repite lo que ya filtra la `condition` del permiso; si cambia el criterio, hay que recordar tocar ambos.
+- RUI-005 se decide en Groovy dentro de la vista (`if="_centrosSupervisados.size() == 1"` + `find(_centrosSupervisados[0])`) y funciona gracias al truco del centinela `[-1]`: la regla «un solo centro» vive en la vista y depende de un detalle del controlador (dos piezas que se conocen entre sí).
+- No hay carpeta `domains/`, aunque el contrato exige `design_<n>/domains/<Entidad>.xml` por cada entidad del spec (fallo de checklist).
+- Afirmación de seguridad incorrecta: «Resto de usuarios (el director): sin permiso sobre `AceProfileCentro`». En realidad el permiso se enlaza a todo el grupo `users` y solo la `condition` los deja sin filas.
+- La constante `"SUPERVISOR"` queda repetida en el servicio y en las dos `condition`, y la coherencia depende de comentarios que remiten entre sí.
+=== JUSTIFICACION design_1 vs design_3 ===
+Gana design_1 en el primer nivel, el cumplimiento: design_3 modifica el `auth.xml` global, lo que `design-guidelines.md` prohíbe expresamente, y justifica la desviación con una alternativa descartada por un motivo falso (el binder añade con `addAll`, no reemplaza); design_1 resuelve lo mismo dentro del paquete y lo declara como patrón nuevo.
+En calidad, la prueba del segundo desarrollador en design_1 exige recordar 2 cosas: que la `condition` del permiso repite el criterio del repositorio y que el enlace al grupo vive en `auth-security.xml`.
+En design_3 exige recordar 4: que la `condition`, el `<domain>` del listado y el Groovy de `onNew` repiten o interpretan la misma lista, y que el `[-1]` del controlador es lo que hace funcionar ese Groovy.
+Son los olores «una decisión con varios dueños» y «dos piezas que se conocen entre sí» que design_1 evita.
+Las ventajas de design_3 (nota en el `CLAUDE.md`, evitar `Ref@Usuario-grid`, D5/D6) son mejoras incorporables al ganador, no motivos para cambiar el veredicto.
+
+### Comparación 3: design_1 vs design_4 → gana design_1
+=== VENTAJAS design_1 ===
+- Resuelve el selector de centro del supervisor (RUI-mi-centro-001) con un mecanismo que el proyecto ya usa: `<context name="_idsCentrosSupervisados" expr="call:…getIdsCentrosSupervisados()"/>` en el `action-view` + `domain="self.id IN (:_idsCentrosSupervisados)"` en el campo, igual que `PendientesDeMi-Expediente.xml`/`BandejaController.idsPendientesDeMi` (incluido el idioma `NINGUNO = List.of(-1L)`). No hace falta ningún patrón nuevo, y el `domain` está siempre activo, que es lo que pide el disparador «continuo».
+- Menos piezas: el servicio expone una sola consulta (`getCentrosSupervisados`) y el controlador tiene dos métodos type3 sin construir JPQL. La prueba del segundo desarrollador cabe en una frase: el finder es el dueño, la vista se lo pregunta por `call:` y la condición del permiso es la única copia, impuesta por Axelor.
+- Cubre todas las reglas del spec: RES-001…007 en `validateRestricciones`/`validateDestinatario` con ramas complementarias 0 / 1 / >1; VAL-001/002/003 con un único dueño, `validateCentroGestionable`; las 8 RUI trazadas; T-001…T-022 cubren ESC-001…022; «Reglas descartadas» vacía con motivo.
+- Frontera de confianza correcta: whitelist `createAllowProperties` y `centro` fuera de `allowPropertiesUpdate` (inmutable). VAL-002 se comprueba sobre `original.getCentro()`, el permiso condicionado filtra lectura, escritura y borrado por REST, y V-008 cubre el alta, donde Axelor no evalúa condiciones.
+- `decisiones.md` ve las decisiones difíciles de verdad y sus alternativas son reales: el dueño de «centros supervisados», el enlace al grupo desde el data-init (declarado como patrón nuevo con receta pendiente), la lectura de `Tramite`, los mensajes solo en servidor y por qué la unicidad no puede ser un `unique-constraint` (NULL en PostgreSQL).
+=== DEFECTOS design_1 ===
+- El campo `usuario` del form del supervisor usa `grid-view="subsysCommon.Ref@Usuario-grid"`, y esa grid lleva `groups="admins"` en `Ref-Usuario.xml`: el selector puede fallar o no mostrarse bien para el supervisor (afecta a ESC-002/008/022). design_4 sí lo detectó.
+- `validateCentroGestionable` esconde por dentro la exención del administrador (la rama admin se calla y no hace nada): olor «una regla que decide sola si aplica»; quien lee `validateInsert/Update/Remove` no ve que el administrador está exento.
+- `AceProfileCentroController.getCentroSupervisadoUnico` decide la regla RUI-005 («si hay exactamente uno, ese; si no, null») en el controlador, aunque el diseño diga «no decide nada propio». Esa lógica debería estar en el servicio.
+- `getCentrosSupervisados(User usuario)` recibe el usuario como parámetro, mientras que las validaciones lo sacan de `SecurityUtil.getUser()`: dos formas de obtener el actor, y la API deja preguntar por otro usuario.
+- La condición JPQL del permiso `AceProfileCentro.supervisor` solo está descrita en prosa. Es la copia inevitable del criterio, así que el implementador tiene que redactarla sin literal y puede desalinearse del finder.
+- Pone el dominio sin cambios como fila `Modificar (sin delta)` en la tabla de ficheros: ruido, porque no hay nada que copiar.
+=== VENTAJAS design_4 ===
+- La exención del administrador es una rama visible en cada llamador (`validateInsert/Update/Remove`), y `validarCentroGestionable` es una regla sin condiciones propias («da por hecho que está en la rama no administrador»). Encaja con `disenyo.md`.
+- La regla RUI-005 (`getCentroPorDefecto`) vive en el servicio y el controlador solo delega, así que queda fino.
+- Detecta que `subsysCommon.Ref@Usuario-grid` es solo para `admins` y no lo usa en el selector de usuario del supervisor.
+- La condición JPQL de los permisos `AceProfileCentro.supervisor` y `Tramite.supervisor` y el binding `<bind node="group">` se dan en literal; el Javadoc del finder y el comentario del permiso se citan el uno al otro.
+- Sus decisiones aportan dos que design_1 no explicita: D5 (los obligatorios también en el servidor, para que las reglas dependientes sean totales en su rama) y D6 (whitelist frente a restaurar el centro en `update`). Añade también `usuarioAutenticado()`, que lanza `IllegalStateException` si no hay sesión.
+=== DEFECTOS design_4 ===
+- Inventa un patrón nuevo (D1): el `domain` del centro lo construye como cadena el controlador (`getDominioCentro` → `dominioIdIn` → `"self.id IN (1,2,…)"` / `"self.id IS NULL"`) y lo aplica un `<action-attrs>`. Ya existe un mecanismo en el código (`<context>` con `call:` + parámetro `:param` en el `domain`, usado en `PendientesDeMi-Expediente.xml`). Su afirmación de que «ninguna vista del proyecto calcula el domain en el servidor» es falsa, y el patrón queda sin receta y fuera de `base`.
+- Monta JPQL concatenando ids dentro de un método privado del controlador. Son ids `Long` y no es explotable, pero es un olor de seguridad y una pieza más que recordar y reproducir.
+- El `domain` de centro solo se fija en `onNew`, aunque RUI-mi-centro-001 tiene disparador «continuo». Lo justifica porque después el centro es solo lectura, pero reinterpreta el disparador del spec.
+- Añade más piezas que design_1 para lo mismo: dos consultas en el servicio con sus dos `validate*`, `<action-attrs>` + `<action-record>` en un `action-group` de `onNew` y un helper de formato en el controlador. La prueba del segundo desarrollador se alarga: «acuérdate de fijar el domain en onNew con action-attrs y de copiar `dominioIdIn` con su caso vacío».
+- Repite la condición `!esAdministrador()` en tres llamadores: la misma decisión de actor está en tres sitios.
+- Referencia `decisiones.md D4` desde un comentario XML de `auth-security.xml`: código de producción que apunta a material de trabajo de `.sdd`.
+=== JUSTIFICACION design_1 vs design_4 ===
+Los dos cumplen la spec, las guías y el contrato con la misma cobertura (7 RES, 3 VAL, 8 RUI, 22 T-NNN, la misma frontera `AllowProperties`/permiso condicionado), así que decide la calidad (nivel 2).
+La diferencia decisiva está en la RUI-mi-centro-001: design_1 reutiliza el idioma que el proyecto ya tiene (`<context>` con `call:` + `domain` parametrizado, como `BandejaController`); design_4 crea un patrón nuevo innecesario (cadena de `domain` construida en el controlador con `dominioIdIn`), sin receta y apoyado en una premisa falsa, y además engancha una regla «continua» solo a `onNew`.
+Prueba del segundo desarrollador: en design_1 basta con «el finder es el dueño, la vista lo pide por `<context>` y el permiso es la copia obligada»; en design_4 hay que añadir «construye el domain como cadena, resuelve la lista vacía con `IS NULL` y engánchalo con `action-attrs` en `onNew`», que son más cosas que recordar.
+design_4 gana en detalles concretos (la rama del administrador visible en el llamador, RUI-005 en el servicio, el aviso sobre `Ref@Usuario-grid`): son correcciones puntuales que el enriquecedor puede llevar a design_1 sin añadir piezas. En cambio, el patrón extra de design_4 es estructural, y el contrato obliga a que gane el diseño más simple que cumple.
+
+### Comparación 4: design_1 vs design_5 → gana design_5
+=== VENTAJAS design_1 ===
+- Cubre todos los ESC/RES/VAL/RUI de la especificación y respeta las guías: solo toca `subsystem.security` + `menus.xml`, no toca `auth-expedientes.xml` ni `findPerfiles`, y no usa `centroActivo`.
+- Un único dueño Java de «centros supervisados», `AceProfileCentroRepository.findCentrosSupervisados(User)`, escrito en JPQL igual que la condición del permiso `AceProfileCentro.supervisor`: las dos copias inevitables están en el mismo lenguaje y son fáciles de comparar.
+- `validateCentroGestionable` es el único punto para VAL-001/002/003, con rama administrador / no administrador complementaria, y usa `SecurityUtil.getUser()`.
+- `decisiones.md` sólido: D2 declara como **patrón nuevo** el enlace del permiso al grupo `users` desde el propio data-init, con su receta pendiente; D5 descarta con argumentos el `<unique-constraint>` (los NULL en PostgreSQL); D3 cubre la lectura de `Tramite` por el supervisor.
+- No duplica mensajes en la vista (D4): hay un único dueño por mensaje.
+=== DEFECTOS design_1 ===
+- La defensa de VAL-003 en el servicio es suplantable: hereda `allowPropertiesRemove` (abierto por defecto) y `validateRemove` valida `fila.getCentro()` tal y como lo construye `remote-validationDelete-action` desde el JSON del cliente. El borrado de filas ajenas solo lo protege la condición del permiso de Axelor, aunque la trazabilidad presenta V-010 como defensa propia.
+- Olor «una regla que decide sola si aplica»: `getCentroSupervisadoUnico()` devuelve `null` cuando no hay exactamente un centro. La condición de RUI-005 está escondida dentro del controlador, no en la rama del `onNew`, y es además un retorno `null` defensivo.
+- `validateDestinatario` es un método con varias responsabilidades (SRP de métodos): cuenta destinatarios y además anida RES-006 y RES-007, con una exclusión tácita («si falta alguno de los tres, V-001/002/003 ya lo ha dicho»). Es el olor «retorno defensivo que delega» en otra pieza que D6 dice evitar.
+- Dos métodos type3 en el controlador (`getIdsCentrosSupervisados` y `getCentroSupervisadoUnico`) recalculan la misma lista con dos llamadas: el selector y el prellenado salen de fuentes distintas, y hace falta el centinela `NINGUNO = List.of(-1L)`.
+- `validateGetCentrosSupervisados(User)` es un validador vacío que siempre devuelve `empty`: existe solo para cumplir la regla C23.
+- El patrón nuevo de D2 solo queda documentado con un comentario XML; no actualiza el `CLAUDE.md` del subsistema, así que el siguiente desarrollador tiene que descubrirlo leyendo `auth-security.xml`.
+=== VENTAJAS design_5 ===
+- La misma cobertura completa de la especificación y de las guías, con las mismas decisiones correctas sobre el permiso condicionado, `Tramite.supervisor`, la unicidad en el servicio y la ausencia de `Local-validate`.
+- Cierra la puerta del borrado: `allowPropertiesRemove = createDenyAllProperties()` (D6). Así `validateRemove` comprueba siempre el centro real de BD y VAL-003 es defensa en el servidor, no solo del permiso; `validateUpdate` autoriza contra `original.getCentro()`.
+- `validarFila` es un único método compartido por alta y modificación, con dos fases explícitas: en la primera, los obligatorios cortan; en la segunda, cada regla es «tonta», y la condición de RES-006 (`usuario != null`) está en la rama visible. No hay reglas que decidan solas si aplican y cada helper tiene una sola responsabilidad.
+- Un único valor del servidor (`idsCentrosSupervisados`, un solo método del controlador) alimenta el `domain` del selector y el prellenado, que no pueden discrepar; la condición de RUI-005 (`size() == 1`) está en el `if` de la rama del `onNew`.
+- Un único helper privado en el servicio es dueño de «centros supervisados». La excepción `Tramite.supervisor` («ver ≠ hacer») y el patrón nuevo del enlace al grupo quedan documentados en el `CLAUDE.md` de `security`, así que no dependen del conocimiento tácito.
+- `decisiones.md` ve una decisión que design_1 no vio: D6, la inmutabilidad del centro y con qué datos se valida el borrado. Descarta alternativas reales (p. ej. en D3 la B, porque el `domain` no puede mostrar filas que el permiso oculta).
+=== DEFECTOS design_5 ===
+- Inventa V-AceProfileCentro-009 («Origen spec: —») en `validateGetCentrosSupervisados`: un mensaje de negocio para un caso que el usuario de la pantalla no puede corregir (un no supervisor no ve el menú). Según la convención del proyecto sería un guard (`RuntimeException`) o nada, no una validación.
+- `centrosSupervisados` recorre la colección en Java, mientras que su copia en la condición del permiso está en JPQL: dos lenguajes distintos para la misma clasificación (declarado en D1, pero es más difícil comprobar que ambas dicen lo mismo).
+- El `action-record` del prellenado resuelve el `Centro` con Groovy (`__repo__(Centro).find(idsCentrosSupervisados[0] as Long)`): acceso a repositorio dentro de la vista.
+- En la fase 2, V-007 (unicidad) se ejecuta aunque V-004/005 hayan fallado, y puede añadir «Ya existe esa asignación» junto a «Indica solo uno»: ruido menor, sin agujero.
+- Añade una modificación al `CLAUDE.md` del subsistema que la especificación no pide. Está justificada por el patrón nuevo, pero es una pieza más.
+=== JUSTIFICACION design_1 vs design_5 ===
+Los dos cumplen la especificación y las guías, así que decide la calidad. design_5 gana porque defiende VAL-003 de verdad en el servidor con `allowPropertiesRemove` deny-all; en design_1, `validateRemove` valida un centro que dicta el cliente y la defensa real del borrado depende solo de la condición del permiso (k-secure-coding: defensa en el servicio).
+La prueba del segundo desarrollador en design_5 cabe en una frase: «las reglas nuevas que necesiten los obligatorios van en la fase 2 de `validarFila`, con su condición en la rama».
+En design_1 hay que recordar más cosas: que `validateDestinatario` salta en silencio RES-007 si faltan datos; que `getCentroSupervisadoUnico` devuelve `null` por su cuenta; que el selector y el prellenado se alimentan de dos llamadas distintas con un centinela `-1`; y que `validateRemove` no es fiable.
+design_5 tiene menos piezas (un método de controlador frente a dos, sin centinela y sin un validador vacío), y sus defectos (una V técnica inventada, Groovy en el `action-record`) son locales y fáciles de corregir por el enriquecedor.
+En `decisiones.md`, design_5 detectó además la decisión D6 (inmutabilidad y datos del borrado), que design_1 pasó por alto.

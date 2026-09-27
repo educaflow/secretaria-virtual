@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+<!-- Porción a fusionar en src/main/java/com/educaflow/secretariavirtual/menus/menus.xml.
+     Cada menuitem va como último hijo de su padre ya existente (miCentro-menuitem y administracion-menuitem). -->
+
+    <menuitem name="miCentro-perfilesTramites-menuitem" parent="miCentro-menuitem" title="Perfiles de trámites" action="subsysSecurity.Centro@AceProfileCentro-action" groups="users" order="3"/>
+
+    <menuitem name="administracion-perfilesTramitesPorCentro-menuitem" parent="administracion-menuitem" title="Perfiles de trámites por centro" action="subsysSecurity.Main@AceProfileCentro-action" groups="admins" order="4"/>
+
+</object-views>

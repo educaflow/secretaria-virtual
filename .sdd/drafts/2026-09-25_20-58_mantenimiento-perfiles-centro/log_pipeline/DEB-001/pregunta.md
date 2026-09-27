@@ -1,0 +1,8 @@
+# DEB-001 — T-016 bloqueado por datos residuales en AceProfileCentro
+
+**Skill / fase / origen:** sdd-debug-with-test-e2e-desc / Fase 4 §9.2 paso 3 — bucle de corrección de T-016, ciclo 1 (corrector BLOQUEADO) / BLOCKED
+**Pregunta:** T-016 exige que la tabla AceProfileCentro esté vacía, pero tiene 5 filas creadas por T-001..T-015. La fila «CIPFP Mislata / Trámite de prueba / Afectado / Alumno» coincide con la que crea el paso 5, así que la regla de unicidad la rechaza, y el sistema de permisos denegó al ejecutor borrarlas en bloque. ¿Cómo se continúa?
+**A:** Reiniciar la BD limpia según agent_docs/deploy.md (parar y recrear el contenedor educaflow-db y rearrancar ./run.sh), reejecutar T-016 y seguir con T-017..T-022. Nota del ejecutor: hace falta autorización del usuario para borrar los datos.
+**B:** Dejar T-016 en FAIL (sin marcar) y continuar con T-017..T-022 sobre la BD actual, sin tocar los datos.
+**Opciones descartadas al formular:** ninguna
+**Contexto:** .sdd/drafts/2026-09-25_20-58_mantenimiento-perfiles-centro/specification.md | .sdd/drafts/2026-09-25_20-58_mantenimiento-perfiles-centro/design/design.md | .sdd/drafts/2026-09-25_20-58_mantenimiento-perfiles-centro/test-e2e-desc/t-016-no-se-guarda-una-modificacion-que-repite-una-asignacion.desc.md | .sdd/drafts/2026-09-25_20-58_mantenimiento-perfiles-centro/test-e2e-desc/tests-e2e-desc.md | .sdd/drafts/2026-09-25_20-58_mantenimiento-perfiles-centro/test-e2e-desc/app.log | agent_docs/deploy.md | .claude/skills/sdd-debug-with-test-e2e-desc/SKILL.md | .claude/skills/sdd-debug-with-test-e2e-desc/template-system/README.md (o el template-* que declare el frontmatter `template:` de design/design.md) | .claude/skills/k-playwright/SKILL.md | .claude/skills/k-datainit/SKILL.md

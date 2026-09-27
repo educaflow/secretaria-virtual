@@ -1,0 +1,43 @@
+@startuml
+
+class AceProfileCentro {
+  + centro
+  + trámite
+  + perfil
+  + tipo de usuario
+  + cargo
+  + usuario
+}
+
+enum Perfil {
+  CREADOR
+  TRAMITADOR
+  COLABORADOR
+  AFECTADO
+  SECRETARIO
+  DIRECTOR
+  AUDITOR
+}
+
+class Centro {
+}
+
+class Tramite {
+}
+
+class TipoUsuario {
+}
+
+class Cargo {
+}
+
+class Usuario {
+}
+
+AceProfileCentro --> Perfil
+AceProfileCentro "many" --> "1" Centro : centro
+AceProfileCentro "many" --> "1" Tramite : trámite
+AceProfileCentro "many" --> "0..1" TipoUsuario : tipo de usuario
+AceProfileCentro "many" --> "0..1" Cargo : cargo
+AceProfileCentro "many" --> "0..1" Usuario : usuario
+@enduml

@@ -1,0 +1,5 @@
+# Build — iteración 1
+{"id":"E-001","tipo":"WARNING","fichero":"src/main/java/com/educaflow/base/infrastructure/pdfgenerator/impl/texto/Maquetador.java","ubicacion":"línea 79 (método partes)","tarea":null,"mensaje":"warning: [LoopOverCharArray] toCharArray allocates a new array, using charAt is more efficient\n        for (char c : texto.toCharArray()) {\n  Did you mean 'for (int i = 0; i < texto.length(); i++) { char c = texto.charAt(i);if (c != ' ') {'?","correccion":"Sustituir el bucle 'for (char c : texto.toCharArray())' por 'for (int i = 0; i < texto.length(); i++) { char c = texto.charAt(i); ... }'. Nota: el aviso es de código preexistente, ajeno a esta iniciativa (último cambio en el commit bb913cd). El build termina en BUILD SUCCESSFUL, los tests unitarios pasan y el chequeo de conformidad de superficie de las task_01..12 no encuentra superficie no declarada: este aviso es el único fallo del criterio de éxito."}
+
+# Build — iteración 2
+OK-COMPILA
