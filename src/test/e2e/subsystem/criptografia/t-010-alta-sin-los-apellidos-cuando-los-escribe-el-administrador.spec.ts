@@ -15,7 +15,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 // consigue con la pre-limpieza defensiva del arranque + el teardown del
 // `finally`, tal y como describe el «Estado inicial de la base de datos» de la
 // descripción.
-const DNI = '12345678Z';
+const DNI = '11111111H';
 
 // El nombre que teclea el administrador. Los «Apellidos» se dejan VACÍOS: es
 // justo lo que el test verifica que la aplicación rechaza.
@@ -159,7 +159,7 @@ test.describe('Certificados digitales', () => {
       //         digitales» (menú «Criptografía» → «Certificados digitales»).
       await abrirCertificadosDigitales(page);
 
-      // Precondición: no existe ningún certificado digital con DNI «12345678Z»
+      // Precondición: no existe ningún certificado digital con DNI «11111111H»
       // (si quedaran de una ejecución anterior, se borran desde el listado).
       await borrarEntradasDelDniSiExisten(page);
 
@@ -168,7 +168,7 @@ test.describe('Certificados digitales', () => {
       const dni = page.getByRole('textbox', { name: 'DNI', exact: true });
       await expect(dni).toBeVisible();
 
-      // Paso 3: Y escribe en el campo «DNI» el valor «12345678Z».
+      // Paso 3: Y escribe en el campo «DNI» el valor «11111111H».
       // El `Tab` saca el foco del campo: el autorrelleno de nombre y apellidos lo
       // dispara el evento de cambio, que Axelor emite al perder el foco, no al
       // teclear. MUST hacerse para que el escenario sea el real: como ese DNI no
@@ -223,7 +223,7 @@ test.describe('Certificados digitales', () => {
       await volverAlListado(page);
 
       // Resultado esperado 2 (parte 2): el listado «Certificados digitales» no
-      // muestra ninguna fila con DNI «12345678Z».
+      // muestra ninguna fila con DNI «11111111H».
       // CRITICAL: se recarga la página en duro antes de mirar. La SPA de Axelor
       // sirve la rejilla desde su propio caché de la vista, así que sin recargar
       // el listado podría estar mostrando el estado que tenía ANTES del intento

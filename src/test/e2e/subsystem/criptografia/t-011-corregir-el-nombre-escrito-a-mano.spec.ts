@@ -15,7 +15,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 // resetea) se consigue con la pre-limpieza defensiva del arranque + el teardown
 // del `finally`, tal y como describe el «Estado inicial de la base de datos» de
 // la descripción.
-const DNI = '12345678Z';
+const DNI = '11111111H';
 
 const NOMBRE = 'Ana';
 // Los apellidos con los que se crea el certificado y los corregidos: el cambio
@@ -158,12 +158,12 @@ test.describe('Certificados digitales', () => {
       //         digitales» (menú «Criptografía» → «Certificados digitales»).
       await abrirCertificadosDigitales(page);
 
-      // Precondición: no existe ningún certificado digital con DNI «12345678Z»
+      // Precondición: no existe ningún certificado digital con DNI «11111111H»
       // (si quedaran de una ejecución anterior, se borran desde el listado).
       await borrarEntradasDelDniSiExisten(page);
 
       // Paso 2: Cuando pulsa «Añadir certificado digital», escribe en «DNI»
-      //         «12345678Z», en «Nombre» «Ana», en «Apellidos» «García López»,
+      //         «11111111H», en «Nombre» «Ana», en «Apellidos» «García López»,
       //         elige el tipo de certificado, escribe la «Ruta classpath» y
       //         pulsa «Guardar».
       await botonAnhadir(page).click();
@@ -225,7 +225,7 @@ test.describe('Certificados digitales', () => {
       await esperarListadoCargado(page);
       await expect(filaDelDni(page)).toHaveCount(1);
 
-      // Paso 4: Cuando pulsa la fila del DNI «12345678Z».
+      // Paso 4: Cuando pulsa la fila del DNI «11111111H».
       await abrirFilaDelDni(page);
 
       // Paso 5: Entonces el formulario muestra el campo «DNI» de solo lectura y
@@ -254,7 +254,7 @@ test.describe('Certificados digitales', () => {
       await expect(page).toHaveURL(/CertificadoDigital-action\/list/);
       await expect(botonAnhadir(page)).toBeVisible();
 
-      // Resultado esperado 2: la fila del DNI «12345678Z» muestra «Apellidos»
+      // Resultado esperado 2: la fila del DNI «11111111H» muestra «Apellidos»
       // «García Pérez» y «Nombre» «Ana».
       // CRITICAL: se recarga la página en duro antes de mirar. La SPA de Axelor
       // sirve la rejilla desde su propio caché de la vista, así que sin recargar

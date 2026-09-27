@@ -14,7 +14,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 // consigue con la pre-limpieza defensiva del arranque + el teardown del
 // `finally`, tal y como describe el «Estado inicial de la base de datos» de la
 // descripción.
-const DNI = '12345678Z';
+const DNI = '11111111H';
 
 // Nombre y apellidos que teclea el administrador: al no haber usuario con ese
 // DNI, el alta NO los rellena sola.
@@ -139,7 +139,7 @@ test.describe('Certificados digitales', () => {
       //         digitales» (menú «Criptografía» → «Certificados digitales»).
       await abrirCertificadosDigitales(page);
 
-      // Precondición: no existe ningún certificado digital con DNI «12345678Z»
+      // Precondición: no existe ningún certificado digital con DNI «11111111H»
       // (si quedaran de una ejecución anterior, se borran desde el listado).
       await borrarEntradasDelDniSiExisten(page);
 
@@ -148,7 +148,7 @@ test.describe('Certificados digitales', () => {
       const dni = page.getByRole('textbox', { name: 'DNI', exact: true });
       await expect(dni).toBeVisible();
 
-      // Paso 3: Y escribe en el campo «DNI» el valor «12345678Z».
+      // Paso 3: Y escribe en el campo «DNI» el valor «11111111H».
       // El `Tab` saca el foco del campo: el autorrelleno de nombre y apellidos lo
       // dispara el evento de cambio, que Axelor emite al perder el foco, no al
       // teclear. Aquí MUST hacerse igualmente para comprobar que, con un DNI que
@@ -192,7 +192,7 @@ test.describe('Certificados digitales', () => {
       await expect(page).toHaveURL(/CertificadoDigital-action\/list/);
       await expect(botonAnhadir(page)).toBeVisible();
 
-      // Resultado esperado 2: el listado muestra una fila con DNI «12345678Z»,
+      // Resultado esperado 2: el listado muestra una fila con DNI «11111111H»,
       // «Nombre» «Ana», «Apellidos» «García López», «Tipo de certificado» «Usar un
       // fichero con el certificado que ya está dentro del del WAR» y «Habilitado»
       // marcado (la celda de esa columna es la única casilla de la fila: la

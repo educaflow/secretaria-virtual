@@ -23,8 +23,8 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 - Los dos ficheros de certificado que ya vienen dentro de la aplicación y que los escenarios usan como certificado de tipo «Usar un fichero con el certificado que ya está dentro del del WAR»: ruta classpath `firma/mi_certificado.p12` y ruta classpath `firma/instalar_certificado_criptografico/secretario.p12` (recursos del WAR, no datos de BD).
 - Los usuarios y centros de demostración; en particular el usuario `secretario@mislata.es`, con documento «29050788V», nombre «Secretario» y apellidos «CIPFP Mislata».
-- No existe ningún usuario de la aplicación cuyo documento sea «12345678Z».
-- No existe ningún certificado digital con DNI «29050788V» ni con DNI «12345678Z». Como todos los tests usan uno de esos dos DNI y algunos dejan certificados creados al terminar, **cada test restablece esta precondición al empezar**: si el listado «Certificados digitales» muestra alguna fila con el DNI que va a usar, el administrador la abre, pulsa «Borrar», confirma, y repite hasta que no quede ninguna, antes de ejecutar sus pasos.
+- No existe ningún usuario de la aplicación cuyo documento sea «11111111H».
+- No existe ningún certificado digital con DNI «29050788V» ni con DNI «11111111H». Como todos los tests usan uno de esos dos DNI y algunos dejan certificados creados al terminar, **cada test restablece esta precondición al empezar**: si el listado «Certificados digitales» muestra alguna fila con el DNI que va a usar, el administrador la abre, pulsa «Borrar», confirma, y repite hasta que no quede ninguna, antes de ejecutar sus pasos.
 
 **Usuarios de acceso** (login y contraseña que `/sdd-debug-with-test-e2e-desc` usará para iniciar sesión):
 
@@ -38,17 +38,17 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Precondiciones
 - El usuario `admin` ha iniciado sesión con usuario «admin» y contraseña «admin».
-- No existe ningún certificado digital con DNI «12345678Z».
+- No existe ningún certificado digital con DNI «11111111H».
 
 ## Pasos
 1. **Dado** que el administrador está en la pantalla «Certificados digitales» (menú «Criptografía» → «Certificados digitales»).
-2. **Cuando** pulsa «Añadir certificado digital», escribe en «DNI» «12345678Z», en «Nombre» «Ana», en «Apellidos» «García López», elige en «Tipo de certificado» la opción «Usar un fichero con el certificado que ya está dentro del del WAR», escribe en «Ruta classpath» «firma/mi_certificado.p12» y pulsa «Guardar».
+2. **Cuando** pulsa «Añadir certificado digital», escribe en «DNI» «11111111H», en «Nombre» «Ana», en «Apellidos» «García López», elige en «Tipo de certificado» la opción «Usar un fichero con el certificado que ya está dentro del del WAR», escribe en «Ruta classpath» «firma/mi_certificado.p12» y pulsa «Guardar».
 3. **Entonces** el sistema guarda el certificado y vuelve al listado.
-4. **Cuando** pulsa la fila del DNI «12345678Z».
+4. **Cuando** pulsa la fila del DNI «11111111H».
 5. **Entonces** el formulario muestra el campo «DNI» de solo lectura y los campos «Nombre» y «Apellidos» editables.
 6. **Cuando** cambia el campo «Apellidos» a «García Pérez».
 7. **Y** pulsa «Guardar».
 
 ## Resultado esperado
 - El sistema guarda el cambio y vuelve al listado «Certificados digitales».
-- La fila del DNI «12345678Z» muestra «Apellidos» «García Pérez» y «Nombre» «Ana».
+- La fila del DNI «11111111H» muestra «Apellidos» «García Pérez» y «Nombre» «Ana».
