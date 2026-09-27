@@ -19,4 +19,20 @@
     <can create="false" read="true" write="true" remove="false" export="false"/>
   </permission>
 
+  <permission name="TareaFirma.centro-supervisor"
+              object="com.educaflow.subsystem.firmas.db.TareaFirma"
+              condition="self.centro IN (SELECT cu.centro FROM com.educaflow.subsystem.common.db.CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario cut JOIN cut.tipoUsuario tu WHERE cu.usuario = ? AND tu.codigo = 'SUPERVISOR')"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="DocumentoFirma.centro-supervisor"
+              object="com.educaflow.subsystem.firmas.db.DocumentoFirma"
+              condition="self.tareaFirma.centro IN (SELECT cu.centro FROM com.educaflow.subsystem.common.db.CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario cut JOIN cut.tipoUsuario tu WHERE cu.usuario = ? AND tu.codigo = 'SUPERVISOR')"
+              conditionParams="__user__"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
 </auth>

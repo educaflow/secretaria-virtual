@@ -5,6 +5,7 @@
     <module name="firmas" package="com.educaflow.subsystem.firmas.db"/>
     <entity name="TareaFirma" >
         <many-to-one name="firmante" ref="com.axelor.auth.db.User" required="true" />
+        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" required="true" title="Centro" />
         <one-to-many name="documentosFirma" ref="DocumentoFirma" mappedBy="tareaFirma"  />
         <datetime name="fechaSolicitud" title="Fecha de la solicitud" required="true" />
         <datetime name="fechaResolucion" title="Fecha de la resolución" />

@@ -56,6 +56,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
 
         TareaFirma tareaFirma=new TareaFirma();
         tareaFirma.setFirmante(tareaFirmaInsertDTO.firmante());
+        tareaFirma.setCentro(tareaFirmaInsertDTO.centro());
         tareaFirma.setFechaSolicitud(LocalDateTime.now(Convert.defaultZoneId));
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.PENDIENTE);
         tareaFirma.setMotivoFirma(tareaFirmaInsertDTO.motivoFirma());
