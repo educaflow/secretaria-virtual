@@ -8,7 +8,7 @@
             <state name="PENDIENTE_FIRMA"          events="VOLVER,PRESENTAR"        profile="CREADOR"     title="Pendiente de firma y presentación"               />
         </fase>
         <fase name="REVISION" title="Revisión de la secretaría">
-            <state name="PENDIENTE_REVISION"       events="CONTINUAR"               profile="SECRETARIO"  title="Pendiente de revisión"                           />
+            <state name="PENDIENTE_REVISION"       events="CONTINUAR"               profile="TRAMITADOR"  title="Pendiente de revisión"                           />
         </fase>
         <fase name="RESOLUCION" title="Resolución del centro">
             <state name="PENDIENTE_FIRMA_DIRECTOR" events="FIRMAR,DEVOLVER"         profile="DIRECTOR"    title="Pendiente de la firma del director"              />

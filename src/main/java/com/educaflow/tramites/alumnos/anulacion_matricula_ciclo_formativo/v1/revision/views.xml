@@ -6,7 +6,7 @@
     <!-- *********************************************************************************************  -->
     <!-- ************************************* PENDIENTE_REVISION ************************************  -->
     <!-- *********************************************************************************************  -->
-    <form state="PENDIENTE_REVISION" profile="SECRETARIO">
+    <form state="PENDIENTE_REVISION" profile="TRAMITADOR">
         <include-panels>
             -devolucion-view
             -persona-solicitante
