@@ -1,6 +1,6 @@
 ---
 name: sdd
-description: Ejecuta de forma autónoma un tramo **contiguo** del pipeline SDD —`/sdd-designer` → `/sdd-implementer` → `/sdd-debug-with-test-e2e-desc` → `/sdd-create-tests-e2e` → `/sdd-close`— sobre una iniciativa de `.sdd/drafts/` (ruta explícita o la última), sin hacer ninguna pregunta al usuario durante la ejecución. Los pasos se indican como argumento en lenguaje natural (`/sdd diseño, implementacion, depurar con test e2e y crear test e2e`, `/sdd designer implementation`, `/sdd close`); si se invoca **sin pasos** (`/sdd` a secas, o solo con la ruta/flags), los pregunta **una única vez** con el TUI (`AskUserQuestion`) presentando los cinco pasos como casillas que el usuario marca. Deben ir seguidos y en orden, y puede empezarse en un paso intermedio si existe el artefacto que ese paso necesita. Cada skill se ejecuta tal cual es **en su propio contexto** (un subagente ejecutor por skill) y el ejecutor solo intercepta sus puntos de parada (`AskUserQuestion`, `STOP`, `CONFLICT`, `BLOCKED`, `BLOQUEADO`, agotamiento de un `LIMIT`) y los devuelve como `DECISION-REQUERIDA`. El orquestador resuelve cada una con un debate entre dos subagentes con posiciones enfrentadas (LIMIT 3 rondas) y, si no hay consenso, un subagente juez, o con una política fija declarada; reanuda el ejecutor con la decisión y se detiene solo ante paradas reales (build que no compila, app que no arranca, regresión de la suite E2E, tests que siguen en FAIL, decisión destructiva o fuera del alcance, ERROR de entrada). La salida es la del propio pipeline (`design/`, `implementation/`, `test-e2e-desc/`, los tests bajo `src/test/e2e/`, el código real y, si se pidió cerrar, el draft archivado) más `log_pipeline.md` con el informe final auditable de cada decisión tomada.
+description: Ejecuta de forma autónoma un tramo **contiguo** del pipeline SDD —`/sdd-designer` → `/sdd-implementer` → `/sdd-debug-with-test-e2e-desc` → `/sdd-create-tests-e2e` → `/sdd-close`— sobre una iniciativa de `.sdd/drafts/` (ruta explícita o la última), sin hacer ninguna pregunta al usuario durante la ejecución. Los pasos se indican como argumento en lenguaje natural (`/sdd diseño, implementacion, depurar con test e2e y crear test e2e`, `/sdd designer implementation`, `/sdd close`); si se invoca **sin pasos** (`/sdd` a secas, o solo con la ruta/flags), los pregunta **una única vez** con el TUI (`AskUserQuestion`) presentando los cinco pasos como casillas que el usuario marca. Deben ir seguidos y en orden, y puede empezarse en un paso intermedio si existe el artefacto que ese paso necesita. Cada skill se ejecuta tal cual es **en su propio contexto** (un subagente ejecutor por skill) y el ejecutor solo intercepta sus puntos de parada (`AskUserQuestion`, `STOP`, `CONFLICT`, `BLOCKED`, `BLOQUEADO`, agotamiento de un `LIMIT`) y los devuelve como `DECISION-REQUERIDA`. El orquestador resuelve cada una con un debate entre dos subagentes con posiciones enfrentadas (LIMIT 3 rondas) y, si no hay consenso, un subagente juez, o con una política fija declarada; reanuda el ejecutor con la decisión y se detiene solo ante paradas reales (build que no compila, app que no arranca, regresión de la suite E2E, tests que no se pudieron persistir como regresión, decisión destructiva o fuera del alcance, ERROR de entrada). La salida es la del propio pipeline (`design/`, `implementation/`, `test-e2e-desc/`, los tests bajo `src/test/e2e/`, el código real y, si se pidió cerrar, el draft archivado) más `log_pipeline.md` con el informe final auditable de cada decisión tomada.
 handoffs:
   - label: Ejecutar los tests E2E contra la app real
     agent: sdd-debug-with-test-e2e-desc
@@ -82,7 +82,8 @@ You **MUST** consider the user input before proceeding. Sintaxis: `[ruta] <pasos
 - Un ejecutor devuelve `FIN-STOP-BUILD` (el bucle de build de `/sdd-implementer` agotó sus **20** iteraciones o detectó errores persistentes) → **STOP** y avisa con la ruta de `implementation/log_build.txt`. **MUST NOT** dar la implementación por buena ni elegir tú una de las opciones que el implementer ofrecería.
 - Un ejecutor devuelve `FIN-STOP-APP` (la app no respondió `200` tras la política fija de reintentos, §7.3) → **STOP** y avisa con la ruta de `test-e2e-desc/app.log`.
 - Un ejecutor devuelve `FIN-STOP-REGRESION` (la puerta de regresión de `/sdd-create-tests-e2e` encontró rojo un test de otra iniciativa) → **STOP**: retirar un test ajeno es destructivo y lo decide el usuario.
-- Un ejecutor devuelve `FIN-OK-CON-FALLOS` (`debug` o `tests` terminaron con algún test en `FAIL`) → **STOP**: **MUST NOT** pasar al siguiente paso con tests fallando.
+- El ejecutor de `tests` devuelve `FIN-OK-CON-FALLOS` (algún test no pudo persistirse) → **STOP**: **MUST NOT** pasar a `close` con tests fallando.
+  El `FIN-OK-CON-FALLOS` de `debug` **no** es parada: se continúa con `tests` (§7.3).
 - Un debate termina en `ESCALAR` (la decisión es **destructiva** o **fuera del alcance** de la iniciativa, §8.4) → **STOP** y avisa con la pregunta y las dos posiciones.
 - La reentrada por `FIN-DESIGN-ERROR` agota su **LIMIT** de 2 vueltas (§7.7) → **STOP** y avisa con la ruta del `error_design.log`.
 - Un ejecutor no devuelve ningún token válido tras **LIMIT** 2 reenvíos (§5.3) → **STOP** y avisa.
@@ -150,7 +151,8 @@ La carpeta de una iniciativa de `.sdd/drafts/` con el artefacto que exige el pri
 | La app no responde `200` en `http://localhost:8080` (debug: `AskUserQuestion` reintentar / ver log / abortar) | `DECISION-REQUERIDA` con `ORIGEN: APP`. | **Política fija** «reintentar», **LIMIT** 2 (§7.3); agotado, el ejecutor termina con `FIN-STOP-APP`. |
 | `DESIGN-ERROR` (el implementer escribe `implementation/error_design.log`, o el corrector de debug escribe `test-e2e-desc/error_design.log`, y el skill se detiene) | `FIN-DESIGN-ERROR`. | **Reentrada** designer → implementer (→ debug) (§7.7), LIMIT 2. |
 | `REGRESIÓN` en la puerta final de `/sdd-create-tests-e2e` | `FIN-STOP-REGRESION`. | **STOP** real. |
-| Cierre de `debug` o `tests` con algún test en `FAIL` | `FIN-OK-CON-FALLOS`. | **STOP** real. |
+| Cierre de `debug` con algún test en `FAIL` | `FIN-OK-CON-FALLOS`. | Continúa con `tests` si está entre los pasos pedidos (§7.3). |
+| Cierre de `tests` con algún test en `FAIL` | `FIN-OK-CON-FALLOS`. | **STOP** real. |
 | `MANUAL` / tests `[-]` en debug y tests | Nada: el skill ya los salta solo. | — |
 | «**MUST NOT** lanzar `/sdd-<siguiente>` tú mismo» (cierres de designer, implementer y debug) | Termina con `FIN-OK`. | Lanza él el siguiente ejecutor **solo si está entre los pasos pedidos** (encadenar es la razón de ser de este skill). |
 | Bucle de build agota el **LIMIT** 20 | `FIN-STOP-BUILD`. | **STOP** real. |
@@ -188,10 +190,11 @@ La carpeta de una iniciativa de `.sdd/drafts/` con el artefacto que exige el pri
 │           ├ DECISION-REQUERIDA → política fija | debate (§8)         │
 │           │                     → SendMessage(decisión) (repetir)    │
 │           ├ FIN-OK            → siguiente paso                       │
+│           ├ FIN-OK-CON-FALLOS de debug → siguiente paso (§7.3)     │
 │           ├ FIN-DESIGN-ERROR  → §7.7 reentrada (LIMIT 2):            │
 │           │                     designer' → implementer' (→ debug')  │
 │           └ FIN-ERROR | FIN-STOP-BUILD | FIN-STOP-APP |              │
-│             FIN-STOP-REGRESION | FIN-OK-CON-FALLOS → STOP + informe  │
+│             FIN-STOP-REGRESION | FIN-OK-CON-FALLOS de tests → STOP   │
 │ §8      Debate: pregunta.md → rondas (LIMIT 3, defensores a fichero) │
 │           → consenso | juez → decisión → log_pipeline.md             │
 │ §9      Informe final                                                │
@@ -349,7 +352,7 @@ Por cada paso `p` de `{pasos}`, en orden:
    - **Resumen del ejecutor:** {líneas de resumen literales}
    - **Decisiones:** {ids de las decisiones de esta vuelta, o «ninguna»}
    ```
-5. `FIN-OK` → siguiente paso (si era el último, §9). `FIN-DESIGN-ERROR` → §7.7. Cualquier otro `FIN-*` → **STOP** e informe (§9).
+5. `FIN-OK`, o `FIN-OK-CON-FALLOS` de `debug` (§7.3) → siguiente paso (si era el último, §9). `FIN-DESIGN-ERROR` → §7.7. Cualquier otro `FIN-*` → **STOP** e informe (§9).
 6. **MUST NOT** lanzar ningún paso que no esté en `{pasos}`, salvo los que exige una reentrada (§7.7).
 
 ---
@@ -386,7 +389,12 @@ Formulación de las alternativas en los puntos previstos:
 - `ORIGEN: APP` (la app no responde `200`) → **política fija A = «reintentar»**, sin debate, **LIMIT** 2 por vuelta. Regístrala con la plantilla de §8.5 (`FIJA-NNN`, `Decidido por: POLÍTICA FIJA`, `Por qué: la app no arrancó; reintento {1|2} de 2`). Si tras el segundo reintento sigue sin `200`, el ejecutor termina con `FIN-STOP-APP` → **STOP** con la ruta de `test-e2e-desc/app.log`.
 - `ORIGEN: BLOCKED` (corrector `BLOQUEADO`: falta un recurso del entorno) → debate, con las dos formas más plausibles de **desbloquear y continuar** (p.ej. A = «crear/configurar el recurso que falta según `<k-* relevante>`», B = «dejar ese test en `FAIL` y seguir con el resto»).
 - Resto → debate.
-- `FIN-DESIGN-ERROR` → §7.7. `FIN-OK-CON-FALLOS` / `FIN-ERROR` → **STOP**. `MANUAL` y los `[-]` no llegan al orquestador.
+- `FIN-OK-CON-FALLOS` → **no** es parada: se continúa con `tests` si está entre los pasos pedidos.
+  `/sdd-create-tests-e2e` solo persiste los `[x]` y `[-]`, así que los tests en `FAIL` (que quedan `[ ]`) se excluyen solos.
+  Los ids en `FAIL` **MUST** figurar en el informe (§9).
+  - ✅ CORRECTO: `debug` → `FIN-OK-CON-FALLOS` (`FAIL: T-016`) → se lanza `tests`, que persiste el resto.
+  - ❌ INCORRECTO: detener el pipeline tras `debug` por un `FAIL` (se pierden como regresión los tests que sí pasaron).
+- `FIN-DESIGN-ERROR` → §7.7. `FIN-ERROR` → **STOP**. `MANUAL` y los `[-]` no llegan al orquestador.
 
 ### 7.4 `tests`
 
@@ -543,7 +551,7 @@ Escribe el informe al usuario **a partir de `log_pipeline.md`** (no releas los d
 Pipeline sdd — {iniciativa}
 
 Pasos pedidos: {ids en orden}{ (seleccionados en el TUI), si vinieron de §4.1}
-Estado final: {COMPLETADO | DETENIDO — {motivo: pasos inválidos | skill inexistente | entrada ausente | build no compila | app no arranca | regresión E2E | tests en FAIL | ESCALAR en DEB-NNN | ERROR de entrada | worktree aislado | LIMIT de reentradas | ejecutor sin token}}
+Estado final: {COMPLETADO | COMPLETADO CON FALLOS EN DEBUG — {ids en FAIL} | DETENIDO — {motivo: pasos inválidos | skill inexistente | entrada ausente | build no compila | app no arranca | regresión E2E | tests en FAIL | ESCALAR en DEB-NNN | ERROR de entrada | worktree aislado | LIMIT de reentradas | ejecutor sin token}}
 
 1. /sdd-{skill}: {FIN-OK | FIN-OK-CON-FALLOS | FIN-ERROR | FIN-DESIGN-ERROR | FIN-STOP-BUILD | FIN-STOP-APP | FIN-STOP-REGRESION | STOP | no ejecutado} — {resumen del ejecutor}.
    Reentradas por DESIGN-ERROR: {0 | v}   ← solo en designer/implementer/debug
@@ -585,9 +593,9 @@ Siguiente paso: {/sdd-<skill que sigue al último paso completado> {ruta de su e
 - **Sin preguntas una vez arrancado**: la **única** `AskUserQuestion` del skill es la selección inicial de pasos (§4.1), y solo si el input no trae ninguno; ningún subagente la usa nunca. Toda decisión en nombre del usuario pasa por **debate** (§8) o por una política fija declarada (§7.3 app, §7.6 `CONFLICT`, §7.7 reentrada, confirmación de `close`) y queda en `log_pipeline.md`.
 - **Reanudar, no relanzar**: una `DECISION-REQUERIDA` se responde al **mismo** ejecutor con `SendMessage` (`DECISION: A|B — …`); relanzar desde cero es solo el fallback de §5.4.
 - **Los skills encadenados mandan** fuera de la tabla §2.3: el ejecutor sigue su flujo completo, tokens, logs, LIMITs y gestión de la app.
-- **Encadenado condicional**: un paso solo arranca si el anterior devolvió `FIN-OK` y su artefacto de entrada existe; `FIN-OK-CON-FALLOS` no encadena.
+- **Encadenado condicional**: un paso solo arranca si el anterior devolvió `FIN-OK` y su artefacto de entrada existe. Única excepción: el `FIN-OK-CON-FALLOS` de `debug` encadena con `tests`, que excluye solo los tests en `FAIL`.
 - **Debate**: dos defensores en paralelo con el **mismo contexto** (spec, diseño, `k-*` relevantes, código real), argumentos con fuente, **LIMIT** 3 rondas, consenso = ambos `ACEPTO:` iguales; sin consenso → juez con prioridades (1) spec, (2) convenciones, (3) simple y reversible; `ESCALAR` si es destructivo o fuera de alcance.
-- **Paradas reales** (las únicas): pasos inválidos, skill o entrada ausente, `FIN-ERROR`, `FIN-STOP-BUILD`, `FIN-STOP-APP`, `FIN-STOP-REGRESION`, `FIN-OK-CON-FALLOS`, `ESCALAR`, worktree aislado, LIMIT 2 de reentradas por `FIN-DESIGN-ERROR`, ejecutor sin token tras 2 reenvíos.
+- **Paradas reales** (las únicas): pasos inválidos, skill o entrada ausente, `FIN-ERROR`, `FIN-STOP-BUILD`, `FIN-STOP-APP`, `FIN-STOP-REGRESION`, `FIN-OK-CON-FALLOS` de `tests`, `ESCALAR`, worktree aislado, LIMIT 2 de reentradas por `FIN-DESIGN-ERROR`, ejecutor sin token tras 2 reenvíos.
 - **`FIN-DESIGN-ERROR`** (de implementer o de debug): apartar `implementation/`, ejecutor nuevo del designer en Revisar/Modificar con el error como cambios, y volver a correr implementer (y debug) aunque no se pidieran (LIMIT 2).
 - **Informe final** (§9) siempre, también tras una parada, construido solo desde `log_pipeline.md`; tras `close`, en `.sdd/archive/`.
 
