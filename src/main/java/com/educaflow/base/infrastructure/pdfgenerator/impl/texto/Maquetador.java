@@ -76,7 +76,8 @@ public final class Maquetador {
     private static List<String> partes(String texto) {
         List<String> partes = new ArrayList<>();
         StringBuilder palabra = new StringBuilder();
-        for (char c : texto.toCharArray()) {
+        for (int i = 0; i < texto.length(); i++) {
+            char c = texto.charAt(i);
             if (c != ' ') {
                 palabra.append(c);
                 continue;
