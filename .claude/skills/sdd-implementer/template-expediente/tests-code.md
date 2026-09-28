@@ -102,9 +102,9 @@ Esta es la lista de lo que se le va a exigir al tipo de expediente generado. El 
 
 | ID | Qué exige |
 |---|---|
-| **P1** | Toda expresión Groovy de los `documentospdf/` del tipo (cada `nombreCampo`, cada `${expresion;n}` y cada `visible`) **MUST** compilar con `@TypeChecked` contra la entidad del `domains.xml` como `self` y `java.time.LocalDateTime` como `now`: cada propiedad existe en la entidad o en la relación navegada, cada FQCN resuelve (el enum es el de **esta** versión) y la sintaxis es válida. Las expresiones se leen del **XML resuelto que deja el build**, con el mismo parser que el runtime, así que los fragmentos `_*.xml` ya van expandidos. El mensaje trae el tipo, el fichero, la expresión y el error del compilador de Groovy |
+| **P1** | Toda expresión Groovy de los `documentospdf/` del tipo (cada `nombreCampo`, cada `${expresion}` inline y cada `visible`) **MUST** compilar con `@TypeChecked` contra la entidad del `domains.xml` como `self` y `java.time.LocalDateTime` como `now`: cada propiedad existe en la entidad o en la relación navegada, cada FQCN resuelve (el enum es el de **esta** versión) y la sintaxis es válida. Las expresiones se leen del **XML resuelto que deja el build**, con el mismo parser que el runtime, así que los fragmentos `_*.xml` ya van expandidos. El mensaje trae el tipo, el fichero, la expresión y el error del compilador de Groovy |
 
-> **Lo que P1 NO comprueba**: lo que depende de los **datos** del expediente —una relación a `null` en mitad de la cadena, un patrón de `DateTimeFormatter` mal escrito—. Eso sigue fallando solo en runtime y **en silencio** (log + campo vacío).
+> **Lo que P1 NO comprueba**: lo que depende de los **datos** del expediente —una relación a `null` en mitad de la cadena, un patrón de `DateTimeFormatter` mal escrito—. Eso sigue fallando solo en runtime, y ahí lanza `RuntimeException` y **aborta el evento**: el documento no se emite con un dato de menos.
 
 ---
 

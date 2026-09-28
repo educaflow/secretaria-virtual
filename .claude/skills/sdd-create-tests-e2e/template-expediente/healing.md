@@ -11,8 +11,8 @@ Lo lee el **sanador** (§2.3 del `README.md`). Tarea: dado un `.spec.ts` que fal
 La descripción ya pasó al depurarse con `/sdd-debug-with-test-e2e-desc`: el comportamiento esperado es **correcto**. Ante un fallo, distingue el **origen**:
 
 1. **Fallo del `.spec.ts`** (lo habitual) → **sanable**. Causas típicas, por frecuencia:
-   - **Bandeja equivocada** (causa #1 de "todo readonly y sin botones"): el test abre el expediente por una bandeja que no corresponde al perfil del tramo, así que ve la vista genérica de solo lectura. Arréglalo entrando por la bandeja correcta: `CREADOR` → «Expedientes Pendientes»; `TRAMITADOR` → «Expedientes Esperando» (abiertos) o «Expedientes Cerrados» (cerrados).
-     Si el perfil del tramo es `SECRETARIO`, `DIRECTOR` o `AUDITOR` **no hay bandeja**: se entra por la pantalla que declare el trámite (`README.md` §3.2). Si no existe ninguna, es un fallo de diseño → `BLOQUEADO`, **MUST NOT** apañarlo entrando por otra bandeja.
+   - **Usuario sin el perfil del estado** (causa #1 de "todo readonly y sin botones"): las listas no fijan el perfil, lo elige el servidor por el usuario (`README.md` §3.2), así que la vista genérica significa que ese usuario **no tiene** el perfil que el estado declara. Arréglalo con el usuario que los `Given` indican para el tramo; si el diseño no da ninguno con ese perfil, es un fallo de diseño → `BLOQUEADO`.
+   - **Lista equivocada** (el expediente "no aparece"): un expediente que espera al centro no está en «Mis trámites → Pendientes de mí» sino en «En tramitación»; uno cerrado, en «Finalizados» / «Cerrados»; uno que espera a otro perfil, en la lista de la unidad y no en «Tramitación → Pendientes de mí». Localízalo siempre por su número.
    - **No idempotente** (causa #1 de RED al reejecutar; la BD es compartida): el test localiza el expediente con `.first()`, por el nombre del trámite o contando filas, y al segundo run actúa sobre uno ajeno. Arréglalo con el patrón de `generation.md` §5: **capturar el número de expediente** y localizarlo siempre por él.
    - **Profundidad del import** de `_support/auth`: «Cannot find module». La carpeta de un trámite tiene 3 o más niveles bajo `src/test/e2e/`; cuenta los segmentos reales (`generation.md` §7).
    - **Aserción sobre «Fase»/«Estado» mal hecha**: son campos readonly, su contenido es el `value` de un input. Usa `toHaveValue`, no `getByText`/`toBeVisible`.
@@ -57,7 +57,7 @@ Responde **exactamente** una de estas líneas (+ 1 línea de resumen opcional):
 - `BLOQUEADO: {T-NNN} — {motivo}` — el fallo no es del `.spec.ts`: posible regresión de la app o falta un recurso del entorno. El motor lo registrará y saltará el test de forma autónoma; tu trabajo es **reportarlo con precisión** (qué esperaba la descripción vs. qué hace la app).
   **MUST NOT** devolver `BLOQUEADO` alegando que el paso no es automatizable: eso lo declara la cabecera (`Manual`) y se resuelve con el tag `@manual`, no aquí.
 
-- ✅ CORRECTO: `CORREGIDO: T-005` — abría el expediente por «Expedientes Esperando» siendo un tramo de perfil CREADOR; corregida la bandeja.
+- ✅ CORRECTO: `CORREGIDO: T-005` — buscaba el expediente en «Mis trámites → Pendientes de mí» cuando ya esperaba al centro; ahora lo abre desde «En tramitación».
 - ✅ CORRECTO: `CORREGIDO: T-011` — localizaba el expediente con `.first()`; ahora lo busca por su número capturado al crearlo.
 - ✅ CORRECTO: `BLOQUEADO: T-014 — al pulsar el botón del evento la app responde «No existe la vista en el expediente»; falta el form genérico del estado de destino: regresión.`
 - ❌ INCORRECTO: `Arreglado ✅` (token no parseable), borrar la aserción de no-transición de un test de error, editar el `views.xml` de la fase para añadir el form que falta.

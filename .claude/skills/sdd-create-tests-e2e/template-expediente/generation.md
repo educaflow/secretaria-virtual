@@ -69,8 +69,8 @@ Reglas:
 2. El `logout` **final** va en el `finally`, **después** del teardown (§5.2): el borrado del expediente necesita la sesión abierta, así que cerrarla antes lo condena a fallar en silencio.
 3. Entre tramos: `logout` del actor anterior y `login` del siguiente. **MUST NOT** encadenar dos `login` sin `logout` en medio.
 4. El actor del tramo **final** (el que dispara el evento del campo `Evento`) **MUST** ser el del campo `Perfil`. Los tramos previos usan los actores que digan los `Given`.
-5. **MUST** abrir el expediente por la **bandeja del perfil del tramo**: `CREADOR` → «Expedientes Pendientes»; `TRAMITADOR` → «Expedientes Esperando» (abiertos) o «Expedientes Cerrados» (cerrados). Entrar por la bandeja equivocada da la vista genérica de solo lectura y el test falla por un motivo falso.
-6. **Un tramo cuyo perfil no sea `CREADOR` ni `TRAMITADOR`** (`SECRETARIO`, `DIRECTOR`, `AUDITOR`) **no tiene bandeja**: se entra por la pantalla que declare el propio trámite (`README.md` §3.2). Si no hay ninguna, devuelve `BLOQUEADO` (§9); **MUST NOT** entrar por la bandeja más parecida.
+5. **MUST** abrir el expediente por la **lista que corresponde al actor del tramo** (`README.md` §3.2): quien lo registró, por «Mis trámites» (Pendientes de mí / En tramitación / Finalizados según a quién espere el estado); quien tramita, por «Tramitación» → «Pendientes de mí» (si el estado le espera a él) o por la unidad («Jefatura de estudios» / «Secretaría» → Abiertos / Cerrados). El perfil con el que se pinta la vista lo decide el servidor por el usuario, no la lista.
+6. **Un tramo cuyo perfil sea `SECRETARIO`, `DIRECTOR` o `AUDITOR`** entra por «Tramitación» como cualquier tramitador. Si el usuario del tramo **no tiene ese perfil** (no hay `AceProfile*` que se lo dé), verá la vista genérica: no es la lista, es el usuario → revisa los `Given` y, si el diseño no da ningún usuario con ese perfil, devuelve `BLOQUEADO` (§9).
 
 **El helper `_support/auth.ts` es test code, no código de la app** (§7): si sus selectores no casan con la UI real, **MUST** ajustarlo. **MUST NOT** tocar `src/main/...`.
 

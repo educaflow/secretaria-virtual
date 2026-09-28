@@ -53,5 +53,5 @@ Responde **exactamente** una línea (+ 1 línea de resumen opcional):
 
 - ✅ CORRECTO: `OK: T-001`
 - ✅ CORRECTO: `INFIEL: T-009 — es Tipo: error y comprueba el mensaje, pero no asierta que el expediente sigue en la fase/estado de partida`
-- ✅ CORRECTO: `INFIEL: T-012 — abre el expediente por «Expedientes Esperando» cuando el perfil del test es CREADOR: está probando la vista genérica`
+- ✅ CORRECTO: `INFIEL: T-012 — abre el expediente con un usuario que no tiene el perfil del estado y da por buena la vista genérica: no está probando el tramo`
 - ❌ INCORRECTO: `El test está bien ✅` (token no parseable), editar el `.spec.ts`, ejecutar el test, devolver `BLOQUEADO` (ese token es del sanador, no del verificador).

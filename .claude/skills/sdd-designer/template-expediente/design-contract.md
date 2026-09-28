@@ -368,17 +368,19 @@ Reglas:
 - **CRITICAL — la carpeta MUST llamarse `documentospdf`.** `documentos/` se resuelve pero **no** se escanea para el enum: el documento queda muerto sin aviso. **MUST NOT** usarse.
 - Los nombres de fichero **MUST** ir en `camelCase`, sin espacios ni guiones. Se convierten en la constante del enum (`UPPER_SNAKE_CASE`).
 - **MUST NOT** convivir un `<doc>.xml` y un `<doc>.pdf` con el mismo nombre: el build aborta por ambigüedad.
-- Un fichero cuyo nombre empieza por `_` es un **fragmento**: raíz `<fragmento>`, **no** genera PDF propio y **no** tiene constante.
-- `<include href="_<fragmento>.xml"/>` va **solo** como hijo directo de `<documento>`/`<fragmento>`, **nunca** dentro de una `<seccion>`.
-- Los `colspan` de cada `<fila>` **MUST** sumar 12 o un múltiplo de 12; un elemento **MUST NOT** cruzar el límite de 12.
+- Hay **dos tipos de documento**, por elemento raíz: `<documentoFormulario>` (tabla sobre una rejilla de 12 columnas, bilingüe) y `<documentoTexto>` (prosa, un solo idioma). El diseño **MUST** decir de qué tipo es cada documento.
+- El `<titulo>` es **solo** del `<documentoFormulario>`. En un `<documentoTexto>` un encabezado es un `<parrafo negrita="true" mayusculas="true" alineamiento="izquierda">`.
+- Un fichero cuyo nombre empieza por `_` es un **fragmento**: raíz `<fragmento>`, **no** genera PDF propio y **no** tiene constante. Cada XSD declara **su** `<fragmento>`: un documento **MUST NOT** incluir un fragmento del otro tipo.
+- `<include href="_<fragmento>.xml"/>` va **solo** como hijo directo de la raíz del documento o de un `<fragmento>`, **nunca** dentro de una `<seccion>`.
+- Los `colspan` de cada `<fila>` de un `<documentoFormulario>` **MUST** sumar 12 o un múltiplo de 12; un elemento **MUST NOT** cruzar el límite de 12. En un `<documentoTexto>`, cada `<fila>` de una `<tabla>` **MUST** llevar exactamente un hijo por columna.
 - `<valenciano>` y `<castellano>` **MUST** ir como **elementos hijos**, nunca como atributos. Omitir `<valenciano>` → lo traduce el build; ponerlo **vacío** → solo castellano. **MUST NOT** quitarse un `<valenciano>` ya escrito para que lo retraduzca el build.
-- **CRITICAL — los fallos de evaluación de las expresiones en runtime son SILENCIOSOS**: cada `nombreCampo` se evalúa como **Groovy** con el contexto `{ self = el expediente, now = LocalDateTime.now() }`; una expresión que revienta no rompe el evento, se escribe en el log y **el campo queda vacío**. El test **P1** (`ExpresionesDeDocumentoTest`, en el build) compila cada expresión contra la entidad y caza la propiedad inexistente y el FQCN que no resuelve, pero **no** lo que depende de los datos (relación a `null` en la cadena, patrón de fecha). El diseño **MUST** usar solo rutas `self.*` que existan en la entidad (o en `Expediente`), y el paso de verificación final **MUST** exigir revisar el PDF generado en runtime.
+- **CRITICAL — los fallos de evaluación de las expresiones en runtime ABORTAN EL EVENTO**: cada `nombreCampo` y cada `${expresion}` inline se evalúa como **Groovy** con el contexto `{ self = el expediente, now = LocalDateTime.now() }`; una expresión que revienta, o un `visible`/`check` que no devuelve `Boolean`, lanza `RuntimeException` y el evento **no** termina: no se emite un documento con un dato de menos. El test **P1** (`ExpresionesDeDocumentoTest`, en el build) compila cada expresión contra la entidad y caza la propiedad inexistente y el FQCN que no resuelve, pero **no** lo que depende de los datos (relación a `null` en la cadena, patrón de fecha). El diseño **MUST** usar solo rutas `self.*` que existan en la entidad (o en `Expediente`), y el paso de verificación final **MUST** exigir revisar el PDF generado en runtime.
 
 Raíces admitidas:
 
 ```xml
-<documento xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documento.xsd">
+<documentoFormulario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documentoFormulario.xsd">
     <include href="_<fragmento>.xml"/>
     <seccion>
         <castellano>…</castellano>
@@ -388,10 +390,19 @@ Raíces admitidas:
             <texto colspan="12"><castellano>…</castellano></texto>
         </fila>
     </seccion>
-</documento>
+</documentoFormulario>
 ```
 
-(Un fragmento es idéntico salvo que su raíz es `<fragmento>`.)
+```xml
+<documentoTexto xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documentoTexto.xsd">
+    <titulo><castellano>…</castellano></titulo>
+    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda"><castellano>…</castellano></parrafo>
+    <parrafo><castellano>… ${self.<campo>} …</castellano></parrafo>
+</documentoTexto>
+```
+
+(Un fragmento es idéntico salvo que su raíz es `<fragmento>` y que no lleva `<titulo>`; el formato completo de los dos tipos está en `k-tipo-expediente` → `documentos.md` y `documentotexto.md`.)
 
 ---
 

@@ -21,7 +21,7 @@ Lo aplica el **verificador** sobre la carpeta `design/`; el **corrector** lo usa
 | `fases/<fase>/views.xml` | `<object-views>` | **Solo bien formado.** **MUST NOT** validarse contra `object-views.xsd` |
 | `TramiteInstance.xml` | `<Tramite>` | **Solo bien formado** (no hay XSD publicado) |
 | `TipoExpedienteInstance.xml` | `<TipoExpediente>` | **Solo bien formado** (no hay XSD publicado) |
-| `documentospdf/*.xml` | `<documento>` / `<fragmento>` | **Bien formado**, y **XSD remoto solo si hay red** |
+| `documentospdf/*.xml` | `<documentoFormulario>` / `<documentoTexto>` / `<fragmento>` | **Bien formado**, y **XSD remoto solo si hay red** |
 | `estados.puml` | — (no es XML) | Comprobación **sintáctica** de apertura y cierre |
 
 **REQUIRED — los comandos los ejecuta el VERIFICADOR con `Bash`.** El motor **NUNCA** ejecuta ninguno (es agnóstico al artefacto). **MUST NOT** sustituirse esta validación por una inspección «a ojo».
@@ -90,7 +90,7 @@ fi
 
 - **CRITICAL — MUST NOT** fallar la verificación por no tener red. Si el XSD remoto no se puede descargar, la comprobación se **omite** y se deja constancia; **MUST NOT** emitirse ninguna línea JSONL por ello.
 - Un error de validación **real** (con red) es **BLOCKING**. **Corrección esperada:** ajustar el elemento rechazado al esquema del documento.
-- La estructura semántica de los documentos (los `colspan`, los `nombreCampo`, los `<include href>`) la comprueba §2 bloque **I**, no el XSD.
+- La estructura semántica de los documentos (los `colspan` o las celdas por columna, los `nombreCampo`, los `<include href>`) la comprueba §2 bloque **I**, no el XSD.
 
 ### 1.6 `estados.puml` — comprobación sintáctica
 
@@ -288,12 +288,12 @@ Este bloque se aplica **solo si** el tipo genera al menos un documento. Si no ge
 | **C-I02** | Los nombres de fichero | No están en `camelCase`, o llevan espacios o guiones | Renombrarlos: se convierten en la constante del enum (`UPPER_SNAKE_CASE`) |
 | **C-I03** | Ambigüedad | Conviven un `<doc>.xml` y un `<doc>.pdf` con el mismo nombre base | Dejar uno: el build aborta por ambigüedad |
 | **C-I04** | La biyección enum ↔ ficheros | Una constante de `TipoDocumentoPdf` sin fichero en `documentospdf/`, o un `<doc>.xml` sin constante | Añadir o quitar la constante / el fichero, hasta que la correspondencia sea **uno a uno** |
-| **C-I05** | Los fragmentos | Un fichero con prefijo `_` tiene constante en el enum, o su raíz no es `<fragmento>` | Quitarle la constante y poner la raíz correcta: un fragmento **no** genera PDF propio |
+| **C-I05** | Los fragmentos | Un fichero con prefijo `_` tiene constante en el enum, su raíz no es `<fragmento>`, o su contenido es del otro tipo de documento que el que lo incluye | Quitarle la constante y poner la raíz y el contenido correctos: un fragmento **no** genera PDF propio y es **del tipo** del documento que lo incluye (cada XSD declara el suyo) |
 | **C-I06** | Las rutas de recurso del enum | La ruta de una constante no es la ruta absoluta de recurso del `<doc>.pdf` bajo el paquete de la versión | Corregirla |
-| **C-I07** | Las expresiones de los campos | Un `<campo nombreCampo="self.<x>">` (o un `<check nombreCampo="…">`) que referencia un campo **inexistente** en la entidad y en `Expediente` | Corregir la ruta. En el build lo denuncia el test **P1** (`ExpresionesDeDocumentoTest`), pero conviene cazarlo aquí, antes de implementar; en runtime **el fallo es SILENCIOSO**: la expresión Groovy revienta, se escribe en el log y el campo queda vacío |
-| **C-I08** | La retícula | Los `colspan` de alguna `<fila>` no suman 12 ni un múltiplo de 12, o un elemento cruza el límite de 12 | Reajustar los `colspan` |
+| **C-I07** | Las expresiones de los campos | Un `<campo nombreCampo="self.<x>">` (o un `<check nombreCampo="…">`) que referencia un campo **inexistente** en la entidad y en `Expediente` | Corregir la ruta. En el build lo denuncia el test **P1** (`ExpresionesDeDocumentoTest`), pero conviene cazarlo aquí, antes de implementar; en runtime la expresión Groovy revienta con `RuntimeException` y **aborta el evento**: el documento no se emite |
+| **C-I08** | La retícula (solo `<documentoFormulario>`) | Los `colspan` de alguna `<fila>` no suman 12 ni un múltiplo de 12, o un elemento cruza el límite de 12. En un `<documentoTexto>`: una `<fila>` de una `<tabla columnas="N">` no lleva exactamente N hijos | Reajustar los `colspan`, o añadir/quitar celdas hasta que haya una por columna |
 | **C-I09** | Los idiomas | `valenciano` o `castellano` aparecen como **atributos** en vez de elementos hijos | Convertirlos en elementos hijos. Omitir `<valenciano>` lo hace traducir al build; ponerlo **vacío** deja solo castellano — no es lo mismo |
-| **C-I10** | Los `<include>` | Un `<include href="_<fragmento>.xml"/>` dentro de una `<seccion>`, o apuntando a un fichero que no existe en el diseño | Moverlo a hijo **directo** de `<documento>`/`<fragmento>`; crear el fragmento o corregir el `href` |
+| **C-I10** | Los `<include>` | Un `<include href="_<fragmento>.xml"/>` dentro de una `<seccion>`, o apuntando a un fichero que no existe en el diseño | Moverlo a hijo **directo** de la raíz del documento (`<documentoFormulario>`/`<documentoTexto>`) o del `<fragmento>`; crear el fragmento o corregir el `href` |
 
 ### Bloque J — Permisos
 

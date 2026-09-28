@@ -142,25 +142,25 @@ Lo leen el **ejecutor** y el **corrector**. Es lo que un trámite tiene y un sis
 
 ### 4.1 Cómo se crea un expediente
 
-Menú **«Expedientes» → «Trámites»**: un **árbol** de trámites disponibles agrupados por tipo de trámite. Pulsar el nodo del trámite (o su botón «Nuevo expediente») dispara `triggerInitialEvent` y **abre directamente el formulario del estado inicial**, con el expediente ya creado. No hay un botón «Nuevo» del grid ni un alta previa que guardar.
+Menú **«Mis trámites» → «Nuevo trámite»**: el asistente de `system/ventanilla/views/nuevoexpediente/` (su `CLAUDE.md` describe las tres pantallas —centro, trámite, presentación— y sus `data-testid`). Al pulsar «Crear expediente» se dispara `triggerInitialEvent` y **se abre directamente el formulario del estado inicial**, con el expediente ya creado. No hay un botón «Nuevo» del grid ni un alta previa que guardar.
 
 - Un trámite que el usuario **no ve en el árbol** es un problema de **permisos** (ningún perfil sobre el trámite: el `<aces>` del `TramiteInstance.xml` o de la versión activa, o los de security `AceProfileGlobal`/`AceProfileTipoTramite`), no de la máquina de estados.
 
 ### 4.2 Cómo se abre un expediente ya creado — y por qué importa el perfil
 
-El expediente se abre desde una de las **bandejas** del menú «Expedientes», y **cada bandeja fija el perfil con el que se pinta la vista** (contexto `_profile` de su `action-view`):
+El expediente se abre desde las **listas** del menú, y **ninguna lista fija el perfil**: al pulsar la fila, `BandejaController.abrirExpediente` (ventanilla) lo abre con el perfil **real** del usuario sobre ese expediente —el del estado actual si lo ostenta; si no, el primero que tenga—.
 
-| Menú | Qué lista | Perfil con el que abre |
+| Menú | Qué lista | Para quién |
 |---|---|---|
-| «Expedientes Pendientes» | grid de expedientes abiertos | `CREADOR` |
-| «Expedientes Esperando» | árbol de expedientes abiertos por trámite | `TRAMITADOR` |
-| «Expedientes Cerrados» | expedientes con `abierto=false` | `TRAMITADOR` |
+| «Mis trámites» → «Pendientes de mí» / «En tramitación» / «Finalizados» | los que registré yo: el estado me espera a mí / espera a otro / cerrado | quien lo registró (`CREADOR`) |
+| «Tramitación» → «Pendientes de mí» | abiertos de mis centros cuyo estado espera a un perfil que tengo | quien tramita (`TRAMITADOR`, `SECRETARIO`, `DIRECTOR`…) |
+| «Tramitación» → «Jefatura de estudios» / «Secretaría» → «Abiertos» / «Cerrados» | todos los de esa unidad tramitadora en mis centros | quien tiene algún perfil de tramitación en esa unidad |
+| «Tramitación» → «Todos los centros» | todos, sin filtro de centro | el administrador |
 
-- **CRITICAL**: el runtime elige la vista `exp-<Code>-<FASE>-<ESTADO>-<PERFIL>-form` si existe para el perfil de la bandeja, y si no, la **genérica** `exp-<Code>-<FASE>-<ESTADO>-form` (solo lectura). Por eso «he entrado y está todo en solo lectura» casi siempre significa **bandeja equivocada**, no un fallo del código.
-- **CRITICAL — ver los botones no es poder disparar el evento.** Lo que elige la vista es el perfil de la **bandeja**; los perfiles que tenga el usuario **no** intervienen ahí (el servidor solo comprueba que ese perfil lo use algún estado del tipo). El perfil **real** del usuario se comprueba al **disparar** el evento, y si no lo tiene la app responde un **error de acceso** y el expediente **no** transiciona.
-  Consecuencias para el ejecutor: un usuario **sin** el perfil del estado que entre por la bandeja de ese perfil verá la vista completa **con** sus botones —eso es lo esperado, no un fallo—; y un usuario **con** el perfil que entre por otra bandeja verá la genérica de solo lectura.
+- **CRITICAL**: el runtime elige la vista `exp-<Code>-<FASE>-<ESTADO>-<PERFIL>-form` si existe para el perfil resuelto, y si no, la **genérica** `exp-<Code>-<FASE>-<ESTADO>-form` (solo lectura). Por eso «he entrado y está todo en solo lectura» significa que **ese usuario no tiene el perfil del estado**, no un fallo del código ni una lista equivocada.
+- **CRITICAL — ver los botones SÍ es poder disparar el evento**: el perfil que eligió la vista es el que el usuario ostenta, y es el mismo que el tramitador comprueba al disparar. Un test de solo lectura se monta eligiendo el **usuario** (uno sin el perfil del estado), no la lista.
 - Si no existe **ninguna** de las dos vistas, la app lanza «No existe la vista en el expediente»: eso **sí** es un fallo real (falta el `<form state=…>` genérico).
-- Un perfil distinto de esos tres (p.ej. `SECRETARIO`, `DIRECTOR`) no tiene bandeja propia: se llega por la pantalla que el propio trámite declare. Si el test lo exige y no hay por dónde entrar, es un fallo de diseño.
+- Los `data-testid` de las entradas son `item:<name del menuitem>` (`item:misTramites-pendientesDeMi-menuitem`, `item:tramitacion-pendientesDeMi-menuitem`, `item:tramitacion-jefaturaDeEstudios-abiertos-menuitem`…); los submenús de unidad tienen **dos niveles** que desplegar.
 
 ### 4.3 Qué se ve dentro de un expediente
 
