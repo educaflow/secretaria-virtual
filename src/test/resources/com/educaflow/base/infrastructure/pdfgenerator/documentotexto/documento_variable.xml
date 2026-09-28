@@ -1,0 +1,7 @@
+<documentoTexto>
+    <titulo>
+        <valenciano>Titol del document</valenciano>
+        <castellano>Titulo del documento</castellano>
+    </titulo>
+    <parrafo alineamiento="izquierda"><valenciano>Abans ${self.nombre} despres.</valenciano><castellano>Antes ${self.nombre} despues.</castellano></parrafo>
+</documentoTexto>

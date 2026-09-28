@@ -1,0 +1,13 @@
+<documentoTexto>
+    <titulo>
+        <valenciano>Titol del document</valenciano>
+        <castellano>Titulo del documento</castellano>
+    </titulo>
+    <parrafo alineamiento="izquierda"><valenciano>Alfa beta gamma delta.</valenciano><castellano>Alfa beta gamma delta.</castellano></parrafo>
+    <parrafo alineamiento="centrado"><valenciano>Alfa beta gamma delta.</valenciano><castellano>Alfa beta gamma delta.</castellano></parrafo>
+    <parrafo alineamiento="derecha"><valenciano>Alfa beta gamma delta.</valenciano><castellano>Alfa beta gamma delta.</castellano></parrafo>
+    <parrafo alineamiento="justificado">
+        <valenciano>Aquest paragraf justificat ha d'ocupar mes de dues linies perque les interiors arriben totes al marge dret ensanchant els seus espais, mentre que l'ultima es queda on acabe el seu text sense estirar-se, que es precisament el que distingeix el justificat de qualsevol altra alineacio.</valenciano>
+        <castellano>Este parrafo justificado tiene que ocupar mas de dos lineas para que las interiores lleguen todas al margen derecho ensanchando sus espacios, mientras que la ultima se queda donde acabe su texto sin estirarse, que es precisamente lo que distingue al justificado de cualquier otra alineacion.</castellano>
+    </parrafo>
+</documentoTexto>

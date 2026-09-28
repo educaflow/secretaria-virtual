@@ -1,0 +1,10 @@
+<documentoTexto>
+    <titulo>
+        <valenciano>Titol del document</valenciano>
+        <castellano>Titulo del documento</castellano>
+    </titulo>
+    <parrafo alineamiento="izquierda"><castellano>Resolucion ${self.nombre} final</castellano></parrafo>
+    <parrafo alineamiento="izquierda" mayusculas="true"><castellano>Resolucion ${self.nombre} final</castellano></parrafo>
+    <parrafo alineamiento="izquierda"><castellano>Redonda</castellano></parrafo>
+    <parrafo alineamiento="izquierda" negrita="true"><castellano>Redonda</castellano></parrafo>
+</documentoTexto>

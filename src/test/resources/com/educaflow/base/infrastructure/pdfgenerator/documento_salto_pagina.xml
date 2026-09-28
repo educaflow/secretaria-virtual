@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<documentoFormulario>
+    <seccion>
+        <castellano>Unica</castellano>
+        <!-- Las 35 filas son el dato del caso: las justas para desbordar la primera página, y el test cuenta que salgan todas. -->
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><campo nombreCampo="self.texto" colspan="12"><castellano>Dato</castellano></campo></fila>
+        <fila><texto colspan="12"><castellano>Ultima</castellano></texto></fila>
+    </seccion>
+</documentoFormulario>

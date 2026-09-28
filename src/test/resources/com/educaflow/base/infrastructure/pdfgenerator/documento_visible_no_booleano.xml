@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<documento>
+<documentoFormulario>
     <seccion>
         <castellano>Unica</castellano>
         <fila>
             <texto colspan="12" visible="self.nombre"><castellano>Nunca</castellano></texto>
         </fila>
     </seccion>
-</documento>
+</documentoFormulario>

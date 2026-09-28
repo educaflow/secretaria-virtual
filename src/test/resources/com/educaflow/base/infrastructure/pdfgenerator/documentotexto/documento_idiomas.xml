@@ -1,0 +1,10 @@
+<documentoTexto>
+    <titulo>
+        <valenciano>Titol del document</valenciano>
+        <castellano>Titulo del documento</castellano>
+    </titulo>
+    <parrafo alineamiento="izquierda">
+        <valenciano>Text unicament valencia.</valenciano>
+        <castellano>Texto unicamente castellano.</castellano>
+    </parrafo>
+</documentoTexto>

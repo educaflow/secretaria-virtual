@@ -18,7 +18,7 @@ import java.util.Optional;
  * Las expresiones Groovy de los documentos PDF de cada tipo de expediente compilan contra su
  * entidad.
  *
- * <p>Cada {@code nombreCampo}, cada {@code ${expresion;n}} y cada {@code visible} de un XML de
+ * <p>Cada {@code nombreCampo}, cada {@code ${expresion}} y cada {@code visible} de un XML de
  * {@code documentospdf/} es una expresión que el runtime evalúa con {@code GroovyShell} sobre
  * {@code self} (la entidad del expediente) y {@code now} al generar el PDF. Nadie las mira antes: el
  * build solo resuelve el XML, y el compilador de Java no sabe nada de lo que hay dentro de un
@@ -87,7 +87,7 @@ class ExpresionesDeDocumentoTest {
         }
 
         Violacion.assertNone("[P1] Toda expresión Groovy de los documentos PDF de un tipo de expediente (nombreCampo,"
-                + " ${expresion;n} y visible) debe compilar contra su entidad: cada propiedad debe existir en ella y cada FQCN"
+                + " ${expresion} y visible) debe compilar contra su entidad: cada propiedad debe existir en ella y cada FQCN"
                 + " debe resolver. En runtime se evalúan sin comprobar nada y el fallo se descubre con el expediente en marcha.",
                 violaciones);
     }

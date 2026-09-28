@@ -1,0 +1,7 @@
+<documentoTexto>
+    <titulo>
+        <valenciano>Titol del document</valenciano>
+        <castellano>Titulo del documento</castellano>
+    </titulo>
+    <parrafo alineamiento="izquierda" visible="self.nombre"><valenciano>Mai</valenciano><castellano>Nunca</castellano></parrafo>
+</documentoTexto>

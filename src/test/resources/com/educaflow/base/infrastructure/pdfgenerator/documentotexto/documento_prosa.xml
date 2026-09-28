@@ -1,0 +1,41 @@
+<documentoTexto>
+    <titulo>
+        <valenciano>CERTIFICAT D'HORARI</valenciano>
+        <castellano>CERTIFICADO DE HORARIO</castellano>
+    </titulo>
+    <espacio alto="20"/>
+    <parrafo>
+        <valenciano>La secretaria del centre certifica que la persona interessada, ${self.nombre}, ha impartit durant el curs les hores lectives que consten en la graella adjunta, i que aquestes hores han sigut verificades pel cap d'estudis del centre abans d'emetre aquest certificat.</valenciano>
+        <castellano>La secretaria del centro certifica que la persona interesada, ${self.nombre}, ha impartido durante el curso las horas lectivas que constan en la tabla adjunta, y que dichas horas han sido verificadas por el jefe de estudios del centro antes de emitir el presente certificado.</castellano>
+    </parrafo>
+    <espacio alto="12"/>
+    <lista>
+        <item>
+            <valenciano>Docencia directa en els grups assignats.</valenciano>
+            <castellano>Docencia directa en los grupos asignados.</castellano>
+        </item>
+        <item>
+            <valenciano>Tutoria i atencio a les families.</valenciano>
+            <castellano>Tutoria y atencion a las familias.</castellano>
+        </item>
+        <item>
+            <valenciano>Coordinacio del departament didactic corresponent, amb totes les reunions i actes que aquesta coordinacio comporta al llarg del curs.</valenciano>
+            <castellano>Coordinacion del departamento didactico correspondiente, con todas las reuniones y actas que dicha coordinacion conlleva a lo largo del curso.</castellano>
+        </item>
+    </lista>
+    <espacio alto="24"/>
+    <tabla columnas="2">
+        <fila>
+            <parrafo negrita="true" mayusculas="true" alineamiento="izquierda"><valenciano>Concepte</valenciano><castellano>Concepto</castellano></parrafo>
+            <parrafo negrita="true" mayusculas="true" alineamiento="derecha"><valenciano>Hores</valenciano><castellano>Horas</castellano></parrafo>
+        </fila>
+        <fila>
+            <parrafo alineamiento="izquierda"><valenciano>Lectives</valenciano><castellano>Lectivas</castellano></parrafo>
+            <parrafo alineamiento="derecha"><valenciano>510</valenciano><castellano>510</castellano></parrafo>
+        </fila>
+        <fila>
+            <parrafo alineamiento="izquierda"><valenciano>Complementaries</valenciano><castellano>Complementarias</castellano></parrafo>
+            <parrafo alineamiento="derecha"><valenciano>120</valenciano><castellano>120</castellano></parrafo>
+        </fila>
+    </tabla>
+</documentoTexto>

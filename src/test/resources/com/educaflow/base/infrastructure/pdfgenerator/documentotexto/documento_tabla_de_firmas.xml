@@ -1,0 +1,16 @@
+<documentoTexto>
+    <titulo>
+        <valenciano>Titol del document</valenciano>
+        <castellano>Titulo del documento</castellano>
+    </titulo>
+    <tabla columnas="2">
+        <fila>
+            <parrafo alineamiento="izquierda"><valenciano>Alta cel·la de l'esquerra amb un text prou llarg per a ocupar tres linies en la seua columna.</valenciano><castellano>Alta celda de la izquierda con un texto bastante largo para ocupar tres lineas en su columna.</castellano></parrafo>
+            <parrafo alineamiento="izquierda"><valenciano>Baixa</valenciano><castellano>Baja</castellano></parrafo>
+        </fila>
+        <fila>
+            <parrafo alineamiento="izquierda"><valenciano>Segona</valenciano><castellano>Segunda</castellano></parrafo>
+            <parrafo alineamiento="izquierda"><valenciano>Ultima</valenciano><castellano>Ultima</castellano></parrafo>
+        </fila>
+    </tabla>
+</documentoTexto>

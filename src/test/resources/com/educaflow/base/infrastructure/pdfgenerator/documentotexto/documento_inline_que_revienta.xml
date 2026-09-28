@@ -1,0 +1,7 @@
+<documentoTexto>
+    <titulo>
+        <valenciano>Titol del document</valenciano>
+        <castellano>Titulo del documento</castellano>
+    </titulo>
+    <parrafo alineamiento="izquierda"><valenciano>Valor: ${self.noExiste.x}</valenciano><castellano>Valor: ${self.noExiste.x}</castellano></parrafo>
+</documentoTexto>

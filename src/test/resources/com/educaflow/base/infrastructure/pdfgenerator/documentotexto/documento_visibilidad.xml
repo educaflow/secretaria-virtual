@@ -1,0 +1,9 @@
+<documentoTexto>
+    <titulo>
+        <valenciano>Titol del document</valenciano>
+        <castellano>Titulo del documento</castellano>
+    </titulo>
+    <parrafo alineamiento="izquierda"><valenciano>Capcalera</valenciano><castellano>Cabecera</castellano></parrafo>
+    <parrafo alineamiento="izquierda" visible="self.mostrar"><valenciano>Condicional</valenciano><castellano>Condicional</castellano></parrafo>
+    <parrafo alineamiento="izquierda"><valenciano>Tancament</valenciano><castellano>Cierre</castellano></parrafo>
+</documentoTexto>

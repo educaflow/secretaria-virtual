@@ -1,0 +1,11 @@
+<documentoTexto>
+    <titulo>
+        <valenciano>Titol del document</valenciano>
+        <castellano>Titulo del documento</castellano>
+    </titulo>
+    <parrafo alineamiento="izquierda"><valenciano>Arriba</valenciano><castellano>Arriba</castellano></parrafo>
+    <espacio alto="40"/>
+    <parrafo alineamiento="izquierda"><valenciano>Medio</valenciano><castellano>Medio</castellano></parrafo>
+    <espacio alto="10"/>
+    <parrafo alineamiento="izquierda"><valenciano>Abajo</valenciano><castellano>Abajo</castellano></parrafo>
+</documentoTexto>

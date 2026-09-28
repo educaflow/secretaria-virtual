@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<documento xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documento.xsd">
+<documentoFormulario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documentoFormulario.xsd">
 
     <titulo>
         <valenciano>Sol·licitud de permís de llicència per cursos I accions formatives</valenciano>
@@ -91,4 +91,4 @@
         </fila>
     </seccion>
 
-</documento>
+</documentoFormulario>

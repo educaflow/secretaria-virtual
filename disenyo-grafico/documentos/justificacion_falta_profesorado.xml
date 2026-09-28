@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<documento xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documento.xsd">
+<documentoFormulario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documentoFormulario.xsd">
 
     <titulo>
         <valenciano>Justificació de falta del professorat</valenciano>
@@ -71,8 +71,8 @@
                 <castellano>Toda la jornada</castellano>
             </check>
             <check nombreCampo="self.tipoJornadaFalta==com.educaflow.shared.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.JORNADA_PARCIAL" colspan="12">
-                <valenciano>Jornada parcial. De ${self.horaInicio;0.6} hores a ${self.horaFin;0.6} hores</valenciano>
-                <castellano>Jornada parcial. De ${self.horaInicio;0.6} horas a ${self.horaFin;0.6} horas</castellano>
+                <valenciano>Jornada parcial. De ${self.horaInicio} hores a ${self.horaFin} hores</valenciano>
+                <castellano>Jornada parcial. De ${self.horaInicio} horas a ${self.horaFin} horas</castellano>
             </check>
         </fila>
         <fila>
@@ -142,4 +142,4 @@
         </fila>
     </seccion>
 
-</documento>
+</documentoFormulario>

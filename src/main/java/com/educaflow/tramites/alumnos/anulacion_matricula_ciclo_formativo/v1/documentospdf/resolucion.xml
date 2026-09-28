@@ -1,100 +1,97 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<documento xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documento.xsd">
+<documentoTexto xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documentoTexto.xsd">
 
     <titulo>
-        <valenciano>Resolució de la sol·licitud d'anul·lació de matrícula en cicle formatiu</valenciano>
-        <castellano>Resolución de la solicitud de anulación de matrícula en ciclo formativo</castellano>
+        <valenciano>RESOLUCIÓ DE LA SOL·LICITUD D'ANUL·LACIÓ DE MATRÍCULA EN CICLE FORMATIU</valenciano>
+        <castellano>RESOLUCIÓN DE LA SOLICITUD DE ANULACIÓN DE MATRÍCULA EN CICLO FORMATIVO</castellano>
     </titulo>
 
+    <parrafo>
+        <valenciano>En l'expedient número ${self.numeroExpediente}, iniciat a instància de ${self.personaInteresada.nombre} ${self.personaInteresada.apellidos}, amb DNI__!! / NIE__!! ${self.personaInteresada.dni} i NIA__!! ${self.personaInteresada.nia}, alumne/a del centre ${self.nombreCentro}, de ${self.localidadCentro}, en el curs acadèmic ${self.cursoAcademico}, es dicta la resolució següent.</valenciano>
+        <castellano>En el expediente número ${self.numeroExpediente}, iniciado a instancia de ${self.personaInteresada.nombre} ${self.personaInteresada.apellidos}, con DNI__!! / NIE__!! ${self.personaInteresada.dni} y NIA__!! ${self.personaInteresada.nia}, alumno/a del centro ${self.nombreCentro}, de ${self.localidadCentro}, en el curso académico ${self.cursoAcademico}, se dicta la siguiente resolución.</castellano>
+    </parrafo>
+    <espacio alto="14.76"/>
 
-    <seccion>
-        <valenciano>Dades d'identificació de l'alumne/a</valenciano>
-        <castellano>Datos de identificación del alumno/a</castellano>
-        <fila>
-            <campo nombreCampo="self.personaInteresada.apellidos" colspan="4">
-                <valenciano>Cognoms</valenciano>
-                <castellano>Apellidos</castellano>
-            </campo>
-            <campo nombreCampo="self.personaInteresada.nombre" colspan="3">
-                <valenciano>Nom</valenciano>
-                <castellano>Nombre</castellano>
-            </campo>
-            <campo nombreCampo="self.personaInteresada.dni" colspan="3">
-                <valenciano>DNI__!! / NIE__!!</valenciano>
-                <castellano>DNI__!! / NIE__!!</castellano>
-            </campo>
-            <campo nombreCampo="self.personaInteresada.nia" colspan="2">
-                <valenciano>NIA__!!</valenciano>
-                <castellano>NIA__!!</castellano>
-            </campo>
-        </fila>
-    </seccion>
+    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda">
+        <valenciano>VIST:</valenciano>
+        <castellano>VISTO:</castellano>
+    </parrafo>
 
     <!-- En valenciano MMMM ya lleva la preposición con la elisión resuelta ("d'abril"): añadir el
          literal 'de' imprimiría "1 de d'abril". El castellano sí lo lleva. -->
-    <seccion>
-        <valenciano>Vist</valenciano>
-        <castellano>Vistos</castellano>
-        <fila>
-            <texto colspan="12">
-                <valenciano>Vista la sol·licitud d'anul·lació de matrícula presentada el ${self.fechaHoraPresentacion?.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")));3} per l'alumne/a identificat més amunt, referida a la matrícula del curs acadèmic ${self.cursoAcademico;2} en el centre ${self.nombreCentro;4}</valenciano>
-                <castellano>Vista la solicitud de anulación de matrícula presentada el ${self.fechaHoraPresentacion?.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")));3} por el alumno/a identificado más arriba, referida a la matrícula del curso académico ${self.cursoAcademico;2} en el centro ${self.nombreCentro;4}</castellano>
-            </texto>
-            <texto colspan="12">
-                <valenciano>en el ${self.ciclo.gradoNivel;3} denominat ${self.ciclo.name;6}</valenciano>
-                <castellano>en el ${self.ciclo.gradoNivel;3} denominado ${self.ciclo.name;6}</castellano>
-            </texto>
-        </fila>
-    </seccion>
+    <parrafo>
+        <valenciano>Que el dia ${self.fechaHoraPresentacion?.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))} la persona interessada va presentar una sol·licitud d'anul·lació de la matrícula del ${self.ciclo.gradoNivel} denominat ${self.ciclo.name}, en la qual es troba matriculada en aquest centre.</valenciano>
+        <castellano>Que el día ${self.fechaHoraPresentacion?.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))} la persona interesada presentó una solicitud de anulación de la matrícula del ${self.ciclo.gradoNivel} denominado ${self.ciclo.name}, en el que se encuentra matriculada en este centro.</castellano>
+    </parrafo>
+    <espacio alto="14.76"/>
 
-    <seccion>
-        <valenciano>Resol</valenciano>
-        <castellano>Resuelve</castellano>
-        <fila>
-            <texto colspan="12" rowSpan="2">
-                <valenciano>${self.sentidoRevision == com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1.RECHAZAR ? "Es desestima la sol·licitud" : "S'estima la sol·licitud i la matrícula queda sense efecte a partir de la data de presentació";11.8}</valenciano>
-                <castellano>${self.sentidoRevision == com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1.RECHAZAR ? "Se desestima la solicitud" : "Se estima la solicitud y la matrícula queda sin efecto a partir de la fecha de presentación";11.8}</castellano>
-            </texto>
-        </fila>
-        <fila>
-            <texto colspan="12" rowSpan="4">
-                <valenciano>${self.sentidoRevision == com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1.RECHAZAR ? ("Pel motiu següent: " + (self.motivoRechazo ?: "")) : "";11.8}</valenciano>
-                <castellano>${self.sentidoRevision == com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1.RECHAZAR ? ("Por el siguiente motivo: " + (self.motivoRechazo ?: "")) : "";11.8}</castellano>
-            </texto>
-        </fila>
-    </seccion>
+    <parrafo>
+        <valenciano>Que s'ha examinat la documentació que consta en l'expedient i s'ha comprovat que la sol·licitud compleix els requisits de forma i de termini exigits per la normativa vigent en matèria de matrícula en els ensenyaments de formació professional.</valenciano>
+        <castellano>Que se ha examinado la documentación que consta en el expediente y se ha comprobado que la solicitud cumple los requisitos de forma y de plazo exigidos por la normativa vigente en materia de matrícula en las enseñanzas de formación profesional.</castellano>
+    </parrafo>
+    <espacio alto="14.76"/>
 
-    <seccion>
-        <valenciano>Recursos</valenciano>
-        <castellano>Recursos</castellano>
-        <fila>
-            <texto colspan="12">
-                <valenciano>Contra aquesta resolució, que no posa fi a la via administrativa, es pot interposar recurs d'alçada davant la direcció territorial competent en matèria d'educació en el termini d'un mes comptador des de l'endemà de la seua notificació, de conformitat amb els articles 121 i 122 de la Llei 39/2015, d'1 d'octubre, del procediment administratiu comú de les administracions públiques.</valenciano>
-                <castellano>Contra esta resolución, que no pone fin a la vía administrativa, se puede interponer recurso de alzada ante la dirección territorial competente en materia de educación en el plazo de un mes contado desde el día siguiente al de su notificación, de conformidad con los artículos 121 y 122 de la Ley 39/2015, de 1 de octubre, del procedimiento administrativo común de las administraciones públicas.</castellano>
-            </texto>
-        </fila>
-    </seccion>
+    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda">
+        <valenciano>ES RESOL:</valenciano>
+        <castellano>SE RESUELVE:</castellano>
+    </parrafo>
+    <espacio alto="14.76"/>
 
-    <seccion>
-        <valenciano>Signatura</valenciano>
-        <castellano>Firma</castellano>
-        <fila>
-            <texto colspan="12">
-                <valenciano>${self.localidadCentro;3} , ${self.fechaResolucion?.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")));5}</valenciano>
-                <castellano>${self.localidadCentro;3} , ${self.fechaResolucion?.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")));5}</castellano>
-            </texto>
-        </fila>
-        <fila>
-            <texto colspan="12">
-                <valenciano>El director / la directora del centre</valenciano>
-                <castellano>El director / la directora del centro</castellano>
-            </texto>
-            <texto colspan="12" rowSpan="4">
-                <valenciano></valenciano>
-                <castellano></castellano>
-            </texto>
-        </fila>
-    </seccion>
+    <parrafo visible="self.sentidoRevision != com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1.RECHAZAR">
+        <valenciano>Estimar la sol·licitud i declarar anul·lada la matrícula, que queda sense efecte a partir de la data de la seua presentació.</valenciano>
+        <castellano>Estimar la solicitud y declarar anulada la matrícula, que queda sin efecto a partir de la fecha de su presentación.</castellano>
+    </parrafo>
+    <espacio alto="14.76" visible="self.sentidoRevision != com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1.RECHAZAR"/>
 
-</documento>
+    <parrafo visible="self.sentidoRevision == com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1.RECHAZAR">
+        <valenciano>Desestimar la sol·licitud d'anul·lació de matrícula, que manté per tant tots els seus efectes.</valenciano>
+        <castellano>Desestimar la solicitud de anulación de matrícula, que mantiene por tanto todos sus efectos.</castellano>
+    </parrafo>
+    <espacio alto="14.76" visible="self.sentidoRevision == com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1.RECHAZAR"/>
+
+    <parrafo visible="self.sentidoRevision == com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1.RECHAZAR">
+        <valenciano>Pel motiu següent: ${self.motivoRechazo}</valenciano>
+        <castellano>Por el siguiente motivo: ${self.motivoRechazo}</castellano>
+    </parrafo>
+    <espacio alto="14.76" visible="self.sentidoRevision == com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1.RECHAZAR"/>
+
+    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda">
+        <valenciano>RECURSOS:</valenciano>
+        <castellano>RECURSOS:</castellano>
+    </parrafo>
+    <espacio alto="14.76"/>
+
+    <parrafo>
+        <valenciano>Contra aquesta resolució, que no posa fi a la via administrativa, es pot interposar recurs d'alçada davant la direcció territorial competent en matèria d'educació en el termini d'un mes comptador des de l'endemà de la seua notificació, de conformitat amb els articles 121 i 122 de la Llei 39/2015, d'1 d'octubre, del procediment administratiu comú de les administracions públiques.</valenciano>
+        <castellano>Contra esta resolución, que no pone fin a la vía administrativa, se puede interponer recurso de alzada ante la dirección territorial competente en materia de educación en el plazo de un mes contado desde el día siguiente al de su notificación, de conformidad con los artículos 121 y 122 de la Ley 39/2015, de 1 de octubre, del procedimiento administrativo común de las administraciones públicas.</castellano>
+    </parrafo>
+
+    <espacio alto="14.76"/>
+    <espacio alto="14.76"/>
+
+    <parrafo alineamiento="derecha">
+        <valenciano>${self.localidadCentro}, ${self.fechaResolucion?.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))}</valenciano>
+        <castellano>${self.localidadCentro}, ${self.fechaResolucion?.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))}</castellano>
+    </parrafo>
+
+    <espacio alto="29.52"/>
+
+    <tabla columnas="2">
+        <fila>
+            <parrafo alineamiento="centrado">
+                <valenciano>EL SECRETARI / LA SECRETÀRIA</valenciano>
+                <castellano>EL SECRETARIO / LA SECRETARIA</castellano>
+            </parrafo>
+            <parrafo alineamiento="centrado">
+                <valenciano>EL DIRECTOR / LA DIRECTORA</valenciano>
+                <castellano>EL DIRECTOR / LA DIRECTORA</castellano>
+            </parrafo>
+        </fila>
+        <fila>
+            <espacio alto="88.56"/>
+            <espacio alto="88.56"/>
+        </fila>
+    </tabla>
+
+</documentoTexto>

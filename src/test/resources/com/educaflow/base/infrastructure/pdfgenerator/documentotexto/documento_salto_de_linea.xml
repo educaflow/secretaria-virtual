@@ -1,0 +1,9 @@
+<documentoTexto>
+    <titulo>
+        <valenciano>Titol del document</valenciano>
+        <castellano>Titulo del documento</castellano>
+    </titulo>
+    <parrafo alineamiento="justificado"><valenciano>La primera mitat d'aquest paragraf ocupa dues linies completes, i la de dalt es justifica fins al marge AQUI
+DESPRES ve la segona mitat, que comenca en la seua propia linia.</valenciano><castellano>La primera mitad de este parrafo ocupa dos lineas completas, y la de arriba se justifica hasta el margen AQUI
+DESPUES viene la segunda mitad, que empieza en su propia linea.</castellano></parrafo>
+</documentoTexto>

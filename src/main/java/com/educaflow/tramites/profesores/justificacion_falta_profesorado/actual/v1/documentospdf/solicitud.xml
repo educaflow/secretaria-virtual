@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<documento xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documento.xsd">
+<documentoFormulario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documentoFormulario.xsd">
 
     <include href="_template.xml"/>
 
@@ -11,16 +11,16 @@
                 <castellano>No ha podido impartir las siguientes horas</castellano>
             </texto>
             <check nombreCampo="true" colspan="12" visible="self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.UN_DIA_COMPLETO">
-                <castellano>El día ${self.fechaInicio;1.5}</castellano>
+                <castellano>El día ${self.fechaInicio}</castellano>
             </check>
             <check nombreCampo="true" colspan="12" visible="self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.VARIOS_DIAS_COMPLETOS">
-                <castellano>Desde el ${self.fechaInicio;1.5} hasta el ${self.fechaFin;1.5}</castellano>
+                <castellano>Desde el ${self.fechaInicio} hasta el ${self.fechaFin}</castellano>
             </check>
             <check nombreCampo="true" colspan="12" visible="self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.UNAS_HORAS_UN_DIA">
-                <castellano>El día ${self.fechaInicio;1.5}, de ${self.horaInicio;0.6} a ${self.horaFin;0.6} horas</castellano>
+                <castellano>El día ${self.fechaInicio}, de ${self.horaInicio} a ${self.horaFin} horas</castellano>
             </check>
             <check nombreCampo="true" colspan="12" visible="self.tipoJornadaFalta==com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.VARIOS_DIAS_PRIMERO_PARCIAL">
-                <castellano>El día ${self.fechaInicio;1.5} desde las ${self.horaInicio;0.6} horas, hasta el ${self.fechaFin;1.5}</castellano>
+                <castellano>El día ${self.fechaInicio} desde las ${self.horaInicio} horas, hasta el ${self.fechaFin}</castellano>
             </check>
         </fila>
         <fila>
@@ -82,4 +82,4 @@
         </fila>
     </seccion>
 
-</documento>
+</documentoFormulario>

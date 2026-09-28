@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<documentoFormulario>
+    <titulo>
+        <valenciano>Certificat de ${self.titular}</valenciano>
+        <castellano>Certificado de ${self.titular}</castellano>
+    </titulo>
+    <seccion visible="self.mostrar">
+        <castellano>Datos</castellano>
+        <fila>
+            <campo nombreCampo="self.ciudad" colspan="12"><castellano>Ciudad</castellano></campo>
+        </fila>
+    </seccion>
+</documentoFormulario>

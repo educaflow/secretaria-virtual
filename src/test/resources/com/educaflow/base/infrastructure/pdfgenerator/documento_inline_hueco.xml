@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<documentoFormulario>
+    <seccion>
+        <castellano>Unica</castellano>
+        <fila>
+            <texto colspan="12"><castellano>Antes ${self.dato} Despues</castellano></texto>
+        </fila>
+    </seccion>
+</documentoFormulario>

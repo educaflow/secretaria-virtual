@@ -8,7 +8,7 @@ import java.util.Map;
  * build en el classpath: includes expandidos, título puesto y valenciano traducido).
  *
  * <p>El PDF sale <b>plano</b>: las expresiones Groovy del XML ({@code nombreCampo}, los
- * {@code ${expresion;n}} inline y los {@code visible}) se evalúan con el contexto y los valores y las
+ * {@code ${expresion}} inline y los {@code visible}) se evalúan con el contexto y los valores y las
  * casillas se dibujan directamente, sin formulario. Un elemento cuyo {@code visible} evalúa a
  * {@code false} se colapsa (desaparece y lo que va detrás sube) o reserva su hueco, según su
  * {@code siOculto}.
@@ -20,11 +20,15 @@ import java.util.Map;
 public interface PdfGenerator {
 
     /**
-     * @param documentoXml el XML resuelto del documento (raíz {@code <documento>}).
+     * @param documentoXml el XML resuelto del documento (raíz {@code <documentoFormulario>} o
+     *                     {@code <documentoTexto>}).
      * @param contexto     las variables de las expresiones Groovy (p.ej. {@code self} y {@code now}).
+     * @param idioma       el idioma del documento. Un {@code <documentoFormulario>} lo <b>ignora</b>:
+     *                     es bilingüe y estampa los dos idiomas. Lo usa {@code <documentoTexto>}, que
+     *                     se emite en un solo idioma.
      * @return los bytes del PDF.
      */
-    byte[] generate(byte[] documentoXml, Map<String, Object> contexto);
+    byte[] generate(byte[] documentoXml, Map<String, Object> contexto, Idioma idioma);
 
     /**
      * Todas las expresiones Groovy del documento ({@code nombreCampo}, los inline de ambos idiomas y

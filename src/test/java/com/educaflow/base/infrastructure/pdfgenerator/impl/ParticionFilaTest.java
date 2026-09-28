@@ -1,13 +1,13 @@
 package com.educaflow.base.infrastructure.pdfgenerator.impl;
 
-import com.educaflow.base.infrastructure.pdfgenerator.impl.maquetacion.CeldaUbicada;
-import com.educaflow.base.infrastructure.pdfgenerator.impl.maquetacion.ParticionFila;
-import com.educaflow.base.infrastructure.pdfgenerator.impl.modelo.Celda;
-import com.educaflow.base.infrastructure.pdfgenerator.impl.modelo.TextoBilingue;
-import com.educaflow.base.infrastructure.pdfgenerator.impl.modelo.TipoCelda;
-import com.educaflow.base.infrastructure.pdfgenerator.impl.modelo.Visibilidad;
-import com.educaflow.base.infrastructure.pdfgenerator.impl.visibilidad.CeldaVisible;
-import com.educaflow.base.infrastructure.pdfgenerator.impl.visibilidad.FilaVisible;
+import com.educaflow.base.infrastructure.pdfgenerator.impl.formulario.maquetacion.CeldaUbicada;
+import com.educaflow.base.infrastructure.pdfgenerator.impl.formulario.maquetacion.ParticionFila;
+import com.educaflow.base.infrastructure.pdfgenerator.impl.formulario.modelo.Celda;
+import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.modelo.TextoBilingue;
+import com.educaflow.base.infrastructure.pdfgenerator.impl.formulario.modelo.TipoCelda;
+import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.modelo.Visibilidad;
+import com.educaflow.base.infrastructure.pdfgenerator.impl.formulario.visibilidad.CeldaVisible;
+import com.educaflow.base.infrastructure.pdfgenerator.impl.formulario.visibilidad.FilaVisible;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

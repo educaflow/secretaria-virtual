@@ -2,6 +2,7 @@ package com.educaflow.base.infrastructure.pdfgenerator.impl;
 
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
+import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
 import com.educaflow.base.infrastructure.pdfgenerator.PdfGenerator;
 import com.educaflow.base.infrastructure.pdfgenerator.PdfGeneratorFactory;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PdfGeneratorImplITextTest {
 
+    /** Las filas {@code <campo>} de {@code documento_salto_pagina.xml}. */
+    private static final int FILAS_DEL_SALTO = 35;
+
     private final PdfGenerator generator = PdfGeneratorFactory.getPdfGenerator();
 
     @Test
@@ -34,7 +38,7 @@ class PdfGeneratorImplITextTest {
 
     @Test
     void estampaLosValoresYNoLasExpresiones() {
-        byte[] pdf = generator.generate(xml("documento_basico.xml"), contexto("nombre", "Núria Peñalver l·lengua", "acepta", true, "ciudad", "Mislata"));
+        byte[] pdf = generator.generate(xml("documento_basico.xml"), contexto("nombre", "Núria Peñalver l·lengua", "acepta", true, "ciudad", "Mislata"), Idioma.CASTELLANO);
 
         DocumentoPdf documento = DocumentoPdfFactory.getDocumentoPdf(pdf, "prueba.pdf");
         String texto = documento.getPlainText();
@@ -48,7 +52,7 @@ class PdfGeneratorImplITextTest {
 
     @Test
     void unValorNuloSaleVacio() {
-        byte[] pdf = generator.generate(xml("documento_basico.xml"), contexto("nombre", null, "acepta", false, "ciudad", "Mislata"));
+        byte[] pdf = generator.generate(xml("documento_basico.xml"), contexto("nombre", null, "acepta", false, "ciudad", "Mislata"), Idioma.CASTELLANO);
 
         String texto = DocumentoPdfFactory.getDocumentoPdf(pdf, "prueba.pdf").getPlainText();
         assertFalse(texto.contains("null"), texto);
@@ -57,15 +61,15 @@ class PdfGeneratorImplITextTest {
 
     @Test
     void unaFechaSeEstampaConElFormatoDeLaAplicacion() {
-        byte[] pdf = generator.generate(xml("documento_basico.xml"), contexto("nombre", LocalDate.of(2026, 9, 24), "acepta", true, "ciudad", ""));
+        byte[] pdf = generator.generate(xml("documento_basico.xml"), contexto("nombre", LocalDate.of(2026, 9, 24), "acepta", true, "ciudad", ""), Idioma.CASTELLANO);
 
         assertTrue(TextosDelPdf.de(pdf).contiene("24/09/2026"));
     }
 
     @Test
     void colapsarQuitaElElementoYSubeLoQueVaDetras() {
-        TextosDelPdf mostrado = TextosDelPdf.de(generator.generate(xml("documento_colapsar.xml"), contexto("mostrar", true, "nombre", "Ana")));
-        TextosDelPdf oculto = TextosDelPdf.de(generator.generate(xml("documento_colapsar.xml"), contexto("mostrar", false, "nombre", "Ana")));
+        TextosDelPdf mostrado = TextosDelPdf.de(generator.generate(xml("documento_colapsar.xml"), contexto("mostrar", true, "nombre", "Ana"), Idioma.CASTELLANO));
+        TextosDelPdf oculto = TextosDelPdf.de(generator.generate(xml("documento_colapsar.xml"), contexto("mostrar", false, "nombre", "Ana"), Idioma.CASTELLANO));
 
         assertTrue(mostrado.contiene("Oculto"));
         assertFalse(oculto.contiene("Oculto"));
@@ -80,8 +84,8 @@ class PdfGeneratorImplITextTest {
 
     @Test
     void unaSeccionColapsadaNoConsumeLetra() {
-        TextosDelPdf mostrado = TextosDelPdf.de(generator.generate(xml("documento_colapsar.xml"), contexto("mostrar", true, "nombre", "Ana")));
-        TextosDelPdf oculto = TextosDelPdf.de(generator.generate(xml("documento_colapsar.xml"), contexto("mostrar", false, "nombre", "Ana")));
+        TextosDelPdf mostrado = TextosDelPdf.de(generator.generate(xml("documento_colapsar.xml"), contexto("mostrar", true, "nombre", "Ana"), Idioma.CASTELLANO));
+        TextosDelPdf oculto = TextosDelPdf.de(generator.generate(xml("documento_colapsar.xml"), contexto("mostrar", false, "nombre", "Ana"), Idioma.CASTELLANO));
 
         assertTrue(mostrado.contiene("C"), "con tres secciones la última es la C");
         assertFalse(oculto.contiene("C"), "colapsada la B, la última pasa a ser la B");
@@ -90,8 +94,8 @@ class PdfGeneratorImplITextTest {
 
     @Test
     void reservarQuitaElElementoPeroDejaSuHueco() {
-        TextosDelPdf mostrado = TextosDelPdf.de(generator.generate(xml("documento_reservar.xml"), contexto("mostrar", true, "nombre", "Ana")));
-        TextosDelPdf oculto = TextosDelPdf.de(generator.generate(xml("documento_reservar.xml"), contexto("mostrar", false, "nombre", "Ana")));
+        TextosDelPdf mostrado = TextosDelPdf.de(generator.generate(xml("documento_reservar.xml"), contexto("mostrar", true, "nombre", "Ana"), Idioma.CASTELLANO));
+        TextosDelPdf oculto = TextosDelPdf.de(generator.generate(xml("documento_reservar.xml"), contexto("mostrar", false, "nombre", "Ana"), Idioma.CASTELLANO));
 
         assertFalse(oculto.contiene("Oculto"));
         assertFalse(oculto.contiene("ESCONDIDO"));
@@ -106,7 +110,7 @@ class PdfGeneratorImplITextTest {
     @Test
     void unVisibleQueRevientaAbortaLaGeneracion() {
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> generator.generate(xml("documento_visible_error.xml"), contexto("nombre", "Ana")));
+                () -> generator.generate(xml("documento_visible_error.xml"), contexto("nombre", "Ana"), Idioma.CASTELLANO));
 
         assertTrue(ex.getMessage().contains("self.noExiste.x"), ex.getMessage());
     }
@@ -114,7 +118,7 @@ class PdfGeneratorImplITextTest {
     @Test
     void unVisibleQueNoDevuelveBooleanAbortaLaGeneracion() {
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> generator.generate(xml("documento_visible_no_booleano.xml"), contexto("nombre", "Ana")));
+                () -> generator.generate(xml("documento_visible_no_booleano.xml"), contexto("nombre", "Ana"), Idioma.CASTELLANO));
 
         assertTrue(ex.getMessage().contains("self.nombre"), ex.getMessage());
         assertTrue(ex.getMessage().contains("Boolean"), ex.getMessage());
@@ -123,7 +127,7 @@ class PdfGeneratorImplITextTest {
     @Test
     void unCheckCuyoValorNoEsBooleanAbortaLaGeneracion() {
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> generator.generate(xml("documento_check_no_booleano.xml"), contexto("nombre", "Ana")));
+                () -> generator.generate(xml("documento_check_no_booleano.xml"), contexto("nombre", "Ana"), Idioma.CASTELLANO));
 
         assertTrue(ex.getMessage().contains("self.nombre"), ex.getMessage());
         assertTrue(ex.getMessage().contains("Boolean"), ex.getMessage());
@@ -135,7 +139,7 @@ class PdfGeneratorImplITextTest {
         sinSelf.put("self", null);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> generator.generate(xml("documento_basico.xml"), sinSelf));
+                () -> generator.generate(xml("documento_basico.xml"), sinSelf, Idioma.CASTELLANO));
 
         assertTrue(ex.getMessage().contains("self.nombre") || ex.getMessage().contains("self.ciudad"), ex.getMessage());
     }
@@ -143,12 +147,44 @@ class PdfGeneratorImplITextTest {
     @Test
     void unValorLargoEnUnCampoHaceCrecerLaFilaYSaleEntero() {
         String largo = "Palabra".repeat(1) + " " + String.join(" ", java.util.Collections.nCopies(60, "observación"));
-        TextosDelPdf corto = TextosDelPdf.de(generator.generate(xml("documento_valor_largo.xml"), contexto("texto", "Breve")));
-        TextosDelPdf extenso = TextosDelPdf.de(generator.generate(xml("documento_valor_largo.xml"), contexto("texto", largo)));
+        TextosDelPdf corto = TextosDelPdf.de(generator.generate(xml("documento_valor_largo.xml"), contexto("texto", "Breve"), Idioma.CASTELLANO));
+        TextosDelPdf extenso = TextosDelPdf.de(generator.generate(xml("documento_valor_largo.xml"), contexto("texto", largo), Idioma.CASTELLANO));
 
         assertTrue(extenso.yDe("Siguiente") < corto.yDe("Siguiente"), "la fila del campo crece con el valor");
         long palabras = extenso.todos().stream().filter(t -> t.texto().equals("observación")).count();
         assertEquals(60, palabras, "el valor sale entero, ajustado a líneas");
+    }
+
+    @Test
+    void getExpresionesIncluyeLaDelTituloYLaPoneLaPrimera() {
+        List<String> expresiones = generator.getExpresiones(xml("documento_titulo_inline.xml"));
+
+        assertEquals(List.of("self.titular", "self.mostrar", "self.ciudad"), expresiones);
+    }
+
+    @Test
+    void loQueNoCabeEnLaPrimeraPaginaSigueEnLaSegunda() {
+        byte[] pdf = generator.generate(xml("documento_salto_pagina.xml"), contexto("texto", "Valor"), Idioma.CASTELLANO);
+
+        assertEquals(2, DocumentoPdfFactory.getDocumentoPdf(pdf, "prueba.pdf").getNumeroPaginas());
+        List<TextosDelPdf.Texto> textos = TextosDelPdf.de(pdf).todos();
+        assertEquals(2, textos.stream().filter(t -> t.texto().equals("Ultima")).findFirst().orElseThrow().pagina(),
+                "la última fila cae ya en la segunda página");
+        assertEquals(FILAS_DEL_SALTO, textos.stream().filter(t -> t.texto().equals("Valor")).count(),
+                "ninguna fila se pierde ni se repite en el corte");
+    }
+
+    @Test
+    void unInlineCuyoValorEvaluaAVacioNoOcupaNada() {
+        double sinInline = TextosDelPdf.de(generator.generate(xml("documento_inline_hueco_sin_inline.xml"), contexto(), Idioma.CASTELLANO)).xDe("Despues");
+        double conValorCorto = TextosDelPdf.de(generator.generate(xml("documento_inline_hueco.xml"), contexto("dato", "X"), Idioma.CASTELLANO)).xDe("Despues");
+        double conValorLargo = TextosDelPdf.de(generator.generate(xml("documento_inline_hueco.xml"),
+                contexto("dato", "Un valor inline bastante mas largo que el corto"), Idioma.CASTELLANO)).xDe("Despues");
+        double vacio = TextosDelPdf.de(generator.generate(xml("documento_inline_hueco.xml"), contexto("dato", null), Idioma.CASTELLANO)).xDe("Despues");
+
+        assertEquals(sinInline, vacio, 0.01, "con el valor vacío el inline no desplaza lo que va detrás");
+        assertTrue(conValorCorto > sinInline, "un valor con texto desplaza lo que va detrás lo que mide");
+        assertTrue(conValorLargo > conValorCorto, "y cuanto más ancho es el valor, más lo desplaza");
     }
 
     // ------------------------------------------------------------------ apoyo

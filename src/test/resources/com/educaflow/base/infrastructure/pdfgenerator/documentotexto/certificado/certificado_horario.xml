@@ -1,0 +1,94 @@
+<documentoTexto>
+    <titulo>
+        <valenciano>Certificat d'horari del professorat</valenciano>
+        <castellano>Certificado de horario del profesorado</castellano>
+    </titulo>
+
+    <parrafo negrita="true" mayusculas="true" alineamiento="justificado">
+        <valenciano>JAVIER ELVIRA SORIA, SECRETARI DEL CENTRE INTEGRAT PÚBLIC DE FORMACIÓ PROFESSIONAL MISLATA</valenciano>
+        <castellano>JAVIER ELVIRA SORIA, SECRETARIO DEL CENTRO INTEGRADO PÚBLICO DE FORMACIÓN PROFESIONAL MISLATA</castellano>
+    </parrafo>
+
+    <espacio alto="14.76"/>
+    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda">
+        <valenciano>CERTIFICA:</valenciano>
+        <castellano>CERTIFICA:</castellano>
+    </parrafo>
+
+    <espacio alto="29.52"/>
+    <parrafo>
+        <valenciano>Que Sr. ${self.nombre} amb DNI ${self.dni} és professor definitiu en aquest centre en el curs acadèmic 2026/27 en l'especialitat de Sistemes informàtics, amb el següent horari:</valenciano>
+        <castellano>Que D. ${self.nombre} con DNI ${self.dni} es profesor definitivo en este centro en el curso académico 2026/27 en la especialidad de Sistemas informáticos, con el siguiente horario:</castellano>
+    </parrafo>
+
+    <espacio alto="14.76"/>
+    <lista>
+        <item>
+            <valenciano>Dilluns: 16.50 - 20.50 hores</valenciano>
+            <castellano>Lunes: 16:50 - 20:50 horas</castellano>
+        </item>
+        <item>
+            <valenciano>Dimarts: 9.10 - 14.05 hores</valenciano>
+            <castellano>Martes: 9:10 - 14:05 horas</castellano>
+        </item>
+        <item>
+            <valenciano>Dimecres: 15.55 - 20.50 hores</valenciano>
+            <castellano>Miércoles: 15:55 - 20:50 horas</castellano>
+        </item>
+        <item>
+            <valenciano>Dijous: 8.15 - 14.05 hores</valenciano>
+            <castellano>Jueves: 8:15 - 14:05 horas</castellano>
+        </item>
+        <item>
+            <valenciano>Divendres: 10.05 - 14.05 hores</valenciano>
+            <castellano>Viernes: 10:05 - 14:05 horas</castellano>
+        </item>
+    </lista>
+
+    <espacio alto="14.76"/>
+    <parrafo>
+        <valenciano>Així mateix, no exerceix cap càrrec remunerat en aquest curs acadèmic.</valenciano>
+        <castellano>Así mismo, no ejerce cargo remunerado alguno en este curso académico.</castellano>
+    </parrafo>
+
+    <espacio alto="14.76"/>
+    <parrafo>
+        <valenciano>I per deixar-ne constància, als efectes oportuns i a petició de l'interessat, signe el present certificat a Mislata, a 11 de setembre de 2026.</valenciano>
+        <castellano>Y para que así conste, a los efectos oportunos y a petición del interesado, firmo el presente certificado en Mislata, a 11 de septiembre de 2026.</castellano>
+    </parrafo>
+
+    <espacio alto="44.28"/>
+    <tabla columnas="2">
+        <fila>
+            <parrafo alineamiento="centrado">
+                <valenciano>Vistiplau</valenciano>
+                <castellano>VºBº</castellano>
+            </parrafo>
+            <parrafo/>
+        </fila>
+        <fila>
+            <parrafo alineamiento="centrado">
+                <valenciano>EL DIRECTOR</valenciano>
+                <castellano>EL DIRECTOR</castellano>
+            </parrafo>
+            <parrafo alineamiento="centrado">
+                <valenciano>EL SECRETARI</valenciano>
+                <castellano>EL SECRETARIO</castellano>
+            </parrafo>
+        </fila>
+        <fila>
+            <espacio alto="132.84"/>
+            <espacio alto="132.84"/>
+        </fila>
+        <fila>
+            <parrafo alineamiento="centrado">
+                <valenciano>Signat: José Mariano Monzó del Olmo</valenciano>
+                <castellano>Fdo: José Mariano Monzó del Olmo</castellano>
+            </parrafo>
+            <parrafo alineamiento="centrado">
+                <valenciano>Signat: Javier Elvira Soria</valenciano>
+                <castellano>Fdo: Javier Elvira Soria</castellano>
+            </parrafo>
+        </fila>
+    </tabla>
+</documentoTexto>

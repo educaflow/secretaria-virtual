@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<documento>
+<documentoFormulario>
     <titulo>
         <valenciano>Document de prova</valenciano>
         <castellano>Documento de prueba</castellano>
@@ -19,9 +19,9 @@
         </fila>
         <fila>
             <texto colspan="12">
-                <valenciano>Signat per ${self.nombre;3} a ${self.ciudad;2}</valenciano>
-                <castellano>Firmado por ${self.nombre;3} en ${self.ciudad;2}</castellano>
+                <valenciano>Signat per ${self.nombre} a ${self.ciudad}</valenciano>
+                <castellano>Firmado por ${self.nombre} en ${self.ciudad}</castellano>
             </texto>
         </fila>
     </seccion>
-</documento>
+</documentoFormulario>

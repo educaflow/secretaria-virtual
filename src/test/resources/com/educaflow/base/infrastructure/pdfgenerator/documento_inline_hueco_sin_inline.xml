@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<documentoFormulario>
+    <seccion>
+        <castellano>Unica</castellano>
+        <fila>
+            <!-- Los dos espacios son los que rodean al inline de documento_inline_hueco.xml: sin ellos las dos x no serían comparables. -->
+            <texto colspan="12"><castellano>Antes  Despues</castellano></texto>
+        </fila>
+    </seccion>
+</documentoFormulario>

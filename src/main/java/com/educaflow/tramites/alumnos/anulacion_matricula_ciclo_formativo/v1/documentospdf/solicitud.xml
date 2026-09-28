@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<documento xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documento.xsd">
+<documentoFormulario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documentoFormulario.xsd">
 
     <titulo>
         <valenciano>ANNEX VII - Sol·licitud d'anul·lació de matrícula en cicle formatiu</valenciano>
@@ -65,12 +65,12 @@
         <castellano>Expone</castellano>
         <fila>
             <texto colspan="12">
-                <valenciano>Que en el curs acadèmic ${self.cursoAcademico;2} s'ha matriculat en el centre ${self.nombreCentro;4} , localitat ${self.localidadCentro;3}</valenciano>
-                <castellano>Que en el curso académico ${self.cursoAcademico;2} se ha matriculado en el centro ${self.nombreCentro;4} , localidad ${self.localidadCentro;3}</castellano>
+                <valenciano>Que en el curs acadèmic ${self.cursoAcademico} s'ha matriculat en el centre ${self.nombreCentro} , localitat ${self.localidadCentro}</valenciano>
+                <castellano>Que en el curso académico ${self.cursoAcademico} se ha matriculado en el centro ${self.nombreCentro} , localidad ${self.localidadCentro}</castellano>
             </texto>
             <texto colspan="12">
-                <valenciano>en el ${self.ciclo.gradoNivel;3} denominat ${self.ciclo.name;6}</valenciano>
-                <castellano>en el ${self.ciclo.gradoNivel;3} denominado ${self.ciclo.name;6}</castellano>
+                <valenciano>en el ${self.ciclo.gradoNivel} denominat ${self.ciclo.name}</valenciano>
+                <castellano>en el ${self.ciclo.gradoNivel} denominado ${self.ciclo.name}</castellano>
             </texto>
         </fila>
     </seccion>
@@ -91,8 +91,8 @@
         <castellano>Lugar, fecha y firma</castellano>
         <fila>
             <texto colspan="12">
-                <valenciano>${self.localidadCentro;3} , ${self.fechaSolicitud?.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")));5}</valenciano>
-                <castellano>${self.localidadCentro;3} , ${self.fechaSolicitud?.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")));5}</castellano>
+                <valenciano>${self.localidadCentro} , ${self.fechaSolicitud?.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))}</valenciano>
+                <castellano>${self.localidadCentro} , ${self.fechaSolicitud?.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))}</castellano>
             </texto>
         </fila>
         <fila>
@@ -133,10 +133,10 @@
         <castellano>Destinatario</castellano>
         <fila>
             <texto colspan="12">
-                <valenciano>DIRECTOR/A DEL ${self.nombreCentro;8}</valenciano>
-                <castellano>DIRECTOR/A DEL ${self.nombreCentro;8}</castellano>
+                <valenciano>DIRECTOR/A DEL ${self.nombreCentro}</valenciano>
+                <castellano>DIRECTOR/A DEL ${self.nombreCentro}</castellano>
             </texto>
         </fila>
     </seccion>
 
-</documento>
+</documentoFormulario>
