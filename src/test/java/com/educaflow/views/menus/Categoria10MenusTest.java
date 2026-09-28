@@ -23,7 +23,7 @@ import static com.educaflow.views.support.ViewFiles.attr;
 import static com.educaflow.views.support.ViewFiles.hasAttr;
 
 /**
- * Categoría 10 — Menús (agent_docs/view-rules.md, VAR-10.1 a VAR-10.6).
+ * Categoría 10 — Menús (agent_docs/view-rules.md, VAR-10.1 a VAR-10.7).
  *
  * <p>Sujeto de toda la categoría: los dos ficheros de menús de {@code secretariavirtual/menus/} —
  * {@code menus.xml} (el árbol de menús de la aplicación) y {@code hide-menus.xml} (las ocultaciones
@@ -48,7 +48,7 @@ class Categoria10MenusTest {
     /** Orden relativo canónico de los atributos de un menuitem (VAR-10.3.b). */
     private static final List<String> ORDEN_ATRIBUTOS =
             List.of("name", "parent", "title", "action", "tag-count", "tag-count-hide-at-zero", "icon", "groups",
-                    "if", "order");
+                    "order");
 
     /**
      * VAR-10.1 — Atributos obligatorios name/title/order/groups, con groups canónico.
@@ -127,7 +127,7 @@ class Categoria10MenusTest {
      * VAR-10.3 — Formato del texto crudo:
      * (a) un menuitem por línea completa (ni dos en la misma línea ni uno partido);
      * (b) atributos en el orden relativo name, parent, title, action, tag-count, tag-count-hide-at-zero,
-     * icon, groups, if, order,
+     * icon, groups, order,
      * separados por UN solo espacio (sin dobles espacios de alineación dentro del tag);
      * (c) sangría de la línea = 4 × profundidad del menuitem en el árbol name/parent.
      */
@@ -135,7 +135,7 @@ class Categoria10MenusTest {
     //   Sujeto: cada `<menuitem>` de los dos ficheros de menús (y el texto de cada fichero).
     //   Condición:
     //     (a) no hay dos `<menuitem>` en la misma línea ni un `<menuitem>` partido en varias líneas;
-    //     (b) los atributos presentes respetan el orden relativo `name, parent, title, action, tag-count, tag-count-hide-at-zero, icon, groups, if, order` y se separan con un único espacio (sin espacios extra de alineación);
+    //     (b) los atributos presentes respetan el orden relativo `name, parent, title, action, tag-count, tag-count-hide-at-zero, icon, groups, order` y se separan con un único espacio (sin espacios extra de alineación);
     //     (c) sangría = 4 × (profundidad de `parent`).
     @Test
     void var10_3_formatoUnaLineaOrdenAtributosYSangria() {
@@ -385,6 +385,33 @@ class Categoria10MenusTest {
             if (tieneHide && !tagCount) {
                 v.add(new Violacion(fichero, ubicacion,
                         "tiene tag-count-hide-at-zero sin tag-count=\"true\": no hay contador que ocultar"));
+            }
+        }
+    }
+
+    /**
+     * VAR-10.7 — Ningún {@code <menuitem>} lleva {@code if}: lo añade el preprocesador de vistas.
+     */
+    // [VAR-10.7] Verificación:
+    //   Sujeto: cada `<menuitem>` de los dos ficheros de menús.
+    //   Condición: no tiene el atributo `if`.
+    @Test
+    void var10_7_menuitemSinIf() {
+        List<Violacion> v = new ArrayList<>();
+        sinIf(MENUS, ViewFiles.menusDoc(), v);
+        sinIf(HIDE_MENUS, ViewFiles.hideMenusDoc(), v);
+        Violacion.assertNone(
+                "VAR-10.7 — Ningún <menuitem> lleva el atributo if (lo añade el preprocesador de vistas)",
+                v);
+    }
+
+    /** Comprueba VAR-10.7 sobre los menuitem de un fichero de menús. */
+    private static void sinIf(String fichero, org.w3c.dom.Document doc, List<Violacion> v) {
+        for (Element mi : ViewFiles.byTag(doc, "menuitem")) {
+            if (hasAttr(mi, "if")) {
+                String ubicacion = hasAttr(mi, "name") ? attr(mi, "name") : "<menuitem sin name>";
+                v.add(new Violacion(fichero, ubicacion,
+                        "tiene if=\"" + attr(mi, "if") + "\": el if lo añade el preprocesador; la visibilidad va en MenuSecurityServiceImpl"));
             }
         }
     }
