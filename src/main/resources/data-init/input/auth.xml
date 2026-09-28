@@ -246,6 +246,8 @@
     <permission name="AsistenteNuevoExpediente.all"/>
     <permission name="TareaFirma.firmante"/>
     <permission name="DocumentoFirma.propio"/>
+    <permission name="TareaFirma.centro-supervisor"/>
+    <permission name="DocumentoFirma.centro-supervisor"/>
     <permission name="RegistroEntrada.all"/>
     <permission name="RegistroSalida.all"/>
     <permission name="RegistroPendiente.all"/>
