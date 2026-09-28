@@ -91,6 +91,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
         //Habrá que eliminar esto en el futuro.
         TareaFirmaInsertDTO tareaFirmaInsertDTO = new TareaFirmaInsertDTO(
                 justificacionFaltaProfesorado.getUsuarioRegistrador(),
+                justificacionFaltaProfesorado.getCentro(),
                 List.of(justificacionFaltaProfesorado.getPdfSolicitud()),
                 "Firma de solicitud de justificación de falta de profesorado",
                 new Rectangulo(50, 50, 200, 100),
