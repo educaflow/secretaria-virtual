@@ -20,6 +20,17 @@
             public boolean permitePresentacionEnPapel() {
                 return this == TRAMITADOR;
             }
+            public int getPrioridad() {
+                return switch (this) {
+                    case TRAMITADOR -> 70;
+                    case SECRETARIO -> 60;
+                    case DIRECTOR -> 50;
+                    case COLABORADOR -> 40;
+                    case AUDITOR -> 30;
+                    case CREADOR -> 20;
+                    case AFECTADO -> 10;
+                };
+            }
         </extra-code-model>
     </enum>
 
