@@ -33,7 +33,7 @@ test.describe('Administración de correos', () => {
       // Paso 1: Dado que el administrador está en la pantalla "Administración de
       // correos" y pulsa "Nuevo correo"
       await page.getByText('Correos', { exact: true }).click();
-      await page.getByText('Administración de correos', { exact: true }).click();
+      await page.getByTestId('item:correos-todos-menuitem').click();
       await page.getByRole('button', { name: 'Nuevo correo' }).click();
 
       // Paso 2: Cuando rellena el DNI, el nombre, los apellidos, el «para», el

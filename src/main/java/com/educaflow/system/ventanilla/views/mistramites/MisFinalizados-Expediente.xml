@@ -4,23 +4,25 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <?sv-view?>
-    <action-view name="sysVentanilla.Pendiente@Expediente-action" title="Listado de expedientes pendientes de que realices la tarea" model="com.educaflow.subsystem.expedientes.db.Expediente">
-        <view type="grid" name="sysVentanilla.Pendiente@Expediente-grid"/>
-        <domain>self.abierto=true AND self.centro.id IN (SELECT cu.centro.id FROM CentroUsuario cu WHERE cu.usuario.id = :usuarioId)</domain>
-        <context name="_profile" expr="CREADOR"/>
+    <action-view name="sysVentanilla.MisFinalizados@Expediente-action" title="Mis trámites finalizados" model="com.educaflow.subsystem.expedientes.db.Expediente">
+        <view type="grid" name="sysVentanilla.MisFinalizados@Expediente-grid"/>
+        <domain>self.usuarioRegistrador.id = :usuarioId AND self.abierto = false</domain>
         <context name="usuarioId" expr="eval: __user__?.id"/>
     </action-view>
 
-    <grid name="sysVentanilla.Pendiente@Expediente-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
+    <grid name="sysVentanilla.MisFinalizados@Expediente-grid" title="Expedientes" model="com.educaflow.subsystem.expedientes.db.Expediente"
           groups="admins,users"
+          groupBy="tipoExpediente.tramite.name" orderBy="-fechaUltimoEstado"
           editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
-          action="subsysTramitador-event-view-action"
+          action="sysVentanilla.Abrir@Expediente-Remote-abrirExpediente-action"
     >
-        <field name="tipoExpediente.tramite.name" />
         <field name="numeroExpediente" width="110px"/>
+        <field name="tipoExpediente.name"/>
+        <field name="centro" width="200px"/>
         <field name="namePhase" width="150px"/>
         <field name="nameState" width="200px"/>
-        <field name="fechaUltimoEstado" width="150px" />
+        <field name="perfilEstado" width="120px"/>
+        <field name="fechaUltimoEstado" width="150px"/>
     </grid>
 
     <?sv-primary-actions?>

@@ -40,7 +40,7 @@ test.describe('Mis correos', () => {
       // certificado», un adjunto llamado «certificado.pdf» y centro «CIPFP
       // Mislata», y cierra sesión.
       await page.getByText('Correos', { exact: true }).click();
-      await page.getByText('Administración de correos', { exact: true }).click();
+      await page.getByTestId('item:correos-todos-menuitem').click();
       await page.getByRole('button', { name: 'Nuevo correo' }).click();
 
       await page.getByLabel('DNI del destinatario').fill('86862719E');
@@ -78,13 +78,9 @@ test.describe('Mis correos', () => {
       // contraseña «demo1234».
       await login(page, 'alumno1@mislata.es', 'demo1234');
 
-      // Paso 3: Y abre la pantalla "Mis correos".
-      // El menú "Mis correos" tiene un único submenú con el mismo texto (no es un
-      // rol "menuitem", es un elemento genérico, igual que el patrón de "Correos"
-      // → "Administración de correos"), de ahí el índice para distinguir el
-      // elemento de menú superior del submenú.
-      await page.getByText('Mis correos', { exact: true }).nth(0).click();
-      await page.getByText('Mis correos', { exact: true }).nth(1).click();
+      // Paso 3: Y abre la pantalla "Mis correos" (menú "Correos" → "Recibidos").
+      await page.getByText('Correos', { exact: true }).click();
+      await page.getByTestId('item:correos-recibidos-menuitem').click();
       await page.waitForURL(/Mis%40Correo/);
 
       // La pantalla "Mis correos" solo muestra los correos ya enviados con éxito

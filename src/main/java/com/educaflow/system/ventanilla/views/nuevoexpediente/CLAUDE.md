@@ -6,14 +6,14 @@ El antiguo menú «Expedientes» → «Trámites» y su ventana modal «Nuevo ex
 
 ## Entrada
 
-Menú «Ventanilla» → «Nuevo expediente».
-- `data-testid="item:ventanilla-menuitem"` es el grupo y `item:ventanilla-nuevoExpediente-menuitem` la entrada.
+Menú «Mis trámites» → «Nuevo trámite».
+- `data-testid="item:misTramites-menuitem"` es el grupo y `item:misTramites-nuevoTramite-menuitem` la entrada.
   - El grupo se pliega y despliega al pulsarlo: solo se pulsa si la entrada no está visible, porque si ya venía abierto se cerraría.
 
 ```ts
-const entrada = page.getByTestId('item:ventanilla-nuevoExpediente-menuitem');
+const entrada = page.getByTestId('item:misTramites-nuevoTramite-menuitem');
 if (!(await entrada.isVisible())) {
-  await page.getByTestId('item:ventanilla-menuitem').getByTestId('title').first().click();
+  await page.getByTestId('item:misTramites-menuitem').getByTestId('title').first().click();
 }
 await entrada.click();
 ```

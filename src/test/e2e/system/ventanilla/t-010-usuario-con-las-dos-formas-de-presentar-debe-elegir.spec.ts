@@ -245,9 +245,9 @@ function filasDeExpedientes(page: Page): Locator {
 }
 
 /**
- * Borra el expediente `numero` reabriéndolo desde «Expedientes Pendientes», el listado
- * que lo abre con perfil CREADOR —el único form de ENTRADA_DATOS que ofrece «Borrar el
- * expediente»—. Se filtra el listado por el número (en vez de recorrer sus filas) para
+ * Borra el expediente `numero` reabriéndolo desde «Mis trámites» → «Pendientes de mí», la
+ * lista donde está un expediente en ENTRADA_DATOS de quien lo registró; el servidor lo abre
+ * con su perfil CREADOR, el único form de ese estado que ofrece «Borrar el expediente». Se filtra el listado por el número (en vez de recorrer sus filas) para
  * no depender de la paginación: la BD es compartida y el listado crece con los
  * expedientes de otros runs. El botón abre un diálogo de confirmación de Axelor que hay
  * que aceptar; el evento DELETE responde con `refresh-app`, así que la aplicación se
@@ -255,7 +255,7 @@ function filasDeExpedientes(page: Page): Locator {
  */
 async function borrarExpediente(page: Page, numero: string): Promise<void> {
   await page.goto('/#/');
-  await abrirEntradaDeMenu(page, 'expedientes-menuitem', 'expedientes-expedientesPendientes-menuitem');
+  await abrirEntradaDeMenu(page, 'misTramites-menuitem', 'misTramites-pendientesDeMi-menuitem');
 
   const filtro = page
     .getByTestId('search-row')
@@ -291,8 +291,8 @@ test.describe('Ventanilla — Nuevo expediente', () => {
     let numeroExpediente = '';
 
     try {
-      // Paso 2: Cuando abre el menú "Ventanilla" y pulsa "Nuevo expediente".
-      await abrirEntradaDeMenu(page, 'ventanilla-menuitem', 'ventanilla-nuevoExpediente-menuitem');
+      // Paso 2: Cuando abre el menú "Mis trámites" y pulsa "Nuevo trámite".
+      await abrirEntradaDeMenu(page, 'misTramites-menuitem', 'misTramites-nuevoTramite-menuitem');
 
       // Paso 3: Entonces se abre DIRECTAMENTE "Nuevo expediente: elija el trámite"…
       await expect(page.getByRole('tab', { name: PANTALLA_TRAMITE, exact: true })).toBeVisible();

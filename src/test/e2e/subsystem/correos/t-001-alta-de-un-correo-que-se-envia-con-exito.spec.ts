@@ -19,7 +19,7 @@ test.describe('Administración de correos', () => {
 
     // Paso 1: Dado que el administrador está en la pantalla "Administración de correos"
     await page.getByText('Correos', { exact: true }).click();
-    await page.getByText('Administración de correos', { exact: true }).click();
+    await page.getByTestId('item:correos-todos-menuitem').click();
 
     // Paso 2: Cuando pulsa "Nuevo correo"
     await page.getByRole('button', { name: 'Nuevo correo' }).click();

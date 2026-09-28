@@ -41,7 +41,7 @@ Cómo funciona el asistente está en `src/main/java/com/educaflow/system/ventani
 Estado previo del que parten **todos** los tests: la carga de demo (`data.import.demo-data = true`) con sus centros, usuarios y tipos de usuario, más el data-init del trámite y de los perfiles.
 Ningún test puede presuponer más estado que este.
 
-Los cuatro actores pertenecen **solo** a CIPFP Mislata, así que el asistente «Ventanilla» → «Nuevo expediente» se salta la elección de centro y en la pantalla de alta el campo «Centro» ya viene relleno con «CIPFP Mislata» y de solo lectura: no hay que elegir centro en ningún test.
+Los cuatro actores pertenecen **solo** a CIPFP Mislata, así que el asistente «Mis trámites» → «Nuevo trámite» se salta la elección de centro y en la pantalla de alta el campo «Centro» ya viene relleno con «CIPFP Mislata» y de solo lectura: no hay que elegir centro en ningún test.
 
 #### Configuración que los tests dan por hecha
 
@@ -64,7 +64,7 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 
 - **Given** que `familiar1@mislata.es` (contraseña `demo1234`) es familiar en CIPFP Mislata, que el data-init de security le da el perfil `CREADOR` sobre los trámites de alumno y que el trámite admite presentar en representación.
 - **And** que el hijo al que se refiere la solicitud **no** se elige en ninguna pantalla: la aplicación no guarda ningún vínculo entre el familiar y el alumno, y los datos del hijo se teclean después, en la propia entrada de datos.
-- **When** inicia sesión, abre «Ventanilla» → «Nuevo expediente», despliega «Trámites para el alumno» y pulsa sobre «Anulación de matrícula en ciclo formativo».
+- **When** inicia sesión, abre «Mis trámites» → «Nuevo trámite», despliega «Trámites para el alumno» y pulsa sobre «Anulación de matrícula en ciclo formativo».
 - **Then** se abre la pantalla «Nuevo expediente» con «Centro» = «CIPFP Mislata» de solo lectura, **sin** la pregunta «¿Cómo se presenta?» (solo tiene el perfil `CREADOR`) y **sin** la pregunta «¿Para quién es el expediente?»: es familiar y no alumno, así que el expediente solo puede ser en representación y el asistente lo fija sin preguntar.
 - **When** pulsa «Crear expediente».
 - **Then** se abre el expediente en la fase `SOLICITUD`, estado `DATOS_SOLICITUD`, con la cabecera «Solicitud de anulación» / «Datos de la solicitud».

@@ -64,7 +64,7 @@ El justificante es un **PDF pequeño** (menos de 1 MB), llamado `justificante.pd
 
 ## Pasos
 
-- **Given** existe un expediente de «Justificación de falta del profesorado» del centro CIPFP Mislata en `TRAMITACION` / `PENDIENTE_RESOLUCION`, presentado con el tipo de jornada faltada «Unas horas de un único día», «Fecha» 10/09/2026, «Hora de inicio» 09:00 y «Hora de fin» 11:00; `jefeestudios1@mislata.es` (contraseña `demo1234`) ha iniciado sesión, lo abre por la bandeja «Expedientes esperando a que otra persona realice una tarea» y el centro tiene instalado el certificado digital de su director.
+- **Given** existe un expediente de «Justificación de falta del profesorado» del centro CIPFP Mislata en `TRAMITACION` / `PENDIENTE_RESOLUCION`, presentado con el tipo de jornada faltada «Unas horas de un único día», «Fecha» 10/09/2026, «Hora de inicio» 09:00 y «Hora de fin» 11:00; `jefeestudios1@mislata.es` (contraseña `demo1234`) ha iniciado sesión, lo abre por la lista «Tramitación» → «Pendientes de mí» y el centro tiene instalado el certificado digital de su director.
 - **When** elige «Tipo resolución» «Resolver positivamente», pulsa «Resolver el expediente» y confirma el aviso de que no podrá deshacer la acción.
 - **Then** el expediente pasa a la fase `TRAMITACION`, estado `ACEPTADO`, que es un estado cerrado.
 - **And** la pantalla de `ACEPTADO` es la genérica de solo consulta: muestra el panel «Datos de la falta» en solo lectura con «Fecha» a 10/09/2026, «Hora de inicio» a 09:00 y «Hora de fin» a 11:00, sin «Fecha de fin»; muestra la resolución en PDF y el bloque «Resolución»; no ofrece ningún evento y su único botón es «Salir».

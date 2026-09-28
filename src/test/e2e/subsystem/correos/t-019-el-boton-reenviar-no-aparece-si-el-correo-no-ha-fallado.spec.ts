@@ -19,7 +19,7 @@ test.describe('Administración de correos', () => {
     // «alumno1@mislata.es», el asunto «Correo correcto», el cuerpo «texto» y elige
     // el centro «CIPFP Mislata»
     await page.getByText('Correos', { exact: true }).click();
-    await page.getByText('Administración de correos', { exact: true }).click();
+    await page.getByTestId('item:correos-todos-menuitem').click();
     await page.getByRole('button', { name: 'Nuevo correo' }).click();
 
     await page.getByLabel('DNI del destinatario').fill('86862719E');

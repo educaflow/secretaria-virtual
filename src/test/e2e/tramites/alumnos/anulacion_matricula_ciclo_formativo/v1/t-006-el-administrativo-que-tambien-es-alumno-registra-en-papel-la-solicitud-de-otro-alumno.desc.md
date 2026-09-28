@@ -41,7 +41,7 @@ Cómo funciona el asistente está en `src/main/java/com/educaflow/system/ventani
 Estado previo del que parten **todos** los tests: la carga de demo (`data.import.demo-data = true`) con sus centros, usuarios y tipos de usuario, más el data-init del trámite y de los perfiles.
 Ningún test puede presuponer más estado que este.
 
-Los cuatro actores pertenecen **solo** a CIPFP Mislata, así que el asistente «Ventanilla» → «Nuevo expediente» se salta la elección de centro y en la pantalla de alta el campo «Centro» ya viene relleno con «CIPFP Mislata» y de solo lectura: no hay que elegir centro en ningún test.
+Los cuatro actores pertenecen **solo** a CIPFP Mislata, así que el asistente «Mis trámites» → «Nuevo trámite» se salta la elección de centro y en la pantalla de alta el campo «Centro» ya viene relleno con «CIPFP Mislata» y de solo lectura: no hay que elegir centro en ningún test.
 
 #### Configuración que los tests dan por hecha
 
@@ -63,7 +63,7 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 ## Pasos
 
 - **Given** que `administrativo2@mislata.es` (contraseña `demo1234`) tiene los dos perfiles de inicio en CIPFP Mislata, y que otro alumno le ha entregado en ventanilla su solicitud de anulación firmada en papel.
-- **When** inicia sesión, abre «Ventanilla» → «Nuevo expediente», despliega «Trámites para el alumno» y pulsa sobre «Anulación de matrícula en ciclo formativo».
+- **When** inicia sesión, abre «Mis trámites» → «Nuevo trámite», despliega «Trámites para el alumno» y pulsa sobre «Anulación de matrícula en ciclo formativo».
 - **Then** se abre la pantalla «Nuevo expediente» con la pregunta «¿Cómo se presenta?» sin marcar y todavía **sin** la pregunta «¿Para quién es el expediente?».
 - **When** marca «Estoy registrando un trámite recibido en papel».
 - **Then** aparece la pregunta «¿Para quién es el expediente?» («Para mí» es para la persona que ha entregado el papel), sin ninguna opción marcada.

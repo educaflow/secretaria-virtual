@@ -18,24 +18,74 @@ const FOOTER = 'panel:subsysExpedientes-template-footer-panel';
 const TIPO_VARIOS_DIAS_PRIMERO_PARCIAL = 'Varios días pero del primer día solo faltó unas horas';
 const TIPO_UN_DIA_COMPLETO = 'Un día completo';
 
-/** Despliega un grupo del menú principal y abre una de sus entradas. */
-async function abrirMenu(page: Page, grupo: string, entrada: string): Promise<void> {
-  // El grupo se pliega al pulsarlo: solo se despliega si la entrada no se ve ya.
+/** Despliega los grupos del menú principal (de raíz a hoja) que haga falta y abre la entrada. */
+async function abrirMenu(page: Page, entrada: string, ...grupos: string[]): Promise<void> {
   const item = page.getByTestId(`item:${entrada}`);
-  if (!(await item.isVisible())) {
+  // Cada grupo se pliega al pulsarlo: solo se despliega si la entrada no se ve ya.
+  for (const grupo of grupos) {
+    if (await item.isVisible()) {
+      break;
+    }
     await page.getByTestId(`item:${grupo}`).getByTestId('title').first().click();
   }
   await item.click();
 }
 
 /**
- * Crea un expediente del trámite desde «Ventanilla» → «Nuevo expediente» (no hay botón
+ * Abre la lista `entrada` del menú (desplegando sus `grupos`), la filtra por la columna
+ * «Num. Exped.» y devuelve la fila del expediente cuyo número se pasa. Nunca «la primera
+ * fila»: en una BD compartida que no se resetea, al segundo run hay varios expedientes del
+ * mismo trámite y en el mismo estado.
+ */
+async function filtrarEnBandeja(page: Page, numero: string, entrada: string, ...grupos: string[]) {
+  await abrirMenu(page, entrada, ...grupos);
+  const filtro = page.getByTestId('column:numeroExpediente').getByPlaceholder('Buscar...');
+  await filtro.fill(numero);
+  await filtro.press('Enter');
+  // El último rowgroup es el de los datos; el primero lleva la cabecera y la fila de filtros
+  // (que también contiene el número tecleado y haría ambigua la búsqueda por rol).
+  return page.getByRole('rowgroup').last().getByRole('row', { name: new RegExp(numero) });
+}
+
+/**
+ * Abre desde una lista del menú el expediente cuyo número se pasa. Ninguna lista fija el
+ * perfil: el servidor abre el expediente con el perfil real del usuario sobre él (el del
+ * estado actual si lo ostenta; si no, el primero que tenga, con la vista genérica de solo
+ * lectura). Lo que sí decide la lista es dónde está el expediente: «Mis trámites» para quien
+ * lo registró (pendientes de mí / en tramitación / finalizados) y «Tramitación» para quien
+ * lo tramita (pendientes de mí, o su unidad: abiertos / cerrados).
+ */
+async function abrirDesdeBandeja(page: Page, numero: string, entrada: string, ...grupos: string[]): Promise<void> {
+  await (await filtrarEnBandeja(page, numero, entrada, ...grupos)).click();
+  await expect(page.getByRole('tab', { name: new RegExp(numero) })).toBeVisible();
+}
+
+/**
+ * Abre desde «Mis trámites» el expediente cuyo número se pasa, esté en la lista que esté:
+ * lo usa el teardown, que no sabe en qué estado dejó el expediente el fallo de una aserción.
+ */
+async function abrirDesdeMisTramites(page: Page, numero: string): Promise<void> {
+  const listas = ['misTramites-pendientesDeMi-menuitem', 'misTramites-enTramitacion-menuitem', 'misTramites-finalizados-menuitem'];
+  for (const lista of listas) {
+    const fila = await filtrarEnBandeja(page, numero, lista, 'misTramites-menuitem');
+    const encontrado = await expect(fila).toHaveCount(1, { timeout: 5000 }).then(() => true, () => false);
+    if (encontrado) {
+      await fila.click();
+      await expect(page.getByRole('tab', { name: new RegExp(numero) })).toBeVisible();
+      return;
+    }
+  }
+  throw new Error(`El expediente ${numero} no está en ninguna lista de «Mis trámites»`);
+}
+
+/**
+ * Crea un expediente del trámite desde «Mis trámites» → «Nuevo trámite» (no hay botón
  * «Nuevo» de un grid: el alta la dispara el evento inicial del tipo de expediente) y
  * devuelve el NÚMERO que le ha asignado el servidor, que es lo único que identifica a lo
  * creado en una BD compartida que no se resetea.
  */
 async function crearExpediente(page: Page): Promise<string> {
-  await abrirMenu(page, 'ventanilla-menuitem', 'ventanilla-nuevoExpediente-menuitem');
+  await abrirMenu(page, 'misTramites-nuevoTramite-menuitem', 'misTramites-menuitem');
 
   // Árbol de trámites: los tipos de trámite (nivel 1) nacen plegados y sus trámites
   // (nivel 2) no existen en el DOM hasta desplegarlos.
@@ -53,23 +103,23 @@ async function crearExpediente(page: Page): Promise<string> {
   return numero;
 }
 
+
 /**
- * Abre desde una bandeja el expediente cuyo número se pasa. **Cada bandeja fija el perfil**
- * con el que se pinta la vista, así que el `menuitem` no es intercambiable.
- * El expediente se localiza filtrando la columna «Num. Exped.» por su número: nunca «el
- * primero de la bandeja», que al segundo run sería otro (y que además podría caer fuera de
- * la primera página según crece la BD).
+ * Fechas de la falta, relativas a hoy. El trámite solo admite faltas de los últimos 7 días, así
+ * que una fecha fija caduca y el test empieza a fallar solo por el calendario. La de inicio es
+ * hace 3 días y las de fin hace 2 y hace 1: el mismo tramo de días (10, 11 y 12/09/2026) que
+ * describe el `.desc.md`, pero desplazado a la fecha en que corre el test.
  */
-async function abrirDesdeBandeja(page: Page, menuitem: string, numero: string): Promise<void> {
-  await abrirMenu(page, 'expedientes-menuitem', menuitem);
-  const filtro = page.getByTestId('column:numeroExpediente').getByPlaceholder('Buscar...');
-  await filtro.fill(numero);
-  await filtro.press('Enter');
-  // El último rowgroup es el de los datos; el primero lleva la cabecera y la fila de filtros
-  // (que también contiene el número tecleado y haría ambigua la búsqueda por rol).
-  await page.getByRole('rowgroup').last().getByRole('row', { name: new RegExp(numero) }).click();
-  await expect(page.getByRole('tab', { name: new RegExp(numero) })).toBeVisible();
+function diasAntes(dias: number): string {
+  const fecha = new Date();
+  fecha.setDate(fecha.getDate() - dias);
+  const dd = String(fecha.getDate()).padStart(2, '0');
+  const mm = String(fecha.getMonth() + 1).padStart(2, '0');
+  return `${dd}/${mm}/${fecha.getFullYear()}`;
 }
+const FECHA_INICIO = diasAntes(3); // «10/09/2026» en la descripción
+const FECHA_FIN_1 = diasAntes(2); // «11/09/2026» en la descripción
+const FECHA_FIN_2 = diasAntes(1); // «12/09/2026» en la descripción
 
 test.describe('Justificación de falta del profesorado — RECEPCION', () => {
   test('Al cambiar el tipo de jornada faltada se vacían los campos que el nuevo tipo ya no necesita', async ({
@@ -101,18 +151,18 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
 
       // Given (cont.): … y ha rellenado «Fecha de Inicio» con 10/09/2026, «Hora de inicio» con
       // 12:00 y «Fecha de fin» con 11/09/2026, sin pulsar «Siguiente».
-      await panelFalta.getByRole('textbox', { name: 'Fecha de Inicio', exact: true }).fill('10/09/2026');
+      await panelFalta.getByRole('textbox', { name: 'Fecha de Inicio', exact: true }).fill(FECHA_INICIO);
       await panelFalta.getByRole('textbox', { name: 'Hora de inicio', exact: true }).fill('12:00');
-      await panelFalta.getByRole('textbox', { name: 'Fecha de fin', exact: true }).fill('11/09/2026');
+      await panelFalta.getByRole('textbox', { name: 'Fecha de fin', exact: true }).fill(FECHA_FIN_1);
 
       // La precondición se comprueba ANTES del cambio de tipo: sin ella, las aserciones de que
       // los campos acaban VACÍOS pasarían igual aunque el `fill` no hubiera escrito nada, y el
       // test no probaría nada en absoluto.
       await expect(panelFalta.getByRole('textbox', { name: 'Fecha de Inicio', exact: true })).toHaveValue(
-        '10/09/2026',
+        FECHA_INICIO,
       );
       await expect(panelFalta.getByRole('textbox', { name: 'Hora de inicio', exact: true })).toHaveValue('12:00');
-      await expect(panelFalta.getByRole('textbox', { name: 'Fecha de fin', exact: true })).toHaveValue('11/09/2026');
+      await expect(panelFalta.getByRole('textbox', { name: 'Fecha de fin', exact: true })).toHaveValue(FECHA_FIN_1);
 
       // When: cambia el tipo de jornada faltada a «Un día completo».
       await panelFalta.getByRole('radio', { name: TIPO_UN_DIA_COMPLETO, exact: true }).click();
@@ -122,7 +172,7 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       // Se asierta PRIMERO la presencia del campo nuevo: así se espera al repintado real del
       // panel y las ausencias de más abajo no pueden pasar por un DOM aún a medio renderizar.
       await expect(panelFalta.getByRole('textbox', { name: 'Fecha', exact: true })).toBeVisible();
-      await expect(panelFalta.getByRole('textbox', { name: 'Fecha', exact: true })).toHaveValue('10/09/2026');
+      await expect(panelFalta.getByRole('textbox', { name: 'Fecha', exact: true })).toHaveValue(FECHA_INICIO);
 
       // Then (cont.): el panel deja de mostrar «Fecha de fin» y «Hora de inicio» …
       await expect(panelFalta.getByRole('textbox', { name: 'Fecha de fin', exact: true })).toHaveCount(0);
@@ -148,7 +198,7 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       // fin» aparecen **vacías** — no conservan los valores 12:00 y 11/09/2026 que tenían antes
       // del primer cambio.
       await expect(panelFalta.getByRole('textbox', { name: 'Fecha de Inicio', exact: true })).toHaveValue(
-        '10/09/2026',
+        FECHA_INICIO,
       );
       await expect(panelFalta.getByRole('textbox', { name: 'Hora de inicio', exact: true })).toHaveValue('');
       await expect(panelFalta.getByRole('textbox', { name: 'Fecha de fin', exact: true })).toHaveValue('');
@@ -159,7 +209,7 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       // guardar de la pestaña NO sirve como prueba: el `onChange` del tipo hace un viaje al
       // servidor que lo limpia, así que su ausencia no significa que se haya guardado.
       // Va al final para no alterar la secuencia de pasos de la descripción.
-      await abrirDesdeBandeja(page, 'expedientes-expedientesPendientes-menuitem', numero);
+      await abrirDesdeBandeja(page, numero, 'misTramites-pendientesDeMi-menuitem', 'misTramites-menuitem');
       const panelReleido = page.getByRole('region', { name: 'Datos de la falta' });
       await expect(panelReleido.getByRole('radio', { name: TIPO_UN_DIA_COMPLETO, exact: true })).not.toBeChecked();
       await expect(
@@ -182,7 +232,7 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
         await (async () => {
           await ensureLoggedOut(page);
           await login(page, PROFESOR.login, PROFESOR.password);
-          await abrirDesdeBandeja(page, 'expedientes-expedientesPendientes-menuitem', numero);
+          await abrirDesdeMisTramites(page, numero);
           await page.getByTestId(FOOTER).getByRole('button', { name: 'Borrar el expediente' }).click();
           await page.getByRole('dialog').getByRole('button', { name: 'Aceptar' }).click();
           // Se comprueba por el NÚMERO del expediente que este test creó, nunca por «el primero».

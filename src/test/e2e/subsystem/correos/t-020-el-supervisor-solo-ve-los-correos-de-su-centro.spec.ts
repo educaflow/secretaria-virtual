@@ -21,7 +21,7 @@ test.describe('Correos de mi centro', () => {
     // el «para» «alumno1@mislata.es», el asunto «Aviso Mislata», el cuerpo «texto»,
     // elige el centro «CIPFP Mislata» y pulsa "Guardar".
     await page.getByText('Correos', { exact: true }).click();
-    await page.getByText('Administración de correos', { exact: true }).click();
+    await page.getByTestId('item:correos-todos-menuitem').click();
     await page.getByRole('button', { name: 'Nuevo correo' }).click();
 
     await page.getByLabel('DNI del destinatario').fill('86862719E');
@@ -62,7 +62,7 @@ test.describe('Correos de mi centro', () => {
 
     // Paso 5: Y abre la pantalla "Correos de mi centro".
     await page.getByText('Correos', { exact: true }).click();
-    await page.getByText('Correos de mi centro', { exact: true }).click();
+    await page.getByTestId('item:correos-delCentro-menuitem').click();
 
     // Resultado esperado: el sistema muestra el correo «Aviso Mislata» y no muestra
     // el correo «Aviso Batoi».

@@ -13,8 +13,8 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
  *   - el expediente creado se identifica por SU número, capturado en tiempo de
  *     ejecución del título de su pestaña (nunca por un número fijo), y
  *   - se BORRA en el `finally`, de modo que la BD compartida queda como estaba.
- * El teardown reabre el expediente desde «Expedientes Esperando» —el listado que lo
- * abre con perfil TRAMITADOR, que es el único que ofrece «Borrar el expediente» en
+ * El teardown reabre el expediente desde «Tramitación» → «Pendientes de mí» —donde el
+ * servidor lo abre con el perfil de su estado, TRAMITADOR, que es el único que ofrece «Borrar el expediente» en
  * PENDIENTE_DOCUMENTO_ESCANEADO— en vez de borrarlo sobre la pestaña que dejó el alta:
  * arrancar con un `goto` lo hace robusto aunque el test falle con un diálogo abierto o
  * a medio navegar.
@@ -289,9 +289,9 @@ function filasDeExpedientes(page: Page): Locator {
 }
 
 /**
- * Borra el expediente `numero` reabriéndolo desde «Expedientes Esperando», el listado que
- * lo abre con perfil TRAMITADOR (`<context name="_profile" expr="TRAMITADOR"/>` de su
- * `action-view`), el único que ofrece «Borrar el expediente» en este estado. Se filtra el
+ * Borra el expediente `numero` reabriéndolo desde «Tramitación» → «Pendientes de mí»;
+ * `BandejaController.abrirExpediente` lo abre con el perfil de su estado, TRAMITADOR, el
+ * único que ofrece «Borrar el expediente» en este estado. Se filtra el
  * listado por el número (en vez de recorrer sus filas) para no depender de la paginación:
  * la BD es compartida y el listado crece con los expedientes de otros runs. El botón abre
  * un diálogo de confirmación de Axelor que hay que aceptar; el evento DELETE responde con
@@ -299,7 +299,7 @@ function filasDeExpedientes(page: Page): Locator {
  */
 async function borrarExpediente(page: Page, numero: string): Promise<void> {
   await page.goto('/#/');
-  await abrirEntradaDeMenu(page, 'expedientes-menuitem', 'expedientes-expedientesEsperando-menuitem');
+  await abrirEntradaDeMenu(page, 'tramitacion-menuitem', 'tramitacion-pendientesDeMi-menuitem');
 
   const filtro = page
     .getByTestId('search-row')
@@ -329,8 +329,8 @@ test.describe('Ventanilla — Nuevo expediente', () => {
     let numeroExpediente = '';
 
     try {
-      // Paso 2: Cuando abre el menú "Ventanilla" y pulsa "Nuevo expediente".
-      await abrirEntradaDeMenu(page, 'ventanilla-menuitem', 'ventanilla-nuevoExpediente-menuitem');
+      // Paso 2: Cuando abre el menú "Mis trámites" y pulsa "Nuevo trámite".
+      await abrirEntradaDeMenu(page, 'misTramites-menuitem', 'misTramites-nuevoTramite-menuitem');
 
       // Paso 3: Entonces se abre DIRECTAMENTE "Nuevo expediente: elija el trámite"…
       await expect(page.getByRole('tab', { name: PANTALLA_TRAMITE })).toBeVisible();

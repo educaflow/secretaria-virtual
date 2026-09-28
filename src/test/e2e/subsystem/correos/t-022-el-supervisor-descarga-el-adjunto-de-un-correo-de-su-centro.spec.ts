@@ -39,7 +39,7 @@ test.describe('Correos de mi centro', () => {
       // Mislata», el «para» «alumno1@mislata.es», el asunto «Circular con adjunto»,
       // el cuerpo «texto» y elige el centro «CIPFP Mislata».
       await page.getByText('Correos', { exact: true }).click();
-      await page.getByText('Administración de correos', { exact: true }).click();
+      await page.getByTestId('item:correos-todos-menuitem').click();
       await page.getByRole('button', { name: 'Nuevo correo' }).click();
 
       await page.getByLabel('DNI del destinatario').fill('86862719E');
@@ -82,7 +82,7 @@ test.describe('Correos de mi centro', () => {
       await login(page, 'supervisor1@mislata.es', 'demo1234');
 
       await page.getByText('Correos', { exact: true }).click();
-      await page.getByText('Correos de mi centro', { exact: true }).click();
+      await page.getByTestId('item:correos-delCentro-menuitem').click();
       // La navegación de la SPA actualiza el hash de forma asíncrona tras el
       // click: hay que esperar a que se asiente en la URL de "Correo@Centro"
       // ANTES de entrar en el bucle de recarga; si se recargara demasiado

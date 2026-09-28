@@ -11,7 +11,7 @@ const TIPO_TRAMITE = 'Trámites para el alumno';
 const PANTALLA_ALTA = 'Nuevo expediente';
 
 /**
- * Abre el asistente «Ventanilla» → «Nuevo expediente» y elige el trámite hasta llegar a su
+ * Abre el asistente «Mis trámites» → «Nuevo trámite» y elige el trámite hasta llegar a su
  * último paso, «Nuevo expediente». Cómo funciona el asistente (pantallas, testids y cuándo
  * pregunta cada cosa) está en `system/ventanilla/views/nuevoexpediente/CLAUDE.md`.
  * El usuario de estos tests es de un solo centro, así que el asistente se salta la elección
@@ -19,9 +19,9 @@ const PANTALLA_ALTA = 'Nuevo expediente';
  */
 async function abrirAltaDelTramite(page: Page): Promise<void> {
   // El grupo del menú se pliega al pulsarlo: solo se despliega si la entrada no se ve.
-  const entrada = page.getByTestId('item:ventanilla-nuevoExpediente-menuitem');
+  const entrada = page.getByTestId('item:misTramites-nuevoTramite-menuitem');
   if (!(await entrada.isVisible())) {
-    await page.getByTestId('item:ventanilla-menuitem').getByTestId('title').first().click();
+    await page.getByTestId('item:misTramites-menuitem').getByTestId('title').first().click();
   }
   await entrada.click();
 
@@ -58,7 +58,7 @@ test.describe('Anulación de matrícula en ciclo formativo — SOLICITUD', () =>
       await ensureLoggedOut(page);
       await login(page, 'administrativo2@mislata.es', 'demo1234');
 
-      // When: inicia sesión, abre «Ventanilla» → «Nuevo expediente», despliega «Trámites para el alumno»
+      // When: inicia sesión, abre «Mis trámites» → «Nuevo trámite», despliega «Trámites para el alumno»
       // y pulsa sobre «Anulación de matrícula en ciclo formativo».
       await abrirAltaDelTramite(page);
 

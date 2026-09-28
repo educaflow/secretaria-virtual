@@ -10,7 +10,7 @@ test.describe('Administración de correos', () => {
     await login(page, 'admin', 'admin');
 
     await page.getByTestId('item:correos-menuitem').getByText('Correos', { exact: true }).click();
-    await page.getByText('Administración de correos', { exact: true }).click();
+    await page.getByTestId('item:correos-todos-menuitem').click();
 
     // Idempotencia (BD compartida, sin reset): este test valida precisamente que el
     // campo «cuerpo» es obligatorio, así que se deja vacío a propósito y no hay un

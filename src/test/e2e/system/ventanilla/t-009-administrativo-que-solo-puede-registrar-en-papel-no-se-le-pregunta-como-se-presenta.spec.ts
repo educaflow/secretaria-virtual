@@ -15,10 +15,10 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
  *   - se BORRA en el `finally`, de modo que la BD compartida queda como estaba.
  * El borrado no puede hacerse sobre la pestaña recién creada porque el test navega
  * antes a los listados para comprobar el centro (Axelor sustituye la pestaña del
- * expediente al abrir otra vista): por eso el teardown lo reabre desde «Expedientes
- * Esperando», el único listado que lo abre con el perfil TRAMITADOR y, por tanto, con
- * el botón «Borrar el expediente» (lo ofrecen los dos estados por los que pasa el test,
- * PENDIENTE_DOCUMENTO_ESCANEADO y DATOS_SOLICITUD). Arrancar el teardown con un `goto` lo
+ * expediente al abrir otra vista): por eso el teardown lo reabre desde la bandeja del
+ * estado en que quedó, donde el servidor lo abre con el perfil que declara ese estado y,
+ * por tanto, con el botón «Borrar el expediente» (lo ofrecen los dos estados por los que
+ * pasa el test, PENDIENTE_DOCUMENTO_ESCANEADO y DATOS_SOLICITUD). Arrancar el teardown con un `goto` lo
  * hace robusto aunque el test falle con un diálogo abierto o a medio navegar.
  * No hace falta pre-limpieza defensiva: ninguna regla de negocio limita cuántos
  * expedientes de este trámite puede registrar el administrativo, así que un expediente
@@ -201,27 +201,44 @@ async function filtrarPorNumeroExpediente(page: Page, numero: string): Promise<v
 }
 
 /**
- * Abre el expediente `numero` desde «Expedientes Esperando», el único listado que lo abre
- * con el perfil TRAMITADOR (`<context name="_profile" expr="TRAMITADOR"/>` de su
- * `action-view`), que es con el que el administrativo lo tramita: el que pinta el
+ * Abre el expediente `numero` desde «Tramitación» → «Pendientes de mí»: al pulsar la fila,
+ * `BandejaController.abrirExpediente` lo abre con el perfil que declara su estado
+ * (TRAMITADOR), que es con el que el administrativo lo tramita: el que pinta el
  * formulario editable del estado y sus botones. Arrancar con un `goto` lo hace robusto
  * aunque se venga de un diálogo abierto o de media navegación.
  */
 async function abrirExpedienteComoTramitador(page: Page, numero: string): Promise<void> {
+  await abrirExpedienteDesdeBandeja(page, numero, 'tramitacion-menuitem', 'tramitacion-pendientesDeMi-menuitem');
+}
+
+/** Abre el expediente `numero` desde la bandeja `entrada` del menú `grupo`. */
+async function abrirExpedienteDesdeBandeja(
+  page: Page,
+  numero: string,
+  grupo: string,
+  entrada: string,
+): Promise<void> {
   await page.goto('/#/');
-  await abrirEntradaDeMenu(page, 'expedientes-menuitem', 'expedientes-expedientesEsperando-menuitem');
+  await abrirEntradaDeMenu(page, grupo, entrada);
   await filtrarPorNumeroExpediente(page, numero);
   await filasDeExpedientes(page).first().click();
   await expect(page.getByRole('tab', { name: TITULO_EXPEDIENTE })).toBeVisible();
 }
 
 /**
- * Borra el expediente `numero` reabriéndolo con el perfil TRAMITADOR, el único que ofrece
- * «Borrar el expediente». El botón abre un diálogo de confirmación de Axelor que hay que
- * aceptar.
+ * Borra el expediente `numero`. Los dos estados por los que pasa el test ofrecen «Borrar el
+ * expediente» al perfil que declaran, pero cada uno está en una bandeja distinta:
+ * PENDIENTE_DOCUMENTO_ESCANEADO (TRAMITADOR) en «Tramitación» → «Pendientes de mí» y
+ * DATOS_SOLICITUD (CREADOR, que es el administrativo que lo registró) en «Mis trámites» →
+ * «Pendientes de mí». `enDatosSolicitud` dice en cuál de los dos quedó. El botón abre un
+ * diálogo de confirmación de Axelor que hay que aceptar.
  */
-async function borrarExpediente(page: Page, numero: string): Promise<void> {
-  await abrirExpedienteComoTramitador(page, numero);
+async function borrarExpediente(page: Page, numero: string, enDatosSolicitud: boolean): Promise<void> {
+  if (enDatosSolicitud) {
+    await abrirExpedienteDesdeBandeja(page, numero, 'misTramites-menuitem', 'misTramites-pendientesDeMi-menuitem');
+  } else {
+    await abrirExpedienteComoTramitador(page, numero);
+  }
 
   await page.getByTestId('widget:DELETE').getByRole('button').click();
   await page.getByRole('button', { name: 'Aceptar' }).click();
@@ -241,10 +258,13 @@ test.describe('Ventanilla — Nuevo expediente', () => {
     // Número del expediente creado; se captura tras crearlo y lo usa el teardown para
     // borrarlo. Vacío mientras no exista el expediente.
     let numeroExpediente = '';
+    // Si el expediente ya avanzó a DATOS_SOLICITUD, que cambia la bandeja desde la que el
+    // teardown lo reabre para borrarlo.
+    let enDatosSolicitud = false;
 
     try {
-      // Paso 2: Cuando abre el menú "Ventanilla" y pulsa "Nuevo expediente".
-      await abrirEntradaDeMenu(page, 'ventanilla-menuitem', 'ventanilla-nuevoExpediente-menuitem');
+      // Paso 2: Cuando abre el menú "Mis trámites" y pulsa "Nuevo trámite".
+      await abrirEntradaDeMenu(page, 'misTramites-menuitem', 'misTramites-nuevoTramite-menuitem');
 
       // Paso 3: Entonces se abre DIRECTAMENTE "Nuevo expediente: elija el trámite"…
       await expect(page.getByRole('tab', { name: PANTALLA_TRAMITE, exact: true })).toBeVisible();
@@ -374,19 +394,11 @@ test.describe('Ventanilla — Nuevo expediente', () => {
 
       // Resultado esperado: …en el centro "CIPFP Mislata".
       // El formulario de este estado (perfil TRAMITADOR) no incluye el panel de la
-      // matrícula, así que no pinta el centro. Se comprueba abriendo el expediente
-      // desde "Expedientes Pendientes", cuya vista genérica sí incluye ese panel con
-      // `nombreCentro` en solo lectura. Que además aparezca en ese listado lo
-      // corrobora: su `domain` filtra por los centros del usuario.
-      await abrirEntradaDeMenu(
-        page,
-        'expedientes-menuitem',
-        'expedientes-expedientesPendientes-menuitem',
-      );
+      // matrícula, así que no pinta el centro. Se comprueba en la columna "Centro" de
+      // «Tramitación» → «Pendientes de mí», que lista el expediente con su centro.
+      await abrirEntradaDeMenu(page, 'tramitacion-menuitem', 'tramitacion-pendientesDeMi-menuitem');
       await filtrarPorNumeroExpediente(page, numeroExpediente);
-      await filasDeExpedientes(page).first().click();
-      await expect(page.getByRole('tab', { name: TITULO_EXPEDIENTE })).toBeVisible();
-      await expect(page.getByTestId('field:nombreCentro').getByRole('textbox')).toHaveValue(CENTRO);
+      await expect(filasDeExpedientes(page).first()).toContainText(CENTRO);
 
       // Resultado esperado: …PARA ÉL MISMO (no en representación), comprobado sobre el
       // expediente YA CREADO y no sobre lo que se tecleó en el asistente.
@@ -415,6 +427,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await expect(page.getByTestId('field:nameState').getByRole('textbox')).toHaveValue(
         ESTADO_DATOS_SOLICITUD,
       );
+      enDatosSolicitud = true;
 
       // Control positivo, para que la ausencia de abajo NO pueda volver a ser vacua: los
       // otros paneles de la MISMA lista `<include-panels>` que `persona-solicitante-editable`
@@ -435,7 +448,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // BD es compartida y no se resetea, así que dejarlo lo acumularía run tras run.
       // Si el test falló ANTES de crearlo no hay nada que borrar.
       if (numeroExpediente !== '') {
-        await borrarExpediente(page, numeroExpediente);
+        await borrarExpediente(page, numeroExpediente, enDatosSolicitud);
       }
 
       await logout(page);

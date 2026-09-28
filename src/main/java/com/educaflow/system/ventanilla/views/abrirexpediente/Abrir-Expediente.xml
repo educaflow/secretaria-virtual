@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- La acción del <grid> de TODAS las bandejas de expedientes de la ventanilla. No hay vistas en este
+         bloque: solo la llamada remota que resuelve con qué perfil se abre el expediente pulsado. -->
+    <?sv-view?>
+
+    <?sv-primary-actions?>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+    <action-method name="sysVentanilla.Abrir@Expediente-Remote-abrirExpediente-action" model="com.educaflow.subsystem.expedientes.db.Expediente">
+        <call class="com.educaflow.system.ventanilla.controller.BandejaController" method="abrirExpediente"/>
+    </action-method>
+
+</object-views>

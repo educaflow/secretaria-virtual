@@ -53,14 +53,14 @@ const MENSAJE_REPRESENTACION_NO_ADMITIDA =
   'Este trámite no permite presentar la solicitud en representación de otra persona';
 
 /**
- * Abre el asistente desde el menú «Ventanilla» → «Nuevo expediente». El grupo se pliega
+ * Abre el asistente desde el menú «Mis trámites» → «Nuevo trámite». El grupo se pliega
  * y despliega al pulsarlo, así que solo se despliega si la entrada no se ve: pulsarlo a
  * ciegas lo cerraría cuando ya venía abierto.
  */
 async function abrirNuevoExpediente(page: Page): Promise<void> {
-  const entrada = page.getByTestId('item:ventanilla-nuevoExpediente-menuitem');
+  const entrada = page.getByTestId('item:misTramites-nuevoTramite-menuitem');
   if (!(await entrada.isVisible())) {
-    await page.getByTestId('item:ventanilla-menuitem').getByTestId('title').first().click();
+    await page.getByTestId('item:misTramites-menuitem').getByTestId('title').first().click();
   }
   await entrada.click();
 }

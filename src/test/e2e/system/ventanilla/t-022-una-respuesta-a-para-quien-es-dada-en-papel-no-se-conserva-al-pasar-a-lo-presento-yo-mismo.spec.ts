@@ -17,7 +17,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
  *     estado inicial ofrece (perfil CREADOR — el expediente termina presentado por el
  *     propio usuario, no en papel, así que abre con ese perfil, igual que T-001/T-019 y
  *     a diferencia de T-011, que sí lo registra en papel y necesita reabrirlo desde
- *     "Expedientes Esperando").
+ *     «Tramitación» → «Pendientes de mí»).
  * No hace falta pre-limpieza defensiva: ninguna regla de negocio limita cuántas
  * anulaciones de matrícula puede tener el mismo alumno, así que un expediente residual
  * de un run que abortara no impide crear otro ni cambia ninguna aserción (el test no
@@ -230,8 +230,8 @@ test.describe('Ventanilla — Nuevo expediente', () => {
     let tituloExpediente = '';
 
     try {
-      // Paso 2: Cuando abre el menú "Ventanilla" y pulsa "Nuevo expediente".
-      await abrirEntradaDeMenu(page, 'ventanilla-menuitem', 'ventanilla-nuevoExpediente-menuitem');
+      // Paso 2: Cuando abre el menú "Mis trámites" y pulsa "Nuevo trámite".
+      await abrirEntradaDeMenu(page, 'misTramites-menuitem', 'misTramites-nuevoTramite-menuitem');
 
       // Paso 3: Entonces se abre DIRECTAMENTE "Nuevo expediente: elija el trámite" con
       // el centro "CIPFP Mislata"…

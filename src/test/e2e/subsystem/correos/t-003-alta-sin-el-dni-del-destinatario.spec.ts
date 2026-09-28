@@ -17,7 +17,7 @@ test.describe('Administración de correos', () => {
 
     // Paso 1: Dado que el administrador pulsa "Nuevo correo"
     await page.getByTestId('item:correos-menuitem').getByText('Correos', { exact: true }).click();
-    await page.getByText('Administración de correos', { exact: true }).click();
+    await page.getByTestId('item:correos-todos-menuitem').click();
     await page.getByRole('button', { name: 'Nuevo correo' }).click();
 
     // Paso 2: Cuando rellena el nombre «Alumno1», los apellidos «CIPFP Mislata», el

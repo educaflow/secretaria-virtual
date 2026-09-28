@@ -41,7 +41,7 @@ Cómo funciona el asistente está en `src/main/java/com/educaflow/system/ventani
 Estado previo del que parten **todos** los tests: la carga de demo (`data.import.demo-data = true`) con sus centros, usuarios y tipos de usuario, más el data-init del trámite y de los perfiles.
 Ningún test puede presuponer más estado que este.
 
-Los cuatro actores pertenecen **solo** a CIPFP Mislata, así que el asistente «Ventanilla» → «Nuevo expediente» se salta la elección de centro y en la pantalla de alta el campo «Centro» ya viene relleno con «CIPFP Mislata» y de solo lectura: no hay que elegir centro en ningún test.
+Los cuatro actores pertenecen **solo** a CIPFP Mislata, así que el asistente «Mis trámites» → «Nuevo trámite» se salta la elección de centro y en la pantalla de alta el campo «Centro» ya viene relleno con «CIPFP Mislata» y de solo lectura: no hay que elegir centro en ningún test.
 
 #### Configuración que los tests dan por hecha
 
@@ -63,7 +63,7 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 ## Pasos
 
 - **Given** que `administrativo2@mislata.es` (contraseña `demo1234`) tiene los dos perfiles de inicio en CIPFP Mislata, y que quien ha entregado la solicitud en ventanilla es el padre de un alumno, que la presenta en representación de su hijo.
-- **When** inicia sesión, abre «Ventanilla» → «Nuevo expediente», despliega «Trámites para el alumno», pulsa sobre «Anulación de matrícula en ciclo formativo» y en la pregunta «¿Cómo se presenta?» marca «Estoy registrando un trámite recibido en papel».
+- **When** inicia sesión, abre «Mis trámites» → «Nuevo trámite», despliega «Trámites para el alumno», pulsa sobre «Anulación de matrícula en ciclo formativo» y en la pregunta «¿Cómo se presenta?» marca «Estoy registrando un trámite recibido en papel».
 - **Then** aparece la pregunta «¿Para quién es el expediente?» («Para mí» es para la persona que ha entregado el papel).
 - **When** marca «Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)» y pulsa «Crear expediente».
 - **Then** se abre el expediente en la fase `SOLICITUD`, estado `PENDIENTE_DOCUMENTO_ESCANEADO`, con el panel «Solicitud entregada en papel» y su campo «Solicitud escaneada (PDF)».

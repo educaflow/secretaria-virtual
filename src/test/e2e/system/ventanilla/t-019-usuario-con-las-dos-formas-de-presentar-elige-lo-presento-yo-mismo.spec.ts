@@ -179,8 +179,8 @@ test.describe('Ventanilla — Nuevo expediente', () => {
     let tituloExpediente = '';
 
     try {
-      // Paso 2: Cuando abre el menú "Ventanilla" y pulsa "Nuevo expediente".
-      await abrirEntradaDeMenu(page, 'ventanilla-menuitem', 'ventanilla-nuevoExpediente-menuitem');
+      // Paso 2: Cuando abre el menú "Mis trámites" y pulsa "Nuevo trámite".
+      await abrirEntradaDeMenu(page, 'misTramites-menuitem', 'misTramites-nuevoTramite-menuitem');
 
       // Paso 3: Entonces se abre DIRECTAMENTE "Nuevo expediente: elija el trámite"…
       await expect(page.getByRole('tab', { name: PANTALLA_TRAMITE, exact: true })).toBeVisible();

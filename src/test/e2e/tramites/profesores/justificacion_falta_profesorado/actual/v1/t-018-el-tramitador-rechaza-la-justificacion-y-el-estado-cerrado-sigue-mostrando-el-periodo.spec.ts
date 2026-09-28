@@ -25,9 +25,6 @@ const FOOTER = 'panel:subsysExpedientes-template-footer-panel';
 // por su `name`, no por su título: el panel se titula «Solicitud» también para la resolución.
 const PANEL_PDF_RESOLUCION = 'panel:pdfResolucion';
 
-const BANDEJA_PENDIENTES = 'expedientes-expedientesPendientes-menuitem';
-const BANDEJA_ESPERANDO = 'expedientes-expedientesEsperando-menuitem';
-const BANDEJA_CERRADOS = 'expedientes-expedientesCerrados-menuitem';
 
 const BOTON_PRESENTAR = 'Firmar con AutoFirma y Presentar la solicitud';
 const BOTON_RESOLVER = 'Resolver el expediente';
@@ -50,24 +47,74 @@ const JUSTIFICANTE_PDF = Buffer.from(
   'latin1',
 );
 
-/** Despliega un grupo del menú principal y abre una de sus entradas. */
-async function abrirMenu(page: Page, grupo: string, entrada: string): Promise<void> {
-  // El grupo se pliega al pulsarlo: solo se despliega si la entrada no se ve ya.
+/** Despliega los grupos del menú principal (de raíz a hoja) que haga falta y abre la entrada. */
+async function abrirMenu(page: Page, entrada: string, ...grupos: string[]): Promise<void> {
   const item = page.getByTestId(`item:${entrada}`);
-  if (!(await item.isVisible())) {
+  // Cada grupo se pliega al pulsarlo: solo se despliega si la entrada no se ve ya.
+  for (const grupo of grupos) {
+    if (await item.isVisible()) {
+      break;
+    }
     await page.getByTestId(`item:${grupo}`).getByTestId('title').first().click();
   }
   await item.click();
 }
 
 /**
- * Crea un expediente del trámite desde «Ventanilla» → «Nuevo expediente» (no hay botón
+ * Abre la lista `entrada` del menú (desplegando sus `grupos`), la filtra por la columna
+ * «Num. Exped.» y devuelve la fila del expediente cuyo número se pasa. Nunca «la primera
+ * fila»: en una BD compartida que no se resetea, al segundo run hay varios expedientes del
+ * mismo trámite y en el mismo estado.
+ */
+async function filtrarEnBandeja(page: Page, numero: string, entrada: string, ...grupos: string[]) {
+  await abrirMenu(page, entrada, ...grupos);
+  const filtro = page.getByTestId('column:numeroExpediente').getByPlaceholder('Buscar...');
+  await filtro.fill(numero);
+  await filtro.press('Enter');
+  // El último rowgroup es el de los datos; el primero lleva la cabecera y la fila de filtros
+  // (que también contiene el número tecleado y haría ambigua la búsqueda por rol).
+  return page.getByRole('rowgroup').last().getByRole('row', { name: new RegExp(numero) });
+}
+
+/**
+ * Abre desde una lista del menú el expediente cuyo número se pasa. Ninguna lista fija el
+ * perfil: el servidor abre el expediente con el perfil real del usuario sobre él (el del
+ * estado actual si lo ostenta; si no, el primero que tenga, con la vista genérica de solo
+ * lectura). Lo que sí decide la lista es dónde está el expediente: «Mis trámites» para quien
+ * lo registró (pendientes de mí / en tramitación / finalizados) y «Tramitación» para quien
+ * lo tramita (pendientes de mí, o su unidad: abiertos / cerrados).
+ */
+async function abrirDesdeBandeja(page: Page, numero: string, entrada: string, ...grupos: string[]): Promise<void> {
+  await (await filtrarEnBandeja(page, numero, entrada, ...grupos)).click();
+  await expect(page.getByRole('tab', { name: new RegExp(numero) })).toBeVisible();
+}
+
+/**
+ * Abre desde «Mis trámites» el expediente cuyo número se pasa, esté en la lista que esté:
+ * lo usa el teardown, que no sabe en qué estado dejó el expediente el fallo de una aserción.
+ */
+async function abrirDesdeMisTramites(page: Page, numero: string): Promise<void> {
+  const listas = ['misTramites-pendientesDeMi-menuitem', 'misTramites-enTramitacion-menuitem', 'misTramites-finalizados-menuitem'];
+  for (const lista of listas) {
+    const fila = await filtrarEnBandeja(page, numero, lista, 'misTramites-menuitem');
+    const encontrado = await expect(fila).toHaveCount(1, { timeout: 5000 }).then(() => true, () => false);
+    if (encontrado) {
+      await fila.click();
+      await expect(page.getByRole('tab', { name: new RegExp(numero) })).toBeVisible();
+      return;
+    }
+  }
+  throw new Error(`El expediente ${numero} no está en ninguna lista de «Mis trámites»`);
+}
+
+/**
+ * Crea un expediente del trámite desde «Mis trámites» → «Nuevo trámite» (no hay botón
  * «Nuevo» de un grid: el alta la dispara el evento inicial del tipo de expediente) y
  * devuelve el NÚMERO que le ha asignado el servidor, que es lo único que identifica a lo
  * creado en una BD compartida que no se resetea.
  */
 async function crearExpediente(page: Page): Promise<string> {
-  await abrirMenu(page, 'ventanilla-menuitem', 'ventanilla-nuevoExpediente-menuitem');
+  await abrirMenu(page, 'misTramites-nuevoTramite-menuitem', 'misTramites-menuitem');
 
   // Árbol de trámites: los tipos de trámite (nivel 1) nacen plegados y sus trámites
   // (nivel 2) no existen en el DOM hasta desplegarlos.
@@ -85,30 +132,24 @@ async function crearExpediente(page: Page): Promise<string> {
   return numero;
 }
 
-/**
- * Filtra una bandeja por la columna «Num. Exped.» y devuelve la fila del expediente cuyo
- * número se pasa. Nunca «la primera fila»: en una BD compartida que no se resetea, al
- * segundo run hay varios expedientes del mismo trámite y en el mismo estado.
- */
-async function filtrarEnBandeja(page: Page, menuitem: string, numero: string) {
-  await abrirMenu(page, 'expedientes-menuitem', menuitem);
-  const filtro = page.getByTestId('column:numeroExpediente').getByPlaceholder('Buscar...');
-  await filtro.fill(numero);
-  await filtro.press('Enter');
-  // El último rowgroup es el de los datos; el primero lleva la cabecera y la fila de filtros
-  // (que también contiene el número tecleado y haría ambigua la búsqueda por rol).
-  return page.getByRole('rowgroup').last().getByRole('row', { name: new RegExp(numero) });
-}
+
 
 /**
- * Abre desde una bandeja el expediente cuyo número se pasa. **Cada bandeja fija el perfil**
- * con el que se pinta la vista, así que el `menuitem` no es intercambiable: «Expedientes
- * Esperando» pinta la vista del perfil TRAMITADOR y «Expedientes Pendientes» la del CREADOR.
+ * Fechas de la falta, relativas a hoy. El trámite solo admite faltas de los últimos 7 días, así
+ * que una fecha fija caduca y el test empieza a fallar solo por el calendario. La de inicio es
+ * hace 3 días y las de fin hace 2 y hace 1: el mismo tramo de días (10, 11 y 12/09/2026) que
+ * describe el `.desc.md`, pero desplazado a la fecha en que corre el test.
  */
-async function abrirDesdeBandeja(page: Page, menuitem: string, numero: string): Promise<void> {
-  await (await filtrarEnBandeja(page, menuitem, numero)).click();
-  await expect(page.getByRole('tab', { name: new RegExp(numero) })).toBeVisible();
+function diasAntes(dias: number): string {
+  const fecha = new Date();
+  fecha.setDate(fecha.getDate() - dias);
+  const dd = String(fecha.getDate()).padStart(2, '0');
+  const mm = String(fecha.getMonth() + 1).padStart(2, '0');
+  return `${dd}/${mm}/${fecha.getFullYear()}`;
 }
+const FECHA_INICIO = diasAntes(3); // «10/09/2026» en la descripción
+const FECHA_FIN_1 = diasAntes(2); // «11/09/2026» en la descripción
+const FECHA_FIN_2 = diasAntes(1); // «12/09/2026» en la descripción
 
 test.describe('Justificación de falta del profesorado — TRAMITACION', () => {
   test(
@@ -153,9 +194,9 @@ test.describe('Justificación de falta del profesorado — TRAMITACION', () => {
         await expect(panelFalta.getByRole('textbox', { name: 'Fecha de fin', exact: true })).toBeVisible();
         await expect(panelFalta.getByRole('textbox', { name: 'Hora de fin' })).toHaveCount(0);
 
-        await panelFalta.getByRole('textbox', { name: 'Fecha de Inicio', exact: true }).fill('10/09/2026');
+        await panelFalta.getByRole('textbox', { name: 'Fecha de Inicio', exact: true }).fill(FECHA_INICIO);
         await panelFalta.getByRole('textbox', { name: 'Hora de inicio', exact: true }).fill('12:00');
-        await panelFalta.getByRole('textbox', { name: 'Fecha de fin', exact: true }).fill('11/09/2026');
+        await panelFalta.getByRole('textbox', { name: 'Fecha de fin', exact: true }).fill(FECHA_FIN_1);
         await panelFalta.getByRole('radio', { name: 'Deber inexcusable' }).click();
 
         // El widget `binary-link` esconde su `input[type=file]`; `setInputFiles` escribe en él
@@ -208,7 +249,7 @@ test.describe('Justificación de falta del profesorado — TRAMITACION', () => {
         // genérica de solo lectura, sin el botón del evento.
         await logout(page);
         await login(page, TRAMITADOR.login, TRAMITADOR.password);
-        await abrirDesdeBandeja(page, BANDEJA_ESPERANDO, numero);
+        await abrirDesdeBandeja(page, numero, 'tramitacion-pendientesDeMi-menuitem', 'tramitacion-menuitem');
         await expect(page.getByLabel('Fase')).toHaveValue('Tramitación');
         await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de resolución');
 
@@ -274,11 +315,11 @@ test.describe('Justificación de falta del profesorado — TRAMITACION', () => {
         const fechaInicio = panelFaltaRechazado.getByRole('textbox', { name: 'Fecha de Inicio', exact: true });
         const horaInicio = panelFaltaRechazado.getByRole('textbox', { name: 'Hora de inicio', exact: true });
         const fechaFin = panelFaltaRechazado.getByRole('textbox', { name: 'Fecha de fin', exact: true });
-        await expect(fechaInicio).toHaveValue('10/09/2026');
+        await expect(fechaInicio).toHaveValue(FECHA_INICIO);
         await expect(fechaInicio).toBeDisabled();
         await expect(horaInicio).toHaveValue('12:00');
         await expect(horaInicio).toBeDisabled();
-        await expect(fechaFin).toHaveValue('11/09/2026');
+        await expect(fechaFin).toHaveValue(FECHA_FIN_1);
         await expect(fechaFin).toBeDisabled();
 
         // And (cont.): … sin «Hora de fin» …
@@ -325,8 +366,8 @@ test.describe('Justificación de falta del profesorado — TRAMITACION', () => {
         // Then (cont.): RECHAZADO es un estado CERRADO. Lo observable de que lo sea es en qué bandeja
         // cae el expediente: sale de la de abiertos («Expedientes Esperando», donde estaba en
         // PENDIENTE_RESOLUCION) y aparece en la de cerrados. Se busca siempre por SU número.
-        await expect(await filtrarEnBandeja(page, BANDEJA_CERRADOS, numero)).toHaveCount(1);
-        await expect(await filtrarEnBandeja(page, BANDEJA_ESPERANDO, numero)).toHaveCount(0);
+        await expect(await filtrarEnBandeja(page, numero, 'tramitacion-jefaturaDeEstudios-cerrados-menuitem', 'tramitacion-menuitem', 'tramitacion-jefaturaDeEstudios-menuitem')).toHaveCount(1);
+        await expect(await filtrarEnBandeja(page, numero, 'tramitacion-pendientesDeMi-menuitem', 'tramitacion-menuitem')).toHaveCount(0);
       } finally {
         // Teardown (§5.2 y §5.3): en el camino nominal el expediente acaba en TRAMITACION /
         // RECHAZADO, que es un estado CERRADO y cuyo `events` está vacío. Ahí NO hay DELETE, así que
@@ -344,7 +385,7 @@ test.describe('Justificación de falta del profesorado — TRAMITACION', () => {
           await (async () => {
             await ensureLoggedOut(page);
             await login(page, PROFESOR.login, PROFESOR.password);
-            await abrirDesdeBandeja(page, BANDEJA_PENDIENTES, numero);
+            await abrirDesdeMisTramites(page, numero);
             const footer = page.getByTestId(FOOTER);
             // PENDIENTE_PRESENTACION no ofrece DELETE, pero sí «Atrás», que devuelve el expediente
             // a ENTRADA_DATOS, donde «Borrar el expediente» sí está.
