@@ -48,7 +48,7 @@ Cómo funciona: `ViewLoader.importMenu` busca la `MetaMenu` por `(name, module)`
 | `action`  | Nombre de la `action-view` que se abre al pulsar                                                                                                          | No (solo menuitems hoja) |
 | `icon`    | Icono del menuitem                                                                                                                                        | No                       |
 | `groups`  | Grupos que ven el menuitem: **obligatorio** y **exactamente** `admins`, `admins,users` o `users` (no otros roles ni `users,admins`) | Sí |
-| `if`      | Condición de visibilidad por **gorra** del usuario (cargo, tipo de usuario, perfil): `__config__.menu.<isGorra>()`. Ver «Visibilidad por gorra» | No                       |
+| `if`      | **MUST NOT** escribirse: lo añade el preprocesador. Ver «Visibilidad por usuario»                                                                        | No                       |
 | `tag-count` | `true` pinta junto al menú el número de filas que devuelve el `<domain>` de su `action-view` (contador de pendientes). Solo en hojas con `action` | No                       |
 | `tag-count-hide-at-zero` | `true` oculta el contador cuando vale 0; `false` lo muestra. Solo junto a `tag-count="true"` | Sí, si hay `tag-count="true"` |
 
@@ -61,7 +61,7 @@ Cómo funciona: `ViewLoader.importMenu` busca la `MetaMenu` por `(name, module)`
 ### Formato del XML
 
 - **MUST** escribir cada `<menuitem>` en **una única línea**, sin saltos de línea entre atributos.
-- **MUST** escribir los atributos siempre en este orden: `name`, `parent`, `title`, `action`, `icon`, `groups`, `if`, `order` — con `order` **SIEMPRE** al final. Los atributos que no apliquen se omiten sin alterar el orden del resto. `tag-count` y `tag-count-hide-at-zero` no están en esa lista: van justo después de `action`, en ese orden.
+- **MUST** escribir los atributos siempre en este orden: `name`, `parent`, `title`, `action`, `icon`, `groups`, `order` — con `order` **SIEMPRE** al final. Los atributos que no apliquen se omiten sin alterar el orden del resto. `tag-count` y `tag-count-hide-at-zero` no están en esa lista: van justo después de `action`, en ese orden.
 - **MUST** separar los atributos con un único espacio (sin alinear en columnas con espacios extra).
 - **MUST** indentar según la jerarquía: menuitems raíz SIN indentar (0 espacios), hijos a 4, nietos a 8 (4 espacios más por cada nivel de `parent`).
 
@@ -79,19 +79,18 @@ Cómo funciona: `ViewLoader.importMenu` busca la `MetaMenu` por `(name, module)`
   ```
   (atributos partidos en varias líneas)
 
-## Visibilidad por gorra (`if`)
+## Visibilidad por usuario (`MenuSecurityService`)
 
-`groups` solo distingue `admins` de `users`. Que un menú sea «solo del secretario» o «solo del supervisor» depende de datos del `CentroUsuario` (cargos, tipos de usuario, perfiles `AceProfile*`), y eso se pregunta con el atributo `if`, que Axelor evalúa en el servidor (`MenuChecker`, es la `conditionToCheck`) con `__user__` y `__config__`.
+`groups` solo distingue `admins` de `users`. Que un menú sea «solo del secretario» o «solo del supervisor» depende de datos del `CentroUsuario` (tipos de usuario, perfiles `AceProfile*`), y eso lo decide `MenuSecurityServiceImpl.isVisible(name)` (`subsystem/security/service/impl/`).
 
-- `__config__.menu` es el bean `MenuVisibilidadService` (`secretariavirtual/menus/service/`), expuesto por la propiedad `context.menu` de `axelor-config.properties`. Sus métodos responden «¿lleva el usuario esta gorra en alguno de sus centros?»: `isTramitador()`, `isJefaturaEstudios()`, `isSecretaria()`, `isRegistro()`, `isSupervisor()`, `isAdministrativo()`.
-- **MUST** escribir la condición como llamada a método, `if="__config__.menu.isSecretaria()"`; se pueden combinar con `||` y `&&`.
-- Un `if` en un menú raíz o intermedio oculta también todo su submenú. Un raíz con hijos solo para `admins` (p. ej. «Tramitación → Todos los centros») **MUST** ser visible para el administrador: los métodos del bean ya devuelven `true` para `admins` donde hace falta (`isTramitador()`, `isRegistro()`).
-- **Una gorra nueva se añade al bean**, no se escribe JPQL ni Groovy en el `if`. Nunca `__user__.centroActivo`.
-- El bean **MUST** llevar `@com.axelor.script.ScriptAllowed` (en la interfaz basta): la política de scripts de Axelor (`ScriptPolicy`) solo deja invocar desde Groovy clases de su lista blanca o anotadas así; sin la anotación el `if` lanza `ScriptPolicyException` y el menú desaparece para todos (el error solo se ve en el log).
-- **Un `if` no autoriza nada**: un menú oculto no protege la vista que abre. Eso lo hacen los permisos de Axelor y el tramitador.
+- **MUST NOT** escribir el atributo `if` en un `<menuitem>`: el preprocesador de vistas (EducaFlowBuildTools) se lo añade a **todos** como `if="__config__.menuSecurity.isVisible(&quot;<name>&quot;)"`, y el build falla si el fuente ya lo trae.
+- Para condicionar un menú, añade un `case "<name>"` en el `switch` de `MenuSecurityServiceImpl.isVisible`; el `default` devuelve `true`, así que un menú sin `case` solo depende de `groups`.
+- Las preguntas sobre el usuario («¿es tramitador?», «¿es de la unidad de Secretaría?», «¿es supervisor?») son métodos privados de `MenuSecurityServiceImpl`; una nueva se añade ahí, debajo del `switch`. Nunca `User.centroActivo`.
+- Ocultar un menú raíz o intermedio oculta también todo su submenú. Un raíz con hijos solo para `admins` (p. ej. «Tramitación → Todos los centros») **MUST** ser visible para el administrador (`admin || …` en su `case`).
+- **La visibilidad no autoriza nada**: un menú oculto no protege la vista que abre. Eso lo hacen los permisos de Axelor y el tramitador.
 
-✅ CORRECTO: `<menuitem name="registro-menuitem" title="Registro" groups="admins,users" if="__config__.menu.isRegistro()" order="40"/>`
-❌ INCORRECTO: `groups="secretario"` (VAR-10.1 no lo admite); `if="__user__.centroActivo != null"` (centro activo); `if="__user__.centroUsuarios.any { ... }"` (lógica de gorras fuera del bean).
+✅ CORRECTO: `<menuitem name="registro-menuitem" title="Registro" groups="admins,users" order="40"/>` + `case "registro-menuitem" -> admin || atribuciones.isSupervisor(user) …` en `MenuSecurityServiceImpl`
+❌ INCORRECTO: `groups="secretario"` (VAR-10.1 no lo admite); `if="__config__.menuSecurity.isVisible('registro-menuitem')"` (el `if` lo pone el preprocesador; el build falla).
 
 ## Contadores (`tag-count`)
 
