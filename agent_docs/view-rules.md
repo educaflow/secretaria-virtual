@@ -900,14 +900,14 @@ Sujeto de toda la categoría: los dos ficheros de menús de `secretariavirtual/m
 **Exención de categoría — los `<menuitem>` de `hide-menus.xml`.**
 Un `<menuitem>` de `hide-menus.xml` no declara un menú de la secretaría virtual: **redefine** uno que trae Axelor (`menu-team`, `menu-dms`, `menu-admin`…) con más prioridad para que no se muestre.
 Por eso su `name` es el que le dio Axelor (no lo elegimos nosotros) y no tiene ni posición ni público, porque nunca llega a pintarse.
-Quedan **exentos de `VAR-10.1`, `VAR-10.2` y `VAR-10.4`**, que son las reglas del árbol de la aplicación; a cambio cumplen `VAR-10.5`, que es su regla propia. `VAR-10.3` (formato) aplica a los dos ficheros.
+Quedan **exentos de `VAR-10.1`, `VAR-10.2` y `VAR-10.4`**, que son las reglas del árbol de la aplicación; a cambio cumplen `VAR-10.5`, que es su regla propia. `VAR-10.3` (formato) y `VAR-10.7` (sin `if`) aplican a los dos ficheros.
 
 ## VAR-10.1 — Atributos obligatorios: `name`/`title`/`order`/`groups` (con valores canónicos)
 **Decisión.**
   Para que cada menú tenga identificador, texto visible y posición explícita (sin depender del orden de aparición),
   y esté siempre restringido explícitamente a un público (administradores, usuarios o ambos) sin quedar visible para cualquiera por olvido;
   los valores de `groups` se fijan a una forma canónica única para poder testearlos y compararlos.
-  La visibilidad por cargo o tipo de usuario **no** se expresa en `groups`: va en el atributo `if`, como llamada al bean de gorras `__config__.menu.<isGorra>()` (ver `k-vistas/menus.md` → «Visibilidad por gorra»); un contador de pendientes se declara con `tag-count="true"` en una hoja con `action`.
+  La visibilidad por cargo o tipo de usuario **no** se expresa en `groups`: se decide en `MenuSecurityServiceImpl.isVisible(name)`, que el preprocesador de vistas enlaza añadiendo el atributo `if` a cada `<menuitem>` (que por eso no se escribe a mano; ver `k-vistas/menus.md` → «Visibilidad por usuario»); un contador de pendientes se declara con `tag-count="true"` en una hoja con `action`.
 **Verificación.**
   Sujeto: cada `<menuitem>`.
   Condición:
@@ -937,7 +937,7 @@ Quedan **exentos de `VAR-10.1`, `VAR-10.2` y `VAR-10.4`**, que son las reglas de
   Sujeto: cada `<menuitem>` de los dos ficheros de menús (y el texto de cada fichero).
   Condición:
     (a) no hay dos `<menuitem>` en la misma línea ni un `<menuitem>` partido en varias líneas;
-    (b) los atributos presentes respetan el orden relativo `name, parent, title, action, tag-count, tag-count-hide-at-zero, icon, groups, if, order` y se separan con un único espacio (sin espacios extra de alineación);
+    (b) los atributos presentes respetan el orden relativo `name, parent, title, action, tag-count, tag-count-hide-at-zero, icon, groups, order` y se separan con un único espacio (sin espacios extra de alineación);
     (c) sangría = 4 × (profundidad de `parent`).
 
 **Correcto** ✅
@@ -986,6 +986,17 @@ Quedan **exentos de `VAR-10.1`, `VAR-10.2` y `VAR-10.4`**, que son las reglas de
 
 **Correcto** ✅ — `<menuitem name="firmas-pendientes-menuitem" parent="firmas-menuitem" title="Pendientes" action="…" tag-count="true" tag-count-hide-at-zero="true" groups="admins,users" order="1"/>`, o lo mismo con `tag-count-hide-at-zero="false"`
 **Incorrecto** ❌ — `tag-count="true"` sin `tag-count-hide-at-zero`; `tag-count-hide-at-zero="si"` (valor no permitido); `tag-count-hide-at-zero="true"` sin `tag-count="true"`
+
+## VAR-10.7 — Ningún `<menuitem>` lleva `if`
+**Decisión.**
+  Para que quién ve cada menú se decida en un único sitio, `MenuSecurityServiceImpl.isVisible(name)`, y no repartido entre el XML y el código.
+  El `if` lo añade el preprocesador de vistas a **todos** los `<menuitem>` (`if="__config__.menuSecurity.isVisible(&quot;<name>&quot;)"`) y hace fallar el build si el fuente ya lo trae; esta regla lo detecta antes, en los tests.
+**Verificación.**
+  Sujeto: cada `<menuitem>` de los dos ficheros de menús.
+  Condición: no tiene el atributo `if`.
+
+**Correcto** ✅ — `<menuitem name="registro-menuitem" title="Registro" groups="admins,users" order="40"/>` (su visibilidad, en el `case "registro-menuitem"` de `MenuSecurityServiceImpl`)
+**Incorrecto** ❌ — `<menuitem name="registro-menuitem" title="Registro" groups="admins,users" if="__config__.menuSecurity.isVisible('registro-menuitem')" order="40"/>` (el `if` lo pone el preprocesador), `if="__user__.centroActivo != null"` (lógica de visibilidad fuera de `MenuSecurityServiceImpl`)
 
 ---
 
