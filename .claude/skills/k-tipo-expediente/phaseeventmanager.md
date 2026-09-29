@@ -34,6 +34,11 @@ public class PhaseEventManagerImpl extends PhaseEventManager<MiTramiteV1> {
 ```
 
 - Se instancia por **reflexión + Guice** (el FQCN lo compone `ExpedienteLocator` con el `basePackageName` de la tabla `TipoExpediente` y el `codePhase` del expediente), así que admite inyección normal: repositorio por constructor y `@Inject` de campo para lo demás.
+- El repositorio de su entidad va **siempre** en el constructor aunque no se use: así se ve a primera vista dónde está al programar. **MUST NOT** quitarlo al limpiar.
+- El trámite es dueño de las entidades que declara en su `domains.xml` (aunque se generen en `subsystem.expedientes.db`): puede usar su repositorio y `JpaRepository.of(...)` sobre ellas. **MUST NOT** usar el repositorio ni `JpaRepository.of(...)` de una entidad de otro trámite o de un sistema/subsistema: esos datos se piden a un servicio del dueño (§6.6). Lo verifican las reglas C26 y C27 de `agent_docs/architecture-rules.md`.
+  - ✅ CORRECTO: `JpaRepository.of(MiTramiteV1.class)` (entidad del propio trámite)
+  - ✅ CORRECTO: `(RegistroEntradaService) modelServiceFactory.resolve(RegistroEntrada.class)`
+  - ❌ INCORRECTO: `@Inject RegistroEntradaRepository registroEntradaRepository;` (se salta los servicios del subsistema dueño)
 - **La máquina de estados NO está aquí**: vive en la clase `States` que el build genera del `TipoExpedienteInstance.xml` (`SKILL.md` §2.3) y que este fichero solo importa. Cambiar estados o eventos en el XML se propaga solo; lo único que hay que actualizar a mano son los métodos, y los errores de los tests (§7) te dan el código a copiar.
 - Un estado se nombra `States.<Fase>.<ESTADO>`, con la fase en **UpperCamelCase** (`States.Recepcion.ENTRADA_DATOS`); `States.RECEPCION` es otra cosa: el alias de la fase, tipado `Phase`, y no lleva estados. La clase lleva **todas** las fases del tipo, así que un `updateState` que cruza de fase se escribe igual que uno que no.
 

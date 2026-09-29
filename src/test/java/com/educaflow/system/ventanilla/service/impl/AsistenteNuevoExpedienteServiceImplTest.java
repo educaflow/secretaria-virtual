@@ -6,6 +6,7 @@ import com.axelor.db.mapper.Mapper;
 import com.axelor.db.modelservice.AllowProperties;
 import com.axelor.db.modelservice.BusinessMessage;
 import com.axelor.db.modelservice.BusinessMessages;
+import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.i18n.I18n;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.Centro;
@@ -19,7 +20,7 @@ import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
 import com.educaflow.subsystem.tramitador.service.TramitadorService;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.ContextoTramitacion;
 import com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente;
-import com.educaflow.system.ventanilla.db.repo.VentanillaRepository;
+import com.educaflow.subsystem.expedientes.service.TramiteService;
 import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,7 +85,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     private TramitadorService tramitadorService;
     private PerfilesUsuarioService perfilesUsuarioService;
-    private VentanillaRepository ventanillaRepository;
+    private TramiteService tramiteService;
 
     private User usuario;
     private Centro centroA;
@@ -101,12 +102,14 @@ class AsistenteNuevoExpedienteServiceImplTest {
     void setUp() throws Exception {
         tramitadorService = Mockito.mock(TramitadorService.class);
         perfilesUsuarioService = Mockito.mock(PerfilesUsuarioService.class);
-        ventanillaRepository = Mockito.mock(VentanillaRepository.class);
+        tramiteService = Mockito.mock(TramiteService.class);
+        ModelServiceFactory modelServiceFactory = Mockito.mock(ModelServiceFactory.class);
+        Mockito.lenient().<Object>when(modelServiceFactory.resolve(Tramite.class)).thenReturn(tramiteService);
 
         service = new AsistenteNuevoExpedienteServiceImpl(AsistenteNuevoExpediente.class, repositorioMock());
         setField(service, "tramitadorService", tramitadorService);
         setField(service, "perfilesUsuarioService", perfilesUsuarioService);
-        setField(service, "ventanillaRepository", ventanillaRepository);
+        setField(service, "modelServiceFactory", modelServiceFactory);
 
         usuario = new User();
         usuario.setId(7L);
@@ -201,7 +204,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
     }
 
     private void stubCatalogo(Tramite... tramitesEvaluables) {
-        when(ventanillaRepository.findTramitesEvaluables())
+        when(tramiteService.findConTipoExpedienteActivo())
                 .thenReturn(new ArrayList<>(List.of(tramitesEvaluables)));
     }
 
@@ -395,7 +398,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
         service.prepararCentros(asistente);
 
-        verify(ventanillaRepository, times(1)).findTramitesEvaluables();
+        verify(tramiteService, times(1)).findConTipoExpedienteActivo();
         verify(perfilesUsuarioService, times(6)).getPerfilesDeInicioSobreTramite(any(), any(), any());
     }
 
@@ -433,7 +436,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
         assertEquals(1, asistente.getTramitesDisponibles().size());
         assertTrue(asistente.getTramitesDisponibles().contains(tramite));
         assertSame(asistente, resultado);
-        verify(ventanillaRepository, times(1)).findTramitesEvaluables();
+        verify(tramiteService, times(1)).findConTipoExpedienteActivo();
     }
 
     @Test
@@ -499,7 +502,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
         var excepcion = assertThrows(ValidationException.class, () -> service.prepararTramites(asistente));
 
         assertTrue(excepcion.getMessage().contains(MENSAJE_CENTRO));
-        verifyNoInteractions(ventanillaRepository);
+        verifyNoInteractions(tramiteService);
     }
 
     /* ------------------------------------------------------------------ */
@@ -631,7 +634,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
         service.recalcular(asistenteCompleto());
 
-        verify(ventanillaRepository, times(1)).findTramitesEvaluables();
+        verify(tramiteService, times(1)).findConTipoExpedienteActivo();
     }
 
     @Test
@@ -697,7 +700,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
         verifyNoInteractions(tramitadorService);
         verifyNoInteractions(perfilesUsuarioService);
-        verifyNoInteractions(ventanillaRepository);
+        verifyNoInteractions(tramiteService);
     }
 
     /* ------------------------------------------------------------------ */
@@ -720,7 +723,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
     void validatePrepararTramites_sinTramite_devuelveVacioYNoConsultaElCatalogo() {
         assertTrue(service.validatePrepararTramites(asistenteConCentro()).isEmpty());
 
-        verifyNoInteractions(ventanillaRepository);
+        verifyNoInteractions(tramiteService);
     }
 
     /* ------------------------------------------------------------------ */
@@ -741,7 +744,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
         assertMensajeDeLaVentanilla(MENSAJE_CENTRO, "centro", service.validateRecalcular(asistente));
 
-        verifyNoInteractions(ventanillaRepository);
+        verifyNoInteractions(tramiteService);
     }
 
     @Test

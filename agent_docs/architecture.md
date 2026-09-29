@@ -45,8 +45,8 @@ diferencia es de **dependencias**:
 - De un **subsistema** sí depende alguien: puede depender de él un sistema u otro subsistema.
 - **No puede haber relaciones cíclicas** entre ellos.
 
-Los **repositorios son privados** de su sistema/subsistema: solo los usan sus propios servicios.
-Quien necesita datos de otro sistema/subsistema los pide a un servicio de ese sistema/subsistema, nunca a su repositorio (regla C26 de [`architecture-rules.md`](architecture-rules.md)).
+Los **datos son privados** de la unidad que declara la entidad en su XML de dominio: un sistema/subsistema o un trámite (la entidad de un tipo de expediente es de su trámite, aunque se genere en `subsystem/expedientes`).
+Solo esa unidad usa su repositorio (en un sistema/subsistema, desde sus servicios) y solo ella crea un `JpaRepository` sobre la entidad; las demás piden los datos a uno de sus servicios (reglas C26 y C27 de [`architecture-rules.md`](architecture-rules.md)).
 
 ## Expedientes
 

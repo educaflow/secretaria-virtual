@@ -57,6 +57,17 @@ Estructura interna de cada sistema/subsistema:
 
 Tipos del framework Axelor a los que se refieren las reglas: `com.axelor.app.AxelorModule`, `com.axelor.db.modelservice.ModelService`, `com.axelor.db.modelservice.DefaultModelService`, `com.axelor.db.JpaRepository`, `com.axelor.inject.Beans`.
 
+### Unidades y dueños
+
+Las reglas de acceso a datos (C26, C27) se expresan con estos conceptos:
+
+- **Unidad**: un sistema/subsistema —`com.educaflow.<subsystem|system>.<X>`, con `<X>` el subpaquete de primer nivel— o un **trámite** —el paquete de una carpeta bajo `com/educaflow/tramites` que contiene un `TramiteInstance.xml`—.
+- **Dueño de una entidad**: la unidad en cuya carpeta está el XML de dominio (`<domain-models>`) que la declara con `<entity name="…">`. El FQN de la entidad es el `package` de su `<module>` + `.` + el `name`.
+  - La entidad de un tipo de expediente se **genera** en `com.educaflow.subsystem.expedientes.db`, pero la **declara** el `domains.xml` de su trámite: su dueño es el trámite, no `expedientes`.
+  - Una entidad del framework ampliada desde una unidad (p. ej. `com.axelor.auth.db.User`, ampliada en `subsystem/common`) es de esa unidad.
+  - Una entidad que ninguna unidad declara no tiene dueño y queda fuera de C26/C27.
+- **Dueño de un repositorio** (`*Repository` de `..db.repo..`): el de la entidad cuyo nombre simple es el del repositorio sin el prefijo `Abstract` ni el sufijo `Repository`, si esa entidad tiene dueño; si no, la unidad en cuyo paquete reside el repositorio.
+
 ---
 
 # Categoría 1 — Dependencias entre capas
@@ -276,24 +287,49 @@ La dirección contraria es fácil de introducir sin darse cuenta desde un `<extr
 
 **Cumplimiento.** ✅ CUMPLE.
 
-### C26 — El repositorio de un sistema/subsistema solo lo usan los servicios de ese mismo sistema/subsistema
+### C26 — Un repositorio solo lo usa su dueño
 
-**Contexto.** Los repositorios son **privados** de su sistema/subsistema: son el detalle de cómo guarda y consulta sus datos.
-Si otro sistema/subsistema usa un repositorio ajeno, se salta los servicios del dueño (sus validaciones, su seguridad y su forma de consultar) y queda acoplado a su persistencia.
-Quien necesita datos de otro sistema/subsistema los pide a un **servicio** de ese sistema/subsistema.
-Que un controlador del propio sistema/subsistema tampoco los use ya lo cubre C9.
+**Contexto.** Los repositorios son **privados** de la unidad dueña de su entidad (ver «Unidades y dueños»): son el detalle de cómo guarda y consulta sus datos.
+Si otra unidad usa un repositorio ajeno, se salta los servicios del dueño (sus validaciones, su seguridad y su forma de consultar) y queda acoplada a su persistencia.
+Quien necesita datos de otra unidad los pide a un **servicio** de esa unidad.
+Los trámites siguen la misma regla: usan el repositorio de las entidades que declaran, nunca el de otro trámite ni el de un sistema/subsistema.
+Que un controlador de la propia unidad tampoco los use ya lo cubre C9.
 
-**Decisión.** Un repositorio de `com.educaflow.subsystem.<X>` o de `com.educaflow.system.<X>` solo lo usan los servicios de ese mismo `<X>` (y los demás repositorios de `<X>`, p. ej. el repositorio escrito a mano que hereda del `Abstract<Entidad>Repository` generado).
+**Decisión.** Un repositorio solo lo usan los servicios de su unidad dueña si es un sistema/subsistema, cualquier clase de su trámite si el dueño es un trámite, y los demás repositorios del mismo dueño (p. ej. el repositorio escrito a mano que hereda del `Abstract<Entidad>Repository` generado).
 
 **Verificación.**
-- Sujeto: clases de `com.educaflow.subsystem.<X>.db.repo..` y de `com.educaflow.system.<X>.db.repo..` cuyo nombre simple termina en `Repository`, siendo `<X>` el subpaquete de **primer nivel** de `subsystem` o de `system`.
+- Sujeto: clases de `com.educaflow..` que residen en `..db.repo..` y cuyo nombre simple termina en `Repository`.
   Los `*Listener` de `db.repo` (C18) quedan fuera: los referencia la propia entidad por diseño.
-  **CRITICAL**: esta regla declara expresamente que **NO** se le aplica la exención global de `..expedientes..` como **destino**: los repositorios de `subsystem/expedientes` (`TramiteRepository`, los de las entidades de expediente…) también son privados, y excluirlos dejaría sin detectar justo los usos desde otros subsistemas.
-- Condición: toda clase que dependa de una clase del sujeto reside en `com.educaflow.<subsystem|system>.<X>.service..` o en `com.educaflow.<subsystem|system>.<X>.db.repo..`, con el **mismo** `<subsystem|system>` y el **mismo** `<X>` que el repositorio.
-- Exenciones: las dependencias cuyo **origen** está en `com.educaflow.tramites..` (arquitectura propia): el `PhaseEventManager` de un tipo de expediente usa el repositorio de su propia entidad, que se genera en `com.educaflow.subsystem.expedientes.db`.
-- Mensaje: «el repositorio es privado de su sistema/subsistema: solo lo usan los servicios de ese mismo sistema/subsistema; los demás piden los datos a uno de sus servicios».
+- Dueño de cada repositorio del sujeto: el definido en «Unidades y dueños».
+- Condición: toda clase que dependa de un repositorio del sujeto cumple una de estas:
+  - es un repositorio del sujeto con el **mismo** dueño;
+  - el dueño es un sistema/subsistema `com.educaflow.<subsystem|system>.<X>` y la clase reside en `com.educaflow.<subsystem|system>.<X>.service..`;
+  - el dueño es un trámite y la clase reside en el paquete de ese trámite (o en sus subpaquetes).
+- Exenciones: no aplican. **CRITICAL**: esta regla declara expresamente que **NO** se le aplican las exenciones globales de `..expedientes..` ni de `..tramites..`, ni como origen ni como destino: los repositorios de `subsystem/expedientes` y los de las entidades de los trámites (que se generan en `com.educaflow.subsystem.expedientes.db.repo`) también son privados.
+- Mensaje: «un repositorio es privado de la unidad dueña de su entidad: solo lo usan sus servicios (o, en un trámite, sus clases); las demás unidades piden los datos a uno de sus servicios».
 
 **Cumplimiento.** ✅ CUMPLE.
+
+### C27 — `JpaRepository` solo lee entidades de su propia unidad
+
+**Contexto.** `JpaRepository.of(Entidad.class)` es un repositorio genérico: da acceso directo a la tabla de la entidad igual que su `*Repository`, así que tiene que respetar el mismo dueño (C26).
+Leer con él una entidad de otra unidad se salta sus servicios exactamente igual que usar su repositorio.
+
+**Decisión.** Solo la unidad dueña de una entidad (ver «Unidades y dueños») crea un `JpaRepository` sobre ella.
+
+**Verificación.**
+- Sujeto: las llamadas a `com.axelor.db.JpaRepository.of(Class)` y al constructor de `com.axelor.db.JpaRepository` (el `super(Entidad.class)` de un repositorio que hereda de él) hechas desde clases de `com.educaflow..`.
+- Entidad de cada llamada: el literal de clase (`Entidad.class`) que aparece en la **misma línea** que la llamada y que es una entidad con dueño según «Unidades y dueños».
+  Una llamada sin literal (la clase llega en una variable, como en los helpers genéricos de `base/infrastructure`) o cuyo literal no es una entidad con dueño queda fuera: no se puede atribuir.
+- Condición: la clase que hace la llamada reside en el paquete de la unidad dueña de la entidad (o en sus subpaquetes), **o** es un repositorio de `..db.repo..` con ese mismo dueño según C26 (los `Abstract<Entidad>Repository` generados).
+- Exenciones: no aplican. **CRITICAL**: igual que C26, **NO** se le aplican las exenciones globales de `..expedientes..` ni de `..tramites..`.
+- Mensaje: «JpaRepository solo lee entidades de su propia unidad: las de otra unidad se piden a uno de sus servicios».
+
+**Cumplimiento.** ❌ INCUMPLE (test congelado):
+- `system.gestioncentro.db.repo.GestionCentroRepository` hereda de `JpaRepository<Centro>` (`Centro` es de `subsystem/common`).
+- `secretariavirtual.startup.CriptografiaStartup` lee `DispositivoCriptografico` (de `subsystem/criptografia`).
+- `subsystem.registrousuario.service.impl.RegistroServiceImpl` lee `User` (ampliada en `subsystem/common`).
+- `subsystem.tramitador.tramitacion.util.ExpedienteUtil` lee `Expediente` (de `subsystem/expedientes`).
 
 ---
 

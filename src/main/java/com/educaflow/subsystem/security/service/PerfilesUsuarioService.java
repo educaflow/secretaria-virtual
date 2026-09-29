@@ -45,4 +45,13 @@ public interface PerfilesUsuarioService {
     Set<Profile> getPerfilesDeInicioSobreTramite(Tramite tramite, User user, Centro centro);
 
     Profile getPerfil(Tramite tramite, User user, Centro centro, boolean presentadoEnPapel);
+
+    /**
+     * Si el usuario tramita algún trámite en alguno de sus centros: tiene algún perfil de tramitación
+     * (todos salvo {@code CREADOR}) sobre algún trámite con tipo de expediente activo.
+     */
+    boolean isTramitador(User user);
+
+    /** Como {@link #isTramitador(User)}, pero solo en los trámites de esa unidad tramitadora. */
+    boolean isTramitador(User user, String codigoUnidadTramitadora);
 }

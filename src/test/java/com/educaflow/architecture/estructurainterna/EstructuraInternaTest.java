@@ -7,6 +7,10 @@ package com.educaflow.architecture.estructurainterna;
 
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaCall;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.core.domain.JavaConstructor;
+import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -16,7 +20,20 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
@@ -167,44 +184,203 @@ class EstructuraInternaTest {
             .because("el dominio de expedientes no depende del tramitador: la dependencia va del tramitador al dominio, nunca al revés");
 
     // [C26] Verificación:
-    //   - Sujeto: clases de `com.educaflow.subsystem.<X>.db.repo..` y de `com.educaflow.system.<X>.db.repo..` cuyo nombre simple termina en `Repository`, siendo `<X>` el subpaquete de **primer nivel** de `subsystem` o de `system`.
+    //   - Sujeto: clases de `com.educaflow..` que residen en `..db.repo..` y cuyo nombre simple termina en `Repository`.
     //     Los `*Listener` de `db.repo` (C18) quedan fuera: los referencia la propia entidad por diseño.
-    //     **CRITICAL**: esta regla declara expresamente que **NO** se le aplica la exención global de `..expedientes..` como **destino**: los repositorios de `subsystem/expedientes` (`TramiteRepository`, los de las entidades de expediente…) también son privados, y excluirlos dejaría sin detectar justo los usos desde otros subsistemas.
-    //   - Condición: toda clase que dependa de una clase del sujeto reside en `com.educaflow.<subsystem|system>.<X>.service..` o en `com.educaflow.<subsystem|system>.<X>.db.repo..`, con el **mismo** `<subsystem|system>` y el **mismo** `<X>` que el repositorio.
-    //   - Exenciones: las dependencias cuyo **origen** está en `com.educaflow.tramites..` (arquitectura propia): el `PhaseEventManager` de un tipo de expediente usa el repositorio de su propia entidad, que se genera en `com.educaflow.subsystem.expedientes.db`.
-    //   - Mensaje: «el repositorio es privado de su sistema/subsistema: solo lo usan los servicios de ese mismo sistema/subsistema; los demás piden los datos a uno de sus servicios».
+    //   - Dueño de cada repositorio del sujeto: el definido en «Unidades y dueños».
+    //   - Condición: toda clase que dependa de un repositorio del sujeto cumple una de estas:
+    //     - es un repositorio del sujeto con el **mismo** dueño;
+    //     - el dueño es un sistema/subsistema `com.educaflow.<subsystem|system>.<X>` y la clase reside en `com.educaflow.<subsystem|system>.<X>.service..`;
+    //     - el dueño es un trámite y la clase reside en el paquete de ese trámite (o en sus subpaquetes).
+    //   - Exenciones: no aplican. **CRITICAL**: esta regla declara expresamente que **NO** se le aplican las exenciones globales de `..expedientes..` ni de `..tramites..`, ni como origen ni como destino: los repositorios de `subsystem/expedientes` y los de las entidades de los trámites (que se generan en `com.educaflow.subsystem.expedientes.db.repo`) también son privados.
+    //   - Mensaje: «un repositorio es privado de la unidad dueña de su entidad: solo lo usan sus servicios (o, en un trámite, sus clases); las demás unidades piden los datos a uno de sus servicios».
     @ArchTest
-    static final ArchRule c26_repositorioSoloLoUsanLosServiciosDeSuSistema =
+    static final ArchRule c26_repositorioSoloLoUsaSuDueno =
         classes()
-            .that().resideInAnyPackage(
-                    "com.educaflow.subsystem.*.db.repo..",
-                    "com.educaflow.system.*.db.repo..")
+            .that().resideInAPackage("com.educaflow..")
+                .and().resideInAPackage("..db.repo..")
                 .and().haveSimpleNameEndingWith("Repository")
-            .should(serUsadoSoloPorServiciosDeSuSistema())
-            .because("el repositorio es privado de su sistema/subsistema: solo lo usan los servicios de ese mismo sistema/subsistema; los demás piden los datos a uno de sus servicios");
+            .should(serUsadoSoloPorSuDueno())
+            .because("un repositorio es privado de la unidad dueña de su entidad: solo lo usan sus servicios (o, en un trámite, sus clases); las demás unidades piden los datos a uno de sus servicios");
 
-    private static ArchCondition<JavaClass> serUsadoSoloPorServiciosDeSuSistema() {
-        return new ArchCondition<JavaClass>(
-                "ser usado solo por los servicios y repositorios de su mismo sistema/subsistema") {
+    // [C27] Verificación:
+    //   - Sujeto: las llamadas a `com.axelor.db.JpaRepository.of(Class)` y al constructor de `com.axelor.db.JpaRepository` (el `super(Entidad.class)` de un repositorio que hereda de él) hechas desde clases de `com.educaflow..`.
+    //   - Entidad de cada llamada: el literal de clase (`Entidad.class`) que aparece en la **misma línea** que la llamada y que es una entidad con dueño según «Unidades y dueños».
+    //     Una llamada sin literal (la clase llega en una variable, como en los helpers genéricos de `base/infrastructure`) o cuyo literal no es una entidad con dueño queda fuera: no se puede atribuir.
+    //   - Condición: la clase que hace la llamada reside en el paquete de la unidad dueña de la entidad (o en sus subpaquetes), **o** es un repositorio de `..db.repo..` con ese mismo dueño según C26 (los `Abstract<Entidad>Repository` generados).
+    //   - Exenciones: no aplican. **CRITICAL**: igual que C26, **NO** se le aplican las exenciones globales de `..expedientes..` ni de `..tramites..`.
+    //   - Mensaje: «JpaRepository solo lee entidades de su propia unidad: las de otra unidad se piden a uno de sus servicios».
+    // frozen: incumplimiento conocido (ver "Cumplimiento" en architecture-rules.md)
+    @ArchTest
+    static final ArchRule c27_jpaRepositorySoloLeeEntidadesDeSuUnidad =
+        FreezingArchRule.freeze(
+            classes()
+                .that().resideInAPackage("com.educaflow..")
+                .should(crearJpaRepositorySoloSobreEntidadesDeSuUnidad())
+                .because("JpaRepository solo lee entidades de su propia unidad: las de otra unidad se piden a uno de sus servicios"));
+
+    private static ArchCondition<JavaClass> serUsadoSoloPorSuDueno() {
+        return new ArchCondition<JavaClass>("ser usado solo por su unidad dueña") {
             @Override
             public void check(JavaClass repositorio, ConditionEvents events) {
-                // "com.educaflow.<subsystem|system>.<X>.db.repo..." -> "com.educaflow.<subsystem|system>.<X>."
-                String paqueteRepositorio = repositorio.getPackageName() + ".";
-                String prefijoSistema = paqueteRepositorio.substring(0, paqueteRepositorio.indexOf(".db.repo.") + 1);
-
+                Unidad dueno = Duenos.INSTANCE.duenoDeRepositorio(repositorio);
                 for (Dependency dependencia : repositorio.getDirectDependenciesToSelf()) {
-                    String paqueteOrigen = dependencia.getOriginClass().getPackageName() + ".";
-                    if (paqueteOrigen.startsWith("com.educaflow.tramites.")) {
-                        continue;
-                    }
-                    boolean permitido = paqueteOrigen.startsWith(prefijoSistema + "service.")
-                        || paqueteOrigen.startsWith(prefijoSistema + "db.repo.");
-                    if (!permitido) {
+                    JavaClass origen = dependencia.getOriginClass();
+                    if (!Duenos.INSTANCE.puedeUsarRepositorio(origen, dueno)) {
                         events.add(SimpleConditionEvent.violated(dependencia, dependencia.getDescription()));
                     }
                 }
             }
         };
+    }
+
+    private static ArchCondition<JavaClass> crearJpaRepositorySoloSobreEntidadesDeSuUnidad() {
+        return new ArchCondition<JavaClass>("crear JpaRepository solo sobre entidades de su propia unidad") {
+            @Override
+            public void check(JavaClass clase, ConditionEvents events) {
+                for (JavaCodeUnit codeUnit : clase.getCodeUnits()) {
+                    for (JavaCall<?> llamada : codeUnit.getCallsFromSelf()) {
+                        if (!esCreacionDeJpaRepository(llamada)) {
+                            continue;
+                        }
+                        for (ReferencedClassObject literal : codeUnit.getReferencedClassObjects()) {
+                            if (literal.getLineNumber() != llamada.getLineNumber()) {
+                                continue;
+                            }
+                            Unidad dueno = Duenos.INSTANCE.duenoDeEntidad(literal.getRawType().getName());
+                            if (dueno != null && !Duenos.INSTANCE.puedeLeerEntidad(clase, dueno)) {
+                                events.add(SimpleConditionEvent.violated(llamada,
+                                    llamada.getDescription() + " crea un JpaRepository sobre "
+                                        + literal.getRawType().getName() + ", que es de " + dueno.paquete()));
+                            }
+                        }
+                    }
+                }
+            }
+        };
+    }
+
+    private static boolean esCreacionDeJpaRepository(JavaCall<?> llamada) {
+        boolean deJpaRepository = llamada.getTarget().getOwner().getName().equals("com.axelor.db.JpaRepository");
+        boolean esOf = llamada.getName().equals("of");
+        boolean esConstructor = llamada.getName().equals(JavaConstructor.CONSTRUCTOR_NAME);
+        return deJpaRepository && (esOf || esConstructor);
+    }
+
+    /** Un sistema/subsistema o un trámite (ver «Unidades y dueños» en architecture-rules.md). */
+    private record Unidad(String paquete, boolean esTramite) {
+
+        boolean contiene(String paqueteClase) {
+            return paqueteClase.equals(paquete) || paqueteClase.startsWith(paquete + ".");
+        }
+    }
+
+    /** Dueños de entidades y repositorios, leídos de los XML de dominio y de los TramiteInstance.xml de src/main/java. */
+    private static final class Duenos {
+
+        private static final Pattern SISTEMA = Pattern.compile("^(com\\.educaflow\\.(?:subsystem|system)\\.[^.]+)(\\..*)?$");
+
+        static final Duenos INSTANCE = new Duenos();
+
+        private final Path raiz = raizDelCodigo();
+        private final List<Unidad> tramites = new ArrayList<>();
+        private final Map<String, Unidad> duenoPorEntidad = new HashMap<>();
+
+        private Duenos() {
+            try (Stream<Path> ficheros = Files.walk(raiz.resolve("com/educaflow"))) {
+                List<Path> xmls = ficheros.filter(f -> f.toString().endsWith(".xml")).toList();
+                xmls.stream()
+                    .filter(f -> f.getFileName().toString().equals("TramiteInstance.xml"))
+                    .forEach(f -> tramites.add(new Unidad(paqueteDe(f.getParent()), true)));
+                for (Path xml : xmls) {
+                    registrarEntidades(xml);
+                }
+            } catch (Exception e) {
+                throw new IllegalStateException("No se pudieron leer los XML de dominio de " + raiz, e);
+            }
+        }
+
+        Unidad duenoDeEntidad(String fqn) {
+            return duenoPorEntidad.get(fqn);
+        }
+
+        Unidad duenoDeRepositorio(JavaClass repositorio) {
+            String nombre = repositorio.getSimpleName().replaceFirst("^Abstract", "").replaceFirst("Repository$", "");
+            String paqueteEntidad = repositorio.getPackageName().replaceFirst("\\.repo$", "");
+            Unidad dueno = duenoPorEntidad.get(paqueteEntidad + "." + nombre);
+            return dueno != null ? dueno : unidadDe(repositorio.getPackageName());
+        }
+
+        boolean puedeUsarRepositorio(JavaClass origen, Unidad dueno) {
+            if (dueno == null) {
+                return true;
+            }
+            if (esRepositorio(origen) && dueno.equals(duenoDeRepositorio(origen))) {
+                return true;
+            }
+            String paquete = origen.getPackageName();
+            return dueno.esTramite()
+                ? dueno.contiene(paquete)
+                : new Unidad(dueno.paquete() + ".service", false).contiene(paquete);
+        }
+
+        boolean puedeLeerEntidad(JavaClass clase, Unidad dueno) {
+            if (dueno.contiene(clase.getPackageName())) {
+                return true;
+            }
+            return esRepositorio(clase) && dueno.equals(duenoDeRepositorio(clase));
+        }
+
+        private static boolean esRepositorio(JavaClass clase) {
+            String paquete = clase.getPackageName();
+            return (paquete.endsWith(".db.repo") || paquete.contains(".db.repo."))
+                && clase.getSimpleName().endsWith("Repository");
+        }
+
+        private Unidad unidadDe(String paquete) {
+            for (Unidad tramite : tramites) {
+                if (tramite.contiene(paquete)) {
+                    return tramite;
+                }
+            }
+            Matcher sistema = SISTEMA.matcher(paquete);
+            return sistema.matches() ? new Unidad(sistema.group(1), false) : null;
+        }
+
+        private void registrarEntidades(Path xml) throws Exception {
+            if (!Files.readString(xml).contains("<domain-models")) {
+                return;
+            }
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(false);
+            Document documento = factory.newDocumentBuilder().parse(xml.toFile());
+            NodeList modulos = documento.getElementsByTagName("module");
+            if (modulos.getLength() == 0) {
+                return;
+            }
+            String paqueteEntidades = ((Element) modulos.item(0)).getAttribute("package");
+            Unidad dueno = unidadDe(paqueteDe(xml.getParent()));
+            if (dueno == null) {
+                return;
+            }
+            NodeList entidades = documento.getElementsByTagName("entity");
+            for (int i = 0; i < entidades.getLength(); i++) {
+                String nombre = ((Element) entidades.item(i)).getAttribute("name");
+                duenoPorEntidad.put(paqueteEntidades + "." + nombre, dueno);
+            }
+        }
+
+        private String paqueteDe(Path carpeta) {
+            return raiz.relativize(carpeta).toString().replace(java.io.File.separatorChar, '.');
+        }
+
+        private static Path raizDelCodigo() {
+            for (Path dir = Path.of("").toAbsolutePath(); dir != null; dir = dir.getParent()) {
+                if (Files.isDirectory(dir.resolve("src/main/java/com/educaflow"))) {
+                    return dir.resolve("src/main/java");
+                }
+            }
+            throw new IllegalStateException("No se encuentra src/main/java/com/educaflow subiendo desde " + Path.of("").toAbsolutePath());
+        }
     }
 
     private static ArchCondition<JavaMethod> declararSuValidador() {

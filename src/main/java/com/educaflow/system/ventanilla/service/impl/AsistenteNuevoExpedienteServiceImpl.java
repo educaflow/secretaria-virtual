@@ -7,18 +7,19 @@ import com.axelor.db.modelservice.AllowProperties;
 import com.axelor.db.modelservice.BusinessMessage;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.DefaultModelService;
+import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.i18n.I18n;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.CentroUsuario;
-import com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario;
+import com.educaflow.subsystem.common.db.TipoUsuario;
 import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.Tramite;
+import com.educaflow.subsystem.expedientes.service.TramiteService;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
 import com.educaflow.subsystem.tramitador.service.TramitadorService;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.ContextoTramitacion;
 import com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente;
-import com.educaflow.system.ventanilla.db.repo.VentanillaRepository;
 import com.educaflow.system.ventanilla.service.AsistenteNuevoExpedienteService;
 import jakarta.inject.Inject;
 
@@ -40,7 +41,7 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
     PerfilesUsuarioService perfilesUsuarioService;
 
     @Inject
-    VentanillaRepository ventanillaRepository;
+    ModelServiceFactory modelServiceFactory;
 
     public AsistenteNuevoExpedienteServiceImpl(Class<AsistenteNuevoExpediente> model,
                                                Repository<AsistenteNuevoExpediente> repository) {
@@ -140,7 +141,7 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
     }
 
     private Optional<BusinessMessages> validateTramiteEvaluable(AsistenteNuevoExpediente asistente) {
-        if (!ventanillaRepository.findTramitesEvaluables().contains(asistente.getTramite())) {
+        if (!getTramitesConTipoExpedienteActivo().contains(asistente.getTramite())) {
             BusinessMessages businessMessages = new BusinessMessages();
             businessMessages.add(new BusinessMessage("tramite",
                     I18n.get("Debe indicar el trámite"),
@@ -257,7 +258,7 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
 
     private void fireActionRule_AsignarTramitesDisponibles(AsistenteNuevoExpediente asistente) {
         List<Tramite> tramitesCandidatos =
-                getTramitesCandidatos(asistente.getCentro(), ventanillaRepository.findTramitesEvaluables());
+                getTramitesCandidatos(asistente.getCentro(), getTramitesConTipoExpedienteActivo());
 
         asistente.setTramitesDisponibles(new LinkedHashSet<>(tramitesCandidatos));
     }
@@ -342,7 +343,7 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
             return List.of();
         }
 
-        List<Tramite> tramitesEvaluables = ventanillaRepository.findTramitesEvaluables();
+        List<Tramite> tramitesEvaluables = getTramitesConTipoExpedienteActivo();
 
         return centroUsuarios.stream()
                 .map(CentroUsuario::getCentro)
@@ -376,22 +377,20 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
     }
 
     private boolean esFamiliar(Centro centro) {
-        return tieneTipoUsuario(centro, "FAMILIAR");
+        return tieneTipoUsuario(centro, TipoUsuario.FAMILIAR);
+    }
+
+    private List<Tramite> getTramitesConTipoExpedienteActivo() {
+        final TramiteService tramiteService = (TramiteService) modelServiceFactory.resolve(Tramite.class);
+        return tramiteService.findConTipoExpedienteActivo();
     }
 
     private boolean tieneTipoUsuario(Centro centro, String codigoTipoUsuario) {
-        CentroUsuario centroUsuario = SecurityUtil.getUser().getCentroUsuario(centro);
-        if (centroUsuario == null) {
+        User usuario = SecurityUtil.getUser();
+        if (!usuario.perteneceAlCentro(centro)) {
             throw new IllegalStateException("El usuario no pertenece al centro indicado");
         }
 
-        if (centroUsuario.getCentroUsuarioTipoUsuario() == null) {
-            return false;
-        }
-
-        return centroUsuario.getCentroUsuarioTipoUsuario().stream()
-                .map(CentroUsuarioTipoUsuario::getTipoUsuario)
-                .filter(Objects::nonNull)
-                .anyMatch(tipoUsuario -> codigoTipoUsuario.equals(tipoUsuario.getCodigo()));
+        return usuario.tieneTipoUsuario(centro, codigoTipoUsuario);
     }
 }

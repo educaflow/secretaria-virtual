@@ -1,6 +1,7 @@
 package com.educaflow.subsystem.security.service.impl;
 
 import com.axelor.auth.db.User;
+import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.inject.Beans;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.Centro;
@@ -9,6 +10,8 @@ import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.TipoExpediente;
 import com.educaflow.subsystem.expedientes.db.Tramite;
+import com.educaflow.subsystem.expedientes.db.UnidadTramitadora;
+import com.educaflow.subsystem.expedientes.service.TramiteService;
 import com.educaflow.subsystem.security.db.repo.AceProfileCentroRepository;
 import com.educaflow.subsystem.security.db.repo.AceProfileExpedienteRepository;
 import com.educaflow.subsystem.security.db.repo.AceProfileGlobalRepository;
@@ -19,6 +22,7 @@ import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
 import jakarta.inject.Inject;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class PerfilesUsuarioServiceImpl implements PerfilesUsuarioService {
@@ -40,6 +44,9 @@ public class PerfilesUsuarioServiceImpl implements PerfilesUsuarioService {
 
     @Inject
     AceProfileExpedienteRepository aceProfileExpedienteRepository;
+
+    @Inject
+    ModelServiceFactory modelServiceFactory;
 
     @Override
     public Set<Profile> getPerfilesSobreExpediente(Expediente expediente, User user) {
@@ -118,6 +125,21 @@ public class PerfilesUsuarioServiceImpl implements PerfilesUsuarioService {
         return perfiles.get(0);
     }
 
+    @Override
+    public boolean isTramitador(User user) {
+        Objects.requireNonNull(user, "user no puede ser nulo");
+
+        return tramitaAlgunTramite(user, tramite -> true);
+    }
+
+    @Override
+    public boolean isTramitador(User user, String codigoUnidadTramitadora) {
+        Objects.requireNonNull(user, "user no puede ser nulo");
+        Objects.requireNonNull(codigoUnidadTramitadora, "codigoUnidadTramitadora no puede ser nulo");
+
+        return tramitaAlgunTramite(user, tramite -> codigoUnidadTramitadora.equals(codigoUnidadTramitadora(tramite.getUnidadTramitadora())));
+    }
+
     /******************************************************************************/
     /****************************** Métodos privados ******************************/
     /******************************************************************************/
@@ -135,6 +157,32 @@ public class PerfilesUsuarioServiceImpl implements PerfilesUsuarioService {
         perfiles.addAll(aceProfileCentroRepository.findPerfiles(tramite, centroUsuario));
 
         return perfiles;
+    }
+
+    /** Las preguntas son «en algún centro del usuario»: quien tramita en un centro es tramitador. */
+    private boolean tramitaAlgunTramite(User user, Predicate<Tramite> filtroTramite) {
+        if (user.getCentroUsuarios() == null) {
+            return false;
+        }
+
+        final TramiteService tramiteService = (TramiteService) modelServiceFactory.resolve(Tramite.class);
+        List<Tramite> tramites = tramiteService.findConTipoExpedienteActivo().stream().filter(filtroTramite).toList();
+        for (CentroUsuario centroUsuario : user.getCentroUsuarios()) {
+            for (Tramite tramite : tramites) {
+                Set<Profile> perfiles = getPerfilesSobreTramite(tramite, user, centroUsuario.getCentro());
+                if (perfiles.stream().anyMatch(Profile::esDeTramitacion)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static String codigoUnidadTramitadora(UnidadTramitadora unidadTramitadora) {
+        if (unidadTramitadora == null) {
+            return null;
+        }
+        return unidadTramitadora.getCode();
     }
 
     private static boolean isUsuarioCreadorExpediente(Expediente expediente, User user) {

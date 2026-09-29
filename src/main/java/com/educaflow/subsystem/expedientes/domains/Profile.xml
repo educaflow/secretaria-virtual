@@ -17,6 +17,10 @@
             public boolean puedeCrearExpediente() {
                 return this == CREADOR || this == TRAMITADOR;
             }
+            /** Si sirve para tramitar: todos salvo {@code CREADOR}, que solo habilita a crear. */
+            public boolean esDeTramitacion() {
+                return this != CREADOR;
+            }
             public boolean permitePresentacionEnPapel() {
                 return this == TRAMITADOR;
             }

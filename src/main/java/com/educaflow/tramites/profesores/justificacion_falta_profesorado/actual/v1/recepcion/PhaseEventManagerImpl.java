@@ -21,7 +21,6 @@ import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper;
 import com.educaflow.subsystem.firmas.db.TareaFirma;
 import com.educaflow.subsystem.firmas.service.TareaFirmaNotifier;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada;
-import com.educaflow.subsystem.registroentradasalida.db.repo.RegistroEntradaRepository;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,9 +42,6 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
 
     private final JustificacionFaltaProfesoradoV1Repository repository;
     protected final Logger log = LoggerFactory.getLogger(getClass());
-
-    @Inject
-    RegistroEntradaRepository registroEntradaRepository;
 
     @Inject
     ModelServiceFactory modelServiceFactory;
