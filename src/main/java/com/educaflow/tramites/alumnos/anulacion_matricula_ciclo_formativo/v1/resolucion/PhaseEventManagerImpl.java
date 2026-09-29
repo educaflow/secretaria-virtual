@@ -67,12 +67,9 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
             throw new BusinessException(mensajeSinCertificado);
         }
 
-        expediente.setFechaResolucion(LocalDate.now(Convert.defaultZoneId));
         expediente.setFirmadoPor(SecurityUtil.getUser());
 
-        // Se regenera en vez de firmar el pdfResolucion guardado: aquel es una foto sin la fecha de
-        // resolución ni el firmante, que se acaban de anotar.
-        DocumentoPdf resolucionPdf = expediente.getDocumentoPdf(AnulacionMatriculaCicloFormativoV1.TipoDocumentoPdf.RESOLUCION);
+        DocumentoPdf resolucionPdf = MetaFileHelper.getDocumentoPdf(expediente.getPdfResolucion());
         DocumentoPdf resolucionFirmada = resolucionPdf.firmar(almacenDirector, new CampoFirma(POSICION_FIRMA_RESOLUCION));
 
         MetaFile pdfTemporal = MetaFileHelper.createMetaFile(resolucionFirmada);

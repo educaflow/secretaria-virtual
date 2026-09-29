@@ -173,6 +173,17 @@ expediente.setPdfSolicitud(MetaFileHelper.createMetaFile(solicitudPdf));
 
 `getDocumentoPdf` rellena el formulario del PDF evaluando las expresiones Groovy de sus campos con `self` = el expediente (ver `documentos.md`). `MetaFileHelper.createMetaFile(documentoPdf)` convierte cualquier `DocumentoPdf` en `MetaFile` asignable a un campo.
 
+**MUST** asignar las fechas que estampa el documento (y el resto de datos de ese momento, como el firmante) **antes** de llamar a `getDocumentoPdf`, en el mismo evento: el PDF es una foto de la entidad en ese instante y una fecha asignada después ya no sale en él.
+
+- ✅ CORRECTO:
+  ```java
+  expediente.setFechaResolucion(LocalDate.now(Convert.defaultZoneId));
+  expediente.setFirmadoPor(SecurityUtil.getUser());
+  DocumentoPdf resolucionPdf = expediente.getDocumentoPdf(MiTramiteV1.TipoDocumentoPdf.RESOLUCION);
+  ```
+- ❌ INCORRECTO: generar `resolucionPdf` y asignar `fechaResolucion` en la línea siguiente (el documento sale sin la fecha que dice llevar).
+- ❌ INCORRECTO: asignar `fechaResolucion` en `onEnter<Estado>` del estado destino (se ejecuta después del evento que ya generó el documento).
+
 Operaciones útiles de `DocumentoPdf`: `firmar(...)` (§6.4), `anyadirDocumentoPdf` (concatenar), `estamparTextoConAppend`, `addNewPage`, `getPlainText`, `removePdfAConformance`.
 
 **Generar en un evento y firmar (o concatenar) en otro posterior.** El PDF que un evento dejó en un campo `MetaFile` se recupera con la conversión inversa, `MetaFileHelper.getDocumentoPdf(metaFile)`, y se vuelve a guardar con `createMetaFile`:

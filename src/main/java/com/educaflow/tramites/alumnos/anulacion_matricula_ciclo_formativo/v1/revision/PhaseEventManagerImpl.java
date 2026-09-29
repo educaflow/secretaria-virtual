@@ -57,6 +57,8 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
         expediente.setTextoSubsanacion(null);
         AnulacionMatriculaCicloFormativoV1Util.borrarDevolucionDelDirector(expediente);
 
+        expediente.setFechaResolucion(LocalDate.now(Convert.defaultZoneId));
+
         DocumentoPdf resolucionPdf = expediente.getDocumentoPdf(AnulacionMatriculaCicloFormativoV1.TipoDocumentoPdf.RESOLUCION);
         expediente.setPdfResolucion(MetaFileHelper.createMetaFile(resolucionPdf));
 

@@ -91,8 +91,8 @@
         <castellano>Lugar, fecha y firma</castellano>
         <fila>
             <texto colspan="12">
-                <valenciano>${self.localidadCentro} , ${self.fechaSolicitud?.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))}</valenciano>
-                <castellano>${self.localidadCentro} , ${self.fechaSolicitud?.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))}</castellano>
+                <valenciano>${self.localidadCentro} , ${self.fechaSolicitud.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))}</valenciano>
+                <castellano>${self.localidadCentro} , ${self.fechaSolicitud.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))}</castellano>
             </texto>
         </fila>
         <fila>

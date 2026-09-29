@@ -21,8 +21,8 @@
     <!-- En valenciano MMMM ya lleva la preposición con la elisión resuelta ("d'abril"): añadir el
          literal 'de' imprimiría "1 de d'abril". El castellano sí lo lleva. -->
     <parrafo>
-        <valenciano>Que el dia ${self.fechaHoraPresentacion?.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))} la persona interessada va presentar una sol·licitud d'anul·lació de la matrícula del ${self.ciclo.gradoNivel} denominat ${self.ciclo.name}, en la qual es troba matriculada en aquest centre.</valenciano>
-        <castellano>Que el día ${self.fechaHoraPresentacion?.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))} la persona interesada presentó una solicitud de anulación de la matrícula del ${self.ciclo.gradoNivel} denominado ${self.ciclo.name}, en el que se encuentra matriculada en este centro.</castellano>
+        <valenciano>Que el dia ${self.fechaHoraPresentacion.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))} la persona interessada va presentar una sol·licitud d'anul·lació de la matrícula del ${self.ciclo.gradoNivel} denominat ${self.ciclo.name}, en la qual es troba matriculada en aquest centre.</valenciano>
+        <castellano>Que el día ${self.fechaHoraPresentacion.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))} la persona interesada presentó una solicitud de anulación de la matrícula del ${self.ciclo.gradoNivel} denominado ${self.ciclo.name}, en el que se encuentra matriculada en este centro.</castellano>
     </parrafo>
     <espacio alto="14.76"/>
 
@@ -71,8 +71,8 @@
     <espacio alto="14.76"/>
 
     <parrafo alineamiento="derecha">
-        <valenciano>${self.localidadCentro}, ${self.fechaResolucion?.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))}</valenciano>
-        <castellano>${self.localidadCentro}, ${self.fechaResolucion?.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))}</castellano>
+        <valenciano>${self.localidadCentro}, ${self.fechaResolucion.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))}</valenciano>
+        <castellano>${self.localidadCentro}, ${self.fechaResolucion.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))}</castellano>
     </parrafo>
 
     <espacio alto="29.52"/>

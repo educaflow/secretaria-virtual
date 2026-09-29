@@ -180,7 +180,6 @@
         </panel>
 
         <panel name="resolucion-a-firmar" title="Resolución a firmar" colSpan="12">
-            <help variant="info" colSpan="12">La fecha de la resolución que llevará el documento firmado será la del día en que lo firme</help>
             <field name="visorResolucion" showTitle="false" readonly="true" colSpan="12">
                 <viewer depends="pdfResolucion"><![CDATA[
                     <>
