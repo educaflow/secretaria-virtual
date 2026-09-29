@@ -508,3 +508,103 @@ tasks.register('GenerateDocs') {
 tasks.named('build') {
     finalizedBy 'GenerateDocs'
 }
+
+
+// Detección de código duplicado con CPD (Copy/Paste Detector de PMD, https://pmd.github.io/).
+// Analiza el Java y el Kotlin de src/main/java (el código generado vive en build/ y no entra) y
+// ROMPE el build si encuentra duplicados de al menos cpdMinimumTokens tokens. El mensaje de error
+// lista cada duplicado como ruta:líneas y el detalle, con los fragmentos, queda en
+// build/reports/cpd/cpd.md. No cuenta como duplicado el código repetido entre versiones (vN) del
+// mismo trámite: la receta de versionado copia la carpeta de la versión a propósito.
+// Un duplicado deliberado se excluye envolviéndolo en comentarios // CPD-OFF ... // CPD-ON.
+configurations { cpd }
+dependencies {
+    // Versión fija a propósito: una versión nueva puede cambiar qué se detecta y romper el build.
+    cpd 'net.sourceforge.pmd:pmd-cli:7.28.0'
+    cpd 'net.sourceforge.pmd:pmd-java:7.28.0'
+    cpd 'net.sourceforge.pmd:pmd-kotlin:7.28.0'
+}
+def cpdMinimumTokens = 100
+def cpdReportsDir = layout.buildDirectory.dir('reports/cpd')
+def cpdLanguages = ['java', 'kotlin']
+
+cpdLanguages.each { lang ->
+    tasks.register("cpd${lang.capitalize()}", JavaExec) {
+        description = "Busca código ${lang} duplicado con CPD (informe XML en build/reports/cpd)."
+        group = 'verification'
+        classpath = configurations.cpd
+        mainClass = 'net.sourceforge.pmd.cli.PmdCli'
+        def report = cpdReportsDir.map { it.file("cpd-${lang}.xml") }
+        inputs.files(fileTree('src/main/java') { include lang == 'java' ? '**/*.java' : '**/*.kt' })
+        inputs.property('minimumTokens', cpdMinimumTokens)
+        outputs.file(report)
+        args 'cpd',
+             '--language', lang,
+             '--minimum-tokens', cpdMinimumTokens.toString(),
+             '--dir', file('src/main/java').absolutePath,
+             '--format', 'xml',
+             '--encoding', 'UTF-8',
+             '--no-fail-on-violation',
+             '--report-file', report.get().asFile.absolutePath
+        doFirst { report.get().asFile.parentFile.mkdirs() }
+    }
+}
+
+tasks.register('cpdCheck') {
+    description = 'Rompe el build si CPD encuentra código Java/Kotlin duplicado (informe en build/reports/cpd/cpd.md).'
+    group = 'verification'
+    dependsOn cpdLanguages.collect { "cpd${it.capitalize()}" }
+    def reportsDir = cpdReportsDir
+    def languages = cpdLanguages
+    def projectDir = projectDir
+    doLast {
+        def dir = reportsDir.get().asFile
+        // Carpeta del trámite y versión de una ocurrencia: .../<trámite>/v<n>/...
+        def versionOf = { String path ->
+            def m = path =~ /^(.*\/tramites\/.+?)\/(v\d+)\//
+            m.find() ? [tramite: m.group(1), version: m.group(2)] : null
+        }
+        def duplicados = []
+        languages.each { lang ->
+            def xml = new File(dir, "cpd-${lang}.xml")
+            new groovy.xml.XmlSlurper().parse(xml).duplication.each { d ->
+                def ocurrencias = d.file.collect { f ->
+                    [path: projectDir.toPath().relativize(new File(f.@path.text()).toPath()).toString(),
+                     inicio: f.@line.text(), fin: f.@endline.text()]
+                }
+                def versiones = ocurrencias.collect { versionOf(it.path) }
+                def entreVersionesDelMismoTramite = !versiones.contains(null) &&
+                        versiones*.tramite.unique().size() == 1 &&
+                        versiones*.version.unique().size() > 1
+                if (!entreVersionesDelMismoTramite) {
+                    duplicados << [lineas: d.@lines.text(), tokens: d.@tokens.text(),
+                                   ocurrencias: ocurrencias, fragmento: d.codefragment.text()]
+                }
+            }
+        }
+
+        def md = new File(dir, 'cpd.md')
+        md.withWriter('UTF-8') { w ->
+            w << "# Código duplicado (CPD)\n\n"
+            w << (duplicados ? "${duplicados.size()} duplicado(s).\n" : "Sin duplicados.\n")
+            duplicados.eachWithIndex { d, i ->
+                w << "\n## ${i + 1}. ${d.lineas} líneas (${d.tokens} tokens)\n\n"
+                d.ocurrencias.each { o -> w << "- `${o.path}:${o.inicio}-${o.fin}`\n" }
+                w << "\n```\n${d.fragmento}\n```\n"
+            }
+        }
+
+        if (duplicados) {
+            def lista = duplicados.collect { d ->
+                "  - " + d.ocurrencias.collect { "${it.path}:${it.inicio}-${it.fin}" }.join(' <-> ') +
+                        " (${d.lineas} líneas)"
+            }.join('\n')
+            throw new GradleException(
+                    "CPD ha encontrado ${duplicados.size()} fragmento(s) de código duplicado:\n${lista}\n" +
+                    "Extrae el código común en lugar de duplicarlo. Detalle con los fragmentos en ${md}")
+        }
+    }
+}
+tasks.named('check') {
+    dependsOn 'cpdCheck'
+}

@@ -29,6 +29,11 @@ No hace falta invocar el jar de PlantUML a mano: la dependencia `net.sourceforge
 Va enganchada a `build` con `finalizedBy`, así que **`./run.sh` ya la ejecuta**; lánzala suelta solo cuando toques un `.puml` y no quieras compilar entero.
 Es incremental por fecha: omite el PNG que sea más reciente que su fuente, así que **si editas un `.puml` MUST regenerar el PNG** (queda desincronizado si no).
 
+El código duplicado lo detecta la tarea `./gradlew -q cpdCheck` (CPD de PMD, embebido) sobre el Java y el Kotlin de `src/main/java`.
+Va enganchada a `check`, así que **`./run.sh` falla si hay duplicados**: el error lista cada uno como `ruta:líneas` y el detalle con los fragmentos está en `build/reports/cpd/cpd.md`.
+No cuenta lo repetido entre versiones (`vN`) del mismo trámite, que se copian a propósito.
+Un duplicado se arregla **extrayendo el código común** en su sitio (ver [Arquitectura](#arquitectura): lo compartido por trámites va a `tramites/util`, no al motor); los comentarios `// CPD-OFF` … `// CPD-ON` son solo para una duplicación deliberada.
+
 
 ## Configuración
 

@@ -95,23 +95,7 @@ public class DniUtil {
 
         //Una 1º letra de CIF y el resto números
         if (PATTERN_CIF.matcher(dni).matches()) {
-            int calculoDC = 0;
-            for (int i = 1; i < 8; i++) {
-                int digit=dni.charAt(i) - '0';
-                int addValue;
-
-                if ((i == 2) || (i == 4) || (i == 6)) {
-                    addValue= digit;
-                } else {
-                    addValue = digit * 2;
-                    if (addValue > 9) {
-                        addValue -= 9;
-                    }
-                }
-
-                calculoDC=calculoDC+addValue;
-            }
-            calculoDC = 10 - calculoDC % 10;
+            int calculoDC = calcularDcCif(dni);
             if (calculoDC == 10) {
                 calculoDC = 0;
             }
@@ -126,23 +110,7 @@ public class DniUtil {
 
         //CIF con 1º Letra, numeros y al final otra letra
         if (PATTERN_CIF_OTRO.matcher(dni).matches()) {
-            int calculoDC = 0;
-            for (int i = 1; i < 8; i++) {
-                int digit=dni.charAt(i) - '0';
-                int addValue;
-
-                if ((i == 2) || (i == 4) || (i == 6)) {
-                    addValue=digit;
-                } else {
-                    addValue = digit * 2;
-                    if (addValue > 9) {
-                        addValue -= 9;
-                    }
-                }
-
-                calculoDC=calculoDC+addValue;
-            }
-            calculoDC = 10 - calculoDC % 10;
+            int calculoDC = calcularDcCif(dni);
             if (arrLettersDcCif[calculoDC - 1] == dni.charAt(8)) {
                 //CIF de organización o extranjero
                 return true;
@@ -219,6 +187,27 @@ public class DniUtil {
         }
 
         return false;
+    }
+
+    // Dígito de control (1..10) de un CIF a partir de sus 7 dígitos centrales (posiciones 1 a 7).
+    private static int calcularDcCif(String dni) {
+        int suma = 0;
+        for (int i = 1; i < 8; i++) {
+            int digit = dni.charAt(i) - '0';
+            int addValue;
+
+            if ((i == 2) || (i == 4) || (i == 6)) {
+                addValue = digit;
+            } else {
+                addValue = digit * 2;
+                if (addValue > 9) {
+                    addValue -= 9;
+                }
+            }
+
+            suma = suma + addValue;
+        }
+        return 10 - suma % 10;
     }
 
 }
