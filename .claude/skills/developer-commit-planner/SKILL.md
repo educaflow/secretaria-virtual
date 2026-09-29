@@ -193,7 +193,7 @@ La sección 8 del informe explica cómo el usuario convierte el worktree en los 
 
 ````markdown
 ## 1. Resumen del estado actual
-<3-6 líneas: rama, nº de ficheros por estado, qué tipos de trabajo hay mezclados.>
+<1-3 líneas: rama y qué trabajos hay mezclados.>
 
 ## 2. Cambios detectados
 - **<Unidad funcional>** — <intención en una frase>. Ficheros: <n>.
@@ -209,17 +209,16 @@ La sección 8 del informe explica cómo el usuario convierte el worktree en los 
 
 ### Commit 1 — <tipo>: <título>
 
-**Objetivo:** <qué unidad lógica representa>
+**Objetivo:** <una frase>
 
 **Archivos:**
-- `<ruta>` (entero | parcial)
-  - `@@ -a,b +c,d @@` <qué cambia>
+- `<ruta>`
 
 **Dependencias:** <commits previos requeridos, o «ninguna»>
 
 **Confianza:** <Alta | Media | Baja>
 
-**Motivo:** <por qué va junto; ambigüedades>
+**Motivo:** <solo si la confianza es Media o Baja: 1-2 frases con la ambigüedad>
 
 ## 5. Archivos que participan en varios commits
 
@@ -248,8 +247,11 @@ La sección 8 del informe explica cómo el usuario convierte el worktree en los 
 ````
 
 - Si no hay ficheros repartidos, la sección 5 dice «Ningún fichero participa en más de un commit.»; si no hay dudosos, la 6 dice «Ninguno.». **MUST NOT** omitir secciones.
-- ✅ CORRECTO: ``- `src/.../MiServicio.java` (parcial)`` seguido de sus hunks `@@`.
-- ❌ INCORRECTO: `- src/.../MiServicio.java → commit 2` (sin decir qué hunks, cuando el fichero se reparte).
+- **MUST** ser escueto: cada campo en una frase como máximo; lo que ya dice otra sección no se repite.
+- La lista de **Archivos** es solo de rutas: **MUST NOT** anotar si el fichero es nuevo, modificado, borrado, staged, entero o parcial, ni qué cambia en él. El reparto hunk a hunk va únicamente en la sección 5.
+  - ✅ CORRECTO: ``- `src/.../MiServicio.java` ``
+  - ❌ INCORRECTO: ``- `src/.../MiServicio.java` (entero, ya staged): usa el nuevo método`` (anota estado y cambio)
+- ❌ INCORRECTO: en la sección 5, `- src/.../MiServicio.java → commit 2` (sin decir qué hunks, cuando el fichero se reparte).
 - ❌ INCORRECTO: `feat: cambios varios` (título sin intención concreta).
 
 ---
@@ -258,7 +260,8 @@ La sección 8 del informe explica cómo el usuario convierte el worktree en los 
 
 - Solo lectura: **MUST NOT** cambiar el estado del repositorio en ningún momento.
 - Lee el diff de cada fichero y el contenido de cada untracked; nunca clasifiques por nombre.
-- Agrupa por intención; un fichero puede repartirse, y entonces se detalla hunk a hunk con su cabecera `@@`.
+- Agrupa por intención; un fichero puede repartirse, y entonces se detalla hunk a hunk con su cabecera `@@` en la sección 5.
+- Informe escueto: listas de archivos solo con rutas, sin estado ni descripción del cambio.
 - Un commit por porqué, no por tipo: el cambio, la regla/doc que lo generaliza y el mismo criterio en el código vecino van juntos; los tests con su funcionalidad.
 - Lo sospechoso va a «dudosos» con recomendación, nunca mezclado ni borrado.
 - Verifica la secuencia con el checklist de §6 antes de responder.
