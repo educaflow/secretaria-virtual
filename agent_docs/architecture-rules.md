@@ -276,6 +276,25 @@ La dirección contraria es fácil de introducir sin darse cuenta desde un `<extr
 
 **Cumplimiento.** ✅ CUMPLE.
 
+### C26 — El repositorio de un sistema/subsistema solo lo usan los servicios de ese mismo sistema/subsistema
+
+**Contexto.** Los repositorios son **privados** de su sistema/subsistema: son el detalle de cómo guarda y consulta sus datos.
+Si otro sistema/subsistema usa un repositorio ajeno, se salta los servicios del dueño (sus validaciones, su seguridad y su forma de consultar) y queda acoplado a su persistencia.
+Quien necesita datos de otro sistema/subsistema los pide a un **servicio** de ese sistema/subsistema.
+Que un controlador del propio sistema/subsistema tampoco los use ya lo cubre C9.
+
+**Decisión.** Un repositorio de `com.educaflow.subsystem.<X>` o de `com.educaflow.system.<X>` solo lo usan los servicios de ese mismo `<X>` (y los demás repositorios de `<X>`, p. ej. el repositorio escrito a mano que hereda del `Abstract<Entidad>Repository` generado).
+
+**Verificación.**
+- Sujeto: clases de `com.educaflow.subsystem.<X>.db.repo..` y de `com.educaflow.system.<X>.db.repo..` cuyo nombre simple termina en `Repository`, siendo `<X>` el subpaquete de **primer nivel** de `subsystem` o de `system`.
+  Los `*Listener` de `db.repo` (C18) quedan fuera: los referencia la propia entidad por diseño.
+  **CRITICAL**: esta regla declara expresamente que **NO** se le aplica la exención global de `..expedientes..` como **destino**: los repositorios de `subsystem/expedientes` (`TramiteRepository`, los de las entidades de expediente…) también son privados, y excluirlos dejaría sin detectar justo los usos desde otros subsistemas.
+- Condición: toda clase que dependa de una clase del sujeto reside en `com.educaflow.<subsystem|system>.<X>.service..` o en `com.educaflow.<subsystem|system>.<X>.db.repo..`, con el **mismo** `<subsystem|system>` y el **mismo** `<X>` que el repositorio.
+- Exenciones: las dependencias cuyo **origen** está en `com.educaflow.tramites..` (arquitectura propia): el `PhaseEventManager` de un tipo de expediente usa el repositorio de su propia entidad, que se genera en `com.educaflow.subsystem.expedientes.db`.
+- Mensaje: «el repositorio es privado de su sistema/subsistema: solo lo usan los servicios de ese mismo sistema/subsistema; los demás piden los datos a uno de sus servicios».
+
+**Cumplimiento.** ✅ CUMPLE.
+
 ---
 
 # Categoría 3 — Nomenclatura y ubicación

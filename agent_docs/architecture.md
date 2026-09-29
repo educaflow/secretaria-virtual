@@ -45,6 +45,9 @@ diferencia es de **dependencias**:
 - De un **subsistema** sí depende alguien: puede depender de él un sistema u otro subsistema.
 - **No puede haber relaciones cíclicas** entre ellos.
 
+Los **repositorios son privados** de su sistema/subsistema: solo los usan sus propios servicios.
+Quien necesita datos de otro sistema/subsistema los pide a un servicio de ese sistema/subsistema, nunca a su repositorio (regla C26 de [`architecture-rules.md`](architecture-rules.md)).
+
 ## Expedientes
 
 Los expedientes son la parte más importante de la secretaría virtual y la más compleja;
