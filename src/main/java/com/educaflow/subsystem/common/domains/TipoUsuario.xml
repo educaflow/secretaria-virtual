@@ -8,6 +8,7 @@
     <entity name="TipoUsuario" repository="abstract">
         <string name="codigo" title="Código"/>
         <string name="nombre" namecolumn="true" title="Nombre"/>
+        <string name="tituloTramites" formula="true" title="Trámites">'Trámites para el ' || lower(nombre)</string>
         <one-to-many name="centroUsuarioTipoUsuario"
                      ref="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario"
                      mappedBy="tipoUsuario" title=""/>

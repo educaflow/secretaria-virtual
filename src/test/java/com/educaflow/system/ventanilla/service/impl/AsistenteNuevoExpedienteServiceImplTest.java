@@ -14,7 +14,6 @@ import com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario;
 import com.educaflow.subsystem.common.db.TipoUsuario;
 import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.TipoExpediente;
-import com.educaflow.subsystem.expedientes.db.TipoTramite;
 import com.educaflow.subsystem.expedientes.db.Tramite;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
 import com.educaflow.subsystem.tramitador.service.TramitadorService;
@@ -91,8 +90,6 @@ class AsistenteNuevoExpedienteServiceImplTest {
     private Centro centroA;
     private Centro centroB;
     private Centro centroC;
-    private TipoTramite tipoTramiteAlumno;
-    private TipoTramite tipoTramiteSinTipoUsuario;
     private Tramite tramite;
     private Tramite otroTramite;
     private Tramite tramiteNoEvaluable;
@@ -119,24 +116,18 @@ class AsistenteNuevoExpedienteServiceImplTest {
         centroB = centro(2L, "Centro B");
         centroC = centro(3L, "Centro C");
 
-        tipoTramiteAlumno = new TipoTramite();
-        tipoTramiteAlumno.setName("Matrícula");
-        tipoTramiteAlumno.setTipoUsuario(tipoUsuario("ALUMNO"));
-
-        tipoTramiteSinTipoUsuario = new TipoTramite();
-
         tramite = new Tramite();
         tramite.setId(10L);
         tramite.setName(NOMBRE_TRAMITE);
         tramite.setHelp(AYUDA_TRAMITE);
         tramite.setPermitidoPresentarEnRepresentacion(true);
-        tramite.setTipoTramite(tipoTramiteAlumno);
+        tramite.setTipoUsuario(tipoUsuario("ALUMNO"));
         tramite.setDefaultTipoExpediente(new TipoExpediente());
 
         otroTramite = new Tramite();
         otroTramite.setId(11L);
         otroTramite.setName("Otro trámite");
-        otroTramite.setTipoTramite(tipoTramiteAlumno);
+        otroTramite.setTipoUsuario(tipoUsuario("ALUMNO"));
         otroTramite.setDefaultTipoExpediente(new TipoExpediente());
 
         tramiteNoEvaluable = new Tramite();
@@ -517,7 +508,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void recalcular_lasDosFormasPosiblesYSinContestar_preguntaComoSePresentaYNoPreguntaParaQuienEs() {
-        tramite.setTipoTramite(tipoTramiteSinTipoUsuario);
+        tramite.setTipoUsuario(null);
         stubCatalogo(tramite);
         stubOraculoAcepta();
         var asistente = asistenteConCentroYTramite(tramite);
@@ -533,7 +524,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void recalcular_lasDosFormasPosiblesYFormaYaContestada_preguntaParaQuienEs() {
-        tramite.setTipoTramite(tipoTramiteSinTipoUsuario);
+        tramite.setTipoUsuario(null);
         stubCatalogo(tramite);
         stubOraculoAcepta();
         var asistente = asistenteConCentroYTramite(tramite);
@@ -960,8 +951,8 @@ class AsistenteNuevoExpedienteServiceImplTest {
     }
 
     @Test
-    void validateTriggerInitialEvent_tipoTramiteSinTipoUsuario_noAplicaElAfinadoYDevuelveVacio() {
-        tramite.setTipoTramite(tipoTramiteSinTipoUsuario);
+    void validateTriggerInitialEvent_tramiteSinTipoUsuario_noAplicaElAfinadoYDevuelveVacio() {
+        tramite.setTipoUsuario(null);
         centroUsuario(centroA, "FAMILIAR");
         stubCatalogo(tramite);
         stubOraculoAcepta();

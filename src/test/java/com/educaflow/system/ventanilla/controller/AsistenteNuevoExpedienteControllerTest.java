@@ -11,7 +11,6 @@ import com.axelor.rpc.ActionResponse;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.TipoUsuario;
 import com.educaflow.subsystem.expedientes.db.TipoExpediente;
-import com.educaflow.subsystem.expedientes.db.TipoTramite;
 import com.educaflow.subsystem.expedientes.db.Tramite;
 import com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente;
 import com.educaflow.system.ventanilla.service.AsistenteNuevoExpedienteService;
@@ -51,7 +50,7 @@ class AsistenteNuevoExpedienteControllerTest {
     private static final String NOMBRE_TRAMITE = "Anulación de matrícula";
     private static final String NOMBRE_TRAMITE_DERIVADO = "value:" + NOMBRE_TRAMITE;
     private static final String AYUDA_TRAMITE = "Texto de ayuda";
-    private static final String NOMBRE_TIPO_TRAMITE = "Matrícula";
+    private static final String TITULO_TRAMITES = "Trámites para el alumno";
 
     private static final String TITULO_ERROR_CREAR = "No es posible crear el expediente";
     private static final String MENSAJE_PRECONDICION = "mensaje de precondición";
@@ -70,7 +69,6 @@ class AsistenteNuevoExpedienteControllerTest {
 
     private Centro centroA;
     private Centro centroB;
-    private TipoTramite tipoTramiteAlumno;
     private Tramite tramite;
 
     private MockedStatic<JpaRepository> jpaRepositoryMock;
@@ -90,18 +88,14 @@ class AsistenteNuevoExpedienteControllerTest {
         centroA = centro(1L, "Centro A");
         centroB = centro(2L, "Centro B");
 
-        tipoTramiteAlumno = new TipoTramite();
-        tipoTramiteAlumno.setId(20L);
-        tipoTramiteAlumno.setName(NOMBRE_TIPO_TRAMITE);
-        tipoTramiteAlumno.setTipoUsuario(tipoUsuario("ALUMNO"));
-
         tramite = new Tramite();
         tramite.setId(10L);
         tramite.setVersion(1);
         tramite.setName(NOMBRE_TRAMITE);
         tramite.setHelp(AYUDA_TRAMITE);
         tramite.setPermitidoPresentarEnRepresentacion(true);
-        tramite.setTipoTramite(tipoTramiteAlumno);
+        tramite.setTipoUsuario(tipoUsuario("ALUMNO"));
+        tramite.getTipoUsuario().setTituloTramites(TITULO_TRAMITES);
         tramite.setDefaultTipoExpediente(new TipoExpediente());
 
         context = new HashMap<>();
@@ -211,8 +205,8 @@ class AsistenteNuevoExpedienteControllerTest {
         registro.put("id", tramite.getId());
         registro.put("version", tramite.getVersion());
         registro.put("name", tramite.getName());
-        if (tramite.getTipoTramite() != null) {
-            registro.put("tipoTramite.name", tramite.getTipoTramite().getName());
+        if (tramite.getTipoUsuario() != null) {
+            registro.put("tipoUsuario.tituloTramites", tramite.getTipoUsuario().getTituloTramites());
         }
         return registro;
     }
@@ -342,7 +336,7 @@ class AsistenteNuevoExpedienteControllerTest {
         controller.prepararTramites(actionRequest, actionResponse);
 
         Map<String, Object> referencia = valorDevuelto("tramitesDisponibles").get(0);
-        assertEquals(Set.of("id", "version", "name", "tipoTramite.name"), referencia.keySet());
+        assertEquals(Set.of("id", "version", "name", "tipoUsuario.tituloTramites"), referencia.keySet());
         assertEquals(NOMBRE_TRAMITE, referencia.get("name"));
         i18nMock.verifyNoInteractions();
     }

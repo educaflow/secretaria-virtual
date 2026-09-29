@@ -9,7 +9,6 @@
         <string name="name" namecolumn="true" translatable="true"  />
         <string name="help" large="true"  title="Ayuda" />
         <many-to-one name="defaultTipoExpediente" ref="TipoExpediente" title="Tipo de expediente por defecto" />
-        <many-to-one name="tipoTramite" ref="TipoTramite" title="Tipo de trámite" />
         <many-to-one name="tipoUsuario" ref="com.educaflow.subsystem.common.db.TipoUsuario" required="true" title="Tipo de usuario" />
         <many-to-one name="unidadTramitadora" ref="UnidadTramitadora" required="true" title="Unidad tramitadora__!!" />
         <boolean name="permitidoPresentarEnRepresentacion" title="Presentar en representación de otra persona" />

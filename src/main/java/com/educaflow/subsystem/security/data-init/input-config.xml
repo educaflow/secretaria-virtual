@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<!-- priority 8: los Ace referencian los TipoUsuario y los Cargo que carga el data-init de common (priority 10)
-     y los TipoTramite que carga el de expedientes (priority 9), así que tiene que cargarse después. -->
+<!-- priority 8: los Ace referencian los TipoUsuario y los Cargo que carga el data-init de common (priority 10),
+     así que tiene que cargarse después. -->
 <xml-inputs priority="8" xmlns="http://axelor.com/xml/ns/data-import"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://axelor.com/xml/ns/data-import
@@ -30,41 +30,41 @@
 
     <!-- AceProfileGlobal: perfiles en todos los trámites de todos los centros -->
     <input file="AceProfileGlobal.xml" root="datos">
-        <bind node="aces/ace[@tipoUsuario]" type="com.educaflow.subsystem.security.db.AceProfileGlobal"
+        <bind node="acl/ace[usuario/@tipoUsuario]" type="com.educaflow.subsystem.security.db.AceProfileGlobal"
               search="self.perfil = :perfil AND self.tipoUsuario.codigo = :tipoUsuario"
               create="true" update="true">
             <bind node="@perfil"      to="perfil"/>
-            <bind node="@tipoUsuario" to="tipoUsuario" search="self.codigo = :tipoUsuario" create="false" update="false"/>
+            <bind node="usuario/@tipoUsuario" to="tipoUsuario" search="self.codigo = :tipoUsuario" create="false" update="false"/>
         </bind>
     </input>
 
     <input file="AceProfileGlobal.xml" root="datos">
-        <bind node="aces/ace[@cargo]" type="com.educaflow.subsystem.security.db.AceProfileGlobal"
+        <bind node="acl/ace[usuario/@cargo]" type="com.educaflow.subsystem.security.db.AceProfileGlobal"
               search="self.perfil = :perfil AND self.cargo.code = :cargo"
               create="true" update="true">
             <bind node="@perfil"      to="perfil"/>
-            <bind node="@cargo"       to="cargo"       search="self.code = :cargo"          create="false" update="false"/>
+            <bind node="usuario/@cargo" to="cargo"       search="self.code = :cargo"          create="false" update="false"/>
         </bind>
     </input>
 
-    <!-- AceProfileTipoTramite: perfiles en los trámites de un tipo de trámite de todos los centros -->
-    <input file="AceProfileTipoTramite.xml" root="datos">
-        <bind node="aces/ace[@tipoUsuario]" type="com.educaflow.subsystem.security.db.AceProfileTipoTramite"
-              search="self.perfil = :perfil AND self.tipoUsuario.codigo = :tipoUsuario AND self.tipoTramite.code = :tipoTramite"
+    <!-- AceProfileTipoUsuarioTramite: perfiles en los trámites dirigidos a un tipo de usuario, de todos los centros -->
+    <input file="AceProfileTipoUsuarioTramite.xml" root="datos">
+        <bind node="acl/ace[usuario/@tipoUsuario]" type="com.educaflow.subsystem.security.db.AceProfileTipoUsuarioTramite"
+              search="self.perfil = :perfil AND self.tipoUsuario.codigo = :tipoUsuario AND self.tipoUsuarioTramite.codigo = :tipoUsuarioTramite"
               create="true" update="true">
             <bind node="@perfil"      to="perfil"/>
-            <bind node="@tipoUsuario" to="tipoUsuario" search="self.codigo = :tipoUsuario" create="false" update="false"/>
-            <bind node="@tipoTramite" to="tipoTramite" search="self.code = :tipoTramite"    create="false" update="false"/>
+            <bind node="usuario/@tipoUsuario" to="tipoUsuario" search="self.codigo = :tipoUsuario" create="false" update="false"/>
+            <bind node="tramite/@tipoUsuario" to="tipoUsuarioTramite" search="self.codigo = :tipoUsuarioTramite" create="false" update="false"/>
         </bind>
     </input>
 
-    <input file="AceProfileTipoTramite.xml" root="datos">
-        <bind node="aces/ace[@cargo]" type="com.educaflow.subsystem.security.db.AceProfileTipoTramite"
-              search="self.perfil = :perfil AND self.cargo.code = :cargo AND self.tipoTramite.code = :tipoTramite"
+    <input file="AceProfileTipoUsuarioTramite.xml" root="datos">
+        <bind node="acl/ace[usuario/@cargo]" type="com.educaflow.subsystem.security.db.AceProfileTipoUsuarioTramite"
+              search="self.perfil = :perfil AND self.cargo.code = :cargo AND self.tipoUsuarioTramite.codigo = :tipoUsuarioTramite"
               create="true" update="true">
             <bind node="@perfil"      to="perfil"/>
-            <bind node="@cargo"       to="cargo"       search="self.code = :cargo"          create="false" update="false"/>
-            <bind node="@tipoTramite" to="tipoTramite" search="self.code = :tipoTramite"    create="false" update="false"/>
+            <bind node="usuario/@cargo" to="cargo"       search="self.code = :cargo"          create="false" update="false"/>
+            <bind node="tramite/@tipoUsuario" to="tipoUsuarioTramite" search="self.codigo = :tipoUsuarioTramite" create="false" update="false"/>
         </bind>
     </input>
 

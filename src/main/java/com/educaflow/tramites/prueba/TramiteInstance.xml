@@ -3,7 +3,6 @@
 
     <code>Prueba</code>
     <name>Trámite de prueba</name>
-    <tipoTramite>PROFESOR</tipoTramite>
     <tipoUsuario>PROFESOR</tipoUsuario>
     <unidadTramitadora>JEFATURA_ESTUDIOS</unidadTramitadora>
     <publico>true</publico>

@@ -3,7 +3,6 @@
 
     <code>JustificacionFaltaProfesorado</code>
     <name>Justificación de falta del profesorado</name>
-    <tipoTramite>PROFESOR</tipoTramite>
     <tipoUsuario>PROFESOR</tipoUsuario>
     <unidadTramitadora>JEFATURA_ESTUDIOS</unidadTramitadora>
     <defaultTipoExpediente>v1</defaultTipoExpediente>
@@ -14,7 +13,10 @@
             Es solo para profesores<br>
             Y puedo poner algo en <strong>negrita</strong>.
         ]]></help>
-    <aces>
-        <ace perfil="AUDITOR" cargo="DIRECTOR"/> <!-- De prueba: solo para comprobar que funcionan los ACE y como ejemplo -->
-    </aces>
+    <acl>
+        <!-- De prueba: solo para comprobar que funcionan los ACE y como ejemplo -->
+        <ace perfil="AUDITOR">
+            <usuario cargo="DIRECTOR"/>
+        </ace>
+    </acl>
 </Tramite>

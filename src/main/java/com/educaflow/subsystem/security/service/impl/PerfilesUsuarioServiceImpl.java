@@ -13,7 +13,7 @@ import com.educaflow.subsystem.security.db.repo.AceProfileCentroRepository;
 import com.educaflow.subsystem.security.db.repo.AceProfileExpedienteRepository;
 import com.educaflow.subsystem.security.db.repo.AceProfileGlobalRepository;
 import com.educaflow.subsystem.security.db.repo.AceProfileTipoExpedienteRepository;
-import com.educaflow.subsystem.security.db.repo.AceProfileTipoTramiteRepository;
+import com.educaflow.subsystem.security.db.repo.AceProfileTipoUsuarioTramiteRepository;
 import com.educaflow.subsystem.security.db.repo.AceProfileTramiteRepository;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
 import jakarta.inject.Inject;
@@ -27,7 +27,7 @@ public class PerfilesUsuarioServiceImpl implements PerfilesUsuarioService {
     AceProfileGlobalRepository aceProfileGlobalRepository;
 
     @Inject
-    AceProfileTipoTramiteRepository aceProfileTipoTramiteRepository;
+    AceProfileTipoUsuarioTramiteRepository aceProfileTipoUsuarioTramiteRepository;
 
     @Inject
     AceProfileTramiteRepository aceProfileTramiteRepository;
@@ -124,13 +124,13 @@ public class PerfilesUsuarioServiceImpl implements PerfilesUsuarioService {
 
     private Set<Profile> getPerfilesUnicamenteSobreTramite(Tramite tramite, CentroUsuario centroUsuario) {
         Objects.requireNonNull(tramite, "tramite no puede ser nulo");
-        Objects.requireNonNull(tramite.getTipoTramite(), "tipoTramite no puede ser nulo");
+        Objects.requireNonNull(tramite.getTipoUsuario(), "tipoUsuario no puede ser nulo");
         Objects.requireNonNull(centroUsuario, "centroUsuario no puede ser nulo");
 
         Set<Profile> perfiles = new LinkedHashSet<>();
 
         perfiles.addAll(aceProfileGlobalRepository.findPerfiles(centroUsuario));
-        perfiles.addAll(aceProfileTipoTramiteRepository.findPerfiles(tramite.getTipoTramite(), centroUsuario));
+        perfiles.addAll(aceProfileTipoUsuarioTramiteRepository.findPerfiles(tramite.getTipoUsuario(), centroUsuario));
         perfiles.addAll(aceProfileTramiteRepository.findPerfiles(tramite, centroUsuario));
         perfiles.addAll(aceProfileCentroRepository.findPerfiles(tramite, centroUsuario));
 

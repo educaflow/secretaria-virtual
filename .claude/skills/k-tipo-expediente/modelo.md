@@ -46,7 +46,7 @@ field(model::getPersonaInteresada) {
 - Una `Lambda` dentro de un campo anidado recibe la `Persona`, no el expediente: la función de `<Code>Util` que se le pase **MUST** tomar una `Persona`.
 - **MUST** validar nombre, apellidos y DNI del interesado si el tipo admite el modo representación: en ese modo nadie más los rellena.
 - **MUST NOT** confiar en que la whitelist protege la identidad: en cada evento `Tramitador` restaura nombre, apellidos y DNI del solicitante (y del interesado si no hay representación), `presentadoEnRepresentacion`, y rechaza que la petición cambie la `Persona` referenciada por otra.
-- Qué trámites admiten el modo representación lo decide su tipo de trámite (`TipoTramite.admiteRepresentacion`, ver `k-tramite`).
+- Qué trámites admiten el modo representación lo decide el propio trámite (`<permitidoPresentarEnRepresentacion>` de su `TramiteInstance.xml`, ver `k-tramite`).
 
 `codePhase` y `codeState` guardan la pareja que identifica al estado (`SKILL.md` §1.5); `namePhase` y `nameState` guardan sus textos visibles (el `title` de la fase y el del estado, o sus `name` humanizados), que son los que ve el usuario en los listados.
 

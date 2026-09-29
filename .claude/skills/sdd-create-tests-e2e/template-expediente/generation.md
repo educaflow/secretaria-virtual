@@ -44,7 +44,7 @@ El `.desc.md` es **autocontenido**. Extrae:
 
 ## 3. Navegación real (lo que ningún locator adivina)
 
-1. **Crear el expediente** (`Desde: [*]`): menú **«Expedientes» → «Trámites»**, desplegar el tipo de trámite y pulsar el **nodo del trámite**. El expediente se crea y se abre en el estado inicial. **MUST NOT** buscar un botón «Nuevo» de un grid.
+1. **Crear el expediente** (`Desde: [*]`): menú **«Expedientes» → «Trámites»**, desplegar el grupo «Trámites para el …» y pulsar el **nodo del trámite**. El expediente se crea y se abre en el estado inicial. **MUST NOT** buscar un botón «Nuevo» de un grid.
 2. **Llegar al estado de partida** (`Desde: <FASE>/<ESTADO>`): recorrer las transiciones previas **por la UI**, con el usuario y la bandeja que corresponda a cada tramo (§4). **MUST NOT** atajar por REST (`page.request`) ni por SQL: el test dejaría de probar la máquina de estados.
 3. **Disparar el evento**: pulsar el **botón del footer por su título**. **MUST NOT** usar el botón de guardar de Axelor esperando que transicione: en un expediente la transición la dispara el botón del footer.
 4. **Tras el evento la vista cambia entera**: espera al nuevo estado con `await expect(...)`, no reutilices locators de la pantalla anterior.

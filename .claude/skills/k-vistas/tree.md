@@ -219,15 +219,15 @@ Se define una `<column type="button">` en el árbol y un `<button>` en el nodo h
     <column name="nuevo" type="button" title="Nuevo expediente"/>
     <column name="ayuda" type="button" title="Ayuda"/>
 
-    <!-- Agrupador por tipo de trámite -->
-    <node model="com.educaflow.subsystem.expedientes.db.TipoTramite"
-          domain="EXISTS (SELECT 1 FROM Tramite t WHERE t.tipoTramite=self)">
-        <field name="name" as="name"/>
+    <!-- Agrupador por el tipo de usuario al que va dirigido el trámite -->
+    <node model="com.educaflow.subsystem.common.db.TipoUsuario"
+          domain="EXISTS (SELECT 1 FROM Tramite t WHERE t.tipoUsuario=self)">
+        <field name="tituloTramites" as="name"/>
     </node>
 
     <!-- Trámites con botones de acción -->
     <node model="com.educaflow.subsystem.expedientes.db.Tramite"
-          parent="tipoTramite"
+          parent="tipoUsuario"
           draggable="false"
           onClick="subsysExpedientes.Main@ContextoTramitacion-action">
         <field name="name" as="name"/>

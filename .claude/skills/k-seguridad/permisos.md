@@ -176,7 +176,7 @@ Todos con el mismo patrón `EXISTS` de AceProfile (ver arriba), uno por nivel, s
   <can create="false" read="true" write="false" remove="false" export="true"/>
 </permission>
 
-<!-- 2. Niveles por AceProfile: porGlobal, porTipoTramite, porTramite, porCentro,
+<!-- 2. Niveles por AceProfile: porGlobal, porTipoUsuario, porTramite, porCentro,
      porTipoExpediente y porExpediente, con la misma forma que Expediente.porGlobal
      (arriba) variando el nivel de a. Ver auth-expedientes.xml. -->
 ```

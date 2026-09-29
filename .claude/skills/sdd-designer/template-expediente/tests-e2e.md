@@ -24,11 +24,11 @@ Lo escribe el **diseñador**, **siempre** (un tipo de expediente siempre tiene u
 
 ## 2. Actores y datos de demo
 
-Los tests se ejecutan contra la aplicación real arrancada con datos de demo. El diseñador **MUST** leer los ficheros reales de `src/main/resources/data-demo/input/` —`usuarios-demo.xml` y `centros-demo.xml`— y **usar los que ya existen**; y **MUST** cuadrarlos con los perfiles de `design-contract.md` §14: los `<aces>` de los ficheros maestros que él mismo escribe más los que ya da security (`AceProfileGlobal.xml`, `AceProfileTipoTramite.xml`). La demo no asigna perfiles por su cuenta.
+Los tests se ejecutan contra la aplicación real arrancada con datos de demo. El diseñador **MUST** leer los ficheros reales de `src/main/resources/data-demo/input/` —`usuarios-demo.xml` y `centros-demo.xml`— y **usar los que ya existen**; y **MUST** cuadrarlos con los perfiles de `design-contract.md` §14: los `<acl>` de los ficheros maestros que él mismo escribe más los que ya da security (`AceProfileGlobal.xml`, `AceProfileTipoUsuarioTramite.xml`). La demo no asigna perfiles por su cuenta.
 
 Reglas:
 
-- **REQUIRED — tabla de actores.** El fichero **MUST** empezar con una tabla de **todos** los actores que algún test usa para iniciar sesión, con: `login`, `contraseña`, tipo de usuario o cargo, centro, el `<PERFIL>` que tiene y **de dónde sale** (`<aces>` del trámite, `<aces>` del tipo, o data-init de security `AceProfileGlobal`/`AceProfileTipoTramite`). `/sdd-debug-with-test-e2e-desc` necesita esas credenciales para hacer login real: un actor que inicia sesión sin figurar en la tabla es un **fallo de cobertura**.
+- **REQUIRED — tabla de actores.** El fichero **MUST** empezar con una tabla de **todos** los actores que algún test usa para iniciar sesión, con: `login`, `contraseña`, tipo de usuario o cargo, centro, el `<PERFIL>` que tiene y **de dónde sale** (`<acl>` del trámite, `<acl>` del tipo, o data-init de security `AceProfileGlobal`/`AceProfileTipoUsuarioTramite`). `/sdd-debug-with-test-e2e-desc` necesita esas credenciales para hacer login real: un actor que inicia sesión sin figurar en la tabla es un **fallo de cobertura**.
 - **MUST** usarse logins y contraseñas **que existan** en `usuarios-demo.xml`. **MUST NOT** inventarse un usuario. Si ningún usuario de demo encaja con un perfil del tipo, el diseño **MUST** declarar en «Notas y supuestos» que hay que añadirlo y **MUST** incluir su fila en la tabla de ficheros del `design.md` (como `Modificar` sobre el fichero de demo correspondiente).
 - **MUST** usarse un solo **centro** de demo salvo que la especificación exija probar el aislamiento multicentro; en ese caso, un actor de otro centro y un test que compruebe que **no** ve el expediente.
 - Todos los actores **MUST** pertenecer al mismo centro que el expediente bajo prueba, salvo el test de aislamiento anterior y el usuario `admin`, que ve cualquier centro.
@@ -41,7 +41,7 @@ Reglas:
 >
 > | Login | Contraseña | Tipo / Cargo | Centro | Perfil | Origen del perfil |
 > |---|---|---|---|---|---|
-> | `ejemplo1@centro-x.es` | `clave-demo` | tipo de usuario `EJEMPLO_TIPO` | `CENTRO-X` | `CREADOR` | `<aces>` del trámite |
+> | `ejemplo1@centro-x.es` | `clave-demo` | tipo de usuario `EJEMPLO_TIPO` | `CENTRO-X` | `CREADOR` | `<acl>` del trámite |
 
 ### 2.1 Numeración de los `T-NNN` — desde el primer número libre del destino
 
@@ -123,7 +123,7 @@ Tests en lenguaje de negocio, Given/When/Then, materializados a partir de los es
 
 | Login | Contraseña | Tipo / Cargo | Centro | Perfil | Origen del perfil |
 |---|---|---|---|---|---|
-| <login> | <contraseña> | <tipo de usuario o cargo> | <centro> | <PERFIL> | `<aces>` del trámite \| `<aces>` del tipo \| security `AceProfileGlobal` \| security `AceProfileTipoTramite` |
+| <login> | <contraseña> | <tipo de usuario o cargo> | <centro> | <PERFIL> | `<acl>` del trámite \| `<acl>` del tipo \| security `AceProfileGlobal` \| security `AceProfileTipoUsuarioTramite` |
 
 ## Datos de demo
 
@@ -211,7 +211,7 @@ El diseñador lo aplica antes de dar el diseño por terminado; el verificador lo
 
 - [ ] ¿El fichero empieza con la tabla de **actores**, con `login`, `contraseña`, tipo/cargo, centro, perfil y origen del perfil, para **cada** usuario que inicia sesión en algún test?
 - [ ] ¿Todos los logins y contraseñas existen realmente en `usuarios-demo.xml` (o su alta está declarada en «Notas y supuestos» y en la tabla de ficheros)?
-- [ ] ¿Los perfiles de la tabla de actores cuadran con los `<aces>` del diseño y con los de security, y el del estado inicial sale de un origen que cuenta al crear (`<aces>` del trámite, de la versión activa o security)?
+- [ ] ¿Los perfiles de la tabla de actores cuadran con los `<acl>` del diseño y con los de security, y el del estado inicial sale de un origen que cuenta al crear (`<acl>` del trámite, de la versión activa o security)?
 - [ ] ¿Hay un **juego de datos válido** por cada fase que pide datos al usuario, con valores concretos y coherentes con el validador?
 
 **Cobertura**

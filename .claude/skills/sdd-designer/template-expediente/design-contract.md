@@ -44,8 +44,8 @@ El diseñador escribe, dentro de su carpeta `design_<n>/` (que al ganar el torne
 ```
 design/
 ├── design.md                          ← índice (frontmatter type: design + template: copiada de la spec)
-├── TramiteInstance.xml                ← XML materializado, listo para copiar (con su <aces>, §14)
-├── TipoExpedienteInstance.xml         ← XML materializado (con su <aces> si lo lleva, §14)
+├── TramiteInstance.xml                ← XML materializado, listo para copiar (con su <acl>, §14)
+├── TipoExpedienteInstance.xml         ← XML materializado (con su <acl> si lo lleva, §14)
 ├── domains.xml                        ← XML materializado
 ├── views.xml                          ← XML materializado (form plantilla de la raíz de la versión)
 ├── estados.puml                       ← materializado
@@ -127,7 +127,8 @@ Una tabla con **exactamente** estas filas:
 |---|---|
 | `code` del trámite | `<Code>` |
 | Nombre visible (`<name>`) | … |
-| `tipoTramite` | … (**MUST** existir en `TipoTramites.xml` del data-init de expedientes) |
+| `tipoUsuario` | … (**MUST** existir en `tiposUsuario.xml` del data-init de common) |
+| `unidadTramitadora` | … (**MUST** existir en `UnidadesTramitadoras.xml` del data-init de expedientes) |
 | Carpeta del trámite | `src/main/java/com/educaflow/tramites/<tramite>/` |
 | Carpeta de la versión | `src/main/java/com/educaflow/tramites/<tramite>/<…segmentos…>/<vN>/` |
 | `<defaultTipoExpediente>` | el **nombre de la carpeta** de versión (`<vN>`), **nunca** la ruta ni el code del tipo |
@@ -237,16 +238,18 @@ Reglas:
             <state name="<ESTADO>" events="" profile="<PERFIL>" title="<Título>" closed="true"/>
         </fase>
     </fases>
-    <aces>
-        <ace perfil="<PERFIL>" cargo="<CARGO>"/>
-    </aces>
+    <acl>
+        <ace perfil="<PERFIL>">
+            <usuario cargo="<CARGO>"/>
+        </ace>
+    </acl>
 </TipoExpediente>
 ```
 
 - **MUST** escribirse siempre `events`, aunque sea `events=""`: omitirlo equivale en silencio a vacío.
 - **MUST NOT** usarse un `<states>` suelto en la raíz: es el formato anterior a las fases y el parseo aborta.
 - **MUST NOT** usarse `ambitoCreador`/`ambitoResponsable`/`ambitoAuditor`: hoy son inertes.
-- `<aces>` es opcional y hermano de `<fases>`: los perfiles que da **solo esta versión** (§14).
+- `<acl>` es opcional y hermano de `<fases>`: los perfiles que da **solo esta versión** (§14).
 - Un tag desconocido lo **ignora JAXB en silencio**: cualquier typo aplica el default sin avisar.
 
 ### 5.5 `TramiteInstance.xml` materializado
@@ -258,16 +261,19 @@ Reglas:
 <Tramite>
     <code><Code></code>
     <name><nombre visible></name>
-    <tipoTramite><TIPO_TRAMITE></tipoTramite>
+    <tipoUsuario><TIPO_USUARIO_TRAMITE></tipoUsuario>
+    <unidadTramitadora><UNIDAD_TRAMITADORA></unidadTramitadora>
     <defaultTipoExpediente><vN></defaultTipoExpediente>
     <help><![CDATA[ ... HTML ... ]]></help>
-    <aces>
-        <ace perfil="<PERFIL>" tipoUsuario="<TIPO_USUARIO>"/>
-    </aces>
+    <acl>
+        <ace perfil="<PERFIL>">
+            <usuario tipoUsuario="<TIPO_USUARIO>"/>
+        </ace>
+    </acl>
 </Tramite>
 ```
 
-`<publico>` y `<privado>` son opcionales; `<aces>` también, y lleva los perfiles que da el trámite en todas sus versiones (§14). Si el `<help>` contiene `]]>`, el generador lanza `RuntimeException`.
+`<publico>` y `<privado>` son opcionales; `<acl>` también, y lleva los perfiles que da el trámite en todas sus versiones (§14). Si el `<help>` contiene `]]>`, el generador lanza `RuntimeException`.
 
 ---
 
@@ -805,44 +811,45 @@ La sección **MUST** listar, además, cada regla funcional de la especificación
 
 ## 14. Sección «Asignación de perfiles»
 
-Los perfiles de un usuario salen de las tablas `AceProfile*` (fuente de verdad: `src/main/java/com/educaflow/subsystem/security/CLAUDE.md`). El diseño solo escribe en dos de ellas, a través del `<aces>` de los ficheros maestros que ya materializa:
+Los perfiles de un usuario salen de las tablas `AceProfile*` (fuente de verdad: `src/main/java/com/educaflow/subsystem/security/CLAUDE.md`). El diseño solo escribe en dos de ellas, a través del `<acl>` de los ficheros maestros que ya materializa:
 
 | Origen | Tabla | Alcance | Quién lo escribe |
 |---|---|---|---|
-| `<aces>` de `TramiteInstance.xml` | `AceProfileTramite` | el trámite, **todas** sus versiones | el diseño |
-| `<aces>` de `TipoExpedienteInstance.xml` | `AceProfileTipoExpediente` | **solo** esa versión; hay que repetirlo en cada versión nueva | el diseño |
+| `<acl>` de `TramiteInstance.xml` | `AceProfileTramite` | el trámite, **todas** sus versiones | el diseño |
+| `<acl>` de `TipoExpedienteInstance.xml` | `AceProfileTipoExpediente` | **solo** esa versión; hay que repetirlo en cada versión nueva | el diseño |
 | data-init de security: `AceProfileGlobal.xml` | `AceProfileGlobal` | todos los trámites | **nadie** desde un trámite (ya existe) |
-| data-init de security: `AceProfileTipoTramite.xml` | `AceProfileTipoTramite` | los trámites del mismo `tipoTramite` | **nadie** desde un trámite (ya existe) |
+| data-init de security: `AceProfileTipoUsuarioTramite.xml` | `AceProfileTipoUsuarioTramite` | los trámites del mismo `tipoUsuario` | **nadie** desde un trámite (ya existe) |
 
 ### 14.1 Tabla
 
 | perfil | actor | tipo de actor | origen |
 |---|---|---|---|
-| `<PERFIL>` | `<CODE>` | `TipoUsuario` \| `Cargo` | `<aces>` del trámite \| `<aces>` del tipo \| security `AceProfileGlobal` \| security `AceProfileTipoTramite` |
+| `<PERFIL>` | `<CODE>` | `TipoUsuario` \| `Cargo` | `<acl>` del trámite \| `<acl>` del tipo \| security `AceProfileGlobal` \| security `AceProfileTipoUsuarioTramite` |
 
 Una fila por cada perfil que use algún estado del tipo, **incluidas** las que ya da security (con su origen), para que se vea quién alcanza cada estado.
 
 ### 14.2 Reglas
 
-- **Crear un expediente** exige el perfil del estado **inicial** sobre el trámite, que se calcula con Global + TipoTramite + `<aces>` del trámite + `AceProfileCentro` + `<aces>` de la versión **activa** (`defaultTipoExpediente`). Vale por tanto el `<aces>` del trámite o el de la versión activa; **SHOULD** preferirse el del trámite porque sobrevive a las versiones.
-- **Actuar sobre un expediente** usa Global + TipoTramite + `<aces>` del trámite + `AceProfileCentro` + `<aces>` del **tipo del propio expediente** + `AceProfileExpediente`, pero **sin** el `CREADOR` de esas tablas (salvo `AceProfileExpediente`): sobre un expediente solo es `CREADOR` quien lo registró. Un `<ace perfil="CREADOR">` da derecho a crear, nunca a actuar en los estados de `CREADOR` de expedientes ajenos.
-- Los perfiles de los estados **posteriores** **SHOULD** ir también en el `<aces>` del trámite; el del tipo solo cuando el perfil dependa de la versión.
+- **Crear un expediente** exige el perfil del estado **inicial** sobre el trámite, que se calcula con Global + TipoUsuarioTramite + `<acl>` del trámite + `AceProfileCentro` + `<acl>` de la versión **activa** (`defaultTipoExpediente`). Vale por tanto el `<acl>` del trámite o el de la versión activa; **SHOULD** preferirse el del trámite porque sobrevive a las versiones.
+- **Actuar sobre un expediente** usa Global + TipoUsuarioTramite + `<acl>` del trámite + `AceProfileCentro` + `<acl>` del **tipo del propio expediente** + `AceProfileExpediente`, pero **sin** el `CREADOR` de esas tablas (salvo `AceProfileExpediente`): sobre un expediente solo es `CREADOR` quien lo registró. Un `<ace perfil="CREADOR">` da derecho a crear, nunca a actuar en los estados de `CREADOR` de expedientes ajenos.
+- Los perfiles de los estados **posteriores** **SHOULD** ir también en el `<acl>` del trámite; el del tipo solo cuando el perfil dependa de la versión.
 - **MUST** quedar asignado a alguien, desde un origen de §14.1, **todo** perfil que use algún estado del tipo: un perfil sin actor deja ese estado inalcanzable. **MUST NOT** contarse con `AceProfileCentro` ni `AceProfileExpediente`: se rellenan en tiempo de ejecución y el diseño no los controla.
-- El diseñador **MUST** leer `src/main/java/com/educaflow/subsystem/security/data-init/input/AceProfileGlobal.xml` y `AceProfileTipoTramite.xml` y **MUST NOT** repetir en un `<aces>` un perfil que el mismo actor ya tiene por ahí para el `tipoTramite` del trámite.
+- El diseñador **MUST** leer `src/main/java/com/educaflow/subsystem/security/data-init/input/AceProfileGlobal.xml` y `AceProfileTipoUsuarioTramite.xml` y **MUST NOT** repetir en un `<acl>` un perfil que el mismo actor ya tiene por ahí para el `tipoUsuario` del trámite.
 - **MUST NOT** modificarse esos dos ficheros de security: son compartidos por todos los trámites.
 - `auth-expedientes.xml` ya concede lectura sobre `Expediente`/`Tramite`/`TipoExpediente` **condicionada por las tablas `AceProfile*`**: sin ningún perfil el usuario no ve el trámite ni sus expedientes aunque existan.
 - La `<permission name="<Entidad>.all">` del tipo la genera el build en el `auth-<Code>.xml` de su data-init, enganchada a los grupos `admins` y `users`, así que el diseño **MUST NOT** escribirla en ningún `auth-*.xml`: sería un duplicado. Se genera con `create/read/write/remove` **sin `condition`**, agujero conocido documentado en `CLAUDE.md`, y el diseño **MUST NOT** intentar taparlo por su cuenta.
 
 ### 14.3 Formato del `<ace>`
 
-Va en el `<aces>` de `design/TramiteInstance.xml` (§5.5) o de `design/TipoExpedienteInstance.xml` (§5.4); ningún otro fichero del diseño lleva perfiles.
+Va en el `<acl>` de `design/TramiteInstance.xml` (§5.5) o de `design/TipoExpedienteInstance.xml` (§5.4); ningún otro fichero del diseño lleva perfiles.
 
-- **MUST** llevar `perfil` (nombre de una constante del enum `Profile`, `subsystem/expedientes/domains/Profile.xml`) y **exactamente uno** de `tipoUsuario` (`TipoUsuario.codigo`, de `subsystem/common/data-init/input/tiposUsuario.xml`) o `cargo` (`Cargo.code`, de `subsystem/common/data-init/input/cargos.xml`). Con los dos o con ninguno el build aborta.
-- **MUST NOT** llevar el trámite ni el tipo: son los del propio fichero.
-- Un cargo **sí** puede darse en el `<aces>` del trámite.
-- ✅ CORRECTO: `<ace perfil="<PERFIL>" cargo="<CARGO>"/>`
-- ❌ INCORRECTO: `<ace perfil="<PERFIL>" cargo="<CARGO>" tipoUsuario="<TIPO_USUARIO>"/>` (dos actores: el build aborta)
-- ❌ INCORRECTO: `<ace perfil="<PERFIL>" tipoUsuario="<TIPO_USUARIO>" tramite="<Code>"/>` (el trámite es implícito, sobra)
+- **MUST** llevar el atributo `perfil` (nombre de una constante del enum `Profile`, `subsystem/expedientes/domains/Profile.xml`) y un hijo `<usuario>` con **exactamente uno** de `tipoUsuario` (`TipoUsuario.codigo`, de `subsystem/common/data-init/input/tiposUsuario.xml`) o `cargo` (`Cargo.code`, de `subsystem/common/data-init/input/cargos.xml`). Sin `<usuario>`, o con los dos atributos o ninguno, el build aborta.
+- **MUST NOT** llevar `<tramite>` ni `<tipoExpediente>`: son los del propio fichero.
+- Un cargo **sí** puede darse en el `<acl>` del trámite.
+- ✅ CORRECTO: `<ace perfil="<PERFIL>"><usuario cargo="<CARGO>"/></ace>`
+- ❌ INCORRECTO: `<ace perfil="<PERFIL>" cargo="<CARGO>"/>` (formato antiguo, sin `<usuario>`: el build aborta)
+- ❌ INCORRECTO: `<ace perfil="<PERFIL>"><usuario cargo="<CARGO>" tipoUsuario="<TIPO_USUARIO>"/></ace>` (dos actores: el build aborta)
+- ❌ INCORRECTO: `<ace perfil="<PERFIL>"><usuario tipoUsuario="<TIPO_USUARIO>"/><tramite code="<Code>"/></ace>` (el trámite es implícito, sobra)
 
 ---
 
@@ -978,9 +985,9 @@ La sección `## 15. Checklist del diseñador` del `design.md` **MUST** reproduci
 
 **Permisos y pasos**
 
-- [ ] ¿El perfil del estado inicial lo da el `<aces>` del trámite, el de la versión activa o security (preferentemente el del trámite)?
+- [ ] ¿El perfil del estado inicial lo da el `<acl>` del trámite, el de la versión activa o security (preferentemente el del trámite)?
 - [ ] ¿Todo perfil usado por algún estado tiene actor desde un origen de §14.1, sin contar con `AceProfileCentro` ni `AceProfileExpediente`?
-- [ ] ¿Cada `<ace>` lleva `perfil` y exactamente uno de `tipoUsuario`/`cargo`, sin repetir lo que ya dan `AceProfileGlobal.xml`/`AceProfileTipoTramite.xml` y sin tocar esos ficheros?
+- [ ] ¿Cada `<ace>` lleva `perfil` y un `<usuario>` con exactamente uno de `tipoUsuario`/`cargo`, sin repetir lo que ya dan `AceProfileGlobal.xml`/`AceProfileTipoUsuarioTramite.xml` y sin tocar esos ficheros?
 - [ ] ¿La tabla «Ficheros a crear o modificar» lista **todos** los ficheros reales y ninguno generado? (En una iniciativa de modificación: ¿solo los ficheros tocados por el delta, con el fichero maestro como `Modificar` si el delta añade perfiles? — §8)
 - [ ] ¿Los pasos siguen el orden obligatorio de §9, con el paso de **`CreateFilesTask` en la posición 3** y su comando exacto?
 - [ ] **Iniciativa de MODIFICACIÓN:** ¿hay **exactamente un paso de fichero por fila** de la tabla §6, en su orden relativo y renumerados sin huecos, sin `CreateFilesTask` salvo que el delta añada fases nuevas, y con `./run.sh` como último paso (§9)?

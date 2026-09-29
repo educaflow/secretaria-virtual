@@ -12,7 +12,10 @@
             <state name="RECHAZADO"              events=""                     profile="TRAMITADOR"                                     closed="true"   />
         </fase>
     </fases>
-    <aces>
-        <ace perfil="AUDITOR" cargo="DIRECTOR"/> <!-- De prueba: solo para comprobar que funcionan los ACE y como ejemplo -->
-    </aces>
+    <acl>
+        <!-- De prueba: solo para comprobar que funcionan los ACE y como ejemplo -->
+        <ace perfil="AUDITOR">
+            <usuario cargo="DIRECTOR"/>
+        </ace>
+    </acl>
 </TipoExpediente>

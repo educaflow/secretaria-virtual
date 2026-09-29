@@ -60,6 +60,7 @@
   </permission>
 
   <group code="users">
+    <permission name="TipoUsuario.leer"/>
     <permission name="AceProfileCentro.supervisor"/>
     <permission name="Tramite.supervisor"/>
   </group>

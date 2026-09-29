@@ -67,8 +67,8 @@ El diseñador (`/sdd-designer`) dejó en `{iniciativa}/design/` **exactamente** 
 .sdd/drafts/YYYY-MM-DD_HH-MM_{resumen}/
 └── design/
     ├── design.md                          ← índice (frontmatter type: design + template: heredada de la spec)
-    ├── TramiteInstance.xml                ← XML materializado, listo para copiar (lleva los perfiles en su <aces>)
-    ├── TipoExpedienteInstance.xml         ← XML materializado (y su <aces>, si lo lleva)
+    ├── TramiteInstance.xml                ← XML materializado, listo para copiar (lleva los perfiles en su <acl>)
+    ├── TipoExpedienteInstance.xml         ← XML materializado (y su <acl>, si lo lleva)
     ├── domains.xml                        ← XML materializado
     ├── views.xml                          ← XML materializado (form plantilla de la raíz de la versión)
     ├── estados.puml                       ← materializado

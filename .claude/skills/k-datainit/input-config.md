@@ -38,7 +38,7 @@ Hay dos familias de manifiesto en Axelor: `<xml-inputs>` (datos en XML, lo que u
 </xml-inputs>
 ```
 
-- **`priority`** (`int`, default `0`): ordena la carga **entre distintos `input-config.xml`** del proyecto. **A MAYOR valor, se carga ANTES** (lo dice el propio XSD: *"La mayor valor, se carga primero"*). Si dos manifiestos tienen la misma prioridad, **el orden NO está garantizado**. Úsalo para que los datos referenciados existan antes de ser referenciados (p.ej. `TipoTramite` con `priority="10"` carga antes que `Tramite` con `priority="1"`).
+- **`priority`** (`int`, default `0`): ordena la carga **entre distintos `input-config.xml`** del proyecto. **A MAYOR valor, se carga ANTES** (lo dice el propio XSD: *"La mayor valor, se carga primero"*). Si dos manifiestos tienen la misma prioridad, **el orden NO está garantizado**. Úsalo para que los datos referenciados existan antes de ser referenciados (p.ej. `UnidadTramitadora` con `priority="9"` carga antes que `Tramite` con `priority="1"`).
 - **Contenido**: cero o más `<adapter>` seguidos de **uno o más `<input>`** (al menos uno es obligatorio).
 - El namespace **MUST** ser `http://axelor.com/xml/ns/data-import`. Por convención todos los `input-config.xml` del proyecto referencian `data-import_8.0.xsd` en el `schemaLocation`.
 - **El `schemaLocation` es solo una pista** para validadores externos; en runtime Axelor resuelve el XSD por **namespace** desde el jar (el XSD empaquetado del fork, declarado `version="8.1"`), no descargando esa URL. **CRITICAL**: el atributo `priority` es un **añadido del fork** y **no existe** en el XSD público de `axelor.com`; por eso un fichero con `priority=` solo valida contra el XSD local del fork, no contra la URL pública.

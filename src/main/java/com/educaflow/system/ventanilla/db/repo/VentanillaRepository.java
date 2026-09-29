@@ -13,7 +13,7 @@ public class VentanillaRepository extends JpaRepository<Tramite> {
 
     public List<Tramite> findTramitesEvaluables() {
         return all()
-                .filter("self.tipoTramite IS NOT NULL AND self.defaultTipoExpediente IS NOT NULL")
+                .filter("self.defaultTipoExpediente IS NOT NULL")
                 .fetch();
     }
 }

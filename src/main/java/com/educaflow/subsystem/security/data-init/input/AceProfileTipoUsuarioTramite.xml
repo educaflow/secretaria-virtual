@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<datos>
+    <acl>
+        <ace perfil="TRAMITADOR">
+            <usuario tipoUsuario="ADMINISTRATIVO"/>
+            <tramite tipoUsuario="ALUMNO"/>
+        </ace>
+        <ace perfil="TRAMITADOR">
+            <usuario cargo="JEFE_ESTUDIOS"/>
+            <tramite tipoUsuario="PROFESOR"/>
+        </ace>
+        <ace perfil="CREADOR">
+            <usuario tipoUsuario="PROFESOR"/>
+            <tramite tipoUsuario="PROFESOR"/>
+        </ace>
+        <ace perfil="CREADOR">
+            <usuario tipoUsuario="ALUMNO"/>
+            <tramite tipoUsuario="ALUMNO"/>
+        </ace>
+        <ace perfil="CREADOR">
+            <usuario tipoUsuario="FAMILIAR"/>
+            <tramite tipoUsuario="ALUMNO"/>
+        </ace>
+    </acl>
+</datos>

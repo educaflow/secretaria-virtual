@@ -28,12 +28,12 @@
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
-  <permission name="Tramite.porTipoTramite"
+  <permission name="Tramite.porTipoUsuario"
               object="com.educaflow.subsystem.expedientes.db.Tramite"
               condition="EXISTS (
-        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTipoTramite a, com.educaflow.subsystem.common.db.CentroUsuario cu
+        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTipoUsuarioTramite a, com.educaflow.subsystem.common.db.CentroUsuario cu
         WHERE cu.usuario = ?
-        AND a.tipoTramite = self.tipoTramite
+        AND a.tipoUsuarioTramite = self.tipoUsuario
         AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
             OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu))
     )"
@@ -128,14 +128,14 @@
     <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
-  <permission name="Expediente.porTipoTramite"
+  <permission name="Expediente.porTipoUsuario"
               object="com.educaflow.subsystem.expedientes.db.Expediente"
               condition="EXISTS (
-        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTipoTramite a, com.educaflow.subsystem.common.db.CentroUsuario cu
+        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileTipoUsuarioTramite a, com.educaflow.subsystem.common.db.CentroUsuario cu
         WHERE cu.usuario = ?
         AND cu.centro = self.centro
         AND a.perfil != com.educaflow.subsystem.expedientes.db.Profile.CREADOR
-        AND a.tipoTramite = self.tipoExpediente.tramite.tipoTramite
+        AND a.tipoUsuarioTramite = self.tipoExpediente.tramite.tipoUsuario
         AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
             OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu))
     )"
@@ -224,10 +224,6 @@
 
   <permission name="FormacionCentroTrabajo.all" object="com.educaflow.subsystem.expedientes.db.FormacionCentroTrabajo">
     <can create="true" read="true" write="true" remove="true" export="true"/>
-  </permission>
-
-  <permission name="TipoTramite.leer" object="com.educaflow.subsystem.expedientes.db.TipoTramite">
-    <can create="false" read="true" write="false" remove="false" export="false"/>
   </permission>
 
   <permission name="UnidadTramitadora.leer" object="com.educaflow.subsystem.expedientes.db.UnidadTramitadora">

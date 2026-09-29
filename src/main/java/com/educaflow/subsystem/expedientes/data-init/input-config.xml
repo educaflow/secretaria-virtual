@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
-<!-- priority 9: los Tramite (data-init generado por tipo de expediente, priority 1) referencian estos
-     TipoTramite, así que tienen que cargarse antes que ellos.
-     Y por debajo del data-init de common (priority 10), porque cada TipoTramite referencia un TipoUsuario y un Cargo. -->
+<!-- priority 9: los Tramite (data-init generado por tipo de expediente, priority 1) referencian estas
+     UnidadTramitadora, así que tienen que cargarse antes que ellos. -->
 <xml-inputs priority="9" xmlns="http://axelor.com/xml/ns/data-import"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://axelor.com/xml/ns/data-import
@@ -10,24 +9,11 @@
 
 
 
-    <!-- Antes que TipoTramites.xml, que las referencia -->
     <input file="UnidadesTramitadoras.xml" root="datos">
         <bind node="unidadestramitadoras/unidadtramitadora" type="com.educaflow.subsystem.expedientes.db.UnidadTramitadora" search="self.code = :code" create="true" update="true">
             <bind node="@code" to="code" />
             <bind node="@name" to="name" />
         </bind>
-    </input>
-
-    <input file="TipoTramites.xml" root="datos">
-
-        <bind node="tipostramites/tipotramite" type="com.educaflow.subsystem.expedientes.db.TipoTramite" search="self.code = :code" create="true" update="true">
-            <bind node="@code" to="code" />
-            <bind node="@name" to="name" />
-            <bind node="@tipoUsuario" to="tipoUsuario" search="self.codigo = :tipoUsuario" create="false" update="false" />
-            <bind node="@unidadTramitadora" to="unidadTramitadora" search="self.code = :unidadTramitadora" create="false" update="false" />
-        </bind>
-
-
     </input>
 
     <!-- Permisos del subsistema expedientes -->

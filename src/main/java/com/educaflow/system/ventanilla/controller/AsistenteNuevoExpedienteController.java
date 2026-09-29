@@ -136,8 +136,8 @@ public class AsistenteNuevoExpedienteController {
         registro.put("id", tramite.getId());
         registro.put("version", tramite.getVersion());
         registro.put("name", tramite.getName());
-        if (tramite.getTipoTramite() != null) {
-            registro.put("tipoTramite.name", tramite.getTipoTramite().getName());
+        if (tramite.getTipoUsuario() != null) {
+            registro.put("tipoUsuario.tituloTramites", tramite.getTipoUsuario().getTituloTramites());
         }
         return registro;
     }

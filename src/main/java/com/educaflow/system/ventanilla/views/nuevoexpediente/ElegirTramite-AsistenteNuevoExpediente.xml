@@ -93,7 +93,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     <!-- Tree de trámites candidatos agrupados por tipo de trámite, embebido en el panel-dashlet
          de arriba. Modelo AsistenteNuevoExpediente porque su <context> evalúa los campos que ya
          tiene calculados el form contenedor (centro, hayQueElegirCentro, tramitesDisponibles);
-         los nodos del propio tree usan TipoTramite/Tramite. -->
+         los nodos del propio tree usan TipoUsuario/Tramite. -->
     <action-view name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-action"
                  title="Trámite" model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
         <view type="tree" name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-tree"/>
@@ -107,14 +107,14 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
         <column name="name"/>
 
-        <node model="com.educaflow.subsystem.expedientes.db.TipoTramite"
-              domain="EXISTS (SELECT 1 FROM Tramite t WHERE t.tipoTramite=self AND t.id IN :_tramiteIds)">
-            <field name="name" as="name"/>
+        <node model="com.educaflow.subsystem.common.db.TipoUsuario"
+              domain="EXISTS (SELECT 1 FROM Tramite t WHERE t.tipoUsuario=self AND t.id IN :_tramiteIds)">
+            <field name="tituloTramites" as="name"/>
         </node>
 
         <node model="com.educaflow.subsystem.expedientes.db.Tramite"
               domain="self.id IN :_tramiteIds"
-              parent="tipoTramite" draggable="false"
+              parent="tipoUsuario" draggable="false"
               onClick="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-onClick-action">
             <field name="name" as="name"/>
         </node>

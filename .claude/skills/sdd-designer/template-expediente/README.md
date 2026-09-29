@@ -181,7 +181,7 @@ Lo carga el **diseñador** (§2.1) antes de generar: es el único rol que lo nec
 - **Siempre** `k-tramite` — el alta del trámite: la carpeta `tramites/<tramite>/`, el `TramiteInstance.xml`, la i18n del nombre y los permisos necesarios para poder crear expedientes.
 - **Siempre** `k-validaciones` — en qué capa vive cada tipo de regla (`VAL-`, `RN-`, `RUI-`, `CC-`) que la spec ya clasificó. Es la referencia del **reparto de reglas** (`design-contract.md` §13). En un tipo de expediente **no existe** el prefijo `RES-`: el expediente vive guardado desde que nace y cada dato se exige **solo** en la pareja (estado, acción) en que se pide, así que toda obligatoriedad llega de la spec como `VAL-`. **MUST NOT** buscarse ni inventarse restricciones de entidad.
 - **Siempre** `k-secure-coding` — el modelo de confianza cliente↔servidor. **Determina** la columna «quién lo rellena» de la tabla de campos y, con ella, qué campos pueden aparecer en un `field(...)` del validador (`design-contract.md` §6.1 y §12.3). Incluye la advertencia sobre el endpoint REST automático `POST /ws/rest/<FQN>`, que **no** pasa por el `Tramitador`.
-- **Siempre** `k-datainit` — cómo se cargan los datos maestros y de permisos (`input-config.xml` + `input/`), para entender cómo se cargan los perfiles de security (`AceProfileGlobal.xml`, `AceProfileTipoTramite.xml`) y los que el build genera a partir de los `<aces>` de los ficheros maestros.
+- **Siempre** `k-datainit` — cómo se cargan los datos maestros y de permisos (`input-config.xml` + `input/`), para entender cómo se cargan los perfiles de security (`AceProfileGlobal.xml`, `AceProfileTipoUsuarioTramite.xml`) y los que el build genera a partir de los `<acl>` de los ficheros maestros.
 - **Siempre** `k-i18n` — cómo se traducen `title`, `help` y `name`, el marcador `__!!` y por qué **MUST NOT** escribirse ningún `i18n_*.csv`.
 - **Siempre** `k-code-quality` — reglas de calidad del Java/Kotlin que el diseño especifica (descomposición, responsabilidad única, nombrado, idiomas modernos, convenciones Axelor/Guice/JPA).
 - **Condicional** `k-guice` — cargar **solo si** el diseño necesita cablear DI no trivial: un servicio nuevo del trámite cuya construcción no es un simple `@Inject` de otro bean (dependencias que vienen de configuración o de runtime, `Provider`, binding explícito). Para inyectar el `<Entidad>Repository`, el `AlmacenClaveResolver` o el `ModelServiceFactory` en un `PhaseEventManagerImpl` **NO** hace falta.
@@ -201,9 +201,9 @@ Los skills son la fuente de verdad sobre **qué piezas existen y cómo se llaman
 - `src/main/java/com/educaflow/tramites/util/` — el **común de los trámites**: lo que comparten varios tipos de expediente sin ser del motor (p. ej. `firma/`, con `FirmaClienteController` —la firma con AutoFirma__!! en el equipo del usuario— y `FirmaServidorController`/`FirmaServidorHelper`/`FirmaServidorRules`).
 - `src/main/java/com/educaflow/base/infrastructure/` — `DocumentoPdf`, `MetaFileHelper`, `AlmacenClaveResolver`, `CampoFirma`, `Rectangulo` y las reglas del DSL de validación (`validation/rules/`).
 - `src/main/java/com/educaflow/subsystem/security/CLAUDE.md` — **MUST** leerse: es la fuente de verdad de cómo se calculan los perfiles a partir de las tablas `AceProfile*` (`design-contract.md` §14).
-- `src/main/java/com/educaflow/subsystem/security/data-init/input/AceProfileGlobal.xml` y `AceProfileTipoTramite.xml` — **MUST** leerse para saber qué perfiles ya se tienen por ahí y **no duplicarlos** en los `<aces>` del diseño. **MUST NOT** modificarse: son de security y compartidos por todos los trámites.
+- `src/main/java/com/educaflow/subsystem/security/data-init/input/AceProfileGlobal.xml` y `AceProfileTipoUsuarioTramite.xml` — **MUST** leerse para saber qué perfiles ya se tienen por ahí y **no duplicarlos** en los `<acl>` del diseño. **MUST NOT** modificarse: son de security y compartidos por todos los trámites.
 - `src/main/resources/data-demo/input/usuarios-demo.xml` y `centros-demo.xml` — **MUST** leerse para los actores y credenciales de `test-e2e-desc.md` (ver `tests-e2e.md` §2).
-- `src/main/java/com/educaflow/subsystem/expedientes/data-init/input/TipoTramites.xml` — **MUST** leerse para comprobar que el `<tipoTramite>` elegido existe.
+- `src/main/java/com/educaflow/subsystem/common/data-init/input/tiposUsuario.xml` y `src/main/java/com/educaflow/subsystem/expedientes/data-init/input/UnidadesTramitadoras.xml` — **MUST** leerse para comprobar que el `<tipoUsuario>` y la `<unidadTramitadora>` elegidos existen.
 - `src/test/java/com/educaflow/tiposexpedientes/` — los tests que verifican la forma de todo tipo de expediente. **MUST** leerse para saber qué se va a exigir; **MUST NOT** proponerse tocarlos ni ampliarlos (ver `tests-unitarios.md`).
 
 ### 4.3 Qué NO aplica a este artefacto
@@ -213,7 +213,7 @@ Los skills son la fuente de verdad sobre **qué piezas existen y cómo se llaman
 - **MUST NOT** usarse `agent_docs/architecture-rules.md` ni `/developer-create-arch-tests` para este artefacto.
 - **MUST NOT** usarse ningún `design.md` ni XML de diseños previos de `.sdd/` como plantilla de estructura — **salvo lectura** de las iniciativas archivadas que `design-guidelines.md` cite explícitamente, y solo para respetar sus decisiones.
 
-El **verificador** puede leer (nunca escribir) los ficheros reales que `validacion.md` le indica expresamente: `AceProfileGlobal.xml`, `AceProfileTipoTramite.xml`, `tiposUsuario.xml`, `cargos.xml`, `TipoTramites.xml`, los paneles globales de `tramites/shared/` y el árbol de `tramites/` para comprobar las acciones `Crear`/`Modificar`.
+El **verificador** puede leer (nunca escribir) los ficheros reales que `validacion.md` le indica expresamente: `AceProfileGlobal.xml`, `AceProfileTipoUsuarioTramite.xml`, `tiposUsuario.xml`, `cargos.xml`, `UnidadesTramitadoras.xml`, los paneles globales de `tramites/shared/` y el árbol de `tramites/` para comprobar las acciones `Crear`/`Modificar`.
 
 ---
 
@@ -229,7 +229,7 @@ Dentro del `design.md`, este modo añade además la subsección `### Tests E2E s
 | Parte | Nota |
 |---|---|
 | `design.md` | El índice, con las 15 secciones de `design-contract.md` §2 |
-| `TramiteInstance.xml` | Uno por trámite, con su `<aces>` (`design-contract.md` §14): un tipo de expediente sin perfiles asignados es inalcanzable |
+| `TramiteInstance.xml` | Uno por trámite, con su `<acl>` (`design-contract.md` §14): un tipo de expediente sin perfiles asignados es inalcanzable |
 | `TipoExpedienteInstance.xml` | Uno por versión, con **todas** sus fases |
 | `domains.xml` | Con la entidad del tipo como **primera** `<entity>` |
 | `views.xml` (raíz de la versión) | El form plantilla `exp-<Entidad>-Templates` |

@@ -169,7 +169,7 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
         Tramite tramite = contexto.tramite();
         Centro centro = contexto.centro();
 
-        if (tramite.getTipoTramite().getTipoUsuario() == null) {
+        if (tramite.getTipoUsuario() == null) {
             return Optional.empty();
         }
 
@@ -372,7 +372,7 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
     }
 
     private boolean esDestinatarioDelTramite(Tramite tramite, Centro centro) {
-        return tieneTipoUsuario(centro, tramite.getTipoTramite().getTipoUsuario().getCodigo());
+        return tieneTipoUsuario(centro, tramite.getTipoUsuario().getCodigo());
     }
 
     private boolean esFamiliar(Centro centro) {

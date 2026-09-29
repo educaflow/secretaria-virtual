@@ -41,7 +41,7 @@ Copia **literalmente** (con `cp`, creando la carpeta destino con `mkdir -p` si n
 - **CRITICAL — el mapeo `design/fases/<fase>/views.xml` → `<carpeta de versión>/<fase>/views.xml` pierde el segmento `fases/`.** La carpeta destino es la de la fase **directamente bajo la carpeta de versión**, con el nombre de la fase **en minúsculas**. En cualquier otra ubicación el preprocesador no la encuentra y el `views.xml` queda muerto.
 - La carpeta destino de un documento **MUST** llamarse `documentospdf`. `documentos/` renderiza pero **no** se escanea para el enum `TipoDocumentoPdf`: el documento queda muerto sin aviso.
 - Verifica cada copia con un `diff` contra el fichero de origen: **MUST** ser vacío.
-- Los perfiles viajan en el `<aces>` de `TramiteInstance.xml` y de `TipoExpedienteInstance.xml`, así que se aplican con su copia. **MUST NOT** escribirse perfiles en ningún otro fichero (ni data-init de demo ni `AceProfileGlobal.xml`/`AceProfileTipoTramite.xml` de security).
+- Los perfiles viajan en el `<acl>` de `TramiteInstance.xml` y de `TipoExpedienteInstance.xml`, así que se aplican con su copia. **MUST NOT** escribirse perfiles en ningún otro fichero (ni data-init de demo ni `AceProfileGlobal.xml`/`AceProfileTipoUsuarioTramite.xml` de security).
 
 ### 2.1 CRITICAL — copiar ENCIMA del esqueleto es lo esperado, no es un CONFLICT
 

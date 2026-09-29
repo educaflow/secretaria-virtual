@@ -144,7 +144,7 @@ Lo leen el **ejecutor** y el **corrector**. Es lo que un trámite tiene y un sis
 
 Menú **«Mis trámites» → «Nuevo trámite»**: el asistente de `system/ventanilla/views/nuevoexpediente/` (su `CLAUDE.md` describe las tres pantallas —centro, trámite, presentación— y sus `data-testid`). Al pulsar «Crear expediente» se dispara `triggerInitialEvent` y **se abre directamente el formulario del estado inicial**, con el expediente ya creado. No hay un botón «Nuevo» del grid ni un alta previa que guardar.
 
-- Un trámite que el usuario **no ve en el árbol** es un problema de **permisos** (ningún perfil sobre el trámite: el `<aces>` del `TramiteInstance.xml` o de la versión activa, o los de security `AceProfileGlobal`/`AceProfileTipoTramite`), no de la máquina de estados.
+- Un trámite que el usuario **no ve en el árbol** es un problema de **permisos** (ningún perfil sobre el trámite: el `<acl>` del `TramiteInstance.xml` o de la versión activa, o los de security `AceProfileGlobal`/`AceProfileTipoUsuarioTramite`), no de la máquina de estados.
 
 ### 4.2 Cómo se abre un expediente ya creado — y por qué importa el perfil
 

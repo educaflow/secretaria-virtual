@@ -42,7 +42,7 @@ Inicia sesión con las credenciales del actor del test (la fila de `### Actores`
 
 ### 3.2 Situar el expediente en el estado de partida
 
-1. **`Desde: [*]`** → crea el expediente: menú **«Mis trámites» → «Nuevo trámite»**, elige centro (si pregunta), despliega el tipo de trámite, pulsa el trámite y «Crear expediente». El expediente se crea y se abre ya en el estado inicial. **MUST NOT** buscar un botón «Nuevo» de un grid: no existe.
+1. **`Desde: [*]`** → crea el expediente: menú **«Mis trámites» → «Nuevo trámite»**, elige centro (si pregunta), despliega el grupo «Trámites para el …», pulsa el trámite y «Crear expediente». El expediente se crea y se abre ya en el estado inicial. **MUST NOT** buscar un botón «Nuevo» de un grid: no existe.
 2. **`Desde: <FASE>/<ESTADO>`** → el `Given` describe cómo se llega. **MUST** recorrer las transiciones previas **por la UI** (con los usuarios y perfiles que correspondan a cada tramo), no atajar por REST ni por base de datos.
 3. **Abre el expediente por la lista del actor del test** (`README.md` §4.2): quien lo registró, por «Mis trámites» (Pendientes de mí / En tramitación / Finalizados según a quién espere el estado); quien tramita, por «Tramitación» → «Pendientes de mí» o por su unidad. Localízalo por su **número de expediente**, que la cabecera y los listados muestran. El perfil con el que se abre lo decide el servidor por el usuario.
 

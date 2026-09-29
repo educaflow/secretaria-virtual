@@ -3,16 +3,16 @@ package com.educaflow.subsystem.security.service.impl;
 import com.axelor.auth.db.User;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.CentroUsuario;
+import com.educaflow.subsystem.common.db.TipoUsuario;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.TipoExpediente;
-import com.educaflow.subsystem.expedientes.db.TipoTramite;
 import com.educaflow.subsystem.expedientes.db.Tramite;
 import com.educaflow.subsystem.security.db.repo.AceProfileCentroRepository;
 import com.educaflow.subsystem.security.db.repo.AceProfileExpedienteRepository;
 import com.educaflow.subsystem.security.db.repo.AceProfileGlobalRepository;
 import com.educaflow.subsystem.security.db.repo.AceProfileTipoExpedienteRepository;
-import com.educaflow.subsystem.security.db.repo.AceProfileTipoTramiteRepository;
+import com.educaflow.subsystem.security.db.repo.AceProfileTipoUsuarioTramiteRepository;
 import com.educaflow.subsystem.security.db.repo.AceProfileTramiteRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,7 +43,7 @@ class PerfilesUsuarioServiceImplTest {
     AceProfileGlobalRepository aceProfileGlobalRepository;
 
     @Mock
-    AceProfileTipoTramiteRepository aceProfileTipoTramiteRepository;
+    AceProfileTipoUsuarioTramiteRepository aceProfileTipoUsuarioTramiteRepository;
 
     @Mock
     AceProfileTramiteRepository aceProfileTramiteRepository;
@@ -75,7 +75,7 @@ class PerfilesUsuarioServiceImplTest {
 
     private static Tramite tramite() {
         Tramite tramite = new Tramite();
-        tramite.setTipoTramite(new TipoTramite());
+        tramite.setTipoUsuario(new TipoUsuario());
         tramite.setDefaultTipoExpediente(new TipoExpediente());
         return tramite;
     }
@@ -99,7 +99,7 @@ class PerfilesUsuarioServiceImplTest {
     }
 
     private void verificarQueNoSeConsultaNingunAce() {
-        verifyNoInteractions(aceProfileGlobalRepository, aceProfileTipoTramiteRepository, aceProfileTramiteRepository,
+        verifyNoInteractions(aceProfileGlobalRepository, aceProfileTipoUsuarioTramiteRepository, aceProfileTramiteRepository,
                 aceProfileTipoExpedienteRepository, aceProfileCentroRepository, aceProfileExpedienteRepository);
     }
 
@@ -109,13 +109,13 @@ class PerfilesUsuarioServiceImplTest {
         User usuario = usuario(5L);
         enCentro(usuario, centro(1L));
         CentroUsuario centroUsuario = enCentro(usuario, centroExpediente);
-        TipoTramite tipoTramite = new TipoTramite();
+        TipoUsuario tipoUsuarioTramite = new TipoUsuario();
         Tramite tramite = tramite();
-        tramite.setTipoTramite(tipoTramite);
+        tramite.setTipoUsuario(tipoUsuarioTramite);
         TipoExpediente tipoExpediente = new TipoExpediente();
         Expediente expediente = expediente(centroExpediente, tramite, tipoExpediente);
         when(aceProfileGlobalRepository.findPerfiles(centroUsuario)).thenReturn(Set.of(Profile.DIRECTOR));
-        when(aceProfileTipoTramiteRepository.findPerfiles(tipoTramite, centroUsuario)).thenReturn(Set.of(Profile.TRAMITADOR));
+        when(aceProfileTipoUsuarioTramiteRepository.findPerfiles(tipoUsuarioTramite, centroUsuario)).thenReturn(Set.of(Profile.TRAMITADOR));
         when(aceProfileTramiteRepository.findPerfiles(tramite, centroUsuario)).thenReturn(Set.of(Profile.SECRETARIO));
         when(aceProfileCentroRepository.findPerfiles(tramite, centroUsuario)).thenReturn(Set.of(Profile.AUDITOR));
         when(aceProfileTipoExpedienteRepository.findPerfiles(tipoExpediente, centroUsuario)).thenReturn(Set.of(Profile.COLABORADOR));
@@ -130,13 +130,13 @@ class PerfilesUsuarioServiceImplTest {
         Centro centroExpediente = centro(2L);
         User usuario = usuario(5L);
         CentroUsuario centroUsuario = enCentro(usuario, centroExpediente);
-        TipoTramite tipoTramite = new TipoTramite();
+        TipoUsuario tipoUsuarioTramite = new TipoUsuario();
         Tramite tramite = tramite();
-        tramite.setTipoTramite(tipoTramite);
+        tramite.setTipoUsuario(tipoUsuarioTramite);
         TipoExpediente tipoExpediente = new TipoExpediente();
         Expediente expediente = expediente(centroExpediente, tramite, tipoExpediente);
         when(aceProfileGlobalRepository.findPerfiles(centroUsuario)).thenReturn(Set.of(Profile.CREADOR));
-        when(aceProfileTipoTramiteRepository.findPerfiles(tipoTramite, centroUsuario)).thenReturn(Set.of(Profile.CREADOR));
+        when(aceProfileTipoUsuarioTramiteRepository.findPerfiles(tipoUsuarioTramite, centroUsuario)).thenReturn(Set.of(Profile.CREADOR));
         when(aceProfileTramiteRepository.findPerfiles(tramite, centroUsuario)).thenReturn(Set.of(Profile.CREADOR, Profile.TRAMITADOR));
         when(aceProfileCentroRepository.findPerfiles(tramite, centroUsuario)).thenReturn(Set.of(Profile.CREADOR));
         when(aceProfileTipoExpedienteRepository.findPerfiles(tipoExpediente, centroUsuario)).thenReturn(Set.of(Profile.CREADOR));
@@ -179,16 +179,16 @@ class PerfilesUsuarioServiceImplTest {
     }
 
     @Test
-    void getPerfilesSobreTramite_sumaGlobalTipoTramiteTramiteYCentroDelCentroIndicado() {
+    void getPerfilesSobreTramite_sumaGlobalTipoUsuarioTramiteYCentroDelCentroIndicado() {
         Centro centroElegido = centro(2L);
         User usuario = usuario(5L);
         enCentro(usuario, centro(1L));
         CentroUsuario centroUsuario = enCentro(usuario, centroElegido);
-        TipoTramite tipoTramite = new TipoTramite();
+        TipoUsuario tipoUsuarioTramite = new TipoUsuario();
         Tramite tramite = tramite();
-        tramite.setTipoTramite(tipoTramite);
+        tramite.setTipoUsuario(tipoUsuarioTramite);
         when(aceProfileGlobalRepository.findPerfiles(centroUsuario)).thenReturn(Set.of(Profile.DIRECTOR));
-        when(aceProfileTipoTramiteRepository.findPerfiles(tipoTramite, centroUsuario)).thenReturn(Set.of(Profile.CREADOR));
+        when(aceProfileTipoUsuarioTramiteRepository.findPerfiles(tipoUsuarioTramite, centroUsuario)).thenReturn(Set.of(Profile.CREADOR));
         when(aceProfileTramiteRepository.findPerfiles(tramite, centroUsuario)).thenReturn(Set.of(Profile.TRAMITADOR));
         when(aceProfileCentroRepository.findPerfiles(tramite, centroUsuario)).thenReturn(Set.of(Profile.AUDITOR));
 
@@ -291,12 +291,12 @@ class PerfilesUsuarioServiceImplTest {
     }
 
     @Test
-    void getPerfilesSobreExpediente_tramiteSinTipoTramite_lanzaExcepcionSinConsultar() {
+    void getPerfilesSobreExpediente_tramiteSinTipoUsuario_lanzaExcepcionSinConsultar() {
         Centro centroExpediente = centro(2L);
         User usuario = usuario(5L);
         enCentro(usuario, centroExpediente);
         Tramite tramite = tramite();
-        tramite.setTipoTramite(null);
+        tramite.setTipoUsuario(null);
         Expediente expediente = expediente(centroExpediente, tramite, new TipoExpediente());
 
         assertThrows(NullPointerException.class, () -> service.getPerfilesSobreExpediente(expediente, usuario));
@@ -348,12 +348,12 @@ class PerfilesUsuarioServiceImplTest {
     }
 
     @Test
-    void getPerfilesSobreTramite_sinTipoTramite_lanzaExcepcionSinConsultar() {
+    void getPerfilesSobreTramite_sinTipoUsuario_lanzaExcepcionSinConsultar() {
         Centro centroElegido = centro(2L);
         User usuario = usuario(5L);
         enCentro(usuario, centroElegido);
         Tramite tramite = tramite();
-        tramite.setTipoTramite(null);
+        tramite.setTipoUsuario(null);
 
         assertThrows(NullPointerException.class, () -> service.getPerfilesSobreTramite(tramite, usuario, centroElegido));
         verificarQueNoSeConsultaNingunAce();
@@ -490,20 +490,20 @@ class PerfilesUsuarioServiceImplTest {
         Centro centroExpediente = centro(2L);
         User usuario = usuario(5L);
         CentroUsuario centroUsuario = enCentro(usuario, centroExpediente);
-        TipoTramite tipoTramite = new TipoTramite();
+        TipoUsuario tipoUsuarioTramite = new TipoUsuario();
         Tramite tramite = tramite();
-        tramite.setTipoTramite(tipoTramite);
+        tramite.setTipoUsuario(tipoUsuarioTramite);
         TipoExpediente tipoExpediente = new TipoExpediente();
         Expediente expediente = expediente(centroExpediente, tramite, tipoExpediente);
 
         assertEquals(Set.of(), service.getPerfilesSobreExpediente(expediente, usuario));
         verify(aceProfileGlobalRepository, times(1)).findPerfiles(centroUsuario);
-        verify(aceProfileTipoTramiteRepository, times(1)).findPerfiles(tipoTramite, centroUsuario);
+        verify(aceProfileTipoUsuarioTramiteRepository, times(1)).findPerfiles(tipoUsuarioTramite, centroUsuario);
         verify(aceProfileTramiteRepository, times(1)).findPerfiles(tramite, centroUsuario);
         verify(aceProfileCentroRepository, times(1)).findPerfiles(tramite, centroUsuario);
         verify(aceProfileTipoExpedienteRepository, times(1)).findPerfiles(tipoExpediente, centroUsuario);
         verify(aceProfileExpedienteRepository, times(1)).findPerfiles(expediente, centroUsuario);
-        verifyNoMoreInteractions(aceProfileGlobalRepository, aceProfileTipoTramiteRepository, aceProfileTramiteRepository,
+        verifyNoMoreInteractions(aceProfileGlobalRepository, aceProfileTipoUsuarioTramiteRepository, aceProfileTramiteRepository,
                 aceProfileTipoExpedienteRepository, aceProfileCentroRepository, aceProfileExpedienteRepository);
     }
 
@@ -512,19 +512,19 @@ class PerfilesUsuarioServiceImplTest {
         Centro centroElegido = centro(2L);
         User usuario = usuario(5L);
         CentroUsuario centroUsuario = enCentro(usuario, centroElegido);
-        TipoTramite tipoTramite = new TipoTramite();
+        TipoUsuario tipoUsuarioTramite = new TipoUsuario();
         TipoExpediente tipoActivo = new TipoExpediente();
         Tramite tramite = tramite();
-        tramite.setTipoTramite(tipoTramite);
+        tramite.setTipoUsuario(tipoUsuarioTramite);
         tramite.setDefaultTipoExpediente(tipoActivo);
 
         assertEquals(Set.of(), service.getPerfilesSobreTramite(tramite, usuario, centroElegido));
         verify(aceProfileGlobalRepository, times(1)).findPerfiles(centroUsuario);
-        verify(aceProfileTipoTramiteRepository, times(1)).findPerfiles(tipoTramite, centroUsuario);
+        verify(aceProfileTipoUsuarioTramiteRepository, times(1)).findPerfiles(tipoUsuarioTramite, centroUsuario);
         verify(aceProfileTramiteRepository, times(1)).findPerfiles(tramite, centroUsuario);
         verify(aceProfileCentroRepository, times(1)).findPerfiles(tramite, centroUsuario);
         verify(aceProfileTipoExpedienteRepository, times(1)).findPerfiles(tipoActivo, centroUsuario);
-        verifyNoMoreInteractions(aceProfileGlobalRepository, aceProfileTipoTramiteRepository, aceProfileTramiteRepository,
+        verifyNoMoreInteractions(aceProfileGlobalRepository, aceProfileTipoUsuarioTramiteRepository, aceProfileTramiteRepository,
                 aceProfileTipoExpedienteRepository, aceProfileCentroRepository);
         verifyNoInteractions(aceProfileExpedienteRepository);
     }
@@ -562,14 +562,14 @@ class PerfilesUsuarioServiceImplTest {
         Centro centro = centro(2L);
         User usuario = usuario(5L);
         CentroUsuario centroUsuario = enCentro(usuario, centro);
-        TipoTramite tipoTramite = new TipoTramite();
+        TipoUsuario tipoUsuarioTramite = new TipoUsuario();
         TipoExpediente tipoActivo = new TipoExpediente();
         Tramite tramite = tramite();
-        tramite.setTipoTramite(tipoTramite);
+        tramite.setTipoUsuario(tipoUsuarioTramite);
         tramite.setDefaultTipoExpediente(tipoActivo);
         Expediente expediente = expediente(centro, tramite, tipoActivo);
         when(aceProfileGlobalRepository.findPerfiles(centroUsuario)).thenReturn(Set.of(Profile.DIRECTOR));
-        when(aceProfileTipoTramiteRepository.findPerfiles(tipoTramite, centroUsuario)).thenReturn(Set.of(Profile.TRAMITADOR));
+        when(aceProfileTipoUsuarioTramiteRepository.findPerfiles(tipoUsuarioTramite, centroUsuario)).thenReturn(Set.of(Profile.TRAMITADOR));
         when(aceProfileTramiteRepository.findPerfiles(tramite, centroUsuario)).thenReturn(Set.of(Profile.SECRETARIO));
         when(aceProfileCentroRepository.findPerfiles(tramite, centroUsuario)).thenReturn(Set.of(Profile.AUDITOR));
         when(aceProfileTipoExpedienteRepository.findPerfiles(tipoActivo, centroUsuario)).thenReturn(Set.of(Profile.COLABORADOR));

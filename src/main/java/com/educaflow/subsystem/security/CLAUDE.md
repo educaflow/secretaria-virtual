@@ -13,9 +13,9 @@ Están partidas por **sobre qué** se da el perfil, porque cada una se rellena e
 | Tabla | Sobre qué | A quién (exactamente uno) | Quién la rellena |
 |---|---|---|---|
 | `AceProfileGlobal` | todos los trámites de todos los centros | `tipoUsuario` o `cargo` | data-init de este subsistema |
-| `AceProfileTipoTramite` | los trámites de un `tipoTramite`, en todos los centros | `tipoUsuario` o `cargo` | data-init de este subsistema |
-| `AceProfileTramite` | un `tramite`, en todos los centros | `tipoUsuario` o `cargo` | el `<aces>` del `TramiteInstance.xml` (`/k-tramite`) |
-| `AceProfileTipoExpediente` | un `tipoExpediente`, en todos los centros | `tipoUsuario` o `cargo` | el `<aces>` del `TipoExpedienteInstance.xml` (`/k-tipo-expediente`) |
+| `AceProfileTipoUsuarioTramite` | los trámites dirigidos a un tipo de usuario (`Tramite.tipoUsuario` = `tipoUsuarioTramite`), en todos los centros | `tipoUsuario` o `cargo` | data-init de este subsistema |
+| `AceProfileTramite` | un `tramite`, en todos los centros | `tipoUsuario` o `cargo` | el `<acl>` del `TramiteInstance.xml` (`/k-tramite`) |
+| `AceProfileTipoExpediente` | un `tipoExpediente`, en todos los centros | `tipoUsuario` o `cargo` | el `<acl>` del `TipoExpedienteInstance.xml` (`/k-tipo-expediente`) |
 | `AceProfileCentro` | un `tramite` en un `centro` | `tipoUsuario`, `cargo` o `usuario` | una pantalla del centro, en tiempo de ejecución: «Mi centro → Perfiles de trámites» (el supervisor, en los centros que supervisa) y «Administración → Perfiles de trámites por centro» (el administrador, en cualquier centro), las dos a través de `AceProfileCentroService`, que valida que haya un único destinatario |
 | `AceProfileExpediente` | un `expediente` | `usuario` | la tramitación, en tiempo de ejecución |
 
@@ -24,18 +24,18 @@ Están partidas por **sobre qué** se da el perfil, porque cada una se rellena e
 - `AceProfileCentro` y `AceProfileExpediente` dan el perfil a un `User`, no a un `CentroUsuario`.
   El centro ya lo fija la fila (`centro`, o el centro del expediente), así que guardar el `CentroUsuario` duplicaría el centro y permitiría que las dos copias no coincidieran.
 - Que en cada fila haya exactamente un «a quién» no lo puede expresar el XML de dominio.
-  - En los `<aces>` de `TramiteInstance.xml` y `TipoExpedienteInstance.xml` lo valida el build (el generador de `EducaFlowBuildTools` aborta).
-  - En el data-init de este subsistema **no** lo valida nadie: un `<ace>` con `tipoUsuario` y `cargo` a la vez entra por los dos `<input>` y crea dos filas, así que **MUST** escribirse con uno solo.
+  - En los `<acl>` de `TramiteInstance.xml` y `TipoExpedienteInstance.xml` lo valida el build (el generador de `EducaFlowBuildTools` aborta).
+  - En el data-init de este subsistema **no** lo valida nadie: un `<usuario>` con `tipoUsuario` y `cargo` a la vez entra por los dos `<input>` y crea dos filas, así que **MUST** escribirse con uno solo.
   - En las tablas de tiempo de ejecución **MUST** validarlo el servicio que las escriba.
 
 ## Cómo se calculan los perfiles
 
 Lo hace `PerfilesUsuarioService`, juntando (unión) los perfiles de todas las tablas que alcanzan al usuario.
 
-- **Sobre un trámite** (para poder crear un expediente): Global + TipoTramite del trámite + Tramite + Centro del centro elegido + TipoExpediente del **tipo activo** del trámite (`defaultTipoExpediente`), que es el que se va a crear.
-- **Sobre un expediente**: Global + TipoTramite + Tramite + Centro del centro del expediente + TipoExpediente del **tipo del propio expediente** + Expediente.
+- **Sobre un trámite** (para poder crear un expediente): Global + TipoUsuarioTramite + Tramite + Centro del centro elegido + TipoExpediente del **tipo activo** del trámite (`defaultTipoExpediente`), que es el que se va a crear.
+- **Sobre un expediente**: Global + TipoUsuarioTramite + Tramite + Centro del centro del expediente + TipoExpediente del **tipo del propio expediente** + Expediente.
   - **MUST** usarse el tipo del expediente y no el activo del trámite: al activar una versión nueva, sus perfiles no se aplican a los expedientes de versiones anteriores.
-  - El `CREADOR` de Global, TipoTramite, Tramite, Centro y TipoExpediente **MUST NOT** contar sobre un expediente: solo habilita a crear. Si contara, cualquier alumno sería `CREADOR` de los expedientes de los demás alumnos.
+  - El `CREADOR` de Global, TipoUsuarioTramite, Tramite, Centro y TipoExpediente **MUST NOT** contar sobre un expediente: solo habilita a crear. Si contara, cualquier alumno sería `CREADOR` de los expedientes de los demás alumnos.
   - Sobre un expediente es `CREADOR` quien lo registró (`usuarioRegistrador`), aunque no tenga ninguna fila, y quien tenga una fila `CREADOR` en `AceProfileExpediente`.
 - Una fila por `tipoUsuario` o `cargo` alcanza al usuario si tiene ese tipo de usuario o ese cargo **en el centro** del que se pregunta (sus `CentroUsuarioTipoUsuario` / `CentroUsuarioCargo`).
 - Quien no pertenece al centro (no tiene `CentroUsuario` en él) no recibe ningún perfil, **ni siquiera** `CREADOR` sobre un expediente que registró: solo se crean expedientes en un centro al que se pertenece.
@@ -52,9 +52,12 @@ Por eso las cuatro tablas que salen de XML se vacían en cada arranque (`tablasI
 
 ## Datos iniciales
 
-- `AceProfileGlobal` y `AceProfileTipoTramite` se cargan desde `data-init/input/` de este subsistema, con un fichero por tabla y el mismo formato para las dos: `<aces>` con un `<ace perfil="…" tipoUsuario="…"/>` o `<ace perfil="…" cargo="…"/>` por fila.
-- El `input-config.xml` tiene una `priority` menor que la de `common` (`TipoUsuario`, `Cargo`) y que la de `expedientes` (`TipoTramite`), porque los referencia.
-- `AceProfileTramite` y `AceProfileTipoExpediente` no tienen data-init en `src`: lo genera el build a partir del `<aces>` de cada fichero maestro.
+- `AceProfileGlobal` y `AceProfileTipoUsuarioTramite` se cargan desde `data-init/input/` de este subsistema, con un fichero por tabla y el mismo formato para las dos: `<acl>` con un `<ace perfil="…">` por fila.
+  - El `<ace>` lleva un hijo `<usuario tipoUsuario="…"/>` o `<usuario cargo="…"/>`: a quién se da el perfil.
+  - En `AceProfileTipoUsuarioTramite` lleva además `<tramite tipoUsuario="…"/>`: el tipo de usuario al que va dirigido el trámite, que se guarda en la columna `tipoUsuarioTramite`.
+  - Una condición nueva sobre el usuario o sobre el trámite es un atributo más de `<usuario>` o de `<tramite>`.
+- El `input-config.xml` tiene una `priority` menor que la de `common` (`TipoUsuario`, `Cargo`), porque los referencia.
+- `AceProfileTramite` y `AceProfileTipoExpediente` no tienen data-init en `src`: lo genera el build a partir del `<acl>` de cada fichero maestro.
 
 ## Permisos de Axelor
 

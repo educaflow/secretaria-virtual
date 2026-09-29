@@ -4,8 +4,8 @@ import com.axelor.auth.db.User;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.CentroUsuario;
 import com.educaflow.subsystem.expedientes.db.Profile;
-import com.educaflow.subsystem.expedientes.db.TipoTramite;
 import com.educaflow.subsystem.expedientes.db.Tramite;
+import com.educaflow.subsystem.expedientes.db.UnidadTramitadora;
 import com.educaflow.subsystem.expedientes.db.repo.TramiteRepository;
 import com.educaflow.subsystem.security.service.MenuSecurityService;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
@@ -60,7 +60,7 @@ public class MenuSecurityServiceImpl implements MenuSecurityService {
 
     /** Como {@link #isTramitador}, pero solo en los trámites de esa unidad tramitadora. */
     private boolean isDeUnidadTramitadora(User user, String codigoUnidadTramitadora) {
-        return tramitaAlgunTramite(user, tramite -> Objects.equals(codigoUnidadTramitadora, codigoUnidadTramitadora(tramite.getTipoTramite())));
+        return tramitaAlgunTramite(user, tramite -> Objects.equals(codigoUnidadTramitadora, codigoUnidadTramitadora(tramite.getUnidadTramitadora())));
     }
 
     private boolean isSupervisor(User user) {
@@ -93,7 +93,7 @@ public class MenuSecurityServiceImpl implements MenuSecurityService {
 
     private List<Tramite> findTramitesEvaluables() {
         return tramiteRepository.all()
-                .filter("self.tipoTramite IS NOT NULL AND self.defaultTipoExpediente IS NOT NULL")
+                .filter("self.defaultTipoExpediente IS NOT NULL")
                 .fetch();
     }
 
@@ -105,10 +105,10 @@ public class MenuSecurityServiceImpl implements MenuSecurityService {
         return perfiles.stream().anyMatch(perfil -> perfil != Profile.CREADOR);
     }
 
-    private static String codigoUnidadTramitadora(TipoTramite tipoTramite) {
-        if (tipoTramite == null || tipoTramite.getUnidadTramitadora() == null) {
+    private static String codigoUnidadTramitadora(UnidadTramitadora unidadTramitadora) {
+        if (unidadTramitadora == null) {
             return null;
         }
-        return tipoTramite.getUnidadTramitadora().getCode();
+        return unidadTramitadora.getCode();
     }
 }
