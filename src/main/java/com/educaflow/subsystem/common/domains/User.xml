@@ -6,7 +6,6 @@
     <module name="auth" package="com.axelor.auth.db"/>
 
     <entity name="User">
-        <many-to-one name="centroActivo" ref="com.educaflow.subsystem.common.db.Centro" title="Centro Activo" cascade="merge"/>
         <string name="dni" title="DNI"  />
         <string name="email" title="Correo electrónico" unique="false"/>
         <one-to-many name="centroUsuarios" ref="com.educaflow.subsystem.common.db.CentroUsuario" mappedBy="usuario" title=""/>
@@ -15,26 +14,8 @@
 
         <finder-method name="findByDni" using="String:dni" filter="self.dni = :dni" />
 
-        <extra-imports-model>
-        <![CDATA[
-            import java.util.List;
-            import java.util.stream.Collectors;
-            import com.educaflow.subsystem.common.db.TipoUsuario;
-        ]]>
-        </extra-imports-model>
-
         <extra-code-model>
         <![CDATA[
-            public com.educaflow.subsystem.common.db.CentroUsuario getCentroUsuarioActivo() {
-                if (centroActivo == null || centroUsuarios == null) {
-                    return null;
-                }
-                return centroUsuarios.stream()
-                    .filter(cu -> cu.getCentro() != null && cu.getCentro().getId().equals(centroActivo.getId()))
-                    .findFirst()
-                    .orElse(null);
-            }
-
             public com.educaflow.subsystem.common.db.CentroUsuario getCentroUsuario(com.educaflow.subsystem.common.db.Centro centro) {
                 if (centro == null || centro.getId() == null || centroUsuarios == null) {
                     return null;
@@ -43,16 +24,6 @@
                     .filter(cu -> cu.getCentro() != null && centro.getId().equals(cu.getCentro().getId()))
                     .findFirst()
                     .orElse(null);
-            }
-
-            public List<TipoUsuario> getTiposUsuarioActivos() {
-                var cu = getCentroUsuarioActivo();
-                if (cu == null || cu.getCentroUsuarioTipoUsuario() == null) {
-                    return null;
-                }
-                return cu.getCentroUsuarioTipoUsuario().stream()
-                    .map(cut -> cut.getTipoUsuario())
-                    .collect(Collectors.toList());
             }
         ]]>
         </extra-code-model>

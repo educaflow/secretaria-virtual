@@ -155,6 +155,7 @@
         <usuario email="alumnofamiliar@mislata.es"   documento="48213579J" name="AlumnoFamiliar CIPFP Mislata"   nombre="AlumnoFamiliar"   apellidos="CIPFP Mislata" password="demo1234"/>
         <usuario email="alumnodoscentros@mislata.es" documento="71359246K" name="AlumnoDosCentros CIPFP Mislata y Batoi" nombre="AlumnoDosCentros" apellidos="CIPFP Mislata y Batoi" password="demo1234"/>
         <usuario email="mprofesor@m.com"             documento="56789123F" name="ProfesorDosCentros CIPFP Mislata y Batoi" nombre="ProfesorDosCentros" apellidos="CIPFP Mislata y Batoi" password="demo1234"/>
+        <usuario email="supervisordoscentros@mislata.es" documento="39517284H" name="SupervisorDosCentros CIPFP Mislata y Batoi" nombre="SupervisorDosCentros" apellidos="CIPFP Mislata y Batoi" password="demo1234"/>
 
     </usuarios>
 
@@ -236,6 +237,9 @@
 
         <centroUsuario usuarioCode="mprofesor@m.com"             centroCode="46019660"/>
         <centroUsuario usuarioCode="mprofesor@m.com"             centroCode="03012165"/>
+
+        <centroUsuario usuarioCode="supervisordoscentros@mislata.es" centroCode="46019660"/>
+        <centroUsuario usuarioCode="supervisordoscentros@mislata.es" centroCode="03012165"/>
 
         <centroUsuario usuarioCode="administrativo3@mislata.es"  centroCode="03012165"/>
 
@@ -323,6 +327,9 @@
 
         <tipo usuarioCode="mprofesor@m.com"             centroCode="46019660" tipoCode="PROFESOR"/>
         <tipo usuarioCode="mprofesor@m.com"             centroCode="03012165" tipoCode="PROFESOR"/>
+
+        <tipo usuarioCode="supervisordoscentros@mislata.es" centroCode="46019660" tipoCode="SUPERVISOR"/>
+        <tipo usuarioCode="supervisordoscentros@mislata.es" centroCode="03012165" tipoCode="SUPERVISOR"/>
 
 
         <tipo usuarioCode="administrativo3@mislata.es"  centroCode="03012165" tipoCode="ADMINISTRATIVO"/>

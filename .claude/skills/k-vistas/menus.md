@@ -85,7 +85,7 @@ Cómo funciona: `ViewLoader.importMenu` busca la `MetaMenu` por `(name, module)`
 
 - **MUST NOT** escribir el atributo `if` en un `<menuitem>`: el preprocesador de vistas (EducaFlowBuildTools) se lo añade a **todos** como `if="__config__.menuSecurity.isVisible(&quot;<name>&quot;)"`, y el build falla si el fuente ya lo trae.
 - Para condicionar un menú, añade un `case "<name>"` en el `switch` de `MenuSecurityServiceImpl.isVisible`; el `default` devuelve `true`, así que un menú sin `case` solo depende de `groups`.
-- Las preguntas sobre el usuario («¿es tramitador?», «¿es de la unidad de Secretaría?», «¿es supervisor?») son métodos privados de `MenuSecurityServiceImpl`; una nueva se añade ahí, debajo del `switch`. Nunca `User.centroActivo`.
+- Las preguntas sobre el usuario («¿es tramitador?», «¿es de la unidad de Secretaría?», «¿es supervisor?») son métodos privados de `MenuSecurityServiceImpl`; una nueva se añade ahí, debajo del `switch`.
 - Ocultar un menú raíz o intermedio oculta también todo su submenú. Un raíz con hijos solo para `admins` (p. ej. «Tramitación → Todos los centros») **MUST** ser visible para el administrador (`admin || …` en su `case`).
 - **La visibilidad no autoriza nada**: un menú oculto no protege la vista que abre. Eso lo hacen los permisos de Axelor y el tramitador.
 

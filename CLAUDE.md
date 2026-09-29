@@ -136,7 +136,8 @@ A veces hay palabras que acaban con `__!!` como en `AutoFirma__!!` esto es para 
 
 ## La aplicación
 La aplicación de secretaría virtual va a ser usada en centros educativos para informatizarlos. La app permite que haya más de un centro educativo. Es decir que es una aplicación "multicentro" y cada centro solo puede ver su propia información.
-En los expedientes el centro es el del propio expediente, que el usuario elige al crearlo entre sus centros: `subsystem/expedientes`, `subsystem/tramitador`, `tramites` y `system/ventanilla` **MUST NOT** usar `User.centroActivo`, que está en vías de eliminación y hoy solo usan correos, Preferencias y los usuarios autorizados de gestión de centro; «Mi centro» (centro y usuarios) ya no lo usa: muestra los centros de los que el usuario es supervisor.
+No existe ningún «centro activo» del usuario: el antiguo `User.centroActivo` se eliminó. Las vistas «del centro» muestran los datos de todos los centros del usuario según su permiso (p. ej. donde es `SUPERVISOR`, como en «Firmas → Del centro» y «Correos → Del centro»), con la columna «centro» en el grid para filtrar; dentro de un form de centro se filtra por `__parent__`.
+En los expedientes el centro es el del propio expediente, que el usuario elige al crearlo entre sus centros: `subsystem/expedientes`, `subsystem/tramitador`, `tramites` y `system/ventanilla` **MUST NOT** filtrar por los centros del usuario: operan sobre el centro del expediente elegido.
 
 ### Tipos de usuarios y cargos
 Existen varios tipos de usuarios en la aplicación:

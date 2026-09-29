@@ -37,7 +37,7 @@
     </input>
 
 
-    <!-- Paso 2: Crear CentroUsuario y actualizar centroActivo del User -->
+    <!-- Paso 2: Crear CentroUsuario -->
     <input file="usuarios-demo.xml" root="datos">
         <bind node="centroUsuarios/centroUsuario"
               type="com.educaflow.subsystem.common.db.CentroUsuario"
@@ -48,12 +48,7 @@
             <bind to="usuario"
                   type="com.axelor.auth.db.User"
                   search="self.code = :usuarioCode"
-                  update="true" create="false">
-                <bind to="centroActivo"
-                      type="com.educaflow.subsystem.common.db.Centro"
-                      search="self.code = :centroCode"
-                      update="false" create="false"/>
-            </bind>
+                  update="false" create="false"/>
             <bind to="centro"
                   type="com.educaflow.subsystem.common.db.Centro"
                   search="self.code = :centroCode"
@@ -62,7 +57,7 @@
     </input>
 
 
-    <!-- Paso 3: Crear CentroUsuarioTipoUsuario (sección plana, idempotente) -->
+    <!-- Paso 3:Crear CentroUsuarioTipoUsuario (sección plana, idempotente) -->
     <input file="usuarios-demo.xml" root="datos">
         <bind node="tipos/tipo"
               type="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario"

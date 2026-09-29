@@ -382,35 +382,33 @@ class PerfilesUsuarioServiceImplTest {
     }
 
     @Test
-    void getPerfilesSobreExpediente_ignoraElCentroActivoDelUsuario() {
-        Centro centroActivo = centro(1L);
+    void getPerfilesSobreExpediente_perteneceAVariosCentros_soloConsultaElCentroUsuarioDelExpediente() {
+        Centro centroOtro = centro(1L);
         Centro centroExpediente = centro(2L);
         User usuario = usuario(5L);
-        CentroUsuario centroUsuarioActivo = enCentro(usuario, centroActivo);
+        CentroUsuario centroUsuarioOtro = enCentro(usuario, centroOtro);
         CentroUsuario centroUsuarioExpediente = enCentro(usuario, centroExpediente);
-        usuario.setCentroActivo(centroActivo);
         Expediente expediente = expediente(centroExpediente, tramite(), new TipoExpediente());
         when(aceProfileExpedienteRepository.findPerfiles(expediente, centroUsuarioExpediente)).thenReturn(Set.of(Profile.AFECTADO));
 
         assertEquals(Set.of(Profile.AFECTADO), service.getPerfilesSobreExpediente(expediente, usuario));
-        verify(aceProfileGlobalRepository, never()).findPerfiles(centroUsuarioActivo);
-        verify(aceProfileExpedienteRepository, never()).findPerfiles(expediente, centroUsuarioActivo);
+        verify(aceProfileGlobalRepository, never()).findPerfiles(centroUsuarioOtro);
+        verify(aceProfileExpedienteRepository, never()).findPerfiles(expediente, centroUsuarioOtro);
     }
 
     @Test
-    void getPerfilesSobreTramite_ignoraElCentroActivoDelUsuario() {
-        Centro centroActivo = centro(1L);
+    void getPerfilesSobreTramite_perteneceAVariosCentros_soloConsultaElCentroUsuarioDelCentroElegido() {
+        Centro centroOtro = centro(1L);
         Centro centroElegido = centro(2L);
         User usuario = usuario(5L);
-        CentroUsuario centroUsuarioActivo = enCentro(usuario, centroActivo);
+        CentroUsuario centroUsuarioOtro = enCentro(usuario, centroOtro);
         CentroUsuario centroUsuarioElegido = enCentro(usuario, centroElegido);
-        usuario.setCentroActivo(centroActivo);
         Tramite tramite = tramite();
         when(aceProfileTramiteRepository.findPerfiles(tramite, centroUsuarioElegido)).thenReturn(Set.of(Profile.TRAMITADOR));
 
         assertEquals(Set.of(Profile.TRAMITADOR), service.getPerfilesSobreTramite(tramite, usuario, centroElegido));
-        verify(aceProfileGlobalRepository, never()).findPerfiles(centroUsuarioActivo);
-        verify(aceProfileTramiteRepository, never()).findPerfiles(tramite, centroUsuarioActivo);
+        verify(aceProfileGlobalRepository, never()).findPerfiles(centroUsuarioOtro);
+        verify(aceProfileTramiteRepository, never()).findPerfiles(tramite, centroUsuarioOtro);
     }
 
     @Test

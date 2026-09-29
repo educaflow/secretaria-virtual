@@ -36,9 +36,6 @@
             <field name="code"         colSpan="6" required="true"/>
             <field name="dni"          colSpan="6" required="true"/>
             <field name="language"     colSpan="6"/>
-            <field name="centroActivo" colSpan="6"
-                   grid-view="subsysCommon.Ref@Centro-grid"
-                   form-view="subsysCommon.Ref@Centro-form"/>
             <field name="nombre"       colSpan="6" required="true"/>
             <field name="apellidos"    colSpan="6" required="true"/>
             <field name="name"         colSpan="6" readonly="true"/>

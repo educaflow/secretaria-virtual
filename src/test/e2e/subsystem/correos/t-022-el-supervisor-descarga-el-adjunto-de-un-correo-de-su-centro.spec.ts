@@ -7,7 +7,7 @@ import * as path from 'path';
 // T-022 — El supervisor descarga el adjunto de un correo de su centro
 // origen: ESC-018  |  verifica: U-correos-administracion-formulario-adjunto-007
 // fuente: .sdd/drafts/2026-06-30_13-56_subsistema-correos/test-e2e-desc/t-022-el-supervisor-descarga-el-adjunto-de-un-correo-de-su-centro.desc.md
-test.describe('Correos de mi centro', () => {
+test.describe('Correos de mis centros', () => {
   test('El supervisor descarga el adjunto de un correo de su centro', async ({ page }) => {
     await ensureLoggedOut(page);
     await login(page, 'admin', 'admin');
@@ -78,7 +78,7 @@ test.describe('Correos de mi centro', () => {
       await logout(page);
 
       // Paso 4: Cuando el supervisor «supervisor1@mislata.es» inicia sesión con
-      // contraseña «demo1234» y abre la pantalla "Correos de mi centro".
+      // contraseña «demo1234» y abre la pantalla "Correos de mis centros".
       await login(page, 'supervisor1@mislata.es', 'demo1234');
 
       await page.getByText('Correos', { exact: true }).click();
@@ -130,7 +130,7 @@ test.describe('Correos de mi centro', () => {
       await expect(dialogoAdjuntoDetalle).not.toBeVisible();
 
       // Teardown: un Correo del centro es solo lectura para el supervisor (no hay
-      // botón de borrado en "Correos de mi centro") y, una vez enviado, tampoco se
+      // botón de borrado en "Correos de mis centros") y, una vez enviado, tampoco se
       // puede borrar desde "Administración de correos" (el formulario de consulta
       // solo ofrece "Reenviar"/"Salir" — es un dato inmutable de auditoría, igual
       // que en T-001/T-002/T-019/T-020). Se confía en el asunto único para no

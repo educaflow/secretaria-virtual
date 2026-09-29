@@ -4,7 +4,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 // T-020 — El supervisor solo ve los correos de su centro
 // origen: ESC-006  |  verifica: — (permiso `Correo.propio-centro-supervisor`, ver design.md paso 10)
 // fuente: .sdd/drafts/2026-06-30_13-56_subsistema-correos/test-e2e-desc/t-020-el-supervisor-solo-ve-los-correos-de-su-centro.desc.md
-test.describe('Correos de mi centro', () => {
+test.describe('Correos de mis centros', () => {
   test('El supervisor solo ve los correos de su centro', async ({ page }) => {
     await ensureLoggedOut(page);
     await login(page, 'admin', 'admin');
@@ -60,7 +60,7 @@ test.describe('Correos de mi centro', () => {
     // contraseña «demo1234».
     await login(page, 'supervisor1@mislata.es', 'demo1234');
 
-    // Paso 5: Y abre la pantalla "Correos de mi centro".
+    // Paso 5: Y abre la pantalla "Correos de mis centros".
     await page.getByText('Correos', { exact: true }).click();
     await page.getByTestId('item:correos-delCentro-menuitem').click();
 
@@ -72,7 +72,7 @@ test.describe('Correos de mi centro', () => {
     await logout(page);
 
     // Teardown: un Correo del centro es solo lectura para el supervisor (no hay
-    // botón de borrado en "Correos de mi centro") y, una vez enviado, tampoco se
+    // botón de borrado en "Correos de mis centros") y, una vez enviado, tampoco se
     // puede borrar desde "Administración de correos" (el formulario de consulta solo
     // ofrece "Reenviar"/"Salir" — es un dato inmutable de auditoría, igual que en
     // T-001/T-019). Se confía en el sufijo único del asunto para no colisionar entre

@@ -4,7 +4,7 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <!-- «Mi centro» → «Usuarios»: los usuarios de los centros de los que el usuario es supervisor, con sus tipos de usuario y sus cargos.
-         Lo normal es que sea supervisor de un solo centro, pero pueden ser varios: por eso no usa User.centroActivo y el centro se elige al añadir el usuario.
+         Lo normal es que sea supervisor de un solo centro, pero pueden ser varios: el centro se elige al añadir el usuario.
          Los detalles (tipos y cargos) reutilizan los grids y forms modales de subsysCommon, que ya conocen la regla «solo cargos del tipo de usuario que tiene». -->
     <?sv-view?>
     <action-view name="sysGestionCentro.Main@CentroUsuario-action" title="Usuarios de mi centro" model="com.educaflow.subsystem.common.db.CentroUsuario">

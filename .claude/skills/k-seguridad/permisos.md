@@ -25,7 +25,7 @@ Axelor evalúa permisos con **lógica OR**: si cualquiera de los permisos asigna
 
 - Parámetros: **`?` sin índice**, nunca `?1`/`?2`. Axelor los renumera internamente al combinar condiciones con OR; `?1` se convierte en `?11` (roto).
 - **Cada `?`** en el JPQL consume **una posición** de `conditionParams` en orden. Si el mismo valor aparece N veces en la condición, se repite N veces en `conditionParams`.
-- Pasar **objetos entidad**, no IDs: `__user__` es el objeto `User`, `__user__.centroActivo` es el `Centro`.
+- Pasar **objetos entidad**, no IDs: `__user__` es el objeto `User` completo.
 - La condición actúa también como **check de autorización al serializar relaciones** — si es demasiado restrictiva causa `Authorization Error` al abrir formularios con referencias a ese objeto.
 - En dominios de **action-view/panel**: los parámetros son nombrados (`:nombre`). `:__user__` se admite como objeto entidad completo, pero **`:__user__.campo` NO funciona** — Hibernate no admite puntos en nombres de parámetro. Solución: definir un `<context name="campo" expr="eval:__user__.campo"/>` dentro del `<action-view>` y referenciarlo como `:campo` en el `<domain>`.
 - `self` en subconsultas `EXISTS` puede no correlacionarse correctamente → usar patrón `self.id IN (SELECT ...)`.
@@ -89,46 +89,34 @@ data-init/
 </permission>
 ```
 
-### Filtrado por el centro activo
+### Filtrado por los centros del usuario
 ```xml
-<permission name="NombreClase.admin"
-            object="com.educaflow.subsystem.{modulo}.db.NombreClase"
-            condition="self.centro = ?"
-            conditionParams="__user__.centroActivo">
+<permission name="UsuarioAutorizado.admin"
+            object="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado"
+            condition="self.centro IN (SELECT cu.centro FROM com.educaflow.subsystem.common.db.CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario cut JOIN cut.tipoUsuario tu WHERE cu.usuario = ? AND tu.codigo = 'SUPERVISOR')"
+            conditionParams="__user__">
   <can create="true" read="true" write="true" remove="true" export="false"/>
 </permission>
 ```
 
-### Patrón de actor estándar (AccessAssignment)
+> No existe ningún «centro activo» (el antiguo `User.centroActivo` se eliminó): el alcance de un permiso son los centros del usuario según su tipo (p. ej. `SUPERVISOR`), o el centro del expediente en los permisos de expedientes.
 
-El subquery de actor es el mismo en todas las condiciones. El orden de los `?` es siempre: `centro`, `user`, `centro`, `user`, `centro` → `conditionParams` repite 5 valores:
+### Patrón de actor estándar (AceProfile*)
+
+Las condiciones de expedientes siguen todas el mismo patrón `EXISTS`: los `AceProfile<Level>` que aplican al usuario por tipo de usuario o cargo, en el centro del expediente (`cu.centro = self.centro`). Un solo `?`, el propio usuario:
 
 ```xml
-<permission name="Tramite.creador"
-            object="com.educaflow.subsystem.expedientes.db.Tramite"
-            condition="self IN (
-    SELECT aa.tramite
-    FROM com.educaflow.subsystem.security.db.AccessAssignment aa
-    WHERE aa.accessProfile.name = 'CREADOR'
-    AND aa.tramite IS NOT NULL
-    AND (aa.centro IS NULL OR aa.centro = ?)
-    AND (
-        aa.actor IN (
-            SELECT cut.tipoUsuario
-            FROM com.educaflow.subsystem.security.db.CentroUsuarioTipoUsuario cut
-            WHERE cut.centroUsuario.usuario = ?
-            AND cut.centroUsuario.centro = ?
-        )
-        OR
-        aa.actor IN (
-            SELECT cu
-            FROM com.educaflow.subsystem.security.db.CentroUsuario cu
-            WHERE cu.usuario = ?
-            AND cu.centro = ?
-        )
-    )
-)"
-            conditionParams="__user__.centroActivo, __user__, __user__.centroActivo, __user__, __user__.centroActivo"
+<permission name="Expediente.porGlobal"
+            object="com.educaflow.subsystem.expedientes.db.Expediente"
+            condition="EXISTS (
+        SELECT a FROM com.educaflow.subsystem.security.db.AceProfileGlobal a, com.educaflow.subsystem.common.db.CentroUsuario cu
+        WHERE cu.usuario = ?
+        AND cu.centro = self.centro
+        AND a.perfil != com.educaflow.subsystem.expedientes.db.Profile.CREADOR
+        AND (a.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = cu)
+            OR a.cargo IN (SELECT cuc.cargo FROM com.educaflow.subsystem.common.db.CentroUsuarioCargo cuc WHERE cuc.centroUsuario = cu))
+    )"
+            conditionParams="__user__"
 >
   <can create="false" read="true" write="false" remove="false" export="false"/>
 </permission>
@@ -140,20 +128,12 @@ En `domain` de `<action-view>` o `<panel>` se usan parámetros **nombrados** (`:
 
 ```xml
 <action-view ...>
-    <domain>self IN (
-        SELECT aa.tramite FROM ...AccessAssignment aa
-        WHERE aa.accessProfile.name = 'CREADOR'
-        AND aa.tramite IS NOT NULL
-        AND (aa.centro IS NULL OR aa.centro = :centroActivo)
-        AND (aa.actor IN (SELECT cut.tipoUsuario FROM ...CentroUsuarioTipoUsuario cut
-                          WHERE cut.centroUsuario.usuario = :__user__)
-             OR aa.actor IN (SELECT cu FROM ...CentroUsuario cu WHERE cu.usuario = :__user__))
-    )</domain>
-    <context name="centroActivo" expr="eval:__user__.centroActivo"/>
+    <domain>self.centro.id IN (SELECT cu.centro.id FROM CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario cut WHERE cu.usuario.id = :usuarioId AND cut.tipoUsuario.codigo = 'SUPERVISOR')</domain>
+    <context name="usuarioId" expr="eval: __user__?.id"/>
 </action-view>
 ```
 
-> **No usar nunca** `:__user__.centroActivo` (con punto) en un `<domain>`: Hibernate no admite puntos en nombres de parámetro y produce `no viable alternative at input '.'`.
+> **No usar nunca** `:__user__.campo` (con punto) en un `<domain>`: Hibernate no admite puntos en nombres de parámetro y produce `no viable alternative at input '.'`.
 
 ---
 
@@ -178,43 +158,27 @@ Axelor aplica OR: read concedido por el primer permiso (sin filtro), write conce
 
 ---
 
-## Los 4 permisos de Expediente
+## Los permisos de Expediente
+
+Todos con el mismo patrón `EXISTS` de AceProfile (ver arriba), uno por nivel, siempre con `conditionParams="__user__"`; el alcance es el centro del propio expediente (`cu.centro = self.centro`), nunca los centros del usuario:
 
 ```xml
-<!-- 1. El usuario creó el expediente -->
+<!-- 1. El usuario creó el expediente (y es de ese centro) -->
 <permission name="Expediente.creador"
             object="com.educaflow.subsystem.expedientes.db.Expediente"
-            condition="self.creador = ?"
+            condition="self.usuarioRegistrador = ?
+        AND EXISTS (
+            SELECT cu FROM com.educaflow.subsystem.common.db.CentroUsuario cu
+            WHERE cu.usuario = self.usuarioRegistrador
+            AND cu.centro = self.centro
+        )"
             conditionParams="__user__">
   <can create="false" read="true" write="false" remove="false" export="true"/>
 </permission>
 
-<!-- 2. Hay un AccessAssignment sobre esta instancia concreta -->
-<permission name="Expediente.porExpediente"
-            object="com.educaflow.subsystem.expedientes.db.Expediente"
-            condition="self IN (
-    SELECT aa.expediente FROM ...AccessAssignment aa
-    WHERE aa.expediente IS NOT NULL
-    AND (aa.centro IS NULL OR aa.centro = ?)
-    AND (aa.actor IN (SELECT cut.tipoUsuario FROM ...CentroUsuarioTipoUsuario cut
-                      WHERE cut.centroUsuario.usuario = ? AND cut.centroUsuario.centro = ?)
-         OR aa.actor IN (SELECT cu FROM ...CentroUsuario cu WHERE cu.usuario = ? AND cu.centro = ?))
-)"
-            conditionParams="__user__.centroActivo, __user__, __user__.centroActivo, __user__, __user__.centroActivo">
-  <can create="false" read="true" write="false" remove="false" export="false"/>
-</permission>
-
-<!-- 3. Hay un AccessAssignment sobre el TipoExpediente -->
-<permission name="Expediente.porTipoExpediente"
-            object="com.educaflow.subsystem.expedientes.db.Expediente"
-            condition="self.tipoExpediente IN (SELECT aa.tipoExpediente ...)"
-            conditionParams="__user__.centroActivo, __user__, __user__.centroActivo, __user__, __user__.centroActivo"/>
-
-<!-- 4. Hay un AccessAssignment sobre el Tramite (excluye CREADOR) -->
-<permission name="Expediente.porTramite"
-            object="com.educaflow.subsystem.expedientes.db.Expediente"
-            condition="self.tipoExpediente.tramite IN (SELECT aa.tramite ... AND aa.accessProfile.name != 'CREADOR' ...)"
-            conditionParams="__user__.centroActivo, __user__, __user__.centroActivo, __user__, __user__.centroActivo"/>
+<!-- 2. Niveles por AceProfile: porGlobal, porTipoTramite, porTramite, porCentro,
+     porTipoExpediente y porExpediente, con la misma forma que Expediente.porGlobal
+     (arriba) variando el nivel de a. Ver auth-expedientes.xml. -->
 ```
 
 Todos asignados al rol `users.all`.

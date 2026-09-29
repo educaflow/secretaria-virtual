@@ -18,7 +18,7 @@ import java.util.function.Predicate;
 
 /**
  * Las preguntas sobre el usuario son siempre «en algún centro del usuario»: quien es secretario en
- * un centro y profesor en otro es de la unidad de Secretaría. Nunca se usa {@code User.centroActivo}.
+ * un centro y profesor en otro es de la unidad de Secretaría.
  */
 public class MenuSecurityServiceImpl implements MenuSecurityService {
 

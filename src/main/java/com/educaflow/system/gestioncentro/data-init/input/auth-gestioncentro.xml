@@ -6,8 +6,8 @@
 
   <permission name="UsuarioAutorizado.admin"
               object="com.educaflow.subsystem.registrousuario.db.UsuarioAutorizado"
-              condition="self.centro = ?"
-              conditionParams="__user__.centroActivo"
+              condition="self.centro IN (SELECT cu.centro FROM com.educaflow.subsystem.common.db.CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario cut JOIN cut.tipoUsuario tu WHERE cu.usuario = ? AND tu.codigo = 'SUPERVISOR')"
+              conditionParams="__user__"
   >
     <can create="true" read="true" write="true" remove="true" export="false"/>
   </permission>

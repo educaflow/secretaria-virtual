@@ -4,7 +4,7 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <!-- «Mi centro»: los centros de los que el usuario es supervisor. Primero un grid, aunque lo normal es
-         que sea uno solo, porque puede ser supervisor de varios. No usa User.centroActivo. -->
+         que sea uno solo, porque puede ser supervisor de varios. -->
     <?sv-view?>
     <action-view name="sysGestionCentro.Main@Centro-action" title="Mi centro" model="com.educaflow.subsystem.common.db.Centro">
         <view type="grid" name="sysGestionCentro.Main@Centro-grid"/>

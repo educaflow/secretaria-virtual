@@ -5,7 +5,7 @@ xsi:schemaLocation="http://axelor.com/xml/ns/object-views
 https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <!-- «Mi centro → Perfiles de trámites»: el supervisor mantiene los perfiles de TODOS los centros en los
-         que tiene el tipo de usuario SUPERVISOR (nunca User.centroActivo).
+         que tiene el tipo de usuario SUPERVISOR.
          El listado no lleva <domain>: qué filas ve lo decide el permiso AceProfileCentro.supervisor
          (auth-security.xml), que es además quien le impide modificar o borrar filas de otros centros.
          idsCentrosSupervisados lo calcula una única vez el servidor (AceProfileCentroService.getCentrosSupervisados)

@@ -996,7 +996,7 @@ Quedan **exentos de `VAR-10.1`, `VAR-10.2` y `VAR-10.4`**, que son las reglas de
   Condición: no tiene el atributo `if`.
 
 **Correcto** ✅ — `<menuitem name="registro-menuitem" title="Registro" groups="admins,users" order="40"/>` (su visibilidad, en el `case "registro-menuitem"` de `MenuSecurityServiceImpl`)
-**Incorrecto** ❌ — `<menuitem name="registro-menuitem" title="Registro" groups="admins,users" if="__config__.menuSecurity.isVisible('registro-menuitem')" order="40"/>` (el `if` lo pone el preprocesador), `if="__user__.centroActivo != null"` (lógica de visibilidad fuera de `MenuSecurityServiceImpl`)
+**Incorrecto** ❌ — `<menuitem name="registro-menuitem" title="Registro" groups="admins,users" if="__config__.menuSecurity.isVisible('registro-menuitem')" order="40"/>` (el `if` lo pone el preprocesador), `if="__user__.code == 'jefatura'"` (lógica de visibilidad fuera de `MenuSecurityServiceImpl`)
 
 ---
 

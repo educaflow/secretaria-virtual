@@ -5,19 +5,25 @@
 
     <?sv-view?>
 
-    <action-view name="subsysCorreos.Centro@Correo-action" title="Correos de mi centro" model="com.educaflow.subsystem.correos.db.Correo">
+    <!-- Los correos de los centros del usuario, sin «centro activo»: el dominio lista los centros en los
+         que es SUPERVISOR o ADMINISTRATIVO, exactamente el mismo alcance que su permiso
+         Correo.propio-centro-supervisor (auth-correos.xml) y que la visibilidad del menú
+         correos-delCentro-menuitem (MenuSecurityServiceImpl). Con varios centros la columna «centro»
+         del grid permite filtrar; con uno solo muestra todos los que hay. -->
+    <action-view name="subsysCorreos.Centro@Correo-action" title="Correos de mis centros" model="com.educaflow.subsystem.correos.db.Correo">
         <view type="grid" name="subsysCorreos.Centro@Correo-grid"/>
         <view type="form" name="subsysCorreos.Centro@Correo-form"/>
         <view-param name="show-toolbar-grid" value="false"/>
         <view-param name="show-toolbar-form" value="false"/>
-        <domain>self.centro = :centroActivoUsuario</domain>
-        <context name="centroActivoUsuario" expr="eval: __user__?.centroActivo"/>
+        <domain>self.centro.id IN (SELECT cu.centro.id FROM CentroUsuario cu JOIN cu.centroUsuarioTipoUsuario cut WHERE cu.usuario.id = :usuarioId AND cut.tipoUsuario.codigo IN ('SUPERVISOR','ADMINISTRATIVO'))</domain>
+        <context name="usuarioId" expr="eval: __user__?.id"/>
     </action-view>
 
     <grid name="subsysCorreos.Centro@Correo-grid" title="" model="com.educaflow.subsystem.correos.db.Correo"
-          canNew="false" allowSearchFields="false" orderBy="-fechaCreacion"
+          canNew="false" allowSearchFields="true" orderBy="-fechaCreacion"
           canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none"
           canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="centro" width="180px"/>
         <field name="estado" width="120px"/>
         <field name="dniDestinatario" width="120px" title="DNI"/>
         <field name="nombre" width="150px"/>

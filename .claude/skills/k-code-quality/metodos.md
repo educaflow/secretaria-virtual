@@ -47,7 +47,7 @@ Las integraciones externas (firma, correo, PDF, importación de ficheros) viven 
 
 Los métodos deben tener nombres que describan **qué hacen** en el dominio del problema, no cómo están organizados internamente ni cuál es su posición en el flujo.
 
-**Correcto:** `calcularTotal`, `validarFirma`, `generarPDF`, `resolverCentroActivo`, `procesarDnis`.
+**Correcto:** `calcularTotal`, `validarFirma`, `generarPDF`, `resolverCentroDelExpediente`, `procesarDnis`.
 **Incorrecto:** `procesarPaso2`, `doWork`, `ejecutarLogica`, `manejar`, `helper1`, `metodo`.
 
 Los métodos deben tener **un único nivel de abstracción** en su interior. Si un método mezcla orquestación de alto nivel con lógica de detalle (manipulación de strings, bucles sobre bytes), extraer los detalles a métodos privados.

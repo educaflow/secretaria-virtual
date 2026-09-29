@@ -41,7 +41,7 @@ Datos de demo ya precargados por otros subsistemas (gestión de centro), de los 
 1. **Dado** que el administrador ha iniciado sesión, pulsa "Nuevo correo", rellena el DNI «86862719E», el nombre «Alumno1», los apellidos «CIPFP Mislata», el «para» «alumno1@mislata.es», el asunto «Circular con adjunto», el cuerpo «texto» y elige el centro «CIPFP Mislata».
 2. **Y**, en el panel de adjuntos, pulsa "Añadir adjunto", rellena el nombre del fichero «circular.pdf», sube un fichero como contenido y pulsa "Guardar" del adjunto.
 3. **Y** pulsa "Guardar" en el correo y cierra sesión.
-4. **Cuando** el supervisor «supervisor1@mislata.es» inicia sesión con contraseña «demo1234» y abre la pantalla "Correos de mi centro".
+4. **Cuando** el supervisor «supervisor1@mislata.es» inicia sesión con contraseña «demo1234» y abre la pantalla "Correos de mis centros".
 5. **Y** recarga el listado hasta ver el correo «Circular con adjunto» en estado "Enviado" y abre su detalle; en el panel de adjuntos aparece «circular.pdf».
 6. **Y** pulsa la fila del adjunto «circular.pdf» para abrir su formulario de detalle.
 7. **Y** descarga el fichero del campo contenido.

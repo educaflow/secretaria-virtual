@@ -42,7 +42,7 @@ Datos de demo ya precargados por otros subsistemas (gestión de centro), de los 
 2. **Y** pulsa "Nuevo correo" de nuevo, rellena los mismos datos pero con el asunto «Aviso Batoi», elige el centro «CIPFP Batoi» y pulsa "Guardar".
 3. **Y** cierra sesión.
 4. **Cuando** el supervisor «supervisor1@mislata.es» inicia sesión con contraseña «demo1234».
-5. **Y** abre la pantalla "Correos de mi centro".
+5. **Y** abre la pantalla "Correos de mis centros".
 
 ## Resultado esperado
 - El sistema muestra el correo «Aviso Mislata» y no muestra el correo «Aviso Batoi».
