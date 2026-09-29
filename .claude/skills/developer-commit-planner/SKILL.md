@@ -59,16 +59,20 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 
 ### 2.1 Reglas de agrupación
 
-1. **Una intención por commit**: una funcionalidad, un bugfix, un refactor, un cambio de docs…
+1. **Una intención por commit**: la intención es el **porqué** del cambio (el problema que resuelve o la decisión que aplica), no el tipo de §2.2. Un commit puede contener varios tipos (código, docs, limpieza) si todos responden al mismo porqué.
 2. **Lo interdependiente va junto**: si el hunk A no compila o no tiene sentido sin el hunk B, van en el mismo commit (o B en un commit anterior).
-3. **Lo independiente se separa**, aunque comparta fichero.
+3. **Separa solo por porqués distintos**, aunque compartan fichero. **MUST NOT** separar un hunk solo porque técnicamente se aplicaría sin los demás: la independencia técnica no crea una intención nueva.
+   - Van **junto** al cambio que los motiva: la regla o doc (skill, `agent_docs/`, comentario) que generaliza ese cambio, y aplicar el mismo criterio al código vecino del mismo ámbito (p.ej. el mismo trámite, la misma pantalla).
+   - ✅ CORRECTO: un único commit con el fix de una fecha que faltaba en un PDF, quitar el `?.` que ocultaba ese null en esa y en las demás fechas del mismo PDF, y la regla del skill que dice asignar las fechas antes de generar el PDF (un solo porqué: las fechas del PDF deben estar asignadas al generarlo).
+   - ❌ INCORRECTO: partir ese mismo cambio en `fix` + `docs` + `refactor` (se parte por tipo, no por porqué; el revisor pierde la relación causa → arreglo → regla).
+   - ✅ CORRECTO: separar un fix de un PDF y un renombrado sin relación en otro subsistema (dos porqués distintos).
 4. **Los tests acompañan a su funcionalidad** salvo razón fuerte (p.ej. un test que cubre código ya existente en `HEAD`).
 5. **Agrupa por intención, no por fichero**: un fichero puede repartirse entre varios commits.
 6. **Los accidentales no se mezclan**: van a la sección de dudosos, nunca se cuelan en otro commit.
 
 ### 2.2 Tipos de intención
 
-Clasifica cada hunk en uno de: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `style` (solo formato), `build` (dependencias, gradle), `chore` (config, limpieza), `ci`, o **dudoso**.
+Clasifica cada hunk en uno de: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `style` (solo formato), `build` (dependencias, gradle), `chore` (config, limpieza), `ci`, o **dudoso**. El tipo describe el hunk, no decide el corte (§2.1.3): el tipo de un commit es el del porqué que lo motiva.
 
 - ✅ CORRECTO: `refactor` para un renombrado sin cambio de comportamiento.
 - ❌ INCORRECTO: `feat` para un renombrado que acompaña a una feature (el renombrado es separable → su propio `refactor` antes).
@@ -140,7 +144,7 @@ Si hay **más de 40 ficheros cambiados**, reparte la lectura:
 ## 5. Fase 2 — Agrupación
 
 1. Agrupa los hunks en unidades funcionales aplicando §2.1.
-2. Para cada unidad decide si es un commit o varios (p.ej. refactor previo + feature).
+2. Para cada unidad decide si es un commit o varios (p.ej. refactor previo + feature). **MUST** partirla solo si puedes enunciar un porqué distinto para cada parte; si el porqué de un commit es «seguir la regla que introduce el otro» o «el mismo criterio en el código vecino», es el mismo commit.
 3. Todo fichero con hunks en más de un commit va a la sección 5 del informe con el reparto hunk a hunk.
 4. Si un hunk mezcla dos intenciones en líneas contiguas (no separables con `git add -p` normal), indícalo y propón el `e` (edit) de `git add -p` o aceptar juntarlos, con la confianza rebajada.
 5. Los cambios de §2.3 van a «Cambios dudosos» con: qué es, por qué es sospechoso, si conservar, si commit aparte, si parece descartable. **MUST NOT** decidir que se borran.
@@ -150,7 +154,7 @@ Si hay **más de 40 ficheros cambiados**, reparte la lectura:
 
 ## 6. Fase 3 — Orden y coherencia
 
-1. Ordena: refactors y preparación → build/config de las que dependan → features/fixes → docs que describen lo anterior → chore.
+1. Ordena: refactors y preparación → build/config de las que dependan → features/fixes → docs independientes → chore (la doc que generaliza un cambio va en su commit, §2.1.3).
 2. Recorre la secuencia commit a commit y comprueba el checklist:
 
 - [ ] ¿Compila conceptualmente con solo los commits anteriores aplicados?
@@ -252,7 +256,7 @@ La sección 8 del informe explica cómo el usuario convierte el worktree en los 
 - Solo lectura: **MUST NOT** cambiar el estado del repositorio en ningún momento.
 - Lee el diff de cada fichero y el contenido de cada untracked; nunca clasifiques por nombre.
 - Agrupa por intención; un fichero puede repartirse, y entonces se detalla hunk a hunk con su cabecera `@@`.
-- Lo que depende entre sí va junto o en orden; lo independiente se separa; los tests con su funcionalidad.
+- Un commit por porqué, no por tipo: el cambio, la regla/doc que lo generaliza y el mismo criterio en el código vecino van juntos; los tests con su funcionalidad.
 - Lo sospechoso va a «dudosos» con recomendación, nunca mezclado ni borrado.
 - Verifica la secuencia con el checklist de §6 antes de responder.
 - Respeta el estilo de mensajes que ya usa el `git log` del repo.
