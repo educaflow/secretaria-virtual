@@ -15,6 +15,14 @@
         <one-to-many name="cargos"
                      ref="com.educaflow.subsystem.common.db.Cargo"
                      mappedBy="tipoUsuario" title="Cargos"/>
+
+        <extra-code-model>
+        <![CDATA[
+            public static final String SUPERVISOR = "SUPERVISOR";
+            public static final String ADMINISTRATIVO = "ADMINISTRATIVO";
+            public static final String FAMILIAR = "FAMILIAR";
+        ]]>
+        </extra-code-model>
     </entity>
 
 </domain-models>

@@ -16,7 +16,6 @@ import com.educaflow.base.util.DniUtil;
 import com.educaflow.base.util.EMailUtil;
 import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.base.util.SecurityUtil;
-import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.correos.db.Correo;
 import com.educaflow.subsystem.correos.db.EstadoCorreo;
 import com.educaflow.subsystem.correos.db.repo.CorreoRepository;
@@ -202,7 +201,7 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
         } else if (!SecurityUtil.isAdmin(SecurityUtil.getUser())) {
             // V-Correo-013 (VAL-Correo-008) si no es Administrador, el centro indicado MUST ser
             // uno de los centros del usuario
-            if (!perteneceAlCentroDelUsuario(correo.getCentro())) {
+            if (!SecurityUtil.getUser().perteneceAlCentro(correo.getCentro())) {
                 messages.add(new BusinessMessage(I18n.get("No puede crear correos para un centro que no es suyo")));
             }
         }
@@ -256,7 +255,7 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
         // V-Correo-018 (VAL-Correo-010) si no es Administrador, el centro del correo MUST estar
         // entre los centros del usuario (mismo mecanismo que V-Correo-013)
         if (entidadOriginal.getCentro() != null && !SecurityUtil.isAdmin(SecurityUtil.getUser())
-                && !perteneceAlCentroDelUsuario(entidadOriginal.getCentro())) {
+                && !SecurityUtil.getUser().perteneceAlCentro(entidadOriginal.getCentro())) {
             messages.add(new BusinessMessage(I18n.get("No puede reenviar correos de un centro que no es suyo")));
         }
 
@@ -355,12 +354,6 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
     /********************************    Otras funciones    ******************************/
     /*************************************************************************************/
 
-    private boolean perteneceAlCentroDelUsuario(Centro centro) {
-        return SecurityUtil.getUser().getCentroUsuarios() != null
-                && SecurityUtil.getUser().getCentroUsuarios().stream()
-                        .anyMatch(centroUsuario -> centroUsuario.getCentro() != null
-                                && centroUsuario.getCentro().getId().equals(centro.getId()));
-    }
 
     private List<String> separarDirecciones(String direcciones) {
         if (direcciones == null || direcciones.isBlank()) {

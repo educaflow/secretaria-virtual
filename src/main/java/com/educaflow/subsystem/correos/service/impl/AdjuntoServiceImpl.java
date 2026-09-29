@@ -7,7 +7,6 @@ import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.i18n.I18n;
 import com.educaflow.base.util.SecurityUtil;
-import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.correos.db.Adjunto;
 import com.educaflow.subsystem.correos.service.AdjuntoService;
 import java.util.List;
@@ -63,12 +62,12 @@ public class AdjuntoServiceImpl extends DefaultModelService<Adjunto> implements 
     private void validarCentroDelCorreo(Adjunto adjunto, BusinessMessages messages) {
         // V-Adjunto-002: solo si el correo está indicado (evitar NPE). Si el usuario actual no es
         // Administrador, el centro del correo MUST pertenecer a los centros del usuario (mismo
-        // mecanismo que CorreoServiceImpl.perteneceAlCentroDelUsuario).
+        // mecanismo que CorreoServiceImpl: User.perteneceAlCentro).
         if (adjunto.getCorreo() == null) {
             return;
         }
         if (!SecurityUtil.isAdmin(SecurityUtil.getUser())
-                && !perteneceAlCentroDelUsuario(adjunto.getCorreo().getCentro())) {
+                && !SecurityUtil.getUser().perteneceAlCentro(adjunto.getCorreo().getCentro())) {
             messages.add(new BusinessMessage(I18n.get("No puede añadir adjuntos a correos de un centro que no es suyo")));
         }
     }
@@ -146,16 +145,5 @@ public class AdjuntoServiceImpl extends DefaultModelService<Adjunto> implements 
                 "contenido", Map.of(),
                 "correo", Map.of()
         ));
-    }
-
-    /*************************************************************************************/
-    /********************************    Otras funciones    ******************************/
-    /*************************************************************************************/
-
-    private boolean perteneceAlCentroDelUsuario(Centro centro) {
-        return SecurityUtil.getUser().getCentroUsuarios() != null
-                && SecurityUtil.getUser().getCentroUsuarios().stream()
-                        .anyMatch(centroUsuario -> centroUsuario.getCentro() != null
-                                && centroUsuario.getCentro().getId().equals(centro.getId()));
     }
 }

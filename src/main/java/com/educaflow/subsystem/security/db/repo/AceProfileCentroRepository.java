@@ -4,6 +4,7 @@ import com.axelor.auth.db.User;
 import com.axelor.db.JPA;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.CentroUsuario;
+import com.educaflow.subsystem.common.db.TipoUsuario;
 import com.educaflow.subsystem.security.db.AceProfileCentro;
 import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.Tramite;
@@ -57,7 +58,7 @@ public class AceProfileCentroRepository extends AbstractAceProfileCentroReposito
 
         return JPA.em().createQuery(jpql, Centro.class)
                 .setParameter("usuario", usuario)
-                .setParameter("codigoSupervisor", "SUPERVISOR")
+                .setParameter("codigoSupervisor", TipoUsuario.SUPERVISOR)
                 .getResultList();
     }
 
