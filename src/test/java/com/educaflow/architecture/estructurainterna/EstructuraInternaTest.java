@@ -5,6 +5,7 @@
 // =====================================================================
 package com.educaflow.architecture.estructurainterna;
 
+import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -17,6 +18,7 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 import java.util.List;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
@@ -163,6 +165,47 @@ class EstructuraInternaTest {
             .should().dependOnClassesThat()
                 .resideInAPackage("com.educaflow.subsystem.tramitador..")
             .because("el dominio de expedientes no depende del tramitador: la dependencia va del tramitador al dominio, nunca al revés");
+
+    // [C26] Verificación:
+    //   - Sujeto: clases de `com.educaflow.subsystem.<X>.db.repo..` y de `com.educaflow.system.<X>.db.repo..` cuyo nombre simple termina en `Repository`, siendo `<X>` el subpaquete de **primer nivel** de `subsystem` o de `system`.
+    //     Los `*Listener` de `db.repo` (C18) quedan fuera: los referencia la propia entidad por diseño.
+    //     **CRITICAL**: esta regla declara expresamente que **NO** se le aplica la exención global de `..expedientes..` como **destino**: los repositorios de `subsystem/expedientes` (`TramiteRepository`, los de las entidades de expediente…) también son privados, y excluirlos dejaría sin detectar justo los usos desde otros subsistemas.
+    //   - Condición: toda clase que dependa de una clase del sujeto reside en `com.educaflow.<subsystem|system>.<X>.service..` o en `com.educaflow.<subsystem|system>.<X>.db.repo..`, con el **mismo** `<subsystem|system>` y el **mismo** `<X>` que el repositorio.
+    //   - Exenciones: las dependencias cuyo **origen** está en `com.educaflow.tramites..` (arquitectura propia): el `PhaseEventManager` de un tipo de expediente usa el repositorio de su propia entidad, que se genera en `com.educaflow.subsystem.expedientes.db`.
+    //   - Mensaje: «el repositorio es privado de su sistema/subsistema: solo lo usan los servicios de ese mismo sistema/subsistema; los demás piden los datos a uno de sus servicios».
+    @ArchTest
+    static final ArchRule c26_repositorioSoloLoUsanLosServiciosDeSuSistema =
+        classes()
+            .that().resideInAnyPackage(
+                    "com.educaflow.subsystem.*.db.repo..",
+                    "com.educaflow.system.*.db.repo..")
+                .and().haveSimpleNameEndingWith("Repository")
+            .should(serUsadoSoloPorServiciosDeSuSistema())
+            .because("el repositorio es privado de su sistema/subsistema: solo lo usan los servicios de ese mismo sistema/subsistema; los demás piden los datos a uno de sus servicios");
+
+    private static ArchCondition<JavaClass> serUsadoSoloPorServiciosDeSuSistema() {
+        return new ArchCondition<JavaClass>(
+                "ser usado solo por los servicios y repositorios de su mismo sistema/subsistema") {
+            @Override
+            public void check(JavaClass repositorio, ConditionEvents events) {
+                // "com.educaflow.<subsystem|system>.<X>.db.repo..." -> "com.educaflow.<subsystem|system>.<X>."
+                String paqueteRepositorio = repositorio.getPackageName() + ".";
+                String prefijoSistema = paqueteRepositorio.substring(0, paqueteRepositorio.indexOf(".db.repo.") + 1);
+
+                for (Dependency dependencia : repositorio.getDirectDependenciesToSelf()) {
+                    String paqueteOrigen = dependencia.getOriginClass().getPackageName() + ".";
+                    if (paqueteOrigen.startsWith("com.educaflow.tramites.")) {
+                        continue;
+                    }
+                    boolean permitido = paqueteOrigen.startsWith(prefijoSistema + "service.")
+                        || paqueteOrigen.startsWith(prefijoSistema + "db.repo.");
+                    if (!permitido) {
+                        events.add(SimpleConditionEvent.violated(dependencia, dependencia.getDescription()));
+                    }
+                }
+            }
+        };
+    }
 
     private static ArchCondition<JavaMethod> declararSuValidador() {
         return new ArchCondition<JavaMethod>(
