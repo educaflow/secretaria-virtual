@@ -6,7 +6,7 @@
     <module name="common" package="com.educaflow.subsystem.common.db"/>
 
     <entity name="TipoUsuario" repository="abstract">
-        <string name="codigo" title="Código"/>
+        <enum name="codigo" ref="com.educaflow.subsystem.common.db.TipoUsuarioCodigo" title="Código"/>
         <string name="nombre" namecolumn="true" title="Nombre"/>
         <string name="tituloTramites" formula="true" title="Trámites">'Trámites para el ' || lower(nombre)</string>
         <one-to-many name="centroUsuarioTipoUsuario"
@@ -16,13 +16,6 @@
                      ref="com.educaflow.subsystem.common.db.Cargo"
                      mappedBy="tipoUsuario" title="Cargos"/>
 
-        <extra-code-model>
-        <![CDATA[
-            public static final String SUPERVISOR = "SUPERVISOR";
-            public static final String ADMINISTRATIVO = "ADMINISTRATIVO";
-            public static final String FAMILIAR = "FAMILIAR";
-        ]]>
-        </extra-code-model>
     </entity>
 
 </domain-models>

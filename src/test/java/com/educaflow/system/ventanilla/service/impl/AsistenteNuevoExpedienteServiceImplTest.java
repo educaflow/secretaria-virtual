@@ -13,6 +13,7 @@ import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.CentroUsuario;
 import com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario;
 import com.educaflow.subsystem.common.db.TipoUsuario;
+import com.educaflow.subsystem.common.db.TipoUsuarioCodigo;
 import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.TipoExpediente;
 import com.educaflow.subsystem.expedientes.db.Tramite;
@@ -124,13 +125,13 @@ class AsistenteNuevoExpedienteServiceImplTest {
         tramite.setName(NOMBRE_TRAMITE);
         tramite.setHelp(AYUDA_TRAMITE);
         tramite.setPermitidoPresentarEnRepresentacion(true);
-        tramite.setTipoUsuario(tipoUsuario("ALUMNO"));
+        tramite.setTipoUsuario(tipoUsuario(TipoUsuarioCodigo.ALUMNO));
         tramite.setDefaultTipoExpediente(new TipoExpediente());
 
         otroTramite = new Tramite();
         otroTramite.setId(11L);
         otroTramite.setName("Otro trámite");
-        otroTramite.setTipoUsuario(tipoUsuario("ALUMNO"));
+        otroTramite.setTipoUsuario(tipoUsuario(TipoUsuarioCodigo.ALUMNO));
         otroTramite.setDefaultTipoExpediente(new TipoExpediente());
 
         tramiteNoEvaluable = new Tramite();
@@ -181,13 +182,13 @@ class AsistenteNuevoExpedienteServiceImplTest {
         return centro;
     }
 
-    private static TipoUsuario tipoUsuario(String codigo) {
+    private static TipoUsuario tipoUsuario(TipoUsuarioCodigo codigo) {
         var tipoUsuario = new TipoUsuario();
         tipoUsuario.setCodigo(codigo);
         return tipoUsuario;
     }
 
-    private void centroUsuario(Centro centro, String... codigosTipoUsuario) {
+    private void centroUsuario(Centro centro, TipoUsuarioCodigo... codigosTipoUsuario) {
         var centroUsuario = new CentroUsuario();
         centroUsuario.setCentro(centro);
         centroUsuario.setUsuario(usuario);
@@ -543,7 +544,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void recalcular_soloSePuedePresentarEnPapel_fijaLaFormaYNoPregunta() {
-        centroUsuario(centroA, "ALUMNO");
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoSoloAdmitePapel();
         var asistente = asistenteConCentroYTramite(tramite);
@@ -556,7 +557,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void recalcular_soloSePuedePresentarEnPapelYElClienteEnviaLaOtraForma_laDescarta() {
-        centroUsuario(centroA, "ALUMNO");
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoSoloAdmitePapel();
         var asistente = asistenteConCentroYTramite(tramite);
@@ -569,7 +570,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void recalcular_ningunaFormaPosible_dejaLosDosCamposInformadosYNoPreguntaNada() {
-        centroUsuario(centroA, "ALUMNO");
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoRechazaSiempre(MENSAJE_SIN_PERFIL_DE_INICIO);
         var asistente = asistenteConCentroYTramite(tramite);
@@ -584,7 +585,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void recalcular_unSoloDestinatarioPosibleParaLaFormaFijada_loFijaYNoPregunta() {
-        centroUsuario(centroA, "ALUMNO");
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoSoloAdmiteParaMi();
         var asistente = asistenteConCentroYTramite(tramite);
@@ -598,7 +599,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void recalcular_alCambiarLaFormaDePresentar_noConservaElDestinatarioAnterior() {
-        centroUsuario(centroA, "ALUMNO");
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoNoAdmiteRepresentacionEnPapel();
         var asistente = asistenteConCentroYTramite(tramite);
@@ -612,7 +613,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void recalcular_consultaElOraculoExactamenteUnaVezPorCelda() {
-        centroUsuario(centroA, "ALUMNO");
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoAcepta();
         ArgumentCaptor<ContextoTramitacion> contextos = capturaDeContextos();
@@ -628,7 +629,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void recalcular_noLeeElCatalogoParaCalcularLaMatriz() {
-        centroUsuario(centroA, "ALUMNO");
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoAcepta();
 
@@ -639,7 +640,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void recalcular_nuncaConsultaLosPerfilesDelUsuarioParaLaFormaEnviada() {
-        centroUsuario(centroA, "ALUMNO");
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoSoloAdmiteQueLoPresenteElUsuario();
         var asistente = asistenteConCentroYTramite(tramite);
@@ -652,7 +653,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void recalcular_noAsignaNombreNiAyudaDelTramite() {
-        centroUsuario(centroA, "ALUMNO");
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoAcepta();
         var asistente = asistenteCompleto();
@@ -784,7 +785,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void validateTriggerInitialEvent_datosCompletosYMotorYAfinadoConformes_devuelveVacio() {
-        centroUsuario(centroA, "ALUMNO");
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoAcepta();
 
@@ -848,7 +849,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void validateTriggerInitialEvent_usuarioSinPerfilDeInicioEnElCentro_devuelveElLiteralDelMotor() {
-        centroUsuario(centroA, "ALUMNO");
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoRechazaSiempre(MENSAJE_SIN_PERFIL_DE_INICIO);
 
@@ -857,7 +858,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void validateTriggerInitialEvent_formaDePresentarNoPermitida_devuelveElLiteralDelMotor() {
-        centroUsuario(centroA, "ALUMNO");
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoRechazaSiempre(MENSAJE_FORMA_NO_PERMITIDA);
 
@@ -866,7 +867,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void validateTriggerInitialEvent_tramiteQueNoAdmiteRepresentacion_devuelveElLiteralDelMotor() {
-        centroUsuario(centroA, "ALUMNO");
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoRechazaSiempre(MENSAJE_SIN_REPRESENTACION);
         var asistente = asistenteCompleto();
@@ -885,7 +886,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void validateTriggerInitialEvent_paraUstedMismoSiendoFamiliarQueNoEsDelTipoDelTramite_devuelveNoPuedeCrearParaUstedMismo() {
-        centroUsuario(centroA, "FAMILIAR");
+        centroUsuario(centroA, TipoUsuarioCodigo.FAMILIAR);
         stubCatalogo(tramite);
         stubOraculoAcepta();
 
@@ -894,7 +895,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void validateTriggerInitialEvent_paraUstedMismoSiendoDelTipoDelTramite_devuelveVacio() {
-        centroUsuario(centroA, "ALUMNO", "FAMILIAR");
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO, TipoUsuarioCodigo.FAMILIAR);
         stubCatalogo(tramite);
         stubOraculoAcepta();
 
@@ -903,7 +904,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void validateTriggerInitialEvent_paraUstedMismoSinSerFamiliar_devuelveVacio() {
-        centroUsuario(centroA, "PROFESOR");
+        centroUsuario(centroA, TipoUsuarioCodigo.PROFESOR);
         stubCatalogo(tramite);
         stubOraculoAcepta();
 
@@ -913,7 +914,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
     @Test
     void validateTriggerInitialEvent_paraUstedMismoEnTramiteQueNoAdmiteRepresentacion_devuelveVacio() {
         tramite.setPermitidoPresentarEnRepresentacion(false);
-        centroUsuario(centroA, "FAMILIAR");
+        centroUsuario(centroA, TipoUsuarioCodigo.FAMILIAR);
         stubCatalogo(tramite);
         stubOraculoAcepta();
 
@@ -922,7 +923,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void validateTriggerInitialEvent_enRepresentacionSinSerFamiliarYSiendoDelTipoDelTramite_devuelveNoPuedeCrearEnRepresentacion() {
-        centroUsuario(centroA, "ALUMNO");
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoAcepta();
         var asistente = asistenteCompleto();
@@ -933,7 +934,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void validateTriggerInitialEvent_enRepresentacionSiendoFamiliar_devuelveVacio() {
-        centroUsuario(centroA, "ALUMNO", "FAMILIAR");
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO, TipoUsuarioCodigo.FAMILIAR);
         stubCatalogo(tramite);
         stubOraculoAcepta();
         var asistente = asistenteCompleto();
@@ -944,7 +945,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void validateTriggerInitialEvent_enRepresentacionSinSerDelTipoDelTramite_devuelveVacio() {
-        centroUsuario(centroA, "PROFESOR");
+        centroUsuario(centroA, TipoUsuarioCodigo.PROFESOR);
         stubCatalogo(tramite);
         stubOraculoAcepta();
         var asistente = asistenteCompleto();
@@ -956,7 +957,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
     @Test
     void validateTriggerInitialEvent_tramiteSinTipoUsuario_noAplicaElAfinadoYDevuelveVacio() {
         tramite.setTipoUsuario(null);
-        centroUsuario(centroA, "FAMILIAR");
+        centroUsuario(centroA, TipoUsuarioCodigo.FAMILIAR);
         stubCatalogo(tramite);
         stubOraculoAcepta();
 
@@ -965,7 +966,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void validateTriggerInitialEvent_registradoEnPapel_noAplicaElAfinado() {
-        centroUsuario(centroA, "FAMILIAR");
+        centroUsuario(centroA, TipoUsuarioCodigo.FAMILIAR);
         stubCatalogo(tramite);
         stubOraculoAcepta();
         var asistente = asistenteCompleto();
@@ -976,7 +977,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void validateTriggerInitialEvent_construyeElContextoConElPerfilQueExigeLaFormaDePresentar() {
-        centroUsuario(centroA, "ALUMNO");
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoAcepta();
         ArgumentCaptor<ContextoTramitacion> contextos = capturaDeContextos();

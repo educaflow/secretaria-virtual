@@ -10,6 +10,7 @@ import com.educaflow.subsystem.common.db.Cargo;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.CentroUsuario;
 import com.educaflow.subsystem.common.db.TipoUsuario;
+import com.educaflow.subsystem.common.db.TipoUsuarioCodigo;
 import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.Tramite;
 import com.educaflow.subsystem.security.db.AceProfileCentro;
@@ -110,7 +111,7 @@ class AceProfileCentroServiceImplTest {
         return centro;
     }
 
-    private static TipoUsuario tipoUsuario(String codigo) {
+    private static TipoUsuario tipoUsuario(TipoUsuarioCodigo codigo) {
         var tipoUsuario = new TipoUsuario();
         tipoUsuario.setCodigo(codigo);
         return tipoUsuario;
@@ -205,7 +206,7 @@ class AceProfileCentroServiceImplTest {
         fila.setCentro(centroMislata);
         fila.setTramite(tramite);
         fila.setPerfil(Profile.CREADOR);
-        fila.setTipoUsuario(tipoUsuario("ALUMNO"));
+        fila.setTipoUsuario(tipoUsuario(TipoUsuarioCodigo.ALUMNO));
 
         Optional<BusinessMessages> resultado = service.validateInsert(fila);
 
@@ -279,7 +280,7 @@ class AceProfileCentroServiceImplTest {
     @Test
     void validateInsert_tipoUsuarioYCargo_devuelveMensajeSoloUno() {
         var fila = filaValidaConCargo();
-        fila.setTipoUsuario(tipoUsuario("PROFESOR"));
+        fila.setTipoUsuario(tipoUsuario(TipoUsuarioCodigo.PROFESOR));
 
         Optional<BusinessMessages> resultado = service.validateInsert(fila);
 
@@ -290,7 +291,7 @@ class AceProfileCentroServiceImplTest {
     @Test
     void validateInsert_tresDestinatarios_devuelveUnSoloMensajeSoloUno() {
         var fila = filaValidaConCargo();
-        fila.setTipoUsuario(tipoUsuario("PROFESOR"));
+        fila.setTipoUsuario(tipoUsuario(TipoUsuarioCodigo.PROFESOR));
         fila.setUsuario(usuarioDestino(centroMislata));
 
         Optional<BusinessMessages> resultado = service.validateInsert(fila);
@@ -441,7 +442,7 @@ class AceProfileCentroServiceImplTest {
     @Test
     void validateUpdate_dosDestinatarios_devuelveMensajeSoloUno() {
         var fila = filaValidaConCargoConId();
-        fila.setTipoUsuario(tipoUsuario("PROFESOR"));
+        fila.setTipoUsuario(tipoUsuario(TipoUsuarioCodigo.PROFESOR));
         var original = filaValidaConCargoConId();
 
         Optional<BusinessMessages> resultado = service.validateUpdate(fila, original);

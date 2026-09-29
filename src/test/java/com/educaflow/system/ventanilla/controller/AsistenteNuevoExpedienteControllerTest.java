@@ -10,6 +10,7 @@ import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.TipoUsuario;
+import com.educaflow.subsystem.common.db.TipoUsuarioCodigo;
 import com.educaflow.subsystem.expedientes.db.TipoExpediente;
 import com.educaflow.subsystem.expedientes.db.Tramite;
 import com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente;
@@ -94,7 +95,7 @@ class AsistenteNuevoExpedienteControllerTest {
         tramite.setName(NOMBRE_TRAMITE);
         tramite.setHelp(AYUDA_TRAMITE);
         tramite.setPermitidoPresentarEnRepresentacion(true);
-        tramite.setTipoUsuario(tipoUsuario("ALUMNO"));
+        tramite.setTipoUsuario(tipoUsuario(TipoUsuarioCodigo.ALUMNO));
         tramite.getTipoUsuario().setTituloTramites(TITULO_TRAMITES);
         tramite.setDefaultTipoExpediente(new TipoExpediente());
 
@@ -186,7 +187,7 @@ class AsistenteNuevoExpedienteControllerTest {
         return centro;
     }
 
-    private static TipoUsuario tipoUsuario(String codigo) {
+    private static TipoUsuario tipoUsuario(TipoUsuarioCodigo codigo) {
         TipoUsuario tipoUsuario = new TipoUsuario();
         tipoUsuario.setCodigo(codigo);
         return tipoUsuario;

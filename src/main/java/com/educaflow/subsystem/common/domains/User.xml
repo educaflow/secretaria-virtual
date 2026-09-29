@@ -31,7 +31,7 @@
             }
 
             /** Si tiene ese tipo de usuario en alguno de sus centros. */
-            public boolean tieneTipoUsuario(String codigoTipoUsuario) {
+            public boolean tieneTipoUsuario(com.educaflow.subsystem.common.db.TipoUsuarioCodigo codigoTipoUsuario) {
                 if (centroUsuarios == null) {
                     return false;
                 }
@@ -39,19 +39,19 @@
             }
 
             /** Si tiene ese tipo de usuario en ese centro; {@code false} si no pertenece al centro. */
-            public boolean tieneTipoUsuario(com.educaflow.subsystem.common.db.Centro centro, String codigoTipoUsuario) {
+            public boolean tieneTipoUsuario(com.educaflow.subsystem.common.db.Centro centro, com.educaflow.subsystem.common.db.TipoUsuarioCodigo codigoTipoUsuario) {
                 com.educaflow.subsystem.common.db.CentroUsuario centroUsuario = getCentroUsuario(centro);
                 return centroUsuario != null && tieneTipoUsuario(centroUsuario, codigoTipoUsuario);
             }
 
-            private static boolean tieneTipoUsuario(com.educaflow.subsystem.common.db.CentroUsuario centroUsuario, String codigoTipoUsuario) {
+            private static boolean tieneTipoUsuario(com.educaflow.subsystem.common.db.CentroUsuario centroUsuario, com.educaflow.subsystem.common.db.TipoUsuarioCodigo codigoTipoUsuario) {
                 if (centroUsuario.getCentroUsuarioTipoUsuario() == null) {
                     return false;
                 }
                 return centroUsuario.getCentroUsuarioTipoUsuario().stream()
                     .map(com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario::getTipoUsuario)
                     .filter(java.util.Objects::nonNull)
-                    .anyMatch(tipoUsuario -> codigoTipoUsuario.equals(tipoUsuario.getCodigo()));
+                    .anyMatch(tipoUsuario -> tipoUsuario.getCodigo() == codigoTipoUsuario);
             }
         ]]>
         </extra-code-model>

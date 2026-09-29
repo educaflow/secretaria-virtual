@@ -12,7 +12,7 @@ import com.axelor.i18n.I18n;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.CentroUsuario;
-import com.educaflow.subsystem.common.db.TipoUsuario;
+import com.educaflow.subsystem.common.db.TipoUsuarioCodigo;
 import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.Tramite;
 import com.educaflow.subsystem.expedientes.service.TramiteService;
@@ -377,7 +377,7 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
     }
 
     private boolean esFamiliar(Centro centro) {
-        return tieneTipoUsuario(centro, TipoUsuario.FAMILIAR);
+        return tieneTipoUsuario(centro, TipoUsuarioCodigo.FAMILIAR);
     }
 
     private List<Tramite> getTramitesConTipoExpedienteActivo() {
@@ -385,7 +385,7 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
         return tramiteService.findConTipoExpedienteActivo();
     }
 
-    private boolean tieneTipoUsuario(Centro centro, String codigoTipoUsuario) {
+    private boolean tieneTipoUsuario(Centro centro, TipoUsuarioCodigo codigoTipoUsuario) {
         User usuario = SecurityUtil.getUser();
         if (!usuario.perteneceAlCentro(centro)) {
             throw new IllegalStateException("El usuario no pertenece al centro indicado");

@@ -2,7 +2,7 @@ package com.educaflow.subsystem.security.service.impl;
 
 import com.axelor.auth.db.User;
 import com.educaflow.base.util.SecurityUtil;
-import com.educaflow.subsystem.common.db.TipoUsuario;
+import com.educaflow.subsystem.common.db.TipoUsuarioCodigo;
 import com.educaflow.subsystem.security.service.MenuSecurityService;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
 import jakarta.inject.Inject;
@@ -26,7 +26,7 @@ public class MenuSecurityServiceImpl implements MenuSecurityService {
             return false;
         }
         boolean admin = SecurityUtil.isAdmin(user);
-        boolean supervisor = user.tieneTipoUsuario(TipoUsuario.SUPERVISOR);
+        boolean supervisor = user.tieneTipoUsuario(TipoUsuarioCodigo.SUPERVISOR);
 
         return switch (menuName) {
             case "firmas-delCentro-menuitem", "miCentro-menuitem" -> supervisor;
@@ -34,7 +34,7 @@ public class MenuSecurityServiceImpl implements MenuSecurityService {
             case "tramitacion-jefaturaDeEstudios-menuitem" -> perfilesUsuarioService.isTramitador(user, UNIDAD_JEFATURA_ESTUDIOS);
             case "tramitacion-secretaria-menuitem" -> perfilesUsuarioService.isTramitador(user, UNIDAD_SECRETARIA);
             case "registro-menuitem" -> admin || perfilesUsuarioService.isTramitador(user, UNIDAD_SECRETARIA) || supervisor;
-            case "correos-delCentro-menuitem" -> supervisor || user.tieneTipoUsuario(TipoUsuario.ADMINISTRATIVO);
+            case "correos-delCentro-menuitem" -> supervisor || user.tieneTipoUsuario(TipoUsuarioCodigo.ADMINISTRATIVO);
             //El resto de menús solo dependen de sus `groups`.
             default -> true;
         };

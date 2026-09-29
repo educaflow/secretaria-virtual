@@ -127,7 +127,7 @@ Una tabla con **exactamente** estas filas:
 |---|---|
 | `code` del trámite | `<Code>` |
 | Nombre visible (`<name>`) | … |
-| `tipoUsuario` | … (**MUST** existir en `tiposUsuario.xml` del data-init de common) |
+| `tipoUsuario` | … (**MUST** ser un valor del enum `TipoUsuarioCodigo` y existir en `tiposUsuario.xml` del data-init de common, que coincide con él) |
 | `unidadTramitadora` | … (**MUST** existir en `UnidadesTramitadoras.xml` del data-init de expedientes) |
 | Carpeta del trámite | `src/main/java/com/educaflow/tramites/<tramite>/` |
 | Carpeta de la versión | `src/main/java/com/educaflow/tramites/<tramite>/<…segmentos…>/<vN>/` |
