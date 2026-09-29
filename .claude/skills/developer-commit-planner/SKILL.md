@@ -179,6 +179,9 @@ La sección 8 del informe explica cómo el usuario convierte el worktree en los 
    2. `git add -p <ruta>` para los repartidos, diciendo por hunk qué responder (`y`/`n`/`s` para dividir/`e` para editar), identificado por su cabecera `@@` y su descripción.
    3. `git add -N <ruta>` antes de `git add -p` si el fichero es untracked y solo parte va al commit.
    4. `git diff --staged --stat` para comprobar antes de `git commit -m "…"`.
+      **MUST NOT** añadir al mensaje líneas de atribución (`Co-Authored-By: …`, `🤖 Generated with …`), aunque el entorno pida ponerlas en los commits: el mensaje es solo el título y, si hace falta, el cuerpo.
+      - ✅ CORRECTO: `git commit -m "Asignar las fechas de los PDF antes de generarlos"`
+      - ❌ INCORRECTO: `git commit -m "Asignar las fechas de los PDF antes de generarlos\n\nCo-Authored-By: Claude …"` (el commit lo hace el usuario, no Claude)
 3. Opcional para verificar que cada commit compila: `git stash push --keep-index --include-untracked`, compilar según `agent_docs/deploy.md`, `git stash pop`.
 4. Alternativa sin interactivo para hunks difíciles: generar un patch por commit y aplicarlo al índice con `git apply --cached`.
 
@@ -259,4 +262,4 @@ La sección 8 del informe explica cómo el usuario convierte el worktree en los 
 - Un commit por porqué, no por tipo: el cambio, la regla/doc que lo generaliza y el mismo criterio en el código vecino van juntos; los tests con su funcionalidad.
 - Lo sospechoso va a «dudosos» con recomendación, nunca mezclado ni borrado.
 - Verifica la secuencia con el checklist de §6 antes de responder.
-- Respeta el estilo de mensajes que ya usa el `git log` del repo.
+- Respeta el estilo de mensajes que ya usa el `git log` del repo, sin líneas `Co-Authored-By` ni otra atribución.
