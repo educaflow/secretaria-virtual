@@ -5,10 +5,12 @@
 
     <module name="common" package="com.educaflow.subsystem.common.db"/>
 
-    <entity name="Cargo">
-        <enum name="code" ref="com.educaflow.subsystem.common.db.CargoCodigo"/>
-        <string name="name" namecolumn="true"/>
-        <many-to-one name="tipoUsuario" ref="com.educaflow.subsystem.common.db.TipoUsuario" title="Tipo de usuario"/>
-    </entity>
+    <enum name="CargoCodigo">
+        <item name="DIRECTOR" title="Director"/>
+        <item name="VICEDIRECTOR" title="Vicedirector"/>
+        <item name="SECRETARIO" title="Secretario"/>
+        <item name="VICESECRETARIO" title="Vicesecretario"/>
+        <item name="JEFE_ESTUDIOS" title="Jefe de estudios"/>
+    </enum>
 
 </domain-models>
