@@ -1,6 +1,6 @@
 ---
 name: developer-reduce-crap
-description: Baja por debajo de la constante `crapUmbral` del `build.gradle` el CRAP de los 5 métodos con CRAP más alto del proyecto, según el informe `build/reports/crap/crap.csv` que genera `./gradlew -q crapCheck`. Por cada método escribe tests unitarios de caracterización y, cuando los tests no bastan (CRAP mínimo alcanzable = CC), reduce su complejidad ciclomática con las técnicas de `estrategias-cc.md` sin cambiar el comportamiento ni las firmas. La salida son tests nuevos en `src/test/java`, el código refactorizado y un informe antes→después por método, que empieza y termina con una tabla markdown de los 10 métodos con más CRAP (con enlace a cada uno) y sus valores nuevos.
+description: Baja por debajo de la constante `crapUmbral` del `build.gradle` el CRAP de los 5 métodos con CRAP más alto del proyecto, según el informe `build/reports/crap/crap.csv` que genera `./gradlew -q crapCheck`. Por cada método escribe tests unitarios de caracterización y, cuando los tests no bastan (CRAP mínimo alcanzable = CC), reduce su complejidad ciclomática con las técnicas de `estrategias-cc.md` sin cambiar el comportamiento ni las firmas. La salida son tests nuevos en `src/test/java`, el código refactorizado y un informe antes→después por método, que empieza con una tabla markdown de todos los métodos que superan el umbral (con enlace a cada uno) y termina con la de los métodos tratados y sus valores nuevos.
 allowed-tools: Read, Write, Edit, Bash, Skill, Agent, mcp__intellij-index__ide_find_references, mcp__intellij-index__ide_search_text
 ---
 
@@ -52,7 +52,7 @@ Argumentos esperables:
 
 - Tests unitarios nuevos o ampliados en `src/test/java`, en el mismo paquete que la clase probada y con nombre `<Clase>Test` (ampliar el que exista).
 - Código de `src/main/java` refactorizado cuando haya que bajar la CC.
-- Tabla de los métodos con más CRAP al empezar (Fase 0) y la misma tabla con los valores nuevos al terminar (Fase 3), según §2.5.
+- Tabla de todos los métodos por encima del umbral al empezar (Fase 0) y la de los métodos tratados con sus valores nuevos al terminar (Fase 3), según §2.5.
 - Informe final en la conversación (plantilla en §6).
 
 ---
@@ -84,8 +84,6 @@ Argumentos esperables:
   - Kotlin: `<clase>#<metodo>$lambda$` + descriptor, quitando todos los `$N` finales.
 - Comandos para leer el CSV:
   ```bash
-  # los N peores (N = 5 o `--top`) que superan el umbral
-  awk -F, -v u=<umbral> 'NR>1 && $8>u' build/reports/crap/crap.csv | sort -t, -k8,8 -gr | head -<N>
   # un método y sus lambdas
   grep -F ',<clase>,' build/reports/crap/crap.csv | grep -E ',(<metodo>|lambda\$<metodo>\$[0-9]+|<metodo>\$lambda(\$[0-9]+)+),'
   ```
@@ -111,17 +109,17 @@ Trampas que bajan la métrica sin bajar el riesgo. **MUST NOT**:
 
 ### 2.5 Tablas de ranking
 
-Las dos tablas las genera `tabla-crap.py` (en la carpeta de este skill): markdown alineado en columnas, métricas a la derecha y cada método como enlace `fichero:linea` a su definición.
-**MUST** mostrar su salida tal cual, sin rehacerla a mano ni quitar el enlace.
-`<N>` vale 10, o el valor de `--top` si es mayor.
+Las dos tablas las genera `tabla-crap.py` (en la carpeta de este skill): markdown alineado en columnas, métricas a la derecha, de más a menos CRAP y cada método como enlace `fichero:linea` a su definición.
+**MUST** mostrar su salida tal cual, sin rehacerla a mano, sin recortar filas ni quitar el enlace.
+`<N>` vale 5, o el valor de `--top`.
 
-- Tabla inicial (`#`, Método, CRAP, CC, Cobertura), sobre el CSV recién medido:
+- Tabla inicial (`#`, Método, CRAP, CC, Cobertura): **todos** los métodos con `crap` > `crapUmbral` del CSV recién medido, para ver de un vistazo cuánto código está mal:
   ```bash
-  python3 .claude/skills/developer-reduce-crap/tabla-crap.py build/reports/crap/crap.csv <N>
+  python3 .claude/skills/developer-reduce-crap/tabla-crap.py build/reports/crap/crap.csv <umbral>
   ```
-- Tabla final: los mismos métodos de la inicial con 3 columnas más (CRAP nuevo, CC nuevo, Cobertura nueva), emparejados por identificador (§2.2) y con el enlace a la línea nueva:
+- Tabla final: solo los métodos tratados, que son las `<N>` primeras filas de la inicial, con 3 columnas más (CRAP nuevo, CC nuevo, Cobertura nueva), emparejados por identificador (§2.2) y con el enlace a la línea nueva:
   ```bash
-  python3 .claude/skills/developer-reduce-crap/tabla-crap.py "${TMPDIR:-/tmp}/developer-reduce-crap-antes.csv" build/reports/crap/crap.csv <N>
+  python3 .claude/skills/developer-reduce-crap/tabla-crap.py "${TMPDIR:-/tmp}/developer-reduce-crap-antes.csv" build/reports/crap/crap.csv <umbral> <N>
   ```
 
 ---
@@ -131,10 +129,10 @@ Las dos tablas las genera `tabla-crap.py` (en la carpeta de este skill): markdow
 1. Lee `crapUmbral` (§2.2). Si no aparece → **ERROR**.
 2. Lanza `./gradlew -q crapCheck`. Si `build/reports/crap/crap.csv` no existe (§2.2) → **ERROR** (STOP conditions).
    2.1 Guarda una copia para la tabla final: `cp build/reports/crap/crap.csv "${TMPDIR:-/tmp}/developer-reduce-crap-antes.csv"`.
-   2.2 Muestra la tabla inicial (§2.5).
-3. Ordena el CSV por `crap` descendente y quédate con los primeros 5 cuyo `crap` sea mayor que `crapUmbral` (**LIMIT**: 5, o el valor de `--top`).
+   2.2 Muestra la tabla inicial (§2.5) **nada más medir**, antes que cualquier otro texto.
+3. Quédate con las primeras 5 filas de la tabla inicial (**LIMIT**: 5, o el valor de `--top`). **MUST** ser esas filas y en ese orden, también en los empates de CRAP, para que la tabla final muestre los mismos métodos.
    3.1 Si hay menos, trabaja solo con esos.
-   3.2 Si no hay ninguno → informa y termina.
+   3.2 Si la tabla sale vacía (ningún método supera el umbral) → informa y termina.
 4. Guarda para cada uno la fila **antes** (CC, cobertura, CRAP) y su identificador `<clase>#<metodo><descriptor>` (§2.2). Guarda además el conjunto de identificadores de **todas** las filas con `crap` > `crapUmbral`.
 5. Di debajo de la tabla inicial qué métodos vas a tratar (por su `#`) y continúa sin esperar respuesta.
 
@@ -258,6 +256,6 @@ Cada método es un enlace a su definición, con `fichero` y `linea` de la fila d
 - Técnicas baratas y locales antes que trocear; trocear solo lo que es independiente.
 - Ninguna técnica cuenta hasta verla en el CSV.
 - Un Gradle cada vez: subagentes secuenciales, nunca en paralelo.
-- Tabla de ranking (§2.5) al empezar y, con los valores nuevos, al terminar; métodos siempre como enlace `fichero:linea`.
+- Tabla de ranking (§2.5) al empezar, con todos los métodos sobre el umbral, y al terminar, con los tratados y sus valores nuevos; métodos siempre como enlace `fichero:linea`.
 - Nada de trampas (§2.3): ni tocar el umbral, ni tests sin asserts, ni cambiar firmas.
 

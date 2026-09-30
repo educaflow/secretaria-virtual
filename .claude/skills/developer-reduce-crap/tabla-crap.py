@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Tabla markdown alineada con los métodos de mayor CRAP de un crap.csv.
+"""Tabla markdown alineada con los métodos de un crap.csv que superan el umbral, de más a menos CRAP.
 
 Uso:
-  tabla-crap.py <crap.csv> [N]                  -> los N métodos con más CRAP (10 por defecto)
-  tabla-crap.py <crap-antes.csv> <crap.csv> [N] -> los mismos N métodos de antes, con 3 columnas
-                                                   más con sus valores en <crap.csv>
+  tabla-crap.py <crap.csv> <umbral>                  -> todos los métodos con CRAP > umbral
+  tabla-crap.py <crap-antes.csv> <crap.csv> <umbral> <N>
+                                                     -> los N primeros de la tabla anterior (medida
+                                                        sobre <crap-antes.csv>), con 3 columnas más
+                                                        con sus valores en <crap.csv>
 
 Cada método es un enlace `fichero:linea` a su definición (la línea sale del CSV más reciente).
 Los métodos se emparejan entre los dos CSV por clase + metodo + descriptor, nunca por línea.
@@ -37,7 +39,7 @@ def metricas(fila):
 
 
 def imprimir(cabecera, filas):
-    anchos = [max(len(c), *(len(f[i]) for f in filas)) for i, c in enumerate(cabecera)]
+    anchos = [max([len(c)] + [len(f[i]) for f in filas]) for i, c in enumerate(cabecera)]
     # '#' y todas las métricas a la derecha; el método a la izquierda
     derecha = [i != 1 for i in range(len(cabecera))]
 
@@ -51,19 +53,18 @@ def imprimir(cabecera, filas):
 
 
 def main(args):
-    n = 10
-    if args and args[-1].isdigit():
-        n = int(args.pop())
-    if len(args) not in (1, 2):
+    if len(args) not in (2, 4):
         sys.exit(__doc__)
-    antes = sorted(leer(args[0]), key=lambda f: float(f['crap']), reverse=True)[:n]
-    if len(args) == 1:
+    umbral = float(args[1] if len(args) == 2 else args[2])
+    antes = sorted((f for f in leer(args[0]) if float(f['crap']) > umbral),
+                   key=lambda f: float(f['crap']), reverse=True)
+    if len(args) == 2:
         filas = [[str(i), enlace(f), *metricas(f)] for i, f in enumerate(antes, 1)]
         imprimir(['#', 'Método', 'CRAP', 'CC', 'Cobertura'], filas)
         return
     despues = {clave(f): f for f in leer(args[1])}
     filas = []
-    for i, f in enumerate(antes, 1):
+    for i, f in enumerate(antes[:int(args[3])], 1):
         nueva = despues.get(clave(f))
         filas.append([str(i), enlace(nueva or f), *metricas(f), *metricas(nueva)])
     imprimir(['#', 'Método', 'CRAP', 'CC', 'Cobertura', 'CRAP nuevo', 'CC nuevo', 'Cobertura nueva'], filas)
