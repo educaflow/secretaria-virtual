@@ -3,6 +3,7 @@ package com.educaflow.subsystem.security.service.impl;
 import com.axelor.auth.db.User;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.TipoUsuarioCodigo;
+import com.educaflow.subsystem.expedientes.db.UnidadTramitadoraCodigo;
 import com.educaflow.subsystem.security.service.MenuSecurityService;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
 import jakarta.inject.Inject;
@@ -12,9 +13,6 @@ import jakarta.inject.Inject;
  * un centro y profesor en otro es de la unidad de Secretaría.
  */
 public class MenuSecurityServiceImpl implements MenuSecurityService {
-
-    private static final String UNIDAD_JEFATURA_ESTUDIOS = "JEFATURA_ESTUDIOS";
-    private static final String UNIDAD_SECRETARIA = "SECRETARIA";
 
     @Inject
     PerfilesUsuarioService perfilesUsuarioService;
@@ -31,9 +29,9 @@ public class MenuSecurityServiceImpl implements MenuSecurityService {
         return switch (menuName) {
             case "firmas-delCentro-menuitem", "miCentro-menuitem" -> supervisor;
             case "tramitacion-menuitem" -> admin || perfilesUsuarioService.isTramitador(user);
-            case "tramitacion-jefaturaDeEstudios-menuitem" -> perfilesUsuarioService.isTramitador(user, UNIDAD_JEFATURA_ESTUDIOS);
-            case "tramitacion-secretaria-menuitem" -> perfilesUsuarioService.isTramitador(user, UNIDAD_SECRETARIA);
-            case "registro-menuitem" -> admin || perfilesUsuarioService.isTramitador(user, UNIDAD_SECRETARIA) || supervisor;
+            case "tramitacion-jefaturaDeEstudios-menuitem" -> perfilesUsuarioService.isTramitador(user, UnidadTramitadoraCodigo.JEFATURA_ESTUDIOS);
+            case "tramitacion-secretaria-menuitem" -> perfilesUsuarioService.isTramitador(user, UnidadTramitadoraCodigo.SECRETARIA);
+            case "registro-menuitem" -> admin || perfilesUsuarioService.isTramitador(user, UnidadTramitadoraCodigo.SECRETARIA) || supervisor;
             case "correos-delCentro-menuitem" -> supervisor || user.tieneTipoUsuario(TipoUsuarioCodigo.ADMINISTRATIVO);
             //El resto de menús solo dependen de sus `groups`.
             default -> true;

@@ -2,9 +2,12 @@
 <domain-models xmlns="http://axelor.com/xml/ns/domain-models"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
     <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
-    <entity name="UnidadTramitadora">
-        <enum name="code" ref="com.educaflow.subsystem.expedientes.db.UnidadTramitadoraCodigo" />
-        <string name="name" namecolumn="true" translatable="true" />
-    </entity>
+
+    <enum name="UnidadTramitadoraCodigo">
+        <item name="JEFATURA_ESTUDIOS" title="Jefatura de estudios"/>
+        <item name="SECRETARIA" title="Secretaría"/>
+    </enum>
+
 </domain-models>

@@ -5,6 +5,7 @@ import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.Tramite;
+import com.educaflow.subsystem.expedientes.db.UnidadTramitadoraCodigo;
 
 import java.util.Set;
 
@@ -53,5 +54,5 @@ public interface PerfilesUsuarioService {
     boolean isTramitador(User user);
 
     /** Como {@link #isTramitador(User)}, pero solo en los trámites de esa unidad tramitadora. */
-    boolean isTramitador(User user, String codigoUnidadTramitadora);
+    boolean isTramitador(User user, UnidadTramitadoraCodigo codigoUnidadTramitadora);
 }

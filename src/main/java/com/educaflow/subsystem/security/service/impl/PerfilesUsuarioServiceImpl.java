@@ -11,6 +11,7 @@ import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.expedientes.db.TipoExpediente;
 import com.educaflow.subsystem.expedientes.db.Tramite;
 import com.educaflow.subsystem.expedientes.db.UnidadTramitadora;
+import com.educaflow.subsystem.expedientes.db.UnidadTramitadoraCodigo;
 import com.educaflow.subsystem.expedientes.service.TramiteService;
 import com.educaflow.subsystem.security.db.repo.AceProfileCentroRepository;
 import com.educaflow.subsystem.security.db.repo.AceProfileExpedienteRepository;
@@ -133,11 +134,11 @@ public class PerfilesUsuarioServiceImpl implements PerfilesUsuarioService {
     }
 
     @Override
-    public boolean isTramitador(User user, String codigoUnidadTramitadora) {
+    public boolean isTramitador(User user, UnidadTramitadoraCodigo codigoUnidadTramitadora) {
         Objects.requireNonNull(user, "user no puede ser nulo");
         Objects.requireNonNull(codigoUnidadTramitadora, "codigoUnidadTramitadora no puede ser nulo");
 
-        return tramitaAlgunTramite(user, tramite -> codigoUnidadTramitadora.equals(codigoUnidadTramitadora(tramite.getUnidadTramitadora())));
+        return tramitaAlgunTramite(user, tramite -> codigoUnidadTramitadora == codigoUnidadTramitadora(tramite.getUnidadTramitadora()));
     }
 
     /******************************************************************************/
@@ -178,7 +179,7 @@ public class PerfilesUsuarioServiceImpl implements PerfilesUsuarioService {
         return false;
     }
 
-    private static String codigoUnidadTramitadora(UnidadTramitadora unidadTramitadora) {
+    private static UnidadTramitadoraCodigo codigoUnidadTramitadora(UnidadTramitadora unidadTramitadora) {
         if (unidadTramitadora == null) {
             return null;
         }
