@@ -128,7 +128,7 @@ Una tabla con **exactamente** estas filas:
 | `code` del trámite | `<Code>` |
 | Nombre visible (`<name>`) | … |
 | `tipoUsuario` | … (**MUST** ser un valor del enum `TipoUsuarioCodigo` y existir en `tiposUsuario.xml` del data-init de common, que coincide con él) |
-| `unidadTramitadora` | … (**MUST** existir en `UnidadesTramitadoras.xml` del data-init de expedientes) |
+| `unidadTramitadora` | … (**MUST** ser un valor del enum `UnidadTramitadoraCodigo` y existir en `UnidadesTramitadoras.xml` del data-init de expedientes, que coincide con él) |
 | Carpeta del trámite | `src/main/java/com/educaflow/tramites/<tramite>/` |
 | Carpeta de la versión | `src/main/java/com/educaflow/tramites/<tramite>/<…segmentos…>/<vN>/` |
 | `<defaultTipoExpediente>` | el **nombre de la carpeta** de versión (`<vN>`), **nunca** la ruta ni el code del tipo |
@@ -843,7 +843,7 @@ Una fila por cada perfil que use algún estado del tipo, **incluidas** las que y
 
 Va en el `<acl>` de `design/TramiteInstance.xml` (§5.5) o de `design/TipoExpedienteInstance.xml` (§5.4); ningún otro fichero del diseño lleva perfiles.
 
-- **MUST** llevar el atributo `perfil` (nombre de una constante del enum `Profile`, `subsystem/expedientes/domains/Profile.xml`) y un hijo `<usuario>` con **exactamente uno** de `tipoUsuario` (`TipoUsuario.codigo`, de `subsystem/common/data-init/input/tiposUsuario.xml`) o `cargo` (`Cargo.code`, de `subsystem/common/data-init/input/cargos.xml`). Sin `<usuario>`, o con los dos atributos o ninguno, el build aborta.
+- **MUST** llevar el atributo `perfil` (nombre de una constante del enum `Profile`, `subsystem/expedientes/domains/Profile.xml`) y un hijo `<usuario>` con **exactamente uno** de `tipoUsuario` (`TipoUsuario.codigo`, de `subsystem/common/data-init/input/tiposUsuario.xml`) o `cargo` (`Cargo.code`: un valor del enum `CargoCodigo`, que coincide con `subsystem/common/data-init/input/cargos.xml` del data-init de common). Sin `<usuario>`, o con los dos atributos o ninguno, el build aborta.
 - **MUST NOT** llevar `<tramite>` ni `<tipoExpediente>`: son los del propio fichero.
 - Un cargo **sí** puede darse en el `<acl>` del trámite.
 - ✅ CORRECTO: `<ace perfil="<PERFIL>"><usuario cargo="<CARGO>"/></ace>`
