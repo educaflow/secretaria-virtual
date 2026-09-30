@@ -63,6 +63,17 @@ Cómo compilar, probar, arrancar la app y gestionar la base de datos en el entor
   Hay muchos campos declarados y sin usar todavía (`logger`, `repository` inyectado, servicios) que están ahí a propósito como plantilla del idioma con que se obtienen, y el check no permite distinguir campos de locales o parámetros.
   **MUST NOT** borrar esos campos como limpieza.
 
+### Métrica CRAP (`crapCheck`)
+
+- El build tiene un paso más, `crapCheck`, que calcula el CRAP de cada método: `CRAP = CC² × (1 − cobertura)³ + CC`.
+  La complejidad ciclomática (CC) y la cobertura salen de JaCoCo (`jacocoTestReport`) con los tests unitarios; el código generado (`*.db.*`, `States`) no se mide.
+- Va enganchado a `check`, así que `./gradlew build` y `./run.sh` ya lo pasan: **si algún método supera la constante `crapUmbral` del `build.gradle`, el build falla y `./run.sh` no arranca la app**, aunque compile y pasen todos los tests.
+  Se lanza suelto con `./gradlew -q crapCheck`.
+- El error lista cada método infractor como `ruta:línea` con su CRAP, CC y cobertura.
+  Los informes quedan siempre en `build/reports/crap/crap.csv` (todos los métodos) y `build/reports/crap/crap.md` (resumen).
+- Se arregla añadiendo tests unitarios al método o troceándolo para bajar su CC (con cobertura total `CRAP = CC`, así que si la CC ya supera el umbral los tests no bastan).
+  El skill `developer-reduce-crap` automatiza ese trabajo.
+
 ## Base de datos
 
 - PostgreSQL **12.22**. Conexión por defecto (en `src/main/resources/axelor-config.properties`,
