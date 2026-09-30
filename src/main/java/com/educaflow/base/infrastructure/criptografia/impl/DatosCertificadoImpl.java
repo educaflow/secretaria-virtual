@@ -11,6 +11,7 @@ import com.google.common.base.Splitter;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.cert.*;
+import java.time.Instant;
 import java.util.*;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
@@ -140,52 +141,41 @@ public class DatosCertificadoImpl implements DatosCertificado {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof DatosCertificadoImpl)) return false;
-        DatosCertificado that = (DatosCertificado) obj;
-        return validoEnListaCertificadosConfiables == that.isValidoEnListaCertificadosConfiables()
-                && selloTiempo == that.isSelloTiempo()
-                && Objects.equals(dni, that.getDNI())
-                && Objects.equals(nombre, that.getNombre())
-                && Objects.equals(apellidos, that.getApellidos())
-                && Objects.equals(cif, that.getCif())
-                && Objects.equals(cnSubject, that.getCnSubject())
-                && Objects.equals(cnIssuer, that.getCnIssuer())
-                && Objects.equals(tipoEmisorCertificado, that.getTipoEmisorCertificado())
-                && Objects.equals(tipoCertificado, that.getTipoCertificado())
-                && mismoInstante(validoNoAntesDe, that.getValidoNoAntesDe())
-                && mismoInstante(validoNoDespuesDe, that.getValidoNoDespuesDe())
-                && Objects.equals(certificate, that.getCertificate());
+        return Arrays.equals(camposComparables(this), camposComparables((DatosCertificado) obj));
     }
     @Override
     public int hashCode() {
-        return Objects.hash(
-                validoEnListaCertificadosConfiables,
-                selloTiempo,
-                dni,
-                nombre,
-                apellidos,
-                cif,
-                cnSubject,
-                cnIssuer,
-                tipoEmisorCertificado,
-                tipoCertificado,
-                validoNoAntesDe == null ? null : validoNoAntesDe.toInstant(),
-                validoNoDespuesDe == null ? null : validoNoDespuesDe.toInstant(),
-                certificate
-        );
+        return Arrays.hashCode(camposComparables(this));
     }
 
     /**
-     * Compara dos fechas por el instante que representan, no con {@code Date.equals}, que exige que
+     * Campos que deciden la igualdad, en el mismo orden para {@code equals} y {@code hashCode}.
+     * Se comparan todos de golpe para no encadenar un {@code &&} por campo, que dispara la complejidad ciclomática.
+     */
+    private static Object[] camposComparables(DatosCertificado datos) {
+        return new Object[]{
+                datos.isValidoEnListaCertificadosConfiables(),
+                datos.isSelloTiempo(),
+                datos.getDNI(),
+                datos.getNombre(),
+                datos.getApellidos(),
+                datos.getCif(),
+                datos.getCnSubject(),
+                datos.getCnIssuer(),
+                datos.getTipoEmisorCertificado(),
+                datos.getTipoCertificado(),
+                instante(datos.getValidoNoAntesDe()),
+                instante(datos.getValidoNoDespuesDe()),
+                datos.getCertificate()
+        };
+    }
+
+    /**
+     * Las fechas se comparan por el instante que representan, no con {@code Date.equals}, que exige que
      * ambas sean exactamente de la misma clase y no es simétrico entre {@code Date} y {@code java.sql.Timestamp}.
      */
-    private static boolean mismoInstante(Date a, Date b) {
-        if (a == null) {
-            return b == null;
-        }
-        if (b == null) {
-            return false;
-        }
-        return a.toInstant().equals(b.toInstant());
+    private static Instant instante(Date fecha) {
+        return fecha == null ? null : fecha.toInstant();
     }
     
     private boolean isValidoEnListaCertificadosConfiables(X509Certificate certificate, KeyStore trustStore) {
