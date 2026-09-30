@@ -185,28 +185,9 @@ public class BeanMapperModel {
 
             for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
                 try {
-                    if (propertyDescriptor.getWriteMethod() == null) {
-                        continue;
+                    if (isPropertyInMapToCopy(propertyDescriptor, entityMap, allowProperties)) {
+                        copyScalarFromMap(propertyDescriptor, entityMap, entityDest, mappedBy, mappedByModel);
                     }
-                    if (allowProperties.allowProperty(propertyDescriptor.getName()) == false) {
-                        continue;
-                    }
-
-                    if (entityMap.containsKey(propertyDescriptor.getName()) == false) {
-                        continue;
-                    }
-
-                    if (propertyDescriptor.getName().equals(mappedBy)) {
-                        PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), mappedByModel);
-                    } else if (ScalarMapper.isScalarType(propertyDescriptor.getPropertyType())) {
-                        Object rawValue = entityMap.get(propertyDescriptor.getName());
-
-                        //Obtener valor real
-                        Object value = ScalarMapper.getScalarFromObject(rawValue, propertyDescriptor.getPropertyType());
-
-                        PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), value);
-                    }
-
                 } catch (Exception ex) {
                    throw new RuntimeException("Nombre de la propiedad:"+propertyDescriptor.getName() ,ex);
                 }
@@ -217,137 +198,9 @@ public class BeanMapperModel {
 
             for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
                 try {
-                    if (propertyDescriptor.getWriteMethod() == null) {
-                        continue;
+                    if (isPropertyInMapToCopy(propertyDescriptor, entityMap, allowProperties)) {
+                        copyRelationFromMap(clazz, propertyDescriptor, entityMap, entityDest, allowProperties, mappedBy, instanceModelList);
                     }
-                    if (allowProperties.allowProperty(propertyDescriptor.getName()) == false) {
-                        continue;
-                    }
-
-                    if (entityMap.containsKey(propertyDescriptor.getName()) == false) {
-                        continue;
-                    }
-
-                    if (propertyDescriptor.getName().equals(mappedBy)) {
-                        //No hacer nada porque ya se copió en el bucle anterior
-                    } else if (ScalarMapper.isScalarType(propertyDescriptor.getPropertyType())) {
-                        //No hacer nada porque ya se copió en el bucle anterior
-                    } else if (Model.class.isAssignableFrom(propertyDescriptor.getPropertyType())) {
-                        if ((BeanMapperUtil.isOneToOne(clazz, propertyDescriptor.getName())==false) && (BeanMapperUtil.isManyToOne(clazz, propertyDescriptor.getName())==false)) {
-                            throw new RuntimeException("Si una propiedad es un modelo debe ser One-to-one o Many-to-one: " + propertyDescriptor.getPropertyType());
-                        }
-
-
-                        Map<String,Object> rawValue = (Map<String,Object>)entityMap.get(propertyDescriptor.getName());
-                        Model valueDest = (Model) PropertyUtils.getProperty(entityDest, propertyDescriptor.getName());
-                        AllowProperties innerAllowProperties = allowProperties.innerAllowProperties(propertyDescriptor.getName());
-
-                        if ((rawValue == null) && (valueDest == null)) {
-                            //No hacer nada
-                        } else if ((rawValue == null) && (valueDest != null)) {
-                            PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), null);
-                        } else if ((rawValue != null) && (valueDest == null)) {
-                            valueDest = getInitialModelFromMap(rawValue,(Class<? extends Model>) propertyDescriptor.getPropertyType());
-                            copyValueToEntityAndNoChangeId((Class<? extends Model>) propertyDescriptor.getPropertyType(), rawValue, valueDest, innerAllowProperties, null, null,instanceModelList);
-                            PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), valueDest);
-                        } else if ((rawValue != null) && (valueDest != null)) {
-                            Long rawValueId = rawValue.get("id") != null ? ((Number) rawValue.get("id")).longValue() : null;
-                            if (rawValueId != null && !rawValueId.equals(valueDest.getId())) {
-                                // El usuario eligió otra entidad: cargarla por su id y reemplazar la referencia,
-                                // en vez de copiar los campos del mapa dentro de la entidad actualmente referenciada
-                                valueDest = getInitialModelFromMap(rawValue, (Class<? extends Model>) propertyDescriptor.getPropertyType());
-                                PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), valueDest);
-                            } else {
-                                copyValueToEntityAndNoChangeId((Class<? extends Model>) propertyDescriptor.getPropertyType(), rawValue, valueDest, innerAllowProperties, null, null, instanceModelList);
-                            }
-                        } else {
-                            throw new RuntimeException("Error de lógica");
-                        }
-                    } else if (List.class.isAssignableFrom(propertyDescriptor.getPropertyType())) {
-                        List<Object> listSource = (List<Object>) entityMap.get(propertyDescriptor.getName());
-                        List<Model> listTarget = (List<Model>) PropertyUtils.getProperty(entityDest, propertyDescriptor.getName());
-                        Class<? extends Model> tipoListaClass = (Class<? extends Model>) ((ParameterizedType) propertyDescriptor.getReadMethod().getGenericReturnType()).getActualTypeArguments()[0];
-                        String mappedByRelation = BeanMapperUtil.getMappedByInOneToMany(clazz, propertyDescriptor.getName());
-                        AllowProperties innerAllowProperties = allowProperties.innerAllowProperties(propertyDescriptor.getName());
-
-                        if ((listSource == null) && (listTarget == null)) {
-                            //No hacer nada
-                        } else if ((listSource == null) && (listTarget != null)) {
-                            PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), null);
-                        } else if ((listSource != null) && (listTarget == null)) {
-                            List<Model> listValues = new ArrayList<>();
-                            for (Object rawValue : listSource) {
-                                Model itemValue = getInitialModelFromMap((Map<String, Object>) rawValue, tipoListaClass);
-                                copyValueToEntityAndNoChangeId(tipoListaClass, rawValue, itemValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList);
-                                listValues.add(itemValue);
-                            }
-                            PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), listValues);
-                        } else if ((listSource != null) && (listTarget != null)) {
-                            ModelListCompare modelListCompare = new ModelListCompare(listSource, listTarget);
-
-                            for (Object rawValue : modelListCompare.getSourceWhereOnlySource()) {
-                                Model itemValue = getInitialModelFromMap((Map<String,Object>)rawValue,tipoListaClass);
-                                copyValueToEntityAndNoChangeId(tipoListaClass, rawValue, itemValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList);
-                                listTarget.add(itemValue);
-                            }
-                            for (int i = 0; i < modelListCompare.getTargetWhereSourceAndTarget().size(); i++) {
-                                Model itemValue = modelListCompare.getTargetWhereSourceAndTarget().get(i);
-                                Object rawValue = modelListCompare.getSourceWhereSourceAndTarget().get(i);
-                                copyValueToEntityAndNoChangeId(tipoListaClass, rawValue, itemValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList);
-                            }
-                            for (int i = 0; i < modelListCompare.getTargetWhereOnlyTarget().size(); i++) {
-                                Model itemValue = modelListCompare.getTargetWhereOnlyTarget().get(i);
-                                listTarget.remove(itemValue);
-                            }
-
-
-                        } else {
-                            throw new RuntimeException("Error de lógica");
-                        }
-                    } else if (Set.class.isAssignableFrom(propertyDescriptor.getPropertyType())) {
-                        Set<Object> collectionSetSource = (Set<Object>) entityMap.get(propertyDescriptor.getName());
-                        Set<Model> collectionSetTarget = (Set<Model>) PropertyUtils.getProperty(entityDest, propertyDescriptor.getName());
-                        Class<? extends Model> tipoSetClass = (Class<? extends Model>) ((ParameterizedType) propertyDescriptor.getReadMethod().getGenericReturnType()).getActualTypeArguments()[0];
-                        String mappedByRelation = null; //BeanMapperUtil.getMappedByInManyToMany(clazz, propertyDescriptor.getName());
-                        AllowProperties innerAllowProperties = allowProperties.innerAllowProperties(propertyDescriptor.getName());
-
-                        if ((collectionSetSource == null) && (collectionSetTarget == null)) {
-                            //No hacer nada
-                        } else if ((collectionSetSource == null) && (collectionSetTarget != null)) {
-                            PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), null);
-                        } else if ((collectionSetSource != null) && (collectionSetTarget == null)) {
-                            Set<Model> setValues = new LinkedHashSet<>();
-                            for (Object rawValue : collectionSetSource) {
-                                Model itemValue = getInitialModelFromMap((Map<String, Object>) rawValue, tipoSetClass);
-                                copyValueToEntityAndNoChangeId(tipoSetClass, rawValue, itemValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList);
-                                setValues.add(itemValue);
-                            }
-                            PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), setValues);
-                        } else if ((collectionSetSource != null) && (collectionSetTarget != null)) {
-                            ModelSetCompare modelSetCompare = new ModelSetCompare(collectionSetSource, collectionSetTarget);
-
-                            for (Object rawValue : modelSetCompare.getSourceWhereOnlySource()) {
-                                Model itemValue = getInitialModelFromMap((Map<String,Object>)rawValue,tipoSetClass);
-                                copyValueToEntityAndNoChangeId(tipoSetClass, rawValue, itemValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList);
-                                collectionSetTarget.add(itemValue);
-                            }
-
-                            for(Model itemValue:modelSetCompare.getTargetWhereSourceAndTarget()) {
-                                Object rawValue = BeanMapperUtil.findInCollectionById(modelSetCompare.getSourceWhereSourceAndTarget(), itemValue.getId());
-                                copyValueToEntityAndNoChangeId(tipoSetClass, rawValue, itemValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList);
-                            }
-
-                            for(Model itemValue:modelSetCompare.getTargetWhereOnlyTarget()) {
-                                BeanMapperUtil.removeInCollectionById(collectionSetTarget, itemValue.getId());
-                            }
-                        } else {
-                            throw new RuntimeException("Error de lógica");
-                        }
-
-                    } else {
-                        throw new RuntimeException("Unsupported property type: " + propertyDescriptor.getPropertyType());
-                    }
-
                 } catch (Exception ex) {
                     throw new RuntimeException("Nombre de la propiedad:"+propertyDescriptor.getName() ,ex);
                 }
@@ -358,6 +211,167 @@ public class BeanMapperModel {
         } catch (Exception ex) {
             throw new RuntimeException(clazz.getName(), ex);
         }
+    }
+
+    private boolean isPropertyInMapToCopy(PropertyDescriptor propertyDescriptor, Map<String, Object> entityMap, AllowProperties allowProperties) {
+        return (propertyDescriptor.getWriteMethod() != null)
+                && allowProperties.allowProperty(propertyDescriptor.getName())
+                && entityMap.containsKey(propertyDescriptor.getName());
+    }
+
+    /**
+     * Primera pasada: la propiedad mappedBy y los escalares, que no necesitan que la entidad ya esté en el InstanceModelList.
+     */
+    private void copyScalarFromMap(PropertyDescriptor propertyDescriptor, Map<String, Object> entityMap, Model entityDest, String mappedBy, Model mappedByModel) throws Exception {
+        if (propertyDescriptor.getName().equals(mappedBy)) {
+            PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), mappedByModel);
+        } else if (ScalarMapper.isScalarType(propertyDescriptor.getPropertyType())) {
+            Object rawValue = entityMap.get(propertyDescriptor.getName());
+
+            //Obtener valor real
+            Object value = ScalarMapper.getScalarFromObject(rawValue, propertyDescriptor.getPropertyType());
+
+            PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), value);
+        }
+    }
+
+    /**
+     * Segunda pasada: las relaciones (modelo, List y Set). La mappedBy y los escalares ya se copiaron en la primera.
+     */
+    private void copyRelationFromMap(Class<? extends Model> clazz, PropertyDescriptor propertyDescriptor, Map<String, Object> entityMap, Model entityDest, AllowProperties allowProperties, String mappedBy, InstanceModelList instanceModelList) throws Exception {
+        Class<?> propertyType = propertyDescriptor.getPropertyType();
+
+        if (propertyDescriptor.getName().equals(mappedBy) || ScalarMapper.isScalarType(propertyType)) {
+            return;
+        }
+
+        if (Model.class.isAssignableFrom(propertyType)) {
+            copyModelFromMap(clazz, propertyDescriptor, entityMap, entityDest, allowProperties, instanceModelList);
+        } else if (List.class.isAssignableFrom(propertyType)) {
+            copyListFromMap(clazz, propertyDescriptor, entityMap, entityDest, allowProperties, instanceModelList);
+        } else if (Set.class.isAssignableFrom(propertyType)) {
+            copySetFromMap(propertyDescriptor, entityMap, entityDest, allowProperties, instanceModelList);
+        } else {
+            throw new RuntimeException("Unsupported property type: " + propertyType);
+        }
+    }
+
+    private void copyModelFromMap(Class<? extends Model> clazz, PropertyDescriptor propertyDescriptor, Map<String, Object> entityMap, Model entityDest, AllowProperties allowProperties, InstanceModelList instanceModelList) throws Exception {
+        String propertyName = propertyDescriptor.getName();
+        Class<? extends Model> propertyType = (Class<? extends Model>) propertyDescriptor.getPropertyType();
+
+        if ((BeanMapperUtil.isOneToOne(clazz, propertyName)==false) && (BeanMapperUtil.isManyToOne(clazz, propertyName)==false)) {
+            throw new RuntimeException("Si una propiedad es un modelo debe ser One-to-one o Many-to-one: " + propertyType);
+        }
+
+
+        Map<String,Object> rawValue = (Map<String,Object>)entityMap.get(propertyName);
+        Model valueDest = (Model) PropertyUtils.getProperty(entityDest, propertyName);
+        AllowProperties innerAllowProperties = allowProperties.innerAllowProperties(propertyName);
+
+        if (rawValue == null) {
+            if (valueDest != null) {
+                PropertyUtils.setProperty(entityDest, propertyName, null);
+            }
+        } else if (valueDest == null) {
+            PropertyUtils.setProperty(entityDest, propertyName, createModelFromMap(propertyType, rawValue, innerAllowProperties, null, null, instanceModelList));
+        } else if (isOtherModel(rawValue, valueDest)) {
+            // El usuario eligió otra entidad: cargarla por su id y reemplazar la referencia,
+            // en vez de copiar los campos del mapa dentro de la entidad actualmente referenciada
+            PropertyUtils.setProperty(entityDest, propertyName, getInitialModelFromMap(rawValue, propertyType));
+        } else {
+            copyValueToEntityAndNoChangeId(propertyType, rawValue, valueDest, innerAllowProperties, null, null, instanceModelList);
+        }
+    }
+
+    private boolean isOtherModel(Map<String, Object> rawValue, Model valueDest) {
+        Object rawValueId = rawValue.get("id");
+        return (rawValueId != null) && !Long.valueOf(((Number) rawValueId).longValue()).equals(valueDest.getId());
+    }
+
+    private void copyListFromMap(Class<? extends Model> clazz, PropertyDescriptor propertyDescriptor, Map<String, Object> entityMap, Model entityDest, AllowProperties allowProperties, InstanceModelList instanceModelList) throws Exception {
+        String propertyName = propertyDescriptor.getName();
+        List<Object> listSource = (List<Object>) entityMap.get(propertyName);
+        List<Model> listTarget = (List<Model>) PropertyUtils.getProperty(entityDest, propertyName);
+        Class<? extends Model> tipoListaClass = getCollectionItemClass(propertyDescriptor);
+        String mappedByRelation = BeanMapperUtil.getMappedByInOneToMany(clazz, propertyName);
+        AllowProperties innerAllowProperties = allowProperties.innerAllowProperties(propertyName);
+
+        if (listSource == null) {
+            if (listTarget != null) {
+                PropertyUtils.setProperty(entityDest, propertyName, null);
+            }
+        } else if (listTarget == null) {
+            List<Model> listValues = new ArrayList<>();
+            for (Object rawValue : listSource) {
+                listValues.add(createModelFromMap(tipoListaClass, rawValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList));
+            }
+            PropertyUtils.setProperty(entityDest, propertyName, listValues);
+        } else {
+            ModelListCompare modelListCompare = new ModelListCompare(listSource, listTarget);
+
+            for (Object rawValue : modelListCompare.getSourceWhereOnlySource()) {
+                listTarget.add(createModelFromMap(tipoListaClass, rawValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList));
+            }
+            for (int i = 0; i < modelListCompare.getTargetWhereSourceAndTarget().size(); i++) {
+                Model itemValue = modelListCompare.getTargetWhereSourceAndTarget().get(i);
+                Object rawValue = modelListCompare.getSourceWhereSourceAndTarget().get(i);
+                copyValueToEntityAndNoChangeId(tipoListaClass, rawValue, itemValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList);
+            }
+            for (int i = 0; i < modelListCompare.getTargetWhereOnlyTarget().size(); i++) {
+                Model itemValue = modelListCompare.getTargetWhereOnlyTarget().get(i);
+                listTarget.remove(itemValue);
+            }
+        }
+    }
+
+    private void copySetFromMap(PropertyDescriptor propertyDescriptor, Map<String, Object> entityMap, Model entityDest, AllowProperties allowProperties, InstanceModelList instanceModelList) throws Exception {
+        String propertyName = propertyDescriptor.getName();
+        Set<Object> collectionSetSource = (Set<Object>) entityMap.get(propertyName);
+        Set<Model> collectionSetTarget = (Set<Model>) PropertyUtils.getProperty(entityDest, propertyName);
+        Class<? extends Model> tipoSetClass = getCollectionItemClass(propertyDescriptor);
+        String mappedByRelation = null; //BeanMapperUtil.getMappedByInManyToMany(clazz, propertyDescriptor.getName());
+        AllowProperties innerAllowProperties = allowProperties.innerAllowProperties(propertyName);
+
+        if (collectionSetSource == null) {
+            if (collectionSetTarget != null) {
+                PropertyUtils.setProperty(entityDest, propertyName, null);
+            }
+        } else if (collectionSetTarget == null) {
+            Set<Model> setValues = new LinkedHashSet<>();
+            for (Object rawValue : collectionSetSource) {
+                setValues.add(createModelFromMap(tipoSetClass, rawValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList));
+            }
+            PropertyUtils.setProperty(entityDest, propertyName, setValues);
+        } else {
+            ModelSetCompare modelSetCompare = new ModelSetCompare(collectionSetSource, collectionSetTarget);
+
+            for (Object rawValue : modelSetCompare.getSourceWhereOnlySource()) {
+                collectionSetTarget.add(createModelFromMap(tipoSetClass, rawValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList));
+            }
+
+            for(Model itemValue:modelSetCompare.getTargetWhereSourceAndTarget()) {
+                Object rawValue = BeanMapperUtil.findInCollectionById(modelSetCompare.getSourceWhereSourceAndTarget(), itemValue.getId());
+                copyValueToEntityAndNoChangeId(tipoSetClass, rawValue, itemValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList);
+            }
+
+            for(Model itemValue:modelSetCompare.getTargetWhereOnlyTarget()) {
+                BeanMapperUtil.removeInCollectionById(collectionSetTarget, itemValue.getId());
+            }
+        }
+    }
+
+    private Class<? extends Model> getCollectionItemClass(PropertyDescriptor propertyDescriptor) {
+        return (Class<? extends Model>) ((ParameterizedType) propertyDescriptor.getReadMethod().getGenericReturnType()).getActualTypeArguments()[0];
+    }
+
+    /**
+     * Crea (o carga por su id) el modelo de un mapa y le copia los valores del mapa sin cambiarle el id.
+     */
+    private Model createModelFromMap(Class<? extends Model> clazz, Object rawValue, AllowProperties allowProperties, String mappedBy, Model mappedByModel, InstanceModelList instanceModelList) throws Exception {
+        Model itemValue = getInitialModelFromMap((Map<String, Object>) rawValue, clazz);
+        copyValueToEntityAndNoChangeId(clazz, rawValue, itemValue, allowProperties, mappedBy, mappedByModel, instanceModelList);
+        return itemValue;
     }
 
 

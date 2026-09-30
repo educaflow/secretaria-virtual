@@ -4,6 +4,7 @@ import com.axelor.db.Model;
 import com.educaflow.base.infrastructure.junit.JUnitHelper;
 import com.axelor.db.modelservice.AllowProperties;
 import com.axelor.meta.db.MetaFile;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
@@ -11,9 +12,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -616,6 +619,215 @@ class BeanMapperModelTest {
         assertEquals(1, loader.callCount(RefModel.class, 2L));
     }
 
+    @Test
+    void copyMapToEntity_escalarNoConvertible_lanzaConElNombreDeLaPropiedad() {
+        BeanMapperModel mapper = new BeanMapperModel(new FakeModelLoader());
+        ParentModel target = new ParentModel();
+        target.setAge(15);
+
+        Map<String, Object> source = mapOf("age", "no-es-un-numero");
+        Map<String, Object> allowProperties = mapOf("age", true);
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> mapper.copyMapToEntity(ParentModel.class, source, target, AllowProperties.createAllowProperties(allowProperties)));
+
+        assertEquals(ParentModel.class.getName(), ex.getMessage());
+        assertEquals("Nombre de la propiedad:age", ex.getCause().getMessage());
+        assertInstanceOf(IllegalArgumentException.class, ex.getCause().getCause());
+        assertEquals(15, target.getAge());
+    }
+
+    @Test
+    void copyMapToEntity_tipoDePropiedadNoSoportado_lanzaConElNombreDeLaPropiedad() {
+        BeanMapperModel mapper = new BeanMapperModel(new FakeModelLoader());
+        SetHolderModel target = new SetHolderModel();
+
+        Map<String, Object> source = mapOf("extra", new HashMap<>());
+        Map<String, Object> allowProperties = mapOf("extra", true);
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> mapper.copyMapToEntity(SetHolderModel.class, source, target, AllowProperties.createAllowProperties(allowProperties)));
+
+        assertEquals(SetHolderModel.class.getName(), ex.getMessage());
+        assertEquals("Nombre de la propiedad:extra", ex.getCause().getMessage());
+        assertTrue(ex.getCause().getCause().getMessage().startsWith("Unsupported property type: "));
+        assertNull(target.getExtra());
+    }
+
+    @Test
+    void copyMapToEntity_listaOrigenNulaYDestinoNulo_noHaceNada() {
+        BeanMapperModel mapper = new BeanMapperModel(new FakeModelLoader());
+        ParentModel target = new ParentModel();
+
+        Map<String, Object> source = mapOf("children", null);
+        Map<String, Object> allowProperties = mapOf("children", mapOf("name", true));
+
+        mapper.copyMapToEntity(ParentModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertNull(target.getChildren());
+    }
+
+    @Test
+    void copyMapToEntity_listaOrigenNulaYDestinoConDatos_poneElDestinoANull() {
+        BeanMapperModel mapper = new BeanMapperModel(new FakeModelLoader());
+        ParentModel target = new ParentModel();
+        target.setChildren(new ArrayList<>(List.of(child(1L, "a", target))));
+
+        Map<String, Object> source = mapOf("children", null);
+        Map<String, Object> allowProperties = mapOf("children", mapOf("name", true));
+
+        mapper.copyMapToEntity(ParentModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertNull(target.getChildren());
+    }
+
+    @Test
+    void copyMapToEntity_listaOrigenConDatosYDestinoNulo_creaUnaListaNuevaConElMappedBy() {
+        BeanMapperModel mapper = new BeanMapperModel(new FakeModelLoader());
+        ParentModel target = new ParentModel();
+
+        List<Object> childrenMap = new ArrayList<>();
+        childrenMap.add(mapOf("name", "c1", "parent", new HashMap<>()));
+        childrenMap.add(mapOf("name", "c2", "parent", new HashMap<>()));
+        Map<String, Object> source = mapOf("children", childrenMap);
+        Map<String, Object> allowProperties = mapOf("children", mapOf("name", true, "parent", true));
+
+        mapper.copyMapToEntity(ParentModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertInstanceOf(ArrayList.class, target.getChildren());
+        assertEquals(List.of("c1", "c2"), target.getChildren().stream().map(ChildModel::getName).toList());
+        assertTrue(target.getChildren().stream().allMatch(c -> Objects.equals(c.getParent(), target) && c.getId() == null));
+    }
+
+    @Test
+    void copyMapToEntity_referenciaOrigenNulaYDestinoNulo_noHaceNada() {
+        FakeModelLoader loader = new FakeModelLoader();
+        BeanMapperModel mapper = new BeanMapperModel(loader);
+        ParentModel target = new ParentModel();
+
+        Map<String, Object> source = mapOf("ref", null);
+        Map<String, Object> allowProperties = mapOf("ref", mapOf("code", true));
+
+        mapper.copyMapToEntity(ParentModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertNull(target.getRef());
+    }
+
+    @Test
+    void copyMapToEntity_referenciaSinIdYDestinoNulo_creaUnaInstanciaNueva() {
+        BeanMapperModel mapper = new BeanMapperModel(new FakeModelLoader());
+        ParentModel target = new ParentModel();
+
+        Map<String, Object> source = mapOf("ref", mapOf("code", "nuevo"));
+        Map<String, Object> allowProperties = mapOf("ref", mapOf("code", true));
+
+        mapper.copyMapToEntity(ParentModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertNotNull(target.getRef());
+        assertNull(target.getRef().getId());
+        assertEquals("nuevo", target.getRef().getCode());
+    }
+
+    @Test
+    void copyMapToEntity_setOrigenNuloYDestinoNulo_noHaceNada() {
+        BeanMapperModel mapper = new BeanMapperModel(new FakeModelLoader());
+        SetHolderModel target = new SetHolderModel();
+
+        Map<String, Object> source = mapOf("tags", null);
+        Map<String, Object> allowProperties = mapOf("tags", mapOf("code", true));
+
+        mapper.copyMapToEntity(SetHolderModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertNull(target.getTags());
+    }
+
+    @Test
+    void copyMapToEntity_setOrigenNuloYDestinoConDatos_poneElDestinoANull() {
+        BeanMapperModel mapper = new BeanMapperModel(new FakeModelLoader());
+        SetHolderModel target = new SetHolderModel();
+        target.setTags(new LinkedHashSet<>(Set.of(ref(1L, "a"))));
+
+        Map<String, Object> source = mapOf("tags", null);
+        Map<String, Object> allowProperties = mapOf("tags", mapOf("code", true));
+
+        mapper.copyMapToEntity(SetHolderModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertNull(target.getTags());
+    }
+
+    @Test
+    void copyMapToEntity_setOrigenConDatosYDestinoNulo_creaUnSetNuevoCargandoLosQueTienenId() {
+        RefModel cargado = ref(7L, "from-db");
+        FakeModelLoader loader = new FakeModelLoader();
+        loader.register(RefModel.class, 7L, cargado);
+        BeanMapperModel mapper = new BeanMapperModel(loader);
+        SetHolderModel target = new SetHolderModel();
+
+        Set<Object> tags = new LinkedHashSet<>();
+        tags.add(mapOf("id", 7L, "code", "from-map"));
+        tags.add(mapOf("code", "nuevo"));
+        Map<String, Object> source = mapOf("tags", tags);
+        Map<String, Object> allowProperties = mapOf("tags", mapOf("code", true));
+
+        mapper.copyMapToEntity(SetHolderModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertInstanceOf(LinkedHashSet.class, target.getTags());
+        List<RefModel> resultado = new ArrayList<>(target.getTags());
+        assertEquals(2, resultado.size());
+        assertSame(cargado, resultado.get(0));
+        assertEquals(7L, resultado.get(0).getId());
+        assertEquals("from-map", resultado.get(0).getCode());
+        assertNull(resultado.get(1).getId());
+        assertEquals("nuevo", resultado.get(1).getCode());
+        assertEquals(1, loader.callCount(RefModel.class, 7L));
+    }
+
+    @Test
+    void copyMapToEntity_setOrigenYDestinoConDatos_anhadeActualizaYEliminaSobreElMismoSet() {
+        BeanMapperModel mapper = new BeanMapperModel(new FakeModelLoader());
+        RefModel comun = ref(1L, "old-1");
+        RefModel sobrante = ref(2L, "old-2");
+        Set<RefModel> destino = new LinkedHashSet<>(List.of(comun, sobrante));
+        SetHolderModel target = new SetHolderModel();
+        target.setTags(destino);
+
+        Set<Object> tags = new LinkedHashSet<>();
+        tags.add(mapOf("id", 1L, "code", "upd-1"));
+        tags.add(mapOf("code", "nuevo"));
+        Map<String, Object> source = mapOf("tags", tags);
+        Map<String, Object> allowProperties = mapOf("tags", mapOf("code", true));
+
+        mapper.copyMapToEntity(SetHolderModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertSame(destino, target.getTags());
+        assertEquals(2, destino.size());
+        assertTrue(destino.contains(comun));
+        assertEquals(1L, comun.getId());
+        assertEquals("upd-1", comun.getCode());
+        assertFalse(destino.contains(sobrante));
+        RefModel nuevo = destino.stream().filter(r -> !Objects.equals(r, comun)).findFirst().orElseThrow();
+        assertNull(nuevo.getId());
+        assertEquals("nuevo", nuevo.getCode());
+    }
+
+    @Test
+    void copyMapToEntity_setDestinoConElementoSinId_noLoEliminaAunqueNoEsteEnElOrigen() {
+        // Comportamiento actual: removeInCollectionById ignora los id nulos, así que el elemento sin id se queda.
+        BeanMapperModel mapper = new BeanMapperModel(new FakeModelLoader());
+        RefModel sinId = ref(null, "sin-id");
+        Set<RefModel> destino = new LinkedHashSet<>(List.of(sinId));
+        SetHolderModel target = new SetHolderModel();
+        target.setTags(destino);
+
+        Map<String, Object> source = mapOf("tags", new LinkedHashSet<>());
+        Map<String, Object> allowProperties = mapOf("tags", mapOf("code", true));
+
+        mapper.copyMapToEntity(SetHolderModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertSame(destino, target.getTags());
+        assertEquals(Set.of(sinId), destino);
+    }
+
     private static RefModel ref(Long id, String code) {
         RefModel ref = new RefModel();
         ref.setId(id);
@@ -846,6 +1058,41 @@ class BeanMapperModelTest {
 
         public void setFichero(MetaFile fichero) {
             this.fichero = fichero;
+        }
+    }
+
+    public static class SetHolderModel extends Model {
+        private Long id;
+
+        @ManyToMany
+        private Set<RefModel> tags;
+
+        private Map<String, Object> extra;
+
+        @Override
+        public Long getId() {
+            return id;
+        }
+
+        @Override
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public Set<RefModel> getTags() {
+            return tags;
+        }
+
+        public void setTags(Set<RefModel> tags) {
+            this.tags = tags;
+        }
+
+        public Map<String, Object> getExtra() {
+            return extra;
+        }
+
+        public void setExtra(Map<String, Object> extra) {
+            this.extra = extra;
         }
     }
 }

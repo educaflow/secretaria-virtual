@@ -1237,4 +1237,266 @@ class CertificadoDigitalServiceImplTest {
         assertFalse(textoMensajes.contains(segundaMitadDeLaClave),
                 () -> "Los mensajes de validación filtran «" + segundaMitadDeLaClave + "»: " + textoMensajes);
     }
+
+    /* ------------------------------------------------------------------ */
+    /* validateCertificado (vía validateInsert)                           */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Certificado deshabilitado y con nombre y apellidos, para que ni la unicidad por DNI ni la obligatoriedad de
+     * nombre y apellidos añadan mensajes y el escenario se centre en {@code validateCertificado}.
+     */
+    private CertificadoDigital certificadoParaValidarTipo(TipoUbicacionCertificado tipo) {
+        CertificadoDigital certificado = new CertificadoDigital();
+        certificado.setDni(DNI);
+        certificado.setTipoCertificado(tipo);
+        certificado.setEnabled(Boolean.FALSE);
+        certificado.setNombre(NOMBRE_ADMINISTRADOR);
+        certificado.setApellidos(APELLIDOS_ADMINISTRADOR);
+        return certificado;
+    }
+
+    private com.educaflow.subsystem.criptografia.db.DispositivoCriptografico dispositivoBd(Long id, String nombre, Integer slot) {
+        com.educaflow.subsystem.criptografia.db.DispositivoCriptografico dispositivo =
+                new com.educaflow.subsystem.criptografia.db.DispositivoCriptografico();
+        dispositivo.setId(id);
+        dispositivo.setName(nombre);
+        dispositivo.setSlot(slot);
+        return dispositivo;
+    }
+
+    private Alias aliasDe(com.educaflow.subsystem.criptografia.db.DispositivoCriptografico dispositivo, String nombre) {
+        Alias alias = new Alias();
+        alias.setName(nombre);
+        alias.setDispositivoCriptografico(dispositivo);
+        return alias;
+    }
+
+    private CertificadoDigital certificadoPkcs11ConAliasDelDispositivo() {
+        com.educaflow.subsystem.criptografia.db.DispositivoCriptografico dispositivo = dispositivoBd(7L, "Token", 3);
+        CertificadoDigital certificado = certificadoParaValidarTipo(TipoUbicacionCertificado.DISPOSITIVO_PKCS11);
+        certificado.setDispositivoCriptografico(dispositivo);
+        certificado.setAlias(aliasDe(dispositivo, "firma"));
+        return certificado;
+    }
+
+    @Test
+    void validateInsert_tipoCertificadoNulo_devuelveSoloElMensajeDeTipoObligatorio() {
+        CertificadoDigital certificado = certificadoParaValidarTipo(null);
+
+        Optional<BusinessMessages> messages = service.validateInsert(certificado);
+
+        assertMensajeUnico(messages, "tipoCertificado", "El tipo de certificado es obligatorio");
+    }
+
+    @Test
+    void validateInsert_tipoCertificadoNuloYDniInvalido_devuelveLosDosMensajes() {
+        CertificadoDigital certificado = certificadoParaValidarTipo(null);
+        certificado.setDni(DNI_INVALIDO);
+
+        Optional<BusinessMessages> messages = service.validateInsert(certificado);
+
+        assertContieneMensaje(messages, "dni", MENSAJE_DNI_NO_VALIDO);
+        assertContieneMensaje(messages, "tipoCertificado", "El tipo de certificado es obligatorio");
+        assertEquals(2, messages.get().size());
+    }
+
+    @Test
+    void validateInsert_ficheroBdSinFichero_devuelveMensajeFicheroObligatorio() {
+        CertificadoDigital certificado = certificadoParaValidarTipo(TipoUbicacionCertificado.FICHERO_BD);
+
+        Optional<BusinessMessages> messages = service.validateInsert(certificado);
+
+        assertMensajeUnico(messages, "fichero",
+                "El fichero es obligatorio para certificados de tipo Fichero en base de datos");
+    }
+
+    @Test
+    void validateInsert_ficheroBdConFichero_devuelveOptionalVacio() {
+        CertificadoDigital certificado = certificadoParaValidarTipo(TipoUbicacionCertificado.FICHERO_BD);
+        certificado.setFichero(new MetaFile());
+
+        assertTrue(service.validateInsert(certificado).isEmpty());
+    }
+
+    @Test
+    void validateInsert_pkcs11SinDispositivoNiAlias_devuelveLosDosMensajesDeObligatorio() {
+        CertificadoDigital certificado = certificadoParaValidarTipo(TipoUbicacionCertificado.DISPOSITIVO_PKCS11);
+
+        Optional<BusinessMessages> messages = service.validateInsert(certificado);
+
+        assertContieneMensaje(messages, "dispositivoCriptografico",
+                "El dispositivo criptográfico es obligatorio para certificados de tipo Dispositivo PKCS#11");
+        assertContieneMensaje(messages, "alias",
+                "El alias es obligatorio para certificados de tipo Dispositivo PKCS#11");
+        assertEquals(2, messages.get().size());
+    }
+
+    @Test
+    void validateInsert_pkcs11ConDispositivoSinAlias_devuelveSoloElMensajeDeAliasObligatorio() {
+        CertificadoDigital certificado = certificadoParaValidarTipo(TipoUbicacionCertificado.DISPOSITIVO_PKCS11);
+        certificado.setDispositivoCriptografico(dispositivoBd(7L, "Token", 3));
+
+        Optional<BusinessMessages> messages = service.validateInsert(certificado);
+
+        assertMensajeUnico(messages, "alias",
+                "El alias es obligatorio para certificados de tipo Dispositivo PKCS#11");
+    }
+
+    @Test
+    void validateInsert_pkcs11ConAliasSinDispositivo_devuelveSoloElMensajeDeDispositivoObligatorio() {
+        CertificadoDigital certificado = certificadoParaValidarTipo(TipoUbicacionCertificado.DISPOSITIVO_PKCS11);
+        certificado.setAlias(aliasDe(dispositivoBd(7L, "Token", 3), "firma"));
+
+        Optional<BusinessMessages> messages = service.validateInsert(certificado);
+
+        assertMensajeUnico(messages, "dispositivoCriptografico",
+                "El dispositivo criptográfico es obligatorio para certificados de tipo Dispositivo PKCS#11");
+    }
+
+    @Test
+    void validateInsert_pkcs11ConAliasDeOtroDispositivo_devuelveMensajeDeAliasQueNoPerteneceYNoConsultaElEntorno() {
+        CertificadoDigital certificado = certificadoParaValidarTipo(TipoUbicacionCertificado.DISPOSITIVO_PKCS11);
+        certificado.setDispositivoCriptografico(dispositivoBd(7L, "Token", 3));
+        certificado.setAlias(aliasDe(dispositivoBd(8L, "Otro", 4), "firma"));
+
+        try (MockedStatic<com.educaflow.base.infrastructure.criptografia.EntornoCriptografico> entorno =
+                     Mockito.mockStatic(com.educaflow.base.infrastructure.criptografia.EntornoCriptografico.class)) {
+            Optional<BusinessMessages> messages = service.validateInsert(certificado);
+
+            assertMensajeUnico(messages, "alias",
+                    "El alias seleccionado no pertenece al dispositivo criptográfico 'Token'");
+            entorno.verifyNoInteractions();
+        }
+    }
+
+    @Test
+    void validateInsert_pkcs11ConAliasExistenteEnElDispositivo_devuelveOptionalVacio() {
+        CertificadoDigital certificado = certificadoPkcs11ConAliasDelDispositivo();
+        com.educaflow.base.infrastructure.criptografia.DispositivoCriptografico dispositivo =
+                Mockito.mock(com.educaflow.base.infrastructure.criptografia.DispositivoCriptografico.class);
+        when(dispositivo.getAliases()).thenReturn(List.of("otro", "firma"));
+
+        try (MockedStatic<com.educaflow.base.infrastructure.criptografia.EntornoCriptografico> entorno =
+                     Mockito.mockStatic(com.educaflow.base.infrastructure.criptografia.EntornoCriptografico.class)) {
+            entorno.when(() -> com.educaflow.base.infrastructure.criptografia.EntornoCriptografico.getDispositivoCriptografico(3))
+                    .thenReturn(dispositivo);
+
+            assertTrue(service.validateInsert(certificado).isEmpty());
+        }
+    }
+
+    @Test
+    void validateInsert_pkcs11ConAliasQueNoExisteEnElDispositivo_devuelveMensajeConLosAliasDisponibles() {
+        CertificadoDigital certificado = certificadoPkcs11ConAliasDelDispositivo();
+        com.educaflow.base.infrastructure.criptografia.DispositivoCriptografico dispositivo =
+                Mockito.mock(com.educaflow.base.infrastructure.criptografia.DispositivoCriptografico.class);
+        when(dispositivo.getAliases()).thenReturn(List.of("uno", "dos"));
+
+        try (MockedStatic<com.educaflow.base.infrastructure.criptografia.EntornoCriptografico> entorno =
+                     Mockito.mockStatic(com.educaflow.base.infrastructure.criptografia.EntornoCriptografico.class)) {
+            entorno.when(() -> com.educaflow.base.infrastructure.criptografia.EntornoCriptografico.getDispositivoCriptografico(3))
+                    .thenReturn(dispositivo);
+
+            Optional<BusinessMessages> messages = service.validateInsert(certificado);
+
+            assertMensajeUnico(messages, "alias",
+                    "El alias 'firma' no existe en el dispositivo 'Token'. Los alias disponibles son: uno, dos");
+        }
+    }
+
+    @Test
+    void validateInsert_pkcs11ConDispositivoNoConfiguradoEnElEntorno_ignoraLaExcepcionYNoValidaElAlias() {
+        CertificadoDigital certificado = certificadoPkcs11ConAliasDelDispositivo();
+
+        try (MockedStatic<com.educaflow.base.infrastructure.criptografia.EntornoCriptografico> entorno =
+                     Mockito.mockStatic(com.educaflow.base.infrastructure.criptografia.EntornoCriptografico.class)) {
+            entorno.when(() -> com.educaflow.base.infrastructure.criptografia.EntornoCriptografico.getDispositivoCriptografico(3))
+                    .thenThrow(new IllegalStateException("Dispositivo no configurado"));
+
+            assertTrue(service.validateInsert(certificado).isEmpty());
+        }
+    }
+
+    @Test
+    void validateInsert_classpathSinRuta_devuelveMensajeRutaClasspathObligatoria() {
+        CertificadoDigital certificado = certificadoParaValidarTipo(TipoUbicacionCertificado.CLASSPATH);
+
+        Optional<BusinessMessages> messages = service.validateInsert(certificado);
+
+        assertMensajeUnico(messages, "rutaClasspath",
+                "La ruta classpath es obligatoria para certificados de tipo Classpath");
+    }
+
+    @Test
+    void validateInsert_classpathConRutaEnBlanco_devuelveMensajeRutaClasspathObligatoria() {
+        CertificadoDigital certificado = certificadoParaValidarTipo(TipoUbicacionCertificado.CLASSPATH);
+        certificado.setRutaClasspath("   ");
+
+        Optional<BusinessMessages> messages = service.validateInsert(certificado);
+
+        assertMensajeUnico(messages, "rutaClasspath",
+                "La ruta classpath es obligatoria para certificados de tipo Classpath");
+    }
+
+    @Test
+    void validateInsert_classpathConRutaInexistente_devuelveMensajeRecursoNoEncontrado() {
+        CertificadoDigital certificado = certificadoParaValidarTipo(TipoUbicacionCertificado.CLASSPATH);
+        certificado.setRutaClasspath("firma/no_existe.p12");
+
+        Optional<BusinessMessages> messages = service.validateInsert(certificado);
+
+        assertMensajeUnico(messages, "rutaClasspath",
+                "No se encuentra el recurso en el classpath: firma/no_existe.p12");
+    }
+
+    @Test
+    void validateInsert_classpathConRutaExistente_devuelveOptionalVacio() {
+        CertificadoDigital certificado = certificadoParaValidarTipo(TipoUbicacionCertificado.CLASSPATH);
+        certificado.setRutaClasspath(RUTA_CLASSPATH_CERTIFICADO);
+
+        assertTrue(service.validateInsert(certificado).isEmpty());
+    }
+
+    @Test
+    void validateInsert_sistemaArchivosSinRuta_devuelveMensajeRutaObligatoria() {
+        CertificadoDigital certificado = certificadoParaValidarTipo(TipoUbicacionCertificado.SISTEMA_ARCHIVOS);
+
+        Optional<BusinessMessages> messages = service.validateInsert(certificado);
+
+        assertMensajeUnico(messages, "rutaSistemaArchivos",
+                "La ruta del sistema de archivos es obligatoria para certificados de tipo Sistema de archivos");
+    }
+
+    @Test
+    void validateInsert_sistemaArchivosConRutaEnBlanco_devuelveMensajeRutaObligatoria() {
+        CertificadoDigital certificado = certificadoParaValidarTipo(TipoUbicacionCertificado.SISTEMA_ARCHIVOS);
+        certificado.setRutaSistemaArchivos(" ");
+
+        Optional<BusinessMessages> messages = service.validateInsert(certificado);
+
+        assertMensajeUnico(messages, "rutaSistemaArchivos",
+                "La ruta del sistema de archivos es obligatoria para certificados de tipo Sistema de archivos");
+    }
+
+    @Test
+    void validateInsert_sistemaArchivosConRutaInexistente_devuelveMensajeFicheroNoExiste(@TempDir Path carpetaTemporal) {
+        Path ruta = carpetaTemporal.resolve("no_existe.p12");
+        CertificadoDigital certificado = certificadoParaValidarTipo(TipoUbicacionCertificado.SISTEMA_ARCHIVOS);
+        certificado.setRutaSistemaArchivos(ruta.toString());
+
+        Optional<BusinessMessages> messages = service.validateInsert(certificado);
+
+        assertMensajeUnico(messages, "rutaSistemaArchivos",
+                "No existe el fichero en la ruta indicada: " + ruta);
+    }
+
+    @Test
+    void validateInsert_sistemaArchivosConRutaExistente_devuelveOptionalVacio(@TempDir Path carpetaTemporal) throws IOException {
+        Path ruta = Files.writeString(carpetaTemporal.resolve("certificado.p12"), "contenido");
+        CertificadoDigital certificado = certificadoParaValidarTipo(TipoUbicacionCertificado.SISTEMA_ARCHIVOS);
+        certificado.setRutaSistemaArchivos(ruta.toString());
+
+        assertTrue(service.validateInsert(certificado).isEmpty());
+    }
 }
