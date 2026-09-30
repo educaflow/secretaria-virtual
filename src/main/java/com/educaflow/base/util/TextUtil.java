@@ -3,6 +3,7 @@ package com.educaflow.base.util;
 import com.axelor.common.Inflector;
 
 import java.text.Normalizer;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.Locale;
@@ -76,6 +77,22 @@ public class TextUtil {
         }else {
             return s.isBlank();
         }
+    }
+
+    /**
+     * Equivalente a {@link Objects#requireNonNull(Object, String)} que además rechaza la cadena
+     * vacía o de solo espacios.
+     *
+     * @return el propio {@code s}, para poder asignarlo en la misma línea.
+     * @throws NullPointerException si {@code s} es {@code null}.
+     * @throws IllegalArgumentException si {@code s} está vacío o solo tiene espacios.
+     */
+    public static String requireNonBlank(String s, String message) {
+        Objects.requireNonNull(s, message);
+        if (s.isBlank()) {
+            throw new IllegalArgumentException(message);
+        }
+        return s;
     }
 
 }

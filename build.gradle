@@ -101,6 +101,9 @@ dependencies {
     implementation 'org.eclipse.angus:jakarta.mail:2.0.2'
     implementation 'com.google.auth:google-auth-library-oauth2-http:1.30.0'
 
+    //Envio de SMS con Twilio
+    implementation 'com.twilio.sdk:twilio:13.0.2'
+
     testImplementation 'org.mockito:mockito-core:5.11.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.2'

@@ -14,6 +14,22 @@ No usar `Optional` como campo de entidad JPA, como parámetro de método ni dent
 
 ---
 
+## Objects.requireNonNull / TextUtil.requireNonBlank para parámetros obligatorios
+
+Los parámetros obligatorios (constructores, compact constructors de records, factories, métodos públicos) se comprueban con una llamada, no con un `if` a mano.
+Son asserts de la aplicación: lo que "nunca debería darse".
+
+- Parámetro no `String` → `Objects.requireNonNull(obj, "<obj> no puede ser null")`.
+- Parámetro `String` → **MUST** usar `TextUtil.requireNonBlank(obj, "<obj> no puede ser null ni blank")` (`com.educaflow.base.util`), que además rechaza `""` y solo espacios.
+  **MUST NOT** usar `Objects.requireNonNull` con un `String`: deja pasar `""` y `" "`.
+
+- ✅ CORRECTO: `TextUtil.requireNonBlank(authToken, "authToken no puede ser null ni blank");`
+- ✅ CORRECTO: `this.modelLoader = Objects.requireNonNull(modelLoader, "modelLoader no puede ser null");`
+- ❌ INCORRECTO: `Objects.requireNonNull(authToken, "authToken no puede ser null");` (es un `String`: acepta `""` y `" "`)
+- ❌ INCORRECTO: `if (authToken == null || authToken.isBlank()) { throw new IllegalArgumentException(...); }` (reimplementa a mano `requireNonBlank` y añade ramas a la CC)
+
+---
+
 ## Streams para colecciones
 
 Ver `metodos.md` — sección "Operaciones sobre colecciones".

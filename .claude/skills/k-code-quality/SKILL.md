@@ -22,7 +22,7 @@ Cuando dos reglas de este skill entren en conflicto, desempata por este orden:
 |---------|-----------|
 | `metodos.md` | Descomposición, responsabilidad única, cálculo puro y efectos secundarios, nombrado, tamaño y operaciones sobre colecciones |
 | `clases.md` | SOLID, composición frente a herencia, clases colaboradoras, coherencia interfaz/implementación, DTOs y utilidades estáticas |
-| `java-idioms.md` | Optional, streams, records, pattern matching, switch expressions, var y colecciones inmutables |
+| `java-idioms.md` | Optional, `Objects.requireNonNull`/`TextUtil.requireNonBlank`, streams, records, pattern matching, switch expressions, var y colecciones inmutables |
 | `proyecto.md` | Convenciones Axelor: controladores, fronteras entre subsistemas, capa de servicio (JPQL en el repositorio) y DI/Guice |
 | `comentarios.md` | Cuándo se comenta y cuándo no: el código se explica solo, el único comentario que se escribe (el *por qué* que leer el código no revela) y los separadores de bloque, que sí se mantienen |
 | `disenyo.md` | Olores de **diseño** (antes de que haya código): la prueba del segundo desarrollador, una decisión con varios dueños, reglas que deciden solas si aplican, retornos defensivos que delegan, piezas que se conocen entre sí, ramas no complementarias, defensa solo en la vista, patrones inventados sin declarar, complejidad heredada por incorporar ventajas |
