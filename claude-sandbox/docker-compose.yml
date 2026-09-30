@@ -101,3 +101,9 @@ volumes:
 networks:
   # Red interna privada: la app llega a la BD por el hostname "educaflow-db".
   backend:
+    # Subred fija: con la VPN levantada (ruta 10.0.0.0/8 por tun0) Docker descarta todas
+    # las subredes de su pool por solaparse con esa ruta y falla con "all predefined
+    # address pools have been fully subnetted". Una subred explícita no pasa ese filtro.
+    ipam:
+      config:
+        - subnet: 10.200.100.0/24
