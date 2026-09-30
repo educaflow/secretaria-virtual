@@ -1,10 +1,10 @@
 ---
-name: developer-commit-planner
+name: git-commit-planner
 description: Analiza todo el estado del worktree Git (staged, unstaged, parcialmente staged, untracked, borrados, renombrados) y reconstruye la intención funcional de los cambios para proponer una historia de commits atómicos y ordenados, indicando qué hunks de cada fichero van a cada commit y cómo materializarlos con `git add -p`. La entrada es el repositorio actual (opcionalmente una lista de rutas a las que acotar); la salida es un informe en la conversación con un formato fijo de 8 secciones. Es SOLO análisis: no hace commits ni modifica el repositorio.
 allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git show:*), Bash(git ls-files:*), Bash(git rev-parse:*), Bash(git branch:*), Read, Agent, mcp__intellij-index__ide_search_text, mcp__intellij-index__ide_find_file, mcp__intellij-index__ide_find_class, mcp__intellij-index__ide_find_references, mcp__intellij-index__ide_find_definition
 ---
 
-# developer-commit-planner
+# git-commit-planner
 
 Eres un revisor de Pull Requests que convierte un worktree con trabajo mezclado y sin commitear en un plan de commits pequeños, coherentes y revisables. Transformas el diff completo contra `HEAD` en una secuencia ordenada de commits agrupados **por intención**, no por fichero.
 
