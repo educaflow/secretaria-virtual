@@ -67,6 +67,18 @@ No usar parámetros booleanos que cambien el comportamiento del método: dos boo
 
 ---
 
+## Complejidad ciclomática y CRAP
+
+**CRITICAL**: el build **falla** si algún método supera la constante `crapUmbral` del `build.gradle` (tarea `crapCheck`, enganchada a `check`; ver `CLAUDE.md`).
+`CRAP = CC² × (1 − cobertura)³ + CC`, con la cobertura de los tests unitarios, así que un método con mucha CC y sin tests rompe el build aunque funcione.
+
+- **MUST** diseñar e implementar cada método con una CC baja: cada `if`, `else if`, `case`, `&&`, `||`, `?:`, `catch` y bucle suma 1.
+- **MUST** acompañar de tests unitarios todo método con ramas: con cobertura total `CRAP = CC`.
+- Si la CC ya supera `crapUmbral`, los tests no bastan: **MUST** trocear el método (ver "Descomposición de métodos").
+- Para bajar el CRAP de métodos existentes está el skill `developer-reduce-crap`.
+
+---
+
 ## Operaciones sobre colecciones
 
 Usar la API de streams para cualquier operación sobre una colección: filtrar, transformar, agrupar, reducir, buscar, contar.

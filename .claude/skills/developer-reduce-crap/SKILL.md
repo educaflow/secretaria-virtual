@@ -1,6 +1,6 @@
 ---
 name: developer-reduce-crap
-description: Baja por debajo de la constante `crapUmbral` del `build.gradle` el CRAP de los 5 métodos con CRAP más alto del proyecto, según el informe `build/reports/crap/crap.csv` que genera `./gradlew -q crapCheck`. Por cada método escribe tests unitarios de caracterización y, cuando los tests no bastan (CRAP mínimo alcanzable = CC), reduce su complejidad ciclomática con las técnicas de `estrategias-cc.md` sin cambiar el comportamiento ni las firmas. La salida son tests nuevos en `src/test/java`, el código refactorizado y un informe antes→después por método, que empieza con una tabla markdown de todos los métodos que superan el umbral (con enlace a cada uno) y termina con la de los métodos tratados y sus valores nuevos.
+description: Baja por debajo de la constante `crapUmbral` del `build.gradle` el CRAP de todos los métodos del proyecto que lo superan (o solo de los N peores con `--top=N`), según el informe `build/reports/crap/crap.csv` que genera `./gradlew -q crapCheck`. Por cada método escribe tests unitarios de caracterización y, cuando los tests no bastan (CRAP mínimo alcanzable = CC), reduce su complejidad ciclomática con las técnicas de `estrategias-cc.md` sin cambiar el comportamiento ni las firmas. La salida son tests nuevos en `src/test/java`, el código refactorizado y un informe antes→después por método, que empieza con una tabla markdown de todos los métodos que superan el umbral (con enlace a cada uno) y termina con la de los métodos tratados y sus valores nuevos.
 allowed-tools: Read, Write, Edit, Bash, Skill, Agent, mcp__intellij-index__ide_find_references, mcp__intellij-index__ide_search_text
 ---
 
@@ -19,8 +19,8 @@ $ARGUMENTS
 You **MUST** consider the user input before proceeding (if not empty).
 Argumentos esperables:
 
-- Vacío → los 5 métodos con CRAP más alto que superen el umbral.
-- `--top=<N>` → los N métodos con CRAP más alto que superen el umbral, en lugar de 5.
+- Vacío → **todos** los métodos que superan el umbral, de más a menos CRAP. **MUST NOT** tratar ninguno que no lo supere.
+- `--top=<N>` → solo los N métodos con CRAP más alto que superen el umbral.
 
 ---
 
@@ -111,7 +111,8 @@ Trampas que bajan la métrica sin bajar el riesgo. **MUST NOT**:
 
 Las dos tablas las genera `tabla-crap.py` (en la carpeta de este skill): markdown alineado en columnas, métricas a la derecha, de más a menos CRAP y cada método como enlace `fichero:linea` a su definición.
 **MUST** mostrar su salida tal cual, sin rehacerla a mano, sin recortar filas ni quitar el enlace.
-`<N>` vale 5, o el valor de `--top`.
+**CRITICAL**: el usuario no ve la salida de `Bash`: mostrar una tabla es **copiarla literal en tu mensaje de texto** de la conversación. Haber ejecutado el script no cuenta como mostrarla.
+`<N>` es el número de métodos tratados: todas las filas de la tabla inicial, o el valor de `--top` si es menor.
 
 - Tabla inicial (`#`, Método, CRAP, CC, Cobertura): **todos** los métodos con `crap` > `crapUmbral` del CSV recién medido, para ver de un vistazo cuánto código está mal:
   ```bash
@@ -129,12 +130,12 @@ Las dos tablas las genera `tabla-crap.py` (en la carpeta de este skill): markdow
 1. Lee `crapUmbral` (§2.2). Si no aparece → **ERROR**.
 2. Lanza `./gradlew -q crapCheck`. Si `build/reports/crap/crap.csv` no existe (§2.2) → **ERROR** (STOP conditions).
    2.1 Guarda una copia para la tabla final: `cp build/reports/crap/crap.csv "${TMPDIR:-/tmp}/developer-reduce-crap-antes.csv"`.
-   2.2 Muestra la tabla inicial (§2.5) **nada más medir**, antes que cualquier otro texto.
-3. Quédate con las primeras 5 filas de la tabla inicial (**LIMIT**: 5, o el valor de `--top`). **MUST** ser esas filas y en ese orden, también en los empates de CRAP, para que la tabla final muestre los mismos métodos.
-   3.1 Si hay menos, trabaja solo con esos.
+   2.2 Muestra la tabla inicial (§2.5) **nada más medir**: escribe un mensaje de texto que empiece por la tabla copiada literal. **MUST** hacerlo antes de lanzar el primer subagente de la Fase 1.
+3. Quédate con todas las filas de la tabla inicial o, con `--top=<N>`, con las N primeras (**LIMIT**: N). **MUST** ser esas filas y en ese orden, también en los empates de CRAP, para que la tabla final muestre los mismos métodos.
+   3.1 Con `--top`, si hay menos de N filas, trabaja solo con esas.
    3.2 Si la tabla sale vacía (ningún método supera el umbral) → informa y termina.
 4. Guarda para cada uno la fila **antes** (CC, cobertura, CRAP) y su identificador `<clase>#<metodo><descriptor>` (§2.2). Guarda además el conjunto de identificadores de **todas** las filas con `crap` > `crapUmbral`.
-5. Di debajo de la tabla inicial qué métodos vas a tratar (por su `#`) y continúa sin esperar respuesta.
+5. En el mismo mensaje, debajo de la tabla inicial, di qué métodos vas a tratar (por su `#`) y continúa sin esperar respuesta.
 
 ---
 
@@ -219,7 +220,7 @@ Al recibir cada respuesta:
 
 ## 6. Fase 3 — Informe
 
-Devuelve exactamente esta plantilla, con la tabla final de §2.5 (medida en la Fase 2) en `<tabla final>`:
+Devuelve exactamente esta plantilla como mensaje de texto, con la salida de la tabla final de §2.5 (medida en la Fase 2) copiada literal en `<tabla final>`:
 
 ```markdown
 ## Reducción de CRAP (umbral <umbral>)
@@ -256,6 +257,7 @@ Cada método es un enlace a su definición, con `fichero` y `linea` de la fila d
 - Técnicas baratas y locales antes que trocear; trocear solo lo que es independiente.
 - Ninguna técnica cuenta hasta verla en el CSV.
 - Un Gradle cada vez: subagentes secuenciales, nunca en paralelo.
-- Tabla de ranking (§2.5) al empezar, con todos los métodos sobre el umbral, y al terminar, con los tratados y sus valores nuevos; métodos siempre como enlace `fichero:linea`.
+- Sin argumentos se tratan todos los métodos sobre el umbral y ninguno más; `--top=N` acota a los N peores.
+- Tabla de ranking (§2.5) al empezar, con todos los métodos sobre el umbral, y al terminar, con los tratados y sus valores nuevos; copiada literal en tu mensaje (la salida de `Bash` no la ve el usuario) y con los métodos como enlace `fichero:linea`.
 - Nada de trampas (§2.3): ni tocar el umbral, ni tests sin asserts, ni cambiar firmas.
 

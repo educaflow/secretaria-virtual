@@ -20,7 +20,7 @@ Cuando dos reglas de este skill entren en conflicto, desempata por este orden:
 
 | Fichero | Contenido |
 |---------|-----------|
-| `metodos.md` | Descomposición, responsabilidad única, cálculo puro y efectos secundarios, nombrado, tamaño y operaciones sobre colecciones |
+| `metodos.md` | Descomposición, responsabilidad única, cálculo puro y efectos secundarios, nombrado, tamaño, complejidad ciclomática y CRAP (el build falla por encima de `crapUmbral`) y operaciones sobre colecciones |
 | `clases.md` | SOLID, composición frente a herencia, clases colaboradoras, coherencia interfaz/implementación, DTOs y utilidades estáticas |
 | `java-idioms.md` | Optional, `Objects.requireNonNull`/`TextUtil.requireNonBlank`, streams, records, pattern matching, switch expressions, var y colecciones inmutables |
 | `proyecto.md` | Convenciones Axelor: controladores, fronteras entre subsistemas, capa de servicio (JPQL en el repositorio) y DI/Guice |
