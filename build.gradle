@@ -8,6 +8,7 @@ plugins {
     id 'idea'
     id "org.jetbrains.kotlin.jvm" version "2.2.21"
     id 'info.solidsoft.pitest' version '1.15.0'
+    id 'jacoco'
     id 'net.ltgt.errorprone' version '5.1.1'
 }
 configurations { educaFlowBuildToolsDependency }
@@ -189,6 +190,29 @@ pitest {
     timestampedReports = false
     failWhenNoMutations = true
     verbosity = 'DEFAULT'
+}
+
+// Cobertura de los tests unitarios con JaCoCo (https://www.jacoco.org/). De su informe XML
+// (build/reports/jacoco/test/jacocoTestReport.xml) salen la complejidad ciclomática y la cobertura
+// de cada método que usa crapCheck. Versión fija a propósito: otra versión puede contar distinto la
+// complejidad o la cobertura y romper el build.
+jacoco {
+    toolVersion = '0.8.13'
+}
+tasks.named('jacocoTestReport') {
+    dependsOn 'test'
+    reports {
+        xml.required = true
+        html.required = true
+    }
+    // Se excluye lo GENERADO, con el mismo criterio que el pitest de arriba: las entidades y
+    // repositorios de Axelor (*.db.*), los States de cada tipo de expediente y los numeradores.
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: it, include: 'com/educaflow/**', excludes: [
+                'com/educaflow/**/db/**',
+                'com/educaflow/tramites/**/States*',
+        ])
+    }))
 }
 
 tasks.register('injectBuildInfo') {
@@ -607,4 +631,24 @@ tasks.register('cpdCheck') {
 }
 tasks.named('check') {
     dependsOn 'cpdCheck'
+}
+
+// CRAP (Change Risk Anti-Patterns) por método: CRAP = CC² × (1 − cobertura)³ + CC, con la
+// complejidad ciclomática (CC) y la cobertura de instrucciones de los tests unitarios que da JaCoCo.
+// Lo calcula la herramienta crap de EFBT (EducaFlowBuildTools), que escribe SIEMPRE
+// build/reports/crap/crap.csv (todas las métricas de todos los métodos) y crap.md (resumen), y
+// ROMPE el build si algún método supera crapUmbral. Se arregla troceando el método o añadiéndole
+// tests unitarios.
+def crapUmbral = 30
+tasks.register('crapCheck', JavaExec) {
+    description = 'Calcula CC, cobertura y CRAP por método (build/reports/crap) y rompe el build si algún método supera crapUmbral.'
+    group = 'verification'
+    dependsOn 'jacocoTestReport'
+    classpath = configurations.educaFlowBuildToolsDependency
+    mainClass = 'com.educaflow.common.buildtools.crap.Main'
+    args './build/reports/jacoco/test/jacocoTestReport.xml', './build/reports/crap', crapUmbral.toString(), './src/main/java'
+    workingDir = layout.projectDirectory.dir('.')
+}
+tasks.named('check') {
+    dependsOn 'crapCheck'
 }

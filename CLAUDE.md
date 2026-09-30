@@ -4,6 +4,8 @@ La secretaría virtual es un proyecto de gestión de expedientes administrativos
 
 El framework Axelor se llama **AOP (Axelor Open Platform)** y su código fuente está disponible en la carpeta hermana `../axelor-open-platform` (fuera de este repositorio). Consúltalo cuando necesites entender el comportamiento interno del framework (backend Java en `axelor-core`/`axelor-web`, frontend en `axelor-front`).
 
+Las herramientas de build propias del proyecto (generadores y procesadores que el `build.gradle` invoca como tareas `JavaExec`) están en **EFBT** (EducaFlowBuildTools), en la carpeta hermana `../EducaFlowBuildTools` (fuera de este repositorio). Tras cambiar algo en EFBT hay que instalarlo con `mvn install` en esa carpeta para que el build lo recoja.
+
 ## Documentación bajo demanda (progressive disclosure)
 
 Este proyecto usa un **progressive disclosure pattern to respect LLM instruction capacity limits**: el `CLAUDE.md` mantiene solo lo imprescindible y el resto de la documentación general vive en [`agent_docs/`](agent_docs/README.md), que se **carga solo cuando se necesita** para la tarea concreta — no todo de golpe. Consulta el índice [`agent_docs/README.md`](agent_docs/README.md) y carga únicamente el documento que aplique. Por ejemplo, el stack tecnológico (Java, Kotlin, Axelor, PostgreSQL, Guice, iText, JPA) está en [`agent_docs/tech-stack.md`](agent_docs/tech-stack.md).
@@ -33,6 +35,12 @@ El código duplicado lo detecta la tarea `./gradlew -q cpdCheck` (CPD de PMD, em
 Va enganchada a `check`, así que **`./run.sh` falla si hay duplicados**: el error lista cada uno como `ruta:líneas` y el detalle con los fragmentos está en `build/reports/cpd/cpd.md`.
 No cuenta lo repetido entre versiones (`vN`) del mismo trámite, que se copian a propósito.
 Un duplicado se arregla **extrayendo el código común** en su sitio (ver [Arquitectura](#arquitectura): lo compartido por trámites va a `tramites/util`, no al motor); los comentarios `// CPD-OFF` … `// CPD-ON` son solo para una duplicación deliberada.
+
+La métrica **CRAP** (`CRAP = CC² × (1 − cobertura)³ + CC`) de cada método la calcula la tarea `./gradlew -q crapCheck`, con la herramienta `crap` de EFBT.
+La complejidad ciclomática (CC) y la cobertura de instrucciones salen las dos de JaCoCo (`jacocoTestReport`), solo con los tests unitarios (`./gradlew test`), y el código generado (`*.db.*`, `States`) no se mide.
+Deja siempre `build/reports/crap/crap.csv` (CC, coberturas de instrucciones/líneas/ramas y CRAP de **todos** los métodos) y `crap.md` (resumen).
+Va enganchada a `check`, así que **`./run.sh` falla si algún método supera la constante `crapUmbral`** del `build.gradle`: el error lista cada método como `ruta:línea` con su CRAP, CC y cobertura.
+Se arregla troceando el método para bajar su CC o añadiéndole tests unitarios.
 
 
 ## Configuración
