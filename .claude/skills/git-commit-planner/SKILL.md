@@ -1,7 +1,7 @@
 ---
 name: git-commit-planner
-description: Analiza todo el estado del worktree Git (staged, unstaged, parcialmente staged, untracked, borrados, renombrados) y reconstruye la intención funcional de los cambios para proponer una historia de commits atómicos y ordenados, indicando qué hunks de cada fichero van a cada commit y cómo materializarlos con `git add -p`. La entrada es el repositorio actual (opcionalmente una lista de rutas a las que acotar); la salida es un informe en la conversación con un formato fijo de 8 secciones. Al terminar el informe pregunta con casillas qué commits propuestos quiere el usuario y hace solo los marcados (ninguno marcado → ningún commit); hasta esa respuesta no modifica el repositorio.
-allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git show:*), Bash(git ls-files:*), Bash(git rev-parse:*), Bash(git branch:*), Bash(git add:*), Bash(git apply:*), Bash(git reset:*), Bash(git commit:*), Read, Write, Agent, AskUserQuestion, mcp__intellij-index__ide_search_text, mcp__intellij-index__ide_find_file, mcp__intellij-index__ide_find_class, mcp__intellij-index__ide_find_references, mcp__intellij-index__ide_find_definition
+description: Analiza todo el estado del worktree Git (staged, unstaged, parcialmente staged, untracked, borrados, renombrados) y reconstruye la intención funcional de los cambios para proponer una historia de commits atómicos y ordenados, indicando qué hunks de cada fichero van a cada commit y cómo materializarlos con `git add -p`. La entrada es el repositorio actual (opcionalmente una lista de rutas a las que acotar); la salida es un informe en la conversación con un formato fijo de 8 secciones. Al terminar el informe pregunta con casillas qué commits propuestos quiere el usuario y hace solo los marcados (ninguno marcado → ningún commit) con un índice temporal, sin perder lo que el usuario tenía en el stage; hasta esa respuesta no modifica el repositorio.
+allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git show:*), Bash(git ls-files:*), Bash(git rev-parse:*), Bash(git branch:*), Bash(GIT_INDEX_FILE=*), Bash(git reset:*), Bash(git merge-file:*), Bash(git hash-object:*), Bash(git update-index:*), Read, Write, Agent, AskUserQuestion, mcp__intellij-index__ide_search_text, mcp__intellij-index__ide_find_file, mcp__intellij-index__ide_find_class, mcp__intellij-index__ide_find_references, mcp__intellij-index__ide_find_definition
 ---
 
 # git-commit-planner
@@ -39,7 +39,7 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 - No hay ningún cambio contra `HEAD` ni ficheros untracked → informa de que no hay nada que planificar y **STOP**.
 - Hay una operación en curso (merge, rebase, cherry-pick: existe `.git/MERGE_HEAD`, `.git/rebase-merge/`, etc.) → **STOP** y avisa al usuario antes de analizar.
 - Fases 0-4: **MUST NOT** ejecutar nada que cambie el estado del repositorio: ni `commit`, `add`, `reset`, `checkout`, `restore`, `stash`, `rm`, `mv`, `clean`, `apply`, ni editar ficheros.
-- Fase 5: solo `git reset` (índice), `git add`, `git apply --cached` y `git commit`, y solo para los commits que el usuario marque. **MUST NOT** ejecutar `checkout`, `restore`, `stash`, `rm`, `clean`, `reset --hard` ni tocar el worktree en ningún momento.
+- Fase 5: los commits se construyen en un índice temporal (§9); el índice real del usuario solo se sincroniza al final en las rutas comiteadas (§9.6). **MUST NOT** ejecutar `git reset` sin rutas, `checkout`, `restore`, `stash`, `rm`, `clean`, `reset --hard` ni tocar el worktree en ningún momento.
 - El usuario no marca ningún commit → **MUST NOT** hacer ningún commit ni tocar el índice; **STOP**.
 
 ---
@@ -275,16 +275,26 @@ Tras mostrar el informe completo, pregunta qué commits hacer y haz solo esos.
    - Ninguno marcado → responde «No se ha hecho ningún commit.» y **STOP**, sin tocar el índice.
    - Texto libre («Other») → **MUST NOT** comitear nada; aclara con el usuario qué quiere y vuelve al paso 2.
    - Un commit marcado que depende de otro no marcado → **MUST NOT** hacerlo; se informa en el resumen final.
-4. Prepara el índice:
-   1. Si hay algo staged, guárdalo antes con `git diff --staged --binary > <scratchpad>/staged-previo.patch` y avisa de esa ruta en el resumen.
-   2. `git reset -q` (solo el índice; el worktree no cambia).
-5. Por cada commit marcado, en el orden de la sección 7:
-   1. Ficheros que van enteros: `git add -- <ruta>` (borrados y renombrados incluidos con `git add -A -- <ruta>`).
-   2. Ficheros repartidos (sección 5): escribe en el scratchpad un parche con solo los hunks de este commit, sacado de `git diff -- <ruta>` (y con `git add -N -- <ruta>` antes si es untracked), y aplícalo con `git apply --cached --recount <parche>`. **MUST NOT** usar `git add -p` (es interactivo).
-   3. Comprueba con `git diff --staged --stat` que el índice contiene exactamente los ficheros del commit.
-   4. `git commit -m "<título>"` con el título de la sección 3, con las mismas reglas de mensaje de §7.2.4 (sin atribución).
-   5. Si falla cualquier paso (parche que no aplica, índice distinto del esperado, hook que rechaza el commit) → **STOP**: no hagas los commits siguientes, deja el índice como esté e informa del error con su salida.
-6. Termina con este resumen:
+4. Prepara el índice temporal, sin tocar el real (el stage del usuario):
+   1. Apunta `H0=$(git rev-parse HEAD)` y las rutas staged con `git diff --cached --name-only`.
+   2. Si hay algo staged, guarda una copia de seguridad con `git diff --staged --binary > <scratchpad>/staged-previo.patch`.
+   3. `GIT_INDEX_FILE=<scratchpad>/index-planner git read-tree HEAD`.
+   - **CRITICAL**: todos los `git add`, `git apply`, `git diff` y `git commit` de los pasos 5.x llevan delante `GIT_INDEX_FILE=<scratchpad>/index-planner`. **MUST NOT** ejecutar ninguno sin él: tocaría el stage del usuario.
+5. Por cada commit marcado, en el orden de la sección 7 (todo con `GIT_INDEX_FILE=…` delante):
+   1. Ficheros que van enteros: `git add -- <ruta>` (borrados y renombrados con `git add -A -- <ruta>`).
+   2. Ficheros repartidos (sección 5): escribe en el scratchpad un parche con solo los hunks de este commit, sacado de `git diff -- <ruta>` (con `git add -N -- <ruta>` antes si es untracked), y aplícalo con `git apply --cached --recount <parche>`. **MUST NOT** usar `git add -p` (es interactivo).
+   3. Comprueba con `git diff --cached --stat` que el índice temporal contiene exactamente los ficheros del commit.
+   4. `git commit -m "<título>"` con el título de la sección 3, con las reglas de mensaje de §7.2.4 (sin atribución).
+   5. Si falla cualquier paso (parche que no aplica, índice distinto del esperado, hook que rechaza el commit) → **STOP**: no hagas los commits siguientes, pasa al paso 6 con los commits ya hechos e informa del error con su salida.
+6. Sincroniza el índice real solo en las rutas que han entrado en algún commit (si no, `git status` las mostraría como revertidas). Por cada ruta `R`:
+   - `R` no estaba staged → `git reset -q -- R` (su entrada pasa a ser la del nuevo `HEAD`).
+   - `R` estaba staged → mezcla a tres bandas lo staged sobre lo comiteado:
+     1. `git show H0:R > base`, `git show :R > staged`, `git show HEAD:R > nuevo` (en el scratchpad).
+     2. `git merge-file -p nuevo base staged > mezcla`.
+     3. Código 0 → `git update-index --cacheinfo <modo>,$(git hash-object -w mezcla),R` (`<modo>` el de `git ls-files -s -- R`).
+     4. Conflicto, o `R` añadida/borrada/binaria en algún lado → `git reset -q -- R` y anótala en el resumen: su stage está en la copia de seguridad.
+   - Las rutas que no han entrado en ningún commit **MUST NOT** tocarse.
+7. Termina con este resumen:
 
 ```markdown
 ## Commits realizados
@@ -293,7 +303,7 @@ Tras mostrar el informe completo, pregunta qué commits hacer y haz solo esos.
 ## No realizados
 - <n>. <tipo>: <título> — <no marcado | depende del commit <m>, no marcado | error: <motivo>>
 
-<Ruta del staging previo guardado, si lo había.>
+<Rutas cuyo stage no se pudo conservar y ruta de la copia de seguridad, si las hay.>
 ```
 
 ---
@@ -301,7 +311,7 @@ Tras mostrar el informe completo, pregunta qué commits hacer y haz solo esos.
 ## Quick Guidelines
 
 - Solo lectura hasta la Fase 5: **MUST NOT** cambiar el estado del repositorio antes de que el usuario marque los commits.
-- Al final, casillas con los commits propuestos: se hacen solo los marcados, en orden; ninguno marcado → ningún commit.
+- Al final, casillas con los commits propuestos: se hacen solo los marcados, en orden, en un índice temporal (`GIT_INDEX_FILE`); ninguno marcado → ningún commit. El stage del usuario se conserva: solo se sincronizan las rutas comiteadas.
 - Lee el diff de cada fichero y el contenido de cada untracked; nunca clasifiques por nombre.
 - Agrupa por intención; un fichero puede repartirse, y entonces se detalla hunk a hunk con su cabecera `@@` en la sección 5.
 - Informe escueto: listas de archivos solo con rutas, sin estado ni descripción del cambio.

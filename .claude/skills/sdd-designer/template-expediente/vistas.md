@@ -287,29 +287,26 @@ La pieza 2:
 ```xml
 <action-method name="exp-<Entidad>-<accion>-action">
     <call class="com.educaflow.tramites.util.firma.FirmaClienteController"
-          method='firmarDocumento(id,"<campoOrigen>","<campoDestino>",<x>,<y>,<ancho>,<alto>,<pagina>)'/>
+          method='firmarDocumentoEnCampo(id,"<campoOrigen>","<campoDestino>","<campoFirma>")'/>
 </action-method>
 
 <button name="<EVENTO>" title="…"
         onClick="serial:exp-<Entidad>-<accion>-action,subsysTramitador-event-action"/>
 ```
 
-Los **8 argumentos**, en orden:
+Los **4 argumentos**, en orden:
 
 | Pos | Parámetro | Significado |
 |---|---|---|
 | 1 | `id` | id del expediente, del contexto de la vista. Se resuelve comprobando `CAN_READ` sobre la clase **obtenida de BD**, no la que diga el cliente. Se escribe literalmente `id` |
 | 2 | `"<campoOrigen>"` | nombre del campo `MetaFile` **origen** (el PDF a firmar), entre comillas dobles |
 | 3 | `"<campoDestino>"` | nombre del campo `MetaFile` **destino** donde AutoFirma deja el firmado, entre comillas dobles |
-| 4 | `<x>` | X de la esquina **inferior izquierda** del rectángulo de firma, en puntos PDF |
-| 5 | `<y>` | Y de la esquina inferior izquierda |
-| 6 | `<ancho>` | ancho del rectángulo |
-| 7 | `<alto>` | alto del rectángulo |
-| 8 | `<pagina>` | página donde se estampa |
+| 4 | `"<campoFirma>"` | nombre del campo de firma del documento: el valor del atributo `campoFirma` del elemento que es el hueco de esa firma en `documentospdf/<doc>.xml` (`design-contract.md` §7), entre comillas dobles |
 
 Reglas:
 
 - El atributo `method` **MUST** ir entre **comillas simples**, porque su contenido lleva comillas dobles.
+- **MUST NOT** situarse la firma con coordenadas (`firmarDocumento(…,<x>,<y>,<ancho>,<alto>,<pagina>)`): el contenido del documento se desplaza con los datos y la firma se queda fuera de su hueco.
 - La `<action-method>` **MUST** declararse en el `views.xml` de **la fase** que la usa, no en la raíz.
 - El `onClick` **MUST** ser `serial:<action-method propia>,subsysTramitador-event-action` — la lista **MUST** terminar **siempre** en `subsysTramitador-event-action` (Y3).
 - Quien firma es siempre el **usuario autenticado**: el controlador lee su DNI de él (no del expediente) y lanza `RuntimeException` si es `null`, está en blanco o no pasa `DniUtil.isValid`. El `triggerInitialEvent` no tiene que rellenar nada para la firma.

@@ -65,13 +65,13 @@ Dependencias: el registro lo crea `EventContext` contra `subsystem/registroentra
 
 ## 2. Evento inicial (`InitialEventManagerImpl`)
 
-- `createRegistroEntrada` compone el solicitante y el interesado del asiento (`nombre + " " + apellidos` y `dni`) con `personaSolicitante` y `personaInteresada`, que **ya** rellena `Tramitador` al crear el expediente (`modelo.md` §2.1). El `InitialEventManagerImpl` **MUST NOT** tocarlas.
+- `createRegistroEntrada` compone el solicitante y el interesado del asiento (`nombre + " " + apellidos` y `dni`) con `personaSolicitante` y `personaInteresada`, que **ya** rellena el motor al crear el expediente y completa la entrada de datos (`modelo.md` §2.1). El `InitialEventManagerImpl` **MUST NOT** tocarlas.
 - En el modo representación `personaInteresada` nace vacía: el estado de entrada de datos **MUST** pedir y validar su nombre, apellidos y DNI (panel común `persona-interesada` y su acción de `onLoad`, `vistas.md` §3.1), o el asiento saldrá sin interesado.
 
 ## 3. El documento (`documentospdf/solicitud.xml`)
 
-- Un XML de definición con los datos del expediente como `nombreCampo="self.<campo>"` (`documentos.md`); el build genera `solicitud.pdf` y la constante `TipoDocumentoPdf.SOLICITUD` con la que el trigger lo pide (§4.3). Si hay impreso oficial, se versiona ese PDF tal cual en vez del XML.
-- **MUST** dejar en el documento un hueco para la firma del usuario (una `<fila>` con `rowSpan` o un `<texto>` vacío al final). El recuadro `Rectangulo` y la página que uses en §5 son los de ese hueco, y **MUST** ser los mismos en la `<action-method>` de AutoFirma y en el trigger (`recetas/firma.md` §1.3 y §1.5).
+- Un XML de definición con los datos del expediente como `nombreCampo="self.<campo>"` (`documentos.md`); el build genera la constante `TipoDocumentoPdf.SOLICITUD` con la que el trigger lo pide (§4.3), y el PDF se dibuja en runtime al pedirlo. Qué hacer cuando hay impreso oficial: `documentos.md` §1.
+- **MUST** dejar en el documento un hueco para la firma del usuario marcado con `campoFirma` (un `<texto rowSpan="4" campoFirma="firmaSolicitante">` al final, `documentos.md` §2.10). Ese nombre es el que usas en §5, y **MUST** ser el mismo en la `<action-method>` de AutoFirma y en el trigger (`recetas/firma.md` §1.3 y §1.5).
 - El registro de entrada **no** necesita nada del documento: la portada con el número de registro, la fecha y el sello la genera él y la antepone al PDF firmado (§5.3).
 
 ## 4. Estado `ENTRADA_DATOS`: teclear los datos y generar el PDF
@@ -154,7 +154,8 @@ public void triggerGuardarDatos(MiTramiteV1 exp, MiTramiteV1 original, EventCont
 
 @WhenEvent
 public void triggerDelete(MiTramiteV1 exp, MiTramiteV1 original, EventContext eventContext) throws BusinessException {
-    // vacío: DELETE borra sin pasar por aquí, pero el test E1 exige el método
+    // El motor lo llama justo antes de borrar: aquí solo van las guardas de quién puede borrar
+    MiTramiteV1Util.exigeSerElCreador(exp, "Solo puede borrar sus propias solicitudes");
 }
 ```
 
@@ -199,8 +200,7 @@ fun getForStatePendientePresentacionInEventPresentar(): BeanValidationRules = ru
 ### 5.3 Trigger `PRESENTAR`
 
 ```java
-private static final Rectangulo POSICION_FIRMA_SOLICITUD = new Rectangulo(100, 20, 600, 100);
-private static final int PAGINA_FIRMA_SOLICITUD = 1;
+private static final String CAMPO_FIRMA_SOLICITUD = "firmaSolicitante";
 
 @Inject
 FirmaServidorHelper firmaServidorHelper;
@@ -215,7 +215,7 @@ public void triggerPresentar(MiTramiteV1 exp, MiTramiteV1 original, EventContext
         if (situacionFirma.isFirmaEnServidor()) {
             exp.setPdfSolicitudFirmado(firmaServidorHelper.firmarEnServidor(
                     dniFirmante, situacionFirma, exp.getClaveCertificado(),
-                    exp.getPdfSolicitud(), POSICION_FIRMA_SOLICITUD, PAGINA_FIRMA_SOLICITUD));
+                    exp.getPdfSolicitud(), CAMPO_FIRMA_SOLICITUD));
         }
 
         // 2. Registro de entrada: el documento firmado + los anexos que aportó el usuario
@@ -239,11 +239,7 @@ public void triggerBack(MiTramiteV1 exp, MiTramiteV1 original, EventContext even
 ```
 
 1. **Firma**: la rama de servidor de `recetas/firma.md` §1.5. Con AutoFirma el `pdfSolicitudFirmado` ya llegó validado y no hay nada que hacer; el resto del trigger es igual en los dos casos.
-2. **`createRegistroEntrada(documento, anexos)`** (`phaseeventmanager.md` §3): el primer argumento es el PDF **firmado**; el segundo, los ficheros que el usuario aportó. Lo que hace el subsistema de registro, sin que el trámite tenga que saberlo:
-   - Numera el asiento por centro y año (`nnnnn/aaaa`) y le pone fecha.
-   - Toma del expediente el solicitante, el interesado (§2), el `numeroExpediente` y el asunto `"Expediente: <numeroExpediente> - <name>"`.
-   - Compone el **resguardo de presentación**: una portada con los datos del asiento seguida del documento firmado, y lo firma con el certificado del **secretario** del centro.
-   - Guarda en el asiento el documento firmado (renombrado a `solicitud_expediente_<numero>.pdf`), el resguardo (`resguardo_solicitud_expediente_<numero>.pdf`) y los anexos, que **clona**.
+2. **`createRegistroEntrada(documento, anexos)`** (`phaseeventmanager.md` §3): el primer argumento es el PDF **firmado**; el segundo, los ficheros que el usuario aportó. El asiento toma del expediente el solicitante, el interesado y el número de expediente, y devuelve un resguardo con número y fecha de registro seguido del documento firmado.
 3. **Resguardo**: `getDocumentoResguardoPresentacion()` ya es un `MetaFile`; se guarda en el campo de la entidad para el visor de §6.
 4. **Transición** al estado de quien tramita.
 5. `claveCertificado` a `null` en un `finally`, y también en `triggerBack` (`recetas/firma.md` §1.5).
@@ -265,6 +261,16 @@ Restricciones de `createRegistroEntrada`:
 
 Una vez asentado, el registro de entrada tiene número y fecha oficiales y queda en el historial del expediente y en el registro del centro; el expediente no puede "despresentarse".
 Si el tramitador necesita que el usuario corrija algo, lo devuelve a `ENTRADA_DATOS` con un evento suyo (una resolución de subsanación) y el usuario vuelve a recorrer §4 y §5: el siguiente `PRESENTAR` crea **otro** asiento, y los dos quedan en el historial.
+
+### 5.5 Variante en papel
+
+Si el trámite admite que el `TRAMITADOR` registre una solicitud entregada en papel (`perfiles.md`), el documento a registrar no es un PDF generado y firmado electrónicamente, sino la solicitud **firmada a mano y escaneada**:
+
+1. El `InitialEventManagerImpl` hace nacer el expediente en un estado previo de perfil `TRAMITADOR` (p. ej. `PENDIENTE_DOCUMENTO_ESCANEADO`) cuando `presentadoEnPapel` es `true`.
+2. En ese estado el `TRAMITADOR` sube el escaneado al campo firmado (`pdfSolicitudFirmado`), validado con `Required()` + `FileType(listOf("application/pdf"))` + `FileMaxSize(...)`.
+3. Después copia sus datos en el estado de entrada de datos (con su form `profile="TRAMITADOR"`), incluidas las personas, que en papel nacen vacías (`modelo.md` §2.1).
+4. El evento que guarda los datos registra directamente `createRegistroEntrada(pdfSolicitudFirmado, anexos)`: no pasa por `PENDIENTE_PRESENTACION` ni por la firma.
+5. Los `trigger*` que comparten los dos modos comprueban el modo con `original.getPresentadoEnPapel()`.
 
 ## 6. Después de presentar: qué ve cada perfil
 
@@ -304,8 +310,8 @@ En el estado destino, cada form incluye el PDF que le corresponde (los paneles-v
 
 - [ ] Máquina: dos estados `CREADOR` (`ENTRADA_DATOS` con `GUARDAR_DATOS`, `PENDIENTE_PRESENTACION` con `BACK` y `PRESENTAR`); `PRESENTAR` transita al estado de quien tramita.
 - [ ] Modelo: los campos de datos, los anexos, el par `pdfSolicitud`/`pdfSolicitudFirmado` y `pdfJustificanteRegistroEntrada`; sin redeclarar `personaSolicitante`/`personaInteresada`/`claveCertificado`.
-- [ ] Evento inicial: `personaSolicitante` y `personaInteresada` rellenos.
-- [ ] Documento: XML (o impreso oficial) en `documentospdf/` con hueco para la firma; mismo `Rectangulo` y página en la `<action-method>` y en el trigger.
+- [ ] Personas: el evento inicial **no** las toca; la entrada de datos pide y valida las que nacen vacías en el modo del trámite (`modelo.md` §2.1).
+- [ ] Documento: XML en `documentospdf/` con el hueco de la firma marcado con `campoFirma`; mismo nombre de campo de firma en la `<action-method>` y en el trigger.
 - [ ] `ENTRADA_DATOS`: validator con **todos** los campos tecleados y **ninguno** de los PDF; trigger que genera `pdfSolicitud` y transita, sin registrar.
 - [ ] `PENDIENTE_PRESENTACION`: vista, validator y firma de `recetas/firma.md` §1; trigger que firma si toca, `createRegistroEntrada(firmado, anexos)`, guarda el resguardo, transita, y vacía la clave en `finally`; `triggerBack` vacía la clave.
 - [ ] Estado destino: el `TRAMITADOR` ve `-pdfSolicitudFirmado`; el genérico, `-pdfJustificanteRegistroEntrada`.
@@ -315,7 +321,7 @@ En el estado destino, cada form incluye el PDF que le corresponde (los paneles-v
 - **MUST NOT** registrar en `GUARDAR_DATOS` ni registrar `pdfSolicitud`: el asiento lleva el documento **firmado**, y la firma ocurre en `PRESENTAR`.
 - **MUST NOT** dar `field(...)` en el validator a los PDF que rellena el servidor (`pdfSolicitud`, `pdfJustificanteRegistroEntrada`): abriría la puerta a que el cliente dicte qué se registra (`k-secure-coding`).
 - **MUST NOT** llamar dos veces a `createRegistroEntrada` en el mismo evento; concatena o anexa.
-- **MUST NOT** dejar `personaSolicitante` sin rellenar en el evento inicial: el NPE sale al presentar, en otro sitio y otro momento.
+- **MUST NOT** presentar sin haber pedido y validado las personas que nacen vacías: el asiento saldría sin solicitante o sin interesado.
 - **MUST NOT** guardar `getDocumentoOriginalFirmado()` como resguardo: el resguardo es `getDocumentoResguardoPresentacion()`.
 - **MUST NOT** hablar con `subsystem/registroentradasalida` desde el trámite: la única puerta es `eventContext.createRegistroEntrada`.
-- **MUST NOT** saltarse la firma "porque este trámite no la necesita": el registro asienta un documento firmado, y firmar no cuesta nada al trámite (`recetas/firma.md` §1 decide en servidor o AutoFirma según el certificado del usuario).
+- **MUST NOT** saltarse la firma "porque este trámite no la necesita": el registro asienta un documento firmado, y firmar no cuesta nada al trámite (`recetas/firma.md` §1 decide en servidor o AutoFirma según el certificado del usuario). La única excepción es el papel (§5.5), donde la firma es la manuscrita del escaneado.

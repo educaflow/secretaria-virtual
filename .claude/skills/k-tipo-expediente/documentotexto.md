@@ -2,7 +2,7 @@
 
 El segundo tipo de documento de `documentospdf/` (el primero, el FORMULARIO, está en `documentos.md`): un documento **en prosa** —párrafos, listas, tablas sin bordes— con una cabecera de logo y título en su primera página. Es el formato de los certificados, resoluciones y escritos que hoy el centro hace con un procesador de textos.
 
-**MUST** leerse junto a `documentos.md`, que es donde está lo **común a los dos tipos** y no se repite aquí: la carpeta `documentospdf/` y el enum `TipoDocumentoPdf` (§1), el idioma (§1.1), los fragmentos `_*.xml` y el `<include>` (§2.5), el `<valenciano>` que se traduce del `<castellano>` (§2.6), las expresiones Groovy y el test P1 (§2.8) y la visibilidad `visible`/`siOculto` (§2.9).
+**MUST** leerse junto a `documentos.md`, que es donde está lo **común a los dos tipos** y no se repite aquí: la carpeta `documentospdf/` y el enum `TipoDocumentoPdf` (§1), el idioma (§1.1), los fragmentos `_*.xml` y el `<include>` (§2.5), el `<valenciano>` que se traduce del `<castellano>` (§2.6), las expresiones Groovy y el test P1 (§2.8), la visibilidad `visible`/`siOculto` (§2.9) y el hueco de la firma `campoFirma` (§2.10).
 
 Ejemplo real y ya probado: `src/test/resources/com/educaflow/base/infrastructure/pdfgenerator/documentotexto/certificado/certificado_horario.xml` (un certificado de horario del profesorado) y los demás `documentotexto/*.xml` de esa carpeta.
 
@@ -64,7 +64,7 @@ Ejemplo real y ya probado: `src/test/resources/com/educaflow/base/infrastructure
 | `<parrafo>` | Un párrafo. Por omisión, **justificado**, en redonda y en la caja en que esté escrito | `alineamiento`, `negrita`, `mayusculas`, `visible`, `siOculto` | `<valenciano>` (opc.), `<castellano>` (opc.) |
 | `<lista>` | Una lista con viñetas, sangrada | `visible`, `siOculto` | `<item>` (1..n) |
 | `<item>` | Un elemento de la lista, detrás de su viñeta | `visible`, `siOculto` | `<valenciano>` (opc.), `<castellano>` (opc.) |
-| `<espacio>` | Un hueco vertical en blanco | `alto` (req., puntos, > 0, admite decimales), `visible`, `siOculto` | — |
+| `<espacio>` | Un hueco vertical en blanco | `alto` (req., puntos, > 0, admite decimales), `campoFirma` (el hueco de una firma, `documentos.md` §2.10), `visible`, `siOculto` | — |
 | `<tabla>` | Una rejilla **sin bordes** | `columnas` (req., entero > 0), `visible`, `siOculto` | `<fila>` (1..n) |
 | `<fila>` | Una fila de la tabla | `visible`, `siOculto` | `<parrafo>`, `<espacio>` |
 
@@ -190,6 +190,7 @@ Recorte del certificado de horario (fichero completo en `src/test/resources/.../
 - ✅ CORRECTO: `<parrafo><castellano>Fecha: ${self.fechaResolucion}</castellano></parrafo>` (el inline se estampa como una palabra más del párrafo).
 - ✅ CORRECTO: `<espacio alto="44.28"/>` entre el último párrafo y la tabla de firmas (el hueco de firma se hace con espacios, no con `rowSpan`: aquí no hay `rowSpan`).
 - ✅ CORRECTO: una `<tabla columnas="2">` cuyas filas llevan dos `<parrafo>`, y el hueco de la firma como `<fila><espacio alto="132.84"/><parrafo/></fila>`.
+- ✅ CORRECTO: `<espacio alto="88.56" campoFirma="firmaDirector"/>` como hueco de la firma que estampa la aplicación (la firma se estampa en ese espacio, esté donde esté: `documentos.md` §2.10).
 - ✅ CORRECTO: `<parrafo alineamiento="centrado">` para un cargo bajo el recuadro de firma (el `<parrafo>` es justificado por omisión, y un texto de una línea justificado se queda a la izquierda).
 - ✅ CORRECTO: `<parrafo negrita="true" mayusculas="true" alineamiento="izquierda"><castellano>Visto:</castellano></parrafo>` para un encabezado (sale `VISTO:` en seminegrita).
 - ✅ CORRECTO: `<titulo><castellano>Resolución de anulación de matrícula</castellano></titulo>` como primer hijo (sale en la cabecera, en mayúsculas, aunque se escriba en caja normal).
@@ -226,6 +227,7 @@ Recorte del certificado de horario (fichero completo en `src/test/resources/.../
 - `alineamiento` = `izquierda`/`centrado`/`derecha`/`justificado` (por omisión `justificado`); `negrita` y `mayusculas` = `true`/`false` (por omisión `false`). El `<item>` no admite ninguno. Un encabezado es `<parrafo negrita="true" mayusculas="true" alineamiento="izquierda">`.
 - `\n` = salto de línea duro; la línea que lo cierra y la última de un párrafo no se justifican.
 - `${expresion}` en cualquier `<castellano>`/`<valenciano>`, estampado como una palabra más; solo se evalúan los del idioma emitido. Hereda las `mayusculas` de su párrafo, no su `negrita`.
+- El hueco de una firma es un `<espacio campoFirma="<nombre>">`: se firma por ese nombre, sin coordenadas (`documentos.md` §2.10).
 - `<tabla>`: sin bordes, ancho a partes iguales, cada `<fila>` con **exactamente `columnas` hijos** (lo valida el build) y alta como su celda más alta; una fila no se parte entre páginas.
 - La cabecera va **solo en la primera página** y **no hay pie**: el cuerpo baja hasta el margen inferior en todas. No hay imágenes en un documento en prosa.
 - `visible`/`siOculto` en **todos** los elementos del cuerpo (el `<titulo>` no), misma semántica que en FORMULARIO; lo reservado guarda el hueco y no evalúa sus inline.

@@ -1,37 +1,37 @@
 ---
 name: k-tramite
-description: Cómo dar de alta un trámite nuevo en la secretaría virtual: la carpeta `tramites/<tramite>/`, el fichero maestro `TramiteInstance.xml` (code, name, tipoUsuario, unidadTramitadora, publico/privado, defaultTipoExpediente, help, acl), los data-init que genera el build, la i18n del nombre y los permisos necesarios para poder crear expedientes del trámite. Las versiones del trámite (los tipos de expediente `v1`, `v2`…) son de `k-tipo-expediente`.
+description: Cómo dar de alta o modificar un trámite en la secretaría virtual: la carpeta `tramites/<tramite>/`, el fichero maestro `TramiteInstance.xml` (code, name, tipoUsuario, unidadTramitadora, permitidoPresentarEnRepresentacion, defaultTipoExpediente, help, acl), lo que genera el build a partir de él, la i18n del nombre y los permisos necesarios para poder crear expedientes del trámite. Las versiones del trámite (los tipos de expediente `v1`, `v2`…) son de `k-tipo-expediente`.
 ---
 
 # k-tramite
 
-Un trámite es lo que el usuario ve y elige en el árbol "Crear un nuevo expediente". Este skill cubre solo el alta y mantenimiento del trámite; la implementación de cada versión (carpetas `v1/`, `v2/`…) la cubre `k-tipo-expediente`.
+Un trámite es lo que el usuario ve y elige en el árbol «Crear un nuevo expediente». Este skill cubre solo el trámite; la implementación de cada versión (carpetas `v1/`, `v2/`…) es de `k-tipo-expediente`.
+
+Los ejemplos usan el trámite inventado `MiTramite` (carpeta `mi_tramite/`), el mismo que `k-tipo-expediente`.
 
 ---
 
 ## 1. Conceptos clave
 
-- **Trámite** = el "producto" administrativo (lo que el ciudadano pide: una solicitud, una autorización, una renuncia…). Se define con un único fichero maestro `TramiteInstance.xml`.
-- **Tipo de expediente** = una **versión** concreta de la implementación del trámite. Un trámite puede tener N versiones (carpetas `v1/`, `v2/`…) pero solo **una activa**: la que declara `<defaultTipoExpediente>`. El árbol de trámites crea siempre expedientes de la versión activa.
-- Los trámites viven **fuera de `system/`** (no son sistemas Controller→Service→Repository), en `src/main/java/com/educaflow/tramites/`.
+- **Trámite** = lo que se pide (una solicitud, una autorización, una renuncia…). Se define con un único fichero maestro `TramiteInstance.xml`.
+- **Tipo de expediente** = una **versión** de la implementación del trámite. Un trámite puede tener N versiones (`v1/`, `v2/`…) pero solo **una activa**: la de `<defaultTipoExpediente>`. Los expedientes nuevos se crean siempre de la versión activa; los ya creados siguen siendo de la suya.
+- Los trámites viven en `src/main/java/com/educaflow/tramites/`, fuera de `system/` y `subsystem/`.
 
 ## 2. Estructura de carpetas
 
 ```
 src/main/java/com/educaflow/tramites/[<agrupacion>/…]<nombre_tramite>/   ← snake_case
 ├── TramiteInstance.xml          ← fichero maestro (lo escribes tú)
-├── i18n_es.csv / i18n_ca.csv    ← i18n del nombre del trámite (los genera el build, MUST NOT crearlos a mano)
-├── [<agrupacion>/…]v1/          ← primera versión (tipo de expediente) → k-tipo-expediente
-└── [<agrupacion>/…]v2/          ← versiones siguientes → k-tipo-expediente (receta de versionado)
+├── i18n_es.csv / i18n_ca.csv    ← los genera el build; MUST NOT crearlos a mano
+├── [<agrupacion>/…]v1/          ← primera versión → k-tipo-expediente
+└── [<agrupacion>/…]v2/          ← versiones siguientes → k-tipo-expediente (recetas/versionado.md)
 ```
 
-Los dos `[<agrupacion>/…]` son opcionales y de profundidad libre: son **solo carpetas de agrupación**, sin significado para el generador, que busca los `TramiteInstance.xml` y las carpetas de versión **recursivamente** (§4).
-  Un trámite puede colgar de una carpeta temática (`tramites/<agrupacion>/mi_tramite/`) y sus versiones pueden estar anidadas dentro del trámite (`mi_tramite/actual/v1/`, `mi_tramite/futuro/v2/`).
-  La única restricción es que un trámite **MUST NOT** estar dentro de otro, y que el nombre de la carpeta de la versión activa sea **único** bajo el trámite (§4).
+- Los `[<agrupacion>/…]` son opcionales, de profundidad libre y sin significado: solo agrupan carpetas (`tramites/alumnos/mi_tramite/`, `mi_tramite/actual/v1/`).
+- Un trámite **MUST NOT** estar dentro de otro.
+- El nombre de cada carpeta de versión **MUST** ser único bajo su trámite (§4).
 
 ## 3. `TramiteInstance.xml`
-
-Plantilla (con un trámite inventado, `MiTramite`; los ejemplos de este skill y de `/k-tipo-expediente` usan siempre ese mismo):
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -41,8 +41,9 @@ Plantilla (con un trámite inventado, `MiTramite`; los ejemplos de este skill y 
     <tipoUsuario>PROFESOR</tipoUsuario>
     <unidadTramitadora>JEFATURA_ESTUDIOS</unidadTramitadora>
     <defaultTipoExpediente>v1</defaultTipoExpediente>
+    <permitidoPresentarEnRepresentacion>false</permitidoPresentarEnRepresentacion>
     <help><![CDATA[
-        Descripción de para qué sirve el trámite.<br>
+        Para qué sirve el trámite y qué necesita el usuario para presentarlo.<br>
         Admite <strong>HTML</strong>.
     ]]></help>
     <acl>
@@ -58,92 +59,81 @@ Plantilla (con un trámite inventado, `MiTramite`; los ejemplos de este skill y 
 
 | Tag | Obligatorio | Contenido |
 |---|---|---|
-| `code` | **MUST** | Identificador único del trámite. **MUST** ser UpperCamel y un identificador Java válido **sin** guiones ni underscores: es el prefijo del nombre de la entidad de cada versión (`<code>V1`) y del patrón de nombres de las vistas. |
-| `name` | **MUST** | Nombre visible (se traduce vía i18n, ver §5). Es también el título por defecto de los documentos PDF de sus versiones. |
-| `tipoUsuario` | **MUST** | `codigo` del `TipoUsuario` al que va dirigido el trámite: un valor del enum `TipoUsuarioCodigo` (fuente de verdad: `subsystem/common/domains/TipoUsuarioCodigo.xml`). Las filas de `subsystem/common/data-init/input/tiposUsuario.xml` **MUST** coincidir con ese enum (lo vigila `TipoUsuarioCodigoTest`); un código nuevo se añade en los dos sitios. Agrupa el árbol de «Nuevo trámite» («Trámites para el alumno») y decide qué perfiles da `AceProfileTipoUsuarioTramite` (§6). **MUST NOT** usar `FAMILIAR` para «lo presenta el familiar»: eso es `permitidoPresentarEnRepresentacion`. |
-| `unidadTramitadora` | **MUST** | `code` de la `UnidadTramitadora` que lo tramita: un valor del enum `UnidadTramitadoraCodigo` (fuente de verdad: `subsystem/expedientes/domains/UnidadTramitadoraCodigo.xml`). Las filas de `subsystem/expedientes/data-init/input/UnidadesTramitadoras.xml` **MUST** coincidir con ese enum (lo vigila `UnidadTramitadoraCodigoTest`); una unidad nueva se añade en los dos sitios. Decide en qué bandeja de «Tramitación» salen sus expedientes. |
-| `permitidoPresentarEnRepresentacion` | Opcional | Booleano: si el trámite admite presentarse en nombre de otra persona. |
-| `publico` / `privado` | Opcionales | Flags booleanos del `Tramite` (ver `subsystem/expedientes/domains/Tramite.xml`). Solo se emiten al data-init si se declaran. |
-| `defaultTipoExpediente` | Opcional | La **versión activa**. **MUST** ser el **nombre de la carpeta** del tipo (`v1`, `v2`…), y esa carpeta **MUST** existir bajo el trámite con su `TipoExpedienteInstance.xml` dentro (lo vigila el test T1, §4). El generador admite además el `code` completo del tipo, pero **MUST NOT** usarse: un code escrito a mano no se distingue de una errata hasta que revienta en runtime. Sin este tag no se genera la asignación de tipo activo y no se pueden crear expedientes del trámite. |
-| `help` | Opcional (recomendado) | Ayuda que se muestra en el árbol "Crear un nuevo expediente", en CDATA, admite HTML. Si no se declara, el data-init se genera con un CDATA vacío. Su texto **MUST NOT** contener `]]>` (cerraría el CDATA): el generador lanza `RuntimeException` si lo encuentra. |
-| `acl` | Opcional | Perfiles que da **este** trámite en todos los centros; se cargan en la tabla `AceProfileTramite` (§4). Cada `<ace>` lleva el atributo `perfil` (constante del enum `Profile`) y un hijo `<usuario>` (a quién se da) con **exactamente uno** de `tipoUsuario` (`TipoUsuario.codigo`) o `cargo` (`Cargo.code`: un valor del enum `CargoCodigo`, fuente de verdad `subsystem/common/domains/CargoCodigo.xml`; las filas de `subsystem/common/data-init/input/cargos.xml` **MUST** coincidir con ese enum —lo vigila `CargoCodigoTest`— y un cargo nuevo se añade en los dos sitios); el trámite no se escribe, es el del propio fichero. El generador aborta el build si falta `perfil`, si falta `<usuario>` o si este no lleva exactamente uno de los dos. |
+| `code` | **MUST** | UpperCamel, identificador Java **sin** guiones ni underscores: es el prefijo de la entidad de cada versión (`<code>V1`) y de los nombres de vista |
+| `name` | **MUST** | Nombre visible (se traduce, §5). Es también el título por defecto de los documentos PDF de sus versiones |
+| `tipoUsuario` | **MUST** | A quién va dirigido: un valor del enum `TipoUsuarioCodigo` (`subsystem/common/domains/TipoUsuarioCodigo.xml`). Agrupa el árbol de «Nuevo trámite» y decide qué perfiles da `AceProfileTipoUsuarioTramite` (§6) |
+| `unidadTramitadora` | **MUST** | Quién lo tramita: un valor del enum `UnidadTramitadoraCodigo` (`subsystem/expedientes/domains/UnidadTramitadoraCodigo.xml`). Decide en qué bandeja de «Tramitación» salen sus expedientes |
+| `permitidoPresentarEnRepresentacion` | Opcional (`false`) | Si `true`, al crear el expediente el usuario puede elegir «para otra persona»: entonces `personaInteresada` nace vacía y la versión **MUST** pedirla y validarla (`k-tipo-expediente` → `modelo.md` §2.1) |
+| `defaultTipoExpediente` | Opcional | La **versión activa**: el **nombre de la carpeta** de la versión (`v1`). Sin este tag no se pueden crear expedientes del trámite (§4) |
+| `help` | Recomendado | Ayuda del árbol «Crear un nuevo expediente», en CDATA, admite HTML. **MUST NOT** contener `]]>` |
+| `acl` | Opcional | Perfiles que da **este** trámite en todos los centros (§6) |
+| `publico` | Opcional | Se guarda en BD pero hoy no tiene ningún efecto: **MUST NOT** usarse |
+
+- **MUST NOT** usar `FAMILIAR` en `tipoUsuario` para «lo presenta el familiar»: eso es `permitidoPresentarEnRepresentacion`.
+- Un valor nuevo de `tipoUsuario`, `unidadTramitadora` o `cargo` **MUST** añadirse a la vez al enum y a su fichero de data-init (`subsystem/common/data-init/input/tiposUsuario.xml` y `cargos.xml`, `subsystem/expedientes/data-init/input/UnidadesTramitadoras.xml`); lo vigilan los tests `*CodigoTest`.
+- Cada `<ace>` lleva `perfil` (constante del enum `Profile`) y un hijo `<usuario>` con **exactamente uno** de `tipoUsuario` o `cargo` (un valor del enum `CargoCodigo`). El trámite no se escribe: es el del propio fichero. Si falta algo, el build aborta.
 
 - ✅ CORRECTO: `<code>MiTramite</code>`
-- ❌ INCORRECTO: `<code>mi_tramite</code>` (los underscores rompen el patrón de vistas `exp-<Code>-Templates` y el nombre de la entidad; el snake_case es para la **carpeta**, no para el `code`)
-- ❌ INCORRECTO: `<defaultTipoExpediente>v2</defaultTipoExpediente>` cuando la única carpeta de versión es `v1` (nada casa en el data-init, la columna queda a `null` y el trámite revienta al abrirlo)
-- ❌ INCORRECTO: `<defaultTipoExpediente>MiTramiteV1</defaultTipoExpediente>` (es el `code` del tipo, no el nombre de su carpeta: el generador lo acepta, el test T1 lo rechaza)
+- ❌ INCORRECTO: `<code>mi_tramite</code>` (el snake_case es para la **carpeta**, no para el `code`: rompe la entidad y las vistas)
+- ✅ CORRECTO: `<defaultTipoExpediente>v1</defaultTipoExpediente>` con la carpeta `v1/` existente
+- ❌ INCORRECTO: `<defaultTipoExpediente>MiTramiteV1</defaultTipoExpediente>` (es el `code` del tipo, no el nombre de su carpeta: el test T1 lo rechaza)
 - ✅ CORRECTO: `<ace perfil="TRAMITADOR"><usuario cargo="JEFE_ESTUDIOS"/></ace>`
-- ❌ INCORRECTO: `<ace perfil="TRAMITADOR" cargo="JEFE_ESTUDIOS"/>` (formato antiguo, sin `<usuario>`: el generador aborta)
-- ❌ INCORRECTO: `<ace perfil="TRAMITADOR"><usuario cargo="JEFE_ESTUDIOS" tipoUsuario="PROFESOR"/></ace>` (dos sujetos: el generador aborta)
-- ❌ INCORRECTO: `<ace perfil="TRAMITADOR"><usuario cargo="JEFE_ESTUDIOS"/><tramite code="MiTramite"/></ace>` (el trámite es implícito, sobra)
+- ❌ INCORRECTO: `<ace perfil="TRAMITADOR" cargo="JEFE_ESTUDIOS"/>` (formato antiguo, sin `<usuario>`: el build aborta)
+- ❌ INCORRECTO: `<ace perfil="TRAMITADOR"><usuario cargo="JEFE_ESTUDIOS" tipoUsuario="PROFESOR"/></ace>` (dos sujetos: el build aborta)
 
-## 4. Qué genera el build (y qué queda en BD)
+## 4. Qué genera el build
 
-La tarea gradle `generateDataInitTramites` es un `JavaExec` que solo invoca la herramienta `createdatainittramite.Main` de `EducaFlowBuildTools` (toda la lógica está ahí, nada en el `build.gradle`). Busca cada `TramiteInstance.xml` **a cualquier profundidad bajo el paquete raíz de los trámites** (`com.educaflow.tramites`, el último argumento de la tarea; las carpetas intermedias son solo de agrupación y un trámite **MUST NOT** estar dentro de otro) y genera en `build/resources/main/tramites/<Code>/` (**nunca en `src`**).
-Antes del bucle borra de una vez `build/resources/main/tramites/` **entera** (los data-init de **todos** los trámites, no solo los del trámite que se regenera), para que no sobreviva el data-init de un trámite que ya no existe en las fuentes.
-Por cada trámite genera:
-
-1. `definicion/data-init/` (`priority="1"`) — crea/actualiza la fila `Tramite` en BD (bind por `code`, se refresca en cada arranque) con `name`, `tipoUsuario` (resuelto por `codigo`), `unidadTramitadora` (resuelto por `code`), `help` y `publico`/`privado` **solo si están declarados**.
-   Con un `<input>` detrás carga los `<acl>` en `AceProfileTramite` (los `<input>` de un `input-config.xml` se cargan en orden, así que el trámite ya existe). La tabla se vacía en cada arranque (`DataBaseStartup`), así que quitar un `<ace>` del XML lo quita de la BD.
-2. `tipo_expediente_activo/data-init/` (`priority="-1"`, `update` sin `create`) — solo si hay `<defaultTipoExpediente>` y no está en blanco; resuelve `v1` → code del tipo (el `<code>` declarado en su `TipoExpedienteInstance.xml` o, por defecto, `code del trámite + V1`) buscando la carpeta `v1` **recursivamente** bajo la del trámite.
-   - Más de una carpeta con ese nombre → falla por ambigüedad.
-   - **Ninguna** carpeta con ese nombre → **CRITICAL**: no falla. El generador asume que el valor ya es un `code` y lo emite tal cual; el bind del data-init es `search` + `create="false"`, así que el import tampoco falla y deja la columna `defaultTipoExpediente` a `null`. El error aparece solo en runtime, al abrir el trámite: `No existe el tipo de expediente para el tramite con idTramite: N`.
-   - Ese silencio lo tapa el test **T1** (`src/test/java/com/educaflow/tiposexpedientes/tramite/TipoExpedienteActivoTest.java`), que exige que el `<defaultTipoExpediente>` nombre **exactamente una** carpeta bajo el trámite con su `TipoExpedienteInstance.xml` dentro, y falla `./gradlew test` (y por tanto `./run.sh`) si no.
-     Denuncia por igual los dos extremos: **ninguna** carpeta (el silencio del punto anterior) y **más de una** (la ambigüedad, que el generador sí caza pero solo al compilar y con un mensaje del build, no del fichero que hay que editar).
-     Que el nombre de carpeta de versión sea único bajo el trámite es, por tanto, una regla verificada, no una convención.
-
-El orden de carga lo gobierna la `priority`: primero el trámite (`1`), luego los `TipoExpediente` (`0`) y por último la asignación del activo (`-1`), que ya encuentra ambos en BD.
+- A partir del `TramiteInstance.xml`, el build genera en `build/` (**nunca** en `src`) el data-init del trámite: la fila `Tramite`, sus `<acl>` y la asignación de la versión activa. Se refrescan en **cada arranque**, así que quitar un `<ace>` del XML lo quita de la BD.
+- **MUST NOT** escribir a mano ningún data-init del trámite.
+- **CRITICAL**: si `<defaultTipoExpediente>` nombra una carpeta que no existe, ni el build ni el arranque avisan: el trámite queda sin versión activa y revienta al abrirlo. Lo caza el test **T1** (`./gradlew test`, y por tanto `./run.sh`), que exige que nombre **exactamente una** carpeta bajo el trámite con su `TipoExpedienteInstance.xml` dentro.
 
 ## 5. i18n del nombre
 
-- El `name` es texto traducible: el build genera y mantiene `i18n_es.csv`/`i18n_ca.csv` **en la raíz de la carpeta del trámite**, con traducción automática castellano→valenciano.
-- **MUST NOT** crear esos CSV a mano (regla de `CLAUDE.md`); las palabras que no deban traducirse llevan sufijo `__!!`.
-- Una traducción automática mala se corrige editando **solo** la columna `message` del `i18n_ca.csv`; esa corrección se conserva.
+- El build genera y mantiene `i18n_es.csv`/`i18n_ca.csv` en la carpeta del trámite, con traducción automática castellano→valenciano. **MUST NOT** crearlos a mano (`CLAUDE.md`).
+- Las palabras que no deban traducirse llevan sufijo `__!!`.
+- Una traducción mala se corrige editando **solo** la columna `message` del `i18n_ca.csv`; esa corrección se conserva.
 
 ## 6. Permisos
 
-Qué perfiles tiene un usuario lo calcula `subsystem/security` a partir de las tablas `AceProfile*`: leer su `CLAUDE.md` (qué tablas hay, cuáles alcanzan al crear y cuáles sobre un expediente).
-Desde un trámite solo se escriben dos:
+Qué perfiles tiene un usuario sobre un trámite o un expediente lo calcula `subsystem/security` a partir de las tablas `AceProfile*` (su `CLAUDE.md` explica cuáles hay). Desde un trámite solo se escriben dos:
 
 - El `<acl>` del `TramiteInstance.xml` (§3) → vale para **todas** las versiones.
-- El `<acl>` del `TipoExpedienteInstance.xml` de una versión (`/k-tipo-expediente`) → vale **solo** para esa versión; hay que repetirlo en cada versión nueva.
+- El `<acl>` del `TipoExpedienteInstance.xml` de una versión (`k-tipo-expediente` §2) → vale **solo** para esa versión.
 
 Reglas:
 
-1. Para que un usuario pueda **crear** expedientes necesita el perfil del estado inicial sobre el trámite. Al crear cuentan el `<acl>` del trámite y el de la versión **activa**; **SHOULD** ponerse en el del trámite, que sobrevive a las versiones.
-2. Antes de añadir un `<ace>`, lee `subsystem/security/data-init/input/AceProfileGlobal.xml` y `AceProfileTipoUsuarioTramite.xml`: un perfil que ya se da globalmente o por el `tipoUsuario` del trámite **MUST NOT** repetirse en el trámite.
-3. **MUST NOT** tocar esos dos ficheros desde un trámite: son de `subsystem/security` y afectan a todos los trámites.
-4. Sin ningún perfil sobre el trámite el usuario **no lo ve** (las condiciones de lectura de `auth-expedientes.xml` consultan las mismas tablas).
-5. No hay forma de dar un perfil a un usuario concreto desde el fichero maestro: eso es `AceProfileCentro`, que se rellena en ejecución.
-6. Un `<ace perfil="CREADOR">` solo da derecho a **crear**: sobre un expediente ya creado es `CREADOR` únicamente quien lo registró, así que ese `<ace>` no deja ver ni tocar los expedientes de otros.
+1. Para **crear** expedientes, el usuario necesita `CREADOR` (presenta telemáticamente) o `TRAMITADOR` (registra en papel) sobre el trámite en ese centro. **SHOULD** darse en el `<acl>` del trámite, que sobrevive a las versiones.
+2. Cada `profile` que use algún estado de la versión **MUST** estar asignado a alguien; si no, los expedientes se atascan en ese estado.
+3. Antes de añadir un `<ace>`, lee `subsystem/security/data-init/input/AceProfileGlobal.xml` y `AceProfileTipoUsuarioTramite.xml`: un perfil que ya se da globalmente o por el `tipoUsuario` del trámite **MUST NOT** repetirse en el trámite.
+4. **MUST NOT** tocar esos dos ficheros desde un trámite: afectan a todos los trámites.
+5. Sin ningún perfil sobre el trámite, el usuario **no lo ve**.
+6. Un `<ace perfil="CREADOR">` solo da derecho a **crear**: sobre un expediente ya creado es `CREADOR` únicamente quien lo registró.
+7. No se puede dar un perfil a un usuario concreto desde el fichero maestro: eso es `AceProfileCentro`, que se rellena en ejecución.
 
-- ✅ CORRECTO: `<ace perfil="CREADOR"><usuario tipoUsuario="PROFESOR"/></ace>` en el `<acl>` del `TramiteInstance.xml`
-- ✅ CORRECTO: `<ace perfil="DIRECTOR"><usuario cargo="DIRECTOR"/></ace>` en el `<acl>` del trámite (un cargo también se da por trámite)
+- ✅ CORRECTO: `<ace perfil="DIRECTOR"><usuario cargo="DIRECTOR"/></ace>` en el `<acl>` del trámite cuando un estado tiene `profile="DIRECTOR"`
 - ❌ INCORRECTO: `<ace perfil="TRAMITADORA"><usuario cargo="DIRECTOR"/></ace>` (`perfil` no es una constante de `Profile`: la carga del data-init falla)
 - ❌ INCORRECTO: `<ace perfil="CREADOR"><usuario tipoUsuario="PROFESOR"/></ace>` en un trámite de `tipoUsuario` `PROFESOR` cuando `AceProfileTipoUsuarioTramite.xml` ya lo da (duplicado)
 
 ## 7. Checklist de alta de un trámite
 
-1. Crea `src/main/java/com/educaflow/tramites/<nombre_tramite>/` (snake_case), opcionalmente bajo una o varias carpetas de agrupación (`tramites/<agrupacion>/<nombre_tramite>/`), pero nunca dentro de otro trámite.
-2. Escribe `TramiteInstance.xml` con `code`, `name`, `tipoUsuario`, `unidadTramitadora` y `help`. **Sin** `<defaultTipoExpediente>` todavía.
-3. Compila (`./gradlew clean build`): se genera el data-init y los CSV de i18n; al arrancar, el trámite aparece en el árbol.
-4. Añade al `<acl>` el perfil del estado inicial y los que no dependan de la versión (§6).
-5. Crea la primera versión en la carpeta `v1/` siguiendo `/k-tipo-expediente`.
-6. Activa la versión: `<defaultTipoExpediente>v1</defaultTipoExpediente>` — el **nombre de la carpeta**, no el `code` — y recompila.
+1. Crea `src/main/java/com/educaflow/tramites/[<agrupacion>/]<nombre_tramite>/` (snake_case).
+2. Escribe `TramiteInstance.xml` con `code`, `name`, `tipoUsuario`, `unidadTramitadora`, `help` y, si aplica, `permitidoPresentarEnRepresentacion`. **Sin** `<defaultTipoExpediente>` todavía.
+3. Añade al `<acl>` los perfiles que no dependan de la versión (§6).
+4. Crea la primera versión en `v1/` siguiendo `k-tipo-expediente`.
+5. Activa la versión: `<defaultTipoExpediente>v1</defaultTipoExpediente>`, y compila y arranca con `./run.sh`.
 
 ## 8. Anti-patrones
 
-- **MUST NOT** crear los `i18n_*.csv` a mano ni añadir/quitar filas (solo editar la columna `message` de una traducción mala).
-- **MUST NOT** escribir data-init del trámite a mano en `src`: el fichero maestro es `TramiteInstance.xml` y el data-init se genera en `build/`.
+- **MUST NOT** crear los `i18n_*.csv` a mano ni añadir/quitar filas.
+- **MUST NOT** escribir data-init del trámite en `src`.
 - **MUST NOT** usar un `code` con guiones, underscores o espacios.
-- **MUST NOT** declarar `<defaultTipoExpediente>` antes de que exista la carpeta de la versión: ni el generador ni el data-init avisan, la columna queda a `null` y el trámite revienta al abrirlo (§4). El test T1 lo caza al compilar.
-- **MUST NOT** poner en `<defaultTipoExpediente>` el `code` del tipo en vez del nombre de su carpeta, aunque el generador lo admita: solo el nombre de carpeta es verificable.
+- **MUST NOT** declarar `<defaultTipoExpediente>` antes de que exista la carpeta de la versión, ni poner en él el `code` del tipo en vez del nombre de su carpeta (§4).
 
 ## Quick Guidelines
 
-- Un trámite = una carpeta `tramites/<nombre_tramite>/` + un `TramiteInstance.xml`; sus versiones (`v1/`, `v2/`…) son tipos de expediente → `/k-tipo-expediente`.
-- `code` en UpperCamel sin `-`/`_`: es el prefijo de la entidad de cada versión.
-- `tipoUsuario` = `codigo` del `TipoUsuario` destinatario (agrupa el árbol y elige las filas de `AceProfileTipoUsuarioTramite`); `unidadTramitadora` = `code` de la unidad que lo tramita.
-- `<defaultTipoExpediente>` = nombre de la carpeta de la versión activa (`v1`), nunca el `code`; sin él no se pueden crear expedientes del trámite, y si la carpeta no existe nadie avisa hasta runtime (lo caza el test T1).
-- Los data-init del trámite y los CSV de i18n los genera el build; **MUST NOT** escribirlos a mano.
-- Perfiles en el `<acl>` del `TramiteInstance.xml` (mejor que en el de la versión: sobreviven a las versiones).
+- Un trámite = una carpeta `tramites/<nombre_tramite>/` + un `TramiteInstance.xml`; sus versiones son tipos de expediente → `k-tipo-expediente`.
+- `code` en UpperCamel sin `-`/`_`: es el prefijo de la entidad y de las vistas de cada versión.
+- `tipoUsuario` = a quién va dirigido; `unidadTramitadora` = quién lo tramita; `permitidoPresentarEnRepresentacion` = si se puede presentar para otra persona (y entonces la versión pide al interesado).
+- `<defaultTipoExpediente>` = nombre de la carpeta de la versión activa (`v1`), nunca el `code`; si la carpeta no existe solo lo detecta el test T1.
+- Perfiles en el `<acl>` del trámite (sobreviven a las versiones); todo perfil que use un estado **MUST** estar asignado a alguien.
+- Data-init e i18n los genera el build; **MUST NOT** escribirlos a mano.

@@ -2,7 +2,7 @@
 
 Clase Kotlin (interfaz marcadora `StateEventValidator`) con un método por cada par (estado, evento) que declara las reglas de validación de ese evento. Los ejemplos usan el trámite inventado `MiTramite` (`SKILL.md`); para ver uno de verdad, abre el `StateEventValidatorImpl.kt` de cualquier fase bajo `src/main/java/com/educaflow/tramites/`.
 
-**Hay uno por fase**, en `<vN>/<fase en minúsculas>/StateEventValidatorImpl.kt`, y cada uno cubre **solo las parejas (estado, evento) de los estados de su propia fase**. En runtime lo resuelve `ExpedienteLocator` con el estado **desde el que** se dispara el evento (`SKILL.md` §1.6).
+**Hay uno por fase**, en `<vN>/<fase en minúsculas>/StateEventValidatorImpl.kt`, y cada uno cubre **solo las parejas (estado, evento) de los estados de su propia fase**: las reglas de un evento son las del estado **desde el que** se dispara (`SKILL.md` §1.6).
 
 ## 1. CRITICAL: doble función — validar Y whitelist de campos
 
@@ -45,7 +45,7 @@ class StateEventValidatorImpl : StateEventValidator {
 ```
 
 - Nombre del método: `getForState<Estado>InEvent<Evento>` en UpperCamel (`ENTRADA_DATOS`+`GUARDAR_DATOS` → `getForStateEntradaDatosInEventGuardarDatos`), anotado `@BeanValidationRulesForStateAndEvent`.
-- **El `<Estado>` es el código del estado dentro de su fase**, sin la fase: la clase ya está en el paquete de su fase, y `Tramitador` compone el nombre del método con el `codeState`, que ya es ese código (`SKILL.md` §1.5).
+- **El `<Estado>` es el nombre del estado dentro de su fase**, sin la fase (`SKILL.md` §1.5).
 - El alias `as model` del import es lo que hace funcionar `model::getX`; el esqueleto ya lo trae.
 - El alias de los enums es **opcional** y solo para acortar; también vale escribir el nombre completo (`TipoPeriodoMiTramiteV1`) sin aliasar. Lo que **MUST** cumplirse es que cada enum que aparezca en el cuerpo esté importado con **ese mismo nombre**: si aliasas, aliasa el enum que vas a usar.
 
@@ -61,7 +61,7 @@ Las reglas (`ValidationRule`) están en `com.educaflow.base.infrastructure.valid
 | «no posterior a hoy» / «no anterior a hoy» | `PastOrToday()` / `FutureOrToday()` |
 | «fin posterior a inicio» (fechas, horas, importes…) | `GreaterThan(model::getInicio)` |
 | «dentro de un rango», también de fechas | `MinValue(...)` / `MaxValue(...)` |
-| «solo si el enum vale X» (`necesitaX`) | `ifValueIn(model::getEnum, listOf(...))`, salvo que la función ya exista porque la usa también un `trigger*` (`SKILL.md` §1.8) |
+| «solo si el enum vale X» (`necesitaX`) | `ifValueIn(model::getEnum, listOf(...))`, salvo que la función ya exista porque la usa también un `trigger*` (`SKILL.md` §1.7) |
 
 - El mensaje fijo de la genérica es el que ve el usuario. Querer otro texto **no** justifica una `Lambda`.
 - Las reglas de comparación (`GreaterThan`…), de fecha (`Past*`/`Future*`) y de rango (`MinValue`/`MaxValue`) dan por válido un valor nulo, y también un «otro campo» nulo: la obligatoriedad la pone `Required`. **MUST NOT** anidar `ifLambda(util::tieneX)` como guarda delante de ellas.
@@ -92,14 +92,14 @@ La tabla es un resumen de uso, no un inventario cerrado: la **fuente de verdad**
 
 ### 3.1 Comprobaciones propias del tipo: `Lambda` e `ifLambda`
 
-Una comprobación que solo tiene sentido en este tipo y que **ninguna regla del catálogo cubre** (consulta a BD, cálculo, cruce de campos que no sea una comparación simple —para esa ya están `GreaterThan`/`LessThan`/`EqualTo`—) **no es una regla nueva**: es una función estática `boolean` de `<Code>Util` (`SKILL.md` §1.8) que el validador declara con una de estas dos:
+Una comprobación que solo tiene sentido en este tipo y que **ninguna regla del catálogo cubre** (consulta a BD, cálculo, cruce de campos que no sea una comparación simple —para esa ya están `GreaterThan`/`LessThan`/`EqualTo`—) **no es una regla nueva**: es una función estática `boolean` de `<Code>Util` (`SKILL.md` §1.7) que el validador declara con una de estas dos:
 
 | | Qué hace | Cuándo |
 |---|---|---|
 | `+Lambda(util::funcion, "mensaje")` | Regla terminal: si la función devuelve `false`, rechaza el campo con el mensaje | La función **es** la comprobación |
 | `+ifLambda(util::funcion) { +... }` | Condicional: si la función devuelve `true`, aplica las reglas anidadas; si devuelve `false`, el campo se da por válido | La función decide **si** se aplican otras reglas (la versión de `ifValueIn` para condiciones que no son «este otro campo vale X») |
 
-Las dos pasan a la función el **expediente entero**, no el valor del campo. Kotlin infiere el tipo de la referencia al método estático Java: `import com.educaflow.tramites.mi_tramite.v1.MiTramiteV1Util as util` y `util::funcion`.
+Las dos pasan a la función el **bean sobre el que se declara el `field`**, no el valor del campo: el expediente entero, o la `Persona` si el `field` va anidado sobre una relación (`modelo.md` §2.1). Kotlin infiere el tipo de la referencia al método estático Java: `import com.educaflow.tramites.mi_tramite.v1.MiTramiteV1Util as util` y `util::funcion`.
 
 ```kotlin
 field(model::getCiclo) {
@@ -119,7 +119,7 @@ field(model::getMotivoRechazo) {
 - ❌ INCORRECTO: `+Lambda(util::tieneFechaInicio, "Debe indicar la fecha")` (es `Required()`; el mensaje distinto no lo justifica).
 - ❌ INCORRECTO: `+ifLambda(util::tieneFechaFin) { +ifLambda(util::tieneFechaInicio) { +Lambda(util::fechaFinPosteriorAFechaInicio, "...") } }` (es `+GreaterThan(model::getFechaInicio)`, que ya maneja los nulos).
 - El mensaje va en el validador, no en la función: la función devuelve `boolean` y no sabe de mensajes.
-- La función lanza `IllegalStateException` si le falta un dato que fija el servidor: **MUST NOT** devolver `true` en silencio cuando no puede decidir (`SKILL.md` §1.8).
+- La función lanza `IllegalStateException` si le falta un dato que fija el servidor: **MUST NOT** devolver `true` en silencio cuando no puede decidir (`SKILL.md` §1.7).
 
 ## 4. Firma de un documento por el usuario
 
@@ -127,18 +127,16 @@ Las reglas del evento que presenta un documento firmado por el usuario (`ifSitua
 
 ## 5. Los tests que comprueban el validator
 
-Lo comprueban los tests `src/test/java/com/educaflow/tiposexpedientes/stateeventvalidator/StateEventValidatorTest.java` (`./gradlew test`). Antes **no lo comprobaba nada**: el check del build estaba vacío porque Spoon solo parsea Java y este fichero es Kotlin, y un método que faltara solo se descubría en **runtime** al disparar el evento ("No se ha encontrado el método: getForState<Estado>InEvent<Evento>…"). Los tests leen bytecode, así que sí alcanzan a Kotlin.
+Lo comprueban los tests (`SKILL.md` §3.3), **fase a fase**; el mensaje de fallo trae el código del método que falta, listo para pegar.
 
-Las reglas se comprueban **fase a fase**: la unidad no es el tipo de expediente, sino cada una de sus fases, y el mensaje de error la identifica como `MiTramiteV1/RECEPCION`.
+1. **V0**: existe `<paquete de la fase>.StateEventValidatorImpl` e implementa `StateEventValidator`.
+2. **V1**: por cada pareja (estado, evento) **de la fase**, **salvo las de `DELETE`**, exactamente un `@BeanValidationRulesForStateAndEvent getForState<Estado>InEvent<Evento>(): BeanValidationRules` sin parámetros.
+3. **V2**: no sobra ningún método cuya pareja no sea de la propia fase.
 
-1. **V0**: la clase `<paquete de la fase>.StateEventValidatorImpl` existe compilada e implementa `StateEventValidator`.
-2. **V1**: por cada pareja (estado, evento) **de la fase**, **salvo las del evento `DELETE`**, exactamente un `@BeanValidationRulesForStateAndEvent getForState<Estado>InEvent<Evento>(): BeanValidationRules` sin parámetros. El mensaje de fallo trae el **código del método listo para pegar**.
-3. **V2**: no puede sobrar ningún método anotado cuya pareja no sea de la propia fase (si es de otra, su sitio es el validator de esa otra).
-
-- Ojo al recuento: se cuenta por **pareja**, no por evento. Un mismo evento declarado en tres estados son **tres** métodos del validator, aunque en el PhaseEventManager sea un único `trigger` — y si esos estados están en fases distintas, los métodos se reparten entre los validators de esas fases.
-- **`DELETE` es la excepción**: `Tramitador` se salta la validación cuando el evento es `DELETE` y borra sin copiar campos, así que ese método nunca se invoca y solo podría contener un `rules { }` vacío. **MUST NOT** escribirlo: el esqueleto ya no lo genera y ningún tipo lo tiene. V1 no lo exige; V2 tampoco lo da por sobrante si aparece, porque su pareja sí está declarada en el XML.
-- Al añadir/quitar/renombrar estados o eventos en el `TipoExpedienteInstance.xml`, **MUST** actualizar los métodos a mano; los tests dicen exactamente cuáles y con qué código. Si **mueves un estado de fase**, sus métodos se mudan de fichero (el nombre no cambia, porque es el corto).
-- Solo cuentan los métodos **declarados en la propia clase de la fase**, igual que en el PhaseEventManager (`phaseeventmanager.md` §7): `Tramitador` los resuelve con `getDeclaredMethods()` sobre la clase concreta, así que uno heredado de una superclase no se encontraría ni en los tests ni en runtime.
+- Se cuenta por **pareja**, no por evento: un mismo evento declarado en tres estados son **tres** métodos del validador, aunque en el `PhaseEventManagerImpl` sea un único `trigger`.
+- **MUST NOT** escribir el método de `DELETE`: ese evento no valida ni copia campos, así que nunca se invoca.
+- Al añadir, quitar o renombrar estados o eventos en el XML, actualiza los métodos según digan los tests. Si **mueves un estado de fase**, sus métodos se mudan de fichero con el mismo nombre.
+- Solo cuentan los métodos **declarados en la propia clase de la fase**: uno heredado de una superclase no lo ve ni el test ni el motor.
 
 ## 6. Anti-patrones
 

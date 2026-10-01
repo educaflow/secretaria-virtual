@@ -5,7 +5,7 @@ La versión nueva nace idéntica a la anterior y se modifica después; la anteri
 
 **CRITICAL**: la carpeta de la versión nueva **NO** tiene por qué ser hermana de la anterior.
 Los trámites pueden vivir en subcarpetas y las versiones también: nada en el generador obliga a que `v(N+1)` cuelgue de la misma carpeta que `vN`.
-La carpeta de versión es simplemente la que contiene un `TipoExpedienteInstance.xml`, y se busca con `Files.walk` **a cualquier profundidad** bajo el trámite; lo único que se exige es que su **nombre** sea único bajo ese trámite (`/k-tramite` §4, test T1).
+La carpeta de versión es simplemente la que contiene un `TipoExpedienteInstance.xml`, y puede estar **a cualquier profundidad** bajo el trámite; lo único que se exige es que su **nombre** sea único bajo ese trámite (`/k-tramite` §4, test T1).
 Son disposiciones igual de válidas, por ejemplo, `mi_tramite/v1` → `mi_tramite/v2` (hermanas y colgando del trámite) y `agrupacion/mi_tramite/actual/v1` → `agrupacion/mi_tramite/futuro/v2` (ni hermanas ni con el mismo segmento intermedio).
 Por eso la receta parametriza **rutas completas** de origen y destino, nunca `v1`/`v2` sueltos: **MUST** mirar dónde está de verdad la carpeta de `vN` antes de copiarla, en vez de dar por hecha ninguna de las dos formas.
 
@@ -79,7 +79,7 @@ Después: añadir la `<fase>` con sus `<state>` al `TipoExpedienteInstance.xml` 
 
 ### 2.3 Ficheros EXTERNOS a la carpeta — fáciles de olvidar
 
-1. **`TareaFirma` pendientes**: si el tipo pone documentos a firmar en el portafirmas, sus filas guardan el **FQCN** del notifier (`fqcnFirmaNotifier`), que apunta a una clase de la carpeta que estás copiando o moviendo. Eso **no** se autocorrige como el `basePackageName` (`recetas/firma.md` §3): crear una versión nueva no rompe nada —las filas viejas siguen apuntando a la clase vieja, que sigue existiendo—, pero **mover o renombrar** la carpeta de una versión que tenga firmas en marcha sí. Compruébalo antes.
+1. **`TareaFirma` pendientes**: si el tipo pone documentos a firmar en el portafirmas, sus filas guardan el **FQCN** del notifier (`fqcnFirmaNotifier`), que apunta a una clase de la carpeta que estás copiando o moviendo. Eso **no** se corrige solo como el resto de clases del tipo (`recetas/firma.md` §3): crear una versión nueva no rompe nada —las filas viejas siguen apuntando a la clase vieja, que sigue existiendo—, pero **mover o renombrar** la carpeta de una versión que tenga firmas en marcha sí. Compruébalo antes.
 2. **`archunit_store`** (`src/test/resources/archunit_store/`): si el código copiado contiene violaciones congeladas (buscar el paquete `.v1` en el store), la copia introduce la misma violación con el paquete `.v2` — añade la línea homóloga (mismo número de línea si la copia es línea a línea) o, mejor, elimina el código problemático en ambas versiones.
 
 ### 2.4 Verificar y compilar
@@ -92,7 +92,7 @@ grep -rn "V1\|\.v1\|/v1/" "$DESTINO"   # MUST devolver 0 resultados
 **MUST** conservarse `V1` en el patrón del `grep`: caza el `<Code>` sin actualizar, que al ser los nombres de vista un espacio global generaría las vistas de la versión nueva con el nombre de las viejas y las **pisaría**.
 El build también lo detecta desde que el viewprocessor contrasta el `<Code>` del form de plantillas con el del `TipoExpedienteInstance.xml`, pero solo si alguna fase tiene formularios de estado; el `grep` cubre también los tipos que no los tienen.
 
-El build regenera para las carpetas nuevas (la raíz y **cada fase**): `i18n_*.csv` (mismas traducciones automáticas; las correcciones manuales de la columna `message` de `vN` NO se propagan — cópialas a mano si las había), `estados.png`, `<extra-code-model>`, los PDF de los documentos y los data-init del tipo. El tipo nuevo aparece como "<name del trámite> V2".
+El build regenera para las carpetas nuevas (la raíz y **cada fase**): `i18n_*.csv` (mismas traducciones automáticas; las correcciones manuales de la columna `message` de `vN` NO se propagan — cópialas a mano si las había), `estados.png`, `<extra-code-model>`, el XML resuelto de los documentos y los data-init del tipo. El tipo nuevo aparece como "<name del trámite> V2".
 
 ### 2.5 Activar la versión nueva (cuando toque)
 

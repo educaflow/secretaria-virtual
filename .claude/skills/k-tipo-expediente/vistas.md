@@ -41,7 +41,7 @@ El form plantilla está en la raíz y no en cada fase porque los paneles se comp
 
 ## 2. Dos forms por estado y cómo elige el runtime
 
-En el atributo `state` va el **nombre del estado** tal cual, igual que en el `TipoExpedienteInstance.xml`; la **fase la deduce el preprocesador del nombre de la carpeta** del fichero, y es él quien la añade como segmento del `name` de la vista generada (`SKILL.md` §1.5). Por eso las vistas no necesitan localizador aunque estén repartidas: sus nombres siguen siendo globales.
+En el atributo `state` va el **nombre del estado** tal cual, igual que en el `TipoExpedienteInstance.xml`; la **fase la deduce el preprocesador del nombre de la carpeta** del fichero, y es él quien la añade como segmento del `name` de la vista generada (`SKILL.md` §1.5).
 
 - `<form state="X" profile="Y">` → `exp-<Code>-<FASE>-<X>-<PROFILE>-form` (la del perfil que "tiene el turno", editable).
 - `<form state="X">` (sin perfil) → `exp-<Code>-<FASE>-<X>-form` (la genérica, normalmente todo readonly + botón `EXIT` + el panel `avisoEstadoExpediente` de §6.1).
@@ -50,37 +50,35 @@ En el atributo `state` va el **nombre del estado** tal cual, igual que en el `Ti
   Además, la del perfil **solo se genera si el estado declara `profile`**; en un estado sin `profile` el esqueleto trae solo la genérica.
 - **MUST** ser un estado **de la propia fase**: si pones el `state` de un estado de otra fase, el build falla diciéndolo. Los formularios de un estado van siempre en el `views.xml` de su fase.
 - El `profile` del form es el del **actor que mira la vista**, no necesariamente el del estado: un `<form state="X" profile="Y">` con `Y` distinto del `profile` de `X` es legítimo y el build lo admite (hay listados que abren con perfil `TRAMITADOR` expedientes en estados de perfil `CREADOR`). Lo que **MUST** cumplir es estar en la **unión de perfiles del tipo** — los que usa algún estado del `TipoExpedienteInstance.xml` —; si no, el build falla ("El perfil '…' no lo usa ningún estado de …"), porque esa vista no se pintaría nunca (§10).
-- **MUST NOT** haber dos forms de la misma fase con el mismo `(state, profile)`: producen el mismo `name` de vista y el segundo tapa al primero en silencio. Lo caza el test Y3 (`SKILL.md` §3.3).
+- **MUST NOT** haber dos forms de la misma fase con el mismo `(state, profile)`: producen el mismo `name` de vista y el segundo tapa al primero en silencio. Lo caza el test X3 (`SKILL.md` §3.3).
 
 ## 3. `<include-panels>`
 
 - Cada línea es el `name` de un panel; prefijo `-` = copia con todos sus `<field>` a `readonly="true"`.
 - Es incluible **cualquier elemento cuyo tag empiece por `panel`** (`panel`, `panel-related`, `panel-tabs`) que sea hijo directo del form plantilla y tenga `name`.
 - **CRITICAL — el prefijo `-` solo afecta a los `<field>`** descendientes del panel: **NO desactiva los `<button>`** que el panel contenga ni hace nada sobre un **`panel-related`** (no tiene fields): el grid de hijos sigue permitiendo lo que digan sus `canNew`/`canEdit`/`canDelete`. Para un maestro-detalle de solo lectura, controla esos flags en el grid del hijo (§8).
-- Búsqueda: **primero** en el form plantilla del tipo de expediente (el del `views.xml` de la raíz de la versión, que el preprocesador encuentra subiendo carpetas hasta el `TipoExpedienteInstance.xml`), si no en los `template-views.xml` globales (`tramites/shared/`). Un panel local con el mismo nombre que uno global lo **sobreescribe en silencio** (incluidos los de cabecera/footer); el mismo nombre en **dos globales** distintos sí es error de build.
-- Por defecto se antepone la cabecera global (`subsysExpedientes-template-header-panel`, definida en
-  `tramites/shared/template-views.xml`): pinta "Creado por", la **fase** y el **estado** actuales, la fecha del
-  último estado y el botón "Ver el historial de estados" (popup con el historial y los registros de entrada/salida
-  de cada estado — todo gratis, sin declarar nada).
-  El texto de la fase es su `namePhase`, es decir el `title` de la `<fase>` en el `TipoExpedienteInstance.xml`
-  (o su `name` humanizado): **por eso ese `title` no es documental, lo ve el usuario en todos los formularios**.
-  `header="false"` la quita.
-  **CRITICAL**: el atributo es `header`, NO `includeHeader`, que el preprocesador **ignora en silencio**
-  (no queda ninguno en `src/main`, pero el error es fácil de reintroducir precisamente porque no avisa);
-  solo admite `true`/`false` (otro valor → "Valor fuera de rango");
-  listar la cabecera explícitamente en la lista permite reconfigurarla (p.ej. readonly).
+- Búsqueda: **primero** en el form plantilla del tipo (el `views.xml` de la raíz de la versión), si no en `tramites/shared/template-views.xml`. Un panel local con el mismo nombre que uno global lo **sobreescribe en silencio** (incluidos los de cabecera y footer).
+- Por defecto se antepone la cabecera global (`subsysExpedientes-template-header-panel`): pinta "Creado por", la **fase** y el **estado** actuales, la fecha del último estado, a quién le toca y el botón "Ver el historial de estados" (con los registros de entrada/salida de cada estado). Todo gratis, sin declarar nada.
+  - `header="false"` en `<include-panels>` la quita.
+  - **CRITICAL**: el atributo es `header`, NO `includeHeader`, que se **ignora en silencio**. Solo admite `true`/`false`.
 - Un panel referenciado que no existe → el build falla ("No existe el panel con nombre:...").
 - Un panel repetido en la lista se incluye una vez (gana el flag readonly de la última aparición), sin aviso.
 - Los `<include-panels>` y `<footer>` se expanden **en cualquier punto del documento**, no solo dentro de forms con `state`.
 
 ### 3.1 Paneles comunes de las personas
 
-`tramites/shared/template-views.xml` trae dos paneles incluibles desde cualquier tipo y una acción:
+`tramites/shared/template-views.xml` trae estos paneles, incluibles desde cualquier tipo, y sus dos acciones:
 
-- `persona-solicitante`: nombre, apellidos y DNI de quien presenta, de solo lectura; solo se ve si `presentadoEnRepresentacion`.
-- `persona-interesada`: un `<editor>` sobre `personaInteresada` con su identificación y sus datos de contacto (email, teléfono, dirección, municipio, CP).
-- `subsysExpedientes-persona-interesada-onLoad-action`: pone de solo lectura nombre, apellidos y DNI del interesado salvo en el modo representación.
-  **MUST** estar en el `onLoad` del form en el que se editan los datos del interesado (dentro de un `<action-group>` si el form ya tenía `onLoad`).
+| Panel / acción | Qué es |
+|---|---|
+| `persona-solicitante` | Nombre, apellidos y DNI de quien presenta, de solo lectura; solo se ve si `presentadoEnRepresentacion` |
+| `persona-solicitante-editable` | Lo mismo en un `<editor>`, para el estado en que se teclea: en papel y en representación nadie más lo rellena |
+| `persona-interesada` | Un `<editor>` sobre `personaInteresada` con su identificación y sus datos de contacto (email, teléfono, dirección, municipio, CP) |
+| `subsysExpedientes-persona-interesada-onLoad-action` | Pone de solo lectura nombre, apellidos y DNI del interesado salvo en representación o en papel |
+| `subsysExpedientes-persona-solicitante-onLoad-action` | Pone de solo lectura nombre, apellidos y DNI del solicitante salvo en papel |
+
+- La acción de cada persona editable **MUST** estar en el `onLoad` del form en el que se edita (en un `<action-group>` si el form ya tenía `onLoad`).
+- Qué persona nace vacía en cada modo, y por tanto qué hay que pedir: `modelo.md` §2.1.
 
 Si el tipo necesita otro conjunto de datos (p. ej. el NIA), declara en su form plantilla **su propio** panel con el mismo patrón y usa la misma acción:
 
@@ -94,6 +92,7 @@ Si el tipo necesita otro conjunto de datos (p. ej. el NIA), declara en su form p
         </editor>
     </field>
     <field name="presentadoEnRepresentacion" hidden="true"/>
+    <field name="presentadoEnPapel" hidden="true"/>
 </panel>
 ```
 
@@ -102,7 +101,7 @@ Si el tipo necesita otro conjunto de datos (p. ej. el NIA), declara en su form p
 - **MUST NOT** usar `_parent` en un `showIf`/`readonlyIf` de un campo del editor: no se evalúa. Lo que depende del expediente se hace desde el form con una `<action-attrs for="personaInteresada.<campo>">`.
 - **MUST** haber como máximo **un** `<editor>` sobre `personaInteresada` por form: incluye el panel común o el propio del tipo, no los dos.
 - **MUST** poner `canSelect="false"`, `canNew="false"` y `canRemove="false"` en el campo del editor: si no, ofrece buscar, crear o quitar la `Persona` (el servidor lo rechaza igualmente). **MUST NOT** poner `canEdit="false"` ni `canView="false"`: el editor deja de pintarse.
-- **MUST** incluir `<field name="presentadoEnRepresentacion" hidden="true"/>` **al final** del panel: sin él el cliente no recibe el campo, y un campo oculto al principio ocupa su hueco en la rejilla.
+- **MUST** incluir `<field name="presentadoEnRepresentacion" hidden="true"/>` y `<field name="presentadoEnPapel" hidden="true"/>` **al final** del panel: las acciones de `onLoad` evalúan los dos y sin ellos el cliente no los recibe; un campo oculto al principio ocupa su hueco en la rejilla.
 
 ## 4. `<footer>`
 
@@ -112,14 +111,12 @@ Si el tipo necesita otro conjunto de datos (p. ej. el NIA), declara en su form p
 - Al primer botón de la derecha se le asigna **siempre** (sobrescribiendo cualquier valor manual) `colOffset = 12 − suma de colSpan` de todos los botones, para alinearlo al margen derecho. Si la suma pasa de 12, el offset sale negativo sin aviso.
 - Los eventos comunes `EXIT` y `DELETE` responden al cliente con `refresh-app` (se recarga la aplicación entera, no se navega a otra vista).
 
-Las acciones globales del subsistema (declaradas en `subsystem/tramitador/controller/actions-tramitador.xml`) que puede usar un `views.xml`:
+Las dos únicas acciones del motor que usa un `views.xml`:
 
-| Acción | Llama a | Se usa en |
-|---|---|---|
-| `subsysTramitador-event-action` | `TramitadorController.triggerEvent` | el `onClick` de **todos** los botones del footer |
-| `subsysTramitador-validate-on-save-child-action` | `TramitadorController.validateChild` | el `onValidate` del form de una entidad hija (§8) |
-| `subsysTramitador-event-view-action` | `viewExpediente` | la usan las bandejas, no se referencia desde un `views.xml` |
-| `subsysTramitador-trigger-initial-event-action` | `TramitadorController.triggerInitialEvent` | la usa el alta de «Nuevo expediente», no se referencia desde un `views.xml` |
+| Acción | Se usa en |
+|---|---|
+| `subsysTramitador-event-action` | el `onClick` de **todos** los botones del footer |
+| `subsysTramitador-validate-on-save-child-action` | el `onValidate` del form de una entidad hija (§8) |
 
 ## 5. Herencia y des-herencia de atributos
 
@@ -169,7 +166,27 @@ Si no se le explica nada, no sabe si el expediente está atascado, si le toca a 
 
 La pantalla del estado en que el usuario firma y presenta un documento (campos de vista rellenados en el `onLoad`, un panel por situación de firma y los dos botones `PRESENTAR`) está en la receta `recetas/firma.md` §1.3.
 
-Dentro de los paneles de la plantilla, los `<field>` admiten los atributos Axelor normales; los que se ven en los trámites reales: `widget="SwitchSelect"` (con `x-direction="vertical"`), `showIf`/`hideIf` por valor de otro campo, `widget="binary-link"` con `x-accept=".pdf"` para restringir el tipo de fichero subido, `<help variant="info">` condicionales con `showIf`, y en campos de referencia `grid-view`/`form-view`/`domain`/`onChange` (las `action-record`/`action-method` propias se declaran en el mismo `views.xml`).
+Dentro de los paneles de la plantilla, los `<field>` admiten los atributos Axelor normales; los que se ven en los trámites reales: `widget="SwitchSelect"` (con `x-direction="vertical"`), `showIf`/`hideIf` por valor de otro campo, `widget="binary-link"` con `x-accept=".pdf"` para restringir el tipo de fichero subido, `<help variant="info">` condicionales con `showIf`, y en campos de referencia `grid-view`/`form-view`/`domain`/`onChange` (las `action-record`/`action-method` propias se declaran en el `views.xml` de la fase cuyo form incluye el panel, no en el de la raíz).
+
+### 6.2 Un campo que solo aparece en una condición necesita su `<field hidden="true"/>`
+
+El cliente solo recibe los campos que la vista declara como `<field>`: los que solo se nombran dentro de un `showIf`/`hideIf`/`readonlyIf`/`requiredIf` no cuentan.
+Si el campo de la condición no es además un `<field>` del form, llega `undefined`, la condición evalúa a falso **sin ningún aviso** y el elemento no se pinta nunca.
+
+- **MUST** declarar `<field name="<campo>" hidden="true"/>` en el **mismo panel** que usa el campo en una condición, si ese panel no lo pinta ya como `<field>`.
+  En el mismo panel y no en otro: cada form de estado incluye solo algunos paneles, así que el panel no puede contar con que otro lo declare.
+- Si el panel ya pinta el campo (aunque sea `readonly`), no hace falta nada más.
+- Colócalo donde no descuadre la rejilla: un campo oculto ocupa su hueco (§3.1).
+
+- ✅ CORRECTO:
+  ```xml
+  <panel name="resolucion-firmada" title="Resolución" colSpan="12">
+      <field name="tipoResolucion" hidden="true"/>
+      <field name="motivoRechazo" colSpan="12" readonly="true" showIf="tipoResolucion=='RECHAZAR'"/>
+  </panel>
+  ```
+- ❌ INCORRECTO: el mismo panel sin el `<field name="tipoResolucion" hidden="true"/>` (el cliente no recibe `tipoResolucion` y `motivoRechazo` no se ve nunca, tampoco cuando se rechazó).
+- ❌ INCORRECTO: confiar en que `tipoResolucion` ya lo pinta el panel `resolucion` (ese panel no se incluye en los forms de los estados finales, que es donde va `resolucion-firmada`).
 
 ## 7. Paneles gemelos `-view` para el modo lectura
 
@@ -185,16 +202,20 @@ El `domains.xml` del tipo puede declarar entidades hija (one-to-many del expedie
 1. En el form plantilla, un **`<panel-related name="..." field="<campo one-to-many>" grid-view="..." form-view="..."/>`** con nombre → incluible por estado como cualquier panel (con la trampa del `-` de §3: nunca queda readonly por el prefijo).
 2. El **grid y el form del hijo** se declaran en el `views.xml` de la **raíz de la versión** (junto al form plantilla, no en una fase: son de todo el tipo) como vistas Axelor normales, convención `exp-<Code>-<EntidadHija>-grid` / `-form`.
 3. El form del hijo puede usar también `<include-panels header="false">` (sin cabecera de expediente) y **`<footer/>` vacío**: los hijos no disparan eventos.
-4. Validación del hijo al confirmar su popup: `onValidate="subsysTramitador-validate-on-save-child-action"` en el form del hijo (llama a `TramitadorController.validateChild`).
+4. Validación del hijo al confirmar su popup: `onValidate="subsysTramitador-validate-on-save-child-action"` en el form del hijo: le aplica las reglas anidadas que el validador del estado actual declara sobre el campo one-to-many.
 5. Puede haber **varios form-view del mismo hijo** (p. ej. uno de edición y otro de firma/lectura): se declara un `panel-related` con nombre distinto por cada combinación y cada estado incluye el suyo.
 
 ## 9. Patrón: visor de PDF embebido
 
-Para mostrar un campo `many-to-one` a `MetaFile`, panel con un field *dummy* cuyo `<viewer>` pinta un iframe al download inline (el `name` del dummy es libre — no tiene por qué existir en la entidad; el campo real va en el `depends` del viewer). Un panel con nombre por cada PDF, para incluirlo por estado:
+Para mostrar un campo `many-to-one` a `MetaFile`, panel con un field *dummy* cuyo `<viewer>` pinta un iframe al download inline. Un panel con nombre por cada PDF, para incluirlo por estado:
+
+- El `name` del dummy no existe en la entidad; el campo real va en el `depends` del viewer. Dale un nombre que diga qué muestra (`visorSolicitud`), distinto en cada panel.
+- El `title` del panel dice qué documento es: cada visor el suyo, no «Solicitud» en todos.
+- Para descargar sin visor basta el propio campo con `widget="binary-link"`.
 
 ```xml
 <panel name="pdfSolicitud" title="Solicitud">
-    <field name="new" showTitle="false" readonly="true" colSpan="9">
+    <field name="visorSolicitud" showTitle="false" readonly="true" colSpan="12">
         <viewer depends="pdfSolicitud"><![CDATA[
             <>
             <Box as="iframe" height="900" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfSolicitud.id}/content/download?inline=true&name=${pdfSolicitud.fileName}`} ></Box>
@@ -211,9 +232,7 @@ Para mostrar un campo `many-to-one` a `MetaFile`, panel con un field *dummy* cuy
 - El `profile` de cualquier `<form>` **MUST** estar en la **unión de perfiles del tipo** (los que usa algún estado de su `TipoExpedienteInstance.xml`); si no, el build falla porque esa vista no se pintaría nunca. Ojo: se valida contra la unión del tipo, **no** contra el `profile` del estado del propio form (§2).
 - La carpeta de un `views.xml` con `<form state=...>` **MUST** corresponder a una fase declarada en el `TipoExpedienteInstance.xml` (el nombre de la fase en minúsculas). Si no, el build dice qué fases hay.
 - Un `views.xml` con `<form state=...>` **MUST NOT** estar en la raíz de la versión: ahí solo va el form plantilla.
-- Todos los XML con raíz `object-views` deben ser parseables.
-- El preprocesador re-escribe **todas** las vistas en la copia al build (re-indentado); no afecta al fuente.
-- **CRITICAL — un `<object-views>` sin ningún elemento hijo tumba el arranque de la aplicación**, y el build **no lo detecta**: la validación contra el XSD la hace el `ViewLoader` de Axelor al arrancar, no `./gradlew build`. El síntoma es "The content of element 'object-views' is not complete" y, como aborta `AppStartup`, la aplicación queda en pie pero **sin vistas, sin menús y sin data-init** — parece que "no se ha cargado nada" en lugar de señalar el fichero. Los comentarios XML no cuentan como contenido: si dejas un `views.xml` de fase con todos sus forms comentados, está vacío a efectos del XSD. En ese caso, o le dejas al menos un elemento válido, o borras el fichero.
+- **CRITICAL — un `<object-views>` sin ningún elemento hijo tumba el arranque**, y el build **no lo detecta**: la aplicación arranca **sin vistas, sin menús y sin data-init** ("The content of element 'object-views' is not complete"). Los comentarios no cuentan como contenido: si una fase se queda sin forms, borra su `views.xml`.
 
 ## 11. Anti-patrones
 
@@ -224,4 +243,5 @@ Para mostrar un campo `many-to-one` a `MetaFile`, panel con un field *dummy* cuy
 - **MUST NOT** confiar en `readonly`/`showIf` como seguridad: la defensa real es la whitelist del validator (`k-secure-coding`).
 - **MUST NOT** nombrar un panel local igual que uno global salvo que quieras sobreescribirlo a propósito.
 - **MUST NOT** confiar en el prefijo `-` para "desactivar" un panel con botones ni un `panel-related`: solo pone readonly los `<field>` (§3).
+- **MUST NOT** usar en un `showIf`/`hideIf`/`readonlyIf`/`requiredIf` un campo que el panel no declara como `<field>`: sin su `<field hidden="true"/>` la condición evalúa siempre a falso (§6.2).
 - **MUST NOT** dejar un form de solo `EXIT` sin el panel `avisoEstadoExpediente` (§6.1): el usuario no sabría en qué situación está su expediente.

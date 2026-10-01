@@ -1,12 +1,12 @@
-# El `PhaseEventManager` — la máquina de estados en Java
+# El `PhaseEventManager` y el `InitialEventManager` — la lógica del tipo en Java
 
-Clase Java que decide qué pasa en cada evento y a qué estado se transita. El esqueleto lo genera `./gradlew CreateFilesTask` (`SKILL.md` §3.1) con todos los métodos requeridos vacíos; compilar **no** lo genera.
+Clases Java que deciden qué pasa en cada evento y a qué estado se transita. Los esqueletos los genera `CreateFilesTask` (`SKILL.md` §3.1) con todos los métodos requeridos vacíos; compilar **no** los genera.
 
-Los ejemplos usan el trámite inventado `MiTramite` (`SKILL.md`); para ver uno de verdad, abre el `PhaseEventManagerImpl.java` de cualquier fase bajo `src/main/java/com/educaflow/tramites/`.
+Los ejemplos usan el trámite inventado `MiTramite` (`SKILL.md`). Para ver uno de verdad, abre el `PhaseEventManagerImpl.java` de cualquier fase bajo `src/main/java/com/educaflow/tramites/`.
 
-**Hay uno por fase**, en `<vN>/<fase en minúsculas>/PhaseEventManagerImpl.java`, y cada uno atiende **solo los estados de su propia fase** y los eventos que salen de ellos (`SKILL.md` §1.4). En runtime lo resuelve `ExpedienteLocator` a partir de la fase (`SKILL.md` §1.6).
-
-El **evento inicial** no está aquí: es del tipo de expediente entero y lo atiende el `InitialEventManagerImpl` de la raíz de la versión (§2.1).
+- **Hay un `PhaseEventManagerImpl` por fase**, en `<vN>/<fase en minúsculas>/`, y atiende **solo** los estados de su fase y los eventos que salen de ellos (`SKILL.md` §1.4).
+- **Hay un único `InitialEventManagerImpl` por tipo**, en la raíz de la versión: atiende el alta (§2.1).
+- Qué hace el motor antes y después de llamar a estos métodos: `SKILL.md` §1.6.
 
 ## 1. Anatomía
 
@@ -18,6 +18,7 @@ import com.educaflow.tramites.mi_tramite.v1.States;
 public class PhaseEventManagerImpl extends PhaseEventManager<MiTramiteV1> {
 
     private final MiTramiteV1Repository repository;
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     @Inject
     AlmacenClaveResolver almacenClaveResolver;      // firma con el certificado del centro (§6.4)
@@ -33,29 +34,27 @@ public class PhaseEventManagerImpl extends PhaseEventManager<MiTramiteV1> {
 }
 ```
 
-- Se instancia por **reflexión + Guice** (el FQCN lo compone `ExpedienteLocator` con el `basePackageName` de la tabla `TipoExpediente` y el `codePhase` del expediente), así que admite inyección normal: repositorio por constructor y `@Inject` de campo para lo demás.
-- El repositorio de su entidad va **siempre** en el constructor aunque no se use: así se ve a primera vista dónde está al programar. **MUST NOT** quitarlo al limpiar.
-- El trámite es dueño de las entidades que declara en su `domains.xml` (aunque se generen en `subsystem.expedientes.db`): puede usar su repositorio y `JpaRepository.of(...)` sobre ellas. **MUST NOT** usar el repositorio ni `JpaRepository.of(...)` de una entidad de otro trámite o de un sistema/subsistema: esos datos se piden a un servicio del dueño (§6.6). Lo verifican las reglas C26 y C27 de `agent_docs/architecture-rules.md`.
+- La instancia Guice: admite inyección normal (repositorio por constructor, `@Inject` de campo para lo demás; `k-guice` si la construcción no es trivial).
+- El repositorio de su entidad y el `log` van **siempre**, aunque no se usen: son parte de la plantilla. **MUST NOT** quitarlos al limpiar.
+- El trámite es dueño de las entidades de su `domains.xml`: puede usar su repositorio y `JpaRepository.of(...)` sobre ellas. **MUST NOT** usar el repositorio ni `JpaRepository.of(...)` de una entidad de otro trámite o de un sistema/subsistema: esos datos se piden al servicio del dueño (§6.6). Lo verifican las reglas C26 y C27 de `agent_docs/architecture-rules.md`.
   - ✅ CORRECTO: `JpaRepository.of(MiTramiteV1.class)` (entidad del propio trámite)
   - ✅ CORRECTO: `(RegistroEntradaService) modelServiceFactory.resolve(RegistroEntrada.class)`
   - ❌ INCORRECTO: `@Inject RegistroEntradaRepository registroEntradaRepository;` (se salta los servicios del subsistema dueño)
-- **La máquina de estados NO está aquí**: vive en la clase `States` que el build genera del `TipoExpedienteInstance.xml` (`SKILL.md` §2.3) y que este fichero solo importa. Cambiar estados o eventos en el XML se propaga solo; lo único que hay que actualizar a mano son los métodos, y los errores de los tests (§7) te dan el código a copiar.
-- Un estado se nombra `States.<Fase>.<ESTADO>`, con la fase en **UpperCamelCase** (`States.Recepcion.ENTRADA_DATOS`); `States.RECEPCION` es otra cosa: el alias de la fase, tipado `Phase`, y no lleva estados. La clase lleva **todas** las fases del tipo, así que un `updateState` que cruza de fase se escribe igual que uno que no.
+- Un estado se nombra `States.<Fase>.<ESTADO>` (`SKILL.md` §2.2). `States` lleva **todas** las fases del tipo, así que un `updateState` que cruza de fase se escribe igual que uno que no.
 
-## 2. Los dos tipos de método (convención de nombres)
+## 2. Los métodos (convención de nombres)
 
 | Método | Cuándo se invoca | Firma exacta |
 |---|---|---|
-| `trigger<EventoEnUpperCamel>` | Al disparar el evento | `@WhenEvent void trigger<Evento>(<Entidad> actual, <Entidad> original, EventContext) throws BusinessException` |
-| `onEnter<EstadoEnUpperCamel>` | Al **entrar** en el estado (tras el trigger) | `@OnEnterState void onEnter<Estado>(<Entidad>, EventContext)` |
+| `trigger<EventoEnUpperCamel>` | Al disparar el evento | `@WhenEvent public void trigger<Evento>(<Entidad> expediente, <Entidad> original, EventContext eventContext) throws BusinessException` |
+| `onEnter<EstadoEnUpperCamel>` | Al **entrar** en el estado (tras el `trigger*`) | `@OnEnterState public void onEnter<Estado>(<Entidad> expediente, EventContext eventContext)` |
 
-**El `<Estado>` del nombre del método es el nombre del estado dentro de su fase** (`ENTRADA_DATOS` → `onEnterEntradaDatos`): la clase ya está en el paquete de su fase y no hay ambigüedad. `PhaseEventManager.onEnterState` compone el nombre del método con el `codeState`, que ya es ese nombre.
+- `<Estado>` es el nombre del estado dentro de su fase (`ENTRADA_DATOS` → `onEnterEntradaDatos`).
+- `expediente` ya trae los datos del formulario copiados y validados. `original` es el expediente **antes** de copiarlos: úsalo para saber cómo estaba (p. ej. desde qué estado se dispara un evento multi-origen, §5) o para comparar.
+- Los `onEnter<Estado>` pueden quedarse vacíos, pero **MUST** existir todos los de la fase.
+- **MUST NOT** declarar un `triggerInitialEvent` en un `PhaseEventManagerImpl`: no lo llama nadie (test E5).
 
-**MUST NOT** declarar aquí un `triggerInitialEvent`: el evento inicial no es de ninguna fase (§2.1) y un método así **no lo llamaría nadie**. Como la clase base ya no declara el método, tampoco habría un `@Override` que fallase al compilar; lo detecta el test E5 (§7).
-
-### 2.1 El evento inicial: `InitialEventManagerImpl`, uno por tipo de expediente
-
-El evento inicial se dispara al **crear** el expediente, cuando todavía no hay estado del que partir, así que **es del tipo de expediente, no de una fase**. Lo atiende una clase aparte, **exactamente una por tipo**, en la raíz de la carpeta de versión junto al `TipoExpedienteInstance.xml`:
+### 2.1 El alta: `InitialEventManagerImpl`, uno por tipo
 
 ```java
 package com.educaflow.tramites.mi_tramite.v1;
@@ -63,44 +62,35 @@ package com.educaflow.tramites.mi_tramite.v1;
 public class InitialEventManagerImpl implements InitialEventManager<MiTramiteV1> {
 
     @Override
-    public void triggerInitialEvent(MiTramiteV1 miTramite, InitialEventContext initialEventContext) throws BusinessException {
-        ...
+    public void triggerInitialEvent(InitialEventContext<MiTramiteV1> initialEventContext) throws BusinessException {
+        MiTramiteV1 expediente = initialEventContext.getExpediente();
+        // ... valores iniciales de los campos propios del tipo
         initialEventContext.updateState(States.Recepcion.ENTRADA_DATOS);
     }
 }
 ```
 
-- La interfaz `InitialEventManager<T extends Expediente>` está en `subsystem/tramitador/tramitacion/eventmanager/` y tiene ese único método.
-- El nombre de la clase es fijo (`InitialEventManagerImpl`): lo resuelve `ExpedienteLocator.getInitialEventManager(tipoExpediente)` por reflexión sobre el `basePackageName` (`SKILL.md` §1.6), así que se instancia con Guice y admite inyección normal.
-- El esqueleto lo genera `CreateFilesTask` entre los ficheros de la raíz de la versión (`SKILL.md` §3.1).
-
-Sus obligaciones (antes de llamarlo, `Tramitador` ya rellenó tipo, centro, `usuarioRegistrador`, `personaSolicitante`, `personaInteresada`, `presentadoEnRepresentacion`, `name` y `numeroExpediente`):
-
-**CRITICAL**: la única que impone `Tramitador` es fijar el estado inicial con `initialEventContext.updateState(States.<Fase>.<ESTADO>)`.
-El XML no declara estado inicial: lo decide este método y puede depender de cómo se crea el expediente (p.ej. `presentadoEnPapel`).
-Si no lo fija, `Tramitador` aborta el alta con `RuntimeException`; ningún test lo comprueba antes.
+- El parámetro de tipo de `implements InitialEventManager<…>` **MUST** ser la entidad del tipo: es de donde el motor saca qué entidad instanciar (test M1). **MUST NOT** implementarla en crudo.
+- Cuando se llama, el motor ya ha rellenado los campos del alta (`modelo.md` §2). `initialEventContext.getContextoTramitacion()` da además el trámite, el centro y el perfil con que se crea.
+- **CRITICAL**: **MUST** fijar el estado inicial con `initialEventContext.updateState(...)`. El XML no declara estado inicial; si no se fija, el alta revienta y ningún test lo detecta antes.
+- El estado inicial puede depender de cómo se crea el expediente (`perfiles.md` §3).
+- Inicializa aquí los campos propios del tipo que no dependen de lo que teclee el usuario (curso, datos del centro…).
+- **MUST NOT** crear ni reasignar `personaSolicitante` ni `personaInteresada`: las decide el alta (`modelo.md` §2.1).
+- El `onEnter<Estado>` del estado inicial se ejecuta justo después, en el `PhaseEventManagerImpl` de su fase.
 
 - ✅ CORRECTO: `initialEventContext.updateState(Boolean.TRUE.equals(expediente.getPresentadoEnPapel()) ? States.Recepcion.PENDIENTE_ESCANEADO : States.Recepcion.ENTRADA_DATOS)`
 - ❌ INCORRECTO: un `triggerInitialEvent` con el cuerpo vacío (el alta falla en runtime: no hay estado inicial)
 
-`Tramitador` comprueba el perfil sobre el estado que fije este método (salvo al registrar en papel) y después crea el `HistorialEstado` y llama al `onEnter<Estado>`.
-El resto de campos lo decide **lo que el tipo use después**, y el fallo aparece más tarde, en el sitio que lo usa:
+### 2.2 En cada `trigger<Evento>`
 
-1. Inicializar los campos propios del tipo con valor por defecto (año, datos del centro, etc.).
-2. **MUST NOT** crear ni reasignar `personaSolicitante` ni `personaInteresada`: las decide el alta a partir de la elección del usuario (`modelo.md` §2.1).
+1. Primero las **guardas** que lanzan `BusinessException`, antes de crear nada: lo que ya se haya creado fuera del expediente no se deshace si después se lanza (`SKILL.md` §1.6).
+2. Después la lógica de negocio.
+3. Por último, **la decisión del estado destino** con `eventContext.updateState(States.<Fase>.<ESTADO>)`, que puede depender de los datos (§5) y puede estar en **otra fase**.
 
-**MUST NOT** dar por hecho que estos campos son obligatorios siempre: un tipo que ni firma ni registra no necesita ninguno.
+Lo que **se repite en varios `trigger*`** (del mismo o de distinto `PhaseEventManagerImpl`) sale a una función estática de `<Code>Util` (`SKILL.md` §1.7). Lo que se hace en un solo evento se queda inline.
 
-El `onEnter<Estado>` del estado inicial sí es de una fase, y se ejecuta justo después: vive en el `PhaseEventManagerImpl` de la fase del estado que haya fijado el `triggerInitialEvent`, como cualquier otro.
-
-### 2.2 En cada método de la fase
-
-En cada `trigger<Evento>`: la lógica de negocio y **la decisión del estado destino** con `eventContext.updateState(States.<Fase>.<ESTADO>)` (puede depender de los datos, §5); el destino puede estar en **otra fase** con toda normalidad. Los `onEnter<Estado>` pueden quedarse vacíos pero **MUST** existir todos los de la fase.
-
-Lo que **se repite en varios `trigger*`** (del mismo o de distinto `PhaseEventManagerImpl`) sale a una función estática de `<Code>Util`, la clase de utilidad del tipo (`SKILL.md` §1.8). Lo que se hace en un solo evento se queda inline, aunque sean varias líneas: no se extrae por estética. Qué sale:
-
-- **Comprobar quién puede disparar el evento** (que el usuario autenticado es el creador, que actúa en el centro del expediente…): una función `exige<Condicion>(expediente, mensaje)` que lanza `BusinessException(I18n.get(mensaje))` si no se cumple. Se llama en la primera línea del `trigger*`, y cada evento pasa su propio mensaje.
-- **Cualquier otro código que aparezca igual en varios `trigger*`**: una función que recibe el expediente (y lo que necesite), para que ese código esté en un único sitio.
+- **Quién puede disparar el evento**, más allá del perfil del estado que ya exige el motor (que es el creador, que pertenece al centro del expediente…): una función `exige<Condicion>(expediente, mensaje)` que lanza `BusinessException(I18n.get(mensaje))`. Se llama en la primera línea del `trigger*`, con un mensaje propio de cada evento.
+- **Limpiar campos que dejan de tener sentido** al cambiar de rama (el motivo de rechazo al aceptar, el texto de subsanación al presentar de nuevo): en el `trigger*` del evento, no en la vista. Si varios eventos limpian lo mismo, una mutación de `<Code>Util`.
 
 ```java
 @WhenEvent
@@ -117,20 +107,22 @@ public void triggerPresentar(MiTramiteV1 expediente, MiTramiteV1 original, Event
 
 | Método | Qué hace |
 |---|---|
-| `updateState(State)` | Fija el estado destino de la transición |
+| `updateState(State)` | Fija el estado destino. Solo admite estados del `States` del propio tipo |
 | `getProfile()` | Perfil con el que actúa el usuario |
-| `getCentro()` | Centro activo |
 | `createRegistroEntrada(MetaFile documentoPdf, List<MetaFile> anexos)` | Crea el registro de entrada (§6.2) y lo devuelve. **LIMIT**: uno por evento |
 | `createRegistroSalida(MetaFile documentoPdf, List<MetaFile> anexos)` | Crea el registro de salida (§6.3) y lo devuelve. **LIMIT**: uno por evento |
-| `getRegistroEntrada()` / `getRegistroSalida()` | Recuperan el registro creado en este evento |
+| `getRegistroEntrada()` / `getRegistroSalida()` | El registro creado en este evento |
 
-El registro de **entrada** toma del expediente el solicitante, el interesado, el número de expediente y el asunto (más el centro); el de **salida** toma **solo el centro y el asunto**. El asunto lo compone `EventContext` como `"Expediente: <numeroExpediente> - <name>"`, así que el número llega también al de salida dentro de él. En ambos, los anexos se clonan y **MUST** tener `fileName` no nulo (se admite `null` como lista).
+- El registro de **entrada** toma del expediente el centro, el solicitante, el interesado y el asunto (`"Expediente: <numeroExpediente> - <name>"`); el de **salida**, solo el centro y el asunto.
+- En los dos, el documento **MUST** ser un PDF no nulo y los anexos **MUST** tener `fileName`; la lista de anexos puede ser `null`. Los anexos se clonan.
+- El registro creado queda enlazado en el historial del expediente sin hacer nada más.
+- El centro del expediente se lee con `expediente.getCentro()`.
 
 ## 4. Eventos comunes
 
-- `EXIT` (cerrar pestaña): lo intercepta `TramitadorController`, **no llega al PhaseEventManager**.
-- `DELETE`: no valida ni copia campos, hace `repository.remove` directamente — pero **MUST** existir su `@WhenEvent triggerDelete` (vacío) si el XML lo declara, porque el test E1 lo exige. Su método en el validator, en cambio, **no** hace falta (`validator.md` §5).
-- `BACK` **no es común**: se declara en `events="..."`, se implementa (§5) y se le da método en el validator.
+- `EXIT` (cerrar la pestaña): no llega al `PhaseEventManagerImpl`.
+- `DELETE`: no valida ni copia campos y borra el expediente. **MUST** existir su `@WhenEvent triggerDelete` (test E1); lo normal es que contenga solo las guardas de quién puede borrar. Su método en el validador **no** hace falta (`validator.md` §5).
+- `BACK` **no es común**: se declara en `events="..."`, se implementa (§5) y se le da método en el validador.
 
 ## 5. Patrones de transición
 
@@ -142,32 +134,32 @@ switch (expediente.getTipoResolucion()) {
     case RECHAZAR ->       eventContext.updateState(States.Tramitacion.RECHAZADO);
     // el destino está en OTRA fase: no hay nada especial que hacer
     case SUBSANAR_DATOS -> eventContext.updateState(States.Recepcion.ENTRADA_DATOS);
-    default -> throw new IllegalArgumentException("Tipo de resolución no reconocido");
+    case null, default -> throw new IllegalArgumentException("Tipo de resolución no reconocido: " + expediente.getTipoResolucion());
 }
 ```
 
-**Evento multi-origen** (el mismo evento declarado en varios estados decide según el estado actual). El estado actual se resuelve con la **pareja** de columnas contra el `States.INSTANCE` del propio tipo, que aquí se conoce en compilación:
+**Evento multi-origen** (el mismo evento declarado en varios estados de la fase decide según el estado desde el que se dispara):
 
 ```java
-State actual = States.INSTANCE
-        .getState(expediente.getCodePhase(), expediente.getCodeState())
-        .orElseThrow(() -> new IllegalArgumentException("State no reconocido: "
-                + expediente.getCodePhase() + "/" + expediente.getCodeState()));
+State origen = States.INSTANCE
+        .getState(original.getCodePhase(), original.getCodeState())
+        .orElseThrow(() -> new IllegalStateException("Estado no reconocido: "
+                + original.getCodePhase() + "/" + original.getCodeState()));
 
-switch (actual) {
+switch (origen) {
     case States.Recepcion.PENDIENTE_PRESENTACION -> eventContext.updateState(States.Recepcion.ENTRADA_DATOS);
     ...
-    default -> throw new IllegalArgumentException("State no reconocido: " + actual);
+    default -> throw new IllegalStateException("Estado no reconocido: " + origen);
 }
 ```
 
-El `switch` sobre una variable tipada con la **interfaz** `State` es legal desde Java 21 (JEP 441), pero `State` **no** es `sealed`: el `default` es obligatorio.
-
-Si el mismo evento sale de estados de **fases distintas**, cada fase lleva su propio `trigger<Evento>` y cada uno solo necesita cubrir los estados de la suya.
+- El `default` es obligatorio: `State` no es `sealed`.
+- Si el evento solo sale de **un** estado, no hace falta: llama directamente a `updateState`.
+- Si el mismo evento sale de estados de **fases distintas**, cada fase lleva su propio `trigger<Evento>` y cubre solo los estados de la suya.
 
 ## 6. Catálogo de acciones de un evento
 
-Catálogo **abierto**: aún no están definidas todas las posibilidades — cuando aparezca una capacidad nueva (notificaciones push, integración con otro subsistema…), añádela aquí como un apartado más con su patrón.
+Catálogo **abierto**: cuando aparezca una capacidad nueva, añádela aquí como un apartado más con su patrón.
 
 ### 6.1 Generar un documento PDF y guardarlo en la entidad
 
@@ -176,9 +168,9 @@ DocumentoPdf solicitudPdf = expediente.getDocumentoPdf(MiTramiteV1.TipoDocumento
 expediente.setPdfSolicitud(MetaFileHelper.createMetaFile(solicitudPdf));
 ```
 
-`getDocumentoPdf` rellena el formulario del PDF evaluando las expresiones Groovy de sus campos con `self` = el expediente (ver `documentos.md`). `MetaFileHelper.createMetaFile(documentoPdf)` convierte cualquier `DocumentoPdf` en `MetaFile` asignable a un campo.
+`getDocumentoPdf` genera el documento de `documentospdf/` con los datos del expediente (`documentos.md`). `MetaFileHelper.createMetaFile(documentoPdf)` lo convierte en un `MetaFile` asignable a un campo.
 
-**MUST** asignar las fechas que estampa el documento (y el resto de datos de ese momento, como el firmante) **antes** de llamar a `getDocumentoPdf`, en el mismo evento: el PDF es una foto de la entidad en ese instante y una fecha asignada después ya no sale en él.
+**MUST** asignar las fechas que estampa el documento (y el resto de datos de ese momento, como el firmante) **antes** de llamar a `getDocumentoPdf`, en el mismo evento: el PDF es una foto de la entidad en ese instante.
 
 - ✅ CORRECTO:
   ```java
@@ -189,93 +181,88 @@ expediente.setPdfSolicitud(MetaFileHelper.createMetaFile(solicitudPdf));
 - ❌ INCORRECTO: generar `resolucionPdf` y asignar `fechaResolucion` en la línea siguiente (el documento sale sin la fecha que dice llevar).
 - ❌ INCORRECTO: asignar `fechaResolucion` en `onEnter<Estado>` del estado destino (se ejecuta después del evento que ya generó el documento).
 
-Operaciones útiles de `DocumentoPdf`: `firmar(...)` (§6.4), `anyadirDocumentoPdf` (concatenar), `estamparTextoConAppend`, `addNewPage`, `getPlainText`, `removePdfAConformance`.
+Operaciones útiles de `DocumentoPdf`: `firmar(...)` (§6.4), `anyadirDocumentoPdf` (concatenar; p. ej. anexar un justificante con `MetaFileHelper.getDocumentoPdfFromImagenOrPdf(metaFile)`), `estamparTextoConAppend`, `addNewPage`, `getPlainText`.
 
-**Generar en un evento y firmar (o concatenar) en otro posterior.** El PDF que un evento dejó en un campo `MetaFile` se recupera con la conversión inversa, `MetaFileHelper.getDocumentoPdf(metaFile)`, y se vuelve a guardar con `createMetaFile`:
+**Generar en un evento y firmar en otro posterior.** El PDF que un evento dejó en un campo se recupera con `MetaFileHelper.getDocumentoPdf(metaFile)`:
 
 ```java
-// evento 1 (p.ej. ENVIAR_A_FIRMA): se genera sin firmar y se guarda para que el firmante lo revise
+// evento 1 (p.ej. ENVIAR_A_FIRMA): se genera sin firmar para que el firmante lo revise
 expediente.setPdfResolucion(MetaFileHelper.createMetaFile(expediente.getDocumentoPdf(MiTramiteV1.TipoDocumentoPdf.RESOLUCION)));
 
-// evento 2 (p.ej. FIRMAR): se recupera, se firma con el certificado del centro (recetas/firma.md §2) y se registra de salida (§6.3)
+// evento 2 (p.ej. FIRMAR): se recupera, se firma (recetas/firma.md §2) y se registra de salida (§6.3)
 DocumentoPdf resolucion = MetaFileHelper.getDocumentoPdf(expediente.getPdfResolucion());
-DocumentoPdf resolucionFirmada = resolucion.firmar(almacenClaveResolver.getDirector(expediente.getCentro()), new CampoFirma(POSICION_FIRMA_RESOLUCION));
+DocumentoPdf resolucionFirmada = resolucion.firmar(almacenDirector, new CampoFirma(CAMPO_FIRMA_RESOLUCION));
 MetaFile pdfResolucionFirmada = MetaFileHelper.createMetaFile(resolucionFirmada);
 ```
 
-- Es el mismo par de conversiones que usa `FirmaServidorHelper.firmarEnServidor` por dentro (`recetas/firma.md` §1.5).
-- Si entre los dos eventos cambian datos que el documento estampa, en el evento 2 se **regenera** con `getDocumentoPdf(TipoDocumentoPdf...)` en vez de recuperarlo: lo guardado es una foto de los datos de entonces.
+- Si entre los dos eventos cambian datos que el documento estampa, en el evento 2 se **regenera** con `getDocumentoPdf` en vez de recuperarlo.
+- **MUST NOT** generar ni firmar un documento que el destino no necesita (p. ej. la resolución cuando se pide subsanar).
 
 ### 6.2 Registro de entrada (el usuario presenta documentación)
 
 ```java
-RegistroEntrada registroEntrada = eventContext.createRegistroEntrada(exp.getPdfSolicitudFirmado(), List.of(exp.getJustificante()));
-exp.setPdfJustificanteRegistroEntrada(registroEntrada.getDocumentoResguardoPresentacion());
+RegistroEntrada registroEntrada = eventContext.createRegistroEntrada(expediente.getPdfSolicitudFirmado(), List.of(expediente.getJustificante()));
+expediente.setPdfJustificanteRegistroEntrada(registroEntrada.getDocumentoResguardoPresentacion());
 ```
 
-El registro devuelve el **resguardo de presentación** sellado (`getDocumentoResguardoPresentacion()`, ya `MetaFile`), que se guarda en un campo de la entidad para mostrarlo (visor de PDF, `vistas.md`). El camino entero, desde que el usuario teclea los datos hasta que ve el resguardo, con sus dos estados y la firma en medio, está en la receta `recetas/presentacion.md`.
+El registro devuelve el **resguardo de presentación** sellado, que se guarda en la entidad para mostrarlo. El camino entero está en la receta `recetas/presentacion.md`.
 
 ### 6.3 Registro de salida (la administración emite un documento)
 
 ```java
-RegistroSalida registroSalida = eventContext.createRegistroSalida(pdfResolucion, List.of(exp.getJustificante()));
-exp.setPdfResolucion(registroSalida.getDocumento());
+RegistroSalida registroSalida = eventContext.createRegistroSalida(pdfResolucionFirmada, List.of());
+expediente.setPdfResolucion(registroSalida.getDocumento());
 ```
 
 El registro devuelve el **documento registrado** (`getDocumento()`), que es el que se guarda y se muestra al usuario.
 
 ### 6.4 Firmar documentos
 
-Todo lo de firmas está en la receta `recetas/firma.md`: el usuario firma al presentar (en servidor o con AutoFirma, §1), el centro firma un documento que emite con su certificado (`AlmacenClaveResolver`, §2) y poner un documento a firmar a otro usuario con `TareaFirma` (§3). En el trigger solo hay código para las dos últimas y para la rama de servidor de la primera.
+Todo está en la receta `recetas/firma.md`: el usuario firma al presentar (§1), el centro firma un documento que emite con su certificado (§2) y poner un documento a firmar a otro usuario (§3).
 
 ### 6.5 Enviar correos (subsistema Correos)
 
-Patrón previsto (aún sin uso real en ningún trámite): insertar un `Correo` vía su servicio — el alta ya programa el envío asíncrono, no hay que llamar a nada más.
+Patrón previsto (aún sin uso real en ningún trámite): insertar un `Correo` con su servicio; el alta ya programa el envío.
 
 ```java
 CorreoService correoService = (CorreoService) modelServiceFactory.resolve(Correo.class);
 Correo correo = new Correo();
-correo.setPara("destinatario@example.com");        // to; admite varios separados por comas
+correo.setPara("destinatario@example.com");        // admite varios separados por comas
 correo.setAsunto("...");
 correo.setCuerpo("...");
-correo.setCentro(eventContext.getCentro());
+correo.setCentro(expediente.getCentro());
 // opcionales: dniDestinatario/nombre/apellidos, enCopia, enCopiaOculta, adjuntos, historialEstado
 correoService.insert(correo);
 ```
 
-El correo es inmutable tras crearse y no se puede borrar; los reintentos de envío los gestiona el propio subsistema (cron `correos.envio.cron`).
+El correo no se puede modificar ni borrar después de crearlo.
 
 ### 6.6 Acceder a servicios de otros subsistemas
 
-`modelServiceFactory.resolve(<Entidad>.class)` devuelve el `ModelService` del subsistema dueño (es el mecanismo usado en §6.5 y en `recetas/firma.md` §3). Para dependencias que no son ModelService, inyección Guice normal (`@Inject` de campo o constructor; ver `k-guice` si la construcción no es trivial).
+`modelServiceFactory.resolve(<Entidad>.class)` devuelve el `ModelService` del subsistema dueño. Para dependencias que no son `ModelService`, inyección Guice normal.
 
-## 7. Los tests que comprueban el PhaseEventManager
+## 7. Los tests que comprueban estas clases
 
-Lo comprueban los tests de `src/test/java/com/educaflow/tiposexpedientes/` — `phaseeventmanager/PhaseEventManagerTest.java`, `phaseeventmanager/ApiBaseReservadaTest.java`, `initialeventmanager/InitialEventManagerTest.java` y `modelo/ModeloDelTipoTest.java` (`./gradlew test`), **no** el build de `generateCode`: hasta hace poco era un check con Spoon dentro de `createfiles`, y se movió a tests para separar la generación de esqueletos de su validación. Leen **bytecode**, así que el fallo aparece al ejecutar los tests, no al compilar.
+Al ejecutar los tests (`SKILL.md` §3.3) el mensaje de fallo trae el código del método que falta, listo para pegar.
 
-Las reglas del `PhaseEventManager` se comprueban **fase a fase**: la unidad no es el tipo de expediente, sino cada una de sus fases, y el mensaje de error identifica la fase como `MiTramiteV1/RECEPCION`. Las del `InitialEventManager` (I1/I2), en cambio, van **por tipo de expediente**, que es su unidad natural.
-
-1. **E0**: la clase `<paquete de la fase>.PhaseEventManagerImpl` existe compilada y extiende `PhaseEventManager`.
-2. **E1**: por cada evento **de la fase** (la unión de los eventos de sus estados), **exactamente un** `@WhenEvent trigger<Evento>` con la firma exacta de §2. **E3**: ídem por cada estado **de la fase** con `@OnEnterState onEnter<Estado>`. El mensaje de fallo trae el **código del método listo para pegar**, renderizado con la misma plantilla que usa el generador.
-3. **E2 / E4**: **no puede sobrar** ningún `@WhenEvent`/`@OnEnterState` que no corresponda a un evento/estado de la propia fase: si quitas un evento del XML, quita su método (y el del validator); si mueves un estado a otra fase, mueve también su `onEnter`.
-4. **A1** (`ApiBaseReservadaTest`): ningún nombre de método compuesto a partir de un estado o un evento puede coincidir con un método público de `PhaseEventManager`, de `StateEventValidator` o de `InitialEventManager`. Un estado llamado `STATE` produciría un `onEnterState(<Entidad>, EventContext)` con la firma exacta del dispatcher de la clase base y lo sobrescribiría en silencio; y un evento `INITIAL_EVENT` produciría un `triggerInitialEvent` en el `PhaseEventManagerImpl` de su fase, que es justo lo que E5 prohíbe — por eso `InitialEventManager` cuenta como clase base a estos efectos aunque el `PhaseEventManagerImpl` no la implemente.
-5. **E5**: **ningún** `PhaseEventManagerImpl` puede declarar un `triggerInitialEvent`. El evento inicial es del tipo de expediente, así que un método así no lo llama nadie: se quedaría ahí sin ejecutarse, y como la clase base ya no declara el método tampoco hay un `@Override` que falle al compilar. Es el fallo típico de un tipo a medio migrar.
-6. **I1 / I2** (`InitialEventManagerTest`): por cada **tipo de expediente**, la clase `<basePackageName>.InitialEventManagerImpl` existe compilada e implementa `InitialEventManager` (**I1**), y declara **exactamente un** `void triggerInitialEvent(<Entidad>, InitialEventContext)` (**I2**). `Tramitador` la resuelve por reflexión, así que olvidarla no es un error de compilación sino una excepción al crear el primer expediente; el mensaje del test trae el comando de `CreateFilesTask` que la genera.
-7. **M1** (`modelo/ModeloDelTipoTest`): el `InitialEventManagerImpl` y el `PhaseEventManagerImpl` de **cada fase** declaran la **misma** entidad en su parámetro de tipo, y es la primera `<entity>` del `domains.xml` (`modelo.md` §1). Es lo que `ExpedienteLocator.getModelClass` lee en runtime para instanciar el expediente, así que una divergencia no la caza el compilador: se nota al tramitar.
-8. Detalles:
-   - Un método con nombre correcto pero **firma equivocada** se reporta **una sola vez**, en E1/E3, mostrando la firma declarada frente a la esperada (el antiguo check lo contaba a la vez como que faltaba y como que sobraba).
-   - Solo cuentan los métodos **declarados en la propia clase de la fase**: un `trigger`/`onEnter` heredado de una superclase **no** cuenta ni en los tests (leen los métodos declarados del bytecode) ni en runtime (el dispatcher los busca con `getDeclaredMethods()` sobre la clase concreta, así que lo daría por ausente y reventaría al disparar el evento). Lo que sí aporta leer bytecode en vez del fuente, frente al check antiguo con Spoon, es alcanzar al validator en Kotlin y descartar los métodos sintéticos y puente.
-   - El `triggerInitialEvent` del `InitialEventManagerImpl` no lleva anotación ni está en ninguna fase, así que no entra en E1/E2/E3/E4; lo cubren I1/I2.
-   - El FQCN de la entidad que esperan E1/E3/I2 está hardcodeado como `com.educaflow.subsystem.expedientes.db.<code>` — otra razón para no tocar el `<module>` del `domains.xml`. M1 llega a esa misma entidad por otro camino, el `domains.xml`, así que las dos lecturas tienen que coincidir.
+- **E0**: existe `<paquete de la fase>.PhaseEventManagerImpl` y extiende `PhaseEventManager`.
+- **E1 / E3**: **exactamente un** `trigger<Evento>` por evento de la fase y **un** `onEnter<Estado>` por estado de la fase, con la firma de §2.
+- **E2 / E4**: ningún `@WhenEvent`/`@OnEnterState` de más. Si quitas un evento del XML, quita su método (y el del validador); si mueves un estado de fase, mueve su `onEnter`.
+- **E5**: ningún `PhaseEventManagerImpl` declara `triggerInitialEvent`.
+- **I1 / I2**: existe `InitialEventManagerImpl` en la raíz y declara su `triggerInitialEvent`.
+- **M1**: todas estas clases usan como entidad la primera `<entity>` del `domains.xml`.
+- **A1**: ningún nombre de estado o evento produce un método que pise uno de la clase base.
+- Solo cuentan los métodos **declarados en la propia clase**: uno heredado de una superclase no lo ve ni el test ni el motor.
 
 ## 8. Anti-patrones
 
-- **MUST NOT** olvidar `eventContext.updateState(...)` en un trigger que deba transitar (el expediente se quedaría en el estado actual).
-- **MUST NOT** validar datos del usuario aquí: eso es del validator (que además es la whitelist de campos). Aquí solo lógica de negocio.
-- **MUST NOT** usar `System.out`: logger slf4j (la regla C22 está congelada en `archunit_store` con la deuda de `base/infrastructure`; los tipos de expediente están limpios y **MUST** seguir así — una violación nueva rompe el build).
-- **MUST NOT** llamar dos veces a `createRegistroEntrada`/`createRegistroSalida` en el mismo evento ("Ya existe un registro de entrada definido").
-- **MUST NOT** nombrar un estado por sus strings (`"ENTRADA_DATOS"`, `codeState.equals(...)`): usa la constante `States.<Fase>.<ESTADO>` (fase en UpperCamelCase: `States.Recepcion.ENTRADA_DATOS`), que además compara con `==`.
-- **MUST NOT** editar ni versionar la clase `States`: la reemite el build en cada compilación (`SKILL.md` §2.3).
-- **MUST NOT** poner el `trigger`/`onEnter` de un estado en la clase de otra fase: el test lo detecta, pero además en runtime nunca se le llamaría.
-- **MUST NOT** escribir la inicialización del expediente en un `PhaseEventManagerImpl`: va en el `InitialEventManagerImpl` del tipo (§2.1). Un `triggerInitialEvent` en una fase no lo llama nadie.
-- **MUST NOT** factorizar los `trigger`/`onEnter` comunes a una superclase compartida entre fases o versiones: solo se ven los declarados en la clase de la fase (§7). Si hay lógica común, deja el método declarado en cada fase y que delegue en `<Code>Util` (`SKILL.md` §1.8) o en un servicio.
+- **MUST NOT** olvidar `eventContext.updateState(...)` en un `trigger*` que deba transitar.
+- **MUST NOT** validar aquí datos que teclea el usuario: eso es del validador (que además es la whitelist). Aquí solo lógica de negocio y guardas.
+- **MUST NOT** lanzar una `BusinessException` después de crear un registro, un `MetaFile` o un correo (§2.2).
+- **MUST NOT** usar `System.out`: logger slf4j.
+- **MUST NOT** llamar dos veces a `createRegistroEntrada`/`createRegistroSalida` en el mismo evento.
+- **MUST NOT** nombrar un estado por sus strings (`"ENTRADA_DATOS"`, `codeState.equals(...)`): usa `States.<Fase>.<ESTADO>`, que se compara con `==`.
+- **MUST NOT** editar ni versionar la clase `States`.
+- **MUST NOT** poner el `trigger`/`onEnter` de un estado en la clase de otra fase.
+- **MUST NOT** inicializar el expediente en un `PhaseEventManagerImpl`: va en el `InitialEventManagerImpl` (§2.1).
+- **MUST NOT** factorizar los `trigger`/`onEnter` comunes a una superclase compartida: deja el método declarado en cada fase y que delegue en `<Code>Util`.

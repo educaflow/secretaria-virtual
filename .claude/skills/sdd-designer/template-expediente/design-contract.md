@@ -273,7 +273,7 @@ Reglas:
 </Tramite>
 ```
 
-`<publico>` y `<privado>` son opcionales; `<acl>` también, y lleva los perfiles que da el trámite en todas sus versiones (§14). Si el `<help>` contiene `]]>`, el generador lanza `RuntimeException`.
+`<permitidoPresentarEnRepresentacion>` es opcional (por defecto `false`); si es `true`, la versión **MUST** pedir y validar a la persona interesada, que nace vacía. `<acl>` también es opcional, y lleva los perfiles que da el trámite en todas sus versiones (§14). **MUST NOT** usarse `<publico>` (no tiene ningún efecto) ni `<privado>` (no existe). Si el `<help>` contiene `]]>`, el generador lanza `RuntimeException`.
 
 ---
 
@@ -363,9 +363,9 @@ Una fila por ítem:
 
 Una tabla, con una fila por documento generable (0..N filas; si el tipo no genera ninguno, la sección lo dice en una frase y no lleva tabla):
 
-| fichero | constante | en qué transición se genera | en qué campo se guarda | quién lo firma | se registra |
-|---|---|---|---|---|---|
-| `documentospdf/<doc>.xml` | `<DOC>` | `<FASE>.<ESTADO>` + `<EVENTO>` | `<campo>` (`servidor`) | `cliente (AutoFirma__!!)` \| `servidor: DIRECTOR` \| `servidor: SECRETARIO` \| `servidor: DNI <expr>` \| `—` | `entrada` \| `salida` \| `—` |
+| fichero | constante | en qué transición se genera | en qué campo se guarda | quién lo firma | campo de firma | se registra |
+|---|---|---|---|---|---|---|
+| `documentospdf/<doc>.xml` | `<DOC>` | `<FASE>.<ESTADO>` + `<EVENTO>` | `<campo>` (`servidor`) | `cliente (AutoFirma__!!)` \| `servidor: DIRECTOR` \| `servidor: SECRETARIO` \| `servidor: DNI <expr>` \| `—` | `<campoFirma>` \| `—` | `entrada` \| `salida` \| `—` |
 
 Y una lista aparte de los **fragmentos** `documentospdf/_<fragmento>.xml` con quién los incluye.
 
@@ -373,6 +373,11 @@ Reglas:
 
 - **CRITICAL — la carpeta MUST llamarse `documentospdf`.** `documentos/` se resuelve pero **no** se escanea para el enum: el documento queda muerto sin aviso. **MUST NOT** usarse.
 - Los nombres de fichero **MUST** ir en `camelCase`, sin espacios ni guiones. Se convierten en la constante del enum (`UPPER_SNAKE_CASE`).
+- **CRITICAL — todo documento que alguien firma MUST marcar el hueco de esa firma con `campoFirma="<campoFirma>"`**: en un `<documentoFormulario>`, en el `<texto>` del recuadro de firma, que **MUST** llevar `rowSpan`; en un `<documentoTexto>`, en el `<espacio>` del hueco. Quien firma indica ese nombre y no unas coordenadas, así que la firma sigue a su hueco aunque el contenido lo desplace.
+  - El nombre es un identificador (`[A-Za-z][A-Za-z0-9_]*`), único en el documento, y dice **quién firma**: `firmaSolicitante`, `firmaDirector`.
+  - **MUST** ser el mismo en las tres piezas: el atributo `campoFirma` del XML, la columna «campo de firma» de esta tabla y el argumento de la firma (la `<action-method>` de AutoFirma, `vistas.md` §6, o la constante de `FIRMAR_SERVIDOR`, §11).
+  - El elemento con `campoFirma` **MUST NOT** llevar `visible`: oculto no deja campo de firma, y firmar aborta el evento.
+  - Un hueco que nadie firma **MUST NOT** llevar `campoFirma`.
 - **MUST NOT** convivir un `<doc>.xml` y un `<doc>.pdf` con el mismo nombre: el build aborta por ambigüedad.
 - Hay **dos tipos de documento**, por elemento raíz: `<documentoFormulario>` (tabla sobre una rejilla de 12 columnas, bilingüe) y `<documentoTexto>` (prosa, un solo idioma). El diseño **MUST** decir de qué tipo es cada documento.
 - El `<titulo>` es **solo** del `<documentoFormulario>`. En un `<documentoTexto>` un encabezado es un `<parrafo negrita="true" mayusculas="true" alineamiento="izquierda">`.
@@ -597,7 +602,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<<Entidad>> {
 - Interfaces adicionales implementadas, si las hay, y por qué (con sus métodos).
 - Constructor `@Inject` con el `<Entidad>Repository` y `super(<Entidad>.class)`.
 - **Dependencias a inyectar** (`@Inject`), una por línea: tipo, nombre y para qué se usa. Toda dependencia usada por algún `trigger*` **MUST** estar declarada aquí.
-- **Constantes de clase** que necesiten los `trigger*` (típicamente `private static final Rectangulo <nombre> = new Rectangulo(<x>, <y>, <ancho>, <alto>);` para una posición de firma).
+- **Constantes de clase** que necesiten los `trigger*` (típicamente `private static final String <nombre> = "<campoFirma>";` con el nombre del campo de firma de un documento, §7).
 - El `import` de `States`: **MUST** ser el de la **propia versión** (`<basePackageName>.States`). **MUST NOT** referenciarse el `States` de otro tipo o versión: compila y revienta en runtime.
 
 ### 11.2 Lista de `trigger<Evento>`
@@ -621,7 +626,7 @@ Vocabulario de acciones (uno por línea; el diseño usa esta notación, no códi
 | Acción | Notación | Efecto |
 |---|---|---|
 | Generar PDF | `GENERAR_PDF(<DOC>)` | `expediente.getDocumentoPdf(<Entidad>.TipoDocumentoPdf.<DOC>)` |
-| Firmar en servidor | `FIRMAR_SERVIDOR(cargo=<DIRECTOR\|SECRETARIO\|DNI:<expr>\|DUMMY>, rect=<constante>, [pagina=<n>], [motivo=…], [mensaje=…])` | `documentoPdf.firmar(almacenClaveResolver.get<Cargo>(<centro>), new CampoFirma(<constante>)…)` |
+| Firmar en servidor | `FIRMAR_SERVIDOR(cargo=<DIRECTOR\|SECRETARIO\|DNI:<expr>\|DUMMY>, campo=<constante>, [motivo=…], [mensaje=…])` | `documentoPdf.firmar(almacenClaveResolver.get<Cargo>(<centro>), new CampoFirma(<constante>)…)` |
 | Materializar | `CREAR_METAFILE → <campo>` | `MetaFileHelper.createMetaFile(<documentoPdf>)` y `expediente.set<Campo>(…)` |
 | Registro de entrada | `REGISTRO_ENTRADA(documento=<campo>, anexos=[<campo>,…]) → <campo>` | `eventContext.createRegistroEntrada(…)`; el `<campo>` destino recibe `registro.getDocumentoResguardoPresentacion()` |
 | Registro de salida | `REGISTRO_SALIDA(documento=<campo>, anexos=[<campo>,…]) → <campo>` | `eventContext.createRegistroSalida(…)`; el `<campo>` destino recibe `registro.getDocumento()` |
@@ -634,6 +639,7 @@ Vocabulario de acciones (uno por línea; el diseño usa esta notación, no códi
 
 Reglas de los triggers:
 
+- El `campo` de `FIRMAR_SERVIDOR` es una constante `String` de la fase cuyo valor es el `campoFirma` del documento que se firma (§7). **MUST NOT** firmarse en un `Rectangulo` de coordenadas un documento generado de `documentospdf/`.
 - **LIMIT: un solo `createRegistroEntrada` y un solo `createRegistroSalida` por evento.** Llamar dos veces al mismo lanza `RuntimeException("Ya existe un registro de entrada definido")`.
 - El `documentoPdf` de un `create*` **MUST NOT** ser `null`; los anexos se clonan, `null` se admite como lista vacía, y cada `MetaFile` de la lista **MUST** tener `fileName` no nulo.
 - Los `create*` **NO** hacen `repository.save`: se persisten por cascada al colgarlos del `HistorialEstado`.
@@ -650,7 +656,7 @@ Reglas de los triggers:
 > **Ejemplo** (ilustrativo, NO normativo): un trigger que genera un PDF, lo firma con el cargo del centro, lo registra de salida y ramifica:
 >
 > 1. `GENERAR_PDF(INFORME)`
-> 2. `FIRMAR_SERVIDOR(cargo=DIRECTOR, rect=POSICION_FIRMA_INFORME)`
+> 2. `FIRMAR_SERVIDOR(cargo=DIRECTOR, campo=CAMPO_FIRMA_INFORME)`
 > 3. `CREAR_METAFILE → pdfTemporal`
 > 4. `REGISTRO_SALIDA(documento=pdfTemporal, anexos=[adjuntoAportado]) → pdfInforme`
 > 5. `UPDATE_STATE segun sentidoDecision: APROBAR → States.Revision.APROBADO; DENEGAR → States.Revision.DENEGADO; default → error`

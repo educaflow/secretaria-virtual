@@ -1,6 +1,6 @@
 # Los documentos PDF (`documentospdf/`)
 
-Los documentos son los PDF con los que se materializa la tramitación: los que los usuarios **presentan** al centro (p.ej. una solicitud, entran por registro de entrada) y los que la aplicación **emite** (p.ej. una resolución, salen por registro de salida). Cada tipo de expediente tiene una carpeta `documentospdf/` con sus documentos: para cada uno contiene **o** el XML de definición del documento, **o** directamente el PDF ya hecho. Con el XML pasan dos cosas: el build lo **resuelve** (EducaFlowBuildTools, herramienta `xml2pdf`, tarea `resolvePdfDocuments`: expande los `<include>`, reescribe el `href` de las imágenes, pone el título del trámite y traduce el valenciano) y lo deja en el classpath, y la aplicación **dibuja el PDF en runtime** (`base.infrastructure.pdfgenerator`, con iText) cada vez que un PhaseEventManager lo pide, ya con los datos del expediente: el PDF sale **plano**, sin formulario, y los elementos con `visible` se quitan o se dejan en blanco según el expediente (§2.9). Este fichero documenta **el formato de ese XML**; ni la resolución ni el dibujo son responsabilidad de este skill. Ejemplos reales: los `*.xml` de las carpetas `documentospdf/` de los trámites (`src/main/java/com/educaflow/tramites/**`) y `disenyo-grafico/documentos/`.
+Los documentos son los PDF con los que se materializa la tramitación: los que los usuarios **presentan** al centro (p.ej. una solicitud, entran por registro de entrada) y los que la aplicación **emite** (p.ej. una resolución, salen por registro de salida). Cada tipo de expediente tiene una carpeta `documentospdf/` con sus documentos: para cada uno contiene **o** el XML de definición del documento, **o** directamente el PDF ya hecho. Con el XML, el build expande los `<include>`, pone el título del trámite y traduce el valenciano, y la aplicación **dibuja el PDF en runtime** cada vez que un `PhaseEventManagerImpl` lo pide, ya con los datos del expediente: el PDF sale **plano**, sin formulario, y los elementos con `visible` se quitan o se dejan en blanco según el expediente (§2.9). Este fichero documenta **el formato de ese XML**. Ejemplos reales: los `*.xml` de las carpetas `documentospdf/` de los trámites (`src/main/java/com/educaflow/tramites/**`) y `disenyo-grafico/documentos/`.
 
 Hay **dos tipos de documento**, cada uno con su elemento raíz y su XSD:
 
@@ -9,13 +9,13 @@ Hay **dos tipos de documento**, cada uno con su elemento raíz y su XSD:
 | **FORMULARIO** | `<documentoFormulario>` | `documentoFormulario.xsd` | Una tabla sobre una rejilla de 12 columnas: secciones, filas, campos, casillas y textos. **Bilingüe**: estampa siempre el castellano y el valenciano | §2 de este fichero |
 | **TEXTO** | `<documentoTexto>` | `documentoTexto.xsd` | Un documento en prosa: párrafos, listas, tablas sin bordes, con una cabecera de logo y título en su primera página. **Un solo idioma**, el que se pida | `documentotexto.md` |
 
-**Común a los dos tipos** (y documentado aquí): los fragmentos `_*.xml` y el `<include>` (§2.5), el `<valenciano>` que se traduce del `<castellano>` (§2.6), las expresiones Groovy —`${expresion}` inline y el test P1— (§2.8) y la visibilidad condicional `visible`/`siOculto` (§2.9).
+**Común a los dos tipos** (y documentado aquí): los fragmentos `_*.xml` y el `<include>` (§2.5), el `<valenciano>` que se traduce del `<castellano>` (§2.6), las expresiones Groovy —`${expresion}` inline y el test P1— (§2.8), la visibilidad condicional `visible`/`siOculto` (§2.9) y el hueco de la firma `campoFirma` (§2.10).
 
 ---
 
 ## 1. Conceptos clave
 
-- El tipo de documento lo decide su **elemento raíz**, y cada raíz se valida contra **su** XSD. Los dos XSD viven en `EducaFlowBuildTools` (`src/main/resources/com/educaflow/common/buildtools/xml2pdf/documentoFormulario.xsd` y `documentoTexto.xsd`). Todo XML de definición **MUST** referenciar el suyo en la raíz con `xsi:noNamespaceSchemaLocation` usando su URL de GitHub en la rama master (la del ejemplo de §2.1, con el nombre del XSD que toque). El build valida cada XML contra ese XSD al resolverlo y aborta con ERROR si no valida (usa el XSD incluido en su jar, sin acceso a red; la URL es solo la referencia declarativa).
+- El tipo de documento lo decide su **elemento raíz**, y cada raíz se valida contra **su** XSD. Todo XML de definición **MUST** referenciar el suyo en la raíz con `xsi:noNamespaceSchemaLocation` usando su URL de GitHub en la rama master (la del ejemplo de §2.1, con el nombre del XSD que toque). El build valida cada XML contra ese XSD y aborta si no valida.
 - **CRITICAL**: cada XSD declara **su propio** `<fragmento>`, con el contenido de su tipo. Incluir en un documento un fragmento **del otro tipo** no valida y rompe el build (§2.5).
 - **FORMULARIO** — el documento renderizado es **una única tabla** sobre una rejilla lógica de **12 columnas** (19 cm: página A4 con márgenes de 1 cm), con la cabecera corporativa (logo GVA + título bilingüe) y secciones con letra automática (A, B, C…) en celda gris.
 - Los idiomas van **siempre** en los elementos hijos `<valenciano>` y `<castellano>` del elemento, nunca como atributos, en los **dos** tipos de documento. Un FORMULARIO estampa los dos (el castellano en cursiva) e **ignora** el idioma que se le pida; un TEXTO estampa **solo** el idioma pedido (§1.1).
@@ -23,16 +23,15 @@ Hay **dos tipos de documento**, cada uno con su elemento raíz y su XSD:
 - El **`<valenciano>` es opcional**: si se omite, el generador lo calcula **traduciendo el `<castellano>`** con el traductor `apertium` (§2.6). Un `<castellano>` omitido o vacío omite el castellano; un `<valenciano>` **vacío** (`<valenciano></valenciano>`) omite el valenciano — omitirlo y ponerlo vacío **no** es lo mismo.
 - En un FORMULARIO, cada `<campo>`/`<check>` estampa **un valor**: el de su `nombreCampo`. **CRITICAL**: `nombreCampo` no es realmente un nombre — es una **expresión Groovy** que se evalúa en runtime para obtener el valor del campo (o el `Boolean` que marca la casilla), donde `self` es **el objeto del tipo de expediente** (la instancia de la entidad del expediente concreto en cuya carpeta está el XML). Todo el detalle del contexto, la potencia de las expresiones y la conversión de valores: §2.8.
 - Casi cualquier elemento puede llevar `visible="<expresión Groovy>"`: si evalúa a `false` el elemento no se dibuja, y `siOculto` dice si desaparece (`colapsar`, por omisión: lo de detrás sube) o deja su hueco en blanco (`reservar`). Es **la** forma de hacer alternativas excluyentes (p.ej. una línea distinta por cada valor de un enum): §2.9.
-- Carpeta `documentospdf/`: cada documento del trámite está **o** como XML de definición **o** directamente como PDF versionado. La disyuntiva es **por documento, no por carpeta**: es lícito y normal que en la misma carpeta convivan el XML de un documento con el PDF de otro. El caso típico: si el trámite tiene **impreso oficial** (de la administración), **se usa ese PDF tal cual** — se deja versionado en la carpeta y no se redefine por XML; el XML es para los documentos propios del centro que no tienen impreso oficial. Los `_*.xml` son **fragmentos** reutilizables (raíz `<fragmento>`) que los documentos incluyen con `<include href="..."/>` (§2.5) y no generan PDF propio. **MUST NOT** convivir en la misma carpeta un `aa.xml` (con raíz de documento, de cualquiera de los dos tipos) con un `aa.pdf` versionado: el build aborta por ambigüedad.
-- Cada documento (XML o PDF versionado) produce una constante del enum `TipoDocumentoPdf` de la entidad (`modelo.md` §5) con la que el PhaseEventManager lo obtiene ya con los datos (`phaseeventmanager.md` §6.1). La constante lleva la ruta de classpath del recurso: el `.xml` resuelto si el documento se define por XML, el `.pdf` si está versionado; `ExpedienteDocumentoPdfUtil` despacha por la extensión (genera el PDF con `pdfgenerator`, o rellena y aplana el formulario del PDF versionado). Nombres de fichero en camelCase sin espacios ni guiones y extensión en minúsculas (`solicitudFirmada.xml` → `SOLICITUD_FIRMADA`; un nombre inválido rompe la compilación después, sin aviso del build).
-- **CRITICAL — la carpeta MUST llamarse `documentospdf`**. La tarea `resolvePdfDocuments` acepta además el nombre `documentos` al buscar los XML que resolver, pero el escaneo que construye el enum `TipoDocumentoPdf` mira **solo** `documentospdf`. Un documento puesto en `documentos/` se resuelve y **no** tiene constante en el enum, así que no hay forma de pedirlo desde el PhaseEventManager: queda muerto, sin ningún aviso del build. `documentos/` es una compatibilidad histórica; **MUST NOT** usarse.
+- Carpeta `documentospdf/`: cada documento del trámite está **o** como XML de definición **o** directamente como PDF versionado. La disyuntiva es **por documento, no por carpeta**: es lícito y normal que en la misma carpeta convivan el XML de un documento con el PDF de otro. Si el trámite tiene **impreso oficial** (de la administración), lo habitual es **redefinirlo por XML** y guardar el PDF original, solo como referencia, en la subcarpeta `documentospdf/originales/`: el build solo mira los ficheros que cuelgan directamente de `documentospdf/`, así que lo que hay en una subcarpeta no produce constante en el enum ni interviene en nada. Dejar el PDF del impreso directamente en `documentospdf/` es la alternativa cuando debe usarse tal cual (se rellena y se aplana). Los `_*.xml` son **fragmentos** reutilizables (raíz `<fragmento>`) que los documentos incluyen con `<include href="..."/>` (§2.5) y no generan PDF propio. **MUST NOT** convivir en la misma carpeta un `aa.xml` (con raíz de documento, de cualquiera de los dos tipos) con un `aa.pdf` versionado: el build aborta por ambigüedad.
+- Cada documento (XML o PDF versionado) produce una constante del enum `TipoDocumentoPdf` de la entidad (`modelo.md` §1) con la que el PhaseEventManager lo obtiene ya con los datos (`phaseeventmanager.md` §6.1). Un XML se dibuja; un PDF versionado se rellena (sus campos de formulario son expresiones, §2.8) y se aplana. Nombres de fichero en camelCase sin espacios ni guiones y extensión en minúsculas (`solicitudFirmada.xml` → `SOLICITUD_FIRMADA`; un nombre inválido rompe la compilación después, sin aviso del build).
+- **CRITICAL — la carpeta MUST llamarse `documentospdf`**. Un documento puesto en otra carpeta (p. ej. `documentos/`) **no** tiene constante en el enum `TipoDocumentoPdf`, así que no hay forma de pedirlo: queda muerto, sin ningún aviso del build.
 - Al enum de **cada** tipo se añaden, además de los suyos, los documentos de la carpeta compartida `tramites/shared/documentospdf/`. Hoy esa carpeta no existe, así que no hay ningún efecto visible, pero el mecanismo está activo: un documento puesto ahí aparecería en el `TipoDocumentoPdf` de **todos** los tipos de expediente.
 
 ### 1.1 El idioma con el que se pide el documento
 
-- El generador recibe el idioma: `byte[] generate(byte[] documentoXml, Map<String,Object> contexto, Idioma idioma)`, con `Idioma` = `CASTELLANO` | `VALENCIANO`.
 - Un **FORMULARIO lo ignora**: es bilingüe y estampa siempre los dos idiomas, se le pida el que se le pida. Un **TEXTO emite solo el idioma pedido**.
-- En la aplicación el idioma sale del **usuario autenticado**: `SecurityUtil.getUser().getLanguage()` (`"es"` → `CASTELLANO`, `"ca"` → `VALENCIANO`). Un código desconocido, o no haber usuario, es `CASTELLANO`.
+- El idioma es el del **usuario que dispara el evento** que genera el documento (`"es"` → `CASTELLANO`, `"ca"` → `VALENCIANO`; desconocido → `CASTELLANO`), **no** el del interesado: un TEXTO que genera la secretaría sale en el idioma de quien lo genera.
 - **MUST NOT** pasarle el idioma como dato al documento ni escribir el mismo documento dos veces, uno por idioma: los dos idiomas de un TEXTO viven en el mismo XML, en los hijos `<valenciano>`/`<castellano>` de cada elemento, y el generador elige.
 
 ---
@@ -91,7 +90,7 @@ Los `<valenciano>` pueden omitirse; entonces se calculan traduciendo el `<castel
 | `<fila>` | Una o varias líneas de la tabla | `visible` (opc.), `siOculto` (opc.) | `campo`/`check`/`texto` |
 | `<campo>` | Etiqueta bilingüe en mayúsculas + el valor de `nombreCampo` debajo | `nombreCampo`, `colspan`, `rowSpan` (opc.), `visible` (opc.), `siOculto` (opc.) | `<valenciano>` (opc.), `<castellano>` (opc.) |
 | `<check>` | Casilla (ocupa 1 columna), marcada según el `Boolean` de `nombreCampo`, + etiqueta bilingüe al lado | `nombreCampo`, `colspan`, `rowSpan` (opc.), `visible` (opc.), `siOculto` (opc.) | `<valenciano>` (opc.), `<castellano>` (opc.) |
-| `<texto>` | Párrafos bilingües sin valor propio | `colspan`, `rowSpan` (opc.), `visible` (opc.), `siOculto` (opc.) | `<valenciano>` (opc.), `<castellano>` (opc.) |
+| `<texto>` | Párrafos bilingües sin valor propio | `colspan`, `rowSpan` (opc.), `campoFirma` (opc., §2.10), `visible` (opc.), `siOculto` (opc.) | `<valenciano>` (opc.), `<castellano>` (opc.) |
 | `<include>` | Nada por sí mismo: se sustituye por los hijos de la raíz del fragmento `href` (§2.5) | `href` | — |
 
 ### 2.3 Reglas
@@ -195,7 +194,7 @@ Si un **FORMULARIO** no lleva `<titulo>` (ni propio ni aportado por un fragmento
 
 ### 2.8 Las expresiones Groovy (`nombreCampo` y `${...}`)
 
-**Cuándo se evalúan**: NO en el build — el build solo resuelve el XML. Las expresiones se evalúan **en runtime**, cada vez que el PhaseEventManager pide el documento (`expediente.getDocumentoPdf(...)` → `ExpedienteDocumentoPdfUtil` → `PdfGenerator.generate`), y el PDF se dibuja ya con los valores: sale **plano**, sin formulario. Primero se evalúan los `visible` **por niveles** (en un FORMULARIO: secciones, luego las filas de las secciones que se ven, luego sus celdas) y después las expresiones de valor **solo de lo que se ve**: el `nombreCampo` o el inline de un elemento oculto no se evalúa nunca (§2.9).
+**Cuándo se evalúan**: NO en el build — el build solo resuelve el XML. Las expresiones se evalúan **en runtime**, cada vez que el PhaseEventManager pide el documento (`expediente.getDocumentoPdf(...)`), y el PDF se dibuja ya con los valores: sale **plano**, sin formulario. Primero se evalúan los `visible` **por niveles** (en un FORMULARIO: secciones, luego las filas de las secciones que se ven, luego sus celdas) y después las expresiones de valor **solo de lo que se ve**: el `nombreCampo` o el inline de un elemento oculto no se evalúa nunca (§2.9).
 
 En un documento TEXTO no hay `nombreCampo`: sus únicas expresiones de valor son los `${expresion}` inline de los `<castellano>`/`<valenciano>`, y solo se evalúan las del **idioma que se emite**. Todo lo demás de esta sección vale igual para los dos tipos.
 
@@ -274,6 +273,30 @@ En un FORMULARIO lo admiten `campo`, `check`, `texto`, `fila` y `seccion`; en un
 - ❌ INCORRECTO: `visible="self.tipoJornada"` (no es `Boolean`: el evento aborta).
 - ❌ INCORRECTO: `siOculto="reservar"` sin `visible` (no significa nada: el build aborta).
 - ❌ INCORRECTO: repetir la condición del `visible` dentro de los inline (`${cond ? self.fechaInicio : null}`): si el elemento se ve es que la condición ya se cumple.
+### 2.10 El hueco de la firma (`campoFirma`)
+
+`campoFirma="<nombre>"` marca el elemento que es el hueco de una firma. El generador deja ahí, en el PDF, un **campo de firma vacío** con ese nombre, y quien firma indica el nombre en vez de unas coordenadas (`recetas/firma.md`): la firma cae en su hueco aunque el contenido de delante lo desplace o lo mande a otra página.
+
+| Tipo | Elemento que lo admite | Dónde queda el campo de firma |
+|---|---|---|
+| FORMULARIO | `<texto>` | En el hueco de la celda **por debajo de sus textos**, a todo su ancho |
+| TEXTO | `<espacio>` | En todo el `<espacio>`: su `alto` y el ancho que le toque (el del cuerpo, o el de su columna si es celda de una `<tabla>`) |
+
+- El nombre es un identificador (letra inicial y luego letras sin acento, dígitos o `_`) y **MUST NOT** repetirse en el documento ya expandido: el build aborta en los dos casos.
+- Nómbralo por **quién firma**: `firmaSolicitante`, `firmaDirector`.
+- En un FORMULARIO el `<texto>` **MUST** llevar `rowSpan` suficiente (el de un recuadro de firma es `4`): si bajo sus textos no queda hueco, generar el documento aborta.
+- Un elemento oculto (colapsado **o** reservado) **no** deja campo, y firmar en un campo que no existe aborta el evento: **MUST NOT** poner `visible` al hueco de una firma que se firma siempre.
+- Marca **solo** los huecos que alguien firma de verdad: un campo que se queda vacío aparece en el PDF como una firma pendiente.
+- **MUST NOT** usar `siOculto="reservar"` para que el hueco de la firma no se mueva: con `campoFirma` la firma sigue a su hueco. `reservar` es solo para conservar la maquetación de un impreso.
+- El campo sobrevive a `anyadirDocumentoPdf` (anexar un justificante detrás no lo pierde).
+- Un PDF versionado no pasa por aquí: dónde se firma lo dice `recetas/firma.md` §4.
+
+- ✅ CORRECTO: `<texto colspan="12" rowSpan="4" campoFirma="firmaSolicitante"><castellano>Firma:</castellano></texto>`
+- ✅ CORRECTO: en un TEXTO, `<fila><espacio alto="88.56"/><espacio alto="88.56" campoFirma="firmaDirector"/></fila>` bajo la fila de los dos cargos (solo firma el director: solo su hueco lleva campo).
+- ❌ INCORRECTO: `<texto colspan="12" campoFirma="firmaSolicitante">` sin `rowSpan` (no queda hueco bajo el texto: la generación aborta).
+- ❌ INCORRECTO: `<campo nombreCampo="self.x" colspan="12" campoFirma="firmaSolicitante">` (en un FORMULARIO solo lo admite `<texto>`: no valida).
+- ❌ INCORRECTO: `campoFirma="firma del director"` (no es un identificador: no valida).
+- ❌ INCORRECTO: `campoFirma="firma"` en la solicitud y en un fragmento que esta incluye (nombre repetido tras expandir: el build aborta).
 
 ---
 
@@ -287,14 +310,13 @@ En un FORMULARIO lo admiten `campo`, `check`, `texto`, `fila` y `seccion`; en un
 - **MUST NOT** meter todos los bloques comunes en un único fragmento cajón de sastre, ni nombrar un fragmento con un correlativo (`_template1.xml`): un fragmento por bloque, nombrado por su contenido (§2.5).
 - **MUST NOT** escribir el mismo documento dos veces, uno por idioma, ni meter el idioma en el contexto: el TEXTO lleva los dos idiomas en el mismo XML y el generador elige (§1.1).
 - **MUST NOT** seguir usando la sintaxis `${…;n}`: el `;n` era el hueco de un campo de formulario y desapareció con él. Hoy todo lo que va entre `${` y `}` es la expresión Groovy (§2.3).
-- **MUST NOT** documentar ni reimplementar aquí la resolución del XML (`EducaFlowBuildTools`, herramienta `xml2pdf`) ni el dibujo del PDF (`base.infrastructure.pdfgenerator`).
 
 ---
 
 ## Quick Guidelines
 
 - Dos tipos de documento, por elemento raíz: `<documentoFormulario>` (rejilla de 12 columnas, bilingüe, §2) y `<documentoTexto>` (prosa, un solo idioma, `documentotexto.md`). Cada uno con su XSD, y cada XSD con su propio `<fragmento>`: un documento **MUST NOT** incluir un fragmento del otro tipo.
-- El idioma se le pasa a `generate(xml, contexto, idioma)` y sale del usuario autenticado (`SecurityUtil.getUser().getLanguage()`, desconocido → castellano): el FORMULARIO lo ignora, el TEXTO emite solo ese (§1.1).
+- El idioma es el del usuario que genera el documento: el FORMULARIO lo ignora, el TEXTO emite solo ese (§1.1).
 - FORMULARIO: rejilla de 12 columnas; cada `<fila>` suma 12 o un múltiplo de 12 (múltiplo = líneas apiladas en el mismo rectángulo).
 - Idiomas: siempre elementos hijos `<valenciano>`/`<castellano>`, en todos los elementos; nunca atributos.
 - El `<titulo>` de un FORMULARIO es opcional: sin él, el documento se titula con el `<name>` del `TramiteInstance.xml` del trámite padre, traducido al valenciano (§2.7). El de un TEXTO es **obligatorio** y no se inyecta nada.
@@ -304,6 +326,7 @@ En un FORMULARIO lo admiten `campo`, `check`, `texto`, `fila` y `seccion`; en un
 - `${expresion}` = valor inline dentro de cualquier texto bilingüe, en los dos tipos: ocupa lo que mide, y nada si está vacío. **MUST NOT** llevar `;n` (sintaxis antigua, §2.3).
 - `nombreCampo` no es un nombre: es una **expresión Groovy** que obtiene el valor del campo, evaluada **en runtime** con `self` (el objeto del tipo de expediente) y `now`. El test P1 (`ExpresionesDeDocumentoTest`) compila cada expresión (también los `visible`) contra la entidad en `./gradlew test`; lo que depende de los datos (relación a `null` en la cadena, patrón de fecha) falla en runtime y **aborta el evento** (§2.8). Con comillas dobles dentro, atributo con comillas simples.
 - `visible="<expresión Boolean>"` (en un FORMULARIO: `campo`/`check`/`texto`/`fila`/`seccion`; en un TEXTO: todos sus elementos) quita el elemento cuando no aplica; `siOculto="colapsar"` (por omisión, lo de detrás sube; una sección no consume letra) o `"reservar"` (queda el hueco con sus bordes). Lo oculto no se evalúa. Es la forma de hacer alternativas excluyentes y de no evaluar lo que depende de un dato opcional (§2.9).
-- En `documentospdf/` cada documento está **o** como XML de definición **o** directamente como PDF versionado (nunca ambos para el mismo documento; mezclar XML de unos y PDF de otros en la carpeta es lo normal). Si existe **impreso oficial**, se versiona ese PDF tal cual en vez de definirlo por XML. Este fichero solo define el **formato del XML**; el build lo resuelve (`resolvePdfDocuments` / EducaFlowBuildTools) y la aplicación dibuja el PDF plano en runtime (`base.infrastructure.pdfgenerator`).
+- `campoFirma="<nombre>"` en el `<texto>` (FORMULARIO) o el `<espacio>` (TEXTO) que es el hueco de una firma: deja un campo de firma vacío en el que se firma por su nombre, sin coordenadas. Nombre único, por quién firma; nunca en un elemento con `visible` (§2.10).
+- En `documentospdf/` cada documento está **o** como XML de definición **o** directamente como PDF versionado (nunca ambos para el mismo documento; mezclar XML de unos y PDF de otros en la carpeta es lo normal). Un **impreso oficial** se redefine por XML y su PDF original se guarda como referencia en `documentospdf/originales/`, que el build ignora (§1).
 - Partes comunes: fragmentos `_*.xml` (raíz `<fragmento>`, del mismo tipo de documento) incluidos con `<include href="..."/>` solo a nivel de documento/fragmento, recursivos, validados también tras expandir (§2.5).
 - **MUST** extraer a fragmento, **desde que se escriben los documentos**, toda `<seccion>` literalmente idéntica en dos o más de ellos: **un fragmento por bloque común** (no un cajón de sastre) y nombrado por su contenido (`_datosAlumno.xml`, nunca `_template1.xml`). Lo que no sea literalmente idéntico **MUST NOT** unificarse cambiando el contenido de un documento: eso cambia el PDF (§2.5).
