@@ -478,7 +478,7 @@ class BeanMapperModelTest2 {
                     PersonModel.class,
                     source,
                     dest,
-                    AllowProperties.createAllowProperties(Collections.emptyMap()));
+                    AllowProperties.createDenyAllProperties());
 
             assertNull(dest.getName());
             assertNull(dest.getAge());

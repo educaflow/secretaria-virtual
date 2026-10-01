@@ -290,7 +290,7 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
     public AllowProperties allowPropertiesReenviar() {
         // Whitelist vacía: reenviar no acepta ningún dato del cliente más allá del id (que
         // ActionRequestHelper resuelve siempre, con independencia de la whitelist).
-        return AllowProperties.createAllowProperties(Map.of());
+        return AllowProperties.createDenyAllProperties();
     }
 
     /*************************************************************************************/
