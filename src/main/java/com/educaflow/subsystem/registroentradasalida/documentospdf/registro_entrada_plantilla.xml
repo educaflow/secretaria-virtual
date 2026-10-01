@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<documentoTexto xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documentoTexto.xsd">
+
+    <titulo>
+        <valenciano>Justificant de registre d'entrada</valenciano>
+        <castellano>Justificante de registro de entrada</castellano>
+    </titulo>
+
+    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda">
+        <valenciano>Centre docent</valenciano>
+        <castellano>Centro docente</castellano>
+    </parrafo>
+    <parrafo>
+        <valenciano>${self.centro.name} (${self.centro.code})</valenciano>
+        <castellano>${self.centro.name} (${self.centro.code})</castellano>
+    </parrafo>
+    <espacio alto="14.76"/>
+
+    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda">
+        <valenciano>Sol·licitant</valenciano>
+        <castellano>Solicitante</castellano>
+    </parrafo>
+    <parrafo>
+        <valenciano>${self.solicitante.nombreApellidos} (${self.solicitante.dni})</valenciano>
+        <castellano>${self.solicitante.nombreApellidos} (${self.solicitante.dni})</castellano>
+    </parrafo>
+    <espacio alto="14.76"/>
+
+    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda">
+        <valenciano>Interessat</valenciano>
+        <castellano>Interesado</castellano>
+    </parrafo>
+    <parrafo>
+        <valenciano>${self.interesado.nombreApellidos} (${self.interesado.dni})</valenciano>
+        <castellano>${self.interesado.nombreApellidos} (${self.interesado.dni})</castellano>
+    </parrafo>
+    <espacio alto="14.76"/>
+
+    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda">
+        <valenciano>Data de presentació</valenciano>
+        <castellano>Fecha de presentación</castellano>
+    </parrafo>
+    <parrafo>
+        <valenciano>${self.fecha.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))}</valenciano>
+        <castellano>${self.fecha.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))}</castellano>
+    </parrafo>
+    <espacio alto="14.76"/>
+
+    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda">
+        <valenciano>Núm. de registre electrònic en el centre educatiu</valenciano>
+        <castellano>Nº de registro electrónico en el centro educativo</castellano>
+    </parrafo>
+    <parrafo>
+        <valenciano>${self.numeroRegistro}</valenciano>
+        <castellano>${self.numeroRegistro}</castellano>
+    </parrafo>
+    <espacio alto="14.76"/>
+
+    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda">
+        <valenciano>Assumpte</valenciano>
+        <castellano>Asunto</castellano>
+    </parrafo>
+    <parrafo>
+        <valenciano>${self.asunto}</valenciano>
+        <castellano>${self.asunto}</castellano>
+    </parrafo>
+    <espacio alto="14.76"/>
+
+    <!-- Un registro de entrada puede no pertenecer a ningún expediente: entonces no se menciona. -->
+    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda" visible="self.numeroExpediente != null &amp;&amp; !self.numeroExpediente.isBlank()">
+        <valenciano>Núm. expedient</valenciano>
+        <castellano>Nº expediente</castellano>
+    </parrafo>
+    <parrafo visible="self.numeroExpediente != null &amp;&amp; !self.numeroExpediente.isBlank()">
+        <valenciano>${self.numeroExpediente}</valenciano>
+        <castellano>${self.numeroExpediente}</castellano>
+    </parrafo>
+    <espacio alto="14.76" visible="self.numeroExpediente != null &amp;&amp; !self.numeroExpediente.isBlank()"/>
+
+    <espacio alto="14.76"/>
+
+    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda">
+        <valenciano>Signat pel secretari del centre docent</valenciano>
+        <castellano>Firmado por el secretario del centro docente</castellano>
+    </parrafo>
+    <espacio alto="88.56" campoFirma="firmaSecretario"/>
+
+</documentoTexto>

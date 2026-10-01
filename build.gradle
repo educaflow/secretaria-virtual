@@ -313,6 +313,44 @@ tasks.register('resolvePdfDocuments', JavaExec) {
 tasks.named('processResources') {
     dependsOn 'resolvePdfDocuments'
 }
+// Lo mismo para los documentos PDF de los sistemas y subsistemas, que no cuelgan de
+// paqueteRaizTramites: su carpeta documentospdf/ va directamente bajo la del sistema o subsistema
+// (com.educaflow.system.<nombre>/documentospdf, com.educaflow.subsystem.<nombre>/documentospdf).
+// xml2pdf solo busca bajo un paquete raíz, así que hay una tarea por carpeta, con la propia
+// documentospdf/ como raíz. Al no haber ningún TramiteInstance.xml por encima, esos documentos
+// MUST llevar su propio <titulo>.
+def carpetasDocumentosPdfSistemas = ['system', 'subsystem'].collectMany { tipo ->
+    (file("src/main/java/com/educaflow/${tipo}").listFiles() ?: [] as File[])
+            .findAll { it.isDirectory() && new File(it, 'documentospdf').isDirectory() }
+            .collect { [tipo: tipo, nombre: it.name] }
+}.sort { a, b -> a.tipo <=> b.tipo ?: a.nombre <=> b.nombre }
+def tareasResolvePdfDocumentsSistemas = carpetasDocumentosPdfSistemas.collect { carpeta ->
+    def paqueteDocumentosPdf = "com.educaflow.${carpeta.tipo}.${carpeta.nombre}.documentospdf"
+    def rutaPaquete = paqueteDocumentosPdf.replace('.', '/')
+    tasks.register("resolvePdfDocuments_${carpeta.tipo}_${carpeta.nombre}", JavaExec) {
+        description = "Resuelve los XML de ${rutaPaquete}, igual que resolvePdfDocuments con los de los trámites."
+        group = 'build'
+
+        mainClass = 'com.educaflow.common.buildtools.xml2pdf.Main'
+
+        classpath = configurations.educaFlowBuildToolsDependency
+
+        args './src/main/java', './build/src-gen/main/resources', 'apertium', paqueteDocumentosPdf
+
+        workingDir = layout.projectDirectory.dir('.')
+
+        inputs.dir('src/main/java/' + rutaPaquete).withPathSensitivity(PathSensitivity.RELATIVE)
+        outputs.dir(layout.buildDirectory.dir('src-gen/main/resources/' + rutaPaquete))
+    }
+}
+tasks.register('resolvePdfDocumentsSistemas') {
+    description = 'Resuelve los XML de las carpetas documentospdf/ de todos los sistemas y subsistemas.'
+    group = 'build'
+    dependsOn tareasResolvePdfDocumentsSistemas
+}
+tasks.named('processResources') {
+    dependsOn 'resolvePdfDocumentsSistemas'
+}
 tasks.register('copyDataInit') {
     description = 'Copia las carpetas "data-init" (las que contienen input-config.xml) y su subcarpeta input de cada expediente.'
     group = 'build'

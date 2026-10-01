@@ -1,5 +1,6 @@
 package com.educaflow.subsystem.registroentradasalida.service.impl;
 
+import com.axelor.auth.db.User;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.DefaultModelService;
@@ -8,6 +9,9 @@ import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.numeradores.db.repo.NumeradorRepository;
 import com.educaflow.base.infrastructure.pdf.*;
+import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
+import com.educaflow.base.infrastructure.pdfgenerator.PdfGeneratorFactory;
+import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.base.util.TextUtil;
 import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
 import com.educaflow.subsystem.common.db.Centro;
@@ -32,7 +36,8 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
 
     private static final Logger log = LoggerFactory.getLogger(RegistroEntradaServiceImpl.class);
 
-    private static final Rectangulo rectanguloPosicionFirmaPDFRegistroEntrada =new Rectangulo(80,200,400,100);
+    /** El {@code campoFirma} del hueco de la firma del secretario en {@code documentospdf/registro_entrada_plantilla.xml}. */
+    private static final String CAMPO_FIRMA_REGISTRO_ENTRADA = "firmaSecretario";
 
     @Inject
     NumeradorRepository numeradorRepository;
@@ -117,7 +122,7 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
 
     private DocumentoPdf firmarPorSecretario(DocumentoPdf documentoPdf,Centro centro) {
         AlmacenClave almacenClave= almacenClaveResolver.getSecretario(centro);
-        CampoFirma campoFirma=new CampoFirma(rectanguloPosicionFirmaPDFRegistroEntrada).setNumeroPagina(1);
+        CampoFirma campoFirma=new CampoFirma(CAMPO_FIRMA_REGISTRO_ENTRADA);
 
         DocumentoPdf documentoPdfFirmado=documentoPdf.firmar(almacenClave,campoFirma);
 
@@ -126,24 +131,27 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
 
 
     private DocumentoPdf getPrimeraPaginaRegistroEntrada(DatosRegistroEntradaPdf datosRegistroEntradaPdf) {
-        String pdfFileName="registro_entrada_plantilla.pdf";
+        String xmlFileName="registro_entrada_plantilla.xml";
 
-        try (InputStream in = getInputStreamFromDocumentosPdf(pdfFileName)) {
+        try (InputStream in = getInputStreamFromDocumentosPdf(xmlFileName)) {
             if (in == null) {
-                log.error("No se encontró el recurso: {}", pdfFileName);
-                throw new IllegalStateException("No se encontró el recurso: " + pdfFileName);
+                log.error("No se encontró el recurso: {}", xmlFileName);
+                throw new IllegalStateException("No se encontró el recurso: " + xmlFileName);
             }
-            DocumentoPdf documentoPdfVacio = DocumentoPdfFactory.getDocumentoPdf(in.readAllBytes(), getNombreDocumentoResguardoPresentacion(datosRegistroEntradaPdf));
-
             Map<String, Object> contexto = Map.of("self", datosRegistroEntradaPdf);
 
-            DocumentoPdf documentoPdfRelleno = DocumentoPdfUtil.generate(documentoPdfVacio, contexto);
+            byte[] pdf = PdfGeneratorFactory.getPdfGenerator().generate(in.readAllBytes(), contexto, idiomaDelUsuarioAutenticado());
 
-            return documentoPdfRelleno;
+            return DocumentoPdfFactory.getDocumentoPdf(pdf, getNombreDocumentoResguardoPresentacion(datosRegistroEntradaPdf));
         } catch (IOException e) {
-            log.error("Error al cargar el documento PDF: {}", pdfFileName, e);
-            throw new IllegalStateException("Error al cargar el documento PDF: " + pdfFileName, e);
+            log.error("Error al cargar el documento PDF: {}", xmlFileName, e);
+            throw new IllegalStateException("Error al cargar el documento PDF: " + xmlFileName, e);
         }
+    }
+
+    private Idioma idiomaDelUsuarioAutenticado() {
+        User usuario = SecurityUtil.getUser();
+        return Idioma.deCodigo(usuario == null ? null : usuario.getLanguage());
     }
 
     private String getNombreDocumentoOriginalFirmado(DatosRegistroEntradaPdf datosRegistroEntradaPdf) {
