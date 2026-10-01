@@ -52,8 +52,8 @@
                 <castellano>CP__!!</castellano>
             </campo>
         </fila>
-        <fila>
-            <campo nombreCampo='self.presentadoEnRepresentacion ? self.personaSolicitante.nombre + " " + self.personaSolicitante.apellidos + " (" + self.personaSolicitante.dni + ")" : ""' colspan="12">
+        <fila visible="self.presentadoEnRepresentacion == true">
+            <campo nombreCampo='self.personaSolicitante.nombre + " " + self.personaSolicitante.apellidos + " (" + self.personaSolicitante.dni + ")"' colspan="12">
                 <valenciano>Presentada en el seu nom per (pare, mare o tutor/a legal)</valenciano>
                 <castellano>Presentada en su nombre por (padre, madre o tutor/a legal)</castellano>
             </campo>
