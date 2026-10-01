@@ -12,6 +12,7 @@ import com.educaflow.subsystem.expedientes.db.repo.AnulacionMatriculaCicloFormat
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.EventContext;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.OnEnterState;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.PhaseEventManager;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.State;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.WhenEvent;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada;
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.AnulacionMatriculaCicloFormativoV1Util;
@@ -147,7 +148,12 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
     }
 
     private static boolean esEstado(AnulacionMatriculaCicloFormativoV1 expediente, States.Solicitud estado) {
-        return estado.getPhase().getCode().equals(expediente.getCodePhase()) && estado.getCode().equals(expediente.getCodeState());
+        State actual = States.INSTANCE
+                .getState(expediente.getCodePhase(), expediente.getCodeState())
+                .orElseThrow(() -> new IllegalStateException("Estado no reconocido: "
+                        + expediente.getCodePhase() + "/" + expediente.getCodeState()));
+
+        return actual == estado;
     }
 
     /**
