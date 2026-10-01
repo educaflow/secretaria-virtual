@@ -26,10 +26,6 @@ public final class AnulacionMatriculaCicloFormativoV1Util {
     /* Validaciones                                                       */
     /* ------------------------------------------------------------------ */
 
-    public static boolean tieneDniValido(Persona persona) {
-        return DniUtil.isValid(persona.getDni());
-    }
-
     public static boolean esPresentadoEnPapelEnRepresentacion(AnulacionMatriculaCicloFormativoV1 expediente) {
         return Boolean.TRUE.equals(expediente.getPresentadoEnPapel()) && Boolean.TRUE.equals(expediente.getPresentadoEnRepresentacion());
     }

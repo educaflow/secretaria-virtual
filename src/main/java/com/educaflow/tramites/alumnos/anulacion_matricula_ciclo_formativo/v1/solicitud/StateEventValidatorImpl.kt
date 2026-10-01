@@ -4,6 +4,7 @@ import com.educaflow.subsystem.tramitador.tramitacion.validation.StateEventValid
 import com.educaflow.subsystem.tramitador.tramitacion.validation.BeanValidationRulesForStateAndEvent
 import com.educaflow.base.infrastructure.validation.dsl.rules
 import com.educaflow.base.infrastructure.validation.engine.BeanValidationRules
+import com.educaflow.base.infrastructure.validation.rules.Dni
 import com.educaflow.base.infrastructure.validation.rules.FileMaxSize
 import com.educaflow.base.infrastructure.validation.rules.FileType
 import com.educaflow.base.infrastructure.validation.rules.FirmaPdf
@@ -12,7 +13,9 @@ import com.educaflow.base.infrastructure.validation.dsl.ifLambda
 import com.educaflow.base.infrastructure.validation.rules.Lambda
 import com.educaflow.base.infrastructure.validation.rules.MaxLength
 import com.educaflow.base.infrastructure.validation.rules.MinLength
-import com.educaflow.base.infrastructure.validation.rules.Pattern
+import com.educaflow.base.infrastructure.validation.rules.Nia
+import com.educaflow.base.infrastructure.validation.rules.Phone
+import com.educaflow.base.infrastructure.validation.rules.PostalCode
 import com.educaflow.base.infrastructure.validation.rules.Required
 import com.educaflow.subsystem.common.db.Persona
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.AnulacionMatriculaCicloFormativoV1Util as util
@@ -51,11 +54,11 @@ class StateEventValidatorImpl: StateEventValidator {
                 }
                 field(Persona::getDni) {
                     +Required()
-                    +Lambda(util::tieneDniValido, "El DNI o NIE no es válido")
+                    +Dni()
                 }
                 field(Persona::getNia) {
                     +Required()
-                    +Pattern("^\\d{8}\$")
+                    +Nia()
                 }
                 field(Persona::getDireccion) {
                     +Required()
@@ -64,14 +67,14 @@ class StateEventValidatorImpl: StateEventValidator {
                 }
                 field(Persona::getTelefono) {
                     +Required()
-                    +Pattern("^[6789]\\d{8}\$")
+                    +Phone()
                 }
                 field(Persona::getMunicipio) {
                     +Required()
                 }
                 field(Persona::getCp) {
                     +Required()
-                    +Pattern("^\\d{5}\$")
+                    +PostalCode()
                 }
             }
             field(model::getCiclo) {
