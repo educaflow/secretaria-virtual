@@ -1,0 +1,7 @@
+# Build — iteración 1
+{"id":"E-001","tipo":"WARNING","fichero":"src/test/java/com/educaflow/subsystem/sms/service/impl/SmsServiceImplTest.java","ubicacion":"línea 963","tarea":"task_34.md","mensaje":"[JavaTimeDefaultTimeZone] LocalDateTime.now() is not allowed because it silently uses the system default time-zone. You must pass an explicit time-zone (e.g., ZoneId.of(\"America/Los_Angeles\")) to this method.","correccion":"Usar LocalDateTime.now(ZoneId.systemDefault()).minusDays(1) en enBd.setFechaEnvio(...) (importar java.time.ZoneId)."}
+{"id":"E-002","tipo":"WARNING","fichero":"src/test/java/com/educaflow/subsystem/sms/service/impl/SmsServiceImplTest.java","ubicacion":"línea 1013","tarea":"task_34.md","mensaje":"[JavaTimeDefaultTimeZone] LocalDateTime.now() is not allowed because it silently uses the system default time-zone. You must pass an explicit time-zone (e.g., ZoneId.of(\"America/Los_Angeles\")) to this method.","correccion":"LocalDateTime haceDosDias = LocalDateTime.now(ZoneId.systemDefault()).minusDays(2);"}
+{"id":"E-003","tipo":"WARNING","fichero":"src/test/java/com/educaflow/subsystem/sms/service/impl/SmsServiceImplTest.java","ubicacion":"línea 1014","tarea":"task_34.md","mensaje":"[JavaTimeDefaultTimeZone] LocalDateTime.now() is not allowed because it silently uses the system default time-zone. You must pass an explicit time-zone (e.g., ZoneId.of(\"America/Los_Angeles\")) to this method.","correccion":"LocalDateTime ayer = LocalDateTime.now(ZoneId.systemDefault()).minusDays(1);"}
+
+# Build — iteración 2
+OK-COMPILA

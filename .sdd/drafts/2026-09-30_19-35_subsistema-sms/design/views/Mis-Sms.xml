@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+
+    <!-- SMS ya enviados al DNI del usuario conectado, de cualquier centro.
+         El DNI llega por <context> y se referencia como parámetro plano `:dniUsuarioActual`:
+         `:__user__.dni` NO resuelve, porque Hibernate no admite puntos en el nombre de un parámetro.
+         El <domain> va ANTES del <context> porque lo exige el XSD. -->
+    <action-view name="subsysSms.Mis@Sms-action" title="Mis SMS" model="com.educaflow.subsystem.sms.db.Sms">
+        <view type="grid" name="subsysSms.Mis@Sms-grid"/>
+        <view type="form" name="subsysSms.Mis@Sms-form"/>
+        <view-param name="show-toolbar-grid" value="false"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <domain>self.dniDestinatario = :dniUsuarioActual and self.estado = :estadoEnviado</domain>
+        <context name="dniUsuarioActual" expr="eval: __user__?.dni"/>
+        <context name="estadoEnviado" expr="ENVIADO"/>
+    </action-view>
+
+    <grid name="subsysSms.Mis@Sms-grid" title="" model="com.educaflow.subsystem.sms.db.Sms"
+          canNew="false" allowSearchFields="true" orderBy="-fechaEnvio"
+          canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="mensaje"/>
+        <field name="telefono" width="140px"/>
+        <field name="nombreExpediente" width="180px"/>
+        <field name="fechaEnvio" width="160px"/>
+    </grid>
+
+    <form name="subsysSms.Mis@Sms-form" title="SMS__!!" model="com.educaflow.subsystem.sms.db.Sms"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+
+        <panel name="Sms" title="Datos del SMS" readonly="true">
+            <field name="telefono" colSpan="3" widget="phone" x-only-countries="ES"/>
+            <field name="fechaEnvio" colSpan="3"/>
+            <field name="mensaje" colSpan="12" colOffset="6" widget="Text"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Salir" onClick="subsysSms.Mis@Sms-btnCancel-action"
+                    colSpan="2" colOffset="10" outline="true"/>
+        </panel>
+
+    </form>
+
+    <?sv-primary-actions?>
+
+    <!-- Salir del formulario. -->
+    <action-group name="subsysSms.Mis@Sms-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+</object-views>

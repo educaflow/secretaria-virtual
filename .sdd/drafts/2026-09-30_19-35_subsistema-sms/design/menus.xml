@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+<!-- PORCIÓN a fusionar en el fichero único src/main/java/com/educaflow/secretariavirtual/menus/menus.xml,
+     justo DESPUÉS del bloque «Correos» (order="50") y ANTES de «Mi centro» (order="60"): con order="55"
+     el menú «SMS» queda entre los dos sin renumerar ningún menú existente.
+     MUST NOT escribirse el atributo `if`: lo añade el preprocesador de vistas a todos los menuitems.
+     Ningún `case` nuevo en MenuSecurityServiceImpl (ver design.md, «Notas y supuestos» y decisiones.md D5):
+     «Del centro» la ven todos los `users` y el <domain> de su action-view es quien decide qué datos hay. -->
+
+<menuitem name="sms-menuitem" title="SMS__!!" groups="admins,users" order="55"/>
+    <menuitem name="sms-recibidos-menuitem" parent="sms-menuitem" title="Recibidos" action="subsysSms.Mis@Sms-action" groups="admins,users" order="1"/>
+    <menuitem name="sms-delCentro-menuitem" parent="sms-menuitem" title="Del centro" action="subsysSms.Centro@Sms-action" groups="users" order="2"/>
+    <menuitem name="sms-todos-menuitem" parent="sms-menuitem" title="Todos" action="subsysSms.Main@Sms-action" groups="admins" order="3"/>
+
+</object-views>

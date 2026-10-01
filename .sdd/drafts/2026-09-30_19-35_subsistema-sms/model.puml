@@ -1,0 +1,36 @@
+@startuml
+
+class Sms {
+  + DNI del destinatario
+  + nombre
+  + apellidos
+  + teléfono
+  + mensaje
+  + centro
+  + estado del expediente
+  + nombre del expediente
+  + estado
+  + fecha de creación
+  + fecha del primer intento de envío
+  + fecha del último intento de envío
+  + fecha de envío
+  + número de reintentos
+  + descripción del último fallo
+}
+
+enum EstadoSms {
+  PENDIENTE
+  ENVIADO
+  FALLIDO
+}
+
+class Centro {
+}
+
+class HistorialEstado {
+}
+
+Sms --> EstadoSms
+Sms "many" --> "1" Centro : centro
+Sms "many" --> "0..1" HistorialEstado : estado del expediente
+@enduml

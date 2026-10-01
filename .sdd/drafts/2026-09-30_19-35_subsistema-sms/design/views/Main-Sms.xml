@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+
+    <!-- Administración de SMS: todos los SMS de todos los centros, con alta a mano, detalle en solo
+         lectura y reenvío de los fallidos. -->
+    <action-view name="subsysSms.Main@Sms-action" title="Administración de SMS" model="com.educaflow.subsystem.sms.db.Sms">
+        <view type="grid" name="subsysSms.Main@Sms-grid"/>
+        <view type="form" name="subsysSms.Main@Sms-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="forceEdit" value="true"/>
+    </action-view>
+
+    <grid name="subsysSms.Main@Sms-grid" title="" model="com.educaflow.subsystem.sms.db.Sms"
+          canNew="true" newButtonTitle="Nuevo SMS" allowSearchFields="true" orderBy="-fechaCreacion"
+          canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false" canEditOnClick="true">
+        <field name="estado" width="120px"/>
+        <field name="dniDestinatario" width="140px"/>
+        <field name="nombre" width="150px"/>
+        <field name="apellidos" width="180px"/>
+        <field name="telefono" width="140px"/>
+        <field name="mensaje"/>
+        <field name="centro" width="180px"/>
+        <field name="nombreExpediente" width="180px"/>
+        <field name="fechaCreacion" width="160px"/>
+        <field name="fechaEnvio" width="160px"/>
+    </grid>
+
+    <form name="subsysSms.Main@Sms-form" title="SMS__!!" model="com.educaflow.subsystem.sms.db.Sms"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+
+        <panel name="Sms" title="Datos del SMS" readonlyIf="(id != null) || (cid != null)">
+            <field name="centro" colSpan="6"
+                   grid-view="subsysCommon.Ref@Centro-grid" form-view="subsysCommon.Ref@Centro-form"/>
+            <field name="dniDestinatario" colSpan="3" colOffset="6"/>
+            <field name="nombre" colSpan="4"/>
+            <field name="apellidos" colSpan="5"/>
+            <field name="telefono" colSpan="4" widget="phone" x-only-countries="ES"/>
+            <field name="historialEstado" colSpan="8"/>
+            <field name="mensaje" colSpan="12" widget="Text"/>
+        </panel>
+
+        <panel name="Envio" title="Datos del envío" showIf="(id != null) || (cid != null)" colSpan="12"
+               readonly="true">
+            <field name="estado" colSpan="3"/>
+            <field name="numeroReintentos" colSpan="3"/>
+            <field name="fechaCreacion" colSpan="3" colOffset="6"/>
+            <field name="fechaPrimerIntentoEnvio" colSpan="3"/>
+            <field name="fechaUltimoIntentoEnvio" colSpan="3"/>
+            <field name="fechaEnvio" colSpan="3" showIf="estado == 'ENVIADO'"/>
+            <field name="descripcionUltimoFallo" colSpan="12" widget="Text" showIf="estado == 'FALLIDO'"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <panel name="buttonsAlta" title="" colSpan="12" showFrame="false"
+                   showIf="(id == null) &amp;&amp; (cid == null)">
+                <button name="btnCancelAlta" title="Cancelar" onClick="subsysSms.Main@Sms-btnCancel-action"
+                        colSpan="2" colOffset="8" outline="true"/>
+                <button name="btnSave" title="Guardar" onClick="subsysSms.Main@Sms-btnSave-action"
+                        colSpan="2"/>
+            </panel>
+            <panel name="buttonsDetalle" title="" colSpan="12" showFrame="false"
+                   showIf="(id != null) || (cid != null)">
+                <button name="btnReenviar" title="Reenviar" onClick="subsysSms.Main@Sms-btnReenviar-action"
+                        colSpan="2" showIf="estado == 'FALLIDO'"/>
+                <button name="btnCancelSalir" title="Salir" onClick="subsysSms.Main@Sms-btnCancel-action"
+                        colSpan="2" colOffset="8" outline="true"/>
+            </panel>
+        </panel>
+
+    </form>
+
+    <?sv-primary-actions?>
+
+    <!-- Salir del formulario sin guardar, preguntando por los cambios pendientes. -->
+    <action-group name="subsysSms.Main@Sms-btnCancel-action">
+        <action name="back"/>
+    </action-group>
+
+    <!-- Guardar y volver al listado: `force-back` (nunca `back`) cierra la ventana aunque el `save`
+         haya sido un no-op y sin volver a preguntar por cambios ya persistidos. -->
+    <action-group name="subsysSms.Main@Sms-btnSave-action">
+        <action name="subsysSms.Main@Sms-Local-validateSave-action"/>
+        <action name="remote-validationSave-action"/>
+        <action name="save"/>
+        <action name="force-back"/>
+    </action-group>
+
+    <!-- Reenviar el SMS fallido seleccionado. -->
+    <action-group name="subsysSms.Main@Sms-btnReenviar-action">
+        <action name="subsysSms.Main@Sms-Remote-validateReenviar-action"/>
+        <action name="subsysSms.Main@Sms-Remote-reenviar-action"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <!-- Comprobación de campos obligatorios en el cliente, solo para evitar el roundtrip; la fuente
+         de verdad es `SmsServiceImpl.validateInsert`. -->
+    <action-condition name="subsysSms.Main@Sms-Local-validateSave-action">
+        <check field="centro" if="centro == null"
+               error="El centro es obligatorio"/>
+        <check field="dniDestinatario" if="dniDestinatario == null || dniDestinatario.isEmpty()"
+               error="El DNI del destinatario es obligatorio"/>
+        <check field="nombre" if="nombre == null || nombre.isEmpty()"
+               error="El nombre es obligatorio"/>
+        <check field="apellidos" if="apellidos == null || apellidos.isEmpty()"
+               error="Los apellidos son obligatorios"/>
+        <check field="telefono" if="telefono == null || telefono.isEmpty()"
+               error="El teléfono es obligatorio"/>
+        <check field="mensaje" if="mensaje == null || mensaje.isEmpty()"
+               error="El mensaje es obligatorio"/>
+    </action-condition>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+    <!-- Valida en el servidor, antes de reenviar, que el SMS está FALLIDO y que el usuario gestiona su centro (V-Sms-014, V-Sms-015). También la usa Centro-Sms.xml. -->
+    <action-method name="subsysSms.Main@Sms-Remote-validateReenviar-action" model="com.educaflow.subsystem.sms.db.Sms">
+        <call class="com.educaflow.subsystem.sms.controller.SmsController" method="validateReenviar"/>
+    </action-method>
+
+    <!-- Vuelve a programar el envío del SMS (R-Sms-003) y avisa al usuario. También la usa Centro-Sms.xml. -->
+    <action-method name="subsysSms.Main@Sms-Remote-reenviar-action" model="com.educaflow.subsystem.sms.db.Sms">
+        <call class="com.educaflow.subsystem.sms.controller.SmsController" method="reenviar"/>
+    </action-method>
+
+</object-views>

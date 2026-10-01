@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="sms" package="com.educaflow.subsystem.sms.db"/>
+
+    <entity name="Sms">
+
+        <!-- Datos del destinatario: texto libre, no enlazan con la ficha de ninguna persona -->
+        <string name="dniDestinatario" title="DNI del destinatario"/>
+        <string name="nombre" title="Nombre"/>
+        <string name="apellidos" title="Apellidos"/>
+
+        <string name="telefono" title="Teléfono"
+                help="Móvil de España al que se envía el SMS, guardado en formato internacional E.164 (por ejemplo, +34600111222)"/>
+
+        <!-- Sin `max`: el límite real depende de la codificación (160 unidades GSM-7 o 70 caracteres
+             UCS-2) y lo comprueba el servicio -->
+        <string name="mensaje" title="Mensaje" multiline="true"/>
+
+        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro"
+                     help="Centro que envía el SMS; decide qué Supervisores y Administrativos lo ven"/>
+
+        <many-to-one name="historialEstado" ref="com.educaflow.subsystem.expedientes.db.HistorialEstado"
+                     title="Estado del expediente"
+                     help="Estado del expediente en el que se encontraba el expediente cuando se envió el SMS (opcional)"/>
+
+        <!-- Datos del envío: los rellena siempre el servidor -->
+        <enum name="estado" ref="EstadoSms" title="Estado"/>
+        <datetime name="fechaCreacion" title="Fecha de creación"/>
+        <datetime name="fechaPrimerIntentoEnvio" title="Fecha del primer intento de envío"/>
+        <datetime name="fechaUltimoIntentoEnvio" title="Fecha del último intento de envío"/>
+        <datetime name="fechaEnvio" title="Fecha de envío"/>
+        <integer name="numeroReintentos" title="Número de reintentos__!!"/>
+        <string name="descripcionUltimoFallo" title="Descripción del último fallo" large="true" multiline="true"
+                help="Traza de la excepción Java del último intento de envío fallido"/>
+
+        <!-- Subselect correlacionado: si no hay `historialEstado`, o su expediente es null, ninguna
+             fila empareja y el resultado es null -->
+        <string name="nombreExpediente" title="Nombre del expediente" formula="true">
+            <![CDATA[
+                (SELECT ex.name
+                 FROM expedientes_historial_estado he
+                 INNER JOIN expedientes_expediente ex ON ex.id = he.expediente
+                 WHERE he.id = historial_estado)
+            ]]>
+        </string>
+
+    </entity>
+
+    <enum name="EstadoSms">
+        <item name="PENDIENTE" title="Pendiente"/>
+        <item name="ENVIADO" title="Enviado"/>
+        <item name="FALLIDO" title="Fallido"/>
+    </enum>
+
+</domain-models>
