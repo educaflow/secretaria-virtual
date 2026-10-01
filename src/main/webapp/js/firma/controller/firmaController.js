@@ -21,6 +21,9 @@ globalThis.firmaController = async function(context, payload) {
                 },
                 sufijo: payload.sufijo,
 
+                // Dónde se firma: o en un campo de firma que ya existe en el PDF (signatureField)
+                // o en un rectángulo de una página (signaturePositionOnPage + pageNumber).
+                signatureField: payload.signatureField,
                 signaturePositionOnPage: {
                     lowerLeftX: payload.signaturePositionOnPageLowerLeftX,
                     lowerLeftY: payload.signaturePositionOnPageLowerLeftY,

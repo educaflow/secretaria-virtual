@@ -86,16 +86,33 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
 
 
 
-        tareaFirma.setX(BigDecimal.valueOf(tareaFirmaInsertDTO.areaFirma().x()));
-        tareaFirma.setY(BigDecimal.valueOf(tareaFirmaInsertDTO.areaFirma().y()));
-        tareaFirma.setWidth(BigDecimal.valueOf(tareaFirmaInsertDTO.areaFirma().width()));
-        tareaFirma.setHeight(BigDecimal.valueOf(tareaFirmaInsertDTO.areaFirma().height()));
-
-        tareaFirma.setPage(tareaFirmaInsertDTO.page());
+        asignarLugarFirma(tareaFirma, tareaFirmaInsertDTO);
 
         tareaFirma = repository.save(tareaFirma);
 
         return tareaFirma;
+    }
+
+    /**
+     * Dónde se firma: el DTO trae o el nombre del campo de firma o el rectángulo y su página, nunca los dos.
+     * Se asignan todos los campos, también los de la forma que no se usa, que quedan a null.
+     */
+    private static void asignarLugarFirma(TareaFirma tareaFirma, TareaFirmaInsertDTO tareaFirmaInsertDTO) {
+        Rectangulo areaFirma = tareaFirmaInsertDTO.areaFirma();
+
+        tareaFirma.setNombreCampoFirma(tareaFirmaInsertDTO.nombreCampoFirma());
+        tareaFirma.setPage(tareaFirmaInsertDTO.page());
+        if (areaFirma == null) {
+            tareaFirma.setX(null);
+            tareaFirma.setY(null);
+            tareaFirma.setWidth(null);
+            tareaFirma.setHeight(null);
+        } else {
+            tareaFirma.setX(BigDecimal.valueOf(areaFirma.x()));
+            tareaFirma.setY(BigDecimal.valueOf(areaFirma.y()));
+            tareaFirma.setWidth(BigDecimal.valueOf(areaFirma.width()));
+            tareaFirma.setHeight(BigDecimal.valueOf(areaFirma.height()));
+        }
     }
 
     @Override
@@ -291,17 +308,33 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
      * pendiente y el firmante puede reintentar.
      */
     private void fireActionRule_FirmarDocumentosEnServidor(TareaFirma tareaFirma, String claveCertificado) {
-        // Un solo CampoFirma para todos los documentos: no tiene estado consumible. El recuadro es BigDecimal
-        // en la entidad y float en Rectangulo, de ahí los floatValue().
-        CampoFirma campoFirma = new CampoFirma(new Rectangulo(
-                        tareaFirma.getX().floatValue(),
-                        tareaFirma.getY().floatValue(),
-                        tareaFirma.getWidth().floatValue(),
-                        tareaFirma.getHeight().floatValue()))
-                .setNumeroPagina(tareaFirma.getPage());
+        // Un solo CampoFirma para todos los documentos: no tiene estado consumible.
+        CampoFirma campoFirma = getCampoFirma(tareaFirma);
         List<DocumentoFirmado> documentosFirmados = firmarDocumentosEnMemoria(tareaFirma, claveCertificado, campoFirma);
 
         publicarDocumentosFirmados(documentosFirmados);
+    }
+
+    /**
+     * Dónde se firma cada documento de la tarea: en su campo de firma {@code nombreCampoFirma} o, si la tarea
+     * no lo indica, en su rectángulo. El recuadro es BigDecimal en la entidad y float en Rectangulo, de ahí
+     * los floatValue().
+     */
+    private static CampoFirma getCampoFirma(TareaFirma tareaFirma) {
+        CampoFirma campoFirma;
+
+        if (tareaFirma.getNombreCampoFirma() != null) {
+            campoFirma = new CampoFirma(tareaFirma.getNombreCampoFirma());
+        } else {
+            campoFirma = new CampoFirma(new Rectangulo(
+                    tareaFirma.getX().floatValue(),
+                    tareaFirma.getY().floatValue(),
+                    tareaFirma.getWidth().floatValue(),
+                    tareaFirma.getHeight().floatValue()))
+                    .setNumeroPagina(tareaFirma.getPage());
+        }
+
+        return campoFirma;
     }
 
     /**

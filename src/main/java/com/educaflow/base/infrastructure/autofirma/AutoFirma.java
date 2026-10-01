@@ -22,6 +22,7 @@ public class AutoFirma {
 
     private final Class clazz;
     private Rectangulo rectangulo;
+    private String nombreCampoFirma=null;
     private String dni=null;
     private String motivo =null;
     private List<SourceTargetField> sourceTargetFields=new ArrayList<>();
@@ -38,8 +39,11 @@ public class AutoFirma {
         if (autofirma.getSourceTargetFields() == null || autofirma.getSourceTargetFields().isEmpty()) {
             throw new RuntimeException("El campo sourceTargetFields no puede estar vacio");
         }
-        if (autofirma.getRectangulo() == null) {
-            throw new RuntimeException("El campo rectangulo no puede estar vacio");
+        if (autofirma.getRectangulo() == null && autofirma.getNombreCampoFirma() == null) {
+            throw new RuntimeException("Hay que indicar dónde se firma: el rectangulo o el nombreCampoFirma");
+        }
+        if (autofirma.getRectangulo() != null && autofirma.getNombreCampoFirma() != null) {
+            throw new RuntimeException("Solo se puede indicar una forma de situar la firma: el rectangulo o el nombreCampoFirma, no los dos");
         }
 
 
@@ -56,6 +60,23 @@ public class AutoFirma {
 
     public Rectangulo getRectangulo() {
         return rectangulo;
+    }
+
+    /**
+     * Firma en un campo de firma vacío que ya existe en el PDF, en vez de en un rectángulo: la posición
+     * y la página son las del campo, así que es excluyente con {@link #setRectangulo(Rectangulo)} y
+     * {@link #setPageNumber(int)} se ignora.
+     */
+    public AutoFirma setNombreCampoFirma(String nombreCampoFirma) {
+        if (nombreCampoFirma != null && nombreCampoFirma.isBlank()) {
+            throw new IllegalArgumentException("nombreCampoFirma no puede estar vacio");
+        }
+        this.nombreCampoFirma = nombreCampoFirma;
+        return this;
+    }
+
+    public String getNombreCampoFirma() {
+        return nombreCampoFirma;
     }
 
     public AutoFirma setDni(String dni) {
@@ -128,13 +149,20 @@ public class AutoFirma {
         payload.put("sufijo", this.getSufijo());
         payload.put("pageNumber", this.getPageNumber());
         payload.put("fontSize", this.getFontSize());
-        Rectangulo rectangulo = this.getRectangulo();
+        if (this.getNombreCampoFirma() != null) {
+            payload.put("signatureField", this.getNombreCampoFirma());
+        } else {
+            putRectangulo(payload, this.getRectangulo());
+        }
+
+        return payload;
+    }
+
+    private static void putRectangulo(Map<String, Object> payload, Rectangulo rectangulo) {
         payload.put("signaturePositionOnPageLowerLeftX", rectangulo.x());
         payload.put("signaturePositionOnPageLowerLeftY", rectangulo.y()+AUTOFIRMA_Y_OFFSET);
         payload.put("signaturePositionOnPageUpperRightX", rectangulo.x() + rectangulo.width());
         payload.put("signaturePositionOnPageUpperRightY", rectangulo.y()+AUTOFIRMA_Y_OFFSET + rectangulo.height());
-
-        return payload;
     }
 
 

@@ -76,7 +76,7 @@
         <valenciano>Signat</valenciano>
         <castellano>Firmado</castellano>
         <fila>
-            <texto colspan="12" rowSpan="4">
+            <texto colspan="12" rowSpan="4" campoFirma="firmaSolicitante">
                 <valenciano>Signatura</valenciano>
                 <castellano>Firma</castellano>
             </texto>

@@ -66,6 +66,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import com.educaflow.base.util.Convert;
+import com.educaflow.subsystem.firmas.service.TareaFirmaInsertDTO;
+import com.educaflow.subsystem.common.db.Centro;
+import com.educaflow.base.infrastructure.pdf.Rectangulo;
+import com.educaflow.base.util.MetaFileUtil;
 
 @ExtendWith(MockitoExtension.class)
 class TareaFirmaServiceImplTest {
@@ -759,6 +763,68 @@ class TareaFirmaServiceImplTest {
         assertEquals(400f, campoFirma.getRectanguloMensaje().width());
         assertEquals(60f, campoFirma.getRectanguloMensaje().height());
         assertEquals(1, campoFirma.getNumeroPagina());
+    }
+
+    @Test
+    void insert_conNombreDeCampoFirma_guardaElNombreYDejaElRecuadroYLaPaginaANull() {
+        TareaFirma tareaFirma = insertar(documento -> new TareaFirmaInsertDTO(firmante, new Centro(), List.of(documento),
+                "Firma de la solicitud", "firmaSolicitante", TareaFirmaNotifier.class, null));
+
+        assertEquals("firmaSolicitante", tareaFirma.getNombreCampoFirma());
+        assertNull(tareaFirma.getX());
+        assertNull(tareaFirma.getY());
+        assertNull(tareaFirma.getWidth());
+        assertNull(tareaFirma.getHeight());
+        assertNull(tareaFirma.getPage());
+        assertEquals(EstadoTareaFirma.PENDIENTE, tareaFirma.getEstadoTareaFirma());
+        assertEquals(1, tareaFirma.getDocumentosFirma().size());
+    }
+
+    @Test
+    void insert_conRectangulo_guardaElRecuadroYLaPaginaYDejaElNombreDeCampoFirmaANull() {
+        TareaFirma tareaFirma = insertar(documento -> new TareaFirmaInsertDTO(firmante, new Centro(), List.of(documento),
+                "Firma de la solicitud", new Rectangulo(75, 200, 400, 60), 2, TareaFirmaNotifier.class, null));
+
+        assertNull(tareaFirma.getNombreCampoFirma());
+        assertEquals(0, new BigDecimal("75").compareTo(tareaFirma.getX()));
+        assertEquals(0, new BigDecimal("200").compareTo(tareaFirma.getY()));
+        assertEquals(0, new BigDecimal("400").compareTo(tareaFirma.getWidth()));
+        assertEquals(0, new BigDecimal("60").compareTo(tareaFirma.getHeight()));
+        assertEquals(2, tareaFirma.getPage());
+    }
+
+    /** Da de alta una tarea con un único PDF que tiene el campo de firma vacío {@code firmaSolicitante}. */
+    private TareaFirma insertar(java.util.function.Function<MetaFile, TareaFirmaInsertDTO> dtoDelDocumento) {
+        MetaFile documento = new MetaFile();
+        DocumentoPdf documentoPdf = Mockito.mock(DocumentoPdf.class);
+        Mockito.lenient().when(documentoPdf.getNombreCamposFirmaVacios()).thenReturn(List.of("firmaSolicitante"));
+        metaFileHelperMock.when(() -> MetaFileHelper.isPdf(documento)).thenReturn(true);
+        metaFileHelperMock.when(() -> MetaFileHelper.getDocumentoPdf(documento)).thenReturn(documentoPdf);
+        when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        try (MockedStatic<MetaFileUtil> metaFileUtilMock = Mockito.mockStatic(MetaFileUtil.class)) {
+            metaFileUtilMock.when(() -> MetaFileUtil.cloneMetaFile(documento)).thenReturn(new MetaFile());
+
+            return service.insert(dtoDelDocumento.apply(documento));
+        }
+    }
+
+    @Test
+    void firmarEnServidor_tareaConNombreDeCampoFirma_construyeElCampoFirmaConEseNombreYSinRecuadro() {
+        TareaFirma tareaFirma = arrangeFirmaEnServidor(1, SituacionFirma.FICHERO_CON_CLAVE);
+        tareaFirma.setNombreCampoFirma("firmaSolicitante");
+        tareaFirma.setX(null);
+        tareaFirma.setY(null);
+        tareaFirma.setWidth(null);
+        tareaFirma.setHeight(null);
+        tareaFirma.setPage(null);
+        ArgumentCaptor<CampoFirma> captor = ArgumentCaptor.forClass(CampoFirma.class);
+
+        service.firmarEnServidor(tareaFirma, tareaFirmaOriginalIrrelevante(), claveCertificadoTecleada);
+
+        verify(documentosPdfOriginales.get(0)).firmar(any(), captor.capture());
+        assertEquals("firmaSolicitante", captor.getValue().getNombreCampo());
+        assertNull(captor.getValue().getRectanguloMensaje());
     }
 
     @Test

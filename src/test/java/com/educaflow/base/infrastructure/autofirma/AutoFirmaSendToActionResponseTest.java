@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -94,6 +95,56 @@ class AutoFirmaSendToActionResponseTest {
         assertEquals(2.0f, payload.get("signaturePositionOnPageLowerLeftY"));
         assertEquals(23.0f, payload.get("signaturePositionOnPageUpperRightX"));
         assertEquals(12.0f, payload.get("signaturePositionOnPageUpperRightY"));
+    }
+
+    @Test
+    void sendToActionResponse_conNombreCampoFirma_publicaElCampoYNoElRectangulo() {
+        AutoFirma autoFirma = new AutoFirma(JustificacionDummy.class)
+                .setNombreCampoFirma("firmaSolicitante")
+                .addSourceTargetField("pdfSolicitud", "pdfSolicitudFirmado");
+
+        ActionResponse actionResponse = mock(ActionResponse.class);
+        AutoFirma.sendToActionResponse(autoFirma, actionResponse);
+
+        Map<String, Object> payload = capturarPayload(actionResponse);
+
+        assertEquals("firmaSolicitante", payload.get("signatureField"));
+        assertFalse(payload.containsKey("signaturePositionOnPageLowerLeftX"));
+        assertFalse(payload.containsKey("signaturePositionOnPageLowerLeftY"));
+        assertFalse(payload.containsKey("signaturePositionOnPageUpperRightX"));
+        assertFalse(payload.containsKey("signaturePositionOnPageUpperRightY"));
+    }
+
+    @Test
+    void sendToActionResponse_conRectangulo_noPublicaSignatureField() {
+        AutoFirma autoFirma = new AutoFirma(JustificacionDummy.class)
+                .setRectangulo(new Rectangulo(10, 20, 100, 50))
+                .addSourceTargetField("pdfSolicitud", "pdfSolicitudFirmado");
+
+        ActionResponse actionResponse = mock(ActionResponse.class);
+        AutoFirma.sendToActionResponse(autoFirma, actionResponse);
+
+        assertFalse(capturarPayload(actionResponse).containsKey("signatureField"));
+    }
+
+    @Test
+    void sendToActionResponse_conRectanguloYNombreCampoFirma_lanzaError() {
+        AutoFirma autoFirma = new AutoFirma(JustificacionDummy.class)
+                .setRectangulo(new Rectangulo(10, 20, 30, 40))
+                .setNombreCampoFirma("firmaSolicitante")
+                .addSourceTargetField("pdfSolicitud", "pdfSolicitudFirmado");
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> AutoFirma.sendToActionResponse(autoFirma, mock(ActionResponse.class)));
+
+        assertTrue(ex.getMessage().contains("no los dos"));
+    }
+
+    @Test
+    void setNombreCampoFirma_enBlanco_lanzaError() {
+        AutoFirma autoFirma = new AutoFirma(JustificacionDummy.class);
+
+        assertThrows(IllegalArgumentException.class, () -> autoFirma.setNombreCampoFirma("  "));
     }
 
     @SuppressWarnings("unchecked")

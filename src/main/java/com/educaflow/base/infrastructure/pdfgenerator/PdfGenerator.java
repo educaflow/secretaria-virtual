@@ -9,7 +9,9 @@ import java.util.Map;
  *
  * <p>El PDF sale <b>plano</b>: las expresiones Groovy del XML ({@code nombreCampo}, los
  * {@code ${expresion}} inline y los {@code visible}) se evalúan con el contexto y los valores y las
- * casillas se dibujan directamente, sin formulario. Un elemento cuyo {@code visible} evalúa a
+ * casillas se dibujan directamente, sin campos de formulario que rellenar. Lo único que no es dibujo
+ * son los <b>campos de firma vacíos</b>: uno por cada elemento que lleva {@code campoFirma}, en el
+ * sitio en que ese elemento ha quedado, para que quien firme lo haga ahí indicando su nombre. Un elemento cuyo {@code visible} evalúa a
  * {@code false} se colapsa (desaparece y lo que va detrás sube) o reserva su hueco, según su
  * {@code siOculto}.
  *

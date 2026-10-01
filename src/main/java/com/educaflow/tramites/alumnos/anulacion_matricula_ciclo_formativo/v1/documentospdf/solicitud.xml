@@ -87,25 +87,6 @@
     </seccion>
 
     <seccion>
-        <valenciano>Lloc, data i signatura</valenciano>
-        <castellano>Lugar, fecha y firma</castellano>
-        <fila>
-            <texto colspan="12">
-                <valenciano>${self.localidadCentro} , ${self.fechaSolicitud.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))}</valenciano>
-                <castellano>${self.localidadCentro} , ${self.fechaSolicitud.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))}</castellano>
-            </texto>
-        </fila>
-        <fila>
-            <texto colspan="12" rowSpan="4">
-                <valenciano>Signatura:</valenciano>
-                <castellano>Firma:</castellano>
-            </texto>
-        </fila>
-    </seccion>
-
-
-
-    <seccion>
         <valenciano>Protecció de dades</valenciano>
         <castellano>Protección de datos</castellano>
         <fila>
@@ -129,12 +110,16 @@
     </seccion>
 
     <seccion>
-        <valenciano>Destinatari</valenciano>
-        <castellano>Destinatario</castellano>
+        <valenciano>Lloc, data i signatura</valenciano>
+        <castellano>Lugar, fecha y firma</castellano>
         <fila>
+            <texto colspan="12" rowSpan="4" campoFirma="firmaSolicitante">
+                <valenciano>Signatura:</valenciano>
+                <castellano>Firma:</castellano>
+            </texto>
             <texto colspan="12">
-                <valenciano>DIRECTOR/A DEL ${self.nombreCentro}</valenciano>
-                <castellano>DIRECTOR/A DEL ${self.nombreCentro}</castellano>
+                <valenciano>${self.personaInteresada.municipio.name} , ${self.fechaSolicitud.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))}</valenciano>
+                <castellano>${self.personaInteresada.municipio.name} , ${self.fechaSolicitud.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))}</castellano>
             </texto>
         </fila>
     </seccion>

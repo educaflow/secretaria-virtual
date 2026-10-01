@@ -56,7 +56,7 @@ class ParticionFilaTest {
     private static FilaVisible fila(double... colspans) {
         List<CeldaVisible> celdas = java.util.Arrays.stream(colspans)
                 .mapToObj(colspan -> new CeldaVisible(
-                        new Celda(TipoCelda.TEXTO, Optional.empty(), colspan, 1, TextoBilingue.VACIO, Visibilidad.SIEMPRE), false))
+                        new Celda(TipoCelda.TEXTO, Optional.empty(), colspan, 1, TextoBilingue.VACIO, Visibilidad.SIEMPRE, Optional.empty()), false))
                 .toList();
         return new FilaVisible(celdas);
     }

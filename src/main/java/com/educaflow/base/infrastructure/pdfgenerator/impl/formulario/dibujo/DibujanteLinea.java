@@ -33,7 +33,7 @@ import static com.educaflow.base.infrastructure.pdfgenerator.impl.formulario.maq
  * celda para saber el alto de la línea, y luego se dibujan todas a esa altura.
  *
  * <p>Una celda reservada se maqueta igual (para que la línea mida lo mismo) pero solo se dibujan
- * sus bordes. Si la línea no llega a las 12 columnas (celdas colapsadas), el tramo que falta se
+ * sus bordes, y si lleva {@code campoFirma} no deja el campo de firma. Si la línea no llega a las 12 columnas (celdas colapsadas), el tramo que falta se
  * cierra con un recuadro vacío para que la tabla siga entera.
  */
 final class DibujanteLinea {
@@ -42,6 +42,8 @@ final class DibujanteLinea {
     private static final double FACTOR_ALTO_TEXTO = 1.16;
     private static final double FACTOR_ALTO_ETIQUETA_CAMPO = 0.9;
     private static final double FACTOR_ALTO_VALOR = 1.15;
+    /** Por debajo de este alto, en el hueco de una celda no cabe ni una línea de la firma. */
+    private static final double ALTO_MINIMO_CAMPO_FIRMA = 0.5 * CM;
 
     private final Lienzo lienzo;
     private final Maquetador maquetador;
@@ -212,6 +214,20 @@ final class DibujanteLinea {
         lienzo.parrafo(celda.valenciano(), x, y, anchoTexto, Alineacion.IZQUIERDA);
         y -= celda.valenciano().alto();
         lienzo.parrafo(celda.castellano(), x, y, anchoTexto, Alineacion.IZQUIERDA);
+        y -= celda.castellano().alto();
+
+        double base = top - altoLinea + PAD;
+        double hueco = y - base;
+        celda.celda().campoFirma().ifPresent(nombre -> dibujarCampoFirma(nombre, x, base, anchoTexto, hueco));
+    }
+
+    /** El campo de firma ocupa el hueco que queda en la celda por debajo de sus textos. */
+    private void dibujarCampoFirma(String nombre, double x, double base, double ancho, double alto) {
+        if (alto < ALTO_MINIMO_CAMPO_FIRMA) {
+            throw new RuntimeException("En la celda del campoFirma \"" + nombre + "\" no queda hueco para la firma"
+                    + " debajo de sus textos: dale más alto con rowSpan");
+        }
+        lienzo.campoFirma(nombre, x, base, ancho, alto);
     }
 
     private void cerrarLineaIncompleta(List<CeldaUbicada> linea, double top, double altoLinea,

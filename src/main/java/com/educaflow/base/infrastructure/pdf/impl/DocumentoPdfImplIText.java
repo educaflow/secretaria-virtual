@@ -24,6 +24,7 @@ import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.*;
+import com.itextpdf.kernel.pdf.annot.PdfAnnotation;
 import com.itextpdf.kernel.pdf.annot.PdfWidgetAnnotation;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
 import com.itextpdf.kernel.pdf.canvas.parser.listener.SimpleTextExtractionStrategy;
@@ -111,6 +112,11 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
         return fields;
     }
     
+    @Override
+    public List<String> getNombreCamposFirmaVacios() {
+        return new SignatureUtil(pdfDocument).getBlankSignatureNames();
+    }
+
     @Override
     public List<ResultadoFirma> getFirmasPdf() {
         List<ResultadoFirma> resultadoFirmas = new ArrayList<>();
@@ -317,6 +323,7 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
             PdfMerger merger = new PdfMerger(pdfDestino);
             merger.merge(this.pdfDocument, 1, this.pdfDocument.getNumberOfPages());
             merger.merge(DocumentoPdfHelper.getPdfDocument(documentoPdf2), 1, DocumentoPdfHelper.getPdfDocument(documentoPdf2).getNumberOfPages());
+            registrarCamposFirmaVacios(pdfDestino);
 
             merger.close();
             byteArrayOutputStream.close();
@@ -353,6 +360,28 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
 
 
 
+    /**
+     * Al unir documentos, PdfMerger copia el widget de cada campo con su página pero no lo da de alta en el
+     * formulario del PDF de destino. Aquí se dan de alta solo los campos de firma vacíos, para que se pueda
+     * seguir firmando en ellos por su nombre. Los ya firmados se quedan como estaban (solo su dibujo): su
+     * firma era del documento de origen y en el unido ya no vale.
+     */
+    private static void registrarCamposFirmaVacios(PdfDocument pdfDocument) {
+        for (int numeroPagina = 1; numeroPagina <= pdfDocument.getNumberOfPages(); numeroPagina++) {
+            for (PdfAnnotation pdfAnnotation : pdfDocument.getPage(numeroPagina).getAnnotations()) {
+                if (isCampoFirmaVacio(pdfAnnotation.getPdfObject())) {
+                    PdfAcroForm.getAcroForm(pdfDocument, true).addField(PdfFormField.makeFormField(pdfAnnotation.getPdfObject(), pdfDocument), null);
+                }
+            }
+        }
+    }
+
+    private static boolean isCampoFirmaVacio(PdfDictionary pdfDictionary) {
+        return PdfName.Widget.equals(pdfDictionary.getAsName(PdfName.Subtype))
+                && PdfName.Sig.equals(pdfDictionary.getAsName(PdfName.FT))
+                && pdfDictionary.containsKey(PdfName.V) == false;
+    }
+
     private boolean allowFormField(PdfFormField pdfFormField) {
         if (PdfDocumentHelper.isSignatureFormField(pdfFormField)) {
             return false;
@@ -385,6 +414,20 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
 
 
 
+    /**
+     * Comprueba que el PDF tiene un campo de firma vacío con ese nombre. Sin esta comprobación iText
+     * crearía él mismo un campo con ese nombre, invisible, y el documento saldría firmado sin que se vea dónde.
+     */
+    private String getCampoFirmaVacio(String nombreCampo) {
+        List<String> camposFirmaVacios = getNombreCamposFirmaVacios();
+
+        if (camposFirmaVacios.contains(nombreCampo) == false) {
+            throw new RuntimeException("El PDF no tiene ningún campo de firma vacío que se llame '" + nombreCampo + "'. Los campos de firma vacíos que tiene son: " + camposFirmaVacios);
+        }
+
+        return nombreCampo;
+    }
+
     private SignerProperties getSignerProperties(CampoFirma campoFirma, X509Certificate cert, String alias) {
         if (campoFirma == null) {
             return null;
@@ -392,10 +435,15 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
         SignatureFieldAppearance signatureFieldAppearance = getSignatureFieldAppearance(campoFirma, cert, alias);
 
         SignerProperties signerProperties = new SignerProperties();
-        signerProperties.setFieldName(getSignatureFieldName());
-        signerProperties.setPageRect(getRectangle(campoFirma));
-        int pageNumber= getPageNumber(campoFirma.getNumeroPagina());
-        signerProperties.setPageNumber(pageNumber);
+        if (campoFirma.getNombreCampo() != null) {
+            // el campo ya existe: iText firma en su página y en su recuadro
+            signerProperties.setFieldName(getCampoFirmaVacio(campoFirma.getNombreCampo()));
+        } else {
+            signerProperties.setFieldName(getSignatureFieldName());
+            signerProperties.setPageRect(getRectangle(campoFirma));
+            int pageNumber= getPageNumber(campoFirma.getNumeroPagina());
+            signerProperties.setPageNumber(pageNumber);
+        }
         signerProperties.setSignatureAppearance(signatureFieldAppearance);
         signerProperties.setClaimedSignDate(toCalendar(campoFirma.getFechaFirma()));
         if (campoFirma.getMotivo()!=null) {

@@ -22,7 +22,17 @@ public class FirmaServidorHelper {
     private FirmaEnServidorService firmaEnServidorService;
 
 
+    /** Firma en un rectángulo de una página del documento. */
     public MetaFile firmarEnServidor(String dni, SituacionFirma situacionFirma, String clave, MetaFile documentoOriginal, Rectangulo posicion, int pagina) throws BusinessException {
+        return firmarEnServidor(dni, situacionFirma, clave, documentoOriginal, new CampoFirma(posicion).setNumeroPagina(pagina));
+    }
+
+    /** Firma en el campo de firma vacío del documento que se llama {@code nombreCampoFirma}: la posición y la página son las del campo. */
+    public MetaFile firmarEnServidor(String dni, SituacionFirma situacionFirma, String clave, MetaFile documentoOriginal, String nombreCampoFirma) throws BusinessException {
+        return firmarEnServidor(dni, situacionFirma, clave, documentoOriginal, new CampoFirma(nombreCampoFirma));
+    }
+
+    private MetaFile firmarEnServidor(String dni, SituacionFirma situacionFirma, String clave, MetaFile documentoOriginal, CampoFirma campoFirma) throws BusinessException {
 
         if ((dni==null) || dni.isBlank()) {
             throw new IllegalArgumentException("No hay DNI para el firmante");
@@ -39,8 +49,6 @@ public class FirmaServidorHelper {
         if (documentoOriginal == null) {
             throw new IllegalStateException("No hay documento de entrada que firmar");
         }
-
-        CampoFirma campoFirma = new CampoFirma(posicion).setNumeroPagina(pagina);
 
         try {
             DocumentoPdf documentoFirmado = firmaEnServidorService.firmar(dni, clave, MetaFileHelper.getDocumentoPdf(documentoOriginal), campoFirma);

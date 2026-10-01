@@ -171,6 +171,98 @@ class DocumentoXmlResolverTest {
     }
 
     @Test
+    void elCampoFirmaDeUnEspacioYDeUnTextoValidaYLlegaAlXmlResuelto() {
+        Path texto = escribir(CARPETA_DOCUMENTO + "/documento.xml", """
+                <documentoTexto>
+                    <titulo><valenciano>Titol</valenciano><castellano>Titulo</castellano></titulo>
+                    <espacio alto="80" campoFirma="firmaDirector"/>
+                </documentoTexto>
+                """);
+        assertTrue(resolver(texto).contains("campoFirma=\"firmaDirector\""));
+
+        Path formulario = escribir(CARPETA_DOCUMENTO + "/documento.xml", """
+                <documentoFormulario>
+                    <titulo><valenciano>Titol</valenciano><castellano>Titulo</castellano></titulo>
+                    <seccion>
+                        <valenciano>Signat</valenciano><castellano>Firmado</castellano>
+                        <fila>
+                            <texto colspan="12" rowSpan="4" campoFirma="firmaSolicitante"><valenciano>Signatura</valenciano><castellano>Firma</castellano></texto>
+                        </fila>
+                    </seccion>
+                </documentoFormulario>
+                """);
+        assertTrue(resolver(formulario).contains("campoFirma=\"firmaSolicitante\""));
+    }
+
+    @Test
+    void dosCamposFirmaConElMismoNombreAbortanLaResolucion() {
+        Path documento = escribir(CARPETA_DOCUMENTO + "/documento.xml", """
+                <documentoTexto>
+                    <titulo><valenciano>Titol</valenciano><castellano>Titulo</castellano></titulo>
+                    <espacio alto="80" campoFirma="firmaDirector"/>
+                    <espacio alto="80" campoFirma="firmaDirector"/>
+                </documentoTexto>
+                """);
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> resolver(documento));
+
+        assertTrue(ex.getMessage().contains("firmaDirector"), "el mensaje no dice qué nombre se repite: " + ex.getMessage());
+    }
+
+    @Test
+    void unCampoFirmaRepetidoEntreElDocumentoYUnFragmentoTambienAborta() {
+        escribir(CARPETA_COMPARTIDA + "/_pieFirma.xml", """
+                <fragmento>
+                    <espacio alto="80" campoFirma="firmaDirector"/>
+                </fragmento>
+                """);
+        Path documento = escribir(CARPETA_DOCUMENTO + "/documento.xml", """
+                <documentoTexto>
+                    <titulo><valenciano>Titol</valenciano><castellano>Titulo</castellano></titulo>
+                    <espacio alto="80" campoFirma="firmaDirector"/>
+                    <include href="%s_pieFirma.xml"/>
+                </documentoTexto>
+                """.formatted(HASTA_LA_COMPARTIDA));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> resolver(documento));
+
+        assertTrue(ex.getMessage().contains("firmaDirector"), "el mensaje no dice qué nombre se repite: " + ex.getMessage());
+    }
+
+    @Test
+    void unCampoFirmaQueNoEsUnIdentificadorAborta() {
+        Path documento = escribir(CARPETA_DOCUMENTO + "/documento.xml", """
+                <documentoTexto>
+                    <titulo><valenciano>Titol</valenciano><castellano>Titulo</castellano></titulo>
+                    <espacio alto="80" campoFirma="firma del director"/>
+                </documentoTexto>
+                """);
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> resolver(documento));
+
+        assertTrue(ex.getMessage().contains("campoFirma"), ex.getMessage());
+    }
+
+    @Test
+    void elCampoFirmaSoloLoAdmiteElTextoDeUnFormulario() {
+        Path documento = escribir(CARPETA_DOCUMENTO + "/documento.xml", """
+                <documentoFormulario>
+                    <titulo><valenciano>Titol</valenciano><castellano>Titulo</castellano></titulo>
+                    <seccion>
+                        <valenciano>Signat</valenciano><castellano>Firmado</castellano>
+                        <fila>
+                            <campo nombreCampo="self.x" colspan="12" campoFirma="firmaSolicitante"><valenciano>Signatura</valenciano><castellano>Firma</castellano></campo>
+                        </fila>
+                    </seccion>
+                </documentoFormulario>
+                """);
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> resolver(documento));
+
+        assertTrue(ex.getMessage().contains("campoFirma"), ex.getMessage());
+    }
+
+    @Test
     void elValencianoQueFaltaLoCompletaElTraductor() {
         assumeTrue(Files.isExecutable(APERTIUM), "sin " + APERTIUM + " no se puede traducir");
         Path documento = escribir(CARPETA_DOCUMENTO + "/documento.xml", """

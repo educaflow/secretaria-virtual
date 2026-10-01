@@ -12,6 +12,7 @@ ResultadoFirma o-- DatosCertificado
 
 class DocumentoPdf {
     List<String> getNombreCamposFormulario();
+    List<String> getNombreCamposFirmaVacios();
     Map<String,ResultadoFirma> getFirmasPdf();
     int getNumeroPaginas();
     String getFileName();

@@ -6,7 +6,6 @@ import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
-import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.util.Convert;
 import com.educaflow.base.util.SecurityUtil;
@@ -32,9 +31,8 @@ import java.util.List;
 
 public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaCicloFormativoV1> {
 
-    // Hueco que la resolución deja bajo «El director / la directora del centro», medido sobre el PDF
-    // que genera el documento. CampoFirma sin página resuelve a la última.
-    private static final Rectangulo POSICION_FIRMA_RESOLUCION = new Rectangulo(150, 317, 300, 53);
+    // El campoFirma del hueco que documentospdf/resolucion.xml deja bajo «El director / la directora».
+    private static final String CAMPO_FIRMA_RESOLUCION = "firmaDirector";
 
     private final AnulacionMatriculaCicloFormativoV1Repository repository;
     protected final Logger log = LoggerFactory.getLogger(getClass());
@@ -70,7 +68,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
         expediente.setFirmadoPor(SecurityUtil.getUser());
 
         DocumentoPdf resolucionPdf = MetaFileHelper.getDocumentoPdf(expediente.getPdfResolucion());
-        DocumentoPdf resolucionFirmada = resolucionPdf.firmar(almacenDirector, new CampoFirma(POSICION_FIRMA_RESOLUCION));
+        DocumentoPdf resolucionFirmada = resolucionPdf.firmar(almacenDirector, new CampoFirma(CAMPO_FIRMA_RESOLUCION));
 
         MetaFile pdfTemporal = MetaFileHelper.createMetaFile(resolucionFirmada);
         RegistroSalida registroSalida = eventContext.createRegistroSalida(pdfTemporal, List.of());

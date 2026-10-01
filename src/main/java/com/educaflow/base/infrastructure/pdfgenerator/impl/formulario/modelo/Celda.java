@@ -13,9 +13,10 @@ import java.util.Optional;
  * @param nombreCampo la expresión del valor; vacío en un {@link TipoCelda#TEXTO}.
  * @param colspan     columnas de la rejilla de 12 que ocupa (admite decimales).
  * @param rowSpan     multiplicador del alto mínimo (≥ 1).
+ * @param campoFirma  el nombre del campo de firma vacío que deja en su hueco; solo en un {@link TipoCelda#TEXTO}.
  */
 public record Celda(TipoCelda tipo, Optional<String> nombreCampo, double colspan, double rowSpan,
-                    TextoBilingue textos, Visibilidad visibilidad) {
+                    TextoBilingue textos, Visibilidad visibilidad, Optional<String> campoFirma) {
 
     /** El colspan en unidades de la rejilla: 1200 unidades = 12 columnas. */
     public int unidades() {

@@ -31,7 +31,7 @@ import static com.educaflow.base.infrastructure.pdfgenerator.impl.documentotexto
 /**
  * Convierte el cuerpo del documento en la lista de renglones que hay que ir soltando por la página.
  * Un elemento reservado se mide igual que si se dibujara —con los inline vacíos, que no se han
- * evaluado— y sus renglones se quedan sin dibujo.
+ * evaluado— y sus renglones se quedan sin dibujo (ni campo de firma, si lo llevaba).
  */
 public final class MaquetadorCuerpo {
 
@@ -75,7 +75,7 @@ public final class MaquetadorCuerpo {
         return switch (visible.elemento()) {
             case Texto texto -> deTexto(texto, maquetadorDe(visible), x, ancho);
             case Lista ignorada -> deLista(visible, x, ancho);
-            case Espacio espacio -> List.of(Renglon.enBlanco(espacio.alto()));
+            case Espacio espacio -> List.of(deEspacio(espacio, x, ancho));
             case Tabla tabla -> deTabla(tabla, visible, x, ancho);
             case Fila ignorada -> throw new IllegalStateException("Una <fila> solo se maqueta dentro de su <tabla>");
         };
@@ -83,6 +83,14 @@ public final class MaquetadorCuerpo {
 
     private Maquetador maquetadorDe(ElementoVisible visible) {
         return visible.reservado() ? maquetadorReservado : maquetador;
+    }
+
+    /** Un espacio no dibuja nada, pero si lleva {@code campoFirma} deja el campo de firma en todo su hueco. */
+    private static Renglon deEspacio(Espacio espacio, double x, double ancho) {
+        return espacio.campoFirma()
+                .map(nombre -> new Renglon(espacio.alto(),
+                        (lienzo, top) -> lienzo.campoFirma(nombre, x, top - espacio.alto(), ancho, espacio.alto())))
+                .orElseGet(() -> Renglon.enBlanco(espacio.alto()));
     }
 
     // ------------------------------------------------------------ texto y listas

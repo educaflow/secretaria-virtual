@@ -8,6 +8,7 @@ import org.w3c.dom.NodeList;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public final class ElementosXml {
 
@@ -16,6 +17,12 @@ public final class ElementosXml {
 
     public static Visibilidad visibilidad(Element e) {
         return Visibilidad.de(e.getAttribute("visible"), e.getAttribute("siOculto"));
+    }
+
+    /** El nombre del campo de firma vacío que el elemento deja en su hueco, si lleva {@code campoFirma}. */
+    public static Optional<String> campoFirma(Element e) {
+        String nombre = e.getAttribute("campoFirma");
+        return nombre.isEmpty() ? Optional.empty() : Optional.of(nombre);
     }
 
     /** Un atributo booleano del XML: ausente es {@code false}, y cualquier otro valor aborta. */

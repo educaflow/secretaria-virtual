@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.educaflow.base.infrastructure.pdfgenerator.impl.comun.parser.ElementosXml.campoFirma;
 import static com.educaflow.base.infrastructure.pdfgenerator.impl.comun.parser.ElementosXml.hijos;
 import static com.educaflow.base.infrastructure.pdfgenerator.impl.comun.parser.ElementosXml.textos;
 import static com.educaflow.base.infrastructure.pdfgenerator.impl.comun.parser.ElementosXml.visibilidad;
@@ -72,6 +73,6 @@ public final class DefinicionDocumentoParser {
         double colspan = Double.parseDouble(e.getAttribute("colspan"));
         double rowSpan = e.getAttribute("rowSpan").isEmpty() ? 1 : Double.parseDouble(e.getAttribute("rowSpan"));
 
-        return new Celda(tipo, nombreCampo, colspan, rowSpan, textos(e), visibilidad(e));
+        return new Celda(tipo, nombreCampo, colspan, rowSpan, textos(e), visibilidad(e), campoFirma(e));
     }
 }

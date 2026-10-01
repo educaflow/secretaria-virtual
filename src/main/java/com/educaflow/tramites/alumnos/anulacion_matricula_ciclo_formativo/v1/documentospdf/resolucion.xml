@@ -89,8 +89,8 @@
             </parrafo>
         </fila>
         <fila>
-            <espacio alto="88.56"/>
-            <espacio alto="88.56"/>
+            <espacio alto="88.56" campoFirma="firmaSecretario"/>
+            <espacio alto="88.56" campoFirma="firmaDirector"/>
         </fila>
     </tabla>
 

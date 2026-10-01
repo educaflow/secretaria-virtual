@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.educaflow.base.infrastructure.pdfgenerator.impl.comun.parser.ElementosXml.booleano;
+import static com.educaflow.base.infrastructure.pdfgenerator.impl.comun.parser.ElementosXml.campoFirma;
 import static com.educaflow.base.infrastructure.pdfgenerator.impl.comun.parser.ElementosXml.hijos;
 import static com.educaflow.base.infrastructure.pdfgenerator.impl.comun.parser.ElementosXml.textos;
 import static com.educaflow.base.infrastructure.pdfgenerator.impl.comun.parser.ElementosXml.visibilidad;
@@ -62,7 +63,7 @@ public final class DocumentoTextoParser {
     }
 
     private static Espacio espacio(Element e) {
-        return new Espacio(Double.parseDouble(e.getAttribute("alto")), visibilidad(e));
+        return new Espacio(Double.parseDouble(e.getAttribute("alto")), visibilidad(e), campoFirma(e));
     }
 
     private Lista lista(Element e) {

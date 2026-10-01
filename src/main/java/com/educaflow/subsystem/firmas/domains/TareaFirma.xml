@@ -16,11 +16,14 @@
         <string name="fqcnFirmaNotifier" title="FQCN donde notificar" />
         <string name="fqcnCallBackData" title="FQCN del datos de vuelta"  />
         <string name="callBackData" large="true" multiline="true" title="Datos de vuelta" />
-        <decimal name="x" precision="8" scale="2" required="true"/>
-        <decimal name="y" precision="8" scale="2" required="true"/>
-        <decimal name="width" precision="8" scale="2" title="Ancho" required="true"/>
-        <decimal name="height" precision="8" scale="2" title="Alto" required="true"/>
-        <integer name="page" title="Página" required="true"/>
+        <!-- Dónde se firma: en el campo de firma vacío de los documentos que se llama nombreCampoFirma o,
+             si es nulo, en el rectángulo (x, y, width, height) de la página page. -->
+        <string name="nombreCampoFirma" title="Nombre del campo de firma"/>
+        <decimal name="x" precision="8" scale="2" nullable="true"/>
+        <decimal name="y" precision="8" scale="2" nullable="true"/>
+        <decimal name="width" precision="8" scale="2" title="Ancho" nullable="true"/>
+        <decimal name="height" precision="8" scale="2" title="Alto" nullable="true"/>
+        <integer name="page" title="Página" nullable="true"/>
     </entity>
 
 

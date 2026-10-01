@@ -34,15 +34,9 @@ const AutoFirmaService = {
     },
 
     _buildSignatureParams(signatureOptions) {
-        const { lowerLeftX, lowerLeftY, upperRightX, upperRightY } = signatureOptions.signaturePositionOnPage;
-
         let params =
             `mode=implicit\n` +  // ✅ firma local, sin servidor intermedio
-            `signaturePositionOnPageLowerLeftX=${lowerLeftX}\n` +
-            `signaturePositionOnPageLowerLeftY=${lowerLeftY}\n` +
-            `signaturePositionOnPageUpperRightX=${upperRightX}\n` +
-            `signaturePositionOnPageUpperRightY=${upperRightY}\n` +
-            `signaturePage=${signatureOptions.pageNumber}\n` +
+            this._buildSignaturePlaceParams(signatureOptions) +
             `layer2FontSize=${signatureOptions.fontSize}`;
 
         if (signatureOptions.signReason?.trim()) {
@@ -58,6 +52,23 @@ const AutoFirmaService = {
         }
 
         return params;
+    },
+
+    // Dónde se firma: en un campo de firma vacío que ya existe en el PDF (la posición y la página
+    // son las del campo) o, si no se indica ninguno, en un rectángulo de una página.
+    _buildSignaturePlaceParams(signatureOptions) {
+        if (signatureOptions.signatureField?.trim()) {
+            const safeSignatureField = signatureOptions.signatureField.replace(/[\n\r=]/g, ' ').trim();
+            return `signatureField=${safeSignatureField}\n`;
+        }
+
+        const { lowerLeftX, lowerLeftY, upperRightX, upperRightY } = signatureOptions.signaturePositionOnPage;
+
+        return `signaturePositionOnPageLowerLeftX=${lowerLeftX}\n` +
+            `signaturePositionOnPageLowerLeftY=${lowerLeftY}\n` +
+            `signaturePositionOnPageUpperRightX=${upperRightX}\n` +
+            `signaturePositionOnPageUpperRightY=${upperRightY}\n` +
+            `signaturePage=${signatureOptions.pageNumber}\n`;
     }
 
 };

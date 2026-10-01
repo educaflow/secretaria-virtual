@@ -10,13 +10,27 @@ import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.tramitador.tramitacion.util.ExpedienteUtil;
 
+import java.util.function.Consumer;
+
 public class FirmaClienteController {
 
+    /** Firma con AutoFirma en un rectángulo de una página del documento. */
     @CallMethod
     public Response firmarDocumento(long idExpediente, String sourceField, String targetField, float x, float y, float width, float height, int pageNumber) {
+        Rectangulo rectanguloPosicionFirmaPDF = new Rectangulo(x, y, width, height);
+
+        return firmar(idExpediente, sourceField, targetField, autofirma -> autofirma.setRectangulo(rectanguloPosicionFirmaPDF).setPageNumber(pageNumber));
+    }
+
+    /** Firma con AutoFirma en el campo de firma vacío del documento que se llama {@code nombreCampoFirma}: la posición y la página son las del campo. */
+    @CallMethod
+    public Response firmarDocumentoEnCampo(long idExpediente, String sourceField, String targetField, String nombreCampoFirma) {
+        return firmar(idExpediente, sourceField, targetField, autofirma -> autofirma.setNombreCampoFirma(nombreCampoFirma));
+    }
+
+    private Response firmar(long idExpediente, String sourceField, String targetField, Consumer<AutoFirma> lugarFirma) {
         try {
             Expediente expediente = ExpedienteUtil.getExpedienteFromIdExpediente(idExpediente);
-            Rectangulo rectanguloPosicionFirmaPDF = new Rectangulo(x, y, width, height);
             Class clazz = expediente.getClass();
 
             String dniFirmante=SecurityUtil.getUser().getDni();
@@ -32,10 +46,9 @@ public class FirmaClienteController {
 
 
             AutoFirma autofirma = new AutoFirma(clazz)
-                    .setRectangulo(rectanguloPosicionFirmaPDF)
-                    .setPageNumber(pageNumber)
                     .addSourceTargetField(sourceField, targetField)
                     .setDni(dniFirmante);
+            lugarFirma.accept(autofirma);
 
 
             ActionResponse actionResponse = new ActionResponse();

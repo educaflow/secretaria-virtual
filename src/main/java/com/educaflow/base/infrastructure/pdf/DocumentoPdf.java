@@ -10,6 +10,7 @@ public interface DocumentoPdf {
 
 
     List<String> getNombreCamposFormulario();
+    List<String> getNombreCamposFirmaVacios();
     List<ResultadoFirma> getFirmasPdf();
     int getNumeroPaginas();
     String getFileName();

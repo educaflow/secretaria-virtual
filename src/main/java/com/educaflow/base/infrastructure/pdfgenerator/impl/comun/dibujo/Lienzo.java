@@ -6,6 +6,8 @@ import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.texto.Parrafo;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.texto.TipoToken;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.texto.Token;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.texto.TokenColocado;
+import com.itextpdf.forms.PdfAcroForm;
+import com.itextpdf.forms.fields.SignatureFormFieldBuilder;
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.geom.Rectangle;
@@ -14,8 +16,8 @@ import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 
 /**
- * Las primitivas de dibujo sobre las páginas del PDF: líneas, rectángulos, texto, párrafos, imágenes
- * y casillas. Lleva el cursor vertical (el borde superior libre, en coordenadas PDF) y abre página
+ * Las primitivas de dibujo sobre las páginas del PDF: líneas, rectángulos, texto, párrafos, imágenes,
+ * casillas y campos de firma. Lleva el cursor vertical (el borde superior libre, en coordenadas PDF) y abre página
  * nueva cuando lo que viene no cabe en la banda que le deja el {@link MarcoPagina}.
  */
 public final class Lienzo {
@@ -23,6 +25,7 @@ public final class Lienzo {
     private final PdfDocument pdf;
     private final Fuentes fuentes;
     private final MarcoPagina marco;
+    private PdfPage pagina;
     private PdfCanvas canvas;
     private double cursorY;
 
@@ -34,7 +37,7 @@ public final class Lienzo {
     }
 
     void nuevaPagina() {
-        PdfPage pagina = pdf.addNewPage(new PageSize((float) MedidasPagina.PAGE_W, (float) MedidasPagina.PAGE_H));
+        pagina = pdf.addNewPage(new PageSize((float) MedidasPagina.PAGE_W, (float) MedidasPagina.PAGE_H));
         canvas = new PdfCanvas(pagina);
         cursorY = marco.topCuerpo();
         marco.dibujo().accept(this);
@@ -124,6 +127,22 @@ public final class Lienzo {
 
     public void logo(double x, double y, double ancho, double alto) {
         imagen(Assets.logo(), x, y, ancho, alto);
+    }
+
+    /**
+     * Un campo de firma vacío en la página actual: no dibuja nada, deja en el PDF el sitio (página y
+     * recuadro) en el que firmará quien lo haga indicando este nombre.
+     */
+    public void campoFirma(String nombre, double x, double y, double ancho, double alto) {
+        PdfAcroForm formulario = PdfAcroForm.getAcroForm(pdf, true);
+        if (formulario.getField(nombre) != null) {
+            throw new RuntimeException("El documento tiene dos campos de firma que se llaman \"" + nombre + "\":"
+                    + " el nombre de un campoFirma no se puede repetir");
+        }
+        formulario.addField(new SignatureFormFieldBuilder(pdf, nombre)
+                .setWidgetRectangle(new Rectangle((float) x, (float) y, (float) ancho, (float) alto))
+                .setPage(pagina)
+                .createSignature(), pagina);
     }
 
     /** La casilla de un check: recuadro y, si va marcada, un aspa. Mismos trazos que la casilla de siempre. */

@@ -2,7 +2,6 @@ package com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.so
 
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
-import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.util.Convert;
 import com.educaflow.base.util.SecurityUtil;
@@ -30,10 +29,9 @@ import java.util.List;
 
 public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaCicloFormativoV1> {
 
-    // Hueco de la firma del alumno en la solicitud, medido sobre el PDF que genera el documento.
-    private static final Rectangulo POSICION_FIRMA_SOLICITUD = new Rectangulo(320, 418, 240, 32);
-
-    private static final int PAGINA_FIRMA_SOLICITUD = 1;
+    // El campoFirma del hueco de la firma en documentospdf/solicitud.xml: el mismo nombre que la
+    // <action-method> de AutoFirma de esta fase pasa a firmarDocumentoEnCampo.
+    private static final String CAMPO_FIRMA_SOLICITUD = "firmaSolicitante";
 
     private final AnulacionMatriculaCicloFormativoV1Repository repository;
     protected final Logger log = LoggerFactory.getLogger(getClass());
@@ -144,8 +142,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
                     situacionFirma,
                     expediente.getClaveCertificado(),
                     expediente.getPdfSolicitud(),
-                    POSICION_FIRMA_SOLICITUD,
-                    PAGINA_FIRMA_SOLICITUD));
+                    CAMPO_FIRMA_SOLICITUD));
         }
     }
 

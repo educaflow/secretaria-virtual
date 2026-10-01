@@ -15,6 +15,7 @@ const FirmaService = {
         const base64DocumentoOriginal     = await MetaFileService.downloadMetaFile(signatureRequest.metaFileDocumentoOriginal.id,signatureRequest.metaFileDocumentoOriginal.version);
 
         const base64DocumentoFirmado = await AutoFirmaService.firmarDocumento(base64DocumentoOriginal, {
+            signatureField:          signatureRequest.signatureField,
             signaturePositionOnPage: signatureRequest.signaturePositionOnPage,
             pageNumber:              signatureRequest.pageNumber,
             fontSize:                signatureRequest.fontSize,

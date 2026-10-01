@@ -264,11 +264,11 @@
                expr="call:com.educaflow.tramites.util.firma.FirmaServidorController:isFirmaEnServidor()"/>
     </action-record>
 
-    <!-- Recuadro y página: los mismos que POSICION_FIRMA_SOLICITUD y PAGINA_FIRMA_SOLICITUD del
-         PhaseEventManagerImpl de esta fase. MUST NOT cambiarse aquí sin cambiarlos allí. -->
+    <!-- firmaSolicitante: el campoFirma de documentospdf/solicitud.xml, el mismo que CAMPO_FIRMA_SOLICITUD
+         del PhaseEventManagerImpl de esta fase. MUST NOT cambiarse aquí sin cambiarlo allí. -->
     <action-method name="exp-AnulacionMatriculaCicloFormativoV1-firmarSolicitud-action">
         <call class="com.educaflow.tramites.util.firma.FirmaClienteController"
-              method='firmarDocumento(id,"pdfSolicitud","pdfSolicitudFirmada",320,418,240,32,1)'/>
+              method='firmarDocumentoEnCampo(id,"pdfSolicitud","pdfSolicitudFirmada","firmaSolicitante")'/>
     </action-method>
 
     <action-record name="exp-AnulacionMatriculaCicloFormativoV1-set-claveCertificado-null-action"

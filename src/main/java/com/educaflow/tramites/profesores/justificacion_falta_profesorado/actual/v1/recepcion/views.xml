@@ -135,7 +135,7 @@
     <action-method name="exp-JustificacionFaltaProfesoradoV1-firmarDocumentacionParaPresentar-action"  >
         <call
                 class="com.educaflow.tramites.util.firma.FirmaClienteController"
-                method='firmarDocumento(id,"pdfSolicitud","pdfSolicitudFirmado",100,20,600,100,1)'
+                method='firmarDocumentoEnCampo(id,"pdfSolicitud","pdfSolicitudFirmado","firmaSolicitante")'
         />
     </action-method>
 

@@ -45,9 +45,13 @@ public class  TareaFirmaController {
         TareaFirma tareaFirma = JpaRepository.of(TareaFirma.class).find(actionRequestHelper.getId());
 
         AutoFirma autofirma = new AutoFirma(TareaFirma.class)
-                .setRectangulo(new Rectangulo(tareaFirma.getX().floatValue(),tareaFirma.getY().floatValue(),tareaFirma.getWidth().floatValue(),tareaFirma.getHeight().floatValue()))
-                .setPageNumber(tareaFirma.getPage())
                 .setDni(tareaFirma.getFirmante().getDni());
+        if (tareaFirma.getNombreCampoFirma() != null) {
+            autofirma.setNombreCampoFirma(tareaFirma.getNombreCampoFirma());
+        } else {
+            autofirma.setRectangulo(new Rectangulo(tareaFirma.getX().floatValue(),tareaFirma.getY().floatValue(),tareaFirma.getWidth().floatValue(),tareaFirma.getHeight().floatValue()))
+                    .setPageNumber(tareaFirma.getPage());
+        }
 
         List<DocumentoFirma> documentosFirma = tareaFirma.getDocumentosFirma();
         for(int i=0;i<documentosFirma.size();i++) {

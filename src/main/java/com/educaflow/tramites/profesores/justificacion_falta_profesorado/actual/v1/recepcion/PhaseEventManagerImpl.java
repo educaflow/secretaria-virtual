@@ -4,7 +4,6 @@ import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
-import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.*;
 import com.educaflow.tramites.util.firma.FirmaServidorHelper;
@@ -31,14 +30,11 @@ import java.util.List;
 public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaProfesoradoV1> implements TareaFirmaNotifier {
 
     /**
-     * Recuadro en el que se estampa la firma de la solicitud. Es exactamente el que la {@code <action-method>}
-     * de AutoFirma pasa a {@code firmarDocumento}, para que la firma caiga en el mismo sitio se firme
-     * en el equipo del profesor o en el servidor.
+     * El {@code campoFirma} del hueco de la firma en {@code documentospdf/solicitud.xml}. Es exactamente el que
+     * la {@code <action-method>} de AutoFirma pasa a {@code firmarDocumentoEnCampo}, para que la firma caiga en
+     * el mismo sitio se firme en el equipo del profesor o en el servidor.
      */
-    private static final Rectangulo POSICION_FIRMA_SOLICITUD = new Rectangulo(100, 20, 600, 100);
-
-    /** Página en la que se estampa la firma de la solicitud; la misma que usa AutoFirma. */
-    private static final int PAGINA_FIRMA_SOLICITUD = 1;
+    private static final String CAMPO_FIRMA_SOLICITUD = "firmaSolicitante";
 
     private final JustificacionFaltaProfesoradoV1Repository repository;
     protected final Logger log = LoggerFactory.getLogger(getClass());
@@ -90,8 +86,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
                 justificacionFaltaProfesorado.getCentro(),
                 List.of(justificacionFaltaProfesorado.getPdfSolicitud()),
                 "Firma de solicitud de justificación de falta de profesorado",
-                new Rectangulo(50, 50, 200, 100),
-                1,
+                CAMPO_FIRMA_SOLICITUD,
                 this.getClass(),
                 "DATO_CALLBACK");
         TareaFirmaService tareaFirmaService=(TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
@@ -127,8 +122,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
                         situacionFirma,
                         exp.getClaveCertificado(),
                         exp.getPdfSolicitud(),
-                        POSICION_FIRMA_SOLICITUD,
-                        PAGINA_FIRMA_SOLICITUD));
+                        CAMPO_FIRMA_SOLICITUD));
             }
 
             RegistroEntrada registroEntrada = eventContext.createRegistroEntrada(exp.getPdfSolicitudFirmado(), List.of(exp.getJustificante()));

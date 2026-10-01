@@ -12,6 +12,7 @@ public class CampoFirma {
     public final static int DEFAULT_FONT_SIZE=8;
     public final static int DEFAULT_NUMERO_PAGINA=-1;
 
+    private String nombreCampo=null;
     private String mensaje=null;
     private String motivo=null;
     private Rectangulo rectanguloMensaje=null;
@@ -20,8 +21,20 @@ public class CampoFirma {
     private byte[] image=null;
     private LocalDateTime fechaFirma= LocalDateTime.now(Convert.defaultZoneId);
 
+    /** Firma en un rectángulo de una página (la última, si no se indica otra con {@link #setNumeroPagina(int)}). */
     public CampoFirma(Rectangulo rectanguloMensaje) {
         this.rectanguloMensaje=rectanguloMensaje;
+    }
+
+    /**
+     * Firma en un campo de firma vacío que ya existe en el PDF: la posición y la página son las del
+     * campo, así que no hay rectángulo y el número de página se ignora.
+     */
+    public CampoFirma(String nombreCampo) {
+        if ((nombreCampo==null) || nombreCampo.isBlank()) {
+            throw new IllegalArgumentException("El nombre del campo de firma no puede estar vacio");
+        }
+        this.nombreCampo=nombreCampo;
     }
 
 
@@ -60,6 +73,13 @@ public class CampoFirma {
         }
         this.fechaFirma=fechaFirma;
         return this;
+    }
+
+    /**
+     * @return el nombre del campo de firma existente en el que se firma, o null si se firma en un rectángulo
+     */
+    public String getNombreCampo() {
+        return nombreCampo;
     }
 
     /**

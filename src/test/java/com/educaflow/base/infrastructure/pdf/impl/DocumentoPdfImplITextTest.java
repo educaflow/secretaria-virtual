@@ -7,11 +7,19 @@ import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.infrastructure.pdf.impl.helper.PdfDocumentHelper;
+import com.itextpdf.forms.PdfAcroForm;
+import com.itextpdf.forms.fields.SignatureFormFieldBuilder;
+import com.itextpdf.kernel.geom.Rectangle;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfPage;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.kernel.pdf.annot.PdfWidgetAnnotation;
 import com.itextpdf.pdfa.exceptions.PdfAConformanceException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -278,6 +286,75 @@ class DocumentoPdfImplITextTest {
     }
 
     @Test
+    void firmarIndicandoElNombreDelCampoEstampaLaFirmaEnSuRecuadro() {
+        DocumentoPdf documentoPdf = pdfConCampoFirmaVacio("firmaSolicitante");
+
+        DocumentoPdf documentoPdfFirmado = firmarPdf(documentoPdf, new CampoFirma("firmaSolicitante"));
+
+        assertEquals(1, documentoPdfFirmado.getFirmasPdf().size());
+        assertEquals("firmaSolicitante", documentoPdfFirmado.getFirmasPdf().get(0).getNombreCampo());
+        assertEquals(true, documentoPdfFirmado.getFirmasPdf().get(0).isCorrecta());
+        assertEquals(List.of(), camposFirmaVacios(documentoPdfFirmado));
+
+        Rectangle recuadro = recuadroDelCampo(documentoPdfFirmado, "firmaSolicitante");
+        assertEquals(RECUADRO_CAMPO_FIRMA.getLeft(), recuadro.getLeft(), 0.01);
+        assertEquals(RECUADRO_CAMPO_FIRMA.getBottom(), recuadro.getBottom(), 0.01);
+        assertEquals(RECUADRO_CAMPO_FIRMA.getWidth(), recuadro.getWidth(), 0.01);
+        assertEquals(RECUADRO_CAMPO_FIRMA.getHeight(), recuadro.getHeight(), 0.01);
+    }
+
+    @Test
+    void firmarEnUnCampoQueNoExisteAbortaYDiceQueCamposHay() {
+        DocumentoPdf documentoPdf = pdfConCampoFirmaVacio("firmaSolicitante");
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> firmarPdf(documentoPdf, new CampoFirma("firmaDirector")));
+
+        String mensaje = ex.getCause().getMessage();
+        assertTrue(mensaje.contains("firmaDirector"), mensaje);
+        assertTrue(mensaje.contains("firmaSolicitante"), mensaje);
+    }
+
+    @Test
+    void firmarDosVecesEnElMismoCampoAborta() {
+        DocumentoPdf documentoPdfFirmado = firmarPdf(pdfConCampoFirmaVacio("firmaSolicitante"), new CampoFirma("firmaSolicitante"));
+
+        assertThrows(RuntimeException.class, () -> firmarPdf(documentoPdfFirmado, new CampoFirma("firmaSolicitante")));
+    }
+
+    @Test
+    void firmarEnUnRectanguloSigueFuncionandoAunqueElPdfTengaCamposFirma() {
+        DocumentoPdf documentoPdf = pdfConCampoFirmaVacio("firmaSolicitante");
+
+        DocumentoPdf documentoPdfFirmado = firmarPdf(documentoPdf, new CampoFirma(new Rectangulo(100, 20, 300, 40)).setNumeroPagina(1));
+
+        assertEquals("Signature1", documentoPdfFirmado.getFirmasPdf().get(0).getNombreCampo());
+        assertEquals(List.of("firmaSolicitante"), camposFirmaVacios(documentoPdfFirmado));
+    }
+
+    @Test
+    void elCampoFirmaVacioSobreviveAlAnyadirOtroDocumentoYSePuedeFirmarEnEl() {
+        DocumentoPdf anexo = DocumentoPdfFactory.getDocumentoPdf(getBytes(FILE_HOLA_MUNDO), FILE_HOLA_MUNDO);
+
+        DocumentoPdf unido = anexo.anyadirDocumentoPdf(pdfConCampoFirmaVacio("firmaSolicitante"));
+
+        assertEquals(List.of("firmaSolicitante"), camposFirmaVacios(unido));
+        DocumentoPdf documentoPdfFirmado = firmarPdf(unido, new CampoFirma("firmaSolicitante"));
+        assertEquals(true, documentoPdfFirmado.getFirmasPdf().get(0).isCorrecta());
+        assertEquals(unido.getNumeroPaginas(), paginaDelCampo(documentoPdfFirmado, "firmaSolicitante"), "el campo sigue en su página, que ahora es la última");
+    }
+
+    @Test
+    void alAnyadirUnDocumentoYaFirmadoSuFirmaNoPasaAlDocumentoUnido() {
+        DocumentoPdf firmado = firmarPdf(pdfConCampoFirmaVacio("firmaSolicitante"), new CampoFirma("firmaSolicitante"));
+        DocumentoPdf portada = DocumentoPdfFactory.getDocumentoPdf(getBytes(FILE_HOLA_MUNDO), FILE_HOLA_MUNDO);
+
+        DocumentoPdf unido = portada.anyadirDocumentoPdf(firmado);
+
+        assertEquals(List.of(), unido.getFirmasPdf());
+        assertEquals(List.of(), camposFirmaVacios(unido));
+    }
+
+    @Test
     void anyadirDocumentoPdf() {
     }
 
@@ -299,6 +376,42 @@ class DocumentoPdfImplITextTest {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static final Rectangle RECUADRO_CAMPO_FIRMA = new Rectangle(60, 500, 300, 45);
+
+    /** Un PDF de una página con un campo de firma vacío, como los que deja el generador de documentos. */
+    private DocumentoPdf pdfConCampoFirmaVacio(String nombreCampo) {
+        ByteArrayOutputStream salida = new ByteArrayOutputStream();
+        try (PdfDocument pdfDocument = new PdfDocument(new PdfWriter(salida))) {
+            PdfPage pagina = pdfDocument.addNewPage();
+            PdfAcroForm.getAcroForm(pdfDocument, true).addField(new SignatureFormFieldBuilder(pdfDocument, nombreCampo)
+                    .setWidgetRectangle(RECUADRO_CAMPO_FIRMA).setPage(pagina).createSignature(), pagina);
+        }
+        return DocumentoPdfFactory.getDocumentoPdf(salida.toByteArray(), "con_campo_firma.pdf");
+    }
+
+    private DocumentoPdf firmarPdf(DocumentoPdf documentoPdf, CampoFirma campoFirma) {
+        AlmacenClaveFichero almacenClaveSistemaArchivos = new AlmacenClaveFichero(this.getClass().getResourceAsStream(FILE_CERTIFICADO), PASSWORD_CERTIFICADO);
+        return documentoPdf.firmar(almacenClaveSistemaArchivos, campoFirma.setFechaFirma(LocalDateTime.of(2025, 8, 1, 14, 30, 45)));
+    }
+
+    private static List<String> camposFirmaVacios(DocumentoPdf documentoPdf) {
+        return documentoPdf.getNombreCamposFirmaVacios();
+    }
+
+    private static Rectangle recuadroDelCampo(DocumentoPdf documentoPdf, String nombreCampo) {
+        return widgetDelCampo(documentoPdf, nombreCampo).getRectangle().toRectangle();
+    }
+
+    private static int paginaDelCampo(DocumentoPdf documentoPdf, String nombreCampo) {
+        PdfWidgetAnnotation widget = widgetDelCampo(documentoPdf, nombreCampo);
+        return widget.getPage().getDocument().getPageNumber(widget.getPage());
+    }
+
+    private static PdfWidgetAnnotation widgetDelCampo(DocumentoPdf documentoPdf, String nombreCampo) {
+        PdfDocument pdfDocument = PdfDocumentHelper.getPdfDocument(documentoPdf.getDatos());
+        return PdfAcroForm.getAcroForm(pdfDocument, false).getField(nombreCampo).getWidgets().get(0);
     }
 
     private DocumentoPdf firmarPdf(DocumentoPdf documentoPdf,String ficheroCertificado, String passwordCertificado) {

@@ -4,7 +4,6 @@ import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
-import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
 import com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.EventContext;
@@ -26,7 +25,8 @@ import java.util.List;
 
 public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaProfesoradoV1> {
 
-    private static final Rectangulo rectanguloPosicionFirmaPDFResolucion =new Rectangulo(75,280,400,20);
+    /** El {@code campoFirma} del hueco de la firma del director en {@code documentospdf/resolucion.xml}. */
+    private static final String CAMPO_FIRMA_RESOLUCION = "firmaDirector";
 
     private final JustificacionFaltaProfesoradoV1Repository repository;
     protected final Logger log = LoggerFactory.getLogger(getClass());
@@ -46,7 +46,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
         TipoResolucionJustificacionFaltaProfesoradoV1 tipoResolucion = justificacionFaltaProfesorado.getTipoResolucion();
         DocumentoPdf resolucion = justificacionFaltaProfesorado.getDocumentoPdf(JustificacionFaltaProfesoradoV1.TipoDocumentoPdf.RESOLUCION);
 
-        DocumentoPdf resolucionFirmada =resolucion.firmar(almacenClaveResolver.getDirector(justificacionFaltaProfesorado.getCentro()),new CampoFirma(rectanguloPosicionFirmaPDFResolucion));
+        DocumentoPdf resolucionFirmada =resolucion.firmar(almacenClaveResolver.getDirector(justificacionFaltaProfesorado.getCentro()),new CampoFirma(CAMPO_FIRMA_RESOLUCION));
 
         MetaFile pdfResolucion = MetaFileHelper.createMetaFile(resolucionFirmada);
 

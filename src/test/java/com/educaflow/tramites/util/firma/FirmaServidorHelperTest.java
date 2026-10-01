@@ -141,6 +141,25 @@ class FirmaServidorHelperTest {
     }
 
     @Test
+    void firmarEnServidor_conNombreDeCampoFirma_firmaEnEseCampoYSinRectangulo() throws BusinessException {
+        DocumentoPdf pdfOriginal = mock(DocumentoPdf.class);
+        DocumentoPdf pdfFirmado = mock(DocumentoPdf.class);
+        MetaFile metaFileFirmado = new MetaFile();
+        metaFileHelperMock.when(() -> MetaFileHelper.getDocumentoPdf(documentoOriginal)).thenReturn(pdfOriginal);
+        metaFileHelperMock.when(() -> MetaFileHelper.createMetaFile(pdfFirmado)).thenReturn(metaFileFirmado);
+        when(firmaEnServidorService.firmar(eq(DNI), eq(CLAVE), eq(pdfOriginal), any(CampoFirma.class))).thenReturn(pdfFirmado);
+
+        MetaFile resultado = firmaServidorHelper.firmarEnServidor(DNI, SituacionFirma.FICHERO_CON_CLAVE, CLAVE, documentoOriginal, "firmaSolicitante");
+
+        assertSame(metaFileFirmado, resultado);
+        ArgumentCaptor<CampoFirma> campoFirma = ArgumentCaptor.forClass(CampoFirma.class);
+        verify(firmaEnServidorService).firmar(eq(DNI), eq(CLAVE), eq(pdfOriginal), campoFirma.capture());
+        assertAll(
+                () -> assertEquals("firmaSolicitante", campoFirma.getValue().getNombreCampo()),
+                () -> assertEquals(null, campoFirma.getValue().getRectanguloMensaje()));
+    }
+
+    @Test
     void firmarEnServidor_claveErronea_lanzaBusinessExceptionConElMotivo() {
         DocumentoPdf pdfOriginal = mock(DocumentoPdf.class);
         metaFileHelperMock.when(() -> MetaFileHelper.getDocumentoPdf(documentoOriginal)).thenReturn(pdfOriginal);
