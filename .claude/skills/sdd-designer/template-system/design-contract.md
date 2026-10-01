@@ -299,7 +299,7 @@ El `design.md` **MUST** llevar una sección `## Frontera de confianza — AllowP
 ```markdown
 ### `BarServiceImpl.<accion>` (invocado desde `BarController.<callMethod>`)
 
-Entidad: `Bar`. **Forma elegida**: `createAllowProperties` | `createAllowAllProperties`.
+Entidad: `Bar`. **Forma elegida**: `createAllowProperties` | `createAllowAllProperties` | `createDenyAllProperties`.
 **Origen spec:** `Input AllowProperties` de la acción `<Acción>` de `entity-Bar.md`.
 
 | Campo            | Origen   | En whitelist | Justificación / Ubicación de la asignación              |

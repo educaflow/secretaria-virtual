@@ -106,8 +106,12 @@ La factoría busca el servicio por el **nombre exacto** de la entidad y **no** r
 |---|---|
 | `createAllowProperties(Map.of(...))` (**whitelist**) | Enumera solo los `cliente` que esta acción acepta. **Obligatorio** si hay algún `servidor` que la acción no asigna. |
 | `createAllowAllProperties()` (**abierto**) | Admisible **solo** si la acción asigna incondicionalmente **todos** los `servidor` de la entidad (o si no hay ninguno). |
+| `createDenyAllProperties()` (**cerrado**) | La acción no acepta **ningún** campo del cliente (p.ej. reenviar, firmar en servidor). **MUST** usarse en lugar de una whitelist vacía. |
 
 Un campo `servidor` que la acción no asigna se queda **fuera** de la whitelist: el cliente no puede enviarlo.
+
+- ✅ CORRECTO: `return AllowProperties.createDenyAllProperties();`
+- ❌ INCORRECTO: `return AllowProperties.createAllowProperties(Map.of());` (mismo efecto, pero oculta la intención de cerrar la acción)
 
 ✅ `insert` que asigna todos los `servidor`:
 
@@ -148,6 +152,7 @@ correo.setCentro(expediente.getCentro());
 - `if (entidad.getCampo() == null) entidad.setCampo(...)` con campo `servidor` → **bloquear**.
 - `createAllowAllProperties()` en acción que no asigna todos los `servidor` → **vulnerabilidad**.
 - `createAllowProperties(Map.of(...))` que enumera un campo `servidor` → **bloquear**.
+- `createAllowProperties` con un mapa vacío (`Map.of()`, `new HashMap<>()`, `Collections.emptyMap()`) → sustituir por `createDenyAllProperties()`.
 
 ### 3.5 Excepción: alta programática vía DTO
 
@@ -367,7 +372,7 @@ public Correo update(Correo nuevo, Correo original) {
 
 Aplicar a cada PR o cambio que toque `*ServiceImpl`, `*Controller`, vistas XML con `<form>` que escriben en BD, o que añada un nuevo endpoint.
 
-- [ ] **`allowPropertiesXxx`** (§3.2): ¿cada acción del servicio invocada desde `@CallMethod` tiene su `allowPropertiesXxx` declarado? Si usa `createAllowProperties` (whitelist): ¿enumera solo campos `cliente`? Si usa `createAllowAllProperties` (abierto): ¿**todos** los campos `servidor` se asignan incondicionalmente en esa acción?
+- [ ] **`allowPropertiesXxx`** (§3.2): ¿cada acción del servicio invocada desde `@CallMethod` tiene su `allowPropertiesXxx` declarado? Si usa `createAllowProperties` (whitelist): ¿enumera solo campos `cliente`? Si usa `createAllowAllProperties` (abierto): ¿**todos** los campos `servidor` se asignan incondicionalmente en esa acción? Si no acepta ningún campo: ¿usa `createDenyAllProperties()` y no una whitelist vacía?
 - [ ] **Asignación incondicional de campos `servidor`** (§3.3): ¿hay algún `if (campo == null) setCampo(...)` en una acción del `*ServiceImpl` para un campo clasificado `servidor` en `entity-*.md`? → quitar el `if`, asignación incondicional.
 - [ ] **Campos `servidor` que la acción NO toca** (§3.2 regla 1): ¿están **excluidos** de la whitelist? Si la acción no los asigna, el cliente no puede enviarlos.
 - [ ] **Referencia al padre de un alta anidada** (§3.6): si la entidad se crea dentro del formulario de su padre, ¿el campo del padre está en la whitelist de `insert` (clasificado `cliente`) Y `validateInsert` valida que el padre está indicado, autorizado para el usuario (centro/alcance) y en un estado que admite la operación? ¿Está **fuera** de la whitelist de `update`?
