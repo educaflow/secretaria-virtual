@@ -36,7 +36,8 @@ public class TwilioSmsSender implements SmsSender {
 
         Message message = null;
         try {
-            message =Message.creator(new PhoneNumber(sms.telefonoDestino()), telefonoOrigen, sms.mensaje()).create(twilioRestClient);
+            //message =Message.creator(new PhoneNumber(sms.telefonoDestino()), telefonoOrigen, sms.mensaje()).create(twilioRestClient);
+            message =Message.creator(new PhoneNumber(sms.telefonoDestino()), telefonoOrigen, "sms_marketing_promotions").create(twilioRestClient);
         } catch (Exception ex) {
             throw new RuntimeException("Fallo al enviar SMS mediante Twilio:"+messageToString(message), ex);
         }
