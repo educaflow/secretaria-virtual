@@ -65,7 +65,7 @@
             <field name="justificante" title="Foto o PDF del justificante" widget="binary-link" colSpan="4" readonly="true"/>
         </panel>
         <panel name="pdfSolicitud" title="Solicitud" >
-            <field name="new" showTitle="false" readonly="true" colSpan="9">
+            <field name="visorSolicitud" showTitle="false" readonly="true" colSpan="9">
                 <viewer depends="pdfSolicitud" ><![CDATA[
                     <>
                     <Box as="iframe" height="900" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfSolicitud.id}/content/download?inline=true&name=${pdfSolicitud.fileName}`} ></Box>
@@ -73,8 +73,8 @@
                     ]]></viewer>
             </field>
         </panel>
-        <panel name="pdfSolicitudFirmado" title="Solicitud" >
-            <field name="new" showTitle="false" readonly="true" colSpan="9">
+        <panel name="pdfSolicitudFirmado" title="Solicitud firmada" >
+            <field name="visorSolicitudFirmado" showTitle="false" readonly="true" colSpan="9">
                 <viewer depends="pdfSolicitudFirmado" ><![CDATA[
                     <>
                     <Box as="iframe" height="400" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfSolicitudFirmado.id}/content/download?inline=true&name=${pdfSolicitudFirmado.fileName}`} ></Box>
@@ -82,8 +82,8 @@
                     ]]></viewer>
             </field>
         </panel>
-        <panel name="pdfJustificanteRegistroEntrada" title="Solicitud" >
-            <field name="new2" showTitle="false" readonly="true" colSpan="12">
+        <panel name="pdfJustificanteRegistroEntrada" title="Justificante de presentación" >
+            <field name="visorJustificanteRegistroEntrada" showTitle="false" readonly="true" colSpan="12">
                 <viewer depends="pdfJustificanteRegistroEntrada" ><![CDATA[
                     <>
                     <Box as="iframe" height="400" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfJustificanteRegistroEntrada.id}/content/download?inline=true&name=${pdfJustificanteRegistroEntrada.fileName}`} ></Box>
@@ -91,8 +91,8 @@
                     ]]></viewer>
             </field>
         </panel>
-        <panel name="pdfResolucion" title="Solicitud" >
-            <field name="new2" showTitle="false" readonly="true" colSpan="12">
+        <panel name="pdfResolucion" title="Resolución" >
+            <field name="visorResolucion" showTitle="false" readonly="true" colSpan="12">
                 <viewer depends="pdfResolucion" ><![CDATA[
                     <>
                     <Box as="iframe" height="400" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfResolucion.id}/content/download?inline=true&name=${pdfResolucion.fileName}`} ></Box>
