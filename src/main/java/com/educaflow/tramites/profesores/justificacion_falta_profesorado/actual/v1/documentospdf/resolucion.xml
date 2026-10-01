@@ -1,44 +1,128 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<documentoFormulario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documentoFormulario.xsd">
+<documentoTexto xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documentoTexto.xsd">
 
-    <include href="_centroPresentacion.xml"/>
-    <include href="_datosInteresado.xml"/>
+    <titulo>
+        <valenciano>RESOLUCIÓ DE LA SOL·LICITUD DE JUSTIFICACIÓ DE FALTA D'ASSISTÈNCIA DEL PROFESSORAT</valenciano>
+        <castellano>RESOLUCIÓN DE LA SOLICITUD DE JUSTIFICACIÓN DE FALTA DE ASISTENCIA DEL PROFESORADO</castellano>
+    </titulo>
 
-    <seccion>
-        <castellano>Declara que</castellano>
+    <parrafo>
+        <valenciano>En l'expedient número ${self.numeroExpediente}, iniciat a instància de ${self.personaInteresada.nombre} ${self.personaInteresada.apellidos}, amb DNI__!! / NIE__!! ${self.personaInteresada.dni}, professor/a del centre ${self.centro.name}, de ${self.centro.municipio.name}, es dicta la resolució següent.</valenciano>
+        <castellano>En el expediente número ${self.numeroExpediente}, iniciado a instancia de ${self.personaInteresada.nombre} ${self.personaInteresada.apellidos}, con DNI__!! / NIE__!! ${self.personaInteresada.dni}, profesor/a del centro ${self.centro.name}, de ${self.centro.municipio.name}, se dicta la siguiente resolución.</castellano>
+    </parrafo>
+    <espacio alto="14.76"/>
+
+    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda">
+        <valenciano>Vist:</valenciano>
+        <castellano>Visto:</castellano>
+    </parrafo>
+
+    <!-- Una línea por cada tipo de jornada faltada: solo sale la elegida.
+         En valenciano MMMM ya lleva la preposición con la elisión resuelta ("d'abril"): añadir el
+         literal 'de' imprimiría "1 de d'abril". El castellano sí lo lleva. -->
+    <parrafo visible="self.tipoJornadaFalta == com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.UN_DIA_COMPLETO">
+        <valenciano>Que la persona interessada va presentar una sol·licitud de justificació de la seua falta d'assistència al centre el dia ${self.fechaInicio.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))}.</valenciano>
+        <castellano>Que la persona interesada presentó una solicitud de justificación de su falta de asistencia al centro el día ${self.fechaInicio.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))}.</castellano>
+    </parrafo>
+    <parrafo visible="self.tipoJornadaFalta == com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.VARIOS_DIAS_COMPLETOS">
+        <valenciano>Que la persona interessada va presentar una sol·licitud de justificació de la seua falta d'assistència al centre des del dia ${self.fechaInicio.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))} fins al dia ${self.fechaFin.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))}, ambdós inclosos.</valenciano>
+        <castellano>Que la persona interesada presentó una solicitud de justificación de su falta de asistencia al centro desde el día ${self.fechaInicio.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))} hasta el día ${self.fechaFin.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))}, ambos inclusive.</castellano>
+    </parrafo>
+    <parrafo visible="self.tipoJornadaFalta == com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.UNAS_HORAS_UN_DIA">
+        <valenciano>Que la persona interessada va presentar una sol·licitud de justificació de la seua falta d'assistència al centre el dia ${self.fechaInicio.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))}, de les ${self.horaInicio.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))} a les ${self.horaFin.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))} hores.</valenciano>
+        <castellano>Que la persona interesada presentó una solicitud de justificación de su falta de asistencia al centro el día ${self.fechaInicio.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))}, de las ${self.horaInicio.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))} a las ${self.horaFin.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))} horas.</castellano>
+    </parrafo>
+    <parrafo visible="self.tipoJornadaFalta == com.educaflow.subsystem.expedientes.db.TipoJornadaFaltaJustificacionFaltaProfesoradoV1.VARIOS_DIAS_PRIMERO_PARCIAL">
+        <valenciano>Que la persona interessada va presentar una sol·licitud de justificació de la seua falta d'assistència al centre des del dia ${self.fechaInicio.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))} a partir de les ${self.horaInicio.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))} hores fins al dia ${self.fechaFin.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))}, inclòs.</valenciano>
+        <castellano>Que la persona interesada presentó una solicitud de justificación de su falta de asistencia al centro desde el día ${self.fechaInicio.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))} a partir de las ${self.horaInicio.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))} horas hasta el día ${self.fechaFin.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))}, inclusive.</castellano>
+    </parrafo>
+    <espacio alto="14.76"/>
+
+    <parrafo visible="self.motivoFalta != com.educaflow.subsystem.expedientes.db.MotivoFaltaJustificacionFaltaProfesoradoV1.OTROS">
+        <valenciano>Que la persona interessada al·lega com a motiu de la falta: ${self.motivoFalta}.</valenciano>
+        <castellano>Que la persona interesada alega como motivo de la falta: ${self.motivoFalta}.</castellano>
+    </parrafo>
+    <parrafo visible="self.motivoFalta == com.educaflow.subsystem.expedientes.db.MotivoFaltaJustificacionFaltaProfesoradoV1.OTROS">
+        <valenciano>Que la persona interessada al·lega com a motiu de la falta: ${self.otroMotivo}.</valenciano>
+        <castellano>Que la persona interesada alega como motivo de la falta: ${self.otroMotivo}.</castellano>
+    </parrafo>
+    <espacio alto="14.76"/>
+
+    <!-- El justificante es opcional: sin él no se menciona. -->
+    <parrafo visible="self.justificante != null">
+        <valenciano>Que s'ha examinat la documentació justificativa aportada per la persona interessada, que consta en l'expedient.</valenciano>
+        <castellano>Que se ha examinado la documentación justificativa aportada por la persona interesada, que consta en el expediente.</castellano>
+    </parrafo>
+    <espacio alto="14.76" visible="self.justificante != null"/>
+
+    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda">
+        <valenciano>Es resol:</valenciano>
+        <castellano>Se resuelve:</castellano>
+    </parrafo>
+    <espacio alto="14.76"/>
+
+    <parrafo visible="self.tipoResolucion == com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.ACEPTAR">
+        <valenciano>Estimar la sol·licitud i considerar justificada la falta d'assistència indicada.</valenciano>
+        <castellano>Estimar la solicitud y considerar justificada la falta de asistencia indicada.</castellano>
+    </parrafo>
+    <espacio alto="14.76" visible="self.tipoResolucion == com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.ACEPTAR"/>
+
+    <parrafo visible="self.tipoResolucion == com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.RECHAZAR">
+        <valenciano>Desestimar la sol·licitud i considerar no justificada la falta d'assistència indicada.</valenciano>
+        <castellano>Desestimar la solicitud y considerar no justificada la falta de asistencia indicada.</castellano>
+    </parrafo>
+    <espacio alto="14.76" visible="self.tipoResolucion == com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.RECHAZAR"/>
+
+    <parrafo visible="self.tipoResolucion == com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.RECHAZAR">
+        <valenciano>Pel motiu següent: ${self.resolucion}</valenciano>
+        <castellano>Por el siguiente motivo: ${self.resolucion}</castellano>
+    </parrafo>
+    <espacio alto="14.76" visible="self.tipoResolucion == com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.RECHAZAR"/>
+
+    <parrafo visible="self.tipoResolucion == com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.SUBSANAR_DATOS">
+        <valenciano>Requerir la persona interessada perquè esmene les dades de la sol·licitud, pel motiu següent: ${self.disconformidad}</valenciano>
+        <castellano>Requerir a la persona interesada para que subsane los datos de la solicitud, por el siguiente motivo: ${self.disconformidad}</castellano>
+    </parrafo>
+    <espacio alto="14.76" visible="self.tipoResolucion == com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.SUBSANAR_DATOS"/>
+
+    <!-- El requerimiento de subsanación es un acto de trámite: no pone fin al procedimiento y no lleva recursos. -->
+    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda" visible="self.tipoResolucion != com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.SUBSANAR_DATOS">
+        <valenciano>Recursos:</valenciano>
+        <castellano>Recursos:</castellano>
+    </parrafo>
+    <espacio alto="14.76" visible="self.tipoResolucion != com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.SUBSANAR_DATOS"/>
+
+    <parrafo visible="self.tipoResolucion != com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.SUBSANAR_DATOS">
+        <valenciano>Contra aquesta resolució, que no posa fi a la via administrativa, es pot interposar recurs d'alçada davant la direcció territorial competent en matèria d'educació en el termini d'un mes comptador des de l'endemà de la seua notificació, de conformitat amb els articles 121 i 122 de la Llei 39/2015, d'1 d'octubre, del procediment administratiu comú de les administracions públiques.</valenciano>
+        <castellano>Contra esta resolución, que no pone fin a la vía administrativa, se puede interponer recurso de alzada ante la dirección territorial competente en materia de educación en el plazo de un mes contado desde el día siguiente al de su notificación, de conformidad con los artículos 121 y 122 de la Ley 39/2015, de 1 de octubre, del procedimiento administrativo común de las administraciones públicas.</castellano>
+    </parrafo>
+
+    <espacio alto="14.76"/>
+    <espacio alto="14.76"/>
+
+    <!-- La entidad no guarda la fecha de la resolución: el PDF se genera y firma en el propio evento RESOLVER,
+         así que la fecha de generación (now) es la de la resolución. -->
+    <parrafo alineamiento="derecha">
+        <valenciano>${self.centro.municipio.name}, ${now.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))}</valenciano>
+        <castellano>${self.centro.municipio.name}, ${now.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))}</castellano>
+    </parrafo>
+
+    <espacio alto="29.52"/>
+
+    <!-- Solo firma el director (CAMPO_FIRMA_RESOLUCION del PhaseEventManagerImpl de tramitacion). -->
+    <tabla columnas="2">
         <fila>
-            <campo nombreCampo="self.motivoFalta" colspan="12">
-                <castellano>Por el motivo siguiente</castellano>
-            </campo>
-            <campo nombreCampo="self.otroMotivo" colspan="12" />
+            <parrafo/>
+            <parrafo alineamiento="centrado">
+                <valenciano>EL DIRECTOR / LA DIRECTORA</valenciano>
+                <castellano>EL DIRECTOR / LA DIRECTORA</castellano>
+            </parrafo>
         </fila>
-    </seccion>
-
-    <include href="_documentacionAportada.xml"/>
-
-    <seccion>
-        <valenciano>Resolució</valenciano>
-        <castellano>Resolución</castellano>
         <fila>
-            <campo nombreCampo="self.tipoResolucion.title" colspan="12"  />
-            <campo nombreCampo="self.resolucion" colspan="12" rowSpan="4" />
+            <parrafo/>
+            <espacio alto="88.56" campoFirma="firmaDirector"/>
         </fila>
-    </seccion>
+    </tabla>
 
-    <seccion>
-        <valenciano>Signat</valenciano>
-        <castellano>Firmado</castellano>
-        <fila>
-            <texto colspan="12" rowSpan="4" campoFirma="firmaDirector">
-                <valenciano>Signatura</valenciano>
-                <castellano>Firma</castellano>
-            </texto>
-            <texto colspan="12" >
-                <valenciano>El director del centre</valenciano>
-                <castellano>El director del centro</castellano>
-            </texto>
-        </fila>
-    </seccion>
-
-</documentoFormulario>
+</documentoTexto>
