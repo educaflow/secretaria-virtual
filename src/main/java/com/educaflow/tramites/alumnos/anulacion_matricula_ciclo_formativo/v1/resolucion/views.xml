@@ -43,7 +43,7 @@
             -solicitud-firmada-descarga
         </include-panels>
 
-        <panel name="avisoPendienteFirmaDirectorGenerica" colSpan="12" showFrame="false">
+        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
             <help variant="info" colSpan="12">La resolución está pendiente de la firma del director</help>
         </panel>
 
@@ -67,8 +67,8 @@
             -solicitud-firmada-descarga
         </include-panels>
 
-        <panel name="avisoAceptada" colSpan="12" showFrame="false">
-            <help variant="info" colSpan="12">El expediente está cerrado</help>
+        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">El expediente está cerrado: la anulación ha sido aceptada</help>
         </panel>
 
         <footer>
@@ -91,8 +91,8 @@
             -solicitud-firmada-descarga
         </include-panels>
 
-        <panel name="avisoRechazada" colSpan="12" showFrame="false">
-            <help variant="info" colSpan="12">El expediente está cerrado</help>
+        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">El expediente está cerrado: la anulación ha sido rechazada</help>
         </panel>
 
         <footer>

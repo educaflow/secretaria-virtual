@@ -92,7 +92,7 @@
             -matricula
         </include-panels>
 
-        <panel name="avisoDatosSolicitudGenerica" colSpan="12" showFrame="false">
+        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
             <help variant="info" colSpan="12">La solicitud todavía no se ha presentado: está pendiente de que el alumno complete o corrija los datos</help>
         </panel>
 
@@ -180,7 +180,7 @@
             -solicitud-descarga
         </include-panels>
 
-        <panel name="avisoPendienteFirmaGenerica" colSpan="12" showFrame="false">
+        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
             <help variant="info" colSpan="12">La solicitud todavía no se ha presentado: está pendiente de que el alumno la firme</help>
         </panel>
 
@@ -227,7 +227,7 @@
             -matricula
         </include-panels>
 
-        <panel name="avisoPendienteDocumentoEscaneadoGenerica" colSpan="12" showFrame="false">
+        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
             <help variant="info" colSpan="12">La solicitud todavía no se ha presentado: está pendiente de que se adjunte escaneada la solicitud entregada en papel</help>
         </panel>
 

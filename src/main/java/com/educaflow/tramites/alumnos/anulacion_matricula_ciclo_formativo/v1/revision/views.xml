@@ -38,7 +38,7 @@
             -solicitud-firmada-descarga
         </include-panels>
 
-        <panel name="avisoPendienteRevisionGenerica" colSpan="12" showFrame="false">
+        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
             <help variant="info" colSpan="12">La solicitud está pendiente de revisión por la secretaría del centro</help>
         </panel>
 
