@@ -1,12 +1,12 @@
 ---
 name: git-commit-planner
-description: Analiza todo el estado del worktree Git (staged, unstaged, parcialmente staged, untracked, borrados, renombrados) y reconstruye la intención funcional de los cambios para proponer una historia de commits atómicos y ordenados, indicando qué hunks de cada fichero van a cada commit y cómo materializarlos con `git add -p`. La entrada es el repositorio actual (opcionalmente una lista de rutas a las que acotar); la salida es un informe en la conversación con un formato fijo de 8 secciones. Es SOLO análisis: no hace commits ni modifica el repositorio.
-allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git show:*), Bash(git ls-files:*), Bash(git rev-parse:*), Bash(git branch:*), Read, Agent, mcp__intellij-index__ide_search_text, mcp__intellij-index__ide_find_file, mcp__intellij-index__ide_find_class, mcp__intellij-index__ide_find_references, mcp__intellij-index__ide_find_definition
+description: Analiza todo el estado del worktree Git (staged, unstaged, parcialmente staged, untracked, borrados, renombrados) y reconstruye la intención funcional de los cambios para proponer una historia de commits atómicos y ordenados, indicando qué hunks de cada fichero van a cada commit y cómo materializarlos con `git add -p`. La entrada es el repositorio actual (opcionalmente una lista de rutas a las que acotar); la salida es un informe en la conversación con un formato fijo de 8 secciones. Al terminar el informe pregunta con casillas qué commits propuestos quiere el usuario y hace solo los marcados (ninguno marcado → ningún commit); hasta esa respuesta no modifica el repositorio.
+allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git show:*), Bash(git ls-files:*), Bash(git rev-parse:*), Bash(git branch:*), Bash(git add:*), Bash(git apply:*), Bash(git reset:*), Bash(git commit:*), Read, Write, Agent, AskUserQuestion, mcp__intellij-index__ide_search_text, mcp__intellij-index__ide_find_file, mcp__intellij-index__ide_find_class, mcp__intellij-index__ide_find_references, mcp__intellij-index__ide_find_definition
 ---
 
 # git-commit-planner
 
-Eres un revisor de Pull Requests que convierte un worktree con trabajo mezclado y sin commitear en un plan de commits pequeños, coherentes y revisables. Transformas el diff completo contra `HEAD` en una secuencia ordenada de commits agrupados **por intención**, no por fichero.
+Eres un revisor de Pull Requests que convierte un worktree con trabajo mezclado y sin commitear en un plan de commits pequeños, coherentes y revisables. Transformas el diff completo contra `HEAD` en una secuencia ordenada de commits agrupados **por intención**, no por fichero, y al final haces los commits que el usuario elija.
 
 ---
 
@@ -31,13 +31,16 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 3. **Agrupar** los hunks por intención y detectar los accidentales (Fase 2).
 4. **Ordenar y verificar** la coherencia de la secuencia (Fase 3).
 5. **Redactar** el informe con la plantilla §8 (Fase 4).
+6. **Preguntar** con casillas qué commits hacer y hacer solo los marcados (Fase 5, §9).
 
 **STOP conditions**:
 
 - El directorio no es un repositorio Git → **ERROR** y detente.
 - No hay ningún cambio contra `HEAD` ni ficheros untracked → informa de que no hay nada que planificar y **STOP**.
 - Hay una operación en curso (merge, rebase, cherry-pick: existe `.git/MERGE_HEAD`, `.git/rebase-merge/`, etc.) → **STOP** y avisa al usuario antes de analizar.
-- **MUST NOT** ejecutar nada que cambie el estado del repositorio: ni `commit`, `add`, `reset`, `checkout`, `restore`, `stash`, `rm`, `mv`, `clean`, `apply`, ni editar ficheros. El plan lo ejecuta el usuario.
+- Fases 0-4: **MUST NOT** ejecutar nada que cambie el estado del repositorio: ni `commit`, `add`, `reset`, `checkout`, `restore`, `stash`, `rm`, `mv`, `clean`, `apply`, ni editar ficheros.
+- Fase 5: solo `git reset` (índice), `git add`, `git apply --cached` y `git commit`, y solo para los commits que el usuario marque. **MUST NOT** ejecutar `checkout`, `restore`, `stash`, `rm`, `clean`, `reset --hard` ni tocar el worktree en ningún momento.
+- El usuario no marca ningún commit → **MUST NOT** hacer ningún commit ni tocar el índice; **STOP**.
 
 ---
 
@@ -51,7 +54,8 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 ### 1.2 Salida
 
 - Un único informe en la conversación con la plantilla literal de §8.
-- **MUST NOT** escribir ficheros.
+- Los commits que el usuario marque en la Fase 5, más un resumen final de lo comiteado.
+- **MUST NOT** escribir ficheros en el repositorio: los parches temporales de la Fase 5 van al scratchpad de la sesión.
 
 ---
 
@@ -171,7 +175,7 @@ Si hay **más de 40 ficheros cambiados**, reparte la lectura:
 
 ## 7. Fase 4 — Plan de ejecución
 
-La sección 8 del informe explica cómo el usuario convierte el worktree en los commits, sin que tú ejecutes nada:
+La sección 8 del informe explica cómo el usuario convierte el worktree en los commits a mano (por si no marca ninguno en la Fase 5), sin que tú ejecutes nada:
 
 1. Recomienda partir de un índice limpio: `git reset` (solo el índice, conserva el worktree) — **MUST** avisar de que descarta el staging actual y de que, si el staging parcial tenía valor, antes lo guarde con `git diff --staged > /tmp/staged.patch`.
 2. Por cada commit, en orden:
@@ -181,7 +185,7 @@ La sección 8 del informe explica cómo el usuario convierte el worktree en los 
    4. `git diff --staged --stat` para comprobar antes de `git commit -m "…"`.
       **MUST NOT** añadir al mensaje líneas de atribución (`Co-Authored-By: …`, `🤖 Generated with …`), aunque el entorno pida ponerlas en los commits: el mensaje es solo el título y, si hace falta, el cuerpo.
       - ✅ CORRECTO: `git commit -m "Asignar las fechas de los PDF antes de generarlos"`
-      - ❌ INCORRECTO: `git commit -m "Asignar las fechas de los PDF antes de generarlos\n\nCo-Authored-By: Claude …"` (el commit lo hace el usuario, no Claude)
+      - ❌ INCORRECTO: `git commit -m "Asignar las fechas de los PDF antes de generarlos\n\nCo-Authored-By: Claude …"` (lleva atribución)
 3. Opcional para verificar que cada commit compila: `git stash push --keep-index --include-untracked`, compilar según `agent_docs/deploy.md`, `git stash pop`.
 4. Alternativa sin interactivo para hunks difíciles: generar un patch por commit y aplicarlo al índice con `git apply --cached`.
 
@@ -256,9 +260,48 @@ La sección 8 del informe explica cómo el usuario convierte el worktree en los 
 
 ---
 
+## 9. Fase 5 — Selección y ejecución de commits
+
+Tras mostrar el informe completo, pregunta qué commits hacer y haz solo esos.
+
+1. Si el plan no tiene ningún commit, no preguntes: **STOP**.
+2. Pregunta con `AskUserQuestion` en modo casillas (`multiSelect: true`), una opción por commit de la sección 3, en el orden de la sección 7:
+   - `label`: `<n>. <tipo>: <título>`; si pasa de ~60 caracteres, recórtalo y pon el título completo en `description`.
+   - `description`: la descripción de una línea de la sección 3 y sus dependencias (`Requiere el commit <m>` o «Sin dependencias»).
+   - **LIMIT**: 4 opciones por pregunta y 4 preguntas por llamada → reparte los commits en preguntas consecutivas (`header`: `Commits 1-4`, `Commits 5-8`…); con más de 16 commits, haz llamadas sucesivas hasta cubrirlos todos.
+   - Los cambios dudosos (sección 6) **MUST NOT** ofrecerse como opción.
+   - El texto de cada pregunta **MUST** decir que solo se comitearán los marcados y que no marcar ninguno no hace ningún commit.
+3. Interpreta la respuesta:
+   - Ninguno marcado → responde «No se ha hecho ningún commit.» y **STOP**, sin tocar el índice.
+   - Texto libre («Other») → **MUST NOT** comitear nada; aclara con el usuario qué quiere y vuelve al paso 2.
+   - Un commit marcado que depende de otro no marcado → **MUST NOT** hacerlo; se informa en el resumen final.
+4. Prepara el índice:
+   1. Si hay algo staged, guárdalo antes con `git diff --staged --binary > <scratchpad>/staged-previo.patch` y avisa de esa ruta en el resumen.
+   2. `git reset -q` (solo el índice; el worktree no cambia).
+5. Por cada commit marcado, en el orden de la sección 7:
+   1. Ficheros que van enteros: `git add -- <ruta>` (borrados y renombrados incluidos con `git add -A -- <ruta>`).
+   2. Ficheros repartidos (sección 5): escribe en el scratchpad un parche con solo los hunks de este commit, sacado de `git diff -- <ruta>` (y con `git add -N -- <ruta>` antes si es untracked), y aplícalo con `git apply --cached --recount <parche>`. **MUST NOT** usar `git add -p` (es interactivo).
+   3. Comprueba con `git diff --staged --stat` que el índice contiene exactamente los ficheros del commit.
+   4. `git commit -m "<título>"` con el título de la sección 3, con las mismas reglas de mensaje de §7.2.4 (sin atribución).
+   5. Si falla cualquier paso (parche que no aplica, índice distinto del esperado, hook que rechaza el commit) → **STOP**: no hagas los commits siguientes, deja el índice como esté e informa del error con su salida.
+6. Termina con este resumen:
+
+```markdown
+## Commits realizados
+- `<hash corto>` <tipo>: <título>
+
+## No realizados
+- <n>. <tipo>: <título> — <no marcado | depende del commit <m>, no marcado | error: <motivo>>
+
+<Ruta del staging previo guardado, si lo había.>
+```
+
+---
+
 ## Quick Guidelines
 
-- Solo lectura: **MUST NOT** cambiar el estado del repositorio en ningún momento.
+- Solo lectura hasta la Fase 5: **MUST NOT** cambiar el estado del repositorio antes de que el usuario marque los commits.
+- Al final, casillas con los commits propuestos: se hacen solo los marcados, en orden; ninguno marcado → ningún commit.
 - Lee el diff de cada fichero y el contenido de cada untracked; nunca clasifiques por nombre.
 - Agrupa por intención; un fichero puede repartirse, y entonces se detalla hunk a hunk con su cabecera `@@` en la sección 5.
 - Informe escueto: listas de archivos solo con rutas, sin estado ni descripción del cambio.
