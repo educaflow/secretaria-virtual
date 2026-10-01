@@ -72,4 +72,9 @@
         <menuitem name="desarrollador-utilidadesPdf-posicionAutofirma-menuitem" parent="desarrollador-utilidadesPdf-menuitem" title="Posición Autofirma__!!" action="subsysPdfUtilities.AutoFirma@PdfUtilities-action" groups="admins" order="3"/>
     <menuitem name="desarrollador-busquedaDeExpedientes-menuitem" parent="desarrollador-menuitem" title="Búsqueda de expedientes" action="sysVentanilla.PruebaSearch@Expediente-action" groups="admins" order="3"/>
 
+<menuitem name="sms-menuitem" title="SMS__!!" groups="admins,users" order="55"/>
+    <menuitem name="sms-recibidos-menuitem" parent="sms-menuitem" title="Recibidos" action="subsysSms.Mis@Sms-action" groups="admins,users" order="1"/>
+    <menuitem name="sms-delCentro-menuitem" parent="sms-menuitem" title="Del centro" action="subsysSms.Centro@Sms-action" groups="users" order="2"/>
+    <menuitem name="sms-todos-menuitem" parent="sms-menuitem" title="Todos" action="subsysSms.Main@Sms-action" groups="admins" order="3"/>
+
 </object-views>

@@ -7,7 +7,7 @@ Clases de utilidad de **bajo nivel** del proyecto. Su objetivo es no repetir peq
 ## Convenciones
 
 - Paquete: `com.educaflow.base.util`.
-- Son helpers **stateless**: métodos `static` y sin estado mutable. No son servicios Guice ni entidades JPA.
+- Son helpers **stateless**: métodos `static` y sin estado mutable. **Excepción**: una clase de instancia solo cuando encapsula un parseo caro que todas sus consultas reutilizan y cuyo estado es **inmutable** tras el constructor (`NumeroTelefono`). No son servicios Guice ni entidades JPA.
 - No dependen del dominio de negocio (expedientes, firmas, etc.); solo de Java, librerías de terceros y, como mucho, del framework Axelor (`AxelorUtil`, `MetaFileUtil`, `SecurityUtil`).
 - Si necesitas un helper nuevo de carácter genérico y reutilizable, añádelo aquí (y actualiza este fichero); si la lógica es específica de un subsistema, va en ese subsistema, no aquí.
 
@@ -56,6 +56,9 @@ Clases de utilidad de **bajo nivel** del proyecto. Su objetivo es no repetir peq
 - `toJson` — serializa un objeto a JSON.
 - `fromJson` — deserializa JSON a una clase concreta.
 
+### `MensajeSmsUtil` — longitud de mensajes SMS
+- `cabeEnUnSms` — `true` si el texto cabe en un único SMS: 160 unidades si es codificable en GSM-7 (los caracteres de la tabla de extensión cuentan doble) o 70 caracteres en UCS-2; rechaza `null` y blancos con `IllegalArgumentException`.
+
 ### `MetaFileUtil` — operaciones sobre `MetaFile` de Axelor
 - `downloadContent` — lee el contenido del fichero como `byte[]`.
 - `uploadContent` — sube/actualiza el contenido de un `MetaFile` existente.
@@ -64,6 +67,10 @@ Clases de utilidad de **bajo nivel** del proyecto. Su objetivo es no repetir peq
 - `createMetaFileInstance` — crea una instancia vacía de `MetaFile`.
 - `getMetaFile` — recupera el `MetaFile` cuando Axelor entrega un `Map` con el `id` (en contextos de acción).
 - `delete` — borra el `MetaFile` de forma segura (resolviendo el proxy de Hibernate).
+
+### `NumeroTelefono` — número de teléfono parseado (clase de instancia inmutable, con libphonenumber)
+- `esMovilDeEspana` — `true` si el número es válido, es móvil y tiene el prefijo de España (+34); un texto no parseable (incluidos `null` y blancos) da `false`.
+- `enFormatoE164` — devuelve el número en formato E.164 (`+34XXXXXXXXX`); lanza `IllegalStateException` si no es un móvil de España.
 
 ### `ReflectionUtil` — reflexión
 - `hasMethod` — indica si existe un método que cumpla una combinación de nombre/retorno/anotación/parámetros.

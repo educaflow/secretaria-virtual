@@ -103,6 +103,8 @@ dependencies {
 
     //Envio de SMS con Twilio
     implementation 'com.twilio.sdk:twilio:13.0.2'
+    // Solo com.educaflow.base.util.NumeroTelefono puede importarla
+    implementation 'com.googlecode.libphonenumber:libphonenumber:8.13.55'
 
     testImplementation 'org.mockito:mockito-core:5.11.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
