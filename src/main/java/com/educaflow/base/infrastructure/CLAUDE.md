@@ -4,6 +4,7 @@ Clases completas y reutilizables en cualquier proyecto (no dependen del dominio 
 
 ## Paquetes
 
+- `async` — Ejecución de tareas en segundo plano atadas al commit de la transacción actual (`EjecutorAsincrono`, único y compartido por toda la aplicación).
 - `autofirma` — Integración con el cliente de escritorio AutoFirma para firma con certificado del usuario.
 - `axelorhelper` — Helpers sobre las acciones de Axelor: `ActionRequestHelper` / `ActionResponseHelper`.
 - `criptografia` — Certificados X.509, almacenes de clave (fichero/HSM/dispositivo), emisores (FNMT/ACCV/DNI) y datos de certificado.

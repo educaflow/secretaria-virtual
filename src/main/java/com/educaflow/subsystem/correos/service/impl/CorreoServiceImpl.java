@@ -9,6 +9,7 @@ import com.axelor.db.modelservice.BusinessMessage;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.i18n.I18n;
+import com.educaflow.base.infrastructure.async.EjecutorAsincrono;
 import com.educaflow.base.infrastructure.mail.Attach;
 import com.educaflow.base.infrastructure.mail.Mail;
 import com.educaflow.base.infrastructure.mail.MailSender;
@@ -16,17 +17,14 @@ import com.educaflow.base.util.DniUtil;
 import com.educaflow.base.util.EMailUtil;
 import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.base.util.SecurityUtil;
+import com.educaflow.base.util.ExceptionUtil;
 import com.educaflow.subsystem.correos.db.Correo;
 import com.educaflow.subsystem.correos.db.EstadoCorreo;
 import com.educaflow.subsystem.correos.db.repo.CorreoRepository;
-import com.educaflow.subsystem.correos.infrastructure.CorreoAsyncExecutor;
-import com.educaflow.subsystem.correos.infrastructure.PostCommitRunner;
 import com.educaflow.subsystem.correos.service.CorreoService;
 import com.educaflow.subsystem.expedientes.db.HistorialEstado;
 import jakarta.inject.Inject;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -40,7 +38,7 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
     MailSender mailSender;
 
     @Inject
-    CorreoAsyncExecutor correoAsyncExecutor;
+    EjecutorAsincrono ejecutorAsincrono;
 
     // Constructor obligatorio — ModelServiceFactory lo invoca por reflexión
     public CorreoServiceImpl(Class<Correo> model, Repository<Correo> repository) {
@@ -74,7 +72,7 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
     public Correo reenviar(Correo entidad, Correo entidadOriginal) {
         validateReenviar(entidad, entidadOriginal).ifPresent(BusinessMessages::throwIfInvalid);
 
-        fireActionRule_ProgramarReenvioAsincrono(entidadOriginal);
+        fireActionRule_ProgramarEnvioAsincrono(entidadOriginal);
         // MUST NOT repository.save aquí: reenviar no cambia ningún campo de forma síncrona (ver
         // design/rules/R-Correo-002.md) — todo el cambio de estado ocurre dentro de enviarCorreo.
         return entidadOriginal;
@@ -310,19 +308,9 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
     }
 
     private void fireActionRule_ProgramarEnvioAsincrono(Correo correo) {
-        // R-Correo-001 — ver design/rules/R-Correo-001.md. El envío se programa para ejecutarse
-        // tras el commit de la transacción actual (la fila puede no ser visible todavía para el
-        // hilo del executor si se sometiera antes del commit).
+        // Tras el commit: antes, el hilo del pool puede no ver todavía la fila.
         Long correoId = correo.getId();
-        PostCommitRunner.runAfterCommit(
-                () -> correoAsyncExecutor.submit(() -> this.enviarCorreo(correoId)));
-    }
-
-    private void fireActionRule_ProgramarReenvioAsincrono(Correo correo) {
-        // R-Correo-002 — ver design/rules/R-Correo-002.md (mecanismo compartido con R-Correo-001).
-        Long correoId = correo.getId();
-        PostCommitRunner.runAfterCommit(
-                () -> correoAsyncExecutor.submit(() -> this.enviarCorreo(correoId)));
+        ejecutorAsincrono.ejecutarTrasCommit(() -> this.enviarCorreo(correoId));
     }
 
     private void fireActionRule_RegistrarIntentoEnvio(Correo correo) {
@@ -346,7 +334,7 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
     private void fireActionRule_MarcarEnvioFallido(Correo correo, RuntimeException excepcion) {
         // R-Correo-004 (CC-Correo-006) — asignación INCONDICIONAL.
         correo.setEstado(EstadoCorreo.FAIL);
-        correo.setDescripcionUltimoFallo(trazaCompleta(excepcion));
+        correo.setDescripcionUltimoFallo(ExceptionUtil.getTraceAsString(excepcion));
         correo.setFechaEnvio(null); // RES-Correo-002: nunca hay fecha de envío fuera de SUCCESS
     }
 
@@ -380,11 +368,5 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
                 .toList();
 
         return new Mail(to, cc, bcc, from, correo.getAsunto(), correo.getCuerpo(), correo.getCuerpo(), attachs);
-    }
-
-    private String trazaCompleta(Throwable excepcion) {
-        StringWriter sw = new StringWriter();
-        excepcion.printStackTrace(new PrintWriter(sw));
-        return sw.toString();
     }
 }

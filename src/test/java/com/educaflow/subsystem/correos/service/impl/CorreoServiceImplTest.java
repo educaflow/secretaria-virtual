@@ -9,6 +9,7 @@ import com.axelor.db.modelservice.AllowProperties;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.i18n.I18n;
 import com.axelor.meta.db.MetaFile;
+import com.educaflow.base.infrastructure.async.EjecutorAsincrono;
 import com.educaflow.base.infrastructure.mail.Attach;
 import com.educaflow.base.infrastructure.mail.Mail;
 import com.educaflow.base.infrastructure.mail.MailSender;
@@ -20,8 +21,6 @@ import com.educaflow.subsystem.correos.db.Adjunto;
 import com.educaflow.subsystem.correos.db.Correo;
 import com.educaflow.subsystem.correos.db.EstadoCorreo;
 import com.educaflow.subsystem.correos.db.repo.CorreoRepository;
-import com.educaflow.subsystem.correos.infrastructure.CorreoAsyncExecutor;
-import com.educaflow.subsystem.correos.infrastructure.PostCommitRunner;
 import com.educaflow.subsystem.expedientes.db.HistorialEstado;
 import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.AfterEach;
@@ -64,7 +63,7 @@ class CorreoServiceImplTest {
     private CorreoRepository repository;
     private CorreoServiceImpl service;
     private MailSender mailSender;
-    private CorreoAsyncExecutor correoAsyncExecutor;
+    private EjecutorAsincrono ejecutorAsincrono;
 
     private Centro centroA;
     private Centro centroB;
@@ -78,9 +77,9 @@ class CorreoServiceImplTest {
         service = new CorreoServiceImpl(Correo.class, repository);
 
         mailSender = Mockito.mock(MailSender.class);
-        correoAsyncExecutor = Mockito.mock(CorreoAsyncExecutor.class);
+        ejecutorAsincrono = Mockito.mock(EjecutorAsincrono.class);
         setField(service, "mailSender", mailSender);
-        setField(service, "correoAsyncExecutor", correoAsyncExecutor);
+        setField(service, "ejecutorAsincrono", ejecutorAsincrono);
 
         centroA = new Centro();
         centroA.setId(1L);
@@ -191,19 +190,17 @@ class CorreoServiceImplTest {
         stubIsAdmin(true);
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        try (MockedStatic<PostCommitRunner> postCommitMock = Mockito.mockStatic(PostCommitRunner.class)) {
-            Correo resultado = service.insert(correo);
+        Correo resultado = service.insert(correo);
 
-            assertEquals(EstadoCorreo.PENDIENTE, resultado.getEstado());
-            assertNotNull(resultado.getFechaCreacion());
-            assertEquals(0, resultado.getNumeroReintentos());
-            assertNull(resultado.getFechaPrimerIntentoEnvio());
-            assertNull(resultado.getFechaUltimoIntentoEnvio());
-            assertNull(resultado.getFechaEnvio());
-            assertNull(resultado.getDescripcionUltimoFallo());
-            verify(repository).save(correo);
-            postCommitMock.verify(() -> PostCommitRunner.runAfterCommit(any()));
-        }
+        assertEquals(EstadoCorreo.PENDIENTE, resultado.getEstado());
+        assertNotNull(resultado.getFechaCreacion());
+        assertEquals(0, resultado.getNumeroReintentos());
+        assertNull(resultado.getFechaPrimerIntentoEnvio());
+        assertNull(resultado.getFechaUltimoIntentoEnvio());
+        assertNull(resultado.getFechaEnvio());
+        assertNull(resultado.getDescripcionUltimoFallo());
+        verify(repository).save(correo);
+        verify(ejecutorAsincrono).ejecutarTrasCommit(any());
     }
 
     @Test
@@ -215,13 +212,11 @@ class CorreoServiceImplTest {
         stubIsAdmin(true);
         when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        try (MockedStatic<PostCommitRunner> postCommitMock = Mockito.mockStatic(PostCommitRunner.class)) {
-            Correo resultado = service.insert(correo);
+        Correo resultado = service.insert(correo);
 
-            assertEquals(EstadoCorreo.PENDIENTE, resultado.getEstado());
-            assertEquals(0, resultado.getNumeroReintentos());
-            assertNull(resultado.getFechaEnvio());
-        }
+        assertEquals(EstadoCorreo.PENDIENTE, resultado.getEstado());
+        assertEquals(0, resultado.getNumeroReintentos());
+        assertNull(resultado.getFechaEnvio());
     }
 
     @Test
@@ -234,7 +229,7 @@ class CorreoServiceImplTest {
 
         assertEquals("El DNI del destinatario es obligatorio", ex.getMessage());
         verify(repository, never()).save(any());
-        verify(correoAsyncExecutor, never()).submit(any());
+        verify(ejecutorAsincrono, never()).ejecutarTrasCommit(any());
     }
 
     /* ------------------------------------------------------------------ */
@@ -281,13 +276,11 @@ class CorreoServiceImplTest {
         entidad.setId(100L);
         stubIsAdmin(true);
 
-        try (MockedStatic<PostCommitRunner> postCommitMock = Mockito.mockStatic(PostCommitRunner.class)) {
-            Correo resultado = service.reenviar(entidad, entidadOriginal);
+        Correo resultado = service.reenviar(entidad, entidadOriginal);
 
-            assertSame(entidadOriginal, resultado);
-            verify(repository, never()).save(any());
-            postCommitMock.verify(() -> PostCommitRunner.runAfterCommit(any()));
-        }
+        assertSame(entidadOriginal, resultado);
+        verify(repository, never()).save(any());
+        verify(ejecutorAsincrono).ejecutarTrasCommit(any());
     }
 
     @Test
@@ -300,13 +293,11 @@ class CorreoServiceImplTest {
         entidad.setId(100L);
         stubIsAdmin(true);
 
-        try (MockedStatic<PostCommitRunner> postCommitMock = Mockito.mockStatic(PostCommitRunner.class)) {
-            ValidationException ex = assertThrows(ValidationException.class,
-                    () -> service.reenviar(entidad, entidadOriginal));
+        ValidationException ex = assertThrows(ValidationException.class,
+                () -> service.reenviar(entidad, entidadOriginal));
 
-            assertEquals("Solo se pueden reenviar correos que han fallado", ex.getMessage());
-            postCommitMock.verify(() -> PostCommitRunner.runAfterCommit(any()), never());
-        }
+        assertEquals("Solo se pueden reenviar correos que han fallado", ex.getMessage());
+        verify(ejecutorAsincrono, never()).ejecutarTrasCommit(any());
     }
 
     @Test

@@ -46,6 +46,9 @@ Clases de utilidad de **bajo nivel** del proyecto. Su objetivo es no repetir peq
 ### `EMailUtil` — validación de email
 - `isValid` — valida una dirección de email con el validador de Hibernate.
 
+### `ExceptionUtil` — excepciones
+- `getTraceAsString` — devuelve el stack trace completo de un `Throwable` como `String`; úsalo siempre que haya que guardar o mostrar el detalle de un error, en vez de reimplementar el `StringWriter`.
+
 ### `IbanUtil` — validación de IBAN español
 - `isValid` — valida un IBAN español (`ES` + 22 dígitos) comprobando el checksum estándar mod-97.
 

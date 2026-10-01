@@ -3,6 +3,7 @@ package com.educaflow.secretariavirtual.startup;
 import com.axelor.event.Observes;
 import com.axelor.events.ShutdownEvent;
 import com.axelor.events.StartupEvent;
+import com.educaflow.base.infrastructure.async.EjecutorAsincrono;
 import com.educaflow.base.infrastructure.mail.MailSender;
 import com.educaflow.base.infrastructure.mail.MailSenderFactory;
 import com.educaflow.subsystem.correos.service.CorreoService;
@@ -12,6 +13,9 @@ import org.slf4j.LoggerFactory;
 
 public class AppEventObserver {
     private final Logger logger = LoggerFactory.getLogger(AppEventObserver.class);
+
+    @Inject
+    private EjecutorAsincrono ejecutorAsincrono;
 
     public void onAppStart(@Observes StartupEvent event) {
         logger.info("Iniciando Secretaria Virtual...");
@@ -28,6 +32,7 @@ public class AppEventObserver {
     }
 
     public void onAppShutdown(@Observes ShutdownEvent event) {
+        ejecutorAsincrono.detener();
         logger.info("Deteniendo Secretaria Virtual...");
     }
 
