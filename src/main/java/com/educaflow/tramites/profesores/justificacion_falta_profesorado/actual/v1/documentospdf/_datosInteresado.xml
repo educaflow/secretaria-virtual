@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fragmento xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documentoFormulario.xsd">
+
+    <seccion>
+        <valenciano>Dades de l'interessat</valenciano>
+        <castellano>Datos del interesado</castellano>
+        <fila>
+            <campo nombreCampo="self.personaInteresada.dni" colspan="4">
+                <valenciano>DNI</valenciano>
+            </campo>
+            <campo nombreCampo="self.personaInteresada.apellidos" colspan="4">
+                <castellano>Apellidos</castellano>
+            </campo>
+            <campo nombreCampo="self.personaInteresada.nombre" colspan="4">
+                <castellano>Nombre</castellano>
+            </campo>
+        </fila>
+    </seccion>
+
+</fragmento>
