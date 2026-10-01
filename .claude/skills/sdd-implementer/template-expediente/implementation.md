@@ -17,7 +17,7 @@ Los placeholders son los de `README.md` §0.1.
 
 - **MUST NOT** reescribir un XML del diseño desde el texto del `design.md`.
 - **MUST NOT** reformatearlo al vuelo (indentación, orden de atributos, saltos de línea).
-- **MUST NOT** «mejorarlo», completarlo ni corregirlo. Si un XML del diseño está mal, es un `DESIGN-ERROR` (§6), no algo que se arregle aquí.
+- **MUST NOT** «mejorarlo», completarlo ni corregirlo. Si un XML del diseño está mal, es un `DESIGN-ERRATA` o un `DESIGN-ERROR` (§6.1), no algo que se arregle aquí.
 
 Regenerar o retocar un XML pierde las correcciones que el diseñador ya validó e introduce divergencias silenciosas entre el diseño y el árbol.
 
@@ -150,24 +150,29 @@ Reportar (no adivinar) es la respuesta correcta ante un bloqueo. El token depend
 | `DONE: {tarea}` | La tarea quedó materializada correctamente | — |
 | `CONFLICT: {tarea} — {qué destino ya existe}` | El destino **preexistía a la iniciativa** con contenido propio y la fila dice `Crear`; lo decide el usuario | La carpeta del trámite ya existía con su `TramiteInstance.xml`; ya existe una carpeta de versión con el mismo nombre |
 | `BLOCKED: {tarea} — {motivo}` | Bloqueo del **entorno**, no culpa del diseño | `CreateFilesTask` falla porque Gradle no arranca; falta un esqueleto que la tarea 3 debía crear; una fila `Modificar` cuyo destino no existe; superficie insuficiente para implementar lo que la especificación pide |
-| `DESIGN-ERROR: {tarea} — {motivo detallado}` | El problema está **en el diseño** y no se resuelve escribiendo código | Ver §6.1 |
+| `DESIGN-ERRATA: {tarea}` + sus líneas `ERRATA:` | El problema está **en el diseño** pero es una **errata pequeña**; tiene prioridad sobre `DESIGN-ERROR`. Definición y formato en `SKILL.md` §2.4/§9; la corrige el editor-diseño (`SKILL.md` §9.2) | Ver §6.1 |
+| `DESIGN-ERROR: {tarea} — {motivo detallado}` | El problema está **en el diseño**, no es una errata pequeña y no se resuelve escribiendo código | Ver §6.1 |
 
 **MUST NOT** pegar el código ni el XML en la respuesta (ya está en disco): solo el token + 1-2 líneas de resumen.
 
-### 6.1 Qué es un `DESIGN-ERROR` en este artefacto
+### 6.1 Qué es un `DESIGN-ERRATA` y un `DESIGN-ERROR` en este artefacto
 
-**MUST NOT** editarse el diseño para forzar que cuadre. Da el **máximo detalle**: qué fichero del diseño, qué es inconsistente o qué falta, y por qué no se puede resolver con código.
+**MUST NOT** editarse el diseño para forzar que cuadre: ni `design/` ni su copia en el árbol. Da el **máximo detalle**: qué fichero del diseño, qué es inconsistente o qué falta, y por qué no se puede resolver con código.
 
-Casos típicos:
+Casos típicos de **errata pequeña** (`DESIGN-ERRATA`, criterio de `SKILL.md` §2.4):
 
-- Un XML de `design/` **mal formado**, incompleto o con restos de esqueleto (`TODO`, `...`, `<button name="">`).
+- Un XML de `design/` **mal formado** (etiqueta sin cerrar, atributo mal escrito) cuya forma correcta es evidente.
+- Un nombre que no cuadra entre ficheros del diseño y existe con otro nombre: el `trigger<Evento>` de §9 o el método de §10 frente al evento o estado declarado, el estado de un `UPDATE_STATE`, un campo que §8/§9/§10 usan y el `domains.xml` define con otro nombre, un `<include-panels>` frente al panel de la plantilla de la raíz, una constante `TipoDocumentoPdf` frente al nombre de su documento.
+- Falta la constante `TipoDocumentoPdf` de un documento que sí está en `design/documentospdf/`.
+
+Casos típicos de **`DESIGN-ERROR`** (no se deducen sin ambigüedad o cambian piezas o comportamiento):
+
+- Un XML de `design/` incompleto o con restos de esqueleto (`TODO`, `...`, `<button name="">`) cuyo contenido no se deduce del resto del diseño.
 - El `TipoExpedienteInstance.xml` declara una fase para la que **no hay** `design/fases/<fase>/views.xml`, o al revés.
-- La especificación de §9 lista un `trigger<Evento>` para un evento que ningún `<state>` declara, o **falta** el trigger de un evento declarado.
-- La especificación de §10 lista un método para una pareja (estado, evento) que no existe, o **falta** el método de una pareja declarada, o incluye un `getForState<Estado>InEventDelete` (prohibido).
-- Un `UPDATE_STATE` apunta a un estado que el `TipoExpedienteInstance.xml` no declara, o contradice la tabla de transiciones.
-- El `domains.xml` no define un campo que §8, §9 o §10 asignan o validan; o un `field(...)` del validador menciona un campo clasificado como `servidor`.
-- El `<extra-code-model>` declara una constante `TipoDocumentoPdf` para un documento que no está en `design/documentospdf/`, o falta la constante de uno que sí está.
-- Un `views.xml` de fase incluye un panel que el form plantilla de la raíz no declara.
+- **Falta** el `trigger<Evento>` de §9 de un evento declarado, o el método de §10 de una pareja (estado, evento) declarada; o §10 incluye un `getForState<Estado>InEventDelete` (prohibido).
+- Un `UPDATE_STATE` contradice la tabla de transiciones.
+- El `domains.xml` no define, con ningún nombre, un campo que §8, §9 o §10 asignan o validan; o un `field(...)` del validador menciona un campo clasificado como `servidor`.
+- Un `views.xml` de fase incluye un panel que el form plantilla de la raíz no declara con ningún nombre.
 - Dos reglas del diseño se contradicen entre secciones.
 
 ---
@@ -177,5 +182,5 @@ Casos típicos:
 **Solo al devolver `DONE`**: **antes** de responder, marca **esta** tarea como completada en `{iniciativa}/implementation/tasks.md`, cambiando su línea de `- [ ] [Tarea NN](task_NN.md)` a `- [x] [Tarea NN](task_NN.md)` (con `Edit`).
 
 - **MUST** marcarse **solo** la línea de la tarea recibida; **MUST NOT** tocarse las demás.
-- **MUST NOT** marcarse ante `CONFLICT`, `BLOCKED` o `DESIGN-ERROR`: el checkbox refleja tareas realmente terminadas.
+- **MUST NOT** marcarse ante `CONFLICT`, `BLOCKED`, `DESIGN-ERROR` o `DESIGN-ERRATA`: el checkbox refleja tareas realmente terminadas.
 - Si el índice no existe, omite este paso sin error.

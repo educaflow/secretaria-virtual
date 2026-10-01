@@ -23,6 +23,7 @@ El verificador-build **MUST** compilar con:
 
 - **Éxito** = `./gradlew clean build` termina con **BUILD SUCCESSFUL** (compila y todos los tests unitarios pasan), **sin ningún warning de Error Prone** en ficheros de `src/` (§2.1) **Y** el chequeo de conformidad de superficie (§5) no encuentra superficie no declarada. → responde **exactamente** `OK-COMPILA`.
 - **Fallo** = cualquier error de compilación, cualquier warning de Error Prone en `src/`, cualquier test unitario que falle, **o** cualquier superficie no declarada que detecte §5. → responde con el JSONL de §3.
+- **Bloqueo** = el build no se puede ni ejecutar por algo del entorno (falta una herramienta, no hay red, la base de datos no responde) → responde en la primera línea `BLOCKED: {motivo}` (`SKILL.md` §10). **MUST NOT** inventarse un JSONL de errores.
 
 ### 2.1 Warnings de Error Prone
 
@@ -64,8 +65,9 @@ El corrector-build resuelve cada línea JSONL. Reglas duras:
 - **MUST** corregir **solo código Java** (producción o tests). Si el contrato de dominio lo aconseja, delega en `developer-code-implementer` cargando antes los skills de la tarea de origen (`tarea`).
 - **CRITICAL — los XML del diseño ya colocados son contrato fijo** (dominios, vistas, `menus.xml`; `implementation.md` §1/§4).
   **MUST NOT** editarlos para que cuadre el Java: se corrige el Java para que cuadre con ellos.
-  Si un error **solo** se puede resolver cambiando el diseño (un XML del diseño está mal o es inconsistente, el diseño referencia algo que él mismo no define, dos reglas se contradicen), **MUST NOT** editarlo ni adivinar: responde en la **primera línea** `DESIGN-ERROR: {motivo detallado}` —qué fichero del diseño, qué es inconsistente y por qué no se puede arreglar con código— y termina.
-  El motor detecta esa primera línea, escribe `implementation/error_design.log` y **detiene el skill** (`SKILL.md` §9.1): corregirlo es trabajo de `/sdd-designer`.
+  Si un error **solo** se puede resolver cambiando el diseño (un XML del diseño está mal o es inconsistente, el diseño referencia algo que él mismo no define, dos reglas se contradicen), **MUST NOT** editarlo ni adivinar:
+  - Si es una **errata pequeña** del diseño (`SKILL.md` §2.4) → responde en la **primera línea** `DESIGN-ERRATA: corrector-build` y debajo sus líneas `ERRATA:`, y termina. La corrige el editor-diseño y el motor te relanza (`SKILL.md` §9.2).
+  - Si no lo es → responde en la **primera línea** `DESIGN-ERROR: {motivo detallado}` —qué fichero del diseño, qué es inconsistente y por qué no se puede arreglar con código— y termina. El motor escribe `implementation/error_design.log` y **detiene el skill** (`SKILL.md` §9.1): corregirlo es trabajo de `/sdd-designer`.
 - Ante un aviso de **Error Prone** (`tipo: WARNING`): corrige el código como indica el check (el mensaje suele traer un `Did you mean …`). `@SuppressWarnings("NombreDelCheck")` en el sitio concreto **solo** si es un falso positivo, con el motivo en un comentario al lado. **MUST NOT** desactivar el check en `build.gradle`.
 - Ante un error de **test** (`tipo: TEST`): decide si el fallo es del **código de producción** (corrige la producción) o del **test mal generado** (corrige el test para que refleje la descripción de `design/test-unit-desc.md`). **MUST NOT** debilitar un test para que pase si el fallo real está en la producción.
 - **CRITICAL — no legitimar superficie no diseñada**: ante un error tipo *"method does not override or implement a method from a supertype"* (o un `@Override`/firma que no cuadra con su interfaz/supertipo), **MUST NOT** ampliar la interfaz/supertipo ni crear el método para que el `@Override` compile **sin antes comprobar el origen del método**. Comprueba si figura en la `task` de origen del error o en `design.md`:
@@ -73,7 +75,7 @@ El corrector-build resuelve cada línea JSONL. Reglas duras:
   - Si **NO** figura (es superficie inventada por una tarea previa — método, controlador o clase de más) → **elimínalo del impl** y de cualquier llamador (controlador/acción) que lo use, en vez de añadirlo a la interfaz. La vía barata —ampliar la API para que el `@Override` compile— **consolida el invento**; **MUST NOT** tomarla.
   - **CRITICAL — guarda anti-borrado**: antes de eliminar cualquier superficie "inventada", **MUST** comprobar con `git diff`/`git log` del fichero si el método/clase **preexistía a la iniciativa**. Si preexistía → **MUST NOT** eliminarlo (no es un invento: es código de producción que la iniciativa no debía tocar); **detente y repórtalo** en tu respuesta. Solo es eliminable la superficie que el diff de **esta** iniciativa añadió.
   - Si no puedes determinar el origen → **detente y repórtalo** en tu respuesta (no adivines).
-- **MUST NOT** usar `AskUserQuestion`: ante un bloqueo **del entorno**, descríbelo en tu respuesta y termina (el motor lo lleva al usuario); ante un error **del diseño**, usa el token `DESIGN-ERROR` de la primera línea (arriba).
+- **MUST NOT** usar `AskUserQuestion`: ante un bloqueo **del entorno**, responde en la primera línea `BLOCKED: {motivo}` y termina (el motor lo lleva al usuario); si corregiste, la primera línea es `CORREGIDO` (tokens en `SKILL.md` §10); ante un error **del diseño**, usa el token `DESIGN-ERRATA` o `DESIGN-ERROR` de la primera línea (arriba).
 
 Tras corregir, el motor relanza el verificador-build (§1). El bucle tiene **LIMIT 20** iteraciones (lo controla `SKILL.md` §10); si los mismos errores se repiten entre iteraciones, el motor para y pregunta al usuario.
 

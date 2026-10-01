@@ -41,7 +41,7 @@ El skill `sdd-implementer` lanza estos cuatro roles. Todos reciben las **mismas 
 |---|---|---|---|---|
 | **descomponedor** (§2.1) | **Lee el diseño y escribe las tareas** | la carpeta `{iniciativa}/design` | `decomposition.md`; `tests-code.md` (para las tareas de test) | la carpeta `{iniciativa}/implementation/` con las tareas, su índice y los ficheros propagados |
 | **implementador** (§2.2) | **Materializa una tarea** en el árbol | la carpeta `design` + la ruta de **una** tarea | `implementation.md`; `tests-code.md` si la tarea es de tests | la tarea materializada en `src/main/...` o `src/test/...` |
-| **verificador-build** (§2.3) | **Compila y reporta** | el árbol del proyecto | `build.md` (comando, criterio de éxito, formato de error) | `OK-COMPILA` o la lista de errores (no corrige) |
+| **verificador-build** (§2.3) | **Compila y reporta** | el árbol del proyecto | `build.md` (comando, criterio de éxito, formato de error) | `OK-COMPILA`, la lista de errores o `BLOCKED` (no corrige) |
 | **corrector-build** (§2.4) | **Corrige** los errores de compilación | el árbol + la lista de errores | `build.md` + `implementation.md` (qué puede tocar) | el árbol corregido en sitio |
 
 Solo el **descomponedor** lee el diseño íntegro para planificar; el **implementador** carga, por tarea, los skills técnicos que la propia tarea indica (los puso el descomponedor desde `decomposition.md`); el **verificador-build** y el **corrector-build** trabajan sobre el código ya escrito.
@@ -61,7 +61,7 @@ Solo el **descomponedor** lee el diseño íntegro para planificar; el **implemen
 - **Lee de esta plantilla:** `implementation.md` (cómo colocar los XML literalmente, cómo fusionar y validar `menus.xml`, cómo delegar el Java en `developer-code-implementer` cargando antes los skills, y el manejo de conflictos/bloqueos); y `tests-code.md` **solo si** la tarea es de tests (cómo generar el código JUnit desde la descripción).
 - **Entrada propia:** la ruta de **su** tarea (`task_NN.md`) y la carpeta `{iniciativa}/design` (los XML materializados de los que dependa son **contrato fijo**).
 - **OBLIGATORIO:** carga primero, con la herramienta `Skill`, los skills que la tarea lista, y luego —si el contrato lo indica— invoca `developer-code-implementer` con el texto de la tarea **verbatim**.
-- **MUST NOT** regenerar los XML del diseño. **MUST NOT** adivinar ante un bloqueo: lo reporta con su token (`CONFLICT` / `BLOCKED` / `DESIGN-ERROR`), según el criterio del apartado «Detenerse y reportar ante un bloqueo» de `implementation.md`.
+- **MUST NOT** regenerar los XML del diseño. **MUST NOT** adivinar ante un bloqueo: lo reporta con su token (`CONFLICT` / `BLOCKED` / `DESIGN-ERROR` / `DESIGN-ERRATA`), según el criterio del apartado «Detenerse y reportar ante un bloqueo» de `implementation.md`.
 
 ### 2.3 verificador-build — compila y reporta
 
@@ -76,7 +76,7 @@ Solo el **descomponedor** lee el diseño íntegro para planificar; el **implemen
 **Tarea:** dada la lista de errores del verificador-build (§2.3), **corregirlos en sitio** sobre el código del árbol del proyecto, sin tocar lo que el contrato prohíbe.
 
 - **Lee de esta plantilla:** `build.md` (qué errores hay que resolver y qué puede/no puede tocar al corregir) e `implementation.md` (los XML del diseño son contrato fijo; el Java se corrige delegando en `developer-code-implementer`).
-- **Fuente de verdad:** los XML materializados del diseño. **MUST NOT** editarlos para que cuadre el Java: corrige el Java para que cuadre con ellos. Si un XML del diseño está mal, **detente y repórtalo**.
+- **Fuente de verdad:** los XML materializados del diseño. **MUST NOT** editarlos para que cuadre el Java: corrige el Java para que cuadre con ellos. Si un XML del diseño está mal, **detente y repórtalo** (`DESIGN-ERRATA` si es una errata pequeña, `DESIGN-ERROR` si no; `build.md` §4).
 - **Aplica** exactamente los errores reportados, sin reescribir lo que ya funciona.
 
 ---

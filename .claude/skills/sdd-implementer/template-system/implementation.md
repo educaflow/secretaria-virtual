@@ -15,7 +15,7 @@ Los XML de `design/domains/`, `design/views/` y `design/menus.xml` son la **fuen
 - **MUST NOT** reescribir los XML desde el `design.md`.
 - **MUST NOT** reformatearlos al vuelo (indentación, reordenar atributos, etc.).
 
-Re-generarlos pierde correcciones manuales aplicadas al diseño, rompe la validación del designer e introduce divergencias silenciosas. Si al copiar detectas que un XML del diseño está **mal**, responde `DESIGN-ERROR: {tarea} — XML del diseño incorrecto: {detalle}`. **MUST NOT** arreglarlo aquí (hay que volver a `/sdd-designer`).
+Re-generarlos pierde correcciones manuales aplicadas al diseño, rompe la validación del designer e introduce divergencias silenciosas. Si al copiar detectas que un XML del diseño está **mal**, **MUST NOT** arreglarlo aquí: si es una errata pequeña, responde `DESIGN-ERRATA` (§5); si no, `DESIGN-ERROR: {tarea} — XML del diseño incorrecto: {detalle}` (hay que volver a `/sdd-designer`).
 
 ---
 
@@ -78,7 +78,7 @@ Cuando se implemente el Java, los XML de dominios y vistas ya están en su ubica
 
 - Las firmas de los métodos Java **deben coincidir** con las acciones declaradas en las vistas.
 - Las entidades JPA generadas **deben coincidir** con los dominios XML (nombres de campos, tipos, relaciones).
-- Si al implementar el Java se detecta que un XML ya colocado tiene un error, **detente y notifica** (`DESIGN-ERROR`) — no lo edites. Corregirlo requiere volver a `/sdd-designer`.
+- Si al implementar el Java se detecta que un XML ya colocado tiene un error, **detente y notifica** — no lo edites: `DESIGN-ERRATA` si es una errata pequeña, `DESIGN-ERROR` si corregirlo requiere volver a `/sdd-designer` (§5).
 
 ---
 
@@ -98,6 +98,7 @@ Reportar (no adivinar) es la respuesta correcta ante:
 - `DESIGN-ERROR: {tarea} — {motivo detallado}` — el problema está **en el diseño** y no se resuelve escribiendo código: hay que volver a `/sdd-designer`.
   Da el **máximo detalle**: qué fichero del diseño, qué es inconsistente o qué falta, y por qué no se puede resolver con código.
   **MUST NOT** editar el diseño para forzar que cuadre.
+- `DESIGN-ERRATA: {tarea}` + sus líneas `ERRATA:` — el problema está en el diseño pero es una **errata pequeña**; tiene prioridad sobre `DESIGN-ERROR`. Definición y formato en `SKILL.md` §2.4/§9. **MUST NOT** editar el diseño: lo corrige el editor-diseño (`SKILL.md` §9.2).
 - `DONE: {tarea}` — solo cuando la tarea quedó materializada correctamente.
 
 **MUST NOT** pegar el código generado en la respuesta (ya está en disco): solo el token + 1-2 líneas de resumen.
@@ -109,5 +110,5 @@ Reportar (no adivinar) es la respuesta correcta ante:
 **Solo al devolver `DONE`** (la tarea quedó materializada): **antes** de responder, marca **esta** tarea como completada en el índice `{iniciativa}/implementation/tasks.md`. Cambia su línea de `- [ ] [Tarea NN](task_NN.md)` a `- [x] [Tarea NN](task_NN.md)` (con `Edit`).
 
 - **MUST** marcar **solo** la línea de la tarea recibida; **MUST NOT** tocar las demás (las marca cada implementador al completar la suya).
-- **MUST NOT** marcar ante `CONFLICT`, `BLOCKED` o `DESIGN-ERROR`: el checkbox refleja tareas realmente terminadas.
+- **MUST NOT** marcar ante `CONFLICT`, `BLOCKED`, `DESIGN-ERROR` o `DESIGN-ERRATA`: el checkbox refleja tareas realmente terminadas.
 - Si el índice se llama distinto o no existe (otra plantilla), omite este paso sin error.

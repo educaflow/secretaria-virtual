@@ -51,7 +51,7 @@ El skill abre `README.md` y, a través de él, cada subagente usa los demás.
 |---|---|---|
 | `README.md` | **Esta guía/índice**: contrato fijo, estructura de entrada/salida, contexto del proyecto a cargar y los principios comunes a todos los roles. | Los **cuatro** subagentes (es el contrato que el skill nombra). **MUST NOT** copiarse al output. |
 | `decomposition.md` | **Cómo descomponer el diseño en tareas**: el **orden obligatorio** de las tareas, qué texto del `design.md` se copia verbatim en cada una y de qué secciones sale, los skills por tarea, la propagación de `test-e2e-desc.md`, las **plantillas exactas** de `task_NN.md` / `tasks.md` y el checklist. | El **descomponedor** (§3.1). |
-| `implementation.md` | **Cómo materializar una tarea**: qué XML se copian verbatim y a qué ruta destino, cómo se rellenan los `.java`/`.kt` **sobre el esqueleto** que dejó `CreateFilesTask`, las prohibiciones duras y el manejo de `CONFLICT`/`BLOCKED`/`DESIGN-ERROR`. | El **implementador** (§3.2); el **corrector-build** (§3.4) lo consulta para saber qué puede tocar. |
+| `implementation.md` | **Cómo materializar una tarea**: qué XML se copian verbatim y a qué ruta destino, cómo se rellenan los `.java`/`.kt` **sobre el esqueleto** que dejó `CreateFilesTask`, las prohibiciones duras y el manejo de `CONFLICT`/`BLOCKED`/`DESIGN-ERROR`/`DESIGN-ERRATA`. | El **implementador** (§3.2); el **corrector-build** (§3.4) lo consulta para saber qué puede tocar. |
 | `build.md` | **Cómo verificar y corregir el build**: el comando, la nota de entorno del *sandbox*, el criterio de éxito, el formato JSONL, el chequeo de conformidad de superficie, qué puede y qué **NO** puede tocar el corrector y el catálogo de errores típicos de este artefacto. | El **verificador-build** (§3.3); el **corrector-build** (§3.4). |
 | `tests-code.md` | **Qué tests se generan**: **ninguno propio**, salvo la excepción de su §4. La conformidad la dan los tests ya existentes y escritos a mano de `src/test/java/com/educaflow/tiposexpedientes/`; aquí se enumera **qué exigen**, y cómo se tratan `test-e2e-desc.md` y `test-unit-desc.md`. | El **descomponedor** (§3.1) y el **implementador** (§3.2). |
 
@@ -150,7 +150,7 @@ Todos reciben las **mismas rutas de entrada** (este `README.md` y la carpeta `{i
 |---|---|---|---|---|
 | **descomponedor** (§3.1) | **Lee el diseño y escribe las tareas**, en el orden obligatorio | la carpeta `{iniciativa}/design` | `decomposition.md`; `tests-code.md` | `{iniciativa}/implementation/` con `task_NN.md`, `tasks.md` y `test-e2e-desc.md` |
 | **implementador** (§3.2) | **Materializa una tarea** en el árbol | la carpeta `design` + la ruta de **una** tarea | `implementation.md`; `tests-code.md` si la tarea lo referencia | la tarea materializada bajo `src/main/...` |
-| **verificador-build** (§3.3) | **Compila y reporta** | el árbol del proyecto | `build.md` | `OK-COMPILA` o el JSONL de errores (no corrige) |
+| **verificador-build** (§3.3) | **Compila y reporta** | el árbol del proyecto | `build.md` | `OK-COMPILA`, el JSONL de errores o `BLOCKED` (no corrige) |
 | **corrector-build** (§3.4) | **Corrige** los errores reportados | el árbol + el JSONL de errores | `build.md` + `implementation.md` | el árbol corregido en sitio |
 
 ### 3.1 descomponedor — lee el diseño y escribe las tareas
@@ -169,7 +169,7 @@ Todos reciben las **mismas rutas de entrada** (este `README.md` y la carpeta `{i
 - **Lee de esta plantilla:** `implementation.md` (el mapeo origen→destino de cada XML, la consecuencia práctica de que `CreateFilesTask` sea idempotente, cómo se rellena cada clase, las prohibiciones duras y el manejo de bloqueos); y `tests-code.md` si la tarea lo referencia.
 - **Entrada propia:** la ruta de **su** tarea (`task_NN.md`) y la carpeta `{iniciativa}/design` (los XML materializados son **contrato fijo**: se copian tal cual, **NO** se regeneran).
 - **OBLIGATORIO:** carga primero, con la herramienta `Skill`, los skills que la tarea lista; y solo entonces, si la tarea es de código, **invoca `developer-code-implementer`** pasándole el `<texto del prompt>` de la tarea **verbatim**.
-- **MUST NOT** adivinar ante un bloqueo: lo reporta con su token (`CONFLICT` / `BLOCKED` / `DESIGN-ERROR`), según el criterio de `implementation.md` §6.
+- **MUST NOT** adivinar ante un bloqueo: lo reporta con su token (`CONFLICT` / `BLOCKED` / `DESIGN-ERROR` / `DESIGN-ERRATA`), según el criterio de `implementation.md` §6.
 
 ### 3.3 verificador-build — compila y reporta
 
@@ -186,7 +186,7 @@ Todos reciben las **mismas rutas de entrada** (este `README.md` y la carpeta `{i
 - **Lee de esta plantilla:** `build.md` (qué errores resolver, qué puede y qué **NO** puede tocar, y el catálogo de errores típicos de este artefacto con su corrección) e `implementation.md` (los XML del diseño ya colocados son contrato fijo).
 - **Fuente de verdad:** los XML materializados del diseño y las especificaciones de `design.md` §8/§9/§10. **MUST NOT** editarlos para que cuadre el Java: corrige el Java para que cuadre con ellos.
 - **MUST NOT** editar ni «arreglar» los tests de `src/test/java/com/educaflow/tiposexpedientes/` ni de `src/test/java/com/educaflow/views/`: son fuente de verdad escrita a mano. Si uno falla, el fallo está en el trámite generado.
-- Si el error **solo** se puede resolver cambiando el diseño, responde en la **primera línea** `DESIGN-ERROR: {motivo detallado}` y termina.
+- Si el error **solo** se puede resolver cambiando el diseño, **MUST NOT** editarlo: responde en la **primera línea** `DESIGN-ERRATA: corrector-build` con sus líneas `ERRATA:` si es una errata pequeña (`SKILL.md` §2.4/§9.2), o `DESIGN-ERROR: {motivo detallado}` si no lo es, y termina.
 
 ---
 

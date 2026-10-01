@@ -1,6 +1,6 @@
 ---
 name: sdd-designer
-description: Segundo paso del pipeline SDD. Dada una especificación funcional (`specification.md`, `type: specification`) producida por `/sdd-specification`, genera un plan de DISEÑO en una carpeta `design/` (índice `design.md`, `type: design`) que consume `/sdd-implementer`: 5 diseñadores en paralelo, un juez por torneo que entre los que cumplen la spec elige por calidad, un bucle de **críticos especializados en paralelo** (una lente cada uno —principios de diseño, simplicidad, cumplimiento de los skills…—, las que declare la plantilla) y un bucle verificar/corregir sobre el ganador. Es un MOTOR genérico y agnóstico al artefacto: aporta solo el flujo y delega TODO lo específico del diseño en el `README.md` de la carpeta de plantillas activa (`template-<nombre>/`, la que declare el frontmatter `template:` del `specification.md`, configurable con `--template-dir` y propagada al frontmatter del `design.md`), así que cambiar de plantilla cambia por completo qué y cómo se diseña sin tocar este skill.
+description: Segundo paso del pipeline SDD: dada una especificación funcional (`specification.md`, `type: specification`) producida por `/sdd-specification`, genera un plan de DISEÑO en una carpeta `design/` (índice `design.md`, `type: design`) que consume `/sdd-implementer`: 5 diseñadores en paralelo, un juez por torneo que entre los que cumplen la spec elige por calidad, un bucle de **críticos especializados en paralelo** (una lente cada uno —principios de diseño, simplicidad, cumplimiento de los skills…—, las que declare la plantilla) y un bucle verificar/corregir sobre el ganador. Si al diseñar aparece una errata pequeña en la especificación, la corrige en la propia spec y sigue diseñando, sin volver a `/sdd-specification`. Es un MOTOR genérico y agnóstico al artefacto: aporta solo el flujo y delega TODO lo específico del diseño en el `README.md` de la carpeta de plantillas activa (`template-<nombre>/`, la que declare el frontmatter `template:` del `specification.md`, configurable con `--template-dir` y propagada al frontmatter del `design.md`), así que cambiar de plantilla cambia por completo qué y cómo se diseña sin tocar este skill.
 handoffs:
   - label: Implementar el diseño
     agent: sdd-implementer
@@ -11,7 +11,12 @@ handoffs:
 
 Eres un **motor de diseño** del pipeline SDD: transformas una **especificación funcional** en un **plan de diseño** (no una implementación). La entrada la produce `/sdd-specification` y la salida la consume `/sdd-implementer`.
 
-**CRITICAL — eres agnóstico al artefacto.** Este `SKILL.md` define **solo el flujo y la orquestación de agentes**. **No sabe nada de qué se diseña** (ni qué ficheros tiene la spec más allá de su índice, ni qué reglas, taxonomías, capas, ficheros de salida, formatos o validaciones existen): **todo eso lo declara la guía `<plantilla-activa>/README.md`**, que los subagentes leen como contrato. **MUST NOT** asumir de memoria ningún detalle del diseño; **MUST NOT** nombrar ficheros, identificadores, taxonomías ni validaciones concretas en este skill (únicas excepciones: los contratos fijos del motor `specification.md`, `design-guidelines.md`, `design.md`, `decisiones.md` y `test-unit-desc.md` — §1.2). Así, apuntar `--template-dir` a otra carpeta de plantillas con un README distinto cambia por completo el diseño producido **sin tocar este skill**.
+**CRITICAL — eres agnóstico al artefacto.** Este `SKILL.md` define **solo el flujo y la orquestación de agentes**:
+
+- **No sabe nada de qué se diseña** (ni qué ficheros tiene la spec más allá de su índice, ni qué reglas, taxonomías, capas, ficheros de salida, formatos o validaciones existen): **todo eso lo declara la guía `<plantilla-activa>/README.md`**, que los subagentes leen como contrato.
+- **MUST NOT** asumir de memoria ningún detalle del diseño.
+- **MUST NOT** nombrar ficheros, identificadores, taxonomías ni validaciones concretas en este skill. Únicas excepciones: los contratos fijos del motor `specification.md`, `design-guidelines.md`, `design.md`, `decisiones.md` y `test-unit-desc.md` (§1.2).
+- Consecuencia: apuntar `--template-dir` a otra carpeta de plantillas con un README distinto cambia por completo el diseño producido **sin tocar este skill**.
 
 El skill tiene **dos modos** (se decide en la Fase 0, §4.4, según exista o no `design/design.md`):
 
@@ -44,6 +49,7 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 3. **Fase 2 — Diseñar**: lanzar **5 subagentes diseñadores en paralelo** con el modelo más capaz; cada uno escribe primero `decisiones.md` (decisiones difíciles con ≥2 alternativas) y luego un diseño completo en `design_<n>/`. (Solo Generar/Regenerar.)
 4. **Fase 3 — Elegir**: un subagente **juez** decide por **torneo** (ganador acumulado vs siguiente diseño) hasta quedar uno, premiando la **calidad** entre los que cumplen la spec (`k-code-quality/disenyo.md`) y desempatando por `decisiones.md`, **justificando y mostrando por pantalla** en cada comparación por qué elige un diseño frente al otro. (Solo Generar/Regenerar.)
 5. **Fase 4 — Seleccionar**: renombrar la carpeta ganadora a `design/`, mover `log_best.txt` y borrar el resto. (Solo Generar/Regenerar.)
+   - **§8.1 — Aplicar erratas a la especificación**: si `design/decisiones.md` tiene cambios de especificación `PENDIENTE`, un subagente **editor-especificación** los aplica en la spec. Se repite tras cada corrector de las Fases 5-7 y de §15 (§2.6).
 6. **Fase 5 — Enriquecer y sanear**: un subagente **enriquecedor** revisa, a partir de `log_best.txt`, (a) qué ventajas de los diseños descartados faltan en el ganador y tienen sentido, y (b) qué **defectos/errores que el juez atribuyó al propio ganador** siguen presentes; reporta unas y otros como mejoras a implementar y un subagente **corrector** las aplica. (Solo Generar/Regenerar.)
 7. **Fase 6 — Criticar/corregir**: bucle de subagentes **críticos en paralelo** —uno por cada **lente** que declare la plantilla, cada uno con su propio rasero— → (si hay críticas) subagente corrector que las aplica **sin complicar el diseño**, hasta que todos respondan `OK-SIN-CRITICAS`. (Común a ambos modos.)
 8. **Fase 7 — Verificar/corregir**: bucle subagente verificador (que aplica la validación que prescriba la plantilla) → (si hay fallos) subagente corrector, hasta `OK-CORRECTO`. (Común a ambos modos.)
@@ -54,7 +60,7 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 
 **STOP conditions**:
 
-- `--template-dir=` apunta a una carpeta que **no contiene `README.md`** (la guía que declara todo lo específico) → **ERROR** y detente.
+- La carpeta de plantillas activa (§2.2, venga de `template:` o de `--template-dir=`) **no contiene `README.md`** (la guía que declara todo lo específico) → **ERROR** y detente.
 - `--template-dir=` apunta a otra carpeta `template-*/` de este skill **distinta** de la que declara el frontmatter `template:` de la spec (o a cualquier `template-*/` interna cuando la spec declara `template: external`), o el `template:` de la spec no resuelve a ninguna carpeta de plantillas (§2.2) → **ERROR** y detente: **MUST NOT** mezclarse plantillas — sus arquitecturas no son compatibles.
 - El frontmatter `template:` de la iniciativa vale `external` (se especificó con una plantilla externa) y **no** se pasa `--template-dir=` (§2.2) → **ERROR** y detente pidiéndolo. **MUST NOT** preguntar la plantilla ni caer a una carpeta interna.
 - Frontmatter de `specification.md` no contiene `type: specification` → **ERROR** y detente.
@@ -66,6 +72,8 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 - En modo Revisar/Modificar, `design.md` declara un `template:` que no coincide con `{template}` resuelto en §2.2 → **ERROR** y detente (§15): **MUST NOT** mezclarse plantillas.
 - Ningún diseñador produjo una carpeta `design_<n>/` válida (con contenido y `decisiones.md`, §6) → **ERROR** y detente.
 - El juez no devuelve un token `GANADOR: design_<n>` válido tras 1 reintento → **STOP** y muestra el problema.
+- El editor-especificación devuelve alguna línea `RECHAZADO:` (un cambio de especificación que no es una errata pequeña, §8.1) → **STOP** y muéstralas: ese cambio lo decide el usuario con `/sdd-specification`. **MUST NOT** seguir diseñando sobre una spec que no dice lo que el diseño supone.
+- El editor-especificación no devuelve `APLICADO: <n>` ni ninguna línea `RECHAZADO:` tras 1 reintento (§8.1) → **STOP** y muestra su respuesta.
 - En la **4ª** ronda del bucle criticar/corregir (Fase 6) algún crítico sigue reportando una crítica `BLOCKING` → **STOP** y muestra al usuario esas líneas JSONL. **MUST NOT** dar el diseño por bueno. (Si no queda ninguna `BLOCKING` no es STOP: §10.)
 - Tras **10** iteraciones del bucle verificar/corregir del diseño (Fase 7) el verificador sigue sin responder `OK-CORRECTO` → **STOP** y muestra al usuario las líneas JSONL de los problemas residuales. **MUST NOT** dar el diseño por bueno.
 - Tras **10** iteraciones del bucle verificar/corregir de los tests unitarios (Fase 9) el `verificador-test-unitarios` sigue sin responder `OK-CORRECTO` → **STOP** y muestra al usuario las líneas JSONL residuales. **MUST NOT** dar `test-unit-desc.md` por bueno.
@@ -88,7 +96,11 @@ Una **carpeta** `design/` dentro de la carpeta de la iniciativa.
 
 **Primer contrato fijo (no lo cambia `--template-dir`):** el índice de la salida se llama `design.md` y lleva frontmatter `type: design` **más `template: {template}`** (el valor resuelto en §2.2 pasos 1-2 —el de la spec cuando existe— y heredado según §2.2 paso 4). Es lo que el skill usa para **localizar y validar** un diseño existente (Fase 0 / §15) y lo que consume `/sdd-implementer`, que resuelve con esa clave su propia carpeta de plantillas.
 
-**`decisiones.md` — el registro de decisiones del diseñador (§2.5).** Segundo contrato fijo, independiente de la plantilla: cada diseñador lo escribe **antes** que el diseño, en la raíz de su `design_<n>/`, con la plantilla literal de §6. Es contenido de diseño (lo lee el juez para comparar, y `/sdd-implementer` y el humano para entender por qué el diseño es como es), pero **no lo declara la plantilla**: su verificador **MUST** ignorarlo en el inventario de ficheros, igual que los logs.
+**`decisiones.md` — el registro de decisiones del diseñador (§2.5).** Segundo contrato fijo, independiente de la plantilla:
+
+- Cada diseñador lo escribe **antes** que el diseño, en la raíz de su `design_<n>/`, con la plantilla literal de §6.
+- Es contenido de diseño: lo lee el juez para comparar, y `/sdd-implementer` y el humano para entender por qué el diseño es como es.
+- **No lo declara la plantilla**: su verificador **MUST** ignorarlo en el inventario de ficheros, igual que los logs.
 
 **`test-unit-desc.md`, `design-guidelines.md` y `specification.md` — los otros tres contratos fijos.** El motor fija solo el **nombre**: `design/test-unit-desc.md` es la descripción de tests unitarios que escribe la Fase 8 (§12; su contenido lo declara la plantilla); `design-guidelines.md` son las guías opcionales de entrada y `specification.md` el índice de entrada (ambos en §1.1).
 
@@ -125,7 +137,12 @@ Una **carpeta** `design/` dentro de la carpeta de la iniciativa.
 
 ### 2.1 La especificación es la fuente de verdad
 
-La especificación es la fuente de verdad — **MUST NOT** interpretar ni ampliar más allá de lo que dice. Los subagentes leen `specification.md` y todos los ficheros que enlace. **MUST NOT** usar otros `design.md` o diseños previos de `.sdd/` como plantilla — **salvo lectura** de las iniciativas archivadas que `design-guidelines.md` cite explícitamente (solo para respetar sus decisiones, nunca como plantilla de estructura).
+La especificación es la fuente de verdad:
+
+- **MUST NOT** interpretar ni ampliar más allá de lo que dice.
+- El diseño **MUST NOT** contradecirla: si lo que dice es una errata, se corrige **la spec** (§2.6) y el diseño la sigue corregida, no se aparta de ella en silencio.
+- Los subagentes leen `specification.md` y todos los ficheros que enlace.
+- **MUST NOT** usar otros `design.md` o diseños previos de `.sdd/` como plantilla — **salvo lectura** de las iniciativas archivadas que `design-guidelines.md` cite explícitamente (solo para respetar sus decisiones, nunca como plantilla de estructura).
 
 ### 2.2 El README es el contrato único
 
@@ -144,8 +161,6 @@ Todo lo específico del diseño (qué se produce, cómo se convierte el spec, qu
 
 - Si la plantilla prescribe una validación que se ejecuta como **comando o script** (p.ej. validar con una herramienta externa los artefactos generados), **la ejecuta el subagente verificador** —que lee la plantilla y la descubre—, **NUNCA el motor**.
 - **MUST NOT** añadir "pasos de `Bash`" en este skill que corran validaciones, comprobaciones o herramientas específicas del diseño. El motor solo usa `Bash`/`Write` para orquestación **agnóstica** (listar `.sdd/drafts/`, `mv`/`rm` de carpetas `design_<n>/`, y escribir sus propios **logs de orquestación** `log_best.txt`/`log_critica.txt`/`log_revision.txt`/`log_revision_unit-test.txt` — §7/§10/§11/§13), nunca para validar el contenido del diseño.
-- Esos cuatro logs son artefactos **del motor**, no contenido de diseño ni ficheros que declare la plantilla: el verificador no los valida y `--template-dir` no los cambia.
-- Único acoplamiento permitido por nombre: `README.md` (contrato de la plantilla) y los contratos fijos del motor `specification.md` / `design-guidelines.md` / `design.md` / `decisiones.md` / `test-unit-desc.md` (§1.2).
 
 **REQUIRED — el README de la plantilla es leído por los 9 roles.** Cualquier `README.md` de plantilla (cualquier `template-<nombre>/` del skill o una externa apuntada con `--template-dir=`) **MUST** delimitar, por rol, qué tarea hace y qué ficheros de la plantilla le aplican: los nueve reciben las mismas rutas de entrada y leen el mismo README, pero cada uno necesita un subconjunto distinto. Un README que solo contemple al diseñador es **incompleto** para este skill. Los roles (orquestación en §2.3):
 
@@ -159,6 +174,8 @@ Todo lo específico del diseño (qué se produce, cómo se convierte el spec, qu
 - **verificador-test-unitarios** — comprueba que los tests unitarios son coherentes con el diseño — §13
 - **corrector-test-unitarios** — corrige los tests unitarios — §13
 
+El **editor-especificación** (§8.1) es un rol más del motor, pero **no** lee el README de la plantilla: trabaja sobre la spec, no sobre el diseño. Los README **MUST NOT** delimitarlo.
+
 **REQUIRED — la tabla de lentes.** Además de delimitar los roles, el README **MUST** declarar qué críticos existen con una **tabla de lentes**: una tabla markdown cuya **primera columna se titula exactamente `Lente`**, con una fila por crítico y el nombre de la lente en kebab-case entre backticks; las demás columnas dicen qué rasero carga esa lente (skills, ficheros, código real) y qué busca.
 
 - El motor extrae de la tabla **solo los nombres** de las lentes (`{lentes}`, Fase 1); el resto de la fila lo lee el propio crítico.
@@ -170,7 +187,8 @@ Todo lo específico del diseño (qué se produce, cómo se convierte el spec, qu
 
 - Los **diseñadores** corren **en paralelo** (§6); **MUST NOT** usar `AskUserQuestion`. No devuelven bloque `=== DUDAS ===` (desviación deliberada de k-skill §6.8): las suposiciones quedan en `decisiones.md`, que el humano lee en la salida, y mostrarlas además por pantalla las duplicaría.
 - Los **críticos** de una misma ronda corren también **en paralelo** entre sí (§10) y tampoco usan `AskUserQuestion` ni devuelven `=== DUDAS ===`: una duda se reporta como crítica.
-- El **juez**, el **enriquecedor**, el **verificador**, el **corrector**, el **test-unitarios**, el **verificador-test-unitarios** y el **corrector-test-unitarios** corren **de uno en uno** (cada uno depende del resultado del anterior).
+- El **juez**, el **enriquecedor**, el **verificador**, el **corrector**, el **editor-especificación**, el **test-unitarios**, el **verificador-test-unitarios** y el **corrector-test-unitarios** corren **de uno en uno** (cada uno depende del resultado del anterior).
+- No define su propio modo subagente (desviación deliberada de k-skill §6.10.4): cuando lo ejecuta `/sdd`, su ejecutor convierte las preguntas (`AskUserQuestion`) y paradas (`STOP`) de este skill en `DECISION-REQUERIDA`.
 - **MUST NOT** usar `run_in_background`: el skill necesita el resultado de cada subagente para continuar.
 - Cada rol responde con un **token literal** que el skill parsea (definidos en cada fase). El skill compara por literal exacto. Los correctores (§9, §10, §11, §13) cierran con `CORREGIDO`: el motor **no ramifica** sobre él, solo comprueba que llegó y continúa con el siguiente paso.
 - **REQUIRED — modelo de los diseñadores, del juez y de los críticos.** Diseñar, elegir y criticar son los pasos donde más rinde pensar. Lanza los **5 diseñadores**, **cada comparación del juez** y **cada crítico** con el **modelo más capaz disponible**: pasa `model` en la invocación a `Agent` con el modelo del propio orquestador o uno superior. **MUST NOT** dejar que estos tres roles caigan en un modelo rápido o pequeño (ni por omisión ni por un modelo por defecto de subagentes configurado más bajo). El resto de roles pueden heredar el modelo por defecto.
@@ -181,6 +199,7 @@ El diseño es un **plan**, no una implementación. Ni el motor ni ningún subage
 
 - **CRITICAL — el motor y los 9 roles de subagente MUST NOT escribir, crear, editar, mover ni borrar NINGÚN fichero fuera de la carpeta de la iniciativa** (`{iniciativa}/design_<n>/` o `{iniciativa}/design/`, según la fase; con `--out=`, la carpeta de salida indicada). En particular **MUST NOT** tocar código fuente (`src/**`), ficheros de configuración (p.ej. `axelor-config.properties`, `build.gradle`, cualquier `*.properties`/`*.yml` o `*.xml` del proyecto real), datos iniciales, ni cualquier otro artefacto del árbol del proyecto.
 - **REQUIRED — todo cambio fuera de la carpeta se DOCUMENTA, no se aplica.** Si el diseño **requiere** un cambio fuera de la carpeta de la iniciativa (una propiedad de configuración nueva, una clase existente que modificar, una dependencia, un script), ese cambio **MUST** quedar **descrito dentro del diseño** (en el fichero de `design/` que prescriba la plantilla) para que lo aplique `/sdd-implementer`. **MUST NOT** aplicarlo aquí.
+- **Única excepción — la spec de la iniciativa.** Solo el **editor-especificación** (§8.1) puede editar `specification.md` y los ficheros que enlace, y solo para aplicar las erratas `PENDIENTE` de `decisiones.md` (§2.6). El resto de roles **MUST NOT** tocarla: proponen la errata, no la editan.
 - El único acceso de escritura del motor fuera del contenido de diseño son sus propios **logs de orquestación** dentro de la carpeta de la iniciativa (`log_best.txt`, `log_critica.txt`, `log_revision.txt`, `log_revision_unit-test.txt`), las operaciones `mv`/`rm` sobre las carpetas `design_<n>/`/`design/` y `log_best.txt` (§6, §8), la creación de `design-guidelines.md` a partir del prompt (§4.3) y añadir `template:` al frontmatter de `design.md` cuando le falta (§15). Nada más.
 
 - ✅ CORRECTO: el diseño necesita `correos.reintentos.max=3` → se documenta como propiedad de configuración a añadir en el fichero de diseño que la plantilla destine a configuración; `/sdd-implementer` la escribirá en `axelor-config.properties`.
@@ -200,6 +219,20 @@ Un diseño que cumple la especificación y el contrato **puede ser una chapuza**
 
 El rasero común es `k-code-quality` (`disenyo.md` para todos; sus reglas de clases y de métodos para el juez y para la lente que la plantilla dedique a ello), para que el diseñador optimice exactamente lo que el juez premia, el enriquecedor respeta y los críticos exigen.
 
+### 2.6 Erratas de la especificación — se corrigen en la spec, sin volver atrás
+
+Al diseñar puede salir que la spec dice algo que no es correcto. Si es una **errata pequeña**, el designer la corrige en la propia spec y sigue diseñando; **MUST NOT** detener el pipeline ni mandar al usuario a `/sdd-specification`.
+
+- **Errata pequeña** (se corrige aquí): un detalle que contradice otra parte de la spec, que no se puede hacer con el stack o el framework, que choca con el código real que la spec da por existente, o un dato equivocado (un tipo, un mensaje, una condición, un caso que falta en una regla que ya existe).
+- **No es una errata** (no se corrige aquí): añadir o quitar funcionalidad, escenarios, actores o pantallas; cambiar el alcance o la historia de usuario; cualquier cosa que el usuario tenga que decidir. Sigue la spec tal cual y registra la duda en `decisiones.md`.
+- **Quién la propone**: el diseñador (§6) y los correctores (§9, §10, §11, §15). La registran en `decisiones.md` como una decisión `D<k>` más, con el campo `**Cambio en la especificación:** PENDIENTE — …` (plantilla en §6), y diseñan **como si la spec ya estuviera corregida**.
+- **Quién la aplica**: solo el **editor-especificación** (§8.1), sobre el `design/` ganador y tras cada corrector, que la pasa a `APLICADO`. Los 5 diseñadores trabajan en paralelo y **MUST NOT** editar la spec: se pisarían, y la de los perdedores no debe aplicarse.
+- **Quién la juzga**: el juez (§7) cuenta como cumplimiento la errata bien justificada y como **incumplimiento** cambiar la spec por comodidad o más allá de una errata.
+
+- ✅ CORRECTO: una regla exige formato DNI en un campo que otra parte de la spec admite para extranjeros → decisión `D3` con `**Cambio en la especificación:** PENDIENTE — <fichero-de-la-spec> § <id-regla-del-spec>: dice «formato DNI»; debe decir «formato DNI solo si el tipo de documento es DNI». Motivo: contradice <id-del-spec-que-admite-extranjeros>.`
+- ❌ INCORRECTO: el diseñador edita `specification.md` desde su `design_<n>/` (los 5 corren en paralelo y se pisan; además se aplicaría la errata de un diseño que puede perder)
+- ❌ INCORRECTO: `PENDIENTE — añadir un escenario de baja masiva` (es funcionalidad nueva, no una errata: la decide el usuario)
+
 ## 3. Flujo general
 
 ```
@@ -214,6 +247,8 @@ El rasero común es `k-code-quality` (`disenyo.md` para todos; sus reglas de cla
 │             al ganador)                                             │
 │  Fase 4  Renombrar el ganador a design/ ; mover log_best.txt;       │
 │            borrar el resto                                          │
+│  §8.1    ¿erratas PENDIENTE en decisiones.md? → editor-especif.     │
+│            (y tras cada corrector de las Fases 5-7)                 │
 │  Fase 5  enriquecedor(design/, log_best.txt) → mejoras a aplicar    │
 │            → corrector(design/, mejoras)  (ventajas de los          │
 │              descartados que faltan en el ganador + defectos que    │
@@ -318,11 +353,14 @@ No hay más preparación: el skill no carga skills técnicos ni explora el códi
 
 ## 6. Fase 2 — Diseñar (5 subagentes en paralelo)
 
-**REQUIRED — limpieza previa.** Antes de lanzar nada, borra los restos de ejecuciones anteriores o abortadas: el `design/` que se regenera (§4.4 opción 2) y los `design_<n>/`/`log_best.txt` residuales (si quedaran, `mv` del ganador (§8) metería la carpeta dentro del `design/` viejo, y los residuos se mezclarían con la comprobación de contenido de abajo y con el append de §7):
+**REQUIRED — limpieza previa.** Antes de lanzar nada, borra los restos de ejecuciones anteriores o abortadas (con `--out=`, en lugar de `design` borra la carpeta indicada):
 ```bash
 rm -rf {iniciativa}/design {iniciativa}/design_[0-9]* {iniciativa}/log_best.txt
 ```
-(Con `--out=`, en lugar de `design` borra la carpeta indicada.)
+Motivo:
+
+- `design/` es el que se regenera (§4.4 opción 2); si quedara, el `mv` del ganador (§8) metería la carpeta dentro del `design/` viejo.
+- Los `design_<n>/` y `log_best.txt` residuales se mezclarían con la comprobación de contenido de abajo y con el append de §7.
 
 **CRITICAL**: lanza **exactamente 5 subagentes diseñadores** en una **única respuesta** con 5 invocaciones a `Agent` simultáneas, **cada una con `model` fijado al modelo más capaz disponible** (§2.3). **MUST NOT** lanzarlos secuencialmente. **MUST NOT** usar `run_in_background`. Numéralos `n = 1..5`; el diseñador `n` escribe su diseño en la carpeta `design_<n>/` de la iniciativa.
 
@@ -339,7 +377,8 @@ rm -rf {iniciativa}/design {iniciativa}/design_[0-9]* {iniciativa}/log_best.txt
 >   2. Por cada decisión da **al menos 2 alternativas**, con su coste y lo que el siguiente desarrollador tendría que recordar.
 >   3. Elige una y di por qué, citando los olores de `disenyo.md` que evita.
 >   4. Si una decisión crea un **patrón nuevo** (nada documentado lo cubre), márcalo como tal y di dónde debería vivir la pieza común.
->   5. Después escribe el diseño **coherente con lo decidido**.
+>   5. Si la spec tiene una **errata pequeña** (contradicción interna, algo que no se puede hacer con el stack, choque con el código real, un dato equivocado), regístrala en esa decisión con `**Cambio en la especificación:** PENDIENTE — …` y diseña como si ya estuviera corregida. **MUST NOT** editar la spec tú (la aplica el motor si tu diseño gana). Añadir o quitar funcionalidad **no** es una errata: sigue la spec y deja la duda en la decisión.
+>   6. Después escribe el diseño **coherente con lo decidido**.
 > - **Salida**: escribe el **diseño completo y autosuficiente** en la carpeta `{iniciativa}/design_<n>/`, con la estructura exacta que define el README (incluido su índice `design.md` con el frontmatter fijo del motor: `type: design` más `template: {template}` — §1.2).
 > - **CRITICAL — confinamiento de escritura**: **MUST NOT** escribir, crear, editar ni borrar ningún fichero fuera de `{iniciativa}/design_<n>/`: nada de código fuente (`src/**`), configuración (`axelor-config.properties`, `build.gradle`, …) ni otros artefactos del proyecto. El diseño es un **plan**. Si el diseño exige un cambio fuera de esa carpeta (p.ej. una propiedad de configuración nueva o una clase existente que modificar), **documéntalo dentro del diseño** para que lo aplique `/sdd-implementer`; **MUST NOT** aplicarlo tú.
 > - **MUST NOT** usar `AskUserQuestion`. Ante una ambigüedad, toma la decisión más razonable y regístrala como una decisión más en `decisiones.md` (con la alternativa que descartaste); no la devuelvas en la respuesta.
@@ -362,7 +401,15 @@ rm -rf {iniciativa}/design {iniciativa}/design_[0-9]* {iniciativa}/log_best.txt
 **Elegida:** <A|B> — <por qué frente a la otra, citando los olores de `k-code-quality/disenyo.md` que evita>
 
 **Patrón nuevo:** <NO | SÍ — pieza común en `<ruta>` y receta que faltaría escribir>
+
+**Cambio en la especificación:** <NO | PENDIENTE — `<fichero-de-la-spec>` § <id o sección>: dice «…»; debe decir «…». Motivo: <por qué es una errata>>
 ```
+
+Reglas del campo `**Cambio en la especificación:**`:
+
+- Empieza siempre en la línea, en negrita y seguido de `NO`, `PENDIENTE`, `APLICADO` o `RECHAZADO`: el motor lo busca por literal (§8.1).
+- Solo el diseñador y los correctores escriben `PENDIENTE`.
+- Solo el editor-especificación lo cambia a `APLICADO`/`RECHAZADO`.
 
 - ✅ CORRECTO: `**Elegida:** B — una sola rama por campo con la condición explícita; A obligaba a recordar tres reglas y escondía la condición dentro de ellas (olor «una regla que decide sola si aplica»)`
 - ❌ INCORRECTO: `**Alternativas:** - A: la única razonable` (una decisión con una sola alternativa no es una decisión: no se ha pensado)
@@ -399,7 +446,7 @@ Cada invocación del juez es **secuencial** (depende del ganador anterior). Si s
 > - **Rasero de calidad**: lee `.claude/skills/k-code-quality/disenyo.md` y, para las clases y métodos que los diseños describan, las reglas de **clases (SOLID)** y de **métodos** de ese mismo skill (su `SKILL.md` indexa los ficheros).
 > - **Diseños a comparar**: la carpeta `{iniciativa}/{ganador}` (la llamo `<carpeta-A>`) y la carpeta `{iniciativa}/design_<i>` (la llamo `<carpeta-B>`), incluido el `decisiones.md` de cada una.
 > - Elige cuál de los dos es **mejor diseño**, **detallando las ventajas concretas Y los defectos/errores concretos de CADA uno de los dos diseños** y con cuál te quedas. Juzga en este orden:
->   1. **Cumplimiento** de la especificación, las guías y las reglas: cobertura y coherencia. Es condición de entrada: un diseño que deja escenarios sin cubrir o contradice el contrato pierde aunque sea más elegante.
+>   1. **Cumplimiento** de la especificación, las guías y las reglas: cobertura y coherencia. Es condición de entrada: un diseño que deja escenarios sin cubrir o contradice el contrato pierde aunque sea más elegante. Un `**Cambio en la especificación:** PENDIENTE` de `decisiones.md` cuenta como cumplimiento si es una **errata pequeña** de verdad (la spec se contradice, no es realizable, choca con el código real o tiene un dato equivocado) y como **incumplimiento** si cambia la spec por comodidad o añade/quita funcionalidad. Un diseño que vio una errata real que el otro siguió a ciegas gana en ese punto.
 >   2. **Calidad**, entre diseños que cumplen: aplica la **prueba del segundo desarrollador** de `disenyo.md` a cada uno (¿cuántas cosas hay que recordar para reproducirlo en el siguiente caso parecido?) y busca sus olores: una decisión con varios dueños, reglas que deciden solas si aplican, retornos defensivos, piezas que se conocen entre sí, ramas que no cubren todos los casos, defensa solo en la vista, patrones nuevos improvisados sin declarar. Busca además las violaciones de **SOLID** en las clases descritas —una clase con varias razones para cambiar, una rama por tipo que habrá que reabrir en el siguiente caso parecido, una dependencia de un concreto donde cabía una abstracción— y los métodos con varias responsabilidades. Cada olor y cada violación es un **defecto** con nombre. Gana el que **menos exige recordar**, no el que tiene más piezas ni el que más literalmente sigue el contrato.
 >   3. **Decisiones**: compara los `decisiones.md`: ¿identifican las mismas decisiones difíciles? ¿las alternativas descartadas son reales o de paja? Un diseño que no vio una decisión que el otro sí vio, o que eligió sin alternativas, pierde en ese punto. Este nivel **solo desempata** si el nivel 2 no decide.
 >   Un diseño más simple que cumple **MUST** ganar a uno más completo que añade piezas que la especificación no pide.
@@ -449,7 +496,47 @@ Una vez conocido el ganador:
    ```
    (Si se indicó `--out=`, el destino es `{--out=}/log_best.txt`.)
 
+4. Ejecuta **§8.1** (erratas del diseñador ganador).
+
 Tras esto solo queda `design/` (más `--out=` si se indicó: en ese caso, el destino final es esa carpeta).
+
+### 8.1 Aplicar erratas a la especificación (paso común)
+
+Lleva a la spec las erratas que el diseño ya da por corregidas (§2.6). **Cuándo** se ejecuta este paso:
+
+- al terminar la Fase 4 (las erratas del diseñador ganador);
+- tras **cada** corrector de las Fases 5, 6 y 7 y del paso 3 de §15 (las que registren al corregir).
+
+Pasos:
+
+1. Comprueba si hay erratas pendientes (es un contrato fijo del motor, §6, no contenido de la plantilla):
+   ```bash
+   grep -c '^\*\*Cambio en la especificación:\*\* PENDIENTE' {iniciativa}/design/decisiones.md
+   ```
+   (Con `--out=`, el `decisiones.md` de esa carpeta.) Si da `0`, no hay nada que hacer: sigue con la fase que tocara.
+2. **Lanza el subagente editor-especificación** (uno solo).
+3. Si la respuesta no empieza por `APLICADO:` y no tiene ninguna línea `RECHAZADO:`, **reintenta 1 vez**; si vuelve a fallar → **STOP** y muestra la respuesta.
+4. **Muestra al usuario** su respuesta (las erratas aplicadas a la spec y, si las hay, las rechazadas).
+5. Si alguna línea empieza por `RECHAZADO:` → **STOP** (STOP condition) mostrando esas líneas y diciendo que ese cambio se decide con `/sdd-specification`. Si no, sigue con la fase que tocara.
+
+**Prompt del subagente editor-especificación**:
+
+> Eres el editor de una especificación funcional. El diseño ha encontrado erratas en ella y tienes que corregirlas **en la propia spec**, con el cambio mínimo.
+>
+> - **Especificación**: lee `{ruta de specification.md}` y todos los ficheros que enlace.
+> - **Erratas**: lee `{iniciativa}/design/decisiones.md`. Son las decisiones con `**Cambio en la especificación:** PENDIENTE — …`.
+> - Por **cada** errata `PENDIENTE`:
+>   1. Comprueba que es una **errata pequeña**: corrige algo que la spec se contradice, no se puede hacer con el stack, choca con el código real o es un dato equivocado. **No** lo es si añade o quita funcionalidad, escenarios, actores o pantallas, o cambia el alcance o la historia de usuario.
+>   2. Si lo es: aplica el cambio **en sitio** (`Edit`) en el fichero de la spec indicado, con el **mínimo** texto y respetando su formato: identificadores, numeración, frontmatter y estructura. **MUST NOT** renumerar ni renombrar identificadores, y arrastra el cambio a todo sitio de la spec que diga lo mismo. Después cambia `PENDIENTE` por `APLICADO` en esa línea de `decisiones.md`.
+>   3. Si no lo es: **MUST NOT** tocar la spec. Cambia `PENDIENTE` por `RECHAZADO` en esa línea de `decisiones.md`.
+> - **CRITICAL — confinamiento de escritura**: solo puedes editar `specification.md`, los ficheros de la spec que enlace y `{iniciativa}/design/decisiones.md`. **MUST NOT** tocar el resto del diseño, `src/**` ni nada del proyecto.
+> - **MUST NOT** usar `AskUserQuestion`.
+> - **Formato de salida (REQUIRED)**: primera línea **exactamente** `APLICADO: <n>` (cuántas erratas aplicaste, `0` si ninguna); debajo, una línea por errata aplicada `D<k> — <fichero> § <id o sección>: <cambio en una frase>`; y por cada rechazada, una línea **exactamente** `RECHAZADO: D<k> — <por qué no es una errata pequeña>`. **MUST NOT** pegar la spec en la respuesta.
+
+- ✅ CORRECTO (respuesta del editor-especificación): `APLICADO: 1` + `D3 — <fichero-de-la-spec> § <id-regla-del-spec>: el formato DNI solo se exige si el tipo de documento es DNI`
+- ✅ CORRECTO (con un rechazo): `APLICADO: 0` + `RECHAZADO: D5 — añade un escenario nuevo de baja masiva: es funcionalidad, no una errata`
+- ❌ INCORRECTO: `He corregido la spec` (token no exacto; el motor no sabe cuántas aplicó ni si rechazó alguna)
+- ❌ INCORRECTO: renumerar las reglas de la spec tras quitar una (rompe la trazabilidad del diseño, que las cita por identificador)
 
 ---
 
@@ -463,7 +550,7 @@ Tras esto solo queda `design/` (más `--out=` si se indicó: en ese caso, el des
 1. **Lanzar el subagente enriquecedor** (uno solo). Recibe todo el contexto + `log_best.txt`; comprueba (a) y (b) y **reporta** las mejoras (no las implementa).
 2. **Mostrar al usuario** la respuesta del enriquecedor (las mejoras a implementar, o que no hay ninguna).
 3. Si respondió **exactamente** `OK-SIN-MEJORAS` → no hay nada que incorporar ni sanear: ve directamente a la Fase 6.
-4. Si respondió líneas **JSONL** de mejoras: **lanza el subagente corrector** pasándole esas mismas líneas, para que las aplique en sitio sobre `design/`. Luego ve a la Fase 6.
+4. Si respondió líneas **JSONL** de mejoras: **lanza el subagente corrector** pasándole esas mismas líneas, para que las aplique en sitio sobre `design/`. Luego ejecuta §8.1 y ve a la Fase 6.
 5. Si la respuesta no es ni `OK-SIN-MEJORAS` ni JSONL parseable, **reintenta 1 vez**; si vuelve a fallar, trata el enriquecimiento como vacío (avísalo al usuario) y continúa con la Fase 6. **MUST NOT** bloquear el diseño por esto.
 
 **Prompt del subagente enriquecedor**:
@@ -510,6 +597,7 @@ Tras esto solo queda `design/` (más `--out=` si se indicó: en ese caso, el des
 > - **Diseño a enriquecer y sanear**: la carpeta `{iniciativa}/design` — aplica las mejoras **en sitio** (`Edit`/`Write`), sin renombrar ni mover la carpeta, sin regenerar el diseño ni romper las decisiones del ganador que no estén en falta. Tras editar, aplica la validación que prescriba la plantilla.
 > - **CRITICAL — confinamiento de escritura**: **MUST NOT** escribir, editar ni borrar ningún fichero fuera de `{iniciativa}/design/` (nada de `src/**`, `axelor-config.properties`, `build.gradle`, ni otros artefactos del proyecto). Si una mejora exige un cambio fuera de esa carpeta, **documéntalo dentro del diseño** para `/sdd-implementer`; **MUST NOT** aplicarlo tú.
 > - **Mejoras a incorporar** (las reportó el enriquecedor, en formato JSONL, una por línea; el campo `tipo` indica si es una `VENTAJA` que incorporar o un `DEFECTO-GANADOR` que corregir): `{líneas JSONL literales del enriquecedor}`. Aplica cada `correccion` en el `fichero`/`ubicacion` indicados; mantén la trazabilidad y la coherencia que la plantilla exige. Si una mejora cambia una decisión registrada en `decisiones.md`, actualiza su sección `D<k>`.
+> - **Erratas de la spec** (§2.6): si resolver un punto exige corregir una **errata pequeña** de la especificación, **MUST NOT** editar la spec: añade a `decisiones.md` una decisión `D<k>` con `**Cambio en la especificación:** PENDIENTE — …` (la aplica el motor) y corrige el diseño como si ya estuviera corregida. Añadir o quitar funcionalidad no es una errata.
 > - Al terminar, responde **exactamente** `CORREGIDO` en la primera línea y debajo 1-3 líneas con las mejoras aplicadas (el motor no ramifica sobre este token: solo comprueba que llegó y continúa). **MUST NOT** pegar el diseño en la respuesta (ya está en disco).
 
 - ✅ CORRECTO (respuesta del enriquecedor sin mejoras): `OK-SIN-MEJORAS`
@@ -532,7 +620,7 @@ Sobre la carpeta `design/`, repite este bucle **como máximo 4 veces** (**LIMIT*
 3. Si **todos** respondieron **exactamente** `OK-SIN-CRITICAS` → sal del bucle y ve a la Fase 7.
 4. Si alguno respondió líneas JSONL: **MUST** mostrarlas al usuario por pantalla, tal cual (bloque ` ```jsonl `, agrupadas por lente).
    - Si `{k}` = 4 **no se corrige más**: si alguna línea es `BLOCKING` → **STOP** (STOP condition) mostrando esas líneas; si no → avisa al usuario de que quedan críticas sin aplicar, refléjalo en el cierre (§14) y ve a la Fase 7. **MUST NOT** bloquear el diseño por críticas no `BLOCKING`.
-   - Si `{k}` < 4: **lanza el subagente corrector** (uno solo) pasándole **juntas** las líneas JSONL de todos los críticos de la ronda, y añade su respuesta **literal** a `design/log_critica.txt` bajo la cabecera `# Corrección — ronda {k}`.
+   - Si `{k}` < 4: **lanza el subagente corrector** (uno solo) pasándole **juntas** las líneas JSONL de todos los críticos de la ronda, y añade su respuesta **literal** a `design/log_critica.txt` bajo la cabecera `# Corrección — ronda {k}`. Luego ejecuta §8.1.
 5. Incrementa `{k}` y vuelve al paso 1.
 
 Si la respuesta de un crítico no es ni `OK-SIN-CRITICAS` ni JSONL parseable, **reintenta ese crítico 1 vez**; si vuelve a fallar, trátalo como `OK-SIN-CRITICAS` en esa ronda y avísalo al usuario.
@@ -587,6 +675,7 @@ Si la respuesta de un crítico no es ni `OK-SIN-CRITICAS` ni JSONL parseable, **
 > - **CRITICAL — corrige sin complicar.** Aplica cada `correccion` quitando, fundiendo, moviendo o sustituyendo piezas. **MUST NOT** añadir piezas nuevas (clases, métodos, campos, reglas, ficheros) salvo en las críticas con `efecto` `AÑADE`, y aun en esas comprueba antes que ninguna pieza existente sirve.
 > - **Descartar una crítica** solo está permitido en dos casos: (a) **contradice a otra** de la misma ronda → aplica la que deja **menos cosas que recordar** y descarta la otra; (b) su corrección **contradice** la especificación, las guías o el contrato de la plantilla. **MUST NOT** descartar por esfuerzo ni por preferencia.
 > - Si una corrección cambia una decisión registrada en `decisiones.md`, actualiza su sección `D<k>`. Tras editar, aplica la validación que prescriba la plantilla.
+> - **Erratas de la spec** (§2.6): si resolver un punto exige corregir una **errata pequeña** de la especificación, **MUST NOT** editar la spec: añade a `decisiones.md` una decisión `D<k>` con `**Cambio en la especificación:** PENDIENTE — …` (la aplica el motor) y corrige el diseño como si ya estuviera corregida. Añadir o quitar funcionalidad no es una errata.
 > - Al terminar, responde **exactamente** `CORREGIDO` en la primera línea y debajo 1-3 líneas con lo aplicado. Si descartaste alguna crítica, añade al final una línea **exactamente** `=== DESCARTADAS ===` y debajo una línea `<id> — <motivo>` por cada una. **MUST NOT** pegar el diseño en la respuesta (ya está en disco).
 
 - ✅ CORRECTO (respuesta de un crítico sin críticas): `OK-SIN-CRITICAS`
@@ -603,10 +692,10 @@ Sobre la carpeta `design/`, repite este bucle **como máximo 10 veces** (**LIMIT
 1. **Lanzar el subagente verificador** (uno solo).
 2. **Volcar su respuesta a `design/log_revision.txt`**: añade (append) la respuesta **literal** del verificador —sus líneas JSONL, o `OK-CORRECTO`— precedida de la cabecera `# Verificación — iteración {k}`. Es un append acumulativo (una sección por iteración).
 3. Si el verificador respondió **exactamente** `OK-CORRECTO` → el diseño está conforme: sal del bucle y ve a la Fase 8.
-4. Si respondió **cualquier otra cosa** (las líneas JSONL de problemas): **MUST** mostrar al usuario por pantalla, tal cual, las líneas JSONL que devolvió el verificador (bloque ` ```jsonl `), antes de continuar; luego **lanza el subagente corrector** pasándole esas mismas líneas, para que corrija en sitio sobre `design/`.
+4. Si respondió **cualquier otra cosa** (las líneas JSONL de problemas): **MUST** mostrar al usuario por pantalla, tal cual, las líneas JSONL que devolvió el verificador (bloque ` ```jsonl `), antes de continuar. Si `{k}` = 10, no lances el corrector: **STOP** con estas líneas (STOP condition). Si no, **lanza el subagente corrector** pasándole esas mismas líneas, para que corrija en sitio sobre `design/`, y ejecuta §8.1.
 5. Incrementa `{k}` y vuelve al paso 1.
 
-Si tras la 10ª iteración el verificador sigue sin responder `OK-CORRECTO` → **STOP** (STOP condition): muestra al usuario las líneas JSONL de los problemas residuales que reportó el verificador y **MUST NOT** dar el diseño por bueno.
+En el STOP del paso 4 con `{k}` = 10, **MUST NOT** dar el diseño por bueno.
 
 **Prompt del subagente verificador**:
 
@@ -617,6 +706,7 @@ Si tras la 10ª iteración el verificador sigue sin responder `OK-CORRECTO` → 
 > - **Guías de diseño**: lee `{ruta de design-guidelines.md}` *(solo si existe)*.
 > - **Solo cumplimiento.** La calidad del diseño (olores, principios, simplicidad, reglas de los skills) ya la atacaron los críticos de la Fase 6: **MUST NOT** reportar olores ni preferencias de diseño, solo lo que la validación de la plantilla, la especificación o las guías declaren fallo. En el inventario de ficheros de la plantilla ignora `decisiones.md` (contrato del motor, lo escribe el diseñador), los logs `log_*.txt` (los escribe el motor) y `test-unit-desc.md` (lo escribe/regenera la Fase 8 después de esta verificación): ninguno lo declara la plantilla.
 > - **Diseño a verificar**: la carpeta `{iniciativa}/design`.
+> - **Erratas de la spec**: las decisiones de `decisiones.md` con `**Cambio en la especificación:** APLICADO` ya están en la spec y las `PENDIENTE` se aplicarán: verifica contra la spec corregida. Si el fallo es que **la propia spec** tiene una errata pequeña (§2.6: se contradice, no es realizable, choca con el código real o tiene un dato equivocado), repórtalo con `origen` el identificador de la spec y en `correccion` «errata en la especificación: <qué debe decir>».
 >
 > **Formato de salida (REQUIRED)**:
 > - Si **no** has encontrado nada que corregir, responde **exactamente** y solo: `OK-CORRECTO`.
@@ -647,6 +737,7 @@ Si tras la 10ª iteración el verificador sigue sin responder `OK-CORRECTO` → 
 > - **Diseño a corregir**: la carpeta `{iniciativa}/design` — corrige **en sitio** (`Edit`/`Write` sobre sus ficheros), sin renombrar ni mover la carpeta.
 > - **CRITICAL — confinamiento de escritura**: **MUST NOT** escribir, editar ni borrar ningún fichero fuera de `{iniciativa}/design/` (nada de `src/**`, `axelor-config.properties`, `build.gradle`, ni otros artefactos del proyecto). Si una corrección exige un cambio fuera de esa carpeta, **documéntalo dentro del diseño** para `/sdd-implementer`; **MUST NOT** aplicarlo tú.
 > - **Problemas a corregir** (los reportó el verificador, en formato JSONL, un problema por línea): `{líneas JSONL literales del verificador}`. Resuelve cada línea (`id`/`severidad`/`fichero`/`ubicacion`/`origen`/`problema`/`correccion`); aplica la `correccion` en el `fichero`/`ubicacion` indicados. **MUST NOT** resolver un problema añadiendo piezas nuevas (clases, métodos, campos, reglas) si se resuelve modificando las que ya hay: la Fase 6 ya no vuelve a pasar sobre lo que añadas. Si una corrección cambia una decisión registrada en `decisiones.md`, actualiza su sección `D<k>`.
+> - **Erratas de la spec** (§2.6): si resolver un punto exige corregir una **errata pequeña** de la especificación, **MUST NOT** editar la spec: añade a `decisiones.md` una decisión `D<k>` con `**Cambio en la especificación:** PENDIENTE — …` (la aplica el motor) y corrige el diseño como si ya estuviera corregida. Añadir o quitar funcionalidad no es una errata.
 > - Al terminar, responde **exactamente** `CORREGIDO` en la primera línea y debajo 1-3 líneas con los problemas corregidos (el motor no ramifica sobre este token: solo comprueba que llegó y continúa). **MUST NOT** pegar el diseño en la respuesta (ya está en disco).
 
 - ✅ CORRECTO (respuesta del verificador sin problemas): `OK-CORRECTO`
@@ -687,15 +778,20 @@ Si tras la 10ª iteración el verificador sigue sin responder `OK-CORRECTO` → 
 
 ## 13. Fase 9 — Verificar y corregir los tests unitarios (bucle, LIMIT 10)
 
-**Común a ambos modos** (Generar/Regenerar y Revisar/Modificar). Una vez `test-unit-desc.md` existe (Fase 8; si no se generó, esta fase se salta — §12 paso 3), comprueba **en bucle** que es **coherente con el diseño** aplicando las **comprobaciones de coherencia** que declare la plantilla activa (cuáles son es propio de cada artefacto: el motor **MUST NOT** enumerarlas aquí). Sobre la carpeta `design/`, repite este bucle **como máximo 10 veces** (**LIMIT**: 10 iteraciones); lleva un contador de iteración `{k}` empezando en 1:
+**Común a ambos modos** (Generar/Regenerar y Revisar/Modificar). Comprueba en bucle que `test-unit-desc.md` es **coherente con el diseño**:
+
+- Solo si `test-unit-desc.md` existe (Fase 8); si no se generó, esta fase se salta (§12 paso 3).
+- Aplica las **comprobaciones de coherencia** que declare la plantilla activa: cuáles son es propio de cada artefacto, el motor **MUST NOT** enumerarlas aquí.
+
+Sobre la carpeta `design/`, repite este bucle **como máximo 10 veces** (**LIMIT**: 10 iteraciones); lleva un contador de iteración `{k}` empezando en 1:
 
 1. **Lanzar el subagente verificador-test-unitarios** (uno solo).
 2. **Volcar su respuesta a `design/log_revision_unit-test.txt`**: añade (append) la respuesta **literal** —sus líneas JSONL, o `OK-CORRECTO`— precedida de la cabecera `# Verificación tests unitarios — iteración {k}`. Es un append acumulativo (una sección por iteración).
 3. Si respondió **exactamente** `OK-CORRECTO` → `test-unit-desc.md` es coherente con el diseño: sal del bucle y ve a la Fase 10 (cierre).
-4. Si respondió **cualquier otra cosa** (las líneas JSONL de problemas): **MUST** mostrar al usuario por pantalla, tal cual, las líneas JSONL que devolvió (bloque ` ```jsonl `), antes de continuar; luego **lanza el subagente corrector-test-unitarios** pasándole esas mismas líneas, para que corrija en sitio sobre `design/test-unit-desc.md`.
+4. Si respondió **cualquier otra cosa** (las líneas JSONL de problemas): **MUST** mostrar al usuario por pantalla, tal cual, las líneas JSONL que devolvió (bloque ` ```jsonl `), antes de continuar. Si `{k}` = 10, no lances el corrector: **STOP** con estas líneas (STOP condition). Si no, **lanza el subagente corrector-test-unitarios** pasándole esas mismas líneas, para que corrija en sitio sobre `design/test-unit-desc.md`.
 5. Incrementa `{k}` y vuelve al paso 1.
 
-Si tras la 10ª iteración el verificador sigue sin responder `OK-CORRECTO` → **STOP** (STOP condition): muestra al usuario las líneas JSONL residuales y **MUST NOT** dar `test-unit-desc.md` por bueno.
+En el STOP del paso 4 con `{k}` = 10, **MUST NOT** dar `test-unit-desc.md` por bueno.
 
 **Prompt del subagente verificador-test-unitarios**:
 
@@ -757,6 +853,7 @@ Diseño guardado en {iniciativa}/design/
 
 Crítica del diseño: {OK-SIN-CRITICAS tras {R} ronda(s) | quedan {M} crítica(s) IMPORTANT sin aplicar, ver design/log_critica.txt | no ejecutada: la plantilla no declara lentes}.
 Verificación del diseño: OK-CORRECTO (tras {N} iteración(es) de verificar/corregir).
+Erratas de la especificación: {ninguna | {E} corregida(s) en la spec, ver las decisiones con «Cambio en la especificación: APLICADO» de design/decisiones.md}.
 Tests unitarios: descritos en design/test-unit-desc.md (coherencia con el diseño: OK-CORRECTO).
 
 Si quieres iterar sobre este diseño, puedes:
@@ -774,7 +871,9 @@ Para implementar este diseño tal cual ejecuta:
   /sdd-implementer {iniciativa}/design/design.md
 ```
 
-Ajusta la lista de ficheros a la estructura real que define la plantilla. Si `test-unit-desc.md` no se generó (§12 paso 3), quítalo de la lista y sustituye la línea `Tests unitarios: …` por `Tests unitarios: test-unit-desc.md NO se generó (el subagente test-unitarios falló tras 1 reintento); re-ejecuta en modo Revisar/Modificar para describirlos.` **MUST NOT** lanzar `/sdd-implementer` tú mismo: el usuario decide cuándo.
+- Ajusta la lista de ficheros a la estructura real que define la plantilla.
+- Si `test-unit-desc.md` no se generó (§12 paso 3), quítalo de la lista y sustituye la línea `Tests unitarios: …` por `Tests unitarios: test-unit-desc.md NO se generó (el subagente test-unitarios falló tras 1 reintento); re-ejecuta en modo Revisar/Modificar para describirlos.`
+- **MUST NOT** lanzar `/sdd-implementer` tú mismo: el usuario decide cuándo.
 
 ---
 
@@ -784,9 +883,10 @@ Ruta alternativa desde la Fase 0 (§4.4) cuando `design/design.md` ya existe y e
 
 1. Ejecutar la **Fase 1 (§5)**: leer `<plantilla-activa>/README.md` y resolver las rutas de entrada (spec, guías si existen).
 2. Leer `design.md`. Si su frontmatter no es `type: design` → **ERROR** y detente. Si le falta `template:`, añade `template: {template}` (resuelto en §2.2): §1.2 lo exige y `/sdd-implementer` lo necesita. Si lo declara y **no coincide** con `{template}` → **ERROR** y detente (STOP condition): el diseño se hizo con otra plantilla y **MUST NOT** mezclarse.
-3. **Aplicar los cambios pedidos** (si el usuario pasó texto de cambios en el prompt): envuelve cada cambio en una línea JSONL con los mismos campos que el verificador (§11) — `id` correlativo `U-NNN`, `severidad` `IMPORTANT`, `fichero`/`ubicacion` los que indique el usuario o `null`, `origen` `usuario`, `problema` y `correccion` con su texto — y lanza el subagente **corrector** (§11) pasándole esas líneas como los "problemas a corregir" sobre la carpeta `design/`; corrige **en sitio**. Si no hubo cambios pedidos, salta este paso.
+3. **Aplicar los cambios pedidos** (si el usuario pasó texto de cambios en el prompt): envuelve cada cambio en una línea JSONL con los mismos campos que el verificador (§11) — `id` correlativo `U-NNN`, `severidad` `IMPORTANT`, `fichero`/`ubicacion` los que indique el usuario o `null`, `origen` `usuario`, `problema` y `correccion` con su texto — y lanza el subagente **corrector** (§11) pasándole esas líneas como los "problemas a corregir" sobre la carpeta `design/`; corrige **en sitio**; luego ejecuta §8.1. Si no hubo cambios pedidos, salta este paso.
    - ✅ CORRECTO: `{"id":"U-001","severidad":"IMPORTANT","fichero":null,"ubicacion":null,"origen":"usuario","problema":"<texto del cambio pedido por el usuario>","correccion":"<texto del cambio pedido por el usuario>"}`
    - ❌ INCORRECTO: pasar al corrector el texto libre del usuario tal cual (no cumple el formato JSONL que su prompt espera)
+   - **REQUIRED**: adapta el prompt del corrector de §11: sustituye «(los reportó el verificador, …)» por «(cambios pedidos por el usuario, `origen` `usuario`)», y la regla de no añadir piezas nuevas **MUST NOT** aplicarse a lo que el cambio pide explícitamente.
 4. **Pasar la Fase 6 (§10)**: bucle críticos → corrector sobre `design/` (**LIMIT** 4 rondas). Si en el paso 3 hubo cambios pedidos, pasa a cada crítico sus líneas `U-NNN` como **decisiones del usuario** (§10): **MUST NOT** criticarlas.
 5. **Pasar la Fase 7 (§11)**: bucle verificar/corregir sobre `design/` (**LIMIT** 10) hasta `OK-CORRECTO`.
 6. **Pasar la Fase 8 (§12, Tests unitarios)**: lanza el subagente **test-unitarios** para (re)generar `design/test-unit-desc.md` reflejando el diseño ya modificado.
@@ -802,14 +902,13 @@ Ruta alternativa desde la Fase 0 (§4.4) cuando `design/design.md` ya existe y e
 - **CRITICAL — agnosticismo** (§2.2): este SKILL es un **motor de flujo**; todo lo específico del diseño lo define `<plantilla-activa>/README.md`, que leen los subagentes. **MUST NOT** nombrar aquí ficheros, identificadores, taxonomías ni validaciones del diseño; contratos fijos del motor: `specification.md`, `design-guidelines.md`, `design.md`, `decisiones.md` y `test-unit-desc.md` (§1.2).
 - **Dos modos** (§4.4): sin `design/design.md` → Generar (Fases 1-10); con él → preguntar Regenerar (pisa) vs **Revisar/Modificar** (§15: cambios puntuales + criticar + verificar, sin diseñadores, torneo ni enriquecedor).
 - **Calidad, no solo cumplimiento** (§2.5): `decisiones.md` antes del diseño; el juez elige por la prueba del segundo desarrollador y SOLID entre los que cumplen y desempata por `decisiones.md`; el enriquecedor no hereda complejidad; los críticos atacan la calidad y el verificador solo el cumplimiento; corregir **MUST NOT** complicar.
-- **Diseñar** (§6): **CRITICAL** exactamente 5 diseñadores en **una única respuesta**, con `model` al más capaz (§2.3); **MUST NOT** `AskUserQuestion` ni `run_in_background`. Una carpeta sin `decisiones.md` se descarta.
-- **Elegir** (§7): torneo acumulativo de dos en dos, secuencial, juez con `model` al más capaz; el motor **MUST** mostrar por pantalla y acumular en `log_best.txt` las ventajas, los defectos y la justificación de cada comparación.
+- **Diseñar y elegir** (§6-§7): **CRITICAL** exactamente 5 diseñadores en **una única respuesta**, con `model` al más capaz (§2.3); **MUST NOT** `AskUserQuestion` ni `run_in_background`; una carpeta sin `decisiones.md` se descarta. Luego torneo acumulativo de dos en dos, secuencial, juez con `model` al más capaz; el motor **MUST** mostrar por pantalla y acumular en `log_best.txt` las ventajas, los defectos y la justificación de cada comparación.
 - **Seleccionar y enriquecer** (§8-§9, solo Generar): renombrar el ganador a `design/`, mover `log_best.txt`, borrar el resto; el enriquecedor reporta las ventajas de los descartados que faltan y los defectos del ganador que persisten, y el corrector las aplica.
 - **Criticar/corregir** (§10, ambos modos): **CRITICAL** un crítico por **lente** de la tabla de lentes del README (§2.2; el motor **MUST NOT** enumerarlas), todos en **una única respuesta** con `model` al más capaz; cada crítica dice qué quitar/fundir/mover/sustituir y lleva `efecto`; el corrector las aplica sin añadir piezas y solo descarta por contradicción; **LIMIT** 4 rondas, **STOP** solo si queda un `BLOCKING`; todo se vuelca a `log_critica.txt`.
-- **Verificar/corregir el diseño** (§11): bucle verificador → corrector hasta `OK-CORRECTO` (**LIMIT** 10, luego **STOP**); las validaciones de la plantilla las ejecuta el verificador, nunca el motor (§2.2); el motor muestra el JSONL al usuario y lo vuelca a `log_revision.txt`.
-- **Tests unitarios** (§12-§13, ambos modos): `design/test-unit-desc.md` según la plantilla, solo descripción y a partir del diseño (aún no hay código); luego bucle verificador-test-unitarios → corrector-test-unitarios hasta `OK-CORRECTO` (**LIMIT** 10), volcado a `log_revision_unit-test.txt`.
+- **Verificar/corregir y tests unitarios** (§11-§13, ambos modos): bucle verificador → corrector hasta `OK-CORRECTO` (**LIMIT** 10, luego **STOP**); las validaciones de la plantilla las ejecuta el verificador, nunca el motor (§2.2); JSONL mostrado al usuario y volcado a `log_revision.txt`. Después `design/test-unit-desc.md` según la plantilla, solo descripción y a partir del diseño (aún no hay código), con su bucle verificador-test-unitarios → corrector-test-unitarios hasta `OK-CORRECTO` (**LIMIT** 10), volcado a `log_revision_unit-test.txt`.
 - **CRITICAL — confinamiento de escritura** (§2.4): nadie escribe fuera de la carpeta de la iniciativa; todo cambio al árbol real se **documenta en el diseño** para `/sdd-implementer`.
-- **Contrato de tokens** (§2.3): comparación por literal exacto — `ESCRITO: design_<n>`, `GANADOR: design_<n>`, `OK-SIN-MEJORAS`, `OK-SIN-CRITICAS`, `OK-CORRECTO`, `ESCRITO: test-unit-desc.md` y `CORREGIDO` (cierre de los correctores; el motor no ramifica sobre él); los subagentes **MUST NOT** pegar el diseño en la respuesta. **MUST NOT** lanzar `/sdd-implementer` tú mismo: indica el comando y **STOP**.
+- **Erratas de la spec** (§2.6, §8.1): una errata pequeña **no** detiene el pipeline; diseñador y correctores la registran `PENDIENTE` en `decisiones.md`, el editor-especificación la aplica en la spec (tras la Fase 4 y tras cada corrector) y solo **STOP** si rechaza un cambio que no es errata.
+- **Contrato de tokens** (§2.3): comparación por literal exacto — `ESCRITO: design_<n>`, `GANADOR: design_<n>`, `OK-SIN-MEJORAS`, `OK-SIN-CRITICAS`, `OK-CORRECTO`, `ESCRITO: test-unit-desc.md`, `APLICADO: <n>`/`RECHAZADO:` y `CORREGIDO` (cierre de los correctores; el motor no ramifica sobre él); los subagentes **MUST NOT** pegar el diseño en la respuesta. **MUST NOT** lanzar `/sdd-implementer` tú mismo: indica el comando y **STOP**.
 
 ---
 
