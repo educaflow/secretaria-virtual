@@ -2,10 +2,6 @@
 <documentoFormulario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                      xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/educaflow/EducaFlowBuildTools/master/src/main/resources/com/educaflow/common/buildtools/xml2pdf/documentoFormulario.xsd">
 
-    <titulo>
-        <valenciano>ANNEX VII - Sol·licitud d'anul·lació de matrícula en cicle formatiu</valenciano>
-        <castellano>ANEXO VII - Solicitud de anulación de matrícula en ciclo formativo</castellano>
-    </titulo>
 
     <seccion>
         <valenciano>Dades d'identificació de l'alumne/a</valenciano>
