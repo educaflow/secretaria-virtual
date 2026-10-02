@@ -51,6 +51,8 @@ class TareaFirmaControllerTest {
     private static final String DNI = "12345678Z";
     private static final String CLAVE = "nadanada";
     private static final String MENSAJE_CONTRASENA_OBLIGATORIA = "La contraseña es obligatoria";
+    private static final String MENSAJE_SOLO_PENDIENTES_FIRMAR = "Solo se pueden firmar las tareas pendientes de firmar";
+    private static final String MENSAJE_SOLO_PENDIENTES_RECHAZAR = "Solo se pueden rechazar las tareas pendientes de firmar";
     private static final String MENSAJE_NO_SE_HAN_PODIDO_FIRMAR =
             "No se han podido firmar los documentos: clave incorrecta";
 
@@ -117,6 +119,10 @@ class TareaFirmaControllerTest {
         Mockito.lenient().when(modelServiceFactory.resolve(TareaFirma.class)).thenReturn(tareaFirmaService);
         Mockito.lenient().when(tareaFirmaService.allowPropertiesFirmarEnServidor())
                 .thenReturn(AllowProperties.createDenyAllProperties());
+        Mockito.lenient().when(tareaFirmaService.allowPropertiesMarcarComoFirmada())
+                .thenReturn(AllowProperties.createAllowProperties(Map.of("documentosFirma", Map.of("documentoFirmado", Map.of()))));
+        Mockito.lenient().when(tareaFirmaService.allowPropertiesMarcarComoRechazada())
+                .thenReturn(AllowProperties.createAllowProperties(Map.of("motivoRechazo", Map.of())));
     }
 
     @AfterEach
@@ -214,7 +220,6 @@ class TareaFirmaControllerTest {
         controller.validateFirmarEnServidor(actionRequest, actionResponse);
 
         verify(tareaFirmaService).allowPropertiesFirmarEnServidor();
-        verify(tareaFirmaService, never()).allowPropertiesValidarDocumentosFirmados();
         verify(tareaFirmaService, never()).allowPropertiesMarcarComoFirmada();
         verify(tareaFirmaService, never()).allowPropertiesMarcarComoRechazada();
     }
@@ -235,6 +240,114 @@ class TareaFirmaControllerTest {
         controller.validateFirmarEnServidor(actionRequest, actionResponse);
 
         verify(tareaFirmaService, never()).firmarEnServidor(any(), any(), any());
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* validateMarcarComoFirmada                                          */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void validateMarcarComoFirmada_servicioSinMensajes_noDevuelveNingunError() {
+        when(tareaFirmaService.validateMarcarComoFirmada(any(), any())).thenReturn(Optional.empty());
+
+        controller.validateMarcarComoFirmada(actionRequest, actionResponse);
+
+        verify(actionResponse, never()).setError(anyString());
+        verify(actionResponse, never()).setError(anyString(), anyString());
+    }
+
+    @Test
+    void validateMarcarComoFirmada_servicioConMensajes_entregaLosMensajesComoError() {
+        when(tareaFirmaService.validateMarcarComoFirmada(any(), any()))
+                .thenReturn(Optional.of(BusinessMessages.single(MENSAJE_SOLO_PENDIENTES_FIRMAR)));
+
+        controller.validateMarcarComoFirmada(actionRequest, actionResponse);
+
+        ArgumentCaptor<String> captorError = ArgumentCaptor.forClass(String.class);
+        verify(actionResponse).setError(captorError.capture());
+        assertTrue(captorError.getValue().contains(MENSAJE_SOLO_PENDIENTES_FIRMAR),
+                "El error entregado al cliente debe contener el mensaje del validador: " + captorError.getValue());
+    }
+
+    @Test
+    void validateMarcarComoFirmada_elClienteMandaEstadoYFirmante_validaConLosDeBaseDeDatos() {
+        context.put("estadoTareaFirma", "FIRMADO");
+        context.put("firmante", Map.of("id", 99L));
+        when(tareaFirmaService.validateMarcarComoFirmada(any(), any())).thenReturn(Optional.empty());
+
+        controller.validateMarcarComoFirmada(actionRequest, actionResponse);
+
+        verify(tareaFirmaService).allowPropertiesMarcarComoFirmada();
+
+        ArgumentCaptor<TareaFirma> captorEntidad = ArgumentCaptor.forClass(TareaFirma.class);
+        verify(tareaFirmaService).validateMarcarComoFirmada(captorEntidad.capture(), any());
+        assertEquals(EstadoTareaFirma.PENDIENTE, captorEntidad.getValue().getEstadoTareaFirma(),
+                "El estado lo dicta el servidor: el valor enviado por el cliente no puede entrar");
+        assertSame(firmanteEnBaseDeDatos, captorEntidad.getValue().getFirmante(),
+                "El firmante lo dicta el servidor: el valor enviado por el cliente no puede entrar");
+    }
+
+    @Test
+    void validateMarcarComoFirmada_siempre_noMarcaLaTareaComoFirmada() {
+        when(tareaFirmaService.validateMarcarComoFirmada(any(), any())).thenReturn(Optional.empty());
+
+        controller.validateMarcarComoFirmada(actionRequest, actionResponse);
+
+        verify(tareaFirmaService, never()).marcarComoFirmada(any(), any());
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* validateMarcarComoRechazada                                        */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void validateMarcarComoRechazada_servicioSinMensajes_noDevuelveNingunError() {
+        when(tareaFirmaService.validateMarcarComoRechazada(any(), any())).thenReturn(Optional.empty());
+
+        controller.validateMarcarComoRechazada(actionRequest, actionResponse);
+
+        verify(actionResponse, never()).setError(anyString());
+        verify(actionResponse, never()).setError(anyString(), anyString());
+    }
+
+    @Test
+    void validateMarcarComoRechazada_servicioConMensajes_entregaLosMensajesComoError() {
+        when(tareaFirmaService.validateMarcarComoRechazada(any(), any()))
+                .thenReturn(Optional.of(BusinessMessages.single(MENSAJE_SOLO_PENDIENTES_RECHAZAR)));
+
+        controller.validateMarcarComoRechazada(actionRequest, actionResponse);
+
+        ArgumentCaptor<String> captorError = ArgumentCaptor.forClass(String.class);
+        verify(actionResponse).setError(captorError.capture());
+        assertTrue(captorError.getValue().contains(MENSAJE_SOLO_PENDIENTES_RECHAZAR),
+                "El error entregado al cliente debe contener el mensaje del validador: " + captorError.getValue());
+    }
+
+    @Test
+    void validateMarcarComoRechazada_elClienteMandaEstadoYFirmante_validaConLosDeBaseDeDatos() {
+        context.put("estadoTareaFirma", "FIRMADO");
+        context.put("firmante", Map.of("id", 99L));
+        when(tareaFirmaService.validateMarcarComoRechazada(any(), any())).thenReturn(Optional.empty());
+
+        controller.validateMarcarComoRechazada(actionRequest, actionResponse);
+
+        verify(tareaFirmaService).allowPropertiesMarcarComoRechazada();
+
+        ArgumentCaptor<TareaFirma> captorEntidad = ArgumentCaptor.forClass(TareaFirma.class);
+        verify(tareaFirmaService).validateMarcarComoRechazada(captorEntidad.capture(), any());
+        assertEquals(EstadoTareaFirma.PENDIENTE, captorEntidad.getValue().getEstadoTareaFirma(),
+                "El estado lo dicta el servidor: el valor enviado por el cliente no puede entrar");
+        assertSame(firmanteEnBaseDeDatos, captorEntidad.getValue().getFirmante(),
+                "El firmante lo dicta el servidor: el valor enviado por el cliente no puede entrar");
+    }
+
+    @Test
+    void validateMarcarComoRechazada_siempre_noEjecutaElRechazo() {
+        when(tareaFirmaService.validateMarcarComoRechazada(any(), any())).thenReturn(Optional.empty());
+
+        controller.validateMarcarComoRechazada(actionRequest, actionResponse);
+
+        verify(tareaFirmaService, never()).marcarComoRechazada(any(), any());
     }
 
     /* ------------------------------------------------------------------ */

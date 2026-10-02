@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.w3c.dom.Element;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -354,8 +356,55 @@ class Categoria7BotonesTest {
 
     // [VAR-7.4] Verificación:
     //   Sujeto: cada `<action-group>` que contenga una acción `…-Remote-{Op}-action` (con `{Op}` que no empiece por `validate`).
-    //   Condición: si existe (en el ámbito) la acción `…-Remote-validate{Op}-action` del mismo contexto,
-    //     el grupo la incluye **inmediatamente antes** de `…-Remote-{Op}-action` (`{Op}` capitalizado tras `validate`).
+    //   Condición:
+    //     (a) si la clase del `<call class="…">` del `<action-method>` `…-Remote-{Op}-action` tiene un método público `validate{Op}` (`{Op}` capitalizado tras `validate`),
+    //       existe (en el ámbito) el `<action-method>` `…-Remote-validate{Op}-action` del mismo contexto, y su `<call>` apunta a esa misma clase con `method="validate{Op}"`.
+    //       La clase se consulta por reflexión: es la única condición del catálogo que no se resuelve solo con el XML.
+    //     (b) si existe (en el ámbito) la acción `…-Remote-validate{Op}-action` del mismo contexto,
+    //       el grupo la incluye **inmediatamente antes** de `…-Remote-{Op}-action`.
+    //   Nota: qué controladores están obligados a tener ese `validate{Op}` lo fija la regla `C28` de [`architecture-rules.md`](architecture-rules.md); esta regla garantiza que, cuando lo tienen, la vista lo llama.
+    @Test
+    void var7_4_remoteValidateOpDeclaradaSiElControladorTieneValidateOp() {
+        List<Violacion> v = new ArrayList<>();
+        Map<String, Element> llamadas = llamadasDeActionMethod();
+        for (ViewFile vf : ViewFiles.all()) {
+            for (Map.Entry<String, List<String>> grupo : vf.actionGroups().entrySet()) {
+                for (String accion : grupo.getValue()) {
+                    Matcher m = REMOTE_OP.matcher(accion);
+                    if (!m.matches() || m.group(2).startsWith("validate")) {
+                        continue; // sujeto: solo las operaciones, no sus validaciones
+                    }
+                    Element llamada = llamadas.get(accion);
+                    if (llamada == null) {
+                        continue; // no es un action-method con <call>: no hay clase que consultar
+                    }
+                    String clase = attr(llamada, "class");
+                    String metodoValidador = "validate"
+                            + Character.toUpperCase(m.group(2).charAt(0)) + m.group(2).substring(1);
+                    if (!tieneMetodoPublico(clase, metodoValidador)) {
+                        continue; // el controlador no tiene validate{Op}: (a) no aplica
+                    }
+                    String validador = m.group(1) + metodoValidador + "-action";
+                    Element llamadaValidador = llamadas.get(validador);
+                    if (llamadaValidador == null) {
+                        v.add(new Violacion(vf.rel(), grupo.getKey(),
+                                clase + " tiene " + metodoValidador + " y debe existir el action-method \""
+                                        + validador + "\" que lo llame"));
+                    } else if (!clase.equals(attr(llamadaValidador, "class"))
+                            || !metodoValidador.equals(attr(llamadaValidador, "method"))) {
+                        v.add(new Violacion(vf.rel(), validador,
+                                "su <call> debe apuntar a " + clase + " con method=\"" + metodoValidador
+                                        + "\"; apunta a " + attr(llamadaValidador, "class")
+                                        + " con method=\"" + attr(llamadaValidador, "method") + "\""));
+                    }
+                }
+            }
+        }
+        Violacion.assertNone("VAR-7.4 — Remote-validate{Op} inmediatamente antes de Remote-{Op} "
+                + "(si el controlador tiene validate{Op}, la vista declara su Remote-validate{Op})", v);
+    }
+
+    // [VAR-7.4] (continuación)
     @Test
     void var7_4_remoteValidateOpInmediatamenteAntesDeRemoteOp() {
         List<Violacion> v = new ArrayList<>();
@@ -376,7 +425,7 @@ class Categoria7BotonesTest {
                     String validador = m.group(1) + "validate"
                             + Character.toUpperCase(op.charAt(0)) + op.substring(1) + "-action";
                     if (!declaradas.contains(validador)) {
-                        continue; // no existe en el ámbito: la regla no aplica
+                        continue; // no existe en el ámbito: (b) no aplica
                     }
                     if (i == 0 || !validador.equals(seq.get(i - 1))) {
                         v.add(new Violacion(vf.rel(), grupo.getKey(),
@@ -389,6 +438,30 @@ class Categoria7BotonesTest {
         }
         Violacion.assertNone("VAR-7.4 — Remote-validate{Op} inmediatamente antes de Remote-{Op} "
                 + "(toda operación custom valida en servidor justo antes de ejecutarse)", v);
+    }
+
+    /** name de cada <action-method> del ámbito -> su <call>. */
+    private static Map<String, Element> llamadasDeActionMethod() {
+        Map<String, Element> llamadas = new HashMap<>();
+        for (ViewFile vf : ViewFiles.all()) {
+            for (Element actionMethod : vf.byTag("action-method")) {
+                List<Element> calls = childrenByTag(actionMethod, "call");
+                if (!calls.isEmpty()) {
+                    llamadas.put(attr(actionMethod, "name"), calls.get(0));
+                }
+            }
+        }
+        return llamadas;
+    }
+
+    /** true si la clase existe y tiene un método público con ese nombre (reflexión, sin inicializarla). */
+    private static boolean tieneMetodoPublico(String clase, String metodo) {
+        try {
+            Class<?> tipo = Class.forName(clase, false, Categoria7BotonesTest.class.getClassLoader());
+            return Arrays.stream(tipo.getMethods()).anyMatch(candidato -> candidato.getName().equals(metodo));
+        } catch (ClassNotFoundException | LinkageError e) {
+            return false;
+        }
     }
 
     // ---------------------------------------------------------------- VAR-7.5

@@ -77,6 +77,24 @@ public class  TareaFirmaController {
     }
 
     @CallMethod
+    public void validateMarcarComoFirmada(ActionRequest actionRequest, ActionResponse actionResponse) {
+        final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
+
+        ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
+
+        TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
+        TareaFirma tareaFirma = actionRequestHelper.getModel(tareaFirmaService.allowPropertiesMarcarComoFirmada());
+
+        Optional<BusinessMessages> validationResult = tareaFirmaService.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginal);
+
+        if (validationResult.isPresent()) {
+            actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());
+        }
+
+    }
+
+    @CallMethod
     @Transactional
     public void marcarComoRechazada(ActionRequest actionRequest, ActionResponse actionResponse) {
         final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
@@ -90,22 +108,24 @@ public class  TareaFirmaController {
 
     }
 
-
     @CallMethod
-    public void validarDocumentosFirmados(ActionRequest actionRequest, ActionResponse actionResponse) {
+    public void validateMarcarComoRechazada(ActionRequest actionRequest, ActionResponse actionResponse) {
         final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
 
         ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
 
-        TareaFirma tareaFirma = actionRequestHelper.getModel(tareaFirmaService.allowPropertiesValidarDocumentosFirmados());
-        Optional<BusinessMessages> validationResult = tareaFirmaService.validarDocumentosFirmados(tareaFirma);
+        TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
+        TareaFirma tareaFirma = actionRequestHelper.getModel(tareaFirmaService.allowPropertiesMarcarComoRechazada());
+
+        Optional<BusinessMessages> validationResult = tareaFirmaService.validateMarcarComoRechazada(tareaFirma, tareaFirmaOriginal);
 
         if (validationResult.isPresent()) {
             actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());
         }
 
     }
+
 
     @CallMethod
     @Transactional

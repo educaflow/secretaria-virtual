@@ -154,6 +154,22 @@ class EstructuraInternaTest {
                 .because("cada acción propia de un *Service declara su validador validate<Accion> con la misma firma de parámetros")
                 .allowEmptyShould(true));
 
+    // [C28] Verificación:
+    //   - Sujeto: clases de `..controller..`, excluidos los paquetes exentos, que llaman a algún método **acción** de servicio. Un método acción es el sujeto de C23: un método **declarado** (no heredado) en una interfaz de `com.educaflow` asignable a `com.axelor.db.modelservice.ModelService`, cuyo nombre no empieza por `validate` ni por `allowProperties`.
+    //   - Condición: por cada acción `m` de una interfaz `S` a la que llama la clase, la misma clase declara un método llamado `validate` + el nombre de `m` con la inicial en mayúscula, y ese método llama a un método de `S` con ese mismo nombre.
+    //   - Vacuidad: un controlador que no llama a ninguna acción de servicio cumple la regla (no debe fallar por sujeto vacío).
+    //   - Mensaje: «el controlador que expone una acción de un *Service expone también su validate<Accion>, que llama al validador de esa acción».
+    // frozen: incumplimiento conocido (ver "Cumplimiento" en architecture-rules.md)
+    @ArchTest
+    static final ArchRule c28_controladorExponeLaValidacionDeLaAccionQueExpone =
+        FreezingArchRule.freeze(
+            classes()
+                .that().resideInAPackage("..controller..")
+                    .and().resideOutsideOfPackages(PAQUETES_EXENTOS)
+                .should(exponerLaValidacionDeCadaAccionDeServicioALaQueLlama())
+                .because("el controlador que expone una acción de un *Service expone también su validate<Accion>, que llama al validador de esa acción")
+                .allowEmptyShould(true));
+
     // [C24] Verificación:
     //   - Sujeto: clases de `com.educaflow.subsystem.tramitador.tramitacion..`.
     //   - Condición: ninguna depende de clases de `com.educaflow.subsystem.tramitador.service..` ni de `com.educaflow.subsystem.tramitador.controller..`.
@@ -381,6 +397,57 @@ class EstructuraInternaTest {
             }
             throw new IllegalStateException("No se encuentra src/main/java/com/educaflow subiendo desde " + Path.of("").toAbsolutePath());
         }
+    }
+
+    private static ArchCondition<JavaClass> exponerLaValidacionDeCadaAccionDeServicioALaQueLlama() {
+        return new ArchCondition<JavaClass>(
+                "exponer el validate<Accion> de cada acción de servicio a la que llama") {
+            @Override
+            public void check(JavaClass controlador, ConditionEvents events) {
+                Map<String, JavaMethod> acciones = new HashMap<>();
+                for (JavaCall<?> llamada : controlador.getMethodCallsFromSelf()) {
+                    accionDeServicio(llamada).ifPresent(accion -> acciones.putIfAbsent(accion.getFullName(), accion));
+                }
+
+                for (JavaMethod accion : acciones.values()) {
+                    JavaClass servicio = accion.getOwner();
+                    String nombreValidador = "validate"
+                        + Character.toUpperCase(accion.getName().charAt(0))
+                        + accion.getName().substring(1);
+
+                    boolean expuesto = controlador.getMethods().stream()
+                        .filter(metodo -> metodo.getName().equals(nombreValidador))
+                        .anyMatch(metodo -> metodo.getMethodCallsFromSelf().stream()
+                            .anyMatch(llamada -> llamada.getTargetOwner().equals(servicio)
+                                && llamada.getName().equals(nombreValidador)));
+
+                    events.add(new SimpleConditionEvent(controlador, expuesto,
+                        expuesto
+                            ? controlador.getName() + " expone " + nombreValidador
+                            : controlador.getName() + " llama a la acción " + accion.getFullName()
+                                + " y no tiene un método " + nombreValidador + " que llame a su validador"));
+                }
+            }
+
+            /** El método acción de servicio al que va la llamada, si lo es (el sujeto de C23). */
+            private java.util.Optional<JavaMethod> accionDeServicio(JavaCall<?> llamada) {
+                JavaClass servicio = llamada.getTargetOwner();
+                String nombre = llamada.getName();
+
+                if (servicio.isInterface() == false
+                        || servicio.getPackageName().startsWith("com.educaflow") == false
+                        || servicio.isAssignableTo("com.axelor.db.modelservice.ModelService") == false
+                        || nombre.startsWith("validate")
+                        || nombre.startsWith("allowProperties")) {
+                    return java.util.Optional.empty();
+                }
+
+                return llamada.getTarget().resolveMember()
+                    .filter(miembro -> miembro instanceof JavaMethod)
+                    .map(miembro -> (JavaMethod) miembro)
+                    .filter(metodo -> metodo.getOwner().equals(servicio));
+            }
+        };
     }
 
     private static ArchCondition<JavaMethod> declararSuValidador() {

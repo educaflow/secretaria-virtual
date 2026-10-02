@@ -125,6 +125,7 @@
     </action-group>
     <action-group name="subsysFirmas.Pendiente@TareaFirma-btnPaso2RechazadoGuardar-action">
         <action name="subsysFirmas.Pendiente@TareaFirma-Local-validateMarcarComoRechazada-action"/>
+        <action name="subsysFirmas.Pendiente@TareaFirma-Remote-validateMarcarComoRechazada-action"/>
         <action name="subsysFirmas.Pendiente@TareaFirma-Remote-marcarComoRechazada-action"/>
         <action name="force-back"/>
     </action-group>
@@ -136,7 +137,7 @@
         <action name="subsysFirmas.Pendiente@TareaFirma-Remote-firmarDocumentosConAutoFirma-action"/>
     </action-group>
     <action-group name="subsysFirmas.Pendiente@TareaFirma-btnPaso2FirmarGuardar-action">
-        <action name="subsysFirmas.Pendiente@TareaFirma-Remote-validarDocumentosFirmados-action"/>
+        <action name="subsysFirmas.Pendiente@TareaFirma-Remote-validateMarcarComoFirmada-action"/>
         <action name="subsysFirmas.Pendiente@TareaFirma-Remote-marcarComoFirmada-action"/>
         <action name="force-back"/>
     </action-group>
@@ -187,11 +188,14 @@
 
 
     <?sv-remotes?>
-    <action-method name="subsysFirmas.Pendiente@TareaFirma-Remote-validarDocumentosFirmados-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
-        <call class="com.educaflow.subsystem.firmas.controller.TareaFirmaController" method="validarDocumentosFirmados" />
+    <action-method name="subsysFirmas.Pendiente@TareaFirma-Remote-validateMarcarComoFirmada-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
+        <call class="com.educaflow.subsystem.firmas.controller.TareaFirmaController" method="validateMarcarComoFirmada" />
     </action-method>
     <action-method name="subsysFirmas.Pendiente@TareaFirma-Remote-marcarComoFirmada-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
         <call class="com.educaflow.subsystem.firmas.controller.TareaFirmaController" method="marcarComoFirmada" />
+    </action-method>
+    <action-method name="subsysFirmas.Pendiente@TareaFirma-Remote-validateMarcarComoRechazada-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
+        <call class="com.educaflow.subsystem.firmas.controller.TareaFirmaController" method="validateMarcarComoRechazada" />
     </action-method>
     <action-method name="subsysFirmas.Pendiente@TareaFirma-Remote-marcarComoRechazada-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
         <call class="com.educaflow.subsystem.firmas.controller.TareaFirmaController" method="marcarComoRechazada" />

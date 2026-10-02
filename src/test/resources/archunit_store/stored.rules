@@ -1,5 +1,6 @@
 #
-#Tue Sep 29 22:01:32 CEST 2026
+#Fri Oct 02 11:49:57 CEST 2026
+classes\ that\ reside\ in\ a\ package\ '..controller..'\ and\ reside\ outside\ of\ packages\ ['..expedientes..',\ '..tramites..']\ should\ exponer\ el\ validate<Accion>\ de\ cada\ acci\u00F3n\ de\ servicio\ a\ la\ que\ llama,\ because\ el\ controlador\ que\ expone\ una\ acci\u00F3n\ de\ un\ *Service\ expone\ tambi\u00E9n\ su\ validate<Accion>,\ que\ llama\ al\ validador\ de\ esa\ acci\u00F3n=96f306fd-24c4-4bde-a975-fd09cd8f607b
 classes\ that\ reside\ in\ a\ package\ 'com.educaflow..'\ should\ crear\ JpaRepository\ solo\ sobre\ entidades\ de\ su\ propia\ unidad,\ because\ JpaRepository\ solo\ lee\ entidades\ de\ su\ propia\ unidad\:\ las\ de\ otra\ unidad\ se\ piden\ a\ uno\ de\ sus\ servicios=2e261ed2-8a9b-40b6-bf68-0a96fd1aa4b1
 methods\ that\ are\ declared\ in\ classes\ that\ are\ interfaces\ and\ are\ declared\ in\ classes\ that\ are\ assignable\ to\ com.axelor.db.modelservice.ModelService\ and\ are\ declared\ in\ classes\ that\ reside\ outside\ of\ packages\ ['..expedientes..',\ '..tramites..']\ and\ have\ name\ not\ starting\ with\ 'validate'\ and\ have\ name\ not\ starting\ with\ 'allowProperties'\ should\ declarar\ su\ validador\ validate<Accion>\ con\ la\ misma\ firma\ de\ par\u00E1metros,\ because\ cada\ acci\u00F3n\ propia\ de\ un\ *Service\ declara\ su\ validador\ validate<Accion>\ con\ la\ misma\ firma\ de\ par\u00E1metros=87360356-333d-4745-9b02-233b3a030f95
 no\ classes\ should\ access\ standard\ streams=0f36d1bb-19e3-4dce-8759-c8f192095e3b

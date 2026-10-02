@@ -156,29 +156,6 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
         return tareaFirma;
     }
 
-    @Override
-    public Optional<BusinessMessages> validarDocumentosFirmados(TareaFirma tareaFirma) {
-        validateValidarDocumentosFirmados(tareaFirma).ifPresent(BusinessMessages::throwIfInvalid);
-
-        BusinessMessages businessMessages=new BusinessMessages();
-
-        for (DocumentoFirma documentoFirma : tareaFirma.getDocumentosFirma()) {
-            DocumentoPdf documentoOriginal = MetaFileHelper.getDocumentoPdf(documentoFirma.getDocumentoOriginal());
-            DocumentoPdf documentoFirmado = MetaFileHelper.getDocumentoPdf(documentoFirma.getDocumentoFirmado());
-            Optional<String> errorFirma = DocumentoPdfUtil.validateFirmaPdf(documentoOriginal, documentoFirmado, tareaFirma.getFirmante().getDni());
-            if (errorFirma.isPresent()) {
-                businessMessages.add(new BusinessMessage(documentoFirmado.getFileName(),errorFirma.get()));
-            }
-        }
-
-        if (businessMessages.isEmpty()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(businessMessages);
-        }
-
-    }
-
 
     /****************************************************************************************/
     /******************************** Métodos de Validación *********************************/
@@ -190,21 +167,50 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     }
     @Override
     public Optional<BusinessMessages> validateMarcarComoFirmada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) {
-        return Optional.empty();
+        BusinessMessages businessMessages = new BusinessMessages();
+
+        // V-TareaFirma-001 — estado de la tarea.
+        if (isPendiente(tareaFirma) == false) {
+            businessMessages.add(new BusinessMessage(I18n.get("Solo se pueden firmar las tareas pendientes de firmar")));
+        }
+
+        // V-TareaFirma-002 — titularidad. Es la defensa real: el <domain> del action-view es solo UX.
+        if (isFirmanteElUsuarioAutenticado(tareaFirma) == false) {
+            businessMessages.add(new BusinessMessage(I18n.get("Solo puede firmar los documentos la persona a la que se le han encargado")));
+        }
+
+        // V-TareaFirma-009 — documentos firmados por el firmante. Va la última y solo si todo lo demás ha
+        // pasado: es la única comprobación que abre los PDF. Con AutoFirma el documento firmado lo
+        // manda el cliente, así que aquí es donde el servidor comprueba que la firma es la del firmante.
+        if (businessMessages.isValid()) {
+            businessMessages.addAll(validateDocumentosFirmados(tareaFirma));
+        }
+
+        return businessMessages.isValid() ? Optional.empty() : Optional.of(businessMessages);
     }
     @Override
     public Optional<BusinessMessages> validateMarcarComoRechazada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) {
-        return Optional.empty();
+        BusinessMessages businessMessages = new BusinessMessages();
+
+        // V-TareaFirma-001 — estado de la tarea.
+        if (isPendiente(tareaFirma) == false) {
+            businessMessages.add(new BusinessMessage(I18n.get("Solo se pueden rechazar las tareas pendientes de firmar")));
+        }
+
+        // V-TareaFirma-002 — titularidad. Es la defensa real: el <domain> del action-view es solo UX.
+        if (isFirmanteElUsuarioAutenticado(tareaFirma) == false) {
+            businessMessages.add(new BusinessMessage(I18n.get("Solo puede rechazar la firma de los documentos la persona a la que se le han encargado")));
+        }
+
+        return businessMessages.isValid() ? Optional.empty() : Optional.of(businessMessages);
     }
-    @Override
-    public Optional<BusinessMessages> validateValidarDocumentosFirmados(TareaFirma tareaFirma) { return Optional.empty();}
 
     @Override
     public Optional<BusinessMessages> validateFirmarEnServidor(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal, String claveCertificado) {
         BusinessMessages businessMessages = new BusinessMessages();
 
         // V-TareaFirma-001 — estado de la tarea.
-        if (tareaFirma.getEstadoTareaFirma() != EstadoTareaFirma.PENDIENTE) {
+        if (isPendiente(tareaFirma) == false) {
             businessMessages.add(new BusinessMessage(I18n.get("Solo se pueden firmar las tareas pendientes de firmar")));
         }
 
@@ -263,10 +269,6 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     @Override
     public AllowProperties allowPropertiesMarcarComoRechazada() {
         return AllowProperties.createAllowProperties(Map.of("motivoRechazo", Map.of()));
-    };
-    @Override
-    public AllowProperties allowPropertiesValidarDocumentosFirmados(){
-        return AllowProperties.createAllowAllProperties();
     };
 
     @Override
@@ -432,6 +434,39 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
 
             documentoFirmado.documentoFirma().setDocumentoFirmado(metaFileFirmado);
         }
+    }
+
+    /**
+     * V-TareaFirma-001 — una tarea solo se resuelve una vez: FIRMADO y RECHAZADO son estados finales, así que
+     * todas las acciones sobre la tarea exigen que siga PENDIENTE.
+     */
+    private static boolean isPendiente(TareaFirma tareaFirma) {
+        return tareaFirma.getEstadoTareaFirma() == EstadoTareaFirma.PENDIENTE;
+    }
+
+    /**
+     * V-TareaFirma-009 — todos los documentos de la tarea tienen su documento firmado, y la firma es del
+     * firmante sobre el documento original.
+     */
+    private static BusinessMessages validateDocumentosFirmados(TareaFirma tareaFirma) {
+        BusinessMessages businessMessages = new BusinessMessages();
+
+        for (DocumentoFirma documentoFirma : tareaFirma.getDocumentosFirma()) {
+            if (documentoFirma.getDocumentoFirmado() == null) {
+                businessMessages.add(new BusinessMessage(I18n.get("El documento '%s' debe estar firmado")
+                        .formatted(documentoFirma.getDocumentoOriginal().getFileName())));
+                continue;
+            }
+
+            DocumentoPdf documentoOriginal = MetaFileHelper.getDocumentoPdf(documentoFirma.getDocumentoOriginal());
+            DocumentoPdf documentoFirmado = MetaFileHelper.getDocumentoPdf(documentoFirma.getDocumentoFirmado());
+            Optional<String> errorFirma = DocumentoPdfUtil.validateFirmaPdf(documentoOriginal, documentoFirmado, tareaFirma.getFirmante().getDni());
+            if (errorFirma.isPresent()) {
+                businessMessages.add(new BusinessMessage(documentoFirmado.getFileName(),errorFirma.get()));
+            }
+        }
+
+        return businessMessages;
     }
 
     private boolean isFirmanteElUsuarioAutenticado(TareaFirma tareaFirma) {

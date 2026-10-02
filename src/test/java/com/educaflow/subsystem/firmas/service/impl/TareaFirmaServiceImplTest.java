@@ -15,6 +15,7 @@ import com.educaflow.base.infrastructure.criptografia.AlmacenClaveFichero;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
+import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
 import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
 import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
@@ -83,6 +84,10 @@ class TareaFirmaServiceImplTest {
 
     private static final String MENSAJE_SOLO_PENDIENTES = "Solo se pueden firmar las tareas pendientes de firmar";
     private static final String MENSAJE_SOLO_EL_ENCARGADO = "Solo puede firmar los documentos la persona a la que se le han encargado";
+    private static final String MENSAJE_SOLO_PENDIENTES_RECHAZAR = "Solo se pueden rechazar las tareas pendientes de firmar";
+    private static final String MENSAJE_SOLO_EL_ENCARGADO_RECHAZAR = "Solo puede rechazar la firma de los documentos la persona a la que se le han encargado";
+    private static final String MENSAJE_DOCUMENTO_SIN_FIRMAR = "El documento 'documento-0.pdf' debe estar firmado";
+    private static final String MENSAJE_FIRMA_NO_VALIDA = "La firma del documento no es del firmante";
     private static final String MENSAJE_SIN_DNI = "No es posible firmar los documentos porque su usuario no tiene un DNI. Póngase en contacto con el administrador.";
     private static final String MENSAJE_SIN_CERTIFICADO = "No es posible firmar en el servidor porque no tiene un certificado digital dado de alta";
     private static final String MENSAJE_PIN_OBLIGATORIO = "El PIN es obligatorio";
@@ -118,6 +123,8 @@ class TareaFirmaServiceImplTest {
     private MockedStatic<SecurityUtil> securityUtilMock;
     private MockedStatic<MetaFileHelper> metaFileHelperMock;
     private MockedStatic<Beans> beansMock;
+    /** Solo existe en los casos que validan documentos ya firmados: lo crea {@code stubDocumentosFirmados}. */
+    private MockedStatic<DocumentoPdfUtil> documentoPdfUtilMock;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -160,6 +167,7 @@ class TareaFirmaServiceImplTest {
     void tearDown() {
         // Defensivo: si setUp falla a mitad, @AfterEach se ejecuta igual y un close() sobre un nulo taparía
         // la causa real del fallo con una NullPointerException.
+        cerrarSiNoEsNulo(documentoPdfUtilMock);
         cerrarSiNoEsNulo(beansMock);
         cerrarSiNoEsNulo(metaFileHelperMock);
         cerrarSiNoEsNulo(securityUtilMock);
@@ -383,11 +391,45 @@ class TareaFirmaServiceImplTest {
     }
 
     /**
-     * Arrange común de los tests de {@code marcarComoFirmada}: tarea PENDIENTE con un documento. La
-     * acción no valida ni consulta la situación de firma, así que no necesita más estáticos.
+     * Deja la tarea como la devuelve AutoFirma: cada documento con su documento firmado, y la comprobación de
+     * la firma sin ningún error salvo que el caso programe uno con {@code stubFirmaNoValida}.
+     */
+    private void stubDocumentosFirmados(TareaFirma tareaFirma) {
+        for (DocumentoFirma documentoFirma : tareaFirma.getDocumentosFirma()) {
+            MetaFile documentoFirmado = new MetaFile();
+            documentoFirmado.setFileName("firmado-" + documentoFirma.getDocumentoOriginal().getFileName());
+            documentoFirma.setDocumentoFirmado(documentoFirmado);
+        }
+
+        DocumentoPdf documentoPdf = Mockito.mock(DocumentoPdf.class);
+        Mockito.lenient().when(documentoPdf.getFileName()).thenReturn("firmado-documento-0.pdf");
+        metaFileHelperMock.when(() -> MetaFileHelper.getDocumentoPdf(any())).thenReturn(documentoPdf);
+
+        documentoPdfUtilMock = Mockito.mockStatic(DocumentoPdfUtil.class);
+        documentoPdfUtilMock.when(() -> DocumentoPdfUtil.validateFirmaPdf(any(), any(), any())).thenReturn(Optional.empty());
+    }
+
+    private void stubFirmaNoValida() {
+        documentoPdfUtilMock.when(() -> DocumentoPdfUtil.validateFirmaPdf(any(), any(), any()))
+                .thenReturn(Optional.of(MENSAJE_FIRMA_NO_VALIDA));
+    }
+
+    /**
+     * Arrange común de los tests de {@code marcarComoFirmada}: tarea PENDIENTE del usuario autenticado, con
+     * un documento ya firmado con una firma válida.
      */
     private TareaFirma arrangeMarcarComoFirmada() {
         TareaFirma tareaFirma = tareaFirmaPendiente(1);
+        stubUsuarioAutenticado(firmante);
+        stubDocumentosFirmados(tareaFirma);
+        stubGuardadoYNotificacion();
+        return tareaFirma;
+    }
+
+    /** Arrange común de los tests de {@code marcarComoRechazada}: tarea PENDIENTE del usuario autenticado. */
+    private TareaFirma arrangeMarcarComoRechazada() {
+        TareaFirma tareaFirma = tareaFirmaPendiente(1);
+        stubUsuarioAutenticado(firmante);
         stubGuardadoYNotificacion();
         return tareaFirma;
     }
@@ -1084,6 +1126,281 @@ class TareaFirmaServiceImplTest {
         service.marcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
 
         verify(tareaFirmaNotifier, times(1)).notify(tareaFirma, null);
+    }
+
+    @Test
+    void marcarComoFirmada_tareaYaFirmada_lanzaValidationExceptionYNoGuardaNiNotifica() {
+        TareaFirma tareaFirma = arrangeMarcarComoFirmada();
+        tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
+
+        ValidationException excepcion = assertThrows(ValidationException.class,
+                () -> service.marcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante()));
+
+        assertTrue(excepcion.getMessage().contains(MENSAJE_SOLO_PENDIENTES));
+        verify(repository, never()).save(any());
+        verifyNoInteractions(tareaFirmaNotifier);
+    }
+
+    @Test
+    void marcarComoFirmada_tareaRechazada_lanzaValidationExceptionYNoGuardaNiNotifica() {
+        TareaFirma tareaFirma = arrangeMarcarComoFirmada();
+        tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.RECHAZADO);
+
+        ValidationException excepcion = assertThrows(ValidationException.class,
+                () -> service.marcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante()));
+
+        assertTrue(excepcion.getMessage().contains(MENSAJE_SOLO_PENDIENTES));
+        assertEquals(EstadoTareaFirma.RECHAZADO, tareaFirma.getEstadoTareaFirma());
+        verify(repository, never()).save(any());
+        verifyNoInteractions(tareaFirmaNotifier);
+    }
+
+    @Test
+    void marcarComoFirmada_documentoSinFirmar_lanzaValidationExceptionYNoGuardaNiNotifica() {
+        TareaFirma tareaFirma = arrangeMarcarComoFirmada();
+        tareaFirma.getDocumentosFirma().get(0).setDocumentoFirmado(null);
+
+        ValidationException excepcion = assertThrows(ValidationException.class,
+                () -> service.marcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante()));
+
+        assertTrue(excepcion.getMessage().contains(MENSAJE_DOCUMENTO_SIN_FIRMAR));
+        assertEquals(EstadoTareaFirma.PENDIENTE, tareaFirma.getEstadoTareaFirma());
+        verify(repository, never()).save(any());
+        verifyNoInteractions(tareaFirmaNotifier);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* validateMarcarComoFirmada                                          */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void validateMarcarComoFirmada_tareaPendienteDelUsuarioConDocumentosFirmados_devuelveOptionalVacio() {
+        TareaFirma tareaFirma = arrangeMarcarComoFirmada();
+
+        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void validateMarcarComoFirmada_tareaYaFirmada_devuelveMensajeSoloSePuedenFirmarLasPendientes() {
+        TareaFirma tareaFirma = arrangeMarcarComoFirmada();
+        tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
+
+        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+
+        assertEquals(List.of(MENSAJE_SOLO_PENDIENTES), mensajes(resultado));
+    }
+
+    @Test
+    void validateMarcarComoFirmada_tareaRechazada_devuelveMensajeSoloSePuedenFirmarLasPendientes() {
+        TareaFirma tareaFirma = arrangeMarcarComoFirmada();
+        tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.RECHAZADO);
+
+        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+
+        assertEquals(List.of(MENSAJE_SOLO_PENDIENTES), mensajes(resultado));
+    }
+
+    @Test
+    void validateMarcarComoFirmada_estadoNulo_devuelveMensajeSoloSePuedenFirmarLasPendientes() {
+        TareaFirma tareaFirma = arrangeMarcarComoFirmada();
+        tareaFirma.setEstadoTareaFirma(null);
+
+        Optional<BusinessMessages> resultado =
+                assertDoesNotThrow(() -> service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante()));
+
+        assertEquals(List.of(MENSAJE_SOLO_PENDIENTES), mensajes(resultado));
+    }
+
+    @Test
+    void validateMarcarComoFirmada_firmanteDistintoDelUsuarioAutenticado_devuelveMensajeSoloPuedeFirmarLaPersonaEncargada() {
+        TareaFirma tareaFirma = arrangeMarcarComoFirmada();
+        stubUsuarioAutenticado(otroUsuario());
+
+        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+
+        assertEquals(List.of(MENSAJE_SOLO_EL_ENCARGADO), mensajes(resultado));
+    }
+
+    @Test
+    void validateMarcarComoFirmada_sinUsuarioAutenticado_devuelveMensajeSoloPuedeFirmarLaPersonaEncargada() {
+        TareaFirma tareaFirma = arrangeMarcarComoFirmada();
+        stubUsuarioAutenticado(null);
+
+        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+
+        assertEquals(List.of(MENSAJE_SOLO_EL_ENCARGADO), mensajes(resultado));
+    }
+
+    @Test
+    void validateMarcarComoFirmada_tareaYaFirmada_noAbreNingunPdf() {
+        TareaFirma tareaFirma = arrangeMarcarComoFirmada();
+        tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
+
+        service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+
+        metaFileHelperMock.verify(() -> MetaFileHelper.getDocumentoPdf(any()), never());
+        documentoPdfUtilMock.verify(() -> DocumentoPdfUtil.validateFirmaPdf(any(), any(), any()), never());
+    }
+
+    @Test
+    void validateMarcarComoFirmada_documentoSinFirmar_devuelveMensajeElDocumentoDebeEstarFirmado() {
+        TareaFirma tareaFirma = arrangeMarcarComoFirmada();
+        tareaFirma.getDocumentosFirma().get(0).setDocumentoFirmado(null);
+
+        Optional<BusinessMessages> resultado =
+                assertDoesNotThrow(() -> service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante()));
+
+        assertEquals(List.of(MENSAJE_DOCUMENTO_SIN_FIRMAR), mensajes(resultado));
+    }
+
+    @Test
+    void validateMarcarComoFirmada_firmaNoValida_devuelveElErrorDeLaFirma() {
+        TareaFirma tareaFirma = arrangeMarcarComoFirmada();
+        stubFirmaNoValida();
+
+        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+
+        assertEquals(List.of(MENSAJE_FIRMA_NO_VALIDA), mensajes(resultado));
+    }
+
+    @Test
+    void validateMarcarComoFirmada_documentosFirmados_validaLaFirmaContraElDniDelFirmante() {
+        TareaFirma tareaFirma = arrangeMarcarComoFirmada();
+
+        service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+
+        documentoPdfUtilMock.verify(() -> DocumentoPdfUtil.validateFirmaPdf(any(), any(), Mockito.eq(DNI)), times(1));
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* marcarComoRechazada                                                */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void marcarComoRechazada_tareaValida_dejaLaTareaRechazadaConFechaDeResolucion() {
+        TareaFirma tareaFirma = arrangeMarcarComoRechazada();
+
+        service.marcarComoRechazada(tareaFirma, tareaFirmaOriginalIrrelevante());
+
+        assertEquals(EstadoTareaFirma.RECHAZADO, tareaFirma.getEstadoTareaFirma());
+        assertNotNull(tareaFirma.getFechaResolucion());
+        verify(repository).save(tareaFirma);
+    }
+
+    @Test
+    void marcarComoRechazada_tareaValida_notificaAlProcesoQueEncargoLaFirma() {
+        TareaFirma tareaFirma = arrangeMarcarComoRechazada();
+
+        service.marcarComoRechazada(tareaFirma, tareaFirmaOriginalIrrelevante());
+
+        InOrder inOrder = Mockito.inOrder(repository, tareaFirmaNotifier);
+        inOrder.verify(repository).save(tareaFirma);
+        inOrder.verify(tareaFirmaNotifier).notify(tareaFirma, null);
+        verify(tareaFirmaNotifier, times(1)).notify(tareaFirma, null);
+    }
+
+    @Test
+    void marcarComoRechazada_tareaValida_devuelveLaTareaDevueltaPorElRepositorio() {
+        TareaFirma tareaFirma = arrangeMarcarComoRechazada();
+        TareaFirma tareaFirmaGuardada = tareaFirmaPendiente(1);
+        when(repository.save(any())).thenReturn(tareaFirmaGuardada);
+
+        TareaFirma resultado = service.marcarComoRechazada(tareaFirma, tareaFirmaOriginalIrrelevante());
+
+        assertSame(tareaFirmaGuardada, resultado);
+    }
+
+    @Test
+    void marcarComoRechazada_tareaYaRechazada_lanzaValidationExceptionYNoGuardaNiNotifica() {
+        TareaFirma tareaFirma = arrangeMarcarComoRechazada();
+        tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.RECHAZADO);
+
+        ValidationException excepcion = assertThrows(ValidationException.class,
+                () -> service.marcarComoRechazada(tareaFirma, tareaFirmaOriginalIrrelevante()));
+
+        assertTrue(excepcion.getMessage().contains(MENSAJE_SOLO_PENDIENTES_RECHAZAR));
+        verify(repository, never()).save(any());
+        verifyNoInteractions(tareaFirmaNotifier);
+    }
+
+    @Test
+    void marcarComoRechazada_tareaYaFirmada_lanzaValidationExceptionYLaDejaFirmada() {
+        TareaFirma tareaFirma = arrangeMarcarComoRechazada();
+        tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
+
+        ValidationException excepcion = assertThrows(ValidationException.class,
+                () -> service.marcarComoRechazada(tareaFirma, tareaFirmaOriginalIrrelevante()));
+
+        assertTrue(excepcion.getMessage().contains(MENSAJE_SOLO_PENDIENTES_RECHAZAR));
+        assertEquals(EstadoTareaFirma.FIRMADO, tareaFirma.getEstadoTareaFirma());
+        verify(repository, never()).save(any());
+        verifyNoInteractions(tareaFirmaNotifier);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* validateMarcarComoRechazada                                        */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void validateMarcarComoRechazada_tareaPendienteDelUsuario_devuelveOptionalVacio() {
+        TareaFirma tareaFirma = arrangeMarcarComoRechazada();
+
+        Optional<BusinessMessages> resultado = service.validateMarcarComoRechazada(tareaFirma, tareaFirmaOriginalIrrelevante());
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void validateMarcarComoRechazada_tareaYaFirmada_devuelveMensajeSoloSePuedenRechazarLasPendientes() {
+        TareaFirma tareaFirma = arrangeMarcarComoRechazada();
+        tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
+
+        Optional<BusinessMessages> resultado = service.validateMarcarComoRechazada(tareaFirma, tareaFirmaOriginalIrrelevante());
+
+        assertEquals(List.of(MENSAJE_SOLO_PENDIENTES_RECHAZAR), mensajes(resultado));
+    }
+
+    @Test
+    void validateMarcarComoRechazada_tareaYaRechazada_devuelveMensajeSoloSePuedenRechazarLasPendientes() {
+        TareaFirma tareaFirma = arrangeMarcarComoRechazada();
+        tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.RECHAZADO);
+
+        Optional<BusinessMessages> resultado = service.validateMarcarComoRechazada(tareaFirma, tareaFirmaOriginalIrrelevante());
+
+        assertEquals(List.of(MENSAJE_SOLO_PENDIENTES_RECHAZAR), mensajes(resultado));
+    }
+
+    @Test
+    void validateMarcarComoRechazada_estadoNulo_devuelveMensajeSoloSePuedenRechazarLasPendientes() {
+        TareaFirma tareaFirma = arrangeMarcarComoRechazada();
+        tareaFirma.setEstadoTareaFirma(null);
+
+        Optional<BusinessMessages> resultado =
+                assertDoesNotThrow(() -> service.validateMarcarComoRechazada(tareaFirma, tareaFirmaOriginalIrrelevante()));
+
+        assertEquals(List.of(MENSAJE_SOLO_PENDIENTES_RECHAZAR), mensajes(resultado));
+    }
+
+    @Test
+    void validateMarcarComoRechazada_firmanteDistintoDelUsuarioAutenticado_devuelveMensajeSoloPuedeRechazarLaPersonaEncargada() {
+        TareaFirma tareaFirma = arrangeMarcarComoRechazada();
+        stubUsuarioAutenticado(otroUsuario());
+
+        Optional<BusinessMessages> resultado = service.validateMarcarComoRechazada(tareaFirma, tareaFirmaOriginalIrrelevante());
+
+        assertEquals(List.of(MENSAJE_SOLO_EL_ENCARGADO_RECHAZAR), mensajes(resultado));
+    }
+
+    @Test
+    void validateMarcarComoRechazada_sinUsuarioAutenticado_devuelveMensajeSoloPuedeRechazarLaPersonaEncargada() {
+        TareaFirma tareaFirma = arrangeMarcarComoRechazada();
+        stubUsuarioAutenticado(null);
+
+        Optional<BusinessMessages> resultado = service.validateMarcarComoRechazada(tareaFirma, tareaFirmaOriginalIrrelevante());
+
+        assertEquals(List.of(MENSAJE_SOLO_EL_ENCARGADO_RECHAZAR), mensajes(resultado));
     }
 
     /* ------------------------------------------------------------------ */
