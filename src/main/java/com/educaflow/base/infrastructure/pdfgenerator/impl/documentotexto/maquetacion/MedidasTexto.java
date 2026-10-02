@@ -6,7 +6,7 @@ import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.texto.Fuente;
 /**
  * Las medidas del documento en prosa, en puntos PDF: la cabecera de su primera página y, debajo, el
  * cuerpo de texto corrido que baja hasta el margen inferior de cada página. El alto de la cabecera
- * no está aquí porque lo dicta lo que mida su título, que puede ocupar varias líneas.
+ * no está aquí porque es el de la más alta de sus tres partes, y el título puede ocupar varias líneas.
  */
 public final class MedidasTexto {
 
@@ -41,13 +41,15 @@ public final class MedidasTexto {
 
     /**
      * La cabecera no se maqueta con el margen del cuerpo: tiene el suyo y sobresale del texto por
-     * los dos lados, igual que el membrete del documento de Word que reproduce.
+     * los dos lados. Por la derecha acaba en su hueco, que llega más allá del borde del cuerpo y cuyas
+     * medidas están en {@link com.educaflow.base.infrastructure.pdfgenerator.HuecoCabeceraTexto}.
      */
     public static final double MARGEN_IZQUIERDO_CABECERA = 48;
-    public static final double BORDE_DERECHO_CABECERA = 539.5;
 
     /** Aire entre el logo y la caja del título, a su derecha. */
-    public static final double SEPARACION_LOGO_TITULO = 7;
+    public static final double SEPARACION_LOGO_TITULO = 10;
+    /** Aire entre la caja del título y el hueco, a su derecha. */
+    public static final double SEPARACION_TITULO_HUECO = 7;
     /** Aire entre la cabecera y el primer texto del cuerpo. */
     public static final double SEPARACION_CABECERA_CUERPO = 40;
 

@@ -3,6 +3,7 @@ package com.educaflow.base.infrastructure.pdfgenerator.impl;
 import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
 import com.educaflow.base.infrastructure.pdfgenerator.PdfGenerator;
 import com.educaflow.base.infrastructure.pdfgenerator.PdfGeneratorFactory;
+import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.dibujo.MedidasPagina;
 import com.itextpdf.kernel.pdf.PdfDictionary;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfName;
@@ -28,9 +29,9 @@ class DocumentoTextoTest {
     private static final String CARPETA = "/com/educaflow/base/infrastructure/pdfgenerator/documentotexto/";
     private static final Path DESTINO = Path.of("build/documentotexto");
 
-    /** A4 (29,7 cm) menos el margen de 1 cm: sin pie, el cuerpo llega hasta abajo. */
-    private static final double TOP_PAGINA = (29.7 - 1.0) * 72 / 2.54;
-    private static final double BOTTOM_PAGINA = 1.0 * 72 / 2.54;
+    /** El alto de la página menos su margen, tomados del generador: sin pie, el cuerpo llega hasta abajo. */
+    private static final double TOP_PAGINA = MedidasPagina.PAGE_H - MedidasPagina.MARGIN;
+    private static final double BOTTOM_PAGINA = MedidasPagina.MARGIN;
 
     private static final Map<String, Object> SELF = Map.of("nombre", "Marta Gonzalez Lorenzo", "mostrar", true);
 

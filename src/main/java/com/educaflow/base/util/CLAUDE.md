@@ -90,8 +90,13 @@ Clases de utilidad de **bajo nivel** del proyecto. Su objetivo es no repetir peq
 - `isNullOrBlank` — `true` si el `String` es `null` o solo espacios.
 - `requireNonBlank` — como `Objects.requireNonNull` pero además rechaza `""` y solo espacios (`IllegalArgumentException`); devuelve el propio `String`. Para los parámetros `String` obligatorios.
 
+### `QrUtil` — códigos QR (con ZXing)
+- `generarPng` — devuelve el PNG del código QR de un texto (una URL, normalmente), con su margen en blanco.
+
 ### `TokenUtil` — tokens
-- `generar` — devuelve un UUID completo como `String`.
+- `generateGUID` — devuelve un UUID completo como `String`.
+- `generateCodigoVerificacionSeguro` — devuelve un código aleatorio de 26 caracteres (130 bits, `SecureRandom`), para lo que se protege solo con que no se pueda adivinar (p. ej. el CSV de un documento).
+- `isCodigoVerificacionSeguro` — `true` si el `String` tiene la forma de esos códigos. Para descartar, antes de buscarlo, el que llega del cliente.
 
 ### `XMLUtil` — DOM XML
 - `getDocument(Path)` / `getDocument(byte[])` — parsea un XML desde fichero o bytes.

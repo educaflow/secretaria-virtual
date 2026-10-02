@@ -19,6 +19,7 @@ public class CampoFirma {
     private int fontSize=DEFAULT_FONT_SIZE;
     private int numeroPagina=DEFAULT_NUMERO_PAGINA;
     private byte[] image=null;
+    private PosicionImagen posicionImagen=null;
     private LocalDateTime fechaFirma= LocalDateTime.now(Convert.defaultZoneId);
 
     /** Firma en un rectángulo de una página (la última, si no se indica otra con {@link #setNumeroPagina(int)}). */
@@ -62,8 +63,19 @@ public class CampoFirma {
         return this;
     }
 
-    public CampoFirma setImage(byte[] image) {
+    /**
+     * Añade una imagen a la firma. El recuadro de la firma no crece: la imagen ocupa, dentro de él,
+     * el sitio que deja libre el mensaje, en el lado que indica {@code posicionImagen}.
+     */
+    public CampoFirma setImage(byte[] image, PosicionImagen posicionImagen) {
+        if (image==null) {
+            throw new IllegalArgumentException("La imagen no puede ser nula");
+        }
+        if (posicionImagen==null) {
+            throw new IllegalArgumentException("La posicion de la imagen no puede ser nula");
+        }
         this.image=image;
+        this.posicionImagen=posicionImagen;
         return this;
     }
 
@@ -116,6 +128,13 @@ public class CampoFirma {
 
     public byte[] getImage() {
         return image;
+    }
+
+    /**
+     * @return dónde va la imagen respecto al mensaje, o null si la firma no lleva imagen
+     */
+    public PosicionImagen getPosicionImagen() {
+        return posicionImagen;
     }
 
     public LocalDateTime getFechaFirma() {

@@ -1,6 +1,7 @@
 package com.educaflow.base.infrastructure.pdfgenerator.impl;
 
 import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
+import com.educaflow.base.infrastructure.pdfgenerator.impl.documentotexto.maquetacion.MedidasTexto;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -13,11 +14,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Cómo coloca el documento en prosa cada cosa dentro del ancho del cuerpo. */
 class DocumentoTextoMaquetacionTest {
 
-    private static final double MARGEN_IZQUIERDO = 78;
-    private static final double BORDE_DERECHO = 525;
-    private static final double ANCHO_CUERPO = BORDE_DERECHO - MARGEN_IZQUIERDO;
-    /** El tamaño del texto (12) por su factor de alto (1,23). */
-    private static final double ALTO_LINEA = 14.76;
+    // Las medidas se toman del propio generador: el test comprueba cómo se coloca cada cosa respecto
+    // a los bordes del cuerpo, no cuánto vale cada medida, así que cambiar una no lo rompe.
+    private static final double MARGEN_IZQUIERDO = MedidasTexto.MARGEN_IZQUIERDO;
+    private static final double BORDE_DERECHO = MedidasTexto.BORDE_DERECHO;
+    private static final double ANCHO_CUERPO = MedidasTexto.ANCHO_CUERPO;
+    private static final double ALTO_LINEA = MedidasTexto.TAMANYO * MedidasTexto.FACTOR_ALTO;
 
     @Test
     void lasTresAlineacionesDeUnaLineaLaColocanRespectoDeLosDosBordes() {

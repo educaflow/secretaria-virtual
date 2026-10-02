@@ -84,6 +84,7 @@ dependencies {
     implementation 'com.itextpdf:sign:9.2.0'
     implementation 'com.itextpdf:bouncy-castle-adapter:9.2.0'
     implementation 'com.itextpdf:commons:9.2.0'
+    implementation 'com.google.zxing:core:3.5.3'
     implementation 'de.vandermeer:asciitable:0.3.2'
     implementation 'org.verapdf:core:1.28.1'
     implementation 'org.verapdf:validation-model:1.28.1'

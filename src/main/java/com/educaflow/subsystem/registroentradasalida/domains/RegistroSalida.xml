@@ -11,6 +11,9 @@
         <many-to-one name="documento" ref="com.axelor.meta.db.MetaFile" required="true" title="Documento de salida"/>
         <one-to-many name="anexos" ref="com.axelor.meta.db.MetaFile" title="Anexos" />
         <string name="asunto"  />
+        <string name="csv" unique="true" title="Código seguro de verificación"/>
+
+        <finder-method name="findByCsv" using="csv"/>
     </entity>
 
 </domain-models>

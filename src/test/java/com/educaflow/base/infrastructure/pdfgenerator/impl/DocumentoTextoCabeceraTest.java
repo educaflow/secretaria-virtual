@@ -1,6 +1,10 @@
 package com.educaflow.base.infrastructure.pdfgenerator.impl;
 
+import com.educaflow.base.infrastructure.pdfgenerator.HuecoCabeceraTexto;
 import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
+import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.dibujo.MedidasLogo;
+import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.dibujo.MedidasPagina;
+import com.educaflow.base.infrastructure.pdfgenerator.impl.documentotexto.maquetacion.MedidasTexto;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -10,8 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * La cabecera del documento en prosa: el logo de la GVA a la izquierda y el título centrado a su
- * derecha, solo en la primera página. Debajo arranca el cuerpo, que en todas las páginas baja hasta
+ * La cabecera del documento en prosa: el logo de la GVA a la izquierda, el título centrado en medio
+ * y, a la derecha, el hueco en blanco del sello que se estampa después (el código QR del registro de
+ * salida), solo en la primera página. Debajo arranca el cuerpo, que en todas las páginas baja hasta
  * el margen inferior porque ya no hay pie.
  *
  * <p>El documento son sesenta párrafos de una línea, así que la primera y la última línea de cada
@@ -21,35 +26,44 @@ class DocumentoTextoCabeceraTest {
 
     private static final String DOCUMENTO = "documento_banda_del_cuerpo.xml";
 
-    /** El tamaño del texto (12) por su factor de alto (1,23). */
-    private static final double ALTO_LINEA = 14.76;
+    // Las medidas se toman del propio generador: el test comprueba cómo se colocan las partes de la
+    // cabecera unas respecto a otras, no cuánto vale cada medida, así que cambiar una no lo rompe.
+
+    private static final double ALTO_LINEA = MedidasTexto.TAMANYO * MedidasTexto.FACTOR_ALTO;
     /** La línea base va al 82 % del alto de línea por debajo del borde superior del renglón. */
     private static final double BASE_EN_EL_RENGLON = 0.82 * ALTO_LINEA;
     /** Lo que el renglón deja por debajo de su línea base. */
     private static final double DESCENSO_EN_EL_RENGLON = ALTO_LINEA - BASE_EN_EL_RENGLON;
 
-    private static final double CM = 72 / 2.54;
-    /** A4 (29,7 cm) menos el margen de 1 cm: donde arranca el cursor de cada página. */
-    private static final double TOP_PAGINA = 29.7 * CM - CM;
-    private static final double BOTTOM_PAGINA = CM;
+    /** Donde arranca el cursor de cada página: el alto de la página menos su margen. */
+    private static final double TOP_PAGINA = MedidasPagina.PAGE_H - MedidasPagina.MARGIN;
+    private static final double BOTTOM_PAGINA = MedidasPagina.MARGIN;
 
-    private static final double LOGO_ANCHO = 4.343 * CM;
-    private static final double LOGO_ALTO = 1.939 * CM;
-    private static final double MARGEN_IZQUIERDO_CABECERA = 48;
-    private static final double BORDE_DERECHO_CABECERA = 539.5;
-    private static final double SEPARACION_LOGO_TITULO = 7;
-    /** Aire entre la cabecera y el primer texto del cuerpo. */
-    private static final double SEPARACION_CABECERA_CUERPO = 40;
+    private static final double LOGO_ANCHO = MedidasLogo.ANCHO;
+    private static final double LOGO_ALTO = MedidasLogo.ALTO;
+    private static final double MARGEN_IZQUIERDO_CABECERA = MedidasTexto.MARGEN_IZQUIERDO_CABECERA;
 
-    /** El título de este documento cabe en una línea, así que la cabecera mide lo que el logo. */
-    private static final double ALTO_CABECERA = LOGO_ALTO;
-    private static final double TOP_CUERPO = TOP_PAGINA - ALTO_CABECERA - SEPARACION_CABECERA_CUERPO;
+    /**
+     * El hueco de la derecha: el recuadro que el registro de salida estampa separado de los bordes
+     * de arriba y de la derecha de la página.
+     */
+    private static final double X_HUECO = MedidasPagina.PAGE_W - HuecoCabeceraTexto.MARGEN - HuecoCabeceraTexto.ANCHO;
+    private static final double TOP_HUECO = MedidasPagina.PAGE_H - HuecoCabeceraTexto.MARGEN;
+    private static final double BOTTOM_HUECO = TOP_HUECO - HuecoCabeceraTexto.ALTO;
 
-    private static final double X_TITULO = MARGEN_IZQUIERDO_CABECERA + LOGO_ANCHO + SEPARACION_LOGO_TITULO;
-    private static final double CENTRO_TITULO = (X_TITULO + BORDE_DERECHO_CABECERA) / 2;
+    /** El hueco es la parte más alta de la cabecera, así que el logo y el título se centran a su altura. */
+    private static final double CENTRO_CABECERA = TOP_HUECO - HuecoCabeceraTexto.ALTO / 2;
+    private static final double TOP_CUERPO = BOTTOM_HUECO - MedidasTexto.SEPARACION_CABECERA_CUERPO;
+
+    private static final double X_TITULO = MARGEN_IZQUIERDO_CABECERA + LOGO_ANCHO + MedidasTexto.SEPARACION_LOGO_TITULO;
+    private static final double BORDE_DERECHO_TITULO = X_HUECO - MedidasTexto.SEPARACION_TITULO_HUECO;
+    private static final double CENTRO_TITULO = (X_TITULO + BORDE_DERECHO_TITULO) / 2;
+
+    private static final String TITULO_LARGO = "Resolucion de la solicitud de justificacion de falta de asistencia"
+            + " del profesorado del centro";
 
     @Test
-    void elLogoVaArribaALaIzquierdaYSoloEnLaPrimeraPagina() {
+    void elLogoVaALaIzquierdaALaAlturaDelHuecoYSoloEnLaPrimeraPagina() {
         TextosDelPdf textos = generar(Idioma.CASTELLANO);
 
         assertTrue(paginas(textos) > 1, "el documento cabe en una página y no dice si la cabecera se repite");
@@ -60,11 +74,12 @@ class DocumentoTextoCabeceraTest {
         assertEquals(MARGEN_IZQUIERDO_CABECERA, logo.x(), 0.01, "el logo no arranca en el margen de la cabecera");
         assertEquals(LOGO_ANCHO, logo.ancho(), 0.01, "el logo no mide lo que debe de ancho");
         assertEquals(LOGO_ALTO, logo.alto(), 0.01, "el logo no mide lo que debe de alto");
-        assertEquals(TOP_PAGINA - LOGO_ALTO, logo.y(), 0.01, "el logo no cuelga del borde superior de la página");
+        assertEquals(CENTRO_CABECERA - LOGO_ALTO / 2, logo.y(), 0.01,
+                "el logo no está centrado verticalmente respecto al hueco");
     }
 
     @Test
-    void elTituloVaEnMayusculasCentradoALaDerechaDelLogo() {
+    void elTituloVaEnMayusculasCentradoEntreElLogoYElHueco() {
         TextosDelPdf.Linea titulo = primeraLineaDe(generar(Idioma.CASTELLANO));
 
         assertEquals("TITULO DEL DOCUMENTO", titulo.texto(), "el título no se estampó en mayúsculas");
@@ -72,10 +87,36 @@ class DocumentoTextoCabeceraTest {
         assertTrue(titulo.xInicio() > MARGEN_IZQUIERDO_CABECERA + LOGO_ANCHO,
                 "el título pisa el logo: x=" + titulo.xInicio());
         assertEquals(CENTRO_TITULO, (titulo.xInicio() + titulo.xFin()) / 2, 0.5,
-                "el título no está centrado en el hueco que queda a la derecha del logo");
-        // el título mide una línea, así que su línea base queda a media altura del logo
-        assertEquals(TOP_PAGINA - (ALTO_CABECERA - ALTO_LINEA) / 2 - BASE_EN_EL_RENGLON, titulo.y(), 0.01,
-                "el título no está centrado verticalmente respecto al logo");
+                "el título no está centrado en la caja que queda entre el logo y el hueco");
+        assertEquals(CENTRO_CABECERA + ALTO_LINEA / 2 - BASE_EN_EL_RENGLON, titulo.y(), 0.01,
+                "el título no está centrado verticalmente respecto al hueco");
+    }
+
+    @Test
+    void unTituloLargoSeParteEnLineasSinEntrarEnElHueco() {
+        String xml = DocumentosDeTexto.fuente(DOCUMENTO).replace("Titulo del documento", TITULO_LARGO);
+        TextosDelPdf textos = TextosDelPdf.de(DocumentosDeTexto.pdfDe(xml, Map.of(), Idioma.CASTELLANO));
+        // por encima del borde inferior del hueco solo está el título: el cuerpo arranca más abajo
+        List<TextosDelPdf.Linea> titulo = lineasDe(textos, 1).stream().filter(linea -> linea.y() > BOTTOM_HUECO).toList();
+
+        assertTrue(titulo.size() > 1, "el título cabe en una línea y no dice si se parte antes del hueco: " + titulo);
+        titulo.forEach(linea -> {
+            assertTrue(linea.xInicio() >= X_TITULO - 0.01, "la línea «" + linea.texto() + "» pisa el logo");
+            assertTrue(linea.xFin() <= BORDE_DERECHO_TITULO + 0.01, "la línea «" + linea.texto() + "» entra en el hueco");
+        });
+        assertEquals(CENTRO_CABECERA + titulo.size() * ALTO_LINEA / 2 - BASE_EN_EL_RENGLON, titulo.get(0).y(), 0.01,
+                "el título de varias líneas no está centrado verticalmente respecto al hueco");
+    }
+
+    @Test
+    void elHuecoDeLaDerechaQuedaEnBlanco() {
+        TextosDelPdf textos = generar(Idioma.CASTELLANO);
+
+        textos.todos().stream().filter(texto -> texto.pagina() == 1).forEach(texto ->
+                assertTrue(texto.xFin() <= X_HUECO || texto.y() + BASE_EN_EL_RENGLON <= BOTTOM_HUECO,
+                        "el texto «" + texto.texto() + "» cae en el hueco: x=" + texto.xFin() + " y=" + texto.y()));
+        textos.imagenes().forEach(imagen ->
+                assertTrue(imagen.x() + imagen.ancho() <= X_HUECO, "el logo cae en el hueco: " + imagen));
     }
 
     @Test
@@ -89,6 +130,8 @@ class DocumentoTextoCabeceraTest {
 
         assertEquals(TOP_CUERPO - BASE_EN_EL_RENGLON, primera.y(), 0.01,
                 "la primera línea «" + primera.texto() + "» no arranca justo debajo de la cabecera");
+        assertTrue(primera.y() + BASE_EN_EL_RENGLON < BOTTOM_HUECO,
+                "la primera línea «" + primera.texto() + "» no queda por debajo del hueco: lo que se estampe en él la taparía");
         assertTrue(ultima.y() < BOTTOM_PAGINA + DESCENSO_EN_EL_RENGLON + ALTO_LINEA,
                 "en la página cabía otra línea detrás de «" + ultima.texto() + "»: el cuerpo no llega hasta el margen");
     }

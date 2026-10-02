@@ -16,7 +16,6 @@ import com.itextpdf.forms.fields.PdfTextFormField;
 import com.itextpdf.forms.fields.TextFormFieldBuilder;
 import com.itextpdf.forms.form.element.SignatureFieldAppearance;
 import com.itextpdf.io.font.constants.StandardFonts;
-import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.crypto.DigestAlgorithms;
@@ -29,6 +28,12 @@ import com.itextpdf.kernel.pdf.annot.PdfWidgetAnnotation;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
 import com.itextpdf.kernel.pdf.canvas.parser.listener.SimpleTextExtractionStrategy;
 import com.itextpdf.kernel.utils.PdfMerger;
+import com.itextpdf.layout.borders.Border;
+import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Div;
+import com.itextpdf.layout.element.Image;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.Property;
 import com.itextpdf.layout.properties.VerticalAlignment;
@@ -81,6 +86,18 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
         return this.pdfDocument.getNumberOfPages();
     }    
 
+    @Override
+    public Rectangulo getTamanyoPagina(int numeroPagina) {
+        Rectangle pageSize = this.pdfDocument.getPage(getPageNumber(numeroPagina)).getPageSizeWithRotation();
+
+        return new Rectangulo(pageSize.getX(), pageSize.getY(), pageSize.getWidth(), pageSize.getHeight());
+    }
+
+
+    @Override
+    public String getMetadato(String nombre) {
+        return this.pdfDocument.getDocumentInfo().getMoreInfo(nombre);
+    }
 
     @Override
     public String toString() {
@@ -247,6 +264,21 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
             throw new RuntimeException(ex);
         }
 
+    }
+
+    @Override
+    public DocumentoPdf setMetadato(String nombre, String valor) {
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            PdfDocument pdfDocumentConMetadato = new PdfDocument(new PdfReader(new ByteArrayInputStream(this.bytesPdf)), new PdfWriter(byteArrayOutputStream), new StampingProperties().useAppendMode());
+            pdfDocumentConMetadato.getDocumentInfo().setMoreInfo(nombre, valor);
+            pdfDocumentConMetadato.close();
+            byteArrayOutputStream.close();
+
+            return DocumentoPdfFactory.getDocumentoPdf(byteArrayOutputStream.toByteArray(), this.fileName);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override
@@ -466,8 +498,7 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
             if (campoFirma.getImage() == null) {
                 signatureFieldAppearance.setContent(message);
             } else {
-                ImageData imageData = ImageDataFactory.create(campoFirma.getImage());
-                signatureFieldAppearance.setContent(message, imageData);
+                signatureFieldAppearance.setContent(getContenidoConImagen(campoFirma, message));
             }
             signatureFieldAppearance.setFontSize(campoFirma.getFontSize());
             signatureFieldAppearance.setHorizontalAlignment(HorizontalAlignment.LEFT);
@@ -482,33 +513,76 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
     }
 
     /**
-     * Calcula el rectángulo que ocupa la firma en función del rectángulo del mensaje y de la imagen
-     * Añade al rectangulo del texto el alto de la imagen y el ancho es el máximo entre el del texto y el de la imagen
-     * @param campoFirma
-     * @return
+     * El mensaje y la imagen, cada uno en su sitio. Al darle a iText un Div ya no reparte él el recuadro
+     * (a medias y con la imagen siempre arriba o a la izquierda) ni ajusta nada al hueco: el mensaje ocupa
+     * lo que mide con el tamaño de letra del campo y la imagen se escala a lo que queda libre.
      */
-    private Rectangle getRectangle(CampoFirma campoFirma) {
-        float width;
-        float height;
+    private Div getContenidoConImagen(CampoFirma campoFirma, String message) {
+        Rectangle recuadro = getRecuadroFirma(campoFirma);
+        float width = recuadro.getWidth() - 2 * PADDING_CAMPO_FIRMA;
+        float height = recuadro.getHeight() - 2 * PADDING_CAMPO_FIRMA;
+        Paragraph mensaje = new Paragraph(message).setMargin(0).setMultipliedLeading(1);
+        Image imagen = new Image(ImageDataFactory.create(campoFirma.getImage()));
 
-        float mensajeX = campoFirma.getRectanguloMensaje().x();
-        float mensajeY = campoFirma.getRectanguloMensaje().y();
-        float mensajeWidth = campoFirma.getRectanguloMensaje().width();
-        float mensajeHeight = campoFirma.getRectanguloMensaje().height();
+        return switch (campoFirma.getPosicionImagen()) {
+            case ARRIBA -> new Div().add(scaleToFit(imagen, width, height - getAltoMensaje(campoFirma, message))).add(mensaje);
+            case ABAJO -> new Div().add(mensaje).add(scaleToFit(imagen, width, height - getAltoMensaje(campoFirma, message)));
+            case IZQUIERDA -> {
+                float widthImagen = scaleToFit(imagen, width / 2, height).getImageScaledWidth();
+                yield new Div().add(getFila(widthImagen, width - widthImagen).addCell(getCelda().add(imagen)).addCell(getCelda().add(mensaje)));
+            }
+            case DERECHA -> {
+                float widthImagen = scaleToFit(imagen, width / 2, height).getImageScaledWidth();
+                yield new Div().add(getFila(width - widthImagen, widthImagen).addCell(getCelda().add(mensaje)).addCell(getCelda().add(imagen)));
+            }
+        };
+    }
 
-        if (campoFirma.getImage() != null) {
-            ImageData imageData = ImageDataFactory.create(campoFirma.getImage());
-            float imageWidth = imageData.getWidth();
-            float imageHeight = imageData.getHeight();
+    /** El mismo relleno que iText le pone por defecto a la apariencia de un campo de firma. */
+    private static final float PADDING_CAMPO_FIRMA = 2;
 
-            width = Math.max(mensajeWidth, imageWidth);
-            height = mensajeHeight + imageHeight;
-        } else {
-            width = mensajeWidth;
-            height = mensajeHeight;
+    private static Image scaleToFit(Image imagen, float width, float height) {
+        if ((width <= 0) || (height <= 0)) {
+            throw new IllegalArgumentException("En el recuadro de la firma no cabe la imagen: le queda un hueco de " + width + "x" + height);
         }
 
-        return new Rectangle(mensajeX, mensajeY, width, height);
+        return imagen.scaleToFit(width, height);
+    }
+
+    /**
+     * Lo que ocupa de alto el mensaje, con un punto de holgura para que la imagen no apure el recuadro. Solo
+     * cuentan los saltos de línea que trae: una línea que no quepa a lo ancho se parte y se sale del recuadro.
+     */
+    private static float getAltoMensaje(CampoFirma campoFirma, String message) {
+        return message.split("\\n", -1).length * campoFirma.getFontSize() + 1;
+    }
+
+    /** La imagen y el mensaje uno al lado del otro, cada uno en su celda. */
+    private static Table getFila(float widthIzquierda, float widthDerecha) {
+        return new Table(new float[]{widthIzquierda, widthDerecha}).setFixedLayout().setWidth(widthIzquierda + widthDerecha);
+    }
+
+    private static Cell getCelda() {
+        return new Cell().setBorder(Border.NO_BORDER).setPadding(0);
+    }
+
+    /**
+     * @return el recuadro que ocupa la firma en la página: el del campo de firma, si se firma en uno que ya existe, o el que se indicó
+     */
+    private Rectangle getRecuadroFirma(CampoFirma campoFirma) {
+        if (campoFirma.getNombreCampo() != null) {
+            String nombreCampo = getCampoFirmaVacio(campoFirma.getNombreCampo());
+
+            return PdfAcroForm.getAcroForm(pdfDocument, false).getField(nombreCampo).getWidgets().get(0).getRectangle().toRectangle();
+        }
+
+        return getRectangle(campoFirma);
+    }
+
+    private Rectangle getRectangle(CampoFirma campoFirma) {
+        Rectangulo rectangulo = campoFirma.getRectanguloMensaje();
+
+        return new Rectangle(rectangulo.x(), rectangulo.y(), rectangulo.width(), rectangulo.height());
     }
 
     /**
