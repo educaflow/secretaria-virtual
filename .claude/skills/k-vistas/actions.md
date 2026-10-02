@@ -144,7 +144,7 @@ Asignar un valor a un campo
 
 Se usan estas acciones desde eventos como `onClick` de botones, `onSave` de formularios, `onChange` de campos, etc. para ejecutar una secuencia de acciones en un solo evento.
 
-Para las **operaciones custom**: si el grupo invoca una acción `Remote-{Op}-action` y existe su validación `Remote-validate{Op}-action` (mismo contexto), esta **MUST** ir **inmediatamente antes** de la operación, sin acciones intercaladas:
+Para las **operaciones custom**: si el controlador al que llama `Remote-{Op}-action` tiene un método `validate{Op}`, el fichero **MUST** declarar su validación `Remote-validate{Op}-action` (mismo contexto) llamando a ese método; y la validación **MUST** ir **inmediatamente antes** de la operación, sin acciones intercaladas:
 
 ```xml
 <action-group name="subsysCorreos.Main@Correo-btnReenviar-action">

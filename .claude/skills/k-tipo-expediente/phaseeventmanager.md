@@ -11,7 +11,7 @@ Los ejemplos usan el trámite inventado `MiTramite` (`SKILL.md`). Para ver uno d
 ## 1. Anatomía
 
 ```java
-package com.educaflow.tramites.mi_tramite.v1.recepcion;
+package com.educaflow.tramites.mi_tramite.v1.resolucion;
 
 import com.educaflow.tramites.mi_tramite.v1.States;
 
@@ -24,6 +24,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<MiTramiteV1> {
     AlmacenClaveResolver almacenClaveResolver;      // firma con el certificado del centro (§6.4)
     @Inject
     private ModelServiceFactory modelServiceFactory; // servicios de otros subsistemas (§6.6)
+    // en las fases comunes: @Inject EntradaHelper entradaHelper; / @Inject VerificacionHelper verificacionHelper;
 
     @Inject
     public PhaseEventManagerImpl(MiTramiteV1Repository repository) {
@@ -46,7 +47,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<MiTramiteV1> {
 
 | Método | Cuándo se invoca | Firma exacta |
 |---|---|---|
-| `trigger<EventoEnUpperCamel>` | Al disparar el evento | `@WhenEvent public void trigger<Evento>(<Entidad> expediente, <Entidad> original, EventContext eventContext) throws BusinessException` |
+| `trigger<EventoEnUpperCamel>` | Al disparar el evento (de usuario o de sistema, §5.1) | `@WhenEvent public void trigger<Evento>(<Entidad> expediente, <Entidad> original, EventContext eventContext) throws BusinessException` |
 | `onEnter<EstadoEnUpperCamel>` | Al **entrar** en el estado (tras el `trigger*`) | `@OnEnterState public void onEnter<Estado>(<Entidad> expediente, EventContext eventContext)` |
 
 - `<Estado>` es el nombre del estado dentro de su fase (`ENTRADA_DATOS` → `onEnterEntradaDatos`).
@@ -65,7 +66,12 @@ public class InitialEventManagerImpl implements InitialEventManager<MiTramiteV1>
     public void triggerInitialEvent(InitialEventContext<MiTramiteV1> initialEventContext) throws BusinessException {
         MiTramiteV1 expediente = initialEventContext.getExpediente();
         // ... valores iniciales de los campos propios del tipo
-        initialEventContext.updateState(States.Recepcion.ENTRADA_DATOS);
+        // Fases comunes: en papel se empieza adjuntando la solicitud escaneada y después se copian sus datos
+        if (Boolean.TRUE.equals(expediente.getPresentadoEnPapel())) {
+            initialEventContext.updateState(States.Entrada.PENDIENTE_DOCUMENTO_ESCANEADO);
+        } else {
+            initialEventContext.updateState(States.Entrada.ENTRADA_DATOS);
+        }
     }
 }
 ```
@@ -73,12 +79,12 @@ public class InitialEventManagerImpl implements InitialEventManager<MiTramiteV1>
 - El parámetro de tipo de `implements InitialEventManager<…>` **MUST** ser la entidad del tipo: es de donde el motor saca qué entidad instanciar (test M1). **MUST NOT** implementarla en crudo.
 - Cuando se llama, el motor ya ha rellenado los campos del alta (`modelo.md` §2). `initialEventContext.getContextoTramitacion()` da además el trámite, el centro y el perfil con que se crea.
 - **CRITICAL**: **MUST** fijar el estado inicial con `initialEventContext.updateState(...)`. El XML no declara estado inicial; si no se fija, el alta revienta y ningún test lo detecta antes.
-- El estado inicial puede depender de cómo se crea el expediente (`perfiles.md` §3).
+- El estado inicial es el de las fases comunes (`SKILL.md` §1.2): depende de `presentadoEnPapel` (`perfiles.md` §3).
 - Inicializa aquí los campos propios del tipo que no dependen de lo que teclee el usuario (curso, datos del centro…).
 - **MUST NOT** crear ni reasignar `personaSolicitante` ni `personaInteresada`: las decide el alta (`modelo.md` §2.1).
 - El `onEnter<Estado>` del estado inicial se ejecuta justo después, en el `PhaseEventManagerImpl` de su fase.
 
-- ✅ CORRECTO: `initialEventContext.updateState(Boolean.TRUE.equals(expediente.getPresentadoEnPapel()) ? States.Recepcion.PENDIENTE_ESCANEADO : States.Recepcion.ENTRADA_DATOS)`
+- ❌ INCORRECTO: `initialEventContext.updateState(States.Entrada.ENTRADA_DATOS)` a secas (un expediente en papel nacería sin su escaneado)
 - ❌ INCORRECTO: un `triggerInitialEvent` con el cuerpo vacío (el alta falla en runtime: no hay estado inicial)
 
 ### 2.2 En cada `trigger<Evento>`
@@ -91,15 +97,16 @@ Lo que **se repite en varios `trigger*`** (del mismo o de distinto `PhaseEventMa
 
 - **Quién puede disparar el evento**, más allá del perfil del estado que ya exige el motor (que es el creador, que pertenece al centro del expediente…): una función `exige<Condicion>(expediente, mensaje)` que lanza `BusinessException(I18n.get(mensaje))`. Se llama en la primera línea del `trigger*`, con un mensaje propio de cada evento.
 - **Limpiar campos que dejan de tener sentido** al cambiar de rama (el motivo de rechazo al aceptar, el texto de subsanación al presentar de nuevo): en el `trigger*` del evento, no en la vista. Si varios eventos limpian lo mismo, una mutación de `<Code>Util`.
+- **Lo que hacen igual todos los tipos** en las fases comunes **no** va a `<Code>Util` ni se copia: ya está en `EntradaHelper` y `VerificacionHelper` (`recetas/presentacion.md`). El `trigger*` de una fase común delega en ellos y solo añade lo propio del tipo y su `updateState`.
 
 ```java
 @WhenEvent
-public void triggerPresentar(MiTramiteV1 expediente, MiTramiteV1 original, EventContext eventContext) throws BusinessException {
-    MiTramiteV1Util.exigeSerElCreador(expediente, "Solo puede presentar sus propias solicitudes");
+public void triggerResolver(MiTramiteV1 expediente, MiTramiteV1 original, EventContext eventContext) throws BusinessException {
+    MiTramiteV1Util.exigePertenecerAlCentroDelExpediente(expediente, "Solo puede resolver solicitudes de su propio centro");
 
     MiTramiteV1Util.borrarDevolucion(expediente);   // también lo hacen otros dos eventos
-    ... // lo propio de este evento: generar el PDF, crear el registro de entrada
-    eventContext.updateState(States.Tramitacion.PENDIENTE_REVISION);
+    ... // lo propio de este evento: generar el PDF de la resolución
+    eventContext.updateState(States.Resolucion.PENDIENTE_FIRMA_DIRECTOR);
 }
 ```
 
@@ -130,13 +137,16 @@ public void triggerPresentar(MiTramiteV1 expediente, MiTramiteV1 original, Event
 
 ```java
 switch (expediente.getTipoResolucion()) {
-    case ACEPTAR ->        eventContext.updateState(States.Tramitacion.ACEPTADO);
-    case RECHAZAR ->       eventContext.updateState(States.Tramitacion.RECHAZADO);
+    case ACEPTAR ->  eventContext.updateState(States.Resolucion.ACEPTADO);
+    case RECHAZAR -> eventContext.updateState(States.Resolucion.RECHAZADO);
     // el destino está en OTRA fase: no hay nada especial que hacer
-    case SUBSANAR_DATOS -> eventContext.updateState(States.Recepcion.ENTRADA_DATOS);
-    case null, default -> throw new IllegalArgumentException("Tipo de resolución no reconocido: " + expediente.getTipoResolucion());
+    case DEVOLVER -> eventContext.updateState(States.Verificacion.PENDIENTE_VERIFICACION);
+    case null -> throw new IllegalArgumentException("Tipo de resolución no reconocido: " + expediente.getTipoResolucion());
 }
 ```
+
+- Sin `default` cuando el `switch` cubre todos los ítems de un enum: así un ítem nuevo sin destino no compila. El `case null` sí hace falta.
+- El `VERIFICAR` de la fase común es este mismo patrón sobre `resultadoVerificacion` (`recetas/presentacion.md` §6.3).
 
 **Evento multi-origen** (el mismo evento declarado en varios estados de la fase decide según el estado desde el que se dispara):
 
@@ -147,7 +157,7 @@ State origen = States.INSTANCE
                 + original.getCodePhase() + "/" + original.getCodeState()));
 
 switch (origen) {
-    case States.Recepcion.PENDIENTE_PRESENTACION -> eventContext.updateState(States.Recepcion.ENTRADA_DATOS);
+    case States.Resolucion.PENDIENTE_RESOLUCION -> eventContext.updateState(States.Verificacion.PENDIENTE_VERIFICACION);
     ...
     default -> throw new IllegalStateException("Estado no reconocido: " + origen);
 }
@@ -156,6 +166,46 @@ switch (origen) {
 - El `default` es obligatorio: `State` no es `sealed`.
 - Si el evento solo sale de **un** estado, no hace falta: llama directamente a `updateState`.
 - Si el mismo evento sale de estados de **fases distintas**, cada fase lleva su propio `trigger<Evento>` y cubre solo los estados de la suya.
+- Este `switch` es para las **fases propias** del tipo. En la fase común `ENTRADA` **MUST NOT** usarse: el bloque sería idéntico en todos los tipos y CPD rompería el build. Ahí el `BACK` (que sale de `ENTRADA_DATOS` y de `PENDIENTE_PRESENTACION`) pregunta con `EntradaHelper.estaEn(original, estado)`:
+
+```java
+if (EntradaHelper.estaEn(original, States.Entrada.ENTRADA_DATOS)) {
+    EntradaHelper.exigePresentadoEnPapel(original, true);
+    eventContext.updateState(States.Entrada.PENDIENTE_DOCUMENTO_ESCANEADO);
+} else {
+    eventContext.updateState(States.Entrada.ENTRADA_DATOS);
+}
+```
+
+### 5.1 Eventos de sistema: los dispara el servidor
+
+Un evento de `systemEvents` (`SKILL.md` §2.1) no tiene botón: lo dispara el propio código cuando ocurre lo que el expediente estaba esperando (p. ej. el callback de una `TareaFirma`, `recetas/firma.md` §3). Ese código hace de **controlador**: lo mismo que `TramitadorController` saca de la petición, él lo saca del hecho que ha ocurrido (el expediente, el evento y el `requestData`) y llama al mismo servicio, `TramitadorService`, sin devolver ninguna vista. Lo único especial es que `TramitadorController` rechaza el evento de sistema que llegue en una petición.
+
+```java
+@Inject
+TramitadorService tramitadorService;
+@Inject
+ModelServiceFactory modelServiceFactory;
+...
+Map<String, Object> requestData = Map.of("pdfResolucionFirmada", Map.of("id", documentoFirmado.getId()));
+try {
+    tramitadorService.triggerEvent(expediente, "FIRMAR", requestData, new EventContext(expediente, Profile.DIRECTOR, modelServiceFactory));
+} catch (BusinessException ex) {
+    throw new IllegalStateException("No se ha podido disparar el evento FIRMAR del expediente " + expediente.getNumeroExpediente() + ": " + ex.getBusinessMessages(), ex);
+}
+```
+
+- El `requestData` lleva lo que el `trigger*` necesita de lo que ha ocurrido, con la forma del de una petición: clave = campo de la entidad; un escalar va tal cual y una referencia como `Map.of("id", <id>)`. Si no necesita nada, `Map.of()`.
+- El motor copia al expediente solo los campos con reglas en el validador de esa pareja (estado, evento): cada clave del `requestData` **MUST** tener ahí su `field(...) { +Required() }` (`validator.md` §1). Así el `trigger*` los lee del expediente y no llega sin ellos.
+- El perfil del `EventContext` es el del estado desde el que se dispara.
+- El motor hace lo mismo que con cualquier evento (`SKILL.md` §1.6): comprueba el perfil del estado, llama al `trigger<Evento>`, añade la línea del historial y llama al `onEnter` del destino.
+- Un usuario no puede dispararlo a mano con una petición: `TramitadorController.triggerEvent` lanza `UnauthorizedException` si el evento está en `State.getSystemEvents()`.
+- **MUST NOT** guardar en el expediente una referencia a lo que dispara el evento (la `TareaFirma`…) para que el `trigger*` vuelva a por sus datos o a comprobarlo: el `trigger*` solo conoce el expediente.
+
+- ✅ CORRECTO: `notify` pasa en el `requestData` el documento firmado, y `triggerFirmar` lo lee con `expediente.getPdfResolucionFirmada()` (`recetas/firma.md` §3.4).
+- ❌ INCORRECTO: un `many-to-one` a la `TareaFirma` en el `domains.xml` y `triggerFirmar` leyendo `expediente.getTareaFirmaResolucion().getDocumentosFirma()` (el expediente queda acoplado a quien dispara el evento).
+- ❌ INCORRECTO: una clave en el `requestData` sin su `field` en el validador (no se copia, en silencio).
+- ❌ INCORRECTO: un `<button name="FIRMAR">` «por si acaso» (el test Y1 lo prohíbe: la transición quedaría en manos del usuario).
 
 ## 6. Catálogo de acciones de un evento
 
@@ -170,12 +220,11 @@ expediente.setPdfSolicitud(MetaFileHelper.createMetaFile(solicitudPdf));
 
 `getDocumentoPdf` genera el documento de `documentospdf/` con los datos del expediente (`documentos.md`). `MetaFileHelper.createMetaFile(documentoPdf)` lo convierte en un `MetaFile` asignable a un campo.
 
-**MUST** asignar las fechas que estampa el documento (y el resto de datos de ese momento, como el firmante) **antes** de llamar a `getDocumentoPdf`, en el mismo evento: el PDF es una foto de la entidad en ese instante.
+**MUST** asignar las fechas que estampa el documento (y el resto de datos de ese momento) **antes** de llamar a `getDocumentoPdf`, en el mismo evento: el PDF es una foto de la entidad en ese instante.
 
 - ✅ CORRECTO:
   ```java
   expediente.setFechaResolucion(LocalDate.now(Convert.defaultZoneId));
-  expediente.setFirmadoPor(SecurityUtil.getUser());
   DocumentoPdf resolucionPdf = expediente.getDocumentoPdf(MiTramiteV1.TipoDocumentoPdf.RESOLUCION);
   ```
 - ❌ INCORRECTO: generar `resolucionPdf` y asignar `fechaResolucion` en la línea siguiente (el documento sale sin la fecha que dice llevar).
@@ -201,11 +250,13 @@ MetaFile pdfResolucionFirmada = MetaFileHelper.createMetaFile(resolucionFirmada)
 ### 6.2 Registro de entrada (el usuario presenta documentación)
 
 ```java
-RegistroEntrada registroEntrada = eventContext.createRegistroEntrada(expediente.getPdfSolicitudFirmado(), List.of(expediente.getJustificante()));
+RegistroEntrada registroEntrada = eventContext.createRegistroEntrada(expediente.getPdfSolicitudFirmada(), List.of(expediente.getJustificante()));
 expediente.setPdfJustificanteRegistroEntrada(registroEntrada.getDocumentoResguardoPresentacion());
 ```
 
-El registro devuelve el **resguardo de presentación** sellado, que se guarda en la entidad para mostrarlo. El camino entero está en la receta `recetas/presentacion.md`.
+El registro devuelve el **resguardo de presentación** sellado, que se guarda en la entidad para mostrarlo.
+
+**MUST NOT** escribir esas dos líneas para presentar la solicitud en la fase `ENTRADA`: ya las hace `EntradaHelper.presentar(expediente, CAMPOS_ENTRADA, anexos, eventContext)`, que además borra la subsanación atendida. El camino entero está en la receta `recetas/presentacion.md`.
 
 ### 6.3 Registro de salida (la administración emite un documento)
 
@@ -222,20 +273,29 @@ Todo está en la receta `recetas/firma.md`: el usuario firma al presentar (§1),
 
 ### 6.5 Enviar correos (subsistema Correos)
 
-Patrón previsto (aún sin uso real en ningún trámite): insertar un `Correo` con su servicio; el alta ya programa el envío.
+Se inserta un `Correo` con su servicio; el alta ya programa el envío. Uso real: `VerificacionHelper.avisarDeSubsanacion` (`tramites/util/verificacion`), el aviso al solicitante de la fase común `VERIFICACION`.
 
 ```java
 CorreoService correoService = (CorreoService) modelServiceFactory.resolve(Correo.class);
 Correo correo = new Correo();
-correo.setPara("destinatario@example.com");        // admite varios separados por comas
-correo.setAsunto("...");
-correo.setCuerpo("...");
+correo.setPara(solicitante.getEmail());            // admite varios separados por comas
+correo.setDniDestinatario(solicitante.getDni());
+correo.setNombre(solicitante.getNombre());
+correo.setApellidos(solicitante.getApellidos());
+correo.setAsunto(I18n.get("...").formatted(expediente.getNumeroExpediente()));
+correo.setCuerpo(I18n.get("...").formatted(...));
 correo.setCentro(expediente.getCentro());
-// opcionales: dniDestinatario/nombre/apellidos, enCopia, enCopiaOculta, adjuntos, historialEstado
+// opcionales: enCopia, enCopiaOculta, adjuntos, historialEstado
+
+if (correoService.validateInsert(correo).isPresent()) {
+    return;                                        // no hay a quién escribir: el aviso no bloquea el evento
+}
 correoService.insert(correo);
 ```
 
-El correo no se puede modificar ni borrar después de crearlo.
+- `insert` lanza si el correo no supera `validateInsert`, que exige entre otras cosas un `dniDestinatario` válido y al menos una dirección válida en `para`. Cuando el correo es **una cortesía y no parte del trámite**, pregunta antes con `validateInsert` y no lo envíes si no se puede: en papel, por ejemplo, no hay correo del solicitante. **MUST NOT** dejar que un aviso aborte el evento.
+- El correo no se puede modificar ni borrar después de crearlo.
+- Para avisar de una subsanación **MUST** usarse `verificacionHelper.avisarDeSubsanacion(expediente, textoSubsanacion)`, no una copia de este patrón (`recetas/presentacion.md` §6.3).
 
 ### 6.6 Acceder a servicios de otros subsistemas
 
@@ -246,7 +306,7 @@ El correo no se puede modificar ni borrar después de crearlo.
 Al ejecutar los tests (`SKILL.md` §3.3) el mensaje de fallo trae el código del método que falta, listo para pegar.
 
 - **E0**: existe `<paquete de la fase>.PhaseEventManagerImpl` y extiende `PhaseEventManager`.
-- **E1 / E3**: **exactamente un** `trigger<Evento>` por evento de la fase y **un** `onEnter<Estado>` por estado de la fase, con la firma de §2.
+- **E1 / E3**: **exactamente un** `trigger<Evento>` por evento de la fase (los de `systemEvents` incluidos) y **un** `onEnter<Estado>` por estado de la fase, con la firma de §2.
 - **E2 / E4**: ningún `@WhenEvent`/`@OnEnterState` de más. Si quitas un evento del XML, quita su método (y el del validador); si mueves un estado de fase, mueve su `onEnter`.
 - **E5**: ningún `PhaseEventManagerImpl` declara `triggerInitialEvent`.
 - **I1 / I2**: existe `InitialEventManagerImpl` en la raíz y declara su `triggerInitialEvent`.
@@ -265,4 +325,6 @@ Al ejecutar los tests (`SKILL.md` §3.3) el mensaje de fallo trae el código del
 - **MUST NOT** editar ni versionar la clase `States`.
 - **MUST NOT** poner el `trigger`/`onEnter` de un estado en la clase de otra fase.
 - **MUST NOT** inicializar el expediente en un `PhaseEventManagerImpl`: va en el `InitialEventManagerImpl` (§2.1).
-- **MUST NOT** factorizar los `trigger`/`onEnter` comunes a una superclase compartida: deja el método declarado en cada fase y que delegue en `<Code>Util`.
+- **MUST NOT** factorizar los `trigger`/`onEnter` comunes a una superclase compartida: deja el método declarado en cada fase y que delegue en `<Code>Util` (o, en las fases comunes, en `EntradaHelper`/`VerificacionHelper`).
+- **MUST NOT** copiar de otro tipo la lógica de `ENTRADA`/`VERIFICACION`: está en `tramites/util/entrada` y `tramites/util/verificacion`, y CPD rompe el build si se repite.
+- **MUST NOT** guardar en el expediente una referencia a lo que dispara un evento de sistema: sus datos llegan en el `requestData` (§5.1).

@@ -13,6 +13,31 @@ Enumerar los pasos como puntos numerados en el comentario del método público n
 Nombres correctos: `validarContraXSD`, `parsearDocumento`, `extraerAtributosCentro`, `construirResultado`.
 Nombres incorrectos: `paso1`, `procesarPaso2`, `helper`, `ejecutarLogica`.
 
+Un paso que ya es **una única llamada con nombre** (a un servicio, a un colaborador, a una utilidad) ya está extraído y no cuenta para esta regla: **MUST NOT** envolverse en un método privado (ver «Extraer solo lo que aporta»).
+
+---
+
+## Extraer solo lo que aporta
+
+Un método privado se justifica por lo que **nombra u oculta**, no por existir. Aplica igual al escribir código que al revisarlo: «podría extraerse» no es un defecto.
+
+Se extrae cuando el método nuevo cumple al menos una:
+
+- Nombra un concepto del dominio que la expresión original no dice.
+- Oculta varios pasos o una decisión que puede cambiar.
+- Elimina una duplicación real de lógica.
+
+**MUST NOT** extraerse:
+
+- Un método cuyo cuerpo es una única llamada que solo reenvía sus parámetros: no nombra nada nuevo y obliga a saltar para leerlo.
+- Una expresión que es un **idioma del proyecto**: la que se escribe igual en todo el código y cualquier desarrollador reconoce. Se escribe en línea, como en el resto del proyecto; que se repita no la convierte en duplicación.
+
+**MUST** comprobar cómo resuelven lo mismo las clases hermanas antes de dar a un código una forma distinta: la coherencia con el resto del proyecto gana a la preferencia genérica de estilo.
+
+- ✅ CORRECTO: `final MiEntidadService miEntidadService = (MiEntidadService) modelServiceFactory.resolve(MiEntidad.class);` al principio del método, y debajo `miEntidadService.validateDescargar(csv)` y `miEntidadService.descargar(csv)` en línea
+- ❌ INCORRECTO: `private MiEntidadService getMiEntidadService() { return (MiEntidadService) modelServiceFactory.resolve(MiEntidad.class); }` (envuelve un idioma del proyecto: solo lo renombra)
+- ❌ INCORRECTO: `private Optional<BusinessMessages> validateDescargar(String csv) { return getMiEntidadService().validateDescargar(csv); }` (solo reenvía: el servicio ya le dio nombre)
+
 ---
 
 ## Responsabilidad única

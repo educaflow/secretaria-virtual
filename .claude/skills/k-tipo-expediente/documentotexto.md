@@ -59,7 +59,7 @@ Ejemplo real y ya probado: `src/test/resources/com/educaflow/base/infrastructure
 
 | Elemento | Qué dibuja | Atributos | Hijos |
 |---|---|---|---|
-| `<titulo>` (req., exactamente 1) | La cabecera de la **primera** página: logo de la GVA a la izquierda y este texto centrado a su derecha, en seminegrita y en mayúsculas | ninguno | `<valenciano>` (opc.), `<castellano>` (opc.) |
+| `<titulo>` (req., exactamente 1) | La cabecera de la **primera** página: logo de la GVA a la izquierda, este texto centrado en medio, en seminegrita y en mayúsculas, y un hueco en blanco a la derecha (§4.3) | ninguno | `<valenciano>` (opc.), `<castellano>` (opc.) |
 | `<include>` | Nada por sí mismo: se sustituye por los hijos de la raíz del fragmento `href`, igual que en FORMULARIO (`documentos.md` §2.5) | `href` (req.) | — |
 | `<parrafo>` | Un párrafo. Por omisión, **justificado**, en redonda y en la caja en que esté escrito | `alineamiento`, `negrita`, `mayusculas`, `visible`, `siOculto` | `<valenciano>` (opc.), `<castellano>` (opc.) |
 | `<lista>` | Una lista con viñetas, sangrada | `visible`, `siOculto` | `<item>` (1..n) |
@@ -94,10 +94,12 @@ Un **encabezado** (lo que en un FORMULARIO sería un `<titulo>`) es un `<parrafo
 
 ### 4.3 Cabecera y paginación
 
-- La cabecera es la misma que la del FORMULARIO pero **sin su recuadro** y en **un solo idioma**: el logo de la GVA a la izquierda y el `<titulo>` centrado en el hueco que queda a su derecha, en seminegrita y **siempre en mayúsculas** (no hay atributo que lo decida).
+- La cabecera es la del FORMULARIO pero **sin su recuadro**, en **un solo idioma** y en **tres partes**: el logo de la GVA a la izquierda, el `<titulo>` centrado en la caja del medio, en seminegrita y **siempre en mayúsculas** (no hay atributo que lo decida), y un **hueco en blanco** a la derecha.
+- El hueco es el sitio del **código QR del registro de salida** y sus dos líneas de texto, que se estampan después sobre el PDF ya generado, arriba a la derecha de la primera página. El generador no dibuja nada en él y **no se declara** en el XML: lo deja siempre, se registre o no la salida del documento.
 - Se dibuja **dentro del flujo**, así que va **solo en la primera página**: las siguientes son cuerpo de arriba abajo. Igual que en un FORMULARIO, que tampoco repite su fila de cabecera.
-- Logo y título quedan **centrados verticalmente uno respecto al otro**: un título de varias líneas crece hacia arriba y hacia abajo sin descuadrar el logo.
-- La cabecera ocupa una banda **más ancha que el cuerpo** (sobresale por los dos lados), la misma que ocupaba el membrete del documento de Word que reproduce.
+- Logo y título quedan **centrados verticalmente a la altura del hueco**, que es la parte más alta: un título de varias líneas crece hacia arriba y hacia abajo sin descuadrar el logo.
+- El cuerpo arranca **por debajo del hueco**, así que el QR no tapa nunca el primer párrafo. El hueco estrecha la caja del título: un título largo ocupa más líneas, no invade el hueco.
+- La cabecera ocupa una banda **más ancha que el cuerpo**: sobresale por los dos lados.
 - **No hay pie**: el cuerpo baja hasta el margen inferior en todas las páginas.
 - El `<titulo>` admite `${expresion}` inline como cualquier otro texto, y solo se evalúan los del idioma que se emite.
 
@@ -223,7 +225,7 @@ Recorte del certificado de horario (fichero completo en `src/test/resources/.../
 ## Quick Guidelines
 
 - Raíz `<documentoTexto>`, XSD `documentoTexto.xsd`; un solo idioma, el que se le pida al generador; lo común con el FORMULARIO está en `documentos.md`.
-- `<titulo>` **obligatorio** y el primero: es la **cabecera** de la primera página (logo GVA + texto centrado, en mayúsculas), no un encabezado del texto. Cuerpo de arriba abajo: `<parrafo>`, `<lista>`/`<item>`, `<espacio>` y `<tabla>`/`<fila>`. No hay rejilla, ni `colspan`, ni `nombreCampo`, ni `<check>`.
+- `<titulo>` **obligatorio** y el primero: es la **cabecera** de la primera página (logo GVA + texto centrado, en mayúsculas + hueco para el QR del registro de salida), no un encabezado del texto. Cuerpo de arriba abajo: `<parrafo>`, `<lista>`/`<item>`, `<espacio>` y `<tabla>`/`<fila>`. No hay rejilla, ni `colspan`, ni `nombreCampo`, ni `<check>`.
 - `alineamiento` = `izquierda`/`centrado`/`derecha`/`justificado` (por omisión `justificado`); `negrita` y `mayusculas` = `true`/`false` (por omisión `false`). El `<item>` no admite ninguno. Un encabezado es `<parrafo negrita="true" mayusculas="true" alineamiento="izquierda">`.
 - `\n` = salto de línea duro; la línea que lo cierra y la última de un párrafo no se justifican.
 - `${expresion}` en cualquier `<castellano>`/`<valenciano>`, estampado como una palabra más; solo se evalúan los del idioma emitido. Hereda las `mayusculas` de su párrafo, no su `negrita`.

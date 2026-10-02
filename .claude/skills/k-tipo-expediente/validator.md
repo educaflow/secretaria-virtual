@@ -9,13 +9,14 @@ Clase Kotlin (interfaz marcadora `StateEventValidator`) con un método por cada 
 La lista de campos con reglas define **qué propiedades puede enviar el cliente en ese evento**: lo que no aparece en el `rules { }`, no se copia del request (defensa de mass-assignment, ver `k-secure-coding`).
 
 - Un evento sin datos igualmente **MUST** tener su método con `rules { }` vacío.
+- En un evento de sistema (`systemEvents`, `SKILL.md` §2.1) no hay cliente: el `requestData` lo monta el código del servidor que lo dispara (`phaseeventmanager.md` §5.1). Los campos que trae **MUST** llevar `+Required()`; si no trae ninguno, `rules { }` vacío.
 - Si un campo debe llegar del cliente pero no tiene restricciones, dale igualmente entrada en `rules` (aunque sea sin reglas) — si no, se ignora en silencio.
 - **MUST NOT** dar reglas a campos que rellena el servidor (PDFs generados, resguardos, año…): sería abrir la puerta a que el cliente los dicte.
 
 ## 2. Anatomía y convención de nombres
 
 ```kotlin
-package com.educaflow.tramites.mi_tramite.v1.recepcion
+package com.educaflow.tramites.mi_tramite.v1.entrada
 
 import com.educaflow.subsystem.expedientes.db.MiTramiteV1 as model
 // Recomendado: alias también para los enums — minimiza el diff entre versiones (recetas/versionado.md)
@@ -87,6 +88,7 @@ Las reglas (`ValidationRule`) están en `com.educaflow.base.infrastructure.valid
 | `Lambda(util::funcion, "mensaje")` | Rechaza el campo con el mensaje si la función estática de `<Code>Util` devuelve `false`; §3.1 |
 | `ifLambda(util::funcion) { +... }` *(DSL)* | Reglas condicionales según una función estática de `<Code>Util`; §3.1 |
 | `ifSituacionFirma(...) { +... }`, `ClaveCertificadoValida()`, `FirmaPdf(model::getOriginal)` | Firma de un documento por el usuario; §4 → `recetas/firma.md` §1.4 |
+| `+solicitudEscaneada(...)`, `+resultadoVerificacion(...)`, `+textoSubsanacion(...)` *(reglas compuestas, `tramites/util`)* | Las de las fases comunes `ENTRADA` y `VERIFICACION`; §3.2 |
 
 La tabla es un resumen de uso, no un inventario cerrado: la **fuente de verdad** es el contenido del paquete `...validation.rules` (un fichero `*Rules.kt` por familia). Antes de inventarte una regla, mira si ya existe ahí.
 
@@ -121,6 +123,45 @@ field(model::getMotivoRechazo) {
 - El mensaje va en el validador, no en la función: la función devuelve `boolean` y no sabe de mensajes.
 - La función lanza `IllegalStateException` si le falta un dato que fija el servidor: **MUST NOT** devolver `true` en silencio cuando no puede decidir (`SKILL.md` §1.7).
 
+### 3.2 Reglas compuestas de las fases comunes
+
+Las reglas que son iguales en todos los tipos en las fases `ENTRADA` y `VERIFICACION` (`SKILL.md` §1.2) no son una `ValidationRule` sino **funciones que devuelven un `FieldValidationRules` completo**: el campo con todas sus reglas. Se añaden con `+` **directamente dentro de `rules { }`**, no dentro de un `field(...)`, y reciben como parámetro el getter del campo del tipo.
+
+| Función | Paquete | Qué declara |
+|---|---|---|
+| `solicitudEscaneada(model::getPdfSolicitudFirmada)` | `com.educaflow.tramites.util.entrada` | Sobre ese campo: `Required()` + `FileType(listOf("application/pdf"))` + `FileMaxSize(10, SizeUnit.MB)` |
+| `resultadoVerificacion(model::getResultadoVerificacion)` | `com.educaflow.tramites.util.verificacion` | Sobre ese campo: `Required()` |
+| `textoSubsanacion(model::getTextoSubsanacion, model::getResultadoVerificacion, ResultadoVerificacion.SUBSANAR)` | `com.educaflow.tramites.util.verificacion` | Sobre el primer campo, solo si el segundo vale el ítem del tercero: `Required()` + `MinLength(10)` + `MaxLength(1000)` |
+
+```kotlin
+import com.educaflow.tramites.util.entrada.solicitudEscaneada
+import com.educaflow.tramites.util.verificacion.resultadoVerificacion
+import com.educaflow.tramites.util.verificacion.textoSubsanacion
+import com.educaflow.subsystem.expedientes.db.ResultadoVerificacionMiTramiteV1 as ResultadoVerificacion
+...
+// entrada/StateEventValidatorImpl.kt
+@BeanValidationRulesForStateAndEvent
+fun getForStatePendienteDocumentoEscaneadoInEventContinuar(): BeanValidationRules = rules {
+    +solicitudEscaneada(model::getPdfSolicitudFirmada)
+}
+
+// verificacion/StateEventValidatorImpl.kt
+@BeanValidationRulesForStateAndEvent
+fun getForStatePendienteVerificacionInEventVerificar(): BeanValidationRules = rules {
+    +resultadoVerificacion(model::getResultadoVerificacion)
+    +textoSubsanacion(model::getTextoSubsanacion, model::getResultadoVerificacion, ResultadoVerificacion.SUBSANAR)
+}
+```
+
+- Como cualquier `field(...)`, cada una mete su campo en la whitelist del evento (§1).
+- El ítem que pide la subsanación se pasa como parámetro porque el enum `ResultadoVerificacion<Code>` es de cada tipo.
+- **MUST** usarlas en esos eventos en vez de escribir a mano las mismas reglas: el bloque repetido en dos tipos lo caza CPD.
+- Una regla compuesta nueva solo se crea si la comparten **varios** tipos, y va a `tramites/util/<propósito>/` (`tramites/util/CLAUDE.md`).
+
+- ✅ CORRECTO: `rules { +solicitudEscaneada(model::getPdfSolicitudFirmada) }`
+- ❌ INCORRECTO: `field(model::getPdfSolicitudFirmada) { +solicitudEscaneada(model::getPdfSolicitudFirmada) }` (ya trae su propio campo: no va dentro de un `field`)
+- ❌ INCORRECTO: `field(model::getPdfSolicitudFirmada) { +Required(); +FileType(listOf("application/pdf")); +FileMaxSize(10, SizeUnit.MB) }` en `CONTINUAR` (copia de la regla común)
+
 ## 4. Firma de un documento por el usuario
 
 Las reglas del evento que presenta un documento firmado por el usuario (`ifSituacionFirma`, `ClaveCertificadoValida`, `FirmaPdf`) están en la receta `recetas/firma.md` §1.4, junto con el resto de piezas del patrón. **MUST** seguirla entera: son dos `field(...)` con dos ramas complementarias, no una regla suelta.
@@ -130,7 +171,7 @@ Las reglas del evento que presenta un documento firmado por el usuario (`ifSitua
 Lo comprueban los tests (`SKILL.md` §3.3), **fase a fase**; el mensaje de fallo trae el código del método que falta, listo para pegar.
 
 1. **V0**: existe `<paquete de la fase>.StateEventValidatorImpl` e implementa `StateEventValidator`.
-2. **V1**: por cada pareja (estado, evento) **de la fase**, **salvo las de `DELETE`**, exactamente un `@BeanValidationRulesForStateAndEvent getForState<Estado>InEvent<Evento>(): BeanValidationRules` sin parámetros.
+2. **V1**: por cada pareja (estado, evento) **de la fase** —eventos de sistema incluidos—, **salvo las de `DELETE`**, exactamente un `@BeanValidationRulesForStateAndEvent getForState<Estado>InEvent<Evento>(): BeanValidationRules` sin parámetros.
 3. **V2**: no sobra ningún método cuya pareja no sea de la propia fase.
 
 - Se cuenta por **pareja**, no por evento: un mismo evento declarado en tres estados son **tres** métodos del validador, aunque en el `PhaseEventManagerImpl` sea un único `trigger`.
@@ -144,5 +185,5 @@ Lo comprueban los tests (`SKILL.md` §3.3), **fase a fase**; el mensaje de fallo
 - **MUST NOT** dar reglas a campos que rellena el servidor (§1).
 - **MUST NOT** confiar en `readonly`/`showIf`/`hidden` de la vista como defensa: la única frontera real es esta whitelist (`k-secure-coding`).
 - **MUST NOT** factorizar los `getForState<Estado>InEvent<Evento>` comunes a una superclase compartida entre fases o versiones: solo se ven los declarados en la clase de la fase (§5).
-- **MUST NOT** crear una `ValidationRule` en la carpeta de la versión: función `boolean` en `<Code>Util` + `Lambda`/`ifLambda` (§3.1). Solo si la comparten varios tipos es una regla, y entonces vive en `tramites/util/` o en el catálogo base.
+- **MUST NOT** crear una `ValidationRule` en la carpeta de la versión: función `boolean` en `<Code>Util` + `Lambda`/`ifLambda` (§3.1). Solo si la comparten varios tipos es una regla, y entonces vive en `tramites/util/` (§3.2) o en el catálogo base.
 - **MUST NOT** usar `Lambda` para lo que ya hace una genérica (`Required`, `PastOrToday`, `GreaterThan`, `MinValue`…): ver la tabla de tentaciones de §3.

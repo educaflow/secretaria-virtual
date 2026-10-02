@@ -6,6 +6,7 @@ Los métodos `@CallMethod` de controladores deben:
 
 - Nombrar los parámetros exactamente `actionRequest` y `actionResponse`. Cualquier variante (`req`, `resp`, `request`, `response`, `ar`, `aReq`…) es incorrecta.
 - Delegar en el servicio a través de `ModelServiceFactory` o `@Inject` — nunca instanciar implementaciones directamente.
+- Resolver el `ModelService` en una variable local al principio de **cada método que lo usa**: `final MiEntidadService miEntidadService = (MiEntidadService) modelServiceFactory.resolve(MiEntidad.class);`. Es un idioma del proyecto: **MUST NOT** envolverse en un método privado `getMiEntidadService()` ni guardarse en un campo (ver `metodos.md`, «Extraer solo lo que aporta»).
 - Usar `ActionRequestHelper<T>` para extraer el modelo, el id o los datos del request.
 - Obtener el `AllowProperties` llamando a `miEntidadService.allowPropertiesMiAccion()` del servicio (la whitelist vive en el servicio, no se construye inline con `Map.of(...)` en el controlador). Regla de decisión entre `createAllowProperties` (whitelist), `createAllowAllProperties` (abierto) y `createDenyAllProperties` (cerrado) en `[[k-secure-coding]]` §3.
 

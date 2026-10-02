@@ -7,7 +7,7 @@
 1. **Un form plantilla** (Axelor normal) `exp-<Code>-Templates`: **almacén de paneles con nombre**. Nunca se muestra tal cual; sus atributos (`model`, `width`, `groups`…) se heredan y sus paneles se copian a las vistas finales. Va en el **`views.xml` de la raíz de la versión**, uno para todo el tipo de expediente.
 2. **Un form por estado (y opcionalmente perfil)** con los tags custom `<form state=...>`, `<include-panels>` y `<footer>`. Van en el **`views.xml` de la carpeta de su fase**.
 
-El form plantilla está en la raíz y no en cada fase porque los paneles se comparten entre fases (los datos del interesado, el visor del PDF de la solicitud…) y duplicarlos obligaría a mantenerlos sincronizados a mano. En la raíz caben también los grids y forms auxiliares con nombre propio (los de las entidades hija, §8).
+El form plantilla está en la raíz y no en cada fase porque los paneles se comparten entre fases (los datos del interesado, los de la solicitud…) y duplicarlos obligaría a mantenerlos sincronizados a mano. En la raíz caben también los grids y forms auxiliares con nombre propio (los de las entidades hija, §8).
 
 ```xml
 <!-- <vN>/views.xml -->
@@ -20,10 +20,11 @@ El form plantilla está en la raíz y no en cada fase porque los paneles se comp
 ```
 
 ```xml
-<!-- <vN>/recepcion/views.xml -->
+<!-- <vN>/entrada/views.xml -->
 <form state="ENTRADA_DATOS" profile="CREADOR">
     <include-panels>
-        -datos-profesor          <!-- con guion: se incluye con TODOS sus fields readonly -->
+        -subsanacion                 <!-- panel común (§3.2), no está en la plantilla del tipo -->
+        -datos-interesado            <!-- con guion: se incluye con TODOS sus fields readonly -->
         datos-solicitud              <!-- sin guion: editable -->
         justificante-upload
     </include-panels>
@@ -45,7 +46,7 @@ En el atributo `state` va el **nombre del estado** tal cual, igual que en el `Ti
 
 - `<form state="X" profile="Y">` → `exp-<Code>-<FASE>-<X>-<PROFILE>-form` (la del perfil que "tiene el turno", editable).
 - `<form state="X">` (sin perfil) → `exp-<Code>-<FASE>-<X>-form` (la genérica, normalmente todo readonly + botón `EXIT` + el panel `avisoEstadoExpediente` de §6.1).
-- El runtime busca primero la del perfil actuante y si no existe usa la genérica; si no hay ninguna → excepción "No existe la vista en el expediente". El build no lo comprueba, pero los **tests** sí (`SKILL.md` §3.3): la genérica es obligatoria en todo estado, y la del perfil en los estados que tienen `profile` y eventos.
+- El runtime busca primero la del perfil actuante y si no existe usa la genérica; si no hay ninguna → excepción "No existe la vista en el expediente". El build no lo comprueba, pero los **tests** sí (`SKILL.md` §3.3): la genérica es obligatoria en todo estado, y la del perfil en los estados que tienen `profile` y eventos de usuario (los de `systemEvents` no cuentan: un estado que solo espera al servidor no necesita la vista de su dueño).
 - El esqueleto genera dos **cáscaras idénticas y vacías** por estado (`<include-panels>` sin paneles y un único `<button name="">` sin rellenar en cada una): no distingue cuál es cuál, eso lo escribes tú — la del perfil dueño editable y la genérica de solo lectura. Es justo ese esqueleto sin rellenar el que caza el test Y1 (`SKILL.md` §3.3).
   Además, la del perfil **solo se genera si el estado declara `profile`**; en un estado sin `profile` el esqueleto trae solo la genérica.
 - **MUST** ser un estado **de la propia fase**: si pones el `state` de un estado de otra fase, el build falla diciéndolo. Los formularios de un estado van siempre en el `views.xml` de su fase.
@@ -103,13 +104,41 @@ Si el tipo necesita otro conjunto de datos (p. ej. el NIA), declara en su form p
 - **MUST** poner `canSelect="false"`, `canNew="false"` y `canRemove="false"` en el campo del editor: si no, ofrece buscar, crear o quitar la `Persona` (el servidor lo rechaza igualmente). **MUST NOT** poner `canEdit="false"` ni `canView="false"`: el editor deja de pintarse.
 - **MUST** incluir `<field name="presentadoEnRepresentacion" hidden="true"/>` y `<field name="presentadoEnPapel" hidden="true"/>` **al final** del panel: las acciones de `onLoad` evalúan los dos y sin ellos el cliente no los recibe; un campo oculto al principio ocupa su hueco en la rejilla.
 
+### 3.2 Paneles comunes de las fases `ENTRADA` y `VERIFICACION`
+
+`tramites/shared/template-views.xml` trae también los paneles de las dos fases comunes (`SKILL.md` §1.2). **MUST** incluirse desde ahí: **MUST NOT** redeclararlos en el form plantilla del tipo (un panel local con el mismo nombre taparía al común, §3).
+
+| Panel | Qué pinta | Campos del tipo que necesita | Se incluye |
+|---|---|---|---|
+| `subsanacion` | Lo que el verificador ha pedido subsanar; solo se ve mientras `textoSubsanacion` tiene valor | `textoSubsanacion` | con `-`, el primero, en los forms de la fase `ENTRADA` en los que se corrige la solicitud |
+| `solicitud-escaneada-upload` | Subida del PDF de la solicitud entregada en papel (`binary-link`, solo `.pdf`) | `pdfSolicitudFirmada` | sin guion, en `PENDIENTE_DOCUMENTO_ESCANEADO` |
+| `solicitud-escaneada-view` | Descarga de esa solicitud escaneada; solo se ve si `presentadoEnPapel` | `pdfSolicitudFirmada` | con `-`, en el form `profile="TRAMITADOR"` de `ENTRADA_DATOS` |
+| `verificacion` | `resultadoVerificacion` (`SwitchSelect`) y, si vale `SUBSANAR`, `textoSubsanacion` | `resultadoVerificacion`, `textoSubsanacion` | sin guion, en `PENDIENTE_VERIFICACION` |
+| `pdfSolicitud` | Visor (§9) de la solicitud a firmar | `pdfSolicitud` | con `-`, en `PENDIENTE_PRESENTACION` |
+| `pdfSolicitudFirmada` | Visor de la solicitud presentada: la firmada o, en papel, la escaneada | `pdfSolicitudFirmada` | con `-`, donde quien tramita necesite verla |
+| `pdfJustificanteRegistroEntrada` | Visor del resguardo de la presentación | `pdfJustificanteRegistroEntrada` | con `-`, en los forms genéricos tras presentar |
+| `firma-solicitud` | Los campos de vista `situacionFirma`/`firmaEnServidor` y un panel por situación de firma, con `claveCertificado` donde se pide (`recetas/firma.md` §1.3) | ninguno propio (`claveCertificado` es de `Expediente`) | **sin guion**, en `PENDIENTE_PRESENTACION` |
+
+- **CRITICAL**: estos paneles nombran campos que **no son de `Expediente`**: cada tipo los declara en su `domains.xml` con **ese mismo nombre** (`SKILL.md` §1.2). Si el tipo no declara el campo, el build no falla: el panel pinta un campo vacío.
+- El panel `verificacion` compara `resultadoVerificacion=='SUBSANAR'`: el enum del tipo **MUST** tener un ítem con ese nombre.
+- Las acciones `exp-<Code>-…` que acompañan a `firma-solicitud` (el `onLoad`, AutoFirma, vaciar la clave) **no** son comunes: se declaran en el `views.xml` de la fase de cada tipo (`recetas/firma.md` §1.3).
+- Qué form incluye cada panel, estado a estado: `recetas/presentacion.md`.
+
+- ✅ CORRECTO: `firma-solicitud` (sin guion)
+- ❌ INCORRECTO: `-firma-solicitud` (`claveCertificado` queda de solo lectura y no se puede firmar en servidor)
+- ❌ INCORRECTO: `<panel name="pdfSolicitud" ...>` en el form plantilla del tipo (tapa en silencio al común)
+- ❌ INCORRECTO: incluir `-pdfSolicitudFirmada` en un tipo cuyo campo se llama `pdfSolicitudFirmado` (el visor sale vacío)
+
 ## 4. `<footer>`
 
 - Se sustituye por el panel global `subsysExpedientes-template-footer-panel` (que además pinta los mensajes de error de validación) con tus botones dentro de `<buttons-left>`/`<buttons-right>`.
-- **El `name` de cada botón es el evento que dispara**; todos usan `onClick="subsysTramitador-event-action"`. Admiten atributos Axelor normales (`title`, `colSpan`, `prompt`, `css`, `outline`, `icon`).
+- **El `name` de cada botón es el evento que dispara**; todos usan `onClick="subsysTramitador-event-action"`. Solo llevan botón los eventos de `events` y los comunes: un evento de `systemEvents` **MUST NOT** tener botón (test Y1, `SKILL.md` §2.1). Admiten atributos Axelor normales (`title`, `colSpan`, `prompt`, `css`, `outline`, `icon`).
 - El `colSpan` por defecto de cada botón es el `itemSpan` del panel footer (default 1).
 - Al primer botón de la derecha se le asigna **siempre** (sobrescribiendo cualquier valor manual) `colOffset = 12 − suma de colSpan` de todos los botones, para alinearlo al margen derecho. Si la suma pasa de 12, el offset sale negativo sin aviso.
 - Los eventos comunes `EXIT` y `DELETE` responden al cliente con `refresh-app` (se recarga la aplicación entera, no se navega a otra vista).
+- Tras el footer de un `<form state=...>` el preprocesador añade siempre el panel global `subsysExpedientes-template-notas-panel`: las notas del expediente (`Expediente.notas`) y el botón «Añadir nota». No se declara ni se incluye: sale solo en todos los forms de estado, y se oculta él mismo al creador del expediente (salvo en papel).
+  - El `<footer>` de un form que no es de estado (el de una entidad hija, §8) no lo lleva.
+  - Desde un `trigger*` una nota se añade con `ExpedienteNotasUtil.addNote(expediente, mensaje)` (`subsystem/expedientes/util`). Es para lo que se dicen entre sí quienes tramitan: lo que deba ver el creador va en un campo propio del tipo.
 
 Las dos únicas acciones del motor que usa un `views.xml`:
 
@@ -133,8 +162,8 @@ Un form cuyo único botón es `EXIT` es una pantalla en la que el usuario no pue
 Si no se le explica nada, no sabe si el expediente está atascado, si le toca a él o si ya ha terminado.
 
 - **MUST** llevar un `<panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">` con un único `<help variant="info">`, entre `</include-panels>` y `<footer>`.
-  Aplica a todos los forms de solo `EXIT`: los genéricos y también los de perfil (`profile="..."`) que no tengan más botón que `EXIT`.
-- El texto **MUST** decir **qué está pendiente y de quién** ("La solicitud está pendiente de revisión por la secretaría del centro", "La resolución está pendiente de la firma del director").
+  Aplica a todos los forms de solo `EXIT`: los genéricos y también los de perfil (`profile="..."`) que no tengan más botón que `EXIT`, como el del dueño de un estado que solo tiene eventos de sistema.
+- El texto **MUST** decir **qué está pendiente y de quién** ("La solicitud está pendiente de que la secretaría del centro la verifique", "La resolución está pendiente de la firma del director").
   **MUST NOT** repetir el nombre de la fase o del estado: ya los pinta la cabecera (§3).
 - En un estado final el texto dice que el expediente está cerrado y con qué resultado ("El expediente está cerrado: la anulación ha sido aceptada").
 - El `name` es siempre `avisoEstadoExpediente`, igual en todos los forms del tipo: un panel declarado dentro de un `<form state=...>` es local a esa vista, no de la plantilla, así que no colisiona con el de los demás forms.
@@ -143,14 +172,14 @@ Si no se le explica nada, no sabe si el expediente está atascado, si le toca a 
 ✅ Correcto:
 
 ```xml
-<form state="PENDIENTE_REVISION">
+<form state="PENDIENTE_VERIFICACION">
     <include-panels>
         -datos-solicitud-view
-        -solicitud-firmada-descarga
+        -pdfJustificanteRegistroEntrada
     </include-panels>
 
     <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
-        <help variant="info" colSpan="12">La solicitud está pendiente de revisión por la secretaría del centro</help>
+        <help variant="info" colSpan="12">La solicitud está pendiente de que la secretaría del centro la verifique</help>
     </panel>
 
     <footer>
@@ -162,9 +191,9 @@ Si no se le explica nada, no sabe si el expediente está atascado, si le toca a 
 </form>
 ```
 
-❌ Incorrecto: el mismo form sin el panel (el usuario ve los datos y un botón "Salir" sin saber qué pasa con su solicitud), o con `name="avisoPendienteRevisionGenerica"` (nombre propio por estado en lugar del fijo), o con el texto "Estado: PENDIENTE_REVISION" (repite la cabecera).
+❌ Incorrecto: el mismo form sin el panel (el usuario ve los datos y un botón "Salir" sin saber qué pasa con su solicitud), o con `name="avisoPendienteVerificacionGenerica"` (nombre propio por estado en lugar del fijo), o con el texto "Estado: PENDIENTE_VERIFICACION" (repite la cabecera).
 
-La pantalla del estado en que el usuario firma y presenta un documento (campos de vista rellenados en el `onLoad`, un panel por situación de firma y los dos botones `PRESENTAR`) está en la receta `recetas/firma.md` §1.3.
+La pantalla del estado en que el usuario firma y presenta un documento (el panel común `firma-solicitud`, el `onLoad` que rellena sus campos de vista y los dos botones `PRESENTAR`) está en la receta `recetas/firma.md` §1.3.
 
 Dentro de los paneles de la plantilla, los `<field>` admiten los atributos Axelor normales; los que se ven en los trámites reales: `widget="SwitchSelect"` (con `x-direction="vertical"`), `showIf`/`hideIf` por valor de otro campo, `widget="binary-link"` con `x-accept=".pdf"` para restringir el tipo de fichero subido, `<help variant="info">` condicionales con `showIf`, y en campos de referencia `grid-view`/`form-view`/`domain`/`onChange` (las `action-record`/`action-method` propias se declaran en el `views.xml` de la fase cuyo form incluye el panel, no en el de la raíz).
 
@@ -207,18 +236,18 @@ El `domains.xml` del tipo puede declarar entidades hija (one-to-many del expedie
 
 ## 9. Patrón: visor de PDF embebido
 
-Para mostrar un campo `many-to-one` a `MetaFile`, panel con un field *dummy* cuyo `<viewer>` pinta un iframe al download inline. Un panel con nombre por cada PDF, para incluirlo por estado:
+Para mostrar un campo `many-to-one` a `MetaFile`, panel con un field *dummy* cuyo `<viewer>` pinta un iframe al download inline. Un panel con nombre por cada PDF, para incluirlo por estado. Los visores de `pdfSolicitud`, `pdfSolicitudFirmada` y `pdfJustificanteRegistroEntrada` **ya son comunes** (§3.2): declara en el form plantilla del tipo solo los de sus propios documentos.
 
-- El `name` del dummy no existe en la entidad; el campo real va en el `depends` del viewer. Dale un nombre que diga qué muestra (`visorSolicitud`), distinto en cada panel.
-- El `title` del panel dice qué documento es: cada visor el suyo, no «Solicitud» en todos.
+- El `name` del dummy no existe en la entidad; el campo real va en el `depends` del viewer. Dale un nombre que diga qué muestra (`visorResolucion`), distinto en cada panel.
+- El `title` del panel dice qué documento es: cada visor el suyo, no «Documento» en todos.
 - Para descargar sin visor basta el propio campo con `widget="binary-link"`.
 
 ```xml
-<panel name="pdfSolicitud" title="Solicitud">
-    <field name="visorSolicitud" showTitle="false" readonly="true" colSpan="12">
-        <viewer depends="pdfSolicitud"><![CDATA[
+<panel name="pdfResolucion" title="Resolución">
+    <field name="visorResolucion" showTitle="false" readonly="true" colSpan="12">
+        <viewer depends="pdfResolucion"><![CDATA[
             <>
-            <Box as="iframe" height="900" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfSolicitud.id}/content/download?inline=true&name=${pdfSolicitud.fileName}`} ></Box>
+            <Box as="iframe" height="900" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfResolucion.id}/content/download?inline=true&name=${pdfResolucion.fileName}`} ></Box>
             </>
         ]]></viewer>
     </field>
@@ -241,7 +270,8 @@ Para mostrar un campo `many-to-one` a `MetaFile`, panel con un field *dummy* cuy
 - **MUST NOT** meter la fase en el atributo `state`: ahí va solo el nombre del estado y la fase la añade el preprocesador.
 - **MUST NOT** duplicar el form plantilla en las carpetas de fase: es uno solo, en la raíz de la versión.
 - **MUST NOT** confiar en `readonly`/`showIf` como seguridad: la defensa real es la whitelist del validator (`k-secure-coding`).
-- **MUST NOT** nombrar un panel local igual que uno global salvo que quieras sobreescribirlo a propósito.
+- **MUST NOT** nombrar un panel local igual que uno global salvo que quieras sobreescribirlo a propósito; nunca los de las fases comunes (§3.2).
+- **MUST NOT** incluir `firma-solicitud` con guion ni poner botón a un evento de sistema.
 - **MUST NOT** confiar en el prefijo `-` para "desactivar" un panel con botones ni un `panel-related`: solo pone readonly los `<field>` (§3).
 - **MUST NOT** usar en un `showIf`/`hideIf`/`readonlyIf`/`requiredIf` un campo que el panel no declara como `<field>`: sin su `<field hidden="true"/>` la condición evalúa siempre a falso (§6.2).
 - **MUST NOT** dejar un form de solo `EXIT` sin el panel `avisoEstadoExpediente` (§6.1): el usuario no sabría en qué situación está su expediente.

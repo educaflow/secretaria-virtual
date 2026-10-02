@@ -29,7 +29,16 @@ Entran: el código Java/Kotlin escrito a mano bajo `src/main/java/**` y `src/tes
 
 ## Pasos obligatorios del revisor
 
-NINGUNO.
+Antes de reportar un hallazgo que pida **cambiar la forma** del código sin cambiar lo que hace (extraer, envolver, mover, renombrar, reordenar):
+
+1. Busca cómo resuelven lo mismo las clases hermanas (las del mismo tipo en otros sistemas/subsistemas: otros controladores, otros servicios…). **LIMIT**: al menos 3 clases hermanas, o todas si hay menos.
+2. Si la forma actual es la que usan las clases hermanas → **MUST NOT** reportarlo: es una convención del proyecto, no un defecto.
+3. Si la forma actual se aparta de las clases hermanas → repórtalo citando una de ellas como referencia (`ruta:línea`).
+4. Escribe en la descripción del hallazgo qué coste tiene el código actual (qué se duplica, qué se rompe al cambiarlo, qué no se puede probar). Si no puedes escribirlo → **MUST NOT** reportarlo.
+
+- ✅ CORRECTO: `IMPORTANT … resuelve el servicio en un campo de la clase; los demás controladores lo resuelven en una variable local por método (src/…/OtroController.java:25). Incumple proyecto.md «Controladores Axelor».`
+- ❌ INCORRECTO: `MINOR … extraer modelServiceFactory.resolve(...) a un método privado para mejorar la legibilidad` (no comprobó las clases hermanas: es el idioma que usan todas)
+- ❌ INCORRECTO: `MINOR … el método podría dividirse en tres` (sin regla incumplida ni coste: es una preferencia)
 
 ## Pasos obligatorios del corrector
 
@@ -42,6 +51,7 @@ NINGUNA. La compilación y los tests del proyecto no se ejecutan dentro de este 
 ## Clasificación específica
 
 - Toda violación de `k-secure-coding` es **BLOCKING**, aunque el código funcione.
+- Una corrección **MUST NOT** añadir un método, una clase o una indirección que las clases hermanas no tienen para resolver lo mismo.
 
 ## Informe
 

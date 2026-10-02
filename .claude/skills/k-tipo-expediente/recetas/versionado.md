@@ -77,6 +77,12 @@ Para eso están las fases. La subcarpeta de una fase es autocontenida salvo por 
 
 Después: añadir la `<fase>` con sus `<state>` al `TipoExpedienteInstance.xml` del destino, y sustituir el `<Code>` y el paquete igual que en §2.2.
 
+Es lo que hace **todo tipo nuevo** con las dos fases comunes `ENTRADA` y `VERIFICACION` (`SKILL.md` §1.2): copia de un tipo existente las carpetas `entrada/` y `verificacion/`. En ese caso:
+
+- Los paneles comunes **no** hay que llevárselos: ya están en `tramites/shared/template-views.xml` (`vistas.md` §3.2). Sí los propios del tipo origen que los forms incluyan (sus datos, su anexo), que se sustituyen por los del destino.
+- Los campos son los cinco comunes (`modelo.md` §4.1), más `CAMPOS_ENTRADA` y `borrarSubsanacion` en el `<Code>Util` del destino (`recetas/presentacion.md` §1.1).
+- De cada `trigger*` y de cada `rules { }` se queda lo común y se cambia lo propio del tipo origen (sus campos de datos, sus guardas, sus anexos, el destino de `VERIFICAR`).
+
 ### 2.3 Ficheros EXTERNOS a la carpeta — fáciles de olvidar
 
 1. **`TareaFirma` pendientes**: si el tipo pone documentos a firmar en el portafirmas, sus filas guardan el **FQCN** del notifier (`fqcnFirmaNotifier`), que apunta a una clase de la carpeta que estás copiando o moviendo. Eso **no** se corrige solo como el resto de clases del tipo (`recetas/firma.md` §3): crear una versión nueva no rompe nada —las filas viejas siguen apuntando a la clase vieja, que sigue existiendo—, pero **mover o renombrar** la carpeta de una versión que tenga firmas en marcha sí. Compruébalo antes.

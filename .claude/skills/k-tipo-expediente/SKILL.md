@@ -1,6 +1,6 @@
 ---
 name: k-tipo-expediente
-description: Cómo crear o modificar un tipo de expediente (una versión `v1`/`v2`… de un trámite) en `tramites/<tramite>/<vN>/`: el fichero maestro `TipoExpedienteInstance.xml` con sus **fases** y la máquina de estados, el modelo (`domains.xml`), y por cada fase su `PhaseEventManager`, su `StateEventValidator` y sus vistas preprocesadas; las funciones propias del tipo en `<Code>Util` (predicados para `Lambda`/`ifLambda`, guardas y mutaciones); los documentos PDF (`documentospdf/`, formato XML de definición) y las recetas de `recetas/`: presentar un documento que acaba en el registro de entrada (de la entrada de datos al resguardo), firmar documentos (el usuario al presentar, el certificado del centro, poner a firmar a otro) y duplicar un tipo para crear la versión siguiente. Cárgalo siempre que crees o modifiques cualquier fichero bajo una carpeta de versión de un trámite.
+description: Cómo crear o modificar un tipo de expediente (una versión `v1`/`v2`… de un trámite) en `tramites/<tramite>/<vN>/`: el fichero maestro `TipoExpedienteInstance.xml` con sus **fases** y la máquina de estados (las dos primeras fases, `ENTRADA` y `VERIFICACION`, son comunes a todos los tipos), el modelo (`domains.xml`), y por cada fase su `PhaseEventManager`, su `StateEventValidator` y sus vistas preprocesadas; las funciones propias del tipo en `<Code>Util` (predicados para `Lambda`/`ifLambda`, guardas y mutaciones); los documentos PDF (`documentospdf/`, formato XML de definición) y las recetas de `recetas/`: las fases comunes `ENTRADA` y `VERIFICACION` (presentar un documento que acaba en el registro de entrada, de la entrada de datos al resguardo, y verificarlo), firmar documentos (el usuario al presentar, el certificado del centro, poner a firmar a otro) y duplicar un tipo para crear la versión siguiente. Cárgalo siempre que crees o modifiques cualquier fichero bajo una carpeta de versión de un trámite.
 ---
 
 # k-tipo-expediente
@@ -9,21 +9,21 @@ Un tipo de expediente es la implementación **versionada** de un trámite: la ca
 
 Este skill contiene **solo lo que necesitas para escribir un tipo de expediente**: qué ficheros hay, qué va en cada uno y qué hace el motor por ti. Cómo está implementado el motor (`subsystem/tramitador`) no hace falta para crear ni modificar un tipo; **MUST NOT** tocar el motor desde una tarea de un trámite (`subsystem/tramitador/CLAUDE.md`).
 
-**Convención de los ejemplos**: todos usan un trámite **inventado** —code `MiTramite`, carpeta `tramites/mi_tramite/`, versión `v1/`, entidad `MiTramiteV1`— con las fases `RECEPCION` y `TRAMITACION`. Sustituye `MiTramite` por el code de tu trámite y `mi_tramite/v1` por su ruta real, que **no** tiene por qué colgar directamente del trámite (`recetas/versionado.md`).
+**Convención de los ejemplos**: todos usan un trámite **inventado** —code `MiTramite`, carpeta `tramites/mi_tramite/`, versión `v1/`, entidad `MiTramiteV1`— con las dos fases comunes `ENTRADA` y `VERIFICACION` (§1.2) y una tercera propia, `RESOLUCION`. Sustituye `MiTramite` por el code de tu trámite y `mi_tramite/v1` por su ruta real, que **no** tiene por qué colgar directamente del trámite (`recetas/versionado.md`).
 
 ## Ficheros de este skill
 
 | Fichero | Contenido |
 |---------|-----------|
 | `modelo.md` | El `domains.xml` del tipo (en la raíz de la versión, uno para todas las fases): entidad `extends="Expediente"`, campos heredados, personas, enums versionados, campos `MetaFile` para los PDF |
-| `phaseeventmanager.md` | El `InitialEventManagerImpl` (alta) y el `PhaseEventManagerImpl` de cada fase: métodos `trigger*`/`onEnter*`, API de `EventContext` y el **catálogo de acciones** (generar PDF, registros de entrada/salida, firmas, correos…) |
-| `validator.md` | El `StateEventValidatorImpl` de cada fase, en Kotlin: DSL de reglas por estado+evento, su doble función de whitelist de campos y el catálogo de reglas |
-| `vistas.md` | Las vistas en formato **preprocesado** (NO sigue `k-vistas`): el form plantilla en la raíz, los `<form state=...>` de cada fase, `include-panels`, `footer`, paneles comunes, visores de PDF |
+| `phaseeventmanager.md` | El `InitialEventManagerImpl` (alta) y el `PhaseEventManagerImpl` de cada fase: métodos `trigger*`/`onEnter*`, API de `EventContext` cómo se dispara un **evento de sistema** y el **catálogo de acciones** (generar PDF, registros de entrada/salida, firmas, correos…) |
+| `validator.md` | El `StateEventValidatorImpl` de cada fase, en Kotlin: DSL de reglas por estado+evento, su doble función de whitelist de campos y el catálogo de reglas (incluidas las reglas comunes de `ENTRADA` y `VERIFICACION`) |
+| `vistas.md` | Las vistas en formato **preprocesado** (NO sigue `k-vistas`): el form plantilla en la raíz, los `<form state=...>` de cada fase, `include-panels`, `footer`, paneles comunes (personas y fases `ENTRADA`/`VERIFICACION`), visores de PDF |
 | `documentos.md` | Los documentos de `documentospdf/`: los **dos tipos** de documento, lo común a ambos (fragmentos, valenciano, expresiones Groovy, `visible`/`siOculto`, el hueco de la firma `campoFirma`, idioma) y el formato **FORMULARIO** (rejilla de 12 columnas) |
 | `documentotexto.md` | El formato **TEXTO** (raíz `<documentoTexto>`): documento en prosa en un solo idioma |
 | `perfiles.md` | `CREADOR`, `TRAMITADOR` y `presentadoEnPapel`: cómo se presenta un expediente y qué implica para el estado inicial y las vistas |
-| `recetas/presentacion.md` | Receta: el usuario presenta un documento que acaba en el **registro de entrada**, de la entrada de datos al resguardo |
-| `recetas/firma.md` | Receta: las tres formas de firmar (el usuario al presentar, el certificado del centro, poner a firmar a otro) |
+| `recetas/presentacion.md` | Receta: las fases comunes `ENTRADA` y `VERIFICACION` — el usuario (o el `TRAMITADOR`, en papel) presenta un documento que acaba en el **registro de entrada**, de la entrada de datos al resguardo, y se verifica |
+| `recetas/firma.md` | Receta: las tres formas de firmar (el usuario al presentar, el certificado del centro, poner a firmar a otro con `TareaFirma` y eventos de sistema) |
 | `recetas/versionado.md` | Receta: duplicar un tipo para crear la versión siguiente, y cuándo basta con modificar la actual |
 
 ---
@@ -40,7 +40,7 @@ Este skill contiene **solo lo que necesitas para escribir un tipo de expediente*
 | `name` del tipo | name del trámite + " " + versión | `Mi trámite V1` |
 | Entidad JPA | = `code` | `MiTramiteV1` |
 | Paquete base | la ruta tras `/java/` | `com.educaflow.tramites.mi_tramite.v1` |
-| Paquete de una fase | el `name` de la fase en **minúsculas**, bajo el paquete base | `RECEPCION` → `<paquete base>.recepcion` |
+| Paquete de una fase | el `name` de la fase en **minúsculas**, bajo el paquete base | `ENTRADA` → `<paquete base>.entrada` |
 | Clases de la fase | nombres **fijos**: `PhaseEventManagerImpl`, `StateEventValidatorImpl` | — |
 | Clases del tipo | nombres **fijos** en el paquete base: `InitialEventManagerImpl`, `States` (generada) | — |
 
@@ -56,8 +56,43 @@ Una fase es una **agrupación de estados y de sus ficheros**, para que no haya `
 - Cada fase tiene su subcarpeta `<vN>/<fase en minúsculas>/`.
 - Las transiciones **pueden cruzar fases** sin ningún tratamiento especial.
 - El `title` de la fase **es texto de interfaz**: lo ve el usuario en la cabecera de los formularios, en los listados y en el historial. Sin él se muestra el `name` humanizado (`SUBSANACION_DOCUMENTOS` → `Subsanacion documentos`).
-- Reparto habitual (no obligatorio): `RECEPCION` = los estados del interesado (perfil `CREADOR`); `TRAMITACION` = el resto.
 - **CRITICAL**: mover un estado de fase le cambia el `codePhase`, así que los expedientes ya guardados en ese estado quedan huérfanos.
+
+#### Las dos primeras fases son comunes a todos los tipos
+
+**MUST**: todo tipo de expediente empieza por las mismas dos fases, `ENTRADA` («Entrada») y `VERIFICACION` («Verificación»), con los mismos estados y eventos, y solo es distinto a partir de la tercera fase.
+La única excepción es el trámite de prueba (`tramites/prueba`), que conserva sus fases `RECEPCION`/`TRAMITACION`: **MUST NOT** tomarlo como modelo.
+
+| Fase / estado | Perfil | Eventos y destino |
+|---|---|---|
+| `ENTRADA` / `PENDIENTE_DOCUMENTO_ESCANEADO` (solo en papel) | `TRAMITADOR` | `DELETE` · `CONTINUAR` → `ENTRADA_DATOS` |
+| `ENTRADA` / `ENTRADA_DATOS` | `CREADOR` (y un form `profile="TRAMITADOR"` para el papel) | `DELETE` · `BACK` [solo papel] → `PENDIENTE_DOCUMENTO_ESCANEADO` · `GUARDAR_DATOS` → [telemático] `PENDIENTE_PRESENTACION`; [papel] registro de entrada del escaneado → `VERIFICACION` / `PENDIENTE_VERIFICACION` |
+| `ENTRADA` / `PENDIENTE_PRESENTACION` (solo telemático) | `CREADOR` | `BACK` → `ENTRADA_DATOS` · `PRESENTAR` (firma + registro de entrada) → `VERIFICACION` / `PENDIENTE_VERIFICACION` |
+| `VERIFICACION` / `PENDIENTE_VERIFICACION` | `TRAMITADOR` | `VERIFICAR` → [`resultadoVerificacion=CORRECTO`] el primer estado de la tercera fase; [`SUBSANAR`] correo al solicitante → `ENTRADA` / `ENTRADA_DATOS` (en papel, `ENTRADA` / `PENDIENTE_DOCUMENTO_ESCANEADO`) |
+
+- Estado inicial: `PENDIENTE_DOCUMENTO_ESCANEADO` si `presentadoEnPapel`; si no, `ENTRADA_DATOS` (`perfiles.md` §3).
+- `VERIFICAR` **no acepta ni rechaza** la solicitud: solo dice si está correcta o hay que subsanarla. Aceptar o rechazar es de la fase propia del tipo.
+- Subsanar devuelve a `ENTRADA`, y la nueva presentación crea **otro** asiento en el registro de entrada.
+- Los títulos de fases y estados y el XML literal: §2. Todas las piezas, paso a paso: `recetas/presentacion.md`.
+
+**Campos comunes.** No están en `Expediente`: cada tipo **MUST** declararlos en su `domains.xml` con **exactamente estos nombres**, porque los paneles comunes de `tramites/shared/template-views.xml` cuentan con ellos (`modelo.md` §4.1, `vistas.md` §3.2):
+
+| Campo | Qué es |
+|---|---|
+| `pdfSolicitud` | La solicitud generada, sin firmar |
+| `pdfSolicitudFirmada` | La solicitud que se registra: la firmada o, en papel, la escaneada |
+| `pdfJustificanteRegistroEntrada` | El resguardo de la presentación |
+| `resultadoVerificacion` | Enum propio del tipo `ResultadoVerificacion<Code>` con los ítems `CORRECTO` y `SUBSANAR` |
+| `textoSubsanacion` | Qué hay que subsanar |
+
+**Qué es común y qué repite cada tipo.**
+
+- Común, en `tramites/util/` (`tramites/util/CLAUDE.md`): la lógica de `ENTRADA` en `entrada/` (`EntradaHelper`, la regla `solicitudEscaneada`) y la de `VERIFICACION` en `verificacion/` (`VerificacionHelper`, las reglas `resultadoVerificacion` y `textoSubsanacion`).
+- Común, en `tramites/shared/template-views.xml`: los paneles de las dos fases (`vistas.md` §3.2).
+- El código común no nombra los campos del tipo: los recibe en el descriptor `CamposEntrada<T>`, una constante `CAMPOS_ENTRADA` del `<Code>Util` de cada tipo, junto a la mutación `borrarSubsanacion` (`recetas/presentacion.md` §1.1).
+- Se queda en cada tipo, porque el motor y los tests lo exigen y no hay herencia ni includes entre tipos: las dos `<fase>` del `TipoExpedienteInstance.xml`, la declaración de los campos, los `trigger*` (finos: delegan en lo común y hacen su `updateState`, porque cada tipo solo puede nombrar su propio `States`), los `getForState…InEvent…`, y los `<form state>` con sus botones y sus acciones `exp-<Code>-…`.
+- **MUST NOT** copiar a un tipo la lógica que ya está en `tramites/util/entrada` o `tramites/util/verificacion`: CPD rompe el build si dos trámites repiten código (`CLAUDE.md` raíz).
+- Un tipo nuevo **copia de un tipo existente** las dos carpetas de fase (`entrada/`, `verificacion/`) y las declaraciones de los campos (`recetas/versionado.md` §2.2.b); la lógica y los paneles los toma de lo común.
 
 ### 1.3 Contenido de la carpeta del tipo
 
@@ -70,7 +105,7 @@ En la **raíz de la versión** va lo que es de todo el tipo:
 | `domains.xml` | tú (esqueleto generado, §3.1) | `modelo.md` |
 | `views.xml` (solo el form plantilla `exp-<Code>-Templates` y forms/grids auxiliares) | tú (esqueleto generado) | `vistas.md` |
 | `InitialEventManagerImpl.java` | tú (esqueleto generado) | `phaseeventmanager.md` §2.1 |
-| `<Code>Util.java` (`MiTramiteV1Util.java`) | tú, solo si el tipo necesita funciones propias; sin esqueleto | §1.6 |
+| `<Code>Util.java` (`MiTramiteV1Util.java`) | tú; sin esqueleto. Lleva al menos `CAMPOS_ENTRADA` y `borrarSubsanacion` (§1.2) | §1.7 |
 | `documentospdf/` | tú | `documentos.md` |
 | `i18n_es.csv` / `i18n_ca.csv` | el build — **MUST NOT** crearlos a mano | `CLAUDE.md` (i18n) |
 
@@ -94,10 +129,10 @@ En **cada subcarpeta de fase** (`<vN>/<fase en minúsculas>/`):
 
 ### 1.5 La identidad de un estado: la pareja (fase, estado)
 
-Un estado se identifica por **dos** códigos, que el expediente guarda en dos columnas (`codePhase = "RECEPCION"`, `codeState = "ENTRADA_DATOS"`). El nombre de un estado solo es único dentro de su fase.
+Un estado se identifica por **dos** códigos, que el expediente guarda en dos columnas (`codePhase = "ENTRADA"`, `codeState = "ENTRADA_DATOS"`). El nombre de un estado solo es único dentro de su fase.
 
 - **MUST NOT** concatenarlos ni inventar un nombre compuesto (`F_<fase>_S_<estado>` no existe).
-- En código, un estado se nombra **siempre** por su constante de la clase generada `States` (§2.2): `States.Recepcion.ENTRADA_DATOS`, nunca por sus strings.
+- En código, un estado se nombra **siempre** por su constante de la clase generada `States` (§2.2): `States.Entrada.ENTRADA_DATOS`, nunca por sus strings.
 - Los nombres de método (`onEnterEntradaDatos`, `getForStateEntradaDatosInEventPresentar`) y el `state="..."` de los forms llevan **solo** el estado: la fase la da la carpeta.
 - Los textos visibles son el `title` de la fase y el del estado (o su `name` humanizado).
 
@@ -112,10 +147,10 @@ No hay que programar nada de esto; sí hay que saber que ocurre para escribir bi
 3. Llama al `triggerInitialEvent` del `InitialEventManagerImpl`, que **MUST** fijar el estado inicial.
 4. Añade la primera línea del historial, llama al `onEnter<Estado>` del estado inicial y guarda.
 
-**Al disparar un evento** (un botón del footer), en este orden:
+**Al disparar un evento** (un botón del footer o, si es un evento de sistema, el propio servidor: §2.1), en este orden:
 
 1. Si el estado actual declara `profile`, exige que el usuario tenga ese perfil sobre el expediente. El administrador tiene todos los perfiles: si un evento no debe dispararlo ni él, el `trigger*` lo comprueba con una guarda de `<Code>Util` (§1.7).
-2. Exige que el evento esté declarado en el estado actual.
+2. Exige que el evento esté declarado en el estado actual (en `events` o en `systemEvents`).
 3. Copia del formulario **solo los campos que tienen reglas** en el validador de esa pareja (estado, evento): es la whitelist (`validator.md` §1). Después restaura la identidad de las personas y `presentadoEnPapel`/`presentadoEnRepresentacion`, que el cliente no puede cambiar.
 4. Valida. Si falla, muestra los mensajes en el footer y no guarda nada del expediente.
 5. Llama a `trigger<Evento>(expediente, original, eventContext)`. `original` es el expediente **antes** de copiar los datos del formulario. El `trigger*` decide el destino con `eventContext.updateState(...)`.
@@ -144,6 +179,8 @@ Tres familias de función:
 - **Guarda de negocio** para un `trigger*`: recibe el expediente y el mensaje, es `void` y lanza `BusinessException(I18n.get(mensaje))` si no se cumple.
 - **Mutación** compartida por varios eventos o fases: recibe el expediente, `void`.
 
+Además lleva la constante `CAMPOS_ENTRADA`, el descriptor con el que el código común de la fase `ENTRADA` llega a los campos del tipo (§1.2, `recetas/presentacion.md` §1.1).
+
 Reglas:
 
 - **MUST NOT** crear una `ValidationRule` propia del tipo: función `boolean` de `<Code>Util` + `+Lambda(...)`/`+ifLambda(...)`. Solo si la comparten **varios** tipos es una regla, y va a `tramites/util/<propósito>/` (`tramites/util/CLAUDE.md`) o al catálogo de `base/infrastructure/validation/rules`.
@@ -166,14 +203,20 @@ Fichero mínimo real (todo lo demás se deriva, §1.1):
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <TipoExpediente>
     <fases>
-        <fase name="RECEPCION" title="Recepción">
-            <state name="ENTRADA_DATOS"          events="DELETE,GUARDAR_DATOS" profile="CREADOR"     title="Entrada de datos"          />
-            <state name="PENDIENTE_PRESENTACION" events="BACK,PRESENTAR"       profile="CREADOR"     title="Pendiente de presentación" />
+        <!-- Las dos fases comunes (§1.2): idénticas en todos los tipos -->
+        <fase name="ENTRADA" title="Entrada">
+            <state name="PENDIENTE_DOCUMENTO_ESCANEADO" events="DELETE,CONTINUAR"          profile="TRAMITADOR" title="Pendiente de adjuntar la solicitud en papel escaneada" />
+            <state name="ENTRADA_DATOS"                 events="DELETE,BACK,GUARDAR_DATOS" profile="CREADOR"    title="Entrada de datos"                                      />
+            <state name="PENDIENTE_PRESENTACION"        events="BACK,PRESENTAR"            profile="CREADOR"    title="Pendiente de presentación"                             />
         </fase>
-        <fase name="TRAMITACION" title="Tramitación">
-            <state name="PENDIENTE_RESOLUCION"   events="RESOLVER"             profile="TRAMITADOR"  title="Pendiente de resolución"   />
-            <state name="ACEPTADO"               events=""                     profile="TRAMITADOR"  title="Aceptado"   closed="true"  />
-            <state name="RECHAZADO"              events=""                     profile="TRAMITADOR"  title="Rechazado"  closed="true"  />
+        <fase name="VERIFICACION" title="Verificación">
+            <state name="PENDIENTE_VERIFICACION"        events="VERIFICAR"                 profile="TRAMITADOR" title="Pendiente de verificación"                             />
+        </fase>
+        <!-- A partir de aquí, lo propio del tipo -->
+        <fase name="RESOLUCION" title="Resolución">
+            <state name="PENDIENTE_RESOLUCION"          events="RESOLVER"                  profile="TRAMITADOR" title="Pendiente de resolución"                               />
+            <state name="ACEPTADO"                      events=""                          profile="TRAMITADOR" title="Aceptado"   closed="true"                              />
+            <state name="RECHAZADO"                     events=""                          profile="TRAMITADOR" title="Rechazado"  closed="true"                              />
         </fase>
     </fases>
 </TipoExpediente>
@@ -205,30 +248,39 @@ Tag opcional `<acl>` (hermano de `<fases>`): perfiles que da **este** tipo de ex
 
 `<state>`:
 
-- `events` **MUST** escribirse siempre, aunque esté vacío (`events=""`): omitirlo equivale en silencio a vacío.
+- `events` **MUST** escribirse siempre, aunque esté vacío (`events=""`): omitirlo equivale en silencio a vacío. Son los eventos que dispara el **usuario** con un botón.
+- `systemEvents` es opcional: los **eventos de sistema** del estado, los que no dispara un botón sino el propio servidor (p. ej. el aviso de que alguien ha firmado en su bandeja de firmas, `recetas/firma.md` §3).
+  - Para todo lo demás son eventos normales: están en la clase `States` (así el motor los acepta), el test E1 exige su `trigger<Evento>` y el V1 su método del validador, que declara los campos que le pasa quien lo dispara (`rules { }` vacío si no le pasa ninguno).
+  - Solo cambian los botones: el test Y2 **no** les exige botón y el Y1 se lo **prohíbe**; y el X2 no exige el form del perfil dueño a un estado que solo tiene eventos de sistema.
+  - Un evento **MUST NOT** estar a la vez en `events` y en `systemEvents`: el build aborta.
+  - No se pueden disparar con una petición: `TramitadorController` rechaza con un error de acceso el evento de sistema que le llegue (`State.getSystemEvents()`). Solo los dispara código del servidor (`phaseeventmanager.md` §5.1).
+  - Quien lo dispara hace de controlador: los datos que el `trigger*` necesita le llegan en el `requestData` y se declaran `Required` en el validador (`phaseeventmanager.md` §5.1).
 - `profile` es opcional (estado sin dueño) y **MUST** ser una constante del enum `Profile` (`subsystem/expedientes/domains/Profile.xml`). Solo `CREADOR` y `TRAMITADOR` tienen significado especial (`perfiles.md`); los demás solo dan el turno en el estado y eligen vista.
 - **MUST NOT** marcar ningún estado como inicial: no existe el atributo `initial` (JAXB lo ignora en silencio). El estado inicial lo fija el `InitialEventManagerImpl`.
 - `closed="true"` marca los estados terminales: el expediente queda cerrado, no borrado.
 - El `name` solo tiene que ser único **dentro de su fase**; si se repite en otra fase, dale `title` distinto o en los listados se verán iguales.
-- Nombres de estados y eventos: `UPPER_SNAKE` e **identificadores Java válidos** (van a constantes y a nombres de método: `GUARDAR_DATOS` → `triggerGuardarDatos`). Un evento **MUST NOT** repetirse dentro del mismo estado.
+- Nombres de estados y eventos: `UPPER_SNAKE` e **identificadores Java válidos** (van a constantes y a nombres de método: `GUARDAR_DATOS` → `triggerGuardarDatos`). Un evento **MUST NOT** repetirse dentro del mismo estado (contando `events` y `systemEvents` juntos).
 - **MUST NOT** llamar a un estado o evento de forma que su método pise uno de la clase base (`STATE` → `onEnterState`, `INITIAL_EVENT` → `triggerInitialEvent`): lo caza el test A1.
 
 - ✅ CORRECTO: `<fase name="SUBSANACION_DOCUMENTOS" title="Subsanación">` → carpeta `subsanacion_documentos/`
-- ❌ INCORRECTO: `<fase name="Recepcion">` (no es UPPER_SNAKE)
+- ❌ INCORRECTO: `<fase name="Resolucion">` (no es UPPER_SNAKE)
 - ❌ INCORRECTO: `<fase name="STATES">` (su enum anidado se llamaría `States`, el nombre de la propia clase generada)
-- ✅ CORRECTO: `<state name="PENDIENTE_FIRMA" events="" profile="TRAMITADOR" title="Pendiente de firma"/>`
-- ❌ INCORRECTO: `<state name="PENDIENTE_FIRMA" profile="TRAMITADOR"/>` (falta `events`, aunque sea vacío)
+- ✅ CORRECTO: `<state name="ACEPTADO" events="" profile="TRAMITADOR" title="Aceptado" closed="true"/>`
+- ❌ INCORRECTO: `<state name="ACEPTADO" profile="TRAMITADOR" closed="true"/>` (falta `events`, aunque sea vacío)
+- ✅ CORRECTO: `<state name="PENDIENTE_FIRMA_DIRECTOR" events="" systemEvents="FIRMAR,RECHAZAR_FIRMA" profile="DIRECTOR" .../>` (estado sin botones: lo mueve el servidor)
+- ❌ INCORRECTO: `<state name="PENDIENTE_FIRMA_DIRECTOR" events="FIRMAR,RECHAZAR_FIRMA" .../>` cuando los dispara el servidor (Y2 exigiría un botón para cada uno, y el botón dejaría la transición en manos del usuario)
+- ❌ INCORRECTO: `events="FIRMAR" systemEvents="FIRMAR"` (un evento o lleva botón o no lo lleva)
 - ❌ INCORRECTO: `<state name="PendienteFirma" .../>` (no es UPPER_SNAKE: produce métodos inesperados como `triggerPendientefirma`)
 
 ### 2.2 Del XML sale la clase `States`
 
 El build genera de cada `TipoExpedienteInstance.xml` la clase `<paquete base>.States` (en `build/`). **MUST NOT** editarla ni versionarla.
 
-- Un **enum por fase**, con el nombre de la fase en UpperCamelCase: `States.Recepcion.ENTRADA_DATOS`.
-- `States.RECEPCION` es otra cosa: el alias de la fase (tipo `Phase`), sin estados.
+- Un **enum por fase**, con el nombre de la fase en UpperCamelCase: `States.Entrada.ENTRADA_DATOS`.
+- `States.ENTRADA` es otra cosa: el alias de la fase (tipo `Phase`), sin estados.
 - `States.INSTANCE.getState(codePhase, codeState)` resuelve el estado de un expediente (`phaseeventmanager.md` §5).
 - La máquina de estados vive **solo** ahí: no se guarda en BD. Cambiar estados o eventos en el XML se propaga solo; los métodos que faltan o sobran te los dicen los tests (§3.3).
-- Los eventos son **strings**, no un enum.
+- Los eventos son **strings**, no un enum. Los de cada estado son la unión de sus `events` y sus `systemEvents`.
 
 ### 2.3 `estados.puml`
 
@@ -237,28 +289,44 @@ Dibuja la máquina antes de escribir el XML. **MUST** existir en la raíz de la 
 - Los estados de cada fase van **anidados en un estado compuesto** que representa la fase.
 - **MUST** declarar cada estado con el alias `<FASE>_<ESTADO>` y usar el alias en las transiciones: en PlantUML el identificador es global y dos estados con el mismo nombre en fases distintas se fundirían.
 - Inicial: `[*] --> <FASE>_<INICIAL>`, uno por cada estado en que pueda nacer el expediente, con guarda si depende de algo (`: [presentadoEnPapel=true]`).
-- Transición: `A --> B : EVENTO`, con guarda si es condicional (`RESOLVER[tipoResolucion=ACEPTAR]`).
+- Transición: `A --> B : EVENTO`, con guarda si es condicional (`RESOLVER[tipoResolucion=ACEPTAR]`). Los eventos de sistema se dibujan igual; di en una `note` que los dispara el servidor.
 - **MUST NOT** marcar los terminales con `--> [*]`: se anotan `<alias> : closed`. `[*]` como destino significa borrado (`DELETE`).
 - Los estados que nombra el diagrama **MUST** ser exactamente los del XML (tests D2/D3).
 
 ```plantuml
-state RECEPCION {
-    state "ENTRADA_DATOS" as RECEPCION_ENTRADA_DATOS
-    state "PENDIENTE_PRESENTACION" as RECEPCION_PENDIENTE_PRESENTACION
+state ENTRADA {
+    state "PENDIENTE_DOCUMENTO_ESCANEADO" as ENTRADA_PENDIENTE_DOCUMENTO_ESCANEADO
+    state "ENTRADA_DATOS" as ENTRADA_ENTRADA_DATOS
+    state "PENDIENTE_PRESENTACION" as ENTRADA_PENDIENTE_PRESENTACION
 }
-state TRAMITACION {
-    state "PENDIENTE_RESOLUCION" as TRAMITACION_PENDIENTE_RESOLUCION
-    state "ACEPTADO" as TRAMITACION_ACEPTADO
+state VERIFICACION {
+    state "PENDIENTE_VERIFICACION" as VERIFICACION_PENDIENTE_VERIFICACION
 }
-[*] --> RECEPCION_ENTRADA_DATOS
-RECEPCION_ENTRADA_DATOS -> [*] : DELETE
-RECEPCION_PENDIENTE_PRESENTACION --> TRAMITACION_PENDIENTE_RESOLUCION : PRESENTAR
-TRAMITACION_PENDIENTE_RESOLUCION --> TRAMITACION_ACEPTADO : RESOLVER[tipoResolucion=ACEPTAR]
-TRAMITACION_ACEPTADO : closed
+state RESOLUCION {
+    state "PENDIENTE_RESOLUCION" as RESOLUCION_PENDIENTE_RESOLUCION
+    state "ACEPTADO" as RESOLUCION_ACEPTADO
+}
+' Las dos fases comunes: este bloque es igual en todos los tipos
+[*] --> ENTRADA_ENTRADA_DATOS : [presentadoEnPapel=false]
+[*] --> ENTRADA_PENDIENTE_DOCUMENTO_ESCANEADO : [presentadoEnPapel=true]
+ENTRADA_PENDIENTE_DOCUMENTO_ESCANEADO -> [*] : DELETE
+ENTRADA_PENDIENTE_DOCUMENTO_ESCANEADO --> ENTRADA_ENTRADA_DATOS : CONTINUAR
+ENTRADA_ENTRADA_DATOS -> [*] : DELETE
+ENTRADA_ENTRADA_DATOS --> ENTRADA_PENDIENTE_DOCUMENTO_ESCANEADO : BACK[presentadoEnPapel=true]
+ENTRADA_ENTRADA_DATOS --> ENTRADA_PENDIENTE_PRESENTACION : GUARDAR_DATOS[presentadoEnPapel=false]
+ENTRADA_ENTRADA_DATOS --> VERIFICACION_PENDIENTE_VERIFICACION : GUARDAR_DATOS[presentadoEnPapel=true]
+ENTRADA_PENDIENTE_PRESENTACION --> ENTRADA_ENTRADA_DATOS : BACK
+ENTRADA_PENDIENTE_PRESENTACION --> VERIFICACION_PENDIENTE_VERIFICACION : PRESENTAR
+VERIFICACION_PENDIENTE_VERIFICACION --> RESOLUCION_PENDIENTE_RESOLUCION : VERIFICAR[resultadoVerificacion=CORRECTO]
+VERIFICACION_PENDIENTE_VERIFICACION --> ENTRADA_ENTRADA_DATOS : VERIFICAR[resultadoVerificacion=SUBSANAR, presentadoEnPapel=false]
+VERIFICACION_PENDIENTE_VERIFICACION --> ENTRADA_PENDIENTE_DOCUMENTO_ESCANEADO : VERIFICAR[resultadoVerificacion=SUBSANAR, presentadoEnPapel=true]
+' Lo propio del tipo
+RESOLUCION_PENDIENTE_RESOLUCION --> RESOLUCION_ACEPTADO : RESOLVER[tipoResolucion=ACEPTAR]
+RESOLUCION_ACEPTADO : closed
 ```
 
 - ❌ INCORRECTO: `state ENTRADA_DATOS` y `[*] --> ENTRADA_DATOS` (sin alias: colisiona con el mismo estado de otra fase)
-- ❌ INCORRECTO: `TRAMITACION_ACEPTADO --> [*]` (un terminal no es un borrado; se anota `: closed`)
+- ❌ INCORRECTO: `RESOLUCION_ACEPTADO --> [*]` (un terminal no es un borrado; se anota `: closed`)
 
 ---
 
@@ -290,17 +358,17 @@ Los tests de `src/test/java/com/educaflow/tiposexpedientes` comprueban, **fase a
 
 | Regla | Qué exige |
 |---|---|
-| E0–E5 | Por fase: existe `PhaseEventManagerImpl`, con **exactamente un** `trigger<Evento>` por evento de la fase y **un** `onEnter<Estado>` por estado de la fase; ninguno de más; ningún `triggerInitialEvent` (`phaseeventmanager.md` §7) |
+| E0–E5 | Por fase: existe `PhaseEventManagerImpl`, con **exactamente un** `trigger<Evento>` por evento de la fase (de usuario o de sistema) y **un** `onEnter<Estado>` por estado de la fase; ninguno de más; ningún `triggerInitialEvent` (`phaseeventmanager.md` §7) |
 | I1–I2 | Por tipo: existe `InitialEventManagerImpl` en la raíz con su `triggerInitialEvent` |
-| V0–V2 | Por fase: existe `StateEventValidatorImpl`, con **un** `getForState<Estado>InEvent<Evento>` por cada pareja de la fase salvo las de `DELETE`; ninguno de más (`validator.md` §5) |
+| V0–V2 | Por fase: existe `StateEventValidatorImpl`, con **un** `getForState<Estado>InEvent<Evento>` por cada pareja de la fase (eventos de sistema incluidos) salvo las de `DELETE`; ninguno de más (`validator.md` §5) |
 | M1 | El `InitialEventManagerImpl` y todos los `PhaseEventManagerImpl` usan como entidad la **primera** `<entity>` del `domains.xml` |
 | M2 | La entidad no declara campos que se llamen como los de `Persona` (`modelo.md` §2.1) |
 | S1–S4 | La clase `States` concuerda con el XML |
 | A1 | Ningún nombre de estado o evento genera un método que pise uno de la clase base |
 | R1 | Ninguna clase usa el `States` de **otro** tipo (típico al duplicar una versión: compila, pero falla en runtime) |
 | H1 | No queda un `PhaseEventManagerImpl`/`StateEventValidatorImpl` en una carpeta que ya no es de ninguna fase |
-| X1–X3 | Cada estado tiene su form genérico y, si tiene `profile` y eventos, el de su perfil; no hay dos forms con el mismo `(state, profile)` (`vistas.md` §2) |
-| Y1–Y3 | Cada botón del footer es un evento del estado o uno común, cada evento tiene botón y todos usan `subsysTramitador-event-action` |
+| X1–X3 | Cada estado tiene su form genérico (X1) y, si tiene `profile` y **eventos de usuario**, el de su perfil (X2: los de `systemEvents` no cuentan); no hay dos forms con el mismo `(state, profile)` (X3) (`vistas.md` §2) |
+| Y1–Y3 | Cada botón del footer es un evento **de usuario** del estado (`events`) o uno común: un evento de `systemEvents` **MUST NOT** tener botón (Y1); cada evento de `events` tiene botón, y a los de `systemEvents` no se les exige (Y2); todos usan `subsysTramitador-event-action` (Y3) |
 | D1–D3 | Existe `estados.puml` y dibuja exactamente los estados del XML (§2.3) |
 | P1 | Toda expresión Groovy de `documentospdf/` compila contra la entidad (`documentos.md` §2.8) |
 
@@ -314,6 +382,8 @@ Los tests de `src/test/java/com/educaflow/tiposexpedientes` comprueban, **fase a
 - Que el validador pida los datos del interesado cuando el trámite admite representación o papel: si no, el registro de entrada sale sin interesado (`modelo.md` §2.1).
 - Lo que en una expresión Groovy de un documento depende de los **datos** (una relación nula en mitad de una cadena): aborta el evento (`documentos.md` §2.8).
 - Que el nombre de campo de firma que usan el `trigger*` y la `<action-method>` de AutoFirma sea un `campoFirma` del documento que se firma: si no existe, firmar aborta el evento (`documentos.md` §2.10).
+- Que el tipo empiece por las dos fases comunes con sus estados y eventos (§1.2), y que declare los campos comunes con sus nombres exactos: un panel común sobre un campo que el tipo no declara pinta campos vacíos.
+- Que las claves del `requestData` de un evento de sistema sean campos de la entidad con reglas en su validador (§2.1): la que no lo es se ignora en silencio.
 - Que lo que pinta cada form tenga sentido: hay que navegar por todos los estados con los usuarios de cada perfil.
 
 ---
@@ -321,16 +391,17 @@ Los tests de `src/test/java/com/educaflow/tiposexpedientes` comprueban, **fase a
 ## 4. Checklist: crear un tipo de expediente nuevo
 
 1. **Trámite**: asegúrate de que existe `tramites/<tramite>/TramiteInstance.xml` (`k-tramite`); si es la primera versión, sin `<defaultTipoExpediente>` aún.
-2. **Carpeta**: crea `tramites/<tramite>/v1/` con `estados.puml` (§2.3) y `TipoExpedienteInstance.xml` (§2).
-3. **Esqueletos**: `./gradlew -q CreateFilesTask -Ptipo=src/main/java/com/educaflow/tramites/<tramite>/v1` (§3.1).
-4. **Modelo**: añade los campos a `domains.xml` → `modelo.md`.
-5. **Documentos**: crea `documentospdf/` → `documentos.md` (y `documentotexto.md` si es en prosa). Si hay más de un documento, **MUST** extraer cada sección idéntica a un fragmento `_<contenido>.xml`.
-6. **Evento inicial y fases**: rellena el `triggerInitialEvent` y, en cada fase, sus `trigger<Evento>` y `onEnter<Estado>` → `phaseeventmanager.md`. Lo compartido, en `<Code>Util` (§1.7).
-7. **Validadores**: rellena las `rules { }` de cada pareja (estado, evento) → `validator.md`.
-8. **Vistas**: paneles en el form plantilla de la raíz y un `<form state=...>` por estado y perfil en el `views.xml` de su fase → `vistas.md`.
-9. **Permisos**: el perfil de cada estado (`CREADOR`, `TRAMITADOR`…) **MUST** estar asignado a alguien (`k-tramite` §6).
-10. **Activa** la versión en el `TramiteInstance.xml` (`<defaultTipoExpediente>v1</defaultTipoExpediente>`) y compila y arranca con `./run.sh`.
-11. **Prueba** navegando por **todos** los estados con usuarios de cada perfil (menú Expedientes → Trámites) (§3.4).
+2. **Carpeta**: crea `tramites/<tramite>/v1/` con `estados.puml` (§2.3) y `TipoExpedienteInstance.xml` (§2), los dos con las fases comunes `ENTRADA` y `VERIFICACION` tal cual (§1.2) y, detrás, las fases propias del tipo.
+3. **Fases comunes**: copia de un tipo existente las carpetas `entrada/` y `verificacion/` y sustituye el `<Code>` y el paquete (`recetas/versionado.md` §2.2.b). Después adapta lo que es del tipo (`recetas/presentacion.md`).
+4. **Esqueletos**: `./gradlew -q CreateFilesTask -Ptipo=src/main/java/com/educaflow/tramites/<tramite>/v1` (§3.1). No pisa las fases copiadas: genera la raíz y las fases propias.
+5. **Modelo**: añade los campos a `domains.xml`, incluidos los cinco comunes (§1.2), y `CAMPOS_ENTRADA` + `borrarSubsanacion` a `<Code>Util` → `modelo.md`.
+6. **Documentos**: crea `documentospdf/` → `documentos.md` (y `documentotexto.md` si es en prosa). Si hay más de un documento, **MUST** extraer cada sección idéntica a un fragmento `_<contenido>.xml`.
+7. **Evento inicial y fases**: rellena el `triggerInitialEvent` y, en cada fase, sus `trigger<Evento>` y `onEnter<Estado>` → `phaseeventmanager.md`. Lo compartido, en `<Code>Util` (§1.7).
+8. **Validadores**: rellena las `rules { }` de cada pareja (estado, evento) → `validator.md`.
+9. **Vistas**: paneles en el form plantilla de la raíz (los de las fases comunes ya están en `tramites/shared/template-views.xml`) y un `<form state=...>` por estado y perfil en el `views.xml` de su fase → `vistas.md`.
+10. **Permisos**: el perfil de cada estado (`CREADOR`, `TRAMITADOR`…) **MUST** estar asignado a alguien (`k-tramite` §6).
+11. **Activa** la versión en el `TramiteInstance.xml` (`<defaultTipoExpediente>v1</defaultTipoExpediente>`) y compila y arranca con `./run.sh`.
+12. **Prueba** navegando por **todos** los estados con usuarios de cada perfil (menú Expedientes → Trámites) (§3.4).
 
 Para **modificar** un tipo que ya existe, primero decide si el cambio es compatible con los expedientes abiertos o si hace falta una versión nueva (`recetas/versionado.md` §1).
 
@@ -342,10 +413,11 @@ Para **añadir una fase** a un tipo que ya existe: añade su `<fase>` al XML mov
 
 - Todo se deriva de la carpeta `tramites/<tramite>/<vN>/`: code = code del trámite + `VN`, entidad = code, paquete = ruta. Los nombres de clase son fijos: **MUST NOT** renombrarlos.
 - Fases obligatorias, una subcarpeta por fase con `PhaseEventManagerImpl`, `StateEventValidatorImpl` y `views.xml`. Su `title` lo ve el usuario.
+- Las dos primeras fases, `ENTRADA` y `VERIFICACION`, son las mismas en todos los tipos: se copian de un tipo existente, su lógica está en `tramites/util/entrada` y `tramites/util/verificacion` y sus paneles en `tramites/shared/template-views.xml`.
 - Un estado = la pareja (fase, estado); en código siempre `States.<Fase>.<ESTADO>`, con la fase en UpperCamelCase.
-- `events` obligatorio aunque vacío; sin `initial`: el estado inicial lo fija el `InitialEventManagerImpl`, uno por tipo.
+- `events` obligatorio aunque vacío; `systemEvents` para los eventos que dispara el servidor (sin botón; sus datos llegan en el `requestData` de quien los dispara); sin `initial`: el estado inicial lo fija el `InitialEventManagerImpl`, uno por tipo.
 - El motor ya comprueba el perfil del estado, filtra los campos por la whitelist del validador, valida, guarda el historial y elige la vista. Tú escribes el `trigger*` que decide el destino.
 - Las `BusinessException` de un `trigger*` van al principio: lo que ya se haya creado fuera del expediente no se deshace.
-- Flujo: XML + `estados.puml` → `CreateFilesTask` → modelo, documentos, fases, validadores y vistas → tests → activar versión → probar todos los estados.
+- Flujo: XML + `estados.puml` → copiar las fases comunes → `CreateFilesTask` → modelo, documentos, fases, validadores y vistas → tests → activar versión → probar todos los estados.
 - Funciones propias en una única `<Code>Util`; nunca `ValidationRule` propias del tipo.
 - **MUST NOT** crear `i18n_*.csv` a mano ni editar `States`, `estados.png` ni el `<extra-code-model>`.

@@ -1,6 +1,6 @@
 ---
 name: developer-code-implementer
-description: Dado un plan con una serie de pasos (texto completo del plan y, opcionalmente, los skills de dominio a usar), lo implementa de forma iterativa lanzando subagentes con contexto aislado; por cada paso un subagente implementador, un subagente verificador que exige evidencia real y, si hay skills de dominio, un subagente revisor de calidad. La salida es código real en el árbol del proyecto más un resumen final basado en evidencia. Se detiene ante bloqueos o ambigüedades (o los devuelve como resultado si se ejecuta dentro de un subagente). Lo invocan `sdd-implementer` y `sdd-debug-with-test-e2e-desc` para escribir todo el código Java del pipeline SDD.
+description: Dado un plan con una serie de pasos (texto completo del plan y, opcionalmente, los skills de dominio a usar), lo implementa de forma iterativa lanzando subagentes con contexto aislado; por cada paso un subagente implementador, un subagente verificador que exige evidencia real y un subagente revisor de calidad. La salida es código real en el árbol del proyecto más un resumen final basado en evidencia. Se detiene ante bloqueos o ambigüedades (o los devuelve como resultado si se ejecuta dentro de un subagente). Lo invocan `sdd-implementer` y `sdd-debug-with-test-e2e-desc` para escribir todo el código Java del pipeline SDD.
 allowed-tools: Bash(ls:*), Bash(grep:*), Bash(find:*), Bash(git:*), Read, AskUserQuestion, Agent
 ---
 
@@ -98,7 +98,7 @@ Si algo no está claro o no funciona tras los reintentos, **STOP** y pide ayuda.
 │             ├── 5.2  Gestión del estado (DONE/BLOCKED/…)        │
 │             ├── 5.3  Subagente verificador                      │
 │             ├── 5.4  Gestión del estado (VERIFIED/FAILED/…)     │
-│             └── 5.5  Subagente revisor de calidad (opcional)    │
+│             └── 5.5  Subagente revisor de calidad               │
 │  Fase 2   Resumen final basado en evidencia                     │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -127,7 +127,9 @@ Para cada paso del plan, ejecuta este ciclo:
 Lanza un subagente (`Agent`, contexto propio, sin historial de la sesión principal) cuyo prompt **MUST** incluir:
 
 - La instrucción de **cargar primero los skills de dominio** indicados (herramienta `Skill`) antes de implementar nada.
-- **CRITICAL** — la instrucción de cargar **siempre** `k-code-quality` (herramienta `Skill`) y aplicar su `comentarios.md`, se hayan pasado skills de dominio o no: el código se escribe **sin comentarios** salvo el *por qué* que leerlo no revela, y los separadores de bloque se conservan.
+- **CRITICAL** — la instrucción de cargar **siempre** `k-code-quality` (herramienta `Skill`), se hayan pasado skills de dominio o no, leer **todos** los ficheros que indexa su `SKILL.md` y aplicar sus reglas al código que escriba. Los dos fallos más frecuentes:
+  - Comentarios: el código se escribe **sin comentarios** salvo el *por qué* que leerlo no revela, y los separadores de bloque se conservan.
+  - Extracciones que no aportan: **MUST NOT** envolver en un método privado una llamada que solo reenvía ni un idioma del proyecto; antes de dar a una clase una forma distinta, mira cómo lo resuelven las clases hermanas.
 - El **texto completo del paso** a implementar (nunca una referencia al plan).
 - El contexto adicional recibido (ubicación del código, restricciones).
 - El contrato de respuesta: terminar con **uno** de estos estados como primera línea, seguido del detalle:
@@ -168,14 +170,28 @@ Lanza un **segundo** subagente con contexto propio cuyo prompt **MUST** incluir:
 - `VERIFIED` → pasar a la revisión de calidad (5.5).
 - `PARTIAL` o `FAILED` → volver a 5.1 con el contexto de qué falla. **LIMIT**: máximo 3 reintentos por paso; si tras el 3º no hay `VERIFIED`, **STOP** e informa (modo subagente: devolver `BLOCKED` con el historial de fallos).
 
-### 5.5 Subagente revisor de calidad (solo si hay skills de dominio)
+### 5.5 Subagente revisor de calidad
 
-Si se proporcionaron skills de dominio, lanza un **tercer** subagente que revisa la calidad del código del paso:
+Lanza **siempre** un **tercer** subagente que revisa la calidad del código del paso, se hayan pasado skills de dominio o no:
 
-- Carga los skills de dominio y revisa el código buscando errores, inconsistencias con las convenciones o mejoras necesarias.
-- Carga además `k-code-quality` y revisa el código contra su `comentarios.md`: un comentario que narre lo que el código ya dice es un problema `IMPORTANT`.
-- Si no encuentra problemas responde exactamente: `OK` (token propio de este paso; no confundir con el `OK-No hay problemas` de `developer-code-reviewer`).
-- Si encuentra problemas, responde con la lista en el formato `BEGIN:----` / `SEVERIDAD:` / `END:----` de `developer-code-reviewer` (severidades `BLOCKING`/`IMPORTANT`/`MINOR`).
+- Carga los skills de dominio, si los hay, y revisa el código contra sus reglas.
+- Carga **siempre** `k-code-quality`, lee **todos** los ficheros que indexa su `SKILL.md` y revisa el código contra sus reglas. Un incumplimiento de cualquiera de ellas es un problema `IMPORTANT` (p. ej. un comentario que narre lo que el código ya dice, o un método privado que solo reenvía una llamada).
+- **CRITICAL**: solo es problema lo que **incumple una regla citable** de un skill cargado. «Podría escribirse de otra forma» o una mejora sin regla que la exija **MUST NOT** reportarse con ninguna severidad, tampoco `MINOR`: un `IMPORTANT` sin regla manda al implementador a deshacer código correcto.
+- Si no encuentra problemas responde exactamente: `OK` (token propio de este paso; no confundir con el `OK-No hay problemas` de `developer-code-reviewer`). Que el código admita otra forma de escribirse **no** impide responder `OK`.
+- Si encuentra problemas, responde con un bloque por problema, con **exactamente** este formato:
+
+  ```text
+  BEGIN:----
+  SEVERIDAD: BLOCKING|IMPORTANT|MINOR
+  FICHERO: <ruta del fichero afectado>
+  REGLA: <skill>/<fichero>.md «<título de la sección>»
+  Descripción del incumplimiento encontrado
+  END:----
+  ```
+
+  - ✅ CORRECTO: `BEGIN:----` / `SEVERIDAD: IMPORTANT` / `FICHERO: src/…/Foo.java` / `REGLA: k-code-quality/comentarios.md «<título de la sección>»` / descripción / `END:----`
+  - ❌ INCORRECTO: `REGLA: legibilidad` (una preferencia del revisor, no una regla de un skill cargado)
+  - ❌ INCORRECTO: un bloque sin línea `REGLA:` (sin regla no es un problema)
 
 Gestión: problemas `BLOCKING` o `IMPORTANT` → volver a 5.1 con la lista (cuenta como reintento del **LIMIT** de 5.4); solo `MINOR` → apúntalos para el resumen final y continúa con el siguiente paso.
 
@@ -200,7 +216,7 @@ Gestión: problemas `BLOCKING` o `IMPORTANT` → volver a 5.1 con la lista (cuen
 - Eres un **orquestador**: tú no escribes código; lo escriben subagentes con contexto aislado (implementador → verificador → revisor de calidad).
 - Sin plan → **ERROR**. Rama `main`/`master`/`release` sin consentimiento → **STOP**.
 - Subagentes **secuenciales**, nunca en paralelo, nunca `run_in_background`. Contexto completo de ida (el paso íntegro + skills), contexto mínimo de vuelta (estado + resumen).
-- Estados literales: implementador `DONE`/`DONE_WITH_CONCERNS`/`NEEDS_CONTEXT`/`BLOCKED`; verificador `VERIFIED`/`PARTIAL`/`FAILED`; revisor `OK` o lista BEGIN/END.
+- Estados literales: implementador `DONE`/`DONE_WITH_CONCERNS`/`NEEDS_CONTEXT`/`BLOCKED`; verificador `VERIFIED`/`PARTIAL`/`FAILED`; revisor `OK` o lista BEGIN/END, solo con incumplimientos de una regla citable (`REGLA:`).
 - **Evidencia antes de completar**: nada se da por hecho sin verificación real. **LIMIT**: 3 reintentos por paso.
 - **Modo subagente** (§2.5): si te invocan vía `Agent`, devuelve los bloqueos como resultado — no esperes a un usuario que no existe.
 - **No fuerces bloqueos**: ante duda o fallo persistente, **STOP** y pide ayuda; nada de hacks.

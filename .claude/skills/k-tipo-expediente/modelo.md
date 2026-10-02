@@ -79,13 +79,37 @@ Cada PDF que el expediente guarde es un `many-to-one` a `com.axelor.meta.db.Meta
 ```xml
 <many-to-one name="justificante" title="Foto o PDF del justificante" ref="com.axelor.meta.db.MetaFile" />
 <many-to-one name="pdfSolicitud" title="Solicitud" ref="com.axelor.meta.db.MetaFile" />
-<many-to-one name="pdfSolicitudFirmado" title="Solicitud firmada" ref="com.axelor.meta.db.MetaFile" />
+<many-to-one name="pdfSolicitudFirmada" title="Solicitud firmada" ref="com.axelor.meta.db.MetaFile" />
 <many-to-one name="pdfJustificanteRegistroEntrada" title="Justificante de presentación" ref="com.axelor.meta.db.MetaFile" />
 <many-to-one name="pdfResolucion" title="Resolución" ref="com.axelor.meta.db.MetaFile" />
 ```
 
-- Para que el usuario firme un documento hace falta el **par** original/firmado (`pdfSolicitud`/`pdfSolicitudFirmado`): `recetas/firma.md` §1.2.
+- Para que el usuario firme un documento hace falta el **par** original/firmado (`pdfSolicitud`/`pdfSolicitudFirmada`): `recetas/firma.md` §1.2.
 - Los documentos que devuelven los registros de entrada y salida también necesitan su campo (`pdfJustificanteRegistroEntrada`, `pdfResolucion`).
+
+### 4.1 Los campos comunes de las fases `ENTRADA` y `VERIFICACION`
+
+Todo tipo **MUST** declarar estos cinco campos **con exactamente estos nombres** (`SKILL.md` §1.2). No están en `Expediente`, pero los paneles comunes de `tramites/shared/template-views.xml` los nombran (`vistas.md` §3.2) y el código común llega a ellos por el descriptor `CAMPOS_ENTRADA` (`recetas/presentacion.md` §1.1).
+
+```xml
+<many-to-one name="pdfSolicitud" title="Solicitud" ref="com.axelor.meta.db.MetaFile" />
+<many-to-one name="pdfSolicitudFirmada" title="Solicitud firmada" ref="com.axelor.meta.db.MetaFile" />
+<many-to-one name="pdfJustificanteRegistroEntrada" title="Justificante de presentación" ref="com.axelor.meta.db.MetaFile" />
+<enum name="resultadoVerificacion" title="Resultado de la verificación" ref="ResultadoVerificacionMiTramiteV1" />
+<string name="textoSubsanacion" title="Qué hay que subsanar" large="true" />
+...
+<enum name="ResultadoVerificacionMiTramiteV1">
+    <item name="CORRECTO" title="La solicitud es correcta"/>
+    <item name="SUBSANAR" title="Pedir subsanación"/>
+</enum>
+```
+
+- `pdfSolicitudFirmada` es la solicitud que se registra: la firmada por el usuario o, en papel, la escaneada.
+- El enum es **propio de cada tipo** (§3) y **MUST** tener los ítems `CORRECTO` y `SUBSANAR`: el panel común `verificacion` y los `trigger*` los nombran.
+- El `title` de cada campo sí es libre.
+
+- ❌ INCORRECTO: `pdfSolicitudFirmado`, `solicitudEscaneada` o `motivoSubsanacion` (nombres propios: los paneles comunes pintarían campos vacíos, sin ningún error)
+- ❌ INCORRECTO: un campo aparte para el escaneado del papel (es `pdfSolicitudFirmada`: es la que se registra en los dos modos)
 
 ## 5. Anti-patrones
 
@@ -93,4 +117,5 @@ Cada PDF que el expediente guarde es un `many-to-one` a `com.axelor.meta.db.Meta
 - **MUST NOT** editar `<extra-code-model>` a mano.
 - **MUST NOT** crear enums sin el sufijo entidad+versión.
 - **MUST NOT** redeclarar campos que ya hereda de `Expediente`.
+- **MUST NOT** cambiar el nombre de los campos comunes de las fases `ENTRADA` y `VERIFICACION` (§4.1).
 - **MUST NOT** poner una entidad auxiliar por delante de la del expediente.

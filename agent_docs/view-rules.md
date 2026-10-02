@@ -741,8 +741,13 @@ Las secuencias de los botones estándar (`btnSave`/`btnDelete`/`btnCancel`) depe
   y la pareja validación↔operación sea reconocible por nombre (`validate{Op}` valida a `{Op}`).
 **Verificación.**
   Sujeto: cada `<action-group>` que contenga una acción `…-Remote-{Op}-action` (con `{Op}` que no empiece por `validate`).
-  Condición: si existe (en el ámbito) la acción `…-Remote-validate{Op}-action` del mismo contexto,
-    el grupo la incluye **inmediatamente antes** de `…-Remote-{Op}-action` (`{Op}` capitalizado tras `validate`).
+  Condición:
+    (a) si la clase del `<call class="…">` del `<action-method>` `…-Remote-{Op}-action` tiene un método público `validate{Op}` (`{Op}` capitalizado tras `validate`),
+      existe (en el ámbito) el `<action-method>` `…-Remote-validate{Op}-action` del mismo contexto, y su `<call>` apunta a esa misma clase con `method="validate{Op}"`.
+      La clase se consulta por reflexión: es la única condición del catálogo que no se resuelve solo con el XML.
+    (b) si existe (en el ámbito) la acción `…-Remote-validate{Op}-action` del mismo contexto,
+      el grupo la incluye **inmediatamente antes** de `…-Remote-{Op}-action`.
+  Nota: qué controladores están obligados a tener ese `validate{Op}` lo fija la regla `C28` de [`architecture-rules.md`](architecture-rules.md); esta regla garantiza que, cuando lo tienen, la vista lo llama.
 
 **Correcto** ✅
 ```xml
@@ -751,7 +756,7 @@ Las secuencias de los botones estándar (`btnSave`/`btnDelete`/`btnCancel`) depe
     <action name="subsysCorreos.Main@Correo-Remote-reenviar-action"/>
 </action-group>
 ```
-**Incorrecto** ❌ — el grupo invoca `…-Remote-reenviar-action` sin su `…-Remote-validateReenviar-action` declarado antes, o con otra acción intercalada entre ambas.
+**Incorrecto** ❌ — el grupo invoca `…-Remote-reenviar-action` y el fichero no declara `…-Remote-validateReenviar-action` aunque `CorreoController` tiene `validateReenviar`; o la declara pero el grupo no la incluye justo antes, o intercala otra acción entre ambas.
 
 ## VAR-7.5 — Botones condicionales en paneles de estado, no gemelos en panel plano
 **Decisión.**

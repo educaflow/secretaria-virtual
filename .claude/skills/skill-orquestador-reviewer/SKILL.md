@@ -129,7 +129,7 @@ Revisar y corregir lo hacen subagentes con contexto propio. Tu trabajo es ejecut
 ### 2.3 Verificar antes de reportar y antes de corregir
 
 - El revisor **MUST** verificar que cada problema existe realmente en el artefacto (no problemas hipotéticos ni ya resueltos) y, antes de reportar que "falta añadir algo", comprobar con grep que de verdad no existe (YAGNI: lo que no se usa en ningún sitio no se reporta como mejora).
-- El corrector **MUST** re-verificar cada problema antes de corregirlo y reportarlo como `PUSHBACK` con justificación técnica, sin aplicarlo, en cualquiera de estos dos casos: la corrección sugerida es **técnicamente incorrecta** para este artefacto, o **no consigue dejarla en un estado válido** y revierte el cambio. La justificación **MUST** decir cuál de los dos casos es.
+- El corrector **MUST** re-verificar cada problema antes de corregirlo y reportarlo como `PUSHBACK` con justificación técnica, sin aplicarlo, en cualquiera de estos tres casos: la corrección sugerida es **técnicamente incorrecta** para este artefacto, **no consigue dejarla en un estado válido** y revierte el cambio, o la **regla citada no dice** lo que el problema afirma (§2.6). La justificación **MUST** decir cuál de los tres casos es.
 
 ### 2.4 Modo subagente
 
@@ -138,6 +138,23 @@ Si este skill se ejecuta **dentro de un subagente** (otro skill lo invoca vía `
 ### 2.5 Contexto mínimo de vuelta
 
 El subagente revisor coordina la corrección internamente y devuelve al orquestador solo el token de resultado, los contadores y los bloques `UNCLEAR`/`PUSHBACK` — **MUST NOT** devolver el detalle de cada corrección aplicada ni evidencias largas (no aumenta el contexto principal).
+
+### 2.6 Solo es problema lo que incumple una regla citable
+
+**CRITICAL**: el bucle termina cuando no quedan **incumplimientos**, no cuando al revisor no se le ocurre nada más que mejorar. Un revisor siempre encuentra otra forma de escribir lo mismo; reportarla hace que el bucle no converja y que el corrector deshaga decisiones correctas.
+
+- Todo problema **MUST** citar la regla que incumple, de esta lista cerrada de orígenes:
+  - un skill de conocimiento cargado (skill + fichero o sección),
+  - el contrato (un eje, un paso obligatorio o una regla de `## Clasificación específica`),
+  - la descripción/requisitos de la invocación,
+  - una puerta (problemas heredados, §6.1 punto 5).
+- Si no hay regla que citar → no es un problema de ninguna severidad, tampoco `MINOR`: **MUST NOT** reportarse ni corregirse.
+- `MINOR` mide la gravedad de un incumplimiento, no la falta de él.
+
+- ✅ CORRECTO: `REGLA: <skill>/<fichero>.md «<título de la sección>»`
+- ✅ CORRECTO: `REGLA: contrato, eje «Requisitos»`
+- ❌ INCORRECTO: `REGLA: buenas prácticas` (no es una regla citable de ninguno de los cuatro orígenes)
+- ❌ INCORRECTO: `REGLA: legibilidad` (una preferencia del revisor, no un incumplimiento)
 
 ---
 
@@ -194,24 +211,26 @@ Lanza **un** subagente (`Agent`, contexto propio, secuencial — **MUST NOT** pa
 1. Carga los skills indicados y revisa el artefacto comparándolo con ese conocimiento y con los ejes del contrato.
 2. **MUST NOT** modificar ningún fichero durante la revisión.
 3. Ejecuta los `## Pasos obligatorios del revisor` del contrato.
-4. Verifica cada hallazgo **tuyo** antes de reportarlo (principio 2.3).
+4. Verifica cada hallazgo **tuyo** antes de reportarlo (principio 2.3) y descarta los que no incumplan una regla citable (principio 2.6): «podría hacerse de otra forma» no es un hallazgo.
 5. **MUST** incorporar a la lista del punto 6 los problemas heredados de las puertas **tal cual**, sin reclasificarlos y **sin** someterlos a la verificación del punto 4: ya vienen verificados por la puerta, y son la razón de ser de esta entrada al bucle. Descartarlos deja la reentrada sin contenido.
-6. Clasifica cada problema: `BLOCKING` (rompe funcionalidad, integridad o seguridad), `IMPORTANT` (incumple convenciones o requisitos), `MINOR` (mejora menor), aplicando además las reglas de `## Clasificación específica`. Si un problema es ambiguo o no permite una corrección concreta, emítelo como bloque `UNCLEAR` (formato en el punto 9) y **MUST NOT** pasarlo al corrector.
+6. Clasifica cada problema: `BLOCKING` (rompe funcionalidad, integridad o seguridad), `IMPORTANT` (incumple convenciones o requisitos), `MINOR` (incumplimiento de una regla citada sin efecto en el comportamiento), aplicando además las reglas de `## Clasificación específica`. Si un problema es ambiguo o no permite una corrección concreta, emítelo como bloque `UNCLEAR` (formato en el punto 9) y **MUST NOT** pasarlo al corrector.
 7. Redacta la lista de problemas (solo los de severidad clara) con **exactamente** este formato:
 
    ```text
    BEGIN:----
    SEVERIDAD: BLOCKING|IMPORTANT|MINOR
    FICHERO: <ruta del fichero afectado>
-   Descripción del error, inconsistencia o mejora encontrada
+   REGLA: <regla incumplida y su origen, según el principio 2.6>
+   Descripción del incumplimiento encontrado
    END:----
    ```
 
-   - ✅ CORRECTO: `BEGIN:----` / `SEVERIDAD: BLOCKING` / `FICHERO: src/…/Foo.java` / descripción / `END:----`
+   - ✅ CORRECTO: `BEGIN:----` / `SEVERIDAD: BLOCKING` / `FICHERO: src/…/Foo.java` / `REGLA: contrato, eje «Requisitos»` / descripción / `END:----`
    - ❌ INCORRECTO: `Problema 1 (grave): …` (sin marcadores parseables, sin severidad de la lista cerrada ni fichero)
+   - ❌ INCORRECTO: un bloque sin línea `REGLA:` (sin regla no es un problema: principio 2.6)
 8. Si hay problemas con severidad clara, **lanza él mismo el subagente corrector** (6.2) y espera a que termine. Si **solo** hay `UNCLEAR`, **MUST NOT** lanzarlo.
 9. Devuelve al orquestador **solo** una de estas respuestas:
-   - `OK-No hay problemas` (exactamente ese token) — **solo** si no encontró absolutamente nada. **MUST NOT** devolver este token si emite algún bloque: `OK-No hay problemas` y los bloques son **mutuamente excluyentes**, y el orquestador lo evalúa antes que nada (§6.3), de modo que un `UNCLEAR` acompañado de este token se perdería sin llegar al usuario.
+   - `OK-No hay problemas` (exactamente ese token) — si no queda ningún incumplimiento de una regla citable (principio 2.6) ni ningún `UNCLEAR`; que el artefacto admita otra forma de escribirse **no** impide devolverlo. **MUST NOT** devolver este token si emite algún bloque: `OK-No hay problemas` y los bloques son **mutuamente excluyentes**, y el orquestador lo evalúa antes que nada (§6.3), de modo que un `UNCLEAR` acompañado de este token se perdería sin llegar al usuario.
    - `CORREGIDO — BLOCKING: <n>, IMPORTANT: <n>, MINOR: <n>`, seguido de un bloque por cada `UNCLEAR` propio y por cada `PUSHBACK` del corrector. Si no se corrigió nada porque solo había `UNCLEAR`, los tres contadores van a `0` y este es el token igualmente. Formato **exacto** de los bloques:
 
      ```text
@@ -241,7 +260,7 @@ El prompt del corrector **MUST** incluir: la lista de skills a cargar, la ubicac
 
 1. Carga los skills indicados.
 2. Corrige los problemas en orden de severidad: primero `BLOCKING`, luego `IMPORTANT`, luego `MINOR`.
-3. Para cada problema, re-verifica que existe tal como fue descrito antes de tocarlo. Si la corrección sugerida es técnicamente incorrecta para este artefacto → **MUST NOT** aplicarla; repórtala como `PUSHBACK` con justificación técnica (principio 2.3).
+3. Para cada problema, re-verifica que existe tal como fue descrito antes de tocarlo y que la `REGLA:` citada dice lo que el problema afirma. Si la corrección sugerida es técnicamente incorrecta para este artefacto, o la regla no lo dice → **MUST NOT** aplicarla; repórtala como `PUSHBACK` con justificación técnica (principio 2.3).
 4. Ejecuta los `## Pasos obligatorios del corrector` del contrato sobre cada fichero que toques.
 5. **MUST NOT** tocar ficheros fuera del `## Alcance`.
 6. Aplica y verifica cada corrección **individualmente** antes de pasar a la siguiente.
@@ -295,7 +314,8 @@ Presenta al usuario:
 - El contrato **MUST** traer las ocho secciones de §1.3 (con `NINGUNO`/`NINGUNA`/`NADA` cuando no apliquen); sus secciones se inyectan **literales** en los prompts de los subagentes.
 - Eres **orquestador**: el revisor detecta (sin modificar nada) y el corrector arregla; tú ejecutas las puertas, interpretas tokens y decides iterar o parar. **MUST NOT** editar ficheros ni cargar skills tú mismo.
 - Las puertas se ejecutan **solo en las puertas** (una a la entrada, una en cada paso por la de salida), **nunca** dentro del bucle: un build por iteración multiplicaría por 30 el coste.
-- Tokens literales: `OK-No hay problemas` termina el bucle; `CORREGIDO — BLOCKING: n, IMPORTANT: n, MINOR: n` itera; bloques `BEGIN:----`/`SEVERIDAD:`/`FICHERO:`/`END:----` para los problemas y `BEGIN:----`/`UNCLEAR`|`PUSHBACK`/`FICHERO:`/`END:----` para la vuelta (§6.1).
+- Tokens literales: `OK-No hay problemas` termina el bucle; `CORREGIDO — BLOCKING: n, IMPORTANT: n, MINOR: n` itera; bloques `BEGIN:----`/`SEVERIDAD:`/`FICHERO:`/`REGLA:`/`END:----` para los problemas y `BEGIN:----`/`UNCLEAR`|`PUSHBACK`/`FICHERO:`/`END:----` para la vuelta (§6.1).
+- Solo es problema lo que incumple una **regla citable** (skill cargado, contrato, requisitos o puerta — §2.6): sin `REGLA:` no se reporta ni se corrige, y el bucle termina aunque el artefacto admita otra forma de escribirse.
 - `UNCLEAR` y `PUSHBACK` paran el bucle y van al usuario (o se devuelven como resultado en modo subagente, §2.4).
 - Subagentes secuenciales, sin `run_in_background`; contexto mínimo de vuelta (tokens, contadores y bloques, no el detalle de las correcciones).
 - **LIMIT**: 30 iteraciones (acumuladas, `iter` no se reinicia) y 3 reentradas (`reentradas` tampoco); corrección en orden BLOCKING → IMPORTANT → MINOR, verificada individualmente.

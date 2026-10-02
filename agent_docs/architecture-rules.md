@@ -255,6 +255,21 @@ El `allowProperties<Accion>` queda **fuera** de esta regla: es la whitelist del 
 
 **Cumplimiento.** ❌ INCUMPLE (test congelado): `correos.service.CorreoService` declara `enviarCorreo(Long)` y `listarCorreosEnFail()` sin validador. Las otras 9 interfaces `ModelService` del proyecto cumplen.
 
+### C28 — Un controlador que expone una acción de un `*Service` expone también su validación
+
+**Contexto.** Una acción propia se ejecuta desde la vista con la secuencia `Remote-validate<Accion>-action` → `Remote-<accion>-action` (`k-sistemas/controladores.md`, `k-validaciones/validaciones.md` §5): la primera llama al `validate<Accion>` del servicio y devuelve sus mensajes al formulario **antes** de ejecutar nada.
+C23 solo garantiza que el validador está declarado en el servicio. Si el controlador no lo expone, la vista no tiene a qué llamar y el único aviso que le queda al usuario es la excepción de la salvaguarda de la propia acción.
+
+**Decisión.** Un controlador que llama a una acción propia de un servicio tiene un método `validate<Accion>` que llama al validador de esa acción.
+
+**Verificación.**
+- Sujeto: clases de `..controller..`, excluidos los paquetes exentos, que llaman a algún método **acción** de servicio. Un método acción es el sujeto de C23: un método **declarado** (no heredado) en una interfaz de `com.educaflow` asignable a `com.axelor.db.modelservice.ModelService`, cuyo nombre no empieza por `validate` ni por `allowProperties`.
+- Condición: por cada acción `m` de una interfaz `S` a la que llama la clase, la misma clase declara un método llamado `validate` + el nombre de `m` con la inicial en mayúscula, y ese método llama a un método de `S` con ese mismo nombre.
+- Vacuidad: un controlador que no llama a ninguna acción de servicio cumple la regla (no debe fallar por sujeto vacío).
+- Mensaje: «el controlador que expone una acción de un *Service expone también su validate<Accion>, que llama al validador de esa acción».
+
+**Cumplimiento.** ❌ INCUMPLE (test congelado): hay controladores que llaman a una acción de servicio sin exponer su validación (acciones de lectura o de preparación de una pantalla, como `criptografia.controller.CertificadoDigitalController` con `getDatosTitularByDni`).
+
 ### C24 — El motor de tramitación no depende de los servicios ni de los controladores del tramitador
 
 **Contexto.** `com.educaflow.subsystem.tramitador.tramitacion` es el **motor de tramitación** (la máquina de estados: `core`, `eventmanager`, `validation` y su `internal`).
