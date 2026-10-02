@@ -5,7 +5,7 @@ import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
-import com.educaflow.base.infrastructure.mail.Attach;
+import com.educaflow.base.infrastructure.fichero.Fichero;
 import com.educaflow.base.infrastructure.mail.Mail;
 import com.educaflow.base.infrastructure.mail.MailSender;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
@@ -107,7 +107,7 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
     /*************************************************************************************/
 
     private void fireActionRule_NotificarRegistroSalida(RegistroSalida registroSalida) {
-        List<Attach> attachs = createAttachFromMetaFiles(registroSalida.getAnexos());
+        List<Fichero> attachs = createAttachFromMetaFiles(registroSalida.getAnexos());
         attachs.add(createAttachFromMetaFile(registroSalida.getDocumento()));
         String subject = "Nuevo Registro de Salida Nº " + registroSalida.getNumeroRegistro();
         String body = "Se ha creado un nuevo registro de salida con número " + registroSalida.getNumeroRegistro() + " en el centro " + registroSalida.getCentro().getName();
@@ -130,12 +130,12 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
         return numeroRegistro;
     }
 
-    private Attach createAttachFromMetaFile(MetaFile metaFile) {
-        return new Attach(metaFile.getFileName(), MetaFileUtil.downloadContent(metaFile), metaFile.getFileType());
+    private Fichero createAttachFromMetaFile(MetaFile metaFile) {
+        return new Fichero(metaFile.getFileName(), MetaFileUtil.downloadContent(metaFile), metaFile.getFileType());
     }
 
-    private List<Attach> createAttachFromMetaFiles(List<MetaFile> metaFiles) {
-        List<Attach> attachs = new ArrayList<>();
+    private List<Fichero> createAttachFromMetaFiles(List<MetaFile> metaFiles) {
+        List<Fichero> attachs = new ArrayList<>();
         for (MetaFile metaFile : metaFiles) {
             attachs.add(createAttachFromMetaFile(metaFile));
         }

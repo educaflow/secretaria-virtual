@@ -10,7 +10,7 @@ import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.i18n.I18n;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.async.EjecutorAsincrono;
-import com.educaflow.base.infrastructure.mail.Attach;
+import com.educaflow.base.infrastructure.fichero.Fichero;
 import com.educaflow.base.infrastructure.mail.Mail;
 import com.educaflow.base.infrastructure.mail.MailSender;
 import com.educaflow.base.util.MetaFileUtil;
@@ -522,7 +522,7 @@ class CorreoServiceImplTest {
         verify(mailSender).send(mailCaptor.capture());
         Mail mail = mailCaptor.getValue();
         assertEquals(1, mail.attachs().size());
-        Attach attach = mail.attachs().get(0);
+        Fichero attach = mail.attachs().get(0);
         assertEquals("doc.pdf", attach.fileName());
         assertEquals(contenido, attach.data());
         assertEquals("application/pdf", attach.mimeType());

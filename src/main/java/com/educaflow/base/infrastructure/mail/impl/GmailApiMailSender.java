@@ -4,7 +4,7 @@
  */
 package com.educaflow.base.infrastructure.mail.impl;
 
-import com.educaflow.base.infrastructure.mail.Attach;
+import com.educaflow.base.infrastructure.fichero.Fichero;
 import com.educaflow.base.infrastructure.mail.Mail;
 import com.educaflow.base.infrastructure.mail.MailSender;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -121,9 +121,9 @@ public class GmailApiMailSender implements MailSender {
 
         // Adjuntos
         if (mail.attachs() != null && !mail.attachs().isEmpty()) {
-            for (Attach attach : mail.attachs()) {
+            for (Fichero attach : mail.attachs()) {
                 MimeBodyPart attachmentPart = new MimeBodyPart();
-                // Asumiendo métodos getData(), getContentType(), getName() en tu clase Attach
+                // Asumiendo métodos getData(), getContentType(), getName() en tu clase Fichero
                 ByteArrayDataSource bds = new ByteArrayDataSource(attach.data(), attach.mimeType());
                 attachmentPart.setDataHandler(new DataHandler(bds));
                 attachmentPart.setFileName(attach.fileName());

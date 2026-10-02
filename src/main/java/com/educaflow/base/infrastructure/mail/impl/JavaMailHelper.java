@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.educaflow.base.infrastructure.mail.Mail;
-import com.educaflow.base.infrastructure.mail.Attach;
+import com.educaflow.base.infrastructure.fichero.Fichero;
 import jakarta.activation.DataHandler;
 import jakarta.activation.DataSource;
 import jakarta.mail.Address;
@@ -66,7 +66,7 @@ public class JavaMailHelper {
             message.setContent(mainBodyPart);
 
 
-            for (Attach attach : mail.attachs()) {
+            for (Fichero attach : mail.attachs()) {
                 MimeBodyPart att = new MimeBodyPart();
                 DataSource dataSource = new InputStreamDataSource(attach.mimeType(), attach.fileName(), attach.data());
                 att.setDataHandler(new DataHandler(dataSource));

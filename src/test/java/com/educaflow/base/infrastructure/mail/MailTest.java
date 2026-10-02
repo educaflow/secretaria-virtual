@@ -1,5 +1,6 @@
 package com.educaflow.base.infrastructure.mail;
 
+import com.educaflow.base.infrastructure.fichero.Fichero;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -16,7 +17,7 @@ class MailTest {
         String subject = "Asunto de prueba";
         String htmlBody = "<p>Cuerpo HTML</p>";
         String textBody = "Cuerpo texto";
-        List<Attach> attachs = List.of(new Attach("fichero.pdf", new byte[]{1, 2, 3}, "application/pdf"));
+        List<Fichero> attachs = List.of(new Fichero("fichero.pdf", new byte[]{1, 2, 3}, "application/pdf"));
 
         Mail mail = new Mail(to, from, subject, htmlBody, textBody, attachs);
 

@@ -10,7 +10,8 @@ Clases completas y reutilizables en cualquier proyecto (no dependen del dominio 
 - `criptografia` — Certificados X.509, almacenes de clave (fichero/HSM/dispositivo), emisores (FNMT/ACCV/DNI) y datos de certificado.
 - `db` — Acceso de bajo nivel al esquema de base de datos y operaciones masivas (`DatabaseSchema`, `Table`, `BulkTables`).
 - `evaluator` — Evaluación de expresiones (implementación Groovy).
-- `mail` — Envío de correo (`Mail`, `Attach`, `MailSender` y su impl SMTP).
+- `fichero` — Un fichero que no está guardado en ningún sitio: nombre, contenido y tipo MIME (`Fichero`). Es el adjunto de un correo o lo que se devuelve en una descarga.
+- `mail` — Envío de correo (`Mail`, `MailSender` y su impl SMTP).
 - `mapper` — Mapeo entre DTOs y entidades Axelor (`BeanMapperModel`) y comparación de colecciones de modelos.
 - `metafile` — Helper de alto nivel sobre `MetaFile` de Axelor (`MetaFileHelper`).
 - `numeradores` — Generación de números/secuencias persistentes (entidad `Numerador` y su repositorio).

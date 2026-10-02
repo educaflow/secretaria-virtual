@@ -1,6 +1,6 @@
 package com.educaflow.base.infrastructure.mail.impl;
 
-import com.educaflow.base.infrastructure.mail.Attach;
+import com.educaflow.base.infrastructure.fichero.Fichero;
 import com.educaflow.base.infrastructure.mail.Mail;
 import jakarta.mail.Address;
 import jakarta.mail.BodyPart;
@@ -51,7 +51,7 @@ class GmailApiMailSenderTest {
                 "Asunto",
                 "<p>html</p>",
                 "texto",
-                List.of(new Attach("fichero.pdf", datos, "application/pdf")));
+                List.of(new Fichero("fichero.pdf", datos, "application/pdf")));
 
         MimeMessage message = createMimeMessage(mail);
 

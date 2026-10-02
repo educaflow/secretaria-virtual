@@ -10,7 +10,7 @@ import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.i18n.I18n;
 import com.educaflow.base.infrastructure.async.EjecutorAsincrono;
-import com.educaflow.base.infrastructure.mail.Attach;
+import com.educaflow.base.infrastructure.fichero.Fichero;
 import com.educaflow.base.infrastructure.mail.Mail;
 import com.educaflow.base.infrastructure.mail.MailSender;
 import com.educaflow.base.util.DniUtil;
@@ -360,8 +360,8 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
 
         String from = AppSettings.get().get("mail.address.from");
 
-        List<Attach> attachs = correo.getAdjuntos().stream()
-                .map(adjunto -> new Attach(
+        List<Fichero> attachs = correo.getAdjuntos().stream()
+                .map(adjunto -> new Fichero(
                         adjunto.getNombreFichero(),
                         MetaFileUtil.downloadContent(adjunto.getContenido()),
                         adjunto.getContenido().getFileType()))
