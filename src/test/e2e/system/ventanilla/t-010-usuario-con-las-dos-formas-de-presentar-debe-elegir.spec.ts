@@ -13,14 +13,11 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
  *   - el expediente creado se identifica por SU número, capturado en tiempo de
  *     ejecución del título de su pestaña (nunca por un número fijo), y
  *   - se BORRA en el `finally`, de modo que la BD compartida queda como estaba.
- * El borrado no se puede hacer sobre la pestaña que abre el alta: registrar en papel
- * abre el expediente con perfil TRAMITADOR, y para ENTRADA_DATOS ese perfil cae en el
- * form genérico de solo lectura, cuyo único botón es «Salir». El botón «Borrar el
- * expediente» (evento DELETE) lo ofrece el form de perfil CREADOR, así que el teardown
- * reabre el expediente desde «Expedientes Pendientes», el listado que lo abre con ese
- * perfil (`<context name="_profile" expr="CREADOR"/>` de su `action-view`). Arrancar el
- * teardown con un `goto` lo hace robusto aunque el test falle con un diálogo abierto o
- * a medio navegar.
+ * El teardown reabre el expediente desde «Tramitación» → «Pendientes de mí» —donde el
+ * servidor lo abre con el perfil de su estado, TRAMITADOR, que es el único que ofrece
+ * «Borrar el expediente» en PENDIENTE_DOCUMENTO_ESCANEADO— en vez de borrarlo sobre la
+ * pestaña que dejó el alta: arrancar con un `goto` lo hace robusto aunque el test falle
+ * con un diálogo abierto o a medio navegar.
  * No hace falta pre-limpieza defensiva: ninguna regla de negocio limita cuántas
  * justificaciones de falta puede registrar el jefe de estudios, así que un expediente
  * residual de un run que abortara no impide crear otro ni cambia ninguna aserción (el
@@ -44,15 +41,10 @@ const TIPO_TRAMITE_ALUMNO = 'Trámites para el alumno';
 // del array es parte de la aserción (`toHaveText` compara posición a posición).
 const TRAMITES_DEL_PROFESOR = [TRAMITE, 'Trámite de prueba'];
 
-// Identidad del jefe de estudios tal y como la carga `data-demo/input/usuarios-demo.xml`.
-// `NOMBRE_COMPLETO` es con lo que la aplicación lo pinta en «Creado por»; nombre,
-// apellidos y DNI son los que `Tramitador.updatePersonas` copiaría en la persona
-// interesada SI el expediente se presentara por vía telemática (ver la aserción de
-// «presentado en papel» al final del test).
+// Identidad del jefe de estudios tal y como la carga `data-demo/input/usuarios-demo.xml`:
+// es el nombre con el que la aplicación lo pinta en «Creado por» y el que queda en
+// `usuarioRegistrador`.
 const JEFE_NOMBRE_COMPLETO = 'JefeEstudios1 CIPFP Mislata';
-const JEFE_NOMBRE = 'JefeEstudios1';
-const JEFE_APELLIDOS = 'CIPFP Mislata';
-const JEFE_DNI = '15519084H';
 
 // Títulos de las TRES pantallas del asistente (los fijan los `action-view` de
 // `system/ventanilla/views/`). Se usan para comprobar tanto que se abre la que toca
@@ -75,14 +67,25 @@ const OPCION_EN_PAPEL = 'Estoy registrando un trámite recibido en papel';
 // «¿Cómo se presenta?».
 const ERROR_FALTA_FORMA_DE_PRESENTAR = 'Debe indicar cómo se presenta el expediente';
 
-// Estado en el que nace el expediente según `InitialEventManagerImpl`: fase RECEPCION,
-// estado ENTRADA_DATOS. Son los `title` del `TipoExpedienteInstance.xml`.
-const FASE_INICIAL = 'Recepción';
-const ESTADO_INICIAL = 'Entrada de datos';
+// Primer estado del tipo de expediente cuando se registra EN PAPEL, según
+// `InitialEventManagerImpl`: fase ENTRADA, estado PENDIENTE_DOCUMENTO_ESCANEADO. Son los
+// `title` del `TipoExpedienteInstance.xml`. Quien lo presenta él mismo por vía telemática
+// arranca en ENTRADA_DATOS, así que este estado es, por sí solo, la prueba de que el
+// expediente quedó en papel.
+const FASE_INICIAL = 'Entrada';
+const ESTADO_INICIAL_EN_PAPEL = 'Pendiente de adjuntar la solicitud en papel escaneada';
+
+// Panel común (`solicitud-escaneada-upload` de `tramites/shared/template-views.xml`) y
+// aviso del form de PENDIENTE_DOCUMENTO_ESCANEADO con perfil TRAMITADOR: verlos prueba
+// que la aplicación trata el expediente como registrado en papel.
+const PANEL_SOLICITUD_ESCANEADA = 'panel:solicitud-escaneada-upload';
+const AVISO_EN_PAPEL =
+  'Adjunte escaneada en PDF la solicitud que ha entregado firmada la persona que la presenta';
 
 // Panel del form plantilla del tipo (`views.xml` de la raíz de la versión) con los datos
-// de la persona interesada. Está en el `<include-panels>` de los DOS forms de
-// ENTRADA_DATOS, así que se pinta se mire con el perfil que se mire.
+// de la persona interesada. Lo incluyen los forms de ENTRADA_DATOS —donde nacería el
+// expediente por la vía telemática—, pero NO el de PENDIENTE_DOCUMENTO_ESCANEADO con
+// perfil TRAMITADOR: su ausencia es la otra cara de la misma comprobación.
 const PANEL_DATOS_PROFESOR = 'panel:datos-profesor';
 
 // Modelo JPA del tipo de expediente: lo necesita la lectura por REST del expediente ya
@@ -245,9 +248,10 @@ function filasDeExpedientes(page: Page): Locator {
 }
 
 /**
- * Borra el expediente `numero` reabriéndolo desde «Mis trámites» → «Pendientes de mí», la
- * lista donde está un expediente en ENTRADA_DATOS de quien lo registró; el servidor lo abre
- * con su perfil CREADOR, el único form de ese estado que ofrece «Borrar el expediente». Se filtra el listado por el número (en vez de recorrer sus filas) para
+ * Borra el expediente `numero` reabriéndolo desde «Tramitación» → «Pendientes de mí», la
+ * lista donde está un expediente en PENDIENTE_DOCUMENTO_ESCANEADO de quien lo tramita;
+ * el servidor lo abre con el perfil de su estado, TRAMITADOR, el único que ofrece «Borrar
+ * el expediente» en ese estado. Se filtra el listado por el número (en vez de recorrer sus filas) para
  * no depender de la paginación: la BD es compartida y el listado crece con los
  * expedientes de otros runs. El botón abre un diálogo de confirmación de Axelor que hay
  * que aceptar; el evento DELETE responde con `refresh-app`, así que la aplicación se
@@ -255,7 +259,7 @@ function filasDeExpedientes(page: Page): Locator {
  */
 async function borrarExpediente(page: Page, numero: string): Promise<void> {
   await page.goto('/#/');
-  await abrirEntradaDeMenu(page, 'misTramites-menuitem', 'misTramites-pendientesDeMi-menuitem');
+  await abrirEntradaDeMenu(page, 'tramitacion-menuitem', 'tramitacion-pendientesDeMi-menuitem');
 
   const filtro = page
     .getByTestId('search-row')
@@ -266,12 +270,6 @@ async function borrarExpediente(page: Page, numero: string): Promise<void> {
   await expect(filasDeExpedientes(page)).toHaveCount(1);
   await filasDeExpedientes(page).first().click();
   await expect(page.getByRole('tab', { name: TITULO_EXPEDIENTE })).toBeVisible();
-
-  // CONTROL POSITIVO de la aserción de más arriba («el alta abrió el form de solo
-  // lectura del TRAMITADOR, sin "Siguiente" ni "Borrar el expediente"»): el MISMO
-  // expediente, en el MISMO estado, abierto con perfil CREADOR sí trae esos dos
-  // botones. Sin esto, aquella ausencia podría deberse a que el estado no los tiene.
-  await expect(page.getByRole('button', { name: 'Siguiente' })).toBeVisible();
 
   await page.getByTestId('widget:DELETE').getByRole('button').click();
   await page.getByRole('dialog').getByRole('button', { name: 'Aceptar' }).click();
@@ -415,8 +413,10 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await page.getByRole('button', { name: 'Crear expediente' }).click();
 
       // Resultado esperado: se abre el expediente recién creado de "Justificación de
-      // falta del profesorado" en su primer estado (fase RECEPCION, estado
-      // ENTRADA_DATOS, los que fija `InitialEventManagerImpl`).
+      // falta del profesorado" en su primer estado. Al haberse registrado en papel ese
+      // primer estado es PENDIENTE_DOCUMENTO_ESCANEADO de la fase ENTRADA, y no
+      // ENTRADA_DATOS, que es donde nacería por la vía telemática (lo fija
+      // `InitialEventManagerImpl`).
       const pestanaExpediente = page.getByRole('tab', { name: TITULO_EXPEDIENTE });
       await expect(pestanaExpediente).toBeVisible();
       const tituloExpediente = (await pestanaExpediente.getByTestId('title').innerText()).trim();
@@ -427,7 +427,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // Ojo: el rótulo "Estado" es subcadena de "Fecha último estado", así que
       // localizarlo por nombre accesible resolvería a dos inputs. Se acota al campo.
       await expect(page.getByTestId('field:nameState').getByRole('textbox')).toHaveValue(
-        ESTADO_INICIAL,
+        ESTADO_INICIAL_EN_PAPEL,
       );
 
       // Resultado esperado: el asistente se cierra — no queda visible ninguna de sus
@@ -449,34 +449,25 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // Resultado esperado: queda registrado como PRESENTADO EN PAPEL. Se ve en la UI
       // en dos sitios distintos:
       //
-      // 1) El panel "Datos del profesor interesado" está pintado (control positivo) y
-      //    sus tres campos están VACÍOS. `Tramitador.updatePersonas` solo deja vacías
-      //    las personas cuando se registra en papel —quien presenta lo entregó en
-      //    ventanilla y el sistema no sabe nada de él—; por la vía telemática habrían
-      //    nacido con el nombre, los apellidos y el DNI del jefe de estudios.
-      const panelDatosProfesor = page.getByTestId(PANEL_DATOS_PROFESOR);
-      await expect(panelDatosProfesor).toBeVisible();
-      const apellidosInteresado = panelDatosProfesor.getByRole('textbox', { name: 'Apellidos' });
-      const nombreInteresado = panelDatosProfesor.getByRole('textbox', { name: 'Nombre' });
-      const dniInteresado = panelDatosProfesor.getByRole('textbox', { name: 'DNI' });
-      await expect(apellidosInteresado).toBeVisible();
-      await expect(apellidosInteresado).toHaveValue('');
-      await expect(nombreInteresado).toHaveValue('');
-      await expect(dniInteresado).toHaveValue('');
-      await expect(apellidosInteresado).not.toHaveValue(JEFE_APELLIDOS);
-      await expect(nombreInteresado).not.toHaveValue(JEFE_NOMBRE);
-      await expect(dniInteresado).not.toHaveValue(JEFE_DNI);
+      // 1) Está pintado el formulario de la vía en papel (control positivo): el panel
+      //    para adjuntar la solicitud escaneada, con su aviso. Y NO el panel "Datos del
+      //    profesor interesado", que es lo primero que vería si el expediente hubiera
+      //    nacido por la vía telemática —en ENTRADA_DATOS, con sus datos ya copiados—:
+      //    lo comprueba T-019 sobre este mismo trámite y usuario.
+      await expect(page.getByTestId(PANEL_SOLICITUD_ESCANEADA)).toBeVisible();
+      await expect(page.getByText(AVISO_EN_PAPEL)).toBeVisible();
+      await expect(page.getByTestId(PANEL_DATOS_PROFESOR)).toHaveCount(0);
       //
       // 2) El alta abrió el expediente con perfil TRAMITADOR —el único que
-      //    `Profile.permitePresentacionEnPapel()` admite—, y para ENTRADA_DATOS ese
-      //    perfil cae en el form genérico de solo lectura: único botón "Salir", sin
-      //    "Siguiente" ni "Borrar el expediente" (los del form del CREADOR, que es con
-      //    el que se abriría si lo hubiera presentado él mismo). El control positivo de
-      //    estas dos ausencias lo hace el teardown, que reabre ESTE MISMO expediente en
-      //    ESTE MISMO estado con perfil CREADOR y comprueba que ahí sí están.
-      await expect(page.getByRole('button', { name: 'Salir' })).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Siguiente' })).toHaveCount(0);
-      await expect(page.getByRole('button', { name: 'Borrar el expediente' })).toHaveCount(0);
+      //    `Profile.permitePresentacionEnPapel()` admite—, y para
+      //    PENDIENTE_DOCUMENTO_ESCANEADO ese perfil trae la botonera de quien registra
+      //    el papel: "Borrar el expediente" y "Siguiente", SIN "Salir" (el del form
+      //    genérico de solo lectura) ni "Presentar la solicitud" (el del estado
+      //    siguiente, ENTRADA_DATOS).
+      await expect(page.getByRole('button', { name: 'Borrar el expediente' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Siguiente' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Salir' })).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Presentar la solicitud' })).toHaveCount(0);
 
       // Resultado esperado (lo PERSISTIDO): en el centro "CIPFP Mislata", presentado en
       // papel, por el jefe de estudios y PARA ÉL MISMO (no en representación).
@@ -489,8 +480,8 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       expect(persistido.presentadoEnPapel).toBe(true);
       expect(persistido.presentadoEnRepresentacion).toBe(false);
       expect(persistido['usuarioRegistrador.name']).toBe(JEFE_NOMBRE_COMPLETO);
-      expect(persistido.codePhase).toBe('RECEPCION');
-      expect(persistido.codeState).toBe('ENTRADA_DATOS');
+      expect(persistido.codePhase).toBe('ENTRADA');
+      expect(persistido.codeState).toBe('PENDIENTE_DOCUMENTO_ESCANEADO');
       // Y las dos personas nacieron vacías, que es lo que hace el alta en papel: no se
       // copió en ellas al jefe de estudios, como habría pasado por la vía telemática.
       expect(persistido['personaInteresada.nombre']).toBeNull();

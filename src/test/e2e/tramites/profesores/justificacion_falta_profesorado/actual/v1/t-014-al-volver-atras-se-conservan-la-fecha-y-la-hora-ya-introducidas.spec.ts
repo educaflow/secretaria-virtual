@@ -2,7 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 import { ensureLoggedOut, login, logout } from '../../../../../_support/auth';
 
 // T-014 — Al volver atrás se conservan la fecha y la hora ya introducidas
-// origen: ESC-014  |  CREADOR | RECEPCION/PENDIENTE_PRESENTACION --BACK--> RECEPCION/ENTRADA_DATOS  |  tipo: happy
+// origen: ESC-014  |  CREADOR | ENTRADA/PENDIENTE_PRESENTACION --BACK--> ENTRADA/ENTRADA_DATOS  |  tipo: happy
 // fuente: .sdd/drafts/2026-09-22_16-01_justificacion-falta-profesorado-fechas/test-e2e-desc/t-014-al-volver-atras-se-conservan-la-fecha-y-la-hora-ya-introducidas.desc.md
 
 const TRAMITE = 'Justificación de falta del profesorado';
@@ -134,7 +134,7 @@ const FECHA_INICIO = diasAntes(3); // «10/09/2026» en la descripción
 const FECHA_FIN_1 = diasAntes(2); // «11/09/2026» en la descripción
 const FECHA_FIN_2 = diasAntes(1); // «12/09/2026» en la descripción
 
-test.describe('Justificación de falta del profesorado — RECEPCION', () => {
+test.describe('Justificación de falta del profesorado — ENTRADA', () => {
   test('Al volver atrás se conservan la fecha y la hora ya introducidas', async ({ page }) => {
     let numero = '';
     try {
@@ -144,10 +144,10 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       await ensureLoggedOut(page);
       await login(page, PROFESOR.login, PROFESOR.password);
       numero = await crearExpediente(page);
-      await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+      await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
 
-      // Given (cont.): … en RECEPCION / ENTRADA_DATOS ha elegido el tipo de jornada faltada
+      // Given (cont.): … en ENTRADA / ENTRADA_DATOS ha elegido el tipo de jornada faltada
       // «Varios días pero del primer día solo faltó unas horas» con «Fecha de Inicio»
       // 10/09/2026, «Hora de inicio» 12:00 y «Fecha de fin» 11/09/2026, «Motivo falta»
       // «Deber inexcusable» y `justificante.pdf` adjunto, …
@@ -179,17 +179,17 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       ).toBeVisible();
 
       // Given (cont.): … y ha pulsado «Siguiente», de modo que el expediente está en
-      // RECEPCION / PENDIENTE_PRESENTACION.
+      // ENTRADA / PENDIENTE_PRESENTACION.
       await page.getByTestId(FOOTER).getByRole('button', { name: 'Siguiente' }).click();
-      await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+      await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de presentación');
 
       // When: pulsa «Atrás» (evento BACK, botón del footer).
       await page.getByTestId(FOOTER).getByRole('button', { name: 'Atrás' }).click();
 
-      // Then: el expediente vuelve a RECEPCION / ENTRADA_DATOS (la cabecera muestra
-      // «Recepción» y «Entrada de datos»).
-      await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+      // Then: el expediente vuelve a ENTRADA / ENTRADA_DATOS (la cabecera muestra
+      // «Entrada» y «Entrada de datos»).
+      await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
 
       // And: el panel «Datos de la falta» muestra ya elegido el tipo de jornada faltada

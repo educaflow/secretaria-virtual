@@ -2,7 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 import { ensureLoggedOut, login, logout } from '../../../../../_support/auth';
 
 // T-012 — No se pueden justificar unas horas sin indicar la hora de fin
-// origen: ESC-013  |  CREADOR | RECEPCION/ENTRADA_DATOS --GUARDAR_DATOS--> RECEPCION/ENTRADA_DATOS  |  tipo: error
+// origen: ESC-013  |  CREADOR | ENTRADA/ENTRADA_DATOS --GUARDAR_DATOS--> ENTRADA/ENTRADA_DATOS  |  tipo: error
 // fuente: .sdd/drafts/2026-09-22_16-01_justificacion-falta-profesorado-fechas/test-e2e-desc/t-012-no-se-pueden-justificar-unas-horas-sin-indicar-la-hora-de-fin.desc.md
 
 const TRAMITE = 'Justificación de falta del profesorado';
@@ -134,18 +134,18 @@ const FECHA_INICIO = diasAntes(3); // «10/09/2026» en la descripción
 const FECHA_FIN_1 = diasAntes(2); // «11/09/2026» en la descripción
 const FECHA_FIN_2 = diasAntes(1); // «12/09/2026» en la descripción
 
-test.describe('Justificación de falta del profesorado — RECEPCION', () => {
+test.describe('Justificación de falta del profesorado — ENTRADA', () => {
   test('No se pueden justificar unas horas sin indicar la hora de fin', async ({ page }) => {
     let numero = '';
     try {
       // --- Tramo único: CREADOR (director@mislata.es) ---
       // Given: el profesor `director@mislata.es` (contraseña `demo1234`) ha iniciado sesión,
       // ha creado un expediente nuevo de «Justificación de falta del profesorado» y lo tiene
-      // abierto en RECEPCION / ENTRADA_DATOS.
+      // abierto en ENTRADA / ENTRADA_DATOS.
       await ensureLoggedOut(page);
       await login(page, PROFESOR.login, PROFESOR.password);
       numero = await crearExpediente(page);
-      await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+      await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
 
       const panelFalta = page.getByRole('region', { name: 'Datos de la falta' });
@@ -195,9 +195,9 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       ).toBeVisible();
       await expect(recuadroErrores).toContainText(/Hora de fin/);
 
-      // Then (cont.): … y el expediente **sigue** en RECEPCION / ENTRADA_DATOS.
+      // Then (cont.): … y el expediente **sigue** en ENTRADA / ENTRADA_DATOS.
       // CRITICAL: sin esta comprobación el test pasaría aunque la máquina de estados avanzase.
-      await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+      await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
     } finally {
       // Teardown (§5.2): el expediente queda en ENTRADA_DATOS, que sí ofrece el evento DELETE

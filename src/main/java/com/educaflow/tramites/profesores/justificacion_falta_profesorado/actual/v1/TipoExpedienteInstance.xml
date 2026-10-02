@@ -2,14 +2,18 @@
 <TipoExpediente >
 
     <fases>
-        <fase name="RECEPCION" title="Recepción">
-            <state name="ENTRADA_DATOS"          events="DELETE,GUARDAR_DATOS" profile="CREADOR"      title="Entrada de datos"                          />
-            <state name="PENDIENTE_PRESENTACION" events="BACK,PRESENTAR"       profile="CREADOR"      title="Pendiente de presentación"                  />
+        <fase name="ENTRADA" title="Entrada">
+            <state name="PENDIENTE_DOCUMENTO_ESCANEADO" events="DELETE,CONTINUAR"          profile="TRAMITADOR"  title="Pendiente de adjuntar la solicitud en papel escaneada" />
+            <state name="ENTRADA_DATOS"                 events="DELETE,BACK,GUARDAR_DATOS" profile="CREADOR"     title="Entrada de datos"                                      />
+            <state name="PENDIENTE_PRESENTACION"        events="BACK,PRESENTAR"            profile="CREADOR"     title="Pendiente de presentación"                             />
         </fase>
-        <fase name="TRAMITACION" title="Tramitación">
-            <state name="PENDIENTE_RESOLUCION"   events="RESOLVER"             profile="TRAMITADOR"  title="Pendiente de resolución"                    />
-            <state name="ACEPTADO"               events=""                     profile="TRAMITADOR"                                     closed="true"   />
-            <state name="RECHAZADO"              events=""                     profile="TRAMITADOR"                                     closed="true"   />
+        <fase name="VERIFICACION" title="Verificación">
+            <state name="PENDIENTE_VERIFICACION"        events="VERIFICAR"                 profile="TRAMITADOR"  title="Pendiente de verificación"                             />
+        </fase>
+        <fase name="RESOLUCION" title="Resolución de la dirección">
+            <state name="PENDIENTE_RESOLUCION"          events="RESOLVER"                  profile="DIRECTOR"    title="Pendiente de resolución"                               />
+            <state name="ACEPTADO"                      events=""                          profile="TRAMITADOR"                                                  closed="true" />
+            <state name="RECHAZADO"                     events=""                          profile="TRAMITADOR"                                                  closed="true" />
         </fase>
     </fases>
     <acl>

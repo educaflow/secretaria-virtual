@@ -74,6 +74,112 @@
             <field name="presentadoEnPapel" hidden="true"/>
         </panel>
 
+        <!-- ================================================================================== -->
+        <!-- Fases comunes ENTRADA y VERIFICACION                                               -->
+        <!--                                                                                    -->
+        <!-- Los campos de estos paneles (textoSubsanacion, resultadoVerificacion, pdfSolicitud, -->
+        <!-- pdfSolicitudFirmada, pdfJustificanteRegistroEntrada) NO son de Expediente: cada    -->
+        <!-- tipo de expediente los declara en su domains.xml con ese mismo nombre. Un tipo que -->
+        <!-- incluya uno de estos paneles sin declarar sus campos pinta campos vacíos.          -->
+        <!-- ================================================================================== -->
+
+        <!-- Lo que el verificador ha pedido subsanar. Solo se ve mientras hay algo pendiente de subsanar. -->
+        <panel name="subsanacion" title="Qué hay que subsanar" colSpan="12"
+               showIf="(textoSubsanacion!=null) &amp;&amp; (textoSubsanacion!='')">
+            <field name="textoSubsanacion" showTitle="false" readonly="true" colSpan="12"/>
+        </panel>
+
+        <!-- En papel, pdfSolicitudFirmada no es la solicitud generada firmada digitalmente sino la que la persona
+             entregó firmada a mano, escaneada. -->
+        <panel name="solicitud-escaneada-upload" title="Solicitud entregada en papel" colSpan="12">
+            <field name="pdfSolicitudFirmada" title="Solicitud escaneada (PDF)" widget="binary-link" x-accept=".pdf" colSpan="8"/>
+        </panel>
+
+        <panel name="solicitud-escaneada-view" title="Solicitud entregada en papel" colSpan="12" showIf="presentadoEnPapel">
+            <field name="pdfSolicitudFirmada" title="Solicitud escaneada (PDF)" widget="binary-link" readonly="true" colSpan="8"/>
+            <field name="presentadoEnPapel" hidden="true"/>
+        </panel>
+
+        <panel name="verificacion" title="Verificación de la solicitud" colSpan="12">
+            <field name="resultadoVerificacion" colSpan="8" widget="SwitchSelect" required="true"/>
+            <field name="textoSubsanacion" colSpan="12" showIf="resultadoVerificacion=='SUBSANAR'"
+                   requiredIf="resultadoVerificacion=='SUBSANAR'"
+                   help="Este texto se le enviará por correo a quien presentó la solicitud y lo verá al subsanarla"/>
+        </panel>
+
+        <panel name="pdfSolicitud" title="Solicitud a firmar" colSpan="12">
+            <field name="visorSolicitud" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="pdfSolicitud"><![CDATA[
+                    <>
+                    <Box as="iframe" height="900" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfSolicitud.id}/content/download?inline=true&name=${pdfSolicitud.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+
+        <panel name="pdfSolicitudFirmada" title="Solicitud presentada" colSpan="12">
+            <field name="visorSolicitudFirmada" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="pdfSolicitudFirmada"><![CDATA[
+                    <>
+                    <Box as="iframe" height="900" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfSolicitudFirmada.id}/content/download?inline=true&name=${pdfSolicitudFirmada.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+
+        <panel name="pdfJustificanteRegistroEntrada" title="Justificante de presentación" colSpan="12">
+            <field name="visorJustificanteRegistroEntrada" showTitle="false" readonly="true" colSpan="12">
+                <viewer depends="pdfJustificanteRegistroEntrada"><![CDATA[
+                    <>
+                    <Box as="iframe" height="600" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfJustificanteRegistroEntrada.id}/content/download?inline=true&name=${pdfJustificanteRegistroEntrada.fileName}`} ></Box>
+                    </>
+                    ]]></viewer>
+            </field>
+        </panel>
+
+        <!-- La firma de la solicitud por quien la presenta: un panel por situación de firma. situacionFirma y
+             firmaEnServidor son campos de vista, no del modelo: los rellena en el onLoad del form la
+             action-record exp-<Code>-set-situacionFirma-action de cada tipo (recetas/firma.md del skill
+             k-tipo-expediente). Se incluye SIN guion: con guion claveCertificado quedaría de solo lectura. -->
+        <panel name="firma-solicitud" colSpan="12" showFrame="false">
+            <panel name="firmaSolicitudSituacion" title="" colSpan="12" showFrame="false" readonly="true">
+                <field name="situacionFirma" type="string" showIf="false" readonly="true"/>
+                <field name="firmaEnServidor" type="boolean" showIf="false" readonly="true"/>
+            </panel>
+
+            <panel name="firmaSolicitudSinCertificado" title="Firma de la solicitud" colSpan="12"
+                   showIf="situacionFirma=='SIN_CERTIFICADO'">
+                <help variant="info" colSpan="12"><![CDATA[Para presentar la solicitud debe tener la aplicación de <a href="https://sede.serviciosmin.gob.es/es-es/firmaelectronica/paginas/autofirma.aspx" target="_blank">AutoFirma</a> instalada y un certificado digital válido]]></help>
+            </panel>
+
+            <panel name="firmaSolicitudDispositivoConPin" title="Firma de la solicitud" colSpan="12"
+                   showIf="situacionFirma=='DISPOSITIVO_CON_PIN'">
+                <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital.]]></help>
+            </panel>
+
+            <panel name="firmaSolicitudDispositivoSinPin" title="Firma de la solicitud" colSpan="12"
+                   showIf="situacionFirma=='DISPOSITIVO_SIN_PIN'">
+                <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital. Introduzca el PIN de su dispositivo criptográfico.]]></help>
+                <field name="claveCertificado" title="PIN" widget="password" required="true" colSpan="4"/>
+            </panel>
+
+            <panel name="firmaSolicitudFicheroConClave" title="Firma de la solicitud" colSpan="12"
+                   showIf="situacionFirma=='FICHERO_CON_CLAVE'">
+                <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital.]]></help>
+            </panel>
+
+            <panel name="firmaSolicitudFicheroSinClave" title="Firma de la solicitud" colSpan="12"
+                   showIf="situacionFirma=='FICHERO_SIN_CLAVE'">
+                <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital. Introduzca la contraseña de su certificado.]]></help>
+                <field name="claveCertificado" title="Contraseña" widget="password" required="true" colSpan="4"/>
+            </panel>
+
+            <panel name="firmaSolicitudSinDni" title="Firma de la solicitud" colSpan="12"
+                   showIf="situacionFirma=='SIN_DNI'">
+                <help variant="warning" colSpan="12"><![CDATA[No es posible firmar la solicitud porque su usuario no tiene un documento de identidad. Póngase en contacto con el administrador.]]></help>
+            </panel>
+        </panel>
+
         <panel name="subsysExpedientes-template-footer-panel" colSpan="12" itemSpan="2" showFrame="false">
             <field name="errorMessajesField" showTitle="false" readonly="true" colSpan="12">
                 <viewer depends="errorMensajes" ><![CDATA[

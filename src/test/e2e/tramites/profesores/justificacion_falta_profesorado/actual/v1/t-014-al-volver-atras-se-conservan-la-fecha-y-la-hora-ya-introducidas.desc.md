@@ -14,9 +14,9 @@ id: T-014
 
 **Origen ESC:** ESC-014
 **Perfil:** `CREADOR` (login `director@mislata.es`)
-**Desde:** `RECEPCION` / `PENDIENTE_PRESENTACION`
+**Desde:** `ENTRADA` / `PENDIENTE_PRESENTACION`
 **Evento:** `BACK` — botón «Atrás»
-**Hasta:** `RECEPCION` / `ENTRADA_DATOS`
+**Hasta:** `ENTRADA` / `ENTRADA_DATOS`
 **Tipo:** happy
 **Manual:** no
 
@@ -28,17 +28,18 @@ id: T-014
 |---|---|---|---|---|---|
 | `director@mislata.es` | `demo1234` | tipo de usuario `PROFESOR`, cargo `DIRECTOR` | CIPFP Mislata | `CREADOR` | security `AceProfileTipoUsuarioTramite` (`CREADOR` / `PROFESOR` / `PROFESOR`) |
 | `director@mislata.es` | `demo1234` | tipo de usuario `PROFESOR`, cargo `DIRECTOR` | CIPFP Mislata | `AUDITOR` | `<acl>` del trámite (`AUDITOR` / cargo `DIRECTOR`) |
+| `director@mislata.es` | `demo1234` | tipo de usuario `PROFESOR`, cargo `DIRECTOR` | CIPFP Mislata | `DIRECTOR` | security `AceProfileGlobal` (`DIRECTOR` / cargo `DIRECTOR`) |
 | `jefeestudios1@mislata.es` | `demo1234` | tipo de usuario `PROFESOR`, cargo `JEFE_ESTUDIOS` | CIPFP Mislata | `TRAMITADOR` | security `AceProfileTipoUsuarioTramite` (`TRAMITADOR` / cargo `JEFE_ESTUDIOS` / `PROFESOR`) |
 
-Los tres son del **mismo centro** (CIPFP Mislata), que es el del expediente: esta iniciativa no toca nada multicentro y no hay ningún test de aislamiento.
+Todos son del **mismo centro** (CIPFP Mislata), que es el del expediente: esta iniciativa no toca nada multicentro y no hay ningún test de aislamiento.
 
 ### Datos de demo
 
 Estado previo del que parten **todos** los tests: la carga de demo (`data.import.demo-data = true`) con sus centros, usuarios y perfiles, más el trámite «Justificación de falta del profesorado» publicado en el árbol de trámites del centro, bajo la categoría del profesorado. Ningún test puede presuponer más estado que este.
 
-La demo **no** carga ningún certificado digital, así que en `RECEPCION` / `PENDIENTE_PRESENTACION` la solicitud solo se puede firmar con AutoFirma en el equipo del profesor, y la resolución exige el certificado del director del centro instalado en el servidor. Los tests que atraviesan esos dos pasos van marcados `Manual: sí`.
+La demo **no** carga ningún certificado digital, así que en `ENTRADA` / `PENDIENTE_PRESENTACION` la solicitud solo se puede firmar con AutoFirma en el equipo del profesor, y la resolución exige el certificado del director del centro instalado en el servidor. Los tests que atraviesan esos dos pasos van marcados `Manual: sí`.
 
-#### Juego de datos válido — fase `RECEPCION`, estado `ENTRADA_DATOS`
+#### Juego de datos válido — fase `ENTRADA`, estado `ENTRADA_DATOS`
 
 Un juego por cada tipo de jornada faltada; los tests del camino feliz usan el suyo.
 
@@ -54,16 +55,24 @@ Un juego por cada tipo de jornada faltada; los tests del camino feliz usan el su
 
 El justificante es un **PDF pequeño** (menos de 1 MB), llamado `justificante.pdf`. Vale igualmente una imagen PNG, JPEG o GIF de menos de 5 MB.
 
-#### Juego de datos válido — fase `TRAMITACION`, estado `PENDIENTE_RESOLUCION`
+#### Juego de datos válido — fase `VERIFICACION`, estado `PENDIENTE_VERIFICACION`
 
 | campo | valor |
 |---|---|
-| «Tipo resolución» | Resolver positivamente *(o «Resolver negativamente(Rechazar)»)* |
+| «Resultado de la verificación» | La solicitud es correcta *(o «Pedir subsanación»)* |
+| «Qué hay que subsanar» | Falta la segunda página del justificante *(solo al pedir subsanación)* |
+
+#### Juego de datos válido — fase `RESOLUCION`, estado `PENDIENTE_RESOLUCION`
+
+| campo | valor |
+|---|---|
+| «Tipo resolución» | Resolver positivamente *(o «Resolver negativamente(Rechazar)» o «Devolver a jefatura de estudios»)* |
 | «Motivo del rechazo» | Los días indicados no constan como falta *(solo al resolver negativamente)* |
+| «Motivo de la devolución» | El justificante no corresponde a los días indicados *(solo al devolver a jefatura de estudios)* |
 
 ## Pasos
 
-- **Given** el profesor `director@mislata.es` (contraseña `demo1234`) ha iniciado sesión, ha creado un expediente nuevo de «Justificación de falta del profesorado», en `RECEPCION` / `ENTRADA_DATOS` ha elegido el tipo de jornada faltada «Varios días pero del primer día solo faltó unas horas» con «Fecha de Inicio» 10/09/2026, «Hora de inicio» 12:00 y «Fecha de fin» 11/09/2026, «Motivo falta» «Deber inexcusable» y `justificante.pdf` adjunto, y ha pulsado «Siguiente», de modo que el expediente está en `RECEPCION` / `PENDIENTE_PRESENTACION`.
+- **Given** el profesor `director@mislata.es` (contraseña `demo1234`) ha iniciado sesión, ha creado un expediente nuevo de «Justificación de falta del profesorado», en `ENTRADA` / `ENTRADA_DATOS` ha elegido el tipo de jornada faltada «Varios días pero del primer día solo faltó unas horas» con «Fecha de Inicio» 10/09/2026, «Hora de inicio» 12:00 y «Fecha de fin» 11/09/2026, «Motivo falta» «Deber inexcusable» y `justificante.pdf` adjunto, y ha pulsado «Siguiente», de modo que el expediente está en `ENTRADA` / `PENDIENTE_PRESENTACION`.
 - **When** pulsa «Atrás».
-- **Then** el expediente vuelve a `RECEPCION` / `ENTRADA_DATOS`.
+- **Then** el expediente vuelve a `ENTRADA` / `ENTRADA_DATOS`.
 - **And** el panel «Datos de la falta» muestra ya elegido el tipo de jornada faltada «Varios días pero del primer día solo faltó unas horas», con «Fecha de Inicio» a 10/09/2026, «Hora de inicio» a 12:00 y «Fecha de fin» a 11/09/2026.

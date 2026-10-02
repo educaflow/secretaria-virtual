@@ -23,7 +23,12 @@ public class InitialEventManagerImpl implements InitialEventManager<Justificacio
 
     @Override
     public void triggerInitialEvent(InitialEventContext<JustificacionFaltaProfesoradoV1> initialEventContext) throws BusinessException {
-        initialEventContext.updateState(States.Recepcion.ENTRADA_DATOS);
+        // En papel se empieza adjuntando la solicitud escaneada y después se copian sus datos.
+        if (Boolean.TRUE.equals(initialEventContext.getExpediente().getPresentadoEnPapel())) {
+            initialEventContext.updateState(States.Entrada.PENDIENTE_DOCUMENTO_ESCANEADO);
+        } else {
+            initialEventContext.updateState(States.Entrada.ENTRADA_DATOS);
+        }
     }
 
 }

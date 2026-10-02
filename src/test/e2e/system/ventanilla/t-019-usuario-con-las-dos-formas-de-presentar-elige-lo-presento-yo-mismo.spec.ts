@@ -67,14 +67,14 @@ const PREGUNTA_PARA_QUIEN = '¿Para quién es el expediente?';
 const OPCION_LO_PRESENTO_YO = 'Lo presento yo mismo';
 const OPCION_EN_PAPEL = 'Estoy registrando un trámite recibido en papel';
 
-// Estado en el que nace el expediente según `InitialEventManagerImpl`: fase RECEPCION,
+// Estado en el que nace el expediente según `InitialEventManagerImpl`: fase ENTRADA,
 // estado ENTRADA_DATOS. Son los `title` del `TipoExpedienteInstance.xml`.
-const FASE_INICIAL = 'Recepción';
+const FASE_INICIAL = 'Entrada';
 const ESTADO_INICIAL = 'Entrada de datos';
 
 // Panel del form plantilla del tipo (`views.xml` de la raíz de la versión) con los datos
-// de la persona interesada. Está en el `<include-panels>` de los DOS forms de
-// ENTRADA_DATOS, así que se pinta se mire con el perfil que se mire.
+// de la persona interesada. Está en el `<include-panels>` del form de ENTRADA_DATOS con
+// perfil CREADOR, que es el que abre el alta cuando lo presenta él mismo.
 const PANEL_DATOS_PROFESOR = 'panel:datos-profesor';
 
 // Panel que la plantilla común pinta con `showIf="presentadoEnRepresentacion"`
@@ -154,7 +154,7 @@ async function abrirEntradaDeMenu(page: Page, grupo: string, entrada: string): P
 /**
  * Borra el expediente cuya pestaña se titula `titulo`, pulsando "Borrar el expediente"
  * directamente sobre la pestaña recién abierta: al presentarlo él mismo el alta abre el
- * form con perfil CREADOR, que es el único que ofrece ese botón (evento DELETE), así
+ * form con perfil CREADOR, que ofrece ese botón (evento DELETE), así
  * que —a diferencia de T-010 (registrado en papel)— no hace falta reabrir el
  * expediente desde ningún listado. El botón abre un diálogo de confirmación de Axelor
  * que hay que aceptar; el evento DELETE responde con `refresh-app`, así que la
@@ -269,7 +269,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
 
       // Resultado esperado: el asistente se cierra y se abre el expediente recién
       // creado de "Justificación de falta del profesorado" en su primer estado (fase
-      // RECEPCION, estado ENTRADA_DATOS, los que fija `InitialEventManagerImpl`).
+      // ENTRADA, estado ENTRADA_DATOS, los que fija `InitialEventManagerImpl`).
       const pestanaExpediente = page.getByRole('tab', { name: TITULO_EXPEDIENTE });
       await expect(pestanaExpediente).toBeVisible();
       tituloExpediente = (await pestanaExpediente.getByTestId('title').innerText()).trim();
@@ -309,13 +309,14 @@ test.describe('Ventanilla — Nuevo expediente', () => {
         JEFE_NOMBRE_COMPLETO,
       );
       //
-      // 2) El alta abrió el expediente con perfil CREADOR —el único que ofrece
-      //    "Borrar el expediente" (evento DELETE)—, y para ENTRADA_DATOS ese perfil
-      //    trae la botonera de quien aún tiene que rellenar y firmar: "Siguiente" y
+      // 2) El alta abrió el expediente con perfil CREADOR, y para ENTRADA_DATOS ese
+      //    perfil trae la botonera de quien aún tiene que rellenar y firmar: "Siguiente" y
       //    "Borrar el expediente", SIN "Salir" ni "Presentar la solicitud" (el "Salir"
-      //    es del form genérico de solo lectura que vería el perfil TRAMITADOR si lo
-      //    hubiera registrado en papel el propio jefe de estudios — lo comprueba
-      //    T-010 sobre este mismo trámite y usuario).
+      //    es del form genérico de solo lectura, y "Presentar la solicitud" el del form
+      //    del TRAMITADOR que copia los datos de una solicitud registrada en papel; en
+      //    papel, además, el expediente ni siquiera nace en este estado sino en
+      //    PENDIENTE_DOCUMENTO_ESCANEADO — lo comprueba T-010 sobre este mismo trámite y
+      //    usuario).
       await expect(page.getByRole('button', { name: 'Siguiente' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Borrar el expediente' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Salir' })).toHaveCount(0);
@@ -326,9 +327,9 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // representación, así que no debe existir; y el panel propio del trámite "Datos
       // del profesor interesado" nace PRERRELLENO y EN SOLO LECTURA con la identidad
       // del propio jefe de estudios —el sistema ya sabe quién es, no hay que
-      // preguntárselo—, a diferencia de T-010 (en papel), donde esos tres campos nacen
-      // vacíos porque quien presenta lo entregó en ventanilla y el sistema no sabe
-      // nada de él.
+      // preguntárselo—, a diferencia de T-010 (en papel), donde las personas del
+      // expediente nacen vacías porque quien presenta lo entregó en ventanilla y el
+      // sistema no sabe nada de él.
       await expect(page.getByTestId(PANEL_PERSONA_SOLICITANTE)).toHaveCount(0);
       await expect(page.getByText('Persona que presenta la solicitud')).toHaveCount(0);
       const panelDatosProfesor = page.getByTestId(PANEL_DATOS_PROFESOR);

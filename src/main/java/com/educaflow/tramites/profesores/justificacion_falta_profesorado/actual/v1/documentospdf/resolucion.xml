@@ -75,25 +75,18 @@
     <espacio alto="14.76" visible="self.tipoResolucion == com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.RECHAZAR"/>
 
     <parrafo visible="self.tipoResolucion == com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.RECHAZAR">
-        <valenciano>Pel motiu següent: ${self.resolucion}</valenciano>
-        <castellano>Por el siguiente motivo: ${self.resolucion}</castellano>
+        <valenciano>Pel motiu següent: ${self.motivoRechazo}</valenciano>
+        <castellano>Por el siguiente motivo: ${self.motivoRechazo}</castellano>
     </parrafo>
     <espacio alto="14.76" visible="self.tipoResolucion == com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.RECHAZAR"/>
 
-    <parrafo visible="self.tipoResolucion == com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.SUBSANAR_DATOS">
-        <valenciano>Requerir la persona interessada perquè esmene les dades de la sol·licitud, pel motiu següent: ${self.disconformidad}</valenciano>
-        <castellano>Requerir a la persona interesada para que subsane los datos de la solicitud, por el siguiente motivo: ${self.disconformidad}</castellano>
-    </parrafo>
-    <espacio alto="14.76" visible="self.tipoResolucion == com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.SUBSANAR_DATOS"/>
-
-    <!-- El requerimiento de subsanación es un acto de trámite: no pone fin al procedimiento y no lleva recursos. -->
-    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda" visible="self.tipoResolucion != com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.SUBSANAR_DATOS">
+    <parrafo negrita="true" mayusculas="true" alineamiento="izquierda">
         <valenciano>Recursos:</valenciano>
         <castellano>Recursos:</castellano>
     </parrafo>
-    <espacio alto="14.76" visible="self.tipoResolucion != com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.SUBSANAR_DATOS"/>
+    <espacio alto="14.76"/>
 
-    <parrafo visible="self.tipoResolucion != com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1.SUBSANAR_DATOS">
+    <parrafo>
         <valenciano>Contra aquesta resolució, que no posa fi a la via administrativa, es pot interposar recurs d'alçada davant la direcció territorial competent en matèria d'educació en el termini d'un mes comptador des de l'endemà de la seua notificació, de conformitat amb els articles 121 i 122 de la Llei 39/2015, d'1 d'octubre, del procediment administratiu comú de les administracions públiques.</valenciano>
         <castellano>Contra esta resolución, que no pone fin a la vía administrativa, se puede interponer recurso de alzada ante la dirección territorial competente en materia de educación en el plazo de un mes contado desde el día siguiente al de su notificación, de conformidad con los artículos 121 y 122 de la Ley 39/2015, de 1 de octubre, del procedimiento administrativo común de las administraciones públicas.</castellano>
     </parrafo>
@@ -110,7 +103,7 @@
 
     <espacio alto="29.52"/>
 
-    <!-- Solo firma el director (CAMPO_FIRMA_RESOLUCION del PhaseEventManagerImpl de tramitacion). -->
+    <!-- Solo firma el director (CAMPO_FIRMA_RESOLUCION del PhaseEventManagerImpl de resolucion). -->
     <tabla columnas="2">
         <fila>
             <parrafo/>

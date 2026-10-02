@@ -1,4 +1,4 @@
-package com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.tramitacion;
+package com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.resolucion;
 
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
@@ -41,23 +41,44 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
     }
 
 
+    /**
+     * La dirección resuelve la solicitud que la jefatura de estudios dio por correcta, o se la devuelve si no
+     * está conforme con esa verificación.
+     */
     @WhenEvent
     public void triggerResolver(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, JustificacionFaltaProfesoradoV1 original, EventContext eventContext) throws BusinessException {
         TipoResolucionJustificacionFaltaProfesoradoV1 tipoResolucion = justificacionFaltaProfesorado.getTipoResolucion();
+        switch (tipoResolucion) {
+            case ACEPTAR -> {
+                justificacionFaltaProfesorado.setMotivoRechazo(null);
+                emitirResolucion(justificacionFaltaProfesorado, eventContext);
+                eventContext.updateState(States.Resolucion.ACEPTADO);
+            }
+            case RECHAZAR -> {
+                emitirResolucion(justificacionFaltaProfesorado, eventContext);
+                eventContext.updateState(States.Resolucion.RECHAZADO);
+            }
+            case DEVOLVER -> {
+                // No se emite ningún documento: la jefatura de estudios vuelve a verificar, con el motivo a la vista.
+                justificacionFaltaProfesorado.setMotivoRechazo(null);
+                justificacionFaltaProfesorado.setTipoResolucion(null);
+                justificacionFaltaProfesorado.setResultadoVerificacion(null);
+                eventContext.updateState(States.Verificacion.PENDIENTE_VERIFICACION);
+            }
+            case null -> throw new IllegalArgumentException("Tipo de resolución no reconocido: " + tipoResolucion);
+        }
+    }
+
+    /** Genera la resolución, la firma con el certificado de la dirección del centro y la registra de salida. */
+    private void emitirResolucion(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, EventContext eventContext) {
+        justificacionFaltaProfesorado.setMotivoDevolucion(null);
+
         DocumentoPdf resolucion = justificacionFaltaProfesorado.getDocumentoPdf(JustificacionFaltaProfesoradoV1.TipoDocumentoPdf.RESOLUCION);
-
-        DocumentoPdf resolucionFirmada =resolucion.firmar(almacenClaveResolver.getDirector(justificacionFaltaProfesorado.getCentro()),new CampoFirma(CAMPO_FIRMA_RESOLUCION));
-
+        DocumentoPdf resolucionFirmada = resolucion.firmar(almacenClaveResolver.getDirector(justificacionFaltaProfesorado.getCentro()), new CampoFirma(CAMPO_FIRMA_RESOLUCION));
         MetaFile pdfResolucion = MetaFileHelper.createMetaFile(resolucionFirmada);
 
-        RegistroSalida registroSalida=eventContext.createRegistroSalida(pdfResolucion, List.of(justificacionFaltaProfesorado.getJustificante()));
+        RegistroSalida registroSalida = eventContext.createRegistroSalida(pdfResolucion, List.of(justificacionFaltaProfesorado.getJustificante()));
         justificacionFaltaProfesorado.setPdfResolucion(registroSalida.getDocumento());
-        switch (tipoResolucion) {
-            case ACEPTAR -> eventContext.updateState(States.Tramitacion.ACEPTADO);
-            case RECHAZAR -> eventContext.updateState(States.Tramitacion.RECHAZADO);
-            case SUBSANAR_DATOS -> eventContext.updateState(States.Recepcion.ENTRADA_DATOS);
-            default -> throw new IllegalArgumentException("Tipo de resolución no reconocido: " + tipoResolucion);
-        }
     }
 
 

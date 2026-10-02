@@ -6,11 +6,12 @@
     <!-- **********************************************************************************************  -->
     <!-- ************************************ PENDIENTE_RESOLUCION ************************************  -->
     <!-- **********************************************************************************************  -->
-    <form state="PENDIENTE_RESOLUCION" profile="TRAMITADOR" >
+    <form state="PENDIENTE_RESOLUCION" profile="DIRECTOR" >
         <include-panels>
             -datos-profesor
             -datos-falta-view
-            -pdfSolicitudFirmado
+            -justificante-view
+            -pdfSolicitudFirmada
             resolucion
         </include-panels>
         <footer>
@@ -29,7 +30,7 @@
         </include-panels>
 
         <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
-            <help variant="info" colSpan="12">La solicitud está pendiente de que la jefatura de estudios la resuelva</help>
+            <help variant="info" colSpan="12">La solicitud está pendiente de que la dirección del centro la resuelva</help>
         </panel>
 
         <footer>
@@ -39,8 +40,6 @@
             </buttons-right>
         </footer>
     </form>
-
-
 
 
     <!-- **********************************************************************  -->
@@ -70,7 +69,7 @@
     <!-- **********************************************************************  -->
     <!-- ****************************** RECHAZADO ******************************  -->
     <!-- **********************************************************************  -->
-    <form  state="RECHAZADO">
+    <form state="RECHAZADO">
         <include-panels>
             -datos-profesor
             -datos-falta-view

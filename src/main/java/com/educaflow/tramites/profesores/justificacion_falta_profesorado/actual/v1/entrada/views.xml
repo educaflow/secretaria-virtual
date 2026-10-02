@@ -4,12 +4,54 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <!-- *********************************************************************************************  -->
+    <!-- ******************************** PENDIENTE_DOCUMENTO_ESCANEADO ******************************  -->
+    <!-- *********************************************************************************************  -->
+    <!-- Solo se llega a este estado en papel (InitialEventManagerImpl), y el papel lo presenta siempre el
+         TRAMITADOR, así que es él quien adjunta la solicitud escaneada. -->
+    <form state="PENDIENTE_DOCUMENTO_ESCANEADO" profile="TRAMITADOR">
+        <include-panels>
+            -subsanacion
+            solicitud-escaneada-upload
+        </include-panels>
+
+        <panel name="avisoPendienteDocumentoEscaneadoTramitador" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">Adjunte escaneada en PDF la solicitud que ha entregado firmada la persona que la presenta. En el paso siguiente copiará sus datos</help>
+        </panel>
+
+        <footer>
+            <buttons-left>
+                <button name="DELETE" colSpan="2" css="btn-danger" outline="true" title="Borrar el expediente"  icon="trash"  onClick="subsysTramitador-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
+            </buttons-left>
+            <buttons-right>
+                <button name="CONTINUAR" colSpan="2" title="Siguiente" onClick="subsysTramitador-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+    <form state="PENDIENTE_DOCUMENTO_ESCANEADO">
+        <include-panels>
+            -datos-profesor
+            -datos-falta-view
+        </include-panels>
+
+        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">La solicitud todavía no se ha presentado: está pendiente de que se adjunte escaneada la solicitud entregada en papel</help>
+        </panel>
+
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <!-- *********************************************************************************************  -->
     <!-- *************************************** ENTRADA_DATOS ***************************************  -->
     <!-- *********************************************************************************************  -->
     <form state="ENTRADA_DATOS" profile="CREADOR" >
         <include-panels>
+            -subsanacion
             -datos-profesor
-            -disconformidad-view
             datos-falta
             justificante-upload
         </include-panels>
@@ -22,10 +64,41 @@
             </buttons-right>
         </footer>
     </form>
+
+    <!-- El estado lo comparten las dos formas de presentar, así que tiene un form por perfil: el de arriba para
+         quien presenta telemáticamente (CREADOR) y este para quien registra el papel (TRAMITADOR). -->
+    <form state="ENTRADA_DATOS" profile="TRAMITADOR"
+          onLoad="subsysExpedientes-persona-interesada-onLoad-action">
+        <include-panels>
+            -subsanacion
+            datos-profesor-editable
+            datos-falta
+            justificante-upload
+            -solicitud-escaneada-view
+        </include-panels>
+
+        <panel name="avisoEntradaDatosTramitador" colSpan="12" showFrame="false">
+            <!-- Con el perfil TRAMITADOR también se llega aquí cuando la solicitud es telemática (por ejemplo, tras
+                 pedir una subsanación): entonces el turno es de quien la presentó y no hay nada que hacer. -->
+            <help variant="info" colSpan="12" showIf="!presentadoEnPapel">La solicitud está pendiente de que el profesor complete o corrija los datos y la presente</help>
+            <help variant="info" colSpan="12" showIf="presentadoEnPapel">Copie los datos de la solicitud entregada en papel que ha adjuntado escaneada. Al presentarla se registrará su entrada</help>
+        </panel>
+
+        <footer>
+            <buttons-left>
+                <button name="DELETE" showIf="presentadoEnPapel" colSpan="2" css="btn-danger" outline="true" title="Borrar el expediente"  icon="trash"  onClick="subsysTramitador-event-action" prompt="¿Está seguro que desea borrar el expediente?"/>
+                <button name="BACK" showIf="presentadoEnPapel" colSpan="2" outline="true" title="Atrás" onClick="subsysTramitador-event-action"/>
+            </buttons-left>
+            <buttons-right>
+                <button name="GUARDAR_DATOS" showIf="presentadoEnPapel" colSpan="4" title="Presentar la solicitud" onClick="subsysTramitador-event-action"
+                        prompt="Va a presentar la solicitud entregada en papel. Una vez presentada no podrá modificarla"/>
+            </buttons-right>
+        </footer>
+    </form>
     <form state="ENTRADA_DATOS">
         <include-panels>
+            -subsanacion
             -datos-profesor
-            -disconformidad-view
             -datos-falta-view
             -justificante-view
         </include-panels>
@@ -48,44 +121,8 @@
     <form state="PENDIENTE_PRESENTACION" profile="CREADOR" onLoad="exp-JustificacionFaltaProfesoradoV1-PENDIENTE_PRESENTACION-onLoad-action">
         <include-panels>
             -pdfSolicitud
+            firma-solicitud
         </include-panels>
-
-        <panel name="firmaSolicitudSituacion" title="" colSpan="12" showFrame="false" readonly="true">
-            <field name="situacionFirma" type="string" showIf="false" readonly="true"/>
-            <field name="firmaEnServidor" type="boolean" showIf="false" readonly="true"/>
-        </panel>
-
-        <panel name="firmaSolicitudSinCertificado" title="Firma de la solicitud" colSpan="12"
-               showIf="situacionFirma=='SIN_CERTIFICADO'">
-            <help variant="info" colSpan="12" colOffset="0"><![CDATA[Para presentar la solicitud debe tener la aplicación de <a href="https://sede.serviciosmin.gob.es/es-es/firmaelectronica/paginas/autofirma.aspx" target="_blank">AutoFirma</a> instalada y un certificado digital válido]]></help>
-        </panel>
-
-        <panel name="firmaSolicitudDispositivoConPin" title="Firma de la solicitud" colSpan="12"
-               showIf="situacionFirma=='DISPOSITIVO_CON_PIN'">
-            <help variant="info" colSpan="12" colOffset="0"><![CDATA[La solicitud se firmará en el servidor con su certificado digital.]]></help>
-        </panel>
-
-        <panel name="firmaSolicitudDispositivoSinPin" title="Firma de la solicitud" colSpan="12"
-               showIf="situacionFirma=='DISPOSITIVO_SIN_PIN'">
-            <help variant="info" colSpan="12" colOffset="0"><![CDATA[La solicitud se firmará en el servidor con su certificado digital. Introduzca el PIN de su dispositivo criptográfico.]]></help>
-            <field name="claveCertificado" title="PIN" widget="password" required="true" colSpan="4"/>
-        </panel>
-
-        <panel name="firmaSolicitudFicheroConClave" title="Firma de la solicitud" colSpan="12"
-               showIf="situacionFirma=='FICHERO_CON_CLAVE'">
-            <help variant="info" colSpan="12" colOffset="0"><![CDATA[La solicitud se firmará en el servidor con su certificado digital.]]></help>
-        </panel>
-
-        <panel name="firmaSolicitudFicheroSinClave" title="Firma de la solicitud" colSpan="12"
-               showIf="situacionFirma=='FICHERO_SIN_CLAVE'">
-            <help variant="info" colSpan="12" colOffset="0"><![CDATA[La solicitud se firmará en el servidor con su certificado digital. Introduzca la contraseña de su certificado.]]></help>
-            <field name="claveCertificado" title="Contraseña" widget="password" required="true" colSpan="4"/>
-        </panel>
-
-        <panel name="firmaSolicitudSinDni" title="Firma de la solicitud" colSpan="12"
-               showIf="situacionFirma=='SIN_DNI'">
-            <help variant="warning" colSpan="12" colOffset="0"><![CDATA[No es posible firmar la solicitud porque su usuario no tiene un documento de identidad. Póngase en contacto con el administrador.]]></help>
-        </panel>
 
         <footer>
             <buttons-left>
@@ -132,10 +169,12 @@
                expr="call:com.educaflow.tramites.util.firma.FirmaServidorController:isFirmaEnServidor()"/>
     </action-record>
 
+    <!-- firmaSolicitante: el campoFirma de documentospdf/solicitud.xml, el mismo que CAMPO_FIRMA_SOLICITUD
+         del PhaseEventManagerImpl de esta fase. MUST NOT cambiarse aquí sin cambiarlo allí. -->
     <action-method name="exp-JustificacionFaltaProfesoradoV1-firmarDocumentacionParaPresentar-action"  >
         <call
                 class="com.educaflow.tramites.util.firma.FirmaClienteController"
-                method='firmarDocumentoEnCampo(id,"pdfSolicitud","pdfSolicitudFirmado","firmaSolicitante")'
+                method='firmarDocumentoEnCampo(id,"pdfSolicitud","pdfSolicitudFirmada","firmaSolicitante")'
         />
     </action-method>
 

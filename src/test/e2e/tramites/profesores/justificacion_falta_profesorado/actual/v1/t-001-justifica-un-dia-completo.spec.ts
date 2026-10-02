@@ -2,7 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 import { ensureLoggedOut, login, logout } from '../../../../../_support/auth';
 
 // T-001 — Justifica un día completo
-// origen: ESC-001  |  CREADOR | [*] --GUARDAR_DATOS--> RECEPCION/PENDIENTE_PRESENTACION  |  tipo: happy
+// origen: ESC-001  |  CREADOR | [*] --GUARDAR_DATOS--> ENTRADA/PENDIENTE_PRESENTACION  |  tipo: happy
 // fuente: .sdd/drafts/2026-09-22_16-01_justificacion-falta-profesorado-fechas/test-e2e-desc/t-001-justifica-un-dia-completo.desc.md
 
 const TRAMITE = 'Justificación de falta del profesorado';
@@ -135,7 +135,7 @@ const FECHA_INICIO = diasAntes(3); // «10/09/2026» en la descripción
 const FECHA_FIN_1 = diasAntes(2); // «11/09/2026» en la descripción
 const FECHA_FIN_2 = diasAntes(1); // «12/09/2026» en la descripción
 
-test.describe('Justificación de falta del profesorado — RECEPCION', () => {
+test.describe('Justificación de falta del profesorado — ENTRADA', () => {
   test('Justifica un día completo', async ({ page }) => {
     let numero = '';
     try {
@@ -147,8 +147,8 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       await login(page, PROFESOR.login, PROFESOR.password);
       numero = await crearExpediente(page);
 
-      // … el sistema lo abre en la fase RECEPCION, estado ENTRADA_DATOS,
-      await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+      // … el sistema lo abre en la fase ENTRADA, estado ENTRADA_DATOS,
+      await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
 
       // … con el panel «Datos del profesor interesado» ya relleno con sus apellidos, su
@@ -188,13 +188,13 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       // When (cont.): … y pulsa «Siguiente» (evento GUARDAR_DATOS, botón del footer).
       await page.getByTestId(FOOTER).getByRole('button', { name: 'Siguiente' }).click();
 
-      // Then: el expediente queda en la fase RECEPCION, estado PENDIENTE_PRESENTACION, y la
-      // cabecera muestra «Recepción» y «Pendiente de presentación».
-      await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+      // Then: el expediente queda en la fase ENTRADA, estado PENDIENTE_PRESENTACION, y la
+      // cabecera muestra «Entrada» y «Pendiente de presentación».
+      await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de presentación');
 
       // And: la nueva pantalla muestra la solicitud generada en PDF …
-      const pdfSolicitud = page.getByRole('region', { name: 'Solicitud' }).locator('iframe');
+      const pdfSolicitud = page.getByRole('region', { name: 'Solicitud a firmar' }).locator('iframe');
       await expect(pdfSolicitud).toBeVisible();
       await expect(pdfSolicitud).toHaveAttribute('src', /MetaFile\/\d+\/content\/download/);
       // … y ofrece los botones «Atrás» y el de firmar y presentar.
@@ -213,7 +213,7 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
 
       // … como PENDIENTE_PRESENTACION no tiene pantalla para ese perfil, el sistema abre la
       // vista genérica de solo consulta, que muestra la solicitud en PDF …
-      const pdfConsulta = page.getByRole('region', { name: 'Solicitud' }).locator('iframe');
+      const pdfConsulta = page.getByRole('region', { name: 'Solicitud a firmar' }).locator('iframe');
       await expect(pdfConsulta).toBeVisible();
       await expect(pdfConsulta).toHaveAttribute('src', /MetaFile\/\d+\/content\/download/);
       // … y el aviso «La solicitud está pendiente de que el profesor la firme y la presente»;
@@ -226,8 +226,8 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       const footerConsulta = page.getByTestId(FOOTER);
       await expect(footerConsulta.getByRole('button')).toHaveCount(1);
       await expect(footerConsulta.getByRole('button', { name: 'Salir' })).toBeVisible();
-      // … y el expediente **sigue** en RECEPCION / PENDIENTE_PRESENTACION.
-      await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+      // … y el expediente **sigue** en ENTRADA / PENDIENTE_PRESENTACION.
+      await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de presentación');
     } finally {
       // Teardown (§5.2): PENDIENTE_PRESENTACION no ofrece DELETE, pero sí BACK, que devuelve

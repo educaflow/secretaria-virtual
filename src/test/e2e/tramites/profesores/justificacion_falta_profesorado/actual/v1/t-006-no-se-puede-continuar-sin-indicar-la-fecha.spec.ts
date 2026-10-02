@@ -2,7 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 import { ensureLoggedOut, login, logout } from '../../../../../_support/auth';
 
 // T-006 — No se puede continuar sin indicar la fecha
-// origen: ESC-005  |  CREADOR | RECEPCION/ENTRADA_DATOS --GUARDAR_DATOS--> RECEPCION/ENTRADA_DATOS  |  tipo: error
+// origen: ESC-005  |  CREADOR | ENTRADA/ENTRADA_DATOS --GUARDAR_DATOS--> ENTRADA/ENTRADA_DATOS  |  tipo: error
 // fuente: .sdd/drafts/2026-09-22_16-01_justificacion-falta-profesorado-fechas/test-e2e-desc/t-006-no-se-puede-continuar-sin-indicar-la-fecha.desc.md
 
 const TRAMITE = 'Justificación de falta del profesorado';
@@ -117,18 +117,18 @@ async function crearExpediente(page: Page): Promise<string> {
 }
 
 
-test.describe('Justificación de falta del profesorado — RECEPCION', () => {
+test.describe('Justificación de falta del profesorado — ENTRADA', () => {
   test('No se puede continuar sin indicar la fecha', async ({ page }) => {
     let numero = '';
     try {
       // --- Tramo único: CREADOR (director@mislata.es) ---
       // Given: el profesor `director@mislata.es` (contraseña `demo1234`) ha iniciado sesión,
       // ha creado un expediente nuevo de «Justificación de falta del profesorado» y lo tiene
-      // abierto en RECEPCION / ENTRADA_DATOS.
+      // abierto en ENTRADA / ENTRADA_DATOS.
       await ensureLoggedOut(page);
       await login(page, PROFESOR.login, PROFESOR.password);
       numero = await crearExpediente(page);
-      await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+      await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
 
       const panelFalta = page.getByRole('region', { name: 'Datos de la falta' });
@@ -169,9 +169,9 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       ).toBeVisible();
       await expect(recuadroErrores).toContainText(/Fecha de Inicio/);
 
-      // Then (cont.): … y el expediente **sigue** en RECEPCION / ENTRADA_DATOS.
+      // Then (cont.): … y el expediente **sigue** en ENTRADA / ENTRADA_DATOS.
       // CRITICAL: sin esta comprobación el test pasaría aunque la máquina de estados avanzase.
-      await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+      await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
     } finally {
       // Teardown (§5.2): el expediente queda en ENTRADA_DATOS, que sí ofrece el evento DELETE

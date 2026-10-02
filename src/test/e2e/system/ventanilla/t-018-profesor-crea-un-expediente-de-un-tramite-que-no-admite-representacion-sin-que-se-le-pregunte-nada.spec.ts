@@ -54,10 +54,10 @@ const PANTALLA_TRAMITE = 'Nuevo expediente: elija el trámite';
 const PANTALLA_CONTEXTO = 'Nuevo expediente';
 
 // Primer estado del tipo de expediente para quien lo presenta él mismo (perfil
-// CREADOR), según `TipoExpedienteInstance.xml`: fase RECEPCION, estado ENTRADA_DATOS.
+// CREADOR), según `TipoExpedienteInstance.xml`: fase ENTRADA, estado ENTRADA_DATOS.
 // Comprobado pilotando la app real (los rótulos son los de la vista, no las constantes
-// del enum): Fase "Recepción", Estado "Entrada de datos".
-const FASE_INICIAL = 'Recepción';
+// del enum): Fase "Entrada", Estado "Entrada de datos".
+const FASE_INICIAL = 'Entrada';
 const ESTADO_INICIAL = 'Entrada de datos';
 
 // Panel que la plantilla común pinta con `showIf="presentadoEnRepresentacion"`

@@ -39,3 +39,20 @@ La regla de arquitectura **C2** lo verifica para `base.infrastructure`.
   La situación de firma **MUST NOT** ser un campo de ningún `domains.xml`: solo la necesita la pantalla para elegir qué panel pinta, así que el formulario la pide en su `onLoad` al controlador y el servidor la recalcula del DNI cada vez que valida o firma.
   Depende de `subsystem/criptografia`. **MUST NOT** depender de `subsystem/firmas`, que es la bandeja de tareas de firma —lo que el usuario final ve para firmar lo que le ponen delante— y podría desaparecer.
   Sí es legítimo que un trámite use `subsystem/firmas` cuando lo que quiere es poner un documento a la firma de alguien.
+- **`entrada/`** — lo que hacen igual todos los tipos de expediente en su fase común `ENTRADA`.
+  `EntradaHelper`: firmar la solicitud en el servidor si a quien presenta le corresponde (`firmarSolicitudSiEsEnServidor`), asentarla en el registro de entrada y guardar el resguardo (`presentar`), y las dos ayudas de los `trigger*` de la fase (`estaEn`, para los eventos que salen de más de un estado, y `exigePresentadoEnPapel`, para los que son de un solo modo de presentación).
+  `EntradaRules.kt`: la regla del DSL de validación `solicitudEscaneada(...)`, la de la solicitud entregada en papel.
+  `CamposEntrada`: el descriptor con el que cada tipo le dice al helper cuáles son sus campos.
+  Depende de `subsystem/criptografia` (a través de `firma/`), de `subsystem/tramitador` (`EventContext`, `State`) y de `subsystem/registroentradasalida` (el `RegistroEntrada` que devuelve `EventContext`).
+- **`verificacion/`** — lo que hacen igual todos los tipos de expediente en su fase común `VERIFICACION`.
+  `VerificacionHelper.avisarDeSubsanacion`: el correo que avisa a quien presentó de que tiene que subsanar; es una cortesía, así que si no hay a quién escribir no se envía y no bloquea la verificación.
+  `VerificacionRules.kt`: las reglas del DSL de validación `resultadoVerificacion(...)` y `textoSubsanacion(...)`.
+  Depende de `subsystem/correos`.
+
+`entrada/` y `verificacion/` cumplen la condición 5 de tres formas, porque los campos con los que trabajan (`pdfSolicitud`, `pdfSolicitudFirmada`, `pdfJustificanteRegistroEntrada`, `resultadoVerificacion`, `textoSubsanacion`) los declara cada tipo en su `domains.xml` y no son de `Expediente`:
+
+- como **parámetros** (`avisarDeSubsanacion(expediente, textoSubsanacion)`);
+- como ***getters* `KFunction`** en las reglas (`solicitudEscaneada(model::getPdfSolicitudFirmada)`), con el ítem del enum del tipo también como parámetro (`textoSubsanacion(..., ResultadoVerificacion.SUBSANAR)`);
+- como el descriptor **`CamposEntrada<T>`**, un record de referencias a los getters y setters del tipo que cada uno construye una vez, como constante `CAMPOS_ENTRADA` de su `<Code>Util`.
+
+A qué estado se pasa después **MUST** decidirlo cada tipo: es el único que puede nombrar los estados de su `States`, así que aquí no hay ningún `updateState`.

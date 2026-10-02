@@ -1,10 +1,28 @@
 package com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1;
 
 import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1;
+import com.educaflow.tramites.util.entrada.CamposEntrada;
 
 public final class JustificacionFaltaProfesoradoV1Util {
 
     private JustificacionFaltaProfesoradoV1Util() {
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Fases comunes                                                      */
+    /* ------------------------------------------------------------------ */
+
+    /** Los campos de este tipo con los que trabaja el código común de la fase ENTRADA (tramites/util/entrada). */
+    public static final CamposEntrada<JustificacionFaltaProfesoradoV1> CAMPOS_ENTRADA = new CamposEntrada<>(
+            JustificacionFaltaProfesoradoV1::getPdfSolicitud,
+            JustificacionFaltaProfesoradoV1::getPdfSolicitudFirmada,
+            JustificacionFaltaProfesoradoV1::setPdfSolicitudFirmada,
+            JustificacionFaltaProfesoradoV1::setPdfJustificanteRegistroEntrada,
+            JustificacionFaltaProfesoradoV1Util::borrarSubsanacion);
+
+    public static void borrarSubsanacion(JustificacionFaltaProfesoradoV1 expediente) {
+        expediente.setResultadoVerificacion(null);
+        expediente.setTextoSubsanacion(null);
     }
 
     /* ------------------------------------------------------------------ */

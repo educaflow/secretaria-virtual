@@ -1,11 +1,11 @@
 import { test, expect, Page } from '@playwright/test';
 import { ensureLoggedOut, login, logout } from '../../../../../_support/auth';
 
-// T-017 — El tramitador acepta la justificación y el estado cerrado sigue mostrando el periodo
-// origen: ESC —  |  TRAMITADOR | TRAMITACION/PENDIENTE_RESOLUCION --RESOLVER--> TRAMITACION/ACEPTADO  |  tipo: happy
-// MANUAL: llegar a PENDIENTE_RESOLUCION exige presentar con AutoFirma (T-016) y resolver exige el
-//         certificado digital del director del centro instalado en el servidor; la carga de demo no
-//         trae ninguno de los dos.
+// T-017 — La dirección acepta la justificación y el estado cerrado sigue mostrando el periodo
+// origen: ESC —  |  DIRECTOR | RESOLUCION/PENDIENTE_RESOLUCION --RESOLVER--> RESOLUCION/ACEPTADO  |  tipo: happy
+// MANUAL: llegar a PENDIENTE_RESOLUCION exige presentar con AutoFirma (T-016) —y que la jefatura de
+//         estudios verifique la solicitud— y resolver exige el certificado digital del director del
+//         centro instalado en el servidor; la carga de demo no trae ninguno de los dos.
 // Ejecutar con:  E2E_MANUAL=1 npx playwright test --grep @manual --headed
 // fuente: .sdd/drafts/2026-09-22_16-01_justificacion-falta-profesorado-fechas/test-e2e-desc/t-017-el-tramitador-acepta-la-justificacion-y-el-estado-cerrado-sigue-mostrando-el-periodo.desc.md
 
@@ -14,6 +14,9 @@ const TIPO_TRAMITE = 'Trámites para el profesor';
 
 const PROFESOR = { login: 'director@mislata.es', password: 'demo1234' };
 const TRAMITADOR = { login: 'jefeestudios1@mislata.es', password: 'demo1234' };
+// Quien resuelve es el director del centro (perfil DIRECTOR, que le da su cargo). En la carga de
+// demo es la misma persona que presenta la solicitud: sobre SU expediente es además el CREADOR.
+const DIRECTOR = PROFESOR;
 
 // El footer del expediente (un botón por evento disponible) lo pinta la plantilla común
 // del tramitador; es el sitio donde se dispara la transición y donde se comprueba qué
@@ -23,6 +26,8 @@ const FOOTER = 'panel:subsysExpedientes-template-footer-panel';
 // Panel que enseña el PDF de la resolución (un `iframe` contra el MetaFile que el evento
 // RESOLVER genera, firma con el certificado del director y registra de salida).
 const PANEL_PDF_RESOLUCION = 'panel:pdfResolucion';
+// Panel de solo lectura con el sentido de la resolución (y el motivo, si es un rechazo).
+const PANEL_RESOLUCION_VIEW = 'panel:resolucion-view';
 
 
 const BOTON_PRESENTAR = 'Firmar con AutoFirma y Presentar la solicitud';
@@ -71,6 +76,15 @@ async function filtrarEnBandeja(page: Page, numero: string, entrada: string, ...
   // El último rowgroup es el de los datos; el primero lleva la cabecera y la fila de filtros
   // (que también contiene el número tecleado y haría ambigua la búsqueda por rol).
   return page.getByRole('rowgroup').last().getByRole('row', { name: new RegExp(numero) });
+}
+
+/**
+ * Recarga la aplicación (la sesión se conserva) y espera a que el menú principal esté pintado:
+ * deja el menú plegado y sin pestañas abiertas, que es el punto de partida que `abrirMenu` espera.
+ */
+async function recargarAplicacion(page: Page): Promise<void> {
+  await page.goto('/');
+  await expect(page.getByTestId('item:tramitacion-menuitem')).toBeVisible();
 }
 
 /**
@@ -148,9 +162,9 @@ const FECHA_INICIO = diasAntes(3); // «10/09/2026» en la descripción
 const FECHA_FIN_1 = diasAntes(2); // «11/09/2026» en la descripción
 const FECHA_FIN_2 = diasAntes(1); // «12/09/2026» en la descripción
 
-test.describe('Justificación de falta del profesorado — TRAMITACION', () => {
+test.describe('Justificación de falta del profesorado — RESOLUCION', () => {
   test(
-    'El tramitador acepta la justificación y el estado cerrado sigue mostrando el periodo',
+    'La dirección acepta la justificación y el estado cerrado sigue mostrando el periodo',
     { tag: '@manual' },
     async ({ page }) => {
       // El paso manual (abrir AutoFirma, elegir el certificado y firmar) lo hace una persona:
@@ -161,20 +175,21 @@ test.describe('Justificación de falta del profesorado — TRAMITACION', () => {
 
       let numero = '';
       try {
-        // --- Tramo 1: CREADOR (director@mislata.es) — solo para DEJAR el expediente en el estado
-        //     de partida `TRAMITACION` / `PENDIENTE_RESOLUCION` que exige el `Given`. El tramo del
-        //     evento RESOLVER (el del campo `Perfil`) es el 2, el del TRAMITADOR ---
+        // --- Tramo 1: CREADOR (director@mislata.es) — junto con el tramo 2, solo para DEJAR el
+        //     expediente en el estado de partida `RESOLUCION` / `PENDIENTE_RESOLUCION` que exige el
+        //     `Given`. El tramo del evento RESOLVER (el del campo `Perfil`) es el 3, el del DIRECTOR ---
         // Given: existe un expediente de «Justificación de falta del profesorado» del centro CIPFP
-        // Mislata en TRAMITACION / PENDIENTE_RESOLUCION, presentado con el tipo de jornada faltada
+        // Mislata en RESOLUCION / PENDIENTE_RESOLUCION, presentado con el tipo de jornada faltada
         // «Unas horas de un único día», «Fecha» 10/09/2026, «Hora de inicio» 09:00 y «Hora de fin»
         // 11:00 …
         // El estado de partida se alcanza recorriendo la máquina de estados POR LA UI (nunca por
         // REST ni por SQL): el CREADOR teclea los datos, pulsa «Siguiente» (GUARDAR_DATOS) y
-        // presenta la solicitud (PRESENTAR), que es el paso que exige AutoFirma.
+        // presenta la solicitud (PRESENTAR), que es el paso que exige AutoFirma; después la jefatura
+        // de estudios la da por correcta (VERIFICAR), que es lo que la pasa a la dirección.
         await ensureLoggedOut(page);
         await login(page, PROFESOR.login, PROFESOR.password);
         numero = await crearExpediente(page);
-        await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+        await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
         await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
 
         const panelFalta = page.getByRole('region', { name: 'Datos de la falta' });
@@ -203,7 +218,7 @@ test.describe('Justificación de falta del profesorado — TRAMITACION', () => {
         ).toBeVisible();
 
         await page.getByTestId(FOOTER).getByRole('button', { name: 'Siguiente' }).click();
-        await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+        await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
         await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de presentación');
 
         // El servidor no tiene certificado de este profesor (`situacionFirma == 'SIN_CERTIFICADO'`),
@@ -228,21 +243,47 @@ test.describe('Justificación de falta del profesorado — TRAMITACION', () => {
         // El test continúa solo cuando el efecto de la firma es visible en la UI: el expediente ha
         // transicionado. No se espera un tiempo fijo ni se hace `page.pause()`, para que el test
         // siga fallando si la persona cancela AutoFirma o firma con el certificado equivocado.
-        await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de resolución', {
+        // Presentar ya no lleva a la resolución: la solicitud pasa antes por la verificación de la
+        // jefatura de estudios.
+        await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de verificación', {
           timeout: 600_000,
         });
-        await expect(page.getByLabel('Fase')).toHaveValue('Tramitación');
+        await expect(page.getByLabel('Fase')).toHaveValue('Verificación');
 
-        // --- Tramo 2: TRAMITADOR (jefeestudios1@mislata.es) — el del campo `Perfil`, el que
-        //     dispara el evento RESOLVER ---
-        // Given (cont.): … `jefeestudios1@mislata.es` (contraseña `demo1234`) ha iniciado sesión, lo
-        // abre por la bandeja «Expedientes esperando a que otra persona realice una tarea» …
-        // Esa bandeja es la que pinta la vista del perfil TRAMITADOR: entrar por otra daría la vista
-        // genérica de solo lectura, sin el botón del evento.
+        // --- Tramo 2: TRAMITADOR (jefeestudios1@mislata.es) — sigue siendo preparación del
+        //     `Given`: la jefatura de estudios verifica la solicitud y la da por correcta ---
+        // Given (cont.): … y verificado como correcto por la jefatura de estudios …
+        // En PENDIENTE_VERIFICACION el expediente espera al perfil TRAMITADOR, así que está en su
+        // lista «Tramitación» → «Pendientes de mí».
         await logout(page);
         await login(page, TRAMITADOR.login, TRAMITADOR.password);
         await abrirDesdeBandeja(page, numero, 'tramitacion-pendientesDeMi-menuitem', 'tramitacion-menuitem');
-        await expect(page.getByLabel('Fase')).toHaveValue('Tramitación');
+        await expect(page.getByLabel('Fase')).toHaveValue('Verificación');
+        await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de verificación');
+
+        const solicitudCorrecta = page
+          .getByRole('region', { name: 'Verificación de la solicitud' })
+          .getByRole('radio', { name: 'La solicitud es correcta', exact: true });
+        await solicitudCorrecta.click();
+        // El botón solo se pulsa cuando la elección ha cuajado en el formulario: si se pulsara
+        // antes, el evento viajaría sin `resultadoVerificacion` y el expediente no avanzaría.
+        await expect(solicitudCorrecta).toHaveAttribute('aria-checked', 'true');
+        // VERIFICAR es el botón «Siguiente» del footer, y no pide confirmación.
+        await page.getByTestId(FOOTER).getByRole('button', { name: 'Siguiente' }).click();
+        await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de resolución');
+        await expect(page.getByLabel('Fase')).toHaveValue('Resolución de la dirección');
+
+        // --- Tramo 3: DIRECTOR (director@mislata.es) — el del campo `Perfil`, el que dispara el
+        //     evento RESOLVER ---
+        // Given (cont.): … `director@mislata.es` (contraseña `demo1234`) ha iniciado sesión, lo abre
+        // por la lista «Tramitación» → «Pendientes de mí» …
+        // En PENDIENTE_RESOLUCION el expediente espera al perfil DIRECTOR. El servidor abre el
+        // expediente con el perfil del estado si el usuario lo ostenta, así que al director le pinta
+        // la pantalla de resolver aunque sobre este expediente sea además el CREADOR.
+        await logout(page);
+        await login(page, DIRECTOR.login, DIRECTOR.password);
+        await abrirDesdeBandeja(page, numero, 'tramitacion-pendientesDeMi-menuitem', 'tramitacion-menuitem');
+        await expect(page.getByLabel('Fase')).toHaveValue('Resolución de la dirección');
         await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de resolución');
 
         // When: elige «Tipo resolución» «Resolver positivamente», …
@@ -266,19 +307,19 @@ test.describe('Justificación de falta del profesorado — TRAMITACION', () => {
 
         // === PASO MANUAL 2 de 2: el certificado del director, en el SERVIDOR ===
         // Este paso no lo ejecuta la persona en el navegador: la firma de la resolución la hace el
-        // servidor (`PhaseEventManagerImpl.triggerResolver` → `almacenClaveResolver.getDirector(centro)`).
+        // servidor (`resolucion/PhaseEventManagerImpl.triggerResolver` → `almacenClaveResolver.getDirector(centro)`).
         // Es, por tanto, una PRECONDICIÓN DE ENTORNO que la persona debe haber dejado lista ANTES de
         // lanzar el test: el certificado digital del director del centro CIPFP Mislata instalado en
         // el servidor. La carga de demo no lo trae, así que sin él el evento falla y el expediente
         // se queda en PENDIENTE_RESOLUCION.
 
-        // Then: el expediente pasa a la fase TRAMITACION, estado ACEPTADO, que es un estado cerrado.
+        // Then: el expediente pasa a la fase RESOLUCION, estado ACEPTADO, que es un estado cerrado.
         // El título visible del estado es «Aceptado»: `ACEPTADO` no declara `title` en el
         // `TipoExpedienteInstance.xml`, así que el build humaniza su `name`.
         // El timeout es amplio porque generar, firmar y registrar de salida la resolución es un
         // trabajo de servidor bastante más lento que una transición normal.
         await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Aceptado', { timeout: 120_000 });
-        await expect(page.getByLabel('Fase')).toHaveValue('Tramitación');
+        await expect(page.getByLabel('Fase')).toHaveValue('Resolución de la dirección');
 
         const pantallaAceptado = page.getByRole('tabpanel', { name: new RegExp(numero) });
 
@@ -322,10 +363,12 @@ test.describe('Justificación de falta del profesorado — TRAMITACION', () => {
         await expect(iframeResolucion).toHaveAttribute('src', /com\.axelor\.meta\.db\.MetaFile\/\d+/);
 
         // And (cont.): … y el bloque «Resolución» …
-        const panelResolucion = pantallaAceptado.getByRole('region', { name: 'Resolución' });
+        // Se localiza por su `name` y no por su título: en esta pantalla hay DOS paneles titulados
+        // «Resolución», el del PDF (`pdfResolucion`) y este, el del sentido de la resolución.
+        const panelResolucion = pantallaAceptado.getByTestId(PANEL_RESOLUCION_VIEW);
         await expect(panelResolucion).toBeVisible();
         // Dentro del bloque, el sentido de la resolución, también en solo lectura: el campo se
-        // titula «Resolución» y lleva lo que el tramitador eligió.
+        // titula «Resolución» y lleva lo que el director eligió.
         const resolucion = panelResolucion.getByRole('combobox', { name: 'Resolución' });
         await expect(resolucion).toHaveValue('Resolver positivamente');
         await expect(resolucion).toHaveAttribute('readonly', '');
@@ -344,35 +387,50 @@ test.describe('Justificación de falta del profesorado — TRAMITACION', () => {
         await expect(footerAceptado.getByRole('button')).toHaveText(['Salir']);
         await expect(footerAceptado.getByRole('button', { name: BOTON_RESOLVER })).toHaveCount(0);
 
-        // Then (cont.): ACEPTADO es un estado CERRADO. Lo observable de que lo sea es en qué bandeja
-        // cae el expediente: sale de la de abiertos («Expedientes Esperando», donde estaba en
-        // PENDIENTE_RESOLUCION) y aparece en la de cerrados. Se busca siempre por SU número.
+        // Then (cont.): ACEPTADO es un estado CERRADO. Lo observable de que lo sea es en qué lista
+        // cae el expediente: sale de «Tramitación» → «Pendientes de mí» (donde lo tenía el director
+        // en PENDIENTE_RESOLUCION) y aparece en la de cerrados de la unidad que lo tramita
+        // («Jefatura de estudios» → «Cerrados»). Se busca siempre por SU número.
+        // Antes de cada lista se recarga la aplicación: `abrirMenu` da por hecho que el menú está
+        // plegado (como tras un login) y, con el grupo «Tramitación» ya desplegado, lo plegaría.
+        await recargarAplicacion(page);
         await expect(await filtrarEnBandeja(page, numero, 'tramitacion-jefaturaDeEstudios-cerrados-menuitem', 'tramitacion-menuitem', 'tramitacion-jefaturaDeEstudios-menuitem')).toHaveCount(1);
+        await recargarAplicacion(page);
         await expect(await filtrarEnBandeja(page, numero, 'tramitacion-pendientesDeMi-menuitem', 'tramitacion-menuitem')).toHaveCount(0);
       } finally {
-        // Teardown (§5.2 y §5.3): en el camino nominal el expediente acaba en TRAMITACION /
+        // Teardown (§5.2 y §5.3): en el camino nominal el expediente acaba en RESOLUCION /
         // ACEPTADO, que es un estado CERRADO y cuyo `events` está vacío. Ahí NO hay DELETE, así que
         // el expediente QUEDA VIVO a propósito: es correcto y no rompe la idempotencia porque el
         // test siempre trabaja con SU número, nunca con «el primero de la bandeja».
         // Pero si el test se corta antes de presentar (o la persona no llega a firmar con
-        // AutoFirma), el expediente se queda en RECEPCION, donde sí se puede borrar: se intenta y,
-        // si no procede, se deja como está. El borrado exige SESIÓN ABIERTA y el perfil del estado
-        // en el que ha quedado el expediente (CREADOR), así que va ANTES del `logout` y
-        // reautenticándose como el profesor, porque el último tramo lo condujo el TRAMITADOR y
-        // porque el fallo de una aserción puede haber dejado la sesión en cualquier punto.
+        // AutoFirma), el expediente se queda en ENTRADA, donde sí se puede borrar: se intenta y,
+        // si no procede (ya está en VERIFICACION o en RESOLUCION, que tampoco ofrecen DELETE), se
+        // deja como está. El borrado exige SESIÓN ABIERTA y el perfil del estado en el que ha
+        // quedado el expediente (CREADOR), así que va ANTES del `logout` y reautenticándose como el
+        // profesor, porque el tramo 2 lo condujo el TRAMITADOR y porque el fallo de una aserción
+        // puede haber dejado la sesión en cualquier punto.
         // DELETE recarga la aplicación entera (refresh-app).
         // El `.catch(() => {})` es intencional: el teardown no debe enmascarar el fallo de una aserción.
         if (numero) {
           await (async () => {
+            // Si el test se corta en la puerta manual (nadie firma), el diálogo modal «Cargando
+            // AutoFirma» se queda abierto y tapa toda la aplicación. `ensureLoggedOut` navega solo
+            // cambiando el hash, sin recargar, así que el diálogo seguiría ahí: se recarga antes.
+            await page.reload();
             await ensureLoggedOut(page);
             await login(page, PROFESOR.login, PROFESOR.password);
             await abrirDesdeMisTramites(page, numero);
             const footer = page.getByTestId(FOOTER);
+            // El formulario tarda en pintarse tras abrirse la pestaña: se espera a que el footer
+            // tenga algún botón (todos los estados ofrecen al menos uno) antes de mirar cuáles hay.
+            await expect(footer.getByRole('button').first()).toBeVisible();
             // PENDIENTE_PRESENTACION no ofrece DELETE, pero sí «Atrás», que devuelve el expediente
             // a ENTRADA_DATOS, donde «Borrar el expediente» sí está.
             const atras = footer.getByRole('button', { name: 'Atrás' });
             if (await atras.isVisible()) {
               await atras.click();
+              await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
+              await expect(footer.getByRole('button').first()).toBeVisible();
             }
             const borrar = footer.getByRole('button', { name: 'Borrar el expediente' });
             if (await borrar.isVisible()) {

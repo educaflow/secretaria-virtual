@@ -10,6 +10,21 @@
             <field name="personaInteresada.dni" title="DNI" colSpan="4" readonly="true"/>
         </panel>
 
+        <!-- En papel el profesor no ha entrado en la aplicación: su identificación la teclea quien registra la
+             solicitud. Mismo patrón que el panel común persona-interesada, solo con la identificación. -->
+        <panel name="datos-profesor-editable" title="Datos del profesor interesado" colSpan="12">
+            <field name="personaInteresada" showTitle="false" colSpan="12"
+                   canNew="false" canSelect="false" canRemove="false" x-show-icons="false">
+                <editor x-show-titles="true">
+                    <field name="apellidos" colSpan="5" required="true"/>
+                    <field name="nombre"    colSpan="4" required="true"/>
+                    <field name="dni" title="DNI/NIE" colSpan="3" required="true"/>
+                </editor>
+            </field>
+            <field name="presentadoEnRepresentacion" hidden="true"/>
+            <field name="presentadoEnPapel" hidden="true"/>
+        </panel>
+
         <panel name="datos-falta" title="Datos de la falta">
             <field name="tipoJornadaFalta" colSpan="7" required="true"
                    widget="SwitchSelect" x-direction="vertical"
@@ -64,33 +79,9 @@
         <panel name="justificante-view" title="Adjuntar justificante">
             <field name="justificante" title="Foto o PDF del justificante" widget="binary-link" colSpan="4" readonly="true"/>
         </panel>
-        <panel name="pdfSolicitud" title="Solicitud" >
-            <field name="visorSolicitud" showTitle="false" readonly="true" colSpan="9">
-                <viewer depends="pdfSolicitud" ><![CDATA[
-                    <>
-                    <Box as="iframe" height="900" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfSolicitud.id}/content/download?inline=true&name=${pdfSolicitud.fileName}`} ></Box>
-                    </>
-                    ]]></viewer>
-            </field>
-        </panel>
-        <panel name="pdfSolicitudFirmado" title="Solicitud firmada" >
-            <field name="visorSolicitudFirmado" showTitle="false" readonly="true" colSpan="9">
-                <viewer depends="pdfSolicitudFirmado" ><![CDATA[
-                    <>
-                    <Box as="iframe" height="400" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfSolicitudFirmado.id}/content/download?inline=true&name=${pdfSolicitudFirmado.fileName}`} ></Box>
-                    </>
-                    ]]></viewer>
-            </field>
-        </panel>
-        <panel name="pdfJustificanteRegistroEntrada" title="Justificante de presentación" >
-            <field name="visorJustificanteRegistroEntrada" showTitle="false" readonly="true" colSpan="12">
-                <viewer depends="pdfJustificanteRegistroEntrada" ><![CDATA[
-                    <>
-                    <Box as="iframe" height="400" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfJustificanteRegistroEntrada.id}/content/download?inline=true&name=${pdfJustificanteRegistroEntrada.fileName}`} ></Box>
-                    </>
-                    ]]></viewer>
-            </field>
-        </panel>
+        <!-- Los visores pdfSolicitud, pdfSolicitudFirmada y pdfJustificanteRegistroEntrada, y los paneles
+             subsanacion, verificacion, solicitud-escaneada-* y firma-solicitud de las fases comunes ENTRADA y
+             VERIFICACION están en tramites/shared/template-views.xml. -->
         <panel name="pdfResolucion" title="Resolución" >
             <field name="visorResolucion" showTitle="false" readonly="true" colSpan="12">
                 <viewer depends="pdfResolucion" ><![CDATA[
@@ -103,17 +94,18 @@
 
         <panel name="resolucion" title="Resolver expediente">
             <field name="tipoResolucion" widget="SwitchSelect" colSpan="8" />
-            <field name="disconformidad" colSpan="12"  showIf="tipoResolucion == 'SUBSANAR_DATOS'" />
-            <field name="resolucion" colSpan="12"  showIf="tipoResolucion == 'RECHAZAR'"/>
-
+            <field name="motivoRechazo" colSpan="12"  showIf="tipoResolucion == 'RECHAZAR'"
+                   help="Este texto se imprimirá tal cual en la resolución que recibirá el profesor"/>
+            <field name="motivoDevolucion" colSpan="12"  showIf="tipoResolucion == 'DEVOLVER'"
+                   help="Explique a la jefatura de estudios por qué le devuelve la solicitud"/>
         </panel>
         <panel name="resolucion-view" title="Resolución">
             <field name="tipoResolucion" title="Resolución"  readonly="true"  />
-            <field name="disconformidad" colSpan="12" title="Explicar los datos a subsanar" readonly="true" showIf="tipoResolucion == 'SUBSANAR_DATOS'" />
-            <field name="resolucion" colSpan="12" title="Motivo del rechazo" readonly="true" showIf="tipoResolucion == 'RECHAZAR'"/>
+            <field name="motivoRechazo" colSpan="12" readonly="true" showIf="tipoResolucion == 'RECHAZAR'"/>
         </panel>
-        <panel name="disconformidad-view" title="Disconformidad de los datos presentados" showIf="(disconformidad!=null) &amp;&amp; (disconformidad!='')">
-            <field name="disconformidad" title="Motivo disconformidad"  colSpan="12" readonly="true"/>
+        <panel name="devolucion-view" title="Devuelto por la dirección" colSpan="12"
+               showIf="(motivoDevolucion!=null) &amp;&amp; (motivoDevolucion!='')">
+            <field name="motivoDevolucion" colSpan="12" readonly="true"/>
         </panel>
     </form>
 </object-views>

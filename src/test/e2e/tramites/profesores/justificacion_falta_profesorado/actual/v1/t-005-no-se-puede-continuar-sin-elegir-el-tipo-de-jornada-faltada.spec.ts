@@ -2,7 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 import { ensureLoggedOut, login, logout } from '../../../../../_support/auth';
 
 // T-005 — No se puede continuar sin elegir el tipo de jornada faltada
-// origen: ESC-010  |  CREADOR | RECEPCION/ENTRADA_DATOS --GUARDAR_DATOS--> RECEPCION/ENTRADA_DATOS  |  tipo: error
+// origen: ESC-010  |  CREADOR | ENTRADA/ENTRADA_DATOS --GUARDAR_DATOS--> ENTRADA/ENTRADA_DATOS  |  tipo: error
 // fuente: .sdd/drafts/2026-09-22_16-01_justificacion-falta-profesorado-fechas/test-e2e-desc/t-005-no-se-puede-continuar-sin-elegir-el-tipo-de-jornada-faltada.desc.md
 
 const TRAMITE = 'Justificación de falta del profesorado';
@@ -117,18 +117,18 @@ async function crearExpediente(page: Page): Promise<string> {
 }
 
 
-test.describe('Justificación de falta del profesorado — RECEPCION', () => {
+test.describe('Justificación de falta del profesorado — ENTRADA', () => {
   test('No se puede continuar sin elegir el tipo de jornada faltada', async ({ page }) => {
     let numero = '';
     try {
       // --- Tramo único: CREADOR (director@mislata.es) ---
       // Given: el profesor `director@mislata.es` (contraseña `demo1234`) ha iniciado sesión,
       // ha creado un expediente nuevo de «Justificación de falta del profesorado» y lo tiene
-      // abierto en RECEPCION / ENTRADA_DATOS.
+      // abierto en ENTRADA / ENTRADA_DATOS.
       await ensureLoggedOut(page);
       await login(page, PROFESOR.login, PROFESOR.password);
       numero = await crearExpediente(page);
-      await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+      await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
 
       const panelFalta = page.getByRole('region', { name: 'Datos de la falta' });
@@ -161,9 +161,9 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       ).toBeVisible();
       await expect(recuadroErrores).toContainText(/Tipo de jornada faltada/);
 
-      // Then (cont.): … y el expediente **sigue** en RECEPCION / ENTRADA_DATOS.
+      // Then (cont.): … y el expediente **sigue** en ENTRADA / ENTRADA_DATOS.
       // CRITICAL: sin esta comprobación el test pasaría aunque la máquina de estados avanzase.
-      await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+      await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
 
       // And: mientras no hay tipo de jornada faltada elegido, el panel «Datos de la falta»

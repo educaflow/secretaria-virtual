@@ -2,7 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 import { ensureLoggedOut, login, logout } from '../../../../../_support/auth';
 
 // T-019 — Al cambiar el tipo de jornada faltada se vacían los campos que el nuevo tipo ya no necesita
-// origen: — (sin ESC)  |  CREADOR | RECEPCION/ENTRADA_DATOS --(sin evento)--> RECEPCION/ENTRADA_DATOS  |  tipo: happy
+// origen: — (sin ESC)  |  CREADOR | ENTRADA/ENTRADA_DATOS --(sin evento)--> ENTRADA/ENTRADA_DATOS  |  tipo: happy
 // fuente: .sdd/drafts/2026-09-22_16-01_justificacion-falta-profesorado-fechas/test-e2e-desc/t-019-al-cambiar-el-tipo-de-jornada-faltada-se-vacian-los-campos-que-el-nuevo-tipo-ya-no-necesita.desc.md
 
 const TRAMITE = 'Justificación de falta del profesorado';
@@ -121,7 +121,7 @@ const FECHA_INICIO = diasAntes(3); // «10/09/2026» en la descripción
 const FECHA_FIN_1 = diasAntes(2); // «11/09/2026» en la descripción
 const FECHA_FIN_2 = diasAntes(1); // «12/09/2026» en la descripción
 
-test.describe('Justificación de falta del profesorado — RECEPCION', () => {
+test.describe('Justificación de falta del profesorado — ENTRADA', () => {
   test('Al cambiar el tipo de jornada faltada se vacían los campos que el nuevo tipo ya no necesita', async ({
     page,
   }) => {
@@ -130,11 +130,11 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       // --- Tramo único: CREADOR (director@mislata.es) ---
       // Given: el profesor `director@mislata.es` (contraseña `demo1234`) ha iniciado sesión,
       // ha creado un expediente nuevo de «Justificación de falta del profesorado» y lo tiene
-      // abierto en RECEPCION / ENTRADA_DATOS; …
+      // abierto en ENTRADA / ENTRADA_DATOS; …
       await ensureLoggedOut(page);
       await login(page, PROFESOR.login, PROFESOR.password);
       numero = await crearExpediente(page);
-      await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+      await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
 
       // Given (cont.): … en el panel «Datos de la falta» ha elegido el tipo de jornada faltada
@@ -180,8 +180,8 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       // … y el campo de fecha ya no se titula «Fecha de Inicio», sino «Fecha».
       await expect(panelFalta.getByRole('textbox', { name: 'Fecha de Inicio', exact: true })).toHaveCount(0);
 
-      // Then (cont.): el expediente **sigue** en RECEPCION / ENTRADA_DATOS …
-      await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+      // Then (cont.): el expediente **sigue** en ENTRADA / ENTRADA_DATOS …
+      await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
       // (la parte «sin haberse guardado nada» se comprueba al final, releyendo el expediente
       // del servidor: es el único observable fiable — ver el bloque de cierre del test)
@@ -217,7 +217,7 @@ test.describe('Justificación de falta del profesorado — RECEPCION', () => {
       ).not.toBeChecked();
       await expect(panelReleido.getByRole('textbox', { name: 'Fecha de Inicio', exact: true })).toHaveValue('');
       // Y el expediente sigue donde estaba, sin que ningún evento lo haya movido.
-      await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+      await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
     } finally {
       // Teardown (§5.2): el test no dispara ningún evento, así que el expediente queda en

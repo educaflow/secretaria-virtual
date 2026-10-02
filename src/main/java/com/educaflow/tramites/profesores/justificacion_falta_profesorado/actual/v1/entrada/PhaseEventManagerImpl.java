@@ -1,25 +1,16 @@
-package com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.recepcion;
+package com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.entrada;
 
-import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
-import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.*;
-import com.educaflow.tramites.util.firma.FirmaServidorHelper;
 import com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1;
 import com.educaflow.subsystem.expedientes.db.repo.JustificacionFaltaProfesoradoV1Repository;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
-import com.educaflow.subsystem.firmas.service.TareaFirmaInsertDTO;
-import com.educaflow.subsystem.firmas.service.TareaFirmaService;
 import com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.JustificacionFaltaProfesoradoV1Util;
 import com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.States;
+import com.educaflow.tramites.util.entrada.EntradaHelper;
 
-import com.educaflow.subsystem.criptografia.service.SituacionFirma;
-import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper;
-import com.educaflow.subsystem.firmas.db.TareaFirma;
-import com.educaflow.subsystem.firmas.service.TareaFirmaNotifier;
-import com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 
-public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaProfesoradoV1> implements TareaFirmaNotifier {
+public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaProfesoradoV1> {
 
     /**
      * El {@code campoFirma} del hueco de la firma en {@code documentospdf/solicitud.xml}. Es exactamente el que
@@ -40,10 +31,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     @Inject
-    ModelServiceFactory modelServiceFactory;
-
-    @Inject
-    FirmaServidorHelper firmaServidorHelper;
+    EntradaHelper entradaHelper;
 
     @Inject
     public PhaseEventManagerImpl(JustificacionFaltaProfesoradoV1Repository repository) {
@@ -55,10 +43,35 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
 
     @WhenEvent
     public void triggerDelete(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, JustificacionFaltaProfesoradoV1 original, EventContext eventContext) throws BusinessException {
-        //eventContext.updateState(States.Recepcion.);
     }
+
+    /** Solo en papel: adjuntada la solicitud escaneada, se pasa a copiar sus datos. */
+    @WhenEvent
+    public void triggerContinuar(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, JustificacionFaltaProfesoradoV1 original, EventContext eventContext) throws BusinessException {
+        EntradaHelper.exigePresentadoEnPapel(original, true);
+
+        eventContext.updateState(States.Entrada.ENTRADA_DATOS);
+    }
+
+    /**
+     * Genera la solicitud con los datos tecleados. Telemáticamente el profesor tiene que firmarla; en papel ya
+     * la firmó a mano quien la entregó, así que se presenta con el escaneado.
+     */
     @WhenEvent
     public void triggerGuardarDatos(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, JustificacionFaltaProfesoradoV1 original, EventContext eventContext) throws BusinessException {
+        borrarPeriodoQueNoPideElTipoDeJornada(justificacionFaltaProfesorado);
+        generarSolicitud(justificacionFaltaProfesorado);
+
+        if (Boolean.TRUE.equals(original.getPresentadoEnPapel())) {
+            entradaHelper.presentar(justificacionFaltaProfesorado, JustificacionFaltaProfesoradoV1Util.CAMPOS_ENTRADA, List.of(justificacionFaltaProfesorado.getJustificante()), eventContext);
+            eventContext.updateState(States.Verificacion.PENDIENTE_VERIFICACION);
+        } else {
+            justificacionFaltaProfesorado.setPdfSolicitudFirmada(null);
+            eventContext.updateState(States.Entrada.PENDIENTE_PRESENTACION);
+        }
+    }
+
+    private static void borrarPeriodoQueNoPideElTipoDeJornada(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado) {
         if (JustificacionFaltaProfesoradoV1Util.necesitaFechaFin(justificacionFaltaProfesorado) == false) {
             justificacionFaltaProfesorado.setFechaFin(null);
         }
@@ -68,7 +81,10 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
         if (JustificacionFaltaProfesoradoV1Util.necesitaHoraFin(justificacionFaltaProfesorado) == false) {
             justificacionFaltaProfesorado.setHoraFin(null);
         }
+    }
 
+    /** La solicitud lleva detrás el justificante, para que lo que se firma y se registra sea un único documento. */
+    private static void generarSolicitud(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado) {
         DocumentoPdf solicitudPdf = justificacionFaltaProfesorado.getDocumentoPdf(JustificacionFaltaProfesoradoV1.TipoDocumentoPdf.SOLICITUD);
         MetaFile justificante = justificacionFaltaProfesorado.getJustificante();
         if (justificante != null) {
@@ -76,75 +92,46 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
         }
         MetaFile pdfSolicitud = MetaFileHelper.createMetaFile(solicitudPdf);
         justificacionFaltaProfesorado.setPdfSolicitud(pdfSolicitud);
-
-
-
-        //Este código no debería estar aqui. Pero está para crear Tareas de Firma para probarlo
-        //Habrá que eliminar esto en el futuro.
-        TareaFirmaInsertDTO tareaFirmaInsertDTO = new TareaFirmaInsertDTO(
-                justificacionFaltaProfesorado.getUsuarioRegistrador(),
-                justificacionFaltaProfesorado.getCentro(),
-                List.of(justificacionFaltaProfesorado.getPdfSolicitud()),
-                "Firma de solicitud de justificación de falta de profesorado",
-                CAMPO_FIRMA_SOLICITUD,
-                this.getClass(),
-                "DATO_CALLBACK");
-        TareaFirmaService tareaFirmaService=(TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
-        tareaFirmaService.insert(tareaFirmaInsertDTO);
-
-
-        eventContext.updateState(States.Recepcion.PENDIENTE_PRESENTACION);
     }
+
+    /**
+     * Lo disparan dos estados: PENDIENTE_PRESENTACION vuelve a los datos, y ENTRADA_DATOS (solo en papel) vuelve
+     * al escaneado para cambiarlo.
+     */
     @WhenEvent
     public void triggerBack(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, JustificacionFaltaProfesoradoV1 original, EventContext eventContext) throws BusinessException {
         justificacionFaltaProfesorado.setClaveCertificado(null);
 
-        State state = States.INSTANCE
-                .getState(justificacionFaltaProfesorado.getCodePhase(), justificacionFaltaProfesorado.getCodeState())
-                .orElseThrow(() -> new IllegalArgumentException("State no reconocido: "
-                        + justificacionFaltaProfesorado.getCodePhase() + "/" + justificacionFaltaProfesorado.getCodeState()));
-
-        switch (state) {
-            case States.Recepcion.PENDIENTE_PRESENTACION -> eventContext.updateState(States.Recepcion.ENTRADA_DATOS);
-            default -> throw new IllegalArgumentException("State no reconocido: " + state);
+        if (EntradaHelper.estaEn(original, States.Entrada.ENTRADA_DATOS)) {
+            EntradaHelper.exigePresentadoEnPapel(original, true);
+            eventContext.updateState(States.Entrada.PENDIENTE_DOCUMENTO_ESCANEADO);
+        } else {
+            eventContext.updateState(States.Entrada.ENTRADA_DATOS);
         }
-
     }
+
+    /** Solo telemáticamente: el profesor firma la solicitud generada. En papel se presenta en GUARDAR_DATOS. */
     @WhenEvent
     public void triggerPresentar(JustificacionFaltaProfesoradoV1 exp, JustificacionFaltaProfesoradoV1 original, EventContext eventContext) throws BusinessException {
-        String dniFirmante = SecurityUtil.getUser().getDni();
-        SituacionFirma situacionFirma = CertificadoDigitalHelper.getSituacionFirmaByDni(dniFirmante);
-
         try {
-            if (situacionFirma.isFirmaEnServidor()) {
-                exp.setPdfSolicitudFirmado(firmaServidorHelper.firmarEnServidor(
-                        dniFirmante,
-                        situacionFirma,
-                        exp.getClaveCertificado(),
-                        exp.getPdfSolicitud(),
-                        CAMPO_FIRMA_SOLICITUD));
-            }
+            EntradaHelper.exigePresentadoEnPapel(original, false);
+            entradaHelper.firmarSolicitudSiEsEnServidor(exp, JustificacionFaltaProfesoradoV1Util.CAMPOS_ENTRADA, CAMPO_FIRMA_SOLICITUD);
 
-            RegistroEntrada registroEntrada = eventContext.createRegistroEntrada(exp.getPdfSolicitudFirmado(), List.of(exp.getJustificante()));
-            exp.setPdfJustificanteRegistroEntrada(registroEntrada.getDocumentoResguardoPresentacion());
-            eventContext.updateState(States.Tramitacion.PENDIENTE_RESOLUCION);
-            exp.setDisconformidad(null);
-            exp.setResolucion(null);
+            entradaHelper.presentar(exp, JustificacionFaltaProfesoradoV1Util.CAMPOS_ENTRADA, List.of(exp.getJustificante()), eventContext);
+            eventContext.updateState(States.Verificacion.PENDIENTE_VERIFICACION);
         } finally {
             exp.setClaveCertificado(null);
         }
-    }
-
-
-    @Override
-    public void notify(TareaFirma tareaFirma, Object callBackData) {
-        //System.out.println("Notificado!!!!!!:"+callBackData+ " en firma.id="+tareaFirma.getId());
     }
 
 /***************************************************************************************/
 /*************************************** Estados ***************************************/
 /***************************************************************************************/
 
+    @OnEnterState
+    public void onEnterPendienteDocumentoEscaneado(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, EventContext eventContext) {
+
+    }
     @OnEnterState
     public void onEnterEntradaDatos(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, EventContext eventContext) {
 

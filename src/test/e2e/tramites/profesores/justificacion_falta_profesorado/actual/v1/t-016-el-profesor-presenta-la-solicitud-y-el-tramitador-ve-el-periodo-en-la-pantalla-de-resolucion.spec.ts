@@ -2,8 +2,8 @@ import { test, expect, Page } from '@playwright/test';
 import { inflateSync } from 'zlib';
 import { ensureLoggedOut, login, logout } from '../../../../../_support/auth';
 
-// T-016 — El profesor presenta la solicitud y el tramitador ve el periodo en la pantalla de resolución
-// origen: ESC —  |  CREADOR | RECEPCION/PENDIENTE_PRESENTACION --PRESENTAR--> TRAMITACION/PENDIENTE_RESOLUCION  |  tipo: happy
+// T-016 — El profesor presenta la solicitud, la jefatura la verifica y la dirección ve el periodo en la pantalla de resolución
+// origen: ESC —  |  CREADOR | ENTRADA/PENDIENTE_PRESENTACION --PRESENTAR--> VERIFICACION/PENDIENTE_VERIFICACION (--VERIFICAR--> RESOLUCION/PENDIENTE_RESOLUCION)  |  tipo: happy
 // MANUAL: el botón «Firmar con AutoFirma y Presentar la solicitud» abre la aplicación de escritorio
 //         AutoFirma y exige el certificado digital del profesor instalado en su máquina; la carga de
 //         demo no trae ningún certificado.
@@ -15,6 +15,9 @@ const TIPO_TRAMITE = 'Trámites para el profesor';
 
 const PROFESOR = { login: 'director@mislata.es', password: 'demo1234' };
 const TRAMITADOR = { login: 'jefeestudios1@mislata.es', password: 'demo1234' };
+// Quien resuelve es el director del centro (perfil DIRECTOR, que le da su cargo). En la carga de
+// demo es la misma persona que presenta la solicitud: sobre SU expediente es además el CREADOR.
+const DIRECTOR = PROFESOR;
 
 // El footer del expediente (un botón por evento disponible) lo pinta la plantilla común
 // del tramitador; es el sitio donde se dispara la transición y donde se comprueba qué
@@ -192,9 +195,9 @@ const FECHA_INICIO = diasAntes(3); // «10/09/2026» en la descripción
 const FECHA_FIN_1 = diasAntes(2); // «11/09/2026» en la descripción
 const FECHA_FIN_2 = diasAntes(1); // «12/09/2026» en la descripción
 
-test.describe('Justificación de falta del profesorado — RECEPCION → TRAMITACION', () => {
+test.describe('Justificación de falta del profesorado — ENTRADA → VERIFICACION → RESOLUCION', () => {
   test(
-    'El profesor presenta la solicitud y el tramitador ve el periodo en la pantalla de resolución',
+    'El profesor presenta la solicitud, la jefatura la verifica y la dirección ve el periodo en la pantalla de resolución',
     { tag: '@manual' },
     async ({ page }) => {
       // El paso manual (abrir AutoFirma, elegir el certificado y firmar) lo hace una persona:
@@ -207,16 +210,16 @@ test.describe('Justificación de falta del profesorado — RECEPCION → TRAMITA
       let urlPdfSolicitud = '';
       try {
         // --- Tramo 1: CREADOR (director@mislata.es) — es el tramo del evento PRESENTAR,
-        //     el del campo `Perfil` de la descripción; los tramos 2 y 3 solo consultan ---
+        //     el del campo `Perfil` de la descripción; el tramo 2 verifica y el 3 solo consulta ---
         // Given: el profesor `director@mislata.es` (contraseña `demo1234`) tiene un expediente de
-        // «Justificación de falta del profesorado» en RECEPCION / PENDIENTE_PRESENTACION, creado
+        // «Justificación de falta del profesorado» en ENTRADA / PENDIENTE_PRESENTACION, creado
         // con el tipo de jornada faltada «Varios días (todos ellos completos)», «Fecha de Inicio»
         // 10/09/2026, «Fecha de fin» 12/09/2026, «Motivo falta» «Enfermedad común» y
         // `justificante.pdf` adjunto …
         await ensureLoggedOut(page);
         await login(page, PROFESOR.login, PROFESOR.password);
         numero = await crearExpediente(page);
-        await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+        await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
         await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
 
         const panelFalta = page.getByRole('region', { name: 'Datos de la falta' });
@@ -244,7 +247,7 @@ test.describe('Justificación de falta del profesorado — RECEPCION → TRAMITA
         ).toBeVisible();
 
         await page.getByTestId(FOOTER).getByRole('button', { name: 'Siguiente' }).click();
-        await expect(page.getByLabel('Fase')).toHaveValue('Recepción');
+        await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
         await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de presentación');
 
         // Given (cont.): … y tiene AutoFirma instalado con un certificado válido cuyo DNI es el suyo.
@@ -256,7 +259,7 @@ test.describe('Justificación de falta del profesorado — RECEPCION → TRAMITA
 
         // La URL del PDF de la solicitud se captura ANTES de presentar, porque después esta
         // pantalla desaparece. El fichero no cambia: PRESENTAR guarda la firma en otro MetaFile
-        // (`pdfSolicitudFirmado`) y deja intacto el de la solicitud.
+        // (`pdfSolicitudFirmada`) y deja intacto el de la solicitud.
         const iframeSolicitud = page.getByTestId(PANEL_PDF_SOLICITUD).locator('iframe');
         await expect(iframeSolicitud).toBeVisible();
         urlPdfSolicitud = (await iframeSolicitud.getAttribute('src'))!;
@@ -281,11 +284,11 @@ test.describe('Justificación de falta del profesorado — RECEPCION → TRAMITA
         // transicionado. No se espera un tiempo fijo ni se hace `page.pause()`, para que el test
         // siga fallando si la persona cancela AutoFirma o firma con el certificado equivocado.
 
-        // Then: el expediente pasa a la fase TRAMITACION, estado PENDIENTE_RESOLUCION.
-        await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de resolución', {
+        // Then: el expediente pasa a la fase VERIFICACION, estado PENDIENTE_VERIFICACION.
+        await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de verificación', {
           timeout: 600_000,
         });
-        await expect(page.getByLabel('Fase')).toHaveValue('Tramitación');
+        await expect(page.getByLabel('Fase')).toHaveValue('Verificación');
 
         // And: en el PDF de la solicitud, el bloque «Declara que» tiene marcada la casilla
         // «Desde el 10/09/2026 hasta el 12/09/2026» y las otras tres casillas de tipo de jornada
@@ -305,17 +308,18 @@ test.describe('Justificación de falta del profesorado — RECEPCION → TRAMITA
         expect(solicitud.campos.filter((campo) => campo === FECHA_INICIO)).toHaveLength(2);
         expect(solicitud.campos.filter((campo) => campo === FECHA_FIN_2)).toHaveLength(2);
 
-        // --- Tramo 2: TRAMITADOR (jefeestudios1@mislata.es) ---
+        // --- Tramo 2: TRAMITADOR (jefeestudios1@mislata.es) — la jefatura de estudios verifica ---
         // And: al iniciar sesión `jefeestudios1@mislata.es` (contraseña `demo1234`) y abrir el
-        // expediente por la bandeja «Expedientes esperando a que otra persona realice una tarea»,
-        // la pantalla del perfil TRAMITADOR muestra en solo lectura el panel «Datos de la falta» …
+        // expediente por la lista «Tramitación» → «Pendientes de mí», la pantalla del perfil
+        // TRAMITADOR —la de verificar la solicitud— muestra en solo lectura el panel «Datos de la
+        // falta» …
         await logout(page);
         await login(page, TRAMITADOR.login, TRAMITADOR.password);
         await abrirDesdeBandeja(page, numero, 'tramitacion-pendientesDeMi-menuitem', 'tramitacion-menuitem');
 
         const pantallaTramitador = page.getByRole('tabpanel', { name: new RegExp(numero) });
-        await expect(page.getByLabel('Fase')).toHaveValue('Tramitación');
-        await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de resolución');
+        await expect(page.getByLabel('Fase')).toHaveValue('Verificación');
+        await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de verificación');
 
         // And (cont.): … con el tipo de jornada faltada «Varios días (todos ellos completos)» …
         // En la pantalla del TRAMITADOR el tipo de jornada no se pinta como grupo de radios (como
@@ -339,70 +343,117 @@ test.describe('Justificación de falta del profesorado — RECEPCION → TRAMITA
         await expect(panelTramitador.getByRole('textbox', { name: 'Hora de inicio', exact: true })).toHaveCount(0);
         await expect(panelTramitador.getByRole('textbox', { name: 'Hora de fin', exact: true })).toHaveCount(0);
 
-        // And (cont.): … y ofrece el botón «Resolver el expediente».
-        await expect(
-          pantallaTramitador.getByTestId(FOOTER).getByRole('button', { name: 'Resolver el expediente' }),
-        ).toBeVisible();
+        // And (cont.): … y ofrece el panel «Verificación de la solicitud» y el botón «Siguiente».
+        const panelVerificacion = pantallaTramitador.getByRole('region', { name: 'Verificación de la solicitud' });
+        await expect(panelVerificacion).toBeVisible();
+        const footerTramitador = pantallaTramitador.getByTestId(FOOTER);
+        await expect(footerTramitador.getByRole('button')).toHaveText(['Siguiente']);
 
-        // --- Tramo 3: CREADOR (director@mislata.es), vista genérica de solo consulta ---
-        // And: al iniciar sesión de nuevo `director@mislata.es` (contraseña `demo1234`) y abrir el
-        // expediente entrando por la bandeja «Expedientes Pendientes» («Listado de expedientes
-        // pendientes de que realices la tarea»), que es la del perfil CREADOR, como
-        // PENDIENTE_RESOLUCION no tiene pantalla para ese perfil el sistema abre la vista genérica
-        // de solo consulta …
-        await logout(page);
-        await login(page, PROFESOR.login, PROFESOR.password);
-        await abrirDesdeBandeja(page, numero, 'misTramites-enTramitacion-menuitem', 'misTramites-menuitem');
+        // And: la jefatura elige «La solicitud es correcta» y pulsa «Siguiente» (evento VERIFICAR) …
+        const solicitudCorrecta = panelVerificacion.getByRole('radio', { name: 'La solicitud es correcta', exact: true });
+        await solicitudCorrecta.click();
+        // El botón solo se pulsa cuando la elección ha cuajado en el formulario: si se pulsara
+        // antes, el evento viajaría sin `resultadoVerificacion` y el expediente no avanzaría.
+        await expect(solicitudCorrecta).toHaveAttribute('aria-checked', 'true');
+        // VERIFICAR no pide confirmación.
+        await footerTramitador.getByRole('button', { name: 'Siguiente' }).click();
 
-        const pantallaCreador = page.getByRole('tabpanel', { name: new RegExp(numero) });
+        // And (cont.): … el expediente pasa a la fase RESOLUCION, estado PENDIENTE_RESOLUCION, y la
+        // cabecera muestra «Resolución de la dirección» y «Pendiente de resolución».
+        await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de resolución');
+        await expect(page.getByLabel('Fase')).toHaveValue('Resolución de la dirección');
+
+        // And (cont.): … como PENDIENTE_RESOLUCION es del perfil DIRECTOR y no tiene pantalla para
+        // el TRAMITADOR, lo que le queda a la jefatura es la vista genérica de solo consulta …
+        const pantallaConsulta = page.getByRole('tabpanel', { name: new RegExp(numero) });
 
         // And (cont.): … el panel «Datos de la falta» sale en solo lectura con el tipo de jornada
         // faltada «Varios días (todos ellos completos)» …
-        const panelCreador = pantallaCreador.getByRole('region', { name: 'Datos de la falta' });
-        const tipoJornadaCreador = panelCreador.getByRole('combobox', { name: 'Tipo de jornada faltada' });
-        await expect(tipoJornadaCreador).toHaveValue('Varios días (todos ellos completos)');
-        await expect(tipoJornadaCreador).toHaveAttribute('readonly', '');
+        const panelConsulta = pantallaConsulta.getByRole('region', { name: 'Datos de la falta' });
+        const tipoJornadaConsulta = panelConsulta.getByRole('combobox', { name: 'Tipo de jornada faltada' });
+        await expect(tipoJornadaConsulta).toHaveValue('Varios días (todos ellos completos)');
+        await expect(tipoJornadaConsulta).toHaveAttribute('readonly', '');
 
         // And (cont.): … el campo de la fecha titulado «Fecha de Inicio» (no «Fecha») a 10/09/2026 y
         // «Fecha de fin» a 12/09/2026 …
-        const fechaInicioCreador = panelCreador.getByRole('textbox', { name: 'Fecha de Inicio', exact: true });
-        const fechaFinCreador = panelCreador.getByRole('textbox', { name: 'Fecha de fin', exact: true });
-        await expect(fechaInicioCreador).toHaveValue(FECHA_INICIO);
-        await expect(fechaInicioCreador).toBeDisabled();
-        await expect(fechaFinCreador).toHaveValue(FECHA_FIN_2);
-        await expect(fechaFinCreador).toBeDisabled();
+        const fechaInicioConsulta = panelConsulta.getByRole('textbox', { name: 'Fecha de Inicio', exact: true });
+        const fechaFinConsulta = panelConsulta.getByRole('textbox', { name: 'Fecha de fin', exact: true });
+        await expect(fechaInicioConsulta).toHaveValue(FECHA_INICIO);
+        await expect(fechaInicioConsulta).toBeDisabled();
+        await expect(fechaFinConsulta).toHaveValue(FECHA_FIN_2);
+        await expect(fechaFinConsulta).toBeDisabled();
         // El título es «Fecha de Inicio», no «Fecha»: el periodo no se pinta con la etiqueta del
         // tipo de jornada de un solo día.
-        await expect(panelCreador.getByRole('textbox', { name: 'Fecha', exact: true })).toHaveCount(0);
+        await expect(panelConsulta.getByRole('textbox', { name: 'Fecha', exact: true })).toHaveCount(0);
 
         // And (cont.): … sin «Hora de inicio» ni «Hora de fin» …
-        await expect(panelCreador.getByRole('textbox', { name: 'Hora de inicio', exact: true })).toHaveCount(0);
-        await expect(panelCreador.getByRole('textbox', { name: 'Hora de fin', exact: true })).toHaveCount(0);
+        await expect(panelConsulta.getByRole('textbox', { name: 'Hora de inicio', exact: true })).toHaveCount(0);
+        await expect(panelConsulta.getByRole('textbox', { name: 'Hora de fin', exact: true })).toHaveCount(0);
 
         // And (cont.): … no hay ningún campo editable …
         // No basta con los campos de arriba: se comprueba que en TODO el formulario del expediente
         // no queda ni un control de entrada que se pueda teclear o desplegar.
         await expect(
-          pantallaCreador.locator(
+          pantallaConsulta.locator(
             'input:not([disabled]):not([readonly]), textarea:not([disabled]):not([readonly]), select:not([disabled])',
           ),
         ).toHaveCount(0);
 
-        // And (cont.): … el único botón es «Salir» …
-        const footerCreador = pantallaCreador.getByTestId(FOOTER);
-        await expect(footerCreador.getByRole('button')).toHaveText(['Salir']);
-        await expect(footerCreador.getByRole('button', { name: 'Resolver el expediente' })).toHaveCount(0);
+        // And (cont.): … y el único botón es «Salir».
+        const footerConsulta = pantallaConsulta.getByTestId(FOOTER);
+        await expect(footerConsulta.getByRole('button')).toHaveText(['Salir']);
+        await expect(footerConsulta.getByRole('button', { name: 'Resolver el expediente' })).toHaveCount(0);
 
-        // And (cont.): … y el expediente **sigue** en TRAMITACION / PENDIENTE_RESOLUCION.
-        await expect(page.getByLabel('Fase')).toHaveValue('Tramitación');
+        // --- Tramo 3: DIRECTOR (director@mislata.es), la pantalla de resolución ---
+        // And: al iniciar sesión de nuevo `director@mislata.es` (contraseña `demo1234`) y abrir el
+        // expediente por la lista «Tramitación» → «Pendientes de mí», la pantalla del perfil
+        // DIRECTOR —la de resolver— muestra en solo lectura el panel «Datos de la falta» …
+        // En PENDIENTE_RESOLUCION el expediente espera al perfil DIRECTOR. El servidor abre el
+        // expediente con el perfil del estado si el usuario lo ostenta, así que al director le pinta
+        // la pantalla de resolver aunque sobre este expediente sea además el CREADOR.
+        await logout(page);
+        await login(page, DIRECTOR.login, DIRECTOR.password);
+        await abrirDesdeBandeja(page, numero, 'tramitacion-pendientesDeMi-menuitem', 'tramitacion-menuitem');
+
+        const pantallaDirector = page.getByRole('tabpanel', { name: new RegExp(numero) });
+        await expect(page.getByLabel('Fase')).toHaveValue('Resolución de la dirección');
+        await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de resolución');
+
+        // And (cont.): … con el tipo de jornada faltada «Varios días (todos ellos completos)» …
+        const panelDirector = pantallaDirector.getByRole('region', { name: 'Datos de la falta' });
+        const tipoJornadaDirector = panelDirector.getByRole('combobox', { name: 'Tipo de jornada faltada' });
+        await expect(tipoJornadaDirector).toHaveValue('Varios días (todos ellos completos)');
+        await expect(tipoJornadaDirector).toHaveAttribute('readonly', '');
+
+        // And (cont.): … «Fecha de Inicio» a 10/09/2026 y «Fecha de fin» a 12/09/2026 …
+        const fechaInicioDirector = panelDirector.getByRole('textbox', { name: 'Fecha de Inicio', exact: true });
+        const fechaFinDirector = panelDirector.getByRole('textbox', { name: 'Fecha de fin', exact: true });
+        await expect(fechaInicioDirector).toHaveValue(FECHA_INICIO);
+        await expect(fechaInicioDirector).toBeDisabled();
+        await expect(fechaFinDirector).toHaveValue(FECHA_FIN_2);
+        await expect(fechaFinDirector).toBeDisabled();
+
+        // And (cont.): … sin «Hora de inicio» ni «Hora de fin» …
+        await expect(panelDirector.getByRole('textbox', { name: 'Hora de inicio', exact: true })).toHaveCount(0);
+        await expect(panelDirector.getByRole('textbox', { name: 'Hora de fin', exact: true })).toHaveCount(0);
+
+        // And (cont.): … y ofrece el panel «Resolver expediente» y el botón «Resolver el expediente» …
+        await expect(pantallaDirector.getByRole('region', { name: 'Resolver expediente' })).toBeVisible();
+        await expect(
+          pantallaDirector.getByTestId(FOOTER).getByRole('button', { name: 'Resolver el expediente' }),
+        ).toBeVisible();
+
+        // And (cont.): … y el expediente **sigue** en RESOLUCION / PENDIENTE_RESOLUCION.
+        await expect(page.getByLabel('Fase')).toHaveValue('Resolución de la dirección');
         await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de resolución');
       } finally {
-        // Teardown (§5.2 y §5.3): en el camino nominal el expediente acaba en TRAMITACION /
-        // PENDIENTE_RESOLUCION, cuyo único evento es RESOLVER. Ahí NO hay DELETE, así que el
+        // Teardown (§5.2 y §5.3): en el camino nominal el expediente acaba en RESOLUCION /
+        // PENDIENTE_RESOLUCION, cuyo único evento es RESOLVER. Ahí NO hay DELETE (tampoco en
+        // VERIFICACION / PENDIENTE_VERIFICACION, si el test se corta tras presentar), así que el
         // expediente QUEDA VIVO a propósito: es correcto y no rompe la idempotencia porque el test
         // siempre trabaja con SU número, nunca con «el primero de la bandeja».
         // Pero si el test se corta antes del paso manual (o la persona no llega a firmar), el
-        // expediente se queda en RECEPCION, donde sí se puede borrar: se intenta y, si no procede,
+        // expediente se queda en ENTRADA, donde sí se puede borrar: se intenta y, si no procede,
         // se deja como está. El borrado exige SESIÓN ABIERTA y el perfil del estado en el que ha
         // quedado el expediente (CREADOR), así que va ANTES del `logout` y reautenticándose como el
         // profesor, porque el fallo de una aserción puede haber dejado la sesión en cualquier punto.
@@ -410,15 +461,24 @@ test.describe('Justificación de falta del profesorado — RECEPCION → TRAMITA
         // El `.catch(() => {})` es intencional: el teardown no debe enmascarar el fallo de una aserción.
         if (numero) {
           await (async () => {
+            // Si el test se corta en la puerta manual (nadie firma), el diálogo modal «Cargando
+            // AutoFirma» se queda abierto y tapa toda la aplicación. `ensureLoggedOut` navega solo
+            // cambiando el hash, sin recargar, así que el diálogo seguiría ahí: se recarga antes.
+            await page.reload();
             await ensureLoggedOut(page);
             await login(page, PROFESOR.login, PROFESOR.password);
             await abrirDesdeMisTramites(page, numero);
             const footer = page.getByTestId(FOOTER);
+            // El formulario tarda en pintarse tras abrirse la pestaña: se espera a que el footer
+            // tenga algún botón (todos los estados ofrecen al menos uno) antes de mirar cuáles hay.
+            await expect(footer.getByRole('button').first()).toBeVisible();
             // PENDIENTE_PRESENTACION no ofrece DELETE, pero sí «Atrás», que devuelve el expediente
             // a ENTRADA_DATOS, donde «Borrar el expediente» sí está.
             const atras = footer.getByRole('button', { name: 'Atrás' });
             if (await atras.isVisible()) {
               await atras.click();
+              await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
+              await expect(footer.getByRole('button').first()).toBeVisible();
             }
             const borrar = footer.getByRole('button', { name: 'Borrar el expediente' });
             if (await borrar.isVisible()) {

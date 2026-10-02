@@ -16,14 +16,20 @@
 
         <enum name="motivoFalta" ref="MotivoFaltaJustificacionFaltaProfesoradoV1" />
         <string name="otroMotivo"  />
-        <string name="disconformidad" title="Explicar los datos a subsanar"  />
-        <string name="resolucion"  title="Motivo del rechazo" />
+
+        <!-- Verificación de la jefatura de estudios -->
+        <enum name="resultadoVerificacion" title="Resultado de la verificación" ref="ResultadoVerificacionJustificacionFaltaProfesoradoV1" />
+        <string name="textoSubsanacion" title="Qué hay que subsanar" large="true" />
+
+        <!-- Resolución de la dirección -->
         <enum name="tipoResolucion" title="Tipo resolución" ref="TipoResolucionJustificacionFaltaProfesoradoV1" />
+        <string name="motivoRechazo" title="Motivo del rechazo" large="true" />
+        <string name="motivoDevolucion" title="Motivo de la devolución" large="true" />
 
         <many-to-one name="justificante" title="Foto o PDF del justificante" ref="com.axelor.meta.db.MetaFile" />
 
         <many-to-one name="pdfSolicitud" title="PDF de la solicitud" ref="com.axelor.meta.db.MetaFile" />
-        <many-to-one name="pdfSolicitudFirmado" title="PDF de la solicitud" ref="com.axelor.meta.db.MetaFile" />
+        <many-to-one name="pdfSolicitudFirmada" title="PDF de la solicitud firmada" ref="com.axelor.meta.db.MetaFile" />
         <many-to-one name="pdfJustificanteRegistroEntrada" title="Justificante del registro de entrada" ref="com.axelor.meta.db.MetaFile" />
         <many-to-one name="pdfResolucion" title="Resolución" ref="com.axelor.meta.db.MetaFile" />
         <extra-code-model>
@@ -75,9 +81,14 @@
         <item name="OTROS" title="Otros"/>
     </enum>
 
+    <enum name="ResultadoVerificacionJustificacionFaltaProfesoradoV1">
+        <item name="CORRECTO" title="La solicitud es correcta"/>
+        <item name="SUBSANAR" title="Pedir subsanación"/>
+    </enum>
+
     <enum name="TipoResolucionJustificacionFaltaProfesoradoV1">
         <item name="ACEPTAR" title="Resolver positivamente"/>
         <item name="RECHAZAR" title="Resolver negativamente(Rechazar)"/>
-        <item name="SUBSANAR_DATOS" title="Solicitar subsanación de datos"/>
+        <item name="DEVOLVER" title="Devolver a jefatura de estudios"/>
     </enum>
 </domain-models>
