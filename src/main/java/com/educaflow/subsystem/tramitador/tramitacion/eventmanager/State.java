@@ -27,6 +27,12 @@ public interface State {
     /** Los eventos disparables desde el estado, en orden de declaración. Conjunto inmutable. */
     Set<String> getEvents();
 
+    /**
+     * Los eventos de {@link #getEvents()} que solo dispara el servidor: los del {@code systemEvents}
+     * del XML. No llevan botón y el controlador los rechaza si llegan en una petición. Conjunto inmutable.
+     */
+    Set<String> getSystemEvents();
+
     /** El {@code closed="true"} del XML: el expediente queda cerrado al entrar aquí. */
     boolean isFinal();
 }

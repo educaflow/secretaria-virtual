@@ -177,6 +177,12 @@ class StatesTest {
                         violaciones.add(violacion(tipo, donde + " tiene los eventos " + eventosDeclarados
                                 + " y en el XML " + eventosEsperados));
                     }
+
+                    List<String> eventosDeSistemaDeclarados = new ArrayList<>(state.getSystemEvents());
+                    if (!eventosDeSistemaDeclarados.equals(esperado.getSystemEvents())) {
+                        violaciones.add(violacion(tipo, donde + " tiene los eventos de sistema " + eventosDeSistemaDeclarados
+                                + " y en el XML " + esperado.getSystemEvents()));
+                    }
                 }
             }
         }

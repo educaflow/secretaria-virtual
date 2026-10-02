@@ -42,6 +42,8 @@ import java.util.Set;
  * <p>Y de ahí X2: si el estado tiene dueño y eventos pero no tiene la vista de su dueño, el dueño
  * cae en la genérica —que es la de solo lectura— y el expediente se queda atascado <b>sin ningún
  * error</b>: nadie puede dispararle sus eventos. Es el peor de los dos fallos, porque no se ve.
+ * Solo cuentan los eventos de usuario: los de sistema ({@code systemEvents}) los dispara el servidor
+ * y no llevan botón, así que un estado que solo tiene de esos no necesita la vista de su dueño.
  *
  * <p><b>Estos tests se escriben A MANO.</b> No son una proyección de ningún catálogo markdown, al
  * contrario que {@code com.educaflow.architecture} y {@code com.educaflow.views}: este fichero es la
@@ -83,7 +85,7 @@ class VistasPorEstadoTest {
     // -----------------------------------------------------------------------------------------
 
     @Test
-    @DisplayName("X2: cada estado con perfil y con eventos tiene el <form state=\"…\" profile=\"…\"> de su perfil")
+    @DisplayName("X2: cada estado con perfil y con eventos de usuario tiene el <form state=\"…\" profile=\"…\"> de su perfil")
     void x2_cadaEstadoConEventosTieneElFormDeSuPerfil() {
         List<Violacion> violaciones = new ArrayList<>();
 
@@ -92,8 +94,8 @@ class VistasPorEstadoTest {
                 String profile = state.getProfile();
 
                 // Sin perfil no hay dueño del turno: la vista de todos es la genérica (X1).
-                // Sin eventos no hay nada que disparar: el estado solo se mira.
-                if ((profile == null) || profile.isBlank() || state.getEvents().isEmpty()) {
+                // Sin eventos de usuario no hay nada que disparar desde la vista: el estado solo se mira.
+                if ((profile == null) || profile.isBlank() || state.getUserEvents().isEmpty()) {
                     continue;
                 }
                 if (tieneForm(fase, state.getName(), profile)) {
@@ -102,14 +104,14 @@ class VistasPorEstadoTest {
 
                 violaciones.add(new Violacion(TiposExpediente.nombre(fase), ViewsDeFase.fichero(fase),
                         "el estado '" + state.getName() + "' es de " + profile + " y dispara "
-                        + state.getEvents() + ", pero no tiene el form de ese perfil"
+                        + state.getUserEvents() + ", pero no tiene el form de ese perfil"
                         + " (la vista " + nombreVista(fase, state, profile) + "): un usuario "
                         + profile + " caería en la vista genérica de solo lectura y el expediente se"
                         + " quedaría atascado sin ningún error:\n" + plantilla(state, profile)));
             }
         }
 
-        Violacion.assertNone("[X2] Todo estado con profile y con al menos un evento debe tener en el views.xml"
+        Violacion.assertNone("[X2] Todo estado con profile y con al menos un evento de usuario debe tener en el views.xml"
                 + " de su fase el <form state=\"<ESTADO>\" profile=\"<PROFILE>\"> de su perfil: es la única vista"
                 + " desde la que su dueño puede disparar esos eventos.", violaciones);
     }
@@ -192,7 +194,7 @@ class VistasPorEstadoTest {
     }
 
     /**
-     * Los botones del form sugerido: en el del perfil dueño, los eventos del estado; en el genérico,
+     * Los botones del form sugerido: en el del perfil dueño, los eventos de usuario del estado; en el genérico,
      * solo {@code EXIT}, porque es la vista de solo lectura de los demás perfiles.
      */
     private static Set<String> botonesSugeridos(State state, String profile) {
@@ -200,6 +202,6 @@ class VistasPorEstadoTest {
             return Set.of("EXIT");
         }
 
-        return new LinkedHashSet<>(state.getEvents());
+        return new LinkedHashSet<>(state.getUserEvents());
     }
 }

@@ -88,6 +88,8 @@ public class TramitadorController {
                 return;
             }
 
+            exigeNoSerEventoDeSistema(expediente, eventName);
+
             tramitadorService.triggerEvent(expediente, eventName, requestData, eventContext);
 
             if (eventName.equals(CommonEvent.DELETE.name())) {
@@ -155,6 +157,17 @@ public class TramitadorController {
     /********************** Funciones de Negocio  **********************/
     /*******************************************************************/
 
+
+    /**
+     * Los eventos de sistema de un estado solo los dispara el servidor, llamando a
+     * {@code TramitadorService.triggerEvent}. Por aquí pasa lo que llega en una petición, así que uno
+     * de sistema solo puede ser alguien que lo manda a mano.
+     */
+    private static void exigeNoSerEventoDeSistema(Expediente expediente, String eventName) {
+        if (ExpedienteUtil.getState(expediente).getSystemEvents().contains(eventName)) {
+            throw new UnauthorizedException("El evento '" + eventName + "' es un evento de sistema y solo lo puede disparar el servidor");
+        }
+    }
 
     private void doResponseVistaExpediente(ActionResponseHelper actionResponseHelper, VistaExpediente vista) {
         actionResponseHelper.doResponseViewForm(vista.viewName(), vista.modelClass(), vista.expediente(), vista.title(), vista.profile().name());

@@ -33,6 +33,13 @@ import java.util.Set;
  *       aplicación. Es una transición que existe en el diagrama y no existe para el usuario.</li>
  * </ul>
  *
+ * <p>La excepción son los <b>eventos de sistema</b>, los del atributo {@code systemEvents} del estado:
+ * no los dispara el usuario sino el servidor (el aviso de que alguien ha firmado en la bandeja de
+ * firmas, por ejemplo), llamando él mismo a {@code TramitadorService.triggerEvent}. Para ellos las dos
+ * reglas se invierten: Y2 no les exige botón y Y1 se lo prohíbe, porque un botón pondría en manos del
+ * usuario una transición que solo debe ocurrir cuando ocurre lo que el servidor está esperando. Siguen
+ * siendo eventos para todo lo demás (E1 exige su {@code trigger<Evento>} y V1 sus reglas).
+ *
  * <p>Y2 mira la <b>unión</b> de los botones de todos los forms del estado, no form a form: el
  * reparto normal es que los eventos vayan en la vista del perfil dueño y la genérica lleve solo
  * {@code EXIT}, pero un estado sin perfil (que lo hay) tiene que poder llevarlos en la genérica.
@@ -62,7 +69,7 @@ class BotonesDelFooterTest {
     // -----------------------------------------------------------------------------------------
 
     @Test
-    @DisplayName("Y1: el name de cada botón del footer es un evento del estado o un evento común")
+    @DisplayName("Y1: el name de cada botón del footer es un evento de usuario del estado o un evento común")
     void y1_cadaBotonEsUnEventoDelEstado() {
         List<Violacion> violaciones = new ArrayList<>();
 
@@ -79,20 +86,27 @@ class BotonesDelFooterTest {
                         continue;
                     }
 
-                    String queEs = boton.name().isBlank()
-                            ? "un botón sin name (el esqueleto sin rellenar)"
-                            : "el botón '" + boton.name() + "', que no es evento del estado";
+                    String queEs;
+                    if (boton.name().isBlank()) {
+                        queEs = "un botón sin name (el esqueleto sin rellenar)";
+                    } else if (state.getSystemEvents().contains(boton.name())) {
+                        queEs = "el botón '" + boton.name() + "', que es un evento de sistema (systemEvents) y"
+                                + " solo lo puede disparar el servidor";
+                    } else {
+                        queEs = "el botón '" + boton.name() + "', que no es evento del estado";
+                    }
 
                     violaciones.add(new Violacion(TiposExpediente.nombre(fase), ViewsDeFase.fichero(fase),
                             form + " tiene " + queEs + ": el name de un botón del footer es el evento que"
-                            + " dispara, y al pulsarlo el servidor no lo encuentra. Los eventos del estado '"
-                            + state.getName() + "' son " + state.getEvents() + " y los comunes " + comunes()));
+                            + " dispara. Los eventos con botón del estado '" + state.getName() + "' son "
+                            + state.getUserEvents() + " y los comunes " + comunes()));
                 }
             }
         }
 
         Violacion.assertNone("[Y1] El name de todo botón del <footer> de un form de estado debe ser un evento"
-                + " declarado en ese estado o uno de los eventos comunes " + comunes() + ".", violaciones);
+                + " declarado en el atributo events de ese estado o uno de los eventos comunes " + comunes()
+                + ". Los de systemEvents no llevan botón.", violaciones);
     }
 
     // -----------------------------------------------------------------------------------------
@@ -100,7 +114,7 @@ class BotonesDelFooterTest {
     // -----------------------------------------------------------------------------------------
 
     @Test
-    @DisplayName("Y2: cada evento declarado en un estado tiene botón en alguno de los forms de ese estado")
+    @DisplayName("Y2: cada evento de usuario declarado en un estado tiene botón en alguno de los forms de ese estado")
     void y2_cadaEventoTieneSuBoton() {
         List<Violacion> violaciones = new ArrayList<>();
 
@@ -118,7 +132,7 @@ class BotonesDelFooterTest {
                     }
                 }
 
-                for (String evento : state.getEvents()) {
+                for (String evento : state.getUserEvents()) {
                     if (conBoton.contains(evento)) {
                         continue;
                     }
@@ -134,9 +148,9 @@ class BotonesDelFooterTest {
             }
         }
 
-        Violacion.assertNone("[Y2] Todo evento declarado en un <state> debe tener un botón con ese name en el"
-                + " <footer> de alguno de los forms de ese estado: si no, no hay forma de dispararlo desde la"
-                + " aplicación.", violaciones);
+        Violacion.assertNone("[Y2] Todo evento declarado en el atributo events de un <state> debe tener un"
+                + " botón con ese name en el <footer> de alguno de los forms de ese estado: si no, no hay forma"
+                + " de dispararlo desde la aplicación. Si lo dispara el servidor, va en systemEvents.", violaciones);
     }
 
     // -----------------------------------------------------------------------------------------
@@ -183,9 +197,9 @@ class BotonesDelFooterTest {
         return null;
     }
 
-    /** Los eventos que puede llevar un botón de ese estado: los suyos más los comunes. */
+    /** Los eventos que puede llevar un botón de ese estado: los suyos de usuario más los comunes. */
     private static Set<String> eventosAdmitidos(State state) {
-        Set<String> eventos = new LinkedHashSet<>(state.getEvents());
+        Set<String> eventos = new LinkedHashSet<>(state.getUserEvents());
         eventos.addAll(comunes());
 
         return eventos;
