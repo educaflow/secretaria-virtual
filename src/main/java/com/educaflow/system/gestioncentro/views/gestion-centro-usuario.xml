@@ -79,43 +79,4 @@
 
     <?sv-remotes?>
 
-    <!-- El usuario tal y como se edita desde las pestañas Profesores/Alumnos del centro (modal). -->
-    <?sv-view?>
-    <form name="sysGestionCentro.Edit@CentroUsuario-form" title="Usuario"
-          model="com.educaflow.subsystem.common.db.CentroUsuario"
-          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
-        <panel name="centroUsuarioDatosPanel" title="">
-            <field name="centro"  showIf="false"/>
-            <field name="usuario" colSpan="12" readonly="true"/>
-        </panel>
-        <panel-related name="centroUsuarioTipoUsuario" field="centroUsuarioTipoUsuario" title="Tipos de usuario" colSpan="12"
-                       newButtonTitle="Añadir tipo de usuario"
-                       grid-view="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-grid"
-                       form-view="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-form"
-                       showFooter="false" canEdit="false" canRemove="false" forceEdit="true"/>
-        <panel-related name="centroUsuarioCargo" field="centroUsuarioCargo" title="Cargos" colSpan="12"
-                       newButtonTitle="Añadir cargo"
-                       grid-view="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-grid"
-                       form-view="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-form"
-                       showFooter="false" canEdit="false" canRemove="false" forceEdit="true"/>
-        <panel name="centroUsuarioButtonsPanel" title="" colSpan="12" showFrame="false">
-            <button name="btnCancel" title="Cancelar" onClick="sysGestionCentro.Edit@CentroUsuario-btnCancel-action" colSpan="2" colOffset="8" outline="true"/>
-            <button name="btnSave"   title="Guardar"  onClick="sysGestionCentro.Edit@CentroUsuario-btnSave-action"   colSpan="2"/>
-        </panel>
-    </form>
-
-    <?sv-primary-actions?>
-    <action-group name="sysGestionCentro.Edit@CentroUsuario-btnCancel-action">
-        <action name="close"/>
-    </action-group>
-    <action-group name="sysGestionCentro.Edit@CentroUsuario-btnSave-action">
-        <action name="save-modal"/>
-    </action-group>
-
-    <?sv-validations?>
-
-    <?sv-rules?>
-
-    <?sv-remotes?>
-
 </object-views>
