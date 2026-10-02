@@ -98,6 +98,19 @@
                     ]]></viewer>
             </field>
         </panel>
+
+        <!-- Lo añade el preprocesador debajo del footer de todos los forms de estado. No es para el creador
+             del expediente, salvo en papel, donde quien lo registró es personal del centro; ocultarlo es
+             solo la pantalla: quién puede añadir una nota lo comprueba ExpedienteService.addNote. -->
+        <panel name="subsysExpedientes-template-notas-panel" title="Notas internas" colSpan="12"
+               hideIf="usuarioRegistrador.id == $userId &amp;&amp; !presentadoEnPapel">
+            <field name="notas" showTitle="false" readonly="true" colSpan="12"/>
+            <field name="nuevaNota" type="string" widget="Text" title="Nueva nota" colSpan="10"/>
+            <button name="add-note" title="Añadir nota" outline="true" colSpan="2"
+                    onClick="subsysExpedientes-btnAddNote-action"/>
+            <field name="usuarioRegistrador" hidden="true"/>
+            <field name="presentadoEnPapel" hidden="true"/>
+        </panel>
     </form>
 
 
