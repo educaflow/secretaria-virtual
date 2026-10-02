@@ -56,9 +56,9 @@ const PANTALLA_TRAMITE = /^Nuevo expediente: elija el trámite\*?$/;
 const PANTALLA_CONTEXTO = /^Nuevo expediente\*?$/;
 
 // Primer estado del tipo de expediente para quien lo presenta él mismo (perfil
-// CREADOR), según `TipoExpedienteInstance.xml`: fase SOLICITUD, estado DATOS_SOLICITUD.
-const FASE_INICIAL = 'Solicitud de anulación';
-const ESTADO_INICIAL = 'Datos de la solicitud';
+// CREADOR), según `TipoExpedienteInstance.xml`: fase ENTRADA, estado ENTRADA_DATOS.
+const FASE_INICIAL = 'Entrada';
+const ESTADO_INICIAL = 'Entrada de datos';
 
 // Panel que la plantilla común pinta con `showIf="presentadoEnRepresentacion"`: su
 // ausencia prueba que el expediente es para el propio alumno, no en representación.

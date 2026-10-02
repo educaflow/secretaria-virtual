@@ -48,12 +48,12 @@ const PANTALLA_TRAMITE = 'Nuevo expediente: elija el trámite';
 const PANTALLA_CONTEXTO = 'Nuevo expediente';
 
 // Primer estado del tipo de expediente para quien lo presenta él mismo (perfil
-// CREADOR), según `TipoExpedienteInstance.xml`: fase SOLICITUD, estado DATOS_SOLICITUD.
+// CREADOR), según `TipoExpedienteInstance.xml`: fase ENTRADA, estado ENTRADA_DATOS.
 // Es el mismo trámite y el mismo primer estado que T-001 (alumno de un solo centro),
 // porque quien lo dicta no es el destinatario (alumno) sino la forma de presentar
 // (telemática, no en papel).
-const FASE_INICIAL = 'Solicitud de anulación';
-const ESTADO_INICIAL = 'Datos de la solicitud';
+const FASE_INICIAL = 'Entrada';
+const ESTADO_INICIAL = 'Entrada de datos';
 
 // Aviso que la vista del estado pinta con `showIf="!presentadoEnPapel"`: verlo es la
 // prueba en la UI de que el expediente NO quedó marcado como presentado en papel.

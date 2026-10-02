@@ -2,7 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 import { ensureLoggedOut, login, logout } from '../../../../_support/auth';
 
 // T-002 — El familiar presenta la solicitud en representación de su hijo
-// origen: ESC —  |  CREADOR | [*] --(alta: botón «Crear expediente»)--> SOLICITUD/DATOS_SOLICITUD  |  tipo: happy
+// origen: ESC —  |  CREADOR | [*] --(alta: botón «Crear expediente»)--> ENTRADA/ENTRADA_DATOS  |  tipo: happy
 // fuente: .sdd/drafts/2026-09-19_23-14_anulacion-matricula-arranque/test-e2e-desc/t-002-el-familiar-presenta-la-solicitud-en-representacion-de-su-hijo.desc.md
 
 const TRAMITE = 'Anulación de matrícula en ciclo formativo';
@@ -34,7 +34,7 @@ async function abrirAltaDelTramite(page: Page): Promise<void> {
   await expect(page.getByRole('tab', { name: PANTALLA_ALTA, exact: true })).toBeVisible();
 }
 
-test.describe('Anulación de matrícula en ciclo formativo — SOLICITUD', () => {
+test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
   test('El familiar presenta la solicitud en representación de su hijo', async ({ page }) => {
     let numero = '';
     try {
@@ -67,8 +67,8 @@ test.describe('Anulación de matrícula en ciclo formativo — SOLICITUD', () =>
       // When: pulsa «Crear expediente».
       await page.getByRole('button', { name: 'Crear expediente' }).click();
 
-      // Then: se abre el expediente en la fase SOLICITUD, estado DATOS_SOLICITUD, con la cabecera
-      // «Solicitud de anulación» / «Datos de la solicitud».
+      // Then: se abre el expediente en la fase ENTRADA, estado ENTRADA_DATOS, con la cabecera
+      // «Entrada» / «Entrada de datos».
       await expect(page.getByRole('tab', { name: PANTALLA_ALTA, exact: true })).toHaveCount(0);
       // Idempotencia (§5.1): el número de expediente lo asigna el servidor y es lo ÚNICO que
       // identifica a lo creado; la pestaña se titula «<número>-<nombre del tipo de expediente>».
@@ -77,8 +77,8 @@ test.describe('Anulación de matrícula en ciclo formativo — SOLICITUD', () =>
       numero = (await pestana.textContent())!.split('-')[0].trim();
       expect(numero).toMatch(/^\d{4,}\/\d{4}$/);
       await expect(page.getByRole('tab', { name: new RegExp(numero) })).toBeVisible();
-      await expect(page.getByLabel('Fase')).toHaveValue('Solicitud de anulación');
-      await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Datos de la solicitud');
+      await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
+      await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
 
       // And: aparece el panel «Persona que presenta la solicitud» con los datos del familiar que ha
       // entrado —«Apellidos» = «de Alumno1 CIPFP Mislata», «Nombre» = «Familiar1»,
@@ -104,7 +104,7 @@ test.describe('Anulación de matrícula en ciclo formativo — SOLICITUD', () =>
       await expect(page.getByRole('button', { name: 'Borrar el expediente' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Siguiente' })).toBeVisible();
     } finally {
-      // Teardown (§5.2): el estado de llegada DATOS_SOLICITUD ofrece el evento DELETE
+      // Teardown (§5.2): el estado de llegada ENTRADA_DATOS ofrece el evento DELETE
       // («Borrar el expediente»), así que el expediente se borra aquí. El borrado exige SESIÓN
       // ABIERTA y el perfil del estado final (CREADOR, el del único tramo), por eso va ANTES del
       // logout. DELETE recarga la aplicación entera (refresh-app).

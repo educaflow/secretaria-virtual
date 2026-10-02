@@ -16,7 +16,7 @@ id: T-006
 **Perfil:** `TRAMITADOR` (login `administrativo2@mislata.es`)
 **Desde:** `[*]`
 **Evento:** `CONTINUAR` — botón «Siguiente»
-**Hasta:** `SOLICITUD` / `DATOS_SOLICITUD`
+**Hasta:** `ENTRADA` / `ENTRADA_DATOS`
 **Tipo:** happy
 **Manual:** no
 
@@ -52,7 +52,7 @@ Los cuatro actores pertenecen **solo** a CIPFP Mislata, así que el asistente «
 
 Las dos cosas están en el árbol de fuentes, pero el data-init solo las lleva a la base de datos **al arrancar**: la aplicación tiene que haberse arrancado con `./run.sh` después de esos cambios, o los casos 2, 4 y 7 fallarán al no admitir el asistente el expediente en representación.
 
-#### Juego de datos válido — fase `SOLICITUD`
+#### Juego de datos válido — fase `ENTRADA`
 
 | campo | valor |
 |---|---|
@@ -68,8 +68,8 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 - **When** marca «Estoy registrando un trámite recibido en papel».
 - **Then** aparece la pregunta «¿Para quién es el expediente?» («Para mí» es para la persona que ha entregado el papel), sin ninguna opción marcada.
 - **When** marca «Para mí» —la solicitud es del alumno que la ha entregado, no suya— y pulsa «Crear expediente».
-- **Then** se abre el expediente en la fase `SOLICITUD`, estado `PENDIENTE_DOCUMENTO_ESCANEADO`, con el panel «Solicitud entregada en papel» y su campo «Solicitud escaneada (PDF)».
+- **Then** se abre el expediente en la fase `ENTRADA`, estado `PENDIENTE_DOCUMENTO_ESCANEADO`, con el panel «Solicitud entregada en papel» y su campo «Solicitud escaneada (PDF)».
 - **When** adjunta un PDF de menos de 10 MB y pulsa «Siguiente».
-- **Then** el expediente pasa al estado `DATOS_SOLICITUD`, con la cabecera «Solicitud de anulación» / «Datos de la solicitud» y el aviso «Copie los datos de la solicitud entregada en papel que ha adjuntado escaneada. Al presentarla se registrará su entrada».
+- **Then** el expediente pasa al estado `ENTRADA_DATOS`, con la cabecera «Entrada» / «Entrada de datos» y el aviso «Copie los datos de la solicitud entregada en papel que ha adjuntado escaneada. Al presentarla se registrará su entrada».
 - **And** el panel «Persona que presenta la solicitud» **no** aparece, y en «Alumno/a al que se refiere la solicitud» los campos «Apellidos», «Nombre» y «DNI/NIE» están **vacíos y editables**: no se han precargado los suyos, porque el interesado es el otro alumno.
 - **And** el pie ofrece «Borrar el expediente», «Atrás» y «Presentar la solicitud».

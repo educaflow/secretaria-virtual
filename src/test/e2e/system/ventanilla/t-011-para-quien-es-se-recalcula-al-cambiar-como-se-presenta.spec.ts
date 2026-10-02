@@ -84,10 +84,10 @@ const ERROR_FALTA_PARA_QUIEN = 'Debe indicar para quién es el expediente';
 const ERROR_FALTA_FORMA_DE_PRESENTAR = 'Debe indicar cómo se presenta el expediente';
 
 // Primer estado del tipo de expediente cuando se registra EN PAPEL, según
-// `InitialEventManagerImpl`: fase SOLICITUD, estado PENDIENTE_DOCUMENTO_ESCANEADO.
-// Quien lo presenta él mismo por vía telemática arranca en DATOS_SOLICITUD, así que
+// `InitialEventManagerImpl`: fase ENTRADA, estado PENDIENTE_DOCUMENTO_ESCANEADO.
+// Quien lo presenta él mismo por vía telemática arranca en ENTRADA_DATOS, así que
 // este estado es, por sí solo, la prueba de que el expediente quedó en papel.
-const FASE_INICIAL = 'Solicitud de anulación';
+const FASE_INICIAL = 'Entrada';
 const ESTADO_INICIAL_EN_PAPEL = 'Pendiente de adjuntar la solicitud en papel escaneada';
 
 // Aviso del form de PENDIENTE_DOCUMENTO_ESCANEADO con perfil TRAMITADOR: verlo prueba
@@ -95,7 +95,7 @@ const ESTADO_INICIAL_EN_PAPEL = 'Pendiente de adjuntar la solicitud en papel esc
 const AVISO_EN_PAPEL =
   'Adjunte escaneada en PDF la solicitud que ha entregado firmada la persona que la presenta';
 
-// Aviso que la vista pinta a quien presenta por vía TELEMÁTICA (estado DATOS_SOLICITUD,
+// Aviso que la vista pinta a quien presenta por vía TELEMÁTICA (estado ENTRADA_DATOS,
 // `showIf="!presentadoEnPapel"`): su ausencia es la otra cara de la misma comprobación.
 const AVISO_PRESENTA_EL_MISMO =
   'Para presentar la solicitud necesitará firmarla con su certificado digital desde este mismo ordenador';
@@ -488,8 +488,8 @@ test.describe('Ventanilla — Nuevo expediente', () => {
 
       // Resultado esperado: se abre el expediente recién creado de "Anulación de
       // matrícula en ciclo formativo" en su primer estado. Al haberse registrado en papel
-      // ese primer estado es PENDIENTE_DOCUMENTO_ESCANEADO de la fase SOLICITUD, y no
-      // DATOS_SOLICITUD, que es donde nacería por la vía telemática.
+      // ese primer estado es PENDIENTE_DOCUMENTO_ESCANEADO de la fase ENTRADA, y no
+      // ENTRADA_DATOS, que es donde nacería por la vía telemática.
       const pestanaExpediente = page.getByRole('tab', { name: TITULO_EXPEDIENTE });
       await expect(pestanaExpediente).toBeVisible();
       const tituloExpediente = (await pestanaExpediente.getByTestId('title').innerText()).trim();
@@ -524,7 +524,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       //
       // Esa ausencia no es vacua pese a que los `<include-panels>` sean allowlists: si el
       // expediente hubiera nacido por la vía telemática NO estaría en este estado ni en
-      // este formulario, sino en DATOS_SOLICITUD, cuyo form sí trae ese aviso
+      // este formulario, sino en ENTRADA_DATOS, cuyo form sí trae ese aviso
       // (`showIf="!presentadoEnPapel"`). O sea, con el comportamiento contrario el
       // elemento existiría de verdad — que es justo lo que se le pide a una negativa.
       // Las dos ramas son excluyentes, así que ver una y no ver la otra es la misma
@@ -550,7 +550,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       expect(persistido.presentadoEnPapel).toBe(true);
       expect(persistido.presentadoEnRepresentacion).toBe(true);
       expect(persistido['usuarioRegistrador.name']).toBe(ADMINISTRATIVO_NOMBRE_COMPLETO);
-      expect(persistido.codePhase).toBe('SOLICITUD');
+      expect(persistido.codePhase).toBe('ENTRADA');
       expect(persistido.codeState).toBe('PENDIENTE_DOCUMENTO_ESCANEADO');
     } finally {
       // Teardown: borrar el expediente creado aunque una aserción haya fallado — la BD es

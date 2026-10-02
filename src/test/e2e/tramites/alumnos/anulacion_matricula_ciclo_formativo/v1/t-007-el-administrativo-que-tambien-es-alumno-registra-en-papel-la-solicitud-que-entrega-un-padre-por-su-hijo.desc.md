@@ -16,7 +16,7 @@ id: T-007
 **Perfil:** `TRAMITADOR` (login `administrativo2@mislata.es`)
 **Desde:** `[*]`
 **Evento:** `CONTINUAR` — botón «Siguiente»
-**Hasta:** `SOLICITUD` / `DATOS_SOLICITUD`
+**Hasta:** `ENTRADA` / `ENTRADA_DATOS`
 **Tipo:** happy
 **Manual:** no
 
@@ -52,7 +52,7 @@ Los cuatro actores pertenecen **solo** a CIPFP Mislata, así que el asistente «
 
 Las dos cosas están en el árbol de fuentes, pero el data-init solo las lleva a la base de datos **al arrancar**: la aplicación tiene que haberse arrancado con `./run.sh` después de esos cambios, o los casos 2, 4 y 7 fallarán al no admitir el asistente el expediente en representación.
 
-#### Juego de datos válido — fase `SOLICITUD`
+#### Juego de datos válido — fase `ENTRADA`
 
 | campo | valor |
 |---|---|
@@ -66,8 +66,8 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 - **When** inicia sesión, abre «Mis trámites» → «Nuevo trámite», despliega «Trámites para el alumno», pulsa sobre «Anulación de matrícula en ciclo formativo» y en la pregunta «¿Cómo se presenta?» marca «Estoy registrando un trámite recibido en papel».
 - **Then** aparece la pregunta «¿Para quién es el expediente?» («Para mí» es para la persona que ha entregado el papel).
 - **When** marca «Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)» y pulsa «Crear expediente».
-- **Then** se abre el expediente en la fase `SOLICITUD`, estado `PENDIENTE_DOCUMENTO_ESCANEADO`, con el panel «Solicitud entregada en papel» y su campo «Solicitud escaneada (PDF)».
+- **Then** se abre el expediente en la fase `ENTRADA`, estado `PENDIENTE_DOCUMENTO_ESCANEADO`, con el panel «Solicitud entregada en papel» y su campo «Solicitud escaneada (PDF)».
 - **When** adjunta un PDF de menos de 10 MB y pulsa «Siguiente».
-- **Then** el expediente pasa al estado `DATOS_SOLICITUD`, con la cabecera «Solicitud de anulación» / «Datos de la solicitud».
+- **Then** el expediente pasa al estado `ENTRADA_DATOS`, con la cabecera «Entrada» / «Entrada de datos».
 - **And** aparece el panel «Persona que presenta la solicitud» con los tres campos **vacíos y editables** (el padre que entregó el papel), y en «Alumno/a al que se refiere la solicitud» los tres campos están también **vacíos y editables** (el hijo).
 - **And** el pie ofrece «Borrar el expediente», «Atrás» y «Presentar la solicitud».

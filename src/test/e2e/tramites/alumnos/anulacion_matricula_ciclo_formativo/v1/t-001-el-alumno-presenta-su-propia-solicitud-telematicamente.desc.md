@@ -16,7 +16,7 @@ id: T-001
 **Perfil:** `CREADOR` (login `alumno1@mislata.es`)
 **Desde:** `[*]`
 **Evento:** — (alta: botón «Crear expediente»)
-**Hasta:** `SOLICITUD` / `DATOS_SOLICITUD`
+**Hasta:** `ENTRADA` / `ENTRADA_DATOS`
 **Tipo:** happy
 **Manual:** no
 
@@ -52,7 +52,7 @@ Los cuatro actores pertenecen **solo** a CIPFP Mislata, así que el asistente «
 
 Las dos cosas están en el árbol de fuentes, pero el data-init solo las lleva a la base de datos **al arrancar**: la aplicación tiene que haberse arrancado con `./run.sh` después de esos cambios, o los casos 2, 4 y 7 fallarán al no admitir el asistente el expediente en representación.
 
-#### Juego de datos válido — fase `SOLICITUD`
+#### Juego de datos válido — fase `ENTRADA`
 
 | campo | valor |
 |---|---|
@@ -66,7 +66,7 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 - **When** inicia sesión, abre «Mis trámites» → «Nuevo trámite», despliega «Trámites para el alumno» y pulsa sobre «Anulación de matrícula en ciclo formativo».
 - **Then** se abre la pantalla «Nuevo expediente» con la ayuda del trámite, el campo «Centro» ya relleno con «CIPFP Mislata» y de solo lectura, **sin** la pregunta «¿Cómo se presenta?» (solo tiene el perfil `CREADOR`, así que no hay nada que elegir) y **sin** la pregunta «¿Para quién es el expediente?» (es alumno y no familiar, así que el expediente solo puede ser para él mismo).
 - **When** pulsa «Crear expediente».
-- **Then** se cierra la pantalla «Nuevo expediente» y se abre el expediente en la fase `SOLICITUD`, estado `DATOS_SOLICITUD`, cuya cabecera muestra «Solicitud de anulación» y «Datos de la solicitud».
+- **Then** se cierra la pantalla «Nuevo expediente» y se abre el expediente en la fase `ENTRADA`, estado `ENTRADA_DATOS`, cuya cabecera muestra «Entrada» y «Entrada de datos».
 - **And** el aviso de la pantalla es «Para presentar la solicitud necesitará firmarla con su certificado digital desde este mismo ordenador».
 - **And** el panel «Persona que presenta la solicitud» **no** aparece: solicitante e interesado son la misma persona.
 - **And** en «Alumno/a al que se refiere la solicitud» los campos vienen rellenos con los datos de quien ha entrado —«Apellidos» = «CIPFP Mislata», «Nombre» = «Alumno1», «DNI/NIE» = «86862719E»— y los tres están bloqueados.

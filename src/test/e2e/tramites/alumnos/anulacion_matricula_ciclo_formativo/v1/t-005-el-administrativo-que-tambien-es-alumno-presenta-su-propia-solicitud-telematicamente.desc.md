@@ -16,7 +16,7 @@ id: T-005
 **Perfil:** `CREADOR` (login `administrativo2@mislata.es`)
 **Desde:** `[*]`
 **Evento:** — (alta: botón «Crear expediente»)
-**Hasta:** `SOLICITUD` / `DATOS_SOLICITUD`
+**Hasta:** `ENTRADA` / `ENTRADA_DATOS`
 **Tipo:** happy
 **Manual:** no
 
@@ -52,7 +52,7 @@ Los cuatro actores pertenecen **solo** a CIPFP Mislata, así que el asistente «
 
 Las dos cosas están en el árbol de fuentes, pero el data-init solo las lleva a la base de datos **al arrancar**: la aplicación tiene que haberse arrancado con `./run.sh` después de esos cambios, o los casos 2, 4 y 7 fallarán al no admitir el asistente el expediente en representación.
 
-#### Juego de datos válido — fase `SOLICITUD`
+#### Juego de datos válido — fase `ENTRADA`
 
 | campo | valor |
 |---|---|
@@ -68,7 +68,7 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 - **When** marca «Lo presento yo mismo».
 - **Then** **no** se muestra la pregunta «¿Para quién es el expediente?»: presentándolo él mismo, como es alumno y no familiar, el expediente solo puede ser para él.
 - **When** pulsa «Crear expediente».
-- **Then** se abre el expediente en la fase `SOLICITUD`, estado `DATOS_SOLICITUD`, con la cabecera «Solicitud de anulación» / «Datos de la solicitud», exactamente igual que en T-001: el expediente nace como presentación telemática aunque quien entra sea administrativo.
+- **Then** se abre el expediente en la fase `ENTRADA`, estado `ENTRADA_DATOS`, con la cabecera «Entrada» / «Entrada de datos», exactamente igual que en T-001: el expediente nace como presentación telemática aunque quien entra sea administrativo.
 - **And** el aviso es «Para presentar la solicitud necesitará firmarla con su certificado digital desde este mismo ordenador».
 - **And** el panel «Persona que presenta la solicitud» **no** aparece, y en «Alumno/a al que se refiere la solicitud» los campos vienen rellenos con sus propios datos —«Apellidos» = «CIPFP Mislata», «Nombre» = «Administrativo2», «DNI/NIE» = «16493254T»— y bloqueados.
 - **And** el pie ofrece «Borrar el expediente» y «Siguiente».

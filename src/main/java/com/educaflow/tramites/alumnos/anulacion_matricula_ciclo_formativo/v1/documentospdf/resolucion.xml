@@ -38,23 +38,23 @@
     </parrafo>
     <espacio alto="14.76"/>
 
-    <parrafo visible="self.sentidoRevision != com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1.RECHAZAR">
+    <parrafo visible="self.tipoResolucion != com.educaflow.subsystem.expedientes.db.TipoResolucionAnulacionMatriculaCicloFormativoV1.RECHAZAR">
         <valenciano>Estimar la sol·licitud i declarar anul·lada la matrícula, que queda sense efecte a partir de la data de la seua presentació.</valenciano>
         <castellano>Estimar la solicitud y declarar anulada la matrícula, que queda sin efecto a partir de la fecha de su presentación.</castellano>
     </parrafo>
-    <espacio alto="14.76" visible="self.sentidoRevision != com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1.RECHAZAR"/>
+    <espacio alto="14.76" visible="self.tipoResolucion != com.educaflow.subsystem.expedientes.db.TipoResolucionAnulacionMatriculaCicloFormativoV1.RECHAZAR"/>
 
-    <parrafo visible="self.sentidoRevision == com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1.RECHAZAR">
+    <parrafo visible="self.tipoResolucion == com.educaflow.subsystem.expedientes.db.TipoResolucionAnulacionMatriculaCicloFormativoV1.RECHAZAR">
         <valenciano>Desestimar la sol·licitud d'anul·lació de matrícula, que manté per tant tots els seus efectes.</valenciano>
         <castellano>Desestimar la solicitud de anulación de matrícula, que mantiene por tanto todos sus efectos.</castellano>
     </parrafo>
-    <espacio alto="14.76" visible="self.sentidoRevision == com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1.RECHAZAR"/>
+    <espacio alto="14.76" visible="self.tipoResolucion == com.educaflow.subsystem.expedientes.db.TipoResolucionAnulacionMatriculaCicloFormativoV1.RECHAZAR"/>
 
-    <parrafo visible="self.sentidoRevision == com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1.RECHAZAR">
+    <parrafo visible="self.tipoResolucion == com.educaflow.subsystem.expedientes.db.TipoResolucionAnulacionMatriculaCicloFormativoV1.RECHAZAR">
         <valenciano>Pel motiu següent: ${self.motivoRechazo}</valenciano>
         <castellano>Por el siguiente motivo: ${self.motivoRechazo}</castellano>
     </parrafo>
-    <espacio alto="14.76" visible="self.sentidoRevision == com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1.RECHAZAR"/>
+    <espacio alto="14.76" visible="self.tipoResolucion == com.educaflow.subsystem.expedientes.db.TipoResolucionAnulacionMatriculaCicloFormativoV1.RECHAZAR"/>
 
     <parrafo negrita="true" mayusculas="true" alineamiento="izquierda">
         <valenciano>Recursos:</valenciano>

@@ -13,6 +13,7 @@ import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1
 import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.State;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
+import com.educaflow.tramites.util.entrada.CamposEntrada;
 
 import java.util.Optional;
 import java.util.Set;
@@ -20,6 +21,23 @@ import java.util.Set;
 public final class AnulacionMatriculaCicloFormativoV1Util {
 
     private AnulacionMatriculaCicloFormativoV1Util() {
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Fases comunes                                                      */
+    /* ------------------------------------------------------------------ */
+
+    /** Los campos de este tipo con los que trabaja el código común de la fase ENTRADA (tramites/util/entrada). */
+    public static final CamposEntrada<AnulacionMatriculaCicloFormativoV1> CAMPOS_ENTRADA = new CamposEntrada<>(
+            AnulacionMatriculaCicloFormativoV1::getPdfSolicitud,
+            AnulacionMatriculaCicloFormativoV1::getPdfSolicitudFirmada,
+            AnulacionMatriculaCicloFormativoV1::setPdfSolicitudFirmada,
+            AnulacionMatriculaCicloFormativoV1::setPdfJustificanteRegistroEntrada,
+            AnulacionMatriculaCicloFormativoV1Util::borrarSubsanacion);
+
+    public static void borrarSubsanacion(AnulacionMatriculaCicloFormativoV1 expediente) {
+        expediente.setResultadoVerificacion(null);
+        expediente.setTextoSubsanacion(null);
     }
 
     /* ------------------------------------------------------------------ */
@@ -118,16 +136,6 @@ public final class AnulacionMatriculaCicloFormativoV1Util {
         if (perfilesDelUsuario.contains(perfilDelEstado) == false) {
             throw new BusinessException(I18n.get(mensaje));
         }
-    }
-
-    /* ------------------------------------------------------------------ */
-    /* Devolución del director a secretaría                               */
-    /* ------------------------------------------------------------------ */
-
-    public static void borrarDevolucionDelDirector(AnulacionMatriculaCicloFormativoV1 expediente) {
-        expediente.setMotivoDevolucion(null);
-        expediente.setFechaDevolucion(null);
-        expediente.setDevueltoPor(null);
     }
 
 }

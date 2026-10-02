@@ -4,8 +4,60 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <!-- *********************************************************************************************  -->
+    <!-- ************************************ PENDIENTE_RESOLUCION ***********************************  -->
+    <!-- *********************************************************************************************  -->
+    <form state="PENDIENTE_RESOLUCION" profile="TRAMITADOR">
+        <include-panels>
+            -persona-solicitante
+            -datos-alumno
+            -matricula
+            -presentacion-descarga
+            -pdfSolicitudFirmada
+            resolucion
+        </include-panels>
+
+        <panel name="avisoPendienteResolucionTramitador" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">Acepte o rechace la anulación. Se generará la resolución y se le pondrá a firmar al director del centro en su bandeja de firmas</help>
+        </panel>
+
+        <footer>
+            <buttons-left>
+                <button name="BACK" colSpan="2" outline="true" title="Atrás"
+                        onClick="subsysTramitador-event-action"/>
+            </buttons-left>
+            <buttons-right>
+                <button name="RESOLVER" colSpan="4" title="Enviar a la firma del director"
+                        onClick="subsysTramitador-event-action"
+                        prompt="Va a generar la resolución y a enviarla a la firma del director del centro"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <form state="PENDIENTE_RESOLUCION">
+        <include-panels>
+            -datos-alumno
+            -matricula
+            -presentacion
+            -solicitud-firmada-descarga
+        </include-panels>
+
+        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">La solicitud está pendiente de que la secretaría del centro la resuelva</help>
+        </panel>
+
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <!-- *********************************************************************************************  -->
     <!-- ********************************* PENDIENTE_FIRMA_DIRECTOR **********************************  -->
     <!-- *********************************************************************************************  -->
+    <!-- El estado no tiene botones: sus dos eventos (FIRMAR y RECHAZAR_FIRMA) son de sistema y los dispara el
+         servidor cuando el director firma o rechaza la resolución en su bandeja de firmas. -->
     <form state="PENDIENTE_FIRMA_DIRECTOR" profile="DIRECTOR">
         <include-panels>
             -datos-alumno-resumen
@@ -14,23 +66,16 @@
             -resolucion-a-firmar
             -solicitud-firmada-descarga
             -justificante-descarga
-            devolucion
         </include-panels>
 
-        <panel name="avisoPendienteFirmaDirectorDirector" colSpan="12" showFrame="false">
-            <help variant="info" colSpan="12">Revise la resolución antes de firmarla. Al firmarla se registrará de salida y el expediente quedará cerrado. Si no está conforme, devuélvala a secretaría indicando el motivo</help>
+        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">La resolución está pendiente de su firma: fírmela o rechácela en el menú «Firmas», opción «Pendientes»</help>
         </panel>
 
         <footer>
-            <buttons-left>
-                <button name="DEVOLVER" colSpan="4" outline="true" title="Devolver a secretaría"
-                        onClick="subsysTramitador-event-action"
-                        prompt="Va a devolver la resolución a secretaría sin firmarla"/>
-            </buttons-left>
+            <buttons-left/>
             <buttons-right>
-                <button name="FIRMAR" colSpan="4" title="Firmar la resolución"
-                        onClick="subsysTramitador-event-action"
-                        prompt="Va a firmar la resolución. Una vez firmada se registrará de salida y el expediente quedará cerrado"/>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
             </buttons-right>
         </footer>
     </form>
@@ -102,5 +147,13 @@
             </buttons-right>
         </footer>
     </form>
+
+    <!-- *********************************************************************************************  -->
+    <!-- ***************************** Acciones propias de la fase RESOLUCION ************************  -->
+    <!-- *********************************************************************************************  -->
+    <action-record name="exp-AnulacionMatriculaCicloFormativoV1-limpiar-resolucion-action"
+                   model="com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1">
+        <field name="motivoRechazo" expr="eval: null" if="tipoResolucion != 'RECHAZAR'"/>
+    </action-record>
 
 </object-views>

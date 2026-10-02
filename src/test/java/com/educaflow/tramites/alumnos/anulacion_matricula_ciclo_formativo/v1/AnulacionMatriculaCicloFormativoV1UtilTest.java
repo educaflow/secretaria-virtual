@@ -1,6 +1,7 @@
 package com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1;
 
 import com.axelor.auth.db.User;
+import com.axelor.meta.db.MetaFile;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.i18n.I18n;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
@@ -8,7 +9,8 @@ import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.CentroUsuario;
 import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1;
-import com.educaflow.subsystem.expedientes.db.SentidoRevisionAnulacionMatriculaCicloFormativoV1;
+import com.educaflow.subsystem.expedientes.db.ResultadoVerificacionAnulacionMatriculaCicloFormativoV1;
+import com.educaflow.tramites.util.entrada.CamposEntrada;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +20,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.quality.Strictness;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,11 +42,7 @@ class AnulacionMatriculaCicloFormativoV1UtilTest {
 
     private static final long ID_USUARIO_IRRELEVANTE = 1L;
 
-    private static final String MOTIVO_DEVOLUCION = "Falta el NIA";
-    private static final LocalDate FECHA_DEVOLUCION = LocalDate.of(2026, 3, 4);
-
     private static final String MOTIVO_RECHAZO = "Fuera de plazo";
-    private static final LocalDate FECHA_REVISION = LocalDate.of(2026, 2, 1);
 
     private MockedStatic<I18n> i18nMock;
     private MockedStatic<SecurityUtil> securityUtilMock;
@@ -121,14 +118,6 @@ class AnulacionMatriculaCicloFormativoV1UtilTest {
         return expediente;
     }
 
-    private static AnulacionMatriculaCicloFormativoV1 expedienteDevuelto(User devueltoPor) {
-        AnulacionMatriculaCicloFormativoV1 expediente = new AnulacionMatriculaCicloFormativoV1();
-        expediente.setMotivoDevolucion(MOTIVO_DEVOLUCION);
-        expediente.setFechaDevolucion(FECHA_DEVOLUCION);
-        expediente.setDevueltoPor(devueltoPor);
-        return expediente;
-    }
-
     private void usuarioAutenticado(User usuario) {
         securityUtilMock.when(SecurityUtil::getUser).thenReturn(usuario);
     }
@@ -139,15 +128,6 @@ class AnulacionMatriculaCicloFormativoV1UtilTest {
         BusinessMessages mensajes = excepcion.getBusinessMessages();
         assertEquals(1, mensajes.size());
         return mensajes.get(0).getMessage();
-    }
-
-    // Esta lista es lo que fija qué campos son la devolución: un cuarto campo en el bloque
-    // «Devolución del director a secretaría» del domains.xml MUST añadirse aquí y en expedienteDevuelto.
-    private static void assertDevolucionVacia(AnulacionMatriculaCicloFormativoV1 expediente) {
-        assertAll(
-                () -> assertNull(expediente.getMotivoDevolucion()),
-                () -> assertNull(expediente.getFechaDevolucion()),
-                () -> assertNull(expediente.getDevueltoPor()));
     }
 
     /* ------------------------------------------------------------------ */
@@ -280,47 +260,44 @@ class AnulacionMatriculaCicloFormativoV1UtilTest {
     }
 
     /* ------------------------------------------------------------------ */
-    /* borrarDevolucionDelDirector                                        */
+    /* borrarSubsanacion                                                  */
     /* ------------------------------------------------------------------ */
 
     @Test
-    void borrarDevolucionDelDirector_expedienteQueVieneDeUnaDevolucion_dejaLosTresCamposANull() {
-        AnulacionMatriculaCicloFormativoV1 expediente = expedienteDevuelto(usuario(11L));
-
-        AnulacionMatriculaCicloFormativoV1Util.borrarDevolucionDelDirector(expediente);
-
-        assertDevolucionVacia(expediente);
-    }
-
-    @Test
-    void borrarDevolucionDelDirector_expedienteSinDevolucionPrevia_esIdempotenteYNoLanza() {
+    void borrarSubsanacion_expedienteConSubsanacionPedida_vaciaElResultadoYElTexto() {
         AnulacionMatriculaCicloFormativoV1 expediente = new AnulacionMatriculaCicloFormativoV1();
-
-        assertDoesNotThrow(() -> {
-            AnulacionMatriculaCicloFormativoV1Util.borrarDevolucionDelDirector(expediente);
-            AnulacionMatriculaCicloFormativoV1Util.borrarDevolucionDelDirector(expediente);
-        });
-
-        assertDevolucionVacia(expediente);
-    }
-
-    @Test
-    void borrarDevolucionDelDirector_noTocaNingunOtroCampoDelExpediente() {
-        AnulacionMatriculaCicloFormativoV1 expediente = expedienteDevuelto(usuario(11L));
-        User revisadoPor = usuario(22L);
-        expediente.setSentidoRevision(SentidoRevisionAnulacionMatriculaCicloFormativoV1.SUBSANAR);
+        expediente.setResultadoVerificacion(ResultadoVerificacionAnulacionMatriculaCicloFormativoV1.SUBSANAR);
+        expediente.setTextoSubsanacion("Falta indicar el ciclo en el que está matriculado");
         expediente.setMotivoRechazo(MOTIVO_RECHAZO);
-        expediente.setFechaRevision(FECHA_REVISION);
-        expediente.setRevisadoPor(revisadoPor);
 
-        AnulacionMatriculaCicloFormativoV1Util.borrarDevolucionDelDirector(expediente);
+        AnulacionMatriculaCicloFormativoV1Util.borrarSubsanacion(expediente);
 
         assertAll(
-                () -> assertEquals(SentidoRevisionAnulacionMatriculaCicloFormativoV1.SUBSANAR,
-                        expediente.getSentidoRevision()),
-                () -> assertEquals(MOTIVO_RECHAZO, expediente.getMotivoRechazo()),
-                () -> assertEquals(FECHA_REVISION, expediente.getFechaRevision()),
-                () -> assertSame(revisadoPor, expediente.getRevisadoPor()));
+                () -> assertNull(expediente.getResultadoVerificacion()),
+                () -> assertNull(expediente.getTextoSubsanacion()),
+                () -> assertEquals(MOTIVO_RECHAZO, expediente.getMotivoRechazo()));
+    }
+
+    @Test
+    void camposEntrada_usaLosCamposDeLaSolicitudDeEsteTipo() {
+        AnulacionMatriculaCicloFormativoV1 expediente = new AnulacionMatriculaCicloFormativoV1();
+        MetaFile pdfSolicitud = new MetaFile();
+        MetaFile pdfSolicitudFirmada = new MetaFile();
+        MetaFile resguardo = new MetaFile();
+        expediente.setPdfSolicitud(pdfSolicitud);
+        expediente.setTextoSubsanacion("Falta indicar el ciclo en el que está matriculado");
+
+        CamposEntrada<AnulacionMatriculaCicloFormativoV1> campos = AnulacionMatriculaCicloFormativoV1Util.CAMPOS_ENTRADA;
+        campos.setPdfSolicitudFirmada().accept(expediente, pdfSolicitudFirmada);
+        campos.setPdfJustificanteRegistroEntrada().accept(expediente, resguardo);
+        campos.borrarSubsanacion().accept(expediente);
+
+        assertAll(
+                () -> assertSame(pdfSolicitud, campos.getPdfSolicitud().apply(expediente)),
+                () -> assertSame(pdfSolicitudFirmada, campos.getPdfSolicitudFirmada().apply(expediente)),
+                () -> assertSame(pdfSolicitudFirmada, expediente.getPdfSolicitudFirmada()),
+                () -> assertSame(resguardo, expediente.getPdfJustificanteRegistroEntrada()),
+                () -> assertNull(expediente.getTextoSubsanacion()));
     }
 
 }

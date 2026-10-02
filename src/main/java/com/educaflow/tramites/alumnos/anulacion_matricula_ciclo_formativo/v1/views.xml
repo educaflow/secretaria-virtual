@@ -8,13 +8,9 @@
           model="com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1"
           groups="admins,users">
 
-        <!-- ================================================================================== -->
-        <!-- Subsanación pedida por secretaría                                                  -->
-        <!-- ================================================================================== -->
-        <panel name="subsanacion" title="Qué hay que subsanar" colSpan="12"
-               showIf="(textoSubsanacion!=null) &amp;&amp; (textoSubsanacion!='')">
-            <field name="textoSubsanacion" showTitle="false" readonly="true" colSpan="12"/>
-        </panel>
+        <!-- Los paneles subsanacion, verificacion, solicitud-escaneada-* y firma-solicitud, y los visores
+             pdfSolicitud y pdfSolicitudFirmada de las fases comunes ENTRADA y VERIFICACION están en
+             tramites/shared/template-views.xml. -->
 
         <!-- ================================================================================== -->
         <!-- Datos del alumno                                                                   -->
@@ -78,9 +74,9 @@
 
             <field name="fechaHoraPresentacion" colSpan="4" readonly="true"/>
             <!-- El preprocesador no recoge los campos nombrados dentro de un showIf: sin este
-                 <field> el cliente no recibe sentidoRevision y la condición evalúa undefined. -->
-            <field name="sentidoRevision" hidden="true"/>
-            <help variant="info" colSpan="8" showIf="sentidoRevision=='ACEPTAR'">Si firma la resolución, la anulación surtirá efecto desde esta fecha</help>
+                 <field> el cliente no recibe tipoResolucion y la condición evalúa undefined. -->
+            <field name="tipoResolucion" hidden="true"/>
+            <help variant="info" colSpan="8" showIf="tipoResolucion=='ACEPTAR'">Si firma la resolución, la anulación surtirá efecto desde esta fecha</help>
         </panel>
 
         <!-- ================================================================================== -->
@@ -111,34 +107,8 @@
         <!-- ================================================================================== -->
         <!-- Solicitud de anulación                                                             -->
         <!-- ================================================================================== -->
-        <panel name="solicitud-visor" title="Solicitud a firmar" colSpan="12">
-            <field name="visorSolicitud" showTitle="false" readonly="true" colSpan="12">
-                <viewer depends="pdfSolicitud"><![CDATA[
-                    <>
-                    <Box as="iframe" height="900" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfSolicitud.id}/content/download?inline=true&name=${pdfSolicitud.fileName}`} ></Box>
-                    </>
-                    ]]></viewer>
-            </field>
-        </panel>
-
-        <!-- En papel, pdfSolicitudFirmada no es la solicitud generada firmada digitalmente sino la que la persona
-             entregó firmada a mano, escaneada. -->
-        <panel name="solicitud-escaneada-upload" title="Solicitud entregada en papel" colSpan="12">
-            <field name="pdfSolicitudFirmada" title="Solicitud escaneada (PDF)" widget="binary-link" colSpan="8"/>
-        </panel>
-
         <panel name="solicitud-descarga" title="Solicitud generada" colSpan="12">
             <field name="pdfSolicitud" colSpan="8" widget="binary-link" readonly="true"/>
-        </panel>
-
-        <panel name="solicitud-firmada-visor" title="Solicitud firmada" colSpan="12">
-            <field name="visorSolicitudFirmada" showTitle="false" readonly="true" colSpan="12">
-                <viewer depends="pdfSolicitudFirmada"><![CDATA[
-                    <>
-                    <Box as="iframe" height="900" border="0" src={`ws/rest/com.axelor.meta.db.MetaFile/${pdfSolicitudFirmada.id}/content/download?inline=true&name=${pdfSolicitudFirmada.fileName}`} ></Box>
-                    </>
-                    ]]></viewer>
-            </field>
         </panel>
 
         <panel name="solicitud-firmada-descarga" title="Solicitud firmada" colSpan="12">
@@ -150,33 +120,21 @@
         </panel>
 
         <!-- ================================================================================== -->
-        <!-- Revisión de la secretaría                                                          -->
-        <!-- ================================================================================== -->
-        <panel name="revision" title="Revisión" colSpan="12">
-            <field name="sentidoRevision"  colSpan="8" widget="SwitchSelect" required="true"
-                   onChange="exp-AnulacionMatriculaCicloFormativoV1-limpiar-revision-action"/>
-            <field name="motivoRechazo"    colSpan="12" showIf="sentidoRevision=='RECHAZAR'"
-                   requiredIf="sentidoRevision=='RECHAZAR'"
-                   help="Este texto se imprimirá tal cual en la resolución que recibirá el alumno"/>
-            <field name="textoSubsanacion" colSpan="12" showIf="sentidoRevision=='SUBSANAR'"
-                   requiredIf="sentidoRevision=='SUBSANAR'"/>
-        </panel>
-
-        <panel name="devolucion-view" title="Devuelto por el director" colSpan="12"
-               showIf="(motivoDevolucion!=null) &amp;&amp; (motivoDevolucion!='')">
-            <field name="motivoDevolucion" colSpan="12" readonly="true"/>
-            <field name="fechaDevolucion"  colSpan="4"  readonly="true"/>
-            <field name="devueltoPor"      colSpan="8"  readonly="true"/>
-        </panel>
-
-        <!-- ================================================================================== -->
         <!-- Resolución                                                                         -->
         <!-- ================================================================================== -->
+        <panel name="resolucion" title="Resolución de la solicitud" colSpan="12">
+            <field name="tipoResolucion"  colSpan="8" widget="SwitchSelect" required="true"
+                   onChange="exp-AnulacionMatriculaCicloFormativoV1-limpiar-resolucion-action"/>
+            <field name="motivoRechazo"    colSpan="12" showIf="tipoResolucion=='RECHAZAR'"
+                   requiredIf="tipoResolucion=='RECHAZAR'"
+                   help="Este texto se imprimirá tal cual en la resolución que recibirá el alumno"/>
+        </panel>
+
         <panel name="decision-secretaria" title="Decisión de secretaría" colSpan="12">
-            <field name="sentidoRevision" colSpan="5" readonly="true"/>
-            <field name="fechaRevision"   colSpan="3" readonly="true"/>
-            <field name="revisadoPor"     colSpan="4" readonly="true"/>
-            <field name="motivoRechazo"   colSpan="12" readonly="true" showIf="sentidoRevision=='RECHAZAR'"/>
+            <field name="tipoResolucion"    colSpan="5" readonly="true"/>
+            <field name="fechaVerificacion" colSpan="3" readonly="true"/>
+            <field name="verificadoPor"     colSpan="4" readonly="true"/>
+            <field name="motivoRechazo"     colSpan="12" readonly="true" showIf="tipoResolucion=='RECHAZAR'"/>
         </panel>
 
         <panel name="resolucion-a-firmar" title="Resolución a firmar" colSpan="12">
@@ -189,18 +147,12 @@
             </field>
         </panel>
 
-        <panel name="devolucion" title="Devolución" colSpan="12">
-            <field name="motivoDevolucion" colSpan="12"
-                   help="Rellene el motivo solo si va a devolver la resolución"/>
-        </panel>
-
         <panel name="resolucion-firmada" title="Resolución" colSpan="12">
             <!-- El preprocesador no recoge los campos nombrados dentro de un showIf: sin este
-                 <field> el cliente no recibe sentidoRevision y la condición evalúa undefined. -->
-            <field name="sentidoRevision"  hidden="true"/>
-            <field name="motivoRechazo"    colSpan="12" readonly="true" showIf="sentidoRevision=='RECHAZAR'"/>
+                 <field> el cliente no recibe tipoResolucion y la condición evalúa undefined. -->
+            <field name="tipoResolucion"   hidden="true"/>
+            <field name="motivoRechazo"    colSpan="12" readonly="true" showIf="tipoResolucion=='RECHAZAR'"/>
             <field name="fechaResolucion"  colSpan="4"  readonly="true"/>
-            <field name="firmadoPor"       colSpan="8"  readonly="true"/>
             <field name="visorResolucionFirmada" showTitle="false" readonly="true" colSpan="12">
                 <viewer depends="pdfResolucionFirmada"><![CDATA[
                     <>

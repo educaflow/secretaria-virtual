@@ -4,25 +4,22 @@
               xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <!-- *********************************************************************************************  -->
-    <!-- ************************************** DATOS_SOLICITUD **************************************  -->
+    <!-- *************************************** ENTRADA_DATOS ***************************************  -->
     <!-- *********************************************************************************************  -->
-    <form state="DATOS_SOLICITUD" profile="CREADOR"
-          onLoad="exp-AnulacionMatriculaCicloFormativoV1-DATOS_SOLICITUD-onLoad-action">
+    <form state="ENTRADA_DATOS" profile="CREADOR"
+          onLoad="exp-AnulacionMatriculaCicloFormativoV1-ENTRADA_DATOS-onLoad-action">
         <include-panels>
             -subsanacion
             persona-solicitante-editable
             datos-alumno
             matricula
+            -solicitud-escaneada-view
         </include-panels>
 
-        <panel name="avisoDatosSolicitudCreador" colSpan="12" showFrame="false">
+        <panel name="avisoEntradaDatosCreador" colSpan="12" showFrame="false">
             <help variant="info" colSpan="12" showIf="!presentadoEnPapel">Para presentar la solicitud necesitará firmarla con su certificado digital desde este mismo ordenador</help>
             <help variant="info" colSpan="12" showIf="presentadoEnPapel">Copie los datos de la solicitud entregada en papel que ha adjuntado escaneada. Al presentarla se registrará su entrada</help>
             <field name="presentadoEnPapel" hidden="true"/>
-        </panel>
-
-        <panel name="solicitudEscaneadaDatosSolicitud" title="Solicitud entregada en papel" colSpan="12" showIf="presentadoEnPapel">
-            <field name="pdfSolicitudFirmada" title="Solicitud escaneada (PDF)" widget="binary-link" readonly="true" colSpan="8"/>
         </panel>
 
         <footer>
@@ -31,15 +28,15 @@
                         title="Borrar el expediente"
                         onClick="subsysTramitador-event-action"
                         prompt="Se va a eliminar el expediente y no podrá recuperarlo"/>
-                <button name="VOLVER" colSpan="2" outline="true" title="Atrás"
+                <button name="BACK" colSpan="2" outline="true" title="Atrás"
                         showIf="presentadoEnPapel"
                         onClick="subsysTramitador-event-action"/>
             </buttons-left>
             <buttons-right>
-                <button name="CONTINUAR" colSpan="2" title="Siguiente"
+                <button name="GUARDAR_DATOS" colSpan="2" title="Siguiente"
                         showIf="!presentadoEnPapel"
                         onClick="subsysTramitador-event-action"/>
-                <button name="CONTINUAR" colSpan="4" title="Presentar la solicitud"
+                <button name="GUARDAR_DATOS" colSpan="4" title="Presentar la solicitud"
                         showIf="presentadoEnPapel"
                         onClick="subsysTramitador-event-action"
                         prompt="Va a presentar la solicitud de anulación entregada en papel. Una vez presentada no podrá modificarla"/>
@@ -48,43 +45,42 @@
     </form>
 
     <!-- El estado lo comparten las dos formas de presentar, así que tiene un form por perfil: el de arriba para
-         quien presenta telemáticamente (CREADOR) y este para quien registra el papel (TRAMITADOR). Aquí
-         presentadoEnPapel es siempre true, por eso no se bifurca nada con showIf. -->
-    <form state="DATOS_SOLICITUD" profile="TRAMITADOR"
-          onLoad="exp-AnulacionMatriculaCicloFormativoV1-DATOS_SOLICITUD-onLoad-action">
+         quien presenta telemáticamente (CREADOR) y este para quien registra el papel (TRAMITADOR). -->
+    <form state="ENTRADA_DATOS" profile="TRAMITADOR"
+          onLoad="exp-AnulacionMatriculaCicloFormativoV1-ENTRADA_DATOS-onLoad-action">
         <include-panels>
             -subsanacion
             persona-solicitante-editable
             datos-alumno
             matricula
+            -solicitud-escaneada-view
         </include-panels>
 
-        <panel name="avisoDatosSolicitudTramitador" colSpan="12" showFrame="false">
-            <help variant="info" colSpan="12">Copie los datos de la solicitud entregada en papel que ha adjuntado escaneada. Al presentarla se registrará su entrada</help>
-        </panel>
-
-        <panel name="solicitudEscaneadaDatosSolicitudTramitador" title="Solicitud entregada en papel" colSpan="12">
-            <field name="pdfSolicitudFirmada" title="Solicitud escaneada (PDF)" widget="binary-link" readonly="true" colSpan="8"/>
+        <panel name="avisoEntradaDatosTramitador" colSpan="12" showFrame="false">
+            <!-- Con el perfil TRAMITADOR también se llega aquí cuando la solicitud es telemática (por ejemplo, tras
+                 pedir una subsanación): entonces el turno es de quien la presentó y no hay nada que hacer. -->
+            <help variant="info" colSpan="12" showIf="!presentadoEnPapel">La solicitud está pendiente de que el alumno complete o corrija los datos y la presente</help>
+            <help variant="info" colSpan="12" showIf="presentadoEnPapel">Copie los datos de la solicitud entregada en papel que ha adjuntado escaneada. Al presentarla se registrará su entrada</help>
         </panel>
 
         <footer>
             <buttons-left>
-                <button name="DELETE" colSpan="3" css="btn-danger" outline="true" icon="trash"
+                <button name="DELETE" showIf="presentadoEnPapel" colSpan="3" css="btn-danger" outline="true" icon="trash"
                         title="Borrar el expediente"
                         onClick="subsysTramitador-event-action"
                         prompt="Se va a eliminar el expediente y no podrá recuperarlo"/>
-                <button name="VOLVER" colSpan="2" outline="true" title="Atrás"
+                <button name="BACK" showIf="presentadoEnPapel" colSpan="2" outline="true" title="Atrás"
                         onClick="subsysTramitador-event-action"/>
             </buttons-left>
             <buttons-right>
-                <button name="CONTINUAR" colSpan="4" title="Presentar la solicitud"
+                <button name="GUARDAR_DATOS" showIf="presentadoEnPapel" colSpan="4" title="Presentar la solicitud"
                         onClick="subsysTramitador-event-action"
                         prompt="Va a presentar la solicitud de anulación entregada en papel. Una vez presentada no podrá modificarla"/>
             </buttons-right>
         </footer>
     </form>
 
-    <form state="DATOS_SOLICITUD">
+    <form state="ENTRADA_DATOS">
         <include-panels>
             -subsanacion
             -persona-solicitante
@@ -105,59 +101,23 @@
     </form>
 
     <!-- *********************************************************************************************  -->
-    <!-- ************************************** PENDIENTE_FIRMA **************************************  -->
+    <!-- *********************************** PENDIENTE_PRESENTACION **********************************  -->
     <!-- *********************************************************************************************  -->
-    <form state="PENDIENTE_FIRMA" profile="CREADOR"
-          onLoad="exp-AnulacionMatriculaCicloFormativoV1-PENDIENTE_FIRMA-onLoad-action">
+    <form state="PENDIENTE_PRESENTACION" profile="CREADOR"
+          onLoad="exp-AnulacionMatriculaCicloFormativoV1-PENDIENTE_PRESENTACION-onLoad-action">
         <include-panels>
             -subsanacion
-            -solicitud-visor
+            -pdfSolicitud
+            firma-solicitud
         </include-panels>
 
-        <panel name="avisoPendienteFirmaCreador" colSpan="12" showFrame="false">
+        <panel name="avisoPendientePresentacionCreador" colSpan="12" showFrame="false">
             <help variant="info" colSpan="12">Revise la solicitud antes de firmarla. Necesitará su certificado digital instalado en este ordenador y la aplicación de firma del ciudadano</help>
-        </panel>
-
-        <panel name="firmaSolicitudSituacion" title="" colSpan="12" showFrame="false" readonly="true">
-            <field name="situacionFirma" type="string" showIf="false" readonly="true"/>
-            <field name="firmaEnServidor" type="boolean" showIf="false" readonly="true"/>
-        </panel>
-
-        <panel name="firmaSolicitudSinCertificado" title="Firma de la solicitud" colSpan="12"
-               showIf="situacionFirma=='SIN_CERTIFICADO'">
-            <help variant="info" colSpan="12"><![CDATA[Para presentar la solicitud debe tener la aplicación de <a href="https://sede.serviciosmin.gob.es/es-es/firmaelectronica/paginas/autofirma.aspx" target="_blank">AutoFirma</a> instalada y un certificado digital válido]]></help>
-        </panel>
-
-        <panel name="firmaSolicitudDispositivoConPin" title="Firma de la solicitud" colSpan="12"
-               showIf="situacionFirma=='DISPOSITIVO_CON_PIN'">
-            <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital.]]></help>
-        </panel>
-
-        <panel name="firmaSolicitudDispositivoSinPin" title="Firma de la solicitud" colSpan="12"
-               showIf="situacionFirma=='DISPOSITIVO_SIN_PIN'">
-            <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital. Introduzca el PIN de su dispositivo criptográfico.]]></help>
-            <field name="claveCertificado" title="PIN" widget="password" required="true" colSpan="4"/>
-        </panel>
-
-        <panel name="firmaSolicitudFicheroConClave" title="Firma de la solicitud" colSpan="12"
-               showIf="situacionFirma=='FICHERO_CON_CLAVE'">
-            <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital.]]></help>
-        </panel>
-
-        <panel name="firmaSolicitudFicheroSinClave" title="Firma de la solicitud" colSpan="12"
-               showIf="situacionFirma=='FICHERO_SIN_CLAVE'">
-            <help variant="info" colSpan="12"><![CDATA[La solicitud se firmará en el servidor con su certificado digital. Introduzca la contraseña de su certificado.]]></help>
-            <field name="claveCertificado" title="Contraseña" widget="password" required="true" colSpan="4"/>
-        </panel>
-
-        <panel name="firmaSolicitudSinDni" title="Firma de la solicitud" colSpan="12"
-               showIf="situacionFirma=='SIN_DNI'">
-            <help variant="warning" colSpan="12"><![CDATA[No es posible firmar la solicitud porque su usuario no tiene un documento de identidad. Póngase en contacto con el administrador.]]></help>
         </panel>
 
         <footer>
             <buttons-left>
-                <button name="VOLVER" colSpan="2" outline="true" title="Atrás"
+                <button name="BACK" colSpan="2" outline="true" title="Atrás"
                         onClick="subsysTramitador-event-action"/>
             </buttons-left>
             <buttons-right>
@@ -173,7 +133,7 @@
         </footer>
     </form>
 
-    <form state="PENDIENTE_FIRMA">
+    <form state="PENDIENTE_PRESENTACION">
         <include-panels>
             -datos-alumno
             -matricula
@@ -240,19 +200,19 @@
     </form>
 
     <!-- *********************************************************************************************  -->
-    <!-- ***************************** Acciones propias de la fase SOLICITUD *************************  -->
+    <!-- ***************************** Acciones propias de la fase ENTRADA ***************************  -->
     <!-- *********************************************************************************************  -->
-    <action-group name="exp-AnulacionMatriculaCicloFormativoV1-DATOS_SOLICITUD-onLoad-action">
+    <action-group name="exp-AnulacionMatriculaCicloFormativoV1-ENTRADA_DATOS-onLoad-action">
         <action name="subsysExpedientes-persona-solicitante-onLoad-action"/>
         <action name="subsysExpedientes-persona-interesada-onLoad-action"/>
-        <action name="exp-AnulacionMatriculaCicloFormativoV1-DATOS_SOLICITUD-required-action"/>
+        <action name="exp-AnulacionMatriculaCicloFormativoV1-ENTRADA_DATOS-required-action"/>
     </action-group>
 
-    <action-attrs name="exp-AnulacionMatriculaCicloFormativoV1-DATOS_SOLICITUD-required-action">
+    <action-attrs name="exp-AnulacionMatriculaCicloFormativoV1-ENTRADA_DATOS-required-action">
         <attribute for="ciclo"         name="required" expr="true"/>
     </action-attrs>
 
-    <action-group name="exp-AnulacionMatriculaCicloFormativoV1-PENDIENTE_FIRMA-onLoad-action">
+    <action-group name="exp-AnulacionMatriculaCicloFormativoV1-PENDIENTE_PRESENTACION-onLoad-action">
         <action name="exp-AnulacionMatriculaCicloFormativoV1-set-situacionFirma-action"/>
     </action-group>
 

@@ -2,7 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 import { ensureLoggedOut, login, logout } from '../../../../_support/auth';
 
 // T-001 — El alumno presenta su propia solicitud telemáticamente
-// origen: ESC —  |  CREADOR | [*] --(alta: botón «Crear expediente»)--> SOLICITUD/DATOS_SOLICITUD  |  tipo: happy
+// origen: ESC —  |  CREADOR | [*] --(alta: botón «Crear expediente»)--> ENTRADA/ENTRADA_DATOS  |  tipo: happy
 // fuente: .sdd/drafts/2026-09-19_23-14_anulacion-matricula-arranque/test-e2e-desc/t-001-el-alumno-presenta-su-propia-solicitud-telematicamente.desc.md
 
 const TRAMITE = 'Anulación de matrícula en ciclo formativo';
@@ -34,7 +34,7 @@ async function abrirAltaDelTramite(page: Page): Promise<void> {
   await expect(page.getByRole('tab', { name: PANTALLA_ALTA, exact: true })).toBeVisible();
 }
 
-test.describe('Anulación de matrícula en ciclo formativo — SOLICITUD', () => {
+test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
   test('El alumno presenta su propia solicitud telemáticamente', async ({ page }) => {
     let numero = '';
     try {
@@ -65,8 +65,8 @@ test.describe('Anulación de matrícula en ciclo formativo — SOLICITUD', () =>
       // When: pulsa «Crear expediente».
       await page.getByRole('button', { name: 'Crear expediente' }).click();
 
-      // Then: se cierra la pantalla «Nuevo expediente» y se abre el expediente en la fase SOLICITUD, estado DATOS_SOLICITUD,
-      // cuya cabecera muestra «Solicitud de anulación» y «Datos de la solicitud».
+      // Then: se cierra la pantalla «Nuevo expediente» y se abre el expediente en la fase ENTRADA, estado ENTRADA_DATOS,
+      // cuya cabecera muestra «Entrada» y «Entrada de datos».
       await expect(page.getByRole('tab', { name: PANTALLA_ALTA, exact: true })).toHaveCount(0);
       // Idempotencia (§5.1): el número de expediente lo asigna el servidor y es lo ÚNICO que
       // identifica a lo creado; la pestaña se titula «<número>-<nombre del tipo de expediente>».
@@ -75,8 +75,8 @@ test.describe('Anulación de matrícula en ciclo formativo — SOLICITUD', () =>
       numero = (await pestana.textContent())!.split('-')[0].trim();
       expect(numero).toMatch(/^\d{4,}\/\d{4}$/);
       await expect(page.getByRole('tab', { name: new RegExp(numero) })).toBeVisible();
-      await expect(page.getByLabel('Fase')).toHaveValue('Solicitud de anulación');
-      await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Datos de la solicitud');
+      await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
+      await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');
 
       // And: el aviso de la pantalla es «Para presentar la solicitud necesitará firmarla con su
       // certificado digital desde este mismo ordenador».
@@ -120,7 +120,7 @@ test.describe('Anulación de matrícula en ciclo formativo — SOLICITUD', () =>
       await expect(page.getByRole('button', { name: 'Borrar el expediente' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Siguiente' })).toBeVisible();
     } finally {
-      // Teardown (§5.2): el estado de llegada DATOS_SOLICITUD ofrece el evento DELETE
+      // Teardown (§5.2): el estado de llegada ENTRADA_DATOS ofrece el evento DELETE
       // («Borrar el expediente»), así que el expediente se borra aquí. El borrado exige SESIÓN
       // ABIERTA y el perfil del estado final (CREADOR, el del único tramo), por eso va ANTES del
       // logout. DELETE recarga la aplicación entera (refresh-app).

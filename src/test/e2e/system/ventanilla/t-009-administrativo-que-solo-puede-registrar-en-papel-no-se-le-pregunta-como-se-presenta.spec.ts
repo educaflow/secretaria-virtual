@@ -18,7 +18,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
  * expediente al abrir otra vista): por eso el teardown lo reabre desde la bandeja del
  * estado en que quedó, donde el servidor lo abre con el perfil que declara ese estado y,
  * por tanto, con el botón «Borrar el expediente» (lo ofrecen los dos estados por los que
- * pasa el test, PENDIENTE_DOCUMENTO_ESCANEADO y DATOS_SOLICITUD). Arrancar el teardown con un `goto` lo
+ * pasa el test, PENDIENTE_DOCUMENTO_ESCANEADO y ENTRADA_DATOS). Arrancar el teardown con un `goto` lo
  * hace robusto aunque el test falle con un diálogo abierto o a medio navegar.
  * No hace falta pre-limpieza defensiva: ninguna regla de negocio limita cuántos
  * expedientes de este trámite puede registrar el administrativo, así que un expediente
@@ -61,15 +61,15 @@ const OPCION_EN_REPRESENTACION =
   'Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)';
 
 // Primer estado del tipo de expediente cuando se registra EN PAPEL, según
-// `InitialEventManagerImpl`: fase SOLICITUD, estado PENDIENTE_DOCUMENTO_ESCANEADO.
-// Quien lo presenta él mismo por vía telemática arranca en DATOS_SOLICITUD, así que
+// `InitialEventManagerImpl`: fase ENTRADA, estado PENDIENTE_DOCUMENTO_ESCANEADO.
+// Quien lo presenta él mismo por vía telemática arranca en ENTRADA_DATOS, así que
 // este estado es, por sí solo, la prueba de que el expediente quedó en papel.
-const FASE_INICIAL = 'Solicitud de anulación';
+const FASE_INICIAL = 'Entrada';
 const ESTADO_INICIAL_EN_PAPEL = 'Pendiente de adjuntar la solicitud en papel escaneada';
 
 // Estado siguiente de la misma fase. Es el primero en el que el expediente YA CREADO delata
 // si está o no en representación (ver la última sección del test).
-const ESTADO_DATOS_SOLICITUD = 'Datos de la solicitud';
+const ESTADO_ENTRADA_DATOS = 'Entrada de datos';
 const NOMBRE_PDF = 'solicitud-escaneada.pdf';
 
 // Aviso del form de PENDIENTE_DOCUMENTO_ESCANEADO con perfil TRAMITADOR: verlo prueba
@@ -77,7 +77,7 @@ const NOMBRE_PDF = 'solicitud-escaneada.pdf';
 const AVISO_EN_PAPEL =
   'Adjunte escaneada en PDF la solicitud que ha entregado firmada la persona que la presenta';
 
-// Aviso que la vista pinta a quien presenta por vía TELEMÁTICA (estado DATOS_SOLICITUD,
+// Aviso que la vista pinta a quien presenta por vía TELEMÁTICA (estado ENTRADA_DATOS,
 // `showIf="!presentadoEnPapel"`): su ausencia es la otra cara de la misma comprobación.
 const AVISO_PRESENTA_EL_MISMO =
   'Para presentar la solicitud necesitará firmarla con su certificado digital desde este mismo ordenador';
@@ -229,12 +229,12 @@ async function abrirExpedienteDesdeBandeja(
  * Borra el expediente `numero`. Los dos estados por los que pasa el test ofrecen «Borrar el
  * expediente» al perfil que declaran, pero cada uno está en una bandeja distinta:
  * PENDIENTE_DOCUMENTO_ESCANEADO (TRAMITADOR) en «Tramitación» → «Pendientes de mí» y
- * DATOS_SOLICITUD (CREADOR, que es el administrativo que lo registró) en «Mis trámites» →
- * «Pendientes de mí». `enDatosSolicitud` dice en cuál de los dos quedó. El botón abre un
+ * ENTRADA_DATOS (CREADOR, que es el administrativo que lo registró) en «Mis trámites» →
+ * «Pendientes de mí». `enEntradaDatos` dice en cuál de los dos quedó. El botón abre un
  * diálogo de confirmación de Axelor que hay que aceptar.
  */
-async function borrarExpediente(page: Page, numero: string, enDatosSolicitud: boolean): Promise<void> {
-  if (enDatosSolicitud) {
+async function borrarExpediente(page: Page, numero: string, enEntradaDatos: boolean): Promise<void> {
+  if (enEntradaDatos) {
     await abrirExpedienteDesdeBandeja(page, numero, 'misTramites-menuitem', 'misTramites-pendientesDeMi-menuitem');
   } else {
     await abrirExpedienteComoTramitador(page, numero);
@@ -258,9 +258,9 @@ test.describe('Ventanilla — Nuevo expediente', () => {
     // Número del expediente creado; se captura tras crearlo y lo usa el teardown para
     // borrarlo. Vacío mientras no exista el expediente.
     let numeroExpediente = '';
-    // Si el expediente ya avanzó a DATOS_SOLICITUD, que cambia la bandeja desde la que el
+    // Si el expediente ya avanzó a ENTRADA_DATOS, que cambia la bandeja desde la que el
     // teardown lo reabre para borrarlo.
-    let enDatosSolicitud = false;
+    let enEntradaDatos = false;
 
     try {
       // Paso 2: Cuando abre el menú "Mis trámites" y pulsa "Nuevo trámite".
@@ -368,7 +368,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
 
       // Resultado esperado: el expediente queda registrado como PRESENTADO EN PAPEL.
       // `InitialEventManagerImpl` solo lleva a PENDIENTE_DOCUMENTO_ESCANEADO cuando
-      // `presentadoEnPapel` es true (si no, arranca en DATOS_SOLICITUD), así que el
+      // `presentadoEnPapel` es true (si no, arranca en ENTRADA_DATOS), así que el
       // estado de arriba ya lo prueba; aquí se confirma con lo que ve el usuario: el
       // panel para adjuntar la solicitud en papel y su aviso, y la AUSENCIA del aviso
       // de la vía telemática (firmar con certificado desde este ordenador).
@@ -408,7 +408,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // está en la allowlist de NINGÚN form de PENDIENTE_DOCUMENTO_ESCANEADO: el del
       // TRAMITADOR incluye `subsanacion` + `solicitud-escaneada-upload` y el genérico
       // `datos-alumno` + `matricula`. El primer estado que sí lo incluye es el siguiente
-      // de la misma fase, DATOS_SOLICITUD, cuyo form de TRAMITADOR lista
+      // de la misma fase, ENTRADA_DATOS, cuyo form de TRAMITADOR lista
       // `persona-solicitante-editable`. Por eso el test avanza un estado: adjunta la
       // solicitud escaneada —lo único que `StateEventValidatorImpl` exige para CONTINUAR
       // desde PENDIENTE_DOCUMENTO_ESCANEADO— y mira allí.
@@ -425,9 +425,9 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await expect(panelSolicitudEscaneada.getByRole('button', { name: NOMBRE_PDF })).toBeVisible();
       await page.getByRole('button', { name: 'Siguiente' }).click();
       await expect(page.getByTestId('field:nameState').getByRole('textbox')).toHaveValue(
-        ESTADO_DATOS_SOLICITUD,
+        ESTADO_ENTRADA_DATOS,
       );
-      enDatosSolicitud = true;
+      enEntradaDatos = true;
 
       // Control positivo, para que la ausencia de abajo NO pueda volver a ser vacua: los
       // otros paneles de la MISMA lista `<include-panels>` que `persona-solicitante-editable`
@@ -448,7 +448,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // BD es compartida y no se resetea, así que dejarlo lo acumularía run tras run.
       // Si el test falló ANTES de crearlo no hay nada que borrar.
       if (numeroExpediente !== '') {
-        await borrarExpediente(page, numeroExpediente, enDatosSolicitud);
+        await borrarExpediente(page, numeroExpediente, enEntradaDatos);
       }
 
       await logout(page);

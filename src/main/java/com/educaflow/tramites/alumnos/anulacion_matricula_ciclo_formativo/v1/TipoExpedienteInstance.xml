@@ -2,18 +2,21 @@
 <TipoExpediente>
 
     <fases>
-        <fase name="SOLICITUD" title="Solicitud de anulación">
-            <state name="PENDIENTE_DOCUMENTO_ESCANEADO" events="DELETE,CONTINUAR"   profile="TRAMITADOR"  title="Pendiente de adjuntar la solicitud en papel escaneada" />
-            <state name="DATOS_SOLICITUD"          events="DELETE,CONTINUAR,VOLVER" profile="CREADOR"     title="Datos de la solicitud"                           />
-            <state name="PENDIENTE_FIRMA"          events="VOLVER,PRESENTAR"        profile="CREADOR"     title="Pendiente de firma y presentación"               />
+        <fase name="ENTRADA" title="Entrada">
+            <state name="PENDIENTE_DOCUMENTO_ESCANEADO" events="DELETE,CONTINUAR"          profile="TRAMITADOR"  title="Pendiente de adjuntar la solicitud en papel escaneada" />
+            <state name="ENTRADA_DATOS"                 events="DELETE,BACK,GUARDAR_DATOS" profile="CREADOR"     title="Entrada de datos"                                      />
+            <state name="PENDIENTE_PRESENTACION"        events="BACK,PRESENTAR"            profile="CREADOR"     title="Pendiente de presentación"                             />
         </fase>
-        <fase name="REVISION" title="Revisión de la secretaría">
-            <state name="PENDIENTE_REVISION"       events="CONTINUAR"               profile="TRAMITADOR"  title="Pendiente de revisión"                           />
+        <fase name="VERIFICACION" title="Verificación">
+            <state name="PENDIENTE_VERIFICACION"        events="VERIFICAR"                 profile="TRAMITADOR"  title="Pendiente de verificación"                             />
         </fase>
         <fase name="RESOLUCION" title="Resolución del centro">
-            <state name="PENDIENTE_FIRMA_DIRECTOR" events="FIRMAR,DEVOLVER"         profile="DIRECTOR"    title="Pendiente de la firma del director"              />
-            <state name="ACEPTADA"                 events=""                        profile="TRAMITADOR" title="Anulación aceptada"              closed="true" />
-            <state name="RECHAZADA"                events=""                        profile="TRAMITADOR" title="Anulación rechazada"             closed="true" />
+            <state name="PENDIENTE_RESOLUCION"          events="BACK,RESOLVER"             profile="TRAMITADOR"  title="Pendiente de resolución"                               />
+            <!-- Sin botones: los dos eventos los dispara el servidor cuando el director firma o rechaza la
+                 resolución en su bandeja de firmas (el notify del PhaseEventManagerImpl de esta fase). -->
+            <state name="PENDIENTE_FIRMA_DIRECTOR"      events="" systemEvents="FIRMAR,RECHAZAR_FIRMA" profile="DIRECTOR" title="Pendiente de la firma del director"           />
+            <state name="ACEPTADA"                      events=""                          profile="TRAMITADOR"  title="Anulación aceptada"                      closed="true" />
+            <state name="RECHAZADA"                     events=""                          profile="TRAMITADOR"  title="Anulación rechazada"                     closed="true" />
         </fase>
     </fases>
 </TipoExpediente>

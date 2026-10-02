@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://axelor.com/xml/ns/object-views"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- *********************************************************************************************  -->
+    <!-- *********************************** PENDIENTE_VERIFICACION **********************************  -->
+    <!-- *********************************************************************************************  -->
+    <form state="PENDIENTE_VERIFICACION" profile="TRAMITADOR">
+        <include-panels>
+            -persona-solicitante
+            -datos-alumno
+            -matricula
+            -presentacion-descarga
+            -pdfSolicitudFirmada
+            verificacion
+        </include-panels>
+
+        <panel name="avisoPendienteVerificacionTramitador" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">Compruebe los datos de la solicitud. Si hay algún error, pida al alumno que lo subsane; si está correcta, en el paso siguiente aceptará o rechazará la anulación</help>
+        </panel>
+
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="VERIFICAR" colSpan="2" title="Siguiente"
+                        onClick="subsysTramitador-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <form state="PENDIENTE_VERIFICACION">
+        <include-panels>
+            -datos-alumno
+            -matricula
+            -presentacion
+            -solicitud-firmada-descarga
+        </include-panels>
+
+        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">La solicitud está pendiente de que la secretaría del centro la verifique</help>
+        </panel>
+
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+</object-views>

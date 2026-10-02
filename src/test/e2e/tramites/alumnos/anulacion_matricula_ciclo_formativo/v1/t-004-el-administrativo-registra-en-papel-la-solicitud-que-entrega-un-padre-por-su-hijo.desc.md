@@ -16,7 +16,7 @@ id: T-004
 **Perfil:** `TRAMITADOR` (login `administrativo1@mislata.es`)
 **Desde:** `[*]`
 **Evento:** `CONTINUAR` — botón «Siguiente»
-**Hasta:** `SOLICITUD` / `DATOS_SOLICITUD`
+**Hasta:** `ENTRADA` / `ENTRADA_DATOS`
 **Tipo:** happy
 **Manual:** no
 
@@ -52,7 +52,7 @@ Los cuatro actores pertenecen **solo** a CIPFP Mislata, así que el asistente «
 
 Las dos cosas están en el árbol de fuentes, pero el data-init solo las lleva a la base de datos **al arrancar**: la aplicación tiene que haberse arrancado con `./run.sh` después de esos cambios, o los casos 2, 4 y 7 fallarán al no admitir el asistente el expediente en representación.
 
-#### Juego de datos válido — fase `SOLICITUD`
+#### Juego de datos válido — fase `ENTRADA`
 
 | campo | valor |
 |---|---|
@@ -64,9 +64,9 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 
 - **Given** que `administrativo1@mislata.es` (contraseña `demo1234`) es administrativo de CIPFP Mislata con el perfil `TRAMITADOR`, y que quien ha entregado la solicitud en ventanilla es el padre de un alumno, que la presenta en representación de su hijo.
 - **When** inicia sesión, abre «Mis trámites» → «Nuevo trámite», despliega «Trámites para el alumno», pulsa sobre «Anulación de matrícula en ciclo formativo», marca «Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)» en la pregunta «¿Para quién es el expediente?» (no se le pregunta «¿Cómo se presenta?»: al tener solo el perfil `TRAMITADOR`, la presentación en papel se da por deducida) y pulsa «Crear expediente».
-- **Then** se abre el expediente en la fase `SOLICITUD`, estado `PENDIENTE_DOCUMENTO_ESCANEADO`, con el panel «Solicitud entregada en papel» y su campo «Solicitud escaneada (PDF)».
+- **Then** se abre el expediente en la fase `ENTRADA`, estado `PENDIENTE_DOCUMENTO_ESCANEADO`, con el panel «Solicitud entregada en papel» y su campo «Solicitud escaneada (PDF)».
 - **When** adjunta un PDF de menos de 10 MB y pulsa «Siguiente».
-- **Then** el expediente pasa al estado `DATOS_SOLICITUD`, con la cabecera «Solicitud de anulación» / «Datos de la solicitud».
+- **Then** el expediente pasa al estado `ENTRADA_DATOS`, con la cabecera «Entrada» / «Entrada de datos».
 - **And** aparece el panel «Persona que presenta la solicitud» con «Apellidos», «Nombre» y «DNI/NIE» **vacíos y editables**: es donde se identificará al padre que entregó el papel.
 - **And** en «Alumno/a al que se refiere la solicitud» los campos «Apellidos», «Nombre» y «DNI/NIE» están también **vacíos y editables**: es donde se identificará al hijo.
 - **And** el pie ofrece «Borrar el expediente», «Atrás» y «Presentar la solicitud».

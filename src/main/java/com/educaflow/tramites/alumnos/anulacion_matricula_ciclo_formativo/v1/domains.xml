@@ -21,22 +21,20 @@
         <!-- Presentación -->
         <datetime name="fechaHoraPresentacion" title="Fecha y hora de presentación" />
 
-        <!-- Revisión de la secretaría -->
-        <enum name="sentidoRevision" title="Sentido de la revisión"
-              ref="SentidoRevisionAnulacionMatriculaCicloFormativoV1" />
-        <string name="motivoRechazo" title="Motivo del rechazo" large="true" />
+        <!-- Verificación de la secretaría -->
+        <enum name="resultadoVerificacion" title="Resultado de la verificación"
+              ref="ResultadoVerificacionAnulacionMatriculaCicloFormativoV1" />
         <string name="textoSubsanacion" title="Qué hay que subsanar" large="true" />
-        <date name="fechaRevision" title="Fecha de la revisión" />
-        <many-to-one name="revisadoPor" title="Revisado por" ref="com.axelor.auth.db.User" />
+        <date name="fechaVerificacion" title="Fecha de la verificación" />
+        <many-to-one name="verificadoPor" title="Verificado por" ref="com.axelor.auth.db.User" />
 
-        <!-- Devolución del director a secretaría -->
-        <string name="motivoDevolucion" title="Motivo de la devolución" large="true" />
-        <date name="fechaDevolucion" title="Fecha de la devolución" />
-        <many-to-one name="devueltoPor" title="Devuelto por" ref="com.axelor.auth.db.User" />
+        <!-- Resolución que propone la secretaría -->
+        <enum name="tipoResolucion" title="Tipo resolución"
+              ref="TipoResolucionAnulacionMatriculaCicloFormativoV1" />
+        <string name="motivoRechazo" title="Motivo del rechazo" large="true" />
 
         <!-- Resolución -->
         <date name="fechaResolucion" title="Fecha de la resolución" />
-        <many-to-one name="firmadoPor" title="Firmado por" ref="com.axelor.auth.db.User" />
 
         <!-- Documentos -->
         <many-to-one name="pdfSolicitud" title="Solicitud de anulación"
@@ -80,10 +78,14 @@
         </extra-code-model>
     </entity>
 
-    <enum name="SentidoRevisionAnulacionMatriculaCicloFormativoV1">
+    <enum name="ResultadoVerificacionAnulacionMatriculaCicloFormativoV1">
+        <item name="CORRECTO" title="La solicitud es correcta"/>
+        <item name="SUBSANAR" title="Pedir subsanación"/>
+    </enum>
+
+    <enum name="TipoResolucionAnulacionMatriculaCicloFormativoV1">
         <item name="ACEPTAR"  title="Aceptar la anulación"/>
         <item name="RECHAZAR" title="Rechazar la anulación"/>
-        <item name="SUBSANAR" title="Pedir subsanación"/>
     </enum>
 
 </domain-models>

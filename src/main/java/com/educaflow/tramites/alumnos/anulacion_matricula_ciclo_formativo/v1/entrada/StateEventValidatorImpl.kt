@@ -1,14 +1,11 @@
-package com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.solicitud
+package com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.entrada
 
 import com.educaflow.subsystem.tramitador.tramitacion.validation.StateEventValidator
 import com.educaflow.subsystem.tramitador.tramitacion.validation.BeanValidationRulesForStateAndEvent
 import com.educaflow.base.infrastructure.validation.dsl.rules
 import com.educaflow.base.infrastructure.validation.engine.BeanValidationRules
 import com.educaflow.base.infrastructure.validation.rules.Dni
-import com.educaflow.base.infrastructure.validation.rules.FileMaxSize
-import com.educaflow.base.infrastructure.validation.rules.FileType
 import com.educaflow.base.infrastructure.validation.rules.FirmaPdf
-import com.educaflow.base.infrastructure.validation.rules.SizeUnit
 import com.educaflow.base.infrastructure.validation.dsl.ifLambda
 import com.educaflow.base.infrastructure.validation.rules.Lambda
 import com.educaflow.base.infrastructure.validation.rules.MaxLength
@@ -19,6 +16,7 @@ import com.educaflow.base.infrastructure.validation.rules.PostalCode
 import com.educaflow.base.infrastructure.validation.rules.Required
 import com.educaflow.subsystem.common.db.Persona
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.AnulacionMatriculaCicloFormativoV1Util as util
+import com.educaflow.tramites.util.entrada.solicitudEscaneada
 import com.educaflow.tramites.util.firma.ClaveCertificadoValida
 import com.educaflow.tramites.util.firma.ifSituacionFirma
 import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1 as model
@@ -26,7 +24,7 @@ import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1
 class StateEventValidatorImpl: StateEventValidator {
 
     @BeanValidationRulesForStateAndEvent
-    fun getForStateDatosSolicitudInEventContinuar(): BeanValidationRules {
+    fun getForStateEntradaDatosInEventGuardarDatos(): BeanValidationRules {
         return rules {
             // Solo se teclea en papel y en representación. En los demás modos el Tramitador restaura (o copia
             // del interesado) su identificación, así que estos field(...) solo le abren la whitelist.
@@ -85,13 +83,13 @@ class StateEventValidatorImpl: StateEventValidator {
     }
 
     @BeanValidationRulesForStateAndEvent
-    fun getForStatePendienteFirmaInEventVolver(): BeanValidationRules {
+    fun getForStatePendientePresentacionInEventBack(): BeanValidationRules {
         return rules {
         }
     }
 
     @BeanValidationRulesForStateAndEvent
-    fun getForStateDatosSolicitudInEventVolver(): BeanValidationRules {
+    fun getForStateEntradaDatosInEventBack(): BeanValidationRules {
         return rules {
         }
     }
@@ -99,17 +97,12 @@ class StateEventValidatorImpl: StateEventValidator {
     @BeanValidationRulesForStateAndEvent
     fun getForStatePendienteDocumentoEscaneadoInEventContinuar(): BeanValidationRules {
         return rules {
-            // El registro de entrada solo admite un PDF como documento de la solicitud.
-            field(model::getPdfSolicitudFirmada) {
-                +Required()
-                +FileType(listOf("application/pdf"))
-                +FileMaxSize(10, SizeUnit.MB)
-            }
+            +solicitudEscaneada(model::getPdfSolicitudFirmada)
         }
     }
 
     @BeanValidationRulesForStateAndEvent
-    fun getForStatePendienteFirmaInEventPresentar(): BeanValidationRules {
+    fun getForStatePendientePresentacionInEventPresentar(): BeanValidationRules {
         return rules {
             field(model::getClaveCertificado) {
                 +ifSituacionFirma({ it.isFirmaEnServidor() }) {

@@ -24,9 +24,9 @@ public class InitialEventManagerImpl implements InitialEventManager<AnulacionMat
 
         // En papel se empieza adjuntando la solicitud escaneada y después se copian sus datos.
         if (expediente.getPresentadoEnPapel()==true) {
-            initialEventContext.updateState(States.Solicitud.PENDIENTE_DOCUMENTO_ESCANEADO);
+            initialEventContext.updateState(States.Entrada.PENDIENTE_DOCUMENTO_ESCANEADO);
         } else {
-            initialEventContext.updateState(States.Solicitud.DATOS_SOLICITUD);
+            initialEventContext.updateState(States.Entrada.ENTRADA_DATOS);
         }
     }
 

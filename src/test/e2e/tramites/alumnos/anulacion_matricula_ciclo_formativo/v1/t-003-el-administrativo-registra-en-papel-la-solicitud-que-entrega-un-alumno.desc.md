@@ -16,7 +16,7 @@ id: T-003
 **Perfil:** `TRAMITADOR` (login `administrativo1@mislata.es`)
 **Desde:** `[*]`
 **Evento:** `CONTINUAR` — botón «Siguiente»
-**Hasta:** `SOLICITUD` / `DATOS_SOLICITUD`
+**Hasta:** `ENTRADA` / `ENTRADA_DATOS`
 **Tipo:** happy
 **Manual:** no
 
@@ -52,7 +52,7 @@ Los cuatro actores pertenecen **solo** a CIPFP Mislata, así que el asistente «
 
 Las dos cosas están en el árbol de fuentes, pero el data-init solo las lleva a la base de datos **al arrancar**: la aplicación tiene que haberse arrancado con `./run.sh` después de esos cambios, o los casos 2, 4 y 7 fallarán al no admitir el asistente el expediente en representación.
 
-#### Juego de datos válido — fase `SOLICITUD`
+#### Juego de datos válido — fase `ENTRADA`
 
 | campo | valor |
 |---|---|
@@ -67,10 +67,10 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 - **Then** se abre la pantalla «Nuevo expediente» con «Centro» = «CIPFP Mislata» de solo lectura y **sin** la pregunta «¿Cómo se presenta?»: al tener solo el perfil `TRAMITADOR`, la presentación en papel se da por deducida.
 - **And** se muestra la pregunta «¿Para quién es el expediente?» («Para mí» es para la persona que ha entregado el papel), con las opciones «Para mí» y «Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)» y ninguna marcada.
 - **When** marca «Para mí» —la solicitud es del propio alumno que la ha entregado— y pulsa «Crear expediente».
-- **Then** se abre el expediente en la fase `SOLICITUD`, estado `PENDIENTE_DOCUMENTO_ESCANEADO`, con la cabecera «Solicitud de anulación» / «Pendiente de adjuntar la solicitud en papel escaneada».
+- **Then** se abre el expediente en la fase `ENTRADA`, estado `PENDIENTE_DOCUMENTO_ESCANEADO`, con la cabecera «Entrada» / «Pendiente de adjuntar la solicitud en papel escaneada».
 - **And** el aviso es «Adjunte escaneada en PDF la solicitud que ha entregado firmada la persona que la presenta. En el paso siguiente copiará sus datos», y el panel «Solicitud entregada en papel» ofrece el campo «Solicitud escaneada (PDF)».
 - **When** adjunta en «Solicitud escaneada (PDF)» un PDF de menos de 10 MB y pulsa «Siguiente».
-- **Then** el expediente pasa al estado `DATOS_SOLICITUD` de la misma fase, con la cabecera «Solicitud de anulación» / «Datos de la solicitud».
+- **Then** el expediente pasa al estado `ENTRADA_DATOS` de la misma fase, con la cabecera «Entrada» / «Entrada de datos».
 - **And** el aviso pasa a ser «Copie los datos de la solicitud entregada en papel que ha adjuntado escaneada. Al presentarla se registrará su entrada», y el panel «Solicitud entregada en papel» muestra el PDF adjuntado, de solo lectura.
 - **And** el panel «Persona que presenta la solicitud» **no** aparece (la solicitud es de quien la entregó), y en «Alumno/a al que se refiere la solicitud» los campos «Apellidos», «Nombre» y «DNI/NIE» están **vacíos y editables**: el administrativo aún no ha copiado los datos del alumno.
 - **And** el pie ofrece «Borrar el expediente», «Atrás» y «Presentar la solicitud».

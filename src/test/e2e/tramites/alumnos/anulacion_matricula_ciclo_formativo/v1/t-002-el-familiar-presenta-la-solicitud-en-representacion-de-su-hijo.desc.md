@@ -16,7 +16,7 @@ id: T-002
 **Perfil:** `CREADOR` (login `familiar1@mislata.es`)
 **Desde:** `[*]`
 **Evento:** — (alta: botón «Crear expediente»)
-**Hasta:** `SOLICITUD` / `DATOS_SOLICITUD`
+**Hasta:** `ENTRADA` / `ENTRADA_DATOS`
 **Tipo:** happy
 **Manual:** no
 
@@ -52,7 +52,7 @@ Los cuatro actores pertenecen **solo** a CIPFP Mislata, así que el asistente «
 
 Las dos cosas están en el árbol de fuentes, pero el data-init solo las lleva a la base de datos **al arrancar**: la aplicación tiene que haberse arrancado con `./run.sh` después de esos cambios, o los casos 2, 4 y 7 fallarán al no admitir el asistente el expediente en representación.
 
-#### Juego de datos válido — fase `SOLICITUD`
+#### Juego de datos válido — fase `ENTRADA`
 
 | campo | valor |
 |---|---|
@@ -67,7 +67,7 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 - **When** inicia sesión, abre «Mis trámites» → «Nuevo trámite», despliega «Trámites para el alumno» y pulsa sobre «Anulación de matrícula en ciclo formativo».
 - **Then** se abre la pantalla «Nuevo expediente» con «Centro» = «CIPFP Mislata» de solo lectura, **sin** la pregunta «¿Cómo se presenta?» (solo tiene el perfil `CREADOR`) y **sin** la pregunta «¿Para quién es el expediente?»: es familiar y no alumno, así que el expediente solo puede ser en representación y el asistente lo fija sin preguntar.
 - **When** pulsa «Crear expediente».
-- **Then** se abre el expediente en la fase `SOLICITUD`, estado `DATOS_SOLICITUD`, con la cabecera «Solicitud de anulación» / «Datos de la solicitud».
+- **Then** se abre el expediente en la fase `ENTRADA`, estado `ENTRADA_DATOS`, con la cabecera «Entrada» / «Entrada de datos».
 - **And** aparece el panel «Persona que presenta la solicitud» con los datos del familiar que ha entrado —«Apellidos» = «de Alumno1 CIPFP Mislata», «Nombre» = «Familiar1», «DNI/NIE» = «43145636M»— y los tres campos bloqueados.
 - **And** en «Alumno/a al que se refiere la solicitud» los campos «Apellidos», «Nombre» y «DNI/NIE» están **vacíos y editables**: es donde se identificará al hijo.
 - **And** el pie ofrece «Borrar el expediente» y «Siguiente».

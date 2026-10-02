@@ -80,12 +80,12 @@ const OPCION_EN_REPRESENTACION =
   'Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)';
 
 // Primer estado del tipo de expediente para quien lo presenta él mismo (perfil
-// CREADOR), según `TipoExpedienteInstance.xml`: fase SOLICITUD, estado DATOS_SOLICITUD.
+// CREADOR), según `TipoExpedienteInstance.xml`: fase ENTRADA, estado ENTRADA_DATOS.
 // Es justo el estado que este test tiene que alcanzar para probar que, pese a haber
 // marcado antes "en papel" + "en representación", el expediente nace por la vía
 // TELEMÁTICA (T-011 prueba la rama contraria, que sí queda en PENDIENTE_DOCUMENTO_ESCANEADO).
-const FASE_INICIAL = 'Solicitud de anulación';
-const ESTADO_INICIAL = 'Datos de la solicitud';
+const FASE_INICIAL = 'Entrada';
+const ESTADO_INICIAL = 'Entrada de datos';
 
 // Aviso que la vista del estado pinta con `showIf="!presentadoEnPapel"`: verlo es la
 // prueba en la UI de que el expediente NO quedó marcado como presentado en papel.
