@@ -9,7 +9,6 @@
 
         <many-to-one name="usuario"
                      ref="com.axelor.auth.db.User"
-                     required="true"
                      title="Usuario"/>
 
         <many-to-one name="centro"
@@ -19,7 +18,6 @@
         <integer name="curso" title="Curso"/>
 
         <datetime name="fechaImportacion"
-                  required="true"
                   namecolumn="true"
                   title="Fecha de importación"/>
 
@@ -37,7 +35,6 @@
                      title="Fichero"/>
 
         <boolean name="estado"
-                 required="true"
                  title="Estado"
                  help="true = correcta, false = fallida"/>
 

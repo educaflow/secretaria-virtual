@@ -6,6 +6,7 @@ import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.db.modelservice.BusinessMessage;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.AllowProperties;
+import com.axelor.i18n.I18n;
 import com.educaflow.subsystem.importacion.db.TareaImportacion;
 import com.educaflow.subsystem.importacion.exception.ImportadorException;
 import com.educaflow.subsystem.importacion.importador.ImportadorFichero;
@@ -29,9 +30,19 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
     @Override
     public TareaImportacion insert(TareaImportacion tareaImportacion) {
         validateInsert(tareaImportacion).ifPresent(BusinessMessages::throwIfInvalid);
-        fireActionRule_asignarCamposSistema(tareaImportacion);
-        fireActionRule_ejecutarImportacion(tareaImportacion);
+        fireActionRule_AsignarCamposSistema(tareaImportacion);
+        fireActionRule_EjecutarImportacion(tareaImportacion);
         return repository.save(tareaImportacion);
+    }
+
+    @Override
+    public TareaImportacion update(TareaImportacion entidad, TareaImportacion entidadOriginal) {
+        throw new UnsupportedOperationException(I18n.get("Las importaciones ya registradas no se pueden modificar"));
+    }
+
+    @Override
+    public void remove(TareaImportacion entidad) {
+        throw new UnsupportedOperationException(I18n.get("Las importaciones no se pueden eliminar"));
     }
 
     /****************************************************************************************/
@@ -44,11 +55,11 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
 
         if (tareaImportacion.getTipoFichero() == null) {
             messages.add(new BusinessMessage("tipoFichero",
-                    "El tipo de fichero es obligatorio. Valores válidos: PROFESOR, ALUMNO, FAMILIAR, PROFESOR_EXTERNO"));
+                    I18n.get("El tipo de fichero es obligatorio. Valores válidos: PROFESOR, ALUMNO, FAMILIAR, PROFESOR_EXTERNO")));
         }
 
         if (tareaImportacion.getFichero() == null) {
-            messages.add(new BusinessMessage("fichero", "El fichero es obligatorio"));
+            messages.add(new BusinessMessage("fichero", I18n.get("El fichero es obligatorio")));
         }
 
         return messages.isEmpty() ? Optional.empty() : Optional.of(messages);
@@ -58,14 +69,14 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
     public Optional<BusinessMessages> validateUpdate(TareaImportacion entidad,
                                                      TareaImportacion entidadOriginal) {
         BusinessMessages messages = new BusinessMessages();
-        messages.add(new BusinessMessage("Las importaciones ya registradas no se pueden modificar"));
+        messages.add(new BusinessMessage(I18n.get("Las importaciones ya registradas no se pueden modificar")));
         return Optional.of(messages);
     }
 
     @Override
     public Optional<BusinessMessages> validateRemove(TareaImportacion entidad) {
         BusinessMessages messages = new BusinessMessages();
-        messages.add(new BusinessMessage("Las importaciones no se pueden eliminar"));
+        messages.add(new BusinessMessage(I18n.get("Las importaciones no se pueden eliminar")));
         return Optional.of(messages);
     }
 
@@ -85,7 +96,7 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
     /********************************    Action Rules    *********************************/
     /*************************************************************************************/
 
-    private void fireActionRule_asignarCamposSistema(TareaImportacion tareaImportacion) {
+    private void fireActionRule_AsignarCamposSistema(TareaImportacion tareaImportacion) {
         tareaImportacion.setUsuario(SecurityUtil.getUser());
         tareaImportacion.setFechaImportacion(LocalDateTime.now(Convert.defaultZoneId));
         tareaImportacion.setFechaExportacion(null);
@@ -93,7 +104,7 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
         tareaImportacion.setLog(null);
     }
 
-    private void fireActionRule_ejecutarImportacion(TareaImportacion tareaImportacion) {
+    private void fireActionRule_EjecutarImportacion(TareaImportacion tareaImportacion) {
         ImportadorFichero importador = ImportadorFicheroFactory.create(
                 tareaImportacion.getTipoFichero(), tareaImportacion.getFichero());
         try {
