@@ -42,8 +42,9 @@ public class DefaultModelController {
             Model entidad = actionRequestHelper.getModel(modelService.allowPropertiesInsert());
             result = modelService.validateInsert(entidad);
         } else {
-            Model entidad = actionRequestHelper.getModel(modelService.allowPropertiesUpdate());
+            /// Importante: No cambiar el orden
             Model original = actionRequestHelper.getOriginalModel();
+            Model entidad = actionRequestHelper.getModel(modelService.allowPropertiesUpdate());
             result = modelService.validateUpdate(entidad, original);
         }
 
