@@ -6,6 +6,8 @@ import com.axelor.rpc.ActionResponse;
 import com.axelor.db.modelservice.BusinessMessage;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.base.infrastructure.validation.messages.internal.BusinessMessageHelper;
+import com.google.common.escape.Escaper;
+import com.google.common.html.HtmlEscapers;
 
 import java.util.List;
 import java.util.Map;
@@ -51,17 +53,18 @@ public class ActionResponseHelper {
     }
 
     public void doResponseBusinessMessagesAsError(String title, BusinessMessages businessMessages) {
+        Escaper html = HtmlEscapers.htmlEscaper();
         StringBuilder sb= new StringBuilder();
         sb.append("<ul>");
         for(BusinessMessage businessMessage : businessMessages) {
             sb.append("<li>");
 
             if ((businessMessage.getLabel()!=null) && (businessMessage.getLabel().isBlank()==false)) {
-                sb.append("<strong>").append(businessMessage.getLabel()).append(": ").append("</strong>").append(businessMessage.getMessage());
+                sb.append("<strong>").append(html.escape(businessMessage.getLabel())).append(": ").append("</strong>").append(html.escape(String.valueOf(businessMessage.getMessage())));
             } else if ((businessMessage.getFieldName()!=null) && (businessMessage.getFieldName().isBlank()==false)) {
-                sb.append("<strong>").append(businessMessage.getFieldName()).append(": ").append("</strong>").append(businessMessage.getMessage());
+                sb.append("<strong>").append(html.escape(businessMessage.getFieldName())).append(": ").append("</strong>").append(html.escape(String.valueOf(businessMessage.getMessage())));
             } else {
-                sb.append(businessMessage.getMessage());
+                sb.append(html.escape(String.valueOf(businessMessage.getMessage())));
             }
 
             sb.append("</li>");
@@ -76,12 +79,7 @@ public class ActionResponseHelper {
     }
 
     public void doResponseBusinessMessages(BusinessMessages businessMessages) {
-        storeBusinessMessagesInActionResponse(businessMessages);
-    }
-
-    private void storeBusinessMessagesInActionResponse(BusinessMessages businessMessages) {
         List<Map<String,String>> errorMensajes= BusinessMessageHelper.getAsList(businessMessages);
-
 
         response.setValue(BusinessMessageHelper.KEY_MAP_ERROR_MENSAJES,errorMensajes);
     }
