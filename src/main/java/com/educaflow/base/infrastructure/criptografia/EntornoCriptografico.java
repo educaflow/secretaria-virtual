@@ -48,10 +48,10 @@ public class EntornoCriptografico {
             Security.removeProvider(provider.getName());
         }
         proveedoresPkcs11Registrados.clear();
+        dispositivosCriptograficos = new HashMap<>();
+        dispositivosConfigurado = false;
 
-        if (dispositivoCritograficoConfigs == null) {
-            dispositivosCriptograficos = new HashMap<>();
-        } else {
+        if (dispositivoCritograficoConfigs != null) {
             dispositivosCriptograficos = createDispositivosCriptograficos(dispositivoCritograficoConfigs);
         }
 
@@ -93,21 +93,27 @@ public class EntornoCriptografico {
     /*********************************************************************************/
 
     private static AlmacenCertificadosConfiables createAlmacenCertificadosConfiables(AlmacenCertificadosConfiablesConfig almacenCertificadosConfiablesConfig) {
-        try {
-            InputStream inputStream = almacenCertificadosConfiablesConfig.getInputStream();
-            String password = almacenCertificadosConfiablesConfig.getPassword();
+        List<InputStream> certificateRevocationListsInputStream = almacenCertificadosConfiablesConfig.getCertificateRevocationListsInputStream();
+        String password = almacenCertificadosConfiablesConfig.getPassword();
+        try (InputStream inputStream = almacenCertificadosConfiablesConfig.getInputStream()) {
+            try {
+                KeyStore trustedKeyStore = CriptografiaUtil.getKeyStore(inputStream, password);
 
-            KeyStore trustedKeyStore = CriptografiaUtil.getKeyStore(inputStream, password);
-            List<InputStream> certificateRevocationListsInputStream = almacenCertificadosConfiablesConfig.getCertificateRevocationListsInputStream();
+                List<CRL> certificateRevocationLists;
+                if (certificateRevocationListsInputStream == null) {
+                    certificateRevocationLists = new ArrayList<>();
+                } else {
+                    certificateRevocationLists = CriptografiaUtil.getCertificateRevocationLists(certificateRevocationListsInputStream);
+                }
 
-            List<CRL> certificateRevocationLists;
-            if (certificateRevocationListsInputStream == null) {
-                certificateRevocationLists = new ArrayList<>();
-            } else {
-                certificateRevocationLists = CriptografiaUtil.getCertificateRevocationLists(certificateRevocationListsInputStream);
+                return new AlmacenCertificadosConfiables(trustedKeyStore, certificateRevocationLists);
+            } finally {
+                if (certificateRevocationListsInputStream != null) {
+                    for (InputStream crlInputStream : certificateRevocationListsInputStream) {
+                        crlInputStream.close();
+                    }
+                }
             }
-
-            return new AlmacenCertificadosConfiables(trustedKeyStore, certificateRevocationLists);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
