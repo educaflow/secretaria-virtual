@@ -1,5 +1,7 @@
 package com.educaflow.base.infrastructure.mail;
 
+import com.educaflow.base.util.TextUtil;
+
 public record GMailApiCredential(
         String clientId,
         String projectId,
@@ -7,17 +9,9 @@ public record GMailApiCredential(
         String refreshToken
 ) {
     public GMailApiCredential {
-        if (clientId == null || clientId.isBlank()) {
-            throw new IllegalArgumentException("clientId no puede ser null ni blank");
-        }
-        if (projectId == null || projectId.isBlank()) {
-            throw new IllegalArgumentException("projectId no puede ser null ni blank");
-        }
-        if (clientSecret == null || clientSecret.isBlank()) {
-            throw new IllegalArgumentException("clientSecret no puede ser null ni blank");
-        }
-        if (refreshToken == null || refreshToken.isBlank()) {
-            throw new IllegalArgumentException("refreshToken no puede ser null ni blank");
-        }
+        TextUtil.requireNonBlank(clientId, "clientId no puede ser null ni blank");
+        TextUtil.requireNonBlank(projectId, "projectId no puede ser null ni blank");
+        TextUtil.requireNonBlank(clientSecret, "clientSecret no puede ser null ni blank");
+        TextUtil.requireNonBlank(refreshToken, "refreshToken no puede ser null ni blank");
     }
 }
