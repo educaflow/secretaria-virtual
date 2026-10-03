@@ -1,7 +1,6 @@
 package com.educaflow.subsystem.firmas.controller;
 
 import com.axelor.auth.db.User;
-import com.axelor.db.JpaRepository;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.CallMethod;
 import com.axelor.rpc.ActionRequest;
@@ -41,8 +40,18 @@ public class  TareaFirmaController {
 
     @CallMethod
     public void firmarDocumentosConAutoFirma(ActionRequest actionRequest, ActionResponse actionResponse) {
-        ActionRequestHelper actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
-        TareaFirma tareaFirma = JpaRepository.of(TareaFirma.class).find(actionRequestHelper.getId());
+        final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
+
+        ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
+
+        TareaFirma tareaFirma = tareaFirmaService.getById(actionRequestHelper.getId());
+
+        Optional<BusinessMessages> validationResult = tareaFirmaService.validateFirmarConAutoFirma(tareaFirma);
+        if (validationResult.isPresent()) {
+            actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());
+            return;
+        }
 
         AutoFirma autofirma = new AutoFirma(TareaFirma.class)
                 .setDni(tareaFirma.getFirmante().getDni());

@@ -4,6 +4,7 @@ import com.axelor.auth.db.User;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
+import com.educaflow.base.util.TextUtil;
 import com.educaflow.subsystem.common.db.Centro;
 
 import java.util.List;
@@ -18,7 +19,7 @@ public record TareaFirmaInsertDTO(User firmante, Centro centro, List<MetaFile> d
 
     /** Se firma en el campo de firma vacío {@code nombreCampoFirma}, que deben tener todos los documentos. */
     public TareaFirmaInsertDTO(User firmante, Centro centro, List<MetaFile> documentos, String motivoFirma, String nombreCampoFirma, Class<? extends TareaFirmaNotifier> firmaNotifierClass, Object callBackData) {
-        this(firmante, centro, documentos, motivoFirma, null, null, Objects.requireNonNull(nombreCampoFirma, "nombreCampoFirma no puede ser null"), firmaNotifierClass, callBackData);
+        this(firmante, centro, documentos, motivoFirma, null, null, TextUtil.requireNonBlank(nombreCampoFirma, "nombreCampoFirma no puede ser null ni blank"), firmaNotifierClass, callBackData);
     }
 
     /** Se firma en el rectángulo {@code areaFirma} de la página {@code page} de cada documento. */
@@ -30,14 +31,11 @@ public record TareaFirmaInsertDTO(User firmante, Centro centro, List<MetaFile> d
         Objects.requireNonNull(firmante, "firmante no puede ser null");
         Objects.requireNonNull(centro, "centro no puede ser null");
         Objects.requireNonNull(documentos, "documentos no pueden ser null");
-        Objects.requireNonNull(motivoFirma, "motivoFirma no puede ser null");
+        TextUtil.requireNonBlank(motivoFirma, "motivoFirma no puede ser null ni blank");
         Objects.requireNonNull(firmaNotifierClass, "firmaNotifierClass no puede ser null");
 
         if (documentos.isEmpty()) {
             throw new IllegalArgumentException("documentos no puede estar vacío");
-        }
-        if (motivoFirma.isBlank()) {
-            throw new IllegalArgumentException("motivoFirma no puede ser blank");
         }
 
         for(int i=0;i<documentos.size();i++) {
@@ -58,9 +56,7 @@ public record TareaFirmaInsertDTO(User firmante, Centro centro, List<MetaFile> d
     }
 
     private static void exigeFirmarSoloEnElCampo(String nombreCampoFirma, Rectangulo areaFirma, Integer page, List<MetaFile> documentos) {
-        if (nombreCampoFirma.isBlank()) {
-            throw new IllegalArgumentException("nombreCampoFirma no puede ser blank");
-        }
+        TextUtil.requireNonBlank(nombreCampoFirma, "nombreCampoFirma no puede ser null ni blank");
         if (areaFirma != null || page != null) {
             throw new IllegalArgumentException("Solo se puede indicar una forma de situar la firma: nombreCampoFirma o areaFirma y page, no las dos");
         }

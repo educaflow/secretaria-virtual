@@ -7,10 +7,10 @@
         <many-to-one name="firmante" ref="com.axelor.auth.db.User" required="true" />
         <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" required="true" title="Centro" />
         <one-to-many name="documentosFirma" ref="DocumentoFirma" mappedBy="tareaFirma"  />
-        <datetime name="fechaSolicitud" title="Fecha de la solicitud" required="true" />
+        <datetime name="fechaSolicitud" title="Fecha de la solicitud" />
         <datetime name="fechaResolucion" title="Fecha de la resolución" />
         <boolean name="firmaRapida" title="Firma rápida" help="La firma se permite que se haga inmediatamente sin intervención del usuario si existe su certificado" />
-        <enum name="estadoTareaFirma" ref="EstadoTareaFirma" title="Estado" required="true" />
+        <enum name="estadoTareaFirma" ref="EstadoTareaFirma" title="Estado" />
         <string name="motivoFirma" required="true" />
         <string name="motivoRechazo" large="true" multiline="true" title="Motivo del rechazo de la firma de los documentos" />
         <string name="fqcnFirmaNotifier" title="FQCN donde notificar" />

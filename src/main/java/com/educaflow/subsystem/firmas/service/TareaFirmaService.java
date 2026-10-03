@@ -17,6 +17,7 @@ public interface TareaFirmaService extends ModelService<TareaFirma> {
 
 
     Optional<BusinessMessages> validateInsert(TareaFirmaInsertDTO tareaFirmaInsertDTO);
+    Optional<BusinessMessages> validateFirmarConAutoFirma(TareaFirma tareaFirma);
     Optional<BusinessMessages> validateMarcarComoFirmada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal);
     Optional<BusinessMessages> validateMarcarComoRechazada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal);
     Optional<BusinessMessages> validateFirmarEnServidor(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal, String claveCertificado);

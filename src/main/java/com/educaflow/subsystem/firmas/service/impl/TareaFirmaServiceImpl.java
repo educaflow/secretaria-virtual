@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 import com.educaflow.base.util.Convert;
 
 public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> implements TareaFirmaService {
@@ -63,13 +64,14 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
         tareaFirma.setMotivoRechazo(null);
 
 
-        List<DocumentoFirma> documentosFirma=new ArrayList<>();
-        for(MetaFile documento: tareaFirmaInsertDTO.documentos()) {
-            DocumentoFirma documentoFirma = new DocumentoFirma();
-            documentoFirma.setDocumentoOriginal(MetaFileUtil.cloneMetaFile(documento));
-            documentoFirma.setTareaFirma(tareaFirma);
-            documentosFirma.add(documentoFirma);
-        }
+        List<DocumentoFirma> documentosFirma = tareaFirmaInsertDTO.documentos().stream()
+                .map(documento -> {
+                    DocumentoFirma documentoFirma = new DocumentoFirma();
+                    documentoFirma.setDocumentoOriginal(MetaFileUtil.cloneMetaFile(documento));
+                    documentoFirma.setTareaFirma(tareaFirma);
+                    return documentoFirma;
+                })
+                .collect(Collectors.toCollection(ArrayList::new));
         tareaFirma.setDocumentosFirma(documentosFirma);
 
 
@@ -88,31 +90,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
 
         asignarLugarFirma(tareaFirma, tareaFirmaInsertDTO);
 
-        tareaFirma = repository.save(tareaFirma);
-
-        return tareaFirma;
-    }
-
-    /**
-     * Dónde se firma: el DTO trae o el nombre del campo de firma o el rectángulo y su página, nunca los dos.
-     * Se asignan todos los campos, también los de la forma que no se usa, que quedan a null.
-     */
-    private static void asignarLugarFirma(TareaFirma tareaFirma, TareaFirmaInsertDTO tareaFirmaInsertDTO) {
-        Rectangulo areaFirma = tareaFirmaInsertDTO.areaFirma();
-
-        tareaFirma.setNombreCampoFirma(tareaFirmaInsertDTO.nombreCampoFirma());
-        tareaFirma.setPage(tareaFirmaInsertDTO.page());
-        if (areaFirma == null) {
-            tareaFirma.setX(null);
-            tareaFirma.setY(null);
-            tareaFirma.setWidth(null);
-            tareaFirma.setHeight(null);
-        } else {
-            tareaFirma.setX(BigDecimal.valueOf(areaFirma.x()));
-            tareaFirma.setY(BigDecimal.valueOf(areaFirma.y()));
-            tareaFirma.setWidth(BigDecimal.valueOf(areaFirma.width()));
-            tareaFirma.setHeight(BigDecimal.valueOf(areaFirma.height()));
-        }
+        return repository.save(tareaFirma);
     }
 
     @Override
@@ -162,29 +140,58 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     /****************************************************************************************/
 
     @Override
+    public Optional<BusinessMessages> validateInsert(TareaFirma tareaFirma) {
+        return Optional.of(BusinessMessages.single(I18n.get("Las tareas de firma solo las crea el servidor.")));
+    }
+
+    @Override
+    public Optional<BusinessMessages> validateUpdate(TareaFirma nuevo, TareaFirma original) {
+        return Optional.of(BusinessMessages.single(I18n.get("Las tareas de firma solo se pueden firmar o rechazar.")));
+    }
+
+    @Override
+    public Optional<BusinessMessages> validateRemove(TareaFirma tareaFirma) {
+        return Optional.of(BusinessMessages.single(I18n.get("Las tareas de firma no se pueden borrar.")));
+    }
+
+    @Override
     public Optional<BusinessMessages> validateInsert(TareaFirmaInsertDTO tareaFirmaInsertDTO) {
         return Optional.empty();
     }
+
     @Override
-    public Optional<BusinessMessages> validateMarcarComoFirmada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) {
+    public Optional<BusinessMessages> validateFirmarConAutoFirma(TareaFirma tareaFirma) {
         BusinessMessages businessMessages = new BusinessMessages();
 
-        // V-TareaFirma-001 — estado de la tarea.
         if (isPendiente(tareaFirma) == false) {
             businessMessages.add(new BusinessMessage(I18n.get("Solo se pueden firmar las tareas pendientes de firmar")));
         }
 
-        // V-TareaFirma-002 — titularidad. Es la defensa real: el <domain> del action-view es solo UX.
+        // Es la defensa real: el <domain> del action-view es solo UX.
         if (isFirmanteElUsuarioAutenticado(tareaFirma) == false) {
             businessMessages.add(new BusinessMessage(I18n.get("Solo puede firmar los documentos la persona a la que se le han encargado")));
         }
 
-        // V-TareaFirma-009 — documentos firmados por el firmante. Va la última y solo si todo lo demás ha
-        // pasado: es la única comprobación que abre los PDF. Con AutoFirma el documento firmado lo
-        // manda el cliente, así que aquí es donde el servidor comprueba que la firma es la del firmante.
-        if (businessMessages.isValid()) {
-            businessMessages.addAll(validateDocumentosFirmados(tareaFirma));
+        return businessMessages.isValid() ? Optional.empty() : Optional.of(businessMessages);
+    }
+
+    @Override
+    public Optional<BusinessMessages> validateMarcarComoFirmada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) {
+        Optional<BusinessMessages> validacionTarea = validateFirmarConAutoFirma(tareaFirma);
+        if (validacionTarea.isPresent()) {
+            return validacionTarea;
         }
+
+        // La lista documentosFirma la manda el cliente: sin esto, quitando documentos (o colando uno de otra tarea) la tarea
+        // se daría por firmada sin haber firmado todos los que se pusieron a firmar.
+        if (tareaFirma.getDocumentosFirma() == null || tareaFirma.getDocumentosFirma().isEmpty()) {
+            return Optional.of(BusinessMessages.single(I18n.get("La tarea de firma no tiene ningún documento que firmar")));
+        }
+        if (isMismosDocumentosQueOriginal(tareaFirma, tareaFirmaOriginal) == false) {
+            return Optional.of(BusinessMessages.single(I18n.get("Los documentos firmados no coinciden con los que se pusieron a firmar")));
+        }
+
+        BusinessMessages businessMessages = validateDocumentosFirmados(tareaFirma);
 
         return businessMessages.isValid() ? Optional.empty() : Optional.of(businessMessages);
     }
@@ -192,12 +199,11 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     public Optional<BusinessMessages> validateMarcarComoRechazada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) {
         BusinessMessages businessMessages = new BusinessMessages();
 
-        // V-TareaFirma-001 — estado de la tarea.
         if (isPendiente(tareaFirma) == false) {
             businessMessages.add(new BusinessMessage(I18n.get("Solo se pueden rechazar las tareas pendientes de firmar")));
         }
 
-        // V-TareaFirma-002 — titularidad. Es la defensa real: el <domain> del action-view es solo UX.
+        // Es la defensa real: el <domain> del action-view es solo UX.
         if (isFirmanteElUsuarioAutenticado(tareaFirma) == false) {
             businessMessages.add(new BusinessMessage(I18n.get("Solo puede rechazar la firma de los documentos la persona a la que se le han encargado")));
         }
@@ -209,46 +215,37 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     public Optional<BusinessMessages> validateFirmarEnServidor(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal, String claveCertificado) {
         BusinessMessages businessMessages = new BusinessMessages();
 
-        // V-TareaFirma-001 — estado de la tarea.
         if (isPendiente(tareaFirma) == false) {
             businessMessages.add(new BusinessMessage(I18n.get("Solo se pueden firmar las tareas pendientes de firmar")));
         }
 
-        // V-TareaFirma-002 — titularidad. Es la defensa real: el <domain> del action-view es solo UX.
+        // Es la defensa real: el <domain> del action-view es solo UX.
         if (isFirmanteElUsuarioAutenticado(tareaFirma) == false) {
             businessMessages.add(new BusinessMessage(I18n.get("Solo puede firmar los documentos la persona a la que se le han encargado")));
         }
 
         SituacionFirma situacionFirma = getSituacionFirma(tareaFirma);
 
-        // V-TareaFirma-003 — DNI del firmante.
         if (situacionFirma == SituacionFirma.SIN_DNI) {
             businessMessages.add(new BusinessMessage(I18n.get("No es posible firmar los documentos porque su usuario no tiene un DNI. Póngase en contacto con el administrador.")));
         }
 
-        // V-TareaFirma-004 — certificado dado de alta.
         if (situacionFirma == SituacionFirma.SIN_CERTIFICADO) {
             businessMessages.add(new BusinessMessage(I18n.get("No es posible firmar en el servidor porque no tiene un certificado digital dado de alta")));
         }
 
-        // V-TareaFirma-005 — PIN obligatorio.
         if (situacionFirma == SituacionFirma.DISPOSITIVO_SIN_PIN && TextUtil.isNullOrBlank(claveCertificado)) {
             businessMessages.add(new BusinessMessage(I18n.get("El PIN es obligatorio")));
         }
 
-        // V-TareaFirma-006 — contraseña obligatoria.
         if (situacionFirma == SituacionFirma.FICHERO_SIN_CLAVE && TextUtil.isNullOrBlank(claveCertificado)) {
             businessMessages.add(new BusinessMessage(I18n.get("La contraseña es obligatoria")));
         }
 
-        // V-TareaFirma-007 — documentos a firmar.
         if (tareaFirma.getDocumentosFirma() == null || tareaFirma.getDocumentosFirma().isEmpty()) {
             businessMessages.add(new BusinessMessage(I18n.get("La tarea de firma no tiene ningún documento que firmar")));
         }
 
-        // V-TareaFirma-008 — clave correcta del certificado en fichero. Va la última y solo si todo lo demás
-        // ha pasado: es la única comprobación que abre el certificado, y sin firmante, sin certificado o sin
-        // clave no hay nada que comprobar.
         if (businessMessages.isValid() && isClaveCertificadoCorrecta(tareaFirma, claveCertificado)==false) {
             businessMessages.add(new BusinessMessage(I18n.get("No es posible firmar los documentos: %s")
                     .formatted(CertificadoDigitalHelper.motivoClaveErronea(situacionFirma))));
@@ -265,11 +262,12 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     @Override
     public AllowProperties allowPropertiesMarcarComoFirmada() {
         return AllowProperties.createAllowProperties(Map.of("documentosFirma", Map.of("documentoFirmado", Map.of())));
-    };
+    }
+
     @Override
     public AllowProperties allowPropertiesMarcarComoRechazada() {
         return AllowProperties.createAllowProperties(Map.of("motivoRechazo", Map.of()));
-    };
+    }
 
     @Override
     public AllowProperties allowPropertiesFirmarEnServidor() {
@@ -301,16 +299,12 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     /*************************************************************************************/
 
     /**
-     * R-TareaFirma-001 — firma en el servidor TODOS los documentos de la tarea con el certificado digital del
-     * firmante. Momento: antes de {@code repository.save}.
-     *
-     * <p>Trabaja en dos fases para garantizar el «todo o nada»: primero firma todos los documentos en memoria y
+     * Trabaja en dos fases para garantizar el «todo o nada»: primero firma todos los documentos en memoria y
      * solo si todos han salido bien crea sus {@code MetaFile} y los asigna. Si algo falla en la primera fase no
      * se ha creado ningún fichero ni se ha tocado ningún {@code DocumentoFirma}, así que la tarea sigue
      * pendiente y el firmante puede reintentar.
      */
     private void fireActionRule_FirmarDocumentosEnServidor(TareaFirma tareaFirma, String claveCertificado) {
-        // Un solo CampoFirma para todos los documentos: no tiene estado consumible.
         CampoFirma campoFirma = getCampoFirma(tareaFirma);
         List<DocumentoFirmado> documentosFirmados = firmarDocumentosEnMemoria(tareaFirma, claveCertificado, campoFirma);
 
@@ -318,31 +312,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     }
 
     /**
-     * Dónde se firma cada documento de la tarea: en su campo de firma {@code nombreCampoFirma} o, si la tarea
-     * no lo indica, en su rectángulo. El recuadro es BigDecimal en la entidad y float en Rectangulo, de ahí
-     * los floatValue().
-     */
-    private static CampoFirma getCampoFirma(TareaFirma tareaFirma) {
-        CampoFirma campoFirma;
-
-        if (tareaFirma.getNombreCampoFirma() != null) {
-            campoFirma = new CampoFirma(tareaFirma.getNombreCampoFirma());
-        } else {
-            campoFirma = new CampoFirma(new Rectangulo(
-                    tareaFirma.getX().floatValue(),
-                    tareaFirma.getY().floatValue(),
-                    tareaFirma.getWidth().floatValue(),
-                    tareaFirma.getHeight().floatValue()))
-                    .setNumeroPagina(tareaFirma.getPage());
-        }
-
-        return campoFirma;
-    }
-
-    /**
-     * R-TareaFirma-002 — deja la tarea resuelta como firmada. Momento: antes de {@code repository.save}.
-     *
-     * <p>Asignación incondicional: {@code estadoTareaFirma} y {@code fechaResolucion} son campos que dicta el
+     * Asignación incondicional: {@code estadoTareaFirma} y {@code fechaResolucion} son campos que dicta el
      * servidor, así que una guarda por nulo permitiría al cliente dictar el estado o falsificar la fecha por el
      * endpoint REST genérico. La comparten las dos acciones que resuelven una tarea como firmada.
      */
@@ -374,22 +344,58 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     /*************************************************************************************/
 
     /**
+     * Dónde se firma cada documento de la tarea: en su campo de firma {@code nombreCampoFirma} o, si la tarea
+     * no lo indica, en su rectángulo. El recuadro es BigDecimal en la entidad y float en Rectangulo, de ahí
+     * los floatValue().
+     */
+    private static CampoFirma getCampoFirma(TareaFirma tareaFirma) {
+        CampoFirma campoFirma;
+
+        if (tareaFirma.getNombreCampoFirma() != null) {
+            campoFirma = new CampoFirma(tareaFirma.getNombreCampoFirma());
+        } else {
+            campoFirma = new CampoFirma(new Rectangulo(
+                    tareaFirma.getX().floatValue(),
+                    tareaFirma.getY().floatValue(),
+                    tareaFirma.getWidth().floatValue(),
+                    tareaFirma.getHeight().floatValue()))
+                    .setNumeroPagina(tareaFirma.getPage());
+        }
+
+        return campoFirma;
+    }
+
+    /**
+     * Dónde se firma: el DTO trae o el nombre del campo de firma o el rectángulo y su página, nunca los dos.
+     * Se asignan todos los campos, también los de la forma que no se usa, que quedan a null.
+     */
+    private static void asignarLugarFirma(TareaFirma tareaFirma, TareaFirmaInsertDTO tareaFirmaInsertDTO) {
+        Rectangulo areaFirma = tareaFirmaInsertDTO.areaFirma();
+
+        tareaFirma.setNombreCampoFirma(tareaFirmaInsertDTO.nombreCampoFirma());
+        tareaFirma.setPage(tareaFirmaInsertDTO.page());
+        if (areaFirma == null) {
+            tareaFirma.setX(null);
+            tareaFirma.setY(null);
+            tareaFirma.setWidth(null);
+            tareaFirma.setHeight(null);
+        } else {
+            tareaFirma.setX(BigDecimal.valueOf(areaFirma.x()));
+            tareaFirma.setY(BigDecimal.valueOf(areaFirma.y()));
+            tareaFirma.setWidth(BigDecimal.valueOf(areaFirma.width()));
+            tareaFirma.setHeight(BigDecimal.valueOf(areaFirma.height()));
+        }
+    }
+
+    /**
      * Par intermedio de la fase de firma: un documento de la tarea junto al PDF que ya se ha firmado en memoria
      * pero todavía no se ha publicado.
-     *
-     * <p>Es a propósito un tipo <strong>privado</strong> de la implementación: la lista intermedia es una
-     * estructura local de la regla y no debe convertirse en un tipo público del subsistema. Emparejar los dos
-     * datos en un par hace imposible que la fase de publicación descuadre un documento con el PDF de otro.
      */
     private record DocumentoFirmado(DocumentoFirma documentoFirma, DocumentoPdf documentoPdfFirmado) {
     }
 
     /**
-     * Fase de firma de R-TareaFirma-001: firma en memoria <strong>todos</strong> los documentos de la tarea y
-     * devuelve los pares (documento, PDF firmado). No crea ningún {@code MetaFile} ni modifica ninguna entidad.
-     *
-     * <p>Si la firma de cualquier documento falla, el método no devuelve nada: registra el fallo con su traza y
-     * lanza el error de negocio de RN-TareaFirma-007. Como la publicación solo trabaja sobre lo que este método
+     * No crea ningún {@code MetaFile} ni modifica ninguna entidad. Como la publicación solo trabaja sobre lo que este método
      * devuelve, un fallo no puede acabar publicando una lista parcial.
      */
     private List<DocumentoFirmado> firmarDocumentosEnMemoria(TareaFirma tareaFirma, String claveCertificado, CampoFirma campoFirma) {
@@ -422,11 +428,8 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     }
 
     /**
-     * Fase de publicación de R-TareaFirma-001: por cada par, crea el {@code MetaFile} del PDF firmado y lo
-     * asigna a su {@code DocumentoFirma}.
-     *
-     * <p>Solo se invoca con la lista completa que devuelve la fase de firma, así que un fallo de firma no puede
-     * llegar hasta aquí: es la garantía «todo o nada» de RN-TareaFirma-002.
+     * Solo se invoca con la lista completa que devuelve la fase de firma, así que un fallo de firma no puede
+     * llegar hasta aquí: es la garantía «todo o nada».
      */
     private void publicarDocumentosFirmados(List<DocumentoFirmado> documentosFirmados) {
         for (DocumentoFirmado documentoFirmado : documentosFirmados) {
@@ -437,17 +440,30 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     }
 
     /**
-     * V-TareaFirma-001 — una tarea solo se resuelve una vez: FIRMADO y RECHAZADO son estados finales, así que
+     * Una tarea solo se resuelve una vez: FIRMADO y RECHAZADO son estados finales, así que
      * todas las acciones sobre la tarea exigen que siga PENDIENTE.
      */
     private static boolean isPendiente(TareaFirma tareaFirma) {
         return tareaFirma.getEstadoTareaFirma() == EstadoTareaFirma.PENDIENTE;
     }
 
-    /**
-     * V-TareaFirma-009 — todos los documentos de la tarea tienen su documento firmado, y la firma es del
-     * firmante sobre el documento original.
-     */
+    private static boolean isMismosDocumentosQueOriginal(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) {
+        List<Long> ids = getIdsDocumentosFirma(tareaFirma);
+        List<Long> idsOriginal = getIdsDocumentosFirma(tareaFirmaOriginal);
+
+        return ids.contains(null) == false
+                && ids.size() == idsOriginal.size()
+                && new HashSet<>(ids).equals(new HashSet<>(idsOriginal));
+    }
+
+    private static List<Long> getIdsDocumentosFirma(TareaFirma tareaFirma) {
+        if (tareaFirma == null || tareaFirma.getDocumentosFirma() == null) {
+            return List.of();
+        }
+
+        return tareaFirma.getDocumentosFirma().stream().map(DocumentoFirma::getId).toList();
+    }
+
     private static BusinessMessages validateDocumentosFirmados(TareaFirma tareaFirma) {
         BusinessMessages businessMessages = new BusinessMessages();
 
