@@ -63,7 +63,7 @@ public class PerfilesUsuarioServiceImpl implements PerfilesUsuarioService {
         }
 
         perfiles.addAll(getPerfilesUnicamenteSobreTramite(tipoExpediente.getTramite(), centroUsuario));
-        perfiles.addAll(aceProfileTipoExpedienteRepository.findPerfiles(tipoExpediente, centroUsuario)); //El tipo lo saco del expediente
+        perfiles.addAll(aceProfileTipoExpedienteRepository.findPerfiles(tipoExpediente, centroUsuario));
         // IMPORTANTE: El CREADOR de estas tablas habilita a crear expedientes, no a actuar sobre los que ya existen:
         // si se conservara, cualquier alumno sería CREADOR de los expedientes de los demás alumnos.
         perfiles.remove(Profile.CREADOR);
@@ -88,7 +88,7 @@ public class PerfilesUsuarioServiceImpl implements PerfilesUsuarioService {
         }
 
         Set<Profile> perfiles = getPerfilesUnicamenteSobreTramite(tramite, centroUsuario);
-        perfiles.addAll(aceProfileTipoExpedienteRepository.findPerfiles(tramite.getDefaultTipoExpediente(), centroUsuario));  //El tipo lo saco del trámite
+        perfiles.addAll(aceProfileTipoExpedienteRepository.findPerfiles(tramite.getDefaultTipoExpediente(), centroUsuario));
 
 
         return Collections.unmodifiableSet(perfiles);
@@ -168,15 +168,8 @@ public class PerfilesUsuarioServiceImpl implements PerfilesUsuarioService {
 
         final TramiteService tramiteService = (TramiteService) modelServiceFactory.resolve(Tramite.class);
         List<Tramite> tramites = tramiteService.findConTipoExpedienteActivo().stream().filter(filtroTramite).toList();
-        for (CentroUsuario centroUsuario : user.getCentroUsuarios()) {
-            for (Tramite tramite : tramites) {
-                Set<Profile> perfiles = getPerfilesSobreTramite(tramite, user, centroUsuario.getCentro());
-                if (perfiles.stream().anyMatch(Profile::esDeTramitacion)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return user.getCentroUsuarios().stream().anyMatch(centroUsuario -> tramites.stream().anyMatch(tramite ->
+                getPerfilesSobreTramite(tramite, user, centroUsuario.getCentro()).stream().anyMatch(Profile::esDeTramitacion)));
     }
 
     private static UnidadTramitadoraCodigo codigoUnidadTramitadora(UnidadTramitadora unidadTramitadora) {
@@ -187,10 +180,10 @@ public class PerfilesUsuarioServiceImpl implements PerfilesUsuarioService {
     }
 
     private static boolean isUsuarioCreadorExpediente(Expediente expediente, User user) {
-        User usuarioRegistrador = expediente.getUsuarioRegistrador();
-
         Objects.requireNonNull(user, "user no puede ser nulo");
         Objects.requireNonNull(expediente, "expediente no puede ser nulo");
+
+        User usuarioRegistrador = expediente.getUsuarioRegistrador();
         Objects.requireNonNull(usuarioRegistrador, "usuarioRegistrador no puede ser nulo");
 
         return  usuarioRegistrador.getId().equals(user.getId());

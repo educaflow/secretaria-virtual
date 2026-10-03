@@ -57,7 +57,6 @@ public class AceProfileCentroServiceImpl extends DefaultModelService<AceProfileC
 
     @Override
     public Optional<BusinessMessages> validateGetCentrosSupervisados() {
-        // La acción no recibe datos del usuario; existe por C23.
         return Optional.empty();
     }
 

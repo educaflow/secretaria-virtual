@@ -6,12 +6,11 @@ import com.axelor.auth.db.User;
 import com.axelor.db.JpaSecurity.AccessType;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
 public class EducaFlowAuthResolverImpl implements EducaFlowAuthResolver {
-
-    private static final String PKG_EXPEDIENTE = "com.educaflow.subsystem.expedientes.db.Expediente";
 
     @Override
     public Optional<Set<Permission>> resolve(User user, String fqcn, AccessType type, Long... ids) {
@@ -30,14 +29,12 @@ public class EducaFlowAuthResolverImpl implements EducaFlowAuthResolver {
         // Un Set vacío MUST devolverse como Optional.empty(): AuthSecurity.resolvePermissions solo cae
         // al resolver por defecto cuando el Optional viene vacío, y con un Set vacío dentro las
         // subclases perderían sus permisos propios.
-        Set<Permission> perms = resolveForUser(user, PKG_EXPEDIENTE, type);
+        Set<Permission> perms = resolveForUser(user, Expediente.class.getName(), type);
         return perms.isEmpty() ? Optional.empty() : Optional.of(perms);
     }
 
     public boolean hasAccess(Permission permission, AccessType accessType) {
-        if (accessType == null) {
-            return true;
-        }
+        Objects.requireNonNull(accessType, "accessType");
         return switch (accessType) {
             case READ -> Boolean.TRUE.equals(permission.getCanRead());
             case WRITE -> Boolean.TRUE.equals(permission.getCanWrite());
