@@ -3,6 +3,8 @@ package com.educaflow.base.infrastructure.validation.messages;
 import com.axelor.db.modelservice.BusinessMessage;
 import com.axelor.db.modelservice.BusinessMessages;
 
+import java.util.Objects;
+
 public class BusinessException extends Exception {
 
     private BusinessMessages businessMessages=new BusinessMessages();
@@ -12,9 +14,7 @@ public class BusinessException extends Exception {
     }
 
     public BusinessException(BusinessMessages businessMessages) {
-        if (businessMessages == null) {
-            throw new IllegalArgumentException("BusinessMessages no puede ser null");
-        }
+        Objects.requireNonNull(businessMessages, "businessMessages no puede ser null");
         if (businessMessages.isEmpty()) {
             throw new IllegalArgumentException("BusinessMessages no puede estar vacío");
         }

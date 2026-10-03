@@ -3,7 +3,6 @@ package com.educaflow.base.infrastructure.validation.messages.internal;
 import com.axelor.db.modelservice.BusinessMessage;
 import com.axelor.db.modelservice.BusinessMessages;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,16 +18,13 @@ public class BusinessMessageHelper {
     }
 
     public static List<Map<String,String>> getAsList(BusinessMessages businessMessages) {
-        List<Map<String,String>> errorMensajes=new ArrayList<>();
-
-        if (businessMessages!=null)  {
-            for (BusinessMessage businessMessage : businessMessages.removeDuplicates()) {
-                Map<String, String> errorMensaje = getAsMap(businessMessage);
-                errorMensajes.add(errorMensaje);
-            }
+        if (businessMessages == null) {
+            return List.of();
         }
 
-        return errorMensajes;
+        return businessMessages.removeDuplicates().stream()
+                .map(BusinessMessageHelper::getAsMap)
+                .toList();
     }
 
     private static Map<String,String> getAsMap(BusinessMessage businessMessage) {
