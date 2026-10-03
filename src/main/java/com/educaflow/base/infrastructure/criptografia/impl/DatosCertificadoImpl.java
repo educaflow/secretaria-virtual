@@ -13,6 +13,8 @@ import java.security.KeyStore;
 import java.security.cert.*;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.security.auth.x500.X500Principal;
@@ -219,12 +221,14 @@ public class DatosCertificadoImpl implements DatosCertificado {
     }
 
     private TipoEmisorCertificado getTipoEmisorCertificado(String organizacionIssuer,String cnIssuer) {
+        String organizacion = Objects.requireNonNullElse(organizacionIssuer, "");
+        String cn = Objects.requireNonNullElse(cnIssuer, "");
         TipoEmisorCertificado tipoEmisorCertificado;
-        if (organizacionIssuer.contains("FNMT") && !cnIssuer.contains("ACCV") && !cnIssuer.contains("DNIE")) {
+        if (organizacion.contains("FNMT") && !cn.contains("ACCV") && !cn.contains("DNIE")) {
             tipoEmisorCertificado = TipoEmisorCertificado.FNMT;
-        } else if (!organizacionIssuer.contains("FNMT") && cnIssuer.contains("ACCV") && !cnIssuer.contains("DNIE")) {
+        } else if (!organizacion.contains("FNMT") && cn.contains("ACCV") && !cn.contains("DNIE")) {
             tipoEmisorCertificado = TipoEmisorCertificado.ACCV;
-        } else if (!organizacionIssuer.contains("FNMT") && !cnIssuer.contains("ACCV") && cnIssuer.contains("DNIE")) {
+        } else if (!organizacion.contains("FNMT") && !cn.contains("ACCV") && cn.contains("DNIE")) {
             tipoEmisorCertificado = TipoEmisorCertificado.DNI;
         } else {
             tipoEmisorCertificado = null;
@@ -238,8 +242,8 @@ public class DatosCertificadoImpl implements DatosCertificado {
             int basicConstraints = x509Certificate.getBasicConstraints();
             X500Principal subject = x509Certificate.getSubjectX500Principal();
             X500Principal issuer = x509Certificate.getIssuerX500Principal();
-            String organizacionIssuer=getOrganizacionPrincipal(issuer);
-            String cnIssuer=getCnPrincipal(issuer);
+            String organizacionIssuer=Objects.requireNonNullElse(getOrganizacionPrincipal(issuer), "");
+            String cnIssuer=Objects.requireNonNullElse(getCnPrincipal(issuer), "");
             
 
             TipoCertificado tipoCertificado;
@@ -331,7 +335,7 @@ public class DatosCertificadoImpl implements DatosCertificado {
             //Si falla algo se quedan los datos sin cargar
         }
         try {
-            apellidos = (getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, OID_APE1_FNMT)) + " " + getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, OID_APE2_FNMT))).trim();
+            apellidos = Stream.of(getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, OID_APE1_FNMT)), getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, OID_APE2_FNMT))).filter(Objects::nonNull).collect(Collectors.joining(" ")).trim();
         } catch (Exception ex) {
             //Si falla algo se quedan los datos sin cargar
         }
@@ -351,7 +355,7 @@ public class DatosCertificadoImpl implements DatosCertificado {
             //Si falla algo se quedan los datos sin cargar
         }
         try {
-            apellidos = (getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, "1.3.6.1.4.1.5734.1.2")) + " " + getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, "1.3.6.1.4.1.5734.1.3"))).trim();
+            apellidos = Stream.of(getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, "1.3.6.1.4.1.5734.1.2")), getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, "1.3.6.1.4.1.5734.1.3"))).filter(Objects::nonNull).collect(Collectors.joining(" ")).trim();
         } catch (Exception ex) {
             //Si falla algo se quedan los datos sin cargar
         }
@@ -439,7 +443,6 @@ public class DatosCertificadoImpl implements DatosCertificado {
                 Object value = rdn.getValue();
                 String strValue;
 
-                // convertir byte[] a String si es necesario
                 if (value instanceof byte[] array) {
                     strValue = new String(array, StandardCharsets.UTF_8).trim();
                 } else if (value == null) {
@@ -448,7 +451,6 @@ public class DatosCertificadoImpl implements DatosCertificado {
                     strValue = value.toString().trim();
                 }
 
-                // usar nombre legible si existe en el mapa
                 if (oidMap.containsKey(type)) {
                     campos.put(oidMap.get(type), strValue);
                 } else {
