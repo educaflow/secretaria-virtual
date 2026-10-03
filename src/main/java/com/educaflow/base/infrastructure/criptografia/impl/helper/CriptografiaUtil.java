@@ -1,6 +1,5 @@
 package com.educaflow.base.infrastructure.criptografia.impl.helper;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -30,18 +29,27 @@ public class CriptografiaUtil {
      * @return
      */
     public static Provider getProviderPKCS11(Path operatingSystemModulePath, int slot) {
+        Path tempFileConf = null;
         try {
             String pkcs11Config = String.format("name=DispositivoCriptograficoEducaFlow"+slot+"\nlibrary=%s\nslotListIndex=%d\n", operatingSystemModulePath.toAbsolutePath().toString(), slot);
-            File tempFileConf = File.createTempFile("DispositivoCriptograficoEducaFlow", ".cfg");
-            tempFileConf.deleteOnExit(); // se borrará al salir del programa
-            Files.writeString(tempFileConf.toPath(), pkcs11Config);
+            tempFileConf = Files.createTempFile("DispositivoCriptograficoEducaFlow", ".cfg");
+            Files.writeString(tempFileConf, pkcs11Config);
 
-            Provider pkcs11Provider = Security.getProvider("SunPKCS11").configure(tempFileConf.getAbsolutePath());
+            Provider pkcs11Provider = Security.getProvider("SunPKCS11").configure(tempFileConf.toAbsolutePath().toString());
             Security.addProvider(pkcs11Provider);
 
             return pkcs11Provider;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
+        } finally {
+            // configure(...) ya ha leído el fichero; si no se puede borrar no se relanza, porque taparía el Provider o la excepción original.
+            if (tempFileConf != null) {
+                try {
+                    Files.deleteIfExists(tempFileConf);
+                } catch (IOException ex) {
+                    tempFileConf.toFile().deleteOnExit();
+                }
+            }
         }
 
     }
