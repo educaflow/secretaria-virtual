@@ -1,6 +1,5 @@
 package com.educaflow.base.util;
 
-import com.axelor.data.ImportTask;
 import com.axelor.inject.Beans;
 import com.axelor.meta.MetaFiles;
 import com.axelor.meta.db.MetaFile;
@@ -19,7 +18,7 @@ import java.util.Map;
 @ScriptAllowed
 public class MetaFileUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(ImportTask.class);
+    private static final Logger logger = LoggerFactory.getLogger(MetaFileUtil.class);
 
     public static byte[] downloadContent(MetaFile metaFile) {
         try {
@@ -31,6 +30,15 @@ public class MetaFileUtil {
             throw new RuntimeException(ex);
         }
 
+    }
+
+    /** Lee solo los primeros {@code maxBytes} del fichero, Se usa para saber el tipo de los ficheros */
+    public static byte[] downloadHeader(MetaFile metaFile, int maxBytes) {
+        try (InputStream inputStream = Files.newInputStream(Beans.get(MetaFiles.class).getPath(metaFile))) {
+            return inputStream.readNBytes(maxBytes);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     public static MetaFile uploadContent(MetaFile metaFile, byte[] content) {
@@ -110,20 +118,17 @@ public class MetaFileUtil {
         if (file == null || file.getId() == null) return;
 
         try {
-            logger.info("Eliminando archivo procesado: {}", file.getFileName());
+            logger.info("Eliminando archivo procesado id={}", file.getId());
 
-            // 1. Obtenemos el repositorio para limpiar el proxy
+            // Se vuelve a buscar por id porque MetaFiles.delete falla si recibe un proxy de Hibernate.
             MetaFileRepository repo = Beans.get(MetaFileRepository.class);
-
-            // 2. Buscamos la entidad real por ID para que Hibernate no se queje
             MetaFile entityToDelete = repo.find(file.getId());
 
             if (entityToDelete != null) {
-                // 3. Ahora sí, usamos la API de MetaFiles con una entidad real
                 Beans.get(MetaFiles.class).delete(entityToDelete);
             }
         } catch (Exception ex) {
-            logger.error("No se pudo eliminar el archivo MetaFile: {}", ex.getMessage());
+            logger.error("No se pudo eliminar el MetaFile id={}", file.getId(), ex);
         }
     }
 
