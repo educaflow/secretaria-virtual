@@ -28,9 +28,7 @@ public class TextUtil {
 
 
     public static String sanitizeFileName(String input) {
-        if (input == null || input.isBlank()) {
-            throw new RuntimeException("El nombre de archivo no puede ser nulo o vacío");
-        }
+        requireNonBlank(input, "El nombre de archivo no puede ser nulo o vacío");
 
         String normalized = Normalizer.normalize(input, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "");
