@@ -102,10 +102,8 @@ public class Convert {
 
                 String enumName = ((Enum<?>) obj).name();
 
-                // Accedemos al campo del enum por su nombre
                 Field field = clazz.getField(enumName);
 
-                // Obtenemos la anotación EnumWidget
                 EnumWidget annotation = field.getAnnotation(EnumWidget.class);
                 if (annotation != null) {
                     String title = annotation.title();

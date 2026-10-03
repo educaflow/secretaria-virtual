@@ -179,10 +179,9 @@ public class AutoFirma {
             String getMethodName = "get" + TextUtil.toFirstsLetterToUpperCase(cleanPart);
             String setMethodName = "set" + TextUtil.toFirstsLetterToUpperCase(cleanPart);
 
-            Method getMethod = ReflectionUtil.getMethod(currentClass, getMethodName, null, null, null);
-            if (getMethod == null) {
-                throw new RuntimeException("El getter " + getMethodName + " no existe en " + currentClass.getName()+ " en " + fieldName);
-            }
+            final Class<?> claseActual = currentClass;
+            Method getMethod = ReflectionUtil.getMethod(currentClass, getMethodName, null, null, null)
+                    .orElseThrow(() -> new RuntimeException("El getter " + getMethodName + " no existe en " + claseActual.getName()+ " en " + fieldName));
 
             if (i == parts.size() - 1) {
                 if (!ReflectionUtil.hasMethod(currentClass, setMethodName, null, null, null)) {
