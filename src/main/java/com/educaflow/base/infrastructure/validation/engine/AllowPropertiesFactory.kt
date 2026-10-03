@@ -25,7 +25,6 @@ public fun getAllowProperties(validationRules: List<ValidationRule?>): MutableMa
     if (allowProperties.isEmpty()) {
         return null
     } else {
-        //println(ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(allowProperties))
         return allowProperties
     }
 }

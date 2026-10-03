@@ -82,7 +82,7 @@ fun <T : Any> ifLambda(condicion: (T) -> Boolean, setup: IfLambdaBuilder<T>.() -
 
 @BeanValidationDSL
 class FieldValidationRulesBuilder(private val property: KFunction<*>) {
-    private val rules = mutableListOf<ValidationRule>() // La lista de reglas se mueve aquí
+    private val rules = mutableListOf<ValidationRule>()
 
 
     fun build(): FieldValidationRules {

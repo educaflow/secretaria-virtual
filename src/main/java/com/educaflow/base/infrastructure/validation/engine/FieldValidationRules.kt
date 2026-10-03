@@ -81,7 +81,7 @@ private fun getLabel(clazz: Class<*>, nombreCampo: String): String {
 
     val label: String = if (field.isAnnotationPresent(Widget::class.java)) {
         val widget: Widget = field.getAnnotation(Widget::class.java)
-        widget.title ?: TextUtil.humanize(nombreCampo)
+        widget.title.ifBlank { TextUtil.humanize(nombreCampo) }
     } else {
         TextUtil.humanize(nombreCampo)
     }
