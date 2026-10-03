@@ -3,6 +3,7 @@ package com.educaflow.base.infrastructure.mail.impl;
 import com.educaflow.base.infrastructure.mail.Mail;
 import com.educaflow.base.infrastructure.mail.MailSender;
 
+import java.util.Objects;
 import java.util.Properties;
 
 import com.educaflow.base.infrastructure.mail.UserPasswordCredential;
@@ -17,21 +18,14 @@ public class MailSenderImplSmtp implements MailSender {
     final UserPasswordCredential userPasswordCredential;
 
     public MailSenderImplSmtp(@Nonnull UserPasswordCredential userPasswordCredential) {
-        if (userPasswordCredential ==null) {
-            throw new IllegalArgumentException("smtpCredentialImplSimplePassword no puede ser null");
-        }
-
-        this.userPasswordCredential = userPasswordCredential;
+        this.userPasswordCredential = Objects.requireNonNull(userPasswordCredential, "userPasswordCredential no puede ser null");
     }
 
 
     @Override
     public void send(Mail mail) {
+        Objects.requireNonNull(mail, "mail no puede ser null");
         try {
-            if (mail==null) {
-                throw new IllegalArgumentException("Mail cannot be null");
-            }
-
             String smtpHost = userPasswordCredential.host();
             String smtpUserName = userPasswordCredential.userName();
             String smtpPassword = userPasswordCredential.password();
