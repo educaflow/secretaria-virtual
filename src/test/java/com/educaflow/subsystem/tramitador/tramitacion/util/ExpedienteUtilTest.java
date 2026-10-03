@@ -69,8 +69,8 @@ class ExpedienteUtilTest {
     }
 
     @Test
-    void updateState_stateNulo_lanzaIllegalArgument() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+    void updateState_stateNulo_lanzaNullPointer() {
+        NullPointerException ex = assertThrows(NullPointerException.class,
                 () -> ExpedienteUtil.updateState(expediente, null));
         assertEquals("El state no puede ser nulo.", ex.getMessage());
         assertNull(expediente.getCodeState());

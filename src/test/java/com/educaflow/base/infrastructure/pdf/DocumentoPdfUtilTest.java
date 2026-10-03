@@ -1,7 +1,13 @@
 package com.educaflow.base.infrastructure.pdf;
 
+import com.axelor.i18n.I18n;
 import com.educaflow.base.infrastructure.criptografia.DatosCertificado;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.quality.Strictness;
 
 import java.util.List;
 import java.util.Optional;
@@ -9,6 +15,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -16,6 +23,20 @@ class DocumentoPdfUtilTest {
 
     private static final String DNI = "12345678Z";
     private static final String TEXTO = "texto del documento";
+
+    private MockedStatic<I18n> i18nMock;
+
+    @BeforeEach
+    void setUp() {
+        // lenient: los caminos sin mensaje no llaman a I18n.
+        i18nMock = Mockito.mockStatic(I18n.class, Mockito.withSettings().strictness(Strictness.LENIENT));
+        i18nMock.when(() -> I18n.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+    }
+
+    @AfterEach
+    void tearDown() {
+        i18nMock.close();
+    }
 
     private static DocumentoPdf documento(String texto, ResultadoFirma... firmas) {
         DocumentoPdf documentoPdf = mock(DocumentoPdf.class);
@@ -32,6 +53,7 @@ class DocumentoPdfUtilTest {
         when(datosCertificado.getCnSubject()).thenReturn("CN " + dni);
         ResultadoFirma resultadoFirma = mock(ResultadoFirma.class);
         when(resultadoFirma.isCorrecta()).thenReturn(correcta);
+        when(resultadoFirma.isCubreDocumentoCompleto()).thenReturn(true);
         when(resultadoFirma.getDatosCertificado()).thenReturn(datosCertificado);
         return resultadoFirma;
     }
@@ -43,7 +65,7 @@ class DocumentoPdfUtilTest {
     @Test
     void validateFirmaPdf_originalNulo_lanzaExcepcion() {
         DocumentoPdf firmado = documento(TEXTO);
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+        NullPointerException ex = assertThrows(NullPointerException.class,
                 () -> DocumentoPdfUtil.validateFirmaPdf(null, firmado, DNI));
         assertEquals("El documento original no puede ser nulo", ex.getMessage());
     }
@@ -51,7 +73,7 @@ class DocumentoPdfUtilTest {
     @Test
     void validateFirmaPdf_firmadoNulo_lanzaExcepcion() {
         DocumentoPdf original = documento(TEXTO);
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+        NullPointerException ex = assertThrows(NullPointerException.class,
                 () -> DocumentoPdfUtil.validateFirmaPdf(original, null, DNI));
         assertEquals("El documento firmado no puede ser nulo", ex.getMessage());
     }
@@ -60,9 +82,9 @@ class DocumentoPdfUtilTest {
     void validateFirmaPdf_dniNulo_lanzaExcepcion() {
         DocumentoPdf original = documento(TEXTO);
         DocumentoPdf firmado = documento(TEXTO);
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+        NullPointerException ex = assertThrows(NullPointerException.class,
                 () -> DocumentoPdfUtil.validateFirmaPdf(original, firmado, null));
-        assertEquals("El DNI no puede ser nulo", ex.getMessage());
+        assertEquals("El DNI no puede ser nulo ni estar vacio", ex.getMessage());
     }
 
     @Test
@@ -71,7 +93,7 @@ class DocumentoPdfUtilTest {
         DocumentoPdf firmado = documento(TEXTO);
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> DocumentoPdfUtil.validateFirmaPdf(original, firmado, "  "));
-        assertEquals("El DNI no puede estar vacio", ex.getMessage());
+        assertEquals("El DNI no puede ser nulo ni estar vacio", ex.getMessage());
     }
 
     @Test
@@ -124,6 +146,18 @@ class DocumentoPdfUtilTest {
         Optional<String> resultado = DocumentoPdfUtil.validateFirmaPdf(original, firmado, DNI);
 
         assertEquals(Optional.of("La firma no es correcta. Hay un error en ella"), resultado);
+    }
+
+    @Test
+    void validateFirmaPdf_firmaNuevaNoCubreDocumento_devuelveError() {
+        ResultadoFirma firmaNueva = firmaValida();
+        when(firmaNueva.isCubreDocumentoCompleto()).thenReturn(false);
+        DocumentoPdf original = documento(TEXTO);
+        DocumentoPdf firmado = documento(TEXTO, firmaNueva);
+
+        Optional<String> resultado = DocumentoPdfUtil.validateFirmaPdf(original, firmado, DNI);
+
+        assertEquals(Optional.of("El documento se ha modificado después de firmarlo"), resultado);
     }
 
     @Test

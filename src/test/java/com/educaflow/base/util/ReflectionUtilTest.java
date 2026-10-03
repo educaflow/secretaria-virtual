@@ -9,7 +9,6 @@ import java.lang.reflect.Method;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -65,61 +64,61 @@ class ReflectionUtilTest {
 
     @Test
     void getMethod_porNombreYParametros_devuelveElMetodoExacto() throws Exception {
-        Method method = ReflectionUtil.getMethod(Fixture.class, "nombre", null, null, new Class<?>[]{int.class});
+        Method method = ReflectionUtil.getMethod(Fixture.class, "nombre", null, null, new Class<?>[]{int.class}).orElseThrow();
         assertEquals(Fixture.class.getDeclaredMethod("nombre", int.class), method);
     }
 
     @Test
-    void getMethod_conNombreQueNoExiste_devuelveNull() {
-        assertNull(ReflectionUtil.getMethod(Fixture.class, "noExiste", null, null, null));
+    void getMethod_conNombreQueNoExiste_devuelveVacio() {
+        assertTrue(ReflectionUtil.getMethod(Fixture.class, "noExiste", null, null, null).isEmpty());
     }
 
     @Test
-    void getMethod_conDistintoNumeroDeParametros_devuelveNull() {
-        assertNull(ReflectionUtil.getMethod(Fixture.class, "otro", null, null, new Class<?>[]{int.class}));
+    void getMethod_conDistintoNumeroDeParametros_devuelveVacio() {
+        assertTrue(ReflectionUtil.getMethod(Fixture.class, "otro", null, null, new Class<?>[]{int.class}).isEmpty());
     }
 
     @Test
-    void getMethod_conMismoNumeroPeroDistintoTipoDeParametro_devuelveNull() {
-        assertNull(ReflectionUtil.getMethod(Fixture.class, "nombre", null, null, new Class<?>[]{long.class}));
+    void getMethod_conMismoNumeroPeroDistintoTipoDeParametro_devuelveVacio() {
+        assertTrue(ReflectionUtil.getMethod(Fixture.class, "nombre", null, null, new Class<?>[]{long.class}).isEmpty());
     }
 
     @Test
-    void getMethod_conPrimerParametroIgualYSegundoDistinto_devuelveNull() {
-        assertNull(ReflectionUtil.getMethod(Fixture.class, "otro", null, null, new Class<?>[]{int.class, Integer.class}));
+    void getMethod_conPrimerParametroIgualYSegundoDistinto_devuelveVacio() {
+        assertTrue(ReflectionUtil.getMethod(Fixture.class, "otro", null, null, new Class<?>[]{int.class, Integer.class}).isEmpty());
     }
 
     @Test
     void getMethod_conVariosParametrosIguales_devuelveElMetodo() throws Exception {
-        Method method = ReflectionUtil.getMethod(Fixture.class, "otro", null, null, new Class<?>[]{int.class, String.class});
+        Method method = ReflectionUtil.getMethod(Fixture.class, "otro", null, null, new Class<?>[]{int.class, String.class}).orElseThrow();
         assertEquals(Fixture.class.getDeclaredMethod("otro", int.class, String.class), method);
     }
 
     @Test
-    void getMethod_conRetornoNoAsignable_devuelveNull() {
-        assertNull(ReflectionUtil.getMethod(Fixture.class, "nombre", Integer.class, null, new Class<?>[]{}));
+    void getMethod_conRetornoNoAsignable_devuelveVacio() {
+        assertTrue(ReflectionUtil.getMethod(Fixture.class, "nombre", Integer.class, null, new Class<?>[]{}).isEmpty());
     }
 
     @Test
     void getMethod_conRetornoSuperclaseDelDeclarado_loAcepta() throws Exception {
-        Method method = ReflectionUtil.getMethod(Fixture.class, "nombre", CharSequence.class, null, new Class<?>[]{});
+        Method method = ReflectionUtil.getMethod(Fixture.class, "nombre", CharSequence.class, null, new Class<?>[]{}).orElseThrow();
         assertEquals(Fixture.class.getDeclaredMethod("nombre"), method);
     }
 
     @Test
     void getMethod_soloPorAnotacion_devuelveElMetodoAnotado() throws Exception {
-        Method method = ReflectionUtil.getMethod(Fixture.class, null, null, Marca.class, null);
+        Method method = ReflectionUtil.getMethod(Fixture.class, null, null, Marca.class, null).orElseThrow();
         assertEquals(Fixture.class.getDeclaredMethod("otro", int.class, String.class), method);
     }
 
     @Test
-    void getMethod_conAnotacionQueNoTiene_devuelveNull() {
-        assertNull(ReflectionUtil.getMethod(Fixture.class, "otro", null, OtraMarca.class, null));
+    void getMethod_conAnotacionQueNoTiene_devuelveVacio() {
+        assertTrue(ReflectionUtil.getMethod(Fixture.class, "otro", null, OtraMarca.class, null).isEmpty());
     }
 
     @Test
     void getMethod_sinNingunFiltroEnClaseConUnSoloMetodo_loDevuelve() throws Exception {
-        Method method = ReflectionUtil.getMethod(Solo.class, null, null, null, null);
+        Method method = ReflectionUtil.getMethod(Solo.class, null, null, null, null).orElseThrow();
         assertEquals(Solo.class.getDeclaredMethod("run"), method);
     }
 
@@ -151,7 +150,7 @@ class ReflectionUtilTest {
 
     @Test
     void getMethod_devuelveMetodoInvocable() throws Exception {
-        Method method = ReflectionUtil.getMethod(Fixture.class, "nombre", String.class, null, new Class<?>[]{String.class});
+        Method method = ReflectionUtil.getMethod(Fixture.class, "nombre", String.class, null, new Class<?>[]{String.class}).orElseThrow();
         assertNotNull(method);
         assertEquals("hola", method.invoke(new Fixture(), "hola"));
     }

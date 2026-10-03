@@ -37,7 +37,7 @@ class ResultadoFirmaImplTest {
 
         try (MockedStatic<EntornoCriptografico> entorno = Mockito.mockStatic(EntornoCriptografico.class)) {
             entorno.when(() -> EntornoCriptografico.getDatosCertificado(any())).thenReturn(datos);
-            return new ResultadoFirmaImpl(nombreCampo, pdfPKCS7, pdfSignature);
+            return new ResultadoFirmaImpl(nombreCampo, pdfPKCS7, pdfSignature, true);
         }
     }
 

@@ -102,4 +102,14 @@ class AlmacenClaveFicheroTest {
         assertThrows(RuntimeException.class, () -> new AlmacenClaveFichero(certificado(), null));
     }
 
+    @Test
+    void constructor_passwordVacia_lanzaExcepcion() {
+        assertThrows(IllegalArgumentException.class, () -> new AlmacenClaveFichero(certificado(), ""));
+    }
+
+    @Test
+    void constructor_passwordSoloEspacios_lanzaExcepcion() {
+        assertThrows(IllegalArgumentException.class, () -> new AlmacenClaveFichero(certificado(), "   "));
+    }
+
 }

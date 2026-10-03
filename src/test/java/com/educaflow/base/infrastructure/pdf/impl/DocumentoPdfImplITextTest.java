@@ -425,8 +425,8 @@ class DocumentoPdfImplITextTest {
     void setImageSinImagenOSinPosicionAborta() {
         CampoFirma campoFirma = new CampoFirma(new Rectangulo(100, 150, 88, 104));
 
-        assertThrows(IllegalArgumentException.class, () -> campoFirma.setImage(null, PosicionImagen.ARRIBA));
-        assertThrows(IllegalArgumentException.class, () -> campoFirma.setImage(IMAGEN_QR, null));
+        assertThrows(NullPointerException.class, () -> campoFirma.setImage(null, PosicionImagen.ARRIBA));
+        assertThrows(NullPointerException.class, () -> campoFirma.setImage(IMAGEN_QR, null));
     }
 
     @Test

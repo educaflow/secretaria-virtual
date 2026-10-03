@@ -24,70 +24,70 @@ class DatosBasicosUsuarioTest {
     void nombreNullLanzaNullPointerException() {
         NullPointerException ex = assertThrows(NullPointerException.class,
                 () -> new DatosBasicosUsuario(null, "Pérez", PASSWORD, PASSWORD, "es"));
-        assertEquals("nombre no puede ser null", ex.getMessage());
+        assertEquals("nombre no puede ser null ni blank", ex.getMessage());
     }
 
     @Test
     void apellidosNullLanzaNullPointerException() {
         NullPointerException ex = assertThrows(NullPointerException.class,
                 () -> new DatosBasicosUsuario("Ana", null, PASSWORD, PASSWORD, "es"));
-        assertEquals("apellidos no pueden ser null", ex.getMessage());
+        assertEquals("apellidos no puede ser null ni blank", ex.getMessage());
     }
 
     @Test
     void passwordNullLanzaNullPointerException() {
         NullPointerException ex = assertThrows(NullPointerException.class,
                 () -> new DatosBasicosUsuario("Ana", "Pérez", null, PASSWORD, "es"));
-        assertEquals("password no puede ser null", ex.getMessage());
+        assertEquals("password no puede ser null ni blank", ex.getMessage());
     }
 
     @Test
     void passwordRepeatNullLanzaNullPointerException() {
         NullPointerException ex = assertThrows(NullPointerException.class,
                 () -> new DatosBasicosUsuario("Ana", "Pérez", PASSWORD, null, "es"));
-        assertEquals("passwordRepeat no puede ser null", ex.getMessage());
+        assertEquals("passwordRepeat no puede ser null ni blank", ex.getMessage());
     }
 
     @Test
     void idiomaNullLanzaNullPointerException() {
         NullPointerException ex = assertThrows(NullPointerException.class,
                 () -> new DatosBasicosUsuario("Ana", "Pérez", PASSWORD, PASSWORD, null));
-        assertEquals("idioma no puede ser null", ex.getMessage());
+        assertEquals("idioma no puede ser null ni blank", ex.getMessage());
     }
 
     @Test
     void nombreBlankLanzaIllegalArgumentException() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> new DatosBasicosUsuario("  ", "Pérez", PASSWORD, PASSWORD, "es"));
-        assertEquals("nombre no puede ser blank", ex.getMessage());
+        assertEquals("nombre no puede ser null ni blank", ex.getMessage());
     }
 
     @Test
     void apellidosBlankLanzaIllegalArgumentException() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> new DatosBasicosUsuario("Ana", "", PASSWORD, PASSWORD, "es"));
-        assertEquals("apellidos no puede ser blank", ex.getMessage());
+        assertEquals("apellidos no puede ser null ni blank", ex.getMessage());
     }
 
     @Test
     void passwordBlankLanzaIllegalArgumentException() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> new DatosBasicosUsuario("Ana", "Pérez", " ", PASSWORD, "es"));
-        assertEquals("password no puede ser blank", ex.getMessage());
+        assertEquals("password no puede ser null ni blank", ex.getMessage());
     }
 
     @Test
     void passwordRepeatBlankLanzaIllegalArgumentException() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> new DatosBasicosUsuario("Ana", "Pérez", PASSWORD, "\t", "es"));
-        assertEquals("passwordRepeat no puede ser blank", ex.getMessage());
+        assertEquals("passwordRepeat no puede ser null ni blank", ex.getMessage());
     }
 
     @Test
     void idiomaBlankLanzaIllegalArgumentException() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> new DatosBasicosUsuario("Ana", "Pérez", PASSWORD, PASSWORD, ""));
-        assertEquals("idioma no puede ser blank", ex.getMessage());
+        assertEquals("idioma no puede ser null ni blank", ex.getMessage());
     }
 
     @Test

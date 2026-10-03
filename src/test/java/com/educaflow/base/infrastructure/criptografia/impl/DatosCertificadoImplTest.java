@@ -73,17 +73,28 @@ class DatosCertificadoImplTest {
     }
 
     @Test
-    void usuarioFinalFnmt_sinDatosEnElCertificado_dejaNulosDniYNombreYApellidosNull() throws Exception {
+    void usuarioFinalFnmt_sinDatosEnElCertificado_dejaNulosDniYNombreYApellidosVacios() throws Exception {
         X500Name issuer = issuer("FNMT-RCM", "AC FNMT Usuarios");
 
         DatosCertificadoImpl datos = new DatosCertificadoImpl(certificado(sujeto("JUAN GARCIA"), issuer, null), null);
 
         assertEquals(TipoEmisorCertificado.FNMT, datos.getTipoEmisorCertificado());
-        // getOnlyValueInMap devuelve null con el mapa vacío, y "null null".trim() da "null null"
         assertEquals(null, datos.getDNI());
         assertEquals(null, datos.getNombre());
-        assertEquals("null null", datos.getApellidos());
+        assertEquals("", datos.getApellidos());
         assertEquals("", datos.getCif());
+    }
+
+    @Test
+    void usuarioFinalFnmt_conUnSoloApellido_noAnyadeElSegundoApellidoNulo() throws Exception {
+        X500Name issuer = issuer("FNMT-RCM", "AC FNMT Usuarios");
+        X500Name dirName = new X500NameBuilder(BCStyle.INSTANCE)
+                .addRDN(new ASN1ObjectIdentifier("1.3.6.1.4.1.5734.1.2"), new DERUTF8String("GARCIA"))
+                .build();
+
+        DatosCertificadoImpl datos = new DatosCertificadoImpl(certificado(sujeto("JUAN GARCIA"), issuer, dirName), null);
+
+        assertEquals("GARCIA", datos.getApellidos());
     }
 
     @Test
@@ -117,7 +128,7 @@ class DatosCertificadoImplTest {
         // getDNIFromIDCES/getCIFFromVATES lanzan con null y se tragan la excepción: quedan "" (valor inicial)
         assertEquals("", datos.getDNI());
         assertEquals(null, datos.getNombre());
-        assertEquals("null null", datos.getApellidos());
+        assertEquals("", datos.getApellidos());
         assertEquals("", datos.getCif());
     }
 
@@ -170,6 +181,19 @@ class DatosCertificadoImplTest {
         assertEquals("", datos.getNombre());
         assertEquals("", datos.getApellidos());
         assertEquals("", datos.getCif());
+    }
+
+    @Test
+    void emisorSinOrganizacion_loClasificaComoEmisorDesconocido() throws Exception {
+        X500Name issuer = new X500NameBuilder(BCStyle.INSTANCE)
+                .addRDN(BCStyle.C, "ES")
+                .addRDN(BCStyle.CN, "OTRA CA")
+                .build();
+
+        DatosCertificadoImpl datos = new DatosCertificadoImpl(certificado(sujeto("JUAN GARCIA"), issuer, null), null);
+
+        assertEquals(null, datos.getTipoEmisorCertificado());
+        assertEquals(TipoCertificado.USUARIO_FINAL, datos.getTipoCertificado());
     }
 
     @Test

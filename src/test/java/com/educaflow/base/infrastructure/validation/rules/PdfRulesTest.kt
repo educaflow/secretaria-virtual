@@ -115,10 +115,30 @@ class PdfRulesTest {
     }
 
     @Test
-    fun validate_originalQueNoEsMetaFile_loAceptaSinComprobarLaFirma() {
+    fun validate_originalQueNoEsMetaFile_loRechazaSinComprobarLaFirma() {
         usuarioConDni(dniValido)
+        val firmado = MetaFile()
+        metaFileHelper!!.`when`<Boolean> { MetaFileHelper.isPdf(firmado) }.thenReturn(true)
 
-        assertNull(regla.validate(MetaFile(), BeanDePrueba(null)))
+        val resultado = regla.validate(firmado, BeanDePrueba(null))
+
+        assertNotNull(resultado)
+        assertEquals(1, resultado!!.size)
+        assertEquals("No es posible comprobar la firma porque falta el documento original.", resultado[0].message)
+        documentoPdfUtil!!.verifyNoInteractions()
+    }
+
+    @Test
+    fun validate_firmadoQueNoEsPdf_loRechazaSinComprobarLaFirma() {
+        usuarioConDni(dniValido)
+        val firmado = MetaFile()
+        metaFileHelper!!.`when`<Boolean> { MetaFileHelper.isPdf(firmado) }.thenReturn(false)
+
+        val resultado = regla.validate(firmado, BeanDePrueba(MetaFile()))
+
+        assertNotNull(resultado)
+        assertEquals(1, resultado!!.size)
+        assertEquals("El documento firmado debe ser un fichero PDF.", resultado[0].message)
         documentoPdfUtil!!.verifyNoInteractions()
     }
 
@@ -129,6 +149,7 @@ class PdfRulesTest {
         val firmado = MetaFile()
         val pdfOriginal = Mockito.mock(DocumentoPdf::class.java)
         val pdfFirmado = Mockito.mock(DocumentoPdf::class.java)
+        metaFileHelper!!.`when`<Boolean> { MetaFileHelper.isPdf(firmado) }.thenReturn(true)
         metaFileHelper!!.`when`<DocumentoPdf> { MetaFileHelper.getDocumentoPdf(original) }.thenReturn(pdfOriginal)
         metaFileHelper!!.`when`<DocumentoPdf> { MetaFileHelper.getDocumentoPdf(firmado) }.thenReturn(pdfFirmado)
         documentoPdfUtil!!.`when`<Optional<String>> { DocumentoPdfUtil.validateFirmaPdf(pdfOriginal, pdfFirmado, dniValido) }
@@ -142,6 +163,7 @@ class PdfRulesTest {
     fun validate_firmaIncorrecta_devuelveElMensajeDeDocumentoPdfUtil() {
         usuarioConDni(dniValido)
         val pdf = Mockito.mock(DocumentoPdf::class.java)
+        metaFileHelper!!.`when`<Boolean> { MetaFileHelper.isPdf(any()) }.thenReturn(true)
         metaFileHelper!!.`when`<DocumentoPdf> { MetaFileHelper.getDocumentoPdf(any()) }.thenReturn(pdf)
         documentoPdfUtil!!.`when`<Optional<String>> { DocumentoPdfUtil.validateFirmaPdf(any(), any(), anyString()) }
             .thenReturn(Optional.of("La firma no es válida"))

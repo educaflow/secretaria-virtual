@@ -2,17 +2,21 @@ package com.educaflow.base.infrastructure.validation.rules
 
 import com.axelor.db.modelservice.BusinessMessages
 import com.axelor.i18n.I18n
+import com.axelor.meta.MetaFiles
 import com.axelor.meta.db.MetaFile
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.MockedStatic
 import org.mockito.Mockito
 import org.mockito.quality.Strictness
 import java.math.BigDecimal
+import java.nio.file.Files
+import java.nio.file.Path
 
 /**
  * Tests de [Required]. Se comprueba qué valores acepta y cuáles rechaza, nunca el texto concreto del
@@ -62,12 +66,31 @@ class RequiredTest {
     }
 
     @Test
-    fun ficheroDeTamanoCero_loRechaza() {
+    fun ficheroVacioEnDisco_loRechazaAunqueFileSizeDigaOtraCosa(@TempDir dir: Path) {
         val ficheroVacio = MetaFile()
         ficheroVacio.fileName = "solicitud.pdf"
-        ficheroVacio.fileSize = 0L
+        ficheroVacio.fileSize = 1024L
+        val enDisco = Files.createFile(dir.resolve("vacio.pdf"))
 
-        assertRechazado(Required().validate(ficheroVacio, beanIrrelevante))
+        Mockito.mockStatic(MetaFiles::class.java).use { metaFiles ->
+            metaFiles.`when`<Path> { MetaFiles.getPath(ficheroVacio) }.thenReturn(enDisco)
+
+            assertRechazado(Required().validate(ficheroVacio, beanIrrelevante))
+        }
+    }
+
+    @Test
+    fun ficheroConContenidoEnDisco_loAceptaAunqueFileSizeSeaCero(@TempDir dir: Path) {
+        val fichero = MetaFile()
+        fichero.fileName = "solicitud.pdf"
+        fichero.fileSize = 0L
+        val enDisco = Files.write(dir.resolve("solicitud.pdf"), byteArrayOf(1))
+
+        Mockito.mockStatic(MetaFiles::class.java).use { metaFiles ->
+            metaFiles.`when`<Path> { MetaFiles.getPath(fichero) }.thenReturn(enDisco)
+
+            assertNull(Required().validate(fichero, beanIrrelevante))
+        }
     }
 
     @Test

@@ -54,7 +54,7 @@ class ModelListCompareTest {
         sources.add(null);
         ModelListCompare compare = new ModelListCompare(sources, List.of());
 
-        assertThrows(IllegalArgumentException.class, compare::getSourceWhereOnlySource);
+        assertThrows(NullPointerException.class, compare::getSourceWhereOnlySource);
     }
 
     @Test

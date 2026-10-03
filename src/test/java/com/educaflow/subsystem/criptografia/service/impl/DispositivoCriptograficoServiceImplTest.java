@@ -1,5 +1,6 @@
 package com.educaflow.subsystem.criptografia.service.impl;
 
+import com.axelor.db.modelservice.AllowProperties;
 import com.axelor.db.modelservice.BusinessMessage;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.base.infrastructure.criptografia.slot.SlotInfo;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -161,7 +163,69 @@ class DispositivoCriptograficoServiceImplTest {
         Optional<BusinessMessages> resultado = service.validateUpdate(dispositivo, dispositivo(libreria.toString(), 1, 4L));
 
         assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void validateUpdate_soloCambiaElNombre_noValidaElPin() {
+        slotInfoFactory.when(() -> SlotInfoFactory.getSlotsInfo(libreria)).thenReturn(slots(0, 1));
+        when(repository.findBySlot(1)).thenReturn(List.of(conId(4L)));
+        DispositivoCriptografico original = dispositivo(libreria.toString(), 1, 4L);
+        original.setName("antes");
+        DispositivoCriptografico dispositivo = dispositivo(libreria.toString(), 1, 4L);
+        dispositivo.setName("despues");
+
+        Optional<BusinessMessages> resultado = service.validateUpdate(dispositivo, original);
+
+        assertTrue(resultado.isEmpty());
+        slotInfoFactory.verify(() -> SlotInfoFactory.validatePin(any(), anyInt(), ArgumentMatchers.<String>any()), never());
+    }
+
+    @Test
+    void validateUpdate_cambiaElPin_validaElPinNuevo() {
+        slotInfoFactory.when(() -> SlotInfoFactory.getSlotsInfo(libreria)).thenReturn(slots(0, 1));
+        when(repository.findBySlot(1)).thenReturn(List.of(conId(4L)));
+        DispositivoCriptografico original = dispositivo(libreria.toString(), 1, 4L);
+        original.setPin("9999");
+        DispositivoCriptografico dispositivo = dispositivo(libreria.toString(), 1, 4L);
+
+        Optional<BusinessMessages> resultado = service.validateUpdate(dispositivo, original);
+
+        assertTrue(resultado.isEmpty());
         slotInfoFactory.verify(() -> SlotInfoFactory.validatePin(libreria, 1, PIN));
+    }
+
+    @Test
+    void validateUpdate_sinOriginal_validaElPin() {
+        slotInfoFactory.when(() -> SlotInfoFactory.getSlotsInfo(libreria)).thenReturn(slots(0, 1));
+        when(repository.findBySlot(1)).thenReturn(List.of(conId(4L)));
+        DispositivoCriptografico dispositivo = dispositivo(libreria.toString(), 1, 4L);
+
+        Optional<BusinessMessages> resultado = service.validateUpdate(dispositivo, null);
+
+        assertTrue(resultado.isEmpty());
+        slotInfoFactory.verify(() -> SlotInfoFactory.validatePin(libreria, 1, PIN));
+    }
+
+    @Test
+    void validateUpdate_cambiaElSlot_devuelveErrorYNoConsultaElToken() {
+        DispositivoCriptografico original = dispositivo(libreria.toString(), 1, 4L);
+        DispositivoCriptografico dispositivo = dispositivo(libreria.toString(), 2, 4L);
+
+        BusinessMessage mensaje = unicoMensaje(service.validateUpdate(dispositivo, original));
+
+        assertEquals("slot", mensaje.getFieldName());
+        slotInfoFactory.verify(() -> SlotInfoFactory.getSlotsInfo(any()), never());
+    }
+
+    @Test
+    void validateUpdate_cambiaLaLibreria_devuelveErrorYNoConsultaElToken() {
+        DispositivoCriptografico original = dispositivo(libreria.toString(), 1, 4L);
+        DispositivoCriptografico dispositivo = dispositivo(libreria.toString() + "-otra", 1, 4L);
+
+        BusinessMessage mensaje = unicoMensaje(service.validateUpdate(dispositivo, original));
+
+        assertEquals("pkcs11LibraryPath", mensaje.getFieldName());
+        slotInfoFactory.verify(() -> SlotInfoFactory.getSlotsInfo(any()), never());
     }
 
     @Test
@@ -176,6 +240,7 @@ class DispositivoCriptograficoServiceImplTest {
 
         assertEquals("pin", mensaje.getFieldName());
         assertEquals("El PIN no es correcto: C_Login error: 160", mensaje.getMessage());
+        Mockito.verify(repository, never()).all();
     }
 
     private static BusinessMessage unicoMensaje(Optional<BusinessMessages> resultado) {
@@ -205,5 +270,29 @@ class DispositivoCriptograficoServiceImplTest {
             slot.index = indice;
             return slot;
         }).toList();
+    }
+
+    @Test
+    void allowPropertiesInsert_soloPermiteLosCamposQueDictaElCliente() {
+        AllowProperties allowProperties = service.allowPropertiesInsert();
+
+        assertTrue(allowProperties.allowProperty("name"));
+        assertTrue(allowProperties.allowProperty("pkcs11LibraryPath"));
+        assertTrue(allowProperties.allowProperty("slot"));
+        assertTrue(allowProperties.allowProperty("pin"));
+        assertFalse(allowProperties.allowProperty("alias"));
+        assertFalse(allowProperties.allowProperty("info"));
+    }
+
+    @Test
+    void allowPropertiesUpdate_soloPermiteLosCamposQueDictaElCliente() {
+        AllowProperties allowProperties = service.allowPropertiesUpdate();
+
+        assertTrue(allowProperties.allowProperty("name"));
+        assertTrue(allowProperties.allowProperty("pkcs11LibraryPath"));
+        assertTrue(allowProperties.allowProperty("slot"));
+        assertTrue(allowProperties.allowProperty("pin"));
+        assertFalse(allowProperties.allowProperty("alias"));
+        assertFalse(allowProperties.allowProperty("info"));
     }
 }

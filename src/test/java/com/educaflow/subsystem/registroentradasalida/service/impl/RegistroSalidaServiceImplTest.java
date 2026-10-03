@@ -51,6 +51,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -65,6 +66,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -119,6 +121,10 @@ class RegistroSalidaServiceImplTest {
         metaFileUtilMock = Mockito.mockStatic(MetaFileUtil.class);
         metaFileUtilMock.when(MetaFileUtil::createMetaFileInstance).thenAnswer(invocation -> new MetaFile());
         metaFileUtilMock.when(() -> MetaFileUtil.downloadContent(any())).thenAnswer(invocation -> contenidos.get(invocation.<MetaFile>getArgument(0)));
+        metaFileUtilMock.when(() -> MetaFileUtil.downloadHeader(any(), anyInt())).thenAnswer(invocation -> {
+            byte[] contenido = contenidos.get(invocation.<MetaFile>getArgument(0));
+            return Arrays.copyOf(contenido, Math.min(contenido.length, invocation.<Integer>getArgument(1)));
+        });
         metaFileUtilMock.when(() -> MetaFileUtil.uploadContent(any(), any())).thenAnswer(invocation -> {
             contenidos.put(invocation.getArgument(0), invocation.getArgument(1));
             return invocation.getArgument(0);
@@ -223,6 +229,7 @@ class RegistroSalidaServiceImplTest {
         Map<String, String> ficheros = descomprimir(descarga.data());
         assertEquals(3, ficheros.size());
         assertEquals(new HashSet<>(List.of("el documento", "un anexo", "otro anexo")), new HashSet<>(ficheros.values()));
+        assertTrue(ficheros.keySet().stream().allMatch(nombre -> nombre.endsWith("documento.pdf")), "los repetidos conservan la extensión: " + ficheros.keySet());
     }
 
     @Test
@@ -234,6 +241,45 @@ class RegistroSalidaServiceImplTest {
     /****************************************************************************************/
     /****************************** validateGetDescargaByCsv ********************************/
     /****************************************************************************************/
+
+    @Test
+    void validateInsert_siempreRechaza() {
+        assertTrue(service.validateInsert(new RegistroSalida()).isPresent());
+    }
+
+    @Test
+    void insert_lanzaUnsupportedOperationExceptionSinGuardarNada() {
+        RegistroSalida registroSalida = new RegistroSalida();
+
+        assertThrows(UnsupportedOperationException.class, () -> service.insert(registroSalida));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void validateUpdate_siempreRechaza() {
+        assertTrue(service.validateUpdate(new RegistroSalida(), new RegistroSalida()).isPresent());
+    }
+
+    @Test
+    void update_lanzaUnsupportedOperationExceptionSinGuardarNada() {
+        RegistroSalida registroSalida = new RegistroSalida();
+
+        assertThrows(UnsupportedOperationException.class, () -> service.update(registroSalida, new RegistroSalida()));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void validateRemove_siempreRechaza() {
+        assertTrue(service.validateRemove(new RegistroSalida()).isPresent());
+    }
+
+    @Test
+    void remove_lanzaUnsupportedOperationExceptionSinBorrarNada() {
+        RegistroSalida registroSalida = new RegistroSalida();
+
+        assertThrows(UnsupportedOperationException.class, () -> service.remove(registroSalida));
+        verify(repository, never()).remove(any());
+    }
 
     @Test
     void validateGetDescargaByCsv_conElCsvDeUnRegistro_esValido() {

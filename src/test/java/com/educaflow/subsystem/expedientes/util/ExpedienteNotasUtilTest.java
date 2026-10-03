@@ -36,7 +36,7 @@ class ExpedienteNotasUtilTest {
     @DisplayName("formatNota: un mensaje vacío no es una nota")
     void formatNota_mensajeVacio() {
         assertThrows(IllegalArgumentException.class, () -> ExpedienteNotasUtil.formatNota(FECHA, "Ana", "   "));
-        assertThrows(IllegalArgumentException.class, () -> ExpedienteNotasUtil.formatNota(FECHA, "Ana", null));
+        assertThrows(NullPointerException.class, () -> ExpedienteNotasUtil.formatNota(FECHA, "Ana", null));
     }
 
     @Test

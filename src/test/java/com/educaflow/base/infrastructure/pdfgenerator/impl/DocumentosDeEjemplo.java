@@ -33,6 +33,7 @@ final class DocumentosDeEjemplo {
             Map.entry("documento_basico.xml", self("nombre", "Núria Peñalver l·lengua", "acepta", true, "ciudad", "Mislata")),
             Map.entry("documento_colapsar.xml", self("mostrar", true, "nombre", "Ana")),
             Map.entry("documento_reservar.xml", self("mostrar", true, "nombre", "Ana")),
+            Map.entry("documento_reservar_titulo_inline.xml", self("mostrar", false, "nombre", "Ana")),
             Map.entry("documento_valor_largo.xml", self("texto", VALOR_LARGO)),
             Map.entry("documento_salto_pagina.xml", self("texto", "Valor")),
             Map.entry("documento_titulo_inline.xml", self("titular", "Ana Gil", "mostrar", true, "ciudad", "Mislata")),

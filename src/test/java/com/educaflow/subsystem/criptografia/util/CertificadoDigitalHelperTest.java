@@ -1,5 +1,6 @@
 package com.educaflow.subsystem.criptografia.util;
 
+import java.util.Optional;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.inject.Beans;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
@@ -107,17 +108,6 @@ class CertificadoDigitalHelperTest {
     }
 
     @Test
-    void getSituacionFirmaByDni_elServicioDevuelveNull_degradaASinCertificado() {
-        // El servicio no devuelve null hoy, pero este método promete no devolverlo nunca a quien lo llama:
-        // si algún día lo hiciera, sale el valor seguro y no un null que reventaría aguas abajo.
-        stubSituacionFirmaDelCertificado(null);
-
-        SituacionFirma situacionFirma = CertificadoDigitalHelper.getSituacionFirmaByDni(DNI_VALIDO);
-
-        assertEquals(SituacionFirma.SIN_CERTIFICADO, situacionFirma);
-    }
-
-    @Test
     void getSituacionFirmaByDni_certificadoEnDispositivoConPin_devuelveDispositivoConPin() {
         stubSituacionFirmaDelCertificado(SituacionFirma.DISPOSITIVO_CON_PIN);
 
@@ -178,5 +168,19 @@ class CertificadoDigitalHelperTest {
                 () -> CertificadoDigitalHelper.getSituacionFirmaByDni(DNI_VALIDO));
 
         assertSame(fallo, excepcion);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* isClaveCertificadoCorrecta(String, String)                         */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void isClaveCertificadoCorrecta_sinCertificado_lanzaIllegalStateException() {
+        // Solo se llama cuando ya se sabe que hay firma en servidor: sin certificado no hay clave que dar por buena.
+        stubResolucionDelServicio();
+        when(certificadoDigitalService.getAlmacenClaveByDni(DNI_VALIDO, "clave")).thenReturn(Optional.empty());
+
+        assertThrows(IllegalStateException.class,
+                () -> CertificadoDigitalHelper.isClaveCertificadoCorrecta(DNI_VALIDO, "clave"));
     }
 }

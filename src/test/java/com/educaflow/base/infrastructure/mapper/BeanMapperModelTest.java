@@ -151,6 +151,29 @@ class BeanMapperModelTest {
     }
 
     @Test
+    void getEntityCloned_mismaEntidadReferenciadaDosVeces_ambasReferenciasApuntanAlMismoClon() {
+        BeanMapperModel mapper = new BeanMapperModel(new FakeModelLoader());
+
+        ParentModel parent = new ParentModel();
+        parent.setId(300L);
+
+        ChildModel child = new ChildModel();
+        child.setId(301L);
+        child.setName("Hijo repetido");
+        child.setParent(parent);
+
+        parent.setChildren(new ArrayList<>(List.of(child, child)));
+
+        ParentModel cloned = (ParentModel) mapper.getEntityCloned(ParentModel.class, parent);
+
+        ChildModel primero = cloned.getChildren().get(0);
+        ChildModel segundo = cloned.getChildren().get(1);
+        assertNotSame(child, primero);
+        assertNotSame(child, segundo);
+        assertSame(primero, segundo);
+    }
+
+    @Test
     void copyEntityToEntity_shouldBeNoOp_whenAllowPropertiesIsNull() {
         BeanMapperModel mapper = new BeanMapperModel(new FakeModelLoader());
         ParentModel source = new ParentModel();
@@ -273,6 +296,29 @@ class BeanMapperModelTest {
         assertEquals("new-child", created.getName());
         assertSame(target, created.getParent());
         assertTrue(target.getChildren().stream().noneMatch(c -> Long.valueOf(2L).equals(c.getId())));
+    }
+
+    @Test
+    void copyMapToEntity_listaConLosElementosExistentesEnOtroOrden_emparejaCadaUnoPorSuId() {
+        BeanMapperModel mapper = new BeanMapperModel(new FakeModelLoader());
+
+        ParentModel target = new ParentModel();
+        target.setId(500L);
+        target.setChildren(new ArrayList<>(List.of(child(1L, "old-1", target), child(2L, "old-2", target))));
+
+        List<Object> childrenMap = new ArrayList<>();
+        childrenMap.add(mapOf("id", 2L, "name", "updated-2"));
+        childrenMap.add(mapOf("id", 1L, "name", "updated-1"));
+
+        Map<String, Object> source = mapOf("children", childrenMap);
+        Map<String, Object> allowProperties = mapOf("children", mapOf("name", true));
+
+        mapper.copyMapToEntity(ParentModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        ChildModel hijo1 = target.getChildren().stream().filter(c -> Long.valueOf(1L).equals(c.getId())).findFirst().orElseThrow();
+        ChildModel hijo2 = target.getChildren().stream().filter(c -> Long.valueOf(2L).equals(c.getId())).findFirst().orElseThrow();
+        assertEquals("updated-1", hijo1.getName());
+        assertEquals("updated-2", hijo2.getName());
     }
 
     @Test
@@ -803,6 +849,34 @@ class BeanMapperModelTest {
         assertEquals(2, destino.size());
         assertTrue(destino.contains(comun));
         assertEquals(1L, comun.getId());
+        assertEquals("upd-1", comun.getCode());
+        assertFalse(destino.contains(sobrante));
+        RefModel nuevo = destino.stream().filter(r -> !Objects.equals(r, comun)).findFirst().orElseThrow();
+        assertNull(nuevo.getId());
+        assertEquals("nuevo", nuevo.getCode());
+    }
+
+    @Test
+    void copyMapToEntity_setDestinoConDatosYOrigenComoListaDelJson_anhadeActualizaYEliminaSobreElMismoSet() {
+        // Del JSON de la petición las colecciones llegan como List, aunque la propiedad sea un Set.
+        BeanMapperModel mapper = new BeanMapperModel(new FakeModelLoader());
+        RefModel comun = ref(1L, "old-1");
+        RefModel sobrante = ref(2L, "old-2");
+        Set<RefModel> destino = new LinkedHashSet<>(List.of(comun, sobrante));
+        SetHolderModel target = new SetHolderModel();
+        target.setTags(destino);
+
+        List<Object> tags = new ArrayList<>();
+        tags.add(mapOf("id", 1L, "code", "upd-1"));
+        tags.add(mapOf("code", "nuevo"));
+        Map<String, Object> source = mapOf("tags", tags);
+        Map<String, Object> allowProperties = mapOf("tags", mapOf("code", true));
+
+        mapper.copyMapToEntity(SetHolderModel.class, source, target, AllowProperties.createAllowProperties(allowProperties));
+
+        assertSame(destino, target.getTags());
+        assertEquals(2, destino.size());
+        assertTrue(destino.contains(comun));
         assertEquals("upd-1", comun.getCode());
         assertFalse(destino.contains(sobrante));
         RefModel nuevo = destino.stream().filter(r -> !Objects.equals(r, comun)).findFirst().orElseThrow();

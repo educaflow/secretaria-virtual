@@ -285,10 +285,12 @@ test.describe('Justificación de falta del profesorado — ENTRADA', () => {
       // And (cont.): … no hay ningún campo editable …
       // No basta con los tres campos de arriba: se comprueba que en TODO el formulario del
       // expediente no queda ni un control de entrada que se pueda teclear o desplegar.
+      // Salvo «Nueva nota»: el panel de notas internas va debajo de todas las pantallas de
+      // estado y el personal del centro puede escribir en él; no es un dato del expediente.
       await expect(
         formulario.locator(
           'input:not([disabled]):not([readonly]), textarea:not([disabled]):not([readonly]), select:not([disabled])',
-        ),
+        ).and(formulario.locator(':not([data-testid="field:nuevaNota"] *)')),
       ).toHaveCount(0);
 
       // And (cont.): … el único botón es «Salir» …

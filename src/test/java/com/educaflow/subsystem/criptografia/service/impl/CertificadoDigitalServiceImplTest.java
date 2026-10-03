@@ -2,10 +2,12 @@ package com.educaflow.subsystem.criptografia.service.impl;
 
 import com.axelor.auth.db.User;
 import com.axelor.auth.db.repo.UserRepository;
+import com.axelor.db.JPA;
 import com.axelor.db.Query;
 import com.axelor.db.modelservice.AllowProperties;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.meta.db.MetaFile;
+import com.educaflow.base.infrastructure.async.EjecutorAsincrono;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClaveDispositivo;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClaveFichero;
@@ -23,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -72,7 +75,7 @@ class CertificadoDigitalServiceImplTest {
     private static final String APELLIDOS_ADMINISTRADOR_CORREGIDOS = "García Pérez";
     private static final String NOMBRE_DEL_CLIENTE = "Impostor";
     private static final String APELLIDOS_DEL_CLIENTE = "Falso";
-    private static final String MENSAJE_PASSWORD_NULL = "El password no puede ser null";
+    private static final String MENSAJE_PASSWORD_NULL = "password no puede ser null ni blank";
     private static final String MENSAJE_DNI_NO_VALIDO = "El DNI no es válido";
     private static final String MENSAJE_NOMBRE_OBLIGATORIO = "El nombre es obligatorio";
     private static final String MENSAJE_APELLIDOS_OBLIGATORIOS = "Los apellidos son obligatorios";
@@ -81,6 +84,7 @@ class CertificadoDigitalServiceImplTest {
 
     private CertificadoDigitalRepository repository;
     private UserRepository userRepository;
+    private EjecutorAsincrono ejecutorAsincrono;
     private CertificadoDigitalServiceImpl service;
 
     @BeforeEach
@@ -89,6 +93,8 @@ class CertificadoDigitalServiceImplTest {
         userRepository = Mockito.mock(UserRepository.class);
         service = new CertificadoDigitalServiceImpl(CertificadoDigital.class, repository);
         setField(service, "userRepository", userRepository);
+        ejecutorAsincrono = Mockito.mock(EjecutorAsincrono.class);
+        setField(service, "ejecutorAsincrono", ejecutorAsincrono);
     }
 
     /* ------------------------------------------------------------------ */
@@ -486,6 +492,117 @@ class CertificadoDigitalServiceImplTest {
         assertSame(certificadoPersistido, resultado);
     }
 
+    private MetaFile metaFileConId(Long id) {
+        MetaFile fichero = new MetaFile();
+        fichero.setId(id);
+        return fichero;
+    }
+
+    private CertificadoDigital originalFicheroBd(MetaFile fichero) {
+        CertificadoDigital certificadoOriginal = certificadoFicheroBd(fichero, CLAVE);
+        certificadoOriginal.setId(1L);
+        certificadoOriginal.setEnabled(Boolean.FALSE);
+        certificadoOriginal.setNombreTomadoDelUsuario(Boolean.FALSE);
+        return certificadoOriginal;
+    }
+
+    private CertificadoDigital editadoConNombre(CertificadoDigital certificado) {
+        certificado.setEnabled(Boolean.FALSE);
+        certificado.setNombre(NOMBRE_ADMINISTRADOR);
+        certificado.setApellidos(APELLIDOS_ADMINISTRADOR);
+        return certificado;
+    }
+
+    @Test
+    void update_ficheroBdPasaAOtroTipo_borraElFicheroOriginalTrasGuardar() {
+        MetaFile ficheroOriginal = metaFileConId(10L);
+        CertificadoDigital certificadoOriginal = originalFicheroBd(ficheroOriginal);
+        CertificadoDigital certificado = editadoConNombre(certificadoValido(DNI));
+        when(repository.save(certificado)).thenReturn(certificado);
+
+        try (MockedStatic<MetaFileUtil> metaFileUtil = Mockito.mockStatic(MetaFileUtil.class);
+             MockedStatic<JPA> jpa = mockJpaRunInTransaction()) {
+            service.update(certificado, certificadoOriginal);
+
+            metaFileUtil.verify(() -> MetaFileUtil.delete(any()), never());
+            ejecutarTareaTrasCommit();
+            metaFileUtil.verify(() -> MetaFileUtil.delete(ficheroOriginal));
+        }
+    }
+
+    @Test
+    void update_ficheroBdConOtroFichero_borraElFicheroOriginal() {
+        MetaFile ficheroOriginal = metaFileConId(10L);
+        CertificadoDigital certificadoOriginal = originalFicheroBd(ficheroOriginal);
+        CertificadoDigital certificado = editadoConNombre(certificadoFicheroBd(metaFileConId(11L), CLAVE));
+        when(repository.save(certificado)).thenReturn(certificado);
+
+        try (MockedStatic<MetaFileUtil> metaFileUtil = Mockito.mockStatic(MetaFileUtil.class);
+             MockedStatic<JPA> jpa = mockJpaRunInTransaction()) {
+            service.update(certificado, certificadoOriginal);
+
+            metaFileUtil.verify(() -> MetaFileUtil.delete(any()), never());
+            ejecutarTareaTrasCommit();
+            metaFileUtil.verify(() -> MetaFileUtil.delete(ficheroOriginal));
+        }
+    }
+
+    @Test
+    void update_ficheroBdConElMismoFichero_noBorraNada() {
+        CertificadoDigital certificadoOriginal = originalFicheroBd(metaFileConId(10L));
+        CertificadoDigital certificado = editadoConNombre(certificadoFicheroBd(metaFileConId(10L), CLAVE));
+        when(repository.save(certificado)).thenReturn(certificado);
+
+        try (MockedStatic<MetaFileUtil> metaFileUtil = Mockito.mockStatic(MetaFileUtil.class)) {
+            service.update(certificado, certificadoOriginal);
+
+            metaFileUtil.verify(() -> MetaFileUtil.delete(any()), never());
+            verify(ejecutorAsincrono, never()).ejecutarTrasCommit(any());
+        }
+    }
+
+    @Test
+    void remove_ficheroBd_borraElFicheroSoloTrasElCommit() {
+        MetaFile fichero = metaFileConId(10L);
+        CertificadoDigital certificado = originalFicheroBd(fichero);
+
+        try (MockedStatic<MetaFileUtil> metaFileUtil = Mockito.mockStatic(MetaFileUtil.class);
+             MockedStatic<JPA> jpa = mockJpaRunInTransaction()) {
+            service.remove(certificado);
+
+            verify(repository).remove(certificado);
+            metaFileUtil.verify(() -> MetaFileUtil.delete(any()), never());
+            ejecutarTareaTrasCommit();
+            metaFileUtil.verify(() -> MetaFileUtil.delete(fichero));
+        }
+    }
+
+    @Test
+    void remove_otroTipo_noProgramaNingunBorrado() {
+        CertificadoDigital certificado = certificadoClasspath(CLAVE);
+
+        service.remove(certificado);
+
+        verify(repository).remove(certificado);
+        verify(ejecutorAsincrono, never()).ejecutarTrasCommit(any());
+    }
+
+    private void ejecutarTareaTrasCommit() {
+        ArgumentCaptor<Runnable> tarea = ArgumentCaptor.forClass(Runnable.class);
+        verify(ejecutorAsincrono).ejecutarTrasCommit(tarea.capture());
+        tarea.getValue().run();
+    }
+
+    private static MockedStatic<JPA> mockJpaRunInTransaction() {
+        MockedStatic<JPA> jpaMock = Mockito.mockStatic(JPA.class);
+        jpaMock.when(() -> JPA.runInTransaction(any(Runnable.class)))
+                .thenAnswer(invocation -> {
+                    ((Runnable) invocation.getArgument(0)).run();
+                    return null;
+                });
+        return jpaMock;
+    }
+
     /* ------------------------------------------------------------------ */
     /* validateInsert                                                     */
     /* ------------------------------------------------------------------ */
@@ -880,17 +997,17 @@ class CertificadoDigitalServiceImplTest {
     /* ------------------------------------------------------------------ */
 
     @Test
-    void getAlmacenClaveByDni_entradaDeshabilitada_devuelveNullIgualQueSiNoExistiera() {
+    void getAlmacenClaveByDni_entradaDeshabilitada_devuelveVacioIgualQueSiNoExistiera() {
         stubCertificadoHabilitado(DNI, null);
 
-        assertNull(service.getAlmacenClaveByDni(DNI));
+        assertTrue(service.getAlmacenClaveByDni(DNI).isEmpty());
     }
 
     @Test
-    void getAlmacenClaveByDni_entradaInexistente_devuelveNull() {
+    void getAlmacenClaveByDni_entradaInexistente_devuelveVacio() {
         stubCertificadoHabilitado(DNI, null);
 
-        assertNull(service.getAlmacenClaveByDni(DNI));
+        assertTrue(service.getAlmacenClaveByDni(DNI).isEmpty());
     }
 
     @Test
@@ -899,7 +1016,7 @@ class CertificadoDigitalServiceImplTest {
         certificado.setEnabled(Boolean.TRUE);
         stubCertificadoHabilitado(DNI, certificado);
 
-        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI);
+        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI).orElseThrow();
 
         assertNotNull(almacenClave);
         assertInstanceOf(AlmacenClaveDispositivo.class, almacenClave);
@@ -910,7 +1027,7 @@ class CertificadoDigitalServiceImplTest {
         CertificadoDigital certificado = certificadoDispositivoPkcs11();
         stubCertificadoHabilitado(DNI, certificado);
 
-        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI);
+        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI).orElseThrow();
 
         assertNotNull(almacenClave);
         assertInstanceOf(AlmacenClaveDispositivo.class, almacenClave);
@@ -924,16 +1041,16 @@ class CertificadoDigitalServiceImplTest {
     void getAlmacenClaveByDni_dniConCertificadoHabilitado_devuelveElAlmacenDeEseCertificado() throws IOException {
         stubCertificadoHabilitado(DNI, certificadoClasspath(CLAVE));
 
-        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI, null);
+        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI, null).orElseThrow();
 
         assertAlmacenFicheroConClave(almacenClave, CLAVE);
     }
 
     @Test
-    void getAlmacenClaveByDni_sinNingunCertificadoHabilitadoParaEseDni_devuelveNull() {
+    void getAlmacenClaveByDni_sinNingunCertificadoHabilitadoParaEseDni_devuelveVacio() {
         stubCertificadoHabilitado(DNI, null);
 
-        assertNull(service.getAlmacenClaveByDni(DNI, null));
+        assertTrue(service.getAlmacenClaveByDni(DNI, null).isEmpty());
     }
 
     @Test
@@ -946,7 +1063,7 @@ class CertificadoDigitalServiceImplTest {
         certificadoHabilitado.setEnabled(Boolean.TRUE);
         stubCertificadoHabilitado(DNI_CON_USUARIO, certificadoHabilitado);
 
-        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI_CON_USUARIO, null);
+        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI_CON_USUARIO, null).orElseThrow();
 
         AlmacenClaveFichero almacenClaveFichero = assertInstanceOf(AlmacenClaveFichero.class, almacenClave);
         try (InputStream contenidoCertificado = almacenClaveFichero.getFileCertificate()) {
@@ -961,7 +1078,7 @@ class CertificadoDigitalServiceImplTest {
     void getAlmacenClaveByDni_ficheroConClaveGuardada_usaLaGuardadaEIgnoraLaTecleada() throws IOException {
         stubCertificadoHabilitado(DNI, certificadoClasspath(CLAVE));
 
-        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI, CLAVE_TECLEADA_DISTINTA);
+        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI, CLAVE_TECLEADA_DISTINTA).orElseThrow();
 
         assertAlmacenFicheroConClave(almacenClave, CLAVE);
     }
@@ -970,7 +1087,7 @@ class CertificadoDigitalServiceImplTest {
     void getAlmacenClaveByDni_ficheroSinClaveGuardada_usaLaClaveTecleada() throws IOException {
         stubCertificadoHabilitado(DNI, certificadoClasspath(null));
 
-        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI, CLAVE);
+        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI, CLAVE).orElseThrow();
 
         assertAlmacenFicheroConClave(almacenClave, CLAVE);
     }
@@ -979,7 +1096,7 @@ class CertificadoDigitalServiceImplTest {
     void getAlmacenClaveByDni_ficheroConClaveGuardadaEnBlanco_usaLaClaveTecleada() throws IOException {
         stubCertificadoHabilitado(DNI, certificadoClasspath(CLAVE_EN_BLANCO));
 
-        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI, CLAVE);
+        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI, CLAVE).orElseThrow();
 
         assertAlmacenFicheroConClave(almacenClave, CLAVE);
     }
@@ -1002,7 +1119,7 @@ class CertificadoDigitalServiceImplTest {
         try (MockedStatic<MetaFileUtil> metaFileUtil = Mockito.mockStatic(MetaFileUtil.class)) {
             metaFileUtil.when(() -> MetaFileUtil.downloadContent(fichero)).thenReturn(new byte[]{1, 2, 3});
 
-            AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI, CLAVE);
+            AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI, CLAVE).orElseThrow();
 
             assertAlmacenFicheroConClave(almacenClave, CLAVE);
             metaFileUtil.verify(() -> MetaFileUtil.downloadContent(fichero));
@@ -1014,7 +1131,7 @@ class CertificadoDigitalServiceImplTest {
         Path rutaCertificado = Files.write(carpetaTemporal.resolve("certificado.p12"), new byte[]{1, 2, 3});
         stubCertificadoHabilitado(DNI, certificadoSistemaArchivos(rutaCertificado, null));
 
-        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI, CLAVE);
+        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI, CLAVE).orElseThrow();
 
         assertAlmacenFicheroConClave(almacenClave, CLAVE);
     }
@@ -1025,7 +1142,7 @@ class CertificadoDigitalServiceImplTest {
         certificado.setEnabled(Boolean.TRUE);
         stubCertificadoHabilitado(DNI, certificado);
 
-        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI, "pinTecleado");
+        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI, "pinTecleado").orElseThrow();
 
         AlmacenClaveDispositivo almacenClaveDispositivo = assertInstanceOf(AlmacenClaveDispositivo.class, almacenClave);
         assertEquals(1, almacenClaveDispositivo.getSlot());
@@ -1033,17 +1150,17 @@ class CertificadoDigitalServiceImplTest {
     }
 
     @Test
-    void getAlmacenClaveByDni_sinCertificadoParaElDni_devuelveNull() {
+    void getAlmacenClaveByDni_sinCertificadoParaElDni_devuelveVacio() {
         stubCertificadoHabilitado(DNI, null);
 
-        assertNull(service.getAlmacenClaveByDni(DNI, CLAVE));
+        assertTrue(service.getAlmacenClaveByDni(DNI, CLAVE).isEmpty());
     }
 
     @Test
-    void getAlmacenClaveByDni_certificadoDeshabilitado_devuelveNull() {
+    void getAlmacenClaveByDni_certificadoDeshabilitado_devuelveVacio() {
         stubCertificadoHabilitado(DNI, null);
 
-        assertNull(service.getAlmacenClaveByDni(DNI, CLAVE));
+        assertTrue(service.getAlmacenClaveByDni(DNI, CLAVE).isEmpty());
     }
 
     @Test
@@ -1064,7 +1181,7 @@ class CertificadoDigitalServiceImplTest {
     void getAlmacenClaveByDniUnArgumento_certificadoConClaveGuardada_devuelveElMismoResultadoQueAntes() throws IOException {
         stubCertificadoHabilitado(DNI, certificadoClasspath(CLAVE));
 
-        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI);
+        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI).orElseThrow();
 
         assertAlmacenFicheroConClave(almacenClave, CLAVE);
     }
@@ -1075,7 +1192,7 @@ class CertificadoDigitalServiceImplTest {
         certificado.setEnabled(Boolean.TRUE);
         stubCertificadoHabilitado(DNI, certificado);
 
-        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI);
+        AlmacenClave almacenClave = service.getAlmacenClaveByDni(DNI).orElseThrow();
 
         assertInstanceOf(AlmacenClaveDispositivo.class, almacenClave);
     }
@@ -1118,21 +1235,22 @@ class CertificadoDigitalServiceImplTest {
     }
 
     @Test
-    void getSituacionFirmaByDni_dniNuloOEnBlanco_devuelveSinDni() {
-        assertEquals(SituacionFirma.SIN_DNI, service.getSituacionFirmaByDni(null));
-        assertEquals(SituacionFirma.SIN_DNI, service.getSituacionFirmaByDni("   "));
+    void getSituacionFirmaByDni_dniNuloOEnBlanco_lanzaValidationExceptionYNoConsultaElRepositorio() {
+        assertThrows(ValidationException.class, () -> service.getSituacionFirmaByDni(null));
+        assertThrows(ValidationException.class, () -> service.getSituacionFirmaByDni("   "));
         verify(repository, never()).findByDniHabilitados(any());
     }
 
     @Test
-    void getSituacionFirmaByDni_dniConFormatoInvalido_lanzaIllegalArgumentExceptionConElDniEnmascarado() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+    void getSituacionFirmaByDni_dniConFormatoInvalido_lanzaValidationExceptionSinElDni() {
+        ValidationException ex = assertThrows(ValidationException.class,
                 () -> service.getSituacionFirmaByDni(DNI_INVALIDO));
 
-        assertTrue(ex.getMessage().startsWith(MENSAJE_DNI_NO_VALIDO + ": "),
-                () -> "El mensaje no empieza por «" + MENSAJE_DNI_NO_VALIDO + ": »: " + ex.getMessage());
+        assertTrue(ex.getMessage().contains(MENSAJE_DNI_NO_VALIDO),
+                () -> "El mensaje de la excepción no contiene «" + MENSAJE_DNI_NO_VALIDO + "»: " + ex.getMessage());
         assertFalse(ex.getMessage().contains(DNI_INVALIDO),
-                () -> "El mensaje incluye el DNI completo sin enmascarar: " + ex.getMessage());
+                () -> "El mensaje incluye el DNI completo: " + ex.getMessage());
+        verify(repository, never()).findByDniHabilitados(any());
     }
 
     /* ------------------------------------------------------------------ */

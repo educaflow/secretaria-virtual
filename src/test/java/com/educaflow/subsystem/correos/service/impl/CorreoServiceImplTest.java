@@ -3,7 +3,6 @@ package com.educaflow.subsystem.correos.service.impl;
 import com.axelor.app.AppSettings;
 import com.axelor.auth.db.User;
 import com.axelor.db.JPA;
-import com.axelor.db.JpaRepository;
 import com.axelor.db.Query;
 import com.axelor.db.modelservice.AllowProperties;
 import com.axelor.db.modelservice.BusinessMessages;
@@ -17,11 +16,17 @@ import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.CentroUsuario;
+import com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario;
+import com.educaflow.subsystem.common.db.TipoUsuario;
+import com.educaflow.subsystem.common.db.TipoUsuarioCodigo;
 import com.educaflow.subsystem.correos.db.Adjunto;
 import com.educaflow.subsystem.correos.db.Correo;
 import com.educaflow.subsystem.correos.db.EstadoCorreo;
 import com.educaflow.subsystem.correos.db.repo.CorreoRepository;
+import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.HistorialEstado;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,6 +66,7 @@ class CorreoServiceImplTest {
     private static final String DNI_LETRA_INCORRECTA = "12345678A";
 
     private CorreoRepository repository;
+    private EntityManager em;
     private CorreoServiceImpl service;
     private MailSender mailSender;
     private EjecutorAsincrono ejecutorAsincrono;
@@ -74,6 +80,7 @@ class CorreoServiceImplTest {
     @BeforeEach
     void setUp() throws Exception {
         repository = Mockito.mock(CorreoRepository.class);
+        em = Mockito.mock(EntityManager.class);
         service = new CorreoServiceImpl(Correo.class, repository);
 
         mailSender = Mockito.mock(MailSender.class);
@@ -135,6 +142,19 @@ class CorreoServiceImplTest {
         return user;
     }
 
+    private User usuarioConTipoEnCentro(Centro centro, TipoUsuarioCodigo codigo) {
+        TipoUsuario tipoUsuario = new TipoUsuario();
+        tipoUsuario.setCodigo(codigo);
+        CentroUsuarioTipoUsuario centroUsuarioTipoUsuario = new CentroUsuarioTipoUsuario();
+        centroUsuarioTipoUsuario.setTipoUsuario(tipoUsuario);
+        CentroUsuario centroUsuario = centroUsuario(centro);
+        centroUsuario.setCentroUsuarioTipoUsuario(List.of(centroUsuarioTipoUsuario));
+        centroUsuarioTipoUsuario.setCentroUsuario(centroUsuario);
+        User user = new User();
+        user.setCentroUsuarios(List.of(centroUsuario));
+        return user;
+    }
+
     private Correo correoValido() {
         Correo correo = new Correo();
         correo.setDniDestinatario(DNI_VALIDO);
@@ -164,6 +184,7 @@ class CorreoServiceImplTest {
 
     private MockedStatic<JPA> mockJpaRunInTransaction() {
         MockedStatic<JPA> jpaMock = Mockito.mockStatic(JPA.class);
+        jpaMock.when(JPA::em).thenReturn(em);
         jpaMock.when(() -> JPA.runInTransaction(any(Runnable.class)))
                 .thenAnswer(invocation -> {
                     ((Runnable) invocation.getArgument(0)).run();
@@ -326,7 +347,7 @@ class CorreoServiceImplTest {
         Long correoId = 1L;
         Correo correo = correoParaEnvio();
         correo.setId(correoId);
-        when(repository.find(correoId)).thenReturn(correo);
+        when(em.find(Correo.class, correoId, LockModeType.PESSIMISTIC_WRITE)).thenReturn(correo);
 
         try (MockedStatic<JPA> jpaMock = mockJpaRunInTransaction();
              MockedStatic<AppSettings> appSettingsMock = mockAppSettings()) {
@@ -344,7 +365,7 @@ class CorreoServiceImplTest {
         Long correoId = 1L;
         Correo correo = correoParaEnvio();
         correo.setId(correoId);
-        when(repository.find(correoId)).thenReturn(correo);
+        when(em.find(Correo.class, correoId, LockModeType.PESSIMISTIC_WRITE)).thenReturn(correo);
         doThrow(new RuntimeException("SMTP caído")).when(mailSender).send(any());
 
         try (MockedStatic<JPA> jpaMock = mockJpaRunInTransaction();
@@ -366,7 +387,7 @@ class CorreoServiceImplTest {
         correo.setId(correoId);
         correo.setEstado(EstadoCorreo.FAIL);
         correo.setDescripcionUltimoFallo("fallo anterior");
-        when(repository.find(correoId)).thenReturn(correo);
+        when(em.find(Correo.class, correoId, LockModeType.PESSIMISTIC_WRITE)).thenReturn(correo);
 
         try (MockedStatic<JPA> jpaMock = mockJpaRunInTransaction();
              MockedStatic<AppSettings> appSettingsMock = mockAppSettings()) {
@@ -384,7 +405,7 @@ class CorreoServiceImplTest {
         Correo correo = correoParaEnvio();
         correo.setId(correoId);
         correo.setFechaEnvio(LocalDateTime.now(Convert.defaultZoneId).minusDays(1));
-        when(repository.find(correoId)).thenReturn(correo);
+        when(em.find(Correo.class, correoId, LockModeType.PESSIMISTIC_WRITE)).thenReturn(correo);
         doThrow(new RuntimeException("SMTP caído")).when(mailSender).send(any());
 
         try (MockedStatic<JPA> jpaMock = mockJpaRunInTransaction();
@@ -402,7 +423,7 @@ class CorreoServiceImplTest {
         Correo correo = correoParaEnvio();
         correo.setId(correoId);
         correo.setEstado(EstadoCorreo.SUCCESS);
-        when(repository.find(correoId)).thenReturn(correo);
+        when(em.find(Correo.class, correoId, LockModeType.PESSIMISTIC_WRITE)).thenReturn(correo);
 
         try (MockedStatic<JPA> jpaMock = mockJpaRunInTransaction()) {
             service.enviarCorreo(correoId);
@@ -415,7 +436,7 @@ class CorreoServiceImplTest {
     @Test
     void enviarCorreo_correoIdInexistente_noHaceNada() {
         Long correoId = 1L;
-        when(repository.find(correoId)).thenReturn(null);
+        when(em.find(Correo.class, correoId, LockModeType.PESSIMISTIC_WRITE)).thenReturn(null);
 
         try (MockedStatic<JPA> jpaMock = mockJpaRunInTransaction()) {
             assertDoesNotThrow(() -> service.enviarCorreo(correoId));
@@ -431,7 +452,7 @@ class CorreoServiceImplTest {
         correo.setId(correoId);
         correo.setFechaPrimerIntentoEnvio(null);
         correo.setNumeroReintentos(0);
-        when(repository.find(correoId)).thenReturn(correo);
+        when(em.find(Correo.class, correoId, LockModeType.PESSIMISTIC_WRITE)).thenReturn(correo);
 
         try (MockedStatic<JPA> jpaMock = mockJpaRunInTransaction();
              MockedStatic<AppSettings> appSettingsMock = mockAppSettings()) {
@@ -452,7 +473,7 @@ class CorreoServiceImplTest {
         correo.setFechaPrimerIntentoEnvio(t0);
         correo.setEstado(EstadoCorreo.FAIL);
         correo.setNumeroReintentos(1);
-        when(repository.find(correoId)).thenReturn(correo);
+        when(em.find(Correo.class, correoId, LockModeType.PESSIMISTIC_WRITE)).thenReturn(correo);
 
         try (MockedStatic<JPA> jpaMock = mockJpaRunInTransaction();
              MockedStatic<AppSettings> appSettingsMock = mockAppSettings()) {
@@ -473,7 +494,7 @@ class CorreoServiceImplTest {
         correo.setEnCopia("c@x.com");
         correo.setEnCopiaOculta(" d@x.com , e@x.com ");
         correo.setAdjuntos(List.of());
-        when(repository.find(correoId)).thenReturn(correo);
+        when(em.find(Correo.class, correoId, LockModeType.PESSIMISTIC_WRITE)).thenReturn(correo);
 
         ArgumentCaptor<Mail> mailCaptor = ArgumentCaptor.forClass(Mail.class);
 
@@ -489,7 +510,7 @@ class CorreoServiceImplTest {
         assertEquals(List.of("d@x.com", "e@x.com"), mail.bcc());
         assertEquals("noreply@educaflow.test", mail.from());
         assertEquals(correo.getAsunto(), mail.subject());
-        assertEquals(correo.getCuerpo(), mail.htmlBody());
+        assertNull(mail.htmlBody());
         assertEquals(correo.getCuerpo(), mail.textBody());
     }
 
@@ -506,7 +527,7 @@ class CorreoServiceImplTest {
         adjunto.setContenido(metaFile);
         correo.setAdjuntos(List.of(adjunto));
 
-        when(repository.find(correoId)).thenReturn(correo);
+        when(em.find(Correo.class, correoId, LockModeType.PESSIMISTIC_WRITE)).thenReturn(correo);
 
         byte[] contenido = {1, 2, 3, 4};
         ArgumentCaptor<Mail> mailCaptor = ArgumentCaptor.forClass(Mail.class);
@@ -526,6 +547,35 @@ class CorreoServiceImplTest {
         assertEquals("doc.pdf", attach.fileName());
         assertEquals(contenido, attach.data());
         assertEquals("application/pdf", attach.mimeType());
+    }
+
+    @Test
+    void enviarCorreo_falloAlDescargarAdjunto_marcaFailSinEnviarYGuarda() {
+        Long correoId = 1L;
+        Correo correo = correoParaEnvio();
+        correo.setId(correoId);
+
+        MetaFile metaFile = Mockito.mock(MetaFile.class);
+        Adjunto adjunto = new Adjunto();
+        adjunto.setNombreFichero("doc.pdf");
+        adjunto.setContenido(metaFile);
+        correo.setAdjuntos(List.of(adjunto));
+
+        when(em.find(Correo.class, correoId, LockModeType.PESSIMISTIC_WRITE)).thenReturn(correo);
+
+        try (MockedStatic<JPA> jpaMock = mockJpaRunInTransaction();
+             MockedStatic<AppSettings> appSettingsMock = mockAppSettings();
+             MockedStatic<MetaFileUtil> metaFileUtilMock = Mockito.mockStatic(MetaFileUtil.class)) {
+            metaFileUtilMock.when(() -> MetaFileUtil.downloadContent(metaFile))
+                    .thenThrow(new RuntimeException("Fichero no encontrado"));
+
+            assertDoesNotThrow(() -> service.enviarCorreo(correoId));
+        }
+
+        assertEquals(EstadoCorreo.FAIL, correo.getEstado());
+        assertTrue(correo.getDescripcionUltimoFallo().contains("Fichero no encontrado"));
+        verify(mailSender, never()).send(any());
+        verify(repository).save(correo);
     }
 
     /* ------------------------------------------------------------------ */
@@ -756,44 +806,60 @@ class CorreoServiceImplTest {
         assertTrue(resultado.isEmpty());
     }
 
-    @Test
-    @SuppressWarnings("unchecked")
-    void validateInsert_historialEstadoIndicadoNoExiste_devuelveMensajeNoExiste() {
-        Correo correo = correoValido();
+    private HistorialEstado historialEstadoDeCentro(Long id, Centro centroExpediente) {
+        Expediente expediente = new Expediente();
+        expediente.setCentro(centroExpediente);
         HistorialEstado historialEstado = new HistorialEstado();
-        historialEstado.setId(5L);
-        correo.setHistorialEstado(historialEstado);
-        stubIsAdmin(true);
-
-        JpaRepository<HistorialEstado> repoMock = Mockito.mock(JpaRepository.class);
-        try (MockedStatic<JpaRepository> jpaRepositoryMock = Mockito.mockStatic(JpaRepository.class)) {
-            jpaRepositoryMock.when(() -> JpaRepository.of(HistorialEstado.class)).thenReturn(repoMock);
-            when(repoMock.find(5L)).thenReturn(null);
-
-            Optional<BusinessMessages> resultado = service.validateInsert(correo);
-
-            assertEquals("El historial de estado indicado no existe", mensaje(resultado));
-        }
+        historialEstado.setId(id);
+        historialEstado.setExpediente(expediente);
+        return historialEstado;
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    void validateInsert_historialEstadoIndicadoExiste_esValido() {
+    void validateInsert_historialEstadoConExpedienteDelMismoCentro_esValido() {
+        Correo correo = correoValido();
+        correo.setHistorialEstado(historialEstadoDeCentro(5L, centroA));
+        stubIsAdmin(true);
+
+        Optional<BusinessMessages> resultado = service.validateInsert(correo);
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void validateInsert_historialEstadoSinId_devuelveMensajeNoExiste() {
+        Correo correo = correoValido();
+        correo.setHistorialEstado(historialEstadoDeCentro(null, centroA));
+        stubIsAdmin(true);
+
+        Optional<BusinessMessages> resultado = service.validateInsert(correo);
+
+        assertEquals("El historial de estado indicado no existe", mensaje(resultado));
+    }
+
+    @Test
+    void validateInsert_historialEstadoSinExpediente_devuelveMensajeNoExiste() {
         Correo correo = correoValido();
         HistorialEstado historialEstado = new HistorialEstado();
         historialEstado.setId(5L);
+        historialEstado.setExpediente(null);
         correo.setHistorialEstado(historialEstado);
         stubIsAdmin(true);
 
-        JpaRepository<HistorialEstado> repoMock = Mockito.mock(JpaRepository.class);
-        try (MockedStatic<JpaRepository> jpaRepositoryMock = Mockito.mockStatic(JpaRepository.class)) {
-            jpaRepositoryMock.when(() -> JpaRepository.of(HistorialEstado.class)).thenReturn(repoMock);
-            when(repoMock.find(5L)).thenReturn(new HistorialEstado());
+        Optional<BusinessMessages> resultado = service.validateInsert(correo);
 
-            Optional<BusinessMessages> resultado = service.validateInsert(correo);
+        assertEquals("El historial de estado indicado no existe", mensaje(resultado));
+    }
 
-            assertTrue(resultado.isEmpty());
-        }
+    @Test
+    void validateInsert_historialEstadoDeExpedienteDeOtroCentro_devuelveMensajeNoExiste() {
+        Correo correo = correoValido();
+        correo.setHistorialEstado(historialEstadoDeCentro(5L, centroB));
+        stubIsAdmin(true);
+
+        Optional<BusinessMessages> resultado = service.validateInsert(correo);
+
+        assertEquals("El historial de estado indicado no existe", mensaje(resultado));
     }
 
     @Test
@@ -802,12 +868,9 @@ class CorreoServiceImplTest {
         correo.setHistorialEstado(null);
         stubIsAdmin(true);
 
-        try (MockedStatic<JpaRepository> jpaRepositoryMock = Mockito.mockStatic(JpaRepository.class)) {
-            Optional<BusinessMessages> resultado = service.validateInsert(correo);
+        Optional<BusinessMessages> resultado = service.validateInsert(correo);
 
-            assertTrue(resultado.isEmpty());
-            jpaRepositoryMock.verifyNoInteractions();
-        }
+        assertTrue(resultado.isEmpty());
     }
 
     /* ------------------------------------------------------------------ */
@@ -879,6 +942,41 @@ class CorreoServiceImplTest {
         Optional<BusinessMessages> resultado = service.validateReenviar(entidad, entidadOriginal);
 
         assertEquals("No puede reenviar correos de un centro que no es suyo", mensaje(resultado));
+    }
+
+    @Test
+    void validateReenviar_usuarioDelCentroSinSerSupervisorNiAdministrativo_devuelveMensajeCentroNoSuyo() {
+        Correo entidadOriginal = correoValido();
+        entidadOriginal.setEstado(EstadoCorreo.FAIL);
+        entidadOriginal.setCentro(centroA);
+        stubIsAdmin(false);
+        securityUtilMock.when(SecurityUtil::getUser)
+                .thenReturn(usuarioConTipoEnCentro(centroA, TipoUsuarioCodigo.ALUMNO));
+
+        Optional<BusinessMessages> resultado = service.validateReenviar(new Correo(), entidadOriginal);
+
+        assertEquals("No puede reenviar correos de un centro que no es suyo", mensaje(resultado));
+    }
+
+    @Test
+    void validateReenviar_administrativoDelCentro_devuelveOptionalVacio() {
+        Correo entidadOriginal = correoValido();
+        entidadOriginal.setEstado(EstadoCorreo.FAIL);
+        entidadOriginal.setCentro(centroA);
+        stubIsAdmin(false);
+        securityUtilMock.when(SecurityUtil::getUser)
+                .thenReturn(usuarioConTipoEnCentro(centroA, TipoUsuarioCodigo.ADMINISTRATIVO));
+
+        Optional<BusinessMessages> resultado = service.validateReenviar(new Correo(), entidadOriginal);
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void validateReenviar_sinOriginal_devuelveMensajeSoloFallidos() {
+        Optional<BusinessMessages> resultado = service.validateReenviar(new Correo(), null);
+
+        assertEquals("Solo se pueden reenviar correos que han fallado", mensaje(resultado));
     }
 
     /* ------------------------------------------------------------------ */

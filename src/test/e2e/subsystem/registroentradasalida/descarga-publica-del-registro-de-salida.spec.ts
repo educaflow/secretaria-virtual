@@ -90,7 +90,8 @@ test.describe('Descarga pública de un registro de salida por su CSV', () => {
 
     // Un registro de salida solo lo crea la resolución de un expediente, que exige firmar (tests
     // @manual de los trámites): este test no puede crearlo, usa el último que haya.
-    const filas = page.getByRole('rowgroup').last().getByRole('row');
+    // Solo las filas con celdas: con la tabla vacía, «No se encontraron registros.» también es una fila.
+    const filas = page.getByRole('rowgroup').last().getByRole('row').filter({ has: page.getByRole('gridcell') });
     const hayRegistros = await expect(filas.first()).toBeVisible({ timeout: 5000 }).then(() => true, () => false);
     test.skip(!hayRegistros, 'No hay ningún registro de salida: resuelve antes un expediente (tests @manual de los trámites).');
 

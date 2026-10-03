@@ -20,6 +20,7 @@ import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
+import com.educaflow.base.util.DniUtil;
 import com.educaflow.subsystem.criptografia.service.CredentialsFailureException;
 import com.educaflow.subsystem.criptografia.service.FirmaEnServidorService;
 import com.educaflow.subsystem.criptografia.service.SituacionFirma;
@@ -68,8 +69,8 @@ class FirmaServidorHelperTest {
     }
 
     @Test
-    void firmarEnServidor_dniNull_lanzaIllegalArgument() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+    void firmarEnServidor_dniNull_lanzaNullPointer() {
+        NullPointerException ex = assertThrows(NullPointerException.class,
                 () -> firmaServidorHelper.firmarEnServidor(null, SituacionFirma.FICHERO_CON_CLAVE, CLAVE, documentoOriginal, POSICION, PAGINA));
 
         assertEquals("No hay DNI para el firmante", ex.getMessage());
@@ -86,11 +87,11 @@ class FirmaServidorHelperTest {
     }
 
     @Test
-    void firmarEnServidor_dniInvalido_lanzaIllegalArgumentConElDni() {
+    void firmarEnServidor_dniInvalido_lanzaIllegalArgumentConElDniEnmascarado() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> firmaServidorHelper.firmarEnServidor("12345678A", SituacionFirma.FICHERO_CON_CLAVE, CLAVE, documentoOriginal, POSICION, PAGINA));
 
-        assertEquals("El DNI no es válido:12345678A", ex.getMessage());
+        assertEquals("El DNI no es válido:" + DniUtil.enmascarar("12345678A"), ex.getMessage());
         verifyNoInteractions(firmaEnServidorService);
     }
 
@@ -99,7 +100,7 @@ class FirmaServidorHelperTest {
         NullPointerException ex = assertThrows(NullPointerException.class,
                 () -> firmaServidorHelper.firmarEnServidor(DNI, null, CLAVE, documentoOriginal, POSICION, PAGINA));
 
-        assertEquals("No hay situación de firma para el firmante con DNI " + DNI, ex.getMessage());
+        assertEquals("No hay situación de firma para el firmante con DNI " + DniUtil.enmascarar(DNI), ex.getMessage());
         verifyNoInteractions(firmaEnServidorService);
     }
 
@@ -113,8 +114,8 @@ class FirmaServidorHelperTest {
     }
 
     @Test
-    void firmarEnServidor_sinDocumentoOriginal_lanzaIllegalState() {
-        IllegalStateException ex = assertThrows(IllegalStateException.class,
+    void firmarEnServidor_sinDocumentoOriginal_lanzaNullPointer() {
+        NullPointerException ex = assertThrows(NullPointerException.class,
                 () -> firmaServidorHelper.firmarEnServidor(DNI, SituacionFirma.FICHERO_CON_CLAVE, CLAVE, null, POSICION, PAGINA));
 
         assertEquals("No hay documento de entrada que firmar", ex.getMessage());

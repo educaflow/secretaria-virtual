@@ -64,7 +64,7 @@ class ModelCollectionCompareTest {
 
         ModelCollectionCompare compare = new ModelCollectionCompare(sources, List.of());
 
-        assertThrows(IllegalArgumentException.class, compare::getSourceWhereOnlySource);
+        assertThrows(NullPointerException.class, compare::getSourceWhereOnlySource);
     }
 
     @Test

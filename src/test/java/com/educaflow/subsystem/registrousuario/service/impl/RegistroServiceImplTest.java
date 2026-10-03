@@ -1,22 +1,22 @@
 package com.educaflow.subsystem.registrousuario.service.impl;
 
 import com.axelor.auth.db.User;
-import com.axelor.db.JpaRepository;
-import com.axelor.db.Query;
+import com.axelor.auth.db.repo.UserRepository;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.BusinessMessages;
-import org.junit.jupiter.api.AfterEach;
+import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import java.lang.reflect.Field;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class RegistroServiceImplTest {
@@ -25,30 +25,20 @@ class RegistroServiceImplTest {
     private static final String EMAIL = "usuario@example.com";
 
     private RegistroServiceImpl service;
-    private MockedStatic<JpaRepository> jpaRepositoryMock;
-    private JpaRepository<User> userRepository;
-    private Query<User> query;
+    private UserRepository userRepository;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
-    void setUp() {
+    void setUp() throws Exception {
         service = new RegistroServiceImpl(User.class, Mockito.mock(Repository.class));
-        userRepository = Mockito.mock(JpaRepository.class);
-        query = Mockito.mock(Query.class);
-        jpaRepositoryMock = Mockito.mockStatic(JpaRepository.class);
-        jpaRepositoryMock.when(() -> JpaRepository.of(User.class)).thenReturn(userRepository);
-        when(userRepository.all()).thenReturn(query);
-        when(query.filter("self.dni = :dni")).thenReturn(query);
-        when(query.bind("dni", DNI)).thenReturn(query);
-    }
-
-    @AfterEach
-    void tearDown() {
-        jpaRepositoryMock.close();
+        userRepository = Mockito.mock(UserRepository.class);
+        Field field = RegistroServiceImpl.class.getDeclaredField("userRepository");
+        field.setAccessible(true);
+        field.set(service, userRepository);
     }
 
     private void usuarioEnBaseDeDatos(User user) {
-        when(query.fetchOne()).thenReturn(user);
+        when(userRepository.findByDni(DNI)).thenReturn(user);
     }
 
     private static User usuarioConEmail(String email) {
@@ -58,27 +48,27 @@ class RegistroServiceImplTest {
     }
 
     @Test
-    void findEmailByDni_validacionConErrores_lanzaIllegalArgumentExceptionSinConsultar() {
+    void findEmailByDni_validacionConErrores_lanzaValidationExceptionSinConsultar() {
         RegistroServiceImpl spy = Mockito.spy(service);
-        BusinessMessages mensajes = new BusinessMessages();
+        BusinessMessages mensajes = BusinessMessages.single("El DNI no es válido");
         doReturn(Optional.of(mensajes)).when(spy).validateFindEmailByDni(DNI);
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> spy.findEmailByDni(DNI));
+        ValidationException ex = assertThrows(ValidationException.class, () -> spy.findEmailByDni(DNI));
 
         assertEquals(mensajes.toString(), ex.getMessage());
-        jpaRepositoryMock.verifyNoInteractions();
+        verifyNoInteractions(userRepository);
     }
 
     @Test
     void findEmailByDni_dniNull_devuelveVacioSinConsultar() {
         assertEquals(Optional.empty(), service.findEmailByDni(null));
-        jpaRepositoryMock.verifyNoInteractions();
+        verifyNoInteractions(userRepository);
     }
 
     @Test
     void findEmailByDni_dniEnBlanco_devuelveVacioSinConsultar() {
         assertEquals(Optional.empty(), service.findEmailByDni("   "));
-        jpaRepositoryMock.verifyNoInteractions();
+        verifyNoInteractions(userRepository);
     }
 
     @Test
@@ -86,7 +76,7 @@ class RegistroServiceImplTest {
         usuarioEnBaseDeDatos(null);
 
         assertEquals(Optional.empty(), service.findEmailByDni(DNI));
-        verify(query).bind("dni", DNI);
+        verify(userRepository).findByDni(DNI);
     }
 
     @Test

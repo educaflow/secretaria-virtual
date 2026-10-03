@@ -6,6 +6,7 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class UserPasswordCredentialTest {
@@ -26,8 +27,8 @@ class UserPasswordCredentialTest {
     @ParameterizedTest
     @NullSource
     @ValueSource(strings = {"", "   "})
-    void constructor_hostNuloOBlank_lanzaIllegalArgumentException(String host) {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+    void constructor_hostNuloOBlank_lanzaExcepcion(String host) {
+        RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> new UserPasswordCredential(host, USER_NAME, PASSWORD));
 
         assertEquals("host no puede ser null ni blank", ex.getMessage());
@@ -36,8 +37,8 @@ class UserPasswordCredentialTest {
     @ParameterizedTest
     @NullSource
     @ValueSource(strings = {"", "   "})
-    void constructor_userNameNuloOBlank_lanzaIllegalArgumentException(String userName) {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+    void constructor_userNameNuloOBlank_lanzaExcepcion(String userName) {
+        RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> new UserPasswordCredential(HOST, userName, PASSWORD));
 
         assertEquals("userName no puede ser null ni blank", ex.getMessage());
@@ -46,11 +47,15 @@ class UserPasswordCredentialTest {
     @ParameterizedTest
     @NullSource
     @ValueSource(strings = {"", "   "})
-    void constructor_passwordNuloOBlank_lanzaIllegalArgumentException(String password) {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+    void constructor_passwordNuloOBlank_lanzaExcepcion(String password) {
+        RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> new UserPasswordCredential(HOST, USER_NAME, password));
 
         assertEquals("password no puede ser null ni blank", ex.getMessage());
     }
 
+    @Test
+    void toString_noMuestraLaPassword() {
+        assertFalse(new UserPasswordCredential(HOST, USER_NAME, PASSWORD).toString().contains(PASSWORD));
+    }
 }

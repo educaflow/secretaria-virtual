@@ -108,6 +108,14 @@ class PdfGeneratorImplITextTest {
     }
 
     @Test
+    void unaSeccionReservadaNoEvaluaLosInlineDeSuTitulo() {
+        TextosDelPdf oculto = TextosDelPdf.de(generator.generate(xml("documento_reservar_titulo_inline.xml"), contexto("mostrar", false, "nombre", "Ana"), Idioma.CASTELLANO));
+
+        assertFalse(oculto.contiene("CONDICIONAL"));
+        assertTrue(oculto.contiene("Cierre"));
+    }
+
+    @Test
     void unVisibleQueRevientaAbortaLaGeneracion() {
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> generator.generate(xml("documento_visible_error.xml"), contexto("nombre", "Ana"), Idioma.CASTELLANO));

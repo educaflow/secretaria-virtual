@@ -13,7 +13,7 @@ import org.mockito.Mockito
 import org.mockito.quality.Strictness
 
 /**
- * Tests de [MinLength], [MaxLength] y [Pattern]. Se comprueba qué valores acepta y cuáles rechaza cada
+ * Tests de [MinLength], [MaxLength], [NoAllUpperCase] y [Pattern]. Se comprueba qué valores acepta y cuáles rechaza cada
  * regla, nunca el texto concreto del mensaje: ese literal puede cambiar sin que cambie la regla. `I18n`
  * se mockea porque sin contexto de Axelor arrancado la traducción no está disponible.
  */
@@ -88,6 +88,22 @@ class StringRulesTest {
     @Test
     fun pattern_valorConEspaciosAlrededor_seComparaSobreElTextoRecortado() {
         assertNull(Pattern("^\\d{8}\$").validate(" 12345678 ", beanIrrelevante))
+    }
+
+    @Test
+    fun noAllUpperCase_todoEnMayusculas_loRechaza() {
+        assertRechazado(NoAllUpperCase().validate("HOLA", beanIrrelevante))
+    }
+
+    @Test
+    fun noAllUpperCase_conMinusculas_loAcepta() {
+        assertNull(NoAllUpperCase().validate("Hola", beanIrrelevante))
+    }
+
+    @Test
+    fun noAllUpperCase_sinLetras_loAcepta() {
+        // Sin letras no hay mayúsculas que rechazar.
+        assertNull(NoAllUpperCase().validate("2024-25", beanIrrelevante))
     }
 
     private fun assertRechazado(mensajes: BusinessMessages?) {

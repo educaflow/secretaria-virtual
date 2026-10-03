@@ -21,6 +21,8 @@ import com.educaflow.subsystem.expedientes.db.HistorialEstado;
 import com.educaflow.subsystem.sms.db.EstadoSms;
 import com.educaflow.subsystem.sms.db.Sms;
 import jakarta.inject.Provider;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,6 +87,7 @@ class SmsServiceImplTest {
             "fechaEnvio", "numeroReintentos", "descripcionUltimoFallo");
 
     private Repository<Sms> repository;
+    private EntityManager em;
     private SmsServiceImpl service;
     private Provider<SmsSender> smsSenderProvider;
     private SmsSender smsSender;
@@ -100,6 +103,7 @@ class SmsServiceImplTest {
     @SuppressWarnings("unchecked")
     void setUp() throws Exception {
         repository = Mockito.mock(Repository.class);
+        em = Mockito.mock(EntityManager.class);
         service = new SmsServiceImpl(Sms.class, repository);
 
         smsSenderProvider = Mockito.mock(Provider.class);
@@ -225,6 +229,7 @@ class SmsServiceImplTest {
 
     private MockedStatic<JPA> mockJpaRunInTransaction() {
         MockedStatic<JPA> jpaMock = Mockito.mockStatic(JPA.class);
+        jpaMock.when(JPA::em).thenReturn(em);
         jpaMock.when(() -> JPA.runInTransaction(any(Runnable.class)))
                 .thenAnswer(invocation -> {
                     ((Runnable) invocation.getArgument(0)).run();
@@ -248,7 +253,7 @@ class SmsServiceImplTest {
 
     private void programarEnvioDe(Sms enBd) {
         stubIsAdmin(true);
-        when(repository.find(SMS_ID)).thenReturn(enBd);
+        when(em.find(Sms.class, SMS_ID, LockModeType.PESSIMISTIC_WRITE)).thenReturn(enBd);
         service.reenviar(entidadConSoloId(), smsFallido(centroA));
     }
 
@@ -675,13 +680,13 @@ class SmsServiceImplTest {
         Sms guardado = smsValido();
         guardado.setId(SMS_ID);
         when(repository.save(any())).thenReturn(guardado);
-        when(repository.find(SMS_ID)).thenReturn(guardado);
+        when(em.find(Sms.class, SMS_ID, LockModeType.PESSIMISTIC_WRITE)).thenReturn(guardado);
         when(smsSenderProvider.get()).thenReturn(smsSender);
 
         service.insert(sms);
         ejecutarTareaProgramada();
 
-        verify(repository).find(SMS_ID);
+        verify(em).find(Sms.class, SMS_ID, LockModeType.PESSIMISTIC_WRITE);
     }
 
     /* ------------------------------------------------------------------ */
@@ -833,13 +838,13 @@ class SmsServiceImplTest {
     void reenviar_smsFallido_programaLaTareaDelMismoIdQueElOriginal() {
         Sms original = smsFallido(centroA);
         stubIsAdmin(true);
-        when(repository.find(SMS_ID)).thenReturn(original);
+        when(em.find(Sms.class, SMS_ID, LockModeType.PESSIMISTIC_WRITE)).thenReturn(original);
         when(smsSenderProvider.get()).thenReturn(smsSender);
 
         service.reenviar(entidadConSoloId(), original);
         ejecutarTareaProgramada();
 
-        verify(repository).find(SMS_ID);
+        verify(em).find(Sms.class, SMS_ID, LockModeType.PESSIMISTIC_WRITE);
     }
 
     @Test

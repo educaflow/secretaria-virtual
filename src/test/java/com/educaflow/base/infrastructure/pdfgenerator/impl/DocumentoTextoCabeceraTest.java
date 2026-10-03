@@ -2,6 +2,7 @@ package com.educaflow.base.infrastructure.pdfgenerator.impl;
 
 import com.educaflow.base.infrastructure.pdfgenerator.HuecoCabeceraTexto;
 import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
+import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.dibujo.Lienzo;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.dibujo.MedidasLogo;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.dibujo.MedidasPagina;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.documentotexto.maquetacion.MedidasTexto;
@@ -30,8 +31,7 @@ class DocumentoTextoCabeceraTest {
     // cabecera unas respecto a otras, no cuánto vale cada medida, así que cambiar una no lo rompe.
 
     private static final double ALTO_LINEA = MedidasTexto.TAMANYO * MedidasTexto.FACTOR_ALTO;
-    /** La línea base va al 82 % del alto de línea por debajo del borde superior del renglón. */
-    private static final double BASE_EN_EL_RENGLON = 0.82 * ALTO_LINEA;
+    private static final double BASE_EN_EL_RENGLON = Lienzo.PROPORCION_LINEA_BASE * ALTO_LINEA;
     /** Lo que el renglón deja por debajo de su línea base. */
     private static final double DESCENSO_EN_EL_RENGLON = ALTO_LINEA - BASE_EN_EL_RENGLON;
 

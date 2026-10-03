@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -43,7 +44,8 @@ class ErroresDelGeneradorTest {
 
         assertTrue(ex.getMessage().contains("self.nombre"), "el mensaje no dice qué expresión falló: " + ex.getMessage());
         assertTrue(ex.getMessage().contains("Boolean"), "el mensaje no dice qué se esperaba: " + ex.getMessage());
-        assertTrue(ex.getMessage().contains("Ana"), "el mensaje no dice qué devolvió: " + ex.getMessage());
+        assertTrue(ex.getMessage().contains(String.class.getName()), "el mensaje no dice qué tipo devolvió: " + ex.getMessage());
+        assertFalse(ex.getMessage().contains("Ana"), "el mensaje no debe incluir el valor evaluado: " + ex.getMessage());
     }
 
     @Test

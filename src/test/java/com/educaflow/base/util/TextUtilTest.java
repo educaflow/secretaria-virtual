@@ -25,11 +25,11 @@ class TextUtilTest {
         assertThrows(IllegalArgumentException.class, () -> TextUtil.requireNonBlank("   ", "mensaje"));
     }
     @Test
-    void sanitizeFileName_conNullOVacioOSoloEspacios_lanzaRuntimeException() {
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> TextUtil.sanitizeFileName(null));
+    void sanitizeFileName_conNullOVacioOSoloEspacios_lanzaExcepcion() {
+        NullPointerException ex = assertThrows(NullPointerException.class, () -> TextUtil.sanitizeFileName(null));
         assertEquals("El nombre de archivo no puede ser nulo o vacío", ex.getMessage());
-        assertThrows(RuntimeException.class, () -> TextUtil.sanitizeFileName(""));
-        assertThrows(RuntimeException.class, () -> TextUtil.sanitizeFileName("   "));
+        assertThrows(IllegalArgumentException.class, () -> TextUtil.sanitizeFileName(""));
+        assertThrows(IllegalArgumentException.class, () -> TextUtil.sanitizeFileName("   "));
     }
 
     @Test

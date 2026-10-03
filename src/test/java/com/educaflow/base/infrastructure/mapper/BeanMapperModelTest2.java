@@ -42,6 +42,30 @@ import static org.mockito.Mockito.*;
 @DisplayName("BeanMapperModel")
 class BeanMapperModelTest2 {
 
+    /**
+     * {@code BeanMapperUtil} simulado salvo los métodos que trabajan con ids, que se dejan reales: el mapper los
+     * usa para leer el id del mapa y emparejar ítems, y un simulado devolvería 0 en vez de null para un mapa sin id.
+     */
+    private static MockedStatic<BeanMapperUtil> mockBeanMapperUtil() {
+        Set<String> metodosDeIds = Set.of("getId", "findInCollectionById", "removeInCollectionById");
+        return mockStatic(BeanMapperUtil.class, withSettings().defaultAnswer(invocation ->
+                metodosDeIds.contains(invocation.getMethod().getName()) ? invocation.callRealMethod() : RETURNS_DEFAULTS.answer(invocation)));
+    }
+
+    /**
+     * {@code ScalarMapper} simulado salvo la conversión a {@code Long}, que se deja real porque de ella sale el
+     * id que lee {@code BeanMapperUtil.getId}.
+     */
+    private static MockedStatic<ScalarMapper> mockScalarMapper() {
+        return mockStatic(ScalarMapper.class, withSettings().defaultAnswer(invocation -> {
+            String metodo = invocation.getMethod().getName();
+            boolean conversionALong = metodo.equals("getLongFromObject")
+                    || (metodo.equals("getScalarFromObject") && invocation.getArgument(1) == Long.class);
+            return conversionALong ? invocation.callRealMethod() : RETURNS_DEFAULTS.answer(invocation);
+        }));
+    }
+
+
     // =========================================================================
     // Modelos de prueba
     // =========================================================================
@@ -508,7 +532,7 @@ class BeanMapperModelTest2 {
         @Test
         @DisplayName("Propiedad escalar fuera de allowProperties → se omite")
         void scalarProperty_notInAllowProperties_isSkipped() {
-            try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class)) {
+            try (MockedStatic<ScalarMapper> sm = mockScalarMapper()) {
                 sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(true);
 
                 PersonModel source = new PersonModel();
@@ -527,7 +551,7 @@ class BeanMapperModelTest2 {
         @Test
         @DisplayName("Propiedad mappedBy en allowProperties → se asigna directamente el modelo padre")
         void mappedByProperty_isSetDirectlyFromMappedByModel_whenAllowed() {
-            try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class)) {
+            try (MockedStatic<ScalarMapper> sm = mockScalarMapper()) {
                 sm.when(() -> ScalarMapper.isScalarType(String.class)).thenReturn(true);
                 sm.when(() -> ScalarMapper.getScalarFromObject(any(), eq(String.class)))
                         .thenReturn(null);
@@ -612,7 +636,7 @@ class BeanMapperModelTest2 {
         @DisplayName("Propiedad List → se crea nueva lista con ítems clonados")
         void listProperty_createsNewListWithClonedItems() {
             try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class, CALLS_REAL_METHODS);
-                 MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+                 MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                 bu.when(() -> BeanMapperUtil.getMappedByInOneToMany(
                         PersonWithChildrenModel.class, "children")).thenReturn(null);
@@ -648,7 +672,7 @@ class BeanMapperModelTest2 {
             // Usamos una clase con un tipo de propiedad que no es escalar, ni Model, ni List.
             // ScalarMapper.isScalarType devolverá false, y como el tipo no es Model ni List,
             // el código llega al bloque else que lanza RuntimeException.
-            try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class)) {
+            try (MockedStatic<ScalarMapper> sm = mockScalarMapper()) {
                 sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(false);
 
                 // PersonModel tiene "name" (String). Si String no es escalar, no es Model ni List:
@@ -684,7 +708,7 @@ class BeanMapperModelTest2 {
         @Test
         @DisplayName("Propiedad presente en allowProperties pero ausente del mapa → se omite")
         void propertyInAllowButNotInMap_isSkipped() {
-            try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class)) {
+            try (MockedStatic<ScalarMapper> sm = mockScalarMapper()) {
                 sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(true);
 
                 PersonModel dest = new PersonModel();
@@ -701,7 +725,7 @@ class BeanMapperModelTest2 {
         @Test
         @DisplayName("Propiedad presente en el mapa pero ausente de allowProperties → se omite")
         void propertyInMapButNotInAllow_isSkipped() {
-            try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class)) {
+            try (MockedStatic<ScalarMapper> sm = mockScalarMapper()) {
                 sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(true);
 
                 PersonModel dest = new PersonModel();
@@ -722,7 +746,7 @@ class BeanMapperModelTest2 {
         @Test
         @DisplayName("Propiedad escalar → se copia del mapa al destino con conversión de tipo")
         void scalarProperty_isCopiedWithTypeConversion() {
-            try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class)) {
+            try (MockedStatic<ScalarMapper> sm = mockScalarMapper()) {
                 sm.when(() -> ScalarMapper.isScalarType(String.class)).thenReturn(true);
                 sm.when(() -> ScalarMapper.isScalarType(Integer.class)).thenReturn(true);
                 sm.when(() -> ScalarMapper.getScalarFromObject("Alice", String.class))
@@ -743,7 +767,7 @@ class BeanMapperModelTest2 {
         @Test
         @DisplayName("Propiedad mappedBy en allowProperties → se asigna el modelo padre")
         void mappedByProperty_isSetDirectly_whenAllowed() {
-            try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class)) {
+            try (MockedStatic<ScalarMapper> sm = mockScalarMapper()) {
                 sm.when(() -> ScalarMapper.isScalarType(String.class)).thenReturn(true);
                 sm.when(() -> ScalarMapper.getScalarFromObject(any(), eq(String.class)))
                         .thenReturn(null);
@@ -800,8 +824,8 @@ class BeanMapperModelTest2 {
             @Test
             @DisplayName("source=null y dest=null → no-op")
             void bothNull_noOp() {
-                try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                     MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+                try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                     MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                     sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(false);
                     bu.when(() -> BeanMapperUtil.isOneToOne(any(), eq("address"))).thenReturn(true);
@@ -823,8 +847,8 @@ class BeanMapperModelTest2 {
             @Test
             @DisplayName("source=null y dest!=null → destino se pone a null")
             void sourceNull_destNotNull_setsNull() {
-                try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                     MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+                try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                     MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                     sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(false);
                     bu.when(() -> BeanMapperUtil.isOneToOne(any(), eq("address"))).thenReturn(true);
@@ -847,8 +871,8 @@ class BeanMapperModelTest2 {
             @Test
             @DisplayName("source!=null sin id y dest=null → crea nueva instancia y copia")
             void sourceNotNull_noId_destNull_createsNewModel() {
-                try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                     MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+                try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                     MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                     sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(false);
                     bu.when(() -> BeanMapperUtil.isOneToOne(any(), eq("address"))).thenReturn(true);
@@ -883,8 +907,8 @@ class BeanMapperModelTest2 {
 
                 when(mockLoader.getModel(AddressModel.class, 42L)).thenReturn(loadedAddress);
 
-                try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                     MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+                try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                     MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                     sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(false);
                     bu.when(() -> BeanMapperUtil.isOneToOne(any(), eq("address"))).thenReturn(true);
@@ -912,8 +936,8 @@ class BeanMapperModelTest2 {
             void sourceWithIdNotFoundInLoader_throwsRuntimeException() {
                 when(mockLoader.getModel(eq(AddressModel.class), eq(999L))).thenReturn(null);
 
-                try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                     MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+                try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                     MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                     sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(false);
                     bu.when(() -> BeanMapperUtil.isOneToOne(any(), eq("address"))).thenReturn(true);
@@ -939,8 +963,8 @@ class BeanMapperModelTest2 {
             @Test
             @DisplayName("Propiedad Model que no es OneToOne ni ManyToOne → lanza RuntimeException")
             void modelPropertyNotOneToOneOrManyToOne_throwsRuntimeException() {
-                try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                     MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+                try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                     MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                     sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(false);
                     bu.when(() -> BeanMapperUtil.isOneToOne(any(), any())).thenReturn(false);
@@ -961,8 +985,8 @@ class BeanMapperModelTest2 {
             @Test
             @DisplayName("source!=null y dest!=null → actualiza in-place (copyValueToEntityAndNoChangeId)")
             void sourceNotNull_destNotNull_updatesInPlace() {
-                try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                     MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+                try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                     MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                     sm.when(() -> ScalarMapper.isScalarType(String.class)).thenReturn(true);
                     sm.when(() -> ScalarMapper.isScalarType(AddressModel.class)).thenReturn(false);
@@ -1018,8 +1042,8 @@ class BeanMapperModelTest2 {
 
                 when(mockLoader.getModel(AddressModel.class, 999L)).thenReturn(loadedAddress);
 
-                try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                     MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+                try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                     MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                     sm.when(() -> ScalarMapper.isScalarType(AddressModel.class)).thenReturn(false);
                     bu.when(() -> BeanMapperUtil.isOneToOne(any(), eq("address"))).thenReturn(true);
@@ -1065,10 +1089,9 @@ class BeanMapperModelTest2 {
                 existingChild.setId(55L);
                 existingChild.setName("NombreOriginal");
 
-                when(mockLoader.getModel(PersonModel.class, 55L)).thenReturn(existingChild);
 
-                try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                     MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+                try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                     MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                     sm.when(() -> ScalarMapper.isScalarType(String.class)).thenReturn(true);
                     sm.when(() -> ScalarMapper.isScalarType(Long.class)).thenReturn(true);
@@ -1118,8 +1141,8 @@ class BeanMapperModelTest2 {
             @Test
             @DisplayName("listSource=null y listTarget=null → no-op")
             void bothNull_noOp() {
-                try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                     MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+                try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                     MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                     sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(false);
                     bu.when(() -> BeanMapperUtil.getMappedByInOneToMany(any(), any())).thenReturn(null);
@@ -1139,8 +1162,8 @@ class BeanMapperModelTest2 {
             @Test
             @DisplayName("listSource=null y listTarget!=null → destino se pone a null")
             void sourceNull_targetNotNull_setsNull() {
-                try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                     MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+                try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                     MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                     sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(false);
                     bu.when(() -> BeanMapperUtil.getMappedByInOneToMany(any(), any())).thenReturn(null);
@@ -1162,8 +1185,8 @@ class BeanMapperModelTest2 {
             @Test
             @DisplayName("listSource!=null y listTarget=null → se crea nueva lista con ítems nuevos")
             void sourceNotNull_targetNull_newItemsCreated() {
-                try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                     MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+                try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                     MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                     sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(false);
                     bu.when(() -> BeanMapperUtil.getMappedByInOneToMany(any(), any())).thenReturn(null);
@@ -1197,8 +1220,8 @@ class BeanMapperModelTest2 {
 
                 when(mockLoader.getModel(PersonModel.class, 10L)).thenReturn(loadedChild);
 
-                try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                     MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+                try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                     MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                     sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(false);
                     bu.when(() -> BeanMapperUtil.getMappedByInOneToMany(any(), any())).thenReturn(null);
@@ -1235,10 +1258,9 @@ class BeanMapperModelTest2 {
                 obsoleteChild.setId(20L);
                 obsoleteChild.setName("Obsoleto");
 
-                when(mockLoader.getModel(PersonModel.class, 5L)).thenReturn(existingChild);
 
-                try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                     MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+                try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                     MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                     sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(false);
                     bu.when(() -> BeanMapperUtil.getMappedByInOneToMany(any(), any())).thenReturn(null);
@@ -1288,8 +1310,8 @@ class BeanMapperModelTest2 {
             void listItemWithIdNotFoundInLoader_throwsRuntimeException() {
                 when(mockLoader.getModel(PersonModel.class, 777L)).thenReturn(null);
 
-                try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                     MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+                try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                     MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                     sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(false);
                     bu.when(() -> BeanMapperUtil.getMappedByInOneToMany(any(), any())).thenReturn(null);
@@ -1312,8 +1334,8 @@ class BeanMapperModelTest2 {
             @Test
             @DisplayName("Propiedad de lista con mappedByRelation → los hijos reciben la referencia al padre")
             void listWithMappedByRelation_childrenReceiveParentReference() {
-                try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                     MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+                try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                     MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                     sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(false);
                     // Simulamos que "children" tiene mappedBy="parent" (aunque PersonModel no tenga ese campo,
@@ -1363,8 +1385,8 @@ class BeanMapperModelTest2 {
 
             when(mockLoader.getModel(AddressModel.class, 1L)).thenReturn(loadedAddress);
 
-            try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                 MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+            try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                 MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                 sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(false);
                 bu.when(() -> BeanMapperUtil.isOneToOne(any(), eq("address"))).thenReturn(true);
@@ -1388,8 +1410,8 @@ class BeanMapperModelTest2 {
         @Test
         @DisplayName("El ModelLoader solo se invoca cuando el mapa de datos contiene un id")
         void modelLoader_isNotCalledWhenIdIsNull() {
-            try (MockedStatic<ScalarMapper> sm = mockStatic(ScalarMapper.class);
-                 MockedStatic<BeanMapperUtil> bu = mockStatic(BeanMapperUtil.class)) {
+            try (MockedStatic<ScalarMapper> sm = mockScalarMapper();
+                 MockedStatic<BeanMapperUtil> bu = mockBeanMapperUtil()) {
 
                 sm.when(() -> ScalarMapper.isScalarType(any())).thenReturn(false);
                 bu.when(() -> BeanMapperUtil.isOneToOne(any(), eq("address"))).thenReturn(true);

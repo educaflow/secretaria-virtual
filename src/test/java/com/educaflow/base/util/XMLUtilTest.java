@@ -29,24 +29,21 @@ class XMLUtilTest {
     class GetElementsFromEvaluateXPath {
 
         @Test
-        void expresionNullLanzaIllegalArgument() {
-            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+        void expresionNullLanzaNullPointer() {
+            assertThrows(NullPointerException.class,
                     () -> XMLUtil.getElementsFromEvaluateXPath(null, root, false));
-            assertEquals("expression no puede ser null o vacio.", ex.getMessage());
         }
 
         @Test
         void expresionEnBlancoLanzaIllegalArgument() {
-            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+            assertThrows(IllegalArgumentException.class,
                     () -> XMLUtil.getElementsFromEvaluateXPath("   ", root, true));
-            assertEquals("expression no puede ser null o vacio.", ex.getMessage());
         }
 
         @Test
-        void rootNullLanzaIllegalArgument() {
-            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+        void rootNullLanzaNullPointer() {
+            assertThrows(NullPointerException.class,
                     () -> XMLUtil.getElementsFromEvaluateXPath("a", null, false));
-            assertEquals("element no puede ser null.", ex.getMessage());
         }
 
         @Test

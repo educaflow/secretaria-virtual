@@ -1,5 +1,29 @@
 package com.educaflow.subsystem.tramitador.tramitacion.core;
 
+import com.axelor.auth.db.User;
+import com.axelor.db.JPA;
+import com.axelor.db.modelservice.ModelServiceFactory;
+import com.educaflow.base.infrastructure.numeradores.db.repo.NumeradorRepository;
+import com.educaflow.base.infrastructure.validation.messages.BusinessException;
+import com.educaflow.base.util.SecurityUtil;
+import com.educaflow.subsystem.common.db.Centro;
+import com.educaflow.subsystem.expedientes.db.Expediente;
+import com.educaflow.subsystem.expedientes.db.Profile;
+import com.educaflow.subsystem.expedientes.db.PruebaV1;
+import com.educaflow.subsystem.expedientes.db.TipoExpediente;
+import com.educaflow.subsystem.expedientes.db.Tramite;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.ContextoTramitacion;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.InitialEventManager;
+import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.PhaseEventManager;
+import com.educaflow.subsystem.tramitador.tramitacion.internal.ExpedienteLocator;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockedStatic;
 import com.educaflow.base.infrastructure.validation.engine.BeanValidationRules;
 import com.educaflow.base.infrastructure.validation.engine.FieldValidationRules;
 import com.educaflow.base.infrastructure.validation.engine.ValidationRule;
@@ -8,6 +32,9 @@ import com.educaflow.subsystem.tramitador.tramitacion.validation.BeanValidationR
 import com.educaflow.subsystem.tramitador.tramitacion.validation.StateEventValidator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -25,9 +52,97 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class TramitadorTest {
+
+    @Nested
+    @ExtendWith(MockitoExtension.class)
+    class TriggerInitialEvent {
+
+        @Mock
+        private NumeradorRepository numeradorRepository;
+        @Mock
+        private ExpedienteLocator expedienteLocator;
+        @Mock
+        private ModelServiceFactory modelServiceFactory;
+        @Mock
+        private InitialEventManager<?> initialEventManager;
+        @Mock
+        private PhaseEventManager<?> phaseEventManager;
+        @InjectMocks
+        private Tramitador tramitador;
+
+        private final TipoExpediente tipoExpediente = new TipoExpediente();
+        private ContextoTramitacion contextoTramitacion;
+        private MockedStatic<SecurityUtil> securityUtil;
+
+        @BeforeEach
+        void preparar() {
+            Tramite tramite = new Tramite();
+            tramite.setDefaultTipoExpediente(tipoExpediente);
+            Centro centro = new Centro();
+            centro.setCode("46000001");
+            contextoTramitacion = new ContextoTramitacion(tramite, centro, Profile.CREADOR, false, false);
+
+            doReturn(initialEventManager).when(expedienteLocator).getInitialEventManager(tipoExpediente);
+            doReturn(PruebaV1.class).when(expedienteLocator).getModelClass(tipoExpediente);
+            lenient().doReturn(phaseEventManager).when(expedienteLocator).getPhaseEventManager(any(), any());
+
+            securityUtil = mockStatic(SecurityUtil.class);
+            securityUtil.when(SecurityUtil::getUser).thenReturn(new User());
+        }
+
+        @AfterEach
+        void cerrarEstaticos() {
+            securityUtil.close();
+        }
+
+        @Test
+        void eventoInicialConBusinessException_laRelanzaSinEnvolverYNoPideNumero() throws Exception {
+            BusinessException rechazo = new BusinessException("rechazado");
+            doThrow(rechazo).when(initialEventManager).triggerInitialEvent(any());
+
+            BusinessException ex = assertThrows(BusinessException.class, () -> tramitador.triggerInitialEvent(contextoTramitacion));
+
+            assertSame(rechazo, ex);
+            verifyNoInteractions(numeradorRepository);
+        }
+
+        @Test
+        void eventoInicialConOtraExcepcion_laEnvuelveEnRuntimeException() throws Exception {
+            IllegalStateException fallo = new IllegalStateException("fallo");
+            doThrow(fallo).when(initialEventManager).triggerInitialEvent(any());
+
+            RuntimeException ex = assertThrows(RuntimeException.class, () -> tramitador.triggerInitialEvent(contextoTramitacion));
+
+            assertSame(fallo, ex.getCause());
+            verifyNoInteractions(numeradorRepository);
+        }
+
+        @Test
+        void eventoInicialSinErrores_pideElNumeroDespuesDelEventoYGuarda() throws Exception {
+            try (MockedStatic<JPA> jpa = mockStatic(JPA.class)) {
+                Expediente expediente = tramitador.triggerInitialEvent(contextoTramitacion);
+
+                InOrder orden = inOrder(initialEventManager, numeradorRepository);
+                orden.verify(initialEventManager).triggerInitialEvent(any());
+                orden.verify(numeradorRepository).getSiguienteNumeroExpediente(eq("46000001"), anyString());
+                jpa.verify(() -> JPA.save(expediente));
+            }
+        }
+    }
 
     @Nested
     class ExigeMismaPersona {
@@ -77,6 +192,45 @@ class TramitadorTest {
                     () -> exigeMismaPersona(null, persona(3L), "personaInteresada"));
 
             assertEquals("La petición intenta cambiar la persona del campo 'personaInteresada' del expediente: de 3 a null.", ex.getMessage());
+        }
+    }
+
+    @Nested
+    class DescartarCambios {
+
+        @Test
+        void transaccionActiva_laMarcaParaRollbackYDesvinculaElExpediente() throws Throwable {
+            EntityManager em = mock(EntityManager.class);
+            EntityTransaction transaccion = mock(EntityTransaction.class);
+            when(em.getTransaction()).thenReturn(transaccion);
+            when(transaccion.isActive()).thenReturn(true);
+            Expediente expediente = new PruebaV1();
+
+            try (MockedStatic<JPA> jpa = mockStatic(JPA.class)) {
+                jpa.when(JPA::em).thenReturn(em);
+
+                descartarCambios(expediente);
+            }
+
+            verify(transaccion).setRollbackOnly();
+            verify(em).detach(expediente);
+        }
+
+        @Test
+        void sinTransaccionActiva_soloDesvinculaElExpediente() throws Throwable {
+            EntityManager em = mock(EntityManager.class);
+            EntityTransaction transaccion = mock(EntityTransaction.class);
+            when(em.getTransaction()).thenReturn(transaccion);
+            Expediente expediente = new PruebaV1();
+
+            try (MockedStatic<JPA> jpa = mockStatic(JPA.class)) {
+                jpa.when(JPA::em).thenReturn(em);
+
+                descartarCambios(expediente);
+            }
+
+            verify(transaccion, never()).setRollbackOnly();
+            verify(em).detach(expediente);
         }
     }
 
@@ -230,6 +384,16 @@ class TramitadorTest {
         Persona persona = new Persona();
         persona.setId(id);
         return persona;
+    }
+
+    private static void descartarCambios(Expediente expediente) throws Throwable {
+        Method method = Tramitador.class.getDeclaredMethod("descartarCambios", Expediente.class);
+        method.setAccessible(true);
+        try {
+            method.invoke(null, expediente);
+        } catch (InvocationTargetException ex) {
+            throw ex.getCause();
+        }
     }
 
     private static void exigeMismaPersona(Persona persona, Persona personaOriginal, String nombreCampo) throws Throwable {

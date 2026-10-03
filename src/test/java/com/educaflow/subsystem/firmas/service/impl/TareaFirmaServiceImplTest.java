@@ -93,6 +93,7 @@ class TareaFirmaServiceImplTest {
     private static final String MENSAJE_PIN_OBLIGATORIO = "El PIN es obligatorio";
     private static final String MENSAJE_CONTRASENA_OBLIGATORIA = "La contraseña es obligatoria";
     private static final String MENSAJE_SIN_DOCUMENTOS = "La tarea de firma no tiene ningún documento que firmar";
+    private static final String MENSAJE_DOCUMENTOS_NO_COINCIDEN = "Los documentos firmados no coinciden con los que se pusieron a firmar";
     // El mensaje lo compone el servicio: el vocabulario de la bandeja de firmas más el motivo que redacta
     // CertificadoDigitalHelper.motivoClaveErronea, que es quien distingue quién puede corregir la clave.
     private static final String MENSAJE_NO_ES_POSIBLE_FIRMAR = "No es posible firmar los documentos: ";
@@ -239,7 +240,7 @@ class TareaFirmaServiceImplTest {
      */
     private void stubAlmacenClave(AlmacenClave almacenClave) {
         Mockito.lenient().when(modelServiceFactory.resolve(CertificadoDigital.class)).thenReturn(certificadoDigitalService);
-        Mockito.lenient().when(certificadoDigitalService.getAlmacenClaveByDni(anyString(), any())).thenReturn(almacenClave);
+        Mockito.lenient().when(certificadoDigitalService.getAlmacenClaveByDni(anyString(), any())).thenReturn(Optional.ofNullable(almacenClave));
     }
 
     /**
@@ -282,11 +283,28 @@ class TareaFirmaServiceImplTest {
             documentoOriginal.setFileName("documento-" + i + ".pdf");
 
             DocumentoFirma documentoFirma = new DocumentoFirma();
+            documentoFirma.setId(100L + i);
             documentoFirma.setDocumentoOriginal(documentoOriginal);
             documentoFirma.setTareaFirma(tareaFirma);
             documentosFirma.add(documentoFirma);
         }
         return documentosFirma;
+    }
+
+    /**
+     * La tarea tal como está guardada: los mismos documentos (por id) que {@code tareaFirma} tiene al construirse,
+     * sin lo que el caso cambie después en ella.
+     */
+    private static TareaFirma tareaFirmaOriginal(TareaFirma tareaFirma) {
+        TareaFirma tareaFirmaOriginal = new TareaFirma();
+        List<DocumentoFirma> documentosFirmaOriginales = new ArrayList<>();
+        for (DocumentoFirma documentoFirma : tareaFirma.getDocumentosFirma()) {
+            DocumentoFirma documentoFirmaOriginal = new DocumentoFirma();
+            documentoFirmaOriginal.setId(documentoFirma.getId());
+            documentosFirmaOriginales.add(documentoFirmaOriginal);
+        }
+        tareaFirmaOriginal.setDocumentosFirma(documentosFirmaOriginales);
+        return tareaFirmaOriginal;
     }
 
     /** Usuario autenticado que NO es el firmante de la tarea. */
@@ -315,8 +333,8 @@ class TareaFirmaServiceImplTest {
     }
 
     /**
-     * Segundo parámetro de las acciones del servicio. Ninguna de las acciones bajo test compara contra la
-     * tarea original, así que se pasa una {@code TareaFirma} cualquiera.
+     * Segundo parámetro de las acciones del servicio que no comparan contra la tarea original (todas salvo
+     * {@code marcarComoFirmada}, que usa {@code tareaFirmaOriginal}), así que se pasa una {@code TareaFirma} cualquiera.
      */
     private static TareaFirma tareaFirmaOriginalIrrelevante() {
         return new TareaFirma();
@@ -365,7 +383,7 @@ class TareaFirmaServiceImplTest {
 
         Mockito.lenient().when(modelServiceFactory.resolve(CertificadoDigital.class)).thenReturn(certificadoDigitalService);
         Mockito.lenient().when(certificadoDigitalService.getAlmacenClaveByDni(anyString(), any()))
-                .thenAnswer(invocation -> Mockito.mock(AlmacenClave.class));
+                .thenAnswer(invocation -> Optional.of(Mockito.mock(AlmacenClave.class)));
 
         // El PDF original se responde POR ARGUMENTO, nunca por orden de llamada: así la correspondencia
         // documento <-> PDF es explícita y no depende de cómo recorra producción la lista de documentos.
@@ -1101,7 +1119,7 @@ class TareaFirmaServiceImplTest {
     void marcarComoFirmada_tareaValida_dejaLaTareaFirmadaConFechaDeResolucion() {
         TareaFirma tareaFirma = arrangeMarcarComoFirmada();
 
-        service.marcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+        service.marcarComoFirmada(tareaFirma, tareaFirmaOriginal(tareaFirma));
 
         assertEquals(EstadoTareaFirma.FIRMADO, tareaFirma.getEstadoTareaFirma());
         assertNotNull(tareaFirma.getFechaResolucion());
@@ -1114,7 +1132,7 @@ class TareaFirmaServiceImplTest {
         LocalDateTime fechaAntigua = LocalDateTime.of(2000, 1, 1, 0, 0);
         tareaFirma.setFechaResolucion(fechaAntigua);
 
-        service.marcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+        service.marcarComoFirmada(tareaFirma, tareaFirmaOriginal(tareaFirma));
 
         assertNotEquals(fechaAntigua, tareaFirma.getFechaResolucion());
     }
@@ -1123,7 +1141,7 @@ class TareaFirmaServiceImplTest {
     void marcarComoFirmada_tareaValida_notificaAlProcesoQueEncargoLaFirma() {
         TareaFirma tareaFirma = arrangeMarcarComoFirmada();
 
-        service.marcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+        service.marcarComoFirmada(tareaFirma, tareaFirmaOriginal(tareaFirma));
 
         verify(tareaFirmaNotifier, times(1)).notify(tareaFirma, null);
     }
@@ -1134,7 +1152,7 @@ class TareaFirmaServiceImplTest {
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
 
         ValidationException excepcion = assertThrows(ValidationException.class,
-                () -> service.marcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante()));
+                () -> service.marcarComoFirmada(tareaFirma, tareaFirmaOriginal(tareaFirma)));
 
         assertTrue(excepcion.getMessage().contains(MENSAJE_SOLO_PENDIENTES));
         verify(repository, never()).save(any());
@@ -1147,7 +1165,7 @@ class TareaFirmaServiceImplTest {
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.RECHAZADO);
 
         ValidationException excepcion = assertThrows(ValidationException.class,
-                () -> service.marcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante()));
+                () -> service.marcarComoFirmada(tareaFirma, tareaFirmaOriginal(tareaFirma)));
 
         assertTrue(excepcion.getMessage().contains(MENSAJE_SOLO_PENDIENTES));
         assertEquals(EstadoTareaFirma.RECHAZADO, tareaFirma.getEstadoTareaFirma());
@@ -1161,7 +1179,7 @@ class TareaFirmaServiceImplTest {
         tareaFirma.getDocumentosFirma().get(0).setDocumentoFirmado(null);
 
         ValidationException excepcion = assertThrows(ValidationException.class,
-                () -> service.marcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante()));
+                () -> service.marcarComoFirmada(tareaFirma, tareaFirmaOriginal(tareaFirma)));
 
         assertTrue(excepcion.getMessage().contains(MENSAJE_DOCUMENTO_SIN_FIRMAR));
         assertEquals(EstadoTareaFirma.PENDIENTE, tareaFirma.getEstadoTareaFirma());
@@ -1177,7 +1195,7 @@ class TareaFirmaServiceImplTest {
     void validateMarcarComoFirmada_tareaPendienteDelUsuarioConDocumentosFirmados_devuelveOptionalVacio() {
         TareaFirma tareaFirma = arrangeMarcarComoFirmada();
 
-        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginal(tareaFirma));
 
         assertTrue(resultado.isEmpty());
     }
@@ -1187,7 +1205,7 @@ class TareaFirmaServiceImplTest {
         TareaFirma tareaFirma = arrangeMarcarComoFirmada();
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
 
-        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginal(tareaFirma));
 
         assertEquals(List.of(MENSAJE_SOLO_PENDIENTES), mensajes(resultado));
     }
@@ -1197,7 +1215,7 @@ class TareaFirmaServiceImplTest {
         TareaFirma tareaFirma = arrangeMarcarComoFirmada();
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.RECHAZADO);
 
-        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginal(tareaFirma));
 
         assertEquals(List.of(MENSAJE_SOLO_PENDIENTES), mensajes(resultado));
     }
@@ -1208,7 +1226,7 @@ class TareaFirmaServiceImplTest {
         tareaFirma.setEstadoTareaFirma(null);
 
         Optional<BusinessMessages> resultado =
-                assertDoesNotThrow(() -> service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante()));
+                assertDoesNotThrow(() -> service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginal(tareaFirma)));
 
         assertEquals(List.of(MENSAJE_SOLO_PENDIENTES), mensajes(resultado));
     }
@@ -1218,7 +1236,7 @@ class TareaFirmaServiceImplTest {
         TareaFirma tareaFirma = arrangeMarcarComoFirmada();
         stubUsuarioAutenticado(otroUsuario());
 
-        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginal(tareaFirma));
 
         assertEquals(List.of(MENSAJE_SOLO_EL_ENCARGADO), mensajes(resultado));
     }
@@ -1228,7 +1246,7 @@ class TareaFirmaServiceImplTest {
         TareaFirma tareaFirma = arrangeMarcarComoFirmada();
         stubUsuarioAutenticado(null);
 
-        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginal(tareaFirma));
 
         assertEquals(List.of(MENSAJE_SOLO_EL_ENCARGADO), mensajes(resultado));
     }
@@ -1238,7 +1256,7 @@ class TareaFirmaServiceImplTest {
         TareaFirma tareaFirma = arrangeMarcarComoFirmada();
         tareaFirma.setEstadoTareaFirma(EstadoTareaFirma.FIRMADO);
 
-        service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+        service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginal(tareaFirma));
 
         metaFileHelperMock.verify(() -> MetaFileHelper.getDocumentoPdf(any()), never());
         documentoPdfUtilMock.verify(() -> DocumentoPdfUtil.validateFirmaPdf(any(), any(), any()), never());
@@ -1250,7 +1268,7 @@ class TareaFirmaServiceImplTest {
         tareaFirma.getDocumentosFirma().get(0).setDocumentoFirmado(null);
 
         Optional<BusinessMessages> resultado =
-                assertDoesNotThrow(() -> service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante()));
+                assertDoesNotThrow(() -> service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginal(tareaFirma)));
 
         assertEquals(List.of(MENSAJE_DOCUMENTO_SIN_FIRMAR), mensajes(resultado));
     }
@@ -1260,7 +1278,7 @@ class TareaFirmaServiceImplTest {
         TareaFirma tareaFirma = arrangeMarcarComoFirmada();
         stubFirmaNoValida();
 
-        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginal(tareaFirma));
 
         assertEquals(List.of(MENSAJE_FIRMA_NO_VALIDA), mensajes(resultado));
     }
@@ -1269,9 +1287,68 @@ class TareaFirmaServiceImplTest {
     void validateMarcarComoFirmada_documentosFirmados_validaLaFirmaContraElDniDelFirmante() {
         TareaFirma tareaFirma = arrangeMarcarComoFirmada();
 
-        service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginalIrrelevante());
+        service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginal(tareaFirma));
 
         documentoPdfUtilMock.verify(() -> DocumentoPdfUtil.validateFirmaPdf(any(), any(), Mockito.eq(DNI)), times(1));
+    }
+
+    @Test
+    void validateMarcarComoFirmada_listaDeDocumentosVacia_devuelveMensajeNoTieneNingunDocumento() {
+        TareaFirma tareaFirma = arrangeMarcarComoFirmada();
+        TareaFirma tareaFirmaOriginal = tareaFirmaOriginal(tareaFirma);
+        tareaFirma.setDocumentosFirma(new ArrayList<>());
+
+        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginal);
+
+        assertEquals(List.of(MENSAJE_SIN_DOCUMENTOS), mensajes(resultado));
+    }
+
+    @Test
+    void validateMarcarComoFirmada_unDocumentoDeMenos_devuelveMensajeLosDocumentosNoCoinciden() {
+        TareaFirma tareaFirma = tareaFirmaPendiente(2);
+        stubUsuarioAutenticado(firmante);
+        stubDocumentosFirmados(tareaFirma);
+        TareaFirma tareaFirmaOriginal = tareaFirmaOriginal(tareaFirma);
+        tareaFirma.getDocumentosFirma().remove(1);
+
+        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginal);
+
+        assertEquals(List.of(MENSAJE_DOCUMENTOS_NO_COINCIDEN), mensajes(resultado));
+    }
+
+    @Test
+    void validateMarcarComoFirmada_documentoDeOtraTarea_devuelveMensajeLosDocumentosNoCoinciden() {
+        TareaFirma tareaFirma = arrangeMarcarComoFirmada();
+        TareaFirma tareaFirmaOriginal = tareaFirmaOriginal(tareaFirma);
+        tareaFirma.getDocumentosFirma().get(0).setId(tareaFirma.getDocumentosFirma().get(0).getId() + 1);
+
+        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginal);
+
+        assertEquals(List.of(MENSAJE_DOCUMENTOS_NO_COINCIDEN), mensajes(resultado));
+    }
+
+    @Test
+    void validateMarcarComoFirmada_documentoDeMasSinId_devuelveMensajeLosDocumentosNoCoinciden() {
+        TareaFirma tareaFirma = arrangeMarcarComoFirmada();
+        TareaFirma tareaFirmaOriginal = tareaFirmaOriginal(tareaFirma);
+        DocumentoFirma documentoNuevo = new DocumentoFirma();
+        documentoNuevo.setDocumentoOriginal(new MetaFile());
+        tareaFirma.getDocumentosFirma().add(documentoNuevo);
+
+        Optional<BusinessMessages> resultado = service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginal);
+
+        assertEquals(List.of(MENSAJE_DOCUMENTOS_NO_COINCIDEN), mensajes(resultado));
+    }
+
+    @Test
+    void validateMarcarComoFirmada_documentosNoCoinciden_noAbreNingunPdf() {
+        TareaFirma tareaFirma = arrangeMarcarComoFirmada();
+        TareaFirma tareaFirmaOriginal = tareaFirmaOriginal(tareaFirma);
+        tareaFirma.getDocumentosFirma().get(0).setId(tareaFirma.getDocumentosFirma().get(0).getId() + 1);
+
+        service.validateMarcarComoFirmada(tareaFirma, tareaFirmaOriginal);
+
+        documentoPdfUtilMock.verify(() -> DocumentoPdfUtil.validateFirmaPdf(any(), any(), any()), never());
     }
 
     /* ------------------------------------------------------------------ */

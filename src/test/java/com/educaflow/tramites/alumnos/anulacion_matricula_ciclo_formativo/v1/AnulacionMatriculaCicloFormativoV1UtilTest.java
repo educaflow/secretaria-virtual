@@ -171,25 +171,21 @@ class AnulacionMatriculaCicloFormativoV1UtilTest {
     }
 
     @Test
-    void exigeSerElCreador_expedienteSinUsuarioRegistrador_lanza() {
+    void exigeSerElCreador_expedienteSinUsuarioRegistrador_lanzaIllegalState() {
+        // El registrador lo fija el Tramitador al dar de alta: que falte no es un error del usuario.
         AnulacionMatriculaCicloFormativoV1 expediente = expedienteDe(null);
-        usuarioAutenticado(usuario(7L));
 
-        BusinessException excepcion = assertThrows(BusinessException.class,
+        assertThrows(IllegalStateException.class,
                 () -> AnulacionMatriculaCicloFormativoV1Util.exigeSerElCreador(expediente, MENSAJE_MODIFICAR));
-
-        assertEquals(MENSAJE_MODIFICAR, mensajeDe(excepcion));
     }
 
     @Test
-    void exigeSerElCreador_sinUsuarioAutenticado_lanza() {
+    void exigeSerElCreador_sinUsuarioAutenticado_lanzaNullPointer() {
         AnulacionMatriculaCicloFormativoV1 expediente = expedienteDe(usuario(7L));
         usuarioAutenticado(null);
 
-        BusinessException excepcion = assertThrows(BusinessException.class,
+        assertThrows(NullPointerException.class,
                 () -> AnulacionMatriculaCicloFormativoV1Util.exigeSerElCreador(expediente, MENSAJE_MODIFICAR));
-
-        assertEquals(MENSAJE_MODIFICAR, mensajeDe(excepcion));
     }
 
     /* ------------------------------------------------------------------ */
@@ -227,14 +223,12 @@ class AnulacionMatriculaCicloFormativoV1UtilTest {
     }
 
     @Test
-    void exigePertenecerAlCentro_expedienteSinCentro_lanza() {
+    void exigePertenecerAlCentro_expedienteSinCentro_lanzaIllegalState() {
+        // El centro lo fija el Tramitador al dar de alta: que falte no es un error del usuario.
         AnulacionMatriculaCicloFormativoV1 expediente = expedienteEn(null);
-        usuarioAutenticado(usuarioDeLosCentros(ID_USUARIO_IRRELEVANTE, centro(3L)));
 
-        BusinessException excepcion = assertThrows(BusinessException.class,
+        assertThrows(IllegalStateException.class,
                 () -> AnulacionMatriculaCicloFormativoV1Util.exigePertenecerAlCentroDelExpediente(expediente, MENSAJE_FIRMAR));
-
-        assertEquals(MENSAJE_FIRMAR, mensajeDe(excepcion));
     }
 
     @Test
@@ -249,14 +243,12 @@ class AnulacionMatriculaCicloFormativoV1UtilTest {
     }
 
     @Test
-    void exigePertenecerAlCentro_sinUsuarioAutenticado_lanza() {
+    void exigePertenecerAlCentro_sinUsuarioAutenticado_lanzaNullPointer() {
         AnulacionMatriculaCicloFormativoV1 expediente = expedienteEn(centro(3L));
         usuarioAutenticado(null);
 
-        BusinessException excepcion = assertThrows(BusinessException.class,
+        assertThrows(NullPointerException.class,
                 () -> AnulacionMatriculaCicloFormativoV1Util.exigePertenecerAlCentroDelExpediente(expediente, MENSAJE_FIRMAR));
-
-        assertEquals(MENSAJE_FIRMAR, mensajeDe(excepcion));
     }
 
     /* ------------------------------------------------------------------ */

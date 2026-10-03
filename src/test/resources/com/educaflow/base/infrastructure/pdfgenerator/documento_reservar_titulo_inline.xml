@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<documentoFormulario>
+    <seccion visible="self.mostrar" siOculto="reservar">
+        <castellano>Condicional ${self.nombre}</castellano>
+        <fila>
+            <texto colspan="12"><castellano>Contenido</castellano></texto>
+        </fila>
+    </seccion>
+    <seccion>
+        <castellano>Final</castellano>
+        <fila>
+            <texto colspan="12"><castellano>Cierre</castellano></texto>
+        </fila>
+    </seccion>
+</documentoFormulario>

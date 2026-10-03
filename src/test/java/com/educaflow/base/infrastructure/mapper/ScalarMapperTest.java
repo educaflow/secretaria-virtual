@@ -1,9 +1,11 @@
 package com.educaflow.base.infrastructure.mapper;
 
 import com.axelor.db.ValueEnum;
+import com.educaflow.base.util.Convert;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -65,15 +67,15 @@ class ScalarMapperTest {
     void getScalarFromObject_shouldConvertDatesAndTimes() {
         assertEquals(LocalDate.of(2026, 3, 24),
                 ScalarMapper.getScalarFromObject("2026-03-24", LocalDate.class));
-        assertEquals(LocalDate.of(2026, 3, 24),
-                ScalarMapper.getScalarFromObject("2026-03-24T10:15:30+01:00", LocalDate.class));
+        assertEquals(Instant.parse("2026-03-23T23:30:00Z").atZone(Convert.defaultZoneId).toLocalDate(),
+                ScalarMapper.getScalarFromObject("2026-03-24T00:30:00+01:00", LocalDate.class));
 
         assertEquals(LocalTime.of(10, 15, 30),
                 ScalarMapper.getScalarFromObject("10:15:30", LocalTime.class));
 
         assertEquals(LocalDateTime.of(2026, 3, 24, 10, 15, 30),
                 ScalarMapper.getScalarFromObject("2026-03-24T10:15:30", LocalDateTime.class));
-        assertEquals(LocalDateTime.of(2026, 3, 24, 10, 15, 30),
+        assertEquals(Instant.parse("2026-03-24T09:15:30Z").atZone(Convert.defaultZoneId).toLocalDateTime(),
                 ScalarMapper.getScalarFromObject("2026-03-24T10:15:30+01:00", LocalDateTime.class));
     }
 
@@ -100,6 +102,7 @@ class ScalarMapperTest {
         assertThrows(IllegalArgumentException.class, () -> ScalarMapper.getScalarFromObject("1", null));
 
         assertThrows(IllegalArgumentException.class, () -> ScalarMapper.getScalarFromObject("abc", Integer.class));
+        assertThrows(IllegalArgumentException.class, () -> ScalarMapper.getScalarFromObject(Integer.MAX_VALUE + 1L, Integer.class));
         assertThrows(IllegalArgumentException.class, () -> ScalarMapper.getScalarFromObject("abc", Long.class));
         assertThrows(IllegalArgumentException.class, () -> ScalarMapper.getScalarFromObject("abc", BigDecimal.class));
         assertThrows(IllegalArgumentException.class, () -> ScalarMapper.getScalarFromObject("abc", LocalDate.class));

@@ -5,10 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.axelor.db.annotations.Widget;
 import com.axelor.db.modelservice.BusinessMessage;
 import com.axelor.db.modelservice.BusinessMessages;
+import com.axelor.i18n.I18n;
+import com.educaflow.base.util.TextUtil;
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 /**
  * Tests de caracterización de la función privada de nivel superior
@@ -99,5 +104,33 @@ class FieldValidationRulesKtTest {
 
         assertEquals(of(new BusinessMessage("nombre", "Obligatorio", "Nombre")), original);
         assertNotSame(original, result);
+    }
+
+    @SuppressWarnings("unused")
+    private static class ConWidgets {
+        @Widget(title = "Fecha de nacimiento")
+        private String conTitulo;
+
+        @Widget(help = "Solo ayuda")
+        private String sinTitulo;
+    }
+
+    private static String label(String nombreCampo) throws Exception {
+        Method method = FieldValidationRulesKt.class.getDeclaredMethod("getLabel", Class.class, String.class);
+        method.setAccessible(true);
+        try (MockedStatic<I18n> i18n = Mockito.mockStatic(I18n.class)) {
+            i18n.when(() -> I18n.get(Mockito.anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+            return (String) method.invoke(null, ConWidgets.class, nombreCampo);
+        }
+    }
+
+    @Test
+    void etiquetaConTituloDelWidgetUsaElTitulo() throws Exception {
+        assertEquals("Fecha de nacimiento", label("conTitulo"));
+    }
+
+    @Test
+    void etiquetaConWidgetSinTituloUsaElNombreDelCampoHumanizado() throws Exception {
+        assertEquals(TextUtil.humanize("sinTitulo"), label("sinTitulo"));
     }
 }

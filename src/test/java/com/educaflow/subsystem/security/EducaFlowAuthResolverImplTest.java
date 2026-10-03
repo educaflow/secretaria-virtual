@@ -1,6 +1,7 @@
 package com.educaflow.subsystem.security;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.axelor.auth.db.Permission;
@@ -15,8 +16,8 @@ class EducaFlowAuthResolverImplTest {
     private final EducaFlowAuthResolverImpl resolver = new EducaFlowAuthResolverImpl();
 
     @Test
-    void hasAccess_sinTipoDeAcceso_devuelveTrueAunqueElPermisoNoConcedaNada() {
-        assertTrue(resolver.hasAccess(new Permission(), null));
+    void hasAccess_sinTipoDeAcceso_lanzaNullPointerException() {
+        assertThrows(NullPointerException.class, () -> resolver.hasAccess(new Permission(), null));
     }
 
     @ParameterizedTest

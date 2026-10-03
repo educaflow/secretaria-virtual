@@ -4,6 +4,7 @@ import com.axelor.auth.db.User;
 import com.axelor.db.modelservice.AllowProperties;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.i18n.I18n;
+import com.axelor.meta.MetaFiles;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.Centro;
@@ -15,11 +16,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.quality.Strictness;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -40,6 +46,10 @@ class AdjuntoServiceImplTest {
 
     private MockedStatic<I18n> i18nMock;
     private MockedStatic<SecurityUtil> securityUtilMock;
+    private MockedStatic<MetaFiles> metaFilesMock;
+
+    @TempDir
+    Path directorioTemporal;
 
     @BeforeEach
     void setUp() {
@@ -61,12 +71,19 @@ class AdjuntoServiceImplTest {
         // lenient: no todos los tests estiman SecurityUtil (p.ej. validateUpdate/validateRemove).
         securityUtilMock = Mockito.mockStatic(SecurityUtil.class,
                 Mockito.withSettings().strictness(Strictness.LENIENT));
+
+        // lenient: solo lo consumen los tests que llegan a medir el contenido en disco.
+        metaFilesMock = Mockito.mockStatic(MetaFiles.class,
+                Mockito.withSettings().strictness(Strictness.LENIENT));
+        metaFilesMock.when(() -> MetaFiles.getPath(any(MetaFile.class)))
+                .thenReturn(ficheroDeTamano(1));
     }
 
     @AfterEach
     void tearDown() {
         i18nMock.close();
         securityUtilMock.close();
+        metaFilesMock.close();
     }
 
     /* ------------------------------------------------------------------ */
@@ -219,6 +236,97 @@ class AdjuntoServiceImplTest {
         Optional<BusinessMessages> resultado = service.validateInsert(adjunto);
 
         assertEquals("El contenido del adjunto es obligatorio", mensaje(resultado));
+    }
+
+    @Test
+    void validateInsert_contenidoDeMasDe10MB_devuelveMensajeTamanoMaximo() {
+        Adjunto adjunto = adjuntoValido();
+        adjunto.setContenido(contenidoDeTamano(AdjuntoServiceImpl.TAMANO_MAXIMO_BYTES + 1));
+        stubIsAdmin(true);
+
+        Optional<BusinessMessages> resultado = service.validateInsert(adjunto);
+
+        assertEquals("El adjunto no puede superar los 10 MB", mensaje(resultado));
+    }
+
+    @Test
+    void validateInsert_fileSizeDelMetaFileMenorQueElFicheroReal_devuelveMensajeTamanoMaximo() {
+        Adjunto adjunto = adjuntoValido();
+        MetaFile contenido = contenidoDeTamano(AdjuntoServiceImpl.TAMANO_MAXIMO_BYTES + 1);
+        contenido.setFileSize(1L);
+        adjunto.setContenido(contenido);
+        stubIsAdmin(true);
+
+        Optional<BusinessMessages> resultado = service.validateInsert(adjunto);
+
+        assertEquals("El adjunto no puede superar los 10 MB", mensaje(resultado));
+    }
+
+    @Test
+    void validateInsert_contenidoDeExactamente10MB_esValido() {
+        Adjunto adjunto = adjuntoValido();
+        adjunto.setContenido(contenidoDeTamano(AdjuntoServiceImpl.TAMANO_MAXIMO_BYTES));
+        stubIsAdmin(true);
+
+        Optional<BusinessMessages> resultado = service.validateInsert(adjunto);
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void validateInsert_nombreFicheroConBarra_devuelveMensajeCaracteresProhibidos() {
+        assertNombreFicheroRechazado("../otro/doc.pdf");
+    }
+
+    @Test
+    void validateInsert_nombreFicheroConBarraInvertida_devuelveMensajeCaracteresProhibidos() {
+        assertNombreFicheroRechazado("..\\otro\\doc.pdf");
+    }
+
+    @Test
+    void validateInsert_nombreFicheroConSaltoDeLinea_devuelveMensajeCaracteresProhibidos() {
+        assertNombreFicheroRechazado("doc\n.pdf");
+    }
+
+    @Test
+    void validateInsert_nombreFicheroConEspaciosYTildes_esValido() {
+        Adjunto adjunto = adjuntoValido();
+        adjunto.setNombreFichero("matrícula 1.pdf");
+        adjunto.getCorreo().setAdjuntos(List.of(adjunto));
+        stubIsAdmin(true);
+
+        Optional<BusinessMessages> resultado = service.validateInsert(adjunto);
+
+        assertTrue(resultado.isEmpty());
+    }
+
+    private void assertNombreFicheroRechazado(String nombreFichero) {
+        Adjunto adjunto = adjuntoValido();
+        adjunto.setNombreFichero(nombreFichero);
+        stubIsAdmin(true);
+
+        Optional<BusinessMessages> resultado = service.validateInsert(adjunto);
+
+        assertEquals("El nombre del fichero no puede contener los caracteres / \\ ni caracteres de control", mensaje(resultado));
+    }
+
+    private MetaFile contenidoDeTamano(long bytes) {
+        MetaFile contenido = new MetaFile();
+        Path fichero = ficheroDeTamano(bytes);
+        metaFilesMock.when(() -> MetaFiles.getPath(contenido)).thenReturn(fichero);
+        return contenido;
+    }
+
+    private Path ficheroDeTamano(long bytes) {
+        try {
+            Path fichero = Files.createTempFile(directorioTemporal, "adjunto", ".bin");
+            try (RandomAccessFile acceso = new RandomAccessFile(fichero.toFile(), "rw")) {
+                acceso.setLength(bytes);
+            }
+            return fichero;
+        } catch (IOException ex) {
+            throw new IllegalStateException(ex);
+        }
     }
 
     @Test
