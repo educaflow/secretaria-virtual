@@ -10,6 +10,7 @@ import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.State;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.TipoExpedienteStates;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import com.educaflow.base.util.Convert;
 import com.educaflow.subsystem.tramitador.tramitacion.internal.ExpedienteLocator;
 
@@ -41,9 +42,7 @@ public class ExpedienteUtil {
     // Los State son singletons (enums) y la barrera de abajo es por identidad A PROPÓSITO.
     @SuppressWarnings("ReferenceEquality")
     public static void updateState(Expediente expediente, State state) {
-        if (state == null) {
-            throw new IllegalArgumentException("El state no puede ser nulo.");
-        }
+        Objects.requireNonNull(state, "El state no puede ser nulo.");
 
         String phaseCode = state.getPhase().getCode();
         String stateCode = state.getCode();
@@ -93,8 +92,7 @@ public class ExpedienteUtil {
     public static Expediente getExpedienteFromIdExpediente(long idExpediente) {
         Class<? extends Expediente> claseConcreta = getClaseConcreta(idExpediente);
 
-        // El idExpediente lo envía el cliente en el JSON (TramitadorController.viewExpediente,
-        // triggerEvent y validateChild; FirmaClienteController) y JpaRepository.find delega en em.find sin
+        // El idExpediente lo envía el cliente y JpaRepository.find delega en em.find sin
         // ningún filtro de fila, así que sin esta comprobación cualquier usuario autenticado puede
         // leer cualquier expediente por id.
         // La clase contra la que se comprueba sale de la BD, NUNCA del _model que envía el cliente,

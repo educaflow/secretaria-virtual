@@ -5,6 +5,7 @@ import com.educaflow.subsystem.tramitador.tramitacion.util.ExpedienteUtil;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
 import org.apache.shiro.authz.UnauthorizedException;
 import com.axelor.db.modelservice.ModelServiceFactory;
+import com.axelor.db.JpaSecurity;
 import com.axelor.db.Model;
 import com.axelor.i18n.I18n;
 import com.axelor.meta.CallMethod;
@@ -44,6 +45,9 @@ public class TramitadorController {
     @Inject
     ModelServiceFactory modelServiceFactory;
 
+    @Inject
+    JpaSecurity jpaSecurity;
+
 
     public TramitadorController() {
 
@@ -51,16 +55,22 @@ public class TramitadorController {
 
     @CallMethod
     @Transactional
-    public void triggerInitialEvent(ActionRequest actionRequest, ActionResponse response) {
-        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(response);
+    public void triggerInitialEvent(ActionRequest actionRequest, ActionResponse actionResponse) {
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
         try {
             ContextoTramitacion contextoTramitacion = getContextoTramitacion(actionRequest.getContext());
+
+            Optional<BusinessMessages> validacion = tramitadorService.validateTriggerInitialEvent(contextoTramitacion);
+            if (validacion.isPresent()) {
+                actionResponseHelper.doResponseBusinessMessagesAsError(I18n.get("No es posible crear el expediente"), validacion.get());
+                return;
+            }
 
             Expediente expediente = tramitadorService.triggerInitialEvent(contextoTramitacion);
 
             VistaExpediente vista = tramitadorService.getVistaExpediente(expediente, contextoTramitacion.profile());
             doResponseVistaExpediente(actionResponseHelper, vista);
-            response.setCanClose(true);
+            actionResponse.setCanClose(true);
 
         } catch (BusinessException ex) {
             actionResponseHelper.doResponseBusinessMessagesAsError(I18n.get("No es posible crear el expediente"), ex.getBusinessMessages());
@@ -73,9 +83,9 @@ public class TramitadorController {
 
     @CallMethod
     @Transactional
-    public void triggerEvent(ActionRequest request, ActionResponse response) {
-        ActionRequestHelper actionRequestHelper = new ActionRequestHelper(request);
-        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(response);
+    public void triggerEvent(ActionRequest actionRequest, ActionResponse actionResponse) {
+        ActionRequestHelper actionRequestHelper = new ActionRequestHelper(actionRequest);
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
         try {
             Expediente expediente = ExpedienteUtil.getExpedienteFromIdExpediente(actionRequestHelper.getId());
             String eventName = actionRequestHelper.getEventName();
@@ -84,16 +94,22 @@ public class TramitadorController {
             EventContext eventContext = new EventContext(expediente, profile, modelServiceFactory);
 
             if (eventName.equals(CommonEvent.EXIT.name())) {
-                response.setSignal("refresh-app", null);
+                actionResponse.setSignal("refresh-app", null);
                 return;
             }
 
             exigeNoSerEventoDeSistema(expediente, eventName);
 
+            Optional<BusinessMessages> validacion = tramitadorService.validateTriggerEvent(expediente, eventName, requestData, eventContext);
+            if (validacion.isPresent()) {
+                actionResponseHelper.doResponseBusinessMessagesAsError(I18n.get("No es posible tramitar el expediente"), validacion.get());
+                return;
+            }
+
             tramitadorService.triggerEvent(expediente, eventName, requestData, eventContext);
 
             if (eventName.equals(CommonEvent.DELETE.name())) {
-                response.setSignal("refresh-app", null);
+                actionResponse.setSignal("refresh-app", null);
             } else {
                 VistaExpediente vista = tramitadorService.getVistaExpediente(expediente, profile);
                 doResponseVistaExpediente(actionResponseHelper, vista);
@@ -111,12 +127,18 @@ public class TramitadorController {
     }
 
     @CallMethod
-    public void viewExpediente(ActionRequest request, ActionResponse response) {
-        ActionRequestHelper actionRequestHelper = new ActionRequestHelper(request);
-        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(response);
+    public void viewExpediente(ActionRequest actionRequest, ActionResponse actionResponse) {
+        ActionRequestHelper actionRequestHelper = new ActionRequestHelper(actionRequest);
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
         try {
             Expediente expediente = ExpedienteUtil.getExpedienteFromIdExpediente(actionRequestHelper.getId());
             Profile profile = Profile.valueOf(actionRequestHelper.getProfileName());
+
+            Optional<BusinessMessages> validacion = tramitadorService.validateGetVistaExpediente(expediente, profile);
+            if (validacion.isPresent()) {
+                actionResponseHelper.doResponseBusinessMessagesAsError(I18n.get("No es posible abrir el expediente"), validacion.get());
+                return;
+            }
 
             VistaExpediente vista = tramitadorService.getVistaExpediente(expediente, profile);
             doResponseVistaExpediente(actionResponseHelper, vista);
@@ -128,9 +150,9 @@ public class TramitadorController {
     }
 
     @CallMethod
-    public void validateChild(ActionRequest request, ActionResponse response) {
-        ActionRequestHelper actionRequestHelper = new ActionRequestHelper(request);
-        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(response);
+    public void validateChild(ActionRequest actionRequest, ActionResponse actionResponse) {
+        ActionRequestHelper actionRequestHelper = new ActionRequestHelper(actionRequest);
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
         try {
             Expediente expediente = ExpedienteUtil.getExpedienteFromIdExpediente(actionRequestHelper.getParentId());
             Class<? extends Model> beanClass = actionRequestHelper.getModelClass();
@@ -138,6 +160,12 @@ public class TramitadorController {
 
             Model bean = findModel(beanClass, actionRequestHelper.getId());
             String validateProperty = actionRequestHelper.getParentSource();
+
+            Optional<BusinessMessages> validacion = tramitadorService.validateValidateChild(expediente, bean, beanClass, validateProperty, requestData);
+            if (validacion.isPresent()) {
+                actionResponseHelper.doResponseBusinessMessagesAsError(I18n.get("No es posible validar el expediente"), validacion.get());
+                return;
+            }
 
             BusinessMessages businessMessages = tramitadorService.validateChild(expediente, bean, beanClass, validateProperty, requestData);
 
@@ -258,6 +286,14 @@ public class TramitadorController {
     }
 
     private <T extends Model> T findModel(Class<T> classModel, Long id) {
+        // Solo comprueba el permiso de lectura sobre la clase, NO que el hijo pertenezca al expediente
+        // (pendiente). Va fuera del try para que el catch (Exception) no envuelva la UnauthorizedException.
+        // TODO: No verifica que ese hijo pertenezca al expediente que viene como padre en la petición, así que un usuario con permiso de lectura sobre la clase puede seguir pasando el id de un hijo de otro expediente.
+        if (id != null) {
+            System.out.println("TODO:Comprobar que tiene permiso para esa fila!!!!!");
+            jpaSecurity.check(JpaSecurity.CAN_READ, classModel, Convert.objectToLong(id));
+        }
+
         try {
             if (id == null) {
                 return classModel.getConstructor().newInstance();

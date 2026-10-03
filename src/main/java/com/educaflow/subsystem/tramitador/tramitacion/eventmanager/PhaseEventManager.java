@@ -40,7 +40,7 @@ public abstract class PhaseEventManager<T extends Expediente> {
     public void triggerEvent(String strEvent, T expediente, T expedienteOriginal, EventContext eventContext) throws BusinessException {
         try {
             String methodName = "trigger" + CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, strEvent);
-            Method method = ReflectionUtil.getMethod(this.getClass(), methodName, void.class, WhenEvent.class, new Class<?>[]{modelClass, modelClass, EventContext.class});
+            Method method = ReflectionUtil.getMethod(this.getClass(), methodName, void.class, WhenEvent.class, new Class<?>[]{modelClass, modelClass, EventContext.class}).orElseThrow();
 
             method.invoke(this, expediente, expedienteOriginal, eventContext);
         } catch (InvocationTargetException ex) {
@@ -67,7 +67,7 @@ public abstract class PhaseEventManager<T extends Expediente> {
         try {
             String methodName = "onEnter" + CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, codeState);
             Method method = ReflectionUtil.getMethod(this.getClass(), methodName, void.class, OnEnterState.class,
-                    new Class<?>[]{modelClass, EventContext.class});
+                    new Class<?>[]{modelClass, EventContext.class}).orElseThrow();
 
             method.invoke(this, expediente, eventContext);
         } catch (Exception ex) {

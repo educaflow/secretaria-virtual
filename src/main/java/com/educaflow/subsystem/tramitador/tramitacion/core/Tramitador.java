@@ -64,30 +64,27 @@ public class Tramitador {
             expediente.setTipoExpediente(tipoExpediente);
             expediente.setCentro(centro);
             expediente.setUsuarioRegistrador(SecurityUtil.getUser());
-            expediente.setPresentadoEnRepresentacion(presentadoEnRepresentacion);
-            expediente.setPresentadoEnPapel(presentadoEnPapel);
 
             updatePersonas(expediente, presentadoEnPapel, presentadoEnRepresentacion);
             updateName(expediente);
-            updateNumeroExpediente(expediente);
 
             InitialEventContext initialEventContext = new InitialEventContext(expediente, contextoTramitacion);
             initialEventManager.triggerInitialEvent(initialEventContext);
+            //Tras el evento inicial: su BusinessException es checked, la transacción hace commit y dejaría un hueco en la numeración.
+            updateNumeroExpediente(expediente);
 
 
             EventContext eventContext = new EventContext(expediente, contextoTramitacion.profile(), modelServiceFactory);
 
             addHistorialEstado(expediente, null, eventContext);
 
-            //El onEnter sí es de una fase: la del estado en el que acaba de entrar el expediente.
             expedienteLocator.getPhaseEventManager(tipoExpediente, expediente.getCodePhase())
                     .onEnterState(expediente, eventContext);
 
             JPA.save(expediente);
 
             return expediente;
-        } catch (UnauthorizedException e) {
-            //Sin envolver, para que llegue arriba como error de acceso y no como error genérico.
+        } catch (UnauthorizedException | BusinessException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -121,7 +118,7 @@ public class Tramitador {
             ValidatorEngine validatorEngine = new ValidatorEngine();
             BusinessMessages businessMessages = validatorEngine.validate(expediente, beanValidationRules);
             if (businessMessages.isValid() == false) {
-                JPA.em().detach(expediente);
+                descartarCambios(expediente);
                 throw new BusinessException(businessMessages);
             }
         }
@@ -129,7 +126,7 @@ public class Tramitador {
         try {
             phaseEventManager.triggerEvent(eventName, expediente, expedienteOriginal, eventContext);
         } catch (BusinessException ex) {
-            JPA.em().detach(expediente);
+            descartarCambios(expediente);
             throw ex;
         }
 
@@ -175,6 +172,18 @@ public class Tramitador {
     /*******************************************************************/
     /********************** Funciones de Negocio  **********************/
     /*******************************************************************/
+
+    /**
+     * BusinessException es checked y el controller @Transactional la captura, así que sin el
+     * rollback haría commit de la Persona y los hijos modificados (el detach no se propaga a
+     * ellos). Quien capture la excepción ya no podrá guardar nada más en esta transacción.
+     */
+    private static void descartarCambios(Expediente expediente) {
+        if (JPA.em().getTransaction().isActive()) {
+            JPA.em().getTransaction().setRollbackOnly();
+        }
+        JPA.em().detach(expediente);
+    }
 
     private static void addHistorialEstado(Expediente expediente, String eventName, EventContext eventContext) {
         HistorialEstado historialEstado = new HistorialEstado();
@@ -317,10 +326,8 @@ public class Tramitador {
     private BeanValidationRules getBeansValidationRules(StateEventValidator stateEventValidator, String state, String eventName) {
         try {
             String methodName = "getForState" + getEstadoUpperCamelCase(state) + "InEvent" + CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, eventName);
-            Method method = ReflectionUtil.getMethod(stateEventValidator.getClass(), methodName, BeanValidationRules.class, BeanValidationRulesForStateAndEvent.class, new Class<?>[]{});
-            if (method == null) {
-                throw new RuntimeException("No se ha encontrado el método: " + methodName + " en la clase: " + stateEventValidator.getClass().getName());
-            }
+            Method method = ReflectionUtil.getMethod(stateEventValidator.getClass(), methodName, BeanValidationRules.class, BeanValidationRulesForStateAndEvent.class, new Class<?>[]{})
+                    .orElseThrow(() -> new RuntimeException("No se ha encontrado el método: " + methodName + " en la clase: " + stateEventValidator.getClass().getName()));
             Object result = method.invoke(stateEventValidator);
             if (result == null) {
                 throw new RuntimeException("No se han encontrado las reglas de validación para el estado: " + state + " y el evento: " + eventName);
@@ -368,20 +375,13 @@ public class Tramitador {
     }
 
     private List<FieldValidationRules> getFieldsValidationRules(List<BeanValidationRules> beansValidationRules,String methodName) {
-        List<FieldValidationRules> fieldsValidationRules=new ArrayList<>();
-        for(BeanValidationRules rules:beansValidationRules) {
-            for(FieldValidationRules fieldValidationRules:rules.getFieldValidationRules()) {
-                if (fieldValidationRules.getMethodField().getName().equals(methodName)) {
-                    for(ValidationRule validationRule:fieldValidationRules.getValidationRules()) {
-                        if (validationRule instanceof FieldValidationRules subFieldValidationRules) {
-                            fieldsValidationRules.add(subFieldValidationRules);
-                        }
-                    }
-                }
-            }
-        }
-
-        return fieldsValidationRules;
+        return beansValidationRules.stream()
+                .flatMap(rules -> rules.getFieldValidationRules().stream())
+                .filter(fieldValidationRules -> fieldValidationRules.getMethodField().getName().equals(methodName))
+                .flatMap(fieldValidationRules -> fieldValidationRules.getValidationRules().stream())
+                .filter(FieldValidationRules.class::isInstance)
+                .map(FieldValidationRules.class::cast)
+                .toList();
     }
 
     /*******************************************************************/

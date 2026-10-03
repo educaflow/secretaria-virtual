@@ -4,6 +4,7 @@ package com.educaflow.subsystem.tramitador.tramitacion.eventmanager;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.util.MetaFileUtil;
+import com.educaflow.base.util.TextUtil;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.expedientes.db.Profile;
 import com.educaflow.subsystem.tramitador.tramitacion.util.ExpedienteUtil;
@@ -14,6 +15,7 @@ import com.educaflow.subsystem.registroentradasalida.service.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class EventContext {
 
@@ -26,8 +28,8 @@ public class EventContext {
     /**
      * El {@code ModelServiceFactory} llega por parámetro y no de {@code Beans.get} porque un
      * EventContext se construye a mano por cada evento (no lo crea Guice): así la dependencia es
-     * explícita y la clase se puede instanciar sin contenedor. Lo pasa quien sí es un bean, el
-     * {@code TramitadorController}, que lo tiene inyectado.
+     * explícita y la clase se puede instanciar sin contenedor. Lo pasa quien lo construye, que sí es
+     * un bean y lo tiene inyectado.
      */
     public EventContext(Expediente expediente,Profile profile, ModelServiceFactory modelServiceFactory) {
         this.expediente = expediente;
@@ -51,7 +53,7 @@ public class EventContext {
 
 
     public RegistroEntrada createRegistroEntrada(MetaFile documentoPdf, List<MetaFile> anexos) {
-        Objects.requireNonNull(expediente, "No es posible añadir un registro de salida ya que aun no existe el expediente");
+        Objects.requireNonNull(expediente, "No es posible añadir un registro de entrada ya que aun no existe el expediente");
         Objects.requireNonNull(documentoPdf, "documentoPdf no puede ser null");
         if (this.registroEntrada!=null) {
             throw new RuntimeException("Ya existe un registro de entrada definido");
@@ -106,13 +108,13 @@ public class EventContext {
         if (anexos == null) {
             return List.of();
         }
-        List<MetaFile> clon = new ArrayList<>(anexos.size());
-        for (MetaFile metaFile : anexos) {
-            Objects.requireNonNull(metaFile.getFileName());
-
-            clon.add(MetaFileUtil.cloneMetaFile(metaFile));
-        }
-        return clon;
+        return anexos.stream()
+                .map(metaFile -> {
+                    TextUtil.requireNonBlank(metaFile.getFileName(), "fileName no puede ser null ni blank");
+                    return MetaFileUtil.cloneMetaFile(metaFile);
+                })
+                // Mutable y no toList(): acaba como colección JPA del registro (setAnexos).
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private String getAsunto() {

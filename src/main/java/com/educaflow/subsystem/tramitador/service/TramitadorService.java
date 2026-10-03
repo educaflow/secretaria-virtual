@@ -181,7 +181,7 @@ public class TramitadorService {
         }
 
         String nombrePerfil = profile == null ? "" : profile.name();
-        businessMessages.add(new BusinessMessage(I18n.get("Necsitas el  perfil %s y sus perfiles en el expediente son: %s").formatted(nombrePerfil, getNombresPerfiles(perfilesSobreExpediente))));
+        businessMessages.add(new BusinessMessage(I18n.get("Se necesita el perfil %s y sus perfiles en el expediente son: %s").formatted(nombrePerfil, getNombresPerfiles(perfilesSobreExpediente))));
     }
 
     private Set<Profile> getPerfilesSobreExpediente(Expediente expediente) {
