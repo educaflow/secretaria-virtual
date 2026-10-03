@@ -36,14 +36,9 @@ public class CicloServiceImpl extends DefaultModelService<Ciclo> implements Cicl
     }
 
     /**
-     * Coherencia entre el grado del ciclo y su nivel. Es el único sitio donde vive esa coherencia.
-     *
-     * <p>Sin grado no se evalúa ninguna de las tres reglas: el invariante «el ciclo tiene grado» ya
+     * Sin grado no se evalúa ninguna de las tres reglas: el invariante «el ciclo tiene grado» ya
      * tiene dueño propio, {@code Ciclo.grado required="true"}, así que sin grado la fila no puede
      * llegar a existir; y sin grado tampoco hay dominio contra el que comparar el nivel.
-     *
-     * <p>El dato «¿este grado admite nivel?» se pregunta siempre a {@code Grado.admiteNivel}
-     * (CC-Grado-001), nunca contando aquí los niveles del grado.
      */
     private Optional<BusinessMessages> validateCoherenciaGradoNivel(Ciclo ciclo) {
         Grado grado = ciclo.getGrado();
@@ -58,20 +53,13 @@ public class CicloServiceImpl extends DefaultModelService<Ciclo> implements Cicl
 
         if (Boolean.TRUE.equals(grado.getAdmiteNivel())) {
             if (nivel == null) {
-                // V-Ciclo-001 (RES-Ciclo-001)
-                messages.add(new BusinessMessage("nivel",
-                        I18n.get("El nivel es obligatorio para el grado indicado"), nivelLabel));
+                messages.add(new BusinessMessage("nivel", I18n.get("El nivel es obligatorio para el grado indicado"), nivelLabel));
             } else if (grado.equals(nivel.getGrado()) == false) {
-                // V-Ciclo-003 (RES-Ciclo-003)
-                messages.add(new BusinessMessage("nivel",
-                        I18n.get("El nivel indicado no pertenece al grado del ciclo"), nivelLabel));
+                messages.add(new BusinessMessage("nivel", I18n.get("El nivel indicado no pertenece al grado del ciclo"), nivelLabel));
             }
         } else {
             if (nivel != null) {
-                // V-Ciclo-002 (RES-Ciclo-002). V-Ciclo-003 no se evalúa en esta rama: si el grado no
-                // admite nivel, cualquier nivel sobra y este es el mensaje más informativo.
-                messages.add(new BusinessMessage("nivel",
-                        I18n.get("El grado indicado no admite nivel: el nivel debe quedar vacío"), nivelLabel));
+                messages.add(new BusinessMessage("nivel", I18n.get("El grado indicado no admite nivel: el nivel debe quedar vacío"), nivelLabel));
             }
         }
 

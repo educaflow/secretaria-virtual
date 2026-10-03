@@ -41,7 +41,7 @@ public class GradoServiceImpl extends DefaultModelService<Grado> implements Grad
      * {@code PERSIST}/{@code MERGE} del one-to-many. Los niveles se mantienen desde la pantalla de
      * Niveles.
      *
-     * <p>{@code admiteNivel} también queda FUERA: es el campo derivado CC-Grado-001, de solo
+     * <p>{@code admiteNivel} también queda FUERA: es un campo derivado, de solo
      * lectura, cuyo getter generado recalcula el valor en cada lectura; nada de lo que enviara el
      * cliente sobreviviría.
      */

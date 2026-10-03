@@ -101,10 +101,10 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
           canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false"
     >
         <panel name="Curso" title="">
-            <field name="ciclo" showIf="false"/>
             <field name="code" colSpan="3" />
             <field name="name" colOffset="3" colSpan="6"/>
             <field name="leyEducativa" colSpan="6" grid-view="subsysSistemaEducativo.Ref@LeyEducativa-grid" form-view="subsysSistemaEducativo.Ref@LeyEducativa-form" />
+            <field name="ciclo" showIf="false"/>
         </panel>
 
         <panel-related name="modulos" field="modulos"  title="Módulos"
@@ -165,8 +165,8 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
           onNew="subsysSistemaEducativo.Main@Ciclo.Curso.CursoModulo-onNew-action"
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="CursoModulo" title="">
-            <field name="curso" showIf="false"/>
             <field name="modulo" colSpan="6" grid-view="subsysSistemaEducativo.Ref@Modulo-grid" form-view="subsysSistemaEducativo.Ref@Modulo-form" />
+            <field name="curso" showIf="false"/>
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
             <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@Ciclo.Curso.CursoModulo-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid != null)"/>

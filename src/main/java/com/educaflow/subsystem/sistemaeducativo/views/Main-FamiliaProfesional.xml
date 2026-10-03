@@ -80,14 +80,14 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
           onNew="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-onNew-action"
           canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="Ciclo" title="">
-            <field name="familiaProfesional" showIf="false"/>
             <field name="code" colSpan="3" />
             <field name="name" colOffset="3" colSpan="6" />
-            <field name="grado" colOffset="6" colSpan="3" grid-view="subsysSistemaEducativo.Ref@Grado-grid" form-view="subsysSistemaEducativo.Ref@Grado-form"
+            <field name="grado" colSpan="3" grid-view="subsysSistemaEducativo.Ref@Grado-grid" form-view="subsysSistemaEducativo.Ref@Grado-form"
                    onChange="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-onChange-grado-action" />
             <field name="nivel" colSpan="3" showIf="grado.admiteNivel" requiredIf="grado.admiteNivel" depends="grado.admiteNivel,nivel.grado"
                    grid-view="subsysSistemaEducativo.Ref@Nivel-grid" form-view="subsysSistemaEducativo.Ref@Nivel-form"
                    domain="self.grado = :grado" />
+            <field name="familiaProfesional" showIf="false"/>
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
             <button name="btnDelete" title="Borrar" onClick="subsysSistemaEducativo.Main@FamiliaProfesional.Ciclo-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
