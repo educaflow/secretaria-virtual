@@ -83,9 +83,9 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
      */
     @WhenEvent
     public void triggerBack(AnulacionMatriculaCicloFormativoV1 expediente, AnulacionMatriculaCicloFormativoV1 original, EventContext eventContext) throws BusinessException {
-        AnulacionMatriculaCicloFormativoV1Util.exigeSerElCreador(expediente, "Solo puede volver atrás en sus propias solicitudes");
-
         expediente.setClaveCertificado(null);
+
+        AnulacionMatriculaCicloFormativoV1Util.exigeSerElCreador(expediente, "Solo puede volver atrás en sus propias solicitudes");
 
         if (EntradaHelper.estaEn(original, States.Entrada.ENTRADA_DATOS)) {
             EntradaHelper.exigePresentadoEnPapel(original, true);
@@ -98,9 +98,8 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
     /** Solo telemáticamente: el alumno firma la solicitud generada. En papel se presenta en GUARDAR_DATOS. */
     @WhenEvent
     public void triggerPresentar(AnulacionMatriculaCicloFormativoV1 expediente, AnulacionMatriculaCicloFormativoV1 original, EventContext eventContext) throws BusinessException {
-        AnulacionMatriculaCicloFormativoV1Util.exigeSerElCreador(expediente, "Solo puede presentar sus propias solicitudes");
-
         try {
+            AnulacionMatriculaCicloFormativoV1Util.exigeSerElCreador(expediente, "Solo puede presentar sus propias solicitudes");
             EntradaHelper.exigePresentadoEnPapel(original, false);
             entradaHelper.firmarSolicitudSiEsEnServidor(expediente, AnulacionMatriculaCicloFormativoV1Util.CAMPOS_ENTRADA, CAMPO_FIRMA_SOLICITUD);
 

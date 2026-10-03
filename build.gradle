@@ -577,6 +577,77 @@ tasks.named('build') {
     finalizedBy 'GenerateDocs'
 }
 
+// Líneas del proyecto sin blancos ni comentarios (columna "code" de cloc, https://github.com/AlDanial/cloc)
+// de src/main y src/test: código (Java, Kotlin y los TypeScript de los E2E) y XML. cloc es una
+// devDependency de npm (package.json), así que hace falta haber hecho "npm install". Es informativa:
+// si cloc no está avisa y no rompe el build.
+// Además muestra las líneas no en blanco y los ficheros de la documentación para Claude (skills,
+// agentes, todos los CLAUDE.md y agent_docs) y de cada skill. Los ficheros binarios (las imágenes
+// de los skills) cuentan como fichero pero no aportan líneas.
+tasks.register('countLines') {
+    description = 'Muestra las líneas de código y XML de src/main y src/test sin blancos ni comentarios (con cloc) y las de skills, agentes, CLAUDE.md y agent_docs.'
+    group = 'help'
+    def cloc = file('node_modules/.bin/cloc')
+    def carpetas = ['src/main', 'src/test'].collect { file(it) }
+    def lenguajesCodigo = ['Java', 'Kotlin', 'TypeScript']
+    def skills = file('.claude/skills')
+    def apartados = [
+            'Skills'    : fileTree(skills),
+            'Agentes'   : fileTree('.claude/agents'),
+            'CLAUDE.md' : fileTree(projectDir) {
+                include '**/CLAUDE.md'
+                exclude 'node_modules/**', 'build/**', '.gradle/**', '.git/**'
+            },
+            'agent_docs': fileTree('agent_docs'),
+    ]
+    def skillsPorCarpeta = (skills.listFiles()?.findAll { it.directory } ?: []).sort { it.name }
+            .collectEntries { [(it.name): fileTree(it)] }
+    doLast {
+        if (cloc.exists()) {
+            def filas = carpetas.collect { carpeta ->
+                def json = new groovy.json.JsonSlurper().parseText(
+                        [cloc.absolutePath, '--json', '--quiet', "--include-lang=${(lenguajesCodigo + 'XML').join(',')}",
+                         carpeta.absolutePath].execute().text)
+                def codigo = lenguajesCodigo.sum { json[it]?.code ?: 0 }
+                def xml = json.XML?.code ?: 0
+                [nombre: projectDir.toPath().relativize(carpeta.toPath()).toString(), codigo: codigo, xml: xml]
+            }
+            filas << [nombre: 'Total', codigo: filas.sum { it.codigo }, xml: filas.sum { it.xml }]
+            println 'Líneas del proyecto (sin blancos ni comentarios)'
+            println String.format('%-10s %10s %10s %10s', '', 'Código', 'XML', 'Total')
+            filas.each { f ->
+                println String.format('%-10s %10d %10d %10d', f.nombre, f.codigo, f.xml, f.codigo + f.xml)
+            }
+        } else {
+            println "countLines: no se encuentra ${cloc}; ejecuta \"npm install\" para contar las líneas del código."
+        }
+
+        // Líneas no en blanco; un fichero binario (con algún byte 0) no aporta líneas.
+        def lineasNoEnBlanco = { File f ->
+            def bytes = f.bytes
+            bytes.contains((byte) 0) ? 0 : new String(bytes, 'UTF-8').readLines().count { it.trim() }
+        }
+        def imprimirTabla = { String titulo, Map<String, Iterable<File>> grupos, boolean ordenarPorLineas ->
+            def filas = grupos.collect { nombre, ficheros ->
+                def lista = ficheros.toList()
+                [nombre: nombre, lineas: lista.sum(0) { lineasNoEnBlanco(it) }, ficheros: lista.size()]
+            }
+            if (ordenarPorLineas) filas.sort { -it.lineas }
+            filas << [nombre: 'Total', lineas: filas.sum(0) { it.lineas }, ficheros: filas.sum(0) { it.ficheros }]
+            def ancho = filas*.nombre*.length().max()
+            println ''
+            println titulo
+            println String.format("%-${ancho}s %10s %10s", '', 'Líneas', 'Ficheros')
+            filas.each { f -> println String.format("%-${ancho}s %10d %10d", f.nombre, f.lineas, f.ficheros) }
+        }
+        imprimirTabla('Documentación para Claude (líneas no en blanco)', apartados, false)
+        imprimirTabla('Skills (líneas no en blanco, de más a menos)', skillsPorCarpeta, true)
+    }
+}
+tasks.named('build') {
+    finalizedBy 'countLines'
+}
+
 
 // Detección de código duplicado con CPD (Copy/Paste Detector de PMD, https://pmd.github.io/).
 // Analiza el Java y el Kotlin de src/main/java (el código generado vive en build/ y no entra) y

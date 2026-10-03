@@ -36,6 +36,11 @@ Va enganchada a `check`, así que **`./run.sh` falla si hay duplicados**: el err
 No cuenta lo repetido entre versiones (`vN`) del mismo trámite, que se copian a propósito.
 Un duplicado se arregla **extrayendo el código común** en su sitio (ver [Arquitectura](#arquitectura): lo compartido por trámites va a `tramites/util`, no al motor); los comentarios `// CPD-OFF` … `// CPD-ON` son solo para una duplicación deliberada.
 
+Las líneas del proyecto las muestra la tarea `./gradlew -q countLines` al acabar el build (va enganchada a `build` con `finalizedBy`, así que **`./run.sh` ya la ejecuta**).
+Da, para `src/main`, `src/test` y el total, las líneas de código (Java, Kotlin y TypeScript de los E2E), de XML y la suma, sin contar blancos ni comentarios.
+Las cuenta [`cloc`](https://github.com/AlDanial/cloc), que es una devDependency de npm: hace falta `npm install`, y si no está la tarea avisa sin romper el build.
+También muestra las líneas no en blanco y los ficheros de los skills, los agentes, todos los `CLAUDE.md` y `agent_docs`, y otra tabla con los de cada skill.
+
 La métrica **CRAP** (`CRAP = CC² × (1 − cobertura)³ + CC`) de cada método la calcula la tarea `./gradlew -q crapCheck`, con la herramienta `crap` de EFBT.
 La complejidad ciclomática (CC) y la cobertura de instrucciones salen las dos de JaCoCo (`jacocoTestReport`), solo con los tests unitarios (`./gradlew test`), y el código generado (`*.db.*`, `States`) no se mide.
 Deja siempre `build/reports/crap/crap.csv` (CC, coberturas de instrucciones/líneas/ramas y CRAP de **todos** los métodos) y `crap.md` (resumen).
