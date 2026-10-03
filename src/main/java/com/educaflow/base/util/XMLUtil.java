@@ -7,6 +7,7 @@ import java.io.StringReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -221,12 +222,8 @@ public class XMLUtil {
     
     public static List<Element> getElementsFromEvaluateXPath(String expression, Element rootElement,boolean allowRootExpresion) {
         try {
-            if (expression == null || expression.trim().isEmpty()) {
-                throw new IllegalArgumentException("expression no puede ser null o vacio.");
-            }
-            if (rootElement == null) {
-                throw new IllegalArgumentException("element no puede ser null.");
-            }
+            TextUtil.requireNonBlank(expression, "expression no puede ser null ni blank");
+            Objects.requireNonNull(rootElement, "rootElement no puede ser null");
             if (expression.startsWith("//") && (allowRootExpresion==false)) {
                 throw new IllegalArgumentException("expression no puede empezar por //:" + expression);
             }
@@ -249,12 +246,8 @@ public class XMLUtil {
     
     public static Optional<Element> getElementFromEvaluateXPath(String expression, Element element) {
         try {
-            if (expression == null || expression.trim().isEmpty()) {
-                throw new IllegalArgumentException("expression no puede ser null o vacio.");
-            }
-            if (element == null) {
-                throw new IllegalArgumentException("element no puede ser null.");
-            }
+            TextUtil.requireNonBlank(expression, "expression no puede ser null ni blank");
+            Objects.requireNonNull(element, "element no puede ser null");
             if (expression.startsWith("//")) {
                 throw new IllegalArgumentException("expression no puede empezar por //:" + expression);
             }
