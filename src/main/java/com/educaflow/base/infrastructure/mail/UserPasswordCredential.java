@@ -1,18 +1,14 @@
 package com.educaflow.base.infrastructure.mail;
 
+import com.educaflow.base.util.TextUtil;
+
 
 public record UserPasswordCredential(String host, String userName, String password) {
 
     public UserPasswordCredential {
-        if (host == null || host.isBlank()) {
-            throw new IllegalArgumentException("host no puede ser null ni blank");
-        }
-        if (userName == null || userName.isBlank()) {
-            throw new IllegalArgumentException("userName no puede ser null ni blank");
-        }
-        if (password == null || password.isBlank()) {
-            throw new IllegalArgumentException("password no puede ser null ni blank");
-        }
+        TextUtil.requireNonBlank(host, "host no puede ser null ni blank");
+        TextUtil.requireNonBlank(userName, "userName no puede ser null ni blank");
+        TextUtil.requireNonBlank(password, "password no puede ser null ni blank");
     }
 
 }
