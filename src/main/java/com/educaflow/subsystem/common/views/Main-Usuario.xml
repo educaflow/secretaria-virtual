@@ -34,12 +34,12 @@
           canAttach="false" canBack="false" canBackOnSave="true" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="usuario" title="">
             <field name="code"         colSpan="6" required="true"/>
-            <field name="dni"          colSpan="6" required="true"/>
-            <field name="language"     colSpan="6"/>
-            <field name="nombre"       colSpan="6" required="true"/>
-            <field name="apellidos"    colSpan="6" required="true"/>
-            <field name="name"         colSpan="6" readonly="true"/>
             <field name="email"        colSpan="6"/>
+            <field name="dni"          colSpan="3" required="true"/>
+            <field name="nombre"       colSpan="4" required="true"/>
+            <field name="apellidos"    colSpan="5" required="true"/>
+            <field name="name"         colSpan="9" readonly="true"/>
+            <field name="language"     colSpan="3"/>
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
             <button name="btnDelete" title="Borrar" onClick="subsysCommon.Main@Usuario-btnDelete-action" css="btn-danger" colSpan="2" outline="true" showIf="(id != null) || (cid != null)"/>

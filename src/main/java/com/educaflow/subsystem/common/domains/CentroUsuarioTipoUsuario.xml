@@ -5,7 +5,7 @@
 
     <module name="common" package="com.educaflow.subsystem.common.db"/>
 
-    <entity name="CentroUsuarioTipoUsuario" repository="abstract">
+    <entity name="CentroUsuarioTipoUsuario">
         <many-to-one name="centroUsuario" ref="com.educaflow.subsystem.common.db.CentroUsuario"  title="Usuario centro"/>
         <many-to-one name="tipoUsuario"   ref="com.educaflow.subsystem.common.db.TipoUsuario"    title="Tipo usuario"/>
         <unique-constraint columns="centroUsuario,tipoUsuario"/>

@@ -36,11 +36,11 @@
           onNew="subsysCommon.Main@CentroUsuario-onNew-action"
           canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
         <panel name="Usuario" title="">
-            <field name="centro"  showIf="false"/>
-            <field name="usuario" colSpan="12"
+            <field name="usuario" colSpan="6"
                    readonlyIf="id != null"
                    grid-view="subsysCommon.Ref@Usuario-grid"
             />
+            <field name="centro"  showIf="false"/>
         </panel>
         <panel-related name="centroUsuarioTipoUsuario" title="Tipos de usuario" field="centroUsuarioTipoUsuario" colSpan="12"
                        grid-view="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-grid"
@@ -114,8 +114,8 @@
           onNew="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-onNew-action"
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="centroUsuarioTipoUsuario-datos-panel" title="">
+            <field name="tipoUsuario" colSpan="6"/>
             <field name="centroUsuario" showIf="false"/>
-            <field name="tipoUsuario" colSpan="12"/>
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
             <button name="btnDelete" title="Borrar" onClick="subsysCommon.Main@CentroUsuario.CentroUsuarioTipoUsuario-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid!=null)"/>
@@ -167,9 +167,9 @@
           onNew="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-onNew-action"
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="centroUsuarioCargo-datos-panel" title="">
-            <field name="centroUsuario" showIf="false"/>
-            <field name="cargo" colSpan="12"
+            <field name="cargo" colSpan="6"
                    domain="self.tipoUsuario IN (SELECT cut.tipoUsuario FROM com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario cut WHERE cut.centroUsuario = :centroUsuario)"/>
+            <field name="centroUsuario" showIf="false"/>
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false" >
             <button name="btnDelete" title="Borrar" onClick="subsysCommon.Main@CentroUsuario.CentroUsuarioCargo-btnDelete-action" css="btn-danger" colSpan="2"  outline="true" showIf="(id!=null) || (cid!=null)"/>
