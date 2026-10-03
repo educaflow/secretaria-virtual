@@ -137,8 +137,8 @@
           onNew="sysGestionCentro.Main@Centro.CentroUsuario-onNew-action"
           width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="centroUsuarioDatosPanel" title="">
+            <field name="usuario" colSpan="6" readonly="true"/>
             <field name="centro"  showIf="false"/>
-            <field name="usuario" colSpan="12" readonly="true"/>
         </panel>
         <panel-related name="centroUsuarioTipoUsuario" field="centroUsuarioTipoUsuario" title="Tipos de usuario" colSpan="12"
                        newButtonTitle="Añadir tipo de usuario"

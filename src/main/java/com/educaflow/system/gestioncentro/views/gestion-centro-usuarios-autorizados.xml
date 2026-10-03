@@ -31,10 +31,10 @@
           onNew="sysGestionCentro.OnNew@UsuarioAutorizado-action"
           canAttach="false" canDelete="true">
         <panel title="">
-            <field name="centro"      showIf="false"/>
-            <field name="curso"       showIf="false"/>
             <field name="dni"         colSpan="3" required="true"/>
             <field name="tipoUsuario" colSpan="6" required="true"/>
+            <field name="centro"      showIf="false"/>
+            <field name="curso"       showIf="false"/>
         </panel>
     </form>
 

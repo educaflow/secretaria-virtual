@@ -35,7 +35,7 @@
     </action-record>
 
     <action-record name="sysGestionCentro.DatosOnNew@Centro-action" model="com.educaflow.subsystem.common.db.Centro">
-        <field name="curso" expr="eval: java.time.LocalDate.now().getYear()"/>
+        <field name="curso" expr="eval: java.time.LocalDate.now(com.educaflow.base.util.Convert.defaultZoneId).getYear()"/>
     </action-record>
 
 </object-views>

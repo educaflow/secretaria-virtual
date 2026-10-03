@@ -2,7 +2,7 @@
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
 
-    <module name="gestion" package="com.educaflow.system.gestioncentro.db"/>
+    <module name="gestioncentro" package="com.educaflow.system.gestioncentro.db"/>
     <entity name="ViewGestionCentroImport" persistable="false">
         <many-to-one name="profesoresFile"       ref="com.axelor.meta.db.MetaFile" title="Fichero de profesores" transient="true"/>
         <string      name="profesoresConfigPath" transient="true" title="Config__!! profesores"/>
@@ -13,8 +13,8 @@
         <many-to-one name="familiaresFile"       ref="com.axelor.meta.db.MetaFile" title="Fichero de familiares" transient="true"/>
         <string      name="familiaresConfigPath" transient="true" title="Config__!! familiares"/>
         <string      name="familiaresSchemaPath" transient="true" title="Schema__!! familiares"/>
-        <string      name="importLog"            transient="true" title="Log__!! de importación"/>
-        <string      name="centroCode"            transient="true" title="Código centro"/>
+        <string      name="importLog"            transient="true" large="true" multiline="true" title="Log__!! de importación"/>
+        <many-to-one name="centro"               ref="com.educaflow.subsystem.common.db.Centro" title="Centro" transient="true"/>
     </entity>
 
 </domain-models>

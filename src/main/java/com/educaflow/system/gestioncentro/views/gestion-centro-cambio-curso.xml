@@ -30,7 +30,7 @@
                     onClick="sysGestionCentro.Main@ViewGestionCentroCambioCurso-Remote-cambiarCurso-action"
                     readonlyIf="nuevoCurso == null"
                     prompt="Se recalcularán los tipos de usuario de todos los usuarios registrados en el centro (profesor, exprofesor, alumno y exalumno). ¿Desea continuar?"
-                    colSpan="4"/>
+                    colSpan="4" colOffset="4"/>
         </panel>
         <panel colSpan="12" showIf="resultado">
             <field name="resultado" title="Resultado" readonly="true" widget="text" colSpan="12" height="8"/>
