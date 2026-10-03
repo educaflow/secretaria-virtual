@@ -6,7 +6,7 @@
     <module name="criptografia" package="com.educaflow.subsystem.criptografia.db"/>
 
     <entity name="Alias">
-        <string name="name" required="true" title="Nombre" max="255"/>
+        <string name="name" required="true" title="Nombre"/>
         <many-to-one name="dispositivoCriptografico" ref="com.educaflow.subsystem.criptografia.db.DispositivoCriptografico" required="true" title="Dispositivo criptográfico"/>
         <string name="info" title="Información del alias" large="true">
             <![CDATA[

@@ -12,7 +12,15 @@
         <boolean name="nombreTomadoDelUsuario" default="false" title="Nombre tomado del usuario" help="Indica si el nombre y los apellidos se copiaron de la ficha de un usuario al crear el certificado (y por tanto no se pueden cambiar) o los escribió el administrador"/>
         <enum name="tipoCertificado" ref="TipoUbicacionCertificado" required="true" title="Tipo de certificado"/>
         <many-to-one name="fichero" ref="com.axelor.meta.db.MetaFile" title="Fichero"/>
-        <string name="password" title="Contraseña"/>
+        <!-- encrypted="true":
+             - el cifrado en reposo solo se activa al definir encryption.password en la config privada; hasta entonces
+               el valor se guarda en claro;
+             - las filas existentes se cifran con la migración `database encrypt` de AOP;
+             - el valor se descifra al cargar, así que POST /ws/rest/<FQN>/search con fields lo sigue devolviendo, y eso
+               forma parte del PENDIENTE del endpoint REST de CLAUDE.md, sin resolver;
+             - no se ha puesto password="true" porque no tapa search y rompe el form (el valor llegaría vacío al
+               reabrirlo). -->
+        <string name="password" title="Contraseña" encrypted="true"/>
         <many-to-one name="dispositivoCriptografico" ref="com.educaflow.subsystem.criptografia.db.DispositivoCriptografico" title="Dispositivo criptográfico"/>
         <many-to-one name="alias" ref="com.educaflow.subsystem.criptografia.db.Alias" title="Alias" help="Es el 'nombre' que tiene el certificado dentro del dispositivo criptográfico"/>
         <string name="rutaClasspath" title="Ruta classpath__!!"/>
