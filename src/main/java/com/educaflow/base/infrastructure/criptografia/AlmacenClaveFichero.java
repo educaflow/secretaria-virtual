@@ -1,10 +1,12 @@
 package com.educaflow.base.infrastructure.criptografia;
 
 import com.educaflow.base.infrastructure.criptografia.impl.helper.CriptografiaUtil;
+import com.educaflow.base.util.TextUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 
 /**
  *
@@ -17,13 +19,9 @@ public class AlmacenClaveFichero implements AlmacenClave {
 
     public AlmacenClaveFichero(InputStream fileCertificate, String password) {
 
-        if (fileCertificate==null) {
-            throw new RuntimeException("El fileCertificate no puede ser null");
-        }
+        Objects.requireNonNull(fileCertificate, "fileCertificate no puede ser null");
 
-        if (password==null) {
-            throw new RuntimeException("El password no puede ser null");
-        }
+        TextUtil.requireNonBlank(password, "password no puede ser null ni blank");
 
         // Se lee el contenido en el constructor porque el almacén hay que leerlo más de una vez:
         // validar el password consume el InputStream y después hay que volver a leerlo para firmar.
@@ -44,9 +42,6 @@ public class AlmacenClaveFichero implements AlmacenClave {
         return new ByteArrayInputStream(contenidoCertificado);
     }
 
-    /**
-     * @return the password
-     */
     public String getPassword() {
         return password;
     }
