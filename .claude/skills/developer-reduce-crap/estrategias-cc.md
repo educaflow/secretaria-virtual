@@ -72,7 +72,7 @@ Solo para asserts de la aplicación (lo que "nunca debería darse"), **nunca** p
   ```java
   private static final List<Regla<CertificadoDigital>> REGLAS = List.of(
       new Regla<>("alias", "Falta el alias", c -> c.getAlias() == null),
-      new Regla<>("caducidad", "Caducado", c -> c.getCaducidad().isBefore(LocalDate.now())));
+      new Regla<>("caducidad", "Caducado", c -> c.getCaducidad().isBefore(LocalDate.now(Convert.defaultZoneId))));
   REGLAS.stream().filter(r -> r.falla(c)).forEach(r -> messages.add(r.campo(), r.mensaje()));
   ```
 - Cada predicado sigue probándose: un test por regla.

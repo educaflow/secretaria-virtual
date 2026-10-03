@@ -58,7 +58,7 @@ Separa el cálculo puro de los efectos secundarios: un método que calcula no de
 - **Puro:** cálculos, transformaciones, validaciones de formato y reglas de negocio. Recibe como parámetros todo lo que necesita y devuelve el resultado sin modificar estado externo.
 - **Impuro:** repositorios y base de datos, ficheros, red y correo, logging y métricas.
 
-La fecha/hora actual queda **fuera** de esta regla: llamar a `LocalDateTime.now()` allí donde se necesita es correcto y **MUST NOT** marcarse como violación. No hay que inyectar un reloj ni pasar la hora como parámetro.
+La fecha/hora actual queda **fuera** de esta regla: llamar a `LocalDateTime.now(Convert.defaultZoneId)` allí donde se necesita es correcto (siempre con la zona: ver `proyecto.md`, «Zona horaria») y **MUST NOT** marcarse como violación. No hay que inyectar un reloj ni pasar la hora como parámetro.
 
 **Violación:** un método que en el mismo cuerpo calcula el resultado y además lo persiste, envía el correo o escribe el fichero, de forma que el cálculo no se puede ejercitar por separado.
 

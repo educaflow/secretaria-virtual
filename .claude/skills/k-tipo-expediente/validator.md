@@ -71,7 +71,7 @@ Las reglas (`ValidationRule`) están en `com.educaflow.base.infrastructure.valid
 |---|---|
 | `Required()` | Campo obligatorio |
 | `Pattern("^...$")` | Regex sobre el valor |
-| `MinValue(v)` / `MaxValue(v)` | Rango sobre cualquier `Comparable` (enteros, decimales, fechas, horas); admite expresiones: `MaxValue(LocalDate.now().year)`, `MinValue(LocalDate.now(Convert.defaultZoneId).minusYears(1))` |
+| `MinValue(v)` / `MaxValue(v)` | Rango sobre cualquier `Comparable` (enteros, decimales, fechas, horas); admite expresiones: `MaxValue(LocalDate.now(Convert.defaultZoneId).year)`, `MinValue(LocalDate.now(Convert.defaultZoneId).minusYears(1))` |
 | `MinLength(n)` / `MaxLength(n)` | Longitud de texto |
 | `GreaterThan(model::getOtroCampo)` / `GreaterThanOrEqual` / `LessThan` / `LessThanOrEqual` | Comparación con otro campo `Comparable` del modelo |
 | `EqualTo(model::getOtroCampo)` / `NotEqualTo(model::getOtroCampo)` | Igualdad con otro campo del modelo |

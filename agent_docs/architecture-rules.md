@@ -19,7 +19,7 @@ Las reglas se derivan de la **arquitectura documentada**, NO de lo que el códig
 
 - **Ámbito de análisis:** las clases de producción del paquete `com.educaflow` **compiladas por este proyecto**.
   Quedan fuera del análisis los tests y todo lo que llegue empaquetado en un JAR de dependencia: el JAR `com.educaflow:EducaFlowBuildTools` comparte el paquete raíz `com.educaflow` y está en el classpath de test (lo usan los tests de `com.educaflow.tiposexpedientes`), pero son herramientas de tiempo de compilación, no código de la aplicación, y no se les aplica ninguna de estas reglas.
-- **Paquetes exentos:** `..expedientes..` y `..tramites..` tienen **arquitectura propia** (PhaseEventManager, view_models, carpetas en plural) y quedan fuera de todas las reglas: se excluyen del **sujeto** de cada regla y, en las reglas de dependencias/ciclos, también como **origen y destino** de las dependencias analizadas.
+- **Paquetes exentos:** `..expedientes..` y `..tramites..` tienen **arquitectura propia** (PhaseEventManager, view_models, carpetas en plural) y quedan fuera de todas las reglas salvo las que digan expresamente que se les aplican: se excluyen del **sujeto** de cada regla y, en las reglas de dependencias/ciclos, también como **origen y destino** de las dependencias analizadas.
 - **Marcas de cumplimiento** (apartado *Cumplimiento* de cada regla):
   - ✅ CUMPLE — el código la cumple hoy; el test se genera tal cual.
   - ⚠️ — cumplimiento previsible pero no verificado; el test se genera tal cual y puede fallar al ejecutar.
@@ -456,6 +456,20 @@ Solo se incluyen reglas genéricas **seguras** para este proyecto (ver la lista 
 - Mensaje: el de la regla predefinida.
 
 **Cumplimiento.** ❌ INCUMPLE (test congelado): usos de `System.out`/`System.err`/`printStackTrace()` repartidos por `base/infrastructure` y `base/util`. Limpiar progresivamente.
+
+### C29 — La zona horaria es siempre `Convert.defaultZoneId`, nunca la de la JVM
+
+**Contexto.** La zona de la JVM no es la de los centros: en un contenedor suele ser UTC y desplaza las fechas cerca de medianoche. La zona de la aplicación es la constante `Convert.defaultZoneId` (skill `k-code-quality`, `proyecto.md`, «Zona horaria»).
+
+**Decisión.** Toda fecha/hora «actual» y toda conversión entre un instante y una fecha/hora local se hace con `Convert.defaultZoneId`.
+
+**Verificación.**
+- Sujeto: todas las clases del ámbito de análisis, **incluidas** las de `..expedientes..` y `..tramites..` (no es una regla de estructura, así que la exención de esos paquetes no se aplica).
+- Condición: ninguna llama a `java.time.ZoneId.systemDefault()`, a `java.util.TimeZone.getDefault()`, a `java.util.Calendar.getInstance()` sin argumentos ni al método `now()` **sin argumentos** de `LocalDate`, `LocalDateTime`, `LocalTime`, `ZonedDateTime`, `OffsetDateTime`, `OffsetTime`, `Year`, `YearMonth` o `MonthDay` (todos de `java.time`).
+- Exenciones: la clase `com.educaflow.base.util.Convert`, dueña de la constante.
+- Mensaje: `La zona horaria de la aplicación es Convert.defaultZoneId: usar now(Convert.defaultZoneId) / atZone(Convert.defaultZoneId) en vez de la zona de la JVM`.
+
+**Cumplimiento.** ⚠️ cumplimiento previsible. Las expresiones `eval:` de las vistas XML no son bytecode y quedan fuera: en ellas la misma regla la recoge el skill `k-code-quality`.
 
 ---
 

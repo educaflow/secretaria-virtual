@@ -334,8 +334,8 @@ La acción `onInit` recibe el contexto de los `<search-fields>` y puede rellenar
 
 ```xml
 <action-record model="com.axelor.apps.crm.db.Lead" name="action.crm.chart.set.date">
-    <field name="toDateT"   expr="eval:LocalDate.now().atStartOfDay().withHour(23).withMinute(59)"/>
-    <field name="fromDateT" expr="eval:LocalDate.now().withDayOfMonth(1).withMonth(1).atStartOfDay()"/>
+    <field name="toDateT"   expr="eval:LocalDate.now(com.educaflow.base.util.Convert.defaultZoneId).atStartOfDay().withHour(23).withMinute(59)"/>
+    <field name="fromDateT" expr="eval:LocalDate.now(com.educaflow.base.util.Convert.defaultZoneId).withDayOfMonth(1).withMonth(1).atStartOfDay()"/>
 </action-record>
 ```
 

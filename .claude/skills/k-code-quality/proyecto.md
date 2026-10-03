@@ -44,6 +44,21 @@ Los `AxelorModule` los descubre y carga Axelor automáticamente al arrancar. Nun
 
 ---
 
+## Zona horaria
+
+Toda conversión entre un instante y una fecha/hora local, y todo «ahora», **MUST** usar la zona de la aplicación `Convert.defaultZoneId` (`com.educaflow.base.util.Convert`), en Java y en Kotlin.
+La zona del servidor (JVM) no es la del centro: en un contenedor suele ser UTC y desplaza las fechas cerca de medianoche.
+
+- ✅ CORRECTO: `LocalDate.now(Convert.defaultZoneId)`, `offsetDateTime.atZoneSameInstant(Convert.defaultZoneId).toLocalDate()`, `instant.atZone(Convert.defaultZoneId)`
+- ❌ INCORRECTO: `ZoneId.systemDefault()` (zona de la JVM, no la de la aplicación)
+- ❌ INCORRECTO: `LocalDate.now()`, `LocalDateTime.now()`, `Year.now()` (sin argumento usan la zona de la JVM)
+- ❌ INCORRECTO: `ZoneId.of("Europe/Madrid")` (duplica la constante; solo vive en `Convert`)
+- ❌ INCORRECTO: `TimeZone.getDefault()`, `Calendar.getInstance()` sin zona (misma causa)
+
+En los tests se aplica igual: el valor esperado se calcula con `Convert.defaultZoneId`, nunca con `ZoneId.systemDefault()` (el test pasaría en local y fallaría en un servidor con otra zona).
+
+---
+
 ## Análisis estático (Error Prone)
 
 - El código Java compila **sin warnings de Error Prone**: cada `warning: [Check]` que sale al compilar un fichero de `src/` es un defecto del cambio que lo produjo y se corrige en ese mismo cambio, no un aviso ignorable.

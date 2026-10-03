@@ -106,7 +106,7 @@ public TareaCorreo insert(TareaCorreo entidad) {
 
 private void fireActionRule_AsignarValoresIniciales(TareaCorreo entidad) {
     entidad.setEstado(EstadoTareaCorreo.PENDIENTE);
-    entidad.setFechaCreacion(LocalDateTime.now());
+    entidad.setFechaCreacion(LocalDateTime.now(Convert.defaultZoneId));
     entidad.setNumeroIntentos(0);
 }
 ```

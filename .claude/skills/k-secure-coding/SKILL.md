@@ -140,7 +140,7 @@ public AllowProperties allowPropertiesUpdate() {
 Asignación **incondicional**, sin guardas, dentro del cuerpo de la acción:
 
 ```java
-correo.setFechaCreacion(LocalDateTime.now());
+correo.setFechaCreacion(LocalDateTime.now(Convert.defaultZoneId));
 correo.setEstado(EstadoCorreo.PENDIENTE);
 correo.setCentro(expediente.getCentro());
 ```
