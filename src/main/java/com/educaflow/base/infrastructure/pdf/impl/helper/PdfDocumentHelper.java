@@ -60,13 +60,11 @@ public class PdfDocumentHelper {
 
 
     public static PdfConformance getPdfConformance(PdfDocument pdfDocument) {
-        if ((pdfDocument instanceof PdfADocument) == false) {
-            return null;
+        if (pdfDocument instanceof PdfADocument pdfADocument) {
+            return pdfADocument.getConformance();
         }
 
-        PdfADocument pdfADocument = (PdfADocument) pdfDocument;
-
-        return pdfADocument.getConformance();
+        return null;
     }
 
     public static void setPdfConformance(PdfDocument pdfDocument, PdfConformance pdfConformance) {
@@ -74,18 +72,17 @@ public class PdfDocumentHelper {
             Class<?> clazz = pdfDocument.getClass();
             Field field = null;
 
-            // Buscar en la jerarquía de clases hasta encontrar el campo
             while (clazz != null) {
                 try {
                     field = clazz.getDeclaredField("pdfConformance");
                     break;
                 } catch (NoSuchFieldException e) {
-                    clazz = clazz.getSuperclass(); // seguimos buscando en la superclase
+                    clazz = clazz.getSuperclass();
                 }
             }
 
             if (field == null) {
-                throw new RuntimeException("Campo 'conformance' no encontrado en la jerarquía de clases.");
+                throw new RuntimeException("Campo 'pdfConformance' no encontrado en la jerarquía de clases.");
             }
 
             field.setAccessible(true);

@@ -107,15 +107,7 @@ public class Convert {
                 EnumWidget annotation = field.getAnnotation(EnumWidget.class);
                 if (annotation != null) {
                     String title = annotation.title();
-                    if (title != null) {
-                        if (title.equalsIgnoreCase("")) {
-                            userString = TextUtil.humanize(enumName);
-                        } else {
-                            userString = title;
-                        }
-                    } else  {
-                        userString = TextUtil.humanize(enumName);
-                    }
+                    userString = title.isEmpty() ? TextUtil.humanize(enumName) : title;
                 } else {
                     userString = TextUtil.humanize(enumName);
                 }

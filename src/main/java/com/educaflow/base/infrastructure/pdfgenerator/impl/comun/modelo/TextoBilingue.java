@@ -2,8 +2,8 @@ package com.educaflow.base.infrastructure.pdfgenerator.impl.comun.modelo;
 
 import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Los hijos {@code <valenciano>} y {@code <castellano>} de un elemento. Un idioma que no está, o
@@ -44,13 +44,8 @@ public record TextoBilingue(String valenciano, String castellano) {
 
     /** Las expresiones de los inline de los dos idiomas, en orden de aparición. */
     public List<String> expresionesInline() {
-        List<String> expresiones = new ArrayList<>();
-        for (ExpresionInline inline : ExpresionInline.buscar(valenciano)) {
-            expresiones.add(inline.expresion());
-        }
-        for (ExpresionInline inline : ExpresionInline.buscar(castellano)) {
-            expresiones.add(inline.expresion());
-        }
-        return expresiones;
+        return Stream.concat(ExpresionInline.buscar(valenciano).stream(), ExpresionInline.buscar(castellano).stream())
+                .map(ExpresionInline::expresion)
+                .toList();
     }
 }

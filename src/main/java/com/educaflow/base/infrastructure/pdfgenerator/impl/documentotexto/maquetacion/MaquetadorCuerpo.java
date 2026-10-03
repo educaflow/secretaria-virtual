@@ -14,8 +14,8 @@ import com.educaflow.base.infrastructure.pdfgenerator.impl.documentotexto.modelo
 import com.educaflow.base.infrastructure.pdfgenerator.impl.documentotexto.modelo.Texto;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.documentotexto.visibilidad.ElementoVisible;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static com.educaflow.base.infrastructure.pdfgenerator.impl.documentotexto.maquetacion.MedidasTexto.ANCHO_CUERPO;
@@ -140,10 +140,9 @@ public final class MaquetadorCuerpo {
 
     /** La fila entera es un solo renglón: mide lo que su celda más alta y no se parte entre páginas. */
     private Renglon deFila(ElementoVisible fila, double x, double anchoColumna) {
-        List<List<Renglon>> celdas = new ArrayList<>();
-        for (int columna = 0; columna < fila.hijos().size(); columna++) {
-            celdas.add(renglones(fila.hijos().get(columna), x + columna * anchoColumna, anchoColumna));
-        }
+        List<List<Renglon>> celdas = IntStream.range(0, fila.hijos().size())
+                .mapToObj(columna -> renglones(fila.hijos().get(columna), x + columna * anchoColumna, anchoColumna))
+                .toList();
         double alto = celdas.stream().mapToDouble(MaquetadorCuerpo::alto).max().orElse(0);
         return new Renglon(alto, (lienzo, top) -> celdas.forEach(celda -> apilar(celda, lienzo, top)));
     }

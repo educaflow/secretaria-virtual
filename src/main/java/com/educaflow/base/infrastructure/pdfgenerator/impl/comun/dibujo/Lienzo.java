@@ -15,12 +15,10 @@ import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 
-/**
- * Las primitivas de dibujo sobre las páginas del PDF: líneas, rectángulos, texto, párrafos, imágenes,
- * casillas y campos de firma. Lleva el cursor vertical (el borde superior libre, en coordenadas PDF) y abre página
- * nueva cuando lo que viene no cabe en la banda que le deja el {@link MarcoPagina}.
- */
 public final class Lienzo {
+
+    /** Altura de la línea base dentro del renglón, medida desde su borde superior, en proporción al alto de línea. */
+    public static final double PROPORCION_LINEA_BASE = 0.82;
 
     private final PdfDocument pdf;
     private final Fuentes fuentes;
@@ -82,11 +80,10 @@ public final class Lienzo {
                 .moveText(x, y).showText(texto).endText();
     }
 
-    /** Dibuja un párrafo desde su borde superior; la línea base va al 82 % del alto de línea. */
     public void parrafo(Parrafo parrafo, double x, double yTop, double anchoMaximo, Alineacion alineacion) {
         double y = yTop;
         for (Linea linea : parrafo.lineas()) {
-            linea(linea, x, y - parrafo.altoLinea() * 0.82, anchoMaximo, alineacion);
+            linea(linea, x, y - parrafo.altoLinea() * PROPORCION_LINEA_BASE, anchoMaximo, alineacion);
             y -= parrafo.altoLinea();
         }
     }
@@ -108,7 +105,7 @@ public final class Lienzo {
     private static double desplazamiento(Linea linea, double anchoMaximo, Alineacion alineacion) {
         return switch (alineacion) {
             case IZQUIERDA, JUSTIFICADO -> 0;
-            case CENTRO -> (anchoMaximo - linea.ancho()) / 2;
+            case CENTRO -> (anchoMaximo - linea.anchoSinEspaciosFinales()) / 2;
             case DERECHA -> anchoMaximo - linea.anchoSinEspaciosFinales();
         };
     }
@@ -145,7 +142,6 @@ public final class Lienzo {
                 .createSignature(), pagina);
     }
 
-    /** La casilla de un check: recuadro y, si va marcada, un aspa. Mismos trazos que la casilla de siempre. */
     public void casilla(double x, double y, double lado, boolean marcada) {
         canvas.saveState().setLineWidth(0.6f).setStrokeColorGray(0f)
                 .rectangle(x + 0.3, y + 0.3, lado - 0.6, lado - 0.6).stroke().restoreState();

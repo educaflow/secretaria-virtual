@@ -32,16 +32,23 @@ final class DibujanteSeccion {
 
     private final Lienzo lienzo;
     private final Maquetador maquetador;
+    private final Maquetador maquetadorReservado;
 
-    DibujanteSeccion(Lienzo lienzo, Maquetador maquetador) {
+    /**
+     * @param maquetador          el de las secciones que se dibujan: los inline del título llevan el valor.
+     * @param maquetadorReservado el de las secciones reservadas: los inline del título quedan vacíos (no se evalúan).
+     */
+    DibujanteSeccion(Lienzo lienzo, Maquetador maquetador, Maquetador maquetadorReservado) {
         this.lienzo = lienzo;
         this.maquetador = maquetador;
+        this.maquetadorReservado = maquetadorReservado;
     }
 
     void dibujarCabecera(SeccionVisible seccion, char letra) {
         double anchoTexto = MedidasTabla.ancho(FULL - LETRA_EDGE) - 2 * PAD;
-        Parrafo valenciano = maquetador.parrafo(seccion.titulo().valenciano(), Fuente.SEMINEGRITA, TAMANYO, true, FACTOR_ALTO, anchoTexto);
-        Parrafo castellano = maquetador.parrafo(seccion.titulo().castellano(), Fuente.SEMINEGRITA_CURSIVA, TAMANYO, true, FACTOR_ALTO, anchoTexto);
+        Maquetador maq = seccion.reservada() ? maquetadorReservado : maquetador;
+        Parrafo valenciano = maq.parrafo(seccion.titulo().valenciano(), Fuente.SEMINEGRITA, TAMANYO, true, FACTOR_ALTO, anchoTexto);
+        Parrafo castellano = maq.parrafo(seccion.titulo().castellano(), Fuente.SEMINEGRITA_CURSIVA, TAMANYO, true, FACTOR_ALTO, anchoTexto);
         boolean ambos = !valenciano.vacio() && !castellano.vacio();
         double altoTexto = valenciano.alto() + castellano.alto() + (ambos ? GAP_IDIOMAS : 0);
         double alto = Math.max(ROW_SECCION, PAD_SUPERIOR + altoTexto + 0.049 * CM);

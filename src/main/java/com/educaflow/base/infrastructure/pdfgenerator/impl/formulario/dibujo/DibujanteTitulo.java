@@ -16,7 +16,6 @@ import static com.educaflow.base.infrastructure.pdfgenerator.impl.formulario.maq
 import static com.educaflow.base.infrastructure.pdfgenerator.impl.formulario.maquetacion.MedidasTabla.ROW_TITULO;
 import static com.educaflow.base.infrastructure.pdfgenerator.impl.formulario.maquetacion.MedidasTabla.TABLE_W;
 
-/** La fila de cabecera: el logo en su celda y el título bilingüe centrado, en mayúsculas. */
 final class DibujanteTitulo {
 
     private static final double TAMANYO = 11;

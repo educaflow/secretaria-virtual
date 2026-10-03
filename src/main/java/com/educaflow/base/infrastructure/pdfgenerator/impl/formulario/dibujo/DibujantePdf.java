@@ -13,10 +13,6 @@ import com.educaflow.base.infrastructure.pdfgenerator.impl.formulario.visibilida
 
 import java.util.List;
 
-/**
- * Dibuja un {@link DocumentoVisible} con sus {@link Valores} en un PDF plano: título, y por cada
- * sección su cabecera con letra correlativa (A, B, C…) y las líneas de sus filas.
- */
 public final class DibujantePdf {
 
     private DibujantePdf() {
@@ -27,7 +23,7 @@ public final class DibujantePdf {
             Maquetador maquetador = new Maquetador(fuentes, valores::texto, MedidasTabla.ESTILO_VALOR);
             Maquetador maquetadorReservado = new Maquetador(fuentes, expresion -> "", MedidasTabla.ESTILO_VALOR);
             DibujanteTitulo titulo = new DibujanteTitulo(lienzo, maquetador);
-            DibujanteSeccion seccion = new DibujanteSeccion(lienzo, maquetador);
+            DibujanteSeccion seccion = new DibujanteSeccion(lienzo, maquetador, maquetadorReservado);
             DibujanteLinea linea = new DibujanteLinea(lienzo, maquetador, maquetadorReservado, valores);
 
             documento.titulo().ifPresent(titulo::dibujar);

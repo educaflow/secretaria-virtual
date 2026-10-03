@@ -12,7 +12,6 @@ import com.educaflow.base.infrastructure.pdfgenerator.impl.formulario.maquetacio
 import com.educaflow.base.infrastructure.pdfgenerator.impl.formulario.maquetacion.MedidasTabla;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.formulario.modelo.Celda;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.educaflow.base.infrastructure.pdfgenerator.impl.comun.dibujo.MedidasPagina.CM;
@@ -61,7 +60,6 @@ final class DibujanteLinea {
         this.valores = valores;
     }
 
-    /** Una celda ya maquetada: sus párrafos y lo que necesita de alto. */
     private record CeldaMaquetada(CeldaUbicada ubicada, Parrafo etiqueta, Parrafo valenciano, Parrafo castellano,
                                   Parrafo valor, double altoControl, double gapIdiomas, double alto) {
 
@@ -80,13 +78,8 @@ final class DibujanteLinea {
     }
 
     void dibujar(List<CeldaUbicada> linea, boolean sinBordeSuperior, boolean sinBordeInferior) {
-        List<CeldaMaquetada> celdas = new ArrayList<>();
-        double altoLinea = 0;
-        for (CeldaUbicada ubicada : linea) {
-            CeldaMaquetada maquetada = maquetar(ubicada);
-            celdas.add(maquetada);
-            altoLinea = Math.max(altoLinea, maquetada.alto());
-        }
+        List<CeldaMaquetada> celdas = linea.stream().map(this::maquetar).toList();
+        double altoLinea = celdas.stream().mapToDouble(CeldaMaquetada::alto).max().orElse(0);
 
         lienzo.asegurarEspacio(altoLinea);
         double top = lienzo.cursorY();
@@ -151,8 +144,13 @@ final class DibujanteLinea {
         Celda celda = ubicada.celda();
         double anchoTexto = ubicada.ancho() - CHECK_COL_W - CHECK_LABEL_GAP - PAD;
         double extra = (celda.rowSpan() - 1) * EXTRA_H;
-        Parrafo valenciano = maq.parrafo(celda.textos().valenciano(), Fuente.REGULAR, TAMANYO_ETIQUETA, false, FACTOR_ALTO_TEXTO, anchoTexto);
-        Parrafo castellano = maq.parrafo(celda.textos().castellano(), Fuente.CURSIVA, TAMANYO_ETIQUETA, false, FACTOR_ALTO_TEXTO, anchoTexto);
+        boolean cabeEtiqueta = ubicada.unidades() > 100;
+        Parrafo valenciano = cabeEtiqueta
+                ? maq.parrafo(celda.textos().valenciano(), Fuente.REGULAR, TAMANYO_ETIQUETA, false, FACTOR_ALTO_TEXTO, anchoTexto)
+                : Parrafo.VACIO;
+        Parrafo castellano = cabeEtiqueta
+                ? maq.parrafo(celda.textos().castellano(), Fuente.CURSIVA, TAMANYO_ETIQUETA, false, FACTOR_ALTO_TEXTO, anchoTexto)
+                : Parrafo.VACIO;
         // separación amplia si lleva inline (para que sus huecos no se toquen), estrecha si es solo texto
         double gapIdiomas = (celda.textos().tieneInline() ? 0.2 : 0.06) * CM;
         double alto = Math.max(ROW_CHECK + extra, CeldaMaquetada.altoTextos(valenciano, castellano, gapIdiomas) + 2 * PAD);
@@ -185,7 +183,6 @@ final class DibujanteLinea {
             lienzo.parrafo(celda.etiqueta(), x + PAD, top - LABEL_PAD_TOP, anchoCelda - 2 * PAD, Alineacion.IZQUIERDA);
             baseControl = top - altoLinea + 0.03 * CM;
         }
-        // el valor, centrado verticalmente en su hueco
         double topValor = baseControl + celda.altoControl() - (celda.altoControl() - celda.valor().alto()) / 2;
         lienzo.parrafo(celda.valor(), x + PAD + PAD_VALOR, topValor, anchoValor(anchoCelda), Alineacion.IZQUIERDA);
     }
@@ -194,9 +191,6 @@ final class DibujanteLinea {
         double x = celda.ubicada().x();
         boolean marcada = valores.marcada(celda.celda().nombreCampo().orElseThrow());
         lienzo.casilla(x + CHECK_COL_W - CHECK_SIDE, top - altoLinea / 2 - CHECK_SIDE / 2, CHECK_SIDE, marcada);
-        if (celda.ubicada().unidades() <= 100) {
-            return; // una casilla de una sola columna no tiene sitio para etiqueta
-        }
         double xTexto = x + CHECK_COL_W + CHECK_LABEL_GAP;
         double anchoTexto = celda.ubicada().ancho() - CHECK_COL_W - CHECK_LABEL_GAP - PAD;
         double y = top - (altoLinea - celda.altoTextos()) / 2;

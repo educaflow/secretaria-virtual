@@ -32,8 +32,7 @@ public final class ResolutorPresencia {
     }
 
     public DocumentoTextoVisible resolver(DocumentoTexto documento) {
-        List<Visibilidad> nivel = new ArrayList<>();
-        documento.cuerpo().forEach(bloque -> nivel.add(bloque.visibilidad()));
+        List<Visibilidad> nivel = documento.cuerpo().stream().map(Elemento::visibilidad).toList();
 
         return new DocumentoTextoVisible(documento.titulo(),
                 elementos(documento.cuerpo(), evaluar(nivel)));

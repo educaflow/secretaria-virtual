@@ -6,6 +6,5 @@ public enum TipoCelda {
     CAMPO,
     /** Casilla marcada según el {@code Boolean} de {@code nombreCampo} y su etiqueta al lado. */
     CHECK,
-    /** Solo texto. */
     TEXTO
 }

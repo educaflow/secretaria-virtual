@@ -17,12 +17,6 @@ import java.util.Optional;
  * Controlador genérico válido para cualquier entidad: resuelve la entidad a partir del
  * {@code _model} del contexto del request, por lo que las acciones XML que lo invocan
  * (en {@code DefaultModelController.xml}) son globales y no llevan atributo {@code model}.
- *
- * <p>Solo expone la validación remota previa a {@code save}/{@code delete}
- * ({@code validateInsert}/{@code validateUpdate}/{@code validateRemove} del
- * {@link ModelService} de la entidad), sin persistir nada: la persistencia sigue siendo
- * de las acciones predefinidas del framework. Las acciones custom de cada entidad van en
- * su propio {@code <NombreEntidad>Controller}, no aquí.</p>
  */
 public class DefaultModelController {
 
@@ -42,7 +36,7 @@ public class DefaultModelController {
             Model entidad = actionRequestHelper.getModel(modelService.allowPropertiesInsert());
             result = modelService.validateInsert(entidad);
         } else {
-            /// Importante: No cambiar el orden
+            // getModel vuelca el JSON sobre la misma instancia gestionada que devuelve find(id): el original se clona antes para que no recoja esos cambios.
             Model original = actionRequestHelper.getOriginalModel();
             Model entidad = actionRequestHelper.getModel(modelService.allowPropertiesUpdate());
             result = modelService.validateUpdate(entidad, original);

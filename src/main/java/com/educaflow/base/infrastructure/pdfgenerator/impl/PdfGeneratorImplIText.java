@@ -22,7 +22,6 @@ import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
 
-/** Generación con iText del XML resuelto. */
 public class PdfGeneratorImplIText implements PdfGenerator {
 
     private static final String FORMULARIO = "documentoFormulario";

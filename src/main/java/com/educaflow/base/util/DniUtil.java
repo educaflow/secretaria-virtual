@@ -123,13 +123,10 @@ public class DniUtil {
         if (PATTERN_DNI.matcher(dni).matches()) {
             String sNumero = dni.substring(0, 8);
             int numero = Integer.parseInt(sNumero);
-            int calculoDC = numero % 23;
-            if (calculoDC + 1 > 23) {
-                return false;
-            }
-            if (dni.charAt(8) == arrLettersDcDni[calculoDC]) {
+            char dc=arrLettersDcDni[numero % 23];
+            if (dni.charAt(8) == dc) {
                 if (dni.equalsIgnoreCase("00000001R") || dni.equalsIgnoreCase("00000000T") || dni.equalsIgnoreCase("99999999R")) {
-                    //La EAET permite estos NIFs
+                    // Se rechazan: son NIFs de prueba que la AEAT admite pero que no pertenecen a nadie.
                     return false;
                 }
                 return true;
@@ -147,12 +144,8 @@ public class DniUtil {
             } else if (dni.charAt(0) == 'Z') {
                 numero += 20000000;
             }
-            int calculoDC = numero % 23;
-            calculoDC += 1;
-            if (calculoDC > 23) {
-                return false;
-            }
-            if (dni.charAt(8) == arrLettersDcDni[(calculoDC - 1)]) {
+            char dc=arrLettersDcDni[numero % 23];
+            if (dni.charAt(8) == dc) {
                 if (dni.equals("X0000000T")) {
                     //Este dni nunca existe
                     return false;
@@ -174,12 +167,8 @@ public class DniUtil {
 
             sNumero = dni.substring(1, 8);
             numero = Integer.parseInt(sNumero);
-            int calculoDC = numero % 23;
-            calculoDC += 1;
-            if (calculoDC > 23) {
-                return false;
-            }
-            if (dni.charAt(8) == arrLettersDcDni[calculoDC - 1]) {
+            char dc=arrLettersDcDni[numero % 23];
+            if (dni.charAt(8) == dc) {
                 return true;
             }
 

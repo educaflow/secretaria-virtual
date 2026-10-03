@@ -2,10 +2,9 @@ package com.educaflow.base.infrastructure.pdfgenerator.impl.formulario.modelo;
 
 import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.modelo.TextoBilingue;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /** El XML resuelto de un documento, tal cual lo define su autor: sin evaluar nada todavía. */
 public record Documento(Optional<TextoBilingue> titulo, List<Seccion> secciones) {
@@ -15,19 +14,18 @@ public record Documento(Optional<TextoBilingue> titulo, List<Seccion> secciones)
      * {@code visible}), sin duplicados y en orden de aparición.
      */
     public List<String> expresiones() {
-        LinkedHashSet<String> expresiones = new LinkedHashSet<>();
-        titulo.ifPresent(t -> expresiones.addAll(t.expresionesInline()));
-        for (Seccion seccion : secciones) {
-            seccion.visibilidad().expresion().ifPresent(expresiones::add);
-            expresiones.addAll(seccion.titulo().expresionesInline());
-            for (Fila fila : seccion.filas()) {
-                fila.visibilidad().expresion().ifPresent(expresiones::add);
-                for (Celda celda : fila.celdas()) {
-                    celda.visibilidad().expresion().ifPresent(expresiones::add);
-                    expresiones.addAll(celda.expresionesDeValor());
-                }
-            }
-        }
-        return new ArrayList<>(expresiones);
+        Stream<String> deLasSecciones = secciones.stream()
+                .flatMap(seccion -> Stream.of(
+                                seccion.visibilidad().expresion().stream(),
+                                seccion.titulo().expresionesInline().stream(),
+                                seccion.filas().stream().flatMap(fila -> Stream.concat(
+                                        fila.visibilidad().expresion().stream(),
+                                        fila.celdas().stream().flatMap(celda -> Stream.concat(
+                                                celda.visibilidad().expresion().stream(),
+                                                celda.expresionesDeValor().stream())))))
+                        .flatMap(expresiones -> expresiones));
+        return Stream.concat(titulo.stream().flatMap(t -> t.expresionesInline().stream()), deLasSecciones)
+                .distinct()
+                .toList();
     }
 }

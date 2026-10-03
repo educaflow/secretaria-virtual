@@ -22,10 +22,9 @@ public class IbanUtil {
             return false;
         }
 
-        // Mueve los 4 primeros caracteres (país + dígitos de control) al final
+        // ISO 13616: país y dígitos de control al final, cada letra como A=10..Z=35, y el resultado módulo 97 debe dar 1.
         String reordenado = val.substring(4) + val.substring(0, 4);
 
-        // Sustituye cada letra por su valor numérico (A=10 ... Z=35)
         StringBuilder numerico = new StringBuilder(reordenado.length() * 2);
         for (int i = 0; i < reordenado.length(); i++) {
             char c = reordenado.charAt(i);

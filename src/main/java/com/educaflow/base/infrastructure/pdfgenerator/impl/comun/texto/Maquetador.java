@@ -30,7 +30,6 @@ public final class Maquetador {
         this.estiloValorInline = estiloValorInline;
     }
 
-    /** El párrafo de un texto; {@link Parrafo#VACIO} si el texto está vacío. */
     public Parrafo parrafo(String texto, Fuente fuente, double tamanyo, boolean mayusculas,
                            double factorAlto, double anchoMaximo) {
         if (texto.isEmpty()) {

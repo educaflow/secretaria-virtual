@@ -1,6 +1,7 @@
 package com.educaflow.base.infrastructure.mapper;
 
 import com.axelor.db.ValueEnum;
+import com.educaflow.base.util.Convert;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -97,7 +98,11 @@ public class ScalarMapper{
             return i;
         }
         if (obj instanceof Long l) {
-            return l.intValue();
+            try {
+                return Math.toIntExact(l);
+            } catch (ArithmeticException e) {
+                throw new IllegalArgumentException("Cannot convert " + obj + " to int");
+            }
         }
         if (obj instanceof String string) {
             try {
@@ -167,7 +172,7 @@ public class ScalarMapper{
         if (obj instanceof String string) {
             try {
                 OffsetDateTime offsetDateTime = OffsetDateTime.parse(string);
-                return offsetDateTime.toLocalDate();
+                return offsetDateTime.atZoneSameInstant(Convert.defaultZoneId).toLocalDate();
             } catch (DateTimeParseException e) {
                 try {
                     return LocalDate.parse(string);
@@ -205,9 +210,9 @@ public class ScalarMapper{
         }
         if (obj instanceof String string) {
             try {
-                // Primero intentamos parsear como OffsetDateTime para manejar la zona horaria.
+                // A la zona de la aplicación: el front manda los datetime en UTC.
                 OffsetDateTime offsetDateTime = OffsetDateTime.parse(string);
-                return offsetDateTime.toLocalDateTime();
+                return offsetDateTime.atZoneSameInstant(Convert.defaultZoneId).toLocalDateTime();
             } catch (DateTimeParseException e) {
                 try {
                     return LocalDateTime.parse(string);

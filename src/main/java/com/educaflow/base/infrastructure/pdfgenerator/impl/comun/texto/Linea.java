@@ -1,6 +1,7 @@
 package com.educaflow.base.infrastructure.pdfgenerator.impl.comun.texto;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 /**
  * Una línea de un párrafo ya ajustado: sus tokens colocados y el ancho total que ocupan.
@@ -11,13 +12,9 @@ public record Linea(List<TokenColocado> tokens, double ancho, boolean finalDePar
 
     /** Los espacios que separan palabras: los que cierran la línea no la ensanchan. */
     public int espaciosInteriores() {
-        int espacios = 0;
-        for (int i = 0; i < ultimoNoEspacio(); i++) {
-            if (tokens.get(i).token().tipo() == TipoToken.ESPACIO) {
-                espacios++;
-            }
-        }
-        return espacios;
+        return (int) IntStream.range(0, ultimoNoEspacio())
+                .filter(i -> tokens.get(i).token().tipo() == TipoToken.ESPACIO)
+                .count();
     }
 
     /** El ancho de la línea sin los espacios que la cierran. */

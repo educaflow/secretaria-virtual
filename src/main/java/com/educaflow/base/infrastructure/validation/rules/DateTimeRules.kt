@@ -2,6 +2,7 @@ package com.educaflow.base.infrastructure.validation.rules
 
 import com.educaflow.base.infrastructure.validation.engine.ValidationRule
 import com.axelor.db.modelservice.BusinessMessages
+import com.axelor.i18n.I18n
 import com.educaflow.base.util.Convert
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -11,7 +12,7 @@ class Past : ValidationRule {
     override fun validate(value: Any?, bean: Any): BusinessMessages? {
         val date = toLocalDateOrNull(value) ?: return null
         val today = LocalDate.now(Convert.defaultZoneId)
-        return if (!date.isBefore(today)) BusinessMessages.single("La fecha debe ser anterior a hoy") else null
+        return if (!date.isBefore(today)) BusinessMessages.single(I18n.get("La fecha debe ser anterior a hoy")) else null
     }
 }
 
@@ -19,7 +20,7 @@ class PastOrToday : ValidationRule {
     override fun validate(value: Any?, bean: Any): BusinessMessages? {
         val date = toLocalDateOrNull(value) ?: return null
         val today = LocalDate.now(Convert.defaultZoneId)
-        return if (date.isAfter(today)) BusinessMessages.single("La fecha debe ser hoy o en el pasado") else null
+        return if (date.isAfter(today)) BusinessMessages.single(I18n.get("La fecha debe ser hoy o en el pasado")) else null
     }
 }
 
@@ -27,7 +28,7 @@ class Future : ValidationRule {
     override fun validate(value: Any?, bean: Any): BusinessMessages? {
         val date = toLocalDateOrNull(value) ?: return null
         val today = LocalDate.now(Convert.defaultZoneId)
-        return if (!date.isAfter(today)) BusinessMessages.single("La fecha debe ser posterior a hoy") else null
+        return if (!date.isAfter(today)) BusinessMessages.single(I18n.get("La fecha debe ser posterior a hoy")) else null
     }
 }
 
@@ -35,7 +36,7 @@ class FutureOrToday : ValidationRule {
     override fun validate(value: Any?, bean: Any): BusinessMessages? {
         val date = toLocalDateOrNull(value) ?: return null
         val today = LocalDate.now(Convert.defaultZoneId)
-        return if (date.isBefore(today)) BusinessMessages.single("La fecha debe ser hoy o en el futuro") else null
+        return if (date.isBefore(today)) BusinessMessages.single(I18n.get("La fecha debe ser hoy o en el futuro")) else null
     }
 }
 

@@ -345,17 +345,17 @@ public class DatosCertificadoImpl implements DatosCertificado {
     
     private void populateDatosComunesCertificadoRepresentacionFNMT() {
         try {
-            dni = CertificateParser.getDNIFromIDCES(getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, "1.3.6.1.4.1.5734.1.4")));
+            dni = CertificateParser.getDNIFromIDCES(getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, OID_DNI_FNMT)));
         } catch (Exception ex) {
             //Si falla algo se quedan los datos sin cargar
         }
         try {
-            nombre = getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, "1.3.6.1.4.1.5734.1.1"));
+            nombre = getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, OID_NOMBRE_FNMT));
         } catch (Exception ex) {
             //Si falla algo se quedan los datos sin cargar
         }
         try {
-            apellidos = Stream.of(getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, "1.3.6.1.4.1.5734.1.2")), getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, "1.3.6.1.4.1.5734.1.3"))).filter(Objects::nonNull).collect(Collectors.joining(" ")).trim();
+            apellidos = Stream.of(getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, OID_APE1_FNMT)), getOnlyValueInMap(CertificateParser.findOidsWithLocation(certificate, OID_APE2_FNMT))).filter(Objects::nonNull).collect(Collectors.joining(" ")).trim();
         } catch (Exception ex) {
             //Si falla algo se quedan los datos sin cargar
         }

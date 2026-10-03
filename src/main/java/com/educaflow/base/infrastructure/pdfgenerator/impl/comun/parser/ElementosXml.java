@@ -19,13 +19,11 @@ public final class ElementosXml {
         return Visibilidad.de(e.getAttribute("visible"), e.getAttribute("siOculto"));
     }
 
-    /** El nombre del campo de firma vacío que el elemento deja en su hueco, si lleva {@code campoFirma}. */
     public static Optional<String> campoFirma(Element e) {
         String nombre = e.getAttribute("campoFirma");
         return nombre.isEmpty() ? Optional.empty() : Optional.of(nombre);
     }
 
-    /** Un atributo booleano del XML: ausente es {@code false}, y cualquier otro valor aborta. */
     public static boolean booleano(Element e, String atributo) {
         String valor = e.getAttribute(atributo);
         return switch (valor) {
@@ -41,12 +39,11 @@ public final class ElementosXml {
     }
 
     public static String textoHijo(Element e, String nombre) {
-        for (Element hijo : hijos(e)) {
-            if (hijo.getTagName().equals(nombre)) {
-                return hijo.getTextContent().trim();
-            }
-        }
-        return "";
+        return hijos(e).stream()
+                .filter(hijo -> hijo.getTagName().equals(nombre))
+                .findFirst()
+                .map(hijo -> hijo.getTextContent().trim())
+                .orElse("");
     }
 
     public static List<Element> hijos(Element e) {

@@ -8,7 +8,6 @@ import com.itextpdf.kernel.pdf.PdfWriter;
 import java.io.ByteArrayOutputStream;
 import java.util.function.BiConsumer;
 
-/** Abre un PDF con las fuentes del proyecto y devuelve los bytes de lo que se dibuje en su {@link Lienzo}. */
 public final class PdfDibujado {
 
     private PdfDibujado() {

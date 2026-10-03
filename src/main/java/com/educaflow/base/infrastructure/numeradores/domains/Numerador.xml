@@ -7,11 +7,18 @@
     <sequence name="numerador.seq" initial="1" increment="1"  />
 
     <entity name="Numerador"  jsonAttrs="false"  repository="none" sequential="true" extends="com.axelor.db.Model">
+        <!-- Excepción deliberada a la REGLA CRÍTICA de k-sistemas/modelos.md: se MANTIENEN los required.
+             Motivos:
+             - Solo escribe esta entidad NumeradorRepository, con un INSERT nativo ... ON CONFLICT que trae todos los
+               valores: nunca pasa por Resource.save, y NumeradorServiceImpl deniega todas las propiedades.
+             - Los NOT NULL de tipoNumerador, centro y anyo son imprescindibles porque PostgreSQL no compara NULL en el
+               unique-constraint, y sin ellos se repetirían números.
+             - ultimoNumero siempre se inserta con 1. -->
         <long name="id" title="ID" primary-key="true" required="true" sequence="numerador.seq" />
         <enum name="tipoNumerador" title="Tipo de número" ref="TipoNumerador" required="true" />
         <string name="centro" required="true" />
         <string name="anyo" title="Año"  required="true" />
-        <long name="ultimo_numero" title="Último número" required="true"  />
+        <long name="ultimoNumero" title="Último número" required="true"  />
 
         <unique-constraint columns="tipoNumerador,centro,anyo" />
     </entity>

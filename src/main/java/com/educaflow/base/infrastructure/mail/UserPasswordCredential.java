@@ -11,4 +11,8 @@ public record UserPasswordCredential(String host, String userName, String passwo
         TextUtil.requireNonBlank(password, "password no puede ser null ni blank");
     }
 
+    @Override
+    public String toString() {
+        return "UserPasswordCredential[host=" + host + ", userName=" + userName + ", password=****]";
+    }
 }

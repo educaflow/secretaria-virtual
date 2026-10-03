@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
 
 @ScriptAllowed
 public class MetaFileUtil {
@@ -87,31 +86,6 @@ public class MetaFileUtil {
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
-    }
-
-    /**
-     * Método para obtener el MetaFile de forma segura.
-     * Axelor a veces envía el objeto y otras un Map con el ID.
-     */
-    public static MetaFile getMetaFile(Object obj) {
-        if (obj == null) return null;
-
-        if (obj instanceof MetaFile metaFile) {
-            return metaFile;
-        }
-
-        if (obj instanceof Map) {
-            try {
-                Object idObj = ((Map<?, ?>) obj).get("id");
-                if (idObj != null) {
-                    Long id = Long.valueOf(idObj.toString());
-                    return Beans.get(MetaFileRepository.class).find(id);
-                }
-            } catch (Exception e) {
-                logger.error("No se pudo recuperar el ID del MetaFile desde el mapa del contexto", e);
-            }
-        }
-        return null;
     }
 
     public static void delete(MetaFile file) {

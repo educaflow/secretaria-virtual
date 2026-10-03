@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class BusinessMessageHelper {
 
-    public static String KEY_MAP_ERROR_MENSAJES="errorMensajes";
+    public static final String KEY_MAP_ERROR_MENSAJES="errorMensajes";
 
     public static Map<String,List<Map<String,String>>> getAsMap(BusinessMessages businessMessages) {
         List<Map<String,String>> errorMensajes=getAsList(businessMessages);

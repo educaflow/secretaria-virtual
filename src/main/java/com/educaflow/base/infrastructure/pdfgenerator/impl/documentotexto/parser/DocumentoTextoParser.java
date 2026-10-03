@@ -67,33 +67,31 @@ public final class DocumentoTextoParser {
     }
 
     private Lista lista(Element e) {
-        List<Texto> items = new ArrayList<>();
-        for (Element hijo : hijos(e)) {
-            if (!hijo.getTagName().equals("item")) {
-                throw new RuntimeException("<" + hijo.getTagName() + "> desconocido dentro de <lista>");
-            }
-            items.add(texto(hijo, TipoTexto.ITEM));
-        }
-        return new Lista(List.copyOf(items), visibilidad(e));
+        List<Texto> items = hijos(e).stream()
+                .map(hijo -> {
+                    if (!hijo.getTagName().equals("item")) {
+                        throw new RuntimeException("<" + hijo.getTagName() + "> desconocido dentro de <lista>");
+                    }
+                    return texto(hijo, TipoTexto.ITEM);
+                })
+                .toList();
+        return new Lista(items, visibilidad(e));
     }
 
     private Tabla tabla(Element e) {
-        List<Fila> filas = new ArrayList<>();
-        for (Element hijo : hijos(e)) {
-            if (!hijo.getTagName().equals("fila")) {
-                throw new RuntimeException("<" + hijo.getTagName() + "> desconocido dentro de <tabla>");
-            }
-            filas.add(fila(hijo));
-        }
-        return new Tabla(Integer.parseInt(e.getAttribute("columnas")), List.copyOf(filas), visibilidad(e));
+        List<Fila> filas = hijos(e).stream()
+                .map(hijo -> {
+                    if (!hijo.getTagName().equals("fila")) {
+                        throw new RuntimeException("<" + hijo.getTagName() + "> desconocido dentro de <tabla>");
+                    }
+                    return fila(hijo);
+                })
+                .toList();
+        return new Tabla(Integer.parseInt(e.getAttribute("columnas")), filas, visibilidad(e));
     }
 
     private Fila fila(Element e) {
-        List<Bloque> celdas = new ArrayList<>();
-        for (Element hijo : hijos(e)) {
-            celdas.add(celda(hijo));
-        }
-        return new Fila(List.copyOf(celdas), visibilidad(e));
+        return new Fila(hijos(e).stream().map(this::celda).toList(), visibilidad(e));
     }
 
     private Bloque celda(Element e) {

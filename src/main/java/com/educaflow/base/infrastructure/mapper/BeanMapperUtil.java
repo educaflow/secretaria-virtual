@@ -6,9 +6,11 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import java.lang.reflect.Field;
+import java.util.Objects;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 
 public class BeanMapperUtil {
 
@@ -64,9 +66,9 @@ public class BeanMapperUtil {
     }
 
 
-    public static Object findInCollectionById(Collection<?> collection, Long id) {
+    public static Optional<Object> findInCollectionById(Collection<?> collection, Long id) {
         if (collection == null || collection.isEmpty() || id == null) {
-            return null;
+            return Optional.empty();
         }
 
         for (Object model : collection) {
@@ -75,11 +77,11 @@ public class BeanMapperUtil {
             }
 
             if (id.equals(getId(model))) {
-                return model;
+                return Optional.of(model);
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
     public static Object removeInCollectionById(Collection<?> collection,Long id) {
@@ -106,9 +108,7 @@ public class BeanMapperUtil {
     public static Long getId(Object object) {
         Long id;
 
-        if (object==null) {
-            throw  new IllegalArgumentException("Object is null");
-        }
+        Objects.requireNonNull(object, "object no puede ser null");
 
         if (object instanceof Model model) {
             id = model.getId();

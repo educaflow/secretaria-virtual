@@ -55,12 +55,9 @@ public class BeanMapperModel {
                 return null;
             }
 
-            if (clazz != null && clazz.getName().startsWith("com.axelor.meta.db.")) {
-                //return entity;
-            }
-
-            if (instanceModelList.existsInstance(clazz, entity.getId())) {
-                return instanceModelList.getInstance(clazz, entity.getId());
+            Optional<Model> instancia = instanceModelList.getInstance(clazz, entity.getId());
+            if (instancia.isPresent()) {
+                return instancia.get();
             }
 
 
@@ -100,7 +97,6 @@ public class BeanMapperModel {
                 } else if (ScalarMapper.isScalarType(propertyDescriptor.getPropertyType())) {
                     Object rawValue = PropertyUtils.getProperty(entity, propertyDescriptor.getName());
 
-                    //Obtener valor real
                     Object value = ScalarMapper.getScalarFromObject(rawValue, propertyDescriptor.getPropertyType());
 
                     PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), value);
@@ -108,7 +104,7 @@ public class BeanMapperModel {
 
             }
 
-            instanceModelList.addInstanceModel(clazz,entity);
+            instanceModelList.addInstanceModel(clazz,entityDest);
 
             for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
                 if (propertyDescriptor.getWriteMethod() == null) {
@@ -228,7 +224,6 @@ public class BeanMapperModel {
         } else if (ScalarMapper.isScalarType(propertyDescriptor.getPropertyType())) {
             Object rawValue = entityMap.get(propertyDescriptor.getName());
 
-            //Obtener valor real
             Object value = ScalarMapper.getScalarFromObject(rawValue, propertyDescriptor.getPropertyType());
 
             PropertyUtils.setProperty(entityDest, propertyDescriptor.getName(), value);
@@ -285,8 +280,8 @@ public class BeanMapperModel {
     }
 
     private boolean isOtherModel(Map<String, Object> rawValue, Model valueDest) {
-        Object rawValueId = rawValue.get("id");
-        return (rawValueId != null) && !Long.valueOf(((Number) rawValueId).longValue()).equals(valueDest.getId());
+        Long rawValueId = BeanMapperUtil.getId(rawValue);
+        return (rawValueId != null) && !rawValueId.equals(valueDest.getId());
     }
 
     private void copyListFromMap(Class<? extends Model> clazz, PropertyDescriptor propertyDescriptor, Map<String, Object> entityMap, Model entityDest, AllowProperties allowProperties, InstanceModelList instanceModelList) throws Exception {
@@ -313,13 +308,11 @@ public class BeanMapperModel {
             for (Object rawValue : modelListCompare.getSourceWhereOnlySource()) {
                 listTarget.add(createModelFromMap(tipoListaClass, rawValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList));
             }
-            for (int i = 0; i < modelListCompare.getTargetWhereSourceAndTarget().size(); i++) {
-                Model itemValue = modelListCompare.getTargetWhereSourceAndTarget().get(i);
-                Object rawValue = modelListCompare.getSourceWhereSourceAndTarget().get(i);
+            for (Model itemValue : modelListCompare.getTargetWhereSourceAndTarget()) {
+                Object rawValue = BeanMapperUtil.findInCollectionById(modelListCompare.getSourceWhereSourceAndTarget(), itemValue.getId()).orElse(null);
                 copyValueToEntityAndNoChangeId(tipoListaClass, rawValue, itemValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList);
             }
-            for (int i = 0; i < modelListCompare.getTargetWhereOnlyTarget().size(); i++) {
-                Model itemValue = modelListCompare.getTargetWhereOnlyTarget().get(i);
+            for (Model itemValue : modelListCompare.getTargetWhereOnlyTarget()) {
                 listTarget.remove(itemValue);
             }
         }
@@ -327,7 +320,7 @@ public class BeanMapperModel {
 
     private void copySetFromMap(PropertyDescriptor propertyDescriptor, Map<String, Object> entityMap, Model entityDest, AllowProperties allowProperties, InstanceModelList instanceModelList) throws Exception {
         String propertyName = propertyDescriptor.getName();
-        Set<Object> collectionSetSource = (Set<Object>) entityMap.get(propertyName);
+        Collection<Object> collectionSetSource = (Collection<Object>) entityMap.get(propertyName);
         Set<Model> collectionSetTarget = (Set<Model>) PropertyUtils.getProperty(entityDest, propertyName);
         Class<? extends Model> tipoSetClass = getCollectionItemClass(propertyDescriptor);
         String mappedByRelation = null; //BeanMapperUtil.getMappedByInManyToMany(clazz, propertyDescriptor.getName());
@@ -344,14 +337,14 @@ public class BeanMapperModel {
             }
             PropertyUtils.setProperty(entityDest, propertyName, setValues);
         } else {
-            ModelSetCompare modelSetCompare = new ModelSetCompare(collectionSetSource, collectionSetTarget);
+            ModelSetCompare modelSetCompare = new ModelSetCompare(new LinkedHashSet<>(collectionSetSource), collectionSetTarget);
 
             for (Object rawValue : modelSetCompare.getSourceWhereOnlySource()) {
                 collectionSetTarget.add(createModelFromMap(tipoSetClass, rawValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList));
             }
 
             for(Model itemValue:modelSetCompare.getTargetWhereSourceAndTarget()) {
-                Object rawValue = BeanMapperUtil.findInCollectionById(modelSetCompare.getSourceWhereSourceAndTarget(), itemValue.getId());
+                Object rawValue = BeanMapperUtil.findInCollectionById(modelSetCompare.getSourceWhereSourceAndTarget(), itemValue.getId()).orElse(null);
                 copyValueToEntityAndNoChangeId(tipoSetClass, rawValue, itemValue, innerAllowProperties, mappedByRelation, entityDest, instanceModelList);
             }
 
@@ -403,8 +396,9 @@ public class BeanMapperModel {
     private Model getInitialModelFromMap(Map<String, Object> values,Class<? extends Model> clazz) throws Exception {
         Model initialModel;
 
-        if (values.get("id") != null) {
-            Model loadedModel=getModel(clazz,  ((Number) values.get("id")).longValue());
+        Long id = BeanMapperUtil.getId(values);
+        if (id != null) {
+            Model loadedModel=getModel(clazz, id);
             if (loadedModel == null) {
                 throw new RuntimeException("No se encontró el modelo con id: " + values.get("id") + " del tipo" + clazz);
             }

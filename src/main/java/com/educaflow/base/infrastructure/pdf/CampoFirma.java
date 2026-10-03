@@ -1,7 +1,9 @@
 package com.educaflow.base.infrastructure.pdf;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import com.educaflow.base.util.Convert;
+import com.educaflow.base.util.TextUtil;
 
 /**
  *
@@ -24,7 +26,7 @@ public class CampoFirma {
 
     /** Firma en un rectángulo de una página (la última, si no se indica otra con {@link #setNumeroPagina(int)}). */
     public CampoFirma(Rectangulo rectanguloMensaje) {
-        this.rectanguloMensaje=rectanguloMensaje;
+        this.rectanguloMensaje=Objects.requireNonNull(rectanguloMensaje, "El rectángulo del mensaje no puede ser null");
     }
 
     /**
@@ -32,10 +34,7 @@ public class CampoFirma {
      * campo, así que no hay rectángulo y el número de página se ignora.
      */
     public CampoFirma(String nombreCampo) {
-        if ((nombreCampo==null) || nombreCampo.isBlank()) {
-            throw new IllegalArgumentException("El nombre del campo de firma no puede estar vacio");
-        }
-        this.nombreCampo=nombreCampo;
+        this.nombreCampo=TextUtil.requireNonBlank(nombreCampo, "El nombre del campo de firma no puede estar vacio");
     }
 
 
@@ -59,7 +58,7 @@ public class CampoFirma {
         return this;
     }
     public CampoFirma setRectanguloMensaje(Rectangulo rectanguloMensaje) {
-        this.rectanguloMensaje=rectanguloMensaje;
+        this.rectanguloMensaje=Objects.requireNonNull(rectanguloMensaje, "El rectángulo del mensaje no puede ser null");
         return this;
     }
 
@@ -68,22 +67,13 @@ public class CampoFirma {
      * el sitio que deja libre el mensaje, en el lado que indica {@code posicionImagen}.
      */
     public CampoFirma setImage(byte[] image, PosicionImagen posicionImagen) {
-        if (image==null) {
-            throw new IllegalArgumentException("La imagen no puede ser nula");
-        }
-        if (posicionImagen==null) {
-            throw new IllegalArgumentException("La posicion de la imagen no puede ser nula");
-        }
-        this.image=image;
-        this.posicionImagen=posicionImagen;
+        this.image=Objects.requireNonNull(image, "La imagen no puede ser nula");
+        this.posicionImagen=Objects.requireNonNull(posicionImagen, "La posicion de la imagen no puede ser nula");
         return this;
     }
 
     public CampoFirma setFechaFirma(LocalDateTime fechaFirma) {
-        if (fechaFirma==null) {
-            throw new IllegalArgumentException("Fecha de firma no puede ser nulo");
-        }
-        this.fechaFirma=fechaFirma;
+        this.fechaFirma=Objects.requireNonNull(fechaFirma, "Fecha de firma no puede ser nulo");
         return this;
     }
 
@@ -94,9 +84,6 @@ public class CampoFirma {
         return nombreCampo;
     }
 
-    /**
-     * @return the mensaje
-     */
     public String getMensaje() {
         return mensaje;
     }
@@ -105,23 +92,14 @@ public class CampoFirma {
         return motivo;
     }
 
-    /**
-     * @return the rectanguloMensaje
-     */
     public Rectangulo getRectanguloMensaje() {
         return rectanguloMensaje;
     }
 
-    /**
-     * @return the fontSize
-     */
     public int getFontSize() {
         return fontSize;
     }
 
-    /**
-     * @return the numerpoPagina
-     */
     public int getNumeroPagina() {
         return numeroPagina;
     }

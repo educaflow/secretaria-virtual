@@ -18,7 +18,6 @@ public final class Valores {
         this.resultados = resultados;
     }
 
-    /** Evalúa, en modo estricto, las expresiones de valor de las celdas que se dibujan de verdad. */
     public static Valores de(List<String> expresiones, Evaluator evaluator, Map<String, Object> contexto) {
         if (expresiones.isEmpty()) {
             return new Valores(Map.of());
@@ -26,17 +25,15 @@ public final class Valores {
         return new Valores(evaluator.evaluateStrict(expresiones, contexto));
     }
 
-    /** El texto que se estampa para una expresión: la conversión habitual de la aplicación; {@code null} es vacío. */
     public String texto(String expresion) {
         return Convert.objectToUserString(resultado(expresion));
     }
 
-    /** Si la casilla de un {@code <check>} va marcada: su expresión tiene que devolver {@code Boolean}. */
     public boolean marcada(String expresion) {
         Object resultado = resultado(expresion);
         if (!(resultado instanceof Boolean marcada)) {
             throw new RuntimeException("La expresión del check '" + expresion + "' debe devolver Boolean y ha devuelto "
-                    + (resultado == null ? "null" : resultado.getClass().getName() + " (" + resultado + ")"));
+                    + (resultado == null ? "null" : resultado.getClass().getName()));
         }
         return marcada;
     }

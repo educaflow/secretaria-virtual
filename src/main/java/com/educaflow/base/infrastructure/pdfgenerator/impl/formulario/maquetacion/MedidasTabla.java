@@ -48,12 +48,10 @@ public final class MedidasTabla {
     /** Aire por encima y por debajo del valor dentro del hueco de un {@code <campo>}. */
     public static final double PAD_VALOR = 2;
 
-    /** La x de una posición de la rejilla. */
     public static double x(double unidades) {
         return MARGIN + unidades * TABLE_W / FULL;
     }
 
-    /** El ancho de un tramo de la rejilla. */
     public static double ancho(double unidades) {
         return unidades * TABLE_W / FULL;
     }

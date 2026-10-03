@@ -1,11 +1,14 @@
 package com.educaflow.base.infrastructure.pdf;
 
+import com.axelor.i18n.I18n;
 import com.educaflow.base.infrastructure.evaluator.Evaluator;
 import com.educaflow.base.infrastructure.evaluator.impl.EvaluatorImplGroovy;
 import com.educaflow.base.util.Convert;
+import com.educaflow.base.util.TextUtil;
 
 import java.util.*;
 import java.util.Iterator;
+import java.util.stream.Collectors;
 
 public class DocumentoPdfUtil {
 
@@ -28,18 +31,9 @@ public class DocumentoPdfUtil {
 
 
     public static Optional<String> validateFirmaPdf(DocumentoPdf documentoOriginal, DocumentoPdf documentoFirmado, String dni) {
-        if (documentoOriginal == null) {
-            throw new IllegalArgumentException("El documento original no puede ser nulo");
-        }
-        if (documentoFirmado == null) {
-            throw new IllegalArgumentException("El documento firmado no puede ser nulo");
-        }
-        if (dni==null) {
-            throw new IllegalArgumentException("El DNI no puede ser nulo");
-        }
-        if  (dni.isBlank()) {
-            throw new IllegalArgumentException("El DNI no puede estar vacio");
-        }
+        Objects.requireNonNull(documentoOriginal, "El documento original no puede ser nulo");
+        Objects.requireNonNull(documentoFirmado, "El documento firmado no puede ser nulo");
+        TextUtil.requireNonBlank(dni, "El DNI no puede ser nulo ni estar vacio");
 
         List<ResultadoFirma> resultadosFirmaOriginales=new ArrayList<>(documentoOriginal.getFirmasPdf());
         List<ResultadoFirma> resultadosFirma=new ArrayList<>(documentoFirmado.getFirmasPdf());
@@ -51,32 +45,35 @@ public class DocumentoPdfUtil {
             }
         }
         if (resultadosFirma.size()>1) {
-            return Optional.of("No es posible firmar el documento por más de una persona");
+            return Optional.of(I18n.get("No es posible firmar el documento por más de una persona"));
         }
 
         if (documentoOriginal.getPlainText().equals(documentoFirmado.getPlainText())==false) {
-            return Optional.of("El documento firmado no es igual al documento original");
+            return Optional.of(I18n.get("El documento firmado no es igual al documento original"));
         }
 
 
         //Validación de la nueva firma
 
         if (resultadosFirma.size() == 0) {
-            return Optional.of("El documento no se ha firmado");
+            return Optional.of(I18n.get("El documento no se ha firmado"));
         }
 
         ResultadoFirma resultadoFirmaNueva = resultadosFirma.get(0);
         if (resultadoFirmaNueva.isCorrecta() == false) {
-            return Optional.of("La firma no es correcta. Hay un error en ella");
+            return Optional.of(I18n.get("La firma no es correcta. Hay un error en ella"));
+        }
+        if (resultadoFirmaNueva.isCubreDocumentoCompleto() == false) {
+            return Optional.of(I18n.get("El documento se ha modificado después de firmarlo"));
         }
         if (resultadoFirmaNueva.getDatosCertificado().isValidoEnListaCertificadosConfiables() == false) {
-            return Optional.of("La firma no es valida según la lista de certificados aceptados por la aplicación");
+            return Optional.of(I18n.get("La firma no es valida según la lista de certificados aceptados por la aplicación"));
         }
         if (resultadoFirmaNueva.getDatosCertificado().isSelloTiempo() == true) {
-            return Optional.of("La firma no puede ser un sello de tiempo");
+            return Optional.of(I18n.get("La firma no puede ser un sello de tiempo"));
         }
         if (Objects.equals(resultadoFirmaNueva.getDatosCertificado().getDNI(), dni) == false) {
-            return Optional.of("Se debe firmar con el DNI/NIE '" + dni + "' sin embargo se ha firmado con '" + resultadoFirmaNueva.getDatosCertificado().getDNI()+"'");
+            return Optional.of(I18n.get("Se debe firmar con el DNI/NIE '%s' sin embargo se ha firmado con '%s'").formatted(dni, resultadoFirmaNueva.getDatosCertificado().getDNI()));
         }
 
         return Optional.empty();
@@ -95,19 +92,15 @@ public class DocumentoPdfUtil {
             }
         }
 
-        return Optional.of("Falta la firma " + resultadoFirma.getDatosCertificado().getCnSubject() + " en el documento");
+        return Optional.of(I18n.get("Falta la firma %s en el documento").formatted(resultadoFirma.getDatosCertificado().getCnSubject()));
     }
 
     private static Map<String, String> getStringMap(Map<String, Object> result) {
-        Map<String,String> resultString= new HashMap<>();
-        for(Map.Entry<String,Object> entry : result.entrySet()) {
-            if (entry.getValue() instanceof Boolean) {
-                resultString.put(entry.getKey(), (Boolean)entry.getValue() ? "Yes" : "Off");
-            } else {
-                resultString.put(entry.getKey(), Convert.objectToUserString(entry.getValue()));
-            }
-        }
-        return resultString;
+        return result.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue() instanceof Boolean valor ? (valor ? "Yes" : "Off") : Convert.objectToUserString(entry.getValue())
+                ));
     }
 
 

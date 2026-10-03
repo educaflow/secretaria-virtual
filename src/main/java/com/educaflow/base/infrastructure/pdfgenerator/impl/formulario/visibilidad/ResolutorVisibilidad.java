@@ -11,6 +11,7 @@ import com.educaflow.base.infrastructure.pdfgenerator.impl.formulario.modelo.Sec
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -78,10 +79,11 @@ public final class ResolutorVisibilidad {
 
     /** Evalúa de una vez, en modo estricto, los {@code visible} de los elementos de un mismo nivel. */
     private <T> Map<String, Object> evaluar(List<T> elementos, Function<T, Visibilidad> visibilidad) {
-        List<String> expresiones = new ArrayList<>();
-        for (T elemento : elementos) {
-            visibilidad.apply(elemento).expresion().ifPresent(expresiones::add);
-        }
+        List<String> expresiones = elementos.stream()
+                .map(visibilidad)
+                .map(Visibilidad::expresion)
+                .flatMap(Optional::stream)
+                .toList();
         if (expresiones.isEmpty()) {
             return Map.of();
         }

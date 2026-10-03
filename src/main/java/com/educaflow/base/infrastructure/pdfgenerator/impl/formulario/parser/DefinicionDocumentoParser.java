@@ -18,7 +18,7 @@ import static com.educaflow.base.infrastructure.pdfgenerator.impl.comun.parser.E
 import static com.educaflow.base.infrastructure.pdfgenerator.impl.comun.parser.ElementosXml.visibilidad;
 
 /**
- * Convierte la raíz {@code <documento>} del XML resuelto en su {@link Documento}.
+ * Convierte la raíz {@code <documentoFormulario>} del XML resuelto en su {@link Documento}.
  *
  * <p>No valida contra el XSD: el build ya validó el XML (y su estructura de 12 columnas) al
  * resolverlo. Aquí solo se comprueba lo que haría reventar el dibujo: un elemento desconocido o un
@@ -33,7 +33,7 @@ public final class DefinicionDocumentoParser {
             switch (e.getTagName()) {
                 case "titulo" -> titulo = Optional.of(textos(e));
                 case "seccion" -> secciones.add(seccion(e));
-                default -> throw new RuntimeException("<" + e.getTagName() + "> desconocido dentro de <documento>");
+                default -> throw new RuntimeException("<" + e.getTagName() + "> desconocido dentro de <documentoFormulario>");
             }
         }
 
@@ -53,11 +53,7 @@ public final class DefinicionDocumentoParser {
     }
 
     private Fila fila(Element e) {
-        List<Celda> celdas = new ArrayList<>();
-        for (Element hijo : hijos(e)) {
-            celdas.add(celda(hijo));
-        }
-        return new Fila(List.copyOf(celdas), visibilidad(e));
+        return new Fila(hijos(e).stream().map(this::celda).toList(), visibilidad(e));
     }
 
     private Celda celda(Element e) {

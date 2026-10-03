@@ -2,6 +2,7 @@ package com.educaflow.base.infrastructure.validation.rules
 
 import com.educaflow.base.infrastructure.validation.engine.ValidationRule
 import com.axelor.db.modelservice.BusinessMessages
+import com.axelor.i18n.I18n
 
 data class MinListSize(val min: Int) : ValidationRule {
 
@@ -16,7 +17,7 @@ data class MinListSize(val min: Int) : ValidationRule {
             return null
         }
 
-        return if (listSize < min) BusinessMessages.single("Debe tener como mínimo $min elementos pero tiene $listSize") else null
+        return if (listSize < min) BusinessMessages.single(I18n.get("Debe tener como mínimo %s elementos pero tiene %s").format(min, listSize)) else null
 
     }
 }
@@ -34,7 +35,7 @@ data class MaxListSize(val max: Int) : ValidationRule {
             return null
         }
 
-        return if (listSize > max) BusinessMessages.single("Debe tener como máximo $max elementos pero tiene $listSize") else null
+        return if (listSize > max) BusinessMessages.single(I18n.get("Debe tener como máximo %s elementos pero tiene %s").format(max, listSize)) else null
 
     }
 }

@@ -19,7 +19,7 @@ public enum Presencia {
         Object resultado = resultados.get(expresion);
         if (!(resultado instanceof Boolean visible)) {
             throw new RuntimeException("La expresión de visible '" + expresion + "' debe devolver Boolean y ha devuelto "
-                    + (resultado == null ? "null" : resultado.getClass().getName() + " (" + resultado + ")"));
+                    + (resultado == null ? "null" : resultado.getClass().getName()));
         }
         if (visible) {
             return VISIBLE;

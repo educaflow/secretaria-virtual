@@ -412,7 +412,6 @@ public class DocumentoPdfHelper {
 
         if (fontDictionary != null) {
 
-            // Itera sobre cada entrada en el diccionario de fuentes
             for (Map.Entry<PdfName, PdfObject> entry : fontDictionary.entrySet()) {
 
                 PdfName fontName = entry.getKey();

@@ -1,5 +1,6 @@
 package com.educaflow.base.infrastructure.pdf.impl;
 
+import com.educaflow.base.util.Convert;
 import com.educaflow.base.infrastructure.criptografia.*;
 import com.educaflow.base.infrastructure.criptografia.impl.helper.CriptografiaUtil;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
@@ -40,8 +41,6 @@ import com.itextpdf.layout.properties.VerticalAlignment;
 import com.itextpdf.signatures.BouncyCastleDigest;
 import com.itextpdf.signatures.IExternalDigest;
 import com.itextpdf.signatures.IExternalSignature;
-import com.itextpdf.signatures.PdfPKCS7;
-import com.itextpdf.signatures.PdfSignature;
 import com.itextpdf.signatures.PdfSigner;
 import com.itextpdf.signatures.PrivateKeySignature;
 import com.itextpdf.signatures.SignatureUtil;
@@ -58,8 +57,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Map.Entry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DocumentoPdfImplIText implements DocumentoPdf {
+
+    private static final Logger log = LoggerFactory.getLogger(DocumentoPdfImplIText.class);
 
     private final byte[] bytesPdf;
     protected final PdfDocument pdfDocument;
@@ -106,27 +109,16 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
 
     @Override
     public List<String> getNombreCamposFormulario() {
-        List<String> fields = new ArrayList<>();
-
         PdfAcroForm form = PdfAcroForm.getAcroForm(pdfDocument, false);
 
-        if (form != null) {
-            Map<String, PdfFormField> pdfFormFields = form.getAllFormFields();
-
-            for (Entry<String, PdfFormField> entry : pdfFormFields.entrySet()) {
-                String name = entry.getKey();
-                PdfFormField pdfFormField = entry.getValue();
-                if (allowFormField(pdfFormField) == true) {
-                    fields.add(name);
-                    //System.out.println("Campo:-->" + name + "<----                tipo:" + pdfFormField.getFormType() );
-                    if ((pdfFormField.getAppearanceStates() != null) && (pdfFormField.getAppearanceStates().length > 0)) {
-                        //System.out.println("    Valores posibles:" + Arrays.toString(pdfFormField.getAppearanceStates()));
-                    }
-                }
-            }
+        if (form == null) {
+            return List.of();
         }
 
-        return fields;
+        return form.getAllFormFields().entrySet().stream()
+                .filter(entry -> allowFormField(entry.getValue()))
+                .map(Map.Entry::getKey)
+                .toList();
     }
     
     @Override
@@ -136,22 +128,13 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
 
     @Override
     public List<ResultadoFirma> getFirmasPdf() {
-        List<ResultadoFirma> resultadoFirmas = new ArrayList<>();
-
         SignatureUtil signatureUtil = new SignatureUtil(pdfDocument);
 
-        List<String> signatureNames = signatureUtil.getSignatureNames();
-
-        for (String signatureName : signatureNames) {
-            PdfPKCS7 pkcs7 = signatureUtil.readSignatureData(signatureName);
-            PdfSignature pdfSignature=signatureUtil.getSignature(signatureName);
-
-            ResultadoFirma resultadoFirma=new ResultadoFirmaImpl(signatureName,pkcs7,pdfSignature);
-            resultadoFirmas.add(resultadoFirma);
-        }
-
-        return resultadoFirmas;
-
+        return signatureUtil.getSignatureNames().stream()
+                .<ResultadoFirma>map(signatureName -> new ResultadoFirmaImpl(signatureName,
+                        signatureUtil.readSignatureData(signatureName), signatureUtil.getSignature(signatureName),
+                        signatureUtil.signatureCoversWholeDocument(signatureName)))
+                .toList();
     }
 
 
@@ -182,7 +165,7 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
                     String valor = valores.get(nombre);
                     if (valor == null) {
                         valor="";
-                        System.out.println("No se ha proporcionado valor para el campo '" + nombre + "'. Se establecerá un valor vacío.");
+                        log.warn("No se ha proporcionado valor para el campo '{}'. Se establecerá un valor vacío.", nombre);
                     }
 
                     pdfFormField.setValue(valor);
@@ -205,26 +188,37 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
 
     @Override
     public DocumentoPdf firmar(AlmacenClave almacenClave, CampoFirma campoFirma) {
+        Objects.requireNonNull(campoFirma, "campoFirma no puede ser null");
+        Objects.requireNonNull(almacenClave, "almacenClave no puede ser null");
         try {
             String alias;
             Certificate[] chain = null;
             PrivateKey privateKey = null;
-            int slot = 0;
 
             if (almacenClave instanceof AlmacenClaveFichero almacenClaveFichero) {
                 InputStream fileCertificate = almacenClaveFichero.getFileCertificate();
                 String password = almacenClaveFichero.getPassword();
 
                 KeyStore userKeyStore = CriptografiaUtil.getKeyStore(fileCertificate, password);
-                alias = userKeyStore.aliases().nextElement();
+                // La primera entrada puede ser solo un certificado: se firma con la primera que tiene clave privada.
+                alias = null;
+                for (String candidato : Collections.list(userKeyStore.aliases())) {
+                    if (userKeyStore.isKeyEntry(candidato)) {
+                        alias = candidato;
+                        break;
+                    }
+                }
+                if (alias == null) {
+                    throw new RuntimeException("El almacén de claves no contiene ninguna clave privada");
+                }
                 privateKey = (PrivateKey) userKeyStore.getKey(alias, password.toCharArray());
                 chain = userKeyStore.getCertificateChain(alias);
             } else if (almacenClave instanceof AlmacenClaveDispositivo almacenClaveDispositivo) {
-                slot = almacenClaveDispositivo.getSlot();
                 alias = almacenClaveDispositivo.getAlias();
 
-                privateKey = EntornoCriptografico.getDispositivoCriptografico(slot).getPrivateKey(alias);
-                chain = EntornoCriptografico.getDispositivoCriptografico(slot).getCertificateChain(alias);
+                DispositivoCriptografico dispositivo = EntornoCriptografico.getDispositivoCriptografico(almacenClaveDispositivo.getSlot());
+                privateKey = dispositivo.getPrivateKey(alias);
+                chain = dispositivo.getCertificateChain(alias);
             } else {
                 throw new RuntimeException("Almacen desconocido:" + almacenClave.getClass().getName());
             }
@@ -236,9 +230,7 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
             PdfReader pdfReader = new PdfReader(byteArrayInputStream);
             PdfWriter pdfWriter = new PdfWriter(byteArrayOutputStream, new WriterProperties());
             PdfSigner signer = new PdfSigner(pdfReader, pdfWriter, new StampingProperties().useAppendMode());
-            if (signerProperties != null) {
-                signer.setSignerProperties(signerProperties);
-            }
+            signer.setSignerProperties(signerProperties);
 
 
             if (almacenClave instanceof AlmacenClaveFichero) {
@@ -246,8 +238,10 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
                 IExternalSignature pks = new PrivateKeySignature(privateKey, DigestAlgorithms.SHA256, "BC");
 
                 signer.signDetached(digest, pks, chain, null, null, null, 0, PdfSigner.CryptoStandard.CMS);
-            } else if (almacenClave instanceof AlmacenClaveDispositivo) {
-                synchronized (EntornoCriptografico.getDispositivoCriptografico(slot)) {
+            } else if (almacenClave instanceof AlmacenClaveDispositivo almacenClaveDispositivo) {
+                int slot=almacenClaveDispositivo.getSlot();
+                DispositivoCriptografico dispositivo = EntornoCriptografico.getDispositivoCriptografico(slot);
+                synchronized (dispositivo) {
                     IExternalDigest digest = new BouncyCastleDigest();
                     IExternalSignature pks = new PKCS11ExternalSignature(privateKey, DigestAlgorithms.SHA256, "RSA");
 
@@ -294,10 +288,10 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
             PdfDocument pdfDoc = new PdfDocument(reader, writer, properties);
 
             PdfAcroForm form = PdfAcroForm.getAcroForm(pdfDoc, true);
-            String fieldName = "TXT_INCREMENTAL_" + System.currentTimeMillis();
+            String fieldName = "TXT_INCREMENTAL_" + UUID.randomUUID();
             TextFormFieldBuilder builder = new TextFormFieldBuilder(pdfDoc, fieldName);
 
-            PdfTextFormField field = builder.setWidgetRectangle(new Rectangle(rectangulo.x(), rectangulo.y(), rectangulo.width(), rectangulo.height())).setPage(pdfDoc.getPage(numeroPagina)).createText();
+            PdfTextFormField field = builder.setWidgetRectangle(new Rectangle(rectangulo.x(), rectangulo.y(), rectangulo.width(), rectangulo.height())).setPage(pdfDoc.getPage(getPageNumber(numeroPagina))).createText();
 
             field.setValue(texto);
             field.setReadOnly(true);
@@ -461,9 +455,6 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
     }
 
     private SignerProperties getSignerProperties(CampoFirma campoFirma, X509Certificate cert, String alias) {
-        if (campoFirma == null) {
-            return null;
-        }
         SignatureFieldAppearance signatureFieldAppearance = getSignatureFieldAppearance(campoFirma, cert, alias);
 
         SignerProperties signerProperties = new SignerProperties();
@@ -642,7 +633,7 @@ public class DocumentoPdfImplIText implements DocumentoPdf {
     }
 
     private static Calendar toCalendar(LocalDateTime fecha) {
-        return GregorianCalendar.from(fecha.atZone(TimeZone.getDefault().toZoneId()));
+        return GregorianCalendar.from(fecha.atZone(Convert.defaultZoneId));
     }
 
 }

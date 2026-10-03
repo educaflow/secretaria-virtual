@@ -14,4 +14,9 @@ public record GMailApiCredential(
         TextUtil.requireNonBlank(clientSecret, "clientSecret no puede ser null ni blank");
         TextUtil.requireNonBlank(refreshToken, "refreshToken no puede ser null ni blank");
     }
+
+    @Override
+    public String toString() {
+        return "GMailApiCredential[clientId=" + clientId + ", projectId=" + projectId + ", clientSecret=****, refreshToken=****]";
+    }
 }

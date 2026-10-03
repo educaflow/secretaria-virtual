@@ -5,7 +5,7 @@ package com.educaflow.base.infrastructure.pdf.impl.helper;
 import com.itextpdf.signatures.IExternalSignature;
 import com.itextpdf.signatures.ISignatureMechanismParams;
 import java.security.*;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class PKCS11ExternalSignature implements IExternalSignature {
@@ -62,19 +62,11 @@ public class PKCS11ExternalSignature implements IExternalSignature {
 
 
     private List<String> getAlgoritmosDisponibles() {
-        List<String> algoritmos=new ArrayList<>();
-
-        Provider[] providers= Security.getProviders("Signature.NONEwithRSA");
-
-        for(Provider provider:providers) {
-            for (Provider.Service service : provider.getServices()) {
-                if (service.getType().equals("Signature")) {
-                    algoritmos.add(service.getAlgorithm());
-                }
-            }
-        }
-
-        return algoritmos;
+        return Arrays.stream(Security.getProviders("Signature.NONEwithRSA"))
+                .flatMap(provider -> provider.getServices().stream())
+                .filter(service -> service.getType().equals("Signature"))
+                .map(Provider.Service::getAlgorithm)
+                .toList();
     }
 
 }

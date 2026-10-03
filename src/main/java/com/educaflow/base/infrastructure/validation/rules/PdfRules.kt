@@ -16,6 +16,11 @@ import kotlin.reflect.KCallable
  *
  * Si el usuario no tiene un DNI válido la regla **falla**, tenga o no valor el campo: sin DNI no se puede
  * comprobar quién firmó, así que nunca puede darse por buena la firma.
+ *
+ * También **falla** si el campo del documento original no tiene `MetaFile`: sin original no se puede
+ * comprobar la firma.
+ *
+ * Y **falla** si el documento firmado no es un PDF (se decide por su contenido), en vez de dejar escapar el error técnico.
  */
 data class FirmaPdf(val documentoOriginalField: KCallable<*>) : ValidationRule {
 
@@ -33,9 +38,13 @@ data class FirmaPdf(val documentoOriginalField: KCallable<*>) : ValidationRule {
             return null
         }
 
+        if (MetaFileHelper.isPdf(value) == false) {
+            return BusinessMessages.single(I18n.get("El documento firmado debe ser un fichero PDF."))
+        }
+
         val metaFileOriginal = documentoOriginalField.call(bean)
         if (metaFileOriginal !is MetaFile) {
-            return null
+            return BusinessMessages.single(I18n.get("No es posible comprobar la firma porque falta el documento original."))
         }
 
         val documentoOriginal = MetaFileHelper.getDocumentoPdf(metaFileOriginal)
