@@ -22,7 +22,7 @@ public class Table {
         }
     }
 
-    public void enablebleAllTriggers() {
+    public void enableAllTriggers() {
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate("ALTER TABLE " + tableName + " ENABLE TRIGGER ALL;");
         } catch (SQLException ex) {

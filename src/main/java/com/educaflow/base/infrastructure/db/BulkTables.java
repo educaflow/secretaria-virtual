@@ -52,7 +52,7 @@ public class BulkTables {
         List<Table> tables = databaseSchema.getAllTables();
 
         for (Table table : tables) {
-            table.enablebleAllTriggers();
+            table.enableAllTriggers();
         }
     }
 
@@ -76,13 +76,10 @@ public class BulkTables {
         DatabaseSchema databaseSchema = new DatabaseSchema(connection, schemaName);
 
         for (String tableName : tablasIncluidas) {
-            Table table = databaseSchema.getTable(tableName);
-            if (table!=null) {
+            databaseSchema.getTable(tableName).ifPresentOrElse(table -> {
                 System.out.println("Borrando contenido de la tabla:" + tableName);
                 table.truncate();
-            } else {
-                System.out.println("La tabla '" + tableName + "' no existe en el esquema '" + schemaName+"'");
-            }
+            }, () -> System.out.println("La tabla '" + tableName + "' no existe en el esquema '" + schemaName+"'"));
         }
     }
 

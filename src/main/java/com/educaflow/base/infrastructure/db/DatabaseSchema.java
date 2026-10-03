@@ -3,6 +3,7 @@ package com.educaflow.base.infrastructure.db;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class DatabaseSchema {
 
@@ -57,10 +58,10 @@ public class DatabaseSchema {
         }
     }
 
-    public Table getTable(String tableName) {
+    public Optional<Table> getTable(String tableName) {
         String sql="SELECT tablename FROM pg_tables WHERE schemaname = ? AND tablename = ?";
 
-        Table table;
+        Optional<Table> table;
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, schemaName);
@@ -69,9 +70,9 @@ public class DatabaseSchema {
 
 
             if (rsTables.next()) {
-                table = new Table(connection, rsTables.getString("tablename"));
+                table = Optional.of(new Table(connection, rsTables.getString("tablename")));
             } else {
-                table=null;
+                table = Optional.empty();
             }
             rsTables.close();
 
