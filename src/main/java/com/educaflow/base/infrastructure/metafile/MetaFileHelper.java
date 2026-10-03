@@ -5,9 +5,14 @@ import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
 import com.educaflow.base.util.MetaFileUtil;
 
+import java.nio.charset.StandardCharsets;
+
 public class MetaFileHelper {
 
     public static final String PDF_MIME_TYPE = "application/pdf";
+    private static final String CABECERA_PDF = "%PDF-";
+    // iText (PdfTokenizer.getHeaderOffset) acepta la cabecera en cualquier punto de los primeros 1024 bytes.
+    private static final int BYTES_BUSQUEDA_CABECERA_PDF = 1024;
 
 
     public static MetaFile createMetaFile(DocumentoPdf documentoPdf) {
@@ -63,17 +68,15 @@ public class MetaFileHelper {
     }
 
 
+    /** El tipo se decide por la cabecera del contenido: el fileType es el Content-Type que declaró el cliente al subirlo. */
     public static boolean isPdf(MetaFile metaFile) {
         if (metaFile == null) {
             return false;
         }
-        String fileType = metaFile.getFileType();
+        byte[] cabecera = MetaFileUtil.downloadHeader(metaFile, BYTES_BUSQUEDA_CABECERA_PDF);
 
-        if (fileType == null) {
-            throw new RuntimeException("El MetaFile no tiene fileType definido");
-        }
-
-        return PDF_MIME_TYPE.equalsIgnoreCase(fileType);
+        // ISO-8859-1 mapea cada byte a un carácter, así que buscar en el texto es buscar en los bytes.
+        return new String(cabecera, StandardCharsets.ISO_8859_1).contains(CABECERA_PDF);
     }
 
 
