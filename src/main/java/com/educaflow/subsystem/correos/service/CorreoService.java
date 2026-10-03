@@ -10,14 +10,6 @@ import java.util.Optional;
 
 public interface CorreoService extends ModelService<Correo> {
 
-    // Envía (o reintenta) el correo indicado por su id. Misma función para el envío inicial (la
-    // invoca R-Correo-001 tras el alta) y para el reintento (la invoca R-Correo-002 tras "reenviar").
-    // Invocable también de forma programática desde otros subsistemas (design-guidelines).
-    void enviarCorreo(Long correoId);
-
-    Optional<BusinessMessages> validateEnviarCorreo(Long correoId);
-
-    // Devuelve todos los correos en estado FAIL (para un futuro reenvío en bloque; design-guidelines).
     List<Correo> listarCorreosEnFail();
 
     Optional<BusinessMessages> validateListarCorreosEnFail();

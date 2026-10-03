@@ -6,15 +6,24 @@ import com.axelor.db.modelservice.BusinessMessage;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.i18n.I18n;
+import com.axelor.meta.MetaFiles;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.correos.db.Adjunto;
 import com.educaflow.subsystem.correos.service.AdjuntoService;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 public class AdjuntoServiceImpl extends DefaultModelService<Adjunto> implements AdjuntoService {
+
+    // Coincide con data.upload.max-size, que AOP solo aplica en el front: el REST automático no lo comprueba.
+    static final long TAMANO_MAXIMO_BYTES = 10L * 1024 * 1024;
+    private static final Pattern CARACTERES_PROHIBIDOS_NOMBRE_FICHERO = Pattern.compile("[/\\\\\\p{Cntrl}]");
 
     // Constructor obligatorio — ModelServiceFactory lo invoca por reflexión
     public AdjuntoServiceImpl(Class<Adjunto> model, Repository<Adjunto> repository) {
@@ -23,14 +32,12 @@ public class AdjuntoServiceImpl extends DefaultModelService<Adjunto> implements 
 
     @Override
     public Adjunto update(Adjunto nuevo, Adjunto original) {
-        // El adjunto es inmutable tras su creación (patrón gemelo de validateUpdate,
-        // k-secure-coding §9.2): no hay flujo normal, solo el rechazo incondicional.
         throw new UnsupportedOperationException(I18n.get("El adjunto es inmutable tras su creación."));
     }
 
     @Override
     public void remove(Adjunto adjunto) {
-        // Como un correo nunca se borra, sus adjuntos tampoco (análogo a RES-Correo-003).
+        // Como un correo nunca se borra, sus adjuntos tampoco.
         throw new UnsupportedOperationException(I18n.get("Los adjuntos no se pueden borrar."));
     }
 
@@ -47,22 +54,20 @@ public class AdjuntoServiceImpl extends DefaultModelService<Adjunto> implements 
         validarCorreoNoExistente(adjunto, messages);
         validarNombreFichero(adjunto, messages);
         validarContenido(adjunto, messages);
+        validarTamanoContenido(adjunto, messages);
+        validarCaracteresNombreFichero(adjunto, messages);
         validarNombreUnicoEnCorreo(adjunto, messages);
 
         return messages.isValid() ? Optional.empty() : Optional.of(messages);
     }
 
     private void validarCorreoObligatorio(Adjunto adjunto, BusinessMessages messages) {
-        // V-Adjunto-001: el adjunto debe pertenecer a un correo
         if (adjunto.getCorreo() == null) {
             messages.add(new BusinessMessage(I18n.get("El adjunto debe pertenecer a un correo")));
         }
     }
 
     private void validarCentroDelCorreo(Adjunto adjunto, BusinessMessages messages) {
-        // V-Adjunto-002: solo si el correo está indicado (evitar NPE). Si el usuario actual no es
-        // Administrador, el centro del correo MUST pertenecer a los centros del usuario (mismo
-        // mecanismo que CorreoServiceImpl: User.perteneceAlCentro).
         if (adjunto.getCorreo() == null) {
             return;
         }
@@ -73,8 +78,7 @@ public class AdjuntoServiceImpl extends DefaultModelService<Adjunto> implements 
     }
 
     private void validarCorreoNoExistente(Adjunto adjunto, BusinessMessages messages) {
-        // V-Adjunto-003: solo si el correo está indicado. fechaCreacion es un campo servidor que
-        // CorreoServiceImpl solo asigna DESPUÉS de validar todo el árbol, así que null aquí
+        // fechaCreacion es un campo servidor que CorreoServiceImpl solo asigna DESPUÉS de validar todo el árbol, así que null aquí
         // significa "el correo se está creando ahora mismo, en esta petición".
         if (adjunto.getCorreo() == null) {
             return;
@@ -85,24 +89,45 @@ public class AdjuntoServiceImpl extends DefaultModelService<Adjunto> implements 
     }
 
     private void validarNombreFichero(Adjunto adjunto, BusinessMessages messages) {
-        // V-Adjunto-004: nombreFichero obligatorio
         if (adjunto.getNombreFichero() == null || adjunto.getNombreFichero().isBlank()) {
             messages.add(new BusinessMessage(I18n.get("El nombre del fichero es obligatorio")));
         }
     }
 
     private void validarContenido(Adjunto adjunto, BusinessMessages messages) {
-        // V-Adjunto-005: contenido obligatorio
         if (adjunto.getContenido() == null) {
             messages.add(new BusinessMessage(I18n.get("El contenido del adjunto es obligatorio")));
         }
     }
 
+    private void validarTamanoContenido(Adjunto adjunto, BusinessMessages messages) {
+        if (adjunto.getContenido() == null) {
+            return;
+        }
+        // Se mide el fichero en disco: fileSize es un dato del MetaFile que el cliente puede dictar.
+        long tamano;
+        try {
+            tamano = Files.size(MetaFiles.getPath(adjunto.getContenido()));
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
+        if (tamano > TAMANO_MAXIMO_BYTES) {
+            messages.add(new BusinessMessage(I18n.get("El adjunto no puede superar los 10 MB")));
+        }
+    }
+
+    private void validarCaracteresNombreFichero(Adjunto adjunto, BusinessMessages messages) {
+        String nombreFichero = adjunto.getNombreFichero();
+        if (nombreFichero == null || nombreFichero.isBlank()) {
+            return;
+        }
+        if (CARACTERES_PROHIBIDOS_NOMBRE_FICHERO.matcher(nombreFichero).find()) {
+            messages.add(new BusinessMessage(I18n.get("El nombre del fichero no puede contener los caracteres / \\ ni caracteres de control")));
+        }
+    }
+
     private void validarNombreUnicoEnCorreo(Adjunto adjunto, BusinessMessages messages) {
-        // V-Adjunto-006 (RES-Adjunto-001, defensa en profundidad de la unique-constraint del XML):
-        // solo si el correo está indicado. Ningún OTRO adjunto del mismo correo (comparación por
-        // identidad, nunca el propio adjunto contra sí mismo) puede tener el mismo nombreFichero
-        // (trim + comparación exacta).
+        // Defensa en profundidad de la unique-constraint del XML.
         if (adjunto.getCorreo() == null || adjunto.getCorreo().getAdjuntos() == null
                 || adjunto.getNombreFichero() == null) {
             return;
@@ -122,15 +147,13 @@ public class AdjuntoServiceImpl extends DefaultModelService<Adjunto> implements 
 
     @Override
     public Optional<BusinessMessages> validateUpdate(Adjunto nuevo, Adjunto original) {
-        // Sin condición: el adjunto es inmutable tras su creación (Acción "Modificar" con Input
-        // AllowProperties vacío), siempre se rechaza.
+        // Sin condición: el adjunto es inmutable tras su creación, siempre se rechaza.
         return Optional.of(BusinessMessages.single(I18n.get("El adjunto es inmutable tras su creación.")));
     }
 
     @Override
     public Optional<BusinessMessages> validateRemove(Adjunto adjunto) {
-        // Sin condición: como un correo nunca se borra, sus adjuntos tampoco (análogo a
-        // RES-Correo-003), siempre se rechaza.
+        // Sin condición: como un correo nunca se borra, sus adjuntos tampoco.
         return Optional.of(BusinessMessages.single(I18n.get("Los adjuntos no se pueden borrar.")));
     }
 
