@@ -14,8 +14,6 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 public class CertificateViewer {
 
     public static void print(Certificate certificate) throws Exception {
-        // Carga tu certificado desde un archivo
-        // Asegúrate de reemplazar "ruta/a/tu/certificado.cer" con la ruta real de tu archivo
         X509Certificate cert = (X509Certificate)certificate;
 
         System.out.println("--- Información General del Certificado ---");
