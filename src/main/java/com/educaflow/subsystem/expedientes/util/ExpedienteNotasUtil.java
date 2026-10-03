@@ -4,6 +4,7 @@ import com.axelor.auth.db.User;
 import com.axelor.db.JpaRepository;
 import com.educaflow.base.util.Convert;
 import com.educaflow.base.util.SecurityUtil;
+import com.educaflow.base.util.TextUtil;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 
 import java.time.LocalDateTime;
@@ -41,9 +42,7 @@ public class ExpedienteNotasUtil {
      * que parezca de otro usuario.
      */
     static String formatNota(LocalDateTime fecha, String nombreUsuario, String mensaje) {
-        if (mensaje == null || mensaje.isBlank()) {
-            throw new IllegalArgumentException("El mensaje de la nota no puede estar vacío");
-        }
+        TextUtil.requireNonBlank(mensaje, "mensaje no puede ser null ni blank");
 
         return fecha.format(FORMATO_FECHA) + " " + nombreUsuario + " → " + mensaje.strip().replaceAll("\\r\\n?|\\n", "\n\t");
     }

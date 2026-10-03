@@ -19,10 +19,7 @@ import java.util.Map;
  * Obtiene el documento PDF de un expediente, ya relleno con sus datos.
  *
  * <p>Es el destino del {@code getDocumentoPdf(...)} que cada tipo de expediente lleva en el
- * {@code <extra-code-model>} de su {@code domains.xml}. Vive en {@code expedientes} y no en el
- * motor de tramitación a propósito: la entidad generada quedaría acoplada al motor y eso es un
- * ciclo entre los dos subsistemas. Aquí no hay nada de tramitación — ni estados, ni eventos, ni
- * localizador —, solo el expediente y la infraestructura de PDF.
+ * {@code <extra-code-model>} de su {@code domains.xml}.
  *
  * <p>El recurso que trae la constante del enum {@code TipoDocumentoPdf} decide cómo se obtiene:
  * <ul>

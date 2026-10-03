@@ -6,6 +6,12 @@
     <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
 
     <entity name="Expediente" strategy="JOINED" jsonAttrs="false">
+        <!-- tipoExpediente, codePhase y codeState mantienen required="true": están FUERA del alcance de la REGLA CRÍTICA
+             de k-sistemas/modelos.md, porque no se rellenan en ModelService.insert/update (ExpedienteServiceImpl no los
+             sobrescribe), sino en el Tramitador (triggerInitialEvent y ExpedienteUtil.updateState) antes de JPA.save, así
+             que @NotNull nunca salta en el flujo normal. Este NOT NULL NO defiende POST /ws/rest (ver PENDIENTE en
+             CLAUDE.md): solo rechaza un alta que omita estos campos, no valores dictados por el cliente. Revisar cuando
+             se decida cómo cerrar esa puerta. -->
         <many-to-one name="tipoExpediente" title="Tipo de Expediente" ref="com.educaflow.subsystem.expedientes.db.TipoExpediente" required="true"/>
         <string name="name" namecolumn="true" />
         <string name="numeroExpediente"  title="Num.__!! Exped.__!!"  />
