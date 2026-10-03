@@ -3,20 +3,18 @@ package com.educaflow.base.infrastructure.mail;
 import com.educaflow.base.infrastructure.mail.impl.GmailApiMailSender;
 import com.educaflow.base.infrastructure.mail.impl.MailSenderImplSmtp;
 
+import java.util.Objects;
+
 public class MailSenderFactory {
 
     public static MailSender getSmtpMailSender(UserPasswordCredential userPasswordCredential) {
-        if (userPasswordCredential == null) {
-            throw new IllegalArgumentException("userPasswordCredential no puede ser null");
-        }
+        Objects.requireNonNull(userPasswordCredential, "userPasswordCredential no puede ser null");
         return new MailSenderImplSmtp(userPasswordCredential);
     }
 
     public static MailSender getGMailApiMailSender(GMailApiCredential gMailApiCredential) {
-        if (gMailApiCredential == null) {
-            throw new IllegalArgumentException("gMailApiCredential no puede ser null");
-        }
-        return new GmailApiMailSender(gMailApiCredential.clientId(), gMailApiCredential.projectId(), gMailApiCredential.clientSecret(), gMailApiCredential.refreshToken());
+        Objects.requireNonNull(gMailApiCredential, "gMailApiCredential no puede ser null");
+        return new GmailApiMailSender(gMailApiCredential);
     }
 
 }
