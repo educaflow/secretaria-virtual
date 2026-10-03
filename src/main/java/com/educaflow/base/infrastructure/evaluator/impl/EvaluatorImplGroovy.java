@@ -3,12 +3,16 @@ package com.educaflow.base.infrastructure.evaluator.impl;
 import com.educaflow.base.infrastructure.evaluator.Evaluator;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class EvaluatorImplGroovy implements Evaluator {
+
+    private static final Logger log = LoggerFactory.getLogger(EvaluatorImplGroovy.class);
 
     @Override
     public Map<String,Object> evaluate(List<String> expressions, Map<String,Object> context) {
@@ -26,17 +30,15 @@ public class EvaluatorImplGroovy implements Evaluator {
                     continue;
                 }
 
-                Object result = shell.evaluate(expression);
-                results.put(expression, result);
-                System.out.println("Evaluating expression: " + expression+" => " + result);
+                results.put(expression, shell.evaluate(expression));
             } catch (Exception e) {
-                errores.append(expression).append(":").append(e.getMessage()).append("\n");
+                errores.append(expression).append(":").append(String.valueOf(e.getMessage()).replaceAll("[\\r\\n]", " ")).append("\n");
             }
 
         }
 
         if (errores.toString().length() > 0) {
-            System.out.println(errores.toString());
+            log.warn("Expresiones que no se han podido evaluar:\n{}", errores);
         }
 
         return results;
