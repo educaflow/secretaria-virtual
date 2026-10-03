@@ -28,8 +28,9 @@ public class CorreoController {
         ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
 
         Correo entidadOriginal = actionRequestHelper.getOriginalModel();
+        Correo entidad = actionRequestHelper.getModel(correoService.allowPropertiesReenviar());
 
-        Optional<BusinessMessages> validationResult = correoService.validateReenviar(entidadOriginal, entidadOriginal);
+        Optional<BusinessMessages> validationResult = correoService.validateReenviar(entidad, entidadOriginal);
         if (validationResult.isPresent()) {
             actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());
         }
