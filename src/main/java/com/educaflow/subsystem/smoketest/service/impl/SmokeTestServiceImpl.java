@@ -73,18 +73,10 @@ public class SmokeTestServiceImpl extends DefaultModelService<SmokeTest> impleme
     /********************************    Action Rules    *********************************/
     /*************************************************************************************/
 
-    /**
-     * R-SmokeTest-001: asigna la fecha de creación en el momento del insert.
-     * Asignación INCONDICIONAL: siempre se sobreescribe independientemente del valor previo.
-     */
     private void fireActionRule_AsignarFechaCreacion(SmokeTest entity) {
         entity.setFechaCreacion(LocalDateTime.now(Convert.defaultZoneId));
     }
 
-    /**
-     * R-SmokeTest-002: actualiza la fecha de última modificación en cada insert/update.
-     * Asignación INCONDICIONAL: siempre se sobreescribe independientemente del valor previo.
-     */
     private void fireActionRule_ActualizarFechaUltimaModificacion(SmokeTest entity) {
         entity.setFechaUltimaModificacion(LocalDateTime.now(Convert.defaultZoneId));
     }
