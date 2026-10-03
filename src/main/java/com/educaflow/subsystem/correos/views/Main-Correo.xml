@@ -58,10 +58,10 @@
         <panel name="Envio" title="Datos del envío" showIf="(id != null) || (cid != null)" colSpan="12">
             <field name="estado" colSpan="3"/>
             <field name="numeroReintentos" colSpan="3" title="Nº reintentos__!!"/>
-            <field name="fechaCreacion" colSpan="3"/>
-            <field name="fechaEnvio" colSpan="3" showIf="estado == 'SUCCESS'"/>
+            <field name="fechaCreacion" colSpan="3" colOffset="6"/>
             <field name="fechaPrimerIntentoEnvio" colSpan="3"/>
             <field name="fechaUltimoIntentoEnvio" colSpan="3"/>
+            <field name="fechaEnvio" colSpan="3" showIf="estado == 'SUCCESS'"/>
             <field name="descripcionUltimoFallo" colSpan="12" widget="Text" showIf="estado == 'FAIL'"/>
         </panel>
 
@@ -77,28 +77,19 @@
                    showIf="((id != null) || (cid != null)) &amp;&amp; (estado == 'FAIL')">
                 <button name="btnReenviar" title="Reenviar" onClick="subsysCorreos.Main@Correo-btnReenviar-action"
                         colSpan="2"/>
-                <button name="btnDeleteFail" title="Borrar" onClick="subsysCorreos.Main@Correo-btnDelete-action"
-                        css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
                 <button name="btnCancelSalirFail" title="Salir" onClick="subsysCorreos.Main@Correo-btnCancel-action"
-                        colSpan="2" colOffset="6" outline="true"/>
+                        colSpan="2" colOffset="8" outline="true"/>
             </panel>
             <panel name="buttonsSalir" title="" colSpan="12" showFrame="false"
                    showIf="((id != null) || (cid != null)) &amp;&amp; (estado != 'FAIL')">
-                <button name="btnDelete" title="Borrar" onClick="subsysCorreos.Main@Correo-btnDelete-action"
-                        css="btn-danger" colSpan="2" outline="true" showIf="(id!=null) || (cid!=null)"/>
                 <button name="btnCancelSalir" title="Salir" onClick="subsysCorreos.Main@Correo-btnCancel-action"
-                        colSpan="2" colOffset="8" outline="true"/>
+                        colSpan="2" colOffset="10" outline="true"/>
             </panel>
         </panel>
 
     </form>
 
     <?sv-primary-actions?>
-
-    <action-group name="subsysCorreos.Main@Correo-btnDelete-action">
-        <action name="remote-validationDelete-action"/>
-        <action name="delete"/>
-    </action-group>
 
     <action-group name="subsysCorreos.Main@Correo-btnCancel-action">
         <action name="back"/>
@@ -160,9 +151,9 @@
           width="large" onNew="subsysCorreos.Main@Correo.Adjunto-onNew-action"
           canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
         <panel name="Adjunto" title="">
-            <field name="correo" showIf="false"/>
             <field name="nombreFichero" colSpan="8" required="true"/>
             <field name="contenido" colSpan="4" widget="binary-link" required="true"/>
+            <field name="correo" showIf="false"/>
         </panel>
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
             <panel name="buttonsAlta" title="" colSpan="12" showFrame="false"

@@ -58,10 +58,10 @@
         <panel name="Envio" title="Datos del envío" colSpan="12">
             <field name="estado" colSpan="3" readonly="true"/>
             <field name="numeroReintentos" colSpan="3" title="Nº reintentos__!!" readonly="true"/>
-            <field name="fechaCreacion" colSpan="3" readonly="true"/>
-            <field name="fechaEnvio" colSpan="3" readonly="true" showIf="estado == 'SUCCESS'"/>
+            <field name="fechaCreacion" colSpan="3" colOffset="6" readonly="true"/>
             <field name="fechaPrimerIntentoEnvio" colSpan="3" readonly="true"/>
             <field name="fechaUltimoIntentoEnvio" colSpan="3" readonly="true"/>
+            <field name="fechaEnvio" colSpan="3" readonly="true" showIf="estado == 'SUCCESS'"/>
             <field name="descripcionUltimoFallo" colSpan="12" widget="Text" readonly="true" showIf="estado == 'FAIL'"/>
         </panel>
 
