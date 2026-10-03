@@ -5,7 +5,7 @@
 
 
 
-    <module name="secretariavirtual" package="com.educaflow.subsystem.pdfutilities.db"/>
+    <module name="pdfutilities" package="com.educaflow.subsystem.pdfutilities.db"/>
 
     <entity name="PdfUtilities" persistable="false"  >
         <many-to-one name="pdf" title="PDF a gestionar" ref="com.axelor.meta.db.MetaFile"  transient="true" />
