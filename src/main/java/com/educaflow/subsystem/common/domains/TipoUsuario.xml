@@ -5,16 +5,24 @@
 
     <module name="common" package="com.educaflow.subsystem.common.db"/>
 
-    <entity name="TipoUsuario" repository="abstract">
+    <entity name="TipoUsuario">
         <enum name="codigo" ref="com.educaflow.subsystem.common.db.TipoUsuarioCodigo" title="Código"/>
         <string name="nombre" namecolumn="true" title="Nombre"/>
         <string name="tituloTramites" formula="true" title="Trámites">'Trámites para el ' || lower(nombre)</string>
+        <!--
+          orphanRemoval="false" es OBLIGATORIO y NO es redundante en centroUsuarioTipoUsuario y cargos: son
+          AGREGACIÓN, no composición. En una one-to-many BIDIRECCIONAL (con mappedBy) el generador de axelor-tools
+          considera orphanRemoval = true cuando el atributo no se declara (Property.getOrphanRemoval()), y entonces
+          emite @OneToMany(..., cascade = CascadeType.ALL, orphanRemoval = true): borrar un tipo de usuario o
+          quitarlo de la colección borraría sus filas. El dueño de CentroUsuarioTipoUsuario es CentroUsuario, no
+          TipoUsuario. Declarándolo a false, resolveCascadeTypes vuelve a PERSIST,MERGE y no se emite orphanRemoval.
+        -->
         <one-to-many name="centroUsuarioTipoUsuario"
                      ref="com.educaflow.subsystem.common.db.CentroUsuarioTipoUsuario"
-                     mappedBy="tipoUsuario" title=""/>
+                     mappedBy="tipoUsuario" orphanRemoval="false" title=""/>
         <one-to-many name="cargos"
                      ref="com.educaflow.subsystem.common.db.Cargo"
-                     mappedBy="tipoUsuario" title="Cargos"/>
+                     mappedBy="tipoUsuario" orphanRemoval="false" title="Cargos"/>
 
     </entity>
 
