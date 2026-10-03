@@ -3,88 +3,36 @@ package com.educaflow.base.util;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class ReflectionUtil {
 
 
     public static boolean hasMethod(Class<?> baseClass, String methodName, Class<?> returnClass, Class<? extends Annotation> annotation, Class<?>[] parameterTypes) {
-            Method method=getMethod(baseClass, methodName, returnClass, annotation, parameterTypes);
-
-            if (method!=null) {
-                return true;
-            } else {
-                return false;
-            }
-
+        return getMethod(baseClass, methodName, returnClass, annotation, parameterTypes).isPresent();
     }
 
-    public static Method getMethod(Class<?> baseClass, String methodName, Class<?> returnClass, Class<? extends Annotation> annotation, Class<?>[] parameterTypes) {
-        List<Method> matchingMethods = new ArrayList<>();
-
-        for (Method method : baseClass.getDeclaredMethods()) {
-
-            if (methodName!=null) {
-                if (!method.getName().equals(methodName)) {
-                    continue;
-                }
-            }
-
-            if (returnClass!=null) {
-                if (!returnClass.isAssignableFrom(method.getReturnType())) {
-                    continue;
-                }
-            }
-
-            if (annotation!=null) {
-                if (!method.isAnnotationPresent(annotation)) {
-                    continue;
-                }
-            }
-
-
-            if (parameterTypes!=null) {
-                Class<?>[] methodParamTypes = method.getParameterTypes();
-                if (methodParamTypes.length != parameterTypes.length) {
-                    continue;
-                }
-
-
-                boolean paramsMatch = true;
-                for (int i = 0; i < parameterTypes.length; i++) {
-                    if (!methodParamTypes[i].equals(parameterTypes[i])) {
-                        paramsMatch = false;
-                        break;
-                    }
-                }
-
-                if (paramsMatch==false) {
-                    continue;
-                }
-            }
-
-            matchingMethods.add(method);
-
-        }
+    public static Optional<Method> getMethod(Class<?> baseClass, String methodName, Class<?> returnClass, Class<? extends Annotation> annotation, Class<?>[] parameterTypes) {
+        List<Method> matchingMethods = Arrays.stream(baseClass.getDeclaredMethods())
+                .filter(method -> methodName == null || method.getName().equals(methodName))
+                .filter(method -> returnClass == null || returnClass.isAssignableFrom(method.getReturnType()))
+                .filter(method -> annotation == null || method.isAnnotationPresent(annotation))
+                .filter(method -> parameterTypes == null || Arrays.equals(method.getParameterTypes(), parameterTypes))
+                .toList();
 
         if (matchingMethods.size() > 1) {
             throw new RuntimeException("Se encontró más de un método: " + methodName + " en la clase: " + baseClass.getName() + " con Nº parámetros: " + (parameterTypes != null ? parameterTypes.length : "N/A") + " y retorno: " + (returnClass != null ? returnClass.getName() : "N/A") + " y la anotación: " + (annotation != null ? annotation.getName() : "N/A"));
         }
 
-        if (matchingMethods.size() == 1) {
-            return matchingMethods.get(0);
-        } else {
-            return null;
-        }
-
-
+        return matchingMethods.stream().findFirst();
     }
 
     public static Enum getEnumConstant(Class<? extends Enum> enumClass, String constantName) {
-        if (enumClass == null || constantName == null || constantName.isEmpty()) {
-            throw new IllegalArgumentException("Enum class and constant name must not be null or empty");
-        }
+        Objects.requireNonNull(enumClass, "enumClass no puede ser null");
+        TextUtil.requireNonBlank(constantName, "constantName no puede ser null ni blank");
 
         try {
             return (Enum)Enum.valueOf(enumClass, constantName);
