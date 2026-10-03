@@ -1,6 +1,7 @@
 package com.educaflow.subsystem.registrousuario.service.impl;
 
 import com.axelor.db.Repository;
+import com.axelor.db.modelservice.AllowProperties;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
@@ -19,17 +20,14 @@ public class RegistroPendienteServiceImpl extends DefaultModelService<RegistroPe
 
     private final Logger logger = LoggerFactory.getLogger(RegistroPendienteServiceImpl.class);
 
-    public RegistroPendienteServiceImpl(Class<RegistroPendiente> model, Repository repository) {
+    public RegistroPendienteServiceImpl(Class<RegistroPendiente> model, Repository<RegistroPendiente> repository) {
         super(model, repository);
     }
 
     @Override
     @Transactional
     public RegistroPendiente insertar(RegistroPendiente registroPendiente) throws BusinessException {
-        Optional<BusinessMessages> validation = validateInsertar(registroPendiente);
-        if (validation.isPresent()) {
-            throw new IllegalArgumentException(validation.get().toString());
-        }
+        validateInsertar(registroPendiente).ifPresent(BusinessMessages::throwIfInvalid);
         /*Optional<BusinessMessages> validation = validarEmailDni(registroPendiente);
         if (validation.isPresent()) {
             throw new BusinessException(validation.get());
@@ -44,7 +42,7 @@ public class RegistroPendienteServiceImpl extends DefaultModelService<RegistroPe
         super.insert(pendiente);
         enviarCodigoPorEmail(registroPendiente.getEmail(), codigo);
         return registroPendiente;*/
-        return null;
+        throw new UnsupportedOperationException("Registro de usuarios no implementado");
     }
 
     /****************************************************************************************/
@@ -73,5 +71,29 @@ public class RegistroPendienteServiceImpl extends DefaultModelService<RegistroPe
         }
         pendiente.setVerificado(true);
         super.update(pendiente, null);*/
+        throw new UnsupportedOperationException("Registro de usuarios no implementado");
+    }
+
+
+    /**************************************************************************************/
+    /********************************   AllowProperties   *********************************/
+    /**************************************************************************************/
+
+    /**
+     * RegistroPendiente solo lo crea el servidor (insertar): codigo, token y verificado no los puede dictar el cliente
+     * por el endpoint REST automático.
+     */
+    @Override
+    public AllowProperties allowPropertiesInsert() {
+        return AllowProperties.createDenyAllProperties();
+    }
+
+    /**
+     * RegistroPendiente solo lo crea el servidor (insertar): codigo, token y verificado no los puede dictar el cliente
+     * por el endpoint REST automático.
+     */
+    @Override
+    public AllowProperties allowPropertiesUpdate() {
+        return AllowProperties.createDenyAllProperties();
     }
 }

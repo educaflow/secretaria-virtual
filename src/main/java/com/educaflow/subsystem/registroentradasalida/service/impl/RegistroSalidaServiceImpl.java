@@ -9,8 +9,6 @@ import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
 import com.educaflow.base.infrastructure.fichero.Fichero;
-import com.educaflow.base.infrastructure.mail.Mail;
-import com.educaflow.base.infrastructure.mail.MailSender;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.numeradores.db.repo.NumeradorRepository;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
@@ -62,38 +60,14 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
     @Inject
     AlmacenClaveResolver almacenClaveResolver;
 
-    @Inject
-    MailSender mailSender;
-
-    @Inject
     public RegistroSalidaServiceImpl(Class<RegistroSalida> model, Repository<RegistroSalida> repository) {
         super(model, repository);
     }
 
 
     @Override
-    public RegistroSalida insert(RegistroSalida entity) {
-        validateInsert(entity).ifPresent(BusinessMessages::throwIfInvalid);
-        entity = repository.save(entity);
-        fireActionRule_NotificarRegistroSalida(entity);
-        return entity;
-    }
-
-    @Override
-    public RegistroSalida update(RegistroSalida entity, RegistroSalida original) {
-        validateUpdate(entity, original).ifPresent(BusinessMessages::throwIfInvalid);
-        entity = repository.save(entity);
-        fireActionRule_NotificarRegistroSalida(entity);
-        return entity;
-    }
-
-    @Override
     public RegistroSalida createRegistroSalida(RegistroSalidaInsertDTO registroSalidaInsertDTO, MetaFile documentoOriginal, List<MetaFile> anexos) {
         validateCreateRegistroSalida(registroSalidaInsertDTO, documentoOriginal, anexos).ifPresent(BusinessMessages::throwIfInvalid);
-
-        if (MetaFileHelper.isPdf(documentoOriginal)==false) {
-            throw new IllegalArgumentException("El fichero proporcionado no es un PDF válido.");
-        }
 
         LocalDateTime ahora=LocalDateTime.now(Convert.defaultZoneId);
         String asunto= registroSalidaInsertDTO.asunto();
@@ -112,8 +86,6 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
         registroSalida.setAnexos(anexos);
         registroSalida.setCentro(registroSalidaInsertDTO.centro());
         registroSalida.setCsv(csv);
-
-
 
         return registroSalida;
     }
@@ -141,7 +113,26 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
     /****************************************************************************************/
 
     @Override
+    public Optional<BusinessMessages> validateInsert(RegistroSalida registroSalida) {
+        return Optional.of(BusinessMessages.single(I18n.get("Los registros de salida solo los crea el servidor.")));
+    }
+
+    @Override
+    public Optional<BusinessMessages> validateUpdate(RegistroSalida nuevo, RegistroSalida original) {
+        return Optional.of(BusinessMessages.single(I18n.get("Los registros de salida no se pueden modificar.")));
+    }
+
+    @Override
+    public Optional<BusinessMessages> validateRemove(RegistroSalida registroSalida) {
+        return Optional.of(BusinessMessages.single(I18n.get("Los registros de salida no se pueden borrar.")));
+    }
+
+    @Override
     public Optional<BusinessMessages> validateCreateRegistroSalida(RegistroSalidaInsertDTO registroSalidaInsertDTO, MetaFile documentoOriginal, List<MetaFile> anexos) {
+        if (MetaFileHelper.isPdf(documentoOriginal) == false) {
+            return Optional.of(BusinessMessages.single(I18n.get("El fichero proporcionado no es un PDF válido.")));
+        }
+
         return Optional.empty();
     }
 
@@ -177,15 +168,7 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
     /********************************    Action Rules    *********************************/
     /*************************************************************************************/
 
-    private void fireActionRule_NotificarRegistroSalida(RegistroSalida registroSalida) {
-        List<Fichero> attachs = createAttachFromMetaFiles(registroSalida.getAnexos());
-        attachs.add(createAttachFromMetaFile(registroSalida.getDocumento()));
-        String subject = "Nuevo Registro de Salida Nº " + registroSalida.getNumeroRegistro();
-        String body = "Se ha creado un nuevo registro de salida con número " + registroSalida.getNumeroRegistro() + " en el centro " + registroSalida.getCentro().getName();
-        Mail mail = new Mail(List.of("nada@gmail.com"), "secretariavirtual@fpmislata.com", subject, body, body, attachs);
 
-        mailSender.send(mail);
-    }
 
 
     /*************************************************************************************/
@@ -200,19 +183,6 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
 
         return numeroRegistro;
     }
-
-    private Fichero createAttachFromMetaFile(MetaFile metaFile) {
-        return new Fichero(metaFile.getFileName(), MetaFileUtil.downloadContent(metaFile), metaFile.getFileType());
-    }
-
-    private List<Fichero> createAttachFromMetaFiles(List<MetaFile> metaFiles) {
-        List<Fichero> attachs = new ArrayList<>();
-        for (MetaFile metaFile : metaFiles) {
-            attachs.add(createAttachFromMetaFile(metaFile));
-        }
-        return attachs;
-    }
-
 
     private MetaFile firmarRegistroSalidaPorSecretario(DocumentoPdf documentoPdf, AlmacenClave almacenClave , String numeroRegistro, String csv) {
 

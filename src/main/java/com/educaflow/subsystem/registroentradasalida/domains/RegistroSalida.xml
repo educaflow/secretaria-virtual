@@ -8,7 +8,7 @@
         <string name="numeroRegistro"  title="Num.__!! registro" namecolumn="true"  />
         <datetime name="fecha" />
         <many-to-one name="documentoOriginal" ref="com.axelor.meta.db.MetaFile" required="true" title="documento Original"/>
-        <many-to-one name="documento" ref="com.axelor.meta.db.MetaFile" required="true" title="Documento de salida"/>
+        <many-to-one name="documento" ref="com.axelor.meta.db.MetaFile" title="Documento de salida"/>
         <one-to-many name="anexos" ref="com.axelor.meta.db.MetaFile" title="Anexos" />
         <string name="asunto"  />
         <string name="csv" unique="true" title="Código seguro de verificación"/>

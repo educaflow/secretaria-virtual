@@ -1,6 +1,6 @@
 package com.educaflow.subsystem.registrousuario.service;
 
-import java.util.Objects;
+import com.educaflow.base.util.TextUtil;
 
 public record DatosBasicosUsuario(
         String nombre,
@@ -11,27 +11,12 @@ public record DatosBasicosUsuario(
 ) {
 
     public DatosBasicosUsuario {
-        Objects.requireNonNull(nombre, "nombre no puede ser null");
-        Objects.requireNonNull(apellidos, "apellidos no pueden ser null");
-        Objects.requireNonNull(password, "password no puede ser null");
-        Objects.requireNonNull(passwordRepeat, "passwordRepeat no puede ser null");
-        Objects.requireNonNull(idioma, "idioma no puede ser null");
+        TextUtil.requireNonBlank(nombre, "nombre no puede ser null ni blank");
+        TextUtil.requireNonBlank(apellidos, "apellidos no puede ser null ni blank");
+        TextUtil.requireNonBlank(password, "password no puede ser null ni blank");
+        TextUtil.requireNonBlank(passwordRepeat, "passwordRepeat no puede ser null ni blank");
+        TextUtil.requireNonBlank(idioma, "idioma no puede ser null ni blank");
 
-        if(nombre.isBlank()) {
-            throw new IllegalArgumentException("nombre no puede ser blank");
-        }
-        if(apellidos.isBlank()) {
-            throw new IllegalArgumentException("apellidos no puede ser blank");
-        }
-        if(password.isBlank()) {
-            throw new IllegalArgumentException("password no puede ser blank");
-        }
-        if(passwordRepeat.isBlank()) {
-            throw new IllegalArgumentException("passwordRepeat no puede ser blank");
-        }
-        if(idioma.isBlank()) {
-            throw new IllegalArgumentException("idioma no puede ser blank");
-        }
          if(!password.equals(passwordRepeat)) {
              throw new IllegalArgumentException("password y passwordRepeat deben ser iguales");
          }

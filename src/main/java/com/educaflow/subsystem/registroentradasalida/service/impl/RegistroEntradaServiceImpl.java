@@ -2,8 +2,10 @@ package com.educaflow.subsystem.registroentradasalida.service.impl;
 
 import com.axelor.auth.db.User;
 import com.axelor.db.Repository;
+import com.axelor.db.modelservice.AllowProperties;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.DefaultModelService;
+import com.axelor.i18n.I18n;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
@@ -45,7 +47,6 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
     @Inject
     AlmacenClaveResolver almacenClaveResolver;
 
-    @Inject
     public RegistroEntradaServiceImpl(Class<RegistroEntrada> model, Repository<RegistroEntrada> repository) {
         super(model, repository);
     }
@@ -53,10 +54,6 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
     @Override
     public RegistroEntrada createRegistroEntrada(RegistroEntradaInsertDTO registroEntradaInsertDTO, MetaFile documentoOriginalFirmado, List<MetaFile> anexos) {
         validateCreateRegistroEntrada(registroEntradaInsertDTO, documentoOriginalFirmado, anexos).ifPresent(BusinessMessages::throwIfInvalid);
-
-        if (MetaFileHelper.isPdf(documentoOriginalFirmado)==false) {
-            throw new IllegalArgumentException("El fichero proporcionado no es un PDF válido.");
-        }
 
         LocalDateTime ahora=LocalDateTime.now(Convert.defaultZoneId);
         RegistroEntrada registroEntrada=new RegistroEntrada();
@@ -89,18 +86,64 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
         return registroEntrada;
     }
 
+    @Override
+    public RegistroEntrada insert(RegistroEntrada registroEntrada) {
+        throw new UnsupportedOperationException(I18n.get("Los registros de entrada solo los crea el servidor."));
+    }
+
+    @Override
+    public RegistroEntrada update(RegistroEntrada nuevo, RegistroEntrada original) {
+        throw new UnsupportedOperationException(I18n.get("Los registros de entrada no se pueden modificar."));
+    }
+
+    @Override
+    public void remove(RegistroEntrada registroEntrada) {
+        throw new UnsupportedOperationException(I18n.get("Los registros de entrada no se pueden borrar."));
+    }
+
     /****************************************************************************************/
     /******************************** Métodos de Validación *********************************/
     /****************************************************************************************/
 
     @Override
+    public Optional<BusinessMessages> validateInsert(RegistroEntrada registroEntrada) {
+        return Optional.of(BusinessMessages.single(I18n.get("Los registros de entrada solo los crea el servidor.")));
+    }
+
+    @Override
+    public Optional<BusinessMessages> validateUpdate(RegistroEntrada nuevo, RegistroEntrada original) {
+        return Optional.of(BusinessMessages.single(I18n.get("Los registros de entrada no se pueden modificar.")));
+    }
+
+    @Override
+    public Optional<BusinessMessages> validateRemove(RegistroEntrada registroEntrada) {
+        return Optional.of(BusinessMessages.single(I18n.get("Los registros de entrada no se pueden borrar.")));
+    }
+
+    @Override
     public Optional<BusinessMessages> validateCreateRegistroEntrada(RegistroEntradaInsertDTO registroEntradaInsertDTO, MetaFile documentoOriginalFirmado, List<MetaFile> anexos) {
+        if (MetaFileHelper.isPdf(documentoOriginalFirmado) == false) {
+            return Optional.of(BusinessMessages.single(I18n.get("El fichero proporcionado no es un PDF válido.")));
+        }
+
         return Optional.empty();
     }
 
     /**************************************************************************************/
     /********************************   AllowProperties   *********************************/
     /**************************************************************************************/
+
+    // Un registro de entrada solo lo crea el servidor (createRegistroEntrada): por el REST automático
+    // no se acepta ningún campo, que si no cualquiera con permiso de escritura dictaría el número o el documento.
+    @Override
+    public AllowProperties allowPropertiesInsert() {
+        return AllowProperties.createDenyAllProperties();
+    }
+
+    @Override
+    public AllowProperties allowPropertiesUpdate() {
+        return AllowProperties.createDenyAllProperties();
+    }
 
     /*************************************************************************************/
     /********************************    Action Rules    *********************************/

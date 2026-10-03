@@ -1,5 +1,6 @@
 package com.educaflow.subsystem.registroentradasalida.service;
 
+import com.educaflow.base.util.TextUtil;
 import com.educaflow.subsystem.common.db.Centro;
 
 import java.util.Objects;
@@ -10,7 +11,7 @@ public record RegistroEntradaInsertDTO(Centro centro, PersonaRegistro solicitant
         Objects.requireNonNull(centro, "centro no puede ser null");
         Objects.requireNonNull(solicitante, "solicitante no puede ser null");
         Objects.requireNonNull(interesado, "interesado no puede ser null");
-        Objects.requireNonNull(asunto, "asunto no puede ser null");
+        TextUtil.requireNonBlank(asunto, "asunto no puede ser null ni blank");
     }
 
 }

@@ -41,9 +41,7 @@ public class RegistroController {
 
 
     /**
-     * Paso 1: valida email/DNI, guarda el registro pendiente y devuelve el token de sesión.
      * Body: { "email": "...", "dni": "...", "tipoDoc": "..." }
-     * Respuesta OK: { "token": "..." }
      */
     @POST
     @Path("/registrosPendientes")
@@ -68,6 +66,8 @@ public class RegistroController {
             return Response.ok(Map.of("token", nuevoRegistroPendiente.getToken())).build();
         } catch (BusinessException businessException) {
             return errors(businessException.getBusinessMessages());
+        } catch (UnsupportedOperationException e) {
+            return error("Funcionalidad no disponible.");
         } catch (Exception e) {
             logger.error("Error en iniciarRegistro", e);
             return error("Error interno. Inténtelo de nuevo más tarde.");
@@ -75,9 +75,7 @@ public class RegistroController {
     }
 
     /**
-     * Paso 2: valida el código recibido por email.
      * Body: { "token": "...", "codigo": "..." }
-     * Respuesta OK: { "ok": true }
      */
     @POST
     @Path("/validarCodigo")
@@ -94,6 +92,8 @@ public class RegistroController {
             return Response.ok(Map.of("ok", true)).build();
         } catch (BusinessException businessException) {
             return errors(businessException.getBusinessMessages());
+        } catch (UnsupportedOperationException e) {
+            return error("Funcionalidad no disponible.");
         } catch (Exception e) {
             logger.error("Error en verificarEmail", e);
             return error("Error interno. Inténtelo de nuevo más tarde.");
@@ -101,9 +101,7 @@ public class RegistroController {
     }
 
     /**
-     * Paso 3: crea el usuario.
      * Body: { "token": "...", "nombre": "...", "apellidos": "...", "password": "...", "passwordRepeat": "..." }
-     * Respuesta OK: { "ok": true }
      */
     @POST
     @Path("/usuarios")
@@ -130,7 +128,7 @@ public class RegistroController {
             logger.error("Error en registrarUsuario", e);
             return error("Error interno. Inténtelo de nuevo más tarde.");
         }*/
-        return Response.ok(Map.of("ok", true)).build();
+        return error("Funcionalidad no disponible.");
     }
 
     private Response recursoEstatico(String classpath, String mediaType) {
