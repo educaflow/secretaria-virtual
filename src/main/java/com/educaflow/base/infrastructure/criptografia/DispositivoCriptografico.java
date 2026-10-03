@@ -18,17 +18,21 @@ public class DispositivoCriptografico {
     }
 
     public PrivateKey getPrivateKey(String alias) {
-        if (privateKeys.containsKey(alias)==false) {
+        // Un alias que solo tiene certificado se guarda con clave null: tampoco tiene clave privada.
+        PrivateKey privateKey = privateKeys.get(alias);
+        if (privateKey == null) {
             throw new RuntimeException("No existe la clave privada para el alias: " + alias);
         }
-        return privateKeys.get(alias);
+        return privateKey;
     }
 
     public Certificate[] getCertificateChain(String alias) {
-        if (privateKeys.containsKey(alias)==false) {
+        // Un alias sin cadena de certificados se guarda con cadena null: tampoco tiene CertificateChain.
+        Certificate[] certificateChain = certificateChains.get(alias);
+        if (certificateChain == null) {
             throw new RuntimeException("No existe el CertificateChain para el alias: " + alias);
         }
-        return certificateChains.get(alias);
+        return certificateChain;
     }
 
     /**
@@ -44,7 +48,7 @@ public class DispositivoCriptografico {
     /********************* Funciones Privadas *********************/
     /**************************************************************/
 
-    public List<String> getAliases(KeyStore keyStore) {
+    private List<String> getAliases(KeyStore keyStore) {
         try {
             List<String> aliases = new ArrayList<>();
             Enumeration<String> enumeration = keyStore.aliases();
