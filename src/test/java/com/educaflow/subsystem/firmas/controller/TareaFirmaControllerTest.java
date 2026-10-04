@@ -7,9 +7,6 @@ import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
-import com.educaflow.base.util.SecurityUtil;
-import com.educaflow.subsystem.criptografia.service.SituacionFirma;
-import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper;
 import com.educaflow.subsystem.firmas.db.EstadoTareaFirma;
 import com.educaflow.subsystem.firmas.db.TareaFirma;
 import com.educaflow.subsystem.firmas.service.TareaFirmaService;
@@ -104,10 +101,7 @@ class TareaFirmaControllerTest {
         // formulario y el controlador lo lee de ahí.
         context.put("claveCertificado", CLAVE);
 
-        // El fixture se monta entero para las acciones que reciben la tarea desde el request. Va en lenient
-        // porque `getSituacionFirma` no toca ni el request ni el servicio (no recibe nada del formulario:
-        // resuelve la situación del usuario autenticado), y con strict stubs esos tests fallarían por
-        // stubbings no usados.
+        // El fixture se monta entero para las acciones que reciben la tarea desde el request.
         Map<String, Object> data = new HashMap<>();
         data.put("context", context);
         Mockito.lenient().when(actionRequest.getData()).thenReturn(data);
@@ -148,42 +142,6 @@ class TareaFirmaControllerTest {
         ArgumentCaptor<String> captorClave = ArgumentCaptor.forClass(String.class);
         verify(tareaFirmaService, times(1)).firmarEnServidor(captorEntidad.capture(), captorOriginal.capture(), captorClave.capture());
         return captorEntidad;
-    }
-
-    /* ------------------------------------------------------------------ */
-    /* getSituacionFirma                                                  */
-    /* ------------------------------------------------------------------ */
-
-    @Test
-    void getSituacionFirma_usuarioAutenticadoConDni_devuelveElNombreDeSuSituacion() {
-        User usuarioAutenticado = new User();
-        usuarioAutenticado.setDni(DNI);
-
-        try (MockedStatic<SecurityUtil> securityUtilMock = Mockito.mockStatic(SecurityUtil.class);
-             MockedStatic<CertificadoDigitalHelper> certificadoDigitalHelperMock =
-                     Mockito.mockStatic(CertificadoDigitalHelper.class)) {
-
-            securityUtilMock.when(SecurityUtil::getUser).thenReturn(usuarioAutenticado);
-            certificadoDigitalHelperMock.when(() -> CertificadoDigitalHelper.getSituacionFirmaByDni(DNI))
-                    .thenReturn(SituacionFirma.DISPOSITIVO_CON_PIN);
-
-            // Devuelve el name() y no el enum: la vista compara la situación como texto en sus showIf.
-            assertEquals(SituacionFirma.DISPOSITIVO_CON_PIN.name(), controller.getSituacionFirma());
-        }
-    }
-
-    @Test
-    void getSituacionFirma_sinUsuarioAutenticado_preguntaLaSituacionConElDniNulo() {
-        try (MockedStatic<SecurityUtil> securityUtilMock = Mockito.mockStatic(SecurityUtil.class);
-             MockedStatic<CertificadoDigitalHelper> certificadoDigitalHelperMock =
-                     Mockito.mockStatic(CertificadoDigitalHelper.class)) {
-
-            securityUtilMock.when(SecurityUtil::getUser).thenReturn(null);
-            certificadoDigitalHelperMock.when(() -> CertificadoDigitalHelper.getSituacionFirmaByDni(null))
-                    .thenReturn(SituacionFirma.SIN_DNI);
-
-            assertEquals(SituacionFirma.SIN_DNI.name(), controller.getSituacionFirma());
-        }
     }
 
     /* ------------------------------------------------------------------ */

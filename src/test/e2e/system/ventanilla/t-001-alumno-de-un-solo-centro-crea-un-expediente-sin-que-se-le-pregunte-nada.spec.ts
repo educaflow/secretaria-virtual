@@ -232,7 +232,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await expect(page.getByRole('button', { name: 'Cancelar' })).toHaveCount(0);
 
       // Resultado esperado: el expediente está en el centro "CIPFP Mislata".
-      await expect(page.getByTestId('field:nombreCentro').getByRole('textbox')).toHaveValue(
+      await expect(page.getByTestId('field:centro.name').getByRole('textbox')).toHaveValue(
         CENTRO,
       );
 

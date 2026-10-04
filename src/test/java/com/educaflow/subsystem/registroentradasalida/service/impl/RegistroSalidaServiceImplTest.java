@@ -248,10 +248,10 @@ class RegistroSalidaServiceImplTest {
     }
 
     @Test
-    void insert_lanzaUnsupportedOperationExceptionSinGuardarNada() {
+    void insert_lanzaValidationExceptionSinGuardarNada() {
         RegistroSalida registroSalida = new RegistroSalida();
 
-        assertThrows(UnsupportedOperationException.class, () -> service.insert(registroSalida));
+        assertThrows(ValidationException.class, () -> service.insert(registroSalida));
         verify(repository, never()).save(any());
     }
 
@@ -261,10 +261,10 @@ class RegistroSalidaServiceImplTest {
     }
 
     @Test
-    void update_lanzaUnsupportedOperationExceptionSinGuardarNada() {
+    void update_lanzaValidationExceptionSinGuardarNada() {
         RegistroSalida registroSalida = new RegistroSalida();
 
-        assertThrows(UnsupportedOperationException.class, () -> service.update(registroSalida, new RegistroSalida()));
+        assertThrows(ValidationException.class, () -> service.update(registroSalida, new RegistroSalida()));
         verify(repository, never()).save(any());
     }
 
@@ -274,10 +274,10 @@ class RegistroSalidaServiceImplTest {
     }
 
     @Test
-    void remove_lanzaUnsupportedOperationExceptionSinBorrarNada() {
+    void remove_lanzaValidationExceptionSinBorrarNada() {
         RegistroSalida registroSalida = new RegistroSalida();
 
-        assertThrows(UnsupportedOperationException.class, () -> service.remove(registroSalida));
+        assertThrows(ValidationException.class, () -> service.remove(registroSalida));
         verify(repository, never()).remove(any());
     }
 

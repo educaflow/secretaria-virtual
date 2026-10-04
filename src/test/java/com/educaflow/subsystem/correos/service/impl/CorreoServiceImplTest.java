@@ -434,15 +434,18 @@ class CorreoServiceImplTest {
     }
 
     @Test
-    void enviarCorreo_correoIdInexistente_noHaceNada() {
+    void enviarCorreo_correoIdInexistente_lanzaIllegalStateExceptionConElId() {
         Long correoId = 1L;
         when(em.find(Correo.class, correoId, LockModeType.PESSIMISTIC_WRITE)).thenReturn(null);
 
         try (MockedStatic<JPA> jpaMock = mockJpaRunInTransaction()) {
-            assertDoesNotThrow(() -> service.enviarCorreo(correoId));
+            IllegalStateException ex = assertThrows(IllegalStateException.class, () -> service.enviarCorreo(correoId));
+
+            assertEquals("No existe el correo 1", ex.getMessage());
         }
 
         verify(mailSender, never()).send(any());
+        verify(repository, never()).save(any());
     }
 
     @Test

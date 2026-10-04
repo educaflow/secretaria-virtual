@@ -1234,23 +1234,31 @@ class CertificadoDigitalServiceImplTest {
         assertEquals(SituacionFirma.DISPOSITIVO_SIN_PIN, service.getSituacionFirmaByDni(DNI));
     }
 
+    // Un DNI nulo, en blanco o inválido es una situación de firma, no un error de negocio: el firmante no puede
+    // corregirlo y la pantalla tiene que poder decírselo.
     @Test
-    void getSituacionFirmaByDni_dniNuloOEnBlanco_lanzaValidationExceptionYNoConsultaElRepositorio() {
-        assertThrows(ValidationException.class, () -> service.getSituacionFirmaByDni(null));
-        assertThrows(ValidationException.class, () -> service.getSituacionFirmaByDni("   "));
+    void getSituacionFirmaByDni_dniNuloOEnBlanco_devuelveSinDniYNoConsultaElRepositorio() {
+        assertEquals(SituacionFirma.SIN_DNI, service.getSituacionFirmaByDni(null));
+        assertEquals(SituacionFirma.SIN_DNI, service.getSituacionFirmaByDni("   "));
         verify(repository, never()).findByDniHabilitados(any());
     }
 
     @Test
-    void getSituacionFirmaByDni_dniConFormatoInvalido_lanzaValidationExceptionSinElDni() {
-        ValidationException ex = assertThrows(ValidationException.class,
-                () -> service.getSituacionFirmaByDni(DNI_INVALIDO));
-
-        assertTrue(ex.getMessage().contains(MENSAJE_DNI_NO_VALIDO),
-                () -> "El mensaje de la excepción no contiene «" + MENSAJE_DNI_NO_VALIDO + "»: " + ex.getMessage());
-        assertFalse(ex.getMessage().contains(DNI_INVALIDO),
-                () -> "El mensaje incluye el DNI completo: " + ex.getMessage());
+    void getSituacionFirmaByDni_dniConFormatoInvalido_devuelveSinDniYNoConsultaElRepositorio() {
+        assertEquals(SituacionFirma.SIN_DNI, service.getSituacionFirmaByDni(DNI_INVALIDO));
         verify(repository, never()).findByDniHabilitados(any());
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* isClaveCertificadoCorrecta                                         */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void isClaveCertificadoCorrecta_sinCertificado_lanzaIllegalStateException() {
+        // Solo se llama cuando ya se sabe que hay firma en servidor: sin certificado no hay clave que dar por buena.
+        stubCertificadoHabilitado(DNI, null);
+
+        assertThrows(IllegalStateException.class, () -> service.isClaveCertificadoCorrecta(DNI, CLAVE));
     }
 
     /* ------------------------------------------------------------------ */

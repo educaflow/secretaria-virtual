@@ -12,11 +12,13 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.axelor.auth.db.User;
+import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.criptografia.service.SituacionFirma;
-import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper;
+import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
+import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
 import com.educaflow.subsystem.expedientes.db.PruebaV1;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.EventContext;
@@ -49,11 +51,16 @@ class EntradaHelperTest {
     @Mock
     private FirmaServidorHelper firmaServidorHelper;
 
+    @Mock
+    private ModelServiceFactory modelServiceFactory;
+
+    @Mock
+    private CertificadoDigitalService certificadoDigitalService;
+
     @InjectMocks
     private EntradaHelper entradaHelper;
 
     private MockedStatic<SecurityUtil> securityUtilMock;
-    private MockedStatic<CertificadoDigitalHelper> certificadoDigitalHelperMock;
 
     private final PruebaV1 expediente = new PruebaV1();
     private final MetaFile pdfSolicitud = new MetaFile();
@@ -75,20 +82,23 @@ class EntradaHelperTest {
 
         securityUtilMock = Mockito.mockStatic(SecurityUtil.class, Mockito.withSettings().strictness(Strictness.LENIENT));
         securityUtilMock.when(SecurityUtil::getUser).thenReturn(usuario);
-        certificadoDigitalHelperMock = Mockito.mockStatic(CertificadoDigitalHelper.class, Mockito.withSettings().strictness(Strictness.LENIENT));
     }
 
     @AfterEach
     void cerrarEstaticos() {
-        certificadoDigitalHelperMock.close();
         securityUtilMock.close();
+    }
+
+    private void stubSituacionFirma(SituacionFirma situacionFirma) {
+        when(modelServiceFactory.resolve(CertificadoDigital.class)).thenReturn(certificadoDigitalService);
+        when(certificadoDigitalService.getSituacionFirmaByDni(DNI)).thenReturn(situacionFirma);
     }
 
     @Test
     void firmarSolicitudSiEsEnServidor_firmaEnServidor_dejaLaSolicitudFirmadaEnSuCampo() throws BusinessException {
         MetaFile firmada = new MetaFile();
         expediente.setClaveCertificado(CLAVE);
-        certificadoDigitalHelperMock.when(() -> CertificadoDigitalHelper.getSituacionFirmaByDni(DNI)).thenReturn(SituacionFirma.FICHERO_SIN_CLAVE);
+        stubSituacionFirma(SituacionFirma.FICHERO_SIN_CLAVE);
         when(firmaServidorHelper.firmarEnServidor(DNI, SituacionFirma.FICHERO_SIN_CLAVE, CLAVE, pdfSolicitud, CAMPO_FIRMA)).thenReturn(firmada);
 
         entradaHelper.firmarSolicitudSiEsEnServidor(expediente, campos, CAMPO_FIRMA);
@@ -100,7 +110,7 @@ class EntradaHelperTest {
     void firmarSolicitudSiEsEnServidor_firmaConAutoFirma_noTocaLaSolicitudQueYaLlegoFirmada() throws BusinessException {
         MetaFile firmadaEnElEquipoDelUsuario = new MetaFile();
         pdfSolicitudFirmada = firmadaEnElEquipoDelUsuario;
-        certificadoDigitalHelperMock.when(() -> CertificadoDigitalHelper.getSituacionFirmaByDni(DNI)).thenReturn(SituacionFirma.SIN_CERTIFICADO);
+        stubSituacionFirma(SituacionFirma.SIN_CERTIFICADO);
 
         entradaHelper.firmarSolicitudSiEsEnServidor(expediente, campos, CAMPO_FIRMA);
 

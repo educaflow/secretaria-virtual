@@ -3,7 +3,11 @@ package com.educaflow.tramites.util.firma
 import com.axelor.auth.db.User
 import com.axelor.db.modelservice.BusinessMessages
 import com.axelor.i18n.I18n
+import com.axelor.db.modelservice.ModelServiceFactory
+import com.axelor.inject.Beans
 import com.educaflow.base.util.SecurityUtil
+import com.educaflow.subsystem.criptografia.db.CertificadoDigital
+import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService
 import com.educaflow.subsystem.criptografia.service.SituacionFirma
 import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper
 import org.junit.jupiter.api.AfterEach
@@ -20,8 +24,8 @@ import org.mockito.Mockito
 import org.mockito.quality.Strictness
 
 /**
- * Tests de caracterización de [ClaveCertificadoValida]. `SecurityUtil`, `I18n` y `CertificadoDigitalHelper` se
- * mockean: la regla solo decide qué mensaje devolver según la situación de firma y si la clave es correcta.
+ * Tests de caracterización de [ClaveCertificadoValida]. `SecurityUtil`, `I18n`, `CertificadoDigitalHelper` y
+ * `CertificadoDigitalService` se mockean: la regla solo decide qué mensaje devolver según la situación de firma y si la clave es correcta.
  */
 class ClaveCertificadoValidaTest {
 
@@ -30,6 +34,8 @@ class ClaveCertificadoValidaTest {
     private var securityUtil: MockedStatic<SecurityUtil>? = null
     private var i18n: MockedStatic<I18n>? = null
     private var helper: MockedStatic<CertificadoDigitalHelper>? = null
+    private var beans: MockedStatic<Beans>? = null
+    private var certificadoDigitalService: CertificadoDigitalService? = null
 
     private val regla = ClaveCertificadoValida()
 
@@ -42,6 +48,11 @@ class ClaveCertificadoValidaTest {
         securityUtil!!.`when`<User> { SecurityUtil.getUser() }.thenReturn(user)
         i18n = Mockito.mockStatic(I18n::class.java, lenient)
         i18n!!.`when`<String> { I18n.get(anyString()) }.thenAnswer { it.getArgument<String>(0) }
+        certificadoDigitalService = Mockito.mock(CertificadoDigitalService::class.java)
+        val modelServiceFactory = Mockito.mock(ModelServiceFactory::class.java)
+        Mockito.`when`(modelServiceFactory.resolve(CertificadoDigital::class.java)).thenReturn(certificadoDigitalService)
+        beans = Mockito.mockStatic(Beans::class.java, lenient)
+        beans!!.`when`<ModelServiceFactory> { Beans.get(ModelServiceFactory::class.java) }.thenReturn(modelServiceFactory)
         helper = Mockito.mockStatic(CertificadoDigitalHelper::class.java, lenient)
         helper!!.`when`<String> { CertificadoDigitalHelper.motivoClaveErronea(any()) }.thenReturn("motivo")
     }
@@ -49,16 +60,17 @@ class ClaveCertificadoValidaTest {
     @AfterEach
     fun cerrarMocks() {
         helper?.close()
+        beans?.close()
         i18n?.close()
         securityUtil?.close()
     }
 
     private fun situacion(situacionFirma: SituacionFirma) {
-        helper!!.`when`<SituacionFirma> { CertificadoDigitalHelper.getSituacionFirmaByDni(dni) }.thenReturn(situacionFirma)
+        Mockito.`when`(certificadoDigitalService!!.getSituacionFirmaByDni(dni)).thenReturn(situacionFirma)
     }
 
     private fun claveCorrecta(clave: String?, correcta: Boolean) {
-        helper!!.`when`<Boolean> { CertificadoDigitalHelper.isClaveCertificadoCorrecta(dni, clave) }.thenReturn(correcta)
+        Mockito.`when`(certificadoDigitalService!!.isClaveCertificadoCorrecta(dni, clave)).thenReturn(correcta)
     }
 
     private fun assertMensajeUnico(esperado: String, resultado: BusinessMessages?) {
@@ -82,7 +94,7 @@ class ClaveCertificadoValidaTest {
     @Test
     fun validate_sinUsuarioAutenticado_calculaLaSituacionConDniNulo() {
         securityUtil!!.`when`<User> { SecurityUtil.getUser() }.thenReturn(null)
-        helper!!.`when`<SituacionFirma> { CertificadoDigitalHelper.getSituacionFirmaByDni(null) }.thenReturn(SituacionFirma.SIN_DNI)
+        Mockito.`when`(certificadoDigitalService!!.getSituacionFirmaByDni(null)).thenReturn(SituacionFirma.SIN_DNI)
 
         assertThrows(IllegalStateException::class.java) { regla.validate("clave", Any()) }
     }

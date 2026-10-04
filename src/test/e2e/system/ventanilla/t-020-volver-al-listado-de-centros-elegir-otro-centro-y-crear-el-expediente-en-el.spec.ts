@@ -289,7 +289,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // Resultado esperado: el expediente está en el centro "CIPFP Batoi" y NO en
       // "CIPFP Mislata" — el que el alumno eligió al final del ida y vuelta, no el
       // primero que descartó con "Atrás".
-      const centroExpediente = page.getByTestId('field:nombreCentro').getByRole('textbox');
+      const centroExpediente = page.getByTestId('field:centro.name').getByRole('textbox');
       await expect(centroExpediente).toHaveValue(CENTRO_ELEGIDO);
       await expect(centroExpediente).not.toHaveValue(CENTRO_DESCARTADO);
 

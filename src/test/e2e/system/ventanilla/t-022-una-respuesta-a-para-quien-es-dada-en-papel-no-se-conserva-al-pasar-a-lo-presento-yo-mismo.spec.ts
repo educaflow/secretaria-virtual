@@ -343,7 +343,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await expect(page.getByTestId('field:nameState').getByRole('textbox')).toHaveValue(
         ESTADO_INICIAL,
       );
-      await expect(page.getByTestId('field:nombreCentro').getByRole('textbox')).toHaveValue(
+      await expect(page.getByTestId('field:centro.name').getByRole('textbox')).toHaveValue(
         CENTRO,
       );
 

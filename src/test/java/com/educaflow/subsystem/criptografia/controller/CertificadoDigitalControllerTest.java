@@ -1,15 +1,19 @@
 package com.educaflow.subsystem.criptografia.controller;
 
+import com.axelor.auth.db.User;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
+import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
 import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
 import com.educaflow.subsystem.criptografia.service.DatosTitular;
+import com.educaflow.subsystem.criptografia.service.SituacionFirma;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -20,6 +24,9 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -35,6 +42,8 @@ class CertificadoDigitalControllerTest {
     private static final String NOMBRE_TITULAR = "Secretario";
     private static final String APELLIDOS_TITULAR = "CIPFP Mislata";
     private static final String MENSAJE_DNI_NO_VALIDO = "El DNI no es válido";
+    private static final String DNI_USUARIO_AUTENTICADO = "12345678Z";
+    private static final String MENSAJE_SIN_DNI = "El usuario no tiene DNI";
 
     private CertificadoDigitalController controller;
 
@@ -67,7 +76,9 @@ class CertificadoDigitalControllerTest {
 
         Map<String, Object> data = new HashMap<>();
         data.put("context", context);
-        when(actionRequest.getData()).thenReturn(data);
+        // Va en lenient porque las acciones de la situación de firma no tocan el request (resuelven la del
+        // usuario autenticado), y con strict stubs esos tests fallarían por stubbings no usados.
+        Mockito.lenient().when(actionRequest.getData()).thenReturn(data);
 
         when(modelServiceFactory.resolve(CertificadoDigital.class)).thenReturn(certificadoDigitalService);
     }
@@ -170,5 +181,87 @@ class CertificadoDigitalControllerTest {
         verify(certificadoDigitalService).validateGetDatosTitularByDni(DNI_CON_USUARIO);
         verify(certificadoDigitalService).getDatosTitularByDni(DNI_CON_USUARIO);
         verifyNoMoreInteractions(certificadoDigitalService);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* getSituacionFirma / isFirmaEnServidor                              */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void getSituacionFirma_usuarioAutenticadoConDni_devuelveElNombreDeSuSituacion() {
+        when(certificadoDigitalService.getSituacionFirmaByDni(DNI_USUARIO_AUTENTICADO)).thenReturn(SituacionFirma.DISPOSITIVO_CON_PIN);
+
+        try (MockedStatic<SecurityUtil> securityUtilMock = mockUsuarioAutenticado(usuarioConDni(DNI_USUARIO_AUTENTICADO))) {
+            // Devuelve el name() y no el enum: la vista compara la situación como texto en sus showIf.
+            assertEquals(SituacionFirma.DISPOSITIVO_CON_PIN.name(), controller.getSituacionFirma());
+        }
+    }
+
+    @Test
+    void getSituacionFirma_sinUsuarioAutenticado_preguntaLaSituacionConElDniNulo() {
+        when(certificadoDigitalService.getSituacionFirmaByDni(null)).thenReturn(SituacionFirma.SIN_DNI);
+
+        try (MockedStatic<SecurityUtil> securityUtilMock = mockUsuarioAutenticado(null)) {
+            assertEquals(SituacionFirma.SIN_DNI.name(), controller.getSituacionFirma());
+        }
+    }
+
+    @Test
+    void isFirmaEnServidor_situacionConCertificadoCustodiado_devuelveTrue() {
+        when(certificadoDigitalService.getSituacionFirmaByDni(DNI_USUARIO_AUTENTICADO)).thenReturn(SituacionFirma.DISPOSITIVO_CON_PIN);
+
+        try (MockedStatic<SecurityUtil> securityUtilMock = mockUsuarioAutenticado(usuarioConDni(DNI_USUARIO_AUTENTICADO))) {
+            assertTrue(controller.isFirmaEnServidor());
+        }
+    }
+
+    @Test
+    void isFirmaEnServidor_situacionSinCertificado_devuelveFalse() {
+        when(certificadoDigitalService.getSituacionFirmaByDni(DNI_USUARIO_AUTENTICADO)).thenReturn(SituacionFirma.SIN_CERTIFICADO);
+
+        try (MockedStatic<SecurityUtil> securityUtilMock = mockUsuarioAutenticado(usuarioConDni(DNI_USUARIO_AUTENTICADO))) {
+            assertFalse(controller.isFirmaEnServidor());
+        }
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* validateGetSituacionFirmaByDni                                     */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void validateGetSituacionFirmaByDni_servicioSinMensajes_noDevuelveNingunError() {
+        when(certificadoDigitalService.validateGetSituacionFirmaByDni(DNI_USUARIO_AUTENTICADO)).thenReturn(Optional.empty());
+
+        try (MockedStatic<SecurityUtil> securityUtilMock = mockUsuarioAutenticado(usuarioConDni(DNI_USUARIO_AUTENTICADO))) {
+            controller.validateGetSituacionFirmaByDni(actionRequest, actionResponse);
+        }
+
+        verify(certificadoDigitalService).validateGetSituacionFirmaByDni(DNI_USUARIO_AUTENTICADO);
+        verify(actionResponse, never()).setError(anyString());
+        verify(actionResponse, never()).setError(anyString(), anyString());
+    }
+
+    @Test
+    void validateGetSituacionFirmaByDni_servicioConMensajes_respondeError() {
+        when(certificadoDigitalService.validateGetSituacionFirmaByDni(null))
+                .thenReturn(Optional.of(BusinessMessages.single(MENSAJE_SIN_DNI)));
+
+        try (MockedStatic<SecurityUtil> securityUtilMock = mockUsuarioAutenticado(null)) {
+            controller.validateGetSituacionFirmaByDni(actionRequest, actionResponse);
+        }
+
+        verify(actionResponse).setError(anyString());
+    }
+
+    private static User usuarioConDni(String dni) {
+        User usuario = new User();
+        usuario.setDni(dni);
+        return usuario;
+    }
+
+    private static MockedStatic<SecurityUtil> mockUsuarioAutenticado(User usuario) {
+        MockedStatic<SecurityUtil> securityUtilMock = Mockito.mockStatic(SecurityUtil.class);
+        securityUtilMock.when(SecurityUtil::getUser).thenReturn(usuario);
+        return securityUtilMock;
     }
 }

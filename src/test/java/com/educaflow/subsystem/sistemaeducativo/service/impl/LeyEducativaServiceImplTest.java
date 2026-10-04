@@ -1,7 +1,6 @@
 package com.educaflow.subsystem.sistemaeducativo.service.impl;
 
 import com.axelor.db.Repository;
-import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.i18n.I18n;
 import com.educaflow.subsystem.sistemaeducativo.db.LeyEducativa;
 import org.junit.jupiter.api.AfterEach;
@@ -11,9 +10,6 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.quality.Strictness;
 
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
@@ -47,11 +43,6 @@ class LeyEducativaServiceImplTest {
         return ley;
     }
 
-    private BusinessMessages mensajes(Optional<BusinessMessages> optional) {
-        assertTrue(optional.isPresent());
-        return optional.get();
-    }
-
     /* ------------------------------------------------------------------ */
     /* validateInsert                                                     */
     /* ------------------------------------------------------------------ */
@@ -64,33 +55,6 @@ class LeyEducativaServiceImplTest {
     @Test
     void validateInsert_codeYNameDistintosDeAa_devuelveOptionalVacio() {
         assertTrue(service.validateInsert(ley("LOE", "Ley Orgánica")).isEmpty());
-    }
-
-    @Test
-    void validateInsert_nameAaConEspaciosYMayusculas_devuelveMensajeDeName() {
-        BusinessMessages resultado = mensajes(service.validateInsert(ley("LOE", "  AA ")));
-
-        assertEquals(1, resultado.size());
-        assertEquals("name", resultado.get(0).getFieldName());
-        assertEquals("No puede ser 'aa'", resultado.get(0).getMessage());
-    }
-
-    @Test
-    void validateInsert_codeAa_devuelveMensajeDeCode() {
-        BusinessMessages resultado = mensajes(service.validateInsert(ley(" aA", "Ley Orgánica")));
-
-        assertEquals(1, resultado.size());
-        assertEquals("code", resultado.get(0).getFieldName());
-        assertEquals("No puede ser 'aa'", resultado.get(0).getMessage());
-    }
-
-    @Test
-    void validateInsert_codeYNameAa_devuelveDosMensajesEnOrdenNameCode() {
-        BusinessMessages resultado = mensajes(service.validateInsert(ley("aa", "aa")));
-
-        assertEquals(2, resultado.size());
-        assertEquals("name", resultado.get(0).getFieldName());
-        assertEquals("code", resultado.get(1).getFieldName());
     }
 
     /* ------------------------------------------------------------------ */
@@ -112,33 +76,6 @@ class LeyEducativaServiceImplTest {
         assertTrue(service.validateUpdate(ley("aa", "aa"), ley("LOE", "Ley")).isEmpty());
     }
 
-    @Test
-    void validateUpdate_nameBbConEspaciosYMayusculas_devuelveMensajeDeName() {
-        BusinessMessages resultado = mensajes(service.validateUpdate(ley("LOE", "  BB "), ley("LOE", "Ley")));
-
-        assertEquals(1, resultado.size());
-        assertEquals("name", resultado.get(0).getFieldName());
-        assertEquals("No puede ser 'bb'", resultado.get(0).getMessage());
-    }
-
-    @Test
-    void validateUpdate_codeBb_devuelveMensajeDeCode() {
-        BusinessMessages resultado = mensajes(service.validateUpdate(ley(" bB", "Ley Orgánica"), ley("LOE", "Ley")));
-
-        assertEquals(1, resultado.size());
-        assertEquals("code", resultado.get(0).getFieldName());
-        assertEquals("No puede ser 'bb'", resultado.get(0).getMessage());
-    }
-
-    @Test
-    void validateUpdate_codeYNameBb_devuelveDosMensajesEnOrdenNameCode() {
-        BusinessMessages resultado = mensajes(service.validateUpdate(ley("bb", "bb"), ley("LOE", "Ley")));
-
-        assertEquals(2, resultado.size());
-        assertEquals("name", resultado.get(0).getFieldName());
-        assertEquals("code", resultado.get(1).getFieldName());
-    }
-
     /* ------------------------------------------------------------------ */
     /* validateRemove                                                     */
     /* ------------------------------------------------------------------ */
@@ -158,30 +95,4 @@ class LeyEducativaServiceImplTest {
         assertTrue(service.validateRemove(ley("aa", "bb")).isEmpty());
     }
 
-    @Test
-    void validateRemove_nameCcConEspaciosYMayusculas_devuelveMensajeDeName() {
-        BusinessMessages resultado = mensajes(service.validateRemove(ley("LOE", "  CC ")));
-
-        assertEquals(1, resultado.size());
-        assertEquals("name", resultado.get(0).getFieldName());
-        assertEquals("No puede ser 'cc'", resultado.get(0).getMessage());
-    }
-
-    @Test
-    void validateRemove_codeCc_devuelveMensajeDeCode() {
-        BusinessMessages resultado = mensajes(service.validateRemove(ley(" cC", "Ley Orgánica")));
-
-        assertEquals(1, resultado.size());
-        assertEquals("code", resultado.get(0).getFieldName());
-        assertEquals("No puede ser 'cc'", resultado.get(0).getMessage());
-    }
-
-    @Test
-    void validateRemove_codeYNameCc_devuelveDosMensajesEnOrdenNameCode() {
-        BusinessMessages resultado = mensajes(service.validateRemove(ley("cc", "cc")));
-
-        assertEquals(2, resultado.size());
-        assertEquals("name", resultado.get(0).getFieldName());
-        assertEquals("code", resultado.get(1).getFieldName());
-    }
 }

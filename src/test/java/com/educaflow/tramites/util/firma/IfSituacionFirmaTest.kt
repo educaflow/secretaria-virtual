@@ -3,9 +3,12 @@ package com.educaflow.tramites.util.firma
 import com.axelor.auth.db.User
 import com.axelor.db.modelservice.BusinessMessages
 import com.educaflow.base.infrastructure.validation.engine.ValidationRule
+import com.axelor.db.modelservice.ModelServiceFactory
+import com.axelor.inject.Beans
 import com.educaflow.base.util.SecurityUtil
+import com.educaflow.subsystem.criptografia.db.CertificadoDigital
+import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService
 import com.educaflow.subsystem.criptografia.service.SituacionFirma
-import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -19,7 +22,7 @@ import org.mockito.Mockito
 import org.mockito.quality.Strictness
 
 /**
- * Tests de caracterización de [IfSituacionFirma]. `SecurityUtil` y `CertificadoDigitalHelper` se mockean para fijar
+ * Tests de caracterización de [IfSituacionFirma]. `SecurityUtil` y `CertificadoDigitalService` se mockean para fijar
  * la situación de firma del usuario autenticado; las reglas internas son reglas de prueba que registran sus llamadas.
  */
 class IfSituacionFirmaTest {
@@ -27,7 +30,8 @@ class IfSituacionFirmaTest {
     private val dni = "12345678Z"
 
     private var securityUtil: MockedStatic<SecurityUtil>? = null
-    private var helper: MockedStatic<CertificadoDigitalHelper>? = null
+    private var beans: MockedStatic<Beans>? = null
+    private var certificadoDigitalService: CertificadoDigitalService? = null
 
     /** Regla de prueba que devuelve siempre el mismo resultado y guarda los argumentos con los que se la llama. */
     private class ReglaFija(private val resultado: BusinessMessages?) : ValidationRule {
@@ -46,14 +50,17 @@ class IfSituacionFirmaTest {
         val user = User()
         user.dni = dni
         securityUtil!!.`when`<User> { SecurityUtil.getUser() }.thenReturn(user)
-        helper = Mockito.mockStatic(CertificadoDigitalHelper::class.java, lenient)
-        helper!!.`when`<SituacionFirma> { CertificadoDigitalHelper.getSituacionFirmaByDni(dni) }
-            .thenReturn(SituacionFirma.FICHERO_SIN_CLAVE)
+        certificadoDigitalService = Mockito.mock(CertificadoDigitalService::class.java)
+        val modelServiceFactory = Mockito.mock(ModelServiceFactory::class.java)
+        Mockito.`when`(modelServiceFactory.resolve(CertificadoDigital::class.java)).thenReturn(certificadoDigitalService)
+        beans = Mockito.mockStatic(Beans::class.java, lenient)
+        beans!!.`when`<ModelServiceFactory> { Beans.get(ModelServiceFactory::class.java) }.thenReturn(modelServiceFactory)
+        Mockito.`when`(certificadoDigitalService!!.getSituacionFirmaByDni(dni)).thenReturn(SituacionFirma.FICHERO_SIN_CLAVE)
     }
 
     @AfterEach
     fun cerrarMocks() {
-        helper?.close()
+        beans?.close()
         securityUtil?.close()
     }
 
@@ -108,8 +115,7 @@ class IfSituacionFirmaTest {
     @Test
     fun validate_sinUsuarioAutenticado_calculaLaSituacionConDniNulo() {
         securityUtil!!.`when`<User> { SecurityUtil.getUser() }.thenReturn(null)
-        helper!!.`when`<SituacionFirma> { CertificadoDigitalHelper.getSituacionFirmaByDni(null) }
-            .thenReturn(SituacionFirma.SIN_DNI)
+        Mockito.`when`(certificadoDigitalService!!.getSituacionFirmaByDni(null)).thenReturn(SituacionFirma.SIN_DNI)
         val recibidas = mutableListOf<SituacionFirma>()
 
         val resultado = IfSituacionFirma({ recibidas += it; false }, emptyList()).validate("valor", Any())

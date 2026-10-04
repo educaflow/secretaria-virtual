@@ -281,7 +281,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // "CIPFP Mislata" — el que el alumno eligió, no el otro al que también pertenece
       // (que es además el centro por el que se le conoce en la aplicación: sin esta
       // elección el expediente habría nacido en Mislata).
-      const centroExpediente = page.getByTestId('field:nombreCentro').getByRole('textbox');
+      const centroExpediente = page.getByTestId('field:centro.name').getByRole('textbox');
       await expect(centroExpediente).toHaveValue(CENTRO_ELEGIDO);
       await expect(centroExpediente).not.toHaveValue(CENTRO_NO_ELEGIDO);
 

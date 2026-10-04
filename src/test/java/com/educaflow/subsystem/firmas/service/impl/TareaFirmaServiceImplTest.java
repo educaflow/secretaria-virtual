@@ -19,6 +19,7 @@ import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
 import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
 import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
+import com.educaflow.subsystem.criptografia.service.impl.CertificadoDigitalServiceImpl;
 import com.educaflow.subsystem.criptografia.service.FirmaEnServidorService;
 import com.educaflow.subsystem.firmas.db.DocumentoFirma;
 import com.educaflow.subsystem.firmas.db.EstadoTareaFirma;
@@ -133,7 +134,10 @@ class TareaFirmaServiceImplTest {
         service = new TareaFirmaServiceImpl(TareaFirma.class, repository);
 
         modelServiceFactory = Mockito.mock(ModelServiceFactory.class);
-        certificadoDigitalService = Mockito.mock(CertificadoDigitalService.class);
+        // Se mockea la implementación y no la interfaz para que isClaveCertificadoCorrecta sea la real: así se sigue
+        // ejerciendo la comprobación de la clave contra el almacén que devuelve getAlmacenClaveByDni.
+        certificadoDigitalService = Mockito.mock(CertificadoDigitalServiceImpl.class);
+        Mockito.lenient().when(certificadoDigitalService.isClaveCertificadoCorrecta(any(), any())).thenCallRealMethod();
         tareaFirmaNotifier = Mockito.mock(TareaFirmaNotifier.class);
 
         // La firma en el servidor la hace el subsistema de criptografía. Aquí se cablea su cadena REAL
@@ -144,7 +148,9 @@ class TareaFirmaServiceImplTest {
         setField(almacenClaveResolver, AlmacenClaveResolver.class, "modelServiceFactory", modelServiceFactory);
         FirmaEnServidorService firmaEnServidorService = new FirmaEnServidorService();
         setField(firmaEnServidorService, FirmaEnServidorService.class, "almacenClaveResolver", almacenClaveResolver);
+        setField(firmaEnServidorService, FirmaEnServidorService.class, "modelServiceFactory", modelServiceFactory);
         setField(service, "firmaEnServidorService", firmaEnServidorService);
+        setField(service, "modelServiceFactory", modelServiceFactory);
 
         firmante = new User();
         firmante.setId(1L);
@@ -209,10 +215,8 @@ class TareaFirmaServiceImplTest {
     }
 
     /**
-     * Deja al firmante en la situación de firma del caso. No se mockea {@code CertificadoDigitalHelper}: se
-     * monta la misma respuesta que le daría el subsistema de criptografía, para que estos tests sigan
-     * ejerciendo el camino real por el que el servicio averigua la situación —el certificado dado de alta
-     * para el DNI del firmante— y no una versión de mentira de ese camino.
+     * Deja al firmante en la situación de firma del caso, montando la respuesta del servicio de criptografía
+     * para el DNI del firmante.
      *
      * <p>{@code SIN_DNI} se monta quitándole el DNI de la ficha al firmante, que es lo que lo provoca: es un
      * estado del propio firmante y no del certificado. La respuesta del servicio se monta igual que en los
