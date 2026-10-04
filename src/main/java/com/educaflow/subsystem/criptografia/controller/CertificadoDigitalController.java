@@ -1,5 +1,6 @@
 package com.educaflow.subsystem.criptografia.controller;
 
+import com.axelor.auth.db.User;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.CallMethod;
@@ -7,9 +8,11 @@ import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
 import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
+import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
 import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
 import com.educaflow.subsystem.criptografia.service.DatosTitular;
+import com.educaflow.subsystem.criptografia.service.SituacionFirma;
 import com.google.inject.Inject;
 
 import java.util.Optional;
@@ -48,6 +51,41 @@ public class CertificadoDigitalController {
         actionResponse.setValue("nombre", datosTitular.nombre());
         actionResponse.setValue("apellidos", datosTitular.apellidos());
         actionResponse.setValue("nombreTomadoDelUsuario", datosTitular.tomadoDelUsuario());
+    }
+
+    @CallMethod
+    public String getSituacionFirma() {
+        return getSituacionFirmaUsuarioAutenticado().name();
+    }
+
+    @CallMethod
+    public boolean isFirmaEnServidor() {
+        return getSituacionFirmaUsuarioAutenticado().isFirmaEnServidor();
+    }
+
+    @CallMethod
+    public void validateGetSituacionFirmaByDni(ActionRequest actionRequest, ActionResponse actionResponse) {
+        final CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);
+
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
+
+        Optional<BusinessMessages> validationResult = certificadoDigitalService.validateGetSituacionFirmaByDni(getDniUsuarioAutenticado());
+
+        if (validationResult.isPresent()) {
+            actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());
+        }
+    }
+
+    private SituacionFirma getSituacionFirmaUsuarioAutenticado() {
+        final CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);
+
+        return certificadoDigitalService.getSituacionFirmaByDni(getDniUsuarioAutenticado());
+    }
+
+    private static String getDniUsuarioAutenticado() {
+        User usuarioAutenticado = SecurityUtil.getUser();
+
+        return usuarioAutenticado == null ? null : usuarioAutenticado.getDni();
     }
 
     /**
