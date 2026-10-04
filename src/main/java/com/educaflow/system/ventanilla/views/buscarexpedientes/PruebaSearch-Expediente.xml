@@ -63,7 +63,7 @@
     </action-record>
 
     <action-record name="sysVentanilla.PruebaSearch@Expediente-anyo-ahora-action" model="com.educaflow.subsystem.expedientes.db.SearchExpedientes">
-        <field name="anyo" expr="eval: java.time.Year.now().value" />
+        <field name="anyo" expr="eval: java.time.Year.now(com.educaflow.base.util.Convert.defaultZoneId).value" />
     </action-record>
 
     <?sv-remotes?>

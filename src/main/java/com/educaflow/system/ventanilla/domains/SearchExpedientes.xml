@@ -4,6 +4,12 @@
                xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
 
 
+    <!-- Desviación heredada del checklist del <module> de k-sistemas/modelos.md (commit b836530): NO se debe copiar.
+         - Pendiente de que el usuario decida entre (a) trasladarla a com.educaflow.system.ventanilla.db con
+           name="ventanilla" o (b) borrarla junto con la pantalla PruebaSearch.
+         - Ficheros que cambian a la vez: ventanilla/views/buscarexpedientes/PruebaSearch-Expediente.xml,
+           src/main/resources/data-init/input/auth.xml, subsystem/expedientes/data-init/input/auth-expedientes.xml
+           y, si se borra, secretariavirtual/menus/menus.xml. -->
     <module name="expedientes" package="com.educaflow.subsystem.expedientes.db"/>
     <entity name="SearchExpedientes" persistable="false" >
         <boolean name="estado" />
