@@ -610,13 +610,16 @@ tasks.register('countLines') {
                          carpeta.absolutePath].execute().text)
                 def codigo = lenguajesCodigo.sum { json[it]?.code ?: 0 }
                 def xml = json.XML?.code ?: 0
-                [nombre: projectDir.toPath().relativize(carpeta.toPath()).toString(), codigo: codigo, xml: xml]
+                def ficheros = (lenguajesCodigo + 'XML').sum { json[it]?.nFiles ?: 0 }
+                [nombre: projectDir.toPath().relativize(carpeta.toPath()).toString(), codigo: codigo, xml: xml,
+                 ficheros: ficheros]
             }
-            filas << [nombre: 'Total', codigo: filas.sum { it.codigo }, xml: filas.sum { it.xml }]
+            filas << [nombre: 'Total', codigo: filas.sum { it.codigo }, xml: filas.sum { it.xml },
+                      ficheros: filas.sum { it.ficheros }]
             println 'Líneas del proyecto (sin blancos ni comentarios)'
-            println String.format('%-10s %10s %10s %10s', '', 'Código', 'XML', 'Total')
+            println String.format('%-10s %10s %10s %10s %10s', '', 'Código', 'XML', 'Total', 'Ficheros')
             filas.each { f ->
-                println String.format('%-10s %10d %10d %10d', f.nombre, f.codigo, f.xml, f.codigo + f.xml)
+                println String.format('%-10s %10d %10d %10d %10d', f.nombre, f.codigo, f.xml, f.codigo + f.xml, f.ficheros)
             }
         } else {
             println "countLines: no se encuentra ${cloc}; ejecuta \"npm install\" para contar las líneas del código."
