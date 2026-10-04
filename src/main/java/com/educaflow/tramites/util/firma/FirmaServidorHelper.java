@@ -9,11 +9,14 @@ import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.util.DniUtil;
+import com.educaflow.base.util.TextUtil;
 import com.educaflow.subsystem.criptografia.service.SituacionFirma;
 import com.educaflow.subsystem.criptografia.service.CredentialsFailureException;
 import com.educaflow.subsystem.criptografia.service.FirmaEnServidorService;
 import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper;
 import com.google.inject.Inject;
+
+import java.util.Objects;
 
 
 public class FirmaServidorHelper {
@@ -34,21 +37,15 @@ public class FirmaServidorHelper {
 
     private MetaFile firmarEnServidor(String dni, SituacionFirma situacionFirma, String clave, MetaFile documentoOriginal, CampoFirma campoFirma) throws BusinessException {
 
-        if ((dni==null) || dni.isBlank()) {
-            throw new IllegalArgumentException("No hay DNI para el firmante");
-        }
+        TextUtil.requireNonBlank(dni, "No hay DNI para el firmante");
         if (DniUtil.isValid(dni) == false) {
-            throw new IllegalArgumentException("El DNI no es válido:"+dni);
+            throw new IllegalArgumentException("El DNI no es válido:" + DniUtil.enmascarar(dni));
         }
-        if (situacionFirma==null) {
-            throw new NullPointerException("No hay situación de firma para el firmante con DNI " + dni);
-        }
+        Objects.requireNonNull(situacionFirma, "No hay situación de firma para el firmante con DNI " + DniUtil.enmascarar(dni));
         if (situacionFirma.isFirmaEnServidor() == false) {
             throw new IllegalStateException("No corresponde firmar en el servidor con la situación de firma " + situacionFirma);
         }
-        if (documentoOriginal == null) {
-            throw new IllegalStateException("No hay documento de entrada que firmar");
-        }
+        Objects.requireNonNull(documentoOriginal, "No hay documento de entrada que firmar");
 
         try {
             DocumentoPdf documentoFirmado = firmaEnServidorService.firmar(dni, clave, MetaFileHelper.getDocumentoPdf(documentoOriginal), campoFirma);

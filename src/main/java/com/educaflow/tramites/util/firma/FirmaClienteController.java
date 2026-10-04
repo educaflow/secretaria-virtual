@@ -7,6 +7,7 @@ import com.educaflow.base.infrastructure.autofirma.AutoFirma;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.util.DniUtil;
 import com.educaflow.base.util.SecurityUtil;
+import com.educaflow.base.util.TextUtil;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.tramitador.tramitacion.util.ExpedienteUtil;
 
@@ -34,14 +35,9 @@ public class FirmaClienteController {
             Class clazz = expediente.getClass();
 
             String dniFirmante=SecurityUtil.getUser().getDni();
-            if (dniFirmante==null) {
-                throw new RuntimeException("dniFirmante no puede ser null");
-            }
-            if (dniFirmante.isBlank()) {
-                throw new RuntimeException("dniFirmante no puede estar vacio");
-            }
+            TextUtil.requireNonBlank(dniFirmante, "dniFirmante no puede ser null ni blank");
             if (DniUtil.isValid(dniFirmante)==false) {
-                throw new RuntimeException("dniFirmante no tiene un formato válido: " + DniUtil.enmascarar(dniFirmante));
+                throw new IllegalArgumentException("dniFirmante no tiene un formato válido: " + DniUtil.enmascarar(dniFirmante));
             }
 
 
