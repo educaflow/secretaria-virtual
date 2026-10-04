@@ -1,10 +1,14 @@
 package com.educaflow.tramites.util.firma
 
 import com.axelor.db.modelservice.BusinessMessages
+import com.axelor.db.modelservice.ModelServiceFactory
 import com.axelor.i18n.I18n
+import com.axelor.inject.Beans
 import com.educaflow.base.infrastructure.validation.dsl.BeanValidationDSL
 import com.educaflow.base.infrastructure.validation.engine.ValidationRule
 import com.educaflow.base.util.SecurityUtil
+import com.educaflow.subsystem.criptografia.db.CertificadoDigital
+import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService
 import com.educaflow.subsystem.criptografia.service.SituacionFirma
 import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper
 
@@ -35,8 +39,12 @@ private fun dniUsuarioAutenticado(): String? {
     return SecurityUtil.getUser()?.dni
 }
 
+private fun certificadoDigitalService(): CertificadoDigitalService {
+    return Beans.get(ModelServiceFactory::class.java).resolve(CertificadoDigital::class.java) as CertificadoDigitalService
+}
+
 private fun situacionFirmaUsuarioAutenticado(): SituacionFirma {
-    return CertificadoDigitalHelper.getSituacionFirmaByDni(dniUsuarioAutenticado())
+    return certificadoDigitalService().getSituacionFirmaByDni(dniUsuarioAutenticado())
 }
 
 data class ClaveCertificadoValida(val mensaje: String = "No es posible firmar la solicitud: %s") : ValidationRule {
@@ -52,7 +60,7 @@ data class ClaveCertificadoValida(val mensaje: String = "No es posible firmar la
             return BusinessMessages.single(mensajeClaveRequerida(situacionFirma))
         }
 
-        if (CertificadoDigitalHelper.isClaveCertificadoCorrecta(dniUsuarioAutenticado(), clave) == false) {
+        if (certificadoDigitalService().isClaveCertificadoCorrecta(dniUsuarioAutenticado(), clave) == false) {
             return BusinessMessages.single(I18n.get(mensaje).format(CertificadoDigitalHelper.motivoClaveErronea(situacionFirma)))
         }
 

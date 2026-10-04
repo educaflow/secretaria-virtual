@@ -1,10 +1,12 @@
 package com.educaflow.tramites.util.entrada;
 
+import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.criptografia.service.SituacionFirma;
-import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper;
+import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
+import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.EventContext;
@@ -24,6 +26,9 @@ public class EntradaHelper {
     @Inject
     private FirmaServidorHelper firmaServidorHelper;
 
+    @Inject
+    private ModelServiceFactory modelServiceFactory;
+
     /**
      * Firma en el servidor la solicitud generada si a quien presenta le corresponde firmar así. Con AutoFirma no
      * hace nada: la solicitud firmada ya llegó del equipo del usuario y la validó el evento.
@@ -31,8 +36,10 @@ public class EntradaHelper {
      * @param nombreCampoFirma el {@code campoFirma} del hueco de la firma en el documento de la solicitud
      */
     public <T extends Expediente> void firmarSolicitudSiEsEnServidor(T expediente, CamposEntrada<T> campos, String nombreCampoFirma) throws BusinessException {
+        final CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);
+
         String dniFirmante = SecurityUtil.getUser().getDni();
-        SituacionFirma situacionFirma = CertificadoDigitalHelper.getSituacionFirmaByDni(dniFirmante);
+        SituacionFirma situacionFirma = certificadoDigitalService.getSituacionFirmaByDni(dniFirmante);
 
         if (situacionFirma.isFirmaEnServidor()) {
             campos.setPdfSolicitudFirmada().accept(expediente, firmaServidorHelper.firmarEnServidor(

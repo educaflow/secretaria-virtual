@@ -164,9 +164,9 @@
     <action-record name="exp-JustificacionFaltaProfesoradoV1-set-situacionFirma-action"
                    model="com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1">
         <field name="situacionFirma"
-               expr="call:com.educaflow.tramites.util.firma.FirmaServidorController:getSituacionFirma()"/>
+               expr="call:com.educaflow.subsystem.criptografia.controller.CertificadoDigitalController:getSituacionFirma()"/>
         <field name="firmaEnServidor"
-               expr="call:com.educaflow.tramites.util.firma.FirmaServidorController:isFirmaEnServidor()"/>
+               expr="call:com.educaflow.subsystem.criptografia.controller.CertificadoDigitalController:isFirmaEnServidor()"/>
     </action-record>
 
     <!-- firmaSolicitante: el campoFirma de documentospdf/solicitud.xml, el mismo que CAMPO_FIRMA_SOLICITUD
