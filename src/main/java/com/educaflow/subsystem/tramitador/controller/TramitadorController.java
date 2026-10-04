@@ -28,6 +28,8 @@ import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import java.util.*;
@@ -35,6 +37,8 @@ import java.util.*;
 
 
 public class TramitadorController {
+
+    private static final Logger logger = LoggerFactory.getLogger(TramitadorController.class);
 
     @Inject
     TramitadorService tramitadorService;
@@ -290,7 +294,7 @@ public class TramitadorController {
         // (pendiente). Va fuera del try para que el catch (Exception) no envuelva la UnauthorizedException.
         // TODO: No verifica que ese hijo pertenezca al expediente que viene como padre en la petición, así que un usuario con permiso de lectura sobre la clase puede seguir pasando el id de un hijo de otro expediente.
         if (id != null) {
-            System.out.println("TODO:Comprobar que tiene permiso para esa fila!!!!!");
+            logger.warn("TODO:Comprobar que tiene permiso para esa fila!!!!!");
             jpaSecurity.check(JpaSecurity.CAN_READ, classModel, Convert.objectToLong(id));
         }
 
