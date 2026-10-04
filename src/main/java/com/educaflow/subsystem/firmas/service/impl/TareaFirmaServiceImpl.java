@@ -4,6 +4,7 @@ import com.educaflow.base.util.SecurityUtil;
 import com.axelor.auth.db.User;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
+import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.i18n.I18n;
 import com.axelor.inject.Beans;
 import com.axelor.meta.db.MetaFile;
@@ -18,6 +19,8 @@ import com.axelor.db.modelservice.AllowProperties;
 import com.educaflow.base.util.JsonUtil;
 import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.base.util.TextUtil;
+import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
+import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
 import com.educaflow.subsystem.criptografia.service.CredentialsFailureException;
 import com.educaflow.subsystem.criptografia.service.FirmaEnServidorService;
 import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper;
@@ -46,6 +49,9 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
 
     @Inject
     private FirmaEnServidorService firmaEnServidorService;
+
+    @Inject
+    private ModelServiceFactory modelServiceFactory;
 
     public TareaFirmaServiceImpl(Class<TareaFirma> model, Repository<TareaFirma> repository) {
         super(model, repository);
@@ -497,17 +503,19 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     }
 
     private boolean isClaveCertificadoCorrecta(TareaFirma tareaFirma, String claveCertificado) {
+        final CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);
         String dni = tareaFirma.getFirmante().getDni();
 
-        return CertificadoDigitalHelper.isClaveCertificadoCorrecta(dni, claveCertificado);
+        return certificadoDigitalService.isClaveCertificadoCorrecta(dni, claveCertificado);
 
     }
 
 
     private SituacionFirma getSituacionFirma(TareaFirma tareaFirma) {
+        final CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);
         User firmante = tareaFirma.getFirmante();
 
-        return CertificadoDigitalHelper.getSituacionFirmaByDni(firmante == null ? null : firmante.getDni());
+        return certificadoDigitalService.getSituacionFirmaByDni(firmante == null ? null : firmante.getDni());
     }
 
 }

@@ -1,6 +1,5 @@
 package com.educaflow.subsystem.firmas.controller;
 
-import com.axelor.auth.db.User;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.CallMethod;
 import com.axelor.rpc.ActionRequest;
@@ -10,9 +9,6 @@ import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.axelor.db.modelservice.BusinessMessages;
 import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
-import com.educaflow.base.util.SecurityUtil;
-import com.educaflow.subsystem.criptografia.service.SituacionFirma;
-import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper;
 import com.educaflow.subsystem.firmas.db.DocumentoFirma;
 import com.educaflow.subsystem.firmas.db.TareaFirma;
 import com.educaflow.subsystem.firmas.service.TareaFirmaService;
@@ -29,14 +25,6 @@ public class  TareaFirmaController {
 
     @Inject
     private ModelServiceFactory modelServiceFactory;
-
-    @CallMethod
-    public String getSituacionFirma() {
-        User usuarioAutenticado = SecurityUtil.getUser();
-        SituacionFirma situacionFirma = CertificadoDigitalHelper.getSituacionFirmaByDni(usuarioAutenticado == null ? null : usuarioAutenticado.getDni());
-
-        return situacionFirma.name();
-    }
 
     @CallMethod
     public void firmarDocumentosConAutoFirma(ActionRequest actionRequest, ActionResponse actionResponse) {
