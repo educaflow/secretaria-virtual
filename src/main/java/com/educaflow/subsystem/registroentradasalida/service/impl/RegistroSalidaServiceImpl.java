@@ -228,7 +228,7 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
     private static String getNombreUnico(String nombre, Set<String> nombres) {
         String nombreUnico = nombre;
         for (int i = 2; nombres.add(nombreUnico) == false; i++) {
-            nombreUnico = nombre+ "_" + i;
+            nombreUnico = i + "_" + nombre;
         }
 
         return nombreUnico;
