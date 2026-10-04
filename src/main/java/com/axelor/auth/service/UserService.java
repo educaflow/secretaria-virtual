@@ -2,7 +2,6 @@ package com.axelor.auth.service;
 
 import com.axelor.auth.db.User;
 import com.axelor.db.modelservice.ModelService;
-import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.subsystem.common.db.CargoCodigo;
 import com.educaflow.subsystem.common.db.Centro;
 
@@ -17,8 +16,8 @@ public interface UserService extends ModelService<User> {
      * El único usuario con ese cargo en el centro (el director, el secretario…), que es la persona a la que se le
      * pone a firmar lo que el centro resuelve.
      *
-     * @throws BusinessException si en el centro nadie tiene ese cargo o lo tiene más de uno: no hay forma de
-     *                           saber a quién le toca, y lo tiene que arreglar quien gestiona los cargos del centro.
+     * @throws RuntimeException si en el centro nadie tiene ese cargo o lo tiene más de uno: el centro está mal
+     *                          configurado, y eso no debería pasar nunca.
      */
-    User getByCentroAndCargo(Centro centro, CargoCodigo cargo) throws BusinessException;
+    User getByCentroAndCargo(Centro centro, CargoCodigo cargo);
 }

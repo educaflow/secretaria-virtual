@@ -4,9 +4,6 @@ import com.axelor.auth.db.User;
 import com.axelor.auth.service.UserService;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
-import com.axelor.i18n.I18n;
-import com.educaflow.base.infrastructure.validation.messages.BusinessException;
-import com.educaflow.base.util.Convert;
 import com.educaflow.subsystem.common.db.CargoCodigo;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.CentroUsuarioCargo;
@@ -31,13 +28,12 @@ public class UserServiceImpl extends DefaultModelService<User> implements UserSe
         Objects.requireNonNull(cargo, "cargo no puede ser null");
 
         List<CentroUsuarioCargo> usuariosConCargo = centroUsuarioCargoRepository.findByCentroAndCargo(centro, cargo);
-        String nombreCargo = I18n.get(Convert.objectToUserString(cargo));
 
         if (usuariosConCargo.isEmpty()) {
-            throw new RuntimeException(I18n.get("El centro no tiene ningún usuario con el cargo de %s; avise a quien gestiona los cargos del centro").formatted(nombreCargo));
+            throw new RuntimeException("El centro id=" + centro.getId() + " no tiene ningún usuario con el cargo " + cargo);
         }
         if (usuariosConCargo.size() > 1) {
-            throw new RuntimeException(I18n.get("El centro tiene más de un usuario con el cargo de %s; avise a quien gestiona los cargos del centro").formatted(nombreCargo));
+            throw new RuntimeException("El centro id=" + centro.getId() + " tiene " + usuariosConCargo.size() + " usuarios con el cargo " + cargo);
         }
 
         User user=usuariosConCargo.get(0).getCentroUsuario().getUsuario();
