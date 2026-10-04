@@ -7,6 +7,8 @@ import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
 import com.google.inject.Inject;
 
+import java.util.Optional;
+
 public class AlmacenClaveResolver {
 
     @Inject
@@ -28,12 +30,12 @@ public class AlmacenClaveResolver {
     }
 
 
-    public AlmacenClave getByDNI(String dni) {
+    public Optional<AlmacenClave> getByDNI(String dni) {
         CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);
         return certificadoDigitalService.getAlmacenClaveByDni(dni);
     }
 
-    public AlmacenClave getByDNI(String dni, String claveAcceso) {
+    public Optional<AlmacenClave> getByDNI(String dni, String claveAcceso) {
         CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);
         return certificadoDigitalService.getAlmacenClaveByDni(dni, claveAcceso);
     }

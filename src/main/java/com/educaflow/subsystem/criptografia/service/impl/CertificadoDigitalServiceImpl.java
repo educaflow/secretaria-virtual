@@ -2,9 +2,11 @@ package com.educaflow.subsystem.criptografia.service.impl;
 
 import com.axelor.auth.db.User;
 import com.axelor.auth.db.repo.UserRepository;
+import com.axelor.db.JPA;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.AllowProperties;
 import com.axelor.db.modelservice.DefaultModelService;
+import com.educaflow.base.infrastructure.async.EjecutorAsincrono;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClaveDispositivo;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClaveFichero;
@@ -22,6 +24,8 @@ import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
 import com.educaflow.subsystem.criptografia.service.DatosTitular;
 import com.educaflow.subsystem.criptografia.service.SituacionFirma;
 import jakarta.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -35,12 +39,17 @@ import java.util.Optional;
 
 public class CertificadoDigitalServiceImpl extends DefaultModelService<CertificadoDigital> implements CertificadoDigitalService {
 
+    private static final Logger log = LoggerFactory.getLogger(CertificadoDigitalServiceImpl.class);
+
     /**
      * Repositorio de la entidad {@code User} (que NO es la que gestiona este servicio), para resolver el usuario
      * titular a partir de su DNI. Es un repositorio, no un {@code ModelService}, así que se inyecta como campo.
      */
     @Inject
     private UserRepository userRepository;
+
+    @Inject
+    EjecutorAsincrono ejecutorAsincrono;
 
     public CertificadoDigitalServiceImpl(Class<CertificadoDigital> model, Repository<CertificadoDigital> repository) {
         super(model, repository);
@@ -62,7 +71,17 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         fireActionRule_ConservarDni(certificado, certificadoOriginal);
         fireActionRule_ConservarDatosTitularDelUsuario(certificado, certificadoOriginal);
 
-        return repository.save(certificado);
+        MetaFile ficheroOriginal = (certificadoOriginal.getTipoCertificado() == TipoUbicacionCertificado.FICHERO_BD) ? certificadoOriginal.getFichero() : null;
+
+        CertificadoDigital certificadoGuardado = repository.save(certificado);
+
+        // Solo se borra si el certificado ya no lo referencia: si sigue apuntándolo, borrarlo rompería la clave ajena.
+        MetaFile ficheroNuevo = certificadoGuardado.getFichero();
+        if (ficheroOriginal != null && (ficheroNuevo == null || !Objects.equals(ficheroOriginal.getId(), ficheroNuevo.getId()))) {
+            fireActionRule_BorrarFicheroTrasCommit(ficheroOriginal);
+        }
+
+        return certificadoGuardado;
     }
 
     @Override
@@ -73,22 +92,23 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
     }
 
     @Override
-    public AlmacenClave getAlmacenClaveByDni(String dni) {
+    public Optional<AlmacenClave> getAlmacenClaveByDni(String dni) {
         return getAlmacenClaveByDni(dni, null);
     }
 
     @Override
-    public AlmacenClave getAlmacenClaveByDni(String dni, String claveAcceso) {
+    public Optional<AlmacenClave> getAlmacenClaveByDni(String dni, String claveAcceso) {
         validateGetAlmacenClaveByDni(dni, claveAcceso).ifPresent(BusinessMessages::throwIfInvalid);
-        CertificadoDigital certificado = getCertificadoHabilitado(dni);
+        Optional<CertificadoDigital> certificadoHabilitado = getCertificadoHabilitado(dni);
 
-        if (certificado == null) {
-            return null;
+        if (certificadoHabilitado.isEmpty()) {
+            return Optional.empty();
         }
+        CertificadoDigital certificado = certificadoHabilitado.get();
 
         TipoUbicacionCertificado tipo = certificado.getTipoCertificado();
 
-        return switch (tipo) {
+        AlmacenClave almacenClave = switch (tipo) {
             case FICHERO_BD, CLASSPATH, SISTEMA_ARCHIVOS -> {
                 String passwordGuardada = certificado.getPassword();
                 String clave = (passwordGuardada == null || passwordGuardada.isBlank()) ? claveAcceso : passwordGuardada;
@@ -96,6 +116,8 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
             }
             case DISPOSITIVO_PKCS11 -> new AlmacenClaveDispositivo(certificado.getDispositivoCriptografico().getSlot(), certificado.getAlias().getName());
         };
+
+        return Optional.of(almacenClave);
     }
 
     @Override
@@ -107,27 +129,25 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         repository.remove(certificado);
 
         if (fichero != null) {
-            MetaFileUtil.delete(fichero);
+            fireActionRule_BorrarFicheroTrasCommit(fichero);
         }
     }
 
 
     @Override
     public SituacionFirma getSituacionFirmaByDni(String dni) {
-        if ((dni==null) || dni.isBlank()) {
+        validateGetSituacionFirmaByDni(dni).ifPresent(BusinessMessages::throwIfInvalid);
+
+        if (DniUtil.isValid(dni) == false) {
             return SituacionFirma.SIN_DNI;
         }
 
-        if (!DniUtil.isValid(dni)) {
-            // El DNI va enmascarado: esta excepción acaba en un log, y ahí no se escribe nunca completo.
-            throw new IllegalArgumentException("El DNI no es válido: " + DniUtil.enmascarar(dni));
-        }
+        Optional<CertificadoDigital> certificadoHabilitado = getCertificadoHabilitado(dni);
 
-        CertificadoDigital certificado = getCertificadoHabilitado(dni);
-
-        if (certificado == null) {
+        if (certificadoHabilitado.isEmpty()) {
             return SituacionFirma.SIN_CERTIFICADO;
         }
+        CertificadoDigital certificado = certificadoHabilitado.get();
 
         TipoUbicacionCertificado tipo = certificado.getTipoCertificado();
 
@@ -141,6 +161,22 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
                 yield (password == null || password.isBlank()) ? SituacionFirma.FICHERO_SIN_CLAVE : SituacionFirma.FICHERO_CON_CLAVE;
             }
         };
+    }
+
+
+    @Override
+    public boolean isClaveCertificadoCorrecta(String dni, String clave) {
+        validateIsClaveCertificadoCorrecta(dni, clave).ifPresent(BusinessMessages::throwIfInvalid);
+
+        // Los llamantes comprueban antes que hay firma en servidor: sin certificado es un error de programación.
+        AlmacenClave almacenClave = getAlmacenClaveByDni(dni, clave)
+                .orElseThrow(() -> new IllegalStateException("El usuario con dni=" + DniUtil.enmascarar(dni) + " no tiene certificado digital con el que comprobar la clave"));
+
+        if (almacenClave instanceof AlmacenClaveFichero almacenClaveFichero) {
+            return almacenClaveFichero.isPasswordValid() == true;
+        }
+
+        return true;
     }
 
 
@@ -165,14 +201,17 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
     }
 
     @Override
+    public Optional<BusinessMessages> validateIsClaveCertificadoCorrecta(String dni, String clave) {
+        return validateGetAlmacenClaveByDni(dni, clave);
+    }
+
+    /**
+     * La acción no tiene precondiciones de negocio: un DNI nulo, en blanco o inválido no es un error sino una
+     * situación de firma más ({@code SIN_DNI}), que decide el propio {@code getSituacionFirmaByDni}.
+     */
+    @Override
     public Optional<BusinessMessages> validateGetSituacionFirmaByDni(String dni) {
-        BusinessMessages messages = new BusinessMessages();
-
-        if (!DniUtil.isValid(dni)) {
-            messages.add(new BusinessMessage("dni", "El DNI no es válido"));
-        }
-
-        return messages.isValid() ? Optional.empty() : Optional.of(messages);
+        return Optional.empty();
     }
 
     /**
@@ -192,12 +231,12 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
 
         validateCertificado(certificado, messages);
 
-        // V-CertificadoDigital-005 — en el alta el DNI del bean entrante ES el bueno (campo `cliente` de esta acción).
+        // En el alta el DNI del bean entrante ES el bueno (campo `cliente` de esta acción).
         validateUnicoCertificadoHabilitadoPorDni(certificado.getDni(), certificado, messages);
 
-        // V-CertificadoDigital-001 / V-CertificadoDigital-002 — solo si NO hay usuario con ese DNI: si lo hay, el
-        // nombre y los apellidos los pone el servidor en R-CertificadoDigital-001 y la validación no aplica.
-        if (findUsuarioTitular(certificado.getDni()) == null) {
+        // Si hay usuario con ese DNI, el nombre y los apellidos los pone el servidor en
+        // fireActionRule_AsignarTitular y la validación no aplica.
+        if (findUsuarioTitular(certificado.getDni()).isEmpty()) {
             validateNombreYApellidosIndicados(certificado, messages);
         }
 
@@ -210,13 +249,12 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
 
         validateCertificado(certificado, messages);
 
-        // V-CertificadoDigital-005 — CRITICAL: se consulta con el DNI del ORIGINAL, nunca con el del bean entrante.
-        // El DNI es inmutable (RN-CertificadoDigital-003) y las validaciones corren ANTES de la action rule que lo
+        // CRITICAL: se consulta con el DNI del ORIGINAL, nunca con el del bean entrante.
+        // El DNI es inmutable y las validaciones corren ANTES de la action rule que lo
         // restaura, así que usar aquí el del cliente dejaría la unicidad a merced del endpoint REST genérico.
         validateUnicoCertificadoHabilitadoPorDni(certificadoOriginal.getDni(), certificado, messages);
 
-        // V-CertificadoDigital-003 / V-CertificadoDigital-004 — solo si el ORIGINAL no tiene los datos del titular
-        // tomados de la ficha del usuario. El flag es un campo `servidor` inmutable: el cliente no puede dictarlo.
+        // Se mira el flag del ORIGINAL: es un campo `servidor` inmutable y el cliente no puede dictarlo.
         if (certificadoOriginal.getNombreTomadoDelUsuario() == false) {
             validateNombreYApellidosIndicados(certificado, messages);
         }
@@ -261,6 +299,8 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
                             }
                         } catch (RuntimeException e) {
                             // Si el dispositivo no está configurado aún, no se puede validar el alias
+                            log.warn("No se pudo comprobar el alias id={} en el dispositivo id={}: {}",
+                                    certificado.getAlias().getId(), certificado.getDispositivoCriptografico().getId(), e.getMessage());
                         }
                     }
                 }
@@ -269,9 +309,7 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
                 if (certificado.getRutaClasspath() == null || certificado.getRutaClasspath().isBlank()) {
                     messages.add(new BusinessMessage("rutaClasspath", "La ruta classpath es obligatoria para certificados de tipo Classpath"));
                 } else {
-                    InputStream resourceStream = CertificadoDigitalServiceImpl.class.getClassLoader()
-                            .getResourceAsStream(certificado.getRutaClasspath());
-                    if (resourceStream == null) {
+                    if (CertificadoDigitalServiceImpl.class.getClassLoader().getResource(certificado.getRutaClasspath()) == null) {
                         messages.add(new BusinessMessage("rutaClasspath", "No se encuentra el recurso en el classpath: " + certificado.getRutaClasspath()));
                     }
                 }
@@ -287,9 +325,7 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
     }
 
     /**
-     * V-CertificadoDigital-005 — para un mismo DNI solo puede haber un certificado habilitado.
-     *
-     * <p>El DNI llega como parámetro explícito, separado del bean, porque no siempre es el del bean: el alta pasa el
+     * El DNI llega como parámetro explícito, separado del bean, porque no siempre es el del bean: el alta pasa el
      * del propio certificado y la modificación el del original (el DNI es inmutable y el del bean entrante no es de
      * fiar).
      */
@@ -308,11 +344,7 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         }
     }
 
-    /**
-     * V-CertificadoDigital-001 / -002 (alta) y V-CertificadoDigital-003 / -004 (modificación): el mismo par de
-     * comprobaciones, invocado bajo condiciones distintas. Los dos se evalúan siempre para que el administrador vea
-     * de una vez los dos que le faltan.
-     */
+    // Los dos se evalúan siempre para que el administrador vea de una vez los dos que le faltan.
     private void validateNombreYApellidosIndicados(CertificadoDigital certificado, BusinessMessages messages) {
         if (certificado.getNombre() == null || certificado.getNombre().isBlank()) {
             messages.add(new BusinessMessage("nombre", "El nombre es obligatorio"));
@@ -327,8 +359,7 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
     /**************************************************************************************/
 
     /**
-     * {@code nombreTomadoDelUsuario} queda fuera: es un campo `servidor` (CC-CertificadoDigital-001) que asigna
-     * R-CertificadoDigital-001.
+     * {@code nombreTomadoDelUsuario} queda fuera: es un campo `servidor` que asigna fireActionRule_AsignarTitular.
      */
     @Override
     public AllowProperties allowPropertiesInsert() {
@@ -348,7 +379,7 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
     }
 
     /**
-     * Quedan fuera {@code dni} (inmutable tras el alta, RN-CertificadoDigital-003) y
+     * Quedan fuera {@code dni} (inmutable tras el alta) y
      * {@code nombreTomadoDelUsuario} (campo `servidor` que nunca cambia tras el alta).
      */
     @Override
@@ -371,12 +402,6 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
     /********************************    Action Rules    *********************************/
     /*************************************************************************************/
 
-    /**
-     * R-CertificadoDigital-001 — si existe un usuario de la aplicación con el DNI del certificado, el nombre y los
-     * apellidos se toman de su ficha descartando lo que llegue del formulario (RN-CertificadoDigital-001); si no
-     * existe, se conservan los que escribió el administrador (RN-CertificadoDigital-002). En las dos ramas se
-     * asigna {@code nombreTomadoDelUsuario} (CC-CertificadoDigital-001). Momento: antes de {@code repository.save}.
-     */
     private void fireActionRule_AsignarTitular(CertificadoDigital certificado) {
         DatosTitular datos = resolverDatosTitular(certificado.getDni());
 
@@ -388,18 +413,10 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         certificado.setNombreTomadoDelUsuario(datos.tomadoDelUsuario());
     }
 
-    /**
-     * R-CertificadoDigital-002 — RN-CertificadoDigital-003: el DNI se fija al crear y no se puede cambiar. La
-     * restauración es incondicional, venga lo que venga del cliente. Momento: antes de {@code repository.save}.
-     */
     private void fireActionRule_ConservarDni(CertificadoDigital certificado, CertificadoDigital certificadoOriginal) {
         certificado.setDni(certificadoOriginal.getDni());
     }
 
-    /**
-     * R-CertificadoDigital-003 — RN-CertificadoDigital-004 y CC-CertificadoDigital-001: congela los datos del
-     * titular que puso el servidor. Momento: antes de {@code repository.save}.
-     */
     private void fireActionRule_ConservarDatosTitularDelUsuario(CertificadoDigital certificado, CertificadoDigital certificadoOriginal) {
         certificado.setNombreTomadoDelUsuario(certificadoOriginal.getNombreTomadoDelUsuario());
 
@@ -407,6 +424,13 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
             certificado.setNombre(certificadoOriginal.getNombre());
             certificado.setApellidos(certificadoOriginal.getApellidos());
         }
+    }
+
+    private void fireActionRule_BorrarFicheroTrasCommit(MetaFile fichero) {
+        // Tras el commit: MetaFiles.delete borra el fichero físico en el acto y, si la transacción hiciera
+        // rollback después, el certificado seguiría apuntando a un MetaFile sin fichero. La tarea corre en
+        // otro hilo, fuera de la transacción de la petición, así que abre la suya.
+        ejecutorAsincrono.ejecutarTrasCommit(() -> JPA.runInTransaction(() -> MetaFileUtil.delete(fichero)));
     }
 
     /**************************************************************************************/
@@ -434,34 +458,30 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
      * prometer un titular distinto del que el servidor va a persistir.
      */
     private DatosTitular resolverDatosTitular(String dni) {
-        User titular = findUsuarioTitular(dni);
-
-        if (titular == null) {
-            return DatosTitular.sinUsuario();
-        }
-
-        return new DatosTitular(titular.getNombre(), titular.getApellidos(), true);
+        return findUsuarioTitular(dni)
+                .map(titular -> new DatosTitular(titular.getNombre(), titular.getApellidos(), true))
+                .orElseGet(DatosTitular::sinUsuario);
     }
 
     /**
-     * Usuario de la aplicación cuyo documento coincide con el DNI recibido, o {@code null} si no hay ninguno o el
+     * Usuario de la aplicación cuyo documento coincide con el DNI recibido, o vacío si no hay ninguno o el
      * DNI es nulo o está en blanco (en cuyo caso ni siquiera se consulta).
      */
-    private User findUsuarioTitular(String dni) {
+    private Optional<User> findUsuarioTitular(String dni) {
         if ((dni == null) || dni.isBlank()) {
-            return null;
+            return Optional.empty();
         }
 
-        return userRepository.findByDni(dni);
+        return Optional.ofNullable(userRepository.findByDni(dni));
     }
 
     /**
-     * Certificado habilitado de un DNI, o {@code null} si no hay ninguno. Es el punto único por el que la firma en
+     * Certificado habilitado de un DNI, o vacío si no hay ninguno. Es el punto único por el que la firma en
      * servidor obtiene el certificado de una persona: si no hay ninguno habilitado, se comporta como si la persona
      * no tuviera certificado.
      */
-    private CertificadoDigital getCertificadoHabilitado(String dni) {
-        return ((CertificadoDigitalRepository) repository).findByDniHabilitados(dni).fetchOne();
+    private Optional<CertificadoDigital> getCertificadoHabilitado(String dni) {
+        return Optional.ofNullable(((CertificadoDigitalRepository) repository).findByDniHabilitados(dni).fetchOne());
     }
 
 }

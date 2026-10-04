@@ -7,11 +7,6 @@ package com.educaflow.subsystem.criptografia.service;
  * y estos son el nombre y los apellidos de su ficha»; a {@code false} significa «no existe ninguno», y
  * entonces {@code nombre} y {@code apellidos} son {@code null}.
  *
- * <p>Es un value object inmutable, sin identidad y sin persistencia: <strong>MUST NOT</strong> declararse
- * como entidad en ningún {@code domains.xml}. Vive en el paquete {@code service} (no en {@code service.impl})
- * porque forma parte del contrato público: es el tipo de retorno de
- * {@link CertificadoDigitalService#getDatosTitularByDni(String)}.
- *
  * @param nombre           nombre del titular, o {@code null} si no hay usuario con ese DNI
  * @param apellidos        apellidos del titular, o {@code null} si no hay usuario con ese DNI
  * @param tomadoDelUsuario si el nombre y los apellidos se han tomado de la ficha de un usuario de la aplicación

@@ -1,13 +1,12 @@
 package com.educaflow.subsystem.criptografia.service;
 
-import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper;
 
 /**
  * Situación en la que está una persona para firmar en el servidor.
  *
  * <p>Se deduce ENTERA del certificado digital: DNI válido + qué tipo de almacén guarda el certificado + si
  * su clave está guardada. No menciona ninguna tarea de firma ni ningún expediente, así que su dueño es este
- * subsistema. La calcula {@link CertificadoDigitalHelper#getSituacionFirmaByDni(String)} y la usa cualquiera
+ * subsistema. La calcula {@link CertificadoDigitalService#getSituacionFirmaByDni(String)} y la usa cualquiera
  * que quiera firmar en el servidor.
  *
  * <p>Cada situación lleva consigo si con ella {@linkplain #isFirmaEnServidor() corresponde firmar en el
@@ -15,11 +14,6 @@ import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper;
  * lista de valores <strong>MUST NOT</strong> duplicarse en ningún otro sitio. Al ser un argumento del
  * constructor, un valor nuevo de este enum no compila hasta que quien lo añade decide de qué lado cae, en
  * lugar de degradar en silencio.
- *
- * <p>Es un enum Java normal y <strong>MUST NOT</strong> volver a declararse como enum de dominio en un
- * {@code domains.xml}: no es el tipo de ningún campo de ningún modelo. No se persiste —se recalcula cada vez
- * que hace falta— y a las pantallas viaja como campo de vista que rellena un controlador, comparado como
- * texto en los {@code showIf}, así que tampoco necesita que el cliente reciba títulos suyos.
  */
 public enum SituacionFirma {
 
@@ -58,7 +52,7 @@ public enum SituacionFirma {
      *
      * <p>Quien pueda tener la situación a {@code null} <strong>MUST</strong> tolerarlo por su cuenta antes de
      * preguntar, porque este método no se puede invocar sobre una situación ausente. Quien la obtiene de
-     * {@link CertificadoDigitalHelper#getSituacionFirmaByDni(String)} no tiene que preocuparse: ese método
+     * {@link CertificadoDigitalService#getSituacionFirmaByDni(String)} no tiene que preocuparse: ese método
      * nunca devuelve {@code null}.
      *
      * @return {@code true} si hay certificado custodiado con el que firmar en el servidor

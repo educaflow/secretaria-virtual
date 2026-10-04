@@ -9,12 +9,19 @@ import java.util.Optional;
 
 public interface CertificadoDigitalService extends ModelService<CertificadoDigital> {
 
-    AlmacenClave getAlmacenClaveByDni(String dni);
+    Optional<AlmacenClave> getAlmacenClaveByDni(String dni);
     Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni);
-    AlmacenClave getAlmacenClaveByDni(String dni, String claveAcceso);
+    Optional<AlmacenClave> getAlmacenClaveByDni(String dni, String claveAcceso);
     Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni, String claveAcceso);
     SituacionFirma getSituacionFirmaByDni(String dni);
     Optional<BusinessMessages> validateGetSituacionFirmaByDni(String dni);
+
+    /**
+     * Indica si la clave abre el certificado digital habilitado del DNI. Solo se llama cuando ya se sabe que hay
+     * firma en servidor: sin certificado lanza {@link IllegalStateException}.
+     */
+    boolean isClaveCertificadoCorrecta(String dni, String clave);
+    Optional<BusinessMessages> validateIsClaveCertificadoCorrecta(String dni, String clave);
 
     /**
      * Resuelve el titular de un DNI.

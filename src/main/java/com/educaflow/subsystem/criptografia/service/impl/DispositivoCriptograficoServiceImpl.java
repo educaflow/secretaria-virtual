@@ -1,6 +1,7 @@
 package com.educaflow.subsystem.criptografia.service.impl;
 
 import com.axelor.db.Repository;
+import com.axelor.db.modelservice.AllowProperties;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.educaflow.base.infrastructure.criptografia.EntornoCriptografico;
 import com.educaflow.base.infrastructure.criptografia.config.DispositivoCriptograficoConfig;
@@ -17,6 +18,8 @@ import com.educaflow.subsystem.criptografia.util.DispositivoCriptograficoInfoBui
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public class DispositivoCriptograficoServiceImpl extends DefaultModelService<DispositivoCriptografico> implements DispositivoCriptograficoService {
@@ -65,12 +68,26 @@ public class DispositivoCriptograficoServiceImpl extends DefaultModelService<Dis
 
     @Override
     public Optional<BusinessMessages> validateInsert(DispositivoCriptografico dispositivo) {
-        return validateDispositivo(dispositivo);
+        return validateDispositivo(dispositivo, true);
     }
 
     @Override
     public Optional<BusinessMessages> validateUpdate(DispositivoCriptografico dispositivo, DispositivoCriptografico dispositivoOriginal) {
-        return validateDispositivo(dispositivo);
+        if (dispositivoOriginal != null) {
+            BusinessMessages messages = new BusinessMessages();
+            if (!Objects.equals(dispositivo.getPkcs11LibraryPath(), dispositivoOriginal.getPkcs11LibraryPath())) {
+                messages.add(new BusinessMessage("pkcs11LibraryPath", "No se puede cambiar la librería PKCS#11 de un dispositivo criptográfico. Para cambiar de token hay que borrar el dispositivo y crear otro."));
+            }
+            if (!Objects.equals(dispositivo.getSlot(), dispositivoOriginal.getSlot())) {
+                messages.add(new BusinessMessage("slot", "No se puede cambiar el slot de un dispositivo criptográfico. Para cambiar de token hay que borrar el dispositivo y crear otro."));
+            }
+            if (!messages.isValid()) {
+                return Optional.of(messages);
+            }
+        }
+        boolean comprobarPin = dispositivoOriginal == null
+                || !Objects.equals(dispositivo.getPin(), dispositivoOriginal.getPin());
+        return validateDispositivo(dispositivo, comprobarPin);
     }
 
     @Override
@@ -78,27 +95,7 @@ public class DispositivoCriptograficoServiceImpl extends DefaultModelService<Dis
         return Optional.empty();
     }
 
-    /****************************************************************************/
-    /******************************* Action Rules *******************************/
-    /****************************************************************************/
-
-    private void fireActionRule_RecargarDispositivos() {
-        List<DispositivoCriptografico> todos = ((DispositivoCriptograficoRepository) repository).all().fetch();
-        List<DispositivoCriptograficoConfig> configs = todos.stream()
-                .map(d -> new DispositivoCriptograficoConfig(
-                        Path.of(d.getPkcs11LibraryPath()),
-                        d.getSlot(),
-                        d.getPin()
-                ))
-                .toList();
-        EntornoCriptografico.configureDispositivosCriptograficos(configs);
-    }
-
-    /*****************************************************************************/
-    /****************************** Otras funciones ******************************/
-    /*****************************************************************************/
-
-    private Optional<BusinessMessages> validateDispositivo(DispositivoCriptografico dispositivo) {
+    private Optional<BusinessMessages> validateDispositivo(DispositivoCriptografico dispositivo, boolean comprobarPin) {
         BusinessMessages messages = new BusinessMessages();
 
         String pkcs11LibraryPath = dispositivo.getPkcs11LibraryPath();
@@ -132,7 +129,7 @@ public class DispositivoCriptograficoServiceImpl extends DefaultModelService<Dis
             messages.add(new BusinessMessage("slot", "Ya existe un dispositivo criptográfico configurado en el slot " + slotSolicitado + ". Cada slot solo puede tener un dispositivo."));
         }
 
-        if (messages.isValid()) {
+        if (messages.isValid() && comprobarPin) {
             try {
                 SlotInfoFactory.validatePin(libraryPath, slotSolicitado, dispositivo.getPin());
             } catch (Exception e) {
@@ -141,6 +138,56 @@ public class DispositivoCriptograficoServiceImpl extends DefaultModelService<Dis
         }
 
         return messages.isValid() ? Optional.empty() : Optional.of(messages);
+    }
+
+    /**************************************************************************************/
+    /********************************   AllowProperties   *********************************/
+    /**************************************************************************************/
+
+    /**
+     * {@code alias} e {@code info} quedan fuera: los calcula el servidor desde PKCS#11.
+     */
+    @Override
+    public AllowProperties allowPropertiesInsert() {
+        return AllowProperties.createAllowProperties(Map.of(
+                "name", Map.of(),
+                "pkcs11LibraryPath", Map.of(),
+                "slot", Map.of(),
+                "pin", Map.of()
+        ));
+    }
+
+    /**
+     * {@code alias} e {@code info} quedan fuera porque no los dicta el cliente: {@code alias} lo
+     * calcula {@code insert} desde PKCS#11 y {@code update} no lo recalcula; {@code info} es un
+     * campo calculado del modelo. {@code pkcs11LibraryPath} y {@code slot} siguen aquí para que un
+     * cambio llegue a {@code validateUpdate} y se rechace con mensaje de negocio (cambiarlos dejaría
+     * los {@code alias} desincronizados del token) en lugar de descartarse en silencio.
+     */
+    @Override
+    public AllowProperties allowPropertiesUpdate() {
+        return AllowProperties.createAllowProperties(Map.of(
+                "name", Map.of(),
+                "pkcs11LibraryPath", Map.of(),
+                "slot", Map.of(),
+                "pin", Map.of()
+        ));
+    }
+
+    /****************************************************************************/
+    /******************************* Action Rules *******************************/
+    /****************************************************************************/
+
+    private void fireActionRule_RecargarDispositivos() {
+        List<DispositivoCriptografico> todos = ((DispositivoCriptograficoRepository) repository).all().fetch();
+        List<DispositivoCriptograficoConfig> configs = todos.stream()
+                .map(d -> new DispositivoCriptograficoConfig(
+                        Path.of(d.getPkcs11LibraryPath()),
+                        d.getSlot(),
+                        d.getPin()
+                ))
+                .toList();
+        EntornoCriptografico.configureDispositivosCriptograficos(configs);
     }
 
 }

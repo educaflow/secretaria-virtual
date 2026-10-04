@@ -1,10 +1,11 @@
 package com.educaflow.subsystem.criptografia.service;
 
+import com.axelor.db.modelservice.ModelServiceFactory;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.util.DniUtil;
-import com.educaflow.subsystem.criptografia.util.CertificadoDigitalHelper;
+import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
 import com.google.inject.Inject;
 
 import org.slf4j.Logger;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.security.auth.login.LoginException;
 import java.security.UnrecoverableKeyException;
+import java.util.Objects;
 
 /**
  * Firma un PDF en el servidor con el certificado digital que la secretaría virtual custodia para un DNI.
@@ -23,19 +25,19 @@ public class FirmaEnServidorService {
     @Inject
     private AlmacenClaveResolver almacenClaveResolver;
 
+    @Inject
+    private ModelServiceFactory modelServiceFactory;
+
     public DocumentoPdf firmar(String dni, String clave, DocumentoPdf documentoOriginal, CampoFirma campoFirma) {
-        if (documentoOriginal == null) {
-            throw new IllegalStateException("No hay documento que firmar");
-        }
+        Objects.requireNonNull(documentoOriginal, "documentoOriginal no puede ser null");
+        final CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);
 
         try {
-            AlmacenClave almacenClave = almacenClaveResolver.getByDNI(dni, clave);
-            if (almacenClave == null) {
-                throw new IllegalStateException("El firmante con dni=" + DniUtil.enmascarar(dni) + " no tiene certificado digital con el que firmar en el servidor");
-            }
+            AlmacenClave almacenClave = almacenClaveResolver.getByDNI(dni, clave)
+                    .orElseThrow(() -> new IllegalStateException("El firmante con dni=" + DniUtil.enmascarar(dni) + " no tiene certificado digital con el que firmar en el servidor"));
 
 
-            SituacionFirma situacionFirma= CertificadoDigitalHelper.getSituacionFirmaByDni(dni);
+            SituacionFirma situacionFirma= certificadoDigitalService.getSituacionFirmaByDni(dni);
             if (situacionFirma.isFirmaEnServidor()==false) {
                 throw new IllegalStateException("El firmante con dni=" + DniUtil.enmascarar(dni) + " no tiene certificado digital con el que firmar en el servidor");
             }
@@ -45,8 +47,8 @@ public class FirmaEnServidorService {
                 }
             }
 
-            if (CertificadoDigitalHelper.isClaveCertificadoCorrecta(dni, clave)==false) {
-                throw new CredentialsFailureException(dni, new RuntimeException("La clave del certificado es incorrecta:"+dni+","+clave));
+            if (certificadoDigitalService.isClaveCertificadoCorrecta(dni, clave)==false) {
+                throw new CredentialsFailureException(dni, new RuntimeException("La clave del certificado es incorrecta para el dni=" + DniUtil.enmascarar(dni)));
             }
 
             return documentoOriginal.firmar(almacenClave, campoFirma);
