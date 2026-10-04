@@ -1,74 +1,53 @@
 package com.educaflow.subsystem.pdfutilities.controller;
 
+import com.axelor.db.modelservice.BusinessMessages;
+import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.CallMethod;
 import com.axelor.meta.db.MetaFile;
 import com.axelor.rpc.ActionRequest;
 import com.axelor.rpc.ActionResponse;
-import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
-import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
-import com.educaflow.base.infrastructure.pdf.CampoFirma;
-import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
 import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
-import com.axelor.db.modelservice.AllowProperties;
+import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
 import com.educaflow.base.util.Convert;
-import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
 import com.educaflow.subsystem.pdfutilities.db.PdfUtilities;
+import com.educaflow.subsystem.pdfutilities.service.PdfUtilitiesService;
 import com.educaflow.base.infrastructure.autofirma.AutoFirma;
+import com.google.inject.persist.Transactional;
 import jakarta.inject.Inject;
+import java.util.Optional;
 
 public class PdfUtilitiesController {
 
     @Inject
-    AlmacenClaveResolver almacenClaveResolver;
-
+    ModelServiceFactory modelServiceFactory;
 
     @CallMethod
     public String getInfo(MetaFile metaFilePdf) {
-        String info = "Sin información";
+        final PdfUtilitiesService pdfUtilitiesService = (PdfUtilitiesService) modelServiceFactory.resolve(PdfUtilities.class);
 
-        if (metaFilePdf != null) {
-            DocumentoPdf documentoPdf = MetaFileHelper.getDocumentoPdf(metaFilePdf);
-
-            info=documentoPdf.toString();
-        }
-
-        return info;
+        return pdfUtilitiesService.getInfo(metaFilePdf);
     }
 
 
     @CallMethod
+    @Transactional
     public void getPdfTodasPosicionesFirma(ActionRequest actionRequest, ActionResponse actionResponse) {
+        final PdfUtilitiesService pdfUtilitiesService = (PdfUtilitiesService) modelServiceFactory.resolve(PdfUtilities.class);
 
-        ActionRequestHelper<PdfUtilities> requestHelper = new ActionRequestHelper(actionRequest, PdfUtilities.class);
-        PdfUtilities pdfUtilities = requestHelper.getModel(AllowProperties.createAllowAllProperties());
+        ActionRequestHelper<PdfUtilities> actionRequestHelper = new ActionRequestHelper<>(actionRequest, PdfUtilities.class);
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
 
-        MetaFile metaFilePdf = pdfUtilities.getPdf();
-        int numeroPagina = Convert.coerceToInt(requestHelper.getRequestData().get("numeroPagina"));
-        if (numeroPagina <= 0) {
-            numeroPagina = 1;
+        PdfUtilities pdfUtilities = actionRequestHelper.getModel(pdfUtilitiesService.allowPropertiesGetPdfTodasPosicionesFirma());
+
+        Optional<BusinessMessages> validationResult = pdfUtilitiesService.validateGetPdfTodasPosicionesFirma(pdfUtilities);
+        if (validationResult.isPresent()) {
+            actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());
+            return;
         }
 
-        MetaFile metaFilePdfFirmado = null;
-
-        if (metaFilePdf != null) {
-            DocumentoPdf documentoPdf = MetaFileHelper.getDocumentoPdf(metaFilePdf);
-            documentoPdf = documentoPdf.removePdfAConformance();
-
-            for (int x = 0; x <= 500; x += 100) {
-                for (int y = 0; y <= 700; y += 50) {
-                    CampoFirma campoFirma = new CampoFirma(new Rectangulo(x, y, 100, 20)).setNumeroPagina(numeroPagina).setMensaje(x + "," + y);
-                    AlmacenClave almacenClave = almacenClaveResolver.getDummy();
-                    documentoPdf = documentoPdf.firmar(almacenClave, campoFirma);
-                }
-            }
-
-            metaFilePdfFirmado = MetaFileHelper.createMetaFile(documentoPdf);
-        }
-
-        actionResponse.setValue("pdfFirmado", metaFilePdfFirmado);
+        actionResponse.setValue("pdfFirmado", pdfUtilitiesService.getPdfTodasPosicionesFirma(pdfUtilities));
     }
-
 
 
     @CallMethod
@@ -102,4 +81,47 @@ public class PdfUtilitiesController {
 
         AutoFirma.sendToActionResponse(autofirma,actionResponse);
     }
+
+    /***********************************************************************************************/
+    /****************************** Validaciones de las acciones ***********************************/
+    /***********************************************************************************************/
+
+    @CallMethod
+    public void validateGetInfo(ActionRequest actionRequest, ActionResponse actionResponse) {
+        final PdfUtilitiesService pdfUtilitiesService = (PdfUtilitiesService) modelServiceFactory.resolve(PdfUtilities.class);
+
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
+
+        // La acción es escalar (getInfo(pdf)): se lee el pdf del contexto, igual que lo recibe getInfo, sin getModel.
+        MetaFile pdf = actionRequest.getContext().asType(PdfUtilities.class).getPdf();
+
+        Optional<BusinessMessages> validationResult = pdfUtilitiesService.validateGetInfo(pdf);
+        if (validationResult.isPresent()) {
+            actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());
+        }
+    }
+
+
+
+
+    @CallMethod
+    public void validateGetPdfTodasPosicionesFirma(ActionRequest actionRequest, ActionResponse actionResponse) {
+        final PdfUtilitiesService pdfUtilitiesService = (PdfUtilitiesService) modelServiceFactory.resolve(PdfUtilities.class);
+
+        ActionRequestHelper<PdfUtilities> actionRequestHelper = new ActionRequestHelper<>(actionRequest, PdfUtilities.class);
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
+
+        PdfUtilities pdfUtilities = actionRequestHelper.getModel(pdfUtilitiesService.allowPropertiesGetPdfTodasPosicionesFirma());
+
+        Optional<BusinessMessages> validationResult = pdfUtilitiesService.validateGetPdfTodasPosicionesFirma(pdfUtilities);
+        if (validationResult.isPresent()) {
+            actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());
+        }
+    }
+
+
+
+
+
+
 }

@@ -33,6 +33,7 @@
     <?sv-primary-actions?>
     <action-group name="subsysPdfUtilities.Firma@PdfUtilities-btnVerPosicionesFirma-action">
         <action name="subsysPdfUtilities.Firma@PdfUtilities-Local-getPdfTodasPosicionesFirma-action"/>
+        <action name="subsysPdfUtilities.Firma@PdfUtilities-Remote-validateGetPdfTodasPosicionesFirma-action"/>
         <action name="subsysPdfUtilities.Firma@PdfUtilities-Remote-getPdfTodasPosicionesFirma-action"/>
     </action-group>
 
@@ -45,6 +46,9 @@
     <?sv-rules?>
 
     <?sv-remotes?>
+    <action-method name="subsysPdfUtilities.Firma@PdfUtilities-Remote-validateGetPdfTodasPosicionesFirma-action">
+        <call class="com.educaflow.subsystem.pdfutilities.controller.PdfUtilitiesController" method="validateGetPdfTodasPosicionesFirma"/>
+    </action-method>
     <action-method name="subsysPdfUtilities.Firma@PdfUtilities-Remote-getPdfTodasPosicionesFirma-action">
         <call class="com.educaflow.subsystem.pdfutilities.controller.PdfUtilitiesController" method="getPdfTodasPosicionesFirma"/>
     </action-method>
