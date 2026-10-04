@@ -179,7 +179,7 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
         String anyoActual= String.valueOf(ahora.getYear());
         String codigoCentro = centro.getCode();
         long numeroRegistroSinAnyo = numeradorRepository.getSiguienteNumeroRegistroSalida(codigoCentro, anyoActual);
-        String numeroRegistro = codigoCentro + "/" + anyoActual + "/" + String.format("%05d", numeroRegistroSinAnyo);
+        String numeroRegistro = anyoActual + "/" + String.format("%05d", numeroRegistroSinAnyo) + "-" + codigoCentro;
 
         return numeroRegistro;
     }
