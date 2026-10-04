@@ -25,6 +25,7 @@ import com.educaflow.subsystem.sms.db.Sms;
 import com.educaflow.subsystem.sms.service.SmsService;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
+import jakarta.persistence.LockModeType;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -262,7 +263,10 @@ public class SmsServiceImpl extends DefaultModelService<Sms> implements SmsServi
 
     private void enviarSms(Long smsId) {
         JPA.runInTransaction(() -> {
-            Sms sms = repository.find(smsId);
+            // Bloqueo pesimista: dos «Reenviar» del mismo SMS pueden correr a la vez en el pool (reenviar no
+            // cambia el estado, así que el SMS sigue FALLIDO hasta que acaba el envío); así el segundo espera al
+            // commit del primero y, si este lo consiguió, ve ENVIADO en lugar de mandar (y pagar) el SMS otra vez.
+            Sms sms = JPA.em().find(Sms.class, smsId, LockModeType.PESSIMISTIC_WRITE);
             if (sms == null) {
                 throw new IllegalStateException("No existe el SMS " + smsId);
             }
