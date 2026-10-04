@@ -116,7 +116,7 @@ Asignar un valor a un campo
 
 ```xml
 <action-record name="subsysFirmas.Pendiente@TareaFirma-set-situacionFirma-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
-    <field name="situacionFirma" expr="call:com.educaflow.subsystem.firmas.controller.TareaFirmaController:getSituacionFirma()"/>
+    <field name="situacionFirma" expr="call:com.educaflow.subsystem.criptografia.controller.CertificadoDigitalController:getSituacionFirma()"/>
 </action-record>
 ```
 

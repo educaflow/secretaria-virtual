@@ -54,7 +54,13 @@ class StateEventValidatorImpl : StateEventValidator {
 
 Las reglas (`ValidationRule`) están en `com.educaflow.base.infrastructure.validation.rules`; los constructores del DSL (`rules`, `field`, `ifValueIn`, `ifValueNotIn`, `ifLambda`) están en `com.educaflow.base.infrastructure.validation.dsl`. El esqueleto generado ya trae ambos imports.
 
-**MUST** usar la regla del catálogo cuando una cubra la comprobación; `Lambda`/`ifLambda` (§3.1) solo cuando **ninguna** la cubra. Lo que suele tentar a escribir un predicado, y la genérica que ya lo hace:
+**CRITICAL**: leyendo el `StateEventValidatorImpl` se tiene que saber **exactamente** qué se valida en cada evento, sin abrir otros ficheros.
+
+- **MUST** escribir cada comprobación con las reglas que ya existen, combinándolas si hace falta (varias reglas en el mismo `field`, `ifValueIn`/`ifValueNotIn` para condicionarlas).
+- **MUST NOT** crear una validación nueva —una `ValidationRule`, una función que agrupe reglas (`fun x(...): FieldValidationRules`) o una `Lambda`/`ifLambda` (§3.1)— para lo que se consiga combinando las existentes, salvo que esté **muy** justificado.
+- No lo justifican: un mensaje distinto, que varios tipos repitan el mismo bloque, ni que el validador quede más corto.
+
+Lo que suele tentar a escribir un predicado, y la genérica que ya lo hace:
 
 | Tentación | Genérica |
 |---|---|
@@ -88,7 +94,6 @@ Las reglas (`ValidationRule`) están en `com.educaflow.base.infrastructure.valid
 | `Lambda(util::funcion, "mensaje")` | Rechaza el campo con el mensaje si la función estática de `<Code>Util` devuelve `false`; §3.1 |
 | `ifLambda(util::funcion) { +... }` *(DSL)* | Reglas condicionales según una función estática de `<Code>Util`; §3.1 |
 | `ifSituacionFirma(...) { +... }`, `ClaveCertificadoValida()`, `FirmaPdf(model::getOriginal)` | Firma de un documento por el usuario; §4 → `recetas/firma.md` §1.4 |
-| `+solicitudEscaneada(...)`, `+resultadoVerificacion(...)`, `+textoSubsanacion(...)` *(reglas compuestas, `tramites/util`)* | Las de las fases comunes `ENTRADA` y `VERIFICACION`; §3.2 |
 
 La tabla es un resumen de uso, no un inventario cerrado: la **fuente de verdad** es el contenido del paquete `...validation.rules` (un fichero `*Rules.kt` por familia). Antes de inventarte una regla, mira si ya existe ahí.
 
@@ -123,44 +128,49 @@ field(model::getMotivoRechazo) {
 - El mensaje va en el validador, no en la función: la función devuelve `boolean` y no sabe de mensajes.
 - La función lanza `IllegalStateException` si le falta un dato que fija el servidor: **MUST NOT** devolver `true` en silencio cuando no puede decidir (`SKILL.md` §1.7).
 
-### 3.2 Reglas compuestas de las fases comunes
+### 3.2 Reglas de las fases comunes
 
-Las reglas que son iguales en todos los tipos en las fases `ENTRADA` y `VERIFICACION` (`SKILL.md` §1.2) no son una `ValidationRule` sino **funciones que devuelven un `FieldValidationRules` completo**: el campo con todas sus reglas. Se añaden con `+` **directamente dentro de `rules { }`**, no dentro de un `field(...)`, y reciben como parámetro el getter del campo del tipo.
+Los campos comunes de las fases `ENTRADA` y `VERIFICACION` (`SKILL.md` §1.2) llevan las mismas reglas en todos los tipos, escritas con las reglas del catálogo de §3 **dentro del propio validador**:
 
-| Función | Paquete | Qué declara |
+| Evento | Campo | Reglas |
 |---|---|---|
-| `solicitudEscaneada(model::getPdfSolicitudFirmada)` | `com.educaflow.tramites.util.entrada` | Sobre ese campo: `Required()` + `FileType(listOf("application/pdf"))` + `FileMaxSize(10, SizeUnit.MB)` |
-| `resultadoVerificacion(model::getResultadoVerificacion)` | `com.educaflow.tramites.util.verificacion` | Sobre ese campo: `Required()` |
-| `textoSubsanacion(model::getTextoSubsanacion, model::getResultadoVerificacion, ResultadoVerificacion.SUBSANAR)` | `com.educaflow.tramites.util.verificacion` | Sobre el primer campo, solo si el segundo vale el ítem del tercero: `Required()` + `MinLength(10)` + `MaxLength(1000)` |
+| `CONTINUAR` de `PENDIENTE_DOCUMENTO_ESCANEADO` | `pdfSolicitudFirmada` | `Required()` + `FileType(listOf("application/pdf"))` + `FileMaxSize(10, SizeUnit.MB)` |
+| `VERIFICAR` de `PENDIENTE_VERIFICACION` | `resultadoVerificacion` | `Required()` |
+| `VERIFICAR` de `PENDIENTE_VERIFICACION` | `textoSubsanacion` | Solo si `resultadoVerificacion` es `SUBSANAR`: `Required()` + `MinLength(10)` + `MaxLength(1000)` |
 
 ```kotlin
-import com.educaflow.tramites.util.entrada.solicitudEscaneada
-import com.educaflow.tramites.util.verificacion.resultadoVerificacion
-import com.educaflow.tramites.util.verificacion.textoSubsanacion
 import com.educaflow.subsystem.expedientes.db.ResultadoVerificacionMiTramiteV1 as ResultadoVerificacion
 ...
 // entrada/StateEventValidatorImpl.kt
 @BeanValidationRulesForStateAndEvent
 fun getForStatePendienteDocumentoEscaneadoInEventContinuar(): BeanValidationRules = rules {
-    +solicitudEscaneada(model::getPdfSolicitudFirmada)
+    field(model::getPdfSolicitudFirmada) {
+        +Required()
+        +FileType(listOf("application/pdf"))
+        +FileMaxSize(10, SizeUnit.MB)
+    }
 }
 
 // verificacion/StateEventValidatorImpl.kt
 @BeanValidationRulesForStateAndEvent
 fun getForStatePendienteVerificacionInEventVerificar(): BeanValidationRules = rules {
-    +resultadoVerificacion(model::getResultadoVerificacion)
-    +textoSubsanacion(model::getTextoSubsanacion, model::getResultadoVerificacion, ResultadoVerificacion.SUBSANAR)
+    field(model::getResultadoVerificacion) {
+        +Required()
+    }
+    field(model::getTextoSubsanacion) {
+        +ifValueIn(model::getResultadoVerificacion, listOf(ResultadoVerificacion.SUBSANAR)) {
+            +Required()
+            +MinLength(10)
+            +MaxLength(1000)
+        }
+    }
 }
 ```
 
-- Como cualquier `field(...)`, cada una mete su campo en la whitelist del evento (§1).
-- El ítem que pide la subsanación se pasa como parámetro porque el enum `ResultadoVerificacion<Code>` es de cada tipo.
-- **MUST** usarlas en esos eventos en vez de escribir a mano las mismas reglas: el bloque repetido en dos tipos lo caza CPD.
-- Una regla compuesta nueva solo se crea si la comparten **varios** tipos, y va a `tramites/util/<propósito>/` (`tramites/util/CLAUDE.md`).
+- Aunque todos los tipos repitan estos bloques, **MUST NOT** agruparlos en una función común (§3).
 
-- ✅ CORRECTO: `rules { +solicitudEscaneada(model::getPdfSolicitudFirmada) }`
-- ❌ INCORRECTO: `field(model::getPdfSolicitudFirmada) { +solicitudEscaneada(model::getPdfSolicitudFirmada) }` (ya trae su propio campo: no va dentro de un `field`)
-- ❌ INCORRECTO: `field(model::getPdfSolicitudFirmada) { +Required(); +FileType(listOf("application/pdf")); +FileMaxSize(10, SizeUnit.MB) }` en `CONTINUAR` (copia de la regla común)
+- ✅ CORRECTO: `field(model::getResultadoVerificacion) { +Required() }`
+- ❌ INCORRECTO: `+resultadoVerificacion(model::getResultadoVerificacion)` (función que esconde un `Required()`: la regla no se ve en el validador)
 
 ## 4. Firma de un documento por el usuario
 
@@ -185,5 +195,5 @@ Lo comprueban los tests (`SKILL.md` §3.3), **fase a fase**; el mensaje de fallo
 - **MUST NOT** dar reglas a campos que rellena el servidor (§1).
 - **MUST NOT** confiar en `readonly`/`showIf`/`hidden` de la vista como defensa: la única frontera real es esta whitelist (`k-secure-coding`).
 - **MUST NOT** factorizar los `getForState<Estado>InEvent<Evento>` comunes a una superclase compartida entre fases o versiones: solo se ven los declarados en la clase de la fase (§5).
-- **MUST NOT** crear una `ValidationRule` en la carpeta de la versión: función `boolean` en `<Code>Util` + `Lambda`/`ifLambda` (§3.1). Solo si la comparten varios tipos es una regla, y entonces vive en `tramites/util/` (§3.2) o en el catálogo base.
+- **MUST NOT** crear una `ValidationRule` en la carpeta de la versión: función `boolean` en `<Code>Util` + `Lambda`/`ifLambda` (§3.1). Solo es una regla nueva si ninguna combinación de las existentes lo consigue (§3) y la comparten varios tipos, y entonces vive en `tramites/util/` (`tramites/util/CLAUDE.md`) o en el catálogo base.
 - **MUST NOT** usar `Lambda` para lo que ya hace una genérica (`Required`, `PastOrToday`, `GreaterThan`, `MinValue`…): ver la tabla de tentaciones de §3.

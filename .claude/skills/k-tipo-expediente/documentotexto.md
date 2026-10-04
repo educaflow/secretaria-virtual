@@ -189,7 +189,7 @@ Recorte del certificado de horario (fichero completo en `src/test/resources/.../
 
 ## 6. Ejemplos ✅/❌
 
-- ✅ CORRECTO: `<parrafo><castellano>Fecha: ${self.fechaResolucion}</castellano></parrafo>` (el inline se estampa como una palabra más del párrafo).
+- ✅ CORRECTO: `<parrafo><castellano>Expediente: ${self.numeroExpediente}</castellano></parrafo>` (el inline se estampa como una palabra más del párrafo).
 - ✅ CORRECTO: `<espacio alto="44.28"/>` entre el último párrafo y la tabla de firmas (el hueco de firma se hace con espacios, no con `rowSpan`: aquí no hay `rowSpan`).
 - ✅ CORRECTO: una `<tabla columnas="2">` cuyas filas llevan dos `<parrafo>`, y el hueco de la firma como `<fila><espacio alto="132.84"/><parrafo/></fila>`.
 - ✅ CORRECTO: `<espacio alto="88.56" campoFirma="firmaDirector"/>` como hueco de la firma que estampa la aplicación (la firma se estampa en ese espacio, esté donde esté: `documentos.md` §2.10).

@@ -87,7 +87,7 @@ La única excepción es el trámite de prueba (`tramites/prueba`), que conserva 
 
 **Qué es común y qué repite cada tipo.**
 
-- Común, en `tramites/util/` (`tramites/util/CLAUDE.md`): la lógica de `ENTRADA` en `entrada/` (`EntradaHelper`, la regla `solicitudEscaneada`) y la de `VERIFICACION` en `verificacion/` (`VerificacionHelper`, las reglas `resultadoVerificacion` y `textoSubsanacion`).
+- Común, en `tramites/util/` (`tramites/util/CLAUDE.md`): la lógica de `ENTRADA` en `entrada/` (`EntradaHelper`) y la de `VERIFICACION` en `verificacion/` (`VerificacionHelper`). Las reglas de validación de sus campos no: van escritas en el validador de cada tipo (`validator.md` §3.2).
 - Común, en `tramites/shared/template-views.xml`: los paneles de las dos fases (`vistas.md` §3.2).
 - El código común no nombra los campos del tipo: los recibe en el descriptor `CamposEntrada<T>`, una constante `CAMPOS_ENTRADA` del `<Code>Util` de cada tipo, junto a la mutación `borrarSubsanacion` (`recetas/presentacion.md` §1.1).
 - Se queda en cada tipo, porque el motor y los tests lo exigen y no hay herencia ni includes entre tipos: las dos `<fase>` del `TipoExpedienteInstance.xml`, la declaración de los campos, los `trigger*` (finos: delegan en lo común y hacen su `updateState`, porque cada tipo solo puede nombrar su propio `States`), los `getForState…InEvent…`, y los `<form state>` con sus botones y sus acciones `exp-<Code>-…`.

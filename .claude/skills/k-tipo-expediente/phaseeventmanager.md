@@ -220,15 +220,19 @@ expediente.setPdfSolicitud(MetaFileHelper.createMetaFile(solicitudPdf));
 
 `getDocumentoPdf` genera el documento de `documentospdf/` con los datos del expediente (`documentos.md`). `MetaFileHelper.createMetaFile(documentoPdf)` lo convierte en un `MetaFile` asignable a un campo.
 
-**MUST** asignar las fechas que estampa el documento (y el resto de datos de ese momento) **antes** de llamar a `getDocumentoPdf`, en el mismo evento: el PDF es una foto de la entidad en ese instante.
+**MUST** asignar los datos que estampa el documento **antes** de llamar a `getDocumentoPdf`, en el mismo evento: el PDF es una foto de la entidad en ese instante.
+Ni la fecha ni el municipio de la firma son de esos datos: ningún documento los lleva junto a la firma (`documentos.md` §2.10).
 
 - ✅ CORRECTO:
   ```java
-  expediente.setFechaResolucion(LocalDate.now(Convert.defaultZoneId));
+  if (expediente.getTipoResolucion() != TipoResolucionMiTramiteV1.RECHAZAR) {
+      expediente.setMotivoRechazo(null);
+  }
   DocumentoPdf resolucionPdf = expediente.getDocumentoPdf(MiTramiteV1.TipoDocumentoPdf.RESOLUCION);
   ```
-- ❌ INCORRECTO: generar `resolucionPdf` y asignar `fechaResolucion` en la línea siguiente (el documento sale sin la fecha que dice llevar).
-- ❌ INCORRECTO: asignar `fechaResolucion` en `onEnter<Estado>` del estado destino (se ejecuta después del evento que ya generó el documento).
+- ❌ INCORRECTO: generar `resolucionPdf` y limpiar `motivoRechazo` en la línea siguiente (el documento sale con un motivo que ya no aplica).
+- ❌ INCORRECTO: limpiar `motivoRechazo` en `onEnter<Estado>` del estado destino (se ejecuta después del evento que ya generó el documento).
+- ❌ INCORRECTO: `expediente.setFechaResolucion(LocalDate.now(...))` para estamparla al pie de una resolución que se pone a firmar (es la fecha de generación, no la de la firma: `documentos.md` §2.10).
 
 Operaciones útiles de `DocumentoPdf`: `firmar(...)` (§6.4), `anyadirDocumentoPdf` (concatenar; p. ej. anexar un justificante con `MetaFileHelper.getDocumentoPdfFromImagenOrPdf(metaFile)`), `estamparTextoConAppend`, `addNewPage`, `getPlainText`.
 

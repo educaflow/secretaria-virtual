@@ -290,6 +290,10 @@ En un FORMULARIO lo admiten `campo`, `check`, `texto`, `fila` y `seccion`; en un
 - **MUST NOT** usar `siOculto="reservar"` para que el hueco de la firma no se mueva: con `campoFirma` la firma sigue a su hueco. `reservar` es solo para conservar la maquetación de un impreso.
 - El campo sobrevive a `anyadirDocumentoPdf` (anexar un justificante detrás no lo pierde).
 - Un PDF versionado no pasa por aquí: dónde se firma lo dice `recetas/firma.md` §4.
+- **MUST NOT** poner junto a la firma, en **ningún** documento (FORMULARIO o TEXTO), ni el municipio ni la fecha («Municipio, 4 de octubre de 2026»): ni con un campo de la entidad ni con `now`, ni como texto ni como título de sección («Lugar, fecha y firma»).
+  - Es un resto del documento en papel, donde se fechaba y firmaba a la vez. Aquí lo que importa es la fecha de la firma digital, que ya va dentro de la propia firma.
+  - El documento se genera en un evento y se firma cuando quiere el firmante: una fecha escrita en el documento no coincidiría con la de la firma.
+  - Junto al hueco de la firma solo va la antefirma con el cargo de quien firma, si lo tiene.
 
 - ✅ CORRECTO: `<texto colspan="12" rowSpan="4" campoFirma="firmaSolicitante"><castellano>Firma:</castellano></texto>`
 - ✅ CORRECTO: en un TEXTO, `<fila><espacio alto="88.56"/><espacio alto="88.56" campoFirma="firmaDirector"/></fila>` bajo la fila de los dos cargos (solo firma el director: solo su hueco lleva campo).
@@ -297,11 +301,15 @@ En un FORMULARIO lo admiten `campo`, `check`, `texto`, `fila` y `seccion`; en un
 - ❌ INCORRECTO: `<campo nombreCampo="self.x" colspan="12" campoFirma="firmaSolicitante">` (en un FORMULARIO solo lo admite `<texto>`: no valida).
 - ❌ INCORRECTO: `campoFirma="firma del director"` (no es un identificador: no valida).
 - ❌ INCORRECTO: `campoFirma="firma"` en la solicitud y en un fragmento que esta incluye (nombre repetido tras expandir: el build aborta).
+- ✅ CORRECTO: en un FORMULARIO, `<seccion><castellano>Firma</castellano><fila><texto colspan="12" rowSpan="4" campoFirma="firmaSolicitante">…</texto></fila></seccion>` (solo el recuadro de la firma).
+- ❌ INCORRECTO: `<parrafo alineamiento="derecha"><castellano>${self.centro.municipio.name}, ${now}</castellano></parrafo>` encima de los huecos de firma (municipio y fecha junto a la firma: la fecha que cuenta es la de la firma digital).
+- ❌ INCORRECTO: una `<seccion>` «Lugar, fecha y firma» con un `<texto>` `${self.personaInteresada.municipio.name}, ${self.fechaSolicitud}` junto al recuadro de firma (la solicitud se genera en un evento y se firma en otro: la fecha no es la de la firma).
 
 ---
 
 ## 3. Anti-patrones
 
+- **MUST NOT** poner el municipio ni la fecha junto a la firma en ningún documento: la fecha que cuenta es la de la firma digital (§2.10).
 - **MUST NOT** buscar un PDF generado que "arreglar": no existe hasta que un expediente lo pide. Cambia el XML de definición; el build lo vuelve a resolver y la aplicación lo dibuja de nuevo en el siguiente evento.
 - **MUST NOT** hacer alternativas excluyentes con varios `<check>` siempre visibles y ternarios en sus inline: salen todas las líneas con una sola casilla marcada. Cada alternativa lleva su `visible` (§2.9).
 - **MUST NOT** tapar por sistema con `?.` o `?: ""` una relación que puede ser `null`: lo que no aplica se quita con `visible`; lo que debería existir y no existe **debe** hacer fallar el evento (§2.8).

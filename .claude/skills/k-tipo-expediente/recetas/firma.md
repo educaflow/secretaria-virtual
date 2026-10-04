@@ -17,10 +17,11 @@ Dependencias: §1 y §2 firman con `subsystem/criptografia` (a través de `trami
 ### 1.1 Cómo funciona
 
 - Quien firma es siempre el **usuario autenticado**. El DNI se lee de él con `SecurityUtil.getUser()`; nunca del bean ni del formulario.
-- Si firma **en el servidor** (tiene un certificado custodiado) o **con AutoFirma** (lo firma en su equipo y sube el PDF) lo decide su `SituacionFirma` (`subsystem/criptografia`), **no el trámite**. El servidor la recalcula del DNI cada vez que la necesita con `CertificadoDigitalHelper.getSituacionFirmaByDni(dni)`.
+- Si firma **en el servidor** (tiene un certificado custodiado) o **con AutoFirma** (lo firma en su equipo y sube el PDF) lo decide su `SituacionFirma` (`subsystem/criptografia`), **no el trámite**. El servidor la recalcula del DNI cada vez que la necesita con `CertificadoDigitalService.getSituacionFirmaByDni(dni)`.
 - `SituacionFirma.isFirmaEnServidor()` es **la** definición de «corresponde firmar en servidor». **MUST NOT** enumerar valores del enum en ningún sitio (validator, vista, trigger): una situación nueva se decide en el enum y todo lo demás la sigue.
 - Con firma en servidor, el usuario teclea la clave de su certificado (PIN del dispositivo o contraseña del fichero) en `claveCertificado`, y el trigger firma con ella. Con AutoFirma, el usuario sube el PDF firmado y el validator comprueba la firma.
-- El código común vive en `tramites/util/firma/`: `FirmaServidorRules.kt` (reglas del validator), `FirmaServidorHelper` (firmar en el trigger) y `FirmaServidorController` (lo que la vista pregunta en el `onLoad`).
+- El código común vive en `tramites/util/firma/`: `FirmaServidorRules.kt` (reglas del validator) y `FirmaServidorHelper` (firmar en el trigger).
+  Lo que la vista pregunta en el `onLoad` no es de los trámites: lo da `CertificadoDigitalController` del subsistema `criptografia`.
 - La firma de **la solicitud** en la fase común `ENTRADA` (`recetas/presentacion.md` §5) ya la tiene montada lo común: el panel `firma-solicitud` de `tramites/shared/template-views.xml` (§1.3) y `EntradaHelper.firmarSolicitudSiEsEnServidor` (§1.5). Esta sección explica cómo funciona por dentro y qué escribe cada tipo.
 
 ### 1.2 Documento y modelo (`documentospdf/` y `domains.xml`)
@@ -70,8 +71,8 @@ Los paneles son comunes: el visor `pdfSolicitud` y el panel `firma-solicitud` de
 </action-group>
 
 <action-record name="exp-MiTramiteV1-set-situacionFirma-action" model="com.educaflow.subsystem.expedientes.db.MiTramiteV1">
-    <field name="situacionFirma" expr="call:com.educaflow.tramites.util.firma.FirmaServidorController:getSituacionFirma()"/>
-    <field name="firmaEnServidor" expr="call:com.educaflow.tramites.util.firma.FirmaServidorController:isFirmaEnServidor()"/>
+    <field name="situacionFirma" expr="call:com.educaflow.subsystem.criptografia.controller.CertificadoDigitalController:getSituacionFirma()"/>
+    <field name="firmaEnServidor" expr="call:com.educaflow.subsystem.criptografia.controller.CertificadoDigitalController:isFirmaEnServidor()"/>
 </action-record>
 
 <action-method name="exp-MiTramiteV1-firmarDocumentacionParaPresentar-action">
@@ -88,7 +89,7 @@ Los paneles son comunes: el visor `pdfSolicitud` y el panel `firma-solicitud` de
    - Los campos de vista `situacionFirma` (string) y `firmaEnServidor` (boolean): llevan `type=` porque no existen en la entidad. Solo viajan del servidor al cliente para decidir qué se pinta.
    - Un panel por situación con `showIf="situacionFirma=='X'"`: ahí sí se compara con el valor concreto, porque el texto de ayuda y si se pide PIN o contraseña dependen de cada uno. El `<field name="claveCertificado" widget="password">` solo aparece en `DISPOSITIVO_SIN_PIN` (título "PIN") y `FICHERO_SIN_CLAVE` (título "Contraseña"). `SIN_DNI` lleva un `<help variant="warning">`.
    - **MUST** incluirse **sin guion**: con `-firma-solicitud`, `claveCertificado` quedaría de solo lectura y no se podría firmar en servidor.
-2. **`onLoad` del form** → `action-group` → `action-record` que rellena esos dos campos con `call:` a `FirmaServidorController`: `getSituacionFirma()` da el nombre del enum e `isFirmaEnServidor()` el boolean. Es del tipo porque una `action-record` lleva `model`.
+2. **`onLoad` del form** → `action-group` → `action-record` que rellena esos dos campos con `call:` a `CertificadoDigitalController`: `getSituacionFirma()` da el nombre del enum e `isFirmaEnServidor()` el boolean. Es del tipo porque una `action-record` lleva `model`.
 3. **Dos botones `PRESENTAR`**, mismo `name` (mismo evento) y `showIf` excluyentes; con `SIN_DNI` no se muestra ninguno:
    - AutoFirma: `showIf="situacionFirma=='SIN_CERTIFICADO'"` y `serial:` con la `action-method` que llama a `FirmaClienteController.firmarDocumentoEnCampo(...)` **antes** del evento.
    - Servidor: `showIf="firmaEnServidor"` y `serial:` con el evento **y después** la `action-record` que pone `claveCertificado` a `null`, para que la clave no se quede en el formulario.
@@ -172,7 +173,7 @@ public void triggerBack(MiTramiteV1 exp, MiTramiteV1 original, EventContext even
 ```
 
 1. `EntradaHelper.firmarSolicitudSiEsEnServidor(expediente, CAMPOS_ENTRADA, nombreCampoFirma)` (`tramites/util/entrada`) hace por dentro lo que haría el trigger a mano:
-   - Recalcula la situación del DNI del usuario autenticado (`SecurityUtil.getUser().getDni()` + `CertificadoDigitalHelper.getSituacionFirmaByDni`), igual que el validator. **MUST NOT** intentar leerla del formulario: no existe como campo.
+   - Recalcula la situación del DNI del usuario autenticado (`SecurityUtil.getUser().getDni()` + `CertificadoDigitalService.getSituacionFirmaByDni`), igual que el validator. **MUST NOT** intentar leerla del formulario: no existe como campo.
    - Si `isFirmaEnServidor()`, firma con `FirmaServidorHelper.firmarEnServidor(dni, situacion, clave, original, nombreCampoFirma)` y deja el `MetaFile` firmado en `pdfSolicitudFirmada`. Si la clave no abre el almacén lanza `BusinessException` con el motivo; el validator ya lo comprobó, así que aquí es red de seguridad.
    - Con AutoFirma **no hace nada**: el campo firmado ya llegó validado.
 2. El resto del trigger (registro de entrada, transición) es igual en los dos casos: `recetas/presentacion.md` §5.3.
@@ -256,18 +257,16 @@ public class PhaseEventManagerImpl extends PhaseEventManager<MiTramiteV1> implem
     @Inject
     ModelServiceFactory modelServiceFactory;
     @Inject
-    DirectorCentroService directorCentroService;
-    @Inject
     TramitadorService tramitadorService;
     ...
 
     @WhenEvent
     public void triggerResolver(MiTramiteV1 expediente, MiTramiteV1 original, EventContext eventContext) throws BusinessException {
         // 1. Lo que lanza BusinessException, lo primero: antes de crear nada
-        User director = directorCentroService.getDirector(expediente.getCentro());
+        UserService userService = (UserService) modelServiceFactory.resolve(User.class);
+        User director = userService.getByCentroAndCargo(expediente.getCentro(), CargoCodigo.DIRECTOR);
 
-        // 2. El PDF que se va a firmar, con sus fechas ya asignadas (phaseeventmanager.md §6.1)
-        expediente.setFechaResolucion(LocalDate.now(Convert.defaultZoneId));
+        // 2. El PDF que se va a firmar, sin fecha al pie: la lleva la firma (documentos.md §2.10)
         DocumentoPdf resolucionPdf = expediente.getDocumentoPdf(MiTramiteV1.TipoDocumentoPdf.RESOLUCION);
         expediente.setPdfResolucion(MetaFileHelper.createMetaFile(resolucionPdf));
 
@@ -288,7 +287,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<MiTramiteV1> implem
 }
 ```
 
-1. **El firmante**: `DirectorCentroService.getDirector(centro)` (`subsystem/common`, inyección Guice normal) devuelve el único usuario con el cargo `DIRECTOR` en el centro, y lanza `BusinessException` si no hay ninguno o hay varios. Por eso **MUST** ir al principio del trigger, antes de crear el PDF o la tarea (`SKILL.md` §1.6).
+1. **El firmante**: `UserService.getByCentroAndCargo(centro, cargo)` (el `ModelService` de `User`, en `com.axelor.auth.service`; se obtiene con `modelServiceFactory.resolve(User.class)`) devuelve el único usuario con ese cargo (`CargoCodigo.DIRECTOR`, `CargoCodigo.SECRETARIO`…) en el centro, y lanza `RuntimeException` si no hay ninguno o hay varios: es un centro mal configurado, que no debería darse nunca. Como toda comprobación, **MUST** ir al principio del trigger, antes de crear el PDF o la tarea (`SKILL.md` §1.6).
 2. **El PDF** se genera sin firmar y se guarda en el expediente; es el que el firmante verá en su bandeja.
 3. **`TareaFirmaInsertDTO(firmante, centro, pdfs, motivo, nombreCampoFirma, notifier, callBackData)`**: todos los PDFs **MUST** tener ese campo de firma vacío (§4).
 4. El notifier se pasa como `PhaseEventManagerImpl.class`, **no** `this.getClass()`: lo que se guarda es su FQCN (ver el CRITICAL de abajo), y tiene que ser exactamente el de la clase.
@@ -296,7 +295,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<MiTramiteV1> implem
 
 - ✅ CORRECTO: `PhaseEventManagerImpl.class` como notifier
 - ❌ INCORRECTO: `this.getClass()` (lo que se congela en la fila es un FQCN: se escribe el de la clase, no el que tenga la instancia en runtime)
-- ❌ INCORRECTO: `directorCentroService.getDirector(...)` después de `tareaFirmaService.insert(...)` o de crear el `MetaFile` (su `BusinessException` no deshace lo ya creado)
+- ❌ INCORRECTO: `userService.getByCentroAndCargo(...)` después de `tareaFirmaService.insert(...)` o de crear el `MetaFile` (la comprobación va antes de crear nada)
 - ❌ INCORRECTO: `expediente.setTareaFirmaResolucion(tareaFirma)` (el expediente no guarda la tarea: `notify` lo encuentra por el `callBackData`)
 
 ### 3.4 El callback y los eventos de sistema

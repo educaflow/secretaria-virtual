@@ -18,8 +18,8 @@ El registro de entrada asienta el documento **firmado por el usuario** (`Registr
 Dependencias:
 
 - El registro lo crea `EventContext` contra `subsystem/registroentradasalida` (`phaseeventmanager.md` §3); no hay que inyectar ni resolver nada del registro en el trámite.
-- Lo que hacen igual todos los tipos está en `tramites/util/entrada/` (`EntradaHelper`, `CamposEntrada`, la regla `solicitudEscaneada`) y `tramites/util/verificacion/` (`VerificacionHelper`, las reglas `resultadoVerificacion` y `textoSubsanacion`); los paneles, en `tramites/shared/template-views.xml` (`vistas.md` §3.2).
-- **MUST NOT** copiar esa lógica a la carpeta del tipo: CPD rompe el build si dos trámites repiten código. El tipo solo escribe lo que se ve en esta receta.
+- Lo que hacen igual todos los tipos está en `tramites/util/entrada/` (`EntradaHelper`, `CamposEntrada`) y `tramites/util/verificacion/` (`VerificacionHelper`); los paneles, en `tramites/shared/template-views.xml` (`vistas.md` §3.2).
+- **MUST NOT** copiar esa lógica a la carpeta del tipo: CPD rompe el build si dos trámites repiten código. El tipo solo escribe lo que se ve en esta receta, incluidas las reglas de validación, que van en su validador (`validator.md` §3.2).
 
 ## 0. La máquina de estados
 
@@ -340,7 +340,7 @@ Si el verificador necesita que el usuario corrija algo, lo devuelve a `ENTRADA` 
 El `TRAMITADOR` registra una solicitud entregada en papel (`perfiles.md`): el documento a registrar no es un PDF generado y firmado electrónicamente, sino la solicitud **firmada a mano y escaneada**, que va en el mismo campo `pdfSolicitudFirmada`. Es parte de la fase común, no una variante opcional.
 
 1. El `InitialEventManagerImpl` hace nacer el expediente en `PENDIENTE_DOCUMENTO_ESCANEADO` cuando `presentadoEnPapel` es `true` (§2).
-2. En ese estado el `TRAMITADOR` sube el escaneado con el panel común `solicitud-escaneada-upload`; `CONTINUAR` lo valida con la regla común `solicitudEscaneada` y pasa a `ENTRADA_DATOS`.
+2. En ese estado el `TRAMITADOR` sube el escaneado con el panel común `solicitud-escaneada-upload`; `CONTINUAR` exige que sea un PDF y pasa a `ENTRADA_DATOS`.
 3. En `ENTRADA_DATOS` copia los datos de la solicitud con el form `profile="TRAMITADOR"`, incluidas las personas, que en papel nacen vacías (`modelo.md` §2.1). Puede volver al escaneado con `BACK`.
 4. `GUARDAR_DATOS` registra directamente con `entradaHelper.presentar(...)` (§4.3): no pasa por `PENDIENTE_PRESENTACION` ni por la firma.
 5. Los `trigger*` que comparten los dos modos deciden con `original.getPresentadoEnPapel()`; los que son de un solo modo lo exigen con `EntradaHelper.exigePresentadoEnPapel(original, true|false)`.
@@ -395,11 +395,13 @@ El `TRAMITADOR` registra una solicitud entregada en papel (`perfiles.md`): el do
   El panel editable de la persona ya declara `presentadoEnPapel` como `<field hidden="true"/>`, que es lo que hace que la condición se evalúe (`vistas.md` §6.2).
 
 ```kotlin
-import com.educaflow.tramites.util.entrada.solicitudEscaneada
-...
 @BeanValidationRulesForStateAndEvent
 fun getForStatePendienteDocumentoEscaneadoInEventContinuar(): BeanValidationRules = rules {
-    +solicitudEscaneada(model::getPdfSolicitudFirmada)
+    field(model::getPdfSolicitudFirmada) {
+        +Required()
+        +FileType(listOf("application/pdf"))
+        +FileMaxSize(10, SizeUnit.MB)
+    }
 }
 ```
 
@@ -414,7 +416,7 @@ public void triggerContinuar(MiTramiteV1 exp, MiTramiteV1 original, EventContext
 ```
 
 - `PENDIENTE_DOCUMENTO_ESCANEADO` lleva además su form genérico (solo `EXIT` y `avisoEstadoExpediente`), como todo estado.
-- `CONTINUAR` es el **único** evento en el que `pdfSolicitudFirmada` entra en la whitelist sin pasar por `FirmaPdf`: lo sube el `TRAMITADOR`, y `solicitudEscaneada` exige que sea un PDF (obligatorio, `application/pdf`, 10 MB como máximo).
+- `CONTINUAR` es el **único** evento en el que `pdfSolicitudFirmada` entra en la whitelist sin pasar por `FirmaPdf`: lo sube el `TRAMITADOR`, y el validador exige que sea un PDF (obligatorio, `application/pdf`, 10 MB como máximo).
 - El mismo `GUARDAR_DATOS` lleva título distinto en cada form: «Siguiente» para el `CREADOR`, «Presentar la solicitud» con `prompt` para el `TRAMITADOR`, que es quien presenta con él.
 - El form `profile="CREADOR"` de `ENTRADA_DATOS` **MUST NOT** llevar botones ni avisos del papel (`perfiles.md` §3).
 
@@ -465,19 +467,24 @@ Toda presentación acaba aquí. El `TRAMITADOR` comprueba la solicitud y dice un
 ### 6.2 Validator (`verificacion/StateEventValidatorImpl.kt`)
 
 ```kotlin
-import com.educaflow.tramites.util.verificacion.resultadoVerificacion
-import com.educaflow.tramites.util.verificacion.textoSubsanacion
 import com.educaflow.subsystem.expedientes.db.ResultadoVerificacionMiTramiteV1 as ResultadoVerificacion
 ...
 @BeanValidationRulesForStateAndEvent
 fun getForStatePendienteVerificacionInEventVerificar(): BeanValidationRules = rules {
-    +resultadoVerificacion(model::getResultadoVerificacion)
-    +textoSubsanacion(model::getTextoSubsanacion, model::getResultadoVerificacion, ResultadoVerificacion.SUBSANAR)
+    field(model::getResultadoVerificacion) {
+        +Required()
+    }
+    field(model::getTextoSubsanacion) {
+        +ifValueIn(model::getResultadoVerificacion, listOf(ResultadoVerificacion.SUBSANAR)) {
+            +Required()
+            +MinLength(10)
+            +MaxLength(1000)
+        }
+    }
 }
 ```
 
-- Las dos son **reglas compuestas** comunes: cada una ya trae su `field(...)` y sus reglas, y se añade con `+` directamente dentro de `rules { }` (`validator.md` §3.2).
-- `resultadoVerificacion` es obligatorio; `textoSubsanacion` solo es obligatorio (entre 10 y 1000 caracteres) cuando el resultado es el ítem que se le pasa, el `SUBSANAR` del enum del tipo.
+- `resultadoVerificacion` es obligatorio; `textoSubsanacion` solo es obligatorio (entre 10 y 1000 caracteres) cuando el resultado es `SUBSANAR` (`validator.md` §3.2).
 
 ### 6.3 Trigger (`verificacion/PhaseEventManagerImpl.java`)
 
@@ -523,8 +530,8 @@ public void triggerVerificar(MiTramiteV1 exp, MiTramiteV1 original, EventContext
 - [ ] Documento: XML en `documentospdf/` con el hueco de la firma marcado con `campoFirma`; mismo nombre de campo de firma en la `<action-method>` y en el trigger.
 - [ ] `ENTRADA_DATOS`: forms `CREADOR`, `TRAMITADOR` y genérico, con `-subsanacion`; validator con **todos** los campos tecleados y **ninguno** de los PDF; trigger que genera `pdfSolicitud` y, telemáticamente, vacía el firmado y transita sin registrar; en papel, `entradaHelper.presentar`.
 - [ ] `PENDIENTE_PRESENTACION`: vista con `-pdfSolicitud` y `firma-solicitud`, validator de `recetas/firma.md` §1; trigger con `exigePresentadoEnPapel(original, false)`, `firmarSolicitudSiEsEnServidor`, `presentar`, transición y `finally` que vacía la clave; `triggerBack` vacía la clave y decide con `EntradaHelper.estaEn`.
-- [ ] `PENDIENTE_DOCUMENTO_ESCANEADO`: form `TRAMITADOR` con `solicitud-escaneada-upload`, validator `+solicitudEscaneada(...)`, `triggerContinuar` con `exigePresentadoEnPapel(original, true)`.
-- [ ] `PENDIENTE_VERIFICACION`: el `TRAMITADOR` ve `-pdfSolicitudFirmada` y edita `verificacion`; el genérico, `-pdfJustificanteRegistroEntrada`; validator con las dos reglas comunes; trigger con `avisarDeSubsanacion` y el destino según el resultado y el modo.
+- [ ] `PENDIENTE_DOCUMENTO_ESCANEADO`: form `TRAMITADOR` con `solicitud-escaneada-upload`, validator del PDF escaneado (`validator.md` §3.2), `triggerContinuar` con `exigePresentadoEnPapel(original, true)`.
+- [ ] `PENDIENTE_VERIFICACION`: el `TRAMITADOR` ve `-pdfSolicitudFirmada` y edita `verificacion`; el genérico, `-pdfJustificanteRegistroEntrada`; validator de `resultadoVerificacion` y `textoSubsanacion` (`validator.md` §3.2); trigger con `avisarDeSubsanacion` y el destino según el resultado y el modo.
 
 ## 8. Anti-patrones
 
