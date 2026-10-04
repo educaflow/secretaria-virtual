@@ -193,8 +193,8 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
 
     private Optional<BusinessMessages> validateEnviarCorreo(Long correoId) {
         // No hay ninguna condición que validar: enviarCorreo no recibe datos del cliente (solo un
-        // id) y las comprobaciones sobre el correo (inexistente / ya en SUCCESS) son idempotencia
-        // del propio envío, no validaciones de negocio corregibles por el usuario.
+        // id); que el correo no exista es un fallo de la aplicación y que ya esté en SUCCESS es
+        // idempotencia del propio envío, no validaciones de negocio corregibles por el usuario.
         return Optional.empty();
     }
 
@@ -338,11 +338,14 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
         validateEnviarCorreo(correoId).ifPresent(BusinessMessages::throwIfInvalid);
 
         JPA.runInTransaction(() -> {
-            // Bloqueo pesimista: dos envíos del mismo correo (dos «Reenviar», o el envío tras el alta y un
-            // «Reenviar») pueden correr a la vez en el pool; así el segundo espera al commit del primero y
-            // ve SUCCESS en lugar de mandar el correo otra vez.
+            // Bloqueo pesimista: dos «Reenviar» del mismo correo pueden correr a la vez en el pool (reenviar no
+            // cambia el estado, así que el correo sigue FAIL hasta que acaba el envío); así el segundo espera al
+            // commit del primero y, si este lo consiguió, ve SUCCESS en lugar de mandar el correo otra vez.
             Correo correo = JPA.em().find(Correo.class, correoId, LockModeType.PESSIMISTIC_WRITE);
-            if (correo == null || correo.getEstado() == EstadoCorreo.SUCCESS) {
+            if (correo == null) {
+                throw new IllegalStateException("No existe el correo " + correoId);
+            }
+            if (correo.getEstado() == EstadoCorreo.SUCCESS) {
                 return;
             }
 
