@@ -6,7 +6,6 @@ import com.axelor.events.StartupEvent;
 import com.educaflow.base.infrastructure.async.EjecutorAsincrono;
 import com.educaflow.base.infrastructure.mail.MailSender;
 import com.educaflow.base.infrastructure.mail.MailSenderFactory;
-import com.educaflow.subsystem.correos.service.CorreoService;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +16,9 @@ public class AppEventObserver {
     @Inject
     private EjecutorAsincrono ejecutorAsincrono;
 
+    @Inject
+    private CriptografiaStartup criptografiaStartup;
+
     public void onAppStart(@Observes StartupEvent event) {
         logger.info("Iniciando Secretaria Virtual...");
 
@@ -24,7 +26,7 @@ public class AppEventObserver {
 
 
         try {
-            CriptografiaStartup.startup();
+            criptografiaStartup.startup();
         } catch (Exception ex) {
             logger.error("Falló al inicializar la criptografía",ex);
         }

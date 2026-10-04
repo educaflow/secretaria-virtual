@@ -1,12 +1,13 @@
 package com.educaflow.secretariavirtual.startup;
 
 import com.axelor.app.AppSettings;
-import com.axelor.db.JpaRepository;
+import com.axelor.db.modelservice.ModelServiceFactory;
 import com.educaflow.base.infrastructure.criptografia.EntornoCriptografico;
 import com.educaflow.base.infrastructure.criptografia.config.AlmacenCertificadosConfiablesConfig;
-import com.educaflow.base.infrastructure.criptografia.config.DispositivoCriptograficoConfig;
 import com.educaflow.secretariavirtual.module.SecretariaVirtualModule;
 import com.educaflow.subsystem.criptografia.db.DispositivoCriptografico;
+import com.educaflow.subsystem.criptografia.service.DispositivoCriptograficoService;
+import com.google.inject.Inject;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -22,25 +23,23 @@ import java.util.List;
 
 public class CriptografiaStartup {
 
+    @Inject
+    private ModelServiceFactory modelServiceFactory;
 
-    public static void startup() {
+    public void startup() {
+        final DispositivoCriptograficoService dispositivoCriptograficoService = (DispositivoCriptograficoService) modelServiceFactory.resolve(DispositivoCriptografico.class);
         AlmacenCertificadosConfiablesConfig almacenConfig = getAlmacenCertificadosConfiablesConfig();
         EntornoCriptografico.configureAlmacenCertificadosConfiables(almacenConfig);
-        List<DispositivoCriptografico> dispositivos = JpaRepository.of(com.educaflow.subsystem.criptografia.db.DispositivoCriptografico.class).all().fetch();
-        List<DispositivoCriptograficoConfig> configs = dispositivos.stream()
-                .map(d -> new DispositivoCriptograficoConfig(
-                        Path.of(d.getPkcs11LibraryPath()),
-                        d.getSlot(),
-                        d.getPin()
-                ))
-                .toList();
-        EntornoCriptografico.configureDispositivosCriptograficos(configs);
+        dispositivoCriptograficoService.recargarDispositivosEnEntornoCriptografico();
     }
 
     private static AlmacenCertificadosConfiablesConfig getAlmacenCertificadosConfiablesConfig() {
         String pathAlmacen = AppSettings.get().get("entornoCriptografico.almacenCertificadosConfiables.path");
         String passwordAlmacen = AppSettings.get().get("entornoCriptografico.almacenCertificadosConfiables.password");
         InputStream inputStreamAlmacen = SecretariaVirtualModule.class.getClassLoader().getResourceAsStream(pathAlmacen);
+        if (inputStreamAlmacen == null) {
+            throw new RuntimeException("No se encuentra el almacén de certificados confiables: " + pathAlmacen);
+        }
 
         String pathListaCrls = AppSettings.get().get("entornoCriptografico.almacenCertificadosConfiables.pathListaCRLs");
         List<InputStream> certificateRevocationListsInputStream = getCrlsInputStream(Path.of(pathListaCrls));
@@ -61,7 +60,10 @@ public class CriptografiaStartup {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setNamespaceAware(false);
             DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(inputStreamListaCrls);
+            Document doc;
+            try (InputStream inputStream = inputStreamListaCrls) {
+                doc = builder.parse(inputStream);
+            }
 
             XPath xPath = XPathFactory.newInstance().newXPath();
             NodeList nodes = (NodeList) xPath.evaluate("/crls/crl", doc, XPathConstants.NODESET);
