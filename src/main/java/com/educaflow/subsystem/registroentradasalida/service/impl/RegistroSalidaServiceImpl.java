@@ -179,13 +179,12 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
         String anyoActual= String.valueOf(ahora.getYear());
         String codigoCentro = centro.getCode();
         long numeroRegistroSinAnyo = numeradorRepository.getSiguienteNumeroRegistroSalida(codigoCentro, anyoActual);
-        String numeroRegistro = anyoActual + "/" + String.format("%05d", numeroRegistroSinAnyo) + "-" + codigoCentro;
+        String numeroRegistro = String.format("%05d", numeroRegistroSinAnyo) + "/" + anyoActual +  "-" + codigoCentro;
 
         return numeroRegistro;
     }
 
     private MetaFile firmarRegistroSalidaPorSecretario(DocumentoPdf documentoPdf, AlmacenClave almacenClave , String numeroRegistro, String csv) {
-
         CampoFirma campoFirma=new CampoFirma(getRectanguloFirma(documentoPdf)).setNumeroPagina(1).setFontSize(FONT_SIZE_FIRMA)
                 .setMensaje("Nº Reg Salida:\n"+numeroRegistro).setImage(QrUtil.generarPng(getUrlDescarga(csv)), PosicionImagen.ARRIBA)
                 .setMotivo("Firma del Registro de Salida Nº "+numeroRegistro);

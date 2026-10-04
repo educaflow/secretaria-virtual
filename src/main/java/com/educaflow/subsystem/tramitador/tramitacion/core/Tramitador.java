@@ -301,7 +301,7 @@ public class Tramitador {
         int anyoActual = LocalDate.now(Convert.defaultZoneId).getYear();
         String codigoCentro = expediente.getCentro().getCode();
         long numeroExpedienteSinAnyo = numeradorRepository.getSiguienteNumeroExpediente(codigoCentro, String.valueOf(anyoActual));
-        String numeroExpediente = String.format("%05d", numeroExpedienteSinAnyo) + "/" + anyoActual;
+        String numeroExpediente = String.format("%05d", numeroExpedienteSinAnyo) + "/" + anyoActual + "-" + codigoCentro;
         expediente.setNumeroExpediente(numeroExpediente);
     }
 

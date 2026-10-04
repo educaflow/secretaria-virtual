@@ -17,7 +17,7 @@
 
     <grid name="subsysRegistroEntradaSalida.Main@RegistroEntrada-grid" title="" model="com.educaflow.subsystem.registroentradasalida.db.RegistroEntrada"
           groups="admins,users"
-          allowSearchFields="true" orderBy="numeroRegistro" canViewOnClick="true"
+          allowSearchFields="true" orderBy="fecha" canViewOnClick="true"
           canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none" canNew="false" canEdit="false" canDelete="false" canSave="false"
     >
         <field name="centro"          />
