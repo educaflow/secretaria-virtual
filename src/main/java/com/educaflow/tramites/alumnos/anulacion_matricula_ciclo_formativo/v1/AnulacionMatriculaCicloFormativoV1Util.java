@@ -2,6 +2,7 @@ package com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1;
 
 import com.axelor.auth.db.User;
 import com.axelor.db.JpaRepository;
+import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.i18n.I18n;
 import com.axelor.inject.Beans;
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
@@ -12,10 +13,15 @@ import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.Persona;
 import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1;
 import com.educaflow.subsystem.expedientes.db.Profile;
+import com.educaflow.subsystem.firmas.db.TareaFirma;
+import com.educaflow.subsystem.firmas.service.TareaFirmaInsertDTO;
+import com.educaflow.subsystem.firmas.service.TareaFirmaService;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.State;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
+import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.firma.PhaseEventManagerImpl;
 import com.educaflow.tramites.util.entrada.CamposEntrada;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -78,6 +84,33 @@ public final class AnulacionMatriculaCicloFormativoV1Util {
                 .count();
 
         return otrasSolicitudesEnCurso == 0;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Firma de la resolución                                             */
+    /* ------------------------------------------------------------------ */
+
+    // El campoFirma del hueco que documentospdf/resolucion.xml deja bajo «El secretario / la secretaria».
+    public static final String CAMPO_FIRMA_SECRETARIO = "firmaSecretario";
+
+    // El campoFirma del hueco que documentospdf/resolucion.xml deja bajo «El director / la directora».
+    public static final String CAMPO_FIRMA_DIRECTOR = "firmaDirector";
+
+    /**
+     * Pone {@code pdfResolucion} a firmar a {@code firmante} en su bandeja de firmas, en el hueco {@code campoFirma}.
+     * Cuando firme o rechace, el subsistema de firmas llama al notify del PhaseEventManagerImpl de la fase FIRMA,
+     * que recupera el expediente por su id ({@code callBackData}).
+     */
+    public static void ponerResolucionAFirmar(AnulacionMatriculaCicloFormativoV1 expediente, User firmante, String campoFirma) {
+        TareaFirmaService tareaFirmaService = (TareaFirmaService) Beans.get(ModelServiceFactory.class).resolve(TareaFirma.class);
+        tareaFirmaService.insert(new TareaFirmaInsertDTO(
+                firmante,
+                expediente.getCentro(),
+                List.of(expediente.getPdfResolucion()),
+                I18n.get("Resolución de la solicitud de anulación de matrícula del expediente %s").formatted(expediente.getNumeroExpediente()),
+                campoFirma,
+                PhaseEventManagerImpl.class,
+                expediente.getId()));
     }
 
     /* ------------------------------------------------------------------ */

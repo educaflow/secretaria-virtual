@@ -43,6 +43,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
 
     @WhenEvent
     public void triggerDelete(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, JustificacionFaltaProfesoradoV1 original, EventContext eventContext) throws BusinessException {
+        JustificacionFaltaProfesoradoV1Util.exigeSerElCreador(justificacionFaltaProfesorado, "Solo puede borrar sus propias solicitudes");
     }
 
     /** Solo en papel: adjuntada la solicitud escaneada, se pasa a copiar sus datos. */
@@ -59,6 +60,8 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
      */
     @WhenEvent
     public void triggerGuardarDatos(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, JustificacionFaltaProfesoradoV1 original, EventContext eventContext) throws BusinessException {
+        JustificacionFaltaProfesoradoV1Util.exigeSerElCreador(justificacionFaltaProfesorado, "Solo puede modificar sus propias solicitudes");
+
         borrarPeriodoQueNoPideElTipoDeJornada(justificacionFaltaProfesorado);
         generarSolicitud(justificacionFaltaProfesorado);
 
@@ -102,6 +105,8 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
     public void triggerBack(JustificacionFaltaProfesoradoV1 justificacionFaltaProfesorado, JustificacionFaltaProfesoradoV1 original, EventContext eventContext) throws BusinessException {
         justificacionFaltaProfesorado.setClaveCertificado(null);
 
+        JustificacionFaltaProfesoradoV1Util.exigeSerElCreador(justificacionFaltaProfesorado, "Solo puede volver atrás en sus propias solicitudes");
+
         if (EntradaHelper.estaEn(original, States.Entrada.ENTRADA_DATOS)) {
             EntradaHelper.exigePresentadoEnPapel(original, true);
             eventContext.updateState(States.Entrada.PENDIENTE_DOCUMENTO_ESCANEADO);
@@ -114,6 +119,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
     @WhenEvent
     public void triggerPresentar(JustificacionFaltaProfesoradoV1 exp, JustificacionFaltaProfesoradoV1 original, EventContext eventContext) throws BusinessException {
         try {
+            JustificacionFaltaProfesoradoV1Util.exigeSerElCreador(exp, "Solo puede presentar sus propias solicitudes");
             EntradaHelper.exigePresentadoEnPapel(original, false);
             entradaHelper.firmarSolicitudSiEsEnServidor(exp, JustificacionFaltaProfesoradoV1Util.CAMPOS_ENTRADA, CAMPO_FIRMA_SOLICITUD);
 

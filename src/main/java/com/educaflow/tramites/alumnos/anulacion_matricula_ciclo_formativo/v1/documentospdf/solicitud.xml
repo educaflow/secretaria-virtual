@@ -61,8 +61,8 @@
         <castellano>Expone</castellano>
         <fila>
             <texto colspan="12">
-                <valenciano>Que en el curs acadèmic ${self.cursoAcademico} s'ha matriculat en el centre ${self.nombreCentro} , localitat ${self.localidadCentro}</valenciano>
-                <castellano>Que en el curso académico ${self.cursoAcademico} se ha matriculado en el centro ${self.nombreCentro} , localidad ${self.localidadCentro}</castellano>
+                <valenciano>Que en el curs acadèmic ${self.cursoAcademico} s'ha matriculat en el centre ${self.centro.name} , localitat ${self.centro.municipio.name}</valenciano>
+                <castellano>Que en el curso académico ${self.cursoAcademico} se ha matriculado en el centro ${self.centro.name} , localidad ${self.centro.municipio.name}</castellano>
             </texto>
             <texto colspan="12">
                 <valenciano>en el ${self.ciclo.gradoNivel} denominat ${self.ciclo.name}</valenciano>
@@ -106,16 +106,12 @@
     </seccion>
 
     <seccion>
-        <valenciano>Lloc, data i signatura</valenciano>
-        <castellano>Lugar, fecha y firma</castellano>
+        <valenciano>Signatura</valenciano>
+        <castellano>Firma</castellano>
         <fila>
             <texto colspan="12" rowSpan="4" campoFirma="firmaSolicitante">
                 <valenciano>Signatura:</valenciano>
                 <castellano>Firma:</castellano>
-            </texto>
-            <texto colspan="12">
-                <valenciano>${self.personaInteresada.municipio.name} , ${self.fechaSolicitud.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))}</valenciano>
-                <castellano>${self.personaInteresada.municipio.name} , ${self.fechaSolicitud.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))}</castellano>
             </texto>
         </fila>
     </seccion>

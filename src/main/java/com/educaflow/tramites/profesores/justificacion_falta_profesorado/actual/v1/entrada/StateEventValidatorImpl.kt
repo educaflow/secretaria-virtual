@@ -22,7 +22,6 @@ import com.educaflow.base.infrastructure.validation.rules.SizeUnit
 import com.educaflow.base.util.Convert
 import java.time.LocalDate
 import com.educaflow.subsystem.common.db.Persona
-import com.educaflow.tramites.util.entrada.solicitudEscaneada
 import com.educaflow.tramites.util.firma.ClaveCertificadoValida
 import com.educaflow.tramites.util.firma.ifSituacionFirma
 import com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.JustificacionFaltaProfesoradoV1Util as util
@@ -33,7 +32,11 @@ class StateEventValidatorImpl: StateEventValidator {
     @BeanValidationRulesForStateAndEvent
     fun getForStatePendienteDocumentoEscaneadoInEventContinuar(): BeanValidationRules {
         return rules {
-            +solicitudEscaneada(model::getPdfSolicitudFirmada)
+            field(model::getPdfSolicitudFirmada) {
+                +Required()
+                +FileType(listOf("application/pdf"))
+                +FileMaxSize(10, SizeUnit.MB)
+            }
         }
     }
 

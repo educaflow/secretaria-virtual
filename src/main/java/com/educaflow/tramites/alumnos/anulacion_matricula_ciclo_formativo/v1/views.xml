@@ -54,7 +54,7 @@
         <!-- ================================================================================== -->
         <panel name="matricula" title="Matrícula que se anula" colSpan="12">
             <field name="cursoAcademico" colSpan="3" readonly="true"/>
-            <field name="nombreCentro"   colSpan="9" readonly="true"/>
+            <field name="centro.name" title="Centro" colSpan="9" readonly="true"/>
 
             <field name="ciclo" colSpan="9"
                    grid-view="subsysSistemaEducativo.Ref@Ciclo-grid"
@@ -63,9 +63,9 @@
             <field name="ciclo.gradoNivel" title="Grado o nivel" colSpan="3" readonly="true" depends="ciclo"/>
         </panel>
 
-        <panel name="matricula-director" title="Matrícula que se anula" colSpan="12">
+        <panel name="resumen-solicitud" title="Matrícula que se anula" colSpan="12">
             <field name="cursoAcademico" colSpan="3" readonly="true"/>
-            <field name="nombreCentro"   colSpan="9" readonly="true"/>
+            <field name="centro.name" title="Centro" colSpan="9" readonly="true"/>
 
             <field name="ciclo" colSpan="9" readonly="true"
                    grid-view="subsysSistemaEducativo.Ref@Ciclo-grid"
@@ -133,7 +133,6 @@
         <panel name="decision-secretaria" title="Decisión de secretaría" colSpan="12">
             <field name="tipoResolucion"    colSpan="5" readonly="true"/>
             <field name="fechaVerificacion" colSpan="3" readonly="true"/>
-            <field name="verificadoPor"     colSpan="4" readonly="true"/>
             <field name="motivoRechazo"     colSpan="12" readonly="true" showIf="tipoResolucion=='RECHAZAR'"/>
         </panel>
 
@@ -152,7 +151,6 @@
                  <field> el cliente no recibe tipoResolucion y la condición evalúa undefined. -->
             <field name="tipoResolucion"   hidden="true"/>
             <field name="motivoRechazo"    colSpan="12" readonly="true" showIf="tipoResolucion=='RECHAZAR'"/>
-            <field name="fechaResolucion"  colSpan="4"  readonly="true"/>
             <field name="visorResolucionFirmada" showTitle="false" readonly="true" colSpan="12">
                 <viewer depends="pdfResolucionFirmada"><![CDATA[
                     <>

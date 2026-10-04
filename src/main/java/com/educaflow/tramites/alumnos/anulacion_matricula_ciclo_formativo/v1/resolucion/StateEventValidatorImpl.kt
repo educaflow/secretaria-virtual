@@ -34,22 +34,4 @@ class StateEventValidatorImpl: StateEventValidator {
             }
         }
     }
-
-    // FIRMAR y RECHAZAR_FIRMA son eventos de sistema: los dispara el servidor cuando el director firma o
-    // rechaza la resolución en su bandeja de firmas. FIRMAR trae de la tarea de firma la resolución
-    // firmada; RECHAZAR_FIRMA no trae nada.
-    @BeanValidationRulesForStateAndEvent
-    fun getForStatePendienteFirmaDirectorInEventFirmar(): BeanValidationRules {
-        return rules {
-            field(model::getPdfResolucionFirmada) {
-                +Required()
-            }
-        }
-    }
-
-    @BeanValidationRulesForStateAndEvent
-    fun getForStatePendienteFirmaDirectorInEventRechazarFirma(): BeanValidationRules {
-        return rules {
-        }
-    }
 }

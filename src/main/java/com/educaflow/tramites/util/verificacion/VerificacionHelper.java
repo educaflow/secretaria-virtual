@@ -1,5 +1,7 @@
 package com.educaflow.tramites.util.verificacion;
 
+import com.axelor.db.modelservice.BusinessMessage;
+import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.i18n.I18n;
 import com.educaflow.subsystem.common.db.Persona;
@@ -7,6 +9,8 @@ import com.educaflow.subsystem.correos.db.Correo;
 import com.educaflow.subsystem.correos.service.CorreoService;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 import com.google.inject.Inject;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,8 +29,8 @@ public class VerificacionHelper {
      * Avisa por correo a quien presentó la solicitud de que tiene que subsanarla.
      *
      * <p>El aviso es una cortesía, no parte del trámite: lo que hay que subsanar queda en el expediente, que es
-     * donde se subsana. Por eso, si no se le puede escribir (en papel no hay correo del solicitante), no se
-     * envía nada y la verificación sigue adelante.
+     * donde se subsana. Por eso, si el correo no supera la validación (p. ej. en papel no hay correo del
+     * solicitante), no se envía nada, se registra el motivo y la verificación sigue adelante.
      *
      * @return si se ha creado el correo
      */
@@ -34,8 +38,13 @@ public class VerificacionHelper {
         CorreoService correoService = (CorreoService) modelServiceFactory.resolve(Correo.class);
         Correo correo = crearCorreoSubsanacion(expediente, textoSubsanacion);
 
-        if (correoService.validateInsert(correo).isPresent()) {
-            log.info("No se avisa por correo de la subsanación del expediente id={}: no hay a quién escribir", expediente.getId());
+        Optional<BusinessMessages> erroresCorreo = correoService.validateInsert(correo);
+        if (erroresCorreo.isPresent()) {
+            String motivos = erroresCorreo.get().stream()
+                    .map(BusinessMessage::getMessage)
+                    .collect(Collectors.joining("; "))
+                    .replaceAll("[\\r\\n]", " ");
+            log.info("No se avisa por correo de la subsanación del expediente id={}: el correo no supera la validación: {}", expediente.getId(), motivos);
             return false;
         }
 

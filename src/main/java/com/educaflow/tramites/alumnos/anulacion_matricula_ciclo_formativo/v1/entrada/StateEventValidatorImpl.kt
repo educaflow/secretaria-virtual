@@ -5,6 +5,8 @@ import com.educaflow.subsystem.tramitador.tramitacion.validation.BeanValidationR
 import com.educaflow.base.infrastructure.validation.dsl.rules
 import com.educaflow.base.infrastructure.validation.engine.BeanValidationRules
 import com.educaflow.base.infrastructure.validation.rules.Dni
+import com.educaflow.base.infrastructure.validation.rules.FileMaxSize
+import com.educaflow.base.infrastructure.validation.rules.FileType
 import com.educaflow.base.infrastructure.validation.rules.FirmaPdf
 import com.educaflow.base.infrastructure.validation.dsl.ifLambda
 import com.educaflow.base.infrastructure.validation.rules.Lambda
@@ -14,9 +16,9 @@ import com.educaflow.base.infrastructure.validation.rules.Nia
 import com.educaflow.base.infrastructure.validation.rules.Phone
 import com.educaflow.base.infrastructure.validation.rules.PostalCode
 import com.educaflow.base.infrastructure.validation.rules.Required
+import com.educaflow.base.infrastructure.validation.rules.SizeUnit
 import com.educaflow.subsystem.common.db.Persona
 import com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.AnulacionMatriculaCicloFormativoV1Util as util
-import com.educaflow.tramites.util.entrada.solicitudEscaneada
 import com.educaflow.tramites.util.firma.ClaveCertificadoValida
 import com.educaflow.tramites.util.firma.ifSituacionFirma
 import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1 as model
@@ -97,7 +99,11 @@ class StateEventValidatorImpl: StateEventValidator {
     @BeanValidationRulesForStateAndEvent
     fun getForStatePendienteDocumentoEscaneadoInEventContinuar(): BeanValidationRules {
         return rules {
-            +solicitudEscaneada(model::getPdfSolicitudFirmada)
+            field(model::getPdfSolicitudFirmada) {
+                +Required()
+                +FileType(listOf("application/pdf"))
+                +FileMaxSize(10, SizeUnit.MB)
+            }
         }
     }
 

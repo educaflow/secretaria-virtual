@@ -13,8 +13,6 @@
 
         <!-- Datos del centro y del curso -->
         <string name="cursoAcademico" title="Curso académico" />
-        <string name="nombreCentro" title="Centro" />
-        <string name="localidadCentro" title="Localidad del centro" />
 
         <date name="fechaSolicitud" title="Fecha de la solicitud" />
 
@@ -26,15 +24,11 @@
               ref="ResultadoVerificacionAnulacionMatriculaCicloFormativoV1" />
         <string name="textoSubsanacion" title="Qué hay que subsanar" large="true" />
         <date name="fechaVerificacion" title="Fecha de la verificación" />
-        <many-to-one name="verificadoPor" title="Verificado por" ref="com.axelor.auth.db.User" />
 
         <!-- Resolución que propone la secretaría -->
         <enum name="tipoResolucion" title="Tipo resolución"
               ref="TipoResolucionAnulacionMatriculaCicloFormativoV1" />
         <string name="motivoRechazo" title="Motivo del rechazo" large="true" />
-
-        <!-- Resolución -->
-        <date name="fechaResolucion" title="Fecha de la resolución" />
 
         <!-- Documentos -->
         <many-to-one name="pdfSolicitud" title="Solicitud de anulación"

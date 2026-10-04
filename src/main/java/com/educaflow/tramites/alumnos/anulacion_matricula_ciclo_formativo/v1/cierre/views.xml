@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://axelor.com/xml/ns/object-views"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- *********************************************************************************************  -->
+    <!-- ****************************************** ACEPTADA *****************************************  -->
+    <!-- *********************************************************************************************  -->
+    <form state="ACEPTADA">
+        <include-panels>
+            -datos-alumno
+            -matricula
+            -presentacion-descarga-aceptada
+            -resolucion-firmada
+            -solicitud-firmada-descarga
+        </include-panels>
+
+        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">El expediente está cerrado: la anulación ha sido aceptada</help>
+        </panel>
+
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+    <!-- *********************************************************************************************  -->
+    <!-- ***************************************** RECHAZADA *****************************************  -->
+    <!-- *********************************************************************************************  -->
+    <form state="RECHAZADA">
+        <include-panels>
+            -datos-alumno
+            -matricula
+            -presentacion-descarga
+            -resolucion-firmada
+            -solicitud-firmada-descarga
+        </include-panels>
+
+        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
+            <help variant="info" colSpan="12">El expediente está cerrado: la anulación ha sido rechazada</help>
+        </panel>
+
+        <footer>
+            <buttons-left/>
+            <buttons-right>
+                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
+            </buttons-right>
+        </footer>
+    </form>
+
+</object-views>

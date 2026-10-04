@@ -17,7 +17,7 @@
         </include-panels>
 
         <panel name="avisoPendienteResolucionTramitador" colSpan="12" showFrame="false">
-            <help variant="info" colSpan="12">Acepte o rechace la anulación. Se generará la resolución y se le pondrá a firmar al director del centro en su bandeja de firmas</help>
+            <help variant="info" colSpan="12">Acepte o rechace la anulación. Se generará la resolución y se le pondrá a firmar al secretario y después al director del centro en su bandeja de firmas</help>
         </panel>
 
         <footer>
@@ -26,9 +26,9 @@
                         onClick="subsysTramitador-event-action"/>
             </buttons-left>
             <buttons-right>
-                <button name="RESOLVER" colSpan="4" title="Enviar a la firma del director"
+                <button name="RESOLVER" colSpan="4" title="Enviar a la firma"
                         onClick="subsysTramitador-event-action"
-                        prompt="Va a generar la resolución y a enviarla a la firma del director del centro"/>
+                        prompt="Va a generar la resolución y a enviarla a la firma del secretario y del director del centro"/>
             </buttons-right>
         </footer>
     </form>
@@ -43,101 +43,6 @@
 
         <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
             <help variant="info" colSpan="12">La solicitud está pendiente de que la secretaría del centro la resuelva</help>
-        </panel>
-
-        <footer>
-            <buttons-left/>
-            <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
-            </buttons-right>
-        </footer>
-    </form>
-
-    <!-- *********************************************************************************************  -->
-    <!-- ********************************* PENDIENTE_FIRMA_DIRECTOR **********************************  -->
-    <!-- *********************************************************************************************  -->
-    <!-- El estado no tiene botones: sus dos eventos (FIRMAR y RECHAZAR_FIRMA) son de sistema y los dispara el
-         servidor cuando el director firma o rechaza la resolución en su bandeja de firmas. -->
-    <form state="PENDIENTE_FIRMA_DIRECTOR" profile="DIRECTOR">
-        <include-panels>
-            -datos-alumno-resumen
-            -matricula-director
-            -decision-secretaria
-            -resolucion-a-firmar
-            -solicitud-firmada-descarga
-            -justificante-descarga
-        </include-panels>
-
-        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
-            <help variant="info" colSpan="12">La resolución está pendiente de su firma: fírmela o rechácela en el menú «Firmas», opción «Pendientes»</help>
-        </panel>
-
-        <footer>
-            <buttons-left/>
-            <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
-            </buttons-right>
-        </footer>
-    </form>
-
-    <form state="PENDIENTE_FIRMA_DIRECTOR">
-        <include-panels>
-            -datos-alumno
-            -matricula
-            -presentacion
-            -solicitud-firmada-descarga
-        </include-panels>
-
-        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
-            <help variant="info" colSpan="12">La resolución está pendiente de la firma del director</help>
-        </panel>
-
-        <footer>
-            <buttons-left/>
-            <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
-            </buttons-right>
-        </footer>
-    </form>
-
-    <!-- *********************************************************************************************  -->
-    <!-- ****************************************** ACEPTADA *****************************************  -->
-    <!-- *********************************************************************************************  -->
-    <form state="ACEPTADA">
-        <include-panels>
-            -datos-alumno
-            -matricula
-            -presentacion-descarga-aceptada
-            -resolucion-firmada
-            -solicitud-firmada-descarga
-        </include-panels>
-
-        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
-            <help variant="info" colSpan="12">El expediente está cerrado: la anulación ha sido aceptada</help>
-        </panel>
-
-        <footer>
-            <buttons-left/>
-            <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
-            </buttons-right>
-        </footer>
-    </form>
-
-    <!-- *********************************************************************************************  -->
-    <!-- ***************************************** RECHAZADA *****************************************  -->
-    <!-- *********************************************************************************************  -->
-    <form state="RECHAZADA">
-        <include-panels>
-            -datos-alumno
-            -matricula
-            -presentacion-descarga
-            -resolucion-firmada
-            -solicitud-firmada-descarga
-        </include-panels>
-
-        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
-            <help variant="info" colSpan="12">El expediente está cerrado: la anulación ha sido rechazada</help>
         </panel>
 
         <footer>

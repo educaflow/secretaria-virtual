@@ -2,7 +2,6 @@ package com.educaflow.tramites.alumnos.anulacion_matricula_ciclo_formativo.v1.ve
 
 import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.util.Convert;
-import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1;
 import com.educaflow.subsystem.expedientes.db.ResultadoVerificacionAnulacionMatriculaCicloFormativoV1;
 import com.educaflow.subsystem.expedientes.db.repo.AnulacionMatriculaCicloFormativoV1Repository;
@@ -46,7 +45,6 @@ public class PhaseEventManagerImpl extends PhaseEventManager<AnulacionMatriculaC
         AnulacionMatriculaCicloFormativoV1Util.exigeOstentarElPerfilDelEstado(expediente, "Solo la secretaría del centro puede verificar esta solicitud");
 
         expediente.setFechaVerificacion(LocalDate.now(Convert.defaultZoneId));
-        expediente.setVerificadoPor(SecurityUtil.getUser());
 
         ResultadoVerificacionAnulacionMatriculaCicloFormativoV1 resultadoVerificacion = expediente.getResultadoVerificacion();
         switch (resultadoVerificacion) {

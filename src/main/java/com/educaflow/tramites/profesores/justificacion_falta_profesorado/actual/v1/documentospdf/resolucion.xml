@@ -94,15 +94,6 @@
     <espacio alto="14.76"/>
     <espacio alto="14.76"/>
 
-    <!-- La entidad no guarda la fecha de la resolución: el PDF se genera y firma en el propio evento RESOLVER,
-         así que la fecha de generación (now) es la de la resolución. -->
-    <parrafo alineamiento="derecha">
-        <valenciano>${self.centro.municipio.name}, ${now.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))}</valenciano>
-        <castellano>${self.centro.municipio.name}, ${now.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))}</castellano>
-    </parrafo>
-
-    <espacio alto="29.52"/>
-
     <!-- Solo firma el director (CAMPO_FIRMA_RESOLUCION del PhaseEventManagerImpl de resolucion). -->
     <tabla columnas="2">
         <fila>

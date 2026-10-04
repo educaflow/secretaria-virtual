@@ -7,7 +7,7 @@ Todo lo demás de `tramites/` (`shared/`, `views/`, `view_models/`) son recursos
 
 ## Qué puede entrar
 
-Una pieza entra aquí **solo si cumple las seis**:
+Una pieza entra aquí **solo si cumple las siete**:
 
 1. La usa —o está pensada para usarla— **más de un tipo de expediente**.
    Lo que solo sirve a un trámite se queda en su carpeta de versión.
@@ -21,6 +21,8 @@ Una pieza entra aquí **solo si cumple las seis**:
    Los campos entran como parámetros o como *getters* `KCallable`, igual que hace `FirmaPdf` en `base.infrastructure.validation.rules`.
 6. Va en un **subpaquete por propósito** (`firma/`, …).
    **MUST NOT** existir un `Utils`/`Helpers` cajón de sastre: lo que no encaje en un propósito ya existente abre uno nuevo.
+7. **No es una función que agrupe reglas del catálogo del DSL de validación.**
+   Las reglas de un evento se escriben en el `StateEventValidatorImpl` de cada tipo, para que se vea en él toda la validación, aunque varios tipos repitan el mismo bloque.
 
 ## Dirección de las dependencias
 
@@ -29,7 +31,7 @@ Una pieza entra aquí **solo si cumple las seis**:
 **MUST NOT** existir ningún import de `com.educaflow.tramites..` desde `base/**`, `subsystem/**`, `system/**` ni `secretariavirtual/**`.
 La regla de arquitectura **C2** lo verifica para `base.infrastructure`.
 
-`com.educaflow.tramites..` es paquete **exento** del resto de reglas ArchUnit (tiene arquitectura propia), así que aquí casi nada se comprueba solo: las seis condiciones de arriba se sostienen por revisión, no por test.
+`com.educaflow.tramites..` es paquete **exento** del resto de reglas ArchUnit (tiene arquitectura propia), así que aquí casi nada se comprueba solo: las siete condiciones de arriba se sostienen por revisión, no por test.
 
 ## Contenido
 
@@ -41,18 +43,15 @@ La regla de arquitectura **C2** lo verifica para `base.infrastructure`.
   Sí es legítimo que un trámite use `subsystem/firmas` cuando lo que quiere es poner un documento a la firma de alguien.
 - **`entrada/`** — lo que hacen igual todos los tipos de expediente en su fase común `ENTRADA`.
   `EntradaHelper`: firmar la solicitud en el servidor si a quien presenta le corresponde (`firmarSolicitudSiEsEnServidor`), asentarla en el registro de entrada y guardar el resguardo (`presentar`), y las dos ayudas de los `trigger*` de la fase (`estaEn`, para los eventos que salen de más de un estado, y `exigePresentadoEnPapel`, para los que son de un solo modo de presentación).
-  `EntradaRules.kt`: la regla del DSL de validación `solicitudEscaneada(...)`, la de la solicitud entregada en papel.
   `CamposEntrada`: el descriptor con el que cada tipo le dice al helper cuáles son sus campos.
   Depende de `subsystem/criptografia` (a través de `firma/`), de `subsystem/tramitador` (`EventContext`, `State`) y de `subsystem/registroentradasalida` (el `RegistroEntrada` que devuelve `EventContext`).
 - **`verificacion/`** — lo que hacen igual todos los tipos de expediente en su fase común `VERIFICACION`.
   `VerificacionHelper.avisarDeSubsanacion`: el correo que avisa a quien presentó de que tiene que subsanar; es una cortesía, así que si no hay a quién escribir no se envía y no bloquea la verificación.
-  `VerificacionRules.kt`: las reglas del DSL de validación `resultadoVerificacion(...)` y `textoSubsanacion(...)`.
   Depende de `subsystem/correos`.
 
-`entrada/` y `verificacion/` cumplen la condición 5 de tres formas, porque los campos con los que trabajan (`pdfSolicitud`, `pdfSolicitudFirmada`, `pdfJustificanteRegistroEntrada`, `resultadoVerificacion`, `textoSubsanacion`) los declara cada tipo en su `domains.xml` y no son de `Expediente`:
+`entrada/` y `verificacion/` cumplen la condición 5 de dos formas, porque los campos con los que trabajan (`pdfSolicitud`, `pdfSolicitudFirmada`, `pdfJustificanteRegistroEntrada`, `resultadoVerificacion`, `textoSubsanacion`) los declara cada tipo en su `domains.xml` y no son de `Expediente`:
 
 - como **parámetros** (`avisarDeSubsanacion(expediente, textoSubsanacion)`);
-- como ***getters* `KFunction`** en las reglas (`solicitudEscaneada(model::getPdfSolicitudFirmada)`), con el ítem del enum del tipo también como parámetro (`textoSubsanacion(..., ResultadoVerificacion.SUBSANAR)`);
 - como el descriptor **`CamposEntrada<T>`**, un record de referencias a los getters y setters del tipo que cada uno construye una vez, como constante `CAMPOS_ENTRADA` de su `<Code>Util`.
 
 A qué estado se pasa después **MUST** decidirlo cada tipo: es el único que puede nombrar los estados de su `States`, así que aquí no hay ningún `updateState`.

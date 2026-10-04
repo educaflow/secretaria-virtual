@@ -8,8 +8,8 @@
     </titulo>
 
     <parrafo>
-        <valenciano>En l'expedient número ${self.numeroExpediente}, iniciat a instància de ${self.personaInteresada.nombre} ${self.personaInteresada.apellidos}, amb DNI__!! / NIE__!! ${self.personaInteresada.dni} i NIA__!! ${self.personaInteresada.nia}, alumne/a del centre ${self.nombreCentro}, de ${self.localidadCentro}, en el curs acadèmic ${self.cursoAcademico}, es dicta la resolució següent.</valenciano>
-        <castellano>En el expediente número ${self.numeroExpediente}, iniciado a instancia de ${self.personaInteresada.nombre} ${self.personaInteresada.apellidos}, con DNI__!! / NIE__!! ${self.personaInteresada.dni} y NIA__!! ${self.personaInteresada.nia}, alumno/a del centro ${self.nombreCentro}, de ${self.localidadCentro}, en el curso académico ${self.cursoAcademico}, se dicta la siguiente resolución.</castellano>
+        <valenciano>En l'expedient número ${self.numeroExpediente}, iniciat a instància de ${self.personaInteresada.nombre} ${self.personaInteresada.apellidos}, amb DNI__!! / NIE__!! ${self.personaInteresada.dni} i NIA__!! ${self.personaInteresada.nia}, alumne/a del centre ${self.centro.name}, de ${self.centro.municipio.name}, en el curs acadèmic ${self.cursoAcademico}, es dicta la resolució següent.</valenciano>
+        <castellano>En el expediente número ${self.numeroExpediente}, iniciado a instancia de ${self.personaInteresada.nombre} ${self.personaInteresada.apellidos}, con DNI__!! / NIE__!! ${self.personaInteresada.dni} y NIA__!! ${self.personaInteresada.nia}, alumno/a del centro ${self.centro.name}, de ${self.centro.municipio.name}, en el curso académico ${self.cursoAcademico}, se dicta la siguiente resolución.</castellano>
     </parrafo>
     <espacio alto="14.76"/>
 
@@ -69,13 +69,6 @@
 
     <espacio alto="14.76"/>
     <espacio alto="14.76"/>
-
-    <parrafo alineamiento="derecha">
-        <valenciano>${self.localidadCentro}, ${self.fechaResolucion.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM 'de' yyyy", java.util.Locale.forLanguageTag("ca")))}</valenciano>
-        <castellano>${self.localidadCentro}, ${self.fechaResolucion.format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", java.util.Locale.forLanguageTag("es")))}</castellano>
-    </parrafo>
-
-    <espacio alto="29.52"/>
 
     <tabla columnas="2">
         <fila>
