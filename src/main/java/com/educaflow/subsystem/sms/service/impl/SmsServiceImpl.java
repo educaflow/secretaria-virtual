@@ -74,9 +74,9 @@ public class SmsServiceImpl extends DefaultModelService<Sms> implements SmsServi
         return entidadOriginal;
     }
 
-    /****************************************************************************************/
-    /******************************** Métodos de Validación *********************************/
-    /****************************************************************************************/
+    /**************************************************************************************/
+    /******************************* Métodos de Validación ********************************/
+    /**************************************************************************************/
 
     @Override
     public Optional<BusinessMessages> validateInsert(Sms sms) {
@@ -180,9 +180,9 @@ public class SmsServiceImpl extends DefaultModelService<Sms> implements SmsServi
         return messages.isValid() ? Optional.empty() : Optional.of(messages);
     }
 
-    /**************************************************************************************/
-    /********************************   AllowProperties   *********************************/
-    /**************************************************************************************/
+    /************************************************************************************/
+    /********************************* AllowProperties **********************************/
+    /************************************************************************************/
 
     @Override
     public AllowProperties allowPropertiesInsert() {
@@ -198,11 +198,6 @@ public class SmsServiceImpl extends DefaultModelService<Sms> implements SmsServi
     }
 
     @Override
-    public AllowProperties allowPropertiesReenviar() {
-        return AllowProperties.createDenyAllProperties();
-    }
-
-    @Override
     public AllowProperties allowPropertiesUpdate() {
         return AllowProperties.createDenyAllProperties();
     }
@@ -212,9 +207,14 @@ public class SmsServiceImpl extends DefaultModelService<Sms> implements SmsServi
         return AllowProperties.createDenyAllProperties();
     }
 
-    /*************************************************************************************/
-    /********************************    Action Rules    *********************************/
-    /*************************************************************************************/
+    @Override
+    public AllowProperties allowPropertiesReenviar() {
+        return AllowProperties.createDenyAllProperties();
+    }
+
+    /***********************************************************************************/
+    /********************************** Action Rules ***********************************/
+    /***********************************************************************************/
 
     private void fireActionRule_NormalizarTelefono(Sms sms) {
         sms.setTelefono(new NumeroTelefono(sms.getTelefono()).enFormatoE164());
@@ -257,9 +257,9 @@ public class SmsServiceImpl extends DefaultModelService<Sms> implements SmsServi
         sms.setFechaEnvio(null);
     }
 
-    /*************************************************************************************/
-    /********************************    Otras funciones    ******************************/
-    /*************************************************************************************/
+    /***********************************************************************************/
+    /********************************* Otras funciones *********************************/
+    /***********************************************************************************/
 
     private void enviarSms(Long smsId) {
         JPA.runInTransaction(() -> {
@@ -287,4 +287,5 @@ public class SmsServiceImpl extends DefaultModelService<Sms> implements SmsServi
             repository.save(sms);
         });
     }
+
 }

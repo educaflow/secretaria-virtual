@@ -39,7 +39,6 @@ public class RegistroController {
         return recursoEstatico("/web/registro.html", MediaType.TEXT_HTML);
     }
 
-
     /**
      * Body: { "email": "...", "dni": "...", "tipoDoc": "..." }
      */
@@ -131,6 +130,28 @@ public class RegistroController {
         return error("Funcionalidad no disponible.");
     }
 
+    @GET
+    @Path("/registro.css")
+    @Produces("text/css")
+    public Response css() {
+        return recursoEstatico("/web/registro.css", "text/css");
+    }
+
+    @GET
+    @Path("/registro.js")
+    @Produces("application/javascript")
+    public Response js() {
+        return recursoEstatico("/web/registro.js", "application/javascript");
+    }
+
+    /************************************************************************************/
+    /***************************** Acciones de Validaciones *****************************/
+    /************************************************************************************/
+
+    /****************************************************************************/
+    /***************************** Métodos privados *****************************/
+    /****************************************************************************/
+
     private Response recursoEstatico(String classpath, String mediaType) {
         try (InputStream is = getClass().getResourceAsStream(classpath)) {
             if (is == null) {
@@ -153,20 +174,6 @@ public class RegistroController {
                 .type(MediaType.APPLICATION_JSON)
                 .entity(Map.of("errors", businessMessages))
                 .build();
-    }
-
-    @GET
-    @Path("/registro.css")
-    @Produces("text/css")
-    public Response css() {
-        return recursoEstatico("/web/registro.css", "text/css");
-    }
-
-    @GET
-    @Path("/registro.js")
-    @Produces("application/javascript")
-    public Response js() {
-        return recursoEstatico("/web/registro.js", "application/javascript");
     }
 
 }

@@ -62,12 +62,9 @@ public class PdfUtilitiesServiceImpl extends DefaultModelService<PdfUtilities> i
         return MetaFileHelper.createMetaFile(documentoPdf);
     }
 
-
-    /****************************************************************************************/
-    /******************************** Métodos de Validación *********************************/
-    /****************************************************************************************/
-
-
+    /**************************************************************************************/
+    /******************************* Métodos de Validación ********************************/
+    /**************************************************************************************/
 
     @Override
     public Optional<BusinessMessages> validateGetInfo(MetaFile pdf) {
@@ -77,7 +74,6 @@ public class PdfUtilitiesServiceImpl extends DefaultModelService<PdfUtilities> i
 
         return messages.isValid() ? Optional.empty() : Optional.of(messages);
     }
-
 
     @Override
     public Optional<BusinessMessages> validateGetPdfTodasPosicionesFirma(PdfUtilities pdfUtilities) {
@@ -94,10 +90,9 @@ public class PdfUtilitiesServiceImpl extends DefaultModelService<PdfUtilities> i
         }
     }
 
-
-    /**************************************************************************************/
-    /********************************   AllowProperties   *********************************/
-    /**************************************************************************************/
+    /************************************************************************************/
+    /********************************* AllowProperties **********************************/
+    /************************************************************************************/
 
     @Override
     public AllowProperties allowPropertiesGetPdfTodasPosicionesFirma() {
@@ -106,5 +101,13 @@ public class PdfUtilitiesServiceImpl extends DefaultModelService<PdfUtilities> i
                 "numeroPagina", Map.of()
         ));
     }
+
+    /***********************************************************************************/
+    /********************************** Action Rules ***********************************/
+    /***********************************************************************************/
+
+    /***********************************************************************************/
+    /********************************* Otras funciones *********************************/
+    /***********************************************************************************/
 
 }

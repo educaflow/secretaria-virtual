@@ -39,6 +39,10 @@ public class ExpedienteController {
         actionResponse.setValue(CAMPO_VISTA_NUEVA_NOTA, null);
     }
 
+    /************************************************************************************/
+    /***************************** Acciones de Validaciones *****************************/
+    /************************************************************************************/
+
     @CallMethod
     public void validateAddNote(ActionRequest actionRequest, ActionResponse actionResponse) {
         final ExpedienteService expedienteService = (ExpedienteService) modelServiceFactory.resolve(Expediente.class);
@@ -51,6 +55,10 @@ public class ExpedienteController {
             actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());
         }
     }
+
+    /****************************************************************************/
+    /***************************** Métodos privados *****************************/
+    /****************************************************************************/
 
     private static String getNuevaNota(ActionRequestHelper<Expediente> actionRequestHelper) {
         return (String) actionRequestHelper.getRequestData().get(CAMPO_VISTA_NUEVA_NOTA);

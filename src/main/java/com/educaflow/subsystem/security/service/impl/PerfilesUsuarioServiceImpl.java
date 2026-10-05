@@ -105,7 +105,6 @@ public class PerfilesUsuarioServiceImpl implements PerfilesUsuarioService {
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-
     /**
      * El perfil de inicio del usuario que corresponde a esa forma de presentar.
      */
@@ -141,9 +140,21 @@ public class PerfilesUsuarioServiceImpl implements PerfilesUsuarioService {
         return tramitaAlgunTramite(user, tramite -> codigoUnidadTramitadora == codigoUnidadTramitadora(tramite.getUnidadTramitadora()));
     }
 
-    /******************************************************************************/
-    /****************************** Métodos privados ******************************/
-    /******************************************************************************/
+    /**************************************************************************************/
+    /******************************* Métodos de Validación ********************************/
+    /**************************************************************************************/
+
+    /************************************************************************************/
+    /********************************* AllowProperties **********************************/
+    /************************************************************************************/
+
+    /***********************************************************************************/
+    /********************************** Action Rules ***********************************/
+    /***********************************************************************************/
+
+    /***********************************************************************************/
+    /********************************* Otras funciones *********************************/
+    /***********************************************************************************/
 
     private Set<Profile> getPerfilesUnicamenteSobreTramite(Tramite tramite, CentroUsuario centroUsuario) {
         Objects.requireNonNull(tramite, "tramite no puede ser nulo");

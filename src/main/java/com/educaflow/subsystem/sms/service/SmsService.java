@@ -11,7 +11,9 @@ public interface SmsService extends ModelService<Sms> {
 
     Sms reenviar(Sms entidad, Sms entidadOriginal);
 
+
     Optional<BusinessMessages> validateReenviar(Sms entidad, Sms entidadOriginal);
+
 
     AllowProperties allowPropertiesReenviar();
 }

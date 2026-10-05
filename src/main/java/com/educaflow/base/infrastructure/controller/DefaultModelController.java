@@ -23,6 +23,10 @@ public class DefaultModelController {
     @Inject
     private ModelServiceFactory modelServiceFactory;
 
+    /************************************************************************************/
+    /***************************** Acciones de Validaciones *****************************/
+    /************************************************************************************/
+
     @CallMethod
     public void validateSave(ActionRequest actionRequest, ActionResponse actionResponse) {
         Class<Model> modelClass = getModelClass(actionRequest);
@@ -64,8 +68,13 @@ public class DefaultModelController {
         }
     }
 
+    /****************************************************************************/
+    /***************************** Métodos privados *****************************/
+    /****************************************************************************/
+
     @SuppressWarnings("unchecked")
     private Class<Model> getModelClass(ActionRequest actionRequest) {
         return (Class<Model>) new ActionRequestHelper<>(actionRequest).getModelClass();
     }
+
 }

@@ -153,6 +153,10 @@ public class TramitadorController {
         }
     }
 
+    /************************************************************************************/
+    /***************************** Acciones de Validaciones *****************************/
+    /************************************************************************************/
+
     @CallMethod
     public void validateChild(ActionRequest actionRequest, ActionResponse actionResponse) {
         ActionRequestHelper actionRequestHelper = new ActionRequestHelper(actionRequest);
@@ -184,11 +188,9 @@ public class TramitadorController {
         }
     }
 
-
-    /*******************************************************************/
-    /********************** Funciones de Negocio  **********************/
-    /*******************************************************************/
-
+    /****************************************************************************/
+    /***************************** Métodos privados *****************************/
+    /****************************************************************************/
 
     /**
      * Los eventos de sistema de un estado solo los dispara el servidor, llamando a
@@ -272,12 +274,6 @@ public class TramitadorController {
 
         return code.toString();
     }
-
-
-    /*******************************************************************/
-    /*************** Funciones de Acceso a Base de datos ***************/
-    /*******************************************************************/
-
 
     private <T extends Model> T getReferencia(Context context, String fieldName, Class<T> modelClass) {
         Model referencia = (Model) context.get(fieldName);

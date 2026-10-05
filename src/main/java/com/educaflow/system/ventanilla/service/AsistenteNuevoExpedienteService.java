@@ -10,18 +10,19 @@ import java.util.Optional;
 public interface AsistenteNuevoExpedienteService extends ModelService<AsistenteNuevoExpediente> {
 
     AsistenteNuevoExpediente prepararCentros(AsistenteNuevoExpediente asistente);
-    Optional<BusinessMessages> validatePrepararCentros(AsistenteNuevoExpediente asistente);
-    AllowProperties allowPropertiesPrepararCentros();
-
     AsistenteNuevoExpediente prepararTramites(AsistenteNuevoExpediente asistente);
-    Optional<BusinessMessages> validatePrepararTramites(AsistenteNuevoExpediente asistente);
-    AllowProperties allowPropertiesPrepararTramites();
-
     AsistenteNuevoExpediente recalcular(AsistenteNuevoExpediente asistente);
-    Optional<BusinessMessages> validateRecalcular(AsistenteNuevoExpediente asistente);
-    AllowProperties allowPropertiesRecalcular();
 
+
+    Optional<BusinessMessages> validatePrepararCentros(AsistenteNuevoExpediente asistente);
+    Optional<BusinessMessages> validatePrepararTramites(AsistenteNuevoExpediente asistente);
+    Optional<BusinessMessages> validateRecalcular(AsistenteNuevoExpediente asistente);
     Optional<BusinessMessages> validateTriggerInitialEvent(AsistenteNuevoExpediente asistente);
+
+
+    AllowProperties allowPropertiesPrepararCentros();
+    AllowProperties allowPropertiesPrepararTramites();
+    AllowProperties allowPropertiesRecalcular();
     AllowProperties allowPropertiesTriggerInitialEvent();
 
 }

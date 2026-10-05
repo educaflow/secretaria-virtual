@@ -14,7 +14,6 @@ import com.educaflow.subsystem.tramitador.tramitacion.util.ExpedienteUtil;
 import java.util.function.Consumer;
 
 public class FirmaClienteController {
-
     /** Firma con AutoFirma en un rectángulo de una página del documento. */
     @CallMethod
     public Response firmarDocumento(long idExpediente, String sourceField, String targetField, float x, float y, float width, float height, int pageNumber) {
@@ -28,6 +27,14 @@ public class FirmaClienteController {
     public Response firmarDocumentoEnCampo(long idExpediente, String sourceField, String targetField, String nombreCampoFirma) {
         return firmar(idExpediente, sourceField, targetField, autofirma -> autofirma.setNombreCampoFirma(nombreCampoFirma));
     }
+
+    /************************************************************************************/
+    /***************************** Acciones de Validaciones *****************************/
+    /************************************************************************************/
+
+    /****************************************************************************/
+    /***************************** Métodos privados *****************************/
+    /****************************************************************************/
 
     private Response firmar(long idExpediente, String sourceField, String targetField, Consumer<AutoFirma> lugarFirma) {
         try {
@@ -55,4 +62,5 @@ public class FirmaClienteController {
             throw new RuntimeException(e);
         }
     }
+
 }

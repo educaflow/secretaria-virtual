@@ -72,9 +72,9 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
         return asistente;
     }
 
-    /****************************************************************************************/
-    /******************************** Métodos de Validación *********************************/
-    /****************************************************************************************/
+    /**************************************************************************************/
+    /******************************* Métodos de Validación ********************************/
+    /**************************************************************************************/
 
     @Override
     public Optional<BusinessMessages> validatePrepararCentros(AsistenteNuevoExpediente asistente) {
@@ -199,9 +199,19 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
         return Optional.empty();
     }
 
-    /**************************************************************************************/
-    /********************************   AllowProperties   *********************************/
-    /**************************************************************************************/
+    /************************************************************************************/
+    /********************************* AllowProperties **********************************/
+    /************************************************************************************/
+
+    @Override
+    public AllowProperties allowPropertiesInsert() {
+        return AllowProperties.createDenyAllProperties();
+    }
+
+    @Override
+    public AllowProperties allowPropertiesUpdate() {
+        return AllowProperties.createDenyAllProperties();
+    }
 
     @Override
     public AllowProperties allowPropertiesPrepararCentros() {
@@ -234,19 +244,9 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
         ));
     }
 
-    @Override
-    public AllowProperties allowPropertiesInsert() {
-        return AllowProperties.createDenyAllProperties();
-    }
-
-    @Override
-    public AllowProperties allowPropertiesUpdate() {
-        return AllowProperties.createDenyAllProperties();
-    }
-
-    /*************************************************************************************/
-    /********************************    Action Rules    *********************************/
-    /*************************************************************************************/
+    /***********************************************************************************/
+    /********************************** Action Rules ***********************************/
+    /***********************************************************************************/
 
     private void fireActionRule_AsignarArranqueDelAsistente(AsistenteNuevoExpediente asistente) {
         List<Centro> centrosCandidatos = getCentrosCandidatos();
@@ -309,9 +309,9 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
                 hayQuePreguntarElDestinatario ? null : admiteEnRepresentacion);
     }
 
-    /*************************************************************************************/
-    /********************************    Otras funciones    ******************************/
-    /*************************************************************************************/
+    /***********************************************************************************/
+    /********************************* Otras funciones *********************************/
+    /***********************************************************************************/
 
     private record MatrizPresentacion(boolean yoMismoParaMi, boolean yoMismoEnRepresentacion,
                                       boolean enPapelParaMi, boolean enPapelEnRepresentacion) {
@@ -393,4 +393,5 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
 
         return usuario.tieneTipoUsuario(centro, codigoTipoUsuario);
     }
+
 }

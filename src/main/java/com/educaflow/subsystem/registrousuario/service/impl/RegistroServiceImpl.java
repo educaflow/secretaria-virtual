@@ -73,14 +73,6 @@ public class RegistroServiceImpl extends DefaultModelService<User> implements Re
         throw new UnsupportedOperationException("Registro de usuarios no implementado");
     }
 
-    public Optional<BusinessMessages> validateRegistrarUsuario(DatosBasicosUsuario datos, String token) {
-        return Optional.empty();
-    }
-
-    public Optional<BusinessMessages> validateFindEmailByDni(String dni) {
-        return Optional.empty();
-    }
-
     @Override
     public Optional<String> findEmailByDni(String dni) {
         validateFindEmailByDni(dni).ifPresent(BusinessMessages::throwIfInvalid);
@@ -97,5 +89,29 @@ public class RegistroServiceImpl extends DefaultModelService<User> implements Re
         }
         return Optional.of(email);
     }
+
+    /**************************************************************************************/
+    /******************************* Métodos de Validación ********************************/
+    /**************************************************************************************/
+
+    public Optional<BusinessMessages> validateRegistrarUsuario(DatosBasicosUsuario datos, String token) {
+        return Optional.empty();
+    }
+
+    public Optional<BusinessMessages> validateFindEmailByDni(String dni) {
+        return Optional.empty();
+    }
+
+    /************************************************************************************/
+    /********************************* AllowProperties **********************************/
+    /************************************************************************************/
+
+    /***********************************************************************************/
+    /********************************** Action Rules ***********************************/
+    /***********************************************************************************/
+
+    /***********************************************************************************/
+    /********************************* Otras funciones *********************************/
+    /***********************************************************************************/
 
 }

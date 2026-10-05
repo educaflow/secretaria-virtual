@@ -52,6 +52,21 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
     }
 
     @Override
+    public RegistroEntrada insert(RegistroEntrada registroEntrada) {
+        throw new UnsupportedOperationException(I18n.get("Los registros de entrada solo los crea el servidor."));
+    }
+
+    @Override
+    public RegistroEntrada update(RegistroEntrada nuevo, RegistroEntrada original) {
+        throw new UnsupportedOperationException(I18n.get("Los registros de entrada no se pueden modificar."));
+    }
+
+    @Override
+    public void remove(RegistroEntrada registroEntrada) {
+        throw new UnsupportedOperationException(I18n.get("Los registros de entrada no se pueden borrar."));
+    }
+
+    @Override
     public RegistroEntrada createRegistroEntrada(RegistroEntradaInsertDTO registroEntradaInsertDTO, MetaFile documentoOriginalFirmado, List<MetaFile> anexos) {
         validateCreateRegistroEntrada(registroEntradaInsertDTO, documentoOriginalFirmado, anexos).ifPresent(BusinessMessages::throwIfInvalid);
 
@@ -86,24 +101,9 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
         return registroEntrada;
     }
 
-    @Override
-    public RegistroEntrada insert(RegistroEntrada registroEntrada) {
-        throw new UnsupportedOperationException(I18n.get("Los registros de entrada solo los crea el servidor."));
-    }
-
-    @Override
-    public RegistroEntrada update(RegistroEntrada nuevo, RegistroEntrada original) {
-        throw new UnsupportedOperationException(I18n.get("Los registros de entrada no se pueden modificar."));
-    }
-
-    @Override
-    public void remove(RegistroEntrada registroEntrada) {
-        throw new UnsupportedOperationException(I18n.get("Los registros de entrada no se pueden borrar."));
-    }
-
-    /****************************************************************************************/
-    /******************************** Métodos de Validación *********************************/
-    /****************************************************************************************/
+    /**************************************************************************************/
+    /******************************* Métodos de Validación ********************************/
+    /**************************************************************************************/
 
     @Override
     public Optional<BusinessMessages> validateInsert(RegistroEntrada registroEntrada) {
@@ -129,9 +129,9 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
         return Optional.empty();
     }
 
-    /**************************************************************************************/
-    /********************************   AllowProperties   *********************************/
-    /**************************************************************************************/
+    /************************************************************************************/
+    /********************************* AllowProperties **********************************/
+    /************************************************************************************/
 
     // Un registro de entrada solo lo crea el servidor (createRegistroEntrada): por el REST automático
     // no se acepta ningún campo, que si no cualquiera con permiso de escritura dictaría el número o el documento.
@@ -145,13 +145,13 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
         return AllowProperties.createDenyAllProperties();
     }
 
-    /*************************************************************************************/
-    /********************************    Action Rules    *********************************/
-    /*************************************************************************************/
+    /***********************************************************************************/
+    /********************************** Action Rules ***********************************/
+    /***********************************************************************************/
 
-    /*************************************************************************************/
-    /********************************    Otras funciones    ******************************/
-    /*************************************************************************************/
+    /***********************************************************************************/
+    /********************************* Otras funciones *********************************/
+    /***********************************************************************************/
 
     private String getNumeroRegistro(Centro centro, LocalDateTime ahora) {
         String anyoActual= String.valueOf(ahora.getYear());
@@ -162,7 +162,6 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
         return numeroRegistro;
     }
 
-
     private DocumentoPdf firmarPorSecretario(DocumentoPdf documentoPdf,Centro centro) {
         AlmacenClave almacenClave= almacenClaveResolver.getSecretario(centro);
         CampoFirma campoFirma=new CampoFirma(CAMPO_FIRMA_REGISTRO_ENTRADA);
@@ -171,7 +170,6 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
 
         return documentoPdfFirmado;
     }
-
 
     private DocumentoPdf getPrimeraPaginaRegistroEntrada(DatosRegistroEntradaPdf datosRegistroEntradaPdf) {
         String xmlFileName="registro_entrada_plantilla.xml";
@@ -225,11 +223,7 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
         return getClass().getResourceAsStream(nombreCompletoDocumentoPdf);
     }
 
-
-
-
     private record DatosRegistroEntradaPdf(Centro centro, PersonaRegistro solicitante, PersonaRegistro interesado, String numeroExpediente, String asunto, LocalDateTime fecha, String numeroRegistro) {
     }
-
 
 }

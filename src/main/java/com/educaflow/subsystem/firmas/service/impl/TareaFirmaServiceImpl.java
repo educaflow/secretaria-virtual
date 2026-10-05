@@ -140,14 +140,18 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
         return tareaFirma;
     }
 
-
-    /****************************************************************************************/
-    /******************************** Métodos de Validación *********************************/
-    /****************************************************************************************/
+    /**************************************************************************************/
+    /******************************* Métodos de Validación ********************************/
+    /**************************************************************************************/
 
     @Override
     public Optional<BusinessMessages> validateInsert(TareaFirma tareaFirma) {
         return Optional.of(BusinessMessages.single(I18n.get("Las tareas de firma solo las crea el servidor.")));
+    }
+
+    @Override
+    public Optional<BusinessMessages> validateInsert(TareaFirmaInsertDTO tareaFirmaInsertDTO) {
+        return Optional.empty();
     }
 
     @Override
@@ -158,11 +162,6 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
     @Override
     public Optional<BusinessMessages> validateRemove(TareaFirma tareaFirma) {
         return Optional.of(BusinessMessages.single(I18n.get("Las tareas de firma no se pueden borrar.")));
-    }
-
-    @Override
-    public Optional<BusinessMessages> validateInsert(TareaFirmaInsertDTO tareaFirmaInsertDTO) {
-        return Optional.empty();
     }
 
     @Override
@@ -201,6 +200,7 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
 
         return businessMessages.isValid() ? Optional.empty() : Optional.of(businessMessages);
     }
+
     @Override
     public Optional<BusinessMessages> validateMarcarComoRechazada(TareaFirma tareaFirma, TareaFirma tareaFirmaOriginal) {
         BusinessMessages businessMessages = new BusinessMessages();
@@ -260,25 +260,30 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
         return businessMessages.isValid() ? Optional.empty() : Optional.of(businessMessages);
     }
 
+    private static BusinessMessages validateDocumentosFirmados(TareaFirma tareaFirma) {
+        BusinessMessages businessMessages = new BusinessMessages();
 
-    /**************************************************************************************/
-    /********************************   AllowProperties   *********************************/
-    /**************************************************************************************/
+        for (DocumentoFirma documentoFirma : tareaFirma.getDocumentosFirma()) {
+            if (documentoFirma.getDocumentoFirmado() == null) {
+                businessMessages.add(new BusinessMessage(I18n.get("El documento '%s' debe estar firmado")
+                        .formatted(documentoFirma.getDocumentoOriginal().getFileName())));
+                continue;
+            }
 
-    @Override
-    public AllowProperties allowPropertiesMarcarComoFirmada() {
-        return AllowProperties.createAllowProperties(Map.of("documentosFirma", Map.of("documentoFirmado", Map.of())));
+            DocumentoPdf documentoOriginal = MetaFileHelper.getDocumentoPdf(documentoFirma.getDocumentoOriginal());
+            DocumentoPdf documentoFirmado = MetaFileHelper.getDocumentoPdf(documentoFirma.getDocumentoFirmado());
+            Optional<String> errorFirma = DocumentoPdfUtil.validateFirmaPdf(documentoOriginal, documentoFirmado, tareaFirma.getFirmante().getDni());
+            if (errorFirma.isPresent()) {
+                businessMessages.add(new BusinessMessage(documentoFirmado.getFileName(),errorFirma.get()));
+            }
+        }
+
+        return businessMessages;
     }
 
-    @Override
-    public AllowProperties allowPropertiesMarcarComoRechazada() {
-        return AllowProperties.createAllowProperties(Map.of("motivoRechazo", Map.of()));
-    }
-
-    @Override
-    public AllowProperties allowPropertiesFirmarEnServidor() {
-        return AllowProperties.createDenyAllProperties();
-    }
+    /************************************************************************************/
+    /********************************* AllowProperties **********************************/
+    /************************************************************************************/
 
     /**
      * Las tareas de firma no se dan de alta desde la interfaz, solo con el DTO programático
@@ -299,10 +304,24 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
         return AllowProperties.createDenyAllProperties();
     }
 
+    @Override
+    public AllowProperties allowPropertiesMarcarComoFirmada() {
+        return AllowProperties.createAllowProperties(Map.of("documentosFirma", Map.of("documentoFirmado", Map.of())));
+    }
 
-    /*************************************************************************************/
-    /********************************    Action Rules    *********************************/
-    /*************************************************************************************/
+    @Override
+    public AllowProperties allowPropertiesMarcarComoRechazada() {
+        return AllowProperties.createAllowProperties(Map.of("motivoRechazo", Map.of()));
+    }
+
+    @Override
+    public AllowProperties allowPropertiesFirmarEnServidor() {
+        return AllowProperties.createDenyAllProperties();
+    }
+
+    /***********************************************************************************/
+    /********************************** Action Rules ***********************************/
+    /***********************************************************************************/
 
     /**
      * Trabaja en dos fases para garantizar el «todo o nada»: primero firma todos los documentos en memoria y
@@ -345,9 +364,9 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
         }
     }
 
-    /*************************************************************************************/
-    /********************************    Otras funciones    ******************************/
-    /*************************************************************************************/
+    /***********************************************************************************/
+    /********************************* Otras funciones *********************************/
+    /***********************************************************************************/
 
     /**
      * Dónde se firma cada documento de la tarea: en su campo de firma {@code nombreCampoFirma} o, si la tarea
@@ -470,27 +489,6 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
         return tareaFirma.getDocumentosFirma().stream().map(DocumentoFirma::getId).toList();
     }
 
-    private static BusinessMessages validateDocumentosFirmados(TareaFirma tareaFirma) {
-        BusinessMessages businessMessages = new BusinessMessages();
-
-        for (DocumentoFirma documentoFirma : tareaFirma.getDocumentosFirma()) {
-            if (documentoFirma.getDocumentoFirmado() == null) {
-                businessMessages.add(new BusinessMessage(I18n.get("El documento '%s' debe estar firmado")
-                        .formatted(documentoFirma.getDocumentoOriginal().getFileName())));
-                continue;
-            }
-
-            DocumentoPdf documentoOriginal = MetaFileHelper.getDocumentoPdf(documentoFirma.getDocumentoOriginal());
-            DocumentoPdf documentoFirmado = MetaFileHelper.getDocumentoPdf(documentoFirma.getDocumentoFirmado());
-            Optional<String> errorFirma = DocumentoPdfUtil.validateFirmaPdf(documentoOriginal, documentoFirmado, tareaFirma.getFirmante().getDni());
-            if (errorFirma.isPresent()) {
-                businessMessages.add(new BusinessMessage(documentoFirmado.getFileName(),errorFirma.get()));
-            }
-        }
-
-        return businessMessages;
-    }
-
     private boolean isFirmanteElUsuarioAutenticado(TareaFirma tareaFirma) {
         User firmante = tareaFirma.getFirmante();
         User usuarioAutenticado = SecurityUtil.getUser();
@@ -509,7 +507,6 @@ public class TareaFirmaServiceImpl extends DefaultModelService<TareaFirma> imple
         return certificadoDigitalService.isClaveCertificadoCorrecta(dni, claveCertificado);
 
     }
-
 
     private SituacionFirma getSituacionFirma(TareaFirma tareaFirma) {
         final CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);

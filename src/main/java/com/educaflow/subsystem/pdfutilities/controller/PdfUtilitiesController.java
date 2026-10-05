@@ -29,7 +29,6 @@ public class PdfUtilitiesController {
         return pdfUtilitiesService.getInfo(metaFilePdf);
     }
 
-
     @CallMethod
     @Transactional
     public void getPdfTodasPosicionesFirma(ActionRequest actionRequest, ActionResponse actionResponse) {
@@ -48,7 +47,6 @@ public class PdfUtilitiesController {
 
         actionResponse.setValue("pdfFirmado", pdfUtilitiesService.getPdfTodasPosicionesFirma(pdfUtilities));
     }
-
 
     @CallMethod
     public void pdfAutoFirma(ActionRequest actionRequest, ActionResponse actionResponse) {
@@ -82,9 +80,9 @@ public class PdfUtilitiesController {
         AutoFirma.sendToActionResponse(autofirma,actionResponse);
     }
 
-    /***********************************************************************************************/
-    /****************************** Validaciones de las acciones ***********************************/
-    /***********************************************************************************************/
+    /************************************************************************************/
+    /***************************** Acciones de Validaciones *****************************/
+    /************************************************************************************/
 
     @CallMethod
     public void validateGetInfo(ActionRequest actionRequest, ActionResponse actionResponse) {
@@ -101,9 +99,6 @@ public class PdfUtilitiesController {
         }
     }
 
-
-
-
     @CallMethod
     public void validateGetPdfTodasPosicionesFirma(ActionRequest actionRequest, ActionResponse actionResponse) {
         final PdfUtilitiesService pdfUtilitiesService = (PdfUtilitiesService) modelServiceFactory.resolve(PdfUtilities.class);
@@ -119,9 +114,8 @@ public class PdfUtilitiesController {
         }
     }
 
-
-
-
-
+    /****************************************************************************/
+    /***************************** Métodos privados *****************************/
+    /****************************************************************************/
 
 }

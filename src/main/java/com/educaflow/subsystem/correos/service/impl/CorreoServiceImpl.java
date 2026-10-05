@@ -71,16 +71,6 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
     }
 
     @Override
-    public Correo reenviar(Correo entidad, Correo entidadOriginal) {
-        validateReenviar(entidad, entidadOriginal).ifPresent(BusinessMessages::throwIfInvalid);
-
-        fireActionRule_ProgramarEnvioAsincrono(entidadOriginal);
-        // MUST NOT repository.save aquí: reenviar no cambia ningún campo de forma síncrona;
-        // todo el cambio de estado ocurre dentro de enviarCorreo.
-        return entidadOriginal;
-    }
-
-    @Override
     public List<Correo> listarCorreosEnFail() {
         validateListarCorreosEnFail().ifPresent(BusinessMessages::throwIfInvalid);
 
@@ -90,9 +80,19 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
         return ((CorreoRepository) repository).findByEstado(EstadoCorreo.FAIL).fetch();
     }
 
-    /****************************************************************************************/
-    /******************************** Métodos de Validación *********************************/
-    /****************************************************************************************/
+    @Override
+    public Correo reenviar(Correo entidad, Correo entidadOriginal) {
+        validateReenviar(entidad, entidadOriginal).ifPresent(BusinessMessages::throwIfInvalid);
+
+        fireActionRule_ProgramarEnvioAsincrono(entidadOriginal);
+        // MUST NOT repository.save aquí: reenviar no cambia ningún campo de forma síncrona;
+        // todo el cambio de estado ocurre dentro de enviarCorreo.
+        return entidadOriginal;
+    }
+
+    /**************************************************************************************/
+    /******************************* Métodos de Validación ********************************/
+    /**************************************************************************************/
 
     @Override
     public Optional<BusinessMessages> validateInsert(Correo correo) {
@@ -229,9 +229,9 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
         return messages.isValid() ? Optional.empty() : Optional.of(messages);
     }
 
-    /**************************************************************************************/
-    /********************************   AllowProperties   *********************************/
-    /**************************************************************************************/
+    /************************************************************************************/
+    /********************************* AllowProperties **********************************/
+    /************************************************************************************/
 
     @Override
     public AllowProperties allowPropertiesInsert() {
@@ -258,9 +258,9 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
         return AllowProperties.createDenyAllProperties();
     }
 
-    /*************************************************************************************/
-    /********************************    Action Rules    *********************************/
-    /*************************************************************************************/
+    /***********************************************************************************/
+    /********************************** Action Rules ***********************************/
+    /***********************************************************************************/
 
     private void fireActionRule_AsignarValoresIniciales(Correo correo) {
         correo.setEstado(EstadoCorreo.PENDIENTE);
@@ -300,10 +300,9 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
         correo.setFechaEnvio(null); // Nunca hay fecha de envío fuera de SUCCESS.
     }
 
-    /*************************************************************************************/
-    /********************************    Otras funciones    ******************************/
-    /*************************************************************************************/
-
+    /***********************************************************************************/
+    /********************************* Otras funciones *********************************/
+    /***********************************************************************************/
 
     private List<String> separarDirecciones(String direcciones) {
         if (direcciones == null || direcciones.isBlank()) {
@@ -362,4 +361,5 @@ public class CorreoServiceImpl extends DefaultModelService<Correo> implements Co
             repository.save(correo);
         });
     }
+
 }

@@ -12,5 +12,6 @@ public interface AceProfileCentroService extends ModelService<AceProfileCentro> 
 
     List<Centro> getCentrosSupervisados();
 
+
     Optional<BusinessMessages> validateGetCentrosSupervisados();
 }

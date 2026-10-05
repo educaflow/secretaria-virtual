@@ -58,7 +58,6 @@ public class  TareaFirmaController {
         AutoFirma.sendToActionResponse(autofirma,actionResponse);
     }
 
-
     @CallMethod
     @Transactional
     public void marcarComoFirmada(ActionRequest actionRequest, ActionResponse actionResponse) {
@@ -72,6 +71,39 @@ public class  TareaFirmaController {
         tareaFirmaService.marcarComoFirmada(tareaFirma, tareaFirmaOriginal);
 
     }
+
+    @CallMethod
+    @Transactional
+    public void marcarComoRechazada(ActionRequest actionRequest, ActionResponse actionResponse) {
+        final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
+
+        ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
+
+        TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
+        TareaFirma tareaFirma = actionRequestHelper.getModel(tareaFirmaService.allowPropertiesMarcarComoRechazada());
+
+        tareaFirmaService.marcarComoRechazada(tareaFirma, tareaFirmaOriginal);
+
+    }
+
+    @CallMethod
+    @Transactional
+    public void firmarEnServidor(ActionRequest actionRequest, ActionResponse actionResponse) {
+        final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
+
+        ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
+
+        TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
+        TareaFirma tareaFirma = actionRequestHelper.getModel(tareaFirmaService.allowPropertiesFirmarEnServidor());
+        String claveCertificado = getClaveCertificado(actionRequestHelper);
+
+        tareaFirmaService.firmarEnServidor(tareaFirma, tareaFirmaOriginal, claveCertificado);
+
+    }
+
+    /************************************************************************************/
+    /***************************** Acciones de Validaciones *****************************/
+    /************************************************************************************/
 
     @CallMethod
     public void validateMarcarComoFirmada(ActionRequest actionRequest, ActionResponse actionResponse) {
@@ -88,20 +120,6 @@ public class  TareaFirmaController {
         if (validationResult.isPresent()) {
             actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());
         }
-
-    }
-
-    @CallMethod
-    @Transactional
-    public void marcarComoRechazada(ActionRequest actionRequest, ActionResponse actionResponse) {
-        final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
-
-        ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
-
-        TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
-        TareaFirma tareaFirma = actionRequestHelper.getModel(tareaFirmaService.allowPropertiesMarcarComoRechazada());
-
-        tareaFirmaService.marcarComoRechazada(tareaFirma, tareaFirmaOriginal);
 
     }
 
@@ -123,22 +141,6 @@ public class  TareaFirmaController {
 
     }
 
-
-    @CallMethod
-    @Transactional
-    public void firmarEnServidor(ActionRequest actionRequest, ActionResponse actionResponse) {
-        final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
-
-        ActionRequestHelper<TareaFirma> actionRequestHelper = new ActionRequestHelper(actionRequest, TareaFirma.class);
-
-        TareaFirma tareaFirmaOriginal=actionRequestHelper.getOriginalModel();
-        TareaFirma tareaFirma = actionRequestHelper.getModel(tareaFirmaService.allowPropertiesFirmarEnServidor());
-        String claveCertificado = getClaveCertificado(actionRequestHelper);
-
-        tareaFirmaService.firmarEnServidor(tareaFirma, tareaFirmaOriginal, claveCertificado);
-
-    }
-
     @CallMethod
     public void validateFirmarEnServidor(ActionRequest actionRequest, ActionResponse actionResponse) {
         final TareaFirmaService tareaFirmaService = (TareaFirmaService) modelServiceFactory.resolve(TareaFirma.class);
@@ -157,6 +159,10 @@ public class  TareaFirmaController {
         }
 
     }
+
+    /****************************************************************************/
+    /***************************** Métodos privados *****************************/
+    /****************************************************************************/
 
     /**
      * La clave de firma tecleada en el formulario (PIN del dispositivo o contraseña del fichero del

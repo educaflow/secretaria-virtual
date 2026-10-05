@@ -105,6 +105,10 @@ public class AsistenteNuevoExpedienteController {
         actionResponse.setValue("hayQuePreguntarParaQuien", resultado.getHayQuePreguntarParaQuien());
     }
 
+    /************************************************************************************/
+    /***************************** Acciones de Validaciones *****************************/
+    /************************************************************************************/
+
     @CallMethod
     public void validateTriggerInitialEvent(ActionRequest actionRequest, ActionResponse actionResponse) {
         final AsistenteNuevoExpedienteService asistenteNuevoExpedienteService = (AsistenteNuevoExpedienteService) modelServiceFactory.resolve(AsistenteNuevoExpediente.class);
@@ -119,6 +123,10 @@ public class AsistenteNuevoExpedienteController {
             actionResponseHelper.doResponseBusinessMessagesAsError(I18n.get("No es posible crear el expediente"), validationResult.get());
         }
     }
+
+    /****************************************************************************/
+    /***************************** Métodos privados *****************************/
+    /****************************************************************************/
 
     // AsistenteNuevoExpediente es persistable="false", así que la búsqueda diferida con la que el cliente
     // completa los campos que falten no se puede resolver (Axelor construye un JPQL con raíz en una entidad

@@ -9,8 +9,9 @@ import java.util.Optional;
 
 public interface TramiteService extends ModelService<Tramite> {
 
-    /** Los trámites de los que se pueden crear expedientes: los que tienen un tipo de expediente activo. */
+
     List<Tramite> findConTipoExpedienteActivo();
+
 
     Optional<BusinessMessages> validateFindConTipoExpedienteActivo();
 }

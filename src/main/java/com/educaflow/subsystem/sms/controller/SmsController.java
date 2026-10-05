@@ -21,6 +21,26 @@ public class SmsController {
     private ModelServiceFactory modelServiceFactory;
 
     @CallMethod
+    @Transactional
+    public void reenviar(ActionRequest actionRequest, ActionResponse actionResponse) {
+        final SmsService smsService = (SmsService) modelServiceFactory.resolve(Sms.class);
+
+        ActionRequestHelper<Sms> actionRequestHelper = new ActionRequestHelper<>(actionRequest, Sms.class);
+
+        Sms entidadOriginal = actionRequestHelper.getOriginalModel();
+        Sms entidad = actionRequestHelper.getModel(smsService.allowPropertiesReenviar());
+
+        smsService.reenviar(entidad, entidadOriginal);
+
+        actionResponse.setNotify(I18n.get("El reenvío del SMS se ha puesto en marcha."));
+        actionResponse.setSignal("refresh-tab", null);
+    }
+
+    /************************************************************************************/
+    /***************************** Acciones de Validaciones *****************************/
+    /************************************************************************************/
+
+    @CallMethod
     public void validateReenviar(ActionRequest actionRequest, ActionResponse actionResponse) {
         final SmsService smsService = (SmsService) modelServiceFactory.resolve(Sms.class);
 
@@ -36,20 +56,8 @@ public class SmsController {
         }
     }
 
-    @CallMethod
-    @Transactional
-    public void reenviar(ActionRequest actionRequest, ActionResponse actionResponse) {
-        final SmsService smsService = (SmsService) modelServiceFactory.resolve(Sms.class);
-
-        ActionRequestHelper<Sms> actionRequestHelper = new ActionRequestHelper<>(actionRequest, Sms.class);
-
-        Sms entidadOriginal = actionRequestHelper.getOriginalModel();
-        Sms entidad = actionRequestHelper.getModel(smsService.allowPropertiesReenviar());
-
-        smsService.reenviar(entidad, entidadOriginal);
-
-        actionResponse.setNotify(I18n.get("El reenvío del SMS se ha puesto en marcha."));
-        actionResponse.setSignal("refresh-tab", null);
-    }
+    /****************************************************************************/
+    /***************************** Métodos privados *****************************/
+    /****************************************************************************/
 
 }

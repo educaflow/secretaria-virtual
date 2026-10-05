@@ -46,6 +46,10 @@ public class RegistroSalidaController {
                 .build();
     }
 
+    /************************************************************************************/
+    /***************************** Acciones de Validaciones *****************************/
+    /************************************************************************************/
+
     // Nadie lo llama (a una URL pública no llega ninguna vista que valide antes, así que la descarga
     // valida por sí misma): está para que la operación tenga su validate como las demás.
     @GET
@@ -61,5 +65,9 @@ public class RegistroSalidaController {
 
         return Response.ok(Map.of("ok", true)).build();
     }
+
+    /****************************************************************************/
+    /***************************** Métodos privados *****************************/
+    /****************************************************************************/
 
 }

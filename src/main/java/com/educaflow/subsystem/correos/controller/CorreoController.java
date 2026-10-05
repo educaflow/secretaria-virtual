@@ -21,6 +21,26 @@ public class CorreoController {
     private ModelServiceFactory modelServiceFactory;
 
     @CallMethod
+    @Transactional
+    public void reenviar(ActionRequest actionRequest, ActionResponse actionResponse) {
+        final CorreoService correoService = (CorreoService) modelServiceFactory.resolve(Correo.class);
+
+        ActionRequestHelper<Correo> actionRequestHelper = new ActionRequestHelper(actionRequest, Correo.class);
+
+        Correo entidadOriginal = actionRequestHelper.getOriginalModel();
+        Correo entidad = actionRequestHelper.getModel(correoService.allowPropertiesReenviar());
+
+        correoService.reenviar(entidad, entidadOriginal);
+
+        actionResponse.setNotify(I18n.get("El reenvío del correo se ha puesto en marcha."));
+        actionResponse.setSignal("refresh-tab", null);
+    }
+
+    /************************************************************************************/
+    /***************************** Acciones de Validaciones *****************************/
+    /************************************************************************************/
+
+    @CallMethod
     public void validateReenviar(ActionRequest actionRequest, ActionResponse actionResponse) {
         final CorreoService correoService = (CorreoService) modelServiceFactory.resolve(Correo.class);
 
@@ -36,20 +56,8 @@ public class CorreoController {
         }
     }
 
-    @CallMethod
-    @Transactional
-    public void reenviar(ActionRequest actionRequest, ActionResponse actionResponse) {
-        final CorreoService correoService = (CorreoService) modelServiceFactory.resolve(Correo.class);
-
-        ActionRequestHelper<Correo> actionRequestHelper = new ActionRequestHelper(actionRequest, Correo.class);
-
-        Correo entidadOriginal = actionRequestHelper.getOriginalModel();
-        Correo entidad = actionRequestHelper.getModel(correoService.allowPropertiesReenviar());
-
-        correoService.reenviar(entidad, entidadOriginal);
-
-        actionResponse.setNotify(I18n.get("El reenvío del correo se ha puesto en marcha."));
-        actionResponse.setSignal("refresh-tab", null);
-    }
+    /****************************************************************************/
+    /***************************** Métodos privados *****************************/
+    /****************************************************************************/
 
 }

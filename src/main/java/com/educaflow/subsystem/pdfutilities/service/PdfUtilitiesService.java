@@ -11,10 +11,13 @@ import java.util.Optional;
 public interface PdfUtilitiesService extends ModelService<PdfUtilities> {
 
     String getInfo(MetaFile pdf);
-    Optional<BusinessMessages> validateGetInfo(MetaFile pdf);
-
     MetaFile getPdfTodasPosicionesFirma(PdfUtilities pdfUtilities);
+
+
+    Optional<BusinessMessages> validateGetInfo(MetaFile pdf);
     Optional<BusinessMessages> validateGetPdfTodasPosicionesFirma(PdfUtilities pdfUtilities);
+
+
     AllowProperties allowPropertiesGetPdfTodasPosicionesFirma();
 
 }

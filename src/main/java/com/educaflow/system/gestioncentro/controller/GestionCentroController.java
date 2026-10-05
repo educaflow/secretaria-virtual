@@ -79,7 +79,6 @@ public class GestionCentroController {
     // -------------------------------------------------------------------------
     // Cambio de curso
     // -------------------------------------------------------------------------
-
     @CallMethod
     public void cargarCursosDisponibles(ActionRequest request, ActionResponse response) {
         /*final Repository gestionCentroRepository = JpaRepository.of(GestionCentroRepository.class);
@@ -139,6 +138,14 @@ public class GestionCentroController {
         response.setValue("resultado", String.join(System.lineSeparator(), resultado));
         response.setNotify("Cambio de curso completado.");*/
     }
+
+    /************************************************************************************/
+    /***************************** Acciones de Validaciones *****************************/
+    /************************************************************************************/
+
+    /****************************************************************************/
+    /***************************** Métodos privados *****************************/
+    /****************************************************************************/
 
     /*@CallMethod
     public void validarMismoCentro(ActionRequest request, ActionResponse response) {

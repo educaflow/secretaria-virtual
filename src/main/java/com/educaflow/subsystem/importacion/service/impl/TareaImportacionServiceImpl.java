@@ -45,9 +45,9 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
         throw new UnsupportedOperationException(I18n.get("Las importaciones no se pueden eliminar"));
     }
 
-    /****************************************************************************************/
-    /******************************** Métodos de Validación *********************************/
-    /****************************************************************************************/
+    /**************************************************************************************/
+    /******************************* Métodos de Validación ********************************/
+    /**************************************************************************************/
 
     @Override
     public Optional<BusinessMessages> validateInsert(TareaImportacion tareaImportacion) {
@@ -80,9 +80,9 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
         return Optional.of(messages);
     }
 
-    /**************************************************************************************/
-    /********************************   AllowProperties   *********************************/
-    /**************************************************************************************/
+    /************************************************************************************/
+    /********************************* AllowProperties **********************************/
+    /************************************************************************************/
 
     @Override
     public AllowProperties allowPropertiesInsert() {
@@ -92,9 +92,9 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
         ));
     }
 
-    /*************************************************************************************/
-    /********************************    Action Rules    *********************************/
-    /*************************************************************************************/
+    /***********************************************************************************/
+    /********************************** Action Rules ***********************************/
+    /***********************************************************************************/
 
     private void fireActionRule_AsignarCamposSistema(TareaImportacion tareaImportacion) {
         tareaImportacion.setUsuario(SecurityUtil.getUser());
@@ -119,4 +119,9 @@ public class TareaImportacionServiceImpl extends DefaultModelService<TareaImport
             tareaImportacion.setLog(ex.getMessage());
         }
     }
+
+    /***********************************************************************************/
+    /********************************* Otras funciones *********************************/
+    /***********************************************************************************/
+
 }

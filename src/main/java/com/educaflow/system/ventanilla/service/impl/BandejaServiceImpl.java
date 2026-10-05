@@ -42,13 +42,6 @@ public class BandejaServiceImpl implements BandejaService {
                 .toList();
     }
 
-    private Set<Profile> perfilesSobreExpediente(Expediente expediente, User user) {
-        if (SecurityUtil.isAdmin(user)) {
-            return Set.of(Profile.values());
-        }
-        return perfilesUsuarioService.getPerfilesSobreExpediente(expediente, user);
-    }
-
     @Override
     public Profile perfilConElQueAbrir(Expediente expediente, User user) {
         Set<Profile> perfiles = perfilesSobreExpediente(expediente, user);
@@ -62,4 +55,28 @@ public class BandejaServiceImpl implements BandejaService {
                 .max(Comparator.comparingInt(Profile::getPrioridad))
                 .orElseThrow(() -> new UnauthorizedException("El usuario no tiene perfil sobre el expediente " + expediente.getId()));
     }
+
+    /**************************************************************************************/
+    /******************************* Métodos de Validación ********************************/
+    /**************************************************************************************/
+
+    /************************************************************************************/
+    /********************************* AllowProperties **********************************/
+    /************************************************************************************/
+
+    /***********************************************************************************/
+    /********************************** Action Rules ***********************************/
+    /***********************************************************************************/
+
+    /***********************************************************************************/
+    /********************************* Otras funciones *********************************/
+    /***********************************************************************************/
+
+    private Set<Profile> perfilesSobreExpediente(Expediente expediente, User user) {
+        if (SecurityUtil.isAdmin(user)) {
+            return Set.of(Profile.values());
+        }
+        return perfilesUsuarioService.getPerfilesSobreExpediente(expediente, user);
+    }
+
 }

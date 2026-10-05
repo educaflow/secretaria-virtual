@@ -35,9 +35,9 @@ public class SmokeTestServiceImpl extends DefaultModelService<SmokeTest> impleme
         return repository.save(entity);
     }
 
-    /****************************************************************************************/
-    /******************************** Métodos de Validación *********************************/
-    /****************************************************************************************/
+    /**************************************************************************************/
+    /******************************* Métodos de Validación ********************************/
+    /**************************************************************************************/
 
     @Override
     public Optional<BusinessMessages> validateInsert(SmokeTest entity) {
@@ -55,9 +55,9 @@ public class SmokeTestServiceImpl extends DefaultModelService<SmokeTest> impleme
         return Optional.empty();
     }
 
-    /**************************************************************************************/
-    /********************************   AllowProperties   *********************************/
-    /**************************************************************************************/
+    /************************************************************************************/
+    /********************************* AllowProperties **********************************/
+    /************************************************************************************/
 
     @Override
     public AllowProperties allowPropertiesInsert() {
@@ -69,9 +69,9 @@ public class SmokeTestServiceImpl extends DefaultModelService<SmokeTest> impleme
         return AllowProperties.createAllowProperties(Map.of("texto", Map.of()));
     }
 
-    /*************************************************************************************/
-    /********************************    Action Rules    *********************************/
-    /*************************************************************************************/
+    /***********************************************************************************/
+    /********************************** Action Rules ***********************************/
+    /***********************************************************************************/
 
     private void fireActionRule_AsignarFechaCreacion(SmokeTest entity) {
         entity.setFechaCreacion(LocalDateTime.now(Convert.defaultZoneId));
@@ -80,4 +80,9 @@ public class SmokeTestServiceImpl extends DefaultModelService<SmokeTest> impleme
     private void fireActionRule_ActualizarFechaUltimaModificacion(SmokeTest entity) {
         entity.setFechaUltimaModificacion(LocalDateTime.now(Convert.defaultZoneId));
     }
+
+    /***********************************************************************************/
+    /********************************* Otras funciones *********************************/
+    /***********************************************************************************/
+
 }

@@ -11,5 +11,6 @@ import java.util.Optional;
 public interface RegistroEntradaService extends ModelService<RegistroEntrada> {
     RegistroEntrada createRegistroEntrada(RegistroEntradaInsertDTO registroEntradaInsertDTO, MetaFile documentoOriginalFirmado, List<MetaFile> anexos);
 
+
     Optional<BusinessMessages> validateCreateRegistroEntrada(RegistroEntradaInsertDTO registroEntradaInsertDTO, MetaFile documentoOriginalFirmado, List<MetaFile> anexos);
 }

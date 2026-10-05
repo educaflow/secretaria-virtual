@@ -45,14 +45,6 @@ public class RegistroPendienteServiceImpl extends DefaultModelService<RegistroPe
         throw new UnsupportedOperationException("Registro de usuarios no implementado");
     }
 
-    /****************************************************************************************/
-    /******************************** Métodos de Validación *********************************/
-    /****************************************************************************************/
-
-    public Optional<BusinessMessages> validateInsertar(RegistroPendiente registroPendiente) {
-        return Optional.empty();
-    }
-
     @Override
     @Transactional
     public void validarCodigo(String codigo, String token) throws BusinessException{
@@ -74,10 +66,17 @@ public class RegistroPendienteServiceImpl extends DefaultModelService<RegistroPe
         throw new UnsupportedOperationException("Registro de usuarios no implementado");
     }
 
+    /**************************************************************************************/
+    /******************************* Métodos de Validación ********************************/
+    /**************************************************************************************/
 
-    /**************************************************************************************/
-    /********************************   AllowProperties   *********************************/
-    /**************************************************************************************/
+    public Optional<BusinessMessages> validateInsertar(RegistroPendiente registroPendiente) {
+        return Optional.empty();
+    }
+
+    /************************************************************************************/
+    /********************************* AllowProperties **********************************/
+    /************************************************************************************/
 
     /**
      * RegistroPendiente solo lo crea el servidor (insertar): codigo, token y verificado no los puede dictar el cliente
@@ -96,4 +95,13 @@ public class RegistroPendienteServiceImpl extends DefaultModelService<RegistroPe
     public AllowProperties allowPropertiesUpdate() {
         return AllowProperties.createDenyAllProperties();
     }
+
+    /***********************************************************************************/
+    /********************************** Action Rules ***********************************/
+    /***********************************************************************************/
+
+    /***********************************************************************************/
+    /********************************* Otras funciones *********************************/
+    /***********************************************************************************/
+
 }

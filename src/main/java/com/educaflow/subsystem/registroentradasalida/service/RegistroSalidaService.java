@@ -18,14 +18,10 @@ public interface RegistroSalidaService extends ModelService<RegistroSalida> {
     String METADATO_CSV = "SecretariaVirtualCSV";
 
     RegistroSalida createRegistroSalida(RegistroSalidaInsertDTO registroSalidaInsertDTO, MetaFile documento, List<MetaFile> anexos);
-
-    Optional<BusinessMessages> validateCreateRegistroSalida(RegistroSalidaInsertDTO registroSalidaInsertDTO, MetaFile documentoOriginal, List<MetaFile> anexos);
-
-    /**
-     * @param csv El código seguro de verificación del registro de salida
-     * @return el documento del registro de salida o, si tiene anexos, un ZIP con el documento y los anexos
-     */
     Fichero getDescargaByCsv(String csv);
 
+
+    Optional<BusinessMessages> validateCreateRegistroSalida(RegistroSalidaInsertDTO registroSalidaInsertDTO, MetaFile documentoOriginal, List<MetaFile> anexos);
     Optional<BusinessMessages> validateGetDescargaByCsv(String csv);
+
 }

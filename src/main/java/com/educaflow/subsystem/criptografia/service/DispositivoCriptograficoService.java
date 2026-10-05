@@ -14,7 +14,6 @@ public interface DispositivoCriptograficoService extends ModelService<Dispositiv
     String getDescripcionSlotsDisponibles(String pkcs11LibraryPath);
 
 
-
     Optional<BusinessMessages> validateRecargarDispositivosEnEntornoCriptografico();
     Optional<BusinessMessages> validateGetSlotsDisponibles(String pkcs11LibraryPath);
     Optional<BusinessMessages> validateGetDescripcionSlotsDisponibles(String pkcs11LibraryPath);

@@ -16,7 +16,6 @@ public interface CertificadoDigitalService extends ModelService<CertificadoDigit
     DatosTitular getDatosTitularByDni(String dni);
 
 
-
     Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni);
     Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni, String claveAcceso);
     Optional<BusinessMessages> validateGetSituacionFirmaByDni(String dni);

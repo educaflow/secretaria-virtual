@@ -11,13 +11,13 @@ import java.util.Optional;
 public interface CorreoService extends ModelService<Correo> {
 
     List<Correo> listarCorreosEnFail();
-
-    Optional<BusinessMessages> validateListarCorreosEnFail();
-
-    // Acción propia: reintenta el envío de un correo en FAIL. Invocada desde CorreoController.reenviar.
     Correo reenviar(Correo entidad, Correo entidadOriginal);
 
+
+    Optional<BusinessMessages> validateListarCorreosEnFail();
     Optional<BusinessMessages> validateReenviar(Correo entidad, Correo entidadOriginal);
 
+
     AllowProperties allowPropertiesReenviar();
+
 }
