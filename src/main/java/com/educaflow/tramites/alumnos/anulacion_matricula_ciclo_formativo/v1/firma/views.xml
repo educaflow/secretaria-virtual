@@ -8,34 +8,13 @@
     <!-- *********************************************************************************************  -->
     <!-- El estado no tiene botones: sus dos eventos (FIRMAR y RECHAZAR_FIRMA) son de sistema y los dispara el
          servidor cuando el secretario firma o rechaza la resolución en su bandeja de firmas. -->
-    <form state="PENDIENTE_FIRMA_SECRETARIO" profile="SECRETARIO">
-        <include-panels>
-            -datos-alumno-resumen
-            -resumen-solicitud
-            -decision-secretaria
-            -resolucion-a-firmar
-            -solicitud-firmada-descarga
-            -justificante-descarga
-        </include-panels>
 
-        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
-            <help variant="info" colSpan="12">La resolución está pendiente de su firma: fírmela o rechácela en el menú «Firmas», opción «Pendientes»</help>
-        </panel>
-
-        <footer>
-            <buttons-left/>
-            <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
-            </buttons-right>
-        </footer>
-    </form>
 
     <form state="PENDIENTE_FIRMA_SECRETARIO">
         <include-panels>
             -datos-alumno
             -matricula
-            -presentacion
-            -solicitud-firmada-descarga
+            -resolucion-a-firmar
         </include-panels>
 
         <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
@@ -56,34 +35,12 @@
     <!-- El estado no tiene botones: sus dos eventos (FIRMAR y RECHAZAR_FIRMA) son de sistema y los dispara el
          servidor cuando el director firma o rechaza la resolución en su bandeja de firmas, que
          ya lleva la firma del secretario. -->
-    <form state="PENDIENTE_FIRMA_DIRECTOR" profile="DIRECTOR">
-        <include-panels>
-            -datos-alumno-resumen
-            -resumen-solicitud
-            -decision-secretaria
-            -resolucion-a-firmar
-            -solicitud-firmada-descarga
-            -justificante-descarga
-        </include-panels>
-
-        <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">
-            <help variant="info" colSpan="12">La resolución está pendiente de su firma: fírmela o rechácela en el menú «Firmas», opción «Pendientes»</help>
-        </panel>
-
-        <footer>
-            <buttons-left/>
-            <buttons-right>
-                <button name="EXIT" colSpan="2" title="Salir" onClick="subsysTramitador-event-action"/>
-            </buttons-right>
-        </footer>
-    </form>
 
     <form state="PENDIENTE_FIRMA_DIRECTOR">
         <include-panels>
             -datos-alumno
             -matricula
-            -presentacion
-            -solicitud-firmada-descarga
+            -resolucion-a-firmar
         </include-panels>
 
         <panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">

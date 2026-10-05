@@ -101,7 +101,7 @@
         </panel>
 
         <panel name="verificacion" title="Verificación de la solicitud" colSpan="12">
-            <field name="resultadoVerificacion" colSpan="8" widget="SwitchSelect" required="true"/>
+            <field name="resultadoVerificacion" colSpan="12" widget="RadioSelect" x-direction="horizontal" required="true"/>
             <field name="textoSubsanacion" colSpan="12" showIf="resultadoVerificacion=='SUBSANAR'"
                    requiredIf="resultadoVerificacion=='SUBSANAR'"
                    help="Este texto se le enviará por correo a quien presentó la solicitud y lo verá al subsanarla"/>

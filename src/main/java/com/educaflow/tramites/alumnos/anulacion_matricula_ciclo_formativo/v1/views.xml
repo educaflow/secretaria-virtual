@@ -123,7 +123,7 @@
         <!-- Resolución                                                                         -->
         <!-- ================================================================================== -->
         <panel name="resolucion" title="Resolución de la solicitud" colSpan="12">
-            <field name="tipoResolucion"  colSpan="8" widget="SwitchSelect" required="true"
+            <field name="tipoResolucion"  colSpan="8" widget="RadioSelect" required="true"
                    onChange="exp-AnulacionMatriculaCicloFormativoV1-limpiar-resolucion-action"/>
             <field name="motivoRechazo"    colSpan="12" showIf="tipoResolucion=='RECHAZAR'"
                    requiredIf="tipoResolucion=='RECHAZAR'"
@@ -131,7 +131,7 @@
         </panel>
 
         <panel name="decision-secretaria" title="Decisión de secretaría" colSpan="12">
-            <field name="tipoResolucion"    colSpan="5" readonly="true"/>
+            <field name="tipoResolucion"    colSpan="5"  widget="RadioSelect" readonly="true"/>
             <field name="fechaVerificacion" colSpan="3" readonly="true"/>
             <field name="motivoRechazo"     colSpan="12" readonly="true" showIf="tipoResolucion=='RECHAZAR'"/>
         </panel>

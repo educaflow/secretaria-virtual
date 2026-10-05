@@ -16,12 +16,12 @@
         <fase name="FIRMA" title="Firma de la resolución">
             <!-- Sin botones: los dos eventos los dispara el servidor cuando el firmante firma o rechaza la
                  resolución en su bandeja de firmas (el notify del PhaseEventManagerImpl de esta fase). -->
-            <state name="PENDIENTE_FIRMA_SECRETARIO"    events="" systemEvents="FIRMAR,RECHAZAR_FIRMA" profile="SECRETARIO" title="Pendiente de la firma del secretario"       />
-            <state name="PENDIENTE_FIRMA_DIRECTOR"      events="" systemEvents="FIRMAR,RECHAZAR_FIRMA" profile="DIRECTOR"   title="Pendiente de la firma del director"         />
+            <state name="PENDIENTE_FIRMA_SECRETARIO"    events="" systemEvents="FIRMAR,RECHAZAR_FIRMA" profile="" title="Pendiente de la firma del secretario"       />
+            <state name="PENDIENTE_FIRMA_DIRECTOR"      events="" systemEvents="FIRMAR,RECHAZAR_FIRMA" profile=""   title="Pendiente de la firma del director"         />
         </fase>
         <fase name="CIERRE" title="Cierre">
-            <state name="ACEPTADA"                      events=""                          profile="TRAMITADOR"  title="Anulación aceptada"                      closed="true" />
-            <state name="RECHAZADA"                     events=""                          profile="TRAMITADOR"  title="Anulación rechazada"                     closed="true" />
+            <state name="ACEPTADA"                      events=""                          profile=""  title="Anulación aceptada"                      closed="true" />
+            <state name="RECHAZADA"                     events=""                          profile=""  title="Anulación rechazada"                     closed="true" />
         </fase>
     </fases>
 </TipoExpediente>
