@@ -195,6 +195,7 @@ Reglas:
 - La **ruta de entidad** de un bloque es la parte del `name` de sus vistas **tras la `@`** (antes del primer `-`): `Ciclo`, `Ciclo.Curso`, `Correo.Adjunto`, `TareaFirma`.
 - Un **bloque** es el tramo contiguo de elementos de alto nivel que comparten el mismo **contexto** (marcador de módulo + variante + ruta de entidad, es decir todo lo anterior al primer `-`); empieza en su `<?sv-view?>` y acaba en el siguiente. En un `Ref-*.xml`, `Ref@…-grid` y `Ref@…-form` comparten contexto → **un solo** `<?sv-view?>`.
 - En **todo bloque** (mantenimiento, detalle, `Ref`, solo lectura — sin excepción) **MUST** aparecer las cinco PI **una vez cada una y en este orden**, aunque alguna sección quede vacía: `<?sv-view?>` → `<?sv-primary-actions?>` → `<?sv-validations?>` → `<?sv-rules?>` → `<?sv-remotes?>`.
+- Una `<selection>` (lista fija de opciones de un campo del bloque) va en la zona de `<?sv-view?>`, **después** de la vista principal (`form`/`tree`/`chart`), en el mismo fichero y con `name` `{contexto}-{campo}-selection`. El campo la referencia con `selection="…"` (en la vista o en el dominio XML).
 - Cada acción va tras la PI de su sección. El criterio es la **sección**, no el tipo de elemento: un `action-group` que solo valida va bajo `<?sv-validations?>`.
 - Dentro de `<?sv-primary-actions?>`: primero los `action-group` de los botones (en el orden en que están en el formulario) y, tras una línea en blanco, el resto de eventos (`onNew`, `onLoad`, …).
 

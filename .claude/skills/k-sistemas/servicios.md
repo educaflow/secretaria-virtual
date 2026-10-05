@@ -63,6 +63,18 @@ public interface MiEntidadService extends ModelService<MiEntidad> {
 }
 ```
 
+**Orden de los métodos — la misma regla en la interfaz, en la `*Impl` y en el controlador.**
+La interfaz es la que fija el orden y las otras dos lo siguen:
+
+- La interfaz **MUST** declarar primero todas las acciones, después todas las validaciones y por último todos los `allowProperties`.
+- Las validaciones y los `allowProperties` van en el mismo orden que sus acciones.
+- Los bloques se separan con **dos líneas en blanco, sin comentarios ni headers** (los comentarios de la plantilla de arriba son explicación para ti: **MUST NOT** copiarlos a una interfaz real).
+- La `*Impl` repite ese orden dentro de sus bloques (§"Estructura de la implementación") y el controlador dentro de los suyos (`controladores.md` §"Orden de los métodos").
+
+- ✅ CORRECTO: `hacerA(…); hacerB(…);` ⏎⏎⏎ `validateHacerA(…); validateHacerB(…);` ⏎⏎⏎ `allowPropertiesHacerA();`
+- ❌ INCORRECTO: `hacerA(…); validateHacerA(…); hacerB(…); validateHacerB(…);` (bloques mezclados: cada validación pegada a su acción)
+- ❌ INCORRECTO: `hacerA(…); hacerB(…);` ⏎⏎⏎ `validateHacerB(…); validateHacerA(…);` (validaciones en otro orden que las acciones)
+
 > ⚠️ **Regla obligatoria**: la interfaz **MUST** declarar cada acción propia del subsistema `miAccion(...)` **junto con su validador** `validateMiAccion(...)`, **sin excepciones** — también las acciones de solo lectura. El par `acción + validador` es el contrato público mínimo de toda acción.
 >
 > El `allowPropertiesMiAccion()` se añade **solo si la acción recibe la entidad construida desde el request**; el criterio exacto está en §"`allowPropertiesXxx` y campos `servidor`".
@@ -147,6 +159,10 @@ La implementación **MUST** ordenar sus métodos en estos cinco bloques, en este
 3. **AllowProperties** (con header) — métodos `public` que devuelven `AllowProperties`. Uno por cada acción propia del subsistema que **recibe la entidad construida desde el request** (ver §"`allowPropertiesXxx` y campos `servidor`"). **NO** se sobrescriben `allowPropertiesInsert/Update/Remove` salvo que se quieran restringir: los defaults vienen de `DefaultModelService`. Las reglas de qué forma usar (`createAllowProperties` vs `createAllowAllProperties`) y de cómo tratar los campos `servidor` en la acción están en `[[k-secure-coding]]` §3 — **CRITICAL**.
 4. **Action Rules** (con header) — métodos `private` cuyo nombre empieza por `fireActionRule_`. Encapsulan las reglas de negocio que ejecuta cada acción.
 5. **Otras funciones** (con header) — helpers `private` que no son ni validaciones, ni allow-properties, ni action rules: utilidades internas, conversiones, builders, métodos compartidos.
+
+Dentro de los bloques 1, 2 y 3, los métodos **MUST** ir **en el mismo orden en que los declara la interfaz `*Service`**: la interfaz es la que fija el orden, y la `*Impl` y el controlador (ver `controladores.md` §"Orden de los métodos") lo siguen.
+
+Los cuatro headers se ponen **siempre**, aunque su bloque no tenga métodos: así el fichero ya sirve de plantilla para lo que se añada después.
 
 Los headers son tres líneas de comentario `/************...************/`. **MUST** que las 3 líneas de un mismo bloque tengan **exactamente el mismo número de caracteres** (ajustar con `*` si difieren). Verifica con:
 
@@ -477,6 +493,7 @@ Checklist única para desarrollar y revisar `*Service` / `*ServiceImpl`. Cada í
 - [ ] **NO** declara `validateXxx` / `allowPropertiesXxx` cuyo cuerpo en la `*Impl` será un stub vacío (`Optional.empty()` / default). Esos casos se quedan con el heredado.
 - [ ] **NO** tiene acciones cuyo retorno `Optional<BusinessMessages>` las haga "validadores disfrazados" duplicando el `validate*` del par. O es acción, o es validador.
 - [ ] Si el insert necesita parámetros especiales, se crea un `record` DTO en el paquete del servicio.
+- [ ] La interfaz declara primero las acciones, luego las validaciones y luego los `allowProperties`, cada bloque en el orden de las acciones, separados por dos líneas en blanco y sin comentarios.
 
 ### Implementación (`*ServiceImpl`)
 
@@ -492,8 +509,11 @@ Checklist única para desarrollar y revisar `*Service` / `*ServiceImpl`. Cada í
 
 ### Orden de los métodos en la `*Impl`
 
+> Este orden lo verifican los tests de `src/test/java/com/educaflow/ordenmetodos`: si cambias la regla aquí, **MUST** cambiar el test, y viceversa.
+
 - [ ] 5 bloques en este orden: (1) acciones (sin header), (2) `Métodos de Validación`, (3) `AllowProperties`, (4) `Action Rules`, (5) `Otras funciones`.
-- [ ] No falta ningún header cuando el bloque tiene métodos. Ningún bloque está fuera de sitio.
+- [ ] Dentro de los bloques (1), (2) y (3) los métodos están en el mismo orden en que los declara la interfaz `*Service`.
+- [ ] Están los cuatro headers **siempre**, aunque su bloque no tenga métodos (sirven de plantilla). Ningún bloque está fuera de sitio.
 - [ ] Los headers `/************…************/` tienen 3 líneas de la **misma longitud** dentro de cada bloque (verifica con `awk '/\/\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*/{print NR": "length($0)}' <fichero>`).
 - [ ] Los helpers privados que devuelven `Optional<BusinessMessages>` están en `Métodos de Validación`, no en `Otras funciones`.
 - [ ] Ningún método tiene `;` sobrante tras la `}` de cierre.

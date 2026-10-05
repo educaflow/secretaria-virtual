@@ -305,12 +305,23 @@ Adjuntos subidos por el usuario son superficie de ataque clásica. Tres defensas
 
 - Mantener contraseñas, tokens de API, claves privadas y secretos fuera del código fuente. Usar `application.properties` (no commiteado con valores reales) o variables de entorno.
 - Almacenar passwords de usuario con el hashing del framework (Axelor/Shiro). **MUST NOT** implementar tu propio hashing.
-- Cifrar en reposo los secretos que la app gestiona en nombre del usuario (claves privadas de firma, tokens externos). Usar `base/infrastructure/criptografia/`.
+- Cifrar en reposo los secretos que la app gestiona en nombre del usuario (contraseñas de certificados, PIN de dispositivos, tokens externos) con `encrypted="true"` en el campo del modelo (cifrado estándar de AOP).
+  Solo cifra si `encryption.password` está definida en la config privada, obligatoria en producción (ver `agent_docs/deploy.md`).
+- Tratar esos secretos como de **solo escritura** en el formulario:
+  1. El form **MUST NOT** mostrar el campo real: muestra un campo `transient="true"` (p.ej. `nuevaContrasena`) con `widget="password"`.
+  2. El campo real queda **fuera** de `allowPropertiesInsert/Update`; el transitorio va dentro.
+  3. `insert/update` copian el transitorio al campo real solo si viene relleno (vacío en `update` = se conserva el guardado) y después lo vacían, para que la respuesta del guardado no lo devuelva.
+  4. Si el secreto es obligatorio, `validateInsert` exige el transitorio.
+
+- ✅ CORRECTO: `<string name="pin" encrypted="true"/>` + `<string name="nuevoPin" transient="true"/>`; la vista solo tiene `nuevoPin`.
+- ❌ INCORRECTO: `<field name="pin" widget="password"/>` en el form (el JSON del form trae el valor descifrado: `widget="password"` solo lo oculta en pantalla).
+- ❌ INCORRECTO: cifrar en reposo con una utilidad propia en lugar de `encrypted="true"` (duplica lo que ya da AOP y su migración `database encrypt`).
 
 **MUST NOT**:
 
 - Hardcodear secretos en `.java`, `.xml`, `.properties` commiteados, ni en tests.
 - Devolver secretos en responses JSON. Si un endpoint devuelve un `Usuario`, **MUST** verificar que el password hasheado no se serializa.
+- Dar por protegido un secreto por llevar `encrypted="true"`: se descifra al cargar, así que el endpoint REST automático lo devuelve igual (ver el PENDIENTE del endpoint REST en `CLAUDE.md`).
 - Loguear secretos a ningún nivel (ver §6).
 
 ---
@@ -381,7 +392,7 @@ Aplicar a cada PR o cambio que toque `*ServiceImpl`, `*Controller`, vistas XML c
 - [ ] **JPQL/SQL**: ¿todos los filtros usan `:param` con `bind(...)`? ¿Ninguna query concatena strings con input del usuario?
 - [ ] **Logs**: ¿se loguea algún password/token/clave/DNI completo/bytes de adjunto? ¿Se sanitizan CRLF en valores libres del cliente?
 - [ ] **Adjuntos**: ¿se valida tipo por contenido (no solo por extensión)? ¿Hay límite de tamaño? ¿Se sanitiza el `filename`?
-- [ ] **Secretos**: ¿algún secreto hardcodeado en el diff? ¿Algún response devuelve campos sensibles (password hash, clave privada)?
+- [ ] **Secretos**: ¿algún secreto hardcodeado en el diff? ¿Algún response devuelve campos sensibles (password hash, clave privada)? ¿Los secretos gestionados llevan `encrypted="true"` y son de solo escritura en el form (§8)?
 - [ ] **`validate*`**: ¿las V-… están implementadas en el servicio (no solo en el controller ni solo en el XML)?
 - [ ] **UI ≠ seguridad**: ¿hay algún comentario o suposición del tipo "este campo es readonly en la UI, así que no hace falta validarlo en el servidor"? → eliminar la suposición.
 

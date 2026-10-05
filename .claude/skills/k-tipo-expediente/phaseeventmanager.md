@@ -189,7 +189,7 @@ ModelServiceFactory modelServiceFactory;
 ...
 Map<String, Object> requestData = Map.of("pdfResolucionFirmada", Map.of("id", documentoFirmado.getId()));
 try {
-    tramitadorService.triggerEvent(expediente, "FIRMAR", requestData, new EventContext(expediente, Profile.DIRECTOR, modelServiceFactory));
+    tramitadorService.triggerEvent(expediente, "FIRMAR", requestData, new EventContext(expediente, getEstado(expediente).getProfile(), modelServiceFactory));
 } catch (BusinessException ex) {
     throw new IllegalStateException("No se ha podido disparar el evento FIRMAR del expediente " + expediente.getNumeroExpediente() + ": " + ex.getBusinessMessages(), ex);
 }
@@ -197,7 +197,7 @@ try {
 
 - El `requestData` lleva lo que el `trigger*` necesita de lo que ha ocurrido, con la forma del de una petición: clave = campo de la entidad; un escalar va tal cual y una referencia como `Map.of("id", <id>)`. Si no necesita nada, `Map.of()`.
 - El motor copia al expediente solo los campos con reglas en el validador de esa pareja (estado, evento): cada clave del `requestData` **MUST** tener ahí su `field(...) { +Required() }` (`validator.md` §1). Así el `trigger*` los lee del expediente y no llega sin ellos.
-- El perfil del `EventContext` es el del estado desde el que se dispara.
+- El perfil del `EventContext` es el del estado desde el que se dispara: `getEstado(expediente).getProfile()`, con `getEstado` un método privado del `PhaseEventManagerImpl` que resuelve el estado con `States.INSTANCE.getState(...)` (`recetas/firma.md` §3.4). **MUST NOT** poner un perfil a mano (`Profile.DIRECTOR`): un estado de solo eventos de sistema tiene `profile=""` (`SKILL.md` §2.1).
 - El motor hace lo mismo que con cualquier evento (`SKILL.md` §1.6): comprueba el perfil del estado, llama al `trigger<Evento>`, añade la línea del historial y llama al `onEnter` del destino.
 - Un usuario no puede dispararlo a mano con una petición: `TramitadorController.triggerEvent` lanza `UnauthorizedException` si el evento está en `State.getSystemEvents()`.
 - **MUST NOT** guardar en el expediente una referencia a lo que dispara el evento (la `TareaFirma`…) para que el `trigger*` vuelva a por sus datos o a comprobarlo: el `trigger*` solo conoce el expediente.

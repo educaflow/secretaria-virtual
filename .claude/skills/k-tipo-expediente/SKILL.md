@@ -215,8 +215,8 @@ Fichero mínimo real (todo lo demás se deriva, §1.1):
         <!-- A partir de aquí, lo propio del tipo -->
         <fase name="RESOLUCION" title="Resolución">
             <state name="PENDIENTE_RESOLUCION"          events="RESOLVER"                  profile="TRAMITADOR" title="Pendiente de resolución"                               />
-            <state name="ACEPTADO"                      events=""                          profile="TRAMITADOR" title="Aceptado"   closed="true"                              />
-            <state name="RECHAZADO"                     events=""                          profile="TRAMITADOR" title="Rechazado"  closed="true"                              />
+            <state name="ACEPTADO"                      events=""                          profile=""           title="Aceptado"   closed="true"                              />
+            <state name="RECHAZADO"                     events=""                          profile=""           title="Rechazado"  closed="true"                              />
         </fase>
     </fases>
 </TipoExpediente>
@@ -256,6 +256,8 @@ Tag opcional `<acl>` (hermano de `<fases>`): perfiles que da **este** tipo de ex
   - No se pueden disparar con una petición: `TramitadorController` rechaza con un error de acceso el evento de sistema que le llegue (`State.getSystemEvents()`). Solo los dispara código del servidor (`phaseeventmanager.md` §5.1).
   - Quien lo dispara hace de controlador: los datos que el `trigger*` necesita le llegan en el `requestData` y se declaran `Required` en el validador (`phaseeventmanager.md` §5.1).
 - `profile` es opcional (estado sin dueño) y **MUST** ser una constante del enum `Profile` (`subsystem/expedientes/domains/Profile.xml`). Solo `CREADOR` y `TRAMITADOR` tienen significado especial (`perfiles.md`); los demás solo dan el turno en el estado y eligen vista.
+  - El `profile` es el de quien dispara los `events` (los botones). Los `systemEvents` **no** aportan perfil: los dispara el servidor, no un usuario con perfil.
+  - Un estado sin `events` (`events=""`) **MUST** llevar `profile=""`, tenga o no `systemEvents`: es el caso de los estados que solo esperan al servidor (p. ej. los de la fase de firma, `recetas/firma.md` §3.1) y de los terminales (`closed="true"`, fase de cierre).
 - **MUST NOT** marcar ningún estado como inicial: no existe el atributo `initial` (JAXB lo ignora en silencio). El estado inicial lo fija el `InitialEventManagerImpl`.
 - `closed="true"` marca los estados terminales: el expediente queda cerrado, no borrado.
 - El `name` solo tiene que ser único **dentro de su fase**; si se repite en otra fase, dale `title` distinto o en los listados se verán iguales.
@@ -265,9 +267,11 @@ Tag opcional `<acl>` (hermano de `<fases>`): perfiles que da **este** tipo de ex
 - ✅ CORRECTO: `<fase name="SUBSANACION_DOCUMENTOS" title="Subsanación">` → carpeta `subsanacion_documentos/`
 - ❌ INCORRECTO: `<fase name="Resolucion">` (no es UPPER_SNAKE)
 - ❌ INCORRECTO: `<fase name="STATES">` (su enum anidado se llamaría `States`, el nombre de la propia clase generada)
-- ✅ CORRECTO: `<state name="ACEPTADO" events="" profile="TRAMITADOR" title="Aceptado" closed="true"/>`
-- ❌ INCORRECTO: `<state name="ACEPTADO" profile="TRAMITADOR" closed="true"/>` (falta `events`, aunque sea vacío)
-- ✅ CORRECTO: `<state name="PENDIENTE_FIRMA_DIRECTOR" events="" systemEvents="FIRMAR,RECHAZAR_FIRMA" profile="DIRECTOR" .../>` (estado sin botones: lo mueve el servidor)
+- ✅ CORRECTO: `<state name="ACEPTADO" events="" profile="" title="Aceptado" closed="true"/>`
+- ❌ INCORRECTO: `<state name="ACEPTADO" profile="" closed="true"/>` (falta `events`, aunque sea vacío)
+- ❌ INCORRECTO: `<state name="ACEPTADO" events="" profile="TRAMITADOR" title="Aceptado" closed="true"/>` (sin `events` no hay quien actúe: `profile` vacío)
+- ✅ CORRECTO: `<state name="PENDIENTE_FIRMA_DIRECTOR" events="" systemEvents="FIRMAR,RECHAZAR_FIRMA" profile="" .../>` (estado sin botones: lo mueve el servidor)
+- ❌ INCORRECTO: `<state name="PENDIENTE_FIRMA_DIRECTOR" events="" systemEvents="FIRMAR,RECHAZAR_FIRMA" profile="DIRECTOR" .../>` (los `systemEvents` no aportan perfil)
 - ❌ INCORRECTO: `<state name="PENDIENTE_FIRMA_DIRECTOR" events="FIRMAR,RECHAZAR_FIRMA" .../>` cuando los dispara el servidor (Y2 exigiría un botón para cada uno, y el botón dejaría la transición en manos del usuario)
 - ❌ INCORRECTO: `events="FIRMAR" systemEvents="FIRMAR"` (un evento o lleva botón o no lo lleva)
 - ❌ INCORRECTO: `<state name="PendienteFirma" .../>` (no es UPPER_SNAKE: produce métodos inesperados como `triggerPendientefirma`)
@@ -369,6 +373,7 @@ Los tests de `src/test/java/com/educaflow/tiposexpedientes` comprueban, **fase a
 | H1 | No queda un `PhaseEventManagerImpl`/`StateEventValidatorImpl` en una carpeta que ya no es de ninguna fase |
 | X1–X3 | Cada estado tiene su form genérico (X1) y, si tiene `profile` y **eventos de usuario**, el de su perfil (X2: los de `systemEvents` no cuentan); no hay dos forms con el mismo `(state, profile)` (X3) (`vistas.md` §2) |
 | Y1–Y3 | Cada botón del footer es un evento **de usuario** del estado (`events`) o uno común: un evento de `systemEvents` **MUST NOT** tener botón (Y1); cada evento de `events` tiene botón, y a los de `systemEvents` no se les exige (Y2); todos usan `subsysTramitador-event-action` (Y3) |
+| W1–W3 | Los `<field>` de tipo enumerado de los forms llevan `widget="RadioSelect"` (W2) con `x-direction` `horizontal` hasta 4 valores y `vertical` con 5 o más (W3) (`vistas.md` §6.3) |
 | D1–D3 | Existe `estados.puml` y dibuja exactamente los estados del XML (§2.3) |
 | P1 | Toda expresión Groovy de `documentospdf/` compila contra la entidad (`documentos.md` §2.8) |
 

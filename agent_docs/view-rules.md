@@ -344,13 +344,17 @@ Los `Ref-*.xml` **no son especiales**: sus bloques llevan también las cinco PI 
 ## VAR-3.2 — `<?sv-view?>` encabeza las vistas de alto nivel del bloque
 **Decisión.**
   Para que las vistas visibles del bloque queden juntas bajo el marcador de bloque, antes de la zona de acciones, y en un orden fijo.
+  Las listas fijas de opciones (`<selection>`) que usan los campos del bloque viven con sus vistas, en el mismo fichero, y no en uno aparte.
 **Verificación.**
   Sujeto: los elementos entre `<?sv-view?>` y el `<?sv-primary-actions?>` del mismo bloque.
-  Condición: son **solo** elementos de alto nivel (`action-view`/`grid`/`form`/`tree`/`chart`), ninguna acción, y en el orden
-    `action-view` → `grid` (opcional) → `form`/`tree`/`chart`.
+  Condición: son **solo** elementos de alto nivel (`action-view`/`grid`/`form`/`tree`/`chart`) o `selection`, ninguna acción, y en el orden
+    `action-view` → `grid` (opcional) → `form`/`tree`/`chart` → `selection` (0..n).
   Del `action-view`:
     hay **0 o 1** en el bloque, y solo puede aparecer en el **bloque maestro**; los bloques de detalle y los de referencia no lo llevan;
     cuando existe, su `name` es el del bloque más `-action` (`{contexto}-action`).
+  De cada `selection`:
+    va **después** de la vista principal (`form`/`tree`/`chart`) y nunca antes;
+    su `name` es el del bloque más el campo al que sirve y `-selection` (`{contexto}-{campo}-selection`).
 
 **Correcto** ✅
 ```xml
@@ -358,9 +362,10 @@ Los `Ref-*.xml` **no son especiales**: sus bloques llevan también las cinco PI 
 <action-view name="subsysSistemaEducativo.Main@Ciclo-action" …/>
 <grid        name="subsysSistemaEducativo.Main@Ciclo-grid" …/>
 <form        name="subsysSistemaEducativo.Main@Ciclo-form" …/>
+<selection   name="subsysSistemaEducativo.Main@Ciclo-regimen-selection">…</selection>
 <?sv-primary-actions?>
 ```
-**Incorrecto** ❌ — un `<action-record>` (acción) colocado entre `<?sv-view?>` y `<?sv-primary-actions?>`; el `grid` después del `form`; dos `<action-view>` en el bloque; o un `<action-view>` en un bloque de detalle o de referencia.
+**Incorrecto** ❌ — un `<action-record>` (acción) colocado entre `<?sv-view?>` y `<?sv-primary-actions?>`; el `grid` después del `form`; dos `<action-view>` en el bloque; un `<action-view>` en un bloque de detalle o de referencia; una `<selection>` antes del `form`; o una `<selection>` cuyo `name` no es `{contexto}-{campo}-selection`.
 
 ## VAR-3.3 — Cada sección contiene solo las acciones de su rol
 **Decisión.**
@@ -658,6 +663,79 @@ Los atributos canónicos del form, el `buttons-panel` y el `panel-related` los f
 **Incorrecto** ❌ — `<panel name="panel1">`, `<panel name="nombrePanel">`
 
 ---
+
+## VAR-6.6 — Ningún campo de un form usa `SwitchSelect`
+**Decisión.**
+  Para que todas las pantallas presenten igual la elección entre una lista corta de opciones, con un único widget (`RadioSelect`, ver `VAR-6.7`).
+**Verificación.**
+  Sujeto: cada `<field>` descendiente de un `<form>`, lleve o no `readonly`.
+    Los `<field>` de un `<grid>` no son sujeto.
+  Condición: su atributo `widget` no vale `SwitchSelect` (comparado sin distinguir mayúsculas ni guiones: tampoco `switch-select`).
+
+**Correcto** ✅
+```xml
+<field name="tipoFichero" widget="RadioSelect" x-direction="horizontal"/>
+```
+**Incorrecto** ❌
+```xml
+<field name="tipoFichero" widget="SwitchSelect"/>
+<field name="tipoFichero" widget="SwitchSelect" readonly="true"/>
+```
+
+## VAR-6.7 — Los campos de tipo enumerado de un form usan `RadioSelect`
+**Decisión.**
+  Para que el usuario vea de un vistazo todas las opciones de un enumerado, y cuál está elegida, sin tener que abrir un desplegable;
+  y para que un mismo dato se vea igual cuando se edita que cuando solo se consulta.
+**Verificación.**
+  Sujeto: cada `<field>` descendiente de un `<form>`, lleve o no `readonly` y se pinte o no (`hidden`, `showIf`), cuyo `name` es el de un campo de tipo enumerado de su entidad.
+    La entidad de un `<field>` es la del form, salvo que esté dentro de un `<editor>`:
+      entonces es la entidad a la que apunta el `ref` del campo relacional dueño de ese `<editor>` (el `<field>` padre del `<editor>`), buscado en la entidad de ese dueño.
+    La entidad del form es la `<entity>` de los dominios XML (`**/domains/*.xml`) cuyo `package` de `<module>` más su `name` == el `model` del form.
+    Un campo es de tipo enumerado si su entidad, o una entidad de la que hereda (`extends`), lo declara con un hijo `<enum name="…">`.
+    No son sujeto: los `<field>` de un `<grid>` ni los `<field>` hijos de un `<panel-related>` (son columnas de su rejilla, no campos del form).
+  Condición: lleva `widget="RadioSelect"`.
+
+**Correcto** ✅
+```xml
+<!-- dominio: <enum name="tipoFichero" ref="TipoFicheroImportacion"/> -->
+<field name="tipoFichero" widget="RadioSelect" x-direction="horizontal"/>
+<field name="tipoFichero" widget="RadioSelect" x-direction="horizontal" readonly="true"/>
+```
+**Incorrecto** ❌
+```xml
+<field name="tipoFichero"/>                      <!-- enumerado sin widget: se pinta como desplegable -->
+<field name="tipoFichero" readonly="true"/>      <!-- que sea readonly no lo exime -->
+<field name="tipoFichero" hidden="true"/>        <!-- que esté oculto tampoco: mañana puede hacerse visible -->
+<field name="tarea">
+    <editor><field name="tipoFichero"/></editor> <!-- dentro de un editor es un campo como cualquier otro -->
+</field>
+```
+
+## VAR-6.8 — La orientación del `RadioSelect` de un enumerado depende de su número de valores
+**Decisión.**
+  Para que una lista corta de opciones se lea en una sola línea sin gastar altura,
+  y una larga no se desborde ni se parta en varias líneas a lo ancho;
+  y porque fijarla siempre de forma explícita evita depender del valor por defecto del widget.
+**Verificación.**
+  Sujeto: cada `<field>` que es sujeto de `VAR-6.7` y lleva `widget="RadioSelect"`.
+  Condición, con `{n}` = el número de valores del enumerado del campo:
+    lleva el atributo `x-direction`;
+    si `{n}` <= 4 vale `horizontal`, y si `{n}` >= 5 vale `vertical`.
+  `{n}` es el número de hijos `<item>` del `<enum>` de nivel superior (hijo de `<domain-models>`) de los dominios XML (`**/domains/*.xml`) al que apunta el `ref` del `<enum name="…">` del campo:
+    un `ref` con punto es el nombre completo del enumerado (`package` de `<module>` más `name`);
+    un `ref` sin punto es un enumerado del mismo `package` que la entidad que declara el campo.
+
+**Correcto** ✅
+```xml
+<!-- TipoFicheroImportacion tiene 4 valores; Profile tiene 7 -->
+<field name="tipoFichero" widget="RadioSelect" x-direction="horizontal"/>
+<field name="perfil"      widget="RadioSelect" x-direction="vertical"/>
+```
+**Incorrecto** ❌
+```xml
+<field name="tipoFichero" widget="RadioSelect"/>                           <!-- falta x-direction -->
+<field name="perfil"      widget="RadioSelect" x-direction="horizontal"/>  <!-- 7 valores → vertical -->
+```
 
 # Categoría 7 — Botones y secuencias de acciones
 

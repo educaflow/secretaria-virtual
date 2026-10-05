@@ -307,6 +307,10 @@ public class MiEntidadController {
         actionResponse.setSignal("force-back", null);
     }
 
+    /**************************************************************************************/
+    /****************************** Acciones de Validaciones ******************************/
+    /**************************************************************************************/
+
     // Validación remota de la operación custom `hacerAlgoEspecial`. La invoca la acción
     // `...-Remote-validateHacerAlgoEspecial-action` de la vista, ANTES de la acción que
     // llama a `hacerAlgoEspecial` (ver k-validaciones/validaciones.md §4-§5).
@@ -329,6 +333,11 @@ public class MiEntidadController {
             actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());
         }
     }
+
+    /******************************************************************************/
+    /****************************** Métodos privados ******************************/
+    /******************************************************************************/
+
 }
 ```
 
@@ -339,6 +348,54 @@ public class MiEntidadController {
 > - ❌ INCORRECTO: acción `…-Remote-validateReenviar-action` → `CorreoController.validarAntesDeReenviar` (el nombre del método no coincide con el `{nombreFuncionJava}` embebido en el nombre de la acción).
 >
 > **MUST NOT** crear un `@CallMethod` de validación para `save`/`delete` (ni con nombre `validateSave`/`validateDelete` ni disfrazado como `validarAntesDeGuardar`/`validarAntesDeBorrar`): esa validación la dan las acciones globales `remote-validationSave-action`/`remote-validationDelete-action` de `DefaultModelController` (ver `k-validaciones/validaciones.md` §5).
+
+### Orden de los métodos
+
+> Este orden lo verifican los tests de `src/test/java/com/educaflow/ordenmetodos`: si cambias la regla aquí, **MUST** cambiar el test, y viceversa.
+
+El controlador **MUST** ordenar sus métodos en estos tres bloques, en este orden:
+
+1. **Acciones** (sin header) — los `@CallMethod` que ejecutan una operación o devuelven datos a la vista.
+2. **Acciones de Validaciones** (con header) — los `@CallMethod` `validate<Operacion>`.
+3. **Métodos privados** (con header) — los helpers `private` del controlador.
+
+Reglas:
+
+- Dentro del bloque 1, las acciones van **en el mismo orden que los métodos del servicio a los que llaman** (el orden en que los declara la interfaz `*Service`).
+- Dentro del bloque 2, cada `validate<Operacion>` va en el mismo orden que su `<operacion>` en el bloque 1.
+- Los headers son tres líneas `/************...************/` con **exactamente el mismo número de caracteres** (misma regla y mismo `awk` de comprobación que en `servicios.md`).
+- Los dos headers se ponen **siempre**, aunque su bloque no tenga métodos: así el fichero ya sirve de plantilla.
+
+```java
+public class MiEntidadController {
+
+    @CallMethod
+    public void operacionA(ActionRequest actionRequest, ActionResponse actionResponse) { … }
+
+    @CallMethod
+    public void operacionB(ActionRequest actionRequest, ActionResponse actionResponse) { … }
+
+    /**************************************************************************************/
+    /****************************** Acciones de Validaciones ******************************/
+    /**************************************************************************************/
+
+    @CallMethod
+    public void validateOperacionA(ActionRequest actionRequest, ActionResponse actionResponse) { … }
+
+    @CallMethod
+    public void validateOperacionB(ActionRequest actionRequest, ActionResponse actionResponse) { … }
+
+    /******************************************************************************/
+    /****************************** Métodos privados ******************************/
+    /******************************************************************************/
+
+    private static String getAlgoDelRequest(ActionRequestHelper<MiEntidad> actionRequestHelper) { … }
+}
+```
+
+- ❌ INCORRECTO: cada `validate<Operacion>` justo debajo de su `<operacion>` (mezcla los bloques 1 y 2).
+- ❌ INCORRECTO: `operacionB` antes que `operacionA` cuando la interfaz del servicio declara `operacionA` primero (orden distinto al del servicio).
+- ❌ INCORRECTO: un helper `private` entre dos `@CallMethod` (va al final, en «Métodos privados»).
 
 ### Reglas del controlador
 
@@ -381,6 +438,12 @@ Checklist única para desarrollar y revisar `*Controller`. Cada ítem es un tipo
 - [ ] Inyecta `ModelServiceFactory` (no inyecta el `ModelService` directamente con `@Inject`) y resuelve el servicio con `modelServiceFactory.resolve(MiEntidad.class)` en cada método que lo usa.
 - [ ] **NO** construye `Repository` explícitamente con `JpaRepository.of(MiEntidad.class)` para pasarlo a `resolve`. El servicio ya tiene su repositorio inyectado.
 - [ ] Imports usan `com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper` y `ActionResponseHelper` (no rutas legacy). No quedan imports de `AllowProperties` ni de `java.util.Map` si tras el refactor el controlador ya no los usa.
+
+### Orden de los métodos
+
+- [ ] 3 bloques en este orden: (1) acciones (sin header), (2) `Acciones de Validaciones`, (3) `Métodos privados`. Ningún método está fuera de su bloque y están los dos headers **siempre**, aunque su bloque esté vacío.
+- [ ] Las acciones están en el mismo orden en que la interfaz `*Service` declara los métodos a los que llaman, y cada `validate<Operacion>` en el mismo orden que su `<operacion>`.
+- [ ] Los headers `/************…************/` tienen 3 líneas de la **misma longitud** dentro de cada bloque.
 
 ### Acciones expuestas y delegación al servicio
 

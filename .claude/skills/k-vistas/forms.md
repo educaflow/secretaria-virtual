@@ -407,13 +407,58 @@ Se usa para colecciones relacionales `<one-to-many>` del modelo y muestra una re
 - `widget="binary-link"`: para campos `MetaFile` permite cargar/descargar un fichero.
 - `widget="binary"`: Para descargar directamente el `content` del  ̀MetaFile`.
 - `x-accept`: para restringir tipos de fichero (por ejemplo PDF o imagen).
-- `widget="SwitchSelect"`: Para campos del modelo de tipo enum (horizontal o vertical con `x-direction`).
+- `widget="RadioSelect"` + `x-direction`: **obligatorio** en todo campo de tipo enumerado. Ver «Campos de tipo enumerado: `RadioSelect`» más abajo.
 - `widget="Text"` para textos largos (por ejemplo motivos de rechazo).
 - `widget="SuggestBox"` / selección asistida en campos relacionales con `domain`.
 - `readonly="true"` para mostrar un campo como solo lectura.
 - `colSpan`: Para definir el tamaño del campo. Vease más abajo para entenderlo mejor.
 - `colOffset`: Para dejar un espacio a la izquierda del campo. Vease más abajo para entenderlo mejor.
+- `selection-in`: limita las opciones del desplegable de un campo con `selection` a las de una lista. Ver la subsección siguiente.
 - 
+### Filtrar las opciones de una `selection`: `selection-in`
+
+`selection-in` deja en el desplegable solo las opciones de la `<selection>` del campo cuyo `value` está en la lista indicada.
+
+- Fijo en el XML: es una expresión evaluada contra el registro, así que puede depender de otros campos.
+  ```xml
+  <field name="color" selection="subsysMiSistema.Main@MiEntidad-color-selection" selection-in="['rojo', colorPreferido]"/>
+  ```
+- Dinámico desde el servidor: cuando la lista la calcula un servicio, el controlador la fija con `setAttr` (normalmente en `onLoad` y en el `onChange` del campo del que depende).
+  ```java
+  List<Integer> valoresPermitidos = miEntidadService.getValoresPermitidos(...);
+  actionResponse.setAttr("miCampo", "selection-in", valoresPermitidos);
+  ```
+- Comportamiento del cliente:
+  - Si la expresión no empieza por `[` se le añaden los corchetes.
+  - Se reevalúa cada vez que cambia el registro.
+  - Si la lista sale vacía o no es una lista, **no filtra**: se ven todas las opciones.
+  - El valor que ya tiene el campo se muestra siempre, aunque no esté en la lista.
+  - Compara como texto, así que vale para selecciones de enteros.
+- **MUST NOT** tomarlo como defensa: es solo un filtro visual del cliente y el servidor no lo comprueba. Si una opción no puede elegirse, se valida en el servicio (ver `k-secure-coding`).
+
+### Campos de tipo enumerado: `RadioSelect`
+
+Alcance: **todos** los `<field>` de un `<form>`: editables o de solo lectura (`readonly`), visibles u ocultos (`hidden="true"`, `showIf="false"`: mañana pueden hacerse visibles) y también los de dentro de un `<editor>` (su enumerado es el de la entidad relacionada).
+No aplica a las columnas de un `<grid>` ni a los `<field>` hijos de un `<panel-related>` (son columnas de su rejilla).
+
+- Un `<field>` cuyo tipo en el modelo es un enumerado (`<enum name="…">` en el dominio XML) **MUST** llevar `widget="RadioSelect"`.
+- **MUST** fijar la orientación con `x-direction`, según el número de valores del enumerado:
+  - hasta 4 valores → `x-direction="horizontal"`;
+  - 5 o más → `x-direction="vertical"`.
+
+Ejemplos, con `tipoJornada` de 3 valores y `motivo` de 6:
+
+- ✅ CORRECTO: `<field name="tipoJornada" colSpan="12" widget="RadioSelect" x-direction="horizontal"/>`
+- ✅ CORRECTO: `<field name="motivo" colSpan="6" widget="RadioSelect" x-direction="vertical"/>`
+- ✅ CORRECTO: `<field name="tipoJornada" colSpan="12" widget="RadioSelect" x-direction="horizontal" readonly="true"/>`
+- ❌ INCORRECTO: `<field name="tipoJornada" colSpan="12" readonly="true"/>` (enumerado sin `RadioSelect`: que sea `readonly` no lo exime)
+- ✅ CORRECTO: `<field name="tipoJornada" hidden="true" widget="RadioSelect" x-direction="horizontal"/>`
+- ❌ INCORRECTO: `<field name="tipoJornada" hidden="true"/>` (enumerado sin `RadioSelect`: que esté oculto no lo exime)
+- ❌ INCORRECTO: `<field name="tipoJornada" colSpan="12" widget="RadioSelect"/>` (falta `x-direction`)
+- ❌ INCORRECTO: `<field name="motivo" colSpan="12" widget="RadioSelect" x-direction="horizontal"/>` (6 valores → `vertical`)
+
+Lo verifican `VAR-6.7` y `VAR-6.8` de `agent_docs/view-rules.md`.
+
 ### HTML personalizado para mostrar el contenido de un campo
 - Para mostrar el contenido de un campo de forma personalizada (por ejemplo, mostrar un PDF incrustado en el formulario), se puede usar la etiqueta `<viewer>` dentro del `<field>`.
 

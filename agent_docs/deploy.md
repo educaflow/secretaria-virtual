@@ -120,3 +120,17 @@ Las propiedades van en `src/main/resources/axelor-config.properties` (`db.defaul
 `quartz.*`, etc.). Las propiedades **privadas** (credenciales reales, secretos) van en el fichero
 externo `../secretaria-virtual-private/axelor-config.dev.properties`, que se pasa con `--config` al
 arrancar y **sobrescribe** los valores del primero.
+
+### Cifrado de campos (`encryption.password`)
+
+- Los campos del modelo con `encrypted="true"` (p. ej. `CertificadoDigital.password` y `DispositivoCriptografico.pin`) solo se cifran en la BD si está definida `encryption.password`; sin ella se guardan en claro.
+- `encryption.password` **MUST** definirse en la config privada, nunca en `axelor-config.properties`, y es obligatoria en producción.
+- Al definirla por primera vez, las filas ya guardadas siguen en claro hasta cifrarlas con la migración `database encrypt` del CLI `axelor` de AOP, que se genera con `./gradlew installDist`:
+
+  ```bash
+  ./gradlew installDist
+  build/install/secretaria-virtual/bin/axelor -c <config privada> database encrypt
+  ```
+
+- Para cambiar la clave, la anterior se pone en `encryption.old-password` (y `encryption.old-algorithm` si cambia el algoritmo), se lanza la misma migración y después se quita `encryption.old-password` de la config.
+- Conviene lanzarla con la app parada, porque reescribe las columnas cifradas de todas las entidades.

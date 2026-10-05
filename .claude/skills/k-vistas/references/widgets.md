@@ -44,7 +44,6 @@
 - [Progress](#progress)
 - [SelectProgress](#selectprogress)
 - [NavSelect](#navselect)
-- [SwitchSelect](#switchselect)
 - [Stepper](#stepper)
 - [RadioSelect](#radioselect)
 - [CheckboxSelect](#checkboxselect)
@@ -925,26 +924,6 @@ The `NavSelect` widget is a breadcrumb like widget and can be used with selectio
 ```
 
 ![NavSelect widget](widgets/nav-select.png)
-
----
-
-## SwitchSelect
-
-The `SwitchSelect` widget works on `selection`, `enum` and `many-to-one` fields. It is used to pick a choice from a multiple-choice list.
-
-```xml
-<field name="status" widget="SwitchSelect" x-direction="vertical" />
-<field name="businessSector" widget="SwitchSelect" />
-<field name="businessSector" widget="SwitchSelect" x-labels="false" />
-```
-
-![SwitchSelect widget](widgets/switch-select.png)
-![SwitchSelect widget 2](widgets/switch-select-2.png)
-
-The following attributes are supported:
-
-- `x-labels`: Whether to display labels. Default to `true`.
-- `x-direction`: If value is "vertical", renders the list vertically. Default to horizontal.
 
 ---
 

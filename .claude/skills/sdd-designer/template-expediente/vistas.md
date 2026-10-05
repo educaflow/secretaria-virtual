@@ -98,7 +98,7 @@ Un mismo grupo de campos suele necesitar dos presentaciones. Hay **dos recursos*
 
 ### 2.5 Contenido Axelor normal dentro de los paneles
 
-Los `<field>` de la plantilla admiten los atributos Axelor normales: `colSpan`, `colOffset`, `readonly`, `showTitle`, `title`, `widget` (`SwitchSelect` con `x-direction`, `binary-link` con `x-accept=".pdf"`), `showIf`/`hideIf` por valor de otro campo, y en campos de referencia `grid-view`/`form-view`/`domain`/`onChange`. También caben `<help variant="info">` condicionados con `showIf`.
+Los `<field>` de la plantilla admiten los atributos Axelor normales: `colSpan`, `colOffset`, `readonly`, `showTitle`, `title`, `widget` (`RadioSelect` con `x-direction` en todo campo de tipo enumerado —`horizontal` hasta 4 valores, `vertical` con 5 o más—, `binary-link` con `x-accept=".pdf"`), `showIf`/`hideIf` por valor de otro campo, y en campos de referencia `grid-view`/`form-view`/`domain`/`onChange`. También caben `<help variant="info">` condicionados con `showIf`.
 
 **CRITICAL** — `readonly`, `showIf` y `hidden` son **UX, nunca defensa**. Lo que el cliente puede dictar lo decide **solo** el conjunto de `field(...)` del validador de la pareja (estado, evento). Ver `design-contract.md` §12.3.
 

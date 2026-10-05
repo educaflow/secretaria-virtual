@@ -227,14 +227,16 @@ Estilo portafirmas: un evento crea una `TareaFirma` para que otro usuario firme 
 <fase name="RESOLUCION" title="Resolución">
     <state name="PENDIENTE_RESOLUCION"     events="RESOLVER" profile="TRAMITADOR" title="Pendiente de resolución"/>
     <!-- Sin botones: los dos eventos los dispara el servidor cuando el director firma o rechaza en su bandeja de firmas -->
-    <state name="PENDIENTE_FIRMA_DIRECTOR" events="" systemEvents="FIRMAR,RECHAZAR_FIRMA" profile="DIRECTOR" title="Pendiente de la firma del director"/>
-    <state name="ACEPTADO"                 events="" profile="TRAMITADOR" title="Aceptado"  closed="true"/>
-    <state name="RECHAZADO"                events="" profile="TRAMITADOR" title="Rechazado" closed="true"/>
+    <state name="PENDIENTE_FIRMA_DIRECTOR" events="" systemEvents="FIRMAR,RECHAZAR_FIRMA" profile="" title="Pendiente de la firma del director"/>
+    <state name="ACEPTADO"                 events="" profile="" title="Aceptado"  closed="true"/>
+    <state name="RECHAZADO"                events="" profile="" title="Rechazado" closed="true"/>
 </fase>
 ```
 
 - `FIRMAR` y `RECHAZAR_FIRMA` son **eventos de sistema** (`SKILL.md` §2.1): tienen su `trigger*` y su método del validador, pero ningún botón.
-- El estado de espera es del perfil de quien firma (`DIRECTOR`). Sus forms, el del perfil y el genérico, son de solo `EXIT` con su `avisoEstadoExpediente` (`vistas.md` §6.1): al firmante le dice dónde se firma (menú «Firmas», opción «Pendientes») y a los demás que está pendiente de esa firma.
+- El estado de espera **MUST** llevar `profile=""`: solo tiene eventos de sistema, y esos no aportan perfil (`SKILL.md` §2.1). ❌ `profile="DIRECTOR"` (el firmante firma en su bandeja de firmas, no en el expediente).
+- Por eso el estado de espera solo tiene el form genérico, de solo `EXIT` con su `avisoEstadoExpediente` (`vistas.md` §6.1), que dice de quién está pendiente la firma.
+- Los estados terminales (`closed="true"`) tampoco tienen `events`, así que también llevan `profile=""`.
 
 ### 3.2 Documento y modelo
 
@@ -332,10 +334,16 @@ public void notify(TareaFirma tareaFirma, Object callBackData) {
     }
 
     try {
-        tramitadorService.triggerEvent(expediente, evento, requestData, new EventContext(expediente, Profile.DIRECTOR, modelServiceFactory));
+        tramitadorService.triggerEvent(expediente, evento, requestData, new EventContext(expediente, getEstado(expediente).getProfile(), modelServiceFactory));
     } catch (BusinessException ex) {
         throw new IllegalStateException("No se ha podido disparar el evento " + evento + " del expediente " + expediente.getNumeroExpediente() + ": " + ex.getBusinessMessages(), ex);
     }
+}
+
+private static State getEstado(MiTramiteV1 expediente) {
+    return States.INSTANCE.getState(expediente.getCodePhase(), expediente.getCodeState())
+            .orElseThrow(() -> new IllegalStateException("El expediente " + expediente.getNumeroExpediente() + " está en el estado '"
+                    + expediente.getCodePhase() + "/" + expediente.getCodeState() + "', que no existe en este tipo de expediente."));
 }
 
 /** Evento de sistema: el director ha firmado. pdfResolucionFirmada ya está en el expediente. Se registra de salida el documento firmado y el expediente se cierra. */
@@ -373,7 +381,7 @@ fun getForStatePendienteFirmaDirectorInEventRechazarFirma(): BeanValidationRules
 
 1. **`notify(tareaFirma, callBackData)`** lo llama el subsistema de firmas tanto cuando la tarea se firma como cuando se rechaza. Hace de controlador del tramitador (`phaseeventmanager.md` §5.1): de la tarea saca el expediente (por el id del `callBackData`), el evento de sistema que corresponde al `EstadoTareaFirma` (`FIRMADO`, `RECHAZADO`) y el `requestData`.
 2. **El `requestData`** de `FIRMAR` lleva el documento firmado, que está en `tareaFirma.getDocumentosFirma().get(0).getDocumentoFirmado()` (la tarea tiene un `DocumentoFirma` por cada PDF; aquí solo hay uno). El de `RECHAZAR_FIRMA` va vacío.
-3. **El disparo**: `tramitadorService.triggerEvent(expediente, evento, requestData, new EventContext(expediente, Profile.DIRECTOR, modelServiceFactory))`. `notify` no declara `BusinessException`, así que la envuelve en una `IllegalStateException`.
+3. **El disparo**: `tramitadorService.triggerEvent(expediente, evento, requestData, new EventContext(expediente, getEstado(expediente).getProfile(), modelServiceFactory))`: el perfil es el del estado desde el que se dispara, que aquí está vacío (§3.1). `notify` no declara `BusinessException`, así que la envuelve en una `IllegalStateException`.
 4. **`triggerFirmar`** no conoce la `TareaFirma`: lee `pdfResolucionFirmada` del expediente, donde el motor ya lo ha copiado. El documento se **clona** con `MetaFileUtil.cloneMetaFile` antes de registrarlo de salida (`phaseeventmanager.md` §6.3): el que llega es de la tarea de firma, no del expediente.
 5. **El rechazo**: el motivo (`tareaFirma.getMotivoRechazo()`, que puede venir vacío) lo deja `notify` como **nota** del expediente (`ExpedienteNotasUtil.addNote`, `vistas.md` §4), a nombre de quien rechaza, antes de disparar el evento. **MUST NOT** crear campos en el `domains.xml` para guardarlo: lo que se dicen entre sí quienes tramitan va a las notas. `triggerRechazarFirma` solo vuelve al estado de decisión, donde el siguiente `RESOLVER` creará **otra** tarea.
 6. **El validador**: `getForStatePendienteFirmaDirectorInEventFirmar` declara `Required` el campo del `requestData` (sin esa entrada el motor no lo copia); `…InEventRechazarFirma` lleva `rules { }` vacío.

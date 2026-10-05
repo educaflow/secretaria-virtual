@@ -113,7 +113,7 @@ Si el tipo necesita otro conjunto de datos (p. ej. el NIA), declara en su form p
 | `subsanacion` | Lo que el verificador ha pedido subsanar; solo se ve mientras `textoSubsanacion` tiene valor | `textoSubsanacion` | con `-`, el primero, en los forms de la fase `ENTRADA` en los que se corrige la solicitud |
 | `solicitud-escaneada-upload` | Subida del PDF de la solicitud entregada en papel (`binary-link`, solo `.pdf`) | `pdfSolicitudFirmada` | sin guion, en `PENDIENTE_DOCUMENTO_ESCANEADO` |
 | `solicitud-escaneada-view` | Descarga de esa solicitud escaneada; solo se ve si `presentadoEnPapel` | `pdfSolicitudFirmada` | con `-`, en el form `profile="TRAMITADOR"` de `ENTRADA_DATOS` |
-| `verificacion` | `resultadoVerificacion` (`SwitchSelect`) y, si vale `SUBSANAR`, `textoSubsanacion` | `resultadoVerificacion`, `textoSubsanacion` | sin guion, en `PENDIENTE_VERIFICACION` |
+| `verificacion` | `resultadoVerificacion` (`RadioSelect`) y, si vale `SUBSANAR`, `textoSubsanacion` | `resultadoVerificacion`, `textoSubsanacion` | sin guion, en `PENDIENTE_VERIFICACION` |
 | `pdfSolicitud` | Visor (§9) de la solicitud a firmar | `pdfSolicitud` | con `-`, en `PENDIENTE_PRESENTACION` |
 | `pdfSolicitudFirmada` | Visor de la solicitud presentada: la firmada o, en papel, la escaneada | `pdfSolicitudFirmada` | con `-`, donde quien tramita necesite verla |
 | `pdfJustificanteRegistroEntrada` | Visor del resguardo de la presentación | `pdfJustificanteRegistroEntrada` | con `-`, en los forms genéricos tras presentar |
@@ -162,7 +162,7 @@ Un form cuyo único botón es `EXIT` es una pantalla en la que el usuario no pue
 Si no se le explica nada, no sabe si el expediente está atascado, si le toca a él o si ya ha terminado.
 
 - **MUST** llevar un `<panel name="avisoEstadoExpediente" colSpan="12" showFrame="false">` con un único `<help variant="info">`, entre `</include-panels>` y `<footer>`.
-  Aplica a todos los forms de solo `EXIT`: los genéricos y también los de perfil (`profile="..."`) que no tengan más botón que `EXIT`, como el del dueño de un estado que solo tiene eventos de sistema.
+  Aplica a todos los forms de solo `EXIT`: los genéricos y también los de perfil (`profile="..."`) que no tengan más botón que `EXIT`.
 - El texto **MUST** decir **qué está pendiente y de quién** ("La solicitud está pendiente de que la secretaría del centro la verifique", "La resolución está pendiente de la firma del director").
   **MUST NOT** repetir el nombre de la fase o del estado: ya los pinta la cabecera (§3).
 - En un estado final el texto dice que el expediente está cerrado y con qué resultado ("El expediente está cerrado: la anulación ha sido aceptada").
@@ -195,7 +195,7 @@ Si no se le explica nada, no sabe si el expediente está atascado, si le toca a 
 
 La pantalla del estado en que el usuario firma y presenta un documento (el panel común `firma-solicitud`, el `onLoad` que rellena sus campos de vista y los dos botones `PRESENTAR`) está en la receta `recetas/firma.md` §1.3.
 
-Dentro de los paneles de la plantilla, los `<field>` admiten los atributos Axelor normales; los que se ven en los trámites reales: `widget="SwitchSelect"` (con `x-direction="vertical"`), `showIf`/`hideIf` por valor de otro campo, `widget="binary-link"` con `x-accept=".pdf"` para restringir el tipo de fichero subido, `<help variant="info">` condicionales con `showIf`, y en campos de referencia `grid-view`/`form-view`/`domain`/`onChange` (las `action-record`/`action-method` propias se declaran en el `views.xml` de la fase cuyo form incluye el panel, no en el de la raíz).
+Dentro de los paneles de la plantilla, los `<field>` admiten los atributos Axelor normales; los que se ven en los trámites reales: `widget="RadioSelect"` con `x-direction` en los campos de tipo enumerado (obligatorio: §6.3), `showIf`/`hideIf` por valor de otro campo, `widget="binary-link"` con `x-accept=".pdf"` para restringir el tipo de fichero subido, `<help variant="info">` condicionales con `showIf`, y en campos de referencia `grid-view`/`form-view`/`domain`/`onChange` (las `action-record`/`action-method` propias se declaran en el `views.xml` de la fase cuyo form incluye el panel, no en el de la raíz).
 
 ### 6.2 Un campo que solo aparece en una condición necesita su `<field hidden="true"/>`
 
@@ -210,12 +210,22 @@ Si el campo de la condición no es además un `<field>` del form, llega `undefin
 - ✅ CORRECTO:
   ```xml
   <panel name="resolucion-firmada" title="Resolución" colSpan="12">
-      <field name="tipoResolucion" hidden="true"/>
+      <field name="tipoResolucion" hidden="true" widget="RadioSelect" x-direction="horizontal"/>
       <field name="motivoRechazo" colSpan="12" readonly="true" showIf="tipoResolucion=='RECHAZAR'"/>
   </panel>
   ```
-- ❌ INCORRECTO: el mismo panel sin el `<field name="tipoResolucion" hidden="true"/>` (el cliente no recibe `tipoResolucion` y `motivoRechazo` no se ve nunca, tampoco cuando se rechazó).
+- ❌ INCORRECTO: el mismo panel sin el `<field name="tipoResolucion" hidden="true" …/>` (el cliente no recibe `tipoResolucion` y `motivoRechazo` no se ve nunca, tampoco cuando se rechazó).
 - ❌ INCORRECTO: confiar en que `tipoResolucion` ya lo pinta el panel `resolucion` (ese panel no se incluye en los forms de los estados finales, que es donde va `resolucion-firmada`).
+
+### 6.3 Campos de tipo enumerado: `RadioSelect`
+
+La convención de `k-vistas` (`forms.md`, «Campos de tipo enumerado: `RadioSelect`») **sí** aplica a los forms de los trámites, pese a la exclusión general del inicio de este fichero.
+
+- Todo `<field>` de tipo enumerado **MUST** llevar `widget="RadioSelect"` y `x-direction` (`horizontal` hasta 4 valores, `vertical` con 5 o más), sea editable o `readonly`.
+- Cuentan los campos del tipo y los heredados de `Expediente`, en el form plantilla, en los forms auxiliares y en los paneles comunes.
+- Cuentan también los ocultos (los `<field hidden="true"/>` de §6.2) y los de dentro de un `<editor>`, que son de la entidad relacionada.
+- No cuentan los `<field>` hijos de un `panel-related`.
+- Lo comprueban los tests W1–W3 (`SKILL.md` §3.3).
 
 ## 7. Paneles gemelos `-view` para el modo lectura
 
