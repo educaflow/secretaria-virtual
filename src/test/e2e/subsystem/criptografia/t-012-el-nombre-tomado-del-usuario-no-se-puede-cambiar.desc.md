@@ -48,4 +48,4 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Resultado esperado
 - El formulario muestra el campo «DNI» con «29050788V», el campo «Nombre» con «Secretario» y el campo «Apellidos» con «CIPFP Mislata», los tres de solo lectura.
-- Los demás campos del formulario («Tipo de certificado», «Ruta classpath», «Contraseña», «Habilitado») siguen siendo editables.
+- Los demás campos del formulario («Tipo de certificado», «Ruta classpath», «Nueva contraseña», «Habilitado») siguen siendo editables.

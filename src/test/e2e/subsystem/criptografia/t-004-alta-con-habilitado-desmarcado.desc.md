@@ -37,7 +37,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 1. **Dado** que el administrador está en la pantalla «Certificados digitales» (menú «Criptografía» → «Certificados digitales»).
 2. **Cuando** pulsa «Añadir certificado digital».
-3. **Y** rellena «DNI» con «85432016B», elige en «Tipo de certificado» la opción «Usar un fichero con el certificado que ya está dentro del del WAR», rellena «Ruta classpath» con «firma/mi_certificado.p12» y «Contraseña» con «nadanada».
+3. **Y** rellena «DNI» con «85432016B», elige en «Tipo de certificado» la opción «Usar un fichero con el certificado que ya está dentro del del WAR», rellena «Ruta classpath» con «firma/mi_certificado.p12» y «Nueva contraseña» con «nadanada».
 4. **Y** desmarca la casilla «Habilitado».
 5. **Y** pulsa «Guardar».
 

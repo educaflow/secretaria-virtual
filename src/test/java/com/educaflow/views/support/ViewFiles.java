@@ -47,6 +47,8 @@ public final class ViewFiles {
     private static Document menusCache;
     private static Document hideMenusCache;
     private static final Map<Path, Document> docCache = new HashMap<>();
+    private static Map<String, Entidad> entidadesCache;
+    private static Map<String, Integer> valoresPorEnumCache;
 
     private ViewFiles() {}
 
@@ -241,6 +243,101 @@ public final class ViewFiles {
             throw new IllegalStateException("No se pudo listar " + domains, e);
         }
         return entidades;
+    }
+
+    /** Una {@code <entity>} de dominio: de quién hereda, sus campos enumerados y sus campos relacionales. */
+    private record Entidad(String padre, Map<String, String> enumPorCampo, Map<String, String> entidadPorRelacion) {}
+
+    /** Tags de dominio de los campos relacionales, cuyo {@code ref} es la entidad relacionada. */
+    private static final List<String> TAGS_RELACION =
+            List.of("many-to-one", "one-to-one", "one-to-many", "many-to-many");
+
+    /**
+     * Campos de tipo enumerado ({@code <enum name="…">}) de la entidad cuyo FQN es {@code model}: la
+     * {@code <entity>} de los XML de dominio ({@code **}{@code /domains/*.xml}) cuyo {@code package} de
+     * {@code <module>} más su {@code name} coincide con él, más las entidades de las que hereda
+     * ({@code extends}). Cada campo va con el número de valores ({@code <item>}) del {@code <enum>} de
+     * nivel superior al que apunta su {@code ref}, o {@code -1} si ningún dominio lo declara. Vacío si
+     * ningún dominio declara la entidad (p.ej. las del framework Axelor).
+     */
+    public static synchronized Map<String, Integer> camposEnumerados(String model) {
+        Map<String, Integer> campos = new HashMap<>();
+        for (Entidad entidad : jerarquia(model)) {
+            entidad.enumPorCampo().forEach(
+                    (campo, ref) -> campos.putIfAbsent(campo, valoresPorEnumCache.getOrDefault(ref, -1)));
+        }
+        return campos;
+    }
+
+    /**
+     * FQN de la entidad a la que apunta el {@code ref} del campo relacional {@code campo} de la entidad
+     * {@code model} (propio o heredado), o {@code null} si no es un campo relacional de sus dominios.
+     */
+    public static synchronized String entidadRelacionada(String model, String campo) {
+        for (Entidad entidad : jerarquia(model)) {
+            if (entidad.entidadPorRelacion().containsKey(campo)) {
+                return entidad.entidadPorRelacion().get(campo);
+            }
+        }
+        return null;
+    }
+
+    /** La entidad y sus ancestros por {@code extends}, de hija a raíz. Vacía si no está en los dominios. */
+    private static List<Entidad> jerarquia(String model) {
+        if (entidadesCache == null) {
+            loadDominios();
+        }
+        List<Entidad> jerarquia = new ArrayList<>();
+        Set<String> vistas = new HashSet<>(); // corta un ciclo de extends mal escrito
+        for (String fqn = model; fqn != null && entidadesCache.containsKey(fqn) && vistas.add(fqn); ) {
+            Entidad entidad = entidadesCache.get(fqn);
+            jerarquia.add(entidad);
+            fqn = entidad.padre();
+        }
+        return jerarquia;
+    }
+
+    private static void loadDominios() {
+        Path base = projectRoot().resolve("src/main/java");
+        entidadesCache = new HashMap<>();
+        valoresPorEnumCache = new HashMap<>();
+        try (Stream<Path> walk = Files.walk(base)) {
+            List<Path> xmls = walk
+                    .filter(Files::isRegularFile)
+                    .filter(p -> p.getFileName().toString().endsWith(".xml"))
+                    .filter(p -> "domains".equals(p.getParent().getFileName().toString()))
+                    .sorted()
+                    .toList();
+            for (Path p : xmls) {
+                Element raiz = parse(p).getDocumentElement();
+                List<Element> modules = childrenByTag(raiz, "module");
+                String paquete = modules.isEmpty() ? "" : attr(modules.get(0), "package");
+                // nº de <item> de cada <enum> de nivel superior, por nombre completo
+                for (Element e : childrenByTag(raiz, "enum")) {
+                    valoresPorEnumCache.put(cualificar(paquete, attr(e, "name")), childrenByTag(e, "item").size());
+                }
+                for (Element entity : childrenByTag(raiz, "entity")) {
+                    String padre = hasAttr(entity, "extends") ? cualificar(paquete, attr(entity, "extends")) : null;
+                    Entidad entidad = entidadesCache.computeIfAbsent(cualificar(paquete, attr(entity, "name")),
+                            k -> new Entidad(padre, new HashMap<>(), new HashMap<>()));
+                    for (Element e : childrenByTag(entity, "enum")) {
+                        entidad.enumPorCampo().put(attr(e, "name"), cualificar(paquete, attr(e, "ref")));
+                    }
+                    for (String tag : TAGS_RELACION) {
+                        for (Element e : childrenByTag(entity, tag)) {
+                            entidad.entidadPorRelacion().put(attr(e, "name"), cualificar(paquete, attr(e, "ref")));
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("No se pudieron listar los XML de dominio bajo " + base, e);
+        }
+    }
+
+    /** Un nombre con punto ya es completo; sin punto, es del {@code package} del {@code <module>}. */
+    private static String cualificar(String paquete, String nombre) {
+        return nombre.contains(".") ? nombre : paquete + "." + nombre;
     }
 
     // ---- helpers DOM estáticos (sin namespace) ----

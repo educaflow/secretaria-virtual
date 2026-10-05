@@ -42,6 +42,9 @@ class Categoria3BloquesTest {
     /** Elementos de alto nivel del glosario (lo que ve el usuario), frente a las acciones. */
     private static final Set<String> ALTO_NIVEL = Set.of("action-view", "grid", "form", "tree", "chart");
 
+    /** Elemento admitido, además de los de alto nivel, en la zona de vistas del bloque (VAR-3.2). */
+    private static final String SELECTION = "selection";
+
     // ------------------------------------------------------------------
     // Modelo de bloques: partición de los hijos directos de <object-views>
     // ------------------------------------------------------------------
@@ -177,17 +180,22 @@ class Categoria3BloquesTest {
 
     /**
      * VAR-3.2 — Entre {@code <?sv-view?>} y {@code <?sv-primary-actions?>} solo hay elementos de
-     * alto nivel (action-view/grid/form/tree/chart), ninguna acción, en el orden
-     * action-view → grid (opcional) → form/tree/chart. Del action-view: 0 o 1 por bloque, solo en
-     * el bloque de clase maestro y, si existe, su name es {@code {contexto}-action}.
+     * alto nivel (action-view/grid/form/tree/chart) o selection, ninguna acción, en el orden
+     * action-view → grid (opcional) → form/tree/chart → selection (0..n). Del action-view: 0 o 1
+     * por bloque, solo en el bloque de clase maestro y, si existe, su name es
+     * {@code {contexto}-action}. De cada selection: va después de la vista principal y su name es
+     * {@code {contexto}-{campo}-selection}.
      */
     // [VAR-3.2] Verificación:
     //   Sujeto: los elementos entre `<?sv-view?>` y el `<?sv-primary-actions?>` del mismo bloque.
-    //   Condición: son **solo** elementos de alto nivel (`action-view`/`grid`/`form`/`tree`/`chart`), ninguna acción, y en el orden
-    //     `action-view` → `grid` (opcional) → `form`/`tree`/`chart`.
+    //   Condición: son **solo** elementos de alto nivel (`action-view`/`grid`/`form`/`tree`/`chart`) o `selection`, ninguna acción, y en el orden
+    //     `action-view` → `grid` (opcional) → `form`/`tree`/`chart` → `selection` (0..n).
     //   Del `action-view`:
     //     hay **0 o 1** en el bloque, y solo puede aparecer en el **bloque maestro**; los bloques de detalle y los de referencia no lo llevan;
     //     cuando existe, su `name` es el del bloque más `-action` (`{contexto}-action`).
+    //   De cada `selection`:
+    //     va **después** de la vista principal (`form`/`tree`/`chart`) y nunca antes;
+    //     su `name` es el del bloque más el campo al que sirve y `-selection` (`{contexto}-{campo}-selection`).
     @Test
     void var3_2_svViewEncabezaLasVistasDeAltoNivelEnOrden() {
         List<Violacion> v = new ArrayList<>();
@@ -208,27 +216,41 @@ class Categoria3BloquesTest {
                 }
 
                 int rangoAnterior = -1;
+                boolean hayVistaPrincipal = false;
                 List<Element> actionViews = new ArrayList<>();
+                List<Element> selections = new ArrayList<>();
                 for (Element e : zona) {
                     String tag = e.getNodeName();
-                    if (!ALTO_NIVEL.contains(tag)) {
+                    if (!ALTO_NIVEL.contains(tag) && !SELECTION.equals(tag)) {
                         v.add(new Violacion(vf.rel(), ub, describe(e)
                                 + " entre <?sv-view?> y <?sv-primary-actions?>: esa zona solo admite elementos"
-                                + " de alto nivel (action-view/grid/form/tree/chart), ninguna acción"));
+                                + " de alto nivel (action-view/grid/form/tree/chart) o selection, ninguna acción"));
                         continue;
                     }
                     int rango = switch (tag) {
                         case "action-view" -> 0;
                         case "grid" -> 1;
+                        case SELECTION -> 3;
                         default -> 2; // form / tree / chart
                     };
                     if (rango < rangoAnterior) {
                         v.add(new Violacion(vf.rel(), ub, describe(e)
-                                + " fuera de orden: la zona de vistas sigue el orden action-view → grid → form/tree/chart"));
+                                + " fuera de orden: la zona de vistas sigue el orden"
+                                + " action-view → grid → form/tree/chart → selection"));
                     }
                     rangoAnterior = Math.max(rangoAnterior, rango);
+                    if (rango == 2) {
+                        hayVistaPrincipal = true;
+                    }
                     if ("action-view".equals(tag)) {
                         actionViews.add(e);
+                    }
+                    if (SELECTION.equals(tag)) {
+                        if (!hayVistaPrincipal) {
+                            v.add(new Violacion(vf.rel(), ub, describe(e)
+                                    + ": una selection va después de la vista principal (form/tree/chart), nunca antes"));
+                        }
+                        selections.add(e);
                     }
                 }
 
@@ -236,8 +258,8 @@ class Categoria3BloquesTest {
                     v.add(new Violacion(vf.rel(), ub,
                             "hay " + actionViews.size() + " <action-view> en el bloque; se admiten 0 o 1"));
                 }
+                NombreVista nv = b.nombre();
                 if (!actionViews.isEmpty()) {
-                    NombreVista nv = b.nombre();
                     if (nv != null) {
                         if (nv.clase() != NombreVista.Clase.MAESTRO) {
                             v.add(new Violacion(vf.rel(), ub, "el bloque es de clase " + nv.clase()
@@ -250,6 +272,19 @@ class Categoria3BloquesTest {
                                 v.add(new Violacion(vf.rel(), ub, "<action-view name=\"" + name
                                         + "\">: su name debe ser el del bloque más -action (" + esperado + ")"));
                             }
+                        }
+                    }
+                }
+                if (nv != null) {
+                    String prefijo = nv.contexto() + "-";
+                    for (Element sel : selections) {
+                        String name = ViewFiles.attr(sel, "name");
+                        boolean valido = name.startsWith(prefijo) && name.endsWith("-" + SELECTION)
+                                && name.length() > prefijo.length() + ("-" + SELECTION).length();
+                        if (!valido) {
+                            v.add(new Violacion(vf.rel(), ub, "<selection name=\"" + name
+                                    + "\">: su name debe ser el del bloque más el campo y -selection ("
+                                    + nv.contexto() + "-{campo}-selection)"));
                         }
                     }
                 }

@@ -36,13 +36,16 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 ## Pasos
 
 1. **Dado** que el administrador está en la pantalla «Certificados digitales» (menú «Criptografía» → «Certificados digitales»).
-2. **Cuando** pulsa «Añadir certificado digital», rellena «DNI» con «85432016B», elige en «Tipo de certificado» la opción «Usar un fichero con el certificado que ya está dentro del del WAR», rellena «Ruta classpath» con «firma/mi_certificado.p12» y «Contraseña» con «nadanada», y pulsa «Guardar».
+2. **Cuando** pulsa «Añadir certificado digital», rellena «DNI» con «85432016B», elige en «Tipo de certificado» la opción «Usar un fichero con el certificado que ya está dentro del del WAR», rellena «Ruta classpath» con «firma/mi_certificado.p12» y «Nueva contraseña» con «nadanada», y pulsa «Guardar».
 3. **Entonces** el sistema guarda la entrada y vuelve al listado.
 4. **Cuando** abre la fila del DNI «85432016B».
-5. **Y** cambia el campo «Contraseña» a «otraclave» sin tocar la casilla «Habilitado».
+5. **Y** escribe «otraclave» en el campo «Nueva contraseña», que aparece vacío (la contraseña guardada en el alta no se muestra), sin tocar la casilla «Habilitado».
 6. **Y** pulsa «Guardar».
+7. **Cuando** vuelve a abrir la fila del DNI «85432016B».
 
 ## Resultado esperado
 
 - El sistema guarda el cambio y vuelve al listado «Certificados digitales».
 - El listado muestra la fila del DNI «85432016B» con la columna «Habilitado» marcada.
+- Al reabrir la fila, la casilla «Habilitado» sigue marcada y el campo «Nueva contraseña» aparece vacío: la contraseña es un secreto de solo escritura y el servidor nunca la devuelve al navegador, ni la anterior ni la recién escrita.
+- No se comprueba desde la pantalla que la contraseña guardada sea «otraclave», porque no hay forma de leerla sin exponer el secreto; que un «Nueva contraseña» relleno sustituye a la guardada y uno vacío la conserva lo cubren los tests unitarios de `CertificadoDigitalServiceImpl`.

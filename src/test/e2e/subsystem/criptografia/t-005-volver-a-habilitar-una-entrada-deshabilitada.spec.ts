@@ -38,9 +38,12 @@ const filaCuerpoRejilla = (page: Page) => page.getByRole('grid').getByRole('rowg
 // «Habilitado ?» por el icono de ayuda; el match por subcadena lo cubre.)
 const casillaHabilitado = (page: Page) => page.getByRole('checkbox', { name: 'Habilitado' });
 
-// El campo «Contraseña» del formulario. `exact` lo separa de «Contraseña» de
-// otros widgets y del campo homónimo del login.
-const campoContrasena = (page: Page) => page.getByRole('textbox', { name: 'Contraseña', exact: true });
+// El campo «Nueva contraseña» del formulario (transitorio de solo escritura: la
+// contraseña guardada nunca vuelve al navegador). Usa `widget="password"`, así que
+// es un <input type="password">, que no tiene rol ARIA `textbox`: se localiza por
+// su etiqueta. El match por subcadena cubre el icono de ayuda («Nueva contraseña ?»)
+// y no choca con el «Contraseña» del login, que no contiene «Nueva».
+const campoContrasena = (page: Page) => page.getByLabel('Nueva contraseña');
 
 // El botón «OK» del diálogo que Axelor levanta al abandonar el formulario tras
 // guardar («Question — Current changes will be lost. Do you really want to
@@ -154,12 +157,12 @@ test.describe('Certificados digitales', () => {
       //         «85432016B», elige en «Tipo de certificado» la opción «Usar un
       //         fichero con el certificado que ya está dentro del del WAR»,
       //         rellena «Ruta classpath» con «firma/mi_certificado.p12» y
-      //         «Contraseña» con «nadanada», y pulsa «Guardar».
+      //         «Nueva contraseña» con «nadanada», y pulsa «Guardar».
       await botonAnhadir(page).click();
       await page.getByRole('textbox', { name: 'DNI', exact: true }).fill(DNI);
       await page.getByRole('combobox', { name: 'Tipo de certificado' }).click();
       await page.getByRole('option', { name: OPCION_CLASSPATH }).click();
-      // «Ruta classpath» y «Contraseña» solo se muestran al elegir el tipo CLASSPATH.
+      // «Ruta classpath» y «Nueva contraseña» solo se muestran al elegir el tipo CLASSPATH.
       await page.getByRole('textbox', { name: 'Ruta classpath' }).fill('firma/mi_certificado.p12');
       await campoContrasena(page).fill('nadanada');
       await guardarYVolverAlListado(page);

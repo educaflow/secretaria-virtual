@@ -12,10 +12,14 @@ import com.educaflow.views.support.ViewFiles;
 import com.educaflow.views.support.Violacion;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -234,5 +238,146 @@ class Categoria6FormsTest {
         }
         Violacion.assertNone("VAR-6.5 — nombres de panel no genéricos "
                 + "(no casan con (?i)^(panel|nombrePanel)[0-9]*$)", v);
+    }
+
+    // ---------------------------------------------------------------- VAR-6.6
+
+    // [VAR-6.6] Verificación:
+    //   Sujeto: cada `<field>` descendiente de un `<form>`, lleve o no `readonly`.
+    //     Los `<field>` de un `<grid>` no son sujeto.
+    //   Condición: su atributo `widget` no vale `SwitchSelect` (comparado sin distinguir mayúsculas ni guiones: tampoco `switch-select`).
+    @Test
+    void var6_6_ningunCampoDeFormUsaSwitchSelect() {
+        List<Violacion> v = new ArrayList<>();
+        for (ViewFile vf : ViewFiles.all()) {
+            for (Element form : vf.forms()) {
+                for (Element field : byTag(form, "field")) {
+                    String widget = attr(field, "widget");
+                    if ("switchselect".equals(widget.replace("-", "").toLowerCase(Locale.ROOT))) {
+                        v.add(new Violacion(vf.rel(), attr(form, "name"),
+                                "el <field name=\"" + attr(field, "name") + "\"> usa widget=\"" + widget
+                                        + "\"; SwitchSelect no se usa en los forms"));
+                    }
+                }
+            }
+        }
+        Violacion.assertNone("VAR-6.6 — ningún <field> de un <form> usa widget=\"SwitchSelect\"", v);
+    }
+
+    // ---------------------------------------------------------------- VAR-6.7
+
+    // [VAR-6.7] Verificación:
+    //   Sujeto: cada `<field>` descendiente de un `<form>`, lleve o no `readonly` y se pinte o no (`hidden`, `showIf`), cuyo `name` es el de un campo de tipo enumerado de su entidad.
+    //     La entidad de un `<field>` es la del form, salvo que esté dentro de un `<editor>`:
+    //       entonces es la entidad a la que apunta el `ref` del campo relacional dueño de ese `<editor>` (el `<field>` padre del `<editor>`), buscado en la entidad de ese dueño.
+    //     La entidad del form es la `<entity>` de los dominios XML (`**/domains/*.xml`) cuyo `package` de `<module>` más su `name` == el `model` del form.
+    //     Un campo es de tipo enumerado si su entidad, o una entidad de la que hereda (`extends`), lo declara con un hijo `<enum name="…">`.
+    //     No son sujeto: los `<field>` de un `<grid>` ni los `<field>` hijos de un `<panel-related>` (son columnas de su rejilla, no campos del form).
+    //   Condición: lleva `widget="RadioSelect"`.
+    @Test
+    void var6_7_camposEnumeradosDeFormUsanRadioSelect() {
+        List<Violacion> v = new ArrayList<>();
+        for (ViewFile vf : ViewFiles.all()) {
+            for (Element form : vf.forms()) {
+                for (Element field : camposEnumeradosDelForm(form).keySet()) {
+                    if (!"RadioSelect".equals(attr(field, "widget"))) {
+                        v.add(new Violacion(vf.rel(), attr(form, "name"),
+                                "el <field name=\"" + attr(field, "name") + "\"> es de tipo enumerado y "
+                                        + (hasAttr(field, "widget")
+                                                ? "lleva widget=\"" + attr(field, "widget") + "\""
+                                                : "no lleva widget")
+                                        + "; debe llevar widget=\"RadioSelect\""));
+                    }
+                }
+            }
+        }
+        Violacion.assertNone("VAR-6.7 — todo <field> de un <form> cuyo tipo es un enumerado lleva "
+                + "widget=\"RadioSelect\"", v);
+    }
+
+    /**
+     * Sujeto de VAR-6.7: los {@code <field>} del form cuyo name es un campo de tipo enumerado de su
+     * entidad, cada uno con el número de valores de su enumerado; sin los hijos de
+     * {@code <panel-related>}.
+     */
+    private static Map<Element, Integer> camposEnumeradosDelForm(Element form) {
+        Map<Element, Integer> campos = new LinkedHashMap<>();
+        for (Element field : byTag(form, "field")) {
+            // los <field> hijos de un <panel-related> son columnas de su rejilla
+            if ("panel-related".equals(field.getParentNode().getNodeName())) {
+                continue;
+            }
+            String entidad = entidadDelCampo(form, field);
+            if (entidad == null) {
+                continue;
+            }
+            Integer valores = ViewFiles.camposEnumerados(entidad).get(attr(field, "name"));
+            if (valores != null) {
+                campos.put(field, valores);
+            }
+        }
+        return campos;
+    }
+
+    /**
+     * La entidad de un {@code <field>}: la del form, salvo dentro de un {@code <editor>}, donde es la
+     * entidad a la que apunta el campo relacional dueño del editor. {@code null} si no se puede
+     * resolver contra los dominios.
+     */
+    private static String entidadDelCampo(Element form, Element field) {
+        for (Node n = field.getParentNode(); n instanceof Element e; n = n.getParentNode()) {
+            if ("editor".equals(e.getNodeName()) && e.getParentNode() instanceof Element duenyo) {
+                String entidadDelDuenyo = entidadDelCampo(form, duenyo);
+                return entidadDelDuenyo == null ? null
+                        : ViewFiles.entidadRelacionada(entidadDelDuenyo, attr(duenyo, "name"));
+            }
+        }
+        return attr(form, "model");
+    }
+
+    // ---------------------------------------------------------------- VAR-6.8
+
+    // [VAR-6.8] Verificación:
+    //   Sujeto: cada `<field>` que es sujeto de `VAR-6.7` y lleva `widget="RadioSelect"`.
+    //   Condición, con `{n}` = el número de valores del enumerado del campo:
+    //     lleva el atributo `x-direction`;
+    //     si `{n}` <= 4 vale `horizontal`, y si `{n}` >= 5 vale `vertical`.
+    //   `{n}` es el número de hijos `<item>` del `<enum>` de nivel superior (hijo de `<domain-models>`) de los dominios XML (`**/domains/*.xml`) al que apunta el `ref` del `<enum name="…">` del campo:
+    //     un `ref` con punto es el nombre completo del enumerado (`package` de `<module>` más `name`);
+    //     un `ref` sin punto es un enumerado del mismo `package` que la entidad que declara el campo.
+    @Test
+    void var6_8_orientacionDelRadioSelectSegunNumeroDeValores() {
+        List<Violacion> v = new ArrayList<>();
+        for (ViewFile vf : ViewFiles.all()) {
+            for (Element form : vf.forms()) {
+                for (Map.Entry<Element, Integer> sujeto : camposEnumeradosDelForm(form).entrySet()) {
+                    Element field = sujeto.getKey();
+                    if (!"RadioSelect".equals(attr(field, "widget"))) {
+                        continue; // sujeto: solo los que llevan RadioSelect
+                    }
+                    String campo = attr(field, "name");
+                    int n = sujeto.getValue();
+                    if (n < 0) {
+                        v.add(new Violacion(vf.rel(), attr(form, "name"),
+                                "el ref del enumerado del campo \"" + campo
+                                        + "\" no apunta a ningún <enum> de nivel superior de los dominios"));
+                        continue;
+                    }
+                    String esperada = n <= 4 ? "horizontal" : "vertical";
+                    if (!hasAttr(field, "x-direction")) {
+                        v.add(new Violacion(vf.rel(), attr(form, "name"),
+                                "el <field name=\"" + campo + "\"> no lleva x-direction; su enumerado tiene "
+                                        + n + " valores: debe llevar x-direction=\"" + esperada + "\""));
+                    } else if (!esperada.equals(attr(field, "x-direction"))) {
+                        v.add(new Violacion(vf.rel(), attr(form, "name"),
+                                "el <field name=\"" + campo + "\"> lleva x-direction=\""
+                                        + attr(field, "x-direction") + "\"; su enumerado tiene " + n
+                                        + " valores: debe llevar x-direction=\"" + esperada + "\""));
+                    }
+                }
+            }
+        }
+        Violacion.assertNone("VAR-6.8 — el RadioSelect de un enumerado lleva x-direction: horizontal "
+                + "hasta 4 valores, vertical con 5 o más", v);
     }
 }

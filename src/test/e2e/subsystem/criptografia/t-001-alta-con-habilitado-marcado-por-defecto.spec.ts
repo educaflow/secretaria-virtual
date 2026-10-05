@@ -129,10 +129,11 @@ test.describe('Certificados digitales', () => {
       await page.getByRole('option', { name: OPCION_CLASSPATH }).click();
 
       // Paso 6: Y rellena el campo «Ruta classpath» con «firma/mi_certificado.p12»
-      //         y el campo «Contraseña» con «nadanada». (Ambos campos solo se
+      //         y el campo «Nueva contraseña» con «nadanada». (Ambos campos solo se
       //         muestran al elegir el tipo CLASSPATH.)
       await page.getByRole('textbox', { name: 'Ruta classpath' }).fill('firma/mi_certificado.p12');
-      await page.getByRole('textbox', { name: 'Contraseña', exact: true }).fill('nadanada');
+      // Es un <input type="password"> (sin rol `textbox`): se localiza por su etiqueta.
+      await page.getByLabel('Nueva contraseña').fill('nadanada');
 
       // Paso 7: Y pulsa «Guardar».
       await page.getByRole('button', { name: 'Guardar' }).click();

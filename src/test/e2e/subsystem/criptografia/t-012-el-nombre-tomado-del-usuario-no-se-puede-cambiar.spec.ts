@@ -50,12 +50,13 @@ const campoNombre = (page: Page) => page.getByRole('textbox', { name: 'Nombre' }
 const campoApellidos = (page: Page) => page.getByRole('textbox', { name: 'Apellidos' });
 
 // Los demás campos del formulario, que el escenario exige ver EDITABLES.
-// «Ruta classpath» y «Contraseña» solo se muestran con el tipo CLASSPATH elegido;
+// «Ruta classpath» y «Nueva contraseña» solo se muestran con el tipo CLASSPATH elegido;
 // la etiqueta real de la ruta es «Ruta classpath__!!» (match por subcadena) y la
-// del check es «Habilitado ?».
+// del check es «Habilitado ?». «Nueva contraseña» es un <input type="password">
+// (sin rol `textbox`), así que se localiza por su etiqueta.
 const campoTipoCertificado = (page: Page) => page.getByRole('combobox', { name: 'Tipo de certificado' });
 const campoRutaClasspath = (page: Page) => page.getByRole('textbox', { name: 'Ruta classpath' });
-const campoContrasena = (page: Page) => page.getByRole('textbox', { name: 'Contraseña' });
+const campoContrasena = (page: Page) => page.getByLabel('Nueva contraseña');
 const campoHabilitado = (page: Page) => page.getByRole('checkbox', { name: 'Habilitado' });
 
 // Diálogo de aviso de Axelor con un único botón de aceptar (el «Current changes
@@ -250,7 +251,7 @@ test.describe('Certificados digitales', () => {
       await expect(campoApellidos(page)).toBeDisabled();
 
       // Resultado esperado 2: los demás campos del formulario («Tipo de
-      // certificado», «Ruta classpath», «Contraseña», «Habilitado») siguen siendo
+      // certificado», «Ruta classpath», «Nueva contraseña», «Habilitado») siguen siendo
       // editables — es decir, el bloqueo alcanza SOLO a los tres campos de la
       // persona titular y no ha dejado el formulario entero de solo lectura.
       await expect(campoTipoCertificado(page)).toBeEnabled();

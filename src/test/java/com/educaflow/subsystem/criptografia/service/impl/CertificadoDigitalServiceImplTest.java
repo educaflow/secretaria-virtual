@@ -362,9 +362,76 @@ class CertificadoDigitalServiceImplTest {
         assertSame(certificadoPersistido, resultado);
     }
 
+    @Test
+    void insert_conNuevaContrasena_laCopiaAPasswordYVaciaElTransitorio() {
+        CertificadoDigital certificado = certificadoValido(DNI_CON_USUARIO);
+        certificado.setEnabled(Boolean.TRUE);
+        certificado.setNuevaContrasena(CLAVE);
+        when(userRepository.findByDni(DNI_CON_USUARIO)).thenReturn(usuario(NOMBRE_TITULAR, APELLIDOS_TITULAR));
+        stubCertificadosHabilitados(DNI_CON_USUARIO, List.of());
+
+        service.insert(certificado);
+
+        assertEquals(CLAVE, certificado.getPassword());
+        assertNull(certificado.getNuevaContrasena());
+    }
+
+    @Test
+    void insert_sinNuevaContrasena_dejaPasswordSinAsignar() {
+        CertificadoDigital certificado = certificadoValido(DNI_CON_USUARIO);
+        certificado.setEnabled(Boolean.TRUE);
+        when(userRepository.findByDni(DNI_CON_USUARIO)).thenReturn(usuario(NOMBRE_TITULAR, APELLIDOS_TITULAR));
+        stubCertificadosHabilitados(DNI_CON_USUARIO, List.of());
+
+        service.insert(certificado);
+
+        assertNull(certificado.getPassword());
+    }
+
     /* ------------------------------------------------------------------ */
     /* update                                                             */
     /* ------------------------------------------------------------------ */
+
+    @Test
+    void update_nuevaContrasenaEnBlanco_conservaLaPasswordGuardada() {
+        CertificadoDigital certificadoOriginal = certificadoValidoGuardadoConPassword();
+        CertificadoDigital certificado = certificadoValidoGuardadoConPassword();
+        certificado.setNuevaContrasena(CLAVE_EN_BLANCO);
+        when(repository.save(certificado)).thenReturn(certificado);
+
+        service.update(certificado, certificadoOriginal);
+
+        assertEquals(CLAVE, certificado.getPassword());
+        assertNull(certificado.getNuevaContrasena());
+    }
+
+    @Test
+    void update_conNuevaContrasena_sustituyeLaPasswordGuardada() {
+        CertificadoDigital certificadoOriginal = certificadoValidoGuardadoConPassword();
+        CertificadoDigital certificado = certificadoValidoGuardadoConPassword();
+        certificado.setNuevaContrasena(CLAVE_SECRETA);
+        when(repository.save(certificado)).thenReturn(certificado);
+
+        service.update(certificado, certificadoOriginal);
+
+        assertEquals(CLAVE_SECRETA, certificado.getPassword());
+        assertNull(certificado.getNuevaContrasena());
+    }
+
+    /**
+     * Certificado ya guardado, deshabilitado (para que la unicidad por DNI no consulte el repositorio), con el
+     * nombre escrito por el administrador y la contraseña {@code CLAVE} guardada.
+     */
+    private CertificadoDigital certificadoValidoGuardadoConPassword() {
+        CertificadoDigital certificado = certificadoValido(DNI_SIN_USUARIO);
+        certificado.setId(1L);
+        certificado.setEnabled(Boolean.FALSE);
+        certificado.setNombreTomadoDelUsuario(Boolean.FALSE);
+        certificado.setNombre(NOMBRE_ADMINISTRADOR);
+        certificado.setApellidos(APELLIDOS_ADMINISTRADOR);
+        certificado.setPassword(CLAVE);
+        return certificado;
+    }
 
     @Test
     void update_clienteCambiaElDni_restauraElDniDelOriginal() {
@@ -1274,7 +1341,7 @@ class CertificadoDigitalServiceImplTest {
         assertTrue(allowProperties.allowProperty("apellidos"));
         assertTrue(allowProperties.allowProperty("tipoCertificado"));
         assertTrue(allowProperties.allowProperty("fichero"));
-        assertTrue(allowProperties.allowProperty("password"));
+        assertTrue(allowProperties.allowProperty("nuevaContrasena"));
         assertTrue(allowProperties.allowProperty("dispositivoCriptografico"));
         assertTrue(allowProperties.allowProperty("alias"));
         assertTrue(allowProperties.allowProperty("rutaClasspath"));
@@ -1289,6 +1356,13 @@ class CertificadoDigitalServiceImplTest {
         assertFalse(allowProperties.allowProperty("nombreTomadoDelUsuario"));
     }
 
+    @Test
+    void allowPropertiesInsert_deniegaPassword() {
+        AllowProperties allowProperties = service.allowPropertiesInsert();
+
+        assertFalse(allowProperties.allowProperty("password"));
+    }
+
     /* ------------------------------------------------------------------ */
     /* allowPropertiesUpdate                                              */
     /* ------------------------------------------------------------------ */
@@ -1301,7 +1375,7 @@ class CertificadoDigitalServiceImplTest {
         assertTrue(allowProperties.allowProperty("apellidos"));
         assertTrue(allowProperties.allowProperty("tipoCertificado"));
         assertTrue(allowProperties.allowProperty("fichero"));
-        assertTrue(allowProperties.allowProperty("password"));
+        assertTrue(allowProperties.allowProperty("nuevaContrasena"));
         assertTrue(allowProperties.allowProperty("dispositivoCriptografico"));
         assertTrue(allowProperties.allowProperty("alias"));
         assertTrue(allowProperties.allowProperty("rutaClasspath"));
@@ -1315,6 +1389,13 @@ class CertificadoDigitalServiceImplTest {
 
         assertFalse(allowProperties.allowProperty("dni"));
         assertFalse(allowProperties.allowProperty("nombreTomadoDelUsuario"));
+    }
+
+    @Test
+    void allowPropertiesUpdate_deniegaPassword() {
+        AllowProperties allowProperties = service.allowPropertiesUpdate();
+
+        assertFalse(allowProperties.allowProperty("password"));
     }
 
     /* ------------------------------------------------------------------ */

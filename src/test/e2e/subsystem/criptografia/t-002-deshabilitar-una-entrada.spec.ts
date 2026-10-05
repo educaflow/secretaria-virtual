@@ -150,14 +150,15 @@ test.describe('Certificados digitales', () => {
       //         «85432016B», elige en «Tipo de certificado» la opción «Usar un
       //         fichero con el certificado que ya está dentro del del WAR»,
       //         rellena «Ruta classpath» con «firma/mi_certificado.p12» y
-      //         «Contraseña» con «nadanada», y pulsa «Guardar».
+      //         «Nueva contraseña» con «nadanada», y pulsa «Guardar».
       await botonAnhadir(page).click();
       await page.getByRole('textbox', { name: 'DNI', exact: true }).fill(DNI);
       await page.getByRole('combobox', { name: 'Tipo de certificado' }).click();
       await page.getByRole('option', { name: OPCION_CLASSPATH }).click();
-      // «Ruta classpath» y «Contraseña» solo se muestran al elegir el tipo CLASSPATH.
+      // «Ruta classpath» y «Nueva contraseña» solo se muestran al elegir el tipo CLASSPATH.
       await page.getByRole('textbox', { name: 'Ruta classpath' }).fill('firma/mi_certificado.p12');
-      await page.getByRole('textbox', { name: 'Contraseña', exact: true }).fill('nadanada');
+      // Es un <input type="password"> (sin rol `textbox`): se localiza por su etiqueta.
+      await page.getByLabel('Nueva contraseña').fill('nadanada');
       await guardarYVolverAlListado(page);
 
       // Paso 3: Entonces el sistema guarda la entrada y vuelve al listado (la vista

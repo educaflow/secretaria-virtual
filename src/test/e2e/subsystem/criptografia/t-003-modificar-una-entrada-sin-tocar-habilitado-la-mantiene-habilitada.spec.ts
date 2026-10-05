@@ -38,9 +38,12 @@ const filaCuerpoRejilla = (page: Page) => page.getByRole('grid').getByRole('rowg
 // «Habilitado ?» por el icono de ayuda; el match por subcadena lo cubre.)
 const casillaHabilitado = (page: Page) => page.getByRole('checkbox', { name: 'Habilitado' });
 
-// El campo «Contraseña» del formulario. `exact` lo separa de «Contraseña» de
-// otros widgets y del campo homónimo del login.
-const campoContrasena = (page: Page) => page.getByRole('textbox', { name: 'Contraseña', exact: true });
+// El campo «Nueva contraseña» del formulario (transitorio de solo escritura: la
+// contraseña guardada nunca vuelve al navegador). Usa `widget="password"`, así que
+// es un <input type="password">, que no tiene rol ARIA `textbox`: se localiza por
+// su etiqueta. El match por subcadena cubre el icono de ayuda («Nueva contraseña ?»)
+// y no choca con el «Contraseña» del login, que no contiene «Nueva».
+const campoContrasena = (page: Page) => page.getByLabel('Nueva contraseña');
 
 // El botón «OK» del diálogo que Axelor levanta al abandonar el formulario tras
 // guardar («Question — Current changes will be lost. Do you really want to
@@ -155,12 +158,12 @@ test.describe('Certificados digitales', () => {
       //         «85432016B», elige en «Tipo de certificado» la opción «Usar un
       //         fichero con el certificado que ya está dentro del del WAR»,
       //         rellena «Ruta classpath» con «firma/mi_certificado.p12» y
-      //         «Contraseña» con «nadanada», y pulsa «Guardar».
+      //         «Nueva contraseña» con «nadanada», y pulsa «Guardar».
       await botonAnhadir(page).click();
       await page.getByRole('textbox', { name: 'DNI', exact: true }).fill(DNI);
       await page.getByRole('combobox', { name: 'Tipo de certificado' }).click();
       await page.getByRole('option', { name: OPCION_CLASSPATH }).click();
-      // «Ruta classpath» y «Contraseña» solo se muestran al elegir el tipo CLASSPATH.
+      // «Ruta classpath» y «Nueva contraseña» solo se muestran al elegir el tipo CLASSPATH.
       await page.getByRole('textbox', { name: 'Ruta classpath' }).fill('firma/mi_certificado.p12');
       await campoContrasena(page).fill('nadanada');
       await guardarYVolverAlListado(page);
@@ -177,11 +180,14 @@ test.describe('Certificados digitales', () => {
       const habilitado = casillaHabilitado(page);
       await expect(habilitado).toBeVisible();
 
-      // Paso 5: Y cambia el campo «Contraseña» a «otraclave» SIN TOCAR la casilla
-      //         «Habilitado». Que la casilla no se toca es el núcleo del escenario,
-      //         así que se comprueba —sin interactuar con ella— que sigue marcada
-      //         antes y después de escribir la nueva contraseña.
+      // Paso 5: Y escribe «otraclave» en el campo «Nueva contraseña» SIN TOCAR la
+      //         casilla «Habilitado». Que la casilla no se toca es el núcleo del
+      //         escenario, así que se comprueba —sin interactuar con ella— que sigue
+      //         marcada antes y después de escribir la nueva contraseña. Antes de
+      //         escribir se comprueba también que el campo llega vacío: la
+      //         contraseña «nadanada» guardada en el alta no vuelve al navegador.
       await expect(habilitado).toBeChecked();
+      await expect(campoContrasena(page)).toHaveValue('');
       await campoContrasena(page).fill('otraclave');
       await expect(habilitado).toBeChecked();
 
@@ -200,14 +206,21 @@ test.describe('Certificados digitales', () => {
       await expect(fila).toBeVisible();
       await expect(fila.getByRole('checkbox')).toBeChecked();
 
-      // Refuerzo del Resultado esperado 1 («el sistema guarda EL CAMBIO»): la
-      // rejilla no muestra la contraseña, así que sin reabrir el registro el test
-      // pasaría igual aunque la modificación no se hubiera grabado. Al reabrirlo se
-      // comprueba, contra lo que devuelve el servidor, que la contraseña es la
-      // nueva y que «Habilitado» sigue marcado también en el propio registro.
+      // Paso 7: Cuando vuelve a abrir la fila del DNI «85432016B».
+      // Resultado esperado 3: al reabrir el registro, «Habilitado» sigue marcado
+      // también en el propio registro y el campo «Nueva contraseña» aparece vacío:
+      // la contraseña es un secreto de solo escritura que el servidor nunca
+      // devuelve al navegador, ni la de antes ni la recién escrita.
+      // NO se comprueba que la contraseña guardada sea «otraclave»: la pantalla no
+      // tiene ninguna forma de leerla (a propósito) y comprobarlo de otro modo
+      // exigiría leer el secreto. Que el guardado del cambio llega al servidor ya
+      // lo cubren el Resultado esperado 1 (vuelta al listado sin error) y los tests
+      // unitarios de CertificadoDigitalServiceImpl, que verifican que un
+      // «Nueva contraseña» relleno sustituye a la guardada y uno vacío la conserva.
       await fila.first().click();
-      await expect(campoContrasena(page)).toHaveValue('otraclave');
       await expect(casillaHabilitado(page)).toBeChecked();
+      await expect(campoContrasena(page)).toBeVisible();
+      await expect(campoContrasena(page)).toHaveValue('');
     } finally {
       try {
         // Teardown: el alta deja la entrada creada, y su DNI es único en BD, así

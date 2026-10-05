@@ -40,7 +40,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 3. **Entonces** el formulario de alta muestra la casilla «Habilitado» marcada.
 4. **Cuando** rellena el campo «DNI» con «85432016B».
 5. **Y** elige en «Tipo de certificado» la opción «Usar un fichero con el certificado que ya está dentro del del WAR».
-6. **Y** rellena el campo «Ruta classpath» con «firma/mi_certificado.p12» y el campo «Contraseña» con «nadanada».
+6. **Y** rellena el campo «Ruta classpath» con «firma/mi_certificado.p12» y el campo «Nueva contraseña» con «nadanada».
 7. **Y** pulsa «Guardar».
 
 ## Resultado esperado
