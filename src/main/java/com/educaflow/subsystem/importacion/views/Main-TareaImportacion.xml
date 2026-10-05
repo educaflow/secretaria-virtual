@@ -43,7 +43,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
           canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
 
         <panel name="panelEntrada" title="Nueva importación" showIf="id == null">
-            <field name="tipoFichero" widget="SwitchSelect" required="true" colSpan="8"/>
+            <field name="tipoFichero" widget="RadioSelect" required="true" x-direction="horizontal" colSpan="12"/>
             <field name="fichero" widget="binary-link" required="true" colSpan="4"/>
         </panel>
 
