@@ -122,6 +122,14 @@ Los tests de `src/test/java/com/educaflow/tiposexpedientes` comprueban que lo qu
 Qué comprueba cada regla, y cómo están construidos, está en el skill `k-tipo-expediente`, que **debe mantenerse coherente con estos tests**.
 
 
+## Orden de los métodos
+
+Los tests de `src/test/java/com/educaflow/ordenmetodos` comprueban el orden de los métodos de las interfaces de servicio, de las `*ServiceImpl` y de los controladores: los bloques, sus headers y que las tres piezas sigan el orden que fija la interfaz.
+Leen el **código fuente** con el compilador del JDK, no bytecode, porque ni los comentarios de header ni el orden de declaración sobreviven a la compilación; por eso no son reglas ArchUnit.
+**Se escriben A MANO**, igual que los de tipos de expediente: los `.java` son la fuente de verdad y **MUST NOT** crearse un `agent_docs/*-rules.md` ni un skill generador para ellos.
+La regla en prosa está en el skill `k-sistemas`, que **debe mantenerse coherente con estos tests**.
+
+
 
 ## PENDIENTE (importante) — el endpoint REST automático se salta el tramitador
 
