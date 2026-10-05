@@ -4,11 +4,17 @@ package com.educaflow.base.infrastructure.pdf.impl.helper;
 
 import com.itextpdf.signatures.IExternalSignature;
 import com.itextpdf.signatures.ISignatureMechanismParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.security.*;
 import java.util.Arrays;
 import java.util.List;
 
 public class PKCS11ExternalSignature implements IExternalSignature {
+
+    private static final Logger logger = LoggerFactory.getLogger(PKCS11ExternalSignature.class);
+    private static final int MAX_INTENTOS = 3;
+    private static final long PAUSA_ENTRE_INTENTOS_MS = 500;
 
     private final PrivateKey privateKey;
     private final String digestAlgorithm;
@@ -26,6 +32,39 @@ public class PKCS11ExternalSignature implements IExternalSignature {
 
     @Override
     public byte[] sign(byte[] message) throws GeneralSecurityException {
+        int intento = 0;
+        while (true) {
+            intento++;
+            try {
+                return firmarUnaVez(message);
+            } catch (ProviderException ex) {
+                // El token falla a veces de forma puntual con CKR_GENERAL_ERROR y al repetir la firma funciona.
+                if (!esErrorGeneralPkcs11(ex)) {
+                    throw ex;
+                }
+                if (intento >= MAX_INTENTOS) {
+                    throw new RuntimeException("Se ha superado el número de reintentos (" + MAX_INTENTOS + ") al firmar con PKCS#11", ex);
+                }
+                logger.warn("Fallo transitorio al firmar con PKCS#11 (intento {} de {}): {}", intento, MAX_INTENTOS, ex.getMessage());
+                esperar();
+            }
+        }
+    }
+
+    private boolean esErrorGeneralPkcs11(ProviderException ex) {
+        return ex.getMessage() != null && ex.getMessage().contains("CKR_GENERAL_ERROR");
+    }
+
+    private void esperar() {
+        try {
+            Thread.sleep(PAUSA_ENTRE_INTENTOS_MS);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrumpido mientras se esperaba para reintentar la firma", ex);
+        }
+    }
+
+    private byte[] firmarUnaVez(byte[] message) throws GeneralSecurityException {
         String algoritmo = getAlgoritmo(digestAlgorithm,encryptionAlgorithm);
         Signature signature = Signature.getInstance(algoritmo);
         signature.initSign(privateKey);
