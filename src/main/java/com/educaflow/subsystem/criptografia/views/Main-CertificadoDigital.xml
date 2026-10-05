@@ -44,12 +44,12 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
             <field name="apellidos" colSpan="6"
                    readonlyIf="nombreTomadoDelUsuario"
                    requiredIf="(dni != null) &amp;&amp; (nombreTomadoDelUsuario != true)"/>
-            <field name="tipoCertificado" colSpan="6"/>
+            <field name="tipoCertificado" widget="RadioSelect" x-direction="horizontal" colSpan="6"/>
             <field name="enabled" colSpan="3" colOffset="3"/>
 
             <panel name="panelFicheroBD" colSpan="12" showIf="tipoCertificado == 'FICHERO_BD'" showFrame="false">
                 <field name="fichero" colSpan="4" widget="binary-link"/>
-                <field name="password" colSpan="4" colOffset="4" widget="password"/>
+                <field name="nuevaContrasena" colSpan="4" colOffset="4" widget="password"/>
             </panel>
             <panel name="panelPkcs11" colSpan="12" showIf="tipoCertificado == 'DISPOSITIVO_PKCS11'" showFrame="false">
                 <field name="dispositivoCriptografico" colSpan="4"
@@ -63,11 +63,11 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
             </panel>
             <panel name="panelClasspath" colSpan="12" showIf="tipoCertificado == 'CLASSPATH'" showFrame="false">
                 <field name="rutaClasspath" colSpan="8"/>
-                <field name="password" colSpan="4" widget="password"/>
+                <field name="nuevaContrasena" colSpan="4" widget="password"/>
             </panel>
             <panel name="panelSistemaArchivos" colSpan="12" showIf="tipoCertificado == 'SISTEMA_ARCHIVOS'" showFrame="false">
                 <field name="rutaSistemaArchivos" colSpan="8"/>
-                <field name="password" colSpan="4" widget="password"/>
+                <field name="nuevaContrasena" colSpan="4" widget="password"/>
             </panel>
         </panel>
 

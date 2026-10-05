@@ -17,6 +17,7 @@ import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.util.DniUtil;
 import com.educaflow.base.util.MetaFileUtil;
+import com.educaflow.base.util.TextUtil;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
 import com.educaflow.subsystem.criptografia.db.TipoUbicacionCertificado;
 import com.educaflow.subsystem.criptografia.db.repo.CertificadoDigitalRepository;
@@ -60,6 +61,7 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         validateInsert(certificado).ifPresent(BusinessMessages::throwIfInvalid);
 
         fireActionRule_AsignarTitular(certificado);
+        fireActionRule_AsignarNuevaContrasena(certificado);
 
         return repository.save(certificado);
     }
@@ -70,6 +72,7 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
 
         fireActionRule_ConservarDni(certificado, certificadoOriginal);
         fireActionRule_ConservarDatosTitularDelUsuario(certificado, certificadoOriginal);
+        fireActionRule_AsignarNuevaContrasena(certificado);
 
         MetaFile ficheroOriginal = (certificadoOriginal.getTipoCertificado() == TipoUbicacionCertificado.FICHERO_BD) ? certificadoOriginal.getFichero() : null;
 
@@ -85,10 +88,16 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
     }
 
     @Override
-    public DatosTitular getDatosTitularByDni(String dni) {
-        validateGetDatosTitularByDni(dni).ifPresent(BusinessMessages::throwIfInvalid);
+    public void remove(CertificadoDigital certificado) {
+        validateRemove(certificado).ifPresent(BusinessMessages::throwIfInvalid);
 
-        return resolverDatosTitular(dni);
+        MetaFile fichero = (certificado.getTipoCertificado() == TipoUbicacionCertificado.FICHERO_BD) ? certificado.getFichero() : null;
+
+        repository.remove(certificado);
+
+        if (fichero != null) {
+            fireActionRule_BorrarFicheroTrasCommit(fichero);
+        }
     }
 
     @Override
@@ -121,20 +130,6 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
     }
 
     @Override
-    public void remove(CertificadoDigital certificado) {
-        validateRemove(certificado).ifPresent(BusinessMessages::throwIfInvalid);
-
-        MetaFile fichero = (certificado.getTipoCertificado() == TipoUbicacionCertificado.FICHERO_BD) ? certificado.getFichero() : null;
-
-        repository.remove(certificado);
-
-        if (fichero != null) {
-            fireActionRule_BorrarFicheroTrasCommit(fichero);
-        }
-    }
-
-
-    @Override
     public SituacionFirma getSituacionFirmaByDni(String dni) {
         validateGetSituacionFirmaByDni(dni).ifPresent(BusinessMessages::throwIfInvalid);
 
@@ -163,7 +158,6 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         };
     }
 
-
     @Override
     public boolean isClaveCertificadoCorrecta(String dni, String clave) {
         validateIsClaveCertificadoCorrecta(dni, clave).ifPresent(BusinessMessages::throwIfInvalid);
@@ -179,51 +173,16 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         return true;
     }
 
-
-    /****************************************************************************************/
-    /******************************** Métodos de Validación *********************************/
-    /****************************************************************************************/
-
     @Override
-    public Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni) {
-        BusinessMessages messages = new BusinessMessages();
+    public DatosTitular getDatosTitularByDni(String dni) {
+        validateGetDatosTitularByDni(dni).ifPresent(BusinessMessages::throwIfInvalid);
 
-        if (!DniUtil.isValid(dni)) {
-            messages.add(new BusinessMessage("dni", "El DNI no es válido"));
-        }
-
-        return messages.isValid() ? Optional.empty() : Optional.of(messages);
+        return resolverDatosTitular(dni);
     }
 
-    @Override
-    public Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni, String claveAcceso) {
-        return validateGetAlmacenClaveByDni(dni);
-    }
-
-    @Override
-    public Optional<BusinessMessages> validateIsClaveCertificadoCorrecta(String dni, String clave) {
-        return validateGetAlmacenClaveByDni(dni, clave);
-    }
-
-    /**
-     * La acción no tiene precondiciones de negocio: un DNI nulo, en blanco o inválido no es un error sino una
-     * situación de firma más ({@code SIN_DNI}), que decide el propio {@code getSituacionFirmaByDni}.
-     */
-    @Override
-    public Optional<BusinessMessages> validateGetSituacionFirmaByDni(String dni) {
-        return Optional.empty();
-    }
-
-    /**
-     * La acción no tiene precondiciones de negocio: es una consulta de solo lectura que debe aceptar cualquier
-     * DNI —nulo, en blanco, incompleto o con letra incorrecta— porque su cometido es reflejar en el formulario
-     * si ese DNI corresponde o no a un usuario mientras el administrador lo teclea. La validez del DNI ya se
-     * comprueba al guardar.
-     */
-    @Override
-    public Optional<BusinessMessages> validateGetDatosTitularByDni(String dni) {
-        return Optional.empty();
-    }
+    /**************************************************************************************/
+    /******************************* Métodos de Validación ********************************/
+    /**************************************************************************************/
 
     @Override
     public Optional<BusinessMessages> validateInsert(CertificadoDigital certificado) {
@@ -354,20 +313,58 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         }
     }
 
-    /**************************************************************************************/
-    /********************************   AllowProperties   *********************************/
-    /**************************************************************************************/
+    @Override
+    public Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni) {
+        BusinessMessages messages = new BusinessMessages();
+
+        if (!DniUtil.isValid(dni)) {
+            messages.add(new BusinessMessage("dni", "El DNI no es válido"));
+        }
+
+        return messages.isValid() ? Optional.empty() : Optional.of(messages);
+    }
+
+    @Override
+    public Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni, String claveAcceso) {
+        return validateGetAlmacenClaveByDni(dni);
+    }
 
     /**
-     * {@code nombreTomadoDelUsuario} queda fuera: es un campo `servidor` que asigna fireActionRule_AsignarTitular.
+     * La acción no tiene precondiciones de negocio: un DNI nulo, en blanco o inválido no es un error sino una
+     * situación de firma más ({@code SIN_DNI}), que decide el propio {@code getSituacionFirmaByDni}.
      */
+    @Override
+    public Optional<BusinessMessages> validateGetSituacionFirmaByDni(String dni) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<BusinessMessages> validateIsClaveCertificadoCorrecta(String dni, String clave) {
+        return validateGetAlmacenClaveByDni(dni, clave);
+    }
+
+    /**
+     * La acción no tiene precondiciones de negocio: es una consulta de solo lectura que debe aceptar cualquier
+     * DNI —nulo, en blanco, incompleto o con letra incorrecta— porque su cometido es reflejar en el formulario
+     * si ese DNI corresponde o no a un usuario mientras el administrador lo teclea. La validez del DNI ya se
+     * comprueba al guardar.
+     */
+    @Override
+    public Optional<BusinessMessages> validateGetDatosTitularByDni(String dni) {
+        return Optional.empty();
+    }
+
+    /************************************************************************************/
+    /********************************* AllowProperties **********************************/
+    /************************************************************************************/
+
     @Override
     public AllowProperties allowPropertiesInsert() {
         return AllowProperties.createAllowProperties(Map.ofEntries(
                 Map.entry("dni", Map.of()),
                 Map.entry("tipoCertificado", Map.of()),
                 Map.entry("fichero", Map.of()),
-                Map.entry("password", Map.of()),
+                Map.entry("nuevaContrasena", Map.of()),
                 Map.entry("dispositivoCriptografico", Map.of()),
                 Map.entry("alias", Map.of()),
                 Map.entry("rutaClasspath", Map.of()),
@@ -378,16 +375,12 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         ));
     }
 
-    /**
-     * Quedan fuera {@code dni} (inmutable tras el alta) y
-     * {@code nombreTomadoDelUsuario} (campo `servidor` que nunca cambia tras el alta).
-     */
     @Override
     public AllowProperties allowPropertiesUpdate() {
         return AllowProperties.createAllowProperties(Map.of(
                 "tipoCertificado", Map.of(),
                 "fichero", Map.of(),
-                "password", Map.of(),
+                "nuevaContrasena", Map.of(),
                 "dispositivoCriptografico", Map.of(),
                 "alias", Map.of(),
                 "rutaClasspath", Map.of(),
@@ -398,9 +391,9 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         ));
     }
 
-    /*************************************************************************************/
-    /********************************    Action Rules    *********************************/
-    /*************************************************************************************/
+    /***********************************************************************************/
+    /********************************** Action Rules ***********************************/
+    /***********************************************************************************/
 
     private void fireActionRule_AsignarTitular(CertificadoDigital certificado) {
         DatosTitular datos = resolverDatosTitular(certificado.getDni());
@@ -426,6 +419,14 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         }
     }
 
+    private void fireActionRule_AsignarNuevaContrasena(CertificadoDigital certificado) {
+        if (TextUtil.isNullOrBlank(certificado.getNuevaContrasena()) == false) {
+            certificado.setPassword(certificado.getNuevaContrasena());
+        }
+
+        certificado.setNuevaContrasena(null);
+    }
+
     private void fireActionRule_BorrarFicheroTrasCommit(MetaFile fichero) {
         // Tras el commit: MetaFiles.delete borra el fichero físico en el acto y, si la transacción hiciera
         // rollback después, el certificado seguiría apuntando a un MetaFile sin fichero. La tarea corre en
@@ -433,9 +434,9 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         ejecutorAsincrono.ejecutarTrasCommit(() -> JPA.runInTransaction(() -> MetaFileUtil.delete(fichero)));
     }
 
-    /**************************************************************************************/
-    /********************************    Otras funciones    *******************************/
-    /**************************************************************************************/
+    /***********************************************************************************/
+    /********************************* Otras funciones *********************************/
+    /***********************************************************************************/
 
     private InputStream getInputStreamCertificado(CertificadoDigital certificado) {
         return switch (certificado.getTipoCertificado()) {

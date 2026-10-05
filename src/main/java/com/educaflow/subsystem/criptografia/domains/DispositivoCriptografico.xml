@@ -8,16 +8,10 @@
     <entity name="DispositivoCriptografico" repository="abstract">
         <string name="name" required="true" title="Nombre" namecolumn="true"/>
         <string name="pkcs11LibraryPath" required="true" title="Ruta librería PKCS#11" default="/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so"/>
-        <integer name="slot" required="true" title="Slot__!!" default="0" min="0"  help="Es el número donde está pinchado el dispositivo. Empiezan por cero y son valores consecutivos." />
-        <!-- encrypted="true":
-             - el cifrado en reposo solo se activa al definir encryption.password en la config privada; hasta entonces
-               el valor se guarda en claro;
-             - las filas existentes se cifran con la migración `database encrypt` de AOP;
-             - el valor se descifra al cargar, así que POST /ws/rest/<FQN>/search con fields lo sigue devolviendo, y eso
-               forma parte del PENDIENTE del endpoint REST de CLAUDE.md, sin resolver;
-             - no se ha puesto password="true" porque no tapa search y rompe el form (el pin es required y llegaría
-               vacío al reabrirlo). -->
+        <integer name="slot" required="true" title="Slot__!!" default="0" min="0" selection="subsysCriptografia.Main@DispositivoCriptografico-slot-selection" help="Es el número donde está pinchado el dispositivo. Empiezan por cero y son valores consecutivos. Solo se ofrecen los que existen en la librería indicada." />
+        <string name="slotsDisponibles" transient="true" large="true" title="Slots__!! disponibles" help="Descripción del dispositivo que hay en cada slot de la librería indicada."/>
         <string name="pin" required="true" title="PIN" encrypted="true"/>
+        <string name="nuevoPin" transient="true" title="Nuevo PIN" help="El PIN guardado nunca se muestra. Al crear el dispositivo es obligatorio; después, déjalo vacío para conservarlo o escribe uno para sustituirlo"/>
         <one-to-many name="alias" ref="com.educaflow.subsystem.criptografia.db.Alias" mappedBy="dispositivoCriptografico" title="Alias"/>
         <string name="info" title="Información del dispositivo" large="true">
             <![CDATA[

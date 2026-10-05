@@ -10,39 +10,17 @@ import java.util.Optional;
 public interface CertificadoDigitalService extends ModelService<CertificadoDigital> {
 
     Optional<AlmacenClave> getAlmacenClaveByDni(String dni);
-    Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni);
     Optional<AlmacenClave> getAlmacenClaveByDni(String dni, String claveAcceso);
-    Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni, String claveAcceso);
     SituacionFirma getSituacionFirmaByDni(String dni);
-    Optional<BusinessMessages> validateGetSituacionFirmaByDni(String dni);
-
-    /**
-     * Indica si la clave abre el certificado digital habilitado del DNI. Solo se llama cuando ya se sabe que hay
-     * firma en servidor: sin certificado lanza {@link IllegalStateException}.
-     */
     boolean isClaveCertificadoCorrecta(String dni, String clave);
-    Optional<BusinessMessages> validateIsClaveCertificadoCorrecta(String dni, String clave);
-
-    /**
-     * Resuelve el titular de un DNI.
-     *
-     * <p>Acción escalar de solo lectura: no persiste nada y no recibe ni devuelve la entidad. Si existe un
-     * usuario de la aplicación con ese DNI, devuelve el nombre y los apellidos de su ficha con
-     * {@code tomadoDelUsuario = true}; si no existe, devuelve {@link DatosTitular#sinUsuario()}.
-     *
-     * <p>Es el <strong>mismo</strong> cálculo que se aplica al guardar el certificado digital, para que la
-     * pantalla no pueda prometer un titular distinto del que el servidor va a persistir.
-     *
-     * @param dni DNI del que se quiere resolver el titular
-     * @return los datos del titular; nunca {@code null}
-     */
     DatosTitular getDatosTitularByDni(String dni);
 
-    /**
-     * Validador de {@link #getDatosTitularByDni(String)}.
-     *
-     * @param dni DNI del que se quiere resolver el titular
-     * @return los mensajes de negocio que impiden la operación, o vacío si no hay ninguno
-     */
+
+
+    Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni);
+    Optional<BusinessMessages> validateGetAlmacenClaveByDni(String dni, String claveAcceso);
+    Optional<BusinessMessages> validateGetSituacionFirmaByDni(String dni);
+    Optional<BusinessMessages> validateIsClaveCertificadoCorrecta(String dni, String clave);
     Optional<BusinessMessages> validateGetDatosTitularByDni(String dni);
+
 }

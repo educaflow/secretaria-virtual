@@ -31,10 +31,9 @@ public class AliasServiceImpl extends DefaultModelService<Alias> {
         throw new UnsupportedOperationException(I18n.get("Los alias no se pueden borrar; se borran al borrar su dispositivo criptográfico."));
     }
 
-
-    /****************************************************************************************/
-    /******************************** Métodos de Validación *********************************/
-    /****************************************************************************************/
+    /**************************************************************************************/
+    /******************************* Métodos de Validación ********************************/
+    /**************************************************************************************/
 
     @Override
     public Optional<BusinessMessages> validateInsert(Alias alias) {
@@ -48,13 +47,12 @@ public class AliasServiceImpl extends DefaultModelService<Alias> {
 
     @Override
     public Optional<BusinessMessages> validateRemove(Alias alias) {
-        return Optional.of(BusinessMessages.single(I18n.get("Los alias no se pueden borrar; se borran al borrar su dispositivo criptográfico.")));
+        return Optional.empty();
     }
 
-
-    /**************************************************************************************/
-    /********************************   AllowProperties   *********************************/
-    /**************************************************************************************/
+    /************************************************************************************/
+    /********************************* AllowProperties **********************************/
+    /************************************************************************************/
 
     /**
      * Alias solo lo crea el servidor desde PKCS#11 (DispositivoCriptograficoServiceImpl); el anidado en
@@ -73,5 +71,13 @@ public class AliasServiceImpl extends DefaultModelService<Alias> {
     public AllowProperties allowPropertiesUpdate() {
         return AllowProperties.createDenyAllProperties();
     }
+
+    /***********************************************************************************/
+    /********************************** Action Rules ***********************************/
+    /***********************************************************************************/
+
+    /***********************************************************************************/
+    /********************************* Otras funciones *********************************/
+    /***********************************************************************************/
 
 }

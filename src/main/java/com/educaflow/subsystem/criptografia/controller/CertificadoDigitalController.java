@@ -63,6 +63,10 @@ public class CertificadoDigitalController {
         return getSituacionFirmaUsuarioAutenticado().isFirmaEnServidor();
     }
 
+    /************************************************************************************/
+    /***************************** Acciones de Validaciones *****************************/
+    /************************************************************************************/
+
     @CallMethod
     public void validateGetSituacionFirmaByDni(ActionRequest actionRequest, ActionResponse actionResponse) {
         final CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);
@@ -75,6 +79,10 @@ public class CertificadoDigitalController {
             actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());
         }
     }
+
+    /****************************************************************************/
+    /***************************** Métodos privados *****************************/
+    /****************************************************************************/
 
     private SituacionFirma getSituacionFirmaUsuarioAutenticado() {
         final CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);

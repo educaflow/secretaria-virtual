@@ -31,12 +31,17 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     </grid>
 
     <form name="subsysCriptografia.Main@DispositivoCriptografico-form" title="Dispositivo criptográfico" model="com.educaflow.subsystem.criptografia.db.DispositivoCriptografico"
-          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+          width="large"
+          onNew="subsysCriptografia.Main@DispositivoCriptografico-onNew-action"
+          onLoad="subsysCriptografia.Main@DispositivoCriptografico-onLoad-action"
+          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
         <panel name="DispositivoCriptografico" title="Dispositivo criptográfico">
             <field name="name" colSpan="4"/>
-            <field name="pkcs11LibraryPath" colSpan="8"/>
+            <field name="pkcs11LibraryPath" colSpan="8"
+                   onChange="subsysCriptografia.Main@DispositivoCriptografico-onChange-pkcs11LibraryPath-action"/>
             <field name="slot" colSpan="2"/>
-            <field name="pin" colSpan="3" widget="password"/>
+            <field name="nuevoPin" colSpan="3" widget="password" requiredIf="id == null"/>
+            <field name="slotsDisponibles" colSpan="12" widget="Text" height="5" readonly="true"/>
         </panel>
         <panel name="Información" title="Información del dispositivo" colSpan="12" showFrame="true" showIf="(id != null) || (cid != null)">
             <field name="info" colSpan="12" widget="Text" height="12" title="" />
@@ -58,6 +63,25 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         </panel>
     </form>
 
+    <selection name="subsysCriptografia.Main@DispositivoCriptografico-slot-selection">
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14">14</option>
+        <option value="15">15</option>
+    </selection>
+
     <?sv-primary-actions?>
     <action-group name="subsysCriptografia.Main@DispositivoCriptografico-btnRecargarDispositivos-action">
         <action name="subsysCriptografia.Main@DispositivoCriptografico-Remote-recargarDispositivosEnEntornoCriptografico-action"/>
@@ -74,6 +98,25 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <action name="force-back"/>
     </action-group>
 
+    <action-group name="subsysCriptografia.Main@DispositivoCriptografico-onNew-action">
+        <action name="subsysCriptografia.Main@DispositivoCriptografico-Remote-validateGetSlotsDisponibles-action"/>
+        <action name="subsysCriptografia.Main@DispositivoCriptografico-Remote-getSlotsDisponibles-action"/>
+        <action name="subsysCriptografia.Main@DispositivoCriptografico-Remote-validateGetDescripcionSlotsDisponibles-action"/>
+        <action name="subsysCriptografia.Main@DispositivoCriptografico-Remote-getDescripcionSlotsDisponibles-action"/>
+    </action-group>
+    <action-group name="subsysCriptografia.Main@DispositivoCriptografico-onLoad-action">
+        <action name="subsysCriptografia.Main@DispositivoCriptografico-Remote-validateGetSlotsDisponibles-action"/>
+        <action name="subsysCriptografia.Main@DispositivoCriptografico-Remote-getSlotsDisponibles-action"/>
+        <action name="subsysCriptografia.Main@DispositivoCriptografico-Remote-validateGetDescripcionSlotsDisponibles-action"/>
+        <action name="subsysCriptografia.Main@DispositivoCriptografico-Remote-getDescripcionSlotsDisponibles-action"/>
+    </action-group>
+    <action-group name="subsysCriptografia.Main@DispositivoCriptografico-onChange-pkcs11LibraryPath-action">
+        <action name="subsysCriptografia.Main@DispositivoCriptografico-Remote-validateGetSlotsDisponibles-action"/>
+        <action name="subsysCriptografia.Main@DispositivoCriptografico-Remote-getSlotsDisponibles-action"/>
+        <action name="subsysCriptografia.Main@DispositivoCriptografico-Remote-validateGetDescripcionSlotsDisponibles-action"/>
+        <action name="subsysCriptografia.Main@DispositivoCriptografico-Remote-getDescripcionSlotsDisponibles-action"/>
+    </action-group>
+
     <?sv-validations?>
 
     <?sv-rules?>
@@ -81,6 +124,18 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     <?sv-remotes?>
     <action-method name="subsysCriptografia.Main@DispositivoCriptografico-Remote-recargarDispositivosEnEntornoCriptografico-action" model="com.educaflow.subsystem.criptografia.db.DispositivoCriptografico">
         <call class="com.educaflow.subsystem.criptografia.controller.DispositivoCriptograficoController" method="recargarDispositivosEnEntornoCriptografico"/>
+    </action-method>
+    <action-method name="subsysCriptografia.Main@DispositivoCriptografico-Remote-validateGetSlotsDisponibles-action" model="com.educaflow.subsystem.criptografia.db.DispositivoCriptografico">
+        <call class="com.educaflow.subsystem.criptografia.controller.DispositivoCriptograficoController" method="validateGetSlotsDisponibles"/>
+    </action-method>
+    <action-method name="subsysCriptografia.Main@DispositivoCriptografico-Remote-getSlotsDisponibles-action" model="com.educaflow.subsystem.criptografia.db.DispositivoCriptografico">
+        <call class="com.educaflow.subsystem.criptografia.controller.DispositivoCriptograficoController" method="getSlotsDisponibles"/>
+    </action-method>
+    <action-method name="subsysCriptografia.Main@DispositivoCriptografico-Remote-validateGetDescripcionSlotsDisponibles-action" model="com.educaflow.subsystem.criptografia.db.DispositivoCriptografico">
+        <call class="com.educaflow.subsystem.criptografia.controller.DispositivoCriptograficoController" method="validateGetDescripcionSlotsDisponibles"/>
+    </action-method>
+    <action-method name="subsysCriptografia.Main@DispositivoCriptografico-Remote-getDescripcionSlotsDisponibles-action" model="com.educaflow.subsystem.criptografia.db.DispositivoCriptografico">
+        <call class="com.educaflow.subsystem.criptografia.controller.DispositivoCriptograficoController" method="getDescripcionSlotsDisponibles"/>
     </action-method>
 
 </object-views>
