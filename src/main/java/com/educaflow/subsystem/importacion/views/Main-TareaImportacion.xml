@@ -51,7 +51,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
             <panel name="panelDatosResultado" title="" colSpan="12" showFrame="false">
                 <field name="usuario"          colSpan="6"/>
                 <field name="fechaImportacion" colSpan="3"/>
-                <field name="tipoFichero"      colSpan="3"/>
+                <field name="tipoFichero"      widget="RadioSelect" x-direction="horizontal" colSpan="3"/>
                 <field name="centro"           colSpan="6"/>
                 <field name="curso"            colSpan="3"/>
                 <field name="fechaExportacion" colSpan="3"/>

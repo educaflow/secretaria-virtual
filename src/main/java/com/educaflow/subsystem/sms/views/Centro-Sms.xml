@@ -47,7 +47,7 @@
         </panel>
 
         <panel name="Envio" title="Datos del envío" colSpan="12" readonly="true">
-            <field name="estado" colSpan="3"/>
+            <field name="estado" widget="RadioSelect" x-direction="horizontal" colSpan="3"/>
             <field name="numeroReintentos" colSpan="3"/>
             <field name="fechaCreacion" colSpan="3" colOffset="6"/>
             <field name="fechaPrimerIntentoEnvio" colSpan="3"/>

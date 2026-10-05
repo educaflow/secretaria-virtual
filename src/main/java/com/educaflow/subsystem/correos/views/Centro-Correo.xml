@@ -56,7 +56,7 @@
             colSpan="12" newButtonTitle="" canNew="false" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"/>
 
         <panel name="Envio" title="Datos del envío" colSpan="12">
-            <field name="estado" colSpan="3" readonly="true"/>
+            <field name="estado" widget="RadioSelect" x-direction="horizontal" colSpan="3" readonly="true"/>
             <field name="numeroReintentos" colSpan="3" title="Nº reintentos__!!" readonly="true"/>
             <field name="fechaCreacion" colSpan="3" colOffset="6" readonly="true"/>
             <field name="fechaPrimerIntentoEnvio" colSpan="3" readonly="true"/>

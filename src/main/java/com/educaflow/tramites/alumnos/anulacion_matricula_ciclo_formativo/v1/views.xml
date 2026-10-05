@@ -75,7 +75,7 @@
             <field name="fechaHoraPresentacion" colSpan="4" readonly="true"/>
             <!-- El preprocesador no recoge los campos nombrados dentro de un showIf: sin este
                  <field> el cliente no recibe tipoResolucion y la condición evalúa undefined. -->
-            <field name="tipoResolucion" hidden="true"/>
+            <field name="tipoResolucion" hidden="true" widget="RadioSelect" x-direction="horizontal"/>
             <help variant="info" colSpan="8" showIf="tipoResolucion=='ACEPTAR'">Si firma la resolución, la anulación surtirá efecto desde esta fecha</help>
         </panel>
 
@@ -123,7 +123,7 @@
         <!-- Resolución                                                                         -->
         <!-- ================================================================================== -->
         <panel name="resolucion" title="Resolución de la solicitud" colSpan="12">
-            <field name="tipoResolucion"  colSpan="8" widget="RadioSelect" required="true"
+            <field name="tipoResolucion"  colSpan="8" widget="RadioSelect" x-direction="horizontal" required="true"
                    onChange="exp-AnulacionMatriculaCicloFormativoV1-limpiar-resolucion-action"/>
             <field name="motivoRechazo"    colSpan="12" showIf="tipoResolucion=='RECHAZAR'"
                    requiredIf="tipoResolucion=='RECHAZAR'"
@@ -131,7 +131,7 @@
         </panel>
 
         <panel name="decision-secretaria" title="Decisión de secretaría" colSpan="12">
-            <field name="tipoResolucion"    colSpan="5"  widget="RadioSelect" readonly="true"/>
+            <field name="tipoResolucion"    colSpan="5"  widget="RadioSelect" x-direction="horizontal" readonly="true"/>
             <field name="fechaVerificacion" colSpan="3" readonly="true"/>
             <field name="motivoRechazo"     colSpan="12" readonly="true" showIf="tipoResolucion=='RECHAZAR'"/>
         </panel>
@@ -149,7 +149,7 @@
         <panel name="resolucion-firmada" title="Resolución" colSpan="12">
             <!-- El preprocesador no recoge los campos nombrados dentro de un showIf: sin este
                  <field> el cliente no recibe tipoResolucion y la condición evalúa undefined. -->
-            <field name="tipoResolucion"   hidden="true"/>
+            <field name="tipoResolucion"   hidden="true" widget="RadioSelect" x-direction="horizontal"/>
             <field name="motivoRechazo"    colSpan="12" readonly="true" showIf="tipoResolucion=='RECHAZAR'"/>
             <field name="visorResolucionFirmada" showTitle="false" readonly="true" colSpan="12">
                 <viewer depends="pdfResolucionFirmada"><![CDATA[

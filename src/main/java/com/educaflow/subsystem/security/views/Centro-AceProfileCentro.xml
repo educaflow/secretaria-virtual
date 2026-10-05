@@ -42,7 +42,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
                    domain="self.id IN (:idsCentrosSupervisados)"
                    grid-view="subsysCommon.Ref@Centro-grid" form-view="subsysCommon.Ref@Centro-form"/>
             <field name="tramite" colSpan="6"/>
-            <field name="perfil" colSpan="3"/>
+            <field name="perfil" widget="RadioSelect" x-direction="vertical" colSpan="3"/>
         </panel>
 
         <panel name="destinatario" title="A quién se da">
