@@ -5,11 +5,11 @@ Cada línea es `- [x] <test>` o `- [ ] <test>`, con una nota opcional detrás de
 <test> es `<fichero .spec.ts relativo a src/test/e2e> › <describe> › <título>`.
 
 Uso:
-  estado.py [--out=<fichero>] sync <list.json>       añade como `[ ]` los tests que falten y elimina los que ya no existen
-  estado.py [--out=<fichero>] pendientes             ficheros .spec.ts con algún test sin `[x]`
+  estado.py [--out=<fichero>] sync <list.json>       añade como `[ ]` los tests que falten (los `@manual`, con la nota `manual: …`) y elimina los que ya no existen
+  estado.py [--out=<fichero>] pendientes             ficheros .spec.ts con algún test sin `[x]` que no sea manual
   estado.py [--out=<fichero>] aplicar <report.json>  vuelca el resultado de una ejecución
   estado.py [--out=<fichero>] marcar <ok|ko> <test> [nota]
-  estado.py [--out=<fichero>] resumen
+  estado.py [--out=<fichero>] resumen                TOTAL · PASAN · PENDIENTES · MANUALES
 
 <list.json> y <report.json> son la salida del reporter JSON de Playwright.
 """
@@ -20,11 +20,13 @@ from pathlib import Path
 
 SEP_TITULO = " › "
 SEP_NOTA = " ⇒ "
+NOTA_MANUAL = "manual: necesita a una persona"
 LINEA = re.compile(r"^- \[( |x)\] (.*)$")
 CABECERA = (
     "# Reparación de los tests E2E\n"
     "\n"
-    "Estado que mantiene `/developer-repair-e2e-tests`: `[x]` el test pasa, `[ ]` no pasa o está sin procesar.\n"
+    "Estado que mantiene `/developer-repair-e2e-tests`: `[x]` el test pasa, `[ ]` no pasa o está sin procesar "
+    "(`manual:` nunca se ejecuta porque necesita a una persona).\n"
     "Borra este fichero para volver a probar toda la suite.\n"
     "\n"
 )
@@ -51,8 +53,12 @@ def escribir(ruta, estado):
     ruta.write_text(CABECERA + "\n".join(lineas) + "\n", encoding="utf-8")
 
 
+def es_manual(nota):
+    return nota.startswith("manual:")
+
+
 def tests_del_informe(ruta):
-    """Devuelve [(test, status)] con status expected | unexpected | flaky | skipped."""
+    """Devuelve [(test, status)] con status expected | unexpected | flaky | skipped | manual (tag `@manual`)."""
     informe = json.loads(Path(ruta).read_text(encoding="utf-8"))
     resultado = []
 
@@ -60,7 +66,9 @@ def tests_del_informe(ruta):
         for spec in suite.get("specs", []):
             test = SEP_TITULO.join([spec["file"], *titulos, spec["title"]])
             estados = {t.get("status") for t in spec.get("tests", [])}
-            if "unexpected" in estados:
+            if "manual" in spec.get("tags", []):
+                status = "manual"
+            elif "unexpected" in estados:
                 status = "unexpected"
             elif "flaky" in estados:
                 status = "flaky"
@@ -79,7 +87,8 @@ def tests_del_informe(ruta):
 
 def resumen(estado):
     pasan = sum(1 for pasa, _ in estado.values() if pasa)
-    return f"TOTAL {len(estado)} · PASAN {pasan} · PENDIENTES {len(estado) - pasan}"
+    manuales = sum(1 for pasa, nota in estado.values() if not pasa and es_manual(nota))
+    return f"TOTAL {len(estado)} · PASAN {pasan} · PENDIENTES {len(estado) - pasan - manuales} · MANUALES {manuales}"
 
 
 def main(argv):
@@ -96,11 +105,12 @@ def main(argv):
     estado = leer(ruta)
 
     if orden == "sync":
-        listado = [test for test, _ in tests_del_informe(resto[0])]
+        informe = tests_del_informe(resto[0])
+        listado = [test for test, _ in informe]
         nuevos = 0
-        for test in listado:
+        for test, status in informe:
             if test not in estado:
-                estado[test] = (False, "")
+                estado[test] = (False, NOTA_MANUAL if status == "manual" else "")
                 nuevos += 1
                 print(f"AÑADIDO {test}")
         # El listado puede ser parcial: un test que no está en él solo se elimina
@@ -120,14 +130,16 @@ def main(argv):
         print(resumen(estado))
     elif orden == "pendientes":
         ficheros = []
-        for test, (pasa, _) in estado.items():
+        for test, (pasa, nota) in estado.items():
             fichero = test.split(SEP_TITULO)[0]
-            if not pasa and fichero not in ficheros:
+            if not pasa and not es_manual(nota) and fichero not in ficheros:
                 ficheros.append(fichero)
         print("\n".join(ficheros))
     elif orden == "aplicar":
         for test, status in tests_del_informe(resto[0]):
             pasa, nota = estado.get(test, (False, ""))
+            if status == "manual":
+                continue  # nunca se ejecuta: necesita a una persona
             if pasa:
                 if status == "unexpected":
                     print(f"REGRESION {test}")

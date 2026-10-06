@@ -35,7 +35,7 @@ Argumentos esperables:
 **STOP conditions**:
 
 - `npx playwright test --list` falla → **ERROR**: muestra el error y detente.
-- No queda ningún test sin `[x]` → informa de que no hay nada que probar y termina sin arrancar la app.
+- No queda ningún test sin `[x]`, salvo los manuales (§2.1) → informa de que no hay nada que probar y termina sin arrancar la app.
 - El puerto 8080 lo ocupa la instancia de `/build` (§4.2) → **ERROR**: no la toques y detente.
 - La app no responde `200` en el arranque inicial (§4.2) → **ERROR**: indica revisar `src/test/e2e/.app.log` y detente.
 - Tras deshacer una reparación (§6.8) la app no vuelve a arrancar → **STOP** y avisa al usuario: sin app no se puede seguir.
@@ -53,7 +53,7 @@ Argumentos esperables:
 
 ### 1.2 Salida
 
-- `repair-e2e-test.md` (§2.1).
+- `repair-e2e-test.md` (§2.1); los tests manuales se quedan en él en `[ ]` con la nota `manual: necesita a una persona`.
 - Los `.spec.ts`/`.desc.md` sanados (tests actualizados, renombrados o borrados; ninguno nuevo) y el código de `src/main` arreglado, **sin commit**.
 - El informe final en la conversación (§7).
 
@@ -74,7 +74,8 @@ Una línea por test, con esta forma exacta:
 - `<test>` es `<fichero .spec.ts relativo a src/test/e2e> › <describe> › <título>`, sin número de línea (cambia al sanar).
 - Un test renombrado pasa a identificarse por su nombre nuevo y uno borrado se queda sin línea: lo resincroniza §6.6 (paso 5).
 - `[x]` → el test pasa (de entrada o tras repararlo) o se da por terminado por omitido (§4.3). `[ ]` → no pasa o está sin procesar.
-- `<causa>` es una de: `test desactualizado`, `bug de app`, `pasa en solitario`, `sin determinar`, `no reparado`, `omitido`.
+- `<causa>` es una de: `test desactualizado`, `bug de app`, `pasa en solitario`, `sin determinar`, `no reparado`, `omitido`, `manual`.
+- **Test manual** (tag `@manual` en su `.spec.ts`, o línea con nota `manual:`): necesita a una persona (p. ej. firmar con AutoFirma) y `playwright.config.ts` lo excluye salvo con `E2E_MANUAL=1`. **MUST NOT** ejecutarse, diagnosticarse, repararse ni consultarse al usuario: se queda en `[ ] <test> ⇒ manual: necesita a una persona` (lo escribe `sync`) y se pasa al siguiente. `E2E_MANUAL=1` va **solo** delante de los `--list`, nunca de una ejecución.
 - ✅ CORRECTO: `- [x] system/gestion/t-003-alta.spec.ts › Gestión › Alta de un cargo ⇒ test desactualizado: el campo «tipo» pasó a RadioSelect`
 - ✅ CORRECTO: `- [ ] system/gestion/t-004-baja.spec.ts › Gestión › Baja de un cargo ⇒ sin determinar: el botón falta pero ningún cambio reciente lo explica`
 - ❌ INCORRECTO: `- [x] t-003-alta.spec.ts:138 › Alta de un cargo` (ruta incompleta y con número de línea: no casa con el runner)
@@ -84,11 +85,11 @@ Una línea por test, con esta forma exacta:
 
 ```bash
 E="python3 .claude/skills/developer-repair-e2e-tests/estado.py"
-$E sync <list.json>               # crea el fichero o añade como `[ ]` los tests que falten y elimina los que ya no existen
-$E pendientes                     # ficheros .spec.ts con algún test sin `[x]`, uno por línea
+$E sync <list.json>               # crea el fichero o añade como `[ ]` los tests que falten (los manuales, con su nota `manual: …`) y elimina los que ya no existen
+$E pendientes                     # ficheros .spec.ts con algún test sin `[x]` que no sea manual, uno por línea
 $E aplicar <report.json>          # vuelca una ejecución: imprime `PASA|FALLA|OMITIDO <test>` y el resumen
 $E marcar <ok|ko> "<test>" "<causa>: <texto>"
-$E resumen                        # TOTAL · PASAN · PENDIENTES
+$E resumen                        # TOTAL · PASAN · PENDIENTES · MANUALES
 ```
 
 - `sync` elimina la línea (esté en `[x]` o en `[ ]`) de un test borrado o con el título o un `describe` cambiado, e imprime `AÑADIDO <test>` y `ELIMINADO <test>` por cada línea que añade o elimina y los recuentos `AÑADIDOS <n>` y `ELIMINADOS <n>`; con un listado parcial solo elimina las de los ficheros listados o que ya no existen.
@@ -111,6 +112,7 @@ $E resumen                        # TOTAL · PASAN · PENDIENTES
 - `preguntar` → ante un `DUDA` se para en ese test y decide el usuario.
 - `no preguntar` → ante un `DUDA` no se toca nada, se anota `sin determinar` y se pasa al siguiente.
 - Modo subagente (el skill corre dentro de un `Agent`, sin usuario): el modo es siempre `no preguntar` y las demás **STOP conditions** se devuelven como resultado final.
+- Un test manual (§2.1) no es una duda: en ningún modo se pregunta por él.
 
 ### 2.4 Recursos compartidos
 
@@ -130,6 +132,7 @@ PLAYWRIGHT_JSON_OUTPUT_NAME="<scratchpad>/report.json" npx playwright test <fich
 ```
 
 - `<ficheros…>` son rutas relativas a la raíz (`src/test/e2e/<fichero>`).
+- Sin `E2E_MANUAL` (§2.1): así `playwright.config.ts` deja fuera los tests manuales.
 - El código de salida distinto de 0 solo indica que algún test falló: el resultado se lee con `$E aplicar`.
 
 ### 2.6 Foto del árbol
@@ -159,11 +162,11 @@ git diff --name-only <foto A> <foto B> -- . ':!repair-e2e-test.md'   # ficheros 
 
 ### 4.1 Fase 1 — Seleccionar
 
-1. Lista la suite: `npx playwright test --list --reporter=json > "<scratchpad>/list.json"`.
-2. `$E sync "<scratchpad>/list.json" | tail -n 3` (solo los recuentos `AÑADIDOS <n>` y `ELIMINADOS <n>` y el resumen `TOTAL · PASAN · PENDIENTES`): crea `repair-e2e-test.md` con todos los tests en `[ ]` o, si ya existía, añade solo los que falten y elimina los que ya no están en la suite.
-3. `$E pendientes` da los ficheros a ejecutar.
+1. Lista la suite: `E2E_MANUAL=1 npx playwright test --list --reporter=json > "<scratchpad>/list.json"` (con `E2E_MANUAL=1` el listado incluye los manuales, §2.1).
+2. `$E sync "<scratchpad>/list.json" | tail -n 3` (solo los recuentos `AÑADIDOS <n>` y `ELIMINADOS <n>` y el resumen `TOTAL · PASAN · PENDIENTES · MANUALES`): crea `repair-e2e-test.md` con todos los tests en `[ ]` (los manuales con su nota) o, si ya existía, añade solo los que falten y elimina los que ya no están en la suite.
+3. `$E pendientes` da los ficheros a ejecutar; nunca incluye un fichero solo por sus tests manuales.
    - Si el fichero no existía, son todos: se prueba la suite entera.
-   - Si ya existía, son solo los de tests sin `[x]`. **MUST NOT** ejecutar los ficheros cuyos tests están todos en `[x]`.
+   - Si ya existía, son solo los de tests sin `[x]`. **MUST NOT** ejecutar los ficheros cuyos tests están todos en `[x]` (o en `manual:`).
    - Si no devuelve ninguno → termina (STOP conditions).
 
 ### 4.2 Fase 2 — Arrancar la app
@@ -182,7 +185,7 @@ git diff --name-only <foto A> <foto B> -- . ':!repair-e2e-test.md'   # ficheros 
 
 ### 4.3 Fase 3 — Ejecutar
 
-1. Ejecuta los ficheros de §4.1 según §2.5, con `run_in_background: true` (la suite completa tarda), y espera a que termine.
+1. Ejecuta los ficheros de §4.1 según §2.5 (sin `E2E_MANUAL`), con `run_in_background: true` (la suite completa tarda), y espera a que termine.
 2. `$E aplicar "<scratchpad>/report.json"` marca `[x]` los que pasan.
 3. La lista de trabajo de la Fase 4 son las líneas `FALLA <test>` de su salida, en ese orden. Las `OMITIDO` no se reparan:
    - Modo subagente (§2.3) → dalas por terminadas: `$E marcar ok "<test>" "omitido: skip del propio test"` por cada una.
@@ -197,8 +200,10 @@ git diff --name-only <foto A> <foto B> -- . ':!repair-e2e-test.md'   # ficheros 
 
 ```
 por cada test FALLA, en secuencia (salvo el que la reparación de otro ya dejó en [x]):
+  ¿manual (tag @manual o nota `manual:`)? → [ ] «manual: necesita a una persona», sin diagnóstico ni pregunta
   diagnóstico (subagente claude)
     ├─ PASA  → [x] «pasa en solitario»
+    ├─ MANUAL → [ ] «manual: necesita a una persona» (sin preguntar, en cualquier modo)
     ├─ TEST  → sanador (playwright-test-healer), o borrador (claude) si el diagnóstico trae BORRAR ──┐
     ├─ APP   → implementador (claude) ──────────────────────────────────────────────────────────────┤
     │                                              ▼
@@ -222,6 +227,8 @@ por cada test FALLA, en secuencia (salvo el que la reparación de otro ya dejó 
 
 Un test de la lista que §6.7 (pasos 3 y 5) ya marcó `[x]` al reparar otro se salta: **MUST NOT** diagnosticarlo ni cambiar su nota.
 
+**CRITICAL — guarda de test manual, antes de §6.1**: si el test lleva el tag `@manual` en su `.spec.ts` (`grep -F "@manual" src/test/e2e/<fichero>`) o su línea ya tiene la nota `manual:`, llegue como llegue a la lista, **MUST NOT** diagnosticarlo, repararlo ni preguntar al usuario: `$E marcar ko "<test>" "manual: necesita a una persona"` (si no lo estaba) y siguiente test.
+
 ### 6.1 Diagnosticar
 
 Lanza un subagente (`subagent_type: claude`). Rellena solo los placeholders; el resto pásalo tal cual:
@@ -240,10 +247,14 @@ Pasos:
 3. Localiza el código de la app implicado (vista XML, controlador, servicio, modelo).
 4. Mira en el `git log` (y en el `git diff` sin commitear) de esos ficheros y del propio test qué ha ocurrido últimamente y con qué intención.
 5. Decide con §2.2. Ante la duda razonable, responde DUDA: es preferible a acertar por casualidad.
+6. Si descubres que el test necesita a una persona (p. ej. firmar con AutoFirma de escritorio), responde MANUAL: no es ni TEST, ni APP, ni DUDA.
 
 Responde SOLO con uno de estos formatos (la primera línea es literal):
 
 PASA
+
+MANUAL
+Por qué: <paso que solo puede hacer una persona>
 
 TEST
 Cambio intencionado: <commit o cambio sin commitear, y qué comportamiento cambió>
@@ -263,15 +274,18 @@ A favor de bug de app: <evidencia>
 
 - ✅ CORRECTO: primera línea `TEST`
 - ❌ INCORRECTO: `Creo que probablemente es el test` (sin token literal: trátalo como `DUDA`)
+- ✅ CORRECTO: primera línea `MANUAL`
+- ❌ INCORRECTO: `DUDA` con «necesita AutoFirma» como síntoma (necesitar a una persona no es una duda: es `MANUAL`)
 - ✅ CORRECTO: `BORRAR: la exportación a CSV, que el commit a1b2c3d retiró` (al principio de su propia línea, en lugar de la línea `Qué hay que actualizar en el test: …`)
 - ❌ INCORRECTO: `Qué hay que actualizar en el test: BORRAR: la exportación a CSV` (la línea no empieza por `BORRAR:`: §6.5 lanzaría el sanador en vez del borrador)
 
 ### 6.2 Actuar según el diagnóstico
 
 1. `PASA` → `$E marcar ok "<test>" "pasa en solitario: falló en la ejecución conjunta"` y siguiente test.
-2. `TEST` → sanar o borrar (§6.5), verificar (§6.6) y comprobar (§6.7).
-3. `APP` → arreglar el código (§6.4), verificar (§6.6) y comprobar (§6.7).
-4. `DUDA` → §6.3.
+2. `MANUAL` → `$E marcar ko "<test>" "manual: necesita a una persona"` y siguiente test, en cualquier modo: §6.3 **MUST NOT** aplicarse.
+3. `TEST` → sanar o borrar (§6.5), verificar (§6.6) y comprobar (§6.7).
+4. `APP` → arreglar el código (§6.4), verificar (§6.6) y comprobar (§6.7).
+5. `DUDA` → §6.3.
 
 ### 6.3 Dudas
 
@@ -394,7 +408,7 @@ Lo que el runner no ve lo comprueba alguien distinto de quien reparó, sobre el 
    - ✅ CORRECTO: `RECHAZADO: aserción quitada — system/gestion/t-003-alta.spec.ts:52`
    - ❌ INCORRECTO: `El diff parece razonable` (sin token literal: trátalo como `RECHAZADO`)
 4. Rechazada → deshacer (§6.8), `$E marcar ko "<test>" "no reparado: reparación rechazada — <incumplimiento>"` y siguiente test. **MUST NOT** pedir otro intento.
-5. Conforme en `TEST` → resincroniza siempre el fichero de estado con la suite entera: `npx playwright test --list --reporter=json > "<scratchpad>/list.json"` y `$E sync "<scratchpad>/list.json"`.
+5. Conforme en `TEST` → resincroniza siempre el fichero de estado con la suite entera: `E2E_MANUAL=1 npx playwright test --list --reporter=json > "<scratchpad>/list.json"` y `$E sync "<scratchpad>/list.json"`.
    - El `--list` falla → rechazada (paso 4), sin lanzar `$E sync`.
    - Las únicas salidas válidas de `sync` son estas; cualquier otra línea `AÑADIDO` o `ELIMINADO` (un test nuevo, o un cambio en otro test) → rechazada (paso 4):
      - `SANADO`: ninguna línea `AÑADIDO` ni `ELIMINADO`, o bien `ELIMINADO <test>` con exactamente un `AÑADIDO` (el test se renombró).
@@ -426,7 +440,7 @@ El veredicto lo da el runner, no el subagente:
    Responde SOLO con la línea literal: DESHECHO
    ```
 3. Repite el paso 1, responda lo que responda. **LIMIT**: 2 peticiones; si siguen cambiando ficheros → **STOP** (STOP conditions).
-4. Si en algún intento de este test §6.6 (paso 5) llegó a lanzar `$E sync`, repite su `--list` y su `$E sync`: la línea de un test renombrado o borrado vuelve en `[ ]` con su nombre original (y la del nombre nuevo desaparece). Desde aquí `<test>` es otra vez el nombre original: con él se anota el `no reparado`.
+4. Si en algún intento de este test §6.6 (paso 5) llegó a lanzar `$E sync`, repite su `--list` (con `E2E_MANUAL=1`) y su `$E sync`: la línea de un test renombrado o borrado vuelve en `[ ]` con su nombre original (y la del nombre nuevo desaparece). Desde aquí `<test>` es otra vez el nombre original: con él se anota el `no reparado`.
 5. Si §6.7 llegó a reejecutar, devuelve a `[ ]` los otros tests que pasaron a `[x]` gracias a esas ediciones: por cada línea `PASA <test>` de sus `$E aplicar` que no sea el test en curso (con ninguno de sus nombres), `$E marcar ko "<test>" "<nota que tenía en pendientes-antes.txt>"` (`""` si no tenía nota; **MUST** pasar siempre el argumento).
 6. Si la app se reinició, o se intentó reiniciar, con esas ediciones (`APP`), reiníciala (§4.2, pasos 2 a 4). Si el build falla o la app no llega a `200` → **STOP** (STOP conditions).
 
@@ -444,7 +458,7 @@ Estado: `repair-e2e-test.md` — <resumen de `$E resumen`>
 
 | Test | Causa | Acción |
 |---|---|---|
-| `<fichero>` › <título; si se renombró, el nuevo y `(antes «<título antiguo>»)`> | test desactualizado / bug de app / pasa en solitario / sin determinar / no reparado | <qué se cambió, `borrado`, o por qué no se tocó> |
+| `<fichero>` › <título; si se renombró, el nuevo y `(antes «<título antiguo>»)`> | test desactualizado / bug de app / pasa en solitario / sin determinar / no reparado / manual | <qué se cambió, `borrado`, o por qué no se tocó> |
 
 **Tests borrados porque lo que comprobaban ya no existe**:
 - `<fichero>` › <título>: <motivo del borrador> | ninguno
@@ -454,6 +468,9 @@ Estado: `repair-e2e-test.md` — <resumen de `$E resumen`>
 
 **Omitidos por el propio test (skip)**:
 - `<fichero>` › <título>: dado por terminado / pendiente | ninguno
+
+**No conseguidos: tests manuales (necesitan a una persona)** — lánzalos a mano con `E2E_MANUAL=1 npx playwright test --grep @manual --headed`:
+- `<fichero>` › <título> | ninguno
 
 **Ficheros modificados** (sin commit):
 - `<ruta>`
@@ -469,6 +486,7 @@ Estado: `repair-e2e-test.md` — <resumen de `$E resumen`>
 - Un subagente de diagnóstico por test y otro de reparación, siempre en secuencia; el diff de la reparación lo verifica alguien distinto de quien reparó y el veredicto final es del runner.
 - Una reparación bloqueada, rechazada, que no compila, que no deja arrancar la app o que agota sus 2 intentos la deshace el subagente que la hizo: un `[ ]` nunca queda sobre código a medio reparar, el build nunca queda roto y los otros tests que su reejecución puso en `[x]` vuelven a `[ ]`.
 - Un test omitido (`skip`) se da por terminado en modo subagente; con usuario, se le pregunta.
+- Un test manual (`@manual`) → `[ ] manual: necesita a una persona` sin ejecutarlo, diagnosticarlo ni preguntar, y siguiente; los `--list` llevan `E2E_MANUAL=1`, las ejecuciones no.
 - La app la arranca y reinicia el orquestador con `./run.sh`; tras cada arreglo de código hay que reiniciarla.
 - Los tests se sanan con `playwright-test-healer` (`.spec.ts` y su `.desc.md`), sin debilitar aserciones, borrar ni crear tests o ficheros; el test se puede renombrar (su nombre nuevo lo da `sync`, no el sanador).
 - Un test cuya funcionalidad ya no existe lo borra un subagente `claude` (con su `.spec.ts` y su `.desc.md` si era el único del fichero): lo confirma el verificador, no puede romper los tests que quedan en su fichero y va al informe.
