@@ -83,14 +83,14 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
 
       // And: aparece el panel «Persona que presenta la solicitud» con los datos del familiar que ha
       // entrado —«Apellidos» = «de Alumno1 CIPFP Mislata», «Nombre» = «Familiar1»,
-      // «DNI/NIE» = «43145636M»— y los tres campos bloqueados.
+      // «DNI/NIE» = «90923322K»— y los tres campos bloqueados.
       const panelSolicitante = page.getByRole('region', { name: 'Persona que presenta la solicitud' });
       await expect(panelSolicitante).toBeVisible();
       await expect(panelSolicitante.getByLabel('Apellidos')).toHaveValue('de Alumno1 CIPFP Mislata');
       await expect(panelSolicitante.getByLabel('Apellidos')).toBeDisabled();
       await expect(panelSolicitante.getByLabel('Nombre')).toHaveValue('Familiar1');
       await expect(panelSolicitante.getByLabel('Nombre')).toBeDisabled();
-      await expect(panelSolicitante.getByLabel('DNI/NIE')).toHaveValue('43145636M');
+      await expect(panelSolicitante.getByLabel('DNI/NIE')).toHaveValue('90923322K');
       await expect(panelSolicitante.getByLabel('DNI/NIE')).toBeDisabled();
 
       // And: en «Alumno/a al que se refiere la solicitud» los campos «Apellidos», «Nombre» y «DNI/NIE»

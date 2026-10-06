@@ -48,19 +48,19 @@ test.describe('SMS — Recibidos', () => {
     await login(page, 'admin', 'admin');
 
     // Paso 2: Cuando da de alta desde "SMS" → "Todos" un SMS del centro "CIPFP Mislata" con el DNI
-    // «86862719E», el nombre «Alumno1», los apellidos «CIPFP Mislata», el teléfono «600111222» y el
+    // «95591733F», el nombre «Alumno1», los apellidos «CIPFP Mislata», el teléfono «600111222» y el
     // mensaje «Aviso para Alumno1».
     await page.getByText('SMS', { exact: true }).click();
     await page.getByTestId('item:sms-todos-menuitem').click();
     await altaSms(page, {
-      centro: 'CIPFP Mislata', dni: '86862719E', nombre: 'Alumno1', apellidos: 'CIPFP Mislata',
+      centro: 'CIPFP Mislata', dni: '95591733F', nombre: 'Alumno1', apellidos: 'CIPFP Mislata',
       telefono: '600111222', mensaje: avisoAlumno1,
     });
 
-    // Paso 3: Y da de alta otro SMS del centro "CIPFP Mislata" con el DNI «03532821K», el nombre
+    // Paso 3: Y da de alta otro SMS del centro "CIPFP Mislata" con el DNI «99024353S», el nombre
     // «Alumno2», los apellidos «CIPFP Mislata», el teléfono «600555666» y el mensaje «Aviso para Alumno2».
     await altaSms(page, {
-      centro: 'CIPFP Mislata', dni: '03532821K', nombre: 'Alumno2', apellidos: 'CIPFP Mislata',
+      centro: 'CIPFP Mislata', dni: '99024353S', nombre: 'Alumno2', apellidos: 'CIPFP Mislata',
       telefono: '600555666', mensaje: avisoAlumno2,
     });
 

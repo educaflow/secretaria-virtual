@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 
 class RegistroServiceImplTest {
 
-    private static final String DNI = "12345678Z";
+    private static final String DNI = "93882914L";
     private static final String EMAIL = "usuario@example.com";
 
     private RegistroServiceImpl service;

@@ -62,7 +62,7 @@ import com.educaflow.base.util.Convert;
 class CorreoServiceImplTest {
 
     // DNI real válido (letra de control TRWAGMYFPDXBNJZSQVHLCKE, 12345678 % 23 == 14 -> 'Z')
-    private static final String DNI_VALIDO = "12345678Z";
+    private static final String DNI_VALIDO = "93882914L";
     private static final String DNI_LETRA_INCORRECTA = "12345678A";
 
     private CorreoRepository repository;

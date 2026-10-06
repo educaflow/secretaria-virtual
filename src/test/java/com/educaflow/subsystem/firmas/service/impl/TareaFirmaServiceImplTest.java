@@ -77,7 +77,7 @@ import com.educaflow.base.util.MetaFileUtil;
 class TareaFirmaServiceImplTest {
 
     // DNI válido de referencia de la spec (el mismo que usa CertificadoDigitalServiceImplTest).
-    private static final String DNI = "85432016B";
+    private static final String DNI = "98803877V";
     private static final String CLAVE = "nadanada";
     private static final String CLAVE_EN_BLANCO = "   ";
     private static final String CLAVE_SECRETA = "claveSecretaDePrueba";

@@ -38,7 +38,7 @@ class SpanishIdentityRulesTest {
 
     @Test
     fun dni_dniValido_loAcepta() {
-        assertNull(Dni().validate("12345678Z", beanIrrelevante))
+        assertNull(Dni().validate("93882914L", beanIrrelevante))
     }
 
     @Test

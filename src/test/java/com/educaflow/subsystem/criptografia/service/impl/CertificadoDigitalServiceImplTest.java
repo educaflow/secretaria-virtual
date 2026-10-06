@@ -56,15 +56,15 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CertificadoDigitalServiceImplTest {
 
-    private static final String DNI = "85432016B";
-    private static final String DNI_CON_USUARIO = "29050788V";
-    private static final String DNI_SIN_USUARIO = "12345678Z";
+    private static final String DNI = "98803877V";
+    private static final String DNI_CON_USUARIO = "97098432E";
+    private static final String DNI_SIN_USUARIO = "93882914L";
     private static final String DNI_INVALIDO = "12345678A";
     private static final String DNI_A_MEDIO_TECLEAR = "1234";
-    private static final String RUTA_CLASSPATH_CERTIFICADO = "firma/mi_certificado.p12";
-    private static final String RUTA_CLASSPATH_CERTIFICADO_SECRETARIO =
-            "firma/instalar_certificado_criptografico/secretario.p12";
-    private static final String CLAVE = "nadanada";
+    // Certificados de test de la CA de demo (src/test/resources/firma/test), que no son de ningún usuario
+    private static final String RUTA_CLASSPATH_CERTIFICADO = "firma/test/test1.p12";
+    private static final String RUTA_CLASSPATH_OTRO_CERTIFICADO = "firma/test/test2.p12";
+    private static final String CLAVE = "demo1234";
     private static final String CLAVE_TECLEADA_DISTINTA = "claveTecleadaDistinta";
     private static final String CLAVE_EN_BLANCO = "   ";
     private static final String CLAVE_SECRETA = "claveSecretaDePrueba";
@@ -1125,7 +1125,7 @@ class CertificadoDigitalServiceImplTest {
         CertificadoDigital certificadoHabilitado = new CertificadoDigital();
         certificadoHabilitado.setDni(DNI_CON_USUARIO);
         certificadoHabilitado.setTipoCertificado(TipoUbicacionCertificado.CLASSPATH);
-        certificadoHabilitado.setRutaClasspath(RUTA_CLASSPATH_CERTIFICADO_SECRETARIO);
+        certificadoHabilitado.setRutaClasspath(RUTA_CLASSPATH_OTRO_CERTIFICADO);
         certificadoHabilitado.setPassword(CLAVE);
         certificadoHabilitado.setEnabled(Boolean.TRUE);
         stubCertificadoHabilitado(DNI_CON_USUARIO, certificadoHabilitado);
@@ -1134,7 +1134,7 @@ class CertificadoDigitalServiceImplTest {
 
         AlmacenClaveFichero almacenClaveFichero = assertInstanceOf(AlmacenClaveFichero.class, almacenClave);
         try (InputStream contenidoCertificado = almacenClaveFichero.getFileCertificate()) {
-            assertArrayEquals(contenidoDelRecursoDeClasspath(RUTA_CLASSPATH_CERTIFICADO_SECRETARIO),
+            assertArrayEquals(contenidoDelRecursoDeClasspath(RUTA_CLASSPATH_OTRO_CERTIFICADO),
                     contenidoCertificado.readAllBytes());
         }
         assertEquals(CLAVE, almacenClaveFichero.getPassword());

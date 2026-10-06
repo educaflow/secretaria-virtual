@@ -29,7 +29,7 @@ import org.mockito.quality.Strictness
  */
 class ClaveCertificadoValidaTest {
 
-    private val dni = "12345678Z"
+    private val dni = "93882914L"
 
     private var securityUtil: MockedStatic<SecurityUtil>? = null
     private var i18n: MockedStatic<I18n>? = null

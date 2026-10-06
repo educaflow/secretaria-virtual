@@ -23,13 +23,13 @@ test.describe('SMS — Todos', () => {
     await page.getByTestId('item:sms-todos-menuitem').click();
     await page.getByRole('button', { name: 'Nuevo SMS' }).click();
 
-    // Paso 3: Y elige el centro "CIPFP Mislata", escribe el DNI del destinatario «86862719E»,
+    // Paso 3: Y elige el centro "CIPFP Mislata", escribe el DNI del destinatario «95591733F»,
     // el nombre «Alumno1», los apellidos «CIPFP Mislata», deja vacío el teléfono y escribe el
     // mensaje «Mañana no hay clase».
     // El label real incluye un icono de ayuda ("Centro ?"), de ahí el regex.
     await page.getByRole('combobox', { name: /^Centro\b/ }).click();
     await page.getByRole('option', { name: 'CIPFP Mislata', exact: true }).click();
-    await page.getByLabel('DNI del destinatario').fill('86862719E');
+    await page.getByLabel('DNI del destinatario').fill('95591733F');
     await page.getByLabel('Nombre', { exact: true }).fill('Alumno1');
     await page.getByLabel('Apellidos').fill('CIPFP Mislata');
     // El teléfono se deja vacío: no se toca. El widget de teléfono internacional muestra por sí

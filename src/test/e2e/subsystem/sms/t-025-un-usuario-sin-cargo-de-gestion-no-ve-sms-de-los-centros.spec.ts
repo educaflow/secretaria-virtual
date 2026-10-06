@@ -45,12 +45,12 @@ test.describe('SMS — Del centro', () => {
     await login(page, 'admin', 'admin');
 
     // Paso 2: Cuando abre el menú "SMS" → "Todos", pulsa "Nuevo SMS", elige el centro "CIPFP Mislata",
-    // escribe el DNI «03532821K», el nombre «Alumno2», los apellidos «CIPFP Mislata», el teléfono
+    // escribe el DNI «99024353S», el nombre «Alumno2», los apellidos «CIPFP Mislata», el teléfono
     // «600555666» y el mensaje «Aviso para Alumno2», y pulsa "Guardar".
     await page.getByText('SMS', { exact: true }).click();
     await page.getByTestId('item:sms-todos-menuitem').click();
     await altaSms(page, {
-      centro: 'CIPFP Mislata', dni: '03532821K', nombre: 'Alumno2', apellidos: 'CIPFP Mislata',
+      centro: 'CIPFP Mislata', dni: '99024353S', nombre: 'Alumno2', apellidos: 'CIPFP Mislata',
       telefono: '600555666', mensaje: aviso,
     });
 

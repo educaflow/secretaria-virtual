@@ -58,7 +58,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class SmsServiceImplTest {
 
-    private static final String DNI_VALIDO = "12345678Z";
+    private static final String DNI_VALIDO = "93882914L";
     private static final String DNI_LETRA_INCORRECTA = "12345678A";
     private static final Long SMS_ID = 100L;
 

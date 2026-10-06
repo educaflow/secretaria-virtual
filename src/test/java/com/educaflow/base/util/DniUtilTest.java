@@ -36,7 +36,7 @@ class DniUtilTest {
 
     @Test
     void isValid_conDni_compruebaLaLetraDeControl() {
-        assertTrue(DniUtil.isValid("12345678Z"));
+        assertTrue(DniUtil.isValid("93882914L"));
         assertFalse(DniUtil.isValid("12345678A"));
     }
 
@@ -72,6 +72,6 @@ class DniUtilTest {
     @Test
     void isValid_conFormatoNoReconocido_devuelveFalse() {
         assertFalse(DniUtil.isValid("ABCDEFGHI"));
-        assertFalse(DniUtil.isValid("12345678z"));
+        assertFalse(DniUtil.isValid("93882914l"));
     }
 }

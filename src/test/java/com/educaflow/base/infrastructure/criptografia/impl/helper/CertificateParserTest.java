@@ -51,7 +51,7 @@ class CertificateParserTest {
                 .addRDN(BCStyle.CN, new DERUTF8String("Nombre Sujeto"))
                 .build();
         X500Name dirName = new X500NameBuilder(BCStyle.INSTANCE)
-                .addRDN(BCStyle.SERIALNUMBER, new DERUTF8String("IDCES-12345678Z"))
+                .addRDN(BCStyle.SERIALNUMBER, new DERUTF8String("IDCES-93882914L"))
                 .build();
 
         X509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(
@@ -96,7 +96,7 @@ class CertificateParserTest {
     void findOidsWithLocation_oidDentroDeObjetoEtiquetadoDeExtension_loDevuelveConElOidDeLaExtension() {
         Map<String, String> result = CertificateParser.findOidsWithLocation(cert, OID_SERIAL);
 
-        assertEquals(Map.of(Extension.subjectAlternativeName.getId(), "IDCES-12345678Z"), result);
+        assertEquals(Map.of(Extension.subjectAlternativeName.getId(), "IDCES-93882914L"), result);
     }
 
     @Test

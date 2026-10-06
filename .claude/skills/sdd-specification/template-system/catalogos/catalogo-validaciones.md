@@ -61,9 +61,9 @@ Es una ayuda **no exhaustiva**: cubre los tipos más habituales, pero si el nego
 
 | Descripción de la regla                                                   | Cuándo se aplica            | Mensaje al usuario                          | Ejemplo de mensaje                                                  |
 |---------------------------------------------------------------------------|-----------------------------|---------------------------------------------|---------------------------------------------------------------------|
-| El campo A debe ser único globalmente                                     | Al crear o modificar A      | Ya existe un registro con A                 | "Ya existe una persona con NIF '12345678Z'"                         |
+| El campo A debe ser único globalmente                                     | Al crear o modificar A      | Ya existe un registro con A                 | "Ya existe una persona con NIF '93882914L'"                         |
 | El campo A debe ser único dentro del ámbito C                             | Al crear o modificar A      | Ya existe un registro con A en C            | "Ya existe un aula con código 'A-101' en el centro IES Levante"     |
-| La combinación (A, B, …) debe ser única                                   | Al crear o modificar A o B  | Ya existe un registro con esa combinación   | "Ya existe una matrícula del alumno '12345678Z' en el curso 2024/2025" |
+| La combinación (A, B, …) debe ser única                                   | Al crear o modificar A o B  | Ya existe un registro con esa combinación   | "Ya existe una matrícula del alumno '93882914L' en el curso 2024/2025" |
 | No se puede borrar el registro padre si tiene registros hijos *(RESTRICT)* | Al borrar el padre          | No se puede borrar P porque tiene H asociados | "No se puede borrar la familia profesional 'Informática' porque tiene 3 ciclos asociados" |
 | Al borrar el padre se borran también los registros hijos *(CASCADE)*      | Al borrar el padre          | Se borrarán también los H asociados         | "Se borrarán también las N líneas del pedido"                       |
 | Al borrar el padre los hijos pierden la referencia *(SET NULL)*           | Al borrar el padre          | Los H quedarán sin P asignado               | "Los alumnos del aula quedarán sin aula asignada"                   |

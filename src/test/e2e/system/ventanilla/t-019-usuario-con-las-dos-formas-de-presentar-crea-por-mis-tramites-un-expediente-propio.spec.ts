@@ -49,7 +49,7 @@ const TRAMITES_DEL_PROFESOR = [TRAMITE, 'Trámite de prueba'];
 const JEFE_NOMBRE_COMPLETO = 'JefeEstudios1 CIPFP Mislata';
 const JEFE_NOMBRE = 'JefeEstudios1';
 const JEFE_APELLIDOS = 'CIPFP Mislata';
-const JEFE_DNI = '15519084H';
+const JEFE_DNI = '93424956Z';
 
 // Títulos de las TRES pantallas del asistente (los fijan los `action-view` de
 // `system/ventanilla/views/`). Se usan para comprobar tanto que se abre la que toca

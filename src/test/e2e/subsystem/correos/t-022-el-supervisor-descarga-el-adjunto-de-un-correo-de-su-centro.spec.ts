@@ -35,14 +35,14 @@ test.describe('Correos de mis centros', () => {
 
     try {
       // Paso 1: Dado que el administrador ha iniciado sesión, pulsa "Nuevo correo",
-      // rellena el DNI «86862719E», el nombre «Alumno1», los apellidos «CIPFP
+      // rellena el DNI «95591733F», el nombre «Alumno1», los apellidos «CIPFP
       // Mislata», el «para» «alumno1@mislata.es», el asunto «Circular con adjunto»,
       // el cuerpo «texto» y elige el centro «CIPFP Mislata».
       await page.getByText('Correos', { exact: true }).click();
       await page.getByTestId('item:correos-todos-menuitem').click();
       await page.getByRole('button', { name: 'Nuevo correo' }).click();
 
-      await page.getByLabel('DNI del destinatario').fill('86862719E');
+      await page.getByLabel('DNI del destinatario').fill('95591733F');
       await page.getByLabel('Nombre', { exact: true }).fill('Alumno1');
       await page.getByLabel('Apellidos').fill('CIPFP Mislata');
       // El label real incluye un icono de ayuda ("Para ?"), de ahí el prefijo con regex.

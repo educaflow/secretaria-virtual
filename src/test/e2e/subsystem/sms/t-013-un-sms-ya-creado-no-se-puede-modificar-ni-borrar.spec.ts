@@ -20,7 +20,7 @@ test.describe('SMS — Todos', () => {
     // (hecho arriba con login)
 
     // Paso 2: Cuando abre el menú "SMS" → "Todos", pulsa "Nuevo SMS", elige el centro "CIPFP Mislata",
-    // escribe el DNI «86862719E», el nombre «Alumno1», los apellidos «CIPFP Mislata», el teléfono
+    // escribe el DNI «95591733F», el nombre «Alumno1», los apellidos «CIPFP Mislata», el teléfono
     // «600111222» y el mensaje «Mañana no hay clase», y pulsa "Guardar".
     await page.getByText('SMS', { exact: true }).click();
     await page.getByTestId('item:sms-todos-menuitem').click();
@@ -28,7 +28,7 @@ test.describe('SMS — Todos', () => {
     // El label real incluye un icono de ayuda ("Centro ?"), de ahí el regex.
     await page.getByRole('combobox', { name: /^Centro\b/ }).click();
     await page.getByRole('option', { name: 'CIPFP Mislata' }).click();
-    await page.getByLabel('DNI del destinatario').fill('86862719E');
+    await page.getByLabel('DNI del destinatario').fill('95591733F');
     await page.getByLabel('Nombre', { exact: true }).fill('Alumno1');
     await page.getByLabel('Apellidos').fill('CIPFP Mislata');
     // El widget de teléfono internacional arranca con el prefijo "+34": se deja solo el
@@ -60,7 +60,7 @@ test.describe('SMS — Todos', () => {
     // (no se puede escribir en ningún campo del panel "Datos del SMS").
     const datosSms = page.getByRole('region', { name: 'Datos del SMS' });
     await expect(datosSms).toBeVisible();
-    await expect(datosSms.getByLabel('DNI del destinatario')).toHaveValue('86862719E');
+    await expect(datosSms.getByLabel('DNI del destinatario')).toHaveValue('95591733F');
     await expect(datosSms.getByLabel('DNI del destinatario')).toBeDisabled();
     await expect(datosSms.getByLabel('Nombre', { exact: true })).toHaveValue('Alumno1');
     await expect(datosSms.getByLabel('Nombre', { exact: true })).toBeDisabled();

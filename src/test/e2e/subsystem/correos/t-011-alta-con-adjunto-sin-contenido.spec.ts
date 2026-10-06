@@ -22,7 +22,7 @@ test.describe('Administración de correos', () => {
     await page.getByTestId('item:correos-todos-menuitem').click();
     await page.getByRole('button', { name: 'Nuevo correo' }).click();
 
-    await page.getByLabel('DNI del destinatario').fill('86862719E');
+    await page.getByLabel('DNI del destinatario').fill('95591733F');
     await page.getByLabel('Nombre', { exact: true }).fill('Alumno1');
     await page.getByLabel('Apellidos').fill('CIPFP Mislata');
     // El label real incluye un icono de ayuda ("Para ?"), de ahí el prefijo con regex.

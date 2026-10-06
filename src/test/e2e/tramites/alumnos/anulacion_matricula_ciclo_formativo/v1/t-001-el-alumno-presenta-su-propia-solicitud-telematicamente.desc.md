@@ -70,6 +70,6 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 - **Then** se cierra la pantalla «Nuevo expediente» y se abre el expediente en la fase `ENTRADA`, estado `ENTRADA_DATOS`, cuya cabecera muestra «Entrada» y «Entrada de datos».
 - **And** el aviso de la pantalla es «Para presentar la solicitud necesitará firmarla con su certificado digital desde este mismo ordenador».
 - **And** el panel «Persona que presenta la solicitud» **no** aparece: solicitante e interesado son la misma persona.
-- **And** en «Alumno/a al que se refiere la solicitud» los campos vienen rellenos con los datos de quien ha entrado —«Apellidos» = «CIPFP Mislata», «Nombre» = «Alumno1», «DNI/NIE» = «86862719E»— y los tres están bloqueados.
+- **And** en «Alumno/a al que se refiere la solicitud» los campos vienen rellenos con los datos de quien ha entrado —«Apellidos» = «CIPFP Mislata», «Nombre» = «Alumno1», «DNI/NIE» = «95591733F»— y los tres están bloqueados.
 - **And** el panel «Datos del alumno/a» («NIA», «Teléfono», «Dirección», «Municipio», «CP») está vacío y editable, y el panel «Matrícula que se anula» muestra el curso académico y «CIPFP Mislata» de solo lectura, con «Ciclo» vacío.
 - **And** el pie ofrece los botones «Borrar el expediente» y «Siguiente».

@@ -69,6 +69,6 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 - **Then** se abre la pantalla «Nuevo expediente» con «Centro» = «CIPFP Mislata» de solo lectura, **sin** la pregunta «¿Cómo se presenta?» (la forma la fija la entrada de menú) y **sin** la pregunta «¿Para quién es el expediente?»: es familiar y no alumno, así que el expediente solo puede ser en representación y el asistente lo fija sin preguntar.
 - **When** pulsa «Crear expediente».
 - **Then** se abre el expediente en la fase `ENTRADA`, estado `ENTRADA_DATOS`, con la cabecera «Entrada» / «Entrada de datos».
-- **And** aparece el panel «Persona que presenta la solicitud» con los datos del familiar que ha entrado —«Apellidos» = «de Alumno1 CIPFP Mislata», «Nombre» = «Familiar1», «DNI/NIE» = «43145636M»— y los tres campos bloqueados.
+- **And** aparece el panel «Persona que presenta la solicitud» con los datos del familiar que ha entrado —«Apellidos» = «de Alumno1 CIPFP Mislata», «Nombre» = «Familiar1», «DNI/NIE» = «90923322K»— y los tres campos bloqueados.
 - **And** en «Alumno/a al que se refiere la solicitud» los campos «Apellidos», «Nombre» y «DNI/NIE» están **vacíos y editables**: es donde se identificará al hijo.
 - **And** el pie ofrece «Borrar el expediente» y «Siguiente».

@@ -45,7 +45,7 @@ class UsuarioAutorizadoServiceImplTest {
     private UsuarioAutorizado usuarioAutorizado(Centro centroDelUsuarioAutorizado) {
         UsuarioAutorizado usuarioAutorizado = new UsuarioAutorizado();
         usuarioAutorizado.setCentro(centroDelUsuarioAutorizado);
-        usuarioAutorizado.setDni("12345678Z");
+        usuarioAutorizado.setDni("93882914L");
         return usuarioAutorizado;
     }
 

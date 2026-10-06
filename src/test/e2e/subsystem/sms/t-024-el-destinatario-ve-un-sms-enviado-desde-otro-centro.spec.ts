@@ -19,7 +19,7 @@ test.describe('SMS — Recibidos', () => {
     await login(page, 'admin', 'admin');
 
     // Paso 2: Cuando abre el menú "SMS" → "Todos", pulsa "Nuevo SMS", elige el centro "CIPFP Batoi",
-    // escribe el DNI «86862719E», el nombre «Alumno1», los apellidos «CIPFP Mislata», el teléfono
+    // escribe el DNI «95591733F», el nombre «Alumno1», los apellidos «CIPFP Mislata», el teléfono
     // «600111222» y el mensaje «Aviso desde Batoi», y pulsa "Guardar".
     await page.getByText('SMS', { exact: true }).click();
     await page.getByTestId('item:sms-todos-menuitem').click();
@@ -27,7 +27,7 @@ test.describe('SMS — Recibidos', () => {
     // El label real incluye un icono de ayuda ("Centro ?"), de ahí el regex.
     await page.getByRole('combobox', { name: /^Centro\b/ }).click();
     await page.getByRole('option', { name: 'CIPFP Batoi' }).click();
-    await page.getByLabel('DNI del destinatario').fill('86862719E');
+    await page.getByLabel('DNI del destinatario').fill('95591733F');
     await page.getByLabel('Nombre', { exact: true }).fill('Alumno1');
     await page.getByLabel('Apellidos').fill('CIPFP Mislata');
     // El widget de teléfono internacional arranca con el prefijo "+34": se deja solo el

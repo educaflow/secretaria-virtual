@@ -46,7 +46,7 @@ const TIPO_TRAMITE_PROFESOR = 'Trámites para el profesor';
 // refiere la solicitud".
 const NOMBRE = 'AlumnoFamiliar';
 const APELLIDOS = 'CIPFP Mislata';
-const DNI = '48213579J';
+const DNI = '97827324K';
 const NOMBRE_COMPLETO = 'AlumnoFamiliar CIPFP Mislata';
 
 // Títulos de las TRES pantallas del asistente (los fijan los `action-view` de

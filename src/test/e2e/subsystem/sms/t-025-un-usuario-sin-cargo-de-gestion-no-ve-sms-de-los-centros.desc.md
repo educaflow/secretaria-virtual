@@ -24,7 +24,7 @@ Estado previo (datos maestros gestionados por otros subsistemas: gestión de cen
 - Usuario administrador global, con acceso a cualquier centro.
 - Cuentas de gestión de «CIPFP Mislata»: un Supervisor (`supervisor1@mislata.es`) y un Administrativo (`administrativo1@mislata.es`).
 - Cuenta de Supervisor de los dos centros a la vez: `supervisordoscentros@mislata.es`.
-- Cuentas de alumno con DNI, sin ningún cargo de gestión: `alumno1@mislata.es` (DNI «86862719E», de «CIPFP Mislata») y `alumno2@mislata.es` (DNI «03532821K», de «CIPFP Mislata»). El DNI «65399546N» es el del alumno de «CIPFP Batoi».
+- Cuentas de alumno con DNI, sin ningún cargo de gestión: `alumno1@mislata.es` (DNI «95591733F», de «CIPFP Mislata») y `alumno2@mislata.es` (DNI «99024353S», de «CIPFP Mislata»). El DNI «92898219T» es el del alumno de «CIPFP Batoi».
 - La aplicación tiene configurada (o no) una cuenta del proveedor de SMS: las tres propiedades `sms.credentials.twilio.*` / `sms.twilio.from` son de instalación y **no** son datos de la aplicación. Ningún test depende de que estén rellenas.
 - No hay ningún SMS dado de alta: cada test crea los suyos.
 
@@ -36,7 +36,7 @@ Estado previo (datos maestros gestionados por otros subsistemas: gestión de cen
 | supervisor1@mislata.es | demo1234 | Supervisor | CIPFP Mislata |
 | administrativo1@mislata.es | demo1234 | Administrativo | CIPFP Mislata |
 | supervisordoscentros@mislata.es | demo1234 | Supervisor | CIPFP Mislata y CIPFP Batoi |
-| alumno1@mislata.es | demo1234 | Alumno, destinatario (DNI 86862719E) | CIPFP Mislata |
+| alumno1@mislata.es | demo1234 | Alumno, destinatario (DNI 95591733F) | CIPFP Mislata |
 
 ## Precondiciones
 
@@ -45,7 +45,7 @@ Estado previo (datos maestros gestionados por otros subsistemas: gestión de cen
 ## Pasos
 
 1. **Dado** que el administrador ha iniciado sesión con usuario «admin» y contraseña «admin».
-2. **Cuando** abre el menú "SMS" → "Todos", pulsa "Nuevo SMS", elige el centro "CIPFP Mislata", escribe el DNI «03532821K», el nombre «Alumno2», los apellidos «CIPFP Mislata», el teléfono «600555666» y el mensaje «Aviso para Alumno2», y pulsa "Guardar".
+2. **Cuando** abre el menú "SMS" → "Todos", pulsa "Nuevo SMS", elige el centro "CIPFP Mislata", escribe el DNI «99024353S», el nombre «Alumno2», los apellidos «CIPFP Mislata», el teléfono «600555666» y el mensaje «Aviso para Alumno2», y pulsa "Guardar".
 3. **Y** comprueba que el SMS «Aviso para Alumno2» aparece en el listado, y cierra sesión.
 4. **Y** el alumno «alumno1@mislata.es» inicia sesión con contraseña «demo1234» y despliega el menú "SMS".
 5. **Y** abre el menú "SMS" → "Del centro".

@@ -35,14 +35,14 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CertificadoDigitalControllerTest {
 
-    private static final String DNI_CON_USUARIO = "29050788V";
-    private static final String DNI_SIN_USUARIO = "12345678Z";
+    private static final String DNI_CON_USUARIO = "97098432E";
+    private static final String DNI_SIN_USUARIO = "93882914L";
     private static final int DNI_NUMERICO = 12345678;
     private static final String DNI_NUMERICO_COMO_TEXTO = String.valueOf(DNI_NUMERICO);
     private static final String NOMBRE_TITULAR = "Secretario";
     private static final String APELLIDOS_TITULAR = "CIPFP Mislata";
     private static final String MENSAJE_DNI_NO_VALIDO = "El DNI no es válido";
-    private static final String DNI_USUARIO_AUTENTICADO = "12345678Z";
+    private static final String DNI_USUARIO_AUTENTICADO = "93882914L";
     private static final String MENSAJE_SIN_DNI = "El usuario no tiene DNI";
 
     private CertificadoDigitalController controller;

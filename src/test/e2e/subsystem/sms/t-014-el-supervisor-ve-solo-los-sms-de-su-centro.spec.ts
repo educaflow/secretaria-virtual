@@ -47,19 +47,19 @@ test.describe('SMS — Del centro', () => {
     await login(page, 'admin', 'admin');
 
     // Paso 2: Cuando da de alta desde "SMS" → "Todos" un SMS del centro "CIPFP Mislata" con el DNI
-    // «86862719E», el nombre «Alumno1», los apellidos «CIPFP Mislata», el teléfono «600111222» y el
+    // «95591733F», el nombre «Alumno1», los apellidos «CIPFP Mislata», el teléfono «600111222» y el
     // mensaje «Aviso Mislata».
     await page.getByText('SMS', { exact: true }).click();
     await page.getByTestId('item:sms-todos-menuitem').click();
     await altaSms(page, {
-      centro: 'CIPFP Mislata', dni: '86862719E', nombre: 'Alumno1', apellidos: 'CIPFP Mislata',
+      centro: 'CIPFP Mislata', dni: '95591733F', nombre: 'Alumno1', apellidos: 'CIPFP Mislata',
       telefono: '600111222', mensaje: avisoMislata,
     });
 
-    // Paso 3: Y da de alta otro SMS del centro "CIPFP Batoi" con el DNI «65399546N», el nombre «Alumno1»,
+    // Paso 3: Y da de alta otro SMS del centro "CIPFP Batoi" con el DNI «92898219T», el nombre «Alumno1»,
     // los apellidos «CIPFP Batoi», el teléfono «600333444» y el mensaje «Aviso Batoi».
     await altaSms(page, {
-      centro: 'CIPFP Batoi', dni: '65399546N', nombre: 'Alumno1', apellidos: 'CIPFP Batoi',
+      centro: 'CIPFP Batoi', dni: '92898219T', nombre: 'Alumno1', apellidos: 'CIPFP Batoi',
       telefono: '600333444', mensaje: avisoBatoi,
     });
 
@@ -85,12 +85,12 @@ test.describe('SMS — Del centro', () => {
     await page.waitForURL(/\/edit\/\d+/);
 
     // Resultado esperado: el detalle se muestra en solo lectura, con el panel "Datos del SMS"
-    // (centro "CIPFP Mislata", DNI «86862719E», nombre «Alumno1», apellidos «CIPFP Mislata»,
+    // (centro "CIPFP Mislata", DNI «95591733F», nombre «Alumno1», apellidos «CIPFP Mislata»,
     // teléfono «+34600111222» y mensaje «Aviso Mislata»).
     const datosSms = page.getByRole('region', { name: 'Datos del SMS' });
     await expect(datosSms).toBeVisible();
     await expect(datosSms.getByRole('button', { name: 'CIPFP Mislata' })).toBeVisible();
-    await expect(datosSms.getByLabel('DNI del destinatario')).toHaveValue('86862719E');
+    await expect(datosSms.getByLabel('DNI del destinatario')).toHaveValue('95591733F');
     await expect(datosSms.getByLabel('DNI del destinatario')).toBeDisabled();
     await expect(datosSms.getByLabel('Nombre', { exact: true })).toHaveValue('Alumno1');
     await expect(datosSms.getByLabel('Nombre', { exact: true })).toBeDisabled();

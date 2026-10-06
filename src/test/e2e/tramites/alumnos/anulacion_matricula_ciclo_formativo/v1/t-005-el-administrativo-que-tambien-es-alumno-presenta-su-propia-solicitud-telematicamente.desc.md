@@ -70,5 +70,5 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 - **When** pulsa «Crear expediente».
 - **Then** se abre el expediente en la fase `ENTRADA`, estado `ENTRADA_DATOS`, con la cabecera «Entrada» / «Entrada de datos», exactamente igual que en T-001: el expediente nace como presentación telemática aunque quien entra sea administrativo.
 - **And** el aviso es «Para presentar la solicitud necesitará firmarla con su certificado digital desde este mismo ordenador».
-- **And** el panel «Persona que presenta la solicitud» **no** aparece, y en «Alumno/a al que se refiere la solicitud» los campos vienen rellenos con sus propios datos —«Apellidos» = «CIPFP Mislata», «Nombre» = «Administrativo2», «DNI/NIE» = «16493254T»— y bloqueados.
+- **And** el panel «Persona que presenta la solicitud» **no** aparece, y en «Alumno/a al que se refiere la solicitud» los campos vienen rellenos con sus propios datos —«Apellidos» = «CIPFP Mislata», «Nombre» = «Administrativo2», «DNI/NIE» = «97345780M»— y bloqueados.
 - **And** el pie ofrece «Borrar el expediente» y «Siguiente».

@@ -24,7 +24,7 @@ Un paso que **agrupa varias acciones consecutivas** debe descomponerse en un pas
 - ❌ INCORRECTO: `2. El administrador crea un correo con sus datos y lo envía.` (agrupa navegar, rellenar N campos, guardar y enviar)
 - ✅ CORRECTO:
   `2. Abre la pantalla de administración de correos y pulsa «Nuevo correo».`
-  `3. Rellena el destinatario con el DNI «86862719E», el «para» con «alumno1@mislata.es», el asunto «Aviso» y el cuerpo «texto», y elige el centro «CIPFP Mislata».`
+  `3. Rellena el destinatario con el DNI «95591733F», el «para» con «alumno1@mislata.es», el asunto «Aviso» y el cuerpo «texto», y elige el centro «CIPFP Mislata».`
   `4. Pulsa «Guardar».`
 - ❌ INCORRECTO: `1. Prepara los datos necesarios para la prueba.` (no dice qué datos ni cómo; quien lo lea tiene que adivinar)
 - ❌ INCORRECTO: `3. Comprueba que todo ha ido bien.` (no dice qué respuesta literal del sistema se espera)

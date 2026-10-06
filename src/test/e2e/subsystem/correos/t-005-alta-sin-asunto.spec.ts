@@ -28,10 +28,10 @@ test.describe('Administración de correos', () => {
     // Paso 1: Dado que el administrador pulsa "Nuevo correo"
     await page.getByRole('button', { name: 'Nuevo correo' }).click();
 
-    // Paso 2: Cuando rellena el DNI «86862719E», el nombre «Alumno1», los apellidos
+    // Paso 2: Cuando rellena el DNI «95591733F», el nombre «Alumno1», los apellidos
     // «CIPFP Mislata», el «para» «alumno1@mislata.es», el cuerpo «texto», elige el
     // centro «CIPFP Mislata» y deja vacío el asunto.
-    await page.getByLabel('DNI del destinatario').fill('86862719E');
+    await page.getByLabel('DNI del destinatario').fill('95591733F');
     await page.getByLabel('Nombre', { exact: true }).fill('Alumno1');
     await page.getByLabel('Apellidos').fill('CIPFP Mislata');
     // El label real incluye un icono de ayuda ("Para ?"), de ahí el prefijo con regex.

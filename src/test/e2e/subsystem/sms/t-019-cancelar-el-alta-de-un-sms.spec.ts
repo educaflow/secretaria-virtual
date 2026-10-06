@@ -49,12 +49,12 @@ test.describe('SMS — Todos', () => {
     await expect(page.getByRole('button', { name: 'Salir' })).toHaveCount(0);
     await expect(page.getByText('Datos del envío')).toHaveCount(0);
 
-    // Paso 4: Cuando elige el centro "CIPFP Mislata", escribe el DNI «86862719E», el nombre
+    // Paso 4: Cuando elige el centro "CIPFP Mislata", escribe el DNI «95591733F», el nombre
     // «Alumno1», los apellidos «CIPFP Mislata», el teléfono «600111222» y el mensaje «Alta cancelada».
     // El label real incluye un icono de ayuda ("Centro ?"), de ahí el regex.
     await page.getByRole('combobox', { name: /^Centro\b/ }).click();
     await page.getByRole('option', { name: 'CIPFP Mislata', exact: true }).click();
-    await page.getByLabel('DNI del destinatario').fill('86862719E');
+    await page.getByLabel('DNI del destinatario').fill('95591733F');
     await page.getByLabel('Nombre', { exact: true }).fill('Alumno1');
     await page.getByLabel('Apellidos').fill('CIPFP Mislata');
     await page.getByPlaceholder('+34 123 456 789').fill('600111222');

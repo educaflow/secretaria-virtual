@@ -26,7 +26,7 @@ test.describe('Administración de correos', () => {
 
     // Paso 3: Y rellena el DNI, el nombre, los apellidos, el «para», el asunto, el
     // cuerpo y elige el centro «CIPFP Mislata»
-    await page.getByLabel('DNI del destinatario').fill('86862719E');
+    await page.getByLabel('DNI del destinatario').fill('95591733F');
     await page.getByLabel('Nombre', { exact: true }).fill('Alumno1');
     await page.getByLabel('Apellidos').fill('CIPFP Mislata');
     // El label real incluye un icono de ayuda ("Para ?"), de ahí el prefijo con regex.

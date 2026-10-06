@@ -44,7 +44,7 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 class EntradaHelperTest {
 
-    private static final String DNI = "12345678Z";
+    private static final String DNI = "93882914L";
     private static final String CLAVE = "clave";
     private static final String CAMPO_FIRMA = "firmaSolicitante";
 

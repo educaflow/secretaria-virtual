@@ -158,7 +158,7 @@ test.describe('Justificación de falta del profesorado — ENTRADA', () => {
       const panelProfesor = page.getByRole('region', { name: 'Datos del profesor interesado' });
       await expect(panelProfesor.getByLabel('Apellidos')).toHaveValue('CIPFP Mislata');
       await expect(panelProfesor.getByLabel('Nombre')).toHaveValue('Director');
-      await expect(panelProfesor.getByLabel('DNI')).toHaveValue('85432016B');
+      await expect(panelProfesor.getByLabel('DNI')).toHaveValue('98803877V');
 
       // … y con el panel «Datos de la falta» sin ningún dato del periodo precargado.
       const panelFalta = page.getByRole('region', { name: 'Datos de la falta' });

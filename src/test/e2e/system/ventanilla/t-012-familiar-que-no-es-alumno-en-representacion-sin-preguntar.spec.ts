@@ -37,7 +37,7 @@ const TIPO_TRAMITE_PROFESOR = 'Trámites para el profesor';
 // prerrellenados y en solo lectura en el panel "Persona que presenta la solicitud".
 const FAMILIAR_NOMBRE = 'Familiar1';
 const FAMILIAR_APELLIDOS = 'de Alumno1 CIPFP Mislata';
-const FAMILIAR_DNI = '43145636M';
+const FAMILIAR_DNI = '90923322K';
 const FAMILIAR_NOMBRE_COMPLETO = 'Familiar1 de Alumno1 CIPFP Mislata';
 
 // Títulos de las TRES pantallas del asistente (los fijan los `action-view` de
