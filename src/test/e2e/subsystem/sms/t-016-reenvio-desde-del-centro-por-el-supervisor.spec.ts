@@ -80,11 +80,11 @@ test.describe('SMS — Del centro', () => {
     await page.waitForURL(/\/edit\/\d+/);
 
     const datosEnvio = page.getByRole('region', { name: 'Datos del envío' });
-    const estado = datosEnvio.getByRole('combobox', { name: 'Estado' });
-    await expect(estado).toHaveValue(/^(Enviado|Fallido)$/);
+    // El estado es un grupo de radios (Pendiente / Enviado / Fallido) de solo lectura.
+    await expect(datosEnvio.getByRole('radio', { name: /^(Enviado|Fallido)$/, checked: true })).toHaveCount(1);
     const reenviar = page.getByRole('button', { name: 'Reenviar' });
 
-    if ((await estado.inputValue()) === 'Fallido') {
+    if (await datosEnvio.getByRole('radio', { name: 'Fallido' }).isChecked()) {
       // Resultado esperado (Fallido): el sistema muestra el botón "Reenviar"; al pulsarlo muestra
       // «El reenvío del SMS se ha puesto en marcha.».
       await expect(reenviar).toBeVisible();
@@ -99,20 +99,20 @@ test.describe('SMS — Del centro', () => {
         await page.reload();
         const env = page.getByRole('region', { name: 'Datos del envío' });
         await expect(env.getByLabel('Número de reintentos')).toHaveValue('2', { timeout: 3_000 });
-        await expect(env.getByRole('combobox', { name: 'Estado' })).toHaveValue(/^(Enviado|Fallido)$/, { timeout: 3_000 });
+        await expect(env.getByRole('radio', { name: /^(Enviado|Fallido)$/, checked: true })).toHaveCount(1, { timeout: 3_000 });
       }).toPass({ timeout: 60_000, intervals: [2_000] });
 
       const envFinal = page.getByRole('region', { name: 'Datos del envío' });
-      if ((await envFinal.getByRole('combobox', { name: 'Estado' }).inputValue()) === 'Enviado') {
+      if (await envFinal.getByRole('radio', { name: 'Enviado' }).isChecked()) {
         await expect(envFinal.getByLabel('Fecha de envío', { exact: true })).not.toHaveValue('');
       } else {
-        await expect(envFinal.getByRole('combobox', { name: 'Estado' })).toHaveValue('Fallido');
+        await expect(envFinal.getByRole('radio', { name: 'Fallido' })).toBeChecked();
         // La descripción del fallo es un texto (no un input): label seguido de contenido no vacío.
         await expect(envFinal).toContainText(/Descripción del último fallo\??\s*\S+/);
       }
     } else {
       // Resultado esperado (Enviado): el sistema no muestra el botón "Reenviar".
-      await expect(estado).toHaveValue('Enviado');
+      await expect(datosEnvio.getByRole('radio', { name: 'Enviado' })).toBeChecked();
       await expect(reenviar).toHaveCount(0);
     }
 

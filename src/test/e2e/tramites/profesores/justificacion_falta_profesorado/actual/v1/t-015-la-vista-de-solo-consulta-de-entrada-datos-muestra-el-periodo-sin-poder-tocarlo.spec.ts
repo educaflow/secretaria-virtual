@@ -112,11 +112,12 @@ async function crearExpediente(page: Page): Promise<string> {
 
   await page.getByRole('button', { name: 'Crear expediente' }).click();
 
-  // La aplicación abre el expediente en una pestaña titulada «<número>-<tipo de expediente>».
+  // La aplicación abre el expediente en una pestaña titulada «<número>-<tipo de expediente>»,
+  // con el número con el formato «00001/2026-46019660» (secuencial/año-código del centro).
   const pestana = page.getByRole('tab').last();
-  await expect(pestana).toContainText(new RegExp(`\\d{4,}/\\d{4}-${TRAMITE}`));
-  const numero = (await pestana.textContent())!.split('-')[0].trim();
-  expect(numero).toMatch(/^\d{4,}\/\d{4}$/);
+  await expect(pestana).toContainText(new RegExp(`\\d{4,}/\\d{4}-\\d+-${TRAMITE}`));
+  const numero = (await pestana.textContent())!.split('-').slice(0, 2).join('-').trim();
+  expect(numero).toMatch(/^\d{4,}\/\d{4}-\d+$/);
   return numero;
 }
 
@@ -252,12 +253,17 @@ test.describe('Justificación de falta del profesorado — ENTRADA', () => {
 
       // And (cont.): … el panel «Datos de la falta» muestra, en solo lectura, el tipo de jornada
       // faltada «Unas horas de un único día» …
-      // En la vista de solo consulta el tipo de jornada ya no se pinta como grupo de radios
-      // (como en la vista del CREADOR) sino como un `input` de selección en modo solo lectura.
+      // El tipo de jornada se pinta como grupo de radios (`RadioSelect`), como en la vista del
+      // CREADOR, pero en modo solo lectura: la opción guardada marcada y ninguna se puede tocar.
       const panelConsulta = formulario.getByRole('region', { name: 'Datos de la falta' });
-      const tipoJornada = panelConsulta.getByRole('combobox', { name: 'Tipo de jornada faltada' });
-      await expect(tipoJornada).toHaveValue('Unas horas de un único día');
-      await expect(tipoJornada).toHaveAttribute('readonly', '');
+      const tipoJornada = panelConsulta.getByRole('radio', { name: 'Unas horas de un único día', exact: true });
+      await expect(tipoJornada).toBeChecked();
+      await expect(panelConsulta.getByRole('radio', { name: 'Un día completo', exact: true })).not.toBeChecked();
+      // Un radio de solo lectura no lleva `disabled` (son `div role="radio"`): simplemente ignora
+      // el clic. Se prueba así: pulsar otra opción no mueve la selección.
+      await panelConsulta.getByRole('radio', { name: 'Un día completo', exact: true }).click();
+      await expect(tipoJornada).toBeChecked();
+      await expect(panelConsulta.getByRole('radio', { name: 'Un día completo', exact: true })).not.toBeChecked();
 
       // And (cont.): … «Fecha» a 10/09/2026, «Hora de inicio» a 09:00 y «Hora de fin» a 11:00 …
       // Los tres son campos que en la vista del perfil CREADOR SÍ son editables (el tramo 1 los

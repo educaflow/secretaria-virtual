@@ -105,7 +105,8 @@ test.describe('Perfiles de trámites (Mi centro)', () => {
         await elegir(page, 'Centro', CENTRO, 'Mislata');
       }
       await expect(centro).toHaveValue(CENTRO);
-      await elegir(page, 'Perfil', PERFIL);
+      // El perfil es un grupo de radios (widget RadioSelect), no un combobox.
+      await page.getByRole('radio', { name: PERFIL, exact: true }).check();
       await elegir(page, 'Cargo', CARGO, 'Jefe');
       await expect(campo(page, 'Trámite')).toHaveValue('');
 

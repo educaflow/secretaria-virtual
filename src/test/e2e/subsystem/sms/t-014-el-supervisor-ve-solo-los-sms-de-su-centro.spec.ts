@@ -110,7 +110,9 @@ test.describe('SMS — Del centro', () => {
     const datosEnvio = page.getByRole('region', { name: 'Datos del envío' });
     await expect(datosEnvio).toBeVisible();
     // El envío es asíncrono: el estado puede ser cualquiera de los tres según el momento.
-    await expect(datosEnvio.getByRole('combobox', { name: 'Estado' })).toHaveValue(/^(Pendiente|Enviado|Fallido)$/);
+    // "Estado" es un grupo de radios (RadioSelect): hay exactamente un radio marcado.
+    await expect(datosEnvio.getByRole('radio', { checked: true })).toHaveCount(1);
+    await expect(datosEnvio.getByRole('radio', { checked: true })).toHaveAccessibleName(/^(Pendiente|Enviado|Fallido)$/);
     await expect(datosEnvio.getByLabel('Número de reintentos')).toHaveValue(/^\d+$/);
 
     // Resultado esperado: muestra el botón "Salir" y no muestra los botones "Guardar" ni "Borrar".

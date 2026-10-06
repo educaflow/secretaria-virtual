@@ -248,7 +248,7 @@ test.describe('Perfiles de trámites (Mi centro) — efecto sobre Nuevo trámite
       }
       await expect(centro).toHaveValue(CENTRO);
       await elegir(page, 'Trámite', TRAMITE, 'Anulación');
-      await elegir(page, 'Perfil', PERFIL);
+      await page.getByRole('radio', { name: PERFIL, exact: true }).check();
       await elegir(page, 'Usuario', USUARIO, 'Profesor1 C');
       await expect(campo(page, 'Tipo usuario')).toHaveValue('');
       await expect(campo(page, 'Cargo')).toHaveValue('');

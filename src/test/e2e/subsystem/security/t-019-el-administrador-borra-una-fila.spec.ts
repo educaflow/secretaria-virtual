@@ -156,7 +156,7 @@ test.describe('Perfiles de trámites por centro (Administración)', () => {
       //         «Secretario», y pulsa «Guardar».
       await elegir(page, 'Centro', CENTRO, 'Batoi');
       await elegir(page, 'Trámite', TRAMITE, 'Anulación');
-      await elegir(page, 'Perfil', PERFIL);
+      await page.getByRole('radio', { name: PERFIL, exact: true }).check();
       await elegir(page, 'Cargo', CARGO, 'Secret');
       await expect(campo(page, 'Tipo usuario')).toHaveValue('');
       await expect(campo(page, 'Usuario')).toHaveValue('');
@@ -178,7 +178,7 @@ test.describe('Perfiles de trámites por centro (Administración)', () => {
       await expect(filasDelEscenario(page)).toHaveCount(1);
       await pulsarHasta(page, filasDelEscenario(page).first(), botonBorrar(page), 'la fila del escenario');
       await expect(campo(page, 'Trámite')).toHaveValue(TRAMITE);
-      await expect(campo(page, 'Perfil')).toHaveValue(PERFIL);
+      await expect(page.getByRole('radio', { name: PERFIL, exact: true })).toBeChecked();
       await expect(campo(page, 'Cargo')).toHaveValue(CARGO);
 
       // Paso 5: Y pulsa «Borrar».

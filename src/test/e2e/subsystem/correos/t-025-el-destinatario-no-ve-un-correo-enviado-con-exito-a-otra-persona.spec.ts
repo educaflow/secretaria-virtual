@@ -45,9 +45,7 @@ test.describe('Mis correos', () => {
     await page.waitForURL(/\/edit\/\d+/);
     await expect(async () => {
       await page.reload();
-      // El campo "Estado" es un <input role="combobox"> de solo lectura: su valor
-      // vive en el atributo value, no como texto — de ahí toHaveValue.
-      await expect(page.getByRole('combobox', { name: 'Estado' })).toHaveValue('Enviado');
+      await expect(page.getByRole('radio', { name: 'Enviado' })).toBeChecked();
     }).toPass({ timeout: 60_000, intervals: [2_000] });
     await page.getByRole('button', { name: 'Salir' }).click();
 

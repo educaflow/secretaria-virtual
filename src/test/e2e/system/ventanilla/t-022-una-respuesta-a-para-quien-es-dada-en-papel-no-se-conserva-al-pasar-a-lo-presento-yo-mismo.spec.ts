@@ -102,8 +102,9 @@ const PANEL_SOLICITUD_EN_PAPEL = 'panel:solicitudEscaneadaDatosSolicitud';
 // presento yo mismo"): si hubiera sobrevivido, este panel estaría visible.
 const PANEL_PERSONA_SOLICITANTE = 'panel:persona-solicitante-editable';
 
-// Título de la pestaña del expediente creado: <nº>/<año>-<trámite> V1.
-const TITULO_EXPEDIENTE = new RegExp(`^\\d+/\\d{4}-${TRAMITE} V1$`);
+// Título de la pestaña del expediente creado: <nº>/<año>-<código de centro>-<trámite> V1
+// (p. ej. `00100/2026-46019660-Anulación de matrícula en ciclo formativo V1`).
+const TITULO_EXPEDIENTE = new RegExp(`^\\d+/\\d{4}-\\d+-${TRAMITE} V1$`);
 
 /**
  * Filas de datos del árbol de trámites (excluye cabecera y filas de agrupación). El

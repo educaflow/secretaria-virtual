@@ -116,7 +116,8 @@ async function elegir(page: Page, nombreCampo: string, opcion: string, texto?: s
 async function rellenarAlta(page: Page, centro: string, textoCentro: string): Promise<void> {
   await elegir(page, 'Centro', centro, textoCentro);
   await elegir(page, 'Trámite', TRAMITE, 'prueba');
-  await elegir(page, 'Perfil', PERFIL);
+  // «Perfil» es un enum con `widget="RadioSelect"`: un grupo de radios, no un combobox.
+  await page.getByRole('radio', { name: PERFIL, exact: true }).check();
   await elegir(page, 'Cargo', CARGO, 'Jefe');
 }
 

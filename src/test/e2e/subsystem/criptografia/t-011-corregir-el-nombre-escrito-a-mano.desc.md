@@ -42,7 +42,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Pasos
 1. **Dado** que el administrador está en la pantalla «Certificados digitales» (menú «Criptografía» → «Certificados digitales»).
-2. **Cuando** pulsa «Añadir certificado digital», escribe en «DNI» «11111111H», en «Nombre» «Ana», en «Apellidos» «García López», elige en «Tipo de certificado» la opción «Usar un fichero con el certificado que ya está dentro del del WAR», escribe en «Ruta classpath» «firma/mi_certificado.p12» y pulsa «Guardar».
+2. **Cuando** pulsa «Añadir certificado digital», escribe en «DNI» «11111111H», en «Nombre» «Ana», en «Apellidos» «García López», marca en «Tipo de certificado» (grupo de radios) la opción «Usar un fichero con el certificado que ya está dentro del del WAR», escribe en «Ruta classpath» «firma/mi_certificado.p12» y pulsa «Guardar».
 3. **Entonces** el sistema guarda el certificado y vuelve al listado.
 4. **Cuando** pulsa la fila del DNI «11111111H».
 5. **Entonces** el formulario muestra el campo «DNI» de solo lectura y los campos «Nombre» y «Apellidos» editables.

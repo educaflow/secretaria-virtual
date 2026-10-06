@@ -7,7 +7,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 
 /**
  * IDEMPOTENCIA (§4 del contrato de generación) — este test CREA un expediente, y su
- * identificador (`00024/2026`) lo asigna el servidor con un contador, así que NO se
+ * identificador (`00024/2026-46019660`) lo asigna el servidor con un contador, así que NO se
  * puede aislar con un sufijo `Date.now()` en un nombre: no hay ningún nombre que el
  * test elija. La idempotencia se consigue de las otras dos formas:
  *   - el expediente creado se identifica por SU número, capturado en tiempo de
@@ -88,8 +88,10 @@ const AVISO_PRESENTA_EL_MISMO =
 // en un formulario que lo incluya en su `<include-panels>`, que es una ALLOWLIST.
 const PANEL_PERSONA_SOLICITANTE = 'Persona que presenta la solicitud';
 
-// Título de la pestaña del expediente creado: <nº>/<año>-<trámite> V1.
-const TITULO_EXPEDIENTE = new RegExp(`^\\d+/\\d{4}-${TRAMITE} V1$`);
+// Título de la pestaña del expediente creado: <nº>/<año>-<código del centro>-<trámite> V1
+// (p. ej. `00072/2026-46019660-Anulación de matrícula en ciclo formativo V1`).
+const SUFIJO_TITULO_EXPEDIENTE = `-${TRAMITE} V1`;
+const TITULO_EXPEDIENTE = new RegExp(`^\\d+/\\d{4}-\\d+${SUFIJO_TITULO_EXPEDIENTE}$`);
 
 /**
  * PDF mínimo válido (1 página en blanco) construido EN MEMORIA. El test es de regresión
@@ -345,7 +347,9 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       const pestanaExpediente = page.getByRole('tab', { name: TITULO_EXPEDIENTE });
       await expect(pestanaExpediente).toBeVisible();
       const tituloExpediente = (await pestanaExpediente.getByTestId('title').innerText()).trim();
-      numeroExpediente = tituloExpediente.split('-')[0];
+      // Número completo del expediente (`<nº>/<año>-<código del centro>`): el título sin
+      // el sufijo `-<trámite> V1`.
+      numeroExpediente = tituloExpediente.slice(0, -SUFIJO_TITULO_EXPEDIENTE.length);
       await expect(page.getByTestId('field:namePhase').getByRole('textbox')).toHaveValue(
         FASE_INICIAL,
       );

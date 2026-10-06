@@ -50,9 +50,9 @@ test.describe('Administración de correos', () => {
     await page.waitForURL(/\/edit\/\d+/);
 
     // Resultado esperado: el sistema no muestra el botón "Reenviar".
-    // El campo "Estado" es un <input role="combobox"> de solo lectura: su valor
-    // vive en el atributo value, no como texto — de ahí toHaveValue.
-    await expect(page.getByRole('combobox', { name: 'Estado' })).toHaveValue('Enviado');
+    // El campo "Estado" es un grupo de radios (widget RadioSelect: Pendiente / Enviado /
+    // Fallido): el estado actual es el radio marcado.
+    await expect(page.getByRole('radio', { name: 'Enviado' })).toBeChecked();
     await expect(page.getByRole('button', { name: 'Reenviar' })).toHaveCount(0);
 
     // Teardown: un Correo ya enviado no se puede borrar desde la UI (el formulario de

@@ -95,11 +95,13 @@ async function crearExpediente(page: Page): Promise<string> {
 
   await page.getByRole('button', { name: 'Crear expediente' }).click();
 
-  // La aplicación abre el expediente en una pestaña titulada «<número>-<tipo de expediente>».
+  // La aplicación abre el expediente en una pestaña titulada
+  // «<número>/<año>-<códigoCentro>-<tipo de expediente>» (p. ej. «00198/2026-46019660-…»);
+  // el número del expediente son los dos primeros trozos separados por «-».
   const pestana = page.getByRole('tab').last();
-  await expect(pestana).toContainText(new RegExp(`\\d{4,}/\\d{4}-${TRAMITE}`));
-  const numero = (await pestana.textContent())!.split('-')[0].trim();
-  expect(numero).toMatch(/^\d{4,}\/\d{4}$/);
+  await expect(pestana).toContainText(new RegExp(`\\d{4,}/\\d{4}-\\d+-${TRAMITE}`));
+  const numero = (await pestana.textContent())!.split('-').slice(0, 2).join('-').trim();
+  expect(numero).toMatch(/^\d{4,}\/\d{4}-\d+$/);
   return numero;
 }
 

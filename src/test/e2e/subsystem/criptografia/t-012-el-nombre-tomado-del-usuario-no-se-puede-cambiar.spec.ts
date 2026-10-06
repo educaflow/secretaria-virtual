@@ -54,7 +54,9 @@ const campoApellidos = (page: Page) => page.getByRole('textbox', { name: 'Apelli
 // la etiqueta real de la ruta es «Ruta classpath__!!» (match por subcadena) y la
 // del check es «Habilitado ?». «Nueva contraseña» es un <input type="password">
 // (sin rol `textbox`), así que se localiza por su etiqueta.
-const campoTipoCertificado = (page: Page) => page.getByRole('combobox', { name: 'Tipo de certificado' });
+// «Tipo de certificado» es un grupo de radios (`widget="RadioSelect"`): el helper
+// apunta al radio de la opción CLASSPATH, que es la que usa el escenario.
+const campoTipoCertificado = (page: Page) => page.getByRole('radio', { name: OPCION_CLASSPATH });
 const campoRutaClasspath = (page: Page) => page.getByRole('textbox', { name: 'Ruta classpath' });
 const campoContrasena = (page: Page) => page.getByLabel('Nueva contraseña');
 const campoHabilitado = (page: Page) => page.getByRole('checkbox', { name: 'Habilitado' });
@@ -218,8 +220,7 @@ test.describe('Certificados digitales', () => {
       await expect(campoNombre(page)).toHaveValue(NOMBRE);
       await expect(campoApellidos(page)).toHaveValue(APELLIDOS);
 
-      await campoTipoCertificado(page).click();
-      await page.getByRole('option', { name: OPCION_CLASSPATH }).click();
+      await page.getByRole('radio', { name: OPCION_CLASSPATH }).check();
 
       // El campo solo se muestra al elegir el tipo CLASSPATH; su etiqueta real es
       // «Ruta classpath__!!».

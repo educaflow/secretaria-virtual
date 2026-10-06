@@ -61,7 +61,8 @@ const filaSinRegistros = (page: Page) => page.getByRole('row', { name: 'No se en
 const campoDni = (page: Page) => page.getByRole('textbox', { name: 'DNI', exact: true });
 const campoNombre = (page: Page) => page.getByRole('textbox', { name: 'Nombre' });
 const campoApellidos = (page: Page) => page.getByRole('textbox', { name: 'Apellidos' });
-const campoTipoCertificado = (page: Page) => page.getByRole('combobox', { name: 'Tipo de certificado' });
+// «Tipo de certificado» es un grupo de radios (RadioSelect): se elige por la opción.
+const opcionTipoCertificado = (page: Page, opcion: string) => page.getByRole('radio', { name: opcion });
 const campoRutaClasspath = (page: Page) => page.getByRole('textbox', { name: 'Ruta classpath' });
 const campoHabilitado = (page: Page) => page.getByRole('checkbox', { name: 'Habilitado' });
 
@@ -386,8 +387,7 @@ async function rellenarAlta(page: Page, ruta: string, habilitado: boolean): Prom
   await expect(campoNombre(page)).toHaveValue(NOMBRE);
   await expect(campoApellidos(page)).toHaveValue(APELLIDOS);
 
-  await campoTipoCertificado(page).click();
-  await page.getByRole('option', { name: OPCION_CLASSPATH }).click();
+  await opcionTipoCertificado(page, OPCION_CLASSPATH).check();
 
   // El campo solo se muestra al elegir el tipo CLASSPATH.
   await campoRutaClasspath(page).fill(ruta);

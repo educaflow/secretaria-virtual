@@ -154,7 +154,11 @@ test.describe('Perfiles de trámites (Mi centro)', () => {
       //         usuario ni usuario.
       await elegir(page, 'Centro', CENTRO_AJENO, 'Batoi');
       await elegir(page, 'Trámite', TRAMITE, 'prueba');
-      await elegir(page, 'Perfil', PERFIL);
+      // «Perfil» es un grupo de radios (widget RadioSelect), no un combobox; «Cargo»
+      // sigue siendo un combobox, así que el radio «Director» es inequívoco.
+      const radioPerfil = page.getByRole('radio', { name: PERFIL, exact: true });
+      await radioPerfil.check();
+      await expect(radioPerfil).toBeChecked();
       await elegir(page, 'Cargo', CARGO, 'Director');
       await expect(campo(page, 'Tipo usuario')).toHaveValue('');
       await expect(campo(page, 'Usuario')).toHaveValue('');

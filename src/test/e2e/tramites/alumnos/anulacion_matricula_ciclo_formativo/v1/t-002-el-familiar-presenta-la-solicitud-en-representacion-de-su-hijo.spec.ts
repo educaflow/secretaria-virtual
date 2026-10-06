@@ -71,11 +71,12 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
       // «Entrada» / «Entrada de datos».
       await expect(page.getByRole('tab', { name: PANTALLA_ALTA, exact: true })).toHaveCount(0);
       // Idempotencia (§5.1): el número de expediente lo asigna el servidor y es lo ÚNICO que
-      // identifica a lo creado; la pestaña se titula «<número>-<nombre del tipo de expediente>».
+      // identifica a lo creado; el número tiene el formato «00001/2026-46019660» (secuencial/año-código
+      // del centro) y la pestaña se titula «<número>-<nombre del tipo de expediente>».
       const pestana = page.getByRole('tab').last();
-      await expect(pestana).toContainText(/\d{4,}\/\d{4}-Anulación de matrícula en ciclo formativo/);
-      numero = (await pestana.textContent())!.split('-')[0].trim();
-      expect(numero).toMatch(/^\d{4,}\/\d{4}$/);
+      await expect(pestana).toContainText(/\d{4,}\/\d{4}-\d+-Anulación de matrícula en ciclo formativo/);
+      numero = (await pestana.textContent())!.split('-').slice(0, 2).join('-').trim();
+      expect(numero).toMatch(/^\d{4,}\/\d{4}-\d+$/);
       await expect(page.getByRole('tab', { name: new RegExp(numero) })).toBeVisible();
       await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
       await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Entrada de datos');

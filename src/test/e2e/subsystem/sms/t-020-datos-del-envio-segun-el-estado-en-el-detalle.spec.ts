@@ -62,10 +62,10 @@ test.describe('SMS — Todos', () => {
     await expect(datosEnvio.getByLabel('Fecha del primer intento de envío', { exact: true })).toHaveValue(fecha);
     await expect(datosEnvio.getByLabel('Fecha del último intento de envío', { exact: true })).toHaveValue(fecha);
 
-    // El campo "Estado" es un combobox de solo lectura: su valor vive en el atributo value.
-    const estado = datosEnvio.getByRole('combobox', { name: 'Estado' });
-    await expect(estado).toHaveValue(/^(Enviado|Fallido)$/);
-    if ((await estado.inputValue()) === 'Enviado') {
+    // El campo "Estado" es un grupo de radios (Pendiente / Enviado / Fallido): debe estar marcado
+    // exactamente uno, y ha de ser «Enviado» o «Fallido».
+    await expect(datosEnvio.getByRole('radio', { name: /^(Enviado|Fallido)$/, checked: true })).toHaveCount(1);
+    if (await datosEnvio.getByRole('radio', { name: 'Enviado' }).isChecked()) {
       // Resultado esperado: si está "Enviado", muestra la fecha de envío y no la descripción del último fallo.
       await expect(datosEnvio.getByLabel('Fecha de envío', { exact: true })).toHaveValue(fecha);
       await expect(datosEnvio.getByText(/Descripción del último fallo/)).toHaveCount(0);

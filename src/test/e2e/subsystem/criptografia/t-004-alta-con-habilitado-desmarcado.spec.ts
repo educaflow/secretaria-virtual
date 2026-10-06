@@ -162,8 +162,8 @@ test.describe('Certificados digitales', () => {
       //         del WAR», rellena «Ruta classpath» con «firma/mi_certificado.p12»
       //         y «Nueva contraseña» con «nadanada».
       await page.getByRole('textbox', { name: 'DNI', exact: true }).fill(DNI);
-      await page.getByRole('combobox', { name: 'Tipo de certificado' }).click();
-      await page.getByRole('option', { name: OPCION_CLASSPATH }).click();
+      // «Tipo de certificado» es un grupo de radios (`widget="RadioSelect"`).
+      await page.getByRole('radio', { name: OPCION_CLASSPATH }).check();
       // «Ruta classpath» y «Nueva contraseña» solo se muestran al elegir el tipo CLASSPATH.
       await page.getByRole('textbox', { name: 'Ruta classpath' }).fill('firma/mi_certificado.p12');
       await campoContrasena(page).fill('nadanada');

@@ -102,7 +102,9 @@ test.describe('Perfiles de trámites (Mi centro)', () => {
       }
       await expect(centro).toHaveValue(CENTRO);
       await elegir(page, 'Trámite', TRAMITE, 'prueba');
-      await elegir(page, 'Perfil', PERFIL);
+      // «Perfil» es un enum con `widget="RadioSelect"`: un grupo de radios.
+      await page.getByRole('radio', { name: PERFIL, exact: true }).check();
+      await expect(page.getByRole('radio', { name: PERFIL, exact: true })).toBeChecked();
       // «Tipo usuario» es una selección (lista completa, sin filtrar); «Cargo» es many-to-one.
       await elegir(page, 'Tipo usuario', TIPO_USUARIO);
       await elegir(page, 'Cargo', CARGO, 'Jefe');

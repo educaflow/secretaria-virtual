@@ -7,7 +7,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 
 /**
  * IDEMPOTENCIA (§4 del contrato de generación) — este test CREA un expediente, y su
- * identificador (`00041/2026`) lo asigna el servidor con un contador, así que NO se
+ * identificador (`00041/2026-46019660`) lo asigna el servidor con un contador, así que NO se
  * puede aislar con un sufijo `Date.now()` en un nombre: no hay ningún nombre que el
  * test elija. La idempotencia se consigue de las otras dos formas:
  *   - el expediente creado se identifica por SU número, capturado en tiempo de
@@ -92,8 +92,12 @@ const PANEL_DATOS_PROFESOR = 'panel:datos-profesor';
 // persistido (ver `leerExpedientePersistido`).
 const MODELO_EXPEDIENTE = 'com.educaflow.subsystem.expedientes.db.JustificacionFaltaProfesoradoV1';
 
-// Título de la pestaña del expediente creado: <nº>/<año>-<trámite> V1.
-const TITULO_EXPEDIENTE = new RegExp(`^\\d+/\\d{4}-${TRAMITE} V1$`);
+// Sufijo del título de la pestaña del expediente: -<trámite> V1.
+const SUFIJO_TITULO_EXPEDIENTE = `-${TRAMITE} V1`;
+
+// Título de la pestaña del expediente creado: <nº>/<año>-<código de centro>-<trámite> V1
+// (p. ej. `00076/2026-46019660-Justificación de falta del profesorado V1`).
+const TITULO_EXPEDIENTE = new RegExp(`^\\d+/\\d{4}-\\d+${SUFIJO_TITULO_EXPEDIENTE}$`);
 
 /** Lo que la lectura por REST devuelve del expediente ya persistido. */
 interface ExpedientePersistido {
@@ -420,7 +424,8 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       const pestanaExpediente = page.getByRole('tab', { name: TITULO_EXPEDIENTE });
       await expect(pestanaExpediente).toBeVisible();
       const tituloExpediente = (await pestanaExpediente.getByTestId('title').innerText()).trim();
-      numeroExpediente = tituloExpediente.split('-')[0];
+      // El número completo es `<nº>/<año>-<código de centro>`: el título sin el sufijo.
+      numeroExpediente = tituloExpediente.slice(0, -SUFIJO_TITULO_EXPEDIENTE.length);
       await expect(page.getByTestId('field:namePhase').getByRole('textbox')).toHaveValue(
         FASE_INICIAL,
       );

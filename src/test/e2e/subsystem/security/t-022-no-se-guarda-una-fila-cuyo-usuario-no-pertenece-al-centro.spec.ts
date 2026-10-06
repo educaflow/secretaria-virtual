@@ -101,9 +101,8 @@ test.describe('Perfiles de trámites por centro (Administración)', () => {
       //         el perfil «Colaborador» y el usuario «Profesor1 CIPFP Mislata».
       await elegirTecleando(page, 'Centro', CENTRO_INICIAL, 'Mislata');
       await elegirTecleando(page, 'Trámite', TRAMITE, 'prueba');
-      await campo(page, 'Perfil').click();
-      await opcion(page, PERFIL).click();
-      await expect(campo(page, 'Perfil')).toHaveValue(PERFIL);
+      await page.getByRole('radio', { name: PERFIL, exact: true }).check();
+      await expect(page.getByRole('radio', { name: PERFIL, exact: true })).toBeChecked();
       await elegirTecleando(page, 'Usuario', USUARIO, 'Profesor1');
 
       // Paso 4: Y cambia el centro a «CIPFP Batoi» sin cambiar el usuario.

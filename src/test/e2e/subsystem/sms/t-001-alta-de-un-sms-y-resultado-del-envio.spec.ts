@@ -90,12 +90,12 @@ test.describe('SMS — Todos', () => {
     const datosEnvio = page.getByRole('region', { name: 'Datos del envío' });
     await expect(datosEnvio).toBeVisible();
     await expect(datosEnvio.getByLabel('Número de reintentos')).toHaveValue('1');
-    // El campo "Estado" es un combobox de solo lectura: su valor vive en el atributo value.
+    // El campo "Estado" es un grupo de radios (RadioSelect) de solo lectura: la opción real está marcada.
     if (enviado) {
-      await expect(datosEnvio.getByRole('combobox', { name: 'Estado' })).toHaveValue('Enviado');
+      await expect(datosEnvio.getByRole('radio', { name: 'Enviado' })).toBeChecked();
       await expect(datosEnvio.getByLabel('Fecha de envío', { exact: true })).not.toHaveValue('');
     } else {
-      await expect(datosEnvio.getByRole('combobox', { name: 'Estado' })).toHaveValue('Fallido');
+      await expect(datosEnvio.getByRole('radio', { name: 'Fallido' })).toBeChecked();
       // La descripción del fallo es un texto (no un input): label seguido de contenido no vacío.
       await expect(datosEnvio).toContainText(/Descripción del último fallo\??\s*\S+/);
       await expect(datosEnvio.getByText('Fecha de envío', { exact: true })).toHaveCount(0);

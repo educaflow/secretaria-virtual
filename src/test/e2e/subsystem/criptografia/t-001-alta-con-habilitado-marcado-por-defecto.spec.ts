@@ -125,8 +125,8 @@ test.describe('Certificados digitales', () => {
 
       // Paso 5: Y elige en «Tipo de certificado» la opción «Usar un fichero con el
       //         certificado que ya está dentro del del WAR».
-      await page.getByRole('combobox', { name: 'Tipo de certificado' }).click();
-      await page.getByRole('option', { name: OPCION_CLASSPATH }).click();
+      //         («Tipo de certificado» es un grupo de radios.)
+      await page.getByRole('radio', { name: OPCION_CLASSPATH }).check();
 
       // Paso 6: Y rellena el campo «Ruta classpath» con «firma/mi_certificado.p12»
       //         y el campo «Nueva contraseña» con «nadanada». (Ambos campos solo se

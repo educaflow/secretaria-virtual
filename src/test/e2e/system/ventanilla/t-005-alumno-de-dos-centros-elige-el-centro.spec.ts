@@ -7,7 +7,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 
 /**
  * IDEMPOTENCIA (§4 del contrato de generación) — este test CREA un expediente, y su
- * identificador (`00004/2026`) lo asigna el servidor con un contador, así que NO se
+ * identificador (`00004/2026-<código del centro>`) lo asigna el servidor con un contador, así que NO se
  * puede aislar con un sufijo `Date.now()` en un nombre: no hay ningún nombre que el
  * test elija. La idempotencia se consigue de las otras dos formas:
  *   - el expediente creado se identifica por el título de SU pestaña, capturado en
@@ -72,8 +72,9 @@ const PANEL_SOLICITUD_EN_PAPEL = 'panel:solicitudEscaneadaDatosSolicitud';
 // ausencia prueba que el expediente es para el propio alumno, no en representación.
 const PANEL_PERSONA_SOLICITANTE = 'panel:persona-solicitante-editable';
 
-// Título de la pestaña del expediente creado: <nº>/<año>-<trámite> V1.
-const TITULO_EXPEDIENTE = new RegExp(`^\\d+/\\d{4}-${TRAMITE} V1$`);
+// Título de la pestaña del expediente creado: <nº>/<año>-<código del centro>-<trámite> V1
+// (p. ej. `00005/2026-03012165-Anulación de matrícula en ciclo formativo V1`).
+const TITULO_EXPEDIENTE = new RegExp(`^\\d+/\\d{4}-\\d+-${TRAMITE} V1$`);
 
 /**
  * Filas de datos del grid de centros (excluye la cabecera). Ya no es un

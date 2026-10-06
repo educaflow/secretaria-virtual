@@ -98,7 +98,7 @@ test.describe('Administración de correos', () => {
 
       // Tras el intento, el estado ya no puede seguir siendo "Pendiente": el correo
       // fue enviado ("Enviado") o el intento falló ("Fallido").
-      await expect(page.getByRole('combobox', { name: 'Estado' })).not.toHaveValue('Pendiente');
+      await expect(page.getByRole('radio', { name: 'Pendiente' })).not.toBeChecked();
 
       // El adjunto sigue asociado tras el intento de envío (la recarga no lo pierde).
       await expect(page.getByRole('row', { name: 'documento.pdf' })).toBeVisible();

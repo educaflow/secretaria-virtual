@@ -163,7 +163,7 @@ test.describe('Perfiles de trámites (Mi centro)', () => {
       }
       await expect(centro).toHaveValue(CENTRO);
       await elegir(page, 'Trámite', TRAMITE, 'Anulación');
-      await elegir(page, 'Perfil', PERFIL);
+      await page.getByRole('radio', { name: PERFIL }).check();
       await elegir(page, 'Tipo usuario', TIPO_USUARIO);
       await expect(campo(page, 'Cargo')).toHaveValue('');
       await expect(campo(page, 'Usuario')).toHaveValue('');
@@ -190,7 +190,7 @@ test.describe('Perfiles de trámites (Mi centro)', () => {
       // Pasos 6 y 7: Y pulsa «Borrar» y confirma el borrado.
       await pulsarHasta(page, filasDelEscenario(page).first(), botonBorrar(page), 'la fila del escenario');
       await expect(campo(page, 'Trámite')).toHaveValue(TRAMITE);
-      await expect(campo(page, 'Perfil')).toHaveValue(PERFIL);
+      await expect(page.getByRole('radio', { name: PERFIL })).toBeChecked();
       await expect(campo(page, 'Tipo usuario')).toHaveValue(TIPO_USUARIO);
       await botonBorrar(page).click();
       const dialogo = page.getByRole('dialog');

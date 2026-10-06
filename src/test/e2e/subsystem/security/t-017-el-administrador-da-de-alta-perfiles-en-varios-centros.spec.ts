@@ -113,7 +113,10 @@ async function elegir(page: Page, nombreCampo: string, opcion: string, texto?: s
 async function rellenarAlta(page: Page, centro: string, textoCentro: string): Promise<void> {
   await elegir(page, 'Centro', centro, textoCentro);
   await elegir(page, 'Trámite', TRAMITE, 'prueba');
-  await elegir(page, 'Perfil', PERFIL);
+  // «Perfil» es un grupo de radios (widget RadioSelect); «Cargo» sigue siendo combobox.
+  const radioPerfil = page.getByRole('radio', { name: PERFIL, exact: true });
+  await radioPerfil.check();
+  await expect(radioPerfil).toBeChecked();
   await elegir(page, 'Cargo', CARGO, 'Secretario');
   await expect(campo(page, 'Tipo usuario')).toHaveValue('');
   await expect(campo(page, 'Usuario')).toHaveValue('');

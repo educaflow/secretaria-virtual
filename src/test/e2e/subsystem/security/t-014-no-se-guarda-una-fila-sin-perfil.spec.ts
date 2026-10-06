@@ -39,6 +39,10 @@ const dialogoValidationError = (page: Page) =>
 
 const campo = (page: Page, nombre: string) => page.getByRole('combobox', { name: nombre, exact: true });
 
+// «Perfil» es un grupo de radios (widget RadioSelect), no un combobox. Estas son todas sus opciones.
+const OPCIONES_PERFIL = ['Creador', 'Tramitador', 'Colaborador', 'Afectado', 'Secretario', 'Director', 'Auditor'];
+const radioPerfil = (page: Page, opcion: string) => page.getByRole('radio', { name: opcion, exact: true });
+
 // Barrera de carga del listado: la rejilla pide sus filas en una petición aparte.
 async function esperarListadoCargado(page: Page): Promise<void> {
   await expect(botonNuevo(page)).toBeVisible();
@@ -90,7 +94,9 @@ test.describe('Perfiles de trámites (Mi centro)', () => {
 
       // … y pulsa «Nuevo».
       await botonNuevo(page).click();
-      await expect(campo(page, 'Perfil')).toBeVisible();
+      for (const opcion of OPCIONES_PERFIL) {
+        await expect(radioPerfil(page, opcion)).toBeVisible();
+      }
 
       // Paso 3: Y elige el centro «CIPFP Mislata», el trámite «Trámite de prueba»
       //         y el cargo «Jefe de estudios», sin elegir perfil.
@@ -107,7 +113,10 @@ test.describe('Perfiles de trámites (Mi centro)', () => {
       await expect(centro).toHaveValue(CENTRO);
       await elegir(page, 'Trámite', TRAMITE, 'prueba');
       await elegir(page, 'Cargo', CARGO, 'Jefe');
-      await expect(campo(page, 'Perfil')).toHaveValue('');
+      // Sin perfil: ningún radio del grupo «Perfil» está marcado.
+      for (const opcion of OPCIONES_PERFIL) {
+        await expect(radioPerfil(page, opcion)).not.toBeChecked();
+      }
 
       // Paso 4: Y pulsa «Guardar».
       await page.getByRole('button', { name: 'Guardar' }).click();

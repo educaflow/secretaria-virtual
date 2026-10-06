@@ -153,8 +153,7 @@ test.describe('Certificados digitales', () => {
       //         «Nueva contraseña» con «nadanada», y pulsa «Guardar».
       await botonAnhadir(page).click();
       await page.getByRole('textbox', { name: 'DNI', exact: true }).fill(DNI);
-      await page.getByRole('combobox', { name: 'Tipo de certificado' }).click();
-      await page.getByRole('option', { name: OPCION_CLASSPATH }).click();
+      await page.getByRole('radio', { name: OPCION_CLASSPATH }).check();
       // «Ruta classpath» y «Nueva contraseña» solo se muestran al elegir el tipo CLASSPATH.
       await page.getByRole('textbox', { name: 'Ruta classpath' }).fill('firma/mi_certificado.p12');
       // Es un <input type="password"> (sin rol `textbox`): se localiza por su etiqueta.

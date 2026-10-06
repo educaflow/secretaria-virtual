@@ -169,7 +169,7 @@ test.describe('Perfiles de trámites (Mi centro)', () => {
       }
       await expect(centro).toHaveValue(CENTRO);
       await elegir(page, 'Trámite', TRAMITE, 'prueba');
-      await elegir(page, 'Perfil', PERFIL);
+      await page.getByRole('radio', { name: PERFIL }).check();
       await elegir(page, 'Cargo', CARGO, 'Jefe');
       await expect(campo(page, 'Tipo usuario')).toHaveValue('');
       await expect(campo(page, 'Usuario')).toHaveValue('');

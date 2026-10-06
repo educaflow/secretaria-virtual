@@ -42,8 +42,8 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Pasos
 1. **Dado** que el administrador está en la pantalla «Certificados digitales» (menú «Criptografía» → «Certificados digitales»).
-2. **Cuando** pulsa «Añadir certificado digital», escribe en «DNI» «29050788V», elige en «Tipo de certificado» la opción «Usar un fichero con el certificado que ya está dentro del del WAR», escribe en «Ruta classpath» «firma/mi_certificado.p12» y pulsa «Guardar».
-3. **Y** pulsa «Añadir certificado digital», escribe en «DNI» «29050788V», elige en «Tipo de certificado» la opción «Usar un fichero con el certificado que ya está dentro del del WAR», escribe en «Ruta classpath» «firma/instalar_certificado_criptografico/secretario.p12», desmarca la casilla «Habilitado» y pulsa «Guardar».
+2. **Cuando** pulsa «Añadir certificado digital», escribe en «DNI» «29050788V», marca en «Tipo de certificado» el radio «Usar un fichero con el certificado que ya está dentro del del WAR», escribe en «Ruta classpath» «firma/mi_certificado.p12» y pulsa «Guardar».
+3. **Y** pulsa «Añadir certificado digital», escribe en «DNI» «29050788V», marca en «Tipo de certificado» el radio «Usar un fichero con el certificado que ya está dentro del del WAR», escribe en «Ruta classpath» «firma/instalar_certificado_criptografico/secretario.p12», desmarca la casilla «Habilitado» y pulsa «Guardar».
 4. **Entonces** el listado muestra dos filas con DNI «29050788V»: la primera con «Habilitado» marcado y la segunda sin marcar.
 5. **Cuando** pulsa la **segunda** fila del DNI «29050788V», la que tiene «Habilitado» sin marcar (al abrirla, el campo «Ruta classpath» del formulario muestra «firma/instalar_certificado_criptografico/secretario.p12»).
 6. **Y** marca la casilla «Habilitado».

@@ -61,9 +61,9 @@ test.describe('Administración de correos', () => {
     // recarga en bucle hasta que el estado cambia.
     await expect(async () => {
       await page.reload();
-      // El campo "Estado" es un <input role="combobox"> de solo lectura: su valor
-      // vive en el atributo value, no como texto — de ahí toHaveValue, no toContainText.
-      await expect(page.getByRole('combobox', { name: 'Estado' })).toHaveValue('Enviado');
+      // El campo "Estado" es un grupo de radios (widget RadioSelect): el estado actual
+      // es la opción marcada, de ahí toBeChecked.
+      await expect(page.getByRole('radio', { name: 'Enviado' })).toBeChecked();
     }).toPass({ timeout: 60_000, intervals: [2_000] });
 
     // Resultado esperado: el correo queda en SUCCESS, con fecha de envío registrada

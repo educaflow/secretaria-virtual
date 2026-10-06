@@ -80,8 +80,10 @@ test.describe('SMS — Todos', () => {
     // y las fechas de creación, del primer intento y del último intento.
     const datosEnvio = page.getByRole('region', { name: 'Datos del envío' });
     await expect(datosEnvio).toBeVisible();
-    // El campo "Estado" es un combobox de solo lectura: su valor vive en el atributo value.
-    await expect(datosEnvio.getByRole('combobox', { name: 'Estado' })).toHaveValue(/^(Enviado|Fallido)$/);
+    // El campo "Estado" es un grupo de radios de solo lectura: la opción real es el único radio marcado
+    // y, como el envío ya se intentó, tiene que ser "Enviado" o "Fallido" (nunca "Pendiente").
+    await expect(datosEnvio.getByRole('radio', { checked: true })).toHaveCount(1);
+    await expect(datosEnvio.getByRole('radio', { checked: true })).toHaveAccessibleName(/^(Enviado|Fallido)$/);
     await expect(datosEnvio.getByLabel('Número de reintentos')).toHaveValue(/^\d+$/);
     const fecha = /^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/;
     await expect(datosEnvio.getByLabel('Fecha de creación')).toHaveValue(fecha);

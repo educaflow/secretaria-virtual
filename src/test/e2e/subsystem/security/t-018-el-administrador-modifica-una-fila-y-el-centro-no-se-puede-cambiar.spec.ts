@@ -41,6 +41,8 @@ const dialogoValidationError = (page: Page) =>
   page.getByRole('dialog').getByRole('heading', { name: 'La acción no se completó por los siguientes motivos' });
 
 const campo = (page: Page, nombre: string) => page.getByRole('combobox', { name: nombre, exact: true });
+// «Perfil» es un grupo de radios (widget RadioSelect), no un combobox.
+const radioPerfil = (page: Page, opcion: string) => page.getByRole('radio', { name: opcion, exact: true });
 
 // Barrera de carga del listado: la rejilla pide sus filas en una petición aparte,
 // así que se espera a que haya al menos una fila de datos (de cualquier centro
@@ -183,7 +185,7 @@ test.describe('Perfiles de trámites por centro (Administración)', () => {
       //         cargo ni usuario.
       await elegir(page, 'Centro', CENTRO, 'Batoi');
       await elegir(page, 'Trámite', TRAMITE, 'prueba');
-      await elegir(page, 'Perfil', PERFIL_INICIAL);
+      await radioPerfil(page, PERFIL_INICIAL).check();
       await elegir(page, 'Tipo usuario', TIPO_USUARIO);
       await expect(campo(page, 'Cargo')).toHaveValue('');
       await expect(campo(page, 'Usuario')).toHaveValue('');
@@ -196,7 +198,7 @@ test.describe('Perfiles de trámites por centro (Administración)', () => {
       await expect(filasConPerfil(page, PERFIL_INICIAL)).toHaveCount(1);
       await pulsarHasta(page, filasConPerfil(page, PERFIL_INICIAL).first(), botonBorrar(page), 'la fila del escenario');
       await expect(campo(page, 'Trámite')).toHaveValue(TRAMITE);
-      await expect(campo(page, 'Perfil')).toHaveValue(PERFIL_INICIAL);
+      await expect(radioPerfil(page, PERFIL_INICIAL)).toBeChecked();
       await expect(campo(page, 'Tipo usuario')).toHaveValue(TIPO_USUARIO);
 
       // Paso 6: Entonces el formulario muestra el centro «CIPFP Batoi» sin
@@ -211,7 +213,7 @@ test.describe('Perfiles de trámites por centro (Administración)', () => {
       await expect(seccionPerfil.getByRole('textbox', { name: 'Centro', exact: true })).toHaveCount(0);
 
       // Paso 7: Cuando cambia el perfil a «Colaborador» y pulsa «Guardar».
-      await elegir(page, 'Perfil', PERFIL_NUEVO);
+      await radioPerfil(page, PERFIL_NUEVO).check();
       // Paso 8: Y vuelve al listado.
       await guardarYVolverAlListado(page);
 

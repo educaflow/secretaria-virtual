@@ -195,8 +195,7 @@ test.describe('Certificados digitales', () => {
         dniAlta.press('Tab'),
       ]);
 
-      await page.getByRole('combobox', { name: 'Tipo de certificado' }).click();
-      await page.getByRole('option', { name: OPCION_CLASSPATH }).click();
+      await page.getByRole('radio', { name: OPCION_CLASSPATH }).check();
 
       // El campo solo se muestra al elegir el tipo CLASSPATH; su etiqueta real es
       // «Ruta classpath__!!».

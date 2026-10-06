@@ -190,7 +190,7 @@ test.describe('Perfiles de trámites (Mi centro)', () => {
       }
       await expect(centro).toHaveValue(CENTRO);
       await elegir(page, 'Trámite', TRAMITE, 'prueba');
-      await elegir(page, 'Perfil', PERFIL_INICIAL);
+      await page.getByRole('radio', { name: PERFIL_INICIAL }).check();
       await elegir(page, 'Tipo usuario', TIPO_USUARIO);
       await expect(campo(page, 'Cargo')).toHaveValue('');
       await expect(campo(page, 'Usuario')).toHaveValue('');
@@ -204,7 +204,7 @@ test.describe('Perfiles de trámites (Mi centro)', () => {
       //         prueba», perfil «Creador» y tipo de usuario «Alumno».
       await pulsarHasta(page, filasConPerfil(page, PERFIL_INICIAL).first(), botonBorrar(page), 'la fila del escenario');
       await expect(campo(page, 'Trámite')).toHaveValue(TRAMITE);
-      await expect(campo(page, 'Perfil')).toHaveValue(PERFIL_INICIAL);
+      await expect(page.getByRole('radio', { name: PERFIL_INICIAL })).toBeChecked();
       await expect(campo(page, 'Tipo usuario')).toHaveValue(TIPO_USUARIO);
 
       // Paso 6: Entonces el formulario muestra el centro «CIPFP Mislata» sin
@@ -219,7 +219,7 @@ test.describe('Perfiles de trámites (Mi centro)', () => {
       await expect(seccionPerfil.getByRole('textbox', { name: 'Centro', exact: true })).toHaveCount(0);
 
       // Paso 7: Cuando cambia el perfil a «Afectado».
-      await elegir(page, 'Perfil', PERFIL_NUEVO);
+      await page.getByRole('radio', { name: PERFIL_NUEVO }).check();
 
       // Paso 8: Y pulsa «Guardar» y vuelve al listado.
       await guardarYVolverAlListado(page);

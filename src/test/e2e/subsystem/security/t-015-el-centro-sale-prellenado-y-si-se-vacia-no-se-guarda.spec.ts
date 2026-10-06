@@ -102,7 +102,8 @@ test.describe('Perfiles de trámites (Mi centro)', () => {
       // Se vacía sin pulsar Tab: el foco saltaría al trámite y abriría su desplegable.
       await centro.fill('');
       await elegir(page, 'Trámite', TRAMITE, 'prueba');
-      await elegir(page, 'Perfil', PERFIL);
+      // «Perfil» es un grupo de radios (widget RadioSelect), no un combobox.
+      await page.getByRole('radio', { name: PERFIL, exact: true }).check();
       await elegir(page, 'Cargo', CARGO, 'Jefe');
       await expect(centro).toHaveValue('');
 

@@ -71,11 +71,15 @@ test.describe('SMS — Todos', () => {
     await page.getByRole('row', { name: avisoBatoi }).click();
     await page.waitForURL(/\/edit\/\d+/);
 
-    const estado = page.getByRole('region', { name: 'Datos del envío' }).getByRole('combobox', { name: 'Estado' });
-    await expect(estado).toHaveValue(/^(Enviado|Fallido)$/);
+    const datosEnvio = page.getByRole('region', { name: 'Datos del envío' });
+    const estadoEnviado = datosEnvio.getByRole('radio', { name: 'Enviado' });
+    const estadoFallido = datosEnvio.getByRole('radio', { name: 'Fallido' });
+    // El estado es un grupo de radios: se espera a que el marcado sea «Enviado» o «Fallido».
+    await expect(datosEnvio.getByRole('radio', { name: /^(Enviado|Fallido)$/, checked: true })).toHaveCount(1);
     const reenviar = page.getByRole('button', { name: 'Reenviar' });
 
-    if ((await estado.inputValue()) === 'Fallido') {
+    if (await estadoFallido.isChecked()) {
+      await expect(estadoFallido).toBeChecked();
       // Resultado esperado (Fallido): el sistema muestra el botón "Reenviar" y, al pulsarlo, muestra
       // «El reenvío del SMS se ha puesto en marcha.».
       await expect(reenviar).toBeVisible();
@@ -85,7 +89,7 @@ test.describe('SMS — Todos', () => {
       ).toBeVisible();
     } else {
       // Resultado esperado (Enviado): el sistema no muestra el botón "Reenviar".
-      await expect(estado).toHaveValue('Enviado');
+      await expect(estadoEnviado).toBeChecked();
       await expect(reenviar).toHaveCount(0);
     }
 
