@@ -4,6 +4,16 @@ Una validación (`VAL-`) es una comprobación bloqueante anclada a **una acción
 
 > Una comprobación que debe cumplirse en **toda** operación no es una `VAL-` sino una **restricción** (`RES-`), que vive en el modelo XML: ver [`restricciones.md`](restricciones.md).
 
+**Validación o assert de la aplicación.**
+Antes de escribir una `VAL-`, una regla del validador o una `BusinessException`, pregúntate: «¿puede el usuario que está en la pantalla corregir esto con lo que tiene delante?».
+- **Sí** → es una validación (`validate*`, `BusinessMessages`, mensaje i18n).
+- **No**: solo pasa si algo está mal programado o mal configurado → es un **assert de la aplicación**: una `RuntimeException` (`IllegalStateException`…) dentro del código que lo necesita, con un mensaje para quien depura, sin regla ni i18n.
+  Incluye los datos que fija el servidor: que falten es un assert, no una validación.
+- **MUST NOT** convertir un assert en validación «para que se vea como validación».
+
+- ✅ CORRECTO: el alumno elige una fecha de fin anterior a la de inicio → `VAL-` con mensaje (la corrige en el formulario).
+- ❌ INCORRECTO: «el centro no tiene curso académico» como regla del validador con mensaje al alumno (no puede hacer nada: es un dato que fija el servidor, va como `IllegalStateException`).
+
 ---
 
 ## 1. Principio fundamental: el servidor es la fuente de verdad

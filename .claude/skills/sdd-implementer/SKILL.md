@@ -164,6 +164,17 @@ Al implementar puede salir algo pequeño del diseño que no se puede implementar
 - ❌ INCORRECTO: el implementador edita el fichero de `design/` y sigue (un solo rol aplica las erratas y deja constancia en `log_erratas_diseno.txt`)
 - ❌ INCORRECTO: `DESIGN-ERRATA` para añadir una entidad que el diseño no tiene (no es una errata, es rediseñar: `DESIGN-ERROR`)
 
+### 2.5 Hacer solo lo que pide la tarea
+
+Cada subagente se limita al alcance exacto de su tarea: lo que no pide, aunque parezca conveniente, puede chocar con otro proceso en curso o con trabajo de otros sin commitear.
+
+- **MUST NOT** tocar nada fuera de su tarea: ni refactorizar código vecino, ni «arreglar» lo que no es suyo, ni revertir cambios ajenos del árbol.
+- Si cree que hace falta algo más, **MUST** añadir tras su token una línea `SUGERENCIA: <qué y por qué>` por cada cosa, sin hacerla.
+- El motor acumula las líneas `SUGERENCIA:` y las muestra en el mensaje de cierre (§11). **MUST NOT** aplicarlas él ni relanzar a nadie por ellas: decide el usuario.
+
+- ✅ CORRECTO: `DONE: task_03` + `SUGERENCIA: CorreoServiceImpl.insert repite la misma consulta que GrupoServiceImpl; podría extraerse.`
+- ❌ INCORRECTO: el implementador de `task_03` extrae él mismo la consulta repetida a una clase común (fuera del alcance de su tarea)
+
 ---
 
 ## 3. Flujo general
@@ -258,6 +269,7 @@ Lanza **todos** los subagentes de este skill (los cuatro roles y el editor-dise�
 
 - **Reglas para la implementación**: `lee {ruta de <plantilla-activa>/README.md} y todos los ficheros que referencie. Es el contrato: define qué hacer, cómo y con qué estructura. Síguelo al pie de la letra.`
 - **Diseño**: `lee la carpeta {iniciativa}/design (sobre todo design.md) y los ficheros que el contrato indique.`
+- **Alcance**: `haz solo lo que pide tu tarea. Si crees que hace falta algo más, no lo hagas: añade tras tu token una línea "SUGERENCIA: <qué y por qué>" por cada cosa.` (§2.5)
 - **MUST NOT** usar `AskUserQuestion`: el implementador, el verificador-build y el corrector-build reportan la duda que no puedan resolver con el token de bloqueo de su rol (el motor lleva la decisión al usuario); el descomponedor resuelve la ambigüedad y la documenta en la tarea (§7).
 
 ---
@@ -487,6 +499,7 @@ Implementación completada en {raíz de drafts}/{carpeta-iniciativa}/
 Tareas generadas e implementadas: N.
 Build: {OK-COMPILA tras M iteración(es) | NO limpio tras M iteración(es) — ver implementation/log_build.txt}.
 Erratas del diseño: {ninguna | {E} corregida(s) en design/, ver implementation/log_erratas_diseno.txt}.
+Sugerencias no aplicadas: {ninguna | una línea por cada SUGERENCIA de los subagentes (§2.5)}.
 
 Los artefactos del draft se mantienen en {raíz de drafts}/{carpeta-iniciativa}/ — no se ha archivado nada en .sdd/archive/.
 Si la plantilla propagó tests E2E a implementation/, puedes ejecutarlos contra la aplicación real con /sdd-debug-with-test-e2e-desc.
@@ -517,6 +530,7 @@ Ajusta la lista de ficheros a la estructura real que define la plantilla.
 - **Erratas del diseño** (§2.4, §9.2): una errata pequeña **no** detiene el skill; implementador o corrector-build devuelven `DESIGN-ERRATA` (sin editar el diseño), el editor-diseño corrige `design/` y las copias de `implementation/`, y el motor relanza al que la encontró. Si no es pequeña, o pasa de 5 (**LIMIT**), es `DESIGN-ERROR`.
 - **Verificar/corregir el build** (§10): bucle verificador-build → corrector-build hasta `OK-COMPILA` (**LIMIT** 20; tras la 20ª o si los errores se repiten, **STOP** y `AskUserQuestion`). El verificador-build compila (comando de la plantilla) y reporta en **JSONL** (`id`/`tipo`/`fichero`/`ubicacion`/`tarea`/`mensaje`/`correccion`); el motor lo vuelca a `implementation/log_build.txt`. Si el verificador-build o el corrector-build devuelven `BLOCKED`, **STOP** y se pregunta al usuario; si devuelve `DESIGN-ERROR`, se aplica §9.1. El motor **MUST NOT** compilar él mismo (§2.2).
 - **Contrato de tokens** (§2.3): el skill compara por literal exacto — `ESCRITO: implementation/`, `DONE`/`CONFLICT`/`BLOCKED`/`DESIGN-ERROR`/`DESIGN-ERRATA`, `APLICADO: <n>`/`RECHAZADO:`, `OK-COMPILA`/`BLOCKED` (verificador-build), `CORREGIDO`/`BLOCKED`/`DESIGN-ERROR`/`DESIGN-ERRATA` (corrector-build). Los subagentes **MUST NOT** pegar el código en su respuesta (ya está en disco).
+- **Solo lo pedido** (§2.5): cada subagente se limita a su tarea; lo que crea que falta lo devuelve como `SUGERENCIA:` sin hacerlo, y el motor lo lista en el cierre sin aplicarlo.
 - **MUST NOT** invocar `developer-code-implementer` tú mismo ni lanzar `/sdd-close`: el código lo escriben los implementadores; el cierre lo decide el usuario.
 
 ---

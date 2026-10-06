@@ -24,3 +24,6 @@ que necesites para la tarea concreta, **no** todos.
   y/o referenciado por un puntero en `CLAUDE.md` o en el skill que lo consume: un
   fichero suelto en `agent_docs/` no se carga solo.
 - Al añadir un documento nuevo, añade su fila en la tabla de arriba.
+- **MUST NOT** incluir "fotos" del código: enumeraciones de clases existentes, recuentos ("15 clases: …", "~31 usos") ni nada que se sepa leyendo el código o ejecutando los tests.
+  Esas listas caducan solas y obligan a mantenerlas a mano.
+  Se escribe solo lo normativo (la regla y su criterio) y el mínimo estado necesario (p. ej. la marca ✅/⚠️/❌ y, solo cuando se incumple, la violación concreta).

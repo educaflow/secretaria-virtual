@@ -20,6 +20,7 @@ Cómo compilar, probar, arrancar la app y gestionar la base de datos en el entor
   un depurador, así que la app nunca llega a responder; no usarlo para arrancar de forma desatendida.
 - Si solo necesitas **compilar sin arrancar**: `./gradlew clean build --info`.
 - Compilar solo el código (sin tests): `./gradlew compileJava` (o `compileTestJava` para los tests).
+- **MUST** hacer siempre `clean` antes de `build` (`./gradlew clean build`): sin `clean` el build falla.
 
 ## Probar los tests
 

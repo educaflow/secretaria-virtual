@@ -151,6 +151,15 @@ Puntos concretos que siguen abiertos:
 - Los permisos de las subclases se conceden sin `condition` (p. ej. `PruebaV1.all`) y `AuthSecurity` **no recorre superclases**, así que no heredan las condiciones de los permisos de `Expediente`.
   Y como los genera el build por cada tipo de expediente, un trámite nuevo nace con el agujero abierto sin que nadie tenga que escribir nada: la solución **MUST** decidirse en el generador (`createdatainittipoexpediente`), no tipo a tipo.
 
+## Markdown
+**MUST NOT** cortar el texto a una anchura fija (80, 100 columnas…).
+En documentos densos (catálogos de reglas, specs) se corta **por frases y de forma jerárquica**:
+- la etiqueta (`**Decisión.**`, `**Verificación.**`) va sola en su línea;
+- 2 espacios de sangría por nivel: las cláusulas hermanas al mismo nivel, y lo que elabora tras `:` o una enumeración baja un nivel;
+- en prosa normal, una frase por línea.
+
+Al reformatear solo se cambian espacios y saltos de línea, nunca palabras, y no se toca el interior de los bloques de código.
+
 ## Usuario autenticado
 Para obtener el usuario autenticado **MUST** usarse siempre `SecurityUtil.getUser()` (`com.educaflow.base.util.SecurityUtil`).
 **NUNCA** se usa `AuthUtils.getUser()` de Axelor directamente, ni en código Java/Kotlin ni en los ejemplos de los skills.
