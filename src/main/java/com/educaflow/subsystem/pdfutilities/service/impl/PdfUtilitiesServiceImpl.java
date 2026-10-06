@@ -7,22 +7,34 @@ import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.DefaultModelService;
 import com.axelor.i18n.I18n;
 import com.axelor.meta.db.MetaFile;
+import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
+import com.educaflow.base.infrastructure.criptografia.AlmacenClaveFichero;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.Rectangulo;
-import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
 import com.educaflow.subsystem.pdfutilities.db.PdfUtilities;
 import com.educaflow.subsystem.pdfutilities.service.PdfUtilitiesService;
-import jakarta.inject.Inject;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 
 public class PdfUtilitiesServiceImpl extends DefaultModelService<PdfUtilities> implements PdfUtilitiesService {
-
-    @Inject
-    AlmacenClaveResolver almacenClaveResolver;
 
     public PdfUtilitiesServiceImpl(Class<PdfUtilities> model, Repository<PdfUtilities> repository) {
         super(model, repository);
@@ -51,11 +63,12 @@ public class PdfUtilitiesServiceImpl extends DefaultModelService<PdfUtilities> i
         int numeroPagina = pdfUtilities.getNumeroPagina() <= 0 ? 1 : pdfUtilities.getNumeroPagina();
 
         DocumentoPdf documentoPdf = MetaFileHelper.getDocumentoPdf(metaFilePdf).removePdfAConformance();
+        AlmacenClave almacenClaveDummy = crearAlmacenClaveDummy();
 
         for (int x = 0; x <= 500; x += 100) {
             for (int y = 0; y <= 700; y += 50) {
                 CampoFirma campoFirma = new CampoFirma(new Rectangulo(x, y, 100, 20)).setNumeroPagina(numeroPagina).setMensaje(x + "," + y);
-                documentoPdf = documentoPdf.firmar(almacenClaveResolver.getDummy(), campoFirma);
+                documentoPdf = documentoPdf.firmar(almacenClaveDummy, campoFirma);
             }
         }
 
@@ -109,5 +122,37 @@ public class PdfUtilitiesServiceImpl extends DefaultModelService<PdfUtilities> i
     /***********************************************************************************/
     /********************************* Otras funciones *********************************/
     /***********************************************************************************/
+
+    /**
+     * Certificado autofirmado de usar y tirar, generado en memoria, para firmar los recuadros de las posiciones.
+     * No se lee nada de él (cada recuadro lleva su propio mensaje) ni se valida su confianza, así que no tiene por
+     * qué ser de nadie.
+     */
+    static AlmacenClave crearAlmacenClaveDummy() {
+        try {
+            String password = "dummy";
+
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(2048);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+            X500Name titular = new X500Name("CN=Dummy");
+            Instant ahora = Instant.now();
+            X509Certificate certificado = new JcaX509CertificateConverter().getCertificate(new JcaX509v3CertificateBuilder(
+                    titular, BigInteger.valueOf(ahora.toEpochMilli()), Date.from(ahora.minus(Duration.ofDays(1))),
+                    Date.from(ahora.plus(Duration.ofDays(1))), titular, keyPair.getPublic())
+                    .build(new JcaContentSignerBuilder("SHA256withRSA").build(keyPair.getPrivate())));
+
+            KeyStore keyStore = KeyStore.getInstance("PKCS12");
+            keyStore.load(null, null);
+            keyStore.setKeyEntry("dummy", keyPair.getPrivate(), password.toCharArray(), new Certificate[]{certificado});
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            keyStore.store(byteArrayOutputStream, password.toCharArray());
+
+            return new AlmacenClaveFichero(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), password);
+        } catch (Exception ex) {
+            throw new RuntimeException("No se puede generar el certificado dummy", ex);
+        }
+    }
 
 }

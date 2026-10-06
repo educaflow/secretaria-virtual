@@ -23,9 +23,6 @@ public class FirmaEnServidorService {
     private static final Logger log = LoggerFactory.getLogger(FirmaEnServidorService.class);
 
     @Inject
-    private AlmacenClaveResolver almacenClaveResolver;
-
-    @Inject
     private ModelServiceFactory modelServiceFactory;
 
     public DocumentoPdf firmar(String dni, String clave, DocumentoPdf documentoOriginal, CampoFirma campoFirma) {
@@ -33,7 +30,7 @@ public class FirmaEnServidorService {
         final CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);
 
         try {
-            AlmacenClave almacenClave = almacenClaveResolver.getByDNI(dni, clave)
+            AlmacenClave almacenClave = certificadoDigitalService.getAlmacenClaveByDni(dni, clave)
                     .orElseThrow(() -> new IllegalStateException("El firmante con dni=" + DniUtil.enmascarar(dni) + " no tiene certificado digital con el que firmar en el servidor"));
 
 

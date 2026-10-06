@@ -1,23 +1,22 @@
 package com.educaflow.subsystem.criptografia.service.impl;
 
 import com.axelor.auth.db.User;
-import com.axelor.auth.db.repo.UserRepository;
+import com.axelor.auth.service.UserService;
 import com.axelor.db.JPA;
 import com.axelor.db.Repository;
-import com.axelor.db.modelservice.AllowProperties;
-import com.axelor.db.modelservice.DefaultModelService;
+import com.axelor.db.modelservice.*;
 import com.educaflow.base.infrastructure.async.EjecutorAsincrono;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClaveDispositivo;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClaveFichero;
 import com.educaflow.base.infrastructure.criptografia.DispositivoCriptografico;
 import com.educaflow.base.infrastructure.criptografia.EntornoCriptografico;
-import com.axelor.db.modelservice.BusinessMessage;
-import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.util.DniUtil;
 import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.base.util.TextUtil;
+import com.educaflow.subsystem.common.db.CargoCodigo;
+import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
 import com.educaflow.subsystem.criptografia.db.TipoUbicacionCertificado;
 import com.educaflow.subsystem.criptografia.db.repo.CertificadoDigitalRepository;
@@ -42,12 +41,8 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
 
     private static final Logger log = LoggerFactory.getLogger(CertificadoDigitalServiceImpl.class);
 
-    /**
-     * Repositorio de la entidad {@code User} (que NO es la que gestiona este servicio), para resolver el usuario
-     * titular a partir de su DNI. Es un repositorio, no un {@code ModelService}, así que se inyecta como campo.
-     */
     @Inject
-    private UserRepository userRepository;
+    private ModelServiceFactory modelServiceFactory;
 
     @Inject
     EjecutorAsincrono ejecutorAsincrono;
@@ -177,7 +172,17 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
     public DatosTitular getDatosTitularByDni(String dni) {
         validateGetDatosTitularByDni(dni).ifPresent(BusinessMessages::throwIfInvalid);
 
-        return resolverDatosTitular(dni);
+        return getDatosTitular(dni);
+    }
+
+    @Override
+    public AlmacenClave getByCentroCargo(Centro centro, CargoCodigo cargo) {
+        validateGetByCentroCargo(centro, cargo).ifPresent(BusinessMessages::throwIfInvalid);
+
+        UserService userService = (UserService) modelServiceFactory.resolve(User.class);
+        User user = userService.getByCentroAndCargo(centro, cargo);
+
+        return getAlmacenClaveByDni(user.getDni()).orElseThrow(() -> new IllegalStateException("El usuario con el cargo " + cargo + " del centro id=" + centro.getId() + " no tiene certificado digital"));
     }
 
     /**************************************************************************************/
@@ -195,7 +200,7 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
 
         // Si hay usuario con ese DNI, el nombre y los apellidos los pone el servidor en
         // fireActionRule_AsignarTitular y la validación no aplica.
-        if (findUsuarioTitular(certificado.getDni()).isEmpty()) {
+        if (findByDni(certificado.getDni()).isEmpty()) {
             validateNombreYApellidosIndicados(certificado, messages);
         }
 
@@ -354,6 +359,15 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
         return Optional.empty();
     }
 
+    /**
+     * La acción no tiene precondiciones de negocio: un centro o un cargo nulos son un error de programación, que
+     * ya detecta {@code UserService.getByCentroAndCargo}.
+     */
+    @Override
+    public Optional<BusinessMessages> validateGetByCentroCargo(Centro centro, CargoCodigo cargo) {
+        return Optional.empty();
+    }
+
     /************************************************************************************/
     /********************************* AllowProperties **********************************/
     /************************************************************************************/
@@ -396,7 +410,7 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
     /***********************************************************************************/
 
     private void fireActionRule_AsignarTitular(CertificadoDigital certificado) {
-        DatosTitular datos = resolverDatosTitular(certificado.getDni());
+        DatosTitular datos = getDatosTitular(certificado.getDni());
 
         if (datos.tomadoDelUsuario()) {
             certificado.setNombre(datos.nombre());
@@ -458,8 +472,8 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
      * la acción de pantalla {@code getDatosTitularByDni} (al teclear el DNI), para que la pantalla no pueda
      * prometer un titular distinto del que el servidor va a persistir.
      */
-    private DatosTitular resolverDatosTitular(String dni) {
-        return findUsuarioTitular(dni)
+    private DatosTitular getDatosTitular(String dni) {
+        return findByDni(dni)
                 .map(titular -> new DatosTitular(titular.getNombre(), titular.getApellidos(), true))
                 .orElseGet(DatosTitular::sinUsuario);
     }
@@ -468,12 +482,9 @@ public class CertificadoDigitalServiceImpl extends DefaultModelService<Certifica
      * Usuario de la aplicación cuyo documento coincide con el DNI recibido, o vacío si no hay ninguno o el
      * DNI es nulo o está en blanco (en cuyo caso ni siquiera se consulta).
      */
-    private Optional<User> findUsuarioTitular(String dni) {
-        if ((dni == null) || dni.isBlank()) {
-            return Optional.empty();
-        }
-
-        return Optional.ofNullable(userRepository.findByDni(dni));
+    private Optional<User> findByDni(String dni) {
+        UserService userService = (UserService) modelServiceFactory.resolve(User.class);
+        return userService.findByDni(dni);
     }
 
     /**
