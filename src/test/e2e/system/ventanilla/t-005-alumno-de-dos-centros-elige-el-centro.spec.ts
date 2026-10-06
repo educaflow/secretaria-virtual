@@ -158,7 +158,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
     let tituloExpediente = '';
 
     try {
-      // Paso 2: Cuando abre el menú "Ventanilla" y pulsa "Nuevo expediente".
+      // Paso 2: Cuando abre el menú "Mis trámites" y pulsa "Nuevo trámite".
       await abrirNuevoExpediente(page);
 
       // Paso 3: Entonces se abre "Nuevo expediente: elija el centro"…

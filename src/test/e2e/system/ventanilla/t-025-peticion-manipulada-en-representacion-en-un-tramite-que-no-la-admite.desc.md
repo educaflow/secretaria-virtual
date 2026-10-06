@@ -50,12 +50,11 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Pasos
 1. **Dado** que el jefe de estudios `jefeestudios1@mislata.es` ha iniciado sesión con la contraseña `demo1234`.
-2. **Y** ha llegado a "Nuevo expediente" para el trámite "Justificación de falta del profesorado" en el centro "CIPFP Mislata", con "¿Cómo se presenta?" visible.
-3. **Cuando** marca "Estoy registrando un trámite recibido en papel".
-4. **Entonces** sigue sin verse "¿Para quién es el expediente?", porque el trámite no admite representación.
-5. **Cuando** pulsa "Crear expediente" con la petición manipulada para indicar que el expediente es en representación de otra persona, dejando el resto como está en la pantalla: el centro "CIPFP Mislata", el trámite "Justificación de falta del profesorado" y registrado como recibido en papel.
+2. **Y** ha llegado a "Nuevo expediente" para el trámite "Justificación de falta del profesorado" en el centro "CIPFP Mislata" entrando por el menú "Tramitación" → "Nuevo trámite" (registrar en papel).
+3. **Entonces** no se ve "¿Cómo se presenta?" (la forma la fija la entrada de menú) ni "¿Para quién es el expediente?", porque el trámite no admite representación.
+4. **Cuando** pulsa "Crear expediente" con la petición manipulada para indicar que el expediente es en representación de otra persona, dejando el resto como está en la pantalla: el centro "CIPFP Mislata", el trámite "Justificación de falta del profesorado" y registrado como recibido en papel.
 
 ## Resultado esperado
 - El sistema no crea ningún expediente.
 - Bajo el título "No es posible crear el expediente" muestra el mensaje "Este trámite no permite presentar la solicitud en representación de otra persona".
-- La pantalla "Nuevo expediente" sigue abierta con el trámite "Justificación de falta del profesorado" y el centro "CIPFP Mislata", con "Estoy registrando un trámite recibido en papel" todavía marcado; no se abre ningún expediente.
+- La pantalla "Nuevo expediente" sigue abierta con el trámite "Justificación de falta del profesorado" y el centro "CIPFP Mislata"; no se abre ningún expediente.

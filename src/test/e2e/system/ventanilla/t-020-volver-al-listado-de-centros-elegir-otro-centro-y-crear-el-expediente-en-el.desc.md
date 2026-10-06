@@ -50,7 +50,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Pasos
 1. **Dado** que el alumno `alumnodoscentros@mislata.es` ha iniciado sesión con la contraseña `demo1234`.
-2. **Cuando** abre el menú "Ventanilla" y pulsa "Nuevo expediente".
+2. **Cuando** abre el menú "Mis trámites" y pulsa "Nuevo trámite".
 3. **Entonces** se abre "Nuevo expediente: elija el centro" con las filas "CIPFP Batoi" y "CIPFP Mislata" y un botón "Cancelar".
 4. **Cuando** pulsa la fila "CIPFP Mislata".
 5. **Entonces** se abre "Nuevo expediente: elija el trámite" con el centro "CIPFP Mislata" encima del listado y un único botón debajo, "Atrás".

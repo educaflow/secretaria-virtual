@@ -1,21 +1,21 @@
 ---
 type: test-e2e
-id: T-011
+id: T-009
 ---
 
 <!-- ARTEFACTO GENERADO por /sdd-create-tests-e2e — NO editar a mano.
      Snapshot "as-tested": copia de la descripción que pasó al depurar con /sdd-debug-with-test-e2e-desc.
-     Fuente: .sdd/drafts/2026-09-21_17-51_ventanilla-nuevo-expediente/test-e2e-desc/t-011-para-quien-es-se-recalcula-al-cambiar-como-se-presenta.desc.md
+     Fuente: .sdd/drafts/2026-09-21_17-51_ventanilla-nuevo-expediente/test-e2e-desc/t-009-administrativo-que-solo-puede-registrar-en-papel-no-se-le-pregunta-como-se-presenta.desc.md
      Iniciativa: 2026-09-21_17-51_ventanilla-nuevo-expediente
-     Test: T-011  |  Origen ESC: ESC-011
+     Test: T-009  |  Origen ESC: ESC-009
      Para regenerar: /sdd-create-tests-e2e (sobrescribe desde la fuente). -->
 
-# T-011 — «¿Para quién es?» se recalcula al cambiar cómo se presenta
+# T-009 — Administrativo que solo puede registrar en papel crea el expediente por «Tramitación»
 
-**Origen ESC:** ESC-011
-**Verifica:** V-AsistenteNuevoExpediente-003, U-nuevo-expediente-006, U-nuevo-expediente-009, U-nuevo-expediente-010, U-nuevo-expediente-011, U-nuevo-expediente-012, U-nuevo-expediente-013, R-AsistenteNuevoExpediente-001, R-AsistenteNuevoExpediente-005
+**Origen ESC:** ESC-009
+**Verifica:** U-nuevo-expediente-006, U-nuevo-expediente-008, U-nuevo-expediente-009, U-nuevo-expediente-010, U-nuevo-expediente-013, R-AsistenteNuevoExpediente-001, R-AsistenteNuevoExpediente-005
 **Pantalla principal:** screen-nuevo-expediente.md
-**Tipo:** error
+**Tipo:** happy
 
 ## Estado inicial de la base de datos
 
@@ -49,19 +49,13 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 - Estado inicial de la base de datos.
 
 ## Pasos
-1. **Dado** que el administrativo `administrativo2@mislata.es` (que en "CIPFP Mislata" es además alumno) ha iniciado sesión con la contraseña `demo1234`.
-2. **Cuando** abre el menú "Ventanilla" y pulsa "Nuevo expediente".
+1. **Dado** que el administrativo `administrativo1@mislata.es` ha iniciado sesión con la contraseña `demo1234`.
+2. **Cuando** abre el menú "Tramitación" y pulsa "Nuevo trámite" (la entrada con la que se registra en papel un trámite recibido en ventanilla).
 3. **Entonces** se abre directamente "Nuevo expediente: elija el trámite" con el centro "CIPFP Mislata", únicamente "Trámites para el alumno" con "Anulación de matrícula en ciclo formativo" dentro, y un único botón debajo, "Cancelar".
 4. **Cuando** pulsa la fila "Anulación de matrícula en ciclo formativo".
-5. **Entonces** se abre "Nuevo expediente" con "¿Cómo se presenta?" visible y sin marcar, y sin "¿Para quién es el expediente?".
-6. **Cuando** marca "Lo presento yo mismo".
-7. **Entonces** sigue sin verse "¿Para quién es el expediente?" (es alumno y no es familiar: el expediente es para él mismo).
-8. **Cuando** cambia a "Estoy registrando un trámite recibido en papel".
-9. **Entonces** se muestra "¿Para quién es el expediente?" con "Para mí" y "Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)", sin ninguna marcada.
-10. **Cuando** pulsa "Crear expediente" sin marcar ninguna opción.
-11. **Entonces** el sistema muestra "Debe indicar para quién es el expediente", no crea ningún expediente y "Nuevo expediente" sigue abierta.
-12. **Cuando** marca "Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)" y pulsa "Crear expediente".
+5. **Entonces** se abre "Nuevo expediente" con ese trámite, su ayuda y el centro en solo lectura; no se ve "¿Cómo se presenta?" (la forma la fija la entrada de menú); sí se ve "¿Para quién es el expediente?" con las opciones "Para mí" y "Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)", sin ninguna marcada; se ven los botones "Atrás" y "Crear expediente".
+6. **Cuando** marca "Para mí" y pulsa "Crear expediente".
 
 ## Resultado esperado
 - El asistente se cierra y se abre el expediente recién creado de "Anulación de matrícula en ciclo formativo" en su primer estado, en el centro "CIPFP Mislata".
-- El expediente queda registrado como presentado en papel por el administrativo y en representación de otra persona (no para él mismo).
+- El expediente queda registrado como presentado en papel por el administrativo y para él mismo (no en representación de otra persona).

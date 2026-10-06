@@ -24,8 +24,8 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 // Credenciales del usuario de la precondición (tabla «Usuarios de acceso» del .desc.md):
 // alumnofamiliar@mislata.es es a la vez Alumno y Familiar en el MISMO centro. Por eso
 // SÍ se le pregunta "¿Para quién es el expediente?" (a diferencia de T-001/T-012), pero
-// NO "¿Cómo se presenta?": solo tiene una forma de iniciar este trámite, presentándolo
-// él mismo (no tiene permiso para registrarlo en papel). Este test cubre la rama en que
+// NO "¿Cómo se presenta?": esa pregunta ya no existe, la forma de presentar la fija la
+// entrada de menú («Mis trámites» → «Nuevo trámite»: lo presenta él mismo). Este test cubre la rama en que
 // contesta "en representación" (la rama "para mí" ya la cubre T-013).
 const USUARIO = 'alumnofamiliar@mislata.es';
 const CONTRASENA = 'demo1234';
@@ -50,7 +50,7 @@ const NOMBRE_COMPLETO = 'AlumnoFamiliar CIPFP Mislata';
 // `system/ventanilla/views/`). Se usan para comprobar tanto que se abre la que toca
 // como que al final NO queda ninguna abierta. Se expresan como expresiones regulares
 // con un `*` final opcional porque, en cuanto el usuario toca un radio, Axelor marca
-// con un asterisco la pestaña cuyo formulario tiene cambios sin guardar (ver T-011).
+// con un asterisco la pestaña cuyo formulario tiene cambios sin guardar.
 const PANTALLA_CENTRO = /^Nuevo expediente: elija el centro\*?$/;
 const PANTALLA_TRAMITE = /^Nuevo expediente: elija el trámite\*?$/;
 const PANTALLA_CONTEXTO = /^Nuevo expediente\*?$/;
@@ -188,7 +188,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
     let tituloExpediente = '';
 
     try {
-      // Paso 2: Cuando abre el menú "Ventanilla" y pulsa "Nuevo expediente".
+      // Paso 2: Cuando abre el menú "Mis trámites" y pulsa "Nuevo trámite".
       await abrirNuevoExpediente(page);
 
       // Paso 3: Entonces se abre directamente "Nuevo expediente: elija el trámite"…

@@ -8,7 +8,8 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     <!-- El nodo pulsado es un `Tramite` (no tiene `centro`): aunque el tree del paso anterior ya
          va embebido en un form (ver ElegirTramite-AsistenteNuevoExpediente.xml), esta pantalla
          sigue siendo su propia pestaña, abierta desde el onClick del nodo con el contexto que
-         ese tree recibió en su propia action-view (`_centroId`/`_hayQueElegirCentro`), sin
+         ese tree recibió en su propia action-view (`_centroId`/`_hayQueElegirCentro`/
+         `_presentadoEnPapel`), sin
          `__parent__`. -->
     <action-view name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-action"
                  title="Nuevo expediente"
@@ -18,6 +19,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <view-param name="show-confirm" value="false"/>
         <context name="_centroId" expr="eval: _centroId"/>
         <context name="_hayQueElegirCentro" expr="eval: _hayQueElegirCentro"/>
+        <context name="_presentadoEnPapel" expr="eval: _presentadoEnPapel"/>
         <context name="_tramiteId" expr="eval: id"/>
     </action-view>
 
@@ -38,18 +40,13 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
                     ]]></viewer>
             </field>
             <field name="tramite" hidden="true"/>
-            <field name="hayQuePreguntarPresentacion" hidden="true"/>
+            <field name="presentadoEnPapel" hidden="true"/>
             <field name="hayQuePreguntarParaQuien" hidden="true"/>
             <field name="hayQueElegirCentro" hidden="true"/>
         </panel>
 
         <panel name="presentacionPanel" title="Presentación" colSpan="12"
-               showIf="hayQuePreguntarPresentacion || hayQuePreguntarParaQuien">
-            <field name="presentadoEnPapel" colSpan="12" widget="boolean-radio"
-                   x-false-text="Lo presento yo mismo"
-                   x-true-text="Estoy registrando un trámite recibido en papel"
-                   showIf="hayQuePreguntarPresentacion"
-                   onChange="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-onChange-presentadoEnPapel-action"/>
+               showIf="hayQuePreguntarParaQuien">
             <field name="presentadoEnRepresentacion" colSpan="12" widget="boolean-radio"
                    x-false-text="Para mí"
                    x-true-text="Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)"
@@ -78,28 +75,23 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     </action-group>
 
     <action-group name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-onNew-action">
-        <action name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-set-tramiteCentroYHayQueElegirCentro-recibidos-action"/>
-        <action name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-Remote-recalcular-action"/>
-    </action-group>
-
-    <action-group name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-onChange-presentadoEnPapel-action">
+        <action name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-set-tramiteCentroHayQueElegirCentroYPresentadoEnPapel-recibidos-action"/>
         <action name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-Remote-recalcular-action"/>
     </action-group>
 
     <?sv-validations?>
     <action-validate name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-Local-validateTriggerInitialEvent-action">
-        <error message="Debe indicar cómo se presenta el expediente"
-               if="presentadoEnPapel == null"/>
         <error message="Debe indicar para quién es el expediente"
-               if="presentadoEnPapel != null &amp;&amp; presentadoEnRepresentacion == null"/>
+               if="presentadoEnRepresentacion == null"/>
     </action-validate>
 
     <?sv-rules?>
-    <action-record name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-set-tramiteCentroYHayQueElegirCentro-recibidos-action"
+    <action-record name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-set-tramiteCentroHayQueElegirCentroYPresentadoEnPapel-recibidos-action"
                    model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
         <field name="tramite" expr="eval: __repo__(com.educaflow.subsystem.expedientes.db.Tramite).find(_tramiteId)"/>
         <field name="centro" expr="eval: __repo__(com.educaflow.subsystem.common.db.Centro).find(_centroId)"/>
         <field name="hayQueElegirCentro" expr="eval: _hayQueElegirCentro"/>
+        <field name="presentadoEnPapel" expr="eval: _presentadoEnPapel"/>
     </action-record>
 
     <?sv-remotes?>

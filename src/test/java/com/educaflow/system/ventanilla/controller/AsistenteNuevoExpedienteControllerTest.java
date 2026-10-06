@@ -122,9 +122,11 @@ class AsistenteNuevoExpedienteControllerTest {
 
         // Cada allowProperties*/validate* solo lo usan los tests de su propia acción (prepararCentros/prepararTramites/recalcular/validateTriggerInitialEvent).
         Mockito.lenient().when(asistenteNuevoExpedienteService.allowPropertiesPrepararCentros())
-                .thenReturn(AllowProperties.createDenyAllProperties());
+                .thenReturn(AllowProperties.createAllowProperties(Map.of("presentadoEnPapel", Map.of())));
         Mockito.lenient().when(asistenteNuevoExpedienteService.allowPropertiesPrepararTramites())
-                .thenReturn(AllowProperties.createAllowProperties(Map.of("centro", Map.of())));
+                .thenReturn(AllowProperties.createAllowProperties(Map.of(
+                        "centro", Map.of(),
+                        "presentadoEnPapel", Map.of())));
         Mockito.lenient().when(asistenteNuevoExpedienteService.allowPropertiesRecalcular())
                 .thenReturn(AllowProperties.createAllowProperties(Map.of(
                         "tramite", Map.of(),
@@ -301,6 +303,7 @@ class AsistenteNuevoExpedienteControllerTest {
         context.put("centro", Map.of("id", 1L));
         context.put("centrosDisponibles", List.of(Map.of("id", 1L)));
         context.put("hayQueElegirCentro", true);
+        context.put("presentadoEnPapel", true);
         when(asistenteNuevoExpedienteService.prepararCentros(any()))
                 .thenReturn(asistenteConCentros(new LinkedHashSet<>(List.of(centroA)), false, centroA));
 
@@ -310,7 +313,8 @@ class AsistenteNuevoExpedienteControllerTest {
         verify(asistenteNuevoExpedienteService).prepararCentros(captor.capture());
 
         AsistenteNuevoExpediente bean = captor.getValue();
-        assertNull(bean.getCentro(), "La whitelist de la acción es deny-all: el centro enviado no puede entrar");
+        assertTrue(bean.getPresentadoEnPapel(), "La forma de presentar la fija la entrada de menú y sí entra");
+        assertNull(bean.getCentro(), "La whitelist de la acción solo admite la forma de presentar: el centro enviado no puede entrar");
         assertNull(bean.getCentrosDisponibles(), "El listado de centros lo calcula el servidor, no lo dicta el cliente");
         assertFalse(bean.getHayQueElegirCentro(), "El oráculo del arranque lo calcula el servidor, no lo dicta el cliente");
     }
@@ -369,12 +373,11 @@ class AsistenteNuevoExpedienteControllerTest {
     /* ------------------------------------------------------------------ */
 
     @Test
-    void recalcular_sinMensajes_devuelveLosSeisValoresDelPaso3() {
+    void recalcular_sinMensajes_devuelveLosCuatroValoresDelPaso3() {
         AsistenteNuevoExpediente resultado = new AsistenteNuevoExpediente();
         resultado.setTramite(tramite);
         resultado.setPresentadoEnPapel(false);
         resultado.setPresentadoEnRepresentacion(null);
-        resultado.setHayQuePreguntarPresentacion(true);
         resultado.setHayQuePreguntarParaQuien(true);
         when(asistenteNuevoExpedienteService.recalcular(any())).thenReturn(resultado);
 
@@ -382,9 +385,9 @@ class AsistenteNuevoExpedienteControllerTest {
 
         verify(actionResponse).setValue("nombreTramite", NOMBRE_TRAMITE_DERIVADO);
         verify(actionResponse).setValue("ayudaTramite", AYUDA_TRAMITE);
-        verify(actionResponse).setAttr("presentadoEnPapel", "value:set", false);
         verify(actionResponse).setAttr("presentadoEnRepresentacion", "value:set", null);
-        verify(actionResponse).setValue("hayQuePreguntarPresentacion", true);
+        verify(actionResponse, never()).setAttr(eq("presentadoEnPapel"), anyString(), any());
+        verify(actionResponse, never()).setValue(eq("presentadoEnPapel"), any());
         verify(actionResponse).setValue("hayQuePreguntarParaQuien", true);
     }
 
@@ -452,7 +455,6 @@ class AsistenteNuevoExpedienteControllerTest {
         context.put("tramite", Map.of("id", 10L));
         context.put("presentadoEnPapel", true);
         context.put("presentadoEnRepresentacion", false);
-        context.put("hayQuePreguntarPresentacion", true);
         context.put("hayQuePreguntarParaQuien", true);
         context.put("hayQueElegirCentro", true);
         context.put("tramitesDisponibles", List.of(Map.of("id", 10L)));
@@ -467,7 +469,6 @@ class AsistenteNuevoExpedienteControllerTest {
         assertSame(tramite, bean.getTramite());
         assertTrue(bean.getPresentadoEnPapel());
         assertFalse(bean.getPresentadoEnRepresentacion());
-        assertFalse(bean.getHayQuePreguntarPresentacion());
         assertFalse(bean.getHayQuePreguntarParaQuien());
         assertFalse(bean.getHayQueElegirCentro());
         assertNull(bean.getTramitesDisponibles());

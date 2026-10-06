@@ -50,7 +50,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Pasos
 1. **Dado** que el alumno `alumno1@mislata.es` ha iniciado sesión con la contraseña `demo1234`.
-2. **Cuando** abre el menú "Ventanilla" y pulsa "Nuevo expediente".
+2. **Cuando** abre el menú "Mis trámites" y pulsa "Nuevo trámite".
 3. **Entonces** el sistema no muestra el listado de centros y abre "Nuevo expediente: elija el trámite" con el centro "CIPFP Mislata" encima del listado, que muestra únicamente el tipo de trámite "Trámites para el alumno" y, dentro, únicamente "Anulación de matrícula en ciclo formativo"; no aparece "Trámites para el profesor"; debajo hay un único botón, "Cancelar", y no hay botón "Atrás".
 4. **Cuando** pulsa la fila "Anulación de matrícula en ciclo formativo".
 5. **Entonces** se abre "Nuevo expediente" con el nombre del trámite "Anulación de matrícula en ciclo formativo", su texto de ayuda y el centro "CIPFP Mislata" en solo lectura; no se ve "¿Cómo se presenta?" ni "¿Para quién es el expediente?"; se ven los botones "Atrás" y "Crear expediente".

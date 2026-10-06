@@ -50,7 +50,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Pasos
 1. **Dado** que el director `director@mislata.es` ha iniciado sesión con la contraseña `demo1234`.
-2. **Cuando** abre el menú "Ventanilla" y pulsa "Nuevo expediente".
+2. **Cuando** abre el menú "Mis trámites" y pulsa "Nuevo trámite".
 3. **Entonces** se abre directamente "Nuevo expediente: elija el trámite" con el centro "CIPFP Mislata", únicamente "Trámites para el profesor" con "Justificación de falta del profesorado" y "Trámite de prueba" por orden alfabético, y un único botón debajo, "Cancelar".
 4. **Cuando** pulsa la fila "Justificación de falta del profesorado".
 5. **Entonces** se abre "Nuevo expediente" con ese trámite, su ayuda y el centro en solo lectura, sin "¿Cómo se presenta?" ni "¿Para quién es el expediente?", y con los botones "Atrás" y "Crear expediente".

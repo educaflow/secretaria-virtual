@@ -5,12 +5,25 @@
 https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
 
     <?sv-view?>
-    <action-view name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-action"
+    <!-- Dos entradas al mismo form, una por forma de presentar: un <menuitem> no puede pasar
+         contexto propio, así que la forma la fija el `_presentadoEnPapel` literal de cada una
+         («Mis trámites» → propia, «Tramitación» → en papel). -->
+    <action-view name="sysVentanilla.ElegirCentro@AsistenteNuevoExpedientePresentadoElectronicamente-action"
                  title="Nuevo expediente: elija el centro"
                  model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
         <view type="form" name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-form"/>
         <view-param name="show-toolbar-form" value="false"/>
         <view-param name="show-confirm" value="false"/>
+        <context name="_presentadoEnPapel" expr="eval: false"/>
+    </action-view>
+
+    <action-view name="sysVentanilla.ElegirCentro@AsistenteNuevoExpedientePresentadoEnPapel-action"
+                 title="Nuevo expediente: elija el centro"
+                 model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <view type="form" name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-form"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="show-confirm" value="false"/>
+        <context name="_presentadoEnPapel" expr="eval: true"/>
     </action-view>
 
     <form name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-form"
@@ -22,6 +35,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <panel name="estadoPanel" title="" colSpan="12" showFrame="false">
             <field name="centro" hidden="true"/>
             <field name="hayQueElegirCentro" hidden="true"/>
+            <field name="presentadoEnPapel" hidden="true"/>
         </panel>
 
         <panel name="centrosPanel" title="" colSpan="12" showFrame="false" showIf="hayQueElegirCentro">
@@ -41,6 +55,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     </action-group>
 
     <action-group name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-onNew-action">
+        <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-set-presentadoEnPapel-recibido-action"/>
         <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-Remote-prepararCentros-action"/>
         <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-Local-avisoSinCentros-action"
                 if="centrosDisponibles.isEmpty()"/>
@@ -54,6 +69,10 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     </action-validate>
 
     <?sv-rules?>
+    <action-record name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-set-presentadoEnPapel-recibido-action"
+                   model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
+        <field name="presentadoEnPapel" expr="eval: _presentadoEnPapel"/>
+    </action-record>
 
     <?sv-remotes?>
     <action-method name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-Remote-prepararCentros-action"

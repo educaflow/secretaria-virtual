@@ -50,7 +50,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Pasos
 1. **Dado** que el director `director@mislata.es` ha iniciado sesión con la contraseña `demo1234`.
-2. **Cuando** abre el menú "Ventanilla" y pulsa "Nuevo expediente".
+2. **Cuando** abre el menú "Mis trámites" y pulsa "Nuevo trámite".
 
 ## Resultado esperado
 - El sistema no muestra el listado de centros y abre "Nuevo expediente: elija el trámite" con el centro "CIPFP Mislata" encima del listado.

@@ -1,19 +1,19 @@
 ---
 type: test-e2e
-id: T-009
+id: T-019
 ---
 
 <!-- ARTEFACTO GENERADO por /sdd-create-tests-e2e — NO editar a mano.
      Snapshot "as-tested": copia de la descripción que pasó al depurar con /sdd-debug-with-test-e2e-desc.
-     Fuente: .sdd/drafts/2026-09-21_17-51_ventanilla-nuevo-expediente/test-e2e-desc/t-009-administrativo-que-solo-puede-registrar-en-papel-no-se-le-pregunta-como-se-presenta.desc.md
+     Fuente: .sdd/drafts/2026-09-21_17-51_ventanilla-nuevo-expediente/test-e2e-desc/t-019-usuario-con-las-dos-formas-de-presentar-elige-lo-presento-yo-mismo.desc.md
      Iniciativa: 2026-09-21_17-51_ventanilla-nuevo-expediente
-     Test: T-009  |  Origen ESC: ESC-009
+     Test: T-019  |  Origen ESC: ESC-018
      Para regenerar: /sdd-create-tests-e2e (sobrescribe desde la fuente). -->
 
-# T-009 — Administrativo que solo puede registrar en papel: no se le pregunta cómo se presenta
+# T-019 — Usuario con las dos formas de presentar crea por «Mis trámites» un expediente propio
 
-**Origen ESC:** ESC-009
-**Verifica:** U-nuevo-expediente-006, U-nuevo-expediente-008, U-nuevo-expediente-009, U-nuevo-expediente-010, U-nuevo-expediente-013, R-AsistenteNuevoExpediente-001, R-AsistenteNuevoExpediente-005
+**Origen ESC:** ESC-018
+**Verifica:** U-nuevo-expediente-006, U-nuevo-expediente-009, U-nuevo-expediente-011, U-nuevo-expediente-013, R-AsistenteNuevoExpediente-001, R-AsistenteNuevoExpediente-005
 **Pantalla principal:** screen-nuevo-expediente.md
 **Tipo:** happy
 
@@ -49,13 +49,13 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 - Estado inicial de la base de datos.
 
 ## Pasos
-1. **Dado** que el administrativo `administrativo1@mislata.es` ha iniciado sesión con la contraseña `demo1234`.
-2. **Cuando** abre el menú "Ventanilla" y pulsa "Nuevo expediente".
-3. **Entonces** se abre directamente "Nuevo expediente: elija el trámite" con el centro "CIPFP Mislata", únicamente "Trámites para el alumno" con "Anulación de matrícula en ciclo formativo" dentro, y un único botón debajo, "Cancelar".
-4. **Cuando** pulsa la fila "Anulación de matrícula en ciclo formativo".
-5. **Entonces** se abre "Nuevo expediente" con ese trámite, su ayuda y el centro en solo lectura; no se ve "¿Cómo se presenta?"; sí se ve "¿Para quién es el expediente?" con las opciones "Para mí" y "Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)", sin ninguna marcada; se ven los botones "Atrás" y "Crear expediente".
-6. **Cuando** marca "Para mí" y pulsa "Crear expediente".
+1. **Dado** que el jefe de estudios `jefeestudios1@mislata.es` ha iniciado sesión con la contraseña `demo1234`.
+2. **Cuando** abre el menú "Mis trámites" y pulsa "Nuevo trámite".
+3. **Entonces** se abre directamente "Nuevo expediente: elija el trámite" con el centro "CIPFP Mislata", únicamente "Trámites para el profesor" con "Justificación de falta del profesorado" y "Trámite de prueba" por orden alfabético, y un único botón debajo, "Cancelar".
+4. **Cuando** pulsa la fila "Justificación de falta del profesorado".
+5. **Entonces** se abre "Nuevo expediente" con ese trámite, su ayuda y el centro en solo lectura, sin "¿Cómo se presenta?" (aunque tiene las dos formas de presentar, la entrada "Mis trámites" ya fija que lo presenta él mismo) y sin "¿Para quién es el expediente?" (el trámite no admite representación).
+6. **Cuando** pulsa "Crear expediente".
 
 ## Resultado esperado
-- El asistente se cierra y se abre el expediente recién creado de "Anulación de matrícula en ciclo formativo" en su primer estado, en el centro "CIPFP Mislata".
-- El expediente queda registrado como presentado en papel por el administrativo y para él mismo (no en representación de otra persona).
+- El asistente se cierra y se abre el expediente recién creado de "Justificación de falta del profesorado" en su primer estado, en el centro "CIPFP Mislata".
+- El expediente queda presentado por el propio jefe de estudios (no registrado como presentado en papel) y para él mismo.

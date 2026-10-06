@@ -28,9 +28,9 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 // clave de este escenario: al ser alumno, el trámite podría ser para él mismo; al ser
 // también familiar (y el trámite admitir representación), podría ser en representación
 // de otra persona. Por eso, a diferencia de T-001/T-012, aquí SÍ hay que preguntar
-// "¿Para quién es el expediente?" — pero NO "¿Cómo se presenta?": solo tiene una forma
-// de iniciar este trámite, presentándolo él mismo (no tiene permiso para registrarlo en
-// papel).
+// "¿Para quién es el expediente?" — pero NO "¿Cómo se presenta?": esa pregunta ya no
+// existe, la forma de presentar la fija la entrada de menú («Mis trámites» → «Nuevo
+// trámite»: lo presenta él mismo).
 const USUARIO = 'alumnofamiliar@mislata.es';
 const CONTRASENA = 'demo1234';
 
@@ -53,7 +53,7 @@ const NOMBRE_COMPLETO = 'AlumnoFamiliar CIPFP Mislata';
 // `system/ventanilla/views/`). Se usan para comprobar tanto que se abre la que toca
 // como que al final NO queda ninguna abierta. Se expresan como expresiones regulares
 // con un `*` final opcional porque, en cuanto el usuario toca un radio, Axelor marca
-// con un asterisco la pestaña cuyo formulario tiene cambios sin guardar (ver T-011).
+// con un asterisco la pestaña cuyo formulario tiene cambios sin guardar.
 const PANTALLA_CENTRO = /^Nuevo expediente: elija el centro\*?$/;
 const PANTALLA_TRAMITE = /^Nuevo expediente: elija el trámite\*?$/;
 const PANTALLA_CONTEXTO = /^Nuevo expediente\*?$/;
@@ -69,7 +69,7 @@ const OPCION_EN_REPRESENTACION =
   'Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)';
 
 // Mensaje del `<action-validate>` local del form cuando no se contesta "¿Para quién es
-// el expediente?" (el mismo que T-011 ve al no contestar ninguna de las dos preguntas).
+// el expediente?".
 const ERROR_FALTA_PARA_QUIEN = 'Debe indicar para quién es el expediente';
 
 // Primer estado del tipo de expediente para quien lo presenta él mismo (perfil
@@ -187,7 +187,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
     let tituloExpediente = '';
 
     try {
-      // Paso 2: Cuando abre el menú "Ventanilla" y pulsa "Nuevo expediente".
+      // Paso 2: Cuando abre el menú "Mis trámites" y pulsa "Nuevo trámite".
       await abrirNuevoExpediente(page);
 
       // Paso 3: Entonces se abre directamente "Nuevo expediente: elija el trámite"…

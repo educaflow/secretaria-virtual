@@ -108,14 +108,6 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
             return tramiteEvaluable;
         }
 
-        if (asistente.getPresentadoEnPapel() == null) {
-            BusinessMessages businessMessages = new BusinessMessages();
-            businessMessages.add(new BusinessMessage("presentadoEnPapel",
-                    I18n.get("Debe indicar cómo se presenta el expediente"),
-                    I18n.get(Mapper.of(AsistenteNuevoExpediente.class).getProperty("presentadoEnPapel").getTitle())));
-            return Optional.of(businessMessages);
-        }
-
         if (asistente.getPresentadoEnRepresentacion() == null) {
             BusinessMessages businessMessages = new BusinessMessages();
             businessMessages.add(new BusinessMessage("presentadoEnRepresentacion",
@@ -215,13 +207,16 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
 
     @Override
     public AllowProperties allowPropertiesPrepararCentros() {
-        return AllowProperties.createDenyAllProperties();
+        return AllowProperties.createAllowProperties(Map.of(
+                "presentadoEnPapel", Map.of()
+        ));
     }
 
     @Override
     public AllowProperties allowPropertiesPrepararTramites() {
         return AllowProperties.createAllowProperties(Map.of(
-                "centro", Map.of()
+                "centro", Map.of(),
+                "presentadoEnPapel", Map.of()
         ));
     }
 
@@ -249,7 +244,7 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
     /***********************************************************************************/
 
     private void fireActionRule_AsignarArranqueDelAsistente(AsistenteNuevoExpediente asistente) {
-        List<Centro> centrosCandidatos = getCentrosCandidatos();
+        List<Centro> centrosCandidatos = getCentrosCandidatos(asistente.getPresentadoEnPapel());
 
         asistente.setCentrosDisponibles(new LinkedHashSet<>(centrosCandidatos));
         asistente.setHayQueElegirCentro(centrosCandidatos.size() > 1);
@@ -258,7 +253,8 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
 
     private void fireActionRule_AsignarTramitesDisponibles(AsistenteNuevoExpediente asistente) {
         List<Tramite> tramitesCandidatos =
-                getTramitesCandidatos(asistente.getCentro(), getTramitesConTipoExpedienteActivo());
+                getTramitesCandidatos(asistente.getCentro(), getTramitesConTipoExpedienteActivo(),
+                        asistente.getPresentadoEnPapel());
 
         asistente.setTramitesDisponibles(new LinkedHashSet<>(tramitesCandidatos));
     }
@@ -266,42 +262,10 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
     private void fireActionRule_AsignarPresentacion(AsistenteNuevoExpediente asistente) {
         Tramite tramite = asistente.getTramite();
         Centro centro = asistente.getCentro();
+        boolean presentadoEnPapel = asistente.getPresentadoEnPapel();
 
-        MatrizPresentacion matriz = new MatrizPresentacion(
-                admiteAlta(tramite, centro, false, false),
-                admiteAlta(tramite, centro, false, true),
-                admiteAlta(tramite, centro, true, false),
-                admiteAlta(tramite, centro, true, true));
-
-        Boolean presentadoEnPapel = fireActionRule_AsignarFormaDePresentar(asistente, matriz);
-        fireActionRule_AsignarDestinatario(asistente, matriz, presentadoEnPapel);
-    }
-
-    private Boolean fireActionRule_AsignarFormaDePresentar(AsistenteNuevoExpediente asistente,
-                                                           MatrizPresentacion matriz) {
-        boolean admiteAlgunaFormaPropia = matriz.admiteAlgunDestinatario(false);
-        boolean admiteAlgunaFormaEnPapel = matriz.admiteAlgunDestinatario(true);
-        boolean hayQuePreguntarLaForma = admiteAlgunaFormaPropia && admiteAlgunaFormaEnPapel;
-
-        asistente.setHayQuePreguntarPresentacion(hayQuePreguntarLaForma);
-        if (!hayQuePreguntarLaForma) {
-            asistente.setPresentadoEnPapel(admiteAlgunaFormaEnPapel);
-        }
-
-        return asistente.getPresentadoEnPapel();
-    }
-
-    private void fireActionRule_AsignarDestinatario(AsistenteNuevoExpediente asistente,
-                                                    MatrizPresentacion matriz,
-                                                    Boolean presentadoEnPapel) {
-        if (presentadoEnPapel == null) {
-            asistente.setHayQuePreguntarParaQuien(false);
-            asistente.setPresentadoEnRepresentacion(null);
-            return;
-        }
-
-        boolean admiteParaMi = matriz.admite(presentadoEnPapel, false);
-        boolean admiteEnRepresentacion = matriz.admite(presentadoEnPapel, true);
+        boolean admiteParaMi = admiteAlta(tramite, centro, presentadoEnPapel, false);
+        boolean admiteEnRepresentacion = admiteAlta(tramite, centro, presentadoEnPapel, true);
         boolean hayQuePreguntarElDestinatario = admiteParaMi && admiteEnRepresentacion;
 
         asistente.setHayQuePreguntarParaQuien(hayQuePreguntarElDestinatario);
@@ -313,31 +277,18 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
     /********************************* Otras funciones *********************************/
     /***********************************************************************************/
 
-    private record MatrizPresentacion(boolean yoMismoParaMi, boolean yoMismoEnRepresentacion,
-                                      boolean enPapelParaMi, boolean enPapelEnRepresentacion) {
-
-        boolean admite(boolean presentadoEnPapel, boolean presentadoEnRepresentacion) {
-            if (presentadoEnPapel) {
-                return presentadoEnRepresentacion ? enPapelEnRepresentacion : enPapelParaMi;
-            }
-            return presentadoEnRepresentacion ? yoMismoEnRepresentacion : yoMismoParaMi;
-        }
-
-        boolean admiteAlgunDestinatario(boolean presentadoEnPapel) {
-            return admite(presentadoEnPapel, false) || admite(presentadoEnPapel, true);
-        }
-    }
-
-    private List<Tramite> getTramitesCandidatos(Centro centro, List<Tramite> tramitesEvaluables) {
+    private List<Tramite> getTramitesCandidatos(Centro centro, List<Tramite> tramitesEvaluables,
+                                                boolean presentadoEnPapel) {
         User usuario = SecurityUtil.getUser();
+        Profile perfilDeInicio = perfilDeInicioPara(presentadoEnPapel);
 
         return tramitesEvaluables.stream()
-                .filter(tramite -> !perfilesUsuarioService
-                        .getPerfilesDeInicioSobreTramite(tramite, usuario, centro).isEmpty())
+                .filter(tramite -> perfilesUsuarioService
+                        .getPerfilesDeInicioSobreTramite(tramite, usuario, centro).contains(perfilDeInicio))
                 .toList();
     }
 
-    private List<Centro> getCentrosCandidatos() {
+    private List<Centro> getCentrosCandidatos(boolean presentadoEnPapel) {
         List<CentroUsuario> centroUsuarios = SecurityUtil.getUser().getCentroUsuarios();
         if (centroUsuarios == null) {
             return List.of();
@@ -348,7 +299,7 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
         return centroUsuarios.stream()
                 .map(CentroUsuario::getCentro)
                 .filter(Objects::nonNull)
-                .filter(centro -> !getTramitesCandidatos(centro, tramitesEvaluables).isEmpty())
+                .filter(centro -> !getTramitesCandidatos(centro, tramitesEvaluables, presentadoEnPapel).isEmpty())
                 .sorted(Comparator.comparing(Centro::getName, Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
     }

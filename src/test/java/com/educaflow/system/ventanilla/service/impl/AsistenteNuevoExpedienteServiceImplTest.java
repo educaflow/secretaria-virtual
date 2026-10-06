@@ -61,7 +61,6 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     private static final String MENSAJE_CENTRO = "Debe indicar el centro";
     private static final String MENSAJE_TRAMITE = "Debe indicar el trámite";
-    private static final String MENSAJE_COMO_SE_PRESENTA = "Debe indicar cómo se presenta el expediente";
     private static final String MENSAJE_PARA_QUIEN = "Debe indicar para quién es el expediente";
     private static final String MENSAJE_SIN_PERFIL_DE_INICIO = "No puede crear expedientes de este trámite en el centro indicado";
     private static final String MENSAJE_FORMA_NO_PERMITIDA = "No puede presentar el expediente de esa forma en el centro indicado";
@@ -76,11 +75,11 @@ class AsistenteNuevoExpedienteServiceImplTest {
     private static final List<String> CAMPOS_DEL_MODELO = List.of(
             "centro", "tramite", "presentadoEnPapel", "presentadoEnRepresentacion",
             "nombreTramite", "ayudaTramite", "centrosDisponibles", "tramitesDisponibles",
-            "hayQueElegirCentro", "hayQuePreguntarPresentacion", "hayQuePreguntarParaQuien");
+            "hayQueElegirCentro", "hayQuePreguntarParaQuien");
 
     private static final List<String> CAMPOS_DERIVADOS_Y_DEL_SERVIDOR = List.of(
             "nombreTramite", "ayudaTramite", "centrosDisponibles", "tramitesDisponibles",
-            "hayQueElegirCentro", "hayQuePreguntarPresentacion", "hayQuePreguntarParaQuien");
+            "hayQueElegirCentro", "hayQuePreguntarParaQuien");
 
     private AsistenteNuevoExpedienteServiceImpl service;
 
@@ -282,8 +281,14 @@ class AsistenteNuevoExpedienteServiceImplTest {
         return Mapper.of(AsistenteNuevoExpediente.class).getProperty(campo).getTitle();
     }
 
-    private AsistenteNuevoExpediente asistenteConCentro() {
+    private static AsistenteNuevoExpediente asistenteNuevo(boolean presentadoEnPapel) {
         var asistente = new AsistenteNuevoExpediente();
+        asistente.setPresentadoEnPapel(presentadoEnPapel);
+        return asistente;
+    }
+
+    private AsistenteNuevoExpediente asistenteConCentro() {
+        var asistente = asistenteNuevo(false);
         asistente.setCentro(centroA);
         return asistente;
     }
@@ -316,7 +321,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
         stubCatalogo(tramite);
         stubPerfilesDeInicio(tramite, centroA, Profile.CREADOR);
         stubPerfilesDeInicio(tramite, centroB, Profile.CREADOR);
-        var asistente = new AsistenteNuevoExpediente();
+        var asistente = asistenteNuevo(false);
 
         var resultado = service.prepararCentros(asistente);
 
@@ -335,7 +340,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
         stubCatalogo(tramite);
         stubPerfilesDeInicio(tramite, centroA, Profile.CREADOR);
         stubPerfilesDeInicio(tramite, centroB);
-        var asistente = new AsistenteNuevoExpediente();
+        var asistente = asistenteNuevo(false);
 
         service.prepararCentros(asistente);
 
@@ -352,7 +357,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
         stubCatalogo(tramite);
         stubPerfilesDeInicio(tramite, centroA);
         stubPerfilesDeInicio(tramite, centroB);
-        var asistente = new AsistenteNuevoExpediente();
+        var asistente = asistenteNuevo(false);
 
         service.prepararCentros(asistente);
 
@@ -363,7 +368,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
     @Test
     void prepararCentros_usuarioSinCentros_dejaLaListaVaciaYNoClasificaNada() {
-        var asistente = new AsistenteNuevoExpediente();
+        var asistente = asistenteNuevo(false);
 
         service.prepararCentros(asistente);
 
@@ -378,7 +383,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
         centroUsuario(centroA);
         centroUsuario(centroB);
         stubCatalogo();
-        var asistente = new AsistenteNuevoExpediente();
+        var asistente = asistenteNuevo(false);
 
         service.prepararCentros(asistente);
 
@@ -395,7 +400,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
         stubCatalogo(tramite, otroTramite);
         when(perfilesUsuarioService.getPerfilesDeInicioSobreTramite(any(), any(), any()))
                 .thenReturn(Set.of(Profile.CREADOR));
-        var asistente = new AsistenteNuevoExpediente();
+        var asistente = asistenteNuevo(false);
 
         service.prepararCentros(asistente);
 
@@ -408,7 +413,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
         centroUsuario(centroA);
         stubCatalogo(tramite);
         stubPerfilesDeInicio(tramite, centroA, Profile.CREADOR);
-        var asistente = new AsistenteNuevoExpediente();
+        var asistente = asistenteNuevo(false);
         asistente.setCentrosDisponibles(new LinkedHashSet<>(Set.of(centroB)));
         asistente.setCentro(centroB);
         asistente.setHayQueElegirCentro(true);
@@ -419,6 +424,38 @@ class AsistenteNuevoExpedienteServiceImplTest {
         assertTrue(asistente.getCentrosDisponibles().contains(centroA));
         assertSame(centroA, asistente.getCentro());
         assertFalse(asistente.getHayQueElegirCentro());
+    }
+
+    @Test
+    void prepararCentros_soloOfreceLosCentrosDondePuedeIniciarConElPerfilDeLaFormaDePresentar() {
+        centroUsuario(centroA);
+        centroUsuario(centroB);
+        stubCatalogo(tramite);
+        stubPerfilesDeInicio(tramite, centroA, Profile.CREADOR);
+        stubPerfilesDeInicio(tramite, centroB, Profile.TRAMITADOR);
+        var loPresentaElUsuario = asistenteNuevo(false);
+        var enPapel = asistenteNuevo(true);
+
+        service.prepararCentros(loPresentaElUsuario);
+        service.prepararCentros(enPapel);
+
+        assertEquals(Set.of(centroA), loPresentaElUsuario.getCentrosDisponibles());
+        assertSame(centroA, loPresentaElUsuario.getCentro());
+        assertEquals(Set.of(centroB), enPapel.getCentrosDisponibles());
+        assertSame(centroB, enPapel.getCentro());
+    }
+
+    @Test
+    void prepararCentros_noCambiaLaFormaDePresentarRecibida() {
+        centroUsuario(centroA);
+        stubCatalogo(tramite);
+        stubPerfilesDeInicio(tramite, centroA, Profile.CREADOR);
+        var asistente = asistenteNuevo(true);
+
+        service.prepararCentros(asistente);
+
+        assertTrue(asistente.getPresentadoEnPapel());
+        assertTrue(asistente.getCentrosDisponibles().isEmpty());
     }
 
     /* ------------------------------------------------------------------ */
@@ -453,11 +490,27 @@ class AsistenteNuevoExpedienteServiceImplTest {
     }
 
     @Test
+    void prepararTramites_soloOfreceLosTramitesQuePuedeIniciarConElPerfilDeLaFormaDePresentar() {
+        stubCatalogo(tramite, otroTramite);
+        stubPerfilesDeInicio(tramite, centroA, Profile.CREADOR);
+        stubPerfilesDeInicio(otroTramite, centroA, Profile.TRAMITADOR);
+        var loPresentaElUsuario = asistenteConCentro();
+        var enPapel = asistenteConCentro();
+        enPapel.setPresentadoEnPapel(true);
+
+        service.prepararTramites(loPresentaElUsuario);
+        service.prepararTramites(enPapel);
+
+        assertEquals(Set.of(tramite), loPresentaElUsuario.getTramitesDisponibles());
+        assertEquals(Set.of(otroTramite), enPapel.getTramitesDisponibles());
+    }
+
+    @Test
     void prepararTramites_centroAjenoAlUsuario_dejaLaListaVacia() {
         centroUsuario(centroA);
         stubCatalogo(tramite);
         stubPerfilesDeInicio(tramite, centroB);
-        var asistente = new AsistenteNuevoExpediente();
+        var asistente = asistenteNuevo(false);
         asistente.setCentro(centroB);
 
         service.prepararTramites(asistente);
@@ -511,7 +564,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
     /* ------------------------------------------------------------------ */
 
     @Test
-    void recalcular_lasDosFormasPosiblesYSinContestar_preguntaComoSePresentaYNoPreguntaParaQuienEs() {
+    void recalcular_losDosDestinatariosPosiblesParaLaFormaFijada_preguntaParaQuienEs() {
         tramite.setTipoUsuario(null);
         stubCatalogo(tramite);
         stubOraculoAcepta();
@@ -519,66 +572,37 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
         var resultado = service.recalcular(asistente);
 
-        assertTrue(asistente.getHayQuePreguntarPresentacion());
-        assertNull(asistente.getPresentadoEnPapel());
-        assertFalse(asistente.getHayQuePreguntarParaQuien());
+        assertFalse(asistente.getPresentadoEnPapel());
+        assertTrue(asistente.getHayQuePreguntarParaQuien());
         assertNull(asistente.getPresentadoEnRepresentacion());
         assertSame(asistente, resultado);
     }
 
     @Test
-    void recalcular_lasDosFormasPosiblesYFormaYaContestada_preguntaParaQuienEs() {
-        tramite.setTipoUsuario(null);
+    void recalcular_formaFijadaQueNoAdmiteNingunDestinatario_noCambiaLaFormaNiPreguntaNada() {
+        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
-        stubOraculoAcepta();
+        stubOraculoSoloAdmitePapel();
         var asistente = asistenteConCentroYTramite(tramite);
-        asistente.setPresentadoEnPapel(false);
 
         service.recalcular(asistente);
 
-        assertTrue(asistente.getHayQuePreguntarPresentacion());
         assertFalse(asistente.getPresentadoEnPapel());
-        assertTrue(asistente.getHayQuePreguntarParaQuien());
-        assertNull(asistente.getPresentadoEnRepresentacion());
+        assertFalse(asistente.getHayQuePreguntarParaQuien());
+        assertFalse(asistente.getPresentadoEnRepresentacion());
     }
 
     @Test
-    void recalcular_soloSePuedePresentarEnPapel_fijaLaFormaYNoPregunta() {
-        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
-        stubCatalogo(tramite);
-        stubOraculoSoloAdmitePapel();
-        var asistente = asistenteConCentroYTramite(tramite);
-
-        service.recalcular(asistente);
-
-        assertFalse(asistente.getHayQuePreguntarPresentacion());
-        assertTrue(asistente.getPresentadoEnPapel());
-    }
-
-    @Test
-    void recalcular_soloSePuedePresentarEnPapelYElClienteEnviaLaOtraForma_laDescarta() {
-        centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
-        stubCatalogo(tramite);
-        stubOraculoSoloAdmitePapel();
-        var asistente = asistenteConCentroYTramite(tramite);
-        asistente.setPresentadoEnPapel(false);
-
-        service.recalcular(asistente);
-
-        assertTrue(asistente.getPresentadoEnPapel());
-    }
-
-    @Test
-    void recalcular_ningunaFormaPosible_dejaLosDosCamposInformadosYNoPreguntaNada() {
+    void recalcular_ningunaCombinacionPosible_dejaElDestinatarioInformadoYNoPreguntaNada() {
         centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoRechazaSiempre(MENSAJE_SIN_PERFIL_DE_INICIO);
         var asistente = asistenteConCentroYTramite(tramite);
+        asistente.setPresentadoEnPapel(true);
 
         service.recalcular(asistente);
 
-        assertFalse(asistente.getHayQuePreguntarPresentacion());
-        assertFalse(asistente.getPresentadoEnPapel());
+        assertTrue(asistente.getPresentadoEnPapel());
         assertFalse(asistente.getHayQuePreguntarParaQuien());
         assertFalse(asistente.getPresentadoEnRepresentacion());
     }
@@ -598,7 +622,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
     }
 
     @Test
-    void recalcular_alCambiarLaFormaDePresentar_noConservaElDestinatarioAnterior() {
+    void recalcular_destinatarioEnviadoPorElClienteQueNoAdmiteLaForma_loSobrescribe() {
         centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoNoAdmiteRepresentacionEnPapel();
@@ -612,7 +636,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
     }
 
     @Test
-    void recalcular_consultaElOraculoExactamenteUnaVezPorCelda() {
+    void recalcular_consultaElOraculoUnaVezPorDestinatarioYSoloConElPerfilDeLaFormaFijada() {
         centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoAcepta();
@@ -620,15 +644,15 @@ class AsistenteNuevoExpedienteServiceImplTest {
 
         service.recalcular(asistenteCompleto());
 
-        verify(tramitadorService, times(4)).validateTriggerInitialEvent(contextos.capture());
+        verify(tramitadorService, times(2)).validateTriggerInitialEvent(contextos.capture());
         var parejas = contextos.getAllValues().stream()
                 .map(contexto -> contexto.profile() + "/" + contexto.presentadoEnRepresentacion())
                 .collect(Collectors.toSet());
-        assertEquals(Set.of("CREADOR/false", "CREADOR/true", "TRAMITADOR/false", "TRAMITADOR/true"), parejas);
+        assertEquals(Set.of("CREADOR/false", "CREADOR/true"), parejas);
     }
 
     @Test
-    void recalcular_noLeeElCatalogoParaCalcularLaMatriz() {
+    void recalcular_leeElCatalogoUnaSolaVez() {
         centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
         stubOraculoAcepta();
@@ -770,7 +794,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
     }
 
     @Test
-    void validateRecalcular_sinLasDosRespuestasDelUsuario_devuelveVacio() {
+    void validateRecalcular_sinDestinatario_devuelveVacio() {
         stubCatalogo(tramite);
         var asistente = asistenteConCentroYTramite(tramite);
 
@@ -826,12 +850,12 @@ class AsistenteNuevoExpedienteServiceImplTest {
     }
 
     @Test
-    void validateTriggerInitialEvent_sinFormaDePresentar_devuelveDebeIndicarComoSePresenta() {
+    void validateTriggerInitialEvent_sinFormaDePresentar_lanzaExcepcionQueNoEsDeNegocio() {
         stubCatalogo(tramite);
         var asistente = asistenteCompleto();
         asistente.setPresentadoEnPapel(null);
 
-        assertMensajeDeLaVentanilla(MENSAJE_COMO_SE_PRESENTA, "presentadoEnPapel", service.validateTriggerInitialEvent(asistente));
+        assertThrows(NullPointerException.class, () -> service.validateTriggerInitialEvent(asistente));
 
         verifyNoInteractions(tramitadorService);
     }
@@ -1024,26 +1048,25 @@ class AsistenteNuevoExpedienteServiceImplTest {
     /* ------------------------------------------------------------------ */
 
     @Test
-    void allowPropertiesPrepararCentros_noAceptaNingunCampo() {
+    void allowPropertiesPrepararCentros_soloAceptaLaFormaDePresentar() {
         AllowProperties allowProperties = service.allowPropertiesPrepararCentros();
 
         assertFalse(allowProperties.allowProperty("centro"));
         assertFalse(allowProperties.allowProperty("tramite"));
-        assertFalse(allowProperties.allowProperty("presentadoEnPapel"));
+        assertTrue(allowProperties.allowProperty("presentadoEnPapel"));
         assertFalse(allowProperties.allowProperty("presentadoEnRepresentacion"));
         assertFalse(allowProperties.allowProperty("centrosDisponibles"));
         assertFalse(allowProperties.allowProperty("hayQueElegirCentro"));
-        assertFalse(allowProperties.allowProperty("hayQuePreguntarPresentacion"));
         assertFalse(allowProperties.allowProperty("hayQuePreguntarParaQuien"));
     }
 
     @Test
-    void allowPropertiesPrepararTramites_soloAceptaElCentro() {
+    void allowPropertiesPrepararTramites_soloAceptaElCentroYLaFormaDePresentar() {
         AllowProperties allowProperties = service.allowPropertiesPrepararTramites();
 
         assertTrue(allowProperties.allowProperty("centro"));
         assertFalse(allowProperties.allowProperty("tramite"));
-        assertFalse(allowProperties.allowProperty("presentadoEnPapel"));
+        assertTrue(allowProperties.allowProperty("presentadoEnPapel"));
         assertFalse(allowProperties.allowProperty("presentadoEnRepresentacion"));
         assertFalse(allowProperties.allowProperty("tramitesDisponibles"));
         assertFalse(allowProperties.allowProperty("hayQueElegirCentro"));
@@ -1060,7 +1083,6 @@ class AsistenteNuevoExpedienteServiceImplTest {
         assertFalse(allowProperties.allowProperty("centrosDisponibles"));
         assertFalse(allowProperties.allowProperty("tramitesDisponibles"));
         assertFalse(allowProperties.allowProperty("hayQueElegirCentro"));
-        assertFalse(allowProperties.allowProperty("hayQuePreguntarPresentacion"));
         assertFalse(allowProperties.allowProperty("hayQuePreguntarParaQuien"));
     }
 
@@ -1075,7 +1097,6 @@ class AsistenteNuevoExpedienteServiceImplTest {
         assertFalse(allowProperties.allowProperty("centrosDisponibles"));
         assertFalse(allowProperties.allowProperty("tramitesDisponibles"));
         assertFalse(allowProperties.allowProperty("hayQueElegirCentro"));
-        assertFalse(allowProperties.allowProperty("hayQuePreguntarPresentacion"));
         assertFalse(allowProperties.allowProperty("hayQuePreguntarParaQuien"));
     }
 

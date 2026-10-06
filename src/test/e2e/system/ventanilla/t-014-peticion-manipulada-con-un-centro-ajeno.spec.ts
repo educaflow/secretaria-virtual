@@ -113,8 +113,8 @@ test.describe('Ventanilla — Nuevo expediente', () => {
 
     try {
       // Paso 2: Y ha llegado a "Nuevo expediente" para el trámite "Anulación de
-      // matrícula en ciclo formativo" en el centro "CIPFP Mislata" (menú "Ventanilla" →
-      // "Nuevo expediente" → fila del trámite).
+      // matrícula en ciclo formativo" en el centro "CIPFP Mislata" (menú "Mis trámites" →
+      // "Nuevo trámite" → fila del trámite).
       await abrirNuevoExpediente(page);
       await desplegarGruposDeTramites(page);
       await filasDeTramites(page).first().click();

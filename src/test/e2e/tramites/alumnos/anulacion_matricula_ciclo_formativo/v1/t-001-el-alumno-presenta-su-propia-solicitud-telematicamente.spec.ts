@@ -56,10 +56,10 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
       const campoCentro = page.getByTestId('field:centro').getByRole('textbox');
       await expect(campoCentro).toHaveValue('CIPFP Mislata');
       await expect(campoCentro).toBeDisabled();
-      // … SIN la pregunta «¿Cómo se presenta?» (solo tiene el perfil CREADOR, así que no hay nada
-      // que elegir) y SIN «¿Para quién es el expediente?» (es alumno y no familiar, así que el
+      // … SIN la pregunta «¿Cómo se presenta?» (la forma la fija la entrada «Mis trámites»: lo
+      // presenta él mismo) y SIN «¿Para quién es el expediente?» (es alumno y no familiar, así que el
       // expediente solo puede ser para él mismo).
-      await expect(page.getByTestId('field:presentadoEnPapel')).toHaveCount(0);
+      await expect(page.getByText('¿Cómo se presenta?')).toHaveCount(0);
       await expect(page.getByTestId('field:presentadoEnRepresentacion')).toHaveCount(0);
 
       // When: pulsa «Crear expediente».

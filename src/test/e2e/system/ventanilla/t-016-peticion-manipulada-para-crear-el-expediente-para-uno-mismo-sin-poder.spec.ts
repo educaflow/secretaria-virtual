@@ -119,7 +119,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
     try {
       // Paso 2: Y ha llegado a "Nuevo expediente" para el trámite "Anulación de
       // matrícula en ciclo formativo" en el centro "CIPFP Mislata", sin que se le
-      // pregunte nada (menú "Ventanilla" → "Nuevo expediente" → directamente a "elija el
+      // pregunte nada (menú "Mis trámites" → "Nuevo trámite" → directamente a "elija el
       // trámite", porque el familiar solo tiene un centro y solo ve este trámite → fila
       // del trámite).
       await abrirNuevoExpediente(page);

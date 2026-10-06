@@ -1,19 +1,15 @@
 ---
 type: test-e2e
-id: T-003
+id: T-033
 ---
 
-<!-- ARTEFACTO GENERADO por /sdd-create-tests-e2e — NO editar a mano.
-     Snapshot "as-tested": copia de la descripción que pasó al depurar con /sdd-debug-with-test-e2e-desc.
-     Fuente: .sdd/drafts/2026-09-21_17-51_ventanilla-nuevo-expediente/test-e2e-desc/t-003-usuario-que-no-puede-crear-expedientes-en-ningun-centro.desc.md
-     Iniciativa: 2026-09-21_17-51_ventanilla-nuevo-expediente
-     Test: T-003  |  Origen ESC: ESC-003
-     Para regenerar: /sdd-create-tests-e2e (sobrescribe desde la fuente). -->
+<!-- Escrito a mano (no generado por /sdd-create-tests-e2e) como regresión del cliente Axelor: al cerrar el asistente
+     «Nuevo expediente» desde una acción la URL seguía en la entrada de menú y el siguiente menú la reabría. No tiene fuente en .sdd/. -->
 
-# T-003 — Usuario que no puede crear expedientes en ningún centro
+# T-033 — Cancelar por «Mis trámites» y entrar por «Tramitación» sin recargar avisa una sola vez
 
-**Origen ESC:** ESC-003
-**Verifica:** U-nuevo-expediente-001, R-AsistenteNuevoExpediente-003
+**Origen ESC:** —
+**Verifica:** tras cerrar el asistente abierto por «Mis trámites», entrar sin recargar por «Tramitación» sin centros avisa una sola vez y no deja pantalla abierta
 **Pantalla principal:** screen-nuevo-expediente.md
 **Tipo:** error
 
@@ -45,13 +41,28 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 | familiar1@mislata.es | demo1234 | Familiar | CIPFP Mislata |
 | alumnofamiliar@mislata.es | demo1234 | Alumno y Familiar | CIPFP Mislata |
 
+**Entradas del asistente** (la forma de presentar la fija la entrada de menú; el asistente nunca pregunta «¿Cómo se presenta?»):
+- «Mis trámites» → «Nuevo trámite»: lo presenta el propio usuario (perfil CREADOR).
+- «Tramitación» → «Nuevo trámite»: registra un trámite recibido en papel (perfil TRAMITADOR). El grupo «Tramitación» solo lo ven los usuarios con algún perfil de tramitación y el administrador.
+
 ## Precondiciones
 - Estado inicial de la base de datos.
 
 ## Pasos
-1. **Dado** que el exalumno `exalumno1@mislata.es` ha iniciado sesión con la contraseña `demo1234`.
-2. **Cuando** abre el menú "Mis trámites" y pulsa "Nuevo trámite".
+1. **Dado** que el director `director@mislata.es` (Profesor con cargo de Director: ve el grupo "Tramitación", pero no puede registrar en papel ningún trámite en ninguno de sus centros) ha iniciado sesión con la contraseña `demo1234`.
+2. **Cuando** abre el menú "Mis trámites" y pulsa "Nuevo trámite", se abre "Nuevo expediente: elija el trámite" con el centro "CIPFP Mislata".
+3. **Cuando** pulsa "Cancelar", el asistente se cierra.
+4. **Y**, sin recargar la aplicación, abre el menú "Tramitación" y pulsa "Nuevo trámite".
+5. **Entonces** el sistema muestra el aviso "No puede crear expedientes en ninguno de sus centros".
+6. **Cuando** lo acepta.
+
+**Nota.**
+Es la regresión de un fallo del cliente: al cerrar el asistente con "Cancelar" la URL seguía apuntando a la entrada "Mis trámites", y el siguiente clic en un menú la reabría a la vez que "Tramitación"; el aviso reaparecía en bucle al aceptarlo y la pestaña "elija el centro" no se cerraba.
+Por eso el test no recarga entre las dos entradas.
+El aviso interrumpe el `onNew` de "elija el centro", y al aceptarlo el cliente reanuda el resto del mismo `onNew` con otra petición (`<acción>[<índice>]`): no cuenta como un segundo `onNew`.
 
 ## Resultado esperado
-- El sistema muestra el aviso "No puede crear expedientes en ninguno de sus centros".
+- Tras "Cancelar" la URL ya no apunta a la entrada "Mis trámites".
+- El aviso aparece una sola vez: tras aceptarlo no vuelve a aparecer.
+- Tras pulsar "Tramitación" solo se envía un `onNew` de "elija el centro", con `_presentadoEnPapel = true`.
 - No queda abierta ninguna pantalla del asistente: ni "Nuevo expediente: elija el centro", ni "Nuevo expediente: elija el trámite", ni "Nuevo expediente".

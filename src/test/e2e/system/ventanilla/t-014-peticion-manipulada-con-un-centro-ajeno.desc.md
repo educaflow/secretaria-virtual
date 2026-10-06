@@ -50,7 +50,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Pasos
 1. **Dado** que el alumno `alumno1@mislata.es` ha iniciado sesión con la contraseña `demo1234`.
-2. **Y** ha llegado a "Nuevo expediente" para el trámite "Anulación de matrícula en ciclo formativo" en el centro "CIPFP Mislata" (menú "Ventanilla" → "Nuevo expediente" → fila del trámite).
+2. **Y** ha llegado a "Nuevo expediente" para el trámite "Anulación de matrícula en ciclo formativo" en el centro "CIPFP Mislata" (menú "Mis trámites" → "Nuevo trámite" → fila del trámite).
 3. **Cuando** pulsa "Crear expediente" con la petición manipulada para que el centro enviado sea "CIPFP Batoi", al que no pertenece, dejando el resto como lo fijó la pantalla: el trámite "Anulación de matrícula en ciclo formativo", presentado por el propio alumno y para él mismo.
 
 ## Resultado esperado

@@ -59,7 +59,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
     await login(page, USUARIO, CONTRASENA);
 
     try {
-      // Paso 2: Cuando abre el menú "Ventanilla" y pulsa "Nuevo expediente".
+      // Paso 2: Cuando abre el menú "Mis trámites" y pulsa "Nuevo trámite".
       await abrirNuevoExpediente(page);
 
       // Resultado esperado: el sistema muestra el aviso "No puede crear expedientes en

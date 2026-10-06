@@ -1,19 +1,15 @@
 ---
 type: test-e2e
-id: T-019
+id: T-028
 ---
 
-<!-- ARTEFACTO GENERADO por /sdd-create-tests-e2e — NO editar a mano.
-     Snapshot "as-tested": copia de la descripción que pasó al depurar con /sdd-debug-with-test-e2e-desc.
-     Fuente: .sdd/drafts/2026-09-21_17-51_ventanilla-nuevo-expediente/test-e2e-desc/t-019-usuario-con-las-dos-formas-de-presentar-elige-lo-presento-yo-mismo.desc.md
-     Iniciativa: 2026-09-21_17-51_ventanilla-nuevo-expediente
-     Test: T-019  |  Origen ESC: ESC-018
-     Para regenerar: /sdd-create-tests-e2e (sobrescribe desde la fuente). -->
+<!-- Escrito a mano (no generado por /sdd-create-tests-e2e) al fijar la forma de presentar por la entrada de menú
+     del asistente «Nuevo expediente». No tiene fuente en .sdd/. -->
 
-# T-019 — Usuario con las dos formas de presentar elige «Lo presento yo mismo»
+# T-028 — Jefe de estudios registra en papel por «Tramitación» un trámite que no admite representación
 
-**Origen ESC:** ESC-018
-**Verifica:** U-nuevo-expediente-006, U-nuevo-expediente-009, U-nuevo-expediente-011, U-nuevo-expediente-013, R-AsistenteNuevoExpediente-001, R-AsistenteNuevoExpediente-005
+**Origen ESC:** —
+**Verifica:** la entrada «Tramitación» → «Nuevo trámite» registra en papel sin hacer ninguna pregunta cuando el trámite no admite representación
 **Pantalla principal:** screen-nuevo-expediente.md
 **Tipo:** happy
 
@@ -45,19 +41,22 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 | familiar1@mislata.es | demo1234 | Familiar | CIPFP Mislata |
 | alumnofamiliar@mislata.es | demo1234 | Alumno y Familiar | CIPFP Mislata |
 
+**Entradas del asistente** (la forma de presentar la fija la entrada de menú; el asistente nunca pregunta «¿Cómo se presenta?»):
+- «Mis trámites» → «Nuevo trámite»: lo presenta el propio usuario (perfil CREADOR).
+- «Tramitación» → «Nuevo trámite»: registra un trámite recibido en papel (perfil TRAMITADOR). El grupo «Tramitación» solo lo ven los usuarios con algún perfil de tramitación y el administrador.
+
 ## Precondiciones
 - Estado inicial de la base de datos.
 
 ## Pasos
 1. **Dado** que el jefe de estudios `jefeestudios1@mislata.es` ha iniciado sesión con la contraseña `demo1234`.
-2. **Cuando** abre el menú "Ventanilla" y pulsa "Nuevo expediente".
+2. **Cuando** abre el menú "Tramitación" y pulsa "Nuevo trámite".
 3. **Entonces** se abre directamente "Nuevo expediente: elija el trámite" con el centro "CIPFP Mislata", únicamente "Trámites para el profesor" con "Justificación de falta del profesorado" y "Trámite de prueba" por orden alfabético, y un único botón debajo, "Cancelar".
 4. **Cuando** pulsa la fila "Justificación de falta del profesorado".
-5. **Entonces** se abre "Nuevo expediente" con "¿Cómo se presenta?" visible y sin marcar, y sin "¿Para quién es el expediente?".
-6. **Cuando** marca "Lo presento yo mismo".
-7. **Entonces** sigue sin verse "¿Para quién es el expediente?".
-8. **Cuando** pulsa "Crear expediente".
+5. **Entonces** se abre "Nuevo expediente" con ese trámite, su ayuda y el centro en solo lectura; no se ve "¿Cómo se presenta?" (la forma la fija la entrada de menú) ni "¿Para quién es el expediente?" (el trámite no admite representación).
+6. **Cuando** pulsa "Crear expediente".
 
 ## Resultado esperado
-- El asistente se cierra y se abre el expediente recién creado de "Justificación de falta del profesorado" en su primer estado, en el centro "CIPFP Mislata".
-- El expediente queda presentado por el propio jefe de estudios (no registrado como presentado en papel) y para él mismo.
+- El asistente se cierra y se abre el expediente recién creado de "Justificación de falta del profesorado" en la fase "Entrada", estado "Pendiente de adjuntar la solicitud en papel escaneada", con el panel para adjuntar la solicitud escaneada y su aviso, y sin el panel "Datos del profesor interesado".
+- El pie ofrece "Borrar el expediente" y "Siguiente", sin "Salir" ni "Presentar la solicitud"; "Creado por" es el jefe de estudios.
+- El expediente persistido está en el centro "CIPFP Mislata", registrado en papel (`presentadoEnPapel = true`) y para él mismo (`presentadoEnRepresentacion = false`), con `usuarioRegistrador` el jefe de estudios y las personas interesada y solicitante vacías.

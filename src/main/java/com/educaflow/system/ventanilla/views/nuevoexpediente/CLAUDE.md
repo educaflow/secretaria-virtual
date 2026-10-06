@@ -6,16 +6,26 @@ El antiguo menú «Expedientes» → «Trámites» y su ventana modal «Nuevo ex
 
 ## Entrada
 
-Menú «Mis trámites» → «Nuevo trámite».
-- `data-testid="item:misTramites-menuitem"` es el grupo y `item:misTramites-nuevoTramite-menuitem` la entrada.
-  - El grupo se pliega y despliega al pulsarlo: solo se pulsa si la entrada no está visible, porque si ya venía abierto se cerraría.
+Hay dos entradas, y **la entrada fija la forma de presentar** (`presentadoEnPapel`): dentro del asistente ya no se pregunta ni se puede cambiar.
+
+| Menú | Grupo (`data-testid`) | Entrada (`data-testid`) | Forma de presentar | Perfil con el que se inicia |
+|---|---|---|---|---|
+| «Mis trámites» → «Nuevo trámite» | `item:misTramites-menuitem` | `item:misTramites-nuevoTramite-menuitem` | lo presenta el propio usuario | CREADOR |
+| «Tramitación» → «Nuevo trámite» | `item:tramitacion-menuitem` | `item:tramitacion-nuevoTramite-menuitem` | registra un trámite recibido en papel | TRAMITADOR |
+
+Los pasos 1 y 2 solo ofrecen los centros y trámites que el usuario puede iniciar **con el perfil de la entrada elegida**, así que la misma persona puede ver listas distintas por cada entrada.
+«Atrás» conserva la forma de presentar: siempre vuelve a la entrada por la que se entró.
+
+El grupo se pliega y despliega al pulsarlo: solo se pulsa si la entrada no está visible, porque si ya venía abierto se cerraría.
 
 ```ts
-const entrada = page.getByTestId('item:misTramites-nuevoTramite-menuitem');
-if (!(await entrada.isVisible())) {
-  await page.getByTestId('item:misTramites-menuitem').getByTestId('title').first().click();
+async function abrirNuevoTramite(page: Page, grupo: 'misTramites' | 'tramitacion') {
+  const entrada = page.getByTestId(`item:${grupo}-nuevoTramite-menuitem`);
+  if (!(await entrada.isVisible())) {
+    await page.getByTestId(`item:${grupo}-menuitem`).getByTestId('title').first().click();
+  }
+  await entrada.click();
 }
-await entrada.click();
 ```
 
 ## Las tres pantallas
@@ -27,11 +37,11 @@ Se identifican por el título de la pestaña: `page.getByRole('tab', { name: <t�
 |---|---|---|
 | 1 | `Nuevo expediente: elija el centro` | Pulsar la fila del centro. |
 | 2 | `Nuevo expediente: elija el trámite` | Desplegar el tipo de trámite y pulsar la fila del trámite. |
-| 3 | `Nuevo expediente` | Contestar las preguntas que aparezcan y pulsar «Crear expediente». |
+| 3 | `Nuevo expediente` | Contestar la pregunta si aparece y pulsar «Crear expediente». |
 
 ### Paso 1 — elegir centro
 
-Solo aparece si el usuario puede crear expedientes en **más de un** centro.
+Solo aparece si el usuario puede crear expedientes, con la forma de presentar de la entrada, en **más de un** centro.
 - Con un solo centro se salta y se abre directamente el paso 2 con ese centro.
 - Sin ningún centro se muestra el aviso «No puede crear expedientes en ninguno de sus centros» y no queda abierta ninguna pantalla.
 
@@ -41,7 +51,7 @@ El único botón es «Cancelar».
 ### Paso 2 — elegir trámite
 
 Encima está el centro elegido, de solo lectura: `page.getByTestId('field:centro').getByRole('textbox')`.
-Debajo, dentro de `panel:tramitesPanel`, un **árbol** (`treegrid`) con los trámites que el usuario puede iniciar en ese centro, agrupados por tipo de trámite (p. ej. «Trámites para el alumno», «Trámites para el profesor»).
+Debajo, dentro de `panel:tramitesPanel`, un **árbol** (`treegrid`) con los trámites que el usuario puede iniciar en ese centro con la forma de presentar de la entrada, agrupados por tipo de trámite (p. ej. «Trámites para el alumno», «Trámites para el profesor»).
 - Los nodos no llevan `data-testid`: se localizan por `aria-level`.
   - `[role="row"][aria-level="1"]` son los tipos de trámite, y nacen **plegados**: hay que pulsarlos para que existan sus hijos en el DOM.
   - `[role="row"][aria-level="2"]` son los trámites; pulsar uno abre el paso 3.
@@ -60,66 +70,52 @@ Panel «Trámite» (`panel:tramitePanel`), todo de solo lectura:
 - `field:centro` con el centro.
 - `field:ayudaTramite` con el texto de ayuda del trámite (solo si el trámite tiene ayuda).
 
-Panel «Presentación» (`panel:presentacionPanel`), con **como mucho** dos preguntas que el servidor decide si se hacen:
+Panel «Presentación» (`panel:presentacionPanel`), con **como mucho** una pregunta que el servidor decide si se hace (si no se hace, el panel no aparece):
 
 | Pregunta | Campo | Opciones |
 |---|---|---|
-| «¿Cómo se presenta?» | `field:presentadoEnPapel` | «Lo presento yo mismo» / «Estoy registrando un trámite recibido en papel» |
 | «¿Para quién es el expediente?» | `field:presentadoEnRepresentacion` | «Para mí» / «Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)» |
 
 Botones: «Atrás» (vuelve al paso 2) y «Crear expediente».
 
-## Cuándo se hace cada pregunta
+## Cuándo se hace la pregunta
 
-El servidor prueba las cuatro combinaciones (forma de presentar × para quién) contra los permisos del usuario en ese centro y ese trámite, y **solo pregunta lo que tiene más de una respuesta válida**; lo que solo admite una respuesta lo rellena él sin mostrarlo.
-- «¿Cómo se presenta?» se hace si el usuario puede tanto presentarlo él mismo (perfil CREADOR) como registrarlo en papel (perfil TRAMITADOR).
-- «¿Para quién es el expediente?» se hace solo cuando ya se sabe la forma de presentar y, para esa forma, valen tanto «Para mí» como «en representación».
-  - Si hay que contestar «¿Cómo se presenta?», nace oculta y aparece o desaparece según la respuesta.
-  - Al cambiar la forma de presentar la respuesta que tuviera se borra: nunca se conserva de una forma a otra.
-- Presentándolo el propio usuario, el destinatario lo deduce el tipo de usuario: un alumno que no es familiar solo puede «Para mí», un familiar que no es alumno solo puede «en representación», y quien es las dos cosas tiene que elegir.
-- Registrándolo en papel, en un trámite que admite representación, siempre se pregunta «¿Para quién es el expediente?» («Para mí» significa para la persona que entregó el papel).
-- Si el trámite no admite representación, «¿Para quién es el expediente?» no se pregunta nunca.
+La forma de presentar ya viene fijada por la entrada.
+El servidor prueba, para esa forma, las dos respuestas («Para mí» y «en representación») contra los permisos del usuario en ese centro y ese trámite, y **solo pregunta si las dos son válidas**; si solo vale una la rellena él sin mostrarla.
+- Por «Mis trámites» (lo presenta el propio usuario), el destinatario lo deduce el tipo de usuario: un alumno que no es familiar solo puede «Para mí», un familiar que no es alumno solo puede «en representación», y quien es las dos cosas tiene que elegir.
+- Por «Tramitación» (en papel), en un trámite que admite representación, siempre se pregunta («Para mí» significa para la persona que entregó el papel).
+- Si el trámite no admite representación, no se pregunta nunca.
 
 Casos habituales con los usuarios de demo en «CIPFP Mislata» y el trámite «Anulación de matrícula en ciclo formativo»:
 
-| Usuario | «¿Cómo se presenta?» | «¿Para quién es el expediente?» |
+| Usuario | Entrada | «¿Para quién es el expediente?» |
 |---|---|---|
-| `alumno1@mislata.es` | no (lo presenta él) | no (para él) |
-| `familiar1@mislata.es` | no (lo presenta él) | no (en representación) |
-| `alumnofamiliar@mislata.es` | no (lo presenta él) | sí |
-| `administrativo1@mislata.es` | no (en papel) | sí |
-| `administrativo2@mislata.es` (administrativo y alumno) | sí | no si «Lo presento yo mismo» (para él); sí si «en papel» |
+| `alumno1@mislata.es` | «Mis trámites» | no (para él) |
+| `familiar1@mislata.es` | «Mis trámites» | no (en representación) |
+| `alumnofamiliar@mislata.es` | «Mis trámites» | sí |
+| `administrativo1@mislata.es` | «Tramitación» | sí |
+| `administrativo2@mislata.es` (administrativo y alumno) | «Mis trámites» | no (para él) |
+| `administrativo2@mislata.es` (administrativo y alumno) | «Tramitación» | sí |
 
-## Cómo contestar las preguntas
+## Cómo contestar la pregunta
 
 Axelor pinta cada opción como `<div><input type="radio"><span>texto</span></div>` sin `<label>` (y con el mismo `id` en los dos inputs), así que el radio **no** se localiza por nombre accesible sino por el `div` que contiene el texto.
 En pantalla la opción `true` va **antes** que la `false`: MUST NOT localizarlas por posición.
 
 ```ts
-function opcion(page: Page, campo: 'presentadoEnPapel' | 'presentadoEnRepresentacion', texto: string) {
-  return page.getByTestId(`field:${campo}`)
+function opcion(page: Page, texto: string) {
+  return page.getByTestId('field:presentadoEnRepresentacion')
     .locator('div:has(> [data-testid="radio"])')
     .filter({ hasText: texto })
     .getByRole('radio');
 }
 ```
 
-Contestar «¿Cómo se presenta?» lanza un `onChange` al servidor que recalcula si hay que preguntar «¿Para quién es el expediente?».
-MUST esperarse esa respuesta antes de comprobar si la segunda pregunta aparece o no; sin la espera la aserción se hace sobre la pantalla anterior y puede pasar en falso.
-
-```ts
-const recalculo = page.waitForResponse((r) =>
-  r.url().endsWith('/ws/action') &&
-  (r.request().postData() ?? '').includes('AsistenteNuevoExpediente-onChange-presentadoEnPapel-action'));
-await opcion(page, 'presentadoEnPapel', 'Estoy registrando un trámite recibido en papel').click();
-await recalculo;
-```
-
-Para comprobar que una pregunta **no** se hace, se comprueba que su campo no existe: `expect(page.getByTestId('field:presentadoEnPapel')).toHaveCount(0)`.
+Para comprobar que la pregunta **no** se hace, se comprueba que su campo no existe: `expect(page.getByTestId('field:presentadoEnRepresentacion')).toHaveCount(0)`.
 
 ## Resultado de «Crear expediente»
 
-Si falta una respuesta visible, el cliente muestra «Debe indicar cómo se presenta el expediente» o «Debe indicar para quién es el expediente» y la pantalla sigue abierta.
+Si falta la respuesta a la pregunta visible, el cliente muestra «Debe indicar para quién es el expediente» y la pantalla sigue abierta.
 Si el servidor rechaza la combinación, muestra el título «No es posible crear el expediente» con el motivo, y la pantalla también sigue abierta.
 
 Si todo es válido, la pestaña «Nuevo expediente» se cierra y se abre la del expediente recién creado, en el primer estado que corresponda a cómo se presentó.

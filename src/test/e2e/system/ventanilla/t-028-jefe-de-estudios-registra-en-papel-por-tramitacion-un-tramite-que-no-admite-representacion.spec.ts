@@ -1,9 +1,8 @@
 import { test, expect, Locator, Page } from '@playwright/test';
 import { ensureLoggedOut, login, logout } from '../../_support/auth';
 
-// T-010 — Usuario con las dos formas de presentar debe elegir
-// origen: ESC-010  |  verifica: V-AsistenteNuevoExpediente-002, U-nuevo-expediente-006, U-nuevo-expediente-007, U-nuevo-expediente-009, U-nuevo-expediente-012, U-nuevo-expediente-013, R-AsistenteNuevoExpediente-001, R-AsistenteNuevoExpediente-005
-// fuente: .sdd/drafts/2026-09-21_17-51_ventanilla-nuevo-expediente/test-e2e-desc/t-010-usuario-con-las-dos-formas-de-presentar-debe-elegir.desc.md
+// T-028 — Jefe de estudios registra en papel por «Tramitación» un trámite que no admite representación
+// origen: —  |  escrito a mano al fijar la forma de presentar por la entrada de menú (sin fuente en .sdd)
 
 /**
  * IDEMPOTENCIA (§4 del contrato de generación) — este test CREA un expediente, y su
@@ -25,10 +24,11 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
  */
 
 // Credenciales del usuario de la precondición (tabla «Usuarios de acceso» del .desc.md).
-// jefeestudios1@mislata.es es el caso clave del escenario: sobre los trámites del
-// profesor tiene AMBAS formas de iniciarlos —como profesor puede presentarlos él mismo
-// y como jefe de estudios puede registrarlos en papel—, así que el asistente MUST
-// preguntarle cómo se presenta y no puede deducirlo.
+// jefeestudios1@mislata.es: sobre los trámites del profesor tiene AMBAS formas de
+// iniciarlos —como profesor puede presentarlos él mismo y como jefe de estudios puede
+// registrarlos en papel—. Entra por «Tramitación» → «Nuevo trámite», la entrada que fija
+// que se registra en papel (perfil TRAMITADOR), así que el asistente no le pregunta cómo
+// se presenta; y como el trámite no admite representación, tampoco para quién es.
 const USUARIO = 'jefeestudios1@mislata.es';
 const CONTRASENA = 'demo1234';
 
@@ -53,19 +53,10 @@ const PANTALLA_CENTRO = 'Nuevo expediente: elija el centro';
 const PANTALLA_TRAMITE = 'Nuevo expediente: elija el trámite';
 const PANTALLA_CONTEXTO = 'Nuevo expediente';
 
-// Rótulos de las dos preguntas del último paso del asistente (los `title` de
-// `presentadoEnPapel` y `presentadoEnRepresentacion` en `AsistenteNuevoExpediente.xml`).
+// Rótulo de la pregunta eliminada (la forma la fija la entrada de menú) y de la única
+// que puede hacer el último paso del asistente (`presentadoEnRepresentacion`).
 const PREGUNTA_COMO_SE_PRESENTA = '¿Cómo se presenta?';
 const PREGUNTA_PARA_QUIEN = '¿Para quién es el expediente?';
-
-// Las dos opciones de «¿Cómo se presenta?» (los `x-false-text`/`x-true-text` del widget
-// `boolean-radio`): «Estoy registrando…» es `presentadoEnPapel = true`.
-const OPCION_LO_PRESENTO_YO = 'Lo presento yo mismo';
-const OPCION_EN_PAPEL = 'Estoy registrando un trámite recibido en papel';
-
-// Mensaje del `<action-validate>` del form cuando se intenta crear sin contestar a
-// «¿Cómo se presenta?».
-const ERROR_FALTA_FORMA_DE_PRESENTAR = 'Debe indicar cómo se presenta el expediente';
 
 // Primer estado del tipo de expediente cuando se registra EN PAPEL, según
 // `InitialEventManagerImpl`: fase ENTRADA, estado PENDIENTE_DOCUMENTO_ESCANEADO. Son los
@@ -165,24 +156,6 @@ async function leerExpedientePersistido(page: Page, numero: string): Promise<Exp
 }
 
 /**
- * Cuántos expedientes de este tipo hay ahora mismo. Sirve para comprobar que un intento
- * de alta fallido NO creó ninguno: el `playwright.config.ts` fija `workers: 1`, así que
- * durante el test nadie más escribe en la BD y el total solo puede moverlo este test.
- */
-async function contarExpedientesDelTramite(page: Page): Promise<number> {
-  return await page.evaluate(async (modelo) => {
-    const csrf = decodeURIComponent((document.cookie.match(/CSRF-TOKEN=([^;]+)/) ?? [])[1] ?? '');
-    const respuesta = await fetch(`/ws/rest/${modelo}/search`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
-      body: JSON.stringify({ offset: 0, limit: 1, fields: ['numeroExpediente'] }),
-    });
-    const json = await respuesta.json();
-    return json.total as number;
-  }, MODELO_EXPEDIENTE);
-}
-
-/**
  * Filas de datos del árbol de trámites (excluye cabecera y filas de agrupación). El
  * `panel-related` agrupado con testids `field:tramitesDisponibles`/`row:`/`group-row:`
  * fue sustituido por un `<tree>` embebido en un `panel-dashlet` (commit `98755ea`): sus
@@ -215,22 +188,6 @@ async function desplegarGruposDeTramites(page: Page): Promise<void> {
       await grupo.click();
     }
   }
-}
-
-/**
- * El radio de una de las opciones de «¿Cómo se presenta?». El widget `boolean-radio` de
- * Axelor pinta cada opción como `<div><input type="radio"><span>texto</span></div>`, SIN
- * `<label>` (y con el mismo `id` en los dos inputs), así que la opción no se puede
- * localizar por su nombre accesible: se localiza el `div` que contiene su texto y,
- * dentro, su radio. Así la aserción sigue atada al texto que lee el usuario, no a la
- * posición ni al valor interno.
- */
-function opcionComoSePresenta(page: Page, texto: string): Locator {
-  return page
-    .getByTestId('field:presentadoEnPapel')
-    .locator('div:has(> [data-testid="radio"])')
-    .filter({ hasText: texto })
-    .getByRole('radio');
 }
 
 /**
@@ -281,7 +238,7 @@ async function borrarExpediente(page: Page, numero: string): Promise<void> {
 }
 
 test.describe('Ventanilla — Nuevo expediente', () => {
-  test('Usuario con las dos formas de presentar debe elegir', async ({ page }) => {
+  test('Jefe de estudios registra en papel por «Tramitación» un trámite que no admite representación', async ({ page }) => {
     await ensureLoggedOut(page);
 
     // Paso 1: Dado que el jefe de estudios `jefeestudios1@mislata.es` ha iniciado
@@ -293,8 +250,8 @@ test.describe('Ventanilla — Nuevo expediente', () => {
     let numeroExpediente = '';
 
     try {
-      // Paso 2: Cuando abre el menú "Mis trámites" y pulsa "Nuevo trámite".
-      await abrirEntradaDeMenu(page, 'misTramites-menuitem', 'misTramites-nuevoTramite-menuitem');
+      // Paso 2: Cuando abre el menú "Tramitación" y pulsa "Nuevo trámite".
+      await abrirEntradaDeMenu(page, 'tramitacion-menuitem', 'tramitacion-nuevoTramite-menuitem');
 
       // Paso 3: Entonces se abre DIRECTAMENTE "Nuevo expediente: elija el trámite"…
       await expect(page.getByRole('tab', { name: PANTALLA_TRAMITE, exact: true })).toBeVisible();
@@ -309,7 +266,8 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await expect(campoCentro).toBeDisabled();
 
       // …y únicamente "Trámites para el profesor" con "Justificación de falta del
-      // profesorado" y "Trámite de prueba" POR ORDEN ALFABÉTICO. `toHaveText` con un
+      // profesorado" y "Trámite de prueba" POR ORDEN ALFABÉTICO (los que puede registrar
+      // en papel como jefe de estudios). `toHaveText` con un
       // array compara posición a posición: verifica contenido, número de filas y orden.
       await desplegarGruposDeTramites(page);
       await expect(gruposDeTipoTramite(page)).toHaveCount(1);
@@ -338,82 +296,21 @@ test.describe('Ventanilla — Nuevo expediente', () => {
         'Este trámite permite a justificar la falta del profesorado',
       );
 
-      // …se ve "¿Cómo se presenta?" con sus dos opciones, SIN ninguna marcada.
-      await expect(page.getByText(PREGUNTA_COMO_SE_PRESENTA)).toBeVisible();
-      await expect(page.getByTestId('field:presentadoEnPapel')).toBeVisible();
-      const radioLoPresentoYo = opcionComoSePresenta(page, OPCION_LO_PRESENTO_YO);
-      const radioEnPapel = opcionComoSePresenta(page, OPCION_EN_PAPEL);
-      await expect(radioLoPresentoYo).toBeVisible();
-      await expect(radioEnPapel).toBeVisible();
-      await expect(radioLoPresentoYo).not.toBeChecked();
-      await expect(radioEnPapel).not.toBeChecked();
+      // …SIN "¿Cómo se presenta?": la forma (en papel) la fija la entrada «Tramitación».
+      // Se comprueba por su rótulo y por el campo del modelo (`presentadoEnPapel`, oculto).
+      await expect(page.getByText(PREGUNTA_COMO_SE_PRESENTA)).toHaveCount(0);
+      await expect(page.getByTestId('field:presentadoEnPapel')).toHaveCount(0);
 
-      // …y NO se ve "¿Para quién es el expediente?": el trámite no admite
-      // representación. Se comprueba por su rótulo y por el campo del modelo que la
-      // pinta (`presentadoEnRepresentacion`), para que el test siga cazando el fallo
-      // aunque cambie el texto. La ausencia NO es vacua: el campo vive en el mismo
-      // panel `presentacionPanel` que `presentadoEnPapel`, que sí está pintado (dos
-      // líneas más arriba), y en un trámite que admite representación aparece —lo
-      // comprueba T-009 sobre esta misma pantalla—.
+      // …y SIN "¿Para quién es el expediente?": el trámite no admite representación. Se
+      // comprueba por su rótulo y por el campo del modelo que la pinta
+      // (`presentadoEnRepresentacion`). La ausencia NO es vacua: en un trámite que admite
+      // representación, por esta misma entrada, sí aparece (lo comprueban T-009 y T-027).
+      // Control positivo de que la pantalla está viva: "Crear expediente" sí está.
       await expect(page.getByText(PREGUNTA_PARA_QUIEN)).toHaveCount(0);
       await expect(page.getByTestId('field:presentadoEnRepresentacion')).toHaveCount(0);
-
-      // Cuántos expedientes de este trámite hay ANTES del intento fallido, para poder
-      // comprobar en el paso 7 que ese intento no creó ninguno.
-      const expedientesAntes = await contarExpedientesDelTramite(page);
-
-      // Paso 6: Cuando pulsa "Crear expediente" sin marcar ninguna opción.
-      await page.getByRole('button', { name: 'Crear expediente' }).click();
-
-      // Paso 7: Entonces el sistema muestra "Debe indicar cómo se presenta el
-      // expediente"…
-      const aviso = page.getByRole('dialog');
-      await expect(aviso).toBeVisible();
-      await expect(aviso).toContainText(ERROR_FALTA_FORMA_DE_PRESENTAR);
-
-      // …no crea ningún expediente…
-      // Dos comprobaciones independientes: no se abrió la pestaña del expediente (la
-      // misma que sí aparece al final de este test cuando el alta funciona, así que
-      // esta ausencia no puede ser vacua) y el total de expedientes del trámite en la
-      // BD no se movió.
-      await expect(page.getByRole('tab', { name: TITULO_EXPEDIENTE })).toHaveCount(0);
-      await aviso.getByRole('button', { name: 'Aceptar' }).click();
-      await expect(page.getByRole('dialog')).toHaveCount(0);
-      expect(await contarExpedientesDelTramite(page)).toBe(expedientesAntes);
-
-      // …y "Nuevo expediente" sigue abierta, con todo lo que tenía.
-      await expect(page.getByRole('tab', { name: PANTALLA_CONTEXTO, exact: true })).toBeVisible();
-      await expect(page.getByTestId('field:presentadoEnPapel')).toBeVisible();
-      await expect(radioLoPresentoYo).not.toBeChecked();
-      await expect(radioEnPapel).not.toBeChecked();
       await expect(page.getByRole('button', { name: 'Crear expediente' })).toBeVisible();
 
-      // Paso 8: Cuando marca "Estoy registrando un trámite recibido en papel".
-      // El `onChange` del campo va al servidor (`…-onChange-presentadoEnPapel-action`)
-      // a recalcular qué hay que preguntar. Se espera esa respuesta ANTES de comprobar
-      // que "¿Para quién es el expediente?" sigue sin verse: sin la espera, la
-      // comprobación se haría sobre la pantalla previa a la respuesta y pasaría aunque
-      // el servidor mandara pintar la pregunta.
-      const recalculo = page.waitForResponse(
-        (respuesta) =>
-          respuesta.url().endsWith('/ws/action') &&
-          (respuesta.request().postData() ?? '').includes(
-            'AsistenteNuevoExpediente-onChange-presentadoEnPapel-action',
-          ),
-      );
-      await radioEnPapel.click();
-      await recalculo;
-
-      // Paso 9: Entonces sigue sin verse "¿Para quién es el expediente?", porque el
-      // trámite no admite representación. Control positivo de esa ausencia: la opción
-      // que el usuario acaba de marcar quedó marcada y la otra no, o sea que el panel
-      // de la presentación sigue vivo y recalculado.
-      await expect(radioEnPapel).toBeChecked();
-      await expect(radioLoPresentoYo).not.toBeChecked();
-      await expect(page.getByText(PREGUNTA_PARA_QUIEN)).toHaveCount(0);
-      await expect(page.getByTestId('field:presentadoEnRepresentacion')).toHaveCount(0);
-
-      // Paso 10: Cuando pulsa "Crear expediente".
+      // Paso 6: Cuando pulsa "Crear expediente".
       await page.getByRole('button', { name: 'Crear expediente' }).click();
 
       // Resultado esperado: se abre el expediente recién creado de "Justificación de

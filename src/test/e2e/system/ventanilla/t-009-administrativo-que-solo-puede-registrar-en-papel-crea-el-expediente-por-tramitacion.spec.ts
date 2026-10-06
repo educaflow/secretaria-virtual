@@ -1,7 +1,7 @@
 import { test, expect, Locator, Page } from '@playwright/test';
 import { ensureLoggedOut, login, logout } from '../../_support/auth';
 
-// T-009 — Administrativo que solo puede registrar en papel: no se le pregunta cómo se presenta
+// T-009 — Administrativo que solo puede registrar en papel crea el expediente por «Tramitación»
 // origen: ESC-009  |  verifica: U-nuevo-expediente-006, U-nuevo-expediente-008, U-nuevo-expediente-009, U-nuevo-expediente-010, U-nuevo-expediente-013, R-AsistenteNuevoExpediente-001, R-AsistenteNuevoExpediente-005
 // fuente: .sdd/drafts/2026-09-21_17-51_ventanilla-nuevo-expediente/test-e2e-desc/t-009-administrativo-que-solo-puede-registrar-en-papel-no-se-le-pregunta-como-se-presenta.desc.md
 
@@ -28,8 +28,9 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 
 // Credenciales del usuario de la precondición (tabla «Usuarios de acceso» del .desc.md).
 // administrativo1@mislata.es es el caso clave del escenario: sobre los trámites del
-// alumno solo tiene permiso para REGISTRARLOS EN PAPEL, así que el asistente no tiene
-// nada que preguntarle sobre cómo se presenta.
+// alumno solo tiene permiso para REGISTRARLOS EN PAPEL, así que inicia los expedientes por
+// «Tramitación» → «Nuevo trámite», la entrada que fija que se registran en papel (perfil
+// TRAMITADOR). El asistente nunca pregunta cómo se presenta.
 const USUARIO = 'administrativo1@mislata.es';
 const CONTRASENA = 'demo1234';
 
@@ -49,8 +50,8 @@ const PANTALLA_CENTRO = 'Nuevo expediente: elija el centro';
 const PANTALLA_TRAMITE = 'Nuevo expediente: elija el trámite';
 const PANTALLA_CONTEXTO = 'Nuevo expediente';
 
-// Rótulos de las dos preguntas del último paso del asistente (los `title` de
-// `presentadoEnPapel` y `presentadoEnRepresentacion` en `AsistenteNuevoExpediente.xml`).
+// Rótulo de la pregunta eliminada (la forma la fija la entrada de menú) y de la única
+// que puede hacer el último paso del asistente (`presentadoEnRepresentacion`).
 const PREGUNTA_COMO_SE_PRESENTA = '¿Cómo se presenta?';
 const PREGUNTA_PARA_QUIEN = '¿Para quién es el expediente?';
 
@@ -248,7 +249,7 @@ async function borrarExpediente(page: Page, numero: string, enEntradaDatos: bool
 }
 
 test.describe('Ventanilla — Nuevo expediente', () => {
-  test('Administrativo que solo puede registrar en papel: no se le pregunta cómo se presenta', async ({
+  test('Administrativo que solo puede registrar en papel crea el expediente por «Tramitación»', async ({
     page,
   }) => {
     await ensureLoggedOut(page);
@@ -265,8 +266,8 @@ test.describe('Ventanilla — Nuevo expediente', () => {
     let enEntradaDatos = false;
 
     try {
-      // Paso 2: Cuando abre el menú "Mis trámites" y pulsa "Nuevo trámite".
-      await abrirEntradaDeMenu(page, 'misTramites-menuitem', 'misTramites-nuevoTramite-menuitem');
+      // Paso 2: Cuando abre el menú "Tramitación" y pulsa "Nuevo trámite".
+      await abrirEntradaDeMenu(page, 'tramitacion-menuitem', 'tramitacion-nuevoTramite-menuitem');
 
       // Paso 3: Entonces se abre DIRECTAMENTE "Nuevo expediente: elija el trámite"…
       await expect(page.getByRole('tab', { name: PANTALLA_TRAMITE, exact: true })).toBeVisible();
@@ -310,10 +311,10 @@ test.describe('Ventanilla — Nuevo expediente', () => {
         'Con este trámite puedes solicitar la anulación de tu matrícula en un ciclo formativo de este centro',
       );
 
-      // …no se ve "¿Cómo se presenta?": el administrativo solo puede registrar en
-      // papel, así que no hay nada que elegir. Se comprueba por su rótulo y también
-      // por el campo del modelo que la pinta (`presentadoEnPapel`), para que el test
-      // siga cazando el fallo aunque cambie el texto.
+      // …no se ve "¿Cómo se presenta?": la forma (en papel) la fija la entrada
+      // «Tramitación». Se comprueba por su rótulo y también por el campo del modelo
+      // (`presentadoEnPapel`, oculto), para que el test siga cazando el fallo aunque
+      // cambie el texto.
       await expect(page.getByText(PREGUNTA_COMO_SE_PRESENTA)).toHaveCount(0);
       await expect(page.getByTestId('field:presentadoEnPapel')).toHaveCount(0);
 

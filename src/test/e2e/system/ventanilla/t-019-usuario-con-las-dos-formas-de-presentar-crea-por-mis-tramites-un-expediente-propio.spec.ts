@@ -1,7 +1,7 @@
 import { test, expect, Locator, Page } from '@playwright/test';
 import { ensureLoggedOut, login, logout } from '../../_support/auth';
 
-// T-019 — Usuario con las dos formas de presentar elige «Lo presento yo mismo»
+// T-019 — Usuario con las dos formas de presentar crea por «Mis trámites» un expediente propio
 // origen: ESC-018  |  verifica: U-nuevo-expediente-006, U-nuevo-expediente-009, U-nuevo-expediente-011, U-nuevo-expediente-013, R-AsistenteNuevoExpediente-001, R-AsistenteNuevoExpediente-005
 // fuente: .sdd/drafts/2026-09-21_17-51_ventanilla-nuevo-expediente/test-e2e-desc/t-019-usuario-con-las-dos-formas-de-presentar-elige-lo-presento-yo-mismo.desc.md
 
@@ -14,7 +14,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
  *     tiempo de ejecución justo después de crearlo (nunca por un número fijo), y
  *   - se BORRA en el `finally` con el botón "Borrar el expediente" que el propio
  *     estado inicial ofrece (perfil CREADOR — quien lo presenta él mismo, a
- *     diferencia de T-010 que lo registra en papel y abre perfil TRAMITADOR sin ese
+ *     diferencia de T-028 que lo registra en papel y abre perfil TRAMITADOR sin ese
  *     botón), de modo que la BD compartida queda como estaba.
  * No hace falta pre-limpieza defensiva: ninguna regla de negocio limita cuántas
  * justificaciones de falta puede tener el jefe de estudios, así que un expediente
@@ -25,9 +25,10 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 // Credenciales del usuario de la precondición (tabla «Usuarios de acceso» del .desc.md).
 // jefeestudios1@mislata.es es el caso clave del escenario: sobre los trámites del
 // profesor tiene AMBAS formas de iniciarlos —como profesor puede presentarlos él mismo
-// y como jefe de estudios puede registrarlos en papel—, así que el asistente le
-// pregunta cómo se presenta. Este test comprueba la rama en la que elige presentarlo
-// él mismo (la rama complementaria, registrarlo en papel, la cubre T-010).
+// y como jefe de estudios puede registrarlos en papel—. El asistente ya no le pregunta
+// cómo se presenta: la forma la fija la entrada de menú. Este test entra por «Mis
+// trámites» → «Nuevo trámite» (lo presenta él mismo); la entrada complementaria,
+// «Tramitación» → «Nuevo trámite» (registrarlo en papel), la cubre T-028.
 const USUARIO = 'jefeestudios1@mislata.es';
 const CONTRASENA = 'demo1234';
 
@@ -44,7 +45,7 @@ const TRAMITES_DEL_PROFESOR = [TRAMITE, 'Trámite de prueba'];
 // `NOMBRE_COMPLETO` es con lo que la aplicación lo pinta en «Creado por»; nombre,
 // apellidos y DNI son los que `Tramitador.updatePersonas` copia en la persona
 // interesada cuando el expediente se presenta por vía telemática (este test), a
-// diferencia de T-010 (en papel), donde esos tres campos nacen vacíos.
+// diferencia de T-028 (en papel), donde esos tres campos nacen vacíos.
 const JEFE_NOMBRE_COMPLETO = 'JefeEstudios1 CIPFP Mislata';
 const JEFE_NOMBRE = 'JefeEstudios1';
 const JEFE_APELLIDOS = 'CIPFP Mislata';
@@ -57,15 +58,10 @@ const PANTALLA_CENTRO = 'Nuevo expediente: elija el centro';
 const PANTALLA_TRAMITE = 'Nuevo expediente: elija el trámite';
 const PANTALLA_CONTEXTO = 'Nuevo expediente';
 
-// Rótulos de las dos preguntas del último paso del asistente (los `title` de
-// `presentadoEnPapel` y `presentadoEnRepresentacion` en `AsistenteNuevoExpediente.xml`).
+// Rótulo de la pregunta eliminada (la forma la fija la entrada de menú) y de la única
+// que puede hacer el último paso del asistente (`presentadoEnRepresentacion`).
 const PREGUNTA_COMO_SE_PRESENTA = '¿Cómo se presenta?';
 const PREGUNTA_PARA_QUIEN = '¿Para quién es el expediente?';
-
-// Las dos opciones de «¿Cómo se presenta?» (los `x-false-text`/`x-true-text` del widget
-// `boolean-radio`): «Lo presento yo mismo» es `presentadoEnPapel = false`.
-const OPCION_LO_PRESENTO_YO = 'Lo presento yo mismo';
-const OPCION_EN_PAPEL = 'Estoy registrando un trámite recibido en papel';
 
 // Estado en el que nace el expediente según `InitialEventManagerImpl`: fase ENTRADA,
 // estado ENTRADA_DATOS. Son los `title` del `TipoExpedienteInstance.xml`.
@@ -124,22 +120,6 @@ async function desplegarGruposDeTramites(page: Page): Promise<void> {
 }
 
 /**
- * El radio de una de las opciones de «¿Cómo se presenta?». El widget `boolean-radio` de
- * Axelor pinta cada opción como `<div><input type="radio"><span>texto</span></div>`, SIN
- * `<label>` (y con el mismo `id` en los dos inputs), así que la opción no se puede
- * localizar por su nombre accesible: se localiza el `div` que contiene su texto y,
- * dentro, su radio. Así la aserción sigue atada al texto que lee el usuario, no a la
- * posición ni al valor interno.
- */
-function opcionComoSePresenta(page: Page, texto: string): Locator {
-  return page
-    .getByTestId('field:presentadoEnPapel')
-    .locator('div:has(> [data-testid="radio"])')
-    .filter({ hasText: texto })
-    .getByRole('radio');
-}
-
-/**
  * Abre una entrada del menú lateral. El grupo se pliega y despliega al pulsarlo, así
  * que solo se despliega si la entrada no se ve: pulsarlo a ciegas lo cerraría cuando ya
  * venía abierto.
@@ -156,7 +136,7 @@ async function abrirEntradaDeMenu(page: Page, grupo: string, entrada: string): P
  * Borra el expediente cuya pestaña se titula `titulo`, pulsando "Borrar el expediente"
  * directamente sobre la pestaña recién abierta: al presentarlo él mismo el alta abre el
  * form con perfil CREADOR, que ofrece ese botón (evento DELETE), así
- * que —a diferencia de T-010 (registrado en papel)— no hace falta reabrir el
+ * que —a diferencia de T-028 (registrado en papel)— no hace falta reabrir el
  * expediente desde ningún listado. El botón abre un diálogo de confirmación de Axelor
  * que hay que aceptar; el evento DELETE responde con `refresh-app`, así que la
  * aplicación se recarga entera y la pestaña del expediente desaparece.
@@ -168,7 +148,7 @@ async function borrarExpediente(page: Page, titulo: string): Promise<void> {
 }
 
 test.describe('Ventanilla — Nuevo expediente', () => {
-  test('Usuario con las dos formas de presentar elige «Lo presento yo mismo»', async ({ page }) => {
+  test('Usuario con las dos formas de presentar crea por «Mis trámites» un expediente propio', async ({ page }) => {
     await ensureLoggedOut(page);
 
     // Paso 1: Dado que el jefe de estudios `jefeestudios1@mislata.es` ha iniciado
@@ -213,8 +193,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await filasDeTramites(page).filter({ hasText: TRAMITE }).click();
 
       // Paso 5: Entonces se abre "Nuevo expediente" con ese trámite, su ayuda y el
-      // centro en solo lectura; se ve "¿Cómo se presenta?" con sus dos opciones, SIN
-      // ninguna marcada.
+      // centro en solo lectura…
       await expect(page.getByRole('tab', { name: PANTALLA_CONTEXTO, exact: true })).toBeVisible();
       const campoTramite = page.getByTestId('field:nombreTramite').getByRole('textbox');
       await expect(campoTramite).toHaveValue(TRAMITE);
@@ -226,46 +205,22 @@ test.describe('Ventanilla — Nuevo expediente', () => {
         'Este trámite permite a justificar la falta del profesorado',
       );
 
-      await expect(page.getByText(PREGUNTA_COMO_SE_PRESENTA)).toBeVisible();
-      await expect(page.getByTestId('field:presentadoEnPapel')).toBeVisible();
-      const radioLoPresentoYo = opcionComoSePresenta(page, OPCION_LO_PRESENTO_YO);
-      const radioEnPapel = opcionComoSePresenta(page, OPCION_EN_PAPEL);
-      await expect(radioLoPresentoYo).toBeVisible();
-      await expect(radioEnPapel).toBeVisible();
-      await expect(radioLoPresentoYo).not.toBeChecked();
-      await expect(radioEnPapel).not.toBeChecked();
+      // …SIN "¿Cómo se presenta?" aunque tiene las dos formas de presentar: la entrada
+      // «Mis trámites» ya fija que lo presenta él mismo. Se comprueba por su rótulo y por
+      // el campo del modelo (`presentadoEnPapel`, oculto).
+      await expect(page.getByText(PREGUNTA_COMO_SE_PRESENTA)).toHaveCount(0);
+      await expect(page.getByTestId('field:presentadoEnPapel')).toHaveCount(0);
 
-      // …y NO se ve "¿Para quién es el expediente?": el trámite no admite
-      // representación. Se comprueba por su rótulo y por el campo del modelo que la
-      // pinta (`presentadoEnRepresentacion`), para que el test siga cazando el fallo
-      // aunque cambie el texto.
+      // …y SIN "¿Para quién es el expediente?": el trámite no admite representación.
+      // Se comprueba por su rótulo y por el campo del modelo que la pinta
+      // (`presentadoEnRepresentacion`), para que el test siga cazando el fallo aunque
+      // cambie el texto. Control positivo de que la pantalla está viva: el botón "Crear
+      // expediente" sí está.
       await expect(page.getByText(PREGUNTA_PARA_QUIEN)).toHaveCount(0);
       await expect(page.getByTestId('field:presentadoEnRepresentacion')).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Crear expediente' })).toBeVisible();
 
-      // Paso 6: Cuando marca "Lo presento yo mismo".
-      // El `onChange` del campo va al servidor (`…-onChange-presentadoEnPapel-action`)
-      // a recalcular qué hay que preguntar. Se espera esa respuesta ANTES de comprobar
-      // el paso 7, para no comprobar sobre la pantalla previa al recálculo.
-      const recalculo = page.waitForResponse(
-        (respuesta) =>
-          respuesta.url().endsWith('/ws/action') &&
-          (respuesta.request().postData() ?? '').includes(
-            'AsistenteNuevoExpediente-onChange-presentadoEnPapel-action',
-          ),
-      );
-      await radioLoPresentoYo.click();
-      await recalculo;
-
-      // Paso 7: Entonces sigue sin verse "¿Para quién es el expediente?", porque el
-      // trámite no admite representación. Control positivo de esa ausencia: la opción
-      // que el usuario acaba de marcar quedó marcada y la otra no, o sea que el panel
-      // de la presentación sigue vivo y recalculado.
-      await expect(radioLoPresentoYo).toBeChecked();
-      await expect(radioEnPapel).not.toBeChecked();
-      await expect(page.getByText(PREGUNTA_PARA_QUIEN)).toHaveCount(0);
-      await expect(page.getByTestId('field:presentadoEnRepresentacion')).toHaveCount(0);
-
-      // Paso 8: Cuando pulsa "Crear expediente".
+      // Paso 6: Cuando pulsa "Crear expediente".
       await page.getByRole('button', { name: 'Crear expediente' }).click();
 
       // Resultado esperado: el asistente se cierra y se abre el expediente recién
@@ -316,7 +271,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       //    es del form genérico de solo lectura, y "Presentar la solicitud" el del form
       //    del TRAMITADOR que copia los datos de una solicitud registrada en papel; en
       //    papel, además, el expediente ni siquiera nace en este estado sino en
-      //    PENDIENTE_DOCUMENTO_ESCANEADO — lo comprueba T-010 sobre este mismo trámite y
+      //    PENDIENTE_DOCUMENTO_ESCANEADO — lo comprueba T-028 sobre este mismo trámite y
       //    usuario).
       await expect(page.getByRole('button', { name: 'Siguiente' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Borrar el expediente' })).toBeVisible();
@@ -328,7 +283,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // representación, así que no debe existir; y el panel propio del trámite "Datos
       // del profesor interesado" nace PRERRELLENO y EN SOLO LECTURA con la identidad
       // del propio jefe de estudios —el sistema ya sabe quién es, no hay que
-      // preguntárselo—, a diferencia de T-010 (en papel), donde las personas del
+      // preguntárselo—, a diferencia de T-028 (en papel), donde las personas del
       // expediente nacen vacías porque quien presenta lo entregó en ventanilla y el
       // sistema no sabe nada de él.
       await expect(page.getByTestId(PANEL_PERSONA_SOLICITANTE)).toHaveCount(0);

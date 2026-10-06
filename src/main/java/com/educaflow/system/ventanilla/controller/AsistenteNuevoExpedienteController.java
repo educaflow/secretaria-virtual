@@ -94,14 +94,7 @@ public class AsistenteNuevoExpedienteController {
 
         actionResponse.setValue("nombreTramite", resultado.getNombreTramite());
         actionResponse.setValue("ayudaTramite", resultado.getAyudaTramite());
-        // Los dos campos de respuesta son booleanos de TRES estados (null = sin contestar). axelor-front
-        // funde el bloque `values` con updateRecord, que descarta el cambio cuando el valor actual y el
-        // nuevo coinciden al coercionarlos a número: null y false son ambos 0, así que por esa vía el paso
-        // null↔false se pierde en silencio. `value:set` se aplica sin diff, así que el registro del
-        // formulario refleja siempre lo que el servidor calculó.
-        actionResponse.setAttr("presentadoEnPapel", "value:set", resultado.getPresentadoEnPapel());
         actionResponse.setAttr("presentadoEnRepresentacion", "value:set", resultado.getPresentadoEnRepresentacion());
-        actionResponse.setValue("hayQuePreguntarPresentacion", resultado.getHayQuePreguntarPresentacion());
         actionResponse.setValue("hayQuePreguntarParaQuien", resultado.getHayQuePreguntarParaQuien());
     }
 

@@ -38,7 +38,8 @@ const TIPO_TRAMITE = 'Trámites para el alumno';
 const PANTALLA_ALTA = 'Nuevo expediente';
 
 /**
- * Abre el asistente «Mis trámites» → «Nuevo trámite» y elige el trámite hasta llegar a su
+ * Abre el asistente «Tramitación» → «Nuevo trámite» (la entrada con la que se registra en papel
+ * un trámite recibido en ventanilla: la forma de presentar la fija la entrada) y elige el trámite hasta llegar a su
  * último paso, «Nuevo expediente». Cómo funciona el asistente (pantallas, testids y cuándo
  * pregunta cada cosa) está en `system/ventanilla/views/nuevoexpediente/CLAUDE.md`.
  * El usuario de estos tests es de un solo centro, así que el asistente se salta la elección
@@ -46,9 +47,9 @@ const PANTALLA_ALTA = 'Nuevo expediente';
  */
 async function abrirAltaDelTramite(page: Page): Promise<void> {
   // El grupo del menú se pliega al pulsarlo: solo se despliega si la entrada no se ve.
-  const entrada = page.getByTestId('item:misTramites-nuevoTramite-menuitem');
+  const entrada = page.getByTestId('item:tramitacion-nuevoTramite-menuitem');
   if (!(await entrada.isVisible())) {
-    await page.getByTestId('item:misTramites-menuitem').getByTestId('title').first().click();
+    await page.getByTestId('item:tramitacion-menuitem').getByTestId('title').first().click();
   }
   await entrada.click();
 
@@ -66,7 +67,7 @@ async function abrirAltaDelTramite(page: Page): Promise<void> {
  * `<div><input type="radio"><span>texto</span></div>` sin `<label>`, así que se localiza el
  * `div` que contiene el texto y, dentro, su radio.
  */
-function opcion(page: Page, campo: 'presentadoEnPapel' | 'presentadoEnRepresentacion', texto: string): Locator {
+function opcion(page: Page, campo: 'presentadoEnRepresentacion', texto: string): Locator {
   return page
     .getByTestId(`field:${campo}`)
     .locator('div:has(> [data-testid="radio"])')
@@ -85,14 +86,14 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
       await ensureLoggedOut(page);
       await login(page, 'administrativo1@mislata.es', 'demo1234');
 
-      // When: inicia sesión, abre «Mis trámites» → «Nuevo trámite», despliega «Trámites para el alumno»
+      // When: inicia sesión, abre «Tramitación» → «Nuevo trámite», despliega «Trámites para el alumno»
       // y pulsa sobre «Anulación de matrícula en ciclo formativo».
       await abrirAltaDelTramite(page);
 
       // When (cont.): marca «Para otra persona a la que represento (hijo/a menor de edad o persona
-      // tutelada)» en la pregunta «¿Para quién es el expediente?» (no se le pregunta «¿Cómo se
-      // presenta?»: al tener solo el perfil TRAMITADOR, la presentación en papel se da por deducida)…
-      await expect(page.getByTestId('field:presentadoEnPapel')).toHaveCount(0);
+      // tutelada)» en la pregunta «¿Para quién es el expediente?» (no se le pregunta cómo se
+      // presenta: la forma, en papel, la fija la entrada «Tramitación» → «Nuevo trámite»)…
+      await expect(page.getByText('¿Cómo se presenta?')).toHaveCount(0);
       await expect(page.getByText('¿Para quién es el expediente?')).toBeVisible();
       const opcionRepresentacion = opcion(
         page,

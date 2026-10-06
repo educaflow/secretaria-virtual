@@ -20,6 +20,8 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <context name="_centroId" expr="eval: id != null ? id : centro?.id"/>
         <context name="_hayQueElegirCentro"
                  expr="eval: id != null ? __parent__?.hayQueElegirCentro : hayQueElegirCentro"/>
+        <context name="_presentadoEnPapel"
+                 expr="eval: id != null ? __parent__?.presentadoEnPapel : presentadoEnPapel"/>
     </action-view>
 
     <!-- Muestra el tree de trámites candidatos embebido vía panel-dashlet (un <tree> no admite
@@ -34,6 +36,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <panel name="estadoPanel" title="" colSpan="12" showFrame="false">
             <field name="hayQueElegirCentro" hidden="true"/>
             <field name="tramitesDisponibles" hidden="true"/>
+            <field name="presentadoEnPapel" hidden="true"/>
         </panel>
 
         <panel name="centroPanel" title="" colSpan="12" showFrame="false">
@@ -58,8 +61,13 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     </form>
 
     <?sv-primary-actions?>
+    <!-- Vuelve a la entrada de la misma forma de presentar por la que se entró: las dos entradas
+         llevan `_presentadoEnPapel` literal, así que reabrir la otra la cambiaría en silencio. -->
     <action-group name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-btnAtras-action">
-        <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpediente-action"/>
+        <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpedientePresentadoElectronicamente-action"
+                if="!presentadoEnPapel"/>
+        <action name="sysVentanilla.ElegirCentro@AsistenteNuevoExpedientePresentadoEnPapel-action"
+                if="presentadoEnPapel"/>
         <action name="close"/>
     </action-group>
 
@@ -68,17 +76,18 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     </action-group>
 
     <action-group name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-onNew-action">
-        <action name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-set-centroYHayQueElegirCentro-recibidos-action"/>
+        <action name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-set-centroHayQueElegirCentroYPresentadoEnPapel-recibidos-action"/>
         <action name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-Remote-prepararTramites-action"/>
     </action-group>
 
     <?sv-validations?>
 
     <?sv-rules?>
-    <action-record name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-set-centroYHayQueElegirCentro-recibidos-action"
+    <action-record name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente-set-centroHayQueElegirCentroYPresentadoEnPapel-recibidos-action"
                    model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
         <field name="centro" expr="eval: __repo__(com.educaflow.subsystem.common.db.Centro).find(_centroId)"/>
         <field name="hayQueElegirCentro" expr="eval: _hayQueElegirCentro"/>
+        <field name="presentadoEnPapel" expr="eval: _presentadoEnPapel"/>
     </action-record>
 
     <?sv-remotes?>
@@ -92,13 +101,15 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     <?sv-view?>
     <!-- Tree de trámites candidatos agrupados por tipo de trámite, embebido en el panel-dashlet
          de arriba. Modelo AsistenteNuevoExpediente porque su <context> evalúa los campos que ya
-         tiene calculados el form contenedor (centro, hayQueElegirCentro, tramitesDisponibles);
+         tiene calculados el form contenedor (centro, hayQueElegirCentro, presentadoEnPapel,
+         tramitesDisponibles);
          los nodos del propio tree usan TipoUsuario/Tramite. -->
     <action-view name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-action"
                  title="Trámite" model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
         <view type="tree" name="sysVentanilla.ElegirTramite@AsistenteNuevoExpediente.Tramite-tree"/>
         <context name="_centroId" expr="eval: centro?.id"/>
         <context name="_hayQueElegirCentro" expr="eval: hayQueElegirCentro"/>
+        <context name="_presentadoEnPapel" expr="eval: presentadoEnPapel"/>
         <context name="_tramiteIds" expr="eval: tramitesDisponibles?.collect{it.id}"/>
     </action-view>
 

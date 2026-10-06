@@ -21,8 +21,9 @@ const USUARIO = 'alumno1@mislata.es';
 const CONTRASENA = 'demo1234';
 
 // Datos del estado inicial de la BD que el test da por sentados. El alumno solo puede
-// presentar este trámite él mismo (no tiene permiso para registrarlo en papel), así que
-// la pantalla no le pregunta "¿Cómo se presenta?" y fija `presentadoEnPapel = false`.
+// presentar este trámite él mismo (no tiene permiso para registrarlo en papel). Entra por
+// «Mis trámites» → «Nuevo trámite», la entrada que fija `presentadoEnPapel = false` (el
+// asistente ya no pregunta "¿Cómo se presenta?").
 const CENTRO_PROPIO = 'CIPFP Mislata';
 const TRAMITE = 'Anulación de matrícula en ciclo formativo';
 
@@ -77,8 +78,8 @@ async function desplegarGruposDeTramites(page: Page): Promise<void> {
 
 /**
  * Intercepta la petición que dispara "Crear expediente" (`POST /ws/action`) y sustituye,
- * en el `context` que viaja en el cuerpo, `presentadoEnPapel` (que la pantalla fijó a
- * `false`, porque el alumno solo puede presentar este trámite él mismo) por `true` —
+ * en el `context` que viaja en el cuerpo, `presentadoEnPapel` (que la entrada «Mis
+ * trámites» fijó a `false`) por `true` —
  * dejando el resto de la petición tal cual la construyó el cliente (centro, trámite y
  * para él mismo). Es la manipulación que describe el paso 3 del `.desc.md`: "la petición
  * manipulada para indicar que está registrando un trámite recibido en papel […] dejando
@@ -115,9 +116,9 @@ test.describe('Ventanilla — Nuevo expediente', () => {
 
     try {
       // Paso 2: Y ha llegado a "Nuevo expediente" para el trámite "Anulación de
-      // matrícula en ciclo formativo" en el centro "CIPFP Mislata" (menú "Ventanilla" →
-      // "Nuevo expediente" → fila del trámite), sin que se le pregunte "¿Cómo se
-      // presenta?" (el alumno solo puede presentarlo él mismo).
+      // matrícula en ciclo formativo" en el centro "CIPFP Mislata" (menú "Mis trámites" →
+      // "Nuevo trámite" → fila del trámite), sin que se le pregunte "¿Cómo se presenta?"
+      // (la entrada fija que lo presenta él mismo).
       await abrirNuevoExpediente(page);
       await desplegarGruposDeTramites(page);
       await filasDeTramites(page).first().click();
@@ -130,8 +131,8 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await expect(campoCentro).toHaveValue(CENTRO_PROPIO);
       await expect(page.getByText('¿Cómo se presenta?')).toHaveCount(0);
 
-      // Paso 3: Cuando pulsa "Crear expediente" con la petición manipulada para indicar
-      // que está registrando un trámite recibido en papel, dejando el resto como lo fijó
+      // Paso 3: Cuando pulsa "Crear expediente" con la petición manipulada para forzar
+      // `presentadoEnPapel = true` (registrar un trámite recibido en papel), dejando el resto como lo fijó
       // la pantalla: el centro "CIPFP Mislata", el trámite "Anulación de matrícula en
       // ciclo formativo" y el expediente para él mismo.
       await manipularFormaDePresentarEnPeticionDeCrear(page);

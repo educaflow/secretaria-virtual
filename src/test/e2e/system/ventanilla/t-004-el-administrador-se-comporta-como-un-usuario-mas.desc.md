@@ -50,7 +50,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Pasos
 1. **Dado** que el administrador ha iniciado sesión con el usuario `admin` y la contraseña `admin`.
-2. **Cuando** abre el menú "Ventanilla" y pulsa "Nuevo expediente".
+2. **Cuando** abre el menú "Mis trámites" y pulsa "Nuevo trámite".
 
 ## Resultado esperado
 - El sistema muestra el aviso "No puede crear expedientes en ninguno de sus centros".

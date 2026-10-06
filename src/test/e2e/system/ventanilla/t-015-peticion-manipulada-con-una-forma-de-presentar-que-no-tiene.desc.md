@@ -50,8 +50,8 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Pasos
 1. **Dado** que el alumno `alumno1@mislata.es` ha iniciado sesión con la contraseña `demo1234`.
-2. **Y** ha llegado a "Nuevo expediente" para el trámite "Anulación de matrícula en ciclo formativo" en el centro "CIPFP Mislata", sin que se le pregunte "¿Cómo se presenta?".
-3. **Cuando** pulsa "Crear expediente" con la petición manipulada para indicar que está registrando un trámite recibido en papel, dejando el resto como lo fijó la pantalla: el centro "CIPFP Mislata", el trámite "Anulación de matrícula en ciclo formativo" y el expediente para él mismo.
+2. **Y** ha llegado a "Nuevo expediente" para el trámite "Anulación de matrícula en ciclo formativo" en el centro "CIPFP Mislata" entrando por el menú "Mis trámites" → "Nuevo trámite" (lo presenta él mismo), sin que se le pregunte "¿Cómo se presenta?".
+3. **Cuando** pulsa "Crear expediente" con la petición manipulada para forzar `presentadoEnPapel = true` (registrar un trámite recibido en papel), dejando el resto como lo fijó la pantalla: el centro "CIPFP Mislata", el trámite "Anulación de matrícula en ciclo formativo" y el expediente para él mismo.
 
 ## Resultado esperado
 - El sistema no crea ningún expediente.

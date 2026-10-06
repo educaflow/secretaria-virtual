@@ -39,7 +39,7 @@ async function abrirAltaDelTramite(page: Page): Promise<void> {
  * `<div><input type="radio"><span>texto</span></div>` sin `<label>`, así que se localiza el
  * `div` que contiene el texto y, dentro, su radio.
  */
-function opcion(page: Page, campo: 'presentadoEnPapel' | 'presentadoEnRepresentacion', texto: string): Locator {
+function opcion(page: Page, campo: 'presentadoEnRepresentacion', texto: string): Locator {
   return page
     .getByTestId(`field:${campo}`)
     .locator('div:has(> [data-testid="radio"])')
@@ -62,29 +62,12 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
       // y pulsa sobre «Anulación de matrícula en ciclo formativo».
       await abrirAltaDelTramite(page);
 
-      // Then: se abre la pantalla «Nuevo expediente» y, a diferencia de los tests anteriores, SÍ se
-      // muestra la pregunta «¿Cómo se presenta?», sin ninguna opción marcada: como tiene los dos
-      // perfiles de inicio, se le pregunta cómo presenta.
-      await expect(page.getByText('¿Cómo se presenta?')).toBeVisible();
-      const opcionLoPresentoYo = opcion(page, 'presentadoEnPapel', 'Lo presento yo mismo');
-      const opcionEnPapel = opcion(page, 'presentadoEnPapel', 'Estoy registrando un trámite recibido en papel');
-      await expect(opcionLoPresentoYo).not.toBeChecked();
-      await expect(opcionEnPapel).not.toBeChecked();
+      // Then: se abre la pantalla «Nuevo expediente» SIN la pregunta «¿Cómo se presenta?»: aunque
+      // tiene los dos perfiles de inicio, la forma de presentar la fija la entrada de menú, y
+      // «Mis trámites» → «Nuevo trámite» es la de quien lo presenta él mismo (perfil CREADOR).
+      await expect(page.getByText('¿Cómo se presenta?')).toHaveCount(0);
 
-      // When: marca «Lo presento yo mismo». El cambio va al servidor a recalcular qué más hay que
-      // preguntar; se espera esa respuesta antes de comprobar nada.
-      const recalculo = page.waitForResponse(
-        (respuesta) =>
-          respuesta.url().endsWith('/ws/action') &&
-          (respuesta.request().postData() ?? '').includes(
-            'AsistenteNuevoExpediente-onChange-presentadoEnPapel-action',
-          ),
-      );
-      await opcionLoPresentoYo.click();
-      await recalculo;
-      await expect(opcionLoPresentoYo).toBeChecked();
-
-      // Then: NO se pregunta «¿Para quién es el expediente?»: presentándolo él mismo, como es
+      // And: NO se pregunta «¿Para quién es el expediente?»: presentándolo él mismo, como es
       // alumno y no familiar, el expediente solo puede ser para él.
       await expect(page.getByTestId('field:presentadoEnRepresentacion')).toHaveCount(0);
 
