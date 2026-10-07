@@ -14,6 +14,7 @@ import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
@@ -44,8 +45,8 @@ class ConfiguracionEntornosTest {
 
         assertEquals(ALMACEN_OFICIAL, propiedad(configuracion, PROPIEDAD_ALMACEN));
         assertEquals(LISTA_CRLS_OFICIAL, propiedad(configuracion, PROPIEDAD_LISTA_CRLS));
-        // Explícita aunque AOP ya la tome como false si falta: así no depende del valor por defecto de la versión de AOP
-        assertEquals("false", propiedad(configuracion, PROPIEDAD_DEMO_DATA));
+        // No se declara: AOP la toma como false si falta
+        assertNull(configuracion.getProperty(PROPIEDAD_DEMO_DATA), "axelor-config.properties no debe declarar " + PROPIEDAD_DEMO_DATA);
     }
 
     @ParameterizedTest
