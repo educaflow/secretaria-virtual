@@ -57,7 +57,7 @@ class VerificacionHelperTest {
         i18nMock.when(() -> I18n.get(anyString())).thenAnswer(invocacion -> invocacion.getArgument(0));
 
         Persona solicitante = new Persona();
-        solicitante.setDni("12345678Z");
+        solicitante.setDni("93882914L");
         solicitante.setNombre("Ana");
         solicitante.setApellidos("García López");
         solicitante.setEmail("ana@example.com");
@@ -86,7 +86,7 @@ class VerificacionHelperTest {
         assertAll(
                 () -> assertTrue(avisado),
                 () -> assertEquals("ana@example.com", correo.getValue().getPara()),
-                () -> assertEquals("12345678Z", correo.getValue().getDniDestinatario()),
+                () -> assertEquals("93882914L", correo.getValue().getDniDestinatario()),
                 () -> assertEquals("Ana", correo.getValue().getNombre()),
                 () -> assertEquals("García López", correo.getValue().getApellidos()),
                 () -> assertSame(centro, correo.getValue().getCentro()),

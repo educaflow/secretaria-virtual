@@ -20,13 +20,13 @@ test.describe('Administración de correos', () => {
     await page.getByTestId('item:correos-todos-menuitem').click();
     await page.getByRole('button', { name: 'Nuevo correo' }).click();
 
-    // Paso 2: Cuando rellena el DNI «86862719E», el nombre «Alumno1», los apellidos
+    // Paso 2: Cuando rellena el DNI «95591733F», el nombre «Alumno1», los apellidos
     // «CIPFP Mislata», el «para» «alumno1@mislata.es», el «en copia oculta»
     // «oculta-sin-arroba», el asunto «Convocatoria de reunión», el cuerpo «texto» y
     // elige el centro «CIPFP Mislata».
     // «En copia oculta» se localiza con exact:true porque el formulario también
     // tiene un campo «En copia» cuyo label es prefijo del anterior (ambigüedad).
-    await page.getByLabel('DNI del destinatario').fill('86862719E');
+    await page.getByLabel('DNI del destinatario').fill('95591733F');
     await page.getByLabel('Nombre', { exact: true }).fill('Alumno1');
     await page.getByLabel('Apellidos').fill('CIPFP Mislata');
     await page.getByLabel('Para', { exact: false }).fill('alumno1@mislata.es');

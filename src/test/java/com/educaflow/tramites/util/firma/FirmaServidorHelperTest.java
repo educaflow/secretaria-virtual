@@ -39,7 +39,7 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 class FirmaServidorHelperTest {
 
-    private static final String DNI = "12345678Z";
+    private static final String DNI = "93882914L";
     private static final String CLAVE = "clave";
     private static final Rectangulo POSICION = new Rectangulo(1f, 2f, 3f, 4f);
     private static final int PAGINA = 2;

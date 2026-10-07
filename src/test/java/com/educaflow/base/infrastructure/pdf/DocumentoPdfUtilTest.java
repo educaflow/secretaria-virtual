@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 
 class DocumentoPdfUtilTest {
 
-    private static final String DNI = "12345678Z";
+    private static final String DNI = "93882914L";
     private static final String TEXTO = "texto del documento";
 
     private MockedStatic<I18n> i18nMock;

@@ -1,11 +1,12 @@
 import { test, expect, Locator, Page } from '@playwright/test';
+import path from 'path';
 import { ensureLoggedOut, login, logout } from '../../_support/auth';
 
 // T-017 — Borrar uno de los certificados de una persona
 // origen: ESC-010  |  verifica: —
 // fuente: .sdd/drafts/2026-09-08_02-53_nombre-apellidos-certificado-digital/test-e2e-desc/t-017-borrar-uno-de-los-certificados-de-una-persona.desc.md
 
-// El DNI del escenario: el del usuario `secretario@mislata.es` de los datos de
+// El DNI del escenario: el del usuario `sincertificado2@mislata.es` de los datos de
 // demostración. NO lleva sufijo `Date.now()` a propósito (excepción documentada
 // de la regla de nombres únicos): el escenario se apoya en que ESE DNI
 // corresponde a un usuario de la aplicación (las DOS altas copian nombre y
@@ -15,24 +16,28 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 // compartida (que NO se resetea) se consigue con la pre-limpieza defensiva del
 // arranque + el teardown del `finally`, tal y como describe el «Estado inicial de
 // la base de datos» de la descripción.
-const DNI = '29050788V';
+const DNI = '96931712Y';
 
 // Nombre y apellidos que las dos altas MUST copiar de la ficha de ese usuario.
-const NOMBRE = 'Secretario';
+const NOMBRE = 'SinCertificado2';
 const APELLIDOS = 'CIPFP Mislata';
 
-// El título del enum llega a la UI con el sufijo `__!!` (marca de "no traducir"
-// que el script de i18n elimina al generar los CSV, pero que el título crudo del
-// dominio conserva). Los locators por nombre accesible hacen match por SUBCADENA,
-// así que basta con el texto sin el sufijo.
-const OPCION_CLASSPATH = 'Usar un fichero con el certificado que ya está dentro del del WAR';
+// El título de la opción FICHERO_BD del enum «Tipo de certificado». Los
+// certificados de test NO están dentro del WAR, así que no pueden usar el tipo
+// que lee el fichero del classpath: se suben y se guardan en la base de datos.
+const OPCION_FICHERO_BD = 'Subir un fichero con el certificado para guardarlo en la base de datos';
 
-// Las dos rutas del escenario. Son DISTINTAS a propósito: como la «Ruta
-// classpath» NO es columna del listado, es lo único que permite demostrar CUÁL de
+// Ruta absoluta de un certificado de test (`src/test/resources/firma/test/`).
+// Son certificados de la CA de demo que no son de ningún usuario; su contraseña
+// es `demo1234`, pero el alta no la exige y el escenario no la escribe.
+const rutaCertificadoTest = (nombre: string) => path.resolve(__dirname, '../../../resources/firma/test', nombre);
+
+// Los dos ficheros del escenario. Son DISTINTOS a propósito: como el nombre
+// del fichero NO es columna del listado, es lo único que permite demostrar CUÁL de
 // las dos filas es cuál — y, en este escenario, que la fila BORRADA es la que
 // tocaba y que la SUPERVIVIENTE es la otra (que es justo lo que se prueba).
-const RUTA_SUPERVIVIENTE = 'firma/mi_certificado.p12';
-const RUTA_A_BORRAR = 'firma/instalar_certificado_criptografico/secretario.p12';
+const FICHERO_SUPERVIVIENTE = 'test1.p12';
+const FICHERO_A_BORRAR = 'test2.p12';
 
 // La URL del listado, para la RECARGA EN DURO del final (ver el «Resultado
 // esperado»): es la ruta a la que Axelor vuelve tras guardar y la que se pide de
@@ -48,7 +53,10 @@ const botonAnhadir = (page: Page) => page.getByRole('button', { name: 'Añadir c
 // accesible IDÉNTICO. Por eso el locator es intrínsecamente múltiple: se resuelve
 // siempre con `.nth(...)` o con `toHaveCount(...)` y NUNCA se usa sin acotar, que
 // dispararía el modo estricto de Playwright.
-const filasDelDni = (page: Page) => page.getByRole('row', { name: DNI });
+// Se busca en el ÚLTIMO rowgroup (el de los datos): el primero lleva la cabecera
+// y la fila de filtros, cuyo «Buscar...» de la columna DNI contiene el DNI
+// tecleado (ver `filtrarPorDni`) y también casaría por nombre.
+const filasDelDni = (page: Page) => page.getByRole('rowgroup').last().getByRole('row', { name: DNI });
 
 // La fila que la rejilla pinta cuando no hay ningún registro.
 const filaSinRegistros = (page: Page) => page.getByRole('row', { name: 'No se encontraron registros.' });
@@ -56,14 +64,17 @@ const filaSinRegistros = (page: Page) => page.getByRole('row', { name: 'No se en
 // --- Campos del formulario -------------------------------------------------
 // El nombre accesible real de varios de ellos lleva un « ?» por el icono de
 // ayuda; el match por subcadena lo cubre. El `exact: true` del DNI evita que ese
-// locator casase con otro campo que lo contuviera. «Ruta classpath» solo se
-// muestra con el tipo CLASSPATH elegido y su etiqueta real es «Ruta classpath__!!».
+// locator casase con otro campo que lo contuviera. «Fichero» solo se muestra con
+// el tipo FICHERO_BD elegido; es un widget `binary-link` que esconde su
+// `input[type=file]` y, una vez subido el fichero (o al abrir un registro ya
+// guardado), pinta su NOMBRE en el botón de descarga (`data-testid="btn-download"`).
 const campoDni = (page: Page) => page.getByRole('textbox', { name: 'DNI', exact: true });
 const campoNombre = (page: Page) => page.getByRole('textbox', { name: 'Nombre' });
 const campoApellidos = (page: Page) => page.getByRole('textbox', { name: 'Apellidos' });
 // «Tipo de certificado» es un grupo de radios (RadioSelect): se elige por la opción.
 const opcionTipoCertificado = (page: Page, opcion: string) => page.getByRole('radio', { name: opcion });
-const campoRutaClasspath = (page: Page) => page.getByRole('textbox', { name: 'Ruta classpath' });
+const campoFichero = (page: Page) => page.getByTestId('field:fichero');
+const nombreFicheroSubido = (page: Page) => campoFichero(page).getByTestId('btn-download');
 const campoHabilitado = (page: Page) => page.getByRole('checkbox', { name: 'Habilitado' });
 
 // El botón «Borrar» solo existe en el formulario de un registro YA GUARDADO: es
@@ -216,6 +227,31 @@ async function pulsarHasta(page: Page, destino: Locator, resultado: Locator, des
   throw new Error(`No se pudo pulsar ${descripcion}`);
 }
 
+// Filtro de la columna «DNI» del listado (la fila de «Buscar...» de la cabecera).
+// CRITICAL: el listado NO está vacío: los datos de demostración traen un
+// certificado por cada usuario de demo y la rejilla pagina (40 filas por página),
+// así que sin filtrar las filas del DNI del escenario pueden caer en otra página
+// y la pre-limpieza, los recuentos y las posiciones no las verían. Filtrando por
+// el DNI la rejilla solo muestra las suyas (o «No se encontraron registros.»).
+// Axelor conserva el filtro al volver al listado tras guardar o borrar, pero no
+// tras recargar la página: por eso se reaplica siempre que no esté puesto.
+const filtroDni = (page: Page) => page.getByTestId('column:dni').getByPlaceholder('Buscar...');
+
+async function filtrarPorDni(page: Page): Promise<void> {
+  if ((await filtroDni(page).inputValue()) === DNI) {
+    return;
+  }
+  await filtroDni(page).fill(DNI);
+  // Se espera a la respuesta de la búsqueda: hasta entonces la rejilla sigue
+  // mostrando la primera página sin filtrar.
+  await Promise.all([
+    page.waitForResponse(
+      (respuesta) => respuesta.url().includes('CertificadoDigital/search') && respuesta.request().method() === 'POST',
+    ),
+    filtroDni(page).press('Enter'),
+  ]);
+}
+
 // Barrera de carga del listado.
 // CRITICAL: la rejilla pide sus filas en una petición aparte de la que pinta la
 // vista, así que mirar las filas nada más aparecer el botón de alta es una
@@ -224,9 +260,11 @@ async function pulsarHasta(page: Page, destino: Locator, resultado: Locator, des
 // rejilla a medio cargar (dando por bueno «queda UNA sola fila» por el motivo
 // equivocado: porque la segunda aún no se había pintado, no porque se borrara).
 // Esperar a que la rejilla se resuelva en uno de sus dos estados posibles la
-// elimina: o hay filas del DNI, o está la fila «No records found.».
+// elimina: o hay filas del DNI, o está la fila «No records found.» (la rejilla
+// está filtrada por el DNI del escenario, ver `filtrarPorDni`).
 async function esperarListadoCargado(page: Page): Promise<void> {
   await expect(botonAnhadir(page)).toBeVisible();
+  await filtrarPorDni(page);
   await expect(filasDelDni(page).or(filaSinRegistros(page)).first()).toBeVisible();
 }
 
@@ -241,7 +279,7 @@ async function abrirCertificadosDigitales(page: Page): Promise<void> {
 
 // Abre el formulario de la fila `indice`-ésima del DNI (0 = la primera del
 // listado). El índice importa: el escenario identifica las dos filas por su
-// POSICIÓN, y abrirlas es la única forma de leer su «Ruta classpath», que no es
+// POSICIÓN, y abrirlas es la única forma de leer su «Fichero», que no es
 // columna del listado.
 async function abrirFilaDelDni(page: Page, indice: number): Promise<void> {
   // El efecto que confirma que la fila se abrió: el botón «Borrar», que solo
@@ -253,9 +291,9 @@ async function abrirFilaDelDni(page: Page, indice: number): Promise<void> {
     `la fila ${indice} del DNI ${DNI}`,
   );
   // El formulario se pinta antes de que sus campos tengan valor; sin esta espera,
-  // leer «Ruta classpath» con `inputValue()` (que responde al instante) devolvería
+  // leer «Fichero» con `inputValue()` (que responde al instante) devolvería
   // la cadena vacía y la identificación de la fila sería aleatoria.
-  await expect(campoRutaClasspath(page)).not.toHaveValue('');
+  await expect(nombreFicheroSubido(page)).toHaveText(/\.p12$/);
 }
 
 // Vuelve al listado desde donde esté: cierra cualquier diálogo abierto y, si hay
@@ -345,14 +383,14 @@ async function guardarConExito(page: Page): Promise<void> {
 }
 
 // Abre el alta y rellena el formulario de un certificado del DNI del escenario
-// con la ruta indicada, dejándolo listo para pulsar «Guardar».
+// con el fichero indicado, dejándolo listo para pulsar «Guardar».
 //
 // `habilitado` es el estado en que MUST quedar la casilla: el alta la trae
 // marcada por defecto, así que para el segundo certificado hay que desmarcarla.
 // Se comprueba que venía marcada ANTES de tocarla: `uncheck()` sobre una casilla
 // ya desmarcada es un no-op silencioso, así que sin esa aserción el test pasaría
 // igual aunque el «desmarcar» del escenario no estuviera cambiando nada.
-async function rellenarAlta(page: Page, ruta: string, habilitado: boolean): Promise<void> {
+async function rellenarAlta(page: Page, fichero: string, habilitado: boolean): Promise<void> {
   // El efecto que confirma que el alta se abrió: el campo «DNI» editable del
   // formulario nuevo.
   const dni = campoDni(page);
@@ -366,7 +404,7 @@ async function rellenarAlta(page: Page, ruta: string, habilitado: boolean): Prom
   // CRITICAL: ese autorrelleno es una llamada AL SERVIDOR (`POST /ws/action` con
   // la acción `...CertificadoDigital-onChange-dni-action`), y su respuesta ESCRIBE
   // en «Nombre» y «Apellidos» — con este DNI, copiando los de la ficha del usuario
-  // `secretario@mislata.es`. Sin esperar a que termine, seguir adelante sería una
+  // `sincertificado2@mislata.es`. Sin esperar a que termine, seguir adelante sería una
   // condición de carrera: el alta podría llegar al servidor con el nombre aún
   // vacío y morir con «El nombre es obligatorio», un rechazo que este escenario
   // (en el que las dos altas tienen éxito) no contempla.
@@ -387,10 +425,12 @@ async function rellenarAlta(page: Page, ruta: string, habilitado: boolean): Prom
   await expect(campoNombre(page)).toHaveValue(NOMBRE);
   await expect(campoApellidos(page)).toHaveValue(APELLIDOS);
 
-  await opcionTipoCertificado(page, OPCION_CLASSPATH).check();
+  await opcionTipoCertificado(page, OPCION_FICHERO_BD).check();
 
-  // El campo solo se muestra al elegir el tipo CLASSPATH.
-  await campoRutaClasspath(page).fill(ruta);
+  // El campo solo se muestra al elegir el tipo FICHERO_BD. Se espera a que pinte
+  // el nombre del fichero: es la señal de que la subida ha terminado.
+  await campoFichero(page).locator('input[type="file"]').setInputFiles(rutaCertificadoTest(fichero));
+  await expect(campoFichero(page).getByRole('button', { name: fichero })).toBeVisible();
 
   const casilla = campoHabilitado(page);
   await expect(casilla).toBeVisible();
@@ -404,29 +444,29 @@ async function rellenarAlta(page: Page, ruta: string, habilitado: boolean): Prom
 // Da de alta un certificado y comprueba que el guardado SÍ tiene éxito. En ESTE
 // escenario las DOS altas se guardan bien: la primera porque no hay ningún otro
 // certificado del DNI, y la segunda porque va deshabilitada.
-async function altaCertificado(page: Page, ruta: string, habilitado: boolean): Promise<void> {
-  await rellenarAlta(page, ruta, habilitado);
+async function altaCertificado(page: Page, fichero: string, habilitado: boolean): Promise<void> {
+  await rellenarAlta(page, fichero, habilitado);
   await guardarConExito(page);
 }
 
 // Abre las DOS filas del DNI, una a una y en orden de listado, y devuelve lo que
-// hay DENTRO de cada formulario: su «Ruta classpath» y el estado de su casilla
+// hay DENTRO de cada formulario: su «Fichero» y el estado de su casilla
 // «Habilitado». Deja la vista de vuelta en el listado.
 //
-// CRITICAL: la «Ruta classpath» no es columna del listado y las dos filas son
+// CRITICAL: la «Fichero» no es columna del listado y las dos filas son
 // indistinguibles en él (mismo DNI, nombre, apellidos y tipo), así que abrirlas es
 // la ÚNICA forma de saber cuál es cuál. En ESTE escenario eso no es un adorno: lo
 // que hay que borrar es una fila CONCRETA (la de
-// `firma/instalar_certificado_criptografico/secretario.p12`), y confiar solo en la
+// `test2.p12`), y confiar solo en la
 // posición dejaría el test dando por bueno el borrado de la fila equivocada.
-async function leerLasDosFilas(page: Page): Promise<Array<{ ruta: string; habilitado: boolean }>> {
+async function leerLasDosFilas(page: Page): Promise<Array<{ fichero: string; habilitado: boolean }>> {
   await expect(filasDelDni(page)).toHaveCount(2);
 
-  const filas: Array<{ ruta: string; habilitado: boolean }> = [];
+  const filas: Array<{ fichero: string; habilitado: boolean }> = [];
   for (const indice of [0, 1]) {
     await abrirFilaDelDni(page, indice);
     filas.push({
-      ruta: await campoRutaClasspath(page).inputValue(),
+      fichero: await nombreFicheroSubido(page).innerText(),
       habilitado: await campoHabilitado(page).isChecked(),
     });
     await volverAlListado(page);
@@ -449,23 +489,23 @@ test.describe('Certificados digitales', () => {
       //         digitales» (menú «Criptografía» → «Certificados digitales»).
       await abrirCertificadosDigitales(page);
 
-      // Precondición: no existe ningún certificado digital con DNI «29050788V»
+      // Precondición: no existe ningún certificado digital con DNI «96931712Y»
       // (si quedaran de una ejecución anterior, se borran TODOS desde el listado).
       await borrarEntradasDelDniSiExisten(page);
 
       // Paso 2: Cuando pulsa «Añadir certificado digital», escribe en «DNI»
-      //         «29050788V», elige en «Tipo de certificado» la opción «Usar un
-      //         fichero con el certificado que ya está dentro del del WAR»,
-      //         escribe en «Ruta classpath» «firma/mi_certificado.p12» y pulsa
+      //         «96931712Y», elige en «Tipo de certificado» la opción «Subir un
+      //         fichero con el certificado para guardarlo en la base de datos»,
+      //         sube en «Fichero» «test1.p12» y pulsa
       //         «Guardar».
-      await altaCertificado(page, RUTA_SUPERVIVIENTE, true);
+      await altaCertificado(page, FICHERO_SUPERVIVIENTE, true);
       await expect(filasDelDni(page)).toHaveCount(1);
 
       // Paso 3: Y pulsa «Añadir certificado digital», escribe en «DNI»
-      //         «29050788V», elige el mismo tipo de certificado, escribe en «Ruta
-      //         classpath» «firma/instalar_certificado_criptografico/secretario.p12»,
+      //         «96931712Y», elige el mismo tipo de certificado, sube en «Fichero»
+      //         «test2.p12»,
       //         DESMARCA la casilla «Habilitado» y pulsa «Guardar».
-      await altaCertificado(page, RUTA_A_BORRAR, false);
+      await altaCertificado(page, FICHERO_A_BORRAR, false);
 
       // Estado de partida del borrado: dos filas del DNI, la primera habilitada
       // (ordenación `dni,-enabled`) y la segunda no.
@@ -473,32 +513,32 @@ test.describe('Certificados digitales', () => {
       await expect(filasDelDni(page).nth(0).getByRole('checkbox')).toBeChecked();
       await expect(filasDelDni(page).nth(1).getByRole('checkbox')).not.toBeChecked();
 
-      // Paso 4: Y pulsa la SEGUNDA fila del DNI «29050788V», que es la que tiene
+      // Paso 4: Y pulsa la SEGUNDA fila del DNI «96931712Y», que es la que tiene
       //         «Habilitado» sin marcar.
       //
       // CRITICAL — lo que este test tiene que demostrar es que se borra la fila
       // CORRECTA, así que la fila a borrar NO se elige solo por su posición: se
-      // abren las dos y se identifica por su «Ruta classpath» (el único dato que
+      // abren las dos y se identifica por su «Fichero» (el único dato que
       // las distingue, y que no es columna del listado). Si el borrado se llevara
       // por delante la otra, un test que confiara en el índice seguiría en verde
       // (quedaría igualmente UNA fila) y estaría mintiendo.
       const filasAntesDeBorrar = await leerLasDosFilas(page);
       expect(filasAntesDeBorrar).toEqual([
-        { ruta: RUTA_SUPERVIVIENTE, habilitado: true },
-        { ruta: RUTA_A_BORRAR, habilitado: false },
+        { fichero: FICHERO_SUPERVIVIENTE, habilitado: true },
+        { fichero: FICHERO_A_BORRAR, habilitado: false },
       ]);
 
       const indiceABorrar = filasAntesDeBorrar.findIndex(
-        (fila) => fila.ruta === RUTA_A_BORRAR && !fila.habilitado,
+        (fila) => fila.fichero === FICHERO_A_BORRAR && !fila.habilitado,
       );
       expect(indiceABorrar).toBeGreaterThanOrEqual(0);
 
       await abrirFilaDelDni(page, indiceABorrar);
       // Última verificación DENTRO del formulario ya abierto, justo antes de
-      // pulsar «Borrar»: la fila que se va a borrar es la deshabilitada y su ruta
-      // es la del segundo certificado. Es la garantía de que el borrado no cae
+      // pulsar «Borrar»: la fila que se va a borrar es la deshabilitada y su fichero
+      // es el del segundo certificado. Es la garantía de que el borrado no cae
       // sobre el certificado equivocado.
-      await expect(campoRutaClasspath(page)).toHaveValue(RUTA_A_BORRAR);
+      await expect(nombreFicheroSubido(page)).toHaveText(FICHERO_A_BORRAR);
       await expect(campoHabilitado(page)).not.toBeChecked();
 
       // Paso 5: Y pulsa «Borrar».
@@ -510,9 +550,9 @@ test.describe('Certificados digitales', () => {
       await expect(page).toHaveURL(/CertificadoDigital-action\/list/);
       await expect(botonAnhadir(page)).toBeVisible();
 
-      // Resultado esperado 2 y 3: queda UNA SOLA fila con DNI «29050788V», con
-      // «Habilitado» marcado, y al abrirla su «Ruta classpath» es
-      // «firma/mi_certificado.p12» (la del primer certificado, el que NO se borró).
+      // Resultado esperado 2 y 3: queda UNA SOLA fila con DNI «96931712Y», con
+      // «Habilitado» marcado, y al abrirla su «Fichero» es
+      // «test1.p12» (la del primer certificado, el que NO se borró).
       //
       // CRITICAL: se comprueba tras una RECARGA EN DURO del navegador, no sobre la
       // rejilla que la SPA tenga en memoria. El borrado ocurre en el SERVIDOR, así
@@ -529,11 +569,11 @@ test.describe('Certificados digitales', () => {
       await expect(filasDelDni(page)).toHaveCount(1);
       await expect(filasDelDni(page).nth(0).getByRole('checkbox')).toBeChecked();
 
-      // La ruta no es columna del listado: se lee DENTRO del formulario de la única
+      // El fichero no es columna del listado: se lee DENTRO del formulario de la única
       // fila que queda, que es donde se demuestra que la superviviente es la del
       // paso 2 y no la del paso 3.
       await abrirFilaDelDni(page, 0);
-      await expect(campoRutaClasspath(page)).toHaveValue(RUTA_SUPERVIVIENTE);
+      await expect(nombreFicheroSubido(page)).toHaveText(FICHERO_SUPERVIVIENTE);
       await expect(campoHabilitado(page)).toBeChecked();
       await volverAlListado(page);
     } finally {

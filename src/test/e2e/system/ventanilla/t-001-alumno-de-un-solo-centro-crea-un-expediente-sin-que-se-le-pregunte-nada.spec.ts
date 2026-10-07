@@ -32,7 +32,7 @@ const TIPO_TRAMITE_PROFESOR = 'Trámites para el profesor';
 // Identidad del alumno tal y como la carga `data-demo/input/usuarios-demo.xml`.
 const ALUMNO_NOMBRE = 'Alumno1';
 const ALUMNO_APELLIDOS = 'CIPFP Mislata';
-const ALUMNO_DNI = '86862719E';
+const ALUMNO_DNI = '95591733F';
 const ALUMNO_NOMBRE_COMPLETO = 'Alumno1 CIPFP Mislata';
 
 // Títulos de las TRES pantallas del asistente (los fijan los `action-view` de

@@ -19,7 +19,7 @@ Datos de demo ya precargados por otros subsistemas (gestión de centro), de los 
 - Centros: «CIPFP Mislata» (código 46019660) y «CIPFP Batoi» (código 03012165).
 - Usuario administrador global, con acceso a cualquier centro.
 - Cuenta `supervisordoscentros@mislata.es`, con el tipo de usuario SUPERVISOR en «CIPFP Mislata» y en «CIPFP Batoi».
-- Cuenta de usuario con DNI: `alumno1@mislata.es` (DNI «86862719E», del centro «CIPFP Mislata»).
+- Cuenta de usuario con DNI: `alumno1@mislata.es` (DNI «95591733F», del centro «CIPFP Mislata»).
 
 **Usuarios de acceso**:
 
@@ -32,7 +32,7 @@ Datos de demo ya precargados por otros subsistemas (gestión de centro), de los 
 - Ninguna más allá del "Estado inicial de la base de datos".
 
 ## Pasos
-1. **Dado** que el administrador ha iniciado sesión, pulsa "Nuevo correo", rellena el DNI «86862719E», el nombre «Alumno1», los apellidos «CIPFP Mislata», el «para» «alumno1@mislata.es», el asunto «Aviso Mislata», el cuerpo «texto», elige el centro «CIPFP Mislata» y pulsa "Guardar".
+1. **Dado** que el administrador ha iniciado sesión, pulsa "Nuevo correo", rellena el DNI «95591733F», el nombre «Alumno1», los apellidos «CIPFP Mislata», el «para» «alumno1@mislata.es», el asunto «Aviso Mislata», el cuerpo «texto», elige el centro «CIPFP Mislata» y pulsa "Guardar".
 2. **Y** pulsa "Nuevo correo" de nuevo, rellena los mismos datos pero con el asunto «Aviso Batoi», elige el centro «CIPFP Batoi» y pulsa "Guardar".
 3. **Y** cierra sesión.
 4. **Cuando** el supervisor «supervisordoscentros@mislata.es» inicia sesión con contraseña «demo1234».

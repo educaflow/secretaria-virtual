@@ -1,5 +1,7 @@
 package com.axelor.auth.service;
 
+import java.util.Optional;
+
 import com.axelor.auth.db.User;
 import com.axelor.db.modelservice.ModelService;
 import com.educaflow.subsystem.common.db.CargoCodigo;
@@ -20,4 +22,9 @@ public interface UserService extends ModelService<User> {
      *                          configurado, y eso no debería pasar nunca.
      */
     User getByCentroAndCargo(Centro centro, CargoCodigo cargo);
+    /**
+     * Usuario cuyo DNI coincide con el recibido, o vacío si no hay ninguno o el DNI es nulo o está en blanco.
+     */
+    Optional<User> findByDni(String dni);
+
 }

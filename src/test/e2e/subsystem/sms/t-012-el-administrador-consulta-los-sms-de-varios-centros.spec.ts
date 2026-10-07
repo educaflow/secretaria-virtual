@@ -48,20 +48,20 @@ test.describe('SMS — Todos', () => {
     // (hecho arriba con login)
 
     // Paso 2: Cuando abre el menú "SMS" → "Todos", pulsa "Nuevo SMS", elige el centro "CIPFP Mislata",
-    // escribe el DNI «86862719E», el nombre «Alumno1», los apellidos «CIPFP Mislata», el teléfono
+    // escribe el DNI «95591733F», el nombre «Alumno1», los apellidos «CIPFP Mislata», el teléfono
     // «600111222» y el mensaje «Aviso Mislata», y pulsa "Guardar".
     await page.getByText('SMS', { exact: true }).click();
     await page.getByTestId('item:sms-todos-menuitem').click();
     await altaSms(page, {
-      centro: 'CIPFP Mislata', dni: '86862719E', nombre: 'Alumno1', apellidos: 'CIPFP Mislata',
+      centro: 'CIPFP Mislata', dni: '95591733F', nombre: 'Alumno1', apellidos: 'CIPFP Mislata',
       telefono: '600111222', mensaje: avisoMislata,
     });
 
-    // Paso 3: Y pulsa "Nuevo SMS", elige el centro "CIPFP Batoi", escribe el DNI «65399546N», el nombre
+    // Paso 3: Y pulsa "Nuevo SMS", elige el centro "CIPFP Batoi", escribe el DNI «92898219T», el nombre
     // «Alumno1», los apellidos «CIPFP Batoi», el teléfono «600333444» y el mensaje «Aviso Batoi»,
     // y pulsa "Guardar".
     await altaSms(page, {
-      centro: 'CIPFP Batoi', dni: '65399546N', nombre: 'Alumno1', apellidos: 'CIPFP Batoi',
+      centro: 'CIPFP Batoi', dni: '92898219T', nombre: 'Alumno1', apellidos: 'CIPFP Batoi',
       telefono: '600333444', mensaje: avisoBatoi,
     });
 

@@ -23,7 +23,7 @@ Datos de demo ya precargados por otros subsistemas (gestión de centro), de los 
 - Centros: «CIPFP Mislata» (código 46019660) y «CIPFP Batoi» (código 03012165).
 - Usuario administrador global, con acceso a cualquier centro.
 - Cuenta de supervisor de «CIPFP Mislata»: `supervisor1@mislata.es`.
-- Cuentas de usuario con DNI: `alumno1@mislata.es` (DNI «86862719E», del centro «CIPFP Mislata») y `alumno2@mislata.es` (DNI «03532821K», del centro «CIPFP Mislata»).
+- Cuentas de usuario con DNI: `alumno1@mislata.es` (DNI «95591733F», del centro «CIPFP Mislata») y `alumno2@mislata.es` (DNI «99024353S», del centro «CIPFP Mislata»).
 
 **Usuarios de acceso**:
 
@@ -31,8 +31,8 @@ Datos de demo ya precargados por otros subsistemas (gestión de centro), de los 
 |---|---|---|---|
 | admin | admin | Administrador | — (cualquier centro) |
 | supervisor1@mislata.es | demo1234 | Supervisor | CIPFP Mislata |
-| alumno1@mislata.es | demo1234 | Destinatario (DNI 86862719E) | CIPFP Mislata |
-| alumno2@mislata.es | demo1234 | Destinatario (DNI 03532821K) | CIPFP Mislata |
+| alumno1@mislata.es | demo1234 | Destinatario (DNI 95591733F) | CIPFP Mislata |
+| alumno2@mislata.es | demo1234 | Destinatario (DNI 99024353S) | CIPFP Mislata |
 
 ## Precondiciones
 - El administrador ha iniciado sesión.

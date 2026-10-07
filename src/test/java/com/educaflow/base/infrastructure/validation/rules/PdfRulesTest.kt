@@ -29,7 +29,7 @@ class PdfRulesTest {
     /** Bean de prueba cuyo campo `original` hace de documento original que se pasa a la regla. */
     class BeanDePrueba(val original: Any?)
 
-    private val dniValido = "12345678Z"
+    private val dniValido = "93882914L"
 
     private var securityUtil: MockedStatic<SecurityUtil>? = null
     private var i18n: MockedStatic<I18n>? = null

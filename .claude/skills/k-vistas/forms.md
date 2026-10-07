@@ -371,7 +371,7 @@ El `colSpan` debe reflejar el espacio que ocupan **tanto el título del campo co
 |----------------------------------|-----------------------------------|--------------------------|---------------------|
 | Número/código muy corto          | "Slot", "Nº"                      | 0, 1, 2                  | **2**               |
 | PIN / código corto               | "PIN", "CVV"                      | 1234, AB12               | **3**               |
-| DNI / código identificador       | "DNI", "Código"                   | 12345678Z                | **3**               |
+| DNI / código identificador       | "DNI", "Código"                   | 93882914L                | **3**               |
 | Fecha                            | "Fecha inicio"                    | 01/01/2025               | **3**               |
 | Nombre corto / identificador     | "Nombre", "Alias"                 | "DNIe", "HSM prod"       | **6–8**             |
 | Nombre o descripción media       | "Descripción", "Asunto"           | texto moderado           | **8–10**            |

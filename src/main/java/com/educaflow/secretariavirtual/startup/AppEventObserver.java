@@ -23,13 +23,7 @@ public class AppEventObserver {
         logger.info("Iniciando Secretaria Virtual...");
 
         DataBaseStartup.startup();
-
-
-        try {
-            criptografiaStartup.startup();
-        } catch (Exception ex) {
-            logger.error("Falló al inicializar la criptografía",ex);
-        }
+        criptografiaStartup.startup();
 
     }
 

@@ -27,7 +27,7 @@ import org.mockito.quality.Strictness
  */
 class IfSituacionFirmaTest {
 
-    private val dni = "12345678Z"
+    private val dni = "93882914L"
 
     private var securityUtil: MockedStatic<SecurityUtil>? = null
     private var beans: MockedStatic<Beans>? = null

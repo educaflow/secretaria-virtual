@@ -122,6 +122,27 @@ Las propiedades van en `src/main/resources/axelor-config.properties` (`db.defaul
 externo `../secretaria-virtual-private/axelor-config.dev.properties`, que se pasa con `--config` al
 arrancar y **sobrescribe** los valores del primero.
 
+### Propiedades que declara cada entorno
+
+La configuración privada tiene un fichero por entorno: `axelor-config.dev.properties` (desarrollo, el que usa `./run.sh`), `axelor-config.pre.properties` (preproducción) y `axelor-config.pro.properties` (producción).
+Cada uno declara **explícitamente** estas tres propiedades, también producción aunque coincida con el valor de `axelor-config.properties` (las dos primeras son `entornoCriptografico.almacenCertificadosConfiables.path` y `.pathListaCRLs`):
+
+| Fichero | `…path` | `…pathListaCRLs` | `data.import.demo-data` |
+|---|---|---|---|
+| `axelor-config.dev.properties` | `firma/demo/almacen/truststore-demo.jks` | `firma/demo/almacen/crls-demo.xml` | `true` |
+| `axelor-config.pre.properties` | `firma/demo/almacen/truststore-demo.jks` | `firma/demo/almacen/crls-demo.xml` | `true` |
+| `axelor-config.pro.properties` | `firma/AlmacenCertificadosConfiables/truststore.jks` | `firma/AlmacenCertificadosConfiables/crl/crls.xml` | `false` |
+
+- `axelor-config.properties` deja los valores seguros (los de producción), por si un entorno olvida declararlas.
+  Si falta `data.import.demo-data`, AOP la toma como `false` (no carga la demo); aun así se declara explícitamente para no depender del valor por defecto de la versión de AOP.
+- El almacén de demo está todo en `firma/demo/almacen/` y no toca nada de `firma/AlmacenCertificadosConfiables/` (`src/main/resources/firma/demo/README.txt`).
+  `truststore-demo.jks` es el almacén oficial más la CA FALSA de demo, con la que están emitidos los certificados de los usuarios de demo, y `crls-demo.xml` lista las CRL oficiales (con ruta relativa a `firma/AlmacenCertificadosConfiables/crl/`, sin copiarlas) más la CRL de esa CA: sin ella la validación rechaza los certificados de demo, que no tienen OCSP ni CRLDP.
+  Así en desarrollo y preproducción se puede probar también con certificados reales.
+  `firma/demo/crear_truststore_demo.sh` hay que relanzarlo a mano cada vez que se regenere `truststore.jks` o `crls.xml`.
+  Van siempre juntos y solo se admiten en un entorno con `data.import.demo-data = true`, y nunca en producción: lo comprueba el test `ConfiguracionEntornosTest`, que lee estos tres ficheros (si no está la carpeta `../secretaria-virtual-private`, esa parte se omite) y que `axelor-config.properties` deja los valores seguros.
+- Si falla cualquier cosa al inicializar el entorno criptográfico (`CriptografiaStartup`), la aplicación **no arranca**.
+- Los datos de demo (`data-demo`) solo se cargan al **instalar** el módulo: en una BD ya instalada, un cambio en `data-demo` no entra al rearrancar y hay que resetearla (ver «Resetear desde cero»).
+
 ### Cifrado de campos (`encryption.password`)
 
 - Los campos del modelo con `encrypted="true"` (p. ej. `CertificadoDigital.password` y `DispositivoCriptografico.pin`) solo se cifran en la BD si está definida `encryption.password`; sin ella se guardan en claro.

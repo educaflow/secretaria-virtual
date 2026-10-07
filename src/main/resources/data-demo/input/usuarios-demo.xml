@@ -25,8 +25,20 @@
     alumnodoscentros@mislata.es → ALUMNO en CIPFP Mislata y en CIPFP Batoi (elige el centro)
   Y los administrativo2@*.es son también ALUMNO en su centro.
 
+  Y tres usuarios sin certificado digital (ALUMNO en CIPFP Mislata), los únicos usuarios de demo que no tienen
+  .p12 en firma/demo/certificados/ ni fila en certificados-demo.xml:
+    sincertificado1@mislata.es  → exclusivos de los E2E de subsystem/criptografia, que necesitan el DNI de un
+    sincertificado2@mislata.es    usuario sin certificado. Como esos tests borran los certificados al empezar y no
+                                  al acabar, pueden quedarse con un certificado de test dado de alta:
+                                  NO usarlos en ningún otro test ni para probar a mano.
+    autofirma@mislata.es        → para probar AutoFirma. NINGÚN test que dé de alta, modifique o borre
+                                  certificados digitales puede usarlo, para que nunca tenga certificado.
+
   Todos los usuarios comparten la contraseña: demo1234
-  Los DNI se generaron con letra de control válida (módulo 23).
+
+  DNI: se han generado aleatoriamente con generar_dni_demo.sh (letra de control válida, módulo 23).
+  No pertenecen a ninguna persona real y cualquier coincidencia con el DNI de una persona real es casualidad.
+  Empiezan todos por 9 solo para reconocerlos de un vistazo como DNI de demo.
 -->
 <datos>
 
@@ -40,57 +52,57 @@
              ================================================================ -->
 
         <!-- Profesores: 1 por cargo unipersonal (director/vicedirector/secretario/vicesecretario) + 2 jefes de estudios -->
-        <usuario email="director@mislata.es"        documento="85432016B" name="Director CIPFP Mislata"        nombre="Director"        apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="vicedirector@mislata.es"    documento="08509824P" name="Vicedirector CIPFP Mislata"    nombre="Vicedirector"    apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="secretario@mislata.es"      documento="29050788V" name="Secretario CIPFP Mislata"      nombre="Secretario"      apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="vicesecretario@mislata.es"  documento="56412323Q" name="Vicesecretario CIPFP Mislata"  nombre="Vicesecretario"  apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="jefeestudios1@mislata.es"    documento="15519084H" name="JefeEstudios1 CIPFP Mislata"    nombre="JefeEstudios1"    apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="jefeestudios2@mislata.es"    documento="38326881A" name="JefeEstudios2 CIPFP Mislata"    nombre="JefeEstudios2"    apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="director@mislata.es"        documento="98803877V" name="Director CIPFP Mislata"        nombre="Director"        apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="vicedirector@mislata.es"    documento="97853399Z" name="Vicedirector CIPFP Mislata"    nombre="Vicedirector"    apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="secretario@mislata.es"      documento="97098432E" name="Secretario CIPFP Mislata"      nombre="Secretario"      apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="vicesecretario@mislata.es"  documento="95624804G" name="Vicesecretario CIPFP Mislata"  nombre="Vicesecretario"  apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="jefeestudios1@mislata.es"    documento="93424956Z" name="JefeEstudios1 CIPFP Mislata"    nombre="JefeEstudios1"    apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="jefeestudios2@mislata.es"    documento="95043335K" name="JefeEstudios2 CIPFP Mislata"    nombre="JefeEstudios2"    apellidos="CIPFP Mislata" password="demo1234"/>
 
         <!-- Profesores (sin cargo) -->
-        <usuario email="profesor1@mislata.es"        documento="12345678Z" name="Profesor1 CIPFP Mislata"        nombre="Profesor1"        apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="profesor2@mislata.es"        documento="23456789D" name="Profesor2 CIPFP Mislata"        nombre="Profesor2"        apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="profesor1@mislata.es"        documento="93882914L" name="Profesor1 CIPFP Mislata"        nombre="Profesor1"        apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="profesor2@mislata.es"        documento="99189463P" name="Profesor2 CIPFP Mislata"        nombre="Profesor2"        apellidos="CIPFP Mislata" password="demo1234"/>
 
         <!-- Alumnos -->
-        <usuario email="alumno1@mislata.es"          documento="86862719E" name="Alumno1 CIPFP Mislata"          nombre="Alumno1"          apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="alumno2@mislata.es"          documento="03532821K" name="Alumno2 CIPFP Mislata"          nombre="Alumno2"          apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="alumno3@mislata.es"          documento="77460612Q" name="Alumno3 CIPFP Mislata"          nombre="Alumno3"          apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="alumno4@mislata.es"          documento="62584352H" name="Alumno4 CIPFP Mislata"          nombre="Alumno4"          apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="alumno5@mislata.es"          documento="69807058B" name="Alumno5 CIPFP Mislata"          nombre="Alumno5"          apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="alumno6@mislata.es"          documento="80364400P" name="Alumno6 CIPFP Mislata"          nombre="Alumno6"          apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="alumno1@mislata.es"          documento="95591733F" name="Alumno1 CIPFP Mislata"          nombre="Alumno1"          apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="alumno2@mislata.es"          documento="99024353S" name="Alumno2 CIPFP Mislata"          nombre="Alumno2"          apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="alumno3@mislata.es"          documento="95963896F" name="Alumno3 CIPFP Mislata"          nombre="Alumno3"          apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="alumno4@mislata.es"          documento="98444772B" name="Alumno4 CIPFP Mislata"          nombre="Alumno4"          apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="alumno5@mislata.es"          documento="93644616R" name="Alumno5 CIPFP Mislata"          nombre="Alumno5"          apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="alumno6@mislata.es"          documento="98900873E" name="Alumno6 CIPFP Mislata"          nombre="Alumno6"          apellidos="CIPFP Mislata" password="demo1234"/>
 
         <!-- Familiares (relacionados con un alumno del centro) -->
-        <usuario email="familiar1@mislata.es"        documento="43145636M" name="Familiar1 de Alumno1 CIPFP Mislata"  nombre="Familiar1"  apellidos="de Alumno1 CIPFP Mislata" password="demo1234"/>
-        <usuario email="familiar2@mislata.es"        documento="69761666K" name="Familiar2 de Alumno2 CIPFP Mislata"  nombre="Familiar2"  apellidos="de Alumno2 CIPFP Mislata" password="demo1234"/>
+        <usuario email="familiar1@mislata.es"        documento="90923322K" name="Familiar1 de Alumno1 CIPFP Mislata"  nombre="Familiar1"  apellidos="de Alumno1 CIPFP Mislata" password="demo1234"/>
+        <usuario email="familiar2@mislata.es"        documento="95986020M" name="Familiar2 de Alumno2 CIPFP Mislata"  nombre="Familiar2"  apellidos="de Alumno2 CIPFP Mislata" password="demo1234"/>
 
         <!-- Administrativos -->
-        <usuario email="administrativo1@mislata.es"  documento="97879650E" name="Administrativo1 CIPFP Mislata"  nombre="Administrativo1"  apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="administrativo2@mislata.es"  documento="16493254T" name="Administrativo2 CIPFP Mislata"  nombre="Administrativo2"  apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="administrativo3@mislata.es"  documento="48291053T" name="Administrativo3 CIPFP Mislata"  nombre="Administrativo3"  apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="administrativo1@mislata.es"  documento="90390457C" name="Administrativo1 CIPFP Mislata"  nombre="Administrativo1"  apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="administrativo2@mislata.es"  documento="97345780M" name="Administrativo2 CIPFP Mislata"  nombre="Administrativo2"  apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="administrativo3@mislata.es"  documento="93628571X" name="Administrativo3 CIPFP Mislata"  nombre="Administrativo3"  apellidos="CIPFP Mislata" password="demo1234"/>
 
         <!-- Exprofesores -->
-        <usuario email="exprofesor1@mislata.es"      documento="51956370Z" name="Exprofesor1 CIPFP Mislata"      nombre="Exprofesor1"      apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="exprofesor2@mislata.es"      documento="08881428R" name="Exprofesor2 CIPFP Mislata"      nombre="Exprofesor2"      apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="exprofesor1@mislata.es"      documento="93468879F" name="Exprofesor1 CIPFP Mislata"      nombre="Exprofesor1"      apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="exprofesor2@mislata.es"      documento="95605814N" name="Exprofesor2 CIPFP Mislata"      nombre="Exprofesor2"      apellidos="CIPFP Mislata" password="demo1234"/>
 
         <!-- Exalumnos -->
-        <usuario email="exalumno1@mislata.es"        documento="04038273W" name="Exalumno1 CIPFP Mislata"        nombre="Exalumno1"        apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="exalumno2@mislata.es"        documento="38083336M" name="Exalumno2 CIPFP Mislata"        nombre="Exalumno2"        apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="exalumno1@mislata.es"        documento="94838900X" name="Exalumno1 CIPFP Mislata"        nombre="Exalumno1"        apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="exalumno2@mislata.es"        documento="90506464S" name="Exalumno2 CIPFP Mislata"        nombre="Exalumno2"        apellidos="CIPFP Mislata" password="demo1234"/>
 
         <!-- Exfamiliares (relacionados con un exalumno del centro) -->
-        <usuario email="exfamiliar1@mislata.es"      documento="62767057B" name="Exfamiliar1 de Exalumno1 CIPFP Mislata"  nombre="Exfamiliar1"  apellidos="de Exalumno1 CIPFP Mislata" password="demo1234"/>
-        <usuario email="exfamiliar2@mislata.es"      documento="05123219S" name="Exfamiliar2 de Exalumno2 CIPFP Mislata"  nombre="Exfamiliar2"  apellidos="de Exalumno2 CIPFP Mislata" password="demo1234"/>
+        <usuario email="exfamiliar1@mislata.es"      documento="92285781Y" name="Exfamiliar1 de Exalumno1 CIPFP Mislata"  nombre="Exfamiliar1"  apellidos="de Exalumno1 CIPFP Mislata" password="demo1234"/>
+        <usuario email="exfamiliar2@mislata.es"      documento="93871402F" name="Exfamiliar2 de Exalumno2 CIPFP Mislata"  nombre="Exfamiliar2"  apellidos="de Exalumno2 CIPFP Mislata" password="demo1234"/>
 
         <!-- Profesores externos -->
-        <usuario email="profesorexterno1@mislata.es" documento="28698544H" name="ProfesorExterno1 CIPFP Mislata" nombre="ProfesorExterno1" apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="profesorexterno2@mislata.es" documento="07808632V" name="ProfesorExterno2 CIPFP Mislata" nombre="ProfesorExterno2" apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="profesorexterno1@mislata.es" documento="93581583B" name="ProfesorExterno1 CIPFP Mislata" nombre="ProfesorExterno1" apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="profesorexterno2@mislata.es" documento="92981069G" name="ProfesorExterno2 CIPFP Mislata" nombre="ProfesorExterno2" apellidos="CIPFP Mislata" password="demo1234"/>
 
         <!-- Alumnos externos -->
-        <usuario email="alumnoexterno1@mislata.es"   documento="71718294Q" name="AlumnoExterno1 CIPFP Mislata"   nombre="AlumnoExterno1"   apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="alumnoexterno2@mislata.es"   documento="03591261H" name="AlumnoExterno2 CIPFP Mislata"   nombre="AlumnoExterno2"   apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="alumnoexterno1@mislata.es"   documento="98667426W" name="AlumnoExterno1 CIPFP Mislata"   nombre="AlumnoExterno1"   apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="alumnoexterno2@mislata.es"   documento="92291595R" name="AlumnoExterno2 CIPFP Mislata"   nombre="AlumnoExterno2"   apellidos="CIPFP Mislata" password="demo1234"/>
 
         <!-- Supervisores -->
-        <usuario email="supervisor1@mislata.es"      documento="30647328N" name="Supervisor1 CIPFP Mislata"      nombre="Supervisor1"      apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="supervisor2@mislata.es"      documento="68934342F" name="Supervisor2 CIPFP Mislata"      nombre="Supervisor2"      apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="supervisor1@mislata.es"      documento="94620047W" name="Supervisor1 CIPFP Mislata"      nombre="Supervisor1"      apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="supervisor2@mislata.es"      documento="99028847R" name="Supervisor2 CIPFP Mislata"      nombre="Supervisor2"      apellidos="CIPFP Mislata" password="demo1234"/>
 
 
         <!-- ================================================================
@@ -98,64 +110,71 @@
              ================================================================ -->
 
         <!-- Profesores: 1 por cargo unipersonal (director/vicedirector/secretario/vicesecretario) + 2 jefes de estudios -->
-        <usuario email="director@batoi.es"          documento="52733683L" name="Director CIPFP Batoi"          nombre="Director"        apellidos="CIPFP Batoi" password="demo1234"/>
-        <usuario email="vicedirector@batoi.es"      documento="31501000Q" name="Vicedirector CIPFP Batoi"      nombre="Vicedirector"    apellidos="CIPFP Batoi" password="demo1234"/>
-        <usuario email="secretario@batoi.es"        documento="46490654H" name="Secretario CIPFP Batoi"        nombre="Secretario"      apellidos="CIPFP Batoi" password="demo1234"/>
-        <usuario email="vicesecretario@batoi.es"    documento="78668064Z" name="Vicesecretario CIPFP Batoi"    nombre="Vicesecretario"  apellidos="CIPFP Batoi" password="demo1234"/>
-        <usuario email="jefeestudios1@batoi.es"      documento="43901424J" name="JefeEstudios1 CIPFP Batoi"      nombre="JefeEstudios1"    apellidos="CIPFP Batoi" password="demo1234"/>
-        <usuario email="jefeestudios2@batoi.es"      documento="16416170N" name="JefeEstudios2 CIPFP Batoi"      nombre="JefeEstudios2"    apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="director@batoi.es"          documento="97580380M" name="Director CIPFP Batoi"          nombre="Director"        apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="vicedirector@batoi.es"      documento="99515329X" name="Vicedirector CIPFP Batoi"      nombre="Vicedirector"    apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="secretario@batoi.es"        documento="97078106M" name="Secretario CIPFP Batoi"        nombre="Secretario"      apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="vicesecretario@batoi.es"    documento="98526833P" name="Vicesecretario CIPFP Batoi"    nombre="Vicesecretario"  apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="jefeestudios1@batoi.es"      documento="97056822L" name="JefeEstudios1 CIPFP Batoi"      nombre="JefeEstudios1"    apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="jefeestudios2@batoi.es"      documento="91754365M" name="JefeEstudios2 CIPFP Batoi"      nombre="JefeEstudios2"    apellidos="CIPFP Batoi" password="demo1234"/>
 
         <!-- Profesores (sin cargo) -->
-        <usuario email="profesor1@batoi.es"          documento="34567891L" name="Profesor1 CIPFP Batoi"          nombre="Profesor1"        apellidos="CIPFP Batoi" password="demo1234"/>
-        <usuario email="profesor2@batoi.es"          documento="45678912S" name="Profesor2 CIPFP Batoi"          nombre="Profesor2"        apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="profesor1@batoi.es"          documento="97306963N" name="Profesor1 CIPFP Batoi"          nombre="Profesor1"        apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="profesor2@batoi.es"          documento="97362387Y" name="Profesor2 CIPFP Batoi"          nombre="Profesor2"        apellidos="CIPFP Batoi" password="demo1234"/>
 
         <!-- Alumnos -->
-        <usuario email="alumno1@batoi.es"            documento="65399546N" name="Alumno1 CIPFP Batoi"            nombre="Alumno1"          apellidos="CIPFP Batoi" password="demo1234"/>
-        <usuario email="alumno2@batoi.es"            documento="41092710J" name="Alumno2 CIPFP Batoi"            nombre="Alumno2"          apellidos="CIPFP Batoi" password="demo1234"/>
-        <usuario email="alumno3@batoi.es"            documento="15451620J" name="Alumno3 CIPFP Batoi"            nombre="Alumno3"          apellidos="CIPFP Batoi" password="demo1234"/>
-        <usuario email="alumno4@batoi.es"            documento="76759977F" name="Alumno4 CIPFP Batoi"            nombre="Alumno4"          apellidos="CIPFP Batoi" password="demo1234"/>
-        <usuario email="alumno5@batoi.es"            documento="43143771A" name="Alumno5 CIPFP Batoi"            nombre="Alumno5"          apellidos="CIPFP Batoi" password="demo1234"/>
-        <usuario email="alumno6@batoi.es"            documento="06651739R" name="Alumno6 CIPFP Batoi"            nombre="Alumno6"          apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="alumno1@batoi.es"            documento="92898219T" name="Alumno1 CIPFP Batoi"            nombre="Alumno1"          apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="alumno2@batoi.es"            documento="90557271S" name="Alumno2 CIPFP Batoi"            nombre="Alumno2"          apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="alumno3@batoi.es"            documento="94772699A" name="Alumno3 CIPFP Batoi"            nombre="Alumno3"          apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="alumno4@batoi.es"            documento="91487763L" name="Alumno4 CIPFP Batoi"            nombre="Alumno4"          apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="alumno5@batoi.es"            documento="97806389Q" name="Alumno5 CIPFP Batoi"            nombre="Alumno5"          apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="alumno6@batoi.es"            documento="95942625B" name="Alumno6 CIPFP Batoi"            nombre="Alumno6"          apellidos="CIPFP Batoi" password="demo1234"/>
 
         <!-- Familiares (relacionados con un alumno del centro) -->
-        <usuario email="familiar1@batoi.es"          documento="32291160B" name="Familiar1 de Alumno1 CIPFP Batoi"    nombre="Familiar1"  apellidos="de Alumno1 CIPFP Batoi" password="demo1234"/>
-        <usuario email="familiar2@batoi.es"          documento="36409412K" name="Familiar2 de Alumno2 CIPFP Batoi"    nombre="Familiar2"  apellidos="de Alumno2 CIPFP Batoi" password="demo1234"/>
+        <usuario email="familiar1@batoi.es"          documento="97736169S" name="Familiar1 de Alumno1 CIPFP Batoi"    nombre="Familiar1"  apellidos="de Alumno1 CIPFP Batoi" password="demo1234"/>
+        <usuario email="familiar2@batoi.es"          documento="95340562L" name="Familiar2 de Alumno2 CIPFP Batoi"    nombre="Familiar2"  apellidos="de Alumno2 CIPFP Batoi" password="demo1234"/>
 
         <!-- Administrativos -->
-        <usuario email="administrativo1@batoi.es"    documento="36398167T" name="Administrativo1 CIPFP Batoi"    nombre="Administrativo1"  apellidos="CIPFP Batoi" password="demo1234"/>
-        <usuario email="administrativo2@batoi.es"    documento="48164090C" name="Administrativo2 CIPFP Batoi"    nombre="Administrativo2"  apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="administrativo1@batoi.es"    documento="92777375K" name="Administrativo1 CIPFP Batoi"    nombre="Administrativo1"  apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="administrativo2@batoi.es"    documento="98871667A" name="Administrativo2 CIPFP Batoi"    nombre="Administrativo2"  apellidos="CIPFP Batoi" password="demo1234"/>
 
         <!-- Exprofesores -->
-        <usuario email="exprofesor1@batoi.es"        documento="10524159A" name="Exprofesor1 CIPFP Batoi"        nombre="Exprofesor1"      apellidos="CIPFP Batoi" password="demo1234"/>
-        <usuario email="exprofesor2@batoi.es"        documento="04223076T" name="Exprofesor2 CIPFP Batoi"        nombre="Exprofesor2"      apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="exprofesor1@batoi.es"        documento="98562710M" name="Exprofesor1 CIPFP Batoi"        nombre="Exprofesor1"      apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="exprofesor2@batoi.es"        documento="97066563P" name="Exprofesor2 CIPFP Batoi"        nombre="Exprofesor2"      apellidos="CIPFP Batoi" password="demo1234"/>
 
         <!-- Exalumnos -->
-        <usuario email="exalumno1@batoi.es"          documento="63980240J" name="Exalumno1 CIPFP Batoi"          nombre="Exalumno1"        apellidos="CIPFP Batoi" password="demo1234"/>
-        <usuario email="exalumno2@batoi.es"          documento="81114136J" name="Exalumno2 CIPFP Batoi"          nombre="Exalumno2"        apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="exalumno1@batoi.es"          documento="97923175P" name="Exalumno1 CIPFP Batoi"          nombre="Exalumno1"        apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="exalumno2@batoi.es"          documento="92548986E" name="Exalumno2 CIPFP Batoi"          nombre="Exalumno2"        apellidos="CIPFP Batoi" password="demo1234"/>
 
         <!-- Exfamiliares (relacionados con un exalumno del centro) -->
-        <usuario email="exfamiliar1@batoi.es"        documento="92957772Y" name="Exfamiliar1 de Exalumno1 CIPFP Batoi"  nombre="Exfamiliar1"  apellidos="de Exalumno1 CIPFP Batoi" password="demo1234"/>
-        <usuario email="exfamiliar2@batoi.es"        documento="97462986A" name="Exfamiliar2 de Exalumno2 CIPFP Batoi"  nombre="Exfamiliar2"  apellidos="de Exalumno2 CIPFP Batoi" password="demo1234"/>
+        <usuario email="exfamiliar1@batoi.es"        documento="91622246K" name="Exfamiliar1 de Exalumno1 CIPFP Batoi"  nombre="Exfamiliar1"  apellidos="de Exalumno1 CIPFP Batoi" password="demo1234"/>
+        <usuario email="exfamiliar2@batoi.es"        documento="96589910F" name="Exfamiliar2 de Exalumno2 CIPFP Batoi"  nombre="Exfamiliar2"  apellidos="de Exalumno2 CIPFP Batoi" password="demo1234"/>
 
         <!-- Profesores externos -->
-        <usuario email="profesorexterno1@batoi.es"   documento="64874457J" name="ProfesorExterno1 CIPFP Batoi"   nombre="ProfesorExterno1" apellidos="CIPFP Batoi" password="demo1234"/>
-        <usuario email="profesorexterno2@batoi.es"   documento="15865103W" name="ProfesorExterno2 CIPFP Batoi"   nombre="ProfesorExterno2" apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="profesorexterno1@batoi.es"   documento="96124186X" name="ProfesorExterno1 CIPFP Batoi"   nombre="ProfesorExterno1" apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="profesorexterno2@batoi.es"   documento="97622872Q" name="ProfesorExterno2 CIPFP Batoi"   nombre="ProfesorExterno2" apellidos="CIPFP Batoi" password="demo1234"/>
 
         <!-- Alumnos externos -->
-        <usuario email="alumnoexterno1@batoi.es"     documento="32856600L" name="AlumnoExterno1 CIPFP Batoi"     nombre="AlumnoExterno1"   apellidos="CIPFP Batoi" password="demo1234"/>
-        <usuario email="alumnoexterno2@batoi.es"     documento="21168400M" name="AlumnoExterno2 CIPFP Batoi"     nombre="AlumnoExterno2"   apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="alumnoexterno1@batoi.es"     documento="92183111P" name="AlumnoExterno1 CIPFP Batoi"     nombre="AlumnoExterno1"   apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="alumnoexterno2@batoi.es"     documento="97036784Z" name="AlumnoExterno2 CIPFP Batoi"     nombre="AlumnoExterno2"   apellidos="CIPFP Batoi" password="demo1234"/>
 
         <!-- Supervisores -->
-        <usuario email="supervisor1@batoi.es"        documento="66648960C" name="Supervisor1 CIPFP Batoi"        nombre="Supervisor1"      apellidos="CIPFP Batoi" password="demo1234"/>
-        <usuario email="supervisor2@batoi.es"        documento="07247872C" name="Supervisor2 CIPFP Batoi"        nombre="Supervisor2"      apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="supervisor1@batoi.es"        documento="96283163B" name="Supervisor1 CIPFP Batoi"        nombre="Supervisor1"      apellidos="CIPFP Batoi" password="demo1234"/>
+        <usuario email="supervisor2@batoi.es"        documento="99957044X" name="Supervisor2 CIPFP Batoi"        nombre="Supervisor2"      apellidos="CIPFP Batoi" password="demo1234"/>
 
         <!-- ================================================================
              Usuarios con varios tipos o varios centros
              ================================================================ -->
-        <usuario email="alumnofamiliar@mislata.es"   documento="48213579J" name="AlumnoFamiliar CIPFP Mislata"   nombre="AlumnoFamiliar"   apellidos="CIPFP Mislata" password="demo1234"/>
-        <usuario email="alumnodoscentros@mislata.es" documento="71359246K" name="AlumnoDosCentros CIPFP Mislata y Batoi" nombre="AlumnoDosCentros" apellidos="CIPFP Mislata y Batoi" password="demo1234"/>
-        <usuario email="mprofesor@m.com"             documento="56789123F" name="ProfesorDosCentros CIPFP Mislata y Batoi" nombre="ProfesorDosCentros" apellidos="CIPFP Mislata y Batoi" password="demo1234"/>
-        <usuario email="supervisordoscentros@mislata.es" documento="39517284H" name="SupervisorDosCentros CIPFP Mislata y Batoi" nombre="SupervisorDosCentros" apellidos="CIPFP Mislata y Batoi" password="demo1234"/>
+        <usuario email="alumnofamiliar@mislata.es"   documento="97827324K" name="AlumnoFamiliar CIPFP Mislata"   nombre="AlumnoFamiliar"   apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="alumnodoscentros@mislata.es" documento="91785998J" name="AlumnoDosCentros CIPFP Mislata y Batoi" nombre="AlumnoDosCentros" apellidos="CIPFP Mislata y Batoi" password="demo1234"/>
+        <usuario email="mprofesor@m.com"             documento="90103438H" name="ProfesorDosCentros CIPFP Mislata y Batoi" nombre="ProfesorDosCentros" apellidos="CIPFP Mislata y Batoi" password="demo1234"/>
+        <usuario email="supervisordoscentros@mislata.es" documento="90962795A" name="SupervisorDosCentros CIPFP Mislata y Batoi" nombre="SupervisorDosCentros" apellidos="CIPFP Mislata y Batoi" password="demo1234"/>
+
+        <!-- ================================================================
+             Usuarios sin certificado digital (no tienen .p12 ni fila en certificados-demo.xml)
+             ================================================================ -->
+        <usuario email="sincertificado1@mislata.es"  documento="94307933K" name="SinCertificado1 CIPFP Mislata"  nombre="SinCertificado1"  apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="sincertificado2@mislata.es"  documento="96931712Y" name="SinCertificado2 CIPFP Mislata"  nombre="SinCertificado2"  apellidos="CIPFP Mislata" password="demo1234"/>
+        <usuario email="autofirma@mislata.es"        documento="94914017D" name="AutoFirma CIPFP Mislata"        nombre="AutoFirma"        apellidos="CIPFP Mislata" password="demo1234"/>
 
     </usuarios>
 
@@ -242,6 +261,10 @@
         <centroUsuario usuarioCode="supervisordoscentros@mislata.es" centroCode="03012165"/>
 
         <centroUsuario usuarioCode="administrativo3@mislata.es"  centroCode="03012165"/>
+
+        <centroUsuario usuarioCode="sincertificado1@mislata.es"  centroCode="46019660"/>
+        <centroUsuario usuarioCode="sincertificado2@mislata.es"  centroCode="46019660"/>
+        <centroUsuario usuarioCode="autofirma@mislata.es"        centroCode="46019660"/>
 
     </centroUsuarios>
 
@@ -335,6 +358,10 @@
         <tipo usuarioCode="administrativo3@mislata.es"  centroCode="03012165" tipoCode="ADMINISTRATIVO"/>
         <tipo usuarioCode="administrativo3@mislata.es"  centroCode="03012165" tipoCode="ALUMNO"/>
         <tipo usuarioCode="administrativo3@mislata.es"  centroCode="03012165" tipoCode="FAMILIAR"/>
+
+        <tipo usuarioCode="sincertificado1@mislata.es"  centroCode="46019660" tipoCode="ALUMNO"/>
+        <tipo usuarioCode="sincertificado2@mislata.es"  centroCode="46019660" tipoCode="ALUMNO"/>
+        <tipo usuarioCode="autofirma@mislata.es"        centroCode="46019660" tipoCode="ALUMNO"/>
 
     </tipos>
 

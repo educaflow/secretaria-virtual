@@ -121,7 +121,7 @@ class AliasInfoBuilderTest {
         when(datos.getCnSubject()).thenReturn("CN=Pepe");
         when(datos.getNombre()).thenReturn("Pepe");
         when(datos.getApellidos()).thenReturn("Pérez");
-        when(datos.getDNI()).thenReturn("85432016B");
+        when(datos.getDNI()).thenReturn("98803877V");
         when(datos.getCif()).thenReturn(null);
         when(datos.getCnIssuer()).thenReturn("CN=FNMT");
         when(datos.getTipoEmisorCertificado()).thenReturn(TipoEmisorCertificado.FNMT);
@@ -140,7 +140,7 @@ class AliasInfoBuilderTest {
                 + linea("CN Sujeto", "CN=Pepe")
                 + linea("Nombre", "Pepe")
                 + linea("Apellidos", "Pérez")
-                + linea("DNI", "85432016B")
+                + linea("DNI", "98803877V")
                 + linea("CIF", "")
                 + linea("CN Emisor", "CN=FNMT")
                 + linea("Tipo emisor certificado", "FNMT")

@@ -19,8 +19,10 @@ id: T-002
 
 Estado previo (datos maestros gestionados por otros subsistemas) del que parten **todos** los tests. Ningún test puede presuponer más estado que este; cada test lo referencia en sus `Precondiciones`.
 
-- El certificado de ejemplo que ya viene dentro de la aplicación: ruta classpath `firma/mi_certificado.p12`, contraseña `nadanada` (recurso del WAR, no un dato de BD).
-- No existe ninguna entrada de certificado digital con el DNI «85432016B». Como todos los tests usan ese mismo DNI y algunos dejan la entrada creada al terminar, cada test restablece esta precondición al empezar: si el listado «Certificados digitales» muestra una fila con el DNI «85432016B», el administrador la abre, pulsa «Borrar» y confirma, antes de ejecutar sus pasos.
+- El fichero de certificado de test que los escenarios suben como certificado de tipo «Subir un fichero con el certificado para guardarlo en la base de datos» (FICHERO_BD): `test1.p12`, de la carpeta `src/test/resources/firma/test/` del repositorio (fichero del repositorio, no un dato de BD ni un recurso del WAR), con contraseña «demo1234». Es un certificado de test emitido por la CA de demo y no es de ningún usuario.
+- El usuario de demostración `sincertificado1@mislata.es`, con documento «94307933K», nombre «SinCertificado1» y apellidos «CIPFP Mislata». Es exclusivo de estos tests y no tiene certificado propio.
+- Los certificados digitales de demostración (uno por cada usuario de demo que tiene certificado; `sincertificado1@mislata.es` no tiene). Por eso el listado «Certificados digitales» no está vacío y pagina: antes de mirar sus filas, cada test **filtra el listado por su DNI** escribiéndolo en el «Buscar...» de la columna «DNI» y pulsando Intro (y lo vuelve a filtrar si el filtro se pierde, p. ej. tras recargar la página), de modo que solo se ven las filas de ese DNI o «No se encontraron registros.».
+- No existe ninguna entrada de certificado digital con el DNI «94307933K». Como todos los tests usan ese mismo DNI y algunos dejan la entrada creada al terminar, cada test restablece esta precondición al empezar: si el listado «Certificados digitales» muestra una fila con el DNI «94307933K», el administrador la abre, pulsa «Borrar» y confirma, antes de ejecutar sus pasos.
 
 **Usuarios de acceso** (login y contraseña que `/sdd-debug-with-test-e2e-desc` usará para iniciar sesión):
 
@@ -31,18 +33,18 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 ## Precondiciones
 
 - El usuario `admin` ha iniciado sesión.
-- No existe ninguna entrada con el DNI «85432016B» (si existe de una ejecución anterior, se borra desde el listado como describe el «Estado inicial de la base de datos»).
+- No existe ninguna entrada con el DNI «94307933K» (si existe de una ejecución anterior, se borra desde el listado como describe el «Estado inicial de la base de datos»).
 
 ## Pasos
 
 1. **Dado** que el administrador está en la pantalla «Certificados digitales» (menú «Criptografía» → «Certificados digitales»).
-2. **Cuando** pulsa «Añadir certificado digital», rellena «DNI» con «85432016B», elige en «Tipo de certificado» la opción «Usar un fichero con el certificado que ya está dentro del del WAR», rellena «Ruta classpath» con «firma/mi_certificado.p12» y «Nueva contraseña» con «nadanada», y pulsa «Guardar».
+2. **Cuando** pulsa «Añadir certificado digital», rellena «DNI» con «94307933K», elige en «Tipo de certificado» la opción «Subir un fichero con el certificado para guardarlo en la base de datos», sube en el campo «Fichero» el fichero «test1.p12», rellena «Nueva contraseña» con «demo1234», y pulsa «Guardar».
 3. **Entonces** el sistema guarda la entrada y vuelve al listado.
-4. **Cuando** abre la fila del DNI «85432016B».
+4. **Cuando** abre la fila del DNI «94307933K».
 5. **Y** desmarca la casilla «Habilitado».
 6. **Y** pulsa «Guardar».
 
 ## Resultado esperado
 
 - El sistema guarda el cambio y vuelve al listado «Certificados digitales».
-- El listado muestra la fila del DNI «85432016B» con la columna «Habilitado» sin marcar.
+- El listado muestra la fila del DNI «94307933K» con la columna «Habilitado» sin marcar.

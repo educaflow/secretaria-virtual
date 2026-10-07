@@ -98,14 +98,14 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
       // And: el panel «Persona que presenta la solicitud» NO aparece…
       await expect(page.getByText('Persona que presenta la solicitud')).toHaveCount(0);
       // … y en «Alumno/a al que se refiere la solicitud» los campos vienen rellenos con sus propios
-      // datos —«Apellidos» = «CIPFP Mislata», «Nombre» = «Administrativo2», «DNI/NIE» = «16493254T»—
+      // datos —«Apellidos» = «CIPFP Mislata», «Nombre» = «Administrativo2», «DNI/NIE» = «97345780M»—
       // y bloqueados.
       const panelInteresado = page.getByRole('region', { name: 'Alumno/a al que se refiere la solicitud' });
       await expect(panelInteresado.getByLabel('Apellidos')).toHaveValue('CIPFP Mislata');
       await expect(panelInteresado.getByLabel('Apellidos')).toBeDisabled();
       await expect(panelInteresado.getByLabel('Nombre')).toHaveValue('Administrativo2');
       await expect(panelInteresado.getByLabel('Nombre')).toBeDisabled();
-      await expect(panelInteresado.getByLabel('DNI/NIE')).toHaveValue('16493254T');
+      await expect(panelInteresado.getByLabel('DNI/NIE')).toHaveValue('97345780M');
       await expect(panelInteresado.getByLabel('DNI/NIE')).toBeDisabled();
 
       // And: el pie ofrece «Borrar el expediente» y «Siguiente».

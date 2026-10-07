@@ -50,13 +50,13 @@ test.describe('SMS — Todos', () => {
     await page.getByTestId('item:sms-todos-menuitem').click();
     await page.getByRole('button', { name: 'Nuevo SMS' }).click();
 
-    // Paso 3: Y elige el centro "CIPFP Mislata", escribe el DNI del destinatario «86862719E», el
+    // Paso 3: Y elige el centro "CIPFP Mislata", escribe el DNI del destinatario «95591733F», el
     // nombre «Alumno1», los apellidos «CIPFP Mislata», el teléfono «600111222» y como mensaje la
     // letra «a» repetida 161 veces.
     // El label real incluye un icono de ayuda ("Centro ?"), de ahí el regex.
     await page.getByRole('combobox', { name: /^Centro\b/ }).click();
     await page.getByRole('option', { name: 'CIPFP Mislata', exact: true }).click();
-    await page.getByLabel('DNI del destinatario').fill('86862719E');
+    await page.getByLabel('DNI del destinatario').fill('95591733F');
     await page.getByLabel('Nombre', { exact: true }).fill('Alumno1');
     await page.getByLabel('Apellidos').fill('CIPFP Mislata');
     // El widget de teléfono internacional arranca con "+34" ya escrito: se vacía, se teclea el

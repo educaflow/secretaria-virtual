@@ -29,8 +29,8 @@ ALIAS=$2
 PIN=$3
 CERTIFICADO=$4
 
-openssl pkcs12 -in "${CERTIFICADO}" -nocerts -nodes  -out "${CERTIFICADO}.key.pem"   -legacy -passin pass:nada
-openssl pkcs12 -in "${CERTIFICADO}" -clcerts -nokeys -out "${CERTIFICADO}.cert.pem"  -legacy -passin pass:nada
+openssl pkcs12 -in "${CERTIFICADO}" -nocerts -nodes  -out "${CERTIFICADO}.key.pem"   -passin pass:demo1234
+openssl pkcs12 -in "${CERTIFICADO}" -clcerts -nokeys -out "${CERTIFICADO}.cert.pem"  -passin pass:demo1234
 
 pkcs15-init --store-private-key "${CERTIFICADO}.key.pem"  -a "01" -i "$ID"A --key-usage sign --pin "${PIN}" --label KeyFirmaDigital"${ALIAS}" 
 pkcs15-init --store-certificate "${CERTIFICADO}.cert.pem" -a "01" -i "$ID"B --auth-id "$ID"A --pin "${PIN}" --label CertFirmaDigital"${ALIAS}"

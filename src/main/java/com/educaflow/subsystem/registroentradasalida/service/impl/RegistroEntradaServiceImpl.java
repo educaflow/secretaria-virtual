@@ -1,5 +1,9 @@
 package com.educaflow.subsystem.registroentradasalida.service.impl;
 
+import com.axelor.db.modelservice.ModelServiceFactory;
+import com.educaflow.subsystem.common.db.CargoCodigo;
+import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
+import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
 import com.axelor.auth.db.User;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.AllowProperties;
@@ -15,7 +19,6 @@ import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
 import com.educaflow.base.infrastructure.pdfgenerator.PdfGeneratorFactory;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.base.util.TextUtil;
-import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.registroentradasalida.service.RegistroEntradaInsertDTO;
 import com.educaflow.subsystem.registroentradasalida.service.PersonaRegistro;
@@ -45,7 +48,7 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
     NumeradorRepository numeradorRepository;
 
     @Inject
-    AlmacenClaveResolver almacenClaveResolver;
+    ModelServiceFactory modelServiceFactory;
 
     public RegistroEntradaServiceImpl(Class<RegistroEntrada> model, Repository<RegistroEntrada> repository) {
         super(model, repository);
@@ -163,7 +166,8 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
     }
 
     private DocumentoPdf firmarPorSecretario(DocumentoPdf documentoPdf,Centro centro) {
-        AlmacenClave almacenClave= almacenClaveResolver.getSecretario(centro);
+        CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);
+        AlmacenClave almacenClave= certificadoDigitalService.getByCentroCargo(centro, CargoCodigo.SECRETARIO);
         CampoFirma campoFirma=new CampoFirma(CAMPO_FIRMA_REGISTRO_ENTRADA);
 
         DocumentoPdf documentoPdfFirmado=documentoPdf.firmar(almacenClave,campoFirma);

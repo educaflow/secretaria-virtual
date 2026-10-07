@@ -1,11 +1,12 @@
 import { test, expect, Page } from '@playwright/test';
+import path from 'path';
 import { ensureLoggedOut, login, logout } from '../../_support/auth';
 
 // T-012 — El nombre tomado del usuario no se puede cambiar
 // origen: ESC-005  |  verifica: U-certificados-digitales-003, U-certificados-digitales-004
 // fuente: .sdd/drafts/2026-09-08_02-53_nombre-apellidos-certificado-digital/test-e2e-desc/t-012-el-nombre-tomado-del-usuario-no-se-puede-cambiar.desc.md
 
-// El DNI del escenario: el del usuario `secretario@mislata.es` de los datos de
+// El DNI del escenario: el del usuario `sincertificado2@mislata.es` de los datos de
 // demostración. NO lleva sufijo `Date.now()` a propósito (excepción documentada
 // de la regla de nombres únicos): el escenario entero se apoya en que ESE DNI
 // corresponde a un usuario de la aplicación, para que el alta copie su nombre y
@@ -15,26 +16,33 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 // idempotencia frente a la BD compartida (que NO se resetea) se consigue con la
 // pre-limpieza defensiva del arranque + el teardown del `finally`, tal y como
 // describe el «Estado inicial de la base de datos» de la descripción.
-const DNI = '29050788V';
+const DNI = '96931712Y';
 
 // Nombre y apellidos que el alta MUST copiar de la ficha de ese usuario.
-const NOMBRE = 'Secretario';
+const NOMBRE = 'SinCertificado2';
 const APELLIDOS = 'CIPFP Mislata';
 
-// El título del enum llega a la UI con el sufijo `__!!` (marca de "no traducir"
-// que el script de i18n elimina al generar los CSV, pero que el título crudo del
-// dominio conserva). Los locators por nombre accesible hacen match por SUBCADENA,
-// así que basta con el texto sin el sufijo.
-const OPCION_CLASSPATH = 'Usar un fichero con el certificado que ya está dentro del del WAR';
+// El título de la opción FICHERO_BD del enum «Tipo de certificado». Los
+// certificados de test NO están dentro del WAR, así que no pueden usar el tipo
+// que lee el fichero del classpath: se suben y se guardan en la base de datos.
+const OPCION_FICHERO_BD = 'Subir un fichero con el certificado para guardarlo en la base de datos';
 
-const RUTA_CLASSPATH = 'firma/mi_certificado.p12';
+// Ruta absoluta de un certificado de test (`src/test/resources/firma/test/`).
+// Son certificados de la CA de demo que no son de ningún usuario; su contraseña
+// es `demo1234`, pero el alta no la exige y el escenario no la escribe.
+const rutaCertificadoTest = (nombre: string) => path.resolve(__dirname, '../../../resources/firma/test', nombre);
+
+const FICHERO_CERTIFICADO = 'test1.p12';
 
 const botonAnhadir = (page: Page) => page.getByRole('button', { name: 'Añadir certificado digital' });
 
 // La fila del listado cuyo DNI es el del escenario (el nombre accesible de la
 // fila es «<dni> <nombre> <apellidos> <tipo de certificado>», y el match por
 // nombre es por subcadena).
-const filaDelDni = (page: Page) => page.getByRole('row', { name: DNI });
+// Se busca en el ÚLTIMO rowgroup (el de los datos): el primero lleva la cabecera
+// y la fila de filtros, cuyo «Buscar...» de la columna DNI contiene el DNI
+// tecleado (ver `filtrarPorDni`) y también casaría por nombre.
+const filaDelDni = (page: Page) => page.getByRole('rowgroup').last().getByRole('row', { name: DNI });
 
 // La fila que la rejilla pinta cuando no hay ningún registro.
 const filaSinRegistros = (page: Page) => page.getByRole('row', { name: 'No se encontraron registros.' });
@@ -50,14 +58,17 @@ const campoNombre = (page: Page) => page.getByRole('textbox', { name: 'Nombre' }
 const campoApellidos = (page: Page) => page.getByRole('textbox', { name: 'Apellidos' });
 
 // Los demás campos del formulario, que el escenario exige ver EDITABLES.
-// «Ruta classpath» y «Nueva contraseña» solo se muestran con el tipo CLASSPATH elegido;
-// la etiqueta real de la ruta es «Ruta classpath__!!» (match por subcadena) y la
-// del check es «Habilitado ?». «Nueva contraseña» es un <input type="password">
-// (sin rol `textbox`), así que se localiza por su etiqueta.
+// «Fichero» y «Nueva contraseña» solo se muestran con el tipo FICHERO_BD elegido.
+// «Fichero» es un widget `binary-link` que esconde su `input[type=file]`: que sea
+// editable se comprueba por su botón «Subir» (con el campo de solo lectura no se
+// podría subir otro fichero). La etiqueta del check es «Habilitado ?».
+// «Nueva contraseña» es un <input type="password"> (sin rol `textbox`), así que
+// se localiza por su etiqueta.
 // «Tipo de certificado» es un grupo de radios (`widget="RadioSelect"`): el helper
-// apunta al radio de la opción CLASSPATH, que es la que usa el escenario.
-const campoTipoCertificado = (page: Page) => page.getByRole('radio', { name: OPCION_CLASSPATH });
-const campoRutaClasspath = (page: Page) => page.getByRole('textbox', { name: 'Ruta classpath' });
+// apunta al radio de la opción FICHERO_BD, que es la que usa el escenario.
+const campoTipoCertificado = (page: Page) => page.getByRole('radio', { name: OPCION_FICHERO_BD });
+const campoFichero = (page: Page) => page.getByTestId('field:fichero');
+const botonSubirFichero = (page: Page) => campoFichero(page).getByRole('button', { name: 'Subir' });
 const campoContrasena = (page: Page) => page.getByLabel('Nueva contraseña');
 const campoHabilitado = (page: Page) => page.getByRole('checkbox', { name: 'Habilitado' });
 
@@ -72,18 +83,43 @@ async function cerrarDialogoDeAviso(page: Page): Promise<void> {
   }
 }
 
+// Filtro de la columna «DNI» del listado (la fila de «Buscar...» de la cabecera).
+// CRITICAL: el listado NO está vacío: los datos de demostración traen un
+// certificado por cada usuario de demo y la rejilla pagina (40 filas por página),
+// así que sin filtrar las filas del DNI del escenario pueden caer en otra página
+// y la pre-limpieza, los recuentos y las posiciones no las verían. Filtrando por
+// el DNI la rejilla solo muestra las suyas (o «No se encontraron registros.»).
+// Axelor conserva el filtro al volver al listado tras guardar o borrar, pero no
+// tras recargar la página: por eso se reaplica siempre que no esté puesto.
+const filtroDni = (page: Page) => page.getByTestId('column:dni').getByPlaceholder('Buscar...');
+
+async function filtrarPorDni(page: Page): Promise<void> {
+  if ((await filtroDni(page).inputValue()) === DNI) {
+    return;
+  }
+  await filtroDni(page).fill(DNI);
+  // Se espera a la respuesta de la búsqueda: hasta entonces la rejilla sigue
+  // mostrando la primera página sin filtrar.
+  await Promise.all([
+    page.waitForResponse(
+      (respuesta) => respuesta.url().includes('CertificadoDigital/search') && respuesta.request().method() === 'POST',
+    ),
+    filtroDni(page).press('Enter'),
+  ]);
+}
+
 // Barrera de carga del listado.
 // CRITICAL: la rejilla pide sus filas en una petición aparte de la que pinta la
 // vista, así que mirar las filas nada más aparecer el botón de alta es una
 // condición de carrera — y esa carrera haría que la pre-limpieza no viese la fila
 // residual de un run anterior y el alta muriera con un error de DNI duplicado.
 // Esperar a que la rejilla se resuelva en uno de sus dos estados posibles la
-// elimina: o está la fila del DNI, o está la fila «No records found.» (esta tabla
-// solo la escriben los tests de esta iniciativa y la anterior, y ambas limpian lo
-// que crean; si apareciese otro estado, el test falla de forma ruidosa en vez de
+// elimina: o está la fila del DNI, o está la fila «No records found.» (la rejilla está filtrada por el DNI del escenario, ver `filtrarPorDni`;
+// si apareciese otro estado, el test falla de forma ruidosa en vez de
 // dar por buena una rejilla a medio cargar).
 async function esperarListadoCargado(page: Page): Promise<void> {
   await expect(botonAnhadir(page)).toBeVisible();
+  await filtrarPorDni(page);
   await expect(filaDelDni(page).or(filaSinRegistros(page)).first()).toBeVisible();
 }
 
@@ -178,15 +214,14 @@ test.describe('Certificados digitales', () => {
       //         digitales» (menú «Criptografía» → «Certificados digitales»).
       await abrirCertificadosDigitales(page);
 
-      // Precondición: no existe ningún certificado digital con DNI «29050788V»
+      // Precondición: no existe ningún certificado digital con DNI «96931712Y»
       // (si quedaran de una ejecución anterior, se borran desde el listado).
       await borrarEntradasDelDniSiExisten(page);
 
       // Paso 2: Cuando pulsa «Añadir certificado digital», escribe en «DNI»
-      //         «29050788V», elige en «Tipo de certificado» la opción «Usar un
-      //         fichero con el certificado que ya está dentro del del WAR»,
-      //         escribe en «Ruta classpath» «firma/mi_certificado.p12» y pulsa
-      //         «Guardar».
+      //         «96931712Y», elige en «Tipo de certificado» la opción «Subir un
+      //         fichero con el certificado para guardarlo en la base de datos»,
+      //         sube en «Fichero» «test1.p12» y pulsa «Guardar».
       await botonAnhadir(page).click();
       const dniAlta = campoDni(page);
       await expect(dniAlta).toBeVisible();
@@ -198,7 +233,7 @@ test.describe('Certificados digitales', () => {
       // CRITICAL: ese autorrelleno es una llamada AL SERVIDOR (`POST /ws/action`
       // con la acción `...CertificadoDigital-onChange-dni-action`), y su respuesta
       // ESCRIBE en «Nombre» y «Apellidos» — con este DNI, copiando los de la ficha
-      // del usuario `secretario@mislata.es`. Sin esperar a que termine, seguir
+      // del usuario `sincertificado2@mislata.es`. Sin esperar a que termine, seguir
       // adelante sería una condición de carrera: el alta podría llegar al servidor
       // con el nombre aún vacío y morir con «El nombre es obligatorio».
       await dniAlta.fill(DNI);
@@ -220,11 +255,12 @@ test.describe('Certificados digitales', () => {
       await expect(campoNombre(page)).toHaveValue(NOMBRE);
       await expect(campoApellidos(page)).toHaveValue(APELLIDOS);
 
-      await page.getByRole('radio', { name: OPCION_CLASSPATH }).check();
+      await page.getByRole('radio', { name: OPCION_FICHERO_BD }).check();
 
-      // El campo solo se muestra al elegir el tipo CLASSPATH; su etiqueta real es
-      // «Ruta classpath__!!».
-      await campoRutaClasspath(page).fill(RUTA_CLASSPATH);
+      // El campo solo se muestra al elegir el tipo FICHERO_BD. Se espera a que
+      // pinte el nombre del fichero: es la señal de que la subida ha terminado.
+      await campoFichero(page).locator('input[type="file"]').setInputFiles(rutaCertificadoTest(FICHERO_CERTIFICADO));
+      await expect(campoFichero(page).getByRole('button', { name: FICHERO_CERTIFICADO })).toBeVisible();
 
       await page.getByRole('button', { name: 'Guardar' }).click();
 
@@ -235,11 +271,11 @@ test.describe('Certificados digitales', () => {
       await esperarListadoCargado(page);
       await expect(filaDelDni(page)).toHaveCount(1);
 
-      // Paso 4: Cuando pulsa la fila del DNI «29050788V».
+      // Paso 4: Cuando pulsa la fila del DNI «96931712Y».
       await abrirFilaDelDni(page);
 
       // Resultado esperado 1: el formulario muestra el campo «DNI» con
-      // «29050788V», el campo «Nombre» con «Secretario» y el campo «Apellidos»
+      // «96931712Y», el campo «Nombre» con «SinCertificado2» y el campo «Apellidos»
       // con «CIPFP Mislata», LOS TRES DE SOLO LECTURA. (El «solo lectura» de
       // Axelor se renderiza como input deshabilitado.) Se comprueban también los
       // valores: si el formulario abierto no fuera el del certificado recién
@@ -252,11 +288,11 @@ test.describe('Certificados digitales', () => {
       await expect(campoApellidos(page)).toBeDisabled();
 
       // Resultado esperado 2: los demás campos del formulario («Tipo de
-      // certificado», «Ruta classpath», «Nueva contraseña», «Habilitado») siguen siendo
+      // certificado», «Fichero», «Nueva contraseña», «Habilitado») siguen siendo
       // editables — es decir, el bloqueo alcanza SOLO a los tres campos de la
       // persona titular y no ha dejado el formulario entero de solo lectura.
       await expect(campoTipoCertificado(page)).toBeEnabled();
-      await expect(campoRutaClasspath(page)).toBeEnabled();
+      await expect(botonSubirFichero(page)).toBeEnabled();
       await expect(campoContrasena(page)).toBeEnabled();
       await expect(campoHabilitado(page)).toBeEnabled();
     } finally {

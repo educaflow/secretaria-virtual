@@ -46,12 +46,12 @@ test.describe('SMS — Todos', () => {
     await login(page, 'admin', 'admin');
 
     // Paso 2: Cuando abre el menú "SMS" → "Todos", pulsa "Nuevo SMS", elige el centro "CIPFP Batoi",
-    // escribe el DNI «65399546N», el nombre «Alumno1», los apellidos «CIPFP Batoi», el teléfono
+    // escribe el DNI «92898219T», el nombre «Alumno1», los apellidos «CIPFP Batoi», el teléfono
     // «600333444» y el mensaje «Aviso Batoi», y pulsa "Guardar".
     await page.getByText('SMS', { exact: true }).click();
     await page.getByTestId('item:sms-todos-menuitem').click();
     await altaSms(page, {
-      centro: 'CIPFP Batoi', dni: '65399546N', nombre: 'Alumno1', apellidos: 'CIPFP Batoi',
+      centro: 'CIPFP Batoi', dni: '92898219T', nombre: 'Alumno1', apellidos: 'CIPFP Batoi',
       telefono: '600333444', mensaje: avisoBatoi,
     });
 

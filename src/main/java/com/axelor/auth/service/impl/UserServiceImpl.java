@@ -1,6 +1,7 @@
 package com.axelor.auth.service.impl;
 
 import com.axelor.auth.db.User;
+import com.axelor.auth.db.repo.UserRepository;
 import com.axelor.auth.service.UserService;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.DefaultModelService;
@@ -12,6 +13,7 @@ import com.google.inject.Inject;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class UserServiceImpl extends DefaultModelService<User> implements UserService {
 
@@ -41,6 +43,15 @@ public class UserServiceImpl extends DefaultModelService<User> implements UserSe
         Objects.requireNonNull(user, "user no puede ser null");
 
         return user;
+    }
+
+    @Override
+    public Optional<User> findByDni(String dni) {
+        if ((dni == null) || dni.isBlank()) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(((UserRepository) repository).findByDni(dni));
     }
 
     /**************************************************************************************/

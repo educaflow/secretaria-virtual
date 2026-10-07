@@ -56,7 +56,7 @@ class DatosCertificadoImplTest {
     void usuarioFinalFnmt_extraeDniNombreYApellidosDelSubjectAltName() throws Exception {
         X500Name issuer = issuer("FNMT-RCM", "AC FNMT Usuarios");
         X500Name dirName = new X500NameBuilder(BCStyle.INSTANCE)
-                .addRDN(new ASN1ObjectIdentifier("1.3.6.1.4.1.5734.1.4"), new DERUTF8String("12345678Z"))
+                .addRDN(new ASN1ObjectIdentifier("1.3.6.1.4.1.5734.1.4"), new DERUTF8String("93882914L"))
                 .addRDN(new ASN1ObjectIdentifier("1.3.6.1.4.1.5734.1.1"), new DERUTF8String("JUAN"))
                 .addRDN(new ASN1ObjectIdentifier("1.3.6.1.4.1.5734.1.2"), new DERUTF8String("GARCIA"))
                 .addRDN(new ASN1ObjectIdentifier("1.3.6.1.4.1.5734.1.3"), new DERUTF8String("LOPEZ"))
@@ -66,7 +66,7 @@ class DatosCertificadoImplTest {
 
         assertEquals(TipoEmisorCertificado.FNMT, datos.getTipoEmisorCertificado());
         assertEquals(TipoCertificado.USUARIO_FINAL, datos.getTipoCertificado());
-        assertEquals("12345678Z", datos.getDNI());
+        assertEquals("93882914L", datos.getDNI());
         assertEquals("JUAN", datos.getNombre());
         assertEquals("GARCIA LOPEZ", datos.getApellidos());
         assertEquals("", datos.getCif());
@@ -101,7 +101,7 @@ class DatosCertificadoImplTest {
     void representacionFnmt_extraeDniSinPrefijoIdcesYCifSinPrefijoVates() throws Exception {
         X500Name issuer = issuer("FNMT-RCM", "AC Representación");
         X500Name dirName = new X500NameBuilder(BCStyle.INSTANCE)
-                .addRDN(new ASN1ObjectIdentifier("1.3.6.1.4.1.5734.1.4"), new DERUTF8String("IDCES-12345678Z"))
+                .addRDN(new ASN1ObjectIdentifier("1.3.6.1.4.1.5734.1.4"), new DERUTF8String("IDCES-93882914L"))
                 .addRDN(new ASN1ObjectIdentifier("1.3.6.1.4.1.5734.1.1"), new DERUTF8String("ANA"))
                 .addRDN(new ASN1ObjectIdentifier("1.3.6.1.4.1.5734.1.2"), new DERUTF8String("PEREZ"))
                 .addRDN(new ASN1ObjectIdentifier("1.3.6.1.4.1.5734.1.3"), new DERUTF8String("RUIZ"))
@@ -112,7 +112,7 @@ class DatosCertificadoImplTest {
 
         assertEquals(TipoEmisorCertificado.FNMT, datos.getTipoEmisorCertificado());
         assertEquals(TipoCertificado.REPRESENTACION, datos.getTipoCertificado());
-        assertEquals("12345678Z", datos.getDNI());
+        assertEquals("93882914L", datos.getDNI());
         assertEquals("ANA", datos.getNombre());
         assertEquals("PEREZ RUIZ", datos.getApellidos());
         assertEquals("Q9655676F", datos.getCif());
@@ -136,14 +136,14 @@ class DatosCertificadoImplTest {
     void usuarioFinalAccv_extraeDniYNombreApellidosSeparadosPorBarra() throws Exception {
         X500Name issuer = issuer("ACCV", "ACCVCA-120");
         X500Name dirName = new X500NameBuilder(BCStyle.INSTANCE)
-                .addRDN(BCStyle.UID, new DERUTF8String("12345678Z"))
+                .addRDN(BCStyle.UID, new DERUTF8String("93882914L"))
                 .addRDN(BCStyle.CN, new DERUTF8String("JUAN|GARCIA|LOPEZ"))
                 .build();
 
         DatosCertificadoImpl datos = new DatosCertificadoImpl(certificado(sujeto("JUAN GARCIA"), issuer, dirName), null);
 
         assertEquals(TipoEmisorCertificado.ACCV, datos.getTipoEmisorCertificado());
-        assertEquals("12345678Z", datos.getDNI());
+        assertEquals("93882914L", datos.getDNI());
         assertEquals("JUAN", datos.getNombre());
         assertEquals("GARCIA LOPEZ", datos.getApellidos());
         assertEquals("", datos.getCif());
@@ -154,7 +154,7 @@ class DatosCertificadoImplTest {
         X500Name issuer = issuer("DIRECCION GENERAL DE LA POLICIA", "AC DNIE 004");
         X500Name subject = new X500NameBuilder(BCStyle.INSTANCE)
                 .addRDN(BCStyle.C, "ES")
-                .addRDN(BCStyle.SERIALNUMBER, "12345678Z")
+                .addRDN(BCStyle.SERIALNUMBER, "93882914L")
                 .addRDN(BCStyle.GIVENNAME, "JUAN")
                 .addRDN(BCStyle.SURNAME, "GARCIA")
                 .addRDN(BCStyle.CN, "GARCIA LOPEZ, JUAN (AUTENTICACION)")
@@ -163,7 +163,7 @@ class DatosCertificadoImplTest {
         DatosCertificadoImpl datos = new DatosCertificadoImpl(certificado(subject, issuer, null), null);
 
         assertEquals(TipoEmisorCertificado.DNI, datos.getTipoEmisorCertificado());
-        assertEquals("12345678Z", datos.getDNI());
+        assertEquals("93882914L", datos.getDNI());
         assertEquals("JUAN", datos.getNombre());
         assertEquals("GARCIA LOPEZ", datos.getApellidos());
         assertEquals("", datos.getCif());

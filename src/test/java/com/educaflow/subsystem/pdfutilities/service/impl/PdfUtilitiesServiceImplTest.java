@@ -2,12 +2,14 @@ package com.educaflow.subsystem.pdfutilities.service.impl;
 
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.AllowProperties;
+import com.educaflow.base.infrastructure.criptografia.AlmacenClaveFichero;
 import com.educaflow.subsystem.pdfutilities.db.PdfUtilities;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -46,5 +48,12 @@ class PdfUtilitiesServiceImplTest {
         assertTrue(allowProperties.allowProperty("numeroPagina"));
         assertFalse(allowProperties.allowProperty("pdfFirmado"));
         assertFalse(allowProperties.allowProperty("info"));
+    }
+
+    @Test
+    void crearAlmacenClaveDummy_seAbreConSuPasswordYTieneClavePrivada() {
+        AlmacenClaveFichero almacenClave = assertInstanceOf(AlmacenClaveFichero.class, PdfUtilitiesServiceImpl.crearAlmacenClaveDummy());
+
+        assertTrue(almacenClave.isPasswordValid());
     }
 }

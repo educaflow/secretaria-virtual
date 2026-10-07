@@ -1,5 +1,9 @@
 package com.educaflow.subsystem.registroentradasalida.service.impl;
 
+import com.axelor.db.modelservice.ModelServiceFactory;
+import com.educaflow.subsystem.common.db.CargoCodigo;
+import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
+import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
 import com.axelor.app.AppSettings;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.AllowProperties;
@@ -20,7 +24,6 @@ import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.base.util.QrUtil;
 import com.educaflow.base.util.TextUtil;
 import com.educaflow.base.util.TokenUtil;
-import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.registroentradasalida.db.repo.RegistroSalidaRepository;
 import com.educaflow.subsystem.registroentradasalida.service.RegistroSalidaInsertDTO;
@@ -58,7 +61,7 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
     NumeradorRepository numeradorRepository;
 
     @Inject
-    AlmacenClaveResolver almacenClaveResolver;
+    ModelServiceFactory modelServiceFactory;
 
     public RegistroSalidaServiceImpl(Class<RegistroSalida> model, Repository<RegistroSalida> repository) {
         super(model, repository);
@@ -73,7 +76,8 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
         String asunto= registroSalidaInsertDTO.asunto();
         Centro centro= registroSalidaInsertDTO.centro();
         String numeroRegistro=getNumeroRegistro(centro,ahora);
-        AlmacenClave almacenClave= almacenClaveResolver.getSecretario(centro);
+        CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);
+        AlmacenClave almacenClave= certificadoDigitalService.getByCentroCargo(centro, CargoCodigo.SECRETARIO);
         String csv= TokenUtil.generateCodigoSeguroVerificacion();
         MetaFile documento=firmarRegistroSalidaPorSecretario(MetaFileHelper.getDocumentoPdf(documentoOriginal),almacenClave,numeroRegistro,csv);
 

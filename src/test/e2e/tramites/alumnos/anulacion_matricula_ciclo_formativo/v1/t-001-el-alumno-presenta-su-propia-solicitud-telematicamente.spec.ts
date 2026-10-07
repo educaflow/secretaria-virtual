@@ -96,7 +96,7 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
       await expect(panelInteresado.getByLabel('Apellidos')).toBeDisabled();
       await expect(panelInteresado.getByLabel('Nombre')).toHaveValue('Alumno1');
       await expect(panelInteresado.getByLabel('Nombre')).toBeDisabled();
-      await expect(panelInteresado.getByLabel('DNI/NIE')).toHaveValue('86862719E');
+      await expect(panelInteresado.getByLabel('DNI/NIE')).toHaveValue('95591733F');
       await expect(panelInteresado.getByLabel('DNI/NIE')).toBeDisabled();
 
       // And: el panel «Datos del alumno/a» («NIA», «Teléfono», «Dirección», «Municipio», «CP»)

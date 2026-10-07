@@ -43,7 +43,7 @@ const TRAMITES_DEL_PROFESOR = ['Justificación de falta del profesorado', 'Trám
 // interesado" (comprobado pilotando la app real: `panel:datos-profesor`).
 const DIRECTOR_NOMBRE = 'Director';
 const DIRECTOR_APELLIDOS = 'CIPFP Mislata';
-const DIRECTOR_DNI = '85432016B';
+const DIRECTOR_DNI = '98803877V';
 const DIRECTOR_NOMBRE_COMPLETO = 'Director CIPFP Mislata';
 
 // Títulos de las TRES pantallas del asistente (los fijan los `action-view` de

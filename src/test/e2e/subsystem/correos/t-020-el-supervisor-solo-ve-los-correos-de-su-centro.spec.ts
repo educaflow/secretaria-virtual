@@ -17,14 +17,14 @@ test.describe('Correos de mis centros', () => {
     const asuntoBatoi = `Aviso Batoi ${sufijo}`;
 
     // Paso 1: Dado que el administrador ha iniciado sesión, pulsa "Nuevo correo",
-    // rellena el DNI «86862719E», el nombre «Alumno1», los apellidos «CIPFP Mislata»,
+    // rellena el DNI «95591733F», el nombre «Alumno1», los apellidos «CIPFP Mislata»,
     // el «para» «alumno1@mislata.es», el asunto «Aviso Mislata», el cuerpo «texto»,
     // elige el centro «CIPFP Mislata» y pulsa "Guardar".
     await page.getByText('Correos', { exact: true }).click();
     await page.getByTestId('item:correos-todos-menuitem').click();
     await page.getByRole('button', { name: 'Nuevo correo' }).click();
 
-    await page.getByLabel('DNI del destinatario').fill('86862719E');
+    await page.getByLabel('DNI del destinatario').fill('95591733F');
     await page.getByLabel('Nombre', { exact: true }).fill('Alumno1');
     await page.getByLabel('Apellidos').fill('CIPFP Mislata');
     // El label real incluye un icono de ayuda ("Para ?"), de ahí el prefijo con regex.
@@ -41,7 +41,7 @@ test.describe('Correos de mis centros', () => {
     // asunto «Aviso Batoi», elige el centro «CIPFP Batoi» y pulsa "Guardar".
     await page.getByRole('button', { name: 'Nuevo correo' }).click();
 
-    await page.getByLabel('DNI del destinatario').fill('86862719E');
+    await page.getByLabel('DNI del destinatario').fill('95591733F');
     await page.getByLabel('Nombre', { exact: true }).fill('Alumno1');
     await page.getByLabel('Apellidos').fill('CIPFP Mislata');
     await page.getByLabel(/^Para\b/).fill('alumno1@mislata.es');

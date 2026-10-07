@@ -23,13 +23,13 @@ test.describe('SMS — Todos', () => {
     await page.getByTestId('item:sms-todos-menuitem').click();
     await page.getByRole('button', { name: 'Nuevo SMS' }).click();
 
-    // Paso 3: Y no elige centro y escribe el DNI del destinatario «86862719E», el nombre «Alumno1»,
+    // Paso 3: Y no elige centro y escribe el DNI del destinatario «95591733F», el nombre «Alumno1»,
     // los apellidos «CIPFP Mislata», el teléfono «600111222» y el mensaje «Mañana no hay clase».
     // El centro no se toca: se comprueba que el alta lo deja vacío (el label real incluye un
     // icono de ayuda, "Centro ?", de ahí el regex).
     const centro = page.getByRole('combobox', { name: /^Centro\b/ });
     await expect(centro).toHaveValue('');
-    await page.getByLabel('DNI del destinatario').fill('86862719E');
+    await page.getByLabel('DNI del destinatario').fill('95591733F');
     await page.getByLabel('Nombre', { exact: true }).fill('Alumno1');
     await page.getByLabel('Apellidos').fill('CIPFP Mislata');
     // El widget de teléfono internacional ya trae el prefijo "+34": se teclea el número tras él

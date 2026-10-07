@@ -15,14 +15,14 @@ test.describe('Mis correos', () => {
     const asunto = `Aviso para Alumno2 t025-${Date.now()}`;
 
     // Paso 1: Dado que el administrador ha iniciado sesión y crea un correo dirigido
-    // al DNI «03532821K», nombre «Alumno2», apellidos «CIPFP Mislata», «para»
+    // al DNI «99024353S», nombre «Alumno2», apellidos «CIPFP Mislata», «para»
     // «alumno2@mislata.es», asunto «Aviso para Alumno2» y cuerpo «texto», en el
     // centro «CIPFP Mislata», y cierra sesión.
     await page.getByText('Correos', { exact: true }).click();
     await page.getByTestId('item:correos-todos-menuitem').click();
     await page.getByRole('button', { name: 'Nuevo correo' }).click();
 
-    await page.getByLabel('DNI del destinatario').fill('03532821K');
+    await page.getByLabel('DNI del destinatario').fill('99024353S');
     await page.getByLabel('Nombre', { exact: true }).fill('Alumno2');
     await page.getByLabel('Apellidos').fill('CIPFP Mislata');
     // El label real incluye un icono de ayuda ("Para ?"), de ahí el prefijo con regex.

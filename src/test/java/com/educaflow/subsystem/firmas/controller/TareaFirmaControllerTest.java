@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
 class TareaFirmaControllerTest {
 
     private static final Long ID_TAREA = 1L;
-    private static final String DNI = "12345678Z";
+    private static final String DNI = "93882914L";
     private static final String CLAVE = "nadanada";
     private static final String MENSAJE_CONTRASENA_OBLIGATORIA = "La contraseña es obligatoria";
     private static final String MENSAJE_SOLO_PENDIENTES_FIRMAR = "Solo se pueden firmar las tareas pendientes de firmar";

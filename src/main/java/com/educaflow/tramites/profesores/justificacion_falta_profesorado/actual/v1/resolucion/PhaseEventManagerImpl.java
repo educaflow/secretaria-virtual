@@ -1,10 +1,14 @@
 package com.educaflow.tramites.profesores.justificacion_falta_profesorado.actual.v1.resolucion;
 
+import com.axelor.db.modelservice.ModelServiceFactory;
+import com.educaflow.subsystem.common.db.CargoCodigo;
+import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
+import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
+import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
-import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
 import com.educaflow.subsystem.expedientes.db.TipoResolucionJustificacionFaltaProfesoradoV1;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.EventContext;
 import com.educaflow.subsystem.tramitador.tramitacion.eventmanager.OnEnterState;
@@ -32,7 +36,7 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     @Inject
-    AlmacenClaveResolver almacenClaveResolver;
+    ModelServiceFactory modelServiceFactory;
 
     @Inject
     public PhaseEventManagerImpl(JustificacionFaltaProfesoradoV1Repository repository) {
@@ -74,7 +78,9 @@ public class PhaseEventManagerImpl extends PhaseEventManager<JustificacionFaltaP
         justificacionFaltaProfesorado.setMotivoDevolucion(null);
 
         DocumentoPdf resolucion = justificacionFaltaProfesorado.getDocumentoPdf(JustificacionFaltaProfesoradoV1.TipoDocumentoPdf.RESOLUCION);
-        DocumentoPdf resolucionFirmada = resolucion.firmar(almacenClaveResolver.getDirector(justificacionFaltaProfesorado.getCentro()), new CampoFirma(CAMPO_FIRMA_RESOLUCION));
+        CertificadoDigitalService certificadoDigitalService = (CertificadoDigitalService) modelServiceFactory.resolve(CertificadoDigital.class);
+        AlmacenClave almacenClaveDirector = certificadoDigitalService.getByCentroCargo(justificacionFaltaProfesorado.getCentro(), CargoCodigo.DIRECTOR);
+        DocumentoPdf resolucionFirmada = resolucion.firmar(almacenClaveDirector, new CampoFirma(CAMPO_FIRMA_RESOLUCION));
         MetaFile pdfResolucion = MetaFileHelper.createMetaFile(resolucionFirmada);
 
         RegistroSalida registroSalida = eventContext.createRegistroSalida(pdfResolucion, List.of(justificacionFaltaProfesorado.getJustificante()));

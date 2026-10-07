@@ -2,10 +2,15 @@ package com.educaflow.subsystem.criptografia.service.impl;
 
 import com.axelor.auth.db.User;
 import com.axelor.auth.db.repo.UserRepository;
+import com.axelor.auth.service.impl.UserServiceImpl;
+import com.educaflow.subsystem.common.db.Centro;
+import com.educaflow.subsystem.common.db.CargoCodigo;
+import com.axelor.auth.service.UserService;
 import com.axelor.db.JPA;
 import com.axelor.db.Query;
 import com.axelor.db.modelservice.AllowProperties;
 import com.axelor.db.modelservice.BusinessMessages;
+import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.async.EjecutorAsincrono;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
@@ -48,6 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -56,15 +62,15 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CertificadoDigitalServiceImplTest {
 
-    private static final String DNI = "85432016B";
-    private static final String DNI_CON_USUARIO = "29050788V";
-    private static final String DNI_SIN_USUARIO = "12345678Z";
+    private static final String DNI = "98803877V";
+    private static final String DNI_CON_USUARIO = "97098432E";
+    private static final String DNI_SIN_USUARIO = "93882914L";
     private static final String DNI_INVALIDO = "12345678A";
     private static final String DNI_A_MEDIO_TECLEAR = "1234";
-    private static final String RUTA_CLASSPATH_CERTIFICADO = "firma/mi_certificado.p12";
-    private static final String RUTA_CLASSPATH_CERTIFICADO_SECRETARIO =
-            "firma/instalar_certificado_criptografico/secretario.p12";
-    private static final String CLAVE = "nadanada";
+    // Certificados de test de la CA de demo (src/test/resources/firma/test), que no son de ningún usuario
+    private static final String RUTA_CLASSPATH_CERTIFICADO = "firma/test/test1.p12";
+    private static final String RUTA_CLASSPATH_OTRO_CERTIFICADO = "firma/test/test2.p12";
+    private static final String CLAVE = "demo1234";
     private static final String CLAVE_TECLEADA_DISTINTA = "claveTecleadaDistinta";
     private static final String CLAVE_EN_BLANCO = "   ";
     private static final String CLAVE_SECRETA = "claveSecretaDePrueba";
@@ -84,6 +90,7 @@ class CertificadoDigitalServiceImplTest {
 
     private CertificadoDigitalRepository repository;
     private UserRepository userRepository;
+    private ModelServiceFactory modelServiceFactory;
     private EjecutorAsincrono ejecutorAsincrono;
     private CertificadoDigitalServiceImpl service;
 
@@ -92,7 +99,9 @@ class CertificadoDigitalServiceImplTest {
         repository = Mockito.mock(CertificadoDigitalRepository.class);
         userRepository = Mockito.mock(UserRepository.class);
         service = new CertificadoDigitalServiceImpl(CertificadoDigital.class, repository);
-        setField(service, "userRepository", userRepository);
+        modelServiceFactory = Mockito.mock(ModelServiceFactory.class);
+        lenient().when(modelServiceFactory.resolve(User.class)).thenReturn(new UserServiceImpl(User.class, userRepository));
+        setField(service, "modelServiceFactory", modelServiceFactory);
         ejecutorAsincrono = Mockito.mock(EjecutorAsincrono.class);
         setField(service, "ejecutorAsincrono", ejecutorAsincrono);
     }
@@ -1125,7 +1134,7 @@ class CertificadoDigitalServiceImplTest {
         CertificadoDigital certificadoHabilitado = new CertificadoDigital();
         certificadoHabilitado.setDni(DNI_CON_USUARIO);
         certificadoHabilitado.setTipoCertificado(TipoUbicacionCertificado.CLASSPATH);
-        certificadoHabilitado.setRutaClasspath(RUTA_CLASSPATH_CERTIFICADO_SECRETARIO);
+        certificadoHabilitado.setRutaClasspath(RUTA_CLASSPATH_OTRO_CERTIFICADO);
         certificadoHabilitado.setPassword(CLAVE);
         certificadoHabilitado.setEnabled(Boolean.TRUE);
         stubCertificadoHabilitado(DNI_CON_USUARIO, certificadoHabilitado);
@@ -1134,7 +1143,7 @@ class CertificadoDigitalServiceImplTest {
 
         AlmacenClaveFichero almacenClaveFichero = assertInstanceOf(AlmacenClaveFichero.class, almacenClave);
         try (InputStream contenidoCertificado = almacenClaveFichero.getFileCertificate()) {
-            assertArrayEquals(contenidoDelRecursoDeClasspath(RUTA_CLASSPATH_CERTIFICADO_SECRETARIO),
+            assertArrayEquals(contenidoDelRecursoDeClasspath(RUTA_CLASSPATH_OTRO_CERTIFICADO),
                     contenidoCertificado.readAllBytes());
         }
         assertEquals(CLAVE, almacenClaveFichero.getPassword());
@@ -1272,6 +1281,38 @@ class CertificadoDigitalServiceImplTest {
                 () -> service.getAlmacenClaveByDni(DNI));
 
         assertEquals(MENSAJE_PASSWORD_NULL, ex.getMessage());
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* getByCentroCargo                                                   */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void getByCentroCargo_usuarioDelCargoConCertificadoHabilitado_devuelveSuAlmacenClave() {
+        Centro centro = new Centro();
+        stubUsuarioConCargo(centro, CargoCodigo.DIRECTOR, DNI);
+        stubCertificadoHabilitado(DNI, certificadoDispositivoPkcs11());
+
+        AlmacenClave almacenClave = service.getByCentroCargo(centro, CargoCodigo.DIRECTOR);
+
+        assertInstanceOf(AlmacenClaveDispositivo.class, almacenClave);
+    }
+
+    @Test
+    void getByCentroCargo_usuarioDelCargoSinCertificadoHabilitado_lanzaIllegalStateException() {
+        Centro centro = new Centro();
+        stubUsuarioConCargo(centro, CargoCodigo.SECRETARIO, DNI);
+        stubCertificadoHabilitado(DNI, null);
+
+        assertThrows(IllegalStateException.class, () -> service.getByCentroCargo(centro, CargoCodigo.SECRETARIO));
+    }
+
+    private void stubUsuarioConCargo(Centro centro, CargoCodigo cargo, String dni) {
+        UserService userService = Mockito.mock(UserService.class);
+        User user = new User();
+        user.setDni(dni);
+        when(userService.getByCentroAndCargo(centro, cargo)).thenReturn(user);
+        when(modelServiceFactory.resolve(User.class)).thenReturn(userService);
     }
 
     /* ------------------------------------------------------------------ */
