@@ -17,7 +17,6 @@ import com.educaflow.base.infrastructure.pdf.CampoFirma;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
-import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
 import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
 import com.educaflow.subsystem.criptografia.service.impl.CertificadoDigitalServiceImpl;
 import com.educaflow.subsystem.criptografia.service.FirmaEnServidorService;
@@ -141,13 +140,10 @@ class TareaFirmaServiceImplTest {
         tareaFirmaNotifier = Mockito.mock(TareaFirmaNotifier.class);
 
         // La firma en el servidor la hace el subsistema de criptografía. Aquí se cablea su cadena REAL
-        // (FirmaEnServidorService -> AlmacenClaveResolver) contra el mismo ModelServiceFactory mockeado que
-        // usa el resto de la clase, en vez de mockear el servicio: así estos tests siguen ejerciendo el
-        // camino completo hasta getAlmacenClaveByDni y DocumentoPdf.firmar, que es lo que comprueban.
-        AlmacenClaveResolver almacenClaveResolver = new AlmacenClaveResolver();
-        setField(almacenClaveResolver, AlmacenClaveResolver.class, "modelServiceFactory", modelServiceFactory);
+        // (FirmaEnServidorService) contra el mismo ModelServiceFactory mockeado que usa el resto de la clase,
+        // en vez de mockear el servicio: así estos tests siguen ejerciendo el camino completo hasta
+        // getAlmacenClaveByDni y DocumentoPdf.firmar, que es lo que comprueban.
         FirmaEnServidorService firmaEnServidorService = new FirmaEnServidorService();
-        setField(firmaEnServidorService, FirmaEnServidorService.class, "almacenClaveResolver", almacenClaveResolver);
         setField(firmaEnServidorService, FirmaEnServidorService.class, "modelServiceFactory", modelServiceFactory);
         setField(service, "firmaEnServidorService", firmaEnServidorService);
         setField(service, "modelServiceFactory", modelServiceFactory);

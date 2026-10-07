@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<datos>
+
+    <certificados>
+        <!-- Con la contraseña guardada -->
+        <certificado dni="98803877V" nombre="Director" apellidos="CIPFP Mislata" password="demo1234" rutaClasspath="firma/demo/certificados/98803877V.p12"/> <!-- director@mislata.es -->
+        <certificado dni="97098432E" nombre="Secretario" apellidos="CIPFP Mislata" password="demo1234" rutaClasspath="firma/demo/certificados/97098432E.p12"/> <!-- secretario@mislata.es -->
+        <certificado dni="93424956Z" nombre="JefeEstudios1" apellidos="CIPFP Mislata" password="demo1234" rutaClasspath="firma/demo/certificados/93424956Z.p12"/> <!-- jefeestudios1@mislata.es -->
+        <certificado dni="93882914L" nombre="Profesor1" apellidos="CIPFP Mislata" password="demo1234" rutaClasspath="firma/demo/certificados/93882914L.p12"/> <!-- profesor1@mislata.es -->
+        <certificado dni="95591733F" nombre="Alumno1" apellidos="CIPFP Mislata" password="demo1234" rutaClasspath="firma/demo/certificados/95591733F.p12"/> <!-- alumno1@mislata.es -->
+        <certificado dni="95963896F" nombre="Alumno3" apellidos="CIPFP Mislata" password="demo1234" rutaClasspath="firma/demo/certificados/95963896F.p12"/> <!-- alumno3@mislata.es -->
+        <certificado dni="93644616R" nombre="Alumno5" apellidos="CIPFP Mislata" password="demo1234" rutaClasspath="firma/demo/certificados/93644616R.p12"/> <!-- alumno5@mislata.es -->
+        <certificado dni="90923322K" nombre="Familiar1" apellidos="de Alumno1 CIPFP Mislata" password="demo1234" rutaClasspath="firma/demo/certificados/90923322K.p12"/> <!-- familiar1@mislata.es -->
+        <certificado dni="90390457C" nombre="Administrativo1" apellidos="CIPFP Mislata" password="demo1234" rutaClasspath="firma/demo/certificados/90390457C.p12"/> <!-- administrativo1@mislata.es -->
+        <certificado dni="93628571X" nombre="Administrativo3" apellidos="CIPFP Mislata" password="demo1234" rutaClasspath="firma/demo/certificados/93628571X.p12"/> <!-- administrativo3@mislata.es -->
+        <certificado dni="93468879F" nombre="Exprofesor1" apellidos="CIPFP Mislata" password="demo1234" rutaClasspath="firma/demo/certificados/93468879F.p12"/> <!-- exprofesor1@mislata.es -->
+        <certificado dni="94838900X" nombre="Exalumno1" apellidos="CIPFP Mislata" password="demo1234" rutaClasspath="firma/demo/certificados/94838900X.p12"/> <!-- exalumno1@mislata.es -->
+        <certificado dni="92285781Y" nombre="Exfamiliar1" apellidos="de Exalumno1 CIPFP Mislata" password="demo1234" rutaClasspath="firma/demo/certificados/92285781Y.p12"/> <!-- exfamiliar1@mislata.es -->
+        <certificado dni="93581583B" nombre="ProfesorExterno1" apellidos="CIPFP Mislata" password="demo1234" rutaClasspath="firma/demo/certificados/93581583B.p12"/> <!-- profesorexterno1@mislata.es -->
+        <certificado dni="98667426W" nombre="AlumnoExterno1" apellidos="CIPFP Mislata" password="demo1234" rutaClasspath="firma/demo/certificados/98667426W.p12"/> <!-- alumnoexterno1@mislata.es -->
+        <certificado dni="94620047W" nombre="Supervisor1" apellidos="CIPFP Mislata" password="demo1234" rutaClasspath="firma/demo/certificados/94620047W.p12"/> <!-- supervisor1@mislata.es -->
+        <certificado dni="97580380M" nombre="Director" apellidos="CIPFP Batoi" password="demo1234" rutaClasspath="firma/demo/certificados/97580380M.p12"/> <!-- director@batoi.es -->
+        <certificado dni="97078106M" nombre="Secretario" apellidos="CIPFP Batoi" password="demo1234" rutaClasspath="firma/demo/certificados/97078106M.p12"/> <!-- secretario@batoi.es -->
+        <certificado dni="97056822L" nombre="JefeEstudios1" apellidos="CIPFP Batoi" password="demo1234" rutaClasspath="firma/demo/certificados/97056822L.p12"/> <!-- jefeestudios1@batoi.es -->
+        <certificado dni="97306963N" nombre="Profesor1" apellidos="CIPFP Batoi" password="demo1234" rutaClasspath="firma/demo/certificados/97306963N.p12"/> <!-- profesor1@batoi.es -->
+        <certificado dni="92898219T" nombre="Alumno1" apellidos="CIPFP Batoi" password="demo1234" rutaClasspath="firma/demo/certificados/92898219T.p12"/> <!-- alumno1@batoi.es -->
+        <certificado dni="94772699A" nombre="Alumno3" apellidos="CIPFP Batoi" password="demo1234" rutaClasspath="firma/demo/certificados/94772699A.p12"/> <!-- alumno3@batoi.es -->
+        <certificado dni="97806389Q" nombre="Alumno5" apellidos="CIPFP Batoi" password="demo1234" rutaClasspath="firma/demo/certificados/97806389Q.p12"/> <!-- alumno5@batoi.es -->
+        <certificado dni="97736169S" nombre="Familiar1" apellidos="de Alumno1 CIPFP Batoi" password="demo1234" rutaClasspath="firma/demo/certificados/97736169S.p12"/> <!-- familiar1@batoi.es -->
+        <certificado dni="92777375K" nombre="Administrativo1" apellidos="CIPFP Batoi" password="demo1234" rutaClasspath="firma/demo/certificados/92777375K.p12"/> <!-- administrativo1@batoi.es -->
+        <certificado dni="98562710M" nombre="Exprofesor1" apellidos="CIPFP Batoi" password="demo1234" rutaClasspath="firma/demo/certificados/98562710M.p12"/> <!-- exprofesor1@batoi.es -->
+        <certificado dni="97923175P" nombre="Exalumno1" apellidos="CIPFP Batoi" password="demo1234" rutaClasspath="firma/demo/certificados/97923175P.p12"/> <!-- exalumno1@batoi.es -->
+        <certificado dni="91622246K" nombre="Exfamiliar1" apellidos="de Exalumno1 CIPFP Batoi" password="demo1234" rutaClasspath="firma/demo/certificados/91622246K.p12"/> <!-- exfamiliar1@batoi.es -->
+        <certificado dni="96124186X" nombre="ProfesorExterno1" apellidos="CIPFP Batoi" password="demo1234" rutaClasspath="firma/demo/certificados/96124186X.p12"/> <!-- profesorexterno1@batoi.es -->
+        <certificado dni="92183111P" nombre="AlumnoExterno1" apellidos="CIPFP Batoi" password="demo1234" rutaClasspath="firma/demo/certificados/92183111P.p12"/> <!-- alumnoexterno1@batoi.es -->
+        <certificado dni="96283163B" nombre="Supervisor1" apellidos="CIPFP Batoi" password="demo1234" rutaClasspath="firma/demo/certificados/96283163B.p12"/> <!-- supervisor1@batoi.es -->
+        <certificado dni="97827324K" nombre="AlumnoFamiliar" apellidos="CIPFP Mislata" password="demo1234" rutaClasspath="firma/demo/certificados/97827324K.p12"/> <!-- alumnofamiliar@mislata.es -->
+        <certificado dni="90103438H" nombre="ProfesorDosCentros" apellidos="CIPFP Mislata y Batoi" password="demo1234" rutaClasspath="firma/demo/certificados/90103438H.p12"/> <!-- mprofesor@m.com -->
+
+        <!-- Sin la contraseña guardada -->
+        <certificado dni="97853399Z" nombre="Vicedirector" apellidos="CIPFP Mislata" rutaClasspath="firma/demo/certificados/97853399Z.p12"/> <!-- vicedirector@mislata.es -->
+        <certificado dni="95624804G" nombre="Vicesecretario" apellidos="CIPFP Mislata" rutaClasspath="firma/demo/certificados/95624804G.p12"/> <!-- vicesecretario@mislata.es -->
+        <certificado dni="95043335K" nombre="JefeEstudios2" apellidos="CIPFP Mislata" rutaClasspath="firma/demo/certificados/95043335K.p12"/> <!-- jefeestudios2@mislata.es -->
+        <certificado dni="99189463P" nombre="Profesor2" apellidos="CIPFP Mislata" rutaClasspath="firma/demo/certificados/99189463P.p12"/> <!-- profesor2@mislata.es -->
+        <certificado dni="99024353S" nombre="Alumno2" apellidos="CIPFP Mislata" rutaClasspath="firma/demo/certificados/99024353S.p12"/> <!-- alumno2@mislata.es -->
+        <certificado dni="98444772B" nombre="Alumno4" apellidos="CIPFP Mislata" rutaClasspath="firma/demo/certificados/98444772B.p12"/> <!-- alumno4@mislata.es -->
+        <certificado dni="98900873E" nombre="Alumno6" apellidos="CIPFP Mislata" rutaClasspath="firma/demo/certificados/98900873E.p12"/> <!-- alumno6@mislata.es -->
+        <certificado dni="95986020M" nombre="Familiar2" apellidos="de Alumno2 CIPFP Mislata" rutaClasspath="firma/demo/certificados/95986020M.p12"/> <!-- familiar2@mislata.es -->
+        <certificado dni="97345780M" nombre="Administrativo2" apellidos="CIPFP Mislata" rutaClasspath="firma/demo/certificados/97345780M.p12"/> <!-- administrativo2@mislata.es -->
+        <certificado dni="95605814N" nombre="Exprofesor2" apellidos="CIPFP Mislata" rutaClasspath="firma/demo/certificados/95605814N.p12"/> <!-- exprofesor2@mislata.es -->
+        <certificado dni="90506464S" nombre="Exalumno2" apellidos="CIPFP Mislata" rutaClasspath="firma/demo/certificados/90506464S.p12"/> <!-- exalumno2@mislata.es -->
+        <certificado dni="93871402F" nombre="Exfamiliar2" apellidos="de Exalumno2 CIPFP Mislata" rutaClasspath="firma/demo/certificados/93871402F.p12"/> <!-- exfamiliar2@mislata.es -->
+        <certificado dni="92981069G" nombre="ProfesorExterno2" apellidos="CIPFP Mislata" rutaClasspath="firma/demo/certificados/92981069G.p12"/> <!-- profesorexterno2@mislata.es -->
+        <certificado dni="92291595R" nombre="AlumnoExterno2" apellidos="CIPFP Mislata" rutaClasspath="firma/demo/certificados/92291595R.p12"/> <!-- alumnoexterno2@mislata.es -->
+        <certificado dni="99028847R" nombre="Supervisor2" apellidos="CIPFP Mislata" rutaClasspath="firma/demo/certificados/99028847R.p12"/> <!-- supervisor2@mislata.es -->
+        <certificado dni="99515329X" nombre="Vicedirector" apellidos="CIPFP Batoi" rutaClasspath="firma/demo/certificados/99515329X.p12"/> <!-- vicedirector@batoi.es -->
+        <certificado dni="98526833P" nombre="Vicesecretario" apellidos="CIPFP Batoi" rutaClasspath="firma/demo/certificados/98526833P.p12"/> <!-- vicesecretario@batoi.es -->
+        <certificado dni="91754365M" nombre="JefeEstudios2" apellidos="CIPFP Batoi" rutaClasspath="firma/demo/certificados/91754365M.p12"/> <!-- jefeestudios2@batoi.es -->
+        <certificado dni="97362387Y" nombre="Profesor2" apellidos="CIPFP Batoi" rutaClasspath="firma/demo/certificados/97362387Y.p12"/> <!-- profesor2@batoi.es -->
+        <certificado dni="90557271S" nombre="Alumno2" apellidos="CIPFP Batoi" rutaClasspath="firma/demo/certificados/90557271S.p12"/> <!-- alumno2@batoi.es -->
+        <certificado dni="91487763L" nombre="Alumno4" apellidos="CIPFP Batoi" rutaClasspath="firma/demo/certificados/91487763L.p12"/> <!-- alumno4@batoi.es -->
+        <certificado dni="95942625B" nombre="Alumno6" apellidos="CIPFP Batoi" rutaClasspath="firma/demo/certificados/95942625B.p12"/> <!-- alumno6@batoi.es -->
+        <certificado dni="95340562L" nombre="Familiar2" apellidos="de Alumno2 CIPFP Batoi" rutaClasspath="firma/demo/certificados/95340562L.p12"/> <!-- familiar2@batoi.es -->
+        <certificado dni="98871667A" nombre="Administrativo2" apellidos="CIPFP Batoi" rutaClasspath="firma/demo/certificados/98871667A.p12"/> <!-- administrativo2@batoi.es -->
+        <certificado dni="97066563P" nombre="Exprofesor2" apellidos="CIPFP Batoi" rutaClasspath="firma/demo/certificados/97066563P.p12"/> <!-- exprofesor2@batoi.es -->
+        <certificado dni="92548986E" nombre="Exalumno2" apellidos="CIPFP Batoi" rutaClasspath="firma/demo/certificados/92548986E.p12"/> <!-- exalumno2@batoi.es -->
+        <certificado dni="96589910F" nombre="Exfamiliar2" apellidos="de Exalumno2 CIPFP Batoi" rutaClasspath="firma/demo/certificados/96589910F.p12"/> <!-- exfamiliar2@batoi.es -->
+        <certificado dni="97622872Q" nombre="ProfesorExterno2" apellidos="CIPFP Batoi" rutaClasspath="firma/demo/certificados/97622872Q.p12"/> <!-- profesorexterno2@batoi.es -->
+        <certificado dni="97036784Z" nombre="AlumnoExterno2" apellidos="CIPFP Batoi" rutaClasspath="firma/demo/certificados/97036784Z.p12"/> <!-- alumnoexterno2@batoi.es -->
+        <certificado dni="99957044X" nombre="Supervisor2" apellidos="CIPFP Batoi" rutaClasspath="firma/demo/certificados/99957044X.p12"/> <!-- supervisor2@batoi.es -->
+        <certificado dni="91785998J" nombre="AlumnoDosCentros" apellidos="CIPFP Mislata y Batoi" rutaClasspath="firma/demo/certificados/91785998J.p12"/> <!-- alumnodoscentros@mislata.es -->
+        <certificado dni="90962795A" nombre="SupervisorDosCentros" apellidos="CIPFP Mislata y Batoi" rutaClasspath="firma/demo/certificados/90962795A.p12"/> <!-- supervisordoscentros@mislata.es -->
+
+    </certificados>
+
+</datos>

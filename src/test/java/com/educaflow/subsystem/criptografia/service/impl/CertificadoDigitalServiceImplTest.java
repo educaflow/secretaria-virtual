@@ -2,10 +2,15 @@ package com.educaflow.subsystem.criptografia.service.impl;
 
 import com.axelor.auth.db.User;
 import com.axelor.auth.db.repo.UserRepository;
+import com.axelor.auth.service.impl.UserServiceImpl;
+import com.educaflow.subsystem.common.db.Centro;
+import com.educaflow.subsystem.common.db.CargoCodigo;
+import com.axelor.auth.service.UserService;
 import com.axelor.db.JPA;
 import com.axelor.db.Query;
 import com.axelor.db.modelservice.AllowProperties;
 import com.axelor.db.modelservice.BusinessMessages;
+import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.meta.db.MetaFile;
 import com.educaflow.base.infrastructure.async.EjecutorAsincrono;
 import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
@@ -48,6 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -84,6 +90,7 @@ class CertificadoDigitalServiceImplTest {
 
     private CertificadoDigitalRepository repository;
     private UserRepository userRepository;
+    private ModelServiceFactory modelServiceFactory;
     private EjecutorAsincrono ejecutorAsincrono;
     private CertificadoDigitalServiceImpl service;
 
@@ -92,7 +99,9 @@ class CertificadoDigitalServiceImplTest {
         repository = Mockito.mock(CertificadoDigitalRepository.class);
         userRepository = Mockito.mock(UserRepository.class);
         service = new CertificadoDigitalServiceImpl(CertificadoDigital.class, repository);
-        setField(service, "userRepository", userRepository);
+        modelServiceFactory = Mockito.mock(ModelServiceFactory.class);
+        lenient().when(modelServiceFactory.resolve(User.class)).thenReturn(new UserServiceImpl(User.class, userRepository));
+        setField(service, "modelServiceFactory", modelServiceFactory);
         ejecutorAsincrono = Mockito.mock(EjecutorAsincrono.class);
         setField(service, "ejecutorAsincrono", ejecutorAsincrono);
     }
@@ -1272,6 +1281,38 @@ class CertificadoDigitalServiceImplTest {
                 () -> service.getAlmacenClaveByDni(DNI));
 
         assertEquals(MENSAJE_PASSWORD_NULL, ex.getMessage());
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* getByCentroCargo                                                   */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void getByCentroCargo_usuarioDelCargoConCertificadoHabilitado_devuelveSuAlmacenClave() {
+        Centro centro = new Centro();
+        stubUsuarioConCargo(centro, CargoCodigo.DIRECTOR, DNI);
+        stubCertificadoHabilitado(DNI, certificadoDispositivoPkcs11());
+
+        AlmacenClave almacenClave = service.getByCentroCargo(centro, CargoCodigo.DIRECTOR);
+
+        assertInstanceOf(AlmacenClaveDispositivo.class, almacenClave);
+    }
+
+    @Test
+    void getByCentroCargo_usuarioDelCargoSinCertificadoHabilitado_lanzaIllegalStateException() {
+        Centro centro = new Centro();
+        stubUsuarioConCargo(centro, CargoCodigo.SECRETARIO, DNI);
+        stubCertificadoHabilitado(DNI, null);
+
+        assertThrows(IllegalStateException.class, () -> service.getByCentroCargo(centro, CargoCodigo.SECRETARIO));
+    }
+
+    private void stubUsuarioConCargo(Centro centro, CargoCodigo cargo, String dni) {
+        UserService userService = Mockito.mock(UserService.class);
+        User user = new User();
+        user.setDni(dni);
+        when(userService.getByCentroAndCargo(centro, cargo)).thenReturn(user);
+        when(modelServiceFactory.resolve(User.class)).thenReturn(userService);
     }
 
     /* ------------------------------------------------------------------ */

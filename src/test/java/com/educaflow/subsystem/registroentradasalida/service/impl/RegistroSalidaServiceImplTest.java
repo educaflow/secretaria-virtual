@@ -15,7 +15,10 @@ import com.educaflow.base.infrastructure.pdf.impl.helper.DocumentoPdfHelper;
 import com.educaflow.base.util.MetaFileUtil;
 import com.educaflow.base.util.TokenUtil;
 import com.educaflow.subsystem.common.db.Centro;
-import com.educaflow.subsystem.criptografia.service.AlmacenClaveResolver;
+import com.axelor.db.modelservice.ModelServiceFactory;
+import com.educaflow.subsystem.common.db.CargoCodigo;
+import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
+import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
 import com.educaflow.subsystem.registroentradasalida.controller.RegistroSalidaController;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroSalida;
 import com.educaflow.subsystem.registroentradasalida.db.repo.RegistroSalidaRepository;
@@ -66,6 +69,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -100,10 +104,12 @@ class RegistroSalidaServiceImplTest {
     void setUp() throws Exception {
         repository = Mockito.mock(RegistroSalidaRepository.class);
         service = new RegistroSalidaServiceImpl(RegistroSalida.class, repository);
-        AlmacenClaveResolver almacenClaveResolver = Mockito.mock(AlmacenClaveResolver.class);
+        CertificadoDigitalService certificadoDigitalService = Mockito.mock(CertificadoDigitalService.class);
+        ModelServiceFactory modelServiceFactory = Mockito.mock(ModelServiceFactory.class);
+        when(modelServiceFactory.resolve(CertificadoDigital.class)).thenReturn(certificadoDigitalService);
         setField(service, "numeradorRepository", Mockito.mock(NumeradorRepository.class));
-        setField(service, "almacenClaveResolver", almacenClaveResolver);
-        when(almacenClaveResolver.getSecretario(any())).thenAnswer(invocation -> new AlmacenClaveFichero(getClass().getResourceAsStream(FILE_CERTIFICADO), PASSWORD_CERTIFICADO));
+        setField(service, "modelServiceFactory", modelServiceFactory);
+        when(certificadoDigitalService.getByCentroCargo(any(), eq(CargoCodigo.SECRETARIO))).thenAnswer(invocation -> new AlmacenClaveFichero(getClass().getResourceAsStream(FILE_CERTIFICADO), PASSWORD_CERTIFICADO));
 
         centro = new Centro();
         centro.setCode("46019660");

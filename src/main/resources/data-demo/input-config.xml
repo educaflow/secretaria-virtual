@@ -99,4 +99,22 @@
     </input>
 
 
+    <!-- Paso 4: Crear CertificadoDigital (un certificado de la CA de demo por usuario, después de los usuarios).
+         La importación no pasa por CertificadoDigitalServiceImpl: los campos que pondría el servicio van aquí. -->
+    <input file="certificados-demo.xml" root="datos">
+        <bind node="certificados/certificado"
+              type="com.educaflow.subsystem.criptografia.db.CertificadoDigital"
+              search="self.dni = :dni" create="true" update="true">
+            <bind node="@dni"           to="dni"/>
+            <bind node="@nombre"        to="nombre"/>
+            <bind node="@apellidos"     to="apellidos"/>
+            <bind node="@password"      to="password"/>
+            <bind node="@rutaClasspath" to="rutaClasspath"/>
+            <bind eval="'CLASSPATH'"    to="tipoCertificado"/>
+            <bind eval="true"           to="nombreTomadoDelUsuario"/>
+            <bind eval="true"           to="enabled"/>
+        </bind>
+    </input>
+
+
 </xml-inputs>
