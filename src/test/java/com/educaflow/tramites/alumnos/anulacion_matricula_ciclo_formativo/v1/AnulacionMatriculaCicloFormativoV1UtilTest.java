@@ -8,6 +8,7 @@ import com.educaflow.base.infrastructure.validation.messages.BusinessException;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.CentroUsuario;
+import com.educaflow.subsystem.common.db.Persona;
 import com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1;
 import com.educaflow.subsystem.expedientes.db.ResultadoVerificacionAnulacionMatriculaCicloFormativoV1;
 import com.educaflow.tramites.util.entrada.CamposEntrada;
@@ -26,9 +27,11 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
@@ -115,6 +118,20 @@ class AnulacionMatriculaCicloFormativoV1UtilTest {
     private static AnulacionMatriculaCicloFormativoV1 expedienteEn(Centro centro) {
         AnulacionMatriculaCicloFormativoV1 expediente = new AnulacionMatriculaCicloFormativoV1();
         expediente.setCentro(centro);
+        return expediente;
+    }
+
+    private static Persona personaConDni(String dni) {
+        Persona persona = new Persona();
+        persona.setDni(dni);
+        return persona;
+    }
+
+    private static AnulacionMatriculaCicloFormativoV1 expedienteEnRepresentacion(Persona solicitante, Persona interesada) {
+        AnulacionMatriculaCicloFormativoV1 expediente = new AnulacionMatriculaCicloFormativoV1();
+        expediente.setPresentadoEnRepresentacion(true);
+        expediente.setPersonaSolicitante(solicitante);
+        expediente.setPersonaInteresada(interesada);
         return expediente;
     }
 
@@ -249,6 +266,85 @@ class AnulacionMatriculaCicloFormativoV1UtilTest {
 
         assertThrows(NullPointerException.class,
                 () -> AnulacionMatriculaCicloFormativoV1Util.exigePertenecerAlCentroDelExpediente(expediente, MENSAJE_FIRMAR));
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* esPresentadoEnRepresentacion                                       */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void esPresentadoEnRepresentacion_expedienteEnRepresentacion_true() {
+        AnulacionMatriculaCicloFormativoV1 expediente = new AnulacionMatriculaCicloFormativoV1();
+        expediente.setPresentadoEnRepresentacion(true);
+
+        assertTrue(AnulacionMatriculaCicloFormativoV1Util.esPresentadoEnRepresentacion(expediente));
+    }
+
+    @Test
+    void esPresentadoEnRepresentacion_paraElPropioSolicitanteOSinInformar_false() {
+        AnulacionMatriculaCicloFormativoV1 paraSiMismo = new AnulacionMatriculaCicloFormativoV1();
+        paraSiMismo.setPresentadoEnRepresentacion(false);
+        AnulacionMatriculaCicloFormativoV1 sinInformar = new AnulacionMatriculaCicloFormativoV1();
+        sinInformar.setPresentadoEnRepresentacion(null);
+
+        assertAll(
+                () -> assertFalse(AnulacionMatriculaCicloFormativoV1Util.esPresentadoEnRepresentacion(paraSiMismo)),
+                () -> assertFalse(AnulacionMatriculaCicloFormativoV1Util.esPresentadoEnRepresentacion(sinInformar)));
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* interesadoDistintoDelSolicitante                                   */
+    /* ------------------------------------------------------------------ */
+
+    @Test
+    void interesadoDistintoDelSolicitante_dnisDistintos_true() {
+        AnulacionMatriculaCicloFormativoV1 expediente =
+                expedienteEnRepresentacion(personaConDni("12345678Z"), personaConDni("87654321X"));
+
+        assertTrue(AnulacionMatriculaCicloFormativoV1Util.interesadoDistintoDelSolicitante(expediente));
+    }
+
+    @Test
+    void interesadoDistintoDelSolicitante_mismoDni_false() {
+        AnulacionMatriculaCicloFormativoV1 expediente =
+                expedienteEnRepresentacion(personaConDni("12345678Z"), personaConDni("12345678Z"));
+
+        assertFalse(AnulacionMatriculaCicloFormativoV1Util.interesadoDistintoDelSolicitante(expediente));
+    }
+
+    @Test
+    void interesadoDistintoDelSolicitante_mismoDniEscritoDistinto_false() {
+        // El DNI es un campo tecleado: minúsculas, espacios y el cero inicial no lo convierten en otra persona.
+        AnulacionMatriculaCicloFormativoV1 expediente =
+                expedienteEnRepresentacion(personaConDni("12345678Z"), personaConDni(" 012345678z "));
+
+        assertFalse(AnulacionMatriculaCicloFormativoV1Util.interesadoDistintoDelSolicitante(expediente));
+    }
+
+    @Test
+    void interesadoDistintoDelSolicitante_algunDniEnBlanco_true() {
+        // La obligatoriedad del DNI la exigen otras reglas: esta solo compara cuando hay dos DNI.
+        AnulacionMatriculaCicloFormativoV1 sinDniInteresada =
+                expedienteEnRepresentacion(personaConDni("12345678Z"), personaConDni(null));
+        AnulacionMatriculaCicloFormativoV1 sinDniSolicitante =
+                expedienteEnRepresentacion(personaConDni("  "), personaConDni("12345678Z"));
+
+        assertAll(
+                () -> assertTrue(AnulacionMatriculaCicloFormativoV1Util.interesadoDistintoDelSolicitante(sinDniInteresada)),
+                () -> assertTrue(AnulacionMatriculaCicloFormativoV1Util.interesadoDistintoDelSolicitante(sinDniSolicitante)));
+    }
+
+    @Test
+    void interesadoDistintoDelSolicitante_sinAlgunaPersona_lanzaIllegalState() {
+        // Las dos personas las crea el Tramitador al dar de alta: que falte una no es un error del usuario.
+        AnulacionMatriculaCicloFormativoV1 sinSolicitante = expedienteEnRepresentacion(null, personaConDni("12345678Z"));
+        AnulacionMatriculaCicloFormativoV1 sinInteresada = expedienteEnRepresentacion(personaConDni("12345678Z"), null);
+
+        assertAll(
+                () -> assertThrows(IllegalStateException.class,
+                        () -> AnulacionMatriculaCicloFormativoV1Util.interesadoDistintoDelSolicitante(sinSolicitante)),
+                () -> assertThrows(IllegalStateException.class,
+                        () -> AnulacionMatriculaCicloFormativoV1Util.interesadoDistintoDelSolicitante(sinInteresada)));
     }
 
     /* ------------------------------------------------------------------ */

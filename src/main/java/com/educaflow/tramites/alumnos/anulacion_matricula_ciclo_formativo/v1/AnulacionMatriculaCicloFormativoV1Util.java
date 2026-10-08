@@ -67,6 +67,29 @@ public final class AnulacionMatriculaCicloFormativoV1Util {
                 && DniUtil.isValid(solicitante.getDni());
     }
 
+    public static boolean esPresentadoEnRepresentacion(AnulacionMatriculaCicloFormativoV1 expediente) {
+        return Boolean.TRUE.equals(expediente.getPresentadoEnRepresentacion());
+    }
+
+    /**
+     * En representación quien presenta y el interesado son dos personas: si tienen el mismo DNI es que
+     * el solicitante lo presenta para sí mismo, y para eso está el modo «para la persona que lo presenta».
+     * Un DNI en blanco en cualquiera de los dos se da por válido: su obligatoriedad ya la exigen
+     * {@code Required} y {@link #tieneIdentificadoAlSolicitante}.
+     */
+    public static boolean interesadoDistintoDelSolicitante(AnulacionMatriculaCicloFormativoV1 expediente) {
+        Persona solicitante = expediente.getPersonaSolicitante();
+        Persona interesada = expediente.getPersonaInteresada();
+        if ((solicitante == null) || (interesada == null)) {
+            throw new IllegalStateException("El expediente " + expediente.getNumeroExpediente() + " no tiene persona solicitante o interesada: las crea el Tramitador al dar de alta el expediente");
+        }
+        if (TextUtil.isNullOrBlank(solicitante.getDni()) || TextUtil.isNullOrBlank(interesada.getDni())) {
+            return true;
+        }
+
+        return DniUtil.clean(solicitante.getDni()).equals(DniUtil.clean(interesada.getDni())) == false;
+    }
+
     public static boolean sinOtraSolicitudEnCursoParaElMismoCiclo(AnulacionMatriculaCicloFormativoV1 expediente) {
         String cursoAcademico = expediente.getCursoAcademico();
         // Sin auto-flush: cuando la regla corre, el expediente gestionado ya lleva copiados los datos

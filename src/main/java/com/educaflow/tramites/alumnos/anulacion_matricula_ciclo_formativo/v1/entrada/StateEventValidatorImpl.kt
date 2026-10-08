@@ -44,6 +44,9 @@ class StateEventValidatorImpl: StateEventValidator {
                 }
             }
             field(model::getPersonaInteresada) {
+                +ifLambda(util::esPresentadoEnRepresentacion) {
+                    +Lambda(util::interesadoDistintoDelSolicitante, "La persona interesada no puede tener el mismo DNI que quien presenta la solicitud: si la presenta para sí misma, cree el expediente eligiendo «Para la persona que lo presenta»")
+                }
                 field(Persona::getApellidos) {
                     +Required()
                     +MaxLength(150)
