@@ -16,7 +16,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
  * Con los datos de demo las dos listas de trámites coinciden (sus dos perfiles alcanzan el
  * mismo trámite), así que la diferencia por entrada se observa en la pregunta del último
  * paso, que sale de evaluar los permisos SOLO con el perfil de la entrada:
- *   - por «Mis trámites» (CREADOR), como alumno que no es familiar, solo puede ser «Para mí»:
+ *   - por «Mis trámites» (CREADOR), como alumno que no es familiar, solo puede ser «Para la persona que lo presenta»:
  *     no se pregunta «¿Para quién es el expediente?»;
  *   - por «Tramitación» (TRAMITADOR, en papel), en un trámite que admite representación,
  *     siempre se pregunta.
@@ -36,9 +36,9 @@ const PANTALLA_CONTEXTO = 'Nuevo expediente';
 
 const PREGUNTA_COMO_SE_PRESENTA = '¿Cómo se presenta?';
 const PREGUNTA_PARA_QUIEN = '¿Para quién es el expediente?';
-const OPCION_PARA_MI = 'Para mí';
+const OPCION_PARA_MI = 'Para la persona que lo presenta';
 const OPCION_EN_REPRESENTACION =
-  'Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)';
+  'Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)';
 
 function filasDeTramites(page: Page): Locator {
   return page.getByTestId('panel:tramitesPanel').locator('[role="row"][aria-level="2"]');

@@ -74,7 +74,7 @@ Panel «Presentación» (`panel:presentacionPanel`), con **como mucho** dos preg
 
 | Pregunta | Campo | Cuándo | Opciones |
 |---|---|---|---|
-| «¿Para quién es el expediente?» | `field:presentadoEnRepresentacion` | lo decide el servidor (ver abajo) | «Para mí» / «Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)» |
+| «¿Para quién es el expediente?» | `field:presentadoEnRepresentacion` | lo decide el servidor (ver abajo) | «Para la persona que lo presenta» / «Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)» |
 | «Idioma» | `field:idioma` | solo en papel («Tramitación») | «Castellano» / «Valencià» |
 
 El idioma es el del expediente.
@@ -86,9 +86,9 @@ Botones: «Atrás» (vuelve al paso 2) y «Crear expediente».
 ## Cuándo se hace la pregunta
 
 La forma de presentar ya viene fijada por la entrada.
-El servidor prueba, para esa forma, las dos respuestas («Para mí» y «en representación») contra los permisos del usuario en ese centro y ese trámite, y **solo pregunta si las dos son válidas**; si solo vale una la rellena él sin mostrarla.
-- Por «Mis trámites» (lo presenta el propio usuario), el destinatario lo deduce el tipo de usuario: un alumno que no es familiar solo puede «Para mí», un familiar que no es alumno solo puede «en representación», y quien es las dos cosas tiene que elegir.
-- Por «Tramitación» (en papel), en un trámite que admite representación, siempre se pregunta («Para mí» significa para la persona que entregó el papel).
+El servidor prueba, para esa forma, las dos respuestas («Para la persona que lo presenta» y «en representación») contra los permisos del usuario en ese centro y ese trámite, y **solo pregunta si las dos son válidas**; si solo vale una la rellena él sin mostrarla.
+- Por «Mis trámites» (lo presenta el propio usuario), el destinatario lo deduce el tipo de usuario: un alumno que no es familiar solo puede «Para la persona que lo presenta», un familiar que no es alumno solo puede «en representación», y quien es las dos cosas tiene que elegir.
+- Por «Tramitación» (en papel), en un trámite que admite representación, siempre se pregunta («Para la persona que lo presenta» significa para la persona que entregó el papel).
 - Si el trámite no admite representación, no se pregunta nunca.
 
 Casos habituales con los usuarios de demo en «CIPFP Mislata» y el trámite «Anulación de matrícula en ciclo formativo»:

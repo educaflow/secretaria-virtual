@@ -94,16 +94,16 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
 
       // Then: NO se le pregunta «¿Cómo se presenta?» aunque tiene los dos perfiles de inicio: la
       // forma de presentar (en papel) la fija la entrada de menú. Sí aparece la pregunta «¿Para
-      // quién es el expediente?» («Para mí» es para la persona que ha entregado el papel).
+      // quién es el expediente?» («Para la persona que lo presenta» es para la persona que ha entregado el papel).
       await expect(page.getByText('¿Cómo se presenta?')).toHaveCount(0);
       await expect(page.getByText('¿Para quién es el expediente?')).toBeVisible();
 
-      // When: marca «Para otra persona a la que represento (hijo/a menor de edad o persona
+      // When: marca «Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona
       // tutelada)»…
       const opcionRepresentacion = opcion(
         page,
         'presentadoEnRepresentacion',
-        'Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)',
+        'Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)',
       );
       await opcionRepresentacion.click();
       await expect(opcionRepresentacion).toBeChecked();
@@ -155,7 +155,7 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
       // EDITABLES: es el padre que entregó el papel, y en papel la aplicación no sabe quién es
       // (a diferencia de la presentación telemática en representación, donde los precarga con los
       // datos del usuario que ha entrado). Que el panel EXISTA es lo que distingue este caso de
-      // T-006, donde se presentaba en papel «Para mí» y el panel no aparece.
+      // T-006, donde se presentaba en papel «Para la persona que lo presenta» y el panel no aparece.
       const panelSolicitante = page.getByRole('region', { name: 'Persona que presenta la solicitud' });
       await expect(panelSolicitante).toBeVisible();
       for (const campo of ['Apellidos', 'Nombre', 'DNI/NIE']) {

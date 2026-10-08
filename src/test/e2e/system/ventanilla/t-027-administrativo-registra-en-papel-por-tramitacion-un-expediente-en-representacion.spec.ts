@@ -34,9 +34,9 @@ const PANTALLA_CONTEXTO = 'Nuevo expediente';
 
 const PREGUNTA_COMO_SE_PRESENTA = '¿Cómo se presenta?';
 const PREGUNTA_PARA_QUIEN = '¿Para quién es el expediente?';
-const OPCION_PARA_MI = 'Para mí';
+const OPCION_PARA_MI = 'Para la persona que lo presenta';
 const OPCION_EN_REPRESENTACION =
-  'Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)';
+  'Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)';
 
 // Primer estado cuando se registra EN PAPEL (`InitialEventManagerImpl`): quien lo presenta él
 // mismo arranca en ENTRADA_DATOS, así que este estado ya delata la forma de presentar.
@@ -229,7 +229,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await expect(radioParaMi).not.toBeChecked();
       await expect(radioEnRepresentacion).not.toBeChecked();
 
-      // Paso 6: Cuando marca "Para otra persona a la que represento…" y pulsa "Crear
+      // Paso 6: Cuando marca "Para otra persona a la que representa quien lo presenta…" y pulsa "Crear
       // expediente".
       await radioEnRepresentacion.click();
       await expect(radioEnRepresentacion).toBeChecked();

@@ -45,9 +45,9 @@ const PANTALLA_CONTEXTO = 'Nuevo expediente';
 
 const PREGUNTA_COMO_SE_PRESENTA = '¿Cómo se presenta?';
 const PREGUNTA_PARA_QUIEN = '¿Para quién es el expediente?';
-const OPCION_PARA_MI = 'Para mí';
+const OPCION_PARA_MI = 'Para la persona que lo presenta';
 const OPCION_EN_REPRESENTACION =
-  'Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)';
+  'Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)';
 
 const MODELO_EXPEDIENTE = 'com.educaflow.subsystem.expedientes.db.AnulacionMatriculaCicloFormativoV1';
 const SUFIJO_TITULO_EXPEDIENTE = `-${TRAMITE} V1`;
@@ -239,7 +239,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await expect(page.getByRole('tab', { name: PANTALLA_TRAMITE, exact: true })).toHaveCount(0);
       await comprobarEleccionDeCentro(page);
 
-      // Paso 7: Cuando elige ahora "CIPFP Batoi", pulsa la fila del trámite, marca "Para mí"
+      // Paso 7: Cuando elige ahora "CIPFP Batoi", pulsa la fila del trámite, marca "Para la persona que lo presenta"
       // y pulsa "Crear expediente".
       await filasDeCentros(page).filter({ hasText: CENTRO_FINAL }).click();
       await comprobarEleccionDeTramite(page, CENTRO_FINAL);

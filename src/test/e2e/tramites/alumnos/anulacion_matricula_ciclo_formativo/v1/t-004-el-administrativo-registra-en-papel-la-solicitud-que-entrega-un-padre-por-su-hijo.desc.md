@@ -34,7 +34,7 @@ id: T-004
 El perfil con el que nace el expediente sale de cómo se presenta: telemáticamente actúa el `CREADOR`, y en papel el `TRAMITADOR`.
 La forma de presentar la fija la entrada de menú por la que se abre el asistente, que nunca pregunta «¿Cómo se presenta?»: «Mis trámites» → «Nuevo trámite» es la del propio usuario (`CREADOR`) y «Tramitación» → «Nuevo trámite» la de registrar en papel (`TRAMITADOR`).
 Por eso `administrativo2@mislata.es`, que tiene los dos perfiles de inicio en el centro, presenta lo suyo por «Mis trámites» y registra lo que le entregan en papel por «Tramitación».
-La pregunta «¿Para quién es el expediente?» solo se hace cuando, para la forma de presentar, valen las dos respuestas: registrando en papel siempre; presentándolo uno mismo, nunca a estos actores (el alumno solo puede «Para mí» y el familiar solo «en representación», y el asistente lo fija sin preguntar).
+La pregunta «¿Para quién es el expediente?» solo se hace cuando, para la forma de presentar, valen las dos respuestas: registrando en papel siempre; presentándolo uno mismo, nunca a estos actores (el alumno solo puede «Para la persona que lo presenta» y el familiar solo «en representación», y el asistente lo fija sin preguntar).
 Cómo funciona el asistente está en `src/main/java/com/educaflow/system/ventanilla/views/nuevoexpediente/CLAUDE.md`.
 
 ### Datos de demo
@@ -64,7 +64,7 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 ## Pasos
 
 - **Given** que `administrativo1@mislata.es` (contraseña `demo1234`) es administrativo de CIPFP Mislata con el perfil `TRAMITADOR`, y que quien ha entregado la solicitud en ventanilla es el padre de un alumno, que la presenta en representación de su hijo.
-- **When** inicia sesión, abre «Tramitación» → «Nuevo trámite», despliega «Trámites para el alumno», pulsa sobre «Anulación de matrícula en ciclo formativo», marca «Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)» en la pregunta «¿Para quién es el expediente?» (no se le pregunta «¿Cómo se presenta?»: la presentación en papel la fija la entrada «Tramitación» → «Nuevo trámite»), elige el idioma «Castellano» y pulsa «Crear expediente».
+- **When** inicia sesión, abre «Tramitación» → «Nuevo trámite», despliega «Trámites para el alumno», pulsa sobre «Anulación de matrícula en ciclo formativo», marca «Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)» en la pregunta «¿Para quién es el expediente?» (no se le pregunta «¿Cómo se presenta?»: la presentación en papel la fija la entrada «Tramitación» → «Nuevo trámite»), elige el idioma «Castellano» y pulsa «Crear expediente».
 - **Then** se abre el expediente en la fase `ENTRADA`, estado `PENDIENTE_DOCUMENTO_ESCANEADO`, con el panel «Solicitud entregada en papel» y su campo «Solicitud escaneada (PDF)».
 - **When** adjunta un PDF de menos de 10 MB y pulsa «Siguiente».
 - **Then** el expediente pasa al estado `ENTRADA_DATOS`, con la cabecera «Entrada» / «Entrada de datos».

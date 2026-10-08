@@ -54,8 +54,8 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 3. **Entonces** "Nuevo expediente" no pregunta "¿Para quién es el expediente?" (presentándolo él mismo, como alumno que no es familiar, solo puede ser para él).
 4. **Cuando** pulsa "Atrás" y, en "elija el trámite", "Cancelar", el asistente se cierra.
 5. **Y**, sin recargar la aplicación, abre el menú "Tramitación", pulsa "Nuevo trámite" y, en "elija el trámite" (con el mismo centro y el mismo trámite), pulsa la fila del trámite.
-6. **Entonces** "Nuevo expediente" sí pregunta "¿Para quién es el expediente?", con "Para mí" y "Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)" sin marcar.
-7. **Cuando** marca "Para mí", elige el idioma "Castellano" y pulsa "Crear expediente".
+6. **Entonces** "Nuevo expediente" sí pregunta "¿Para quién es el expediente?", con "Para la persona que lo presenta" y "Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)" sin marcar.
+7. **Cuando** marca "Para la persona que lo presenta", elige el idioma "Castellano" y pulsa "Crear expediente".
 
 **Nota.**
 Es la regresión de un fallo del cliente: al cerrar el asistente con "Cancelar" la URL seguía apuntando a la entrada "Mis trámites", y el siguiente clic en un menú la reabría a la vez que "Tramitación".

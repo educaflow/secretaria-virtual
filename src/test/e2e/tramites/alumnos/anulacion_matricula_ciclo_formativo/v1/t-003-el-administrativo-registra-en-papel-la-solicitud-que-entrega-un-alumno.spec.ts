@@ -98,21 +98,21 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
       // «Tramitación» → «Nuevo trámite».
       await expect(page.getByText('¿Cómo se presenta?')).toHaveCount(0);
 
-      // And: se muestra la pregunta «¿Para quién es el expediente?» («Para mí» es para la persona
+      // And: se muestra la pregunta «¿Para quién es el expediente?» («Para la persona que lo presenta» es para la persona
       // que ha entregado el papel), con sus dos opciones y ninguna marcada.
       await expect(page.getByText('¿Para quién es el expediente?')).toBeVisible();
-      const opcionParaMi = opcion(page, 'presentadoEnRepresentacion', 'Para mí');
+      const opcionParaMi = opcion(page, 'presentadoEnRepresentacion', 'Para la persona que lo presenta');
       const opcionRepresentacion = opcion(
         page,
         'presentadoEnRepresentacion',
-        'Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)',
+        'Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)',
       );
       await expect(opcionParaMi).toBeVisible();
       await expect(opcionRepresentacion).toBeVisible();
       await expect(opcionParaMi).not.toBeChecked();
       await expect(opcionRepresentacion).not.toBeChecked();
 
-      // When: marca «Para mí» —la solicitud es del propio alumno que la ha entregado— y pulsa
+      // When: marca «Para la persona que lo presenta» —la solicitud es del propio alumno que la ha entregado— y pulsa
       // «Crear expediente».
       await opcionParaMi.click();
       await expect(opcionParaMi).toBeChecked();

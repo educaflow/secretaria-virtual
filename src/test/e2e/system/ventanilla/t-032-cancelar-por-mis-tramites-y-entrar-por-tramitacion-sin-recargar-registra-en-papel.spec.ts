@@ -43,9 +43,9 @@ const PANTALLA_TRAMITE = 'Nuevo expediente: elija el trámite';
 const PANTALLA_CONTEXTO = 'Nuevo expediente';
 
 const PREGUNTA_PARA_QUIEN = '¿Para quién es el expediente?';
-const OPCION_PARA_MI = 'Para mí';
+const OPCION_PARA_MI = 'Para la persona que lo presenta';
 const OPCION_EN_REPRESENTACION =
-  'Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)';
+  'Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)';
 
 // Primer estado cuando se registra EN PAPEL; presentándolo él mismo arrancaría en
 // «Entrada de datos», así que el estado ya delata la forma de presentar.
@@ -271,7 +271,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await expect(radioParaMi).not.toBeChecked();
       await expect(radioEnRepresentacion).not.toBeChecked();
 
-      // Paso 7: Cuando marca "Para mí" y pulsa "Crear expediente".
+      // Paso 7: Cuando marca "Para la persona que lo presenta" y pulsa "Crear expediente".
       await radioParaMi.click();
       await expect(radioParaMi).toBeChecked();
       // En papel el idioma del expediente es obligatorio: se elige explícitamente para no

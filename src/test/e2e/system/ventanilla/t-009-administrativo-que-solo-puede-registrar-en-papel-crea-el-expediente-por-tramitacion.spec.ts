@@ -56,10 +56,10 @@ const PREGUNTA_COMO_SE_PRESENTA = '¿Cómo se presenta?';
 const PREGUNTA_PARA_QUIEN = '¿Para quién es el expediente?';
 
 // Las dos opciones de «¿Para quién es el expediente?» (los `x-false-text`/`x-true-text`
-// del widget `boolean-radio`): «Para mí» es `presentadoEnRepresentacion = false`.
-const OPCION_PARA_MI = 'Para mí';
+// del widget `boolean-radio`): «Para la persona que lo presenta» es `presentadoEnRepresentacion = false`.
+const OPCION_PARA_MI = 'Para la persona que lo presenta';
 const OPCION_EN_REPRESENTACION =
-  'Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)';
+  'Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)';
 
 // Primer estado del tipo de expediente cuando se registra EN PAPEL, según
 // `InitialEventManagerImpl`: fase ENTRADA, estado PENDIENTE_DOCUMENTO_ESCANEADO.
@@ -322,7 +322,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await expect(page.getByText(PREGUNTA_PARA_QUIEN)).toBeVisible();
       await expect(page.getByTestId('field:presentadoEnRepresentacion')).toBeVisible();
 
-      // …con las opciones "Para mí" y "Para otra persona a la que represento (hijo/a
+      // …con las opciones "Para la persona que lo presenta" y "Para otra persona a la que representa quien lo presenta (hijo/a
       // menor de edad o persona tutelada)", sin ninguna marcada.
       const radioParaMi = opcionParaQuien(page, OPCION_PARA_MI);
       const radioEnRepresentacion = opcionParaQuien(page, OPCION_EN_REPRESENTACION);
@@ -335,7 +335,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await expect(page.getByRole('button', { name: 'Atrás' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Crear expediente' })).toBeVisible();
 
-      // Paso 6: Cuando marca "Para mí" y pulsa "Crear expediente".
+      // Paso 6: Cuando marca "Para la persona que lo presenta" y pulsa "Crear expediente".
       await radioParaMi.click();
       // El expediente se crea con lo que estaba marcado en ese instante: sin esta
       // comprobación, un radio que no llegara a marcarse dejaría pasar el test.
@@ -391,7 +391,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       );
 
       // Resultado esperado: …y PARA ÉL MISMO, no en representación de otra persona.
-      // Lo que el usuario eligió ya está comprobado arriba (marcó "Para mí" y era la
+      // Lo que el usuario eligió ya está comprobado arriba (marcó "Para la persona que lo presenta" y era la
       // única opción marcada al pulsar "Crear expediente"), pero eso es la ENTRADA de la
       // acción, no lo persistido. Aquí solo se deja constancia de que en esta pantalla
       // tampoco asoma el panel del solicitante; ojo: por sí sola esta línea NO prueba

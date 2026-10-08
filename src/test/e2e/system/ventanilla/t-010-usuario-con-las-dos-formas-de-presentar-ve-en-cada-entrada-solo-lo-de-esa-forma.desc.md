@@ -54,7 +54,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 3. **Entonces** "Nuevo expediente" no pregunta "¿Cómo se presenta?" ni "¿Para quién es el expediente?" (presentándolo él mismo, como alumno que no es familiar, solo puede ser para él).
 4. **Cuando** pulsa "Atrás" y, en "elija el trámite", "Cancelar".
 5. **Y**, sin recargar la aplicación, abre el menú "Tramitación", pulsa "Nuevo trámite" y, en "elija el trámite" (con el mismo centro y el mismo trámite), pulsa la fila del trámite.
-6. **Entonces** "Nuevo expediente" sigue sin preguntar "¿Cómo se presenta?" pero sí pregunta "¿Para quién es el expediente?", con "Para mí" y "Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)" sin marcar.
+6. **Entonces** "Nuevo expediente" sigue sin preguntar "¿Cómo se presenta?" pero sí pregunta "¿Para quién es el expediente?", con "Para la persona que lo presenta" y "Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)" sin marcar.
 7. **Cuando** pulsa "Atrás" y "Cancelar".
 
 **Nota.**

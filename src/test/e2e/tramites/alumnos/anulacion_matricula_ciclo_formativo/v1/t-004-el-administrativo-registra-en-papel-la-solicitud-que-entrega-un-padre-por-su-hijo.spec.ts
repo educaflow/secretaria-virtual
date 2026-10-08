@@ -90,7 +90,7 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
       // y pulsa sobre «Anulación de matrícula en ciclo formativo».
       await abrirAltaDelTramite(page);
 
-      // When (cont.): marca «Para otra persona a la que represento (hijo/a menor de edad o persona
+      // When (cont.): marca «Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona
       // tutelada)» en la pregunta «¿Para quién es el expediente?» (no se le pregunta cómo se
       // presenta: la forma, en papel, la fija la entrada «Tramitación» → «Nuevo trámite»)…
       await expect(page.getByText('¿Cómo se presenta?')).toHaveCount(0);
@@ -98,7 +98,7 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
       const opcionRepresentacion = opcion(
         page,
         'presentadoEnRepresentacion',
-        'Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)',
+        'Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)',
       );
       await opcionRepresentacion.click();
       await expect(opcionRepresentacion).toBeChecked();

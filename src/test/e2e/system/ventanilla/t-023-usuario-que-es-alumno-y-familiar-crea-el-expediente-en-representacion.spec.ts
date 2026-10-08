@@ -61,9 +61,9 @@ const PREGUNTA_PARA_QUIEN = '¿Para quién es el expediente?';
 
 // Las dos opciones de «¿Para quién es el expediente?» (los `x-false-text`/`x-true-text`
 // del widget `boolean-radio`): «Para otra persona…» es `presentadoEnRepresentacion = true`.
-const OPCION_PARA_MI = 'Para mí';
+const OPCION_PARA_MI = 'Para la persona que lo presenta';
 const OPCION_EN_REPRESENTACION =
-  'Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)';
+  'Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)';
 
 // Primer estado del tipo de expediente para quien lo presenta él mismo (perfil
 // CREADOR), según `TipoExpedienteInstance.xml`: fase ENTRADA, estado ENTRADA_DATOS.
@@ -91,7 +91,7 @@ const PANEL_PERSONA_SOLICITANTE = 'panel:persona-solicitante-editable';
 // de `tramites/alumnos/.../v1/views.xml`) que identifica al interesado (el alumno).
 // En representación nace VACÍO y EDITABLE: quien presenta es quien tiene que teclear
 // quién es el alumno, el sistema no lo conoce de antemano (a diferencia de T-013,
-// donde el mismo usuario marca "Para mí" y estos datos llegan prerrellenos).
+// donde el mismo usuario marca "Para la persona que lo presenta" y estos datos llegan prerrellenos).
 const PANEL_ALUMNO = 'panel:alumno';
 
 // Título de la pestaña del expediente creado: <nº>/<año>-<código del centro>-<trámite> V1
@@ -232,8 +232,8 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await expect(page.getByText('¿Cómo se presenta?')).toHaveCount(0);
       await expect(page.getByTestId('field:presentadoEnPapel')).toHaveCount(0);
 
-      // …y CON "¿Para quién es el expediente?" visible, con "Para mí" y "Para otra
-      // persona a la que represento (hijo/a menor de edad o persona tutelada)", sin
+      // …y CON "¿Para quién es el expediente?" visible, con "Para la persona que lo presenta" y "Para otra
+      // persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)", sin
       // ninguna marcada.
       await expect(page.getByText(PREGUNTA_PARA_QUIEN)).toBeVisible();
       await expect(page.getByTestId('field:presentadoEnRepresentacion')).toBeVisible();
@@ -244,7 +244,7 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await expect(radioParaMi).not.toBeChecked();
       await expect(radioEnRepresentacion).not.toBeChecked();
 
-      // Paso 6: Cuando marca "Para otra persona a la que represento (hijo/a menor de
+      // Paso 6: Cuando marca "Para otra persona a la que representa quien lo presenta (hijo/a menor de
       // edad o persona tutelada)" y pulsa "Crear expediente".
       await radioEnRepresentacion.click();
       // El expediente se crea con lo que estaba marcado en ese instante: sin esta
