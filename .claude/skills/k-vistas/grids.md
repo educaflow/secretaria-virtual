@@ -24,6 +24,8 @@ Un grid es la vista tabular de Axelor para listar registros (filas) de un modelo
 - Excepciones:
   - Si se pueden crear nuevas entidades desde el grid, añadir `canNew="true" newButtonTitle="Nueva ley educativa"` 
   - Si no se pueden crear nuevas entidades desde el grid, añadir `canNew="false"` y no incluir el atributo `newButtonTitle`
+  - `newButtonTitle` es una modificación nuestra de AOP: cambia el «+» por un botón `primary` con ese texto.
+    Vale tanto en la toolbar del grid como en la cabecera de un `<panel-dashlet>` que muestra ese grid: allí el texto se toma del `newButtonTitle` del **grid**.
   - Si se pueden editar las entidades desde el grid, añadir `canEditOnClick="true"` y no incluir el atributo `canViewOnClick`
   - Si SOLO pueden ver las entidades desde el grid, añadir `canViewOnClick="true"` y no incluir el atributo `canEditOnClick`
   - Si el grid declara `action` (ver «Clic sobre la fila»), **MUST NOT** llevar ni `canEditOnClick` ni `canViewOnClick`

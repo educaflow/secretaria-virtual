@@ -106,6 +106,40 @@ Los action-groups de los botones del form modal usan acciones específicas del f
 | Validación remota (`remote-validation*`) | sí, antes de `save`/`delete` | **no** (el maestro puede no existir en BD) |
 | Validación cliente (`Local-validate*`)   | opcional (solo UX)           | **MUST, lo más completa posible** (única validación antes de cerrar el modal) |
 
+## Form maestro en popup (abierto desde un `panel-dashlet`)
+
+Un form maestro cuyo `<action-view>` declara `<view-param name="popup" value="true"/>` (p.ej. el que lista un `<panel-dashlet>` de otro form, como `subsysCommon.Main@CentroUsuario-form` desde `Main@Centro-form`) se abre en el **editor popup** de Axelor.
+Ahí no hay vista anterior a la que volver, así que `back`/`force-back` **no hacen nada** y `canBackOnSave` no cierra: Guardar guardaría pero dejaría la ventana abierta.
+Guarda contra el servidor como cualquier maestro, pero **cierra como un detalle**:
+
+- `<action-view>`: **MUST** declarar `<view-param name="popup.show-footer" value="false"/>`; si no, el editor popup añade su propio pie «Cerrar»/«Aceptar» debajo de nuestro `buttons-panel`.
+  Es una modificación nuestra de AOP (`use-editor.tsx`), el equivalente para el dashlet del `showFooter="false"` del `<panel-related>`.
+- `<form>`: **sin `canBackOnSave`**.
+- Botón Guardar: [`Local-validateSave-action`] → `remote-validationSave-action` → `save-modal`.
+  Al no haber colección en memoria del padre, `save-modal` persiste el registro en BD, refresca el grid del dashlet y cierra.
+- Botón Cancelar: `close` (no `back`).
+- Botón Borrar: igual que el maestro (`delete`).
+
+```xml
+<action-view name="subsysCommon.Main@CentroUsuario-action" title="Usuarios" model="com.educaflow.subsystem.common.db.CentroUsuario">
+    <view type="grid" name="subsysCommon.Main@CentroUsuario-grid"/>
+    <view type="form" name="subsysCommon.Main@CentroUsuario-form"/>
+    <view-param name="popup" value="true"/>
+    <view-param name="popup.show-footer" value="false"/>
+    …
+</action-view>
+
+<action-group name="subsysCommon.Main@CentroUsuario-btnCancel-action">
+    <action name="close"/>
+</action-group>
+<action-group name="subsysCommon.Main@CentroUsuario-btnSave-action">
+    <action name="remote-validationSave-action"/>
+    <action name="save-modal"/>
+</action-group>
+```
+
+Reglas verificables: `VAR-5.1` y `VAR-7.2` de `agent_docs/view-rules.md` (subtipo «maestro en popup» del glosario).
+
 ## Botones principales y secundarios
 - Los botones principales (guardar, cancelar, etc) están a la derecha del todo
 - **MUST** — un botón principal queda pegado al borde derecho: su `colOffset + colSpan` **suma exactamente 12**. Cuando el panel tiene un único botón principal (p.ej. **Salir** en un `Ref@…-form` de solo lectura) con `colSpan="2"`, el `colOffset` **MUST** ser `10` (10+2=12), no 8.

@@ -80,6 +80,10 @@ Vocabulario común para leer las reglas, del fichero a la PI:
 
   Rasgos funcionales de cada clase (el detalle normativo lo fijan las Categorías 5 a 7):
   - **maestro**: se abre desde el menú por su `action-view` y guarda/borra **contra el servidor**.
+    **Maestro en popup**: maestro abierto por un `<action-view>` (una `<view type="form">` con su `name`) que declara `<view-param name="popup" value="true"/>`, p.ej. el que lista un `<panel-dashlet>` de otro form (`Main@CentroUsuario` desde `Main@Centro`).
+      El form se abre en el editor popup, donde no hay vista anterior a la que volver: `back`/`force-back` no hacen nada y `canBackOnSave` no cierra.
+      Por eso guarda contra el servidor como cualquier maestro, pero cierra como un detalle: con `save-modal` (que, al no haber colección en memoria del padre, persiste el registro, refresca el grid y cierra) y con `close`.
+      Su `<action-view>` declara además `<view-param name="popup.show-footer" value="false"/>` para ocultar el pie «Cerrar»/«Aceptar» del editor popup (modificación de AOP, el equivalente al `showFooter="false"` del `<panel-related>`).
   - **detalle** (también llamado **hijo** o **modal**): se abre en modal desde el `<panel-related>` de su maestro y opera sobre la colección **en memoria** del padre (el walker valida los detalles en cascada al guardar el maestro).
     **Detalle de solo lectura**: form de detalle sin ningún `<button>` (p.ej. `Pendiente@TareaFirma.DocumentoFirma`); queda exento de las reglas de botones y de `onNew`.
   - **referencia** (`Ref-{Entidad}.xml`, `Ref@…-grid` / `Ref@…-form`): grid/form de **solo lectura** de una entidad relacionada, abiertos **embebidos** desde un `<field>` relacional de otro form; sin `action-view` ni entrada de menú, y su único botón es «Salir».
@@ -504,7 +508,7 @@ Las categorías siguientes contienen las reglas **estructurales** de cada tipo d
     con la toolbar nativa viva, o el guardado colgado del `onSave`, el usuario podría guardar o borrar saltándose las validaciones y el cierre controlado.
     Se conserva solo `canBackOnSave`, y únicamente donde aporta (por eso depende de la clase):
       en el maestro hace que al guardar con éxito la vista vuelva sola al grid (el cierre lo remata el `force-back` explícito del `btnSave`, ver `VAR-7.2`);
-      en un detalle el cierre lo gestiona `save-modal` y en una referencia no se guarda nada, así que en ambos sobra.
+      en un detalle y en un maestro en popup el cierre lo gestiona `save-modal` y en una referencia no se guarda nada, así que en todos ellos sobra.
   - `<grid>`: todo listado es de solo consulta/navegación uniforme (no editable en línea, sin selector ni búsqueda avanzada/refresco, ordenado, sin título redundante) y sin el concepto de archivado (confuso para el usuario final y no usado en el proyecto).
   - `<panel-related>`: la rejilla embebida de un detalle se comporta igual en todas las pantallas (ancho completo, sin edición en línea ni borrado directo desde la rejilla — todo pasa por el modal — y abriendo en edición).
   - `buttons-panel`: los botones de acción están siempre en el mismo sitio y con el mismo aspecto (agrupados al final del form, sin marco).
@@ -515,7 +519,7 @@ Las categorías siguientes contienen las reglas **estructurales** de cada tipo d
 
   | Elemento | Atributos canónicos |
   |---|---|
-  | `<form>` | `canAttach`/`canBack`/`canDelete`/`canNew`/`canSave`/`canMore`, si están presentes, valen `false` (ninguno vale `true`); sin atributo `onSave`; `canBackOnSave="true"` **solo** en el form maestro con `btnSave` (ausente en el maestro de solo consulta, el detalle y la referencia) |
+  | `<form>` | `canAttach`/`canBack`/`canDelete`/`canNew`/`canSave`/`canMore`, si están presentes, valen `false` (ninguno vale `true`); sin atributo `onSave`; `canBackOnSave="true"` **solo** en el form maestro con `btnSave` que no es maestro en popup (ausente en el maestro de solo consulta, el maestro en popup, el detalle y la referencia) |
   | `<grid>` | presentes `editable="false"`, `edit-icon="false"`, `x-selector="none"`, `canEdit="false"`, `canDelete="false"`, `canSave="false"`, `title=""` y `orderBy`; `canAdvanceSearch` y `canRefresh` ausentes o a `"false"`; sin atributo `archived` |
   | `<panel-related>` | presentes `colSpan="12"`, `showFooter="false"`, `canEdit="false"`, `canRemove="false"` y `forceEdit="true"` (la coherencia `canNew`/`newButtonTitle` la verifica `VAR-8.2`; que sus `grid-view`/`form-view` existan, `VAR-4.1`) |
   | `buttons-panel` | `title` vacío, `colSpan="12"` y `showFrame="false"` |
@@ -537,7 +541,7 @@ Las categorías siguientes contienen las reglas **estructurales** de cada tipo d
             showIf="(id!=null) || (cid!=null)" css="btn-danger" outline="true"/>
 </panel>
 ```
-**Incorrecto** ❌ — `<form … canSave="true" canNew="true">` (deja viva la toolbar nativa); `<form … onSave="…-Local-validateSave-action">` (la validación cuelga del `btnSave-action`, no del `onSave`); el form maestro con `btnSave` sin `canBackOnSave`; un form de detalle o referencia con `canBackOnSave="true"`; un `<grid>` sin `orderBy` o con `archived="true"`; un `<panel-related>` con `canEdit="true"` o sin `forceEdit="true"`; un `buttons-panel` con `showFrame="true"`; un `btnDelete` con `css="btn-primary"` y sin `showIf`.
+**Incorrecto** ❌ — `<form … canSave="true" canNew="true">` (deja viva la toolbar nativa); `<form … onSave="…-Local-validateSave-action">` (la validación cuelga del `btnSave-action`, no del `onSave`); el form maestro con `btnSave` sin `canBackOnSave` (salvo el maestro en popup); un maestro en popup con `canBackOnSave="true"`; un form de detalle o referencia con `canBackOnSave="true"`; un `<grid>` sin `orderBy` o con `archived="true"`; un `<panel-related>` con `canEdit="true"` o sin `forceEdit="true"`; un `buttons-panel` con `showFrame="true"`; un `btnDelete` con `css="btn-primary"` y sin `showIf`.
 
 ## VAR-5.2 — La clase referencia es de solo lectura
 **Decisión.**
@@ -767,16 +771,19 @@ Las secuencias de los botones estándar (`btnSave`/`btnDelete`/`btnCancel`) depe
   Para guardar, borrar y cancelar de forma segura y uniforme:
     en el **maestro**, primero las validaciones (local y remota), luego la acción predefinida, y tras `save` un cierre explícito con `force-back` (si el usuario pulsa Guardar sin cambiar nada `save` es un no-op y `canBackOnSave` no cierra la ventana — `force-back` sí).
     El cierre **MUST** ser `force-back` y **MUST NOT** ser `back`: tras un `save` correcto no queda nada por guardar, pero el flag *dirty* de la vista todavía no está limpio cuando se ejecuta la acción siguiente, así que `back` saca el diálogo «Current changes will be lost» sobre un registro ya guardado. `back` es el cierre del `btnCancel` de un maestro **que guarda**, donde preguntar por los cambios sí es lo correcto; un maestro **sin `save`** cuyo `<action-view>` **no** declara ninguna `<view type="grid">` (un asistente: ni persiste nada ni tiene `grid` al que volver) **MUST** contener `close` en su `btnCancel`; un maestro sin `save` cuyo `<action-view>` **sí** declara un `grid` sigue con `back`, porque el `grid` al que volver existe aunque no se guarde nada;
+    en el **maestro en popup** (glosario), las validaciones van igual que en el maestro, pero el cierre es el del detalle (`save-modal` y `close`), porque en el editor popup `back`/`force-back` no tienen vista a la que volver y no cierran;
     en el **detalle**, las variantes `-modal` operan sobre la colección en memoria del padre y la validación remota no aplica (ver preámbulo de la categoría);
     en la **referencia** solo se puede salir, sin tocar el registro.
 **Verificación.**
   Sujeto: el `<action-group>` referenciado por el `onClick` de cada botón estándar (`name` que empieza por `btnSave`/`btnDelete`/`btnCancel`), según la clase de su form —
 
-  | Botón | maestro | detalle | referencia |
-  |---|---|---|---|
-  | `btnSave` | [`Local-…`]* → `remote-validationSave-action` → `save` → `force-back` (inmediatamente tras `save`; **nunca** `back`) | [`Local-…`]* → `save-modal`; **sin** ninguna `remote-validation*` | no existe |
-  | `btnDelete` | [`remote-validationDelete-action`] → `delete` (termina en `delete`) | termina en `delete-modal`; **sin** ninguna `remote-validation*` | no existe |
-  | `btnCancel` | contiene `back`; si el form maestro **no** declara `btnSave` **y** ningún `<action-view>` que lo abra (una `<view type="form">` con su `name`) declara una `<view type="grid">`, contiene `close` | contiene `close` | contiene `close` |
+  | Botón | maestro | maestro en popup | detalle | referencia |
+  |---|---|---|---|---|
+  | `btnSave` | [`Local-…`]* → `remote-validationSave-action` → `save` → `force-back` (inmediatamente tras `save`; **nunca** `back`) | [`Local-…`]* → `remote-validationSave-action` → `save-modal`; **sin** `save`/`back`/`force-back` | [`Local-…`]* → `save-modal`; **sin** ninguna `remote-validation*` | no existe |
+  | `btnDelete` | [`remote-validationDelete-action`] → `delete` (termina en `delete`) | igual que el maestro | termina en `delete-modal`; **sin** ninguna `remote-validation*` | no existe |
+  | `btnCancel` | contiene `back`; si el form maestro **no** declara `btnSave` **y** ningún `<action-view>` que lo abra (una `<view type="form">` con su `name`) declara una `<view type="grid">`, contiene `close` | contiene `close` | contiene `close` | contiene `close` |
+
+  Un form maestro es **maestro en popup** si algún `<action-view>` que lo abre (una `<view type="form">` con su `name`) declara `<view-param name="popup" value="true"/>`.
 
 **Correcto** ✅
 ```xml
@@ -800,7 +807,7 @@ Las secuencias de los botones estándar (`btnSave`/`btnDelete`/`btnCancel`) depe
     <action name="save-modal"/>
 </action-group>
 ```
-**Incorrecto** ❌ — en el maestro, `save` sin cierre después, `save` → `back` (pregunta «Current changes will be lost» sobre un registro ya guardado), `save` antes de la validación, o un `btnCancel` con `close` en un maestro que no cumple las **dos** condiciones de la rama del asistente (tiene `btnSave`, o su `action-view` declara una `<view type="grid">`); o un `btnCancel` con `back` en un maestro sin `btnSave` cuyo `action-view` declara solo `<view type="form">`; en el detalle, `save`+`force-back` (o `save`+`back`) o `delete` (secuencias de maestro), una `remote-validation*` antes de `save-modal`/`delete-modal`, o un `btnCancel` con `back`.
+**Incorrecto** ❌ — en el maestro, `save` sin cierre después, `save` → `back` (pregunta «Current changes will be lost» sobre un registro ya guardado), `save` antes de la validación, o un `btnCancel` con `close` en un maestro que no cumple las **dos** condiciones de la rama del asistente (tiene `btnSave`, o su `action-view` declara una `<view type="grid">`); o un `btnCancel` con `back` en un maestro sin `btnSave` cuyo `action-view` declara solo `<view type="form">`; en el maestro en popup, `save` → `force-back` (en el popup no cierra) o un `btnCancel` con `back`; en el detalle, `save`+`force-back` (o `save`+`back`) o `delete` (secuencias de maestro), una `remote-validation*` antes de `save-modal`/`delete-modal`, o un `btnCancel` con `back`.
 
 ## VAR-7.3 — Los grupos de save/delete no llaman a controladores propios
 **Decisión.**
