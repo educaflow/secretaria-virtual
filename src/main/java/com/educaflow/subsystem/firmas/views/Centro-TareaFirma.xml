@@ -31,10 +31,10 @@
           related='{"documentosFirma":["documentoOriginal","documentoFirmado"]}'>
 
         <panel name="tareaFirma" title="Estado de la tarea de firma" colSpan="12" readonly="true">
-            <field name="motivoFirma"      colSpan="8"  />
-            <field name="estadoTareaFirma" widget="RadioSelect" x-direction="horizontal" colSpan="4"  />
-            <field name="centro"           colSpan="4"  />
-            <field name="fechaSolicitud"   colSpan="4"  />
+            <field name="estadoTareaFirma" widget="RadioSelect" x-direction="horizontal" colSpan="6"  />
+            <field name="centro"           colSpan="6"  />
+            <field name="motivoFirma"      colSpan="12" colOffset="8"  />
+            <field name="fechaSolicitud"   colSpan="3"  />
             <field name="fechaResolucion"  colSpan="4" showIf="fechaResolucion!=null" />
             <field name="motivoRechazo"    colSpan="12"  showIf="motivoRechazo!=null"/>
         </panel>

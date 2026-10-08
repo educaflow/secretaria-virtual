@@ -1,6 +1,7 @@
 package com.educaflow.subsystem.registroentradasalida.service.impl;
 
 import com.axelor.db.modelservice.ModelServiceFactory;
+import com.educaflow.base.util.Idioma;
 import com.educaflow.subsystem.common.db.CargoCodigo;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
 import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
@@ -14,7 +15,6 @@ import com.educaflow.base.infrastructure.criptografia.AlmacenClave;
 import com.educaflow.base.infrastructure.metafile.MetaFileHelper;
 import com.educaflow.base.infrastructure.numeradores.db.repo.NumeradorRepository;
 import com.educaflow.base.infrastructure.pdf.*;
-import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
 import com.educaflow.base.infrastructure.pdfgenerator.PdfGeneratorFactory;
 import com.educaflow.base.util.TextUtil;
 import com.educaflow.subsystem.common.db.Centro;

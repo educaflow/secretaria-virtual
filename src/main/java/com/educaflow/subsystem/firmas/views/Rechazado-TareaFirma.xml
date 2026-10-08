@@ -31,8 +31,8 @@
           related='{"documentosFirma":["documentoOriginal"]}'>
 
         <panel name="tareaFirma" title="Estado de la tarea de firma rechazara" colSpan="12" readonly="true">
-            <field name="motivoFirma"   colSpan="8"/>
-            <field name="estadoTareaFirma"   widget="RadioSelect" x-direction="horizontal" colSpan="4"/>
+            <field name="estadoTareaFirma"   colSpan="6"/>
+            <field name="motivoFirma"   colSpan="12" colOffset="12"/>
             <field name="fechaSolicitud"   colSpan="4"/>
             <field name="fechaResolucion"   colSpan="4" />
             <field name="motivoRechazo"    colSpan="12"  />

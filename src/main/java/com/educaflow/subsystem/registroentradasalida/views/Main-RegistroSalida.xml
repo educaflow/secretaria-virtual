@@ -36,8 +36,8 @@
             <field name="asunto"         colSpan="9"/>
             <field name="fecha"          colSpan="3"/>
 
-            <field name="documentoOriginal" widget="binary-link" colSpan="6"/>
-            <field name="documento"         widget="binary-link" colSpan="6"/>
+            <field name="documentoOriginal" widget="binary-link" colSpan="12"/>
+            <field name="documento"         widget="binary-link" colSpan="12"/>
         </panel>
         <panel-related name="anexos" title="Anexos" field="anexos" colSpan="12"
                        form-view="subsysRegistroEntradaSalida.Ref@Anexos-form" grid-view="subsysRegistroEntradaSalida.Ref@Anexos-grid"

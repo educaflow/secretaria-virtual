@@ -35,8 +35,8 @@
             <field name="asunto"          colSpan="9"/>
             <field name="fecha"           colSpan="3"/>
 
-            <field name="documentoOriginalFirmado"         widget="binary-link" colSpan="4"/>
-            <field name="documentoResguardoPresentacion"   widget="binary-link" colSpan="4"/>
+            <field name="documentoOriginalFirmado"         widget="binary-link" colSpan="12"/>
+            <field name="documentoResguardoPresentacion"   widget="binary-link" colSpan="12"/>
         </panel>
 
         <panel-related name="registroEntradaAnexos" title="Anexos" field="anexos" colSpan="12"

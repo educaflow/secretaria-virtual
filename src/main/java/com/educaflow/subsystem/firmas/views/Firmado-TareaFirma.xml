@@ -31,8 +31,8 @@
           related='{"documentosFirma":["documentoFirmado"]}'>
 
         <panel name="tareaFirma" title="Estado de la tarea firmada firmada" colSpan="12" readonly="true">
-            <field name="motivoFirma"      colSpan="8"  readonly="true"/>
-            <field name="estadoTareaFirma"  colSpan="4"  readonly="true"/>
+            <field name="estadoTareaFirma"  colSpan="6"  readonly="true"/>
+            <field name="motivoFirma"      colSpan="12" colOffset="6"  readonly="true"/>
             <field name="fechaSolicitud"   colSpan="4"  readonly="true"/>
             <field name="fechaResolucion"  colSpan="4"  showIf="fechaResolucion!=null" readonly="true"/>
         </panel>
