@@ -49,7 +49,7 @@
             <field name="otroMotivo" colSpan="5" showIf="motivoFalta == 'OTROS'"/>
         </panel>
         <panel name="datos-falta-view" title="Datos de la falta">
-            <field name="tipoJornadaFalta" colSpan="12" widget="RadioSelect" readonly="true" x-direction="horizontal"/>
+            <field name="tipoJornadaFalta" colSpan="12"  x-direction="horizontal"/>
 
             <panel name="datos-falta-view-un-dia" colSpan="12" showFrame="false" showIf="tipoJornadaFalta == 'UN_DIA_COMPLETO' || tipoJornadaFalta == 'UNAS_HORAS_UN_DIA'">
                 <field name="fechaInicio" title="Fecha" colSpan="3" readonly="true"/>
@@ -66,7 +66,7 @@
                 <field name="fechaFin" colSpan="3" readonly="true"/>
             </panel>
 
-            <field name="motivoFalta" colSpan="7" widget="RadioSelect" x-direction="vertical" readonly="true"/>
+            <field name="motivoFalta" colSpan="7"  readonly="true"/>
             <field name="otroMotivo" colSpan="5" readonly="true" showIf="motivoFalta == 'OTROS'"/>
         </panel>
 
@@ -100,7 +100,7 @@
                    help="Explique a la jefatura de estudios por qué le devuelve la solicitud"/>
         </panel>
         <panel name="resolucion-view" title="Resolución">
-            <field name="tipoResolucion" title="Resolución" widget="RadioSelect" colSpan="12" x-direction="horizontal" readonly="true"  />
+            <field name="tipoResolucion" title="Resolución"  colSpan="12" x-direction="horizontal" readonly="true"  />
             <field name="motivoRechazo" colSpan="12" readonly="true" showIf="tipoResolucion == 'RECHAZAR'"/>
         </panel>
         <panel name="devolucion-view" title="Devuelto por la dirección" colSpan="12"

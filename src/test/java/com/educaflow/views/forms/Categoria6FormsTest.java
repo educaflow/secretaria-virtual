@@ -267,7 +267,8 @@ class Categoria6FormsTest {
     // ---------------------------------------------------------------- VAR-6.7
 
     // [VAR-6.7] Verificación:
-    //   Sujeto: cada `<field>` descendiente de un `<form>`, lleve o no `readonly` y se pinte o no (`hidden`, `showIf`), cuyo `name` es el de un campo de tipo enumerado de su entidad.
+    //   Sujeto: cada `<field>` descendiente de un `<form>` que no es de solo lectura, se pinte o no (`hidden`, `showIf`), cuyo `name` es el de un campo de tipo enumerado de su entidad.
+    //     Un `<field>` es de solo lectura si lleva `readonly="true"` o lo lleva alguno de sus ancestros hasta el `<form>` inclusive (un `<panel readonly="true">`, por ejemplo).
     //     La entidad de un `<field>` es la del form, salvo que esté dentro de un `<editor>`:
     //       entonces es la entidad a la que apunta el `ref` del campo relacional dueño de ese `<editor>` (el `<field>` padre del `<editor>`), buscado en la entidad de ese dueño.
     //     La entidad del form es la `<entity>` de los dominios XML (`**/domains/*.xml`) cuyo `package` de `<module>` más su `name` == el `model` del form.
@@ -280,6 +281,9 @@ class Categoria6FormsTest {
         for (ViewFile vf : ViewFiles.all()) {
             for (Element form : vf.forms()) {
                 for (Element field : camposEnumeradosDelForm(form).keySet()) {
+                    if (esDeSoloLectura(form, field)) {
+                        continue; // de solo lectura: no es sujeto
+                    }
                     if (!"RadioSelect".equals(attr(field, "widget"))) {
                         v.add(new Violacion(vf.rel(), attr(form, "name"),
                                 "el <field name=\"" + attr(field, "name") + "\"> es de tipo enumerado y "
@@ -291,14 +295,30 @@ class Categoria6FormsTest {
                 }
             }
         }
-        Violacion.assertNone("VAR-6.7 — todo <field> de un <form> cuyo tipo es un enumerado lleva "
+        Violacion.assertNone("VAR-6.7 — todo <field> editable de un <form> cuyo tipo es un enumerado lleva "
                 + "widget=\"RadioSelect\"", v);
     }
 
     /**
-     * Sujeto de VAR-6.7: los {@code <field>} del form cuyo name es un campo de tipo enumerado de su
-     * entidad, cada uno con el número de valores de su enumerado; sin los hijos de
-     * {@code <panel-related>}.
+     * Un {@code <field>} es de solo lectura si lleva {@code readonly="true"} él o alguno de sus
+     * ancestros hasta el {@code <form>} inclusive.
+     */
+    private static boolean esDeSoloLectura(Element form, Element field) {
+        for (Node n = field; n instanceof Element e; n = n.getParentNode()) {
+            if ("true".equals(attr(e, "readonly"))) {
+                return true;
+            }
+            if (e == form) {
+                break;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Los {@code <field>} del form cuyo name es un campo de tipo enumerado de su entidad, sean o
+     * no de solo lectura, cada uno con el número de valores de su enumerado; sin los hijos de
+     * {@code <panel-related>}. VAR-6.7 descarta los de solo lectura; VAR-6.8 los incluye.
      */
     private static Map<Element, Integer> camposEnumeradosDelForm(Element form) {
         Map<Element, Integer> campos = new LinkedHashMap<>();
@@ -338,7 +358,7 @@ class Categoria6FormsTest {
     // ---------------------------------------------------------------- VAR-6.8
 
     // [VAR-6.8] Verificación:
-    //   Sujeto: cada `<field>` que es sujeto de `VAR-6.7` y lleva `widget="RadioSelect"`.
+    //   Sujeto: cada `<field>` que es sujeto de `VAR-6.7`, o lo sería de no ser de solo lectura, y lleva `widget="RadioSelect"`.
     //   Condición, con `{n}` = el número de valores del enumerado del campo:
     //     lleva el atributo `x-direction`;
     //     si `{n}` <= 4 vale `horizontal`, y si `{n}` >= 5 vale `vertical`.

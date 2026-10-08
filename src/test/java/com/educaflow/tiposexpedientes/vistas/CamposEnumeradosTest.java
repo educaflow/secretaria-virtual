@@ -54,6 +54,18 @@ import java.util.stream.Stream;
  * relaciona el campo dueño del editor. Y los ocultos ({@code hidden="true"}, {@code showIf="false"})
  * cuentan igual que los visibles: mañana pueden dejar de estar ocultos.
  *
+ * <p>Los de solo lectura no tienen opciones que elegir, así que el {@code RadioSelect} no se les
+ * exige (W2); si lo llevan, la orientación sí (W3). Un campo es de solo lectura si:
+ *
+ * <ul>
+ *   <li>lleva {@code readonly="true"} él o alguno de sus ancestros hasta el {@code <form>}
+ *       inclusive (un {@code <panel readonly="true">});</li>
+ *   <li>o el panel de la plantilla en el que está se incluye desde algún {@code <include-panels>}
+ *       y <b>siempre</b> con el prefijo {@code -} (que pone readonly todos sus fields). Se miran los
+ *       {@code <include-panels>} del tipo del fichero, o los de todos los tipos si es común. Un
+ *       panel que no se incluye nunca no se considera de solo lectura.</li>
+ * </ul>
+ *
  * <p>No son campos del form, y no se miran: los {@code <field>} hijos de un {@code <panel-related>}
  * (son columnas de su rejilla). Tampoco los de un {@code <grid>}.
  *
@@ -97,12 +109,12 @@ class CamposEnumeradosTest {
     // -----------------------------------------------------------------------------------------
 
     @Test
-    @DisplayName("W2: todo <field> de un <form> cuyo tipo es un enumerado lleva widget=\"RadioSelect\"")
+    @DisplayName("W2: todo <field> editable de un <form> cuyo tipo es un enumerado lleva widget=\"RadioSelect\"")
     void w2_losCamposEnumeradosUsanRadioSelect() {
         List<Violacion> violaciones = new ArrayList<>();
 
         for (CampoEnumerado campo : camposEnumerados()) {
-            if ("RadioSelect".equals(attr(campo.field(), "widget"))) {
+            if ("RadioSelect".equals(attr(campo.field(), "widget")) || esDeSoloLectura(campo)) {
                 continue;
             }
 
@@ -116,8 +128,9 @@ class CamposEnumeradosTest {
                     + direccionEsperada(campo.valores()) + "\""));
         }
 
-        Violacion.assertNone("[W2] Todo <field> de un <form> cuyo tipo en el modelo es un enumerado debe llevar"
-                + " widget=\"RadioSelect\", sea editable o de solo lectura.", violaciones);
+        Violacion.assertNone("[W2] Todo <field> editable de un <form> cuyo tipo en el modelo es un enumerado debe"
+                + " llevar widget=\"RadioSelect\"; solo los de solo lectura (readonly=\"true\" en el campo o en un"
+                + " ancestro, o panel incluido siempre con '-') quedan libres.", violaciones);
     }
 
     // -----------------------------------------------------------------------------------------
@@ -189,6 +202,50 @@ class CamposEnumeradosTest {
 
     private static String direccionEsperada(int valores) {
         return (valores <= MAXIMO_VALORES_EN_HORIZONTAL) ? "horizontal" : "vertical";
+    }
+
+    /** Si el campo es de solo lectura (ver el javadoc de la clase). */
+    private static boolean esDeSoloLectura(CampoEnumerado campo) {
+        Element panelDePlantilla = null;
+        for (Node nodo = campo.field(); nodo instanceof Element elemento; nodo = nodo.getParentNode()) {
+            if ("true".equals(attr(elemento, "readonly"))) {
+                return true;
+            }
+            if (elemento == campo.form()) {
+                break;
+            }
+            if (elemento.getParentNode() == campo.form()) {
+                panelDePlantilla = elemento;
+            }
+        }
+
+        return (panelDePlantilla != null) && campo.form().hasAttribute("name")
+                && incluidoSiempreReadonly(campo.fichero().tipoExpediente(), attr(panelDePlantilla, "name"));
+    }
+
+    /**
+     * Si el panel {@code nombre} se incluye desde algún {@code <include-panels>} y siempre con el
+     * prefijo {@code -}. Se miran los de los ficheros de {@code tipo}, o los de todos si es {@code null}.
+     */
+    private static boolean incluidoSiempreReadonly(TipoExpedienteInstanceFile tipo, String nombre) {
+        boolean incluido = false;
+        for (FicheroDeVistas fichero : ficherosDeVistas()) {
+            if ((tipo != null) && !tipo.getCode().equals(fichero.tipo())) {
+                continue;
+            }
+            for (Element includePanels : byTag(fichero.documento(), "include-panels")) {
+                for (String linea : includePanels.getTextContent().trim().split("\\s+")) {
+                    if (linea.equals(nombre)) {
+                        return false;
+                    }
+                    if (linea.equals("-" + nombre)) {
+                        incluido = true;
+                    }
+                }
+            }
+        }
+
+        return incluido;
     }
 
     /**
@@ -264,8 +321,18 @@ class CamposEnumeradosTest {
                 + (form.hasAttribute("profile") ? (" profile=\"" + attr(form, "profile") + "\"") : "") + ">";
     }
 
+    private static List<FicheroDeVistas> ficherosDeVistas;
+
     /** Todos los XML de la carpeta de trámites cuyo elemento raíz es {@code object-views}. */
-    private static List<FicheroDeVistas> ficherosDeVistas() {
+    private static synchronized List<FicheroDeVistas> ficherosDeVistas() {
+        if (ficherosDeVistas == null) {
+            ficherosDeVistas = leerFicherosDeVistas();
+        }
+
+        return ficherosDeVistas;
+    }
+
+    private static List<FicheroDeVistas> leerFicherosDeVistas() {
         Map<Path, TipoExpedienteInstanceFile> carpetasDeTipo = new LinkedHashMap<>();
         for (TipoExpedienteInstanceFile tipo : TiposExpediente.all()) {
             carpetasDeTipo.put(TiposExpediente.carpeta(tipo).toAbsolutePath().normalize(), tipo);

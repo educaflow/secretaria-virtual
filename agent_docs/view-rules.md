@@ -684,10 +684,12 @@ Los atributos canónicos del form, el `buttons-panel` y el `panel-related` los f
 
 ## VAR-6.7 — Los campos de tipo enumerado de un form usan `RadioSelect`
 **Decisión.**
-  Para que el usuario vea de un vistazo todas las opciones de un enumerado, y cuál está elegida, sin tener que abrir un desplegable;
-  y para que un mismo dato se vea igual cuando se edita que cuando solo se consulta.
+  Para que el usuario vea de un vistazo todas las opciones de un enumerado, y cuál está elegida, sin tener que abrir un desplegable.
+  Un campo de solo lectura no tiene opciones que elegir, así que queda libre de la regla:
+    puede pintarse como texto, aunque si lleva `RadioSelect` se le exige `x-direction` igual (`VAR-6.8`).
 **Verificación.**
-  Sujeto: cada `<field>` descendiente de un `<form>`, lleve o no `readonly` y se pinte o no (`hidden`, `showIf`), cuyo `name` es el de un campo de tipo enumerado de su entidad.
+  Sujeto: cada `<field>` descendiente de un `<form>` que no es de solo lectura, se pinte o no (`hidden`, `showIf`), cuyo `name` es el de un campo de tipo enumerado de su entidad.
+    Un `<field>` es de solo lectura si lleva `readonly="true"` o lo lleva alguno de sus ancestros hasta el `<form>` inclusive (un `<panel readonly="true">`, por ejemplo).
     La entidad de un `<field>` es la del form, salvo que esté dentro de un `<editor>`:
       entonces es la entidad a la que apunta el `ref` del campo relacional dueño de ese `<editor>` (el `<field>` padre del `<editor>`), buscado en la entidad de ese dueño.
     La entidad del form es la `<entity>` de los dominios XML (`**/domains/*.xml`) cuyo `package` de `<module>` más su `name` == el `model` del form.
@@ -700,12 +702,13 @@ Los atributos canónicos del form, el `buttons-panel` y el `panel-related` los f
 <!-- dominio: <enum name="tipoFichero" ref="TipoFicheroImportacion"/> -->
 <field name="tipoFichero" widget="RadioSelect" x-direction="horizontal"/>
 <field name="tipoFichero" widget="RadioSelect" x-direction="horizontal" readonly="true"/>
+<field name="tipoFichero" readonly="true"/>      <!-- de solo lectura: no es sujeto -->
+<panel readonly="true"><field name="tipoFichero"/></panel>  <!-- de solo lectura por el panel: tampoco -->
 ```
 **Incorrecto** ❌
 ```xml
 <field name="tipoFichero"/>                      <!-- enumerado sin widget: se pinta como desplegable -->
-<field name="tipoFichero" readonly="true"/>      <!-- que sea readonly no lo exime -->
-<field name="tipoFichero" hidden="true"/>        <!-- que esté oculto tampoco: mañana puede hacerse visible -->
+<field name="tipoFichero" hidden="true"/>        <!-- que esté oculto no lo exime: mañana puede hacerse visible -->
 <field name="tarea">
     <editor><field name="tipoFichero"/></editor> <!-- dentro de un editor es un campo como cualquier otro -->
 </field>
@@ -717,7 +720,7 @@ Los atributos canónicos del form, el `buttons-panel` y el `panel-related` los f
   y una larga no se desborde ni se parta en varias líneas a lo ancho;
   y porque fijarla siempre de forma explícita evita depender del valor por defecto del widget.
 **Verificación.**
-  Sujeto: cada `<field>` que es sujeto de `VAR-6.7` y lleva `widget="RadioSelect"`.
+  Sujeto: cada `<field>` que es sujeto de `VAR-6.7`, o lo sería de no ser de solo lectura, y lleva `widget="RadioSelect"`.
   Condición, con `{n}` = el número de valores del enumerado del campo:
     lleva el atributo `x-direction`;
     si `{n}` <= 4 vale `horizontal`, y si `{n}` >= 5 vale `vertical`.

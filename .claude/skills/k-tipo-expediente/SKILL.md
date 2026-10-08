@@ -373,7 +373,7 @@ Los tests de `src/test/java/com/educaflow/tiposexpedientes` comprueban, **fase a
 | H1 | No queda un `PhaseEventManagerImpl`/`StateEventValidatorImpl` en una carpeta que ya no es de ninguna fase |
 | X1–X3 | Cada estado tiene su form genérico (X1) y, si tiene `profile` y **eventos de usuario**, el de su perfil (X2: los de `systemEvents` no cuentan); no hay dos forms con el mismo `(state, profile)` (X3) (`vistas.md` §2) |
 | Y1–Y3 | Cada botón del footer es un evento **de usuario** del estado (`events`) o uno común: un evento de `systemEvents` **MUST NOT** tener botón (Y1); cada evento de `events` tiene botón, y a los de `systemEvents` no se les exige (Y2); todos usan `subsysTramitador-event-action` (Y3) |
-| W1–W3 | Los `<field>` de tipo enumerado de los forms llevan `widget="RadioSelect"` (W2) con `x-direction` `horizontal` hasta 4 valores y `vertical` con 5 o más (W3) (`vistas.md` §6.3) |
+| W1–W3 | Los `<field>` de tipo enumerado editables (sin `readonly="true"` propio ni de un ancestro, y cuyo panel se incluye alguna vez sin `-`) de los forms llevan `widget="RadioSelect"` (W2) y todo `RadioSelect` de un enumerado va con `x-direction` `horizontal` hasta 4 valores y `vertical` con 5 o más (W3) (`vistas.md` §6.3) |
 | D1–D3 | Existe `estados.puml` y dibuja exactamente los estados del XML (§2.3) |
 | P1 | Toda expresión Groovy de `documentospdf/` compila contra la entidad (`documentos.md` §2.8) |
 

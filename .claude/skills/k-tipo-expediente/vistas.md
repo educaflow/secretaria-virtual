@@ -221,7 +221,10 @@ Si el campo de la condición no es además un `<field>` del form, llega `undefin
 
 La convención de `k-vistas` (`forms.md`, «Campos de tipo enumerado: `RadioSelect`») **sí** aplica a los forms de los trámites, pese a la exclusión general del inicio de este fichero.
 
-- Todo `<field>` de tipo enumerado **MUST** llevar `widget="RadioSelect"` y `x-direction` (`horizontal` hasta 4 valores, `vertical` con 5 o más), sea editable o `readonly`.
+- Todo `<field>` de tipo enumerado editable **MUST** llevar `widget="RadioSelect"` y `x-direction` (`horizontal` hasta 4 valores, `vertical` con 5 o más).
+- Los de solo lectura quedan libres del `RadioSelect` (pueden pintarse como texto); si lo llevan, el `x-direction` se les exige igual. Un campo es de solo lectura si:
+  - lleva `readonly="true"` él o un ancestro hasta el `<form>` (un `<panel readonly="true">`);
+  - o su panel de la plantilla se incluye en algún `<include-panels>` y **siempre** con el prefijo `-` (§3); basta una inclusión sin guion, en cualquier estado del tipo (o de cualquier tipo, si el panel es común), para que el campo cuente como editable. Un panel que no se incluye nunca no es de solo lectura.
 - Cuentan los campos del tipo y los heredados de `Expediente`, en el form plantilla, en los forms auxiliares y en los paneles comunes.
 - Cuentan también los ocultos (los `<field hidden="true"/>` de §6.2) y los de dentro de un `<editor>`, que son de la entidad relacionada.
 - No cuentan los `<field>` hijos de un `panel-related`.

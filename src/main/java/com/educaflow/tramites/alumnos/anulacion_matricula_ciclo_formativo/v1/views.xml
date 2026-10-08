@@ -131,7 +131,7 @@
         </panel>
 
         <panel name="decision-secretaria" title="Decisión de secretaría" colSpan="12">
-            <field name="tipoResolucion"    colSpan="5"  widget="RadioSelect" x-direction="horizontal" readonly="true"/>
+            <field name="tipoResolucion"    colSpan="5"   readonly="true"/>
             <field name="fechaVerificacion" colSpan="3" readonly="true"/>
             <field name="motivoRechazo"     colSpan="12" readonly="true" showIf="tipoResolucion=='RECHAZAR'"/>
         </panel>
