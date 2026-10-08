@@ -135,11 +135,13 @@ class Categoria7BotonesTest {
     // [VAR-7.2] Verificación:
     //   Sujeto: el `<action-group>` referenciado por el `onClick` de cada botón estándar (`name` que empieza por `btnSave`/`btnDelete`/`btnCancel`), según la clase de su form —
     //
-    //   | Botón | maestro | detalle | referencia |
-    //   |---|---|---|---|
-    //   | `btnSave` | [`Local-…`]* → `remote-validationSave-action` → `save` → `force-back` (inmediatamente tras `save`; **nunca** `back`) | [`Local-…`]* → `save-modal`; **sin** ninguna `remote-validation*` | no existe |
-    //   | `btnDelete` | [`remote-validationDelete-action`] → `delete` (termina en `delete`) | termina en `delete-modal`; **sin** ninguna `remote-validation*` | no existe |
-    //   | `btnCancel` | contiene `back`; si el form maestro **no** declara `btnSave` **y** ningún `<action-view>` que lo abra (una `<view type="form">` con su `name`) declara una `<view type="grid">`, contiene `close` | contiene `close` | contiene `close` |
+    //   | Botón | maestro | maestro en popup | detalle | referencia |
+    //   |---|---|---|---|---|
+    //   | `btnSave` | [`Local-…`]* → `remote-validationSave-action` → `save` → `force-back` (inmediatamente tras `save`; **nunca** `back`) | [`Local-…`]* → `remote-validationSave-action` → `save-modal`; **sin** `save`/`back`/`force-back` | [`Local-…`]* → `save-modal`; **sin** ninguna `remote-validation*` | no existe |
+    //   | `btnDelete` | [`remote-validationDelete-action`] → `delete` (termina en `delete`) | igual que el maestro | termina en `delete-modal`; **sin** ninguna `remote-validation*` | no existe |
+    //   | `btnCancel` | contiene `back`; si el form maestro **no** declara `btnSave` **y** ningún `<action-view>` que lo abra (una `<view type="form">` con su `name`) declara una `<view type="grid">`, contiene `close` | contiene `close` | contiene `close` | contiene `close` |
+    //
+    //   Un form maestro es **maestro en popup** si algún `<action-view>` que lo abre (una `<view type="form">` con su `name`) declara `<view-param name="popup" value="true"/>`.
     @Test
     void var7_2_secuenciaDeBotonesEstandarSegunClase() {
         List<Violacion> v = new ArrayList<>();
@@ -157,6 +159,7 @@ class Categoria7BotonesTest {
                 boolean tieneBtnSave = byTag(form, "button").stream()
                         .anyMatch(b -> attr(b, "name").startsWith("btnSave"));
                 boolean ramaAsistente = !tieneBtnSave && !algunActionViewDeclaraGrid(formName);
+                boolean enPopup = nv.clase() == NombreVista.Clase.MAESTRO && esMaestroEnPopup(formName);
                 for (Element btn : byTag(form, "button")) {
                     String btnName = attr(btn, "name");
                     String estandar = btnName.startsWith("btnSave") ? "btnSave"
@@ -177,7 +180,13 @@ class Categoria7BotonesTest {
 
                     List<String> seq = Index.accionesDeGrupo(vf, attr(btn, "onClick"));
                     switch (nv.clase()) {
-                        case MAESTRO -> verificarMaestro(v, vf, ubicacion, estandar, ctx, seq, ramaAsistente);
+                        case MAESTRO -> {
+                            if (enPopup && !"btnDelete".equals(estandar)) {
+                                verificarMaestroEnPopup(v, vf, ubicacion, estandar, ctx, seq);
+                            } else {
+                                verificarMaestro(v, vf, ubicacion, estandar, ctx, seq, ramaAsistente);
+                            }
+                        }
                         case DETALLE -> verificarDetalle(v, vf, ubicacion, estandar, ctx, seq);
                         case REFERENCIA -> {
                             // solo llega btnCancel: contiene close
@@ -192,8 +201,50 @@ class Categoria7BotonesTest {
             }
         }
         Violacion.assertNone("VAR-7.2 — secuencia de los botones estándar según la clase del form "
-                + "(maestro: validaciones→save→force-back; detalle: acciones -modal sin remote-validation*; "
-                + "referencia: solo close)", v);
+                + "(maestro: validaciones→save→force-back; maestro en popup: validaciones→save-modal y close; "
+                + "detalle: acciones -modal sin remote-validation*; referencia: solo close)", v);
+    }
+
+    /**
+     * ¿Es «maestro en popup» (glosario)? Algún {@code <action-view>} que lo abre (una
+     * {@code <view type="form">} con su {@code name}) declara
+     * {@code <view-param name="popup" value="true"/>}.
+     */
+    private static boolean esMaestroEnPopup(String formName) {
+        for (ViewFile vf : ViewFiles.all()) {
+            for (Element av : vf.actionViews()) {
+                boolean abreEsteForm = childrenByTag(av, "view").stream()
+                        .anyMatch(w -> "form".equals(attr(w, "type")) && formName.equals(attr(w, "name")));
+                if (abreEsteForm && childrenByTag(av, "view-param").stream()
+                        .anyMatch(p -> "popup".equals(attr(p, "name")) && "true".equals(attr(p, "value")))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** btnSave y btnCancel del maestro en popup (su btnDelete se verifica como el del maestro). */
+    private static void verificarMaestroEnPopup(List<Violacion> v, ViewFile vf, String ubicacion,
+                                                String estandar, String ctx, List<String> seq) {
+        switch (estandar) {
+            case "btnSave" -> {
+                // [Local-… del mismo contexto]* → remote-validationSave-action → save-modal
+                if (!List.of("remote-validationSave-action", "save-modal").equals(sinLocalesIniciales(seq, ctx))) {
+                    v.add(new Violacion(vf.rel(), ubicacion,
+                            "el btnSave de un maestro en popup debe ser [Local-…]* → "
+                                    + "remote-validationSave-action → save-modal (sin save/back/force-back); "
+                                    + "secuencia: " + seq));
+                }
+            }
+            case "btnCancel" -> {
+                if (!seq.contains("close")) {
+                    v.add(new Violacion(vf.rel(), ubicacion,
+                            "el btnCancel de un maestro en popup debe contener \"close\"; secuencia: " + seq));
+                }
+            }
+            default -> throw new IllegalStateException(estandar);
+        }
     }
 
     /**

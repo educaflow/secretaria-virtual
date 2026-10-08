@@ -17,6 +17,7 @@ import java.util.List;
 
 import static com.educaflow.views.support.ViewFiles.attr;
 import static com.educaflow.views.support.ViewFiles.byTag;
+import static com.educaflow.views.support.ViewFiles.childrenByTag;
 import static com.educaflow.views.support.ViewFiles.hasAttr;
 
 /**
@@ -40,7 +41,7 @@ class Categoria5PlantillasTest {
     //
     //   | Elemento | Atributos canónicos |
     //   |---|---|
-    //   | `<form>` | `canAttach`/`canBack`/`canDelete`/`canNew`/`canSave`/`canMore`, si están presentes, valen `false` (ninguno vale `true`); sin atributo `onSave`; `canBackOnSave="true"` **solo** en el form maestro con `btnSave` (ausente en el maestro de solo consulta, el detalle y la referencia) |
+    //   | `<form>` | `canAttach`/`canBack`/`canDelete`/`canNew`/`canSave`/`canMore`, si están presentes, valen `false` (ninguno vale `true`); sin atributo `onSave`; `canBackOnSave="true"` **solo** en el form maestro con `btnSave` que no es maestro en popup (ausente en el maestro de solo consulta, el maestro en popup, el detalle y la referencia) |
     //   | `<grid>` | presentes `editable="false"`, `edit-icon="false"`, `x-selector="none"`, `canEdit="false"`, `canDelete="false"`, `canSave="false"`, `title=""` y `orderBy`; `canAdvanceSearch` y `canRefresh` ausentes o a `"false"`; sin atributo `archived` |
     //   | `<panel-related>` | presentes `colSpan="12"`, `showFooter="false"`, `canEdit="false"`, `canRemove="false"` y `forceEdit="true"` (la coherencia `canNew`/`newButtonTitle` la verifica `VAR-8.2`; que sus `grid-view`/`form-view` existan, `VAR-4.1`) |
     //   | `buttons-panel` | `title` vacío, `colSpan="12"` y `showFrame="false"` |
@@ -75,7 +76,8 @@ class Categoria5PlantillasTest {
                 }
                 boolean tieneBtnSave = byTag(form, "button").stream()
                         .anyMatch(b -> attr(b, "name").startsWith("btnSave"));
-                boolean requerido = nv.clase() == NombreVista.Clase.MAESTRO && tieneBtnSave;
+                boolean enPopup = nv.clase() == NombreVista.Clase.MAESTRO && esMaestroEnPopup(name);
+                boolean requerido = nv.clase() == NombreVista.Clase.MAESTRO && tieneBtnSave && !enPopup;
                 if (requerido) {
                     if (!"true".equals(attr(form, "canBackOnSave"))) {
                         v.add(new Violacion(vf.rel(), name,
@@ -83,13 +85,34 @@ class Categoria5PlantillasTest {
                     }
                 } else if (hasAttr(form, "canBackOnSave")) {
                     v.add(new Violacion(vf.rel(), name,
-                            "canBackOnSave debe estar ausente (solo lo lleva el form maestro con btnSave; "
-                                    + "este es " + nv.clase() + (tieneBtnSave ? " con" : " sin") + " btnSave)"));
+                            "canBackOnSave debe estar ausente (solo lo lleva el form maestro con btnSave "
+                                    + "que no es maestro en popup; este es " + nv.clase()
+                                    + (enPopup ? " en popup" : "") + (tieneBtnSave ? " con" : " sin") + " btnSave)"));
                 }
             }
         }
         Violacion.assertNone("VAR-5.1 — núcleo canónico de atributos del <form> "
-                + "(can* a false, sin onSave, canBackOnSave solo en el maestro con btnSave)", v);
+                + "(can* a false, sin onSave, canBackOnSave solo en el maestro con btnSave que no es "
+                + "maestro en popup)", v);
+    }
+
+    /**
+     * ¿Es «maestro en popup» (glosario)? Algún {@code <action-view>} que lo abre (una
+     * {@code <view type="form">} con su {@code name}) declara
+     * {@code <view-param name="popup" value="true"/>}.
+     */
+    private static boolean esMaestroEnPopup(String formName) {
+        for (ViewFile vf : ViewFiles.all()) {
+            for (Element av : vf.actionViews()) {
+                boolean abreEsteForm = childrenByTag(av, "view").stream()
+                        .anyMatch(w -> "form".equals(attr(w, "type")) && formName.equals(attr(w, "name")));
+                if (abreEsteForm && childrenByTag(av, "view-param").stream()
+                        .anyMatch(p -> "popup".equals(attr(p, "name")) && "true".equals(attr(p, "value")))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     // ---------------------------------------------------------------- VAR-5.1 — fila <grid>
