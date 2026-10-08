@@ -2,7 +2,7 @@ package com.educaflow.base.infrastructure.pdfgenerator.impl;
 
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
-import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
+import com.educaflow.base.util.Idioma;
 import com.educaflow.base.infrastructure.pdfgenerator.PdfGenerator;
 import com.educaflow.base.infrastructure.pdfgenerator.PdfGeneratorFactory;
 import com.itextpdf.forms.PdfAcroForm;

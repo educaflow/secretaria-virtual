@@ -1,6 +1,6 @@
 package com.educaflow.base.infrastructure.pdfgenerator.impl.documentotexto.dibujo;
 
-import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
+import com.educaflow.base.util.Idioma;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.dibujo.PdfDibujado;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.expresion.Valores;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.texto.Familia;

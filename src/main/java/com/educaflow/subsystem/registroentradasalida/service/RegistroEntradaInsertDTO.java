@@ -5,7 +5,12 @@ import com.educaflow.subsystem.common.db.Centro;
 
 import java.util.Objects;
 
-public record RegistroEntradaInsertDTO(Centro centro, PersonaRegistro solicitante, PersonaRegistro interesado, String numeroExpediente, String asunto) {
+/**
+ * @param idioma código del idioma ({@code "es"} / {@code "ca"}) en que se emite el resguardo de
+ *               presentación: el de quien presenta (en un expediente, {@code Expediente.idioma}),
+ *               no el del usuario que lo registra. Desconocido o {@code null} → castellano.
+ */
+public record RegistroEntradaInsertDTO(Centro centro, PersonaRegistro solicitante, PersonaRegistro interesado, String numeroExpediente, String asunto, String idioma) {
 
     public RegistroEntradaInsertDTO {
         Objects.requireNonNull(centro, "centro no puede ser null");

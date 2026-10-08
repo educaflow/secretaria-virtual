@@ -1,7 +1,7 @@
 package com.educaflow.base.infrastructure.pdfgenerator.impl;
 
 import com.educaflow.base.infrastructure.pdfgenerator.HuecoCabeceraTexto;
-import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
+import com.educaflow.base.util.Idioma;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.dibujo.Lienzo;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.dibujo.MedidasLogo;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.dibujo.MedidasPagina;

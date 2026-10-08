@@ -99,6 +99,10 @@ async function manipularFormaDePresentarEnPeticionDeCrear(page: Page): Promise<v
       String(body?.['action'] ?? '').includes(ACCION_CREAR)
     ) {
       context['presentadoEnPapel'] = true;
+      // En papel el idioma es obligatorio y por «Mis trámites» el asistente lo deja a null:
+      // se aporta uno válido ('es' = «Castellano») para que la petición pase esa validación
+      // y llegue a la comprobación de la forma de presentar, que es la que se quiere probar.
+      context['idioma'] = 'es';
       await route.continue({ postData: JSON.stringify(body) });
     } else {
       await route.continue();
@@ -132,7 +136,8 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await expect(page.getByText('¿Cómo se presenta?')).toHaveCount(0);
 
       // Paso 3: Cuando pulsa "Crear expediente" con la petición manipulada para forzar
-      // `presentadoEnPapel = true` (registrar un trámite recibido en papel), dejando el resto como lo fijó
+      // `presentadoEnPapel = true` (registrar un trámite recibido en papel) e incluyendo el idioma
+      // "Castellano" (obligatorio en papel), dejando el resto como lo fijó
       // la pantalla: el centro "CIPFP Mislata", el trámite "Anulación de matrícula en
       // ciclo formativo" y el expediente para él mismo.
       await manipularFormaDePresentarEnPeticionDeCrear(page);

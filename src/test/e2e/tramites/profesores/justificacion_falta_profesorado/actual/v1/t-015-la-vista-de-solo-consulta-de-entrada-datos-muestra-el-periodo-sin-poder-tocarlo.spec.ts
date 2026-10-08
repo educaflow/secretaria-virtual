@@ -253,17 +253,16 @@ test.describe('Justificación de falta del profesorado — ENTRADA', () => {
 
       // And (cont.): … el panel «Datos de la falta» muestra, en solo lectura, el tipo de jornada
       // faltada «Unas horas de un único día» …
-      // El tipo de jornada se pinta como grupo de radios (`RadioSelect`), como en la vista del
-      // CREADOR, pero en modo solo lectura: la opción guardada marcada y ninguna se puede tocar.
+      // En la vista de solo consulta el tipo de jornada se pinta como un desplegable (`combobox`)
+      // que muestra el valor guardado. Se prueba que no se puede cambiar intentándolo: se pulsa
+      // el desplegable y no se abren opciones, y el valor sigue siendo el mismo.
       const panelConsulta = formulario.getByRole('region', { name: 'Datos de la falta' });
-      const tipoJornada = panelConsulta.getByRole('radio', { name: 'Unas horas de un único día', exact: true });
-      await expect(tipoJornada).toBeChecked();
-      await expect(panelConsulta.getByRole('radio', { name: 'Un día completo', exact: true })).not.toBeChecked();
-      // Un radio de solo lectura no lleva `disabled` (son `div role="radio"`): simplemente ignora
-      // el clic. Se prueba así: pulsar otra opción no mueve la selección.
-      await panelConsulta.getByRole('radio', { name: 'Un día completo', exact: true }).click();
-      await expect(tipoJornada).toBeChecked();
-      await expect(panelConsulta.getByRole('radio', { name: 'Un día completo', exact: true })).not.toBeChecked();
+      const tipoJornada = panelConsulta.getByRole('combobox', { name: 'Tipo de jornada faltada' });
+      await expect(tipoJornada).toHaveValue('Unas horas de un único día');
+      await expect(tipoJornada).toHaveAttribute('readonly', '');
+      await tipoJornada.click({ force: true });
+      await expect(page.getByRole('option', { name: 'Un día completo', exact: true })).toHaveCount(0);
+      await expect(tipoJornada).toHaveValue('Unas horas de un único día');
 
       // And (cont.): … «Fecha» a 10/09/2026, «Hora de inicio» a 09:00 y «Hora de fin» a 11:00 …
       // Los tres son campos que en la vista del perfil CREADOR SÍ son editables (el tramo 1 los

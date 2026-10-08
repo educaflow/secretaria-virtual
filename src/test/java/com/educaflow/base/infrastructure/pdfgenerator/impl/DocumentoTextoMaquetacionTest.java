@@ -1,6 +1,6 @@
 package com.educaflow.base.infrastructure.pdfgenerator.impl;
 
-import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
+import com.educaflow.base.util.Idioma;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.documentotexto.maquetacion.MedidasTexto;
 import org.junit.jupiter.api.Test;
 

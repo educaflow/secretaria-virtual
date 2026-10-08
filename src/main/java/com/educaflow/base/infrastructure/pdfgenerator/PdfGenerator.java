@@ -1,5 +1,7 @@
 package com.educaflow.base.infrastructure.pdfgenerator;
 
+import com.educaflow.base.util.Idioma;
+
 import java.util.List;
 import java.util.Map;
 

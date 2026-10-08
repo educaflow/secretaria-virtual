@@ -4,7 +4,6 @@ import com.axelor.db.modelservice.ModelServiceFactory;
 import com.educaflow.subsystem.common.db.CargoCodigo;
 import com.educaflow.subsystem.criptografia.db.CertificadoDigital;
 import com.educaflow.subsystem.criptografia.service.CertificadoDigitalService;
-import com.axelor.auth.db.User;
 import com.axelor.db.Repository;
 import com.axelor.db.modelservice.AllowProperties;
 import com.axelor.db.modelservice.BusinessMessages;
@@ -17,7 +16,6 @@ import com.educaflow.base.infrastructure.numeradores.db.repo.NumeradorRepository
 import com.educaflow.base.infrastructure.pdf.*;
 import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
 import com.educaflow.base.infrastructure.pdfgenerator.PdfGeneratorFactory;
-import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.base.util.TextUtil;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.registroentradasalida.service.RegistroEntradaInsertDTO;
@@ -87,7 +85,8 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
                 registroEntradaInsertDTO.numeroExpediente(),
                 registroEntradaInsertDTO.asunto(),
                 ahora,
-                numeroRegistro
+                numeroRegistro,
+                Idioma.deCodigo(registroEntradaInsertDTO.idioma())
         );
         DocumentoPdf primeraPaginaRegistroEntrada=getPrimeraPaginaRegistroEntrada( datosRegistroEntradaPdf);
         DocumentoPdf documentoPdfFinal=primeraPaginaRegistroEntrada.anyadirDocumentoPdf(documentoPdfEntrada);
@@ -185,18 +184,13 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
             }
             Map<String, Object> contexto = Map.of("self", datosRegistroEntradaPdf);
 
-            byte[] pdf = PdfGeneratorFactory.getPdfGenerator().generate(in.readAllBytes(), contexto, idiomaDelUsuarioAutenticado());
+            byte[] pdf = PdfGeneratorFactory.getPdfGenerator().generate(in.readAllBytes(), contexto, datosRegistroEntradaPdf.idioma());
 
             return DocumentoPdfFactory.getDocumentoPdf(pdf, getNombreDocumentoResguardoPresentacion(datosRegistroEntradaPdf));
         } catch (IOException e) {
             log.error("Error al cargar el documento PDF: {}", xmlFileName, e);
             throw new IllegalStateException("Error al cargar el documento PDF: " + xmlFileName, e);
         }
-    }
-
-    private Idioma idiomaDelUsuarioAutenticado() {
-        User usuario = SecurityUtil.getUser();
-        return Idioma.deCodigo(usuario == null ? null : usuario.getLanguage());
     }
 
     private String getNombreDocumentoOriginalFirmado(DatosRegistroEntradaPdf datosRegistroEntradaPdf) {
@@ -227,7 +221,7 @@ public class RegistroEntradaServiceImpl extends DefaultModelService<RegistroEntr
         return getClass().getResourceAsStream(nombreCompletoDocumentoPdf);
     }
 
-    private record DatosRegistroEntradaPdf(Centro centro, PersonaRegistro solicitante, PersonaRegistro interesado, String numeroExpediente, String asunto, LocalDateTime fecha, String numeroRegistro) {
+    private record DatosRegistroEntradaPdf(Centro centro, PersonaRegistro solicitante, PersonaRegistro interesado, String numeroExpediente, String asunto, LocalDateTime fecha, String numeroRegistro, Idioma idioma) {
     }
 
 }

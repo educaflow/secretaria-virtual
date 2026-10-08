@@ -72,7 +72,8 @@ public class EventContext {
                         this.expediente.getPersonaInteresada().getDni()
                 ),
                 this.expediente.getNumeroExpediente(),
-                getAsunto()
+                getAsunto(),
+                this.expediente.getIdioma()
         );
 
         RegistroEntradaService registroEntradaService=(RegistroEntradaService)modelServiceFactory.resolve(RegistroEntrada.class);

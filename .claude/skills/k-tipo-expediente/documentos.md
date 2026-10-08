@@ -31,7 +31,8 @@ Hay **dos tipos de documento**, cada uno con su elemento raíz y su XSD:
 ### 1.1 El idioma con el que se pide el documento
 
 - Un **FORMULARIO lo ignora**: es bilingüe y estampa siempre los dos idiomas, se le pida el que se le pida. Un **TEXTO emite solo el idioma pedido**.
-- El idioma es el del **usuario que dispara el evento** que genera el documento (`"es"` → `CASTELLANO`, `"ca"` → `VALENCIANO`; desconocido → `CASTELLANO`), **no** el del interesado: un TEXTO que genera la secretaría sale en el idioma de quien lo genera.
+- El idioma es el del **expediente** (`Expediente.idioma`: `"es"` → `CASTELLANO`, `"ca"` → `VALENCIANO`; desconocido o nulo → `CASTELLANO`), **no** el del usuario que dispara el evento: un TEXTO que genera la secretaría sale en el idioma de quien presentó el expediente, no en el de quien lo tramita. Lo resuelve `ExpedienteDocumentoPdfUtil` al leer `getIdioma()` del expediente; el resguardo del registro de entrada lo recibe igual, por el `idioma` del `RegistroEntradaInsertDTO` que `EventContext.createRegistroEntrada` rellena del expediente.
+- El idioma del expediente lo fija el motor al crearlo (`Tramitador.updateIdioma`): el del usuario que lo presenta por «Mis trámites», o el que indica quien lo registra cuando se presenta en papel. **MUST NOT** leer `SecurityUtil.getUser().getLanguage()` para elegir el idioma de un documento.
 - **MUST NOT** pasarle el idioma como dato al documento ni escribir el mismo documento dos veces, uno por idioma: los dos idiomas de un TEXTO viven en el mismo XML, en los hijos `<valenciano>`/`<castellano>` de cada elemento, y el generador elige.
 
 ---
@@ -324,7 +325,7 @@ En un FORMULARIO lo admiten `campo`, `check`, `texto`, `fila` y `seccion`; en un
 ## Quick Guidelines
 
 - Dos tipos de documento, por elemento raíz: `<documentoFormulario>` (rejilla de 12 columnas, bilingüe, §2) y `<documentoTexto>` (prosa, un solo idioma, `documentotexto.md`). Cada uno con su XSD, y cada XSD con su propio `<fragmento>`: un documento **MUST NOT** incluir un fragmento del otro tipo.
-- El idioma es el del usuario que genera el documento: el FORMULARIO lo ignora, el TEXTO emite solo ese (§1.1).
+- El idioma es el del expediente (`Expediente.idioma`), nunca el del usuario que genera el documento: el FORMULARIO lo ignora, el TEXTO emite solo ese (§1.1).
 - FORMULARIO: rejilla de 12 columnas; cada `<fila>` suma 12 o un múltiplo de 12 (múltiplo = líneas apiladas en el mismo rectángulo).
 - Idiomas: siempre elementos hijos `<valenciano>`/`<castellano>`, en todos los elementos; nunca atributos.
 - El `<titulo>` de un FORMULARIO es opcional: sin él, el documento se titula con el `<name>` del `TramiteInstance.xml` del trámite padre, traducido al valenciano (§2.7). El de un TEXTO es **obligatorio** y no se inyecta nada.

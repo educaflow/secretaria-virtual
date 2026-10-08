@@ -1,6 +1,6 @@
 package com.educaflow.base.infrastructure.pdfgenerator.impl.comun.modelo;
 
-import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
+import com.educaflow.base.util.Idioma;
 
 import java.util.List;
 import java.util.stream.Stream;

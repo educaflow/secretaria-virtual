@@ -1,4 +1,4 @@
-package com.educaflow.base.infrastructure.pdfgenerator;
+package com.educaflow.base.util;
 
 import java.util.Arrays;
 

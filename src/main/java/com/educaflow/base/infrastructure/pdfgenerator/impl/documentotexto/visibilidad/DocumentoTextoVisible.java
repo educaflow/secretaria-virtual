@@ -1,6 +1,6 @@
 package com.educaflow.base.infrastructure.pdfgenerator.impl.documentotexto.visibilidad;
 
-import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
+import com.educaflow.base.util.Idioma;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.modelo.TextoBilingue;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.documentotexto.modelo.Texto;
 

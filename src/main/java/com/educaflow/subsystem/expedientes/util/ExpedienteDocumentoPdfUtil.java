@@ -1,13 +1,11 @@
 package com.educaflow.subsystem.expedientes.util;
 
-import com.axelor.auth.db.User;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdf;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfFactory;
 import com.educaflow.base.infrastructure.pdf.DocumentoPdfUtil;
-import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
+import com.educaflow.base.util.Idioma;
 import com.educaflow.base.infrastructure.pdfgenerator.PdfGeneratorFactory;
 import com.educaflow.base.util.Convert;
-import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.expedientes.db.Expediente;
 
 import java.io.IOException;
@@ -30,6 +28,10 @@ import java.util.Map;
  *       nombres de sus campos.</li>
  * </ul>
  *
+ * <p>El idioma con el que se genera es el del <b>expediente</b> ({@code Expediente.idioma}), no el del
+ * usuario que dispara el evento: el documento es para quien presentó el expediente, sea quien sea
+ * quien lo genere.
+ *
  * @author logongas
  */
 public class ExpedienteDocumentoPdfUtil {
@@ -40,17 +42,12 @@ public class ExpedienteDocumentoPdfUtil {
         Map<String, Object> contexto = Map.of("self", expediente, "now", java.time.LocalDateTime.now(Convert.defaultZoneId));
 
         if (documentoFileName.endsWith(".xml")) {
-            byte[] pdf = PdfGeneratorFactory.getPdfGenerator().generate(recurso, contexto, idiomaDelUsuarioAutenticado());
+            byte[] pdf = PdfGeneratorFactory.getPdfGenerator().generate(recurso, contexto, Idioma.deCodigo(expediente.getIdioma()));
             return DocumentoPdfFactory.getDocumentoPdf(pdf, nombrePdf);
         }
 
         DocumentoPdf documentoPdfVacio = DocumentoPdfFactory.getDocumentoPdf(recurso, nombrePdf);
         return DocumentoPdfUtil.generate(documentoPdfVacio, contexto);
-    }
-
-    private static Idioma idiomaDelUsuarioAutenticado() {
-        User usuario = SecurityUtil.getUser();
-        return Idioma.deCodigo(usuario == null ? null : usuario.getLanguage());
     }
 
     /** El nombre del PDF resultante es el del documento, sea cual sea la extensión del recurso. */

@@ -1,6 +1,6 @@
 package com.educaflow.base.infrastructure.pdfgenerator.impl.documentotexto.maquetacion;
 
-import com.educaflow.base.infrastructure.pdfgenerator.Idioma;
+import com.educaflow.base.util.Idioma;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.dibujo.Alineacion;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.dibujo.Lienzo;
 import com.educaflow.base.infrastructure.pdfgenerator.impl.comun.texto.Fuente;
