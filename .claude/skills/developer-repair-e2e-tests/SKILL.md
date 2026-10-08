@@ -36,7 +36,7 @@ Argumentos esperables:
 
 - `npx playwright test --list` falla → **ERROR**: muestra el error y detente.
 - No queda ningún test sin `[x]`, salvo los manuales (§2.1) → informa de que no hay nada que probar y termina sin arrancar la app.
-- El puerto 8080 lo ocupa la instancia de `/build` (§4.2) → **ERROR**: no la toques y detente.
+- El puerto `<APP_PORT>` lo ocupa la instancia de `/build` (§4.2) → **ERROR**: no la toques y detente.
 - La app no responde `200` en el arranque inicial (§4.2) → **ERROR**: indica revisar `src/test/e2e/.app.log` y detente.
 - Tras deshacer una reparación (§6.8) la app no vuelve a arrancar → **STOP** y avisa al usuario: sin app no se puede seguir.
 - Modo `preguntar` y un diagnóstico devuelve `DUDA` → **STOP** en ese test y pregunta al usuario (§6.3).
@@ -116,7 +116,7 @@ $E resumen                        # TOTAL · PASAN · PENDIENTES · MANUALES
 
 ### 2.4 Recursos compartidos
 
-- **CRITICAL**: todo es **secuencial**. La app, la BD y el puerto 8080 son únicos: **MUST NOT** lanzar dos subagentes ni dos ejecuciones de Playwright a la vez, ni usar `run_in_background` con los subagentes.
+- **CRITICAL**: todo es **secuencial**. La app, la BD y el puerto `<APP_PORT>` (`APP_PORT` de `ports.env` del worktree, 8080 si no existe; ver `agent_docs/deploy.md`) son únicos: **MUST NOT** lanzar dos subagentes ni dos ejecuciones de Playwright a la vez, ni usar `run_in_background` con los subagentes.
 - La app la gestiona **solo el orquestador**: un proceso lanzado por un subagente muere al cerrarse su contexto. Los subagentes **MUST NOT** arrancarla ni pararla, ni lanzar Gradle salvo la compilación que §6.4 pide al implementador.
 - Los subagentes **MUST NOT** usar `AskUserQuestion` ni hacer commits.
 - «Reanudar» un subagente es enviarle un mensaje con `SendMessage` al mismo subagente, no lanzar otro: quien editó es quien corrige y quien deshace.
@@ -171,9 +171,9 @@ git diff --name-only <foto A> <foto B> -- . ':!repair-e2e-test.md'   # ficheros 
 
 ### 4.2 Fase 2 — Arrancar la app
 
-1. Comprueba si ya responde: `curl -s -o /dev/null -w "%{http_code}" http://localhost:8080`.
+1. Comprueba si ya responde: `[ -f ports.env ] && . ./ports.env; curl -s -o /dev/null -w "%{http_code}" "http://localhost:${APP_PORT:-8080}"`.
    - `200` → **MUST NOT** arrancar otra instancia; pasa a la Fase 3.
-2. Libera el puerto 8080 **del host** (antes confirma que el proceso dueño es de la ruta host, no de `/build`): `fuser -k 8080/tcp 2>/dev/null || lsof -ti tcp:8080 | xargs -r kill`.
+2. Libera el puerto `<APP_PORT>` **del host** (antes confirma que el proceso dueño es de la ruta host, no de `/build`): `[ -f ports.env ] && . ./ports.env; fuser -k "${APP_PORT:-8080}/tcp" 2>/dev/null || lsof -ti "tcp:${APP_PORT:-8080}" | xargs -r kill`.
    - El dueño es la instancia de `/build` → **ERROR** (STOP conditions).
 3. Arranca con `Bash`, `run_in_background: true` y `dangerouslyDisableSandbox: true`, sin `&` ni `nohup`:
    ```bash
@@ -234,7 +234,7 @@ Un test de la lista que §6.7 (pasos 3 y 5) ya marcó `[x]` al reparar otro se s
 Lanza un subagente (`subagent_type: claude`). Rellena solo los placeholders; el resto pásalo tal cual:
 
 ```text
-Un test E2E de Playwright de la secretaría virtual falla. Tienes que DIAGNOSTICAR si lo que está mal es el test o el código de la app. MUST NOT modificar ningún fichero, ni arrancar o parar la app (ya está en http://localhost:8080), ni usar AskUserQuestion.
+Un test E2E de Playwright de la secretaría virtual falla. Tienes que DIAGNOSTICAR si lo que está mal es el test o el código de la app. MUST NOT modificar ningún fichero, ni arrancar o parar la app (ya está en http://localhost:<APP_PORT>: `APP_PORT` de `ports.env` del worktree, 8080 si no existe; ver `agent_docs/deploy.md`), ni usar AskUserQuestion.
 
 Test: <test>
 Fichero: src/test/e2e/<fichero .spec.ts> (y su descripción hermana .desc.md, si existe)
@@ -334,7 +334,7 @@ Toma la foto `ANTES` (§2.6) y lanza **un** subagente de reparación con el bloq
 **Sanador** (`playwright-test-healer`):
 
 ```text
-Sana este test de Playwright, que quedó desactualizado por un cambio INTENCIONADO de la app (la app ya está en http://localhost:8080; no la arranques ni la pares).
+Sana este test de Playwright, que quedó desactualizado por un cambio INTENCIONADO de la app (la app ya está en http://localhost:<APP_PORT>, `APP_PORT` de `ports.env` del worktree, 8080 si no existe; ver `agent_docs/deploy.md`; no la arranques ni la pares).
 
 Test: <test>
 Fichero: src/test/e2e/<fichero .spec.ts>

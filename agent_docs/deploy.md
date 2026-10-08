@@ -14,8 +14,10 @@ Cómo compilar, probar, arrancar la app y gestionar la base de datos en el entor
 
 - Para compilar **y arrancar** la app lanza **siempre** `./run.sh`. Hace `./gradlew clean build`
   (compila Y ejecuta los tests; si fallan, imprime qué tests fallaron y **NO** arranca la app) y
-  luego arranca en el puerto **8080** con la config privada
-  (`--config ../secretaria-virtual-private/axelor-config.dev.properties`).
+  luego arranca con la config privada
+  (`--config ../secretaria-virtual-private/axelor-config.dev.properties`) en el puerto de `ports.env`
+  (la primera vez en un worktree, `./run.sh --new`; ver [Puertos y BD por worktree](#puertos-y-bd-por-worktree-portsenv)),
+  o en el **8080** si no hay fichero.
 - **NO** invoques `gradlew run` a mano ni añadas `--debug-jvm`: ese flag suspende la JVM esperando
   un depurador, así que la app nunca llega a responder; no usarlo para arrancar de forma desatendida.
 - Si solo necesitas **compilar sin arrancar**: `./gradlew clean build --info`.
@@ -83,33 +85,63 @@ Cómo compilar, probar, arrancar la app y gestionar la base de datos en el entor
   ejecuta **Flyway** en cada arranque, sobre `classpath:com/educaflow/secretariavirtual/startup/database`. Hoy esa
   carpeta está vacía, así que no hay ninguna migración que aplicar; si necesitas una, ése es su sitio.
 
-### Arrancar / reiniciar la BD (Docker)
+### Puertos y BD por worktree (`ports.env`)
 
-La BD se levanta como contenedor `educaflow-db` (mismo comando que está comentado en `run.sh`):
+Cada worktree de Git (carpetas hermanas, p. ej. `secretaria-virtual` y `secretaria-virtual-ws-notificacion`) tiene **su propio par de puertos fijo y su propio contenedor de BD**, para que varios puedan arrancar a la vez sin chocar.
+Los puertos viven en `ports.env` en la raíz del worktree (`APP_PORT=…` y `DB_PORT=…`, formato `source` de bash).
+Está en `.gitignore`: Git no lo copia al crear un worktree, así que cada uno acaba con el suyo.
 
-```bash
-docker run --name educaflow-db --hostname educaflow-db \
-  -e POSTGRES_USER=educaflow -e POSTGRES_PASSWORD=educaflow -e POSTGRES_DB=educaflow \
-  -p 5432:5432 -d --rm postgres:12.22
-```
+- **La primera vez** en un worktree: `./run.sh --new`.
+  Busca el primer puerto libre a partir de 8080 (app) y 5432 (BD), descartando los que ya tenga el `ports.env` de otro worktree aunque esté parado, escribe `ports.env` y arranca.
+- **Después**: `./run.sh` a secas. Usa los puertos del fichero, siempre; no vuelve a buscar.
+- **Al arrancar** imprime el modo, los puertos y el contenedor que usa.
+  La app queda en `http://localhost:<APP_PORT>`.
+- **Cambiar de puertos**: borra `ports.env` y vuelve a hacer `./run.sh --new`.
+- **Sin `ports.env`** (modo por defecto): `run.sh` se comporta como siempre, 8080/5432, sin tocar Docker ni sobrescribir propiedades.
+  Es el modo de producción (`../secretaria-virtual-devops`), donde `ports.env` nunca debe existir.
+  Si el repositorio tiene **más de un worktree**, el modo por defecto falla antes de compilar y pide `./run.sh --new`: evita arrancar sin querer contra la BD de otro worktree con `ddl = update`.
+  Si el mensaje lista un worktree que ya no existe (se borró con `rm -rf`), `git worktree prune`.
+- **Puerto ocupado**: `run.sh` falla diciendo qué lo ocupa (contenedor, o PID y comando) y nunca mata procesos.
+  El puerto de la app falla siempre que esté ocupado, aunque sea una instancia anterior del mismo worktree: párala tú.
 
-- **Reiniciar** (sin perder datos, si el contenedor sigue vivo): `docker restart educaflow-db`.
-- **Resetear desde cero**: como el comando usa `--rm` y no monta volumen, al parar el contenedor
-  se borra su almacenamiento. `docker stop educaflow-db` y vuelve a lanzar el `docker run` de arriba
-  → BD limpia (Axelor recrea el esquema al arrancar la app con `ddl = update`).
+En modo worktree `run.sh` sobrescribe al arrancar las propiedades que apuntan a recursos compartidos, sin tocar los ficheros de configuración:
+- `db.default.url` → `localhost:<DB_PORT>`.
+- `data.upload.dir`, `data.upload.temp-dir` y `logging.path` → `<worktree>/.axelor-data/{attachments,temp,logs}` (en `.gitignore`), en vez de `/opt/secretariavirtual/data`, que es común a todos los worktrees: con la carpeta compartida cada BD referenciaría adjuntos que otro worktree puede borrar.
+  Los adjuntos viven y mueren con el worktree, igual que su BD.
+Las tres primeras van como variables de entorno `AXELOR_CONFIG_*`, que AOP lee por encima de `axelor-config.properties` y del `--config`; `data.upload.temp-dir` lleva guion, que esa vía no puede expresar (AOP convierte `_` en `.`), así que va como propiedad de sistema `-Daxelor.config.data.upload.temp-dir` en `JAVA_TOOL_OPTIONS` solo del `gradlew run`.
+`playwright.config.ts` (`baseURL`) y el MCP de PostgreSQL (`.mcp.json`) leen `ports.env` si existe y usan 8080/5432 si no.
+
+### La BD del worktree (Docker)
+
+`run.sh` la gestiona solo en modo worktree: contenedor `educaflow-db-<DB_PORT>` (`postgres:12.22`, usuario/contraseña/BD `educaflow`, puerto `<DB_PORT>:5432`) con la etiqueta `educaflow.worktree=<ruta absoluta del worktree>`.
+No se crea con `--rm`: un contenedor parado (p. ej. tras reiniciar la máquina) se rearranca con `docker start` conservando los datos.
+
+- **Por defecto no se reinicia**: si está corriendo se usa tal cual y si está parado se arranca; en ambos casos los datos se conservan.
+- **`./run.sh --reset-db`**: borra el contenedor y lo crea de nuevo con la BD vacía (Axelor recrea el esquema con `ddl = update` y recarga los datos demo).
+  **No lo uses por defecto**: borra los datos que el agente haya creado para probar.
+  Solo para empezar de cero o recargar los datos demo.
+- **Sin `ports.env`** falla: solo aplica al modo worktree.
+- **Si el puerto de la BD lo ocupa un contenedor con la etiqueta de este worktree**, se usa; si lo ocupa cualquier otra cosa, falla.
+
+**Contenedores huérfanos.** Al borrar un worktree (`git worktree remove`, `/git-flow finalizar` o un `rm -rf`) su contenedor se queda.
+No hay hook de Git para eso, así que la limpieza es automática la siguiente vez que **cualquier** worktree arranca en modo worktree o con `--new`: `run.sh` lista los contenedores con la etiqueta `educaflow.worktree` y borra (`docker rm -f`) los que apunten a una ruta que ya no existe como directorio, imprimiendo `Borrado contenedor huérfano …`.
+Solo mira contenedores con esa etiqueta y solo borra por ausencia del directorio.
+Los datos de un worktree borrado se pierden; si la misma rama se vuelve a abrir en la misma ruta antes de que ningún otro worktree arranque, el contenedor sigue ahí y se reutiliza.
 
 ### Acceder con el CLI de PostgreSQL (`psql`)
+
+Con el `DB_PORT` de `ports.env` (5432 en modo por defecto):
 
 - Desde el host (pide contraseña `educaflow`, o pásala con `PGPASSWORD`):
 
   ```bash
-  PGPASSWORD=educaflow psql -h localhost -p 5432 -U educaflow -d educaflow
+  [ -f ports.env ] && . ./ports.env; PGPASSWORD=educaflow psql -h localhost -p "${DB_PORT:-5432}" -U educaflow -d educaflow
   ```
 
 - Desde dentro del contenedor:
 
   ```bash
-  docker exec -it educaflow-db psql -U educaflow -d educaflow
+  . ./ports.env; docker exec -it "educaflow-db-$DB_PORT" psql -U educaflow -d educaflow
   ```
 
 - Para consultas puntuales de **solo lectura** desde el asistente, está el MCP de PostgreSQL

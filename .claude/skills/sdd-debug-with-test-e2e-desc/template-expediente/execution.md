@@ -9,9 +9,10 @@ Lo lee el **ejecutor** (§3.2 del `README.md`). Tarea: ejecutar **un** `t-NNN-<s
 1. **Carga el skill `playwright-cli`** con la herramienta `Skill`: es el que pilota el navegador interpretando el Given/When/Then.
 2. Lee tu `t-NNN-<slug>.desc.md` (autocontenido): trae los **siete campos de cabecera** (`Origen ESC`, `Perfil`, `Desde`, `Evento`, `Hasta`, `Tipo`, `Manual`), el `## Estado inicial de la base de datos` (actores + juegos de datos) y los `## Pasos`.
 3. **Lee la §4 del `README.md`** de esta plantilla: la UI del subsistema de expedientes (cómo se crea un expediente, por qué bandeja se abre cada perfil, dónde está la fase/estado y dónde salen los errores). Sin eso, pilotar a ciegas produce falsos negativos.
-4. **Premisa**: la app YA está levantada en `http://localhost:8080` (la arrancó el orquestador). **MUST NOT** arrancarla, pararla ni recompilarla. Comprueba que responde:
+4. **Premisa**: la app YA está levantada en `http://localhost:<APP_PORT>` (la arrancó el orquestador; `APP_PORT` de `ports.env` del worktree, 8080 si no existe; ver `agent_docs/deploy.md`). **MUST NOT** arrancarla, pararla ni recompilarla. Comprueba que responde:
    ```bash
-   curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
+   [ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+   curl -s -o /dev/null -w "%{http_code}" "http://localhost:${APP_PORT:-8080}"
    ```
    Si no responde `200`, devuelve `FAIL {T-NNN}` con motivo "app no disponible".
 
@@ -38,7 +39,7 @@ Los siete campos dicen **qué camino recorrer**, antes incluso de leer los pasos
 
 ### 3.1 Login
 
-Inicia sesión con las credenciales del actor del test (la fila de `### Actores` cuyo login cita el campo `Perfil`). La URL base es `http://localhost:8080`.
+Inicia sesión con las credenciales del actor del test (la fila de `### Actores` cuyo login cita el campo `Perfil`). La URL base es `http://localhost:<APP_PORT>`.
 
 ### 3.2 Situar el expediente en el estado de partida
 

@@ -139,7 +139,7 @@ La carpeta de una iniciativa de `.sdd/drafts/` con el artefacto que exige el pri
 
 - El ejecutor **MUST** seguir el skill fase a fase, sin saltarse, resumir ni reordenar nada, y **MUST NOT** editar sus ficheros.
 - Este skill **solo** altera el comportamiento de los skills encadenados en los **puntos de intercepción** de §2.3. Fuera de ellos, ante cualquier contradicción, **manda el skill encadenado**.
-- La app (`./run.sh`) la arranca, reinicia y para **el ejecutor** de `debug`/`tests`, exactamente como prescribe su skill. El orquestador **MUST NOT** arrancarla ni pararla: dos instancias pelearían por el puerto 8080.
+- La app (`./run.sh`) la arranca, reinicia y para **el ejecutor** de `debug`/`tests`, exactamente como prescribe su skill. El orquestador **MUST NOT** arrancarla ni pararla: dos instancias pelearían por el puerto `<APP_PORT>` (`APP_PORT` de `ports.env` del worktree, 8080 si no existe; ver `agent_docs/deploy.md`).
 
 ### 2.3 Tabla cerrada de puntos de intercepción
 
@@ -148,7 +148,7 @@ La carpeta de una iniciativa de `.sdd/drafts/` con el artefacto que exige el pri
 | Elección/confirmación de iniciativa o de ruta (`AskUserQuestion` de la Fase 0 de todos, incluido el «¿Continuamos?» de `/sdd-close`) | No se produce o se responde afirmativamente: recibe la ruta **explícita** y el paso ya lo pidió el usuario. | — |
 | `AskUserQuestion` con opciones cerradas (designer §4.4 Regenerar vs Revisar/Modificar; implementer `CONFLICT` Sobrescribir/Mantener/Abortar) | `DECISION-REQUERIDA` con las opciones del skill. | **Debate** (§8) entre las dos más plausibles. Excepción: `CONFLICT` sobre un fichero de esta misma ejecución → política fija (§7.6). |
 | `STOP` que espera una decisión sin opciones cerradas (implementer `BLOCKED`; corrector de debug `BLOQUEADO`; designer tras agotar el **LIMIT** 4 de criticar/corregir con una crítica `BLOCKING` residual, o el **LIMIT** 10 de verificar/corregir del diseño o de los tests unitarios) | `DECISION-REQUERIDA` con el motivo y los ficheros de contexto. | **Debate** (§8): el orquestador formula las dos alternativas más plausibles para **continuar**. |
-| La app no responde `200` en `http://localhost:8080` (debug: `AskUserQuestion` reintentar / ver log / abortar) | `DECISION-REQUERIDA` con `ORIGEN: APP`. | **Política fija** «reintentar», **LIMIT** 2 (§7.3); agotado, el ejecutor termina con `FIN-STOP-APP`. |
+| La app no responde `200` en `http://localhost:<APP_PORT>` (debug: `AskUserQuestion` reintentar / ver log / abortar) | `DECISION-REQUERIDA` con `ORIGEN: APP`. | **Política fija** «reintentar», **LIMIT** 2 (§7.3); agotado, el ejecutor termina con `FIN-STOP-APP`. |
 | `DESIGN-ERROR` (el implementer escribe `implementation/error_design.log`, o el corrector de debug escribe `test-e2e-desc/error_design.log`, y el skill se detiene) | `FIN-DESIGN-ERROR`. | **Reentrada** designer → implementer (→ debug) (§7.7), LIMIT 2. |
 | `REGRESIÓN` en la puerta final de `/sdd-create-tests-e2e` | `FIN-STOP-REGRESION`. | **STOP** real. |
 | Cierre de `debug` con algún test en `FAIL` | `FIN-OK-CON-FALLOS`. | Continúa con `tests` si está entre los pasos pedidos (§7.3). |

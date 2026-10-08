@@ -49,7 +49,7 @@ El skill `sdd-debug-with-test-e2e-desc` lanza estos tres roles. Todos reciben es
 
 ### 2.2 ejecutor — pilota un test en el navegador
 
-**Tarea:** dado **un** `t-NNN-<slug>.desc.md`, **ejecutarlo contra la app real** (`http://localhost:8080`, ya levantada por el motor) y reportar `SUCCESS`/`FAIL`.
+**Tarea:** dado **un** `t-NNN-<slug>.desc.md`, **ejecutarlo contra la app real** (`http://localhost:<APP_PORT>`, ya levantada por el motor; `APP_PORT` de `ports.env` del worktree, 8080 si no existe; ver `agent_docs/deploy.md`) y reportar `SUCCESS`/`FAIL`.
 
 - **Lee de esta plantilla:** `execution.md` (qué skill cargar, la URL base, cómo interpretar los pasos, los errores recurrentes a evitar, la equivalencia semántica de mensajes, qué recoger al fallar y el formato de salida).
 - **Entrada propia:** la ruta de **su** `t-NNN-<slug>.desc.md` (autocontenido: trae estado inicial + credenciales + el test).
@@ -120,35 +120,37 @@ El índice es la fuente del **progreso reanudable**: un test que pasa se marca `
 La app se considera levantada si responde `200`:
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
+[ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+curl -s -o /dev/null -w "%{http_code}" "http://localhost:${APP_PORT:-8080}"
 ```
 
 **MUST NOT** arrancar una segunda instancia si ya responde `200`.
 
-### 4.2 Limpiar el puerto 8080 de verdad (antes de arrancar)
+### 4.2 Limpiar el puerto `<APP_PORT>` de verdad (antes de arrancar)
 
-**CRITICAL:** si una instancia previa sigue en 8080, el connector Tomcat **falla el bind en silencio** (el proceso existe y loga "Running at…", pero `curl`/`ss` nunca ven el `200`). Antes de arrancar, mata de verdad lo que escuche en 8080 y confirma que queda libre:
+**CRITICAL:** si una instancia previa sigue en `<APP_PORT>`, el connector Tomcat **falla el bind en silencio** (el proceso existe y loga "Running at…", pero `curl`/`ss` nunca ven el `200`). Antes de arrancar, mata de verdad lo que escuche en `<APP_PORT>` y confirma que queda libre:
 
 ```bash
-fuser -k 8080/tcp 2>/dev/null || lsof -ti tcp:8080 | xargs -r kill
+[ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+fuser -k "${APP_PORT:-8080}/tcp" 2>/dev/null || lsof -ti "tcp:${APP_PORT:-8080}" | xargs -r kill
 # Si persiste, mata por cmdline los runners de Gradle/Tomcat de la app,
 # EXCLUYENDO IntelliJ y similares (idea|intellij|jetbrains|fsnotifier|mcp):
-pkill -f 'TomcatRunner|GradleWrapperMain.*run' 2>/dev/null
-ss -ltn | grep ':8080' || echo "8080 libre"
+pkill -f "$PWD/.*(TomcatRunner|GradleWrapperMain.*run)" 2>/dev/null   # solo los de ESTE worktree
+ss -ltn | grep ":${APP_PORT:-8080} " || echo "puerto libre"
 ```
 
-El contenedor Docker `secretaria-virtual-dev` **NO** ocupa el 8080 del host: el 8080 del host es siempre una instancia de `./run.sh`. **MUST NOT** parar ni matar procesos del contenedor Docker.
+El contenedor Docker `secretaria-virtual-dev` **NO** ocupa el puerto `<APP_PORT>` del host: el puerto `<APP_PORT>` del host es siempre una instancia de `./run.sh`. **MUST NOT** parar ni matar procesos del contenedor Docker.
 
 ### 4.3 Arrancar (tracked, en segundo plano)
 
-Usa **siempre** `./run.sh` (hace `./gradlew clean build` y arranca en el 8080 con la config correcta). **MUST NOT** invocar `gradlew run` a mano ni añadir `--debug-jvm` (suspende la JVM esperando un depurador; la app nunca da `200`).
+Usa **siempre** `./run.sh` (hace `./gradlew clean build` y arranca en el puerto `<APP_PORT>` con la config correcta). **MUST NOT** invocar `gradlew run` a mano ni añadir `--debug-jvm` (suspende la JVM esperando un depurador; la app nunca da `200`).
 
 - Lánzalo con `Bash`, `run_in_background: true` y `dangerouslyDisableSandbox: true` (`run.sh` escribe en `~/.gradle`, fuera del sandbox), redirigiendo el log al fichero del motor:
   ```bash
   exec ./run.sh > .sdd/drafts/{iniciativa}/test-e2e-desc/app.log 2>&1
   ```
   **MUST NOT** añadir `&`/`nohup`: con `run_in_background` el harness mantiene la tarea viva entre subagentes; un `&`/`nohup` o un arranque desde subagente muere al cerrarse el job.
-- **Sondea** hasta `200` con margen amplio (el `clean build` + el bind del connector pueden tardar varios minutos): repite `curl` con `Monitor`/reintentos, **LIMIT** de sondeo ~420 s por ventana, varias ventanas si hace falta. Verifica también `lsof -p <pid> -a -iTCP -sTCP:LISTEN` o `ss -ltn | grep :8080`.
+- **Sondea** hasta `200` con margen amplio (el `clean build` + el bind del connector pueden tardar varios minutos): repite `curl` con `Monitor`/reintentos, **LIMIT** de sondeo ~420 s por ventana, varias ventanas si hace falta. Verifica también `lsof -p <pid> -a -iTCP -sTCP:LISTEN` o `ss -ltn | grep ":${APP_PORT:-8080} "`.
 - Si tras el sondeo no da `200` → el motor hace **STOP** y `AskUserQuestion`.
 
 ### 4.4 Parar
@@ -156,7 +158,8 @@ Usa **siempre** `./run.sh` (hace `./gradlew clean build` y arranca en el 8080 co
 Siempre **por puerto**, nunca por handle de proceso (los contextos del subagente y del motor son distintos):
 
 ```bash
-fuser -k 8080/tcp 2>/dev/null || lsof -ti tcp:8080 | xargs -r kill
+[ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+fuser -k "${APP_PORT:-8080}/tcp" 2>/dev/null || lsof -ti "tcp:${APP_PORT:-8080}" | xargs -r kill
 ```
 
 ### 4.5 Rearrancar tras una corrección

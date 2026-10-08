@@ -42,7 +42,7 @@ Además, el **motor** lee de aquí la sección **«Gestión de la app»** (§4).
 
 ### 2.2 ejecutor
 
-**Tarea:** ejecutar **un** test contra `http://localhost:8080` (ya levantada) y reportar.
+**Tarea:** ejecutar **un** test contra `http://localhost:<APP_PORT>` (ya levantada; `APP_PORT` de `ports.env` del worktree, 8080 si no existe; ver `agent_docs/deploy.md`) y reportar.
 
 - **Lee de esta plantilla:** `execution.md`.
 - **Premisa:** la app YA está levantada. **MUST NOT** arrancarla, pararla ni recompilarla.
@@ -107,22 +107,24 @@ src/main/…  src/main/resources/…   ← correcciones (donde el design.md puso
 ### 4.1 Comprobar si está levantada (idempotencia)
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
+[ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+curl -s -o /dev/null -w "%{http_code}" "http://localhost:${APP_PORT:-8080}"
 ```
 
 `200` = levantada. **MUST NOT** arrancar una segunda instancia.
 
-### 4.2 Limpiar el puerto 8080 de verdad (antes de arrancar)
+### 4.2 Limpiar el puerto `<APP_PORT>` de verdad (antes de arrancar)
 
-**CRITICAL:** una instancia previa en 8080 hace que el connector falle el bind **en silencio**. Limpia y confirma, **excluyendo** IntelliJ y similares:
+**CRITICAL:** una instancia previa en `<APP_PORT>` hace que el connector falle el bind **en silencio**. Limpia y confirma, **excluyendo** IntelliJ y similares:
 
 ```bash
-fuser -k 8080/tcp 2>/dev/null || lsof -ti tcp:8080 | xargs -r kill
-pkill -f 'TomcatRunner|GradleWrapperMain.*run' 2>/dev/null
-ss -ltn | grep ':8080' || echo "8080 libre"
+[ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+fuser -k "${APP_PORT:-8080}/tcp" 2>/dev/null || lsof -ti "tcp:${APP_PORT:-8080}" | xargs -r kill
+pkill -f "$PWD/.*(TomcatRunner|GradleWrapperMain.*run)" 2>/dev/null   # solo los de ESTE worktree
+ss -ltn | grep ":${APP_PORT:-8080} " || echo "puerto libre"
 ```
 
-El contenedor Docker `secretaria-virtual-dev` **NO** ocupa el 8080 del host: **MUST NOT** tocarlo.
+El contenedor Docker `secretaria-virtual-dev` **NO** ocupa el puerto `<APP_PORT>` del host: **MUST NOT** tocarlo.
 
 ### 4.3 Arrancar (tracked, en segundo plano)
 
@@ -142,7 +144,8 @@ Usa **siempre** `./run.sh` (ver `CLAUDE.md`).
 Siempre **por puerto**:
 
 ```bash
-fuser -k 8080/tcp 2>/dev/null || lsof -ti tcp:8080 | xargs -r kill
+[ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+fuser -k "${APP_PORT:-8080}/tcp" 2>/dev/null || lsof -ti "tcp:${APP_PORT:-8080}" | xargs -r kill
 ```
 
 ### 4.5 Rearrancar tras una corrección

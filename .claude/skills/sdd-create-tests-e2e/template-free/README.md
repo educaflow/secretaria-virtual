@@ -40,7 +40,7 @@ Los tres roles:
 
 ## 3. Contexto del proyecto y carpeta destino
 
-- Secretaría virtual sobre **Axelor**, en `http://localhost:8080/`; login en `/#/login`. El `baseURL` ya está configurado: **MUST** rutas relativas (`page.goto('/#/login')`).
+- Secretaría virtual sobre **Axelor**, en `http://localhost:<APP_PORT>/` (`APP_PORT` de `ports.env` del worktree, 8080 si no existe; ver `agent_docs/deploy.md`); login en `/#/login`. El `baseURL` ya está configurado: **MUST** rutas relativas (`page.goto('/#/login')`).
 - Convenciones de tests, locators y estructura: `/k-playwright`. Pares `t-NNN-<slug>.desc.md` ↔ `t-NNN-<slug>.spec.ts`, mismo nombre base y carpeta; helper `src/test/e2e/_support/auth.ts`.
 - Multicentro y bilingüe (es/ca); locators por texto en español salvo que el test diga otra cosa.
 - **CRITICAL — la BD es compartida y NO se resetea**: cada `.spec.ts` **MUST** ser idempotente (`generation.md` §4). Una feature libre a menudo cambia **estado global** (una configuración, un aviso para todos): el test **MUST** dejarlo como estaba en `finally`, o contamina toda la suite.
@@ -89,15 +89,17 @@ Las prohibiciones sobre `@manual` y `test.skip`/`test.fixme` las fija `generatio
 ### 4.1 Comprobar si está levantada
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
+[ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+curl -s -o /dev/null -w "%{http_code}" "http://localhost:${APP_PORT:-8080}"
 ```
 
-### 4.2 Limpiar el puerto 8080 (antes de arrancar)
+### 4.2 Limpiar el puerto `<APP_PORT>` (antes de arrancar)
 
 ```bash
-fuser -k 8080/tcp 2>/dev/null || lsof -ti tcp:8080 | xargs -r kill
-pkill -f 'TomcatRunner|GradleWrapperMain.*run' 2>/dev/null
-ss -ltn | grep ':8080' || echo "8080 libre"
+[ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+fuser -k "${APP_PORT:-8080}/tcp" 2>/dev/null || lsof -ti "tcp:${APP_PORT:-8080}" | xargs -r kill
+pkill -f "$PWD/.*(TomcatRunner|GradleWrapperMain.*run)" 2>/dev/null   # solo los de ESTE worktree
+ss -ltn | grep ":${APP_PORT:-8080} " || echo "puerto libre"
 ```
 
 **MUST NOT** tocar el contenedor Docker `secretaria-virtual-dev`.
@@ -123,7 +125,8 @@ Exit `0` = PASS. **CRITICAL — `--reporter=line` es obligatorio** (el reporter 
 ### 4.5 Parar
 
 ```bash
-fuser -k 8080/tcp 2>/dev/null || lsof -ti tcp:8080 | xargs -r kill
+[ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+fuser -k "${APP_PORT:-8080}/tcp" 2>/dev/null || lsof -ti "tcp:${APP_PORT:-8080}" | xargs -r kill
 ```
 
 > `src/test/e2e/.app.log` es del motor; no se commitea.

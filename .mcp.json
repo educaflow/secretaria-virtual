@@ -8,8 +8,11 @@
       ]
     },
     "postgres": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-postgres", "postgresql://educaflow:educaflow@localhost:5432/educaflow"]
+      "command": "sh",
+      "args": [
+        "-c",
+        "[ -f ./ports.env ] && . ./ports.env; exec npx -y @modelcontextprotocol/server-postgres \"postgresql://educaflow:educaflow@localhost:${DB_PORT:-5432}/educaflow\""
+      ]
     }
   }
 }

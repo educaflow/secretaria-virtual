@@ -8,9 +8,10 @@ Lo lee el **ejecutor** (§2.2 del `README.md`). Tarea: ejecutar **un** `t-NNN-<s
 
 1. **Carga el skill `playwright-cli`** con la herramienta `Skill`: es el que pilota el navegador interpretando el Given/When/Then.
 2. Lee tu `t-NNN-<slug>.desc.md` (autocontenido): trae el `## Estado inicial de la base de datos` (datos maestros + **tabla de credenciales de login**) y el bloque del test (`Precondiciones`/`Pasos`/`Resultado esperado`).
-3. **Premisa**: la app YA está levantada en `http://localhost:8080` (la arrancó el orquestador). **MUST NOT** arrancarla, pararla ni recompilarla. Comprueba que responde:
+3. **Premisa**: la app YA está levantada en `http://localhost:<APP_PORT>` (la arrancó el orquestador; `APP_PORT` de `ports.env` del worktree, 8080 si no existe; ver `agent_docs/deploy.md`). **MUST NOT** arrancarla, pararla ni recompilarla. Comprueba que responde:
    ```bash
-   curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
+   [ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+   curl -s -o /dev/null -w "%{http_code}" "http://localhost:${APP_PORT:-8080}"
    ```
    Si no responde `200`, devuelve `FAIL {T-NNN}` con motivo "app no disponible".
 
@@ -18,7 +19,7 @@ Lo lee el **ejecutor** (§2.2 del `README.md`). Tarea: ejecutar **un** `t-NNN-<s
 
 ## 2. Ejecutar el test
 
-1. **Login**: inicia sesión con las credenciales del actor del test (de la tabla **Usuarios de acceso** de tu fichero). La URL base es `http://localhost:8080`.
+1. **Login**: inicia sesión con las credenciales del actor del test (de la tabla **Usuarios de acceso** de tu fichero). La URL base es `http://localhost:<APP_PORT>`.
 2. **Interpreta** los `Pasos` (`Dado`/`Cuando`/`Y`/`Entonces`) en lenguaje de negocio y condúcelos en el navegador (navegación por menús, alta de datos, pulsar botones). Usa `snapshot` para localizar referencias.
 3. **Verifica** cada punto del `Resultado esperado`.
 4. Al terminar, cierra el navegador (`playwright-cli close`).

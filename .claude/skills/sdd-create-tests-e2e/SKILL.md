@@ -60,7 +60,7 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 - No se encuentra ninguna carpeta `test-e2e-desc/` con `tests-e2e-desc.md` → **ERROR**: indica que hay que ejecutar antes `/sdd-debug-with-test-e2e-desc` y detente.
 - El `README.md` del contrato **no tiene** la sección «Carpeta destino», o la carpeta destino no se puede resolver aplicándola (§1.4): falta el `design/design.md`, falta el dato que la sección pide, su valor no valida, la carpeta de código que declara no existe, o el destino resulta ambiguo → **ERROR** con el motivo y detente. **MUST NOT** caer al nombre del draft. **Excepción**: con `--out=` (Apéndice A) el destino viene dado y esta resolución no se ejecuta.
 - El índice **no tiene ningún test `[x]` ni `[-]`** → **ERROR** e informa: no hay nada que materializar.
-- La app no responde `200` en `http://localhost:8080` tras arrancarla → **ERROR**: indica revisar `src/test/e2e/.app.log` y detente (sin la app no se puede generar nada).
+- La app no responde `200` en `http://localhost:<APP_PORT>` (`APP_PORT` de `ports.env` del worktree, 8080 si no existe; ver `agent_docs/deploy.md`) tras arrancarla → **ERROR**: indica revisar `src/test/e2e/.app.log` y detente (sin la app no se puede generar nada).
 - El **validador de auth** (§9.0) devuelve `BLOQUEADO` → **ERROR**: el helper de auth afecta a **todos** los tests; detente e indica el motivo (sin auth válida, todo fallaría).
 
 **Fallos por test** (autónomos, **NO** abortan; §2.7): el **generador** o el **sanador** devuelven `BLOQUEADO`, o se agotan los **8** ciclos de sanación → registrar en `fail_create_tests.log`, borrar el `.spec.ts` a medias, marcar FAIL y continuar con el resto. **MUST NOT** tocar código Java para forzar un test.
@@ -177,7 +177,7 @@ Reglas que el motor **MUST** cumplir:
 
 ### 2.4 Orquestación de subagentes
 
-- Los **generadores**, **verificadores** y **sanadores** corren **de uno en uno y en secuencia** (§9): comparten el puerto 8080 y se pisarían en paralelo. Para un mismo test van en contextos **distintos** (aislados), que es justo lo que evita las trampas.
+- Los **generadores**, **verificadores** y **sanadores** corren **de uno en uno y en secuencia** (§9): comparten el puerto `<APP_PORT>` y se pisarían en paralelo. Para un mismo test van en contextos **distintos** (aislados), que es justo lo que evita las trampas.
 - **MUST NOT** lanzar subagentes en paralelo ni con `run_in_background` (salvo el arranque de la app, que sí es background tracked y lo hace el motor, no un subagente).
 - Cada rol responde con un **token literal** que el skill parsea (definidos en cada fase). El skill compara por literal exacto.
 - Los subagentes **MUST NOT** usar `AskUserQuestion`: ante un bloqueo lo reportan con el token de su rol y el **motor lo gestiona de forma autónoma** (§2.7).
@@ -352,7 +352,7 @@ Con la app ya en `200`, **valida que `_support/auth.ts` funciona contra la UI re
 > Eres experto en testing E2E con Playwright de la secretaría virtual (Axelor). Tu tarea es **validar y, si hace falta, corregir el helper de autenticación** `src/test/e2e/_support/auth.ts` contra la app real.
 >
 > - **Reglas**: lee `{ruta de <plantilla-activa>/README.md}` y los ficheros que referencie (en particular la sección del **helper de auth** de la guía de generación). **Carga `/k-playwright`**. Usa las tools MCP de Playwright (`browser_*`) contra la app.
-> - **Premisa**: la app YA está en `http://localhost:8080` (la arrancó el orquestador). NO la arranques ni la pares.
+> - **Premisa**: la app YA está en `http://localhost:<APP_PORT>` (la arrancó el orquestador). NO la arranques ni la pares.
 > - **Credenciales**: usa un usuario válido de la tabla de credenciales de `{ruta de un .desc.md cualquiera de la selección}`.
 > - **Comprueba** que `ensureLoggedOut` → `login(usuario, contraseña)` entra de verdad y que `logout` cierra sesión y deja el login. Si algún selector no casa con la UI real, **corrige `src/test/e2e/_support/auth.ts`** (es **test code**; **MUST NOT** tocar código Java ni la fuente en `.sdd/`).
 > - **MUST NOT** usar `AskUserQuestion`. Responde **exactamente** una línea: `AUTH-OK` o `BLOQUEADO: {motivo}`.
@@ -373,7 +373,7 @@ Lanza **un** subagente con `Agent` (`subagent_type: claude`, `run_in_background:
 >
 > - **Reglas para la generación**: lee `{ruta de <plantilla-activa>/README.md}` y los ficheros que referencie —en particular el contrato de **generación** (cómo convertir la descripción en `.spec.ts`, el ciclo de login/logout con `_support/auth.ts`, la plantilla del test, los locators a preferir)—. **Carga el skill `/k-playwright`** y usa las tools MCP de Playwright (`generator_*`/`browser_*`) para grabar el test contra la app. Síguelo al pie de la letra.
 > - **Descripción a materializar**: lee `{ruta del t-NNN-<slug>.desc.md}` —es **autocontenida**: trae el estado inicial, la tabla de credenciales y el bloque del test—.
-> - **Premisa**: la app YA está levantada en `http://localhost:8080` (la arrancó el orquestador). NO la arranques ni la pares.
+> - **Premisa**: la app YA está levantada en `http://localhost:<APP_PORT>` (la arrancó el orquestador). NO la arranques ni la pares.
 > - **Salida**: escribe **exactamente** el fichero `{ruta destino del .spec.ts}` (mismo nombre base que el `.desc.md`, misma carpeta), con el ciclo de auth y la trazabilidad que pide el contrato. **MUST NOT** modificar código Java ni la fuente en `.sdd/`.
 > - **MUST NOT** usar `AskUserQuestion`. Aplica el **checklist** del contrato antes de terminar (**LIMIT**: 3 iteraciones de autocorrección).
 > - Al terminar, responde **exactamente** una de estas líneas:

@@ -16,7 +16,7 @@ Este proyecto usa un **progressive disclosure pattern to respect LLM instruction
 
 ## Script del proyecto
 
-Compila **y arranca** siempre con `./run.sh` (hace `./gradlew clean build` —compila y ejecuta los tests— y arranca en el 8080 con la config privada). **NO** uses `gradlew run` a mano ni `--debug-jvm`. Cómo probar tests, compilar sin arrancar, arrancar/reiniciar/resetear la BD y acceder con `psql`: ver [`agent_docs/deploy.md`](agent_docs/deploy.md).
+Compila **y arranca** siempre con `./run.sh` (hace `./gradlew clean build` —compila y ejecuta los tests— y arranca con la config privada en el puerto de `ports.env`, o en el 8080 si no existe). Cada worktree tiene su par de puertos y su contenedor de BD: la primera vez en un worktree es `./run.sh --new` (crea `ports.env`), después `./run.sh`; `--reset-db` vacía la BD (no por defecto: borra los datos de prueba). **NO** uses `gradlew run` a mano ni `--debug-jvm`. Cómo probar tests, compilar sin arrancar, la BD por worktree, resetearla y acceder con `psql`: ver [`agent_docs/deploy.md`](agent_docs/deploy.md).
 
 Para generar los esqueletos que le falten a un tipo de expediente está la tarea `./gradlew -q CreateFilesTask -Ptipo=<carpeta del tipo>` (sin `-Ptipo` procesa todos los trámites).
 Genera en la raíz de la versión `domains.xml`, el `views.xml` de plantilla y el `InitialEventManagerImpl.java` (el evento inicial es del tipo de expediente, no de una fase: hay exactamente uno por tipo), y por **cada fase** su subcarpeta con `PhaseEventManagerImpl.java`, `StateEventValidatorImpl.kt` y `views.xml`.

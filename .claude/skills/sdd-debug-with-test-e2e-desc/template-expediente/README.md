@@ -118,7 +118,7 @@ El índice es la fuente del **progreso reanudable**: un test que pasa se marca `
 
 ### 3.2 ejecutor — pilota un test en el navegador
 
-**Tarea:** dado **un** `t-NNN-<slug>.desc.md`, **ejecutarlo contra la app real** (`http://localhost:8080`, ya levantada por el motor) y reportar `SUCCESS`/`FAIL`.
+**Tarea:** dado **un** `t-NNN-<slug>.desc.md`, **ejecutarlo contra la app real** (`http://localhost:<APP_PORT>`, ya levantada por el motor; `APP_PORT` de `ports.env` del worktree, 8080 si no existe; ver `agent_docs/deploy.md`) y reportar `SUCCESS`/`FAIL`.
 
 - **Lee de esta plantilla:** `execution.md` y el contexto de §4 (la UI del subsistema de expedientes).
 - **Premisa:** la app YA está levantada (la arrancó el motor). **MUST NOT** arrancarla, pararla ni recompilarla. **MUST NOT** modificar ficheros del proyecto.
@@ -195,24 +195,26 @@ Cómo se ejecuta de verdad un test manual: el motor solo lo entrega a una person
 ### 5.1 Comprobar si está levantada (idempotencia)
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
+[ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+curl -s -o /dev/null -w "%{http_code}" "http://localhost:${APP_PORT:-8080}"
 ```
 
 **MUST NOT** arrancar una segunda instancia si ya responde `200`.
 
-### 5.2 Limpiar el puerto 8080 de verdad (antes de arrancar)
+### 5.2 Limpiar el puerto `<APP_PORT>` de verdad (antes de arrancar)
 
-**CRITICAL:** si una instancia previa sigue en 8080, el connector Tomcat **falla el bind en silencio** (el proceso existe y loga "Running at…", pero `curl`/`ss` nunca ven el `200`):
+**CRITICAL:** si una instancia previa sigue en `<APP_PORT>`, el connector Tomcat **falla el bind en silencio** (el proceso existe y loga "Running at…", pero `curl`/`ss` nunca ven el `200`):
 
 ```bash
-fuser -k 8080/tcp 2>/dev/null || lsof -ti tcp:8080 | xargs -r kill
+[ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+fuser -k "${APP_PORT:-8080}/tcp" 2>/dev/null || lsof -ti "tcp:${APP_PORT:-8080}" | xargs -r kill
 # Si persiste, mata por cmdline los runners de Gradle/Tomcat de la app,
 # EXCLUYENDO IntelliJ y similares (idea|intellij|jetbrains|fsnotifier|mcp):
-pkill -f 'TomcatRunner|GradleWrapperMain.*run' 2>/dev/null
-ss -ltn | grep ':8080' || echo "8080 libre"
+pkill -f "$PWD/.*(TomcatRunner|GradleWrapperMain.*run)" 2>/dev/null   # solo los de ESTE worktree
+ss -ltn | grep ":${APP_PORT:-8080} " || echo "puerto libre"
 ```
 
-El contenedor Docker `secretaria-virtual-dev` **NO** ocupa el 8080 del host. **MUST NOT** parar ni matar procesos del contenedor Docker.
+El contenedor Docker `secretaria-virtual-dev` **NO** ocupa el puerto `<APP_PORT>` del host. **MUST NOT** parar ni matar procesos del contenedor Docker.
 
 ### 5.3 Arrancar (tracked, en segundo plano)
 
@@ -233,7 +235,8 @@ Usa **siempre** `./run.sh`. **MUST NOT** invocar `gradlew run` a mano ni añadir
 Siempre **por puerto**, nunca por handle de proceso:
 
 ```bash
-fuser -k 8080/tcp 2>/dev/null || lsof -ti tcp:8080 | xargs -r kill
+[ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+fuser -k "${APP_PORT:-8080}/tcp" 2>/dev/null || lsof -ti "tcp:${APP_PORT:-8080}" | xargs -r kill
 ```
 
 ### 5.5 Rearrancar tras una corrección

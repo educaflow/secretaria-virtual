@@ -50,7 +50,7 @@ Los tres roles:
 
 ## 3. Contexto del proyecto y carpeta destino
 
-- La app es una secretaría virtual sobre **Axelor 8.1**, servida en `http://localhost:8080/`; login en `http://localhost:8080/#/login`. El `baseURL` de `playwright.config.ts` ya es `http://localhost:8080`: **MUST** usar rutas relativas (`page.goto('/#/login')`).
+- La app es una secretaría virtual sobre **Axelor 8.1**, servida en `http://localhost:<APP_PORT>/` (`APP_PORT` de `ports.env` del worktree, 8080 si no existe; ver `agent_docs/deploy.md`); login en `http://localhost:<APP_PORT>/#/login`. El `baseURL` de `playwright.config.ts` ya es `http://localhost:<APP_PORT>`: **MUST** usar rutas relativas (`page.goto('/#/login')`).
 - Convenciones de tests, locators y estructura: las define `/k-playwright` (cárgalo). Pares `t-NNN-<slug>.desc.md` ↔ `t-NNN-<slug>.spec.ts`, **mismo nombre base y misma carpeta**; helper compartido `src/test/e2e/_support/auth.ts`.
 - La app es **multicentro y bilingüe (es/ca)**: los locators por texto asumen español salvo que el test diga lo contrario.
 - **CRITICAL — la BD es compartida y NO se resetea entre ejecuciones**: cada run deja expedientes nuevos. Por eso cada `.spec.ts` **MUST** ser **idempotente** por el **número de expediente** que él mismo crea (§3.3 y `generation.md` §5). Un test que pasa una vez pero falla al reejecutarse está **roto**.
@@ -129,17 +129,19 @@ El motor deja la app respondiendo `200` antes de generar el primer test y la par
 ### 4.1 Comprobar si está levantada
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
+[ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+curl -s -o /dev/null -w "%{http_code}" "http://localhost:${APP_PORT:-8080}"
 ```
 
-### 4.2 Limpiar el puerto 8080 (antes de arrancar)
+### 4.2 Limpiar el puerto `<APP_PORT>` (antes de arrancar)
 
 **CRITICAL**: una instancia previa colgada hace que el connector falle el bind en silencio. Limpia de verdad, **excluyendo** IntelliJ y similares:
 
 ```bash
-fuser -k 8080/tcp 2>/dev/null || lsof -ti tcp:8080 | xargs -r kill
-pkill -f 'TomcatRunner|GradleWrapperMain.*run' 2>/dev/null
-ss -ltn | grep ':8080' || echo "8080 libre"
+[ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+fuser -k "${APP_PORT:-8080}/tcp" 2>/dev/null || lsof -ti "tcp:${APP_PORT:-8080}" | xargs -r kill
+pkill -f "$PWD/.*(TomcatRunner|GradleWrapperMain.*run)" 2>/dev/null   # solo los de ESTE worktree
+ss -ltn | grep ":${APP_PORT:-8080} " || echo "puerto libre"
 ```
 
 ### 4.3 Arrancar (tarea tracked en segundo plano)
@@ -169,7 +171,8 @@ Exit code `0` = **PASS**; distinto de `0` = **FAIL** (pasa la salida al sanador)
 Siempre **por puerto**, nunca por handle de proceso:
 
 ```bash
-fuser -k 8080/tcp 2>/dev/null || lsof -ti tcp:8080 | xargs -r kill
+[ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+fuser -k "${APP_PORT:-8080}/tcp" 2>/dev/null || lsof -ti "tcp:${APP_PORT:-8080}" | xargs -r kill
 ```
 
 > El log `src/test/e2e/.app.log` es del motor; no se commitea y los subagentes lo ignoran.

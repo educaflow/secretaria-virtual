@@ -4,11 +4,11 @@ Estructura, nombres y patrones para todos los tests E2E de la secretaría virtua
 
 ## URLs
 
-- **Base local:** `http://localhost:8080/`
-- **Login:** `http://localhost:8080/#/login`
+- **Base local:** `http://localhost:<APP_PORT>/` (`APP_PORT` de `ports.env` del worktree, 8080 si no existe; ver `agent_docs/deploy.md`)
+- **Login:** `http://localhost:<APP_PORT>/#/login`
 - La aplicación se compila y arranca con `./run.sh` (ver `CLAUDE.md`).
 
-`playwright.config.ts` tiene `baseURL` = `http://localhost:8080`. **MUST** preferir rutas relativas en los tests (`page.goto('/#/login')`); usa la URL absoluta solo si necesitas otro host.
+`playwright.config.ts` tiene `baseURL` = `http://localhost:<APP_PORT>`. **MUST** preferir rutas relativas en los tests (`page.goto('/#/login')`); usa la URL absoluta solo si necesitas otro host.
 
 ## Estructura de carpetas
 
@@ -161,6 +161,6 @@ Ya está en `.gitignore`:
 
 ## Pre-requisito: arrancar la app
 
-Los tests E2E **necesitan la aplicación corriendo** en `localhost:8080`. Hoy hay que arrancarla antes de lanzar los tests, **siempre con `./run.sh`** (compila, pasa los tests y arranca en el 8080 con la config correcta). **MUST NOT** usar `gradlew run` a mano — ver `CLAUDE.md`.
+Los tests E2E **necesitan la aplicación corriendo** en `localhost:<APP_PORT>`. Hoy hay que arrancarla antes de lanzar los tests, **siempre con `./run.sh`** (compila, pasa los tests y arranca en el puerto `<APP_PORT>` con la config correcta). **MUST NOT** usar `gradlew run` a mano — ver `CLAUDE.md`.
 
 Si se configura `webServer` en `playwright.config.ts` en el futuro, Playwright arrancará la app automáticamente.

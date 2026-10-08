@@ -75,3 +75,9 @@ playwright/.sessions/
 .env
 .env.local
 .env.*.local
+
+# Puertos por worktree (los escribe ./run.sh --new)
+ports.env
+
+# Adjuntos, temporales y logs del worktree (modo worktree de run.sh)
+.axelor-data/

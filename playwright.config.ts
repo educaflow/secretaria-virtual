@@ -1,4 +1,22 @@
 import { defineConfig, devices } from '@playwright/test';
+import fs from 'fs';
+import path from 'path';
+
+/**
+ * Puerto de la app. En un worktree con `ports.env` (lo escribe `./run.sh --new`)
+ * se lee su APP_PORT; sin fichero se usa el 8080 de siempre, así que nada cambia
+ * en CI ni en el modo por defecto.
+ */
+function appPort(): number {
+  try {
+    const env = fs.readFileSync(path.resolve(__dirname, 'ports.env'), 'utf8');
+    const m = /^\s*APP_PORT\s*=\s*(\d+)\s*$/m.exec(env);
+    if (m) return Number(m[1]);
+  } catch {
+    /* sin ports.env: modo por defecto */
+  }
+  return 8080;
+}
 
 /**
  * Read environment variables from file.
@@ -46,7 +64,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
-    baseURL: 'http://localhost:8080',
+    baseURL: `http://localhost:${appPort()}`,
 
     /* Sin estos, el default de Playwright es 0 = SIN LÍMITE: una acción/navegación
        colgada espera hasta el timeout global del test. Con ~20s cualquier locator

@@ -9,9 +9,10 @@ Lo lee el **ejecutor** (README §2.2). Tarea: ejecutar **un** `t-NNN-<slug>.desc
 1. **Carga el skill `playwright-cli`** con la herramienta `Skill`: es el que pilota el navegador.
 2. Lee tu `t-NNN-<slug>.desc.md`: estado inicial + **tabla de credenciales** + el bloque del test.
 3. Si su campo **`Manual`** es `sí`: no lo ejecutes; devuelve `FAIL {T-NNN}` con `=== FALLO ===` «test manual: el motor no debía enviarlo». (El motor salta los `- [-]`; esto es solo una red de seguridad.)
-4. **Premisa**: la app YA está levantada en `http://localhost:8080`. **MUST NOT** arrancarla, pararla ni recompilarla. Comprueba:
+4. **Premisa**: la app YA está levantada en `http://localhost:<APP_PORT>` (`APP_PORT` de `ports.env` del worktree, 8080 si no existe; ver `agent_docs/deploy.md`). **MUST NOT** arrancarla, pararla ni recompilarla. Comprueba:
    ```bash
-   curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
+   [ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+   curl -s -o /dev/null -w "%{http_code}" "http://localhost:${APP_PORT:-8080}"
    ```
    Si no responde `200` → `FAIL {T-NNN}` con motivo «app no disponible».
 
@@ -19,7 +20,7 @@ Lo lee el **ejecutor** (README §2.2). Tarea: ejecutar **un** `t-NNN-<slug>.desc
 
 ## 2. Ejecutar el test
 
-1. **Login** con las credenciales del actor (tabla **Usuarios de acceso**). URL base `http://localhost:8080`.
+1. **Login** con las credenciales del actor (tabla **Usuarios de acceso**). URL base `http://localhost:<APP_PORT>`.
 2. **Interpreta** los `Pasos` (`Dado`/`Cuando`/`Y`/`Entonces`) en lenguaje de negocio y condúcelos en el navegador. Usa `snapshot` para localizar referencias. Una feature libre puede llevarte por **varias pantallas de partes distintas** de la aplicación (p. ej. configurar en administración y comprobar en otra pantalla con otro usuario): sigue los pasos tal cual, con los **cierres e inicios de sesión** que indiquen.
 3. **Verifica** cada punto del `Resultado esperado`, incluidos los de **no-regresión** («la pantalla se muestra como siempre»: compara con lo que esa pantalla hacía, no asumas que pasa).
 4. Si el test cambió algo **global** (una configuración, un aviso para todos) y el `Resultado esperado` dice que lo deshace, **ejecuta ese paso también**: si no, contaminas los tests siguientes.

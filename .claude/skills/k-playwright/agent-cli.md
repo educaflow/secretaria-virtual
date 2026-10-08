@@ -90,7 +90,8 @@ Por defecto **headless** y output conciso (barato en tokens).
 Verificar visualmente que el login sigue funcionando tras un cambio:
 
 ```bash
-playwright-cli open http://localhost:8080/#/login
+[ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+playwright-cli open http://localhost:${APP_PORT:-8080}/#/login
 # (Claude lee el snapshot, identifica refs de los inputs)
 playwright-cli click <ref-input-usuario>
 playwright-cli type "admin"

@@ -59,7 +59,7 @@ You **MUST** consider the user input before proceeding (if not empty). Argumento
 - No se encuentra ningún `test-e2e-desc.md` (o no contiene ningún bloque `## T-NNN`) → **ERROR** y detente sin ejecutar nada.
 - El usuario no confirma la ruta auto-detectada (Fase 0 caso 2) → **STOP** y pide la ruta.
 - El **descomponedor** no devuelve el token `ESCRITO: test-e2e-desc/` con su lista de tests tras 1 reintento → **STOP** y muestra el problema.
-- La app no responde `200` en `http://localhost:8080` tras arrancarla (compila pero no levanta) → **STOP** y `AskUserQuestion` (reintentar / ver log / abortar).
+- La app no responde `200` en `http://localhost:<APP_PORT>` (`APP_PORT` de `ports.env` del worktree, 8080 si no existe; ver `agent_docs/deploy.md`) tras arrancarla (compila pero no levanta) → **STOP** y `AskUserQuestion` (reintentar / ver log / abortar).
 - El **corrector** devuelve `BLOQUEADO` (falta un recurso del entorno ajeno al diseño) → **STOP** y pregunta al usuario. **MUST NOT** adivinar.
 - El **corrector** devuelve `DESIGN-ERROR` (la corrección exigiría tocar `test-e2e-desc.md`, el XML/contrato del diseño o firmas declaradas: el fallo es del diseño y **no se puede resolver con código de la aplicación**) → el motor escribe `test-e2e-desc/error_design.log` con la explicación detallada y **detiene el skill** (**STOP**): no pregunta al usuario, no sigue con los demás tests (§9.3). **MUST NOT** editar el diseño para forzar que el test pase; eso vuelve a `/sdd-designer`.
 - Tras **10** ciclos de corrección un test sigue en `FAIL` → ese test queda `FAIL` (sin marcar en el índice) y el bucle continúa con el resto; al final se reporta como `FAIL`.
@@ -140,7 +140,7 @@ Reglas que el motor **MUST** cumplir (los comandos exactos están en el README):
 
 ### 2.4 Orquestación de subagentes
 
-- El **descomponedor** corre **una vez** (§7). Los **ejecutores** y **correctores** corren **de uno en uno y en secuencia** (§9): comparten el puerto 8080 y se pisarían en paralelo.
+- El **descomponedor** corre **una vez** (§7). Los **ejecutores** y **correctores** corren **de uno en uno y en secuencia** (§9): comparten el puerto `<APP_PORT>` y se pisarían en paralelo.
 - **MUST NOT** lanzar subagentes en paralelo ni con `run_in_background` (salvo el arranque de la app, que sí es background tracked y lo hace el motor, no un subagente): el skill necesita el resultado de cada subagente para continuar.
 - Cada rol responde con un **token literal** que el skill parsea (definidos en cada fase). El skill compara por literal exacto.
 - Los subagentes **MUST NOT** usar `AskUserQuestion`: ante un bloqueo lo reportan con el token de su rol y el motor lleva la decisión al usuario.
@@ -288,7 +288,7 @@ Lanza **un** subagente con `Agent` (`subagent_type: claude`, `run_in_background:
 >
 > - **Reglas para la ejecución**: lee `{ruta de <plantilla-activa>/README.md}` y los ficheros que referencie —en particular el contrato de **ejecución** (qué skill cargar para pilotar el navegador, la URL base, cómo interpretar Given/When/Then, los errores recurrentes a evitar, y el criterio de equivalencia semántica de los mensajes)—. Síguelo.
 > - **Test a ejecutar**: lee `{ruta del t-NNN-<slug>.desc.md}` —es **autocontenido**: trae la cabecera común (datos previos + credenciales de login) y el bloque de su test, con la estructura que declare el contrato—.
-> - **Premisa**: la app YA está levantada en `http://localhost:8080` (la arrancó el orquestador). NO la arranques ni la pares. Si no responde, repórtalo como `FAIL` con motivo "app no disponible".
+> - **Premisa**: la app YA está levantada en `http://localhost:<APP_PORT>` (la arrancó el orquestador). NO la arranques ni la pares. Si no responde, repórtalo como `FAIL` con motivo "app no disponible".
 > - **MUST NOT** usar `AskUserQuestion`. **MUST NOT** modificar ficheros del proyecto.
 > - **Formato de salida (REQUIRED)**: primera línea **exactamente** `SUCCESS {T-NNN}` o `FAIL {T-NNN}`. Si `FAIL`, debajo un bloque `=== FALLO ===` con la descripción concreta de qué falló (paso, valor esperado vs observado) y toda la información de la UI en el momento del fallo (snapshot/mensajes/toasts de error, valores de campos, URL, errores de consola y peticiones fallidas con su status) que el contrato pida recoger.
 
@@ -379,7 +379,7 @@ Solo se ejecuta si el usuario pasó `--manuales` (Apéndice A) y el índice tien
 
 Por cada test `[-]`, **en orden**:
 
-1. **Muestra al usuario** el contenido de su `t-NNN-<slug>.desc.md` (`Read` y vuélcalo en la conversación) y la URL de la app (`http://localhost:8080`). Es autocontenido: trae las credenciales y los pasos.
+1. **Muestra al usuario** el contenido de su `t-NNN-<slug>.desc.md` (`Read` y vuélcalo en la conversación) y la URL de la app (`http://localhost:<APP_PORT>`). Es autocontenido: trae las credenciales y los pasos.
 2. **`AskUserQuestion`** con el `T-NNN` y el motivo de la marca, y estas opciones:
    - **Pasó** → marca la línea `- [x]` en el índice y pasa al siguiente.
    - **Falló** → pide en la misma pregunta qué falló y entra en el **bucle de corrección** (§9.2) con esa descripción como bloque `=== FALLO ===`. Ojo: tras cada `CORREGIDO` el motor rearranca la app y **vuelve a pedirle al usuario** que reejecute el test (paso 1), no lanza al ejecutor.

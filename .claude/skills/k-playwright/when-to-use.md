@@ -60,7 +60,8 @@ La diferencia de fondo no es de capacidad, sino de **dónde actúa la IA**:
 - Si **existe un test** que lo cubre → `npx playwright test src/test/e2e/subsystem/registroentradasalida/`.
 - Si **no existe test** y solo quieres verificar una vez → Agent CLI:
   ```
-  playwright-cli open http://localhost:8080/#/registro
+  [ -f ports.env ] && . ./ports.env   # APP_PORT del worktree; 8080 si no hay ports.env
+  playwright-cli open http://localhost:${APP_PORT:-8080}/#/registro
   playwright-cli ...
   ```
 - Si **debería existir test** y aún no → planner + generator para crearlo.

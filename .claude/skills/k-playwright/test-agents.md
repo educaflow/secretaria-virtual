@@ -27,7 +27,7 @@ planner  →  generator  →  healer
 
 **Cómo invocar:**
 
-> "Usa el subagente `playwright-test-planner` para explorar la pantalla de login en http://localhost:8080/#/login y guardar el plan en `src/test/e2e/subsystem/criptografia/certificados.desc.md`."
+> "Usa el subagente `playwright-test-planner` para explorar la pantalla de login en http://localhost:<APP_PORT>/#/login (`APP_PORT` de `ports.env` del worktree, 8080 si no existe; ver `agent_docs/deploy.md`) y guardar el plan en `src/test/e2e/subsystem/criptografia/certificados.desc.md`."
 
 **Qué hace internamente:**
 1. Llama a `planner_setup_page` (una sola vez).

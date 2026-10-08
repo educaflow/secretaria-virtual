@@ -18,7 +18,7 @@ Este skill documenta cómo se hacen tests end-to-end de la aplicación con **Pla
 
 ## Contexto rápido
 
-La aplicación es una secretaría virtual sobre Axelor 8.1 que se sirve por defecto en `http://localhost:8080/`. La ruta de login es `http://localhost:8080/#/login`.
+La aplicación es una secretaría virtual sobre Axelor 8.1 que se sirve por defecto en `http://localhost:<APP_PORT>/` (`APP_PORT` de `ports.env` del worktree, 8080 si no existe; ver `agent_docs/deploy.md`). La ruta de login es `http://localhost:<APP_PORT>/#/login`.
 
 Hay **dos integraciones de Playwright con Claude Code** instaladas en este repo:
 
