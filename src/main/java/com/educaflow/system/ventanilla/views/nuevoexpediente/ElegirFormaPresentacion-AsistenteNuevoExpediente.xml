@@ -48,8 +48,8 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         <panel name="presentacionPanel" title="Presentación" colSpan="12"
                showIf="hayQuePreguntarParaQuien || presentadoEnPapel">
             <field name="presentadoEnRepresentacion" colSpan="12" widget="boolean-radio"
-                   x-false-text="Para mí"
-                   x-true-text="Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)"
+                   x-false-text="Para la persona que lo presenta"
+                   x-true-text="Para otra persona a la que representa quien lo presenta (hijo/a menor de edad o persona tutelada)"
                    showIf="hayQuePreguntarParaQuien"/>
             <field name="idioma" colSpan="6" showIf="presentadoEnPapel" requiredIf="presentadoEnPapel"/>
         </panel>
