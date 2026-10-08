@@ -46,11 +46,12 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
         </panel>
 
         <panel name="presentacionPanel" title="Presentación" colSpan="12"
-               showIf="hayQuePreguntarParaQuien">
+               showIf="hayQuePreguntarParaQuien || presentadoEnPapel">
             <field name="presentadoEnRepresentacion" colSpan="12" widget="boolean-radio"
                    x-false-text="Para mí"
                    x-true-text="Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)"
                    showIf="hayQuePreguntarParaQuien"/>
+            <field name="idioma" colSpan="6" showIf="presentadoEnPapel" requiredIf="presentadoEnPapel"/>
         </panel>
 
         <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
@@ -83,6 +84,8 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     <action-validate name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-Local-validateTriggerInitialEvent-action">
         <error message="Debe indicar para quién es el expediente"
                if="presentadoEnRepresentacion == null"/>
+        <error message="Debe indicar el idioma"
+               if="presentadoEnPapel &amp;&amp; !idioma"/>
     </action-validate>
 
     <?sv-rules?>
@@ -108,7 +111,7 @@ https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
     </action-method>
 
     <!-- `TramitadorController.triggerInitialEvent` lee del formulario `tramite`, `centro`,
-         `presentadoEnPapel` y `presentadoEnRepresentacion`. -->
+         `presentadoEnPapel`, `presentadoEnRepresentacion` e `idioma`. -->
     <action-method name="sysVentanilla.ElegirFormaPresentacion@AsistenteNuevoExpediente-Remote-triggerInitialEvent-action"
                    model="com.educaflow.system.ventanilla.db.AsistenteNuevoExpediente">
         <call class="com.educaflow.subsystem.tramitador.controller.TramitadorController"

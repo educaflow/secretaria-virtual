@@ -157,6 +157,10 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // está en la pantalla: el centro "CIPFP Mislata", el trámite "Justificación de
       // falta del profesorado" y registrado como recibido en papel.
       const enviado = await manipularParaQuienEsEnPeticionDeCrear(page);
+      // En papel el idioma del expediente es obligatorio: se elige explícitamente para no
+      // depender del que el asistente propone (el del usuario que registra).
+      await page.getByTestId('field:idioma').getByRole('combobox').click();
+      await page.getByRole('option', { name: 'Castellano', exact: true }).click();
       await page.getByRole('button', { name: 'Crear expediente' }).click();
 
       // Resultado esperado: bajo el título "No es posible crear el expediente" muestra el

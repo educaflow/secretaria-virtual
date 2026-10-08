@@ -94,7 +94,7 @@ class TramitadorTest {
             tramite.setDefaultTipoExpediente(tipoExpediente);
             Centro centro = new Centro();
             centro.setCode("46000001");
-            contextoTramitacion = new ContextoTramitacion(tramite, centro, Profile.CREADOR, false, false);
+            contextoTramitacion = new ContextoTramitacion(tramite, centro, Profile.CREADOR, false, false, null);
 
             doReturn(initialEventManager).when(expedienteLocator).getInitialEventManager(tipoExpediente);
             doReturn(PruebaV1.class).when(expedienteLocator).getModelClass(tipoExpediente);
@@ -140,6 +140,36 @@ class TramitadorTest {
                 orden.verify(initialEventManager).triggerInitialEvent(any());
                 orden.verify(numeradorRepository).getSiguienteNumeroExpediente(eq("46000001"), anyString());
                 jpa.verify(() -> JPA.save(expediente));
+            }
+        }
+
+        @Test
+        void presentadoPorElUsuario_tomaElIdiomaDelUsuarioYNoElDelContexto() throws Exception {
+            User usuario = new User();
+            usuario.setLanguage("ca");
+            securityUtil.when(SecurityUtil::getUser).thenReturn(usuario);
+            ContextoTramitacion contexto = new ContextoTramitacion(contextoTramitacion.tramite(), contextoTramitacion.centro(),
+                    Profile.CREADOR, false, false, "es");
+
+            try (MockedStatic<JPA> jpa = mockStatic(JPA.class)) {
+                Expediente expediente = tramitador.triggerInitialEvent(contexto);
+
+                assertEquals("ca", expediente.getIdioma());
+            }
+        }
+
+        @Test
+        void presentadoEnPapel_tomaElIdiomaDelContextoYNoElDelUsuario() throws Exception {
+            User usuario = new User();
+            usuario.setLanguage("es");
+            securityUtil.when(SecurityUtil::getUser).thenReturn(usuario);
+            ContextoTramitacion contexto = new ContextoTramitacion(contextoTramitacion.tramite(), contextoTramitacion.centro(),
+                    Profile.TRAMITADOR, true, false, "ca");
+
+            try (MockedStatic<JPA> jpa = mockStatic(JPA.class)) {
+                Expediente expediente = tramitador.triggerInitialEvent(contexto);
+
+                assertEquals("ca", expediente.getIdioma());
             }
         }
     }

@@ -84,7 +84,7 @@ class TramitadorServiceTest {
 
     @Test
     void validateTriggerInitialEvent_sinPerfilesDeInicio_avisaQueNoPuedeCrear() {
-        ContextoTramitacion contexto = new ContextoTramitacion(tramite, centro, Profile.CREADOR, false, false);
+        ContextoTramitacion contexto = new ContextoTramitacion(tramite, centro, Profile.CREADOR, false, false, null);
         when(perfilesUsuarioService.getPerfilesDeInicioSobreTramite(tramite, user, centro)).thenReturn(Set.of());
 
         Optional<BusinessMessages> resultado = tramitadorService.validateTriggerInitialEvent(contexto);
@@ -108,7 +108,7 @@ class TramitadorServiceTest {
 
     @Test
     void validateTriggerInitialEvent_perfilQueNoPuedeCrear_avisaAunqueSeaDeInicio() {
-        ContextoTramitacion contexto = new ContextoTramitacion(tramite, centro, Profile.AUDITOR, false, false);
+        ContextoTramitacion contexto = new ContextoTramitacion(tramite, centro, Profile.AUDITOR, false, false, null);
         when(perfilesUsuarioService.getPerfilesDeInicioSobreTramite(tramite, user, centro)).thenReturn(Set.of(Profile.AUDITOR));
 
         Optional<BusinessMessages> resultado = tramitadorService.validateTriggerInitialEvent(contexto);
@@ -118,7 +118,7 @@ class TramitadorServiceTest {
 
     @Test
     void validateTriggerInitialEvent_perfilQueNoEsDeInicio_avisaQueNoPuedePresentarDeEsaForma() {
-        ContextoTramitacion contexto = new ContextoTramitacion(tramite, centro, Profile.TRAMITADOR, false, false);
+        ContextoTramitacion contexto = new ContextoTramitacion(tramite, centro, Profile.TRAMITADOR, false, false, null);
         when(perfilesUsuarioService.getPerfilesDeInicioSobreTramite(tramite, user, centro)).thenReturn(Set.of(Profile.CREADOR));
 
         Optional<BusinessMessages> resultado = tramitadorService.validateTriggerInitialEvent(contexto);
@@ -128,7 +128,7 @@ class TramitadorServiceTest {
 
     @Test
     void validateTriggerInitialEvent_perfilDeInicioQuePuedeCrear_esValido() {
-        ContextoTramitacion contexto = new ContextoTramitacion(tramite, centro, Profile.CREADOR, false, false);
+        ContextoTramitacion contexto = new ContextoTramitacion(tramite, centro, Profile.CREADOR, false, false, null);
         when(perfilesUsuarioService.getPerfilesDeInicioSobreTramite(any(), any(), any())).thenReturn(Set.of(Profile.CREADOR, Profile.TRAMITADOR));
 
         Optional<BusinessMessages> resultado = tramitadorService.validateTriggerInitialEvent(contexto);

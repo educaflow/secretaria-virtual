@@ -66,7 +66,7 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 - **Given** que `administrativo2@mislata.es` (contraseña `demo1234`) tiene los dos perfiles de inicio en CIPFP Mislata, y que otro alumno le ha entregado en ventanilla su solicitud de anulación firmada en papel.
 - **When** inicia sesión, abre «Tramitación» → «Nuevo trámite», despliega «Trámites para el alumno» y pulsa sobre «Anulación de matrícula en ciclo formativo».
 - **Then** se abre la pantalla «Nuevo expediente» **sin** la pregunta «¿Cómo se presenta?» (aunque tiene los dos perfiles, la entrada «Tramitación» ya fija que se registra en papel) y con la pregunta «¿Para quién es el expediente?» («Para mí» es para la persona que ha entregado el papel), sin ninguna opción marcada.
-- **When** marca «Para mí» —la solicitud es del alumno que la ha entregado, no suya— y pulsa «Crear expediente».
+- **When** marca «Para mí» —la solicitud es del alumno que la ha entregado, no suya—, elige el idioma «Castellano» y pulsa «Crear expediente».
 - **Then** se abre el expediente en la fase `ENTRADA`, estado `PENDIENTE_DOCUMENTO_ESCANEADO`, con el panel «Solicitud entregada en papel» y su campo «Solicitud escaneada (PDF)».
 - **When** adjunta un PDF de menos de 10 MB y pulsa «Siguiente».
 - **Then** el expediente pasa al estado `ENTRADA_DATOS`, con la cabecera «Entrada» / «Entrada de datos» y el aviso «Copie los datos de la solicitud entregada en papel que ha adjuntado escaneada. Al presentarla se registrará su entrada».

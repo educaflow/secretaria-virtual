@@ -96,6 +96,7 @@ public class AsistenteNuevoExpedienteController {
         actionResponse.setValue("ayudaTramite", resultado.getAyudaTramite());
         actionResponse.setAttr("presentadoEnRepresentacion", "value:set", resultado.getPresentadoEnRepresentacion());
         actionResponse.setValue("hayQuePreguntarParaQuien", resultado.getHayQuePreguntarParaQuien());
+        actionResponse.setValue("idioma", resultado.getIdioma());
     }
 
     /************************************************************************************/

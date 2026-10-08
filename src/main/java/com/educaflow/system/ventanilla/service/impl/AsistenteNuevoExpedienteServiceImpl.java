@@ -116,6 +116,14 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
             return Optional.of(businessMessages);
         }
 
+        if (Boolean.TRUE.equals(asistente.getPresentadoEnPapel()) && asistente.getIdioma() == null) {
+            BusinessMessages businessMessages = new BusinessMessages();
+            businessMessages.add(new BusinessMessage("idioma",
+                    I18n.get("Debe indicar el idioma"),
+                    I18n.get(Mapper.of(AsistenteNuevoExpediente.class).getProperty("idioma").getTitle())));
+            return Optional.of(businessMessages);
+        }
+
         return validateAlta(asistente.getTramite(), asistente.getCentro(),
                 asistente.getPresentadoEnPapel(), asistente.getPresentadoEnRepresentacion());
     }
@@ -148,7 +156,7 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
                                                     boolean presentadoEnPapel,
                                                     boolean presentadoEnRepresentacion) {
         ContextoTramitacion contexto = new ContextoTramitacion(tramite, centro,
-                perfilDeInicioPara(presentadoEnPapel), presentadoEnPapel, presentadoEnRepresentacion);
+                perfilDeInicioPara(presentadoEnPapel), presentadoEnPapel, presentadoEnRepresentacion, null);
 
         Optional<BusinessMessages> mensajesDelMotor = tramitadorService.validateTriggerInitialEvent(contexto);
         if (mensajesDelMotor.isPresent()) {
@@ -235,7 +243,8 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
                 "tramite", Map.of(),
                 "centro", Map.of(),
                 "presentadoEnPapel", Map.of(),
-                "presentadoEnRepresentacion", Map.of()
+                "presentadoEnRepresentacion", Map.of(),
+                "idioma", Map.of()
         ));
     }
 
@@ -271,6 +280,7 @@ public class AsistenteNuevoExpedienteServiceImpl extends DefaultModelService<Asi
         asistente.setHayQuePreguntarParaQuien(hayQuePreguntarElDestinatario);
         asistente.setPresentadoEnRepresentacion(
                 hayQuePreguntarElDestinatario ? null : admiteEnRepresentacion);
+        asistente.setIdioma(presentadoEnPapel ? SecurityUtil.getUser().getLanguage() : null);
     }
 
     /***********************************************************************************/

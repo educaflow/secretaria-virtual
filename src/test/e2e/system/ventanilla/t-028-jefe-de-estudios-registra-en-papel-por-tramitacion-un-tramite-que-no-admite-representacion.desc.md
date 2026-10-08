@@ -54,7 +54,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 3. **Entonces** se abre directamente "Nuevo expediente: elija el trámite" con el centro "CIPFP Mislata", únicamente "Trámites para el profesor" con "Justificación de falta del profesorado" y "Trámite de prueba" por orden alfabético, y un único botón debajo, "Cancelar".
 4. **Cuando** pulsa la fila "Justificación de falta del profesorado".
 5. **Entonces** se abre "Nuevo expediente" con ese trámite, su ayuda y el centro en solo lectura; no se ve "¿Cómo se presenta?" (la forma la fija la entrada de menú) ni "¿Para quién es el expediente?" (el trámite no admite representación).
-6. **Cuando** pulsa "Crear expediente".
+6. **Cuando** elige el idioma "Castellano" y pulsa "Crear expediente".
 
 ## Resultado esperado
 - El asistente se cierra y se abre el expediente recién creado de "Justificación de falta del profesorado" en la fase "Entrada", estado "Pendiente de adjuntar la solicitud en papel escaneada", con el panel para adjuntar la solicitud escaneada y su aviso, y sin el panel "Datos del profesor interesado".

@@ -103,6 +103,10 @@ test.describe('Anulación de matrícula en ciclo formativo — ENTRADA', () => {
       await opcionRepresentacion.click();
       await expect(opcionRepresentacion).toBeChecked();
       // … y pulsa «Crear expediente».
+      // En papel el idioma del expediente es obligatorio: se elige explícitamente para no
+      // depender del que el asistente propone (el del usuario que registra).
+      await page.getByTestId('field:idioma').getByRole('combobox').click();
+      await page.getByRole('option', { name: 'Castellano', exact: true }).click();
       await page.getByRole('button', { name: 'Crear expediente' }).click();
 
       // Then: se abre el expediente en la fase ENTRADA, estado PENDIENTE_DOCUMENTO_ESCANEADO…

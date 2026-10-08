@@ -66,7 +66,7 @@ Ningún otro dato se introduce: los tests acaban nada más llegar a la pantalla 
 - **Given** que `administrativo2@mislata.es` (contraseña `demo1234`) tiene los dos perfiles de inicio en CIPFP Mislata, y que quien ha entregado la solicitud en ventanilla es el padre de un alumno, que la presenta en representación de su hijo.
 - **When** inicia sesión, abre «Tramitación» → «Nuevo trámite», despliega «Trámites para el alumno» y pulsa sobre «Anulación de matrícula en ciclo formativo».
 - **Then** **no** se le pregunta «¿Cómo se presenta?» (aunque tiene los dos perfiles, la entrada «Tramitación» ya fija que se registra en papel) y aparece la pregunta «¿Para quién es el expediente?» («Para mí» es para la persona que ha entregado el papel).
-- **When** marca «Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)» y pulsa «Crear expediente».
+- **When** marca «Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)», elige el idioma «Castellano» y pulsa «Crear expediente».
 - **Then** se abre el expediente en la fase `ENTRADA`, estado `PENDIENTE_DOCUMENTO_ESCANEADO`, con el panel «Solicitud entregada en papel» y su campo «Solicitud escaneada (PDF)».
 - **When** adjunta un PDF de menos de 10 MB y pulsa «Siguiente».
 - **Then** el expediente pasa al estado `ENTRADA_DATOS`, con la cabecera «Entrada» / «Entrada de datos».

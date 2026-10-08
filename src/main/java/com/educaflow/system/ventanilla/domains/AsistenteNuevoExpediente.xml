@@ -12,6 +12,8 @@
         <many-to-one name="tramite" ref="com.educaflow.subsystem.expedientes.db.Tramite" title="Trámite"/>
         <boolean name="presentadoEnPapel" nullable="true" title="¿Cómo se presenta?"/>
         <boolean name="presentadoEnRepresentacion" nullable="true" title="¿Para quién es el expediente?"/>
+        <!-- Solo se pregunta en papel: si presenta el propio usuario, el expediente toma su idioma. -->
+        <string name="idioma" title="Idioma" selection="select.language"/>
         <string name="nombreTramite" transient="true" title="Trámite">
             <![CDATA[
                 if (tramite == null) {

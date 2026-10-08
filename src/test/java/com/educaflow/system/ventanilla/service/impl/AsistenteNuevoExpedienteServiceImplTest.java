@@ -62,6 +62,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
     private static final String MENSAJE_CENTRO = "Debe indicar el centro";
     private static final String MENSAJE_TRAMITE = "Debe indicar el trámite";
     private static final String MENSAJE_PARA_QUIEN = "Debe indicar para quién es el expediente";
+    private static final String MENSAJE_IDIOMA = "Debe indicar el idioma";
     private static final String MENSAJE_SIN_PERFIL_DE_INICIO = "No puede crear expedientes de este trámite en el centro indicado";
     private static final String MENSAJE_FORMA_NO_PERMITIDA = "No puede presentar el expediente de esa forma en el centro indicado";
     private static final String MENSAJE_SIN_REPRESENTACION = "Este trámite no permite presentar la solicitud en representación de otra persona";
@@ -636,6 +637,33 @@ class AsistenteNuevoExpedienteServiceImplTest {
     }
 
     @Test
+    void recalcular_registradoEnPapel_proponeElIdiomaDelUsuario() {
+        usuario.setLanguage("ca");
+        stubCatalogo(tramite);
+        stubOraculoAcepta();
+        var asistente = asistenteConCentroYTramite(tramite);
+        asistente.setPresentadoEnPapel(true);
+
+        service.recalcular(asistente);
+
+        assertEquals("ca", asistente.getIdioma());
+    }
+
+    @Test
+    void recalcular_presentadoPorElUsuario_noProponeIdioma() {
+        usuario.setLanguage("ca");
+        tramite.setTipoUsuario(null);
+        stubCatalogo(tramite);
+        stubOraculoAcepta();
+        var asistente = asistenteConCentroYTramite(tramite);
+        asistente.setIdioma("es");
+
+        service.recalcular(asistente);
+
+        assertNull(asistente.getIdioma());
+    }
+
+    @Test
     void recalcular_consultaElOraculoUnaVezPorDestinatarioYSoloConElPerfilDeLaFormaFijada() {
         centroUsuario(centroA, TipoUsuarioCodigo.ALUMNO);
         stubCatalogo(tramite);
@@ -995,8 +1023,29 @@ class AsistenteNuevoExpedienteServiceImplTest {
         stubOraculoAcepta();
         var asistente = asistenteCompleto();
         asistente.setPresentadoEnPapel(true);
+        asistente.setIdioma("ca");
 
         assertTrue(service.validateTriggerInitialEvent(asistente).isEmpty());
+    }
+
+    @Test
+    void validateTriggerInitialEvent_registradoEnPapelSinIdioma_devuelveDebeIndicarElIdiomaYNoPreguntaAlMotor() {
+        stubCatalogo(tramite);
+        var asistente = asistenteCompleto();
+        asistente.setPresentadoEnPapel(true);
+
+        assertMensajeDeLaVentanilla(MENSAJE_IDIOMA, "idioma", service.validateTriggerInitialEvent(asistente));
+
+        verifyNoInteractions(tramitadorService);
+    }
+
+    @Test
+    void validateTriggerInitialEvent_presentadoPorElUsuarioSinIdioma_noLoExige() {
+        stubCatalogo(tramite);
+        stubOraculoAcepta();
+        tramite.setTipoUsuario(null);
+
+        assertTrue(service.validateTriggerInitialEvent(asistenteCompleto()).isEmpty());
     }
 
     @Test
@@ -1008,6 +1057,7 @@ class AsistenteNuevoExpedienteServiceImplTest {
         var presentadoPorElUsuario = asistenteCompleto();
         var presentadoEnPapel = asistenteCompleto();
         presentadoEnPapel.setPresentadoEnPapel(true);
+        presentadoEnPapel.setIdioma("ca");
 
         service.validateTriggerInitialEvent(presentadoPorElUsuario);
         service.validateTriggerInitialEvent(presentadoEnPapel);

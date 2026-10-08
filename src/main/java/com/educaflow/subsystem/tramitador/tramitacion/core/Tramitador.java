@@ -66,6 +66,7 @@ public class Tramitador {
             expediente.setUsuarioRegistrador(SecurityUtil.getUser());
 
             updatePersonas(expediente, presentadoEnPapel, presentadoEnRepresentacion);
+            updateIdioma(expediente, presentadoEnPapel, contextoTramitacion.idioma());
             updateName(expediente);
 
             InitialEventContext initialEventContext = new InitialEventContext(expediente, contextoTramitacion);
@@ -231,6 +232,14 @@ public class Tramitador {
         }
     }
 
+    /**
+     * Quien presenta es quien habla el idioma del expediente. Si presenta el propio usuario es el suyo; en
+     * papel quien presenta es otra persona, así que el idioma lo indica quien lo registra.
+     */
+    private static void updateIdioma(Expediente expediente, boolean presentadoEnPapel, String idiomaIndicado) {
+        expediente.setIdioma(presentadoEnPapel ? idiomaIndicado : expediente.getUsuarioRegistrador().getLanguage());
+    }
+
     private static Persona crearPersona(User user) {
         Persona persona = new Persona();
         persona.setNombre(user.getNombre());
@@ -262,6 +271,7 @@ public class Tramitador {
 
         expediente.setPresentadoEnPapel(expedienteOriginal.getPresentadoEnPapel());
         expediente.setPresentadoEnRepresentacion(expedienteOriginal.getPresentadoEnRepresentacion());
+        expediente.setIdioma(expedienteOriginal.getIdioma());
 
         if (presentadoEnPapel == false) {
             copiarIdentificacion(expediente.getPersonaSolicitante(), expedienteOriginal.getPersonaSolicitante());

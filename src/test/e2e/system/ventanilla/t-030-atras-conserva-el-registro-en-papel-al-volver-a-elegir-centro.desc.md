@@ -56,7 +56,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 4. **Cuando** pulsa "CIPFP Mislata" y, en "Nuevo expediente: elija el trámite" (con "CIPFP Mislata" y únicamente "Trámites para el alumno" → "Anulación de matrícula en ciclo formativo"), pulsa la fila del trámite.
 5. **Entonces** "Nuevo expediente" no pregunta "¿Cómo se presenta?" y sí "¿Para quién es el expediente?", sin marcar.
 6. **Cuando** pulsa "Atrás", vuelve a "elija el trámite" con "CIPFP Mislata" y la misma lista; y cuando vuelve a pulsar "Atrás", vuelve a "elija el centro" con los mismos dos centros.
-7. **Cuando** elige "CIPFP Batoi", pulsa la fila del trámite (la misma lista, con "CIPFP Batoi"), comprueba la misma pantalla del paso 5, marca "Para mí" y pulsa "Crear expediente".
+7. **Cuando** elige "CIPFP Batoi", pulsa la fila del trámite (la misma lista, con "CIPFP Batoi"), comprueba la misma pantalla del paso 5, marca "Para mí", elige el idioma "Castellano" y pulsa "Crear expediente".
 
 ## Resultado esperado
 - El asistente se cierra y se abre el expediente recién creado de "Anulación de matrícula en ciclo formativo" en el estado "Pendiente de adjuntar la solicitud en papel escaneada", el primero de la forma de presentar de la entrada "Tramitación".

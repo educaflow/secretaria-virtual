@@ -274,6 +274,10 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       // Paso 7: Cuando marca "Para mí" y pulsa "Crear expediente".
       await radioParaMi.click();
       await expect(radioParaMi).toBeChecked();
+      // En papel el idioma del expediente es obligatorio: se elige explícitamente para no
+      // depender del que el asistente propone (el del usuario que registra).
+      await page.getByTestId('field:idioma').getByRole('combobox').click();
+      await page.getByRole('option', { name: 'Castellano', exact: true }).click();
       await page.getByRole('button', { name: 'Crear expediente' }).click();
 
       // Resultado esperado: se abre el expediente en su primer estado PARA EL PAPEL y el

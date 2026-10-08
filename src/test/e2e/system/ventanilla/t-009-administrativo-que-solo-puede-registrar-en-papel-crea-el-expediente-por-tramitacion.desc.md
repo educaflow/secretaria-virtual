@@ -54,7 +54,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 3. **Entonces** se abre directamente "Nuevo expediente: elija el trámite" con el centro "CIPFP Mislata", únicamente "Trámites para el alumno" con "Anulación de matrícula en ciclo formativo" dentro, y un único botón debajo, "Cancelar".
 4. **Cuando** pulsa la fila "Anulación de matrícula en ciclo formativo".
 5. **Entonces** se abre "Nuevo expediente" con ese trámite, su ayuda y el centro en solo lectura; no se ve "¿Cómo se presenta?" (la forma la fija la entrada de menú); sí se ve "¿Para quién es el expediente?" con las opciones "Para mí" y "Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)", sin ninguna marcada; se ven los botones "Atrás" y "Crear expediente".
-6. **Cuando** marca "Para mí" y pulsa "Crear expediente".
+6. **Cuando** marca "Para mí", elige el idioma "Castellano" y pulsa "Crear expediente".
 
 ## Resultado esperado
 - El asistente se cierra y se abre el expediente recién creado de "Anulación de matrícula en ciclo formativo" en su primer estado, en el centro "CIPFP Mislata".

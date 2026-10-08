@@ -311,6 +311,10 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       await expect(page.getByRole('button', { name: 'Crear expediente' })).toBeVisible();
 
       // Paso 6: Cuando pulsa "Crear expediente".
+      // En papel el idioma del expediente es obligatorio: se elige explícitamente para no
+      // depender del que el asistente propone (el del usuario que registra).
+      await page.getByTestId('field:idioma').getByRole('combobox').click();
+      await page.getByRole('option', { name: 'Castellano', exact: true }).click();
       await page.getByRole('button', { name: 'Crear expediente' }).click();
 
       // Resultado esperado: se abre el expediente recién creado de "Justificación de

@@ -233,6 +233,7 @@ public class TramitadorController {
      *     <context name="codeCentro" expr="eval: '46012345'"/>
      *     <context name="presentadoEnPapel" expr="eval: true"/>
      *     <context name="presentadoEnRepresentacion" expr="eval: false"/>
+     *     <context name="idioma" expr="es"/>
      * </action-method>
      * }</pre>
      * Los booleanos <b>MUST</b> llevar {@code eval:}: sin él llegan como {@code String} y se
@@ -243,10 +244,11 @@ public class TramitadorController {
         Centro centro = getCentro(context);
         boolean presentadoEnPapel = Boolean.TRUE.equals(context.get("presentadoEnPapel"));
         boolean presentadoEnRepresentacion = Boolean.TRUE.equals(context.get("presentadoEnRepresentacion"));
+        String idioma = (String) context.get("idioma");
 
         Profile profile = perfilesUsuarioService.getPerfil(tramite, SecurityUtil.getUser(), centro, presentadoEnPapel);
 
-        return new ContextoTramitacion(tramite, centro, profile, presentadoEnPapel, presentadoEnRepresentacion);
+        return new ContextoTramitacion(tramite, centro, profile, presentadoEnPapel, presentadoEnRepresentacion, idioma);
     }
 
     private Tramite getTramite(Context context) {

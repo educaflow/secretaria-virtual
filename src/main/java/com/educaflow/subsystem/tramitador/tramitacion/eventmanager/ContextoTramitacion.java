@@ -22,7 +22,7 @@ import com.educaflow.subsystem.expedientes.db.Tramite;
 
 import java.util.Objects;
 
-public record ContextoTramitacion(Tramite tramite, Centro centro, Profile profile,boolean presentadoEnPapel, boolean presentadoEnRepresentacion) {
+public record ContextoTramitacion(Tramite tramite, Centro centro, Profile profile, boolean presentadoEnPapel, boolean presentadoEnRepresentacion, String idioma) {
 
     public ContextoTramitacion {
         Objects.requireNonNull(tramite, "tramite no puede ser nulo");

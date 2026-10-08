@@ -248,6 +248,10 @@ test.describe('Ventanilla — Nuevo expediente', () => {
       const radioParaMi = opcionParaQuien(page, OPCION_PARA_MI);
       await radioParaMi.click();
       await expect(radioParaMi).toBeChecked();
+      // En papel el idioma del expediente es obligatorio: se elige explícitamente para no
+      // depender del que el asistente propone (el del usuario que registra).
+      await page.getByTestId('field:idioma').getByRole('combobox').click();
+      await page.getByRole('option', { name: 'Castellano', exact: true }).click();
       await page.getByRole('button', { name: 'Crear expediente' }).click();
 
       // Resultado esperado: se abre el expediente en el primer estado que corresponde a la

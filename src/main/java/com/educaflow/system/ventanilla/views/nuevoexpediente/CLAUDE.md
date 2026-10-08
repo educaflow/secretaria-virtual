@@ -70,11 +70,16 @@ Panel «Trámite» (`panel:tramitePanel`), todo de solo lectura:
 - `field:centro` con el centro.
 - `field:ayudaTramite` con el texto de ayuda del trámite (solo si el trámite tiene ayuda).
 
-Panel «Presentación» (`panel:presentacionPanel`), con **como mucho** una pregunta que el servidor decide si se hace (si no se hace, el panel no aparece):
+Panel «Presentación» (`panel:presentacionPanel`), con **como mucho** dos preguntas (si no se hace ninguna, el panel no aparece):
 
-| Pregunta | Campo | Opciones |
-|---|---|---|
-| «¿Para quién es el expediente?» | `field:presentadoEnRepresentacion` | «Para mí» / «Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)» |
+| Pregunta | Campo | Cuándo | Opciones |
+|---|---|---|---|
+| «¿Para quién es el expediente?» | `field:presentadoEnRepresentacion` | lo decide el servidor (ver abajo) | «Para mí» / «Para otra persona a la que represento (hijo/a menor de edad o persona tutelada)» |
+| «Idioma» | `field:idioma` | solo en papel («Tramitación») | «Castellano» / «Valencià» |
+
+El idioma es el del expediente.
+- En papel lo indica quien registra y viene ya rellenado con el idioma de ese usuario; es obligatorio.
+- Por «Mis trámites» no se pregunta: el expediente toma el idioma del usuario que lo presenta.
 
 Botones: «Atrás» (vuelve al paso 2) y «Crear expediente».
 
@@ -115,7 +120,7 @@ Para comprobar que la pregunta **no** se hace, se comprueba que su campo no exis
 
 ## Resultado de «Crear expediente»
 
-Si falta la respuesta a la pregunta visible, el cliente muestra «Debe indicar para quién es el expediente» y la pantalla sigue abierta.
+Si falta la respuesta a una pregunta visible, el cliente muestra «Debe indicar para quién es el expediente» o «Debe indicar el idioma» y la pantalla sigue abierta.
 Si el servidor rechaza la combinación, muestra el título «No es posible crear el expediente» con el motivo, y la pantalla también sigue abierta.
 
 Si todo es válido, la pestaña «Nuevo expediente» se cierra y se abre la del expediente recién creado, en el primer estado que corresponda a cómo se presentó.
