@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="notificaciones" package="com.educaflow.subsystem.notificaciones.db"/>
+
+    <!-- Lo común a todos los canales. Nunca se persiste una Notificacion «genérica»: siempre una de sus
+         subclases (Correo, Sms…). JOINED: cada canal tiene su tabla con sus campos propios y una consulta
+         sobre Notificacion devuelve las instancias de su subclase. -->
+    <entity name="Notificacion" strategy="JOINED">
+
+        <!-- Campo servidor: lo asigna incondicionalmente NotificacionCanalServiceImpl.insert desde
+             TipoNotificacion.deClase(clase real); fuera de todos los AllowProperties -->
+        <enum name="tipoNotificacion" ref="TipoNotificacion" title="Tipo de notificación"/>
+
+        <!-- El «motivo». required en el modelo; el mensaje personalizado lo da
+             NotificacionCanalServiceImpl.validateInsert -->
+        <string name="name" title="Motivo" required="true"
+                help="Texto interno que explica de qué va la notificación; no lo ve el destinatario"/>
+
+        <!-- Datos del destinatario (texto libre, no enlazan con la ficha de ninguna persona) -->
+        <string name="dniDestinatario" title="DNI del destinatario" required="true"/>
+        <string name="nombre" title="Nombre"/>
+        <string name="apellidos" title="Apellidos"/>
+
+        <!-- Campo función: cada canal sobrescribe computeDestino()
+             en su extra-code-model (Correo → para, Sms → telefono). Axelor lo guarda en su columna al hacer
+             flush (@Access(PROPERTY)), por eso se puede filtrar y ordenar en los listados. Una notificación
+             sin canal no tiene destino: la base lo rechaza en lugar de devolver null -->
+        <string name="destino" title="Destino">
+            <![CDATA[
+                throw new IllegalStateException("La clase " + getClass().getName() + " no declara el destino de su canal (computeDestino)");
+            ]]>
+        </string>
+
+        <many-to-one name="centro" ref="com.educaflow.subsystem.common.db.Centro" title="Centro" required="true"
+                     help="Centro que envía la notificación; decide qué gestores del centro la ven"/>
+
+        <many-to-one name="historialEstado" ref="com.educaflow.subsystem.expedientes.db.HistorialEstado"
+                     title="Estado del expediente"
+                     help="Estado en el que se encontraba el expediente cuando se envió la notificación (opcional)"/>
+
+        <!-- Navega dos relaciones a otras tablas y es columna de los
+             listados → formula SQL (k-validaciones/reglas-negocio.md §2.2). Sin estado ligado, null -->
+        <string name="nombreExpediente" title="Expediente" formula="true">
+            <![CDATA[
+                (SELECT ex.name
+                 FROM expedientes_historial_estado he
+                 INNER JOIN expedientes_expediente ex ON ex.id = he.expediente
+                 WHERE he.id = historial_estado)
+            ]]>
+        </string>
+
+        <!-- Datos del envío: campos servidor, los rellena siempre NotificacionCanalServiceImpl -->
+        <enum name="estado" ref="EstadoNotificacion" title="Estado"/>
+        <datetime name="fechaCreacion" title="Fecha de creación"/>
+        <datetime name="fechaPrimerIntentoEnvio" title="Fecha del primer intento de envío"/>
+        <datetime name="fechaUltimoIntentoEnvio" title="Fecha del último intento de envío"/>
+        <datetime name="fechaEnvio" title="Fecha de envío"/>
+        <integer name="numeroReintentos" title="Número de reintentos__!!"/>
+        <string name="descripcionUltimoFallo" title="Descripción del último fallo" large="true" multiline="true"
+                help="Traza de la excepción Java del último intento de envío fallido"/>
+
+    </entity>
+
+    <!-- El canal de una notificación. Es el ÚNICO sitio que sabe qué clase de notificación es cada canal
+         un canal nuevo = un ítem + su case aquí + su entidad. -->
+    <enum name="TipoNotificacion">
+        <item name="CORREO" title="Correo"/>
+        <item name="SMS" title="SMS__!!"/>
+        <extra-code-model>
+        <![CDATA[
+            /** La clase de notificación de este canal. */
+            public Class<? extends Notificacion> getClaseNotificacion() {
+                return switch (this) {
+                    case CORREO -> Correo.class;
+                    case SMS -> Sms.class;
+                };
+            }
+
+            /** El canal de una clase de notificación; una clase que no es de ningún canal es un error de programación. */
+            public static TipoNotificacion deClase(Class<?> clase) {
+                for (TipoNotificacion tipo : values()) {
+                    if (tipo.getClaseNotificacion().equals(clase)) {
+                        return tipo;
+                    }
+                }
+                throw new IllegalStateException("La clase " + clase.getName() + " no es de ningún canal de TipoNotificacion");
+            }
+        ]]>
+        </extra-code-model>
+    </enum>
+
+    <!-- Unifica los antiguos EstadoCorreo (PENDIENTE/SUCCESS/FAIL) y EstadoSms (PENDIENTE/ENVIADO/FALLIDO) -->
+    <enum name="EstadoNotificacion">
+        <item name="PENDIENTE" title="Pendiente"/>
+        <item name="ENVIADO" title="Enviado"/>
+        <item name="FALLIDO" title="Fallido"/>
+    </enum>
+
+</domain-models>

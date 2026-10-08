@@ -21,13 +21,8 @@ public class ActionResponseHelper {
     }
 
     public void doResponseViewForm(String viewName, Class<? extends Model> modelClass, Model entity, String title, String profile) {
-        ActionView.ActionViewBuilder actionViewBuilder=ActionView.define(title)
-                .model(modelClass.getName())
-                .add("form", viewName)
-                .param("forceEdit", "true")
+        ActionView.ActionViewBuilder actionViewBuilder=vistaForm(viewName, modelClass, title)
                 .param("forceTitle", "true")
-                .param("show-confirm", "false")
-                .param("show-toolbar", "false")
                 .context("_profile",profile);
 
         if ((entity != null)  && (entity.getId() != null)) {
@@ -37,6 +32,27 @@ public class ActionResponseHelper {
         }
 
         response.setView(actionViewBuilder.map());
+    }
+
+    public void doResponseViewFormEnPopup(String viewName, Class<? extends Model> modelClass, Long id, String title) {
+        ActionView.ActionViewBuilder actionViewBuilder=vistaForm(viewName, modelClass, title)
+                .param("popup", "true")
+                .param("popup-save", "false");
+
+        if (id != null) {
+            actionViewBuilder.context("_showRecord", id);
+        }
+
+        response.setView(actionViewBuilder.map());
+    }
+
+    private ActionView.ActionViewBuilder vistaForm(String viewName, Class<? extends Model> modelClass, String title) {
+        return ActionView.define(title)
+                .model(modelClass.getName())
+                .add("form", viewName)
+                .param("forceEdit", "true")
+                .param("show-confirm", "false")
+                .param("show-toolbar", "false");
     }
 
     public void doResponseViewGrid(String viewName, Class<? extends Model> modelClass) {

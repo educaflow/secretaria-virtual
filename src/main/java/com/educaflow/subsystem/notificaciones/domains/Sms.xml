@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="notificaciones" package="com.educaflow.subsystem.notificaciones.db"/>
+
+    <!-- Notificación cuyo canal es el SMS a un móvil de España. Hereda todos los campos de Notificacion -->
+    <entity name="Sms" extends="Notificacion">
+
+        <string name="telefono" title="Teléfono"
+                help="Móvil de España al que se envía el SMS, guardado en formato internacional E.164 (por ejemplo, +34600111222)"/>
+
+        <!-- Sin max: el límite real depende de la codificación (160 GSM-7 o 70 UCS-2) y lo comprueba
+             SmsServiceImpl -->
+        <string name="mensaje" title="Mensaje" multiline="true"/>
+
+        <extra-code-model>
+        <![CDATA[
+            /** El destino de un SMS es su teléfono, ya en formato internacional. */
+            @Override
+            protected String computeDestino() {
+                return getTelefono();
+            }
+        ]]>
+        </extra-code-model>
+
+    </entity>
+
+</domain-models>

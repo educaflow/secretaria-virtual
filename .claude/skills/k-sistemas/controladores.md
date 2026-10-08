@@ -409,6 +409,7 @@ public class MiEntidadController {
 - `actionResponseHelper.doResponseBusinessMessagesAsError(businessMessages)` — muestra los errores de negocio como diálogo de error modal en la vista.
 - `actionResponseHelper.doResponseBusinessMessages(businessMessages)` — almacena los mensajes de negocio en la respuesta para mostrarlos inline en el formulario.
 - `actionResponse.setSignal("force-back", null)` — cierra el formulario y vuelve al grid tras persistir con éxito. **MUST** ser `force-back` y **MUST NOT** ser `back`: el front trata la señal igual que la acción del mismo nombre, y `back` pregunta «Current changes will be lost» si el form está *dirty*. Tras una operación custom el form sigue *dirty* (el cliente no ha ejecutado ningún `save` ni ha recargado el registro) aunque el servidor ya haya guardado, así que `back` sacaría el diálogo sobre datos ya persistidos. Mismo criterio que el `save` → `force-back` del `btnSave` (ver `k-vistas/forms.md`).
+  - Excepción, coherente con `VAR-7.2`: en un form abierto por código en popup sin `grid` (`k-vistas/forms.md` §"Form abierto por código en popup") `force-back` no hace nada y lo que cierra es `close`, también tras guardar (`save` → `remote-refreshTab-action` → `close`); el popup se abre con `popup="true"`; el listado de debajo lo refresca `remote-refreshTab-action` (`refresh-tab`), no el cierre del popup.
 - Errores no esperados se relanzán como `RuntimeException` — Axelor los mostrará como error genérico.
 
 ### Retorno de valores

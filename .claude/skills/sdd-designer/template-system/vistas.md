@@ -50,8 +50,12 @@ La validación remota de save/delete son las **acciones globales** `remote-valid
 - **MUST NOT** declarar en `views/*.xml` un `<action-method>` de validación por entidad (`…-Remote-validateSave-action`) ni métodos `validateSave`/`validateDelete` en el controlador de la entidad. Solo las **operaciones custom** (`aprobar`, `rechazar`…) llevan su `Remote-validate<Operacion>-action` y su `@CallMethod` propios.
 - El `<action-group>` de `btnSave` **MUST** terminar con `<action name="force-back"/>` **después** de `<action name="save"/>`: cierra la ventana aunque `save` sea un no-op (nada cambiado) y `canBackOnSave` no dispare (ver `k-vistas/forms.md`).
 - **MUST NOT** cerrar con `back`: `back` pregunta «Current changes will be lost» cuando la vista está *dirty*, y ese flag aún no está limpio justo después del `save`, así que el diálogo sale sobre un registro ya guardado. `back` es el cierre del `btnCancel`.
+- **Excepción — form abierto por código en popup sin grid** (ningún `<action-view>` que lo abra declara una `<view type="grid">`, coherente con `VAR-7.2`): no hay grid al que volver, `back`/`force-back` no hacen nada, y lo que cierra es `close`, también tras guardar, y entre `save` y `close` **MUST** ir la acción global `remote-refreshTab-action` (`refresh-tab`), que refresca el listado de debajo (el cierre del popup no lo refresca): `save` → `remote-refreshTab-action` → `close`; el `btnCancel` también cierra con `close`. Ver `k-vistas/forms.md` §"Form abierto por código en popup".
 
 - ✅ CORRECTO: `<action-group name="….btnSave-action">` con `Local-validateSave-action` (opcional) → `remote-validationSave-action` → `save` → `force-back`.
+- ✅ CORRECTO (form abierto por código en popup sin grid): `remote-validationSave-action` → `save` → `remote-refreshTab-action` → `close`.
+- ❌ INCORRECTO: `save` → `force-back` en un form abierto por código en popup sin grid (`force-back` no hace nada: el popup queda abierto tras guardar)
+- ❌ INCORRECTO: `save` → `close` sin `remote-refreshTab-action` en un form abierto por código en popup sin grid (el listado de debajo no muestra el alta)
 - ❌ INCORRECTO: `<action-group name="….btnSave-action">` que termina en `save` → `back` (diálogo de cambios perdidos tras guardar)
 - ❌ INCORRECTO: `<action-method name="subsysFoo.Main@Bar-Remote-validateSave-action">` llamando a `BarController.validateSave` (patrón sustituido por la acción global)
 
@@ -114,19 +118,22 @@ Lo aplica el **verificador** sobre `design/views/*.xml`, `design/menus.xml` y lo
   done
   ```
   Cualquier línea impresa es un fallo a reportar (la corrección es renombrar el método del controlador —en `design.md` y en el `<call>` si también estuviera mal— para que coincida con el `{nombreFuncionJava}` embebido en el nombre de la acción).
-- **e) Cierre tras guardar (`save` → `force-back`)** (§1.5). En el form **principal**, el `<action-group>` de `btnSave` **MUST** terminar con `force-back` justo después de `save`, y **MUST NOT** terminar con `back`. Detector (marca los grupos cuyo `save` no va seguido de `force-back`, incluidos los que lo siguen con `back`):
+- **e) Cierre tras guardar (`save` → `force-back`, o `save` → `remote-refreshTab-action` → `close` sin grid)** (§1.5). En el form **principal**, el `<action-group>` de `btnSave` **MUST** terminar con `force-back` justo después de `save`, y **MUST NOT** terminar con `back`; si el `<action-view>` del fichero (§1.1) no declara ninguna `<view type="grid">` (form abierto por código en popup), **MUST** terminar con `remote-refreshTab-action` → `close` justo después de `save`. Detector (marca los grupos cuyo `save` no va seguido del cierre que toca, incluidos los que lo siguen con `back` y, sin grid, los que cierran sin `remote-refreshTab-action`):
   ```bash
   for f in .sdd/drafts/{iniciativa}/design/views/*.xml; do
-    awk -v f="$f" '
-      /<action-group name="[^"]*-btnSave-action"/{inbtn=1; save=0; next}
-      inbtn && /<action name="save"\/>/{save=1; next}
-      inbtn && save==1 && /<action name="force-back"\/>/{save=0; next}
-      inbtn && save==1 && /<action name="back"\/>/{print f": btnSave cierra con back en vez de force-back"; save=0; next}
-      inbtn && /<\/action-group>/{ if(save==1) print f": btnSave termina en save sin force-back"; inbtn=0; save=0 }
+    if grep -q '<view type="grid"' "$f"; then cierre=force-back; else cierre=close; fi
+    awk -v f="$f" -v c="$cierre" '
+      /<action-group name="[^"]*-btnSave-action"/{inbtn=1; save=0; refresh=0; next}
+      inbtn && /<action name="save"\/>/{save=1; refresh=0; next}
+      inbtn && save==1 && c=="close" && refresh==0 && /<action name="remote-refreshTab-action"\/>/{refresh=1; next}
+      inbtn && save==1 && $0 ~ "<action name=\"" c "\"/>"{ if(c=="close" && refresh==0) print f": btnSave cierra con close sin remote-refreshTab-action tras save"; save=0; next}
+      inbtn && save==1 && /<action name="(back|force-back|close)"\/>/{print f": btnSave cierra tras save sin "c; save=0; next}
+      inbtn && save==1 && refresh==0 && /<action name=/{print f": btnSave ejecuta otra acción entre save y "c; save=0; next}
+      inbtn && /<\/action-group>/{ if(save==1) print f": btnSave termina en save sin "c; inbtn=0; save=0 }
     ' "$f"
   done
   ```
-  Cualquier línea impresa es un fallo a reportar (la corrección es poner `<action name="force-back"/>` tras `save`).
+  Cualquier línea impresa es un fallo a reportar (la corrección es poner `<action name="force-back"/>` tras `save`, o `<action name="remote-refreshTab-action"/>` + `<action name="close"/>` si el form no tiene grid).
 - **f) Forms modales de detalle** (§1.6). En cada `<action-group>` que termine en `save-modal`/`delete-modal`: (a) la presencia de `remote-validation*` es un fallo (el maestro puede no existir en BD), y (b) la **ausencia** de un `Local-validate*` que cubra todas las V del detalle evaluables en cliente es un fallo (es la única validación antes de cerrar el modal).
 - **g) Auditoría de layout (ASCII Layout)** (§1.7). **MUST** aplicarla a **cada `<form>`** (incluidos los modales de detalle y los `Ref@…-form`), siguiendo la «Dirección de auditoría» de `k-vistas/forms.md` (léelo antes: `.claude/skills/k-vistas/forms.md`):
   1. Por cada `<panel>`, `<panel-related>` y `buttons-panel` del form, **reconstruye el ASCII Layout** a partir de los `colSpan`/`colOffset` reales del XML, con la notación de `forms.md` (una letra por campo repetida `colSpan` veces, `.` por columna vacía de `colOffset`; si hay `showIf`, **un dibujo por estado**, con los paneles condicionales en bloques separados).

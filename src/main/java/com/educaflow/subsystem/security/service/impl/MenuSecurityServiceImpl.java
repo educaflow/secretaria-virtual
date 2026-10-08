@@ -4,6 +4,7 @@ import com.axelor.auth.db.User;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.TipoUsuarioCodigo;
 import com.educaflow.subsystem.expedientes.db.UnidadTramitadoraCodigo;
+import com.educaflow.subsystem.notificaciones.util.GestorNotificacionesUtil;
 import com.educaflow.subsystem.security.service.MenuSecurityService;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
 import jakarta.inject.Inject;
@@ -32,7 +33,7 @@ public class MenuSecurityServiceImpl implements MenuSecurityService {
             case "tramitacion-jefaturaDeEstudios-menuitem" -> perfilesUsuarioService.isTramitador(user, UnidadTramitadoraCodigo.JEFATURA_ESTUDIOS);
             case "tramitacion-secretaria-menuitem" -> perfilesUsuarioService.isTramitador(user, UnidadTramitadoraCodigo.SECRETARIA);
             case "registro-menuitem" -> admin || perfilesUsuarioService.isTramitador(user, UnidadTramitadoraCodigo.SECRETARIA) || supervisor;
-            case "correos-delCentro-menuitem" -> supervisor || user.tieneTipoUsuario(TipoUsuarioCodigo.ADMINISTRATIVO);
+            case "notificaciones-delCentro-menuitem" -> GestorNotificacionesUtil.esGestorEnAlgunCentro(user);
             //El resto de menús solo dependen de sus `groups`.
             default -> true;
         };

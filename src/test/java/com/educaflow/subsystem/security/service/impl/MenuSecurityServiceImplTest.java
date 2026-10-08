@@ -4,6 +4,7 @@ import com.axelor.auth.db.User;
 import com.educaflow.base.util.SecurityUtil;
 import com.educaflow.subsystem.common.db.TipoUsuarioCodigo;
 import com.educaflow.subsystem.expedientes.db.UnidadTramitadoraCodigo;
+import com.educaflow.subsystem.notificaciones.util.GestorNotificacionesUtil;
 import com.educaflow.subsystem.security.service.PerfilesUsuarioService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,15 +36,19 @@ class MenuSecurityServiceImplTest {
 
     MockedStatic<SecurityUtil> securityUtil;
 
+    MockedStatic<GestorNotificacionesUtil> gestorNotificacionesUtil;
+
     @BeforeEach
     void setUp() {
         securityUtil = Mockito.mockStatic(SecurityUtil.class);
         securityUtil.when(SecurityUtil::getUser).thenReturn(user);
+        gestorNotificacionesUtil = Mockito.mockStatic(GestorNotificacionesUtil.class);
     }
 
     @AfterEach
     void tearDown() {
         securityUtil.close();
+        gestorNotificacionesUtil.close();
     }
 
     private void usuario(boolean admin, boolean supervisor) {
@@ -147,25 +152,26 @@ class MenuSecurityServiceImplTest {
     }
 
     @Test
-    void correosDelCentroEsVisibleParaSupervisor() {
-        usuario(false, true);
-
-        assertTrue(service.isVisible("correos-delCentro-menuitem"));
-    }
-
-    @Test
-    void correosDelCentroEsVisibleParaAdministrativo() {
+    void isVisible_notificacionesDelCentroUsuarioGestor_esVisible() {
         usuario(false, false);
-        when(user.tieneTipoUsuario(TipoUsuarioCodigo.ADMINISTRATIVO)).thenReturn(true);
+        gestorNotificacionesUtil.when(() -> GestorNotificacionesUtil.esGestorEnAlgunCentro(user)).thenReturn(true);
 
-        assertTrue(service.isVisible("correos-delCentro-menuitem"));
+        assertTrue(service.isVisible("notificaciones-delCentro-menuitem"));
     }
 
     @Test
-    void correosDelCentroNoEsVisibleSinSerSupervisorNiAdministrativo() {
-        usuario(true, false);
-        when(user.tieneTipoUsuario(TipoUsuarioCodigo.ADMINISTRATIVO)).thenReturn(false);
+    void isVisible_notificacionesDelCentroUsuarioNoGestorAunqueSeaAdminYSupervisor_noEsVisible() {
+        usuario(true, true);
+        gestorNotificacionesUtil.when(() -> GestorNotificacionesUtil.esGestorEnAlgunCentro(user)).thenReturn(false);
 
-        assertFalse(service.isVisible("correos-delCentro-menuitem"));
+        assertFalse(service.isVisible("notificaciones-delCentro-menuitem"));
+    }
+
+    @Test
+    void isVisible_notificacionesDelCentroSinUsuario_noEsVisibleNiPreguntaAlGestor() {
+        securityUtil.when(SecurityUtil::getUser).thenReturn(null);
+
+        assertFalse(service.isVisible("notificaciones-delCentro-menuitem"));
+        gestorNotificacionesUtil.verifyNoInteractions();
     }
 }

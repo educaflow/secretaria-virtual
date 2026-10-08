@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- Form del correo en «Recibidas»: el correo tal como lo recibió el destinatario, sin el motivo, sin el
+         «en copia oculta» y sin los datos internos del envío. Lo abre en popup
+         NotificacionController.abrirRecibida, por eso no tiene <action-view>. -->
+    <?sv-view?>
+    <form name="subsysNotificaciones.Mis@Correo-form" title="Correo" model="com.educaflow.subsystem.notificaciones.db.Correo"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+
+        <panel name="Correo" title="Datos del correo" readonly="true">
+            <field name="asunto" colSpan="9"/>
+            <field name="fechaEnvio" colSpan="3"/>
+            <field name="cuerpo" colSpan="12" widget="Text"/>
+            <field name="para" colSpan="6"/>
+            <field name="enCopia" colSpan="6" showIf="enCopia"/>
+        </panel>
+
+        <panel-related name="adjuntos" field="adjuntos" title="Adjuntos"
+            grid-view="subsysNotificaciones.Ref@Adjunto-grid" form-view="subsysNotificaciones.Ref@Adjunto-form"
+            colSpan="12" canNew="false" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"
+            showIf="adjuntos &amp;&amp; adjuntos.length &gt; 0"/>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Salir" onClick="subsysNotificaciones.Mis@Correo-btnCancel-action"
+                    colSpan="2" colOffset="10" outline="true"/>
+        </panel>
+
+    </form>
+
+    <?sv-primary-actions?>
+
+    <action-group name="subsysNotificaciones.Mis@Correo-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+</object-views>

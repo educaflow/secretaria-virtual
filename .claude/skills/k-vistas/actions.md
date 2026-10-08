@@ -46,7 +46,7 @@ Se pueden añadir parámetros para mostrar u ocultar toolbars, forzar edición, 
 
 Llamada a controlador en Java
 
-> **Validación remota de save/delete**: **MUST NOT** crear un `<action-method>` de validación por entidad para guardar/borrar — existen las acciones **globales** `remote-validationSave-action` y `remote-validationDelete-action`, definidas una única vez en `DefaultModelController.xml` (`base/infrastructure/controller`); no llevan atributo `model` porque resuelven la entidad por el `_model` del contexto. Los `<action-method>` propios de una entidad son para **operaciones custom**. Ver `k-validaciones/validaciones.md` §5.
+> **Validación remota de save/delete**: **MUST NOT** crear un `<action-method>` de validación por entidad para guardar/borrar — existen las acciones **globales** `remote-validationSave-action` y `remote-validationDelete-action`, definidas una única vez en `DefaultModelController.xml` (`base/infrastructure/controller`); no llevan atributo `model` porque resuelven la entidad por el `_model` del contexto. En el mismo fichero está la tercera global, `remote-refreshTab-action` (`refresh-tab`: refresca el listado de la pestaña de debajo), que va entre `save` y `close` en un form abierto por código en popup sin grid. Los `<action-method>` propios de una entidad son para **operaciones custom**. Ver `k-validaciones/validaciones.md` §5.
 
 ```xml
 <action-method name="subsysFirma.Pendiente@TareaFirma-Remote-marcarComoFirmada-action" model="com.educaflow.subsystem.firmas.db.TareaFirma">
@@ -141,6 +141,7 @@ Asignar un valor a un campo
 ```
 
 - Simplemente se listan las acciones a ejecutar en orden. En este caso, primero se ejecuta la acción de validación local (`subsysSistemaEducativo.Main@LeyEducativa-Local-validateSave-action`) y si pasa sin errores, se ejecuta la validación remota con la acción global `remote-validationSave-action` (los `validate*` del servicio, vía `DefaultModelController`), se ejecuta la accion `save` y finalmente `force-back` para cerrar la ventana (**obligatorio** tras `save`: si no hubo cambios, `save` es un no-op y `canBackOnSave` no cierra; el cierre explícito sí). **MUST** ser `force-back` y **MUST NOT** ser `back`: `back` pregunta si la vista está *dirty*, y ese flag aún no está limpio justo después del `save`, así que saca el diálogo de cambios perdidos sobre un registro ya guardado. En el `btnDelete` la acción global equivalente es `remote-validationDelete-action` antes de `delete`. Esto aplica al form **principal**: en el form **modal** de un detalle (`save-modal`/`delete-modal`) **MUST NOT** usarse las acciones `remote-validation*` y la validación local debe ser lo más completa posible — ver `[[forms.md]]` §"Form modal".
+  - **Excepción** (coherente con `VAR-7.2`): si ningún `<action-view>` que abra el form declara una `<view type="grid">` (form abierto por código en popup), el cierre tras `save` **MUST** ser `close`: no hay grid al que volver, así que `back`/`force-back` no hacen nada y el popup se quedaría abierto. Entre `save` y `close` **MUST** ir la acción global `remote-refreshTab-action`, que refresca el listado de debajo (el cierre del popup no lo refresca). Secuencia: [`Local-…`] → `remote-validationSave-action` → `save` → `remote-refreshTab-action` → `close` — ver `[[forms.md]]` §"Form abierto por código en popup".
 
 Se usan estas acciones desde eventos como `onClick` de botones, `onSave` de formularios, `onChange` de campos, etc. para ejecutar una secuencia de acciones en un solo evento.
 
@@ -334,7 +335,7 @@ Permite ejecutar acciones complejas mediante un script en `js` o `groovy`. Se ut
 
 **IMPORTANTE: Es obligatorio seguir esta convención de nombres para facilitar la trazabilidad, la lectura y el mantenimiento del código.**
 
-> Excepción: las acciones **globales** de la plataforma (`remote-validationSave-action`, `remote-validationDelete-action`) no siguen esta convención porque no pertenecen a ninguna entidad — se definen una única vez en `DefaultModelController.xml` y se referencian tal cual.
+> Excepción: las acciones **globales** de la plataforma (`remote-validationSave-action`, `remote-validationDelete-action`, `remote-refreshTab-action`) no siguen esta convención porque no pertenecen a ninguna entidad — se definen una única vez en `DefaultModelController.xml` y se referencian tal cual.
 
 
 ## Eventos habituales donde se usan

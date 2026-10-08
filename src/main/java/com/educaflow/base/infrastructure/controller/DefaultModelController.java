@@ -23,6 +23,12 @@ public class DefaultModelController {
     @Inject
     private ModelServiceFactory modelServiceFactory;
 
+    // axelor-front manda refresh-tab a la pestaña ignorando los popups, así llega al listado aunque el form se abra sobre otro popup.
+    @CallMethod
+    public void refreshTab(ActionRequest actionRequest, ActionResponse actionResponse) {
+        actionResponse.setSignal("refresh-tab", null);
+    }
+
     /************************************************************************************/
     /***************************** Acciones de Validaciones *****************************/
     /************************************************************************************/

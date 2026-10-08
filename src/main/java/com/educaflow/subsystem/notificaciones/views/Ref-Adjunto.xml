@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- «Adjunto en consulta»: grid y form de solo lectura de un adjunto de un correo ya guardado, compartidos
+         por los forms de correo de «Todas» (detalle), «Del centro» y «Recibidas». Al pulsar el fichero se
+         descarga con el nombre del adjunto. -->
+    <?sv-view?>
+    <grid name="subsysNotificaciones.Ref@Adjunto-grid" title="" model="com.educaflow.subsystem.notificaciones.db.Adjunto"
+          canNew="false" allowSearchFields="false" orderBy="nombreFichero"
+          canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="nombreFichero"/>
+    </grid>
+
+    <form name="subsysNotificaciones.Ref@Adjunto-form" title="Adjunto" model="com.educaflow.subsystem.notificaciones.db.Adjunto"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="Adjunto" title="">
+            <field name="nombreFichero" colSpan="8" readonly="true"/>
+            <field name="contenido" colSpan="4" widget="binary-link" readonly="true"/>
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Salir" onClick="subsysNotificaciones.Ref@Adjunto-btnCancel-action"
+                    colSpan="2" colOffset="10" outline="true"/>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+
+    <action-group name="subsysNotificaciones.Ref@Adjunto-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+</object-views>

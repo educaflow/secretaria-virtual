@@ -1,0 +1,144 @@
+### Comparación 1: design_1 vs design_2 → gana design_2
+
+=== VENTAJAS design_1 ===
+- La clasificación «gestor del centro» la calcula una sola vez el servidor, en `getCentrosGestionados`. El `<domain>` de «Del centro» la recibe por `call:` (`idsCentrosGestionados`), así que no copia la lista en JPQL. Las únicas copias son las de los permisos (`auth-notificaciones.xml`), y un test comprueba que coinciden con el Java (D4).
+- Añade `MetaFileUtil.tamanoEnBytes` en `base/util`. Así «medir el tamaño en disco y no fiarse de `fileSize`» tiene un solo dueño para la validación de 10 MB del adjunto (VAL-Adjunto-003/007) y la de 25 MB del correo (VAL-Correo-019).
+- Vio que la señal `refresh-tab` no recarga una ventana emergente y la cambia por `setReload(true)` en los dos `reenviar` (ESC-039/040/050, paso «recarga el formulario»).
+- Pasa a `Provider<MailSender>`, resuelto dentro del `try` del envío, para que una instalación sin servidor de correo deje el correo en FALLIDO (RN-Correo-003). Queda igual que el SMS.
+- Detecta la misma errata real que el otro diseño: el destino pasa de «momento: lectura» a «escritura» (D3), con un motivo técnico sólido. Además usa una plantilla común `NotificacionCanalServiceImpl` con ganchos abstractos, de modo que un canal nuevo hereda todo el ciclo de vida.
+=== DEFECTOS design_1 ===
+- `allowPropertiesInsert` es abstracto en la base y cada canal repite toda la lista de permitidos, comunes incluidos (`name`, `dniDestinatario`, `nombre`, `apellidos`, `centro`, `historialEstado`). Es una decisión con varios dueños: un campo común nuevo obliga a tocar todos los canales, y el que se olvide falla en silencio.
+- El registro `CanalesNotificacion` es un `Map` y solo falla en tiempo de ejecución. Quien añada un canal tiene que acordarse de registrarlo («si no, la primera alta falla»), porque el compilador no se lo pide.
+- Falla la responsabilidad única: `NotificacionServiceImpl` hace a la vez el ciclo de vida de `Notificacion` (rechazar el alta genérica), las factorías y la clasificación de usuarios «gestor del centro», que no es de su entidad. Además arrastra `validateGetCentrosGestionados` y un `@CallMethod` `NotificacionController.validateGetCentrosGestionados` que ninguna vista invoca (código muerto puesto solo para cumplir la regla C28).
+- `subsystem/security` (`MenuSecurityServiceImpl`) pasa a resolver un `ModelService` de notificaciones con `ModelServiceFactory` para preguntar una clasificación de usuario. El motivo de apartarse de `k-vistas/menus.md` es razonable, pero acopla seguridad con un servicio de entidad.
+- No ve el riesgo de abrir la ventana del alta desde la ventana de elección de canal: da por hecho que `popup="reload"` refresca «Todas» (ESC-001 paso 6, ESC-069) sin analizar el caso, y no deja una decisión sobre la ventana de elección (la que el otro diseño recoge en su D6).
+- Igual que el otro diseño: da por supersedidos los E2E en lugar de «moverlos y adaptarlos» como pide la guía, y amplía el alcance cambiando `VAR-7.2`, `k-vistas` y la plantilla del diseñador.
+=== VENTAJAS design_2 ===
+- `CanalesNotificacion` usa un `switch` de expresión exhaustivo, sin `default`, y la búsqueda inversa sale del mismo `switch`. Un canal nuevo no compila hasta tener su caso, así que el compilador sustituye a la memoria del desarrollador (D2).
+- La lista de permitidos del alta tiene un único dueño. La base declara los campos comunes y cada canal aporta solo los suyos con `propiedadesDelCanalEnAlta()`, sin repetir nada.
+- `GestorNotificaciones` es una utilidad sin estado, separada del servicio de la entidad (`esGestor`, `esGestorEnAlgunCentro`). La consultan el reenvío y el menú, y las copias JPQL que el framework obliga a escribir quedan vigiladas por un test de coherencia. `NotificacionService` se queda con solo las factorías y el rechazo del alta genérica, con lo que cumple la responsabilidad única.
+- Su `decisiones.md` es más completo. Recoge la decisión de la ventana de elección de canal (D6, con la alternativa de una entidad no persistible) y en D5 descarta con motivo concreto la vía de `conditionParams` con Groovy. También declara en «Notas y supuestos» los riesgos reales que deberá vigilar la depuración E2E: la recarga tras abrir una ventana desde otra y `refresh-tab` dentro de una ventana emergente.
+- Cumple la especificación igual que el otro: los 76 escenarios, todos los RES/VAL/RN/RUI/CC con su trazabilidad, la errata de lectura a escritura del destino declarada como PENDIENTE y legítima, la herencia JOINED y el campo `tipoNotificacion` asignado siempre por el servidor y fuera de todas las listas de permitidos.
+=== DEFECTOS design_2 ===
+- El `<domain>` de `Centro-Notificacion.xml` es una quinta copia en JPQL de la clasificación «gestor del centro». Un test la vigila, pero se podía evitar pasando los ids desde el servidor, como hace el otro diseño y como hace ya `idsCentrosSupervisados`.
+- `CorreoController`/`SmsController` mantienen `setSignal("refresh-tab")` aunque el diseño reconoce que no recarga la ventana emergente. Deja el riesgo a la depuración en lugar de resolverlo con `setReload`.
+- La regla «medir en disco y no fiarse de `fileSize`» está duplicada: hay un `Files.size(MetaFiles.getPath(...))` en `CorreoServiceImpl` y otro en `AdjuntoServiceImpl`, sin una utilidad común.
+- Es incoherente entre canales: `CorreoServiceImpl` inyecta `MailSender` directamente, mientras que `SmsServiceImpl` usa `Provider<SmsSender>`, que se resuelve dentro del envío. Con ello no garantiza que sin servidor de correo el alta acabe en FALLIDO (RN-Correo-003) en lugar de fallar al construir el servicio.
+- `NotificacionServiceImpl.validateUpdate/validateRemove` delegan en el servicio del canal real con `canalDe` (que además lanza `IllegalStateException` si recibe una `Notificacion` genérica) solo para dar el mensaje «de su canal» por una puerta REST que ningún usuario usa. Es una indirección que la especificación no necesita.
+- Igual que el otro diseño: da por supersedidos los E2E en lugar de moverlos, y amplía el alcance cambiando `VAR-7.2`, `k-vistas` y la plantilla del diseñador.
+=== JUSTIFICACION design_1 vs design_2 ===
+Los dos cumplen la especificación por igual: los mismos escenarios, la misma errata legítima del destino y el mismo patrón nuevo, declarado, de abrir el form del canal en ventana emergente. Por tanto decide la calidad.
+Prueba del segundo desarrollador al añadir un canal:
+  - design_2 se explica en una frase: «añade la constante al enum, la entidad y `<Canal>ServiceImpl extends NotificacionCanalServiceImpl`, e implementa lo que el compilador te pida»; el `switch` exhaustivo y los ganchos abstractos lo obligan todo;
+  - design_1 exige además recordar la línea del `Map` de `CanalesNotificacion` (solo falla al hacer la primera alta) y repetir en la lista de permitidos de cada canal los seis campos comunes, una decisión con varios dueños que se rompe en silencio al añadir un campo común.
+design_2 respeta también la responsabilidad única (`GestorNotificaciones` separado), mientras que design_1 mezcla en `NotificacionServiceImpl` factorías, rechazo del alta y clasificación de usuarios, con una acción de validación muerta.
+design_1 gana en detalles concretos (`call:` en el `<domain>`, `MetaFileUtil.tamanoEnBytes`, `setReload`, `Provider<MailSender>`), pero ninguno toca el punto de extensión que la guía exige: crecer con canales nuevos sin tocar lo existente. El enriquecedor puede incorporar esos detalles a design_2 sin añadir ningún olor.
+En `decisiones.md`, design_2 además ve una decisión más (D6) y declara los riesgos que design_1 pasa por alto.
+
+### Comparación 2: design_2 vs design_3 → gana design_3
+
+=== VENTAJAS design_2 ===
+- `NotificacionCanalServiceImpl<T>` hace de plantilla. Un canal nuevo solo implementa los ganchos abstractos que el compilador le pide (`validarDatosDelCanal`, `propiedadesDelCanalEnAlta`, `destino`, `enviarPorCanal`, `mensajes()`). Ni el orden del alta y del envío ni la lista común de permitidos se repiten por canal.
+- La lista de permitidos del alta tiene un único dueño: la base declara los campos comunes y cada canal aporta solo los suyos con `propiedadesDelCanalEnAlta()`.
+- `CanalesNotificacion` usa un `switch` exhaustivo sin `default`, del que sale también la búsqueda inversa. El compilador obliga a cubrir cada canal nuevo (D2).
+- `GestorNotificaciones` es una utilidad sin estado, separada del servicio de la entidad. Así `NotificacionService` se queda solo con las factorías y el rechazo del alta genérica (responsabilidad única).
+- D6 deja escrita la decisión sobre la ventana de elección de canal y descarta con un motivo la entidad no persistible.
+=== DEFECTOS design_2 ===
+- Sigue a ciegas ESC-062, que es una errata real. `data.upload.max-size = 10` en `axelor-config.properties` hace que `axelor-front` rechace el fichero de 11 MB antes de subirlo, así que el aviso «El adjunto no puede superar los 10 MB» al pulsar Guardar nunca puede salir. Lo deja como «se ajustará en la depuración» y con un diagnóstico equivocado (cree que el problema es que `fileSize` no llegue al contexto).
+- La clasificación «gestor del centro» tiene cinco copias en JPQL (cuatro permisos y el `<domain>` de «Del centro»), más el Java, atadas solo por un test. En D5 descarta la vía de un único dueño (`conditionParams` con Groovy) con un motivo erróneo: `ScriptPolicy.java` sí deja llamar a clases `Model` (líneas 148-150) y la expresión no lleva comas.
+- `CorreoServiceImpl` inyecta `MailSender` directamente, mientras que el SMS usa `Provider<SmsSender>`. No garantiza que, sin servidor de correo, el correo acabe en FALLIDO (RN-Correo-003), y además los dos canales quedan incoherentes entre sí.
+- La regla «medir el tamaño en disco y no fiarse de `fileSize`» está duplicada, con un `Files.size(MetaFiles.getPath(...))` en `CorreoServiceImpl` y otro en `AdjuntoServiceImpl`.
+- Hereda para reutilizar código (plantilla abstracta entre `DefaultModelService` y los canales), que `k-code-quality/clases.md` («Composición frente a herencia») desaconseja. `validateUpdate/validateRemove` de la base redirigen al canal real con `canalDe`, una indirección que la especificación no necesita.
+- Mantiene `setSignal("refresh-tab")` en el reenvío aunque reconoce que no recarga la ventana emergente.
+=== VENTAJAS design_3 ===
+- Detecta la errata real de ESC-062 (D6), con la causa comprobada: `data.upload.max-size = 10` y `validateFileSize` de `axelor-front`. Propone la corrección mínima del escenario sin tocar el límite global y mantiene la defensa en el servidor (V-Adjunto-006).
+- La clasificación «gestor del centro» tiene un único dueño de verdad, `Notificacion.idsCentrosGestionados(User)`. Lo usan los permisos (`conditionParams`), el `<domain>` de «Del centro» (a través de `<context>`), el menú y el reenvío. He comprobado en AOP que se puede implementar: `AuthSecurity` evalúa cada parámetro con Groovy y `ScriptPolicy` admite las clases `Model`. Para cambiar quién gestiona basta tocar una constante.
+- `MetaFileUtil.sizeOnDisk` en `base/util` es el único dueño de la medida en disco para el límite de 10 MB del adjunto y el de 25 MB del correo.
+- Inyecta `Provider<MailSender>` y lo resuelve dentro del envío, así que sin servidor de correo el correo queda en FALLIDO (RN-Correo-003). Queda igual que el SMS.
+- Reutiliza por composición (`CicloNotificacion`, que no conoce ningún canal), como pide `clases.md`. El destino se calcula con polimorfismo en la entidad (`calcularDestino()`), sin `if` por tipo y sin fórmula SQL.
+- El canal tiene un único dueño, `TipoNotificacion.getModelClass()`, con un `switch` exhaustivo dentro del propio enum; el XSD del fork admite `extra-code-model` en los enum. La base lanza `IllegalStateException` en lugar de devolver un retorno defensivo.
+=== DEFECTOS design_3 ===
+- Cada canal tiene que acordarse de llamar a `prepararAlta`, `programarEnvio` (en `insert` y en `reenviar`), `validarDatosComunes` y `validarReenvio`. Nada se lo exige al compilar: ese es el precio de la composición frente a la plantilla.
+- `allowPropertiesInsert` de cada canal repite los campos comunes (`name`, `dniDestinatario`, `nombre`, `apellidos`, `centro`, `historialEstado`), y cada canal repite también los rechazos de `update`/`remove`. Es una decisión con varios dueños: un campo común nuevo obliga a tocar todos los canales.
+- `calcularDestino()` falla en tiempo de ejecución, no al compilar, si un canal nuevo no lo sobrescribe. El diseño lo cubre con un test, pero sigue siendo algo que hay que recordar.
+- La clasificación de usuarios vive en el `extra-code-model` de la entidad `Notificacion`, con métodos estáticos. Mezcla responsabilidades en la entidad y hace que `subsystem/security` dependa de una clase `db` de notificaciones. Además estrena un patrón (`conditionParams` con Groovy) sin precedente en el proyecto, aunque lo declara.
+- Mantiene `refresh-tab` en el reenvío, basándose en el análisis de `getActiveTabId(-1)`, sin comprobar que recargue el propio formulario emergente.
+=== JUSTIFICACION design_2 vs design_3 ===
+En cumplimiento (nivel 1) gana design_3. Vio una errata real, ESC-062 imposible con `data.upload.max-size = 10`, que design_2 siguió a ciegas y diagnosticó mal. Además garantiza RN-Correo-003 con `Provider<MailSender>`, que design_2 deja sin asegurar al inyectar `MailSender` directamente.
+Prueba del segundo desarrollador:
+  - Añadir un canal: design_2 exige menos («extiende la plantilla e implementa lo que pida el compilador»). design_3 exige recordar cuatro llamadas a `CicloNotificacion`, repetir los permitidos comunes y sobrescribir `calcularDestino()`.
+  - Cambiar quién es gestor del centro: design_3 exige tocar una constante. design_2 exige editar seis sitios (cinco JPQL y el Java) guiado por un test, y descartó la alternativa de dueño único con un motivo técnico falso.
+En calidad, cada diseño se queda con un olor de «decisión con varios dueños» (design_2 en la clasificación, design_3 en los permitidos), pero design_3 suma `sizeOnDisk` y composición conforme a `clases.md`.
+En decisiones, design_3 identifica una decisión más (D6, el límite de subida) y sus alternativas descartadas están verificadas contra el código de AOP.
+Como el nivel 1 ya decide y el nivel 2 queda equilibrado, gana design_3.
+
+### Comparación 3: design_3 vs design_4 → gana design_4
+
+=== VENTAJAS design_3 ===
+- La clasificación «gestor del centro» tiene un único dueño de verdad, `Notificacion.idsCentrosGestionados(User)`. Lo usan los cuatro permisos (`conditionParams` con Groovy, que `ScriptPolicy` admite), el `<domain>` de «Del centro», el menú y el reenvío. Para cambiar quién gestiona basta tocar una constante, mientras que en design_4 hay una copia JPQL en cada uno de los cuatro permisos.
+- Detecta con la causa comprobada la errata real de ESC-062 (D6: `data.upload.max-size = 10` y `validateFileSize` de axelor-front). Mantiene la defensa en el servidor con `MetaFileUtil.sizeOnDisk`.
+- Cumple la guía de Guice al pie de la letra: fusiona `CorreosModule`, `MailSenderProvider`, `SmsModule` y `SmsSenderProvider` en `NotificacionesModule` con `@Provides`. Usa además `Provider<MailSender>` para garantizar RN-Correo-003.
+- Reutiliza por composición (`CicloNotificacion`, que no conoce ningún canal), conforme a `clases.md` «Composición frente a herencia». El destino es polimórfico en la entidad y la base lanza `IllegalStateException` en vez de dar un retorno defensivo.
+- `NotificacionServiceImpl` no redirige `update`/`remove` al servicio del canal: no tiene la indirección `servicioDelCanal`.
+=== DEFECTOS design_3 ===
+- D5 cambia la especificación (CC-Notificacion-002, CC-Correo-001 y CC-Sms-001 pasan de «momento: lectura» a «escritura») con una premisa incompleta. Solo compara contra un campo `transient` y no ve el campo calculado no transitorio de Axelor: un campo con cuerpo y sin `formula` se genera con `@Access(PROPERTY)` y se guarda en su columna (`Property.java` de axelor-tools), así que se puede filtrar y ordenar. Por tanto no es una errata real, es un cambio de spec que se podía evitar.
+- Cada canal tiene que acordarse de llamar a `prepararAlta`, `programarEnvio` (dos veces), `validarDatosComunes` y `validarReenvio` en el orden correcto, y nada se lo exige al compilar.
+- `allowPropertiesInsert` repite en cada canal los seis campos comunes (`name`, `dniDestinatario`, `nombre`, `apellidos`, `centro`, `historialEstado`), y cada canal repite también los rechazos de `update`/`remove`. Es una decisión con varios dueños: un campo común nuevo obliga a tocar todos los canales.
+- La clasificación de usuarios es un método estático en el `extra-code-model` de la entidad `Notificacion`. Mezcla responsabilidades en la entidad y hace que `subsystem/security` dependa de una clase `db`. Además estrena un patrón sin precedente en el proyecto: `conditionParams` con una llamada Groovy a una entidad.
+- Mantiene `refresh-tab` en el reenvío dentro de la ventana emergente sin comprobar que recargue el propio formulario.
+=== VENTAJAS design_4 ===
+- Resuelve el «destino» como campo calculado de lectura de verdad. `computeDestino()` vive en la base y cada subclase lo sobrescribe en su `extra-code-model`; Axelor lo guarda en su columna al hacer `flush`, así que se puede filtrar y ordenar. Cumple la guía («campo calculado de lectura, polimórfico») y la spec sin tocarla, justo donde design_3 la cambió.
+- `NotificacionCanalServiceImpl<T>` es una plantilla con cinco ganchos abstractos. Un canal nuevo se explica en una frase («extiende la base y rellena lo que pide el compilador»), y el orden del alta, del envío y las reglas de estado tienen un único dueño.
+- La lista de permitidos del alta tiene un único dueño: la base declara los campos comunes y cada canal aporta solo los suyos con `allowPropertiesDelCanal()`. Los «mensajes de su canal» viven en un único `record TextosCanal` por canal.
+- La pregunta «qué clase es cada canal» la contesta solo `TipoNotificacion`, con un `switch` exhaustivo. «Gestor del centro» tiene un único dueño Java separado de la entidad (`GestorNotificacionesUtil`), y el `<domain>` le pregunta por `call:` sin copiar JPQL.
+- Ve la misma errata real de ESC-062 (D5) y la corrige de forma mínima. Además tiene `Provider<MailSender>` (RN-Correo-003) y `MetaFileUtil.fileSizeOnDisk` compartido por el adjunto y el correo.
+=== DEFECTOS design_4 ===
+- La clasificación «gestor del centro» se copia en JPQL en los cuatro permisos `*.propio-centro-gestion`, además del Java. Solo las ata un comentario, sin test de coherencia, y D4 no estudia la vía `conditionParams` con Groovy que design_3 demuestra que es viable.
+- `NotificacionServiceImpl.update/remove/validateUpdate/validateRemove` redirigen al servicio del canal con `servicioDelCanal` (que hace un cast y lanza `IllegalStateException`) solo para dar el texto «de su canal» por una puerta REST de la base. Es una indirección que la spec no pide.
+- El getter generado de `destino` lanza `IllegalStateException` en cualquier `Notificacion` que no sea un canal. Ese mismo modelo se usa como registro temporal en la ventana de elección de canal (`Eleccion-Notificacion.xml`), y si algo lee `getDestino()` en el contexto, revienta. No lo declara como riesgo.
+- Se aparta de la guía «`MailSenderProvider` y `SmsSenderProvider` se fusionan en `NotificacionesModule`»: los mantiene como clases movidas y fusiona solo los módulos.
+- Una jerarquía propia de servicio de dos niveles sobre `DefaultModelService` para reutilizar código choca con el espíritu de `clases.md` («Composición frente a herencia»), y D1 no lo discute. Mantiene `refresh-tab` en el reenvío y lo deja como riesgo para la depuración.
+=== JUSTIFICACION design_3 vs design_4 ===
+Cumplimiento (nivel 1): los dos detectan la errata real de ESC-062, pero design_3 añade un segundo cambio de spec (D5, destino «lectura→escritura»). Ese cambio no es una errata: design_4 demuestra que la spec y la guía se pueden cumplir con un campo calculado de Axelor que se guarda en columna y se puede filtrar. Ahí design_4 cumple y design_3 cambia el contrato sin necesidad.
+Prueba del segundo desarrollador al añadir un canal, que es el punto de extensión que exige la guía:
+  - design_4: «extiende `NotificacionCanalServiceImpl<X>`, añade el `case` al enum y `computeDestino()`; el compilador pide el resto».
+  - design_3: además hay que recordar cuatro o cinco llamadas a `CicloNotificacion` en el orden correcto, repetir los seis permitidos comunes y repetir los rechazos de `update`/`remove`.
+Al cambiar quién es gestor del centro gana design_3 (una constante frente a Java más cuatro JPQL en design_4), pero es un cambio menos probable que añadir canales y no compensa el cambio de spec que design_3 no necesitaba.
+Los defectos de design_4 (las copias JPQL de los permisos, la indirección de `servicioDelCanal` y el getter que lanza) son locales y el enriquecedor puede corregirlos tomando de design_3 el `conditionParams`. Por eso gana design_4.
+
+### Comparación 4: design_4 vs design_5 → gana design_4
+
+=== VENTAJAS design_4 ===
+- Ve la errata real de ESC-062 / RUI-notificaciones-todas-formulario-adjunto-004 (D5). `data.upload.max-size = 10` hace que el subidor de Axelor rechace el fichero al subirlo, con su propio texto, antes de que exista ningún «Guardar». Lo registra como `PENDIENTE` y mantiene `VAL-Adjunto-003` en el servidor, midiendo en disco con `fileSizeOnDisk`.
+- Respeta el «destino» como CC de lectura polimórfico, como piden la spec (`momento: lectura`) y las guías («resuelto de forma polimórfica»). Usa un campo función de Axelor (`computeDestino()` en la base, que lanza `IllegalStateException` en lugar de devolver null) sobrescrito en el `extra-code-model` de `Correo` y `Sms`. Se persiste con `@Access(PROPERTY)`, así que se puede filtrar y ordenar sin tocar la spec.
+- Pasa la prueba del segundo desarrollador en una frase: «extiende `NotificacionCanalServiceImpl<X>` y rellena los ganchos abstractos que te pide el compilador». El orden del alta (validar → valores iniciales → regla del canal → save → programar envío) y la máquina de estados del envío tienen un único dueño.
+- Pone en un solo sitio, el enum `TipoNotificacion`, la correspondencia canal ↔ clase, con un `switch` exhaustivo que el compilador comprueba. Pone en un solo método privado la convención variante+clase → form. No hay ningún `if` por canal en las vistas.
+- Tiene menos piezas: la elección de canal es un popup del propio `Notificacion` sin entidad, servicio ni controlador nuevos, y el controlador de apertura no inyecta servicios.
+- Declara como patrones nuevos la base genérica de `ModelService` y la apertura en popup, y dice qué receta faltaría y dónde (`k-sistemas/servicios.md`, `k-vistas/forms.md`, `VAR-7.2`).
+=== DEFECTOS design_4 ===
+- Herencia para reutilizar código: crea una jerarquía propia `NotificacionCanalServiceImpl<T>` → `CorreoServiceImpl`/`SmsServiceImpl` con cinco ganchos abstractos y un record `TextosCanal` de seis textos. Esto va contra la preferencia «Composición frente a herencia» de `clases.md`. Lo declara como patrón nuevo, pero la base queda acoplada a cada canal a través de los ganchos.
+- `NotificacionController.abrirEnPopup`/`continuarAlta` deciden qué form abrir con el `tipoNotificacion` que manda el cliente en el contexto de la fila, no con la clase real leída de la BD. Es una frontera de confianza más débil, aunque luego el popup cargue la fila por REST aplicando los permisos.
+- `NotificacionServiceImpl.servicioDelCanal` obtiene el servicio con `modelServiceFactory.resolve(...)` y un cast sin comprobar a `NotificacionCanalService<Notificacion>`. Además `prepararAlta` pone `tipoNotificacion` en el cliente con `setValue`; es solo presentación, pero es otra copia del tipo.
+- El `switch` de `TipoNotificacion.getClaseNotificacion()`/`deClase` hay que ampliarlo con cada canal nuevo. Es exhaustivo, pero aun así es un sitio más que tocar (OCP).
+- Borra los E2E de `correos` y `sms` en lugar de «mover y adaptar» como dice la guía (D6). Lo declara como desviación consciente, pero es una desviación.
+=== VENTAJAS design_5 ===
+- Usa composición (`EnvioNotificacion` inyectable más el record `MensajesCanal`), que es lo que prefiere `clases.md`, y cada servicio de canal sigue siendo un `DefaultModelService` plano.
+- Frontera de confianza más estricta al abrir una fila: `NotificacionService.abrir` lee la clase real de la BD y comprueba `jpaSecurity.isPermitted(CAN_READ, …)`. `CanalNotificacion.formulario` comprueba con `AxelorUtil.existsView` que el form existe.
+- La elección de canal usa una entidad no persistible `EleccionCanal` (precedente `AsistenteNuevoExpediente`). Así `tipoNotificacion` de `Notificacion` queda fuera de cualquier whitelist, tal como dice la guía.
+- `asignarValoresIniciales(notificacion, destino)` lleva el destino como parámetro obligatorio, así que el compilador obliga a cada canal a decir de qué dato sale.
+- Su D1 está bien documentada, con referencias a `axelor-front` (`doBack`, `popup="reload"`, `tab:refresh`) que justifican el cierre con `close` y la ampliación de `VAR-7.2`.
+=== DEFECTOS design_5 ===
+- Sigue a ciegas ESC-062: valida los 10 MB en un `Main@Correo.Adjunto-Local-validateSave-action` del cliente y espera que T-026 muestre «El adjunto no puede superar los 10 MB». El subidor de Axelor rechaza el fichero antes, con su propio aviso, así que ese test no puede pasar.
+- Cambia la spec por comodidad (D2, `PENDIENTE` de CC-Notificacion-002, CC-Correo-001 y CC-Sms-001: «lectura» → «escritura»). La premisa, que un cálculo de lectura con `JOINED` no se puede filtrar sin enumerar tablas, es falsa: el campo función de Axelor se persiste y es polimórfico, como demuestra design_4. Esto cuenta como incumplimiento, no como errata.
+- `CanalNotificacion` es una convención tácita resuelta por reflexión: la clase tiene que llamarse como el valor del enum en PascalCase, vivir en el paquete de `Notificacion` y tener sus forms `Main/Centro/Mis@<Clase>-form`. Hay que recordar la convención, y si se rompe falla en tiempo de ejecución, no al compilar.
+- La composición no pasa la prueba del segundo desarrollador: cada canal tiene que reescribir el esqueleto de `insert`/`update`/`remove`/`reenviar` y llamar a `validarAlta`, `asignarValoresIniciales(…, destino)` y `programarEnvio(…)` en ese orden exacto. El orden del alta tiene un dueño por canal.
+- Tiene más piezas de las que la spec pide: dominio, servicio, controlador y vista de `EleccionCanal`, más `CanalNotificacion`, `GestoresCentro`, `EnvioNotificacion` y `MensajesCanal`.
+- También borra los E2E de `correos` y `sms` en lugar de moverlos y adaptarlos.
+=== JUSTIFICACION design_4 vs design_5 ===
+Cumplimiento: design_4 detecta la errata real de ESC-062 (el límite de subida de la plataforma salta antes de cualquier «Guardar»), mientras que design_5 la sigue a ciegas y diseña un test que no puede pasar.
+Además, design_5 propone cambiar la spec (destino de «lectura» a «escritura») con una premisa técnica falsa, mientras que design_4 cumple el CC de lectura de forma polimórfica con el campo función de Axelor, como piden las guías.
+Calidad, prueba del segundo desarrollador: en design_4 cabe en una frase, «extiende `NotificacionCanalServiceImpl<X>`, rellena los ganchos que exige el compilador y añade el `case` en `TipoNotificacion` (exhaustivo)».
+En design_5 hay que recordar: llamar a `validarAlta`, `asignarValoresIniciales(destino)` y `programarEnvio` en orden en cada `insert`, reescribir `update`/`remove`/`reenviar`, nombrar la clase igual que el enum en PascalCase (convención por reflexión) y declarar los tres forms con el nombre exacto.
+design_5 gana en frontera de confianza (clase leída de la BD, entidad `EleccionCanal`) y en composición frente a herencia, pero a cambio de más piezas y de más conocimiento tácito.
+Como design_4 cumple mejor la spec y exige recordar menos, design_4 es el mejor diseño, aunque haya que auditarle la herencia de servicios y que confíe en el tipo que manda el cliente al abrir el form.
+

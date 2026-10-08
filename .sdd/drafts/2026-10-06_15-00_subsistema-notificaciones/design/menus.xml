@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+<menuitem name="notificaciones-menuitem" title="Notificaciones" groups="admins,users" order="50"/>
+    <menuitem name="notificaciones-recibidas-menuitem" parent="notificaciones-menuitem" title="Recibidas" action="subsysNotificaciones.Mis@Notificacion-action" groups="admins,users" order="1"/>
+    <menuitem name="notificaciones-delCentro-menuitem" parent="notificaciones-menuitem" title="Del centro" action="subsysNotificaciones.Centro@Notificacion-action" groups="users" order="2"/>
+    <menuitem name="notificaciones-todas-menuitem" parent="notificaciones-menuitem" title="Todas" action="subsysNotificaciones.Main@Notificacion-action" groups="admins" order="3"/>
+
+</object-views>

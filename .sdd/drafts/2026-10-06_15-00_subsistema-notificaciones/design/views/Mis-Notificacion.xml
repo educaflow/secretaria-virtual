@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- «Recibidas»: las notificaciones ENVIADO al DNI del usuario, de cualquier canal y centro. Sin el
+         motivo ni los datos internos del envío. El DNI llega por <context> como parámetro plano: Hibernate
+         no admite `:__user__.dni`. El <domain> va antes del <context> (lo exige el XSD). -->
+    <?sv-view?>
+    <action-view name="subsysNotificaciones.Mis@Notificacion-action" title="Notificaciones recibidas" model="com.educaflow.subsystem.notificaciones.db.Notificacion">
+        <view type="grid" name="subsysNotificaciones.Mis@Notificacion-grid"/>
+        <view-param name="show-toolbar-grid" value="false"/>
+        <domain>self.dniDestinatario = :dniUsuarioActual and self.estado = :estadoEnviado</domain>
+        <context name="dniUsuarioActual" expr="eval: __user__?.dni"/>
+        <context name="estadoEnviado" expr="ENVIADO"/>
+    </action-view>
+
+    <grid name="subsysNotificaciones.Mis@Notificacion-grid" title="" model="com.educaflow.subsystem.notificaciones.db.Notificacion"
+          canNew="false" allowSearchFields="true" orderBy="-fechaEnvio"
+          canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false"
+          action="subsysNotificaciones.Mis@Notificacion-Remote-abrirRecibida-action">
+        <field name="tipoNotificacion" width="100px"/>
+        <field name="destino" width="220px"/>
+        <field name="nombreExpediente" width="200px"/>
+        <field name="fechaEnvio" width="160px"/>
+    </grid>
+
+    <?sv-primary-actions?>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+    <action-method name="subsysNotificaciones.Mis@Notificacion-Remote-abrirRecibida-action" model="com.educaflow.subsystem.notificaciones.db.Notificacion">
+        <call class="com.educaflow.subsystem.notificaciones.controller.NotificacionController" method="abrirRecibida"/>
+    </action-method>
+
+</object-views>

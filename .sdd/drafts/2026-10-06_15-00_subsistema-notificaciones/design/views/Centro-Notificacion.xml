@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- «Del centro»: las notificaciones de los centros en los que el usuario es gestor (tipo Supervisor o
+         Administrativo, o cargo Director, Jefe de estudios o Secretario). Los ids de esos centros los da el
+         único dueño de esa clasificación, GestorNotificacionesUtil, con la misma expresión que los permisos; el <domain> hace falta además del permiso porque los permisos de destinatario y de gestor se
+         combinan con OR. Con varios centros, la columna «centro» permite filtrar. -->
+    <?sv-view?>
+    <action-view name="subsysNotificaciones.Centro@Notificacion-action" title="Notificaciones del centro" model="com.educaflow.subsystem.notificaciones.db.Notificacion">
+        <view type="grid" name="subsysNotificaciones.Centro@Notificacion-grid"/>
+        <view-param name="show-toolbar-grid" value="false"/>
+        <domain>self.centro.id IN (:idsCentrosGestionados)</domain>
+        <context name="idsCentrosGestionados" expr="eval: com.educaflow.subsystem.notificaciones.util.GestorNotificacionesUtil.idsCentrosGestionados(__user__)"/>
+    </action-view>
+
+    <grid name="subsysNotificaciones.Centro@Notificacion-grid" title="" model="com.educaflow.subsystem.notificaciones.db.Notificacion"
+          canNew="false" allowSearchFields="true" orderBy="-fechaCreacion"
+          canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false"
+          action="subsysNotificaciones.Centro@Notificacion-Remote-abrirDelCentro-action">
+        <hilite color="danger" if="estado == 'FALLIDO'"/>
+        <field name="centro" width="170px"/>
+        <field name="tipoNotificacion" width="100px"/>
+        <field name="estado" width="110px"/>
+        <field name="dniDestinatario" width="120px" title="DNI del destinatario"/>
+        <field name="nombre" width="140px"/>
+        <field name="apellidos" width="170px"/>
+        <field name="name"/>
+        <field name="destino" width="200px"/>
+        <field name="nombreExpediente" width="170px"/>
+        <field name="fechaCreacion" width="150px"/>
+        <field name="fechaEnvio" width="150px"/>
+    </grid>
+
+    <?sv-primary-actions?>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+    <action-method name="subsysNotificaciones.Centro@Notificacion-Remote-abrirDelCentro-action" model="com.educaflow.subsystem.notificaciones.db.Notificacion">
+        <call class="com.educaflow.subsystem.notificaciones.controller.NotificacionController" method="abrirDelCentro"/>
+    </action-method>
+
+</object-views>

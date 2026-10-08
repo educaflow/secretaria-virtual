@@ -139,8 +139,6 @@
     <can create="true" read="true" write="true" remove="true" export="true"/>
   </permission>
 
-  <!-- Correos -->
-
   <!-- Grupos y notas -->
   <permission name="Grupo.all" object="com.educaflow.system.gruposnotas.db.Grupo">
     <can create="true" read="true" write="true" remove="true" export="true"/>
@@ -257,10 +255,14 @@
     <permission name="Nivel.all"/>
     <permission name="ViewGestionCentroImport.all"/>
     <permission name="ViewGestionCentroCambioCurso.all"/>
+    <permission name="Notificacion.propio-destinatario"/>
     <permission name="Correo.propio-destinatario"/>
-    <permission name="Correo.propio-centro-supervisor"/>
+    <permission name="Sms.propio-destinatario"/>
     <permission name="Adjunto.propio-destinatario"/>
-    <permission name="Adjunto.propio-centro-supervisor"/>
+    <permission name="Notificacion.propio-centro-gestion"/>
+    <permission name="Correo.propio-centro-gestion"/>
+    <permission name="Sms.propio-centro-gestion"/>
+    <permission name="Adjunto.propio-centro-gestion"/>
     <permission name="Grupo.all"/>
     <permission name="ModuloGrupo.all"/>
     <permission name="AlumnoGrupo.all"/>

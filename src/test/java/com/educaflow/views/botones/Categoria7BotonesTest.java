@@ -267,20 +267,23 @@ class Categoria7BotonesTest {
 
     private static void verificarMaestro(List<Violacion> v, ViewFile vf, String ubicacion,
                                          String estandar, String ctx, List<String> seq,
-                                         boolean ramaAsistente) {
+                                         boolean sinGrid) {
         switch (estandar) {
             case "btnSave" -> {
                 // [Local-… del mismo contexto]* → remote-validationSave-action → save
-                //   → force-back (inmediatamente tras save; nunca back)
+                //   → force-back (inmediatamente tras save; nunca back), o
+                //   → remote-refreshTab-action → close si ningún action-view que lo abra declara un grid
+                List<String> esperado = sinGrid
+                        ? List.of("remote-validationSave-action", "save", "remote-refreshTab-action", "close")
+                        : List.of("remote-validationSave-action", "save", "force-back");
                 List<String> resto = sinLocalesIniciales(seq, ctx);
-                boolean ok = resto.size() == 3
-                        && "remote-validationSave-action".equals(resto.get(0))
-                        && "save".equals(resto.get(1))
-                        && "force-back".equals(resto.get(2));
-                if (!ok) {
+                if (!esperado.equals(resto)) {
                     v.add(new Violacion(vf.rel(), ubicacion,
-                            "el btnSave maestro debe ser [Local-…]* → remote-validationSave-action → "
-                                    + "save → force-back (nunca back); secuencia: " + seq));
+                            "el btnSave maestro debe ser [Local-…]* → "
+                                    + String.join(" → ", esperado)
+                                    + (sinGrid ? " (ningún action-view que lo abra declara un grid)"
+                                               : " (nunca back)")
+                                    + "; secuencia: " + seq));
                 }
             }
             case "btnDelete" -> {
@@ -291,13 +294,11 @@ class Categoria7BotonesTest {
                 }
             }
             case "btnCancel" -> {
-                // Un maestro que ni persiste (sin btnSave) ni tiene grid al que volver (su
-                // action-view solo declara form) no tiene nada que preguntar ni a donde volver:
-                // cierra con close. Si falla cualquiera de las dos condiciones, sigue rigiendo back.
-                if (ramaAsistente) {
+                // Sin grid al que volver, back no hace nada: cierra con close.
+                if (sinGrid) {
                     if (!seq.contains("close")) {
                         v.add(new Violacion(vf.rel(), ubicacion,
-                                "el btnCancel de un maestro sin btnSave cuyo action-view no declara "
+                                "el btnCancel de un maestro cuyo action-view no declara "
                                         + "ningún grid debe contener \"close\"; secuencia: " + seq));
                     }
                 } else if (!seq.contains("back")) {
@@ -364,7 +365,7 @@ class Categoria7BotonesTest {
     //   Sujeto: los `<action name>` de cada `<action-group>` de `btnSave`/`btnDelete`.
     //   Condición: cada uno es —
     //     una acción `Local-…` del mismo contexto,
-    //     una de las globales `remote-validationSave-action`/`remote-validationDelete-action`,
+    //     una de las globales `remote-validationSave-action`/`remote-validationDelete-action`/`remote-refreshTab-action`,
     //     o una predefinida (`save`, `delete`, `back`, `force-back`, `save-modal`, `delete-modal`, `close`).
     //   Ningún `Remote-…-action` propio.
     @Test

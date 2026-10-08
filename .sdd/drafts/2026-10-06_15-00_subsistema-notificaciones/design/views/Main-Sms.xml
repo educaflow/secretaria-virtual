@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- Form del SMS en «Todas»: alta (desde la elección de canal) y detalle en solo lectura (desde una fila
+         del listado común). No tiene <action-view>: lo abre en popup NotificacionController
+         (continuarAlta / abrirTodas), así que sus botones cierran con close. -->
+    <?sv-view?>
+    <form name="subsysNotificaciones.Main@Sms-form" title="SMS__!!" model="com.educaflow.subsystem.notificaciones.db.Sms"
+          width="large" onNew="subsysNotificaciones.Main@Sms-onNew-action"
+          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false" canBackOnSave="true">
+
+        <panel name="Sms" title="Datos del SMS" readonlyIf="(id != null) || (cid != null)">
+            <field name="tipoNotificacion" colSpan="3" widget="RadioSelect" x-direction="horizontal" readonly="true"/>
+            <field name="name" colSpan="9" requiredIf="(id == null) &amp;&amp; (cid == null)"/>
+            <field name="centro" colSpan="4" requiredIf="(id == null) &amp;&amp; (cid == null)"
+                   grid-view="subsysCommon.Ref@Centro-grid" form-view="subsysCommon.Ref@Centro-form"
+                   onChange="subsysNotificaciones.Main@Sms-onChange-centro-action"/>
+            <field name="historialEstado" colSpan="8" domain="self.expediente.centro = :centro"
+                   target-name="nameState" canSuggest="false"
+                   grid-view="subsysExpedientes.Ref@HistorialEstado-grid" form-view="subsysExpedientes.Ref@HistorialEstado-form"/>
+            <field name="dniDestinatario" colSpan="3" requiredIf="(id == null) &amp;&amp; (cid == null)"/>
+            <field name="nombre" colSpan="4" requiredIf="(id == null) &amp;&amp; (cid == null)"/>
+            <field name="apellidos" colSpan="5" requiredIf="(id == null) &amp;&amp; (cid == null)"/>
+            <field name="telefono" colSpan="4" widget="phone" x-only-countries="ES"
+                   requiredIf="(id == null) &amp;&amp; (cid == null)"/>
+            <field name="mensaje" colSpan="12" colOffset="8" widget="Text"
+                   requiredIf="(id == null) &amp;&amp; (cid == null)"/>
+        </panel>
+
+        <panel name="Envio" title="Datos del envío" colSpan="12" readonly="true" showIf="(id != null) || (cid != null)">
+            <field name="estado" colSpan="6" widget="RadioSelect" x-direction="horizontal"/>
+            <field name="numeroReintentos" colSpan="3" title="Nº reintentos__!!"/>
+            <field name="fechaCreacion" colSpan="3"/>
+            <field name="fechaPrimerIntentoEnvio" colSpan="3"/>
+            <field name="fechaUltimoIntentoEnvio" colSpan="3"/>
+            <field name="fechaEnvio" colSpan="3" colOffset="3" showIf="estado == 'ENVIADO'"/>
+            <field name="descripcionUltimoFallo" colSpan="12" widget="Text" showIf="estado == 'FALLIDO'"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <panel name="buttonsAlta" title="" colSpan="12" showFrame="false"
+                   showIf="(id == null) &amp;&amp; (cid == null)">
+                <button name="btnCancelAlta" title="Cancelar" onClick="subsysNotificaciones.Main@Sms-btnCancel-action"
+                        colSpan="2" colOffset="8" outline="true"/>
+                <button name="btnSave" title="Guardar" onClick="subsysNotificaciones.Main@Sms-btnSave-action"
+                        colSpan="2"/>
+            </panel>
+            <panel name="buttonsFallido" title="" colSpan="12" showFrame="false"
+                   showIf="((id != null) || (cid != null)) &amp;&amp; (estado == 'FALLIDO')">
+                <button name="btnReenviar" title="Reenviar" onClick="subsysNotificaciones.Main@Sms-btnReenviar-action"
+                        colSpan="2"/>
+                <button name="btnCancelSalirFallido" title="Salir" onClick="subsysNotificaciones.Main@Sms-btnCancel-action"
+                        colSpan="2" colOffset="8" outline="true"/>
+            </panel>
+            <panel name="buttonsDetalle" title="" colSpan="12" showFrame="false"
+                   showIf="((id != null) || (cid != null)) &amp;&amp; (estado != 'FALLIDO')">
+                <button name="btnCancelSalir" title="Salir" onClick="subsysNotificaciones.Main@Sms-btnCancel-action"
+                        colSpan="2" colOffset="10" outline="true"/>
+            </panel>
+        </panel>
+
+    </form>
+
+    <?sv-primary-actions?>
+
+    <action-group name="subsysNotificaciones.Main@Sms-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+
+    <!-- remote-refreshTab-action refresca el listado de la pestaña porque refresh-tab llega a la pestaña ignorando
+         los popups, y el alta se abre en popup sobre la elección de canal -->
+    <action-group name="subsysNotificaciones.Main@Sms-btnSave-action">
+        <action name="subsysNotificaciones.Main@Sms-Local-validateSave-action"/>
+        <action name="remote-validationSave-action"/>
+        <action name="save"/>
+        <action name="remote-refreshTab-action"/>
+        <action name="close"/>
+    </action-group>
+
+    <!-- Cada reenvío de un SMS tiene coste: se confirma antes -->
+    <action-group name="subsysNotificaciones.Main@Sms-btnReenviar-action">
+        <action name="subsysNotificaciones.Main@Sms-Local-confirmarReenvio-action"/>
+        <action name="subsysNotificaciones.Main@Sms-Remote-validateReenviar-action"/>
+        <action name="subsysNotificaciones.Main@Sms-Remote-reenviar-action"/>
+        <action name="remote-refreshTab-action"/>
+    </action-group>
+
+    <!-- Alta: el tipo de notificación lo dicta el servidor según la clase -->
+    <action-group name="subsysNotificaciones.Main@Sms-onNew-action">
+        <action name="subsysNotificaciones.Main@Sms-Remote-prepararAlta-action"/>
+    </action-group>
+
+    <action-group name="subsysNotificaciones.Main@Sms-onChange-centro-action">
+        <action name="subsysNotificaciones.Main@Sms-set-historialEstado-null-action"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <!-- Obligatorios en cliente, solo para evitar el viaje al servidor; la fuente
+         de verdad es SmsServiceImpl.validateInsert -->
+    <action-condition name="subsysNotificaciones.Main@Sms-Local-validateSave-action">
+        <check field="name" if="name == null || name.trim().isEmpty()"
+               error="El motivo es obligatorio"/>
+        <check field="centro" if="centro == null"
+               error="El centro es obligatorio"/>
+        <check field="dniDestinatario" if="dniDestinatario == null || dniDestinatario.trim().isEmpty()"
+               error="El DNI del destinatario es obligatorio"/>
+        <check field="nombre" if="nombre == null || nombre.trim().isEmpty()"
+               error="El nombre es obligatorio"/>
+        <check field="apellidos" if="apellidos == null || apellidos.trim().isEmpty()"
+               error="Los apellidos son obligatorios"/>
+        <check field="telefono" if="telefono == null || telefono.trim().isEmpty()"
+               error="El teléfono es obligatorio"/>
+        <check field="mensaje" if="mensaje == null || mensaje.trim().isEmpty()"
+               error="El mensaje es obligatorio"/>
+    </action-condition>
+
+    <!-- Confirmación del coste del reenvío; también la usa Centro-Sms.xml (un único dueño del aviso) -->
+    <action-validate name="subsysNotificaciones.Main@Sms-Local-confirmarReenvio-action">
+        <alert message="Reenviar un SMS tiene coste. ¿Desea reenviarlo?"/>
+    </action-validate>
+
+    <?sv-rules?>
+
+    <action-record name="subsysNotificaciones.Main@Sms-set-historialEstado-null-action" model="com.educaflow.subsystem.notificaciones.db.Sms">
+        <field name="historialEstado" expr="eval: null"/>
+    </action-record>
+
+    <?sv-remotes?>
+
+    <action-method name="subsysNotificaciones.Main@Sms-Remote-prepararAlta-action" model="com.educaflow.subsystem.notificaciones.db.Sms">
+        <call class="com.educaflow.subsystem.notificaciones.controller.NotificacionController" method="prepararAlta"/>
+    </action-method>
+
+    <!-- También las usa Centro-Sms.xml -->
+    <action-method name="subsysNotificaciones.Main@Sms-Remote-validateReenviar-action" model="com.educaflow.subsystem.notificaciones.db.Sms">
+        <call class="com.educaflow.subsystem.notificaciones.controller.SmsController" method="validateReenviar"/>
+    </action-method>
+
+    <action-method name="subsysNotificaciones.Main@Sms-Remote-reenviar-action" model="com.educaflow.subsystem.notificaciones.db.Sms">
+        <call class="com.educaflow.subsystem.notificaciones.controller.SmsController" method="reenviar"/>
+    </action-method>
+
+</object-views>

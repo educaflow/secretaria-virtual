@@ -1,0 +1,6 @@
+# Build — iteración 1
+{"id":"E-001","tipo":"WARNING","fichero":"src/main/java/com/educaflow/subsystem/notificaciones/service/impl/AdjuntoServiceImpl.java","ubicacion":"línea 136 (validarNombreUnicoEnCorreo)","tarea":"task_13.md","mensaje":"warning: [ReferenceEquality] Comparison using reference equality instead of value equality\n                .anyMatch(otro -> otro != adjunto\n    (see https://errorprone.info/bugpattern/ReferenceEquality)\n  Did you mean '.anyMatch(otro -> !Objects.equals(otro, adjunto)' or '.anyMatch(otro -> !otro.equals(adjunto)'?","correccion":"Sustituir `otro != adjunto` por `!Objects.equals(otro, adjunto)` en el filtro de hermanos de validarNombreUnicoEnCorreo (o, si se quiere identidad explícita para excluir el propio adjunto aún sin id, @SuppressWarnings(\"ReferenceEquality\") en el método con el motivo en un comentario)."}
+
+# Build — iteración 2
+OK-COMPILA
+

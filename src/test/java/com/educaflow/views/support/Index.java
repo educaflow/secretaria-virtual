@@ -21,7 +21,8 @@ public final class Index {
     public static final Set<String> PREDEFINIDAS = Set.of(
             "save", "back", "force-back", "delete", "close",
             "save-modal", "delete-modal", "new", "validate",
-            "remote-validationSave-action", "remote-validationDelete-action");
+            "remote-validationSave-action", "remote-validationDelete-action",
+            "remote-refreshTab-action");
 
     private static Set<String> gruposCache;
     private static Set<String> accionesCache;

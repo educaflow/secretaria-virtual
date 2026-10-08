@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<auth>
+
+  <permission name="Notificacion.propio-destinatario"
+              object="com.educaflow.subsystem.notificaciones.db.Notificacion"
+              condition="self.dniDestinatario = ? and self.estado = 'ENVIADO'"
+              conditionParams="__user__.dni"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Correo.propio-destinatario"
+              object="com.educaflow.subsystem.notificaciones.db.Correo"
+              condition="self.dniDestinatario = ? and self.estado = 'ENVIADO'"
+              conditionParams="__user__.dni"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Sms.propio-destinatario"
+              object="com.educaflow.subsystem.notificaciones.db.Sms"
+              condition="self.dniDestinatario = ? and self.estado = 'ENVIADO'"
+              conditionParams="__user__.dni"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Adjunto.propio-destinatario"
+              object="com.educaflow.subsystem.notificaciones.db.Adjunto"
+              condition="self.correo.dniDestinatario = ? and self.correo.estado = 'ENVIADO'"
+              conditionParams="__user__.dni"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Notificacion.propio-centro-gestion"
+              object="com.educaflow.subsystem.notificaciones.db.Notificacion"
+              condition="self.centro.id IN (?)"
+              conditionParams="com.educaflow.subsystem.notificaciones.util.GestorNotificacionesUtil.idsCentrosGestionados(__user__)"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Correo.propio-centro-gestion"
+              object="com.educaflow.subsystem.notificaciones.db.Correo"
+              condition="self.centro.id IN (?)"
+              conditionParams="com.educaflow.subsystem.notificaciones.util.GestorNotificacionesUtil.idsCentrosGestionados(__user__)"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Sms.propio-centro-gestion"
+              object="com.educaflow.subsystem.notificaciones.db.Sms"
+              condition="self.centro.id IN (?)"
+              conditionParams="com.educaflow.subsystem.notificaciones.util.GestorNotificacionesUtil.idsCentrosGestionados(__user__)"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+  <permission name="Adjunto.propio-centro-gestion"
+              object="com.educaflow.subsystem.notificaciones.db.Adjunto"
+              condition="self.correo.centro.id IN (?)"
+              conditionParams="com.educaflow.subsystem.notificaciones.util.GestorNotificacionesUtil.idsCentrosGestionados(__user__)"
+  >
+    <can create="false" read="true" write="false" remove="false" export="false"/>
+  </permission>
+
+</auth>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- «Todas»: todas las notificaciones de todos los centros (solo Administrador, que no tiene filtro de
+         permisos). Sin form propio: cada fila se abre en el form de SU canal, en popup, por código
+         (NotificacionController.abrirTodas). -->
+    <?sv-view?>
+    <action-view name="subsysNotificaciones.Main@Notificacion-action" title="Todas las notificaciones" model="com.educaflow.subsystem.notificaciones.db.Notificacion">
+        <view type="grid" name="subsysNotificaciones.Main@Notificacion-grid"/>
+    </action-view>
+
+    <grid name="subsysNotificaciones.Main@Notificacion-grid" title="" model="com.educaflow.subsystem.notificaciones.db.Notificacion"
+          canNew="false" allowSearchFields="true" orderBy="-fechaCreacion"
+          canAdvanceSearch="false" canRefresh="false" editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false"
+          action="subsysNotificaciones.Main@Notificacion-Remote-abrirTodas-action">
+        <toolbar>
+            <button name="btnNuevaNotificacion" title="Nueva notificación"
+                    onClick="subsysNotificaciones.Main@Notificacion-btnNuevaNotificacion-action"/>
+        </toolbar>
+        <field name="estado" width="110px"/>
+        <field name="tipoNotificacion" width="100px"/>
+        <field name="name"/>
+        <field name="dniDestinatario" width="120px" title="DNI del destinatario"/>
+        <field name="nombre" width="140px"/>
+        <field name="apellidos" width="170px"/>
+        <field name="destino" width="200px"/>
+        <field name="centro" width="170px"/>
+        <field name="nombreExpediente" width="170px"/>
+        <field name="fechaCreacion" width="150px"/>
+        <field name="fechaEnvio" width="150px"/>
+    </grid>
+
+    <?sv-primary-actions?>
+
+    <action-group name="subsysNotificaciones.Main@Notificacion-btnNuevaNotificacion-action">
+        <action name="subsysNotificaciones.Eleccion@Notificacion-action"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+    <action-method name="subsysNotificaciones.Main@Notificacion-Remote-abrirTodas-action" model="com.educaflow.subsystem.notificaciones.db.Notificacion">
+        <call class="com.educaflow.subsystem.notificaciones.controller.NotificacionController" method="abrirTodas"/>
+    </action-method>
+
+</object-views>

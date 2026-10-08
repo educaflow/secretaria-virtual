@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<domain-models xmlns="http://axelor.com/xml/ns/domain-models"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://axelor.com/xml/ns/domain-models https://axelor.com/xml/ns/domain-models/domain-models_8.1.xsd">
+
+    <module name="notificaciones" package="com.educaflow.subsystem.notificaciones.db"/>
+
+    <!-- Fichero adjunto a un correo (no a la notificación en general: el SMS no admite adjuntos) -->
+    <entity name="Adjunto">
+
+        <string name="nombreFichero" title="Nombre del fichero" required="true"/>
+
+        <!-- Copia propia del fichero subido, con fileName = nombreFichero: la hace CorreoServiceImpl antes de
+             guardar el correo -->
+        <many-to-one name="contenido" ref="com.axelor.meta.db.MetaFile" title="Contenido" required="true"/>
+
+        <many-to-one name="correo" ref="Correo" title="Correo" required="true"/>
+
+        <!-- Defensa en profundidad: nombre de fichero único dentro de un correo.
+             El mensaje de negocio lo da AdjuntoServiceImpl.validateInsert -->
+        <unique-constraint columns="correo,nombreFichero"/>
+
+    </entity>
+
+</domain-models>

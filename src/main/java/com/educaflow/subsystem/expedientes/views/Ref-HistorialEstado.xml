@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <?sv-view?>
+    <grid name="subsysExpedientes.Ref@HistorialEstado-grid" title="" model="com.educaflow.subsystem.expedientes.db.HistorialEstado"
+          canNew="false" orderBy="-fecha"
+          editable="false" edit-icon="false" x-selector="none"
+          canEdit="false" canDelete="false" canSave="false" canViewOnClick="true">
+        <field name="expediente.numeroExpediente" title="Num.__!! Exped.__!!"/>
+        <field name="expediente.name" title="Expediente"/>
+        <field name="namePhase"/>
+        <field name="nameState"/>
+        <field name="fecha" title="Fecha"/>
+    </grid>
+
+    <form name="subsysExpedientes.Ref@HistorialEstado-form" title="Estado del expediente" model="com.educaflow.subsystem.expedientes.db.HistorialEstado"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+        <panel name="HistorialEstado" title="">
+            <field name="expediente.numeroExpediente" title="Num.__!! Exped.__!!" colSpan="4" readonly="true"/>
+            <field name="expediente.name" title="Expediente" colSpan="8" readonly="true"/>
+            <field name="namePhase" colSpan="4" readonly="true"/>
+            <field name="nameState" colSpan="5" readonly="true"/>
+            <field name="fecha" title="Fecha" colSpan="3" readonly="true"/>
+        </panel>
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Salir" onClick="subsysExpedientes.Ref@HistorialEstado-btnCancel-action"
+                    colSpan="2" colOffset="10" outline="true"/>
+        </panel>
+    </form>
+
+    <?sv-primary-actions?>
+
+    <action-group name="subsysExpedientes.Ref@HistorialEstado-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+</object-views>

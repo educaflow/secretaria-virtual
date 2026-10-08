@@ -105,7 +105,7 @@ Vocabulario común para leer las reglas, del fichero a la PI:
   | **remota** | `Remote-` | `action-method` / `action-script` | `<?sv-remotes?>` |
 
 - **Acciones globales/predefinidas.**
-  Acciones sin `@` (sin contexto), compartidas por todas las vistas: `save`, `back`, `force-back`, `delete`, `close`, `save-modal`, `delete-modal`, `new`, `validate`, `remote-validationSave-action`, `remote-validationDelete-action`.
+  Acciones sin `@` (sin contexto), compartidas por todas las vistas: `save`, `back`, `force-back`, `delete`, `close`, `save-modal`, `delete-modal`, `new`, `validate`, `remote-validationSave-action`, `remote-validationDelete-action`, `remote-refreshTab-action`.
 
 - **PI o «Processing Instruction»**: instrucciones dentro del XML que no forman parte de los datos de él. Tienen el formato `<?target data?>`.
   A diferencia de un comentario, una PI **es un nodo del DOM**, así que se localiza y valida con el mismo JAXP+XPath (`processing-instruction('sv-view')`, …) que el resto de reglas.
@@ -508,7 +508,7 @@ Las categorías siguientes contienen las reglas **estructurales** de cada tipo d
     con la toolbar nativa viva, o el guardado colgado del `onSave`, el usuario podría guardar o borrar saltándose las validaciones y el cierre controlado.
     Se conserva solo `canBackOnSave`, y únicamente donde aporta (por eso depende de la clase):
       en el maestro hace que al guardar con éxito la vista vuelva sola al grid (el cierre lo remata el `force-back` explícito del `btnSave`, ver `VAR-7.2`);
-      en un detalle y en un maestro en popup el cierre lo gestiona `save-modal` y en una referencia no se guarda nada, así que en todos ellos sobra.
+      en un detalle el cierre lo gestiona `save-modal` y en una referencia no se guarda nada, así que en ambos sobra.
   - `<grid>`: todo listado es de solo consulta/navegación uniforme (no editable en línea, sin selector ni búsqueda avanzada/refresco, ordenado, sin título redundante) y sin el concepto de archivado (confuso para el usuario final y no usado en el proyecto).
   - `<panel-related>`: la rejilla embebida de un detalle se comporta igual en todas las pantallas (ancho completo, sin edición en línea ni borrado directo desde la rejilla — todo pasa por el modal — y abriendo en edición).
   - `buttons-panel`: los botones de acción están siempre en el mismo sitio y con el mismo aspecto (agrupados al final del form, sin marco).
@@ -519,7 +519,7 @@ Las categorías siguientes contienen las reglas **estructurales** de cada tipo d
 
   | Elemento | Atributos canónicos |
   |---|---|
-  | `<form>` | `canAttach`/`canBack`/`canDelete`/`canNew`/`canSave`/`canMore`, si están presentes, valen `false` (ninguno vale `true`); sin atributo `onSave`; `canBackOnSave="true"` **solo** en el form maestro con `btnSave` que no es maestro en popup (ausente en el maestro de solo consulta, el maestro en popup, el detalle y la referencia) |
+  | `<form>` | `canAttach`/`canBack`/`canDelete`/`canNew`/`canSave`/`canMore`, si están presentes, valen `false` (ninguno vale `true`); sin atributo `onSave`; `canBackOnSave="true"` **solo** en el form maestro con `btnSave` (ausente en el maestro de solo consulta, el detalle y la referencia) |
   | `<grid>` | presentes `editable="false"`, `edit-icon="false"`, `x-selector="none"`, `canEdit="false"`, `canDelete="false"`, `canSave="false"`, `title=""` y `orderBy`; `canAdvanceSearch` y `canRefresh` ausentes o a `"false"`; sin atributo `archived` |
   | `<panel-related>` | presentes `colSpan="12"`, `showFooter="false"`, `canEdit="false"`, `canRemove="false"` y `forceEdit="true"` (la coherencia `canNew`/`newButtonTitle` la verifica `VAR-8.2`; que sus `grid-view`/`form-view` existan, `VAR-4.1`) |
   | `buttons-panel` | `title` vacío, `colSpan="12"` y `showFrame="false"` |
@@ -816,7 +816,7 @@ Las secuencias de los botones estándar (`btnSave`/`btnDelete`/`btnCancel`) depe
   Sujeto: los `<action name>` de cada `<action-group>` de `btnSave`/`btnDelete`.
   Condición: cada uno es —
     una acción `Local-…` del mismo contexto,
-    una de las globales `remote-validationSave-action`/`remote-validationDelete-action`,
+    una de las globales `remote-validationSave-action`/`remote-validationDelete-action`/`remote-refreshTab-action`,
     o una predefinida (`save`, `delete`, `back`, `force-back`, `save-modal`, `delete-modal`, `close`).
   Ningún `Remote-…-action` propio.
 

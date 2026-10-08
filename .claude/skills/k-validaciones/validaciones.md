@@ -139,9 +139,11 @@ El botón Guardar dispara un `<action-group>` que encadena las tres etapas en es
     <action name="subsysXxx.Main@MiEntidad-Local-validateSave-action"/>    <!-- 1. cliente XML (opcional) -->
     <action name="remote-validationSave-action"/>                          <!-- 2. servidor (acción GLOBAL) -->
     <action name="save"/>                                                  <!-- 3. persiste -->
-    <action name="force-back"/>                                            <!-- 4. cierre: MUST ser force-back, nunca back -->
+    <action name="force-back"/>                                            <!-- 4. cierre: MUST ser force-back, nunca back (salvo la excepción de abajo) -->
 </action-group>
 ```
+
+- **Excepción** (coherente con `VAR-7.2`): si ningún `<action-view>` que abra el form declara una `<view type="grid">` (form abierto por código en popup), el cierre tras `save` **MUST** ser `close`: no hay grid al que volver, así que `back`/`force-back` no hacen nada y el popup se quedaría abierto. Entre `save` y `close` **MUST** ir la acción global `remote-refreshTab-action` (`refresh-tab`), que refresca el listado de debajo (el cierre del popup no lo refresca). Secuencia: [`Local-…`] → `remote-validationSave-action` → `save` → `remote-refreshTab-action` → `close` — ver `k-vistas/forms.md` §"Form abierto por código en popup".
 
 Si la etapa 1 emite un `error`, la 2 y la 3 no se ejecutan. Si la 2 emite un error, la 3 no se ejecuta. La etapa 3 (`save`) volverá a pasar por la salvaguarda de `DefaultModelService`, así que **no se puede colar nada que la validación no apruebe**.
 

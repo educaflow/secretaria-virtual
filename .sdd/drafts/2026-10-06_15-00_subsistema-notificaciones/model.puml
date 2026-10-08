@@ -1,0 +1,61 @@
+@startuml
+
+class Notificacion {
+  + tipo de notificación
+  + motivo
+  + DNI del destinatario
+  + nombre
+  + apellidos
+  + destino
+  + centro
+  + estado del expediente
+  + expediente
+  + estado
+  + fecha de creación
+  + fecha del primer intento de envío
+  + fecha del último intento de envío
+  + fecha de envío
+  + número de reintentos
+  + descripción del último fallo
+}
+
+enum TipoNotificacion {
+  CORREO
+  SMS
+}
+
+enum EstadoNotificacion {
+  PENDIENTE
+  ENVIADO
+  FALLIDO
+}
+
+class Correo {
+  + para
+  + en copia
+  + en copia oculta
+  + asunto
+  + cuerpo
+}
+
+class Sms {
+  + teléfono
+  + mensaje
+}
+
+class Adjunto {
+  + nombre del fichero
+  + contenido
+}
+
+class Centro
+class EstadoDeExpediente
+
+Notificacion <|-- Correo
+Notificacion <|-- Sms
+Notificacion --> TipoNotificacion
+Notificacion --> EstadoNotificacion
+Correo "1" *-- "0..*" Adjunto : adjuntos
+Notificacion "many" --> "1" Centro : centro
+Notificacion "many" --> "0..1" EstadoDeExpediente : estado del expediente
+@enduml

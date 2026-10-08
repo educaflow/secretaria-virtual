@@ -47,7 +47,7 @@ La regla de arquitectura **C2** lo verifica para `base.infrastructure`.
   Depende de `subsystem/criptografia` (a través de `firma/`), de `subsystem/tramitador` (`EventContext`, `State`) y de `subsystem/registroentradasalida` (el `RegistroEntrada` que devuelve `EventContext`).
 - **`verificacion/`** — lo que hacen igual todos los tipos de expediente en su fase común `VERIFICACION`.
   `VerificacionHelper.avisarDeSubsanacion`: el correo que avisa a quien presentó de que tiene que subsanar; es una cortesía, así que si no hay a quién escribir no se envía y no bloquea la verificación.
-  Depende de `subsystem/correos`.
+  Depende de `subsystem/notificaciones`.
 
 `entrada/` y `verificacion/` cumplen la condición 5 de dos formas, porque los campos con los que trabajan (`pdfSolicitud`, `pdfSolicitudFirmada`, `pdfJustificanteRegistroEntrada`, `resultadoVerificacion`, `textoSubsanacion`) los declara cada tipo en su `domains.xml` y no son de `Expediente`:
 

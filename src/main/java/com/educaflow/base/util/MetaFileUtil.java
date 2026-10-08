@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -37,6 +38,14 @@ public class MetaFileUtil {
             return inputStream.readNBytes(maxBytes);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
+        }
+    }
+
+    public static long getSize(MetaFile metaFile) {
+        try {
+            return Files.size(MetaFiles.getPath(metaFile));
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
         }
     }
 

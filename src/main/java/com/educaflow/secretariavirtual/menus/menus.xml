@@ -35,10 +35,10 @@
     <menuitem name="registro-entrada-menuitem" parent="registro-menuitem" title="Entrada" action="subsysRegistroEntradaSalida.Main@RegistroEntrada-action" groups="admins,users" order="1"/>
     <menuitem name="registro-salida-menuitem" parent="registro-menuitem" title="Salida" action="subsysRegistroEntradaSalida.Main@RegistroSalida-action" groups="admins,users" order="2"/>
 
-<menuitem name="correos-menuitem" title="Correos" groups="admins,users" order="50"/>
-    <menuitem name="correos-recibidos-menuitem" parent="correos-menuitem" title="Recibidos" action="subsysCorreos.Mis@Correo-action" groups="admins,users" order="1"/>
-    <menuitem name="correos-delCentro-menuitem" parent="correos-menuitem" title="Del centro" action="subsysCorreos.Centro@Correo-action" groups="users" order="2"/>
-    <menuitem name="correos-todos-menuitem" parent="correos-menuitem" title="Todos" action="subsysCorreos.Main@Correo-action" groups="admins" order="3"/>
+<menuitem name="notificaciones-menuitem" title="Notificaciones" groups="admins,users" order="50"/>
+    <menuitem name="notificaciones-recibidas-menuitem" parent="notificaciones-menuitem" title="Recibidas" action="subsysNotificaciones.Mis@Notificacion-action" groups="admins,users" order="1"/>
+    <menuitem name="notificaciones-delCentro-menuitem" parent="notificaciones-menuitem" title="Del centro" action="subsysNotificaciones.Centro@Notificacion-action" groups="users" order="2"/>
+    <menuitem name="notificaciones-todas-menuitem" parent="notificaciones-menuitem" title="Todas" action="subsysNotificaciones.Main@Notificacion-action" groups="admins" order="3"/>
 
 <menuitem name="miCentro-menuitem" title="Mi centro" groups="users" order="60"/>
     <menuitem name="miCentro-centro-menuitem" parent="miCentro-menuitem" title="Centro" action="sysGestionCentro.Main@Centro-action" groups="users" order="1"/>
@@ -72,10 +72,5 @@
         <menuitem name="desarrollador-utilidadesPdf-posicionesFirma-menuitem" parent="desarrollador-utilidadesPdf-menuitem" title="Posiciones Firma" action="subsysPdfUtilities.Firma@PdfUtilities-action" groups="admins" order="2"/>
         <menuitem name="desarrollador-utilidadesPdf-posicionAutofirma-menuitem" parent="desarrollador-utilidadesPdf-menuitem" title="Posición Autofirma__!!" action="subsysPdfUtilities.AutoFirma@PdfUtilities-action" groups="admins" order="3"/>
     <menuitem name="desarrollador-busquedaDeExpedientes-menuitem" parent="desarrollador-menuitem" title="Búsqueda de expedientes" action="sysVentanilla.PruebaSearch@Expediente-action" groups="admins" order="3"/>
-
-<menuitem name="sms-menuitem" title="SMS__!!" groups="admins,users" order="55"/>
-    <menuitem name="sms-recibidos-menuitem" parent="sms-menuitem" title="Recibidos" action="subsysSms.Mis@Sms-action" groups="admins,users" order="1"/>
-    <menuitem name="sms-delCentro-menuitem" parent="sms-menuitem" title="Del centro" action="subsysSms.Centro@Sms-action" groups="users" order="2"/>
-    <menuitem name="sms-todos-menuitem" parent="sms-menuitem" title="Todos" action="subsysSms.Main@Sms-action" groups="admins" order="3"/>
 
 </object-views>

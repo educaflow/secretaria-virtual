@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- Form del SMS en «Recibidas»: el SMS tal como lo recibió el destinatario, sin el motivo ni los datos
+         internos del envío. Lo abre en popup NotificacionController.abrirRecibida, por eso no tiene
+         <action-view>. -->
+    <?sv-view?>
+    <form name="subsysNotificaciones.Mis@Sms-form" title="SMS__!!" model="com.educaflow.subsystem.notificaciones.db.Sms"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+
+        <panel name="Sms" title="Datos del SMS" readonly="true">
+            <field name="telefono" colSpan="4" widget="phone" x-only-countries="ES"/>
+            <field name="fechaEnvio" colSpan="3" colOffset="5"/>
+            <field name="mensaje" colSpan="12" widget="Text"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Salir" onClick="subsysNotificaciones.Mis@Sms-btnCancel-action"
+                    colSpan="2" colOffset="10" outline="true"/>
+        </panel>
+
+    </form>
+
+    <?sv-primary-actions?>
+
+    <action-group name="subsysNotificaciones.Mis@Sms-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+</object-views>

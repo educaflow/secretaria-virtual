@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- Form del correo en «Del centro», siempre en solo lectura. Lo abre en popup
+         NotificacionController.abrirDelCentro, por eso no tiene <action-view>. -->
+    <?sv-view?>
+    <form name="subsysNotificaciones.Centro@Correo-form" title="Correo" model="com.educaflow.subsystem.notificaciones.db.Correo"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+
+        <panel name="Correo" title="Datos del correo" readonly="true">
+            <field name="tipoNotificacion" colSpan="3"/>
+            <field name="name" colSpan="9"/>
+            <field name="centro" colSpan="4"
+                   grid-view="subsysCommon.Ref@Centro-grid" form-view="subsysCommon.Ref@Centro-form"/>
+            <field name="historialEstado" colSpan="8" target-name="nameState" showIf="historialEstado != null"
+                   grid-view="subsysExpedientes.Ref@HistorialEstado-grid" form-view="subsysExpedientes.Ref@HistorialEstado-form"/>
+            <field name="dniDestinatario" colSpan="3"/>
+            <field name="nombre" colSpan="4"/>
+            <field name="apellidos" colSpan="5"/>
+            <field name="para" colSpan="4"/>
+            <field name="enCopia" colSpan="4"/>
+            <field name="enCopiaOculta" colSpan="4"/>
+            <field name="asunto" colSpan="10"/>
+            <field name="cuerpo" colSpan="12" colOffset="2" widget="Text"/>
+        </panel>
+
+        <panel-related name="adjuntos" field="adjuntos" title="Adjuntos"
+            grid-view="subsysNotificaciones.Ref@Adjunto-grid" form-view="subsysNotificaciones.Ref@Adjunto-form"
+            colSpan="12" canNew="false" showFooter="false" canEdit="false" canRemove="false" forceEdit="true"/>
+
+        <panel name="Envio" title="Datos del envío" colSpan="12" readonly="true">
+            <field name="estado" colSpan="6"/>
+            <field name="numeroReintentos" colSpan="3" title="Nº reintentos__!!"/>
+            <field name="fechaCreacion" colSpan="3"/>
+            <!-- Los intentos solo existen fuera de PENDIENTE: grupo condicional en su propio panel -->
+            <panel name="Intentos" title="" colSpan="12" showFrame="false" showIf="estado != 'PENDIENTE'">
+                <field name="fechaPrimerIntentoEnvio" colSpan="3"/>
+                <field name="fechaUltimoIntentoEnvio" colSpan="3"/>
+                <field name="fechaEnvio" colSpan="3" colOffset="3" showIf="estado == 'ENVIADO'"/>
+            </panel>
+            <field name="descripcionUltimoFallo" colSpan="12" widget="Text" showIf="estado == 'FALLIDO'"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnReenviar" title="Reenviar" onClick="subsysNotificaciones.Centro@Correo-btnReenviar-action"
+                    colSpan="2" showIf="estado == 'FALLIDO'"/>
+            <button name="btnCancel" title="Salir" onClick="subsysNotificaciones.Centro@Correo-btnCancel-action"
+                    colSpan="2" colOffset="8" outline="true"/>
+        </panel>
+
+    </form>
+
+    <?sv-primary-actions?>
+
+    <!-- Reenviar delega en el grupo de Main-Correo.xml: la secuencia del reenvío (con su remote-refreshTab-action)
+         vive solo en Main@Correo -->
+    <action-group name="subsysNotificaciones.Centro@Correo-btnReenviar-action">
+        <action name="subsysNotificaciones.Main@Correo-btnReenviar-action"/>
+    </action-group>
+
+    <action-group name="subsysNotificaciones.Centro@Correo-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+</object-views>

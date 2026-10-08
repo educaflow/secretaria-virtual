@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- Form del SMS en «Del centro», siempre en solo lectura. Lo abre en popup
+         NotificacionController.abrirDelCentro, por eso no tiene <action-view>. -->
+    <?sv-view?>
+    <form name="subsysNotificaciones.Centro@Sms-form" title="SMS__!!" model="com.educaflow.subsystem.notificaciones.db.Sms"
+          width="large" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+
+        <panel name="Sms" title="Datos del SMS" readonly="true">
+            <field name="tipoNotificacion" colSpan="3"/>
+            <field name="name" colSpan="9"/>
+            <field name="centro" colSpan="4"
+                   grid-view="subsysCommon.Ref@Centro-grid" form-view="subsysCommon.Ref@Centro-form"/>
+            <field name="historialEstado" colSpan="8" target-name="nameState" showIf="historialEstado != null"
+                   grid-view="subsysExpedientes.Ref@HistorialEstado-grid" form-view="subsysExpedientes.Ref@HistorialEstado-form"/>
+            <field name="dniDestinatario" colSpan="3"/>
+            <field name="nombre" colSpan="4"/>
+            <field name="apellidos" colSpan="5"/>
+            <field name="telefono" colSpan="4" widget="phone" x-only-countries="ES"/>
+            <field name="mensaje" colSpan="12" colOffset="8" widget="Text"/>
+        </panel>
+
+        <panel name="Envio" title="Datos del envío" colSpan="12" readonly="true">
+            <field name="estado" colSpan="6"/>
+            <field name="numeroReintentos" colSpan="3" title="Nº reintentos__!!"/>
+            <field name="fechaCreacion" colSpan="3"/>
+            <!-- Los intentos solo existen fuera de PENDIENTE: grupo condicional en su propio panel -->
+            <panel name="Intentos" title="" colSpan="12" showFrame="false" showIf="estado != 'PENDIENTE'">
+                <field name="fechaPrimerIntentoEnvio" colSpan="3"/>
+                <field name="fechaUltimoIntentoEnvio" colSpan="3"/>
+                <field name="fechaEnvio" colSpan="3" colOffset="3" showIf="estado == 'ENVIADO'"/>
+            </panel>
+            <field name="descripcionUltimoFallo" colSpan="12" widget="Text" showIf="estado == 'FALLIDO'"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnReenviar" title="Reenviar" onClick="subsysNotificaciones.Centro@Sms-btnReenviar-action"
+                    colSpan="2" showIf="estado == 'FALLIDO'"/>
+            <button name="btnCancel" title="Salir" onClick="subsysNotificaciones.Centro@Sms-btnCancel-action"
+                    colSpan="2" colOffset="8" outline="true"/>
+        </panel>
+
+    </form>
+
+    <?sv-primary-actions?>
+
+    <!-- Reenviar delega en el grupo de Main-Sms.xml: la secuencia del reenvío (confirmación, validación, reenvío y
+         remote-refreshTab-action) vive solo en Main@Sms -->
+    <action-group name="subsysNotificaciones.Centro@Sms-btnReenviar-action">
+        <action name="subsysNotificaciones.Main@Sms-btnReenviar-action"/>
+    </action-group>
+
+    <action-group name="subsysNotificaciones.Centro@Sms-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+</object-views>

@@ -19,6 +19,12 @@ import com.educaflow.subsystem.common.db.Persona;
 import com.educaflow.subsystem.correos.db.Correo;
 import com.educaflow.subsystem.correos.service.CorreoService;
 import com.educaflow.subsystem.expedientes.db.PruebaV1;
+import com.educaflow.subsystem.notificaciones.db.Correo;
+import com.educaflow.subsystem.notificaciones.db.TipoNotificacion;
+import com.educaflow.subsystem.notificaciones.service.CorreoService;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +42,7 @@ import org.mockito.quality.Strictness;
 class VerificacionHelperTest {
 
     private static final String TEXTO_SUBSANACION = "Falta el justificante del segundo día";
+    private static final LocalDateTime T = LocalDateTime.of(2026, 10, 6, 12, 0);
 
     @Mock
     private ModelServiceFactory modelServiceFactory;
@@ -50,6 +57,8 @@ class VerificacionHelperTest {
 
     private final Centro centro = new Centro();
     private final PruebaV1 expediente = new PruebaV1();
+    private final Correo correoCreado = new Correo();
+    private final HistorialEstado historialMasReciente = historialConFecha(T.minusHours(1));
 
     @BeforeEach
     void preparar() {
@@ -66,8 +75,12 @@ class VerificacionHelperTest {
         expediente.setCentro(centro);
         expediente.setNumeroExpediente("00007/2026");
         expediente.setName("Prueba V1");
+        expediente.setHistorialEstados(new ArrayList<>(List.of(
+                historialConFecha(T.minusHours(2)), historialMasReciente, historialConFecha(T.minusHours(3)))));
 
+        correoCreado.setTipoNotificacion(TipoNotificacion.CORREO);
         when(modelServiceFactory.resolve(Correo.class)).thenReturn(correoService);
+        when(correoService.create()).thenReturn(correoCreado);
     }
 
     @AfterEach
@@ -85,14 +98,18 @@ class VerificacionHelperTest {
         verify(correoService).insert(correo.capture());
         assertAll(
                 () -> assertTrue(avisado),
-                () -> assertEquals("ana@example.com", correo.getValue().getPara()),
-                () -> assertEquals("93882914L", correo.getValue().getDniDestinatario()),
-                () -> assertEquals("Ana", correo.getValue().getNombre()),
-                () -> assertEquals("García López", correo.getValue().getApellidos()),
-                () -> assertSame(centro, correo.getValue().getCentro()),
-                () -> assertTrue(correo.getValue().getAsunto().contains("00007/2026")),
-                () -> assertTrue(correo.getValue().getCuerpo().contains(TEXTO_SUBSANACION)),
-                () -> assertTrue(correo.getValue().getCuerpo().contains("Prueba V1")));
+                () -> assertSame(correoCreado, correo),
+                () -> assertEquals(TipoNotificacion.CORREO, correo.getTipoNotificacion()),
+                () -> assertEquals("ana@example.com", correo.getPara()),
+                () -> assertEquals("93882914L", correo.getDniDestinatario()),
+                () -> assertEquals("Ana", correo.getNombre()),
+                () -> assertEquals("García López", correo.getApellidos()),
+                () -> assertSame(centro, correo.getCentro()),
+                () -> assertEquals("Subsanación del expediente 00007/2026", correo.getName()),
+                () -> assertSame(historialMasReciente, correo.getHistorialEstado()),
+                () -> assertTrue(correo.getAsunto().contains("00007/2026")),
+                () -> assertTrue(correo.getCuerpo().contains(TEXTO_SUBSANACION)),
+                () -> assertTrue(correo.getCuerpo().contains("Prueba V1")));
     }
 
     @Test
@@ -105,5 +122,28 @@ class VerificacionHelperTest {
 
         assertFalse(avisado);
         verify(correoService, never()).insert(any(Correo.class));
+    }
+
+    @Test
+    void avisarDeSubsanacion_unSoloHistorial_loLiga() {
+        HistorialEstado unicoHistorial = historialConFecha(T);
+        expediente.setHistorialEstados(new ArrayList<>(List.of(unicoHistorial)));
+        when(correoService.validateInsert(any(Correo.class))).thenReturn(Optional.empty());
+
+        verificacionHelper.avisarDeSubsanacion(expediente, TEXTO_SUBSANACION);
+
+        assertSame(unicoHistorial, correoInsertado().getHistorialEstado());
+    }
+
+    private Correo correoInsertado() {
+        ArgumentCaptor<Correo> correo = ArgumentCaptor.forClass(Correo.class);
+        verify(correoService).insert(correo.capture());
+        return correo.getValue();
+    }
+
+    private static HistorialEstado historialConFecha(LocalDateTime fecha) {
+        HistorialEstado historialEstado = new HistorialEstado();
+        historialEstado.setFecha(fecha);
+        return historialEstado;
     }
 }

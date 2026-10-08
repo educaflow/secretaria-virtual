@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object-views xmlns="http://axelor.com/xml/ns/object-views"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://axelor.com/xml/ns/object-views https://axelor.com/xml/ns/object-views/object-views_8.1.xsd">
+
+    <!-- Elección de canal: popup sobre «Todas» que no guarda nada. Las opciones salen del propio enumerado
+         TipoNotificacion, así que un canal nuevo aparece aquí sin tocar esta vista. «Continuar» abre en
+         popup el alta Main@<Canal>-form del canal elegido (NotificacionController.continuarAlta) y cierra
+         esta ventana; el listado de debajo lo refresca el btnSave del alta con remote-refreshTab-action. -->
+    <?sv-view?>
+    <action-view name="subsysNotificaciones.Eleccion@Notificacion-action" title="Nueva notificación" model="com.educaflow.subsystem.notificaciones.db.Notificacion">
+        <view type="form" name="subsysNotificaciones.Eleccion@Notificacion-form"/>
+        <view-param name="popup" value="true"/>
+        <view-param name="popup-save" value="false"/>
+        <view-param name="show-toolbar" value="false"/>
+        <view-param name="show-toolbar-form" value="false"/>
+        <view-param name="show-confirm" value="false"/>
+        <view-param name="forceEdit" value="true"/>
+    </action-view>
+
+    <form name="subsysNotificaciones.Eleccion@Notificacion-form" title="Elija el canal de la notificación" model="com.educaflow.subsystem.notificaciones.db.Notificacion"
+          width="large"
+          canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canMore="false">
+
+        <!-- Sin valor por defecto: al abrirse no hay canal elegido -->
+        <panel name="Canal" title="Canal">
+            <field name="tipoNotificacion" colSpan="4" widget="RadioSelect" x-direction="horizontal"/>
+        </panel>
+
+        <panel name="buttons-panel" title="" colSpan="12" showFrame="false">
+            <button name="btnCancel" title="Cancelar" onClick="subsysNotificaciones.Eleccion@Notificacion-btnCancel-action"
+                    colSpan="2" colOffset="8" outline="true"/>
+            <button name="btnContinuar" title="Continuar" onClick="subsysNotificaciones.Eleccion@Notificacion-btnContinuar-action"
+                    colSpan="2" readonlyIf="tipoNotificacion == null"/>
+        </panel>
+
+    </form>
+
+    <?sv-primary-actions?>
+
+    <action-group name="subsysNotificaciones.Eleccion@Notificacion-btnCancel-action">
+        <action name="close"/>
+    </action-group>
+
+    <action-group name="subsysNotificaciones.Eleccion@Notificacion-btnContinuar-action">
+        <action name="subsysNotificaciones.Eleccion@Notificacion-Remote-continuarAlta-action"/>
+        <action name="close"/>
+    </action-group>
+
+    <?sv-validations?>
+
+    <?sv-rules?>
+
+    <?sv-remotes?>
+
+    <action-method name="subsysNotificaciones.Eleccion@Notificacion-Remote-continuarAlta-action" model="com.educaflow.subsystem.notificaciones.db.Notificacion">
+        <call class="com.educaflow.subsystem.notificaciones.controller.NotificacionController" method="continuarAlta"/>
+    </action-method>
+
+</object-views>

@@ -1,0 +1,69 @@
+---
+type: test-e2e
+id: T-075
+---
+
+# T-075 — El aviso de subsanación queda registrado con su motivo
+
+**Origen ESC:** ESC-057
+**Verifica:** R-Correo-002, R-Notificacion-001
+**Pantalla principal:** screen-notificaciones-centro.md
+**Tipo:** happy
+
+## Estado inicial de la base de datos
+
+Estado previo (datos maestros gestionados por otros subsistemas) del que parten **todos** los tests. Ningún test puede presuponer más estado que este; cada test lo referencia en sus `Precondiciones`.
+
+- Base de datos recién reseteada con los datos de demo: **ninguna notificación precargada** (cada test crea las suyas).
+- Centros «CIPFP Mislata» (código 46019660) y «CIPFP Batoi» (código 03012165).
+- Usuarios de demo con sus tipos de usuario y cargos en cada centro (tabla de abajo).
+- Permisos del subsistema cargados por su `data-init` (`auth-notificaciones.xml`) y referenciados desde el grupo `users`.
+- Sin configuración real de correo ni de SMS: el envío puede acabar «Enviado» o «Fallido»; por eso los tests que dependen del resultado tienen ramas «si está Enviado / si está Fallido».
+- **Ningún certificado de firma en el servidor precargado** para los usuarios de demo (los certificados de demo los aporta otra iniciativa, aún no fusionada).
+  Sin certificado, la justificación solo ofrece «Firmar con AutoFirma y Presentar la solicitud», que necesita el cliente de escritorio AutoFirma y no se puede pilotar desde el navegador.
+  Por eso los tests que presentan una justificación dan de alta antes, desde el navegador, el **Certificado de firma del director** (valor reutilizable de abajo), y entonces aparece «Firmar y Presentar la solicitud», que firma en el servidor.
+- Trámite «Justificación de falta del profesorado» disponible para el profesor «director@mislata.es» en «CIPFP Mislata».
+
+**Usuarios de acceso** (login y contraseña que `/sdd-debug-with-test-e2e-desc` usará para iniciar sesión):
+
+| Login | Contraseña | Rol / Tipo | Centro | DNI |
+|---|---|---|---|---|
+| admin | admin | Administrador | — (todos) | — |
+| supervisor1@mislata.es | demo1234 | Supervisor | CIPFP Mislata | 30647328N |
+| supervisordoscentros@mislata.es | demo1234 | Supervisor | CIPFP Mislata y CIPFP Batoi | 39517284H |
+| administrativo1@mislata.es | demo1234 | Administrativo | CIPFP Mislata | 97879650E |
+| director@mislata.es | demo1234 | Profesor con cargo Director | CIPFP Mislata | 85432016B |
+| jefeestudios1@mislata.es | demo1234 | Profesor con cargo Jefe de estudios | CIPFP Mislata | 15519084H |
+| secretario@mislata.es | demo1234 | Profesor con cargo Secretario | CIPFP Mislata | 29050788V |
+| vicesecretario@mislata.es | demo1234 | Profesor con cargo Vicesecretario | CIPFP Mislata | 56412323Q |
+| profesor1@mislata.es | demo1234 | Profesor | CIPFP Mislata | 12345678Z |
+| alumno1@mislata.es | demo1234 | Alumno | CIPFP Mislata | 86862719E |
+| alumno2@mislata.es | demo1234 | Alumno | CIPFP Mislata | 03532821K |
+| familiar1@mislata.es | demo1234 | Familiar | CIPFP Mislata | 43145636M |
+
+**Valores de entrada reutilizables** (no son estado; los tests los citan por su nombre):
+
+- **Correo de referencia**: centro «CIPFP Mislata», motivo «Aviso de prueba de correo», DNI «86862719E», nombre «Alumno1», apellidos «CIPFP Mislata», «para» «alumno1@mislata.es», asunto «Reunión de inicio de curso», cuerpo «La reunión será el lunes a las 10:00.».
+- **SMS de referencia**: centro «CIPFP Mislata», motivo «Aviso de prueba de SMS», DNI «86862719E», nombre «Alumno1», apellidos «CIPFP Mislata», teléfono «600111222», mensaje «Mañana no hay clase».
+- **Alta de un correo**: en «Notificaciones» → «Todas» pulsar «Nueva notificación», elegir «Correo», pulsar «Continuar», rellenar los datos indicados y pulsar «Guardar».
+- **Alta de un SMS**: ídem eligiendo «SMS».
+- **Certificado de firma del director**: el administrador inicia sesión, abre «Criptografía» → «Certificados digitales», pulsa nuevo, rellena el DNI «85432016B», el nombre «Director» y los apellidos «CIPFP Mislata», en «Tipo de certificado» elige «Usar un fichero con el certificado que ya está dentro del del WAR», rellena «Ruta classpath» con «firma/mi_certificado.p12» y «Nueva contraseña» con «nadanada», deja el certificado habilitado, pulsa «Guardar» y cierra sesión.
+- **Presentar una justificación**: con el **Certificado de firma del director** ya dado de alta en esa base de datos (si no lo está, se da de alta primero), el profesor «director@mislata.es» abre «Mis trámites» → «Nuevo trámite», elige «Justificación de falta del profesorado», crea un expediente en «CIPFP Mislata», en «Datos de la falta» elige «Un día completo», en «Fecha» pone **la fecha de hoy** (el trámite solo admite una fecha de los últimos 7 días y no futura, así que nunca una fecha fija), «Motivo falta» «Traslado de domicilio», adjunta «justificante.pdf» en «Foto o PDF del justificante», pulsa «Siguiente», pulsa «Firmar y Presentar la solicitud» (la firma en el servidor; si pide la clave del certificado, «nadanada»), confirma el aviso y anota el número del expediente, que queda en «Verificación» / «Pendiente de verificación».
+  **Dependencia declarada:** si tras dar de alta el certificado sigue apareciendo solo «Firmar con AutoFirma y Presentar la solicitud», la precondición no es alcanzable desde el navegador: los tests que presentan una justificación (T-028, T-029, T-075 y T-076) dependen de la firma en el servidor y no son automatizables hasta que se fusione la iniciativa que aporta los certificados de demo; **MUST NOT** pulsarse el botón de AutoFirma.
+
+## Precondiciones
+
+- Estado inicial de la base de datos.
+
+## Pasos
+
+1. **Dado** que el administrador da de alta el «Certificado de firma del director» y que el profesor «director@mislata.es» presenta una justificación (valores reutilizables), anota su número y cierra sesión.
+2. **Cuando** «jefeestudios1@mislata.es» inicia sesión, abre «Tramitación» → «Pendientes de mí», pulsa la fila del expediente anotado, en «Resultado de la verificación» elige «Pedir subsanación», rellena «Qué hay que subsanar» con «Falta el justificante firmado» y pulsa «Siguiente».
+3. **Entonces** el expediente vuelve a «Entrada» / «Entrada de datos».
+4. **Cuando** el jefe de estudios cierra sesión, «supervisor1@mislata.es» inicia sesión y abre «Notificaciones» → «Del centro».
+5. **Entonces** el listado muestra una notificación con centro «CIPFP Mislata», tipo «Correo», DNI «85432016B», motivo «Subsanación del expediente <número anotado>», destino «director@mislata.es» y, en «Expediente», el de «Justificación de falta del profesorado» presentado al principio.
+6. **Cuando** pulsa esa fila.
+
+## Resultado esperado
+
+- Se abre el formulario del correo en solo lectura con «para» «director@mislata.es», asunto «Tiene que subsanar su solicitud del expediente <número anotado>» y un cuerpo que incluye «Falta el justificante firmado».
