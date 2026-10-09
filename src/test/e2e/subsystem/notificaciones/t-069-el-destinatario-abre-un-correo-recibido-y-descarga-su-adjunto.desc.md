@@ -43,14 +43,14 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 | secretario@mislata.es | demo1234 | Profesor con cargo Secretario | CIPFP Mislata | 29050788V |
 | vicesecretario@mislata.es | demo1234 | Profesor con cargo Vicesecretario | CIPFP Mislata | 56412323Q |
 | profesor1@mislata.es | demo1234 | Profesor | CIPFP Mislata | 12345678Z |
-| alumno1@mislata.es | demo1234 | Alumno | CIPFP Mislata | 86862719E |
+| alumno1@mislata.es | demo1234 | Alumno | CIPFP Mislata | 95591733F |
 | alumno2@mislata.es | demo1234 | Alumno | CIPFP Mislata | 03532821K |
 | familiar1@mislata.es | demo1234 | Familiar | CIPFP Mislata | 43145636M |
 
 **Valores de entrada reutilizables** (no son estado; los tests los citan por su nombre):
 
-- **Correo de referencia**: centro «CIPFP Mislata», motivo «Aviso de prueba de correo», DNI «86862719E», nombre «Alumno1», apellidos «CIPFP Mislata», «para» «alumno1@mislata.es», asunto «Reunión de inicio de curso», cuerpo «La reunión será el lunes a las 10:00.».
-- **SMS de referencia**: centro «CIPFP Mislata», motivo «Aviso de prueba de SMS», DNI «86862719E», nombre «Alumno1», apellidos «CIPFP Mislata», teléfono «600111222», mensaje «Mañana no hay clase».
+- **Correo de referencia**: centro «CIPFP Mislata», motivo «Aviso de prueba de correo», DNI «95591733F», nombre «Alumno1», apellidos «CIPFP Mislata», «para» «alumno1@mislata.es», asunto «Reunión de inicio de curso», cuerpo «La reunión será el lunes a las 10:00.».
+- **SMS de referencia**: centro «CIPFP Mislata», motivo «Aviso de prueba de SMS», DNI «95591733F», nombre «Alumno1», apellidos «CIPFP Mislata», teléfono «600111222», mensaje «Mañana no hay clase».
 - **Alta de un correo**: en «Notificaciones» → «Todas» pulsar «Nueva notificación», elegir «Correo», pulsar «Continuar», rellenar los datos indicados y pulsar «Guardar».
 - **Alta de un SMS**: ídem eligiendo «SMS».
 - **Certificado de firma del director**: el administrador inicia sesión, abre «Criptografía» → «Certificados digitales», pulsa nuevo, rellena el DNI «85432016B», el nombre «Director» y los apellidos «CIPFP Mislata», en «Tipo de certificado» elige «Usar un fichero con el certificado que ya está dentro del del WAR», rellena «Ruta classpath» con «firma/mi_certificado.p12» y «Nueva contraseña» con «nadanada», deja el certificado habilitado, pulsa «Guardar» y cierra sesión.

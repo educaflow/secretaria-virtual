@@ -89,7 +89,12 @@ test.describe('Notificaciones — Todas', () => {
     const envio = consulta.getByRole('region', { name: 'Datos del envío' });
     await expect(envio).toBeVisible();
     await expect(consulta.getByRole('textbox', { name: /^Motivo/ })).toHaveValue(MOTIVO);
-    await expect(envio.getByRole('radio', { name: estado })).toBeChecked();
+    // El estado es un enumerado de solo lectura: se pinta como combobox no
+    // editable, sin radios.
+    const comboEstado = envio.getByRole('combobox', { name: 'Estado' });
+    await expect(comboEstado).toHaveValue(estado);
+    await expect(comboEstado).not.toBeEditable();
+    await expect(envio.getByRole('radio')).toHaveCount(0);
 
     if (estado === 'Enviado') {
       // Resultado esperado: si estaba «Enviado», no se ve el botón «Reenviar».
@@ -109,8 +114,9 @@ test.describe('Notificaciones — Todas', () => {
 
       // Paso 5: Cuando pulsa «Aceptar» y, pasados unos segundos, vuelve a abrir el SMS.
       await confirmacion.getByRole('button', { name: 'Aceptar' }).click();
-      // Resultado esperado: aparece «El reenvío del SMS se ha puesto en marcha.».
-      await expect(page.getByText('El reenvío del SMS se ha puesto en marcha.')).toBeVisible();
+      // Resultado esperado: aparece el aviso de que el reenvío se ha puesto en
+      // marcha (el texto exacto es genérico, común a correo y SMS).
+      await expect(page.getByText(/El reenvío .+ se ha puesto en marcha\./)).toBeVisible();
 
       // Cierra la ventana para volver a abrir el SMS desde el listado.
       if (await consulta.isVisible()) {
@@ -129,7 +135,7 @@ test.describe('Notificaciones — Todas', () => {
         try {
           await expect(datosEnvio).toBeVisible({ timeout: 10_000 });
           await expect(datosEnvio.getByRole('textbox', { name: 'Nº reintentos' })).toHaveValue('2', { timeout: 2_000 });
-          await expect(datosEnvio.getByRole('radio', { name: 'Pendiente' })).not.toBeChecked({ timeout: 2_000 });
+          await expect(datosEnvio.getByRole('combobox', { name: 'Estado' })).not.toHaveValue('Pendiente', { timeout: 2_000 });
         } catch (e) {
           await reabierto.getByRole('button', { name: 'Salir' }).click().catch(() => {});
           throw e;
@@ -143,11 +149,11 @@ test.describe('Notificaciones — Todas', () => {
       const datosEnvio = reabierto.getByRole('region', { name: 'Datos del envío' });
       await expect(reabierto.getByRole('textbox', { name: /^Motivo/ })).toHaveValue(MOTIVO);
       await expect(datosEnvio.getByRole('textbox', { name: 'Nº reintentos' })).toHaveValue('2');
-      const enviado = datosEnvio.getByRole('radio', { name: 'Enviado' });
-      if (await enviado.isChecked()) {
+      const comboEstadoFinal = datosEnvio.getByRole('combobox', { name: 'Estado' });
+      if ((await comboEstadoFinal.inputValue()) === 'Enviado') {
         await expect(datosEnvio.getByRole('textbox', { name: 'Fecha de envío' })).toHaveValue(FECHA_HORA);
       } else {
-        await expect(datosEnvio.getByRole('radio', { name: 'Fallido' })).toBeChecked();
+        await expect(comboEstadoFinal).toHaveValue('Fallido');
         // La «Descripción del último fallo» es de solo lectura (widget Text): se
         // pinta como texto tras su etiqueta, no como textbox.
         await expect(datosEnvio).toContainText(/Descripción del último fallo\s*\S/);

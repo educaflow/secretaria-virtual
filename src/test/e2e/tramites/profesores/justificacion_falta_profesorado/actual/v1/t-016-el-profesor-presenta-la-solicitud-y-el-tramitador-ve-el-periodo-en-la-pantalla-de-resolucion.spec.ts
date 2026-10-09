@@ -4,10 +4,6 @@ import { ensureLoggedOut, login, logout } from '../../../../../_support/auth';
 
 // T-016 — El profesor presenta la solicitud, la jefatura la verifica y la dirección ve el periodo en la pantalla de resolución
 // origen: ESC —  |  CREADOR | ENTRADA/PENDIENTE_PRESENTACION --PRESENTAR--> VERIFICACION/PENDIENTE_VERIFICACION (--VERIFICAR--> RESOLUCION/PENDIENTE_RESOLUCION)  |  tipo: happy
-// MANUAL: el botón «Firmar con AutoFirma y Presentar la solicitud» abre la aplicación de escritorio
-//         AutoFirma y exige el certificado digital del profesor instalado en su máquina; la carga de
-//         demo no trae ningún certificado.
-// Ejecutar con:  E2E_MANUAL=1 npx playwright test --grep @manual --headed
 // fuente: .sdd/drafts/2026-09-22_16-01_justificacion-falta-profesorado-fechas/test-e2e-desc/t-016-el-profesor-presenta-la-solicitud-y-el-tramitador-ve-el-periodo-en-la-pantalla-de-resolucion.desc.md
 
 const TRAMITE = 'Justificación de falta del profesorado';
@@ -25,12 +21,12 @@ const DIRECTOR = PROFESOR;
 const FOOTER = 'panel:subsysExpedientes-template-footer-panel';
 
 // Panel que enseña el PDF de la solicitud (un `iframe` contra el MetaFile generado al
-// guardar los datos). Es el documento que AutoFirma firma y que se presenta por registro
+// guardar los datos). Es el documento que el servidor firma y que se presenta por registro
 // de entrada; el evento PRESENTAR no lo modifica (la firma se guarda como un fichero nuevo).
 const PANEL_PDF_SOLICITUD = 'panel:pdfSolicitud';
 
 
-const BOTON_PRESENTAR = 'Firmar con AutoFirma y Presentar la solicitud';
+const BOTON_PRESENTAR = 'Firmar y Presentar la solicitud';
 
 /**
  * Justificante mínimo válido: un PDF de ~390 bytes generado en memoria, para que el test
@@ -125,57 +121,95 @@ async function crearExpediente(page: Page): Promise<string> {
 
   await page.getByRole('button', { name: 'Crear expediente' }).click();
 
-  // La aplicación abre el expediente en una pestaña titulada «<número>-<tipo de expediente>».
+  // La aplicación abre el expediente en una pestaña titulada
+  // «<número>/<año>-<códigoCentro>-<tipo de expediente>» (p. ej. «00136/2026-46019660-…»);
+  // el número del expediente son los dos primeros trozos separados por «-».
   const pestana = page.getByRole('tab').last();
-  await expect(pestana).toContainText(new RegExp(`\\d{4,}/\\d{4}-${TRAMITE}`));
-  const numero = (await pestana.textContent())!.split('-')[0].trim();
-  expect(numero).toMatch(/^\d{4,}\/\d{4}$/);
+  await expect(pestana).toContainText(new RegExp(`\\d{4,}/\\d{4}-\\d+-${TRAMITE}`));
+  const numero = (await pestana.textContent())!.split('-').slice(0, 2).join('-').trim();
+  expect(numero).toMatch(/^\d{4,}\/\d{4}-\d+$/);
   return numero;
 }
 
 
 /**
  * Descarga con la sesión del navegador el PDF que hay en `url` y devuelve lo que el documento
- * ha rellenado: el estado de sus **casillas** y el valor de sus **campos**, ambos en el orden
- * en el que el PDF los define.
+ * ha rellenado: el estado de sus **casillas** y los **textos** que dibuja, ambos en el orden
+ * en el que el PDF los pinta.
  *
  * El documento lo genera el servidor a partir de `documentospdf/solicitud.xml`, así que no hay
  * ninguna pantalla donde comprobar su contenido: el `iframe` del formulario lo pinta el visor
- * de PDF del navegador, fuera del DOM. Se lee, por tanto, del propio fichero:
- *   - cada casilla es una apariencia de 9,92 x 9,92 puntos **sin texto**; cuando está marcada,
- *     dibuja además las dos diagonales del aspa (el trazo `1.2 8.72 m … S`);
- *   - cada campo es una apariencia con texto (`/Tx BMC`), cuyo valor es su único `Tj`; los
- *     campos que el documento deja en blanco llevan un espacio duro (` `).
+ * de PDF del navegador, fuera del DOM. Se lee, por tanto, del propio fichero. El documento va
+ * dibujado en el contenido de la página (no son campos de formulario):
+ *   - cada casilla es un cuadrado trazado (`… re` + `S`) y, cuando está marcada, dibuja a
+ *     continuación las dos diagonales del aspa (un bloque `q 0.9 w …`);
+ *   - cada texto es un `Tj` cuyos glifos se traducen a caracteres con el mapa `ToUnicode` de su
+ *     tipografía.
+ *     Los espacios entre palabras son un glifo más (` `).
  */
 async function contenidoDelPdf(
   page: Page,
   url: string,
-): Promise<{ casillas: boolean[]; campos: string[] }> {
+): Promise<{ casillas: boolean[]; textos: string[] }> {
   const respuesta = await page.request.get(url);
   expect(respuesta.status()).toBe(200);
   const pdf = (await respuesta.body()).toString('latin1');
 
-  const casillas: boolean[] = [];
-  const campos: string[] = [];
-  const objetos = /\d+ 0 obj([\s\S]*?)endobj/g;
+  // Objetos del PDF por número, con su cuerpo y, si lo tienen, su flujo ya descomprimido.
+  const objetos = new Map<string, { cuerpo: string; flujo: string }>();
+  const patronObjeto = /(\d+) 0 obj([\s\S]*?)endobj/g;
   let objeto: RegExpExecArray | null;
-  while ((objeto = objetos.exec(pdf)) !== null) {
-    const flujo = /stream\r?\n([\s\S]*?)\r?\nendstream/.exec(objeto[1]);
-    if (!flujo) continue;
-    let contenido: string;
-    try {
-      contenido = inflateSync(Buffer.from(flujo[1], 'latin1')).toString('latin1');
-    } catch {
-      continue; // no es un flujo comprimido: no es ni una casilla ni un campo
+  while ((objeto = patronObjeto.exec(pdf)) !== null) {
+    const datos = /stream\r?\n([\s\S]*?)\r?\nendstream/.exec(objeto[2]);
+    let flujo = '';
+    if (datos) {
+      try {
+        flujo = inflateSync(Buffer.from(datos[1], 'latin1')).toString('latin1');
+      } catch {
+        flujo = ''; // no es un flujo comprimido: no es contenido de página ni un mapa de texto
+      }
     }
-    if (contenido.includes('9.92 9.92 re') && !contenido.includes('BT')) {
-      casillas.push(contenido.includes('1.2 8.72 m'));
-    } else if (contenido.includes('/Tx BMC')) {
-      const texto = /\((.*?)\)Tj/.exec(contenido);
-      if (texto) campos.push(texto[1]);
-    }
+    objetos.set(objeto[1], { cuerpo: objeto[2], flujo });
   }
-  return { casillas, campos };
+
+  // Las tipografías de la página (`/F1 6 0 R`…) llevan un mapa `ToUnicode` que traduce los
+  // identificadores de glifo de cada `Tj` al carácter que representan.
+  const pagina = [...objetos.values()].find((o) => o.cuerpo.includes('/Type/Page>>') && o.cuerpo.includes('/Font<<'));
+  expect(pagina, 'el PDF tiene una página con tipografías').toBeDefined();
+  const mapas = new Map<string, Map<string, string>>();
+  for (const tipografia of pagina!.cuerpo.matchAll(/\/(F\d+) (\d+) 0 R/g)) {
+    const [nombre, numero] = [tipografia[1], tipografia[2]];
+    const mapa = new Map<string, string>();
+    const idMapa = /\/ToUnicode (\d+) 0 R/.exec(objetos.get(numero)?.cuerpo ?? '')?.[1] ?? '';
+    const cmap = objetos.get(idMapa)?.flujo ?? '';
+    for (const seccion of cmap.matchAll(/beginbfrange([\s\S]*?)endbfrange/g)) {
+      for (const rango of seccion[1].matchAll(/<([0-9a-f]{4})><([0-9a-f]{4})><([0-9a-f]{4})>/gi)) {
+        const [desde, hasta, destino] = [rango[1], rango[2], rango[3]].map((h) => parseInt(h, 16));
+        for (let glifo = desde; glifo <= hasta; glifo++) {
+          mapa.set(glifo.toString(16).padStart(4, '0'), String.fromCharCode(destino + glifo - desde));
+        }
+      }
+    }
+    for (const seccion of cmap.matchAll(/beginbfchar([\s\S]*?)endbfchar/g)) {
+      for (const par of seccion[1].matchAll(/<([0-9a-f]{4})>\s*<([0-9a-f]{4})>/gi)) {
+        mapa.set(par[1].toLowerCase(), String.fromCharCode(parseInt(par[2], 16)));
+      }
+    }
+    mapas.set(nombre, mapa);
+  }
+
+  const contenido = [...objetos.values()].map((o) => o.flujo).find((f) => f.includes('BT') && f.includes(' Tf')) ?? '';
+  expect(contenido, 'el PDF tiene el contenido de la página con texto').not.toBe('');
+
+  // Cada casilla es un cuadrado trazado (`… re` + `S`); cuando está marcada, a continuación
+  // dibuja las dos diagonales del aspa (un bloque `q 0.9 w …`).
+  const casillas = [...contenido.matchAll(/ re\s+S\s+Q\s+(q\s+0\.9 w)?/g)].map((m) => m[1] !== undefined);
+
+  // Cada texto es un `Tj` con su tipografía: se traduce glifo a glifo.
+  const textos = [...contenido.matchAll(/\/(F\d+) [\d.]+ Tf\s+[\d.-]+ [\d.-]+ Td\s+<([0-9a-f]+)>Tj/gi)].map((m) =>
+    [...m[2].matchAll(/[0-9a-f]{4}/gi)].map((g) => mapas.get(m[1])?.get(g[0].toLowerCase()) ?? '?').join(''),
+  );
+  return { casillas, textos };
 }
 
 /**
@@ -198,13 +232,10 @@ const FECHA_FIN_2 = diasAntes(1); // «12/09/2026» en la descripción
 test.describe('Justificación de falta del profesorado — ENTRADA → VERIFICACION → RESOLUCION', () => {
   test(
     'El profesor presenta la solicitud, la jefatura la verifica y la dirección ve el periodo en la pantalla de resolución',
-    { tag: '@manual' },
     async ({ page }) => {
-      // El paso manual (abrir AutoFirma, elegir el certificado y firmar) lo hace una persona:
-      // no cabe en el `timeout` global de `playwright.config.ts` (90 s). La espera de ese paso
-      // tiene su propio timeout de 600 s, y el del test es mayor para que, si la persona no
-      // llega a tiempo, falle la aserción de la puerta manual (con su mensaje) y no el test entero.
-      test.setTimeout(900_000);
+      // El test recorre tres sesiones (profesor, jefatura y dirección): no cabe en el `timeout`
+      // global de `playwright.config.ts` (90 s).
+      test.setTimeout(180_000);
 
       let numero = '';
       let urlPdfSolicitud = '';
@@ -250,10 +281,9 @@ test.describe('Justificación de falta del profesorado — ENTRADA → VERIFICAC
         await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
         await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de presentación');
 
-        // Given (cont.): … y tiene AutoFirma instalado con un certificado válido cuyo DNI es el suyo.
-        // El servidor no tiene certificado de este profesor (`situacionFirma == 'SIN_CERTIFICADO'`),
-        // que es justo el caso en el que la firma la hace AutoFirma en el equipo del profesor: es
-        // lo que enseña el panel «Firma de la solicitud» y lo que hace que salga ESTE botón.
+        // Given (cont.): … y el servidor tiene el certificado digital del profesor (el de su DNI).
+        // Como lo tiene, la firma la hace el servidor: es lo que enseña el panel «Firma de la
+        // solicitud» y lo que hace que salga ESTE botón.
         await expect(page.getByRole('region', { name: 'Firma de la solicitud' })).toBeVisible();
         await expect(page.getByTestId(FOOTER).getByRole('button', { name: BOTON_PRESENTAR })).toBeVisible();
 
@@ -265,48 +295,41 @@ test.describe('Justificación de falta del profesorado — ENTRADA → VERIFICAC
         urlPdfSolicitud = (await iframeSolicitud.getAttribute('src'))!;
         expect(urlPdfSolicitud).toContain('com.axelor.meta.db.MetaFile');
 
-        // When: pulsa «Firmar con AutoFirma y Presentar la solicitud», confirma el aviso de que no
-        // podrá deshacer la acción y firma en AutoFirma.
+        // When: pulsa «Firmar y Presentar la solicitud» y confirma el aviso de que no podrá
+        // deshacer la acción; el servidor firma la solicitud con el certificado del profesor.
         await page.getByTestId(FOOTER).getByRole('button', { name: BOTON_PRESENTAR }).click();
         const aviso = page.getByRole('dialog');
         await expect(aviso).toContainText('¿Esta seguro que desea presentar la documentación?');
         await expect(aviso).toContainText('No podrá deshacer esta acción');
         await aviso.getByRole('button', { name: 'Aceptar' }).click();
 
-        // === PASO MANUAL ===
-        // Al aceptar, la aplicación lanza AutoFirma en el equipo de quien ejecuta el test.
-        // LA PERSONA DEBE: dejar que se abra AutoFirma, elegir en el diálogo el certificado digital
-        // del profesor `director@mislata.es` (su DNI debe coincidir con el del usuario), introducir
-        // el PIN o la contraseña del certificado si se la pide y confirmar la firma.
-        // Ninguna automatización puede hacerlo: AutoFirma es una aplicación de escritorio y el
-        // certificado vive en la máquina del firmante.
-        // El test continúa solo cuando el efecto de la firma es visible en la UI: el expediente ha
-        // transicionado. No se espera un tiempo fijo ni se hace `page.pause()`, para que el test
-        // siga fallando si la persona cancela AutoFirma o firma con el certificado equivocado.
-
         // Then: el expediente pasa a la fase VERIFICACION, estado PENDIENTE_VERIFICACION.
-        await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de verificación', {
-          timeout: 600_000,
-        });
+        await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de verificación');
         await expect(page.getByLabel('Fase')).toHaveValue('Verificación');
 
         // And: en el PDF de la solicitud, el bloque «Declara que» tiene marcada la casilla
-        // «Desde el 10/09/2026 hasta el 12/09/2026» y las otras tres casillas de tipo de jornada
-        // están sin marcar.
-        // Las cuatro primeras casillas del documento son, en orden, las cuatro del bloque
-        // «Declara que» («El día …», «Desde el … hasta el …», «El día …, de … a … horas» y
-        // «El día … desde las … horas, hasta el …»); la quinta y última es la de la declaración
-        // responsable, que el documento marca siempre.
+        // «Desde el 10/09/2026 hasta el 12/09/2026» y las otras tres opciones de tipo de jornada
+        // no aparecen.
+        // El documento solo dibuja la casilla del tipo de jornada elegido (las otras tres opciones
+        // del bloque «Declara que» no se pintan: `visible` en `documentospdf/solicitud.xml`), así
+        // que sus dos únicas casillas son, en orden, la del periodo y la de la declaración
+        // responsable, que el documento marca siempre; las dos salen marcadas.
         const solicitud = await contenidoDelPdf(page, urlPdfSolicitud);
-        expect(solicitud.casillas).toHaveLength(5);
-        expect(solicitud.casillas.slice(0, 4)).toEqual([false, true, false, false]);
+        expect(solicitud.casillas).toEqual([true, true]);
 
-        // And (cont.): la casilla marcada es la del periodo, y no otra: las fechas solo aparecen en
-        // los campos de ESA fila. El documento es bilingüe y pinta cada valor dos veces (columna en
-        // valenciano y columna en castellano), así que cada fecha sale exactamente dos veces; si el
-        // periodo se hubiera escrito además en cualquier otra fila, saldrían más.
-        expect(solicitud.campos.filter((campo) => campo === FECHA_INICIO)).toHaveLength(2);
-        expect(solicitud.campos.filter((campo) => campo === FECHA_FIN_2)).toHaveLength(2);
+        // And (cont.): la casilla marcada es la del periodo, y no otra: el texto de su opción es
+        // «Desde el <inicio> hasta el <fin>» y no sale ninguna de las otras tres opciones («El día …»,
+        // en castellano, o «El dia …», en valenciano).
+        const texto = solicitud.textos.join('');
+        expect(texto).toContain(`Desde el ${FECHA_INICIO} hasta el ${FECHA_FIN_2}`);
+        expect(texto).not.toMatch(/El d[ií]a/);
+
+        // And (cont.): las fechas solo aparecen en ESA fila. El documento es bilingüe y pinta cada
+        // valor dos veces (columna en valenciano y columna en castellano), así que cada fecha sale
+        // exactamente dos veces; si el periodo se hubiera escrito además en cualquier otra fila,
+        // saldrían más.
+        expect(solicitud.textos.filter((valor) => valor === FECHA_INICIO)).toHaveLength(2);
+        expect(solicitud.textos.filter((valor) => valor === FECHA_FIN_2)).toHaveLength(2);
 
         // --- Tramo 2: TRAMITADOR (jefeestudios1@mislata.es) — la jefatura de estudios verifica ---
         // And: al iniciar sesión `jefeestudios1@mislata.es` (contraseña `demo1234`) y abrir el
@@ -393,10 +416,14 @@ test.describe('Justificación de falta del profesorado — ENTRADA → VERIFICAC
         // And (cont.): … no hay ningún campo editable …
         // No basta con los campos de arriba: se comprueba que en TODO el formulario del expediente
         // no queda ni un control de entrada que se pueda teclear o desplegar.
+        // Salvo «Nueva nota»: el panel de notas internas va debajo de todas las pantallas de
+        // estado y el personal del centro puede escribir en él; no es un dato del expediente.
         await expect(
-          pantallaConsulta.locator(
-            'input:not([disabled]):not([readonly]), textarea:not([disabled]):not([readonly]), select:not([disabled])',
-          ),
+          pantallaConsulta
+            .locator(
+              'input:not([disabled]):not([readonly]), textarea:not([disabled]):not([readonly]), select:not([disabled])',
+            )
+            .and(pantallaConsulta.locator(':not([data-testid="field:nuevaNota"] *)')),
         ).toHaveCount(0);
 
         // And (cont.): … y el único botón es «Salir».
@@ -452,18 +479,17 @@ test.describe('Justificación de falta del profesorado — ENTRADA → VERIFICAC
         // VERIFICACION / PENDIENTE_VERIFICACION, si el test se corta tras presentar), así que el
         // expediente QUEDA VIVO a propósito: es correcto y no rompe la idempotencia porque el test
         // siempre trabaja con SU número, nunca con «el primero de la bandeja».
-        // Pero si el test se corta antes del paso manual (o la persona no llega a firmar), el
-        // expediente se queda en ENTRADA, donde sí se puede borrar: se intenta y, si no procede,
-        // se deja como está. El borrado exige SESIÓN ABIERTA y el perfil del estado en el que ha
+        // Pero si el test se corta antes de presentar, el expediente se queda en ENTRADA, donde
+        // sí se puede borrar: se intenta y, si no procede, se deja como está. El borrado exige SESIÓN ABIERTA y el perfil del estado en el que ha
         // quedado el expediente (CREADOR), así que va ANTES del `logout` y reautenticándose como el
         // profesor, porque el fallo de una aserción puede haber dejado la sesión en cualquier punto.
         // DELETE recarga la aplicación entera (refresh-app).
         // El `.catch(() => {})` es intencional: el teardown no debe enmascarar el fallo de una aserción.
         if (numero) {
           await (async () => {
-            // Si el test se corta en la puerta manual (nadie firma), el diálogo modal «Cargando
-            // AutoFirma» se queda abierto y tapa toda la aplicación. `ensureLoggedOut` navega solo
-            // cambiando el hash, sin recargar, así que el diálogo seguiría ahí: se recarga antes.
+            // Si el test se corta con un diálogo modal abierto, este tapa toda la aplicación.
+            // `ensureLoggedOut` navega solo cambiando el hash, sin recargar, así que el diálogo
+            // seguiría ahí: se recarga antes.
             await page.reload();
             await ensureLoggedOut(page);
             await login(page, PROFESOR.login, PROFESOR.password);

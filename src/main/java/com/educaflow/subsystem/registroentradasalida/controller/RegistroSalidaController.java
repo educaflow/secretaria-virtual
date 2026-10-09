@@ -2,6 +2,11 @@ package com.educaflow.subsystem.registroentradasalida.controller;
 
 import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.ModelServiceFactory;
+import com.axelor.meta.CallMethod;
+import com.axelor.rpc.ActionRequest;
+import com.axelor.rpc.ActionResponse;
+import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
+import com.educaflow.base.infrastructure.axelorhelper.ActionResponseHelper;
 import com.educaflow.base.infrastructure.fichero.Fichero;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroSalida;
 import com.educaflow.subsystem.registroentradasalida.service.RegistroSalidaService;
@@ -19,6 +24,7 @@ import java.util.Optional;
 /**
  * La descarga pública de un registro de salida a partir de su CSV: es a donde lleva el código QR que
  * se estampa en el documento. No pide usuario: quien tiene el CSV tiene el documento.
+ * También da al form del registro la URL de esa descarga.
  */
 @Path(RegistroSalidaService.RUTA_DESCARGA_PUBLICA)
 public class RegistroSalidaController {
@@ -46,6 +52,20 @@ public class RegistroSalidaController {
                 .build();
     }
 
+    /**
+     * Pone en el campo {@code $urlDescarga} del form la URL de la descarga pública del registro, la misma
+     * que lleva su código QR. El CSV se lee del registro guardado, no del que manda el cliente.
+     */
+    @CallMethod
+    public void getUrlDescarga(ActionRequest actionRequest, ActionResponse actionResponse) {
+        final RegistroSalidaService registroSalidaService = (RegistroSalidaService) modelServiceFactory.resolve(RegistroSalida.class);
+
+        ActionRequestHelper<RegistroSalida> actionRequestHelper = new ActionRequestHelper<>(actionRequest, RegistroSalida.class);
+        RegistroSalida registroSalida = actionRequestHelper.getOriginalModel();
+
+        actionResponse.setValue("$urlDescarga", registroSalidaService.getUrlDescarga(registroSalida.getCsv()));
+    }
+
     /************************************************************************************/
     /***************************** Acciones de Validaciones *****************************/
     /************************************************************************************/
@@ -64,6 +84,20 @@ public class RegistroSalidaController {
         }
 
         return Response.ok(Map.of("ok", true)).build();
+    }
+
+    @CallMethod
+    public void validateGetUrlDescarga(ActionRequest actionRequest, ActionResponse actionResponse) {
+        final RegistroSalidaService registroSalidaService = (RegistroSalidaService) modelServiceFactory.resolve(RegistroSalida.class);
+
+        ActionRequestHelper<RegistroSalida> actionRequestHelper = new ActionRequestHelper<>(actionRequest, RegistroSalida.class);
+        ActionResponseHelper actionResponseHelper = new ActionResponseHelper(actionResponse);
+        RegistroSalida registroSalida = actionRequestHelper.getOriginalModel();
+
+        Optional<BusinessMessages> validationResult = registroSalidaService.validateGetUrlDescarga(registroSalida.getCsv());
+        if (validationResult.isPresent()) {
+            actionResponseHelper.doResponseBusinessMessagesAsError(validationResult.get());
+        }
     }
 
     /****************************************************************************/

@@ -3,10 +3,6 @@ import { ensureLoggedOut, login, logout } from '../../../../../_support/auth';
 
 // T-018 — La dirección rechaza la justificación y el estado cerrado sigue mostrando el periodo
 // origen: ESC —  |  DIRECTOR | RESOLUCION/PENDIENTE_RESOLUCION --RESOLVER--> RESOLUCION/RECHAZADO  |  tipo: happy
-// MANUAL: llegar a PENDIENTE_RESOLUCION exige presentar con AutoFirma (T-016) —y que la jefatura de
-//         estudios verifique la solicitud— y resolver exige el certificado digital del director del
-//         centro instalado en el servidor; la carga de demo no trae ninguno de los dos.
-// Ejecutar con:  E2E_MANUAL=1 npx playwright test --grep @manual --headed
 // fuente: .sdd/drafts/2026-09-22_16-01_justificacion-falta-profesorado-fechas/test-e2e-desc/t-018-el-tramitador-rechaza-la-justificacion-y-el-estado-cerrado-sigue-mostrando-el-periodo.desc.md
 
 const TRAMITE = 'Justificación de falta del profesorado';
@@ -31,7 +27,7 @@ const PANEL_PDF_RESOLUCION = 'panel:pdfResolucion';
 const PANEL_RESOLUCION_VIEW = 'panel:resolucion-view';
 
 
-const BOTON_PRESENTAR = 'Firmar con AutoFirma y Presentar la solicitud';
+const BOTON_PRESENTAR = 'Firmar y Presentar la solicitud';
 const BOTON_RESOLVER = 'Resolver el expediente';
 
 const MOTIVO_RECHAZO = 'Los días indicados no constan como falta';
@@ -138,11 +134,13 @@ async function crearExpediente(page: Page): Promise<string> {
 
   await page.getByRole('button', { name: 'Crear expediente' }).click();
 
-  // La aplicación abre el expediente en una pestaña titulada «<número>-<tipo de expediente>».
+  // La aplicación abre el expediente en una pestaña titulada
+  // «<número>/<año>-<códigoCentro>-<tipo de expediente>» (p. ej. «00136/2026-46019660-…»);
+  // el número del expediente son los dos primeros trozos separados por «-».
   const pestana = page.getByRole('tab').last();
-  await expect(pestana).toContainText(new RegExp(`\\d{4,}/\\d{4}-${TRAMITE}`));
-  const numero = (await pestana.textContent())!.split('-')[0].trim();
-  expect(numero).toMatch(/^\d{4,}\/\d{4}$/);
+  await expect(pestana).toContainText(new RegExp(`\\d{4,}/\\d{4}-\\d+-${TRAMITE}`));
+  const numero = (await pestana.textContent())!.split('-').slice(0, 2).join('-').trim();
+  expect(numero).toMatch(/^\d{4,}\/\d{4}-\d+$/);
   return numero;
 }
 
@@ -168,13 +166,10 @@ const FECHA_FIN_2 = diasAntes(1); // «12/09/2026» en la descripción
 test.describe('Justificación de falta del profesorado — RESOLUCION', () => {
   test(
     'La dirección rechaza la justificación y el estado cerrado sigue mostrando el periodo',
-    { tag: '@manual' },
     async ({ page }) => {
-      // El paso manual (abrir AutoFirma, elegir el certificado y firmar) lo hace una persona:
-      // no cabe en el `timeout` global de `playwright.config.ts` (90 s). La espera de ese paso
-      // tiene su propio timeout de 600 s, y el del test es mayor para que, si la persona no
-      // llega a tiempo, falle la aserción de la puerta manual (con su mensaje) y no el test entero.
-      test.setTimeout(900_000);
+      // El test recorre tres sesiones (profesor, jefatura y dirección) y el servidor firma dos
+      // documentos: no cabe en el `timeout` global de `playwright.config.ts` (90 s).
+      test.setTimeout(240_000);
 
       let numero = '';
       try {
@@ -187,7 +182,7 @@ test.describe('Justificación de falta del profesorado — RESOLUCION', () => {
         // «Hora de inicio» 12:00 y «Fecha de fin» 11/09/2026 …
         // El estado de partida se alcanza recorriendo la máquina de estados POR LA UI (nunca por
         // REST ni por SQL): el CREADOR teclea los datos, pulsa «Siguiente» (GUARDAR_DATOS) y
-        // presenta la solicitud (PRESENTAR), que es el paso que exige AutoFirma; después la jefatura
+        // presenta la solicitud (PRESENTAR), que firma el servidor; después la jefatura
         // de estudios la da por correcta (VERIFICAR), que es lo que la pasa a la dirección.
         await ensureLoggedOut(page);
         await login(page, PROFESOR.login, PROFESOR.password);
@@ -228,9 +223,9 @@ test.describe('Justificación de falta del profesorado — RESOLUCION', () => {
         await expect(page.getByLabel('Fase')).toHaveValue('Entrada');
         await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de presentación');
 
-        // El servidor no tiene certificado de este profesor (`situacionFirma == 'SIN_CERTIFICADO'`),
-        // que es justo el caso en el que la firma la hace AutoFirma en el equipo del profesor: es
-        // lo que enseña el panel «Firma de la solicitud» y lo que hace que salga ESTE botón.
+        // El servidor tiene el certificado digital del profesor (el de su DNI), así que la firma la
+        // hace el servidor: es lo que enseña el panel «Firma de la solicitud» y lo que hace que
+        // salga ESTE botón.
         await expect(page.getByRole('region', { name: 'Firma de la solicitud' })).toBeVisible();
         await expect(page.getByTestId(FOOTER).getByRole('button', { name: BOTON_PRESENTAR })).toBeVisible();
 
@@ -240,21 +235,9 @@ test.describe('Justificación de falta del profesorado — RESOLUCION', () => {
         await expect(avisoPresentar).toContainText('No podrá deshacer esta acción');
         await avisoPresentar.getByRole('button', { name: 'Aceptar' }).click();
 
-        // === PASO MANUAL 1 de 2: firmar la solicitud con AutoFirma ===
-        // Al aceptar, la aplicación lanza AutoFirma en el equipo de quien ejecuta el test.
-        // LA PERSONA DEBE: dejar que se abra AutoFirma, elegir en el diálogo el certificado digital
-        // del profesor `director@mislata.es` (su DNI debe coincidir con el del usuario), introducir
-        // el PIN o la contraseña del certificado si se la pide y confirmar la firma.
-        // Ninguna automatización puede hacerlo: AutoFirma es una aplicación de escritorio y el
-        // certificado vive en la máquina del firmante.
-        // El test continúa solo cuando el efecto de la firma es visible en la UI: el expediente ha
-        // transicionado. No se espera un tiempo fijo ni se hace `page.pause()`, para que el test
-        // siga fallando si la persona cancela AutoFirma o firma con el certificado equivocado.
-        // Presentar ya no lleva a la resolución: la solicitud pasa antes por la verificación de la
-        // jefatura de estudios.
-        await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de verificación', {
-          timeout: 600_000,
-        });
+        // El servidor firma la solicitud con el certificado del profesor. Presentar ya no lleva a la
+        // resolución: la solicitud pasa antes por la verificación de la jefatura de estudios.
+        await expect(page.getByLabel('Estado', { exact: true })).toHaveValue('Pendiente de verificación');
         await expect(page.getByLabel('Fase')).toHaveValue('Verificación');
 
         // --- Tramo 2: TRAMITADOR (jefeestudios1@mislata.es) — sigue siendo preparación del
@@ -321,13 +304,9 @@ test.describe('Justificación de falta del profesorado — RESOLUCION', () => {
         await expect(avisoResolver).toContainText('No podrá deshacer esta acción');
         await avisoResolver.getByRole('button', { name: 'Aceptar' }).click();
 
-        // === PASO MANUAL 2 de 2: el certificado del director, en el SERVIDOR ===
-        // Este paso no lo ejecuta la persona en el navegador: la firma de la resolución la hace el
-        // servidor (`resolucion/PhaseEventManagerImpl.triggerResolver` → `almacenClaveResolver.getDirector(centro)`).
-        // Es, por tanto, una PRECONDICIÓN DE ENTORNO que la persona debe haber dejado lista ANTES de
-        // lanzar el test: el certificado digital del director del centro CIPFP Mislata instalado en
-        // el servidor. La carga de demo no lo trae, así que sin él el evento falla y el expediente
-        // se queda en PENDIENTE_RESOLUCION.
+        // La firma de la resolución la hace el servidor con el certificado del director del centro
+        // (`resolucion/PhaseEventManagerImpl.triggerResolver` → `almacenClaveResolver.getDirector(centro)`),
+        // que el servidor tiene instalado, sin intervención manual.
 
         // Then: el expediente pasa a la fase RESOLUCION, estado RECHAZADO, que es un estado cerrado.
         // El título visible del estado es «Rechazado»: `RECHAZADO` no declara `title` en el
@@ -398,10 +377,14 @@ test.describe('Justificación de falta del profesorado — RESOLUCION', () => {
         // And (cont.): … la pantalla es de solo consulta: no hay ningún campo editable.
         // No basta con los campos de arriba: se comprueba que en TODO el formulario del expediente
         // no queda ni un control de entrada que se pueda teclear o desplegar.
+        // Salvo «Nueva nota»: el panel de notas internas va debajo de todas las pantallas de
+        // estado y el personal del centro puede escribir en él; no es un dato del expediente.
         await expect(
-          pantallaRechazado.locator(
-            'input:not([disabled]):not([readonly]), textarea:not([disabled]):not([readonly]), select:not([disabled])',
-          ),
+          pantallaRechazado
+            .locator(
+              'input:not([disabled]):not([readonly]), textarea:not([disabled]):not([readonly]), select:not([disabled])',
+            )
+            .and(pantallaRechazado.locator(':not([data-testid="field:nuevaNota"] *)')),
         ).toHaveCount(0);
 
         // And (cont.): … no ofrece ningún evento y su único botón es «Salir».
@@ -424,8 +407,7 @@ test.describe('Justificación de falta del profesorado — RESOLUCION', () => {
         // RECHAZADO, que es un estado CERRADO y cuyo `events` está vacío. Ahí NO hay DELETE, así que
         // el expediente QUEDA VIVO a propósito: es correcto y no rompe la idempotencia porque el
         // test siempre trabaja con SU número, nunca con «el primero de la bandeja».
-        // Pero si el test se corta antes de presentar (o la persona no llega a firmar con
-        // AutoFirma), el expediente se queda en ENTRADA, donde sí se puede borrar: se intenta y,
+        // Pero si el test se corta antes de presentar, el expediente se queda en ENTRADA, donde sí se puede borrar: se intenta y,
         // si no procede (ya está en VERIFICACION o en RESOLUCION, que tampoco ofrecen DELETE), se
         // deja como está. El borrado exige SESIÓN ABIERTA y el perfil del estado en el que ha
         // quedado el expediente (CREADOR), así que va ANTES del `logout` y reautenticándose como el
@@ -435,9 +417,9 @@ test.describe('Justificación de falta del profesorado — RESOLUCION', () => {
         // El `.catch(() => {})` es intencional: el teardown no debe enmascarar el fallo de una aserción.
         if (numero) {
           await (async () => {
-            // Si el test se corta en la puerta manual (nadie firma), el diálogo modal «Cargando
-            // AutoFirma» se queda abierto y tapa toda la aplicación. `ensureLoggedOut` navega solo
-            // cambiando el hash, sin recargar, así que el diálogo seguiría ahí: se recarga antes.
+            // Si el test se corta con un diálogo modal abierto, este tapa toda la aplicación.
+            // `ensureLoggedOut` navega solo cambiando el hash, sin recargar, así que el diálogo
+            // seguiría ahí: se recarga antes.
             await page.reload();
             await ensureLoggedOut(page);
             await login(page, PROFESOR.login, PROFESOR.password);

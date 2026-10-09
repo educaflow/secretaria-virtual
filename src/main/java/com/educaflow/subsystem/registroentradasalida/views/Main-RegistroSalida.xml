@@ -29,6 +29,7 @@
 
     <form name="subsysRegistroEntradaSalida.Main@RegistroSalida-form" title="Registro de salida" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida"
           width="large" canEdit="false" canAttach="false" canBack="false" canDelete="false" canNew="false" canSave="false" canCancel="false" canMore="false"
+          onLoad="subsysRegistroEntradaSalida.Main@RegistroSalida-onLoad-action"
     >
         <panel name="registroSalida" title="Registro de Salida" colSpan="12" >
             <field name="centro"         colSpan="9"/>
@@ -38,6 +39,9 @@
 
             <field name="documentoOriginal" widget="binary-link" colSpan="12"/>
             <field name="documento"         widget="binary-link" colSpan="12"/>
+
+            <field name="csv"               colSpan="12"/>
+            <field name="$urlDescarga" type="string" widget="url" title="URL de descarga" readonly="true" colSpan="12"/>
         </panel>
         <panel-related name="anexos" title="Anexos" field="anexos" colSpan="12"
                        form-view="subsysRegistroEntradaSalida.Ref@Anexos-form" grid-view="subsysRegistroEntradaSalida.Ref@Anexos-grid"
@@ -52,10 +56,21 @@
         <action name="back"/>
     </action-group>
 
+    <action-group name="subsysRegistroEntradaSalida.Main@RegistroSalida-onLoad-action">
+        <action name="subsysRegistroEntradaSalida.Main@RegistroSalida-Remote-validateGetUrlDescarga-action"/>
+        <action name="subsysRegistroEntradaSalida.Main@RegistroSalida-Remote-getUrlDescarga-action"/>
+    </action-group>
+
     <?sv-validations?>
 
     <?sv-rules?>
 
     <?sv-remotes?>
+    <action-method name="subsysRegistroEntradaSalida.Main@RegistroSalida-Remote-validateGetUrlDescarga-action" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida">
+        <call class="com.educaflow.subsystem.registroentradasalida.controller.RegistroSalidaController" method="validateGetUrlDescarga"/>
+    </action-method>
+    <action-method name="subsysRegistroEntradaSalida.Main@RegistroSalida-Remote-getUrlDescarga-action" model="com.educaflow.subsystem.registroentradasalida.db.RegistroSalida">
+        <call class="com.educaflow.subsystem.registroentradasalida.controller.RegistroSalidaController" method="getUrlDescarga"/>
+    </action-method>
 
 </object-views>

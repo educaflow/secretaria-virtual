@@ -245,6 +245,41 @@ class RegistroSalidaServiceImplTest {
 
 
     /****************************************************************************************/
+    /************************************ getUrlDescarga ************************************/
+    /****************************************************************************************/
+
+    /** Se compara con la ruta que de verdad atiende el controlador, igual que la del código QR. */
+    @Test
+    void getUrlDescarga_llevaALaDescargaQueAtiendeElControlador() throws Exception {
+        String csv = TokenUtil.generateCodigoSeguroVerificacion();
+
+        assertEquals(BASE_URL + RUTA_SERVICIOS_WEB + rutaDescargaDelControlador(csv), service.getUrlDescarga(csv));
+    }
+
+    @Test
+    void getUrlDescarga_conUnCsvMalFormado_aborta() {
+        assertThrows(ValidationException.class, () -> service.getUrlDescarga("no es un csv"));
+    }
+
+    @Test
+    void validateGetUrlDescarga_conUnCsvBienFormado_esValido() {
+        assertTrue(service.validateGetUrlDescarga(TokenUtil.generateCodigoSeguroVerificacion()).isEmpty());
+    }
+
+    @Test
+    void validateGetUrlDescarga_sinCsv_rechaza() {
+        assertTrue(service.validateGetUrlDescarga(null).isPresent());
+    }
+
+    @Test
+    void getUrlDescarga_esLaMismaQueLlevaElCodigoQrDelDocumento() throws Exception {
+        RegistroSalida registroSalida = crearRegistroSalida(List.of());
+
+        assertEquals(leerCodigoQr(documentoDe(registroSalida)), service.getUrlDescarga(registroSalida.getCsv()));
+    }
+
+
+    /****************************************************************************************/
     /****************************** validateGetDescargaByCsv ********************************/
     /****************************************************************************************/
 

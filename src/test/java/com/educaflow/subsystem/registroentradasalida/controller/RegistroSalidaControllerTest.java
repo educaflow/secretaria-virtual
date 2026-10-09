@@ -2,6 +2,9 @@ package com.educaflow.subsystem.registroentradasalida.controller;
 
 import com.axelor.db.modelservice.BusinessMessages;
 import com.axelor.db.modelservice.ModelServiceFactory;
+import com.axelor.rpc.ActionRequest;
+import com.axelor.rpc.ActionResponse;
+import com.educaflow.base.infrastructure.axelorhelper.ActionRequestHelper;
 import com.educaflow.base.infrastructure.fichero.Fichero;
 import com.educaflow.subsystem.registroentradasalida.db.RegistroSalida;
 import com.educaflow.subsystem.registroentradasalida.service.RegistroSalidaService;
@@ -10,6 +13,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Field;
@@ -21,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -93,6 +98,51 @@ class RegistroSalidaControllerTest {
 
         assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
         assertEquals(Map.of("errors", businessMessages), response.getEntity());
+    }
+
+    @Test
+    void getUrlDescarga_conUnRegistroGuardado_poneEnElFormLaUrlDeSuCsv() {
+        RegistroSalida registroSalida = new RegistroSalida();
+        registroSalida.setCsv(CSV);
+        when(registroSalidaService.getUrlDescarga(CSV)).thenReturn("la url");
+        ActionResponse actionResponse = Mockito.mock(ActionResponse.class);
+
+        try (MockedConstruction<ActionRequestHelper> ignored = Mockito.mockConstruction(ActionRequestHelper.class,
+                (helper, context) -> when(helper.getOriginalModel()).thenReturn(registroSalida))) {
+            controller.getUrlDescarga(Mockito.mock(ActionRequest.class), actionResponse);
+        }
+
+        verify(actionResponse).setValue("$urlDescarga", "la url");
+    }
+
+    @Test
+    void validateGetUrlDescarga_conUnCsvValido_noDevuelveError() {
+        RegistroSalida registroSalida = new RegistroSalida();
+        registroSalida.setCsv(CSV);
+        when(registroSalidaService.validateGetUrlDescarga(CSV)).thenReturn(Optional.empty());
+        ActionResponse actionResponse = Mockito.mock(ActionResponse.class);
+
+        try (MockedConstruction<ActionRequestHelper> ignored = Mockito.mockConstruction(ActionRequestHelper.class,
+                (helper, context) -> when(helper.getOriginalModel()).thenReturn(registroSalida))) {
+            controller.validateGetUrlDescarga(Mockito.mock(ActionRequest.class), actionResponse);
+        }
+
+        verify(actionResponse, never()).setError(any());
+    }
+
+    @Test
+    void validateGetUrlDescarga_conUnCsvNoValido_devuelveElError() {
+        RegistroSalida registroSalida = new RegistroSalida();
+        registroSalida.setCsv(CSV);
+        when(registroSalidaService.validateGetUrlDescarga(CSV)).thenReturn(Optional.of(BusinessMessages.single("No es válido")));
+        ActionResponse actionResponse = Mockito.mock(ActionResponse.class);
+
+        try (MockedConstruction<ActionRequestHelper> ignored = Mockito.mockConstruction(ActionRequestHelper.class,
+                (helper, context) -> when(helper.getOriginalModel()).thenReturn(registroSalida))) {
+            controller.validateGetUrlDescarga(Mockito.mock(ActionRequest.class), actionResponse);
+        }
+
+        verify(actionResponse).setError(contains("No es válido"));
     }
 
 }

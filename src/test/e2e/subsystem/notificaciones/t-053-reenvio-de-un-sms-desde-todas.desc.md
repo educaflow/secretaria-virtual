@@ -71,5 +71,5 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Resultado esperado
 
-- Si estaba «Fallido»: aparece «El reenvío del SMS se ha puesto en marcha.»; al volver a abrirlo, el número de reintentos es «2» y está «Enviado» con fecha de envío, o «Fallido» con la descripción del nuevo fallo.
+- Si estaba «Fallido»: aparece el aviso de que el reenvío se ha puesto en marcha (sin exigir que nombre el canal); al volver a abrirlo, el número de reintentos es «2» y está «Enviado» con fecha de envío, o «Fallido» con la descripción del nuevo fallo.
 - Si estaba «Enviado»: no se ve el botón «Reenviar».

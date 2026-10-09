@@ -88,10 +88,12 @@ test.describe('Notificaciones — Todas', () => {
     const envio = consulta.getByRole('region', { name: 'Datos del envío' });
     await expect(envio).toBeVisible();
     await expect(consulta.getByRole('textbox', { name: /^Motivo/ })).toHaveValue(MOTIVO);
-    const enviado = envio.getByRole('radio', { name: 'Enviado' });
-    const fallido = envio.getByRole('radio', { name: 'Fallido' });
-    await expect(envio.getByRole('radio', { name: 'Pendiente' })).not.toBeChecked();
-    await expect(envio.getByRole('radio', { name: estado })).toBeChecked();
+    // El estado es un enumerado de solo lectura: se pinta como combobox no
+    // editable, sin radios.
+    const comboEstado = envio.getByRole('combobox', { name: 'Estado' });
+    await expect(comboEstado).toHaveValue(estado);
+    await expect(comboEstado).not.toBeEditable();
+    await expect(envio.getByRole('radio')).toHaveCount(0);
     await expect(envio.getByRole('textbox', { name: 'Nº reintentos' })).toHaveValue('1');
     await expect(envio.getByRole('textbox', { name: 'Fecha de creación' })).toHaveValue(FECHA_HORA);
     await expect(envio.getByRole('textbox', { name: 'Fecha del primer intento de envío' })).toHaveValue(FECHA_HORA);
@@ -100,7 +102,7 @@ test.describe('Notificaciones — Todas', () => {
     // La «Descripción del último fallo» es de solo lectura (widget Text): se
     // pinta como texto tras su etiqueta, no como textbox.
     if (estado === 'Enviado') {
-      await expect(fallido).not.toBeChecked();
+      await expect(comboEstado).not.toHaveValue('Fallido');
       // Resultado esperado: si el estado es «Enviado», muestra la fecha de envío
       // y no la descripción del último fallo.
       await expect(envio.getByRole('textbox', { name: 'Fecha de envío' })).toHaveValue(FECHA_HORA);
@@ -108,7 +110,7 @@ test.describe('Notificaciones — Todas', () => {
     } else {
       // Resultado esperado: si el estado es «Fallido», muestra la descripción
       // del último fallo y no la fecha de envío.
-      await expect(enviado).not.toBeChecked();
+      await expect(comboEstado).not.toHaveValue('Enviado');
       await expect(envio).toContainText(/Descripción del último fallo\s*\S/);
       await expect(envio.getByRole('textbox', { name: 'Fecha de envío' })).toHaveCount(0);
       await expect(envio).not.toContainText('Fecha de envío');

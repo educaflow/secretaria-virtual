@@ -19,7 +19,7 @@ const MOTIVO = `${MOTIVO_BASE} t069-${Date.now()}`;
 // Correo de referencia con el asunto «Horario» y el cuerpo «Le adjuntamos su horario.».
 const CORREO = {
   centro: 'CIPFP Mislata',
-  dni: '86862719E',
+  dni: '95591733F',
   nombre: 'Alumno1',
   apellidos: 'CIPFP Mislata',
   para: 'alumno1@mislata.es',

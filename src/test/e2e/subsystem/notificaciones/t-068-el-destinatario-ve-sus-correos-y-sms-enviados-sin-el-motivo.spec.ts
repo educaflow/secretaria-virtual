@@ -15,7 +15,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 const SUFIJO = `t068-${Date.now()}`;
 const MOTIVO_CORREO = `Motivo interno correo ${SUFIJO}`;
 const MOTIVO_SMS = `Motivo interno SMS ${SUFIJO}`;
-const DEST = { centro: 'CIPFP Mislata', dni: '86862719E', nombre: 'Alumno1', apellidos: 'CIPFP Mislata' };
+const DEST = { centro: 'CIPFP Mislata', dni: '95591733F', nombre: 'Alumno1', apellidos: 'CIPFP Mislata' };
 const CORREO = { para: 'alumno1@mislata.es', asunto: 'Reunión de inicio de curso', cuerpo: 'La reunión será el lunes a las 10:00.' };
 const SMS = { telefono: '600111222', mensaje: 'Mañana no hay clase', destino: '+34600111222' };
 

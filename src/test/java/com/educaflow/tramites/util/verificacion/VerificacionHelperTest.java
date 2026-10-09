@@ -16,8 +16,7 @@ import com.axelor.db.modelservice.ModelServiceFactory;
 import com.axelor.i18n.I18n;
 import com.educaflow.subsystem.common.db.Centro;
 import com.educaflow.subsystem.common.db.Persona;
-import com.educaflow.subsystem.correos.db.Correo;
-import com.educaflow.subsystem.correos.service.CorreoService;
+import com.educaflow.subsystem.expedientes.db.HistorialEstado;
 import com.educaflow.subsystem.expedientes.db.PruebaV1;
 import com.educaflow.subsystem.notificaciones.db.Correo;
 import com.educaflow.subsystem.notificaciones.db.TipoNotificacion;
@@ -94,8 +93,7 @@ class VerificacionHelperTest {
 
         boolean avisado = verificacionHelper.avisarDeSubsanacion(expediente, TEXTO_SUBSANACION);
 
-        ArgumentCaptor<Correo> correo = ArgumentCaptor.forClass(Correo.class);
-        verify(correoService).insert(correo.capture());
+        Correo correo = correoInsertado();
         assertAll(
                 () -> assertTrue(avisado),
                 () -> assertSame(correoCreado, correo),

@@ -45,7 +45,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 | profesor1@mislata.es | demo1234 | Profesor | CIPFP Mislata | 12345678Z |
 | alumno1@mislata.es | demo1234 | Alumno | CIPFP Mislata | 86862719E |
 | alumno2@mislata.es | demo1234 | Alumno | CIPFP Mislata | 03532821K |
-| familiar1@mislata.es | demo1234 | Familiar | CIPFP Mislata | 43145636M |
+| familiar1@mislata.es | demo1234 | Familiar | CIPFP Mislata | 90923322K |
 
 **Valores de entrada reutilizables** (no son estado; los tests los citan por su nombre):
 
@@ -63,7 +63,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Pasos
 
-1. **Dado** que el administrador da de alta el correo de referencia con el DNI «43145636M», el nombre «Familiar1», los apellidos «CIPFP Mislata», el «para» «familiar1@mislata.es» y el asunto «Aviso a familias», y cierra sesión.
+1. **Dado** que el administrador da de alta el correo de referencia con el DNI «90923322K», el nombre «Familiar1», los apellidos «CIPFP Mislata», el «para» «familiar1@mislata.es» y el asunto «Aviso a familias», y cierra sesión.
 2. **Cuando** «familiar1@mislata.es» inicia sesión, espera unos segundos y abre «Recibidas».
 
 ## Resultado esperado

@@ -70,5 +70,5 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Resultado esperado
 
-- Si estaba «Fallido»: se ve el botón «Reenviar»; al pulsarlo aparece «El reenvío del correo se ha puesto en marcha.»; al volver a abrirlo, el número de reintentos es «2» y está «Enviado» con fecha de envío, o de nuevo «Fallido» con la descripción del nuevo fallo.
+- Si estaba «Fallido»: se ve el botón «Reenviar»; al pulsarlo aparece el aviso de que el reenvío se ha puesto en marcha; al volver a abrirlo, el número de reintentos es «2» y está «Enviado» con fecha de envío, o de nuevo «Fallido» con la descripción del nuevo fallo.
 - Si estaba «Enviado»: no se ve el botón «Reenviar».

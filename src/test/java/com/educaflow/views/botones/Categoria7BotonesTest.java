@@ -135,13 +135,14 @@ class Categoria7BotonesTest {
     // [VAR-7.2] Verificación:
     //   Sujeto: el `<action-group>` referenciado por el `onClick` de cada botón estándar (`name` que empieza por `btnSave`/`btnDelete`/`btnCancel`), según la clase de su form —
     //
-    //   | Botón | maestro | maestro en popup | detalle | referencia |
-    //   |---|---|---|---|---|
-    //   | `btnSave` | [`Local-…`]* → `remote-validationSave-action` → `save` → `force-back` (inmediatamente tras `save`; **nunca** `back`) | [`Local-…`]* → `remote-validationSave-action` → `save-modal`; **sin** `save`/`back`/`force-back` | [`Local-…`]* → `save-modal`; **sin** ninguna `remote-validation*` | no existe |
-    //   | `btnDelete` | [`remote-validationDelete-action`] → `delete` (termina en `delete`) | igual que el maestro | termina en `delete-modal`; **sin** ninguna `remote-validation*` | no existe |
-    //   | `btnCancel` | contiene `back`; si el form maestro **no** declara `btnSave` **y** ningún `<action-view>` que lo abra (una `<view type="form">` con su `name`) declara una `<view type="grid">`, contiene `close` | contiene `close` | contiene `close` | contiene `close` |
+    //   | Botón | maestro | maestro en popup | maestro abierto por código | detalle | referencia |
+    //   |---|---|---|---|---|---|
+    //   | `btnSave` | [`Local-…`]* → `remote-validationSave-action` → `save` → `force-back` (inmediatamente tras `save`; **nunca** `back`) | [`Local-…`]* → `remote-validationSave-action` → `save-modal`; **sin** `save`/`back`/`force-back` | [`Local-…`]* → `remote-validationSave-action` → `save` → `remote-refreshTab-action` → `close` (inmediatamente tras `save`); **sin** `back`/`force-back` | [`Local-…`]* → `save-modal`; **sin** ninguna `remote-validation*` | no existe |
+    //   | `btnDelete` | [`remote-validationDelete-action`] → `delete` (termina en `delete`) | igual que el maestro | igual que el maestro | termina en `delete-modal`; **sin** ninguna `remote-validation*` | no existe |
+    //   | `btnCancel` | contiene `back`; si el form maestro **no** declara `btnSave` **y** ningún `<action-view>` que lo abra (una `<view type="form">` con su `name`) declara una `<view type="grid">`, contiene `close` | contiene `close` | contiene `close` | contiene `close` | contiene `close` |
     //
     //   Un form maestro es **maestro en popup** si algún `<action-view>` que lo abre (una `<view type="form">` con su `name`) declara `<view-param name="popup" value="true"/>`.
+    //   Un form maestro es **maestro abierto por código** si **ningún** `<action-view>` lo abre (ninguna `<view type="form">` con su `name`).
     @Test
     void var7_2_secuenciaDeBotonesEstandarSegunClase() {
         List<Violacion> v = new ArrayList<>();
@@ -160,6 +161,7 @@ class Categoria7BotonesTest {
                         .anyMatch(b -> attr(b, "name").startsWith("btnSave"));
                 boolean ramaAsistente = !tieneBtnSave && !algunActionViewDeclaraGrid(formName);
                 boolean enPopup = nv.clase() == NombreVista.Clase.MAESTRO && esMaestroEnPopup(formName);
+                boolean porCodigo = nv.clase() == NombreVista.Clase.MAESTRO && !algunActionViewLoAbre(formName);
                 for (Element btn : byTag(form, "button")) {
                     String btnName = attr(btn, "name");
                     String estandar = btnName.startsWith("btnSave") ? "btnSave"
@@ -183,6 +185,8 @@ class Categoria7BotonesTest {
                         case MAESTRO -> {
                             if (enPopup && !"btnDelete".equals(estandar)) {
                                 verificarMaestroEnPopup(v, vf, ubicacion, estandar, ctx, seq);
+                            } else if (porCodigo && !"btnDelete".equals(estandar)) {
+                                verificarMaestroPorCodigo(v, vf, ubicacion, estandar, ctx, seq);
                             } else {
                                 verificarMaestro(v, vf, ubicacion, estandar, ctx, seq, ramaAsistente);
                             }
@@ -202,6 +206,7 @@ class Categoria7BotonesTest {
         }
         Violacion.assertNone("VAR-7.2 — secuencia de los botones estándar según la clase del form "
                 + "(maestro: validaciones→save→force-back; maestro en popup: validaciones→save-modal y close; "
+                + "maestro abierto por código: validaciones→save→remote-refreshTab-action→close; "
                 + "detalle: acciones -modal sin remote-validation*; referencia: solo close)", v);
     }
 
@@ -248,6 +253,49 @@ class Categoria7BotonesTest {
     }
 
     /**
+     * ¿Algún {@code <action-view>} abre este form (una {@code <view type="form">} con su {@code name})?
+     * Si ninguno, es «maestro abierto por código» (glosario).
+     */
+    private static boolean algunActionViewLoAbre(String formName) {
+        for (ViewFile vf : ViewFiles.all()) {
+            for (Element av : vf.actionViews()) {
+                if (childrenByTag(av, "view").stream()
+                        .anyMatch(w -> "form".equals(attr(w, "type")) && formName.equals(attr(w, "name")))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** btnSave y btnCancel del maestro abierto por código (su btnDelete se verifica como el del maestro). */
+    private static void verificarMaestroPorCodigo(List<Violacion> v, ViewFile vf, String ubicacion,
+                                                  String estandar, String ctx, List<String> seq) {
+        switch (estandar) {
+            case "btnSave" -> {
+                // [Local-… del mismo contexto]* → remote-validationSave-action → save
+                //   → remote-refreshTab-action → close (inmediatamente tras save; sin back/force-back)
+                List<String> esperado = List.of(
+                        "remote-validationSave-action", "save", "remote-refreshTab-action", "close");
+                if (!esperado.equals(sinLocalesIniciales(seq, ctx))) {
+                    v.add(new Violacion(vf.rel(), ubicacion,
+                            "el btnSave de un maestro abierto por código debe ser [Local-…]* → "
+                                    + String.join(" → ", esperado) + " (sin back/force-back); "
+                                    + "secuencia: " + seq));
+                }
+            }
+            case "btnCancel" -> {
+                if (!seq.contains("close")) {
+                    v.add(new Violacion(vf.rel(), ubicacion,
+                            "el btnCancel de un maestro abierto por código debe contener \"close\"; "
+                                    + "secuencia: " + seq));
+                }
+            }
+            default -> throw new IllegalStateException(estandar);
+        }
+    }
+
+    /**
      * ¿Algún {@code <action-view>} que abra este form (lo referencia con una
      * {@code <view type="form">} con su {@code name}) declara una {@code <view type="grid">}?
      */
@@ -271,19 +319,12 @@ class Categoria7BotonesTest {
         switch (estandar) {
             case "btnSave" -> {
                 // [Local-… del mismo contexto]* → remote-validationSave-action → save
-                //   → force-back (inmediatamente tras save; nunca back), o
-                //   → remote-refreshTab-action → close si ningún action-view que lo abra declara un grid
-                List<String> esperado = sinGrid
-                        ? List.of("remote-validationSave-action", "save", "remote-refreshTab-action", "close")
-                        : List.of("remote-validationSave-action", "save", "force-back");
+                //   → force-back (inmediatamente tras save; nunca back)
                 List<String> resto = sinLocalesIniciales(seq, ctx);
-                if (!esperado.equals(resto)) {
+                if (!List.of("remote-validationSave-action", "save", "force-back").equals(resto)) {
                     v.add(new Violacion(vf.rel(), ubicacion,
-                            "el btnSave maestro debe ser [Local-…]* → "
-                                    + String.join(" → ", esperado)
-                                    + (sinGrid ? " (ningún action-view que lo abra declara un grid)"
-                                               : " (nunca back)")
-                                    + "; secuencia: " + seq));
+                            "el btnSave maestro debe ser [Local-…]* → remote-validationSave-action → "
+                                    + "save → force-back (nunca back); secuencia: " + seq));
                 }
             }
             case "btnDelete" -> {
@@ -386,12 +427,13 @@ class Categoria7BotonesTest {
                     boolean ok = accion.startsWith(ctx + "-Local-")
                             || "remote-validationSave-action".equals(accion)
                             || "remote-validationDelete-action".equals(accion)
+                            || "remote-refreshTab-action".equals(accion)
                             || PREDEFINIDAS_SAVE_DELETE.contains(accion);
                     if (!ok) {
                         v.add(new Violacion(vf.rel(), grupo.getKey(),
                                 "la acción \"" + accion + "\" no está admitida en un grupo de "
                                         + "save/delete (solo Local-… del mismo contexto, "
-                                        + "remote-validationSave/Delete-action o predefinidas "
+                                        + "remote-validationSave/Delete-action, remote-refreshTab-action o predefinidas "
                                         + PREDEFINIDAS_SAVE_DELETE + "); ningún Remote-… propio"));
                     }
                 }

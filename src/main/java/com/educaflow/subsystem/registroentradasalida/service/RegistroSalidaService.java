@@ -19,9 +19,11 @@ public interface RegistroSalidaService extends ModelService<RegistroSalida> {
 
     RegistroSalida createRegistroSalida(RegistroSalidaInsertDTO registroSalidaInsertDTO, MetaFile documento, List<MetaFile> anexos);
     Fichero getDescargaByCsv(String csv);
+    String getUrlDescarga(String csv);
 
 
     Optional<BusinessMessages> validateCreateRegistroSalida(RegistroSalidaInsertDTO registroSalidaInsertDTO, MetaFile documentoOriginal, List<MetaFile> anexos);
     Optional<BusinessMessages> validateGetDescargaByCsv(String csv);
+    Optional<BusinessMessages> validateGetUrlDescarga(String csv);
 
 }

@@ -111,6 +111,14 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
         return new Fichero(fileName, createZip(ficheros), ZIP_MIME_TYPE);
     }
 
+    /** La URL de la descarga pública del registro de salida que tiene ese CSV: la que lleva su código QR. */
+    @Override
+    public String getUrlDescarga(String csv) {
+        validateGetUrlDescarga(csv).ifPresent(BusinessMessages::throwIfInvalid);
+
+        return AppSettings.get().getBaseURL() + "/ws" + RUTA_DESCARGA_PUBLICA + "/download?CSV=" + csv;
+    }
+
 
     /****************************************************************************************/
     /******************************** Métodos de Validación *********************************/
@@ -145,6 +153,15 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
         // La forma se comprueba antes de buscar: el CSV llega de una URL pública
         if ((TokenUtil.isCodigoSeguroVerificacion(csv) == false) || (((RegistroSalidaRepository) repository).findByCsv(csv) == null)) {
             return Optional.of(BusinessMessages.single(I18n.get("No existe ningún documento con ese código de verificación.")));
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<BusinessMessages> validateGetUrlDescarga(String csv) {
+        if (TokenUtil.isCodigoSeguroVerificacion(csv) == false) {
+            return Optional.of(BusinessMessages.single(I18n.get("El código seguro de verificación no es válido.")));
         }
 
         return Optional.empty();
@@ -204,11 +221,6 @@ public class RegistroSalidaServiceImpl extends DefaultModelService<RegistroSalid
         Rectangulo pagina = documentoPdf.getTamanyoPagina(1);
 
         return new Rectangulo(pagina.x() + pagina.width() - WIDTH_FIRMA - MARGEN_FIRMA, pagina.y() + pagina.height() - HEIGHT_FIRMA - MARGEN_FIRMA, WIDTH_FIRMA, HEIGHT_FIRMA);
-    }
-
-    /** La URL del código QR: la de la descarga pública del registro de salida que tiene ese CSV. */
-    private static String getUrlDescarga(String csv) {
-        return AppSettings.get().getBaseURL() + "/ws" + RUTA_DESCARGA_PUBLICA + "/download?CSV=" + csv;
     }
 
     private static byte[] createZip(List<MetaFile> ficheros) {

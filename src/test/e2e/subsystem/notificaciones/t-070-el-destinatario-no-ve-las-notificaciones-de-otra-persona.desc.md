@@ -35,22 +35,22 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 | Login | Contraseña | Rol / Tipo | Centro | DNI |
 |---|---|---|---|---|
 | admin | admin | Administrador | — (todos) | — |
-| supervisor1@mislata.es | demo1234 | Supervisor | CIPFP Mislata | 30647328N |
-| supervisordoscentros@mislata.es | demo1234 | Supervisor | CIPFP Mislata y CIPFP Batoi | 39517284H |
-| administrativo1@mislata.es | demo1234 | Administrativo | CIPFP Mislata | 97879650E |
-| director@mislata.es | demo1234 | Profesor con cargo Director | CIPFP Mislata | 85432016B |
-| jefeestudios1@mislata.es | demo1234 | Profesor con cargo Jefe de estudios | CIPFP Mislata | 15519084H |
-| secretario@mislata.es | demo1234 | Profesor con cargo Secretario | CIPFP Mislata | 29050788V |
-| vicesecretario@mislata.es | demo1234 | Profesor con cargo Vicesecretario | CIPFP Mislata | 56412323Q |
-| profesor1@mislata.es | demo1234 | Profesor | CIPFP Mislata | 12345678Z |
-| alumno1@mislata.es | demo1234 | Alumno | CIPFP Mislata | 86862719E |
-| alumno2@mislata.es | demo1234 | Alumno | CIPFP Mislata | 03532821K |
-| familiar1@mislata.es | demo1234 | Familiar | CIPFP Mislata | 43145636M |
+| supervisor1@mislata.es | demo1234 | Supervisor | CIPFP Mislata | 94620047W |
+| supervisordoscentros@mislata.es | demo1234 | Supervisor | CIPFP Mislata y CIPFP Batoi | 90962795A |
+| administrativo1@mislata.es | demo1234 | Administrativo | CIPFP Mislata | 90390457C |
+| director@mislata.es | demo1234 | Profesor con cargo Director | CIPFP Mislata | 98803877V |
+| jefeestudios1@mislata.es | demo1234 | Profesor con cargo Jefe de estudios | CIPFP Mislata | 93424956Z |
+| secretario@mislata.es | demo1234 | Profesor con cargo Secretario | CIPFP Mislata | 97098432E |
+| vicesecretario@mislata.es | demo1234 | Profesor con cargo Vicesecretario | CIPFP Mislata | 95624804G |
+| profesor1@mislata.es | demo1234 | Profesor | CIPFP Mislata | 93882914L |
+| alumno1@mislata.es | demo1234 | Alumno | CIPFP Mislata | 95591733F |
+| alumno2@mislata.es | demo1234 | Alumno | CIPFP Mislata | 99024353S |
+| familiar1@mislata.es | demo1234 | Familiar | CIPFP Mislata | 90923322K |
 
 **Valores de entrada reutilizables** (no son estado; los tests los citan por su nombre):
 
-- **Correo de referencia**: centro «CIPFP Mislata», motivo «Aviso de prueba de correo», DNI «86862719E», nombre «Alumno1», apellidos «CIPFP Mislata», «para» «alumno1@mislata.es», asunto «Reunión de inicio de curso», cuerpo «La reunión será el lunes a las 10:00.».
-- **SMS de referencia**: centro «CIPFP Mislata», motivo «Aviso de prueba de SMS», DNI «86862719E», nombre «Alumno1», apellidos «CIPFP Mislata», teléfono «600111222», mensaje «Mañana no hay clase».
+- **Correo de referencia**: centro «CIPFP Mislata», motivo «Aviso de prueba de correo», DNI «95591733F», nombre «Alumno1», apellidos «CIPFP Mislata», «para» «alumno1@mislata.es», asunto «Reunión de inicio de curso», cuerpo «La reunión será el lunes a las 10:00.».
+- **SMS de referencia**: centro «CIPFP Mislata», motivo «Aviso de prueba de SMS», DNI «95591733F», nombre «Alumno1», apellidos «CIPFP Mislata», teléfono «600111222», mensaje «Mañana no hay clase».
 - **Alta de un correo**: en «Notificaciones» → «Todas» pulsar «Nueva notificación», elegir «Correo», pulsar «Continuar», rellenar los datos indicados y pulsar «Guardar».
 - **Alta de un SMS**: ídem eligiendo «SMS».
 - **Certificado de firma del director**: el administrador inicia sesión, abre «Criptografía» → «Certificados digitales», pulsa nuevo, rellena el DNI «85432016B», el nombre «Director» y los apellidos «CIPFP Mislata», en «Tipo de certificado» elige «Usar un fichero con el certificado que ya está dentro del del WAR», rellena «Ruta classpath» con «firma/mi_certificado.p12» y «Nueva contraseña» con «nadanada», deja el certificado habilitado, pulsa «Guardar» y cierra sesión.
@@ -63,7 +63,7 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Pasos
 
-1. **Dado** que el administrador da de alta el correo de referencia con el DNI «03532821K», el nombre «Alumno2», el «para» «alumno2@mislata.es» y el asunto «Aviso para Alumno2», y cierra sesión.
+1. **Dado** que el administrador da de alta el correo de referencia con el DNI «99024353S», el nombre «Alumno2», el «para» «alumno2@mislata.es» y el asunto «Aviso para Alumno2», y cierra sesión.
 2. **Cuando** «alumno1@mislata.es» inicia sesión, espera unos segundos y abre «Recibidas».
 3. **Entonces** no aparece «Aviso para Alumno2».
 4. **Cuando** cierra sesión y «alumno2@mislata.es» inicia sesión y abre «Recibidas».

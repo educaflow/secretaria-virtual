@@ -108,7 +108,11 @@ test.describe('Notificaciones — Todas', () => {
       await filaDelSms(page).click();
       const envio = page.getByRole('region', { name: 'Datos del envío' });
       await expect(envio).toBeVisible();
-      await expect(envio.getByRole('radio', { name: 'Fallido' })).toBeChecked();
+      // El estado es de solo lectura: se pinta como combobox, no como radios.
+      const estadoEnvio = envio.getByRole('combobox', { name: 'Estado' });
+      await expect(estadoEnvio).toHaveValue('Fallido');
+      await expect(estadoEnvio).not.toBeEditable();
+      await expect(envio.getByRole('radio')).toHaveCount(0);
       await expect(envio.getByRole('textbox', { name: 'Fecha de envío' })).toHaveCount(0);
       // El campo es de solo lectura (widget Text): se pinta como texto a
       // continuación de su etiqueta «Descripción del último fallo», no como

@@ -17,7 +17,7 @@ const MOTIVO = `Correo con copia oculta t073-${Date.now()}`;
 // Correo de referencia con el «en copia», el «en copia oculta», el asunto y el cuerpo del test.
 const CORREO = {
   centro: 'CIPFP Mislata',
-  dni: '86862719E',
+  dni: '95591733F',
   nombre: 'Alumno1',
   apellidos: 'CIPFP Mislata',
   para: 'alumno1@mislata.es',

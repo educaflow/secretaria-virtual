@@ -4,8 +4,6 @@ id: T-017
 ---
 
 <!-- ARTEFACTO GENERADO por /sdd-create-tests-e2e — NO editar a mano.
-     Snapshot NO VERIFICADO: este test es MANUAL y no se ha ejecutado nunca de forma desatendida.
-     Su .spec.ts lleva el tag @manual; se lanza con: E2E_MANUAL=1 npx playwright test --grep @manual --headed
      Fuente: .sdd/drafts/2026-09-22_16-01_justificacion-falta-profesorado-fechas/test-e2e-desc/t-017-el-tramitador-acepta-la-justificacion-y-el-estado-cerrado-sigue-mostrando-el-periodo.desc.md
      Iniciativa: 2026-09-22_16-01_justificacion-falta-profesorado-fechas
      Test: T-017  |  Origen ESC: —
@@ -19,7 +17,6 @@ id: T-017
 **Evento:** `RESOLVER` — botón «Resolver el expediente» (guarda `tipoResolucion=ACEPTAR`)
 **Hasta:** `RESOLUCION` / `ACEPTADO`
 **Tipo:** happy
-**Manual:** sí — llegar a `PENDIENTE_RESOLUCION` exige presentar con AutoFirma (T-016) —y que la jefatura de estudios verifique la solicitud— y resolver exige el certificado digital del director del centro instalado en el servidor; la carga de demo no trae ninguno de los dos.
 
 ## Estado inicial de la base de datos
 
@@ -38,7 +35,7 @@ Todos son del **mismo centro** (CIPFP Mislata), que es el del expediente: esta i
 
 Estado previo del que parten **todos** los tests: la carga de demo (`data.import.demo-data = true`) con sus centros, usuarios y perfiles, más el trámite «Justificación de falta del profesorado» publicado en el árbol de trámites del centro, bajo la categoría del profesorado. Ningún test puede presuponer más estado que este.
 
-La demo **no** carga ningún certificado digital, así que en `ENTRADA` / `PENDIENTE_PRESENTACION` la solicitud solo se puede firmar con AutoFirma en el equipo del profesor, y la resolución exige el certificado del director del centro instalado en el servidor. Los tests que atraviesan esos dos pasos van marcados `Manual: sí`.
+El servidor tiene instalados los certificados digitales de los DNI de los usuarios, así que en `ENTRADA` / `PENDIENTE_PRESENTACION` la solicitud la firma el propio servidor con el certificado del profesor, y la resolución la firma el servidor con el certificado del director del centro, sin intervención manual.
 
 #### Juego de datos válido — fase `ENTRADA`, estado `ENTRADA_DATOS`
 
@@ -73,7 +70,7 @@ El justificante es un **PDF pequeño** (menos de 1 MB), llamado `justificante.pd
 
 ## Pasos
 
-- **Given** existe un expediente de «Justificación de falta del profesorado» del centro CIPFP Mislata en `RESOLUCION` / `PENDIENTE_RESOLUCION`, presentado con el tipo de jornada faltada «Unas horas de un único día», «Fecha» 10/09/2026, «Hora de inicio» 09:00 y «Hora de fin» 11:00, y verificado como correcto por la jefatura de estudios (`jefeestudios1@mislata.es`, que lo abre por «Tramitación» → «Pendientes de mí», elige «La solicitud es correcta» y pulsa «Siguiente»); `director@mislata.es` (contraseña `demo1234`) ha iniciado sesión, lo abre por la lista «Tramitación» → «Pendientes de mí» y el centro tiene instalado el certificado digital de su director.
+- **Given** existe un expediente de «Justificación de falta del profesorado» del centro CIPFP Mislata en `RESOLUCION` / `PENDIENTE_RESOLUCION`, presentado (firmado por el servidor con el certificado del profesor) con el tipo de jornada faltada «Unas horas de un único día», «Fecha» 10/09/2026, «Hora de inicio» 09:00 y «Hora de fin» 11:00, y verificado como correcto por la jefatura de estudios (`jefeestudios1@mislata.es`, que lo abre por «Tramitación» → «Pendientes de mí», elige «La solicitud es correcta» y pulsa «Siguiente»); `director@mislata.es` (contraseña `demo1234`) ha iniciado sesión, lo abre por la lista «Tramitación» → «Pendientes de mí» y el servidor tiene instalado el certificado digital de su director.
 - **When** elige «Tipo resolución» «Resolver positivamente», pulsa «Resolver el expediente» y confirma el aviso de que no podrá deshacer la acción.
 - **Then** el expediente pasa a la fase `RESOLUCION`, estado `ACEPTADO`, que es un estado cerrado: deja de estar en «Tramitación» → «Pendientes de mí» y aparece en «Tramitación» → «Jefatura de estudios» → «Cerrados».
-- **And** la pantalla de `ACEPTADO` es la genérica de solo consulta: muestra el panel «Datos de la falta» en solo lectura con «Fecha» a 10/09/2026, «Hora de inicio» a 09:00 y «Hora de fin» a 11:00, sin «Fecha de fin»; muestra la resolución en PDF y el bloque «Resolución»; no ofrece ningún evento y su único botón es «Salir».
+- **And** la pantalla de `ACEPTADO` es la genérica de solo consulta: muestra el panel «Datos de la falta» en solo lectura con «Fecha» a 10/09/2026, «Hora de inicio» a 09:00 y «Hora de fin» a 11:00, sin «Fecha de fin»; muestra la resolución en PDF y el bloque «Resolución»; no hay ningún campo editable (salvo «Nueva nota» del panel de notas internas); no ofrece ningún evento y su único botón es «Salir».

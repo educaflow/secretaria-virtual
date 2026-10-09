@@ -69,5 +69,5 @@ Estado previo (datos maestros gestionados por otros subsistemas) del que parten 
 
 ## Resultado esperado
 
-- Si estaba «Fallido»: se ve «Reenviar», aparece «El reenvío del correo se ha puesto en marcha.» y, al volver a abrirlo, «Datos del envío» muestra reintentos «2» y «Enviado» (con fecha de envío) o «Fallido» (con la descripción del nuevo fallo).
+- Si estaba «Fallido»: se ve «Reenviar», aparece el aviso de que el reenvío se ha puesto en marcha y, al volver a abrirlo, «Datos del envío» muestra reintentos «2» y «Enviado» (con fecha de envío) o «Fallido» (con la descripción del nuevo fallo).
 - Si estaba «Enviado»: no se ve «Reenviar».

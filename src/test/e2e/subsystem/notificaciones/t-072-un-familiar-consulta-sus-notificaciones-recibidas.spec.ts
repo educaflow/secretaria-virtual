@@ -14,7 +14,7 @@ import { ensureLoggedOut, login, logout } from '../../_support/auth';
 // fila propia se identifica por tipo + destino + la fecha de envío leída en «Todas».
 const SUFIJO = `t072-${Date.now()}`;
 const MOTIVO = `Aviso de prueba de correo ${SUFIJO}`;
-const DEST = { centro: 'CIPFP Mislata', dni: '43145636M', nombre: 'Familiar1', apellidos: 'CIPFP Mislata' };
+const DEST = { centro: 'CIPFP Mislata', dni: '90923322K', nombre: 'Familiar1', apellidos: 'CIPFP Mislata' };
 const CORREO = { para: 'familiar1@mislata.es', asunto: 'Aviso a familias', cuerpo: 'La reunión será el lunes a las 10:00.' };
 
 // Columnas del grid «Todas las notificaciones», en orden: Estado, Tipo, Motivo,
@@ -68,7 +68,7 @@ test.describe('Notificaciones — Recibidas', () => {
     await login(page, 'admin', 'admin');
 
     // Paso 1: Dado que el administrador da de alta el correo de referencia con el
-    //         DNI «43145636M», el nombre «Familiar1», los apellidos «CIPFP Mislata»,
+    //         DNI «90923322K», el nombre «Familiar1», los apellidos «CIPFP Mislata»,
     //         el «para» «familiar1@mislata.es» y el asunto «Aviso a familias», y cierra sesión.
     await abrirTodas(page);
     await page.getByRole('button', { name: 'Nueva notificación' }).click();

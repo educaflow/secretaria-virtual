@@ -105,7 +105,12 @@ test.describe('Notificaciones — Del centro', () => {
     const envio = consulta.getByRole('region', { name: 'Datos del envío' });
     await expect(envio).toBeVisible();
     await expect(consulta.getByRole('textbox', { name: /^Motivo/ })).toHaveValue(MOTIVO);
-    await expect(envio.getByRole('radio', { name: estado })).toBeChecked();
+    // El estado es un enumerado de solo lectura: se pinta como combobox no
+    // editable, sin radios.
+    const comboEstado = envio.getByRole('combobox', { name: 'Estado' });
+    await expect(comboEstado).toHaveValue(estado);
+    await expect(comboEstado).not.toBeEditable();
+    await expect(envio.getByRole('radio')).toHaveCount(0);
 
     if (estado === 'Enviado') {
       // Resultado esperado: si estaba «Enviado», no se ve «Reenviar».
@@ -119,8 +124,9 @@ test.describe('Notificaciones — Del centro', () => {
 
       // Paso 3: Y si está «Fallido», pulsa «Reenviar» ...
       await reenviar.click();
-      // Resultado esperado: aparece «El reenvío del correo se ha puesto en marcha.».
-      await expect(page.getByText('El reenvío del correo se ha puesto en marcha.')).toBeVisible();
+      // Resultado esperado: aparece el aviso de que el reenvío se ha puesto en
+      // marcha (el texto es genérico, no nombra el canal).
+      await expect(page.getByText(/El reenvío .+ se ha puesto en marcha\./)).toBeVisible();
 
       // Cierra la ventana para volver a abrir el correo desde el listado.
       if (await consulta.isVisible()) {
@@ -140,7 +146,7 @@ test.describe('Notificaciones — Del centro', () => {
         try {
           await expect(datosEnvio).toBeVisible({ timeout: 10_000 });
           await expect(datosEnvio.getByRole('textbox', { name: 'Nº reintentos' })).toHaveValue('2', { timeout: 2_000 });
-          await expect(datosEnvio.getByRole('radio', { name: 'Pendiente' })).not.toBeChecked({ timeout: 2_000 });
+          await expect(datosEnvio.getByRole('combobox', { name: 'Estado' })).not.toHaveValue('Pendiente', { timeout: 2_000 });
         } catch (e) {
           await reabierto.getByRole('button', { name: 'Salir' }).click().catch(() => {});
           throw e;
@@ -152,9 +158,11 @@ test.describe('Notificaciones — Del centro', () => {
       const datosEnvio = reabierto.getByRole('region', { name: 'Datos del envío' });
       await expect(reabierto.getByRole('textbox', { name: /^Motivo/ })).toHaveValue(MOTIVO);
       await expect(datosEnvio.getByRole('textbox', { name: 'Nº reintentos' })).toHaveValue('2');
-      const enviado = datosEnvio.getByRole('radio', { name: 'Enviado' });
-      const fallido = datosEnvio.getByRole('radio', { name: 'Fallido' });
-      expect((await enviado.isChecked()) || (await fallido.isChecked())).toBe(true);
+      const comboEstadoFinal = datosEnvio.getByRole('combobox', { name: 'Estado' });
+      const estadoFinal = await comboEstadoFinal.inputValue();
+      if (estadoFinal !== 'Enviado') {
+        await expect(comboEstadoFinal).toHaveValue('Fallido');
+      }
       await reabierto.getByRole('button', { name: 'Salir' }).click();
       await expect(reabierto).toBeHidden();
     }

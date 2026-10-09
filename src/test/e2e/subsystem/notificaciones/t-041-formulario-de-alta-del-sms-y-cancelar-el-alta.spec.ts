@@ -66,15 +66,11 @@ test.describe('Notificaciones — Todas', () => {
     const datos = form.getByRole('region', { name: 'Datos del SMS' });
     await expect(datos).toBeVisible();
     await expect(datos.getByText('Tipo de notificación')).toBeVisible();
-    const tipoCorreo = datos.getByRole('radio', { name: 'Correo' });
-    const tipoSms = datos.getByRole('radio', { name: 'SMS' });
-    await expect(tipoSms).toBeChecked();
-    await expect(tipoCorreo).not.toBeChecked();
-    // Solo lectura: el radio de Axelor no expone aria-readonly, así que se comprueba
-    // por comportamiento: pulsar «Correo» no cambia el tipo elegido ni el formulario.
-    await tipoCorreo.click({ force: true });
-    await expect(tipoSms).toBeChecked();
-    await expect(tipoCorreo).not.toBeChecked();
+    // Solo lectura: el enumerado no editable se pinta como combobox (sin RadioSelect, VAR-6.7).
+    const tipoNotificacion = datos.getByRole('combobox', { name: 'Tipo de notificación' });
+    await expect(tipoNotificacion).toHaveValue('SMS');
+    await expect(tipoNotificacion).not.toBeEditable();
+    await expect(datos.getByRole('radio')).toHaveCount(0);
     await expect(form.getByRole('heading', { name: 'SMS', exact: true })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Datos del envío' })).toHaveCount(0);
     await expect(page.getByText('Datos del envío')).toHaveCount(0);

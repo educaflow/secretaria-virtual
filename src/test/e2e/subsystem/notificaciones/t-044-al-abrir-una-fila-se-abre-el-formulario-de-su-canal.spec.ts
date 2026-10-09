@@ -125,7 +125,11 @@ test.describe('Notificaciones — Todas', () => {
     const consultaCorreo = ventana(page, 'Correo');
     const datosCorreo = consultaCorreo.getByRole('region', { name: 'Datos del correo' });
     await expect(datosCorreo).toBeVisible();
-    await expect(datosCorreo.getByRole('radio', { name: 'Correo' })).toBeChecked();
+    // El tipo, de solo lectura, no lleva RadioSelect: se pinta como combobox.
+    const tipoCorreo = datosCorreo.getByRole('combobox', { name: 'Tipo de notificación' });
+    await expect(tipoCorreo).toHaveValue('Correo');
+    await expect(tipoCorreo).not.toBeEditable();
+    await expect(datosCorreo.getByRole('radio')).toHaveCount(0);
     // Solo lectura: no hay botón «Guardar» y los campos están deshabilitados.
     await expect(consultaCorreo.getByRole('button', { name: 'Guardar' })).toHaveCount(0);
     const motivoCorreo = datosCorreo.getByRole('textbox', { name: /^Motivo/ });
@@ -181,7 +185,10 @@ test.describe('Notificaciones — Todas', () => {
     const consultaSms = ventana(page, 'SMS');
     const datosSms = consultaSms.getByRole('region', { name: 'Datos del SMS' });
     await expect(datosSms).toBeVisible();
-    await expect(datosSms.getByRole('radio', { name: 'SMS' })).toBeChecked();
+    const tipoSms = datosSms.getByRole('combobox', { name: 'Tipo de notificación' });
+    await expect(tipoSms).toHaveValue('SMS');
+    await expect(tipoSms).not.toBeEditable();
+    await expect(datosSms.getByRole('radio')).toHaveCount(0);
     await expect(datosSms.getByRole('textbox', { name: /^Motivo/ })).toHaveValue(MOTIVO_SMS);
     // El teléfono, en solo lectura, se pinta como enlace «tel:» con el número
     // agrupado para leerlo; su destino es el valor guardado.
