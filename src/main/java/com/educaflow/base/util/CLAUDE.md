@@ -69,7 +69,8 @@ Clases de utilidad de **bajo nivel** del proyecto. Su objetivo es no repetir peq
 - `delete` — borra el `MetaFile` de forma segura (resolviendo el proxy de Hibernate).
 
 ### `NumeroTelefono` — número de teléfono parseado (clase de instancia inmutable, con libphonenumber)
-- `esMovilDeEspana` — `true` si el número es válido, es móvil y tiene el prefijo de España (+34); un texto no parseable (incluidos `null` y blancos) da `false`.
+- `esValidoDeEspana` — `true` si el número es válido y tiene el prefijo de España (+34), sea fijo o móvil; un texto no parseable (incluidos `null` y blancos) da `false`. Es lo que comprueba la regla `Phone`.
+- `esMovilDeEspana` — `true` si además es móvil; un texto no parseable da `false`. Es lo que se exige para enviar un SMS.
 - `enFormatoE164` — devuelve el número en formato E.164 (`+34XXXXXXXXX`); lanza `IllegalStateException` si no es un móvil de España.
 
 ### `ReflectionUtil` — reflexión

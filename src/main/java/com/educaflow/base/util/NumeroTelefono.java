@@ -43,6 +43,10 @@ public class NumeroTelefono {
         return numero != null && numero.getCountryCode() == PREFIJO_ESPANA;
     }
 
+    public boolean esValidoDeEspana() {
+        return esValido() && esDeEspana();
+    }
+
     public boolean esMovilDeEspana() {
         return esValido() && esMovil() && esDeEspana();
     }

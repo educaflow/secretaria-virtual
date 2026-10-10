@@ -22,6 +22,34 @@ class NumeroTelefonoTest {
         assertDoesNotThrow(() -> new NumeroTelefono(null));
     }
 
+    /*************************************** esValidoDeEspana ***************************************/
+
+    @Test
+    void esValidoDeEspana_movilEspanol_devuelveTrue() {
+        assertTrue(new NumeroTelefono("600111222").esValidoDeEspana());
+    }
+
+    @Test
+    void esValidoDeEspana_fijoEspanol_devuelveTrue() {
+        assertTrue(new NumeroTelefono("963000000").esValidoDeEspana());
+    }
+
+    @Test
+    void esValidoDeEspana_fijoFrancesValido_devuelveFalse() {
+        assertFalse(new NumeroTelefono("+33145678901").esValidoDeEspana());
+    }
+
+    @Test
+    void esValidoDeEspana_numeroIncompleto_devuelveFalse() {
+        assertFalse(new NumeroTelefono("96300").esValidoDeEspana());
+    }
+
+    @Test
+    void esValidoDeEspana_nuloOTextoNoParseable_devuelveFalseSinLanzar() {
+        assertFalse(assertDoesNotThrow(() -> new NumeroTelefono(null).esValidoDeEspana()));
+        assertFalse(assertDoesNotThrow(() -> new NumeroTelefono("no-es-un-telefono").esValidoDeEspana()));
+    }
+
     /*************************************** esMovilDeEspana ***************************************/
 
     @Test

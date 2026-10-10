@@ -13,9 +13,10 @@ import org.mockito.Mockito
 import org.mockito.quality.Strictness
 
 /**
- * Tests de [Phone]. Se comprueba qué valores acepta y cuáles rechaza, nunca el texto concreto del
- * mensaje: ese literal puede cambiar sin que cambie la regla. `I18n` se mockea porque sin contexto de
- * Axelor arrancado la traducción no está disponible.
+ * Tests de [Phone]. Se comprueba qué valores acepta y cuáles rechaza (delega en `NumeroTelefono`:
+ * pasan los teléfonos válidos de España, fijos o móviles), nunca el texto concreto del mensaje: ese
+ * literal puede cambiar sin que cambie la regla. `I18n` se mockea porque sin contexto de Axelor
+ * arrancado la traducción no está disponible.
  */
 class ContactRulesTest {
 
@@ -36,23 +37,28 @@ class ContactRulesTest {
     }
 
     @Test
-    fun phone_empiezaPorSeisSieteOchoONueve_loAcepta() {
+    fun phone_movilOFijoDeEspana_loAcepta() {
         val regla = Phone()
 
         assertNull(regla.validate("612345678", beanIrrelevante))
-        assertNull(regla.validate("712345678", beanIrrelevante))
-        assertNull(regla.validate("812345678", beanIrrelevante))
-        assertNull(regla.validate("912345678", beanIrrelevante))
+        assertNull(regla.validate("963000000", beanIrrelevante))
+        assertNull(regla.validate("+34612345678", beanIrrelevante))
+        assertNull(regla.validate("612 34 56 78", beanIrrelevante))
     }
 
     @Test
-    fun phone_empiezaPorOtroDigito_loRechaza() {
-        assertRechazado(Phone().validate("512345678", beanIrrelevante))
+    fun phone_telefonoDeOtroPais_loRechaza() {
+        assertRechazado(Phone().validate("+33612345678", beanIrrelevante))
     }
 
     @Test
     fun phone_longitudIncorrecta_loRechaza() {
         assertRechazado(Phone().validate("61234567", beanIrrelevante))
+    }
+
+    @Test
+    fun phone_textoNoParseable_loRechaza() {
+        assertRechazado(Phone().validate("no-es-un-telefono", beanIrrelevante))
     }
 
     @Test

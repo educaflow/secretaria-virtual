@@ -29,7 +29,7 @@
                     <panel name="datos-alumno" title="Datos del alumno/a" colSpan="12" showFrame="true">
 
                         <field name="nia"       colSpan="3" required="true" help="8 dígitos"/>
-                        <field name="telefono"  colSpan="3" required="true" help="9 dígitos, empezando por 6, 7, 8 o 9"/>
+                        <field name="telefono"  colSpan="3" />
 
 
                         <field name="direccion" colSpan="6" required="true" colOffset="6"/>

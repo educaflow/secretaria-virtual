@@ -88,7 +88,7 @@ Lo que suele tentar a escribir un predicado, y la genérica que ya lo hace:
 | `FileType(listOf("application/pdf", ...))` | MIME types admitidos de un `MetaFile` |
 | `FileMaxSize(n, SizeUnit.MB)` | Tamaño máximo de un `MetaFile` |
 | `FileName("^...$")` | Regex sobre el nombre de fichero de un `MetaFile` |
-| `Dni()` / `Nia()` / `Nuss()` / `Phone()` / `PostalCode()` / `Iban()` | Formato de identificadores españoles, teléfono, código postal e IBAN |
+| `Dni()` / `Nia()` / `Nuss()` / `Phone()` / `PostalCode()` / `Iban()` | Formato de identificadores españoles, teléfono (válido y de España, fijo o móvil, vía `NumeroTelefono`), código postal e IBAN |
 | `AlwaysFail("mensaje")` / `AlwaysPass()` | Dentro de una rama condicional: rechazar siempre con ese mensaje / aceptar siempre |
 | `ifValueIn(model::getCampo, listOf(...)) { +... }` *(DSL, paquete `...validation.dsl`)* | Reglas condicionales según el valor de otro campo; su negación es `ifValueNotIn` |
 | `Lambda(util::funcion, "mensaje")` | Rechaza el campo con el mensaje si la función estática de `<Code>Util` devuelve `false`; §3.1 |
